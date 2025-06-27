@@ -26,15 +26,19 @@ function App() {
   const [results, setResults] = useState([])
 
   const markWatched = async (m) => {
-    if (!session) return
-    const { error } = await supabase.from('movies_watched').insert({
-      user_id: session.user.id,
-      movie_id: m.id,
-      title: m.title,
-      poster: m.poster_path
-    })
-    if (error) console.error('Insert failed:', error.message)
+  if (!session) return;
+
+  const { error } = await supabase.from('movies_watched').insert({
+    user_id: session.user.id,
+    movie_id: m.id,
+    title: m.title,
+    poster: m.poster_path
+  });
+
+  if (error) console.error('Insert failed:', error.message);
+  else console.log('Watched saved');
   }
+
 
   // ─── Render unauthenticated screen ─────────────
   if (!session) {

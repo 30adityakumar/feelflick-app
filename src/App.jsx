@@ -4,21 +4,17 @@ import { supabase } from './supabaseClient'
 
 import Auth from './Auth'
 import Account from './Account'
-import Search from './components/Search.jsx'   // ← NEW
+import Search from './components/Search.jsx'   // TMDb search bar
 
 function App() {
-  /* ──────────────────────────────
-     Auth session handling
-  ────────────────────────────── */
+  // ─── Session logic ──────────────────────────────
   const [session, setSession] = useState(null)
 
   useEffect(() => {
-    // grab existing session on first load
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
     })
 
-    // listen for login / logout
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
     })
@@ -26,12 +22,9 @@ function App() {
     return () => data.subscription.unsubscribe()
   }, [])
 
-  /* ──────────────────────────────
-     Movie-search state
-  ────────────────────────────── */
+  // ─── Movie search logic ─────────────────────────
   const [results, setResults] = useState([])
 
-  /* save “Watched” row in Supabase */
   const markWatched = async (m) => {
     if (!session) return
     const { error } = await supabase.from('movies_watched').insert({
@@ -43,9 +36,7 @@ function App() {
     if (error) console.error('Insert failed:', error.message)
   }
 
-  /* ──────────────────────────────
-     Render
-  ────────────────────────────── */
+  // ─── Render unauthenticated screen ─────────────
   if (!session) {
     return (
       <div className="container" style={{ padding: '50px 0 100px 0' }}>
@@ -54,17 +45,17 @@ function App() {
     )
   }
 
+  // ─── Render authenticated screen ───────────────
   return (
     <div className="container" style={{ padding: '50px 0 100px 0' }}>
-      {/* user profile / sign-out component (from the starter) */}
       <Account key={session.user.id} session={session} />
 
-      {/* movie search bar */}
+      {/* Movie search bar */}
       <div className="mt-6">
         <Search onResults={setResults} />
       </div>
 
-      {/* results grid */}
+      {/* Results grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-6">
         {results.map((m) => (
           <div key={m.id} className="text-center">
@@ -78,8 +69,6 @@ function App() {
               className="rounded"
             />
             <p className="mt-2 text-sm">{m.title}</p>
-
-            {/* mark as watched */}
             <button
               onClick={() => markWatched(m)}
               className="block bg-green-600 text-white w-full mt-1 rounded"

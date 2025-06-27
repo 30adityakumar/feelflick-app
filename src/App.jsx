@@ -4,17 +4,21 @@ import { supabase } from './supabaseClient'
 
 import Auth from './Auth'
 import Account from './Account'
-import Search from './components/Search.jsx'   // ← new import
+import Search from './components/Search.jsx'   // ← NEW
 
 function App() {
+  /* ──────────────────────────────
+     Auth session handling
+  ────────────────────────────── */
   const [session, setSession] = useState(null)
-  const [results, setResults] = useState([])   // ← new state for TMDb hits
 
   useEffect(() => {
+    // grab existing session on first load
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
     })
 
+    // listen for login / logout
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
     })
@@ -22,18 +26,26 @@ function App() {
     return () => data.subscription.unsubscribe()
   }, [])
 
-  /* ---------- helper to save “Watched” rows ---------- */
+  /* ──────────────────────────────
+     Movie-search state
+  ────────────────────────────── */
+  const [results, setResults] = useState([])
+
+  /* save “Watched” row in Supabase */
   const markWatched = async (m) => {
+    if (!session) return
     const { error } = await supabase.from('movies_watched').insert({
       user_id: session.user.id,
       movie_id: m.id,
       title: m.title,
       poster: m.poster_path
     })
-    if (error) console.error(error)
+    if (error) console.error('Insert failed:', error.message)
   }
 
-  /* -------------- render ---------------- */
+  /* ──────────────────────────────
+     Render
+  ────────────────────────────── */
   if (!session) {
     return (
       <div className="container" style={{ padding: '50px 0 100px 0' }}>
@@ -44,14 +56,15 @@ function App() {
 
   return (
     <div className="container" style={{ padding: '50px 0 100px 0' }}>
+      {/* user profile / sign-out component (from the starter) */}
       <Account key={session.user.id} session={session} />
 
-      {/* ---- Movie Search bar ---- */}
+      {/* movie search bar */}
       <div className="mt-6">
         <Search onResults={setResults} />
       </div>
 
-      {/* ---- Results grid ---- */}
+      {/* results grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-6">
         {results.map((m) => (
           <div key={m.id} className="text-center">
@@ -66,12 +79,12 @@ function App() {
             />
             <p className="mt-2 text-sm">{m.title}</p>
 
-            {/* Watched button */}
+            {/* mark as watched */}
             <button
               onClick={() => markWatched(m)}
-              className="block bg-green-600 text-white w-full mt-1"
+              className="block bg-green-600 text-white w-full mt-1 rounded"
             >
-              Watched
+              Watched ✓
             </button>
           </div>
         ))}

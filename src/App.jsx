@@ -45,6 +45,7 @@ function App() {
 
   // Save movie to watched list
   const markWatched = async (m) => {
+    console.log("Watched button clicked:", m.title);
     if (!session) return;
 
     const { error } = await supabase.from('movies_watched').insert({

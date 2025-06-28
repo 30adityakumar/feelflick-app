@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import './App.css'
 import { supabase } from './supabaseClient'
 
-import Auth from './Auth'
+import AuthEmailPassword from './AuthEmailPassword'
+
 import Account from './Account'
 import Search from './components/Search.jsx'
 
@@ -73,7 +74,7 @@ function App() {
   if (!session) {
     return (
       <div className="container" style={{ padding: '50px 0 100px 0' }}>
-        <Auth />
+        <AuthEmailPassword />
       </div>
     )
   }

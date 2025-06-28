@@ -83,13 +83,16 @@ function App() {
   return (
     <div className="container" style={{ padding: '50px 0 100px 0' }}>
       <header className="flex items-center gap-3 px-6 py-4 bg-black/90 text-white shadow-md">
-        <img
-          src="/logo.png"
-          alt="FeelFlick Logo"
-          className="h-10 w-auto max-w-[40px] object-contain"
-        />
+        <div className="h-10 w-10 shrink-0">
+          <img
+            src="/logo.png"
+            alt="FeelFlick Logo"
+            className="h-full w-full object-contain"
+          />
+        </div>
         <h1 className="text-2xl font-semibold tracking-wide">FeelFlick</h1>
       </header>
+
 
       <Account key={session.user.id} session={session} />
 

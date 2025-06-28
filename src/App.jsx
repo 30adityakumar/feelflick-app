@@ -86,7 +86,7 @@ function App() {
         <img
           src="/logo.png"
           alt="FeelFlick Logo"
-          className="h-10 w-10 rounded"
+          className="h-10 w-auto max-w-[40px] object-contain"
         />
         <h1 className="text-2xl font-semibold tracking-wide">FeelFlick</h1>
       </header>

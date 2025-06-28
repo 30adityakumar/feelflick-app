@@ -4,7 +4,7 @@ import { supabase } from './supabaseClient'
 
 import Auth from './Auth'
 import Account from './Account'
-import Search from './components/Search.jsx'   // TMDb search bar
+import Search from './components/Search.jsx'
 
 function App() {
   // ─── Session logic ──────────────────────────────
@@ -25,20 +25,48 @@ function App() {
   // ─── Movie search logic ─────────────────────────
   const [results, setResults] = useState([])
 
+  // ─── Watched history logic ──────────────────────
+  const [watched, setWatched] = useState([])
+
+  // Fetch watched movies on login
+  useEffect(() => {
+    if (session?.user?.id) {
+      supabase
+        .from('movies_watched')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .order('id', { ascending: false })
+        .then(({ data, error }) => {
+          if (error) console.error('Fetch error:', error.message)
+          else setWatched(data)
+        })
+    }
+  }, [session])
+
+  // Save movie to watched list
   const markWatched = async (m) => {
-  if (!session) return;
+    if (!session) return;
 
-  const { error } = await supabase.from('movies_watched').insert({
-    user_id: session.user.id,
-    movie_id: m.id,
-    title: m.title,
-    poster: m.poster_path
-  });
+    const { error } = await supabase.from('movies_watched').insert({
+      user_id: session.user.id,
+      movie_id: m.id,
+      title: m.title,
+      poster: m.poster_path
+    });
 
-  if (error) console.error('Insert failed:', error.message);
-  else console.log('Watched saved');
+    if (error) {
+      console.error('Insert failed:', error.message);
+    } else {
+      // Re-fetch after insert
+      const { data } = await supabase
+        .from('movies_watched')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .order('id', { ascending: false })
+      setWatched(data)
+      console.log('Watched saved and history updated');
+    }
   }
-
 
   // ─── Render unauthenticated screen ─────────────
   if (!session) {
@@ -79,6 +107,26 @@ function App() {
             >
               Watched ✓
             </button>
+          </div>
+        ))}
+      </div>
+
+      {/* Watched History */}
+      <h2 className="text-lg font-bold mt-10 mb-2">🎥 Watched History</h2>
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        {watched.map((m) => (
+          <div key={m.movie_id} className="text-center">
+            <img
+              src={
+                m.poster
+                  ? `https://image.tmdb.org/t/p/w185${m.poster}`
+                  : 'https://via.placeholder.com/185x278?text=No+Image'
+              }
+              alt={m.title}
+              className="rounded"
+            />
+            <p className="mt-2 text-sm">{m.title}</p>
           </div>
         ))}
       </div>

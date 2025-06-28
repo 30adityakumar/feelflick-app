@@ -83,6 +83,16 @@ function App() {
   return (
     <div className="container" style={{ padding: '50px 0 100px 0' }}>
       <Account key={session.user.id} session={session} />
+      <button
+        onClick={async () => {
+          await supabase.auth.signOut()
+          setSession(null)
+        }}
+        className="mt-4 px-4 py-2 bg-red-600 text-white rounded"
+      >
+        Log Out
+      </button>
+
 
       {/* Movie search bar */}
       <div className="mt-6">

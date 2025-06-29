@@ -110,61 +110,58 @@ function App() {
           <Account key={session.user.id} session={session} />
         </div>
 
-        {/* Search Bar */}
-        <div className="mt-8">
-          <Search onResults={setResults} />
+        {/* Movie search bar */}
+        <div className="mt-8 mb-6 flex justify-center">
+          <div className="w-full max-w-xl bg-white/10 p-4 rounded-lg shadow-md">
+            <Search onResults={setResults} />
+          </div>
         </div>
 
-        {/* Search Results */}
-        {results.length > 0 && (
-          <>
-            <h2 className="text-xl font-semibold mt-10 mb-4">Search Results</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {results.map((m) => (
-                <div key={m.id} className="text-center">
-                  <img
-                    src={
-                      m.poster_path
-                        ? `https://image.tmdb.org/t/p/w185${m.poster_path}`
-                        : 'https://via.placeholder.com/185x278?text=No+Image'
-                    }
-                    alt={m.title}
-                    className="rounded shadow-md"
-                  />
-                  <p className="mt-2 text-sm">{m.title}</p>
-                  <button
-                    onClick={() => markWatched(m)}
-                    className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 mt-1 rounded w-full"
-                  >
-                    Watched ✓
-                  </button>
-                </div>
-              ))}
+
+        {/* Results grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 mt-6">
+          {results.map((m) => (
+            <div key={m.id} className="bg-white/10 p-2 rounded-lg shadow hover:scale-[1.02] transition-transform text-center">
+              <img
+                src={
+                  m.poster_path
+                    ? `https://image.tmdb.org/t/p/w185${m.poster_path}`
+                    : 'https://via.placeholder.com/185x278?text=No+Image'
+                }
+                alt={m.title}
+                className="rounded mb-2 mx-auto"
+              />
+              <p className="text-sm font-medium text-white">{m.title}</p>
+              <button
+                onClick={() => markWatched(m)}
+                className="mt-2 w-full bg-green-600 text-white py-1 rounded hover:bg-green-700"
+              >
+                Watched ✓
+              </button>
             </div>
-          </>
-        )}
+          ))}
+        </div>
+
 
         {/* Watched History */}
-        <h2 className="text-xl font-semibold mt-12 mb-4">🎥 Watched History</h2>
-        {watched.length === 0 ? (
-          <p className="text-gray-400">No watched movies yet.</p>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {watched.map((m) => (
-              <div key={m.movie_id} className="text-center">
-                <img
-                  src={
-                    m.poster
-                      ? `https://image.tmdb.org/t/p/w185${m.poster}`
-                      : 'https://via.placeholder.com/185x278?text=No+Image'
-                  }
-                  alt={m.title}
-                  className="rounded shadow-md"
-                />
-                <p className="mt-2 text-sm">{m.title}</p>
-              </div>
-            ))}
-          </div>
+        <h2 className="text-lg font-bold mt-10 mb-4 text-white">🎬 Watched History</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+          {watched.map((m) => (
+            <div key={m.movie_id} className="bg-white/10 p-2 rounded-lg shadow text-center">
+              <img
+                src={
+                  m.poster
+                    ? `https://image.tmdb.org/t/p/w185${m.poster}`
+                    : 'https://via.placeholder.com/185x278?text=No+Image'
+                }
+                alt={m.title}
+                className="rounded mb-2 mx-auto"
+              />
+              <p className="text-sm font-medium text-white">{m.title}</p>
+            </div>
+          ))}
+        </div>
+
         )}
       </main>
     </div>

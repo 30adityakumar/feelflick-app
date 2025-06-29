@@ -71,23 +71,36 @@ function App() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white px-4 pb-10">
-      <header className="flex items-center gap-4 px-6 py-4 bg-gradient-to-r from-[#083a6d] via-[#392c4f] to-[#e14e27] text-white shadow-md">
-        <img
-          src="/logo.png"
-          alt="FeelFlick Logo"
-          style={{
-            height: '48px',
-            width: '48px',
-            objectFit: 'contain',
-            borderRadius: '8px'
-          }}
-        />
-
-        <div>
-          <h1 className="text-2xl font-bold leading-tight">FeelFlick</h1>
-          <p className="text-sm text-white opacity-80 -mt-1">Movies that match your mood.</p>
+      <header
+        className="px-4 py-6 shadow-md text-white"
+        style={{
+          background: 'linear-gradient(to right, #002b57, #ff5e3a)',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+          backdropFilter: 'blur(6px)',
+          WebkitBackdropFilter: 'blur(6px)',
+        }}
+      >
+        <div className="flex items-center gap-4">
+          <img
+            src="/logo.png"
+            alt="FeelFlick Logo"
+            style={{
+              height: '40px',
+              width: '40px',
+              objectFit: 'contain',
+              display: 'inline-block',
+              borderRadius: '8px'
+            }}
+          />
+          <div>
+            <h1 className="text-2xl font-bold leading-tight">FeelFlick</h1>
+            <p className="text-sm text-white opacity-80 -mt-1" style={{ color: '#ffd6cb' }}>
+              Movies that match your mood.
+            </p>
+          </div>
         </div>
       </header>
+
 
       <main className="max-w-5xl mx-auto">
         {/* User Info + Signout */}

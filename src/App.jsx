@@ -85,21 +85,23 @@ function App() {
             src="/logo.png"
             alt="FeelFlick Logo"
             style={{
-              height: '40px',
-              width: '40px',
+              height: '44px',
+              width: '44px',
               objectFit: 'contain',
               display: 'inline-block',
               borderRadius: '8px'
             }}
           />
-          <div className="flex flex-col justify-center leading-snug" style={{ marginTop: '-2px' }}>
-            <h1 className="text-2xl font-bold mb-[2px]">FeelFlick</h1>
-            <p className="text-sm" style={{ color: '#ffd6cb', lineHeight: '1.1' }}>
+          {/* Text block stacked vertically */}
+          <div className="flex flex-col justify-center">
+            <h1 className="text-2xl font-bold mb-1 leading-snug">FeelFlick</h1>
+            <p className="text-sm" style={{ color: '#ffd6cb', lineHeight: '1.25' }}>
               Movies that match your mood.
             </p>
           </div>
         </div>
       </header>
+
 
 
       <main className="max-w-5xl mx-auto">

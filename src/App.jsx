@@ -92,9 +92,9 @@ function App() {
               borderRadius: '8px'
             }}
           />
-          <div className="leading-[1.2] mt-1">
-            <h1 className="text-2xl font-bold mb-0.5">FeelFlick</h1>
-            <p className="text-sm" style={{ color: '#ffd6cb', marginTop: '-2px' }}>
+          <div className="flex flex-col justify-center leading-snug" style={{ marginTop: '-2px' }}>
+            <h1 className="text-2xl font-bold mb-[2px]">FeelFlick</h1>
+            <p className="text-sm" style={{ color: '#ffd6cb', lineHeight: '1.1' }}>
               Movies that match your mood.
             </p>
           </div>

@@ -20,19 +20,24 @@ export default function MovieCard({
     .join(', ')
 
   return (
-    <div className="bg-white/10 p-3 rounded-lg shadow text-center hover:scale-[1.02] transition-transform flex flex-col h-full max-w-[185px] mx-auto">
+    <div className="bg-white/10 p-2 rounded-lg shadow text-center hover:scale-[1.02] transition-transform flex flex-col h-full w-full max-w-[200px] mx-auto">
       <img
         src={poster}
         alt={movie.title}
-        className="rounded mb-2 mx-auto w-full h-auto"
-        style={{ maxHeight: '278px' }}
+        className="rounded mb-2 mx-auto object-cover w-full h-[278px]"
       />
 
-      <div className="flex-1 flex flex-col justify-between">
-        <div>
-          <p className="text-sm font-semibold text-white leading-tight mb-1">{movie.title}</p>
-          <p className="text-xs text-gray-300 mb-1">{genres || '—'}</p>
-          <p className="text-xs text-gray-400">{year} • ⭐ {score}</p>
+      <div className="flex-1 flex flex-col justify-between text-white">
+        <div className="px-1">
+          <p className="text-sm font-semibold truncate" title={movie.title}>
+            {movie.title}
+          </p>
+          <p className="text-xs text-gray-300 truncate" title={genres}>
+            {genres || '—'}
+          </p>
+          <p className="text-xs text-gray-400">
+            {year} • ⭐ {score}
+          </p>
         </div>
 
         {showWatchedButton ? (

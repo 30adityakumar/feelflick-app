@@ -1,6 +1,6 @@
 import MovieCard from './MovieCard'
 
-export default function ResultsGrid ({ results, genreMap, onMarkWatched }) {
+export default function ResultsGrid ({ results, genreMap, onMarkWatched, watchedIds }) {
   if (results.length === 0) return null
 
   return (
@@ -12,7 +12,7 @@ export default function ResultsGrid ({ results, genreMap, onMarkWatched }) {
             key={movie.id}
             movie={movie}
             genreMap={genreMap}
-            showWatchedButton={!watchedIds.has(movie.id)}
+            showWatchedButton={!watchedIds?.has(movie.id)}
             onMarkWatched={onMarkWatched}
           />
         ))}

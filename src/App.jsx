@@ -156,11 +156,7 @@ useEffect(() => {
               />
               <p className="text-sm font-medium text-white">{m.title}</p>
               <p className="text-xs text-gray-300">
-                {m.genre_ids
-                .map((id) => genreMap[id])
-                .filter(Boolean)
-                .slice(0, 3)
-                .join(', ')} · {m.release_date?.slice(0, 4) || '—'} · ⭐ {m.vote_average?.toFixed(1) || '–'}
+                {m.release_date?.slice(0, 4) || '—'} · ⭐ {m.vote_average?.toFixed(1) || '–'}
               </p>
               <button
                 onClick={() => markWatched(m)}
@@ -189,11 +185,7 @@ useEffect(() => {
               />
               <p className="mt-2 text-sm font-medium">{m.title}</p>
               <p className="text-xs text-gray-400">
-                {m.genre_ids
-                .map((id) => genreMap[id])
-                .filter(Boolean)
-                .slice(0, 3)
-                .join(', ')} • {m.release_date ? new Date(m.release_date).getFullYear() : '—'} • ⭐ {m.vote_average?.toFixed(1) ?? 'N/A'}
+                {m.release_date ? new Date(m.release_date).getFullYear() : '—'} • ⭐ {m.vote_average?.toFixed(1) ?? 'N/A'}
               </p>
             </div>
           ))}

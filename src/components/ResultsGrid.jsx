@@ -6,30 +6,29 @@ export default function ResultsGrid({
   onMarkWatched,
   watchedIds
 }) {
-  if (!results.length) return null
+  if (!results.length) return null;
 
   return (
     <>
       <h2 className="text-xl font-semibold mb-4 text-white">🔍 Search Results</h2>
-
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
-          gap: '2rem',
-          justifyItems: 'center'
+          gridTemplateColumns: 'repeat(5, 150px)',
+          gap: '1.5rem',
+          justifyContent: 'center'
         }}
       >
-        {results.map(movie => (
+        {results.map((m) => (
           <MovieCard
-            key={movie.id}
-            movie={movie}
+            key={m.id}
+            movie={m}
             genreMap={genreMap}
-            showWatchedButton={!watchedIds.has(movie.id)}
+            showWatchedButton={!watchedIds.has(m.id)}
             onMarkWatched={onMarkWatched}
           />
         ))}
       </div>
     </>
-  )
+  );
 }

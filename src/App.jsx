@@ -85,11 +85,11 @@ function App() {
           src="/logo.png"
           alt="FeelFlick Logo"
           style={{
-            height: '44px',
-            width: '44px',
+            height: '36px',
+            width: '36px',
             objectFit: 'contain',
             display: 'inline-block',
-            borderRadius: '8px'
+            borderRadius: '6px'
           }}
         />
 
@@ -97,7 +97,7 @@ function App() {
           <h1 style={{ fontSize: '2rem', fontWeight: 800, lineHeight: '1.1', marginBottom: '0.1rem' }}>
             FeelFlick
           </h1>
-          <p style={{ fontSize: '0.8rem', color: '#ffd6cb', margin: 0 }}>
+          <p style={{ fontSize: '0.6rem', color: '#ffd6cb', margin: 0 }}>
             Movies that match your mood.
           </p>
         </div>

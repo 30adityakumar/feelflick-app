@@ -10,26 +10,6 @@ function App() {
   const [session, setSession] = useState(null)
   const [results, setResults] = useState([])
   const [watched, setWatched] = useState([])
-  
-  const [genreMap, setGenreMap] = useState({})
-
-useEffect(() => {
-  // Replace VITE_TMDB_KEY with whatever env var you’re using
-  fetch(
-    `https://api.themoviedb.org/3/genre/movie/list?api_key=${import.meta.env.56e20962522bccd1990f31f2c791d8d1}&language=en-US`
-  )
-    .then((res) => res.json())
-    .then((data) => {
-      const map = {}
-      data.genres.forEach((g) => {
-        map[g.id] = g.name
-      })
-      setGenreMap(map)
-    })
-    .catch(console.error)
-}, [])
-
-
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -67,8 +47,7 @@ useEffect(() => {
       title: m.title,
       poster: m.poster_path,
       release_date: m.release_date ?? null,
-      vote_average: m.vote_average ?? null,
-      genre_ids: m.genre_ids
+      vote_average: m.vote_average ?? null
     })
 
     if (error) {

@@ -71,8 +71,16 @@ function App() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white px-4 pb-10">
-      <header className="px-4 py-6 bg-zinc-900 shadow-md text-white">
-        <div className="flex items-center gap-3">
+      <header
+        className="px-4 py-6 shadow-md text-white"
+        style={{
+          background: 'linear-gradient(to right, #002b57, #ff5e3a)',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+          backdropFilter: 'blur(6px)',
+          WebkitBackdropFilter: 'blur(6px)',
+        }}
+      >
+        <div className="flex items-center gap-4">
           <img
             src="/logo.png"
             alt="FeelFlick Logo"
@@ -85,13 +93,14 @@ function App() {
           />
           <div>
             <h1 className="text-2xl font-semibold">FeelFlick</h1>
-            <p className="text-sm text-gray-400 -mt-1">
-              Track what you watch. Feel what you feel.
+            <p className="text-sm" style={{ color: '#ffd6cb' }}>
+              Movies that match your mood.
             </p>
           </div>
         </div>
       </header>
-      
+
+
       <main className="max-w-5xl mx-auto">
         {/* User Info + Signout */}
         <div className="flex flex-col sm:flex-row justify-between items-center mt-6 gap-4">

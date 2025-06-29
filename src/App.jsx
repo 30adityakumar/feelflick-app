@@ -75,8 +75,14 @@ function App() {
         <img
           src="/logo.png"
           alt="FeelFlick Logo"
-          className="h-10 w-10 object-contain"
+          style={{
+            height: '40px',
+            width: '40px',
+            objectFit: 'contain',
+            display: 'inline-block'
+          }}
         />
+
         <h1 className="text-2xl font-semibold">FeelFlick</h1>
       </header>
 

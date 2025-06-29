@@ -1,18 +1,30 @@
 import MovieCard from './MovieCard'
 
-export default function ResultsGrid ({ results, genreMap, onMarkWatched, watchedIds }) {
-  if (results.length === 0) return null
+export default function ResultsGrid({
+  results,
+  genreMap,
+  onMarkWatched,
+  watchedIds
+}) {
+  if (!results.length) return null
 
   return (
     <>
       <h2 className="text-xl font-semibold mb-4 text-white">🔍 Search Results</h2>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+          gap: '1rem'
+        }}
+      >
         {results.map(movie => (
           <MovieCard
             key={movie.id}
             movie={movie}
             genreMap={genreMap}
-            showWatchedButton={!watchedIds?.has(movie.id)}
+            showWatchedButton={!watchedIds.has(movie.id)}
             onMarkWatched={onMarkWatched}
           />
         ))}

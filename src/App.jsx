@@ -61,8 +61,6 @@ function App() {
     console.log("Watched button clicked:", m.title)
     if (!session) return
 
-    const genreArray = Array.isArray(m.genre_ids) ? m.genre_ids : []
-
     const { error } = await supabase.from('movies_watched').insert({
       user_id: session.user.id,
       movie_id: m.id,
@@ -70,20 +68,19 @@ function App() {
       poster: m.poster_path,
       release_date: m.release_date ?? null,
       vote_average: m.vote_average ?? null,
-      genre_ids: genreArray
+      genre_ids: m.genre_ids ?? []            // ← store genres
     })
 
     if (error) {
       console.error('Insert failed:', error.message)
     } else {
-      console.log('✅ Movie added to watch history')
-      // Refresh
       const { data } = await supabase
         .from('movies_watched')
         .select('*')
         .eq('user_id', session.user.id)
         .order('id', { ascending: false })
       setWatched(data)
+      console.log('Watched saved and history updated')
     }
   }
 

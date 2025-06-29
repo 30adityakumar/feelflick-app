@@ -71,36 +71,41 @@ function App() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white px-4 pb-10">
-      <header
-        className="px-4 py-6 shadow-md text-white"
-        style={{
-          background: 'linear-gradient(to right, #002b57, #ff5e3a)',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-          backdropFilter: 'blur(6px)',
-          WebkitBackdropFilter: 'blur(6px)',
-        }}
-      >
-        <div className="flex items-center gap-4">
-          <img
-            src="/logo.png"
-            alt="FeelFlick Logo"
-            style={{
-              height: '44px',
-              width: '44px',
-              objectFit: 'contain',
-              display: 'inline-block',
-              borderRadius: '8px'
-            }}
-          />
-          {/* Text block stacked vertically */}
-          <div className="flex flex-col justify-center">
-            <h1 className="text-2xl font-bold mb-1 leading-snug">FeelFlick</h1>
-            <p className="text-sm" style={{ color: '#ffd6cb', lineHeight: '1.25' }}>
-              Movies that match your mood.
-            </p>
-          </div>
+    <header
+      className="px-4 py-6 shadow-md text-white"
+      style={{
+        background: 'linear-gradient(to right, #002b57, #ff5e3a)',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+        backdropFilter: 'blur(6px)',
+        WebkitBackdropFilter: 'blur(6px)',
+      }}
+    >
+      <div className="flex items-center gap-4">
+        <img
+          src="/logo.png"
+          alt="FeelFlick Logo"
+          style={{
+            height: '44px',
+            width: '44px',
+            objectFit: 'contain',
+            display: 'inline-block',
+            borderRadius: '8px'
+          }}
+        />
+
+        {/* force vertical stack with regular CSS */}
+        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.2rem', lineHeight: '1.2' }}>
+            FeelFlick
+          </h1>
+          <p style={{ fontSize: '0.9rem', color: '#ffd6cb', margin: 0, lineHeight: '1.3' }}>
+            Movies that match your mood.
+          </p>
         </div>
-      </header>
+      </div>
+    </header>
+
+
 
 
 

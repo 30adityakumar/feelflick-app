@@ -45,7 +45,9 @@ function App() {
       user_id: session.user.id,
       movie_id: m.id,
       title: m.title,
-      poster: m.poster_path
+      poster: m.poster_path,
+      release_date: m.release_date ?? null,
+      vote_average: m.vote_average ?? null
     })
 
     if (error) {
@@ -132,6 +134,9 @@ function App() {
                 className="rounded mb-2 mx-auto"
               />
               <p className="text-sm font-medium text-white">{m.title}</p>
+              <p className="text-xs text-gray-300">
+                {m.release_date?.slice(0, 4) || '—'} · ⭐ {m.vote_average?.toFixed(1) || '–'}
+              </p>
               <button
                 onClick={() => markWatched(m)}
                 className="mt-2 w-full bg-green-600 text-white py-1 rounded hover:bg-green-700"
@@ -157,7 +162,10 @@ function App() {
                 alt={m.title}
                 className="rounded mb-2 mx-auto"
               />
-              <p className="text-sm font-medium text-white">{m.title}</p>
+              <p className="mt-2 text-sm font-medium">{m.title}</p>
+              <p className="text-xs text-gray-400">
+                {m.release_date ? new Date(m.release_date).getFullYear() : '—'} • ⭐ {m.vote_average?.toFixed(1) ?? 'N/A'}
+              </p>
             </div>
           ))}
         </div>

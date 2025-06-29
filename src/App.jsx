@@ -82,17 +82,14 @@ function App() {
   // ─── Render authenticated screen ───────────────
   return (
     <div className="container" style={{ padding: '50px 0 100px 0' }}>
-      <header className="flex items-center gap-3 px-6 py-4 bg-black/90 text-white shadow-md">
-        <div className="h-10 w-10 shrink-0">
-          <img
-            src="/logo.png"
-            alt="FeelFlick Logo"
-            className="h-full w-full object-contain"
-          />
-        </div>
-        <h1 className="text-2xl font-semibold tracking-wide">FeelFlick</h1>
+      <header className="flex items-center gap-4 px-6 py-4 bg-black text-white shadow">
+        <img
+          src="/logo.png"
+          alt="FeelFlick Logo"
+          style={{ height: '40px', width: '40px', objectFit: 'contain' }}
+        />
+        <h1 className="text-xl font-semibold">FeelFlick</h1>
       </header>
-
 
       <Account key={session.user.id} session={session} />
 

@@ -152,7 +152,7 @@ function App() {
         <h2 className="text-lg font-bold mt-10 mb-4 text-white">🎬 Watched History</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
           {watched.map((m) => (
-            <div key={m.movie_id} className="bg-white/10 p-2 rounded-lg shadow text-center">
+            <div key={m.movie_id} className="text-center p-2 rounded-lg shadow-md bg-zinc-800">
               <img
                 src={
                   m.poster

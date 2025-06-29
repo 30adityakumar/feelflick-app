@@ -15,8 +15,9 @@ export default function ResultsGrid({
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-          gap: '1rem'
+          gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+          gap: '2rem',
+          justifyItems: 'center'
         }}
       >
         {results.map(movie => (

@@ -93,21 +93,16 @@ function App() {
           }}
         />
 
-        {/* force vertical stack with regular CSS */}
         <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.2rem', lineHeight: '1.2' }}>
+          <h1 style={{ fontSize: '2rem', fontWeight: 800, lineHeight: '1.1', marginBottom: '0.1rem' }}>
             FeelFlick
           </h1>
-          <p style={{ fontSize: '0.9rem', color: '#ffd6cb', margin: 0, lineHeight: '1.3' }}>
+          <p style={{ fontSize: '0.8rem', color: '#ffd6cb', margin: 0 }}>
             Movies that match your mood.
           </p>
         </div>
       </div>
     </header>
-
-
-
-
 
       <main className="max-w-5xl mx-auto">
         {/* User Info + Signout */}

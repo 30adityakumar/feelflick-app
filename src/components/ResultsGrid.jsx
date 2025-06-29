@@ -12,7 +12,7 @@ export default function ResultsGrid ({ results, genreMap, onMarkWatched }) {
             key={movie.id}
             movie={movie}
             genreMap={genreMap}
-            showWatchedButton
+            showWatchedButton={!watchedIds.has(movie.id)}
             onMarkWatched={onMarkWatched}
           />
         ))}

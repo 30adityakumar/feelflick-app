@@ -10,7 +10,6 @@ import ResultsGrid from './components/ResultsGrid'
 import WatchedHistory from './components/WatchedHistory'
 
 export default function App () {
-  /* ── Auth session ─────────────────────────────────────────── */
   const [session, setSession] = useState(null)
 
   useEffect(() => {
@@ -19,12 +18,12 @@ export default function App () {
     return () => data.subscription.unsubscribe()
   }, [])
 
-  /* ── State: search results, watched list, genre map ───────── */
-  const [results,  setResults]  = useState([])
-  const [watched,  setWatched]  = useState([])
+  const [results, setResults] = useState([])
+  const [watched, setWatched] = useState([])
   const [genreMap, setGenreMap] = useState({})
 
-  /* ── Fetch TMDb genre lookup once ─────────────────────────── */
+  const watchedIds = new Set(watched.map(m => m.movie_id)) // ← used to disable button
+
   useEffect(() => {
     fetch(
       `https://api.themoviedb.org/3/genre/movie/list?api_key=${import.meta.env.VITE_TMDB_API_KEY}&language=en-US`
@@ -36,7 +35,6 @@ export default function App () {
       .catch(console.error)
   }, [])
 
-  /* ── Pull watched history for the user ────────────────────── */
   useEffect(() => {
     if (!session?.user?.id) return
     supabase
@@ -50,9 +48,9 @@ export default function App () {
       })
   }, [session])
 
-  /* ── Mark movie as watched & refresh list ─────────────────── */
   const markWatched = async (movie) => {
-    if (!session) return
+    if (!session || watchedIds.has(movie.id)) return
+
     const { error } = await supabase.from('movies_watched').insert({
       user_id:      session.user.id,
       movie_id:     movie.id,
@@ -62,8 +60,12 @@ export default function App () {
       vote_average: movie.vote_average ?? null,
       genre_ids:    movie.genre_ids ?? []
     })
-    if (error) return console.error('Insert failed:', error.message)
-    // re-query list (keep it simple for now)
+
+    if (error && error.code !== '23505') {
+      return console.error('Insert failed:', error.message)
+    }
+
+    // re-fetch watched list (if insert succeeded or already existed)
     const { data } = await supabase
       .from('movies_watched')
       .select('*')
@@ -72,7 +74,6 @@ export default function App () {
     setWatched(data)
   }
 
-  /* ── Render unauthenticated view ──────────────────────────── */
   if (!session) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-zinc-950 text-white px-4">
@@ -81,7 +82,6 @@ export default function App () {
     )
   }
 
-  /* ── Render authenticated app ─────────────────────────────── */
   return (
     <div className="min-h-screen bg-zinc-950 text-white px-4 pb-10">
       <Header />
@@ -98,6 +98,7 @@ export default function App () {
         results={results}
         genreMap={genreMap}
         onMarkWatched={markWatched}
+        watchedIds={watchedIds}  // ← pass to ResultsGrid
       />
 
       <WatchedHistory

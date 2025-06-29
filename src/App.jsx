@@ -10,6 +10,26 @@ function App() {
   const [session, setSession] = useState(null)
   const [results, setResults] = useState([])
   const [watched, setWatched] = useState([])
+  
+  const [genreMap, setGenreMap] = useState({})
+
+useEffect(() => {
+  // Replace VITE_TMDB_KEY with whatever env var you’re using
+  fetch(
+    `https://api.themoviedb.org/3/genre/movie/list?api_key=${import.meta.env.56e20962522bccd1990f31f2c791d8d1}&language=en-US`
+  )
+    .then((res) => res.json())
+    .then((data) => {
+      const map = {}
+      data.genres.forEach((g) => {
+        map[g.id] = g.name
+      })
+      setGenreMap(map)
+    })
+    .catch(console.error)
+}, [])
+
+
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -47,7 +67,8 @@ function App() {
       title: m.title,
       poster: m.poster_path,
       release_date: m.release_date ?? null,
-      vote_average: m.vote_average ?? null
+      vote_average: m.vote_average ?? null,
+      genre_ids: m.genre_ids
     })
 
     if (error) {
@@ -135,7 +156,11 @@ function App() {
               />
               <p className="text-sm font-medium text-white">{m.title}</p>
               <p className="text-xs text-gray-300">
-                {m.release_date?.slice(0, 4) || '—'} · ⭐ {m.vote_average?.toFixed(1) || '–'}
+                {m.genre_ids
+                .map((id) => genreMap[id])
+                .filter(Boolean)
+                .slice(0, 3)
+                .join(', ')} · {m.release_date?.slice(0, 4) || '—'} · ⭐ {m.vote_average?.toFixed(1) || '–'}
               </p>
               <button
                 onClick={() => markWatched(m)}
@@ -164,7 +189,11 @@ function App() {
               />
               <p className="mt-2 text-sm font-medium">{m.title}</p>
               <p className="text-xs text-gray-400">
-                {m.release_date ? new Date(m.release_date).getFullYear() : '—'} • ⭐ {m.vote_average?.toFixed(1) ?? 'N/A'}
+                {m.genre_ids
+                .map((id) => genreMap[id])
+                .filter(Boolean)
+                .slice(0, 3)
+                .join(', ')} • {m.release_date ? new Date(m.release_date).getFullYear() : '—'} • ⭐ {m.vote_average?.toFixed(1) ?? 'N/A'}
               </p>
             </div>
           ))}

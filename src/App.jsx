@@ -131,7 +131,7 @@ function App() {
                   {m.release_date?.slice(0, 4) || '—'} • ⭐ {m.vote_average?.toFixed(1) || '–'}
                 </p>
                 <p className="text-xs text-gray-300 mt-1">
-                  {m.genre_ids
+                  {(m.genre_ids || [])
                     .map((id) => genreMap[id])
                     .filter(Boolean)
                     .slice(0, 3)
@@ -175,8 +175,8 @@ function App() {
                   ? new Date(m.release_date).getFullYear()
                   : '—'} • ⭐ {m.vote_average?.toFixed(1) || '–'}
               </p>
-              <p className="text-xs text-gray-400 mt-1">
-                {m.genre_ids
+              <p className="text-xs text-gray-300 mt-1">
+                {(m.genre_ids || [])
                   .map((id) => genreMap[id])
                   .filter(Boolean)
                   .slice(0, 3)

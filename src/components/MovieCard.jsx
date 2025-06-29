@@ -20,11 +20,11 @@ export default function MovieCard({
     .join(', ')
 
   return (
-    <div className="bg-white/10 p-2 rounded-lg shadow text-center hover:scale-[1.02] transition-transform flex flex-col h-full w-full max-w-[200px] mx-auto">
+    <div className="bg-white/10 p-2 rounded-lg shadow text-center hover:scale-[1.02] transition-transform flex flex-col">
       <img
         src={poster}
         alt={movie.title}
-        className="rounded mb-2 mx-auto object-cover w-full h-[278px]"
+        className="rounded mb-2 object-cover w-full h-[278px]"
       />
 
       <div className="flex-1 flex flex-col justify-between text-white">

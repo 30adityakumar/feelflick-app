@@ -10,16 +10,25 @@ export default function Header () {
       }}
     >
       <div className="flex items-center gap-4">
-        <img
-          src="/logo.png"
-          alt="FeelFlick Logo"
-          className="h-9 w-9 object-contain rounded"
-        />
-        <div>
-          <h1 className="text-2xl font-extrabold leading-tight">FeelFlick</h1>
-          <p className="text-xs text-orange-200">Movies that match your mood.</p>
+          <img
+            src="/logo.png"
+            alt="FeelFlick Logo"
+            style={{
+              height: '36px',
+              width: '36px',
+              objectFit: 'contain',
+              borderRadius: '6px'
+            }}
+          />
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <h1 style={{ fontSize: '2rem', fontWeight: 800, lineHeight: '1.1', marginBottom: '0.1rem' }}>
+              FeelFlick
+            </h1>
+            <p style={{ fontSize: '0.75rem', color: '#ffd6cb', margin: 0 }}>
+              Movies that match your mood.
+            </p>
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
   )
 }

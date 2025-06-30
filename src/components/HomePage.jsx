@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { supabase } from "../supabaseClient";
 
 // Define moods for mood picker
 const MOODS = [
@@ -9,9 +10,10 @@ const MOODS = [
   { key: "romantic", label: "🥰 ROMANTIC" },
 ];
 
-export default function HomePage({ userName = "Movie Lover" }) {
+export default function HomePage({ userName = "Movie Lover", userId }) {
   const [selectedMood, setSelectedMood] = useState(null);
   const [trending, setTrending] = useState([]);
+  const [watched, setWatched] = useState([]);
 
   // Fetch trending movies from TMDb when component mounts
   useEffect(() => {
@@ -22,6 +24,17 @@ export default function HomePage({ userName = "Movie Lover" }) {
       .then(data => setTrending(data.results || []))
       .catch(() => setTrending([]));
   }, []);
+
+  // Fetch watched history from Supabase when component mounts or userId changes
+  useEffect(() => {
+    if (!userId) return;
+    supabase
+      .from('movies_watched')
+      .select('*')
+      .eq('user_id', userId)
+      .order('id', { ascending: false })
+      .then(({ data }) => setWatched(data || []));
+  }, [userId]);
 
   return (
     <div
@@ -110,10 +123,10 @@ export default function HomePage({ userName = "Movie Lover" }) {
           movies={trending}
           emptyMessage="Trending movies will appear here!"
         />
-        {/* Your Watch History (placeholder) */}
+        {/* Your Watch History (real data!) */}
         <HomeCarousel
           title="Your Watch History"
-          movies={[]} // Replace with user's real watch history
+          movies={watched}
           emptyMessage="Your recently watched movies will show up here."
         />
       </div>
@@ -183,7 +196,7 @@ function HomeCarousel({ title, movies, emptyMessage }) {
             >
               {movies.map((movie) => (
                 <div
-                  key={movie.id}
+                  key={movie.id || movie.movie_id}
                   style={{
                     width: 145,
                     minWidth: 145,
@@ -207,10 +220,10 @@ function HomeCarousel({ title, movies, emptyMessage }) {
                     e.currentTarget.style.boxShadow = "0 2px 16px #0008";
                   }}
                 >
-                  {/* Movie poster from TMDb */}
-                  {movie.poster_path ? (
+                  {/* Movie poster from TMDb (or your DB) */}
+                  {movie.poster_path || movie.poster ? (
                     <img
-                      src={`https://image.tmdb.org/t/p/w342${movie.poster_path}`}
+                      src={`https://image.tmdb.org/t/p/w342${movie.poster_path || movie.poster}`}
                       alt={movie.title}
                       style={{
                         width: "100%",

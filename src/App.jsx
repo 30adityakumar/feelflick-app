@@ -60,7 +60,10 @@ export default function App() {
       )}
       <div className="container">
         {activeTab === 'home' && (
-          <HomePage userName={profileName || session?.user?.user_metadata?.name || "Movie Lover"} />
+          <HomePage
+            userName={profileName || session?.user?.user_metadata?.name || "Movie Lover"}
+            userId={session?.user?.id}
+          />
         )}
         {activeTab === 'movies' && (
           <MoviesTab session={session} />

@@ -43,7 +43,7 @@ export default function AuthPage() {
     transition: "box-shadow 0.14s, border 0.14s"
   }
 
-  // --- HERO LANDING PAGE ---
+  // --- LANDING PAGE (HERO) ---
   if (!showSignIn) {
     return (
       <div
@@ -70,17 +70,17 @@ export default function AuthPage() {
             height: "100vh",
             objectFit: "cover",
             zIndex: 0,
-            filter: "brightness(0.44) blur(1px)"
+            filter: "brightness(0.55) blur(0.5px)"
           }}
         >
           <source src="/background.mp4" type="video/mp4" />
           Your browser does not support the video tag.
         </video>
-        {/* Softer, lighter overlay */}
+        {/* Netflix-like black overlay for best contrast */}
         <div style={{
           position: 'fixed',
           inset: 0,
-          background: 'linear-gradient(115deg, #18406db9 40%, #fe9245b3 120%)',
+          background: 'rgba(0,0,0,0.60)',
           zIndex: 1,
           pointerEvents: "none"
         }} />
@@ -105,7 +105,7 @@ export default function AuthPage() {
               fontSize: 36, fontWeight: 900,
               color: "#fff",
               letterSpacing: "-1.5px",
-              textShadow: "0 1px 10px #0008, 0 1px 20px #fff1"
+              textShadow: "0 1px 10px #000a"
             }}>
               FeelFlick
             </span>
@@ -126,11 +126,11 @@ export default function AuthPage() {
               transition: "opacity 0.14s, background 0.2s"
             }}
           >
-            Sign In
+            SIGN IN
           </button>
         </div>
 
-        {/* Centered About Hero */}
+        {/* Centered Hero Content */}
         <div
           style={{
             minHeight: '100vh',
@@ -141,60 +141,68 @@ export default function AuthPage() {
             flexDirection: "column",
             position: "relative",
             zIndex: 2,
-            marginTop: 40
           }}
         >
           <div
             style={{
               textAlign: "center",
-              maxWidth: 680,
+              maxWidth: 700,
               margin: "0 auto"
             }}
           >
             <div style={{
               fontWeight: 900,
-              fontSize: window.innerWidth < 600 ? 25 : 40,
-              lineHeight: 1.14,
+              fontSize: window.innerWidth < 600 ? 32 : 54,
+              lineHeight: 1.09,
               color: "#fff",
-              letterSpacing: "-1px",
-              marginBottom: 14,
-              textShadow: "0 1px 12px #000b"
+              letterSpacing: "-2px",
+              marginBottom: 20,
+              textShadow: "0 2px 18px #000b, 0 4px 40px #000a"
             }}>
               Movies that match your mood.
             </div>
             <div style={{
               fontWeight: 500,
-              fontSize: window.innerWidth < 600 ? 15 : 20,
+              fontSize: window.innerWidth < 600 ? 16 : 22,
               color: "#fff",
-              opacity: 0.93,
-              marginBottom: 26,
-              lineHeight: 1.7
+              opacity: 0.96,
+              marginBottom: 32,
+              lineHeight: 1.55
             }}>
               Track everything you’ve watched and how it made you feel.
               <br />
               Get personalized picks. Clean, private, and always free.
             </div>
-            {/* Call-to-action */}
             <button
               onClick={() => setShowSignIn(true)}
               style={{
-                background: "linear-gradient(90deg,#fe9245 10%,#eb423b 90%)",
+                background: "linear-gradient(90deg,#fe9245 18%,#eb423b 82%)",
                 color: "#fff",
                 border: "none",
-                borderRadius: 10,
-                fontWeight: 800,
-                fontSize: 20,
-                padding: "13px 36px",
-                boxShadow: "0 2px 12px 0 #fe924522",
+                borderRadius: 7,
+                fontWeight: 900,
+                fontSize: 22,
+                padding: "18px 56px",
+                boxShadow: "0 2px 16px 0 #0006",
                 cursor: "pointer",
                 marginTop: 8,
                 transition: "opacity 0.16s, background 0.2s"
               }}
             >
-              Get Started
+              GET STARTED
             </button>
           </div>
         </div>
+
+        {/* (Optional) Subtle colored edge at bottom */}
+        <div style={{
+          position: "fixed",
+          bottom: 0, left: 0, right: 0, height: 16,
+          zIndex: 2,
+          background: "linear-gradient(to top, #fe9245 0%, transparent 100%)",
+          opacity: 0.14,
+          pointerEvents: "none"
+        }} />
 
         {/* Footer */}
         <div style={{
@@ -241,7 +249,7 @@ export default function AuthPage() {
           height: "100vh",
           objectFit: "cover",
           zIndex: 0,
-          filter: "brightness(0.44) blur(1px)"
+          filter: "brightness(0.55) blur(0.5px)"
         }}
       >
         <source src="/background.mp4" type="video/mp4" />
@@ -250,7 +258,7 @@ export default function AuthPage() {
       <div style={{
         position: 'fixed',
         inset: 0,
-        background: 'linear-gradient(115deg, #18406dbb 40%, #fe9245b7 120%)',
+        background: 'rgba(0,0,0,0.60)',
         zIndex: 1,
         pointerEvents: "none"
       }} />
@@ -273,7 +281,7 @@ export default function AuthPage() {
           fontSize: 36, fontWeight: 900,
           color: "#fff",
           letterSpacing: "-1.5px",
-          textShadow: "0 1px 10px #0008, 0 1px 20px #fff1"
+          textShadow: "0 1px 10px #000a"
         }}>
           FeelFlick
         </span>

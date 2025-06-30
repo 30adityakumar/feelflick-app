@@ -26,6 +26,8 @@ export default function App () {
   const [watchedSortBy, setWatchedSortBy] = useState('year-desc')
   const [searchYearFilter, setSearchYearFilter] = useState('')
   const [watchedYearFilter, setWatchedYearFilter] = useState('')
+  const [searchGenreFilter, setSearchGenreFilter] = useState('')
+  const [watchedGenreFilter, setWatchedGenreFilter] = useState('')
 
   const watchedIds = new Set(watched.map(m => m.movie_id))
 
@@ -102,13 +104,26 @@ export default function App () {
     )
   }
 
+  function filterMoviesByGenre(movies, genreId) {
+    if (!genreId) return movies
+    return movies.filter(m =>
+      Array.isArray(m.genre_ids) && m.genre_ids.includes(Number(genreId))
+    )
+  }
+
   // --- Prepare sorted/filtered arrays ---
   const sortedFilteredResults = sortMovies(
-    filterMoviesByYear(results, searchYearFilter),
+    filterMoviesByGenre(
+      filterMoviesByYear(results, searchYearFilter),
+      searchGenreFilter
+    ),
     searchSortBy
   )
   const sortedFilteredWatched = sortMovies(
-    filterMoviesByYear(watched, watchedYearFilter),
+    filterMoviesByGenre(
+      filterMoviesByYear(watched, watchedYearFilter),
+      watchedGenreFilter
+    ),
     watchedSortBy
   )
 
@@ -122,6 +137,33 @@ export default function App () {
     .map(m => m.release_date && new Date(m.release_date).getFullYear())
     .filter(Boolean)
   )).sort((a, b) => b - a)
+
+  // --- Collect all genres present in results/watched ---
+  function getAllGenresFromMovies(movies) {
+    const genreIdSet = new Set();
+    movies.forEach(m =>
+      Array.isArray(m.genre_ids) &&
+      m.genre_ids.forEach(id => genreIdSet.add(id))
+    );
+    return Array.from(genreIdSet)
+      .filter(id => genreMap[id])
+      .map(id => ({ id, name: genreMap[id] }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
+  const allResultGenres = getAllGenresFromMovies(results);
+  const allWatchedGenres = getAllGenresFromMovies(watched);
+
+  // --- Clear filters helpers ---
+  const clearSearchFilters = () => {
+    setSearchSortBy('year-desc');
+    setSearchYearFilter('');
+    setSearchGenreFilter('');
+  }
+  const clearWatchedFilters = () => {
+    setWatchedSortBy('year-desc');
+    setWatchedYearFilter('');
+    setWatchedGenreFilter('');
+  }
 
   if (!session) {
     return (
@@ -141,13 +183,32 @@ export default function App () {
         </div>
       </div>
       {/* --- SEARCH RESULTS SORT/FILTER CONTROLS --- */}
-      <div className="flex flex-wrap items-center gap-4 mb-3 justify-center">
-        <label>
+      <div
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          gap: '1.2rem',
+          marginBottom: '1.5rem',
+          justifyContent: 'center',
+          background: 'rgba(36,36,36,0.88)',
+          borderRadius: '8px',
+          padding: '0.7rem 1rem'
+        }}
+      >
+        <label style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           <span className="text-gray-400 text-xs mr-1">Sort:</span>
           <select
             value={searchSortBy}
             onChange={e => setSearchSortBy(e.target.value)}
-            className="bg-zinc-900 text-white border rounded p-1 text-xs"
+            style={{
+              background: '#18181b',
+              color: '#fff',
+              border: '1px solid #555',
+              borderRadius: 4,
+              padding: '0.22rem 0.8rem',
+              fontSize: 13
+            }}
           >
             <option value="year-desc">Year ↓</option>
             <option value="year-asc">Year ↑</option>
@@ -155,12 +216,19 @@ export default function App () {
             <option value="rating-asc">Rating ↑</option>
           </select>
         </label>
-        <label>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           <span className="text-gray-400 text-xs mr-1">Year:</span>
           <select
             value={searchYearFilter}
             onChange={e => setSearchYearFilter(e.target.value)}
-            className="bg-zinc-900 text-white border rounded p-1 text-xs"
+            style={{
+              background: '#18181b',
+              color: '#fff',
+              border: '1px solid #555',
+              borderRadius: 4,
+              padding: '0.22rem 0.8rem',
+              fontSize: 13
+            }}
           >
             <option value="">All</option>
             {allResultYears.map(y => (
@@ -168,6 +236,46 @@ export default function App () {
             ))}
           </select>
         </label>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <span className="text-gray-400 text-xs mr-1">Genre:</span>
+          <select
+            value={searchGenreFilter}
+            onChange={e => setSearchGenreFilter(e.target.value)}
+            style={{
+              background: '#18181b',
+              color: '#fff',
+              border: '1px solid #555',
+              borderRadius: 4,
+              padding: '0.22rem 0.8rem',
+              fontSize: 13
+            }}
+          >
+            <option value="">All</option>
+            {allResultGenres.map(g => (
+              <option key={g.id} value={g.id}>{g.name}</option>
+            ))}
+          </select>
+        </label>
+        <button
+          onClick={clearSearchFilters}
+          style={{
+            background: '#3b3b3b',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 5,
+            padding: '0.25rem 0.95rem',
+            fontSize: 13,
+            marginLeft: 8,
+            cursor: 'pointer',
+            fontWeight: 500,
+            opacity: 0.95,
+            transition: 'background 0.18s'
+          }}
+          onMouseOver={e => e.currentTarget.style.background='#444'}
+          onMouseOut={e => e.currentTarget.style.background='#3b3b3b'}
+        >
+          Clear All
+        </button>
       </div>
       <ResultsGrid
         results={sortedFilteredResults}
@@ -176,13 +284,33 @@ export default function App () {
         watchedIds={watchedIds}
       />
       {/* --- WATCHED HISTORY SORT/FILTER CONTROLS --- */}
-      <div className="flex flex-wrap items-center gap-4 mt-10 mb-3 justify-center">
-        <label>
+      <div
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          gap: '1.2rem',
+          marginTop: '2.8rem',
+          marginBottom: '1.5rem',
+          justifyContent: 'center',
+          background: 'rgba(36,36,36,0.88)',
+          borderRadius: '8px',
+          padding: '0.7rem 1rem'
+        }}
+      >
+        <label style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           <span className="text-gray-400 text-xs mr-1">Sort:</span>
           <select
             value={watchedSortBy}
             onChange={e => setWatchedSortBy(e.target.value)}
-            className="bg-zinc-900 text-white border rounded p-1 text-xs"
+            style={{
+              background: '#18181b',
+              color: '#fff',
+              border: '1px solid #555',
+              borderRadius: 4,
+              padding: '0.22rem 0.8rem',
+              fontSize: 13
+            }}
           >
             <option value="year-desc">Year ↓</option>
             <option value="year-asc">Year ↑</option>
@@ -190,12 +318,19 @@ export default function App () {
             <option value="rating-asc">Rating ↑</option>
           </select>
         </label>
-        <label>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           <span className="text-gray-400 text-xs mr-1">Year:</span>
           <select
             value={watchedYearFilter}
             onChange={e => setWatchedYearFilter(e.target.value)}
-            className="bg-zinc-900 text-white border rounded p-1 text-xs"
+            style={{
+              background: '#18181b',
+              color: '#fff',
+              border: '1px solid #555',
+              borderRadius: 4,
+              padding: '0.22rem 0.8rem',
+              fontSize: 13
+            }}
           >
             <option value="">All</option>
             {allWatchedYears.map(y => (
@@ -203,6 +338,46 @@ export default function App () {
             ))}
           </select>
         </label>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <span className="text-gray-400 text-xs mr-1">Genre:</span>
+          <select
+            value={watchedGenreFilter}
+            onChange={e => setWatchedGenreFilter(e.target.value)}
+            style={{
+              background: '#18181b',
+              color: '#fff',
+              border: '1px solid #555',
+              borderRadius: 4,
+              padding: '0.22rem 0.8rem',
+              fontSize: 13
+            }}
+          >
+            <option value="">All</option>
+            {allWatchedGenres.map(g => (
+              <option key={g.id} value={g.id}>{g.name}</option>
+            ))}
+          </select>
+        </label>
+        <button
+          onClick={clearWatchedFilters}
+          style={{
+            background: '#3b3b3b',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 5,
+            padding: '0.25rem 0.95rem',
+            fontSize: 13,
+            marginLeft: 8,
+            cursor: 'pointer',
+            fontWeight: 500,
+            opacity: 0.95,
+            transition: 'background 0.18s'
+          }}
+          onMouseOver={e => e.currentTarget.style.background='#444'}
+          onMouseOut={e => e.currentTarget.style.background='#3b3b3b'}
+        >
+          Clear All
+        </button>
       </div>
       <WatchedHistory
         watched={sortedFilteredWatched}

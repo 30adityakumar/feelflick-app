@@ -35,22 +35,36 @@ export default function AuthPage() {
       overflow: 'hidden',
       background: '#101015'
     }}>
-      {/* --- Background (brand gradient + collage option) --- */}
-      <div
+      {/* --- Background Video --- */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        poster="/background-poster.jpg"
         style={{
-          position: 'fixed',
+          position: "fixed",
+          top: 0, left: 0,
+          width: "100vw",
+          height: "100vh",
+          objectFit: "cover",
           zIndex: 0,
-          inset: 0,
-          width: '100%',
-          height: '100%',
-          background:
-            // Uncomment the next line and add /collage.jpg for a Netflix collage effect
-            // `linear-gradient(115deg, #18406d 60%, #fe9245 150%), url('/collage.jpg') center/cover no-repeat`,
-            `linear-gradient(115deg, #18406d 60%, #fe9245 150%)`,
-          filter: 'brightness(0.38) blur(4px)',
-          transition: 'filter 0.3s'
+          filter: "brightness(0.32) blur(2px)"
         }}
-      ></div>
+      >
+        <source src="/background.mp4" type="video/mp4" />
+        {/* Optionally add <source src="/background.webm" type="video/webm" /> */}
+        Your browser does not support the video tag.
+      </video>
+
+      {/* --- Overlay for readability --- */}
+      <div style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'linear-gradient(115deg, #18406d99 50%, #fe9245aa 100%)',
+        zIndex: 1,
+        pointerEvents: "none"
+      }} />
 
       {/* --- LOGO, TITLE, TAGLINE (top left, mobile wraps) --- */}
       <div style={{
@@ -66,7 +80,7 @@ export default function AuthPage() {
         </div>
         <div style={{
           color: "#fdaf41",
-          fontSize: "1.15rem",
+          fontSize: "1.0rem",
           marginLeft: 6,
           letterSpacing: "0.01em",
           fontWeight: 600,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 // Define moods for mood picker
 const MOODS = [
@@ -133,71 +133,126 @@ export default function HomePage({ userName = "Movie Lover" }) {
   );
 }
 
-// Carousel Section
+// Fancier Carousel with posters, scroll arrows, hover effect!
 function HomeCarousel({ title, movies, emptyMessage }) {
+  const scrollRef = useRef();
+
+  function scrollBy(offset) {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ left: offset, behavior: 'smooth' });
+    }
+  }
+
+  // Hide arrows on mobile (window check)
+  const showArrows = movies && movies.length > 5 && typeof window !== "undefined" && window.innerWidth > 700;
+
   return (
-    <div style={{ marginBottom: 38 }}>
-      <div style={{ fontSize: 19, fontWeight: 700, color: "#fff", marginBottom: 10 }}>
+    <div style={{ marginBottom: 38, position: 'relative' }}>
+      <div style={{ fontSize: 21, fontWeight: 800, color: "#fff", marginBottom: 13 }}>
         {title}
       </div>
-      <div style={{ minHeight: 120 }}>
+      <div style={{ position: "relative" }}>
         {movies && movies.length > 0 ? (
-          <div style={{ display: "flex", gap: 16, overflowX: "auto" }}>
-            {movies.map((movie) => (
-              <div
-                key={movie.id}
-                style={{
-                  width: 110,
-                  borderRadius: 12,
-                  overflow: "hidden",
-                  background: "#222b",
-                  boxShadow: "0 1px 8px #0003",
-                  cursor: "pointer",
-                  textAlign: "center",
-                  transition: "transform 0.16s",
-                }}
-                tabIndex={0}
-                aria-label={movie.title}
-              >
-                {/* Movie poster from TMDb */}
-                {movie.poster_path ? (
-                  <img
-                    src={`https://image.tmdb.org/t/p/w300${movie.poster_path}`}
-                    alt={movie.title}
-                    style={{
-                      width: "100%",
-                      height: 150,
-                      objectFit: "cover",
-                      display: "block",
-                    }}
-                  />
-                ) : (
+          <>
+            {/* Left/Right arrows */}
+            {showArrows && (
+              <>
+                <button
+                  onClick={() => scrollBy(-370)}
+                  style={arrowBtnStyle("left")}
+                  aria-label="Scroll left"
+                >‹</button>
+                <button
+                  onClick={() => scrollBy(370)}
+                  style={arrowBtnStyle("right")}
+                  aria-label="Scroll right"
+                >›</button>
+              </>
+            )}
+            <div
+              ref={scrollRef}
+              style={{
+                display: "flex",
+                gap: 28,
+                overflowX: "auto",
+                paddingBottom: 4,
+                scrollBehavior: "smooth",
+                scrollbarWidth: "none",
+              }}
+              className="no-scrollbar"
+            >
+              {movies.map((movie) => (
+                <div
+                  key={movie.id}
+                  style={{
+                    width: 145,
+                    minWidth: 145,
+                    borderRadius: 14,
+                    overflow: "hidden",
+                    background: "#232d41",
+                    boxShadow: "0 2px 16px #0008",
+                    cursor: "pointer",
+                    textAlign: "center",
+                    position: "relative",
+                    transition: "transform 0.18s, box-shadow 0.17s",
+                  }}
+                  tabIndex={0}
+                  aria-label={movie.title}
+                  onMouseOver={e => {
+                    e.currentTarget.style.transform = "scale(1.07)";
+                    e.currentTarget.style.boxShadow = "0 6px 36px #fdaf4122";
+                  }}
+                  onMouseOut={e => {
+                    e.currentTarget.style.transform = "scale(1.0)";
+                    e.currentTarget.style.boxShadow = "0 2px 16px #0008";
+                  }}
+                >
+                  {/* Movie poster from TMDb */}
+                  {movie.poster_path ? (
+                    <img
+                      src={`https://image.tmdb.org/t/p/w342${movie.poster_path}`}
+                      alt={movie.title}
+                      style={{
+                        width: "100%",
+                        height: 216,
+                        objectFit: "cover",
+                        display: "block",
+                        borderTopLeftRadius: 14,
+                        borderTopRightRadius: 14,
+                        transition: "filter 0.16s",
+                      }}
+                    />
+                  ) : (
+                    <div style={{
+                      height: 216,
+                      background: "#18305a",
+                      color: "#fff",
+                      fontSize: 32,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center"
+                    }}>
+                      🎬
+                    </div>
+                  )}
+                  {/* Title */}
                   <div style={{
-                    height: 150,
-                    background: "#18305a",
                     color: "#fff",
-                    fontSize: 27,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center"
+                    fontSize: 14.7,
+                    fontWeight: 800,
+                    margin: "7px 0 8px 0",
+                    padding: "0 7px",
+                    whiteSpace: "nowrap",
+                    textOverflow: "ellipsis",
+                    overflow: "hidden",
+                    textAlign: "center",
                   }}>
-                    🎬
+                    {movie.title || movie.name}
                   </div>
-                )}
-                <div style={{
-                  color: "#fff",
-                  fontSize: 13,
-                  fontWeight: 700,
-                  margin: "6px 0",
-                  whiteSpace: "nowrap",
-                  textOverflow: "ellipsis",
-                  overflow: "hidden"
-                }}>
-                  {movie.title || movie.name}
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </>
         ) : (
           <div style={{ color: "#999", fontSize: 15, marginTop: 12, marginLeft: 5 }}>
             {emptyMessage}
@@ -206,4 +261,28 @@ function HomeCarousel({ title, movies, emptyMessage }) {
       </div>
     </div>
   );
+}
+
+// Helper: Arrow Button Style
+function arrowBtnStyle(side) {
+  return {
+    position: "absolute",
+    [side]: -12,
+    top: "44%",
+    zIndex: 5,
+    background: "rgba(24,64,109,0.91)",
+    color: "#fff",
+    fontWeight: 900,
+    fontSize: 28,
+    border: "none",
+    borderRadius: "50%",
+    width: 38,
+    height: 38,
+    boxShadow: "0 3px 16px #0006",
+    cursor: "pointer",
+    opacity: 0.76,
+    display: typeof window !== "undefined" && window.innerWidth > 700 ? "block" : "none",
+    transition: "background 0.13s, opacity 0.16s",
+    outline: "none",
+  };
 }

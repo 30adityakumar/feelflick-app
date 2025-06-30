@@ -3,6 +3,7 @@ import Account from './Account'
 import Search from './Search'
 import FilterBar from './FilterBar'
 import ResultsGrid from './ResultsGrid'
+import MovieModal from './MovieModal'   // <-- Import MovieModal
 import { supabase } from '../supabaseClient'
 
 export default function MoviesTab({ session }) {
@@ -13,6 +14,10 @@ export default function MoviesTab({ session }) {
   const [yearFilter, setYearFilter] = useState('')
   const [genreFilter, setGenreFilter] = useState('')
   const [watched, setWatched] = useState([])
+
+  // Movie modal state
+  const [modalMovie, setModalMovie] = useState(null)
+  const closeModal = () => setModalMovie(null)
 
   // Fetch genre map once
   useEffect(() => {
@@ -157,6 +162,7 @@ export default function MoviesTab({ session }) {
             onMarkWatched={markWatched}
             watchedIds={watchedIds}
             gridClass="movie-grid"
+            onMovieClick={setModalMovie} // <<--- Pass this
           />
         ) : (
           <div style={{
@@ -168,6 +174,14 @@ export default function MoviesTab({ session }) {
           </div>
         )}
       </div>
+      {/* Movie Details Modal */}
+      {modalMovie && (
+        <MovieModal
+          movie={modalMovie}
+          open={!!modalMovie}
+          onClose={closeModal}
+        />
+      )}
     </div>
   )
 }

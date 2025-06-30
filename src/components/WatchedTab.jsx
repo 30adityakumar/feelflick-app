@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import FilterBar from './FilterBar'
 import WatchedHistory from './WatchedHistory'
+import MovieModal from './MovieModal'
 import { supabase } from '../supabaseClient'
 
 export default function WatchedTab({ session }) {
@@ -9,6 +10,10 @@ export default function WatchedTab({ session }) {
   const [sortBy, setSortBy] = useState('added-desc')
   const [yearFilter, setYearFilter] = useState('')
   const [genreFilter, setGenreFilter] = useState('')
+
+  // Modal state
+  const [modalMovie, setModalMovie] = useState(null)
+  const closeModal = () => setModalMovie(null)
 
   // Fetch genre map once
   useEffect(() => {
@@ -140,6 +145,7 @@ export default function WatchedTab({ session }) {
             genreMap={genreMap}
             onRemove={removeFromWatched}
             gridClass="movie-grid"
+            onMovieClick={setModalMovie} // <-- Pass handler!
           />
         ) : (
           <div style={{
@@ -151,6 +157,14 @@ export default function WatchedTab({ session }) {
           </div>
         )}
       </div>
+      {/* Movie Details Modal */}
+      {modalMovie && (
+        <MovieModal
+          movie={modalMovie}
+          open={!!modalMovie}
+          onClose={closeModal}
+        />
+      )}
     </div>
   )
 }

@@ -22,8 +22,9 @@ export default function App () {
   const [watched, setWatched] = useState([])
   const [genreMap, setGenreMap] = useState({})
 
-  const [searchSortBy, setSearchSortBy] = useState('year-desc')
-  const [watchedSortBy, setWatchedSortBy] = useState('year-desc')
+  // Default: search by popularity, watched by "order added"
+  const [searchSortBy, setSearchSortBy] = useState('popularity-desc')
+  const [watchedSortBy, setWatchedSortBy] = useState('added-desc')
   const [searchYearFilter, setSearchYearFilter] = useState('')
   const [watchedYearFilter, setWatchedYearFilter] = useState('')
   const [searchGenreFilter, setSearchGenreFilter] = useState('')
@@ -79,25 +80,28 @@ export default function App () {
       .order('id', { ascending: false })
     setWatched(data)
   }
-  
+
   const removeFromWatched = async (movie_id) => {
-  if (!session?.user?.id) return;
-  await supabase
-    .from('movies_watched')
-    .delete()
-    .eq('user_id', session.user.id)
-    .eq('movie_id', movie_id);
-  // refresh watched
-  const { data } = await supabase
-    .from('movies_watched')
-    .select('*')
-    .eq('user_id', session.user.id)
-    .order('id', { ascending: false });
-  setWatched(data);
-  }
+    if (!session?.user?.id) return;
+    await supabase
+      .from('movies_watched')
+      .delete()
+      .eq('user_id', session.user.id)
+      .eq('movie_id', movie_id);
+    // refresh watched
+    const { data } = await supabase
+      .from('movies_watched')
+      .select('*')
+      .eq('user_id', session.user.id)
+      .order('id', { ascending: false });
+    setWatched(data);
+  };
 
   // --- Sorting/Filtering helpers ---
   function sortMovies(movies, sortBy) {
+    if (sortBy === 'popularity-desc') {
+      return [...movies].sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
+    }
     if (sortBy === 'year-desc') {
       return [...movies].sort((a, b) => (b.release_date || '').localeCompare(a.release_date || ''))
     }
@@ -109,6 +113,12 @@ export default function App () {
     }
     if (sortBy === 'rating-asc') {
       return [...movies].sort((a, b) => (a.vote_average || 0) - (b.vote_average || 0))
+    }
+    if (sortBy === 'added-desc') {
+      return [...movies].sort((a, b) => (b.id || 0) - (a.id || 0))
+    }
+    if (sortBy === 'added-asc') {
+      return [...movies].sort((a, b) => (a.id || 0) - (b.id || 0))
     }
     return movies
   }
@@ -171,12 +181,12 @@ export default function App () {
 
   // --- Clear filters helpers ---
   const clearSearchFilters = () => {
-    setSearchSortBy('year-desc');
+    setSearchSortBy('popularity-desc');
     setSearchYearFilter('');
     setSearchGenreFilter('');
   }
   const clearWatchedFilters = () => {
-    setWatchedSortBy('year-desc');
+    setWatchedSortBy('added-desc');
     setWatchedYearFilter('');
     setWatchedGenreFilter('');
   }
@@ -226,6 +236,7 @@ export default function App () {
               fontSize: 13
             }}
           >
+            <option value="popularity-desc">Popularity ↓</option>
             <option value="year-desc">Year ↓</option>
             <option value="year-asc">Year ↑</option>
             <option value="rating-desc">Rating ↓</option>
@@ -328,6 +339,8 @@ export default function App () {
               fontSize: 13
             }}
           >
+            <option value="added-desc">Order Added ↓</option>
+            <option value="added-asc">Order Added ↑</option>
             <option value="year-desc">Year ↓</option>
             <option value="year-asc">Year ↑</option>
             <option value="rating-desc">Rating ↓</option>

@@ -58,7 +58,7 @@ export default function App() {
           onProfileUpdate={handleProfileUpdate}
         />
       )}
-      <div className="container">
+      
         {activeTab === 'home' && (
           <HomePage
             userName={profileName || session?.user?.user_metadata?.name || "Movie Lover"}
@@ -74,6 +74,7 @@ export default function App() {
         {activeTab === 'watched' && (
           <WatchedTab session={session} />
         )}
+
       </div>
     </div>
   )

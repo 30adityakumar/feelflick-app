@@ -1,7 +1,7 @@
 import MovieCard from './MovieCard'
 
-export default function WatchedHistory({ watched, genreMap }) {
-  if (!watched.length) {
+export default function WatchedHistory({ watched, genreMap, onRemove }) {
+  if (!watched?.length) {
     return <p className="text-gray-400">No watched movies yet.</p>
   }
 
@@ -21,6 +21,8 @@ export default function WatchedHistory({ watched, genreMap }) {
             key={m.movie_id}
             movie={m}
             genreMap={genreMap}
+            isWatched={!!onRemove}
+            onRemove={onRemove ? () => onRemove(m.movie_id) : undefined}
           />
         ))}
       </div>

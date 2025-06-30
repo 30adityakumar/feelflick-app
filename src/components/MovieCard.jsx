@@ -4,7 +4,9 @@ export default function MovieCard({
   movie,
   genreMap,
   showWatchedButton = false,
-  onMarkWatched = () => {}
+  onMarkWatched = () => {},
+  isWatched = false,
+  onRemove = null
 }) {
   const [hovered, setHovered] = useState(false);
 
@@ -21,7 +23,6 @@ export default function MovieCard({
     .slice(0, 3)
     .join(", ");
 
-  // Use overview from TMDb API, or fallback text
   const overview =
     movie.overview && movie.overview.trim().length
       ? movie.overview
@@ -173,6 +174,38 @@ export default function MovieCard({
         >
           Watched ✓
         </button>
+      ) : isWatched && onRemove ? (
+        <div style={{
+          marginTop: 4,
+          width: "100%",
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center'
+        }}>
+          <div style={{
+            color: "#bdbdbd",
+            fontSize: 12,
+            marginBottom: 3
+          }}>Already watched</div>
+          <button
+            onClick={onRemove}
+            style={{
+              background: '#8b1c1c',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 5,
+              fontSize: 16,
+              width: 28,
+              height: 28,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              transition: 'background 0.2s'
+            }}
+            title="Remove from Watched"
+          >🗑️</button>
+        </div>
       ) : (
         <div style={{
           marginTop: 4,

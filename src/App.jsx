@@ -79,6 +79,22 @@ export default function App () {
       .order('id', { ascending: false })
     setWatched(data)
   }
+  
+  const removeFromWatched = async (movie_id) => {
+  if (!session?.user?.id) return;
+  await supabase
+    .from('movies_watched')
+    .delete()
+    .eq('user_id', session.user.id)
+    .eq('movie_id', movie_id);
+  // refresh watched
+  const { data } = await supabase
+    .from('movies_watched')
+    .select('*')
+    .eq('user_id', session.user.id)
+    .order('id', { ascending: false });
+  setWatched(data);
+  }
 
   // --- Sorting/Filtering helpers ---
   function sortMovies(movies, sortBy) {

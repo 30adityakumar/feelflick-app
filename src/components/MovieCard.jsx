@@ -186,37 +186,6 @@ export default function MovieCard({
           }}>Already watched</div>
         )}
       </div>
-      {/* Overview overlay on hover (like Netflix) */}
-      <div style={{
-        position: "absolute",
-        left: 0,
-        top: 0,
-        width: "100%",
-        height: "100%",
-        background: "rgba(20,21,26,0.97)",
-        color: "#fff",
-        fontSize: 13,
-        opacity: hovered ? 1 : 0,
-        pointerEvents: hovered ? "auto" : "none",
-        borderRadius: 16,
-        padding: "1.1rem 1rem 1.6rem 1rem",
-        transition: "opacity 0.22s",
-        display: "flex",
-        alignItems: "flex-end",
-        justifyContent: "center",
-        textAlign: "left",
-        boxSizing: "border-box",
-        overflow: "hidden"
-      }}>
-        <span style={{
-          display: "-webkit-box",
-          WebkitLineClamp: 6,
-          WebkitBoxOrient: "vertical",
-          overflow: "hidden"
-        }}>
-          {overview}
-        </span>
-      </div>
     </div>
   );
 }

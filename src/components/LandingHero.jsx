@@ -1,17 +1,33 @@
-// LandingHero.jsx
 export default function LandingHero({ onGetStarted }) {
   return (
-    <section style={{
-      minHeight: "94vh", width: "100vw",
-      display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-      zIndex: 1, position: "relative", paddingTop: 120, paddingBottom: 36
-    }}>
+    <section
+      style={{
+        height: "100vh",
+        width: "100vw",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 1,
+        position: "relative",
+        margin: 0,
+        padding: 0,
+        boxSizing: "border-box",
+        overflow: "hidden"
+      }}
+    >
       <div style={{
         textAlign: "center", maxWidth: 900, margin: "0 auto"
       }}>
         <div style={{
-          fontWeight: 900, fontSize: "clamp(2.3rem,5vw,3.7rem)", color: "#fff",
-          letterSpacing: "-1.2px", marginBottom: 18, textShadow: "0 2px 16px #000b, 0 4px 30px #000a"
+          fontWeight: 900,
+          fontSize: "clamp(2.1rem, 5vw, 3.1rem)",
+          color: "#fff",
+          letterSpacing: "-1.1px",
+          marginBottom: 16,
+          textShadow: "0 4px 24px #000c, 0 2px 8px #18406d77, 0 0px 1px #fe924566",
+          lineHeight: 1.12,
+          filter: "drop-shadow(0 1px 16px #eb423b22)"
         }}>
           Movies that match your mood.
         </div>

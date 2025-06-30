@@ -11,12 +11,18 @@ import ScrollProgressBar from './components/ScrollProgressBar'
 import BackToTopFAB from './components/BackToTopFAB'
 
 const COLORS = {
-  primary: "#18406d",
-  accent: "#fe9245",
-  accent2: "#eb423b",
-  dark: "#101015",
-  surface: "#232330"
+  primary: "#18406d",   // Deep blue (from your logo)
+  accent: "#fe9245",    // Bright orange (logo highlight)
+  accent2: "#eb423b",   // Warm red/orange (logo accent)
+  dark: "#101015",      // Page background (very dark, slightly blue/neutral)
+  surface: "#232330",   // Card/surface background (dark gray, neutral)
+  blueBg: "linear-gradient(90deg, #18406d 0%, #eb423b 120%)",   // For gradients
+  mutedBg: "linear-gradient(120deg, #18406d 0%, #191925 70%, #fe9245 120%)",
+  gold: "#fdaf41",      // For highlight text/subtle accents (from logo shadow)
+  lightText: "#f9f9fa", // For text on dark bg
+  border: "#27335b"     // For subtle borders, etc.
 }
+
 
 const SECTION_IDS = [
   "home",

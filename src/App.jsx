@@ -1,16 +1,16 @@
 import { useState, useEffect } from 'react'
 import { supabase } from './supabaseClient'
 
-import AuthEmailPassword from './AuthEmailPassword'
+import AuthPage from './AuthPage'
 import Account from './components/Account'
 import Search from './components/Search'
 import Header from './components/Header'
 import ResultsGrid from './components/ResultsGrid'
 import WatchedHistory from './components/WatchedHistory'
 import FilterBar from './components/FilterBar'
-import AuthPage from './AuthPage'
 
-export default function App () {
+export default function App() {
+  // --- Authentication session ---
   const [session, setSession] = useState(null)
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setSession(session))
@@ -18,6 +18,7 @@ export default function App () {
     return () => data.subscription.unsubscribe()
   }, [])
 
+  // --- App state ---
   const [results, setResults] = useState([])
   const [watched, setWatched] = useState([])
   const [genreMap, setGenreMap] = useState({})
@@ -31,7 +32,10 @@ export default function App () {
   const [watchedGenreFilter, setWatchedGenreFilter] = useState('')
   const watchedIds = new Set(watched.map(m => m.movie_id))
 
-  // Fetch genres (for mapping genre ids to names)
+  // --- NAVIGATION TAB STATE ---
+  const [activeTab, setActiveTab] = useState('movies') // movies | recommendations | watched
+
+  // Fetch genres
   useEffect(() => {
     fetch(
       `https://api.themoviedb.org/3/genre/movie/list?api_key=${import.meta.env.VITE_TMDB_API_KEY}&language=en-US`
@@ -43,7 +47,7 @@ export default function App () {
       .catch(console.error)
   }, [])
 
-  // Fetch watched history for the user
+  // Fetch watched history
   useEffect(() => {
     if (!session?.user?.id) return
     supabase
@@ -96,7 +100,7 @@ export default function App () {
     setWatched(data)
   }
 
-  // Helpers for sort and filtering logic
+  // Helpers for sort/filtering
   function sortMovies(movies, sortBy) {
     if (sortBy === 'popularity-desc') return [...movies].sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
     if (sortBy === 'year-desc')       return [...movies].sort((a, b) => (b.release_date || '').localeCompare(a.release_date || ''))
@@ -116,7 +120,7 @@ export default function App () {
     return movies.filter(m => Array.isArray(m.genre_ids) && m.genre_ids.includes(Number(genreId)))
   }
 
-  // Prepare filtered & sorted arrays for each grid
+  // Prepare filtered & sorted arrays
   const sortedFilteredResults = sortMovies(
     filterMoviesByGenre(
       filterMoviesByYear(results, searchYearFilter),
@@ -132,7 +136,7 @@ export default function App () {
     watchedSortBy
   )
 
-  // Collect filter options for year & genre dropdowns
+  // Collect filter options for dropdowns
   const allResultYears = Array.from(new Set(results.map(m => m.release_date && new Date(m.release_date).getFullYear()).filter(Boolean))).sort((a, b) => b - a)
   const allWatchedYears = Array.from(new Set(watched.map(m => m.release_date && new Date(m.release_date).getFullYear()).filter(Boolean))).sort((a, b) => b - a)
   function getAllGenresFromMovies(movies) {
@@ -161,104 +165,139 @@ export default function App () {
     setWatchedGenreFilter('')
   }
 
-  // Unauthenticated view
+  // Handle sign out
+  const handleSignOut = async () => {
+    await supabase.auth.signOut()
+    setSession(null)
+  }
+
+  // Handle search from header (optional: tie into your movie search API)
+  const handleHeaderSearch = (query) => {
+    // You could set a search state and trigger Search component logic here
+    // For now, just focus the Search bar or pass down if needed
+  }
+
+  // --- UNAUTHENTICATED VIEW ---
   if (!session) {
     return <AuthPage />
   }
 
-  // Main authenticated app layout (cinematic style)
+  // --- AUTHENTICATED VIEW: HEADER NAVIGATION ---
   return (
     <div className="min-h-screen bg-zinc-950 text-white pb-10">
-      <Header />
+      <Header
+        userName={session?.user?.user_metadata?.name || "Account"}
+        onTabChange={setActiveTab}
+        activeTab={activeTab}
+        onSignOut={handleSignOut}
+        onSearch={handleHeaderSearch}
+      />
       <div className="container">
-        <Account session={session} userName={session?.user?.user_metadata?.name} />
-        <div style={{ margin: "0 auto 38px auto", maxWidth: 700 }}>
-          <Search onResults={setResults} />
-        </div>
 
-        {/* Floating FilterBar for Search */}
-        <div className="floating-bar">
-          <FilterBar
-            sortBy={searchSortBy} setSortBy={setSearchSortBy}
-            yearFilter={searchYearFilter} setYearFilter={setSearchYearFilter}
-            genreFilter={searchGenreFilter} setGenreFilter={setSearchGenreFilter}
-            allYears={allResultYears}
-            allGenres={allResultGenres}
-            sortOptions={[
-              { value: 'popularity-desc', label: 'Popularity ↓' },
-              { value: 'year-desc', label: 'Year ↓' },
-              { value: 'year-asc', label: 'Year ↑' },
-              { value: 'rating-desc', label: 'Rating ↓' },
-              { value: 'rating-asc', label: 'Rating ↑' }
-            ]}
-            clearFilters={clearSearchFilters}
-          />
-        </div>
-        {/* Section header */}
-        <div className="section-bar">
-          <span role="img" aria-label="search">🔍</span> Search Results
-        </div>
-        {/* Search Results grid + Empty state */}
-        <div style={{ minHeight: 200 }}>
-          {sortedFilteredResults.length ? (
-            <ResultsGrid
-              results={sortedFilteredResults}
-              genreMap={genreMap}
-              onMarkWatched={markWatched}
-              watchedIds={watchedIds}
-              gridClass="movie-grid"
-            />
-          ) : (
-            <div style={{
-              color: '#aaa', textAlign: 'center', fontSize: 18,
-              fontWeight: 500, margin: '2.5rem 0'
-            }}>
-              <span role="img" aria-label="No results" style={{ fontSize: 34, display: 'block', marginBottom: 6 }}>😕</span>
-              No movies found. Try a different search!
+        {/* --- MOVIES TAB --- */}
+        {activeTab === 'movies' && (
+          <>
+            <Account session={session} userName={session?.user?.user_metadata?.name} />
+            <div style={{ margin: "0 auto 38px auto", maxWidth: 700 }}>
+              <Search onResults={setResults} />
             </div>
-          )}
-        </div>
+            <div className="floating-bar">
+              <FilterBar
+                sortBy={searchSortBy} setSortBy={setSearchSortBy}
+                yearFilter={searchYearFilter} setYearFilter={setSearchYearFilter}
+                genreFilter={searchGenreFilter} setGenreFilter={setSearchGenreFilter}
+                allYears={allResultYears}
+                allGenres={allResultGenres}
+                sortOptions={[
+                  { value: 'popularity-desc', label: 'Popularity ↓' },
+                  { value: 'year-desc', label: 'Year ↓' },
+                  { value: 'year-asc', label: 'Year ↑' },
+                  { value: 'rating-desc', label: 'Rating ↓' },
+                  { value: 'rating-asc', label: 'Rating ↑' }
+                ]}
+                clearFilters={clearSearchFilters}
+              />
+            </div>
+            <div className="section-bar">
+              <span role="img" aria-label="search">🔍</span> Search Results
+            </div>
+            <div style={{ minHeight: 200 }}>
+              {sortedFilteredResults.length ? (
+                <ResultsGrid
+                  results={sortedFilteredResults}
+                  genreMap={genreMap}
+                  onMarkWatched={markWatched}
+                  watchedIds={watchedIds}
+                  gridClass="movie-grid"
+                />
+              ) : (
+                <div style={{
+                  color: '#aaa', textAlign: 'center', fontSize: 18,
+                  fontWeight: 500, margin: '2.5rem 0'
+                }}>
+                  <span role="img" aria-label="No results" style={{ fontSize: 34, display: 'block', marginBottom: 6 }}>😕</span>
+                  No movies found. Try a different search!
+                </div>
+              )}
+            </div>
+          </>
+        )}
 
-        {/* Floating FilterBar for Watched */}
-        <div className="floating-bar" style={{ margin: "40px auto 0 auto" }}>
-          <FilterBar
-            sortBy={watchedSortBy} setSortBy={setWatchedSortBy}
-            yearFilter={watchedYearFilter} setYearFilter={setWatchedYearFilter}
-            genreFilter={watchedGenreFilter} setGenreFilter={setWatchedGenreFilter}
-            allYears={allWatchedYears}
-            allGenres={allWatchedGenres}
-            sortOptions={[
-              { value: 'added-desc', label: 'Order Added ↓' },
-              { value: 'added-asc', label: 'Order Added ↑' },
-              { value: 'year-desc', label: 'Year ↓' },
-              { value: 'year-asc', label: 'Year ↑' },
-              { value: 'rating-desc', label: 'Rating ↓' },
-              { value: 'rating-asc', label: 'Rating ↑' }
-            ]}
-            clearFilters={clearWatchedFilters}
-          />
-        </div>
-        <div className="section-bar">
-          <span role="img" aria-label="watched">🎬</span> Watched History
-        </div>
-        <div style={{ minHeight: 200 }}>
-          {sortedFilteredWatched.length ? (
-            <WatchedHistory
-              watched={sortedFilteredWatched}
-              genreMap={genreMap}
-              onRemove={removeFromWatched}
-              gridClass="movie-grid"
-            />
-          ) : (
-            <div style={{
-              color: '#aaa', textAlign: 'center', fontSize: 18,
-              fontWeight: 500, margin: '2.5rem 0'
-            }}>
-              <span role="img" aria-label="Empty" style={{ fontSize: 30, display: 'block', marginBottom: 6 }}>🍿</span>
-              No watched movies yet. Mark some as watched to see them here!
+        {/* --- RECOMMENDATIONS TAB (Placeholder for now) --- */}
+        {activeTab === 'recommendations' && (
+          <div style={{ margin: "48px auto", maxWidth: 700, textAlign: "center" }}>
+            <h2 style={{ fontSize: 30, fontWeight: 900, marginBottom: 18 }}>🎯 Personalized Recommendations</h2>
+            <p style={{ color: "#ccc", fontSize: 18 }}>
+              This will show you movies based on your watch history and mood (coming soon!)<br />
+              For now, check your watched history or search for movies you love.
+            </p>
+          </div>
+        )}
+
+        {/* --- WATCHED TAB --- */}
+        {activeTab === 'watched' && (
+          <>
+            <div className="floating-bar" style={{ margin: "40px auto 0 auto" }}>
+              <FilterBar
+                sortBy={watchedSortBy} setSortBy={setWatchedSortBy}
+                yearFilter={watchedYearFilter} setYearFilter={setWatchedYearFilter}
+                genreFilter={watchedGenreFilter} setGenreFilter={setWatchedGenreFilter}
+                allYears={allWatchedYears}
+                allGenres={allWatchedGenres}
+                sortOptions={[
+                  { value: 'added-desc', label: 'Order Added ↓' },
+                  { value: 'added-asc', label: 'Order Added ↑' },
+                  { value: 'year-desc', label: 'Year ↓' },
+                  { value: 'year-asc', label: 'Year ↑' },
+                  { value: 'rating-desc', label: 'Rating ↓' },
+                  { value: 'rating-asc', label: 'Rating ↑' }
+                ]}
+                clearFilters={clearWatchedFilters}
+              />
             </div>
-          )}
-        </div>
+            <div className="section-bar">
+              <span role="img" aria-label="watched">🎬</span> Watched History
+            </div>
+            <div style={{ minHeight: 200 }}>
+              {sortedFilteredWatched.length ? (
+                <WatchedHistory
+                  watched={sortedFilteredWatched}
+                  genreMap={genreMap}
+                  onRemove={removeFromWatched}
+                  gridClass="movie-grid"
+                />
+              ) : (
+                <div style={{
+                  color: '#aaa', textAlign: 'center', fontSize: 18,
+                  fontWeight: 500, margin: '2.5rem 0'
+                }}>
+                  <span role="img" aria-label="Empty" style={{ fontSize: 30, display: 'block', marginBottom: 6 }}>🍿</span>
+                  No watched movies yet. Mark some as watched to see them here!
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </div>
     </div>
   )

@@ -10,7 +10,13 @@ import SignInForm from './components/SignInForm'
 import ScrollProgressBar from './components/ScrollProgressBar'
 import BackToTopFAB from './components/BackToTopFAB'
 
-const COLORS = { /* ...same as before... */ }
+const COLORS = {
+  primary: "#18406d",
+  accent: "#fe9245",
+  accent2: "#eb423b",
+  dark: "#101015",
+  surface: "#232330"
+}
 
 const SECTION_IDS = [
   "home",
@@ -20,17 +26,43 @@ const SECTION_IDS = [
 ]
 
 export default function AuthPage() {
-  // ...all your auth state...
-
+  // ------- Auth and UI State -------
+  const [showSignIn, setShowSignIn] = useState(false)
+  const [isSigningUp, setIsSigningUp] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [name, setName] = useState('')
+  const [error, setError] = useState(null)
+  const [loading, setLoading] = useState(false)
   const [activeSection, setActiveSection] = useState("home")
 
-  // Always scrolls to top and closes sign-in
+  // ------- Auth handler -------
+  const handleAuth = async (e) => {
+    e.preventDefault()
+    setError(null)
+    setLoading(true)
+    if (isSigningUp) {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { name } }
+      })
+      if (error) setError(error.message)
+    } else {
+      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error) setError(error.message)
+    }
+    setLoading(false)
+  }
+
+  // ------- Scroll to top and close sign-in -------
   const handleHome = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
     setShowSignIn(false)
     setTimeout(() => { document.documentElement.scrollTop = 0; document.body.scrollTop = 0 }, 600)
   }
 
+  // ------- Scroll to section (nav) -------
   const handleScrollToSection = useCallback((id) => {
     setShowSignIn(false)
     setTimeout(() => {
@@ -39,7 +71,7 @@ export default function AuthPage() {
     }, 120)
   }, [])
 
-  // Scrollspy logic: highlight nav link based on visible section
+  // ------- Scrollspy logic -------
   useEffect(() => {
     const handleSpy = () => {
       const scrollY = window.scrollY + 86 // nav height offset
@@ -56,9 +88,7 @@ export default function AuthPage() {
     return () => window.removeEventListener("scroll", handleSpy)
   }, [])
 
-  // ...auth handler, as before...
-
-  // Landing experience
+  // ------- Main render -------
   if (!showSignIn) {
     return (
       <div style={{
@@ -99,7 +129,7 @@ export default function AuthPage() {
     )
   }
 
-  // SIGN IN/UP PAGE (no progress bar needed here)
+  // ------- SIGN IN/UP PAGE -------
   return (
     <div style={{
       minHeight: '100vh', width: '100vw', position: 'relative',

@@ -65,7 +65,13 @@ export default function AuthPage() {
           position: 'fixed', inset: 0, background: 'rgba(20,24,35,0.42)', zIndex: 1, pointerEvents: "none" 
         }} />
 
-        <TopNav onSignIn={() => setShowSignIn(true)} />
+        <TopNav
+          onSignIn={() => setShowSignIn(true)}
+          onHome={() => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            setShowSignIn(false);
+          }}
+        />
 
         <div style={{ position: "relative", zIndex: 2 }}>
           <LandingHero onGetStarted={() => setShowSignIn(true)} />
@@ -97,7 +103,13 @@ export default function AuthPage() {
       <div style={{
         position: 'fixed', inset: 0, background: 'rgba(18,22,30,0.32)', zIndex: 1, pointerEvents: "none" 
       }} />
-      <TopNav onSignIn={() => setShowSignIn(false)} />
+      <TopNav
+        onSignIn={() => setShowSignIn(false)}
+        onHome={() => {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          setShowSignIn(false);
+        }}
+      />
       <SignInForm
         isSigningUp={isSigningUp} setIsSigningUp={setIsSigningUp}
         email={email} setEmail={setEmail}

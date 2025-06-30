@@ -96,24 +96,41 @@ export default function WatchedTab({ session }) {
   )
 
   return (
-    <>
-      <FilterBar
-        sortBy={sortBy} setSortBy={setSortBy}
-        yearFilter={yearFilter} setYearFilter={setYearFilter}
-        genreFilter={genreFilter} setGenreFilter={setGenreFilter}
-        allYears={allYears}
-        allGenres={allGenres}
-        sortOptions={[
-          { value: 'added-desc', label: 'Order Added ↓' },
-          { value: 'added-asc', label: 'Order Added ↑' },
-          { value: 'year-desc', label: 'Year ↓' },
-          { value: 'year-asc', label: 'Year ↑' },
-          { value: 'rating-desc', label: 'Rating ↓' },
-          { value: 'rating-asc', label: 'Rating ↑' }
-        ]}
-        clearFilters={clearFilters}
-      />
-      <div className="section-bar">
+    <div
+      style={{
+        width: "100vw",
+        minHeight: "100vh",
+        background: "#101015",
+        padding: "0 3vw 40px 3vw", // Responsive side padding, bottom space
+        boxSizing: "border-box"
+      }}
+    >
+      <div style={{
+        margin: "0 auto 16px auto",
+        maxWidth: 950,
+        width: "100%"
+      }}>
+        <FilterBar
+          sortBy={sortBy} setSortBy={setSortBy}
+          yearFilter={yearFilter} setYearFilter={setYearFilter}
+          genreFilter={genreFilter} setGenreFilter={setGenreFilter}
+          allYears={allYears}
+          allGenres={allGenres}
+          sortOptions={[
+            { value: 'added-desc', label: 'Order Added ↓' },
+            { value: 'added-asc', label: 'Order Added ↑' },
+            { value: 'year-desc', label: 'Year ↓' },
+            { value: 'year-asc', label: 'Year ↑' },
+            { value: 'rating-desc', label: 'Rating ↓' },
+            { value: 'rating-asc', label: 'Rating ↑' }
+          ]}
+          clearFilters={clearFilters}
+        />
+      </div>
+      <div className="section-bar" style={{
+        fontSize: "clamp(1.05rem,1.8vw,1.32rem)",
+        margin: "36px 0 18px 0"
+      }}>
         <span role="img" aria-label="watched">🎬</span> Watched History
       </div>
       <div style={{ minHeight: 200 }}>
@@ -134,6 +151,6 @@ export default function WatchedTab({ session }) {
           </div>
         )}
       </div>
-    </>
+    </div>
   )
 }

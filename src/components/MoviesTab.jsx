@@ -105,27 +105,48 @@ export default function MoviesTab({ session }) {
   }
 
   return (
-    <>
+    <div
+      style={{
+        width: "100vw",
+        minHeight: "100vh",
+        background: "#101015",
+        padding: "0 3vw 40px 3vw", // Responsive side padding, bottom space
+        boxSizing: "border-box"
+      }}
+    >
       <Account session={session} userName={session?.user?.user_metadata?.name} />
-      <div style={{ margin: "0 auto 38px auto", maxWidth: 700 }}>
+      <div style={{
+        margin: "0 auto 38px auto",
+        maxWidth: 800, // prevent search bar from stretching too much
+        width: "100%",
+      }}>
         <Search onResults={setResults} />
       </div>
-      <FilterBar
-        sortBy={sortBy} setSortBy={setSortBy}
-        yearFilter={yearFilter} setYearFilter={setYearFilter}
-        genreFilter={genreFilter} setGenreFilter={setGenreFilter}
-        allYears={allYears}
-        allGenres={allGenres}
-        sortOptions={[
-          { value: 'popularity-desc', label: 'Popularity ↓' },
-          { value: 'year-desc', label: 'Year ↓' },
-          { value: 'year-asc', label: 'Year ↑' },
-          { value: 'rating-desc', label: 'Rating ↓' },
-          { value: 'rating-asc', label: 'Rating ↑' }
-        ]}
-        clearFilters={clearFilters}
-      />
-      <div className="section-bar">
+      <div style={{
+        margin: "0 auto 12px auto",
+        maxWidth: 950,
+        width: "100%"
+      }}>
+        <FilterBar
+          sortBy={sortBy} setSortBy={setSortBy}
+          yearFilter={yearFilter} setYearFilter={setYearFilter}
+          genreFilter={genreFilter} setGenreFilter={setGenreFilter}
+          allYears={allYears}
+          allGenres={allGenres}
+          sortOptions={[
+            { value: 'popularity-desc', label: 'Popularity ↓' },
+            { value: 'year-desc', label: 'Year ↓' },
+            { value: 'year-asc', label: 'Year ↑' },
+            { value: 'rating-desc', label: 'Rating ↓' },
+            { value: 'rating-asc', label: 'Rating ↑' }
+          ]}
+          clearFilters={clearFilters}
+        />
+      </div>
+      <div className="section-bar" style={{
+        fontSize: "clamp(1.05rem,1.8vw,1.32rem)",
+        margin: "36px 0 18px 0"
+      }}>
         <span role="img" aria-label="search">🔍</span> Search Results
       </div>
       <div style={{ minHeight: 200 }}>
@@ -147,6 +168,6 @@ export default function MoviesTab({ session }) {
           </div>
         )}
       </div>
-    </>
+    </div>
   )
 }

@@ -18,7 +18,7 @@ export default function App() {
   }, [])
 
   // --- Tab navigation ---
-  const [activeTab, setActiveTab] = useState('movies') // movies | recommendations | watched
+  const [activeTab, setActiveTab] = useState('home') // movies | recommendations | watched
 
   // --- My Account modal ---
   const [showAccountModal, setShowAccountModal] = useState(false)

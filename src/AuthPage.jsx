@@ -175,8 +175,8 @@ export default function AuthPage() {
               marginBottom: 28,
               lineHeight: 1.7
             }}>
-              Track everything you’ve watched and how it made you feel.<br />
-              Get personalized picks. Clean, private, and always free.
+              Get the perfect recommendation based on your movie taste and how you’re feeling today.<br />
+              Fast, private, and always free.
             </div>
             <button
               onClick={() => setShowSignIn(true)}

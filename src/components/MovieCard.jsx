@@ -9,6 +9,14 @@ export default function MovieCard({
   onRemove = null
 }) {
   const [hovered, setHovered] = useState(false);
+
+  // BRAND COLORS (extracted from your logo)
+  const NAVY = "#18406d";
+  const ORANGE = "#fe9245";
+  const RED = "#eb423b";
+  const YELLOW = "#fdaf41";
+  const OFFWHITE = "#f7ede7";
+
   const path = movie.poster || movie.poster_path;
   const posterUrl = path
     ? `https://image.tmdb.org/t/p/w342${path}`
@@ -21,11 +29,6 @@ export default function MovieCard({
     .slice(0, 2)
     .join(", ");
 
-  const overview =
-    movie.overview && movie.overview.trim().length
-      ? movie.overview
-      : "No overview available.";
-
   return (
     <div
       className="movie-card"
@@ -34,21 +37,24 @@ export default function MovieCard({
       style={{
         width: 185,
         minHeight: 390,
-        borderRadius: 16,
-        background: "#19191e",
+        borderRadius: 18,
+        background: `linear-gradient(135deg, ${NAVY} 90%, ${ORANGE} 110%)`,
+        border: hovered
+          ? `2.5px solid ${ORANGE}`
+          : "2.5px solid transparent",
         boxShadow: hovered
-          ? "0 10px 32px 0 #241e19aa, 0 2px 16px 0 #0009"
+          ? `0 8px 36px 0 ${ORANGE}44, 0 2px 16px 0 #0009`
           : "0 2px 16px 0 #0009",
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
-        transition: "box-shadow 0.2s, transform 0.16s",
-        transform: hovered ? "scale(1.04) translateY(-6px)" : "scale(1.00)",
+        transition: "box-shadow 0.18s, transform 0.15s, border 0.22s",
+        transform: hovered ? "scale(1.045) translateY(-7px)" : "scale(1.00)",
         cursor: "pointer",
         position: "relative"
       }}
     >
-      {/* Poster with rating badge */}
+      {/* Poster */}
       <div style={{ position: "relative", width: "100%" }}>
         {posterUrl ? (
           <img
@@ -58,8 +64,8 @@ export default function MovieCard({
               width: "100%",
               minHeight: 265,
               objectFit: "cover",
-              borderTopLeftRadius: 16,
-              borderTopRightRadius: 16
+              borderTopLeftRadius: 18,
+              borderTopRightRadius: 18
             }}
           />
         ) : (
@@ -67,8 +73,8 @@ export default function MovieCard({
             style={{
               width: "100%",
               height: 265,
-              background: "#222",
-              color: "#aaa",
+              background: OFFWHITE,
+              color: NAVY,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -81,39 +87,42 @@ export default function MovieCard({
           position: "absolute",
           top: 9,
           right: 9,
-          background: "#18181b",
+          background: NAVY,
           borderRadius: "9999px",
-          color: "#FFD700",
+          color: YELLOW,
           fontWeight: 700,
           fontSize: 15,
-          padding: "3px 11px",
-          boxShadow: "0 1px 7px #0008"
+          padding: "4px 12px",
+          boxShadow: "0 1px 7px #0005"
         }}>
           ⭐ {score}
         </div>
       </div>
       {/* Card details */}
       <div style={{
-        padding: "12px 13px 8px 13px",
+        padding: "14px 15px 10px 15px",
         flex: 1,
         display: "flex",
         flexDirection: "column",
-        justifyContent: "flex-end"
+        justifyContent: "flex-end",
+        background: "rgba(24,64,109,0.97)"
       }}>
         <div style={{
           fontWeight: 700,
           fontSize: 17,
-          color: "#fff",
-          lineHeight: "1.17",
+          color: OFFWHITE,
+          lineHeight: "1.14",
           marginBottom: 3,
           whiteSpace: "nowrap",
           overflow: "hidden",
-          textOverflow: "ellipsis"
+          textOverflow: "ellipsis",
+          letterSpacing: "-0.03em"
         }} title={movie.title}>{movie.title}</div>
         <div style={{
           fontSize: 13,
-          color: "#bbb",
-          lineHeight: 1.19,
+          color: YELLOW,
+          fontWeight: 500,
+          lineHeight: 1.16,
           marginBottom: 2,
           whiteSpace: "nowrap",
           overflow: "hidden",
@@ -121,25 +130,26 @@ export default function MovieCard({
         }} title={genres}>{genres || "—"}</div>
         <div style={{
           fontSize: 13,
-          color: "#8a8d95",
-          marginBottom: 4
+          color: OFFWHITE,
+          marginBottom: 7
         }}>{year}</div>
         {/* Watched/Remove buttons */}
         {showWatchedButton ? (
           <button
             onClick={() => onMarkWatched(movie)}
             style={{
-              marginTop: 10,
+              marginTop: 7,
               width: "100%",
-              padding: "7px 0",
+              padding: "8px 0",
               borderRadius: 24,
               border: "none",
-              background: "#18ba54",
-              color: "#fff",
-              fontWeight: 700,
-              fontSize: 14,
+              background: ORANGE,
+              color: NAVY,
+              fontWeight: 800,
+              fontSize: 15,
               cursor: "pointer",
-              boxShadow: "0 2px 10px 0 #16a34a22"
+              letterSpacing: "0.03em",
+              boxShadow: `0 2px 10px 0 ${ORANGE}22`
             }}
           >
             WATCHED ✓
@@ -153,20 +163,22 @@ export default function MovieCard({
             alignItems: "center"
           }}>
             <div style={{
-              color: "#bbb",
+              color: ORANGE,
               fontSize: 13,
-              marginBottom: 5
+              fontWeight: 600,
+              marginBottom: 4,
+              letterSpacing: "0.02em"
             }}>Already watched</div>
             <button
               onClick={onRemove}
               style={{
-                background: '#9a2d2d',
-                color: '#fff',
+                background: RED,
+                color: "#fff",
                 border: 'none',
-                borderRadius: 15,
-                fontSize: 18,
-                width: 30,
-                height: 30,
+                borderRadius: 18,
+                fontSize: 19,
+                width: 32,
+                height: 32,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -180,9 +192,10 @@ export default function MovieCard({
           <div style={{
             marginTop: 10,
             width: "100%",
-            color: "#bbb",
+            color: ORANGE,
             fontSize: 13,
-            textAlign: "center"
+            textAlign: "center",
+            fontWeight: 600
           }}>Already watched</div>
         )}
       </div>

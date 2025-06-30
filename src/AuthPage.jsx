@@ -70,17 +70,17 @@ export default function AuthPage() {
             height: "100vh",
             objectFit: "cover",
             zIndex: 0,
-            filter: "brightness(0.55) blur(0.5px)"
+            filter: "brightness(0.64) blur(0.2px)"
           }}
         >
           <source src="/background.mp4" type="video/mp4" />
           Your browser does not support the video tag.
         </video>
-        {/* Netflix-like black overlay for best contrast */}
+        {/* Less black overlay */}
         <div style={{
           position: 'fixed',
           inset: 0,
-          background: 'rgba(0,0,0,0.60)',
+          background: 'rgba(18,22,30,0.34)',
           zIndex: 1,
           pointerEvents: "none"
         }} />
@@ -146,31 +146,35 @@ export default function AuthPage() {
           <div
             style={{
               textAlign: "center",
-              maxWidth: 700,
+              maxWidth: 1000,
+              minWidth: 400,
               margin: "0 auto"
             }}
           >
             <div style={{
               fontWeight: 900,
-              fontSize: window.innerWidth < 600 ? 32 : 54,
-              lineHeight: 1.09,
+              fontSize: window.innerWidth < 600 ? 28 : 42,
+              lineHeight: 1.15,
               color: "#fff",
-              letterSpacing: "-2px",
-              marginBottom: 20,
-              textShadow: "0 2px 18px #000b, 0 4px 40px #000a"
+              letterSpacing: "-1.1px",
+              marginBottom: 10,
+              textShadow: "0 2px 18px #000b, 0 4px 40px #000a",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis"
             }}>
               Movies that match your mood.
             </div>
             <div style={{
-              fontWeight: 500,
-              fontSize: window.innerWidth < 600 ? 16 : 22,
+              fontWeight: 400,
+              fontSize: window.innerWidth < 600 ? 13 : 17,
               color: "#fff",
-              opacity: 0.96,
-              marginBottom: 32,
-              lineHeight: 1.55
+              opacity: 0.93,
+              marginTop: 8,
+              marginBottom: 28,
+              lineHeight: 1.7
             }}>
-              Track everything you’ve watched and how it made you feel.
-              <br />
+              Track everything you’ve watched and how it made you feel.<br />
               Get personalized picks. Clean, private, and always free.
             </div>
             <button
@@ -249,7 +253,7 @@ export default function AuthPage() {
           height: "100vh",
           objectFit: "cover",
           zIndex: 0,
-          filter: "brightness(0.55) blur(0.5px)"
+          filter: "brightness(0.64) blur(0.2px)"
         }}
       >
         <source src="/background.mp4" type="video/mp4" />
@@ -258,7 +262,7 @@ export default function AuthPage() {
       <div style={{
         position: 'fixed',
         inset: 0,
-        background: 'rgba(0,0,0,0.60)',
+        background: 'rgba(18,22,30,0.34)',
         zIndex: 1,
         pointerEvents: "none"
       }} />
@@ -296,7 +300,8 @@ export default function AuthPage() {
           maxWidth: 400,
           margin: "0 auto",
           marginTop: "11vh",
-          background: "rgba(23,24,29,0.97)",
+          background: "rgba(24, 26, 32, 0.74)",
+          backdropFilter: "blur(9px)",
           borderRadius: 20,
           boxShadow: "0 8px 48px 0 #0008",
           padding: '46px 38px 32px 38px',

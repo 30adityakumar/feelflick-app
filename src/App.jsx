@@ -398,6 +398,7 @@ export default function App () {
       <WatchedHistory
         watched={sortedFilteredWatched}
         genreMap={genreMap}
+        onRemove={removeFromWatched}
       />
     </div>
   )

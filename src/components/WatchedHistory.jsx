@@ -21,8 +21,8 @@ export default function WatchedHistory({ watched, genreMap, onRemove }) {
             key={m.movie_id}
             movie={m}
             genreMap={genreMap}
-            isWatched={!!onRemove}
-            onRemove={onRemove ? () => onRemove(m.movie_id) : undefined}
+            isWatched={true}
+            onRemove={() => onRemove(m.movie_id)}
           />
         ))}
       </div>

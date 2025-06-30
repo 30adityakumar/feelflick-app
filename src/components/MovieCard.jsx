@@ -155,7 +155,7 @@ export default function MovieCard({
         </div>
       </div>
 
-      {/* Watched button or label */}
+      {/* Button/Label area */}
       {showWatchedButton ? (
         <button
           onClick={() => onMarkWatched(movie)}
@@ -194,9 +194,9 @@ export default function MovieCard({
               color: '#fff',
               border: 'none',
               borderRadius: 5,
-              fontSize: 16,
-              width: 28,
-              height: 28,
+              fontSize: 18,
+              width: 30,
+              height: 30,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',

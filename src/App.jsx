@@ -162,11 +162,7 @@ export default function App () {
 
   // Unauthenticated view
   if (!session) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-zinc-950 text-white px-4">
-        <AuthEmailPassword />
-      </div>
-    )
+    return <AuthPage />
   }
 
   // Main authenticated app layout (cinematic style)

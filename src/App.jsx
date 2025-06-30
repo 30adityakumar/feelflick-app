@@ -22,7 +22,12 @@ export default function App () {
   const [watched, setWatched] = useState([])
   const [genreMap, setGenreMap] = useState({})
 
-  const watchedIds = new Set(watched.map(m => m.movie_id)) // ← used to disable button
+  const [searchSortBy, setSearchSortBy] = useState('year-desc')
+  const [watchedSortBy, setWatchedSortBy] = useState('year-desc')
+  const [searchYearFilter, setSearchYearFilter] = useState('')
+  const [watchedYearFilter, setWatchedYearFilter] = useState('')
+
+  const watchedIds = new Set(watched.map(m => m.movie_id))
 
   useEffect(() => {
     fetch(
@@ -65,7 +70,6 @@ export default function App () {
       return console.error('Insert failed:', error.message)
     }
 
-    // re-fetch watched list (if insert succeeded or already existed)
     const { data } = await supabase
       .from('movies_watched')
       .select('*')
@@ -73,6 +77,51 @@ export default function App () {
       .order('id', { ascending: false })
     setWatched(data)
   }
+
+  // --- Sorting/Filtering helpers ---
+  function sortMovies(movies, sortBy) {
+    if (sortBy === 'year-desc') {
+      return [...movies].sort((a, b) => (b.release_date || '').localeCompare(a.release_date || ''))
+    }
+    if (sortBy === 'year-asc') {
+      return [...movies].sort((a, b) => (a.release_date || '').localeCompare(b.release_date || ''))
+    }
+    if (sortBy === 'rating-desc') {
+      return [...movies].sort((a, b) => (b.vote_average || 0) - (a.vote_average || 0))
+    }
+    if (sortBy === 'rating-asc') {
+      return [...movies].sort((a, b) => (a.vote_average || 0) - (b.vote_average || 0))
+    }
+    return movies
+  }
+
+  function filterMoviesByYear(movies, year) {
+    if (!year) return movies
+    return movies.filter(m =>
+      m.release_date && new Date(m.release_date).getFullYear().toString() === year
+    )
+  }
+
+  // --- Prepare sorted/filtered arrays ---
+  const sortedFilteredResults = sortMovies(
+    filterMoviesByYear(results, searchYearFilter),
+    searchSortBy
+  )
+  const sortedFilteredWatched = sortMovies(
+    filterMoviesByYear(watched, watchedYearFilter),
+    watchedSortBy
+  )
+
+  // --- Collect all years present for filter dropdowns ---
+  const allResultYears = Array.from(new Set(results
+    .map(m => m.release_date && new Date(m.release_date).getFullYear())
+    .filter(Boolean)
+  )).sort((a, b) => b - a)
+
+  const allWatchedYears = Array.from(new Set(watched
+    .map(m => m.release_date && new Date(m.release_date).getFullYear())
+    .filter(Boolean)
+  )).sort((a, b) => b - a)
 
   if (!session) {
     return (
@@ -85,24 +134,78 @@ export default function App () {
   return (
     <div className="min-h-screen bg-zinc-950 text-white px-4 pb-10">
       <Header />
-
       <Account session={session} />
-
       <div className="mt-8 mb-6 flex justify-center">
         <div className="w-full max-w-xl bg-white/10 p-4 rounded-lg shadow-md">
           <Search onResults={setResults} />
         </div>
       </div>
-
+      {/* --- SEARCH RESULTS SORT/FILTER CONTROLS --- */}
+      <div className="flex flex-wrap items-center gap-4 mb-3 justify-center">
+        <label>
+          <span className="text-gray-400 text-xs mr-1">Sort:</span>
+          <select
+            value={searchSortBy}
+            onChange={e => setSearchSortBy(e.target.value)}
+            className="bg-zinc-900 text-white border rounded p-1 text-xs"
+          >
+            <option value="year-desc">Year ↓</option>
+            <option value="year-asc">Year ↑</option>
+            <option value="rating-desc">Rating ↓</option>
+            <option value="rating-asc">Rating ↑</option>
+          </select>
+        </label>
+        <label>
+          <span className="text-gray-400 text-xs mr-1">Year:</span>
+          <select
+            value={searchYearFilter}
+            onChange={e => setSearchYearFilter(e.target.value)}
+            className="bg-zinc-900 text-white border rounded p-1 text-xs"
+          >
+            <option value="">All</option>
+            {allResultYears.map(y => (
+              <option key={y} value={y}>{y}</option>
+            ))}
+          </select>
+        </label>
+      </div>
       <ResultsGrid
-        results={results}
+        results={sortedFilteredResults}
         genreMap={genreMap}
         onMarkWatched={markWatched}
-        watchedIds={watchedIds}  // ← pass to ResultsGrid
+        watchedIds={watchedIds}
       />
-
+      {/* --- WATCHED HISTORY SORT/FILTER CONTROLS --- */}
+      <div className="flex flex-wrap items-center gap-4 mt-10 mb-3 justify-center">
+        <label>
+          <span className="text-gray-400 text-xs mr-1">Sort:</span>
+          <select
+            value={watchedSortBy}
+            onChange={e => setWatchedSortBy(e.target.value)}
+            className="bg-zinc-900 text-white border rounded p-1 text-xs"
+          >
+            <option value="year-desc">Year ↓</option>
+            <option value="year-asc">Year ↑</option>
+            <option value="rating-desc">Rating ↓</option>
+            <option value="rating-asc">Rating ↑</option>
+          </select>
+        </label>
+        <label>
+          <span className="text-gray-400 text-xs mr-1">Year:</span>
+          <select
+            value={watchedYearFilter}
+            onChange={e => setWatchedYearFilter(e.target.value)}
+            className="bg-zinc-900 text-white border rounded p-1 text-xs"
+          >
+            <option value="">All</option>
+            {allWatchedYears.map(y => (
+              <option key={y} value={y}>{y}</option>
+            ))}
+          </select>
+        </label>
+      </div>
       <WatchedHistory
-        watched={watched}
+        watched={sortedFilteredWatched}
         genreMap={genreMap}
       />
     </div>

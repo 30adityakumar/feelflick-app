@@ -10,7 +10,6 @@ import WatchedHistory from './components/WatchedHistory'
 import FilterBar from './components/FilterBar'
 
 export default function App () {
-  // 1. Auth/session state
   const [session, setSession] = useState(null)
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setSession(session))
@@ -18,12 +17,11 @@ export default function App () {
     return () => data.subscription.unsubscribe()
   }, [])
 
-  // 2. App state
   const [results, setResults] = useState([])
   const [watched, setWatched] = useState([])
   const [genreMap, setGenreMap] = useState({})
 
-  // 3. Filters and sorting
+  // Filters and sorting
   const [searchSortBy, setSearchSortBy] = useState('popularity-desc')
   const [watchedSortBy, setWatchedSortBy] = useState('added-desc')
   const [searchYearFilter, setSearchYearFilter] = useState('')
@@ -32,7 +30,7 @@ export default function App () {
   const [watchedGenreFilter, setWatchedGenreFilter] = useState('')
   const watchedIds = new Set(watched.map(m => m.movie_id))
 
-  // 4. Fetch genres (for mapping genre ids to names)
+  // Fetch genres (for mapping genre ids to names)
   useEffect(() => {
     fetch(
       `https://api.themoviedb.org/3/genre/movie/list?api_key=${import.meta.env.VITE_TMDB_API_KEY}&language=en-US`
@@ -44,7 +42,7 @@ export default function App () {
       .catch(console.error)
   }, [])
 
-  // 5. Fetch watched history for the user
+  // Fetch watched history for the user
   useEffect(() => {
     if (!session?.user?.id) return
     supabase
@@ -58,7 +56,7 @@ export default function App () {
       })
   }, [session])
 
-  // 6. Mark movie as watched
+  // Mark movie as watched
   const markWatched = async (movie) => {
     if (!session || watchedIds.has(movie.id)) return
     const { error } = await supabase.from('movies_watched').insert({
@@ -80,7 +78,7 @@ export default function App () {
     setWatched(data)
   }
 
-  // 7. Remove a movie from watched history
+  // Remove a movie from watched history
   const removeFromWatched = async (movie_id) => {
     if (!session?.user?.id) return
     await supabase
@@ -97,7 +95,7 @@ export default function App () {
     setWatched(data)
   }
 
-  // 8. Helpers for sort and filtering logic
+  // Helpers for sort and filtering logic
   function sortMovies(movies, sortBy) {
     if (sortBy === 'popularity-desc') return [...movies].sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
     if (sortBy === 'year-desc')       return [...movies].sort((a, b) => (b.release_date || '').localeCompare(a.release_date || ''))
@@ -117,7 +115,7 @@ export default function App () {
     return movies.filter(m => Array.isArray(m.genre_ids) && m.genre_ids.includes(Number(genreId)))
   }
 
-  // 9. Prepare filtered & sorted arrays for each grid
+  // Prepare filtered & sorted arrays for each grid
   const sortedFilteredResults = sortMovies(
     filterMoviesByGenre(
       filterMoviesByYear(results, searchYearFilter),
@@ -133,7 +131,7 @@ export default function App () {
     watchedSortBy
   )
 
-  // 10. Collect filter options for year & genre dropdowns
+  // Collect filter options for year & genre dropdowns
   const allResultYears = Array.from(new Set(results.map(m => m.release_date && new Date(m.release_date).getFullYear()).filter(Boolean))).sort((a, b) => b - a)
   const allWatchedYears = Array.from(new Set(watched.map(m => m.release_date && new Date(m.release_date).getFullYear()).filter(Boolean))).sort((a, b) => b - a)
   function getAllGenresFromMovies(movies) {
@@ -150,7 +148,7 @@ export default function App () {
   const allResultGenres = getAllGenresFromMovies(results)
   const allWatchedGenres = getAllGenresFromMovies(watched)
 
-  // 11. Filter clear helpers
+  // Filter clear helpers
   const clearSearchFilters = () => {
     setSearchSortBy('popularity-desc')
     setSearchYearFilter('')
@@ -162,7 +160,7 @@ export default function App () {
     setWatchedGenreFilter('')
   }
 
-  // 12. Unauthenticated view
+  // Unauthenticated view
   if (!session) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-zinc-950 text-white px-4">
@@ -171,86 +169,93 @@ export default function App () {
     )
   }
 
-  // 13. Main authenticated app layout
+  // Main authenticated app layout (cinematic style)
   return (
     <div className="min-h-screen bg-zinc-950 text-white pb-10">
       <Header />
       <div className="container">
         <Account session={session} userName={session?.user?.user_metadata?.name} />
-        {/* Search Bar */}
-        <div style={{ marginTop: 16, marginBottom: 32, maxWidth: 600, marginLeft: "auto", marginRight: "auto" }}>
+        <div style={{ margin: "0 auto 38px auto", maxWidth: 700 }}>
           <Search onResults={setResults} />
         </div>
-        {/* FilterBar: Search */}
-        <FilterBar
-          sortBy={searchSortBy} setSortBy={setSearchSortBy}
-          yearFilter={searchYearFilter} setYearFilter={setSearchYearFilter}
-          genreFilter={searchGenreFilter} setGenreFilter={setSearchGenreFilter}
-          allYears={allResultYears}
-          allGenres={allResultGenres}
-          sortOptions={[
-            { value: 'popularity-desc', label: 'Popularity ↓' },
-            { value: 'year-desc', label: 'Year ↓' },
-            { value: 'year-asc', label: 'Year ↑' },
-            { value: 'rating-desc', label: 'Rating ↓' },
-            { value: 'rating-asc', label: 'Rating ↑' }
-          ]}
-          clearFilters={clearSearchFilters}
-        />
-        {/* SEARCH RESULTS GRID + Empty State */}
-        <div style={{ margin: '32px auto 40px auto', minHeight: 180 }}>
+
+        {/* Floating FilterBar for Search */}
+        <div className="floating-bar">
+          <FilterBar
+            sortBy={searchSortBy} setSortBy={setSearchSortBy}
+            yearFilter={searchYearFilter} setYearFilter={setSearchYearFilter}
+            genreFilter={searchGenreFilter} setGenreFilter={setSearchGenreFilter}
+            allYears={allResultYears}
+            allGenres={allResultGenres}
+            sortOptions={[
+              { value: 'popularity-desc', label: 'Popularity ↓' },
+              { value: 'year-desc', label: 'Year ↓' },
+              { value: 'year-asc', label: 'Year ↑' },
+              { value: 'rating-desc', label: 'Rating ↓' },
+              { value: 'rating-asc', label: 'Rating ↑' }
+            ]}
+            clearFilters={clearSearchFilters}
+          />
+        </div>
+        {/* Section header */}
+        <div className="section-bar">
+          <span role="img" aria-label="search">🔍</span> Search Results
+        </div>
+        {/* Search Results grid + Empty state */}
+        <div style={{ minHeight: 200 }}>
           {sortedFilteredResults.length ? (
             <ResultsGrid
               results={sortedFilteredResults}
               genreMap={genreMap}
               onMarkWatched={markWatched}
               watchedIds={watchedIds}
+              gridClass="movie-grid"
             />
           ) : (
             <div style={{
-              color: '#aaa',
-              textAlign: 'center',
-              fontSize: 18,
-              fontWeight: 500,
-              margin: '2.5rem 0'
+              color: '#aaa', textAlign: 'center', fontSize: 18,
+              fontWeight: 500, margin: '2.5rem 0'
             }}>
               <span role="img" aria-label="No results" style={{ fontSize: 34, display: 'block', marginBottom: 6 }}>😕</span>
               No movies found. Try a different search!
             </div>
           )}
         </div>
-        {/* FilterBar: Watched */}
-        <FilterBar
-          sortBy={watchedSortBy} setSortBy={setWatchedSortBy}
-          yearFilter={watchedYearFilter} setYearFilter={setWatchedYearFilter}
-          genreFilter={watchedGenreFilter} setGenreFilter={setWatchedGenreFilter}
-          allYears={allWatchedYears}
-          allGenres={allWatchedGenres}
-          sortOptions={[
-            { value: 'added-desc', label: 'Order Added ↓' },
-            { value: 'added-asc', label: 'Order Added ↑' },
-            { value: 'year-desc', label: 'Year ↓' },
-            { value: 'year-asc', label: 'Year ↑' },
-            { value: 'rating-desc', label: 'Rating ↓' },
-            { value: 'rating-asc', label: 'Rating ↑' }
-          ]}
-          clearFilters={clearWatchedFilters}
-        />
-        {/* WATCHED HISTORY GRID + Empty State */}
-        <div style={{ margin: '32px auto 0 auto', minHeight: 180 }}>
+
+        {/* Floating FilterBar for Watched */}
+        <div className="floating-bar" style={{ margin: "40px auto 0 auto" }}>
+          <FilterBar
+            sortBy={watchedSortBy} setSortBy={setWatchedSortBy}
+            yearFilter={watchedYearFilter} setYearFilter={setWatchedYearFilter}
+            genreFilter={watchedGenreFilter} setGenreFilter={setWatchedGenreFilter}
+            allYears={allWatchedYears}
+            allGenres={allWatchedGenres}
+            sortOptions={[
+              { value: 'added-desc', label: 'Order Added ↓' },
+              { value: 'added-asc', label: 'Order Added ↑' },
+              { value: 'year-desc', label: 'Year ↓' },
+              { value: 'year-asc', label: 'Year ↑' },
+              { value: 'rating-desc', label: 'Rating ↓' },
+              { value: 'rating-asc', label: 'Rating ↑' }
+            ]}
+            clearFilters={clearWatchedFilters}
+          />
+        </div>
+        <div className="section-bar">
+          <span role="img" aria-label="watched">🎬</span> Watched History
+        </div>
+        <div style={{ minHeight: 200 }}>
           {sortedFilteredWatched.length ? (
             <WatchedHistory
               watched={sortedFilteredWatched}
               genreMap={genreMap}
               onRemove={removeFromWatched}
+              gridClass="movie-grid"
             />
           ) : (
             <div style={{
-              color: '#aaa',
-              textAlign: 'center',
-              fontSize: 18,
-              fontWeight: 500,
-              margin: '2.5rem 0'
+              color: '#aaa', textAlign: 'center', fontSize: 18,
+              fontWeight: 500, margin: '2.5rem 0'
             }}>
               <span role="img" aria-label="Empty" style={{ fontSize: 30, display: 'block', marginBottom: 6 }}>🍿</span>
               No watched movies yet. Mark some as watched to see them here!

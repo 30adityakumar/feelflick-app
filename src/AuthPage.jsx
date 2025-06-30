@@ -70,8 +70,9 @@ export default function AuthPage() {
             height: "100vh",
             objectFit: "cover",
             zIndex: 0,
-            filter: "brightness(0.64) blur(0.2px)"
+            filter: "brightness(0.60) blur(0.35px)"
           }}
+          onEnded={e => e.currentTarget.pause()}  // freezes at last frame
         >
           <source src="/background.mp4" type="video/mp4" />
           Your browser does not support the video tag.

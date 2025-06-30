@@ -154,7 +154,7 @@ export default function AuthPage() {
           >
             <div style={{
               fontWeight: 900,
-              fontSize: "clamp(2.2rem, 5vw, 3.6rem)", // responsive and big!
+              fontSize: "clamp(1.7rem, 4vw, 3rem)", // responsive and big!
               lineHeight: 1.15,
               color: "#fff",
               letterSpacing: "-1.1px",
@@ -175,7 +175,7 @@ export default function AuthPage() {
               marginBottom: 28,
               lineHeight: 1.7
             }}>
-              Get the perfect recommendation based on your movie taste and how you’re feeling today.<br />
+              Get the perfect recommendation based on your taste and how you feel.<br />
               Fast, private, and always free.
             </div>
             <button

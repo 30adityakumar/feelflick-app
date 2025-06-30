@@ -147,33 +147,32 @@ export default function AuthPage() {
           <div
             style={{
               textAlign: "center",
-              maxWidth: 800,
+              maxWidth: 680,
               margin: "0 auto"
             }}
           >
             <div style={{
               fontWeight: 900,
-              fontSize: window.innerWidth < 600 ? 32 : 54,
-              lineHeight: 1.07,
+              fontSize: window.innerWidth < 600 ? 25 : 40,
+              lineHeight: 1.14,
               color: "#fff",
-              letterSpacing: "-2px",
-              marginBottom: 16,
+              letterSpacing: "-1px",
+              marginBottom: 14,
               textShadow: "0 1px 12px #000b"
             }}>
-              The simplest way to track, discover,<br />
-              and feel your movie journey.
+              Movies that match your mood.
             </div>
             <div style={{
-              fontWeight: 600,
-              fontSize: window.innerWidth < 600 ? 17 : 28,
+              fontWeight: 500,
+              fontSize: window.innerWidth < 600 ? 15 : 20,
               color: "#fff",
-              opacity: 0.88,
-              textShadow: "0 1px 8px #0008",
-              marginBottom: 25
+              opacity: 0.93,
+              marginBottom: 26,
+              lineHeight: 1.7
             }}>
-              All your watched films in one place. Get personal recommendations.  
+              Track everything you’ve watched and how it made you feel.
               <br />
-              Private, fast, beautiful, and always free.
+              Get personalized picks. Clean, private, and always free.
             </div>
             {/* Call-to-action */}
             <button
@@ -184,11 +183,11 @@ export default function AuthPage() {
                 border: "none",
                 borderRadius: 10,
                 fontWeight: 800,
-                fontSize: 22,
-                padding: "15px 42px",
+                fontSize: 20,
+                padding: "13px 36px",
                 boxShadow: "0 2px 12px 0 #fe924522",
                 cursor: "pointer",
-                marginTop: 12,
+                marginTop: 8,
                 transition: "opacity 0.16s, background 0.2s"
               }}
             >

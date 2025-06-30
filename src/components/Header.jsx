@@ -1,32 +1,50 @@
 import { useState } from 'react'
 
-export default function Header({ userName, onTabChange, activeTab, onSignOut, onSearch }) {
-  // You can manage "activeTab" in App.jsx and pass as prop, or manage here with useState.
+export default function Header({
+  userName, onTabChange, activeTab, onSignOut, onSearch, onMyAccount
+}) {
+  const [showDropdown, setShowDropdown] = useState(false)
   const [searchValue, setSearchValue] = useState('')
 
-  // For mobile, you could add a hamburger state here
-
-  // Main tab definitions
   const tabs = [
     { key: "movies", label: "Movies" },
     { key: "recommendations", label: "Recommendations" },
-    { key: "watched", label: "Watched" },
+    { key: "watched", label: "Watched" }
   ]
 
   return (
-    <header style={headerStyle}>
-      {/* --- Left: Logo + Name + Nav --- */}
-      <div style={leftStyle}>
-        <img src="/logo.png" alt="FeelFlick" style={logoStyle} />
-        <span style={siteNameStyle}>FeelFlick</span>
-        <nav style={navStyle}>
+    <header style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      background: 'linear-gradient(90deg, #18406d 20%, #fe9245 100%)',
+      padding: '0 32px',
+      height: 60,
+      color: '#fff',
+      position: 'sticky', top: 0, zIndex: 99, boxShadow: '0 1px 8px #0001'
+    }}>
+      {/* Left: Logo + Site Name */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+        <img src="/logo.png" alt="FeelFlick" style={{ height: 38, width: 38, borderRadius: 9, marginRight: 5 }} />
+        <span style={{
+          fontSize: '1.6rem', fontWeight: 800, letterSpacing: '-0.5px',
+          marginRight: 20, marginTop: 1
+        }}>FeelFlick</span>
+        {/* Menu */}
+        <nav style={{ display: 'flex', gap: 6 }}>
           {tabs.map(tab => (
             <button
               key={tab.key}
               onClick={() => onTabChange(tab.key)}
               style={{
-                ...navLinkStyle,
-                ...(activeTab === tab.key ? navLinkActiveStyle : {})
+                color: '#fff',
+                fontSize: '1.06rem',
+                background: activeTab === tab.key ? 'rgba(24,64,109,0.18)' : 'none',
+                border: 'none', outline: 'none',
+                fontWeight: 700,
+                padding: '7px 17px',
+                borderRadius: 6,
+                cursor: 'pointer',
+                opacity: activeTab === tab.key ? 1 : 0.89,
+                transition: 'background 0.12s, opacity 0.12s'
               }}
             >
               {tab.label}
@@ -34,134 +52,83 @@ export default function Header({ userName, onTabChange, activeTab, onSignOut, on
           ))}
         </nav>
       </div>
-      {/* --- Right: Search + Profile/Account --- */}
-      <div style={rightStyle}>
+
+      {/* Right: Search + Profile */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
         <form
           onSubmit={e => { e.preventDefault(); if (onSearch) onSearch(searchValue); }}
-          style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+          style={{ display: 'flex', alignItems: 'center', gap: 4 }}
         >
           <input
             type="text"
             value={searchValue}
             placeholder="Search movies..."
             onChange={e => setSearchValue(e.target.value)}
-            style={searchStyle}
+            style={{
+              background: 'rgba(24,22,36,0.18)',
+              border: 'none',
+              borderRadius: 5,
+              padding: '6px 13px',
+              color: '#fff',
+              fontSize: '1rem',
+              width: 140,
+              outline: 'none'
+            }}
           />
         </form>
-        <div style={profileStyle}>
-          <span style={{ marginRight: 8, fontWeight: 600 }}>{userName}</span>
+        {/* Account Dropdown */}
+        <div style={{ position: 'relative' }}>
           <button
-            onClick={onSignOut}
             style={{
-              background: 'rgba(254,146,69,0.9)',
-              color: '#18406d',
+              background: 'rgba(24,22,36,0.10)',
+              borderRadius: 16,
               border: 'none',
-              borderRadius: 6,
               fontWeight: 700,
-              padding: '6px 16px',
-              marginLeft: 4,
+              padding: '6px 18px',
+              color: '#fff',
+              fontSize: '1rem',
+              marginRight: 2,
               cursor: 'pointer',
-              fontSize: '0.95rem',
-              boxShadow: '0 1px 8px #0002',
-              transition: 'background 0.14s'
+              boxShadow: '0 1px 8px #0002'
             }}
+            onClick={() => setShowDropdown(v => !v)}
           >
-            Sign Out
+            {userName}
+            <span style={{
+              marginLeft: 5, fontSize: '0.86em', opacity: 0.7
+            }}>▼</span>
           </button>
+          {showDropdown && (
+            <div style={{
+              position: 'absolute', right: 0, top: 38,
+              background: '#202a3a', color: '#fff',
+              borderRadius: 10, boxShadow: '0 8px 32px #0006',
+              minWidth: 150, zIndex: 10, overflow: 'hidden'
+            }}>
+              <button
+                onClick={() => { setShowDropdown(false); if (onMyAccount) onMyAccount(); }}
+                style={dropdownItem}
+              >My Account</button>
+              <button
+                onClick={() => { setShowDropdown(false); onSignOut(); }}
+                style={{ ...dropdownItem, color: "#ffae41", fontWeight: 800 }}
+              >Sign Out</button>
+            </div>
+          )}
         </div>
       </div>
     </header>
   )
 }
-
-// --- STYLES (move to CSS if you prefer) ---
-
-const headerStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  background: 'linear-gradient(90deg, #18406d 20%, #fe9245 100%)',
-  padding: '0 32px',
-  height: 72,
-  color: '#fff',
-  position: 'sticky',
-  top: 0,
-  zIndex: 99,
-  boxShadow: '0 2px 16px #0002'
-}
-
-const leftStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: 20
-}
-
-const logoStyle = {
-  height: 42,
-  width: 42,
-  borderRadius: 11,
-  marginRight: 10
-}
-
-const siteNameStyle = {
-  fontSize: '2.1rem',
-  fontWeight: 800,
-  letterSpacing: '-1px',
-  marginRight: 24,
-  textShadow: '0 1px 6px #18406d44'
-}
-
-const navStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: 5
-}
-
-const navLinkStyle = {
-  color: '#fff',
-  fontSize: '1.1rem',
+const dropdownItem = {
+  display: 'block',
+  width: '100%',
   background: 'none',
   border: 'none',
-  outline: 'none',
-  marginRight: 8,
-  padding: '7px 20px',
-  borderRadius: 5,
-  opacity: 0.88,
-  fontWeight: 600,
+  textAlign: 'left',
+  padding: '12px 18px',
+  fontSize: '1rem',
+  color: '#fff',
   cursor: 'pointer',
-  transition: 'background 0.15s, color 0.12s, opacity 0.12s'
-}
-const navLinkActiveStyle = {
-  background: 'rgba(255,255,255,0.19)',
-  color: '#fff',
-  opacity: 1
-}
-
-const rightStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: 18
-}
-
-const searchStyle = {
-  background: 'rgba(24,22,36,0.18)',
-  border: 'none',
-  borderRadius: 6,
-  padding: '8px 14px',
-  color: '#fff',
-  fontSize: '1rem',
-  width: 170,
-  outline: 'none'
-}
-
-const profileStyle = {
-  background: 'rgba(24,22,36,0.10)',
-  borderRadius: 19,
-  padding: '6px 15px',
-  fontWeight: 600,
-  fontSize: '1rem',
-  letterSpacing: '-0.5px',
-  display: 'flex',
-  alignItems: 'center',
-  marginLeft: 8
+  transition: 'background 0.13s'
 }

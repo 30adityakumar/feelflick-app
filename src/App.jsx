@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
 import { supabase } from './supabaseClient'
+
 import AuthPage from './AuthPage'
 import Header from './components/Header'
 import MoviesTab from './components/MoviesTab'
 import RecommendationsTab from './components/RecommendationsTab'
 import WatchedTab from './components/WatchedTab'
+import AccountModal from './components/AccountModal' // or MyAccountModal
 
 export default function App() {
   // --- Auth/session state ---
@@ -15,25 +17,46 @@ export default function App() {
     return () => data.subscription.unsubscribe()
   }, [])
 
-  // --- Navigation/tab state ---
+  // --- Tab navigation ---
   const [activeTab, setActiveTab] = useState('movies') // movies | recommendations | watched
 
-  // --- User sign out handler ---
+  // --- My Account modal ---
+  const [showAccountModal, setShowAccountModal] = useState(false)
+  // For instant update after changing name:
+  const [profileName, setProfileName] = useState("")
+
+  // --- Sign out ---
   const handleSignOut = async () => {
     await supabase.auth.signOut()
     setSession(null)
   }
 
+  // --- Show My Account Modal handler ---
+  const handleMyAccount = () => setShowAccountModal(true)
+  const handleCloseAccount = () => setShowAccountModal(false)
+  const handleProfileUpdate = (newName) => setProfileName(newName)
+
+  // --- Unauthenticated view ---
   if (!session) return <AuthPage />
 
+  // --- Authenticated app ---
   return (
     <div className="min-h-screen bg-zinc-950 text-white pb-10">
       <Header
-        userName={session?.user?.user_metadata?.name || "Account"}
+        userName={profileName || session?.user?.user_metadata?.name || "Account"}
         onTabChange={setActiveTab}
         activeTab={activeTab}
         onSignOut={handleSignOut}
+        onMyAccount={handleMyAccount}
       />
+      {/* My Account Modal */}
+      {showAccountModal && (
+        <AccountModal
+          user={session.user}
+          onClose={handleCloseAccount}
+          onProfileUpdate={handleProfileUpdate}
+        />
+      )}
       <div className="container">
         {activeTab === 'movies' && (
           <MoviesTab session={session} />

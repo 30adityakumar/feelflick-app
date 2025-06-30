@@ -2,10 +2,15 @@
 export default function TopNav({ onSignIn, onHome }) {
   return (
     <div style={{
-      position: 'fixed', top: 36, left: 38, right: 38, zIndex: 3,
-      display: "flex", alignItems: "center", justifyContent: "space-between", width: "calc(100vw - 76px)", pointerEvents: "none"
+      position: 'fixed',
+      top: 36, left: 38, right: 38, zIndex: 3,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      width: "calc(100vw - 76px)",
+      // pointerEvents: "auto", // No need, defaults to auto
     }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 13, pointerEvents: "auto" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 13 }}>
         <img src="/logo.png" alt="FeelFlick" style={{
           height: 44, width: 44, borderRadius: 12, boxShadow: "0 2px 8px #0003"
         }} />
@@ -13,7 +18,7 @@ export default function TopNav({ onSignIn, onHome }) {
           fontSize: 32, fontWeight: 900, color: "#fff", letterSpacing: "-1.2px", textShadow: "0 1px 7px #19194044"
         }}>FeelFlick</span>
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 12, pointerEvents: "auto" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
         <button
           onClick={onHome}
           style={{

@@ -8,6 +8,7 @@ import Header from './components/Header'
 import ResultsGrid from './components/ResultsGrid'
 import WatchedHistory from './components/WatchedHistory'
 import FilterBar from './components/FilterBar'
+import AuthPage from './AuthPage'
 
 export default function App () {
   const [session, setSession] = useState(null)

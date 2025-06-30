@@ -42,7 +42,7 @@ export default function App() {
 
   // --- Authenticated app ---
   return (
-    <div className="min-h-screen bg-zinc-950 text-white pb-10">
+    <div className="min-h-screen bg-zinc-950 text-white pb-10" style={{ width: "100vw", overflowX: "hidden" }}>
       <Header
         userName={profileName || session?.user?.user_metadata?.name || "Account"}
         onTabChange={setActiveTab}
@@ -58,24 +58,23 @@ export default function App() {
           onProfileUpdate={handleProfileUpdate}
         />
       )}
-      
-        {activeTab === 'home' && (
-          <HomePage
-            userName={profileName || session?.user?.user_metadata?.name || "Movie Lover"}
-            userId={session?.user?.id}
-          />
-        )}
-        {activeTab === 'movies' && (
-          <MoviesTab session={session} />
-        )}
-        {activeTab === 'recommendations' && (
-          <RecommendationsTab session={session} />
-        )}
-        {activeTab === 'watched' && (
-          <WatchedTab session={session} />
-        )}
 
-      </div>
+      {/* --- No more container! Each tab is rendered at root for full width --- */}
+      {activeTab === 'home' && (
+        <HomePage
+          userName={profileName || session?.user?.user_metadata?.name || "Movie Lover"}
+          userId={session?.user?.id}
+        />
+      )}
+      {activeTab === 'movies' && (
+        <MoviesTab session={session} />
+      )}
+      {activeTab === 'recommendations' && (
+        <RecommendationsTab session={session} />
+      )}
+      {activeTab === 'watched' && (
+        <WatchedTab session={session} />
+      )}
     </div>
   )
 }

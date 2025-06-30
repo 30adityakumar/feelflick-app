@@ -1,37 +1,38 @@
-import { supabase } from './supabaseClient'
+// components/Account.jsx
+import { supabase } from '../supabaseClient'
 
 export default function Account({ session, userName }) {
-  // Display name fallback (from userName prop or email if not set)
-  const displayName = userName || session?.user?.user_metadata?.name || session?.user?.email;
+  // Use provided name, then fallback to Supabase metadata, then email
+  const displayName = userName || session?.user?.user_metadata?.name || session?.user?.email
 
   return (
     <div style={{
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
+      margin: '32px auto 14px auto',
       maxWidth: 900,
-      margin: '0 auto 1rem auto',
-      padding: '0.5rem 0.5rem 0.5rem 0',
-      width: '100%'
+      width: '100%',
+      padding: '0 4px'
     }}>
-      <div style={{ fontWeight: 500, fontSize: 18 }}>
-        {displayName ? <>Hello, <span style={{ color: '#24b47e' }}>{displayName}</span></> : null}
+      <div style={{ fontWeight: 700, fontSize: 23, letterSpacing: '-0.3px' }}>
+        <span role="img" aria-label="wave">👋</span> Hello, <span style={{ color: '#22d190' }}>{displayName}</span>
       </div>
       <button
         onClick={() => supabase.auth.signOut()}
         style={{
-          background: '#201f24',
+          background: '#18181b',
           color: '#fff',
-          border: '1px solid #666',
-          borderRadius: 8,
-          padding: '0.45rem 1.3rem',
+          border: '1.5px solid #333',
+          borderRadius: 20,
+          padding: '0.45rem 1.5rem',
           fontWeight: 600,
           cursor: 'pointer',
-          fontSize: 15,
-          transition: 'background 0.18s'
+          fontSize: 16,
+          transition: 'background 0.18s, color 0.18s'
         }}
-        onMouseOver={e => e.currentTarget.style.background='#292832'}
-        onMouseOut={e => e.currentTarget.style.background='#201f24'}
+        onMouseOver={e => { e.currentTarget.style.background='#2d2d34'; e.currentTarget.style.color='#24b47e'; }}
+        onMouseOut={e => { e.currentTarget.style.background='#18181b'; e.currentTarget.style.color='#fff'; }}
       >
         SIGN OUT
       </button>

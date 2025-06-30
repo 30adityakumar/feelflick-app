@@ -2,15 +2,15 @@ import { useState, useEffect } from 'react'
 import { supabase } from './supabaseClient'
 
 import AuthEmailPassword from './AuthEmailPassword'
-import Account from './Account'
+import Account from './components/Account'
 import Search from './components/Search'
 import Header from './components/Header'
 import ResultsGrid from './components/ResultsGrid'
 import WatchedHistory from './components/WatchedHistory'
-import FilterBar from './components/FilterBar'  // <-- NEW
+import FilterBar from './components/FilterBar'
 
 export default function App () {
-  // ── Auth session management ──
+  // 1. Auth/session state
   const [session, setSession] = useState(null)
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setSession(session))
@@ -18,23 +18,21 @@ export default function App () {
     return () => data.subscription.unsubscribe()
   }, [])
 
-  // ── App-wide state ──
+  // 2. App state
   const [results, setResults] = useState([])
   const [watched, setWatched] = useState([])
   const [genreMap, setGenreMap] = useState({})
 
-  // ── UI state for sorting/filtering ──
+  // 3. Filters and sorting
   const [searchSortBy, setSearchSortBy] = useState('popularity-desc')
   const [watchedSortBy, setWatchedSortBy] = useState('added-desc')
   const [searchYearFilter, setSearchYearFilter] = useState('')
   const [watchedYearFilter, setWatchedYearFilter] = useState('')
   const [searchGenreFilter, setSearchGenreFilter] = useState('')
   const [watchedGenreFilter, setWatchedGenreFilter] = useState('')
-
-  // Convenience: Set of watched movie IDs
   const watchedIds = new Set(watched.map(m => m.movie_id))
 
-  // ── Fetch genres from TMDb (used for mapping genre ids to names) ──
+  // 4. Fetch genres (for mapping genre ids to names)
   useEffect(() => {
     fetch(
       `https://api.themoviedb.org/3/genre/movie/list?api_key=${import.meta.env.VITE_TMDB_API_KEY}&language=en-US`
@@ -46,7 +44,7 @@ export default function App () {
       .catch(console.error)
   }, [])
 
-  // ── Fetch watched history for user ──
+  // 5. Fetch watched history for the user
   useEffect(() => {
     if (!session?.user?.id) return
     supabase
@@ -60,7 +58,7 @@ export default function App () {
       })
   }, [session])
 
-  // ── Mark movie as watched ──
+  // 6. Mark movie as watched
   const markWatched = async (movie) => {
     if (!session || watchedIds.has(movie.id)) return
     const { error } = await supabase.from('movies_watched').insert({
@@ -82,7 +80,7 @@ export default function App () {
     setWatched(data)
   }
 
-  // ── Remove a movie from watched history ──
+  // 7. Remove a movie from watched history
   const removeFromWatched = async (movie_id) => {
     if (!session?.user?.id) return
     await supabase
@@ -99,7 +97,7 @@ export default function App () {
     setWatched(data)
   }
 
-  // ── Helpers for sort and filtering logic ──
+  // 8. Helpers for sort and filtering logic
   function sortMovies(movies, sortBy) {
     if (sortBy === 'popularity-desc') return [...movies].sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
     if (sortBy === 'year-desc')       return [...movies].sort((a, b) => (b.release_date || '').localeCompare(a.release_date || ''))
@@ -119,7 +117,7 @@ export default function App () {
     return movies.filter(m => Array.isArray(m.genre_ids) && m.genre_ids.includes(Number(genreId)))
   }
 
-  // ── Prepare filtered & sorted arrays for each grid ──
+  // 9. Prepare filtered & sorted arrays for each grid
   const sortedFilteredResults = sortMovies(
     filterMoviesByGenre(
       filterMoviesByYear(results, searchYearFilter),
@@ -135,7 +133,7 @@ export default function App () {
     watchedSortBy
   )
 
-  // ── Collect filter options for year & genre dropdowns ──
+  // 10. Collect filter options for year & genre dropdowns
   const allResultYears = Array.from(new Set(results.map(m => m.release_date && new Date(m.release_date).getFullYear()).filter(Boolean))).sort((a, b) => b - a)
   const allWatchedYears = Array.from(new Set(watched.map(m => m.release_date && new Date(m.release_date).getFullYear()).filter(Boolean))).sort((a, b) => b - a)
   function getAllGenresFromMovies(movies) {
@@ -152,7 +150,7 @@ export default function App () {
   const allResultGenres = getAllGenresFromMovies(results)
   const allWatchedGenres = getAllGenresFromMovies(watched)
 
-  // ── Filter clear helpers ──
+  // 11. Filter clear helpers
   const clearSearchFilters = () => {
     setSearchSortBy('popularity-desc')
     setSearchYearFilter('')
@@ -164,7 +162,7 @@ export default function App () {
     setWatchedGenreFilter('')
   }
 
-  // ── Unauthenticated view ──
+  // 12. Unauthenticated view
   if (!session) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-zinc-950 text-white px-4">
@@ -173,19 +171,17 @@ export default function App () {
     )
   }
 
-  // ── Main authenticated app layout ──
+  // 13. Main authenticated app layout
   return (
-    <div className="min-h-screen bg-zinc-950 text-white px-4 pb-10">
+    <div className="min-h-screen bg-zinc-950 text-white pb-10">
       <Header />
-      <div className="container" style={{ maxWidth: 1200, margin: '0 auto' }}>
-        <Account session={session} userName={session?.user?.user_metadata?.name}/>
+      <div className="container">
+        <Account session={session} userName={session?.user?.user_metadata?.name} />
         {/* Search Bar */}
-        <div className="mt-8 mb-6 flex justify-center">
-          <div className="w-full max-w-xl bg-white/10 p-4 rounded-lg shadow-md">
-            <Search onResults={setResults} />
-          </div>
+        <div style={{ marginTop: 16, marginBottom: 32, maxWidth: 600, marginLeft: "auto", marginRight: "auto" }}>
+          <Search onResults={setResults} />
         </div>
-        {/* --- SEARCH FILTER BAR (REFACTORED) --- */}
+        {/* FilterBar: Search */}
         <FilterBar
           sortBy={searchSortBy} setSortBy={setSearchSortBy}
           yearFilter={searchYearFilter} setYearFilter={setSearchYearFilter}
@@ -201,14 +197,29 @@ export default function App () {
           ]}
           clearFilters={clearSearchFilters}
         />
-        {/* SEARCH RESULTS GRID */}
-        <ResultsGrid
-          results={sortedFilteredResults}
-          genreMap={genreMap}
-          onMarkWatched={markWatched}
-          watchedIds={watchedIds}
-        />
-        {/* --- WATCHED HISTORY FILTER BAR (REFACTORED) --- */}
+        {/* SEARCH RESULTS GRID + Empty State */}
+        <div style={{ margin: '32px auto 40px auto', minHeight: 180 }}>
+          {sortedFilteredResults.length ? (
+            <ResultsGrid
+              results={sortedFilteredResults}
+              genreMap={genreMap}
+              onMarkWatched={markWatched}
+              watchedIds={watchedIds}
+            />
+          ) : (
+            <div style={{
+              color: '#aaa',
+              textAlign: 'center',
+              fontSize: 18,
+              fontWeight: 500,
+              margin: '2.5rem 0'
+            }}>
+              <span role="img" aria-label="No results" style={{ fontSize: 34, display: 'block', marginBottom: 6 }}>😕</span>
+              No movies found. Try a different search!
+            </div>
+          )}
+        </div>
+        {/* FilterBar: Watched */}
         <FilterBar
           sortBy={watchedSortBy} setSortBy={setWatchedSortBy}
           yearFilter={watchedYearFilter} setYearFilter={setWatchedYearFilter}
@@ -225,12 +236,27 @@ export default function App () {
           ]}
           clearFilters={clearWatchedFilters}
         />
-        {/* WATCHED HISTORY GRID */}
-        <WatchedHistory
-          watched={sortedFilteredWatched}
-          genreMap={genreMap}
-          onRemove={removeFromWatched}
-        />
+        {/* WATCHED HISTORY GRID + Empty State */}
+        <div style={{ margin: '32px auto 0 auto', minHeight: 180 }}>
+          {sortedFilteredWatched.length ? (
+            <WatchedHistory
+              watched={sortedFilteredWatched}
+              genreMap={genreMap}
+              onRemove={removeFromWatched}
+            />
+          ) : (
+            <div style={{
+              color: '#aaa',
+              textAlign: 'center',
+              fontSize: 18,
+              fontWeight: 500,
+              margin: '2.5rem 0'
+            }}>
+              <span role="img" aria-label="Empty" style={{ fontSize: 30, display: 'block', marginBottom: 6 }}>🍿</span>
+              No watched movies yet. Mark some as watched to see them here!
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

@@ -380,3 +380,20 @@ button.primary,
   white-space: nowrap;
   width: 1px;
 }
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+@media (max-width: 800px) {
+  .container {
+    padding: 0 8px;
+  }
+}
+

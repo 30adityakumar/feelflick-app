@@ -13,10 +13,13 @@ export default function ResultsGrid({
       <h2 className="text-xl font-semibold mb-4 text-white">🔍 Search Results</h2>
       <div
         style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(5, 150px)',
-          gap: '1.5rem',
-          justifyContent: 'center'
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
+            gap: '2.2rem',
+            justifyItems: 'center',
+            alignItems: 'flex-start',
+            maxWidth: 950,
+            margin: '0 auto'
         }}
       >
         {results.map((m) => (

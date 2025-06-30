@@ -1,9 +1,13 @@
+import { useState } from 'react';
+
 export default function MovieCard({
   movie,
   genreMap,
   showWatchedButton = false,
   onMarkWatched = () => {}
 }) {
+  const [hover, setHover] = useState(false);
+
   const path = movie.poster || movie.poster_path;
   const posterUrl = path
     ? `https://image.tmdb.org/t/p/w185${path}`
@@ -19,20 +23,18 @@ export default function MovieCard({
 
   return (
     <div
+      className="bg-white/10 rounded-lg shadow flex flex-col items-center transition-transform hover:scale-105"
       style={{
         width: 150,
         minWidth: 150,
         maxWidth: 150,
         padding: '0.5rem',
-        background: 'rgba(255,255,255,0.05)',
-        borderRadius: 12,
-        boxShadow: '0 4px 10px 0 rgba(0,0,0,0.18)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        transition: 'transform 0.18s',
+        position: 'relative',
+        overflow: 'hidden',
+        boxShadow: '0 4px 10px 0 rgba(0,0,0,0.18)'
       }}
-      className="movie-card"
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
     >
       {/* Poster */}
       {posterUrl ? (
@@ -45,6 +47,7 @@ export default function MovieCard({
             objectFit: 'cover',
             borderRadius: 8,
             marginBottom: 8,
+            display: 'block'
           }}
         />
       ) : (
@@ -63,6 +66,35 @@ export default function MovieCard({
           }}
         >
           No Image
+        </div>
+      )}
+
+      {/* Hover overview overlay */}
+      {movie.overview && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: 225,
+            background: 'rgba(10,10,10,0.85)',
+            color: '#fff',
+            fontSize: 12,
+            padding: 10,
+            borderRadius: 8,
+            opacity: hover ? 1 : 0,
+            pointerEvents: hover ? 'auto' : 'none',
+            transition: 'opacity 0.25s ease',
+            zIndex: 10,
+            overflowY: 'auto',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            textAlign: 'center'
+          }}
+        >
+          <span>{movie.overview.length > 200 ? movie.overview.slice(0, 200) + '…' : movie.overview}</span>
         </div>
       )}
 

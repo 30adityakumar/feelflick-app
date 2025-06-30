@@ -6,7 +6,8 @@ import Header from './components/Header'
 import MoviesTab from './components/MoviesTab'
 import RecommendationsTab from './components/RecommendationsTab'
 import WatchedTab from './components/WatchedTab'
-import AccountModal from './components/AccountModal' // or MyAccountModal
+import AccountModal from './components/AccountModal'
+import HomePage from './components/HomePage'
 
 export default function App() {
   // --- Auth/session state ---
@@ -58,6 +59,9 @@ export default function App() {
         />
       )}
       <div className="container">
+        {activeTab === 'home' && (
+          <HomePage userName={profileName || session?.user?.user_metadata?.name || "Movie Lover"} />
+        )}
         {activeTab === 'movies' && (
           <MoviesTab session={session} />
         )}

@@ -460,3 +460,124 @@ body {
   max-width: 950px;
 }
 
+/* Brand background & collage effect */
+.feelflick-landing-bg {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background:
+    linear-gradient(115deg, #18406d 60%, #fe9245 150%),
+    url('/collage.jpg') center/cover no-repeat;
+  filter: brightness(0.38) blur(4px);
+  z-index: 0;
+  transition: filter 0.3s;
+}
+
+/* Centered login form glassmorphism */
+.feelflick-glass {
+  position: relative;
+  z-index: 2;
+  max-width: 400px;
+  margin: 0 auto;
+  margin-top: 10vh;
+  border-radius: 20px;
+  background: rgba(24, 22, 36, 0.77);
+  box-shadow: 0 8px 48px 0 #0007;
+  backdrop-filter: blur(6px) saturate(1.2);
+  padding: 46px 38px 32px 38px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-height: 370px;
+}
+
+@media (max-width: 600px) {
+  .feelflick-glass {
+    padding: 26px 8vw 22px 8vw;
+    max-width: 96vw;
+    margin-top: 7vh;
+  }
+}
+
+.feelflick-logo-title {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.feelflick-title {
+  font-size: 38px;
+  font-weight: 900;
+  color: #18406d;
+  letter-spacing: -2px;
+  text-shadow: 0 1px 10px #fff1, 0 1px 20px #18406d24;
+}
+
+.feelflick-tagline {
+  color: #fdaf41;
+  font-size: 1.15rem;
+  margin-left: 6px;
+  letter-spacing: 0.01em;
+  font-weight: 600;
+  text-shadow: 0 1px 7px #19191e70;
+  margin-bottom: 8px;
+  margin-top: 6px;
+}
+
+.feelflick-input {
+  margin: 10px 0;
+  padding: 14px 12px;
+  border-radius: 8px;
+  border: none;
+  font-size: 16px;
+  background: #232330;
+  color: #fff;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  outline: none;
+  box-shadow: 0 1.5px 8px 0 #0004;
+  transition: box-shadow 0.14s, border 0.14s;
+}
+
+.feelflick-btn {
+  margin-top: 20px;
+  background: linear-gradient(100deg,#fe9245 10%,#eb423b 95%);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 20px;
+  padding: 12px 0;
+  box-shadow: 0 2px 12px 0 #fe924522;
+  cursor: pointer;
+  letter-spacing: 0.01em;
+  transition: background 0.18s, box-shadow 0.18s, opacity 0.12s;
+  opacity: 1;
+}
+
+.feelflick-btn:active {
+  opacity: 0.84;
+}
+
+.feelflick-link {
+  color: #fe9245;
+  cursor: pointer;
+  font-weight: 700;
+  text-decoration: underline;
+  transition: color 0.14s;
+}
+
+.feelflick-footer {
+  position: absolute;
+  left: 0; right: 0; bottom: 20px;
+  width: 100vw;
+  z-index: 3;
+  color: #fff;
+  font-size: 14px;
+  text-align: center;
+  opacity: 0.28;
+  letter-spacing: 0.01em;
+  pointer-events: none;
+}
+

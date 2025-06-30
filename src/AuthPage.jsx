@@ -1,4 +1,3 @@
-// AuthPage.jsx
 import { useState } from 'react'
 import { supabase } from './supabaseClient'
 
@@ -9,15 +8,6 @@ export default function AuthPage() {
   const [name, setName] = useState('')
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
-
-  // Optionally, change these TMDb poster paths or use your own movie collage
-  const bgImages = [
-    "/posters/inception.jpg",
-    "/posters/interstellar.jpg",
-    "/posters/godfather.jpg",
-    "/posters/parasite.jpg"
-    // Add more or use a cool movie bg from Unsplash/TMDb
-  ]
 
   const handleAuth = async (e) => {
     e.preventDefault()
@@ -45,57 +35,70 @@ export default function AuthPage() {
       overflow: 'hidden',
       background: '#101015'
     }}>
-      {/* --- BG movie collage/fallback gradient --- */}
+      {/* --- Background (brand gradient + collage option) --- */}
       <div
         style={{
-          position: 'absolute',
+          position: 'fixed',
           zIndex: 0,
           inset: 0,
           width: '100%',
           height: '100%',
-          background: `linear-gradient(120deg,#18406d 0%, #191925 60%, #fe9245 120%)`,
-          // If using images:
-          // background: `url(/collage.jpg) center/cover no-repeat`
-          filter: 'brightness(0.46) blur(2px)',
-          opacity: 0.8
+          background:
+            // Uncomment the next line and add /collage.jpg for a Netflix collage effect
+            // `linear-gradient(115deg, #18406d 60%, #fe9245 150%), url('/collage.jpg') center/cover no-repeat`,
+            `linear-gradient(115deg, #18406d 60%, #fe9245 150%)`,
+          filter: 'brightness(0.38) blur(4px)',
+          transition: 'filter 0.3s'
         }}
       ></div>
-      {/* --- LOGO top left --- */}
+
+      {/* --- LOGO, TITLE, TAGLINE (top left, mobile wraps) --- */}
       <div style={{
-        position: 'absolute',
-        top: 38, left: 38, zIndex: 1,
-        display: 'flex', alignItems: 'center', gap: 12
+        position: 'absolute', top: 38, left: 38, zIndex: 2,
+        display: 'flex', flexDirection: 'column', alignItems: 'flex-start'
       }}>
-        <img src="/logo.png" alt="FeelFlick" style={{ height: 58, width: 58, borderRadius: 12 }} />
-        <span style={{
-          fontSize: 38, fontWeight: 900,
-          color: "#18406d",
-          letterSpacing: "-2px",
-          textShadow: "0 1px 10px #fff2, 0 1px 20px #18406d44"
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <img src="/logo.png" alt="FeelFlick" style={{ height: 58, width: 58, borderRadius: 14, boxShadow: "0 2px 16px #0003" }} />
+          <span style={{
+            fontSize: 38, fontWeight: 900, color: "#18406d",
+            letterSpacing: "-2px", textShadow: "0 1px 10px #fff1, 0 1px 20px #18406d24"
+          }}>FeelFlick</span>
+        </div>
+        <div style={{
+          color: "#fdaf41",
+          fontSize: "1.15rem",
+          marginLeft: 6,
+          letterSpacing: "0.01em",
+          fontWeight: 600,
+          textShadow: "0 1px 7px #19191e70",
+          marginBottom: 8,
+          marginTop: 6
         }}>
-          FeelFlick
-        </span>
+          Movies that match your mood.
+        </div>
       </div>
-      {/* --- Form Box --- */}
+
+      {/* --- Centered Auth Form with glassmorphism --- */}
       <form
         onSubmit={handleAuth}
         style={{
           position: 'relative',
           zIndex: 2,
-          maxWidth: 380,
+          maxWidth: 400,
           margin: '0 auto',
-          marginTop: '9vh',
-          background: 'rgba(24, 22, 36, 0.89)',
-          borderRadius: 16,
-          boxShadow: '0 6px 36px 0 #0008',
-          padding: '38px 32px 26px 32px',
+          marginTop: '10vh',
+          borderRadius: 20,
+          background: 'rgba(24, 22, 36, 0.77)',
+          boxShadow: '0 8px 48px 0 #0007',
+          backdropFilter: 'blur(6px) saturate(1.2)',
+          padding: '46px 38px 32px 38px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'stretch',
-          minHeight: 350,
+          minHeight: 370
         }}
       >
-        <div style={{ fontSize: 32, fontWeight: 800, color: '#fff', marginBottom: 16, letterSpacing: "-1px", textAlign: 'center' }}>
+        <div style={{ fontSize: 30, fontWeight: 900, color: '#fff', marginBottom: 18, textAlign: 'center' }}>
           {isSigningUp ? "Sign Up" : "Sign In"}
         </div>
         {isSigningUp && (
@@ -127,19 +130,19 @@ export default function AuthPage() {
           value={password}
           onChange={e => setPassword(e.target.value)}
         />
-        {error && <div style={{ color: '#eb423b', margin: '6px 0 2px 0', fontSize: 15, textAlign: 'center' }}>{error}</div>}
+        {error && <div style={{ color: '#eb423b', margin: '7px 0 1px 0', fontSize: 15, textAlign: 'center' }}>{error}</div>}
         <button
           type="submit"
           style={{
-            marginTop: 16,
-            background: "#fe9245",
-            color: "#18406d",
+            marginTop: 20,
+            background: "linear-gradient(100deg,#fe9245 10%,#eb423b 95%)",
+            color: "#fff",
             border: 'none',
-            borderRadius: 8,
+            borderRadius: 10,
             fontWeight: 800,
-            fontSize: 19,
-            padding: '11px 0',
-            boxShadow: '0 1.5px 12px 0 #fe924522',
+            fontSize: 20,
+            padding: '12px 0',
+            boxShadow: '0 2px 12px 0 #fe924522',
             cursor: loading ? "not-allowed" : "pointer",
             opacity: loading ? 0.7 : 1,
             transition: "opacity 0.15s"
@@ -148,32 +151,49 @@ export default function AuthPage() {
         >
           {loading ? (isSigningUp ? "Signing up..." : "Signing in...") : (isSigningUp ? "Sign Up" : "Sign In")}
         </button>
-        <div style={{ color: "#aaa", margin: '18px 0 5px 0', textAlign: 'center', fontSize: 15 }}>
+        <div style={{ color: "#aaa", margin: '19px 0 5px 0', textAlign: 'center', fontSize: 15 }}>
           {isSigningUp
             ? <>Already have an account? <span
-                style={{ color: "#fe9245", cursor: "pointer", fontWeight: 700 }}
+                style={{ color: "#fe9245", cursor: "pointer", fontWeight: 700, textDecoration: "underline" }}
                 onClick={() => setIsSigningUp(false)}
               >Sign In</span></>
             : <>New to FeelFlick? <span
-                style={{ color: "#fe9245", cursor: "pointer", fontWeight: 700 }}
+                style={{ color: "#fe9245", cursor: "pointer", fontWeight: 700, textDecoration: "underline" }}
                 onClick={() => setIsSigningUp(true)}
               >Sign up now.</span></>}
         </div>
       </form>
+
+      {/* --- Subtle Footer --- */}
+      <div style={{
+        position: "absolute",
+        left: 0, right: 0, bottom: 20,
+        width: "100vw",
+        zIndex: 3,
+        color: "#fff",
+        fontSize: 14,
+        textAlign: "center",
+        opacity: 0.28,
+        letterSpacing: "0.01em",
+        pointerEvents: "none"
+      }}>
+        © {new Date().getFullYear()} FeelFlick — Movies that match your mood.
+      </div>
     </div>
   )
 }
 
 const inputStyle = {
-  margin: "8px 0",
-  padding: "13px 12px",
-  borderRadius: 7,
+  margin: "10px 0",
+  padding: "14px 12px",
+  borderRadius: 8,
   border: "none",
   fontSize: 16,
   background: "#232330",
   color: "#fff",
+  fontWeight: 500,
+  letterSpacing: "-0.02em",
   outline: "none",
   boxShadow: "0 1.5px 8px 0 #0004",
-  fontWeight: 500,
-  letterSpacing: "-0.02em"
-};
+  transition: "box-shadow 0.14s, border 0.14s"
+}

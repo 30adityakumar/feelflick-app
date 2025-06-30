@@ -154,7 +154,7 @@ export default function AuthPage() {
           >
             <div style={{
               fontWeight: 900,
-              fontSize: window.innerWidth < 600 ? 28 : 42,
+              fontSize: "clamp(2.2rem, 5vw, 3.6rem)", // responsive and big!
               lineHeight: 1.15,
               color: "#fff",
               letterSpacing: "-1.1px",

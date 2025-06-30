@@ -25,6 +25,14 @@ export default function AuthPage() {
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
 
+  // --- Always scrolls to top and closes sign-in, even if already on landing
+  const handleHome = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    setShowSignIn(false)
+    // Fallback for mobile/Safari: force scroll after animation
+    setTimeout(() => { document.documentElement.scrollTop = 0; document.body.scrollTop = 0 }, 500)
+  }
+
   const handleAuth = async (e) => {
     e.preventDefault()
     setError(null)
@@ -67,10 +75,7 @@ export default function AuthPage() {
 
         <TopNav
           onSignIn={() => setShowSignIn(true)}
-          onHome={() => {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            setShowSignIn(false);
-          }}
+          onHome={handleHome}
         />
 
         <div style={{ position: "relative", zIndex: 2 }}>
@@ -105,10 +110,7 @@ export default function AuthPage() {
       }} />
       <TopNav
         onSignIn={() => setShowSignIn(false)}
-        onHome={() => {
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-          setShowSignIn(false);
-        }}
+        onHome={handleHome}
       />
       <SignInForm
         isSigningUp={isSigningUp} setIsSigningUp={setIsSigningUp}

@@ -178,7 +178,7 @@ export default function App () {
     <div className="min-h-screen bg-zinc-950 text-white px-4 pb-10">
       <Header />
       <div className="container" style={{ maxWidth: 1200, margin: '0 auto' }}>
-        <Account session={session} />
+        <Account session={session} userName={session?.user?.user_metadata?.name}/>
         {/* Search Bar */}
         <div className="mt-8 mb-6 flex justify-center">
           <div className="w-full max-w-xl bg-white/10 p-4 rounded-lg shadow-md">

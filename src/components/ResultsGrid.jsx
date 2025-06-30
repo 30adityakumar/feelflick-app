@@ -5,18 +5,30 @@ export default function ResultsGrid({
   genreMap,
   onMarkWatched,
   watchedIds,
-  gridClass = "movie-grid"
+  gridClass,
+  onMovieClick
 }) {
   if (!results.length) return null
+
   return (
-    <div className={gridClass}>
+    <div
+      className={gridClass}
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))",
+        gap: "1.3rem",
+        justifyContent: "center",
+        width: "100%"
+      }}
+    >
       {results.map(movie => (
         <MovieCard
           key={movie.id}
           movie={movie}
           genreMap={genreMap}
-          showWatchedButton={!watchedIds.has(movie.id)}
+          isWatched={watchedIds?.has(movie.id)}
           onMarkWatched={onMarkWatched}
+          onClick={() => onMovieClick && onMovieClick(movie)} // << HERE
         />
       ))}
     </div>

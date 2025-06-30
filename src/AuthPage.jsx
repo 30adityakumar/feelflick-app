@@ -1,49 +1,33 @@
-// src/AuthPage.jsx
 import { useState, useEffect } from 'react'
 import { supabase } from './supabaseClient'
 
 export default function AuthPage() {
-  // ─── Local state ──────────────────────────────
+  // Auth state
   const [showSignIn, setShowSignIn] = useState(false)
   const [isSigningUp, setIsSigningUp] = useState(false)
-  const [email,       setEmail]    = useState('')
-  const [password,    setPassword] = useState('')
-  const [name,        setName]     = useState('')
-  const [error,       setError]    = useState(null)
-  const [loading,     setLoading]  = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [name, setName] = useState('')
+  const [error, setError] = useState(null)
+  const [loading, setLoading] = useState(false)
+  // Trending
+  const [trending, setTrending] = useState([])
 
-  // ─── Trending state ────────────────────────────
-  const [timeWindow,  setTimeWindow] = useState('day')    // 'day' | 'week'
-  const [trending,    setTrending]   = useState([])
-
-  // ─── Search term ───────────────────────────────
-  const [searchTerm,  setSearchTerm]  = useState('')
-
-  // ─── Fetch trending movies on mount & when timeWindow changes ───
+  // Trending from TMDB (only today)
   useEffect(() => {
-    async function load() {
-      try {
-        const res = await fetch(
-          `https://api.themoviedb.org/3/trending/movie/${timeWindow}?api_key=${import.meta.env.VITE_TMDB_API_KEY}`
-        )
-        const json = await res.json()
-        setTrending(json.results.slice(0,12))
-      } catch (e) {
-        console.error(e)
-      }
-    }
-    load()
-  }, [timeWindow])
+    fetch(`https://api.themoviedb.org/3/trending/movie/day?api_key=${import.meta.env.VITE_TMDB_API_KEY}`)
+      .then(r => r.json()).then(({ results }) => setTrending(results.slice(0, 12)))
+      .catch(console.error)
+  }, [])
 
-  // ─── Handlers ─────────────────────────────────────
+  // Auth handler
   const handleAuth = async e => {
     e.preventDefault()
     setError(null)
     setLoading(true)
     if (isSigningUp) {
       const { error } = await supabase.auth.signUp({
-        email, password,
-        options: { data: { name } }
+        email, password, options: { data: { name } }
       })
       if (error) setError(error.message)
     } else {
@@ -53,438 +37,443 @@ export default function AuthPage() {
     setLoading(false)
   }
 
-  const handleSearch = e => {
-    e.preventDefault()
-    alert(`Searching for “${searchTerm}”…`)
-  }
+  // --- Shared colors from logo ---
+  const BLUE_BG = "linear-gradient(120deg, #18406d 0%, #232330 100%)"
+  const ORANGE = "#fe9245"
+  const RED = "#eb423b"
+  const LIGHT = "#fff"
+  const ACCENT_GRAD = `linear-gradient(90deg,${ORANGE},${RED})`
 
-  // ─── Shared Styles & Components ──────────────────
-  const BRAND_DARK   = '#101015'
-  const BRAND_LIGHT  = '#fff'
-  const ACCENT_GRAD  = 'linear-gradient(90deg,#fe9245 30%,#eb423b 90%)'
-
-  const wrapperStyle = {
-    position: 'relative',
-    width: '100vw',
-    height: '100vh',
-    background: BRAND_DARK,
-    color: BRAND_LIGHT,
-    overflow: 'hidden',
-    fontFamily: 'Inter, system-ui, sans-serif'
-  }
-
-  const topBarStyle = {
-    position: 'fixed',
-    top: 0, left: 0, right: 0,
-    padding: '16px 40px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    zIndex: 4,
-    backdropFilter: 'blur(8px)',
-    background: 'rgba(16,16,21,0.6)'
-  }
-
-  const scrollContainer = {
-    position: 'absolute',
-    top: 0, left: 0, right: 0, bottom: 0,
-    overflowY: 'auto'
-  }
-
-  const videoStyle = {
-    position: 'fixed',
-    top: 0, left: 0,
-    width: '100vw', height: '100vh',
-    objectFit: 'cover',
-    filter: 'brightness(0.6) blur(0.35px)',
-    zIndex: 0
-  }
-  const overlayStyle = {
-    position: 'fixed',
-    inset: 0,
-    background: 'rgba(18,22,30,0.34)',
-    zIndex: 1,
-    pointerEvents: 'none'
-  }
-
-  const Logo = () => (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-      <img src="/logo.png" alt="FeelFlick" style={{
-        height: 48, width: 48,
-        borderRadius: 10,
-        boxShadow: '0 2px 12px #0004'
-      }} />
-      <span style={{
-        fontSize: 24, fontWeight: 900,
-        color: BRAND_LIGHT
-      }}>FeelFlick</span>
-    </div>
-  )
-
-  const button = {
-    background: ACCENT_GRAD,
-    color: BRAND_LIGHT,
-    border: 'none',
-    borderRadius: 8,
-    padding: '8px 24px',
-    fontWeight: 700,
-    cursor: 'pointer'
-  }
-
+  // --- Input shared style ---
   const inputStyle = {
-    padding: '12px 14px',
-    borderRadius: 6,
-    border: 'none',
-    fontSize: '1rem',
-    margin: '8px 0',
-    outline: 'none'
+    padding: "12px 14px",
+    borderRadius: 8,
+    border: "none",
+    fontSize: 17,
+    margin: "9px 0",
+    background: "#232330",
+    color: LIGHT,
+    fontWeight: 500,
+    letterSpacing: "-0.01em",
+    outline: "none",
+    boxShadow: "0 1.5px 8px 0 #0004"
   }
 
-  const Footer = () => (
-    <footer style={{
-      padding: 24,
-      textAlign: 'center',
-      fontSize: 13,
-      color: '#888'
-    }}>
-      © {new Date().getFullYear()} FeelFlick — Movies that match your mood.
-    </footer>
-  )
-
-  // ─── If user clicked GET STARTED / SIGN IN → show your form ───
+  // -- Sign In / Up Modal
   if (showSignIn) {
     return (
-      <div style={wrapperStyle}>
+      <div style={{
+        minHeight: '100vh', width: '100vw', background: BLUE_BG,
+        position: 'relative', overflow: 'hidden'
+      }}>
+        {/* Hero BG video */}
         <video
           autoPlay muted playsInline loop
           poster="/background-poster.jpg"
-          style={videoStyle}
+          style={{
+            position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh",
+            objectFit: "cover", filter: "brightness(0.63) blur(0.2px)", zIndex: 0
+          }}
           onEnded={e => e.currentTarget.pause()}
         >
-          <source src="/background.mp4" type="video/mp4" />
+          <source src="/background.mp4" type="video/mp4"/>
         </video>
-        <div style={overlayStyle} />
-
-        <div style={topBarStyle}>
-          <Logo />
-        </div>
-
-        <form onSubmit={handleAuth} style={{
-          position: 'relative',
-          zIndex: 2,
-          maxWidth: 380,
-          margin: '8vh auto',
-          padding: 32,
-          background: 'rgba(24,26,32,0.8)',
-          backdropFilter: 'blur(6px)',
-          borderRadius: 16,
-          display: 'flex',
-          flexDirection: 'column'
+        <div style={{
+          position: "fixed", inset: 0, background: "rgba(24,30,45,0.32)", zIndex: 1
+        }} />
+        {/* Floating header, logo left, sign in right */}
+        <div style={{
+          position: "fixed", top: 32, left: 44, right: 44, zIndex: 3,
+          display: "flex", alignItems: "center", justifyContent: "space-between",
         }}>
-          <h2 style={{ color: BRAND_LIGHT, textAlign: 'center', marginBottom:16 }}>
-            {isSigningUp ? 'Sign Up' : 'Sign In'}
-          </h2>
-
+          <div style={{ display: 'flex', alignItems: 'center', gap: 13 }}>
+            <img src="/logo.png" alt="FeelFlick" style={{
+              height: 46, width: 46, borderRadius: 12, boxShadow: "0 2px 12px #0003"
+            }} />
+            <span style={{
+              fontWeight: 900, fontSize: 28, color: LIGHT, letterSpacing: "-1.1px"
+            }}>FeelFlick</span>
+          </div>
+        </div>
+        {/* Sign in form */}
+        <form
+          onSubmit={handleAuth}
+          style={{
+            zIndex: 2,
+            maxWidth: 410,
+            margin: "0 auto",
+            marginTop: "13vh",
+            background: "rgba(24, 22, 36, 0.88)",
+            borderRadius: 20,
+            boxShadow: "0 8px 48px 0 #0009",
+            padding: '46px 38px 32px 38px',
+            display: "flex", flexDirection: "column", alignItems: "stretch", minHeight: 370
+          }}>
+          <div style={{
+            fontSize: 31, fontWeight: 900, color: LIGHT,
+            marginBottom: 18, textAlign: 'center'
+          }}>
+            {isSigningUp ? "Sign Up" : "Sign In"}
+          </div>
           {isSigningUp && (
             <input
-              type="text"
-              placeholder="Your Name"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              style={{ ...inputStyle, background: '#232330', color: '#fff' }}
-              required
+              type="text" required placeholder="Your Name" autoComplete="name"
+              style={inputStyle} value={name} onChange={e => setName(e.target.value)}
             />
           )}
-
           <input
-            type="email"
-            placeholder="Email address"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            style={{ ...inputStyle, background: '#232330', color: '#fff' }}
-            required
+            type="email" required placeholder="Email address" autoComplete="email"
+            style={inputStyle} value={email} onChange={e => setEmail(e.target.value)}
           />
           <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            style={{ ...inputStyle, background: '#232330', color: '#fff' }}
-            required
+            type="password" required placeholder="Password" autoComplete="current-password"
+            style={inputStyle} value={password} onChange={e => setPassword(e.target.value)}
           />
-
-          {error && (
-            <div style={{ color: '#f66', marginTop:8, textAlign:'center' }}>
-              {error}
-            </div>
-          )}
-
+          {error && <div style={{ color: '#eb423b', margin: '7px 0 1px 0', fontSize: 15, textAlign: 'center' }}>{error}</div>}
           <button
             type="submit"
-            disabled={loading}
             style={{
-              ...button,
-              marginTop: 16,
-              fontSize: 18,
-              opacity: loading ? 0.6 : 1
+              marginTop: 20,
+              background: ACCENT_GRAD,
+              color: LIGHT,
+              border: 'none',
+              borderRadius: 9,
+              fontWeight: 800,
+              fontSize: 20,
+              padding: '13px 0',
+              boxShadow: '0 2px 12px 0 #fe924522',
+              cursor: loading ? "not-allowed" : "pointer",
+              opacity: loading ? 0.7 : 1,
+              transition: "opacity 0.15s"
             }}
+            disabled={loading}
           >
-            {loading
-              ? isSigningUp ? 'Signing up…' : 'Signing in…'
-              : isSigningUp ? 'Sign Up'     : 'Sign In'
-            }
+            {loading ? (isSigningUp ? "Signing up..." : "Signing in...") : (isSigningUp ? "Sign Up" : "Sign In")}
           </button>
-
-          <p style={{ textAlign:'center', marginTop:14, fontSize: 14, color:'#aaa' }}>
+          <div style={{ color: "#aaa", margin: '19px 0 5px 0', textAlign: 'center', fontSize: 15 }}>
             {isSigningUp
-              ? <>Already have an account? <span onClick={()=>setIsSigningUp(false)} style={{ color:'#fe9245', cursor:'pointer' }}>Sign In</span></>
-              : <>New here? <span onClick={()=>setIsSigningUp(true)} style={{ color:'#fe9245', cursor:'pointer' }}>Create account</span></>
-            }
-          </p>
+              ? <>Already have an account? <span style={{ color: ORANGE, cursor: "pointer", fontWeight: 700 }} onClick={() => setIsSigningUp(false)}>Sign In</span></>
+              : <>New to FeelFlick? <span style={{ color: ORANGE, cursor: "pointer", fontWeight: 700 }} onClick={() => setIsSigningUp(true)}>Sign up now.</span></>}
+          </div>
         </form>
-
         <Footer />
       </div>
     )
   }
 
-  // ─── FULL LANDING PAGE ─────────────────────────────
+  // --- Landing Page (Scrollable) ---
   return (
-    <div style={wrapperStyle}>
+    <div style={{
+      minHeight: "100vh", width: "100vw", background: BLUE_BG,
+      position: "relative", overflow: "hidden"
+    }}>
+      {/* Hero background video */}
       <video
         autoPlay muted playsInline loop
         poster="/background-poster.jpg"
-        style={videoStyle}
+        style={{
+          position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh",
+          objectFit: "cover", filter: "brightness(0.62) blur(0.15px)", zIndex: 0
+        }}
         onEnded={e => e.currentTarget.pause()}
       >
-        <source src="/background.mp4" type="video/mp4"/>
+        <source src="/background.mp4" type="video/mp4" />
       </video>
-      <div style={overlayStyle} />
-
-      {/* Sticky Top Bar */}
-      <div style={topBarStyle}>
-        <Logo />
-        <button onClick={()=>setShowSignIn(true)} style={button}>
+      {/* Overlay */}
+      <div style={{
+        position: "fixed", inset: 0, background: "rgba(24,30,45,0.19)", zIndex: 1
+      }} />
+      {/* Top bar with logo/title, sign in */}
+      <div style={{
+        position: "fixed", top: 30, left: 42, right: 42, zIndex: 3,
+        display: "flex", alignItems: "center", justifyContent: "space-between"
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
+          <img src="/logo.png" alt="FeelFlick" style={{
+            height: 44, width: 44, borderRadius: 12, boxShadow: "0 2px 12px #0003"
+          }} />
+          <span style={{
+            fontWeight: 900, fontSize: 27, color: LIGHT, letterSpacing: "-1.1px"
+          }}>FeelFlick</span>
+        </div>
+        <button
+          onClick={() => setShowSignIn(true)}
+          style={{
+            background: ACCENT_GRAD,
+            color: LIGHT,
+            border: "none",
+            borderRadius: 8,
+            fontWeight: 700,
+            fontSize: 17,
+            padding: "8px 24px",
+            boxShadow: "0 2px 8px #fe924522",
+            cursor: "pointer",
+            transition: "opacity 0.14s, background 0.2s"
+          }}
+        >
           SIGN IN
         </button>
       </div>
-
-      {/* Scrollable Content */}
-      <div style={scrollContainer}>
-
-        {/* Hero (100vh) */}
+      {/* Main content (scrollable) */}
+      <div style={{
+        position: 'relative',
+        zIndex: 2,
+        paddingTop: 110
+      }}>
+        {/* Hero section */}
         <section style={{
-          height: '100vh',
-          display:'flex',
-          flexDirection:'column',
-          alignItems:'center',
-          justifyContent:'center',
-          textAlign:'center',
-          padding:'0 24px'
+          minHeight: "90vh",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          textAlign: "center"
         }}>
           <h1 style={{
-            fontSize:'clamp(2rem,6vw,3rem)',
-            fontWeight:900,
-            marginBottom:12,
-            color: BRAND_LIGHT,
-            textShadow:'0 2px 18px #000b'
+            fontWeight: 900,
+            fontSize: "clamp(2.0rem, 6vw, 3.3rem)",
+            color: "#fff",
+            letterSpacing: "-2px",
+            marginBottom: 18,
+            textShadow: "0 2px 18px #000a"
           }}>
             Movies that match your mood.
           </h1>
-          <p style={{
-            fontSize:'clamp(0.9rem,2vw,1.2rem)',
-            color: BRAND_LIGHT,
-            opacity:0.9,
-            lineHeight:1.5,
-            marginBottom:24,
+          <div style={{
+            fontWeight: 400,
+            fontSize: "clamp(1.08rem,2.3vw,1.3rem)",
+            color: "#fff",
+            opacity: 0.96,
+            margin: "0 auto 28px auto",
+            lineHeight: 1.56,
+            maxWidth: 540
           }}>
-            Get the perfect recommendation based on your taste and how you feel.<br/>
+            Get the perfect recommendation based on your taste and how you feel.<br />
             Fast, private, and always free.
-          </p>
+          </div>
           <button
-            onClick={()=>setShowSignIn(true)}
-            style={{ ...button, fontSize:18, padding:'12px 32px' }}
+            onClick={() => setShowSignIn(true)}
+            style={{
+              background: ACCENT_GRAD,
+              color: "#fff",
+              border: "none",
+              borderRadius: 9,
+              fontWeight: 900,
+              fontSize: 21,
+              padding: "14px 46px",
+              boxShadow: "0 2px 14px 0 #0004",
+              cursor: "pointer",
+              marginTop: 12,
+              transition: "opacity 0.18s, background 0.23s"
+            }}
           >
             GET STARTED
           </button>
         </section>
 
-        {/* Features */}
+        {/* Features Section */}
         <section style={{
-          background: BRAND_DARK,
-          color: BRAND_LIGHT,
-          padding:'60px 24px',
-          textAlign:'center'
+          background: "rgba(36,52,72,0.82)",
+          margin: "0 auto 0 auto",
+          borderRadius: 30,
+          maxWidth: 990,
+          boxShadow: "0 2px 32px #0d1e3f19",
+          padding: "40px 12vw 40px 12vw",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
         }}>
-          <h2 style={{ fontSize:'1.8rem', marginBottom:24 }}>Why FeelFlick?</h2>
-          <div style={{
-            display:'grid',
-            gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))',
-            gap:24,
-            maxWidth:800,
-            margin:'0 auto'
+          <h2 style={{
+            fontSize: "clamp(1.25rem,2vw,1.7rem)",
+            fontWeight: 800,
+            color: "#fff",
+            letterSpacing: "-1px",
+            marginBottom: 23
           }}>
+            Why FeelFlick?
+          </h2>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(170px,1fr))",
+            gap: 22,
+            width: "100%",
+            maxWidth: 850
+          }}>
+            {/* Feature Cards */}
             {[
-              ['🎯','Personalized Picks','Movies & shows you’ll actually love.'],
-              ['📊','Track Your Watch','Log everything you’ve seen.'],
-              ['🔒','Private & Secure','We never sell your data.'],
-              ['💸','Always Free','No ads, no subscription.']
+              ['🎯', "Personalized Picks", "Get recommendations you’ll actually love."],
+              ['📊', "Track Your Watch", "Log everything you’ve seen, all in one place."],
+              ['🔒', "Private & Secure", "Your data stays with you. No ads, no selling."],
+              ['💸', "Always Free", "No subscription, no paywall, ever."],
+              ['🎭', "Mood-Based", "Tell us your mood and get perfect-for-now picks!"],
             ].map(([icon, title, desc], i) => (
               <div key={i} style={{
-                background:'#232330',
-                borderRadius:12,
-                padding:20,
-                minHeight:140,
-                display:'flex',
-                flexDirection:'column',
-                alignItems:'center',
-                justifyContent:'center'
+                background: "#223249",
+                borderRadius: 18,
+                padding: "27px 18px",
+                textAlign: "center",
+                boxShadow: "0 2px 16px #0002",
+                display: "flex", flexDirection: "column", alignItems: "center",
+                minHeight: 170
               }}>
-                <div style={{ fontSize:'1.8rem', marginBottom:12 }}>{icon}</div>
-                <h3 style={{ fontSize:'1rem', margin:'0 0 6px' }}>{title}</h3>
-                <p style={{ fontSize:'0.85rem', color:'#aaa', lineHeight:1.3 }}>{desc}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Trending */}
-        <section style={{
-          background: BRAND_DARK,
-          color: BRAND_LIGHT,
-          padding:'60px 24px'
-        }}>
-          <h2 style={{ fontSize:'1.8rem', marginBottom:16 }}>Trending</h2>
-          <div style={{ marginBottom:16 }}>
-            {['day','week'].map(w => (
-              <button
-                key={w}
-                onClick={()=>setTimeWindow(w)}
-                style={{
-                  marginRight:8,
-                  padding:'6px 14px',
-                  borderRadius:999,
-                  border: timeWindow===w ? 'none' : '1px solid #444',
-                  background: timeWindow===w ? '#fe9245' : 'transparent',
-                  color: timeWindow===w ? '#101015' : '#ccc',
-                  cursor:'pointer',
-                  fontSize:'0.9rem'
-                }}
-              >
-                {w==='day'? 'Today':'This Week'}
-              </button>
-            ))}
-          </div>
-          <div style={{
-            display:'flex',
-            overflowX:'auto',
-            gap:16,
-            paddingBottom:8
-          }}>
-            {trending.map(m => (
-              <div key={m.id} style={{
-                flex:'0 0 auto',
-                width:140,
-                borderRadius:8,
-                overflow:'hidden',
-                background:'#232330',
-                boxShadow:'0 2px 8px rgba(0,0,0,0.2)'
-              }}>
-                <img
-                  src={m.poster_path
-                    ? `https://image.tmdb.org/t/p/w300${m.poster_path}`
-                    : '/no-image.png'
-                  }
-                  alt={m.title}
-                  style={{ width:'100%', display:'block' }}
-                />
-                <div style={{ padding:8 }}>
-                  <p style={{
-                    margin:0,
-                    fontSize:'0.9rem',
-                    fontWeight:600,
-                    lineHeight:1.2,
-                    whiteSpace:'nowrap',
-                    overflow:'hidden',
-                    textOverflow:'ellipsis'
-                  }}>
-                    {m.title}
-                  </p>
-                  <p style={{
-                    margin:0,
-                    fontSize:'0.75rem',
-                    color:'#bbb'
-                  }}>
-                    {new Date(m.release_date)
-                      .toLocaleDateString(undefined,{
-                        year:'numeric',month:'short',day:'numeric'
-                      })}
-                  </p>
+                <div style={{ fontSize: 34, marginBottom: 8 }}>{icon}</div>
+                <div style={{ fontWeight: 700, color: ORANGE, fontSize: 18, marginBottom: 4 }}>
+                  {title}
+                </div>
+                <div style={{ fontSize: 15.2, color: "#ccd9e7", opacity: 0.92 }}>
+                  {desc}
                 </div>
               </div>
             ))}
           </div>
         </section>
 
-        {/* Search Promo */}
+        {/* Trending Movies */}
         <section style={{
-          background:'#18181b',
-          color:BRAND_LIGHT,
-          padding:'60px 24px',
-          textAlign:'center'
+          background: "none",
+          margin: "42px auto 0 auto",
+          maxWidth: 1110,
+          width: "97%",
         }}>
-          <h2 style={{ fontSize:'1.8rem', marginBottom:16 }}>
-            Search millions of titles
-          </h2>
-          <form onSubmit={handleSearch} style={{
-            display:'flex',
-            justifyContent:'center',
-            alignItems:'center',
-            gap:8,
-            flexWrap:'wrap'
+          <h2 style={{
+            fontWeight: 900,
+            fontSize: "clamp(1.15rem,2vw,1.5rem)",
+            color: "#fff",
+            marginBottom: 17,
+            letterSpacing: "-0.6px"
           }}>
-            <input
-              type="text"
-              placeholder="Search for a movie, TV show, or person…"
-              value={searchTerm}
-              onChange={e=>setSearchTerm(e.target.value)}
-              style={{
-                flex:'1 1 300px',
-                maxWidth:600,
-                ...inputStyle,
-                background:'#232330',
-                color:'#fff'
-              }}
-            />
-            <button type="submit" style={{
-              ...button,
-              background:'linear-gradient(to right,#00cc99,#0066cc)'
-            }}>
-              Search
-            </button>
-          </form>
+            Trending Today
+          </h2>
+          <div style={{
+            display: "flex",
+            overflowX: "auto",
+            gap: 18,
+            paddingBottom: 10
+          }}>
+            {trending.map(m => (
+              <div key={m.id} style={{
+                flex: '0 0 auto',
+                width: 142,
+                background: "#232330",
+                borderRadius: 13,
+                overflow: "hidden",
+                boxShadow: "0 2px 10px #0001"
+              }}>
+                <img
+                  src={m.poster_path
+                    ? `https://image.tmdb.org/t/p/w300${m.poster_path}`
+                    : '/no-image.png'}
+                  alt={m.title}
+                  style={{ width: "100%", display: "block" }}
+                />
+                <div style={{ padding: "10px 10px 7px 10px" }}>
+                  <div style={{
+                    fontWeight: 700,
+                    fontSize: "1rem",
+                    color: "#fff",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis"
+                  }}>
+                    {m.title}
+                  </div>
+                  <div style={{
+                    fontSize: ".84rem",
+                    color: "#bcd",
+                    marginTop: 2
+                  }}>
+                    {m.release_date
+                      ? new Date(m.release_date).toLocaleDateString(undefined, { year: 'numeric', month: 'short' })
+                      : "Coming soon"}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </section>
 
         {/* Final CTA */}
         <section style={{
-          background:BRAND_DARK,
-          color:BRAND_LIGHT,
-          padding:'60px 24px',
-          textAlign:'center'
+          background: "none",
+          margin: "38px auto 0 auto",
+          maxWidth: 420,
+          textAlign: "center"
         }}>
-          <h2 style={{ fontSize:'1.8rem', marginBottom:16 }}>
+          <h2 style={{
+            fontSize: "clamp(1.15rem,2vw,1.45rem)",
+            color: "#fff",
+            fontWeight: 800,
+            marginBottom: 14
+          }}>
             Ready to get started?
           </h2>
           <button
-            onClick={()=>setShowSignIn(true)}
-            style={{ ...button, fontSize:'1rem', padding:'12px 24px' }}
+            onClick={() => setShowSignIn(true)}
+            style={{
+              background: ACCENT_GRAD,
+              color: "#fff",
+              border: "none",
+              borderRadius: 9,
+              fontWeight: 900,
+              fontSize: 19,
+              padding: "13px 48px",
+              boxShadow: "0 2px 10px 0 #0003",
+              cursor: "pointer",
+              marginTop: 8
+            }}
           >
-            Create Your Account
+            Create Your Free Account
           </button>
         </section>
-
         <Footer />
       </div>
     </div>
   )
+}
+
+// --- Footer component ---
+function Footer() {
+  return (
+    <footer style={{
+      width: "100vw",
+      background: "linear-gradient(90deg,#18406d 20%,#fe9245 100%)",
+      padding: "0.5rem 0 0.7rem 0",
+      marginTop: 36,
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center"
+    }}>
+      <div style={{
+        color: "#fff",
+        fontSize: 14,
+        opacity: 0.88,
+        display: "flex",
+        gap: "1.1rem",
+        flexWrap: "wrap",
+        justifyContent: "center"
+      }}>
+        <a href="/about" style={footerLinkStyle}>About</a>
+        <a href="/faq" style={footerLinkStyle}>FAQs</a>
+        <a href="/privacy" style={footerLinkStyle}>Privacy</a>
+        <a href="/careers" style={footerLinkStyle}>Careers</a>
+        <a href="/contact" style={footerLinkStyle}>Contact</a>
+        <a href="#" style={footerLinkStyle}>Sign Up</a>
+      </div>
+      <div style={{
+        color: "#fff", opacity: 0.23, fontSize: 13, marginTop: 4, letterSpacing: "0.02em"
+      }}>
+        © {new Date().getFullYear()} FeelFlick — Movies that match your mood.
+      </div>
+    </footer>
+  )
+}
+
+const footerLinkStyle = {
+  color: "#fff",
+  textDecoration: "none",
+  fontWeight: 500,
+  opacity: 0.96,
+  transition: "opacity 0.19s",
+  fontSize: 15,
+  padding: "0 0.22em"
 }

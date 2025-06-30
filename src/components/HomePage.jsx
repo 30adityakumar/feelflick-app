@@ -1,21 +1,27 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
+// Define moods for mood picker
 const MOODS = [
-  { key: "happy", label: "😊 Happy" },
-  { key: "sad", label: "😢 Sad" },
-  { key: "thrilled", label: "😲 Thrilled" },
-  { key: "relaxed", label: "😌 Relaxed" },
-  { key: "romantic", label: "🥰 Romantic" },
-  // add more as you like!
+  { key: "happy", label: "😊 HAPPY" },
+  { key: "sad", label: "😢 SAD" },
+  { key: "thrilled", label: "😲 THRILLED" },
+  { key: "relaxed", label: "😌 RELAXED" },
+  { key: "romantic", label: "🥰 ROMANTIC" },
 ];
 
 export default function HomePage({ userName = "Movie Lover" }) {
   const [selectedMood, setSelectedMood] = useState(null);
+  const [trending, setTrending] = useState([]);
 
-  // placeholder data for carousels
-  const recommendations = []; // TODO: Replace with recommendation logic
-  const trending = [];        // TODO: Fetch from TMDB API
-  const watchHistory = [];    // TODO: Use user’s watched list
+  // Fetch trending movies from TMDb when component mounts
+  useEffect(() => {
+    fetch(
+      `https://api.themoviedb.org/3/trending/movie/week?api_key=${import.meta.env.VITE_TMDB_API_KEY}`
+    )
+      .then(res => res.json())
+      .then(data => setTrending(data.results || []))
+      .catch(() => setTrending([]));
+  }, []);
 
   return (
     <div
@@ -90,21 +96,24 @@ export default function HomePage({ userName = "Movie Lover" }) {
         </div>
       </div>
 
-      {/* CAROUSELS: PLACEHOLDER */}
+      {/* CAROUSELS */}
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "26px 24px 8px 24px" }}>
+        {/* Recommended For You (placeholder) */}
         <HomeCarousel
           title="Recommended For You"
-          movies={recommendations}
+          movies={[]} // Replace with recommendations when ready
           emptyMessage="Your recommendations will appear here based on your watch history and mood."
         />
+        {/* Trending Now (real TMDb data) */}
         <HomeCarousel
           title="Trending Now"
           movies={trending}
           emptyMessage="Trending movies will appear here!"
         />
+        {/* Your Watch History (placeholder) */}
         <HomeCarousel
           title="Your Watch History"
-          movies={watchHistory}
+          movies={[]} // Replace with user's real watch history
           emptyMessage="Your recently watched movies will show up here."
         />
       </div>
@@ -124,7 +133,7 @@ export default function HomePage({ userName = "Movie Lover" }) {
   );
 }
 
-// Carousel Section (simple placeholder, can upgrade to scrollable row)
+// Carousel Section
 function HomeCarousel({ title, movies, emptyMessage }) {
   return (
     <div style={{ marginBottom: 38 }}>
@@ -138,29 +147,53 @@ function HomeCarousel({ title, movies, emptyMessage }) {
               <div
                 key={movie.id}
                 style={{
-                  width: 106,
+                  width: 110,
                   borderRadius: 12,
                   overflow: "hidden",
                   background: "#222b",
                   boxShadow: "0 1px 8px #0003",
                   cursor: "pointer",
                   textAlign: "center",
+                  transition: "transform 0.16s",
                 }}
+                tabIndex={0}
+                aria-label={movie.title}
               >
-                {/* Replace with movie poster logic */}
+                {/* Movie poster from TMDb */}
+                {movie.poster_path ? (
+                  <img
+                    src={`https://image.tmdb.org/t/p/w300${movie.poster_path}`}
+                    alt={movie.title}
+                    style={{
+                      width: "100%",
+                      height: 150,
+                      objectFit: "cover",
+                      display: "block",
+                    }}
+                  />
+                ) : (
+                  <div style={{
+                    height: 150,
+                    background: "#18305a",
+                    color: "#fff",
+                    fontSize: 27,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center"
+                  }}>
+                    🎬
+                  </div>
+                )}
                 <div style={{
-                  height: 148,
-                  background: "#18305a",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
                   color: "#fff",
-                  fontSize: 27
+                  fontSize: 13,
+                  fontWeight: 700,
+                  margin: "6px 0",
+                  whiteSpace: "nowrap",
+                  textOverflow: "ellipsis",
+                  overflow: "hidden"
                 }}>
-                  🎬
-                </div>
-                <div style={{ color: "#fff", fontSize: 13, fontWeight: 700, margin: "6px 0" }}>
-                  {movie.title || "Movie Title"}
+                  {movie.title || movie.name}
                 </div>
               </div>
             ))}

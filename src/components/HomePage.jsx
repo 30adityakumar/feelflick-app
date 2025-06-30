@@ -31,17 +31,18 @@ export default function HomePage({ userName = "Movie Lover", userId }) {
   const closeModal = () => setModalMovie(null);
 
   return (
-    <div style={{ minHeight: "100vh", background: "#101015", width: "100vw", overflowX: "hidden" }}>
-      {/* VIDEO HERO */}
+    <div style={{
+      minHeight: "100vh",
+      background: "#101015",
+      width: "100vw",
+      overflowX: "hidden",
+    }}>
+      {/* HERO VIDEO (FULL WIDTH) */}
       <div style={{
         position: "relative",
         width: "100vw",
-        height: 420,
-        minHeight: 260,
+        height: "410px",
         overflow: "hidden",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center"
       }}>
         <video
           autoPlay
@@ -51,19 +52,19 @@ export default function HomePage({ userName = "Movie Lover", userId }) {
           src="/home-hero.mp4"
           style={{
             width: "100vw",
-            height: "420px",
+            height: "100%",
             objectFit: "cover",
             background: "#232d41",
             display: "block"
           }}
         />
-        {/* Dark overlay for text clarity */}
+        {/* Black overlay for legibility */}
         <div style={{
           position: "absolute",
           top: 0, left: 0, width: "100%", height: "100%",
-          background: "linear-gradient(110deg,rgba(14,16,22,0.82) 58%,rgba(24,64,109,0.53) 100%)"
+          background: "linear-gradient(110deg,rgba(14,16,22,0.83) 58%,rgba(24,64,109,0.43) 100%)",
         }} />
-        {/* Overlay greeting and button (centered) */}
+        {/* Overlay greeting/button (perfectly centered) */}
         <div style={{
           position: "absolute",
           top: 0, left: 0, width: "100%", height: "100%",
@@ -71,23 +72,24 @@ export default function HomePage({ userName = "Movie Lover", userId }) {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          zIndex: 2
+          zIndex: 2,
+          textAlign: "center"
         }}>
           <div style={{
-            fontSize: 38, // was 44
+            fontSize: "clamp(2.1rem,4vw,3.2rem)",
             fontWeight: 900,
             color: "#fff",
             letterSpacing: "-2px",
-            marginBottom: 8,
-            textShadow: "0 4px 16px #000b, 0 1px 16px #232d41"
+            marginBottom: 10,
+            textShadow: "0 4px 18px #000b, 0 1px 16px #232d41"
           }}>
             Welcome back{userName ? `, ${userName}` : ""}!
           </div>
           <div style={{
-            fontSize: 17, // was 20
+            fontSize: "clamp(1rem,1.7vw,1.45rem)",
             color: "#fdaf41",
             fontWeight: 700,
-            marginBottom: 14,
+            marginBottom: 18,
             textShadow: "0 2px 12px #000d"
           }}>
             Discover movies you'll love — powered by your tastes and mood.
@@ -95,13 +97,13 @@ export default function HomePage({ userName = "Movie Lover", userId }) {
           <button
             style={{
               fontWeight: 800,
-              fontSize: 17, // was 21
+              fontSize: "clamp(1rem,1.3vw,1.15rem)",
               background: "linear-gradient(100deg,#fe9245 10%,#eb423b 95%)",
               color: "#fff",
               border: "none",
-              borderRadius: 9,
-              padding: "11px 28px",
-              marginTop: 7,
+              borderRadius: 11,
+              padding: "13px 34px",
+              marginTop: 6,
               boxShadow: "0 1.5px 18px 0 #fe924522",
               cursor: "pointer",
               transition: "opacity 0.14s"
@@ -113,12 +115,17 @@ export default function HomePage({ userName = "Movie Lover", userId }) {
         </div>
       </div>
 
-      {/* MAIN CAROUSELS (full-width, centered, smaller font) */}
-      <div style={{ width: "100vw", margin: 0, boxSizing: "border-box" }}>
+      {/* CAROUSELS (FULL WIDTH) */}
+      <div style={{
+        width: "100vw",
+        background: "transparent",
+        margin: "0",
+        padding: "0"
+      }}>
         <div style={{
-          maxWidth: 1400,
-          margin: "0 auto",
-          padding: "22px 20px 0 20px"
+          width: "100vw",
+          padding: "0 3vw", // add some side padding for breath
+          marginTop: 30
         }}>
           <HomeCarousel
             title="Trending Now"
@@ -135,7 +142,7 @@ export default function HomePage({ userName = "Movie Lover", userId }) {
         </div>
       </div>
 
-      {/* Movie Details Modal */}
+      {/* MOVIE DETAILS MODAL */}
       {modalMovie && (
         <MovieModal
           movie={modalMovie}
@@ -150,7 +157,8 @@ export default function HomePage({ userName = "Movie Lover", userId }) {
         fontSize: 13,
         color: "#fff",
         opacity: 0.23,
-        marginTop: 32
+        marginTop: 30,
+        marginBottom: 8
       }}>
         © {new Date().getFullYear()} FeelFlick — Movies that match your mood.
       </div>
@@ -158,7 +166,7 @@ export default function HomePage({ userName = "Movie Lover", userId }) {
   );
 }
 
-// Carousel
+// Carousel (FULL WIDTH, ARROWS CENTERED)
 function HomeCarousel({ title, movies, emptyMessage, onMovieClick }) {
   const scrollRef = useRef();
 
@@ -171,8 +179,13 @@ function HomeCarousel({ title, movies, emptyMessage, onMovieClick }) {
   const showArrows = movies && movies.length > 5 && typeof window !== "undefined" && window.innerWidth > 700;
 
   return (
-    <div style={{ marginBottom: 35, position: 'relative' }}>
-      <div style={{ fontSize: 19, fontWeight: 800, color: "#fff", marginBottom: 10 }}>
+    <div style={{ marginBottom: 35, position: 'relative', width: "100%" }}>
+      <div style={{
+        fontSize: "clamp(1.25rem,2vw,1.7rem)",
+        fontWeight: 800,
+        color: "#fff",
+        marginBottom: 10
+      }}>
         {title}
       </div>
       <div style={{ position: "relative" }}>
@@ -181,7 +194,7 @@ function HomeCarousel({ title, movies, emptyMessage, onMovieClick }) {
             {showArrows && (
               <>
                 <button
-                  onClick={() => scrollBy(-370)}
+                  onClick={() => scrollBy(-350)}
                   style={arrowBtnStyle("left")}
                   aria-label="Scroll left"
                 >
@@ -189,13 +202,13 @@ function HomeCarousel({ title, movies, emptyMessage, onMovieClick }) {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    fontSize: 23, // was 28
+                    fontSize: "1.7rem",
                     fontWeight: 900,
                     lineHeight: 1
                   }}>‹</span>
                 </button>
                 <button
-                  onClick={() => scrollBy(370)}
+                  onClick={() => scrollBy(350)}
                   style={arrowBtnStyle("right")}
                   aria-label="Scroll right"
                 >
@@ -203,7 +216,7 @@ function HomeCarousel({ title, movies, emptyMessage, onMovieClick }) {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    fontSize: 23,
+                    fontSize: "1.7rem",
                     fontWeight: 900,
                     lineHeight: 1
                   }}>›</span>
@@ -214,11 +227,12 @@ function HomeCarousel({ title, movies, emptyMessage, onMovieClick }) {
               ref={scrollRef}
               style={{
                 display: "flex",
-                gap: 20, // was 28
+                gap: 18,
                 overflowX: "auto",
                 paddingBottom: 4,
                 scrollBehavior: "smooth",
                 scrollbarWidth: "none",
+                width: "100%",
               }}
               className="no-scrollbar"
             >
@@ -226,16 +240,16 @@ function HomeCarousel({ title, movies, emptyMessage, onMovieClick }) {
                 <div
                   key={movie.id || movie.movie_id}
                   style={{
-                    width: 130, // was 155
-                    minWidth: 130,
-                    borderRadius: 13,
+                    width: 124,
+                    minWidth: 124,
+                    borderRadius: 12,
                     overflow: "hidden",
                     background: "#232d41",
-                    boxShadow: "0 2px 12px #0008",
+                    boxShadow: "0 2px 10px #0007",
                     cursor: "pointer",
                     textAlign: "center",
                     position: "relative",
-                    transition: "transform 0.18s, box-shadow 0.17s",
+                    transition: "transform 0.16s, box-shadow 0.16s",
                   }}
                   tabIndex={0}
                   aria-label={movie.title}
@@ -246,7 +260,7 @@ function HomeCarousel({ title, movies, emptyMessage, onMovieClick }) {
                   }}
                   onMouseOut={e => {
                     e.currentTarget.style.transform = "scale(1.0)";
-                    e.currentTarget.style.boxShadow = "0 2px 12px #0008";
+                    e.currentTarget.style.boxShadow = "0 2px 10px #0007";
                   }}
                 >
                   {movie.poster_path || movie.poster ? (
@@ -255,20 +269,20 @@ function HomeCarousel({ title, movies, emptyMessage, onMovieClick }) {
                       alt={movie.title}
                       style={{
                         width: "100%",
-                        height: 180,
+                        height: 175,
                         objectFit: "cover",
                         display: "block",
-                        borderTopLeftRadius: 13,
-                        borderTopRightRadius: 13,
-                        transition: "filter 0.16s",
+                        borderTopLeftRadius: 12,
+                        borderTopRightRadius: 12,
+                        transition: "filter 0.14s",
                       }}
                     />
                   ) : (
                     <div style={{
-                      height: 180,
+                      height: 175,
                       background: "#18305a",
                       color: "#fff",
-                      fontSize: 22,
+                      fontSize: 20,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center"
@@ -278,10 +292,10 @@ function HomeCarousel({ title, movies, emptyMessage, onMovieClick }) {
                   )}
                   <div style={{
                     color: "#fff",
-                    fontSize: 12.8, // was 15
+                    fontSize: 12,
                     fontWeight: 800,
-                    margin: "6px 0 7px 0",
-                    padding: "0 6px",
+                    margin: "5px 0 7px 0",
+                    padding: "0 5px",
                     whiteSpace: "nowrap",
                     textOverflow: "ellipsis",
                     overflow: "hidden",
@@ -303,11 +317,10 @@ function HomeCarousel({ title, movies, emptyMessage, onMovieClick }) {
   );
 }
 
-// Helper: Arrow Button Style (center icon perfectly)
 function arrowBtnStyle(side) {
   return {
     position: "absolute",
-    [side]: -12,
+    [side]: -16,
     top: "50%",
     transform: "translateY(-50%)",
     zIndex: 5,
@@ -315,14 +328,14 @@ function arrowBtnStyle(side) {
     color: "#fff",
     border: "none",
     borderRadius: "50%",
-    width: 32, // was 38
-    height: 32,
+    width: 34,
+    height: 34,
     display: typeof window !== "undefined" && window.innerWidth > 700 ? "flex" : "none",
     alignItems: "center",
     justifyContent: "center",
     boxShadow: "0 3px 12px #0006",
     cursor: "pointer",
-    opacity: 0.76,
+    opacity: 0.78,
     transition: "background 0.13s, opacity 0.16s",
     outline: "none",
     padding: 0

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "../supabaseClient";
+import MovieModal from "./MovieModal";
 
 // Define moods for mood picker
 const MOODS = [
@@ -14,6 +15,9 @@ export default function HomePage({ userName = "Movie Lover", userId }) {
   const [selectedMood, setSelectedMood] = useState(null);
   const [trending, setTrending] = useState([]);
   const [watched, setWatched] = useState([]);
+  const [modalMovie, setModalMovie] = useState(null);
+
+  const closeModal = () => setModalMovie(null);
 
   // Fetch trending movies from TMDb when component mounts
   useEffect(() => {
@@ -122,6 +126,7 @@ export default function HomePage({ userName = "Movie Lover", userId }) {
           title="Trending Now"
           movies={trending}
           emptyMessage="Trending movies will appear here!"
+          onMovieClick={setModalMovie}
         />
         {/* Your Watch History (real data!) */}
         <HomeCarousel
@@ -130,6 +135,16 @@ export default function HomePage({ userName = "Movie Lover", userId }) {
           emptyMessage="Your recently watched movies will show up here."
         />
       </div>
+
+       {/* Movie Details Modal (add this before footer!) */}
+        {modalMovie && (
+        <MovieModal
+            movie={modalMovie}
+            open={!!modalMovie}
+            onClose={closeModal}
+        />
+        )}   
+
       {/* FOOTER */}
       <div
         style={{
@@ -147,7 +162,7 @@ export default function HomePage({ userName = "Movie Lover", userId }) {
 }
 
 // Fancier Carousel with posters, scroll arrows, hover effect!
-function HomeCarousel({ title, movies, emptyMessage }) {
+function HomeCarousel({ title, movies, emptyMessage, onMovieClick }) {
   const scrollRef = useRef();
 
   function scrollBy(offset) {
@@ -209,6 +224,7 @@ function HomeCarousel({ title, movies, emptyMessage }) {
                     position: "relative",
                     transition: "transform 0.18s, box-shadow 0.17s",
                   }}
+                  onClick={() => onMovieClick && onMovieClick(movie)}
                   tabIndex={0}
                   aria-label={movie.title}
                   onMouseOver={e => {

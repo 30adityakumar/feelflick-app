@@ -62,7 +62,7 @@ export default function AuthPage() {
         </video>
         {/* Overlay */}
         <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(20,24,35,0.42)', zIndex: 1
+          position: 'fixed', inset: 0, background: 'rgba(20,24,35,0.42)', zIndex: 1, pointerEvents: "none" 
         }} />
 
         <TopNav onSignIn={() => setShowSignIn(true)} />
@@ -95,7 +95,7 @@ export default function AuthPage() {
         <source src="/background.mp4" type="video/mp4" />
       </video>
       <div style={{
-        position: 'fixed', inset: 0, background: 'rgba(18,22,30,0.32)', zIndex: 1
+        position: 'fixed', inset: 0, background: 'rgba(18,22,30,0.32)', zIndex: 1, pointerEvents: "none" 
       }} />
       <TopNav onSignIn={() => setShowSignIn(false)} />
       <SignInForm

@@ -4,7 +4,7 @@ const cards = [
   {
     title: 'Mood-Driven, Personalized Picks',
     description:
-      "Get movie recommendations that actually feel right. FeelFlick learns your movie taste and listens to your current mood. No generic suggestions — just titles that match your vibe. The more you watch and share how you feel, the smarter and more personal your recommendations become.",
+      "FeelFlick learns your movie taste and listens to your current mood. No generic suggestions — just titles that match your vibe. The more you watch and share how you feel, the smarter and more personal your recommendations become.",
   },
   {
     title: 'Fast, Simple, and Private',

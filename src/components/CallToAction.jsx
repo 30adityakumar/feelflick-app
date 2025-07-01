@@ -3,9 +3,9 @@ export default function CallToAction({ onSignUp }) {
     <section style={{
       width: "100vw",
       minHeight: 64,
-      margin: "52px 0 0 0",   // Space only at the top!
+      margin: "0",
       padding: "0",
-      background: "linear-gradient(120deg, rgba(18,13,10,0.99) 80%, rgba(34, 24, 20, 1) 100%)",
+      background: "rgba(10,10,10,0.73)", // same as TrendingToday
       borderRadius: 0,
       boxShadow: "0 -1.5px 24px 0 #000a",
       display: "flex",
@@ -25,7 +25,7 @@ export default function CallToAction({ onSignUp }) {
         textShadow: "0 2.5px 10px #191a2085",
         whiteSpace: "nowrap",
         margin: 0,
-        padding: "0",
+        padding: 0,
       }}>
         Ready to get started?
       </div>

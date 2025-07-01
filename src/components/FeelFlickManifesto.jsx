@@ -1,21 +1,22 @@
 // components/FeelFlickManifesto.jsx
 
-// Warm semi-transparent "glass" background color:
-const COZY_BG = "rgba(252, 245, 227, 0.89)" // creamy, warm white
+import { useEffect } from "react"
 
-const FILM_REEL_WATERMARK = encodeURIComponent(`
-<svg width="600" height="300" viewBox="0 0 600 300" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <ellipse cx="300" cy="150" rx="240" ry="96" fill="#F6D99822"/>
-  <ellipse cx="300" cy="150" rx="120" ry="56" fill="#FEE9B418"/>
-  <circle cx="300" cy="150" r="32" fill="#FE924525"/>
-  <circle cx="90" cy="150" r="14" fill="#FFD88033"/>
-  <circle cx="510" cy="150" r="14" fill="#FFD88033"/>
-  <circle cx="300" cy="54" r="10" fill="#fe924522"/>
-  <circle cx="300" cy="246" r="10" fill="#fe924522"/>
-</svg>
-`);
-
+// Optionally, animate fade-in
+function fadeInBlocks() {
+  if (typeof window === "undefined") return
+  const blocks = document.querySelectorAll(".ff-manifesto-block")
+  blocks.forEach((block, idx) => {
+    block.style.opacity = 0
+    setTimeout(() => {
+      block.style.transition = "opacity 0.7s cubic-bezier(.77,.01,.3,1.01)"
+      block.style.opacity = 1
+    }, 400 + idx * 350)
+  })
+}
 export default function FeelFlickManifesto() {
+  useEffect(() => { fadeInBlocks() }, [])
+
   return (
     <section
       id="why-feelflick"
@@ -26,113 +27,105 @@ export default function FeelFlickManifesto() {
         alignItems: "center",
         justifyContent: "center",
         position: "relative",
-        background: "transparent",
-        zIndex: 2,
-        padding: "0"
+        padding: 0,
+        background: "radial-gradient(ellipse at 60% 0%, #ffedc2 0%, #23202a 80%)",
+        zIndex: 2
       }}
     >
-      {/* Film Reel Watermark (background) */}
+      {/* Soft Film Glow Overlay */}
       <div style={{
         position: "absolute",
-        top: "52%", left: "50%",
-        transform: "translate(-50%,-50%)",
-        zIndex: 0,
-        opacity: 0.11,
-        background: `url("data:image/svg+xml,${FILM_REEL_WATERMARK}") center/contain no-repeat`,
-        width: "88vw", height: "54vw", maxWidth: 650, maxHeight: 300,
-        pointerEvents: "none", filter: "blur(1.7px)"
+        top: "-30%", left: "50%",
+        transform: "translate(-50%,0)",
+        width: "110vw", height: 300,
+        background: "radial-gradient(circle, #ffe4a6 0%, #ffdea3aa 22%, transparent 77%)",
+        opacity: 0.44, pointerEvents: "none", zIndex: 1,
+        filter: "blur(6px)"
       }} />
-
-      {/* Main Card */}
+      {/* Subtle film grain overlay */}
       <div style={{
-        width: "100%",
-        maxWidth: 760,
+        pointerEvents: "none", zIndex: 2,
+        position: "absolute", inset: 0,
+        background: "url('https://www.transparenttextures.com/patterns/45-degree-fabric-light.png') repeat",
+        opacity: 0.18
+      }} />
+      {/* Manifesto Card */}
+      <div style={{
+        maxWidth: 800,
         margin: "0 auto",
-        padding: "68px 28px 72px 28px",
-        borderRadius: 32,
-        background: COZY_BG,
-        backdropFilter: "blur(6.5px)",
-        boxShadow: "0 4px 38px #eb423b17, 0 2px 36px #18406d13",
-        border: "1.6px solid #f7d5804c",
+        padding: "70px 26px 65px 26px",
+        borderRadius: 30,
+        background: "rgba(33, 27, 19, 0.76)", // soft, warm glassy dark
+        backdropFilter: "blur(8px) saturate(1.04)",
+        boxShadow: "0 8px 42px #eb423b11, 0 1px 80px #fe924517",
+        border: "2px solid #ffe4a642",
         position: "relative",
-        zIndex: 1,
+        zIndex: 3,
         display: "flex",
         flexDirection: "column",
         alignItems: "center"
       }}>
-        {/* Title (gently gradient) */}
         <div style={{
           fontWeight: 900,
-          fontSize: "clamp(1.55rem,4vw,2.6rem)",
+          fontSize: "clamp(1.55rem,4vw,2.2rem)",
           textAlign: "center",
-          letterSpacing: "-1.2px",
-          background: "linear-gradient(90deg,#18406d 10%,#fe9245 80%,#eb423b 100%)",
-          WebkitBackgroundClip: "text",
-          WebkitTextFillColor: "transparent",
-          marginBottom: 26,
-          lineHeight: 1.12,
-          textShadow: "0 1px 10px #fff3"
+          letterSpacing: "-1.3px",
+          color: "#ffe49b",
+          textShadow: "0 4px 30px #eb423b24, 0 1px 13px #18406d44"
         }}>
           Why FeelFlick?
         </div>
-        {/* Manifesto body */}
+        {/* Manifesto body: each line a block */}
         <div style={{
-          display: "flex", flexDirection: "column", gap: 22,
-          fontSize: "clamp(1.1rem,1.85vw,1.22rem)", color: "#302520",
-          fontWeight: 500, lineHeight: 1.65, textAlign: "center",
-          maxWidth: 680
+          display: "flex", flexDirection: "column", gap: 24,
+          fontSize: "clamp(1.04rem,2vw,1.23rem)",
+          color: "#fff9e9", fontWeight: 500,
+          lineHeight: 1.72, textAlign: "center",
+          maxWidth: 620, margin: "38px auto 0 auto"
         }}>
-          <span style={{opacity:0.98, fontWeight:700, fontSize:"1.13em"}}>
+          <div className="ff-manifesto-block" style={{ fontWeight: 800, color: "#ffdfa0", fontSize: "1.1em" }}>
             Ever opened a streaming app and spent 40 minutes just... scrolling?
-          </span>
-          <span style={{opacity:0.97}}>
-            You’re tired. You want to feel something. But nothing feels right.
-            <br />
-            <span style={{color: "#eb423b", fontWeight:600}}>That’s the moment FeelFlick was built for.</span>
-          </span>
-          <span>
-            We don’t just show you what’s <span style={{color:"#fe9245", fontWeight:600}}>trending</span>.
-            <br />
-            We show you what <span style={{color:"#18406d", fontWeight:600}}>fits</span> — your mood, your taste, your moment.
-          </span>
-          <span style={{opacity: 0.94}}>
+          </div>
+          <div className="ff-manifesto-block" style={{ color: "#f5c078" }}>
+            You’re tired. You want to feel something. But nothing feels right.<br />
+            <span style={{ color: "#eb423b", fontWeight: 700 }}>That’s the moment FeelFlick was built for.</span>
+          </div>
+          <div className="ff-manifesto-block">
+            We don’t just show you what’s <span style={{ color: "#fdaf41" }}>trending</span>.<br />
+            We show you what <span style={{ color: "#f7be70" }}>fits</span> — your mood, your taste, your moment.
+          </div>
+          <div className="ff-manifesto-block">
             Because you're not just a viewer.<br />
             You're a whole human with emotions, patterns, and preferences.<br />
-            <span style={{color:"#fe9245", fontWeight:600}}>And we believe your next movie should get that.</span>
-          </span>
-          <span>
-            FeelFlick is your personal movie companion — powered by <span style={{color:"#eb423b", fontWeight:600}}>memory</span>, <span style={{color:"#fe9245", fontWeight:600}}>mood</span>, and smart AI.
-            <br />
-            It learns what you’ve loved before. You tell it how you’re feeling now.
-            <br />
+            <span style={{ color: "#fdaf41" }}>And we believe your next movie should get that.</span>
+          </div>
+          <div className="ff-manifesto-block" style={{ color: "#fff7e1" }}>
+            FeelFlick is your personal movie companion — powered by <span style={{ color: "#eb423b" }}>memory</span>, <span style={{ color: "#fdaf41" }}>mood</span>, and smart AI.<br />
+            It learns what you’ve loved before. You tell it how you’re feeling now.<br />
             And in seconds, it suggests something that just clicks.
-          </span>
-          <span style={{
-            fontWeight: 600,
-            color: "#18406d",
-            opacity: 0.96,
-            background: "linear-gradient(94deg,#ffe2b1 40%, #fff8e2 100%)",
-            padding: "9px 20px",
-            borderRadius: 15,
-            margin: "18px 0 0 0",
-            boxShadow: "0 1.5px 16px #fe92451a",
-            display: "inline-block"
+          </div>
+          <div className="ff-manifesto-block" style={{
+            fontWeight: 700, color: "#ffe3af",
+            background: "rgba(50,42,22,0.45)",
+            padding: "14px 24px", borderRadius: 15, marginTop: 12,
+            fontSize: "1.07em", boxShadow: "0 1px 12px #fe924522"
           }}>
             No star ratings. No overload. No second-guessing.<br />
-            <span style={{color:"#eb423b"}}>Just films that match your vibe</span> — beautifully, privately, and always free.
-          </span>
+            <span style={{ color: "#eb423b" }}>Just films that match your vibe</span> — beautifully, privately, and always free.
+          </div>
         </div>
-        {/* Down arrow scroll cue */}
-        <div style={{
-          margin: "48px 0 0 0", display: "flex", flexDirection: "column", alignItems: "center"
-        }}>
-          <span style={{
-            fontSize: 26, color: "#eb423b", opacity: 0.66, marginBottom: 2
-          }}>▼</span>
-          <span style={{
-            fontSize: 13, color: "#776e5f", opacity: 0.56
-          }}>Scroll for more</span>
-        </div>
+      </div>
+      {/* Down arrow scroll cue */}
+      <div style={{
+        position: "absolute", left: "50%", bottom: 36, transform: "translateX(-50%)", zIndex: 10,
+        display: "flex", flexDirection: "column", alignItems: "center"
+      }}>
+        <span style={{
+          fontSize: 32, color: "#fe9245", opacity: 0.6
+        }}>▼</span>
+        <span style={{
+          fontSize: 12, color: "#fff6dd", opacity: 0.48
+        }}>Scroll for more</span>
       </div>
     </section>
   )

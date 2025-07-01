@@ -1,6 +1,5 @@
 import React from 'react';
 
-// Three core cards for WhyFeelFlick section
 const cards = [
   {
     title: 'Mood-Driven, Personalized Picks',
@@ -19,81 +18,92 @@ const cards = [
   },
 ];
 
-// Wrapper covers full viewport, cards lowered
 const wrapperStyle = {
   width: '100vw',
   height: '100vh',
-  background: 'rgba(30, 36, 50, 0.1)',
+  background: 'linear-gradient(120deg, rgba(20,16,12,0.9), rgba(40,32,24,0.93) 80%)',
   display: 'flex',
   alignItems: 'flex-start',
   justifyContent: 'center',
-  padding: '10vh 5%',
+  padding: '13vh 4vw 5vh',
   boxSizing: 'border-box',
+  overflow: 'hidden',
 };
 
 const rowStyle = {
   display: 'flex',
-  justifyContent: 'space-around',
+  justifyContent: 'center',
   alignItems: 'stretch',
-  gap: '1rem',
+  gap: '2.5rem',
   flexWrap: 'nowrap',
   width: '100%',
+  maxWidth: '1400px',
 };
 
-// Card background uses theme radish color; no icons, default cursor
 const baseCardStyle = {
-  background: 'rgba(var(--theme-color-rgb), 0.25)', // thematic radish from theme
-  borderRadius: '12px',
-  padding: '2rem',
-  flex: '0 1 28%',
-  minWidth: '240px',
-  height: '80vh',
+  background: 'rgba(var(--theme-color-rgb), 0.30)', // Radish, but with more pop
+  backdropFilter: 'blur(16px)',
+  WebkitBackdropFilter: 'blur(16px)',
+  borderRadius: '20px',
+  boxShadow: '0 10px 36px 0 rgba(20,16,12,0.20), 0 1.5px 12px 0 rgba(var(--theme-color-rgb), 0.10)',
+  padding: '2.5rem 2rem 2rem',
+  flex: '0 1 29%',
+  minWidth: '270px',
+  height: '73vh',
   display: 'flex',
   flexDirection: 'column',
   justifyContent: 'flex-start',
-  transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+  transition: 'transform 0.33s cubic-bezier(.3,.7,.4,1.5), box-shadow 0.33s, outline 0.28s',
   cursor: 'default',
   position: 'relative',
+  border: '1.5px solid rgba(var(--theme-color-rgb),0.22)',
+  outline: 'none',
 };
 
 export default function WhyFeelFlick() {
   return (
     <>
-      {/* Fade-in-up keyframes */}
       <style>{`
         @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
+          from { opacity: 0; transform: translateY(32px);}
+          to { opacity: 1; transform: translateY(0);}
+        }
+        .fflick-card {
+          animation: fadeInUp 0.7s cubic-bezier(.2,.7,.4,1.1) both;
+        }
+        .fflick-card:hover, .fflick-card:focus {
+          transform: translateY(-14px) scale(1.04);
+          box-shadow: 0 8px 36px 0 rgba(var(--theme-color-rgb), 0.13), 0 0 0 3px var(--theme-color), 0 0 0 8px var(--theme-color-secondary, #54aaff33);
+          outline: 2px solid var(--theme-color);
+          outline-offset: 0.5px;
+          z-index: 2;
+        }
+        @media (max-width: 1020px) {
+          .fflick-row { flex-direction: column; gap: 2.5rem; align-items: center;}
+          .fflick-card { height: auto; min-height: 300px; width: 95vw; max-width: 500px;}
         }
       `}</style>
-
       <div style={wrapperStyle}>
-        <div style={rowStyle}>
+        <div className="fflick-row" style={rowStyle}>
           {cards.map((card, idx) => (
             <div
               key={idx}
+              className="fflick-card"
+              tabIndex={0}
               style={{
                 ...baseCardStyle,
-                animation: `fadeInUp 0.6s ease ${(idx * 0.1).toFixed(1)}s both`,
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.zIndex = '1';
-                e.currentTarget.style.boxShadow =
-                  '0 0 0 3px var(--theme-color), 0 0 0 6px var(--theme-color-secondary)';
-                e.currentTarget.style.transform = 'translateY(-8px) scale(1.03)';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.zIndex = 'auto';
-                e.currentTarget.style.boxShadow = 'none';
-                e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                animationDelay: `${0.12 * idx}s`,
               }}
             >
               <h3
                 style={{
-                  margin: '0 0 1rem',
-                  fontSize: '2rem',
-                  fontWeight: 'bold',
+                  margin: '0 0 1.4rem',
+                  fontSize: '2.45rem',
+                  fontWeight: 800,
+                  lineHeight: 1.18,
                   color: 'var(--theme-color)',
+                  letterSpacing: '-1px',
+                  textShadow: '0 2px 8px rgba(0,0,0,0.18)',
                 }}
               >
                 {card.title}
@@ -101,9 +111,11 @@ export default function WhyFeelFlick() {
               <p
                 style={{
                   margin: 0,
-                  color: 'var(--text-secondary)',
-                  fontSize: '1.1rem',
-                  lineHeight: '1.6',
+                  color: 'rgba(255,255,255,0.93)',
+                  fontSize: '1.19rem',
+                  lineHeight: '1.75',
+                  fontWeight: 400,
+                  textShadow: '0 2px 6px rgba(0,0,0,0.12)',
                 }}
               >
                 {card.description}

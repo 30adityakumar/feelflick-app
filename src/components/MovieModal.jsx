@@ -1,10 +1,13 @@
+// src/components/MovieModal.jsx
+
+const GENRES = {
+  28: "Action", 12: "Adventure", 16: "Animation", 35: "Comedy", 80: "Crime", 99: "Documentary", 18: "Drama",
+  10751: "Family", 14: "Fantasy", 36: "History", 27: "Horror", 10402: "Music", 9648: "Mystery", 10749: "Romance",
+  878: "Sci-Fi", 10770: "TV", 53: "Thriller", 10752: "War", 37: "Western"
+};
+
 function MovieModal({ movie, onClose }) {
-  // Build genre labels for the modal
-  const GENRES = {
-    28: "Action", 12: "Adventure", 16: "Animation", 35: "Comedy", 80: "Crime", 99: "Documentary", 18: "Drama",
-    10751: "Family", 14: "Fantasy", 36: "History", 27: "Horror", 10402: "Music", 9648: "Mystery", 10749: "Romance",
-    878: "Sci-Fi", 10770: "TV", 53: "Thriller", 10752: "War", 37: "Western"
-  };
+  if (!movie) return null;
   const genreLabels = (movie.genre_ids || []).map(id => GENRES[id] || null).filter(Boolean);
 
   return (
@@ -18,7 +21,7 @@ function MovieModal({ movie, onClose }) {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          animation: "modalFadeIn 0.2s"
+          animation: "modalFadeIn 0.22s"
         }}
         onClick={onClose}
       />
@@ -38,7 +41,7 @@ function MovieModal({ movie, onClose }) {
           position: "fixed",
           left: "50%", top: "50%",
           transform: "translate(-50%, -50%)",
-          width: "480px", maxWidth: "98vw", minWidth: "320px",
+          width: "490px", maxWidth: "97vw", minWidth: "320px",
           background: "#18141c",
           borderRadius: "18px",
           boxShadow: "0 9px 54px #000b",
@@ -111,7 +114,7 @@ function MovieModal({ movie, onClose }) {
             {movie.overview || "No description available."}
           </div>
           <button
-            onClick={() => { /* you can add a handler here for Get Started */ }}
+            onClick={() => { /* add sign-up action or navigation here */ }}
             style={{
               background: "#e50914",
               color: "#fff",
@@ -134,3 +137,5 @@ function MovieModal({ movie, onClose }) {
     </>
   );
 }
+
+export default MovieModal;

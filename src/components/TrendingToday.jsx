@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react"
+import MovieModal from './MovieModal'
 
 const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY
 

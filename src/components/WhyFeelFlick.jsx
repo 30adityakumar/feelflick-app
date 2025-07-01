@@ -4,17 +4,17 @@ const cards = [
   {
     title: 'Mood-Driven, Personalized Picks',
     description:
-      "Get movie recommendations that feel made for you. FeelFlick learns your taste based on what you’ve watched and how those films made you feel. Then, whenever you're ready to watch, just tell us your mood — and we’ll suggest a film that matches it perfectly. No random trends, no guesswork — just personal, mood-matching picks that actually make sense.",
+      "Get movie recommendations that actually feel right. FeelFlick learns your movie taste and listens to your current mood. No generic suggestions — just titles that match your vibe. The more you watch and share how you feel, the smarter and more personal your recommendations become.",
   },
   {
     title: 'Fast, Simple, and Private',
     description:
-      "Say goodbye to endless scrolling and choice overload. FeelFlick gives you quick, focused suggestions based on your emotional vibe and watch habits. No star ratings to obsess over. No clutter. And no one’s watching you — your movie history and moods stay private, always. It’s a calm, stress-free experience that helps you watch more and scroll less — anytime, anywhere, on any device.",
+      "Tired of scrolling for something to watch? FeelFlick delivers quick, clutter-free suggestions based on how you feel and what you love. No ratings, no filters, no noise — just the right movie when you need it. Your data stays private, always secure and never shared.",
   },
   {
-    title: 'Track Your Journey — Always Free',
+    title: 'Track What You Love',
     description:
-      "Log every movie you’ve seen, how it made you feel, and what you want to watch next — all in one place. FeelFlick becomes your personal movie memory bank. Revisit your favorites, build curated lists, and see how your taste evolves over time. It’s simple, sentimental, and always free — designed to celebrate your unique movie journey and keep it organized effortlessly.",
+      "Keep a personal log of every movie you’ve seen — and how it made you feel. Build watchlists, revisit past favorites, and reflect on your evolving taste. FeelFlick helps you stay organized, sentimental, and inspired — all in one place. Always free, with no paywalls or limits.",
   },
 ];
 

@@ -208,7 +208,7 @@ export default function TrendingToday() {
       `}</style>
       {/* MovieModal shown if a movie is selected */}
       {selectedMovie && (
-        <MovieModal movie={selectedMovie} onClose={() => setSelectedMovie(null) onSignIn={onSignIn}} />
+        <MovieModal movie={selectedMovie} onClose={() => setSelectedMovie(null)} onSignIn={onSignIn} />
       )}
     </section>
   );

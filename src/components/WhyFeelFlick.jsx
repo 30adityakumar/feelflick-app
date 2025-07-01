@@ -1,43 +1,82 @@
-// WhyFeelFlick.jsx
+// components/WhyFeelFlick.jsx
+import { useEffect } from "react"
 
-// Download your own PNGs and place them in /public/icons, or update these links:
-const EMOTION_ICON = "/icons/feelings.png"         // e.g. hand-heart, smiley, etc
-const UTILITY_ICON = "/icons/compass.png"          // e.g. compass, magic wand, film slate
-const FRIENDLY_ICON = "/icons/friendship.png"      // e.g. coffee cup, chat bubble, friends
-
-const features = [
+// List of card content
+const CARDS = [
   {
-    img: EMOTION_ICON,
-    label: "Emotion-First",
-    desc: "Because sometimes you're not in the mood to scroll for 30 minutes.\nFeelFlick learns what you like and how you feel — and gives you the right movie, right away."
+    emoji: "😩",
+    title: "Tired of Scrolling?",
+    desc: (
+      <>
+        Ever opened a streaming app and spent 40 minutes just… scrolling?<br />
+        You’re not alone. FeelFlick was made for that exact moment —<br />
+        when you just want something that feels right.
+      </>
+    ),
   },
   {
-    img: UTILITY_ICON,
-    label: "Utility-First",
-    desc: "Other platforms show you what’s trending.\nFeelFlick shows you what fits. It learns your movie style and listens to your mood — so recommendations actually make sense."
+    emoji: "🧠",
+    title: "Forget the Algorithms.",
+    desc: (
+      <>
+        Most platforms show you what’s trending.<br />
+        <span style={{ color: "#fe9245", fontWeight: 600 }}>
+          FeelFlick shows you what fits</span> — based on your unique movie taste and current mood.
+      </>
+    ),
   },
   {
-    img: FRIENDLY_ICON,
-    label: "Friendly",
-    desc: "You know that feeling when you just want the right movie, without overthinking?\nThat’s why we built FeelFlick. It gets smarter every time you watch, and every time you tell us how you’re feeling."
-  }
+    emoji: "🧑‍🎤",
+    title: "Because You’re Not Just a Viewer.",
+    desc: (
+      <>
+        You’re a whole human — with moods, patterns, and preferences.<br />
+        <span style={{ color: "#18406d", fontWeight: 600 }}>
+          FeelFlick learns from your history and listens to how you feel right now.
+        </span>
+      </>
+    ),
+  },
+  {
+    emoji: "🎬",
+    title: "Your Movie Companion.",
+    desc: (
+      <>
+        FeelFlick uses mood, memory, and smart AI to recommend something that just clicks.<br />
+        No star ratings. No pressure. Just the right film — fast.
+      </>
+    ),
+  },
+  {
+    emoji: "🌗",
+    title: "Movies That Match Your Mood.",
+    desc: (
+      <>
+        Tell us how you’re feeling.<br />
+        <span style={{ color: "#eb423b", fontWeight: 600 }}>
+          We’ll suggest something that matches the vibe
+        </span> — beautifully, privately, and always free.
+      </>
+    ),
+  },
 ]
 
-// Warm, cozy “creamy” glass background, softly transparent
-const COZY_BG = "rgba(253, 246, 233, 0.89)" // Creamy/latte
-const BORDER_GRAD = "linear-gradient(100deg,#fe9245,#eb423b,#18406d 90%)"
-
-const FILM_REEL_WATERMARK = encodeURIComponent(`
-<svg width="440" height="240" viewBox="0 0 440 240" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <ellipse cx="220" cy="120" rx="200" ry="90" fill="#F6D99822"/>
-  <ellipse cx="220" cy="120" rx="146" ry="68" fill="#FEE9B412"/>
-  <circle cx="220" cy="120" r="33" fill="#FE924525"/>
-  <circle cx="92" cy="120" r="18" fill="#FFD88033"/>
-  <circle cx="346" cy="120" r="18" fill="#FFD88033"/>
-  <circle cx="220" cy="37" r="13" fill="#fe924524"/>
-  <circle cx="220" cy="202" r="13" fill="#fe924524"/>
-</svg>
-`)
+// Fade-in effect on mount
+useEffectFadeIn()
+function useEffectFadeIn() {
+  useEffect(() => {
+    const cards = document.querySelectorAll(".ff-wff-card")
+    cards.forEach((card, i) => {
+      card.style.opacity = 0
+      card.style.transform = "translateY(26px)"
+      setTimeout(() => {
+        card.style.transition = "opacity 0.8s cubic-bezier(.8,.15,.2,1.01), transform 0.85s cubic-bezier(.6,.15,.2,1.04)"
+        card.style.opacity = 1
+        card.style.transform = "translateY(0)"
+      }, 250 + i * 160)
+    })
+  }, [])
+}
 
 export default function WhyFeelFlick() {
   return (
@@ -46,167 +85,111 @@ export default function WhyFeelFlick() {
       style={{
         width: "100vw",
         minHeight: "100vh",
+        background:
+          "radial-gradient(ellipse at 70% 0%, #fffbe6 0%, #fde2b1 34%, #1b253b 120%)",
+        padding: "0",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         position: "relative",
-        background: "transparent", // background handled by glass below
-        zIndex: 2
       }}
     >
-      {/* Film Reel Watermark (warm tone, soft blur) */}
+      {/* Warm lamp-like glow */}
       <div style={{
         position: "absolute",
-        top: "56%", left: "50%",
-        transform: "translate(-50%,-50%)",
-        zIndex: 0,
-        opacity: 0.16,
-        background: `url("data:image/svg+xml,${FILM_REEL_WATERMARK}") center/contain no-repeat`,
-        width: "72vw", height: "44vw", maxWidth: 440, maxHeight: 240,
-        pointerEvents: "none", filter: "blur(1.6px)"
+        top: 0, left: "44vw",
+        width: 320, height: 120,
+        background: "radial-gradient(circle, #ffd466 0%, #fdaf41 60%, transparent 100%)",
+        filter: "blur(32px)", opacity: 0.33, zIndex: 1,
+        pointerEvents: "none"
       }} />
-
-      {/* Frosted “cozy” glass card */}
+      {/* Film grain overlay (subtle) */}
       <div style={{
-        width: "100%",
-        maxWidth: 1220,
-        margin: "0 auto",
-        padding: "68px 16px 56px 16px",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        borderRadius: 32,
-        background: COZY_BG,
-        backdropFilter: "blur(5.5px)",
-        boxShadow: "0 4px 36px #eb423b17, 0 2px 32px #18406d10",
-        border: "1.7px solid #f7d58060",
-        position: "relative",
-        zIndex: 1
+        pointerEvents: "none", zIndex: 2,
+        position: "absolute", inset: 0,
+        background: "url('https://www.transparenttextures.com/patterns/45-degree-fabric-light.png') repeat",
+        opacity: 0.10
+      }} />
+      <div style={{
+        width: "100%", maxWidth: 1280,
+        margin: "0 auto", padding: "82px 6vw 68px 6vw",
+        zIndex: 5, position: "relative",
+        display: "flex", flexDirection: "column", alignItems: "center"
       }}>
         {/* Heading */}
         <h2 style={{
           fontWeight: 900,
-          fontSize: "clamp(1.45rem,3.8vw,2.25rem)",
-          background: "linear-gradient(90deg,#18406d 20%,#fe9245 70%,#eb423b 100%)",
-          WebkitBackgroundClip: "text",
-          WebkitTextFillColor: "transparent",
-          letterSpacing: "-1.1px",
-          marginBottom: 16, marginTop: 0, textAlign: "center", lineHeight: 1.13,
-          textShadow: "0 2px 8px #fff5"
+          fontSize: "clamp(1.7rem,3.9vw,2.35rem)",
+          color: "#18406d",
+          marginBottom: 44,
+          letterSpacing: "-1.3px",
+          textAlign: "center",
+          textShadow: "0 1px 18px #fff3, 0 1px 12px #fe924514"
         }}>
           Why FeelFlick?
         </h2>
-        {/* Subtitle */}
+        {/* Cards grid */}
         <div style={{
-          color: "#443c2c",
-          fontWeight: 500,
-          fontSize: "clamp(0.93rem,1.3vw,1.09rem)",
-          textAlign: "center",
-          marginBottom: 35,
-          marginTop: 0,
-          lineHeight: 1.7,
-          maxWidth: 660,
-          opacity: 0.96,
-          textShadow: "0 1px 10px #fff3"
-        }}>
-          FeelFlick is your personal movie companion — powered by mood, memory, and smart AI. It learns your unique taste as you watch, lets you choose how you’re feeling, and recommends films that genuinely match your vibe. No ratings. No pressure. No endless scrolling. Just personal, mood-based suggestions that actually make sense.
-        </div>
-
-        {/* Feature Cards */}
-        <div style={{
-          display: "flex",
-          flexWrap: "wrap",
-          gap: 38,
-          width: "100%",
+          display: "flex", flexWrap: "wrap", gap: 30,
           justifyContent: "center",
-          alignItems: "stretch",
-          marginBottom: 8
+          width: "100%",
         }}>
-          {features.map((f, i) => (
+          {CARDS.map((c, i) => (
             <div
-              key={f.label}
-              tabIndex={0}
+              key={i}
+              className="ff-wff-card"
               style={{
-                flex: "1 1 325px",
-                minWidth: 260,
-                maxWidth: 360,
-                background: "rgba(255,255,255,0.91)",
-                borderRadius: 18,
-                boxShadow: "0 2px 22px #fe92451c, 0 2px 8px #18406d11",
-                padding: "44px 26px 37px 26px",
-                color: "#263345",
-                textAlign: "center",
-                margin: 0,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
+                flex: "1 1 225px",
+                minWidth: 225, maxWidth: 265,
+                background: "rgba(255, 245, 221, 0.92)",
+                borderRadius: 24,
+                boxShadow: "0 6px 28px #1b253b22, 0 1.5px 24px #fdaf4121",
+                padding: "36px 20px 30px 20px",
+                margin: "0",
+                display: "flex", flexDirection: "column", alignItems: "center",
+                border: "2px solid transparent",
+                transition: "box-shadow 0.18s, border 0.2s, transform 0.18s",
                 position: "relative",
-                border: "2.5px solid transparent",
-                outline: "none",
-                transition: "transform 0.17s, box-shadow 0.13s, border 0.16s"
+                cursor: "pointer",
+                // Hover: Soft glow and outline
+                ...(i === 1
+                  ? { background: "rgba(254,146,69,0.12)" }
+                  : i === 4
+                    ? { background: "rgba(235,66,59,0.13)" }
+                    : {}
+                )
               }}
               onMouseOver={e => {
-                e.currentTarget.style.transform = "translateY(-8px) scale(1.031)";
-                e.currentTarget.style.boxShadow = "0 4px 46px #fe92452d, 0 8px 36px #18406d19";
-                e.currentTarget.style.borderImage = `${BORDER_GRAD} 1`;
-                e.currentTarget.style.border = "2.5px solid";
-                e.currentTarget.style.zIndex = 2;
+                e.currentTarget.style.border = "2.2px solid #fdaf41"
+                e.currentTarget.style.boxShadow = "0 9px 32px #eb423b22, 0 3px 24px #fdaf4129"
+                e.currentTarget.style.transform = "scale(1.022)"
               }}
               onMouseOut={e => {
-                e.currentTarget.style.transform = "";
-                e.currentTarget.style.boxShadow = "0 2px 22px #fe92451c, 0 2px 8px #18406d11";
-                e.currentTarget.style.borderImage = "";
-                e.currentTarget.style.border = "2.5px solid transparent";
-                e.currentTarget.style.zIndex = 1;
-              }}
-              onFocus={e => {
-                e.currentTarget.style.transform = "translateY(-8px) scale(1.031)";
-                e.currentTarget.style.boxShadow = "0 4px 46px #fe92452d, 0 8px 36px #18406d19";
-                e.currentTarget.style.borderImage = `${BORDER_GRAD} 1`;
-                e.currentTarget.style.border = "2.5px solid";
-                e.currentTarget.style.zIndex = 2;
-              }}
-              onBlur={e => {
-                e.currentTarget.style.transform = "";
-                e.currentTarget.style.boxShadow = "0 2px 22px #fe92451c, 0 2px 8px #18406d11";
-                e.currentTarget.style.borderImage = "";
-                e.currentTarget.style.border = "2.5px solid transparent";
-                e.currentTarget.style.zIndex = 1;
+                e.currentTarget.style.border = "2px solid transparent"
+                e.currentTarget.style.boxShadow = "0 6px 28px #1b253b22, 0 1.5px 24px #fdaf4121"
+                e.currentTarget.style.transform = "scale(1)"
               }}
             >
-              <img
-                src={f.img}
-                alt={f.label}
-                style={{
-                  width: 56, height: 56, marginBottom: 18, objectFit: "contain", borderRadius: 15,
-                  filter: "drop-shadow(0 3px 16px #fe924527)"
-                }}
-              />
+              <div style={{
+                fontSize: 38, marginBottom: 10,
+                filter: "drop-shadow(0 2px 8px #fdaf4121)"
+              }}>{c.emoji}</div>
               <div style={{
                 fontWeight: 800,
                 fontSize: "1.19rem",
-                marginBottom: 10,
-                color: "#22282e",
-                letterSpacing: "-0.01em"
-              }}>{f.label}</div>
+                marginBottom: 8,
+                color: "#18406d",
+                letterSpacing: "-.5px"
+              }}>{c.title}</div>
               <div style={{
-                fontSize: 15.6,
-                color: "#736b5d",
-                opacity: 0.97,
-                lineHeight: 1.55,
-                whiteSpace: "pre-line"
-              }}>{f.desc}</div>
+                fontWeight: 400, fontSize: 15.5,
+                color: "#412b1d", opacity: 0.93,
+                lineHeight: 1.52,
+                textAlign: "center"
+              }}>{c.desc}</div>
             </div>
           ))}
         </div>
-        {/* Soft transition */}
-        <div style={{
-          width: "100%",
-          height: 42,
-          margin: "0 auto -32px auto",
-          pointerEvents: "none",
-          background: "linear-gradient(to bottom,rgba(255,247,222,0.0) 10%,rgba(254,146,69,0.11) 90%,rgba(255,247,222,0.01) 100%)"
-        }} />
       </div>
     </section>
   )

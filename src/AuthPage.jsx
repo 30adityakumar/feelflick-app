@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from './supabaseClient'
 import TopNav from './components/TopNav'
 import LandingHero from './components/LandingHero'
-import FeelFlickManifesto from './components/FeelFlickManifesto'
+import WhyFeelFlick from './components/WhyFeelFlick'
 import TrendingToday from './components/TrendingToday'
 import CallToAction from './components/CallToAction'
 import Footer from './components/Footer'
@@ -126,7 +126,7 @@ export default function AuthPage() {
 
         <div style={{ position: "relative", zIndex: 2 }}>
           <LandingHero onGetStarted={() => setShowSignIn(true)} />
-          <section id="why-feelflick"><FeelFlickManifesto /></section>
+          <section id="why-feelflick"><WhyFeelFlick /></section>
           <section id="trending-today"><TrendingToday /></section>
           <section id="get-started"><CallToAction onSignUp={() => setShowSignIn(true)} /></section>
           <Footer />

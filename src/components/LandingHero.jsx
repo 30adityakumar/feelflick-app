@@ -88,12 +88,11 @@ export default function LandingHero({ onGetStarted }) {
   <svg
     viewBox="0 0 1920 140"
     width="100%"
-    height="120"
+    height="140"
     preserveAspectRatio="none"
     style={{ display: "block" }}
   >
     <defs>
-      {/* Theme gradient for the "stroke" */}
       <linearGradient id="fflick-gradient-stroke" x1="0" y1="0" x2="1" y2="0">
         <stop offset="0%" stopColor="#367cff" stopOpacity="0" />
         <stop offset="10%" stopColor="#367cff" stopOpacity="1" />
@@ -101,54 +100,39 @@ export default function LandingHero({ onGetStarted }) {
         <stop offset="90%" stopColor="#fe9245" stopOpacity="1" />
         <stop offset="100%" stopColor="#fe9245" stopOpacity="0" />
       </linearGradient>
-      {/* Fade-out mask for the ends */}
       <linearGradient id="fflick-fade" x1="0" y1="0" x2="1" y2="0">
         <stop offset="0%" stopColor="white" stopOpacity="0"/>
         <stop offset="7%" stopColor="white" stopOpacity="1"/>
         <stop offset="93%" stopColor="white" stopOpacity="1"/>
         <stop offset="100%" stopColor="white" stopOpacity="0"/>
       </linearGradient>
-      {/* Tapered stroke mask: fat in center, thin at ends */}
-      <radialGradient id="tapered-mask" cx="0.5" cy="0" r="0.6">
-        <stop offset="0%" stopColor="white" stopOpacity="1" />
-        <stop offset="67%" stopColor="white" stopOpacity="1" />
-        <stop offset="100%" stopColor="white" stopOpacity="0.01" />
-      </radialGradient>
-      {/* Dark fill under the curve */}
       <linearGradient id="fflick-gradient-fill" x1="0" y1="0" x2="0" y2="1">
         <stop offset="0%" stopColor="rgba(20,16,12,0.99)" />
-        <stop offset="60%" stopColor="rgba(20,16,12,0.99)" />
+        <stop offset="70%" stopColor="rgba(20,16,12,0.99)" />
         <stop offset="100%" stopColor="rgba(15,12,8,1)" />
       </linearGradient>
-      {/* Mask for faded sides */}
       <mask id="fflick-fade-mask">
         <rect x="0" y="0" width="1920" height="140" fill="url(#fflick-fade)" />
       </mask>
-      {/* Mask for center thickness taper */}
-      <mask id="tapered-center-mask">
-        <ellipse cx="960" cy="82" rx="850" ry="38" fill="url(#tapered-mask)" />
-      </mask>
     </defs>
-    {/* Tapered colored curve: filled shape, not a stroke */}
+    {/* Very low, bold, faded curve */}
     <path
-      d="M0,125 Q960,50 1920,125"
+      d="M0,136 Q960,85 1920,136"
       fill="none"
       stroke="url(#fflick-gradient-stroke)"
-      strokeWidth="30"
-      strokeLinecap="round"
-      mask="url(#tapered-center-mask)"
-      style={{ filter: "drop-shadow(0 3px 16px #eb423b33)" }}
+      strokeWidth="13"
+      style={{ filter: "drop-shadow(0 3px 14px #eb423b33)" }}
+      mask="url(#fflick-fade-mask)"
     />
-    {/* Under-curve dark fill, with faded sides */}
+    {/* Under-curve dark fill */}
     <path
-      d="M0,125 Q960,50 1920,125 L1920,140 L0,140 Z"
+      d="M0,136 Q960,85 1920,136 L1920,140 L0,140 Z"
       fill="url(#fflick-gradient-fill)"
       stroke="none"
       mask="url(#fflick-fade-mask)"
     />
   </svg>
 </div>
-
 
 
     </section>

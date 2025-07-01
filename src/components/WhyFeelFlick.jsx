@@ -4,17 +4,17 @@ const cards = [
   {
     title: 'Mood-Driven, Personalized Picks',
     description:
-      "Get movie recommendations that actually get you. FeelFlick doesn’t just suggest what’s popular — it suggests what fits you. Based on your movie taste and how you’re feeling right now, it serves up titles that match your vibe. The more you use it, the better it gets at recommending films that feel just right.",
+      "Get movie recommendations that feel made for you. FeelFlick learns your taste based on what you’ve watched and how those films made you feel. Then, whenever you're ready to watch, just tell us your mood — and we’ll suggest a film that matches it perfectly. No random trends, no guesswork — just personal, mood-matching picks that actually make sense.",
   },
   {
-    title: 'Fast, Simple & Private',
+    title: 'Fast, Simple, and Private',
     description:
-      "Say goodbye to endless scrolling and overthinking. FeelFlick is designed to be fast and clutter-free. No ratings rabbit holes, no complex filters — just a clean interface that gives you one simple thing: the right movie, right now. And it’s fully private — your watch history and moods stay yours. Ever.",
+      "Say goodbye to endless scrolling and choice overload. FeelFlick gives you quick, focused suggestions based on your emotional vibe and watch habits. No star ratings to obsess over. No clutter. And no one’s watching you — your movie history and moods stay private, always. It's a calm, stress-free experience that helps you watch more and scroll less.",
   },
   {
     title: 'Track Your Journey — Always Free',
     description:
-      "Keep your movie life organized and meaningful. FeelFlick lets you log every movie you’ve watched, how it made you feel, and what you want to see next. Build lists, revisit favorites, and reflect on how your taste evolves. All for free, no paywalls.",
+      "Log every movie you’ve seen, how it made you feel, and what you want to watch next — all in one place. FeelFlick becomes your personal movie memory bank. Revisit your favorites, build curated lists, and see how your taste evolves over time. It’s simple, sentimental, and always free — the way movie tracking should be.",
   },
 ];
 
@@ -106,9 +106,9 @@ export default function WhyFeelFlick() {
                 <h3
                   style={{
                     margin: '0 0 1rem',
-                    fontSize: '1.60rem',
-                    fontWeight: 800,
-                    lineHeight: 1.22,
+                    fontSize: '1.65rem',
+                    fontWeight: 900,
+                    lineHeight: 1.25,
                     background: 'linear-gradient(88deg, var(--theme-color,#FF5B2E), var(--theme-color-secondary,#367cff) 80%)',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
@@ -123,7 +123,7 @@ export default function WhyFeelFlick() {
                     fontSize: '1.08rem',
                     color: 'rgba(255,255,255,0.80)',
                     lineHeight: '1.68',
-                    fontWeight: 275,
+                    fontWeight: 250,
                     letterSpacing: '0.01em',
                   }}
                 >

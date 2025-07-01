@@ -20,12 +20,12 @@ const cards = [
 
 const wrapperStyle = {
   width: '100vw',
-  background: 'rgba(10,10,10,0.73)', // match TrendingNow
+  background: 'rgba(10,10,10,0.73)',
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'flex-start',
   justifyContent: 'center',
-  padding: '32px 0', // minimal, but visually good
+  padding: '18px 0', // reduced top/bottom
   boxSizing: 'border-box',
 };
 
@@ -40,7 +40,7 @@ const containerStyle = {
 const boxStyle = {
   background: 'rgba(10,10,10,0.73)',
   borderRadius: '28px',
-  padding: '2.2rem 2.5rem',
+  padding: '1.2rem 2.5rem',
   display: 'flex',
   justifyContent: 'center',
   alignItems: 'stretch',
@@ -60,13 +60,13 @@ const rowStyle = {
 };
 
 const baseCardStyle = {
-  flex: '0 1 31%',
-  minWidth: '285px',
-  maxWidth: '420px',
+  flex: '0 1 34%', // More horizontal space
+  minWidth: '335px', // was 285px
+  maxWidth: '490px', // was 420px
   display: 'flex',
   flexDirection: 'column',
   justifyContent: 'flex-start',
-  padding: '2.2rem 1.5rem',
+  padding: '2.2rem 1.7rem',
   borderRadius: '22px',
   background: 'rgba(22,16,10,0.94)',
   border: '1.5px solid rgba(255,91,46,0.12)',
@@ -74,7 +74,6 @@ const baseCardStyle = {
   transition: 'none',
   position: 'relative',
   cursor: 'default',
-  // Remove minHeight: cards elongate if text is longer
 };
 
 export default function WhyFeelFlick() {
@@ -102,7 +101,7 @@ export default function WhyFeelFlick() {
             letterSpacing: "0.14em",
             marginLeft: 0,
             marginBottom: 28,
-            marginTop: 2,
+            marginTop: 16, // moved lower
             textAlign: "left",
             textTransform: "uppercase"
           }}>

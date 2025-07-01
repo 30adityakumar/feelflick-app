@@ -1,7 +1,9 @@
 import { HiOutlineHome } from "react-icons/hi2";
+import { useState } from "react";
 
 export default function TopNav({ onSignIn }) {
-  // Home scroll handler
+  const [isHover, setIsHover] = useState(false);
+
   function handleHomeClick(e) {
     e.preventDefault();
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -14,8 +16,7 @@ export default function TopNav({ onSignIn }) {
       display: "flex",
       alignItems: "center",
       justifyContent: "space-between",
-      width: "calc(100vw - 76px)",
-      pointerEvents: "auto"
+      width: "calc(100vw - 76px)"
     }}>
       <div style={{ display: "flex", alignItems: "center", gap: 13 }}>
         <img src="/logo.png" alt="FeelFlick" style={{
@@ -30,22 +31,28 @@ export default function TopNav({ onSignIn }) {
           onClick={handleHomeClick}
           style={{
             background: "transparent",
-            color: "#fff",
+            color: isHover ? "#ff7b48" : "#fff",
             border: "none",
             fontWeight: 800,
             fontSize: 20,
             padding: "7px 10px 7px 10px",
             borderRadius: 8,
             cursor: "pointer",
-            opacity: 0.72,
+            opacity: isHover ? 1 : 0.72,
             display: "flex",
             alignItems: "center",
-            transition: "color 0.17s, border 0.17s"
+            transition: "color 0.17s, opacity 0.17s"
           }}
           aria-label="Home"
           tabIndex={0}
+          onMouseEnter={() => setIsHover(true)}
+          onMouseLeave={() => setIsHover(false)}
         >
-          <HiOutlineHome size={18} style={{ marginRight: 0, opacity: 0.8 }} />
+          <HiOutlineHome size={20} style={{
+            marginRight: 0,
+            opacity: isHover ? 1 : 0.76,
+            transition: "color 0.15s, opacity 0.17s"
+          }} />
         </button>
         <button
           onClick={onSignIn}

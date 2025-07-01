@@ -18,10 +18,11 @@ const cards = [
   },
 ];
 
+// Background matches trending section (dark, semi-transparent)
 const wrapperStyle = {
   width: '100vw',
-  minHeight: '100vh',
-  background: 'linear-gradient(120deg, rgba(20,16,12,0.97), rgba(30,24,20,1) 85%)',
+  minHeight: 'unset',
+  background: 'rgba(10,10,10,0.73)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -29,22 +30,23 @@ const wrapperStyle = {
   boxSizing: 'border-box',
 };
 
+// Remove excessive top/bottom padding from block
 const boxStyle = {
-  background: 'rgba(30, 20, 16, 0.45)',
+  background: 'rgba(30, 20, 16, 0.44)',
   borderRadius: '28px',
-  padding: '2.7rem 2rem',
+  padding: '1.8rem 2rem 1.5rem 2rem',
   display: 'flex',
   justifyContent: 'center',
   width: '100%',
   maxWidth: '1450px',
-  boxShadow: '0 8px 48px 0 rgba(0,0,0,0.18)',
+  boxShadow: '0 8px 48px 0 rgba(0,0,0,0.13)',
 };
 
 const rowStyle = {
   display: 'flex',
   justifyContent: 'center',
   alignItems: 'stretch',
-  gap: '2.7rem',
+  gap: '2.4rem',
   flexWrap: 'nowrap',
   width: '100%',
 };
@@ -53,18 +55,19 @@ const baseCardStyle = {
   flex: '0 1 31%',
   minWidth: '285px',
   maxWidth: '420px',
-  minHeight: '410px',
+  minHeight: '360px',
   display: 'flex',
   flexDirection: 'column',
   justifyContent: 'flex-start',
-  padding: '2.4rem 1.7rem 2.1rem',
+  padding: '1.5rem 1.3rem 1.2rem',
   borderRadius: '22px',
-  background: 'linear-gradient(135deg, rgba(30,18,10,0.98) 85%, rgba(255, 91, 46, 0.11) 100%)',
-  border: '1.5px solid rgba(255,91,46,0.17)',
-  boxShadow: '0 2.5px 12px 0 rgba(40,24,14,0.15)',
-  transition: 'transform 0.28s cubic-bezier(.3,.7,.4,1.3), box-shadow 0.26s, outline 0.22s, filter 0.22s',
+  // Gradient is dark, but includes a theme-colored glow at one edge
+  background: 'linear-gradient(110deg, rgba(18,18,22,0.98) 80%, var(--theme-color,#ff5b2e) 110%)',
+  border: '1.5px solid rgba(255,91,46,0.13)',
+  boxShadow: '0 1.5px 7px 0 rgba(40,24,14,0.12)',
   position: 'relative',
   cursor: 'default',
+  transition: 'none', // No hover effect
 };
 
 export default function WhyFeelFlick() {
@@ -72,20 +75,14 @@ export default function WhyFeelFlick() {
     <>
       <style>{`
         @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(38px); }
+          from { opacity: 0; transform: translateY(34px); }
           to { opacity: 1; transform: translateY(0); }
         }
         .fflick-box { animation: fadeInUp 0.7s ease both; }
-        .fflick-card:hover {
-          transform: translateY(-9px) scale(1.045);
-          box-shadow: 0 8px 38px 0 rgba(255,96,16,0.17), 0 2px 32px 0 rgba(30,14,8,0.14);
-          outline: 2.5px solid #ff5b2e;
-          outline-offset: 2.5px;
-          z-index: 2;
-        }
+        /* Removed all hover effect styles for .fflick-card */
         @media (max-width: 1020px) {
           .fflick-box { flex-direction: column; }
-          .fflick-card { width: 92vw; max-width: 99vw; min-height: 250px; margin-bottom: 2rem; }
+          .fflick-card { width: 92vw; max-width: 99vw; min-height: 230px; margin-bottom: 2rem; }
         }
       `}</style>
 
@@ -104,14 +101,14 @@ export default function WhyFeelFlick() {
               >
                 <h3
                   style={{
-                    margin: '0 0 1.2rem',
-                    fontSize: '1.75rem',
+                    margin: '0 0 1.1rem',
+                    fontSize: '1.55rem',
                     fontWeight: 950,
-                    lineHeight: 1.19,
-                    background: 'linear-gradient(88deg, var(--theme-color,#FF5B2E), var(--theme-color-secondary,#367cff) 80%)',
+                    lineHeight: 1.18,
+                    background: 'linear-gradient(90deg, var(--theme-color,#FF5B2E) 30%, var(--theme-color-secondary,#367cff) 90%)',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
-                    textShadow: '0 2.5px 8px rgba(0,0,0,0.16)',
+                    textShadow: '0 2px 7px rgba(0,0,0,0.13)',
                   }}
                 >
                   {card.title}
@@ -119,11 +116,11 @@ export default function WhyFeelFlick() {
                 <p
                   style={{
                     margin: 0,
-                    fontSize: '1.05rem',
+                    fontSize: '1.01rem',
                     color: 'rgba(255,255,255,0.88)',
-                    lineHeight: '1.72',
+                    lineHeight: '1.66',
                     fontWeight: 200,
-                    letterSpacing: '0.013em',
+                    letterSpacing: '0.012em',
                   }}
                 >
                   {card.description}

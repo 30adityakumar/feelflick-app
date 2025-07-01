@@ -2,12 +2,11 @@ import { useEffect, useState, useRef } from "react";
 
 const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
-// You can tweak these for perfect look
 const CARD_WIDTH = 168;
 const CARD_HEIGHT = 246;
 const CARD_GAP = 32;
-const VISIBLE_FULL = 5; // 5 full cards visible
-const PARTIAL = 0.5;    // show half of the 6th
+const VISIBLE_FULL = 5;
+const PARTIAL = 0.5;
 
 export default function TrendingToday() {
   const [movies, setMovies] = useState([]);
@@ -27,11 +26,13 @@ export default function TrendingToday() {
     if (scrollRef.current) scrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
   };
 
-  // Scroller width: 5.5 cards + 5 gaps
+  // Extra padding left for first card ranking
+  const LEFT_PADDING = 38;
   const scrollerWidth =
     VISIBLE_FULL * CARD_WIDTH +
     PARTIAL * CARD_WIDTH +
-    (VISIBLE_FULL + PARTIAL - 1) * CARD_GAP;
+    (VISIBLE_FULL + PARTIAL - 1) * CARD_GAP +
+    LEFT_PADDING;
 
   return (
     <section style={{
@@ -46,7 +47,7 @@ export default function TrendingToday() {
       {/* Heading */}
       <div style={{
         fontWeight: 900,
-        fontSize: "1.25rem",
+        fontSize: "1.37rem",
         color: "#fff",
         letterSpacing: "0.14em",
         marginLeft: "8vw",
@@ -113,46 +114,50 @@ export default function TrendingToday() {
             marginLeft: "auto",
             marginRight: "auto",
             zIndex: 2,
+            paddingLeft: LEFT_PADDING,
           }}
           className="trending-row"
         >
           {movies.map((movie, idx) => (
-            <div key={movie.id} style={{
-              position: "relative",
-              flex: `0 0 ${CARD_WIDTH}px`,
-              width: CARD_WIDTH,
-              minWidth: CARD_WIDTH,
-              height: CARD_HEIGHT,
-              borderRadius: 15,
-              boxShadow: "0 2px 11px #000b",
-              background: "#181818",
-              scrollSnapAlign: "center",
-              overflow: "visible",
-              marginBottom: 6,
-              marginTop: 0,
-              transition: "transform 0.13s cubic-bezier(.32,1.4,.46,1)",
-              zIndex: 2
-            }}
-            tabIndex={0}
-            onMouseEnter={e => {
-              e.currentTarget.style.transform = "translateY(-7px) scale(1.04)";
-              e.currentTarget.style.zIndex = 10;
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.transform = "";
-              e.currentTarget.style.zIndex = 2;
-            }}
-          >
+            <div
+              key={movie.id}
+              style={{
+                position: "relative",
+                flex: `0 0 ${CARD_WIDTH}px`,
+                width: CARD_WIDTH,
+                minWidth: CARD_WIDTH,
+                height: CARD_HEIGHT,
+                borderRadius: 15,
+                boxShadow: "0 2px 11px #000b",
+                background: "#181818",
+                scrollSnapAlign: "center",
+                overflow: "visible",
+                marginBottom: 6,
+                marginTop: 0,
+                transition: "box-shadow 0.15s cubic-bezier(.32,1.4,.46,1)",
+                zIndex: 2
+              }}
+              tabIndex={0}
+              onMouseEnter={e => {
+                // Subtle highlight (shadow)
+                e.currentTarget.style.boxShadow = "0 2px 16px #ffedb7, 0 2px 18px #000e";
+                e.currentTarget.style.zIndex = 10;
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.boxShadow = "0 2px 11px #000b";
+                e.currentTarget.style.zIndex = 2;
+              }}
+            >
               {/* Big ranking number */}
               <div style={{
                 position: "absolute",
-                left: -13,
-                bottom: 11,
-                fontSize: "4.2rem",
+                left: -20, // further left for full visibility
+                bottom: 15,
+                fontSize: "4.8rem", // bigger
                 fontWeight: 900,
                 color: "#111",
-                WebkitTextStroke: "1px #fff",
-                textStroke: "1px #fff",
+                WebkitTextStroke: "1.2px #fff",
+                textStroke: "1.2px #fff",
                 opacity: 0.98,
                 lineHeight: 1,
                 zIndex: 3,
@@ -179,7 +184,6 @@ export default function TrendingToday() {
           ))}
         </div>
       </div>
-      {/* Hide native scrollbar */}
       <style>{`
         .trending-row::-webkit-scrollbar { display: none; }
       `}</style>

@@ -26,15 +26,12 @@ export default function TrendingToday() {
     if (scrollRef.current) scrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
   };
 
-  const LEFT_PADDING = 44; // more space for number
+  const LEFT_PADDING = 44;
   const scrollerWidth =
     VISIBLE_FULL * CARD_WIDTH +
     PARTIAL * CARD_WIDTH +
     (VISIBLE_FULL + PARTIAL - 1) * CARD_GAP +
     LEFT_PADDING;
-
-  // This creates a theme gradient (blue-purple-orange)
-  const thinGradient = `0 0 0 2.5px #438afc, 0 0 0 4px #ff6f2d55, 0 0 0 7px #28237e29`;
 
   return (
     <section style={{
@@ -117,7 +114,7 @@ export default function TrendingToday() {
             marginRight: "auto",
             zIndex: 2,
             paddingLeft: LEFT_PADDING,
-            paddingTop: 16 // extra space for pop and border
+            paddingTop: 16 // space for pop
           }}
           className="trending-row"
         >
@@ -143,10 +140,8 @@ export default function TrendingToday() {
               }}
               tabIndex={0}
               onMouseEnter={e => {
-                // Thin theme gradient border and slight pop
                 const img = e.currentTarget.querySelector("img");
-                img.style.boxShadow =
-                  "0 0 0 2.5px #438afc, 0 0 0 4px #ff6f2d55, 0 2px 18px #0008";
+                img.style.boxShadow = "0 4px 16px #0009";
                 img.style.filter = "brightness(1.06)";
                 e.currentTarget.style.transform = "translateY(-5px) scale(1.03)";
                 e.currentTarget.style.zIndex = 10;
@@ -162,12 +157,12 @@ export default function TrendingToday() {
               {/* Big ranking number */}
               <div style={{
                 position: "absolute",
-                left: -26, // further left
+                left: -26,
                 bottom: 15,
                 fontSize: "4.8rem",
                 fontWeight: 900,
                 color: "#fff",
-                opacity: 0.90, // 10% transparent
+                opacity: 0.90,
                 WebkitTextStroke: "2.5px #fff",
                 textStroke: "2.5px #fff",
                 lineHeight: 1,
@@ -199,7 +194,7 @@ export default function TrendingToday() {
       <style>{`
         .trending-row::-webkit-scrollbar { display: none; }
         .fflick-poster:focus img {
-          box-shadow: 0 0 0 2.5px #438afc, 0 0 0 4px #ff6f2d55, 0 2px 18px #0008 !important;
+          box-shadow: 0 4px 16px #0009 !important;
           filter: brightness(1.06);
         }
         .fflick-poster:focus {

@@ -121,6 +121,7 @@ export default function TrendingToday() {
           {movies.map((movie, idx) => (
             <div
               key={movie.id}
+              className="fflick-poster"
               style={{
                 position: "relative",
                 flex: `0 0 ${CARD_WIDTH}px`,
@@ -134,35 +135,26 @@ export default function TrendingToday() {
                 overflow: "visible",
                 marginBottom: 6,
                 marginTop: 0,
-                transition: "box-shadow 0.15s cubic-bezier(.32,1.4,.46,1)",
+                transition: "box-shadow 0.13s cubic-bezier(.32,1.4,.46,1), filter 0.13s cubic-bezier(.32,1.4,.46,1)",
                 zIndex: 2
               }}
               tabIndex={0}
-              onMouseEnter={e => {
-                // Subtle highlight (shadow)
-                e.currentTarget.style.boxShadow = "0 2px 16px #ffedb7, 0 2px 18px #000e";
-                e.currentTarget.style.zIndex = 10;
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.boxShadow = "0 2px 11px #000b";
-                e.currentTarget.style.zIndex = 2;
-              }}
             >
               {/* Big ranking number */}
               <div style={{
                 position: "absolute",
-                left: -20, // further left for full visibility
+                left: -20,
                 bottom: 15,
-                fontSize: "4.8rem", // bigger
+                fontSize: "4.8rem",
                 fontWeight: 900,
-                color: "#111",
-                WebkitTextStroke: "1.2px #fff",
-                textStroke: "1.2px #fff",
-                opacity: 0.98,
+                color: "#fff", // Make the number white
+                WebkitTextStroke: "2.5px #fff", // Bolder outline
+                textStroke: "2.5px #fff",
+                opacity: 1,
                 lineHeight: 1,
                 zIndex: 3,
                 pointerEvents: "none",
-                textShadow: "0 1.5px 8px #000a",
+                textShadow: "0 2px 8px #000a",
                 fontFamily: "Montserrat,Arial,sans-serif"
               }}>{idx + 1}</div>
 
@@ -177,7 +169,16 @@ export default function TrendingToday() {
                   borderRadius: 15,
                   boxShadow: "0 2px 11px #000c",
                   display: "block",
-                  background: "#191919"
+                  background: "#191919",
+                  transition: "box-shadow 0.15s, filter 0.15s"
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.boxShadow = "0 0 0 3px #fff, 0 2px 18px #0009";
+                  e.currentTarget.style.filter = "brightness(1.10)";
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.boxShadow = "0 2px 11px #000c";
+                  e.currentTarget.style.filter = "";
                 }}
               />
             </div>
@@ -186,6 +187,10 @@ export default function TrendingToday() {
       </div>
       <style>{`
         .trending-row::-webkit-scrollbar { display: none; }
+        .fflick-poster:focus img {
+          box-shadow: 0 0 0 3px #fff, 0 2px 18px #0009 !important;
+          filter: brightness(1.10);
+        }
       `}</style>
     </section>
   );

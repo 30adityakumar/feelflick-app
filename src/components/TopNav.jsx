@@ -2,7 +2,8 @@ import { HiOutlineHome } from "react-icons/hi2";
 
 export default function TopNav({ onSignIn }) {
   // Home scroll handler
-  function handleHomeClick() {
+  function handleHomeClick(e) {
+    e.preventDefault();
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -13,7 +14,8 @@ export default function TopNav({ onSignIn }) {
       display: "flex",
       alignItems: "center",
       justifyContent: "space-between",
-      width: "calc(100vw - 76px)"
+      width: "calc(100vw - 76px)",
+      pointerEvents: "auto"
     }}>
       <div style={{ display: "flex", alignItems: "center", gap: 13 }}>
         <img src="/logo.png" alt="FeelFlick" style={{
@@ -35,14 +37,15 @@ export default function TopNav({ onSignIn }) {
             padding: "7px 10px 7px 10px",
             borderRadius: 8,
             cursor: "pointer",
-            opacity: 0.95,
+            opacity: 0.72,
             display: "flex",
             alignItems: "center",
             transition: "color 0.17s, border 0.17s"
           }}
           aria-label="Home"
+          tabIndex={0}
         >
-          <HiOutlineHome size={20} style={{ marginRight: 0, opacity: 0.72 }} />
+          <HiOutlineHome size={18} style={{ marginRight: 0, opacity: 0.8 }} />
         </button>
         <button
           onClick={onSignIn}

@@ -126,7 +126,7 @@ export default function AuthPage() {
 
         <div style={{ position: "relative", zIndex: 2 }}>
           <LandingHero onGetStarted={() => setShowSignIn(true)} />
-          <section id="why-feelflick"><WhyFeelFlick /></section>
+          <section id="why-feelflick"><FeelFlickManifesto /></section>
           <section id="trending-today"><TrendingToday /></section>
           <section id="get-started"><CallToAction onSignUp={() => setShowSignIn(true)} /></section>
           <Footer />

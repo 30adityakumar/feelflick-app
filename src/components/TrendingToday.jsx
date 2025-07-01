@@ -35,7 +35,7 @@ export default function TrendingToday() {
 
   return (
     <section style={{
-      maxWidth: 1300, margin: "48px auto 0", padding: "0 8vw",
+      maxWidth: 1300, margin: "48px auto 0", padding: "0 8vw", overflow: "visible", 
       position: "relative"
     }}>
       <div style={{
@@ -75,9 +75,10 @@ export default function TrendingToday() {
         style={{
           display: "flex", gap: 30,
           overflowX: "auto",
-          padding: "28px 0 28px 0",
-          marginTop: "-28px",
-          scrollbarWidth: "none"
+          padding: "32px 0 28px 0",
+          marginTop: "-20px",
+          scrollbarWidth: "none",
+          overflow: "visible"
         }}
         className="fflick-trending-scroll"
       >

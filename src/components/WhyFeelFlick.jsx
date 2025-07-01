@@ -18,34 +18,33 @@ const cards = [
   },
 ];
 
-// No block background!
 const wrapperStyle = {
   width: '100vw',
-  minHeight: 'unset',
-  background: 'none',
+  minHeight: '100vh',
+  background: 'rgba(10,10,10,0.73)', // match TrendingNow
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  padding: '0 4vw',
+  padding: '0 0vw', // remove vertical padding
   boxSizing: 'border-box',
 };
 
 const boxStyle = {
-  background: 'none', // Remove background color from the block
+  background: 'rgba(10,10,10,0.73)', // match TrendingNow
   borderRadius: '28px',
-  padding: '0', // No extra vertical padding
+  padding: '0.7rem 2rem', // less vertical padding
   display: 'flex',
   justifyContent: 'center',
   width: '100%',
   maxWidth: '1450px',
-  boxShadow: 'none',
+  boxShadow: '0 8px 48px 0 rgba(0,0,0,0.12)',
 };
 
 const rowStyle = {
   display: 'flex',
   justifyContent: 'center',
   alignItems: 'stretch',
-  gap: '2.4rem',
+  gap: '2.7rem',
   flexWrap: 'nowrap',
   width: '100%',
 };
@@ -54,18 +53,18 @@ const baseCardStyle = {
   flex: '0 1 31%',
   minWidth: '285px',
   maxWidth: '420px',
-  minHeight: '360px',
+  minHeight: '410px',
   display: 'flex',
   flexDirection: 'column',
   justifyContent: 'flex-start',
-  padding: '1.5rem 1.3rem 1.2rem',
+  padding: '2.4rem 1.7rem 2.1rem',
   borderRadius: '22px',
-  background: '#18191d', // Dark, no gradient!
-  border: '1.5px solid rgba(255,91,46,0.10)',
-  boxShadow: '0 1.5px 7px 0 rgba(40,24,14,0.10)',
+  background: 'rgba(22,16,10,0.94)',
+  border: '1.5px solid rgba(255,91,46,0.12)',
+  boxShadow: '0 2.5px 12px 0 rgba(40,24,14,0.11)',
+  transition: 'none',
   position: 'relative',
   cursor: 'default',
-  transition: 'none',
 };
 
 export default function WhyFeelFlick() {
@@ -73,13 +72,14 @@ export default function WhyFeelFlick() {
     <>
       <style>{`
         @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(34px); }
+          from { opacity: 0; transform: translateY(38px); }
           to { opacity: 1; transform: translateY(0); }
         }
         .fflick-box { animation: fadeInUp 0.7s ease both; }
+        /* Hover effect removed */
         @media (max-width: 1020px) {
           .fflick-box { flex-direction: column; }
-          .fflick-card { width: 92vw; max-width: 99vw; min-height: 230px; margin-bottom: 2rem; }
+          .fflick-card { width: 92vw; max-width: 99vw; min-height: 250px; margin-bottom: 2rem; }
         }
       `}</style>
 
@@ -98,14 +98,14 @@ export default function WhyFeelFlick() {
               >
                 <h3
                   style={{
-                    margin: '0 0 1.1rem',
-                    fontSize: '1.55rem',
+                    margin: '0 0 1.2rem',
+                    fontSize: '1.75rem',
                     fontWeight: 950,
-                    lineHeight: 1.18,
-                    background: 'linear-gradient(90deg, var(--theme-color,#FF5B2E) 30%, var(--theme-color-secondary,#367cff) 90%)',
+                    lineHeight: 1.19,
+                    background: 'linear-gradient(88deg, var(--theme-color,#FF5B2E), var(--theme-color-secondary,#367cff) 80%)',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
-                    textShadow: '0 2px 7px rgba(0,0,0,0.13)',
+                    textShadow: '0 2.5px 8px rgba(0,0,0,0.16)',
                   }}
                 >
                   {card.title}
@@ -113,11 +113,11 @@ export default function WhyFeelFlick() {
                 <p
                   style={{
                     margin: 0,
-                    fontSize: '1.01rem',
-                    color: '#c6c7d2', // Softer, light grey!
-                    lineHeight: '1.66',
+                    fontSize: '1.05rem',
+                    color: '#c6c7d2', // softer grey
+                    lineHeight: '1.72',
                     fontWeight: 200,
-                    letterSpacing: '0.012em',
+                    letterSpacing: '0.013em',
                   }}
                 >
                   {card.description}

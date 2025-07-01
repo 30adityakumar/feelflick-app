@@ -1,10 +1,18 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 
 const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY
+
+// Simple genre map for quick lookup
+const GENRES = {
+  28: "Action", 12: "Adventure", 16: "Animation", 35: "Comedy", 80: "Crime", 99: "Documentary", 18: "Drama",
+  10751: "Family", 14: "Fantasy", 36: "History", 27: "Horror", 10402: "Music", 9648: "Mystery", 10749: "Romance",
+  878: "Sci-Fi", 10770: "TV", 53: "Thriller", 10752: "War", 37: "Western"
+};
 
 export default function TrendingToday() {
   const [movies, setMovies] = useState([])
   const [loading, setLoading] = useState(true)
+  const scrollRef = useRef(null)
 
   useEffect(() => {
     setLoading(true)
@@ -17,50 +25,81 @@ export default function TrendingToday() {
       .catch(() => setLoading(false))
   }, [])
 
+  // Horizontal scroll arrows
+  const scrollAmount = 350
+  const scrollLeft = () => scrollRef.current && scrollRef.current.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+  const scrollRight = () => scrollRef.current && scrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+
   // Skeleton loader cards
   const skeletons = Array.from({ length: 7 })
 
   return (
     <section style={{
-      maxWidth: 1240, margin: "48px auto 0", padding: "0 8vw",
+      maxWidth: 1300, margin: "48px auto 0", padding: "0 8vw",
       position: "relative"
     }}>
       <div style={{
-        fontWeight: 800, fontSize: "1.4rem", color: "#fff",
+        fontWeight: 800, fontSize: "1.4rem", color: "#d0ffd0",
         marginBottom: 20, letterSpacing: "-0.5px",
         textShadow: "0 2px 8px #0c0a"
       }}>
-        🔥 Trending Today
+        <span role="img" aria-label="fire">🔥</span> Trending Today
       </div>
-
-      <div
+      {/* Arrows */}
+      <button
+        aria-label="Scroll Left"
+        onClick={scrollLeft}
         style={{
-          display: "flex", gap: 26,
+          position: "absolute", left: 0, top: 92, zIndex: 3,
+          background: "rgba(24,16,10,0.74)",
+          border: "none", borderRadius: "50%", color: "#fff",
+          width: 38, height: 38, boxShadow: "0 3px 18px #0004",
+          fontSize: 24, display: "flex", alignItems: "center", justifyContent: "center",
+          cursor: "pointer", transition: "background 0.18s", outline: "none"
+        }}
+      >‹</button>
+      <button
+        aria-label="Scroll Right"
+        onClick={scrollRight}
+        style={{
+          position: "absolute", right: 0, top: 92, zIndex: 3,
+          background: "rgba(24,16,10,0.74)",
+          border: "none", borderRadius: "50%", color: "#fff",
+          width: 38, height: 38, boxShadow: "0 3px 18px #0004",
+          fontSize: 24, display: "flex", alignItems: "center", justifyContent: "center",
+          cursor: "pointer", transition: "background 0.18s", outline: "none"
+        }}
+      >›</button>
+      <div
+        ref={scrollRef}
+        style={{
+          display: "flex", gap: 30,
           overflowX: "auto",
-          paddingBottom: 16,
-          scrollbarWidth: "none"
+          padding: "16px 0 28px 0",
+          scrollbarWidth: "none",
+          paddingTop: "20px"
         }}
         className="fflick-trending-scroll"
       >
         {loading
           ? skeletons.map((_, i) => (
               <div key={i} style={{
-                flex: "0 0 148px",
-                minWidth: 148, maxWidth: 148,
-                height: 238,
-                borderRadius: 19,
+                flex: "0 0 168px",
+                minWidth: 168, maxWidth: 168,
+                height: 262,
+                borderRadius: 20,
                 background: "linear-gradient(130deg, #2d1b15 75%, #231d1a 100%)",
                 marginBottom: 6,
                 boxShadow: "0 3px 18px #0c0a",
                 display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center"
               }}>
                 <div style={{
-                  width: 116, height: 166, borderRadius: 13,
+                  width: 128, height: 188, borderRadius: 15,
                   background: "linear-gradient(98deg, #382a20 66%, #2e1d13 100%)",
-                  opacity: 0.45, marginBottom: 12
+                  opacity: 0.44, marginBottom: 13
                 }} />
-                <div style={{ width: 90, height: 13, borderRadius: 4, background: "#fff2", marginBottom: 6 }} />
-                <div style={{ width: 50, height: 11, borderRadius: 4, background: "#fff1" }} />
+                <div style={{ width: 100, height: 15, borderRadius: 5, background: "#fff2", marginBottom: 7 }} />
+                <div style={{ width: 55, height: 13, borderRadius: 4, background: "#fff1" }} />
               </div>
             ))
           : movies.length === 0 ? (
@@ -71,30 +110,39 @@ export default function TrendingToday() {
           : movies.map(movie => (
             <div
               key={movie.id}
-              style={{
-                flex: "0 0 148px", minWidth: 148, maxWidth: 148,
-                display: "flex", flexDirection: "column", alignItems: "center",
-                borderRadius: 19,
-                background: "rgba(28, 21, 15, 0.79)",
-                boxShadow: "0 3.5px 16px 0 #0007",
-                padding: "0 0 16px 0", marginBottom: 5,
-                position: "relative",
-                border: "1.3px solid rgba(255,91,46,0.12)",
-                transition: "transform 0.22s cubic-bezier(.35,.8,.4,1.4), box-shadow 0.22s, border 0.18s",
-                cursor: "pointer"
-              }}
+              className="fflick-card"
               tabIndex={0}
+              style={{
+                flex: "0 0 168px", minWidth: 168, maxWidth: 168,
+                display: "flex", flexDirection: "column", alignItems: "center",
+                borderRadius: 20,
+                background: "rgba(28, 21, 15, 0.86)",
+                boxShadow: "0 3.5px 16px 0 #0007",
+                padding: "0 0 18px 0", marginBottom: 5,
+                position: "relative",
+                border: "1.5px solid rgba(255,91,46,0.13)",
+                transition: "transform 0.21s cubic-bezier(.35,.8,.4,1.4), box-shadow 0.21s, border 0.13s",
+                cursor: "pointer",
+                outline: "none"
+              }}
               onMouseEnter={e => {
-                e.currentTarget.style.transform = "translateY(-8px) scale(1.06)"
-                e.currentTarget.style.boxShadow = "0 7px 28px 0 rgba(255,91,46,0.13), 0 2px 24px 0 #0008"
-                e.currentTarget.style.border = "2.2px solid var(--theme-color, #ff5b2e)"
+                e.currentTarget.style.transform = "translateY(-16px) scale(1.09)"
+                e.currentTarget.style.boxShadow = "0 13px 44px 0 rgba(255,91,46,0.10), 0 2px 22px 0 #000a"
                 e.currentTarget.style.zIndex = 1
+                e.currentTarget.style.outline = "none"
+                e.currentTarget.style.border = "1.5px solid rgba(255,91,46,0.21)"
+                e.currentTarget.style.marginTop = "-16px"
               }}
               onMouseLeave={e => {
                 e.currentTarget.style.transform = ""
                 e.currentTarget.style.boxShadow = "0 3.5px 16px 0 #0007"
-                e.currentTarget.style.border = "1.3px solid rgba(255,91,46,0.12)"
                 e.currentTarget.style.zIndex = 0
+                e.currentTarget.style.outline = "none"
+                e.currentTarget.style.border = "1.5px solid rgba(255,91,46,0.13)"
+                e.currentTarget.style.marginTop = ""
+              }}
+              onFocus={e => {
+                e.currentTarget.style.outline = "none"
               }}
             >
               <img
@@ -105,36 +153,34 @@ export default function TrendingToday() {
                 }
                 alt={movie.title}
                 style={{
-                  width: 132, height: 196, objectFit: "cover",
-                  borderRadius: 14, marginBottom: 7,
+                  width: 148, height: 216, objectFit: "cover",
+                  borderRadius: 17, marginBottom: 11,
                   boxShadow: "0 2.5px 14px #000c"
                 }}
               />
               <div style={{
-                fontWeight: 800, color: "#fff", fontSize: "1.07rem",
-                textAlign: "center", marginBottom: 3,
-                overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis", width: 124
+                fontWeight: 800, color: "#fff", fontSize: "1.13rem",
+                textAlign: "center", marginBottom: 1,
+                overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis", width: 144
               }}>{movie.title}</div>
               <div style={{
-                color: "#e6e6e6", fontSize: 14, textAlign: "center", marginBottom: 3
-              }}>{movie.release_date?.slice(0, 4) || ""}</div>
-              <div style={{
-                background: "linear-gradient(90deg, #FF5B2E 60%, #FFD9B7 100%)",
-                color: "#fff", borderRadius: "50%",
-                fontWeight: 800, width: 33, height: 33,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 15, marginTop: 6, boxShadow: "0 1.5px 8px #ff5b2e3d",
-                border: "2.5px solid #fff2"
+                color: "#ffbe88", fontSize: 15, fontWeight: 600, textAlign: "center", marginBottom: 0
               }}>
-                {movie.vote_average ? Math.round(movie.vote_average * 10) : "NR"}
+                {movie.genre_ids?.length
+                  ? GENRES[movie.genre_ids[0]] || "Drama"
+                  : "Drama"}
+              </div>
+              <div style={{
+                color: "#e6e6e6", fontSize: 14, textAlign: "center"
+              }}>
+                {movie.release_date?.slice(0, 4) || ""}
               </div>
             </div>
           ))}
       </div>
       <style>{`
-        .fflick-trending-scroll::-webkit-scrollbar {
-          display: none;
-        }
+        .fflick-trending-scroll::-webkit-scrollbar { display: none; }
+        .fflick-card:focus, .fflick-card:active { outline: none !important; border: 1.5px solid rgba(255,91,46,0.16) !important;}
       `}</style>
     </section>
   )

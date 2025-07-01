@@ -31,37 +31,39 @@ const wrapperStyle = {
 
 const boxStyle = {
   background: 'rgba(var(--theme-color-rgb), 0.15)',
-  borderRadius: '24px',
-  padding: '1.5rem',
+  borderRadius: '20px',
+  padding: '1rem',
   display: 'flex',
   justifyContent: 'center',
   width: '100%',
-  maxWidth: '1400px',
+  maxWidth: '1200px',
 };
 
 const rowStyle = {
   display: 'flex',
   justifyContent: 'space-around',
   alignItems: 'stretch',
-  gap: '2rem',
+  gap: '1.2rem',
   flexWrap: 'nowrap',
   width: '100%',
 };
 
 const baseCardStyle = {
   flex: '0 1 29%',
-  minWidth: '260px',
-  height: '73vh',
+  minWidth: '210px',
+  maxWidth: '325px',
+  height: '59vh',
   display: 'flex',
   flexDirection: 'column',
   justifyContent: 'flex-start',
-  padding: '2rem 1.5rem',
+  padding: '1.4rem 1rem',
   borderRadius: '16px',
-  background: 'rgba(255,255,255,0.07)',
-  backdropFilter: 'blur(14px)',
-  WebkitBackdropFilter: 'blur(14px)',
-  border: '1px solid rgba(var(--theme-color-rgb),0.2)',
-  transition: 'transform 0.36s cubic-bezier(.2,.8,.4,1.1), box-shadow 0.33s, outline 0.18s, filter 0.25s',
+  background: 'rgba(34,34,34,0.14)',
+  backdropFilter: 'blur(8px)',
+  WebkitBackdropFilter: 'blur(8px)',
+  border: '1px solid rgba(var(--theme-color-rgb),0.18)',
+  boxShadow: '0 1.5px 6px 0 rgba(40,24,14,0.11)',
+  transition: 'transform 0.28s cubic-bezier(.3,.7,.4,1.3), box-shadow 0.26s, outline 0.22s, filter 0.22s',
   position: 'relative',
   cursor: 'default',
 };
@@ -71,23 +73,20 @@ export default function WhyFeelFlick() {
     <>
       <style>{`
         @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(32px);}
-          to { opacity: 1; transform: translateY(0);}
+          from { opacity: 0; transform: translateY(32px); }
+          to { opacity: 1; transform: translateY(0); }
         }
         .fflick-box { animation: fadeInUp 0.7s ease both; }
         .fflick-card:hover {
-          transform: translateY(-14px) rotate(-1.3deg) scale(1.04);
-          box-shadow:
-            0 6px 32px 0 var(--theme-color, #ff4e32cc),
-            0 2px 20px 0 var(--theme-color-secondary, #3777ff44);
-          outline: 3px solid var(--theme-color, #ff4e32);
-          outline-offset: 1px;
-          filter: brightness(1.10) saturate(1.13);
+          transform: translateY(-7px) scale(1.03);
+          box-shadow: 0 3px 24px 0 rgba(255,96,16,0.17);
+          outline: 2.5px solid var(--theme-color, #ff700a);
+          outline-offset: 2.5px;
           z-index: 2;
         }
         @media (max-width: 1020px) {
           .fflick-box { flex-direction: column; }
-          .fflick-card { width: 90vw; height: auto; margin-bottom: 2rem; }
+          .fflick-card { width: 90vw; max-width: 99vw; height: auto; margin-bottom: 2rem; }
         }
       `}</style>
 
@@ -107,13 +106,13 @@ export default function WhyFeelFlick() {
                 <h3
                   style={{
                     margin: '0 0 1rem',
-                    fontSize: '2rem',
-                    fontWeight: 800,
-                    lineHeight: 1.18,
-                    background: 'linear-gradient(94deg, var(--theme-color,#FF5B2E), var(--theme-color-secondary,#367cff) 85%)',
+                    fontSize: '1.28rem',
+                    fontWeight: 700,
+                    lineHeight: 1.2,
+                    background: 'linear-gradient(88deg, var(--theme-color,#FF5B2E), var(--theme-color-secondary,#367cff) 80%)',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
-                    textShadow: '0 3px 12px rgba(0,0,0,0.16)',
+                    textShadow: '0 1.5px 4px rgba(0,0,0,0.11)',
                   }}
                 >
                   {card.title}
@@ -121,11 +120,11 @@ export default function WhyFeelFlick() {
                 <p
                   style={{
                     margin: 0,
-                    fontSize: '1.22rem',
-                    color: 'rgba(255,255,255,0.95)',
-                    lineHeight: '1.75',
+                    fontSize: '0.94rem',
+                    color: 'rgba(255,255,255,0.81)',
+                    lineHeight: '1.55',
                     fontWeight: 400,
-                    textShadow: '0 2px 6px rgba(0,0,0,0.12)',
+                    letterSpacing: '0.01em',
                   }}
                 >
                   {card.description}

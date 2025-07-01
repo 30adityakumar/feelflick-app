@@ -92,7 +92,7 @@ export default function TrendingToday() {
           display: "flex",
           gap: 30,
           overflowX: "auto",
-          padding: "0 0 28px 0",
+          padding: "20px 24px 28px 24px",
           scrollbarWidth: "none",
         }}
         className="fflick-trending-scroll"

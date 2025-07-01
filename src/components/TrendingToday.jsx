@@ -25,8 +25,16 @@ export default function TrendingToday() {
   }, [])
 
   const scrollAmount = 350
-  const scrollLeft = () => scrollRef.current && scrollRef.current.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
-  const scrollRight = () => scrollRef.current && scrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+  const scrollLeft = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ left: -scrollAmount, behavior: 'smooth' })
+    }
+  }
+  const scrollRight = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' })
+    }
+  }
 
   const skeletons = Array.from({ length: 7 })
 
@@ -35,10 +43,9 @@ export default function TrendingToday() {
       maxWidth: 1300, margin: "48px auto 0", padding: "0 8vw",
       overflow: "visible", position: "relative"
     }}>
-      {/* Larger margin below heading to give pop space */}
       <div style={{
         fontWeight: 800, fontSize: "1.4rem", color: "#d0ffd0",
-        marginBottom: 58, // <-- increase this so pop never overlaps!
+        marginBottom: 58,
         letterSpacing: "-0.5px",
         textShadow: "0 2px 8px #0c0a"
       }}>
@@ -71,15 +78,17 @@ export default function TrendingToday() {
         }}
       >›</button>
 
-      {/* The flex row—no negative margin! */}
+      {/* Scrollable Row */}
       <div
         ref={scrollRef}
         style={{
           display: "flex", gap: 30,
           overflowX: "auto",
-          padding: "0 0 28px 0",  // Only bottom padding for space!
+          padding: "0 0 28px 0",
           scrollbarWidth: "none",
           overflow: "visible",
+          minWidth: 0,
+          width: "max-content", // <-- This is the fix!
         }}
         className="fflick-trending-scroll"
       >

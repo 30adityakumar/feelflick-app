@@ -2,6 +2,10 @@ import { useEffect, useState, useRef } from "react";
 
 const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
+const CARD_WIDTH = 152;
+const CARD_GAP = 32;
+const VISIBLE_CARDS = 5;
+
 export default function TrendingToday() {
   const [movies, setMovies] = useState([]);
   const scrollRef = useRef(null);
@@ -12,13 +16,16 @@ export default function TrendingToday() {
       .then(data => setMovies((data.results || []).slice(0, 10)));
   }, []);
 
-  const scrollAmount = 290;
+  const scrollAmount = CARD_WIDTH + CARD_GAP;
   const scrollLeft = () => {
     if (scrollRef.current) scrollRef.current.scrollBy({ left: -scrollAmount, behavior: "smooth" });
   };
   const scrollRight = () => {
     if (scrollRef.current) scrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
   };
+
+  // How wide should the scroller be to show 5 cards?
+  const scrollerWidth = VISIBLE_CARDS * CARD_WIDTH + (VISIBLE_CARDS - 1) * CARD_GAP;
 
   return (
     <section style={{
@@ -45,13 +52,14 @@ export default function TrendingToday() {
         Trending Now
       </div>
 
-      {/* Movie row wrapper for padding & arrows */}
+      {/* Row wrapper for padding & arrows */}
       <div style={{
         position: "relative",
         width: "100%",
         padding: "0 8vw",
         boxSizing: "border-box",
-        overflow: "hidden"
+        overflow: "visible", // must be visible for pop
+        minHeight: 1 // fix Chrome issue
       }}>
         {/* Left Arrow */}
         <button
@@ -80,31 +88,39 @@ export default function TrendingToday() {
           onMouseOut={e => e.currentTarget.style.opacity = 0.7}
         >›</button>
 
-        {/* Scrollable row */}
+        {/* Horizontal scroller */}
         <div
           ref={scrollRef}
           style={{
             display: "flex",
-            gap: 32,
+            gap: CARD_GAP,
             overflowX: "auto",
-            margin: "0",
+            overflowY: "visible",
+            margin: "0 auto",
             scrollbarWidth: "none",
             scrollSnapType: "x mandatory",
             minHeight: 232,
             alignItems: "flex-end",
             position: "relative",
-            overflow: "visible",
-            width: "max-content", // KEY: Only as wide as cards
-            maxWidth: "none"
+            width: scrollerWidth,
+            maxWidth: "100%",
+            boxSizing: "border-box",
+            // To center cards: marginLeft/right auto
+            marginLeft: "auto",
+            marginRight: "auto",
+            paddingTop: 0,
+            paddingBottom: 0,
+            zIndex: 2,
+            // No overflow:hidden anywhere!
           }}
           className="trending-row"
         >
           {movies.map((movie, idx) => (
             <div key={movie.id} style={{
               position: "relative",
-              flex: "0 0 152px",
-              width: 152,
-              minWidth: 152,
+              flex: `0 0 ${CARD_WIDTH}px`,
+              width: CARD_WIDTH,
+              minWidth: CARD_WIDTH,
               height: 222,
               borderRadius: 15,
               boxShadow: "0 2px 11px #000b",
@@ -129,9 +145,9 @@ export default function TrendingToday() {
               {/* Big ranking number */}
               <div style={{
                 position: "absolute",
-                left: -13, // further right, half in/half out
+                left: -13,
                 bottom: 11,
-                fontSize: "4.2rem", // bigger
+                fontSize: "4.2rem",
                 fontWeight: 900,
                 color: "#111",
                 WebkitTextStroke: "1px #fff",
@@ -151,7 +167,7 @@ export default function TrendingToday() {
                   : "/posters/placeholder.png"}
                 alt={movie.title}
                 style={{
-                  width: 152, height: 222, objectFit: "cover",
+                  width: CARD_WIDTH, height: 222, objectFit: "cover",
                   borderRadius: 15,
                   boxShadow: "0 2px 11px #000c",
                   display: "block",
@@ -162,7 +178,6 @@ export default function TrendingToday() {
           ))}
         </div>
       </div>
-
       {/* Hide native scrollbar */}
       <style>{`
         .trending-row::-webkit-scrollbar { display: none; }

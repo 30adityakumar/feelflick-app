@@ -23,134 +23,144 @@ export default function TrendingToday() {
   return (
     <section style={{
       background: "rgba(10,10,10,0.73)",
-      padding: "36px 0 45px 0",
+      padding: "36px 0 55px 0",
       position: "relative",
       overflow: "visible",
-      minHeight: 320,
-      width: "100vw"
+      minHeight: 340,
+      width: "100%",
+      boxSizing: "border-box"
     }}>
       {/* Heading */}
       <div style={{
         fontWeight: 900,
-        fontSize: "1.1rem",
+        fontSize: "1.25rem",
         color: "#fff",
         letterSpacing: "0.14em",
         marginLeft: "8vw",
-        marginBottom: 39,
-        marginTop: 2,
+        marginBottom: 38,
+        marginTop: 6,
         textAlign: "left",
         textTransform: "uppercase"
       }}>
         Trending Now
       </div>
 
-      {/* Arrows */}
-      <button
-        aria-label="Scroll Left"
-        onClick={scrollLeft}
-        style={{
-          position: "absolute", left: "2vw", top: "62%", transform: "translateY(-50%)",
-          background: "rgba(22,22,22,0.83)", border: "none", borderRadius: 14,
-          width: 36, height: 62, color: "#fff", fontSize: 22,
-          cursor: "pointer", zIndex: 6, opacity: 0.7, transition: "opacity 0.2s"
-        }}
-        onMouseOver={e => e.currentTarget.style.opacity = 1}
-        onMouseOut={e => e.currentTarget.style.opacity = 0.7}
-      >‹</button>
-      <button
-        aria-label="Scroll Right"
-        onClick={scrollRight}
-        style={{
-          position: "absolute", right: "2vw", top: "62%", transform: "translateY(-50%)",
-          background: "rgba(22,22,22,0.83)", border: "none", borderRadius: 14,
-          width: 36, height: 62, color: "#fff", fontSize: 22,
-          cursor: "pointer", zIndex: 6, opacity: 0.7, transition: "opacity 0.2s"
-        }}
-        onMouseOver={e => e.currentTarget.style.opacity = 1}
-        onMouseOut={e => e.currentTarget.style.opacity = 0.7}
-      >›</button>
+      {/* Movie row wrapper for padding & arrows */}
+      <div style={{
+        position: "relative",
+        width: "100%",
+        padding: "0 8vw",
+        boxSizing: "border-box",
+        overflow: "hidden"
+      }}>
+        {/* Left Arrow */}
+        <button
+          aria-label="Scroll Left"
+          onClick={scrollLeft}
+          style={{
+            position: "absolute", left: 0, top: "52%", transform: "translateY(-50%)",
+            background: "rgba(22,22,22,0.83)", border: "none", borderRadius: 14,
+            width: 36, height: 62, color: "#fff", fontSize: 22,
+            cursor: "pointer", zIndex: 6, opacity: 0.7, transition: "opacity 0.2s"
+          }}
+          onMouseOver={e => e.currentTarget.style.opacity = 1}
+          onMouseOut={e => e.currentTarget.style.opacity = 0.7}
+        >‹</button>
+        {/* Right Arrow */}
+        <button
+          aria-label="Scroll Right"
+          onClick={scrollRight}
+          style={{
+            position: "absolute", right: 0, top: "52%", transform: "translateY(-50%)",
+            background: "rgba(22,22,22,0.83)", border: "none", borderRadius: 14,
+            width: 36, height: 62, color: "#fff", fontSize: 22,
+            cursor: "pointer", zIndex: 6, opacity: 0.7, transition: "opacity 0.2s"
+          }}
+          onMouseOver={e => e.currentTarget.style.opacity = 1}
+          onMouseOut={e => e.currentTarget.style.opacity = 0.7}
+        >›</button>
 
-      {/* Movie cards row */}
-      <div
-        ref={scrollRef}
-        style={{
-          display: "flex",
-          gap: 32,
-          overflowX: "auto",
-          padding: "0 10vw 8px 10vw",     // even padding
-          margin: "0 auto",
-          scrollbarWidth: "none",
-          scrollSnapType: "x mandatory",
-          minHeight: 232,
-          alignItems: "flex-end",
-          position: "relative",
-          overflow: "visible",
-          width: "auto",
-          maxWidth: "100vw",
-        }}
-        className="trending-row"
-      >
-        {movies.map((movie, idx) => (
-          <div key={movie.id} style={{
+        {/* Scrollable row */}
+        <div
+          ref={scrollRef}
+          style={{
+            display: "flex",
+            gap: 32,
+            overflowX: "auto",
+            margin: "0",
+            scrollbarWidth: "none",
+            scrollSnapType: "x mandatory",
+            minHeight: 232,
+            alignItems: "flex-end",
             position: "relative",
-            flex: "0 0 152px",
-            width: 152,
-            minWidth: 152,
-            height: 222,
-            borderRadius: 15,
-            boxShadow: "0 2px 11px #000b",
-            background: "#181818",
-            scrollSnapAlign: "center",
             overflow: "visible",
-            marginBottom: 6,
-            marginTop: 0,
-            transition: "transform 0.19s cubic-bezier(.32,1.4,.46,1)",
-            zIndex: 2
+            width: "max-content", // KEY: Only as wide as cards
+            maxWidth: "none"
           }}
-          tabIndex={0}
-          onMouseEnter={e => {
-            e.currentTarget.style.transform = "translateY(-20px) scale(1.1)";
-            e.currentTarget.style.zIndex = 10;
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.transform = "";
-            e.currentTarget.style.zIndex = 2;
-          }}
+          className="trending-row"
         >
-            {/* Big ranking number */}
-            <div style={{
-              position: "absolute",
-              left: -13, // further right, half in/half out
-              bottom: 11,
-              fontSize: "4.2rem", // bigger
-              fontWeight: 900,
-              color: "#111",
-              WebkitTextStroke: "1px #fff",
-              textStroke: "1px #fff",
-              opacity: 0.98,
-              lineHeight: 1,
-              zIndex: 3,
-              pointerEvents: "none",
-              textShadow: "0 1.5px 8px #000a",
-              fontFamily: "Montserrat,Arial,sans-serif"
-            }}>{idx + 1}</div>
+          {movies.map((movie, idx) => (
+            <div key={movie.id} style={{
+              position: "relative",
+              flex: "0 0 152px",
+              width: 152,
+              minWidth: 152,
+              height: 222,
+              borderRadius: 15,
+              boxShadow: "0 2px 11px #000b",
+              background: "#181818",
+              scrollSnapAlign: "center",
+              overflow: "visible",
+              marginBottom: 6,
+              marginTop: 0,
+              transition: "transform 0.19s cubic-bezier(.32,1.4,.46,1)",
+              zIndex: 2
+            }}
+            tabIndex={0}
+            onMouseEnter={e => {
+              e.currentTarget.style.transform = "translateY(-20px) scale(1.1)";
+              e.currentTarget.style.zIndex = 10;
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.transform = "";
+              e.currentTarget.style.zIndex = 2;
+            }}
+          >
+              {/* Big ranking number */}
+              <div style={{
+                position: "absolute",
+                left: -13, // further right, half in/half out
+                bottom: 11,
+                fontSize: "4.2rem", // bigger
+                fontWeight: 900,
+                color: "#111",
+                WebkitTextStroke: "1px #fff",
+                textStroke: "1px #fff",
+                opacity: 0.98,
+                lineHeight: 1,
+                zIndex: 3,
+                pointerEvents: "none",
+                textShadow: "0 1.5px 8px #000a",
+                fontFamily: "Montserrat,Arial,sans-serif"
+              }}>{idx + 1}</div>
 
-            {/* Poster */}
-            <img
-              src={movie.poster_path
-                ? `https://image.tmdb.org/t/p/w342${movie.poster_path}`
-                : "/posters/placeholder.png"}
-              alt={movie.title}
-              style={{
-                width: 152, height: 222, objectFit: "cover",
-                borderRadius: 15,
-                boxShadow: "0 2px 11px #000c",
-                display: "block",
-                background: "#191919"
-              }}
-            />
-          </div>
-        ))}
+              {/* Poster */}
+              <img
+                src={movie.poster_path
+                  ? `https://image.tmdb.org/t/p/w342${movie.poster_path}`
+                  : "/posters/placeholder.png"}
+                alt={movie.title}
+                style={{
+                  width: 152, height: 222, objectFit: "cover",
+                  borderRadius: 15,
+                  boxShadow: "0 2px 11px #000c",
+                  display: "block",
+                  background: "#191919"
+                }}
+              />
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Hide native scrollbar */}

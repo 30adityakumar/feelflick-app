@@ -28,28 +28,40 @@ const cards = [
   },
 ];
 
-const containerStyle = {
+const wrapperStyle = {
+  width: '100vw',
+  height: '100vh',
+  background: 'rgba(30, 30, 30, 0.1)',
   display: 'flex',
-  justifyContent: 'space-between',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: '0 5%',
+  boxSizing: 'border-box',
+};
+
+const rowStyle = {
+  display: 'flex',
+  justifyContent: 'space-around',
   gap: '1rem',
   flexWrap: 'nowrap',
-  margin: '2rem 0',
+  width: '100%',
 };
 
 const cardBaseStyle = {
   background: 'rgba(255, 255, 255, 0.1)',
   borderRadius: '12px',
-  padding: '1rem',
-  flex: '1',
+  padding: '1.5rem',
+  flex: '0 1 18%',
   fontSize: '0.875rem',
   transition: 'transform 0.3s ease, box-shadow 0.3s ease, outline 0.3s ease',
-  cursor: 'default',
+  cursor: 'pointer',
+  minWidth: '180px',
 };
 
 export default function WhyFeelFlick() {
   return (
     <>
-      {/* Keyframes for fade-in-up animation */}
+      {/* Animation keyframes */}
       <style>{`
         @keyframes fadeInUp {
           from { opacity: 0; transform: translateY(20px); }
@@ -57,29 +69,31 @@ export default function WhyFeelFlick() {
         }
       `}</style>
 
-      <div style={containerStyle}>
-        {cards.map((card, idx) => (
-          <div
-            key={idx}
-            style={{
-              ...cardBaseStyle,
-              animation: `fadeInUp 0.6s ease ${(idx * 0.1).toFixed(1)}s both`,
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
-              e.currentTarget.style.transform = 'translateY(-4px)';
-              e.currentTarget.style.outline = '2px solid var(--theme-color)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.boxShadow = 'none';
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.outline = 'none';
-            }}
-          >
-            <h3 style={{ margin: '0 0 0.5rem', fontSize: '1rem' }}>{card.title}</h3>
-            <p style={{ margin: 0 }}>{card.description}</p>
-          </div>
-        ))}
+      <div style={wrapperStyle}>
+        <div style={rowStyle}>
+          {cards.map((card, idx) => (
+            <div
+              key={idx}
+              style={{
+                ...cardBaseStyle,
+                animation: `fadeInUp 0.6s ease ${(idx * 0.1).toFixed(1)}s both`,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.3)';
+                e.currentTarget.style.transform = 'translateY(-6px) scale(1.05)';
+                e.currentTarget.style.outline = '2px solid var(--theme-color)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                e.currentTarget.style.outline = 'none';
+              }}
+            >
+              <h3 style={{ margin: '0 0 0.5rem', fontSize: '1rem' }}>{card.title}</h3>
+              <p style={{ margin: 0 }}>{card.description}</p>
+            </div>
+          ))}
+        </div>
       </div>
     </>
   );

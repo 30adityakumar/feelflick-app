@@ -33,9 +33,10 @@ export default function Footer() {
   return (
     <footer style={{
       width: "100%", marginTop: 0,
-      background: "linear-gradient(115deg, #151522 60%, #232a35 100%)",
+      background: "rgba(10,10,10,0.92)",
       borderRadius: 0,
-      padding: "40px 0 20px 0", color: "#fff",
+      padding: "64px 0 40px 0", // bigger top/bottom padding
+      color: "#fff",
       boxShadow: "0 -2px 24px 0 #0007",
       fontSize: 15
     }}>
@@ -96,7 +97,7 @@ export default function Footer() {
       </div>
       <div style={{
         textAlign: "center", color: "#fff", fontSize: 13,
-        opacity: 0.17, marginTop: 28, letterSpacing: "0.02em", fontWeight: 400
+        opacity: 0.17, marginTop: 44, letterSpacing: "0.02em", fontWeight: 400 // more space above copyright
       }}>
         &copy; {new Date().getFullYear()} FeelFlick &mdash; All rights reserved.
       </div>

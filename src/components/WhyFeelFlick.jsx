@@ -18,11 +18,11 @@ const cards = [
   },
 ];
 
-// Background matches trending section (dark, semi-transparent)
+// No block background!
 const wrapperStyle = {
   width: '100vw',
   minHeight: 'unset',
-  background: 'rgba(10,10,10,0.73)',
+  background: 'none',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -30,16 +30,15 @@ const wrapperStyle = {
   boxSizing: 'border-box',
 };
 
-// Remove excessive top/bottom padding from block
 const boxStyle = {
-  background: 'rgba(30, 20, 16, 0.44)',
+  background: 'none', // Remove background color from the block
   borderRadius: '28px',
-  padding: '1.8rem 2rem 1.5rem 2rem',
+  padding: '0', // No extra vertical padding
   display: 'flex',
   justifyContent: 'center',
   width: '100%',
   maxWidth: '1450px',
-  boxShadow: '0 8px 48px 0 rgba(0,0,0,0.13)',
+  boxShadow: 'none',
 };
 
 const rowStyle = {
@@ -61,13 +60,12 @@ const baseCardStyle = {
   justifyContent: 'flex-start',
   padding: '1.5rem 1.3rem 1.2rem',
   borderRadius: '22px',
-  // Gradient is dark, but includes a theme-colored glow at one edge
-  background: 'linear-gradient(110deg, rgba(18,18,22,0.98) 80%, var(--theme-color,#ff5b2e) 110%)',
-  border: '1.5px solid rgba(255,91,46,0.13)',
-  boxShadow: '0 1.5px 7px 0 rgba(40,24,14,0.12)',
+  background: '#18191d', // Dark, no gradient!
+  border: '1.5px solid rgba(255,91,46,0.10)',
+  boxShadow: '0 1.5px 7px 0 rgba(40,24,14,0.10)',
   position: 'relative',
   cursor: 'default',
-  transition: 'none', // No hover effect
+  transition: 'none',
 };
 
 export default function WhyFeelFlick() {
@@ -79,7 +77,6 @@ export default function WhyFeelFlick() {
           to { opacity: 1; transform: translateY(0); }
         }
         .fflick-box { animation: fadeInUp 0.7s ease both; }
-        /* Removed all hover effect styles for .fflick-card */
         @media (max-width: 1020px) {
           .fflick-box { flex-direction: column; }
           .fflick-card { width: 92vw; max-width: 99vw; min-height: 230px; margin-bottom: 2rem; }
@@ -117,7 +114,7 @@ export default function WhyFeelFlick() {
                   style={{
                     margin: 0,
                     fontSize: '1.01rem',
-                    color: 'rgba(255,255,255,0.88)',
+                    color: '#c6c7d2', // Softer, light grey!
                     lineHeight: '1.66',
                     fontWeight: 200,
                     letterSpacing: '0.012em',

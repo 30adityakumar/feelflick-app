@@ -13,8 +13,12 @@ export default function TrendingToday() {
   }, []);
 
   const scrollAmount = 290;
-  const scrollLeft = () => scrollRef.current && scrollRef.current.scrollBy({ left: -scrollAmount, behavior: "smooth" });
-  const scrollRight = () => scrollRef.current && scrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+  const scrollLeft = () => {
+    if (scrollRef.current) scrollRef.current.scrollBy({ left: -scrollAmount, behavior: "smooth" });
+  };
+  const scrollRight = () => {
+    if (scrollRef.current) scrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+  };
 
   return (
     <section style={{
@@ -73,16 +77,16 @@ export default function TrendingToday() {
           display: "flex",
           gap: 32,
           overflowX: "auto",
-          padding: "0 10vw 8px 10vw",
+          padding: "0 10vw 8px 10vw",     // even padding
           margin: "0 auto",
           scrollbarWidth: "none",
           scrollSnapType: "x mandatory",
           minHeight: 232,
-          width: "100%",
-          boxSizing: "border-box",
           alignItems: "flex-end",
           position: "relative",
           overflow: "visible",
+          width: "auto",
+          maxWidth: "100vw",
         }}
         className="trending-row"
       >
@@ -116,14 +120,14 @@ export default function TrendingToday() {
             {/* Big ranking number */}
             <div style={{
               position: "absolute",
-              left: -38, // half in, half out
+              left: -13, // further right, half in/half out
               bottom: 11,
-              fontSize: "3.7rem",
+              fontSize: "4.2rem", // bigger
               fontWeight: 900,
-              color: "#111",     // black fill
-              WebkitTextStroke: "1px #fff", // thin white outline
+              color: "#111",
+              WebkitTextStroke: "1px #fff",
               textStroke: "1px #fff",
-              opacity: 0.97,
+              opacity: 0.98,
               lineHeight: 1,
               zIndex: 3,
               pointerEvents: "none",

@@ -1,6 +1,11 @@
-import { HiOutlineHome } from "react-icons/hi2"; // Install react-icons if not present: npm install react-icons
+import { HiOutlineHome } from "react-icons/hi2";
 
-export default function TopNav({ onSignIn, onHome }) {
+export default function TopNav({ onSignIn }) {
+  // Home scroll handler
+  function handleHomeClick() {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   return (
     <div style={{
       position: 'fixed',
@@ -20,7 +25,7 @@ export default function TopNav({ onSignIn, onHome }) {
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
         <button
-          onClick={onHome}
+          onClick={handleHomeClick}
           style={{
             background: "transparent",
             color: "#fff",
@@ -37,7 +42,7 @@ export default function TopNav({ onSignIn, onHome }) {
           }}
           aria-label="Home"
         >
-          <HiOutlineHome size={27} style={{ marginRight: 4, marginBottom: 1 }} />
+          <HiOutlineHome size={20} style={{ marginRight: 0, opacity: 0.72 }} />
         </button>
         <button
           onClick={onSignIn}

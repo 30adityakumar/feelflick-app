@@ -2,7 +2,6 @@ import { useEffect, useState, useRef } from "react"
 
 const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY
 
-// Simple genre map for quick lookup
 const GENRES = {
   28: "Action", 12: "Adventure", 16: "Animation", 35: "Comedy", 80: "Crime", 99: "Documentary", 18: "Drama",
   10751: "Family", 14: "Fantasy", 36: "History", 27: "Horror", 10402: "Music", 9648: "Mystery", 10749: "Romance",
@@ -25,33 +24,34 @@ export default function TrendingToday() {
       .catch(() => setLoading(false))
   }, [])
 
-  // Horizontal scroll arrows
   const scrollAmount = 350
   const scrollLeft = () => scrollRef.current && scrollRef.current.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
   const scrollRight = () => scrollRef.current && scrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
 
-  // Skeleton loader cards
   const skeletons = Array.from({ length: 7 })
 
   return (
     <section style={{
-      maxWidth: 1300, margin: "48px auto 0", padding: "0 8vw", overflow: "visible", 
-      position: "relative"
+      maxWidth: 1300, margin: "48px auto 0", padding: "0 8vw",
+      overflow: "visible", position: "relative"
     }}>
+      {/* Larger margin below heading to give pop space */}
       <div style={{
         fontWeight: 800, fontSize: "1.4rem", color: "#d0ffd0",
-        marginBottom: 20, letterSpacing: "-0.5px",
+        marginBottom: 58, // <-- increase this so pop never overlaps!
+        letterSpacing: "-0.5px",
         textShadow: "0 2px 8px #0c0a"
       }}>
         <span role="img" aria-label="fire">🔥</span> Trending Today
       </div>
+
       {/* Arrows */}
       <button
         aria-label="Scroll Left"
         onClick={scrollLeft}
         style={{
-          position: "absolute", left: 0, top: 92, zIndex: 3,
-          background: "rgba(24,16,10,0.74)",
+          position: "absolute", left: 0, top: "50%", transform: "translateY(-50%)",
+          zIndex: 5, background: "rgba(24,16,10,0.74)",
           border: "none", borderRadius: "50%", color: "#fff",
           width: 38, height: 38, boxShadow: "0 3px 18px #0004",
           fontSize: 24, display: "flex", alignItems: "center", justifyContent: "center",
@@ -62,23 +62,24 @@ export default function TrendingToday() {
         aria-label="Scroll Right"
         onClick={scrollRight}
         style={{
-          position: "absolute", right: 0, top: 92, zIndex: 3,
-          background: "rgba(24,16,10,0.74)",
+          position: "absolute", right: 0, top: "50%", transform: "translateY(-50%)",
+          zIndex: 5, background: "rgba(24,16,10,0.74)",
           border: "none", borderRadius: "50%", color: "#fff",
           width: 38, height: 38, boxShadow: "0 3px 18px #0004",
           fontSize: 24, display: "flex", alignItems: "center", justifyContent: "center",
           cursor: "pointer", transition: "background 0.18s", outline: "none"
         }}
       >›</button>
+
+      {/* The flex row—no negative margin! */}
       <div
         ref={scrollRef}
         style={{
           display: "flex", gap: 30,
           overflowX: "auto",
-          padding: "32px 0 28px 0",
-          marginTop: "-20px",
+          padding: "0 0 28px 0",  // Only bottom padding for space!
           scrollbarWidth: "none",
-          overflow: "visible"
+          overflow: "visible",
         }}
         className="fflick-trending-scroll"
       >
@@ -129,10 +130,9 @@ export default function TrendingToday() {
               onMouseEnter={e => {
                 e.currentTarget.style.transform = "translateY(-16px) scale(1.09)"
                 e.currentTarget.style.boxShadow = "0 13px 44px 0 rgba(255,91,46,0.10), 0 2px 22px 0 #000a"
-                e.currentTarget.style.zIndex = 1
+                e.currentTarget.style.zIndex = 2
                 e.currentTarget.style.outline = "none"
                 e.currentTarget.style.border = "1.5px solid rgba(255,91,46,0.21)"
-                e.currentTarget.style.marginTop = "-16px"
               }}
               onMouseLeave={e => {
                 e.currentTarget.style.transform = ""
@@ -140,7 +140,6 @@ export default function TrendingToday() {
                 e.currentTarget.style.zIndex = 0
                 e.currentTarget.style.outline = "none"
                 e.currentTarget.style.border = "1.5px solid rgba(255,91,46,0.13)"
-                e.currentTarget.style.marginTop = ""
               }}
               onFocus={e => {
                 e.currentTarget.style.outline = "none"

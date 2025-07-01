@@ -40,14 +40,24 @@ export default function TrendingToday() {
 
   return (
     <section style={{
-      maxWidth: 1300, margin: "48px auto 0", padding: "0 8vw",
-      overflow: "visible", position: "relative"
+      width: "100vw",
+      margin: "48px 0 0 0",
+      padding: "0 0 0 0",
+      overflow: "visible",
+      position: "relative",
+      left: "50%",
+      right: "50%",
+      transform: "translate(-50%, 0)",
+      background: "none",
+      maxWidth: "100vw"
     }}>
       <div style={{
         fontWeight: 800, fontSize: "1.4rem", color: "#d0ffd0",
-        marginBottom: 58,
+        margin: "0 auto 58px auto",
         letterSpacing: "-0.5px",
-        textShadow: "0 2px 8px #0c0a"
+        textShadow: "0 2px 8px #0c0a",
+        width: "94vw",
+        maxWidth: "1300px"
       }}>
         <span role="img" aria-label="fire">🔥</span> Trending Today
       </div>
@@ -57,7 +67,7 @@ export default function TrendingToday() {
         aria-label="Scroll Left"
         onClick={scrollLeft}
         style={{
-          position: "absolute", left: 0, top: "50%", transform: "translateY(-50%)",
+          position: "absolute", left: 8, top: "50%", transform: "translateY(-50%)",
           zIndex: 5, background: "rgba(24,16,10,0.74)",
           border: "none", borderRadius: "50%", color: "#fff",
           width: 38, height: 38, boxShadow: "0 3px 18px #0004",
@@ -69,7 +79,7 @@ export default function TrendingToday() {
         aria-label="Scroll Right"
         onClick={scrollRight}
         style={{
-          position: "absolute", right: 0, top: "50%", transform: "translateY(-50%)",
+          position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)",
           zIndex: 5, background: "rgba(24,16,10,0.74)",
           border: "none", borderRadius: "50%", color: "#fff",
           width: 38, height: 38, boxShadow: "0 3px 18px #0004",
@@ -82,13 +92,16 @@ export default function TrendingToday() {
       <div
         ref={scrollRef}
         style={{
-          display: "flex", gap: 30,
+          width: "94vw", // matches the heading max width
+          maxWidth: "1300px",
+          margin: "0 auto",
+          display: "flex",
+          gap: 30,
           overflowX: "auto",
           padding: "0 0 28px 0",
           scrollbarWidth: "none",
           overflow: "visible",
           minWidth: 0,
-          width: "max-content", // <-- This is the fix!
         }}
         className="fflick-trending-scroll"
       >

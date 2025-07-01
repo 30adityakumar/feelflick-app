@@ -1,16 +1,15 @@
-// Footer.jsx
 import { FaInstagram, FaTiktok, FaFacebookF, FaLinkedinIn } from "react-icons/fa";
 
 export default function Footer() {
   const footerLinkStyle = {
     color: "#c7c9e6",
-    opacity: 0.88,
-    fontSize: 17,
+    opacity: 0.8,
+    fontSize: 15,
     cursor: "pointer",
-    marginBottom: 9,
+    marginBottom: 7,
     fontWeight: 400,
     textDecoration: "none",
-    transition: "color 0.15s"
+    transition: "color 0.13s"
   };
 
   const iconButtonStyle = {
@@ -18,16 +17,16 @@ export default function Footer() {
     alignItems: "center",
     justifyContent: "center",
     borderRadius: "50%",
-    background: "rgba(255,255,255,0.09)",
-    width: 38,
-    height: 38,
-    marginRight: 11,
-    marginBottom: 7,
-    fontSize: 21,
+    background: "rgba(255,255,255,0.08)",
+    width: 32,
+    height: 32,
+    marginRight: 9,
+    marginBottom: 5,
+    fontSize: 17,
     color: "#f9faff",
     border: "none",
     cursor: "pointer",
-    transition: "background 0.17s, color 0.17s, transform 0.16s",
+    transition: "background 0.14s, color 0.13s, transform 0.13s",
     outline: "none"
   };
 
@@ -36,43 +35,49 @@ export default function Footer() {
       width: "100%", marginTop: 0,
       background: "linear-gradient(115deg, #151522 60%, #232a35 100%)",
       borderRadius: 0,
-      padding: "52px 0 32px 0", color: "#fff",
+      padding: "40px 0 20px 0", color: "#fff",
       boxShadow: "0 -2px 24px 0 #0007",
+      fontSize: 15
     }}>
       <div style={{
         display: "flex", flexWrap: "wrap", maxWidth: 1240,
-        margin: "0 auto", justifyContent: "space-between", gap: 44, padding: "0 6vw"
+        margin: "0 auto", justifyContent: "space-between", gap: 44, padding: "0 5vw"
       }}>
         <div style={{
-          flex: "0 0 230px", display: "flex", flexDirection: "column", alignItems: "flex-start", marginBottom: 18
+          flex: "0 0 190px", display: "flex", flexDirection: "column", alignItems: "flex-start", marginBottom: 10
         }}>
           <img src="/logo.png" alt="FeelFlick" style={{
-            width: 55, height: 55, borderRadius: 13, marginBottom: 11, boxShadow: "0 2px 9px #ff5b2e19"
+            width: 42, height: 42, borderRadius: 10, marginBottom: 9, boxShadow: "0 2px 9px #ff5b2e14"
           }} />
           <span style={{
-            fontWeight: 900, fontSize: 28, letterSpacing: "-1.4px", color: "#fff", marginBottom: 4
+            fontWeight: 900, fontSize: 22, letterSpacing: "-1.2px", color: "#fff", marginBottom: 2
           }}>FeelFlick</span>
           <div style={{
-            width: 56, height: 4, background: "linear-gradient(90deg, #fe9245 25%, #eb423b 80%, #367cff 100%)",
-            borderRadius: 4, margin: "7px 0 14px 0"
+            width: 46, height: 3, background: "linear-gradient(90deg, #fe9245 25%, #eb423b 80%, #367cff 100%)",
+            borderRadius: 3, margin: "5px 0 8px 0"
           }} />
-          <div style={{
-            color: "#fdaf41", fontSize: 15, marginBottom: 7, fontWeight: 400, letterSpacing: "-0.5px"
-          }}>Movies that match your mood.</div>
         </div>
 
-        <div style={{ flex: "1 1 160px", marginBottom: 18 }}>
-          <div style={{ fontWeight: 700, marginBottom: 12, fontSize: 17, color: "#fff" }}>About</div>
-          <div style={footerLinkStyle}>Contact us</div>
+        <div style={{ flex: "1 1 130px", marginBottom: 10 }}>
+          <div style={{ fontWeight: 700, marginBottom: 7, fontSize: 14.5, color: "#fff" }}>About</div>
+          <div style={footerLinkStyle}>Contact Us</div>
           <div style={footerLinkStyle}>Careers</div>
+          <div style={footerLinkStyle}>Feedback</div>
         </div>
-        <div style={{ flex: "1 1 160px", marginBottom: 18 }}>
-          <div style={{ fontWeight: 700, marginBottom: 12, fontSize: 17, color: "#fff" }}>Legal</div>
+        <div style={{ flex: "1 1 130px", marginBottom: 10 }}>
+          <div style={{ fontWeight: 700, marginBottom: 7, fontSize: 14.5, color: "#fff" }}>Legal</div>
           <div style={footerLinkStyle}>Privacy Policy</div>
-          <div style={footerLinkStyle}>Terms of use</div>
+          <div style={footerLinkStyle}>Terms of Use</div>
+          <div style={footerLinkStyle}>Cookie Policy</div>
         </div>
-        <div style={{ flex: "1 1 220px", marginBottom: 18 }}>
-          <div style={{ fontWeight: 700, marginBottom: 12, fontSize: 17, color: "#fff" }}>Social</div>
+        <div style={{ flex: "1 1 130px", marginBottom: 10 }}>
+          <div style={{ fontWeight: 700, marginBottom: 7, fontSize: 14.5, color: "#fff" }}>Help</div>
+          <div style={footerLinkStyle}>Help Center</div>
+          <div style={footerLinkStyle}>FAQ</div>
+          <div style={footerLinkStyle}>How it Works</div>
+        </div>
+        <div style={{ flex: "1 1 180px", marginBottom: 10 }}>
+          <div style={{ fontWeight: 700, marginBottom: 7, fontSize: 14.5, color: "#fff" }}>Social</div>
           <div style={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
             <a href="https://instagram.com/feelflick" style={iconButtonStyle} target="_blank" rel="noopener noreferrer" aria-label="Instagram">
               <FaInstagram />
@@ -90,10 +95,10 @@ export default function Footer() {
         </div>
       </div>
       <div style={{
-        textAlign: "center", color: "#fff", fontSize: 15,
-        opacity: 0.20, marginTop: 40, letterSpacing: "0.02em", fontWeight: 400
+        textAlign: "center", color: "#fff", fontSize: 13,
+        opacity: 0.17, marginTop: 28, letterSpacing: "0.02em", fontWeight: 400
       }}>
-        © {new Date().getFullYear()} FeelFlick — Movies that match your mood.
+        &copy; {new Date().getFullYear()} FeelFlick &mdash; All rights reserved.
       </div>
     </footer>
   )

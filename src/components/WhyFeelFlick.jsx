@@ -106,9 +106,9 @@ export default function WhyFeelFlick() {
                   style={{
                     margin: '0 0 1.2rem',
                     fontSize: '1.75rem',
-                    fontWeight: 1000,
+                    fontWeight: 950,
                     lineHeight: 1.19,
-                    background: 'linear-gradient(96deg, #FF5B2E 16%, #FF7B48 60%, #FFD9B7 100%)',
+                    background: 'linear-gradient(88deg, var(--theme-color,#FF5B2E), var(--theme-color-secondary,#367cff) 80%)',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
                     textShadow: '0 2.5px 8px rgba(0,0,0,0.16)',

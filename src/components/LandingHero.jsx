@@ -48,27 +48,40 @@ export default function LandingHero({ onGetStarted }) {
           Get the perfect recommendation based on your taste and how you feel.<br />
           Fast, private, and always free.
         </div>
+        <style>{`
+          .fflick-cta-btn {
+            background: linear-gradient(90deg,#fe9245 10%,#eb423b 90%);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-weight: 900;
+            font-size: 1.4rem;
+            padding: 18px 56px;
+            box-shadow: 0 4px 22px #eb423b30;
+            cursor: pointer;
+            letter-spacing: 0.02em;
+            transition: 
+              transform 0.15s cubic-bezier(.2,.8,.5,1.18), 
+              box-shadow 0.15s, 
+              opacity 0.14s;
+            margin-top: 0;
+            margin-bottom: 10px;
+          }
+          .fflick-cta-btn:hover,
+          .fflick-cta-btn:focus {
+            transform: translateY(-5px) scale(1.06);
+            box-shadow: 0 8px 32px #fe924599, 0 2px 22px #eb423b33;
+            opacity: 0.97;
+          }
+        `}</style>
         <button
+          className="fflick-cta-btn"
           onClick={onGetStarted}
-          style={{
-            background: `linear-gradient(90deg,#fe9245 10%,#eb423b 90%)`,
-            color: "#fff",
-            border: "none",
-            borderRadius: 12,
-            fontWeight: 900,
-            fontSize: "1.4rem",
-            padding: "18px 56px",
-            marginTop: 12,
-            boxShadow: "0 4px 22px #eb423b30",
-            cursor: "pointer",
-            letterSpacing: "0.02em",
-            transition: "opacity 0.14s, box-shadow 0.14s, transform 0.13s"
-          }}
         >
           GET STARTED
         </button>
       </div>
-      {/* Bottom Curve Divider */}
+      {/* Bottom Gradient Curve Divider */}
       <div style={{
         width: "100vw",
         position: "absolute",
@@ -85,15 +98,20 @@ export default function LandingHero({ onGetStarted }) {
           preserveAspectRatio="none"
           style={{ display: "block" }}
         >
-          {/* Pink Netflix-style top stroke */}
+          <defs>
+            <linearGradient id="fflick-theme-gradient" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#fe9245"/>
+              <stop offset="70%" stopColor="#eb423b"/>
+            </linearGradient>
+          </defs>
           <path
             d="M0,30 Q950,120 1920,30 L1920,120 L0,120 Z"
-            fill="#090a14"
+            fill="url(#fflick-theme-gradient)"
             stroke="#ff2e64"
             strokeWidth="6"
             style={{ filter: "drop-shadow(0 1px 16px #ff2e6480)" }}
           />
-          {/* Extra solid fill below the curve */}
+          {/* Bottom dark overlay for contrast */}
           <rect x="0" y="60" width="1920" height="60" fill="#090a14" />
         </svg>
       </div>

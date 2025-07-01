@@ -19,21 +19,23 @@ export default function TrendingToday() {
 
   return (
     <section style={{
-      background: "rgba(10, 10, 10, 0.78)", // translucent for background video
-      padding: "42px 0 26px 0",
+      background: "rgba(10, 10, 10, 0.75)", // translucent for background video
+      padding: "35px 0 35px 0",
       position: "relative",
-      overflow: "hidden",
-      borderRadius: "0 0 32px 32px", // optional: rounded bottom
-      margin: "0 0 0 0"
+      overflow: "visible",           // allow pop-out!
+      minHeight: 360,
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center"
     }}>
       {/* Heading */}
       <div style={{
         fontWeight: 900,
-        fontSize: "2.04rem",
+        fontSize: "1.38rem",          // smaller!
         color: "#fff",
-        marginLeft: "7vw",
-        marginBottom: 18,
-        letterSpacing: "-1.2px"
+        marginBottom: 26,             // more gap!
+        letterSpacing: "-0.6px",
+        textAlign: "center"
       }}>
         Trending Now
       </div>
@@ -43,61 +45,67 @@ export default function TrendingToday() {
         aria-label="Scroll Left"
         onClick={scrollLeft}
         style={{
-          position: "absolute", left: "2vw", top: "57%", transform: "translateY(-50%)",
+          position: "absolute", left: "1vw", top: "54%", transform: "translateY(-50%)",
           background: "rgba(22,22,22,0.76)", border: "none", borderRadius: 14,
-          width: 45, height: 78, color: "#fff", fontSize: 30,
-          cursor: "pointer", zIndex: 5, opacity: 0.72, transition: "opacity 0.2s"
+          width: 44, height: 75, color: "#fff", fontSize: 28,
+          cursor: "pointer", zIndex: 5, opacity: 0.73, transition: "opacity 0.2s"
         }}
         onMouseOver={e => e.currentTarget.style.opacity = 1}
-        onMouseOut={e => e.currentTarget.style.opacity = 0.72}
+        onMouseOut={e => e.currentTarget.style.opacity = 0.73}
       >‹</button>
       <button
         aria-label="Scroll Right"
         onClick={scrollRight}
         style={{
-          position: "absolute", right: "2vw", top: "57%", transform: "translateY(-50%)",
+          position: "absolute", right: "1vw", top: "54%", transform: "translateY(-50%)",
           background: "rgba(22,22,22,0.76)", border: "none", borderRadius: 14,
-          width: 45, height: 78, color: "#fff", fontSize: 30,
-          cursor: "pointer", zIndex: 5, opacity: 0.72, transition: "opacity 0.2s"
+          width: 44, height: 75, color: "#fff", fontSize: 28,
+          cursor: "pointer", zIndex: 5, opacity: 0.73, transition: "opacity 0.2s"
         }}
         onMouseOver={e => e.currentTarget.style.opacity = 1}
-        onMouseOut={e => e.currentTarget.style.opacity = 0.72}
+        onMouseOut={e => e.currentTarget.style.opacity = 0.73}
       >›</button>
 
-      {/* Cards */}
+      {/* Centered card grid */}
       <div
         ref={scrollRef}
         style={{
           display: "flex",
-          gap: 42,
+          justifyContent: "center",
+          alignItems: "flex-end",
+          gap: 38,
           overflowX: "auto",
-          padding: "0 7vw 22px 7vw",
+          padding: "10px 9vw 14px 9vw",      // more side gap!
+          margin: "0 auto",
           scrollbarWidth: "none",
           scrollSnapType: "x mandatory",
           position: "relative",
-          zIndex: 2
+          minHeight: 270,                    // enough space for pop!
+          width: "100%",
+          maxWidth: 1600,                    // grid doesn't fill to edges on big screens
+          overflow: "visible"
         }}
         className="trending-row"
       >
         {movies.map((movie, idx) => (
           <div key={movie.id} style={{
             position: "relative",
-            flex: "0 0 176px",
-            width: 176,
-            minWidth: 176,
-            height: 264,
-            borderRadius: 19,
-            boxShadow: "0 3px 18px #0009",
+            flex: "0 0 170px",
+            width: 170,
+            minWidth: 170,
+            height: 255,
+            borderRadius: 18,
+            boxShadow: "0 3px 14px #0009",
             background: "#181818",
             scrollSnapAlign: "start",
             overflow: "visible",
-            marginBottom: 15,
+            marginBottom: 10,
             transition: "transform 0.18s cubic-bezier(.32,1.4,.46,1)",
             zIndex: 2
           }}
           tabIndex={0}
           onMouseEnter={e => {
-            e.currentTarget.style.transform = "translateY(-8px) scale(1.055)";
+            e.currentTarget.style.transform = "translateY(-16px) scale(1.075)";
             e.currentTarget.style.zIndex = 10;
           }}
           onMouseLeave={e => {
@@ -108,13 +116,13 @@ export default function TrendingToday() {
             {/* Big ranking number */}
             <div style={{
               position: "absolute",
-              left: -33,
-              bottom: 11,
-              fontSize: "5.2rem",
+              left: -30,
+              bottom: 7,
+              fontSize: "4.3rem",
               fontWeight: 900,
               color: "transparent",
-              WebkitTextStroke: "4px #fff",
-              textStroke: "4px #fff",
+              WebkitTextStroke: "3px #fff",
+              textStroke: "3px #fff",
               opacity: 0.89,
               lineHeight: 1,
               zIndex: 3,
@@ -130,9 +138,9 @@ export default function TrendingToday() {
                 : "/posters/placeholder.png"}
               alt={movie.title}
               style={{
-                width: 176, height: 264, objectFit: "cover",
-                borderRadius: 19,
-                boxShadow: "0 2px 12px #000c",
+                width: 170, height: 255, objectFit: "cover",
+                borderRadius: 18,
+                boxShadow: "0 2px 11px #000c",
                 display: "block"
               }}
             />

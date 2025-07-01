@@ -9,32 +9,32 @@ export default function TrendingToday() {
   useEffect(() => {
     fetch(`https://api.themoviedb.org/3/trending/movie/day?api_key=${TMDB_API_KEY}`)
       .then(res => res.json())
-      .then(data => setMovies((data.results || []).slice(0, 10))); // Only top 10
+      .then(data => setMovies((data.results || []).slice(0, 10)));
   }, []);
 
   // Scrolling
-  const scrollAmount = 340;
+  const scrollAmount = 280;
   const scrollLeft = () => scrollRef.current && scrollRef.current.scrollBy({ left: -scrollAmount, behavior: "smooth" });
   const scrollRight = () => scrollRef.current && scrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
 
   return (
     <section style={{
       background: "rgba(10,10,10,0.72)",
-      padding: "52px 0 35px 0",
+      padding: "28px 0 35px 0",
       position: "relative",
       overflow: "visible",
-      minHeight: 355,
+      minHeight: 295,
       width: "100vw"
     }}>
       {/* Heading */}
       <div style={{
         fontWeight: 900,
-        fontSize: "1.15rem",
+        fontSize: "1.09rem",
         color: "#fff",
-        letterSpacing: "0.15em",
+        letterSpacing: "0.14em",
         marginLeft: "8vw",
-        marginBottom: 25,
-        marginTop: 0,
+        marginBottom: 38,    // more gap below
+        marginTop: 6,        // move title up
         textAlign: "left",
         textTransform: "uppercase"
       }}>
@@ -48,11 +48,11 @@ export default function TrendingToday() {
         style={{
           position: "absolute", left: "2vw", top: "60%", transform: "translateY(-50%)",
           background: "rgba(22,22,22,0.83)", border: "none", borderRadius: 14,
-          width: 44, height: 76, color: "#fff", fontSize: 27,
-          cursor: "pointer", zIndex: 6, opacity: 0.75, transition: "opacity 0.2s"
+          width: 36, height: 62, color: "#fff", fontSize: 22,
+          cursor: "pointer", zIndex: 6, opacity: 0.7, transition: "opacity 0.2s"
         }}
         onMouseOver={e => e.currentTarget.style.opacity = 1}
-        onMouseOut={e => e.currentTarget.style.opacity = 0.75}
+        onMouseOut={e => e.currentTarget.style.opacity = 0.7}
       >‹</button>
       <button
         aria-label="Scroll Right"
@@ -60,11 +60,11 @@ export default function TrendingToday() {
         style={{
           position: "absolute", right: "2vw", top: "60%", transform: "translateY(-50%)",
           background: "rgba(22,22,22,0.83)", border: "none", borderRadius: 14,
-          width: 44, height: 76, color: "#fff", fontSize: 27,
-          cursor: "pointer", zIndex: 6, opacity: 0.75, transition: "opacity 0.2s"
+          width: 36, height: 62, color: "#fff", fontSize: 22,
+          cursor: "pointer", zIndex: 6, opacity: 0.7, transition: "opacity 0.2s"
         }}
         onMouseOver={e => e.currentTarget.style.opacity = 1}
-        onMouseOut={e => e.currentTarget.style.opacity = 0.75}
+        onMouseOut={e => e.currentTarget.style.opacity = 0.7}
       >›</button>
 
       {/* Horizontally scrollable card grid */}
@@ -72,13 +72,13 @@ export default function TrendingToday() {
         ref={scrollRef}
         style={{
           display: "flex",
-          gap: 48,
+          gap: 34,
           overflowX: "auto",
-          padding: "5px 10vw 8px 10vw",      // generous sides
+          padding: "0 10vw 8px 10vw",
           margin: "0 auto",
           scrollbarWidth: "none",
           scrollSnapType: "x mandatory",
-          minHeight: 255,
+          minHeight: 200,
           width: "100%",
           boxSizing: "border-box",
           alignItems: "flex-end",
@@ -89,12 +89,12 @@ export default function TrendingToday() {
         {movies.map((movie, idx) => (
           <div key={movie.id} style={{
             position: "relative",
-            flex: "0 0 174px",
-            width: 174,
-            minWidth: 174,
-            height: 255,
-            borderRadius: 18,
-            boxShadow: "0 3px 16px #0008",
+            flex: "0 0 125px",
+            width: 125,
+            minWidth: 125,
+            height: 182,
+            borderRadius: 13,
+            boxShadow: "0 2px 9px #000a",
             background: "#181818",
             scrollSnapAlign: "center",
             overflow: "visible",
@@ -104,7 +104,7 @@ export default function TrendingToday() {
           }}
           tabIndex={0}
           onMouseEnter={e => {
-            e.currentTarget.style.transform = "translateY(-17px) scale(1.09)";
+            e.currentTarget.style.transform = "translateY(-12px) scale(1.09)";
             e.currentTarget.style.zIndex = 10;
           }}
           onMouseLeave={e => {
@@ -115,18 +115,18 @@ export default function TrendingToday() {
             {/* Big ranking number */}
             <div style={{
               position: "absolute",
-              left: -34,
-              bottom: 6,
-              fontSize: "4.6rem",
-              fontWeight: 900,
-              color: "transparent",
-              WebkitTextStroke: "3.5px #fff",
-              textStroke: "3.5px #fff",
-              opacity: 0.87,
+              left: 8,           // move right, over the poster
+              bottom: 7,
+              fontSize: "2.95rem",
+              fontWeight: 800,
+              color: "#111",     // fill with black
+              WebkitTextStroke: "2px #fff",
+              textStroke: "2px #fff",
+              opacity: 0.93,
               lineHeight: 1,
               zIndex: 3,
               pointerEvents: "none",
-              textShadow: "0 2px 10px #000a",
+              textShadow: "0 2px 10px #000b",
               fontFamily: "Montserrat,Arial,sans-serif"
             }}>{idx + 1}</div>
 
@@ -137,9 +137,9 @@ export default function TrendingToday() {
                 : "/posters/placeholder.png"}
               alt={movie.title}
               style={{
-                width: 174, height: 255, objectFit: "cover",
-                borderRadius: 18,
-                boxShadow: "0 2px 12px #000b",
+                width: 125, height: 182, objectFit: "cover",
+                borderRadius: 13,
+                boxShadow: "0 2px 7px #000c",
                 display: "block"
               }}
             />

@@ -121,9 +121,9 @@ function MovieModal({ movie, onClose, onSignIn }) {
               border: "none",
               borderRadius: 8,
               fontWeight: 700,
-              fontSize: 18,
-              padding: "9px 30px",
-              minWidth: 120,
+              fontSize: 15,         // smaller font size
+              padding: "7px 18px",  // less padding
+              minWidth: 100,        // smaller min width
               boxShadow: "0 2px 8px #fe92451a",
               cursor: "pointer",
               transition: "all 0.15s",
@@ -142,8 +142,9 @@ function MovieModal({ movie, onClose, onSignIn }) {
               e.currentTarget.style.boxShadow = "0 2px 8px #fe92451a";
             }}
           >
-            Get Started <span style={{ fontSize: 22, marginLeft: 1 }}>›</span>
+            Get Started <span style={{ fontSize: 18, marginLeft: 1 }}>›</span>
           </button>
+
         </div>
       </div>
     </>

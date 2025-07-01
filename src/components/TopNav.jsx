@@ -1,14 +1,6 @@
-// components/TopNav.jsx
-import { useEffect, useState } from "react"
+import { HiOutlineHome } from "react-icons/hi2"; // Install react-icons if not present: npm install react-icons
 
-const NAV_SECTIONS = [
-  { id: "home", label: "Home" },
-  { id: "why-feelflick", label: "Why FeelFlick?" },
-  { id: "trending-today", label: "Trending Today" },
-  { id: "get-started", label: "Get Started" }
-]
-
-export default function TopNav({ onSignIn, onHome, onScrollToSection, activeSection }) {
+export default function TopNav({ onSignIn, onHome }) {
   return (
     <div style={{
       position: 'fixed',
@@ -26,30 +18,27 @@ export default function TopNav({ onSignIn, onHome, onScrollToSection, activeSect
           fontSize: 32, fontWeight: 900, color: "#fff", letterSpacing: "-1.2px", textShadow: "0 1px 7px #19194044"
         }}>FeelFlick</span>
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        {NAV_SECTIONS.map(({ id, label }) => (
-          <button
-            key={id}
-            onClick={() => {
-              if (id === "home") onHome()
-              else onScrollToSection(id)
-            }}
-            style={{
-              background: "transparent",
-              color: activeSection === id ? "#fe9245" : "#fff",
-              border: "none",
-              fontWeight: activeSection === id ? 800 : 700,
-              fontSize: 16,
-              padding: "7px 18px",
-              borderRadius: 8,
-              cursor: "pointer",
-              opacity: activeSection === id ? 1 : 0.82,
-              letterSpacing: "0.01em",
-              borderBottom: activeSection === id ? "2.5px solid #fe9245" : "2.5px solid transparent",
-              transition: "color 0.17s, border 0.17s"
-            }}
-          >{label}</button>
-        ))}
+      <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
+        <button
+          onClick={onHome}
+          style={{
+            background: "transparent",
+            color: "#fff",
+            border: "none",
+            fontWeight: 800,
+            fontSize: 20,
+            padding: "7px 10px 7px 10px",
+            borderRadius: 8,
+            cursor: "pointer",
+            opacity: 0.95,
+            display: "flex",
+            alignItems: "center",
+            transition: "color 0.17s, border 0.17s"
+          }}
+          aria-label="Home"
+        >
+          <HiOutlineHome size={27} style={{ marginRight: 4, marginBottom: 1 }} />
+        </button>
         <button
           onClick={onSignIn}
           style={{

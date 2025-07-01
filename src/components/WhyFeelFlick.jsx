@@ -106,13 +106,13 @@ export default function WhyFeelFlick() {
                 <h3
                   style={{
                     margin: '0 0 1rem',
-                    fontSize: '1.28rem',
+                    fontSize: '1.56rem',
                     fontWeight: 700,
-                    lineHeight: 1.2,
+                    lineHeight: 1.22,
                     background: 'linear-gradient(88deg, var(--theme-color,#FF5B2E), var(--theme-color-secondary,#367cff) 80%)',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
-                    textShadow: '0 1.5px 4px rgba(0,0,0,0.11)',
+                    textShadow: '0 1.5px 4px rgba(0,0,0,0.12)',
                   }}
                 >
                   {card.title}
@@ -120,10 +120,10 @@ export default function WhyFeelFlick() {
                 <p
                   style={{
                     margin: 0,
-                    fontSize: '0.94rem',
-                    color: 'rgba(255,255,255,0.81)',
-                    lineHeight: '1.55',
-                    fontWeight: 400,
+                    fontSize: '1.08rem',
+                    color: 'rgba(255,255,255,0.80)',
+                    lineHeight: '1.68',
+                    fontWeight: 300,
                     letterSpacing: '0.01em',
                   }}
                 >

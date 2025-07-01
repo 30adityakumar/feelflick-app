@@ -1,228 +1,343 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
+import MovieModal from "./MovieModal";
 
-// Chexy-style color palette
-const COLORS = {
-  bg: "#10131a",
-  heroBg: "#14192b",
-  accent: "#fe9245",
-  accent2: "#eb423b",
-  cardBg: "#fff",
-  cardText: "#131521",
-  footerBg: "#fff",
-  footerText: "#14192b"
-};
+export default function HomePage({ userName = "Movie Lover", userId }) {
+  const [trending, setTrending] = useState([]);
+  const [watched, setWatched] = useState([]);
+  const [modalMovie, setModalMovie] = useState(null);
 
-export default function ChexyStyleHomePage() {
+  // Fetch trending movies from TMDb
+  useEffect(() => {
+    fetch(
+      `https://api.themoviedb.org/3/trending/movie/week?api_key=${import.meta.env.VITE_TMDB_API_KEY}`
+    )
+      .then(res => res.json())
+      .then(data => setTrending(data.results || []));
+  }, []);
+
+  // Fetch watched history from Supabase
+  useEffect(() => {
+    if (!userId) return;
+    import("../supabaseClient").then(({ supabase }) => {
+      supabase
+        .from('movies_watched')
+        .select('*')
+        .eq('user_id', userId)
+        .order('id', { ascending: false })
+        .then(({ data }) => setWatched(data || []));
+    });
+  }, [userId]);
+
+  const closeModal = () => setModalMovie(null);
+
   return (
     <div style={{
       minHeight: "100vh",
-      background: COLORS.bg,
-      fontFamily: "Inter, system-ui, sans-serif"
+      background: "#101015",
+      width: "100vw",
+      overflowX: "hidden",
     }}>
-      {/* Header */}
-      <header style={{
-        position: "sticky", top: 0, left: 0, zIndex: 10,
-        width: "100%", background: "rgba(255,255,255,0.86)",
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "22px 44px 20px 42px", boxShadow: "0 2px 20px #0002"
+      {/* HERO VIDEO (FULL WIDTH) */}
+      <div style={{
+        position: "relative",
+        width: "100vw",
+        height: "410px",
+        overflow: "hidden",
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 15 }}>
-          <img src="/logo.png" alt="FeelFlick" style={{
-            width: 40, height: 40, borderRadius: 11, marginRight: 7
-          }} />
-          <span style={{
-            fontWeight: 800, fontSize: 23, color: COLORS.footerText, letterSpacing: "-1px"
-          }}>FeelFlick</span>
-        </div>
-        <nav style={{ display: "flex", alignItems: "center", gap: 26 }}>
-          <NavLink>Home</NavLink>
-          <NavLink>Features</NavLink>
-          <NavLink>Pricing</NavLink>
-          <NavLink>FAQ</NavLink>
-          <button style={{
-            background: `linear-gradient(90deg,${COLORS.accent} 18%,${COLORS.accent2} 82%)`,
-            color: "#fff", border: "none", borderRadius: 8,
-            fontWeight: 700, fontSize: 17, padding: "10px 30px",
-            boxShadow: "0 2px 12px #fe924533", cursor: "pointer"
-          }}>Get Started</button>
-        </nav>
-      </header>
-
-      {/* HERO */}
-      <section style={{
-        minHeight: "86vh", width: "100%",
-        background: COLORS.heroBg,
-        display: "flex", flexDirection: "column",
-        alignItems: "center", justifyContent: "center", textAlign: "center",
-        padding: "0 18px"
-      }}>
-        <h1 style={{
-          fontWeight: 900,
-          fontSize: "clamp(2.2rem,6vw,4.2rem)",
-          color: "#fff",
-          marginBottom: 22,
-          letterSpacing: "-1.7px"
-        }}>
-          Movies that match your mood.
-        </h1>
-        <p style={{
-          fontSize: "1.26rem", color: "#d9e6f2",
-          marginBottom: 38, opacity: 0.93, maxWidth: 520, lineHeight: 1.5
-        }}>
-          Get the perfect movie recommendation based on your taste and how you’re feeling today.<br />
-          Fast, private, and always free.
-        </p>
-        <button style={{
-          background: `linear-gradient(90deg,${COLORS.accent} 18%,${COLORS.accent2} 82%)`,
-          color: "#fff", border: "none", borderRadius: 9,
-          fontWeight: 900, fontSize: 19, padding: "16px 48px",
-          boxShadow: "0 4px 18px #fe924522", cursor: "pointer"
-        }}>Get Started</button>
-      </section>
-
-      {/* FEATURE GRID */}
-      <section style={{
-        width: "100%", background: "#fff", padding: "64px 0 54px 0"
-      }}>
+        <video
+          autoPlay
+          muted
+          playsInline
+          poster="/home-hero-poster.jpg"
+          src="/home-hero.mp4"
+          style={{
+            width: "100vw",
+            height: "100%",
+            objectFit: "cover",
+            background: "#232d41",
+            display: "block"
+          }}
+        />
+        {/* Black overlay for legibility */}
         <div style={{
-          maxWidth: 1100, margin: "0 auto", padding: "0 18px"
-        }}>
-          <h2 style={{
-            fontWeight: 900, fontSize: "2.1rem", color: COLORS.footerText,
-            textAlign: "center", marginBottom: 42
-          }}>Why FeelFlick?</h2>
-          <div style={{
-            display: "flex", flexWrap: "wrap", gap: 32, justifyContent: "center"
-          }}>
-            {features.map((f, i) => (
-              <div key={i} style={{
-                flex: "1 1 180px", minWidth: 200, maxWidth: 250,
-                background: "#fff", borderRadius: 19,
-                boxShadow: "0 3px 22px #14192b0a, 0 1.5px 4px #eb423b0a",
-                padding: "32px 19px 26px 19px", color: COLORS.cardText,
-                textAlign: "center", margin: 0,
-                display: "flex", flexDirection: "column", alignItems: "center",
-                transition: "box-shadow 0.18s", cursor: "pointer"
-              }}>
-                <div style={{ fontSize: 36, marginBottom: 11 }}>{f.icon}</div>
-                <div style={{
-                  fontWeight: 700, fontSize: "1.11rem", marginBottom: 9,
-                  color: COLORS.cardText, letterSpacing: "-0.01em"
-                }}>{f.label}</div>
-                <div style={{
-                  fontSize: 14, color: "#334", opacity: 0.91, lineHeight: 1.45
-                }}>{f.desc}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CALL TO ACTION / JOIN */}
-      <section style={{
-        width: "100%", background: "#fff", padding: "0 0 72px 0"
-      }}>
+          position: "absolute",
+          top: 0, left: 0, width: "100%", height: "100%",
+          background: "linear-gradient(110deg,rgba(14,16,22,0.83) 58%,rgba(24,64,109,0.43) 100%)",
+        }} />
+        {/* Overlay greeting/button (perfectly centered) */}
         <div style={{
-          maxWidth: 600, margin: "0 auto", background: "#fff",
-          borderRadius: 17, boxShadow: "0 2px 14px #0002",
-          padding: "36px 28px", textAlign: "center"
+          position: "absolute",
+          top: 0, left: 0, width: "100%", height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 2,
+          textAlign: "center"
         }}>
           <div style={{
-            fontWeight: 900, color: COLORS.footerText, fontSize: 22, marginBottom: 14
+            fontSize: "clamp(2.1rem,4vw,3.2rem)",
+            fontWeight: 900,
+            color: "#fff",
+            letterSpacing: "-2px",
+            marginBottom: 10,
+            textShadow: "0 4px 18px #000b, 0 1px 16px #232d41"
           }}>
-            Ready to get started?
+            Welcome back{userName ? `, ${userName}` : ""}!
           </div>
-          <button style={{
-            background: `linear-gradient(90deg,${COLORS.accent} 18%,${COLORS.accent2} 82%)`,
-            color: "#fff", border: "none", borderRadius: 8,
-            fontWeight: 900, fontSize: 16, padding: "13px 34px",
-            boxShadow: "0 2px 8px #eb423b18", cursor: "pointer"
-          }}>Create your free account</button>
+          <div style={{
+            fontSize: "clamp(1rem,1.7vw,1.45rem)",
+            color: "#fdaf41",
+            fontWeight: 700,
+            marginBottom: 18,
+            textShadow: "0 2px 12px #000d"
+          }}>
+            Discover movies you'll love — powered by your tastes and mood.
+          </div>
+          <button
+            style={{
+              fontWeight: 800,
+              fontSize: "clamp(1rem,1.3vw,1.15rem)",
+              background: "linear-gradient(100deg,#fe9245 10%,#eb423b 95%)",
+              color: "#fff",
+              border: "none",
+              borderRadius: 11,
+              padding: "13px 34px",
+              marginTop: 6,
+              boxShadow: "0 1.5px 18px 0 #fe924522",
+              cursor: "pointer",
+              transition: "opacity 0.14s"
+            }}
+            onClick={() => window.alert("Mood-based recommendations coming soon!")}
+          >
+            EXPLORE MOOD RECOMMENDATIONS
+          </button>
         </div>
-      </section>
+      </div>
+
+      {/* CAROUSELS (FULL WIDTH) */}
+      <div style={{
+        width: "100vw",
+        background: "transparent",
+        margin: "0",
+        padding: "0"
+      }}>
+        <div style={{
+          width: "100vw",
+          padding: "0 3vw", // add some side padding for breath
+          marginTop: 30
+        }}>
+          <HomeCarousel
+            title="Trending Now"
+            movies={trending}
+            emptyMessage="Trending movies will appear here!"
+            onMovieClick={setModalMovie}
+          />
+          <HomeCarousel
+            title="Your Watch History"
+            movies={watched}
+            emptyMessage="Your recently watched movies will show up here."
+            onMovieClick={setModalMovie}
+          />
+        </div>
+      </div>
+
+      {/* MOVIE DETAILS MODAL */}
+      {modalMovie && (
+        <MovieModal
+          movie={modalMovie}
+          open={!!modalMovie}
+          onClose={closeModal}
+        />
+      )}
 
       {/* FOOTER */}
-      <footer style={{
-        width: "100%", background: COLORS.footerBg,
-        color: COLORS.footerText, padding: "52px 0 30px 0",
-        borderRadius: 0, borderTop: "1px solid #e4e6ea", marginTop: 18
+      <div style={{
+        textAlign: "center",
+        fontSize: 13,
+        color: "#fff",
+        opacity: 0.23,
+        marginTop: 30,
+        marginBottom: 8
       }}>
-        <div style={{
-          display: "flex", flexWrap: "wrap", maxWidth: 1040,
-          margin: "0 auto", justifyContent: "space-between", gap: 34, padding: "0 12px"
-        }}>
-          <div style={{
-            flex: "0 0 180px", display: "flex", flexDirection: "column", alignItems: "flex-start"
-          }}>
-            <img src="/logo.png" alt="FeelFlick" style={{
-              width: 40, height: 40, borderRadius: 10, marginBottom: 7
-            }} />
-            <span style={{
-              fontWeight: 800, fontSize: 21, letterSpacing: "-0.9px", color: COLORS.footerText
-            }}>FeelFlick</span>
-            <div style={{
-              color: COLORS.accent, fontSize: 13, marginTop: 2
-            }}>Movies that match your mood.</div>
-          </div>
-          <div style={{ flex: "1 1 120px" }}>
-            <div style={{ fontWeight: 700, marginBottom: 7 }}>About us</div>
-            <FooterLink>Contact us</FooterLink>
-            <FooterLink>Careers</FooterLink>
-          </div>
-          <div style={{ flex: "1 1 120px" }}>
-            <div style={{ fontWeight: 700, marginBottom: 7 }}>Legal</div>
-            <FooterLink>Privacy Policy</FooterLink>
-            <FooterLink>Terms of use</FooterLink>
-          </div>
-          <div style={{ flex: "1 1 120px" }}>
-            <div style={{ fontWeight: 700, marginBottom: 7 }}>Social</div>
-            <FooterLink>Instagram</FooterLink>
-            <FooterLink>TikTok</FooterLink>
-            <FooterLink>Facebook</FooterLink>
-            <FooterLink>LinkedIn</FooterLink>
-          </div>
-        </div>
-        <div style={{
-          textAlign: "center", color: COLORS.footerText, fontSize: 13,
-          opacity: 0.28, marginTop: 28
-        }}>
-          © {new Date().getFullYear()} FeelFlick — Movies that match your mood.
-        </div>
-      </footer>
+        © {new Date().getFullYear()} FeelFlick — Movies that match your mood.
+      </div>
     </div>
   );
 }
 
-// --- Extra components for code clarity ---
-function NavLink({ children }) {
+// Carousel (FULL WIDTH, ARROWS CENTERED)
+function HomeCarousel({ title, movies, emptyMessage, onMovieClick }) {
+  const scrollRef = useRef();
+
+  function scrollBy(offset) {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ left: offset, behavior: 'smooth' });
+    }
+  }
+
+  const showArrows = movies && movies.length > 5 && typeof window !== "undefined" && window.innerWidth > 700;
+
   return (
-    <a href="#" style={{
-      color: "#14192b", fontWeight: 600, fontSize: 15,
-      letterSpacing: "0", textDecoration: "none",
-      padding: "0 8px", opacity: 0.82, transition: "opacity 0.15s",
-      borderBottom: "2.5px solid transparent"
-    }}>
-      {children}
-    </a>
+    <div style={{ marginBottom: 35, position: 'relative', width: "100%" }}>
+      <div style={{
+        fontSize: "clamp(1.25rem,2vw,1.7rem)",
+        fontWeight: 800,
+        color: "#fff",
+        marginBottom: 10
+      }}>
+        {title}
+      </div>
+      <div style={{ position: "relative" }}>
+        {movies && movies.length > 0 ? (
+          <>
+            {showArrows && (
+              <>
+                <button
+                  onClick={() => scrollBy(-350)}
+                  style={arrowBtnStyle("left")}
+                  aria-label="Scroll left"
+                >
+                  <span style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "1.7rem",
+                    fontWeight: 900,
+                    lineHeight: 1
+                  }}>‹</span>
+                </button>
+                <button
+                  onClick={() => scrollBy(350)}
+                  style={arrowBtnStyle("right")}
+                  aria-label="Scroll right"
+                >
+                  <span style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "1.7rem",
+                    fontWeight: 900,
+                    lineHeight: 1
+                  }}>›</span>
+                </button>
+              </>
+            )}
+            <div
+              ref={scrollRef}
+              style={{
+                display: "flex",
+                gap: 18,
+                overflowX: "auto",
+                paddingBottom: 4,
+                scrollBehavior: "smooth",
+                scrollbarWidth: "none",
+                width: "100%",
+              }}
+              className="no-scrollbar"
+            >
+              {movies.map((movie) => (
+                <div
+                  key={movie.id || movie.movie_id}
+                  style={{
+                    width: 124,
+                    minWidth: 124,
+                    borderRadius: 12,
+                    overflow: "hidden",
+                    background: "#232d41",
+                    boxShadow: "0 2px 10px #0007",
+                    cursor: "pointer",
+                    textAlign: "center",
+                    position: "relative",
+                    transition: "transform 0.16s, box-shadow 0.16s",
+                  }}
+                  tabIndex={0}
+                  aria-label={movie.title}
+                  onClick={() => onMovieClick && onMovieClick(movie)}
+                  onMouseOver={e => {
+                    e.currentTarget.style.transform = "scale(1.07)";
+                    e.currentTarget.style.boxShadow = "0 6px 36px #fdaf4122";
+                  }}
+                  onMouseOut={e => {
+                    e.currentTarget.style.transform = "scale(1.0)";
+                    e.currentTarget.style.boxShadow = "0 2px 10px #0007";
+                  }}
+                >
+                  {movie.poster_path || movie.poster ? (
+                    <img
+                      src={`https://image.tmdb.org/t/p/w342${movie.poster_path || movie.poster}`}
+                      alt={movie.title}
+                      style={{
+                        width: "100%",
+                        height: 175,
+                        objectFit: "cover",
+                        display: "block",
+                        borderTopLeftRadius: 12,
+                        borderTopRightRadius: 12,
+                        transition: "filter 0.14s",
+                      }}
+                    />
+                  ) : (
+                    <div style={{
+                      height: 175,
+                      background: "#18305a",
+                      color: "#fff",
+                      fontSize: 20,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center"
+                    }}>
+                      🎬
+                    </div>
+                  )}
+                  <div style={{
+                    color: "#fff",
+                    fontSize: 12,
+                    fontWeight: 800,
+                    margin: "5px 0 7px 0",
+                    padding: "0 5px",
+                    whiteSpace: "nowrap",
+                    textOverflow: "ellipsis",
+                    overflow: "hidden",
+                    textAlign: "center",
+                  }}>
+                    {movie.title || movie.name}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : (
+          <div style={{ color: "#999", fontSize: 13, marginTop: 10, marginLeft: 4 }}>
+            {emptyMessage}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
-function FooterLink({ children }) {
-  return (
-    <a href="#" style={{
-      color: "#14192b", opacity: 0.8, fontSize: 15, cursor: "pointer",
-      marginBottom: 8, textDecoration: "none", display: "block"
-    }}>
-      {children}
-    </a>
-  );
+function arrowBtnStyle(side) {
+  return {
+    position: "absolute",
+    [side]: -16,
+    top: "50%",
+    transform: "translateY(-50%)",
+    zIndex: 5,
+    background: "rgba(24,64,109,0.91)",
+    color: "#fff",
+    border: "none",
+    borderRadius: "50%",
+    width: 34,
+    height: 34,
+    display: typeof window !== "undefined" && window.innerWidth > 700 ? "flex" : "none",
+    alignItems: "center",
+    justifyContent: "center",
+    boxShadow: "0 3px 12px #0006",
+    cursor: "pointer",
+    opacity: 0.78,
+    transition: "background 0.13s, opacity 0.16s",
+    outline: "none",
+    padding: 0
+  };
 }
-
-// --- Feature grid data for the demo ---
-const features = [
-  { icon: "🔒", label: "Private & Secure", desc: "Your data is safe. We never sell or share." },
-  { icon: "🤖", label: "Smart Recs", desc: "AI-powered picks based on your taste and mood." },
-  { icon: "🧘", label: "Mood Matching", desc: "Discover films that match your current mood." },
-  { icon: "🎬", label: "Personal Tracker", desc: "Log everything you watch. Forever free." },
-  { icon: "🪄", label: "Clean UI", desc: "Minimal, beautiful, distraction-free design." }
-];

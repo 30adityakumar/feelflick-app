@@ -2,9 +2,12 @@ import { useEffect, useState, useRef } from "react";
 
 const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
-const CARD_WIDTH = 152;
+// You can tweak these for perfect look
+const CARD_WIDTH = 168;
+const CARD_HEIGHT = 246;
 const CARD_GAP = 32;
-const VISIBLE_CARDS = 5;
+const VISIBLE_FULL = 5; // 5 full cards visible
+const PARTIAL = 0.5;    // show half of the 6th
 
 export default function TrendingToday() {
   const [movies, setMovies] = useState([]);
@@ -24,8 +27,11 @@ export default function TrendingToday() {
     if (scrollRef.current) scrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
   };
 
-  // How wide should the scroller be to show 5 cards?
-  const scrollerWidth = VISIBLE_CARDS * CARD_WIDTH + (VISIBLE_CARDS - 1) * CARD_GAP;
+  // Scroller width: 5.5 cards + 5 gaps
+  const scrollerWidth =
+    VISIBLE_FULL * CARD_WIDTH +
+    PARTIAL * CARD_WIDTH +
+    (VISIBLE_FULL + PARTIAL - 1) * CARD_GAP;
 
   return (
     <section style={{
@@ -33,7 +39,7 @@ export default function TrendingToday() {
       padding: "36px 0 55px 0",
       position: "relative",
       overflow: "visible",
-      minHeight: 340,
+      minHeight: 360,
       width: "100%",
       boxSizing: "border-box"
     }}>
@@ -58,8 +64,7 @@ export default function TrendingToday() {
         width: "100%",
         padding: "0 8vw",
         boxSizing: "border-box",
-        overflow: "visible", // must be visible for pop
-        minHeight: 1 // fix Chrome issue
+        overflow: "visible"
       }}>
         {/* Left Arrow */}
         <button
@@ -99,19 +104,15 @@ export default function TrendingToday() {
             margin: "0 auto",
             scrollbarWidth: "none",
             scrollSnapType: "x mandatory",
-            minHeight: 232,
+            minHeight: CARD_HEIGHT,
             alignItems: "flex-end",
             position: "relative",
             width: scrollerWidth,
             maxWidth: "100%",
             boxSizing: "border-box",
-            // To center cards: marginLeft/right auto
             marginLeft: "auto",
             marginRight: "auto",
-            paddingTop: 0,
-            paddingBottom: 0,
             zIndex: 2,
-            // No overflow:hidden anywhere!
           }}
           className="trending-row"
         >
@@ -121,7 +122,7 @@ export default function TrendingToday() {
               flex: `0 0 ${CARD_WIDTH}px`,
               width: CARD_WIDTH,
               minWidth: CARD_WIDTH,
-              height: 222,
+              height: CARD_HEIGHT,
               borderRadius: 15,
               boxShadow: "0 2px 11px #000b",
               background: "#181818",
@@ -129,12 +130,12 @@ export default function TrendingToday() {
               overflow: "visible",
               marginBottom: 6,
               marginTop: 0,
-              transition: "transform 0.19s cubic-bezier(.32,1.4,.46,1)",
+              transition: "transform 0.13s cubic-bezier(.32,1.4,.46,1)",
               zIndex: 2
             }}
             tabIndex={0}
             onMouseEnter={e => {
-              e.currentTarget.style.transform = "translateY(-20px) scale(1.1)";
+              e.currentTarget.style.transform = "translateY(-7px) scale(1.04)";
               e.currentTarget.style.zIndex = 10;
             }}
             onMouseLeave={e => {
@@ -167,7 +168,7 @@ export default function TrendingToday() {
                   : "/posters/placeholder.png"}
                 alt={movie.title}
                 style={{
-                  width: CARD_WIDTH, height: 222, objectFit: "cover",
+                  width: CARD_WIDTH, height: CARD_HEIGHT, objectFit: "cover",
                   borderRadius: 15,
                   boxShadow: "0 2px 11px #000c",
                   display: "block",

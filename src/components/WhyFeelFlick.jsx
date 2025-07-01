@@ -106,8 +106,8 @@ export default function WhyFeelFlick() {
                 <h3
                   style={{
                     margin: '0 0 1rem',
-                    fontSize: '1.65rem',
-                    fontWeight: 900,
+                    fontSize: '1.7rem',
+                    fontWeight: 1000,
                     lineHeight: 1.25,
                     background: 'linear-gradient(88deg, var(--theme-color,#FF5B2E), var(--theme-color-secondary,#367cff) 80%)',
                     WebkitBackgroundClip: 'text',
@@ -120,10 +120,10 @@ export default function WhyFeelFlick() {
                 <p
                   style={{
                     margin: 0,
-                    fontSize: '1.08rem',
+                    fontSize: '1.05rem',
                     color: 'rgba(255,255,255,0.80)',
                     lineHeight: '1.68',
-                    fontWeight: 250,
+                    fontWeight: 200,
                     letterSpacing: '0.01em',
                   }}
                 >

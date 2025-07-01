@@ -94,10 +94,6 @@ export default function TrendingToday() {
           overflowX: "auto",
           padding: "0 0 28px 0",
           scrollbarWidth: "none",
-          overflow: "visible",
-          minWidth: "100vw",
-          width: "max-content", // This makes the row stretch as wide as it needs!
-          margin: "0 auto",
         }}
         className="fflick-trending-scroll"
       >

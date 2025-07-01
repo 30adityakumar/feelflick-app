@@ -208,7 +208,7 @@ export default function TrendingToday() {
       `}</style>
       {/* MovieModal shown if a movie is selected */}
       {selectedMovie && (
-        <MovieModal movie={selectedMovie} onClose={() => setSelectedMovie(null)} />
+        <MovieModal movie={selectedMovie} onClose={() => setSelectedMovie(null) onSignIn={onSignIn}} />
       )}
     </section>
   );
@@ -328,20 +328,32 @@ function MovieModal({ movie, onClose }) {
             {movie.overview || "No description available."}
           </div>
           <button
-            onClick={() => { /* add sign-up action or navigation here */ }}
+            onClick={onSignIn}
             style={{
-              background: "#e50914",
+              background: "linear-gradient(90deg,#fe9245 10%,#eb423b 90%)",
               color: "#fff",
               border: "none",
-              borderRadius: 7,
-              fontWeight: 600,
+              borderRadius: 8,
+              fontWeight: 700,
               fontSize: 18,
-              padding: "13px 28px",
-              boxShadow: "0 2px 12px #e5091431",
+              padding: "9px 30px",
+              minWidth: 120,
+              boxShadow: "0 2px 8px #fe92451a",
               cursor: "pointer",
+              transition: "all 0.15s",
               letterSpacing: "0.01em",
               marginTop: 8,
-              display: "flex", alignItems: "center", gap: 7
+              display: "flex", alignItems: "center", gap: 7,
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = "linear-gradient(90deg,#eb423b 10%,#fe9245 90%)";
+              e.currentTarget.style.transform = "scale(1.03)";
+              e.currentTarget.style.boxShadow = "0 6px 18px #fe92452d";
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = "linear-gradient(90deg,#fe9245 10%,#eb423b 90%)";
+              e.currentTarget.style.transform = "none";
+              e.currentTarget.style.boxShadow = "0 2px 8px #fe92451a";
             }}
           >
             Get Started <span style={{ fontSize: 22, marginLeft: 1 }}>›</span>

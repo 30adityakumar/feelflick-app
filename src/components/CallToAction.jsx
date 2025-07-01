@@ -3,7 +3,7 @@ export default function CallToAction({ onSignUp }) {
     <section style={{
       width: "100vw",
       minHeight: 64,
-      margin: "0",
+      margin: "52px 0 0 0",   // Space only at the top!
       padding: "0",
       background: "linear-gradient(120deg, rgba(18,13,10,0.99) 80%, rgba(34, 24, 20, 1) 100%)",
       borderRadius: 0,

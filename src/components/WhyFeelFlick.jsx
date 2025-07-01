@@ -1,39 +1,43 @@
 // WhyFeelFlick.jsx
 
-// Film reel SVG watermark (low opacity, not distracting)
-const FILM_REEL_WATERMARK = encodeURIComponent(`
-<svg width="380" height="220" viewBox="0 0 380 220" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <ellipse cx="190" cy="110" rx="170" ry="90" fill="#18406d0a"/>
-  <ellipse cx="190" cy="110" rx="138" ry="65" fill="#fe924514"/>
-  <circle cx="190" cy="110" r="34" fill="#eb423b17"/>
-  <circle cx="75" cy="110" r="15" fill="#18406d22"/>
-  <circle cx="305" cy="110" r="15" fill="#18406d22"/>
-  <circle cx="190" cy="35" r="12" fill="#fe924522"/>
-  <circle cx="190" cy="185" r="12" fill="#fe924522"/>
-</svg>
-`)
+// Download your own PNGs and place them in /public/icons, or update these links:
+const EMOTION_ICON = "/icons/feelings.png"         // e.g. hand-heart, smiley, etc
+const UTILITY_ICON = "/icons/compass.png"          // e.g. compass, magic wand, film slate
+const FRIENDLY_ICON = "/icons/friendship.png"      // e.g. coffee cup, chat bubble, friends
 
 const features = [
   {
-    icon: "🤖",
-    label: "Smart AI Recs",
-    desc: "AI-powered movie suggestions for your unique taste. It learns as you watch!"
+    img: EMOTION_ICON,
+    label: "Emotion-First",
+    desc: "Because sometimes you're not in the mood to scroll for 30 minutes.\nFeelFlick learns what you like and how you feel — and gives you the right movie, right away."
   },
   {
-    icon: "🧘‍♂️",
-    label: "Mood Matching",
-    desc: "Pick your mood and instantly get films that truly fit how you feel, right now."
+    img: UTILITY_ICON,
+    label: "Utility-First",
+    desc: "Other platforms show you what’s trending.\nFeelFlick shows you what fits. It learns your movie style and listens to your mood — so recommendations actually make sense."
   },
   {
-    icon: "🎬",
-    label: "Personal Tracker",
-    desc: "Log every movie you watch and how it made you feel—forever, for free."
+    img: FRIENDLY_ICON,
+    label: "Friendly",
+    desc: "You know that feeling when you just want the right movie, without overthinking?\nThat’s why we built FeelFlick. It gets smarter every time you watch, and every time you tell us how you’re feeling."
   }
 ]
 
-const CARD_BG_GRAD = "linear-gradient(115deg,rgba(250,251,255,0.89) 70%,rgba(254,146,69,0.13) 100%)"
-const SECTION_BG = "rgba(250,251,255,0.83)" // frosted near-white
-const BORDER = "1.5px solid #e8eaf3"
+// Warm, cozy “creamy” glass background, softly transparent
+const COZY_BG = "rgba(253, 246, 233, 0.89)" // Creamy/latte
+const BORDER_GRAD = "linear-gradient(100deg,#fe9245,#eb423b,#18406d 90%)"
+
+const FILM_REEL_WATERMARK = encodeURIComponent(`
+<svg width="440" height="240" viewBox="0 0 440 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <ellipse cx="220" cy="120" rx="200" ry="90" fill="#F6D99822"/>
+  <ellipse cx="220" cy="120" rx="146" ry="68" fill="#FEE9B412"/>
+  <circle cx="220" cy="120" r="33" fill="#FE924525"/>
+  <circle cx="92" cy="120" r="18" fill="#FFD88033"/>
+  <circle cx="346" cy="120" r="18" fill="#FFD88033"/>
+  <circle cx="220" cy="37" r="13" fill="#fe924524"/>
+  <circle cx="220" cy="202" r="13" fill="#fe924524"/>
+</svg>
+`)
 
 export default function WhyFeelFlick() {
   return (
@@ -46,99 +50,90 @@ export default function WhyFeelFlick() {
         alignItems: "center",
         justifyContent: "center",
         position: "relative",
-        padding: "0",
-        // Section transitions
-        boxShadow: "0 0 36px 0 #18406d13, 0 -1px 48px #eb423b14",
+        background: "transparent", // background handled by glass below
         zIndex: 2
       }}
     >
-      {/* Subtle FILM REEL watermark (centered, behind everything) */}
+      {/* Film Reel Watermark (warm tone, soft blur) */}
       <div style={{
         position: "absolute",
-        top: "52%",
-        left: "50%",
-        transform: "translate(-50%, -50%)",
+        top: "56%", left: "50%",
+        transform: "translate(-50%,-50%)",
         zIndex: 0,
-        pointerEvents: "none",
-        opacity: 0.21,
+        opacity: 0.16,
         background: `url("data:image/svg+xml,${FILM_REEL_WATERMARK}") center/contain no-repeat`,
-        width: "66vw",
-        height: "44vw",
-        maxWidth: 420,
-        maxHeight: 240,
-        filter: "blur(0.6px)"
+        width: "72vw", height: "44vw", maxWidth: 440, maxHeight: 240,
+        pointerEvents: "none", filter: "blur(1.6px)"
       }} />
-      {/* Frosted white glass background */}
+
+      {/* Frosted “cozy” glass card */}
       <div style={{
         width: "100%",
         maxWidth: 1220,
         margin: "0 auto",
-        padding: "72px 16px 54px 16px",
+        padding: "68px 16px 56px 16px",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        borderRadius: 26,
-        background: SECTION_BG,
-        backdropFilter: "blur(4.5px)",
-        boxShadow: "0 4px 32px #18406d15",
+        borderRadius: 32,
+        background: COZY_BG,
+        backdropFilter: "blur(5.5px)",
+        boxShadow: "0 4px 36px #eb423b17, 0 2px 32px #18406d10",
+        border: "1.7px solid #f7d58060",
         position: "relative",
-        zIndex: 1,
-        border: "1.5px solid #dde4f9"
+        zIndex: 1
       }}>
-        {/* Main Heading */}
+        {/* Heading */}
         <h2 style={{
           fontWeight: 900,
-          fontSize: "clamp(1.5rem,4vw,2.3rem)",
+          fontSize: "clamp(1.45rem,3.8vw,2.25rem)",
           background: "linear-gradient(90deg,#18406d 20%,#fe9245 70%,#eb423b 100%)",
           WebkitBackgroundClip: "text",
           WebkitTextFillColor: "transparent",
           letterSpacing: "-1.1px",
-          marginBottom: 18,
-          marginTop: 0,
-          textAlign: "center",
-          lineHeight: 1.12,
-          textShadow: "0 1.5px 10px #fff5"
+          marginBottom: 16, marginTop: 0, textAlign: "center", lineHeight: 1.13,
+          textShadow: "0 2px 8px #fff5"
         }}>
           Why FeelFlick?
         </h2>
         {/* Subtitle */}
         <div style={{
-          color: "#2d3757",
+          color: "#443c2c",
           fontWeight: 500,
-          fontSize: "clamp(0.93rem,1.6vw,1.05rem)",
+          fontSize: "clamp(0.93rem,1.3vw,1.09rem)",
           textAlign: "center",
           marginBottom: 35,
           marginTop: 0,
           lineHeight: 1.7,
-          maxWidth: 640,
-          opacity: 0.92,
-          textShadow: "0 1px 10px #fff"
+          maxWidth: 660,
+          opacity: 0.96,
+          textShadow: "0 1px 10px #fff3"
         }}>
-          FeelFlick understands your unique movie taste and your current mood, combining both to recommend films that truly fit how you feel — every time.<br />
-          It’s simple, private, and free. No algorithms pushing what’s popular. Just personalized, mood-matched movie picks made for you.
+          FeelFlick is your personal movie companion — powered by mood, memory, and smart AI. It learns your unique taste as you watch, lets you choose how you’re feeling, and recommends films that genuinely match your vibe. No ratings. No pressure. No endless scrolling. Just personal, mood-based suggestions that actually make sense.
         </div>
+
         {/* Feature Cards */}
         <div style={{
           display: "flex",
           flexWrap: "wrap",
-          gap: 34,
+          gap: 38,
           width: "100%",
           justifyContent: "center",
-          alignItems: "stretch"
+          alignItems: "stretch",
+          marginBottom: 8
         }}>
           {features.map((f, i) => (
             <div
               key={f.label}
               tabIndex={0}
               style={{
-                flex: "1 1 310px",
-                minWidth: 240,
-                maxWidth: 340,
-                background: CARD_BG_GRAD,
-                border: BORDER,
-                borderRadius: 19,
-                boxShadow: "0 2px 18px #18406d13, 0 4px 38px #eb423b11",
-                padding: "38px 24px 32px 24px",
+                flex: "1 1 325px",
+                minWidth: 260,
+                maxWidth: 360,
+                background: "rgba(255,255,255,0.91)",
+                borderRadius: 18,
+                boxShadow: "0 2px 22px #fe92451c, 0 2px 8px #18406d11",
+                padding: "44px 26px 37px 26px",
                 color: "#263345",
                 textAlign: "center",
                 margin: 0,
@@ -146,61 +141,71 @@ export default function WhyFeelFlick() {
                 flexDirection: "column",
                 alignItems: "center",
                 position: "relative",
-                transition: "transform 0.19s, box-shadow 0.18s",
+                border: "2.5px solid transparent",
                 outline: "none",
-                cursor: "pointer"
+                transition: "transform 0.17s, box-shadow 0.13s, border 0.16s"
               }}
               onMouseOver={e => {
-                e.currentTarget.style.transform = "translateY(-8px) scale(1.034)";
-                e.currentTarget.style.boxShadow = "0 4px 44px #18406d23, 0 10px 38px #eb423b18";
-                e.currentTarget.style.zIndex = 3;
+                e.currentTarget.style.transform = "translateY(-8px) scale(1.031)";
+                e.currentTarget.style.boxShadow = "0 4px 46px #fe92452d, 0 8px 36px #18406d19";
+                e.currentTarget.style.borderImage = `${BORDER_GRAD} 1`;
+                e.currentTarget.style.border = "2.5px solid";
+                e.currentTarget.style.zIndex = 2;
               }}
               onMouseOut={e => {
                 e.currentTarget.style.transform = "";
-                e.currentTarget.style.boxShadow = "0 2px 18px #18406d13, 0 4px 38px #eb423b11";
+                e.currentTarget.style.boxShadow = "0 2px 22px #fe92451c, 0 2px 8px #18406d11";
+                e.currentTarget.style.borderImage = "";
+                e.currentTarget.style.border = "2.5px solid transparent";
                 e.currentTarget.style.zIndex = 1;
               }}
               onFocus={e => {
-                e.currentTarget.style.transform = "translateY(-8px) scale(1.034)";
-                e.currentTarget.style.boxShadow = "0 4px 44px #18406d23, 0 10px 38px #eb423b18";
-                e.currentTarget.style.zIndex = 3;
+                e.currentTarget.style.transform = "translateY(-8px) scale(1.031)";
+                e.currentTarget.style.boxShadow = "0 4px 46px #fe92452d, 0 8px 36px #18406d19";
+                e.currentTarget.style.borderImage = `${BORDER_GRAD} 1`;
+                e.currentTarget.style.border = "2.5px solid";
+                e.currentTarget.style.zIndex = 2;
               }}
               onBlur={e => {
                 e.currentTarget.style.transform = "";
-                e.currentTarget.style.boxShadow = "0 2px 18px #18406d13, 0 4px 38px #eb423b11";
+                e.currentTarget.style.boxShadow = "0 2px 22px #fe92451c, 0 2px 8px #18406d11";
+                e.currentTarget.style.borderImage = "";
+                e.currentTarget.style.border = "2.5px solid transparent";
                 e.currentTarget.style.zIndex = 1;
               }}
             >
-              <div style={{
-                fontSize: 42,
-                marginBottom: 16,
-                filter: i === 1
-                  ? "drop-shadow(0 2px 12px #eb423b19)"
-                  : (i === 0 ? "drop-shadow(0 2px 10px #fe92451a)" : "none")
-              }}>{f.icon}</div>
+              <img
+                src={f.img}
+                alt={f.label}
+                style={{
+                  width: 56, height: 56, marginBottom: 18, objectFit: "contain", borderRadius: 15,
+                  filter: "drop-shadow(0 3px 16px #fe924527)"
+                }}
+              />
               <div style={{
                 fontWeight: 800,
-                fontSize: "1.22rem",
+                fontSize: "1.19rem",
                 marginBottom: 10,
-                color: "#263345",
+                color: "#22282e",
                 letterSpacing: "-0.01em"
               }}>{f.label}</div>
               <div style={{
-                fontSize: 15.3,
-                color: "#57607c",
-                opacity: 0.98,
-                lineHeight: 1.58
+                fontSize: 15.6,
+                color: "#736b5d",
+                opacity: 0.97,
+                lineHeight: 1.55,
+                whiteSpace: "pre-line"
               }}>{f.desc}</div>
             </div>
           ))}
         </div>
-        {/* Section transitions: soft gradient shadow at bottom */}
+        {/* Soft transition */}
         <div style={{
           width: "100%",
           height: 42,
-          margin: "0 auto -42px auto",
+          margin: "0 auto -32px auto",
           pointerEvents: "none",
-          background: "linear-gradient(to bottom,rgba(250,251,255,0.0) 10%,rgba(24,64,109,0.12) 80%,rgba(250,251,255,0.01) 100%)"
+          background: "linear-gradient(to bottom,rgba(255,247,222,0.0) 10%,rgba(254,146,69,0.11) 90%,rgba(255,247,222,0.01) 100%)"
         }} />
       </div>
     </section>

@@ -129,7 +129,7 @@ export default function TrendingToday() {
           display: "flex", gap: 28,
           overflowX: "auto",
           overflowY: "visible",
-          padding: "6px 36px 36px 36px",
+          padding: "32px 0 28px 0",
           margin: 0,
           scrollbarWidth: "none",
           msOverflowStyle: "none",

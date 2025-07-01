@@ -9,12 +9,12 @@ const cards = [
   {
     title: 'Fast, Simple, and Private',
     description:
-      "Tired of scrolling for something to watch? FeelFlick delivers quick, clutter-free suggestions based on how you feel and what you love. No ratings, no filters, no noise — just the right movie when you need it. Your data stays private, always secure and never shared.",
+      "Tired of scrolling for something to watch? FeelFlick delivers quick and clutter-free suggestions. No ratings, no filters, no noise — just the right movie when you need it. Your data stays private, always secure and never shared.",
   },
   {
     title: 'Track What You Love For Free',
     description:
-      "Keep a personal log of every movie you’ve seen — and how it made you feel. Build watchlists, revisit past favorites, and reflect on your evolving taste. FeelFlick helps you stay organized, sentimental, and inspired — all in one place. Always free, with no paywalls or limits.",
+      "Keep a personal log of every movie you’ve seen. Build watchlists, revisit past favorites, and reflect on your evolving taste. FeelFlick helps you stay organized, sentimental, and inspired — all in one place. Always free, with no paywalls or limits.",
   },
 ];
 

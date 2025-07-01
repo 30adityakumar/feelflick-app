@@ -1,13 +1,10 @@
-// src/components/MovieModal.jsx
-
-const GENRES = {
-  28: "Action", 12: "Adventure", 16: "Animation", 35: "Comedy", 80: "Crime", 99: "Documentary", 18: "Drama",
-  10751: "Family", 14: "Fantasy", 36: "History", 27: "Horror", 10402: "Music", 9648: "Mystery", 10749: "Romance",
-  878: "Sci-Fi", 10770: "TV", 53: "Thriller", 10752: "War", 37: "Western"
-};
-
 function MovieModal({ movie, onClose }) {
   if (!movie) return null;
+  const GENRES = {
+    28: "Action", 12: "Adventure", 16: "Animation", 35: "Comedy", 80: "Crime", 99: "Documentary", 18: "Drama",
+    10751: "Family", 14: "Fantasy", 36: "History", 27: "Horror", 10402: "Music", 9648: "Mystery", 10749: "Romance",
+    878: "Sci-Fi", 10770: "TV", 53: "Thriller", 10752: "War", 37: "Western"
+  };
   const genreLabels = (movie.genre_ids || []).map(id => GENRES[id] || null).filter(Boolean);
 
   return (
@@ -114,20 +111,31 @@ function MovieModal({ movie, onClose }) {
             {movie.overview || "No description available."}
           </div>
           <button
-            onClick={() => { /* add sign-up action or navigation here */ }}
+            onClick={() => { window.location.href = '/signup'; }}
             style={{
-              background: "#e50914",
+              background: "linear-gradient(90deg,#fe9245 10%,#eb423b 90%)",
               color: "#fff",
               border: "none",
               borderRadius: 7,
-              fontWeight: 600,
+              fontWeight: 700,
               fontSize: 18,
               padding: "13px 28px",
-              boxShadow: "0 2px 12px #e5091431",
+              boxShadow: "0 2px 12px #eb423b33",
               cursor: "pointer",
               letterSpacing: "0.01em",
               marginTop: 8,
-              display: "flex", alignItems: "center", gap: 7
+              display: "flex", alignItems: "center", gap: 7,
+              transition: "background 0.16s, box-shadow 0.13s, transform 0.13s"
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = "linear-gradient(90deg,#eb423b 10%,#fe9245 90%)";
+              e.currentTarget.style.transform = "scale(1.03)";
+              e.currentTarget.style.boxShadow = "0 6px 18px #fe92452d";
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = "linear-gradient(90deg,#fe9245 10%,#eb423b 90%)";
+              e.currentTarget.style.transform = "none";
+              e.currentTarget.style.boxShadow = "0 2px 12px #eb423b33";
             }}
           >
             Get Started <span style={{ fontSize: 22, marginLeft: 1 }}>›</span>

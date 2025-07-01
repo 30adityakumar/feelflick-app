@@ -20,28 +20,28 @@ const cards = [
 
 const wrapperStyle = {
   width: '100vw',
-  height: '100vh',
-  background: 'linear-gradient(120deg, rgba(20,16,12,0.9), rgba(40,32,24,0.93) 80%)',
+  minHeight: '100vh',
+  background: 'linear-gradient(120deg, rgba(20,16,12,0.93), rgba(40,32,24,0.96) 80%)',
   display: 'flex',
-  alignItems: 'flex-start',
+  alignItems: 'center',      // Center vertically
   justifyContent: 'center',
-  padding: '13vh 4vw 5vh',
+  padding: '0 4vw',
   boxSizing: 'border-box',
 };
 
 const boxStyle = {
-  background: 'rgba(var(--theme-color-rgb), 0.15)',
+  background: 'rgba(var(--theme-color-rgb), 0.14)',
   borderRadius: '20px',
-  padding: '1rem',
+  padding: '2.5rem 1.5rem',
   display: 'flex',
   justifyContent: 'center',
   width: '100%',
-  maxWidth: '1200px',
+  maxWidth: '1100px',
 };
 
 const rowStyle = {
   display: 'flex',
-  justifyContent: 'space-around',
+  justifyContent: 'center',
   alignItems: 'stretch',
   gap: '1.2rem',
   flexWrap: 'nowrap',
@@ -49,20 +49,20 @@ const rowStyle = {
 };
 
 const baseCardStyle = {
-  flex: '0 1 29%',
+  flex: '0 1 31%',
   minWidth: '210px',
-  maxWidth: '325px',
-  height: '59vh',
+  maxWidth: '320px',
+  height: 'auto',
   display: 'flex',
   flexDirection: 'column',
   justifyContent: 'flex-start',
-  padding: '1.4rem 1rem',
+  padding: '1.2rem 1rem',
   borderRadius: '16px',
-  background: 'rgba(34,34,34,0.14)',
-  backdropFilter: 'blur(8px)',
-  WebkitBackdropFilter: 'blur(8px)',
-  border: '1px solid rgba(var(--theme-color-rgb),0.18)',
-  boxShadow: '0 1.5px 6px 0 rgba(40,24,14,0.11)',
+  background: 'radial-gradient(ellipse at 60% 10%, rgba(255,255,255,0.10) 0, rgba(255,91,46,0.07) 60%, rgba(34,34,34,0.17) 100%)',
+  backdropFilter: 'blur(6px)',
+  WebkitBackdropFilter: 'blur(6px)',
+  border: '1px solid rgba(var(--theme-color-rgb),0.16)',
+  boxShadow: '0 1.5px 6px 0 rgba(40,24,14,0.09)',
   transition: 'transform 0.28s cubic-bezier(.3,.7,.4,1.3), box-shadow 0.26s, outline 0.22s, filter 0.22s',
   position: 'relative',
   cursor: 'default',
@@ -73,20 +73,20 @@ export default function WhyFeelFlick() {
     <>
       <style>{`
         @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(32px); }
+          from { opacity: 0; transform: translateY(28px); }
           to { opacity: 1; transform: translateY(0); }
         }
         .fflick-box { animation: fadeInUp 0.7s ease both; }
         .fflick-card:hover {
           transform: translateY(-7px) scale(1.03);
-          box-shadow: 0 3px 24px 0 rgba(255,96,16,0.17);
+          box-shadow: 0 3px 24px 0 rgba(255,96,16,0.13);
           outline: 2.5px solid var(--theme-color, #ff700a);
           outline-offset: 2.5px;
           z-index: 2;
         }
         @media (max-width: 1020px) {
           .fflick-box { flex-direction: column; }
-          .fflick-card { width: 90vw; max-width: 99vw; height: auto; margin-bottom: 2rem; }
+          .fflick-card { width: 90vw; max-width: 99vw; margin-bottom: 2rem; }
         }
       `}</style>
 
@@ -106,13 +106,13 @@ export default function WhyFeelFlick() {
                 <h3
                   style={{
                     margin: '0 0 1rem',
-                    fontSize: '1.7rem',
-                    fontWeight: 1000,
-                    lineHeight: 1.25,
+                    fontSize: '1.38rem',
+                    fontWeight: 900,
+                    lineHeight: 1.22,
                     background: 'linear-gradient(88deg, var(--theme-color,#FF5B2E), var(--theme-color-secondary,#367cff) 80%)',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
-                    textShadow: '0 1.5px 4px rgba(0,0,0,0.12)',
+                    textShadow: '0 1.5px 4px rgba(0,0,0,0.11)',
                   }}
                 >
                   {card.title}
@@ -120,10 +120,10 @@ export default function WhyFeelFlick() {
                 <p
                   style={{
                     margin: 0,
-                    fontSize: '1.05rem',
-                    color: 'rgba(255,255,255,0.80)',
-                    lineHeight: '1.68',
-                    fontWeight: 200,
+                    fontSize: '1.10rem',
+                    color: 'rgba(255,255,255,0.83)',
+                    lineHeight: '1.64',
+                    fontWeight: 300,
                     letterSpacing: '0.01em',
                   }}
                 >

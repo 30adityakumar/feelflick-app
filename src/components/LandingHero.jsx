@@ -77,66 +77,66 @@ export default function LandingHero({ onGetStarted }) {
         </button>
       </div>
       <div style={{
-        width: "100vw",
-        position: "absolute",
-        left: 0,
-        bottom: 0,
-        zIndex: 3,
-        pointerEvents: "none",
-        lineHeight: 0,
-      }}>
-        <svg
-          viewBox="0 0 1920 140"
-          width="100%"
-          height="90"
-          preserveAspectRatio="none"
-          style={{ display: "block" }}
-        >
-          <defs>
-            {/* THEME GRADIENT for the stroke */}
-            <linearGradient id="fflick-gradient-stroke" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#367cff" stopOpacity="0" />
-              <stop offset="10%" stopColor="#367cff" stopOpacity="1" />
-              <stop offset="50%" stopColor="#eb423b" />
-              <stop offset="90%" stopColor="#fe9245" stopOpacity="1" />
-              <stop offset="100%" stopColor="#fe9245" stopOpacity="0" />
-            </linearGradient>
-            {/* Fading mask for sides */}
-            <linearGradient id="fflick-fade" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="white" stopOpacity="0"/>
-              <stop offset="7%" stopColor="white" stopOpacity="1"/>
-              <stop offset="93%" stopColor="white" stopOpacity="1"/>
-              <stop offset="100%" stopColor="white" stopOpacity="0"/>
-            </linearGradient>
-            {/* Deep dark fill gradient */}
-            <linearGradient id="fflick-gradient-fill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="rgba(20,16,12,0.98)" />
-              <stop offset="70%" stopColor="rgba(20,16,12,0.99)" />
-              <stop offset="100%" stopColor="rgba(15,12,8,1)" />
-            </linearGradient>
-            {/* Mask for fading sides */}
-            <mask id="fflick-fade-mask">
-              <rect x="0" y="0" width="1920" height="140" fill="url(#fflick-fade)" />
-            </mask>
-          </defs>
-          {/* Curved line with gradient stroke and fading sides */}
-          <path
-            d="M0,50 Q960,0 1920,50"
-            fill="none"
-            stroke="url(#fflick-gradient-stroke)"
-            strokeWidth="5.5"
-            style={{ filter: "drop-shadow(0 2px 8px #eb423b33)" }}
-            mask="url(#fflick-fade-mask)"
-          />
-          {/* Under-curve fill with fading sides */}
-          <path
-            d="M0,50 Q960,0 1920,50 L1920,140 L0,140 Z"
-            fill="url(#fflick-gradient-fill)"
-            stroke="none"
-            mask="url(#fflick-fade-mask)"
-          />
-        </svg>
-      </div>
+  width: "100vw",
+  position: "absolute",
+  left: 0,
+  bottom: 0,
+  zIndex: 3,
+  pointerEvents: "none",
+  lineHeight: 0,
+}}>
+  <svg
+    viewBox="0 0 1920 140"
+    width="100%"
+    height="95"
+    preserveAspectRatio="none"
+    style={{ display: "block" }}
+  >
+    <defs>
+      {/* THEME GRADIENT for the stroke */}
+      <linearGradient id="fflick-gradient-stroke" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stopColor="#367cff" stopOpacity="0" />
+        <stop offset="10%" stopColor="#367cff" stopOpacity="1" />
+        <stop offset="50%" stopColor="#eb423b" />
+        <stop offset="90%" stopColor="#fe9245" stopOpacity="1" />
+        <stop offset="100%" stopColor="#fe9245" stopOpacity="0" />
+      </linearGradient>
+      {/* Fading mask for sides */}
+      <linearGradient id="fflick-fade" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stopColor="white" stopOpacity="0"/>
+        <stop offset="7%" stopColor="white" stopOpacity="1"/>
+        <stop offset="93%" stopColor="white" stopOpacity="1"/>
+        <stop offset="100%" stopColor="white" stopOpacity="0"/>
+      </linearGradient>
+      {/* Deep dark fill gradient */}
+      <linearGradient id="fflick-gradient-fill" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor="rgba(20,16,12,0.99)" />
+        <stop offset="60%" stopColor="rgba(20,16,12,0.99)" />
+        <stop offset="100%" stopColor="rgba(15,12,8,1)" />
+      </linearGradient>
+      <mask id="fflick-fade-mask">
+        <rect x="0" y="0" width="1920" height="140" fill="url(#fflick-fade)" />
+      </mask>
+    </defs>
+    {/* Dramatic curve, lower, thicker, faded sides */}
+    <path
+      d="M0,90 Q960,15 1920,90"
+      fill="none"
+      stroke="url(#fflick-gradient-stroke)"
+      strokeWidth="11"
+      style={{ filter: "drop-shadow(0 3px 12px #eb423b2a)" }}
+      mask="url(#fflick-fade-mask)"
+    />
+    {/* Under-curve fill */}
+    <path
+      d="M0,90 Q960,15 1920,90 L1920,140 L0,140 Z"
+      fill="url(#fflick-gradient-fill)"
+      stroke="none"
+      mask="url(#fflick-fade-mask)"
+    />
+  </svg>
+</div>
+
 
     </section>
   );

@@ -51,80 +51,70 @@ export default function LandingHero({ onGetStarted }) {
         <button
           onClick={onGetStarted}
           style={{
-            background: `linear-gradient(90deg,#fe9245 10%,#eb423b 90%)`,
+            background: `linear-gradient(90deg,#fe9245 10%,#eb423b 60%,#367cff 100%)`,
             color: "#fff",
             border: "none",
-            borderRadius: 12,
+            borderRadius: 10,
             fontWeight: 900,
-            fontSize: "1.4rem",
-            padding: "18px 56px",
-            marginTop: 0, // moved up, right under text
-            boxShadow: "0 4px 22px #eb423b30",
+            fontSize: "1.07rem",
+            padding: "11px 35px",
+            marginTop: 0,
+            boxShadow: "0 3px 16px #eb423b28",
             cursor: "pointer",
             letterSpacing: "0.02em",
             transition: "transform 0.16s cubic-bezier(.3,1.1,.3,1.03), box-shadow 0.14s, opacity 0.13s"
           }}
           onMouseEnter={e => {
-            e.currentTarget.style.transform = "scale(1.07)";
-            e.currentTarget.style.boxShadow = "0 8px 32px #eb423b55";
+            e.currentTarget.style.transform = "scale(1.08)";
+            e.currentTarget.style.boxShadow = "0 9px 26px #eb423b52";
           }}
           onMouseLeave={e => {
             e.currentTarget.style.transform = "scale(1)";
-            e.currentTarget.style.boxShadow = "0 4px 22px #eb423b30";
+            e.currentTarget.style.boxShadow = "0 3px 16px #eb423b28";
           }}
         >
           GET STARTED
         </button>
       </div>
-      {/* Bottom Curve Divider with Gradient Stroke */}
+      {/* Bottom Reversed Curve Divider with Theme Gradient */}
       <div style={{
         width: "100vw",
         position: "absolute",
         left: 0,
-        bottom: -1, // overlays the next section
+        bottom: -2, // overlays next section
         zIndex: 3,
         pointerEvents: "none",
         lineHeight: 0,
       }}>
-        <div style={{
-          width: "100vw",
-          position: "absolute",
-          left: 0,
-          bottom: -1,
-          zIndex: 3,
-          pointerEvents: "none",
-          lineHeight: 0,
-        }}>
-          <svg
-            viewBox="0 0 1920 120"
-            width="100%"
-            height="64"
-            preserveAspectRatio="none"
-            style={{ display: "block" }}
-          >
-            {/* Gradient for stroke */}
-            <defs>
-              <linearGradient id="fflick-gradient-stroke" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stopColor="#fe9245" />
-                <stop offset="100%" stopColor="#eb423b" />
-              </linearGradient>
-              {/* Match WhyFeelFlick block color or use your theme */}
-              <linearGradient id="fflick-curve-fill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="rgba(24,20,17,0.95)" />
-                <stop offset="100%" stopColor="rgba(var(--theme-color-rgb), 0.18)" />
-              </linearGradient>
-            </defs>
-            {/* The curve shape (gradient stroke, blended fill) */}
-            <path
-              d="M0,30 Q950,120 1920,30 L1920,120 L0,120 Z"
-              fill="url(#fflick-curve-fill)"
-              stroke="url(#fflick-gradient-stroke)"
-              strokeWidth="6"
-              style={{ filter: "drop-shadow(0 1px 16px #eb423b4c)" }}
-            />
-            {/* No rect, so the fill blends to next section */}
-          </svg>
-        </div>
+        <svg
+          viewBox="0 0 1920 120"
+          width="100%"
+          height="65"
+          preserveAspectRatio="none"
+          style={{ display: "block" }}
+        >
+          <defs>
+            {/* Theme gradient for the stroke (orange → radish → blue) */}
+            <linearGradient id="fflick-gradient-stroke" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="#fe9245" />
+              <stop offset="60%" stopColor="#eb423b" />
+              <stop offset="100%" stopColor="#367cff" />
+            </linearGradient>
+            {/* Fill to match WhyFeelFlick block background */}
+            <linearGradient id="fflick-curve-fill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="rgba(24,20,17,0.94)" />
+              <stop offset="100%" stopColor="rgba(var(--theme-color-rgb),0.17)" />
+            </linearGradient>
+          </defs>
+          {/* Reversed curve path */}
+          <path
+            d="M0,90 Q960,-35 1920,90 L1920,0 L0,0 Z"
+            fill="url(#fflick-curve-fill)"
+            stroke="url(#fflick-gradient-stroke)"
+            strokeWidth="5"
+            style={{ filter: "drop-shadow(0 1px 10px #eb423b6c)" }}
+          />
+        </svg>
       </div>
     </section>
   );

@@ -6,7 +6,7 @@ const GENRES = {
   878: "Sci-Fi", 10770: "TV", 53: "Thriller", 10752: "War", 37: "Western"
 };
 
-function MovieModal({ movie, onClose }) {
+function MovieModal({ movie, onClose, onSignIn }) {
   if (!movie) return null;
   const genreLabels = (movie.genre_ids || []).map(id => GENRES[id] || null).filter(Boolean);
 

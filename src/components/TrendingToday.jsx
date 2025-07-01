@@ -9,11 +9,12 @@ const VISIBLE_FULL = 5;
 const PARTIAL = 0.5;
 
 export default function TrendingToday({ onSignIn }) {
+  // Use the passed in onSignIn, or fallback to a redirect.
   const handleSignIn = onSignIn || (() => { window.location.href = '/auth'; });
   const [movies, setMovies] = useState([]);
   const scrollRef = useRef(null);
 
-  // Add modal state
+  // Modal state
   const [selectedMovie, setSelectedMovie] = useState(null);
 
   useEffect(() => {
@@ -209,18 +210,18 @@ export default function TrendingToday({ onSignIn }) {
       `}</style>
       {/* MovieModal shown if a movie is selected */}
       {selectedMovie && (
-      <MovieModal
-        movie={selectedMovie}
-        onClose={() => setSelectedMovie(null)}
-        onSignIn={handleSignIn}
-      />
-    )}
+        <MovieModal
+          movie={selectedMovie}
+          onClose={() => setSelectedMovie(null)}
+          onSignIn={handleSignIn}
+        />
+      )}
     </section>
   );
 }
 
 // --- MovieModal Component (inline for this file) ---
-function MovieModal({ movie, onClose }) {
+function MovieModal({ movie, onClose, onSignIn }) {
   if (!movie) return null;
   const GENRES = {
     28: "Action", 12: "Adventure", 16: "Animation", 35: "Comedy", 80: "Crime", 99: "Documentary", 18: "Drama",

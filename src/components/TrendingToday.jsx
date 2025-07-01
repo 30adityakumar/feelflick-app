@@ -26,13 +26,22 @@ export default function TrendingToday() {
     if (scrollRef.current) scrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
   };
 
-  // Extra padding left for first card ranking
-  const LEFT_PADDING = 38;
+  const LEFT_PADDING = 44; // increased for visible number
   const scrollerWidth =
     VISIBLE_FULL * CARD_WIDTH +
     PARTIAL * CARD_WIDTH +
     (VISIBLE_FULL + PARTIAL - 1) * CARD_GAP +
     LEFT_PADDING;
+
+  // This creates a theme color gradient border using box-shadow
+  // You can also pull your actual theme colors here
+  const gradientBoxShadow = `
+    0 0 0 2px #fff0, 
+    0 0 0 2.5px #fff0, 
+    0 0 0 2.5px
+      linear-gradient(90deg,#fe9245 10%,#eb423b 70%,#367cff 100%)
+      !important
+  `;
 
   return (
     <section style={{
@@ -115,6 +124,7 @@ export default function TrendingToday() {
             marginRight: "auto",
             zIndex: 2,
             paddingLeft: LEFT_PADDING,
+            paddingTop: 15, // extra space for border highlight
           }}
           className="trending-row"
         >
@@ -139,18 +149,28 @@ export default function TrendingToday() {
                 zIndex: 2
               }}
               tabIndex={0}
+              onMouseEnter={e => {
+                // Gradient border using boxShadow + fallback for browsers
+                e.currentTarget.querySelector("img").style.boxShadow =
+                  "0 0 0 2.5px #fff0, 0 0 0 2.5px #fff0, 0 0 0 2.5px #fe9245, 0 0 0 4px #eb423b99, 0 0 0 7px #367cff33";
+                e.currentTarget.querySelector("img").style.filter = "brightness(1.05)";
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.querySelector("img").style.boxShadow = "0 2px 11px #000c";
+                e.currentTarget.querySelector("img").style.filter = "";
+              }}
             >
               {/* Big ranking number */}
               <div style={{
                 position: "absolute",
-                left: -20,
+                left: -26, // further left
                 bottom: 15,
                 fontSize: "4.8rem",
                 fontWeight: 900,
-                color: "#fff", // Make the number white
-                WebkitTextStroke: "2.5px #fff", // Bolder outline
+                color: "#fff",
+                opacity: 0.95, // 5% transparent
+                WebkitTextStroke: "2.5px #fff",
                 textStroke: "2.5px #fff",
-                opacity: 1,
                 lineHeight: 1,
                 zIndex: 3,
                 pointerEvents: "none",
@@ -172,14 +192,6 @@ export default function TrendingToday() {
                   background: "#191919",
                   transition: "box-shadow 0.15s, filter 0.15s"
                 }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.boxShadow = "0 0 0 3px #fff, 0 2px 18px #0009";
-                  e.currentTarget.style.filter = "brightness(1.10)";
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.boxShadow = "0 2px 11px #000c";
-                  e.currentTarget.style.filter = "";
-                }}
               />
             </div>
           ))}
@@ -188,8 +200,13 @@ export default function TrendingToday() {
       <style>{`
         .trending-row::-webkit-scrollbar { display: none; }
         .fflick-poster:focus img {
-          box-shadow: 0 0 0 3px #fff, 0 2px 18px #0009 !important;
-          filter: brightness(1.10);
+          box-shadow:
+            0 0 0 2.5px #fff0,
+            0 0 0 2.5px #fff0,
+            0 0 0 2.5px #fe9245,
+            0 0 0 4px #eb423b99,
+            0 0 0 7px #367cff33 !important;
+          filter: brightness(1.05);
         }
       `}</style>
     </section>

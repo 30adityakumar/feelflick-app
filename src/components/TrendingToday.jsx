@@ -8,7 +8,8 @@ const CARD_GAP = 32;
 const VISIBLE_FULL = 5;
 const PARTIAL = 0.5;
 
-export default function TrendingToday() {
+export default function TrendingToday({ onSignIn }) {
+  const handleSignIn = onSignIn || (() => { window.location.href = '/auth'; });
   const [movies, setMovies] = useState([]);
   const scrollRef = useRef(null);
 
@@ -208,8 +209,12 @@ export default function TrendingToday() {
       `}</style>
       {/* MovieModal shown if a movie is selected */}
       {selectedMovie && (
-        <MovieModal movie={selectedMovie} onClose={() => setSelectedMovie(null)} onSignIn={onSignIn} />
-      )}
+      <MovieModal
+        movie={selectedMovie}
+        onClose={() => setSelectedMovie(null)}
+        onSignIn={handleSignIn}
+      />
+    )}
     </section>
   );
 }

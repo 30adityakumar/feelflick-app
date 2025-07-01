@@ -1,6 +1,6 @@
 import React from 'react';
 
-// Each card now has its own theme accent color (defined as CSS variables in your global styles)
+// Three themed cards with accent colors
 const cards = [
   {
     icon: '🎭',
@@ -30,7 +30,7 @@ const wrapperStyle = {
   height: '100vh',
   background: 'rgba(30, 36, 50, 0.1)',
   display: 'flex',
-  alignItems: 'center',
+  alignItems: 'stretch',
   justifyContent: 'center',
   padding: '0 5%',
   boxSizing: 'border-box',
@@ -39,26 +39,30 @@ const wrapperStyle = {
 const rowStyle = {
   display: 'flex',
   justifyContent: 'space-around',
+  alignItems: 'stretch',
   gap: '1rem',
   flexWrap: 'nowrap',
   width: '100%',
 };
 
 const baseCardStyle = {
-  background: 'rgba(255, 255, 255, 0.1)',
+  background: 'rgba(255, 255, 255, 0.25)',
   borderRadius: '12px',
-  padding: '1.5rem',
+  padding: '2rem',
   flex: '0 1 28%',
-  fontSize: '0.875rem',
+  minWidth: '240px',
+  height: '80vh',
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'flex-start',
   transition: 'transform 0.3s ease, box-shadow 0.3s ease, outline 0.3s ease',
   cursor: 'pointer',
-  minWidth: '220px',
 };
 
 export default function WhyFeelFlick() {
   return (
     <>  
-      {/* Fade-in-up keyframes */}
+      {/* Keyframes for fade-in-up animation */}
       <style>{`
         @keyframes fadeInUp {
           from { opacity: 0; transform: translateY(20px); }
@@ -73,13 +77,13 @@ export default function WhyFeelFlick() {
               key={idx}
               style={{
                 ...baseCardStyle,
-                borderLeft: `4px solid ${card.color}`,
+                borderLeft: `6px solid ${card.color}`,
                 animation: `fadeInUp 0.6s ease ${(idx * 0.1).toFixed(1)}s both`,
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.boxShadow = `0 8px 24px ${card.color}33`;
-                e.currentTarget.style.transform = 'translateY(-6px) scale(1.05)';
-                e.currentTarget.style.outline = `2px solid ${card.color}`;
+                e.currentTarget.style.transform = 'translateY(-8px) scale(1.03)';
+                e.currentTarget.style.outline = `3px solid ${card.color}`;
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.boxShadow = 'none';
@@ -87,11 +91,24 @@ export default function WhyFeelFlick() {
                 e.currentTarget.style.outline = 'none';
               }}
             >
-              <h3 style={{ margin: '0 0 0.5rem', fontSize: '1rem', display: 'flex', alignItems: 'center', color: card.color }}>
-                <span style={{ marginRight: '0.5rem', fontSize: '1.2rem' }}>{card.icon}</span>
+              <h3 style={{
+                margin: '0 0 1rem',
+                fontSize: '1.5rem',
+                color: card.color,
+                display: 'flex',
+                alignItems: 'center',
+              }}>
+                <span style={{ marginRight: '0.75rem', fontSize: '1.5rem' }}>{card.icon}</span>
                 {card.title}
               </h3>
-              <p style={{ margin: 0, color: 'var(--text-secondary)' }}>{card.description}</p>
+              <p style={{
+                margin: 0,
+                color: 'var(--text-secondary)',
+                fontSize: '1rem',
+                lineHeight: '1.5',
+              }}>
+                {card.description}
+              </p>
             </div>
           ))}
         </div>

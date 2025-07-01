@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { Helmet } from "react-helmet";
 import MovieModal from "./MovieModal";
 
 export default function HomePage({ userName = "Movie Lover", userId }) {
@@ -37,6 +38,15 @@ export default function HomePage({ userName = "Movie Lover", userId }) {
       width: "100vw",
       overflowX: "hidden",
     }}>
+      {/* SEO Helmet */}
+      <Helmet>
+        <title>Feel Flick - Movies that match your mood.</title>
+        <meta
+          name="description"
+          content="Feel Flick recommends movies that match your mood. Track your film journey and get personalized picks that fit you, not the algorithm."
+        />
+      </Helmet>
+
       {/* HERO VIDEO (FULL WIDTH) */}
       <div style={{
         position: "relative",
@@ -165,6 +175,7 @@ export default function HomePage({ userName = "Movie Lover", userId }) {
     </div>
   );
 }
+
 
 // Carousel (FULL WIDTH, ARROWS CENTERED)
 function HomeCarousel({ title, movies, emptyMessage, onMovieClick }) {

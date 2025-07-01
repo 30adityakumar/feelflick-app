@@ -86,31 +86,45 @@ export default function LandingHero({ onGetStarted }) {
         pointerEvents: "none",
         lineHeight: 0,
       }}>
-        <svg
-          viewBox="0 0 1920 120"
-          width="100%"
-          height="72"
-          preserveAspectRatio="none"
-          style={{ display: "block" }}
-        >
-          {/* SVG Gradient for Stroke */}
-          <defs>
-            <linearGradient id="fflick-gradient-stroke" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="10%" stopColor="#fe9245" />
-              <stop offset="95%" stopColor="#eb423b" />
-            </linearGradient>
-          </defs>
-          {/* Curved Path with THEME GRADIENT stroke */}
-          <path
-            d="M0,30 Q950,120 1920,30 L1920,120 L0,120 Z"
-            fill="#090a14"
-            stroke="url(#fflick-gradient-stroke)"
-            strokeWidth="6"
-            style={{ filter: "drop-shadow(0 1px 16px #eb423b6c)" }}
-          />
-          {/* Solid fill below the curve */}
-          <rect x="0" y="60" width="1920" height="70" fill="#090a14" />
-        </svg>
+        <div style={{
+          width: "100vw",
+          position: "absolute",
+          left: 0,
+          bottom: -1,
+          zIndex: 3,
+          pointerEvents: "none",
+          lineHeight: 0,
+        }}>
+          <svg
+            viewBox="0 0 1920 120"
+            width="100%"
+            height="64"
+            preserveAspectRatio="none"
+            style={{ display: "block" }}
+          >
+            {/* Gradient for stroke */}
+            <defs>
+              <linearGradient id="fflick-gradient-stroke" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="#fe9245" />
+                <stop offset="100%" stopColor="#eb423b" />
+              </linearGradient>
+              {/* Match WhyFeelFlick block color or use your theme */}
+              <linearGradient id="fflick-curve-fill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="rgba(24,20,17,0.95)" />
+                <stop offset="100%" stopColor="rgba(var(--theme-color-rgb), 0.18)" />
+              </linearGradient>
+            </defs>
+            {/* The curve shape (gradient stroke, blended fill) */}
+            <path
+              d="M0,30 Q950,120 1920,30 L1920,120 L0,120 Z"
+              fill="url(#fflick-curve-fill)"
+              stroke="url(#fflick-gradient-stroke)"
+              strokeWidth="6"
+              style={{ filter: "drop-shadow(0 1px 16px #eb423b4c)" }}
+            />
+            {/* No rect, so the fill blends to next section */}
+          </svg>
+        </div>
       </div>
     </section>
   );

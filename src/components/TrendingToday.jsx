@@ -12,29 +12,28 @@ export default function TrendingToday() {
       .then(data => setMovies((data.results || []).slice(0, 10)));
   }, []);
 
-  // Scrolling
-  const scrollAmount = 280;
+  const scrollAmount = 290;
   const scrollLeft = () => scrollRef.current && scrollRef.current.scrollBy({ left: -scrollAmount, behavior: "smooth" });
   const scrollRight = () => scrollRef.current && scrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
 
   return (
     <section style={{
-      background: "rgba(10,10,10,0.72)",
-      padding: "28px 0 35px 0",
+      background: "rgba(10,10,10,0.73)",
+      padding: "36px 0 45px 0",
       position: "relative",
       overflow: "visible",
-      minHeight: 295,
+      minHeight: 320,
       width: "100vw"
     }}>
       {/* Heading */}
       <div style={{
         fontWeight: 900,
-        fontSize: "1.09rem",
+        fontSize: "1.1rem",
         color: "#fff",
         letterSpacing: "0.14em",
         marginLeft: "8vw",
-        marginBottom: 38,    // more gap below
-        marginTop: 6,        // move title up
+        marginBottom: 39,
+        marginTop: 2,
         textAlign: "left",
         textTransform: "uppercase"
       }}>
@@ -46,7 +45,7 @@ export default function TrendingToday() {
         aria-label="Scroll Left"
         onClick={scrollLeft}
         style={{
-          position: "absolute", left: "2vw", top: "60%", transform: "translateY(-50%)",
+          position: "absolute", left: "2vw", top: "62%", transform: "translateY(-50%)",
           background: "rgba(22,22,22,0.83)", border: "none", borderRadius: 14,
           width: 36, height: 62, color: "#fff", fontSize: 22,
           cursor: "pointer", zIndex: 6, opacity: 0.7, transition: "opacity 0.2s"
@@ -58,7 +57,7 @@ export default function TrendingToday() {
         aria-label="Scroll Right"
         onClick={scrollRight}
         style={{
-          position: "absolute", right: "2vw", top: "60%", transform: "translateY(-50%)",
+          position: "absolute", right: "2vw", top: "62%", transform: "translateY(-50%)",
           background: "rgba(22,22,22,0.83)", border: "none", borderRadius: 14,
           width: 36, height: 62, color: "#fff", fontSize: 22,
           cursor: "pointer", zIndex: 6, opacity: 0.7, transition: "opacity 0.2s"
@@ -67,44 +66,46 @@ export default function TrendingToday() {
         onMouseOut={e => e.currentTarget.style.opacity = 0.7}
       >›</button>
 
-      {/* Horizontally scrollable card grid */}
+      {/* Movie cards row */}
       <div
         ref={scrollRef}
         style={{
           display: "flex",
-          gap: 34,
+          gap: 32,
           overflowX: "auto",
           padding: "0 10vw 8px 10vw",
           margin: "0 auto",
           scrollbarWidth: "none",
           scrollSnapType: "x mandatory",
-          minHeight: 200,
+          minHeight: 232,
           width: "100%",
           boxSizing: "border-box",
           alignItems: "flex-end",
-          position: "relative"
+          position: "relative",
+          overflow: "visible",
         }}
         className="trending-row"
       >
         {movies.map((movie, idx) => (
           <div key={movie.id} style={{
             position: "relative",
-            flex: "0 0 125px",
-            width: 125,
-            minWidth: 125,
-            height: 182,
-            borderRadius: 13,
-            boxShadow: "0 2px 9px #000a",
+            flex: "0 0 152px",
+            width: 152,
+            minWidth: 152,
+            height: 222,
+            borderRadius: 15,
+            boxShadow: "0 2px 11px #000b",
             background: "#181818",
             scrollSnapAlign: "center",
             overflow: "visible",
             marginBottom: 6,
+            marginTop: 0,
             transition: "transform 0.19s cubic-bezier(.32,1.4,.46,1)",
             zIndex: 2
           }}
           tabIndex={0}
           onMouseEnter={e => {
-            e.currentTarget.style.transform = "translateY(-12px) scale(1.09)";
+            e.currentTarget.style.transform = "translateY(-20px) scale(1.1)";
             e.currentTarget.style.zIndex = 10;
           }}
           onMouseLeave={e => {
@@ -115,18 +116,18 @@ export default function TrendingToday() {
             {/* Big ranking number */}
             <div style={{
               position: "absolute",
-              left: 8,           // move right, over the poster
-              bottom: 7,
-              fontSize: "2.95rem",
-              fontWeight: 800,
-              color: "#111",     // fill with black
-              WebkitTextStroke: "2px #fff",
-              textStroke: "2px #fff",
-              opacity: 0.93,
+              left: -38, // half in, half out
+              bottom: 11,
+              fontSize: "3.7rem",
+              fontWeight: 900,
+              color: "#111",     // black fill
+              WebkitTextStroke: "1px #fff", // thin white outline
+              textStroke: "1px #fff",
+              opacity: 0.97,
               lineHeight: 1,
               zIndex: 3,
               pointerEvents: "none",
-              textShadow: "0 2px 10px #000b",
+              textShadow: "0 1.5px 8px #000a",
               fontFamily: "Montserrat,Arial,sans-serif"
             }}>{idx + 1}</div>
 
@@ -137,10 +138,11 @@ export default function TrendingToday() {
                 : "/posters/placeholder.png"}
               alt={movie.title}
               style={{
-                width: 125, height: 182, objectFit: "cover",
-                borderRadius: 13,
-                boxShadow: "0 2px 7px #000c",
-                display: "block"
+                width: 152, height: 222, objectFit: "cover",
+                borderRadius: 15,
+                boxShadow: "0 2px 11px #000c",
+                display: "block",
+                background: "#191919"
               }}
             />
           </div>

@@ -1,11 +1,23 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Helmet } from "react-helmet";
 import MovieModal from "./MovieModal";
 
 export default function HomePage({ userName = "Movie Lover", userId }) {
   const [trending, setTrending] = useState([]);
   const [watched, setWatched] = useState([]);
   const [modalMovie, setModalMovie] = useState(null);
+
+  // Set page title and meta (no Helmet)
+  useEffect(() => {
+    document.title = "Feel Flick - Movies that match your mood.";
+    // Set meta description (not as robust as Helmet, but works for most SPAs)
+    let meta = document.querySelector("meta[name='description']");
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.name = "description";
+      document.head.appendChild(meta);
+    }
+    meta.content = "Feel Flick recommends movies that match your mood. Track your film journey and get personalized picks that fit you, not the algorithm.";
+  }, []);
 
   // Fetch trending movies from TMDb
   useEffect(() => {
@@ -38,15 +50,6 @@ export default function HomePage({ userName = "Movie Lover", userId }) {
       width: "100vw",
       overflowX: "hidden",
     }}>
-      {/* SEO Helmet */}
-      <Helmet>
-        <title>Feel Flick - Movies that match your mood.</title>
-        <meta
-          name="description"
-          content="Feel Flick recommends movies that match your mood. Track your film journey and get personalized picks that fit you, not the algorithm."
-        />
-      </Helmet>
-
       {/* HERO VIDEO (FULL WIDTH) */}
       <div style={{
         position: "relative",
@@ -134,7 +137,7 @@ export default function HomePage({ userName = "Movie Lover", userId }) {
       }}>
         <div style={{
           width: "100vw",
-          padding: "0 3vw", // add some side padding for breath
+          padding: "0 3vw",
           marginTop: 30
         }}>
           <HomeCarousel
@@ -175,6 +178,8 @@ export default function HomePage({ userName = "Movie Lover", userId }) {
     </div>
   );
 }
+
+// ...rest of your file, e.g. HomeCarousel, stays the same
 
 
 // Carousel (FULL WIDTH, ARROWS CENTERED)

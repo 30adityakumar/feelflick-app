@@ -3,7 +3,7 @@ import React from 'react';
 const cards = [
   {
     title: 'Mood-Driven, Personalized Picks',
-    description: 
+    description:
       "Get movie recommendations that actually get you. FeelFlick doesn’t just suggest what’s popular — it suggests what fits you. Based on your movie taste and how you’re feeling right now, it serves up titles that match your vibe. The more you use it, the better it gets at recommending films that feel just right.",
   },
   {
@@ -57,11 +57,11 @@ const baseCardStyle = {
   justifyContent: 'flex-start',
   padding: '2rem 1.5rem',
   borderRadius: '16px',
-  background: 'rgba(255,255,255,0.05)',
-  backdropFilter: 'blur(12px)',
-  WebkitBackdropFilter: 'blur(12px)',
+  background: 'rgba(255,255,255,0.07)',
+  backdropFilter: 'blur(14px)',
+  WebkitBackdropFilter: 'blur(14px)',
   border: '1px solid rgba(var(--theme-color-rgb),0.2)',
-  transition: 'transform 0.3s ease, box-shadow 0.3s ease, outline 0.2s',
+  transition: 'transform 0.36s cubic-bezier(.2,.8,.4,1.1), box-shadow 0.33s, outline 0.18s, filter 0.25s',
   position: 'relative',
   cursor: 'default',
 };
@@ -71,15 +71,18 @@ export default function WhyFeelFlick() {
     <>
       <style>{`
         @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(32px); }
-          to { opacity: 1; transform: translateY(0); }
+          from { opacity: 0; transform: translateY(32px);}
+          to { opacity: 1; transform: translateY(0);}
         }
         .fflick-box { animation: fadeInUp 0.7s ease both; }
         .fflick-card:hover {
-          transform: translateY(-10px) scale(1.02);
-          box-shadow: 0 12px 24px rgba(var(--theme-color-rgb),0.2);
-          outline: 3px solid var(--theme-color);
-          outline-offset: 2px;
+          transform: translateY(-14px) rotate(-1.3deg) scale(1.04);
+          box-shadow:
+            0 6px 32px 0 var(--theme-color, #ff4e32cc),
+            0 2px 20px 0 var(--theme-color-secondary, #3777ff44);
+          outline: 3px solid var(--theme-color, #ff4e32);
+          outline-offset: 1px;
+          filter: brightness(1.10) saturate(1.13);
           z-index: 2;
         }
         @media (max-width: 1020px) {
@@ -104,12 +107,13 @@ export default function WhyFeelFlick() {
                 <h3
                   style={{
                     margin: '0 0 1rem',
-                    fontSize: '1.9rem',
-                    fontWeight: 700,
-                    lineHeight: 1.2,
-                    background: 'linear-gradient(90deg, var(--theme-color), var(--theme-color-secondary))',
+                    fontSize: '2rem',
+                    fontWeight: 800,
+                    lineHeight: 1.18,
+                    background: 'linear-gradient(94deg, var(--theme-color,#FF5B2E), var(--theme-color-secondary,#367cff) 85%)',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
+                    textShadow: '0 3px 12px rgba(0,0,0,0.16)',
                   }}
                 >
                   {card.title}
@@ -117,9 +121,11 @@ export default function WhyFeelFlick() {
                 <p
                   style={{
                     margin: 0,
-                    fontSize: '0.9rem',
-                    color: 'rgba(255,255,255,0.85)',
-                    lineHeight: '1.6',
+                    fontSize: '1.22rem',
+                    color: 'rgba(255,255,255,0.95)',
+                    lineHeight: '1.75',
+                    fontWeight: 400,
+                    textShadow: '0 2px 6px rgba(0,0,0,0.12)',
                   }}
                 >
                   {card.description}

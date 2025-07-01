@@ -1,7 +1,6 @@
 // components/WhyFeelFlick.jsx
 import { useEffect } from "react"
 
-// List of card content
 const CARDS = [
   {
     emoji: "😩",
@@ -61,9 +60,8 @@ const CARDS = [
   },
 ]
 
-// Fade-in effect on mount
-useEffectFadeIn()
-function useEffectFadeIn() {
+export default function WhyFeelFlick() {
+  // Fade-in effect on mount
   useEffect(() => {
     const cards = document.querySelectorAll(".ff-wff-card")
     cards.forEach((card, i) => {
@@ -76,9 +74,7 @@ function useEffectFadeIn() {
       }, 250 + i * 160)
     })
   }, [])
-}
 
-export default function WhyFeelFlick() {
   return (
     <section
       id="why-feelflick"
@@ -151,7 +147,6 @@ export default function WhyFeelFlick() {
                 transition: "box-shadow 0.18s, border 0.2s, transform 0.18s",
                 position: "relative",
                 cursor: "pointer",
-                // Hover: Soft glow and outline
                 ...(i === 1
                   ? { background: "rgba(254,146,69,0.12)" }
                   : i === 4

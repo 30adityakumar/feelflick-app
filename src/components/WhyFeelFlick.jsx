@@ -9,7 +9,7 @@ const cards = [
   {
     title: 'Fast, Simple, and Private',
     description:
-      "Say goodbye to endless scrolling and choice overload. FeelFlick gives you quick, focused suggestions based on your emotional vibe and watch habits. No star ratings to obsess over. No clutter. And no one’s watching you — your movie history and moods stay private, always. It’s a calm, stress-free experience that helps you watch more and scroll less — every single time.",
+      "Say goodbye to endless scrolling and choice overload. FeelFlick gives you quick, focused suggestions based on your emotional vibe and watch habits. No star ratings to obsess over. No clutter. And no one’s watching you — your movie history and moods stay private, always. It’s a calm, stress-free experience that helps you watch more and scroll less — anytime, anywhere, on any device.",
   },
   {
     title: 'Track Your Journey — Always Free',

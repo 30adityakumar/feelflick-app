@@ -55,10 +55,10 @@ export default function TopNav({ onSignIn }) {
         justifyContent: "space-between",
         width: "calc(100vw - 76px)",
         padding: "0",
-        background: "rgba(18, 18, 30, 0.93)",
-        borderRadius: 18,
         minHeight: 58,
-        boxShadow: "0 4px 20px #0002"
+        // background: "rgba(18, 18, 30, 0.93)", // REMOVE THIS LINE
+        // borderRadius: 18, // REMOVE THIS LINE
+        boxShadow: "none"
       }}>
         <div className="fflick-topnav-row" style={{ display: "flex", alignItems: "center", gap: 13 }}>
           <img src="/logo.png" alt="FeelFlick" className="fflick-topnav-logo" style={{

@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
 
 export default function SignInForm({
-  isSigningUp, setIsSigningUp, email, setEmail, password, setPassword, name, setName,
-  error, loading, handleAuth, COLORS, navigateToSignUp, navigateToSignIn
+  isSigningUp, email, setEmail, password, setPassword, name, setName,
+  error, loading, handleAuth, COLORS
 }) {
   const navigate = useNavigate();
 
@@ -20,22 +20,9 @@ export default function SignInForm({
     boxShadow: "0 1.5px 8px 0 #0004"
   };
 
-  // Handlers for switching between forms
-  const handleSwitchToSignUp = () => {
-    if (navigateToSignUp) navigateToSignUp();
-    else {
-      setIsSigningUp(true);
-      navigate("/auth/sign-up");
-    }
-  };
-
-  const handleSwitchToSignIn = () => {
-    if (navigateToSignIn) navigateToSignIn();
-    else {
-      setIsSigningUp(false);
-      navigate("/auth/sign-in");
-    }
-  };
+  // Handlers for switching between forms (ONLY navigates)
+  const handleSwitchToSignUp = () => navigate("/auth/sign-up");
+  const handleSwitchToSignIn = () => navigate("/auth/sign-in");
 
   return (
     <form

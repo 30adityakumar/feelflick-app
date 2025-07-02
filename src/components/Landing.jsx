@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import TopNav from './TopNav'
 import LandingHero from './LandingHero'
 import WhyFeelFlick from './WhyFeelFlick'
@@ -5,7 +6,13 @@ import TrendingToday from './TrendingToday'
 import CallToAction from './CallToAction'
 import Footer from './Footer'
 
-export default function Landing({ onSignIn, onSignUp }) {
+export default function Landing() {
+  const navigate = useNavigate();
+
+  // Use these functions for all navigation actions:
+  const handleSignIn = () => navigate("/auth/sign-in");
+  const handleSignUp = () => navigate("/auth/sign-up");
+
   return (
     <div style={{ width: "100vw", minHeight: "100vh", background: "#101015", overflowX: "hidden", position: "relative" }}>
       {/* Background video */}
@@ -41,11 +48,11 @@ export default function Landing({ onSignIn, onSignUp }) {
 
       {/* The rest of your site */}
       <div style={{ position: "relative", zIndex: 2 }}>
-        <TopNav onSignIn={onSignIn} />
-        <LandingHero onGetStarted={onSignUp} />
+        <TopNav onSignIn={handleSignIn} />
+        <LandingHero onGetStarted={handleSignUp} />
         <WhyFeelFlick />
-        <TrendingToday onSignUp={onSignUp} />
-        <CallToAction onSignUp={onSignUp} />
+        <TrendingToday onSignUp={handleSignUp} />
+        <CallToAction onSignUp={handleSignUp} />
         <Footer />
       </div>
     </div>

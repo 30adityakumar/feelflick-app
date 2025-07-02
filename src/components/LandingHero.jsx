@@ -1,4 +1,8 @@
-export default function LandingHero({ onGetStarted }) {
+import { useNavigate } from "react-router-dom";
+
+export default function LandingHero() {
+  const navigate = useNavigate();
+
   return (
     <section
       style={{
@@ -98,7 +102,7 @@ export default function LandingHero({ onGetStarted }) {
         </div>
         <button
           className="fflick-landing-btn"
-          onClick={onGetStarted}
+          onClick={() => navigate("/auth/sign-up")}
           style={{
             background: `linear-gradient(90deg,#fe9245 10%,#eb423b 90%)`,
             color: "#fff",

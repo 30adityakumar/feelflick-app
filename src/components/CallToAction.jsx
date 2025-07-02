@@ -1,4 +1,8 @@
-export default function CallToAction({ onSignUp }) {
+import { useNavigate } from "react-router-dom";
+
+export default function CallToAction() {
+  const navigate = useNavigate();
+
   return (
     <section style={{
       width: "100vw",
@@ -55,7 +59,7 @@ export default function CallToAction({ onSignUp }) {
         </div>
         <button
           className="fflick-cta-btn"
-          onClick={onSignUp}
+          onClick={() => navigate("/auth/sign-up")}
           style={{
             background: "linear-gradient(91deg, #FF5B2E 54%, #FF7B48 100%)",
             color: "#fff",
@@ -85,5 +89,5 @@ export default function CallToAction({ onSignUp }) {
         </button>
       </div>
     </section>
-  )
+  );
 }

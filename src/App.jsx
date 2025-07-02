@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
 
@@ -15,12 +15,8 @@ function MainApp({ session, profileName, setProfileName }) {
   const [activeTab, setActiveTab] = useState('home');
   const [showAccountModal, setShowAccountModal] = useState(false);
 
-  const navigate = useNavigate();
+  // Navigation is handled inside children using useNavigate
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    navigate("/"); // Go to public landing after sign out
-  };
   const handleMyAccount = () => setShowAccountModal(true);
   const handleCloseAccount = () => setShowAccountModal(false);
   const handleProfileUpdate = (newName) => setProfileName(newName);
@@ -31,7 +27,7 @@ function MainApp({ session, profileName, setProfileName }) {
         userName={profileName || session?.user?.user_metadata?.name || "Account"}
         onTabChange={setActiveTab}
         activeTab={activeTab}
-        onSignOut={handleSignOut}
+        // onSignOut handled inside child (see below)
         onMyAccount={handleMyAccount}
       />
       {showAccountModal && (
@@ -45,19 +41,11 @@ function MainApp({ session, profileName, setProfileName }) {
         <HomePage
           userName={profileName || session?.user?.user_metadata?.name || "Movie Lover"}
           userId={session?.user?.id}
-          onSignIn={() => navigate("/auth/sign-in")}
-          onSignUp={() => navigate("/auth/sign-up")}
         />
       )}
-      {activeTab === 'movies' && (
-        <MoviesTab session={session} />
-      )}
-      {activeTab === 'recommendations' && (
-        <RecommendationsTab session={session} />
-      )}
-      {activeTab === 'watched' && (
-        <WatchedTab session={session} />
-      )}
+      {activeTab === 'movies' && <MoviesTab session={session} />}
+      {activeTab === 'recommendations' && <RecommendationsTab session={session} />}
+      {activeTab === 'watched' && <WatchedTab session={session} />}
     </div>
   );
 }
@@ -65,7 +53,6 @@ function MainApp({ session, profileName, setProfileName }) {
 export default function App() {
   const [session, setSession] = useState(null);
   const [profileName, setProfileName] = useState("");
-  const navigate = useNavigate();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
@@ -73,23 +60,12 @@ export default function App() {
     return () => data.subscription.unsubscribe();
   }, []);
 
-  // Use navigate for sign in/up
-  const handleSignIn = () => navigate("/auth/sign-in");
-  const handleSignUp = () => navigate("/auth/sign-up");
-
   return (
     <BrowserRouter>
       <Routes>
         {/* Public landing page */}
-        <Route
-          path="/"
-          element={
-            <Landing
-              onSignIn={handleSignIn}
-              onSignUp={handleSignUp}
-            />
-          }
-        />
+        <Route path="/" element={<Landing />} />
+
         {/* Auth pages */}
         <Route path="/auth/sign-in" element={<AuthPage mode="sign-in" />} />
         <Route path="/auth/sign-up" element={<AuthPage mode="sign-up" />} />

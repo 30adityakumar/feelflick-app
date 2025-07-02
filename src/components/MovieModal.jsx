@@ -1,4 +1,4 @@
-// src/components/MovieModal.jsx
+import { useNavigate } from "react-router-dom";
 
 const GENRES = {
   28: "Action", 12: "Adventure", 16: "Animation", 35: "Comedy", 80: "Crime", 99: "Documentary", 18: "Drama",
@@ -6,7 +6,8 @@ const GENRES = {
   878: "Sci-Fi", 10770: "TV", 53: "Thriller", 10752: "War", 37: "Western"
 };
 
-function MovieModal({ movie, onClose, onSignIn }) {
+function MovieModal({ movie, onClose }) {
+  const navigate = useNavigate();
   if (!movie) return null;
   const genreLabels = (movie.genre_ids || []).map(id => GENRES[id] || null).filter(Boolean);
 
@@ -114,7 +115,7 @@ function MovieModal({ movie, onClose, onSignIn }) {
             {movie.overview || "No description available."}
           </div>
           <button
-            onClick={onSignIn}
+            onClick={() => navigate("/auth/sign-up")}
             style={{
               background: "linear-gradient(90deg,#fe9245 10%,#eb423b 90%)",
               color: "#fff",

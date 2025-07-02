@@ -1,4 +1,8 @@
-export default function TopNav({ onSignIn }) {
+import { useNavigate } from "react-router-dom";
+
+export default function TopNav() {
+  const navigate = useNavigate();
+
   return (
     <>
       <style>{`
@@ -56,8 +60,6 @@ export default function TopNav({ onSignIn }) {
         width: "calc(100vw - 76px)",
         padding: "0",
         minHeight: 58,
-        // background: "rgba(18, 18, 30, 0.93)", // REMOVE THIS LINE
-        // borderRadius: 18, // REMOVE THIS LINE
         boxShadow: "none"
       }}>
         <div className="fflick-topnav-row" style={{ display: "flex", alignItems: "center", gap: 13 }}>
@@ -71,7 +73,7 @@ export default function TopNav({ onSignIn }) {
         <div style={{ display: "flex", alignItems: "center" }}>
           <button
             className="fflick-topnav-signin"
-            onClick={onSignIn}
+            onClick={() => navigate("/auth/sign-in")}
             style={{
               background: `linear-gradient(90deg,#fe9245 10%,#eb423b 90%)`,
               color: "#fff", border: "none", borderRadius: 8,

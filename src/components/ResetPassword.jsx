@@ -1,3 +1,25 @@
+// At the start of ResetPassword.jsx
+console.log("ResetPassword loaded. location.hash:", window.location.hash);
+
+const params = Object.fromEntries(
+  new URLSearchParams(hash.startsWith("#") ? hash.slice(1) : hash)
+);
+
+console.log("Parsed tokens:", params);
+
+useEffect(() => {
+  if (accessToken && refreshToken) {
+    supabase.auth
+      .setSession({ access_token: accessToken, refresh_token: refreshToken })
+      .then(({ error }) => {
+        if (error) console.error("setSession error:", error.message);
+        else console.log("Session set successfully");
+      })
+      .catch((err) => console.error("setSession failed:", err));
+  }
+}, [accessToken, refreshToken]);
+
+
 // src/components/ResetPassword.jsx
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";

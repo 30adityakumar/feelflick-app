@@ -1,118 +1,106 @@
 // src/components/ResetPassword.jsx
-import { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 
 export default function ResetPassword() {
-  const [searchParams] = useSearchParams();
+  const { hash } = useLocation();            // ← read the fragment
   const navigate = useNavigate();
 
-  const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
+  // parse the hash into an object  (#foo=bar&baz=qux → { foo:"bar", baz:"qux" })
+  const params = Object.fromEntries(
+    new URLSearchParams(hash.startsWith("#") ? hash.slice(1) : hash)
+  );
 
-  const accessToken = searchParams.get("access_token");
+  const accessToken   = params.access_token;
+  const refreshToken  = params.refresh_token;
+  const [password, setPassword]       = useState("");
+  const [confirm , setConfirm ]       = useState("");
+  const [error   , setError   ]       = useState("");
+  const [success , setSuccess ]       = useState(false);
+
+  // ────────────────────────────────────────────────────────────────
+  //  1️⃣  Exchange the tokens in the URL fragment for a session
+  //      (only on first render)
+  // ────────────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (accessToken && refreshToken) {
+      supabase.auth
+        .setSession({ access_token: accessToken, refresh_token: refreshToken })
+        .catch((err) => console.error("setSession failed:", err));
+    }
+  }, [accessToken, refreshToken]);
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
-    if (!password || password.length < 6) {
-      setError("Password must be at least 6 characters.");
-      return;
-    }
-    if (password !== confirm) {
-      setError("Passwords do not match.");
-      return;
-    }
-    // Call Supabase API to update password
+
+    if (password.length < 8)            return setError("Password must be at least 8 characters.");
+    if (password !== confirm)           return setError("Passwords do not match.");
+
     const { error } = await supabase.auth.updateUser({ password });
-    if (error) setError(error.message);
+    if (error)  setError(error.message);
     else {
       setSuccess(true);
-      setTimeout(() => navigate("/auth/sign-in"), 1800);
+      setTimeout(() => navigate("/auth/sign-in"), 2000);
     }
   }
 
-  // If missing token, tell user
-  if (!accessToken) {
+  if (!accessToken || !refreshToken) {
     return (
-      <div style={{ color: "#fff", padding: 50, textAlign: "center" }}>
-        Invalid reset link.<br />Please try again.
-      </div>
+      <ScreenWrapper>
+        <Notice>Invalid or expired reset link.</Notice>
+      </ScreenWrapper>
     );
   }
 
   return (
-    <div style={{
-      minHeight: "100vh",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      background: "#101015",
-      fontFamily: "Inter,sans-serif"
-    }}>
-      <form
-        onSubmit={handleSubmit}
-        style={{
-          background: "rgba(24,22,32,0.95)",
-          borderRadius: 15,
-          padding: "38px 32px",
-          boxShadow: "0 8px 38px #000a",
-          minWidth: 340
-        }}
-      >
-        <div style={{ fontSize: 23, fontWeight: 900, color: "#fff", marginBottom: 16, textAlign: "center" }}>
-          Set a New Password
-        </div>
-        <input
+    <ScreenWrapper>
+      <Form onSubmit={handleSubmit}>
+        <Heading>Set a&nbsp;new&nbsp;password</Heading>
+
+        <Input
           type="password"
           placeholder="New password"
           value={password}
-          onChange={e => setPassword(e.target.value)}
-          style={inputStyle}
+          onChange={(e) => setPassword(e.target.value)}
         />
-        <input
+        <Input
           type="password"
           placeholder="Confirm password"
           value={confirm}
-          onChange={e => setConfirm(e.target.value)}
-          style={inputStyle}
+          onChange={(e) => setConfirm(e.target.value)}
         />
-        {error && <div style={{ color: "#eb423b", margin: "8px 0 1px 0", textAlign: "center", fontSize: 14 }}>{error}</div>}
-        {success
-          ? <div style={{ color: "#fe9245", fontWeight: 700, textAlign: "center", marginTop: 15 }}>Password updated! Redirecting…</div>
-          : <button
-              type="submit"
-              style={{
-                marginTop: 15,
-                background: "linear-gradient(90deg,#fe9245 10%,#eb423b 90%)",
-                color: "#fff",
-                border: "none",
-                borderRadius: 8,
-                fontWeight: 700,
-                fontSize: 16,
-                padding: "10px 0",
-                cursor: "pointer"
-              }}
-            >
-              Reset Password
-            </button>
-        }
-      </form>
-    </div>
+
+        {error   && <ErrorMsg>{error}</ErrorMsg>}
+        {success && <SuccessMsg>Password updated! You’ll be redirected…</SuccessMsg>}
+
+        {!success && <PrimaryBtn>Reset password</PrimaryBtn>}
+      </Form>
+    </ScreenWrapper>
   );
 }
 
-const inputStyle = {
-  margin: "12px 0",
-  padding: "13px 11px",
-  borderRadius: 8,
-  border: "none",
-  fontSize: 15.5,
-  background: "#232330",
-  color: "#fff",
-  fontWeight: 500,
-  outline: "none",
-  boxShadow: "0 1.5px 8px 0 #0004"
-};
+/* ─── tiny styled-component-like helpers ─── */
+const ScreenWrapper = ({ children }) => (
+  <div style={{
+    minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",
+    background:"#101015",fontFamily:"Inter,sans-serif"
+  }}>{children}</div>
+);
+
+const Form = (props) => (
+  <form {...props} style={{
+    background:"#18141c",padding:"38px 32px",borderRadius:16,minWidth:360,
+    boxShadow:"0 8px 38px #000c",color:"#fff",display:"flex",flexDirection:"column"
+  }}/>
+);
+
+const Heading   = ({ children }) => <div style={{fontSize:24,fontWeight:900,marginBottom:20,textAlign:"center"}}>{children}</div>;
+const Input     = (p) => <input {...p} style={{margin:"10px 0",padding:"13px 12px",borderRadius:8,border:"none",background:"#232330",color:"#fff",fontSize:16}} />;
+const ErrorMsg  = ({children}) => <div style={{color:"#eb423b",margin:"6px 0 0 0",textAlign:"center"}}>{children}</div>;
+const SuccessMsg= ({children}) => <div style={{color:"#fe9245",margin:"6px 0 0 0",textAlign:"center"}}>{children}</div>;
+const PrimaryBtn= ({children}) => <button type="submit" style={{
+  marginTop:18,background:"linear-gradient(90deg,#fe9245 10%,#eb423b 90%)",
+  border:"none",borderRadius:8,color:"#fff",fontWeight:700,fontSize:17,padding:"11px 0",cursor:"pointer"
+}}>{children}</button>;

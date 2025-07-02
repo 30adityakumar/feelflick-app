@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
+import ResetPassword from "./components/ResetPassword";
 
 import Landing from './components/Landing';
 import AuthPage from './AuthPage';
@@ -10,7 +11,7 @@ import MoviesTab from './components/MoviesTab';
 import RecommendationsTab from './components/RecommendationsTab';
 import WatchedTab from './components/WatchedTab';
 import AccountModal from './components/AccountModal';
-import ResetPassword from "./components/ResetPassword";
+
 
 function MainApp({ session, profileName, setProfileName }) {
   const [activeTab, setActiveTab] = useState('home');

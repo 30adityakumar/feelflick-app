@@ -37,9 +37,6 @@ export default function App() {
   const handleCloseAccount = () => setShowAccountModal(false)
   const handleProfileUpdate = (newName) => setProfileName(newName)
 
-  // --- Global navigation handlers (to pass as props) ---
-  // We use useNavigate() inside a component, so make a wrapper component below.
-
   return (
     <BrowserRouter>
       <AppRoutes
@@ -64,16 +61,12 @@ export default function App() {
 function AppRoutes(props) {
   const navigate = useNavigate();
 
-  // --- Authenticated app ---
   const {
     session,
-    setSession,
     activeTab,
     setActiveTab,
     showAccountModal,
-    setShowAccountModal,
     profileName,
-    setProfileName,
     handleSignOut,
     handleMyAccount,
     handleCloseAccount,
@@ -86,61 +79,43 @@ function AppRoutes(props) {
 
   return (
     <Routes>
-      {/* Unauthenticated routes */}
+      {/* --- Public HomePage (always accessible) --- */}
+      <Route path="/" element={
+        <HomePage
+          userName={profileName || session?.user?.user_metadata?.name || "Movie Lover"}
+          userId={session?.user?.id}
+          onSignIn={handleSignIn}
+          onSignUp={handleSignUp}
+          isLoggedIn={!!session}
+        />
+      } />
+
+      {/* --- Sign In/Up Pages --- */}
       <Route path="/auth/sign-up" element={<AuthPage mode="sign-up" />} />
       <Route path="/auth/sign-in" element={<AuthPage mode="sign-in" />} />
       {/* Fallback: any /auth/* shows AuthPage */}
       <Route path="/auth/*" element={<AuthPage />} />
 
-      {/* Main app (authenticated) */}
-      <Route
-        path="*"
-        element={
-          session ? (
-            <div className="min-h-screen bg-zinc-950 text-white pb-10" style={{ width: "100vw", overflowX: "hidden" }}>
-              <Header
-                userName={profileName || session?.user?.user_metadata?.name || "Account"}
-                onTabChange={setActiveTab}
-                activeTab={activeTab}
-                onSignOut={handleSignOut}
-                onMyAccount={handleMyAccount}
-                onSignIn={handleSignIn}
-                onSignUp={handleSignUp}
-              />
-              {/* My Account Modal */}
-              {showAccountModal && (
-                <AccountModal
-                  user={session.user}
-                  onClose={handleCloseAccount}
-                  onProfileUpdate={handleProfileUpdate}
-                />
-              )}
+      {/* --- Protected App Tabs (only if logged in) --- */}
+      <Route path="/movies" element={
+        session
+          ? <MoviesTab session={session} />
+          : <Navigate to="/auth/sign-in" />
+      } />
+      <Route path="/recommendations" element={
+        session
+          ? <RecommendationsTab session={session} />
+          : <Navigate to="/auth/sign-in" />
+      } />
+      <Route path="/watched" element={
+        session
+          ? <WatchedTab session={session} />
+          : <Navigate to="/auth/sign-in" />
+      } />
 
-              {/* Tab navigation, pass handleSignIn and handleSignUp as needed */}
-              {activeTab === 'home' && (
-                <HomePage
-                  userName={profileName || session?.user?.user_metadata?.name || "Movie Lover"}
-                  userId={session?.user?.id}
-                  onSignIn={handleSignIn}
-                  onSignUp={handleSignUp}
-                />
-              )}
-              {activeTab === 'movies' && (
-                <MoviesTab session={session} />
-              )}
-              {activeTab === 'recommendations' && (
-                <RecommendationsTab session={session} />
-              )}
-              {activeTab === 'watched' && (
-                <WatchedTab session={session} />
-              )}
-            </div>
-          ) : (
-            // Not authenticated? Redirect to sign in
-            <Navigate to="/auth/sign-in" />
-          )
-        }
-      />
+      {/* --- Optionally, catch-all for undefined routes (redirect to home) --- */}
+      {/* <Route path="*" element={<Navigate to="/" />} /> */}
+
     </Routes>
   );
 }

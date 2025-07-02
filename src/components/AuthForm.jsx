@@ -122,6 +122,28 @@ export default function AuthForm({ mode = "sign-in", onSwitchMode }) {
           style={inputStyle}
         />
       )}
+
+      {/* Forgot password */}
+      {!isSignUp && (
+        <div style={{ textAlign: "right", marginBottom: 2 }}>
+          <span
+            onClick={e => {
+              e.preventDefault();
+              // TODO: You can build a real forgot password flow here
+              alert("Password reset coming soon!");
+            }}
+            style={{
+              color: "#fe9245",
+              fontSize: 13.5,
+              fontWeight: 600,
+              cursor: "pointer"
+            }}
+          >
+            Forgot your password?
+          </span>
+        </div>
+      )}
+
       {/* Error Message */}
       {error && (
         <div style={{ color: "#eb423b", margin: "7px 0 1px 0", fontSize: 14, textAlign: "center", fontWeight: 500 }}>
@@ -191,26 +213,7 @@ export default function AuthForm({ mode = "sign-in", onSwitchMode }) {
         Continue with Google
       </button>
 
-      {/* Forgot password */}
-      {!isSignUp && (
-        <div style={{ textAlign: "right", marginBottom: 2 }}>
-          <span
-            onClick={e => {
-              e.preventDefault();
-              // TODO: You can build a real forgot password flow here
-              alert("Password reset coming soon!");
-            }}
-            style={{
-              color: "#fe9245",
-              fontSize: 13.5,
-              fontWeight: 600,
-              cursor: "pointer"
-            }}
-          >
-            Forgot your password?
-          </span>
-        </div>
-      )}
+      
 
       {/* Switch link */}
       <div style={{ color: "#bbb", marginTop: 7, textAlign: "center", fontSize: 13.5 }}>

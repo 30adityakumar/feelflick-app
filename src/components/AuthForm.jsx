@@ -1,5 +1,6 @@
 // src/components/AuthForm.jsx
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import { FcGoogle } from "react-icons/fc";
 
@@ -12,8 +13,8 @@ export default function AuthForm({ mode = "sign-in", onSwitchMode }) {
 
   // For "Confirm password" in Sign Up
   const [confirmPassword, setConfirmPassword] = useState("");
-
   const isSignUp = mode === "sign-up";
+  const navigate = useNavigate();
 
   // Handle Sign In or Sign Up
   async function handleSubmit(e) {
@@ -22,13 +23,11 @@ export default function AuthForm({ mode = "sign-in", onSwitchMode }) {
     setLoading(true);
 
     if (isSignUp) {
-      // Simple password confirm check
       if (password !== confirmPassword) {
         setError("Passwords do not match.");
         setLoading(false);
         return;
       }
-      // You can add more password validation here if you want!
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -36,14 +35,13 @@ export default function AuthForm({ mode = "sign-in", onSwitchMode }) {
       });
       if (error) setError(error.message);
       else {
-        // User created, now redirect or show success info (email confirmation may be required)
-        window.location.href = "/app";
+        navigate("/app");
       }
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) setError(error.message);
       else {
-        window.location.href = "/app";
+        navigate("/app");
       }
     }
     setLoading(false);
@@ -58,7 +56,6 @@ export default function AuthForm({ mode = "sign-in", onSwitchMode }) {
     setLoading(false);
   };
 
-  // Styles
   const COLORS = {
     accent: "#fe9245",
     accent2: "#eb423b"

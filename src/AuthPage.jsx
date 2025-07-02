@@ -10,6 +10,7 @@ import Footer from './components/Footer'
 import SignInForm from './components/SignInForm'
 import ScrollProgressBar from './components/ScrollProgressBar'
 import BackToTopFAB from './components/BackToTopFAB'
+import AuthForm from './components/AuthForm'
 
 const COLORS = {
   primary: "#18406d",
@@ -102,13 +103,10 @@ export default function AuthPage() {
   }, []);
 
   // ------- RENDER -------
-  // If on sign-up or sign-in page, show ONLY the form (no hero/marketing)
+  // If on sign-up or sign-in page, show ONLY the form (no footer)
   if (isSignUpPath || isSignInPath) {
     return (
-      <div style={{
-        minHeight: '100vh', width: '100vw', position: 'relative',
-        background: COLORS.dark, fontFamily: "Inter, system-ui, sans-serif"
-      }}>
+      <div style={{ minHeight: '100vh', width: '100vw', background: "#101015" }}>
         <video
           autoPlay loop muted playsInline poster="/background-poster.jpg"
           style={{
@@ -121,45 +119,19 @@ export default function AuthPage() {
         <div style={{
           position: 'fixed', inset: 0, background: 'rgba(18,22,30,0.32)', zIndex: 1, pointerEvents: "none"
         }} />
-        <TopNav />
-        <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-          <SignInForm
-            isSigningUp={isSignUpPath}
-            setIsSigningUp={() => {}} // not used, because we use routes
-            email={email} setEmail={setEmail}
-            password={password} setPassword={setPassword}
-            name={name} setName={setName}
-            error={error} loading={loading} handleAuth={handleAuth} COLORS={COLORS}
-          />
-          {/* Switch link */}
-          <div style={{ marginTop: 24, textAlign: 'center', fontSize: 15 }}>
-            {isSignUpPath ? (
-              <>
-                Already have an account?{" "}
-                <span
-                  style={{ color: "#fe9245", cursor: "pointer", fontWeight: 700 }}
-                  onClick={() => navigate('/auth/sign-in')}
-                >
-                  Sign in
-                </span>
-              </>
-            ) : (
-              <>
-                Don&apos;t have an account?{" "}
-                <span
-                  style={{ color: "#fe9245", cursor: "pointer", fontWeight: 700 }}
-                  onClick={() => navigate('/auth/sign-up')}
-                >
-                  Sign up
-                </span>
-              </>
-            )}
-          </div>
-        </div>
-        <Footer />
+        {/* No footer */}
+        <AuthForm
+          mode={isSignUpPath ? "sign-up" : "sign-in"}
+          onSwitchMode={mode => {
+            if (mode === "sign-in") navigate('/auth/sign-in');
+            else navigate('/auth/sign-up');
+          }}
+        />
       </div>
     );
   }
+
+  
 
   // Otherwise show full marketing/landing page
   return (

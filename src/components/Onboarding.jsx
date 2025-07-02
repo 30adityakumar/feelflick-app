@@ -8,9 +8,11 @@ import { supabase } from "../supabaseClient";
  *  2️⃣ add a couple of movies to an initial watch‑list (optional)
  *  3️⃣ review → save → jump into the main app
  */
-export default function Onboarding() {
+export default function Onboarding({ session }) {
   const navigate = useNavigate();
-  const [session, setSession] = useState(null);
+
+  // ---- 👇 GUARD: Only render if session exists ----
+  if (!session) return null;
 
   /* ──────────────── wizard state ──────────────── */
   const [step, setStep] = useState(1);
@@ -20,17 +22,8 @@ export default function Onboarding() {
   const [watchlist, setWatchlist] = useState([]);                     // [{id,title,poster_path}, …]
   const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
-  /* ──────────────── auth check ──────────────── */
+  /* ──────────────── If onboarding already done, redirect to main app ──────────────── */
   useEffect(() => {
-    const { data: { session } } = supabase.auth.getSession();
-    setSession(session);
-    const { data: listener } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
-    return () => listener.subscription.unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    if (!session) return;                   // wait for auth
-    // if onboarding already done, send them to main app
     if (session.user?.user_metadata?.onboarding_complete) {
       navigate("/app", { replace: true });
     }
@@ -73,7 +66,6 @@ export default function Onboarding() {
 
   /* ──────────────── finish & save ──────────────── */
   const finishOnboarding = async () => {
-    if (!session) return;
     await supabase.auth.updateUser({
       data: {
         onboarding_complete: true,
@@ -85,8 +77,6 @@ export default function Onboarding() {
   };
 
   /* ──────────────── UI ──────────────── */
-  if (!session) return null; // show nothing while auth resolving
-
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-zinc-950 px-4 py-10 text-white">
       <div className="w-full max-w-2xl bg-[#18141c] rounded-2xl shadow-2xl p-8">

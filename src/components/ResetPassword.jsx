@@ -1,4 +1,14 @@
-// At the start of ResetPassword.jsx
+// src/components/ResetPassword.jsx
+import { useEffect, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { supabase } from "../supabaseClient";
+
+export default function ResetPassword() {
+  const { hash } = useLocation();            // ← read the fragment
+  const navigate = useNavigate();
+
+  
+  // At the start of ResetPassword.jsx
 console.log("ResetPassword loaded. location.hash:", window.location.hash);
 
 const params = Object.fromEntries(
@@ -20,14 +30,6 @@ useEffect(() => {
 }, [accessToken, refreshToken]);
 
 
-// src/components/ResetPassword.jsx
-import { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { supabase } from "../supabaseClient";
-
-export default function ResetPassword() {
-  const { hash } = useLocation();            // ← read the fragment
-  const navigate = useNavigate();
 
   // parse the hash into an object  (#foo=bar&baz=qux → { foo:"bar", baz:"qux" })
   const params = Object.fromEntries(

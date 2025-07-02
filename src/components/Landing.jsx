@@ -44,7 +44,7 @@ export default function Landing({ onSignIn, onSignUp }) {
         <TopNav onSignIn={onSignIn} />
         <LandingHero onGetStarted={onSignUp} />
         <WhyFeelFlick />
-        <TrendingToday onSignIn={onSignIn} />
+        <TrendingToday onSignUp={onSignUp} />
         <CallToAction onSignUp={onSignUp} />
         <Footer />
       </div>

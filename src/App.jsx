@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
 
@@ -11,14 +11,15 @@ import RecommendationsTab from './components/RecommendationsTab';
 import WatchedTab from './components/WatchedTab';
 import AccountModal from './components/AccountModal';
 
-// Logged-in Main App (at /app/*)
 function MainApp({ session, profileName, setProfileName }) {
   const [activeTab, setActiveTab] = useState('home');
   const [showAccountModal, setShowAccountModal] = useState(false);
 
+  const navigate = useNavigate();
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    window.location.href = "/"; // Back to public landing
+    navigate("/"); // Go to public landing after sign out
   };
   const handleMyAccount = () => setShowAccountModal(true);
   const handleCloseAccount = () => setShowAccountModal(false);
@@ -44,8 +45,8 @@ function MainApp({ session, profileName, setProfileName }) {
         <HomePage
           userName={profileName || session?.user?.user_metadata?.name || "Movie Lover"}
           userId={session?.user?.id}
-          onSignIn={() => window.location.href = "/auth/sign-in"}
-          onSignUp={() => window.location.href = "/auth/sign-up"}
+          onSignIn={() => navigate("/auth/sign-in")}
+          onSignUp={() => navigate("/auth/sign-up")}
         />
       )}
       {activeTab === 'movies' && (
@@ -64,6 +65,7 @@ function MainApp({ session, profileName, setProfileName }) {
 export default function App() {
   const [session, setSession] = useState(null);
   const [profileName, setProfileName] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
@@ -71,14 +73,14 @@ export default function App() {
     return () => data.subscription.unsubscribe();
   }, []);
 
-  // For passing to landing page buttons
-  const handleSignIn = () => window.location.href = "/auth/sign-in";
-  const handleSignUp = () => window.location.href = "/auth/sign-up";
+  // Use navigate for sign in/up
+  const handleSignIn = () => navigate("/auth/sign-in");
+  const handleSignUp = () => navigate("/auth/sign-up");
 
   return (
     <BrowserRouter>
       <Routes>
-        {/* PUBLIC LANDING PAGE */}
+        {/* Public landing page */}
         <Route
           path="/"
           element={
@@ -88,12 +90,11 @@ export default function App() {
             />
           }
         />
-
-        {/* AUTH PAGES */}
+        {/* Auth pages */}
         <Route path="/auth/sign-in" element={<AuthPage mode="sign-in" />} />
         <Route path="/auth/sign-up" element={<AuthPage mode="sign-up" />} />
 
-        {/* LOGGED-IN APP */}
+        {/* Private logged-in app */}
         <Route
           path="/app/*"
           element={
@@ -104,8 +105,7 @@ export default function App() {
             )
           }
         />
-
-        {/* REDIRECT unknown routes to landing page */}
+        {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

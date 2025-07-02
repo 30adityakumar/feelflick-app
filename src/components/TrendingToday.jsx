@@ -8,9 +8,9 @@ const CARD_GAP = 32;
 const VISIBLE_FULL = 5;
 const PARTIAL = 0.5;
 
-export default function TrendingToday({ onSignIn }) {
-  // Use the passed in onSignIn, or fallback to a redirect.
-  const handleSignIn = onSignIn || (() => { window.location.href = '/auth'; });
+export default function TrendingToday({ onSignIn, onSignUp }) {
+  // Use the passed in onSignUp for sign up, or fallback to a redirect.
+  const handleSignUp = onSignUp || (() => { window.location.href = '/auth/sign-up'; });
   const [movies, setMovies] = useState([]);
   const scrollRef = useRef(null);
 
@@ -168,7 +168,7 @@ export default function TrendingToday({ onSignIn }) {
                 fontSize: "4.8rem",
                 fontWeight: 900,
                 color: "#fff",
-                opacity: 0.90,
+                opacity: 0.65, // more transparent now
                 WebkitTextStroke: "2.5px #fff",
                 textStroke: "2.5px #fff",
                 lineHeight: 1,
@@ -213,7 +213,7 @@ export default function TrendingToday({ onSignIn }) {
         <MovieModal
           movie={selectedMovie}
           onClose={() => setSelectedMovie(null)}
-          onSignIn={handleSignIn}
+          onSignIn={handleSignUp} // <-- This points to SIGN UP page now!
         />
       )}
     </section>
@@ -341,9 +341,9 @@ function MovieModal({ movie, onClose, onSignIn }) {
               border: "none",
               borderRadius: 8,
               fontWeight: 700,
-              fontSize: 18,
-              padding: "9px 30px",
-              minWidth: 120,
+              fontSize: 15,         // smaller font size
+              padding: "7px 18px",  // less padding
+              minWidth: 100,        // smaller min width
               boxShadow: "0 2px 8px #fe92451a",
               cursor: "pointer",
               transition: "all 0.15s",
@@ -362,7 +362,7 @@ function MovieModal({ movie, onClose, onSignIn }) {
               e.currentTarget.style.boxShadow = "0 2px 8px #fe92451a";
             }}
           >
-            Get Started <span style={{ fontSize: 22, marginLeft: 1 }}>›</span>
+            Get Started <span style={{ fontSize: 18, marginLeft: 1 }}>›</span>
           </button>
         </div>
       </div>

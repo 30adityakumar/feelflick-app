@@ -96,9 +96,13 @@ export default function App() {
           element={
             session
               ? session.user?.user_metadata?.onboarding_complete
-                ? <MainApp …/>
-                : <Navigate to="/onboarding" replace />
-              : <Navigate to="/auth/sign-in" replace />
+              ? <MainApp                /* pass your usual props here */
+                  session={session}
+                  profileName={profileName}
+                  setProfileName={setProfileName}
+                />
+              : <Navigate to="/onboarding" replace />
+            : <Navigate to="/auth/sign-in" replace />
           }
 
         />

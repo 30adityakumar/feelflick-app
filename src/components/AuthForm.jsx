@@ -93,9 +93,8 @@ export default function AuthForm({
   return (
     <div
       style={{
-        minHeight: "100vh", width: "100vw", background: "#fff",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        background: "#101015"
+        minHeight: "100vh", width: "100vw", background: "#101015",
+        display: "flex", alignItems: "center", justifyContent: "center"
       }}
     >
       <form

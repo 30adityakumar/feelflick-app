@@ -188,7 +188,7 @@ export default function AuthPage() {
       <div style={{
         position: 'fixed', inset: 0, background: 'rgba(20,24,35,0.42)', zIndex: 1, pointerEvents: "none"
       }} />
-
+      
       <TopNav
         onSignIn={() => navigate('/auth/sign-in')}
         onHome={handleHome}

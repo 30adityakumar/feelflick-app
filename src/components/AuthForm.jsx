@@ -67,9 +67,13 @@ export default function AuthForm({ mode = "sign-in", onSwitchMode }) {
       setResetError("Please enter your email.");
       return;
     }
-    const { error } = await supabase.auth.resetPasswordForEmail(resetEmail);
-    if (error) setResetError(error.message);
-    else setResetSent(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(
+      resetEmail,
+      {
+        redirectTo: `${window.location.origin}/auth/reset-password`
+        //  e.g. "https://app.feelflick.com/auth/reset-password"
+      }
+    );
   }
 
   const COLORS = {

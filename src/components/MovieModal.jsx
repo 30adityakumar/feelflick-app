@@ -144,7 +144,6 @@ function MovieModal({ movie, onClose, onSignIn }) {
           >
             Get Started <span style={{ fontSize: 18, marginLeft: 1 }}>›</span>
           </button>
-
         </div>
       </div>
     </>

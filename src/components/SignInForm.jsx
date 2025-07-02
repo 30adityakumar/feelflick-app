@@ -1,8 +1,11 @@
-// SignInForm.jsx
+import { useNavigate } from "react-router-dom";
+
 export default function SignInForm({
   isSigningUp, setIsSigningUp, email, setEmail, password, setPassword, name, setName,
-  error, loading, handleAuth, COLORS
+  error, loading, handleAuth, COLORS, navigateToSignUp, navigateToSignIn
 }) {
+  const navigate = useNavigate();
+
   const inputStyle = {
     margin: "10px 0",
     padding: "14px 12px",
@@ -15,7 +18,25 @@ export default function SignInForm({
     letterSpacing: "-0.02em",
     outline: "none",
     boxShadow: "0 1.5px 8px 0 #0004"
-  }
+  };
+
+  // Handlers for switching between forms
+  const handleSwitchToSignUp = () => {
+    if (navigateToSignUp) navigateToSignUp();
+    else {
+      setIsSigningUp(true);
+      navigate("/auth/sign-up");
+    }
+  };
+
+  const handleSwitchToSignIn = () => {
+    if (navigateToSignIn) navigateToSignIn();
+    else {
+      setIsSigningUp(false);
+      navigate("/auth/sign-in");
+    }
+  };
+
   return (
     <form
       onSubmit={handleAuth}
@@ -90,15 +111,17 @@ export default function SignInForm({
       </button>
       <div style={{ color: "#aaa", margin: '15px 0 4px 0', textAlign: 'center', fontSize: 15 }}>
         {isSigningUp
-          ? <>Already have an account? <span
+          ? <>Already have an account?{" "}
+            <span
               style={{ color: COLORS.accent, cursor: "pointer", fontWeight: 700 }}
-              onClick={() => setIsSigningUp(false)}
+              onClick={handleSwitchToSignIn}
             >Sign In</span></>
-          : <>New to FeelFlick? <span
+          : <>New to FeelFlick?{" "}
+            <span
               style={{ color: COLORS.accent, cursor: "pointer", fontWeight: 700 }}
-              onClick={() => setIsSigningUp(true)}
+              onClick={handleSwitchToSignUp}
             >Sign up now.</span></>}
       </div>
     </form>
-  )
+  );
 }

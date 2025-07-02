@@ -12,6 +12,7 @@ import RecommendationsTab from './components/RecommendationsTab';
 import WatchedTab from './components/WatchedTab';
 import AccountModal from './components/AccountModal';
 import ConfirmEmail from './components/ConfirmEmail';
+import Onboarding from './components/Onboarding';
 
 
 function MainApp({ session, profileName, setProfileName }) {
@@ -72,6 +73,9 @@ export default function App() {
         {/* Auth pages */}
         <Route path="/auth/sign-in" element={<AuthPage mode="sign-in" />} />
         <Route path="/auth/sign-up" element={<AuthPage mode="sign-up" />} />
+
+        {/* Onboarding */}
+        <Route path="/onboarding" element={<Onboarding />} />
         
         {/* Reset password*/}
         <Route path="/auth/reset-password" element={<ResetPassword />} />
@@ -88,6 +92,15 @@ export default function App() {
               <Navigate to="/auth/sign-in" replace />
             )
           }
+
+          element={
+            session
+              ? session.user?.user_metadata?.onboarding_complete
+                ? <MainApp …/>
+                : <Navigate to="/onboarding" replace />
+              : <Navigate to="/auth/sign-in" replace />
+          }
+
         />
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />

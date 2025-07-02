@@ -73,7 +73,7 @@ export default function AuthForm ({ mode = "sign-in", onSwitchMode }) {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) setError(error.message);
-    else       navigate("/app");
+    else       navigate("/onboarding");
   }
 
   /* ───────── google oauth ───────── */

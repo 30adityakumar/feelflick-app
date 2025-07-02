@@ -10,6 +10,7 @@ import MoviesTab from './components/MoviesTab';
 import RecommendationsTab from './components/RecommendationsTab';
 import WatchedTab from './components/WatchedTab';
 import AccountModal from './components/AccountModal';
+import ResetPassword from "./components/ResetPassword";
 
 function MainApp({ session, profileName, setProfileName }) {
   const [activeTab, setActiveTab] = useState('home');
@@ -69,6 +70,9 @@ export default function App() {
         {/* Auth pages */}
         <Route path="/auth/sign-in" element={<AuthPage mode="sign-in" />} />
         <Route path="/auth/sign-up" element={<AuthPage mode="sign-up" />} />
+        
+        {/* Reset password*/}
+        <Route path="/auth/reset-password" element={<ResetPassword />} />
 
         {/* Private logged-in app */}
         <Route

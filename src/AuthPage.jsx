@@ -1,166 +1,32 @@
-import { useState, useEffect, useCallback } from 'react'
-import { useLocation, useNavigate } from "react-router-dom";
-import { supabase } from './supabaseClient'
-import TopNav from './components/TopNav'
-import LandingHero from './components/LandingHero'
-import WhyFeelFlick from './components/WhyFeelFlick'
-import TrendingToday from './components/TrendingToday'
-import CallToAction from './components/CallToAction'
-import Footer from './components/Footer'
-import SignInForm from './components/SignInForm'
-import ScrollProgressBar from './components/ScrollProgressBar'
-import BackToTopFAB from './components/BackToTopFAB'
-import AuthForm from './components/AuthForm'
+import { useNavigate } from "react-router-dom";
+import AuthForm from './components/AuthForm';
 
-const COLORS = {
-  primary: "#18406d",
-  accent: "#fe9245",
-  accent2: "#eb423b",
-  dark: "#101015",
-  surface: "#232330",
-  blueBg: "linear-gradient(90deg, #18406d 0%, #eb423b 120%)",
-  mutedBg: "linear-gradient(120deg, #18406d 0%, #191925 70%, #fe9245 120%)",
-  gold: "#fdaf41",
-  lightText: "#f9f9fa",
-  border: "#27335b"
-};
-
-const SECTION_IDS = [
-  "home",
-  "why-feelflick",
-  "trending-today",
-  "get-started"
-];
-
-export default function AuthPage() {
-  const location = useLocation();
+export default function AuthPage({ mode }) {
   const navigate = useNavigate();
 
-  // Detect sign-up or sign-in route
-  const isSignUpPath = location.pathname.endsWith("/sign-up");
-  const isSignInPath = location.pathname.endsWith("/sign-in");
-
-  // Auth/UI state
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [activeSection, setActiveSection] = useState("home");
-
-  // Auth handler
-  const handleAuth = async (e) => {
-  e.preventDefault();
-  setError(null);
-  setLoading(true);
-  let errorResult;
-  let res;
-  if (isSignUpPath) {
-    res = await supabase.auth.signUp({ email, password, options: { data: { name } } });
-    errorResult = res.error;
-  } else if (isSignInPath) {
-    res = await supabase.auth.signInWithPassword({ email, password });
-    errorResult = res.error;
-  }
-  setLoading(false);
-  console.log("AUTH RES:", res);
-  if (!errorResult) {
-    // Success! Redirect to app
-    navigate("/app");
-  } else {
-    setError(errorResult.message);
-  }
-};
-
-
-  // Scroll helpers
-  const handleHome = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    setTimeout(() => { document.documentElement.scrollTop = 0; document.body.scrollTop = 0 }, 600)
-  }
-
-  const handleScrollToSection = useCallback((id) => {
-    setTimeout(() => {
-      const el = document.getElementById(id)
-      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" })
-    }, 120)
-  }, []);
-
-  useEffect(() => {
-    const handleSpy = () => {
-      const scrollY = window.scrollY + 86;
-      let current = "home";
-      for (let id of SECTION_IDS) {
-        const el = document.getElementById(id)
-        if (el && el.offsetTop - 72 <= scrollY) {
-          current = id
-        }
-      }
-      setActiveSection(current);
-    };
-    window.addEventListener("scroll", handleSpy);
-    return () => window.removeEventListener("scroll", handleSpy);
-  }, []);
-
-  // ------- RENDER -------
-  // If on sign-up or sign-in page, show ONLY the form (no footer)
-  if (isSignUpPath || isSignInPath) {
-    return (
-      <div style={{ minHeight: '100vh', width: '100vw', background: "#101015" }}>
-        <video
-          autoPlay loop muted playsInline poster="/background-poster.jpg"
-          style={{
-            position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh",
-            objectFit: "cover", zIndex: 0, filter: "brightness(0.62) blur(0.24px)"
-          }}
-        >
-          <source src="/background.mp4" type="video/mp4" />
-        </video>
-        <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(18,22,30,0.32)', zIndex: 1, pointerEvents: "none"
-        }} />
-        {/* No footer */}
-        <AuthForm
-          mode={isSignUpPath ? "sign-up" : "sign-in"}
-          onSwitchMode={mode => {
-            if (mode === "sign-in") navigate('/auth/sign-in');
-            else navigate('/auth/sign-up');
-          }}
-        />
-      </div>
-    );
-  }
-
-  
-
-  // Otherwise show full marketing/landing page
+  // Only render the sign-in or sign-up form, full screen (no footer, no scroll)
   return (
-    <div style={{
-      minHeight: '100vh', width: '100vw', background: COLORS.dark,
-      fontFamily: "Inter, system-ui, sans-serif", overflowX: "hidden", position: "relative"
-    }}>
-      <ScrollProgressBar />
-      <BackToTopFAB />
+    <div style={{ minHeight: '100vh', width: '100vw', background: "#101015", position: 'relative' }}>
       <video
         autoPlay loop muted playsInline poster="/background-poster.jpg"
         style={{
           position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh",
-          objectFit: "cover", zIndex: 0, filter: "brightness(0.54) blur(0.6px)"
+          objectFit: "cover", zIndex: 0, filter: "brightness(0.62) blur(0.24px)"
         }}
       >
         <source src="/background.mp4" type="video/mp4" />
       </video>
-      {/* Overlay */}
       <div style={{
-        position: 'fixed', inset: 0, background: 'rgba(20,24,35,0.42)', zIndex: 1, pointerEvents: "none"
+        position: 'fixed', inset: 0, background: 'rgba(18,22,30,0.32)', zIndex: 1, pointerEvents: "none"
       }} />
-      <TopNav />
       <div style={{ position: "relative", zIndex: 2 }}>
-        <LandingHero />
-        <section id="why-feelflick"><WhyFeelFlick /></section>
-        <section id="trending-today"><TrendingToday /></section>
-        <section id="get-started"><CallToAction /></section>
-        <Footer />
+        <AuthForm
+          mode={mode} // "sign-in" or "sign-up"
+          onSwitchMode={newMode => {
+            if (newMode === "sign-in") navigate('/auth/sign-in');
+            else navigate('/auth/sign-up');
+          }}
+        />
       </div>
     </div>
   );

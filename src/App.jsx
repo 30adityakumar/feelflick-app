@@ -1,121 +1,114 @@
-import { useState, useEffect } from 'react'
-import { supabase } from './supabaseClient'
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom"
-import AuthPage from './AuthPage'
-import Header from './components/Header'
-import MoviesTab from './components/MoviesTab'
-import RecommendationsTab from './components/RecommendationsTab'
-import WatchedTab from './components/WatchedTab'
-import AccountModal from './components/AccountModal'
-import HomePage from './components/HomePage'
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { useState, useEffect } from 'react';
+import { supabase } from './supabaseClient';
 
-export default function App() {
-  // --- Auth/session state ---
-  const [session, setSession] = useState(null)
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => setSession(session))
-    const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s))
-    return () => data.subscription.unsubscribe()
-  }, [])
+import AuthPage from './AuthPage';
+import HomePage from './components/HomePage';
+import Header from './components/Header';
+import MoviesTab from './components/MoviesTab';
+import RecommendationsTab from './components/RecommendationsTab';
+import WatchedTab from './components/WatchedTab';
+import AccountModal from './components/AccountModal';
 
-  // --- Tab navigation ---
-  const [activeTab, setActiveTab] = useState('home') // movies | recommendations | watched
+// Main App (Logged-in experience, can be its own component)
+function MainApp({ session, profileName, setProfileName }) {
+  const [activeTab, setActiveTab] = useState('home');
+  const [showAccountModal, setShowAccountModal] = useState(false);
 
-  // --- My Account modal ---
-  const [showAccountModal, setShowAccountModal] = useState(false)
-  // For instant update after changing name:
-  const [profileName, setProfileName] = useState("")
-
-  // --- Sign out ---
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    setSession(null)
-  }
-
-  // --- Show My Account Modal handler ---
-  const handleMyAccount = () => setShowAccountModal(true)
-  const handleCloseAccount = () => setShowAccountModal(false)
-  const handleProfileUpdate = (newName) => setProfileName(newName)
+    await supabase.auth.signOut();
+    window.location.href = "/"; // Return to public landing page after sign out
+  };
+  const handleMyAccount = () => setShowAccountModal(true);
+  const handleCloseAccount = () => setShowAccountModal(false);
+  const handleProfileUpdate = (newName) => setProfileName(newName);
 
   return (
-    <BrowserRouter>
-      <AppRoutes
-        session={session}
-        setSession={setSession}
+    <div className="min-h-screen bg-zinc-950 text-white pb-10" style={{ width: "100vw", overflowX: "hidden" }}>
+      <Header
+        userName={profileName || session?.user?.user_metadata?.name || "Account"}
+        onTabChange={setActiveTab}
         activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        showAccountModal={showAccountModal}
-        setShowAccountModal={setShowAccountModal}
-        profileName={profileName}
-        setProfileName={setProfileName}
-        handleSignOut={handleSignOut}
-        handleMyAccount={handleMyAccount}
-        handleCloseAccount={handleCloseAccount}
-        handleProfileUpdate={handleProfileUpdate}
+        onSignOut={handleSignOut}
+        onMyAccount={handleMyAccount}
       />
-    </BrowserRouter>
-  )
-}
-
-// --- Wrapper to get useNavigate ---
-function AppRoutes(props) {
-  const navigate = useNavigate();
-
-  const {
-    session,
-    activeTab,
-    setActiveTab,
-    showAccountModal,
-    profileName,
-    handleSignOut,
-    handleMyAccount,
-    handleCloseAccount,
-    handleProfileUpdate
-  } = props;
-
-  // --- Navigation handlers ---
-  const handleSignUp = () => navigate('/auth/sign-up');
-  const handleSignIn = () => navigate('/auth/sign-in');
-
-  return (
-    <Routes>
-      {/* --- Public HomePage (always accessible) --- */}
-      <Route path="/" element={
+      {showAccountModal && (
+        <AccountModal
+          user={session.user}
+          onClose={handleCloseAccount}
+          onProfileUpdate={handleProfileUpdate}
+        />
+      )}
+      {activeTab === 'home' && (
         <HomePage
           userName={profileName || session?.user?.user_metadata?.name || "Movie Lover"}
           userId={session?.user?.id}
-          onSignIn={handleSignIn}
-          onSignUp={handleSignUp}
-          isLoggedIn={!!session}
+          // Pass correct onSignIn and onSignUp
+          onSignIn={() => window.location.href = "/auth/sign-in"}
+          onSignUp={() => window.location.href = "/auth/sign-up"}
         />
-      } />
+      )}
+      {activeTab === 'movies' && (
+        <MoviesTab session={session} />
+      )}
+      {activeTab === 'recommendations' && (
+        <RecommendationsTab session={session} />
+      )}
+      {activeTab === 'watched' && (
+        <WatchedTab session={session} />
+      )}
+    </div>
+  );
+}
 
-      {/* --- Sign In/Up Pages --- */}
-      <Route path="/auth/sign-up" element={<AuthPage mode="sign-up" />} />
-      <Route path="/auth/sign-in" element={<AuthPage mode="sign-in" />} />
-      {/* Fallback: any /auth/* shows AuthPage */}
-      <Route path="/auth/*" element={<AuthPage />} />
+export default function App() {
+  const [session, setSession] = useState(null);
+  const [profileName, setProfileName] = useState("");
 
-      {/* --- Protected App Tabs (only if logged in) --- */}
-      <Route path="/movies" element={
-        session
-          ? <MoviesTab session={session} />
-          : <Navigate to="/auth/sign-in" />
-      } />
-      <Route path="/recommendations" element={
-        session
-          ? <RecommendationsTab session={session} />
-          : <Navigate to="/auth/sign-in" />
-      } />
-      <Route path="/watched" element={
-        session
-          ? <WatchedTab session={session} />
-          : <Navigate to="/auth/sign-in" />
-      } />
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
+    const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
+    return () => data.subscription.unsubscribe();
+  }, []);
 
-      {/* --- Optionally, catch-all for undefined routes (redirect to home) --- */}
-      {/* <Route path="*" element={<Navigate to="/" />} /> */}
+  // Provide onSignIn and onSignUp for HomePage, Landing, etc.
+  const handleSignIn = () => window.location.href = "/auth/sign-in";
+  const handleSignUp = () => window.location.href = "/auth/sign-up";
 
-    </Routes>
+  return (
+    <BrowserRouter>
+      <Routes>
+        {/* Landing/Home Page: always public */}
+        <Route
+          path="/"
+          element={
+            <HomePage
+              onSignIn={handleSignIn}
+              onSignUp={handleSignUp}
+              // you can pass other props like userName if you want
+            />
+          }
+        />
+
+        {/* Auth pages: public */}
+        <Route path="/auth/sign-in" element={<AuthPage mode="sign-in" />} />
+        <Route path="/auth/sign-up" element={<AuthPage mode="sign-up" />} />
+
+        {/* Your logged-in app (only at /app/*) */}
+        <Route
+          path="/app/*"
+          element={
+            session ? (
+              <MainApp session={session} profileName={profileName} setProfileName={setProfileName} />
+            ) : (
+              <Navigate to="/auth/sign-in" replace />
+            )
+          }
+        />
+
+        {/* Fallback: redirect unknown routes to landing page */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
   );
 }

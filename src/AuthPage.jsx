@@ -40,7 +40,6 @@ export default function AuthPage() {
   const isSignInPath = location.pathname.endsWith("/sign-in");
 
   // Auth/UI state
-  const [isSigningUp, setIsSigningUp] = useState(isSignUpPath);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -48,25 +47,19 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false);
   const [activeSection, setActiveSection] = useState("home");
 
-  // Keep mode in sync with URL
-  useEffect(() => {
-    if (isSignUpPath) setIsSigningUp(true);
-    if (isSignInPath) setIsSigningUp(false);
-  }, [isSignUpPath, isSignInPath]);
-
   // Auth handler
   const handleAuth = async (e) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
-    if (isSigningUp) {
+    if (isSignUpPath) {
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: { data: { name } }
       });
       if (error) setError(error.message);
-    } else {
+    } else if (isSignInPath) {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) setError(error.message);
     }
@@ -122,16 +115,11 @@ export default function AuthPage() {
         <div style={{
           position: 'fixed', inset: 0, background: 'rgba(18,22,30,0.32)', zIndex: 1, pointerEvents: "none"
         }} />
-        <TopNav
-          onSignIn={() => navigate('/auth/sign-in')}
-          onHome={handleHome}
-          onScrollToSection={handleScrollToSection}
-          activeSection={activeSection}
-        />
+        <TopNav />
         <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
           <SignInForm
-            isSigningUp={isSigningUp}
-            setIsSigningUp={setIsSigningUp}
+            isSigningUp={isSignUpPath}
+            setIsSigningUp={() => {}} // not used, because we use routes
             email={email} setEmail={setEmail}
             password={password} setPassword={setPassword}
             name={name} setName={setName}
@@ -139,12 +127,12 @@ export default function AuthPage() {
           />
           {/* Switch link */}
           <div style={{ marginTop: 24, textAlign: 'center', fontSize: 15 }}>
-            {isSigningUp ? (
+            {isSignUpPath ? (
               <>
                 Already have an account?{" "}
                 <span
                   style={{ color: "#fe9245", cursor: "pointer", fontWeight: 700 }}
-                  onClick={() => { setIsSigningUp(false); navigate('/auth/sign-in'); }}
+                  onClick={() => navigate('/auth/sign-in')}
                 >
                   Sign in
                 </span>
@@ -154,7 +142,7 @@ export default function AuthPage() {
                 Don&apos;t have an account?{" "}
                 <span
                   style={{ color: "#fe9245", cursor: "pointer", fontWeight: 700 }}
-                  onClick={() => { setIsSigningUp(true); navigate('/auth/sign-up'); }}
+                  onClick={() => navigate('/auth/sign-up')}
                 >
                   Sign up
                 </span>
@@ -188,19 +176,12 @@ export default function AuthPage() {
       <div style={{
         position: 'fixed', inset: 0, background: 'rgba(20,24,35,0.42)', zIndex: 1, pointerEvents: "none"
       }} />
-      
-      <TopNav
-        onSignIn={() => navigate('/auth/sign-in')}
-        onHome={handleHome}
-        onScrollToSection={handleScrollToSection}
-        activeSection={activeSection}
-      />
-
+      <TopNav />
       <div style={{ position: "relative", zIndex: 2 }}>
-        <LandingHero onGetStarted={() => navigate('/auth/sign-up')} />
+        <LandingHero />
         <section id="why-feelflick"><WhyFeelFlick /></section>
         <section id="trending-today"><TrendingToday /></section>
-        <section id="get-started"><CallToAction onSignUp={() => navigate('/auth/sign-up')} /></section>
+        <section id="get-started"><CallToAction /></section>
         <Footer />
       </div>
     </div>

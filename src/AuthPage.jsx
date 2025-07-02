@@ -49,22 +49,28 @@ export default function AuthPage() {
 
   // Auth handler
   const handleAuth = async (e) => {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
-    if (isSignUpPath) {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { data: { name } }
-      });
-      if (error) setError(error.message);
-    } else if (isSignInPath) {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) setError(error.message);
-    }
-    setLoading(false);
-  };
+  e.preventDefault();
+  setError(null);
+  setLoading(true);
+  let errorResult;
+  let res;
+  if (isSignUpPath) {
+    res = await supabase.auth.signUp({ email, password, options: { data: { name } } });
+    errorResult = res.error;
+  } else if (isSignInPath) {
+    res = await supabase.auth.signInWithPassword({ email, password });
+    errorResult = res.error;
+  }
+  setLoading(false);
+  console.log("AUTH RES:", res);
+  if (!errorResult) {
+    // Success! Redirect to app
+    navigate("/app");
+  } else {
+    setError(errorResult.message);
+  }
+};
+
 
   // Scroll helpers
   const handleHome = () => {

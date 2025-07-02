@@ -1,4 +1,3 @@
-// src/components/AuthForm.jsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
@@ -65,21 +64,21 @@ export default function AuthForm({ mode = "sign-in", onSwitchMode }) {
     <form
       onSubmit={handleSubmit}
       style={{
-        width: 370,
-        maxWidth: "94vw",
+        width: 430,
+        maxWidth: "98vw",
         margin: "9vh auto 0 auto",
         background: "rgba(24, 22, 32, 0.94)",
         borderRadius: 18,
         boxShadow: "0 8px 48px 0 #0008",
-        padding: "38px 32px 30px 32px",
+        padding: "33px 30px 26px 30px",
         display: "flex",
         flexDirection: "column",
         alignItems: "stretch",
-        minHeight: 340,
+        minHeight: 320,
         position: "relative",
       }}
     >
-      <div style={{ fontSize: 32, fontWeight: 900, color: "#fff", marginBottom: 25, textAlign: "center" }}>
+      <div style={{ fontSize: 23, fontWeight: 900, color: "#fff", marginBottom: 18, textAlign: "center", letterSpacing: "-0.03em" }}>
         {isSignUp ? "Sign Up" : "Sign In"}
       </div>
 
@@ -125,7 +124,7 @@ export default function AuthForm({ mode = "sign-in", onSwitchMode }) {
       )}
       {/* Error Message */}
       {error && (
-        <div style={{ color: "#eb423b", margin: "8px 0 1px 0", fontSize: 15, textAlign: "center", fontWeight: 500 }}>
+        <div style={{ color: "#eb423b", margin: "7px 0 1px 0", fontSize: 14, textAlign: "center", fontWeight: 500 }}>
           {error}
         </div>
       )}
@@ -135,14 +134,14 @@ export default function AuthForm({ mode = "sign-in", onSwitchMode }) {
         type="submit"
         disabled={loading}
         style={{
-          marginTop: 18,
+          marginTop: 13,
           background: `linear-gradient(90deg,${COLORS.accent} 10%,${COLORS.accent2} 90%)`,
           color: "#fff",
           border: "none",
-          borderRadius: 8,
+          borderRadius: 7,
           fontWeight: 900,
-          fontSize: 20,
-          padding: "13px 0",
+          fontSize: 16.2,
+          padding: "9px 0",
           boxShadow: "0 2px 11px 0 #fe924522",
           cursor: loading ? "not-allowed" : "pointer",
           opacity: loading ? 0.7 : 1,
@@ -157,11 +156,11 @@ export default function AuthForm({ mode = "sign-in", onSwitchMode }) {
       {/* Or divider */}
       <div style={{
         display: "flex", alignItems: "center",
-        margin: "19px 0 7px 0"
+        margin: "13px 0 7px 0"
       }}>
         <div style={{ flex: 1, height: 1, background: "#333" }} />
         <span style={{
-          color: "#bbb", fontSize: 13, padding: "0 14px", fontWeight: 600, letterSpacing: "0.01em"
+          color: "#bbb", fontSize: 11.6, padding: "0 12px", fontWeight: 600, letterSpacing: "0.01em"
         }}>or</span>
         <div style={{ flex: 1, height: 1, background: "#333" }} />
       </div>
@@ -175,8 +174,8 @@ export default function AuthForm({ mode = "sign-in", onSwitchMode }) {
           background: "#fff",
           color: "#222",
           fontWeight: 700,
-          fontSize: 16,
-          padding: "11px 0",
+          fontSize: 14.6,
+          padding: "8px 0",
           border: "none",
           borderRadius: 7,
           boxShadow: "0 1.5px 8px #0003",
@@ -184,19 +183,18 @@ export default function AuthForm({ mode = "sign-in", onSwitchMode }) {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          gap: 12,
-          marginBottom: 10,
+          gap: 10,
+          marginBottom: 8,
         }}
       >
-        <FcGoogle size={24} style={{ marginRight: 3 }} />
+        <FcGoogle size={20} style={{ marginRight: 3 }} />
         Continue with Google
       </button>
 
       {/* Forgot password */}
       {!isSignUp && (
         <div style={{ textAlign: "right", marginBottom: 2 }}>
-          <a
-            href="#"
+          <span
             onClick={e => {
               e.preventDefault();
               // TODO: You can build a real forgot password flow here
@@ -204,24 +202,23 @@ export default function AuthForm({ mode = "sign-in", onSwitchMode }) {
             }}
             style={{
               color: "#fe9245",
-              fontSize: 15,
+              fontSize: 13.5,
               fontWeight: 600,
-              cursor: "pointer",
-              textDecoration: "underline"
+              cursor: "pointer"
             }}
           >
             Forgot your password?
-          </a>
+          </span>
         </div>
       )}
 
       {/* Switch link */}
-      <div style={{ color: "#bbb", marginTop: 10, textAlign: "center", fontSize: 16 }}>
+      <div style={{ color: "#bbb", marginTop: 7, textAlign: "center", fontSize: 13.5 }}>
         {isSignUp ? (
           <>
             Already have an account?{" "}
             <span
-              style={{ color: "#fe9245", cursor: "pointer", fontWeight: 700, textDecoration: "underline" }}
+              style={{ color: "#fe9245", cursor: "pointer", fontWeight: 700 }}
               onClick={() => onSwitchMode("sign-in")}
             >
               Sign in
@@ -231,7 +228,7 @@ export default function AuthForm({ mode = "sign-in", onSwitchMode }) {
           <>
             New to FeelFlick?{" "}
             <span
-              style={{ color: "#fe9245", cursor: "pointer", fontWeight: 700, textDecoration: "underline" }}
+              style={{ color: "#fe9245", cursor: "pointer", fontWeight: 700 }}
               onClick={() => onSwitchMode("sign-up")}
             >
               Sign up now.
@@ -245,11 +242,11 @@ export default function AuthForm({ mode = "sign-in", onSwitchMode }) {
 
 // Input styles (outside component for re-use)
 const inputStyle = {
-  margin: "10px 0",
-  padding: "14px 12px",
+  margin: "8px 0",
+  padding: "12px 11px",
   borderRadius: 8,
   border: "none",
-  fontSize: 16,
+  fontSize: 14.8,
   background: "#232330",
   color: "#fff",
   fontWeight: 500,

@@ -11,6 +11,7 @@ import MoviesTab from './components/MoviesTab';
 import RecommendationsTab from './components/RecommendationsTab';
 import WatchedTab from './components/WatchedTab';
 import AccountModal from './components/AccountModal';
+import ConfirmEmail from './components/ConfirmEmail';
 
 
 function MainApp({ session, profileName, setProfileName }) {
@@ -74,6 +75,8 @@ export default function App() {
         
         {/* Reset password*/}
         <Route path="/auth/reset-password" element={<ResetPassword />} />
+
+        <Route path="/auth/confirm" element={<ConfirmEmail />} />
 
         {/* Private logged-in app */}
         <Route

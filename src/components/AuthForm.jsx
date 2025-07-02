@@ -14,6 +14,7 @@ export default function AuthForm({ mode = "sign-in", onSwitchMode }) {
   const [resetEmail, setResetEmail] = useState("");
   const [resetError, setResetError] = useState("");
   const [resetSent, setResetSent] = useState(false);
+  const [signupSent, setSignupSent] = useState(false);
 
   const isSignUp = mode === "sign-up";
   const navigate = useNavigate();
@@ -30,23 +31,26 @@ export default function AuthForm({ mode = "sign-in", onSwitchMode }) {
         setLoading(false);
         return;
       }
+      // Send sign-up request
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: { data: { name } }
       });
-      if (error) setError(error.message);
-      else {
-        navigate("/app");
+      setLoading(false);
+      if (error) {
+        setError(error.message);
+      } else {
+        setSignupSent(true);
       }
+      return;
     } else {
+      // Sign in request
       const { error } = await supabase.auth.signInWithPassword({ email, password });
+      setLoading(false);
       if (error) setError(error.message);
-      else {
-        navigate("/app");
-      }
+      else navigate("/app");
     }
-    setLoading(false);
   }
 
   // Google Sign-in
@@ -71,15 +75,65 @@ export default function AuthForm({ mode = "sign-in", onSwitchMode }) {
       resetEmail,
       {
         redirectTo: `${window.location.origin}/auth/reset-password`
-        //  e.g. "https://app.feelflick.com/auth/reset-password"
       }
     );
-  }
+    if (error) {
+      setResetError(error.message);
+    } else {
+      setResetSent(true);
+    }
+  };
 
   const COLORS = {
     accent: "#fe9245",
     accent2: "#eb423b"
   };
+
+  // Show "Check your email" after successful sign-up
+  if (signupSent) {
+    return (
+      <div style={{
+        width: 440,
+        maxWidth: "98vw",
+        margin: "12vh auto 0 auto",
+        background: "rgba(24, 22, 32, 0.98)",
+        borderRadius: 18,
+        boxShadow: "0 8px 48px 0 #0008",
+        padding: "40px 34px 33px 34px",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        minHeight: 320,
+        textAlign: "center"
+      }}>
+        <div style={{ fontWeight: 900, fontSize: 27, color: COLORS.accent, marginBottom: 12 }}>
+          Check your email!
+        </div>
+        <div style={{ color: "#eee", fontSize: 17, lineHeight: 1.7, marginBottom: 9 }}>
+          We've sent a confirmation link to<br />
+          <b>{email}</b>
+        </div>
+        <div style={{ color: "#bbb", fontSize: 14.5, margin: "17px 0 0 0" }}>
+          Please open the link in your inbox to verify your account.
+        </div>
+        <div style={{ color: "#888", fontSize: 13, marginTop: 10 }}>
+          Didn’t get it? Check your spam folder.
+        </div>
+        <button
+          style={{
+            background: "none",
+            border: "none",
+            color: COLORS.accent,
+            fontWeight: 700,
+            fontSize: 15,
+            marginTop: 18,
+            cursor: "pointer"
+          }}
+          onClick={() => setSignupSent(false)}
+        >Back to sign up</button>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -160,7 +214,8 @@ export default function AuthForm({ mode = "sign-in", onSwitchMode }) {
                 color: "#fe9245",
                 fontSize: 13.5,
                 fontWeight: 600,
-                cursor: "pointer"
+                cursor: "pointer",
+                textDecoration: "none"
               }}
             >
               Forgot your password?
@@ -243,7 +298,7 @@ export default function AuthForm({ mode = "sign-in", onSwitchMode }) {
             <>
               Already have an account?{" "}
               <span
-                style={{ color: "#fe9245", cursor: "pointer", fontWeight: 700 }}
+                style={{ color: "#fe9245", cursor: "pointer", fontWeight: 700, textDecoration: "none" }}
                 onClick={() => onSwitchMode("sign-in")}
               >
                 Sign in
@@ -253,7 +308,7 @@ export default function AuthForm({ mode = "sign-in", onSwitchMode }) {
             <>
               New to FeelFlick?{" "}
               <span
-                style={{ color: "#fe9245", cursor: "pointer", fontWeight: 700 }}
+                style={{ color: "#fe9245", cursor: "pointer", fontWeight: 700, textDecoration: "none" }}
                 onClick={() => onSwitchMode("sign-up")}
               >
                 Sign up now.

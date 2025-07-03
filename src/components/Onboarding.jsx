@@ -21,6 +21,8 @@ export default function Onboarding() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY;
+  const [checking, setChecking] = useState(true);
+
 
   // Genres config
   const GENRES = useMemo(() => [
@@ -42,33 +44,37 @@ export default function Onboarding() {
   }, []);
 
   // Redirect away if user already finished onboarding
-  useEffect(() => {
-    if (!session || !session.user) return;
+    useEffect(() => {
+      if (!session || !session.user) return;
 
-    async function checkOnboarding() {
-      // First, try to read from the public.users table (most up-to-date)
-      let { data: userRow } = await supabase
-        .from("users")
-        .select("onboarding_complete")
-        .eq("id", session.user.id)
-        .single();
+      async function checkOnboarding() {
+        // First, try to read from the public.users table (most up-to-date)
+        let { data: userRow } = await supabase
+          .from("users")
+          .select("onboarding_complete")
+          .eq("id", session.user.id)
+          .single();
 
-      // If onboarding_complete is true, redirect to main app
-      if (userRow?.onboarding_complete) {
-        navigate("/app", { replace: true });
-        return;
+        // If onboarding_complete is true, redirect to main app
+        if (userRow?.onboarding_complete) {
+          navigate("/app", { replace: true });
+          return;
+        }
+
+        // Fallback: also check auth metadata (covers rare edge cases)
+        if (session.user.user_metadata?.onboarding_complete) {
+          navigate("/app", { replace: true });
+          return;
+        }
+
+        setChecking(false); // <-- Only show onboarding UI if not completed
       }
 
-      // Fallback: also check auth metadata (covers rare edge cases)
-      if (session.user.user_metadata?.onboarding_complete) {
-        navigate("/app", { replace: true });
-        return;
-      }
-    }
+      checkOnboarding();
+    }, [session, navigate]);
 
-    checkOnboarding();
-  }, [session, navigate]);
-
+    // 👇 Place this **right before your main return(...)**
+    if (checking) return null; // (or <div>Loading...</div>)
 
   // TMDb search (sorted by popularity, see more button)
   useEffect(() => {

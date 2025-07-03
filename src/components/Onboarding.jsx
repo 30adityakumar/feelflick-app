@@ -1,219 +1,346 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 
-/* ─── simple theme vars ─────────────────────────────── */
-const THEME = {
-  gradient : "linear-gradient(90deg,#fe9245 10%,#eb423b 90%)",
-  cardBg   : "rgba(32,26,34,0.95)",
-  highlight: "#fe9245",
-  text     : "#fff"
+const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY;
+
+// Helper: Theme colors
+const COLORS = {
+  bg: "#18141c",
+  surface: "#232330",
+  accent: "#fe9245",
+  accent2: "#eb423b",
+  white: "#fff",
+  text: "#c6c7d2",
+  shadow: "0 6px 24px #000a"
 };
 
-/* ─── Onboarding component ──────────────────────────── */
-export default function Onboarding({ session }) {
-  const navigate       = useNavigate();
-  const TMDB_KEY       = import.meta.env.VITE_TMDB_API_KEY;
-  const searchInputRef = useRef();
+export default function Onboarding() {
+  const navigate = useNavigate();
+  const [session, setSession] = useState(null);
 
-  /* ui state */
-  const [step,setStep]         = useState(1);
-  const [selectedGenres,setG]  = useState([]);
-  const [query,setQuery]       = useState("");
-  const [results,setResults]   = useState([]);
-  const [watchlist,setWatch]   = useState([]);
-  const [saving,setSaving]     = useState(false);
-  const [error,setError]       = useState("");
+  // --- Wizard state
+  const [step, setStep] = useState(1);
+  const [selectedGenres, setSelectedGenres] = useState([]);  // [genreId, ...]
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState([]);                // TMDB results
+  const [allResults, setAllResults] = useState([]);          // For "See more"
+  const [showAll, setShowAll] = useState(false);
+  const [watchlist, setWatchlist] = useState([]);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
-  /** redirect if already done */
-  useEffect(()=>{
-    if(session?.user?.user_metadata?.onboarding_complete){
-      navigate("/app",{replace:true});
-    }
-  },[session,navigate]);
+  // --- Auth
+  useEffect(() => {
+    let isMounted = true;
+    supabase.auth.getSession().then(({ data: { session } }) => { if (isMounted) setSession(session); });
+    const { data: listener } = supabase.auth.onAuthStateChange((_e, s) => { if (isMounted) setSession(s); });
+    return () => { isMounted = false; listener.subscription.unsubscribe(); };
+  }, []);
 
-  /** TMDb search */
-  useEffect(()=>{
-    if(!query){ setResults([]); return; }
-    const ctrl=new AbortController();
-    (async ()=>{
-      try{
-        const r = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${encodeURIComponent(query)}`,{signal:ctrl.signal});
-        const j = await r.json();
-        setResults(j.results?.slice(0,7)??[]);
-      }catch{/* ignore */}
+  useEffect(() => {
+    if (!session) return;
+    if (session.user?.user_metadata?.onboarding_complete) navigate("/app", { replace: true });
+  }, [session, navigate]);
+
+  // --- Genre list (static)
+  const GENRES = useMemo(() => [
+    { id: 28, label: "Action" }, { id: 12, label: "Adventure" }, { id: 16, label: "Animation" },
+    { id: 35, label: "Comedy" }, { id: 80, label: "Crime" }, { id: 99, label: "Documentary" },
+    { id: 18, label: "Drama" }, { id: 10751, label: "Family" }, { id: 14, label: "Fantasy" },
+    { id: 36, label: "History" }, { id: 27, label: "Horror" }, { id: 10402, label: "Music" },
+    { id: 9648, label: "Mystery" }, { id: 10749, label: "Romance" }, { id: 878, label: "Sci‑Fi" },
+    { id: 53, label: "Thriller" }
+  ], []);
+
+  // --- Genre select/deselect
+  const toggleGenre = id => setSelectedGenres(g =>
+    g.includes(id) ? g.filter(x => x !== id) : [...g, id]
+  );
+
+  // --- TMDb search, top 3 by popularity, with "see more"
+  useEffect(() => {
+    if (!query) { setResults([]); setAllResults([]); setShowAll(false); return; }
+    let abort = false;
+    (async () => {
+      try {
+        const res = await fetch(
+          `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${encodeURIComponent(query)}`
+        );
+        const json = await res.json();
+        if (!abort) {
+          // sort by popularity desc, then show top 3 (or all if showAll)
+          const sorted = (json.results || []).sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
+          setAllResults(sorted);
+          setResults(sorted.slice(0, 3));
+        }
+      } catch { /* ignore */ }
     })();
-    return ()=>ctrl.abort();
-  },[query,TMDB_KEY]);
+    return () => { abort = true; };
+  }, [query]);
 
-  /** genre helpers */
-  const GENRES = useMemo(()=>[
-    {id:28,label:"Action"},{id:12,label:"Adventure"},{id:16,label:"Animation"},
-    {id:35,label:"Comedy"},{id:80,label:"Crime"},{id:99,label:"Documentary"},
-    {id:18,label:"Drama"},{id:10751,label:"Family"},{id:14,label:"Fantasy"},
-    {id:36,label:"History"},{id:27,label:"Horror"},{id:10402,label:"Music"},
-    {id:9648,label:"Mystery"},{id:10749,label:"Romance"},{id:878,label:"Sci-Fi"},
-    {id:53,label:"Thriller"}
-  ],[]);
-  const toggle = id=>setG(g=>g.includes(id)?g.filter(x=>x!==id):[...g,id]);
+  const showMore = () => setResults(allResults);
 
-  /** watch-list helpers */
-  const addMovie = m => { if(!watchlist.some(x=>x.id===m.id)){ setWatch([...watchlist,m]); setQuery(""); searchInputRef.current?.focus();}};
-  const rmMovie  = id=>setWatch(watchlist.filter(m=>m.id!==id));
+  // --- Add/remove movies from watchlist
+  const addToWatchlist = movie => {
+    if (!watchlist.some(m => m.id === movie.id)) setWatchlist(watchlist => [...watchlist, movie]);
+    setQuery("");
+    setResults([]);
+    setShowAll(false);
+  };
+  const removeFromWatchlist = id =>
+    setWatchlist(watchlist => watchlist.filter(m => m.id !== id));
 
-  /* ──────────────────────────────────────────────────
-     🆕  Ensure movies exist in public.movies
-     ────────────────────────────────────────────────── */
-  async function ensureMoviesExist(movieArr){
-    const ids = movieArr.map(m=>m.id);
-    const { data:existing } = await supabase.from("movies").select("id").in("id",ids);
-    const existingIds = new Set(existing?.map(x=>x.id));
-    const missing     = movieArr.filter(m=>!existingIds.has(m.id));
-
-    if(!missing.length) return;
-
-    // fetch full details for missing titles (minimum columns is fine)
-    const details = await Promise.all(
-      missing.map(async m=>{
-        const res = await fetch(`https://api.themoviedb.org/3/movie/${m.id}?api_key=${TMDB_KEY}`);
-        const j   = await res.json();
-        return {
-          id   : j.id,
-          title: j.title,
-          poster_path : j.poster_path,
-          release_date: j.release_date
-        };
-      })
-    );
-
-    // upsert into movies table
-    await supabase.from("movies")
-      .upsert(details,{ onConflict:"id" })
-      .throwOnError();
-  }
-
-  /* ──────────────────────────────────────────────────
-     💾  Finish onboarding
-     ────────────────────────────────────────────────── */
-  async function finish(skipMovies=false){
-    if(!session?.user) return;
+  // --- Save all data
+  async function saveOnboarding(skipGenres = false, skipMovies = false) {
+    if (!session) return;
     setSaving(true); setError("");
-    const { id:user_id, email, user_metadata } = session.user;
+    const user_id = session.user.id;
 
-    try{
-      /* 1️⃣ guarantee row in public.users */
-      await supabase.from("users")
-        .upsert([{ id:user_id, email, name:user_metadata?.name ?? null }],{onConflict:"id"})
-        .throwOnError();
+    try {
+      // --- USERS table (mark onboarding complete)
+      await supabase.from("users").upsert({
+        id: user_id,
+        onboarding_complete: true,
+        name: session.user.user_metadata?.name ?? "",
+        email: session.user.email
+      });
 
-      /* 2️⃣ pref table */
-      await supabase.from("user_preferences").delete().eq("user_id",user_id).throwOnError();
-      if(selectedGenres.length){
-        await supabase.from("user_preferences")
-          .upsert(selectedGenres.map(genre_id=>({user_id,genre_id})),{onConflict:"user_id,genre_id"})
-          .throwOnError();
+      // --- Update Supabase Auth meta
+      await supabase.auth.updateUser({ data: { onboarding_complete: true } });
+
+      // --- GENRES (clear old, insert new)
+      await supabase.from("user_preferences").delete().eq("user_id", user_id);
+      if (!skipGenres && selectedGenres.length) {
+        await supabase.from("user_preferences").upsert(
+          selectedGenres.map(genre_id => ({ user_id, genre_id }))
+        );
       }
 
-      /* 3️⃣ watch-list */
-      await supabase.from("user_watchlist")
-        .delete()
-        .eq("user_id",user_id)
-        .eq("status","onboarding")
-        .throwOnError();
-
-      if(!skipMovies && watchlist.length){
-        /* 🆕 make sure referenced movies exist */
-        await ensureMoviesExist(watchlist);
-
-        await supabase.from("user_watchlist")
-          .upsert(
-            watchlist.map(m=>({user_id,movie_id:m.id,status:"onboarding"})),
-            {onConflict:"user_id,movie_id"}
-          )
-          .throwOnError();
+      // --- MOVIES (ensure all movies in movies table)
+      if (!skipMovies && watchlist.length) {
+        // For each movie, upsert to movies table if needed
+        for (const m of watchlist) {
+          // Only insert title/poster/release_date to keep it simple
+          await supabase.from("movies").upsert({
+            tmdb_id: m.id,
+            title: m.title,
+            poster_path: m.poster_path,
+            release_date: m.release_date
+          }, { onConflict: ["tmdb_id"] });
+        }
+        // Clean old onboarding picks
+        await supabase.from("user_watchlist").delete().eq("user_id", user_id).eq("status", "onboarding");
+        // Save new picks
+        await supabase.from("user_watchlist").upsert(
+          watchlist.map(m => ({ user_id, movie_id: m.id, status: "onboarding" }))
+        );
       }
-
-      /* 4️⃣ mark complete */
-      await supabase.from("users").update({onboarding_complete:true}).eq("id",user_id).throwOnError();
-      await supabase.auth.updateUser({data:{onboarding_complete:true}});
-
-      navigate("/app",{replace:true});
-    }catch(e){
-      console.error("Onboarding save failed:",e);
-      setError("Could not save your preferences — please try again.");
-    }finally{
+      // --- Done
+      navigate("/app", { replace: true });
+    } catch (err) {
+      setError(err.message || "Error saving onboarding. Try again!");
       setSaving(false);
     }
   }
 
-  /* ─────────────────────────────────────────────── UI */
-  return (
-    <div style={{minHeight:"100vh",background:"#101015",display:"flex",alignItems:"center",justifyContent:"center",padding:18}}>
-      <div style={{background:THEME.cardBg,color:THEME.text,borderRadius:18,boxShadow:"0 10px 40px #000b",padding:"40px 24px",maxWidth:480,width:"100%",position:"relative"}}>
-        {error && <p style={{background:"#2d141c",color:"#ff527f",padding:10,borderRadius:8,textAlign:"center",fontWeight:700}}>{error}</p>}
+  // --- RENDER ---
+  if (!session) return null;
+  const isMobile = window.innerWidth < 600;
 
-        {/* STEP 1 */}
-        {step===1 && (
+  return (
+    <div style={{
+      minHeight: "100vh", background: COLORS.bg, color: COLORS.text,
+      display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: isMobile ? 8 : 36
+    }}>
+      <div style={{
+        width: "100%", maxWidth: 480, margin: "0 auto",
+        background: COLORS.surface, borderRadius: 24, boxShadow: COLORS.shadow,
+        padding: isMobile ? "25px 10px" : "38px 42px"
+      }}>
+        {step === 1 && (
           <>
-            <h2 style={{textAlign:"center",fontWeight:900,fontSize:"1.45rem"}}>Pick your favourite genres</h2>
-            <div style={{display:"flex",flexWrap:"wrap",gap:8,justifyContent:"center",margin:"18px 0"}}>
-              {GENRES.map(g=>(
-                <button key={g.id} onClick={()=>toggle(g.id)}
-                  style={{padding:"8px 16px",borderRadius:30,border:"none",fontWeight:700,color:"#fff",
-                          background:selectedGenres.includes(g.id)?THEME.gradient:"#282539",cursor:"pointer"}}>
+            <div style={{
+              fontSize: 26, fontWeight: 900, textAlign: "center", color: COLORS.white, marginBottom: 10
+            }}>What do you like to watch?</div>
+            <div style={{ color: COLORS.text, fontSize: 16, textAlign: "center", marginBottom: 18 }}>
+              Pick a few genres that match your taste. This helps us give you recommendations that actually fit your mood!
+            </div>
+            <div style={{
+              display: "flex", flexWrap: "wrap", gap: 10, justifyContent: "center", marginBottom: 22
+            }}>
+              {GENRES.map(g =>
+                <button
+                  key={g.id}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: 18,
+                    border: "none",
+                    background: selectedGenres.includes(g.id)
+                      ? `linear-gradient(90deg,${COLORS.accent} 10%,${COLORS.accent2} 90%)`
+                      : "#242439",
+                    color: COLORS.white,
+                    fontWeight: 700,
+                    fontSize: 15,
+                    boxShadow: selectedGenres.includes(g.id) ? "0 2px 10px #fe924533" : "none",
+                    cursor: "pointer",
+                    opacity: selectedGenres.includes(g.id) ? 1 : 0.93,
+                    transition: "background 0.17s, box-shadow 0.15s"
+                  }}
+                  onClick={() => toggleGenre(g.id)}
+                >
                   {g.label}
                 </button>
-              ))}
+              )}
             </div>
-            <div style={{display:"flex",gap:10}}>
-              <button onClick={()=>setStep(2)} disabled={!selectedGenres.length}
-                style={{flex:1,padding:12,border:"none",borderRadius:8,fontWeight:800,
-                        background:THEME.gradient,opacity:selectedGenres.length?1:0.4,cursor:selectedGenres.length?"pointer":"not-allowed"}}>
-                Next
-              </button>
-              <button onClick={()=>finish(true)} style={{padding:12,border:"none",borderRadius:8,
-                        background:"#353148",color:"#ffe3b3",fontWeight:700}}>Skip</button>
+            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 20 }}>
+              <span />
+              <button
+                disabled={selectedGenres.length === 0}
+                style={{
+                  background: `linear-gradient(90deg,${COLORS.accent} 10%,${COLORS.accent2} 90%)`,
+                  color: "#fff", fontWeight: 800, fontSize: 15,
+                  padding: "9px 28px", borderRadius: 9, border: "none",
+                  boxShadow: "0 2px 8px #fe924522", cursor: selectedGenres.length ? "pointer" : "not-allowed", opacity: selectedGenres.length ? 1 : 0.58
+                }}
+                onClick={() => setStep(2)}
+              >Next</button>
+              <button
+                style={{
+                  background: "none", color: COLORS.accent,
+                  border: "none", fontWeight: 700, fontSize: 15, cursor: "pointer"
+                }}
+                onClick={() => saveOnboarding(true, false)}
+              >Skip</button>
             </div>
           </>
         )}
 
-        {/* STEP 2 */}
-        {step===2 && (
+        {step === 2 && (
           <>
-            <h2 style={{textAlign:"center",fontWeight:900,fontSize:"1.3rem"}}>Add a couple of movies you love</h2>
-            <input ref={searchInputRef} value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search…" autoFocus
-                   style={{width:"100%",background:"#232330",color:"#fff",border:"none",borderRadius:8,padding:12,margin:"15px 0"}}/>
-            <div style={{maxHeight:170,overflowY:"auto"}}>
-              {results.map(r=>(
-                <div key={r.id} onClick={()=>addMovie(r)}
-                     style={{display:"flex",alignItems:"center",gap:10,padding:6,cursor:"pointer"}}>
-                  <img src={r.poster_path?`https://image.tmdb.org/t/p/w92${r.poster_path}`:'/posters/placeholder.png'}
-                       alt={r.title} style={{width:36,height:52,objectFit:"cover",borderRadius:6}}/>
-                  <span>{r.title}{r.release_date && <small style={{opacity:.6}}> ({r.release_date.slice(0,4)})</small>}</span>
-                </div>
-              ))}
+            <div style={{
+              fontSize: 26, fontWeight: 900, textAlign: "center", color: COLORS.white, marginBottom: 10
+            }}>Any favourite movies?</div>
+            <div style={{ color: COLORS.text, fontSize: 16, textAlign: "center", marginBottom: 16 }}>
+              Type to search your favourites. <span style={{ color: COLORS.accent }}>Pick at least one for better suggestions.</span>
+              <br />
+              (We show top 3 results by popularity. Hit “See more” for all matches.)
             </div>
-            {watchlist.length>0 && (
-              <div style={{display:"flex",flexWrap:"wrap",gap:8,margin:"12px 0"}}>
-                {watchlist.map(m=>(
-                  <div key={m.id} style={{background:"#232330",borderRadius:20,padding:"4px 12px",display:"flex",alignItems:"center",gap:6}}>
-                    {m.title}
-                    <button onClick={()=>rmMovie(m.id)} style={{border:"none",background:"none",color:"#ffbbaa",cursor:"pointer"}}>×</button>
+            <input
+              type="text"
+              placeholder="Search a movie…"
+              style={{
+                width: "100%", fontSize: 15, padding: "10px 14px",
+                borderRadius: 8, border: "none", background: "#232330", color: COLORS.white,
+                marginBottom: 10, boxShadow: "0 1.5px 8px 0 #0004", outline: "none"
+              }}
+              value={query}
+              onChange={e => { setQuery(e.target.value); setShowAll(false); }}
+            />
+            {results.length > 0 && (
+              <div style={{
+                maxHeight: 220, overflowY: "auto", marginBottom: 7, background: "#181828", borderRadius: 12,
+                boxShadow: "0 2px 9px #19194022"
+              }}>
+                {results.map(r =>
+                  <div
+                    key={r.id}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 10, cursor: "pointer",
+                      padding: "7px 12px", borderBottom: "1px solid #23234044"
+                    }}
+                    onClick={() => addToWatchlist(r)}
+                  >
+                    <img
+                      src={r.poster_path ? `https://image.tmdb.org/t/p/w92${r.poster_path}` : "/posters/placeholder.png"}
+                      alt={r.title}
+                      style={{ width: 38, height: 56, objectFit: "cover", borderRadius: 8, marginRight: 8 }}
+                    />
+                    <span style={{ color: COLORS.white }}>{r.title}
+                      <span style={{ color: "#c6c7d2", marginLeft: 5, fontSize: 13, fontWeight: 500 }}>
+                        {r.release_date ? `(${r.release_date.slice(0, 4)})` : ""}
+                      </span>
+                    </span>
                   </div>
-                ))}
+                )}
+                {!showAll && allResults.length > 3 && (
+                  <div style={{
+                    padding: "7px 0", textAlign: "center", background: "none"
+                  }}>
+                    <button
+                      style={{
+                        background: "none", color: COLORS.accent, border: "none", fontWeight: 700,
+                        fontSize: 14, cursor: "pointer", padding: "0 7px"
+                      }}
+                      onClick={showMore}
+                    >See more</button>
+                  </div>
+                )}
               </div>
             )}
-            <div style={{display:"flex",gap:10}}>
-              <button onClick={()=>setStep(1)} style={{flex:1,padding:12,border:"none",borderRadius:8,background:"#353148",color:"#fff"}}>‹ Back</button>
-              <button onClick={()=>finish(false)} disabled={saving}
-                      style={{flex:1,padding:12,border:"none",borderRadius:8,fontWeight:800,background:THEME.gradient}}>Finish</button>
-              <button onClick={()=>finish(true)}
-                      style={{padding:12,border:"none",borderRadius:8,background:"#353148",color:"#ffe3b3",fontWeight:700}}>Skip</button>
+            {watchlist.length > 0 && (
+              <>
+                <div style={{ fontWeight: 600, marginBottom: 7 }}>Your picks:</div>
+                <div style={{
+                  display: "flex", flexWrap: "wrap", gap: 7, marginBottom: 18
+                }}>
+                  {watchlist.map(m =>
+                    <div key={m.id} style={{
+                      display: "flex", alignItems: "center", gap: 5,
+                      background: "#232340", borderRadius: 13, padding: "6px 12px", fontSize: 14, fontWeight: 600
+                    }}>
+                      <img
+                        src={m.poster_path ? `https://image.tmdb.org/t/p/w92${m.poster_path}` : "/posters/placeholder.png"}
+                        alt={m.title}
+                        style={{ width: 26, height: 36, objectFit: "cover", borderRadius: 6 }}
+                      />
+                      <span style={{ color: COLORS.white }}>{m.title}</span>
+                      <button
+                        style={{
+                          background: "none", color: COLORS.accent2, border: "none", fontSize: 16, marginLeft: 2,
+                          cursor: "pointer"
+                        }}
+                        onClick={() => removeFromWatchlist(m.id)}
+                        aria-label="Remove"
+                      >×</button>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 12 }}>
+              <button
+                style={{
+                  background: "none", color: COLORS.accent, border: "none",
+                  fontWeight: 700, fontSize: 15, cursor: "pointer"
+                }}
+                onClick={() => setStep(1)}
+              >‹ Back</button>
+              <button
+                style={{
+                  background: `linear-gradient(90deg,${COLORS.accent} 10%,${COLORS.accent2} 90%)`,
+                  color: "#fff", fontWeight: 800, fontSize: 15,
+                  padding: "9px 28px", borderRadius: 9, border: "none",
+                  boxShadow: "0 2px 8px #fe924522", cursor: "pointer"
+                }}
+                onClick={() => saveOnboarding(false, false)}
+                disabled={saving}
+              >Finish</button>
+              <button
+                style={{
+                  background: "none", color: COLORS.accent,
+                  border: "none", fontWeight: 700, fontSize: 15, cursor: "pointer"
+                }}
+                onClick={() => saveOnboarding(false, true)}
+              >Skip</button>
             </div>
+            {error && (
+              <div style={{ color: COLORS.accent2, fontWeight: 700, marginTop: 12, textAlign: "center" }}>
+                {error}
+              </div>
+            )}
           </>
         )}
-
-        {saving && <div style={{position:"absolute",inset:0,background:"rgba(0,0,0,.55)",display:"flex",alignItems:"center",justifyContent:"center",borderRadius:18}}>Saving…</div>}
       </div>
     </div>
   );

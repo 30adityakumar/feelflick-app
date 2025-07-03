@@ -20,10 +20,11 @@ export default function Onboarding({ session }) {
   const [results, setResults] = useState([]);
   const [watchlist, setWatchlist] = useState([]);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
   const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY;
   const searchInput = useRef();
 
-  // If onboarding already done, redirect to main app
+  // Redirect if onboarding already complete
   useEffect(() => {
     if (session?.user?.user_metadata?.onboarding_complete) {
       navigate("/app", { replace: true });
@@ -67,47 +68,47 @@ export default function Onboarding({ session }) {
   };
   const removeFromWatchlist = (id) => setWatchlist(watchlist.filter(m => m.id !== id));
 
-  // ------- Save to SQL! -----------
+  // ----------- SAVE TO SQL! -----------
   async function finishOnboarding(skipMovies = false) {
     setSaving(true);
-    const user_id = session.user.id;
+    setError("");
+    try {
+      const user_id = session.user.id;
 
-    // Genres: upsert user_preferences
-    if (selectedGenres.length) {
-      // Remove old, insert new
+      // Genres: remove old, insert new if any
       await supabase.from("user_preferences").delete().eq("user_id", user_id);
-      await supabase.from("user_preferences").insert(
-        selectedGenres.map(genre_id => ({ user_id, genre_id }))
-      );
-    } else {
-      // User skipped genres: clear out if any
-      await supabase.from("user_preferences").delete().eq("user_id", user_id);
-    }
+      if (selectedGenres.length) {
+        await supabase.from("user_preferences").insert(
+          selectedGenres.map(genre_id => ({ user_id, genre_id }))
+        );
+      }
 
-    // Watchlist: upsert user_watchlist (for onboarding, status=onboarding)
-    if (!skipMovies && watchlist.length) {
-      // Remove old, insert new
+      // Watchlist: remove old onboarding, insert new if any
       await supabase.from("user_watchlist").delete().eq("user_id", user_id).eq("status", "onboarding");
-      await supabase.from("user_watchlist").insert(
-        watchlist.map(m => ({
-          user_id, movie_id: m.id, status: "onboarding"
-        }))
-      );
+      if (!skipMovies && watchlist.length) {
+        await supabase.from("user_watchlist").insert(
+          watchlist.map(m => ({
+            user_id, movie_id: m.id, status: "onboarding"
+          }))
+        );
+      }
+
+      // Mark onboarding complete (users table)
+      await supabase
+        .from("users")
+        .update({ onboarding_complete: true })
+        .eq("id", user_id);
+
+      // Mark onboarding complete in Auth user_metadata
+      await supabase.auth.updateUser({
+        data: { onboarding_complete: true }
+      });
+
+      navigate("/app", { replace: true });
+    } catch (err) {
+      setError("Something went wrong saving your preferences. Please try again.");
     }
-
-    // Mark onboarding complete
-    await supabase
-      .from("users")
-      .update({ onboarding_complete: true })
-      .eq("id", user_id);
-
-    // Also update Supabase Auth user metadata (if you want)
-    await supabase.auth.updateUser({
-      data: { onboarding_complete: true }
-    });
-
     setSaving(false);
-    navigate("/app", { replace: true });
   }
 
   // --- UI ---
@@ -131,6 +132,14 @@ export default function Onboarding({ session }) {
         color: THEME.text,
         position: "relative"
       }}>
+        {error && (
+          <div style={{
+            background: "#2d141c", color: "#ff4b6b", padding: 10, borderRadius: 7,
+            marginBottom: 17, fontWeight: 700, textAlign: "center"
+          }}>
+            {error}
+          </div>
+        )}
         {step === 1 && (
           <>
             <div style={{ textAlign: "center", marginBottom: 18 }}>

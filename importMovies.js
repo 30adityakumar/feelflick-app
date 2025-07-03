@@ -2,9 +2,9 @@
 import fetch from "node-fetch";
 import { createClient } from "@supabase/supabase-js";
 
-const SUPABASE_URL = "YOUR_SUPABASE_URL";
-const SUPABASE_KEY = "YOUR_SUPABASE_SERVICE_ROLE_KEY"; // NEVER expose this in frontend!
-const TMDB_API_KEY = "YOUR_TMDB_API_KEY";
+const SUPABASE_URL = "https://orbhbwtgdfqhehuuxfmg.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9yYmhid3RnZGZxaGVodXV4Zm1nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEwNDI4NDQsImV4cCI6MjA2NjYxODg0NH0.9JiUlmQNi3kLEssgzrI97qLzu3j2zKZlwFn42miAsDM"; // NEVER expose this in frontend!
+const TMDB_API_KEY = "56e20962522bccd1990f31f2c791d8d1";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 

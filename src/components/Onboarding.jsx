@@ -2,23 +2,27 @@ import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 
-// Theme variables
 const ACCENT = "#fe9245";
 const ACCENT2 = "#eb423b";
-const DARK = "#18141c";
-const OUTLINE = "1.2px solid #fe9245";
+const OUTLINE = "1.1px solid #fe9245";
 const BTN_BG = "linear-gradient(90deg,#fe9245 10%,#eb423b 90%)";
-const GENRE_SELECTED_BG = "linear-gradient(90deg,#2323b8 10%,#fdaf41 90%)";
+const GENRE_SELECTED_BG = "linear-gradient(90deg,#367cff 0%,#fdaf41 90%)";
+const DARK_BG = "rgba(22,19,28,0.99)";
 
 export default function Onboarding() {
   const navigate = useNavigate();
   const [session, setSession] = useState(null);
-
-  // Steps: 1 = genres, 2 = movies
   const [step, setStep] = useState(1);
-
-  // Genres
   const [selectedGenres, setSelectedGenres] = useState([]);
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState([]);
+  const [showAllResults, setShowAllResults] = useState(false);
+  const [watchlist, setWatchlist] = useState([]);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY;
+
+  // Genres config
   const GENRES = useMemo(() => [
     { id: 28, label: "Action" }, { id: 12, label: "Adventure" },
     { id: 16, label: "Animation" }, { id: 35, label: "Comedy" },
@@ -29,18 +33,6 @@ export default function Onboarding() {
     { id: 9648, label: "Mystery" }, { id: 10749, label: "Romance" },
     { id: 878, label: "Sci-fi" }, { id: 53, label: "Thriller" }
   ], []);
-  function toggleGenre(id) {
-    setSelectedGenres((g) => (g.includes(id) ? g.filter((x) => x !== id) : [...g, id]));
-  }
-
-  // Movies
-  const [query, setQuery] = useState("");
-  const [results, setResults] = useState([]);
-  const [showAllResults, setShowAllResults] = useState(false);
-  const [watchlist, setWatchlist] = useState([]);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
   // Auth/session check
   useEffect(() => {
@@ -49,57 +41,7 @@ export default function Onboarding() {
     return () => listener?.subscription?.unsubscribe();
   }, []);
 
-  // Genre grid, responsive
-  function renderGenreButtons() {
-    return (
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
-          gap: "0px",
-          justifyItems: "center",
-          alignItems: "center",
-          marginTop: 2,
-        }}
-      >
-        {GENRES.map((g) => (
-          <button
-            key={g.id}
-            type="button"
-            style={{
-              width: 138,
-              height: 38,
-              margin: "10px 0",
-              borderRadius: 14,
-              border: OUTLINE,
-              background: selectedGenres.includes(g.id)
-                ? "linear-gradient(95deg,#3b36e8 20%,#fdaf41 90%)"
-                : "transparent",
-              color: "#fff",
-              fontSize: 16,
-              fontWeight: 500,
-              letterSpacing: 0.01,
-              textAlign: "center",
-              boxShadow: selectedGenres.includes(g.id)
-                ? "0 2.5px 11px #fdaf4122"
-                : "none",
-              outline: "none",
-              padding: "3.5px 0",
-              transition: "all 0.15s",
-              borderWidth: "1.2px"
-            }}
-            onClick={() => toggleGenre(g.id)}
-          >
-            <span style={{ fontWeight: 500 }}>
-              {g.label.charAt(0).toUpperCase() + g.label.slice(1).toLowerCase()}
-            </span>
-          </button>
-        ))}
-      </div>
-    );
-  }
-
-  // TMDb search logic (popularity sort, "see more" button)
+  // TMDb search (sorted by popularity, see more button)
   useEffect(() => {
     let active = true;
     if (!query) {
@@ -121,13 +63,18 @@ export default function Onboarding() {
     return () => { active = false; };
   }, [query, TMDB_KEY]);
 
+  function toggleGenre(id) {
+    setSelectedGenres((g) => (g.includes(id) ? g.filter((x) => x !== id) : [...g, id]));
+  }
+
   function handleAddMovie(movie) {
     if (watchlist.some((m) => m.id === movie.id)) return;
     setWatchlist((old) => [...old, movie]);
-    setQuery(""); // Clear search box after pick
+    setQuery("");
     setResults([]);
     setShowAllResults(false);
   }
+
   function handleRemoveMovie(id) {
     setWatchlist((w) => w.filter((m) => m.id !== id));
   }
@@ -142,8 +89,8 @@ export default function Onboarding() {
       if (!skipGenres) {
         await supabase.from("user_preferences").delete().eq("user_id", user_id);
         if (selectedGenres.length) {
-          await supabase.from("user_preferences").update(
-            selectedGenres.map((genre_id) => ({ user_id, genre_id })),
+          await supabase.from("user_preferences").upsert(
+            selectedGenres.map(genre_id => ({ user_id, genre_id })),
             { onConflict: ["user_id", "genre_id"] }
           );
         }
@@ -152,7 +99,7 @@ export default function Onboarding() {
       // Save movies: update any missing into movies first, then update into watchlist
       if (!skipMovies) {
         for (const m of watchlist) {
-          await supabase.from("movies").update(
+          await supabase.from("movies").upsert(
             {
               tmdb_id: m.id,
               title: m.title,
@@ -164,7 +111,7 @@ export default function Onboarding() {
         }
         await supabase.from("user_watchlist").delete().eq("user_id", user_id).eq("status", "onboarding");
         if (watchlist.length) {
-          await supabase.from("user_watchlist").update(
+          await supabase.from("user_watchlist").upsert(
             watchlist.map((m) => ({
               user_id,
               movie_id: m.id,
@@ -186,9 +133,11 @@ export default function Onboarding() {
     setLoading(false);
   }
 
-  // Card width
-  const CARD_WIDTH = window.innerWidth < 700 ? "98vw" : "490px";
-  const CARD_MARGIN = window.innerWidth < 700 ? "12px" : "0 auto";
+  // --- UI ---
+  const CARD_WIDTH = window.innerWidth < 700 ? "97vw" : "460px";
+  const CARD_MARGIN = window.innerWidth < 700 ? "11px" : "0 auto";
+  const genreFontSize = 13.5;
+  const genreBtnHeight = 34;
 
   return (
     <div
@@ -205,9 +154,9 @@ export default function Onboarding() {
       }}
     >
       {/* Logo top left */}
-      <div style={{ position: "absolute", left: 38, top: 34, zIndex: 11, display: "flex", alignItems: "center", gap: 12 }}>
-        <img src="/logo.png" alt="FeelFlick" style={{ width: 48, height: 48, borderRadius: 14, boxShadow: "0 1.5px 8px #0002" }} />
-        <span style={{ fontSize: 31, fontWeight: 900, color: "#fff", letterSpacing: "-1px", textShadow: "0 1px 7px #19194044" }}>
+      <div style={{ position: "absolute", left: 32, top: 23, zIndex: 11, display: "flex", alignItems: "center", gap: 10 }}>
+        <img src="/logo.png" alt="FeelFlick" style={{ width: 42, height: 42, borderRadius: 12, boxShadow: "0 1.5px 8px #0002" }} />
+        <span style={{ fontSize: 23, fontWeight: 900, color: "#fff", letterSpacing: "-1px", textShadow: "0 1px 7px #19194044" }}>
           FeelFlick
         </span>
       </div>
@@ -215,14 +164,14 @@ export default function Onboarding() {
         style={{
           width: CARD_WIDTH,
           margin: CARD_MARGIN,
-          minHeight: 390,
-          marginTop: 70,
-          marginBottom: 30,
+          minHeight: 330,
+          marginTop: 72,
+          marginBottom: 16,
           alignSelf: "center",
-          background: "rgba(22,19,28,0.99)",
-          borderRadius: 32,
-          boxShadow: "0 8px 48px 0 #0008",
-          padding: "28px 24px 23px 24px",
+          background: DARK_BG,
+          borderRadius: 22,
+          boxShadow: "0 8px 44px 0 #0007",
+          padding: "24px 16px 17px 16px",
           zIndex: 10,
           display: "flex",
           flexDirection: "column",
@@ -232,79 +181,130 @@ export default function Onboarding() {
           <div style={{
             color: "#f44336",
             background: "#3d1113",
-            borderRadius: 7,
+            borderRadius: 6,
             textAlign: "center",
-            marginBottom: 17,
-            fontWeight: 700,
-            fontSize: 17,
-            padding: "9px 4px"
+            marginBottom: 12,
+            fontWeight: 600,
+            fontSize: 14.5,
+            padding: "7px 4px"
           }}>{error}</div>
         )}
         {/* Step 1: Genres */}
         {step === 1 && (
           <>
             <h2 style={{
-              fontSize: 29,
+              fontSize: 20,
               fontWeight: 900,
               color: "#fff",
               textAlign: "center",
-              marginBottom: 5,
+              marginBottom: 2,
               letterSpacing: "-.01em"
             }}>
               What do you like to watch?
             </h2>
             <div style={{
-              fontSize: 16,
+              fontSize: 13,
               fontWeight: 400,
               color: "#e9e9ef",
               textAlign: "center",
-              marginBottom: 2,
-              marginTop: 2,
+              marginBottom: 1,
+              marginTop: 1,
               letterSpacing: ".01em"
             }}>
               Pick a few genres that match your taste.
             </div>
             <div style={{
-              fontSize: 14.5,
+              fontSize: 12,
               fontWeight: 400,
               color: ACCENT,
               textAlign: "center",
-              marginBottom: 13,
-              marginTop: 1,
-              fontFamily: "inherit",
+              marginBottom: 10,
+              marginTop: 0,
               letterSpacing: ".01em"
             }}>
               This helps us give you recommendations that actually fit your mood!
             </div>
-            {renderGenreButtons()}
-            <div style={{ display: "flex", justifyContent: "center", marginTop: 23, gap: 40 }}>
+            {/* Genre Grid */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(4, 1fr)",
+                gap: "8px 7px",
+                justifyItems: "center",
+                alignItems: "center",
+                margin: "0 auto 12px auto",
+                width: "100%",
+              }}
+            >
+              {GENRES.map((g) => (
+                <button
+                  key={g.id}
+                  type="button"
+                  style={{
+                    width: 96,
+                    height: genreBtnHeight,
+                    margin: "2px 0",
+                    borderRadius: 12,
+                    border: OUTLINE,
+                    background: selectedGenres.includes(g.id)
+                      ? GENRE_SELECTED_BG
+                      : "transparent",
+                    color: "#fff",
+                    fontSize: genreFontSize,
+                    fontWeight: 500,
+                    letterSpacing: 0.01,
+                    textAlign: "center",
+                    boxShadow: selectedGenres.includes(g.id)
+                      ? "0 2px 7px #fdaf4111"
+                      : "none",
+                    outline: "none",
+                    padding: "3.5px 0",
+                    transition: "all 0.15s",
+                    borderWidth: "1px"
+                  }}
+                  onClick={() => toggleGenre(g.id)}
+                >
+                  <span style={{
+                    fontWeight: 500,
+                    textAlign: "center",
+                    lineHeight: "1.17",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis"
+                  }}>
+                    {g.label.charAt(0).toUpperCase() + g.label.slice(1).toLowerCase()}
+                  </span>
+                </button>
+              ))}
+            </div>
+            <div style={{ display: "flex", justifyContent: "center", marginTop: 16, gap: 23 }}>
               <button
                 style={{
-                  padding: "8px 28px",
-                  borderRadius: 10,
+                  padding: "7px 21px",
+                  borderRadius: 8,
                   fontWeight: 800,
-                  fontSize: 16,
+                  fontSize: 13.5,
                   background: BTN_BG,
                   color: "#fff",
                   border: "none",
-                  marginRight: 10,
+                  marginRight: 8,
                   cursor: "pointer",
-                  boxShadow: "0 3px 17px #eb423b22",
+                  boxShadow: "0 2px 10px #eb423b22",
                   opacity: loading ? 0.7 : 1,
-                  minWidth: 86,
+                  minWidth: 70,
                   letterSpacing: 0.01,
                 }}
                 disabled={loading}
                 onClick={() => setStep(2)}
               >
-                NEXT
+                Next
               </button>
               <button
                 style={{
                   background: "none",
                   color: ACCENT,
                   fontWeight: 800,
-                  fontSize: 16,
+                  fontSize: 13.5,
                   border: "none",
                   cursor: "pointer",
                   minWidth: 44
@@ -312,7 +312,7 @@ export default function Onboarding() {
                 disabled={loading}
                 onClick={() => saveAndGo(true, false)}
               >
-                SKIP
+                Skip
               </button>
             </div>
           </>
@@ -321,24 +321,25 @@ export default function Onboarding() {
         {step === 2 && (
           <>
             <h2 style={{
-              fontSize: 25,
+              fontSize: 17,
               fontWeight: 900,
               color: "#fff",
               textAlign: "center",
-              marginBottom: 8,
+              marginBottom: 7,
               letterSpacing: "-.01em"
             }}>
               Any favourite movies?
             </h2>
             <div style={{
-              fontSize: 14,
+              fontSize: 12,
               color: "#fff",
               fontWeight: 400,
               textAlign: "center",
-              marginBottom: 10,
-              marginTop: 1,
+              marginBottom: 7,
+              marginTop: 0,
               opacity: 0.84,
               letterSpacing: ".01em",
+              fontFamily: "inherit"
             }}>
               Type to search your favourites. <span style={{ color: ACCENT, fontWeight: 600 }}>Pick at least one for better suggestions.</span>
             </div>
@@ -350,17 +351,17 @@ export default function Onboarding() {
               style={{
                 width: "100%",
                 background: "#232330",
-                borderRadius: 10,
-                padding: "9px 12px",
-                fontSize: 16,
+                borderRadius: 8,
+                padding: "7px 10px",
+                fontSize: 13.5,
                 fontWeight: 500,
                 color: "#fff",
                 outline: "none",
                 border: "none",
                 marginBottom: 7,
-                marginTop: 2,
+                marginTop: 0,
                 letterSpacing: 0.01,
-                boxShadow: "0 1.5px 8px 0 #0004"
+                boxShadow: "0 1px 5px 0 #0004"
               }}
             />
             {/* Suggestions */}
@@ -368,11 +369,11 @@ export default function Onboarding() {
               <div
                 style={{
                   background: "#242134",
-                  borderRadius: 9,
-                  maxHeight: 160,
+                  borderRadius: 7,
+                  maxHeight: 100,
                   overflowY: "auto",
                   marginBottom: 6,
-                  boxShadow: "0 2px 14px #0004"
+                  boxShadow: "0 1px 8px #0004"
                 }}
               >
                 {(showAllResults ? results : results.slice(0, 3)).map((r, idx) => (
@@ -381,10 +382,10 @@ export default function Onboarding() {
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      padding: "8px 11px",
+                      padding: "5px 9px",
                       borderBottom: "1px solid #302c37",
                       cursor: "pointer",
-                      gap: 11,
+                      gap: 7,
                       transition: "background 0.11s",
                     }}
                     onClick={() => handleAddMovie(r)}
@@ -392,10 +393,10 @@ export default function Onboarding() {
                     <img
                       src={r.poster_path ? `https://image.tmdb.org/t/p/w92${r.poster_path}` : "/posters/placeholder.png"}
                       alt={r.title}
-                      style={{ width: 29, height: 41, objectFit: "cover", borderRadius: 6, background: "#101012" }}
+                      style={{ width: 19, height: 29, objectFit: "cover", borderRadius: 5, background: "#101012" }}
                     />
-                    <span style={{ color: "#fff", fontWeight: 600, fontSize: 15 }}>
-                      {r.title} <span style={{ color: "#eee", fontWeight: 400, fontSize: 13, marginLeft: 6 }}>{r.release_date ? `(${r.release_date.slice(0, 4)})` : ""}</span>
+                    <span style={{ color: "#fff", fontWeight: 600, fontSize: 12.5 }}>
+                      {r.title} <span style={{ color: "#eee", fontWeight: 400, fontSize: 11.5, marginLeft: 4 }}>{r.release_date ? `(${r.release_date.slice(0, 4)})` : ""}</span>
                     </span>
                   </div>
                 ))}
@@ -403,10 +404,10 @@ export default function Onboarding() {
                   <div
                     style={{
                       textAlign: "center",
-                      padding: "7px 0 6px",
+                      padding: "5px 0 4px",
                       color: ACCENT,
                       fontWeight: 600,
-                      fontSize: 13,
+                      fontSize: 11.5,
                       cursor: "pointer",
                       userSelect: "none",
                     }}
@@ -423,7 +424,7 @@ export default function Onboarding() {
                 <div style={{
                   color: "#fff",
                   fontWeight: 700,
-                  fontSize: 15,
+                  fontSize: 12.7,
                   marginBottom: 2
                 }}>
                   Your picks:
@@ -431,30 +432,30 @@ export default function Onboarding() {
                 <div style={{
                   display: "flex",
                   flexWrap: "wrap",
-                  gap: "7px 12px",
-                  marginBottom: 12
+                  gap: "6px 9px",
+                  marginBottom: 9
                 }}>
                   {watchlist.map(m => (
                     <div key={m.id} style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: 6,
+                      gap: 4,
                       background: "#231d2d",
-                      borderRadius: 10,
-                      padding: "3px 11px 3px 4px"
+                      borderRadius: 7,
+                      padding: "2px 8px 2px 3px"
                     }}>
                       <img src={m.poster_path ? `https://image.tmdb.org/t/p/w92${m.poster_path}` : "/posters/placeholder.png"}
                         alt={m.title}
-                        style={{ width: 24, height: 33, objectFit: "cover", borderRadius: 6, marginRight: 4, background: "#101012" }}
+                        style={{ width: 15, height: 22, objectFit: "cover", borderRadius: 4, marginRight: 2, background: "#101012" }}
                       />
-                      <span style={{ fontWeight: 700, fontSize: 13.5, color: "#fff" }}>{m.title}</span>
+                      <span style={{ fontWeight: 700, fontSize: 10.5, color: "#fff" }}>{m.title}</span>
                       <button
                         style={{
                           background: "none",
                           border: "none",
                           color: "#fd7069",
-                          fontSize: 19,
-                          marginLeft: 1,
+                          fontSize: 14,
+                          marginLeft: 0,
                           marginRight: 0,
                           cursor: "pointer",
                           fontWeight: 700,
@@ -468,13 +469,13 @@ export default function Onboarding() {
                 </div>
               </div>
             )}
-            <div style={{ display: "flex", justifyContent: "center", marginTop: 10, gap: 30 }}>
+            <div style={{ display: "flex", justifyContent: "center", marginTop: 8, gap: 17 }}>
               <button
                 style={{
-                  padding: "7px 22px",
-                  borderRadius: 9,
+                  padding: "5px 14px",
+                  borderRadius: 7,
                   fontWeight: 800,
-                  fontSize: 14.5,
+                  fontSize: 12,
                   background: "none",
                   color: ACCENT,
                   border: "none",
@@ -485,34 +486,34 @@ export default function Onboarding() {
                 disabled={loading}
                 onClick={() => setStep(1)}
               >
-                &lt; BACK
+                &lt; Back
               </button>
               <button
                 style={{
-                  padding: "8px 24px",
-                  borderRadius: 10,
+                  padding: "7px 18px",
+                  borderRadius: 9,
                   fontWeight: 800,
-                  fontSize: 15.5,
+                  fontSize: 13,
                   background: BTN_BG,
                   color: "#fff",
                   border: "none",
                   marginRight: 7,
                   cursor: "pointer",
-                  boxShadow: "0 3px 17px #eb423b22",
+                  boxShadow: "0 2px 10px #eb423b22",
                   opacity: loading ? 0.7 : 1,
-                  minWidth: 74,
+                  minWidth: 52,
                 }}
                 disabled={loading}
                 onClick={() => saveAndGo(false, false)}
               >
-                FINISH
+                Finish
               </button>
               <button
                 style={{
                   background: "none",
                   color: ACCENT,
                   fontWeight: 800,
-                  fontSize: 14.5,
+                  fontSize: 12,
                   border: "none",
                   cursor: "pointer",
                   minWidth: 44
@@ -520,7 +521,7 @@ export default function Onboarding() {
                 disabled={loading}
                 onClick={() => saveAndGo(false, true)}
               >
-                SKIP
+                Skip
               </button>
             </div>
           </>

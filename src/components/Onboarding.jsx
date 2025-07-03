@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 
-// Your color theme
+// Color theme for styles
 const THEME = {
   gradient: "linear-gradient(90deg,#fe9245 10%,#eb423b 90%)",
   darkBg: "#18141c",
@@ -19,17 +19,18 @@ export default function Onboarding({ session }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [watchlist, setWatchlist] = useState([]);
+  const [saving, setSaving] = useState(false);
   const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY;
   const searchInput = useRef();
 
-  // If onboarding done, redirect to main app
+  // If onboarding already done, redirect to main app
   useEffect(() => {
     if (session?.user?.user_metadata?.onboarding_complete) {
       navigate("/app", { replace: true });
     }
   }, [session, navigate]);
 
-  // Genre List
+  // GENRES
   const GENRES = useMemo(() => [
     { id: 28,  label: "Action" },    { id: 12, label: "Adventure" },
     { id: 16,  label: "Animation" }, { id: 35, label: "Comedy"    },
@@ -66,29 +67,50 @@ export default function Onboarding({ session }) {
   };
   const removeFromWatchlist = (id) => setWatchlist(watchlist.filter(m => m.id !== id));
 
-  // Save preferences and finish onboarding
-  const finishOnboarding = async () => {
-    await supabase.auth.updateUser({
-      data: {
-        onboarding_complete: true,
-        favourite_genres: selectedGenres,
-        initial_watchlist: watchlist.map(m => m.id)
-      }
-    });
-    navigate("/app", { replace: true });
-  };
+  // ------- Save to SQL! -----------
+  async function finishOnboarding(skipMovies = false) {
+    setSaving(true);
+    const user_id = session.user.id;
 
-  // --- Step Indicator Component ---
-  const StepIndicator = () => (
-    <div style={{ textAlign: "center", marginBottom: 18 }}>
-      <span style={{ fontWeight: 700, color: THEME.highlight }}>
-        Step {step}
-      </span>
-      <span style={{ color: "#b6b9d6", fontWeight: 500 }}>
-        {" "}of 3
-      </span>
-    </div>
-  );
+    // Genres: upsert user_preferences
+    if (selectedGenres.length) {
+      // Remove old, insert new
+      await supabase.from("user_preferences").delete().eq("user_id", user_id);
+      await supabase.from("user_preferences").insert(
+        selectedGenres.map(genre_id => ({ user_id, genre_id }))
+      );
+    } else {
+      // User skipped genres: clear out if any
+      await supabase.from("user_preferences").delete().eq("user_id", user_id);
+    }
+
+    // Watchlist: upsert user_watchlist (for onboarding, status=onboarding)
+    if (!skipMovies && watchlist.length) {
+      // Remove old, insert new
+      await supabase.from("user_watchlist").delete().eq("user_id", user_id).eq("status", "onboarding");
+      await supabase.from("user_watchlist").insert(
+        watchlist.map(m => ({
+          user_id, movie_id: m.id, status: "onboarding"
+        }))
+      );
+    }
+
+    // Mark onboarding complete
+    await supabase
+      .from("users")
+      .update({ onboarding_complete: true })
+      .eq("id", user_id);
+
+    // Also update Supabase Auth user metadata (if you want)
+    await supabase.auth.updateUser({
+      data: { onboarding_complete: true }
+    });
+
+    setSaving(false);
+    navigate("/app", { replace: true });
+  }
+
+  // --- UI ---
 
   return (
     <div style={{
@@ -111,7 +133,10 @@ export default function Onboarding({ session }) {
       }}>
         {step === 1 && (
           <>
-            <StepIndicator />
+            <div style={{ textAlign: "center", marginBottom: 18 }}>
+              <span style={{ fontWeight: 700, color: THEME.highlight }}>Step 1</span>
+              <span style={{ color: "#b6b9d6", fontWeight: 500 }}> of 2</span>
+            </div>
             <h2 style={{ fontWeight: 900, fontSize: "1.55rem", marginBottom: 7, letterSpacing: "-0.5px", textAlign: "center" }}>
               Welcome to FeelFlick!
             </h2>
@@ -135,7 +160,7 @@ export default function Onboarding({ session }) {
                     border: "none",
                     outline: "none",
                     background: selectedGenres.includes(g.id)
-                      ? "linear-gradient(90deg,#fe9245 30%,#eb423b 95%)"
+                      ? THEME.gradient
                       : "#282539",
                     color: selectedGenres.includes(g.id) ? "#fff" : "#f0f0f0",
                     boxShadow: selectedGenres.includes(g.id) ? "0 4px 14px #eb423b2b" : undefined,
@@ -173,33 +198,55 @@ export default function Onboarding({ session }) {
                 >Clear</button>
               </span>
             </div>
-            <button
-              style={{
-                background: THEME.gradient,
-                color: "#fff",
-                fontWeight: 800,
-                border: "none",
-                borderRadius: 8,
-                padding: "12px 0",
-                width: "100%",
-                fontSize: "1.1rem",
-                marginTop: 10,
-                opacity: selectedGenres.length ? 1 : 0.4,
-                cursor: selectedGenres.length ? "pointer" : "not-allowed",
-                boxShadow: "0 3px 18px #fe924515",
-                transition: "all 0.15s"
-              }}
-              disabled={!selectedGenres.length}
-              onClick={() => setStep(2)}
-            >
-              Next: Pick Movies
-            </button>
+            <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
+              <button
+                style={{
+                  background: THEME.gradient,
+                  color: "#fff",
+                  fontWeight: 800,
+                  border: "none",
+                  borderRadius: 8,
+                  padding: "12px 0",
+                  width: "100%",
+                  fontSize: "1.1rem",
+                  opacity: selectedGenres.length ? 1 : 0.5,
+                  cursor: selectedGenres.length ? "pointer" : "not-allowed",
+                  boxShadow: "0 3px 18px #fe924515",
+                  transition: "all 0.15s"
+                }}
+                disabled={!selectedGenres.length}
+                onClick={() => setStep(2)}
+              >
+                Next: Pick Movies
+              </button>
+              <button
+                style={{
+                  background: "#353148",
+                  color: "#ffe3b3",
+                  fontWeight: 700,
+                  border: "none",
+                  borderRadius: 8,
+                  padding: "12px 0",
+                  width: "90px",
+                  fontSize: "1.02rem",
+                  marginLeft: 5,
+                  opacity: 1,
+                  cursor: "pointer"
+                }}
+                onClick={() => finishOnboarding(true)}
+              >
+                Skip
+              </button>
+            </div>
           </>
         )}
 
         {step === 2 && (
           <>
-            <StepIndicator />
+            <div style={{ textAlign: "center", marginBottom: 18 }}>
+              <span style={{ fontWeight: 700, color: THEME.highlight }}>Step 2</span>
+              <span style={{ color: "#b6b9d6", fontWeight: 500 }}> of 2</span>
+            </div>
             <h2 style={{ fontWeight: 900, fontSize: "1.3rem", marginBottom: 7, textAlign: "center" }}>
               Add a couple of movies you love
             </h2>
@@ -281,14 +328,24 @@ export default function Onboarding({ session }) {
                 </div>
               </div>
             )}
-            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 10 }}>
+            <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
               <button
                 style={{
-                  background: "#221e29", color: "#fff", border: "none", borderRadius: 8,
-                  fontWeight: 700, fontSize: 16, padding: "9px 20px", cursor: "pointer"
+                  background: "#353148",
+                  color: "#fff",
+                  fontWeight: 700,
+                  border: "none",
+                  borderRadius: 8,
+                  padding: "12px 0",
+                  width: "100%",
+                  fontSize: "1.1rem",
+                  boxShadow: "0 3px 18px #fe924515",
+                  cursor: "pointer"
                 }}
                 onClick={() => setStep(1)}
-              >‹ Back</button>
+              >
+                ‹ Back
+              </button>
               <button
                 style={{
                   background: THEME.gradient,
@@ -296,77 +353,50 @@ export default function Onboarding({ session }) {
                   fontWeight: 800,
                   border: "none",
                   borderRadius: 8,
-                  padding: "10px 22px",
-                  fontSize: "1.05rem",
-                  marginLeft: 8,
-                  boxShadow: "0 2px 9px #eb423b28"
+                  padding: "12px 0",
+                  width: "100%",
+                  fontSize: "1.1rem",
+                  boxShadow: "0 3px 18px #fe924515",
+                  cursor: "pointer"
                 }}
-                onClick={() => setStep(3)}
-                disabled={watchlist.length === 0}
-              >Next: Review</button>
+                onClick={() => finishOnboarding(false)}
+                disabled={saving}
+              >
+                Finish
+              </button>
+              <button
+                style={{
+                  background: "#353148",
+                  color: "#ffe3b3",
+                  fontWeight: 700,
+                  border: "none",
+                  borderRadius: 8,
+                  padding: "12px 0",
+                  width: "90px",
+                  fontSize: "1.02rem",
+                  marginLeft: 5,
+                  opacity: 1,
+                  cursor: "pointer"
+                }}
+                onClick={() => finishOnboarding(true)}
+              >
+                Skip
+              </button>
             </div>
           </>
         )}
 
-        {step === 3 && (
-          <>
-            <StepIndicator />
-            <h2 style={{ fontWeight: 900, fontSize: "1.45rem", marginBottom: 9, textAlign: "center" }}>
-              🎉 Ready to roll!
-            </h2>
-            <div style={{
-              fontSize: 16, color: "#e2e4ec", marginBottom: 22, textAlign: "center"
-            }}>
-              We’ll start you off with personalized picks based on:
-              <br />
-              <span style={{ color: THEME.highlight, fontWeight: 700 }}>
-                {selectedGenres.length} genres
-              </span> &amp; <span style={{ color: THEME.highlight, fontWeight: 700 }}>
-                {watchlist.length} movies
-              </span>
-            </div>
-            <div style={{
-              marginBottom: 16, borderRadius: 10, padding: "14px", background: "#211d25"
-            }}>
-              <div style={{ color: "#fe9245", fontWeight: 600, marginBottom: 8 }}>Your genres:</div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginBottom: 11 }}>
-                {GENRES.filter(g => selectedGenres.includes(g.id)).map(g =>
-                  <span key={g.id} style={{
-                    background: "linear-gradient(90deg,#fe9245 50%,#eb423b 110%)",
-                    color: "#fff",
-                    borderRadius: 14, padding: "6px 15px", fontWeight: 700, fontSize: 15
-                  }}>{g.label}</span>
-                )}
-              </div>
-              <div style={{ color: "#fe9245", fontWeight: 600, marginBottom: 8 }}>Your watchlist:</div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
-                {watchlist.map(m =>
-                  <span key={m.id} style={{
-                    background: "#232330", color: "#fff",
-                    borderRadius: 14, padding: "6px 15px", fontWeight: 700, fontSize: 15
-                  }}>{m.title}</span>
-                )}
-                {watchlist.length === 0 && (
-                  <span style={{ color: "#aaa", fontWeight: 500 }}>No movies added</span>
-                )}
-              </div>
-            </div>
-            <button
-              style={{
-                background: THEME.gradient,
-                color: "#fff",
-                fontWeight: 800,
-                border: "none",
-                borderRadius: 8,
-                padding: "13px 0",
-                width: "100%",
-                fontSize: "1.18rem",
-                marginTop: 5,
-                boxShadow: "0 5px 24px #eb423b33"
-              }}
-              onClick={finishOnboarding}
-            >Start Exploring FeelFlick ›</button>
-          </>
+        {saving && (
+          <div style={{
+            position: "absolute", inset: 0,
+            background: "rgba(28,20,32,0.62)",
+            color: "#fff",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontWeight: 800, fontSize: 18, zIndex: 10,
+            borderRadius: 18
+          }}>
+            Saving…
+          </div>
         )}
       </div>
     </div>

@@ -142,17 +142,17 @@ export default function Onboarding() {
       if (!skipGenres) {
         await supabase.from("user_preferences").delete().eq("user_id", user_id);
         if (selectedGenres.length) {
-          await supabase.from("user_preferences").upsert(
+          await supabase.from("user_preferences").update(
             selectedGenres.map((genre_id) => ({ user_id, genre_id })),
             { onConflict: ["user_id", "genre_id"] }
           );
         }
       }
 
-      // Save movies: upsert any missing into movies first, then upsert into watchlist
+      // Save movies: update any missing into movies first, then update into watchlist
       if (!skipMovies) {
         for (const m of watchlist) {
-          await supabase.from("movies").upsert(
+          await supabase.from("movies").update(
             {
               tmdb_id: m.id,
               title: m.title,
@@ -164,7 +164,7 @@ export default function Onboarding() {
         }
         await supabase.from("user_watchlist").delete().eq("user_id", user_id).eq("status", "onboarding");
         if (watchlist.length) {
-          await supabase.from("user_watchlist").upsert(
+          await supabase.from("user_watchlist").update(
             watchlist.map((m) => ({
               user_id,
               movie_id: m.id,

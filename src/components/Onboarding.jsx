@@ -122,7 +122,11 @@ export default function Onboarding() {
         }
       }
 
-      await supabase.from("users").update({ onboarding_complete: true }).eq("id", user_id);
+      // Upsert user and set onboarding_complete
+      await supabase.from("users").upsert([
+        { id: user_id, email, name, onboarding_complete: true }
+      ]);
+      // Update auth metadata too (for quick frontend checks)
       await supabase.auth.updateUser({ data: { onboarding_complete: true } });
 
       navigate("/app", { replace: true });

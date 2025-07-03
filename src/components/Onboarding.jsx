@@ -78,18 +78,20 @@ export default function Onboarding({ session }) {
       // Genres: remove old, insert new if any
       await supabase.from("user_preferences").delete().eq("user_id", user_id);
       if (selectedGenres.length) {
-        await supabase.from("user_preferences").insert(
-          selectedGenres.map(genre_id => ({ user_id, genre_id }))
+        await supabase.from("user_preferences").upsert(
+          selectedGenres.map(genre_id => ({ user_id, genre_id })),
+          { onConflict: ['user_id', 'genre_id'] }
         );
       }
 
       // Watchlist: remove old onboarding, insert new if any
       await supabase.from("user_watchlist").delete().eq("user_id", user_id).eq("status", "onboarding");
       if (!skipMovies && watchlist.length) {
-        await supabase.from("user_watchlist").insert(
+        await supabase.from("user_watchlist").upsert(
           watchlist.map(m => ({
             user_id, movie_id: m.id, status: "onboarding"
-          }))
+          })),
+          { onConflict: ['user_id', 'movie_id'] }
         );
       }
 

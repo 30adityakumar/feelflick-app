@@ -84,8 +84,15 @@ export default function Onboarding() {
     setError(""); setLoading(true);
     try {
       const user_id = session.user.id;
+      const email = session.user.email;
+      const name = session.user.user_metadata?.name || "";
 
-      // Save genres
+      // 1. Ensure the user exists in public.users (mirror of auth.users)
+      await supabase.from("users").upsert([
+        { id: user_id, email, name }
+      ], { onConflict: ['id'] });
+
+      // 2. Save genres
       if (!skipGenres) {
         await supabase.from("user_preferences").delete().eq("user_id", user_id);
         if (selectedGenres.length) {
@@ -96,7 +103,7 @@ export default function Onboarding() {
         }
       }
 
-      // Save movies: update any missing into movies first, then update into watchlist
+      // 3. Save movies: update any missing into movies first, then update into watchlist
       if (!skipMovies) {
         for (const m of watchlist) {
           await supabase.from("movies").upsert(
@@ -122,11 +129,8 @@ export default function Onboarding() {
         }
       }
 
-      // Upsert user and set onboarding_complete
-      await supabase.from("users").upsert([
-        { id: user_id, email, name, onboarding_complete: true }
-      ]);
-      // Update auth metadata too (for quick frontend checks)
+      /// 4. Set onboarding_complete in users and auth metadata
+      await supabase.from("users").update({ onboarding_complete: true }).eq("id", user_id);
       await supabase.auth.updateUser({ data: { onboarding_complete: true } });
 
       navigate("/app", { replace: true });

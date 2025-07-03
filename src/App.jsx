@@ -1,19 +1,17 @@
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "./supabaseClient";
-
-import Landing          from "./components/Landing";
-import AuthPage         from "./AuthPage";
-import ResetPassword    from "./components/ResetPassword";
-import ConfirmEmail     from "./components/ConfirmEmail";
-import Onboarding       from "./components/Onboarding";
-
-import HomePage         from "./components/HomePage";
-import Header           from "./components/Header";
-import MoviesTab        from "./components/MoviesTab";
+import Landing from "./components/Landing";
+import AuthPage from "./AuthPage";
+import ResetPassword from "./components/ResetPassword";
+import ConfirmEmail from "./components/ConfirmEmail";
+import Onboarding from "./components/Onboarding";
+import HomePage from "./components/HomePage";
+import Header from "./components/Header";
+import MoviesTab from "./components/MoviesTab";
 import RecommendationsTab from "./components/RecommendationsTab";
-import WatchedTab       from "./components/WatchedTab";
-import AccountModal     from "./components/AccountModal";
+import WatchedTab from "./components/WatchedTab";
+import AccountModal from "./components/AccountModal";
 
 /* --- AppShell with tab navigation, account modal, etc --- */
 function MainApp({ session, profileName, setProfileName }) {
@@ -44,8 +42,8 @@ function MainApp({ session, profileName, setProfileName }) {
   );
 }
 
-/* --- Hook: checks onboarding status from public.users table --- */
-function useOnboardingStatus(session) {
+/* --- Hook: robust onboarding status from users table --- */
+function useOnboardingStatus(session, version) {
   const [status, setStatus] = useState({ loading: true, complete: false });
 
   useEffect(() => {
@@ -68,24 +66,16 @@ function useOnboardingStatus(session) {
     }
     fetchStatus();
     return () => { ignore = true; };
-  }, [session]);
+  }, [session, version]); // <-- Also refetch if version (timestamp) changes
 
   return status;
-}
-
-/* --- PrivateAppRoute wrapper --- */
-function PrivateAppRoute({ session, profileName, setProfileName }) {
-  const { loading, complete } = useOnboardingStatus(session);
-
-  if (!session) return <Navigate to="/auth/sign-in" replace />;
-  if (loading) return <div style={{ color: "#fff", textAlign: "center", marginTop: "25vh" }}>Loading…</div>;
-  if (!complete) return <Navigate to="/onboarding" replace />;
-  return <MainApp session={session} profileName={profileName} setProfileName={setProfileName} />;
 }
 
 export default function App() {
   const [session, setSession] = useState(null);
   const [profileName, setProfileName] = useState("");
+  // Used to force onboarding status reload after onboarding finishes
+  const [onboardingVersion, setOnboardingVersion] = useState(Date.now());
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
@@ -93,6 +83,10 @@ export default function App() {
     return () => data.subscription.unsubscribe();
   }, []);
 
+  const { loading: onboardingLoading, complete: onboardingComplete } =
+    useOnboardingStatus(session, onboardingVersion);
+
+  // --- Main routing ---
   return (
     <BrowserRouter>
       <Routes>
@@ -102,13 +96,17 @@ export default function App() {
         <Route path="/auth/reset-password" element={<ResetPassword />} />
         <Route path="/auth/confirm" element={<ConfirmEmail />} />
 
-        {/* Onboarding is only available if signed in, and will redirect to app if already complete */}
+        {/* Onboarding page (only accessible if logged in & NOT onboarded) */}
         <Route
           path="/onboarding"
           element={
-            session
-              ? <Onboarding session={session} />
-              : <Navigate to="/auth/sign-in" replace />
+            !session ? <Navigate to="/auth/sign-in" replace /> :
+            onboardingLoading ? <div style={{ color: "#fff", textAlign: "center", marginTop: "25vh" }}>Loading…</div> :
+            onboardingComplete ? <Navigate to="/app" replace /> :
+            <Onboarding
+              session={session}
+              onOnboardingFinish={() => setOnboardingVersion(Date.now())}
+            />
           }
         />
 
@@ -116,11 +114,13 @@ export default function App() {
         <Route
           path="/app/*"
           element={
-            <PrivateAppRoute session={session} profileName={profileName} setProfileName={setProfileName} />
+            !session ? <Navigate to="/auth/sign-in" replace /> :
+            onboardingLoading ? <div style={{ color: "#fff", textAlign: "center", marginTop: "25vh" }}>Loading…</div> :
+            !onboardingComplete ? <Navigate to="/onboarding" replace /> :
+            <MainApp session={session} profileName={profileName} setProfileName={setProfileName} />
           }
         />
 
-        {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

@@ -41,6 +41,35 @@ export default function Onboarding() {
     return () => listener?.subscription?.unsubscribe();
   }, []);
 
+  // Redirect away if user already finished onboarding
+  useEffect(() => {
+    if (!session || !session.user) return;
+
+    async function checkOnboarding() {
+      // First, try to read from the public.users table (most up-to-date)
+      let { data: userRow } = await supabase
+        .from("users")
+        .select("onboarding_complete")
+        .eq("id", session.user.id)
+        .single();
+
+      // If onboarding_complete is true, redirect to main app
+      if (userRow?.onboarding_complete) {
+        navigate("/app", { replace: true });
+        return;
+      }
+
+      // Fallback: also check auth metadata (covers rare edge cases)
+      if (session.user.user_metadata?.onboarding_complete) {
+        navigate("/app", { replace: true });
+        return;
+      }
+    }
+
+    checkOnboarding();
+  }, [session, navigate]);
+
+
   // TMDb search (sorted by popularity, see more button)
   useEffect(() => {
     let active = true;

@@ -91,9 +91,12 @@ export default function Onboarding() {
         if (upsertErr) {
           setError("Could not create your profile — please reload.");
           setChecking(false);
-          console.error("profile upsert failed:", upsertErr.message);
+          console.error("profile upsert failed:", upsertErr.message, upsertErr.details);
           return;
+        } else {
+          console.log("profile upsert succeeded for", uid, email, name);
         }
+
 
         // Now do the SELECT, only after upsert completes!
         const { data: row, error: selectErr } = await supabase

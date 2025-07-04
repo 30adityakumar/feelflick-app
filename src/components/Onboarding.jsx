@@ -75,31 +75,45 @@ export default function Onboarding() {
     useEffect(() => {
       if (!session || !session.user) return;
 
-      async function checkOnboarding() {
-        // First, try to read from the public.users table (most up-to-date)
-        let { data: userRow } = await supabase
-          .from("users")
-          .select("onboarding_complete")
-          .eq("id", session.user.id)
-          .single();
+      (async () => {
+    const uid   = session.user.id;
+    const email = session.user.email;
+    const name  = session.user.user_metadata?.name || "";
 
-        // If onboarding_complete is true, redirect to main app
-        if (userRow?.onboarding_complete) {
-          navigate("/app", { replace: true });
-          return;
-        }
-
-        // Fallback: also check auth metadata (covers rare edge cases)
-        if (session.user.user_metadata?.onboarding_complete) {
-          navigate("/app", { replace: true });
-          return;
-        }
-
-        setChecking(false); // <-- Only show onboarding UI if not completed
+    /* 1️⃣  upsert profile row (will no-op if it already exists) */
+    const { error: upsertErr } = await supabase
+        .from("users")
+        .upsert([{ id: uid, email, name }], { onConflict: ["id"] });
+      if (upsertErr) {
+        console.error("profile upsert failed:", upsertErr.message);
+        setError("Could not create your profile — please reload.");
+        setChecking(false);
+        return;
       }
 
-      checkOnboarding();
-    }, [session, navigate]);
+      /* 2️⃣  fetch onboarding flag */
+      const { data: row, error: selectErr } = await supabase
+        .from("users")
+        .select("onboarding_complete")
+        .eq("id", uid)
+        .single();
+
+      if (selectErr) {
+        console.error("select failed:", selectErr.message);
+        setError("Could not load your profile — please reload.");
+        setChecking(false);
+        return;
+      }
+
+      /* 3️⃣  redirect or continue */
+      if (row?.onboarding_complete ||
+          session.user.user_metadata?.onboarding_complete) {
+        navigate("/app", { replace: true });
+      } else {
+        setChecking(false);                   // show onboarding UI
+      }
+    })();
+  }, [session, navigate])
 
     // 👇 Place this **right before your main return(...)**
     if (checking) return null; // (or <div>Loading...</div>)

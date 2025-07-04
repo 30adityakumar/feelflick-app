@@ -55,15 +55,15 @@ export default function Onboarding() {
         .single();
 
       if (!userRow) {
-        const { error: insertError } = await supabase.from("users").insert([
-          { id: session.user.id, email: session.user.email, onboarding_complete: false }
-        ]);
-        if (insertError) {
-          console.error("Insert error:", insertError.message || insertError);
-        } else {
-          console.log("User row inserted successfully.");
-        }
+      const { error: insertError } = await supabase.from("users").insert([
+        { id: session.user.id, email: session.user.email, onboarding_complete: false }
+      ]);
+      if (insertError && !insertError.message.includes('duplicate key')) {
+        console.error("Insert error:", insertError.message || insertError);
+      } else if (!insertError) {
+        console.log("User row inserted successfully.");
       }
+    }
     }
 
     ensureUserRow();

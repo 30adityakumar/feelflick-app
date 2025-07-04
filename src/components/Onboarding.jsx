@@ -44,25 +44,31 @@ export default function Onboarding() {
   }, []);
 
   // Ensure the user row exists in public.users BEFORE checking onboarding
-  useEffect(() => {
+    useEffect(() => {
     if (!session || !session.user) return;
 
     async function ensureUserRow() {
-      let { data: userRow } = await supabase
+      let { data: userRow, error } = await supabase
         .from("users")
         .select("id")
         .eq("id", session.user.id)
         .single();
 
       if (!userRow) {
-        await supabase.from("users").insert([
+        const { error: insertError } = await supabase.from("users").insert([
           { id: session.user.id, email: session.user.email, onboarding_complete: false }
         ]);
+        if (insertError) {
+          console.error("Insert error:", insertError.message || insertError);
+        } else {
+          console.log("User row inserted successfully.");
+        }
       }
     }
 
     ensureUserRow();
   }, [session]);
+
 
 
   // Redirect away if user already finished onboarding

@@ -74,10 +74,18 @@ export default function Onboarding() {
 
   
 
- useEffect(() => {
+// Session hook (no change)
+useEffect(() => {
+  supabase.auth.getSession().then(({ data }) => setSession(data.session));
+  const { data: listener } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
+  return () => listener?.subscription?.unsubscribe();
+}, []);
+
+// Robust onboarding effect (replace all other onboarding/session effects)
+useEffect(() => {
   if (!session || !session.user) return;
 
-  async function upsertWithRetry(data, maxTries = 5) {
+  async function upsertWithRetry(data, maxTries = 7) {
     for (let attempt = 1; attempt <= maxTries; attempt++) {
       const { error } = await supabase.from("users").upsert([data], { onConflict: ["id"] });
       if (!error) {
@@ -85,14 +93,19 @@ export default function Onboarding() {
         return true;
       }
       console.error("Upsert attempt", attempt, "failed:", error.message);
-      if (error.message.includes("foreign key constraint")) {
-        await new Promise(res => setTimeout(res, 1100)); // wait a bit, then try again
+      if (error.message && error.message.includes("foreign key constraint")) {
+        await new Promise(res => setTimeout(res, 1200)); // wait, then try again
         continue;
       } else {
-        return false; // some other error
+        // show all errors for visibility
+        setError("Profile creation failed: " + (error.message || "unknown error"));
+        setChecking(false);
+        return false;
       }
     }
-    return false; // all retries failed
+    setError("Profile creation failed after retries — please reload.");
+    setChecking(false);
+    return false;
   }
 
   (async () => {
@@ -101,18 +114,15 @@ export default function Onboarding() {
     const name  = session.user.user_metadata?.name || "";
 
     const ok = await upsertWithRetry({ id: uid, email, name, onboarding_complete: false });
-    if (!ok) {
-      setError("Could not create your profile. Please reload.");
-      setChecking(false);
-      return;
-    }
+    if (!ok) return;
 
-    // Now do the SELECT, only after upsert succeeds
+    // Only SELECT after upsert
     const { data: row, error: selectErr } = await supabase
       .from("users")
       .select("onboarding_complete")
       .eq("id", uid)
       .single();
+
     if (selectErr || !row) {
       setError("Could not load your profile. Please reload.");
       setChecking(false);
@@ -125,6 +135,7 @@ export default function Onboarding() {
     }
   })();
 }, [session, navigate]);
+
 
 
 

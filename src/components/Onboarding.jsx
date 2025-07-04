@@ -73,15 +73,15 @@ export default function Onboarding() {
 
   // Redirect away if user already finished onboarding
     useEffect(() => {
-      if (!session || !session.user) return;
+  if (!session || !session.user) return;
 
-      (async () => {
+  (async () => {
     const uid   = session.user.id;
     const email = session.user.email;
     const name  = session.user.user_metadata?.name || "";
 
-    /* 1️⃣  upsert profile row (will no-op if it already exists) */
-    const { error: upsertErr } = await supabase
+    // 1️⃣ Upsert (insert or update) user profile row. (No duplicate keys possible)
+      const { error: upsertErr } = await supabase
         .from("users")
         .upsert([{ id: uid, email, name }], { onConflict: ["id"] });
       if (upsertErr) {
@@ -91,7 +91,7 @@ export default function Onboarding() {
         return;
       }
 
-      /* 2️⃣  fetch onboarding flag */
+      // 2️⃣ Fetch onboarding flag (safe: row must now exist)
       const { data: row, error: selectErr } = await supabase
         .from("users")
         .select("onboarding_complete")
@@ -99,21 +99,27 @@ export default function Onboarding() {
         .single();
 
       if (selectErr) {
-        console.error("select failed:", selectErr.message);
+        console.error("select failed:", selectErr.message, selectErr.details);
         setError("Could not load your profile — please reload.");
         setChecking(false);
         return;
       }
 
-      /* 3️⃣  redirect or continue */
-      if (row?.onboarding_complete ||
-          session.user.user_metadata?.onboarding_complete) {
+      if (!row) {
+        setError("No profile found — please contact support.");
+        setChecking(false);
+        return;
+      }
+
+      // 3️⃣ Redirect if already onboarded
+      if (row.onboarding_complete || session.user.user_metadata?.onboarding_complete) {
         navigate("/app", { replace: true });
       } else {
-        setChecking(false);                   // show onboarding UI
+        setChecking(false); // Show onboarding UI
       }
     })();
-  }, [session, navigate])
+  }, [session, navigate]);
+
 
     // 👇 Place this **right before your main return(...)**
     if (checking) return null; // (or <div>Loading...</div>)

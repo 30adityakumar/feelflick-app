@@ -40,65 +40,30 @@ export default function Onboarding() {
 
   // Auth/session check (keep as is)
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSession(data.session));
-    const { data: listener } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
-    return () => listener?.subscription?.unsubscribe();
-  }, []);
+      supabase.auth.getSession().then(({ data }) => setSession(data.session));
+      const { data: listener } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
+      return () => listener?.subscription?.unsubscribe();
+    }, []);
 
-  // Robust onboarding effect (handles insert, retry, and select)
-  useEffect(() => {
+    // Robust onboarding effect (handles insert, retry, and select)
+    useEffect(() => {
     if (!session || !session.user) return;
 
-    const uid = session.user.id;
-    const email = session.user.email;
-    const name = session.user.user_metadata?.name || "";
-
-    async function upsertWithRetry(data, maxTries = 7) {
-      for (let attempt = 1; attempt <= maxTries; attempt++) {
-        const { error } = await supabase.from("users").upsert([data], { onConflict: ["id"] });
-        if (!error) {
-          console.log("Upsert succeeded on attempt", attempt, data);
-          return true;
-        }
-        console.error("Upsert attempt", attempt, "failed:", error.message);
-        if (error.message && error.message.includes("foreign key constraint")) {
-          await new Promise(res => setTimeout(res, 1200)); // wait and try again
-          continue;
+    supabase
+      .from('users')
+      .select('onboarding_complete')
+      .eq('id', session.user.id)
+      .single()
+      .then(({ data }) => {
+        if (data?.onboarding_complete ||
+            session.user.user_metadata?.onboarding_complete) {
+          navigate('/app', { replace: true });
         } else {
-          setError("Profile creation failed: " + (error.message || "unknown error"));
           setChecking(false);
-          return false;
         }
-      }
-      setError("Profile creation failed after retries — please reload.");
-      setChecking(false);
-      return false;
-    }
+      });
+  }, [session]);
 
-    (async () => {
-      const ok = await upsertWithRetry({ id: uid, email, name, onboarding_complete: false });
-      if (!ok) return;
-
-      // Now SELECT after upsert
-      const { data: row, error: selectErr } = await supabase
-        .from("users")
-        .select("onboarding_complete")
-        .eq("id", uid)
-        .single();
-
-      if (selectErr || !row) {
-        setError("Could not load your profile. Please reload.");
-        setChecking(false);
-        return;
-      }
-
-      if (row.onboarding_complete || session.user.user_metadata?.onboarding_complete) {
-        navigate("/app", { replace: true });
-      } else {
-        setChecking(false);
-      }
-    })();
-  }, [session, navigate]);
 
   // TMDb search (sorted by popularity, see more button)
   useEffect(() => {

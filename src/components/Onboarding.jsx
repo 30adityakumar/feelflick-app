@@ -23,6 +23,9 @@ export default function Onboarding() {
   const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY;
   const [checking, setChecking] = useState(true);
 
+  // 🔴 Place this line right after state declarations
+  if (checking) return null;   // or <div>Loading...</div>
+
 
   // Genres config
   const GENRES = useMemo(() => [
@@ -121,8 +124,6 @@ export default function Onboarding() {
   }, [session, navigate]);
 
 
-    // 👇 Place this **right before your main return(...)**
-    if (checking) return null; // (or <div>Loading...</div>)
 
   // TMDb search (sorted by popularity, see more button)
   useEffect(() => {

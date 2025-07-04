@@ -76,52 +76,53 @@ export default function Onboarding() {
 
   // Redirect away if user already finished onboarding
     useEffect(() => {
-  if (!session || !session.user) return;
+      if (!session || !session.user) return;
 
-  (async () => {
-    const uid   = session.user.id;
-    const email = session.user.email;
-    const name  = session.user.user_metadata?.name || "";
+      (async () => {
+        const uid   = session.user.id;
+        const email = session.user.email;
+        const name  = session.user.user_metadata?.name || "";
 
-    // 1️⃣ Upsert (insert or update) user profile row. (No duplicate keys possible)
-      const { error: upsertErr } = await supabase
-        .from("users")
-        .upsert([{ id: uid, email, name }], { onConflict: ["id"] });
-      if (upsertErr) {
-        console.error("profile upsert failed:", upsertErr.message);
-        setError("Could not create your profile — please reload.");
-        setChecking(false);
-        return;
-      }
+        // Try upsert first (insert or update, covers both cases)
+        const { error: upsertErr } = await supabase
+          .from("users")
+          .upsert([{ id: uid, email, name, onboarding_complete: false }], { onConflict: ["id"] });
 
-      // 2️⃣ Fetch onboarding flag (safe: row must now exist)
-      const { data: row, error: selectErr } = await supabase
-        .from("users")
-        .select("onboarding_complete")
-        .eq("id", uid)
-        .single();
+        if (upsertErr) {
+          setError("Could not create your profile — please reload.");
+          setChecking(false);
+          console.error("profile upsert failed:", upsertErr.message);
+          return;
+        }
 
-      if (selectErr) {
-        console.error("select failed:", selectErr.message, selectErr.details);
-        setError("Could not load your profile — please reload.");
-        setChecking(false);
-        return;
-      }
+        // Now do the SELECT, only after upsert completes!
+        const { data: row, error: selectErr } = await supabase
+          .from("users")
+          .select("onboarding_complete")
+          .eq("id", uid)
+          .single();
 
-      if (!row) {
-        setError("No profile found — please contact support.");
-        setChecking(false);
-        return;
-      }
+        if (selectErr) {
+          setError("Could not load your profile — please reload.");
+          setChecking(false);
+          console.error("select failed:", selectErr.message, selectErr.details);
+          return;
+        }
 
-      // 3️⃣ Redirect if already onboarded
-      if (row.onboarding_complete || session.user.user_metadata?.onboarding_complete) {
-        navigate("/app", { replace: true });
-      } else {
-        setChecking(false); // Show onboarding UI
-      }
-    })();
-  }, [session, navigate]);
+        if (!row) {
+          setError("No profile found — please contact support.");
+          setChecking(false);
+          return;
+        }
+
+        if (row.onboarding_complete || session.user.user_metadata?.onboarding_complete) {
+          navigate("/app", { replace: true });
+        } else {
+          setChecking(false);
+        }
+      })();
+    }, [session, navigate]);
+
 
 
 

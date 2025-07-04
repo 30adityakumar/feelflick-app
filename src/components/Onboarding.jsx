@@ -72,59 +72,60 @@ export default function Onboarding() {
     ensureUserRow();
   }, [session]);
 
+  
 
+ useEffect(() => {
+  if (!session || !session.user) return;
 
-  // Redirect away if user already finished onboarding
-    useEffect(() => {
-      if (!session || !session.user) return;
+  async function upsertWithRetry(data, maxTries = 5) {
+    for (let attempt = 1; attempt <= maxTries; attempt++) {
+      const { error } = await supabase.from("users").upsert([data], { onConflict: ["id"] });
+      if (!error) {
+        console.log("Upsert succeeded on attempt", attempt);
+        return true;
+      }
+      console.error("Upsert attempt", attempt, "failed:", error.message);
+      if (error.message.includes("foreign key constraint")) {
+        await new Promise(res => setTimeout(res, 1100)); // wait a bit, then try again
+        continue;
+      } else {
+        return false; // some other error
+      }
+    }
+    return false; // all retries failed
+  }
 
-      (async () => {
-        const uid   = session.user.id;
-        const email = session.user.email;
-        const name  = session.user.user_metadata?.name || "";
+  (async () => {
+    const uid   = session.user.id;
+    const email = session.user.email;
+    const name  = session.user.user_metadata?.name || "";
 
-        // Try upsert first (insert or update, covers both cases)
-        const { error: upsertErr } = await supabase
-          .from("users")
-          .upsert([{ id: uid, email, name, onboarding_complete: false }], { onConflict: ["id"] });
+    const ok = await upsertWithRetry({ id: uid, email, name, onboarding_complete: false });
+    if (!ok) {
+      setError("Could not create your profile. Please reload.");
+      setChecking(false);
+      return;
+    }
 
-        if (upsertErr) {
-          setError("Could not create your profile — please reload.");
-          setChecking(false);
-          console.error("profile upsert failed:", upsertErr.message, upsertErr.details);
-          return;
-        } else {
-          console.log("profile upsert succeeded for", uid, email, name);
-        }
+    // Now do the SELECT, only after upsert succeeds
+    const { data: row, error: selectErr } = await supabase
+      .from("users")
+      .select("onboarding_complete")
+      .eq("id", uid)
+      .single();
+    if (selectErr || !row) {
+      setError("Could not load your profile. Please reload.");
+      setChecking(false);
+      return;
+    }
+    if (row.onboarding_complete || session.user.user_metadata?.onboarding_complete) {
+      navigate("/app", { replace: true });
+    } else {
+      setChecking(false);
+    }
+  })();
+}, [session, navigate]);
 
-
-        // Now do the SELECT, only after upsert completes!
-        const { data: row, error: selectErr } = await supabase
-          .from("users")
-          .select("onboarding_complete")
-          .eq("id", uid)
-          .single();
-
-        if (selectErr) {
-          setError("Could not load your profile — please reload.");
-          setChecking(false);
-          console.error("select failed:", selectErr.message, selectErr.details);
-          return;
-        }
-
-        if (!row) {
-          setError("No profile found — please contact support.");
-          setChecking(false);
-          return;
-        }
-
-        if (row.onboarding_complete || session.user.user_metadata?.onboarding_complete) {
-          navigate("/app", { replace: true });
-        } else {
-          setChecking(false);
-        }
-      })();
-    }, [session, navigate]);
 
 
 

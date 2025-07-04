@@ -23,9 +23,8 @@ export default function Onboarding() {
   const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY;
   const [checking, setChecking] = useState(true);
 
-  // 🔴 Place this line right after state declarations
+  // Block UI until onboarding check is done
   if (checking) return null;   // or <div>Loading...</div>
-
 
   // Genres config
   const GENRES = useMemo(() => [
@@ -39,107 +38,67 @@ export default function Onboarding() {
     { id: 878, label: "Sci-fi" }, { id: 53, label: "Thriller" }
   ], []);
 
-  // Auth/session check
+  // Auth/session check (keep as is)
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
     const { data: listener } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
     return () => listener?.subscription?.unsubscribe();
   }, []);
 
-  // Ensure the user row exists in public.users BEFORE checking onboarding
-    useEffect(() => {
+  // Robust onboarding effect (handles insert, retry, and select)
+  useEffect(() => {
     if (!session || !session.user) return;
 
-    async function ensureUserRow() {
-      let { data: userRow, error } = await supabase
+    const uid = session.user.id;
+    const email = session.user.email;
+    const name = session.user.user_metadata?.name || "";
+
+    async function upsertWithRetry(data, maxTries = 7) {
+      for (let attempt = 1; attempt <= maxTries; attempt++) {
+        const { error } = await supabase.from("users").upsert([data], { onConflict: ["id"] });
+        if (!error) {
+          console.log("Upsert succeeded on attempt", attempt, data);
+          return true;
+        }
+        console.error("Upsert attempt", attempt, "failed:", error.message);
+        if (error.message && error.message.includes("foreign key constraint")) {
+          await new Promise(res => setTimeout(res, 1200)); // wait and try again
+          continue;
+        } else {
+          setError("Profile creation failed: " + (error.message || "unknown error"));
+          setChecking(false);
+          return false;
+        }
+      }
+      setError("Profile creation failed after retries — please reload.");
+      setChecking(false);
+      return false;
+    }
+
+    (async () => {
+      const ok = await upsertWithRetry({ id: uid, email, name, onboarding_complete: false });
+      if (!ok) return;
+
+      // Now SELECT after upsert
+      const { data: row, error: selectErr } = await supabase
         .from("users")
-        .select("id")
-        .eq("id", session.user.id)
+        .select("onboarding_complete")
+        .eq("id", uid)
         .single();
 
-      if (!userRow) {
-      const { error: insertError } = await supabase.from("users").insert([
-          { id: session.user.id, email: session.user.email, name, onboarding_complete: false }
-      ]);
-      if (insertError && !insertError.message.includes('duplicate key')) {
-        console.error("Insert error:", insertError.message || insertError);
-      } else if (!insertError) {
-        console.log("User row inserted successfully.");
-      }
-    }
-    }
-
-    ensureUserRow();
-  }, [session]);
-
-  
-
-// Session hook (no change)
-useEffect(() => {
-  supabase.auth.getSession().then(({ data }) => setSession(data.session));
-  const { data: listener } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
-  return () => listener?.subscription?.unsubscribe();
-}, []);
-
-// Robust onboarding effect (replace all other onboarding/session effects)
-useEffect(() => {
-  if (!session || !session.user) return;
-
-  async function upsertWithRetry(data, maxTries = 7) {
-    for (let attempt = 1; attempt <= maxTries; attempt++) {
-      const { error } = await supabase.from("users").upsert([data], { onConflict: ["id"] });
-      if (!error) {
-        console.log("Upsert succeeded on attempt", attempt);
-        return true;
-      }
-      console.error("Upsert attempt", attempt, "failed:", error.message);
-      if (error.message && error.message.includes("foreign key constraint")) {
-        await new Promise(res => setTimeout(res, 1200)); // wait, then try again
-        continue;
-      } else {
-        // show all errors for visibility
-        setError("Profile creation failed: " + (error.message || "unknown error"));
+      if (selectErr || !row) {
+        setError("Could not load your profile. Please reload.");
         setChecking(false);
-        return false;
+        return;
       }
-    }
-    setError("Profile creation failed after retries — please reload.");
-    setChecking(false);
-    return false;
-  }
 
-  (async () => {
-    const uid   = session.user.id;
-    const email = session.user.email;
-    const name  = session.user.user_metadata?.name || "";
-
-    const ok = await upsertWithRetry({ id: uid, email, name, onboarding_complete: false });
-    if (!ok) return;
-
-    // Only SELECT after upsert
-    const { data: row, error: selectErr } = await supabase
-      .from("users")
-      .select("onboarding_complete")
-      .eq("id", uid)
-      .single();
-
-    if (selectErr || !row) {
-      setError("Could not load your profile. Please reload.");
-      setChecking(false);
-      return;
-    }
-    if (row.onboarding_complete || session.user.user_metadata?.onboarding_complete) {
-      navigate("/app", { replace: true });
-    } else {
-      setChecking(false);
-    }
-  })();
-}, [session, navigate]);
-
-
-
-
-
+      if (row.onboarding_complete || session.user.user_metadata?.onboarding_complete) {
+        navigate("/app", { replace: true });
+      } else {
+        setChecking(false);
+      }
+    })();
+  }, [session, navigate]);
 
   // TMDb search (sorted by popularity, see more button)
   useEffect(() => {
@@ -179,7 +138,7 @@ useEffect(() => {
     setWatchlist((w) => w.filter((m) => m.id !== id));
   }
 
-  // Save preferences/watched on Finish
+  // Save preferences/watched on Finish (no changes)
   async function saveAndGo(skipGenres = false, skipMovies = false) {
     setError(""); setLoading(true);
     try {

@@ -56,7 +56,7 @@ export default function Onboarding() {
 
       if (!userRow) {
       const { error: insertError } = await supabase.from("users").insert([
-        { id: session.user.id, email: session.user.email, onboarding_complete: false }
+          { id: session.user.id, email: session.user.email, name, onboarding_complete: false }
       ]);
       if (insertError && !insertError.message.includes('duplicate key')) {
         console.error("Insert error:", insertError.message || insertError);

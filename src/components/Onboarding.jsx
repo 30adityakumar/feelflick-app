@@ -446,7 +446,7 @@ export default function Onboarding() {
                   color: "#fff",
                   fontWeight: 700,
                   fontSize: 14,
-                  marginTop: 8
+                  marginTop: 8,
                   marginBottom: 6
                 }}>
                   Your picks:

@@ -165,10 +165,10 @@ export default function Onboarding() {
   }
 
   // 8. UI (all your original code below, unchanged)
-  const CARD_WIDTH  = window.innerWidth < 700 ? "97vw" : "460px";
+  const CARD_WIDTH  = window.innerWidth < 700 ? "97vw" : "600px";
   const CARD_MARGIN = window.innerWidth < 700 ? "11px"  : "0 auto";
-  const genreFontSize  = 13.5;
-  const genreBtnHeight = 34;
+  const genreFontSize  = 12;
+  const genreBtnHeight = 32;
 
   return (
     <div
@@ -195,14 +195,14 @@ export default function Onboarding() {
         style={{
           width: CARD_WIDTH,
           margin: CARD_MARGIN,
-          minHeight: 330,
+          minHeight: 470,
           marginTop: 72,
           marginBottom: 16,
           alignSelf: "center",
           background: DARK_BG,
           borderRadius: 22,
           boxShadow: "0 8px 44px 0 #0007",
-          padding: "24px 16px 17px 16px",
+          padding: "36px 30px 27px 30px",
           zIndex: 10,
           display: "flex",
           flexDirection: "column",
@@ -224,14 +224,14 @@ export default function Onboarding() {
         {step === 1 && (
           <>
             <h2 style={{
-              fontSize: 20,
+              fontSize: 25,
               fontWeight: 900,
               color: "#fff",
               textAlign: "center",
               marginBottom: 2,
               letterSpacing: "-.01em"
             }}>
-              What do you like to watch?
+              Let’s get to know your taste.
             </h2>
             <div style={{
               fontSize: 13,
@@ -242,19 +242,9 @@ export default function Onboarding() {
               marginTop: 1,
               letterSpacing: ".01em"
             }}>
-              Pick a few genres that match your taste.
+              Pick a few genres you love — it helps us recommend movies that truly match your energy.
             </div>
-            <div style={{
-              fontSize: 12,
-              fontWeight: 400,
-              color: ACCENT,
-              textAlign: "center",
-              marginBottom: 10,
-              marginTop: 0,
-              letterSpacing: ".01em"
-            }}>
-              This helps us give you recommendations that actually fit your mood!
-            </div>
+
             {/* Genre Grid */}
             <div
               style={{
@@ -272,7 +262,7 @@ export default function Onboarding() {
                   key={g.id}
                   type="button"
                   style={{
-                    width: 96,
+                    width: 110,
                     height: genreBtnHeight,
                     margin: "2px 0",
                     borderRadius: 12,
@@ -303,7 +293,7 @@ export default function Onboarding() {
                     overflow: "hidden",
                     textOverflow: "ellipsis"
                   }}>
-                    {g.label.charAt(0).toUpperCase() + g.label.slice(1).toLowerCase()}
+                    {g.label}
                   </span>
                 </button>
               ))}
@@ -359,7 +349,7 @@ export default function Onboarding() {
               marginBottom: 7,
               letterSpacing: "-.01em"
             }}>
-              Any favourite movies?
+              Got some favorite movies?
             </h2>
             <div style={{
               fontSize: 12,
@@ -372,7 +362,7 @@ export default function Onboarding() {
               letterSpacing: ".01em",
               fontFamily: "inherit"
             }}>
-              Type to search your favourites. <span style={{ color: ACCENT, fontWeight: 600 }}>Pick at least one for better suggestions.</span>
+              Pick a few to help us understand your taste and give you more personalized suggestions.
             </div>
             <input
               type="text"
@@ -383,7 +373,7 @@ export default function Onboarding() {
                 width: "100%",
                 background: "#232330",
                 borderRadius: 8,
-                padding: "7px 10px",
+                padding: "16px 18px",
                 fontSize: 13.5,
                 fontWeight: 500,
                 color: "#fff",
@@ -411,7 +401,7 @@ export default function Onboarding() {
                   <div
                     key={r.id}
                     style={{
-                      display: "flex",
+                      display: "flex", 
                       alignItems: "center",
                       padding: "5px 9px",
                       borderBottom: "1px solid #302c37",
@@ -422,7 +412,7 @@ export default function Onboarding() {
                     onClick={() => handleAddMovie(r)}
                   >
                     <img
-                      src={r.poster_path ? `https://image.tmdb.org/t/p/w92${r.poster_path}` : "/posters/placeholder.png"}
+                      src={r.poster_path? `https://image.tmdb.org/t/p/w185${r.poster_path}` : "https://dummyimage.com/80x120/232330/fff&text=No+Image"}
                       alt={r.title}
                       style={{ width: 19, height: 29, objectFit: "cover", borderRadius: 5, background: "#101012" }}
                     />
@@ -468,7 +458,7 @@ export default function Onboarding() {
                 }}>
                   {watchlist.map(m => (
                     <div key={m.id} style={{
-                      display: "flex",
+                      display: "flex", flexDirection: "column",
                       alignItems: "center",
                       gap: 4,
                       background: "#231d2d",
@@ -477,9 +467,9 @@ export default function Onboarding() {
                     }}>
                       <img src={m.poster_path ? `https://image.tmdb.org/t/p/w92${m.poster_path}` : "/posters/placeholder.png"}
                         alt={m.title}
-                        style={{ width: 15, height: 22, objectFit: "cover", borderRadius: 4, marginRight: 2, background: "#101012" }}
+                        style={{ width: 54, height: 80, objectFit: "cover", borderRadius: 4, marginRight: 2, background: "#101012" }}
                       />
-                      <span style={{ fontWeight: 700, fontSize: 10.5, color: "#fff" }}>{m.title}</span>
+                      <span style={{ fontWeight: 700, fontSize: 13, color: "#fff", marginTop: 6 }}>{m.title}</span>
                       <button
                         style={{
                           background: "none",

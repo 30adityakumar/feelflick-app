@@ -6,8 +6,8 @@ const ACCENT  = "#fe9245";
 const ACCENT2 = "#eb423b";
 const OUTLINE = "1.1px solid #fe9245";
 const BTN_BG  = "linear-gradient(90deg,#fe9245 10%,#eb423b 90%)";
-const GENRE_SELECTED_BG = "linear-gradient(90deg,#367cff 0%,#fdaf41 90%)";
-const DARK_BG = "rgba(22,19,28,0.99)";
+const GENRE_SELECTED_BG = "linear-gradient(90deg,#fe9245 90%,#eb423b 10%)";
+const DARK_BG = "rgba(22,19,28,0.8)";
 
 export default function Onboarding() {
   const navigate = useNavigate();
@@ -165,10 +165,10 @@ export default function Onboarding() {
   }
 
   // 8. UI (all your original code below, unchanged)
-  const CARD_WIDTH  = window.innerWidth < 700 ? "97vw" : "600px";
+  const CARD_WIDTH  = window.innerWidth < 700 ? "100vw" : "7--px";
   const CARD_MARGIN = window.innerWidth < 700 ? "11px"  : "0 auto";
   const genreFontSize  = 12;
-  const genreBtnHeight = 32;
+  const genreBtnHeight = 34;
 
   return (
     <div
@@ -195,7 +195,7 @@ export default function Onboarding() {
         style={{
           width: CARD_WIDTH,
           margin: CARD_MARGIN,
-          minHeight: 470,
+          minHeight: 500,
           marginTop: 72,
           marginBottom: 16,
           alignSelf: "center",
@@ -228,8 +228,8 @@ export default function Onboarding() {
               fontWeight: 900,
               color: "#fff",
               textAlign: "center",
-              marginBottom: 2,
-              letterSpacing: "-.01em"
+              marginBottom: 4,
+              letterSpacing: ".01em"
             }}>
               Let’s get to know your taste.
             </h2>
@@ -238,8 +238,8 @@ export default function Onboarding() {
               fontWeight: 400,
               color: "#e9e9ef",
               textAlign: "center",
-              marginBottom: 1,
-              marginTop: 1,
+              marginBottom: 8,
+              marginTop: 4,
               letterSpacing: ".01em"
             }}>
               Pick a few genres you love — it helps us recommend movies that truly match your energy.
@@ -262,9 +262,9 @@ export default function Onboarding() {
                   key={g.id}
                   type="button"
                   style={{
-                    width: 110,
+                    width: 120,
                     height: genreBtnHeight,
-                    margin: "2px 0",
+                    margin: "3px 0",
                     borderRadius: 12,
                     border: OUTLINE,
                     background: selectedGenres.includes(g.id)
@@ -304,7 +304,7 @@ export default function Onboarding() {
                   padding: "7px 21px",
                   borderRadius: 8,
                   fontWeight: 800,
-                  fontSize: 13.5,
+                  fontSize: 15,
                   background: BTN_BG,
                   color: "#fff",
                   border: "none",
@@ -312,7 +312,7 @@ export default function Onboarding() {
                   cursor: "pointer",
                   boxShadow: "0 2px 10px #eb423b22",
                   opacity: loading ? 0.7 : 1,
-                  minWidth: 70,
+                  minWidth: 80,
                   letterSpacing: 0.01,
                 }}
                 disabled={loading}
@@ -342,22 +342,22 @@ export default function Onboarding() {
         {step === 2 && (
           <>
             <h2 style={{
-              fontSize: 17,
+              fontSize: 25,
               fontWeight: 900,
               color: "#fff",
               textAlign: "center",
-              marginBottom: 7,
-              letterSpacing: "-.01em"
+              marginBottom: 4,
+              letterSpacing: ".01em"
             }}>
               Got some favorite movies?
             </h2>
             <div style={{
-              fontSize: 12,
+              fontSize: 13,
               color: "#fff",
               fontWeight: 400,
               textAlign: "center",
-              marginBottom: 7,
-              marginTop: 0,
+              marginBottom: 8,
+              marginTop: 4,
               opacity: 0.84,
               letterSpacing: ".01em",
               fontFamily: "inherit"
@@ -373,13 +373,13 @@ export default function Onboarding() {
                 width: "100%",
                 background: "#232330",
                 borderRadius: 8,
-                padding: "16px 18px",
-                fontSize: 13.5,
+                padding: "14px 16px",
+                fontSize: 16,
                 fontWeight: 500,
                 color: "#fff",
                 outline: "none",
                 border: "none",
-                marginBottom: 7,
+                marginBottom: 8,
                 marginTop: 0,
                 letterSpacing: 0.01,
                 boxShadow: "0 1px 5px 0 #0004"
@@ -414,10 +414,10 @@ export default function Onboarding() {
                     <img
                       src={r.poster_path? `https://image.tmdb.org/t/p/w185${r.poster_path}` : "https://dummyimage.com/80x120/232330/fff&text=No+Image"}
                       alt={r.title}
-                      style={{ width: 19, height: 29, objectFit: "cover", borderRadius: 5, background: "#101012" }}
+                      style={{ width: 40, height: 50, objectFit: "cover", borderRadius: 5, marginRight: 2, marginBottom: 2, background: "#101012" }}
                     />
-                    <span style={{ color: "#fff", fontWeight: 600, fontSize: 12.5 }}>
-                      {r.title} <span style={{ color: "#eee", fontWeight: 400, fontSize: 11.5, marginLeft: 4 }}>{r.release_date ? `(${r.release_date.slice(0, 4)})` : ""}</span>
+                    <span style={{ color: "#fff", fontWeight: 600, fontSize: 15 }}>
+                      {r.title} <span style={{ color: "#eee", fontWeight: 400, fontSize: 15, marginLeft: 7 }}>{r.release_date ? `(${r.release_date.slice(0, 4)})` : ""}</span>
                     </span>
                   </div>
                 ))}
@@ -428,7 +428,7 @@ export default function Onboarding() {
                       padding: "5px 0 4px",
                       color: ACCENT,
                       fontWeight: 600,
-                      fontSize: 11.5,
+                      fontSize: 15,
                       cursor: "pointer",
                       userSelect: "none",
                     }}
@@ -445,16 +445,17 @@ export default function Onboarding() {
                 <div style={{
                   color: "#fff",
                   fontWeight: 700,
-                  fontSize: 12.7,
-                  marginBottom: 2
+                  fontSize: 14,
+                  marginTop: 8
+                  marginBottom: 6
                 }}>
                   Your picks:
                 </div>
                 <div style={{
                   display: "flex",
                   flexWrap: "wrap",
-                  gap: "6px 9px",
-                  marginBottom: 9
+                  gap: "8px 12px",
+                  marginBottom: 10
                 }}>
                   {watchlist.map(m => (
                     <div key={m.id} style={{
@@ -465,7 +466,7 @@ export default function Onboarding() {
                       borderRadius: 7,
                       padding: "2px 8px 2px 3px"
                     }}>
-                      <img src={m.poster_path ? `https://image.tmdb.org/t/p/w92${m.poster_path}` : "/posters/placeholder.png"}
+                      <img src={m.poster_path ? `https://image.tmdb.org/t/p/w92${m.poster_path}` : "https://dummyimage.com/80x120/232330/fff&text=No+Image"}
                         alt={m.title}
                         style={{ width: 54, height: 80, objectFit: "cover", borderRadius: 4, marginRight: 2, background: "#101012" }}
                       />
@@ -511,10 +512,10 @@ export default function Onboarding() {
               </button>
               <button
                 style={{
-                  padding: "7px 18px",
-                  borderRadius: 9,
+                  padding: "10px 20px",
+                  borderRadius: 12,
                   fontWeight: 800,
-                  fontSize: 13,
+                  fontSize: 16,
                   background: BTN_BG,
                   color: "#fff",
                   border: "none",
@@ -522,7 +523,7 @@ export default function Onboarding() {
                   cursor: "pointer",
                   boxShadow: "0 2px 10px #eb423b22",
                   opacity: loading ? 0.7 : 1,
-                  minWidth: 52,
+                  minWidth: 65,
                 }}
                 disabled={loading}
                 onClick={() => saveAndGo(false, false)}

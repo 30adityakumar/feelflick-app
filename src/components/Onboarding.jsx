@@ -6,8 +6,8 @@ const ACCENT  = "#fe9245";
 const ACCENT2 = "#eb423b";
 const OUTLINE = "1.1px solid #fe9245";
 const BTN_BG  = "linear-gradient(90deg,#fe9245 10%,#eb423b 90%)";
-const GENRE_SELECTED_BG = "linear-gradient(90deg,#fe9245 90%,#eb423b 10%)";
-const DARK_BG = "rgba(22,19,28,0.8)";
+const GENRE_SELECTED_BG = "linear-gradient(180deg,#fe9245 10%,#eb423b 90%)";
+const DARK_BG = "rgba(22,19,28,0.88)";
 
 export default function Onboarding() {
   const navigate = useNavigate();
@@ -373,8 +373,8 @@ export default function Onboarding() {
                 width: "100%",
                 background: "#232330",
                 borderRadius: 8,
-                padding: "14px 16px",
-                fontSize: 16,
+                padding: "12px 14px",
+                fontSize: 15,
                 fontWeight: 500,
                 color: "#fff",
                 outline: "none",
@@ -390,10 +390,10 @@ export default function Onboarding() {
               <div
                 style={{
                   background: "#242134",
-                  borderRadius: 7,
+                  borderRadius: 20,
                   maxHeight: 100,
                   overflowY: "auto",
-                  marginBottom: 6,
+                  marginBottom: 8,
                   boxShadow: "0 1px 8px #0004"
                 }}
               >
@@ -403,10 +403,10 @@ export default function Onboarding() {
                     style={{
                       display: "flex", 
                       alignItems: "center",
-                      padding: "5px 9px",
+                      padding: "7px 11px",
                       borderBottom: "1px solid #302c37",
                       cursor: "pointer",
-                      gap: 7,
+                      gap: 9,
                       transition: "background 0.11s",
                     }}
                     onClick={() => handleAddMovie(r)}
@@ -414,7 +414,7 @@ export default function Onboarding() {
                     <img
                       src={r.poster_path? `https://image.tmdb.org/t/p/w185${r.poster_path}` : "https://dummyimage.com/80x120/232330/fff&text=No+Image"}
                       alt={r.title}
-                      style={{ width: 40, height: 50, objectFit: "cover", borderRadius: 5, marginRight: 2, marginBottom: 2, background: "#101012" }}
+                      style={{ width: 40, height: 55, objectFit: "cover", borderRadius: 5, marginRight: 2, marginBottom: 2, background: "#101012" }}
                     />
                     <span style={{ color: "#fff", fontWeight: 600, fontSize: 15 }}>
                       {r.title} <span style={{ color: "#eee", fontWeight: 400, fontSize: 15, marginLeft: 7 }}>{r.release_date ? `(${r.release_date.slice(0, 4)})` : ""}</span>
@@ -446,7 +446,7 @@ export default function Onboarding() {
                   color: "#fff",
                   fontWeight: 700,
                   fontSize: 14,
-                  marginTop: 8,
+                  marginTop: 10,
                   marginBottom: 6
                 }}>
                   Your picks:
@@ -464,23 +464,25 @@ export default function Onboarding() {
                       gap: 4,
                       background: "#231d2d",
                       borderRadius: 7,
-                      padding: "2px 8px 2px 3px"
+                      padding: "2px 2px 2px 2px"
                     }}>
                       <img src={m.poster_path ? `https://image.tmdb.org/t/p/w92${m.poster_path}` : "https://dummyimage.com/80x120/232330/fff&text=No+Image"}
                         alt={m.title}
                         style={{ width: 54, height: 80, objectFit: "cover", borderRadius: 4, marginRight: 2, background: "#101012" }}
                       />
-                      <span style={{ fontWeight: 700, fontSize: 13, color: "#fff", marginTop: 6 }}>{m.title}</span>
+                      <span style={{ fontWeight: 600, fontSize: 12, color: "#fff", marginTop: 5 }}>{m.title}</span>
                       <button
                         style={{
                           background: "none",
                           border: "none",
                           color: "#fd7069",
                           fontSize: 14,
+                          marginTop: 2,
                           marginLeft: 0,
                           marginRight: 0,
+                          marginBottom: 2,
                           cursor: "pointer",
-                          fontWeight: 700,
+                          fontWeight: 600,
                           opacity: 0.78
                         }}
                         onClick={() => handleRemoveMovie(m.id)}

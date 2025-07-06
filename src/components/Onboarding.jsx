@@ -6,8 +6,8 @@ const ACCENT  = "#fe9245";
 const ACCENT2 = "#eb423b";
 const OUTLINE = "1.1px solid #fe9245";
 const BTN_BG  = "linear-gradient(90deg,#fe9245 10%,#eb423b 90%)";
-const GENRE_SELECTED_BG = "linear-gradient(180deg,#fe9245 10%,#eb423b 90%)";
-const DARK_BG = "rgba(22,19,28,0.88)";
+const GENRE_SELECTED_BG = "linear-gradient(88deg, var(--theme-color,#FF5B2E), var(--theme-color-secondary,#367cff) 80%)";
+const DARK_BG = "rgba(22,19,28,0.9)";
 
 export default function Onboarding() {
   const navigate = useNavigate();
@@ -514,10 +514,10 @@ export default function Onboarding() {
               </button>
               <button
                 style={{
-                  padding: "10px 20px",
-                  borderRadius: 12,
+                  padding: "7px 21px",
+                  borderRadius: 10,
                   fontWeight: 800,
-                  fontSize: 16,
+                  fontSize: 15,
                   background: BTN_BG,
                   color: "#fff",
                   border: "none",

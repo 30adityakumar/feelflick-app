@@ -391,7 +391,7 @@ export default function Onboarding() {
                 style={{
                   background: "#242134",
                   borderRadius: 20,
-                  maxHeight: 100,
+                  maxHeight: 250,
                   overflowY: "auto",
                   marginBottom: 8,
                   boxShadow: "0 1px 8px #0004"

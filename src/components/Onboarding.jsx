@@ -412,12 +412,31 @@ export default function Onboarding() {
                     onClick={() => handleAddMovie(r)}
                   >
                     <img
-                      src={r.poster_path? `https://image.tmdb.org/t/p/w185${r.poster_path}` : "https://dummyimage.com/80x120/232330/fff&text=No+Image"}
+                      src={r.poster_path ? `https://image.tmdb.org/t/p/w185${r.poster_path}` : "https://dummyimage.com/80x120/232330/fff&text=No+Image"}
                       alt={r.title}
                       style={{ width: 40, height: 55, objectFit: "cover", borderRadius: 5, marginRight: 2, marginBottom: 2, background: "#101012" }}
                     />
-                    <span style={{ color: "#fff", fontWeight: 600, fontSize: 15 }}>
-                      {r.title} <span style={{ color: "#eee", fontWeight: 400, fontSize: 15, marginLeft: 7 }}>{r.release_date ? `(${r.release_date.slice(0, 4)})` : ""}</span>
+                    {/* Multi-line movie title */}
+                    <span style={{ color: "#fff", fontWeight: 600, fontSize: 15, display: "flex", flexDirection: "column" }}>
+                      {/* Split r.title into lines of 7 words each */}
+                      {r.title
+                        .split(" ")
+                        .reduce((lines, word, i) => {
+                          if (i % 7 === 0) lines.push([]);
+                          lines[lines.length - 1].push(word);
+                          return lines;
+                        }, [])
+                        .map((words, i) => (
+                          <span key={i} style={{ display: "block" }}>
+                            {words.join(" ")}
+                            {/* On the last line, also show year if available */}
+                            {i === 0 && (
+                              <span style={{ color: "#eee", fontWeight: 400, fontSize: 15, marginLeft: 7 }}>
+                                {r.release_date ? `(${r.release_date.slice(0, 4)})` : ""}
+                              </span>
+                            )}
+                          </span>
+                        ))}
                     </span>
                   </div>
                 ))}

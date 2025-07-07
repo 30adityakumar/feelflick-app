@@ -77,7 +77,11 @@ export default function Onboarding() {
       .then(r => r.json())
       .then(data => {
         if (!active) return;
-        const all = (data.results || []).sort((a,b)=>(b.popularity||0)-(a.popularity||0));
+        const all = (data.results || []).sort(
+          (a, b) =>
+            (b.popularity || 0) - (a.popularity || 0) ||
+            (b.vote_average || 0) - (a.vote_average || 0)
+        );
         setResults(all); setShowAllResults(false);
       });
 
@@ -417,7 +421,7 @@ export default function Onboarding() {
                       style={{ width: 27, height: 40, objectFit: "cover", borderRadius: 5, marginRight: 2, marginBottom: 1, background: "#101012" }}
                     />
                     {/* Multi-line movie title */}
-                    <span style={{ color: "#fff", fontWeight: 600, fontSize: 15, display: "flex", flexDirection: "column" }}>
+                    <span style={{ color: "#fff", fontWeight: 600, fontSize: 13, display: "flex", flexDirection: "column" }}>
                       {/* Split r.title into lines of 7 words each */}
                       {r.title
                         .split(" ")
@@ -431,7 +435,7 @@ export default function Onboarding() {
                             {words.join(" ")}
                             {/* On the last line, also show year if available */}
                             {i === 0 && (
-                              <span style={{ color: "#eee", fontWeight: 400, fontSize: 15, marginLeft: 7 }}>
+                              <span style={{ color: "#eee", fontWeight: 400, fontSize: 14, marginLeft: 7 }}>
                                 {r.release_date ? `(${r.release_date.slice(0, 4)})` : ""}
                               </span>
                             )}
@@ -447,7 +451,7 @@ export default function Onboarding() {
                       padding: "5px 0 4px",
                       color: ACCENT,
                       fontWeight: 600,
-                      fontSize: 15,
+                      fontSize: 14,
                       cursor: "pointer",
                       userSelect: "none",
                     }}
@@ -487,19 +491,33 @@ export default function Onboarding() {
                     }}>
                       <img src={m.poster_path ? `https://image.tmdb.org/t/p/w92${m.poster_path}` : "https://dummyimage.com/80x120/232330/fff&text=No+Image"}
                         alt={m.title}
-                        style={{ width: 54, height: 80, objectFit: "cover", borderRadius: 4, marginRight: 2, background: "#101012" }}
+                        style={{ width: 67.5, height: 100, objectFit: "cover", borderRadius: 2, marginRight: 2, background: "#101012" }}
                       />
-                      <span style={{ fontWeight: 600, fontSize: 12, color: "#fff", marginTop: 5 }}>{m.title}</span>
+                      {/* Title split into lines of 7 words */}
+                      <span style={{ display: "flex", flexDirection: "column", alignItems: "center", fontWeight: 600, fontSize: 15, color: "#fff", marginTop: 5 }}>
+                        {m.title
+                          .split(" ")
+                          .reduce((lines, word, i) => {
+                            if (i % 7 === 0) lines.push([]);
+                            lines[lines.length - 1].push(word);
+                            return lines;
+                          }, [])
+                          .map((words, i) => (
+                            <span key={i} style={{ display: "block" }}>
+                              {words.join(" ")}
+                            </span>
+                          ))}
+                      </span>
                       <button
                         style={{
                           background: "none",
                           border: "none",
                           color: "#fd7069",
-                          fontSize: 16,
-                          marginTop: 1,
+                          fontSize: 20,
+                          marginTop: 0,
                           marginLeft: 0,
                           marginRight: 0,
-                          marginBottom: 1,
+                          marginBottom: 0,
                           cursor: "pointer",
                           fontWeight: 600,
                           opacity: 0.78

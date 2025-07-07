@@ -391,9 +391,9 @@ export default function Onboarding() {
                 style={{
                   background: "#242134",
                   borderRadius: 20,
-                  maxHeight: 250,
+                  maxHeight: 200,
                   overflowY: "auto",
-                  marginBottom: 8,
+                  marginBottom: 6,
                   boxShadow: "0 1px 8px #0004"
                 }}
               >
@@ -406,7 +406,7 @@ export default function Onboarding() {
                       padding: "7px 11px",
                       borderBottom: "1px solid #302c37",
                       cursor: "pointer",
-                      gap: 9,
+                      gap: 6,
                       transition: "background 0.11s",
                     }}
                     onClick={() => handleAddMovie(r)}
@@ -414,7 +414,7 @@ export default function Onboarding() {
                     <img
                       src={r.poster_path ? `https://image.tmdb.org/t/p/w185${r.poster_path}` : "https://dummyimage.com/80x120/232330/fff&text=No+Image"}
                       alt={r.title}
-                      style={{ width: 40, height: 55, objectFit: "cover", borderRadius: 5, marginRight: 2, marginBottom: 2, background: "#101012" }}
+                      style={{ width: 27, height: 40, objectFit: "cover", borderRadius: 5, marginRight: 2, marginBottom: 1, background: "#101012" }}
                     />
                     {/* Multi-line movie title */}
                     <span style={{ color: "#fff", fontWeight: 600, fontSize: 15, display: "flex", flexDirection: "column" }}>
@@ -495,11 +495,11 @@ export default function Onboarding() {
                           background: "none",
                           border: "none",
                           color: "#fd7069",
-                          fontSize: 14,
-                          marginTop: 2,
+                          fontSize: 16,
+                          marginTop: 1,
                           marginLeft: 0,
                           marginRight: 0,
-                          marginBottom: 2,
+                          marginBottom: 1,
                           cursor: "pointer",
                           fontWeight: 600,
                           opacity: 0.78

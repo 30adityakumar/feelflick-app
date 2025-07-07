@@ -1,359 +1,194 @@
-import React, { useState, useEffect, useRef } from "react";
-import MovieModal from "./MovieModal";
+// src/pages/HomePage.jsx
+import { useState, useEffect } from "react";
+import { supabase } from "../supabaseClient";
+// You should have a HomeCarousel component for displaying lists of movies (or use your own UI).
+import HomeCarousel from "../components/HomeCarousel"; // <- Adjust this path if your file structure differs
 
-export default function HomePage({ userName = "Movie Lover", userId }) {
+export default function HomePage({ userId }) {
+  // -- States to store user data --
+  const [userGenres, setUserGenres] = useState([]);
+  const [userFavMovies, setUserFavMovies] = useState([]);
+  const [genreRecs, setGenreRecs] = useState([]);
+  const [movieRecs, setMovieRecs] = useState([]);
   const [trending, setTrending] = useState([]);
   const [watched, setWatched] = useState([]);
-  const [modalMovie, setModalMovie] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Set page title and meta (no Helmet)
-  useEffect(() => {
-    document.title = "Feel Flick - Movies that match your mood.";
-    // Set meta description (not as robust as Helmet, but works for most SPAs)
-    let meta = document.querySelector("meta[name='description']");
-    if (!meta) {
-      meta = document.createElement("meta");
-      meta.name = "description";
-      document.head.appendChild(meta);
-    }
-    meta.content = "Feel Flick recommends movies that match your mood. Track your film journey and get personalized picks that fit you, not the algorithm.";
-  }, []);
-
-  // Fetch trending movies from TMDb
-  useEffect(() => {
-    fetch(
-      `https://api.themoviedb.org/3/trending/movie/week?api_key=${import.meta.env.VITE_TMDB_API_KEY}`
-    )
-      .then(res => res.json())
-      .then(data => setTrending(data.results || []));
-  }, []);
-
-  // Fetch watched history from Supabase
+  // -- 1. Fetch user genres --
   useEffect(() => {
     if (!userId) return;
-    import("../supabaseClient").then(({ supabase }) => {
-      supabase
-        .from('movies_watched')
-        .select('*')
-        .eq('user_id', userId)
-        .order('id', { ascending: false })
-        .then(({ data }) => setWatched(data || []));
-    });
+    supabase
+      .from("user_preferences")
+      .select("genre_id")
+      .eq("user_id", userId)
+      .then(({ data }) => setUserGenres(data ? data.map(r => r.genre_id) : []));
   }, [userId]);
 
-  const closeModal = () => setModalMovie(null);
+  // -- 2. Fetch favorite movies (from onboarding) --
+  useEffect(() => {
+    if (!userId) return;
+    supabase
+      .from("user_watchlist")
+      .select("movie_id")
+      .eq("user_id", userId)
+      .eq("status", "onboarding")
+      .then(({ data }) => setUserFavMovies(data ? data.map(r => r.movie_id) : []));
+  }, [userId]);
 
-  return (
-    <div style={{
-      minHeight: "100vh",
-      background: "#101015",
-      width: "100vw",
-      overflowX: "hidden",
-    }}>
-      {/* HERO VIDEO (FULL WIDTH) */}
-      <div style={{
-        position: "relative",
-        width: "100vw",
-        height: "410px",
-        overflow: "hidden",
-      }}>
-        <video
-          autoPlay
-          muted
-          playsInline
-          poster="/home-hero-poster.jpg"
-          src="/home-hero.mp4"
-          style={{
-            width: "100vw",
-            height: "100%",
-            objectFit: "cover",
-            background: "#232d41",
-            display: "block"
-          }}
-        />
-        {/* Black overlay for legibility */}
-        <div style={{
-          position: "absolute",
-          top: 0, left: 0, width: "100%", height: "100%",
-          background: "linear-gradient(110deg,rgba(14,16,22,0.83) 58%,rgba(24,64,109,0.43) 100%)",
-        }} />
-        {/* Overlay greeting/button (perfectly centered) */}
-        <div style={{
-          position: "absolute",
-          top: 0, left: 0, width: "100%", height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          zIndex: 2,
-          textAlign: "center"
-        }}>
-          <div style={{
-            fontSize: "clamp(2.1rem,4vw,3.2rem)",
-            fontWeight: 900,
-            color: "#fff",
-            letterSpacing: "-2px",
-            marginBottom: 10,
-            textShadow: "0 4px 18px #000b, 0 1px 16px #232d41"
-          }}>
-            Welcome back{userName ? `, ${userName}` : ""}!
-          </div>
-          <div style={{
-            fontSize: "clamp(1rem,1.7vw,1.45rem)",
-            color: "#fdaf41",
-            fontWeight: 700,
-            marginBottom: 18,
-            textShadow: "0 2px 12px #000d"
-          }}>
-            Discover movies you'll love — powered by your tastes and mood.
-          </div>
-          <button
-            style={{
-              fontWeight: 800,
-              fontSize: "clamp(1rem,1.3vw,1.15rem)",
-              background: "linear-gradient(100deg,#fe9245 10%,#eb423b 95%)",
-              color: "#fff",
-              border: "none",
-              borderRadius: 11,
-              padding: "13px 34px",
-              marginTop: 6,
-              boxShadow: "0 1.5px 18px 0 #fe924522",
-              cursor: "pointer",
-              transition: "opacity 0.14s"
-            }}
-            onClick={() => window.alert("Mood-based recommendations coming soon!")}
-          >
-            EXPLORE MOOD RECOMMENDATIONS
-          </button>
-        </div>
+  // -- 3. Fetch recommendations based on genres --
+  useEffect(() => {
+    if (!userGenres.length) { setGenreRecs([]); return; }
+    // Use your backend or TMDb API for real recs. For demo, just fetch random movies from DB:
+    supabase
+      .from("movies")
+      .select("*")
+      .in("id", userGenres.length ? [1,2,3,4,5] : []) // Replace with real fetch: by genres!
+      .limit(12)
+      .then(({ data }) => setGenreRecs(data || []));
+  }, [userGenres]);
+
+  // -- 4. Fetch recommendations based on movies --
+  useEffect(() => {
+    if (!userFavMovies.length) { setMovieRecs([]); return; }
+    // For demo: fetch movies with similar genres. In real app: use TMDb /movie/{movie_id}/recommendations
+    supabase
+      .from("movies")
+      .select("*")
+      .in("id", userFavMovies.length ? [6,7,8,9,10] : []) // Replace with your own logic or TMDb!
+      .limit(12)
+      .then(({ data }) => setMovieRecs(data || []));
+  }, [userFavMovies]);
+
+  // -- 5. Fetch trending movies (always show) --
+  useEffect(() => {
+    // For real app: Use TMDb trending API or your DB logic
+    supabase
+      .from("movies")
+      .select("*")
+      .order("popularity", { ascending: false })
+      .limit(15)
+      .then(({ data }) => setTrending(data || []));
+  }, []);
+
+  // -- 6. Fetch user's watch history --
+  useEffect(() => {
+    if (!userId) return;
+    supabase
+      .from("movies_watched")
+      .select("movie_id, title, poster, release_date")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(12)
+      .then(({ data }) => setWatched(data || []));
+  }, [userId]);
+
+  // -- 7. Simple loader --
+  useEffect(() => {
+    // Simulate loading state until initial data is fetched (or improve this with Promise.all for more accuracy)
+    if (
+      (userGenres !== null) &&
+      (userFavMovies !== null) &&
+      (trending !== null) &&
+      (watched !== null)
+    ) setLoading(false);
+  }, [userGenres, userFavMovies, trending, watched]);
+
+  // -- 8. Figure out which carousels to show --
+  const hasGenres = userGenres.length > 0;
+  const hasMovies = userFavMovies.length > 0;
+
+  // -- 9. Render --
+  if (loading) {
+    return (
+      <div style={{ minHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <span style={{ fontWeight: 700, color: "#fff", fontSize: 22 }}>Loading your personalized homepage…</span>
       </div>
-
-      {/* CAROUSELS (FULL WIDTH) */}
-      <div style={{
-        width: "100vw",
-        background: "transparent",
-        margin: "0",
-        padding: "0"
-      }}>
-        <div style={{
-          width: "100vw",
-          padding: "0 3vw",
-          marginTop: 30
-        }}>
-          <HomeCarousel
-            title="Trending Now"
-            movies={trending}
-            emptyMessage="Trending movies will appear here!"
-            onMovieClick={setModalMovie}
-          />
-          <HomeCarousel
-            title="Your Watch History"
-            movies={watched}
-            emptyMessage="Your recently watched movies will show up here."
-            onMovieClick={setModalMovie}
-          />
-        </div>
-      </div>
-
-      {/* MOVIE DETAILS MODAL */}
-      {modalMovie && (
-        <MovieModal
-          movie={modalMovie}
-          open={!!modalMovie}
-          onClose={closeModal}
-        />
-      )}
-
-      {/* FOOTER */}
-      <div style={{
-        textAlign: "center",
-        fontSize: 13,
-        color: "#fff",
-        opacity: 0.23,
-        marginTop: 30,
-        marginBottom: 8
-      }}>
-        © {new Date().getFullYear()} FeelFlick — Movies that match your mood.
-      </div>
-    </div>
-  );
-}
-
-// ...rest of your file, e.g. HomeCarousel, stays the same
-
-
-// Carousel (FULL WIDTH, ARROWS CENTERED)
-function HomeCarousel({ title, movies, emptyMessage, onMovieClick }) {
-  const scrollRef = useRef();
-
-  function scrollBy(offset) {
-    if (scrollRef.current) {
-      scrollRef.current.scrollBy({ left: offset, behavior: 'smooth' });
-    }
+    );
   }
 
-  const showArrows = movies && movies.length > 5 && typeof window !== "undefined" && window.innerWidth > 700;
-
   return (
-    <div style={{ marginBottom: 35, position: 'relative', width: "100%" }}>
-      <div style={{
-        fontSize: "clamp(1.25rem,2vw,1.7rem)",
-        fontWeight: 800,
-        color: "#fff",
-        marginBottom: 10
-      }}>
-        {title}
-      </div>
-      <div style={{ position: "relative" }}>
-        {movies && movies.length > 0 ? (
+    <div style={{ background: "#1a1821", minHeight: "100vh", padding: "0 0 48px 0" }}>
+      <div style={{ maxWidth: 1080, margin: "0 auto", padding: "28px 8px 0 8px" }}>
+        {/* Hero area */}
+        <h1 style={{ color: "#fff", fontSize: 32, fontWeight: 900, marginBottom: 10 }}>
+          Welcome back!
+        </h1>
+        <div style={{ color: "#fdaf41", fontWeight: 500, fontSize: 18, marginBottom: 18 }}>
+          Find your next movie, handpicked for you 🎬
+        </div>
+
+        {/* CAROUSELS AND PROMPTS */}
+
+        {/* Scenario 1: Only genres */}
+        {hasGenres && !hasMovies && (
           <>
-            {showArrows && (
-              <>
-                <button
-                  onClick={() => scrollBy(-350)}
-                  style={arrowBtnStyle("left")}
-                  aria-label="Scroll left"
-                >
-                  <span style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: "1.7rem",
-                    fontWeight: 900,
-                    lineHeight: 1
-                  }}>‹</span>
-                </button>
-                <button
-                  onClick={() => scrollBy(350)}
-                  style={arrowBtnStyle("right")}
-                  aria-label="Scroll right"
-                >
-                  <span style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: "1.7rem",
-                    fontWeight: 900,
-                    lineHeight: 1
-                  }}>›</span>
-                </button>
-              </>
-            )}
-            <div
-              ref={scrollRef}
-              style={{
-                display: "flex",
-                gap: 18,
-                overflowX: "auto",
-                paddingBottom: 4,
-                scrollBehavior: "smooth",
-                scrollbarWidth: "none",
-                width: "100%",
-              }}
-              className="no-scrollbar"
-            >
-              {movies.map((movie) => (
-                <div
-                  key={movie.id || movie.movie_id}
-                  style={{
-                    width: 124,
-                    minWidth: 124,
-                    borderRadius: 12,
-                    overflow: "hidden",
-                    background: "#232d41",
-                    boxShadow: "0 2px 10px #0007",
-                    cursor: "pointer",
-                    textAlign: "center",
-                    position: "relative",
-                    transition: "transform 0.16s, box-shadow 0.16s",
-                  }}
-                  tabIndex={0}
-                  aria-label={movie.title}
-                  onClick={() => onMovieClick && onMovieClick(movie)}
-                  onMouseOver={e => {
-                    e.currentTarget.style.transform = "scale(1.07)";
-                    e.currentTarget.style.boxShadow = "0 6px 36px #fdaf4122";
-                  }}
-                  onMouseOut={e => {
-                    e.currentTarget.style.transform = "scale(1.0)";
-                    e.currentTarget.style.boxShadow = "0 2px 10px #0007";
-                  }}
-                >
-                  {movie.poster_path || movie.poster ? (
-                    <img
-                      src={`https://image.tmdb.org/t/p/w342${movie.poster_path || movie.poster}`}
-                      alt={movie.title}
-                      style={{
-                        width: "100%",
-                        height: 175,
-                        objectFit: "cover",
-                        display: "block",
-                        borderTopLeftRadius: 12,
-                        borderTopRightRadius: 12,
-                        transition: "filter 0.14s",
-                      }}
-                    />
-                  ) : (
-                    <div style={{
-                      height: 175,
-                      background: "#18305a",
-                      color: "#fff",
-                      fontSize: 20,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center"
-                    }}>
-                      🎬
-                    </div>
-                  )}
-                  <div style={{
-                    color: "#fff",
-                    fontSize: 12,
-                    fontWeight: 800,
-                    margin: "5px 0 7px 0",
-                    padding: "0 5px",
-                    whiteSpace: "nowrap",
-                    textOverflow: "ellipsis",
-                    overflow: "hidden",
-                    textAlign: "center",
-                  }}>
-                    {movie.title || movie.name}
-                  </div>
-                </div>
-              ))}
-            </div>
+            <HomeCarousel
+              title="Movies For Your Favorite Genres"
+              movies={genreRecs}
+              emptyMessage="Movies from your preferred genres will appear here!"
+            />
           </>
-        ) : (
-          <div style={{ color: "#999", fontSize: 13, marginTop: 10, marginLeft: 4 }}>
-            {emptyMessage}
+        )}
+
+        {/* Scenario 2: Only movies */}
+        {!hasGenres && hasMovies && (
+          <>
+            <HomeCarousel
+              title="Because You Liked…"
+              movies={movieRecs}
+              emptyMessage="Recommendations based on your favorite movies will show up here!"
+            />
+          </>
+        )}
+
+        {/* Scenario 3: Both genres and movies */}
+        {hasGenres && hasMovies && (
+          <>
+            <HomeCarousel
+              title="Movies For Your Favorite Genres"
+              movies={genreRecs}
+              emptyMessage="Movies from your preferred genres will appear here!"
+            />
+            <HomeCarousel
+              title="Because You Liked…"
+              movies={movieRecs}
+              emptyMessage="Recommendations based on your favorite movies will show up here!"
+            />
+          </>
+        )}
+
+        {/* Scenario 4: No onboarding data */}
+        {!hasGenres && !hasMovies && (
+          <div style={{
+            color: "#fdaf41",
+            fontWeight: 700,
+            fontSize: 20,
+            margin: "44px 0 24px 0",
+            background: "#18141c",
+            borderRadius: 16,
+            padding: "28px",
+            textAlign: "center",
+          }}>
+            Get more personal recommendations!
+            <br />
+            Add your favorite genres or movies to get started.
           </div>
         )}
+
+        {/* Always show trending movies */}
+        <HomeCarousel
+          title="Trending Now"
+          movies={trending}
+          emptyMessage="Trending movies will appear here!"
+        />
+
+        {/* Always show user's watch history */}
+        <HomeCarousel
+          title="Your Watch History"
+          movies={watched}
+          emptyMessage="Your recently watched movies will show up here."
+        />
       </div>
     </div>
   );
-}
-
-function arrowBtnStyle(side) {
-  return {
-    position: "absolute",
-    [side]: -16,
-    top: "50%",
-    transform: "translateY(-50%)",
-    zIndex: 5,
-    background: "rgba(24,64,109,0.91)",
-    color: "#fff",
-    border: "none",
-    borderRadius: "50%",
-    width: 34,
-    height: 34,
-    display: typeof window !== "undefined" && window.innerWidth > 700 ? "flex" : "none",
-    alignItems: "center",
-    justifyContent: "center",
-    boxShadow: "0 3px 12px #0006",
-    cursor: "pointer",
-    opacity: 0.78,
-    transition: "background 0.13s, opacity 0.16s",
-    outline: "none",
-    padding: 0
-  };
 }

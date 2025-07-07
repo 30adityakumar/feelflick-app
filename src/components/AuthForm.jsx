@@ -79,7 +79,12 @@ export default function AuthForm ({ mode = "sign-in", onSwitchMode }) {
   /* ───────── google oauth ───────── */
   async function handleGoogle() {
     setError(""); setLoading(true);
-    const { error } = await supabase.auth.signInWithOAuth({ provider:"google" });
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/onboarding`
+      }
+    });
     if (error) setError(error.message);
     setLoading(false);
   }

@@ -484,17 +484,17 @@ export default function Onboarding() {
                     <div key={m.id} style={{
                       display: "flex", flexDirection: "column",
                       alignItems: "center",
-                      gap: 4,
+                      gap: 2,
                       background: "#231d2d",
                       borderRadius: 7,
                       padding: "2px 2px 2px 2px"
                     }}>
                       <img src={m.poster_path ? `https://image.tmdb.org/t/p/w92${m.poster_path}` : "https://dummyimage.com/80x120/232330/fff&text=No+Image"}
                         alt={m.title}
-                        style={{ width: 60, height: 90, objectFit: "cover", borderRadius: 2, marginRight: 4, marginLeft: 4, background: "#101012" }}
+                        style={{ width: 60, height: 90, objectFit: "cover", borderRadius: 2, marginRight: 5, marginLeft: 5, background: "#101012" }}
                       />
                       {/* Title split into lines of 7 words */}
-                      <span style={{ display: "flex", flexDirection: "column", alignItems: "center", fontWeight: 500, fontSize: 14, color: "#fff", marginTop: 5 }}>
+                      <span style={{ display: "flex", flexDirection: "column", alignItems: "center", fontWeight: 450, fontSize: 13, color: "#fff", marginTop: 5 }}>
                         {m.title
                           .split(" ")
                           .reduce((lines, word, i) => {
@@ -519,7 +519,7 @@ export default function Onboarding() {
                           marginRight: 0,
                           marginBottom: 0,
                           cursor: "pointer",
-                          fontWeight: 500,
+                          fontWeight: 400,
                           opacity: 0.78
                         }}
                         onClick={() => handleRemoveMovie(m.id)}

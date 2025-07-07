@@ -377,8 +377,8 @@ export default function Onboarding() {
                 width: "100%",
                 background: "#232330",
                 borderRadius: 8,
-                padding: "12px 14px",
-                fontSize: 15,
+                padding: "10px 12px",
+                fontSize: 13,
                 fontWeight: 500,
                 color: "#fff",
                 outline: "none",
@@ -491,10 +491,10 @@ export default function Onboarding() {
                     }}>
                       <img src={m.poster_path ? `https://image.tmdb.org/t/p/w92${m.poster_path}` : "https://dummyimage.com/80x120/232330/fff&text=No+Image"}
                         alt={m.title}
-                        style={{ width: 67.5, height: 100, objectFit: "cover", borderRadius: 2, marginRight: 2, background: "#101012" }}
+                        style={{ width: 60, height: 90, objectFit: "cover", borderRadius: 2, marginRight: 4, marginLeft: 4, background: "#101012" }}
                       />
                       {/* Title split into lines of 7 words */}
-                      <span style={{ display: "flex", flexDirection: "column", alignItems: "center", fontWeight: 600, fontSize: 15, color: "#fff", marginTop: 5 }}>
+                      <span style={{ display: "flex", flexDirection: "column", alignItems: "center", fontWeight: 500, fontSize: 14, color: "#fff", marginTop: 5 }}>
                         {m.title
                           .split(" ")
                           .reduce((lines, word, i) => {
@@ -513,13 +513,13 @@ export default function Onboarding() {
                           background: "none",
                           border: "none",
                           color: "#fd7069",
-                          fontSize: 20,
+                          fontSize: 22,
                           marginTop: 0,
                           marginLeft: 0,
                           marginRight: 0,
                           marginBottom: 0,
                           cursor: "pointer",
-                          fontWeight: 600,
+                          fontWeight: 500,
                           opacity: 0.78
                         }}
                         onClick={() => handleRemoveMovie(m.id)}

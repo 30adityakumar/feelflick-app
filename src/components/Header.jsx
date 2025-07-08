@@ -1,12 +1,16 @@
-// Header.jsx
+// src/components/Header.jsx
 import { useState } from "react";
 import { LogOut, Settings, SlidersHorizontal, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import logo from "../assets/logo.png"; // Replace with your logo path
 
 export default function Header({ user, onSignOut }) {
   const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
+
+  // Click away to close dropdown
+  function handleMenuBlur(e) {
+    if (!e.currentTarget.contains(e.relatedTarget)) setShowMenu(false);
+  }
 
   return (
     <header
@@ -25,8 +29,8 @@ export default function Header({ user, onSignOut }) {
         onClick={() => navigate("/app")}
         style={{ display: "flex", alignItems: "center", cursor: "pointer" }}
       >
-        <img src={logo} alt="FeelFlick Logo" style={{ height: 34, marginRight: 10 }} />
-        <span style={{ color: "#fff", fontSize: 22, fontWeight: 700 }}>FeelFlick</span>
+        <img src="/logo.png" alt="FeelFlick Logo" style={{ height: 34, marginRight: 10 }} />
+        <span style={{ color: "#fff", fontSize: 22, fontWeight: 700, fontFamily: "Inter, sans-serif" }}>FeelFlick</span>
       </div>
 
       {/* Center: Search */}
@@ -42,17 +46,19 @@ export default function Header({ user, onSignOut }) {
             border: "none",
             background: "#23212b",
             color: "#fff",
+            fontFamily: "Inter, sans-serif",
+            outline: "none",
           }}
         />
         <Search
           size={20}
           color="#aaa"
-          style={{ position: "absolute", right: 16, top: 10 }}
+          style={{ position: "absolute", right: 16, top: 10, pointerEvents: "none" }}
         />
       </div>
 
       {/* Right: Avatar */}
-      <div style={{ position: "relative" }}>
+      <div style={{ position: "relative" }} tabIndex={0} onBlur={handleMenuBlur}>
         <div
           onClick={() => setShowMenu(!showMenu)}
           style={{
@@ -67,9 +73,11 @@ export default function Header({ user, onSignOut }) {
             fontWeight: 700,
             cursor: "pointer",
             userSelect: "none",
+            fontFamily: "Inter, sans-serif",
+            fontSize: 18,
           }}
         >
-          {user?.email?.[0]?.toUpperCase() || "A"}
+          {user?.name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || "A"}
         </div>
 
         {showMenu && (
@@ -107,6 +115,7 @@ function MenuItem({ icon, text, onClick }) {
         color: "#fff",
         cursor: "pointer",
         transition: "background 0.2s",
+        fontFamily: "Inter, sans-serif",
       }}
       onMouseEnter={(e) => (e.currentTarget.style.background = "#2d2a38")}
       onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}

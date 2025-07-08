@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import Account from './Account'
+import Account from "../pages/Account";
 import Search from './Search'
 import FilterBar from './FilterBar'
 import ResultsGrid from './ResultsGrid'

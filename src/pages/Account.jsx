@@ -1,3 +1,5 @@
+import { X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { supabase } from "../supabaseClient";
 
@@ -5,6 +7,26 @@ export default function Account({ user, onProfileUpdate }) {
   const [name, setName] = useState(user?.name || "");
   const [avatar, setAvatar] = useState(user?.avatar_url || "");
   const [saving, setSaving] = useState(false);
+  const navigate = useNavigate();
+
+  return (
+    <div style={{
+      maxWidth: 420, margin: "54px auto 0 auto", padding: 28,
+      background: "#191820", borderRadius: 18, boxShadow: "0 2px 24px #0004",
+      position: "relative"
+    }}>
+      {/* X button */}
+      <button
+        onClick={() => navigate("/app")}
+        style={{
+          position: "absolute", top: 14, right: 18,
+          background: "none", border: "none", color: "#fff", fontSize: 22, cursor: "pointer", opacity: 0.6, zIndex: 2
+        }}
+        aria-label="Close Account"
+        title="Go back to Home"
+      >
+        <X size={26} />
+      </button>
 
   async function handleSave(e) {
     e.preventDefault();

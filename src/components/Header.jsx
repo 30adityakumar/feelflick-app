@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { LogOut, Settings, SlidersHorizontal, User2, Search } from "lucide-react";
+import { LogOut, SlidersHorizontal, User2, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function Header({ user, onSignOut }) {
@@ -14,10 +14,7 @@ export default function Header({ user, onSignOut }) {
   useEffect(() => {
     if (!search) { setResults([]); return; }
     const fetchMovies = async () => {
-      // Use your Supabase client here; example:
-      // const { data } = await supabase.from("movies").select("id,title,poster_path").ilike("title", `%${search}%`).limit(7);
-      // setResults(data || []);
-      // DEMO: Replace with static demo data:
+      // Example: replace with real query if desired
       setResults([
         { id: 1, title: "Inception", poster_path: "/poster1.jpg" },
         { id: 2, title: "The Dark Knight", poster_path: "/poster2.jpg" },
@@ -54,6 +51,12 @@ export default function Header({ user, onSignOut }) {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
+
+  // Handle sign out and redirect to homepage
+  const handleSignOut = async () => {
+    if (onSignOut) await onSignOut();
+    navigate("/");
+  };
 
   return (
     <header
@@ -194,11 +197,10 @@ export default function Header({ user, onSignOut }) {
               zIndex: 30,
             }}
           >
-            <MenuItem icon={<User2 size={18} />} text="My Profile" onClick={() => { navigate("/account"); setShowMenu(false); }} />
-            <MenuItem icon={<Settings size={18} />} text="Settings" onClick={() => { navigate("/settings"); setShowMenu(false); }} />
+            <MenuItem icon={<User2 size={18} />} text="My Account" onClick={() => { navigate("/account"); setShowMenu(false); }} />
             <MenuItem icon={<SlidersHorizontal size={18} />} text="Preferences" onClick={() => { navigate("/preferences"); setShowMenu(false); }} />
             <div style={{ borderTop: "1px solid #33323c", margin: "7px 0" }} />
-            <MenuItem icon={<LogOut size={18} />} text="Sign Out" onClick={onSignOut} />
+            <MenuItem icon={<LogOut size={18} />} text="Sign Out" onClick={handleSignOut} />
           </div>
         )}
       </div>

@@ -11,30 +11,22 @@ import Header from "./components/Header";
 import MoviesTab from "./components/MoviesTab";
 import RecommendationsTab from "./components/RecommendationsTab";
 import WatchedTab from "./components/WatchedTab";
-import AccountModal from "./components/AccountModal";
+import Account from "./pages/Account";         // New
+import Preferences from "./pages/Preferences"; // New
 
-/* --- AppShell with tab navigation, account modal, etc --- */
-function MainApp({ session, profileName, setProfileName }) {
+// MainApp still manages tab navigation
+function MainApp({ session, profileName, setProfileName, user, onSignOut }) {
   const [activeTab, setActiveTab] = useState("home");
-  const [showAccountModal, setShowAccountModal] = useState(false);
-  const handleProfileUpdate = (newName) => setProfileName(newName);
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white pb-10" style={{ width: "100vw", overflowX: "hidden" }}>
       <Header
-        userName={profileName || session?.user?.user_metadata?.name || "Account"}
+        user={user}
+        onSignOut={onSignOut}
         onTabChange={setActiveTab}
         activeTab={activeTab}
-        onMyAccount={() => setShowAccountModal(true)}
       />
-      {showAccountModal && (
-        <AccountModal
-          user={session.user}
-          onClose={() => setShowAccountModal(false)}
-          onProfileUpdate={handleProfileUpdate}
-        />
-      )}
-      {activeTab === "home"           && <HomePage userName={profileName || session.user?.user_metadata?.name || "Movie Lover"} userId={session.user.id} />}
+      {activeTab === "home"           && <HomePage userName={user?.name || profileName || session.user?.user_metadata?.name || "Movie Lover"} userId={session.user.id} />}
       {activeTab === "movies"         && <MoviesTab session={session} />}
       {activeTab === "recommendations"&& <RecommendationsTab session={session} />}
       {activeTab === "watched"        && <WatchedTab session={session} />}
@@ -42,7 +34,7 @@ function MainApp({ session, profileName, setProfileName }) {
   );
 }
 
-/* --- Hook: robust onboarding status from users table --- */
+// Robust onboarding status
 function useOnboardingStatus(session, version) {
   const [status, setStatus] = useState({ loading: true, complete: false });
 
@@ -51,8 +43,7 @@ function useOnboardingStatus(session, version) {
     async function fetchStatus() {
       if (!session) { setStatus({ loading: false, complete: false }); return; }
       const userId = session.user.id;
-      // Query the public.users table for onboarding_complete
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('users')
         .select('onboarding_complete')
         .eq('id', userId)
@@ -66,27 +57,57 @@ function useOnboardingStatus(session, version) {
     }
     fetchStatus();
     return () => { ignore = true; };
-  }, [session, version]); // <-- Also refetch if version (timestamp) changes
-
+  }, [session, version]);
   return status;
 }
 
 export default function App() {
   const [session, setSession] = useState(null);
   const [profileName, setProfileName] = useState("");
-  // Used to force onboarding status reload after onboarding finishes
+  const [user, setUser] = useState(null); // Full user/profile object
   const [onboardingVersion, setOnboardingVersion] = useState(Date.now());
 
+  // 1. Get Supabase session and fetch user profile
   useEffect(() => {
+    let mounted = true;
     supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
     const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
     return () => data.subscription.unsubscribe();
   }, []);
 
+  useEffect(() => {
+    async function fetchProfile() {
+      if (!session?.user) { setUser(null); return; }
+      // Query users table for extended profile info
+      const { data } = await supabase
+        .from("users")
+        .select("*")
+        .eq("id", session.user.id)
+        .single();
+      setUser({ ...session.user, ...data });
+      setProfileName(data?.name || session.user.user_metadata?.name || "");
+    }
+    if (session?.user) fetchProfile();
+  }, [session]);
+
+  // 2. Onboarding status
   const { loading: onboardingLoading, complete: onboardingComplete } =
     useOnboardingStatus(session, onboardingVersion);
 
-  // --- Main routing ---
+  // 3. Sign out logic (handles Supabase + clears user/profile)
+  async function handleSignOut() {
+    await supabase.auth.signOut();
+    setSession(null);
+    setUser(null);
+    window.location.href = "/"; // redirect to homepage
+  }
+
+  // 4. Handle profile update from /account
+  function handleProfileUpdate(profile) {
+    setProfileName(profile.name || "");
+    setUser(u => ({ ...u, ...profile }));
+  }
+
   return (
     <BrowserRouter>
       <Routes>
@@ -96,7 +117,7 @@ export default function App() {
         <Route path="/auth/reset-password" element={<ResetPassword />} />
         <Route path="/auth/confirm" element={<ConfirmEmail />} />
 
-        {/* Onboarding page (only accessible if logged in & NOT onboarded) */}
+        {/* Onboarding page */}
         <Route
           path="/onboarding"
           element={
@@ -110,14 +131,42 @@ export default function App() {
           }
         />
 
-        {/* App pages – only accessible if signed in AND onboarding is complete */}
+        {/* Main app pages (tab UI) */}
         <Route
           path="/app/*"
           element={
             !session ? <Navigate to="/auth/sign-in" replace /> :
             onboardingLoading ? <div style={{ color: "#fff", textAlign: "center", marginTop: "25vh" }}>Loading…</div> :
             !onboardingComplete ? <Navigate to="/onboarding" replace /> :
-            <MainApp session={session} profileName={profileName} setProfileName={setProfileName} />
+            <MainApp
+              session={session}
+              profileName={profileName}
+              setProfileName={setProfileName}
+              user={user}
+              onSignOut={handleSignOut}
+            />
+          }
+        />
+
+        {/* Account page (protected) */}
+        <Route
+          path="/account"
+          element={
+            !session ? <Navigate to="/auth/sign-in" replace /> :
+            onboardingLoading ? <div style={{ color: "#fff", textAlign: "center", marginTop: "25vh" }}>Loading…</div> :
+            !onboardingComplete ? <Navigate to="/onboarding" replace /> :
+            <Account user={user} onProfileUpdate={handleProfileUpdate} />
+          }
+        />
+
+        {/* Preferences page (protected) */}
+        <Route
+          path="/preferences"
+          element={
+            !session ? <Navigate to="/auth/sign-in" replace /> :
+            onboardingLoading ? <div style={{ color: "#fff", textAlign: "center", marginTop: "25vh" }}>Loading…</div> :
+            !onboardingComplete ? <Navigate to="/onboarding" replace /> :
+            <Preferences user={user} />
           }
         />
 

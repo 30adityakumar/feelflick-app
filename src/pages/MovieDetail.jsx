@@ -1,32 +1,25 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom"; // For Next.js: use useRouter
+import { useParams } from "react-router-dom";
 
 const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY;
 const TMDB_IMG = "https://image.tmdb.org/t/p/w500";
 
 export default function MovieDetail() {
-  const { id } = useParams(); // e.g. /movie/123
+  const { id } = useParams();
   const [movie, setMovie] = useState(null);
   const [credits, setCredits] = useState(null);
   const [ratings, setRatings] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Fetch TMDb details and credits
   useEffect(() => {
     setLoading(true);
     async function fetchData() {
-      // 1. Movie details
       const res = await fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}&language=en-US`);
       const data = await res.json();
-
-      // 2. Credits (cast, crew)
       const resCredits = await fetch(`https://api.themoviedb.org/3/movie/${id}/credits?api_key=${TMDB_KEY}`);
       const creditsData = await resCredits.json();
-
       setMovie(data);
       setCredits(creditsData);
-
-      // 3. Ratings from OMDb (if imdb_id present)
       if (data.imdb_id) {
         const omdb = await fetch(`https://www.omdbapi.com/?apikey=${import.meta.env.VITE_OMDB_API_KEY}&i=${data.imdb_id}`);
         setRatings(await omdb.json());
@@ -39,12 +32,10 @@ export default function MovieDetail() {
   if (loading) return <div style={{ color: "#fff", textAlign: "center", marginTop: 60 }}>Loading...</div>;
   if (!movie) return <div style={{ color: "#fff" }}>Movie not found.</div>;
 
-  // Format genres, runtime, ratings, top 6 cast, etc.
   const genres = (movie.genres || []).map(g => g.name).join(", ");
   const runtime = movie.runtime ? `${movie.runtime} min` : "";
   const year = movie.release_date ? movie.release_date.slice(0, 4) : "";
   const posterUrl = movie.poster_path ? `${TMDB_IMG}${movie.poster_path}` : "/placeholder-movie.png";
-
   const topCast = credits?.cast?.slice(0, 6) || [];
   const director = credits?.crew?.find(c => c.job === "Director");
 
@@ -85,7 +76,6 @@ export default function MovieDetail() {
             }
           </div>
           <div style={{ margin: "12px 0 20px 0", fontSize: 16 }}>
-            {/* Ratings Section */}
             {movie.vote_average &&
               <span style={{ marginRight: 18 }}>⭐ TMDb {movie.vote_average.toFixed(1)}</span>}
             {ratings?.imdbRating &&

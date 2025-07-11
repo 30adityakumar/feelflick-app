@@ -13,6 +13,8 @@ import RecommendationsTab from "./components/RecommendationsTab";
 import WatchedTab from "./components/WatchedTab";
 import Account from "./pages/Account";         // New
 import Preferences from "./pages/Preferences"; // New
+import MovieDetail from './pages/MovieDetail';
+
 
 // MainApp still manages tab navigation
 function MainApp({ session, profileName, setProfileName, user, onSignOut }) {
@@ -171,6 +173,9 @@ export default function App() {
         />
 
         <Route path="*" element={<Navigate to="/" replace />} />
+
+        {/* Movie details page */}
+        <Route path="/movie/:id" element={<MovieDetail />} />
       </Routes>
     </BrowserRouter>
   );

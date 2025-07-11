@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 // You should have a HomeCarousel component for displaying lists of movies (or use your own UI).
 import HomeCarousel from "../components/HomeCarousel"; // <- Adjust this path if your file structure differs
+import HomeTrendingRow from "../components/HomeTrendingRow";
 
 export default function HomePage({ userId }) {
   // -- States to store user data --
@@ -118,6 +119,8 @@ export default function HomePage({ userId }) {
         </div>
 
         {/* CAROUSELS AND PROMPTS */}
+
+        <HomeTrendingRow/>
 
         {/* Scenario 1: Only genres */}
         {hasGenres && !hasMovies && (

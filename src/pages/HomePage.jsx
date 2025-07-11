@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import CarouselRow from "../components/CarouselRow";
-import { supabase } from "../supabaseClient";
+import CarouselRow from "@/features/onboarding/components/CarouselRow";
+import { supabase } from "@/shared/lib/supabase/client";
 
 const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY;
 

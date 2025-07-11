@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
-import Account from "../pages/Account";
-import Search from './Search'
-import FilterBar from './FilterBar'
-import ResultsGrid from './ResultsGrid'
-import MovieModal from './MovieModal'   // <-- Import MovieModal
-import { supabase } from '../supabaseClient'
+import Account from "@/pages/Account";
+import Search from '@/features/search/components/Search'
+import FilterBar from '@/features/preferences/components/FilterBar'
+import ResultsGrid from '@/features/recommendations/components/ResultsGrid'
+import MovieModal from '@/features/movies/components/MovieModal'
+import { supabase } from '@/shared/lib/supabase/client'
 
 export default function MoviesTab({ session }) {
   // --- State for movies, genres, filters, etc. ---

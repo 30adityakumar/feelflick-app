@@ -1,4 +1,4 @@
-import MovieCard from './MovieCard'
+import MovieCard from '@/features/movies/components/MovieCard'
 
 export default function WatchedHistory({ watched, genreMap, onRemove, gridClass, onMovieClick }) {
   if (!watched.length) {

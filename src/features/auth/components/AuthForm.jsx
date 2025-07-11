@@ -1,7 +1,7 @@
 //  src/components/AuthForm.jsx
 import { useState }    from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase }    from "../supabaseClient";
+import { supabase }    from "@/shared/lib/supabase/client";
 import { FcGoogle }    from "react-icons/fc";
 
 /* ────────────────────────────────────────── */

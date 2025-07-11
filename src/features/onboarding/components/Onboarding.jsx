@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate }                  from "react-router-dom";
-import { supabase }                     from "../supabaseClient";
+import { supabase }                     from "@/shared/lib/supabase/client";
 
 const ACCENT  = "#fe9245";
 const ACCENT2 = "#eb423b";

@@ -1,7 +1,7 @@
 // src/components/ResetPassword.jsx
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { supabase } from "../supabaseClient";
+import { supabase } from "@/shared/lib/supabase/client";
 
 export default function ResetPassword() {
   const { hash }   = useLocation();

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { supabase } from "../supabaseClient";
+import { supabase } from "@/shared/lib/supabase/client";
 
 export default function ConfirmEmail() {
   const { hash } = useLocation();

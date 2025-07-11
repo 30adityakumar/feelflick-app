@@ -1,19 +1,19 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { supabase } from "./supabaseClient";
-import Landing from "./components/Landing";
-import AuthPage from "./AuthPage";
-import ResetPassword from "./components/ResetPassword";
-import ConfirmEmail from "./components/ConfirmEmail";
-import Onboarding from "./components/Onboarding";
-import HomePage from "./components/HomePage";
-import Header from "./components/Header";
-import MoviesTab from "./components/MoviesTab";
-import RecommendationsTab from "./components/RecommendationsTab";
-import WatchedTab from "./components/WatchedTab";
-import Account from "./pages/Account";         // New
-import Preferences from "./pages/Preferences"; // New
-import MovieDetail from './pages/MovieDetail';
+import { supabase } from "@/shared/lib/supabase/client";
+import Landing from "@/features/onboarding/components/Landing";
+import AuthPage from "@/pages/AuthPage";
+import ResetPassword from "@/features/auth/components/ResetPassword";
+import ConfirmEmail from "@/features/auth/components/ConfirmEmail";
+import Onboarding from "@/features/onboarding/components/Onboarding";
+import HomePage from "@/pages/HomePage";
+import Header from "@/shared/ui/Header";
+import MoviesTab from "@/features/movies/components/MoviesTab";
+import RecommendationsTab from "@/features/recommendations/components/RecommendationsTab";
+import WatchedTab from "@/features/history/components/WatchedTab";
+import Account from "@/pages/Account";         
+import Preferences from "@/pages/Preferences";
+import MovieDetail from '@/pages/MovieDetail';
 
 
 // MainApp still manages tab navigation

@@ -1,10 +1,10 @@
 import { useNavigate } from "react-router-dom";
-import TopNav from './TopNav'
-import LandingHero from './LandingHero'
-import WhyFeelFlick from './WhyFeelFlick'
-import TrendingToday from './TrendingToday'
-import CallToAction from './CallToAction'
-import Footer from './Footer'
+import TopNav from '@/shared/ui/TopNav'
+import LandingHero from '@/features/onboarding/components/LandingHero'
+import WhyFeelFlick from '@/features/onboarding/components/WhyFeelFlick'
+import TrendingToday from '@/features/recommendations/components/TrendingToday'
+import CallToAction from '@/features/onboarding/components/CallToAction'
+import Footer from '@/shared/ui/Footer'
 
 export default function Landing() {
   const navigate = useNavigate();

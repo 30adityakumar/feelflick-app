@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
-import FilterBar from './FilterBar'
-import WatchedHistory from './WatchedHistory'
-import MovieModal from './MovieModal'
-import { supabase } from '../supabaseClient'
+import FilterBar from '@/features/preferences/components/FilterBar'
+import WatchedHistory from '@/features/history/components/WatchedHistory'
+import MovieModal from '@/features/movies/components/MovieModal'
+import { supabase } from '@/shared/lib/supabase/client'
 
 export default function WatchedTab({ session }) {
   const [watched, setWatched] = useState([])

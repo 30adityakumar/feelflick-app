@@ -1,4 +1,5 @@
 import { FaInstagram, FaTiktok, FaFacebookF, FaLinkedinIn } from "react-icons/fa";
+import logo from '@assets/images/logo.png';
 
 export default function Footer() {
   const footerLinkStyle = {
@@ -47,7 +48,7 @@ export default function Footer() {
         <div style={{
           flex: "0 0 190px", display: "flex", flexDirection: "column", alignItems: "flex-start", marginBottom: 10
         }}>
-          <img src="/logo.png" alt="FeelFlick" style={{
+          <img src={logo} alt="FeelFlick" style={{
             width: 42, height: 42, borderRadius: 10, marginBottom: 9, boxShadow: "0 2px 9px #ff5b2e14"
           }} />
           <span style={{

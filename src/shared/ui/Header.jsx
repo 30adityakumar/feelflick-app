@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { LogOut, SlidersHorizontal, User2, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import logo from '@assets/images/logo.png';
 
 export default function Header({ user, onSignOut }) {
   const navigate = useNavigate();
@@ -77,7 +78,7 @@ export default function Header({ user, onSignOut }) {
           display: "flex", alignItems: "center", gap: 8, cursor: "pointer", minWidth: 160
         }}
       >
-        <img src="/logo.png" alt="FeelFlick" style={{
+        <img src={logo} alt="FeelFlick" style={{
           height: 38, width: 38, borderRadius: 10, boxShadow: "0 1.5px 7px #0003"
         }} />
         <span style={{

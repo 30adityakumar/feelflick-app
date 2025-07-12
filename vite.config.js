@@ -6,7 +6,9 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, 'src'),        // ← ⚠️  no leading “./” or trailing slash
+      '@':        path.resolve(__dirname, 'src'),
+      '@assets':  path.resolve(__dirname, 'src/assets'),   // ← add THIS line
+      '@shared':  path.resolve(__dirname, 'src/shared'),   // (optional, keeps things tidy)
     },
   },
 });

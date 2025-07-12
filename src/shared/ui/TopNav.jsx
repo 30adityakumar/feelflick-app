@@ -63,7 +63,7 @@ export default function TopNav() {
         boxShadow: "none"
       }}>
         <div className="fflick-topnav-row" style={{ display: "flex", alignItems: "center", gap: 13 }}>
-          <img src="/assets/images/logo.png" alt="FeelFlick" className="fflick-topnav-logo" style={{
+          <img src="/logo.png" alt="FeelFlick" className="fflick-topnav-logo" style={{
             height: 44, width: 44, borderRadius: 12, boxShadow: "0 2px 8px #0003", transition: "all 0.18s"
           }} />
           <span className="fflick-topnav-title" style={{

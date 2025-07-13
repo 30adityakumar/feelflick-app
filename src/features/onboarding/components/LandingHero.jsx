@@ -1,25 +1,30 @@
 import { useNavigate } from "react-router-dom";
 
-// Replace with your chosen background video URL
-const HERO_VIDEO = "https://website-static.plex.tv/videos/home_hero_background_2024.mp4"; // Example from Coverr/Pexels
+// Example video: use your favorite copyright-free stock video
+const HERO_VIDEO = "https://website-static.plex.tv/videos/home_hero_background_2024.mp4"; // Replace with your video link!
 
 export default function LandingHero() {
   const navigate = useNavigate();
 
   return (
     <section
+      aria-label="Landing Hero"
+      role="region"
+      tabIndex={-1}
       style={{
         width: "100vw",
-        minHeight: "75vh",
+        minHeight: "min(100vh, 720px)",
         display: "flex",
         alignItems: "center",
         justifyContent: "flex-start",
         position: "relative",
         overflow: "hidden",
-        background: "#101015"
+        background: "#101015",
+        padding: "max(68px, 7vh) 0", // Large vertical padding for hero!
+        boxSizing: "border-box"
       }}
     >
-      {/* ---- Background video (legal stock!) ---- */}
+      {/* ---- Background video (stock, muted) ---- */}
       <video
         src={HERO_VIDEO}
         autoPlay
@@ -27,6 +32,7 @@ export default function LandingHero() {
         muted
         playsInline
         poster="/background-poster.jpg"
+        aria-hidden="true"
         style={{
           position: "absolute",
           inset: 0,
@@ -37,8 +43,10 @@ export default function LandingHero() {
           filter: "brightness(0.65) blur(0.2px)",
         }}
       />
-      {/* ---- Overlay gradient left-to-right ---- */}
+
+      {/* ---- Overlay gradient left-to-right for readability ---- */}
       <div
+        aria-hidden="true"
         style={{
           position: "absolute",
           inset: 0,
@@ -56,16 +64,19 @@ export default function LandingHero() {
           marginLeft: "clamp(8vw, 7%, 120px)",
           marginRight: "clamp(3vw, 5%, 90px)",
           padding: "0 10px",
-          color: "#fff"
+          color: "#fff",
+          display: "flex",
+          flexDirection: "column",
         }}
       >
         <h1
+          tabIndex={0}
           style={{
             fontWeight: 900,
-            fontSize: "clamp(2.1rem,6vw,3.8rem)",
+            fontSize: "clamp(2.3rem,7vw,4.1rem)",
             color: "#fff",
             letterSpacing: "-0.7px",
-            marginBottom: 20,
+            marginBottom: 24,
             textShadow: "0 4px 24px #000c, 0 2px 8px #18406d77",
             lineHeight: 1.08,
           }}
@@ -75,12 +86,13 @@ export default function LandingHero() {
         <div
           style={{
             fontWeight: 400,
-            fontSize: "clamp(1rem,1.1vw,1.25rem)",
+            fontSize: "clamp(1.04rem,1.1vw,1.35rem)",
             color: "#F6E3D7",
             opacity: 0.96,
             marginBottom: 38,
             lineHeight: 1.6,
             textShadow: "0 2px 8px #0002",
+            maxWidth: 520,
           }}
         >
           Get the perfect recommendation based on your taste and how you feel.<br />
@@ -88,27 +100,30 @@ export default function LandingHero() {
         </div>
         <button
           onClick={() => navigate("/auth/sign-up")}
+          className="fflick-landinghero-getstarted"
+          aria-label="Get Started with FeelFlick"
           style={{
             background: "linear-gradient(90deg,#fe9245 10%,#eb423b 90%)",
             color: "#fff",
             border: "none",
-            borderRadius: 18,
-            fontWeight: 900,
-            fontSize: "1.09rem",
-            padding: "14px 46px",
-            boxShadow: "0 5px 24px #eb423b36",
+            borderRadius: 14,
+            fontWeight: 700,
+            fontSize: "1.05rem",
+            padding: "10px 32px", // Smaller button, but still big target!
+            minWidth: 130,
+            minHeight: 40,
+            boxShadow: "0 2px 8px #fe92451a",
             cursor: "pointer",
             letterSpacing: "0.01em",
-            transition: "transform 0.16s, box-shadow 0.13s, opacity 0.13s",
+            transition: "filter 0.15s, transform 0.15s, box-shadow 0.13s",
+            outline: "none",
           }}
-          onMouseEnter={e => {
-            e.currentTarget.style.transform = "scale(1.06)";
-            e.currentTarget.style.boxShadow = "0 9px 38px #eb423b62";
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.transform = "scale(1)";
-            e.currentTarget.style.boxShadow = "0 5px 24px #eb423b36";
-          }}
+          tabIndex={0}
+          onMouseDown={e => (e.currentTarget.style.transform = "scale(.97)")}
+          onMouseUp={e => (e.currentTarget.style.transform = "scale(1)")}
+          onFocus={e => (e.currentTarget.style.filter = "brightness(1.13)")}
+          onBlur={e => (e.currentTarget.style.filter = "none")}
+          onKeyDown={e => { if (e.key === "Enter" || e.key === " ") navigate("/auth/sign-up"); }}
         >
           Get Started
         </button>

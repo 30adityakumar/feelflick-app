@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import heroVideo from "@/assets/videos/hero-bg.mp4";
-import backgroundposter from "@/assets/images/background-poster.jpg"; // Or use your poster image
+import backgroundposter from "@/assets/images/background-poster.jpg";
 
 export default function LandingHero() {
   const navigate = useNavigate();
@@ -12,79 +12,61 @@ export default function LandingHero() {
         minHeight: "75vh",
         display: "flex",
         alignItems: "center",
-        justifyContent: "center",
+        justifyContent: "flex-start",
         position: "relative",
         overflow: "hidden",
         background: "#101015",
-        paddingTop: 100,    // ensure it's below your nav/header
-        paddingBottom: 60,  // extra breathing space
+        paddingTop: 100,
+        paddingBottom: 60,
       }}
       aria-label="FeelFlick Hero Section"
     >
-      {/* --- Background Video, aligned right on desktop --- */}
-      <div
+      {/* --- Video background (always fills, right-aligned on desktop) --- */}
+      <video
+        src={heroVideo}
+        autoPlay
+        loop
+        muted
+        playsInline
+        poster={backgroundposter}
         style={{
           position: "absolute",
-          top: 0,
-          left: 0,
+          inset: 0,
+          width: "100vw",
           height: "100%",
-          width: "100%",
-          overflow: "hidden",
+          objectFit: "cover",
+          objectPosition: "center right",
           zIndex: 0,
-          pointerEvents: "none",
-          display: "flex",
-          justifyContent: "flex-end",
+          filter: "brightness(0.9)", // only slight darkening for clarity, easily tweak
+          transition: "filter 0.16s",
+          background: "#111",
         }}
-      >
-        <video
-          src={heroVideo}
-          autoPlay
-          loop
-          muted
-          playsInline
-          poster={backgroundposter}
-          style={{
-            width: "75vw",
-            minWidth: 360,
-            height: "100%",
-            maxHeight: "95vh",
-            objectFit: "cover",
-            objectPosition: "center right",
-            filter: "brightness(0.63) blur(0.3px)",
-            borderRadius: "0 0 0 70px",
-            background: "#222", // fallback
-            transition: "width .3s",
-          }}
-          tabIndex={-1}
-          aria-hidden="true"
-        />
-      </div>
+        tabIndex={-1}
+        aria-hidden="true"
+      />
 
-      {/* --- Black right overlay (fades left) --- */}
+      {/* --- Overlay: left gradient only (transparent > dark left) --- */}
       <div
         style={{
           position: "absolute",
           inset: 0,
-          background: "linear-gradient(270deg,rgba(12,12,18,0.97) 38%,rgba(12,12,18,0.55) 68%,rgba(12,12,18,0.00) 100%)",
+          background: "linear-gradient(90deg,rgba(14,14,17,0.93) 0%,rgba(14,14,17,0.18) 38%,rgba(14,14,17,0.0) 68%)",
           zIndex: 1,
           pointerEvents: "none",
         }}
         aria-hidden="true"
       />
 
-      {/* --- Hero Content (on top, left-aligned) --- */}
+      {/* --- Hero Content: Always left-aligned, over the gradient --- */}
       <div
         style={{
           position: "relative",
           zIndex: 2,
-          maxWidth: 690,
-          marginLeft: "clamp(8vw, 7%, 120px)",
-          marginRight: "clamp(3vw, 5%, 90px)",
+          maxWidth: 680,
+          marginLeft: "clamp(7vw, 7%, 90px)",
+          marginRight: "clamp(2vw, 4%, 60px)",
           padding: "32px 22px",
           color: "#fff",
-          background: "rgba(18,18,22,0.69)",
-          borderRadius: 30,
-          boxShadow: "0 4px 40px #0e0e11aa",
           display: "flex",
           flexDirection: "column",
           alignItems: "flex-start",
@@ -94,12 +76,12 @@ export default function LandingHero() {
         <h1
           style={{
             fontWeight: 900,
-            fontSize: "clamp(1.6rem,4vw,2.8rem)",
+            fontSize: "clamp(1.5rem,4vw,2.2rem)", // smaller, as you asked
             color: "#fff",
             letterSpacing: "-0.5px",
             marginBottom: 18,
-            textShadow: "0 4px 24px #000c, 0 2px 8px #18406d77",
-            lineHeight: 1.12,
+            textShadow: "0 4px 24px #000a, 0 2px 8px #18406d77",
+            lineHeight: 1.15,
           }}
         >
           Movies that match your mood.
@@ -147,7 +129,7 @@ export default function LandingHero() {
         </button>
       </div>
 
-      {/* --- Responsive mobile: stack everything --- */}
+      {/* --- Responsive mobile adjustments --- */}
       <style>{`
         @media (max-width: 900px) {
           section[aria-label="FeelFlick Hero Section"] {
@@ -161,14 +143,6 @@ export default function LandingHero() {
             margin-right: 0 !important;
             max-width: 98vw !important;
             padding: 22px 5vw !important;
-            border-radius: 18px !important;
-          }
-          section[aria-label="FeelFlick Hero Section"] video {
-            width: 100vw !important;
-            min-width: 0 !important;
-            border-radius: 0 !important;
-            max-height: 64vw !important;
-            margin-bottom: 14px !important;
           }
         }
         @media (max-width: 540px) {
@@ -179,10 +153,9 @@ export default function LandingHero() {
           }
           section[aria-label="FeelFlick Hero Section"] > div[style*="z-index: 2"] {
             padding: 14px 4vw !important;
-            border-radius: 10px !important;
           }
           section[aria-label="FeelFlick Hero Section"] h1 {
-            font-size: 1.2rem !important;
+            font-size: 1.13rem !important;
           }
         }
       `}</style>

@@ -1,60 +1,48 @@
 import { useNavigate } from "react-router-dom";
-import TopNav from '@/shared/ui/TopNav'
-import LandingHero from '@/features/onboarding/components/LandingHero'
-import WhyFeelFlick from '@/features/onboarding/components/WhyFeelFlick'
-import TrendingToday from '@/features/recommendations/components/TrendingToday'
-import CallToAction from '@/features/onboarding/components/CallToAction'
-import Footer from '@/shared/ui/Footer'
+import TopNav from "@/shared/ui/TopNav";
+import LandingHero from "@/features/onboarding/components/LandingHero";
+import WhyFeelFlick from "@/features/onboarding/components/WhyFeelFlick";
+import TrendingToday from "@/features/recommendations/components/TrendingToday";
+import CallToAction from "@/features/onboarding/components/CallToAction";
+import Footer from "@/shared/ui/Footer";
 
 export default function Landing() {
   const navigate = useNavigate();
 
-  // Use these functions for all navigation actions:
-  const handleSignIn = () => navigate("/auth/sign-in");
-  const handleSignUp = () => navigate("/auth/sign-up");
+  const handleSignIn  = () => navigate("/auth/sign-in");
+  const handleSignUp  = () => navigate("/auth/sign-up");
 
   return (
-    <div style={{ width: "100vw", minHeight: "100vh", background: "#101015", overflowX: "hidden", position: "relative" }}>
-      {/* Background video */}
+    <div className="relative min-h-screen w-full bg-[#101015] overflow-x-hidden">
+      {/* ---------- Background video ---------- */}
       <video
         autoPlay
         loop
         muted
         playsInline
         poster="/background-poster.jpg"
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          width: "100vw",
-          height: "100vh",
-          objectFit: "cover",
-          zIndex: 0,
-          filter: "brightness(0.54) blur(0.6px)"
-        }}
+        className="fixed inset-0 h-full w-full object-cover z-0"
+        style={{ filter: "brightness(0.54) blur(0.6px)" }}
       >
         <source src="/background.mp4" type="video/mp4" />
       </video>
-      {/* Overlay for readability */}
+
+      {/* ---------- Dark overlay for readability ---------- */}
       <div
-        style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(20,24,35,0.42)',
-          zIndex: 1,
-          pointerEvents: "none"
-        }}
+        className="fixed inset-0 bg-[rgba(20,24,35,0.42)] pointer-events-none z-10"
       />
 
-      {/* The rest of your site */}
-      <div style={{ position: "relative", zIndex: 2 }}>
-        <TopNav onSignIn={handleSignIn} />
+      {/* ---------- Top navigation (always on top) ---------- */}
+      <TopNav />  {/* TopNav already has `fixed z-50 inset-x-0 top-0` */}
+
+      {/* ---------- Landing content ---------- */}
+      <main className="relative z-20 flex flex-col items-center w-full pt-24 pb-14">
         <LandingHero onGetStarted={handleSignUp} />
         <WhyFeelFlick />
         <TrendingToday onSignUp={handleSignUp} />
         <CallToAction onSignUp={handleSignUp} />
         <Footer />
-      </div>
+      </main>
     </div>
   );
 }

@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router-dom";
 
-// Replace with your chosen background video URL
-const HERO_VIDEO = "https://www.youtube.com/watch?v=c9iCUxuWSwQ&list=RDc9iCUxuWSwQ&start_radio=1"; // Example from Coverr/Pexels
+const HERO_VIDEO = "@/assets/videos/hero-bg.mp4"; 
 
 export default function LandingHero() {
   const navigate = useNavigate();
@@ -16,10 +15,11 @@ export default function LandingHero() {
         justifyContent: "flex-start",
         position: "relative",
         overflow: "hidden",
-        background: "#101015"
+        background: "#101015",
+        paddingTop: 92, // adjust if your TopNav is taller/shorter!
       }}
     >
-      {/* ---- Background video (legal stock!) ---- */}
+      {/* ---- Background video ---- */}
       <video
         src={HERO_VIDEO}
         autoPlay
@@ -62,10 +62,10 @@ export default function LandingHero() {
         <h1
           style={{
             fontWeight: 900,
-            fontSize: "clamp(2.1rem,6vw,3.8rem)",
+            fontSize: "clamp(1.5rem,4vw,2.5rem)", // smaller!
             color: "#fff",
             letterSpacing: "-0.7px",
-            marginBottom: 20,
+            marginBottom: 18,
             textShadow: "0 4px 24px #000c, 0 2px 8px #18406d77",
             lineHeight: 1.08,
           }}
@@ -78,7 +78,7 @@ export default function LandingHero() {
             fontSize: "clamp(1rem,1.1vw,1.25rem)",
             color: "#F6E3D7",
             opacity: 0.96,
-            marginBottom: 38,
+            marginBottom: 30,
             lineHeight: 1.6,
             textShadow: "0 2px 8px #0002",
           }}
@@ -92,23 +92,21 @@ export default function LandingHero() {
             background: "linear-gradient(90deg,#fe9245 10%,#eb423b 90%)",
             color: "#fff",
             border: "none",
-            borderRadius: 18,
-            fontWeight: 900,
-            fontSize: "1.09rem",
-            padding: "14px 46px",
-            boxShadow: "0 5px 24px #eb423b36",
+            borderRadius: 13,
+            fontWeight: 800,
+            fontSize: "1rem",        // a little smaller
+            padding: "10px 30px",    // smaller, tighter
+            minWidth: 108,
+            minHeight: 38,
+            boxShadow: "0 2px 8px #eb423b1a",
             cursor: "pointer",
             letterSpacing: "0.01em",
-            transition: "transform 0.16s, box-shadow 0.13s, opacity 0.13s",
+            outline: "none",
+            transition: "filter .14s, background .13s",
           }}
-          onMouseEnter={e => {
-            e.currentTarget.style.transform = "scale(1.06)";
-            e.currentTarget.style.boxShadow = "0 9px 38px #eb423b62";
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.transform = "scale(1)";
-            e.currentTarget.style.boxShadow = "0 5px 24px #eb423b36";
-          }}
+          onMouseEnter={e => (e.currentTarget.style.filter = "brightness(1.08)")}
+          onMouseLeave={e => (e.currentTarget.style.filter = "none")}
+          tabIndex={0}
         >
           Get Started
         </button>

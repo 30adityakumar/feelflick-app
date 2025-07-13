@@ -1,218 +1,117 @@
 import { useNavigate } from "react-router-dom";
 
+// Replace with your chosen background video URL
+const HERO_VIDEO = "https://website-static.plex.tv/videos/home_hero_background_2024.mp4"; // Example from Coverr/Pexels
+
 export default function LandingHero() {
   const navigate = useNavigate();
 
   return (
     <section
       style={{
-        height: "100vh",
         width: "100vw",
+        minHeight: "75vh",
         display: "flex",
-        flexDirection: "column",
         alignItems: "center",
-        justifyContent: "center",
-        zIndex: 1,
+        justifyContent: "flex-start",
         position: "relative",
-        margin: 0,
-        padding: 0,
-        boxSizing: "border-box",
         overflow: "hidden",
-        background: "rgba(0,0,0,0.18)",
+        background: "#101015"
       }}
     >
-      <style>{`
-        @media (max-width: 700px) {
-          .fflick-landing-content {
-            padding: 0 6vw !important;
-          }
-          .fflick-landing-heading {
-            font-size: 6vw !important;
-            margin-bottom: 15px !important;
-          }
-          .fflick-landing-desc {
-            font-size: 1.12rem !important;
-            margin-bottom: 22px !important;
-          }
-          .fflick-landing-btn {
-            font-size: 1.02rem !important;
-            padding: 10px 15vw !important;
-          }
-        }
-        @media (max-width: 420px) {
-          .fflick-landing-content {
-            padding: 0 2vw !important;
-          }
-          .fflick-landing-heading {
-            font-size: 7vw !important;
-          }
-          .fflick-landing-desc {
-            font-size: 0.97rem !important;
-          }
-          .fflick-landing-btn {
-            font-size: 0.98rem !important;
-            padding: 10px 6vw !important;
-          }
-        }
-      `}</style>
-      <div
-        className="fflick-landing-content"
+      {/* ---- Background video (legal stock!) ---- */}
+      <video
+        src={HERO_VIDEO}
+        autoPlay
+        loop
+        muted
+        playsInline
+        poster="/background-poster.jpg"
         style={{
-          textAlign: "center",
-          maxWidth: 900,
-          margin: "0 auto",
-          zIndex: 2,
+          position: "absolute",
+          inset: 0,
+          width: "100vw",
+          height: "100%",
+          objectFit: "cover",
+          zIndex: 0,
+          filter: "brightness(0.65) blur(0.2px)",
+        }}
+      />
+      {/* ---- Overlay gradient left-to-right ---- */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "linear-gradient(90deg,rgba(14,14,17,0.97) 0%,rgba(14,14,17,0.81) 48%,rgba(14,14,17,0.19) 80%,rgba(14,14,17,0.01) 100%)",
+          zIndex: 1,
+        }}
+      />
+
+      {/* ---- Hero content ---- */}
+      <div
+        style={{
           position: "relative",
-          padding: "0 18px",
+          zIndex: 2,
+          maxWidth: 640,
+          marginLeft: "clamp(8vw, 7%, 120px)",
+          marginRight: "clamp(3vw, 5%, 90px)",
+          padding: "0 10px",
+          color: "#fff"
         }}
       >
-        <div
-          className="fflick-landing-heading"
+        <h1
           style={{
             fontWeight: 900,
-            fontSize: "clamp(2.2rem, 6vw, 3.3rem)",
+            fontSize: "clamp(2.1rem,6vw,3.8rem)",
             color: "#fff",
-            letterSpacing: "-1.1px",
-            marginBottom: 18,
-            textShadow:
-              "0 4px 24px #000c, 0 2px 8px #18406d77, 0 0px 1px #fe924566",
-            lineHeight: 1.11,
-            filter: "drop-shadow(0 1px 16px #eb423b22)",
-            transition: "font-size 0.23s",
+            letterSpacing: "-0.7px",
+            marginBottom: 20,
+            textShadow: "0 4px 24px #000c, 0 2px 8px #18406d77",
+            lineHeight: 1.08,
           }}
         >
           Movies that match your mood.
-        </div>
+        </h1>
         <div
-          className="fflick-landing-desc"
           style={{
             fontWeight: 400,
-            fontSize: "clamp(1rem,1.2vw,1.25rem)",
-            color: "#fff",
-            opacity: 0.95,
-            margin: "0 0 32px 0",
+            fontSize: "clamp(1rem,1.1vw,1.25rem)",
+            color: "#F6E3D7",
+            opacity: 0.96,
+            marginBottom: 38,
             lineHeight: 1.6,
             textShadow: "0 2px 8px #0002",
-            transition: "font-size 0.18s",
           }}
         >
-          Get the perfect recommendation based on your taste and how you feel.
-          <br />
+          Get the perfect recommendation based on your taste and how you feel.<br />
           Fast, private, and always free.
         </div>
         <button
-          className="fflick-landing-btn"
           onClick={() => navigate("/auth/sign-up")}
           style={{
-            background: `linear-gradient(90deg,#fe9245 10%,#eb423b 90%)`,
+            background: "linear-gradient(90deg,#fe9245 10%,#eb423b 90%)",
             color: "#fff",
             border: "none",
-            borderRadius: 10,
+            borderRadius: 18,
             fontWeight: 900,
-            fontSize: "1.07rem",
-            padding: "11px 35px",
-            marginTop: 0,
-            boxShadow: "0 3px 16px #eb423b28",
+            fontSize: "1.09rem",
+            padding: "14px 46px",
+            boxShadow: "0 5px 24px #eb423b36",
             cursor: "pointer",
-            letterSpacing: "0.02em",
-            transition:
-              "transform 0.16s cubic-bezier(.3,1.1,.3,1.03), box-shadow 0.14s, opacity 0.13s, font-size 0.16s, padding 0.13s",
+            letterSpacing: "0.01em",
+            transition: "transform 0.16s, box-shadow 0.13s, opacity 0.13s",
           }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = "scale(1.08)";
-            e.currentTarget.style.boxShadow = "0 9px 26px #eb423b52";
+          onMouseEnter={e => {
+            e.currentTarget.style.transform = "scale(1.06)";
+            e.currentTarget.style.boxShadow = "0 9px 38px #eb423b62";
           }}
-          onMouseLeave={(e) => {
+          onMouseLeave={e => {
             e.currentTarget.style.transform = "scale(1)";
-            e.currentTarget.style.boxShadow = "0 3px 16px #eb423b28";
+            e.currentTarget.style.boxShadow = "0 5px 24px #eb423b36";
           }}
         >
-          GET STARTED
+          Get Started
         </button>
-      </div>
-      {/* SVG curve at the bottom */}
-      <div
-        style={{
-          width: "100vw",
-          position: "absolute",
-          left: 0,
-          bottom: 0,
-          zIndex: 3,
-          pointerEvents: "none",
-          lineHeight: 0,
-        }}
-      >
-        <svg
-          viewBox="0 0 1920 140"
-          width="100%"
-          height="140"
-          preserveAspectRatio="none"
-          style={{ display: "block" }}
-        >
-          <defs>
-            <linearGradient
-              id="fflick-gradient-stroke"
-              x1="0"
-              y1="0"
-              x2="1"
-              y2="0"
-            >
-              <stop offset="0%" stopColor="#367cff" stopOpacity="0" />
-              <stop offset="10%" stopColor="#367cff" stopOpacity="1" />
-              <stop offset="50%" stopColor="#eb423b" />
-              <stop offset="90%" stopColor="#fe9245" stopOpacity="1" />
-              <stop offset="100%" stopColor="#fe9245" stopOpacity="0" />
-            </linearGradient>
-            <linearGradient
-              id="fflick-fade"
-              x1="0"
-              y1="0"
-              x2="1"
-              y2="0"
-            >
-              <stop offset="0%" stopColor="white" stopOpacity="0" />
-              <stop offset="7%" stopColor="white" stopOpacity="1" />
-              <stop offset="93%" stopColor="white" stopOpacity="1" />
-              <stop offset="100%" stopColor="white" stopOpacity="0" />
-            </linearGradient>
-            <linearGradient
-              id="fflick-gradient-fill"
-              x1="0"
-              y1="0"
-              x2="0"
-              y2="1"
-            >
-              <stop offset="0%" stopColor="rgba(20,16,12,0.99)" />
-              <stop offset="70%" stopColor="rgba(20,16,12,0.99)" />
-              <stop offset="100%" stopColor="rgba(15,12,8,1)" />
-            </linearGradient>
-            <mask id="fflick-fade-mask">
-              <rect
-                x="0"
-                y="0"
-                width="1920"
-                height="140"
-                fill="url(#fflick-fade)"
-              />
-            </mask>
-          </defs>
-          {/* Very low, bold, faded curve */}
-          <path
-            d="M0,136 Q960,85 1920,136"
-            fill="none"
-            stroke="url(#fflick-gradient-stroke)"
-            strokeWidth="13"
-            style={{ filter: "drop-shadow(0 3px 14px #eb423b33)" }}
-            mask="url(#fflick-fade-mask)"
-          />
-          {/* Under-curve dark fill */}
-          <path
-            d="M0,136 Q960,85 1920,136 L1920,140 L0,140 Z"
-            fill="url(#fflick-gradient-fill)"
-            stroke="none"
-            mask="url(#fflick-fade-mask)"
-          />
-        </svg>
       </div>
     </section>
   );

@@ -1,11 +1,37 @@
+import { useRef, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
+// Simple burger menu SVG icon (reusable, scalable)
+function MenuIcon({ size = 24, color = "#F6E3D7" }) {
+  return (
+    <svg width={size} height={size} aria-hidden="true" viewBox="0 0 24 24" fill="none">
+      <rect y="5" width="24" height="2.4" rx="1.2" fill={color}/>
+      <rect y="11" width="24" height="2.4" rx="1.2" fill={color}/>
+      <rect y="17" width="24" height="2.4" rx="1.2" fill={color}/>
+    </svg>
+  );
+}
 
 export default function TopNav() {
   const navigate = useNavigate();
+  const [hidden, setHidden] = useState(false);
 
+  // Hide nav on scroll down, show on scroll up (with smooth animation)
+  useEffect(() => {
+    let lastScroll = window.scrollY;
+    function onScroll() {
+      const curr = window.scrollY;
+      if (curr > 64 && curr > lastScroll) setHidden(true);
+      else setHidden(false);
+      lastScroll = curr;
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Responsive/mobile styles
   return (
     <>
-      {/* --- Mobile-specific improvements --- */}
       <style>{`
         @media (max-width: 700px) {
           .fflick-topnav-main {
@@ -17,15 +43,15 @@ export default function TopNav() {
             border-radius: 12px !important;
           }
           .fflick-topnav-title {
-            font-size: 1.36rem !important; /* bigger! */
+            font-size: 1.36rem !important;
             font-weight: 900 !important;
             letter-spacing: 0.4px !important;
           }
           .fflick-topnav-signin {
             font-size: 1.02rem !important;
-            padding: 8px 28px !important;   /* wider! */
+            padding: 8px 28px !important;
             min-width: 110px !important;
-            min-height: 36px !important;    /* slightly shorter */
+            min-height: 36px !important;
             border-radius: 9px !important;
             box-shadow: 0 2px 12px #eb423b1a !important;
           }
@@ -54,7 +80,7 @@ export default function TopNav() {
         className="fflick-topnav-main"
         style={{
           position: "fixed",
-          top: 18,
+          top: hidden ? -100 : 18,
           left: 24,
           right: 24,
           zIndex: 50,
@@ -67,12 +93,32 @@ export default function TopNav() {
           minHeight: 44,
           padding: "8px 36px",
           width: "auto",
-          boxShadow: "0 4px 24px #0004",
-          transition: "all 0.14s",
+          boxShadow: "0 4px 32px #0006", // Stronger shadow!
+          transition: "top 0.4s cubic-bezier(.4,.4,0,1), background 0.18s",
         }}
         aria-label="Main navigation"
         role="navigation"
       >
+        {/* ---- Left: Menu icon (for future slideout) ---- */}
+        <button
+          aria-label="Open menu"
+          tabIndex={0}
+          style={{
+            background: "none",
+            border: "none",
+            marginRight: 14,
+            display: "flex",
+            alignItems: "center",
+            cursor: "pointer",
+            padding: 0,
+            outline: "none",
+          }}
+          onClick={() => alert("Menu coming soon!")}
+          onKeyDown={e => { if (e.key === "Enter" || e.key === " ") alert("Menu coming soon!"); }}
+        >
+          <MenuIcon size={28} color="#F6E3D7" />
+        </button>
+
         {/* ---- Brand Title ---- */}
         <button
           tabIndex={0}
@@ -104,6 +150,9 @@ export default function TopNav() {
           FeelFlick
         </button>
 
+        {/* ---- Spacer for layout (so sign-in stays right) ---- */}
+        <div style={{ flex: 1 }} />
+
         {/* ---- Sign In Button ---- */}
         <button
           className="fflick-topnav-signin"
@@ -121,7 +170,7 @@ export default function TopNav() {
             minHeight: 36,
             boxShadow: "0 2px 10px #fe92451a",
             cursor: "pointer",
-            transition: "filter .15s, transform .15s",
+            transition: "filter .16s, transform .16s, background .18s",
             outline: "none",
             textTransform: "none",
             fontFamily: "inherit",
@@ -129,6 +178,10 @@ export default function TopNav() {
           }}
           onMouseDown={e => (e.currentTarget.style.transform = "scale(.97)")}
           onMouseUp={e => (e.currentTarget.style.transform = "scale(1)")}
+          onMouseEnter={e => (e.currentTarget.style.filter = "brightness(1.13)")}
+          onMouseLeave={e => (e.currentTarget.style.filter = "none")}
+          onFocus={e => (e.currentTarget.style.filter = "brightness(1.11)")}
+          onBlur={e => (e.currentTarget.style.filter = "none")}
           tabIndex={0}
           onKeyDown={e => { if (e.key === "Enter" || e.key === " ") navigate("/auth/sign-in"); }}
         >

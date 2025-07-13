@@ -7,7 +7,7 @@ import ResetPassword from "@/features/auth/components/ResetPassword";
 import ConfirmEmail from "@/features/auth/components/ConfirmEmail";
 import Onboarding from "@/features/onboarding/components/Onboarding";
 import HomePage from "@/pages/HomePage";
-import Header from "@/shared/ui/Header";
+import TopNav from "@/shared/ui/TopNav";
 import MoviesTab from "@/features/movies/components/MoviesTab";
 import RecommendationsTab from "@/features/recommendations/components/RecommendationsTab";
 import WatchedTab from "@/features/history/components/WatchedTab";
@@ -22,16 +22,7 @@ function MainApp({ session, profileName, setProfileName, user, onSignOut }) {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white pb-10" style={{ width: "100vw", overflowX: "hidden" }}>
-      <Header
-        user={user}
-        onSignOut={onSignOut}
-        onTabChange={setActiveTab}
-        activeTab={activeTab}
-      />
-      {activeTab === "home"           && <HomePage userName={user?.name || profileName || session.user?.user_metadata?.name || "Movie Lover"} userId={session.user.id} />}
-      {activeTab === "movies"         && <MoviesTab session={session} />}
-      {activeTab === "recommendations"&& <RecommendationsTab session={session} />}
-      {activeTab === "watched"        && <WatchedTab session={session} />}
+      <TopNav />
     </div>
   );
 }

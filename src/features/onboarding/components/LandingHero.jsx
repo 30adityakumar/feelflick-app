@@ -13,7 +13,7 @@ export default function LandingHero() {
           left: clamp(7vw, 7%, 32px);
           top: 50%;
           transform: translateY(-50%);
-          z-index: 2;
+          z-index: 3;
           max-width: 590px;
           color: #fff;
           display: flex;
@@ -21,25 +21,14 @@ export default function LandingHero() {
           align-items: flex-start;
         }
         @media (max-width: 1050px) {
-          .fflick-hero-left {
-            left: 5vw !important;
-            max-width: 96vw !important;
-          }
+          .fflick-hero-left { left: 5vw !important; max-width: 96vw !important; }
         }
         @media (max-width: 700px) {
-          .fflick-hero-left {
-            left: 2vw !important;
-            max-width: 96vw !important;
-            padding-right: 2vw !important;
-          }
+          .fflick-hero-left { left: 2vw !important; max-width: 96vw !important; padding-right: 2vw !important;}
           .fflick-hero-title { font-size: 1.09rem !important; }
         }
         @media (max-width: 420px) {
-          .fflick-hero-left {
-            left: 1vw !important;
-            max-width: 98vw !important;
-            padding-right: 1vw !important;
-          }
+          .fflick-hero-left { left: 1vw !important; max-width: 98vw !important; padding-right: 1vw !important;}
           .fflick-hero-title { font-size: 0.91rem !important;}
         }
       `}</style>
@@ -49,7 +38,7 @@ export default function LandingHero() {
         style={{
           position: "relative",
           width: "100vw",
-          minHeight: "98vh", // taller hero
+          minHeight: "98vh",
           display: "flex",
           alignItems: "stretch",
           justifyContent: "flex-end",
@@ -71,35 +60,33 @@ export default function LandingHero() {
           aria-hidden="true"
           style={{
             position: "absolute",
-            left: "24vw", // key: video starts at 24vw from the left edge
+            left: "24vw",
             top: 0,
-            width: "76vw", // covers the rest (can use "calc(100vw - 24vw)")
+            width: "76vw",
             height: "100%",
             objectFit: "cover",
             zIndex: 1,
             transition: "left 0.18s",
           }}
         />
-        {/* ---- Optional: right-edge fade for extra readability ---- */}
+
+        {/* ---- Black to transparent overlay (on top of video, under text) ---- */}
         <div
           aria-hidden="true"
           style={{
             position: "absolute",
             left: 0,
             top: 0,
-            bottom: 0,
-            width: "36vw",
-            zIndex: 1,
+            width: "100vw",
+            height: "100%",
+            zIndex: 2,
             pointerEvents: "none",
-            background:
-              "linear-gradient(90deg,rgba(0,0,0,0.97) 0%,rgba(0,0,0,0.65) 60%,rgba(0,0,0,0.04) 100%)",
+            background: "linear-gradient(90deg, #000 0%, rgba(0,0,0,0.96) 22%, rgba(0,0,0,0.64) 52%, rgba(0,0,0,0.13) 88%, rgba(0,0,0,0) 100%)"
           }}
         />
+
         {/* ---- Hero content overlays on left ---- */}
-        <div
-          className="fflick-hero-left"
-          tabIndex={0}
-        >
+        <div className="fflick-hero-left" tabIndex={0}>
           <h1
             className="fflick-hero-title"
             style={{

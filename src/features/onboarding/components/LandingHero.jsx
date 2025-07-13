@@ -149,8 +149,9 @@ export default function LandingHero() {
             muted
             playsInline
             poster="/background-poster.jpg"
+            inert
             aria-hidden="true"
-            tabIndex={-1}
+            
             style={{
               width: "100%",
               height: "100%",

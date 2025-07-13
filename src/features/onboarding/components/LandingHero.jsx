@@ -3,9 +3,6 @@ import heroVideo from "@/assets/videos/hero-bg.mp4";
 import heroVideo from "@/assets/videos/hero-bg.mp4";
 import backgroundposter from "@/assets/images/background-poster.jpg";
 
-
-const HERO_VIDEO = "@/assets/videos/hero-bg.mp4"; 
-
 export default function LandingHero() {
   const navigate = useNavigate();
 

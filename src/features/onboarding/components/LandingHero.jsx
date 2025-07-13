@@ -23,18 +23,27 @@ export default function LandingHero() {
       .fflick-hero-title {
         font-size: clamp(1.45rem, 6vw, 3.9rem) !important;
       }
+      .fflick-hero-desc {
+        font-size: clamp(1rem, 2.5vw, 1.22rem) !important;
+      }
+      .fflick-hero-btn {
+        font-size: clamp(0.92rem, 2.4vw, 1.08rem) !important;
+        padding: clamp(10px, 2vw, 15px) clamp(18px, 6vw, 44px) !important;
+        min-width: clamp(80px, 23vw, 140px) !important;
+        min-height: clamp(36px, 8vw, 44px) !important;
+        border-radius: 14px !important;
+      }
       @media (max-width: 1050px) {
         .fflick-hero-left { left: 5vw !important; max-width: 96vw !important; }
       }
       @media (max-width: 700px) {
         .fflick-hero-left { left: 2vw !important; max-width: 96vw !important; padding-right: 2vw !important;}
-        /* Remove .fflick-hero-title fixed font-size! */
       }
       @media (max-width: 420px) {
         .fflick-hero-left { left: 1vw !important; max-width: 98vw !important; padding-right: 1vw !important;}
-        /* Remove .fflick-hero-title fixed font-size! */
       }
     `}</style>
+
 
       <section
         className="fflick-hero-section"

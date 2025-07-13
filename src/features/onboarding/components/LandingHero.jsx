@@ -21,7 +21,7 @@ export default function LandingHero() {
     >
       {/* ---- Background video ---- */}
       <video
-        src={HERO_VIDEO}
+        src={heroVideo}
         autoPlay
         loop
         muted

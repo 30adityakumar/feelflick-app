@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const HERO_VIDEO = "https://cdn.coverr.co/videos/coverr-watching-movie-at-home-1631115289067?token=eyJhbGci..."; // Or any legal stock video
-const TMDB_API_KEY = "YOUR_TMDB_API_KEY"; // <-- Replace with your real API key
+const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
 export default function LandingHero() {
   const navigate = useNavigate();

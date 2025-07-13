@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
 import heroVideo from "@/assets/videos/hero-bg.mp4";
-import heroVideo from "@/assets/videos/hero-bg.mp4";
 import backgroundposter from "@/assets/images/background-poster.jpg";
 
 export default function LandingHero() {

@@ -7,17 +7,14 @@ export default function LandingHero() {
   return (
     <>
       <style>{`
-        .fflick-hero-section {
-          background: #000 !important;
-        }
+        .fflick-hero-section { background: #000 !important; }
         .fflick-hero-left {
-          /* Always overlay, never stacks below on mobile */
           position: absolute !important;
           left: clamp(7vw, 7%, 32px);
           top: 50%;
           transform: translateY(-50%);
           z-index: 2;
-          max-width: 580px;
+          max-width: 590px;
           color: #fff;
           display: flex;
           flex-direction: column;
@@ -25,25 +22,25 @@ export default function LandingHero() {
         }
         @media (max-width: 1050px) {
           .fflick-hero-left {
-            left: 6vw !important;
-            max-width: 95vw !important;
+            left: 5vw !important;
+            max-width: 96vw !important;
           }
         }
         @media (max-width: 700px) {
           .fflick-hero-left {
-            left: 3vw !important;
-            max-width: 94vw !important;
-            padding-right: 3vw !important;
+            left: 2vw !important;
+            max-width: 96vw !important;
+            padding-right: 2vw !important;
           }
-          .fflick-hero-title { font-size: 1.07rem !important; }
+          .fflick-hero-title { font-size: 1.09rem !important; }
         }
         @media (max-width: 420px) {
           .fflick-hero-left {
             left: 1vw !important;
             max-width: 98vw !important;
-            padding-right: 2vw !important;
+            padding-right: 1vw !important;
           }
-          .fflick-hero-title { font-size: 0.89rem !important;}
+          .fflick-hero-title { font-size: 0.91rem !important;}
         }
       `}</style>
 
@@ -52,7 +49,7 @@ export default function LandingHero() {
         style={{
           position: "relative",
           width: "100vw",
-          minHeight: "83vh",
+          minHeight: "98vh", // taller hero
           display: "flex",
           alignItems: "stretch",
           justifyContent: "flex-end",
@@ -63,7 +60,7 @@ export default function LandingHero() {
         }}
         aria-label="Main hero section"
       >
-        {/* ---- Video as background ---- */}
+        {/* ---- Video as background, starts right of the text ---- */}
         <video
           src={HERO_VIDEO}
           autoPlay
@@ -73,29 +70,32 @@ export default function LandingHero() {
           poster="/background-poster.jpg"
           aria-hidden="true"
           style={{
-            width: "100vw",
+            position: "absolute",
+            left: "24vw", // key: video starts at 24vw from the left edge
+            top: 0,
+            width: "76vw", // covers the rest (can use "calc(100vw - 24vw)")
             height: "100%",
             objectFit: "cover",
-            filter: "brightness(0.72) blur(0.2px)",
-            position: "absolute",
-            inset: 0,
             zIndex: 1,
+            transition: "left 0.18s",
           }}
         />
-        {/* ---- Dark left-right gradient for text readability ---- */}
+        {/* ---- Optional: right-edge fade for extra readability ---- */}
         <div
           aria-hidden="true"
           style={{
             position: "absolute",
-            inset: 0,
+            left: 0,
+            top: 0,
+            bottom: 0,
+            width: "36vw",
             zIndex: 1,
-            background:
-              "linear-gradient(90deg,rgba(0,0,0,0.97) 0%,rgba(0,0,0,0.68) 54%,rgba(0,0,0,0.16) 88%,rgba(0,0,0,0.01) 100%)",
             pointerEvents: "none",
+            background:
+              "linear-gradient(90deg,rgba(0,0,0,0.97) 0%,rgba(0,0,0,0.65) 60%,rgba(0,0,0,0.04) 100%)",
           }}
         />
-
-        {/* ---- Hero content overlays video at all sizes ---- */}
+        {/* ---- Hero content overlays on left ---- */}
         <div
           className="fflick-hero-left"
           tabIndex={0}
@@ -104,7 +104,7 @@ export default function LandingHero() {
             className="fflick-hero-title"
             style={{
               fontWeight: 900,
-              fontSize: "clamp(2.3rem,6vw,3.7rem)",
+              fontSize: "clamp(2.4rem,6vw,3.9rem)",
               color: "#fff",
               letterSpacing: "-0.7px",
               marginBottom: 18,
@@ -120,10 +120,10 @@ export default function LandingHero() {
           <div
             style={{
               fontWeight: 400,
-              fontSize: "clamp(1.01rem,1.11vw,1.15rem)",
+              fontSize: "clamp(1.02rem,1.12vw,1.15rem)",
               color: "#F6E3D7",
               opacity: 0.97,
-              marginBottom: 31,
+              marginBottom: 30,
               lineHeight: 1.57,
               textShadow: "0 2px 8px #0003",
               outline: "none",
@@ -145,7 +145,7 @@ export default function LandingHero() {
               borderRadius: 14,
               fontWeight: 900,
               fontSize: "1rem",
-              padding: "10px 28px", // smaller button
+              padding: "10px 28px",
               minWidth: 100,
               minHeight: 40,
               cursor: "pointer",

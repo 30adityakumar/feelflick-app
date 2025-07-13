@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import logo from "@assets/images/logo.png"; // <-- Use your correct logo import!
+import logo from "@assets/images/logo.png"; // <-- Transparent PNG recommended!
 
 export default function TopNav() {
   const navigate = useNavigate();
@@ -32,7 +32,7 @@ export default function TopNav() {
             border-radius: 12px !important;
           }
           .fflick-topnav-title {
-            font-size: 1.36rem !important;
+            font-size: 1.65rem !important;   /* larger on mobile! */
             font-weight: 900 !important;
             letter-spacing: 0.4px !important;
           }
@@ -57,7 +57,7 @@ export default function TopNav() {
             border-radius: 10px !important;
           }
           .fflick-topnav-title {
-            font-size: 1.12rem !important;
+            font-size: 1.24rem !important;   /* bigger! */
             letter-spacing: 0.3px !important;
           }
           .fflick-topnav-logo {
@@ -124,7 +124,7 @@ export default function TopNav() {
               width: 38,
               borderRadius: 9,
               boxShadow: "0 1px 8px #0002",
-              background: "#fff",
+              // background: "#fff", // <-- REMOVE THIS LINE!
               transition: "box-shadow 0.12s, transform 0.12s",
             }}
             draggable="false"
@@ -148,7 +148,7 @@ export default function TopNav() {
             borderRadius: 6,
             color: "#F6E3D7",
             fontWeight: 900,
-            fontSize: 25,
+            fontSize: 29,         // <-- Increase desktop size
             letterSpacing: "0.4px",
             userSelect: "none",
             fontFamily: "inherit",

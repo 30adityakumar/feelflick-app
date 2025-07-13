@@ -1,98 +1,80 @@
 import { useNavigate } from "react-router-dom";
-import logo from "@assets/images/logo.png";
 
 export default function TopNav() {
   const navigate = useNavigate();
 
   return (
     <>
-      {/* --- Responsive CSS (must be inside a string!) --- */}
+      {/* ---------- Responsive overrides ---------- */}
       <style>{`
         @media (max-width: 700px) {
           .fflick-topnav-main {
-            left: 6vw !important;
-            right: 6vw !important;
-            top: 16px !important;
-            width: unset !important;
-            padding: 0 !important;
+            top: 14px !important;
+            left: 4vw !important;
+            right: 4vw !important;
+            min-height: 40px !important;
+            padding: 4px 16px !important;
             border-radius: 10px !important;
-            min-height: 44px !important;
           }
-          .fflick-topnav-row   { gap: 8px !important; }
-          .fflick-topnav-title { font-size: 20px !important; }
-          .fflick-topnav-logo  {
-            width: 32px !important; height: 32px !important; border-radius: 8px !important;
-          }
+          .fflick-topnav-title { font-size: 22px !important; }
           .fflick-topnav-signin {
-            font-size: 15px !important; padding: 8px 13px !important; min-width: 100px !important;
+            font-size: 14px !important;
+            padding: 6px 18px !important;
+            min-width: 90px !important;
           }
         }
         @media (max-width: 420px) {
           .fflick-topnav-main {
-            left: 1vw !important; right: 1vw !important; top: 7px !important;
-            min-height: 36px !important; border-radius: 7px !important;
+            top: 8px !important;
+            left: 2vw !important;
+            right: 2vw !important;
+            min-height: 34px !important;
+            padding: 4px 10px !important;
+            border-radius: 8px !important;
           }
-          .fflick-topnav-title { font-size: 16px !important; }
+          .fflick-topnav-title  { font-size: 18px !important; }
           .fflick-topnav-signin {
-            font-size: 13px !important; padding: 7px 8px !important; min-width: 80px !important;
+            font-size: 12px !important;
+            padding: 5px 14px !important;
+            min-width: 75px !important;
           }
         }
       `}</style>
 
-      {/* --- Nav bar --- */}
+      {/* ---------- Nav bar ---------- */}
       <div
         className="fflick-topnav-main"
         style={{
           position: "fixed",
-          top: 36,
-          left: 38,
-          right: 38,
-          zIndex: 50,                    // keep it above hero/background
+          top: 20,
+          left: 28,
+          right: 28,
+          zIndex: 50,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          width: "calc(100vw - 76px)",
-          padding: 0,
-          minHeight: 58,
-          background: "#0000",           // transparent; change if needed
-          boxShadow: "none",
+          padding: "6px 24px",
+          minHeight: 48,
+          backdropFilter: "blur(6px)",
+          background: "rgba(0,0,0,0.72)",
+          borderRadius: 12,
         }}
       >
-        {/* Logo + Title */}
-        <div
-          className="fflick-topnav-row"
-          style={{ display: "flex", alignItems: "center", gap: 13 }}
+        {/* Brand title */}
+        <span
+          className="fflick-topnav-title"
+          style={{
+            fontSize: 28,
+            fontWeight: 900,
+            color: "#fff",
+            letterSpacing: "-1px",
+            cursor: "pointer",
+            userSelect: "none",
+          }}
+          onClick={() => navigate('/')}
         >
-          <img
-            src={logo}
-            alt="FeelFlick"
-            className="fflick-topnav-logo"
-            style={{
-              height: 44,
-              width: 44,
-              borderRadius: 12,
-              boxShadow: "0 2px 8px #0003",
-              transition: "all 0.18s",
-              cursor: "pointer",
-            }}
-            onClick={() => navigate("/")}
-          />
-          <span
-            className="fflick-topnav-title"
-            style={{
-              fontSize: 32,
-              fontWeight: 900,
-              color: "#fff",
-              letterSpacing: "-1.2px",
-              textShadow: "0 1px 7px #19194044",
-              transition: "all 0.17s",
-              cursor: "pointer",
-            }}
-            onClick={() => navigate("/")}
-          >
-            FeelFlick
-          </span>
-        </div>
+          FeelFlick
+        </span>
 
         {/* Sign-in button */}
         <button
@@ -104,14 +86,16 @@ export default function TopNav() {
             border: "none",
             borderRadius: 8,
             fontWeight: 700,
-            fontSize: 18,
-            padding: "9px 30px",
-            minWidth: 120,
-            minHeight: 44,
-            boxShadow: "0 2px 8px #fe92451a",
+            fontSize: 16,
+            padding: "8px 22px",
+            minWidth: 100,
+            minHeight: 40,
+            boxShadow: "0 2px 6px #fe924533",
             cursor: "pointer",
-            transition: "all 0.15s",
+            transition: "filter .15s, transform .15s",
           }}
+          onMouseDown={e => (e.currentTarget.style.transform = "scale(.97)")}
+          onMouseUp={e => (e.currentTarget.style.transform = "scale(1)")}
         >
           SIGN IN
         </button>

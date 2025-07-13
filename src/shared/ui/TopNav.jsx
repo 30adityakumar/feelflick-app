@@ -1,12 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import logo from "@assets/images/logo.png";
 
-/**
- * TopNav – FeelFlick's AAA accessible, mobile-first, future-proof navbar.
- */
 const NAV_CONFIG = {
-  bg:         "bg-[#16161a]/95 backdrop-blur-md",   // dark glassy
-  brand:      "text-[#F6E3D7]",                     // matches your palette!
+  bg:         "bg-[#16161a]/95 backdrop-blur-md",
+  brand:      "text-[#F6E3D7]",
   radius:     "rounded-2xl",
   shadow:     "shadow-md shadow-black/10",
   logo: {
@@ -38,7 +35,6 @@ export default function TopNav() {
       aria-label="FeelFlick top navigation"
       role="navigation"
     >
-      {/* LOGO + TITLE (Clickable, Home) */}
       <button
         onClick={() => navigate("/")}
         className={`
@@ -70,7 +66,6 @@ export default function TopNav() {
         </span>
       </button>
 
-      {/* SIGN IN BUTTON (large, gradient, accessible) */}
       <button
         type="button"
         onClick={() => navigate("/auth/sign-in")}

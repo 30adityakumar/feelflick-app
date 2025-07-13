@@ -1,75 +1,74 @@
-import { useRef, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-/* --- CSS-in-JS for hide-on-scroll --- */
-const navTransition = "top 0.4s cubic-bezier(.4,.4,0,1), background 0.18s";
-const navBoxShadow = "0 4px 24px #0004";
-const navBg = "rgba(18,18,22,0.88)";
-const navPeach = "#F6E3D7";
 
 export default function TopNav() {
   const navigate = useNavigate();
-  const navRef = useRef(null);
-  const [hidden, setHidden] = useState(false);
-
-  // Hide nav on scroll down, show on scroll up
-  useEffect(() => {
-    let lastScroll = window.scrollY;
-    function onScroll() {
-      const curr = window.scrollY;
-      if (curr > 64 && curr > lastScroll) setHidden(true); // scroll down, hide
-      else setHidden(false); // scroll up or near top, show
-      lastScroll = curr;
-    }
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
 
   return (
     <>
-      {/* --- Responsive styles --- */}
+      {/* --- Mobile-specific improvements --- */}
       <style>{`
-        @media (max-width: 1200px) {
-          .fflick-topnav-title { font-size: 2.1rem !important; }
-          .fflick-topnav-signin { font-size: 1.07rem !important; min-width: 78px !important; padding: 8px 22px !important;}
-        }
-        @media (max-width: 900px) {
-          .fflick-topnav-main { left: 2vw !important; right: 2vw !important; padding: 5px 10px !important;}
-          .fflick-topnav-title { font-size: 1.48rem !important; }
-          .fflick-topnav-signin { font-size: 1rem !important; min-width: 66px !important; padding: 7px 14px !important;}
-        }
         @media (max-width: 700px) {
-          .fflick-topnav-main { top: 10px !important; min-height: 34px !important;}
-          .fflick-topnav-title { font-size: 1.06rem !important;}
-          .fflick-topnav-signin { font-size: .93rem !important; padding: 6px 9px !important;}
+          .fflick-topnav-main {
+            left: 2vw !important;
+            right: 2vw !important;
+            top: 10px !important;
+            min-height: 38px !important;
+            padding: 5px 8px !important;
+            border-radius: 12px !important;
+          }
+          .fflick-topnav-title {
+            font-size: 1.36rem !important; /* bigger! */
+            font-weight: 900 !important;
+            letter-spacing: 0.4px !important;
+          }
+          .fflick-topnav-signin {
+            font-size: 1.02rem !important;
+            padding: 8px 28px !important;   /* wider! */
+            min-width: 110px !important;
+            min-height: 36px !important;    /* slightly shorter */
+            border-radius: 9px !important;
+            box-shadow: 0 2px 12px #eb423b1a !important;
+          }
         }
-        @media (max-width: 500px) {
-          .fflick-topnav-main { padding: 2px 2vw !important; }
-          .fflick-topnav-title { font-size: .98rem !important;}
-          .fflick-topnav-signin { font-size: .81rem !important; min-width: 50px !important; padding: 6px 6px !important;}
+        @media (max-width: 420px) {
+          .fflick-topnav-main {
+            padding: 4px 2vw !important;
+            min-height: 32px !important;
+            border-radius: 10px !important;
+          }
+          .fflick-topnav-title {
+            font-size: 1.12rem !important;
+            letter-spacing: 0.3px !important;
+          }
+          .fflick-topnav-signin {
+            font-size: 0.97rem !important;
+            padding: 8px 20px !important;
+            min-width: 90px !important;
+            min-height: 34px !important;
+            border-radius: 8px !important;
+          }
         }
       `}</style>
 
       <nav
-        ref={navRef}
         className="fflick-topnav-main"
         style={{
           position: "fixed",
-          top: hidden ? -100 : 18,
+          top: 18,
           left: 24,
           right: 24,
           zIndex: 50,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          background: navBg,
+          background: "rgba(18,18,22,0.87)",
           backdropFilter: "blur(6px)",
-          borderRadius: 12,
+          borderRadius: 14,
           minHeight: 44,
-          padding: "7px 32px",
+          padding: "8px 36px",
           width: "auto",
-          boxShadow: navBoxShadow,
-          transition: navTransition,
+          boxShadow: "0 4px 24px #0004",
+          transition: "all 0.14s",
         }}
         aria-label="Main navigation"
         role="navigation"
@@ -89,13 +88,14 @@ export default function TopNav() {
             cursor: "pointer",
             outline: "none",
             borderRadius: 6,
-            color: navPeach,
+            color: "#F6E3D7",
             fontWeight: 900,
-            fontSize: 32,
+            fontSize: 25,
             letterSpacing: "0.4px",
             userSelect: "none",
             fontFamily: "inherit",
             lineHeight: 1.1,
+            transition: "color 0.12s",
           }}
           className="fflick-topnav-title"
           onClick={() => navigate("/")}
@@ -113,19 +113,19 @@ export default function TopNav() {
             background: "linear-gradient(90deg,#fe9245 10%,#eb423b 90%)",
             color: "#fff",
             border: "none",
-            borderRadius: 8,
+            borderRadius: 10,
             fontWeight: 700,
             fontSize: 16,
-            padding: "9px 26px",
-            minWidth: 88,
+            padding: "8px 24px",
+            minWidth: 95,
             minHeight: 36,
-            boxShadow: "0 2px 8px #fe92451a",
+            boxShadow: "0 2px 10px #fe92451a",
             cursor: "pointer",
             transition: "filter .15s, transform .15s",
             outline: "none",
             textTransform: "none",
             fontFamily: "inherit",
-            letterSpacing: "0.01em",
+            letterSpacing: "0.3px",
           }}
           onMouseDown={e => (e.currentTarget.style.transform = "scale(.97)")}
           onMouseUp={e => (e.currentTarget.style.transform = "scale(1)")}

@@ -150,8 +150,6 @@ export default function LandingHero() {
             playsInline
             poster="/background-poster.jpg"
             inert
-            aria-hidden="true"
-            
             style={{
               width: "100%",
               height: "100%",

@@ -6,32 +6,35 @@ export default function LandingHero() {
 
   return (
     <>
-      <style>{`
-        .fflick-hero-section { background: #000 !important; }
-        .fflick-hero-left {
-          position: absolute !important;
-          left: clamp(7vw, 7%, 32px);
-          top: 50%;
-          transform: translateY(-50%);
-          z-index: 3;
-          max-width: 590px;
-          color: #fff;
-          display: flex;
-          flex-direction: column;
-          align-items: flex-start;
-        }
-        @media (max-width: 1050px) {
-          .fflick-hero-left { left: 5vw !important; max-width: 96vw !important; }
-        }
-        @media (max-width: 700px) {
-          .fflick-hero-left { left: 2vw !important; max-width: 96vw !important; padding-right: 2vw !important;}
-          .fflick-hero-title { font-size: 1.09rem !important; }
-        }
-        @media (max-width: 420px) {
-          .fflick-hero-left { left: 1vw !important; max-width: 98vw !important; padding-right: 1vw !important;}
-          .fflick-hero-title { font-size: 0.91rem !important;}
-        }
-      `}</style>
+    <style>{`
+      .fflick-hero-section { background: #000 !important; }
+      .fflick-hero-left {
+        position: absolute !important;
+        left: clamp(7vw, 7%, 32px);
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 3;
+        max-width: 590px;
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .fflick-hero-title {
+        font-size: clamp(1.45rem, 6vw, 3.9rem) !important;
+      }
+      @media (max-width: 1050px) {
+        .fflick-hero-left { left: 5vw !important; max-width: 96vw !important; }
+      }
+      @media (max-width: 700px) {
+        .fflick-hero-left { left: 2vw !important; max-width: 96vw !important; padding-right: 2vw !important;}
+        /* Remove .fflick-hero-title fixed font-size! */
+      }
+      @media (max-width: 420px) {
+        .fflick-hero-left { left: 1vw !important; max-width: 98vw !important; padding-right: 1vw !important;}
+        /* Remove .fflick-hero-title fixed font-size! */
+      }
+    `}</style>
 
       <section
         className="fflick-hero-section"

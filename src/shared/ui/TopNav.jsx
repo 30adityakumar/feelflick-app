@@ -1,22 +1,12 @@
 import { useRef, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-// Simple burger menu SVG icon (reusable, scalable)
-function MenuIcon({ size = 24, color = "#F6E3D7" }) {
-  return (
-    <svg width={size} height={size} aria-hidden="true" viewBox="0 0 24 24" fill="none">
-      <rect y="5" width="24" height="2.4" rx="1.2" fill={color}/>
-      <rect y="11" width="24" height="2.4" rx="1.2" fill={color}/>
-      <rect y="17" width="24" height="2.4" rx="1.2" fill={color}/>
-    </svg>
-  );
-}
+import logo from "@assets/images/logo.png"; // <-- Use your correct logo import!
 
 export default function TopNav() {
   const navigate = useNavigate();
   const [hidden, setHidden] = useState(false);
 
-  // Hide nav on scroll down, show on scroll up (with smooth animation)
+  // Hide nav on scroll down, show on scroll up
   useEffect(() => {
     let lastScroll = window.scrollY;
     function onScroll() {
@@ -29,7 +19,6 @@ export default function TopNav() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Responsive/mobile styles
   return (
     <>
       <style>{`
@@ -46,6 +35,11 @@ export default function TopNav() {
             font-size: 1.36rem !important;
             font-weight: 900 !important;
             letter-spacing: 0.4px !important;
+          }
+          .fflick-topnav-logo {
+            height: 34px !important;
+            width: 34px !important;
+            border-radius: 8px !important;
           }
           .fflick-topnav-signin {
             font-size: 1.02rem !important;
@@ -65,6 +59,11 @@ export default function TopNav() {
           .fflick-topnav-title {
             font-size: 1.12rem !important;
             letter-spacing: 0.3px !important;
+          }
+          .fflick-topnav-logo {
+            height: 28px !important;
+            width: 28px !important;
+            border-radius: 6px !important;
           }
           .fflick-topnav-signin {
             font-size: 0.97rem !important;
@@ -93,33 +92,46 @@ export default function TopNav() {
           minHeight: 44,
           padding: "8px 36px",
           width: "auto",
-          boxShadow: "0 4px 32px #0006", // Stronger shadow!
+          boxShadow: "0 4px 32px #0006",
           transition: "top 0.4s cubic-bezier(.4,.4,0,1), background 0.18s",
         }}
         aria-label="Main navigation"
         role="navigation"
       >
-        {/* ---- Left: Menu icon (for future slideout) ---- */}
+        {/* ---- Logo (left) ---- */}
         <button
-          aria-label="Open menu"
           tabIndex={0}
+          aria-label="Go to FeelFlick home page"
           style={{
             background: "none",
             border: "none",
-            marginRight: 14,
+            marginRight: 10,
             display: "flex",
             alignItems: "center",
             cursor: "pointer",
             padding: 0,
             outline: "none",
           }}
-          onClick={() => alert("Menu coming soon!")}
-          onKeyDown={e => { if (e.key === "Enter" || e.key === " ") alert("Menu coming soon!"); }}
+          onClick={() => navigate("/")}
+          onKeyDown={e => { if (e.key === "Enter" || e.key === " ") navigate("/"); }}
         >
-          <MenuIcon size={28} color="#F6E3D7" />
+          <img
+            src={logo}
+            alt="FeelFlick logo"
+            className="fflick-topnav-logo"
+            style={{
+              height: 38,
+              width: 38,
+              borderRadius: 9,
+              boxShadow: "0 1px 8px #0002",
+              background: "#fff",
+              transition: "box-shadow 0.12s, transform 0.12s",
+            }}
+            draggable="false"
+          />
         </button>
 
-        {/* ---- Brand Title ---- */}
+        {/* ---- Brand Title (center/left) ---- */}
         <button
           tabIndex={0}
           aria-label="Go to FeelFlick home page"
@@ -150,10 +162,9 @@ export default function TopNav() {
           FeelFlick
         </button>
 
-        {/* ---- Spacer for layout (so sign-in stays right) ---- */}
         <div style={{ flex: 1 }} />
 
-        {/* ---- Sign In Button ---- */}
+        {/* ---- Sign In Button (right) ---- */}
         <button
           className="fflick-topnav-signin"
           aria-label="Sign in"

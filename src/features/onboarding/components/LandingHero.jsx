@@ -61,10 +61,10 @@ export default function LandingHero() {
               fontWeight: 900,
               fontSize: "clamp(2.4rem,6vw,4rem)",
               color: "#fff",
-              letterSpacing: "-0.7px",
+              letterSpacing: "-0.1px",
               marginBottom: 18,
               textShadow: "0 4px 24px #000c, 0 2px 8px #18406d77",
-              lineHeight: 1.07,
+              lineHeight: 1,
               outline: "none",
             }}
             tabIndex={0}
@@ -153,8 +153,7 @@ export default function LandingHero() {
             style={{
               width: "100%",
               height: "100%",
-              objectFit: "cover",
-              filter: "brightness(0.70) blur(0.1px)",
+              objectFit: "cover"
             }}
           />
           {/* ---- Optional: gradient overlay for right edge fade ---- */}

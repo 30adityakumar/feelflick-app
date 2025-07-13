@@ -93,7 +93,7 @@ export default function TopNav() {
             borderRadius: 6,
             color: navPeach,
             fontWeight: 900,
-            letterSpacing: "0.5px",
+            letterSpacing: "px",
             userSelect: "none",
             fontFamily: "inherit",
             lineHeight: 1.1,

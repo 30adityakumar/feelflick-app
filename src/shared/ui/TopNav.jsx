@@ -5,80 +5,83 @@ export default function TopNav() {
 
   return (
     <>
-      {/* ---------- Responsive overrides ---------- */}
+      {/* ---- Responsive media queries ---- */}
       <style>{`
-        @media (max-width: 700px) {
-          .fflick-topnav-main {
-            top: 14px !important;
-            left: 4vw !important;
-            right: 4vw !important;
-            min-height: 40px !important;
-            padding: 4px 16px !important;
-            border-radius: 10px !important;
-          }
+        @media (max-width: 900px) {
+          .fflick-topnav-main { left: 2vw !important; right: 2vw !important; padding: 4px 12px !important; }
           .fflick-topnav-title { font-size: 22px !important; }
-          .fflick-topnav-signin {
-            font-size: 14px !important;
-            padding: 6px 18px !important;
-            min-width: 90px !important;
-          }
+          .fflick-topnav-signin { font-size: 15px !important; min-width: 80px !important; }
+        }
+        @media (max-width: 700px) {
+          .fflick-topnav-main { top: 10px !important; min-height: 36px !important; }
+          .fflick-topnav-title { font-size: 18px !important; }
+          .fflick-topnav-signin { font-size: 14px !important; padding: 7px 16px !important; }
         }
         @media (max-width: 420px) {
-          .fflick-topnav-main {
-            top: 8px !important;
-            left: 2vw !important;
-            right: 2vw !important;
-            min-height: 34px !important;
-            padding: 4px 10px !important;
-            border-radius: 8px !important;
-          }
-          .fflick-topnav-title  { font-size: 18px !important; }
-          .fflick-topnav-signin {
-            font-size: 12px !important;
-            padding: 5px 14px !important;
-            min-width: 75px !important;
-          }
+          .fflick-topnav-main { padding: 3px 4vw !important; }
+          .fflick-topnav-title { font-size: 15px !important; }
+          .fflick-topnav-signin { font-size: 13px !important; padding: 6px 11px !important; min-width: 62px !important;}
         }
       `}</style>
 
-      {/* ---------- Nav bar ---------- */}
-      <div
+      <nav
         className="fflick-topnav-main"
         style={{
           position: "fixed",
-          top: 20,
-          left: 28,
-          right: 28,
+          top: 18, left: 24, right: 24,
           zIndex: 50,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: "6px 24px",
-          minHeight: 48,
+          background: "rgba(18,18,22,0.87)",
           backdropFilter: "blur(6px)",
-          background: "rgba(0,0,0,0.72)",
-          borderRadius: 12,
+          borderRadius: 10,
+          minHeight: 44,
+          padding: "6px 28px",
+          width: "auto",
+          boxShadow: "0 4px 24px #0004",
+          transition: "all 0.14s",
         }}
+        aria-label="Main navigation"
+        role="navigation"
       >
-        {/* Brand title */}
-        <span
-          className="fflick-topnav-title"
+        {/* ---- Brand Title ---- */}
+        <button
+          tabIndex={0}
+          aria-label="Go to FeelFlick home page"
           style={{
-            fontSize: 28,
-            fontWeight: 900,
-            color: "#fff",
-            letterSpacing: "-1px",
+            background: "none",
+            border: "none",
+            font: "inherit",
+            padding: 0,
+            margin: 0,
+            display: "flex",
+            alignItems: "center",
             cursor: "pointer",
-            userSelect: "none",
+            outline: "none",
           }}
-          onClick={() => navigate('/')}
+          onClick={() => navigate("/")}
+          onKeyDown={e => { if (e.key === "Enter" || e.key === " ") navigate("/"); }}
         >
-          FeelFlick
-        </span>
+          <span
+            className="fflick-topnav-title"
+            style={{
+              fontSize: 26,
+              fontWeight: 900,
+              color: "#fff",
+              letterSpacing: "-1px",
+              lineHeight: "1.1",
+              userSelect: "none",
+            }}
+          >
+            FeelFlick
+          </span>
+        </button>
 
-        {/* Sign-in button */}
+        {/* ---- Sign In Button ---- */}
         <button
           className="fflick-topnav-signin"
+          aria-label="Sign in"
           onClick={() => navigate("/auth/sign-in")}
           style={{
             background: "linear-gradient(90deg,#fe9245 10%,#eb423b 90%)",
@@ -86,20 +89,23 @@ export default function TopNav() {
             border: "none",
             borderRadius: 8,
             fontWeight: 700,
-            fontSize: 16,
+            fontSize: 15,
             padding: "8px 22px",
-            minWidth: 100,
-            minHeight: 40,
-            boxShadow: "0 2px 6px #fe924533",
+            minWidth: 88,
+            minHeight: 44,
+            boxShadow: "0 2px 8px #fe92451a",
             cursor: "pointer",
             transition: "filter .15s, transform .15s",
+            outline: "none",
           }}
           onMouseDown={e => (e.currentTarget.style.transform = "scale(.97)")}
           onMouseUp={e => (e.currentTarget.style.transform = "scale(1)")}
+          tabIndex={0}
+          onKeyDown={e => { if (e.key === "Enter" || e.key === " ") navigate("/auth/sign-in"); }}
         >
-          SIGN IN
+          Sign in
         </button>
-      </div>
+      </nav>
     </>
   );
 }

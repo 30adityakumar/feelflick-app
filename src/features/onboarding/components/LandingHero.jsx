@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 
 // Swap in any stock or legal background video you want!
 const HERO_VIDEO =
-  "https://videos.pexels.com/video-files/7991369/7991369-hd_1280_720_30fps.mp4"; // Example, replace with your favorite
+  "https://website-static.plex.tv/videos/home_hero_background_2024.mp4"; // Example, replace with your favorite
 
 export default function LandingHero() {
   const navigate = useNavigate();

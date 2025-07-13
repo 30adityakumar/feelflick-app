@@ -23,6 +23,11 @@ function MainApp({ session, profileName, setProfileName, user, onSignOut }) {
   return (
     <div className="min-h-screen bg-zinc-950 text-white pb-10" style={{ width: "100vw", overflowX: "hidden" }}>
       <TopNav />
+      {/* You can pass props to TopNav if you want user info later */}
+      {activeTab === "home"           && <HomePage userName={user?.name || profileName || session.user?.user_metadata?.name || "Movie Lover"} userId={session.user.id} />}
+      {activeTab === "movies"         && <MoviesTab session={session} />}
+      {activeTab === "recommendations"&& <RecommendationsTab session={session} />}
+      {activeTab === "watched"        && <WatchedTab session={session} />}
     </div>
   );
 }

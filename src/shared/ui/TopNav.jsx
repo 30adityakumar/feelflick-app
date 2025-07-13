@@ -8,19 +8,19 @@ export default function TopNav() {
       {/* ---- Responsive media queries ---- */}
       <style>{`
         @media (max-width: 900px) {
-          .fflick-topnav-main { left: 2vw !important; right: 2vw !important; padding: 4px 12px !important; }
-          .fflick-topnav-title { font-size: 22px !important; }
-          .fflick-topnav-signin { font-size: 15px !important; min-width: 80px !important; }
+          .fflick-topnav-main { left: 2vw !important; right: 2vw !important; padding: 4px 10px !important; }
+          .fflick-topnav-title { font-size: 21px !important; }
+          .fflick-topnav-signin { font-size: 15px !important; min-width: 64px !important; padding: 6px 13px !important; }
         }
         @media (max-width: 700px) {
-          .fflick-topnav-main { top: 10px !important; min-height: 36px !important; }
-          .fflick-topnav-title { font-size: 18px !important; }
-          .fflick-topnav-signin { font-size: 14px !important; padding: 7px 16px !important; }
+          .fflick-topnav-main { top: 10px !important; min-height: 34px !important; }
+          .fflick-topnav-title { font-size: 16px !important; }
+          .fflick-topnav-signin { font-size: 14px !important; padding: 6px 10px !important; }
         }
         @media (max-width: 420px) {
-          .fflick-topnav-main { padding: 3px 4vw !important; }
-          .fflick-topnav-title { font-size: 15px !important; }
-          .fflick-topnav-signin { font-size: 13px !important; padding: 6px 11px !important; min-width: 62px !important;}
+          .fflick-topnav-main { padding: 2px 2vw !important; }
+          .fflick-topnav-title { font-size: 13px !important; }
+          .fflick-topnav-signin { font-size: 12px !important; padding: 5px 8px !important; min-width: 52px !important;}
         }
       `}</style>
 
@@ -28,7 +28,9 @@ export default function TopNav() {
         className="fflick-topnav-main"
         style={{
           position: "fixed",
-          top: 18, left: 24, right: 24,
+          top: 18,
+          left: 24,
+          right: 24,
           zIndex: 50,
           display: "flex",
           alignItems: "center",
@@ -36,8 +38,8 @@ export default function TopNav() {
           background: "rgba(18,18,22,0.87)",
           backdropFilter: "blur(6px)",
           borderRadius: 10,
-          minHeight: 44,
-          padding: "6px 28px",
+          minHeight: 40,
+          padding: "5px 18px",
           width: "auto",
           boxShadow: "0 4px 24px #0004",
           transition: "all 0.14s",
@@ -66,12 +68,14 @@ export default function TopNav() {
           <span
             className="fflick-topnav-title"
             style={{
-              fontSize: 26,
+              fontSize: 23,
               fontWeight: 900,
-              color: "#fff",
+              color: "#F6E3D7", // Soft peach, from your palette
               letterSpacing: "-1px",
               lineHeight: "1.1",
               userSelect: "none",
+              fontFamily: "inherit",
+              textTransform: "none",
             }}
           >
             FeelFlick
@@ -90,13 +94,15 @@ export default function TopNav() {
             borderRadius: 8,
             fontWeight: 700,
             fontSize: 15,
-            padding: "8px 22px",
-            minWidth: 88,
-            minHeight: 44,
+            padding: "7px 16px",
+            minWidth: 64,
+            minHeight: 34,
             boxShadow: "0 2px 8px #fe92451a",
             cursor: "pointer",
             transition: "filter .15s, transform .15s",
             outline: "none",
+            textTransform: "none",
+            fontFamily: "inherit",
           }}
           onMouseDown={e => (e.currentTarget.style.transform = "scale(.97)")}
           onMouseUp={e => (e.currentTarget.style.transform = "scale(1)")}

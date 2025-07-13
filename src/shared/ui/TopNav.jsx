@@ -1,115 +1,116 @@
-/*********************************************************************
- * TopNav – FeelFlick
- *
- *  ✅  Responsive (mobile → 4 K) via Tailwind breakpoints
- *  ✅  Large tap targets (≥40 px logo + button)
- *  ✅  Brand/logo always returns home (keyboard + mouse)
- *  ✅  ARIA / alt text / focus states (AAA starter)
- *  ✅  Easily themed: edit colours in tailwind.config.js only
- *  ✅  Extensible: drop-in user avatar / search later
- *********************************************************************/
-
 import { useNavigate } from "react-router-dom";
-import logo from "@assets/images/logo.png"; // path resolved by Vite alias
+import logo from "@assets/images/logo.png";
+
+/**
+ * TopNav – FeelFlick Navigation Bar (Tailwind version)
+ *
+ * - Responsive at all breakpoints using Tailwind's `sm:`, `md:`, `lg:` utilities.
+ * - Logo + wordmark is always clickable, returns home.
+ * - Large, touch-friendly tap targets.
+ * - Brand, button, and colors easily tweaked in tailwind.config.js or below.
+ * - Keyboard & screen-reader accessible.
+ * - Future-ready: add user avatar, search, menus, etc.
+ */
 
 export default function TopNav() {
   const navigate = useNavigate();
 
-  /* ----------------  UTILITY fns  ---------------- */
-  const goHome = () => navigate("/");
-  const goSignIn = () => navigate("/auth/sign-in");
-
-  /* ----------------  RENDER  --------------------- */
   return (
-    <header /* semantic landmark for screen-readers */
+    <header
+      // The nav bar is always visible ("fixed"), with spacing adapted for all screens
       className="
-        fixed top-4 left-4 right-4 z-50
+        fixed z-40
+        top-3 left-2 right-2
         flex items-center justify-between
+        px-3 py-2
         rounded-xl bg-peach-100/90 shadow-lg backdrop-blur-sm
-        px-4 py-2
-        md:top-6 md:left-6 md:right-6
-        lg:top-8 lg:left-8 lg:right-8 lg:px-6
-      "
+        min-h-[44px]
+        md:top-6 md:left-8 md:right-8 md:px-6 md:py-3 md:min-h-[56px]
+        "
       role="banner"
     >
-
-      {/* ---------- Left: Logo + Wordmark ---------- */}
+      {/* ----------- LOGO + BRAND NAME --------------- */}
       <button
-        onClick={goHome}
-        className="group flex items-center gap-3 outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
-        aria-label="Go to FeelFlick home page"
+        className="group flex items-center gap-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+        aria-label="Go to home"
+        onClick={() => navigate("/")}
+        tabIndex={0}
+        onKeyDown={e => { if (e.key === "Enter") navigate("/"); }}
       >
         {/* Logo image */}
         <img
           src={logo}
-          alt=""                /* decorative; label is on the button */
+          alt=""
           className="
-            h-8 w-8 rounded-lg shadow-sm
-            transition-transform duration-200
+            h-9 w-9 rounded-lg shadow
+            transition-transform duration-150
             group-hover:scale-105
-            md:h-10 md:w-10
-            lg:h-11 lg:w-11
+            md:h-11 md:w-11
           "
+          draggable={false}
         />
-
-        {/* Wordmark – colour & size scale fluidly */}
+        {/* App Title */}
         <span
           className="
-            font-extrabold tracking-tight text-brand-500
-            text-[clamp(1rem,4vw,1.75rem)]
-            leading-none select-none
+            text-brand-500
+            font-extrabold tracking-tight
+            text-[clamp(1.15rem,5vw,2rem)]
+            select-none leading-tight
             group-hover:brightness-110
-            transition duration-150
+            transition
           "
         >
           FeelFlick
         </span>
       </button>
 
-      {/* ---------- Right: Sign-In button ---------- */}
+      {/* ----------- SIGN IN BUTTON --------------- */}
       <button
-        onClick={goSignIn}
         className="
           rounded-lg font-bold text-white shadow
           bg-gradient-to-r from-accent-from to-accent-to
-          px-4 py-2 text-sm
-          md:px-5 md:py-2.5 md:text-base
+          px-4 py-2 text-base min-w-[92px]
+          md:px-6 md:py-2.5 md:text-lg md:min-w-[120px]
           hover:brightness-110 active:scale-95 transition
-          focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-from
+          focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-from
         "
+        onClick={() => navigate("/auth/sign-in")}
+        tabIndex={0}
+        aria-label="Sign in to FeelFlick"
       >
-        SIGN&nbsp;IN
+        SIGN IN
       </button>
-
     </header>
   );
 }
 
-/* =============  HOW TO TWEAK  =====================
+/* -------------------------------------------------
+   HOW TO TWEAK (for beginners)
 
-1.  NAVBAR COLOUR
-      – go to tailwind.config.js  → colours.peach.100
+- Change NAVBAR background:
+    Replace "bg-peach-100/90" with any Tailwind color utility, or update "peach" in tailwind.config.js.
 
-2.  WORDMARK COLOUR
-      – colours.brand.500  (single source of truth)
+- Change wordmark color:
+    Edit "text-brand-500" (set in tailwind.config.js). Example: "text-orange-600".
 
-3.  BUTTON GRADIENT
-      – colours.accent.from / .to
+- Change logo size:
+    Update "h-9 w-9 md:h-11 md:w-11" (9=2.25rem, 11=2.75rem). Use any Tailwind sizing (see docs).
 
-4.  BREAKPOINT OFFSETS (spacing)
-      – `top-4 left-4` etc. in <header> classes
-      – Tailwind’s scale: 4 = 1rem (16 px). Change `top-4` to `top-2` for tighter.
+- Change paddings:
+    "px-3 py-2" (mobile), "md:px-6 md:py-3" (desktop).
 
-5.  LOGO SIZE
-      – `h-8 w-8 md:h-10 ...`.  h = height, w = width.
-      – Use Tailwind scale: 6 = 1.5 rem, 8 = 2 rem, etc.
+- Button gradient:
+    Uses "from-accent-from to-accent-to". Configure these in your tailwind.config.js colors for consistent branding.
+    Or replace with built-in colors (e.g. "from-orange-400 to-red-500").
 
-6.  ADD A USER AVATAR later
-      – Drop another button before/after SIGN IN.
-      – Tailwind handles spacing via `gap-…` or `ml-…`.
+- Responsive breakpoints:
+    Tailwind uses sm, md, lg, xl (see https://tailwindcss.com/docs/responsive-design).
 
-7.  FULL “HIDE ON SCROLL” nav
-      – Replace `top-*` classes with a Headless-UI <Disclosure> or
-        use a custom hook that toggles `translate-y-full` on scroll.
+- Accessibility:
+    Buttons are always keyboard accessible (tab/focus), with ARIA labels for screen readers.
+    Focus-visible ring helps users know where focus is.
 
-=================================================== */
+- Add avatar, profile, or search:
+    Just add another button or div before or after the sign-in button. Layout will adapt automatically.
+
+-------------------------------------------------- */

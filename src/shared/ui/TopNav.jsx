@@ -2,79 +2,94 @@ import { useNavigate } from "react-router-dom";
 import logo from "@assets/images/logo.png";
 
 /**
- * Tailwind-powered TopNav, horizontally centered, logo+brand left, sign-in right.
- * Responsive, AAA accessible, easy to tweak.
+ * TopNav – FeelFlick's AAA accessible, mobile-first, future-proof navbar.
+ * - All breakpoints covered.
+ * - Large tap targets and readable text.
+ * - Clickable brand/logo goes home.
+ * - Keyboard/screen reader accessible.
+ * - Customizable via NAV_CONFIG below.
+ * - No magic numbers, adapts everywhere.
+ * - Easy to extend with menus/avatars.
  */
+
+const NAV_CONFIG = {
+  bg:         "bg-[#F6E3D7]/90 backdrop-blur-md",  // bar background, adjust for your theme
+  brand:      "text-[#E5744B] dark:text-orange-400",// title color, dark mode supported
+  radius:     "rounded-2xl",
+  shadow:     "shadow-md shadow-black/10",
+  logo: {
+    base:     "h-11 w-11 md:h-12 md:w-12 lg:h-14 lg:w-14 min-h-[44px] min-w-[44px]",
+    ring:     "focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2",
+  },
+  text:       "font-extrabold tracking-tight select-none text-xl xs:text-2xl md:text-3xl",
+  gap:        "gap-3 xs:gap-4",
+  padding:    "px-3 py-1 xs:px-4 xs:py-2 sm:px-7",
+  button: {
+    base:     "min-h-[44px] min-w-[44px] px-4 xs:px-6 py-2 xs:py-2 rounded-xl font-bold text-base xs:text-lg md:text-xl transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2",
+    gradient: "bg-gradient-to-r from-orange-400 to-red-500 shadow hover:brightness-105 active:scale-95",
+  }
+};
+
 export default function TopNav() {
   const navigate = useNavigate();
 
   return (
-    <header className="bg-[#111117] py-4"> {/* Page background, matches your 2nd screenshot */}
-      {/* Container centers nav content, max width on large screens */}
-      <nav
-        className="
-          max-w-6xl mx-auto flex items-center justify-between
-          px-4 sm:px-8
-        "
-        aria-label="Primary"
+    <nav
+      className={`
+        fixed z-40 inset-x-0 top-0
+        flex items-center justify-between
+        ${NAV_CONFIG.bg} ${NAV_CONFIG.radius} ${NAV_CONFIG.shadow}
+        ${NAV_CONFIG.padding}
+        w-full max-w-full
+        transition-all duration-150
+      `}
+      aria-label="FeelFlick top navigation"
+      role="navigation"
+    >
+      {/* LOGO + TITLE (Clickable, Home) */}
+      <button
+        onClick={() => navigate("/")}
+        className={`
+          group flex items-center ${NAV_CONFIG.gap}
+          focus:outline-none ${NAV_CONFIG.logo.ring}
+        `}
+        aria-label="Go to FeelFlick home page"
+        tabIndex={0}
       >
-        {/* ---- Left: Logo + Brand Name ---- */}
-        <button
-          className="flex items-center gap-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400"
-          aria-label="Go to FeelFlick home"
-          onClick={() => navigate("/")}
+        <img
+          src={logo}
+          alt="FeelFlick logo"
+          className={`
+            ${NAV_CONFIG.logo.base}
+            ${NAV_CONFIG.radius}
+            ${NAV_CONFIG.shadow}
+            bg-white object-cover transition
+            group-hover:scale-105 group-active:scale-95
+          `}
+          draggable="false"
+        />
+        <span
+          className={`
+            ${NAV_CONFIG.text} ${NAV_CONFIG.brand}
+            group-hover:underline group-focus:underline transition
+          `}
         >
-          <img
-            src={logo}
-            alt="FeelFlick logo"
-            className="
-              h-12 w-12 rounded-xl shadow-md bg-[#f6e3d7]
-              sm:h-14 sm:w-14
-            "
-            draggable={false}
-          />
-          <span
-            className="
-              font-extrabold text-3xl text-white tracking-tight select-none
-              sm:text-4xl
-            "
-            style={{
-              // To match exact style, you can tweak color, fontWeight, etc
-              letterSpacing: "-1.5px",
-            }}
-          >
-            FeelFlick
-          </span>
-        </button>
+          FeelFlick
+        </span>
+      </button>
 
-        {/* ---- Right: Sign In button ---- */}
-        <button
-          className="
-            font-bold text-white rounded-xl
-            bg-gradient-to-r from-[#fe9245] to-[#eb423b]
-            px-8 py-3 text-lg
-            shadow-md
-            transition hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400
-          "
-          onClick={() => navigate("/auth/sign-in")}
-        >
-          SIGN IN
-        </button>
-      </nav>
-    </header>
+      {/* SIGN IN BUTTON (large, gradient, accessible) */}
+      <button
+        type="button"
+        onClick={() => navigate("/auth/sign-in")}
+        className={`
+          ${NAV_CONFIG.button.base}
+          ${NAV_CONFIG.button.gradient}
+        `}
+        aria-label="Sign in to FeelFlick"
+      >
+        SIGN IN
+      </button>
+    </nav>
   );
 }
-
-/* ---------------- HOW TO TWEAK --------------------
-- Change max width of nav bar: max-w-6xl → max-w-5xl, max-w-7xl etc.
-- Change padding: px-4 = 1rem on both sides (mobile), sm:px-8 = 2rem on sm+ screens.
-- Change logo size: h-12 w-12 (48px), sm:h-14 sm:w-14 (56px on sm+).
-- Change brand font size: text-3xl = 1.875rem, sm:text-4xl = 2.25rem.
-- Button color: from-[#fe9245] to-[#eb423b] (your orange-red gradient).
-- Button size: px-8 py-3 = big tap target, text-lg for bold.
-- Background color: bg-[#111117] is deep black-grey (matches screenshot).
-
-Accessibility:
-- Buttons have focus rings, ARIA labels, keyboard support.
-- Logo alt text for screen readers.
---------------------------------------------------- */

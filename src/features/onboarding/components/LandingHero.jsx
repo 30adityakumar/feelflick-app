@@ -1,10 +1,21 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-// Example video: use your favorite copyright-free stock video
-const HERO_VIDEO = "https://website-static.plex.tv/videos/home_hero_background_2024.mp4"; // Replace with your video link!
+const HERO_VIDEO = "https://cdn.coverr.co/videos/coverr-watching-movie-at-home-1631115289067?token=eyJhbGci..."; // Or any legal stock video
+const TMDB_API_KEY = "YOUR_TMDB_API_KEY"; // <-- Replace with your real API key
 
 export default function LandingHero() {
   const navigate = useNavigate();
+  const [trending, setTrending] = useState([]);
+
+  // Fetch trending movies (TMDb)
+  useEffect(() => {
+    fetch(
+      `https://api.themoviedb.org/3/trending/movie/day?api_key=${TMDB_API_KEY}&language=en-US`
+    )
+      .then(res => res.json())
+      .then(data => setTrending(data.results?.slice(0, 7) || []));
+  }, []);
 
   return (
     <section
@@ -16,15 +27,15 @@ export default function LandingHero() {
         minHeight: "min(100vh, 720px)",
         display: "flex",
         alignItems: "center",
-        justifyContent: "flex-start",
+        justifyContent: "space-between",
         position: "relative",
         overflow: "hidden",
         background: "#101015",
-        padding: "max(68px, 7vh) 0", // Large vertical padding for hero!
+        padding: "max(68px, 7vh) 0",
         boxSizing: "border-box"
       }}
     >
-      {/* ---- Background video (stock, muted) ---- */}
+      {/* ---- Background video ---- */}
       <video
         src={HERO_VIDEO}
         autoPlay
@@ -43,19 +54,18 @@ export default function LandingHero() {
           filter: "brightness(0.65) blur(0.2px)",
         }}
       />
-
-      {/* ---- Overlay gradient left-to-right for readability ---- */}
+      {/* ---- Overlay gradient ---- */}
       <div
         aria-hidden="true"
         style={{
           position: "absolute",
           inset: 0,
-          background: "linear-gradient(90deg,rgba(14,14,17,0.97) 0%,rgba(14,14,17,0.81) 48%,rgba(14,14,17,0.19) 80%,rgba(14,14,17,0.01) 100%)",
+          background: "linear-gradient(90deg,rgba(14,14,17,0.97) 0%,rgba(14,14,17,0.81) 46%,rgba(14,14,17,0.19) 80%,rgba(14,14,17,0.01) 100%)",
           zIndex: 1,
         }}
       />
 
-      {/* ---- Hero content ---- */}
+      {/* ---- Hero left ---- */}
       <div
         style={{
           position: "relative",
@@ -109,7 +119,7 @@ export default function LandingHero() {
             borderRadius: 14,
             fontWeight: 700,
             fontSize: "1.05rem",
-            padding: "10px 32px", // Smaller button, but still big target!
+            padding: "10px 32px",
             minWidth: 130,
             minHeight: 40,
             boxShadow: "0 2px 8px #fe92451a",
@@ -127,6 +137,90 @@ export default function LandingHero() {
         >
           Get Started
         </button>
+      </div>
+
+      {/* ---- Hero right: trending movies carousel ---- */}
+      <div
+        aria-label="Trending Movies"
+        style={{
+          position: "relative",
+          zIndex: 3,
+          minWidth: 270,
+          maxWidth: 400,
+          display: "flex",
+          alignItems: "center",
+          gap: "13px",
+          overflowX: "auto",
+          marginRight: "clamp(2vw, 4%, 40px)",
+        }}
+        tabIndex={0}
+      >
+        {trending.length === 0 && (
+          <div style={{
+            color: "#fff",
+            opacity: 0.7,
+            fontSize: 18,
+            fontWeight: 700,
+            padding: "44px 12px"
+          }}>
+            Loading movies...
+          </div>
+        )}
+        {trending.map(movie =>
+          <div
+            key={movie.id}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "flex-end",
+              width: 86,
+              minWidth: 68,
+              maxWidth: 120,
+              cursor: "pointer",
+              borderRadius: 12,
+              overflow: "hidden",
+              boxShadow: "0 4px 18px #10101570",
+              background: "#1a1a23",
+              margin: "2px 0"
+            }}
+            tabIndex={0}
+            aria-label={movie.title}
+            title={movie.title}
+            onClick={() => navigate(`/movie/${movie.id}`)}
+            onKeyDown={e => { if (e.key === "Enter" || e.key === " ") navigate(`/movie/${movie.id}`); }}
+          >
+            <img
+              src={movie.poster_path
+                ? `https://image.tmdb.org/t/p/w300/${movie.poster_path}`
+                : "/poster-placeholder.png"}
+              alt={movie.title}
+              style={{
+                width: "100%",
+                height: 110,
+                objectFit: "cover",
+                borderRadius: 12,
+                border: "2.2px solid #191925"
+              }}
+              loading="lazy"
+            />
+            <div style={{
+              color: "#fff",
+              fontWeight: 600,
+              fontSize: 12,
+              marginTop: 7,
+              marginBottom: 8,
+              textAlign: "center",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              maxWidth: "94%",
+              textShadow: "0 2px 8px #101015ee"
+            }}>
+              {movie.title}
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );

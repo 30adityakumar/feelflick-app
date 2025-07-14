@@ -21,10 +21,10 @@ export default function LandingHero() {
         align-items: flex-start;
       }
       .fflick-hero-title {
-        font-size: clamp(1.45rem, 6vw, 3.9rem) !important;
+        font-size: clamp(1.3rem, 5vw, 3.7rem) !important;
       }
       .fflick-hero-desc {
-        font-size: clamp(0.8rem, 2vw, 1rem) !important;
+        font-size: clamp(0.9rem, 2.2vw, 1.1rem) !important;
       }
       .fflick-hero-btn {
         font-size: clamp(0.92rem, 2.4vw, 1.08rem) !important;

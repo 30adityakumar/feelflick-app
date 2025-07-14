@@ -33,46 +33,62 @@ export default function WhyFeelFlick() {
           outline-offset: 2px;
         }
 
-        /* Make all font sizes and paddings responsive with clamp */
         .fflick-section-title {
-          font-size: clamp(1.4rem, 3vw, 1.37rem) !important;
-          margin-bottom: clamp(18px, 3vw, 28px) !important;
-          margin-top: 16px !important;
+          font-size: clamp(1.09rem, 3vw, 1.37rem) !important;
+          margin-bottom: clamp(16px, 3vw, 22px) !important;
+          margin-top: 10px !important;
           letter-spacing: 0.14em !important;
           font-weight: 900 !important;
           color: #fff !important;
           text-transform: uppercase;
         }
         .fflick-box {
-          padding: clamp(0.6rem, 3vw, 1.2rem) clamp(1.2rem, 7vw, 2.5rem) !important;
+          padding: clamp(0.3rem, 2.5vw, 0.7rem) clamp(0.7rem, 7vw, 2.5rem) !important;
           border-radius: clamp(16px, 2vw, 28px) !important;
-          gap: clamp(1.3rem, 4vw, 2.7rem) !important;
+          gap: clamp(1.1rem, 3vw, 2rem) !important;
         }
         .fflick-card {
-          padding: clamp(1.2rem, 4vw, 2.2rem) clamp(1rem, 4vw, 1.7rem) !important;
+          padding: clamp(1rem, 3vw, 1.6rem) clamp(1rem, 4vw, 1.4rem) !important;
           border-radius: clamp(13px, 2vw, 22px) !important;
-          min-width: clamp(220px, 32vw, 335px) !important;
-          max-width: clamp(99vw, 33vw, 490px) !important;
+          min-width: clamp(210px, 29vw, 335px) !important;
+          max-width: clamp(99vw, 33vw, 480px) !important;
+          background: rgba(12, 8, 4, 0.98) !important;  /* darker */
+          border: 1.5px solid rgba(255,91,46,0.13);
+          box-shadow: 0 2.5px 12px 0 rgba(40,24,14,0.10);
+          transition: none;
+          position: relative;
+          cursor: default;
         }
         .fflick-title {
-          font-size: clamp(1.14rem, 3.5vw, 1.75rem) !important;
+          font-size: clamp(1.14rem, 3.5vw, 1.85rem) !important;
+          background: linear-gradient(92deg, #ffd7b0 0%, #fe9245 77%);
+          WebkitBackgroundClip: text;
+          WebkitTextFillColor: transparent;
+          text-shadow: 0 3px 16px #fe924561, 0 2.5px 8px rgba(0,0,0,0.18);
+          font-weight: 950;
         }
         .fflick-desc {
-          font-size: clamp(0.97rem, 2.5vw, 1.05rem) !important;
+          font-size: clamp(0.97rem, 2.5vw, 1.08rem) !important;
+          color: #fff !important;        /* lighter, more visible */
+          opacity: 0.97 !important;
         }
-
         @media (max-width: 1020px) {
           .fflick-box { flex-direction: column !important; align-items: center !important; }
-          .fflick-card { width: 96vw !important; max-width: 99vw !important; margin-bottom: 1.3rem !important;}
+          .fflick-card { width: 96vw !important; max-width: 99vw !important; margin-bottom: 1rem !important;}
         }
         @media (max-width: 600px) {
           .fflick-section-title {
             font-size: 1.03rem !important;
-            margin-bottom: 20px !important;
+            margin-bottom: 14px !important;
+            margin-top: 6px !important;
           }
-          .fflick-box { border-radius: 18px !important; }
+          .fflick-box {
+            padding: 14px 8vw !important;    /* EVEN padding on mobile */
+            border-radius: 18px !important;
+          }
         }
       `}</style>
+
       <section
         role="region"
         aria-labelledby="whyfeelflick-heading"

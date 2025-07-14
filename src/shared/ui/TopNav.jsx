@@ -66,8 +66,8 @@ export default function TopNav() {
             border-radius: 6px !important;
           }
           .fflick-topnav-signin {
-            font-size: 0.97rem !important;
-            padding: 8px 20px !important;
+            font-size: 0.92rem !important;
+            padding: 7.2px 18px !important;
             min-width: 90px !important;
             min-height: 34px !important;
             border-radius: 8px !important;

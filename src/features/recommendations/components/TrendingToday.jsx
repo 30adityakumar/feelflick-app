@@ -30,103 +30,104 @@ export default function TrendingToday({ onSignUp }) {
   return (
     <>
       <style>{`
-        .fflick-trending-section {
-          background: rgba(10,10,10,0.73);
-          padding: clamp(24px, 4vw, 55px) 0 clamp(28px, 6vw, 55px) 0;
-          width: 100vw;
-          min-height: 340px;
-          position: relative;
-          box-sizing: border-box;
-          overflow: visible;
-        }
-        .fflick-trending-heading {
-          font-weight: 900;
-          font-size: clamp(1.07rem, 2.7vw, 1.42rem);
-          color: #fff;
-          letter-spacing: 0.14em;
-          margin-left: clamp(16px, 7vw, 8vw);
-          margin-bottom: clamp(20px, 5vw, 34px);
-          margin-top: 0.8rem;
-          text-align: left;
-          text-transform: uppercase;
-        }
-        .fflick-trending-row-wrap {
-          position: relative;
-          width: 100%;
-          padding: 0 clamp(6px, 6vw, 8vw);
-          box-sizing: border-box;
-          overflow: visible;
-        }
-        .fflick-trending-row {
-          display: flex;
-          gap: clamp(15px, 2.7vw, 32px);
-          overflow-x: auto;
-          overflow-y: visible;
-          margin: 0 auto;
-          scrollbar-width: none;
-          scroll-snap-type: x mandatory;
-          min-height: clamp(200px, 36vw, 246px);
-          align-items: flex-end;
-          width: 100%;
-          box-sizing: border-box;
-          padding-left: clamp(12px, 4vw, 44px);
-          padding-top: clamp(8px, 3vw, 22px);
-        }
-        .fflick-trending-row::-webkit-scrollbar { display: none; }
-        .fflick-poster {
-          flex: 0 0 clamp(104px, 26vw, 168px);
-          min-width: clamp(104px, 26vw, 168px);
-          height: clamp(140px, 39vw, 246px);
-          border-radius: clamp(8px, 2vw, 15px);
-          box-shadow: 0 2px 11px #000b;
-          background: #181818;
-          scroll-snap-align: center;
-          margin-bottom: clamp(4px, 0.9vw, 10px);
-          transition: box-shadow 0.13s cubic-bezier(.32,1.4,.46,1), filter 0.13s cubic-bezier(.32,1.4,.46,1), transform 0.13s cubic-bezier(.32,1.4,.46,1);
-          z-index: 2;
-          outline: none;
-        }
-        .fflick-poster:focus-visible img, .fflick-poster:focus img {
-          box-shadow: 0 4px 16px #fe9245a0 !important;
-          filter: brightness(1.09);
-        }
-        .fflick-poster:focus-visible, .fflick-poster:focus {
-          transform: translateY(-5px) scale(1.04) !important;
-          z-index: 10;
-          outline: 2.8px solid #fe9245;
-          outline-offset: 2.5px;
-        }
-        .fflick-trending-arrow {
-          position: absolute;
-          top: 52%;
-          transform: translateY(-50%);
-          background: rgba(22,22,22,0.83);
-          border: none;
-          border-radius: 14px;
-          width: clamp(25px, 6vw, 36px);
-          height: clamp(38px, 13vw, 62px);
-          color: #fff;
-          font-size: clamp(1.45rem, 4vw, 2.1rem);
-          cursor: pointer;
-          z-index: 6;
-          opacity: 0.73;
-          transition: opacity 0.2s, background 0.18s;
-        }
-        .fflick-trending-arrow:focus-visible {
-          outline: 2.5px solid #fe9245;
-          outline-offset: 2.5px;
-          opacity: 1;
-          background: rgba(40,40,40,1);
-        }
-        .fflick-trending-arrow:hover { opacity: 1; background: rgba(40,40,40,1);}
-        .fflick-trending-arrow.left { left: 0; }
-        .fflick-trending-arrow.right { right: 0; }
-        @media (max-width: 750px) {
-          .fflick-trending-section { min-height: 188px; }
-          .fflick-trending-row { padding-left: 3vw !important; }
-          .fflick-trending-row-wrap { padding: 0 2vw !important;}
-        }
-      `}</style>
+      .fflick-trending-section {
+        background: rgba(10,10,10,0.73);
+        padding: clamp(24px, 4vw, 55px) 0 clamp(28px, 6vw, 55px) 0;
+        width: 100vw;
+        min-height: 340px;
+        position: relative;
+        box-sizing: border-box;
+        overflow: visible;
+      }
+      .fflick-trending-row {
+        display: flex;
+        gap: clamp(15px, 2.7vw, 32px);
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        min-height: clamp(200px, 36vw, 246px);
+        align-items: flex-end;
+        width: 100%;
+        padding-left: clamp(12px, 4vw, 44px);
+        padding-top: clamp(8px, 3vw, 22px);
+        scrollbar-width: none;
+      }
+      .fflick-trending-row::-webkit-scrollbar { display: none; }
+      .fflick-poster {
+        position: relative;
+        flex: 0 0 clamp(104px, 26vw, 168px);
+        min-width: clamp(104px, 26vw, 168px);
+        height: clamp(140px, 39vw, 246px);
+        border-radius: clamp(8px, 2vw, 15px);
+        box-shadow: 0 2px 12px #000b;
+        background: #181818;
+        scroll-snap-align: center;
+        margin-bottom: clamp(4px, 0.9vw, 10px);
+        z-index: 2;
+        cursor: pointer;
+        outline: none;
+        transition: box-shadow 0.13s cubic-bezier(.32,1.4,.46,1), filter 0.13s cubic-bezier(.32,1.4,.46,1), transform 0.15s cubic-bezier(.32,1.4,.46,1);
+      }
+      .fflick-poster:hover, .fflick-poster:focus-visible {
+        box-shadow: 0 6px 32px #eb423b66, 0 1px 14px #fe924558;
+        filter: brightness(1.14) saturate(1.12);
+        transform: translateY(-11px) scale(1.045);
+        z-index: 11;
+      }
+      .fflick-poster:focus-visible {
+        outline: 2.7px solid #fe9245;
+        outline-offset: 2.2px;
+      }
+      .fflick-ranking {
+        position: absolute;
+        left: -25px;
+        bottom: 14px;
+        font-size: clamp(2.0rem,7vw,4.4rem);
+        font-weight: 900;
+        color: #fff;
+        opacity: 0.75;
+        WebkitTextStroke: 2.5px #19171b;
+        text-stroke: 2.5px #19171b;
+        line-height: 1;
+        z-index: 20;
+        pointer-events: none;
+        text-shadow: 0 2px 8px #000a, 0 5px 24px #fe924540;
+        font-family: 'Montserrat', Arial, sans-serif;
+        user-select: none;
+      }
+      .fflick-trending-arrow {
+        position: absolute;
+        top: 52%;
+        transform: translateY(-50%);
+        background: linear-gradient(132deg, rgba(22,22,22,0.97) 70%, #fe9245 100%);
+        border: none;
+        border-radius: 50%;
+        width: clamp(40px, 7vw, 54px);
+        height: clamp(40px, 7vw, 54px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: clamp(2.1rem, 4vw, 2.7rem);
+        cursor: pointer;
+        z-index: 12;
+        box-shadow: 0 2px 18px #eb423b24, 0 2px 12px #19171b45;
+        opacity: 0.86;
+        transition: opacity 0.22s, background 0.18s, box-shadow 0.13s, transform 0.13s;
+        border: 1.5px solid #fe924580;
+        outline: none;
+      }
+      .fflick-trending-arrow:focus-visible, .fflick-trending-arrow:hover {
+        outline: 2.2px solid #fe9245;
+        outline-offset: 2.2px;
+        opacity: 1;
+        background: linear-gradient(132deg, #fe9245 80%, rgba(22,22,22,0.97) 100%);
+        box-shadow: 0 4px 32px #fe924546;
+        transform: scale(1.06);
+      }
+      .fflick-trending-arrow.left { left: 0; }
+      .fflick-trending-arrow.right { right: 0; }
+    `}</style>
+
       <section
         className="fflick-trending-section"
         role="region"
@@ -142,14 +143,24 @@ export default function TrendingToday({ onSignUp }) {
             aria-label="Scroll trending movies left"
             onClick={scrollLeft}
             tabIndex={0}
-          >‹</button>
-          {/* Right Arrow */}
+          >
+            {/* SVG left chevron */}
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+              <path d="M15.5 19L9.5 12L15.5 5" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
           <button
             className="fflick-trending-arrow right"
             aria-label="Scroll trending movies right"
             onClick={scrollRight}
             tabIndex={0}
-          >›</button>
+          >
+            {/* SVG right chevron */}
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+              <path d="M8.5 5L14.5 12L8.5 19" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+
           {/* Horizontal scroller */}
           <div
             ref={scrollRef}
@@ -158,53 +169,39 @@ export default function TrendingToday({ onSignUp }) {
             aria-label="Trending movies carousel"
           >
             {movies.map((movie, idx) => (
-              <div
-                key={movie.id}
-                className="fflick-poster"
-                tabIndex={0}
-                aria-label={`Show details for ${movie.title}`}
-                onClick={() => setSelectedMovie(movie)}
-                onKeyDown={e => {
-                  if (e.key === "Enter" || e.key === " ") setSelectedMovie(movie);
+            <div
+              key={movie.id}
+              className="fflick-poster"
+              tabIndex={0}
+              aria-label={`Show details for ${movie.title}`}
+              onClick={() => setSelectedMovie(movie)}
+              onKeyDown={e => {
+                if (e.key === "Enter" || e.key === " ") setSelectedMovie(movie);
+              }}
+              role="button"
+              aria-pressed="false"
+            >
+              {/* Big ranking number */}
+              <div className="fflick-ranking">{idx + 1}</div>
+              {/* Poster */}
+              <img
+                src={movie.poster_path
+                  ? `https://image.tmdb.org/t/p/w342${movie.poster_path}`
+                  : "/posters/placeholder.png"}
+                alt={movie.title}
+                style={{
+                  width: "100%", height: "100%", objectFit: "cover",
+                  borderRadius: "inherit",
+                  boxShadow: "0 2px 11px #000c",
+                  display: "block",
+                  background: "#191919",
+                  transition: "box-shadow 0.13s, filter 0.13s"
                 }}
-                role="button"
-                aria-pressed="false"
-              >
-                {/* Big ranking number */}
-                <div style={{
-                  position: "absolute",
-                  left: -24,
-                  bottom: 15,
-                  fontSize: "clamp(2.1rem,7vw,4.5rem)",
-                  fontWeight: 900,
-                  color: "#fff",
-                  opacity: 0.55,
-                  WebkitTextStroke: "2.5px #fff",
-                  textStroke: "2.5px #fff",
-                  lineHeight: 1,
-                  zIndex: 3,
-                  pointerEvents: "none",
-                  textShadow: "0 2px 8px #000a",
-                  fontFamily: "Montserrat,Arial,sans-serif"
-                }}>{idx + 1}</div>
-                {/* Poster */}
-                <img
-                  src={movie.poster_path
-                    ? `https://image.tmdb.org/t/p/w342${movie.poster_path}`
-                    : "/posters/placeholder.png"}
-                  alt={movie.title}
-                  style={{
-                    width: "100%", height: "100%", objectFit: "cover",
-                    borderRadius: "inherit",
-                    boxShadow: "0 2px 11px #000c",
-                    display: "block",
-                    background: "#191919",
-                    transition: "box-shadow 0.13s, filter 0.13s"
-                  }}
-                  draggable={false}
-                />
-              </div>
-            ))}
+                draggable={false}
+              />
+            </div>
+          ))}
+
           </div>
         </div>
         {/* MovieModal shown if a movie is selected */}

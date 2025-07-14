@@ -2,20 +2,14 @@ import { useEffect, useState, useRef } from "react";
 
 const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
-const CARD_WIDTH = 168;
-const CARD_HEIGHT = 246;
-const CARD_GAP = 32;
-const VISIBLE_FULL = 5;
-const PARTIAL = 0.5;
-
-export default function TrendingToday({ onSignIn, onSignUp }) {
-  // Use the passed in onSignUp for sign up, or fallback to a redirect.
+export default function TrendingToday({ onSignUp }) {
   const handleSignUp = onSignUp || (() => { window.location.href = '/auth/sign-up'; });
   const [movies, setMovies] = useState([]);
   const scrollRef = useRef(null);
-
-  // Modal state
   const [selectedMovie, setSelectedMovie] = useState(null);
+
+  // Accessibility: Focus trap for modal
+  const modalCloseRef = useRef(null);
 
   useEffect(() => {
     fetch(`https://api.themoviedb.org/3/trending/movie/day?api_key=${TMDB_API_KEY}`)
@@ -23,7 +17,7 @@ export default function TrendingToday({ onSignIn, onSignUp }) {
       .then(data => setMovies((data.results || []).slice(0, 10)));
   }, []);
 
-  const scrollAmount = CARD_WIDTH + CARD_GAP;
+  const scrollAmount = 168 + 32; // CARD_WIDTH + CARD_GAP
   const scrollLeft = () => {
     if (scrollRef.current) scrollRef.current.scrollBy({ left: -scrollAmount, behavior: "smooth" });
   };
@@ -31,197 +25,204 @@ export default function TrendingToday({ onSignIn, onSignUp }) {
     if (scrollRef.current) scrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
   };
 
-  const LEFT_PADDING = 44;
-  const scrollerWidth =
-    VISIBLE_FULL * CARD_WIDTH +
-    PARTIAL * CARD_WIDTH +
-    (VISIBLE_FULL + PARTIAL - 1) * CARD_GAP +
-    LEFT_PADDING;
+  // Responsive styles and card sizing handled in style tag below!
 
   return (
-    <section style={{
-      background: "rgba(10,10,10,0.73)",
-      padding: "36px 0 55px 0",
-      position: "relative",
-      overflow: "visible",
-      minHeight: 360,
-      width: "100%",
-      boxSizing: "border-box"
-    }}>
-      {/* Heading */}
-      <div style={{
-        fontWeight: 900,
-        fontSize: "1.37rem",
-        color: "#fff",
-        letterSpacing: "0.14em",
-        marginLeft: "8vw",
-        marginBottom: 38,
-        marginTop: 6,
-        textAlign: "left",
-        textTransform: "uppercase"
-      }}>
-        Trending Now
-      </div>
-
-      {/* Row wrapper for padding & arrows */}
-      <div style={{
-        position: "relative",
-        width: "100%",
-        padding: "0 8vw",
-        boxSizing: "border-box",
-        overflow: "visible"
-      }}>
-        {/* Left Arrow */}
-        <button
-          aria-label="Scroll Left"
-          onClick={scrollLeft}
-          style={{
-            position: "absolute", left: 0, top: "52%", transform: "translateY(-50%)",
-            background: "rgba(22,22,22,0.83)", border: "none", borderRadius: 14,
-            width: 36, height: 62, color: "#fff", fontSize: 22,
-            cursor: "pointer", zIndex: 6, opacity: 0.7, transition: "opacity 0.2s"
-          }}
-          onMouseOver={e => e.currentTarget.style.opacity = 1}
-          onMouseOut={e => e.currentTarget.style.opacity = 0.7}
-        >‹</button>
-        {/* Right Arrow */}
-        <button
-          aria-label="Scroll Right"
-          onClick={scrollRight}
-          style={{
-            position: "absolute", right: 0, top: "52%", transform: "translateY(-50%)",
-            background: "rgba(22,22,22,0.83)", border: "none", borderRadius: 14,
-            width: 36, height: 62, color: "#fff", fontSize: 22,
-            cursor: "pointer", zIndex: 6, opacity: 0.7, transition: "opacity 0.2s"
-          }}
-          onMouseOver={e => e.currentTarget.style.opacity = 1}
-          onMouseOut={e => e.currentTarget.style.opacity = 0.7}
-        >›</button>
-
-        {/* Horizontal scroller */}
-        <div
-          ref={scrollRef}
-          style={{
-            display: "flex",
-            gap: CARD_GAP,
-            overflowX: "auto",
-            overflowY: "visible",
-            margin: "0 auto",
-            scrollbarWidth: "none",
-            scrollSnapType: "x mandatory",
-            minHeight: CARD_HEIGHT,
-            alignItems: "flex-end",
-            position: "relative",
-            width: scrollerWidth,
-            maxWidth: "100%",
-            boxSizing: "border-box",
-            marginLeft: "auto",
-            marginRight: "auto",
-            zIndex: 2,
-            paddingLeft: LEFT_PADDING,
-            paddingTop: 16 // space for pop
-          }}
-          className="trending-row"
-        >
-          {movies.map((movie, idx) => (
-            <div
-              key={movie.id}
-              className="fflick-poster"
-              tabIndex={0}
-              onClick={() => setSelectedMovie(movie)}
-              style={{
-                position: "relative",
-                flex: `0 0 ${CARD_WIDTH}px`,
-                width: CARD_WIDTH,
-                minWidth: CARD_WIDTH,
-                height: CARD_HEIGHT,
-                borderRadius: 15,
-                boxShadow: "0 2px 11px #000b",
-                background: "#181818",
-                scrollSnapAlign: "center",
-                overflow: "visible",
-                marginBottom: 6,
-                marginTop: 0,
-                transition: "box-shadow 0.13s cubic-bezier(.32,1.4,.46,1), filter 0.13s cubic-bezier(.32,1.4,.46,1), transform 0.13s cubic-bezier(.32,1.4,.46,1)",
-                zIndex: 2
-              }}
-              onMouseEnter={e => {
-                const img = e.currentTarget.querySelector("img");
-                img.style.boxShadow = "0 4px 16px #0009";
-                img.style.filter = "brightness(1.06)";
-                e.currentTarget.style.transform = "translateY(-5px) scale(1.03)";
-                e.currentTarget.style.zIndex = 10;
-              }}
-              onMouseLeave={e => {
-                const img = e.currentTarget.querySelector("img");
-                img.style.boxShadow = "0 2px 11px #000c";
-                img.style.filter = "";
-                e.currentTarget.style.transform = "";
-                e.currentTarget.style.zIndex = 2;
-              }}
-            >
-              {/* Big ranking number */}
-              <div style={{
-                position: "absolute",
-                left: -26,
-                bottom: 15,
-                fontSize: "4.8rem",
-                fontWeight: 900,
-                color: "#fff",
-                opacity: 0.65, // more transparent now
-                WebkitTextStroke: "2.5px #fff",
-                textStroke: "2.5px #fff",
-                lineHeight: 1,
-                zIndex: 3,
-                pointerEvents: "none",
-                textShadow: "0 2px 8px #000a",
-                fontFamily: "Montserrat,Arial,sans-serif"
-              }}>{idx + 1}</div>
-
-              {/* Poster */}
-              <img
-                src={movie.poster_path
-                  ? `https://image.tmdb.org/t/p/w342${movie.poster_path}`
-                  : "/posters/placeholder.png"}
-                alt={movie.title}
-                style={{
-                  width: CARD_WIDTH, height: CARD_HEIGHT, objectFit: "cover",
-                  borderRadius: 15,
-                  boxShadow: "0 2px 11px #000c",
-                  display: "block",
-                  background: "#191919",
-                  transition: "box-shadow 0.13s, filter 0.13s"
-                }}
-              />
-            </div>
-          ))}
-        </div>
-      </div>
+    <>
       <style>{`
-        .trending-row::-webkit-scrollbar { display: none; }
-        .fflick-poster:focus img {
-          box-shadow: 0 4px 16px #0009 !important;
-          filter: brightness(1.06);
+        .fflick-trending-section {
+          background: rgba(10,10,10,0.73);
+          padding: clamp(24px, 4vw, 55px) 0 clamp(28px, 6vw, 55px) 0;
+          width: 100vw;
+          min-height: 340px;
+          position: relative;
+          box-sizing: border-box;
+          overflow: visible;
         }
-        .fflick-poster:focus {
-          transform: translateY(-5px) scale(1.03) !important;
+        .fflick-trending-heading {
+          font-weight: 900;
+          font-size: clamp(1.07rem, 2.7vw, 1.42rem);
+          color: #fff;
+          letter-spacing: 0.14em;
+          margin-left: clamp(16px, 7vw, 8vw);
+          margin-bottom: clamp(20px, 5vw, 34px);
+          margin-top: 0.8rem;
+          text-align: left;
+          text-transform: uppercase;
+        }
+        .fflick-trending-row-wrap {
+          position: relative;
+          width: 100%;
+          padding: 0 clamp(6px, 6vw, 8vw);
+          box-sizing: border-box;
+          overflow: visible;
+        }
+        .fflick-trending-row {
+          display: flex;
+          gap: clamp(15px, 2.7vw, 32px);
+          overflow-x: auto;
+          overflow-y: visible;
+          margin: 0 auto;
+          scrollbar-width: none;
+          scroll-snap-type: x mandatory;
+          min-height: clamp(200px, 36vw, 246px);
+          align-items: flex-end;
+          width: 100%;
+          box-sizing: border-box;
+          padding-left: clamp(12px, 4vw, 44px);
+          padding-top: clamp(8px, 3vw, 22px);
+        }
+        .fflick-trending-row::-webkit-scrollbar { display: none; }
+        .fflick-poster {
+          flex: 0 0 clamp(104px, 26vw, 168px);
+          min-width: clamp(104px, 26vw, 168px);
+          height: clamp(140px, 39vw, 246px);
+          border-radius: clamp(8px, 2vw, 15px);
+          box-shadow: 0 2px 11px #000b;
+          background: #181818;
+          scroll-snap-align: center;
+          margin-bottom: clamp(4px, 0.9vw, 10px);
+          transition: box-shadow 0.13s cubic-bezier(.32,1.4,.46,1), filter 0.13s cubic-bezier(.32,1.4,.46,1), transform 0.13s cubic-bezier(.32,1.4,.46,1);
+          z-index: 2;
+          outline: none;
+        }
+        .fflick-poster:focus-visible img, .fflick-poster:focus img {
+          box-shadow: 0 4px 16px #fe9245a0 !important;
+          filter: brightness(1.09);
+        }
+        .fflick-poster:focus-visible, .fflick-poster:focus {
+          transform: translateY(-5px) scale(1.04) !important;
           z-index: 10;
+          outline: 2.8px solid #fe9245;
+          outline-offset: 2.5px;
+        }
+        .fflick-trending-arrow {
+          position: absolute;
+          top: 52%;
+          transform: translateY(-50%);
+          background: rgba(22,22,22,0.83);
+          border: none;
+          border-radius: 14px;
+          width: clamp(25px, 6vw, 36px);
+          height: clamp(38px, 13vw, 62px);
+          color: #fff;
+          font-size: clamp(1.45rem, 4vw, 2.1rem);
+          cursor: pointer;
+          z-index: 6;
+          opacity: 0.73;
+          transition: opacity 0.2s, background 0.18s;
+        }
+        .fflick-trending-arrow:focus-visible {
+          outline: 2.5px solid #fe9245;
+          outline-offset: 2.5px;
+          opacity: 1;
+          background: rgba(40,40,40,1);
+        }
+        .fflick-trending-arrow:hover { opacity: 1; background: rgba(40,40,40,1);}
+        .fflick-trending-arrow.left { left: 0; }
+        .fflick-trending-arrow.right { right: 0; }
+        @media (max-width: 750px) {
+          .fflick-trending-section { min-height: 188px; }
+          .fflick-trending-row { padding-left: 3vw !important; }
+          .fflick-trending-row-wrap { padding: 0 2vw !important;}
         }
       `}</style>
-      {/* MovieModal shown if a movie is selected */}
-      {selectedMovie && (
-        <MovieModal
-          movie={selectedMovie}
-          onClose={() => setSelectedMovie(null)}
-          onSignIn={handleSignUp} // <-- This points to SIGN UP page now!
-        />
-      )}
-    </section>
+      <section
+        className="fflick-trending-section"
+        role="region"
+        aria-labelledby="trending-movies-heading"
+      >
+        <h2 id="trending-movies-heading" className="fflick-trending-heading">
+          Trending Now
+        </h2>
+        <div className="fflick-trending-row-wrap">
+          {/* Left Arrow */}
+          <button
+            className="fflick-trending-arrow left"
+            aria-label="Scroll trending movies left"
+            onClick={scrollLeft}
+            tabIndex={0}
+          >‹</button>
+          {/* Right Arrow */}
+          <button
+            className="fflick-trending-arrow right"
+            aria-label="Scroll trending movies right"
+            onClick={scrollRight}
+            tabIndex={0}
+          >›</button>
+          {/* Horizontal scroller */}
+          <div
+            ref={scrollRef}
+            className="fflick-trending-row"
+            tabIndex={0}
+            aria-label="Trending movies carousel"
+          >
+            {movies.map((movie, idx) => (
+              <div
+                key={movie.id}
+                className="fflick-poster"
+                tabIndex={0}
+                aria-label={`Show details for ${movie.title}`}
+                onClick={() => setSelectedMovie(movie)}
+                onKeyDown={e => {
+                  if (e.key === "Enter" || e.key === " ") setSelectedMovie(movie);
+                }}
+                role="button"
+                aria-pressed="false"
+              >
+                {/* Big ranking number */}
+                <div style={{
+                  position: "absolute",
+                  left: -24,
+                  bottom: 15,
+                  fontSize: "clamp(2.1rem,7vw,4.5rem)",
+                  fontWeight: 900,
+                  color: "#fff",
+                  opacity: 0.55,
+                  WebkitTextStroke: "2.5px #fff",
+                  textStroke: "2.5px #fff",
+                  lineHeight: 1,
+                  zIndex: 3,
+                  pointerEvents: "none",
+                  textShadow: "0 2px 8px #000a",
+                  fontFamily: "Montserrat,Arial,sans-serif"
+                }}>{idx + 1}</div>
+                {/* Poster */}
+                <img
+                  src={movie.poster_path
+                    ? `https://image.tmdb.org/t/p/w342${movie.poster_path}`
+                    : "/posters/placeholder.png"}
+                  alt={movie.title}
+                  style={{
+                    width: "100%", height: "100%", objectFit: "cover",
+                    borderRadius: "inherit",
+                    boxShadow: "0 2px 11px #000c",
+                    display: "block",
+                    background: "#191919",
+                    transition: "box-shadow 0.13s, filter 0.13s"
+                  }}
+                  draggable={false}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* MovieModal shown if a movie is selected */}
+        {selectedMovie && (
+          <MovieModal
+            movie={selectedMovie}
+            onClose={() => setSelectedMovie(null)}
+            onSignIn={handleSignUp}
+            closeRef={modalCloseRef}
+          />
+        )}
+      </section>
+    </>
   );
 }
 
-// --- MovieModal Component (inline for this file) ---
-function MovieModal({ movie, onClose, onSignIn }) {
+// --- MovieModal Component (AAA, responsive, smooth) ---
+function MovieModal({ movie, onClose, onSignIn, closeRef }) {
   if (!movie) return null;
   const GENRES = {
     28: "Action", 12: "Adventure", 16: "Animation", 35: "Comedy", 80: "Crime", 99: "Documentary", 18: "Drama",
@@ -230,20 +231,47 @@ function MovieModal({ movie, onClose, onSignIn }) {
   };
   const genreLabels = (movie.genre_ids || []).map(id => GENRES[id] || null).filter(Boolean);
 
+  // Trap focus inside modal (basic version)
+  useEffect(() => {
+    const handleKeyDown = e => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "Tab") {
+        const focusables = Array.from(document.querySelectorAll('.fflick-movie-modal-main button, .fflick-movie-modal-main [tabindex="0"]'));
+        if (focusables.length === 0) return;
+        const first = focusables[0], last = focusables[focusables.length - 1];
+        if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault(); first.focus();
+        }
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault(); last.focus();
+        }
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
+  useEffect(() => {
+    if (closeRef && closeRef.current) closeRef.current.focus();
+  }, [closeRef]);
+
   return (
     <>
       <div
         style={{
           position: "fixed",
           inset: 0,
-          background: "rgba(0,0,0,0.77)",
+          background: "rgba(0,0,0,0.82)",
           zIndex: 10000,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          animation: "modalFadeIn 0.22s"
+          animation: "modalFadeIn 0.19s"
         }}
         onClick={onClose}
+        aria-label="Movie details modal background"
+        role="dialog"
+        aria-modal="true"
       />
       <style>{`
         @keyframes modalFadeIn {
@@ -251,8 +279,8 @@ function MovieModal({ movie, onClose, onSignIn }) {
           to { opacity: 1; }
         }
         @media (max-width: 700px) {
-          .fflick-movie-modal-main { width: 97vw !important; min-width: 0 !important; }
-          .fflick-movie-modal-image { max-height: 210px !important; }
+          .fflick-movie-modal-main { width: 99vw !important; min-width: 0 !important; }
+          .fflick-movie-modal-image { max-height: 178px !important; }
         }
       `}</style>
       <div
@@ -261,26 +289,29 @@ function MovieModal({ movie, onClose, onSignIn }) {
           position: "fixed",
           left: "50%", top: "50%",
           transform: "translate(-50%, -50%)",
-          width: "490px", maxWidth: "97vw", minWidth: "320px",
+          width: "430px", maxWidth: "99vw", minWidth: "270px",
           background: "#18141c",
           borderRadius: "18px",
           boxShadow: "0 9px 54px #000b",
           color: "#fff",
           zIndex: 10001,
           overflow: "hidden",
-          animation: "modalFadeIn 0.23s"
+          animation: "modalFadeIn 0.19s"
         }}
-        onClick={e => e.stopPropagation()}
+        role="document"
+        aria-label={`Details for ${movie.title}`}
+        tabIndex={0}
       >
         {/* Close Button */}
         <button
+          ref={closeRef}
           onClick={onClose}
-          aria-label="Close"
+          aria-label="Close movie details"
           style={{
-            position: "absolute", top: 17, right: 17,
-            background: "rgba(34,32,32,0.81)",
-            border: "none", color: "#fff", fontSize: 32,
-            width: 40, height: 40, borderRadius: "50%",
+            position: "absolute", top: 14, right: 14,
+            background: "rgba(34,32,32,0.87)",
+            border: "none", color: "#fff", fontSize: 29,
+            width: 36, height: 36, borderRadius: "50%",
             cursor: "pointer", zIndex: 1, display: "flex", alignItems: "center", justifyContent: "center"
           }}
         >&#10005;</button>
@@ -295,23 +326,23 @@ function MovieModal({ movie, onClose, onSignIn }) {
           alt={movie.title}
           style={{
             width: "100%", objectFit: "cover",
-            maxHeight: 220, borderTopLeftRadius: 18, borderTopRightRadius: 18,
-            filter: "brightness(0.91) contrast(1.07)"
+            maxHeight: 195, borderTopLeftRadius: 18, borderTopRightRadius: 18,
+            filter: "brightness(0.92) contrast(1.08)"
           }}
         />
-        <div style={{ padding: "26px 18px 18px 18px" }}>
+        <div style={{ padding: "20px 16px 16px 16px" }}>
           <div style={{
-            fontWeight: 900, fontSize: 28, marginBottom: 11,
+            fontWeight: 900, fontSize: 24, marginBottom: 10,
             letterSpacing: "-1px"
           }}>
             {movie.title}
           </div>
-          <div style={{ marginBottom: 12, display: "flex", gap: 7, flexWrap: "wrap" }}>
+          <div style={{ marginBottom: 10, display: "flex", gap: 7, flexWrap: "wrap" }}>
             {movie.release_date && (
               <span style={{
                 background: "#33373c", color: "#fff",
-                borderRadius: 7, padding: "4px 13px",
-                fontSize: 15, marginRight: 3
+                borderRadius: 7, padding: "3px 11px",
+                fontSize: 13, marginRight: 3
               }}>
                 {movie.release_date.slice(0, 4)}
               </span>
@@ -320,40 +351,41 @@ function MovieModal({ movie, onClose, onSignIn }) {
             {genreLabels.map((label, i) => (
               <span key={label} style={{
                 background: "#33373c", color: "#fff",
-                borderRadius: 7, padding: "4px 13px",
-                fontSize: 15, marginRight: 3
+                borderRadius: 7, padding: "3px 11px",
+                fontSize: 13, marginRight: 3
               }}>
                 {label}
               </span>
             ))}
           </div>
           <div style={{
-            fontSize: 15.5, color: "#f2f2f2", marginBottom: 22,
-            fontWeight: 400, lineHeight: 1.56
+            fontSize: 14, color: "#f2f2f2", marginBottom: 19,
+            fontWeight: 400, lineHeight: 1.52
           }}>
             {movie.overview || "No description available."}
           </div>
           <button
             onClick={onSignIn}
+            aria-label="Sign up or log in to start tracking"
             style={{
               background: "linear-gradient(90deg,#fe9245 10%,#eb423b 90%)",
               color: "#fff",
               border: "none",
               borderRadius: 8,
               fontWeight: 700,
-              fontSize: 15,         // smaller font size
-              padding: "7px 18px",  // less padding
-              minWidth: 100,        // smaller min width
+              fontSize: 14,
+              padding: "7px 17px",
+              minWidth: 82,
               boxShadow: "0 2px 8px #fe92451a",
               cursor: "pointer",
               transition: "all 0.15s",
               letterSpacing: "0.01em",
-              marginTop: 8,
+              marginTop: 6,
               display: "flex", alignItems: "center", gap: 7,
             }}
             onMouseEnter={e => {
               e.currentTarget.style.background = "linear-gradient(90deg,#eb423b 10%,#fe9245 90%)";
-              e.currentTarget.style.transform = "scale(1.03)";
+              e.currentTarget.style.transform = "scale(1.04)";
               e.currentTarget.style.boxShadow = "0 6px 18px #fe92452d";
             }}
             onMouseLeave={e => {
@@ -362,7 +394,7 @@ function MovieModal({ movie, onClose, onSignIn }) {
               e.currentTarget.style.boxShadow = "0 2px 8px #fe92451a";
             }}
           >
-            Get Started <span style={{ fontSize: 18, marginLeft: 1 }}>›</span>
+            Get Started <span style={{ fontSize: 16, marginLeft: 1 }}>›</span>
           </button>
         </div>
       </div>

@@ -21,7 +21,7 @@ export default function LandingHero() {
         align-items: flex-start;
       }
       .fflick-hero-title {
-        font-size: clamp(2.4rem, 5.2vw, 3.7rem) !important;
+        font-size: clamp(2.4rem, 5.4vw, 3.7rem) !important;
       }
       .fflick-hero-desc {
         font-size: clamp(0.9rem, 1.7vw, 1.1rem) !important;
@@ -105,7 +105,7 @@ export default function LandingHero() {
             fontWeight: 900,
             // REMOVE fontSize
             color: "#fff",
-            letterSpacing: "-0.7px",
+            letterSpacing: "-0.3px",
             marginBottom: 18,
             textShadow: "0 4px 22px #000c, 0 2px 8px #18406d77",
             lineHeight: 1.09,
@@ -143,7 +143,7 @@ export default function LandingHero() {
             background: "linear-gradient(90deg,#fe9245 10%,#eb423b 90%)",
             color: "#fff",
             border: "none",
-            borderRadius: 14,
+            borderRadius: 12,
             fontWeight: 900,
             // REMOVE fontSize, padding, minWidth, minHeight
             cursor: "pointer",

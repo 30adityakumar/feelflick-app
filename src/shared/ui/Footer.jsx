@@ -87,12 +87,6 @@ export default function Footer() {
             <a href="https://tiktok.com/@feelflick" style={iconButtonStyle} target="_blank" rel="noopener noreferrer" aria-label="TikTok">
               <FaTiktok />
             </a>
-            <a href="https://facebook.com" style={iconButtonStyle} target="_blank" rel="noopener noreferrer" aria-label="Facebook">
-              <FaFacebookF />
-            </a>
-            <a href="https://linkedin.com" style={iconButtonStyle} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
-              <FaLinkedinIn />
-            </a>
           </div>
         </div>
       </div>

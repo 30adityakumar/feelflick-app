@@ -7,42 +7,54 @@ export default function LandingHero() {
   return (
     <>
     <style>{`
-      .fflick-hero-section { background: #000 !important; }
-      .fflick-hero-left {
-        position: absolute !important;
-        left: clamp(7vw, 7%, 32px);
-        top: 50%;
-        transform: translateY(-50%);
-        z-index: 3;
-        max-width: 590px;
-        color: #fff;
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      .fflick-hero-title {
-        font-size: clamp(2.4rem, 5.5vw, 3.7rem) !important;
-      }
-      .fflick-hero-desc {
-        font-size: clamp(0.9rem, 1.7vw, 1.1rem) !important;
-      }
-      .fflick-hero-btn {
-        font-size: clamp(0.92rem, 2.4vw, 1.08rem) !important;
-        padding: clamp(8px, 2vw, 13px) clamp(16px, 6vw, 44px) !important;
-        min-width: clamp(80px, 23vw, 140px) !important;
-        min-height: clamp(38px, 8.2vw, 44px) !important;
-        border-radius: 14px !important;
-      }
-      @media (max-width: 1050px) {
-        .fflick-hero-left { left: 5vw !important; max-width: 96vw !important; }
-      }
-      @media (max-width: 700px) {
-        .fflick-hero-left { left: 2vw !important; max-width: 96vw !important; padding-right: 2vw !important;}
-      }
-      @media (max-width: 420px) {
-        .fflick-hero-left { left: 1vw !important; max-width: 98vw !important; padding-right: 1vw !important;}
-      }
-    `}</style>
+  .fflick-hero-section { background: #000 !important; }
+  .fflick-hero-left {
+    position: absolute !important;
+    left: clamp(7vw, 7%, 32px);
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 3;
+    max-width: 590px;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .fflick-hero-title {
+    font-size: clamp(2.4rem, 5.5vw, 3.7rem) !important;
+  }
+  .fflick-hero-desc {
+    font-size: clamp(0.9rem, 1.7vw, 1.1rem) !important;
+  }
+  .fflick-hero-btn {
+    font-size: clamp(0.92rem, 2.4vw, 1.08rem) !important;
+    padding: clamp(8px, 2vw, 13px) clamp(16px, 6vw, 44px) !important;
+    min-width: clamp(80px, 23vw, 140px) !important;
+    min-height: clamp(38px, 8.2vw, 44px) !important;
+    border-radius: 14px !important;
+  }
+  @media (max-width: 700px) {
+    .fflick-hero-section { min-height: 96vh !important; }
+    .fflick-hero-left {
+      left: 6vw !important;
+      top: 12vw !important;
+      transform: none !important;
+      max-width: 88vw !important;
+      padding-right: 2vw !important;
+      align-items: flex-start !important;
+    }
+  }
+  @media (max-width: 480px) {
+    .fflick-hero-section { min-height: 82vh !important; }
+    .fflick-hero-left {
+      left: 3vw !important;
+      top: 8vw !important;
+      max-width: 97vw !important;
+      padding-right: 1vw !important;
+    }
+  }
+`}</style>
+
 
 
       <section
@@ -63,24 +75,26 @@ export default function LandingHero() {
       >
         {/* ---- Video as background, starts right of the text ---- */}
         <video
-          src={HERO_VIDEO}
-          autoPlay
-          loop
-          muted
-          playsInline
-          poster="/background-poster.jpg"
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            left: "24vw",
-            top: 0,
-            width: "76vw",
-            height: "100%",
-            objectFit: "cover",
-            zIndex: 1,
-            transition: "left 0.18s",
-          }}
-        />
+  src={HERO_VIDEO}
+  autoPlay
+  loop
+  muted
+  playsInline
+  poster="/background-poster.jpg"
+  aria-hidden="true"
+  className="fflick-hero-video"
+  style={{
+    position: "absolute",
+    left: "24vw",
+    top: 0,
+    width: "76vw",
+    height: "100%",
+    objectFit: "cover",
+    zIndex: 1,
+    transition: "left 0.18s, width 0.18s",
+  }}
+/>
+
 
         {/* ---- Black to transparent overlay (on top of video, under text) ---- */}
         <div

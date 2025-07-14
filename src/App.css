@@ -141,3 +141,11 @@ header {
 .bg-green-700:hover {
   background-color: #15803d;
 }
+
+@media (max-width: 700px) {
+  .fflick-hero-video {
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100% !important;
+  }
+}

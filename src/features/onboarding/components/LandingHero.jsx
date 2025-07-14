@@ -21,16 +21,16 @@ export default function LandingHero() {
         align-items: flex-start;
       }
       .fflick-hero-title {
-        font-size: clamp(2.4rem, 5.4vw, 3.7rem) !important;
+        font-size: clamp(2.4rem, 5.5vw, 3.7rem) !important;
       }
       .fflick-hero-desc {
         font-size: clamp(0.9rem, 1.7vw, 1.1rem) !important;
       }
       .fflick-hero-btn {
-        font-size: clamp(0.92rem, 2.4vw, 1.08rem) !important;
-        padding: clamp(10px, 2vw, 15px) clamp(18px, 6vw, 44px) !important;
-        min-width: clamp(80px, 23vw, 140px) !important;
-        min-height: clamp(36px, 8vw, 44px) !important;
+        font-size: clamp(0.6rem, 2.4vw, 1.08rem) !important;
+        padding: clamp(8px, 2vw, 15px) clamp(14px, 5vw, 44px) !important;
+        min-width: clamp(70px, 20vw, 140px) !important;
+        min-height: clamp(32px, 7vw, 44px) !important;
         border-radius: 14px !important;
       }
       @media (max-width: 1050px) {
@@ -143,7 +143,7 @@ export default function LandingHero() {
             background: "linear-gradient(90deg,#fe9245 10%,#eb423b 90%)",
             color: "#fff",
             border: "none",
-            borderRadius: 12,
+            borderRadius: 14,
             fontWeight: 900,
             // REMOVE fontSize, padding, minWidth, minHeight
             cursor: "pointer",

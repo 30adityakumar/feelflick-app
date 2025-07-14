@@ -28,44 +28,65 @@ export default function WhyFeelFlick() {
         }
         .fflick-box { animation: fadeInUp 0.7s ease both; }
 
-        /* MOBILE STYLES */
+        .fflick-card:focus-visible {
+          outline: 2.5px solid #fe9245;
+          outline-offset: 2px;
+        }
+
+        /* Make all font sizes and paddings responsive with clamp */
+        .fflick-section-title {
+          font-size: clamp(1.09rem, 3vw, 1.37rem) !important;
+          margin-bottom: clamp(18px, 3vw, 28px) !important;
+          margin-top: 16px !important;
+          letter-spacing: 0.14em !important;
+          font-weight: 900 !important;
+          color: #fff !important;
+          text-transform: uppercase;
+        }
+        .fflick-box {
+          padding: clamp(0.6rem, 3vw, 1.2rem) clamp(1.2rem, 7vw, 2.5rem) !important;
+          border-radius: clamp(16px, 2vw, 28px) !important;
+          gap: clamp(1.3rem, 4vw, 2.7rem) !important;
+        }
+        .fflick-card {
+          padding: clamp(1.2rem, 4vw, 2.2rem) clamp(1rem, 4vw, 1.7rem) !important;
+          border-radius: clamp(13px, 2vw, 22px) !important;
+          min-width: clamp(220px, 32vw, 335px) !important;
+          max-width: clamp(99vw, 33vw, 490px) !important;
+        }
+        .fflick-title {
+          font-size: clamp(1.14rem, 3.5vw, 1.75rem) !important;
+        }
+        .fflick-desc {
+          font-size: clamp(0.97rem, 2.5vw, 1.05rem) !important;
+        }
+
         @media (max-width: 1020px) {
-          .fflick-box { flex-direction: column !important; padding: 2vw 0 !important; }
-          .fflick-card { 
-            width: 96vw !important; 
-            max-width: 99vw !important; 
-            min-width: unset !important; 
-            margin-bottom: 1.3rem !important;
-            padding: 1.2rem 5vw !important;
-          }
-          .fflick-title {
-            font-size: 1.14rem !important;
-          }
-          .fflick-desc {
-            font-size: 0.97rem !important;
-          }
+          .fflick-box { flex-direction: column !important; align-items: center !important; }
+          .fflick-card { width: 96vw !important; max-width: 99vw !important; margin-bottom: 1.3rem !important;}
         }
         @media (max-width: 600px) {
           .fflick-section-title {
             font-size: 1.03rem !important;
             margin-bottom: 20px !important;
           }
-          .fflick-box { 
-            padding: 2vw 0 !important; 
-            border-radius: 18px !important; 
-          }
+          .fflick-box { border-radius: 18px !important; }
         }
       `}</style>
-      <div style={{
-        width: '100vw',
-        background: 'rgba(10,10,10,0.73)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'flex-start',
-        justifyContent: 'center',
-        padding: '14px 0 10px 0',
-        boxSizing: 'border-box',
-      }}>
+      <section
+        role="region"
+        aria-labelledby="whyfeelflick-heading"
+        style={{
+          width: '100vw',
+          background: 'rgba(10,10,10,0.73)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'flex-start',
+          justifyContent: 'center',
+          padding: '14px 0 10px 0',
+          boxSizing: 'border-box',
+        }}
+      >
         <div style={{
           width: '100%',
           padding: '0 7vw',
@@ -74,46 +95,33 @@ export default function WhyFeelFlick() {
           flexDirection: 'column',
         }}>
           {/* Section Title */}
-          <div className="fflick-section-title" style={{
-            fontWeight: 900,
-            fontSize: "1.37rem",
-            color: "#fff",
-            letterSpacing: "0.14em",
-            marginLeft: 0,
-            marginBottom: 28,
-            marginTop: 16,
-            textAlign: "left",
-            textTransform: "uppercase"
-          }}>
+          <h2 id="whyfeelflick-heading" className="fflick-section-title">
             More Reasons To Join
-          </div>
-          <div className="fflick-box" style={{
-            background: 'rgba(10,10,10,0.73)',
-            borderRadius: '28px',
-            padding: '1.2rem 2.5rem',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'stretch',
-            width: '100%',
-            maxWidth: '1450px',
-            margin: '0 auto',
-            boxShadow: '0 8px 48px 0 rgba(0,0,0,0.12)',
-            gap: '2.7rem',
-            flexWrap: 'nowrap'
-          }}>
+          </h2>
+          <div
+            className="fflick-box"
+            style={{
+              background: 'rgba(10,10,10,0.73)',
+              borderRadius: '28px',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'stretch',
+              width: '100%',
+              maxWidth: '1450px',
+              margin: '0 auto',
+              boxShadow: '0 8px 48px 0 rgba(0,0,0,0.12)',
+              flexWrap: 'nowrap',
+            }}
+          >
             {cards.map((card, idx) => (
-              <div
+              <article
                 key={idx}
                 className="fflick-card"
                 style={{
                   flex: '0 1 34%',
-                  minWidth: '335px',
-                  maxWidth: '490px',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'flex-start',
-                  padding: '2.2rem 1.7rem',
-                  borderRadius: '22px',
                   background: 'rgba(22,16,10,0.94)',
                   border: '1.5px solid rgba(255,91,46,0.12)',
                   boxShadow: '0 2.5px 12px 0 rgba(40,24,14,0.11)',
@@ -123,12 +131,14 @@ export default function WhyFeelFlick() {
                   animation: `fadeInUp 0.7s cubic-bezier(.25,.7,.3,1.1) ${(idx * 0.14).toFixed(2)}s both`,
                 }}
                 tabIndex={0}
+                aria-labelledby={`whyfeelflick-card-title-${idx}`}
+                aria-describedby={`whyfeelflick-card-desc-${idx}`}
               >
                 <h3
+                  id={`whyfeelflick-card-title-${idx}`}
                   className="fflick-title"
                   style={{
                     margin: '0 0 1.2rem',
-                    fontSize: '1.75rem',
                     fontWeight: 950,
                     lineHeight: 1.19,
                     background: 'linear-gradient(88deg, var(--theme-color,#FF5B2E), var(--theme-color-secondary,#367cff) 80%)',
@@ -140,10 +150,10 @@ export default function WhyFeelFlick() {
                   {card.title}
                 </h3>
                 <p
+                  id={`whyfeelflick-card-desc-${idx}`}
                   className="fflick-desc"
                   style={{
                     margin: 0,
-                    fontSize: '1.05rem',
                     color: '#c6c7d2',
                     lineHeight: '1.72',
                     fontWeight: 200,
@@ -152,11 +162,11 @@ export default function WhyFeelFlick() {
                 >
                   {card.description}
                 </p>
-              </div>
+              </article>
             ))}
           </div>
         </div>
-      </div>
+      </section>
     </>
   );
 }

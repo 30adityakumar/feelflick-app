@@ -3,7 +3,6 @@ import TopNav from '@/shared/ui/TopNav'
 import LandingHero from '@/features/onboarding/components/LandingHero'
 import WhyFeelFlick from '@/features/onboarding/components/WhyFeelFlick'
 import TrendingToday from '@/features/recommendations/components/TrendingToday'
-import CallToAction from '@/features/onboarding/components/CallToAction'
 import Footer from '@/shared/ui/Footer'
 
 export default function Landing() {
@@ -52,7 +51,6 @@ export default function Landing() {
         <LandingHero onGetStarted={handleSignUp} />
         <WhyFeelFlick />
         <TrendingToday onSignUp={handleSignUp} />
-        <CallToAction onSignUp={handleSignUp} />
         <Footer />
       </div>
     </div>

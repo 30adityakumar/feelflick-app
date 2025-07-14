@@ -35,7 +35,7 @@ export default function WhyFeelFlick() {
 
         /* Make all font sizes and paddings responsive with clamp */
         .fflick-section-title {
-          font-size: clamp(1.09rem, 3vw, 1.37rem) !important;
+          font-size: clamp(1.4rem, 3vw, 1.37rem) !important;
           margin-bottom: clamp(18px, 3vw, 28px) !important;
           margin-top: 16px !important;
           letter-spacing: 0.14em !important;

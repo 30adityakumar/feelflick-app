@@ -66,13 +66,12 @@ export default function TopNav() {
             border-radius: 6px !important;
           }
           .fflick-topnav-signin {
-            font-size: 0.92rem !important;
-            padding: 7.2px 18px !important;
-            min-width: 84px !important;
-            min-height: 30px !important;
+            font-size: clamp(0.92rem, 2.2vw, 1.07rem) !important;
+            padding: clamp(6px, 1.5vw, 9.5px) clamp(14px, 5vw, 22px) !important;
+            min-width: clamp(68px, 14vw, 104px) !important;
+            min-height: clamp(28px, 7vw, 38px) !important;
             border-radius: 8px !important;
           }
-        }
       `}</style>
 
       <nav

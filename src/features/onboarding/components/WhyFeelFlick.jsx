@@ -101,7 +101,7 @@ export default function WhyFeelFlick() {
           <div
             className="fflick-box"
             style={{
-              background: 'rgba(10,10,10,0.73)',
+              background: 'rgba(12, 11, 10, 0.80)',
               borderRadius: '28px',
               display: 'flex',
               justifyContent: 'center',
@@ -154,7 +154,7 @@ export default function WhyFeelFlick() {
                   className="fflick-desc"
                   style={{
                     margin: 0,
-                    color: '#c6c7d2',
+                    color: '#ffffffff',
                     lineHeight: '1.72',
                     fontWeight: 200,
                     letterSpacing: '0.013em',

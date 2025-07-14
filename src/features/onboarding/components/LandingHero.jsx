@@ -24,7 +24,7 @@ export default function LandingHero() {
         font-size: clamp(1.45rem, 6vw, 3.9rem) !important;
       }
       .fflick-hero-desc {
-        font-size: clamp(1rem, 2.5vw, 1.22rem) !important;
+        font-size: clamp(0.8rem, 2vw, 1rem) !important;
       }
       .fflick-hero-btn {
         font-size: clamp(0.92rem, 2.4vw, 1.08rem) !important;

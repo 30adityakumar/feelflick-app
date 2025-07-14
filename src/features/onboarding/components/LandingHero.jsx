@@ -27,10 +27,10 @@ export default function LandingHero() {
         font-size: clamp(0.9rem, 1.7vw, 1.1rem) !important;
       }
       .fflick-hero-btn {
-        font-size: clamp(0.6rem, 2.4vw, 1.08rem) !important;
-        padding: clamp(8px, 2vw, 15px) clamp(14px, 5vw, 44px) !important;
-        min-width: clamp(70px, 20vw, 140px) !important;
-        min-height: clamp(32px, 7vw, 44px) !important;
+        font-size: clamp(0.92rem, 2.4vw, 1.08rem) !important;
+        padding: clamp(8px, 2vw, 13px) clamp(16px, 6vw, 44px) !important;
+        min-width: clamp(80px, 23vw, 140px) !important;
+        min-height: clamp(36px, 8vw, 44px) !important;
         border-radius: 14px !important;
       }
       @media (max-width: 1050px) {

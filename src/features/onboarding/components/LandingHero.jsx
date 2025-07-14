@@ -99,72 +99,72 @@ export default function LandingHero() {
 
         {/* ---- Hero content overlays on left ---- */}
         <div className="fflick-hero-left" tabIndex={0}>
-          <h1
-            className="fflick-hero-title"
-            style={{
-              fontWeight: 900,
-              fontSize: "clamp(2.4rem,6vw,3.9rem)",
-              color: "#fff",
-              letterSpacing: "-0.7px",
-              marginBottom: 18,
-              textShadow: "0 4px 22px #000c, 0 2px 8px #18406d77",
-              lineHeight: 1.09,
-              outline: "none",
-            }}
-            tabIndex={0}
-            aria-label="Movies that match your mood"
-          >
-            Movies that match your mood.
-          </h1>
-          <div
-            style={{
-              fontWeight: 400,
-              fontSize: "clamp(1.02rem,1.12vw,1.15rem)",
-              color: "#F6E3D7",
-              opacity: 0.97,
-              marginBottom: 30,
-              lineHeight: 1.57,
-              textShadow: "0 2px 8px #0003",
-              outline: "none",
-            }}
-            tabIndex={0}
-            aria-label="Get the perfect recommendation based on your taste and how you feel. Fast, private, and always free."
-          >
-            Get the perfect recommendation based on your taste and how you feel.<br />
-            Fast, private, and always free.
-          </div>
-          <button
-            tabIndex={0}
-            aria-label="Get started with FeelFlick"
-            onClick={() => navigate("/auth/sign-up")}
-            style={{
-              background: "linear-gradient(90deg,#fe9245 10%,#eb423b 90%)",
-              color: "#fff",
-              border: "none",
-              borderRadius: 14,
-              fontWeight: 900,
-              fontSize: "1rem",
-              padding: "10px 28px",
-              minWidth: 100,
-              minHeight: 40,
-              cursor: "pointer",
-              letterSpacing: "0.01em",
-              transition: "filter 0.12s, transform 0.12s, opacity 0.12s",
-              outline: "none",
-            }}
-            onFocus={e => (e.currentTarget.style.filter = "brightness(1.09)")}
-            onBlur={e => (e.currentTarget.style.filter = "none")}
-            onKeyDown={e => {
-              if (e.key === "Enter" || e.key === " ") navigate("/auth/sign-up");
-            }}
-            onMouseDown={e => (e.currentTarget.style.transform = "scale(.97)")}
-            onMouseUp={e => (e.currentTarget.style.transform = "scale(1)")}
-            onMouseEnter={e => (e.currentTarget.style.filter = "brightness(1.06)")}
-            onMouseLeave={e => (e.currentTarget.style.filter = "none")}
-          >
-            Get started
-          </button>
+        <h1
+          className="fflick-hero-title"
+          style={{
+            fontWeight: 900,
+            // REMOVE fontSize
+            color: "#fff",
+            letterSpacing: "-0.7px",
+            marginBottom: 18,
+            textShadow: "0 4px 22px #000c, 0 2px 8px #18406d77",
+            lineHeight: 1.09,
+            outline: "none",
+          }}
+          tabIndex={0}
+          aria-label="Movies that match your mood"
+        >
+          Movies that match your mood.
+        </h1>
+        <div
+          className="fflick-hero-desc"
+          style={{
+            fontWeight: 400,
+            // REMOVE fontSize
+            color: "#F6E3D7",
+            opacity: 0.97,
+            marginBottom: 30,
+            lineHeight: 1.57,
+            textShadow: "0 2px 8px #0003",
+            outline: "none",
+          }}
+          tabIndex={0}
+          aria-label="Get the perfect recommendation based on your taste and how you feel. Fast, private, and always free."
+        >
+          Get the perfect recommendation based on your taste and how you feel.<br />
+          Fast, private, and always free.
         </div>
+        <button
+          className="fflick-hero-btn"
+          tabIndex={0}
+          aria-label="Get started with FeelFlick"
+          onClick={() => navigate("/auth/sign-up")}
+          style={{
+            background: "linear-gradient(90deg,#fe9245 10%,#eb423b 90%)",
+            color: "#fff",
+            border: "none",
+            borderRadius: 14,
+            fontWeight: 900,
+            // REMOVE fontSize, padding, minWidth, minHeight
+            cursor: "pointer",
+            letterSpacing: "0.01em",
+            transition: "filter 0.12s, transform 0.12s, opacity 0.12s",
+            outline: "none",
+          }}
+          onFocus={e => (e.currentTarget.style.filter = "brightness(1.09)")}
+          onBlur={e => (e.currentTarget.style.filter = "none")}
+          onKeyDown={e => {
+            if (e.key === "Enter" || e.key === " ") navigate("/auth/sign-up");
+          }}
+          onMouseDown={e => (e.currentTarget.style.transform = "scale(.97)")}
+          onMouseUp={e => (e.currentTarget.style.transform = "scale(1)")}
+          onMouseEnter={e => (e.currentTarget.style.filter = "brightness(1.06)")}
+          onMouseLeave={e => (e.currentTarget.style.filter = "none")}
+        >
+          Get started
+        </button>
+      </div>
+
       </section>
     </>
   );

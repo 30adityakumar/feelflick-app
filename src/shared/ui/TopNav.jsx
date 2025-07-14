@@ -86,7 +86,7 @@ export default function TopNav() {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          background: "rgba(18,18,22,0.5)",
+          background: "rgba(18,18,22,0.4)",
           backdropFilter: "blur(6px)",
           borderRadius: 14,
           minHeight: 44,

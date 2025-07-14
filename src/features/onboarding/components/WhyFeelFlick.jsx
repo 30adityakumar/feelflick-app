@@ -68,7 +68,7 @@ export default function WhyFeelFlick() {
           font-weight: 950;
         }
         .fflick-desc {
-          font-size: clamp(0.97rem, 2.5vw, 1.08rem) !important;
+          font-size: clamp(0.87rem, 2vw, 0.99rem) !important;
           color: #fff !important;        /* lighter, more visible */
           opacity: 0.97 !important;
         }

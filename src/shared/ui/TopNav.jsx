@@ -13,7 +13,6 @@ export default function TopNav() {
       if (!ticking) {
         window.requestAnimationFrame(() => {
           const curr = window.scrollY;
-          // Hide if scrolled down, show if scrolling up, never appear unless scrolling up
           setHidden(curr > 48 && curr > lastScroll);
           setLastScroll(curr);
           ticking = false;
@@ -29,8 +28,8 @@ export default function TopNav() {
     <header
       className={`
         fixed z-50 flex justify-center pointer-events-none transition-transform duration-400 ease-[cubic-bezier(.4,.4,0,1)]
-        top-4 inset-x-6
-        sm:top-2 sm:inset-x-2
+        top-4 left-0 right-0
+        sm:top-2
       `}
       style={{
         transform: hidden ? "translateY(-130%)" : "translateY(0)",
@@ -42,8 +41,9 @@ export default function TopNav() {
         className={`
           pointer-events-auto w-full flex items-center rounded-2xl shadow-xl
           bg-zinc-950/40 backdrop-blur-[6px]
-          px-7 py-2 min-h-[44px]
-          sm:px-3 sm:py-2
+          px-4 py-2
+          max-w-[700px] mx-2
+          sm:mx-2 sm:px-2
         `}
         aria-label="Main navigation"
         role="navigation"
@@ -57,19 +57,18 @@ export default function TopNav() {
           <img
             src={logo}
             alt="FeelFlick logo"
-            className="h-[38px] w-[38px] rounded-2xl shadow-sm group-hover:scale-105 group-hover:shadow-xl transition
-                      sm:h-8 sm:w-8"
+            className="h-9 w-9 md:h-10 md:w-10 rounded-2xl shadow-sm group-hover:scale-105 group-hover:shadow-xl transition"
             draggable={false}
           />
           <span
-            className="
-              uppercase font-extrabold tracking-wide select-none ml-2 drop-shadow
-              text-[29px] leading-[1.12]
-              sm:text-lg sm:ml-1
-            "
+            className={`
+              uppercase font-extrabold tracking-widest select-none ml-1 drop-shadow
+              text-[1.3rem] leading-[1.12]
+              md:text-[1.7rem] md:ml-2
+            `}
             style={{
               color: "#F6E3D7",
-              letterSpacing: "0.05em",
+              letterSpacing: "0.07em",
               textShadow: "0 1px 10px #fff1, 0 1px 20px #18406d24",
             }}
           >
@@ -82,21 +81,21 @@ export default function TopNav() {
         {location.pathname !== "/auth/sign-in" && (
           <Link
             to="/auth/sign-in"
-            className="
+            className={`
               bg-gradient-to-r from-orange-400 to-red-500
               text-white font-extrabold
-              px-6 py-2 rounded-xl shadow-md transition
+              px-4 py-1 rounded-xl shadow-md transition
               focus-visible:outline-2 focus-visible:outline-white
               hover:opacity-95
-              min-w-[95px] min-h-[36px] text-[1.07rem] text-center
+              min-w-[80px] text-base text-center
               active:scale-97
-              sm:text-base sm:min-w-[80px] sm:px-3 sm:py-2
-            "
+              md:min-w-[95px] md:text-[1.07rem] md:px-6
+            `}
             aria-label="Sign in"
             tabIndex={0}
             style={{
               boxShadow: "0 2px 12px #eb423b1a",
-              fontSize: "1.07rem",
+              fontSize: "1rem",
             }}
           >
             Sign in

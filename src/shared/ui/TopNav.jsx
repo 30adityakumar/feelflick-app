@@ -7,6 +7,7 @@ export default function TopNav() {
   const [lastScroll, setLastScroll] = useState(0);
   const location = useLocation();
 
+  // Hide nav when scrolling down, show on scroll up
   useEffect(() => {
     let ticking = false;
     const handleScroll = () => {
@@ -27,8 +28,8 @@ export default function TopNav() {
   return (
     <header
       className={`
-        fixed z-50 flex justify-center pointer-events-none transition-transform duration-400 ease-[cubic-bezier(.4,.4,0,1)]
-        top-4 left-0 right-0
+        fixed top-4 left-0 right-0 z-50 flex justify-center pointer-events-none transition-transform duration-400
+        md:top-4 md:left-0 md:right-0
         sm:top-2
       `}
       style={{
@@ -39,44 +40,40 @@ export default function TopNav() {
     >
       <nav
         className={`
-          pointer-events-auto w-full flex items-center rounded-2xl shadow-xl
-          bg-zinc-950/40 backdrop-blur-[6px]
-          px-4 py-2
-          max-w-[700px] mx-2
-          sm:mx-2 sm:px-2
+          pointer-events-auto w-full max-w-[1220px] flex items-center
+          bg-[rgba(18,18,22,0.4)] backdrop-blur-[6px] shadow-xl
+          rounded-3xl min-h-[56px]
+          px-6 py-2
         `}
         aria-label="Main navigation"
         role="navigation"
       >
-        {/* Logo + Brand */}
+        {/* Logo + FEELFLICK */}
         <Link
           to="/"
-          className="flex items-center gap-2 group focus-visible:outline-2"
+          className="flex items-center gap-3 focus-visible:outline-2"
           aria-label="Go to FeelFlick home page"
+          tabIndex={0}
         >
           <img
             src={logo}
             alt="FeelFlick logo"
-            className="h-9 w-9 md:h-10 md:w-10 rounded-2xl shadow-sm group-hover:scale-105 group-hover:shadow-xl transition"
+            className="h-10 w-10 rounded-2xl shadow group-hover:scale-105 transition"
             draggable={false}
           />
           <span
-            className={`
-              uppercase font-extrabold tracking-widest select-none ml-1 drop-shadow
-              text-[1.3rem] leading-[1.12]
-              md:text-[1.7rem] md:ml-2
-            `}
+            className="uppercase font-extrabold tracking-wider select-none text-[2rem] pl-1"
             style={{
               color: "#F6E3D7",
-              letterSpacing: "0.07em",
+              letterSpacing: "0.08em",
               textShadow: "0 1px 10px #fff1, 0 1px 20px #18406d24",
+              lineHeight: "1",
             }}
           >
             FEELFLICK
           </span>
         </Link>
         <span className="flex-1" />
-
         {/* Sign In Button */}
         {location.pathname !== "/auth/sign-in" && (
           <Link
@@ -84,18 +81,18 @@ export default function TopNav() {
             className={`
               bg-gradient-to-r from-orange-400 to-red-500
               text-white font-extrabold
-              px-4 py-1 rounded-xl shadow-md transition
+              px-7 py-2 rounded-2xl shadow-md transition
               focus-visible:outline-2 focus-visible:outline-white
               hover:opacity-95
-              min-w-[80px] text-base text-center
+              min-w-[110px] text-lg text-center
               active:scale-97
-              md:min-w-[95px] md:text-[1.07rem] md:px-6
             `}
             aria-label="Sign in"
             tabIndex={0}
             style={{
               boxShadow: "0 2px 12px #eb423b1a",
-              fontSize: "1rem",
+              fontSize: "1.15rem",
+              minHeight: "40px",
             }}
           >
             Sign in

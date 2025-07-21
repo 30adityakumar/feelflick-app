@@ -1,20 +1,20 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import logo from "@assets/images/logo.png"; // Update as needed
+import logo from "@assets/images/logo.png"; // Adjust path if needed
 
 export default function TopNav() {
   const [hidden, setHidden] = useState(false);
   const [lastScroll, setLastScroll] = useState(0);
   const location = useLocation();
 
-  // Hide nav on scroll down, show on scroll up
   useEffect(() => {
     let ticking = false;
     const handleScroll = () => {
       if (!ticking) {
         window.requestAnimationFrame(() => {
           const curr = window.scrollY;
-          setHidden(curr > 64 && curr > lastScroll);
+          // Hide if scrolled down, show if scrolling up, never appear unless scrolling up
+          setHidden(curr > 48 && curr > lastScroll);
           setLastScroll(curr);
           ticking = false;
         });
@@ -27,43 +27,49 @@ export default function TopNav() {
 
   return (
     <header
-      className="fixed left-0 right-0 z-50 flex justify-center pointer-events-none transition-transform duration-400"
+      className={`
+        fixed z-50 flex justify-center pointer-events-none transition-transform duration-400 ease-[cubic-bezier(.4,.4,0,1)]
+        top-4 inset-x-6
+        sm:top-2 sm:inset-x-2
+      `}
       style={{
-        top: hidden ? "-90px" : "18px",
-        transitionProperty: "top, background",
+        transform: hidden ? "translateY(-130%)" : "translateY(0)",
+        transitionProperty: "transform, background",
       }}
       role="banner"
     >
       <nav
-        className="
-          pointer-events-auto w-full max-w-4xl mx-6
-          bg-zinc-950/40 backdrop-blur-[6px] shadow-2xl
-          rounded-2xl flex items-center
-          px-9 py-2 min-h-[44px]
-        "
+        className={`
+          pointer-events-auto w-full flex items-center rounded-2xl shadow-xl
+          bg-zinc-950/40 backdrop-blur-[6px]
+          px-7 py-2 min-h-[44px]
+          sm:px-3 sm:py-2
+        `}
         aria-label="Main navigation"
         role="navigation"
       >
-        {/* ---- Logo ---- */}
+        {/* Logo + Brand */}
         <Link
           to="/"
           className="flex items-center gap-2 group focus-visible:outline-2"
           aria-label="Go to FeelFlick home page"
-          tabIndex={0}
         >
           <img
             src={logo}
             alt="FeelFlick logo"
-            className="h-[38px] w-[38px] rounded-2xl shadow-sm group-hover:scale-105 group-hover:shadow-xl transition"
+            className="h-[38px] w-[38px] rounded-2xl shadow-sm group-hover:scale-105 group-hover:shadow-xl transition
+                      sm:h-8 sm:w-8"
             draggable={false}
           />
           <span
-            className="uppercase font-extrabold tracking-wide select-none ml-2"
+            className="
+              uppercase font-extrabold tracking-wide select-none ml-2 drop-shadow
+              text-[29px] leading-[1.12]
+              sm:text-lg sm:ml-1
+            "
             style={{
               color: "#F6E3D7",
-              fontSize: "29px",
               letterSpacing: "0.05em",
-              lineHeight: "1.12",
               textShadow: "0 1px 10px #fff1, 0 1px 20px #18406d24",
             }}
           >
@@ -72,7 +78,7 @@ export default function TopNav() {
         </Link>
         <span className="flex-1" />
 
-        {/* ---- Sign In Button ---- */}
+        {/* Sign In Button */}
         {location.pathname !== "/auth/sign-in" && (
           <Link
             to="/auth/sign-in"
@@ -84,6 +90,7 @@ export default function TopNav() {
               hover:opacity-95
               min-w-[95px] min-h-[36px] text-[1.07rem] text-center
               active:scale-97
+              sm:text-base sm:min-w-[80px] sm:px-3 sm:py-2
             "
             aria-label="Sign in"
             tabIndex={0}

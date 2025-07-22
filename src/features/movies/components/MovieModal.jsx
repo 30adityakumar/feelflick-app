@@ -6,149 +6,85 @@ const GENRES = {
   878: "Sci-Fi", 10770: "TV", 53: "Thriller", 10752: "War", 37: "Western"
 };
 
-function MovieModal({ movie, onClose }) {
+export default function MovieModal({ movie, onClose }) {
   const navigate = useNavigate();
   if (!movie) return null;
   const genreLabels = (movie.genre_ids || []).map(id => GENRES[id] || null).filter(Boolean);
 
   return (
     <>
+      {/* Overlay */}
       <div
-        style={{
-          position: "fixed",
-          inset: 0,
-          background: "rgba(0,0,0,0.77)",
-          zIndex: 10000,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          animation: "modalFadeIn 0.22s"
-        }}
+        className="fixed inset-0 bg-black/80 z-[10000] flex items-center justify-center animate-fadeIn"
         onClick={onClose}
       />
-      <style>{`
-        @keyframes modalFadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        @media (max-width: 700px) {
-          .fflick-movie-modal-main { width: 97vw !important; min-width: 0 !important; }
-          .fflick-movie-modal-image { max-height: 210px !important; }
-        }
-      `}</style>
+      {/* Modal box */}
       <div
-        className="fflick-movie-modal-main"
-        style={{
-          position: "fixed",
-          left: "50%", top: "50%",
-          transform: "translate(-50%, -50%)",
-          width: "490px", maxWidth: "97vw", minWidth: "320px",
-          background: "#18141c",
-          borderRadius: "18px",
-          boxShadow: "0 9px 54px #000b",
-          color: "#fff",
-          zIndex: 10001,
-          overflow: "hidden",
-          animation: "modalFadeIn 0.23s"
-        }}
+        className={`
+          fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
+          w-[490px] max-w-[97vw] min-w-[320px]
+          bg-[#18141c] rounded-2xl shadow-2xl text-white z-[10001] overflow-hidden
+          animate-fadeIn
+          sm:w-[97vw] sm:min-w-0
+        `}
         onClick={e => e.stopPropagation()}
       >
         {/* Close Button */}
         <button
           onClick={onClose}
           aria-label="Close"
-          style={{
-            position: "absolute", top: 17, right: 17,
-            background: "rgba(34,32,32,0.81)",
-            border: "none", color: "#fff", fontSize: 32,
-            width: 40, height: 40, borderRadius: "50%",
-            cursor: "pointer", zIndex: 1, display: "flex", alignItems: "center", justifyContent: "center"
-          }}
+          className="absolute top-4 right-4 bg-zinc-800/80 text-white text-2xl w-10 h-10 rounded-full flex items-center justify-center z-10 hover:bg-zinc-700/80 transition"
         >&#10005;</button>
         {/* Movie Image */}
         <img
-          className="fflick-movie-modal-image"
           src={movie.backdrop_path
             ? `https://image.tmdb.org/t/p/w780${movie.backdrop_path}`
             : (movie.poster_path
                 ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
                 : "/posters/placeholder.png")}
           alt={movie.title}
-          style={{
-            width: "100%", objectFit: "cover",
-            maxHeight: 220, borderTopLeftRadius: 18, borderTopRightRadius: 18,
-            filter: "brightness(0.91) contrast(1.07)"
-          }}
+          className="w-full object-cover max-h-[220px] rounded-t-2xl brightness-95 contrast-105 sm:max-h-[210px]"
         />
-        <div style={{ padding: "26px 18px 18px 18px" }}>
-          <div style={{
-            fontWeight: 900, fontSize: 28, marginBottom: 11,
-            letterSpacing: "-1px"
-          }}>
-            {movie.title}
-          </div>
-          <div style={{ marginBottom: 12, display: "flex", gap: 7, flexWrap: "wrap" }}>
+        <div className="p-7 pt-5">
+          <div className="font-black text-2xl mb-2 tracking-tight">{movie.title}</div>
+          <div className="mb-3 flex gap-2 flex-wrap">
             {movie.release_date && (
-              <span style={{
-                background: "#33373c", color: "#fff",
-                borderRadius: 7, padding: "4px 13px",
-                fontSize: 15, marginRight: 3
-              }}>
-                {movie.release_date.slice(0, 4)}
-              </span>
+              <span className="bg-zinc-700 text-white rounded px-3 py-1 text-sm mr-1">{movie.release_date.slice(0, 4)}</span>
             )}
-            {/* Genres */}
-            {genreLabels.map((label, i) => (
-              <span key={label} style={{
-                background: "#33373c", color: "#fff",
-                borderRadius: 7, padding: "4px 13px",
-                fontSize: 15, marginRight: 3
-              }}>
-                {label}
-              </span>
+            {genreLabels.map(label => (
+              <span key={label} className="bg-zinc-700 text-white rounded px-3 py-1 text-sm mr-1">{label}</span>
             ))}
           </div>
-          <div style={{
-            fontSize: 15.5, color: "#f2f2f2", marginBottom: 22,
-            fontWeight: 400, lineHeight: 1.56
-          }}>
+          <div className="text-zinc-100 text-base mb-6 font-normal leading-[1.56]">
             {movie.overview || "No description available."}
           </div>
           <button
             onClick={() => navigate("/auth/sign-up")}
+            className={`
+              bg-gradient-to-r from-orange-400 to-red-500 text-white font-bold
+              rounded-md px-6 py-2 min-w-[100px] shadow-md
+              hover:scale-105 hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400
+              flex items-center gap-2 text-base mt-2
+              transition
+            `}
             style={{
-              background: "linear-gradient(90deg,#fe9245 10%,#eb423b 90%)",
-              color: "#fff",
-              border: "none",
-              borderRadius: 8,
-              fontWeight: 700,
-              fontSize: 15,         // smaller font size
-              padding: "7px 18px",  // less padding
-              minWidth: 100,        // smaller min width
-              boxShadow: "0 2px 8px #fe92451a",
-              cursor: "pointer",
-              transition: "all 0.15s",
               letterSpacing: "0.01em",
-              marginTop: 8,
-              display: "flex", alignItems: "center", gap: 7,
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.background = "linear-gradient(90deg,#eb423b 10%,#fe9245 90%)";
-              e.currentTarget.style.transform = "scale(1.03)";
-              e.currentTarget.style.boxShadow = "0 6px 18px #fe92452d";
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.background = "linear-gradient(90deg,#fe9245 10%,#eb423b 90%)";
-              e.currentTarget.style.transform = "none";
-              e.currentTarget.style.boxShadow = "0 2px 8px #fe92451a";
             }}
           >
-            Get Started <span style={{ fontSize: 18, marginLeft: 1 }}>›</span>
+            Get Started <span className="text-lg">›</span>
           </button>
         </div>
       </div>
+      {/* Modal fade-in animation */}
+      <style>
+        {`
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+          .animate-fadeIn { animation: fadeIn 0.22s; }
+        `}
+      </style>
     </>
   );
 }
-
-export default MovieModal;

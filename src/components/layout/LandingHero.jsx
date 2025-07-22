@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 
 /**
- * HeroText component with forced top spacing for mobile
+ * HeroText with absolute positioning to force placement
  */
 function HeroText() {
   const navigate = useNavigate();
@@ -10,11 +10,10 @@ function HeroText() {
     <div
       className="
         text-center max-w-[900px] mx-auto relative z-10 px-4 md:px-8
-        mt-32 md:mt-0
+        absolute top-32 left-1/2 transform -translate-x-1/2
+        md:top-1/2 md:-translate-y-1/2
+        w-full
       "
-      style={{
-        marginTop: "8rem", // Force 128px from top on mobile
-      }}
     >
       <h1
         className="
@@ -125,14 +124,14 @@ function HeroCurveSVG() {
 }
 
 /**
- * LandingHero: Remove flex centering, let content flow naturally with margin-top
+ * LandingHero: Simple relative container for absolute positioning
  */
 export default function LandingHero() {
   return (
     <section
       className="
-        w-screen min-h-screen
-        relative bg-black/20 overflow-hidden p-0 m-0 z-[1]
+        w-screen h-screen
+        relative bg-black/20 overflow-hidden
       "
     >
       <HeroText />

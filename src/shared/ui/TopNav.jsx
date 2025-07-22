@@ -58,7 +58,7 @@ export default function TopNav() {
           <img
             src={logo}
             alt="FeelFlick logo"
-            className="h-9 w-9 rounded-l shadow group-hover:scale-105 transition"
+            className="h-9 w-9 rounded-xl shadow group-hover:scale-105 transition"
             draggable={false}
           />
           <span

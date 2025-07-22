@@ -29,7 +29,6 @@ export default function TopNav() {
     <header
       className={`
         fixed top-4 left-0 right-0 z-50 flex justify-center pointer-events-none transition-transform duration-400
-        md:top-4 md:left-0 md:right-0
         sm:top-2
       `}
       style={{
@@ -39,64 +38,65 @@ export default function TopNav() {
       role="banner"
     >
       <nav
-  className={`
-    pointer-events-auto w-full max-w-[1220px] flex items-center
-    bg-[rgba(18,18,22,0.4)] backdrop-blur-[6px] shadow-xl
-    rounded-3xl min-h-[56px]
-    px-6 py-1
-  `}
-  aria-label="Main navigation"
-  role="navigation"
->
-  <Link
-    to="/"
-    className="flex items-center gap-3 focus-visible:outline-2"
-    aria-label="Go to FeelFlick home page"
-    tabIndex={0}
-  >
-    <img
-      src={logo}
-      alt="FeelFlick logo"
-      className="h-9 w-9 rounded-md shadow group-hover:scale-105 transition"
-      draggable={false}
-    />
-    <span
-      className="uppercase font-extrabold tracking-wider select-none text-[1.5rem] pl-1"
-      style={{
-        color: "#F6E3D7",
-        letterSpacing: "0.08em",
-        textShadow: "0 1px 10px #fff1, 0 1px 20px #18406d24",
-        lineHeight: "1",
-      }}
-    >
-      FEELFLICK
-    </span>
-  </Link>
-  <span className="flex-1" />
-  {location.pathname !== "/auth/sign-in" && (
-    <Link
-      to="/auth/sign-in"
-      className={`
-        bg-gradient-to-r from-orange-400 to-red-500
-        text-white font-extrabold
-        px-7 py-1 rounded-2xl shadow-md transition
-        focus-visible:outline-2 focus-visible:outline-white
-        hover:opacity-95
-        min-w-[110px] text-lg text-center
-        active:scale-97
-      `}
-      aria-label="Sign in"
-      tabIndex={0}
-      style={{
-        boxShadow: "0 2px 12px #eb423b1a",
-        fontSize: "1rem",
-        minHeight: "30px",
-      }}
-    >
-      Sign in
-    </Link>
-  )}
-</nav>
+        className={`
+          pointer-events-auto w-full max-w-[1220px] flex items-center
+          bg-[rgba(18,18,22,0.4)] backdrop-blur-[6px] shadow-xl
+          rounded-3xl min-h-[44px]
+          px-6 py-2
+          sm:px-2 sm:py-1
+        `}
+        aria-label="Main navigation"
+        role="navigation"
+      >
+        <Link
+          to="/"
+          className="flex items-center gap-2 focus-visible:outline-2"
+          aria-label="Go to FeelFlick home page"
+          tabIndex={0}
+        >
+          <img
+            src={logo}
+            alt="FeelFlick logo"
+            className="h-9 w-9 sm:h-7 sm:w-7 rounded-2xl shadow group-hover:scale-105 transition"
+            draggable={false}
+          />
+          <span
+            className="uppercase font-extrabold tracking-wider select-none text-[1.3rem] pl-1 sm:text-base"
+            style={{
+              color: "#F6E3D7",
+              letterSpacing: "0.08em",
+              textShadow: "0 1px 10px #fff1, 0 1px 20px #18406d24",
+              lineHeight: "1",
+            }}
+          >
+            FEELFLICK
+          </span>
+        </Link>
+        <span className="flex-1" />
+        {location.pathname !== "/auth/sign-in" && (
+          <Link
+            to="/auth/sign-in"
+            className={`
+              bg-gradient-to-r from-orange-400 to-red-500
+              text-white font-extrabold
+              px-7 py-1 rounded-2xl shadow-md transition
+              focus-visible:outline-2 focus-visible:outline-white
+              hover:opacity-95
+              min-w-[90px] text-base text-center
+              active:scale-97
+              sm:min-w-[70px] sm:px-3 sm:text-[0.98rem] sm:py-0.5
+            `}
+            aria-label="Sign in"
+            tabIndex={0}
+            style={{
+              boxShadow: "0 2px 12px #eb423b1a",
+              minHeight: "28px",
+            }}
+          >
+            Sign in
+          </Link>
+        )}
+      </nav>
     </header>
   );
 }

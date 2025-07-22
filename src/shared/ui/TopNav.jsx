@@ -56,7 +56,7 @@ export default function TopNav() {
         {/* Logo and brand name (left) */}
         <Link
           to="/"
-          className="flex items-center gap-1 md:gap-2 group focus-visible:outline-2"
+          className="flex items-center gap-1 md:gap-3 group focus-visible:outline-2"
           aria-label="Go to FeelFlick home page"
           tabIndex={0}
         >
@@ -92,11 +92,10 @@ export default function TopNav() {
             className={`
               bg-gradient-to-r from-orange-400 to-red-500
               text-white font-bold
-              ps-4 pe-2 py-1 rounded-lg shadow-md
+              px-4 py-1 rounded-lg shadow-md
               focus-visible:outline-2 focus-visible:outline-white
               min-w-[80px] text-sm text-center
-              active:scale-97
-              md:ps-5 md:pe-3 md:py-1 md:rounded-xl md:min-w-[100px] md:text-base
+              md:px-5 md:py-1 md:rounded-xl md:min-w-[100px] md:text-base
             `}
             aria-label="Sign in"
             tabIndex={0}

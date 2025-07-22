@@ -56,7 +56,7 @@ export default function TopNav() {
         {/* Logo and brand name (left) */}
         <Link
           to="/"
-          className="flex items-center gap-1 md:gap-3 group focus-visible:outline-2"
+          className="flex items-center gap-1 md:gap-2 group focus-visible:outline-2"
           aria-label="Go to FeelFlick home page"
           tabIndex={0}
         >

@@ -46,10 +46,18 @@ export default function Landing() {
         }}
       />
 
+      {/* TopNav with higher z-index */}
+      <div style={{ position: "relative", zIndex: 10 }}>
+        <TopNav onSignIn={handleSignIn} />
+      </div>
+
+      {/* Hero Section - positioned to work with fixed background */}
+      <div style={{ position: "relative", zIndex: 5, height: "100vh" }}>
+        <LandingHero onGetStarted={handleSignUp} />
+      </div>
+
       {/* The rest of your site */}
       <div style={{ position: "relative", zIndex: 2 }}>
-        <TopNav onSignIn={handleSignIn} />
-        <LandingHero onGetStarted={handleSignUp} />
         <WhyFeelFlick />
         <TrendingToday onSignUp={handleSignUp} />
         <CallToAction onSignUp={handleSignUp} />

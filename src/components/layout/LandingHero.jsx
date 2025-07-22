@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 
 /**
- * HeroText with absolute positioning to force placement
+ * HeroText with improved mobile positioning
  */
 function HeroText() {
   const navigate = useNavigate();
@@ -10,8 +10,8 @@ function HeroText() {
     <div
       className="
         text-center max-w-[900px] mx-auto relative z-10 px-4 md:px-8
-        absolute top-32 left-1/2 transform -translate-x-1/2
-        md:top-1/2 md:-translate-y-1/2
+        absolute bottom-32 left-1/2 transform -translate-x-1/2
+        md:top-1/2 md:bottom-auto md:-translate-y-1/2
         w-full
       "
     >

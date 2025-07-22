@@ -28,8 +28,8 @@ export default function TopNav() {
     <header
       className={`
         fixed z-50 flex justify-center pointer-events-none transition-transform duration-400
-        top-2 left-1 right-1
-        md:top-4 md:left-0 md:right-0
+        top-1 left-1 right-1
+        md:top-2 md:left-0 md:right-0
       `}
       style={{
         transform: hidden ? "translateY(-130%)" : "translateY(0)",

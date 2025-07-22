@@ -7,8 +7,8 @@ export default function LandingHero() {
     <section className="w-screen h-screen relative overflow-hidden">
       {/* Hero content - simple approach that accounts for nav */}
       <div 
-        className="flex flex-col items-center justify-center h-full px-4 md:px-8"
-        style={{ paddingTop: '100px' }} // Push content down from fixed nav
+        flex flex-col items-center justify-center h-full px-4 md:px-8
+        sm:justify-end sm:pb-[18vh]
       >
         <div className="text-center max-w-[900px] mx-auto">
           <h1

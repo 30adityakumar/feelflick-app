@@ -1,19 +1,28 @@
 import { useNavigate } from "react-router-dom";
 
 /**
- * HeroText component renders the heading, subheading, and CTA button.
+ * HeroText component: Headlines, description, and CTA button
+ * Adds top padding on mobile to push content lower, aligns to center on desktop.
  */
 function HeroText() {
   const navigate = useNavigate();
 
   return (
-    <div className="text-center max-w-[900px] mx-auto relative z-10 px-4 md:px-8">
+    <div
+      className="
+        text-center max-w-[900px] mx-auto relative z-10 px-4 md:px-8
+        pt-20 md:pt-0
+      "
+    >
       <h1
         className="
           font-extrabold text-white
-          text-[clamp(2.2rem,6vw,3.3rem)] mb-4
-          leading-[1.11] tracking-tight
-          drop-shadow-[0_4px_24px_#000c,0_2px_8px_#18406d77,0_0_1px_#fe924566]"
+          text-[clamp(2.2rem,6vw,3.3rem)]
+          mb-4
+          leading-[1.11]
+          tracking-tight
+          drop-shadow-[0_4px_24px_#000c,0_2px_8px_#18406d77,0_0_1px_#fe924566]
+        "
         style={{
           letterSpacing: "-1.1px",
           filter: "drop-shadow(0 1px 16px #eb423b22)",
@@ -21,19 +30,18 @@ function HeroText() {
       >
         Movies that match your mood.
       </h1>
-
       <p
         className="
           font-normal text-white opacity-95
           text-[clamp(1rem,1.2vw,1.25rem)] mb-8
           leading-[1.6]
-          drop-shadow-[0_2px_8px_#0002]"
+          drop-shadow-[0_2px_8px_#0002]
+        "
       >
         Get the perfect recommendation based on your taste and how you feel.
         <br />
         Fast, private, and always free.
       </p>
-
       <button
         type="button"
         className="
@@ -46,7 +54,10 @@ function HeroText() {
           focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400
           mx-auto mb-2
         "
-        style={{ letterSpacing: "0.02em", boxShadow: "0 3px 16px #eb423b28" }}
+        style={{
+          letterSpacing: "0.02em",
+          boxShadow: "0 3px 16px #eb423b28",
+        }}
         onClick={() => navigate("/auth/sign-up")}
       >
         GET STARTED
@@ -56,8 +67,7 @@ function HeroText() {
 }
 
 /**
- * HeroCurveSVG renders the decorative bottom curve.
- * Kept separate for modularity and possible lazy loading.
+ * HeroCurveSVG component: Decorative curved SVG at the bottom
  */
 function HeroCurveSVG() {
   return (
@@ -79,25 +89,21 @@ function HeroCurveSVG() {
             <stop offset="90%" stopColor="#fe9245" stopOpacity="1" />
             <stop offset="100%" stopColor="#fe9245" stopOpacity="0" />
           </linearGradient>
-
           <linearGradient id="fflick-fade" x1="0" y1="0" x2="1" y2="0">
             <stop offset="0%" stopColor="white" stopOpacity="0" />
             <stop offset="7%" stopColor="white" stopOpacity="1" />
             <stop offset="93%" stopColor="white" stopOpacity="1" />
             <stop offset="100%" stopColor="white" stopOpacity="0" />
           </linearGradient>
-
           <linearGradient id="fflick-gradient-fill" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="rgba(20,16,12,0.99)" />
             <stop offset="70%" stopColor="rgba(20,16,12,0.99)" />
             <stop offset="100%" stopColor="rgba(15,12,8,1)" />
           </linearGradient>
-
           <mask id="fflick-fade-mask">
             <rect x="0" y="0" width="1920" height="140" fill="url(#fflick-fade)" />
           </mask>
         </defs>
-
         <path
           d="M0,136 Q960,85 1920,136"
           fill="none"
@@ -106,7 +112,6 @@ function HeroCurveSVG() {
           style={{ filter: "drop-shadow(0 3px 14px #eb423b33)" }}
           mask="url(#fflick-fade-mask)"
         />
-
         <path
           d="M0,136 Q960,85 1920,136 L1920,140 L0,140 Z"
           fill="url(#fflick-gradient-fill)"
@@ -118,23 +123,19 @@ function HeroCurveSVG() {
 }
 
 /**
- * LandingHero is the main hero section container.
- * Adds vertical spacing on mobile, centers content on desktop.
+ * LandingHero main section: Responsive layout for hero content and decorative curve.
+ * On mobile, hero is pushed lower (pt-24). On desktop, centered.
  */
 export default function LandingHero() {
   return (
     <section
       className="
         w-screen min-h-screen flex flex-col items-center
-        justify-start pt-24
-        md:justify-center md:pt-0
+        justify-start md:justify-center
         relative bg-black/20 overflow-hidden p-0 m-0 z-[1]
       "
     >
-      {/* Hero content with text and button */}
       <HeroText />
-
-      {/* Decorative SVG curve at the bottom */}
       <HeroCurveSVG />
     </section>
   );

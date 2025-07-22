@@ -1,8 +1,7 @@
 import { useNavigate } from "react-router-dom";
 
 /**
- * HeroText component: Headlines, description, and CTA button
- * Adds top padding on mobile to push content lower, aligns to center on desktop.
+ * HeroText component with forced top spacing for mobile
  */
 function HeroText() {
   const navigate = useNavigate();
@@ -11,8 +10,11 @@ function HeroText() {
     <div
       className="
         text-center max-w-[900px] mx-auto relative z-10 px-4 md:px-8
-        pt-20 md:pt-0
+        mt-32 md:mt-0
       "
+      style={{
+        marginTop: "8rem", // Force 128px from top on mobile
+      }}
     >
       <h1
         className="
@@ -123,15 +125,13 @@ function HeroCurveSVG() {
 }
 
 /**
- * LandingHero main section: Responsive layout for hero content and decorative curve.
- * On mobile, hero is pushed lower (pt-24). On desktop, centered.
+ * LandingHero: Remove flex centering, let content flow naturally with margin-top
  */
 export default function LandingHero() {
   return (
     <section
       className="
-        w-screen min-h-screen flex flex-col items-center
-        justify-start md:justify-center
+        w-screen min-h-screen
         relative bg-black/20 overflow-hidden p-0 m-0 z-[1]
       "
     >

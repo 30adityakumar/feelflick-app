@@ -3,33 +3,28 @@ import { Link, useLocation } from "react-router-dom";
 import logo from "@assets/images/logo.png";
 
 /**
- * TopNav: Minimal, instant-appearance, fixed header for MVP.
- * - Hides instantly on scroll down (no animation/transition).
- * - Loads fast, minimal CSS, optimal for slow connections/MVPs.
- * - Accessible and responsive.
+ * Minimal, fast TopNav for MVP.
+ * Instantly hides on scroll down and shows on scroll up.
+ * No animations, no heavy processing.
  */
 export default function TopNav() {
-  // Track if navigation should be hidden (on scroll down)
   const [hidden, setHidden] = useState(false);
-  // Store last scroll position without causing re-renders
   const lastScroll = useRef(0);
-  // Get current location for conditional rendering
   const location = useLocation();
 
   useEffect(() => {
-    // Hide nav when scrolling down, show on scroll up
     const handleScroll = () => {
-      const curr = window.scrollY;
-      setHidden(curr > 48 && curr > lastScroll.current);
-      lastScroll.current = curr;
+      const currentScroll = window.scrollY;
+      setHidden(currentScroll > 48 && currentScroll > lastScroll.current);
+      lastScroll.current = currentScroll;
     };
+
     window.addEventListener("scroll", handleScroll, { passive: true });
-    // Clean up event listener when component unmounts
+
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
-    // Fixed header, instantly hides (no animation), pointer-events handled by nav
     <header
       className={`
         fixed z-50 flex justify-center pointer-events-none
@@ -37,9 +32,8 @@ export default function TopNav() {
         md:top-2 md:left-0 md:right-0
       `}
       style={{
-        // Instantly moves header out of view when hidden
         transform: hidden ? "translateY(-130%)" : "translateY(0)",
-        // No transition for MVP (animation-free)
+        // No transition for instant toggle
       }}
       role="banner"
     >
@@ -53,7 +47,7 @@ export default function TopNav() {
         aria-label="Main navigation"
         role="navigation"
       >
-        {/* Logo and brand name (left) */}
+        {/* Logo + Brand */}
         <Link
           to="/"
           className="flex items-center gap-1 md:gap-2 group focus-visible:outline-2"
@@ -82,10 +76,10 @@ export default function TopNav() {
           </span>
         </Link>
 
-        {/* Spacer to push Sign In button to right */}
+        {/* Spacer pushes Sign In button to right */}
         <span className="flex-1" />
 
-        {/* Show "Sign in" button unless on sign-in page */}
+        {/* Conditionally render Sign In button */}
         {location.pathname !== "/auth/sign-in" && (
           <Link
             to="/auth/sign-in"

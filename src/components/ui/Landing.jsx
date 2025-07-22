@@ -1,15 +1,6 @@
-import { useNavigate } from "react-router-dom";
-import TopNav from './TopNav'
-import LandingHero from './LandingHero'
-import WhyFeelFlick from './WhyFeelFlick'
-import TrendingToday from './TrendingToday'
-import CallToAction from './CallToAction'
-import Footer from './Footer'
-
 export default function Landing() {
   const navigate = useNavigate();
 
-  // Use these functions for all navigation actions:
   const handleSignIn = () => navigate("/auth/sign-in");
   const handleSignUp = () => navigate("/auth/sign-up");
 
@@ -35,6 +26,7 @@ export default function Landing() {
       >
         <source src="/background.mp4" type="video/mp4" />
       </video>
+      
       {/* Overlay for readability */}
       <div
         style={{
@@ -46,14 +38,14 @@ export default function Landing() {
         }}
       />
 
-      {/* TopNav with higher z-index */}
-      <div style={{ position: "relative", zIndex: 10 }}>
-        <TopNav onSignIn={handleSignIn} />
+      {/* Hero Section - HIGHER z-index than TopNav */}
+      <div style={{ position: "relative", zIndex: 15, height: "100vh" }}>
+        <LandingHero onGetStarted={handleSignUp} />
       </div>
 
-      {/* Hero Section - positioned to work with fixed background */}
-      <div style={{ position: "relative", zIndex: 5, height: "100vh" }}>
-        <LandingHero onGetStarted={handleSignUp} />
+      {/* TopNav with lower z-index so it doesn't cover hero content */}
+      <div style={{ position: "relative", zIndex: 10 }}>
+        <TopNav onSignIn={handleSignIn} />
       </div>
 
       {/* The rest of your site */}

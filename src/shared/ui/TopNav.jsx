@@ -85,11 +85,11 @@ export default function TopNav() {
             to="/auth/sign-in"
             className={`
               bg-gradient-to-r from-orange-400 to-red-500
-              text-white font-bold
+              text-white font-normal
               px-4 py-1 rounded-lg shadow-md
               focus-visible:outline-2 focus-visible:outline-white
-              min-w-[80px] text-sm text-center
-              md:px-5 md:py-1 md:rounded-xl md:min-w-[100px] md:text-base
+              min-w-[80px] text-base text-center
+              md:px-5 md:py-1 md:rounded-xl md:min-w-[100px] md:text-lg
             `}
             aria-label="Sign in"
             tabIndex={0}

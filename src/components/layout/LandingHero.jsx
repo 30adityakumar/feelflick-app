@@ -48,7 +48,7 @@ export default function LandingHero() {
             className="
               bg-gradient-to-r from-orange-400 to-red-500
               text-white font-extrabold rounded-xl px-12 py-3
-              text-[1.07rem] shadow-lg tracking-wide
+              text-[1.15rem] shadow-lg tracking-wide
               transition duration-150 ease-[cubic-bezier(.3,1.1,.3,1.03)]
               hover:scale-105 hover:shadow-[0_9px_26px_#eb423b52]
               active:scale-100

@@ -41,8 +41,8 @@ export default function TopNav() {
         className={`
           pointer-events-auto w-full max-w-[1220px] flex items-center
           bg-[rgba(18,18,22,0.4)] backdrop-blur-[6px] shadow-xl
-          rounded-2xl min-h-[38px] px-2 py-1
-          md:rounded-3xl md:min-h-[56px] md:px-6 md:py-2
+          rounded-xl min-h-[42px] px-3 py-1
+          md:rounded-2xl md:min-h-[54px] md:px-6 md:py-2
         `}
         aria-label="Main navigation"
         role="navigation"
@@ -57,16 +57,16 @@ export default function TopNav() {
             src={logo}
             alt="FeelFlick logo"
             className="
-              h-6 w-6 rounded-tl-lg rounded-br-lg shadow group-hover:scale-105 transition
+              h-7 w-7 rounded-tl-lg rounded-br-lg group-hover:scale-105 transition
               md:h-9 md:w-9
             "
             draggable={false}
           />
           <span
             className="
-              uppercase font-extrabold tracking-wider select-none text-base pl-0.5
-              md:text-4xl md:pl-1
-              lg:text-5xl
+              uppercase font-extrabold tracking-wider select-none text-lg pl-1
+              md:text-2xl md:pl-2
+              lg:text-3xl
             "
             style={{
               color: "#F6E3D7",
@@ -85,19 +85,19 @@ export default function TopNav() {
             className={`
               bg-gradient-to-r from-orange-400 to-red-500
               text-white font-extrabold
-              px-3 py-1 rounded-xl shadow-md transition
+              px-4 py-1 rounded-lg shadow-md transition
               focus-visible:outline-2 focus-visible:outline-white
               hover:opacity-95
-              min-w-[68px] text-xs text-center
+              min-w-[80px] text-sm text-center
               active:scale-97
-              md:px-7 md:py-2 md:rounded-2xl md:min-w-[110px] md:text-lg
+              md:px-7 md:py-2 md:rounded-xl md:min-w-[110px] md:text-base
             `}
             aria-label="Sign in"
             tabIndex={0}
             style={{
               boxShadow: "0 2px 12px #eb423b1a",
-              fontSize: "0.85rem",
-              minHeight: "24px",
+              fontSize: "0.95rem",
+              minHeight: "28px",
             }}
           >
             Sign in

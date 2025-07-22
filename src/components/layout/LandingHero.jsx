@@ -5,142 +5,73 @@ export default function LandingHero() {
 
   return (
     <section
-      style={{
-        height: "100vh",
-        width: "100vw",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 1,
-        position: "relative",
-        margin: 0,
-        padding: 0,
-        boxSizing: "border-box",
-        overflow: "hidden",
-        background: "rgba(0,0,0,0.18)",
-      }}
+      className={`
+        w-screen min-h-screen flex flex-col items-center justify-center
+        relative bg-black/20 overflow-hidden p-0 m-0 z-[1]
+      `}
     >
-      <style>{`
-        @media (max-width: 700px) {
-          .fflick-landing-content {
-            padding: 0 6vw !important;
-          }
-          .fflick-landing-heading {
-            font-size: 6vw !important;
-            margin-bottom: 15px !important;
-          }
-          .fflick-landing-desc {
-            font-size: 1.12rem !important;
-            margin-bottom: 22px !important;
-          }
-          .fflick-landing-btn {
-            font-size: 1.02rem !important;
-            padding: 10px 15vw !important;
-          }
-        }
-        @media (max-width: 420px) {
-          .fflick-landing-content {
-            padding: 0 2vw !important;
-          }
-          .fflick-landing-heading {
-            font-size: 7vw !important;
-          }
-          .fflick-landing-desc {
-            font-size: 0.97rem !important;
-          }
-          .fflick-landing-btn {
-            font-size: 0.98rem !important;
-            padding: 10px 6vw !important;
-          }
-        }
-      `}</style>
       <div
-        className="fflick-landing-content"
-        style={{
-          textAlign: "center",
-          maxWidth: 900,
-          margin: "0 auto",
-          zIndex: 2,
-          position: "relative",
-          padding: "0 18px",
-        }}
+        className={`
+          text-center max-w-[900px] mx-auto z-10 relative px-4
+          md:px-8
+        `}
       >
-        <div
-          className="fflick-landing-heading"
+        <h1
+          className={`
+            font-extrabold text-white
+            text-[clamp(2.2rem,6vw,3.3rem)] mb-4
+            leading-[1.11] tracking-tight
+            drop-shadow-[0_4px_24px_#000c,0_2px_8px_#18406d77,0_0_1px_#fe924566]
+            transition-all
+          `}
           style={{
-            fontWeight: 900,
-            fontSize: "clamp(2.2rem, 6vw, 3.3rem)",
-            color: "#fff",
             letterSpacing: "-1.1px",
-            marginBottom: 18,
-            textShadow:
-              "0 4px 24px #000c, 0 2px 8px #18406d77, 0 0px 1px #fe924566",
-            lineHeight: 1.11,
             filter: "drop-shadow(0 1px 16px #eb423b22)",
-            transition: "font-size 0.23s",
           }}
         >
           Movies that match your mood.
-        </div>
+        </h1>
         <div
-          className="fflick-landing-desc"
-          style={{
-            fontWeight: 400,
-            fontSize: "clamp(1rem,1.2vw,1.25rem)",
-            color: "#fff",
-            opacity: 0.95,
-            margin: "0 0 32px 0",
-            lineHeight: 1.6,
-            textShadow: "0 2px 8px #0002",
-            transition: "font-size 0.18s",
-          }}
+          className={`
+            font-normal text-white opacity-95
+            text-[clamp(1rem,1.2vw,1.25rem)] mb-8
+            leading-[1.6]
+            drop-shadow-[0_2px_8px_#0002]
+            transition-all
+          `}
         >
           Get the perfect recommendation based on your taste and how you feel.
           <br />
           Fast, private, and always free.
         </div>
         <button
-          className="fflick-landing-btn"
-          onClick={() => navigate("/auth/sign-up")}
+          className={`
+            bg-gradient-to-r from-orange-400 to-red-500
+            text-white font-extrabold
+            rounded-xl px-12 py-3
+            text-[1.07rem] shadow-lg
+            tracking-wide
+            transition
+            duration-150
+            ease-[cubic-bezier(.3,1.1,.3,1.03)]
+            hover:scale-105 hover:shadow-[0_9px_26px_#eb423b52]
+            active:scale-100
+            focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400
+            mx-auto
+            mb-2
+          `}
           style={{
-            background: `linear-gradient(90deg,#fe9245 10%,#eb423b 90%)`,
-            color: "#fff",
-            border: "none",
-            borderRadius: 10,
-            fontWeight: 900,
-            fontSize: "1.07rem",
-            padding: "11px 35px",
-            marginTop: 0,
-            boxShadow: "0 3px 16px #eb423b28",
-            cursor: "pointer",
             letterSpacing: "0.02em",
-            transition:
-              "transform 0.16s cubic-bezier(.3,1.1,.3,1.03), box-shadow 0.14s, opacity 0.13s, font-size 0.16s, padding 0.13s",
+            boxShadow: "0 3px 16px #eb423b28",
           }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = "scale(1.08)";
-            e.currentTarget.style.boxShadow = "0 9px 26px #eb423b52";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = "scale(1)";
-            e.currentTarget.style.boxShadow = "0 3px 16px #eb423b28";
-          }}
+          onClick={() => navigate("/auth/sign-up")}
         >
           GET STARTED
         </button>
       </div>
       {/* SVG curve at the bottom */}
       <div
-        style={{
-          width: "100vw",
-          position: "absolute",
-          left: 0,
-          bottom: 0,
-          zIndex: 3,
-          pointerEvents: "none",
-          lineHeight: 0,
-        }}
+        className="absolute left-0 bottom-0 w-full z-20 pointer-events-none leading-none"
       >
         <svg
           viewBox="0 0 1920 140"

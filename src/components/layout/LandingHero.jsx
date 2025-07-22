@@ -7,8 +7,10 @@ export default function LandingHero() {
     <section className="w-screen h-screen relative overflow-hidden">
       {/* Hero content - simple approach that accounts for nav */}
       <div 
-        flex flex-col items-center justify-center h-full px-4 md:px-8
-        sm:justify-end sm:pb-[18vh]
+        flex flex-col items-center justify-end h-full
+    px-4 md:px-8
+    pb-[18vh]                /* space above SVG on phones   */
+    md:justify-center md:pb-0
       >
         <div className="text-center max-w-[900px] mx-auto">
           <h1

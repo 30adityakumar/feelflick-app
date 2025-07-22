@@ -85,7 +85,7 @@ export default function TopNav() {
             to="/auth/sign-in"
             className={`
               bg-gradient-to-r from-orange-400 to-red-500
-              text-white font-normal
+              text-white font-semibold
               px-4 py-1 rounded-lg shadow-md
               focus-visible:outline-2 focus-visible:outline-white
               min-w-[80px] text-base text-center

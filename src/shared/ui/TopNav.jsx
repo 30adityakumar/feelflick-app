@@ -58,14 +58,14 @@ export default function TopNav() {
           <img
             src={logo}
             alt="FeelFlick logo"
-            className="h-9 w-9 rounded-lg shadow group-hover:scale-105 transition sm:h-7 sm:w-7"
+            className="h-9 w-9 rounded-lg shadow group-hover:scale-105 transition sm:h-5 sm:w-5"
             draggable={false}
           />
           <span
-            className="uppercase font-extrabold tracking-wider select-none text-[1.7rem] pl-1 sm:text-[1.3rem] sm:pl-0"
+            className="uppercase font-extrabold tracking-wider select-none text-[1.8rem] pl-1 sm:text-[0.8rem] sm:pl-0"
             style={{
               color: "#F6E3D7",
-              letterSpacing: "0.07em",
+              letterSpacing: "0.06em",
               textShadow: "0 1px 10px #fff1, 0 1px 20px #18406d24",
               lineHeight: "1",
             }}
@@ -85,7 +85,7 @@ export default function TopNav() {
               hover:opacity-95
               min-w-[110px] text-lg text-center
               active:scale-97
-              sm:px-4 sm:py-1 sm:min-w-[90px] sm:text-base sm:rounded-xl
+              sm:px-3 sm:py-1 sm:min-w-[70px] sm:text-base sm:rounded-l
             `}
             aria-label="Sign in"
             tabIndex={0}

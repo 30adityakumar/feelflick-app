@@ -1,20 +1,14 @@
 import { useNavigate } from "react-router-dom";
 
 /**
- * HeroText with improved mobile positioning
+ * HeroText with flexbox positioning
  */
 function HeroText() {
   const navigate = useNavigate();
 
   return (
-    <div
-      className="
-        text-center max-w-[900px] mx-auto relative z-10 px-4 md:px-8
-        absolute left-1/2 transform -translate-x-1/2
-        top-[60vh] sm:top-[65vh]
-        md:top-1/2 md:-translate-y-1/2
-        w-full
-      "
+    <div className="flex-1 flex flex-col justify-end md:justify-center items-center pb-32 md:pb-0 px-4 md:px-8 relative z-10">
+      <div className="text-center max-w-[900px] w-full"
     >
       <h1
         className="
@@ -64,6 +58,7 @@ function HeroText() {
       >
         GET STARTED
       </button>
+      </div>
     </div>
   );
 }
@@ -133,6 +128,7 @@ export default function LandingHero() {
       className="
         w-screen h-screen
         relative bg-black/20 overflow-hidden
+        flex flex-col
       "
     >
       <HeroText />

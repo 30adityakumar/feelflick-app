@@ -57,15 +57,15 @@ export default function TopNav() {
             src={logo}
             alt="FeelFlick logo"
             className="
-              h-7 w-7 rounded-tl-lg rounded-br-lg group-hover:scale-105 transition
+              h-7 w-7 rounded-lg group-hover:scale-110 transition
               md:h-9 md:w-9
             "
             draggable={false}
           />
           <span
             className="
-              uppercase font-extrabold tracking-wider select-none text-lg pl-1
-              md:text-2xl md:pl-2
+              uppercase font-extrabold tracking-normal select-none text-lg pl-1
+              md:text-xl md:pl-1
               lg:text-3xl
             "
             style={{
@@ -84,13 +84,13 @@ export default function TopNav() {
             to="/auth/sign-in"
             className={`
               bg-gradient-to-r from-orange-400 to-red-500
-              text-white font-extrabold
+              text-white font-bold
               px-4 py-1 rounded-lg shadow-md transition
               focus-visible:outline-2 focus-visible:outline-white
-              hover:opacity-95
+              hover:opacity-105
               min-w-[80px] text-sm text-center
               active:scale-97
-              md:px-7 md:py-2 md:rounded-xl md:min-w-[110px] md:text-base
+              md:px-5 md:py-2 md:rounded-xl md:min-w-[110px] md:text-lg
             `}
             aria-label="Sign in"
             tabIndex={0}

@@ -7,7 +7,6 @@ export default function TopNav() {
   const lastScroll = useRef(0);
   const location = useLocation();
 
-  // Hide nav when scrolling down, show on scroll up
   useEffect(() => {
     let ticking = false;
     const handleScroll = () => {
@@ -29,8 +28,8 @@ export default function TopNav() {
     <header
       className={`
         fixed z-50 flex justify-center pointer-events-none transition-transform duration-400
-        top-4 left-0 right-0
-        sm:top-2 sm:left-2 sm:right-2
+        top-2 left-1 right-1
+        md:top-4 md:left-0 md:right-0
       `}
       style={{
         transform: hidden ? "translateY(-130%)" : "translateY(0)",
@@ -42,27 +41,33 @@ export default function TopNav() {
         className={`
           pointer-events-auto w-full max-w-[1220px] flex items-center
           bg-[rgba(18,18,22,0.4)] backdrop-blur-[6px] shadow-xl
-          rounded-3xl min-h-[56px]
-          px-6 py-1
-          sm:px-4 sm:py-2 sm:rounded-2xl sm:min-h-[44px]
+          rounded-2xl min-h-[38px] px-2 py-1
+          md:rounded-3xl md:min-h-[56px] md:px-6 md:py-2
         `}
         aria-label="Main navigation"
         role="navigation"
       >
         <Link
           to="/"
-          className="flex items-center gap-3 group focus-visible:outline-2 sm:gap-2"
+          className="flex items-center gap-1 md:gap-3 group focus-visible:outline-2"
           aria-label="Go to FeelFlick home page"
           tabIndex={0}
         >
           <img
             src={logo}
             alt="FeelFlick logo"
-            className="h-9 w-9 rounded-lg shadow group-hover:scale-105 transition sm:h-8 sm:w-8 sm:rounded-2xl"
+            className="
+              h-6 w-6 rounded-tl-lg rounded-br-lg shadow group-hover:scale-105 transition
+              md:h-9 md:w-9
+            "
             draggable={false}
           />
           <span
-            className="uppercase font-extrabold tracking-wider select-none text-[1.7rem] pl-1 sm:text-lg sm:pl-1"
+            className="
+              uppercase font-extrabold tracking-wider select-none text-base pl-0.5
+              md:text-4xl md:pl-1
+              lg:text-5xl
+            "
             style={{
               color: "#F6E3D7",
               letterSpacing: "0.07em",
@@ -80,19 +85,19 @@ export default function TopNav() {
             className={`
               bg-gradient-to-r from-orange-400 to-red-500
               text-white font-extrabold
-              px-7 py-1 rounded-2xl shadow-md transition
+              px-3 py-1 rounded-xl shadow-md transition
               focus-visible:outline-2 focus-visible:outline-white
               hover:opacity-95
-              min-w-[110px] text-lg text-center
+              min-w-[68px] text-xs text-center
               active:scale-97
-              sm:px-4 sm:py-2 sm:rounded-xl sm:min-w-[80px] sm:text-base
+              md:px-7 md:py-2 md:rounded-2xl md:min-w-[110px] md:text-lg
             `}
             aria-label="Sign in"
             tabIndex={0}
             style={{
               boxShadow: "0 2px 12px #eb423b1a",
-              fontSize: "1rem",
-              minHeight: "30px",
+              fontSize: "0.85rem",
+              minHeight: "24px",
             }}
           >
             Sign in

@@ -1,102 +1,64 @@
-import { FaInstagram, FaTiktok, FaFacebookF, FaLinkedinIn } from "react-icons/fa";
+import { FaInstagram, FaTiktok } from "react-icons/fa";
 import logo from '@assets/images/logo.png';
 
 export default function Footer() {
-  const footerLinkStyle = {
-    color: "#c7c9e6",
-    opacity: 0.8,
-    fontSize: 15,
-    cursor: "pointer",
-    marginBottom: 7,
-    fontWeight: 400,
-    textDecoration: "none",
-    transition: "color 0.13s"
-  };
-
-  const iconButtonStyle = {
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: "50%",
-    background: "rgba(255,255,255,0.08)",
-    width: 32,
-    height: 32,
-    marginRight: 9,
-    marginBottom: 5,
-    fontSize: 17,
-    color: "#f9faff",
-    border: "none",
-    cursor: "pointer",
-    transition: "background 0.14s, color 0.13s, transform 0.13s",
-    outline: "none"
-  };
-
   return (
-    <footer style={{
-      width: "100%", marginTop: 0,
-      background: "rgba(10,10,10,0.92)",
-      borderRadius: 0,
-      padding: "64px 0 40px 0", // bigger top/bottom padding
-      color: "#fff",
-      boxShadow: "0 -2px 24px 0 #0007",
-      fontSize: 15
-    }}>
-      <div style={{
-        display: "flex", flexWrap: "wrap", maxWidth: 1240,
-        margin: "0 auto", justifyContent: "space-between", gap: 44, padding: "0 5vw"
-      }}>
-        <div style={{
-          flex: "0 0 190px", display: "flex", flexDirection: "column", alignItems: "flex-start", marginBottom: 10
-        }}>
-          <img src={logo} alt="FeelFlick" style={{
-            width: 42, height: 42, borderRadius: 10, marginBottom: 9, boxShadow: "0 2px 9px #ff5b2e14"
-          }} />
-          <span style={{
-            fontWeight: 900, fontSize: 22, letterSpacing: "-1.2px", color: "#fff", marginBottom: 2
-          }}>FeelFlick</span>
-          <div style={{
-            width: 46, height: 3, background: "linear-gradient(90deg, #fe9245 25%, #eb423b 80%, #367cff 100%)",
-            borderRadius: 3, margin: "5px 0 8px 0"
-          }} />
+    <footer className="w-full mt-0 bg-black/90 rounded-none pt-16 pb-10 text-white shadow-[0_-2px_24px_0_#0007] text-[15px]">
+      <div className="flex flex-wrap max-w-[1240px] mx-auto justify-between gap-x-12 gap-y-10 px-[5vw]">
+        {/* Logo & Brand */}
+        <div className="flex flex-col items-start mb-2 min-w-[140px]">
+          <img
+            src={logo}
+            alt="FeelFlick"
+            className="w-11 h-11 rounded-xl mb-2 shadow-[0_2px_9px_#ff5b2e14]"
+          />
+          <span className="font-black text-[22px] tracking-tight mb-1 text-white">
+            FeelFlick
+          </span>
+          <div className="w-12 h-[3px] bg-gradient-to-r from-[#fe9245] via-[#eb423b] to-[#367cff] rounded mb-2" />
         </div>
-
-        <div style={{ flex: "1 1 130px", marginBottom: 10 }}>
-          <div style={{ fontWeight: 700, marginBottom: 7, fontSize: 14.5, color: "#fff" }}>About</div>
-          <div style={footerLinkStyle}>Contact Us</div>
-          <div style={footerLinkStyle}>Careers</div>
-          <div style={footerLinkStyle}>Feedback</div>
+        {/* About */}
+        <div className="flex-1 min-w-[120px]">
+          <div className="font-bold mb-2 text-sm text-white">About</div>
+          <div className="opacity-80 text-zinc-200 text-[15px] mb-2 cursor-pointer hover:text-orange-400 transition">Contact Us</div>
+          <div className="opacity-80 text-zinc-200 text-[15px] mb-2 cursor-pointer hover:text-orange-400 transition">Careers</div>
+          <div className="opacity-80 text-zinc-200 text-[15px] mb-2 cursor-pointer hover:text-orange-400 transition">Feedback</div>
         </div>
-        <div style={{ flex: "1 1 130px", marginBottom: 10 }}>
-          <div style={{ fontWeight: 700, marginBottom: 7, fontSize: 14.5, color: "#fff" }}>Legal</div>
-          <div style={footerLinkStyle}>Privacy Policy</div>
-          <div style={footerLinkStyle}>Terms of Use</div>
-          <div style={footerLinkStyle}>Cookie Policy</div>
+        {/* Legal */}
+        <div className="flex-1 min-w-[120px]">
+          <div className="font-bold mb-2 text-sm text-white">Legal</div>
+          <div className="opacity-80 text-zinc-200 text-[15px] mb-2 cursor-pointer hover:text-orange-400 transition">Privacy Policy</div>
+          <div className="opacity-80 text-zinc-200 text-[15px] mb-2 cursor-pointer hover:text-orange-400 transition">Terms of Use</div>
+          <div className="opacity-80 text-zinc-200 text-[15px] mb-2 cursor-pointer hover:text-orange-400 transition">Cookie Policy</div>
         </div>
-        <div style={{ flex: "1 1 130px", marginBottom: 10 }}>
-          <div style={{ fontWeight: 700, marginBottom: 7, fontSize: 14.5, color: "#fff" }}>Help</div>
-          <div style={footerLinkStyle}>Help Center</div>
-          <div style={footerLinkStyle}>FAQ</div>
-          <div style={footerLinkStyle}>How it Works</div>
+        {/* Help */}
+        <div className="flex-1 min-w-[120px]">
+          <div className="font-bold mb-2 text-sm text-white">Help</div>
+          <div className="opacity-80 text-zinc-200 text-[15px] mb-2 cursor-pointer hover:text-orange-400 transition">Help Center</div>
+          <div className="opacity-80 text-zinc-200 text-[15px] mb-2 cursor-pointer hover:text-orange-400 transition">FAQ</div>
+          <div className="opacity-80 text-zinc-200 text-[15px] mb-2 cursor-pointer hover:text-orange-400 transition">How it Works</div>
         </div>
-        <div style={{ flex: "1 1 180px", marginBottom: 10 }}>
-          <div style={{ fontWeight: 700, marginBottom: 7, fontSize: 14.5, color: "#fff" }}>Social</div>
-          <div style={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
-            <a href="https://instagram.com/feelflick" style={iconButtonStyle} target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+        {/* Social */}
+        <div className="flex-1 min-w-[140px]">
+          <div className="font-bold mb-2 text-sm text-white">Social</div>
+          <div className="flex gap-2 flex-wrap">
+            <a href="https://instagram.com/feelflick" target="_blank" rel="noopener noreferrer" aria-label="Instagram"
+              className="inline-flex items-center justify-center rounded-full bg-white/10 w-8 h-8 mr-1 mb-1 text-lg text-white border-none cursor-pointer hover:bg-orange-500/80 hover:text-white transition"
+            >
               <FaInstagram />
             </a>
-            <a href="https://tiktok.com/@feelflick" style={iconButtonStyle} target="_blank" rel="noopener noreferrer" aria-label="TikTok">
+            <a href="https://tiktok.com/@feelflick" target="_blank" rel="noopener noreferrer" aria-label="TikTok"
+              className="inline-flex items-center justify-center rounded-full bg-white/10 w-8 h-8 mr-1 mb-1 text-lg text-white border-none cursor-pointer hover:bg-orange-500/80 hover:text-white transition"
+            >
               <FaTiktok />
             </a>
           </div>
         </div>
       </div>
-      <div style={{
-        textAlign: "center", color: "#fff", fontSize: 13,
-        opacity: 0.17, marginTop: 44, letterSpacing: "0.02em", fontWeight: 400 // more space above copyright
-      }}>
+      {/* Copyright */}
+      <div className="text-center text-white text-[13px] opacity-20 mt-11 tracking-wide font-normal select-none">
         &copy; {new Date().getFullYear()} FeelFlick &mdash; All rights reserved.
       </div>
     </footer>
-  )
+  );
 }
-

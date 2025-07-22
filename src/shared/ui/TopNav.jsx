@@ -27,7 +27,7 @@ export default function TopNav() {
   return (
     <header
       className={`
-        fixed z-50 flex justify-center pointer-events-none transition-transform duration-400
+        fixed z-50 flex justify-center pointer-events-none transition-transform duration-200
         top-1 left-1 right-1
         md:top-2 md:left-0 md:right-0
       `}
@@ -42,7 +42,7 @@ export default function TopNav() {
           pointer-events-auto w-full max-w-[1220px] flex items-center
           bg-[rgba(18,18,22,0.4)] backdrop-blur-[6px] shadow-xl
           rounded-xl min-h-[42px] px-3 py-1
-          md:rounded-2xl md:min-h-[54px] md:px-6 md:py-2
+          md:rounded-2xl md:h-12 md:px-6 md:py-2
         `}
         aria-label="Main navigation"
         role="navigation"
@@ -90,7 +90,7 @@ export default function TopNav() {
               hover:opacity-105
               min-w-[80px] text-sm text-center
               active:scale-97
-              md:px-5 md:py-2 md:rounded-xl md:min-w-[110px] md:text-lg
+              md:px-5 md:py-1 md:rounded-xl md:min-w-[100px] md:text-base
             `}
             aria-label="Sign in"
             tabIndex={0}

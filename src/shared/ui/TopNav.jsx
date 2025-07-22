@@ -58,11 +58,11 @@ export default function TopNav() {
           <img
             src={logo}
             alt="FeelFlick logo"
-            className="h-10 w-10 rounded-2xl shadow group-hover:scale-105 transition"
+            className="h-10 w-10 rounded-xl shadow group-hover:scale-105 transition"
             draggable={false}
           />
           <span
-            className="uppercase font-extrabold tracking-wider select-none text-xl pl-1"
+            className="uppercase font-extrabold tracking-wider select-none text-[1.3rem] pl-1"
             style={{
               color: "#F6E3D7",
               letterSpacing: "0.08em",

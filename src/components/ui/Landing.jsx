@@ -1,10 +1,10 @@
 import { useNavigate } from "react-router-dom";
-import TopNav from './TopNav'
-import LandingHero from './LandingHero'
-import WhyFeelFlick from './WhyFeelFlick'
-import TrendingToday from './TrendingToday'
-import CallToAction from './CallToAction'
-import Footer from './Footer'
+import TopNav from './TopNav';
+import LandingHero from './LandingHero';
+import WhyFeelFlick from './WhyFeelFlick';
+import TrendingToday from './TrendingToday';
+import CallToAction from './CallToAction';
+import Footer from './Footer';
 
 export default function Landing() {
   const navigate = useNavigate();
@@ -13,51 +13,34 @@ export default function Landing() {
   const handleSignUp = () => navigate("/auth/sign-up");
 
   return (
-    <div style={{ width: "100vw", minHeight: "100vh", background: "#101015", overflowX: "hidden", position: "relative" }}>
-      {/* Background video */}
+    <div className="w-screen min-h-screen bg-[#101015] overflow-x-hidden relative">
+      {/* Background video (fixed) */}
       <video
         autoPlay
         loop
         muted
         playsInline
         poster="/background-poster.jpg"
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          width: "100vw",
-          height: "100vh",
-          objectFit: "cover",
-          zIndex: 0,
-          filter: "brightness(0.54) blur(0.6px)"
-        }}
+        className="fixed top-0 left-0 w-screen h-screen object-cover z-0 brightness-[0.54] blur-[0.6px]"
       >
         <source src="/background.mp4" type="video/mp4" />
       </video>
-      
-      {/* Overlay for readability */}
-      <div
-        style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(20,24,35,0.42)',
-          zIndex: 1,
-          pointerEvents: "none"
-        }}
-      />
 
-      {/* TopNav - keep it fixed and on top */}
-      <div style={{ position: "relative", zIndex: 50 }}>
+      {/* Overlay for readability (fixed, over video) */}
+      <div className="fixed inset-0 bg-[rgba(20,24,35,0.42)] z-[1] pointer-events-none" />
+
+      {/* TopNav (fixed, always on top) */}
+      <div className="relative z-[50]">
         <TopNav onSignIn={handleSignIn} />
       </div>
 
-      {/* Hero Section - account for nav height */}
-      <div style={{ position: "relative", zIndex: 5 }}>
+      {/* Hero section (sits above most content) */}
+      <div className="relative z-[5]">
         <LandingHero onGetStarted={handleSignUp} />
       </div>
 
-      {/* The rest of your site */}
-      <div style={{ position: "relative", zIndex: 2 }}>
+      {/* Rest of the landing page content */}
+      <div className="relative z-[2]">
         <WhyFeelFlick />
         <TrendingToday onSignUp={handleSignUp} />
         <CallToAction onSignUp={handleSignUp} />

@@ -1,3 +1,11 @@
+import { useNavigate } from "react-router-dom";
+import TopNav from './TopNav'
+import LandingHero from './LandingHero'
+import WhyFeelFlick from './WhyFeelFlick'
+import TrendingToday from './TrendingToday'
+import CallToAction from './CallToAction'
+import Footer from './Footer'
+
 export default function Landing() {
   const navigate = useNavigate();
 
@@ -38,14 +46,14 @@ export default function Landing() {
         }}
       />
 
-      {/* Hero Section - HIGHER z-index than TopNav */}
-      <div style={{ position: "relative", zIndex: 15, height: "100vh" }}>
-        <LandingHero onGetStarted={handleSignUp} />
+      {/* TopNav - keep it fixed and on top */}
+      <div style={{ position: "relative", zIndex: 50 }}>
+        <TopNav onSignIn={handleSignIn} />
       </div>
 
-      {/* TopNav with lower z-index so it doesn't cover hero content */}
-      <div style={{ position: "relative", zIndex: 10 }}>
-        <TopNav onSignIn={handleSignIn} />
+      {/* Hero Section - account for nav height */}
+      <div style={{ position: "relative", zIndex: 5 }}>
+        <LandingHero onGetStarted={handleSignUp} />
       </div>
 
       {/* The rest of your site */}

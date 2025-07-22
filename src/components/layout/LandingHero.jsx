@@ -1,121 +1,68 @@
 import { useNavigate } from "react-router-dom";
 
 /**
- * HeroText with explicit mobile positioning
+ * HeroText with proper mobile positioning accounting for fixed nav
  */
 function HeroText() {
   const navigate = useNavigate();
 
   return (
-    <>
-      {/* Mobile version - positioned at bottom */}
-      <div className="block md:hidden absolute inset-x-0 bottom-20 z-10 px-4">
-        <div className="text-center max-w-[900px] mx-auto">
-          <h1
-            className="
-              font-extrabold text-white
-              text-[clamp(2.2rem,6vw,3.3rem)]
-              mb-4
-              leading-[1.11]
-              tracking-tight
-              drop-shadow-[0_4px_24px_#000c,0_2px_8px_#18406d77,0_0_1px_#fe924566]
-            "
-            style={{
-              letterSpacing: "-1.1px",
-              filter: "drop-shadow(0 1px 16px #eb423b22)",
-            }}
-          >
-            Movies that match your mood.
-          </h1>
-          <p
-            className="
-              font-normal text-white opacity-95
-              text-[clamp(1rem,1.2vw,1.25rem)] mb-8
-              leading-[1.6]
-              drop-shadow-[0_2px_8px_#0002]
-            "
-          >
-            Get the perfect recommendation based on your taste and how you feel.
-            <br />
-            Fast, private, and always free.
-          </p>
-          <button
-            type="button"
-            className="
-              bg-gradient-to-r from-orange-400 to-red-500
-              text-white font-extrabold rounded-xl px-12 py-3
-              text-[1.07rem] shadow-lg tracking-wide
-              transition duration-150 ease-[cubic-bezier(.3,1.1,.3,1.03)]
-              hover:scale-105 hover:shadow-[0_9px_26px_#eb423b52]
-              active:scale-100
-              focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400
-              mx-auto mb-2
-            "
-            style={{
-              letterSpacing: "0.02em",
-              boxShadow: "0 3px 16px #eb423b28",
-            }}
-            onClick={() => navigate("/auth/sign-up")}
-          >
-            GET STARTED
-          </button>
-        </div>
+    <div className="w-full h-screen flex flex-col items-center justify-center px-4 md:px-8">
+      {/* Add padding-top to account for fixed nav on mobile */}
+      <div 
+        className="text-center max-w-[900px] mx-auto z-10"
+        style={{ paddingTop: '80px' }} // Account for nav height
+      >
+        <h1
+          className="
+            font-extrabold text-white
+            text-[clamp(2.2rem,6vw,3.3rem)]
+            mb-4
+            leading-[1.11]
+            tracking-tight
+            drop-shadow-[0_4px_24px_#000c,0_2px_8px_#18406d77,0_0_1px_#fe924566]
+          "
+          style={{
+            letterSpacing: "-1.1px",
+            filter: "drop-shadow(0 1px 16px #eb423b22)",
+          }}
+        >
+          Movies that match your mood.
+        </h1>
+        <p
+          className="
+            font-normal text-white opacity-95
+            text-[clamp(1rem,1.2vw,1.25rem)] mb-8
+            leading-[1.6]
+            drop-shadow-[0_2px_8px_#0002]
+          "
+        >
+          Get the perfect recommendation based on your taste and how you feel.
+          <br />
+          Fast, private, and always free.
+        </p>
+        <button
+          type="button"
+          className="
+            bg-gradient-to-r from-orange-400 to-red-500
+            text-white font-extrabold rounded-xl px-12 py-3
+            text-[1.07rem] shadow-lg tracking-wide
+            transition duration-150 ease-[cubic-bezier(.3,1.1,.3,1.03)]
+            hover:scale-105 hover:shadow-[0_9px_26px_#eb423b52]
+            active:scale-100
+            focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400
+            mx-auto mb-2
+          "
+          style={{
+            letterSpacing: "0.02em",
+            boxShadow: "0 3px 16px #eb423b28",
+          }}
+          onClick={() => navigate("/auth/sign-up")}
+        >
+          GET STARTED
+        </button>
       </div>
-
-      {/* Desktop version - centered */}
-      <div className="hidden md:block absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 px-8 w-full">
-        <div className="text-center max-w-[900px] mx-auto">
-          <h1
-            className="
-              font-extrabold text-white
-              text-[clamp(2.2rem,6vw,3.3rem)]
-              mb-4
-              leading-[1.11]
-              tracking-tight
-              drop-shadow-[0_4px_24px_#000c,0_2px_8px_#18406d77,0_0_1px_#fe924566]
-            "
-            style={{
-              letterSpacing: "-1.1px",
-              filter: "drop-shadow(0 1px 16px #eb423b22)",
-            }}
-          >
-            Movies that match your mood.
-          </h1>
-          <p
-            className="
-              font-normal text-white opacity-95
-              text-[clamp(1rem,1.2vw,1.25rem)] mb-8
-              leading-[1.6]
-              drop-shadow-[0_2px_8px_#0002]
-            "
-          >
-            Get the perfect recommendation based on your taste and how you feel.
-            <br />
-            Fast, private, and always free.
-          </p>
-          <button
-            type="button"
-            className="
-              bg-gradient-to-r from-orange-400 to-red-500
-              text-white font-extrabold rounded-xl px-12 py-3
-              text-[1.07rem] shadow-lg tracking-wide
-              transition duration-150 ease-[cubic-bezier(.3,1.1,.3,1.03)]
-              hover:scale-105 hover:shadow-[0_9px_26px_#eb423b52]
-              active:scale-100
-              focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400
-              mx-auto mb-2
-            "
-            style={{
-              letterSpacing: "0.02em",
-              boxShadow: "0 3px 16px #eb423b28",
-            }}
-            onClick={() => navigate("/auth/sign-up")}
-          >
-            GET STARTED
-          </button>
-        </div>
-      </div>
-    </>
+    </div>
   );
 }
 
@@ -180,7 +127,7 @@ function HeroCurveSVG() {
  */
 export default function LandingHero() {
   return (
-    <section className="w-screen h-screen relative bg-black/20 overflow-hidden">
+    <section className="w-screen h-screen relative overflow-hidden">
       <HeroText />
       <HeroCurveSVG />
     </section>

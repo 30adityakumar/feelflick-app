@@ -42,8 +42,8 @@ export default function TopNav() {
         className={`
           pointer-events-auto w-full max-w-[1220px] flex items-center
           bg-[rgba(18,18,22,0.4)] backdrop-blur-[6px] shadow-xl
-          rounded-3xl min-h-[56px]
-          px-6 py-1
+          rounded-xl min-h-[56px]
+          px-6 py-0.85
         `}
         aria-label="Main navigation"
         role="navigation"
@@ -58,11 +58,11 @@ export default function TopNav() {
           <img
             src={logo}
             alt="FeelFlick logo"
-            className="h-10 w-10 rounded-xl shadow group-hover:scale-105 transition"
+            className="h-9 w-9 rounded-l shadow group-hover:scale-105 transition"
             draggable={false}
           />
           <span
-            className="uppercase font-extrabold tracking-wider select-none text-[1.3rem] pl-1"
+            className="uppercase font-extrabold tracking-wider select-none text-[1.5rem] pl-1"
             style={{
               color: "#F6E3D7",
               letterSpacing: "0.08em",
@@ -81,7 +81,7 @@ export default function TopNav() {
             className={`
               bg-gradient-to-r from-orange-400 to-red-500
               text-white font-extrabold
-              px-7 py-1 rounded-2xl shadow-md transition
+              px-7 py-1 rounded-xl shadow-md transition
               focus-visible:outline-2 focus-visible:outline-white
               hover:opacity-95
               min-w-[110px] text-lg text-center
@@ -91,8 +91,8 @@ export default function TopNav() {
             tabIndex={0}
             style={{
               boxShadow: "0 2px 12px #eb423b1a",
-              fontSize: "1.1rem",
-              minHeight: "32px",
+              fontSize: "1rem",
+              minHeight: "30px",
             }}
           >
             Sign in

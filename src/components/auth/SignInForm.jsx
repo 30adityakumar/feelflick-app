@@ -6,108 +6,122 @@ export default function SignInForm({
 }) {
   const navigate = useNavigate();
 
-  const inputStyle = {
-    margin: "10px 0",
-    padding: "14px 12px",
-    borderRadius: 8,
-    border: "none",
-    fontSize: 16,
-    background: "#232330",
-    color: "#fff",
-    fontWeight: 500,
-    letterSpacing: "-0.02em",
-    outline: "none",
-    boxShadow: "0 1.5px 8px 0 #0004"
-  };
-
-  // Handlers for switching between forms (ONLY navigates)
+  // Handlers for switching between forms (just navigates)
   const handleSwitchToSignUp = () => navigate("/auth/sign-up");
   const handleSwitchToSignIn = () => navigate("/auth/sign-in");
 
   return (
     <form
       onSubmit={handleAuth}
-      style={{
-        position: "relative",
-        zIndex: 2,
-        maxWidth: 390,
-        margin: "0 auto",
-        marginTop: "10vh",
-        background: "rgba(24, 26, 32, 0.78)",
-        backdropFilter: "blur(9px)",
-        borderRadius: 20,
-        boxShadow: "0 8px 48px 0 #0008",
-        padding: '42px 30px 27px 30px',
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "stretch",
-        minHeight: 350
-      }}
+      className={`
+        relative z-2 max-w-[390px] mx-auto mt-[10vh]
+        bg-black/80 backdrop-blur-[9px] rounded-2xl shadow-[0_8px_48px_0_#0008]
+        px-8 py-11 flex flex-col items-stretch min-h-[350px]
+      `}
     >
-      <div style={{ fontSize: 26, fontWeight: 900, color: '#fff', marginBottom: 15, textAlign: 'center' }}>
+      {/* Title */}
+      <div className="text-[26px] font-black text-white mb-4 text-center">
         {isSigningUp ? "Sign Up" : "Sign In"}
       </div>
+      {/* Name (sign up only) */}
       {isSigningUp && (
         <input
           type="text"
           required
           placeholder="Your Name"
           autoComplete="name"
-          style={inputStyle}
+          className={`
+            my-2 px-4 py-[13px] rounded-lg border-none text-[16px]
+            bg-[#232330] text-white font-medium tracking-tight outline-none
+            shadow-[0_1.5px_8px_0_#0004] placeholder:text-zinc-400
+            transition
+          `}
           value={name}
           onChange={e => setName(e.target.value)}
         />
       )}
+      {/* Email */}
       <input
         type="email"
         required
         placeholder="Email address"
         autoComplete="email"
-        style={inputStyle}
+        className={`
+          my-2 px-4 py-[13px] rounded-lg border-none text-[16px]
+          bg-[#232330] text-white font-medium tracking-tight outline-none
+          shadow-[0_1.5px_8px_0_#0004] placeholder:text-zinc-400
+          transition
+        `}
         value={email}
         onChange={e => setEmail(e.target.value)}
       />
+      {/* Password */}
       <input
         type="password"
         required
         placeholder="Password"
         autoComplete="current-password"
-        style={inputStyle}
+        className={`
+          my-2 px-4 py-[13px] rounded-lg border-none text-[16px]
+          bg-[#232330] text-white font-medium tracking-tight outline-none
+          shadow-[0_1.5px_8px_0_#0004] placeholder:text-zinc-400
+          transition
+        `}
         value={password}
         onChange={e => setPassword(e.target.value)}
       />
-      {error && <div style={{ color: COLORS.accent2, margin: '7px 0 1px 0', fontSize: 15, textAlign: 'center' }}>{error}</div>}
+      {/* Error */}
+      {error && (
+        <div
+          className="my-2 text-center text-[15px]"
+          style={{ color: COLORS.accent2 }}
+        >
+          {error}
+        </div>
+      )}
+      {/* Submit */}
       <button
         type="submit"
+        className={`
+          mt-4 rounded-lg font-extrabold text-[18px] py-[11px] shadow-[0_2px_11px_0_#fe924522]
+          transition duration-100
+        `}
         style={{
-          marginTop: 18,
           background: `linear-gradient(90deg,${COLORS.accent} 10%,${COLORS.accent2} 90%)`,
           color: "#fff",
           border: 'none',
-          borderRadius: 8,
-          fontWeight: 800,
-          fontSize: 18,
-          padding: '11px 0',
-          boxShadow: '0 2px 11px 0 #fe924522',
-          cursor: loading ? "not-allowed" : "pointer",
-          opacity: loading ? 0.7 : 1
+          opacity: loading ? 0.7 : 1,
+          cursor: loading ? "not-allowed" : "pointer"
         }}
         disabled={loading}
       >
         {loading ? (isSigningUp ? "Signing up..." : "Signing in...") : (isSigningUp ? "Sign Up" : "Sign In")}
       </button>
-      <div style={{ color: "#aaa", margin: '15px 0 4px 0', textAlign: 'center', fontSize: 15 }}>
-        {isSigningUp
-          ? <>Already have an account?{" "}
+      {/* Switch Link */}
+      <div className="text-zinc-400 mt-4 mb-1 text-center text-[15px]">
+        {isSigningUp ? (
+          <>
+            Already have an account?{" "}
             <span
-              style={{ color: COLORS.accent, cursor: "pointer", fontWeight: 700 }}
+              className="font-bold cursor-pointer"
+              style={{ color: COLORS.accent }}
               onClick={handleSwitchToSignIn}
-            >Sign In</span></>
-          : <>New to FeelFlick?{" "}
+            >
+              Sign In
+            </span>
+          </>
+        ) : (
+          <>
+            New to FeelFlick?{" "}
             <span
-              style={{ color: COLORS.accent, cursor: "pointer", fontWeight: 700 }}
+              className="font-bold cursor-pointer"
+              style={{ color: COLORS.accent }}
               onClick={handleSwitchToSignUp}
-            >Sign up now.</span></>}
+            >
+              Sign up now.
+            </span>
+          </>
+        )}
       </div>
     </form>
   );

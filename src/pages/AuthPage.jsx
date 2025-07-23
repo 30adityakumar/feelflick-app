@@ -6,20 +6,22 @@ export default function AuthPage({ mode }) {
 
   // Only render the sign-in or sign-up form, full screen (no footer, no scroll)
   return (
-    <div style={{ minHeight: '100vh', width: '100vw', background: "#101015", position: 'relative' }}>
+    <div className="min-h-screen w-screen bg-[#101015] relative overflow-hidden">
+      {/* Background video */}
       <video
-        autoPlay loop muted playsInline poster="/background-poster.jpg"
-        style={{
-          position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh",
-          objectFit: "cover", zIndex: 0, filter: "brightness(0.62) blur(0.24px)"
-        }}
+        autoPlay
+        loop
+        muted
+        playsInline
+        poster="/background-poster.jpg"
+        className="fixed top-0 left-0 w-screen h-screen object-cover z-0 brightness-[0.62] blur-[0.24px]"
       >
         <source src="/background.mp4" type="video/mp4" />
       </video>
-      <div style={{
-        position: 'fixed', inset: 0, background: 'rgba(18,22,30,0.32)', zIndex: 1, pointerEvents: "none"
-      }} />
-      <div style={{ position: "relative", zIndex: 2 }}>
+      {/* Overlay for readability */}
+      <div className="fixed inset-0 bg-[rgba(18,22,30,0.32)] z-[1] pointer-events-none" />
+      {/* Form */}
+      <div className="relative z-[2]">
         <AuthForm
           mode={mode} // "sign-in" or "sign-up"
           onSwitchMode={newMode => {

@@ -19,9 +19,9 @@ export default function ConfirmEmail() {
     }
   }, [hash, navigate]);
 
-  // Show nothing (or a spinner/message) since it's instant
+  // Show spinner/message while processing
   return (
-    <div style={{ minHeight:"60vh", display:"flex", alignItems:"center", justifyContent:"center", color:"#fff" }}>
+    <div className="min-h-[60vh] flex items-center justify-center text-white text-lg font-semibold">
       Setting up your account…
     </div>
   );

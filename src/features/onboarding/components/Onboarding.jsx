@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-// --- Constants for genres (can expand if you want) ---
+// --- Genres ---
 const GENRES = [
   { id: 28, label: "Action" },
   { id: 12, label: "Adventure" },
@@ -21,11 +21,11 @@ const GENRES = [
   { id: 53, label: "Thriller" },
 ];
 
-// --- Accent colors/gradients ---
 const ACCENT = "#fe9245";
 const ACCENT2 = "#eb423b";
 const BTN_BG = "linear-gradient(90deg,#fe9245 10%,#eb423b 90%)";
 const GENRE_SELECTED_BG = "linear-gradient(88deg,#FF5B2E,#367cff 80%)";
+const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
 export default function Onboarding() {
   const [step, setStep] = useState(1);
@@ -35,32 +35,30 @@ export default function Onboarding() {
   const [selectedMovies, setSelectedMovies] = useState([]);
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(true);
+  const [spinner, setSpinner] = useState(false);
   const [error, setError] = useState("");
 
   const navigate = useNavigate();
 
-  // Simulate profile check (can replace with real user fetch)
+  // Simulate profile check
   useEffect(() => {
     setTimeout(() => setChecking(false), 300);
   }, []);
 
-  // --- Genre toggle ---
   function toggleGenre(id) {
-    setSelectedGenres(g =>
-      g.includes(id) ? g.filter(gid => gid !== id) : [...g, id]
+    setSelectedGenres((g) =>
+      g.includes(id) ? g.filter((gid) => gid !== id) : [...g, id]
     );
   }
 
-  // --- Movie toggle ---
   function toggleMovie(movie) {
-    setSelectedMovies(arr =>
-      arr.some(m => m.id === movie.id)
-        ? arr.filter(m => m.id !== movie.id)
+    setSelectedMovies((arr) =>
+      arr.some((m) => m.id === movie.id)
+        ? arr.filter((m) => m.id !== movie.id)
         : [...arr, movie]
     );
   }
 
-  // --- Save and continue (simulate API call for MVP) ---
   function saveAndGo(skipGenres = false, skipMovies = false) {
     setLoading(true);
     setTimeout(() => {
@@ -69,24 +67,43 @@ export default function Onboarding() {
     }, 700);
   }
 
-  // --- Simulate movie search API (replace with TMDB/real in prod) ---
+  // --- TMDb Search ---
   useEffect(() => {
     if (!query) {
       setSuggestedMovies([]);
+      setSpinner(false);
       return;
     }
-    // Simulate search result
-    setTimeout(() => {
-      setSuggestedMovies([
-        { id: 1, title: "Inception" },
-        { id: 2, title: "The Dark Knight" },
-        { id: 3, title: "Interstellar" },
-        { id: 4, title: "La La Land" },
-      ].filter(m => m.title.toLowerCase().includes(query.toLowerCase())));
-    }, 220);
+    setSpinner(true);
+    const controller = new AbortController();
+    fetch(
+      `https://api.themoviedb.org/3/search/movie?query=${encodeURIComponent(
+        query
+      )}&include_adult=false&language=en-US&page=1&api_key=${TMDB_API_KEY}`,
+      { signal: controller.signal }
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        setSuggestedMovies(
+          (data.results || [])
+            .filter((m) => !!m.title && m.poster_path) // show only movies with poster
+            .slice(0, 10)
+            .map((m) => ({
+              id: m.id,
+              title: m.title,
+              year: m.release_date ? m.release_date.slice(0, 4) : "",
+              poster: m.poster_path
+                ? `https://image.tmdb.org/t/p/w154${m.poster_path}`
+                : "",
+            }))
+        );
+        setSpinner(false);
+      })
+      .catch(() => setSpinner(false));
+    return () => controller.abort();
   }, [query]);
 
-  // --- Loader for profile check ---
+  // Loader for profile check
   if (checking) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black text-white font-bold text-lg tracking-wide">
@@ -95,7 +112,7 @@ export default function Onboarding() {
     );
   }
 
-  // --- Main UI ---
+  // Main UI
   return (
     <div
       className="min-h-screen w-full bg-cover bg-center flex flex-col justify-center items-stretch relative font-sans"
@@ -112,7 +129,6 @@ export default function Onboarding() {
       {/* Card container */}
       <div className="w-full max-w-[500px] mx-auto min-h-[420px] mt-20 mb-4 bg-[rgba(22,19,28,0.93)] rounded-2xl shadow-2xl px-7 py-9 flex flex-col"
         style={{ zIndex: 10 }}>
-        {/* Error */}
         {error && (
           <div className="bg-[#3d1113] text-[#f44336] text-center rounded mb-3 font-semibold text-sm py-2">
             {error}
@@ -208,36 +224,56 @@ export default function Onboarding() {
                 "
                 autoFocus
               />
-              {/* Dropdown Suggestions */}
-              {query && suggestedMovies.length > 0 && (
+              {/* Dropdown Suggestions or Spinner */}
+              {query && (
                 <div className="
                   absolute left-0 right-0 mt-1 bg-[#1a1820] rounded-xl shadow-xl z-20
                   py-2 ring-1 ring-zinc-700
                   max-h-[230px] overflow-y-auto animate-fadeIn
                 ">
-                  {suggestedMovies.map(movie => (
+                  {spinner && (
+                    <div className="flex items-center justify-center text-orange-400 py-6">
+                      <svg className="animate-spin h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24">
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8v8z"
+                        ></path>
+                      </svg>
+                      Loading…
+                    </div>
+                  )}
+                  {!spinner && suggestedMovies.length > 0 && suggestedMovies.map(movie => (
                     <button
                       key={movie.id}
                       type="button"
                       onClick={() => toggleMovie(movie)}
                       className={`
-                        block w-full text-left px-5 py-2 text-white text-[15px] hover:bg-orange-500 hover:text-white rounded-md
+                        flex items-center gap-3 w-full text-left px-4 py-2 text-white text-[15px] hover:bg-orange-500 hover:text-white rounded-md
                         transition
                         ${selectedMovies.some(m => m.id === movie.id) ? "bg-orange-600 text-white" : ""}
                       `}
                     >
-                      {movie.title}
+                      <img
+                        src={movie.poster}
+                        alt={movie.title}
+                        className="w-8 h-12 rounded shadow border border-zinc-700 object-cover"
+                        draggable={false}
+                      />
+                      <span>{movie.title}{movie.year && <span className="ml-1 text-zinc-400">({movie.year})</span>}</span>
                     </button>
                   ))}
-                </div>
-              )}
-              {/* No results message */}
-              {query && suggestedMovies.length === 0 && (
-                <div className="
-                  absolute left-0 right-0 mt-1 bg-[#1a1820] rounded-xl shadow-xl z-20
-                  py-3 text-zinc-400 text-center animate-fadeIn
-                ">
-                  No results.
+                  {!spinner && suggestedMovies.length === 0 && query && (
+                    <div className="text-zinc-400 text-center px-5 py-2">No results.</div>
+                  )}
                 </div>
               )}
             </div>

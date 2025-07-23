@@ -1,12 +1,7 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/shared/lib/supabase/client";
 
-const ACCENT = "#fe9245";
-const ACCENT2 = "#eb423b";
-const BTN_BG = "linear-gradient(90deg,#fe9245 10%,#eb423b 90%)";
-const GENRE_SELECTED_BG = "linear-gradient(88deg, var(--theme-color,#FF5B2E), var(--theme-color-secondary,#367cff) 80%)";
-
+// --- Constants for genres (can expand if you want) ---
 const GENRES = [
   { id: 28, label: "Action" },
   { id: 12, label: "Adventure" },
@@ -26,6 +21,11 @@ const GENRES = [
   { id: 53, label: "Thriller" },
 ];
 
+// --- Accent colors/gradients ---
+const ACCENT = "#fe9245";
+const ACCENT2 = "#eb423b";
+const BTN_BG = "linear-gradient(90deg,#fe9245 10%,#eb423b 90%)";
+const GENRE_SELECTED_BG = "linear-gradient(88deg,#FF5B2E,#367cff 80%)";
 
 export default function Onboarding() {
   const [step, setStep] = useState(1);
@@ -39,50 +39,54 @@ export default function Onboarding() {
 
   const navigate = useNavigate();
 
+  // Simulate profile check (can replace with real user fetch)
   useEffect(() => {
-    // Simulate profile check
-    setTimeout(() => setChecking(false), 400);
+    setTimeout(() => setChecking(false), 300);
   }, []);
 
+  // --- Genre toggle ---
   function toggleGenre(id) {
-    setSelectedGenres((g) =>
-      g.includes(id) ? g.filter((gid) => gid !== id) : [...g, id]
+    setSelectedGenres(g =>
+      g.includes(id) ? g.filter(gid => gid !== id) : [...g, id]
     );
   }
 
+  // --- Movie toggle ---
   function toggleMovie(movie) {
-    setSelectedMovies((arr) =>
-      arr.some((m) => m.id === movie.id)
-        ? arr.filter((m) => m.id !== movie.id)
+    setSelectedMovies(arr =>
+      arr.some(m => m.id === movie.id)
+        ? arr.filter(m => m.id !== movie.id)
         : [...arr, movie]
     );
   }
 
+  // --- Save and continue (simulate API call for MVP) ---
   function saveAndGo(skipGenres = false, skipMovies = false) {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
       navigate("/app");
-    }, 700); // Simulate save
+    }, 700);
   }
 
-  // Simulate movie search
+  // --- Simulate movie search API (replace with TMDB/real in prod) ---
   useEffect(() => {
     if (!query) {
       setSuggestedMovies([]);
       return;
     }
-    // Simulate fetch
+    // Simulate search result
     setTimeout(() => {
       setSuggestedMovies([
         { id: 1, title: "Inception" },
         { id: 2, title: "The Dark Knight" },
         { id: 3, title: "Interstellar" },
-      ].filter((m) => m.title.toLowerCase().includes(query.toLowerCase())));
-    }, 250);
+        { id: 4, title: "La La Land" },
+      ].filter(m => m.title.toLowerCase().includes(query.toLowerCase())));
+    }, 220);
   }, [query]);
 
-  // Loader
+  // --- Loader for profile check ---
   if (checking) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black text-white font-bold text-lg tracking-wide">
@@ -91,7 +95,7 @@ export default function Onboarding() {
     );
   }
 
-  // Main UI
+  // --- Main UI ---
   return (
     <div
       className="min-h-screen w-full bg-cover bg-center flex flex-col justify-center items-stretch relative font-sans"
@@ -118,7 +122,9 @@ export default function Onboarding() {
         {/* Step 1: Genres */}
         {step === 1 && (
           <>
-            <h2 className="text-2xl font-black text-white text-center mb-1">Let’s get to know your taste.</h2>
+            <h2 className="text-2xl font-black text-white text-center mb-1">
+              Let’s get to know your taste.
+            </h2>
             <div className="text-[13px] text-gray-200 font-normal text-center mb-2 mt-1">
               Pick a few genres you love — it helps us recommend movies that truly match your energy.
             </div>
@@ -179,43 +185,87 @@ export default function Onboarding() {
         {/* Step 2: Movies */}
         {step === 2 && (
           <>
-            <h2 className="text-2xl font-black text-white text-center mb-1">Got some favorite movies?</h2>
+            <h2 className="text-2xl font-black text-white text-center mb-1">
+              Got some favorite movies?
+            </h2>
             <div className="text-[13px] text-gray-100 font-normal text-center mb-2 mt-1 opacity-80">
               Pick a few to help us understand your taste and give you more personalized suggestions.
             </div>
-            <input
-              type="text"
-              placeholder="Search a movie…"
-              className="w-full bg-[#232330] rounded px-3 py-2 text-[13px] font-medium text-white outline-none border-none mb-2 mt-1 placeholder:text-zinc-400"
-              value={query}
-              onChange={e => setQuery(e.target.value)}
-            />
-            <div className="flex flex-wrap gap-2 mb-3">
-              {suggestedMovies.map((movie) => (
-                <button
-                  key={movie.id}
-                  type="button"
-                  className={`
-                    px-3 py-1 rounded bg-zinc-800 text-white text-xs font-semibold
-                    transition-all duration-100 hover:bg-orange-600
-                    ${selectedMovies.some((m) => m.id === movie.id) ? "bg-orange-500" : ""}
-                  `}
-                  onClick={() => toggleMovie(movie)}
-                >
-                  {movie.title}
-                </button>
-              ))}
+
+            {/* Search Input */}
+            <div className="relative w-full max-w-md mx-auto my-4">
+              <input
+                type="text"
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                placeholder="Type a movie name…"
+                className="
+                  w-full bg-[#232330] rounded-xl px-5 py-3
+                  text-base text-white font-medium outline-none border-none
+                  placeholder:text-zinc-400 shadow
+                  transition
+                  focus:ring-2 focus:ring-orange-400
+                "
+                autoFocus
+              />
+              {/* Dropdown Suggestions */}
+              {query && suggestedMovies.length > 0 && (
+                <div className="
+                  absolute left-0 right-0 mt-1 bg-[#1a1820] rounded-xl shadow-xl z-20
+                  py-2 ring-1 ring-zinc-700
+                  max-h-[230px] overflow-y-auto animate-fadeIn
+                ">
+                  {suggestedMovies.map(movie => (
+                    <button
+                      key={movie.id}
+                      type="button"
+                      onClick={() => toggleMovie(movie)}
+                      className={`
+                        block w-full text-left px-5 py-2 text-white text-[15px] hover:bg-orange-500 hover:text-white rounded-md
+                        transition
+                        ${selectedMovies.some(m => m.id === movie.id) ? "bg-orange-600 text-white" : ""}
+                      `}
+                    >
+                      {movie.title}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {/* No results message */}
+              {query && suggestedMovies.length === 0 && (
+                <div className="
+                  absolute left-0 right-0 mt-1 bg-[#1a1820] rounded-xl shadow-xl z-20
+                  py-3 text-zinc-400 text-center animate-fadeIn
+                ">
+                  No results.
+                </div>
+              )}
             </div>
-            <div className="flex flex-wrap gap-2 mb-3">
-              {selectedMovies.map((movie) => (
-                <span
-                  key={movie.id}
-                  className="px-3 py-1 rounded bg-orange-600 text-white text-xs font-semibold"
-                >
-                  {movie.title}
-                </span>
-              ))}
-            </div>
+
+            {/* Selected Movies Chips */}
+            {selectedMovies.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-2 px-1 justify-center">
+                {selectedMovies.map(movie => (
+                  <span key={movie.id}
+                    className="
+                      px-3 py-1 rounded bg-orange-600 text-white text-xs font-semibold
+                      flex items-center gap-1
+                    "
+                  >
+                    {movie.title}
+                    <button
+                      type="button"
+                      aria-label="Remove"
+                      onClick={() => toggleMovie(movie)}
+                      className="ml-2 text-white/80 hover:text-white text-[17px] leading-none"
+                    >
+                      &times;
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+
             {/* Control buttons */}
             <div className="flex justify-center gap-4 mt-4">
               <button
@@ -244,9 +294,21 @@ export default function Onboarding() {
                 Skip
               </button>
             </div>
+
+            {/* Dropdown animation keyframes */}
+            <style>
+              {`
+              @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(12px);}
+                to { opacity: 1; transform: translateY(0);}
+              }
+              .animate-fadeIn {
+                animation: fadeIn 0.25s cubic-bezier(.33,1,.68,1) both;
+              }
+              `}
+            </style>
           </>
         )}
-
       </div>
     </div>
   );

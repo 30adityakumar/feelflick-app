@@ -1,12 +1,31 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/shared/lib/supabase/client";
-import { GENRES } from "@/shared/constants";
 
 const ACCENT = "#fe9245";
 const ACCENT2 = "#eb423b";
 const BTN_BG = "linear-gradient(90deg,#fe9245 10%,#eb423b 90%)";
 const GENRE_SELECTED_BG = "linear-gradient(88deg, var(--theme-color,#FF5B2E), var(--theme-color-secondary,#367cff) 80%)";
+
+const GENRES = [
+  { id: 28, label: "Action" },
+  { id: 12, label: "Adventure" },
+  { id: 16, label: "Animation" },
+  { id: 35, label: "Comedy" },
+  { id: 80, label: "Crime" },
+  { id: 99, label: "Documentary" },
+  { id: 18, label: "Drama" },
+  { id: 10751, label: "Family" },
+  { id: 14, label: "Fantasy" },
+  { id: 36, label: "History" },
+  { id: 27, label: "Horror" },
+  { id: 10402, label: "Music" },
+  { id: 9648, label: "Mystery" },
+  { id: 10749, label: "Romance" },
+  { id: 878, label: "Sci-Fi" },
+  { id: 53, label: "Thriller" },
+];
+
 
 export default function Onboarding() {
   const [step, setStep] = useState(1);

@@ -1,19 +1,17 @@
-// src/components/ResetPassword.jsx
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/shared/lib/supabase/client";
 
 export default function ResetPassword() {
-  const { hash }   = useLocation();
-  const navigate   = useNavigate();
+  const { hash } = useLocation();
+  const navigate = useNavigate();
 
-  // 🔐 1. Parse the hash **once** (initialState function runs only on mount)
-  const [tokens] = useState(() => (
+  // Parse tokens from the URL hash
+  const [tokens] = useState(() =>
     Object.fromEntries(new URLSearchParams(hash.startsWith("#") ? hash.slice(1) : hash))
-  ));
+  );
   const { access_token: accessToken, refresh_token: refreshToken } = tokens;
 
-  // 🔐 2. Session exchange (runs once – deps include the memoised tokens)
   useEffect(() => {
     if (accessToken && refreshToken) {
       supabase.auth
@@ -22,18 +20,18 @@ export default function ResetPassword() {
     }
   }, [accessToken, refreshToken]);
 
-  /* ───────── local form state ───────── */
+  // Local state
   const [password, setPassword] = useState("");
-  const [confirm , setConfirm ] = useState("");
-  const [error   , setError   ] = useState("");
-  const [success , setSuccess ] = useState(false);
+  const [confirm, setConfirm] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
 
-    if (password.length < 8)      return setError("Password must be at least 8 characters.");
-    if (password !== confirm)     return setError("Passwords do not match.");
+    if (password.length < 8) return setError("Password must be at least 8 characters.");
+    if (password !== confirm) return setError("Passwords do not match.");
 
     const { error } = await supabase.auth.updateUser({ password });
     if (error) setError(error.message);
@@ -43,48 +41,64 @@ export default function ResetPassword() {
     }
   }
 
-  /* ───────── UI ───────── */
+  // If the link is invalid or expired
   if (!accessToken || !refreshToken) {
     return (
-      <Screen>
-        <Msg>Invalid or expired reset link.</Msg>
-      </Screen>
+      <div className="min-h-screen flex items-center justify-center bg-[#101015] font-sans">
+        <div className="text-white text-lg text-center">
+          Invalid or expired reset link.
+        </div>
+      </div>
     );
   }
 
+  // Main form UI
   return (
-    <Screen>
-      <Form onSubmit={handleSubmit}>
-        <Heading>Set a&nbsp;new&nbsp;password</Heading>
-
-        <Input
+    <div className="min-h-screen flex items-center justify-center bg-[#101015] font-sans">
+      <form
+        onSubmit={handleSubmit}
+        className={`
+          bg-[#18141c] px-8 py-10 rounded-2xl min-w-[320px] w-full max-w-[370px]
+          shadow-[0_8px_38px_#000c] text-white flex flex-col
+        `}
+      >
+        <div className="text-2xl font-black mb-6 text-center">Set a new password</div>
+        <input
           type="password"
           placeholder="New password"
+          className="my-2 px-4 py-3 rounded-lg bg-[#232330] border-none text-base text-white placeholder:text-zinc-400 outline-none"
           value={password}
           onChange={e => setPassword(e.target.value)}
         />
-        <Input
+        <input
           type="password"
           placeholder="Confirm password"
+          className="my-2 px-4 py-3 rounded-lg bg-[#232330] border-none text-base text-white placeholder:text-zinc-400 outline-none"
           value={confirm}
           onChange={e => setConfirm(e.target.value)}
         />
-
-        {error   && <Error>{error}</Error>}
-        {success && <Success>Password updated! Redirecting…</Success>}
-
-        {!success && <Primary>Reset password</Primary>}
-      </Form>
-    </Screen>
+        {error && (
+          <div className="text-center text-[#eb423b] mt-2 text-[15px]">{error}</div>
+        )}
+        {success && (
+          <div className="text-center text-[#fe9245] mt-2 text-[15px]">
+            Password updated! Redirecting…
+          </div>
+        )}
+        {!success && (
+          <button
+            type="submit"
+            className={`
+              mt-5 bg-gradient-to-r from-[#fe9245] to-[#eb423b]
+              border-none rounded-lg text-white font-bold text-[17px]
+              py-3 transition hover:opacity-95 active:scale-98
+              shadow-[0_2px_12px_#fe924522]
+            `}
+          >
+            Reset password
+          </button>
+        )}
+      </form>
+    </div>
   );
 }
-
-/* ───── tiny inline “styled-component” helpers ───── */
-const Screen  = ({children}) => <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"#101015",fontFamily:"Inter,sans-serif"}}>{children}</div>;
-const Form    = (p) => <form {...p} style={{background:"#18141c",padding:"38px 32px",borderRadius:16,minWidth:360,boxShadow:"0 8px 38px #000c",color:"#fff",display:"flex",flexDirection:"column"}}/>;
-const Heading = ({children}) => <div style={{fontSize:24,fontWeight:900,marginBottom:20,textAlign:"center"}}>{children}</div>;
-const Input   = (p) => <input {...p} style={{margin:"10px 0",padding:"13px 12px",borderRadius:8,border:"none",background:"#232330",color:"#fff",fontSize:16}}/>;
-const Error   = ({children}) => <div style={{color:"#eb423b",marginTop:6,textAlign:"center"}}>{children}</div>;
-const Success = ({children}) => <div style={{color:"#fe9245",marginTop:6,textAlign:"center"}}>{children}</div>;
-const Primary = ({children}) => <button type="submit" style={{marginTop:18,background:"linear-gradient(90deg,#fe9245 10%,#eb423b 90%)",border:"none",borderRadius:8,color:"#fff",fontWeight:700,fontSize:17,padding:"11px 0",cursor:"pointer"}}>{children}</button>;
-const Msg     = ({children}) => <div style={{color:"#fff",fontSize:18,textAlign:"center"}}>{children}</div>;

@@ -14,7 +14,6 @@ async function fetchMovies(endpoint) {
 export default function CarouselRow({ title, endpoint, emptyMessage }) {
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [scroll, setScroll] = useState(0);
   const [error, setError] = useState(null);
   const carouselRef = useRef();
   const navigate = useNavigate();
@@ -28,25 +27,21 @@ export default function CarouselRow({ title, endpoint, emptyMessage }) {
       .finally(() => setLoading(false));
   }, [endpoint]);
 
-  // Scroll functions for left/right arrow
   function scrollLeft() {
-    carouselRef.current.scrollBy({ left: -320, behavior: "smooth" });
-    setScroll(carouselRef.current.scrollLeft - 320);
+    carouselRef.current.scrollBy({ left: -260, behavior: "smooth" });
   }
   function scrollRight() {
-    carouselRef.current.scrollBy({ left: 320, behavior: "smooth" });
-    setScroll(carouselRef.current.scrollLeft + 320);
+    carouselRef.current.scrollBy({ left: 260, behavior: "smooth" });
   }
 
   return (
     <section className="w-full">
-      {/* Row Title */}
-      <div className="flex items-center gap-3 px-2 pb-2">
-        <h3 className="text-xl md:text-2xl font-bold tracking-tight flex-1">
+      <div className="flex items-center gap-3 px-2 pb-1">
+        <h3 className="text-lg md:text-xl font-bold tracking-tight flex-1">
           {title}
         </h3>
         {/* Arrows (hide on mobile if few items) */}
-        {movies.length > 6 && (
+        {movies.length > 5 && (
           <div className="flex gap-2">
             <button
               className="p-1 rounded-full hover:bg-zinc-800 active:scale-95 transition disabled:opacity-30"
@@ -55,7 +50,7 @@ export default function CarouselRow({ title, endpoint, emptyMessage }) {
               disabled={loading || movies.length < 1}
               type="button"
             >
-              <ChevronLeft size={24} />
+              <ChevronLeft size={22} />
             </button>
             <button
               className="p-1 rounded-full hover:bg-zinc-800 active:scale-95 transition disabled:opacity-30"
@@ -64,17 +59,16 @@ export default function CarouselRow({ title, endpoint, emptyMessage }) {
               disabled={loading || movies.length < 1}
               type="button"
             >
-              <ChevronRight size={24} />
+              <ChevronRight size={22} />
             </button>
           </div>
         )}
       </div>
-      {/* Movie Carousel */}
       <div className="relative">
         <div
           ref={carouselRef}
           className="
-            flex gap-3 overflow-x-auto px-2 pb-2 scrollbar-thin scrollbar-thumb-zinc-800
+            flex gap-4 overflow-x-auto px-2 pb-2 scrollbar-thin scrollbar-thumb-zinc-800
             scroll-smooth hide-scrollbar snap-x snap-mandatory
           "
           tabIndex={0}
@@ -82,10 +76,10 @@ export default function CarouselRow({ title, endpoint, emptyMessage }) {
         >
           {/* Loading */}
           {loading &&
-            Array.from({ length: 7 }).map((_, i) => (
+            Array.from({ length: 5 }).map((_, i) => (
               <div
                 key={i}
-                className="w-[132px] md:w-[158px] h-[210px] rounded-xl bg-zinc-900 animate-pulse"
+                className="w-28 md:w-36 aspect-[2/3] rounded-lg bg-zinc-900 animate-pulse"
               />
             ))}
           {/* Error */}
@@ -105,11 +99,9 @@ export default function CarouselRow({ title, endpoint, emptyMessage }) {
             <div
               key={movie.id}
               className="
-                w-[132px] md:w-[158px] flex-shrink-0
-                flex flex-col items-center justify-between
-                rounded-xl overflow-hidden bg-zinc-900
-                cursor-pointer transition group shadow hover:scale-[1.045] hover:z-20 focus-within:scale-[1.045]
-                snap-start
+                w-28 md:w-36 aspect-[2/3] flex-shrink-0 rounded-lg overflow-hidden bg-zinc-900
+                cursor-pointer transition hover:scale-105 hover:shadow-lg focus-within:scale-105
+                snap-start group
               "
               tabIndex={0}
               role="button"
@@ -121,34 +113,22 @@ export default function CarouselRow({ title, endpoint, emptyMessage }) {
                 }
               }}
             >
-              <div className="relative w-full h-[188px] md:h-[205px] bg-zinc-800">
-                <img
-                  src={`https://image.tmdb.org/t/p/w342${movie.poster_path}`}
-                  alt={movie.title}
-                  className="object-cover w-full h-full transition group-hover:opacity-85"
-                  draggable={false}
-                  loading="lazy"
-                />
-                {/* Optional: Overlay for hover */}
-                {/* <button
-                  className="absolute bottom-2 right-2 px-3 py-1 bg-orange-500 rounded-lg text-white text-xs opacity-0 group-hover:opacity-90 transition"
-                  onClick={e => {
-                    e.stopPropagation();
-                    // handle add to watchlist...
-                  }}
-                >
-                  + Watchlist
-                </button> */}
-              </div>
-              <div className="px-1 pt-2 pb-3 w-full flex flex-col items-center gap-1">
-                <div className="font-bold text-sm text-center truncate w-full">
+              <img
+                src={`https://image.tmdb.org/t/p/w342${movie.poster_path}`}
+                alt={movie.title}
+                className="object-cover w-full h-full"
+                draggable={false}
+                loading="lazy"
+              />
+              <div className="pt-2 pb-3 w-full flex flex-col items-center gap-0.5 bg-zinc-950/90">
+                <div className="font-semibold text-xs text-white truncate w-full text-center">
                   {movie.title}
                 </div>
                 <div className="text-xs text-zinc-400">
                   {movie.release_date ? movie.release_date.slice(0, 4) : ""}
                 </div>
                 {movie.vote_average > 0 && (
-                  <span className="px-2 py-0.5 rounded bg-[#23212b] text-yellow-300 font-bold text-xs mt-1">
+                  <span className="px-1 py-0.5 rounded bg-[#23212b] text-yellow-300 font-bold text-[10px] mt-1">
                     ★ {movie.vote_average.toFixed(1)}
                   </span>
                 )}

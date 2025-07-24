@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Sparkles, Star, Flame, Film, ThumbsUp } from "lucide-react";
-import CarouselRow from "@/app/homepage/components/CarouselRow";
+import CarouselRow from "./CarouselRow";
 
 // Dummy data fetchers for MVP (replace with real API calls as needed)
 async function fetchFeaturedMovie() {
-  // Use TMDb’s "popular" endpoint for now
   const apiKey = import.meta.env.VITE_TMDB_API_KEY;
   const res = await fetch(`https://api.themoviedb.org/3/movie/popular?api_key=${apiKey}&language=en-US&page=1`);
   const data = await res.json();
@@ -22,25 +21,19 @@ export default function HomePage({ userName, userId }) {
   }, []);
 
   return (
-    <div className="w-full min-h-screen">
+    <div className="w-full min-h-screen pb-4">
       {/* Hero Section */}
-      <section className="relative w-full min-h-[340px] bg-gradient-to-r from-[#1a131b] to-[#23202d] flex flex-col md:flex-row items-center md:items-end md:justify-between px-3 md:px-16 py-8 mb-8 rounded-2xl shadow-xl overflow-hidden">
-        <div className="z-10 flex-1 flex flex-col items-center md:items-start text-center md:text-left">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold mb-2 text-white tracking-tight drop-shadow">
-            Welcome{userName ? `, ${userName}` : ""}!
-          </h1>
-          <h2 className="text-lg sm:text-xl font-semibold text-orange-300 mb-3">
-            Find the perfect movie for your mood.
-          </h2>
+      <section className="relative w-full min-h-[340px] bg-gradient-to-r from-[#1a131b] to-[#23202d] flex flex-col md:flex-row items-center md:items-end md:justify-between px-4 md:px-16 py-10 mb-10 rounded-2xl shadow-xl overflow-hidden">
+        <div className="z-10 flex-1 flex flex-col items-center md:items-start text-center md:text-left px-2 md:px-0">
           {featured && (
             <div className="mb-2 mt-1 max-w-md flex flex-col gap-2 items-center md:items-start">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap justify-center md:justify-start">
                 <Film size={22} className="text-orange-400" />
-                <span className="font-semibold text-white text-lg">
+                <span className="font-semibold text-white text-2xl md:text-3xl leading-tight">
                   {featured.title}
                 </span>
                 {featured.release_date && (
-                  <span className="text-xs text-zinc-400 ml-1">
+                  <span className="text-sm text-zinc-400 ml-1">
                     ({featured.release_date.slice(0, 4)})
                   </span>
                 )}
@@ -50,15 +43,15 @@ export default function HomePage({ userName, userId }) {
                   </span>
                 )}
               </div>
-              <p className="text-zinc-200 text-sm line-clamp-2 max-w-sm">
+              <p className="text-zinc-200 text-base line-clamp-3 max-w-sm px-1 md:px-0 mt-1">
                 {featured.overview}
               </p>
               <button
-                className="mt-2 py-2 px-6 bg-gradient-to-r from-orange-400 to-red-500 text-white font-bold text-base rounded-lg shadow transition hover:scale-105 active:scale-100"
+                className="mt-4 py-2 px-8 bg-gradient-to-r from-orange-400 to-red-500 text-white font-bold text-base rounded-lg shadow transition hover:scale-105 active:scale-100"
                 onClick={() => navigate(`/movie/${featured.id}`)}
               >
                 <span className="inline-flex items-center gap-2">
-                  <Sparkles size={18} /> Watch now
+                  <Sparkles size={18} /> Know more
                 </span>
               </button>
             </div>
@@ -69,7 +62,7 @@ export default function HomePage({ userName, userId }) {
           <img
             src={`https://image.tmdb.org/t/p/w342${featured.poster_path}`}
             alt={featured.title}
-            className="w-[160px] sm:w-[200px] md:w-[240px] rounded-2xl shadow-lg md:absolute md:right-14 md:bottom-6 object-cover bg-zinc-900"
+            className="w-[140px] sm:w-[200px] md:w-[240px] rounded-2xl shadow-lg md:absolute md:right-14 md:bottom-8 object-cover bg-zinc-900"
             draggable={false}
           />
         )}
@@ -86,7 +79,7 @@ export default function HomePage({ userName, userId }) {
       </section>
 
       {/* Content Rows */}
-      <div className="flex flex-col gap-7 md:gap-12 max-w-[1400px] mx-auto">
+      <div className="flex flex-col gap-10 md:gap-14 max-w-[1400px] mx-auto px-2 md:px-6">
         {/* Popular Now */}
         <CarouselRow
           title={
@@ -114,7 +107,7 @@ export default function HomePage({ userName, userId }) {
           }
           endpoint="now_playing"
         />
-        {/* Recommended (could be based on preferences, for MVP use same as Top Rated or random genre) */}
+        {/* Recommended */}
         {userId ? (
           <CarouselRow
             title={
@@ -122,7 +115,7 @@ export default function HomePage({ userName, userId }) {
                 <ThumbsUp size={19} /> Recommended
               </span>
             }
-            endpoint="top_rated" // For MVP, use top_rated or another; replace with real logic later
+            endpoint="top_rated"
             emptyMessage={
               <div className="text-zinc-400 text-base px-2 py-4">
                 No recommendations yet. <br />

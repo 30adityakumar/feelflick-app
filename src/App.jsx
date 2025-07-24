@@ -8,20 +8,19 @@ import ConfirmEmail from "@/features/auth/components/ConfirmEmail";
 import Onboarding from "@/features/onboarding/Onboarding";
 import HomePage from "@/app/homepage/HomePage";
 import Header from "@/app/header/Header";
+import Sidebar from "@/app/header/sidebar/Sidebar";
+import MoviesTab from "@/app/pages/movies/MoviesTab";
 import Account from "@/app/header/components/Account";
 import Preferences from "@/app/header/components/Preferences";
 import MovieDetail from "@/app/pages/MovieDetail";
-import Sidebar from "@/app/header/sidebar/Sidebar";
-import BrowseTab from "@/app/pages/movies/MoviesTab";   // This will power "Browse"
-import HistoryPage from "@/app/pages/watched/WatchedTab"; 
 
-// Simple placeholder pages for MVP
-function TrendingPage() { return <div className="p-8">Trending Coming Soon!</div>; }
-function WatchlistPage() { return <div className="p-8">Watchlist Coming Soon!</div>; }
+// ---- Only ONE declaration of each! ----
+function TrendingPage()   { return <div className="p-8">Trending Coming Soon!</div>; }
+function WatchlistPage()  { return <div className="p-8">Watchlist Coming Soon!</div>; }
+function HistoryPage()    { return <div className="p-8">History Coming Soon!</div>; }
 
 function useOnboardingStatus(session, version) {
   const [status, setStatus] = useState({ loading: true, complete: false });
-
   useEffect(() => {
     let ignore = false;
     async function fetchStatus() {
@@ -45,7 +44,6 @@ function useOnboardingStatus(session, version) {
   return status;
 }
 
-// AppLayout with Sidebar and Header for all logged-in pages
 function AppLayout({ user, onSignOut, children }) {
   return (
     <div className="flex min-h-screen bg-zinc-950 text-white">
@@ -103,7 +101,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public/Landing/Auth/Onboarding */}
+        {/* Public routes */}
         <Route path="/" element={<Landing />} />
         <Route path="/auth/sign-in" element={<AuthPage mode="sign-in" />} />
         <Route path="/auth/sign-up" element={<AuthPage mode="sign-up" />} />
@@ -124,11 +122,31 @@ export default function App() {
 
         {/* Main App Routes: All have Sidebar + Header */}
         <Route
+          path="/app"
+          element={
+            !session ? <Navigate to="/auth/sign-in" replace /> :
+            onboardingLoading ? <div className="text-white text-center mt-40">Loading…</div> :
+            !onboardingComplete ? <Navigate to="/onboarding" replace /> :
+            <AppLayout user={user} onSignOut={handleSignOut}>
+              <HomePage userName={user?.name || profileName || session?.user?.user_metadata?.name || "Movie Lover"} userId={session?.user?.id} />
+            </AppLayout>
+          }
+        />
+        <Route
+          path="/trending"
+          element={
+            !session ? <Navigate to="/auth/sign-in" replace /> :
+            <AppLayout user={user} onSignOut={handleSignOut}>
+              <TrendingPage />
+            </AppLayout>
+          }
+        />
+        <Route
           path="/browse"
           element={
             !session ? <Navigate to="/auth/sign-in" replace /> :
             <AppLayout user={user} onSignOut={handleSignOut}>
-              <BrowseTab session={session} />
+              <MoviesTab session={session} />
             </AppLayout>
           }
         />
@@ -137,7 +155,7 @@ export default function App() {
           element={
             !session ? <Navigate to="/auth/sign-in" replace /> :
             <AppLayout user={user} onSignOut={handleSignOut}>
-              <HistoryPage session={session} />
+              <HistoryPage />
             </AppLayout>
           }
         />
@@ -146,7 +164,16 @@ export default function App() {
           element={
             !session ? <Navigate to="/auth/sign-in" replace /> :
             <AppLayout user={user} onSignOut={handleSignOut}>
-              <WatchlistPage session={session} />
+              <WatchlistPage />
+            </AppLayout>
+          }
+        />
+        <Route
+          path="/account"
+          element={
+            !session ? <Navigate to="/auth/sign-in" replace /> :
+            <AppLayout user={user} onSignOut={handleSignOut}>
+              <Account user={user} onProfileUpdate={handleProfileUpdate} />
             </AppLayout>
           }
         />

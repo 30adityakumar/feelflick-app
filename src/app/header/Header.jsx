@@ -7,9 +7,8 @@ const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
 const NAV_LINKS = [
   { name: "Home", path: "/app" },
-  { name: "Movies", path: "/app/movies" },
-  { name: "Watched", path: "/app/watched" },
-  { name: "Recommendations", path: "/app/recommendations" },
+  { name: "Movies", path: "/movies" },
+  { name: "Watched", path: "/watched" }
 ];
 
 export default function Header({ user, onSignOut }) {
@@ -167,8 +166,8 @@ export default function Header({ user, onSignOut }) {
         className="absolute right-0 top-12 bg-[#1f1d26] rounded-xl shadow-xl min-w-[185px] z-40 p-1 pt-2 animate-slideDown"
         style={{ boxShadow: "0 8px 34px #18142355" }}
       >
-        <MenuItem icon={<User2 size={18} />} text="My Account" onClick={() => { navigate("/app/account"); setShowMenu(false); }} />
-        <MenuItem icon={<SlidersHorizontal size={18} />} text="Preferences" onClick={() => { navigate("/app/preferences"); setShowMenu(false); }} />
+        <MenuItem icon={<User2 size={18} />} text="My Account" onClick={() => { navigate("/account"); setShowMenu(false); }} />
+        <MenuItem icon={<SlidersHorizontal size={18} />} text="Preferences" onClick={() => { navigate("/preferences"); setShowMenu(false); }} />
         <div className="border-t border-zinc-800 my-2" />
         <MenuItem icon={<LogOut size={18} />} text="Sign Out" onClick={handleSignOut} />
       </div>

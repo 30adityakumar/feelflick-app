@@ -1,18 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { LogOut, SlidersHorizontal, User2, Search as SearchIcon, X as XIcon } from "lucide-react";
 import logo from "@assets/images/logo.png";
 
 const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
-const NAV_LINKS = [
-  { name: "Home", path: "/app" },
-  { name: "Movies", path: "/movies" },
-  { name: "Watched", path: "/watched" }
-];
-
 export default function Header({ user, onSignOut }) {
-  const location = useLocation();
   const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
@@ -76,13 +69,11 @@ export default function Header({ user, onSignOut }) {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  // Handle sign out and redirect to homepage
   const handleSignOut = async () => {
     if (onSignOut) await onSignOut();
     navigate("/");
   };
 
-  // Clear search logic
   const clearSearch = () => {
     setSearch("");
     setResults([]);
@@ -91,7 +82,6 @@ export default function Header({ user, onSignOut }) {
     inputRef.current?.blur();
   };
 
-  // Responsive: Show search modal on mobile
   function MobileSearchModal() {
     return (
       <div className="fixed inset-0 bg-[#101016f2] z-50 flex items-start pt-10 px-3 animate-fadeIn">
@@ -125,7 +115,6 @@ export default function Header({ user, onSignOut }) {
     );
   }
 
-  // --- Search results dropdown ---
   function SearchResultsDropdown({ mobile }) {
     if (!search && !isLoading) return null;
     return (
@@ -159,7 +148,6 @@ export default function Header({ user, onSignOut }) {
     );
   }
 
-  // --- Account menu dropdown ---
   function AccountMenuDropdown() {
     return (
       <div
@@ -186,7 +174,6 @@ export default function Header({ user, onSignOut }) {
     );
   }
 
-  // --- Render ---
   return (
     <header
       className="
@@ -198,13 +185,8 @@ export default function Header({ user, onSignOut }) {
       role="navigation"
       aria-label="Main navigation"
     >
-      {/* Logo + Brand */}
-      <NavLink
-        to="/app"
-        className="flex items-center gap-1 md:gap-2 group focus-visible:outline-2"
-        aria-label="Go to FeelFlick home page"
-        tabIndex={0}
-      >
+      {/* Logo + Brand (left) */}
+      <div className="flex items-center gap-1 md:gap-2 group focus-visible:outline-2 min-w-[144px]">
         <img
           src={logo}
           alt="FeelFlick logo"
@@ -226,30 +208,10 @@ export default function Header({ user, onSignOut }) {
         >
           FEELFLICK
         </span>
-      </NavLink>
+      </div>
 
-      {/* Main Nav Tabs */}
-      <nav className="hidden md:flex gap-2 ml-4">
-        {NAV_LINKS.map(link => (
-          <NavLink
-            key={link.path}
-            to={link.path}
-            className={({ isActive }) =>
-              `px-4 py-2 rounded-lg font-bold text-[16px] transition
-              ${isActive
-                ? "bg-gradient-to-r from-orange-400 to-red-500 text-white shadow"
-                : "text-[#ffbe60] hover:bg-[#23212b] hover:text-white"}
-              `
-            }
-            aria-current={location.pathname.startsWith(link.path) ? "page" : undefined}
-          >
-            {link.name}
-          </NavLink>
-        ))}
-      </nav>
-
-      {/* Search (desktop) */}
-      <div className="hidden sm:flex flex-1 justify-center px-2 relative max-w-[410px]">
+      {/* Search (center) */}
+      <div className="flex-1 flex justify-center px-2 relative max-w-[430px]">
         <div className="relative w-full" ref={inputRef}>
           <input
             value={search}
@@ -281,15 +243,8 @@ export default function Header({ user, onSignOut }) {
           {searchOpen && <SearchResultsDropdown />}
         </div>
       </div>
-      {/* Mobile Search Button */}
-      <button
-        className="sm:hidden ml-auto mr-1 p-1.5 bg-[#242134] rounded-full hover:bg-[#2a2a38] text-orange-400"
-        aria-label="Search"
-        onClick={() => setShowMobileSearch(true)}
-      >
-        <SearchIcon size={22} />
-      </button>
-      {/* User avatar/account menu */}
+
+      {/* User avatar/account menu (right) */}
       <div className="relative min-w-[45px]" ref={menuRef}>
         <div
           onClick={() => setShowMenu(!showMenu)}
@@ -306,8 +261,10 @@ export default function Header({ user, onSignOut }) {
         </div>
         {showMenu && <AccountMenuDropdown />}
       </div>
+
       {/* Mobile Search Modal */}
       {showMobileSearch && <MobileSearchModal />}
+
       {/* Animations */}
       <style>
         {`

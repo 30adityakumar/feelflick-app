@@ -128,11 +128,13 @@ export default function SearchBar() {
     return (
       <div
         ref={dropdownRef}
-        className={`absolute left-0 right-0 ${
-          mobile ? "top-16" : "top-12"
-        } bg-[#191820] rounded-xl shadow-2xl z-40 p-1 mt-1 ring-1 ring-zinc-800 animate-fadeIn`}
+        className={`absolute left-0 right-0 ${mobile ? "top-16" : "top-12"}
+            bg-[#191820] rounded-xl shadow-2xl z-40 p-1 mt-1 ring-1 ring-zinc-800
+            transition-opacity duration-200
+            ${searchOpen && results.length > 0 ? "opacity-100" : "opacity-0 pointer-events-none"}
+        `}
         style={{ maxHeight: "430px", overflowY: "auto" }}
-      >
+        >
         {isLoading && (
           <div className="flex items-center justify-center text-orange-400 py-4">
             <svg className="animate-spin h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24">

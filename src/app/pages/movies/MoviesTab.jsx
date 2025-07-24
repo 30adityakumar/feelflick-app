@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import Account from "@/app/header/components/Account";
 import Search from '@/app/pages/movies/components/Search'
 import FilterBar from '@/app/pages/shared/FilterBar'
 import ResultsGrid from '@/app/pages/movies/components/ResultsGrid'
@@ -7,19 +6,17 @@ import MovieModal from '@/app/pages/shared/MovieModal'
 import { supabase } from '@/shared/lib/supabase/client'
 
 export default function MoviesTab({ session }) {
-  // --- State for movies, genres, filters, etc. ---
+  // State for movies, genres, filters, etc.
   const [results, setResults] = useState([])
   const [genreMap, setGenreMap] = useState({})
   const [sortBy, setSortBy] = useState('popularity-desc')
   const [yearFilter, setYearFilter] = useState('')
   const [genreFilter, setGenreFilter] = useState('')
   const [watched, setWatched] = useState([])
-
-  // Movie modal state
   const [modalMovie, setModalMovie] = useState(null)
   const closeModal = () => setModalMovie(null)
 
-  // Fetch genre map once
+  // Fetch genre map
   useEffect(() => {
     fetch(
       `https://api.themoviedb.org/3/genre/movie/list?api_key=${import.meta.env.VITE_TMDB_API_KEY}&language=en-US`
@@ -42,7 +39,7 @@ export default function MoviesTab({ session }) {
       .then(({ data }) => setWatched(data || []))
   }, [session])
 
-  // --- Filtering/sorting helpers ---
+  // Filtering/sorting helpers
   function sortMovies(movies, sortBy) {
     if (sortBy === 'popularity-desc') return [...movies].sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
     if (sortBy === 'year-desc') return [...movies].sort((a, b) => (b.release_date || '').localeCompare(a.release_date || ''))
@@ -59,6 +56,7 @@ export default function MoviesTab({ session }) {
     if (!genreId) return movies
     return movies.filter(m => Array.isArray(m.genre_ids) && m.genre_ids.includes(Number(genreId)))
   }
+
   const watchedIds = new Set(watched.map(m => m.movie_id))
   const allYears = Array.from(new Set(results.map(m => m.release_date && new Date(m.release_date).getFullYear()).filter(Boolean))).sort((a, b) => b - a)
   const allGenres = (() => {
@@ -78,7 +76,7 @@ export default function MoviesTab({ session }) {
     setGenreFilter('')
   }
 
-  // --- Sorted/filtered results ---
+  // Sorted/filtered results
   const filteredSortedResults = sortMovies(
     filterMoviesByGenre(
       filterMoviesByYear(results, yearFilter),
@@ -87,7 +85,7 @@ export default function MoviesTab({ session }) {
     sortBy
   )
 
-  // --- Mark as watched ---
+  // Mark as watched
   const markWatched = async (movie) => {
     if (!session || watchedIds.has(movie.id)) return
     const { error } = await supabase.from('movies_watched').insert({
@@ -110,28 +108,15 @@ export default function MoviesTab({ session }) {
   }
 
   return (
-    <div
-      style={{
-        width: "100vw",
-        minHeight: "100vh",
-        background: "#101015",
-        padding: "0 3vw 40px 3vw", // Responsive side padding, bottom space
-        boxSizing: "border-box"
-      }}
-    >
-      <Account session={session} userName={session?.user?.user_metadata?.name} />
-      <div style={{
-        margin: "0 auto 38px auto",
-        maxWidth: 800, // prevent search bar from stretching too much
-        width: "100%",
-      }}>
+    <div className="min-h-screen bg-[#101015] w-full pb-12 px-3 sm:px-6 md:px-10 lg:px-20 xl:px-32 box-border">
+
+      {/* Search Bar */}
+      <div className="max-w-2xl mx-auto w-full mb-7">
         <Search onResults={setResults} />
       </div>
-      <div style={{
-        margin: "0 auto 12px auto",
-        maxWidth: 950,
-        width: "100%"
-      }}>
+
+      {/* Filter Bar */}
+      <div className="max-w-3xl mx-auto w-full mb-7">
         <FilterBar
           sortBy={sortBy} setSortBy={setSortBy}
           yearFilter={yearFilter} setYearFilter={setYearFilter}
@@ -148,13 +133,15 @@ export default function MoviesTab({ session }) {
           clearFilters={clearFilters}
         />
       </div>
-      <div className="section-bar" style={{
-        fontSize: "clamp(1.05rem,1.8vw,1.32rem)",
-        margin: "36px 0 18px 0"
-      }}>
-        <span role="img" aria-label="search">🔍</span> Search Results
+
+      {/* Section Title */}
+      <div className="max-w-6xl mx-auto font-bold text-lg md:text-xl text-white mt-2 mb-5 flex items-center gap-2">
+        <span role="img" aria-label="search" className="text-2xl">🔍</span>
+        Search Results
       </div>
-      <div style={{ minHeight: 200 }}>
+
+      {/* Movie Results */}
+      <div className="max-w-6xl mx-auto min-h-[200px]">
         {filteredSortedResults.length ? (
           <ResultsGrid
             results={filteredSortedResults}
@@ -162,14 +149,11 @@ export default function MoviesTab({ session }) {
             onMarkWatched={markWatched}
             watchedIds={watchedIds}
             gridClass="movie-grid"
-            onMovieClick={setModalMovie} // <<--- Pass this
+            onMovieClick={setModalMovie}
           />
         ) : (
-          <div style={{
-            color: '#aaa', textAlign: 'center', fontSize: 18,
-            fontWeight: 500, margin: '2.5rem 0'
-          }}>
-            <span role="img" aria-label="No results" style={{ fontSize: 34, display: 'block', marginBottom: 6 }}>😕</span>
+          <div className="text-zinc-400 text-center text-base md:text-lg font-medium my-16">
+            <span role="img" aria-label="No results" className="block text-3xl mb-2">😕</span>
             No movies found. Try a different search!
           </div>
         )}

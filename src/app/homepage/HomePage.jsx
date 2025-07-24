@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Sparkles, Star, Fire, Film, ThumbsUp } from "lucide-react";
+import { Sparkles, Star, Flame, Film, ThumbsUp } from "lucide-react";
 import CarouselRow from "@/app/homepage/components/CarouselRow";
 
 // Dummy data fetchers for MVP (replace with real API calls as needed)

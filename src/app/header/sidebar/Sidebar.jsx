@@ -1,19 +1,26 @@
-// src/app/sidebar/Sidebar.jsx
+// src/app/header/sidebar/Sidebar.jsx
 
 import { NavLink } from "react-router-dom";
-import { Home, Flame, Bookmark, Clock, User } from "lucide-react";
+import { Home, Flame, Search, Clock, Bookmark } from "lucide-react";
 
 const SIDEBAR_LINKS = [
-  { to: "/app",      icon: <Home size={24} />,     label: "Home" },
-  { to: "/trending", icon: <Flame size={24} />,    label: "Trending" },
-  { to: "/watchlist",icon: <Bookmark size={24}/>, label: "Watchlist" },
-  { to: "/history",  icon: <Clock size={24} />,    label: "History" },
-  { to: "/account",  icon: <User size={24} />,     label: "Account" },
+  { to: "/app",        icon: <Home size={24} />,     label: "Home" },
+  { to: "/trending",   icon: <Flame size={24} />,    label: "Trending" },
+  { to: "/browse",     icon: <Search size={24} />,   label: "Browse" },     // <-- Your main movie search/filter/discover page!
+  { to: "/history",    icon: <Clock size={24} />,    label: "History" },    // <-- Watched movies
+  { to: "/watchlist",  icon: <Bookmark size={24} />, label: "Watchlist" },  // <-- Want-to-watch
 ];
 
 export default function Sidebar() {
   return (
-    <aside className="h-screen w-20 bg-[#18151c] flex flex-col py-4 border-r border-zinc-900 fixed top-0 left-0 z-40 top-[72px]">
+    <aside
+      className="
+        fixed left-0 z-40
+        top-[56px] md:top-[56px]       // adjust to your header height!
+        h-[calc(100vh-56px)]          // match header height!
+        w-20 bg-[#18151c] flex flex-col py-4 border-r border-zinc-900
+      "
+    >
       {SIDEBAR_LINKS.map(link => (
         <NavLink
           key={link.to}
@@ -23,8 +30,6 @@ export default function Sidebar() {
              ${isActive ? "text-orange-400 font-bold bg-[#221b23]" : ""}
             `
           }
-          tabIndex={0}
-          aria-label={link.label}
         >
           {link.icon}
           <span className="text-xs mt-1">{link.label}</span>

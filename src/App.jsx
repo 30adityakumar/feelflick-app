@@ -13,13 +13,11 @@ import Preferences from "@/app/header/components/Preferences";
 import MovieDetail from "@/app/pages/MovieDetail";
 import Sidebar from "@/app/header/sidebar/Sidebar";
 import BrowseTab from "@/app/pages/movies/MoviesTab";   // This will power "Browse"
-import WatchlistPage from "@/app/pages/movies/WatchlistPage"; // Create this if not present
 import HistoryPage from "@/app/pages/watched/WatchedTab"; 
 
 // Simple placeholder pages for MVP
 function TrendingPage() { return <div className="p-8">Trending Coming Soon!</div>; }
 function WatchlistPage() { return <div className="p-8">Watchlist Coming Soon!</div>; }
-function HistoryPage() { return <div className="p-8">History Coming Soon!</div>; }
 
 function useOnboardingStatus(session, version) {
   const [status, setStatus] = useState({ loading: true, complete: false });

@@ -3,25 +3,46 @@ import { LogOut, SlidersHorizontal, User2, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import logo from '@assets/images/logo.png';
 
+const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY;
+
 export default function Header({ user, onSignOut }) {
   const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
   const [search, setSearch] = useState("");
   const [results, setResults] = useState([]);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const inputRef = useRef(null);
+  const menuRef = useRef();
+  const searchDebounce = useRef();
 
-  // Search movies from Supabase (replace with TMDb if needed)
+  // TMDb-powered search
   useEffect(() => {
-    if (!search) { setResults([]); return; }
-    const fetchMovies = async () => {
-      // Example: replace with real query if desired
-      setResults([
-        { id: 1, title: "Inception", poster_path: "/poster1.jpg" },
-        { id: 2, title: "The Dark Knight", poster_path: "/poster2.jpg" },
-      ]);
-    };
-    fetchMovies();
+    if (!search) { setResults([]); setIsLoading(false); return; }
+    setIsLoading(true);
+    clearTimeout(searchDebounce.current);
+    searchDebounce.current = setTimeout(() => {
+      fetch(
+        `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&language=en-US&query=${encodeURIComponent(search)}&include_adult=false&page=1`
+      )
+        .then(res => res.json())
+        .then(data => {
+          setResults(
+            (data.results || [])
+              .filter(m => !!m.title && m.poster_path)
+              .slice(0, 10)
+              .map(m => ({
+                id: m.id,
+                title: m.title,
+                year: m.release_date ? m.release_date.slice(0, 4) : "",
+                poster: `https://image.tmdb.org/t/p/w92${m.poster_path}`,
+              }))
+          );
+          setIsLoading(false);
+        })
+        .catch(() => setIsLoading(false));
+    }, 220);
+    return () => clearTimeout(searchDebounce.current);
   }, [search]);
 
   // Hide menu on click-away
@@ -34,7 +55,6 @@ export default function Header({ user, onSignOut }) {
   }, [searchOpen]);
 
   // Hide account dropdown on outside click
-  const menuRef = useRef();
   useEffect(() => {
     const handle = (e) => { if (showMenu && menuRef.current && !menuRef.current.contains(e.target)) setShowMenu(false); };
     document.addEventListener("mousedown", handle);
@@ -61,150 +81,150 @@ export default function Header({ user, onSignOut }) {
 
   return (
     <header
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        background: "#14121a",
-        padding: "9px 18px",
-        boxShadow: "0 1px 4px rgba(0,0,0,0.13)",
-        zIndex: 100,
-      }}
+      className="
+        flex items-center justify-between w-full
+        bg-[#14121a] px-4 py-2 md:px-6 md:py-2
+        shadow-[0_1px_4px_rgba(0,0,0,0.13)]
+        z-50 relative
+      "
     >
       {/* Logo & Brand */}
       <div
         onClick={() => navigate("/app")}
-        style={{
-          display: "flex", alignItems: "center", gap: 8, cursor: "pointer", minWidth: 160
-        }}
+        className="flex items-center gap-2 cursor-pointer min-w-[140px] select-none"
       >
-        <img src={logo} alt="FeelFlick" style={{
-          height: 38, width: 38, borderRadius: 10, boxShadow: "0 1.5px 7px #0003"
-        }} />
-        <span style={{
-          color: "#fff", fontSize: 24, fontWeight: 900,
-          fontFamily: "Inter, sans-serif", letterSpacing: "-1px"
-        }}>
+        <img
+          src={logo}
+          alt="FeelFlick"
+          className="h-9 w-9 rounded-xl shadow"
+          draggable={false}
+        />
+        <span className="text-white text-2xl font-black font-sans tracking-tight -ml-1">
           FeelFlick
         </span>
       </div>
 
       {/* Search */}
-      <div style={{
-        flex: 1, display: "flex", justifyContent: "center"
-      }}>
-        <div style={{
-          position: "relative", width: "100%", maxWidth: 410, minWidth: 0,
-        }} ref={inputRef}>
+      <div className="flex-1 flex justify-center px-2">
+        <div className="relative w-full max-w-[410px]" ref={inputRef}>
           <input
             value={search}
             onFocus={() => setSearchOpen(true)}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Search movies, shows, or people…"
-            style={{
-              width: "100%",
-              padding: "10px 40px 10px 16px",
-              fontSize: 16,
-              borderRadius: 24,
-              border: "none",
-              background: "#23212b",
-              color: "#fff",
-              fontFamily: "Inter, sans-serif",
-              outline: "none",
-              boxShadow: results.length && searchOpen ? "0 4px 24px #0003" : undefined,
-              transition: "box-shadow .2s"
-            }}
+            placeholder="Search movies…"
+            className={`
+              w-full bg-[#23212b] text-white text-base rounded-full pl-4 pr-11 py-2
+              border-none outline-none font-sans
+              shadow ${results.length && searchOpen ? "shadow-lg" : ""}
+              transition duration-200
+              focus:ring-2 focus:ring-orange-400
+            `}
+            style={{ fontFamily: "Inter, sans-serif" }}
           />
           <Search
             size={20}
             color="#aaa"
-            style={{ position: "absolute", right: 12, top: 12, pointerEvents: "none" }}
+            className="absolute right-3 top-2.5 pointer-events-none"
           />
           {/* Results dropdown */}
-          {searchOpen && results.length > 0 && (
-            <div style={{
-              position: "absolute",
-              left: 0, right: 0,
-              top: 43,
-              background: "#191820",
-              borderRadius: 13,
-              boxShadow: "0 4px 20px #0008",
-              zIndex: 20,
-              padding: "5px 0",
-              marginTop: 4,
-            }}>
-              {results.map(m => (
+          {searchOpen && (
+            <div
+              className="
+                absolute left-0 right-0 top-12 bg-[#191820] rounded-xl
+                shadow-2xl z-20 p-1 mt-1
+                ring-1 ring-zinc-800
+                animate-fadeIn
+              "
+            >
+              {isLoading && (
+                <div className="flex items-center justify-center text-orange-400 py-4">
+                  <svg className="animate-spin h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24">
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v8z"
+                    ></path>
+                  </svg>
+                  Loading…
+                </div>
+              )}
+              {!isLoading && results.length > 0 && results.map(m => (
                 <div
                   key={m.id}
                   onClick={() => {
                     setSearch(""); setResults([]); setSearchOpen(false);
                     navigate(`/movie/${m.id}`);
                   }}
-                  style={{
-                    display: "flex", alignItems: "center", gap: 12, cursor: "pointer",
-                    padding: "7px 17px",
-                    color: "#fff", fontSize: 15,
-                    fontFamily: "Inter, sans-serif",
-                    transition: "background .15s",
-                  }}
-                  onMouseEnter={e => (e.currentTarget.style.background = "#23212b")}
-                  onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+                  className={`
+                    flex items-center gap-3 cursor-pointer
+                    px-4 py-2 text-white text-[15px]
+                    font-sans rounded-lg transition
+                    hover:bg-[#23212b]
+                  `}
                 >
-                  <img src={m.poster_path || "/placeholder.png"}
+                  <img src={m.poster}
                     alt={m.title}
-                    style={{ width: 36, height: 54, objectFit: "cover", borderRadius: 5, background: "#16151c" }}
+                    className="w-9 h-13 rounded-md shadow border border-zinc-700 bg-[#16151c] object-cover"
                   />
-                  <span>{m.title}</span>
+                  <span>{m.title}{m.year && <span className="ml-1 text-zinc-400">({m.year})</span>}</span>
                 </div>
               ))}
+              {!isLoading && search && results.length === 0 && (
+                <div className="text-zinc-400 text-center px-5 py-3">No results.</div>
+              )}
             </div>
           )}
         </div>
       </div>
 
       {/* Account Dropdown */}
-      <div style={{ position: "relative", minWidth: 70 }} ref={menuRef}>
+      <div className="relative min-w-[70px]" ref={menuRef}>
         <div
           onClick={() => setShowMenu(!showMenu)}
-          style={{
-            background: "#3a3746",
-            width: 38,
-            height: 38,
-            borderRadius: "50%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "#fff",
-            fontWeight: 700,
-            cursor: "pointer",
-            userSelect: "none",
-            fontFamily: "Inter, sans-serif",
-            fontSize: 18,
-          }}
+          className={`
+            bg-[#3a3746] w-9 h-9 rounded-full flex items-center justify-center
+            text-white font-bold font-sans text-lg cursor-pointer select-none
+            shadow
+            transition
+          `}
         >
           {user?.name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || "A"}
         </div>
         {showMenu && (
           <div
-            style={{
-              position: "absolute",
-              right: 0,
-              top: 48,
-              background: "#1f1d26",
-              borderRadius: 8,
-              boxShadow: "0 2px 10px rgba(0,0,0,0.4)",
-              padding: "10px 0",
-              minWidth: 185,
-              zIndex: 30,
-            }}
+            className="
+              absolute right-0 top-12 bg-[#1f1d26] rounded-xl shadow-xl min-w-[185px] z-40
+              p-1 pt-2
+            "
           >
             <MenuItem icon={<User2 size={18} />} text="My Account" onClick={() => { navigate("/account"); setShowMenu(false); }} />
             <MenuItem icon={<SlidersHorizontal size={18} />} text="Preferences" onClick={() => { navigate("/preferences"); setShowMenu(false); }} />
-            <div style={{ borderTop: "1px solid #33323c", margin: "7px 0" }} />
+            <div className="border-t border-zinc-800 my-2" />
             <MenuItem icon={<LogOut size={18} />} text="Sign Out" onClick={handleSignOut} />
           </div>
         )}
       </div>
+
+      {/* Dropdown animation (add to global or here) */}
+      <style>
+        {`
+          @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px);}
+            to { opacity: 1; transform: translateY(0);}
+          }
+          .animate-fadeIn {
+            animation: fadeIn 0.22s cubic-bezier(.33,1,.68,1) both;
+          }
+        `}
+      </style>
     </header>
   );
 }
@@ -213,22 +233,13 @@ function MenuItem({ icon, text, onClick }) {
   return (
     <div
       onClick={onClick}
-      style={{
-        display: "flex",
-        alignItems: "center",
-        padding: "10px 16px",
-        color: "#fff",
-        cursor: "pointer",
-        fontFamily: "Inter, sans-serif",
-        fontSize: 15,
-        transition: "background 0.18s",
-      }}
-      onMouseEnter={e => (e.currentTarget.style.background = "#2d2a38")}
-      onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+      className={`
+        flex items-center px-4 py-2 text-white cursor-pointer font-sans text-[15px] rounded-lg
+        transition duration-150 hover:bg-[#2d2a38]
+      `}
     >
-      <div style={{ marginRight: 10 }}>{icon}</div>
+      <span className="mr-3">{icon}</span>
       <span>{text}</span>
     </div>
   );
 }
-

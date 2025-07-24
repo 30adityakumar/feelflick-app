@@ -11,7 +11,9 @@ export default function SearchBar() {
   const [results, setResults] = useState([]);
   const [searchOpen, setSearchOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [highlighted, setHighlighted] = useState(-1);
   const inputRef = useRef(null);
+  const dropdownRef = useRef(null);
   const searchDebounce = useRef();
 
   // TMDb-powered search
@@ -28,12 +30,12 @@ export default function SearchBar() {
           setResults(
             (data.results || [])
               .filter(m => !!m.title && m.poster_path)
-              .slice(0, 10)
+              .slice(0, window.innerWidth < 640 ? 5 : 8) // 5 on mobile, 8 on desktop
               .map(m => ({
                 id: m.id,
                 title: m.title,
                 year: m.release_date ? m.release_date.slice(0, 4) : "",
-                poster: `https://image.tmdb.org/t/p/w92${m.poster_path}`,
+                poster: `https://image.tmdb.org/t/p/w154${m.poster_path}`,
               }))
           );
           setIsLoading(false);
@@ -43,7 +45,7 @@ export default function SearchBar() {
     return () => clearTimeout(searchDebounce.current);
   }, [search]);
 
-  // Keyboard: / focuses search
+  // Keyboard: / focuses search, arrow nav/select
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === "/" && document.activeElement.tagName !== "INPUT") {
@@ -51,9 +53,45 @@ export default function SearchBar() {
         if (window.innerWidth < 640) setShowMobileSearch(true);
         else inputRef.current?.focus();
       }
+      // Keyboard nav for dropdown
+      if (searchOpen && results.length > 0) {
+        if (["ArrowDown", "ArrowUp"].includes(e.key)) {
+          e.preventDefault();
+          setHighlighted(prev => {
+            if (e.key === "ArrowDown") return prev < results.length - 1 ? prev + 1 : 0;
+            if (e.key === "ArrowUp") return prev > 0 ? prev - 1 : results.length - 1;
+            return prev;
+          });
+        }
+        if (e.key === "Enter" && highlighted >= 0 && results[highlighted]) {
+          e.preventDefault();
+          handleSelect(results[highlighted]);
+        }
+        if (e.key === "Escape") {
+          setSearchOpen(false);
+          setHighlighted(-1);
+        }
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line
+  }, [searchOpen, results, highlighted]);
+
+  // Click outside dropdown to close
+  useEffect(() => {
+    function handleClick(e) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target) &&
+        !inputRef.current.contains(e.target)
+      ) {
+        setSearchOpen(false);
+        setHighlighted(-1);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
   const clearSearch = () => {
@@ -61,14 +99,40 @@ export default function SearchBar() {
     setResults([]);
     setSearchOpen(false);
     setShowMobileSearch(false);
+    setHighlighted(-1);
     inputRef.current?.blur();
   };
+
+  function handleSelect(movie) {
+    clearSearch();
+    navigate(`/movie/${movie.id}`);
+  }
+
+  function highlightMatch(title, query) {
+    // Naive highlight: bold query if it appears in title
+    if (!query) return title;
+    const i = title.toLowerCase().indexOf(query.toLowerCase());
+    if (i === -1) return title;
+    return (
+      <>
+        {title.slice(0, i)}
+        <b className="font-bold bg-clip-text text-orange-300">{title.slice(i, i + query.length)}</b>
+        {title.slice(i + query.length)}
+      </>
+    );
+  }
 
   // --- Search results dropdown ---
   function SearchResultsDropdown({ mobile }) {
     if (!search && !isLoading) return null;
     return (
-      <div className={`absolute left-0 right-0 ${mobile ? "top-16" : "top-12"} bg-[#191820] rounded-xl shadow-2xl z-40 p-1 mt-1 ring-1 ring-zinc-800 animate-fadeIn`}>
+      <div
+        ref={dropdownRef}
+        className={`absolute left-0 right-0 ${
+          mobile ? "top-16" : "top-12"
+        } bg-[#191820] rounded-xl shadow-2xl z-40 p-1 mt-1 ring-1 ring-zinc-800 animate-fadeIn`}
+        style={{ maxHeight: "430px", overflowY: "auto" }}
+      >
         {isLoading && (
           <div className="flex items-center justify-center text-orange-400 py-4">
             <svg className="animate-spin h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24">
@@ -78,21 +142,39 @@ export default function SearchBar() {
             Loading…
           </div>
         )}
-        {!isLoading && results.length > 0 && results.map(m => (
-          <div
-            key={m.id}
-            onClick={() => {
-              clearSearch();
-              navigate(`/movie/${m.id}`);
-            }}
-            className="flex items-center gap-3 cursor-pointer px-4 py-2 text-white text-[15px] font-sans rounded-lg transition hover:bg-[#23212b]"
-          >
-            <img src={m.poster} alt={m.title} className="w-9 h-13 rounded-md shadow border border-zinc-700 bg-[#16151c] object-cover" />
-            <span>{m.title}{m.year && <span className="ml-1 text-zinc-400">({m.year})</span>}</span>
-          </div>
-        ))}
+        {!isLoading && results.length > 0 &&
+          results.map((m, idx) => (
+            <div
+              key={m.id}
+              onClick={() => handleSelect(m)}
+              onMouseEnter={() => setHighlighted(idx)}
+              className={`
+                flex items-center gap-3 cursor-pointer px-2.5 py-2 rounded-lg transition
+                ${highlighted === idx ? "bg-[#23212b] scale-[1.02] text-orange-300" : "hover:bg-[#23212b]"}
+              `}
+              tabIndex={0}
+              role="button"
+              aria-label={`View details for ${m.title}`}
+            >
+              <img
+                src={m.poster}
+                alt={m.title}
+                className="w-11 h-[66px] rounded-md shadow border border-zinc-700 bg-[#16151c] object-cover"
+                style={{ minWidth: 44, minHeight: 66 }}
+              />
+              <div className="flex flex-col min-w-0">
+                <span className="font-semibold text-[16px] truncate">
+                  {highlightMatch(m.title, search)}
+                </span>
+                <span className="text-xs text-zinc-400">
+                  {m.year}
+                </span>
+              </div>
+            </div>
+          ))
+        }
         {!isLoading && search && results.length === 0 && (
-          <div className="text-zinc-400 text-center px-5 py-3">No results.</div>
+          <div className="text-zinc-400 text-center px-5 py-3">No movies found. Try another title!</div>
         )}
       </div>
     );
@@ -116,6 +198,7 @@ export default function SearchBar() {
             onChange={e => setSearch(e.target.value)}
             className="w-full bg-[#23212b] text-white text-xl rounded-xl pl-4 pr-12 py-3 outline-none font-semibold focus:ring-2 focus:ring-orange-400"
             placeholder="Search movies…"
+            onFocus={() => setSearchOpen(true)}
           />
           {search && (
             <button
@@ -135,11 +218,11 @@ export default function SearchBar() {
   return (
     <>
       {/* Desktop Search Bar */}
-      <div className="flex-1 flex justify-center px-2 relative max-w-[430px]">
+      <div className="flex-1 flex justify-center px-2 relative max-w-[480px]">
         <div className="relative w-full" ref={inputRef}>
           <input
             value={search}
-            onFocus={() => setSearchOpen(true)}
+            onFocus={() => { setSearchOpen(true); setHighlighted(-1); }}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search movies…"
             className={`
@@ -149,6 +232,11 @@ export default function SearchBar() {
               focus:ring-2 focus:ring-orange-400
             `}
             style={{ fontFamily: "Inter, sans-serif" }}
+            onKeyDown={e => {
+              if (e.key === "ArrowDown" && results.length > 0) {
+                setHighlighted(0);
+              }
+            }}
           />
           {search && (
             <button

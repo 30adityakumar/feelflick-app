@@ -2,6 +2,14 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 
+if (typeof globalThis.crypto === "undefined") {
+  globalThis.crypto = require("crypto");
+  globalThis.crypto.getRandomValues = function (buf) {
+    return require("crypto").randomFillSync(buf);
+  };
+}
+
+
 export default defineConfig({
   plugins: [react()],
   resolve: {

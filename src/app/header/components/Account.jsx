@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 
 export default function Account({ user, onProfileUpdate }) {
   const [name, setName] = useState(user?.name || "");
-  const [avatar, setAvatar] = useState(user?.avatar_url || "");
   const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
 
@@ -14,10 +13,10 @@ export default function Account({ user, onProfileUpdate }) {
     setSaving(true);
     await supabase
       .from("users")
-      .update({ name, avatar_url: avatar })
+      .update({ name })
       .eq("id", user.id);
     setSaving(false);
-    if (onProfileUpdate) onProfileUpdate({ name, avatar_url: avatar });
+    if (onProfileUpdate) onProfileUpdate({ name });
     alert("Profile updated!");
   }
 
@@ -49,7 +48,7 @@ export default function Account({ user, onProfileUpdate }) {
       </h2>
       <form onSubmit={handleSave} className="flex flex-col">
         {/* Name */}
-        <div className="mb-3.5">
+        <div className="mb-4">
           <label className="block text-[#fdaf41] font-semibold mb-1">
             Name
           </label>
@@ -69,7 +68,7 @@ export default function Account({ user, onProfileUpdate }) {
           />
         </div>
         {/* Email */}
-        <div className="mb-3.5">
+        <div className="mb-6">
           <label className="block text-[#fdaf41] font-semibold mb-1">
             Email
           </label>
@@ -87,37 +86,6 @@ export default function Account({ user, onProfileUpdate }) {
             "
             placeholder="Email address"
           />
-        </div>
-        {/* Avatar */}
-        <div className="mb-6">
-          <label className="block text-[#fdaf41] font-semibold mb-1">
-            Avatar URL
-          </label>
-          <input
-            value={avatar}
-            onChange={e => setAvatar(e.target.value)}
-            className="
-              w-full px-3.5 py-2
-              rounded-lg border border-[#2d2a38]
-              bg-[#242134] text-white text-[15px] font-medium
-              mt-1 outline-none
-              focus:ring-2 focus:ring-orange-400
-              placeholder:text-zinc-400
-              transition
-            "
-            placeholder="Paste an image URL"
-          />
-          {avatar && (
-            <img
-              src={avatar}
-              alt="avatar"
-              className="
-                mt-2 w-12 h-12 rounded-full object-cover
-                border-2 border-[#33323c]
-                shadow
-              "
-            />
-          )}
         </div>
         {/* Save button */}
         <button

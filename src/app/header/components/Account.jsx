@@ -22,83 +22,118 @@ export default function Account({ user, onProfileUpdate }) {
   }
 
   return (
-    <div style={{
-      maxWidth: 420, margin: "54px auto 0 auto", padding: 28,
-      background: "#191820", borderRadius: 18, boxShadow: "0 2px 24px #0004",
-      position: "relative"
-    }}>
+    <div
+      className="
+        max-w-[420px] mx-auto mt-14 p-7
+        bg-[#191820] rounded-2xl shadow-2xl
+        relative
+        flex flex-col
+      "
+    >
       {/* X button */}
       <button
         onClick={() => navigate("/app")}
-        style={{
-          position: "absolute", top: 14, right: 18,
-          background: "none", border: "none", color: "#fff", fontSize: 22, cursor: "pointer", opacity: 0.6, zIndex: 2
-        }}
+        className="
+          absolute top-3 right-4 text-white opacity-60 hover:opacity-100
+          bg-transparent border-none text-xl cursor-pointer z-20
+        "
         aria-label="Close Account"
         title="Go back to Home"
+        type="button"
       >
         <X size={26} />
       </button>
-      <h2 style={{ color: "#fff", fontSize: 23, fontWeight: 800, marginBottom: 16, letterSpacing: "-1px" }}>
+
+      <h2 className="text-white text-[23px] font-extrabold mb-4 tracking-tight">
         My Account
       </h2>
-      <form onSubmit={handleSave}>
-        <div style={{ marginBottom: 14 }}>
-          <label style={{ color: "#fdaf41", fontWeight: 600 }}>Name</label>
+      <form onSubmit={handleSave} className="flex flex-col">
+        {/* Name */}
+        <div className="mb-3.5">
+          <label className="block text-[#fdaf41] font-semibold mb-1">
+            Name
+          </label>
           <input
             value={name}
             onChange={e => setName(e.target.value)}
-            style={inputStyle}
+            className="
+              w-full px-3.5 py-2
+              rounded-lg border border-[#2d2a38]
+              bg-[#242134] text-white text-[15px] font-medium
+              mt-1 outline-none
+              focus:ring-2 focus:ring-orange-400
+              placeholder:text-zinc-400
+              transition
+            "
             placeholder="Your name"
           />
         </div>
-        <div style={{ marginBottom: 14 }}>
-          <label style={{ color: "#fdaf41", fontWeight: 600 }}>Email</label>
+        {/* Email */}
+        <div className="mb-3.5">
+          <label className="block text-[#fdaf41] font-semibold mb-1">
+            Email
+          </label>
           <input
             value={user?.email || ""}
             disabled
-            style={{ ...inputStyle, opacity: 0.7 }}
+            className="
+              w-full px-3.5 py-2
+              rounded-lg border border-[#2d2a38]
+              bg-[#242134] text-white text-[15px] font-medium
+              mt-1 outline-none opacity-70
+              placeholder:text-zinc-400
+              cursor-not-allowed
+              transition
+            "
             placeholder="Email address"
           />
         </div>
-        <div style={{ marginBottom: 22 }}>
-          <label style={{ color: "#fdaf41", fontWeight: 600 }}>Avatar URL</label>
+        {/* Avatar */}
+        <div className="mb-6">
+          <label className="block text-[#fdaf41] font-semibold mb-1">
+            Avatar URL
+          </label>
           <input
             value={avatar}
             onChange={e => setAvatar(e.target.value)}
-            style={inputStyle}
+            className="
+              w-full px-3.5 py-2
+              rounded-lg border border-[#2d2a38]
+              bg-[#242134] text-white text-[15px] font-medium
+              mt-1 outline-none
+              focus:ring-2 focus:ring-orange-400
+              placeholder:text-zinc-400
+              transition
+            "
             placeholder="Paste an image URL"
           />
           {avatar && (
             <img
               src={avatar}
               alt="avatar"
-              style={{
-                marginTop: 8, width: 48, height: 48, borderRadius: "50%",
-                objectFit: "cover", border: "2px solid #33323c"
-              }}
+              className="
+                mt-2 w-12 h-12 rounded-full object-cover
+                border-2 border-[#33323c]
+                shadow
+              "
             />
           )}
         </div>
-        <button type="submit" disabled={saving} style={{
-          background: "linear-gradient(90deg,#fe9245 10%,#eb423b 90%)",
-          color: "#fff", border: "none", padding: "10px 30px",
-          borderRadius: 8, fontWeight: 700, fontSize: 16, cursor: "pointer", opacity: saving ? 0.7 : 1
-        }}>{saving ? "Saving..." : "Save"}</button>
+        {/* Save button */}
+        <button
+          type="submit"
+          disabled={saving}
+          className="
+            bg-gradient-to-r from-orange-400 to-red-500
+            text-white font-bold py-2.5 px-8
+            rounded-lg text-[16px] cursor-pointer
+            shadow-md transition
+            disabled:opacity-70
+          "
+        >
+          {saving ? "Saving..." : "Save"}
+        </button>
       </form>
     </div>
   );
 }
-
-const inputStyle = {
-  width: "100%",
-  padding: "8px 14px",
-  borderRadius: 7,
-  border: "1px solid #2d2a38",
-  background: "#242134",
-  color: "#fff",
-  fontSize: 15,
-  marginTop: 4,
-  fontFamily: "Inter, sans-serif",
-  fontWeight: 500,
-};

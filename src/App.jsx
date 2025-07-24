@@ -10,33 +10,11 @@ import HomePage from "@/app/homepage/HomePage";
 import Header from "@/app/header/Header";
 import MoviesTab from "@/app/pages/movies/MoviesTab";
 import WatchedTab from "@/app/pages/watched/WatchedTab";
-import Account from "@/app/header/components/Account";       
+import Account from "@/app/header/components/Account";
 import Preferences from "@/app/header/components/Preferences";
 import MovieDetail from '@/app/pages/MovieDetail';
 
-
-// MainApp still manages tab navigation
-function MainApp({ session, profileName, setProfileName, user, onSignOut }) {
-  const [activeTab, setActiveTab] = useState("home");
-
-  return (
-    <>
-      <Header
-        user={user}
-        onSignOut={onSignOut}
-        onTabChange={setActiveTab}
-        activeTab={activeTab}
-      />
-      <div className="min-h-screen bg-zinc-950 text-white pb-10 pt-24" style={{ width: "100vw", overflowX: "hidden" }}>
-        {activeTab === "home"           && <HomePage userName={user?.name || profileName || session.user?.user_metadata?.name || "Movie Lover"} userId={session.user.id} />}
-        {activeTab === "movies"         && <MoviesTab session={session} />}
-        {activeTab === "watched"        && <WatchedTab session={session} />}
-      </div>
-    </>
-  );
-}
-
-// Robust onboarding status
+// Onboarding status check hook
 function useOnboardingStatus(session, version) {
   const [status, setStatus] = useState({ loading: true, complete: false });
 
@@ -63,13 +41,25 @@ function useOnboardingStatus(session, version) {
   return status;
 }
 
+// Layout for all main app pages
+function AppLayout({ user, onSignOut, children }) {
+  return (
+    <>
+      <Header user={user} onSignOut={onSignOut} />
+      <main className="min-h-screen bg-zinc-950 text-white pb-10 pt-24 w-full overflow-x-hidden">
+        {children}
+      </main>
+    </>
+  );
+}
+
 export default function App() {
   const [session, setSession] = useState(null);
   const [profileName, setProfileName] = useState("");
-  const [user, setUser] = useState(null); // Full user/profile object
+  const [user, setUser] = useState(null);
   const [onboardingVersion, setOnboardingVersion] = useState(Date.now());
 
-  // 1. Get Supabase session and fetch user profile
+  // Get Supabase session and fetch user profile
   useEffect(() => {
     let mounted = true;
     supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
@@ -80,7 +70,6 @@ export default function App() {
   useEffect(() => {
     async function fetchProfile() {
       if (!session?.user) { setUser(null); return; }
-      // Query users table for extended profile info
       const { data } = await supabase
         .from("users")
         .select("*")
@@ -92,19 +81,19 @@ export default function App() {
     if (session?.user) fetchProfile();
   }, [session]);
 
-  // 2. Onboarding status
+  // Onboarding status
   const { loading: onboardingLoading, complete: onboardingComplete } =
     useOnboardingStatus(session, onboardingVersion);
 
-  // 3. Sign out logic (handles Supabase + clears user/profile)
+  // Sign out
   async function handleSignOut() {
     await supabase.auth.signOut();
     setSession(null);
     setUser(null);
-    window.location.href = "/"; // redirect to homepage
+    window.location.href = "/";
   }
 
-  // 4. Handle profile update from /account
+  // Profile update from /account
   function handleProfileUpdate(profile) {
     setProfileName(profile.name || "");
     setUser(u => ({ ...u, ...profile }));
@@ -124,7 +113,7 @@ export default function App() {
           path="/onboarding"
           element={
             !session ? <Navigate to="/auth/sign-in" replace /> :
-            onboardingLoading ? <div style={{ color: "#fff", textAlign: "center", marginTop: "25vh" }}>Loading…</div> :
+            onboardingLoading ? <div className="text-white text-center mt-40">Loading…</div> :
             onboardingComplete ? <Navigate to="/app" replace /> :
             <Onboarding
               session={session}
@@ -133,49 +122,70 @@ export default function App() {
           }
         />
 
-        {/* Main app pages (tab UI) */}
+        {/* Main app pages: now using router for tab/pages */}
         <Route
-          path="/app/*"
+          path="/app"
           element={
             !session ? <Navigate to="/auth/sign-in" replace /> :
-            onboardingLoading ? <div style={{ color: "#fff", textAlign: "center", marginTop: "25vh" }}>Loading…</div> :
+            onboardingLoading ? <div className="text-white text-center mt-40">Loading…</div> :
             !onboardingComplete ? <Navigate to="/onboarding" replace /> :
-            <MainApp
-              session={session}
-              profileName={profileName}
-              setProfileName={setProfileName}
-              user={user}
-              onSignOut={handleSignOut}
-            />
+            <AppLayout user={user} onSignOut={handleSignOut}>
+              <HomePage userName={user?.name || profileName || session?.user?.user_metadata?.name || "Movie Lover"} userId={session?.user?.id} />
+            </AppLayout>
+          }
+        />
+        <Route
+          path="/movies"
+          element={
+            !session ? <Navigate to="/auth/sign-in" replace /> :
+            onboardingLoading ? <div className="text-white text-center mt-40">Loading…</div> :
+            !onboardingComplete ? <Navigate to="/onboarding" replace /> :
+            <AppLayout user={user} onSignOut={handleSignOut}>
+              <MoviesTab session={session} />
+            </AppLayout>
+          }
+        />
+        <Route
+          path="/watched"
+          element={
+            !session ? <Navigate to="/auth/sign-in" replace /> :
+            onboardingLoading ? <div className="text-white text-center mt-40">Loading…</div> :
+            !onboardingComplete ? <Navigate to="/onboarding" replace /> :
+            <AppLayout user={user} onSignOut={handleSignOut}>
+              <WatchedTab session={session} />
+            </AppLayout>
           }
         />
 
-        {/* Account page (protected) */}
+        {/* Account and preferences (protected) */}
         <Route
           path="/account"
           element={
             !session ? <Navigate to="/auth/sign-in" replace /> :
-            onboardingLoading ? <div style={{ color: "#fff", textAlign: "center", marginTop: "25vh" }}>Loading…</div> :
+            onboardingLoading ? <div className="text-white text-center mt-40">Loading…</div> :
             !onboardingComplete ? <Navigate to="/onboarding" replace /> :
-            <Account user={user} onProfileUpdate={handleProfileUpdate} />
+            <AppLayout user={user} onSignOut={handleSignOut}>
+              <Account user={user} onProfileUpdate={handleProfileUpdate} />
+            </AppLayout>
           }
         />
-
-        {/* Preferences page (protected) */}
         <Route
           path="/preferences"
           element={
             !session ? <Navigate to="/auth/sign-in" replace /> :
-            onboardingLoading ? <div style={{ color: "#fff", textAlign: "center", marginTop: "25vh" }}>Loading…</div> :
+            onboardingLoading ? <div className="text-white text-center mt-40">Loading…</div> :
             !onboardingComplete ? <Navigate to="/onboarding" replace /> :
-            <Preferences user={user} />
+            <AppLayout user={user} onSignOut={handleSignOut}>
+              <Preferences user={user} />
+            </AppLayout>
           }
         />
 
-        <Route path="*" element={<Navigate to="/" replace />} />
-
-        {/* Movie details page */}
+        {/* Movie detail page */}
         <Route path="/movie/:id" element={<MovieDetail />} />
+
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );

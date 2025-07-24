@@ -147,7 +147,9 @@ export default function SearchBar() {
             <div
               key={m.id}
               onClick={() => handleSelect(m)}
-              onMouseEnter={() => setHighlighted(idx)}
+              onMouseEnter={() => {
+                if (highlighted !== idx) setHighlighted(idx);
+                }}
               className={`
                 flex items-center gap-3 cursor-pointer px-2.5 py-2 rounded-lg transition
                 ${highlighted === idx ? "bg-[#23212b] scale-[1.02] text-orange-300" : "hover:bg-[#23212b]"}

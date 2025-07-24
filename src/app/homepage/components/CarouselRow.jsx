@@ -2,15 +2,24 @@ import MovieCard from "@/app/pages/shared/MovieCard";
 
 export default function CarouselRow({ title, movies }) {
   return (
-    <div style={{ marginBottom: 34 }}>
-      <div style={{
-        fontWeight: 800, fontSize: 22, letterSpacing: "-1px",
-        margin: "0 0 13px 14px"
-      }}>{title}</div>
-      <div style={{
-        display: "flex", overflowX: "auto", gap: 22, padding: "4px 0 8px 10px"
-      }}>
-        {movies.map(movie => <MovieCard key={movie.id} movie={movie} />)}
+    <div className="mb-8">
+      <div
+        className="
+          font-extrabold text-[22px] tracking-tight
+          mb-[13px] ml-[14px]
+        "
+      >
+        {title}
+      </div>
+      <div
+        className="
+          flex overflow-x-auto gap-[22px] px-0 py-1 pl-[10px]
+          scrollbar-thin scrollbar-thumb-[#232330] scrollbar-track-transparent
+        "
+      >
+        {movies.map(movie => (
+          <MovieCard key={movie.id} movie={movie} />
+        ))}
       </div>
     </div>
   );

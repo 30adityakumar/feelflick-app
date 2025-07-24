@@ -42,30 +42,34 @@ export default function HomePage({ userName, userId }) {
   }, [userId]);
 
   return (
-    <div style={{ minHeight: "100vh", background: "#191820", color: "#fff", paddingBottom: 40 }}>
+    <div className="min-h-screen bg-[#191820] text-white pb-10">
       {/* Hero Section */}
-      <div style={{
-        width: "100%",
-        height: 420,
-        background: `linear-gradient(to right, #18151ce9 60%, #18151c44 100%), url(https://image.tmdb.org/t/p/original${FEATURED_MOVIE.backdrop_path}) center/cover no-repeat`,
-        borderRadius: "0 0 36px 36px",
-        position: "relative",
-        marginBottom: 32,
-        display: "flex", alignItems: "flex-end", padding: 0,
-        boxShadow: "0 5px 30px #0007"
-      }}>
-        <div style={{
-          padding: "38px 40px 44px 48px", maxWidth: 540,
-          background: "linear-gradient(90deg,#18151cf7 80%,#18151c99 100%)",
-          borderRadius: "0 0 36px 0"
-        }}>
-          <div style={{ fontSize: 30, fontWeight: 800, marginBottom: 8 }}>{FEATURED_MOVIE.title}</div>
-          <div style={{ fontSize: 17, opacity: 0.94, marginBottom: 20 }}>{FEATURED_MOVIE.overview}</div>
-          <button style={{
-            padding: "12px 34px",
-            background: "linear-gradient(90deg,#fe9245 10%,#eb423b 90%)",
-            border: "none", color: "#fff", fontWeight: 700, fontSize: 18, borderRadius: 9, cursor: "pointer"
-          }}>
+      <div
+        className="
+          w-full h-[420px] relative mb-8 flex items-end
+          rounded-b-[36px] shadow-[0_5px_30px_#0007]
+          overflow-hidden
+        "
+        style={{
+          background: `linear-gradient(to right, #18151ce9 60%, #18151c44 100%), url(https://image.tmdb.org/t/p/original${FEATURED_MOVIE.backdrop_path}) center/cover no-repeat`
+        }}
+      >
+        <div
+          className="
+            px-10 py-11 md:px-14 md:py-11 max-w-[540px]
+            bg-gradient-to-r from-[#18151cf7] via-[#18151cf7] to-[#18151c99]
+            rounded-b-[36px] md:rounded-br-[36px] md:rounded-bl-none
+          "
+        >
+          <div className="text-[30px] font-extrabold mb-2">{FEATURED_MOVIE.title}</div>
+          <div className="text-[17px] opacity-94 mb-5">{FEATURED_MOVIE.overview}</div>
+          <button
+            className="
+              py-3 px-9 bg-gradient-to-r from-orange-400 to-red-500
+              border-none text-white font-bold text-[18px] rounded-lg
+              shadow transition hover:scale-105 active:scale-100
+            "
+          >
             Watch now
           </button>
         </div>
@@ -73,7 +77,6 @@ export default function HomePage({ userName, userId }) {
       {/* Movie Rows */}
       <CarouselRow title="Recommended for you" movies={recommended} />
       <CarouselRow title="Popular Now" movies={popular} />
-      {/* Add more rows as needed */}
     </div>
   );
 }

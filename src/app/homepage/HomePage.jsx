@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Sparkles, Star, Flame, Film, ThumbsUp } from "lucide-react";
-import CarouselRow from "./CarouselRow";
+import CarouselRow from "@/app/homepage/components/CarouselRow";
 
 // Dummy data fetchers for MVP (replace with real API calls as needed)
 async function fetchFeaturedMovie() {

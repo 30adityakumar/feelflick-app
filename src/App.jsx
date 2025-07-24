@@ -8,13 +8,17 @@ import ConfirmEmail from "@/features/auth/components/ConfirmEmail";
 import Onboarding from "@/features/onboarding/Onboarding";
 import HomePage from "@/app/homepage/HomePage";
 import Header from "@/app/header/Header";
+import Sidebar from "@/app/header/sidebar/Sidebar";
 import MoviesTab from "@/app/pages/movies/MoviesTab";
-import WatchedTab from "@/app/pages/watched/WatchedTab";
 import Account from "@/app/header/components/Account";
 import Preferences from "@/app/header/components/Preferences";
-import MovieDetail from '@/app/pages/MovieDetail';
+import MovieDetail from "@/app/pages/MovieDetail";
 
-// Onboarding status check hook
+// Simple placeholder pages for MVP
+function TrendingPage() { return <div className="p-8">Trending Coming Soon!</div>; }
+function WatchlistPage() { return <div className="p-8">Watchlist Coming Soon!</div>; }
+function HistoryPage() { return <div className="p-8">History Coming Soon!</div>; }
+
 function useOnboardingStatus(session, version) {
   const [status, setStatus] = useState({ loading: true, complete: false });
 
@@ -41,15 +45,16 @@ function useOnboardingStatus(session, version) {
   return status;
 }
 
-// Layout for all main app pages
+// AppLayout with Sidebar and Header for all logged-in pages
 function AppLayout({ user, onSignOut, children }) {
   return (
-    <>
-      <Header user={user} onSignOut={onSignOut} />
-      <main className="min-h-screen bg-zinc-950 text-white pb-10 pt-24 w-full overflow-x-hidden">
-        {children}
-      </main>
-    </>
+    <div className="flex min-h-screen bg-zinc-950 text-white">
+      <Sidebar />
+      <div className="flex-1 ml-20 relative">
+        <Header user={user} onSignOut={onSignOut} />
+        <main className="pb-10 pt-24 w-full overflow-x-hidden">{children}</main>
+      </div>
+    </div>
   );
 }
 
@@ -59,7 +64,6 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [onboardingVersion, setOnboardingVersion] = useState(Date.now());
 
-  // Get Supabase session and fetch user profile
   useEffect(() => {
     let mounted = true;
     supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
@@ -81,11 +85,9 @@ export default function App() {
     if (session?.user) fetchProfile();
   }, [session]);
 
-  // Onboarding status
   const { loading: onboardingLoading, complete: onboardingComplete } =
     useOnboardingStatus(session, onboardingVersion);
 
-  // Sign out
   async function handleSignOut() {
     await supabase.auth.signOut();
     setSession(null);
@@ -93,7 +95,6 @@ export default function App() {
     window.location.href = "/";
   }
 
-  // Profile update from /account
   function handleProfileUpdate(profile) {
     setProfileName(profile.name || "");
     setUser(u => ({ ...u, ...profile }));
@@ -102,13 +103,12 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Public/Landing/Auth/Onboarding */}
         <Route path="/" element={<Landing />} />
         <Route path="/auth/sign-in" element={<AuthPage mode="sign-in" />} />
         <Route path="/auth/sign-up" element={<AuthPage mode="sign-up" />} />
         <Route path="/auth/reset-password" element={<ResetPassword />} />
         <Route path="/auth/confirm" element={<ConfirmEmail />} />
-
-        {/* Onboarding page */}
         <Route
           path="/onboarding"
           element={
@@ -122,7 +122,7 @@ export default function App() {
           }
         />
 
-        {/* Main app pages: now using router for tab/pages */}
+        {/* Main App Routes: All have Sidebar + Header */}
         <Route
           path="/app"
           element={
@@ -135,35 +135,45 @@ export default function App() {
           }
         />
         <Route
+          path="/trending"
+          element={
+            !session ? <Navigate to="/auth/sign-in" replace /> :
+            <AppLayout user={user} onSignOut={handleSignOut}>
+              <TrendingPage />
+            </AppLayout>
+          }
+        />
+        <Route
+          path="/watchlist"
+          element={
+            !session ? <Navigate to="/auth/sign-in" replace /> :
+            <AppLayout user={user} onSignOut={handleSignOut}>
+              <WatchlistPage />
+            </AppLayout>
+          }
+        />
+        <Route
+          path="/history"
+          element={
+            !session ? <Navigate to="/auth/sign-in" replace /> :
+            <AppLayout user={user} onSignOut={handleSignOut}>
+              <HistoryPage />
+            </AppLayout>
+          }
+        />
+        <Route
           path="/movies"
           element={
             !session ? <Navigate to="/auth/sign-in" replace /> :
-            onboardingLoading ? <div className="text-white text-center mt-40">Loading…</div> :
-            !onboardingComplete ? <Navigate to="/onboarding" replace /> :
             <AppLayout user={user} onSignOut={handleSignOut}>
               <MoviesTab session={session} />
             </AppLayout>
           }
         />
         <Route
-          path="/watched"
-          element={
-            !session ? <Navigate to="/auth/sign-in" replace /> :
-            onboardingLoading ? <div className="text-white text-center mt-40">Loading…</div> :
-            !onboardingComplete ? <Navigate to="/onboarding" replace /> :
-            <AppLayout user={user} onSignOut={handleSignOut}>
-              <WatchedTab session={session} />
-            </AppLayout>
-          }
-        />
-
-        {/* Account and preferences (protected) */}
-        <Route
           path="/account"
           element={
             !session ? <Navigate to="/auth/sign-in" replace /> :
-            onboardingLoading ? <div className="text-white text-center mt-40">Loading…</div> :
-            !onboardingComplete ? <Navigate to="/onboarding" replace /> :
             <AppLayout user={user} onSignOut={handleSignOut}>
               <Account user={user} onProfileUpdate={handleProfileUpdate} />
             </AppLayout>
@@ -173,16 +183,19 @@ export default function App() {
           path="/preferences"
           element={
             !session ? <Navigate to="/auth/sign-in" replace /> :
-            onboardingLoading ? <div className="text-white text-center mt-40">Loading…</div> :
-            !onboardingComplete ? <Navigate to="/onboarding" replace /> :
             <AppLayout user={user} onSignOut={handleSignOut}>
               <Preferences user={user} />
             </AppLayout>
           }
         />
-
-        {/* Movie detail page */}
-        <Route path="/movie/:id" element={<MovieDetail />} />
+        <Route
+          path="/movie/:id"
+          element={
+            <AppLayout user={user} onSignOut={handleSignOut}>
+              <MovieDetail />
+            </AppLayout>
+          }
+        />
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -91,7 +91,7 @@ export default function HomePage({ userName, userId }) {
         <CarouselRow
           title={
             <span className="inline-flex items-center gap-2 text-orange-300 font-semibold">
-              <Fire size={19} /> Popular Now
+              <Flame size={19} /> Popular Now
             </span>
           }
           endpoint="popular"

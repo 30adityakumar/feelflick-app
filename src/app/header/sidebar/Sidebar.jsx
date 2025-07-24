@@ -13,7 +13,7 @@ const SIDEBAR_LINKS = [
 
 export default function Sidebar() {
   return (
-    <aside className="h-screen w-20 bg-[#18151c] flex flex-col py-4 border-r border-zinc-900 fixed top-0 left-0 z-40">
+    <aside className="h-screen w-20 bg-[#18151c] flex flex-col py-4 border-r border-zinc-900 fixed top-0 left-0 z-40 top-[72px]">
       {SIDEBAR_LINKS.map(link => (
         <NavLink
           key={link.to}

@@ -211,15 +211,6 @@ export default function WatchedTab({ session: sessionProp }) {
           </div>
         )}
       </div>
-
-      {/* Modal */}
-      {modalMovie && (
-        <MovieModal
-          movie={modalMovie}
-          open={!!modalMovie}
-          onClose={closeModal}
-        />
-      )}
     </div>
   );
 }

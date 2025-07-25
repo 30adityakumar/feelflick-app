@@ -158,14 +158,6 @@ export default function MoviesTab({ session }) {
           </div>
         )}
       </div>
-      {/* Movie Details Modal */}
-      {modalMovie && (
-        <MovieModal
-          movie={modalMovie}
-          open={!!modalMovie}
-          onClose={closeModal}
-        />
-      )}
     </div>
   )
 }

@@ -74,11 +74,24 @@ export default function Preferences({ user }) {
       user_id: user.id,
       movie_id: m.id,
       title: m.title,
-      poster_path: m.poster_path,
+      poster: m.poster_path,            // <-- Save poster_path as poster!
+      release_date: m.release_date,
+      vote_average: m.vote_average,
+      genre_ids: m.genre_ids || null,   // Add this if available from TMDb
     };
     setMovies(curr => [...curr, newMovie]);
-    await supabase.from("user_movies").insert([newMovie]);
+    await supabase.from("user_movies").insert([{
+      user_id: user.id,
+      movie_id: m.id,
+      title: m.title,
+      poster_path: m.poster_path,
+    }]);
+    // ✅ Save to movies_watched as well!
+    await supabase.from("movies_watched").upsert([newMovie], {
+      onConflict: ["user_id", "movie_id"]
+    });
   }
+
 
   async function handleRemoveMovie(movie_id) {
     setMovies(curr => curr.filter(m => m.movie_id !== movie_id));
@@ -86,7 +99,13 @@ export default function Preferences({ user }) {
       .delete()
       .eq("user_id", user.id)
       .eq("movie_id", movie_id);
+    // Also remove from movies_watched
+    await supabase.from("movies_watched")
+      .delete()
+      .eq("user_id", user.id)
+      .eq("movie_id", movie_id);
   }
+
 
   async function handleSave() {
     setSaving(true);

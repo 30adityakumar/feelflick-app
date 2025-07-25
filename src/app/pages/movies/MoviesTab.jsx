@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import Search from '@/app/pages/movies/components/Search'
 import FilterBar from '@/app/pages/shared/FilterBar'
 import ResultsGrid from '@/app/pages/movies/components/ResultsGrid'
-import MovieModal from '@/app/pages/shared/MovieModal'
 import { supabase } from '@/shared/lib/supabase/client'
 
 export default function MoviesTab({ session }) {

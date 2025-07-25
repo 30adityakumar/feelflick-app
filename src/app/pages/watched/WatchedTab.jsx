@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 import FilterBar from '@/app/pages/shared/FilterBar';
 import WatchedHistory from '@/app/pages/watched/components/WatchedHistory';
-import MovieModal from '@/app/pages/shared/MovieModal';
 import { supabase } from '@/shared/lib/supabase/client';
 
 export default function WatchedTab({ session: sessionProp }) {

@@ -29,7 +29,10 @@ export default function WatchedTab({ session }) {
       .select('*')
       .eq('user_id', session.user.id)
       .order('id', { ascending: false })
-      .then(({ data }) => setWatched(data || []));
+      .throwOnError()          // <-- surface RLS errors in console
+      .then(({ data }) => {
+        console.log('Watched rows:', data);
+        setWatched(data ?? []);
   }, [session]);
 
   // --- Fix: ensure genre_ids is always array of strings ---

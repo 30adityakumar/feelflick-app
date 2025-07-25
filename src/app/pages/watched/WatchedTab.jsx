@@ -32,6 +32,14 @@ export default function WatchedTab({ session }) {
       .then(({ data }) => setWatched(data || []));
   }, [session]);
 
+  // --- Fix: ensure genre_ids is always array of strings ---
+  const safeWatched = watched.map(m => ({
+    ...m,
+    genre_ids: Array.isArray(m.genre_ids)
+      ? m.genre_ids.map(String)
+      : [],
+  }));
+
   // Sorting/filtering helpers
   function sortMovies(movies, sortBy) {
     if (sortBy === 'added-desc') return [...movies].sort((a, b) => (b.id || 0) - (a.id || 0));
@@ -48,12 +56,18 @@ export default function WatchedTab({ session }) {
   }
   function filterMoviesByGenre(movies, genreId) {
     if (!genreId) return movies;
-    return movies.filter(m => Array.isArray(m.genre_ids) && m.genre_ids.includes(String(genreId)));
+    // genre_ids is now always array of strings
+    return movies.filter(m =>
+      Array.isArray(m.genre_ids) &&
+      m.genre_ids.includes(String(genreId))
+    );
   }
-  const allYears = Array.from(new Set(watched.map(m => m.release_date && new Date(m.release_date).getFullYear()).filter(Boolean))).sort((a, b) => b - a);
+
+  const allYears = Array.from(new Set(safeWatched.map(m => m.release_date && new Date(m.release_date).getFullYear()).filter(Boolean))).sort((a, b) => b - a);
+
   const allGenres = (() => {
     const genreIdSet = new Set();
-    watched.forEach(m =>
+    safeWatched.forEach(m =>
       Array.isArray(m.genre_ids) &&
       m.genre_ids.forEach(id => genreIdSet.add(id))
     );
@@ -62,6 +76,7 @@ export default function WatchedTab({ session }) {
       .map(id => ({ id, name: genreMap[id] }))
       .sort((a, b) => a.name.localeCompare(b.name));
   })();
+
   const clearFilters = () => {
     setSortBy('added-desc');
     setYearFilter('');
@@ -85,9 +100,13 @@ export default function WatchedTab({ session }) {
     setWatched(data);
   };
 
+  // --- DEBUG: log to confirm ---
+  console.log('Watched (raw):', watched);
+  console.log('Watched (safe):', safeWatched);
+
   const filteredSortedWatched = sortMovies(
     filterMoviesByGenre(
-      filterMoviesByYear(watched, yearFilter),
+      filterMoviesByYear(safeWatched, yearFilter),
       genreFilter
     ),
     sortBy

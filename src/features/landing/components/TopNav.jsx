@@ -52,7 +52,7 @@ export default function TopNav() {
           <span
             className={`
               uppercase font-extrabold text-xl sm:text-2xl md:text-3xl
-              tracking-wide text-[#F6E3D7] pl-5
+              tracking-wide text-[#F6E3D7] pl-10
               whitespace-nowrap
             `}
             style={{
@@ -72,8 +72,8 @@ export default function TopNav() {
             to="/auth/sign-in"
             className={`
               bg-gradient-to-r from-orange-400 to-red-500
-              text-white font-semibold
-              px-4 pr-5 py-2 rounded-lg
+              text-white font-normal
+              pr-10 rounded-lg
               focus-visible:outline-2 focus-visible:outline-white
               min-w-[80px] text-base text-center
               mx-2

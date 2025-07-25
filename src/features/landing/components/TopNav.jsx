@@ -74,7 +74,7 @@ export default function TopNav() {
               bg-gradient-to-r from-orange-400 to-red-500
               text-white font-semibold
               px-3 py-1 rounded-lg
-              md:px-6 md:py-2 md:rounded-xl
+              md:px-6 md:py-1.9 md:rounded-xl
               focus-visible:outline-2 focus-visible:outline-white
               min-w-[70px] md:min-w-[90px] text-sm md:text-base text-center
               mr-4 md:mr-10

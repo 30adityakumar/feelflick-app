@@ -13,11 +13,11 @@ import MoviesTab from "@/app/pages/movies/MoviesTab";
 import Account from "@/app/header/components/Account";
 import Preferences from "@/app/header/components/Preferences";
 import MovieDetail from "@/app/pages/MovieDetail";
+import HistoryPage from "@/app/pages/watched/WatchedTab";
 
 // ---- Only ONE declaration of each! ----
 function TrendingPage()   { return <div className="p-8">Trending Coming Soon!</div>; }
 function WatchlistPage()  { return <div className="p-8">Watchlist Coming Soon!</div>; }
-function HistoryPage()    { return <div className="p-8">History Coming Soon!</div>; }
 
 function useOnboardingStatus(session, version) {
   const [status, setStatus] = useState({ loading: true, complete: false });

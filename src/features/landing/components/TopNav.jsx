@@ -1,12 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import logo from "@assets/images/logo.png";
 
-/**
- * Minimal, fast TopNav for MVP.
- * Instantly hides on scroll down and shows on scroll up.
- * No animations, no heavy processing.
- */
 export default function TopNav() {
   const [hidden, setHidden] = useState(false);
   const lastScroll = useRef(0);
@@ -18,78 +12,71 @@ export default function TopNav() {
       setHidden(currentScroll > 48 && currentScroll > lastScroll.current);
       lastScroll.current = currentScroll;
     };
-
     window.addEventListener("scroll", handleScroll, { passive: true });
-
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
     <header
       className={`
-        fixed z-50 flex justify-center pointer-events-none
-        top-1 left-1 right-1
-        md:top-2 md:left-0 md:right-0
+        fixed z-50 w-full top-0 left-0 right-0
+        flex justify-center pointer-events-none
       `}
       style={{
-        transform: hidden ? "translateY(-130%)" : "translateY(0)",
-        // No transition for instant toggle
+        transform: hidden ? "translateY(-130%)" : "translateY(0)"
       }}
       role="banner"
     >
       <nav
         className={`
-          pointer-events-auto w-full max-w-[1220px] flex items-center
-          bg-[rgba(18,18,22,0.4)] backdrop-blur-[6px] shadow-xl
-          rounded-xl min-h-[42px] px-3 py-1
-          md:rounded-2xl md:h-12 md:px-6 md:py-2
+          pointer-events-auto w-full flex items-center
+          bg-[rgba(18,18,22,0.6)] backdrop-blur
+          min-h-[46px]
         `}
         aria-label="Main navigation"
         role="navigation"
+        style={{
+          padding: "0",     // No paddings!
+          margin: "0",
+          borderRadius: "0",
+          boxShadow: "none"
+        }}
       >
-        {/* Logo + Brand */}
+        {/* FEELFLICK brand only, no logo */}
         <Link
           to="/"
-          className="flex items-center gap-1 md:gap-2 group focus-visible:outline-2"
+          className="flex items-center pointer-events-auto select-none focus-visible:outline-2 w-fit"
           aria-label="Go to FeelFlick home page"
           tabIndex={0}
         >
-          <img
-            src={logo}
-            alt="FeelFlick logo"
-            className="h-7 w-7 rounded-lg md:h-9 md:w-9"
-            draggable={false}
-          />
           <span
-            className="
-              uppercase font-extrabold tracking-normal select-none text-lg pl-1
-              md:text-xl md:pl-1 lg:text-3xl
-            "
+            className={`
+              uppercase font-extrabold text-base sm:text-lg md:text-xl
+              tracking-wide text-[#F6E3D7] pl-3
+              whitespace-nowrap
+            `}
             style={{
-              color: "#F6E3D7",
               letterSpacing: "0.07em",
               textShadow: "0 1px 10px #fff1, 0 1px 20px #18406d24",
-              lineHeight: "1",
+              lineHeight: "1"
             }}
           >
             FEELFLICK
           </span>
         </Link>
-
-        {/* Spacer pushes Sign In button to right */}
         <span className="flex-1" />
 
-        {/* Conditionally render Sign In button */}
+        {/* Sign In button */}
         {location.pathname !== "/auth/sign-in" && (
           <Link
             to="/auth/sign-in"
             className={`
               bg-gradient-to-r from-orange-400 to-red-500
               text-white font-semibold
-              px-4 py-1 rounded-lg shadow-md
+              px-4 py-1 rounded-lg
               focus-visible:outline-2 focus-visible:outline-white
-              min-w-[80px] text-base text-center
-              md:px-5 md:py-1 md:rounded-xl md:min-w-[100px] md:text-lg
+              min-w-[80px] text-sm sm:text-base text-center
+              mx-2
             `}
             aria-label="Sign in"
             tabIndex={0}

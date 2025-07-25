@@ -7,57 +7,57 @@ export default function LandingHero() {
   return (
     <>
       <style>{`
-        .fflick-hero-section { background: #000 !important; }
-        .fflick-hero-left {
-          position: absolute !important;
-          left: clamp(7vw, 7%, 32px);
-          top: 50%;
-          transform: translateY(-50%);
-          z-index: 3;
-          max-width: 590px;
-          color: #fff;
-          display: flex;
-          flex-direction: column;
-          align-items: flex-start;
-        }
-        .fflick-hero-title {
-          font-size: clamp(2.4rem, 5.5vw, 3.7rem) !important;
-        }
-        .fflick-hero-desc {
-          font-size: clamp(0.9rem, 1.7vw, 1.1rem) !important;
-        }
-        .fflick-hero-btn {
-          font-size: clamp(0.92rem, 2.4vw, 1.08rem) !important;
-          padding: clamp(8px, 2vw, 13px) clamp(16px, 6vw, 44px) !important;
-          min-width: clamp(80px, 23vw, 140px) !important;
-          min-height: clamp(38px, 8.2vw, 44px) !important;
-          border-radius: 14px !important;
-        }
-        @media (max-width: 700px) {
-          .fflick-hero-section { min-height: 96vh !important; }
-          .fflick-hero-left {
-            left: 6vw !important;
-            right: 0 !important;
-            bottom: 5vw !important;
-            top: auto !important;
-            transform: none !important;
-            max-width: 88vw !important;
-            padding-right: 2vw !important;
-            align-items: flex-start !important;
-          }
-        }
-        @media (max-width: 480px) {
-          .fflick-hero-section { min-height: 82vh !important; }
-          .fflick-hero-left {
-            left: 3vw !important;
-            right: 0 !important;
-            bottom: 4vw !important;
-            top: auto !important;
-            max-width: 97vw !important;
-            padding-right: 1vw !important;
-          }
-        }
-      `}</style>
+  .fflick-hero-section { background: #000 !important; }
+  .fflick-hero-left {
+    position: absolute !important;
+    left: clamp(7vw, 7%, 32px);
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 3;
+    max-width: 590px;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .fflick-hero-title {
+    font-size: clamp(2.4rem, 5.5vw, 3.7rem) !important;
+  }
+  .fflick-hero-desc {
+    font-size: clamp(0.9rem, 1.7vw, 1.1rem) !important;
+  }
+  .fflick-hero-btn {
+    font-size: clamp(0.92rem, 2.4vw, 1.08rem) !important;
+    padding: clamp(8px, 2vw, 13px) clamp(16px, 6vw, 44px) !important;
+    min-width: clamp(80px, 23vw, 140px) !important;
+    min-height: clamp(38px, 8.2vw, 44px) !important;
+    border-radius: 14px !important;
+  }
+  @media (max-width: 700px) {
+    .fflick-hero-section { min-height: 96vh !important; }
+    .fflick-hero-left {
+      left: 6vw !important;
+      right: 0 !important;
+      bottom: 9vw !important;  /* more space above bottom */
+      top: auto !important;
+      transform: none !important;
+      max-width: 88vw !important;
+      padding-right: 2vw !important;
+      align-items: flex-start !important;
+    }
+  }
+  @media (max-width: 480px) {
+    .fflick-hero-section { min-height: 82vh !important; }
+    .fflick-hero-left {
+      left: 3vw !important;
+      right: 0 !important;
+      bottom: 11vw !important; /* even more space above bottom on smallest screens */
+      top: auto !important;
+      max-width: 97vw !important;
+      padding-right: 1vw !important;
+    }
+  }
+`}</style>
 
       <section
         className="fflick-hero-section"

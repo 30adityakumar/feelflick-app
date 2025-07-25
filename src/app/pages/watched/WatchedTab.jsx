@@ -1,90 +1,121 @@
+// src/app/pages/watched/WatchedTab.jsx
 import { useState, useEffect } from 'react';
 import FilterBar from '@/app/pages/shared/FilterBar';
 import WatchedHistory from '@/app/pages/watched/components/WatchedHistory';
 import MovieModal from '@/app/pages/shared/MovieModal';
 import { supabase } from '@/shared/lib/supabase/client';
 
-export default function WatchedTab({ session }) {
-  
-  const [genreMap, setGenreMap] = useState({});
-  const [sortBy, setSortBy] = useState('added-desc');
+export default function WatchedTab({ session: sessionProp }) {
+  /* ------------------------------------------------------------------
+     1. Session handling
+     ------------------------------------------------------------------ */
+  const [session, setSession] = useState(sessionProp ?? null);
+
+  useEffect(() => {
+    // Get current session on mount
+    supabase.auth.getSession().then(({ data }) => setSession(data.session));
+
+    // Listen for future auth state changes
+    const { data: listener } =
+      supabase.auth.onAuthStateChange((_event, newSession) => {
+        setSession(newSession);
+      });
+
+    return () => listener?.subscription?.unsubscribe();
+  }, []);
+
+  /* ------------------------------------------------------------------
+     2. State for watched list, filters, modal, etc.
+     ------------------------------------------------------------------ */
+  const [watched,    setWatched]    = useState([]);
+  const [genreMap,   setGenreMap]   = useState({});
+  const [sortBy,     setSortBy]     = useState('added-desc');
   const [yearFilter, setYearFilter] = useState('');
   const [genreFilter, setGenreFilter] = useState('');
   const [modalMovie, setModalMovie] = useState(null);
   const closeModal = () => setModalMovie(null);
-  const [session, setSession]   = useState(sessionProp ?? null);
-  const [watched, setWatched]   = useState([]);
 
-  // ① Grab / listen for session once
+  /* ------------------------------------------------------------------
+     3. Fetch TMDb genre list (for mapping ids → names)
+     ------------------------------------------------------------------ */
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSession(data.session));
-    const { data: listener } =
-      supabase.auth.onAuthStateChange((_e, s) => setSession(s));
-    return () => listener?.subscription?.unsubscribe();
-  }, []);
-
-  // Fetch genre map
-  useEffect(() => {
-    fetch(`https://api.themoviedb.org/3/genre/movie/list?api_key=${import.meta.env.VITE_TMDB_API_KEY}&language=en-US`)
+    fetch(
+      `https://api.themoviedb.org/3/genre/movie/list?api_key=${import.meta.env.VITE_TMDB_API_KEY}&language=en-US`
+    )
       .then(res => res.json())
-      .then(({ genres }) => setGenreMap(Object.fromEntries(genres.map(g => [g.id, g.name]))))
+      .then(({ genres }) =>
+        setGenreMap(Object.fromEntries(genres.map(g => [g.id, g.name])))
+      )
       .catch(console.error);
   }, []);
 
-  // Fetch watched movies
+  /* ------------------------------------------------------------------
+     4. Fetch watched movies once we have a valid session
+     ------------------------------------------------------------------ */
   useEffect(() => {
-    if (!session?.user?.id) return;
+    if (!session?.user?.id) return;            // no session yet → skip
+
     supabase
       .from('movies_watched')
       .select('*')
       .eq('user_id', session.user.id)
       .order('id', { ascending: false })
-      .throwOnError()          // <-- surface RLS errors in console
-      .then(({ data }) => {
-        console.log('Watched rows:', data);
-        setWatched(data ?? []);  });
+      .then(({ data, error }) => {
+        if (error) console.error('Fetch movies_watched error:', error);
+        setWatched(data ?? []);
+      });
   }, [session]);
 
-  // --- Fix: ensure genre_ids is always array of strings ---
+  /* ------------------------------------------------------------------
+     5. Normalise genre_ids so filter / grid never breaks
+     ------------------------------------------------------------------ */
   const safeWatched = watched.map(m => ({
     ...m,
     genre_ids: Array.isArray(m.genre_ids)
-      ? m.genre_ids.map(String)
-      : [],
+      ? m.genre_ids.map(String)   // ensure strings
+      : []
   }));
 
-  // Sorting/filtering helpers
-  function sortMovies(movies, sortBy) {
-    if (sortBy === 'added-desc') return [...movies].sort((a, b) => (b.id || 0) - (a.id || 0));
-    if (sortBy === 'added-asc') return [...movies].sort((a, b) => (a.id || 0) - (b.id || 0));
-    if (sortBy === 'year-desc') return [...movies].sort((a, b) => (b.release_date || '').localeCompare(a.release_date || ''));
-    if (sortBy === 'year-asc') return [...movies].sort((a, b) => (a.release_date || '').localeCompare(b.release_date || ''));
-    if (sortBy === 'rating-desc') return [...movies].sort((a, b) => (b.vote_average || 0) - (a.vote_average || 0));
-    if (sortBy === 'rating-asc') return [...movies].sort((a, b) => (a.vote_average || 0) - (b.vote_average || 0));
-    return movies;
+  /* ------------------------------------------------------------------
+     6. Sorting / filtering helpers
+     ------------------------------------------------------------------ */
+  function sortMovies(movies, sortKey) {
+    switch (sortKey) {
+      case 'added-desc':   return [...movies].sort((a, b) => (b.id ?? 0) - (a.id ?? 0));
+      case 'added-asc':    return [...movies].sort((a, b) => (a.id ?? 0) - (b.id ?? 0));
+      case 'year-desc':    return [...movies].sort((a, b) => (b.release_date ?? '').localeCompare(a.release_date ?? ''));
+      case 'year-asc':     return [...movies].sort((a, b) => (a.release_date ?? '').localeCompare(b.release_date ?? ''));
+      case 'rating-desc':  return [...movies].sort((a, b) => (b.vote_average ?? 0) - (a.vote_average ?? 0));
+      case 'rating-asc':   return [...movies].sort((a, b) => (a.vote_average ?? 0) - (b.vote_average ?? 0));
+      default:             return movies;
+    }
   }
-  function filterMoviesByYear(movies, year) {
-    if (!year) return movies;
-    return movies.filter(m => m.release_date && new Date(m.release_date).getFullYear().toString() === year);
+  function filterByYear(movies, year) {
+    return year
+      ? movies.filter(m => m.release_date && new Date(m.release_date).getFullYear().toString() === year)
+      : movies;
   }
-  function filterMoviesByGenre(movies, genreId) {
-    if (!genreId) return movies;
-    // genre_ids is now always array of strings
-    return movies.filter(m =>
-      Array.isArray(m.genre_ids) &&
-      m.genre_ids.includes(String(genreId))
-    );
+  function filterByGenre(movies, genreId) {
+    return genreId
+      ? movies.filter(m => Array.isArray(m.genre_ids) && m.genre_ids.includes(String(genreId)))
+      : movies;
   }
 
-  const allYears = Array.from(new Set(safeWatched.map(m => m.release_date && new Date(m.release_date).getFullYear()).filter(Boolean))).sort((a, b) => b - a);
+  /* ------------------------------------------------------------------
+     7. Lists for filter dropdowns
+     ------------------------------------------------------------------ */
+  const allYears = Array.from(
+    new Set(
+      safeWatched
+        .map(m => (m.release_date ? new Date(m.release_date).getFullYear() : null))
+        .filter(Boolean)
+    )
+  ).sort((a, b) => b - a);
 
   const allGenres = (() => {
-    const genreIdSet = new Set();
-    safeWatched.forEach(m =>
-      Array.isArray(m.genre_ids) &&
-      m.genre_ids.forEach(id => genreIdSet.add(id))
-    );
-    return Array.from(genreIdSet)
+    const ids = new Set();
+    safeWatched.forEach(m => m.genre_ids?.forEach(id => ids.add(id)));
+    return Array.from(ids)
       .filter(id => genreMap[id])
       .map(id => ({ id, name: genreMap[id] }))
       .sort((a, b) => a.name.localeCompare(b.name));
@@ -96,35 +127,45 @@ export default function WatchedTab({ session }) {
     setGenreFilter('');
   };
 
-  // Remove from watched
+  /* ------------------------------------------------------------------
+     8. Remove movie from watched history
+     ------------------------------------------------------------------ */
   const removeFromWatched = async (movie_id) => {
     if (!session?.user?.id) return;
+
     await supabase
       .from('movies_watched')
       .delete()
       .eq('user_id', session.user.id)
       .eq('movie_id', movie_id);
-    // Refresh watched
+
     const { data } = await supabase
       .from('movies_watched')
       .select('*')
       .eq('user_id', session.user.id)
       .order('id', { ascending: false });
-    setWatched(data);
+
+    setWatched(data ?? []);
   };
 
-  // --- DEBUG: log to confirm ---
-  console.log('Watched (raw):', watched);
-  console.log('Watched (safe):', safeWatched);
-
-  const filteredSortedWatched = sortMovies(
-    filterMoviesByGenre(
-      filterMoviesByYear(safeWatched, yearFilter),
-      genreFilter
-    ),
+  /* ------------------------------------------------------------------
+     9. Apply filters + sort
+     ------------------------------------------------------------------ */
+  const filteredSorted = sortMovies(
+    filterByGenre(filterByYear(safeWatched, yearFilter), genreFilter),
     sortBy
   );
 
+  /* ------------------------------------------------------------------
+     10. Debug logs – can remove later
+     ------------------------------------------------------------------ */
+  console.log('Current session.user.id:', session?.user?.id);
+  console.log('Watched (raw):', watched);
+  console.log('Watched (safe):', safeWatched);
+
+  /* ------------------------------------------------------------------
+     11. Render
+     ------------------------------------------------------------------ */
   return (
     <div className="min-h-screen bg-[#101015] w-full pb-14 px-3 sm:px-6 md:px-10 lg:px-20 xl:px-32 box-border">
       {/* Filters */}
@@ -137,23 +178,27 @@ export default function WatchedTab({ session }) {
           allGenres={allGenres}
           sortOptions={[
             { value: 'added-desc', label: 'Order Added ↓' },
-            { value: 'added-asc', label: 'Order Added ↑' },
-            { value: 'year-desc', label: 'Year ↓' },
-            { value: 'year-asc', label: 'Year ↑' },
+            { value: 'added-asc',  label: 'Order Added ↑' },
+            { value: 'year-desc',  label: 'Year ↓' },
+            { value: 'year-asc',   label: 'Year ↑' },
             { value: 'rating-desc', label: 'Rating ↓' },
-            { value: 'rating-asc', label: 'Rating ↑' }
+            { value: 'rating-asc',  label: 'Rating ↑' },
           ]}
           clearFilters={clearFilters}
         />
       </div>
+
+      {/* Heading */}
       <div className="max-w-6xl mx-auto font-bold text-lg md:text-xl text-white mt-2 mb-5 flex items-center gap-2">
         <span role="img" aria-label="watched" className="text-2xl">🎬</span>
         Watched History
       </div>
+
+      {/* Grid / Empty state */}
       <div className="max-w-6xl mx-auto min-h-[200px]">
-        {filteredSortedWatched.length ? (
+        {filteredSorted.length ? (
           <WatchedHistory
-            watched={filteredSortedWatched}
+            watched={filteredSorted}
             genreMap={genreMap}
             onRemove={removeFromWatched}
             gridClass="movie-grid"
@@ -166,6 +211,8 @@ export default function WatchedTab({ session }) {
           </div>
         )}
       </div>
+
+      {/* Modal */}
       {modalMovie && (
         <MovieModal
           movie={modalMovie}

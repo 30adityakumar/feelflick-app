@@ -32,8 +32,8 @@ export default function WatchedTab({ session }) {
       .throwOnError()          // <-- surface RLS errors in console
       .then(({ data }) => {
         console.log('Watched rows:', data);
-        setWatched(data ?? []);
-  });
+        setWatched(data ?? []);  });
+  }, [session]);
 
   // --- Fix: ensure genre_ids is always array of strings ---
   const safeWatched = watched.map(m => ({

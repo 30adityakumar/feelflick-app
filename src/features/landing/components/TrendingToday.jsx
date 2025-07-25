@@ -207,6 +207,18 @@ export default function TrendingToday({ onSignIn, onSignUp }) {
           transform: translateY(-5px) scale(1.03) !important;
           z-index: 10;
         }
+        @media (max-width: 600px) {
+          .fflick-poster,
+          .fflick-poster img {
+            width: 102px !important;
+            min-width: 102px !important;
+            height: 144px !important;
+            min-height: 144px !important;
+            max-width: 102px !important;
+            max-height: 144px !important;
+            border-radius: 10px !important;
+          }
+        }
       `}</style>
       {/* MovieModal shown if a movie is selected */}
       {selectedMovie && (

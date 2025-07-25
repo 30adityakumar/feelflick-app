@@ -48,7 +48,7 @@ export default function WatchedTab({ session }) {
   }
   function filterMoviesByGenre(movies, genreId) {
     if (!genreId) return movies;
-    return movies.filter(m => Array.isArray(m.genre_ids) && m.genre_ids.includes(Number(genreId)));
+    return movies.filter(m => Array.isArray(m.genre_ids) && m.genre_ids.includes(String(genreId)));
   }
   const allYears = Array.from(new Set(watched.map(m => m.release_date && new Date(m.release_date).getFullYear()).filter(Boolean))).sort((a, b) => b - a);
   const allGenres = (() => {

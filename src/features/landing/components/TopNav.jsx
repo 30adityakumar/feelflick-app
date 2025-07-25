@@ -30,8 +30,8 @@ export default function TopNav() {
       <nav
         className={`
           pointer-events-auto w-full flex items-center
-          bg-[rgba(18,18,22,0.7)] backdrop-blur
-          min-h-[64px]
+          bg-[rgba(18, 18, 22, 1)] backdrop-blur
+          min-h-[60px]
         `}
         aria-label="Main navigation"
         role="navigation"
@@ -51,14 +51,14 @@ export default function TopNav() {
         >
           <span
             className={`
-              uppercase font-extrabold text-2xl sm:text-3xl md:text-4xl
-              tracking-wide text-[#F6E3D7] pl-8
+              uppercase font-extrabold text-xl sm:text-2xl md:text-3xl
+              tracking-wide text-[#F6E3D7] pl-5
               whitespace-nowrap
             `}
             style={{
-              letterSpacing: "0.08em",
+              letterSpacing: "0.05em",
               textShadow: "0 1px 10px #fff1, 0 1px 20px #18406d24",
-              lineHeight: "1.15"
+              lineHeight: "1"
             }}
           >
             FEELFLICK
@@ -73,17 +73,17 @@ export default function TopNav() {
             className={`
               bg-gradient-to-r from-orange-400 to-red-500
               text-white font-semibold
-              px-4 pr-7 py-2 rounded-lg
+              px-4 pr-5 py-2 rounded-lg
               focus-visible:outline-2 focus-visible:outline-white
-              min-w-[90px] text-base text-center
+              min-w-[80px] text-base text-center
               mx-2
             `}
             aria-label="Sign in"
             tabIndex={0}
             style={{
               boxShadow: "0 2px 12px #eb423b1a",
-              fontSize: "1.08rem",
-              minHeight: "32px",
+              fontSize: "1rem",
+              minHeight: "28px",
             }}
           >
             Sign in

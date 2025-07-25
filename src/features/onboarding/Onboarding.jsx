@@ -158,162 +158,104 @@ export default function Onboarding() {
   // 7. Loader (always runs after hooks)
   if (checking) {
     return (
-      <div style={{
-        minHeight:"100vh",display:"flex",alignItems:"center",
-        justifyContent:"center",background:"#000",color:"#fff",
-        fontWeight:700,fontSize:18,letterSpacing:"0.02em"
-      }}>
+      <div className="min-h-screen flex items-center justify-center bg-black text-white font-bold text-lg tracking-wide">
         Loading&nbsp;profile…
       </div>
     );
   }
 
-  // 8. UI (all your original code below, unchanged)
-  const CARD_WIDTH  = window.innerWidth < 700 ? "100vw" : "7--px";
-  const CARD_MARGIN = window.innerWidth < 700 ? "11px"  : "0 auto";
-  const genreFontSize  = 12;
+  // Responsive width/margins for the card
+  const CARD_WIDTH = window.innerWidth < 700 ? "100vw" : "700px";
+  const CARD_MARGIN = window.innerWidth < 700 ? "11px" : "0 auto";
+  const genreFontSize = 12;
   const genreBtnHeight = 34;
 
   return (
     <div
+      className="min-h-screen w-screen flex flex-col items-stretch justify-stretch relative font-sans"
       style={{
-        minHeight: "100vh",
-        width: "100vw",
-        background: `url(/background-poster.jpg) center/cover, #18141c`,
-        fontFamily: "Inter, system-ui, sans-serif",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "stretch",
-        justifyContent: "stretch",
-        position: "relative",
+        background: `url(/background-poster.jpg) center/cover, #18141c`
       }}
     >
       {/* Logo top left */}
-      <div style={{ position: "absolute", left: 32, top: 23, zIndex: 11, display: "flex", alignItems: "center", gap: 10 }}>
-        <img src="/logo.png" alt="FeelFlick" style={{ width: 42, height: 42, borderRadius: 12, boxShadow: "0 1.5px 8px #0002" }} />
-        <span style={{ fontSize: 23, fontWeight: 900, color: "#fff", letterSpacing: "-1px", textShadow: "0 1px 7px #19194044" }}>
+      <div className="absolute left-8 top-6 z-10 flex items-center gap-2.5">
+        <img
+          src="/logo.png"
+          alt="FeelFlick"
+          className="w-[42px] h-[42px] rounded-[12px] shadow-md"
+        />
+        <span className="text-[23px] font-extrabold text-white tracking-tight drop-shadow-lg">
           FeelFlick
         </span>
       </div>
       <div
+        className="self-center flex flex-col"
         style={{
           width: CARD_WIDTH,
           margin: CARD_MARGIN,
           minHeight: 500,
           marginTop: 72,
           marginBottom: 16,
-          alignSelf: "center",
           background: DARK_BG,
           borderRadius: 22,
           boxShadow: "0 8px 44px 0 #0007",
           padding: "36px 30px 27px 30px",
           zIndex: 10,
-          display: "flex",
-          flexDirection: "column",
         }}
       >
         {error && (
-          <div style={{
-            color: "#f44336",
-            background: "#3d1113",
-            borderRadius: 6,
-            textAlign: "center",
-            marginBottom: 12,
-            fontWeight: 600,
-            fontSize: 14.5,
-            padding: "7px 4px"
-          }}>{error}</div>
+          <div className="text-red-400 bg-[#3d1113] rounded-md text-center mb-3 font-semibold text-[14.5px] py-2 px-1.5">
+            {error}
+          </div>
         )}
         {/* Step 1: Genres */}
         {step === 1 && (
           <>
-            <h2 style={{
-              fontSize: 25,
-              fontWeight: 900,
-              color: "#fff",
-              textAlign: "center",
-              marginBottom: 4,
-              letterSpacing: ".01em"
-            }}>
+            <h2 className="text-2xl font-extrabold text-white text-center mb-1 tracking-tight">
               Let’s get to know your taste.
             </h2>
-            <div style={{
-              fontSize: 13,
-              fontWeight: 400,
-              color: "#e9e9ef",
-              textAlign: "center",
-              marginBottom: 8,
-              marginTop: 4,
-              letterSpacing: ".01em"
-            }}>
+            <div className="text-[13px] font-normal text-[#e9e9ef] text-center mb-2 mt-1 tracking-tight">
               Pick a few genres you love — it helps us recommend movies that truly match your energy.
             </div>
-
             {/* Genre Grid */}
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(4, 1fr)",
-                gap: "8px 7px",
-                justifyItems: "center",
-                alignItems: "center",
-                margin: "0 auto 12px auto",
-                width: "100%",
-              }}
-            >
+            <div className="grid grid-cols-4 gap-2 w-full mx-auto mb-3 justify-items-center items-center">
               {GENRES.map((g) => (
                 <button
                   key={g.id}
                   type="button"
+                  className={`
+                    w-[120px] h-[34px] rounded-xl border
+                    text-white font-medium text-[${genreFontSize}px] text-center
+                    transition-all duration-150
+                    ${selectedGenres.includes(g.id) ?
+                      "shadow-md"
+                      : ""}
+                  `}
                   style={{
-                    width: 120,
-                    height: genreBtnHeight,
                     margin: "3px 0",
-                    borderRadius: 12,
                     border: OUTLINE,
                     background: selectedGenres.includes(g.id)
                       ? GENRE_SELECTED_BG
                       : "transparent",
-                    color: "#fff",
-                    fontSize: genreFontSize,
-                    fontWeight: 500,
-                    letterSpacing: 0.01,
-                    textAlign: "center",
                     boxShadow: selectedGenres.includes(g.id)
                       ? "0 2px 7px #fdaf4111"
                       : "none",
                     outline: "none",
                     padding: "3.5px 0",
-                    transition: "all 0.15s",
-                    borderWidth: "1px"
                   }}
                   onClick={() => toggleGenre(g.id)}
                 >
-                  <span style={{
-                    fontWeight: 500,
-                    textAlign: "center",
-                    lineHeight: "1.17",
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis"
-                  }}>
+                  <span className="font-medium text-center leading-[1.17] truncate">
                     {g.label}
                   </span>
                 </button>
               ))}
             </div>
-            <div style={{ display: "flex", justifyContent: "center", marginTop: 16, gap: 23 }}>
+            <div className="flex justify-center mt-4 gap-6">
               <button
+                className="px-6 py-2 rounded-lg font-extrabold text-[15px] text-white"
                 style={{
-                  padding: "7px 21px",
-                  borderRadius: 8,
-                  fontWeight: 800,
-                  fontSize: 15,
                   background: BTN_BG,
-                  color: "#fff",
-                  border: "none",
-                  marginRight: 8,
-                  cursor: "pointer",
                   boxShadow: "0 2px 10px #eb423b22",
                   opacity: loading ? 0.7 : 1,
                   minWidth: 80,
@@ -325,15 +267,7 @@ export default function Onboarding() {
                 Next
               </button>
               <button
-                style={{
-                  background: "none",
-                  color: ACCENT,
-                  fontWeight: 800,
-                  fontSize: 13.5,
-                  border: "none",
-                  cursor: "pointer",
-                  minWidth: 44
-                }}
+                className="bg-none text-[#fe9245] font-extrabold text-[13.5px] border-none cursor-pointer min-w-[44px]"
                 disabled={loading}
                 onClick={() => saveAndGo(true, false)}
               >
@@ -345,27 +279,10 @@ export default function Onboarding() {
         {/* Step 2: Movies */}
         {step === 2 && (
           <>
-            <h2 style={{
-              fontSize: 25,
-              fontWeight: 900,
-              color: "#fff",
-              textAlign: "center",
-              marginBottom: 4,
-              letterSpacing: ".01em"
-            }}>
+            <h2 className="text-2xl font-extrabold text-white text-center mb-1 tracking-tight">
               Got some favorite movies?
             </h2>
-            <div style={{
-              fontSize: 13,
-              color: "#fff",
-              fontWeight: 400,
-              textAlign: "center",
-              marginBottom: 8,
-              marginTop: 4,
-              opacity: 0.84,
-              letterSpacing: ".01em",
-              fontFamily: "inherit"
-            }}>
+            <div className="text-[13px] text-white font-normal text-center mb-2 mt-1 opacity-85 tracking-tight">
               Pick a few to help us understand your taste and give you more personalized suggestions.
             </div>
             <input
@@ -373,56 +290,23 @@ export default function Onboarding() {
               placeholder="Search a movie…"
               value={query}
               onChange={e => setQuery(e.target.value)}
-              style={{
-                width: "100%",
-                background: "#232330",
-                borderRadius: 8,
-                padding: "10px 12px",
-                fontSize: 13,
-                fontWeight: 500,
-                color: "#fff",
-                outline: "none",
-                border: "none",
-                marginBottom: 8,
-                marginTop: 0,
-                letterSpacing: 0.01,
-                boxShadow: "0 1px 5px 0 #0004"
-              }}
+              className="w-full bg-[#232330] rounded-lg py-2.5 px-3 text-[13px] font-medium text-white outline-none border-none mb-2 mt-0 shadow"
             />
             {/* Suggestions */}
             {query && results.length > 0 && (
-              <div
-                style={{
-                  background: "#242134",
-                  borderRadius: 20,
-                  maxHeight: 200,
-                  overflowY: "auto",
-                  marginBottom: 6,
-                  boxShadow: "0 1px 8px #0004"
-                }}
-              >
+              <div className="bg-[#242134] rounded-[20px] max-h-[200px] overflow-y-auto mb-1.5 shadow">
                 {(showAllResults ? results : results.slice(0, 3)).map((r, idx) => (
                   <div
                     key={r.id}
-                    style={{
-                      display: "flex", 
-                      alignItems: "center",
-                      padding: "7px 11px",
-                      borderBottom: "1px solid #302c37",
-                      cursor: "pointer",
-                      gap: 6,
-                      transition: "background 0.11s",
-                    }}
+                    className="flex items-center px-3 py-1.5 border-b border-[#302c37] cursor-pointer gap-1.5 transition-colors duration-100 hover:bg-[#232330]"
                     onClick={() => handleAddMovie(r)}
                   >
                     <img
                       src={r.poster_path ? `https://image.tmdb.org/t/p/w185${r.poster_path}` : "https://dummyimage.com/80x120/232330/fff&text=No+Image"}
                       alt={r.title}
-                      style={{ width: 27, height: 40, objectFit: "cover", borderRadius: 5, marginRight: 2, marginBottom: 1, background: "#101012" }}
+                      className="w-[27px] h-[40px] object-cover rounded-[5px] mr-0.5 mb-0.5 bg-[#101012]"
                     />
-                    {/* Multi-line movie title */}
-                    <span style={{ color: "#fff", fontWeight: 600, fontSize: 13, display: "flex", flexDirection: "column" }}>
-                      {/* Split r.title into lines of 7 words each */}
+                    <span className="text-white font-semibold text-[13px] flex flex-col">
                       {r.title
                         .split(" ")
                         .reduce((lines, word, i) => {
@@ -431,11 +315,10 @@ export default function Onboarding() {
                           return lines;
                         }, [])
                         .map((words, i) => (
-                          <span key={i} style={{ display: "block" }}>
+                          <span key={i} className="block">
                             {words.join(" ")}
-                            {/* On the last line, also show year if available */}
                             {i === 0 && (
-                              <span style={{ color: "#eee", fontWeight: 400, fontSize: 14, marginLeft: 7 }}>
+                              <span className="text-[#eee] font-normal text-[14px] ml-2">
                                 {r.release_date ? `(${r.release_date.slice(0, 4)})` : ""}
                               </span>
                             )}
@@ -446,15 +329,7 @@ export default function Onboarding() {
                 ))}
                 {!showAllResults && results.length > 3 && (
                   <div
-                    style={{
-                      textAlign: "center",
-                      padding: "5px 0 4px",
-                      color: ACCENT,
-                      fontWeight: 600,
-                      fontSize: 14,
-                      cursor: "pointer",
-                      userSelect: "none",
-                    }}
+                    className="text-center py-1 text-[#fe9245] font-semibold text-[14px] cursor-pointer select-none"
                     onClick={() => setShowAllResults(true)}
                   >
                     See more
@@ -465,36 +340,21 @@ export default function Onboarding() {
             {/* Watchlist chips */}
             {watchlist.length > 0 && (
               <div>
-                <div style={{
-                  color: "#fff",
-                  fontWeight: 700,
-                  fontSize: 14,
-                  marginTop: 10,
-                  marginBottom: 6
-                }}>
+                <div className="text-white font-bold text-[14px] mt-2.5 mb-1.5">
                   Your picks:
                 </div>
-                <div style={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: "8px 12px",
-                  marginBottom: 10
-                }}>
+                <div className="flex flex-wrap gap-2.5 mb-2.5">
                   {watchlist.map(m => (
-                    <div key={m.id} style={{
-                      display: "flex", flexDirection: "column",
-                      alignItems: "center",
-                      gap: 2,
-                      background: "#231d2d",
-                      borderRadius: 7,
-                      padding: "2px 2px 2px 2px"
-                    }}>
-                      <img src={m.poster_path ? `https://image.tmdb.org/t/p/w92${m.poster_path}` : "https://dummyimage.com/80x120/232330/fff&text=No+Image"}
+                    <div
+                      key={m.id}
+                      className="flex flex-col items-center gap-0.5 bg-[#231d2d] rounded-md px-0.5 py-0.5"
+                    >
+                      <img
+                        src={m.poster_path ? `https://image.tmdb.org/t/p/w92${m.poster_path}` : "https://dummyimage.com/80x120/232330/fff&text=No+Image"}
                         alt={m.title}
-                        style={{ width: 60, height: 90, objectFit: "cover", borderRadius: 2, marginRight: 5, marginLeft: 5, background: "#101012" }}
+                        className="w-[60px] h-[90px] object-cover rounded bg-[#101012] mx-1.5"
                       />
-                      {/* Title split into lines of 7 words */}
-                      <span style={{ display: "flex", flexDirection: "column", alignItems: "center", fontWeight: 450, fontSize: 13, color: "#fff", marginTop: 5 }}>
+                      <span className="flex flex-col items-center font-medium text-[13px] text-white mt-1">
                         {m.title
                           .split(" ")
                           .reduce((lines, word, i) => {
@@ -503,25 +363,13 @@ export default function Onboarding() {
                             return lines;
                           }, [])
                           .map((words, i) => (
-                            <span key={i} style={{ display: "block" }}>
+                            <span key={i} className="block">
                               {words.join(" ")}
                             </span>
                           ))}
                       </span>
                       <button
-                        style={{
-                          background: "none",
-                          border: "none",
-                          color: "#fd7069",
-                          fontSize: 22,
-                          marginTop: 0,
-                          marginLeft: 0,
-                          marginRight: 0,
-                          marginBottom: 0,
-                          cursor: "pointer",
-                          fontWeight: 400,
-                          opacity: 0.78
-                        }}
+                        className="bg-none border-none text-[#fd7069] text-[22px] mt-0 mx-0 cursor-pointer font-normal opacity-80"
                         onClick={() => handleRemoveMovie(m.id)}
                         tabIndex={-1}
                       >×</button>
@@ -530,36 +378,18 @@ export default function Onboarding() {
                 </div>
               </div>
             )}
-            <div style={{ display: "flex", justifyContent: "center", marginTop: 8, gap: 17 }}>
+            <div className="flex justify-center mt-2 gap-4">
               <button
-                style={{
-                  padding: "5px 14px",
-                  borderRadius: 7,
-                  fontWeight: 800,
-                  fontSize: 12,
-                  background: "none",
-                  color: ACCENT,
-                  border: "none",
-                  marginRight: 7,
-                  cursor: "pointer",
-                  boxShadow: "none"
-                }}
+                className="px-3 py-1.5 rounded-md font-extrabold text-xs text-[#fe9245] bg-none border-none mr-2 cursor-pointer"
                 disabled={loading}
                 onClick={() => setStep(1)}
               >
                 &lt; Back
               </button>
               <button
+                className="px-6 py-2 rounded-xl font-extrabold text-[15px] text-white"
                 style={{
-                  padding: "7px 21px",
-                  borderRadius: 10,
-                  fontWeight: 800,
-                  fontSize: 15,
                   background: BTN_BG,
-                  color: "#fff",
-                  border: "none",
-                  marginRight: 7,
-                  cursor: "pointer",
                   boxShadow: "0 2px 10px #eb423b22",
                   opacity: loading ? 0.7 : 1,
                   minWidth: 65,
@@ -570,15 +400,7 @@ export default function Onboarding() {
                 Finish
               </button>
               <button
-                style={{
-                  background: "none",
-                  color: ACCENT,
-                  fontWeight: 800,
-                  fontSize: 12,
-                  border: "none",
-                  cursor: "pointer",
-                  minWidth: 44
-                }}
+                className="bg-none text-[#fe9245] font-extrabold text-xs border-none cursor-pointer min-w-[44px]"
                 disabled={loading}
                 onClick={() => saveAndGo(false, true)}
               >

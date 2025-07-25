@@ -86,6 +86,9 @@ export default function WhyFeelFlick() {
             padding: 14px 8vw !important;    /* EVEN padding on mobile */
             border-radius: 18px !important;
           }
+          .fflick-desc {
+            display: none !important;
+          }
         }
       `}</style>
 

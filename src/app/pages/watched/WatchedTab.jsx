@@ -5,13 +5,23 @@ import MovieModal from '@/app/pages/shared/MovieModal';
 import { supabase } from '@/shared/lib/supabase/client';
 
 export default function WatchedTab({ session }) {
-  const [watched, setWatched] = useState([]);
+  
   const [genreMap, setGenreMap] = useState({});
   const [sortBy, setSortBy] = useState('added-desc');
   const [yearFilter, setYearFilter] = useState('');
   const [genreFilter, setGenreFilter] = useState('');
   const [modalMovie, setModalMovie] = useState(null);
   const closeModal = () => setModalMovie(null);
+  const [session, setSession]   = useState(sessionProp ?? null);
+  const [watched, setWatched]   = useState([]);
+
+  // ① Grab / listen for session once
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setSession(data.session));
+    const { data: listener } =
+      supabase.auth.onAuthStateChange((_e, s) => setSession(s));
+    return () => listener?.subscription?.unsubscribe();
+  }, []);
 
   // Fetch genre map
   useEffect(() => {

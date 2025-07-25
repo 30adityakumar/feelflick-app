@@ -30,7 +30,7 @@ export default function TopNav() {
       <nav
         className={`
           pointer-events-auto w-full flex items-center
-          bg-[rgba(18, 18, 22, 0.15)] backdrop-blur
+          bg-[rgba(18, 18, 22, 0.2)] backdrop-blur
           min-h-[48px] md:min-h-[60px]
         `}
         aria-label="Main navigation"
@@ -51,7 +51,7 @@ export default function TopNav() {
         >
           <span
             className={`
-              uppercase font-extrabold text-lg sm:text-2xl md:text-3xl
+              uppercase font-extrabold text-xl sm:text-2xl md:text-3xl
               tracking-wide text-[#F6E3D7] pl-4 md:pl-10
               whitespace-nowrap
             `}
@@ -74,7 +74,7 @@ export default function TopNav() {
               bg-gradient-to-r from-orange-400 to-red-500
               text-white font-semibold
               px-3 py-1 rounded-lg
-              md:px-6 md:py-1.75 md:rounded-xl
+              md:px-6 md:py-2 md:rounded-xl
               focus-visible:outline-2 focus-visible:outline-white
               min-w-[70px] md:min-w-[90px] text-sm md:text-base text-center
               mr-4 md:mr-10

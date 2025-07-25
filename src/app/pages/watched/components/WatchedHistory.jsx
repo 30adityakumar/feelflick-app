@@ -25,7 +25,6 @@ export default function WatchedHistory({ watched, genreMap, onRemove, gridClass,
           genreMap={genreMap}
           isWatched
           onRemove={() => onRemove(m.movie_id)}
-          onClick={() => onMovieClick && onMovieClick(m)}
         />
       ))}
     </div>

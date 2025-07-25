@@ -28,7 +28,6 @@ export default function ResultsGrid({
           genreMap={genreMap}
           isWatched={watchedIds?.has(movie.id)}
           onMarkWatched={onMarkWatched}
-          onClick={() => onMovieClick && onMovieClick(movie)} // << HERE
         />
       ))}
     </div>

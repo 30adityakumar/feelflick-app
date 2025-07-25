@@ -30,8 +30,8 @@ export default function TopNav() {
       <nav
         className={`
           pointer-events-auto w-full flex items-center
-          bg-[rgba(18, 18, 22, 1)] backdrop-blur
-          min-h-[60px]
+          bg-[rgba(18,18,22,0.94)] backdrop-blur
+          min-h-[44px] md:min-h-[60px]
         `}
         aria-label="Main navigation"
         role="navigation"
@@ -51,8 +51,8 @@ export default function TopNav() {
         >
           <span
             className={`
-              uppercase font-extrabold text-xl sm:text-2xl md:text-3xl
-              tracking-wide text-[#F6E3D7] pl-10
+              uppercase font-extrabold text-lg sm:text-xl md:text-2xl
+              tracking-wide text-[#F6E3D7] pl-4 md:pl-10
               whitespace-nowrap
             `}
             style={{
@@ -73,16 +73,18 @@ export default function TopNav() {
             className={`
               bg-gradient-to-r from-orange-400 to-red-500
               text-white font-medium
-              px-5 py-2 rounded-xl
+              px-3 py-1 rounded-lg
+              md:px-5 md:py-2 md:rounded-xl
               focus-visible:outline-2 focus-visible:outline-white
-              min-w-[80px] text-base text-center
-              mr-10
+              min-w-[70px] md:min-w-[90px] text-sm md:text-base text-center
+              mr-4 md:mr-10
+              transition-all
             `}
             aria-label="Sign in"
             tabIndex={0}
             style={{
               boxShadow: "0 2px 12px #eb423b1a",
-              fontSize: "1rem",
+              fontSize: "0.98rem",
               minHeight: "28px",
             }}
           >

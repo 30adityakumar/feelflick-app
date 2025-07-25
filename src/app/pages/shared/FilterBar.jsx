@@ -1,11 +1,3 @@
-// components/FilterBar.jsx
-
-/**
- * FilterBar renders sorting and filtering controls for movie grids.
- * - Accepts sorting, year, and genre filters.
- * - Calls relevant onChange handlers when user interacts.
- * - Used for both search results and watched history.
- */
 export default function FilterBar({
   sortBy, setSortBy,
   yearFilter, setYearFilter,
@@ -15,105 +7,75 @@ export default function FilterBar({
   clearFilters
 }) {
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        alignItems: 'center',
-        gap: '1.2rem',
-        marginBottom: '1.5rem',
-        justifyContent: 'center',
-        background: 'rgba(36,36,36,0.88)',
-        borderRadius: '8px',
-        padding: '0.7rem 1rem'
-      }}
-    >
-      {/* Sorting */}
-      <label style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-        <span className="text-gray-400 text-xs mr-1">Sort:</span>
-        <select
-          value={sortBy}
-          onChange={e => setSortBy(e.target.value)}
-          style={{
-            background: '#18181b',
-            color: '#fff',
-            border: '1px solid #555',
-            borderRadius: 4,
-            padding: '0.22rem 0.8rem',
-            fontSize: 13
-          }}
-        >
-          {sortOptions.map(opt => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
-          ))}
-        </select>
-      </label>
+    <div className="w-full flex flex-wrap gap-2 md:gap-4 justify-center md:justify-start items-center py-2 px-2 rounded-2xl bg-[#18141cdd] shadow-md border border-zinc-800 mb-2" style={{ backdropFilter: "blur(7px)" }}>
+      {/* Sort */}
+      <select
+        value={sortBy}
+        onChange={e => setSortBy(e.target.value)}
+        className="filter-pill"
+        aria-label="Sort by"
+      >
+        {sortOptions.map(opt => (
+          <option key={opt.value} value={opt.value}>{opt.label}</option>
+        ))}
+      </select>
 
       {/* Year */}
-      <label style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-        <span className="text-gray-400 text-xs mr-1">Year:</span>
-        <select
-          value={yearFilter}
-          onChange={e => setYearFilter(e.target.value)}
-          style={{
-            background: '#18181b',
-            color: '#fff',
-            border: '1px solid #555',
-            borderRadius: 4,
-            padding: '0.22rem 0.8rem',
-            fontSize: 13
-          }}
-        >
-          <option value="">All</option>
-          {allYears.map(y => (
-            <option key={y} value={y}>{y}</option>
-          ))}
-        </select>
-      </label>
+      <select
+        value={yearFilter}
+        onChange={e => setYearFilter(e.target.value)}
+        className="filter-pill"
+        aria-label="Year"
+      >
+        <option value="">Year</option>
+        {allYears.map(y => (
+          <option key={y} value={y}>{y}</option>
+        ))}
+      </select>
 
       {/* Genre */}
-      <label style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-        <span className="text-gray-400 text-xs mr-1">Genre:</span>
-        <select
-          value={genreFilter}
-          onChange={e => setGenreFilter(e.target.value)}
-          style={{
-            background: '#18181b',
-            color: '#fff',
-            border: '1px solid #555',
-            borderRadius: 4,
-            padding: '0.22rem 0.8rem',
-            fontSize: 13
-          }}
-        >
-          <option value="">All</option>
-          {allGenres.map(g => (
-            <option key={g.id} value={g.id}>{g.name}</option>
-          ))}
-        </select>
-      </label>
+      <select
+        value={genreFilter}
+        onChange={e => setGenreFilter(e.target.value)}
+        className="filter-pill"
+        aria-label="Genre"
+      >
+        <option value="">Genre</option>
+        {allGenres.map(g => (
+          <option key={g.id} value={g.id}>{g.name}</option>
+        ))}
+      </select>
 
-      {/* Clear All */}
+      {/* Clear */}
       <button
         onClick={clearFilters}
-        style={{
-          background: '#3b3b3b',
-          color: '#fff',
-          border: 'none',
-          borderRadius: 5,
-          padding: '0.25rem 0.95rem',
-          fontSize: 13,
-          marginLeft: 8,
-          cursor: 'pointer',
-          fontWeight: 500,
-          opacity: 0.95,
-          transition: 'background 0.18s'
-        }}
-        onMouseOver={e => e.currentTarget.style.background='#444'}
-        onMouseOut={e => e.currentTarget.style.background='#3b3b3b'}
+        className="ml-2 px-3 py-1 rounded-full bg-zinc-900 hover:bg-zinc-800 text-zinc-200 font-semibold text-xs shadow transition border border-zinc-800"
+        type="button"
+        aria-label="Clear filters"
       >
-        Clear All
+        Clear
       </button>
+
+      <style>{`
+        .filter-pill {
+          border-radius: 9999px;
+          padding: 0.45rem 1.1rem;
+          background: #211c27bb;
+          border: 1px solid #252233;
+          color: #fff;
+          font-weight: 600;
+          font-size: 0.98rem;
+          transition: border .18s, box-shadow .18s;
+          outline: none;
+        }
+        .filter-pill:focus {
+          border-color: #fb923c;
+          box-shadow: 0 0 0 2px #fb923c33;
+        }
+        .filter-pill option {
+          color: #19181e;
+        }
+      `}</style>
     </div>
   );
 }

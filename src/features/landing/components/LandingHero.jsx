@@ -33,31 +33,8 @@ export default function LandingHero() {
     min-height: clamp(38px, 8.2vw, 44px) !important;
     border-radius: 14px !important;
   }
-  @media (max-width: 700px) {
-    .fflick-hero-section { min-height: 96vh !important; }
-    .fflick-hero-left {
-      left: 6vw !important;
-      right: 0 !important;
-      bottom: 9vw !important;  /* more space above bottom */
-      top: auto !important;
-      transform: none !important;
-      max-width: 88vw !important;
-      padding-right: 2vw !important;
-      align-items: flex-start !important;
-    }
-  }
-  @media (max-width: 480px) {
-    .fflick-hero-section { min-height: 82vh !important; }
-    .fflick-hero-left {
-      left: 3vw !important;
-      right: 0 !important;
-      bottom: 11vw !important; /* even more space above bottom on smallest screens */
-      top: auto !important;
-      max-width: 97vw !important;
-      padding-right: 1vw !important;
-    }
-  }
 `}</style>
+
 
       <section
         className="fflick-hero-section"

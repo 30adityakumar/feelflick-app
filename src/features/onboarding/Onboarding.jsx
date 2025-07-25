@@ -94,7 +94,7 @@ export default function Onboarding() {
   const handleRemoveMovie= id => setWatchlist(w => w.filter(m => m.id !== id));
 
   // 6. Save and finish onboarding (no change)
-  async function saveAndGo(skipGenres=false, skipMovies=false) {
+    async function saveAndGo(skipGenres=false, skipMovies=false) {
     setError(""); setLoading(true);
     try {
       const user_id = session.user.id;
@@ -108,7 +108,7 @@ export default function Onboarding() {
 
       if (!skipGenres) {
         await supabase.from("user_preferences")
-                      .delete().eq("user_id", user_id);
+          .delete().eq("user_id", user_id);
         if (selectedGenres.length) {
           await supabase.from("user_preferences").upsert(
             selectedGenres.map(genre_id => ({ user_id, genre_id })),
@@ -118,18 +118,34 @@ export default function Onboarding() {
       }
 
       if (!skipMovies) {
+        // Save to main movies table (your old code)
         for (const m of watchlist) {
           await supabase.from("movies").upsert(
-            { tmdb_id:m.id,title:m.title,poster_path:m.poster_path,
+            { tmdb_id:m.id, title:m.title, poster_path:m.poster_path,
               release_date:m.release_date },
             { onConflict:["tmdb_id"] }
           );
         }
-        await supabase.from("user_watchlist")
-                      .delete()
-                      .eq("user_id", user_id)
-                      .eq("status","onboarding");
 
+        // Save to movies_watched table (NEW!)
+        for (const m of watchlist) {
+          await supabase.from("movies_watched").upsert(
+            {
+              user_id: user_id,
+              movie_id: m.id,
+              title: m.title,
+              poster: m.poster_path,
+              release_date: m.release_date,
+              vote_average: m.vote_average,
+              genre_ids: m.genre_ids || null,
+            },
+            { onConflict: ["user_id", "movie_id"] }
+          );
+        }
+
+        // Clear + upsert user_watchlist as before
+        await supabase.from("user_watchlist")
+          .delete().eq("user_id", user_id).eq("status","onboarding");
         if (watchlist.length) {
           await supabase.from("user_watchlist").upsert(
             watchlist.map(m => ({
@@ -141,8 +157,8 @@ export default function Onboarding() {
       }
 
       await supabase.from("users")
-                    .update({ onboarding_complete:true })
-                    .eq("id", user_id);
+        .update({ onboarding_complete:true })
+        .eq("id", user_id);
       await supabase.auth.updateUser({
         data:{ onboarding_complete:true }
       });
@@ -154,6 +170,7 @@ export default function Onboarding() {
     }
     setLoading(false);
   }
+
 
   // 7. Loader (always runs after hooks)
   if (checking) {

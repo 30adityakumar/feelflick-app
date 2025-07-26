@@ -56,6 +56,7 @@ export default function Header({ user, onSignOut }) {
         bg-black
         px-2 md:px-4 lg:px-7 py-1.5 md:py-2 shadow-[0_1px_8px_#000b]
         z-50 fixed top-0 left-0 right-0 transition-all duration-300
+        pr-1 sm:pr-2 md:pr-3 lg:pr-5
       `}
       role="navigation"
       aria-label="Main navigation"
@@ -72,7 +73,7 @@ export default function Header({ user, onSignOut }) {
         <img
           src={logo}
           alt="FeelFlick logo"
-          className="h-7 w-7 rounded-lg md:h-9 md:w-9 transition-transform group-hover:scale-105"
+          className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg transition-transform group-hover:scale-105"
           draggable={false}
         />
         {/* Hide text on mobile */}
@@ -94,9 +95,9 @@ export default function Header({ user, onSignOut }) {
         </span>
       </Link>
 
-      {/* SearchBar (center, full width on mobile) */}
+      {/* SearchBar (center, smaller width on mobile) */}
       <div className="flex-1 flex justify-center mx-2 sm:mx-4">
-        <div className="w-full max-w-xl px-0 sm:px-4">
+        <div className="w-full max-w-[260px] sm:max-w-xl px-0 sm:px-4">
           <SearchBar />
         </div>
       </div>
@@ -106,7 +107,7 @@ export default function Header({ user, onSignOut }) {
         <div
           onClick={() => setShowMenu(!showMenu)}
           className={`
-            bg-[#3a3746] w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center
+            bg-[#3a3746] w-10 h-10 sm:w-9 sm:h-9 rounded-full flex items-center justify-center
             text-white font-bold font-sans text-lg cursor-pointer select-none
             shadow transition hover:scale-105 border-2
             border-transparent
@@ -137,11 +138,10 @@ export default function Header({ user, onSignOut }) {
         {`
           @media (max-width: 640px) {
             header {
-              padding-left: 0.4rem !important;
               padding-right: 0.3rem !important;
             }
             .max-w-xl {
-              max-width: 100vw !important;
+              max-width: 95vw !important;
             }
           }
         `}

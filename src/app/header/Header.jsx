@@ -94,15 +94,18 @@ export default function Header({ user, onSignOut }) {
         </span>
       </Link>
 
-      {/* SearchBar (center, much thinner on mobile) */}
-      <div className="flex-1 flex justify-center mx-1 sm:mx-3">
-        <div className="w-full max-w-[160px] sm:max-w-[320px] md:max-w-xl px-0 sm:px-4">
-          {/* Pass custom classes to SearchBar for thin/mobile style */}
-          <SearchBar
-            inputClassName="py-1 sm:py-2" // Add support for passing this prop, or edit SearchBar to use this
-          />
+      {/* SearchBar (center, fills available space on mobile, capped on desktop) */}
+      <div className="flex-1 flex justify-center items-center mx-2">
+        <div className="w-full h-9 flex items-center
+          mx-2
+          max-w-full
+          sm:max-w-[340px] md:max-w-xl"
+          style={{ minWidth: 0 }}
+        >
+          <SearchBar />
         </div>
       </div>
+
 
       {/* User avatar/account menu (right, slightly bigger on mobile) */}
       <div className="relative min-w-[32px] sm:min-w-[45px] pr-1 sm:pr-2 md:pr-3" ref={menuRef}>

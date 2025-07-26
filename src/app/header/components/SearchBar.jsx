@@ -194,7 +194,7 @@ export default function SearchBar() {
             autoFocus
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full bg-[#23212b] text-white text-xl rounded-full pl-4 pr-12 py-1 sm:py-2 outline-none font-semibold"
+            className="w-full bg-[#23212b] text-white text-xl rounded-full pl-4 pr-12 py-1 sm:py-2 outline-none font-light"
             placeholder="Search movies…"
             aria-label="Search movies"
             onFocus={() => setSearchOpen(true)}

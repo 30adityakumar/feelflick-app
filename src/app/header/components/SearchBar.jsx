@@ -194,10 +194,12 @@ export default function SearchBar() {
             autoFocus
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full bg-[#23212b] text-white text-xl rounded-full pl-4 pr-12 py-3 outline-none font-semibold focus:ring-2 focus:ring-orange-400"
+            className="w-full bg-[#23212b] text-white text-xl rounded-full pl-4 pr-12 py-3 outline-none font-semibold"
+            // focus:ring-2 focus:ring-orange-400 REMOVED!
             placeholder="Search movies…"
             aria-label="Search movies"
             onFocus={() => setSearchOpen(true)}
+            style={{ boxShadow: "none", border: "none" }}
           />
           {search && (
             <button
@@ -229,10 +231,13 @@ export default function SearchBar() {
               w-full bg-[#23212b] text-white text-base rounded-full pl-4 pr-11 py-3
               border-none outline-none font-sans shadow
               transition duration-200
-              focus:ring-2 focus:ring-orange-400
               sm:py-2
             `}
-            style={{ fontFamily: "Inter, sans-serif" }}
+            style={{
+              fontFamily: "Inter, sans-serif",
+              boxShadow: "none",
+              border: "none",
+            }}
             onKeyDown={e => {
               if (e.key === "ArrowDown" && results.length > 0) {
                 setHighlighted(0);

@@ -4,7 +4,7 @@ import Search from './Search'
 import FilterBar from './FilterBar'
 import ResultsGrid from './ResultsGrid'
 import MovieModal from './MovieModal'   // <-- Import MovieModal
-import { supabase } from '../supabaseClient'
+import { supabase } from "@/shared/lib/supabase/client";
 
 export default function MoviesTab({ session }) {
   // --- State for movies, genres, filters, etc. ---

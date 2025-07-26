@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { supabase } from "../supabaseClient";
+import { supabase } from "@/shared/lib/supabase/client";
 
 export default function AccountModal({ user, onClose, onProfileUpdate }) {
   const [name, setName] = useState(user?.user_metadata?.name || "");

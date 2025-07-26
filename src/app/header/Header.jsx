@@ -53,7 +53,7 @@ export default function Header({ user, onSignOut }) {
       className={`
         flex items-center justify-between w-full
         bg-black
-        px-1 md:px-1 lg:px-5 py-1.5 md:py-2 shadow-[0_1px_8px_#000b]
+        px-0.5 md:px-1 lg:px-5 py-1 md:py-2 shadow-[0_1px_8px_#000b]
         z-50 fixed top-0 left-0 right-0 transition-all duration-300
         pr-1 sm:pr-2 md:pr-3 lg:pr-5
       `}
@@ -63,7 +63,7 @@ export default function Header({ user, onSignOut }) {
       {/* Logo + Brand (left) */}
       <Link
         to="/"
-        className="flex items-center gap-0.5 md:gap-2 group focus-visible:outline-none min-w-[36px] sm:min-w-[120px] pl-0 sm:pl-1"
+        className="flex items-center gap-0.5 md:gap-2 group focus-visible:outline-none min-w-[32px] sm:min-w-[120px] pl-0"
         tabIndex={0}
         aria-label="Go to FeelFlick home page"
         draggable={false}
@@ -72,7 +72,7 @@ export default function Header({ user, onSignOut }) {
         <img
           src={logo}
           alt="FeelFlick logo"
-          className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg transition-transform group-hover:scale-105"
+          className="h-9 w-9 sm:h-9 sm:w-9 rounded-lg transition-transform group-hover:scale-105"
           draggable={false}
         />
         {/* Hide text on mobile */}
@@ -94,15 +94,18 @@ export default function Header({ user, onSignOut }) {
         </span>
       </Link>
 
-      {/* SearchBar (center, thinner width on mobile) */}
-      <div className="flex-1 flex justify-center mx-2 sm:mx-4">
-        <div className="w-full max-w-[260px] sm:max-w-xl md:max-w-xl px-0 sm:px-4">
-          <SearchBar />
+      {/* SearchBar (center, much thinner on mobile) */}
+      <div className="flex-1 flex justify-center mx-1 sm:mx-3">
+        <div className="w-full max-w-[160px] sm:max-w-[320px] md:max-w-xl px-0 sm:px-4">
+          {/* Pass custom classes to SearchBar for thin/mobile style */}
+          <SearchBar
+            inputClassName="py-1 sm:py-2" // Add support for passing this prop, or edit SearchBar to use this
+          />
         </div>
       </div>
 
-      {/* User avatar/account menu (right) */}
-      <div className="relative min-w-[36px] sm:min-w-[45px] pr-1 sm:pr-2 md:pr-3" ref={menuRef}>
+      {/* User avatar/account menu (right, slightly bigger on mobile) */}
+      <div className="relative min-w-[32px] sm:min-w-[45px] pr-1 sm:pr-2 md:pr-3" ref={menuRef}>
         <div
           onClick={() => setShowMenu(!showMenu)}
           className={`

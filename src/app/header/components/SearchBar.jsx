@@ -194,8 +194,7 @@ export default function SearchBar() {
             autoFocus
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full bg-[#23212b] text-white text-xl rounded-full pl-4 pr-12 py-3 outline-none font-normal"
-            // focus:ring-2 focus:ring-orange-400 REMOVED!
+            className="w-full bg-[#23212b] text-white text-xl rounded-full pl-4 pr-12 py-1 sm:py-2 outline-none font-semibold"
             placeholder="Search movies…"
             aria-label="Search movies"
             onFocus={() => setSearchOpen(true)}
@@ -228,10 +227,9 @@ export default function SearchBar() {
             placeholder="Search movies…"
             aria-label="Search movies"
             className={`
-              w-full bg-[#23212b] text-white text-base rounded-full pl-4 pr-11 py-3
+              w-full bg-[#23212b] text-white text-base rounded-full pl-4 pr-11 py-1 sm:py-2
               border-none outline-none font-sans shadow
               transition duration-200
-              sm:py-1.5
             `}
             style={{
               fontFamily: "Inter, sans-serif",

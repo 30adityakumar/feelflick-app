@@ -53,7 +53,7 @@ export default function Header({ user, onSignOut }) {
       className={`
         flex items-center justify-between w-full
         bg-black
-        px-1 md:px-3 lg:px-7 py-1.5 md:py-2 shadow-[0_1px_8px_#000b]
+        px-1 md:px-1 lg:px-5 py-1.5 md:py-2 shadow-[0_1px_8px_#000b]
         z-50 fixed top-0 left-0 right-0 transition-all duration-300
         pr-1 sm:pr-2 md:pr-3 lg:pr-5
       `}
@@ -85,7 +85,7 @@ export default function Header({ user, onSignOut }) {
           "
           style={{
             color: "#F6E3D7",
-            letterSpacing: "0.07em",
+            letterSpacing: "0.05em",
             textShadow: "0 1px 10px #fff1, 0 1px 20px #18406d24",
             lineHeight: "1",
           }}
@@ -96,7 +96,7 @@ export default function Header({ user, onSignOut }) {
 
       {/* SearchBar (center, thinner width on mobile) */}
       <div className="flex-1 flex justify-center mx-2 sm:mx-4">
-        <div className="w-full max-w-[170px] sm:max-w-[340px] md:max-w-xl px-0 sm:px-4">
+        <div className="w-full max-w-[260px] sm:max-w-xl md:max-w-xl px-0 sm:px-4">
           <SearchBar />
         </div>
       </div>

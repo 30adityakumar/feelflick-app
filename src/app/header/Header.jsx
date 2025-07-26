@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { LogOut, SlidersHorizontal, User2, Search as SearchIcon } from "lucide-react";
+import { LogOut, SlidersHorizontal, User2 } from "lucide-react";
 import logo from "@assets/images/logo.png";
+import SearchBar from "@/app/header/components/SearchBar";
 
 export default function Header({ user, onSignOut }) {
   const navigate = useNavigate();
@@ -47,14 +48,6 @@ export default function Header({ user, onSignOut }) {
     );
   }
 
-  // Controlled search input
-  const [search, setSearch] = useState("");
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    // Implement navigation or state update as needed
-    // Example: navigate(`/search?q=${encodeURIComponent(search)}`);
-  };
-
   return (
     <header
       className={`
@@ -63,10 +56,10 @@ export default function Header({ user, onSignOut }) {
         pt-2 pb-1 md:py-2
         px-0
         z-50 fixed top-0 left-0 right-0 transition-all duration-300
+        min-h-[60px]
       `}
       role="navigation"
       aria-label="Main navigation"
-      style={{ minHeight: "60px" }} // ensures clickable/touchable area
     >
       {/* Logo with left padding on mobile */}
       <Link
@@ -98,33 +91,9 @@ export default function Header({ user, onSignOut }) {
 
       {/* SearchBar - always centered and perfectly aligned */}
       <div className="flex-1 flex justify-center items-center mx-2 min-w-0">
-        <form
-          className="w-full h-10 flex items-center bg-[#23212b] rounded-full px-4 max-w-full sm:max-w-[340px] md:max-w-xl"
-          style={{ minWidth: 0 }}
-          onSubmit={handleSearchSubmit}
-        >
-          <input
-            className="flex-1 bg-transparent border-none outline-none h-10 px-0 text-base font-sans text-zinc-100 placeholder-zinc-400"
-            placeholder="Search movies..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            style={{
-              minWidth: 0,
-              fontFamily: "Inter, sans-serif",
-              boxShadow: "none",
-              border: "none",
-            }}
-          />
-          <button
-            type="submit"
-            className="flex items-center justify-center ml-2"
-            style={{ height: "2.5rem", width: "2.5rem" }}
-            tabIndex={0}
-            aria-label="Search"
-          >
-            <SearchIcon size={22} className="text-zinc-300" />
-          </button>
-        </form>
+        <div className="w-full h-10 flex items-center max-w-full sm:max-w-[340px] md:max-w-xl" style={{ minWidth: 0 }}>
+          <SearchBar />
+        </div>
       </div>
 
       {/* Account Icon with right padding on mobile */}
@@ -144,8 +113,6 @@ export default function Header({ user, onSignOut }) {
         </div>
         {showMenu && <AccountMenuDropdown />}
       </div>
-
-      {/* Animations */}
       <style>
         {`
           @keyframes slideDown {

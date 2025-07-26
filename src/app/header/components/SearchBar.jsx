@@ -194,7 +194,7 @@ export default function SearchBar() {
             autoFocus
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full bg-[#23212b] text-white text-xl rounded-full pl-4 pr-12 py-1 sm:py-2 outline-none font-light"
+            className="w-full bg-[#23212b] text-white text-xl rounded-full pl-4 pr-12 h-10 outline-none font-semibold placeholder-zinc-400"
             placeholder="Search movies…"
             aria-label="Search movies"
             onFocus={() => setSearchOpen(true)}
@@ -218,51 +218,53 @@ export default function SearchBar() {
   return (
     <>
       {/* Desktop Search Bar */}
-      <div className="flex-1 flex justify-center px-2 relative max-w-[480px]">
-        <div className="relative w-full" ref={inputRef}>
-          <input
-            value={search}
-            onFocus={() => { setSearchOpen(true); setHighlighted(-1); }}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Search movies…"
-            aria-label="Search movies"
-            className={`
-              w-full bg-[#23212b] text-white text-base rounded-full pl-4 pr-11 py-1 sm:py-2
-              border-none outline-none font-sans shadow
-              transition duration-200
-            `}
-            style={{
-              fontFamily: "Inter, sans-serif",
-              boxShadow: "none",
-              border: "none",
-            }}
-            onKeyDown={e => {
-              if (e.key === "ArrowDown" && results.length > 0) {
-                setHighlighted(0);
-              }
-            }}
-          />
-          {search && (
-            <button
-              className="absolute right-8 top-2.5 text-zinc-400 hover:text-red-400"
-              onClick={clearSearch}
-              aria-label="Clear search"
-            >
-              <XIcon size={18} />
-            </button>
-          )}
-          <SearchIcon
-            size={20}
-            color="#aaa"
-            className="absolute right-3 top-2.5 pointer-events-none"
-          />
-          {searchOpen && <SearchResultsDropdown />}
-        </div>
+      <div className="relative w-full h-10">
+        <input
+          value={search}
+          ref={inputRef}
+          onFocus={() => { setSearchOpen(true); setHighlighted(-1); }}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="Search movies…"
+          aria-label="Search movies"
+          className={`
+            w-full h-10 bg-[#23212b] text-white text-base rounded-full pl-4 pr-11
+            border-none outline-none font-sans font-light shadow
+            transition duration-200 placeholder-zinc-400
+          `}
+          style={{
+            fontFamily: "Inter, sans-serif",
+            boxShadow: "none",
+            border: "none",
+          }}
+          onKeyDown={e => {
+            if (e.key === "ArrowDown" && results.length > 0) {
+              setHighlighted(0);
+            }
+          }}
+        />
+        {search && (
+          <button
+            className="absolute right-8 top-1.5 text-zinc-400 hover:text-red-400"
+            onClick={clearSearch}
+            aria-label="Clear search"
+            tabIndex={0}
+          >
+            <XIcon size={18} />
+          </button>
+        )}
+        <button
+          tabIndex={0}
+          aria-label="Search"
+          type="button"
+          className="absolute right-3 top-1.5 flex items-center justify-center bg-transparent p-0 shadow-none border-none outline-none"
+          style={{ boxShadow: "none", border: "none" }}
+        >
+          <SearchIcon size={20} color="#aaa" />
+        </button>
+        {searchOpen && <SearchResultsDropdown />}
       </div>
-
       {/* Mobile Search Modal */}
       {showMobileSearch && <MobileSearchModal />}
-
       {/* Animations and Responsive Poster Sizing */}
       <style>
         {`
@@ -273,7 +275,6 @@ export default function SearchBar() {
           .animate-fadeIn {
             animation: fadeIn 0.21s cubic-bezier(.33,1,.68,1) both;
           }
-          /* Responsive search result poster sizes */
           @media (max-width: 600px) {
             .searchbar-poster {
               width: 33px !important;

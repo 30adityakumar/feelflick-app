@@ -50,94 +50,86 @@ export default function Header({ user, onSignOut }) {
 
   return (
     <header
-      className={`
-        flex items-center justify-between w-full
-        bg-black
-        px-0.5 md:px-1 lg:px-5 py-1 md:py-2 shadow-[0_1px_8px_#000b]
-        z-50 fixed top-0 left-0 right-0 transition-all duration-300
-        pr-1 sm:pr-2 md:pr-3 lg:pr-5
-      `}
-      role="navigation"
-      aria-label="Main navigation"
+  className={`
+    flex items-center justify-between w-full
+    bg-black
+    pt-2 pb-1 md:py-2
+    px-0
+    z-50 fixed top-0 left-0 right-0 transition-all duration-300
+  `}
+  role="navigation"
+  aria-label="Main navigation"
+>
+  {/* Logo with left padding on mobile */}
+  <Link
+    to="/"
+    className="flex items-center pl-3 sm:pl-4"
+    tabIndex={0}
+    aria-label="Go to FeelFlick home page"
+    draggable={false}
+    style={{ outline: "none" }}
+  >
+    <img
+      src={logo}
+      alt="FeelFlick logo"
+      className="h-10 w-10 sm:h-9 sm:w-9 rounded-lg transition-transform"
+      draggable={false}
+    />
+    <span
+      className="hidden sm:inline uppercase font-extrabold tracking-normal select-none text-lg pl-1 md:text-xl md:pl-1 lg:text-3xl transition"
+      style={{
+        color: "#F6E3D7",
+        letterSpacing: "0.03em",
+        textShadow: "0 1px 10px #fff1, 0 1px 20px #18406d24",
+        lineHeight: "1",
+      }}
     >
-      {/* Logo + Brand (left) */}
-      <Link
-        to="/"
-        className="flex items-center gap-0.5 md:gap-2 group focus-visible:outline-none min-w-[32px] sm:min-w-[120px] pl-0"
-        tabIndex={0}
-        aria-label="Go to FeelFlick home page"
-        draggable={false}
-        style={{ outline: "none" }}
-      >
-        <img
-          src={logo}
-          alt="FeelFlick logo"
-          className="h-9 w-9 sm:h-9 sm:w-9 rounded-lg transition-transform group-hover:scale-105"
-          draggable={false}
-        />
-        {/* Hide text on mobile */}
-        <span
-          className="
-            hidden sm:inline
-            uppercase font-extrabold tracking-normal select-none text-lg pl-1
-            md:text-xl md:pl-1 lg:text-3xl
-            transition
-          "
+      FEELFLICK
+    </span>
+  </Link>
+
+  {/* SearchBar with height and alignment fixes */}
+  <div className="flex-1 flex justify-center items-center mx-2">
+    <div className="w-full h-10 flex items-center mx-2 max-w-full sm:max-w-[340px] md:max-w-xl" style={{ minWidth: 0 }}>
+      <div className="w-full flex items-center h-10 bg-[#23212b] rounded-full px-4">
+        <input
+          className="flex-1 bg-transparent border-none outline-none h-10 px-0 text-base font-sans text-zinc-100 placeholder-zinc-400"
+          placeholder="Search movies..."
           style={{
-            color: "#F6E3D7",
-            letterSpacing: "0.03em",
-            textShadow: "0 1px 10px #fff1, 0 1px 20px #18406d24",
-            lineHeight: "1",
+            minWidth: 0,
+            fontFamily: "Inter, sans-serif",
+            boxShadow: "none",
+            border: "none",
           }}
-        >
-          FEELFLICK
-        </span>
-      </Link>
-
-      {/* SearchBar (center, fills available space on mobile, capped on desktop) */}
-      <div className="flex-1 flex justify-center items-center mx-2">
-        <div className="w-full h-9 flex items-center
-          mx-2
-          max-w-full
-          sm:max-w-[340px] md:max-w-xl"
-          style={{ minWidth: 0 }}
-        >
-          <SearchBar />
-        </div>
-      </div>
-
-
-      {/* User avatar/account menu (right, slightly bigger on mobile) */}
-      <div className="relative min-w-[32px] sm:min-w-[45px] pr-1 sm:pr-2 md:pr-3" ref={menuRef}>
-        <div
-          onClick={() => setShowMenu(!showMenu)}
-          className={`
-            bg-[#3a3746] w-10 h-10 sm:w-9 sm:h-9 rounded-full flex items-center justify-center
-            text-white font-bold font-sans text-lg cursor-pointer select-none
-            shadow transition hover:scale-105 border-2
-            border-transparent
-          `}
+        />
+        <button
+          type="submit"
+          className="flex items-center justify-center ml-2"
+          style={{ height: "2.5rem", width: "2.5rem" }}
           tabIndex={0}
-          aria-label="Account menu"
-          style={{ outline: "none" }}
+          aria-label="Search"
         >
-          {user?.name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || "A"}
-        </div>
-        {showMenu && <AccountMenuDropdown />}
+          <SearchIcon size={22} className="text-zinc-300" />
+        </button>
       </div>
+    </div>
+  </div>
 
-      {/* Animations */}
-      <style>
-        {`
-          @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-14px);}
-            to { opacity: 1; transform: translateY(0);}
-          }
-          .animate-slideDown {
-            animation: slideDown 0.23s cubic-bezier(.33,1,.68,1) both;
-          }
-        `}
-      </style>
-    </header>
+  {/* Account Icon with right padding on mobile */}
+  <div className="pr-3 sm:pr-4 flex items-center">
+    <div
+      className="
+        bg-[#3a3746] w-10 h-10 sm:w-9 sm:h-9 rounded-full flex items-center justify-center
+        text-white font-bold font-sans text-lg cursor-pointer select-none
+        shadow transition hover:scale-105 border-2 border-transparent
+      "
+      tabIndex={0}
+      aria-label="Account menu"
+      style={{ outline: "none" }}
+    >
+      {user?.name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || "A"}
+    </div>
+  </div>
+</header>
   );
 }

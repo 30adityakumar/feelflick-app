@@ -85,7 +85,7 @@ export default function Header({ user, onSignOut }) {
           "
           style={{
             color: "#F6E3D7",
-            letterSpacing: "0.05em",
+            letterSpacing: "0.03em",
             textShadow: "0 1px 10px #fff1, 0 1px 20px #18406d24",
             lineHeight: "1",
           }}
@@ -96,10 +96,7 @@ export default function Header({ user, onSignOut }) {
 
       {/* SearchBar (center, thinner width on mobile) */}
       <div className="flex-1 flex justify-center mx-2 sm:mx-4">
-        <div className="w-full bg-[#23212b] text-white text-base rounded-full pl-4 pr-11
-                        py-1 sm:py-2 md:py-3
-                        border-none outline-none font-sans shadow
-                        transition duration-200">
+        <div className="w-full max-w-[260px] sm:max-w-xl md:max-w-xl px-0 sm:px-4">
           <SearchBar />
         </div>
       </div>

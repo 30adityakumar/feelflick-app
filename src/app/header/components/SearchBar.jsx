@@ -231,7 +231,7 @@ export default function SearchBar() {
               w-full bg-[#23212b] text-white text-base rounded-full pl-4 pr-11 py-3
               border-none outline-none font-sans shadow
               transition duration-200
-              sm:py-2
+              sm:py-1.5
             `}
             style={{
               fontFamily: "Inter, sans-serif",

@@ -9,7 +9,6 @@ export default function Header({ user, onSignOut }) {
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef();
 
-  // Hide menu on click-away
   useEffect(() => {
     const onClick = (e) => {
       if (showMenu && menuRef.current && !menuRef.current.contains(e.target)) setShowMenu(false);
@@ -54,9 +53,9 @@ export default function Header({ user, onSignOut }) {
       className={`
         flex items-center justify-between w-full
         bg-black
-        px-2 md:px-4 lg:px-7 py-1.5 md:py-2 shadow-[0_1px_8px_#000b]
+        px-1 md:px-3 lg:px-7 py-1.5 md:py-2 shadow-[0_1px_8px_#000b]
         z-50 fixed top-0 left-0 right-0 transition-all duration-300
-        pl-1 sm:pl-2 md:pl-3 lg:pl-5
+        pr-1 sm:pr-2 md:pr-3 lg:pr-5
       `}
       role="navigation"
       aria-label="Main navigation"
@@ -64,7 +63,7 @@ export default function Header({ user, onSignOut }) {
       {/* Logo + Brand (left) */}
       <Link
         to="/"
-        className="flex items-center gap-1 md:gap-2 group focus-visible:outline-none min-w-[42px] sm:min-w-[144px] pl-1 sm:pl-2"
+        className="flex items-center gap-0.5 md:gap-2 group focus-visible:outline-none min-w-[36px] sm:min-w-[120px] pl-0 sm:pl-1"
         tabIndex={0}
         aria-label="Go to FeelFlick home page"
         draggable={false}
@@ -95,9 +94,9 @@ export default function Header({ user, onSignOut }) {
         </span>
       </Link>
 
-      {/* SearchBar (center, smaller width on mobile) */}
+      {/* SearchBar (center, thinner width on mobile) */}
       <div className="flex-1 flex justify-center mx-2 sm:mx-4">
-        <div className="w-full max-w-[260px] sm:max-w-xl px-0 sm:px-4">
+        <div className="w-full max-w-[170px] sm:max-w-[340px] md:max-w-xl px-0 sm:px-4">
           <SearchBar />
         </div>
       </div>
@@ -130,19 +129,6 @@ export default function Header({ user, onSignOut }) {
           }
           .animate-slideDown {
             animation: slideDown 0.23s cubic-bezier(.33,1,.68,1) both;
-          }
-        `}
-      </style>
-      {/* Responsive tweaks for search bar and header */}
-      <style>
-        {`
-          @media (max-width: 640px) {
-            header {
-              padding-right: 0.3rem !important;
-            }
-            .max-w-xl {
-              max-width: 95vw !important;
-            }
           }
         `}
       </style>

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { LogOut, SlidersHorizontal, User2 } from "lucide-react";
 import logo from "@assets/images/logo.png";
 import SearchBar from "@/app/header/components/SearchBar";
@@ -51,25 +51,34 @@ export default function Header({ user, onSignOut }) {
 
   return (
     <header
-      className="
+      className={`
         flex items-center justify-between w-full
-        bg-[rgba(20,18,26,0.78)] backdrop-blur-md
-        px-2 md:px-7 py-2 md:py-2.5 shadow-[0_1px_8px_#000b]
+        bg-black
+        px-2 md:px-4 lg:px-7 py-1.5 md:py-2 shadow-[0_1px_8px_#000b]
         z-50 fixed top-0 left-0 right-0 transition-all duration-300
-      "
+      `}
       role="navigation"
       aria-label="Main navigation"
     >
       {/* Logo + Brand (left) */}
-      <div className="flex items-center gap-1 md:gap-2 group focus-visible:outline-2 min-w-[144px]">
+      <Link
+        to="/"
+        className="flex items-center gap-1 md:gap-2 group focus-visible:outline-none min-w-[42px] sm:min-w-[144px] pl-1 sm:pl-2"
+        tabIndex={0}
+        aria-label="Go to FeelFlick home page"
+        draggable={false}
+        style={{ outline: "none" }}
+      >
         <img
           src={logo}
           alt="FeelFlick logo"
           className="h-7 w-7 rounded-lg md:h-9 md:w-9 transition-transform group-hover:scale-105"
           draggable={false}
         />
+        {/* Hide text on mobile */}
         <span
           className="
+            hidden sm:inline
             uppercase font-extrabold tracking-normal select-none text-lg pl-1
             md:text-xl md:pl-1 lg:text-3xl
             transition
@@ -83,23 +92,28 @@ export default function Header({ user, onSignOut }) {
         >
           FEELFLICK
         </span>
+      </Link>
+
+      {/* SearchBar (center, full width on mobile) */}
+      <div className="flex-1 flex justify-center mx-2 sm:mx-4">
+        <div className="w-full max-w-xl px-0 sm:px-4">
+          <SearchBar />
+        </div>
       </div>
 
-      {/* SearchBar (center) */}
-      <SearchBar />
-
       {/* User avatar/account menu (right) */}
-      <div className="relative min-w-[45px]" ref={menuRef}>
+      <div className="relative min-w-[36px] sm:min-w-[45px] pr-1 sm:pr-2 md:pr-3" ref={menuRef}>
         <div
           onClick={() => setShowMenu(!showMenu)}
           className={`
-            bg-[#3a3746] w-9 h-9 rounded-full flex items-center justify-center
+            bg-[#3a3746] w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center
             text-white font-bold font-sans text-lg cursor-pointer select-none
             shadow transition hover:scale-105 border-2
-            ${showMenu ? "border-orange-400" : "border-transparent"}
+            border-transparent
           `}
           tabIndex={0}
           aria-label="Account menu"
+          style={{ outline: "none" }}
         >
           {user?.name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || "A"}
         </div>
@@ -115,6 +129,20 @@ export default function Header({ user, onSignOut }) {
           }
           .animate-slideDown {
             animation: slideDown 0.23s cubic-bezier(.33,1,.68,1) both;
+          }
+        `}
+      </style>
+      {/* Responsive tweaks for search bar and header */}
+      <style>
+        {`
+          @media (max-width: 640px) {
+            header {
+              padding-left: 0.4rem !important;
+              padding-right: 0.3rem !important;
+            }
+            .max-w-xl {
+              max-width: 100vw !important;
+            }
           }
         `}
       </style>

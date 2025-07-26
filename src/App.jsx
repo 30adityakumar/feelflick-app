@@ -57,18 +57,18 @@ function AppLayout({ user, onSignOut, children }) {
 }
 
 export default function App() {
-  const [session, setSession] = useState(null);
+  // ✅ Use `undefined` so we know if session has been checked yet
+  const [session, setSession] = useState(undefined);
   const [profileName, setProfileName] = useState("");
   const [user, setUser] = useState(null);
   const [onboardingVersion, setOnboardingVersion] = useState(Date.now());
 
   useEffect(() => {
-    let mounted = true;
     supabase.auth.getSession().then(({ data }) => {
       setSession(data?.session ?? null);
-      console.log("getSession() on mount:", data);
+      // For debug:
+      // console.log("getSession() on mount:", data);
     });
-
     const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
     return () => data.subscription.unsubscribe();
   }, []);
@@ -100,6 +100,19 @@ export default function App() {
   function handleProfileUpdate(profile) {
     setProfileName(profile.name || "");
     setUser(u => ({ ...u, ...profile }));
+  }
+
+  // ✅ Show loading spinner until session is determined
+  if (session === undefined) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-zinc-950 text-white">
+        <svg className="animate-spin h-7 w-7 text-orange-400 mr-2" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+        </svg>
+        <span className="text-lg">Checking session…</span>
+      </div>
+    );
   }
 
   return (

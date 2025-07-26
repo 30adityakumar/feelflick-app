@@ -56,7 +56,7 @@ export default function Header({ user, onSignOut }) {
         bg-black
         px-2 md:px-4 lg:px-7 py-1.5 md:py-2 shadow-[0_1px_8px_#000b]
         z-50 fixed top-0 left-0 right-0 transition-all duration-300
-        pr-1 sm:pr-2 md:pr-3 lg:pr-5
+        pl-1 sm:pl-2 md:pl-3 lg:pl-5
       `}
       role="navigation"
       aria-label="Main navigation"

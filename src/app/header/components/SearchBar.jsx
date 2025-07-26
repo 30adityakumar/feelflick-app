@@ -184,7 +184,7 @@ export default function SearchBar() {
       <div className="fixed inset-0 bg-[#101016f2] z-50 flex items-start pt-10 px-3 animate-fadeIn">
         <div className="relative w-full max-w-xl mx-auto">
           <button
-            className="absolute right-3 top-3 text-zinc-300 hover:text-orange-400"
+            className="absolute right-3 top-3 text-zinc-300 hover:text-orange-400 bg-transparent border-none shadow-none outline-none"
             onClick={clearSearch}
             aria-label="Close search"
           >
@@ -194,7 +194,7 @@ export default function SearchBar() {
             autoFocus
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full bg-[#23212b] text-white text-xl rounded-full pl-4 pr-12 h-10 outline-none font-semibold placeholder-zinc-400"
+            className="w-full bg-[#23212b] text-white text-xl rounded-full pl-4 pr-12 h-10 outline-none font-light placeholder-zinc-400"
             placeholder="Search movies…"
             aria-label="Search movies"
             onFocus={() => setSearchOpen(true)}
@@ -202,7 +202,7 @@ export default function SearchBar() {
           />
           {search && (
             <button
-              className="absolute right-12 top-4 text-zinc-400 hover:text-red-400"
+              className="absolute right-12 top-4 text-zinc-400 hover:text-red-400 bg-transparent border-none shadow-none outline-none"
               onClick={clearSearch}
               aria-label="Clear search"
             >
@@ -218,7 +218,7 @@ export default function SearchBar() {
   return (
     <>
       {/* Desktop Search Bar */}
-      <div className="relative w-full h-10">
+      <div className="relative w-full h-10 px-3 sm:px-5">
         <input
           value={search}
           ref={inputRef}
@@ -244,10 +244,15 @@ export default function SearchBar() {
         />
         {search && (
           <button
-            className="absolute right-8 top-1.5 text-zinc-400 hover:text-red-400"
+            className="absolute right-8 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-red-400 bg-transparent border-none shadow-none outline-none p-0 m-0"
             onClick={clearSearch}
             aria-label="Clear search"
             tabIndex={0}
+            style={{
+              boxShadow: "none",
+              border: "none",
+              background: "transparent"
+            }}
           >
             <XIcon size={18} />
           </button>
@@ -256,8 +261,13 @@ export default function SearchBar() {
           tabIndex={0}
           aria-label="Search"
           type="button"
-          className="absolute right-3 top-1.5 flex items-center justify-center bg-transparent p-0 shadow-none border-none outline-none"
-          style={{ boxShadow: "none", border: "none" }}
+          className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center bg-transparent p-0 shadow-none border-none outline-none h-10"
+          style={{
+            boxShadow: "none",
+            border: "none",
+            background: "transparent",
+            height: "40px"
+          }}
         >
           <SearchIcon size={20} color="#aaa" />
         </button>

@@ -30,7 +30,7 @@ export default function SearchBar() {
           setResults(
             (data.results || [])
               .filter(m => !!m.title && m.poster_path)
-              .slice(0, window.innerWidth < 640 ? 5 : 8) // 5 on mobile, 8 on desktop
+              .slice(0, window.innerWidth < 640 ? 5 : 8)
               .map(m => ({
                 id: m.id,
                 title: m.title,
@@ -45,7 +45,7 @@ export default function SearchBar() {
     return () => clearTimeout(searchDebounce.current);
   }, [search]);
 
-  // Keyboard: / focuses search, arrow nav/select
+  // Keyboard shortcuts and dropdown nav
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === "/" && document.activeElement.tagName !== "INPUT") {
@@ -53,7 +53,6 @@ export default function SearchBar() {
         if (window.innerWidth < 640) setShowMobileSearch(true);
         else inputRef.current?.focus();
       }
-      // Keyboard nav for dropdown
       if (searchOpen && results.length > 0) {
         if (["ArrowDown", "ArrowUp"].includes(e.key)) {
           e.preventDefault();
@@ -75,7 +74,6 @@ export default function SearchBar() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-    // eslint-disable-next-line
   }, [searchOpen, results, highlighted]);
 
   // Click outside dropdown to close
@@ -109,7 +107,6 @@ export default function SearchBar() {
   }
 
   function highlightMatch(title, query) {
-    // Naive highlight: bold query if it appears in title
     if (!query) return title;
     const i = title.toLowerCase().indexOf(query.toLowerCase());
     if (i === -1) return title;
@@ -129,12 +126,12 @@ export default function SearchBar() {
       <div
         ref={dropdownRef}
         className={`absolute left-0 right-0 ${mobile ? "top-16" : "top-12"}
-            bg-[#191820] rounded-xl shadow-2xl z-40 p-1 mt-1 ring-1 ring-zinc-800
+            bg-[#191820] rounded-2xl shadow-2xl z-40 p-1 mt-1 ring-1 ring-orange-400/10
             transition-opacity duration-200
             ${searchOpen && results.length > 0 ? "opacity-100" : "opacity-0 pointer-events-none"}
         `}
         style={{ maxHeight: "430px", overflowY: "auto" }}
-        >
+      >
         {isLoading && (
           <div className="flex items-center justify-center text-orange-400 py-4">
             <svg className="animate-spin h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24">
@@ -151,7 +148,7 @@ export default function SearchBar() {
               onClick={() => handleSelect(m)}
               onMouseEnter={() => {
                 if (highlighted !== idx) setHighlighted(idx);
-                }}
+              }}
               className={`
                 flex items-center gap-3 cursor-pointer px-2.5 py-2 rounded-lg transition
                 ${highlighted === idx ? "bg-[#23212b] scale-[1.02] text-orange-300" : "hover:bg-[#23212b]"}
@@ -163,8 +160,8 @@ export default function SearchBar() {
               <img
                 src={m.poster}
                 alt={m.title}
-                className="w-11 h-[66px] rounded-md shadow border border-zinc-700 bg-[#16151c] object-cover"
-                style={{ minWidth: 44, minHeight: 66 }}
+                className="searchbar-poster shadow border border-zinc-700 bg-[#16151c] object-cover"
+                style={{ display: "block" }}
               />
               <div className="flex flex-col min-w-0">
                 <span className="font-semibold text-[16px] truncate">
@@ -200,8 +197,9 @@ export default function SearchBar() {
             autoFocus
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full bg-[#23212b] text-white text-xl rounded-xl pl-4 pr-12 py-3 outline-none font-semibold focus:ring-2 focus:ring-orange-400"
+            className="w-full bg-[#23212b] text-white text-xl rounded-full pl-4 pr-12 py-3 outline-none font-semibold focus:ring-2 focus:ring-orange-400"
             placeholder="Search movies…"
+            aria-label="Search movies"
             onFocus={() => setSearchOpen(true)}
           />
           {search && (
@@ -229,11 +227,13 @@ export default function SearchBar() {
             onFocus={() => { setSearchOpen(true); setHighlighted(-1); }}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search movies…"
+            aria-label="Search movies"
             className={`
-              w-full bg-[#23212b] text-white text-base rounded-full pl-4 pr-11 py-2
+              w-full bg-[#23212b] text-white text-base rounded-full pl-4 pr-11 py-3
               border-none outline-none font-sans shadow
               transition duration-200
               focus:ring-2 focus:ring-orange-400
+              sm:py-2
             `}
             style={{ fontFamily: "Inter, sans-serif" }}
             onKeyDown={e => {
@@ -263,7 +263,7 @@ export default function SearchBar() {
       {/* Mobile Search Modal */}
       {showMobileSearch && <MobileSearchModal />}
 
-      {/* Animations */}
+      {/* Animations and Responsive Poster Sizing */}
       <style>
         {`
           @keyframes fadeIn {
@@ -272,6 +272,29 @@ export default function SearchBar() {
           }
           .animate-fadeIn {
             animation: fadeIn 0.21s cubic-bezier(.33,1,.68,1) both;
+          }
+          /* Responsive search result poster sizes */
+          @media (max-width: 600px) {
+            .searchbar-poster {
+              width: 33px !important;
+              height: 49px !important;
+              min-width: 33px !important;
+              min-height: 49px !important;
+              max-width: 33px !important;
+              max-height: 49px !important;
+              border-radius: 6px !important;
+            }
+          }
+          @media (min-width: 601px) {
+            .searchbar-poster {
+              width: 44px !important;
+              height: 66px !important;
+              min-width: 44px !important;
+              min-height: 66px !important;
+              max-width: 44px !important;
+              max-height: 66px !important;
+              border-radius: 9px !important;
+            }
           }
         `}
       </style>

@@ -1,8 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { LogOut, SlidersHorizontal, User2 } from "lucide-react";
+import { LogOut, SlidersHorizontal, User2, Search as SearchIcon } from "lucide-react";
 import logo from "@assets/images/logo.png";
-import SearchBar from "@/app/header/components/SearchBar";
 
 export default function Header({ user, onSignOut }) {
   const navigate = useNavigate();
@@ -48,22 +47,31 @@ export default function Header({ user, onSignOut }) {
     );
   }
 
+  // Controlled search input
+  const [search, setSearch] = useState("");
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    // Implement navigation or state update as needed
+    // Example: navigate(`/search?q=${encodeURIComponent(search)}`);
+  };
+
   return (
     <header
       className={`
         flex items-center justify-between w-full
         bg-black
-        px-0.5 md:px-1 lg:px-5 py-1 md:py-2 shadow-[0_1px_8px_#000b]
+        pt-2 pb-1 md:py-2
+        px-0
         z-50 fixed top-0 left-0 right-0 transition-all duration-300
-        pr-1 sm:pr-2 md:pr-3 lg:pr-5
       `}
       role="navigation"
       aria-label="Main navigation"
+      style={{ minHeight: "60px" }} // ensures clickable/touchable area
     >
-      {/* Logo + Brand (left) */}
+      {/* Logo with left padding on mobile */}
       <Link
         to="/"
-        className="flex items-center gap-0.5 md:gap-2 group focus-visible:outline-none min-w-[32px] sm:min-w-[120px] pl-0"
+        className="flex items-center pl-3 sm:pl-4"
         tabIndex={0}
         aria-label="Go to FeelFlick home page"
         draggable={false}
@@ -72,17 +80,11 @@ export default function Header({ user, onSignOut }) {
         <img
           src={logo}
           alt="FeelFlick logo"
-          className="h-9 w-9 sm:h-9 sm:w-9 rounded-lg transition-transform group-hover:scale-105"
+          className="h-10 w-10 sm:h-9 sm:w-9 rounded-lg transition-transform"
           draggable={false}
         />
-        {/* Hide text on mobile */}
         <span
-          className="
-            hidden sm:inline
-            uppercase font-extrabold tracking-normal select-none text-lg pl-1
-            md:text-xl md:pl-1 lg:text-3xl
-            transition
-          "
+          className="hidden sm:inline uppercase font-extrabold tracking-normal select-none text-lg pl-1 md:text-xl md:pl-1 lg:text-3xl transition"
           style={{
             color: "#F6E3D7",
             letterSpacing: "0.03em",
@@ -94,29 +96,46 @@ export default function Header({ user, onSignOut }) {
         </span>
       </Link>
 
-      {/* SearchBar (center, fills available space on mobile, capped on desktop) */}
-      <div className="flex-1 flex justify-center items-center mx-2">
-        <div className="w-full h-9 flex items-center
-          mx-2
-          max-w-full
-          sm:max-w-[340px] md:max-w-xl"
+      {/* SearchBar - always centered and perfectly aligned */}
+      <div className="flex-1 flex justify-center items-center mx-2 min-w-0">
+        <form
+          className="w-full h-10 flex items-center bg-[#23212b] rounded-full px-4 max-w-full sm:max-w-[340px] md:max-w-xl"
           style={{ minWidth: 0 }}
+          onSubmit={handleSearchSubmit}
         >
-          <SearchBar />
-        </div>
+          <input
+            className="flex-1 bg-transparent border-none outline-none h-10 px-0 text-base font-sans text-zinc-100 placeholder-zinc-400"
+            placeholder="Search movies..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            style={{
+              minWidth: 0,
+              fontFamily: "Inter, sans-serif",
+              boxShadow: "none",
+              border: "none",
+            }}
+          />
+          <button
+            type="submit"
+            className="flex items-center justify-center ml-2"
+            style={{ height: "2.5rem", width: "2.5rem" }}
+            tabIndex={0}
+            aria-label="Search"
+          >
+            <SearchIcon size={22} className="text-zinc-300" />
+          </button>
+        </form>
       </div>
 
-
-      {/* User avatar/account menu (right, slightly bigger on mobile) */}
-      <div className="relative min-w-[32px] sm:min-w-[45px] pr-1 sm:pr-2 md:pr-3" ref={menuRef}>
+      {/* Account Icon with right padding on mobile */}
+      <div className="pr-3 sm:pr-4 flex items-center" ref={menuRef}>
         <div
           onClick={() => setShowMenu(!showMenu)}
-          className={`
+          className="
             bg-[#3a3746] w-10 h-10 sm:w-9 sm:h-9 rounded-full flex items-center justify-center
             text-white font-bold font-sans text-lg cursor-pointer select-none
-            shadow transition hover:scale-105 border-2
-            border-transparent
-          `}
+            shadow transition hover:scale-105 border-2 border-transparent
+          "
           tabIndex={0}
           aria-label="Account menu"
           style={{ outline: "none" }}

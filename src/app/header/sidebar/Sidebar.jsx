@@ -51,30 +51,47 @@ export default function Sidebar() {
           <NavLink
             key={link.to}
             to={link.to}
-            className={({ isActive }) =>
-              `relative flex flex-col items-center justify-center flex-1 text-zinc-400 hover:text-orange-400 transition group
-               ${isActive ? "text-orange-400 font-bold" : ""}
-              `
-            }
+            className="relative flex flex-col items-center justify-center flex-1 text-zinc-400 hover:text-orange-400 transition group"
             tabIndex={0}
             aria-label={link.label}
           >
-            {/* Active indicator bar */}
-            {({ isActive }) =>
-              isActive && (
-                <span
-                  className="
-                    absolute top-0 left-1/2 -translate-x-1/2
-                    w-6 h-[3px] rounded-b-xl
-                    bg-gradient-to-r from-orange-400 to-red-500
-                    animate-fadeIn
-                  "
-                  style={{ zIndex: 5 }}
-                />
-              )
-            }
-            {link.icon}
-            <span className="text-[11px] leading-none mt-0.5">{link.label}</span>
+            {({ isActive }) => (
+              <>
+                {/* Active indicator bar (YouTube-style) */}
+                {isActive && (
+                  <span
+                    className="
+                      absolute top-0 left-1/2 -translate-x-1/2
+                      w-6 h-[3px] rounded-b-xl
+                      bg-gradient-to-r from-orange-400 to-red-500
+                      animate-fadeIn z-10
+                    "
+                  />
+                )}
+                {/* Highlight background for active tab */}
+                {isActive && (
+                  <span
+                    className="
+                      absolute inset-0 rounded-xl z-0
+                      bg-gradient-to-t from-orange-400/10 to-red-500/10
+                      transition
+                    "
+                  />
+                )}
+                <span className={`
+                  relative z-10 flex flex-col items-center
+                  transition-transform
+                  ${isActive ? "scale-110" : ""}
+                `}>
+                  <span className={`${isActive ? "text-orange-400 drop-shadow-[0_2px_6px_rgba(255,140,0,0.18)]" : ""}`}>
+                    {link.icon}
+                  </span>
+                  <span className={`text-[11px] leading-none mt-0.5 font-sans transition ${isActive ? "font-bold text-orange-400" : ""}`}>
+                    {link.label}
+                  </span>
+                </span>
+              </>
+            )}
           </NavLink>
         ))}
       </nav>

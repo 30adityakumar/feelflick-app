@@ -183,12 +183,13 @@ export default function SearchBar() {
     return (
       <div className="fixed inset-0 bg-[#101016f2] z-50 flex items-start pt-10 px-3 animate-fadeIn">
         <div className="relative w-full max-w-xl mx-auto">
+          {/* Main input row - MOBILE */}
           <div className="flex items-center h-10 bg-[#23212b] rounded-full px-3 sm:px-5 w-full">
             <input
               autoFocus
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="flex-1 h-10 bg-transparent text-white text-xl rounded-full border-none outline-none font-light placeholder-zinc-400"
+              className="flex-1 h-10 bg-transparent text-white text-lg leading-none rounded-full border-none outline-none font-light placeholder-zinc-400"
               placeholder="Search movies…"
               aria-label="Search movies"
               onFocus={() => setSearchOpen(true)}
@@ -211,7 +212,7 @@ export default function SearchBar() {
                   background: "transparent"
                 }}
               >
-                <XIcon size={22} />
+                <XIcon size={18} />
               </button>
             )}
             <button
@@ -222,11 +223,10 @@ export default function SearchBar() {
               style={{
                 boxShadow: "none",
                 border: "none",
-                background: "transparent",
-                height: "40px"
+                background: "transparent"
               }}
             >
-              <SearchIcon size={24} color="#aaa" />
+              <SearchIcon size={18} color="#aaa" />
             </button>
           </div>
           {searchOpen && <SearchResultsDropdown mobile />}
@@ -248,7 +248,7 @@ export default function SearchBar() {
             placeholder="Search movies…"
             aria-label="Search movies"
             className={`
-              flex-1 h-10 bg-transparent text-white text-base rounded-full 
+              flex-1 h-10 bg-transparent text-white text-lg leading-none rounded-full 
               border-none outline-none font-sans font-light shadow
               transition duration-200 placeholder-zinc-400
             `}
@@ -276,7 +276,7 @@ export default function SearchBar() {
                 background: "transparent"
               }}
             >
-              <XIcon size={22} />
+              <XIcon size={18} />
             </button>
           )}
           <button
@@ -287,11 +287,10 @@ export default function SearchBar() {
             style={{
               boxShadow: "none",
               border: "none",
-              background: "transparent",
-              height: "40px"
+              background: "transparent"
             }}
           >
-            <SearchIcon size={24} color="#aaa" />
+            <SearchIcon size={18} color="#aaa" />
           </button>
         </div>
         {searchOpen && <SearchResultsDropdown />}

@@ -48,7 +48,7 @@ function AppLayout({ user, onSignOut, children }) {
   return (
     <div className="flex min-h-screen bg-zinc-950 text-white">
       <Sidebar />
-      <div className="flex-1 ml-20 relative">
+      <div className="flex-1 relative md:ml-20">
         <Header user={user} onSignOut={onSignOut} />
         <main className="pb-10 pt-24 w-full overflow-x-hidden">{children}</main>
       </div>

@@ -21,9 +21,9 @@ export default function CarouselRow({ title, endpoint }) {
     fetchMovies(endpoint).then(setMovies).finally(() => setLoading(false));
   }, [endpoint]);
 
-  /* Minimum width: on mobile 65vw, on tablet 40vw, on desktop 9rem */
+  // Cards smaller, 45vw on mobile
   const card =
-    "w-[65vw] sm:w-[40vw] md:w-36 aspect-[2/3] flex-shrink-0 snap-start rounded-xl overflow-hidden bg-zinc-900";
+    "w-[45vw] sm:w-[32vw] md:w-36 aspect-[2/3] flex-shrink-0 snap-start rounded-xl overflow-hidden bg-zinc-900";
 
   return (
     <section className="mt-8 sm:mt-14">
@@ -38,9 +38,9 @@ export default function CarouselRow({ title, endpoint }) {
         style={{
           WebkitOverflowScrolling: "touch",
           touchAction: "pan-x",
-          overscrollBehaviorX: "contain", // prevent iOS bounce
-          msOverflowStyle: "none", // IE/Edge scrollbar
-          scrollbarWidth: "none", // Firefox scrollbar
+          overscrollBehaviorX: "contain",
+          msOverflowStyle: "none",
+          scrollbarWidth: "none",
         }}
         tabIndex={0}
         aria-label={`${title} movies`}
@@ -49,9 +49,9 @@ export default function CarouselRow({ title, endpoint }) {
           m ? (
             <div
               key={m.id}
-              className={card + " hover:scale-105 transition"}
+              className={card + " hover:scale-105 transition border-none outline-none"}
               onClick={() => nav(`/movie/${m.id}`)}
-              style={{ cursor: "pointer" }}
+              style={{ cursor: "pointer", outline: "none", border: "none" }}
               tabIndex={0}
               aria-label={`Movie: ${m.title}`}
             >
@@ -60,10 +60,11 @@ export default function CarouselRow({ title, endpoint }) {
                 alt={m.title}
                 className="w-full h-full object-cover"
                 draggable={false}
+                style={{ outline: "none", border: "none" }}
               />
             </div>
           ) : (
-            <div key={i} className={card + " animate-pulse"} />
+            <div key={i} className={card + " animate-pulse border-none outline-none"} />
           )
         )}
       </div>

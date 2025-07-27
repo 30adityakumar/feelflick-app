@@ -25,18 +25,18 @@ export default function CarouselRow({ title, endpoint, emptyMessage }) {
       .finally(() => setLoading(false));
   }, [endpoint]);
 
-  // Smaller, more cards visible on mobile
-  const cardClass = "w-[31vw] md:w-28 aspect-[2/3]";
+  // Big cards!
+  const cardClass = "w-[46vw] h-[61vw] md:w-[220px] md:h-[330px]";
 
   return (
     <section className="w-full m-0 p-0">
       <div className="flex items-center gap-2 pl-3 pr-0 pt-0 pb-2">
-        <h3 className="text-base md:text-lg font-bold tracking-tight flex-1">{title}</h3>
+        <h3 className="text-lg md:text-2xl font-bold tracking-tight flex-1">{title}</h3>
       </div>
       <div className="relative">
         <div
           ref={carouselRef}
-          className="flex gap-2 md:gap-5 overflow-x-auto p-0 m-0 scrollbar-thin scroll-smooth hide-scrollbar snap-x snap-mandatory"
+          className="flex gap-3 md:gap-6 overflow-x-auto p-0 m-0 scrollbar-thin scroll-smooth hide-scrollbar snap-x snap-mandatory"
           tabIndex={0}
           style={{ WebkitOverflowScrolling: "touch" }}
         >
@@ -62,7 +62,7 @@ export default function CarouselRow({ title, endpoint, emptyMessage }) {
               key={movie.id}
               className={`
                 ${cardClass} flex-shrink-0 rounded-xl overflow-hidden bg-zinc-900
-                cursor-pointer transition hover:scale-105 hover:shadow-lg focus-within:scale-105
+                cursor-pointer transition hover:scale-105 hover:shadow-xl focus-within:scale-105
                 snap-start group
               `}
               tabIndex={0}
@@ -76,13 +76,12 @@ export default function CarouselRow({ title, endpoint, emptyMessage }) {
               }}
             >
               <img
-                src={`https://image.tmdb.org/t/p/w342${movie.poster_path}`}
+                src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
                 alt={movie.title}
                 className="object-cover w-full h-full"
                 draggable={false}
                 loading="lazy"
               />
-              {/* Show title only on mobile below poster */}
               <div className="w-full bg-zinc-950/90 py-1 px-1 text-xs font-semibold text-white text-center truncate block md:hidden">
                 {movie.title}
               </div>

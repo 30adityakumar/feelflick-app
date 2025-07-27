@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-/* ─── API helper ───────────────────────────────────────── */
+/* Fetch featured movies */
 async function fetchFeatured() {
   const apiKey = import.meta.env.VITE_TMDB_API_KEY;
   const res = await fetch(
@@ -16,75 +16,96 @@ export default function HeroSliderSection() {
   const [slides, setSlides] = useState([]);
   const [idx, setIdx] = useState(0);
 
-  /* fetch once on mount */
   useEffect(() => {
     fetchFeatured().then(setSlides);
   }, []);
 
-  /* auto-rotate every 5 s */
   useEffect(() => {
     if (!slides.length) return;
-    const id = setInterval(() => setIdx((i) => (i + 1) % slides.length), 5000);
+    const id = setInterval(() => setIdx(i => (i + 1) % slides.length), 5500);
     return () => clearInterval(id);
   }, [slides]);
 
-  /* placeholder skeleton while loading */
   if (!slides[idx])
-    return <div className="h-[430px] bg-zinc-900 animate-pulse w-full" />;
+    return <div className="h-[410px] bg-zinc-900 animate-pulse w-full" />;
 
   const m = slides[idx];
 
   return (
-    <section className="w-full">
+    <section className="w-full select-none">
       {/* backdrop */}
-      <div className="relative w-full h-[480px] md:h-[380px] overflow-hidden">
+      <div className="relative w-full h-[410px] sm:h-[390px] overflow-hidden">
         <img
           src={`https://image.tmdb.org/t/p/w1280${m.backdrop_path}`}
           alt=""
-          className="absolute inset-0 w-full h-full object-cover object-center opacity-85"
+          className="absolute inset-0 w-full h-full object-cover object-center opacity-90"
+          draggable={false}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/95 via-zinc-950/80 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/98 via-zinc-950/75 to-transparent" />
 
         {/* foreground content */}
-        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-end
-                        h-full px-4 md:px-14 py-10 md:py-0 space-y-4 md:space-y-0">
+        <div
+          className="
+            relative z-10 flex flex-row items-end h-full
+            px-3 pb-6 pt-9 sm:px-10 sm:pb-10 sm:pt-12
+            "
+        >
           {/* poster */}
           <img
             src={`https://image.tmdb.org/t/p/w500${m.poster_path}`}
             alt={m.title}
-            className="w-36 h-52 md:w-40 md:h-56 rounded-xl border-4 border-white/10 bg-zinc-900 object-cover drop-shadow-2xl"
+            className="w-32 h-44 sm:w-36 sm:h-52 rounded-xl border-4 border-white/10 bg-zinc-900 object-cover drop-shadow-xl flex-shrink-0"
+            draggable={false}
           />
 
           {/* text */}
-          <div className="flex-1 md:ml-8 text-left">
-            <h1 className="text-white text-2xl md:text-3xl font-extrabold mb-2 line-clamp-2">
+          <div className="flex-1 ml-4 sm:ml-8 text-left min-w-0">
+            <h1 className="text-white text-xl sm:text-3xl font-extrabold mb-1 truncate">
               {m.title}
             </h1>
 
             {/* badges */}
-            <div className="flex flex-wrap gap-2 mb-3">
-              {m.genre_ids?.slice(0, 2).map((g) => (
+            <div className="flex flex-wrap gap-2 mb-2">
+              {m.genre_ids?.slice(0, 2).map(g => (
                 <span
                   key={g}
-                  className="bg-zinc-800 text-zinc-200 text-xs md:text-sm px-2 py-0.5 rounded"
+                  className="bg-zinc-800 text-zinc-200 text-xs px-2 py-0.5 rounded"
                 >
                   {g}
                 </span>
               ))}
               {m.vote_average > 0 && (
-                <span className="bg-zinc-700 text-yellow-300 text-xs md:text-sm px-2 py-0.5 rounded font-bold">
+                <span className="bg-zinc-700 text-yellow-300 text-xs px-2 py-0.5 rounded font-bold">
                   ★ {m.vote_average.toFixed(1)}
                 </span>
               )}
             </div>
 
-            <p className="text-xs md:text-base text-zinc-200 mb-4 md:mb-6 line-clamp-3">
+            {/* mobile-optimized description */}
+            <p
+              className="
+                text-xs sm:text-base text-zinc-200 mb-3 sm:mb-4 leading-snug
+                line-clamp-3
+                max-w-full
+                break-words
+                "
+              style={{
+                maxWidth: "100%",
+                wordBreak: "break-word",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                display: "-webkit-box",
+                WebkitLineClamp: 3,
+                WebkitBoxOrient: "vertical",
+              }}
+              title={m.overview}
+            >
               {m.overview}
             </p>
 
             <button
               onClick={() => nav(`/movie/${m.id}`)}
-              className="px-5 py-2 bg-orange-500 rounded-lg font-bold text-white text-sm md:text-base shadow hover:scale-105 transition"
+              className="px-4 py-2 bg-orange-500 rounded-lg font-bold text-white text-sm sm:text-base shadow hover:scale-105 transition"
             >
               Details
             </button>
@@ -92,7 +113,7 @@ export default function HeroSliderSection() {
         </div>
 
         {/* dots */}
-        <div className="absolute bottom-4 w-full flex justify-center gap-2">
+        <div className="absolute bottom-2 w-full flex justify-center gap-2">
           {slides.map((_, i) => (
             <button
               key={i}

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Search as SearchIcon, X as XIcon } from "lucide-react";
 
 const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY;
@@ -30,27 +30,22 @@ export default function BrowseSearchBar({ onResults, onSearch, value }) {
     <form
       onSubmit={handleSubmit}
       className="w-full flex items-center justify-center"
-      style={{ marginBottom: 32 }}
+      style={{ marginBottom: 18 }}
     >
       <div className="
-        relative flex items-center w-full max-w-2xl 
+        relative flex items-center w-full
         bg-[#16161cdd] rounded-2xl shadow-2xl border border-orange-400/40
         focus-within:ring-2 focus-within:ring-orange-400
-      " style={{ backdropFilter: "blur(10px)" }}>
-        <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-orange-400" size={26} />
+        browse-searchbar
+      " style={{ maxWidth: 1200, minHeight: 45, backdropFilter: "blur(10px)" }}>
+        <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-orange-400" size={22} />
         <input
           type="text"
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Search any movie…"
-          className="
-            w-full pl-12 pr-12 py-4 rounded-2xl bg-transparent
-            text-white placeholder-zinc-400 text-xl
-            outline-none font-bold transition
-          "
-          style={{
-            letterSpacing: "0.01em"
-          }}
+          className="w-full pl-12 pr-12 py-2 rounded-2xl bg-transparent text-white placeholder-zinc-400 text-lg font-bold outline-none transition"
+          style={{ letterSpacing: "0.01em", height: 42 }}
         />
         {search && (
           <button
@@ -59,27 +54,33 @@ export default function BrowseSearchBar({ onResults, onSearch, value }) {
             className="absolute right-12 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-orange-400 transition"
             aria-label="Clear search"
           >
-            <XIcon size={24} />
+            <XIcon size={20} />
           </button>
         )}
         <button
           type="submit"
           className={`
-            absolute right-3 top-1/2 -translate-y-1/2 px-5 py-2 bg-gradient-to-r from-orange-400 to-red-500
-            text-white font-bold text-lg rounded-full shadow hover:scale-105 transition
+            absolute right-3 top-1/2 -translate-y-1/2 px-4 py-1.5 bg-gradient-to-r from-orange-400 to-red-500
+            text-white font-bold text-base rounded-full shadow hover:scale-105 transition
             ${loading ? "opacity-70 pointer-events-none" : ""}
           `}
           disabled={loading}
           aria-label="Search"
         >
           {loading ? (
-            <svg className="animate-spin h-6 w-6 mx-auto" fill="none" viewBox="0 0 24 24">
+            <svg className="animate-spin h-5 w-5 mx-auto" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
             </svg>
           ) : "Go"}
         </button>
       </div>
+      <style>{`
+        @media (max-width: 600px) {
+          .browse-searchbar input { font-size: 1rem !important; padding-top: 8px; padding-bottom: 8px; }
+          .browse-searchbar { min-height: 40px !important; }
+        }
+      `}</style>
     </form>
   );
 }

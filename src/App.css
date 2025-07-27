@@ -178,12 +178,29 @@ header {
   touch-action: manipulation;
 }
 
+
+/* Responsive grid for ResultsGrid */
+@media (max-width: 1100px) {
+  .movie-grid { grid-template-columns: repeat(4, 1fr) !important; }
+}
 @media (max-width: 900px) {
-  .movie-grid { grid-template-columns: repeat(2, 1fr) !important; }
-  .movie-card, .MovieCard { width: 44vw !important; min-width: 140px !important; }
-  .browse-searchbar { font-size: 1.1rem !important; }
+  .movie-grid { grid-template-columns: repeat(3, 1fr) !important; }
 }
 @media (max-width: 600px) {
-  .movie-grid { grid-template-columns: 1fr !important; }
-  .movie-card, .MovieCard { width: 80vw !important; min-width: 110px !important; }
+  .movie-grid { grid-template-columns: repeat(2, 1fr) !important; }
 }
+
+/* Movie card scaling */
+@media (max-width: 900px) {
+  .movie-card { max-width: 43vw !important; min-width: 38vw !important; }
+}
+@media (max-width: 600px) {
+  .movie-card { max-width: 95vw !important; min-width: 48vw !important; }
+}
+
+/* Browse search bar scaling */
+@media (max-width: 600px) {
+  .browse-searchbar input { font-size: 1rem !important; padding-top: 8px; padding-bottom: 8px; }
+  .browse-searchbar { min-height: 40px !important; }
+}
+

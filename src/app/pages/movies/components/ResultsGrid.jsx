@@ -1,29 +1,29 @@
-import MovieCard from '@/app/pages/shared/MovieCard'
+import MovieCard from '@/app/pages/shared/MovieCard';
 
 export default function ResultsGrid({ results, onMovieClick }) {
-  if (!results.length) return null
-
-  // Show 5 movies per page
-  const displayMovies = results.slice(0, 5);
+  if (!results.length) return null;
 
   return (
     <div
-      className="
-        flex overflow-x-auto gap-6 px-1 pt-2 pb-3 sm:grid sm:grid-cols-5 sm:gap-8
-        snap-x snap-mandatory scroll-smooth
-      "
+      className="movie-grid"
       style={{
-        WebkitOverflowScrolling: "touch",
-        touchAction: "pan-x",
-        minWidth: 0,
-        maxWidth: "100vw",
+        display: "grid",
+        gridTemplateColumns: "repeat(5, 1fr)",
+        gap: "2.1rem 1.2rem",
+        justifyItems: "center",
+        padding: "0 8px 16px 8px",
+        width: "100%",
+        maxWidth: 1200,
+        margin: "0 auto",
       }}
     >
-      {displayMovies.map(movie => (
-        <div key={movie.id} className="snap-start flex-shrink-0" style={{ width: 186, minWidth: 186 }}>
-          <MovieCard movie={movie} onClick={onMovieClick} />
-        </div>
+      {results.map(movie => (
+        <MovieCard
+          key={movie.id}
+          movie={movie}
+          onClick={onMovieClick}
+        />
       ))}
     </div>
-  )
+  );
 }

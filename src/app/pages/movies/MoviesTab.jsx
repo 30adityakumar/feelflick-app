@@ -24,7 +24,7 @@ export default function MoviesTab({ session }) {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  // Fetch genres (same as before)
+  // --- Fetch genres on mount ---
   useEffect(() => {
     fetch(
       `https://api.themoviedb.org/3/genre/movie/list?api_key=${import.meta.env.VITE_TMDB_API_KEY}&language=en-US`
@@ -36,7 +36,7 @@ export default function MoviesTab({ session }) {
       .catch(console.error);
   }, []);
 
-  // Fetch movies (either discover or search) when page/filter/search changes
+  // --- Fetch movies (search or discover) when page/filter/search changes ---
   useEffect(() => {
     let url, params = [];
     if (query) {
@@ -62,7 +62,7 @@ export default function MoviesTab({ session }) {
       .catch(console.error);
   }, [sortBy, yearFilter, genreFilter, query, page]);
 
-  // Clear filters and reset page
+  // --- Clear filters and reset page ---
   const clearFilters = () => {
     setSortBy("popularity.desc");
     setYearFilter("");
@@ -70,7 +70,7 @@ export default function MoviesTab({ session }) {
     setPage(1);
   };
 
-  // Years & genres for filter bar
+  // --- Years & genres for filter bar ---
   const allYears = Array.from(new Set(results.map(m => m.release_date && new Date(m.release_date).getFullYear()).filter(Boolean))).sort((a, b) => b - a);
   const allGenres = (() => {
     const genreIdSet = new Set();
@@ -84,7 +84,7 @@ export default function MoviesTab({ session }) {
       .sort((a, b) => a.name.localeCompare(b.name));
   })();
 
-  // Enhanced onResults for SearchBar
+  // --- Enhanced onResults for SearchBar ---
   function handleSearchResults(searchResults, searchText) {
     setQuery(searchText || "");
     setResults(searchResults || []);
@@ -92,9 +92,9 @@ export default function MoviesTab({ session }) {
   }
 
   return (
-    <div className="min-h-screen bg-[#101015] w-full pb-20 pt-5 px-0 sm:px-6 md:px-10 lg:px-20 xl:px-32 box-border">
+    <div className="min-h-screen bg-[#101015] w-full pb-20 pt-4 px-0 sm:px-4 md:px-10 lg:px-20 xl:px-32 box-border">
       {/* Filter Bar */}
-      <div className="max-w-[1100px] mx-auto w-full px-2 mb-2">
+      <div className="w-full max-w-[1200px] mx-auto px-2 pt-1 pb-2">
         <FilterBar
           sortBy={sortBy}
           setSortBy={setSortBy}
@@ -109,8 +109,8 @@ export default function MoviesTab({ session }) {
         />
       </div>
       {/* Search Bar */}
-      <div className="w-full flex justify-center px-2 mb-4">
-        <div className="w-full max-w-[960px]">
+      <div className="w-full flex justify-center px-2 mb-3">
+        <div className="w-full max-w-[1200px]">
           <BrowseSearchBar
             onResults={handleSearchResults}
             onSearch={setQuery}
@@ -127,13 +127,13 @@ export default function MoviesTab({ session }) {
         }
       </div>
 
-      {/* Movie Results: 5 in a row, big, mobile-friendly */}
-      <div className="max-w-[1120px] mx-auto min-h-[280px]">
+      {/* Movie Results: 5 in a row, 20 per page, responsive */}
+      <div className="max-w-[1240px] mx-auto min-h-[240px] pb-1 px-1 sm:px-4">
         {results.length ? (
           <>
             <ResultsGrid
-              results={results}
-              onMovieClick={m => { /* open modal if needed */ }}
+              results={results.slice(0, 20)}
+              onMovieClick={m => {/* open modal, etc. */}}
             />
             <Pagination
               page={page}

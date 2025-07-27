@@ -186,20 +186,31 @@ export default function SearchBar() {
           {/* Main input row - MOBILE */}
           <div className="flex items-center h-10 bg-[#23212b] rounded-full px-3 sm:px-5 w-full">
             <input
-              autoFocus
               value={search}
+              ref={inputRef}
+              onFocus={() => { setSearchOpen(true); setHighlighted(-1); }}
               onChange={e => setSearch(e.target.value)}
-              className="flex-1 h-10 bg-transparent text-white text-lg leading-none rounded-full border-none outline-none font-light placeholder-zinc-400"
               placeholder="Search movies…"
               aria-label="Search movies"
-              onFocus={() => setSearchOpen(true)}
+              className={`
+                flex-1 h-10 bg-transparent text-white text-base leading-none rounded-full 
+                border-none outline-none font-sans font-light shadow
+                transition duration-200
+                placeholder-zinc-400 placeholder:font-light placeholder:text-base pl-5
+              `}
               style={{
+                fontFamily: "Inter, sans-serif",
                 boxShadow: "none",
                 border: "none",
-                fontFamily: "Inter, sans-serif",
                 minWidth: 0,
               }}
+              onKeyDown={e => {
+                if (e.key === "ArrowDown" && results.length > 0) {
+                  setHighlighted(0);
+                }
+              }}
             />
+
             {search && (
               <button
                 className="inline-flex items-center justify-center h-10 w-10 text-zinc-400 hover:text-red-400 bg-transparent border-none shadow-none outline-none p-0 m-0"

@@ -183,33 +183,53 @@ export default function SearchBar() {
     return (
       <div className="fixed inset-0 bg-[#101016f2] z-50 flex items-start pt-10 px-3 animate-fadeIn">
         <div className="relative w-full max-w-xl mx-auto">
-          <button
-            className="absolute right-3 top-3 text-zinc-300 hover:text-orange-400 bg-transparent border-none shadow-none outline-none"
-            onClick={clearSearch}
-            aria-label="Close search"
-          >
-            <XIcon size={27} />
-          </button>
-          <input
-            autoFocus
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="w-full bg-[#23212b] text-white text-xl rounded-full pl-4 pr-12 h-10 outline-none font-light placeholder-zinc-400"
-            placeholder="Search movies…"
-            aria-label="Search movies"
-            onFocus={() => setSearchOpen(true)}
-            style={{ boxShadow: "none", border: "none" }}
-          />
-          {search && (
+          <div className="flex items-center h-10 bg-[#23212b] rounded-full px-3 sm:px-5 w-full">
+            <input
+              autoFocus
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="flex-1 h-10 bg-transparent text-white text-xl rounded-full border-none outline-none font-light placeholder-zinc-400"
+              placeholder="Search movies…"
+              aria-label="Search movies"
+              onFocus={() => setSearchOpen(true)}
+              style={{
+                boxShadow: "none",
+                border: "none",
+                fontFamily: "Inter, sans-serif",
+                minWidth: 0,
+              }}
+            />
+            {search && (
+              <button
+                className="inline-flex items-center justify-center h-10 w-10 text-zinc-400 hover:text-red-400 bg-transparent border-none shadow-none outline-none p-0 m-0"
+                onClick={clearSearch}
+                aria-label="Clear search"
+                tabIndex={0}
+                style={{
+                  boxShadow: "none",
+                  border: "none",
+                  background: "transparent"
+                }}
+              >
+                <XIcon size={22} />
+              </button>
+            )}
             <button
-              className="absolute right-12 top-4 text-zinc-400 hover:text-red-400 bg-transparent border-none shadow-none outline-none"
-              onClick={clearSearch}
-              aria-label="Clear search"
+              tabIndex={0}
+              aria-label="Search"
+              type="button"
+              className="inline-flex items-center justify-center h-10 w-10 bg-transparent p-0 shadow-none border-none outline-none"
+              style={{
+                boxShadow: "none",
+                border: "none",
+                background: "transparent",
+                height: "40px"
+              }}
             >
-              <XIcon size={21} />
+              <SearchIcon size={24} color="#aaa" />
             </button>
-          )}
-          <SearchResultsDropdown mobile />
+          </div>
+          {searchOpen && <SearchResultsDropdown mobile />}
         </div>
       </div>
     );
@@ -219,58 +239,61 @@ export default function SearchBar() {
     <>
       {/* Desktop Search Bar */}
       <div className="relative w-full h-10 px-3 sm:px-5">
-        <input
-          value={search}
-          ref={inputRef}
-          onFocus={() => { setSearchOpen(true); setHighlighted(-1); }}
-          onChange={e => setSearch(e.target.value)}
-          placeholder="Search movies…"
-          aria-label="Search movies"
-          className={`
-            w-full h-10 bg-[#23212b] text-white text-base rounded-full pl-4 pr-11
-            border-none outline-none font-sans font-light shadow
-            transition duration-200 placeholder-zinc-400
-          `}
-          style={{
-            fontFamily: "Inter, sans-serif",
-            boxShadow: "none",
-            border: "none",
-          }}
-          onKeyDown={e => {
-            if (e.key === "ArrowDown" && results.length > 0) {
-              setHighlighted(0);
-            }
-          }}
-        />
-        {search && (
+        <div className="flex items-center h-10 bg-[#23212b] rounded-full w-full">
+          <input
+            value={search}
+            ref={inputRef}
+            onFocus={() => { setSearchOpen(true); setHighlighted(-1); }}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search movies…"
+            aria-label="Search movies"
+            className={`
+              flex-1 h-10 bg-transparent text-white text-base rounded-full 
+              border-none outline-none font-sans font-light shadow
+              transition duration-200 placeholder-zinc-400
+            `}
+            style={{
+              fontFamily: "Inter, sans-serif",
+              boxShadow: "none",
+              border: "none",
+              minWidth: 0,
+            }}
+            onKeyDown={e => {
+              if (e.key === "ArrowDown" && results.length > 0) {
+                setHighlighted(0);
+              }
+            }}
+          />
+          {search && (
+            <button
+              className="inline-flex items-center justify-center h-10 w-10 text-zinc-400 hover:text-red-400 bg-transparent border-none shadow-none outline-none p-0 m-0"
+              onClick={clearSearch}
+              aria-label="Clear search"
+              tabIndex={0}
+              style={{
+                boxShadow: "none",
+                border: "none",
+                background: "transparent"
+              }}
+            >
+              <XIcon size={22} />
+            </button>
+          )}
           <button
-            className="absolute right-8 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-red-400 bg-transparent border-none shadow-none outline-none p-0 m-0"
-            onClick={clearSearch}
-            aria-label="Clear search"
             tabIndex={0}
+            aria-label="Search"
+            type="button"
+            className="inline-flex items-center justify-center h-10 w-10 bg-transparent p-0 shadow-none border-none outline-none"
             style={{
               boxShadow: "none",
               border: "none",
-              background: "transparent"
+              background: "transparent",
+              height: "40px"
             }}
           >
-            <XIcon size={18} />
+            <SearchIcon size={24} color="#aaa" />
           </button>
-        )}
-        <button
-          tabIndex={0}
-          aria-label="Search"
-          type="button"
-          className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center bg-transparent p-0 shadow-none border-none outline-none h-10"
-          style={{
-            boxShadow: "none",
-            border: "none",
-            background: "transparent",
-            height: "40px"
-          }}
-        >
-          <SearchIcon size={20} color="#aaa" />
-        </button>
+        </div>
         {searchOpen && <SearchResultsDropdown />}
       </div>
       {/* Mobile Search Modal */}

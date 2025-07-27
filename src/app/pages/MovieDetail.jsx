@@ -146,19 +146,37 @@ export default function MovieDetail() {
     setWatchlistLoading(false);
   }
 
-  // Mark as watched
+  // Mark as watched (also upsert in movies_watched)
   async function handleMarkAsWatched() {
     if (!user || !movie) return;
     setWatchlistLoading(true);
 
     await ensureMovieInTable(movie);
 
+    // Upsert user_watchlist status
     await supabase
       .from('user_watchlist')
       .upsert({
         user_id: user.id,
         movie_id: movie.id,
         status: 'watched',
+      }, { onConflict: ['user_id', 'movie_id'] });
+
+    // Upsert movies_watched
+    // Your table: id, created_at, user_id, movie_id, title, poster, release_date, vote_average, genre_ids
+    // For genre_ids, map to array of ids from movie.genres (if available)
+    const genresArray = movie.genres ? movie.genres.map(g => g.id) : null;
+
+    await supabase
+      .from('movies_watched')
+      .upsert({
+        user_id: user.id,
+        movie_id: movie.id,
+        title: movie.title,
+        poster: movie.poster_path,
+        release_date: movie.release_date,
+        vote_average: movie.vote_average,
+        genre_ids: genresArray,
       }, { onConflict: ['user_id', 'movie_id'] });
 
     setWatchlistStatus('watched');

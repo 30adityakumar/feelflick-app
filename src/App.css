@@ -178,12 +178,12 @@ header {
   touch-action: manipulation;
 }
 
-@media (max-width: 1200px) {
-  .movie-grid { grid-template-columns: repeat(4, 1fr) !important; }
-}
 @media (max-width: 900px) {
-  .movie-grid { grid-template-columns: repeat(3, 1fr) !important; }
+  .movie-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .movie-card, .MovieCard { width: 44vw !important; min-width: 140px !important; }
+  .browse-searchbar { font-size: 1.1rem !important; }
 }
 @media (max-width: 600px) {
-  .movie-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .movie-grid { grid-template-columns: 1fr !important; }
+  .movie-card, .MovieCard { width: 80vw !important; min-width: 110px !important; }
 }

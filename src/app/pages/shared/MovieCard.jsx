@@ -1,86 +1,56 @@
-import { Link, useNavigate } from "react-router-dom";
-
+import { Star } from "lucide-react";
 const TMDB_IMG = "https://image.tmdb.org/t/p/w342";
 
-/**
- * Props:
- * - movie: { movie_id, title, poster, poster_path, ... }
- * - isWatched: boolean (optional)
- * - onRemove: function (optional)
- * - onClick: function (optional)
- */
-export default function MovieCard({ movie, isWatched, onRemove, onClick }) {
-  const navigate = useNavigate();
-
-  // Support both poster and poster_path fields
+export default function MovieCard({ movie, onClick }) {
   const posterPath = movie.poster || movie.poster_path || "";
-  const posterUrl = posterPath
-    ? (posterPath.startsWith("http")
-        ? posterPath
-        : `${TMDB_IMG}${posterPath}`)
-    : "/placeholder-movie.png";
-
-  // Use movie.movie_id (not id!) for detail page links
-  const movieId = movie.movie_id || movie.id; // fallback if old data
-
-  // If onRemove is provided, show a remove button (for watched/history)
-  const showRemove = isWatched && typeof onRemove === "function";
+  const posterUrl = posterPath.startsWith("http")
+    ? posterPath
+    : `${TMDB_IMG}${posterPath}`;
+  const movieId = movie.movie_id || movie.id;
 
   return (
     <div
-      style={{
-        width: 120,
-        minWidth: 120,
-        cursor: "pointer",
-        borderRadius: 13,
-        overflow: "hidden",
-        background: "#23212b",
-        boxShadow: "0 2px 10px #0003",
-        position: "relative",
-        transition: "transform 0.17s",
-        willChange: "transform"
-      }}
       tabIndex={0}
-      onMouseOver={e => e.currentTarget.style.transform = "scale(1.06)"}
-      onMouseOut={e => e.currentTarget.style.transform = "scale(1)"}
-      onClick={() => {
-        if (onClick) {
-          onClick(movie);
-        } else {
-          navigate(`/movie/${movieId}`);
-        }
-      }}
+      className="group shadow-xl transition-transform duration-200 bg-[#17151e] rounded-2xl overflow-hidden relative cursor-pointer"
+      style={{ width: 186, minWidth: 186, height: 295 }}
+      onClick={() => onClick(movie)}
     >
-      {/* Remove button in corner (only for watched) */}
-      {showRemove && (
-        <button
-          className="absolute top-2 right-2 text-red-500 hover:text-red-700 bg-black bg-opacity-60 p-1.5 rounded-full z-10"
-          onClick={e => {
-            e.stopPropagation(); // Prevent card click
-            onRemove(movieId);
-          }}
-          aria-label="Remove from watched"
-        >
-          ✖️
-        </button>
-      )}
       {/* Poster */}
       <img
         src={posterUrl}
         alt={movie.title}
-        style={{ width: "100%", height: 175, objectFit: "cover", display: "block" }}
+        style={{ width: "100%", height: 230, objectFit: "cover", display: "block", borderRadius: "18px 18px 0 0" }}
         onError={e => { e.currentTarget.src = "/placeholder-movie.png"; }}
+        className="group-hover:brightness-95 transition"
       />
+      {/* Overlay badges */}
+      <div className="absolute top-3 right-3 flex flex-col items-end z-10">
+        {/* Rating badge */}
+        <span className="bg-black/85 text-yellow-400 font-bold text-xs rounded-full px-3 py-1 flex items-center gap-1 mb-2 shadow">
+          <Star size={13} />{movie.vote_average ? movie.vote_average.toFixed(1) : "N/A"}
+        </span>
+        {/* Year badge */}
+        {movie.release_date && (
+          <span className="bg-black/75 text-white font-semibold text-[13px] rounded-full px-2.5 py-0.5 shadow">
+            {movie.release_date.slice(0, 4)}
+          </span>
+        )}
+      </div>
       {/* Movie title */}
-      <div style={{
-        padding: "8px 10px 9px 10px",
-        fontWeight: 600,
-        fontSize: 14,
-        color: "#fff",
-        whiteSpace: "normal",
-        textAlign: "center"
-      }}>
-        {movie.title}
+      <div className="pt-3 pb-2 px-3 bg-[#18151c] rounded-b-2xl flex flex-col items-center justify-center" style={{ minHeight: 54 }}>
+        <span
+          className="
+            text-center text-[1.06rem] sm:text-base font-extrabold text-white
+            leading-tight tracking-tight w-full
+            transition group-hover:text-orange-300
+            whitespace-normal"
+          style={{
+            letterSpacing: "0.015em",
+            textShadow: "0 1.5px 8px #0004"
+          }}
+        >
+          {movie.title}
+        </span>
       </div>
     </div>
   );

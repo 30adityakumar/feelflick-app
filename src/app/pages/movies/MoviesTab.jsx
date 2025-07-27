@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
-import BrowseSearchBar from "@/app/pages/movies/components/BrowseSearchBar"; // use the enhanced one provided above
+import BrowseSearchBar from "@/app/pages/movies/components/BrowseSearchBar";
 import FilterBar from "@/app/pages/shared/FilterBar";
 import ResultsGrid from "@/app/pages/movies/components/ResultsGrid";
-import { Pagination } from "@/app/pages/movies/components/Pagination"; // use the Pagination component above
+import { Pagination } from "@/app/pages/movies/components/Pagination";
 import { supabase } from "@/shared/lib/supabase/client";
 
-// TMDb sort options
 const SORT_OPTIONS = [
   { value: "popularity.desc", label: "Most Popular" },
   { value: "release_date.desc", label: "Newest First" },
@@ -24,11 +23,8 @@ export default function MoviesTab({ session }) {
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [watched, setWatched] = useState([]);
-  const [modalMovie, setModalMovie] = useState(null);
-  const closeModal = () => setModalMovie(null);
 
-  // Fetch genres
+  // Fetch genres (same as before)
   useEffect(() => {
     fetch(
       `https://api.themoviedb.org/3/genre/movie/list?api_key=${import.meta.env.VITE_TMDB_API_KEY}&language=en-US`
@@ -40,17 +36,6 @@ export default function MoviesTab({ session }) {
       .catch(console.error);
   }, []);
 
-  // Fetch watched (for disabling "watched" button)
-  useEffect(() => {
-    if (!session?.user?.id) return;
-    supabase
-      .from("movies_watched")
-      .select("*")
-      .eq("user_id", session.user.id)
-      .order("id", { ascending: false })
-      .then(({ data }) => setWatched(data || []));
-  }, [session]);
-
   // Fetch movies (either discover or search) when page/filter/search changes
   useEffect(() => {
     let url, params = [];
@@ -60,7 +45,6 @@ export default function MoviesTab({ session }) {
       url = `https://api.themoviedb.org/3/discover/movie?api_key=${import.meta.env.VITE_TMDB_API_KEY}&language=en-US&sort_by=${sortBy}&page=${page}&with_original_language=en`;
       if (yearFilter) params.push(`primary_release_year=${yearFilter}`);
       if (genreFilter) params.push(`with_genres=${genreFilter}`);
-      // Only fetch recent movies (past 3 years) if not filtered by year
       if (!yearFilter) {
         const thisYear = new Date().getFullYear();
         params.push(`primary_release_date.gte=${thisYear - 3}-01-01`);
@@ -73,7 +57,7 @@ export default function MoviesTab({ session }) {
       .then(data => {
         setResults((data.results || []).filter(m => m.title && m.poster_path));
         setTotalResults(data.total_results || 0);
-        setTotalPages(Math.min(data.total_pages || 1, 500)); // TMDb caps at 500
+        setTotalPages(Math.min(data.total_pages || 1, 500));
       })
       .catch(console.error);
   }, [sortBy, yearFilter, genreFilter, query, page]);
@@ -86,29 +70,7 @@ export default function MoviesTab({ session }) {
     setPage(1);
   };
 
-  // Mark as watched
-  const watchedIds = new Set(watched.map(m => m.movie_id));
-  const markWatched = async (movie) => {
-    if (!session || watchedIds.has(movie.id)) return;
-    const { error } = await supabase.from("movies_watched").insert({
-      user_id: session.user.id,
-      movie_id: movie.id,
-      title: movie.title,
-      poster: movie.poster_path,
-      release_date: movie.release_date ?? null,
-      vote_average: movie.vote_average ?? null,
-      genre_ids: movie.genre_ids ?? []
-    });
-    if (error && error.code !== "23505") return;
-    const { data } = await supabase
-      .from("movies_watched")
-      .select("*")
-      .eq("user_id", session.user.id)
-      .order("id", { ascending: false });
-    setWatched(data);
-  };
-
-  // Years & genres for filter bar (from all loaded results)
+  // Years & genres for filter bar
   const allYears = Array.from(new Set(results.map(m => m.release_date && new Date(m.release_date).getFullYear()).filter(Boolean))).sort((a, b) => b - a);
   const allGenres = (() => {
     const genreIdSet = new Set();
@@ -122,41 +84,17 @@ export default function MoviesTab({ session }) {
       .sort((a, b) => a.name.localeCompare(b.name));
   })();
 
-  // Section title
-  const sectionTitle = query
-    ? (
-      <>
-        <span role="img" aria-label="search" className="text-2xl">🔍</span>
-        Search Results
-      </>
-    )
-    : (
-      <>
-        <span role="img" aria-label="popcorn" className="text-2xl">🍿</span>
-        Recent Releases
-      </>
-    );
-
   // Enhanced onResults for SearchBar
   function handleSearchResults(searchResults, searchText) {
     setQuery(searchText || "");
     setResults(searchResults || []);
-    setPage(1); // always go to first page on new search
+    setPage(1);
   }
 
   return (
-    <div className="min-h-screen bg-[#101015] w-full pb-16 px-2 sm:px-6 md:px-10 lg:px-20 xl:px-32 box-border">
-      {/* Search Bar */}
-      <div className="flex items-center justify-center w-full pt-8 pb-3">
-        <BrowseSearchBar
-          onResults={handleSearchResults}
-          onSearch={setQuery}
-          value={query}
-        />
-      </div>
-
+    <div className="min-h-screen bg-[#101015] w-full pb-20 pt-5 px-0 sm:px-6 md:px-10 lg:px-20 xl:px-32 box-border">
       {/* Filter Bar */}
-      <div className="max-w-3xl mx-auto w-full mb-5">
+      <div className="max-w-[1100px] mx-auto w-full px-2 mb-2">
         <FilterBar
           sortBy={sortBy}
           setSortBy={setSortBy}
@@ -170,19 +108,32 @@ export default function MoviesTab({ session }) {
           clearFilters={clearFilters}
         />
       </div>
-
-      {/* Section Title */}
-      <div className="max-w-6xl mx-auto font-bold text-xl md:text-2xl text-white mt-3 mb-6 flex items-center gap-2">
-        {sectionTitle}
+      {/* Search Bar */}
+      <div className="w-full flex justify-center px-2 mb-4">
+        <div className="w-full max-w-[960px]">
+          <BrowseSearchBar
+            onResults={handleSearchResults}
+            onSearch={setQuery}
+            value={query}
+          />
+        </div>
       </div>
 
-      {/* Movie Results Grid */}
-      <div className="max-w-6xl mx-auto min-h-[260px]">
+      {/* Section Title */}
+      <div className="max-w-6xl mx-auto font-bold text-lg md:text-xl text-white mt-2 mb-6 flex items-center gap-2 px-3">
+        {query
+          ? <><span role="img" aria-label="search" className="text-2xl">🔍</span> Search Results</>
+          : <><span role="img" aria-label="popcorn" className="text-2xl">🍿</span> Recent Releases</>
+        }
+      </div>
+
+      {/* Movie Results: 5 in a row, big, mobile-friendly */}
+      <div className="max-w-[1120px] mx-auto min-h-[280px]">
         {results.length ? (
           <>
             <ResultsGrid
               results={results}
-              onMovieClick={setModalMovie}
+              onMovieClick={m => { /* open modal if needed */ }}
             />
             <Pagination
               page={page}

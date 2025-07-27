@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Header from "@/app/header/Header";
-import { supabase } from "@/shared/lib/supabase/client"; 
+import { supabase } from "@/shared/lib/supabase/client";
 
 const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY;
 const TMDB_IMG = "https://image.tmdb.org/t/p/w500";
@@ -83,31 +83,84 @@ export default function MovieDetail() {
     fetchWatchlistStatus();
   }, [user, id]);
 
-  // Actions
+  // Upsert movie into your movies table
+  async function ensureMovieInTable(movieData) {
+    if (!movieData) return;
+    const {
+      id,
+      title,
+      original_title,
+      release_date,
+      overview,
+      poster_path,
+      backdrop_path,
+      runtime,
+      vote_average,
+      vote_count,
+      popularity,
+      original_language,
+      adult,
+      budget,
+      revenue,
+      status
+    } = movieData;
+
+    await supabase
+      .from('movies')
+      .upsert([{
+        id,
+        title,
+        original_title,
+        release_date,
+        overview,
+        poster_path,
+        backdrop_path,
+        runtime,
+        vote_average,
+        vote_count,
+        popularity,
+        original_language,
+        adult,
+        budget,
+        revenue,
+        status
+      }], { onConflict: ['id'] });
+  }
+
+  // Add to watchlist
   async function handleAddToWatchlist() {
-    if (!user) return;
+    if (!user || !movie) return;
     setWatchlistLoading(true);
+
+    await ensureMovieInTable(movie);
+
     await supabase
       .from('user_watchlist')
       .upsert({
         user_id: user.id,
-        movie_id: id,
+        movie_id: movie.id,
         status: 'want_to_watch',
       }, { onConflict: ['user_id', 'movie_id'] });
+
     setWatchlistStatus('want_to_watch');
     setWatchlistLoading(false);
   }
 
+  // Mark as watched
   async function handleMarkAsWatched() {
-    if (!user) return;
+    if (!user || !movie) return;
     setWatchlistLoading(true);
+
+    await ensureMovieInTable(movie);
+
     await supabase
       .from('user_watchlist')
       .upsert({
         user_id: user.id,
-        movie_id: id,
+        movie_id: movie.id,
         status: 'watched',
       }, { onConflict: ['user_id', 'movie_id'] });
+
     setWatchlistStatus('watched');
     setWatchlistLoading(false);
   }

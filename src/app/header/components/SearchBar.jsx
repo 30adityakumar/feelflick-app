@@ -149,7 +149,7 @@ export default function SearchBar() {
   };
 
   const renderInput = (mobile = false) => (
-    <div className="flex items-center h-10 bg-[#23212b] rounded-full px-3 sm:px-5 w-full">
+    <div className="flex items-center h-10 bg-[#23212b] rounded-full pl-4 pr-1 sm:pl-5 sm:pr-2 w-full">
       <input
         ref={mobile ? undefined : inputRef}
         value={search}
@@ -159,7 +159,7 @@ export default function SearchBar() {
         aria-label="Search movies"
         className="
           flex-1 h-10 bg-transparent text-white text-sm leading-tight
-          pl-4 border-none outline-none font-light placeholder-zinc-500
+          pl-2 border-none outline-none font-light placeholder-zinc-500
         "
         style={{ fontFamily: "Inter, sans-serif", minWidth: 0 }}
         onKeyDown={e => { if (e.key === "ArrowDown" && results.length) setHighlighted(0); }}

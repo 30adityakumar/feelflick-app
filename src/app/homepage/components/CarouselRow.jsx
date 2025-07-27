@@ -1,41 +1,56 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+/* ─────────────────────────────────────────────────────────
+   Fetch helper
+   ───────────────────────────────────────────────────────── */
 async function fetchMovies(endpoint) {
   const apiKey = import.meta.env.VITE_TMDB_API_KEY;
   const res = await fetch(
     `https://api.themoviedb.org/3/movie/${endpoint}?api_key=${apiKey}&language=en-US&page=1`
   );
   const data = await res.json();
-  return (data.results || []).filter(m => m.poster_path);
+  return (data.results || []).filter((m) => m.poster_path);
 }
 
+/* ─────────────────────────────────────────────────────────
+   Component
+   ───────────────────────────────────────────────────────── */
 export default function CarouselRow({ title, endpoint }) {
+  const nav = useNavigate();
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
-  const nav  = useNavigate();
 
   useEffect(() => {
     setLoading(true);
     fetchMovies(endpoint).then(setMovies).finally(() => setLoading(false));
   }, [endpoint]);
 
-  /* -- CARD SIZE: large enough that a row is WIDER than viewport so mobile must scroll */
-  const card = "w-[40vw] md:w-40 aspect-[2/3] flex-shrink-0";
+  /* Card width -- wide enough that total row exceeds viewport so mobile must scroll */
+  const card = "w-[48vw] sm:w-[38vw] md:w-40 aspect-[2/3] flex-shrink-0";
 
   return (
     <section className="mt-8 md:mt-14">
-      <h3 className="text-lg md:text-2xl font-bold px-4 md:px-0 mb-2">{title}</h3>
+      <h3 className="text-lg md:text-2xl font-bold px-4 md:px-0 mb-2">
+        {title}
+      </h3>
 
+      {/* horizontal scroller */}
       <div
-        className="flex flex-nowrap overflow-x-scroll scrollbar-thin snap-x snap-mandatory px-4 md:px-0 gap-3 md:gap-6"
-        style={{ WebkitOverflowScrolling: "touch" }}   /* iOS momentum */
+        className="flex flex-nowrap gap-3 md:gap-6 px-4 md:px-0
+                   overflow-x-auto overflow-y-hidden
+                   snap-x snap-mandatory scroll-smooth
+                   scrollbar-none"              /* hide scrollbar, keeps look clean */
+        style={{
+          WebkitOverflowScrolling: "touch",      /* iOS momentum */
+          touchAction: "pan-x",                  /* dramatically improves swipe */
+        }}
       >
-        {(loading ? [...Array(5)] : movies).map((m, i) => (
+        {(loading ? [...Array(5)] : movies).map((m, i) =>
           m ? (
             <div
               key={m.id}
-              className={`${card} rounded-xl bg-zinc-900 overflow-hidden snap-start hover:scale-105 transition`}
+              className={`${card} snap-start rounded-xl bg-zinc-900 overflow-hidden hover:scale-105 transition`}
               onClick={() => nav(`/movie/${m.id}`)}
             >
               <img
@@ -47,7 +62,7 @@ export default function CarouselRow({ title, endpoint }) {
           ) : (
             <div key={i} className={`${card} rounded-xl bg-zinc-800 animate-pulse`} />
           )
-        ))}
+        )}
       </div>
     </section>
   );

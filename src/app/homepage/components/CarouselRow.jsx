@@ -25,18 +25,18 @@ export default function CarouselRow({ title, endpoint, emptyMessage }) {
       .finally(() => setLoading(false));
   }, [endpoint]);
 
-  // Big cards!
-  const cardClass = "w-[46vw] h-[61vw] md:w-[220px] md:h-[330px]";
+  // Premium: small cards, nice gap, padded left/right
+  const cardClass = "w-[28vw] h-[39vw] md:w-40 md:h-60 mx-1";
 
   return (
-    <section className="w-full m-0 p-0">
-      <div className="flex items-center gap-2 pl-3 pr-0 pt-0 pb-2">
+    <section className="w-full m-0 p-0 mt-8 md:mt-12">
+      <div className="flex items-center gap-2 px-4 md:px-0 pt-0 pb-2">
         <h3 className="text-lg md:text-2xl font-bold tracking-tight flex-1">{title}</h3>
       </div>
       <div className="relative">
         <div
           ref={carouselRef}
-          className="flex gap-3 md:gap-6 overflow-x-auto p-0 m-0 scrollbar-thin scroll-smooth hide-scrollbar snap-x snap-mandatory"
+          className="flex gap-0 md:gap-6 overflow-x-auto p-0 m-0 px-3 md:px-0 scrollbar-thin scroll-smooth hide-scrollbar snap-x snap-mandatory"
           tabIndex={0}
           style={{ WebkitOverflowScrolling: "touch" }}
         >

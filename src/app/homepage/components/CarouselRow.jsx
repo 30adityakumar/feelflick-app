@@ -1,4 +1,5 @@
-// Enhanced Carousel useRef } from "react";
+// Enhanced CarouselRow.jsx - CORRECTED VERSION
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 async function fetchMovies(endpoint) {
@@ -15,8 +16,7 @@ export default function CarouselRow({ title, endpoint }) {
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(true);
-  const scrollRef = useRef(null);
+  const [canScrollRight, setCanScrollRight] = useStateRef = useRef(null);
 
   useEffect(() => {
     setLoading(true);

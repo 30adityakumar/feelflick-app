@@ -127,7 +127,7 @@ export default function MovieDetail() {
       }], { onConflict: ['id'] });
   }
 
-  // Add to watchlist
+  // Add to watchlist (also for analytics, upsert in movies_watched)
   async function handleAddToWatchlist() {
     if (!user || !movie) return;
     setWatchlistLoading(true);
@@ -140,6 +140,20 @@ export default function MovieDetail() {
         user_id: user.id,
         movie_id: movie.id,
         status: 'want_to_watch',
+      }, { onConflict: ['user_id', 'movie_id'] });
+
+    // Upsert in movies_watched for analytics
+    const genresArray = movie.genres ? movie.genres.map(g => g.id) : null;
+    await supabase
+      .from('movies_watched')
+      .upsert({
+        user_id: user.id,
+        movie_id: movie.id,
+        title: movie.title,
+        poster: movie.poster_path,
+        release_date: movie.release_date,
+        vote_average: movie.vote_average,
+        genre_ids: genresArray,
       }, { onConflict: ['user_id', 'movie_id'] });
 
     setWatchlistStatus('want_to_watch');
@@ -162,11 +176,8 @@ export default function MovieDetail() {
         status: 'watched',
       }, { onConflict: ['user_id', 'movie_id'] });
 
-    // Upsert movies_watched
-    // Your table: id, created_at, user_id, movie_id, title, poster, release_date, vote_average, genre_ids
-    // For genre_ids, map to array of ids from movie.genres (if available)
+    // Upsert movies_watched (same as above, but can expand)
     const genresArray = movie.genres ? movie.genres.map(g => g.id) : null;
-
     await supabase
       .from('movies_watched')
       .upsert({
@@ -180,6 +191,29 @@ export default function MovieDetail() {
       }, { onConflict: ['user_id', 'movie_id'] });
 
     setWatchlistStatus('watched');
+    setWatchlistLoading(false);
+  }
+
+  // Remove from Watchlist/Watched (delete from both tables)
+  async function handleRemoveFromWatchlist() {
+    if (!user || !movie) return;
+    setWatchlistLoading(true);
+
+    // Remove from user_watchlist
+    await supabase
+      .from('user_watchlist')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('movie_id', movie.id);
+
+    // Remove from movies_watched
+    await supabase
+      .from('movies_watched')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('movie_id', movie.id);
+
+    setWatchlistStatus(null);
     setWatchlistLoading(false);
   }
 
@@ -267,25 +301,16 @@ export default function MovieDetail() {
               </div>
               <div className="mt-5 flex flex-wrap items-center gap-3">
                 {/* Add to Watchlist */}
-                {watchlistStatus === "want_to_watch" ? (
+                {watchlistStatus === "want_to_watch" || watchlistStatus === "watched" ? (
                   <button
                     className="
                       py-3 px-9 bg-[#1b2530] text-orange-400 border border-orange-400 font-bold text-[17px] rounded-[9px]
-                      cursor-default mr-2
-                    "
+                      mr-2"
                     disabled
                   >
-                    Already in Watchlist
-                  </button>
-                ) : watchlistStatus === "watched" ? (
-                  <button
-                    className="
-                      py-3 px-9 bg-[#282828] text-zinc-400 font-bold text-[17px] rounded-[9px]
-                      cursor-default mr-2
-                    "
-                    disabled
-                  >
-                    Already Watched
+                    {watchlistStatus === "watched"
+                      ? "Already Watched"
+                      : "Already in Watchlist"}
                   </button>
                 ) : (
                   <button
@@ -322,6 +347,20 @@ export default function MovieDetail() {
                     disabled={watchlistLoading}
                   >
                     {watchlistLoading ? "Marking..." : "Mark as Watched"}
+                  </button>
+                )}
+
+                {/* Remove from Watchlist/Watched */}
+                {(watchlistStatus === "want_to_watch" || watchlistStatus === "watched") && (
+                  <button
+                    className="
+                      py-3 px-5 bg-[#2d2d32] text-red-400 border border-red-400 font-bold text-[16px] rounded-lg ml-2
+                      transition hover:bg-[#4e2222] hover:text-white
+                    "
+                    onClick={handleRemoveFromWatchlist}
+                    disabled={watchlistLoading}
+                  >
+                    Remove
                   </button>
                 )}
 

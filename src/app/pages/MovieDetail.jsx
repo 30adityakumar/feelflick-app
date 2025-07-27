@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Header from "@/app/header/Header";
-import { supabase } from "@/supabaseClient"; // update path if needed
+import { supabase } from "@/shared/lib/supabase/client"; 
 
 const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY;
 const TMDB_IMG = "https://image.tmdb.org/t/p/w500";

@@ -8,9 +8,9 @@ export default function ResultsGrid({ results, onMovieClick }) {
       style={{
         display: "grid",
         gridTemplateColumns: "repeat(5, 1fr)",
-        gap: "1.9rem 1.1rem",
+        gap: "1.7rem 0.7rem",
         justifyItems: "center",
-        padding: "0 8px 16px 8px",
+        padding: "0 5px 12px 5px",
         width: "100%",
         maxWidth: 1200,
         margin: "0 auto",

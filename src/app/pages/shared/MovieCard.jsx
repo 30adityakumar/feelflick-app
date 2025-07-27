@@ -8,13 +8,17 @@ export default function MovieCard({ movie, onClick }) {
     : `${TMDB_IMG}${posterPath}`;
   return (
     <div
-      className="movie-card group shadow-xl transition-transform duration-200 bg-[#17151e] rounded-2xl overflow-hidden relative cursor-pointer"
-      tabIndex={0}
-      style={{
-        height: 315,
-      }}
-      onClick={() => onClick(movie)}
-    >
+  className="movie-card group shadow-xl transition-transform duration-200 bg-[#17151e] rounded-2xl overflow-hidden relative cursor-pointer"
+  tabIndex={0}
+  style={{
+    width: "98%",
+    maxWidth: 182,
+    minWidth: 130,
+    height: 305,
+    margin: "0 auto",
+  }}
+  onClick={() => onClick(movie)}
+>
       <img
         src={posterUrl}
         alt={movie.title}

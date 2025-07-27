@@ -86,7 +86,7 @@ export default function MoviesTab({ session }) {
   }
 
   return (
-    <div className="min-h-screen bg-[#101015] w-full pb-20 pt-2 px-2 sm:px-4 md:px-8 box-border">
+    <div className="min-h-screen bg-[#101015] w-full pb-20 pt-2 px-1 sm:px-3 md:px-7 box-border">
       {/* Filters at top, then searchbar */}
       <div className="w-full max-w-[1200px] mx-auto flex flex-col gap-3 pt-1 pb-2">
         <FilterBar

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Header from "@/app/header/Header";
 import { supabase } from "@/shared/lib/supabase/client";
+import { Bookmark, CheckCircle, PlayCircle, Trash2 } from "lucide-react";
 
 const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY;
 const TMDB_IMG = "https://image.tmdb.org/t/p/w500";
@@ -18,11 +19,9 @@ export default function MovieDetail() {
   const [similar, setSimilar] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Watchlist/Watched
   const [watchlistStatus, setWatchlistStatus] = useState(null); // null | "want_to_watch" | "watched"
   const [watchlistLoading, setWatchlistLoading] = useState(false);
 
-  // Fetch logged-in user
   useEffect(() => {
     async function getUser() {
       const { data: { user } } = await supabase.auth.getUser();
@@ -31,7 +30,6 @@ export default function MovieDetail() {
     getUser();
   }, []);
 
-  // Fetch movie info
   useEffect(() => {
     setLoading(true);
     async function fetchData() {
@@ -39,22 +37,18 @@ export default function MovieDetail() {
       const data = await res.json();
       setMovie(data);
 
-      // Fetch credits
       const creditsRes = await fetch(`https://api.themoviedb.org/3/movie/${id}/credits?api_key=${TMDB_KEY}`);
       setCredits(await creditsRes.json());
 
-      // Fetch videos (trailers)
       const videoRes = await fetch(`https://api.themoviedb.org/3/movie/${id}/videos?api_key=${TMDB_KEY}`);
       const videosData = await videoRes.json();
       const ytTrailer = (videosData.results || []).find(v => v.type === "Trailer" && v.site === "YouTube");
       setTrailer(ytTrailer);
 
-      // Fetch similar movies
       const similarRes = await fetch(`https://api.themoviedb.org/3/movie/${id}/similar?api_key=${TMDB_KEY}`);
       const similarData = await similarRes.json();
       setSimilar(similarData.results || []);
 
-      // Fetch OMDb ratings
       if (data.imdb_id) {
         const omdb = await fetch(`https://www.omdbapi.com/?apikey=${import.meta.env.VITE_OMDB_API_KEY}&i=${data.imdb_id}`);
         setRatings(await omdb.json());
@@ -65,12 +59,11 @@ export default function MovieDetail() {
     fetchData();
   }, [id]);
 
-  // Fetch user's watchlist status for this movie
   useEffect(() => {
     if (!user || !id) return;
     setWatchlistLoading(true);
     async function fetchWatchlistStatus() {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('user_watchlist')
         .select('status')
         .eq('user_id', user.id)
@@ -83,7 +76,6 @@ export default function MovieDetail() {
     fetchWatchlistStatus();
   }, [user, id]);
 
-  // Upsert movie into your movies table
   async function ensureMovieInTable(movieData) {
     if (!movieData) return;
     const {
@@ -142,7 +134,6 @@ export default function MovieDetail() {
         status: 'want_to_watch',
       }, { onConflict: ['user_id', 'movie_id'] });
 
-    // Upsert in movies_watched for analytics
     const genresArray = movie.genres ? movie.genres.map(g => g.id) : null;
     await supabase
       .from('movies_watched')
@@ -167,7 +158,6 @@ export default function MovieDetail() {
 
     await ensureMovieInTable(movie);
 
-    // Upsert user_watchlist status
     await supabase
       .from('user_watchlist')
       .upsert({
@@ -176,7 +166,6 @@ export default function MovieDetail() {
         status: 'watched',
       }, { onConflict: ['user_id', 'movie_id'] });
 
-    // Upsert movies_watched (same as above, but can expand)
     const genresArray = movie.genres ? movie.genres.map(g => g.id) : null;
     await supabase
       .from('movies_watched')
@@ -194,19 +183,16 @@ export default function MovieDetail() {
     setWatchlistLoading(false);
   }
 
-  // Remove from Watchlist/Watched (delete from both tables)
   async function handleRemoveFromWatchlist() {
     if (!user || !movie) return;
     setWatchlistLoading(true);
 
-    // Remove from user_watchlist
     await supabase
       .from('user_watchlist')
       .delete()
       .eq('user_id', user.id)
       .eq('movie_id', movie.id);
 
-    // Remove from movies_watched
     await supabase
       .from('movies_watched')
       .delete()
@@ -220,7 +206,6 @@ export default function MovieDetail() {
   if (loading) return <div className="text-white text-center mt-16">Loading...</div>;
   if (!movie) return <div className="text-white">Movie not found.</div>;
 
-  // --- Page pieces ---
   const backdrop = movie.backdrop_path ? `${TMDB_BACKDROP}${movie.backdrop_path}` : "";
   const posterUrl = movie.poster_path ? `${TMDB_IMG}${movie.poster_path}` : "/placeholder-movie.png";
   const year = movie.release_date ? movie.release_date.slice(0, 4) : "";
@@ -232,175 +217,160 @@ export default function MovieDetail() {
   return (
     <div>
       <Header />
+      {/* HERO BACKDROP */}
       <div
-        className="min-h-screen pt-[70px] bg-cover bg-center"
+        className="relative w-full min-h-[66vh] md:min-h-[440px] bg-black"
         style={{
           background: backdrop
-            ? `linear-gradient(180deg,rgba(10,10,24,0.95) 60%,#161623 95%), url(${backdrop}) center/cover no-repeat`
+            ? `linear-gradient(180deg,rgba(18,18,28,0.82) 60%,#181823 100%),url(${backdrop}) center/cover no-repeat`
             : "#161623"
         }}
       >
-        <div className="
-          max-w-[920px] mx-auto bg-[rgba(23,23,34,0.98)]
-          rounded-[22px] shadow-[0_10px_48px_#0009] overflow-hidden
-        ">
-          <div className="flex flex-wrap">
-            <div className="flex-none bg-[#23232e] w-[288px]">
-              <img
-                src={posterUrl}
-                alt={movie.title}
-                className="w-[288px] h-[430px] object-cover block rounded-br-[20px]"
-                onError={e => { e.currentTarget.src = "/placeholder-movie.png"; }}
-              />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#161623] to-transparent" />
+        {/* POSTER FLOATING OVER BACKDROP */}
+        <div className="relative z-10 max-w-6xl mx-auto flex flex-col md:flex-row items-center pt-12 pb-8 px-4 md:px-8">
+          <div className="w-[210px] min-w-[140px] -mt-24 md:mt-0 md:mr-10 flex-shrink-0">
+            <img
+              src={posterUrl}
+              alt={movie.title}
+              className="rounded-2xl shadow-2xl border-4 border-[#222] object-cover w-full h-[315px] md:h-[350px] bg-[#222]"
+              onError={e => { e.currentTarget.src = "/placeholder-movie.png"; }}
+            />
+          </div>
+          {/* MAIN INFO */}
+          <div className="flex-1 mt-8 md:mt-0 md:ml-7 text-left">
+            <div className="flex items-center flex-wrap gap-3 mb-2">
+              <span className="text-3xl md:text-4xl font-black text-white drop-shadow">{movie.title}</span>
+              <span className="ml-2 font-bold text-[#FFD866] text-xl md:text-2xl">{year}</span>
             </div>
-            <div className="flex-1 min-w-[260px] p-[36px_34px_34px_36px]">
-              <div className="text-[36px] font-black mb-2 flex flex-wrap items-center">
-                {movie.title}
-                <span className="ml-2 font-normal text-[#ffbe60]">({year})</span>
-              </div>
-              <div className="text-[18px] opacity-90 mb-2">
-                {genres}{genres && " • "}{runtime}
-              </div>
-              {movie.tagline && (
-                <div className="italic opacity-80 mb-3">{movie.tagline}</div>
+            {movie.tagline && (
+              <div className="italic text-[#ffefa6b8] mb-3 text-lg">{movie.tagline}</div>
+            )}
+            <div className="flex flex-wrap gap-2 items-center text-[16px] mb-3">
+              {genres && <span className="opacity-90 text-zinc-200">{genres}</span>}
+              {runtime && <span className="text-zinc-400">• {runtime}</span>}
+              {director && <span className="text-zinc-400">• Dir: <span className="text-white">{director.name}</span></span>}
+            </div>
+            {/* RATINGS */}
+            <div className="flex gap-2 mb-5">
+              {movie.vote_average && (
+                <span className="bg-[#393] text-white rounded-md px-2 py-1 font-semibold text-sm">TMDb {movie.vote_average.toFixed(1)}</span>
               )}
-              <div className="text-[17px] my-4 leading-[1.54] opacity-97">
-                {movie.overview}
-              </div>
-              <div className="mb-2 text-[#aab]">
-                {director && <>🎬 <b className="text-white">{director.name}</b></>}
-              </div>
-              {topCast.length > 0 && (
-                <div className="mb-3">
-                  <div className="text-[#ffbe60] font-bold mb-1">Top Cast:</div>
-                  <div className="flex flex-wrap gap-x-5 gap-y-2 text-[15px]">
-                    {topCast.map(actor => (
-                      <span key={actor.id} className="opacity-93">
-                        {actor.name} <span className="text-[#aaa]">as</span> <span className="text-white">{actor.character}</span>
-                      </span>
-                    ))}
-                  </div>
-                </div>
+              {ratings?.imdbRating && (
+                <span className="bg-[#446] text-white rounded-md px-2 py-1 font-semibold text-sm">IMDb {ratings.imdbRating}/10</span>
               )}
-              {/* Ratings */}
-              <div className="my-4 text-[16px] flex flex-wrap gap-3">
-                {movie.vote_average && (
-                  <span className="bg-[#292] text-white rounded px-2 py-1 font-bold">TMDb {movie.vote_average.toFixed(1)}</span>
-                )}
-                {ratings?.imdbRating && (
-                  <span className="bg-[#446] text-white rounded px-2 py-1 font-bold">IMDb {ratings.imdbRating}/10</span>
-                )}
-                {ratings?.Metascore && (
-                  <span className="bg-[#356] text-white rounded px-2 py-1 font-bold">Metacritic {ratings.Metascore}</span>
-                )}
-                {ratings?.Ratings?.find(r => r.Source === "Rotten Tomatoes") && (
-                  <span className="bg-[#b53] text-white rounded px-2 py-1 font-bold">
-                    RT {ratings.Ratings.find(r => r.Source === "Rotten Tomatoes").Value}
-                  </span>
-                )}
-              </div>
-              <div className="mt-5 flex flex-wrap items-center gap-3">
-                {/* Add to Watchlist */}
-                {watchlistStatus === "want_to_watch" || watchlistStatus === "watched" ? (
-                  <button
-                    className="
-                      py-3 px-9 bg-[#1b2530] text-orange-400 border border-orange-400 font-bold text-[17px] rounded-[9px]
-                      mr-2"
-                    disabled
-                  >
-                    {watchlistStatus === "watched"
-                      ? "Already Watched"
-                      : "Already in Watchlist"}
-                  </button>
-                ) : (
-                  <button
-                    className="
-                      py-3 px-9 bg-gradient-to-r from-orange-400 to-red-500
-                      text-white font-bold text-[17px] rounded-[9px]
-                      shadow transition hover:scale-105 active:scale-100 mr-2
-                    "
-                    onClick={handleAddToWatchlist}
-                    disabled={watchlistLoading}
-                  >
-                    {watchlistLoading ? "Adding..." : "Add to Watchlist"}
-                  </button>
-                )}
+              {ratings?.Metascore && (
+                <span className="bg-[#356] text-white rounded-md px-2 py-1 font-semibold text-sm">Metacritic {ratings.Metascore}</span>
+              )}
+              {ratings?.Ratings?.find(r => r.Source === "Rotten Tomatoes") && (
+                <span className="bg-[#b53] text-white rounded-md px-2 py-1 font-semibold text-sm">
+                  RT {ratings.Ratings.find(r => r.Source === "Rotten Tomatoes").Value}
+                </span>
+              )}
+            </div>
+            {/* BUTTONS */}
+            <div className="flex flex-wrap items-center gap-3 mt-3">
+              {/* Add/Remove Watchlist */}
+              {(watchlistStatus === "want_to_watch" || watchlistStatus === "watched") ? (
+                <button
+                  className="flex items-center gap-2 px-5 py-2 rounded-full font-semibold border border-orange-400 text-orange-400 bg-[#251d11]/80 hover:bg-orange-400 hover:text-black shadow"
+                  disabled={watchlistLoading}
+                  title="Remove from Watchlist"
+                  onClick={handleRemoveFromWatchlist}
+                >
+                  <Trash2 size={20} /> Remove
+                </button>
+              ) : (
+                <button
+                  className="flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-r from-orange-400 to-red-500 text-white font-semibold shadow hover:scale-[1.03] transition"
+                  disabled={watchlistLoading}
+                  onClick={handleAddToWatchlist}
+                >
+                  <Bookmark size={20} /> Add to Watchlist
+                </button>
+              )}
 
-                {/* Mark as Watched */}
-                {watchlistStatus === "watched" ? (
-                  <button
-                    className="
-                      py-3 px-7 bg-[#444] text-green-400 font-bold text-[16px] rounded-lg
-                      cursor-default
-                    "
-                    disabled
-                  >
-                    Already Watched
-                  </button>
-                ) : (
-                  <button
-                    className="
-                      py-3 px-7 bg-[#444] text-white font-bold text-[16px] rounded-lg
-                      transition hover:scale-105 active:scale-100
-                    "
-                    onClick={handleMarkAsWatched}
-                    disabled={watchlistLoading}
-                  >
-                    {watchlistLoading ? "Marking..." : "Mark as Watched"}
-                  </button>
-                )}
+              {/* Mark as Watched */}
+              {watchlistStatus === "watched" ? (
+                <button
+                  className="flex items-center gap-2 px-5 py-2 rounded-full bg-[#244e23] text-green-300 border border-green-500 font-semibold shadow"
+                  disabled
+                >
+                  <CheckCircle size={20} /> Watched
+                </button>
+              ) : (
+                <button
+                  className="flex items-center gap-2 px-5 py-2 rounded-full bg-[#272d3e] text-white border border-zinc-600 font-semibold shadow hover:bg-green-700/80 hover:text-green-100 transition"
+                  disabled={watchlistLoading}
+                  onClick={handleMarkAsWatched}
+                >
+                  <CheckCircle size={20} /> Mark as Watched
+                </button>
+              )}
 
-                {/* Remove from Watchlist/Watched */}
-                {(watchlistStatus === "want_to_watch" || watchlistStatus === "watched") && (
-                  <button
-                    className="
-                      py-3 px-5 bg-[#2d2d32] text-red-400 border border-red-400 font-bold text-[16px] rounded-lg ml-2
-                      transition hover:bg-[#4e2222] hover:text-white
-                    "
-                    onClick={handleRemoveFromWatchlist}
-                    disabled={watchlistLoading}
-                  >
-                    Remove
-                  </button>
-                )}
-
-                {trailer && (
-                  <a
-                    href={`https://www.youtube.com/watch?v=${trailer.key}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="py-3 px-5 bg-[#111b] text-[#ffd884] rounded-lg font-bold text-[15px] ml-2 hover:underline"
-                  >
-                    ▶ Watch Trailer
-                  </a>
-                )}
-              </div>
+              {/* Trailer */}
+              {trailer && (
+                <a
+                  href={`https://www.youtube.com/watch?v=${trailer.key}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-5 py-2 rounded-full bg-[#fff4] text-[#ffd884] border border-[#ffd884] font-semibold shadow hover:bg-[#ffd884] hover:text-black ml-2 transition"
+                >
+                  <PlayCircle size={20} /> Trailer
+                </a>
+              )}
             </div>
           </div>
-          {/* Similar Movies Row */}
-          {similar.length > 0 && (
-            <div className="mt-9 px-9 pb-7">
-              <div className="font-extrabold text-[19px] mb-3">You Might Also Like</div>
-              <div className="flex gap-5 overflow-x-auto">
-                {similar.slice(0, 6).map(sm => (
-                  <a
-                    href={`/movie/${sm.id}`}
-                    key={sm.id}
-                    className="block w-[110px] text-white no-underline"
-                  >
-                    <img
-                      src={sm.poster_path ? `https://image.tmdb.org/t/p/w342${sm.poster_path}` : "/placeholder-movie.png"}
-                      alt={sm.title}
-                      className="w-[110px] h-[160px] rounded-[9px] mb-1 object-cover bg-[#23232e]"
-                    />
-                    <div className="text-[14px] text-center font-semibold truncate">{sm.title}</div>
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </div>
+
+      {/* DESCRIPTION + CAST */}
+      <div className="max-w-5xl mx-auto px-4 md:px-8 py-10">
+        <div className="grid md:grid-cols-3 gap-8">
+          {/* Overview */}
+          <div className="md:col-span-2">
+            <div className="text-lg text-white font-semibold mb-2">Overview</div>
+            <div className="text-zinc-200 leading-relaxed mb-4 text-base">{movie.overview}</div>
+          </div>
+          {/* Cast */}
+          <div>
+            <div className="text-lg text-white font-semibold mb-2">Top Cast</div>
+            <div className="flex flex-wrap gap-x-5 gap-y-1 text-[15px]">
+              {topCast.map(actor => (
+                <div key={actor.id} className="opacity-93 whitespace-nowrap">
+                  <span className="text-zinc-100">{actor.name}</span>
+                  <span className="text-zinc-500"> as </span>
+                  <span className="text-white font-bold">{actor.character}</span>
+                </div>
+              ))}
+              {topCast.length === 0 && <span className="text-zinc-500">—</span>}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* SIMILAR MOVIES */}
+      {similar.length > 0 && (
+        <div className="max-w-5xl mx-auto px-4 md:px-8 pb-12">
+          <div className="font-extrabold text-xl mb-3 text-white">You Might Also Like</div>
+          <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-2">
+            {similar.slice(0, 10).map(sm => (
+              <a
+                href={`/movie/${sm.id}`}
+                key={sm.id}
+                className="block w-[112px] flex-shrink-0 text-white no-underline group"
+              >
+                <img
+                  src={sm.poster_path ? `https://image.tmdb.org/t/p/w342${sm.poster_path}` : "/placeholder-movie.png"}
+                  alt={sm.title}
+                  className="w-[112px] h-[165px] rounded-lg mb-1 object-cover bg-[#23232e] shadow group-hover:scale-105 transition"
+                />
+                <div className="text-[13.5px] text-center font-semibold truncate">{sm.title}</div>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

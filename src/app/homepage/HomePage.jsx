@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Film, Star, Flame, ThumbsUp } from "lucide-react";
+import { Film, Star, Flame } from "lucide-react";
 import CarouselRow from "@/app/homepage/components/CarouselRow";
 
 // Fetch featured movie + genres for hero
@@ -15,7 +15,7 @@ async function fetchFeaturedMovieWithGenres() {
   return { ...movie, genres: detail.genres?.map(g => g.name) || [] };
 }
 
-export default function HomePage({ userId }) {
+export default function HomePage() {
   const navigate = useNavigate();
   const [featured, setFeatured] = useState(null);
 
@@ -39,7 +39,7 @@ export default function HomePage({ userId }) {
         )}
         <div className="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-zinc-950 to-transparent z-10 pointer-events-none" />
 
-        <div className="relative z-20 flex flex-col md:flex-row w-full max-w-[1100px] mx-auto items-center md:items-end justify-start pt-6 md:pt-9 pb-3 md:pb-7 px-3 md:px-0">
+        <div className="relative z-20 flex flex-col md:flex-row w-full max-w-[1100px] mx-auto items-center md:items-end justify-start pt-6 md:pt-9 pb-3 md:pb-7 px-2 md:px-0">
           {/* Poster */}
           {featured?.poster_path && (
             <div className="flex items-end md:items-center md:mr-8 shrink-0">
@@ -98,8 +98,8 @@ export default function HomePage({ userId }) {
         </div>
       </section>
 
-      {/* Content Rows */}
-      <div className="flex flex-col gap-10 md:gap-14 max-w-[1100px] mx-auto px-2 md:px-0">
+      {/* Content Rows - no paddings, edge to edge on mobile */}
+      <div className="flex flex-col gap-10 md:gap-14 max-w-[1100px] mx-auto px-0 md:px-0">
         <CarouselRow
           title={<span className="inline-flex items-center gap-2 text-orange-300 font-semibold"><Flame size={18} /> Popular Now</span>}
           endpoint="popular"
@@ -108,22 +108,6 @@ export default function HomePage({ userId }) {
           title={<span className="inline-flex items-center gap-2 text-yellow-200 font-semibold"><Star size={18} /> Top Rated</span>}
           endpoint="top_rated"
         />
-        <CarouselRow
-          title={<span className="inline-flex items-center gap-2 text-red-400 font-semibold"><Film size={18} /> Recently Added</span>}
-          endpoint="now_playing"
-        />
-        {userId ? (
-          <CarouselRow
-            title={<span className="inline-flex items-center gap-2 text-green-400 font-semibold"><ThumbsUp size={18} /> Recommended</span>}
-            endpoint="top_rated"
-            emptyMessage={
-              <div className="text-zinc-400 text-base px-2 py-4">
-                No recommendations yet. <br />
-                Pick your favorite genres in <span className="underline cursor-pointer" onClick={() => navigate("/preferences")}>Preferences</span> for personalized picks!
-              </div>
-            }
-          />
-        ) : null}
       </div>
       <style>
         {`

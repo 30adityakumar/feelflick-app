@@ -36,13 +36,13 @@ export default function CarouselRow({ title, endpoint, emptyMessage }) {
 
   return (
     <section className="w-full">
-      <div className="flex items-center gap-3 px-2 pb-1">
-        <h3 className="text-lg md:text-xl font-bold tracking-tight flex-1">
+      <div className="flex items-center gap-3 px-0 pb-1 pt-0 sm:px-2 sm:pt-0">
+        <h3 className="text-lg md:text-xl font-bold tracking-tight flex-1 pl-3 sm:pl-0">
           {title}
         </h3>
         {/* Arrows (hide on mobile if few items) */}
         {movies.length > 5 && (
-          <div className="flex gap-2">
+          <div className="flex gap-2 pr-3 sm:pr-0">
             <button
               className="p-1 rounded-full hover:bg-zinc-800 active:scale-95 transition disabled:opacity-30"
               onClick={scrollLeft}
@@ -68,7 +68,7 @@ export default function CarouselRow({ title, endpoint, emptyMessage }) {
         <div
           ref={carouselRef}
           className="
-            flex gap-4 overflow-x-auto px-2 pb-2 scrollbar-thin scrollbar-thumb-zinc-800
+            flex gap-4 overflow-x-auto px-0 pb-2 scrollbar-thin scrollbar-thumb-zinc-800
             scroll-smooth hide-scrollbar snap-x snap-mandatory
           "
           tabIndex={0}

@@ -24,25 +24,24 @@ export default function CarouselRow({ title, endpoint }) {
       .finally(() => setLoading(false));
   }, [endpoint]);
 
-  // **Smaller cards**: 32vw on mobile, 28vw on small tablets, 9rem on desktop
+  /* Small cards: 32vw on phones, 28vw on tablets, fixed on desktop */
   const cardClass =
     "w-[32vw] sm:w-[28vw] md:w-36 aspect-[2/3] flex-shrink-0 snap-start rounded-xl overflow-hidden bg-zinc-900";
 
   return (
     <section className="mt-8 sm:mt-14">
-      <h3 className="text-lg sm:text-2xl font-bold px-4 sm:px-0 mb-2">
-        {title}
-      </h3>
+      <h3 className="text-lg sm:text-2xl font-bold px-4 sm:px-0 mb-2">{title}</h3>
+
       <div
-        className={`
+        className="
           flex gap-3 px-4 sm:px-0
           overflow-x-auto overflow-y-hidden
-          snap-x snap-mandatory scroll-smooth
-        `}
+          snap-x snap-mandatory scroll-smooth no-scrollbar
+        "
         style={{
           WebkitOverflowScrolling: "touch",   // iOS momentum
-          touchAction: "pan-x",               // instant pan
-          overscrollBehaviorX: "contain",     // no rubber-band
+          touchAction: "pan-x",               // allow horizontal swipe
+          overscrollBehaviorX: "contain",     // no rubber-band past edges
         }}
         aria-label={`${title} carousel`}
       >
@@ -62,10 +61,7 @@ export default function CarouselRow({ title, endpoint }) {
               />
             </div>
           ) : (
-            <div
-              key={i}
-              className={cardClass + " animate-pulse"}
-            />
+            <div key={i} className={cardClass + " animate-pulse"} />
           )
         )}
       </div>

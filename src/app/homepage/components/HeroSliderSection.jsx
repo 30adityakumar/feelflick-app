@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-// ─── Fetch featured “Now Playing” ─────────────────────────
+/* Fetch the “Now Playing” slides */
 async function fetchFeatured() {
   const apiKey = import.meta.env.VITE_TMDB_API_KEY;
   const res = await fetch(
@@ -11,7 +11,6 @@ async function fetchFeatured() {
   return (data.results || []).slice(0, 5);
 }
 
-// ─── Component ────────────────────────────────────────────
 export default function HeroSliderSection() {
   const nav = useNavigate();
   const [slides, setSlides] = useState([]);
@@ -23,7 +22,7 @@ export default function HeroSliderSection() {
 
   useEffect(() => {
     if (!slides.length) return;
-    const id = setInterval(() => setIdx(i => (i + 1) % slides.length), 5000);
+    const id = setInterval(() => setIdx((i) => (i + 1) % slides.length), 5000);
     return () => clearInterval(id);
   }, [slides]);
 
@@ -36,48 +35,32 @@ export default function HeroSliderSection() {
   return (
     <section className="w-full select-none">
       <div className="relative w-full overflow-hidden">
-        {/* Blurred, darkened backdrop */}
+        {/* Blurred, dark backdrop */}
         <img
           src={`https://image.tmdb.org/t/p/w1280${m.backdrop_path}`}
           alt=""
-          className="absolute inset-0 w-full h-full object-cover object-center scale-105"
-          draggable={false}
+          className="absolute inset-0 w-full h-full object-cover scale-105"
           style={{ filter: "blur(8px) brightness(0.5)" }}
+          draggable={false}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/70 to-transparent" />
 
-        {/* CONTENT */}
-        <div
-          className="
-            relative z-10 flex flex-col sm:flex-row
-            items-start sm:items-end
-            min-h-[350px]
-            px-4 py-6 sm:px-10 sm:py-8
-          "
-        >
-          {/* Poster */}
+        {/* Content */}
+        <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-end min-h-[350px] px-4 py-6 sm:px-10 sm:py-8">
           <img
             src={`https://image.tmdb.org/t/p/w500${m.poster_path}`}
             alt={m.title}
-            className="
-              w-28 h-40 sm:w-36 sm:h-52
-              rounded-xl
-              drop-shadow-2xl
-              flex-shrink-0
-            "
+            className="w-28 h-40 sm:w-36 sm:h-52 rounded-xl drop-shadow-2xl flex-shrink-0"
+            style={{ boxShadow: "0 8px 32px #0008" }}
             draggable={false}
-            style={{ boxShadow: "0 8px 32px #0008", outline: "none", border: "none" }}
           />
 
-          {/* Text block */}
           <div className="flex-1 mt-4 sm:mt-0 sm:ml-6 text-left min-w-0 pr-4">
             <h1 className="text-white text-xl sm:text-3xl font-extrabold mb-2 truncate">
               {m.title}
             </h1>
-
-            {/* Badges */}
             <div className="flex flex-wrap gap-2 mb-3">
-              {m.genre_ids?.slice(0, 2).map(g => (
+              {m.genre_ids?.slice(0, 2).map((g) => (
                 <span
                   key={g}
                   className="bg-zinc-800 text-zinc-200 text-xs px-2 py-0.5 rounded"
@@ -92,26 +75,20 @@ export default function HeroSliderSection() {
               )}
             </div>
 
-            {/* FULL description */}
             <p className="text-sm sm:text-base text-zinc-200 mb-4 leading-relaxed whitespace-normal">
               {m.overview}
             </p>
 
-            {/* Details button, no outline */}
             <button
               onClick={() => nav(`/movie/${m.id}`)}
-              className="
-                px-4 py-2 bg-orange-500 rounded-lg font-bold text-white
-                text-sm sm:text-base shadow hover:scale-105 transition
-                outline-none border-none focus:outline-none
-              "
+              className="px-4 py-2 bg-orange-500 rounded-lg font-bold text-white text-sm sm:text-base shadow hover:scale-105 transition outline-none border-none focus:outline-none"
             >
               Details
             </button>
           </div>
         </div>
 
-        {/* Pagination dots */}
+        {/* Dots */}
         <div className="absolute bottom-2 w-full flex justify-center gap-2">
           {slides.map((_, i) => (
             <button

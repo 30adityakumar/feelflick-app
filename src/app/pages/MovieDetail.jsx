@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Header from "@/app/header/Header";
+import { supabase } from "@/supabaseClient"; // update path if needed
 
 const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY;
 const TMDB_IMG = "https://image.tmdb.org/t/p/w500";
@@ -8,6 +9,8 @@ const TMDB_BACKDROP = "https://image.tmdb.org/t/p/original";
 
 export default function MovieDetail() {
   const { id } = useParams();
+  const [user, setUser] = useState(null);
+
   const [movie, setMovie] = useState(null);
   const [credits, setCredits] = useState(null);
   const [ratings, setRatings] = useState(null);
@@ -15,6 +18,20 @@ export default function MovieDetail() {
   const [similar, setSimilar] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Watchlist/Watched
+  const [watchlistStatus, setWatchlistStatus] = useState(null); // null | "want_to_watch" | "watched"
+  const [watchlistLoading, setWatchlistLoading] = useState(false);
+
+  // Fetch logged-in user
+  useEffect(() => {
+    async function getUser() {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    }
+    getUser();
+  }, []);
+
+  // Fetch movie info
   useEffect(() => {
     setLoading(true);
     async function fetchData() {
@@ -47,6 +64,53 @@ export default function MovieDetail() {
     }
     fetchData();
   }, [id]);
+
+  // Fetch user's watchlist status for this movie
+  useEffect(() => {
+    if (!user || !id) return;
+    setWatchlistLoading(true);
+    async function fetchWatchlistStatus() {
+      const { data, error } = await supabase
+        .from('user_watchlist')
+        .select('status')
+        .eq('user_id', user.id)
+        .eq('movie_id', id)
+        .single();
+      if (data) setWatchlistStatus(data.status);
+      else setWatchlistStatus(null);
+      setWatchlistLoading(false);
+    }
+    fetchWatchlistStatus();
+  }, [user, id]);
+
+  // Actions
+  async function handleAddToWatchlist() {
+    if (!user) return;
+    setWatchlistLoading(true);
+    await supabase
+      .from('user_watchlist')
+      .upsert({
+        user_id: user.id,
+        movie_id: id,
+        status: 'want_to_watch',
+      }, { onConflict: ['user_id', 'movie_id'] });
+    setWatchlistStatus('want_to_watch');
+    setWatchlistLoading(false);
+  }
+
+  async function handleMarkAsWatched() {
+    if (!user) return;
+    setWatchlistLoading(true);
+    await supabase
+      .from('user_watchlist')
+      .upsert({
+        user_id: user.id,
+        movie_id: id,
+        status: 'watched',
+      }, { onConflict: ['user_id', 'movie_id'] });
+    setWatchlistStatus('watched');
+    setWatchlistLoading(false);
+  }
 
   if (loading) return <div className="text-white text-center mt-16">Loading...</div>;
   if (!movie) return <div className="text-white">Movie not found.</div>;
@@ -131,19 +195,65 @@ export default function MovieDetail() {
                 )}
               </div>
               <div className="mt-5 flex flex-wrap items-center gap-3">
-                <button className="
-                  py-3 px-9 bg-gradient-to-r from-orange-400 to-red-500
-                  text-white font-bold text-[17px] rounded-[9px]
-                  shadow transition hover:scale-105 active:scale-100 mr-2
-                ">
-                  Add to Watchlist
-                </button>
-                <button className="
-                  py-3 px-7 bg-[#444] text-white font-bold text-[16px] rounded-lg
-                  transition hover:scale-105 active:scale-100
-                ">
-                  Mark as Watched
-                </button>
+                {/* Add to Watchlist */}
+                {watchlistStatus === "want_to_watch" ? (
+                  <button
+                    className="
+                      py-3 px-9 bg-[#1b2530] text-orange-400 border border-orange-400 font-bold text-[17px] rounded-[9px]
+                      cursor-default mr-2
+                    "
+                    disabled
+                  >
+                    Already in Watchlist
+                  </button>
+                ) : watchlistStatus === "watched" ? (
+                  <button
+                    className="
+                      py-3 px-9 bg-[#282828] text-zinc-400 font-bold text-[17px] rounded-[9px]
+                      cursor-default mr-2
+                    "
+                    disabled
+                  >
+                    Already Watched
+                  </button>
+                ) : (
+                  <button
+                    className="
+                      py-3 px-9 bg-gradient-to-r from-orange-400 to-red-500
+                      text-white font-bold text-[17px] rounded-[9px]
+                      shadow transition hover:scale-105 active:scale-100 mr-2
+                    "
+                    onClick={handleAddToWatchlist}
+                    disabled={watchlistLoading}
+                  >
+                    {watchlistLoading ? "Adding..." : "Add to Watchlist"}
+                  </button>
+                )}
+
+                {/* Mark as Watched */}
+                {watchlistStatus === "watched" ? (
+                  <button
+                    className="
+                      py-3 px-7 bg-[#444] text-green-400 font-bold text-[16px] rounded-lg
+                      cursor-default
+                    "
+                    disabled
+                  >
+                    Already Watched
+                  </button>
+                ) : (
+                  <button
+                    className="
+                      py-3 px-7 bg-[#444] text-white font-bold text-[16px] rounded-lg
+                      transition hover:scale-105 active:scale-100
+                    "
+                    onClick={handleMarkAsWatched}
+                    disabled={watchlistLoading}
+                  >
+                    {watchlistLoading ? "Marking..." : "Mark as Watched"}
+                  </button>
+                )}
+
                 {trailer && (
                   <a
                     href={`https://www.youtube.com/watch?v=${trailer.key}`}

@@ -132,6 +132,7 @@ export default function App() {
         <Route path="/auth/sign-up" element={<AuthPage mode="sign-up" />} />
         <Route path="/auth/reset-password" element={<ResetPassword />} />
         <Route path="/auth/confirm" element={<ConfirmEmail />} />
+        <Route path="/watchlist" element={<Watchlist />} />
         <Route
           path="/onboarding"
           element={

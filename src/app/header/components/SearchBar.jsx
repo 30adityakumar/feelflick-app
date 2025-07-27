@@ -45,8 +45,6 @@ export default function SearchBar() {
     return () => clearTimeout(searchDebounce.current);
   }, [search]);
 
-  // keyboard shortcuts, click-outside, etc (no change from your last version)...
-
   useEffect(() => {
     const onKey = e => {
       if (e.key === "/" && document.activeElement.tagName !== "INPUT") {
@@ -99,8 +97,7 @@ export default function SearchBar() {
     navigate(`/movie/${movie.id}`);
   };
 
-  // Results dropdown, etc, unchanged...
-
+  // Dropdown grid, same width as bar
   const SearchResultsDropdown = ({ mobile = false }) => {
     if (!search && !isLoading) return null;
     return (
@@ -203,6 +200,7 @@ export default function SearchBar() {
 
   return (
     <>
+      {/* Outer relative container sets width for bar and dropdown */}
       <div className="relative w-full h-10 px-3 sm:px-5">
         {renderInput()}
         {searchOpen && <SearchResultsDropdown />}

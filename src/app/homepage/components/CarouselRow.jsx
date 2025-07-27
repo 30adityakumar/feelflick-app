@@ -25,7 +25,8 @@ export default function CarouselRow({ title, endpoint, emptyMessage }) {
       .finally(() => setLoading(false));
   }, [endpoint]);
 
-  const cardClass = "w-[42vw] md:w-32 aspect-[2/3]";
+  // Smaller, more cards visible on mobile
+  const cardClass = "w-[31vw] md:w-28 aspect-[2/3]";
 
   return (
     <section className="w-full m-0 p-0">
@@ -35,7 +36,7 @@ export default function CarouselRow({ title, endpoint, emptyMessage }) {
       <div className="relative">
         <div
           ref={carouselRef}
-          className="flex gap-3 md:gap-5 overflow-x-auto p-0 m-0 scrollbar-thin scroll-smooth hide-scrollbar snap-x snap-mandatory"
+          className="flex gap-2 md:gap-5 overflow-x-auto p-0 m-0 scrollbar-thin scroll-smooth hide-scrollbar snap-x snap-mandatory"
           tabIndex={0}
           style={{ WebkitOverflowScrolling: "touch" }}
         >

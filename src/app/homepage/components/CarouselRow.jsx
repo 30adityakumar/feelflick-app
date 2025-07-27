@@ -3,91 +3,51 @@ import { useNavigate } from "react-router-dom";
 
 async function fetchMovies(endpoint) {
   const apiKey = import.meta.env.VITE_TMDB_API_KEY;
-  const url = `https://api.themoviedb.org/3/movie/${endpoint}?api_key=${apiKey}&language=en-US&page=1`;
-  const res = await fetch(url);
+  const res = await fetch(
+    `https://api.themoviedb.org/3/movie/${endpoint}?api_key=${apiKey}&language=en-US&page=1`
+  );
   const data = await res.json();
-  return (data.results || []).filter(m => !!m.poster_path);
+  return (data.results || []).filter(m => m.poster_path);
 }
 
-export default function CarouselRow({ title, endpoint, emptyMessage }) {
+export default function CarouselRow({ title, endpoint }) {
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const carouselRef = useRef();
-  const navigate = useNavigate();
+  const nav  = useNavigate();
 
   useEffect(() => {
     setLoading(true);
-    setError(null);
-    fetchMovies(endpoint)
-      .then(setMovies)
-      .catch(() => setError("Could not fetch movies."))
-      .finally(() => setLoading(false));
+    fetchMovies(endpoint).then(setMovies).finally(() => setLoading(false));
   }, [endpoint]);
 
-  // Make card wider and never let it fill row so scroll is always available
-  const cardClass = "w-[39vw] h-[55vw] md:w-36 md:h-52 flex-shrink-0";
+  /* -- CARD SIZE: large enough that a row is WIDER than viewport so mobile must scroll */
+  const card = "w-[40vw] md:w-40 aspect-[2/3] flex-shrink-0";
 
   return (
-    <section className="w-full m-0 p-0 mt-8 md:mt-14">
-      <div className="flex items-center gap-2 px-4 md:px-0 pt-0 pb-2">
-        <h3 className="text-lg md:text-2xl font-bold tracking-tight flex-1">{title}</h3>
-      </div>
-      <div className="relative">
-        <div
-          ref={carouselRef}
-          className="flex flex-nowrap gap-3 md:gap-6 overflow-x-auto min-w-0 p-0 m-0 px-3 md:px-0 scrollbar-thin scroll-smooth hide-scrollbar snap-x snap-mandatory"
-          tabIndex={0}
-          style={{ WebkitOverflowScrolling: "touch" }}
-        >
-          {loading &&
-            Array.from({ length: 6 }).map((_, i) => (
-              <div
-                key={i}
-                className={`${cardClass} rounded-xl bg-zinc-900 animate-pulse`}
-              />
-            ))}
-          {error && (
-            <div className="p-4 text-red-400 font-semibold">{error}</div>
-          )}
-          {!loading && !error && movies.length === 0 && (
-            emptyMessage ? (
-              <div className="p-4">{emptyMessage}</div>
-            ) : (
-              <div className="p-4 text-zinc-400">No movies found here.</div>
-            )
-          )}
-          {movies.map(movie => (
+    <section className="mt-8 md:mt-14">
+      <h3 className="text-lg md:text-2xl font-bold px-4 md:px-0 mb-2">{title}</h3>
+
+      <div
+        className="flex flex-nowrap overflow-x-scroll scrollbar-thin snap-x snap-mandatory px-4 md:px-0 gap-3 md:gap-6"
+        style={{ WebkitOverflowScrolling: "touch" }}   /* iOS momentum */
+      >
+        {(loading ? [...Array(5)] : movies).map((m, i) => (
+          m ? (
             <div
-              key={movie.id}
-              className={`
-                ${cardClass} min-w-0 rounded-xl overflow-hidden bg-zinc-900
-                cursor-pointer transition hover:scale-105 hover:shadow-xl focus-within:scale-105
-                snap-start group
-              `}
-              tabIndex={0}
-              role="button"
-              aria-label={`Open details for ${movie.title}`}
-              onClick={() => navigate(`/movie/${movie.id}`)}
-              onKeyDown={e => {
-                if (e.key === "Enter" || e.key === " ") {
-                  navigate(`/movie/${movie.id}`);
-                }
-              }}
+              key={m.id}
+              className={`${card} rounded-xl bg-zinc-900 overflow-hidden snap-start hover:scale-105 transition`}
+              onClick={() => nav(`/movie/${m.id}`)}
             >
               <img
-                src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                alt={movie.title}
-                className="object-cover w-full h-full"
-                draggable={false}
-                loading="lazy"
+                src={`https://image.tmdb.org/t/p/w500${m.poster_path}`}
+                alt={m.title}
+                className="w-full h-full object-cover"
               />
-              <div className="w-full bg-zinc-950/90 py-1 px-1 text-xs font-semibold text-white text-center truncate block md:hidden">
-                {movie.title}
-              </div>
             </div>
-          ))}
-        </div>
+          ) : (
+            <div key={i} className={`${card} rounded-xl bg-zinc-800 animate-pulse`} />
+          )
+        ))}
       </div>
     </section>
   );

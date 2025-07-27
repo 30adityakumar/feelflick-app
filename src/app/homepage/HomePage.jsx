@@ -88,8 +88,8 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-      {/* Rows (no outer padding on mobile) */}
-      <div className="flex flex-col gap-10 md:gap-14 w-full md:max-w-[1100px] mx-0 md:mx-auto px-0">
+      {/* Carousels: edge-to-edge, no left/right gap on mobile */}
+      <div className="flex flex-col gap-10 md:gap-14 w-full mx-0 px-0 md:max-w-[1100px] md:mx-auto">
         <CarouselRow
           title={<span className="inline-flex items-center gap-2 text-orange-300 font-semibold"><Flame size={18} /> Popular&nbsp;Now</span>}
           endpoint="popular"

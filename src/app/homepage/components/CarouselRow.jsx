@@ -1,5 +1,3 @@
-// CarouselRow.jsx
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -22,28 +20,32 @@ export default function CarouselRow({ title, endpoint }) {
     fetchMovies(endpoint).then(setMovies).finally(() => setLoading(false));
   }, [endpoint]);
 
-  // Improved mobile-first responsive sizing
+  // Cards small enough to show multiple items—scrollable on desktop & mobile
   const cardClass =
-    "w-[28vw] min-w-[120px] sm:w-[24vw] sm:min-w-[140px] sm:max-w-[160px] md:w-36 aspect-[2/3] flex-shrink-0 snap-start rounded-xl overflow-hidden bg-zinc-900 touch-manipulation";
+    "w-[28vw] min-w-[120px] sm:w-[24vw] sm:min-w-[140px] sm:max-w-[160px] md:w-36 aspect-[2/3] flex-shrink-0 snap-start rounded-xl overflow-hidden bg-zinc-900";
 
   return (
-    <div className="mb-6 sm:mb-8">
+    <section className="mb-6 sm:mb-8">
       <h2 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4 px-3 sm:px-4">{title}</h2>
-      <div 
-        className="flex gap-3 sm:gap-4 px-3 sm:px-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2"
+
+      <div
+        className="
+          flex gap-3 sm:gap-4 px-3 sm:px-4
+          overflow-x-auto overflow-y-hidden
+          snap-x snap-mandatory scroll-smooth
+          scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent
+        "
         style={{
-          // Enhanced mobile scrolling
-          WebkitOverflowScrolling: 'touch',
-          scrollbarWidth: 'none',
-          msOverflowStyle: 'none',
-          touchAction: 'pan-x'
+          WebkitOverflowScrolling: "touch",   // iOS momentum
+          touchAction: "pan-x",               // allow swipe
+          overscrollBehaviorX: "contain",     // no edge bounce
         }}
       >
         {(loading ? Array(6).fill(null) : movies).map((m, i) =>
           m ? (
             <div
               key={m.id}
-              className={cardClass}
+              className={cardClass + " hover:scale-105 transition"}
               onClick={() => nav(`/movie/${m.id}`)}
               style={{ cursor: "pointer" }}
             >
@@ -55,12 +57,10 @@ export default function CarouselRow({ title, endpoint }) {
               />
             </div>
           ) : (
-            <div key={i} className={cardClass}>
-              <div className="w-full h-full bg-zinc-800 animate-pulse" />
-            </div>
+            <div key={i} className={cardClass + " animate-pulse"} />
           )
         )}
       </div>
-    </div>
+    </section>
   );
 }

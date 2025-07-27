@@ -25,8 +25,8 @@ export default function CarouselRow({ title, endpoint, emptyMessage }) {
       .finally(() => setLoading(false));
   }, [endpoint]);
 
-  // Smaller, always scrollable
-  const cardClass = "w-[34vw] h-[49vw] md:w-36 md:h-52 mx-1";
+  // Make card wider and never let it fill row so scroll is always available
+  const cardClass = "w-[39vw] h-[55vw] md:w-36 md:h-52 flex-shrink-0";
 
   return (
     <section className="w-full m-0 p-0 mt-8 md:mt-14">
@@ -36,7 +36,7 @@ export default function CarouselRow({ title, endpoint, emptyMessage }) {
       <div className="relative">
         <div
           ref={carouselRef}
-          className="flex flex-nowrap gap-0 md:gap-6 overflow-x-auto min-w-0 p-0 m-0 px-3 md:px-0 scrollbar-thin scroll-smooth hide-scrollbar snap-x snap-mandatory"
+          className="flex flex-nowrap gap-3 md:gap-6 overflow-x-auto min-w-0 p-0 m-0 px-3 md:px-0 scrollbar-thin scroll-smooth hide-scrollbar snap-x snap-mandatory"
           tabIndex={0}
           style={{ WebkitOverflowScrolling: "touch" }}
         >
@@ -61,7 +61,7 @@ export default function CarouselRow({ title, endpoint, emptyMessage }) {
             <div
               key={movie.id}
               className={`
-                ${cardClass} flex-shrink-0 min-w-0 rounded-xl overflow-hidden bg-zinc-900
+                ${cardClass} min-w-0 rounded-xl overflow-hidden bg-zinc-900
                 cursor-pointer transition hover:scale-105 hover:shadow-xl focus-within:scale-105
                 snap-start group
               `}

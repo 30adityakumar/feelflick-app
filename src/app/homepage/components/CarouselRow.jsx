@@ -1,4 +1,4 @@
-// Enhanced CarouselRow.jsx - CORRECTED VERSION
+// CarouselRow.jsx - FIXED VERSION
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -8,7 +8,7 @@ async function fetchMovies(endpoint) {
     `https://api.themoviedb.org/3/movie/${endpoint}?api_key=${apiKey}&language=en-US&page=1`
   );
   const data = await res.json();
-  return (data.results || []).filter(m => m.poster_path);
+  return (data.results || []).filter
 }
 
 export default function CarouselRow({ title, endpoint }) {
@@ -16,7 +16,8 @@ export default function CarouselRow({ title, endpoint }) {
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useStateRef = useRef(null);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+  const scrollRef = useRef(null);
 
   useEffect(() => {
     setLoading(true);
@@ -43,7 +44,8 @@ export default function CarouselRow({ title, endpoint }) {
     }
   };
 
-  // Optimized card sizing - inspired by Prime Video's responsive approach
+  // Rest of your component code remains the same...
+  // [Include all the JSX and styling from the previous response]
   const cardClass = `
     w-[30vw] min-w-[120px] max-w-[160px] 
     sm:w-[22vw] sm:min-w-[140px] sm:max-w-[180px]
@@ -109,7 +111,6 @@ export default function CarouselRow({ title, endpoint }) {
             snap-x snap-mandatory scroll-smooth
             scrollbar-hide
             overscroll-behavior-x-contain
-            -webkit-overflow-scrolling-touch
           "
           style={{
             WebkitOverflowScrolling: "touch",

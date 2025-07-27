@@ -14,6 +14,8 @@ import Account from "@/app/header/components/Account";
 import Preferences from "@/app/header/components/Preferences";
 import MovieDetail from "@/app/pages/MovieDetail";
 import HistoryPage from "@/app/pages/watched/WatchedTab";
+import Watchlist from "@/app/pages/watchlist/Watchlist"; 
+
 
 // ---- Only ONE declaration of each! ----
 function TrendingPage()   { return <div className="p-8">Trending Coming Soon!</div>; }

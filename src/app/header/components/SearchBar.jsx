@@ -16,7 +16,7 @@ export default function SearchBar() {
   const dropdownRef = useRef(null);
   const searchDebounce = useRef();
 
-  /* ---------------- TMDb search ---------------- */
+  // TMDb-powered search logic...
   useEffect(() => {
     if (!search) { setResults([]); setIsLoading(false); return; }
     setIsLoading(true);
@@ -45,7 +45,8 @@ export default function SearchBar() {
     return () => clearTimeout(searchDebounce.current);
   }, [search]);
 
-  /* ---------------- keyboard shortcuts ---------------- */
+  // keyboard shortcuts, click-outside, etc (no change from your last version)...
+
   useEffect(() => {
     const onKey = e => {
       if (e.key === "/" && document.activeElement.tagName !== "INPUT") {
@@ -69,7 +70,6 @@ export default function SearchBar() {
     return () => window.removeEventListener("keydown", onKey);
   }, [searchOpen, results, highlighted]);
 
-  /* ---------------- click-outside to close dropdown ---------------- */
   useEffect(() => {
     const onClick = e => {
       if (
@@ -85,7 +85,6 @@ export default function SearchBar() {
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
 
-  /* ---------------- helpers ---------------- */
   const clearSearch = () => {
     setSearch("");
     setResults([]);
@@ -100,8 +99,9 @@ export default function SearchBar() {
     navigate(`/movie/${movie.id}`);
   };
 
-  /* ---------------- result dropdown component ---------------- */
-  const SearchResultsDropdown = ({ mobile=false }) => {
+  // Results dropdown, etc, unchanged...
+
+  const SearchResultsDropdown = ({ mobile = false }) => {
     if (!search && !isLoading) return null;
     return (
       <div
@@ -148,7 +148,6 @@ export default function SearchBar() {
     );
   };
 
-  /* ---------------- shared input element ---------------- */
   const renderInput = (mobile = false) => (
     <div className="flex items-center h-10 bg-[#23212b] rounded-full px-3 sm:px-5 w-full">
       <input
@@ -160,7 +159,7 @@ export default function SearchBar() {
         aria-label="Search movies"
         className="
           flex-1 h-10 bg-transparent text-white text-sm leading-tight
-          pl-7 border-none outline-none font-light placeholder-zinc-500
+          pl-4 border-none outline-none font-light placeholder-zinc-500
         "
         style={{ fontFamily: "Inter, sans-serif", minWidth: 0 }}
         onKeyDown={e => { if (e.key === "ArrowDown" && results.length) setHighlighted(0); }}
@@ -169,21 +168,30 @@ export default function SearchBar() {
         <button
           onClick={clearSearch}
           aria-label="Clear search"
-          className="inline-flex items-center justify-center h-10 w-10 text-zinc-400 hover:text-red-400 bg-transparent"
+          className="inline-flex items-center justify-center h-10 w-10 text-zinc-400 hover:text-red-400 bg-transparent border-none shadow-none outline-none p-0 m-0"
+          style={{
+            border: "none",
+            boxShadow: "none",
+            background: "transparent",
+          }}
         >
           <XIcon size={18} />
         </button>
       )}
       <button
         aria-label="Search"
-        className="inline-flex items-center justify-center h-10 w-10 bg-transparent"
+        className="inline-flex items-center justify-center h-10 w-10 bg-transparent border-none shadow-none outline-none"
+        style={{
+          border: "none",
+          boxShadow: "none",
+          background: "transparent",
+        }}
       >
         <SearchIcon size={18} color="#aaa" />
       </button>
     </div>
   );
 
-  /* ---------------- mobile modal ---------------- */
   const MobileSearchModal = () => (
     <div className="fixed inset-0 bg-[#101016f2] z-50 flex items-start pt-10 px-3 animate-fadeIn">
       <div className="relative w-full max-w-xl mx-auto">
@@ -193,23 +201,17 @@ export default function SearchBar() {
     </div>
   );
 
-  /* ---------------- render ---------------- */
   return (
     <>
       <div className="relative w-full h-10 px-3 sm:px-5">
         {renderInput()}
         {searchOpen && <SearchResultsDropdown />}
       </div>
-
       {showMobileSearch && <MobileSearchModal />}
-
-      {/* Styles */}
       <style>{`
         @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); }
                             to   { opacity: 1; transform: translateY(0); } }
         .animate-fadeIn { animation: fadeIn 0.22s both; }
-
-        /* poster size tweaks */
         @media (max-width:600px){
           .search-poster{width:33px;height:49px;border-radius:6px}
         }

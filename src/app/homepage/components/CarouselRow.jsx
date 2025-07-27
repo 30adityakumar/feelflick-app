@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-// Helper: fetch from TMDb endpoints
 async function fetchMovies(endpoint) {
   const apiKey = import.meta.env.VITE_TMDB_API_KEY;
   const url = `https://api.themoviedb.org/3/movie/${endpoint}?api_key=${apiKey}&language=en-US&page=1`;
@@ -28,21 +27,22 @@ export default function CarouselRow({ title, endpoint, emptyMessage }) {
   }, [endpoint]);
 
   function scrollLeft() {
-    carouselRef.current.scrollBy({ left: -260, behavior: "smooth" });
+    carouselRef.current.scrollBy({ left: -210, behavior: "smooth" });
   }
   function scrollRight() {
-    carouselRef.current.scrollBy({ left: 260, behavior: "smooth" });
+    carouselRef.current.scrollBy({ left: 210, behavior: "smooth" });
   }
 
   return (
-    <section className="w-full">
-      <div className="flex items-center gap-3 px-0 pb-1 pt-0 sm:px-2 sm:pt-0">
-        <h3 className="text-lg md:text-xl font-bold tracking-tight flex-1 pl-3 sm:pl-0">
+    <section className="w-full m-0 p-0">
+      {/* Title Row: absolutely zero margin/padding on mobile */}
+      <div className="flex items-center gap-2 pl-0 pr-0 pt-0 pb-1">
+        <h3 className="text-lg md:text-xl font-bold tracking-tight flex-1 pl-2 md:pl-0">
           {title}
         </h3>
-        {/* Arrows (hide on mobile if few items) */}
+        {/* Hide arrows on mobile, only show on desktop if many cards */}
         {movies.length > 5 && (
-          <div className="flex gap-2 pr-3 sm:pr-0">
+          <div className="hidden sm:flex gap-2 pr-3">
             <button
               className="p-1 rounded-full hover:bg-zinc-800 active:scale-95 transition disabled:opacity-30"
               onClick={scrollLeft}
@@ -64,29 +64,28 @@ export default function CarouselRow({ title, endpoint, emptyMessage }) {
           </div>
         )}
       </div>
+      {/* Carousel: no px or margin, tighter gap on mobile */}
       <div className="relative">
         <div
           ref={carouselRef}
           className="
-            flex gap-4 overflow-x-auto px-0 pb-2 scrollbar-thin scrollbar-thumb-zinc-800
+            flex gap-2 md:gap-4 overflow-x-auto p-0 m-0
+            scrollbar-thin scrollbar-thumb-zinc-800
             scroll-smooth hide-scrollbar snap-x snap-mandatory
           "
           tabIndex={0}
           style={{ WebkitOverflowScrolling: "touch" }}
         >
-          {/* Loading */}
           {loading &&
             Array.from({ length: 5 }).map((_, i) => (
               <div
                 key={i}
-                className="w-28 md:w-36 aspect-[2/3] rounded-lg bg-zinc-900 animate-pulse"
+                className="w-24 md:w-32 aspect-[2/3] rounded-lg bg-zinc-900 animate-pulse"
               />
             ))}
-          {/* Error */}
           {error && (
             <div className="p-4 text-red-400 font-semibold">{error}</div>
           )}
-          {/* No results */}
           {!loading && !error && movies.length === 0 && (
             emptyMessage ? (
               <div className="p-4">{emptyMessage}</div>
@@ -94,12 +93,11 @@ export default function CarouselRow({ title, endpoint, emptyMessage }) {
               <div className="p-4 text-zinc-400">No movies found here.</div>
             )
           )}
-          {/* Movie Cards */}
           {movies.map(movie => (
             <div
               key={movie.id}
               className="
-                w-28 md:w-36 aspect-[2/3] flex-shrink-0 rounded-lg overflow-hidden bg-zinc-900
+                w-24 md:w-32 aspect-[2/3] flex-shrink-0 rounded-lg overflow-hidden bg-zinc-900
                 cursor-pointer transition hover:scale-105 hover:shadow-lg focus-within:scale-105
                 snap-start group
               "

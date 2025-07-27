@@ -50,7 +50,7 @@ function AppLayout({ user, onSignOut, children }) {
       <Sidebar />
       <div className="flex-1 relative md:ml-20">
         <Header user={user} onSignOut={onSignOut} />
-        <main className="pb-10 pt-24 w-full overflow-x-hidden">{children}</main>
+        <main className="pb-10 pt-[60px] w-full overflow-x-hidden">{children}</main>
       </div>
     </div>
   );

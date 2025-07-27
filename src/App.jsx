@@ -50,11 +50,19 @@ function AppLayout({ user, onSignOut, children }) {
       <Sidebar />
       <div className="flex-1 relative md:ml-20">
         <Header user={user} onSignOut={onSignOut} />
-        <main className="pb-10 pt-[60px] w-full">{children}</main>
+
+        {/* ⬇︎ DO NOT block horizontal overflow here ⬇︎ */}
+        <main
+          className="pb-10 pt-[60px] w-full"
+          style={{ overflowX: "visible" }}   // explicitly allow row to scroll
+        >
+          {children}
+        </main>
       </div>
     </div>
   );
 }
+
 
 export default function App() {
   // ✅ Use `undefined` so we know if session has been checked yet

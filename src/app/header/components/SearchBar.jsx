@@ -16,7 +16,7 @@ export default function SearchBar() {
   const dropdownRef = useRef(null);
   const searchDebounce = useRef();
 
-  // TMDb-powered search
+  /* ---------------- TMDb search ---------------- */
   useEffect(() => {
     if (!search) { setResults([]); setIsLoading(false); return; }
     setIsLoading(true);
@@ -29,12 +29,12 @@ export default function SearchBar() {
         .then(data => {
           setResults(
             (data.results || [])
-              .filter(m => !!m.title && m.poster_path)
+              .filter(m => m.title && m.poster_path)
               .slice(0, window.innerWidth < 640 ? 5 : 8)
               .map(m => ({
                 id: m.id,
                 title: m.title,
-                year: m.release_date ? m.release_date.slice(0, 4) : "",
+                year: m.release_date?.slice(0, 4) || "",
                 poster: `https://image.tmdb.org/t/p/w154${m.poster_path}`,
               }))
           );
@@ -45,40 +45,33 @@ export default function SearchBar() {
     return () => clearTimeout(searchDebounce.current);
   }, [search]);
 
-  // Keyboard shortcuts and dropdown nav
+  /* ---------------- keyboard shortcuts ---------------- */
   useEffect(() => {
-    const onKey = (e) => {
+    const onKey = e => {
       if (e.key === "/" && document.activeElement.tagName !== "INPUT") {
         e.preventDefault();
-        if (window.innerWidth < 640) setShowMobileSearch(true);
-        else inputRef.current?.focus();
+        window.innerWidth < 640 ? setShowMobileSearch(true) : inputRef.current?.focus();
       }
-      if (searchOpen && results.length > 0) {
+      if (searchOpen && results.length) {
         if (["ArrowDown", "ArrowUp"].includes(e.key)) {
           e.preventDefault();
-          setHighlighted(prev => {
-            if (e.key === "ArrowDown") return prev < results.length - 1 ? prev + 1 : 0;
-            if (e.key === "ArrowUp") return prev > 0 ? prev - 1 : results.length - 1;
-            return prev;
-          });
+          setHighlighted(p =>
+            e.key === "ArrowDown"
+              ? (p + 1) % results.length
+              : (p - 1 + results.length) % results.length
+          );
         }
-        if (e.key === "Enter" && highlighted >= 0 && results[highlighted]) {
-          e.preventDefault();
-          handleSelect(results[highlighted]);
-        }
-        if (e.key === "Escape") {
-          setSearchOpen(false);
-          setHighlighted(-1);
-        }
+        if (e.key === "Enter" && highlighted >= 0) handleSelect(results[highlighted]);
+        if (e.key === "Escape") { setSearchOpen(false); setHighlighted(-1); }
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [searchOpen, results, highlighted]);
 
-  // Click outside dropdown to close
+  /* ---------------- click-outside to close dropdown ---------------- */
   useEffect(() => {
-    function handleClick(e) {
+    const onClick = e => {
       if (
         dropdownRef.current &&
         !dropdownRef.current.contains(e.target) &&
@@ -87,11 +80,12 @@ export default function SearchBar() {
         setSearchOpen(false);
         setHighlighted(-1);
       }
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
   }, []);
 
+  /* ---------------- helpers ---------------- */
   const clearSearch = () => {
     setSearch("");
     setResults([]);
@@ -101,248 +95,128 @@ export default function SearchBar() {
     inputRef.current?.blur();
   };
 
-  function handleSelect(movie) {
+  const handleSelect = movie => {
     clearSearch();
     navigate(`/movie/${movie.id}`);
-  }
+  };
 
-  function highlightMatch(title, query) {
-    if (!query) return title;
-    const i = title.toLowerCase().indexOf(query.toLowerCase());
-    if (i === -1) return title;
-    return (
-      <>
-        {title.slice(0, i)}
-        <b className="font-bold bg-clip-text text-orange-300">{title.slice(i, i + query.length)}</b>
-        {title.slice(i + query.length)}
-      </>
-    );
-  }
-
-  // --- Search results dropdown ---
-  function SearchResultsDropdown({ mobile }) {
+  /* ---------------- result dropdown component ---------------- */
+  const SearchResultsDropdown = ({ mobile=false }) => {
     if (!search && !isLoading) return null;
     return (
       <div
         ref={dropdownRef}
         className={`absolute left-0 right-0 ${mobile ? "top-16" : "top-12"}
-            bg-[#191820] rounded-2xl shadow-2xl z-40 p-1 mt-1 ring-1 ring-orange-400/10
-            transition-opacity duration-200
-            ${searchOpen && results.length > 0 ? "opacity-100" : "opacity-0 pointer-events-none"}
-        `}
-        style={{ maxHeight: "430px", overflowY: "auto" }}
+          bg-[#191820] rounded-2xl shadow-2xl z-40 p-1 mt-1 ring-1 ring-orange-400/10
+          transition-opacity duration-200
+          ${searchOpen && results.length ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+        style={{ maxHeight: 430, overflowY: "auto" }}
       >
         {isLoading && (
-          <div className="flex items-center justify-center text-orange-400 py-4">
-            <svg className="animate-spin h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24">
+          <div className="flex justify-center items-center text-orange-400 py-4">
+            <svg className="mr-2 h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+              <path className="opacity-75" d="M4 12a8 8 0 018-8v8z" fill="currentColor" />
             </svg>
             Loading…
           </div>
         )}
-        {!isLoading && results.length > 0 &&
-          results.map((m, idx) => (
-            <div
-              key={m.id}
-              onClick={() => handleSelect(m)}
-              className={`
-                flex items-center gap-3 cursor-pointer px-2.5 py-2 rounded-lg transition
-                ${highlighted === idx ? "bg-[#23212b] scale-[1.02] text-orange-300" : "hover:bg-[#23212b]"}
-              `}
-              tabIndex={0}
-              role="button"
-              aria-label={`View details for ${m.title}`}
-            >
-              <img
-                src={m.poster}
-                alt={m.title}
-                className="searchbar-poster shadow border border-zinc-700 bg-[#16151c] object-cover"
-                style={{ display: "block" }}
-              />
-              <div className="flex flex-col min-w-0">
-                <span className="font-semibold text-[16px] truncate">
-                  {highlightMatch(m.title, search)}
-                </span>
-                <span className="text-xs text-zinc-400">
-                  {m.year}
-                </span>
-              </div>
+        {!isLoading && results.map((m, i) => (
+          <div
+            key={m.id}
+            onClick={() => handleSelect(m)}
+            className={`
+              flex items-center gap-3 cursor-pointer px-2.5 py-2 rounded-lg transition
+              ${i === highlighted ? "bg-[#23212b] scale-[1.02] text-orange-300" : "hover:bg-[#23212b]"}
+            `}
+          >
+            <img
+              src={m.poster}
+              alt={m.title}
+              className="search-poster border border-zinc-700 bg-[#16151c] object-cover shadow"
+            />
+            <div className="flex flex-col min-w-0">
+              <span className="truncate text-[15px] font-semibold">{m.title}</span>
+              <span className="text-xs text-zinc-400">{m.year}</span>
             </div>
-          ))
-        }
-        {!isLoading && search && results.length === 0 && (
-          <div className="text-zinc-400 text-center px-5 py-3">No movies found. Try another title!</div>
+          </div>
+        ))}
+        {!isLoading && search && !results.length && (
+          <div className="text-center text-zinc-400 py-3">No movies found. Try another title!</div>
         )}
       </div>
     );
-  }
+  };
 
-  // --- Mobile search modal ---
-  function MobileSearchModal() {
-    return (
-      <div className="fixed inset-0 bg-[#101016f2] z-50 flex items-start pt-10 px-3 animate-fadeIn">
-        <div className="relative w-full max-w-xl mx-auto">
-          {/* Main input row - MOBILE */}
-          <div className="flex items-center h-10 bg-[#23212b] rounded-full px-3 sm:px-5 w-full">
-            <input
-  value={search}
-  ref={inputRef}
-  onFocus={() => { setSearchOpen(true); setHighlighted(-1); }}
-  onChange={e => setSearch(e.target.value)}
-  placeholder="Search movies…"
-  aria-label="Search movies"
-  className={`
-    flex-1 h-10 bg-transparent text-white text-sm leading-tight pt-[2px] pl-7
-    border-none outline-none font-sans font-light shadow
-    placeholder-zinc-400 placeholder:font-light placeholder:text-sm
-    transition duration-200
-  `}
-  style={{
-    fontFamily: "Inter, sans-serif",
-    boxShadow: "none",
-    border: "none",
-    minWidth: 0,
-  }}
-  onKeyDown={e => {
-    if (e.key === "ArrowDown" && results.length > 0) {
-      setHighlighted(0);
-    }
-  }}
-/>
+  /* ---------------- shared input element ---------------- */
+  const renderInput = (mobile = false) => (
+    <div className="flex items-center h-10 bg-[#23212b] rounded-full px-3 sm:px-5 w-full">
+      <input
+        ref={mobile ? undefined : inputRef}
+        value={search}
+        onFocus={() => { setSearchOpen(true); setHighlighted(-1); }}
+        onChange={e => setSearch(e.target.value)}
+        placeholder="Search movies…"
+        aria-label="Search movies"
+        className="
+          flex-1 h-10 bg-transparent text-white text-sm leading-tight
+          pl-7 border-none outline-none font-light placeholder-zinc-500
+        "
+        style={{ fontFamily: "Inter, sans-serif", minWidth: 0 }}
+        onKeyDown={e => { if (e.key === "ArrowDown" && results.length) setHighlighted(0); }}
+      />
+      {search && (
+        <button
+          onClick={clearSearch}
+          aria-label="Clear search"
+          className="inline-flex items-center justify-center h-10 w-10 text-zinc-400 hover:text-red-400 bg-transparent"
+        >
+          <XIcon size={18} />
+        </button>
+      )}
+      <button
+        aria-label="Search"
+        className="inline-flex items-center justify-center h-10 w-10 bg-transparent"
+      >
+        <SearchIcon size={18} color="#aaa" />
+      </button>
+    </div>
+  );
 
-
-            {search && (
-              <button
-                className="inline-flex items-center justify-center h-10 w-10 text-zinc-400 hover:text-red-400 bg-transparent border-none shadow-none outline-none p-0 m-0"
-                onClick={clearSearch}
-                aria-label="Clear search"
-                tabIndex={0}
-                style={{
-                  boxShadow: "none",
-                  border: "none",
-                  background: "transparent"
-                }}
-              >
-                <XIcon size={18} />
-              </button>
-            )}
-            <button
-              tabIndex={0}
-              aria-label="Search"
-              type="button"
-              className="inline-flex items-center justify-center h-10 w-10 bg-transparent p-0 shadow-none border-none outline-none"
-              style={{
-                boxShadow: "none",
-                border: "none",
-                background: "transparent"
-              }}
-            >
-              <SearchIcon size={18} color="#aaa" />
-            </button>
-          </div>
-          {searchOpen && <SearchResultsDropdown mobile />}
-        </div>
+  /* ---------------- mobile modal ---------------- */
+  const MobileSearchModal = () => (
+    <div className="fixed inset-0 bg-[#101016f2] z-50 flex items-start pt-10 px-3 animate-fadeIn">
+      <div className="relative w-full max-w-xl mx-auto">
+        {renderInput(true)}
+        {searchOpen && <SearchResultsDropdown mobile />}
       </div>
-    );
-  }
+    </div>
+  );
 
+  /* ---------------- render ---------------- */
   return (
     <>
-      {/* Desktop Search Bar */}
       <div className="relative w-full h-10 px-3 sm:px-5">
-        <div className="flex items-center h-10 bg-[#23212b] rounded-full w-full">
-          <input
-            value={search}
-            ref={inputRef}
-            onFocus={() => { setSearchOpen(true); setHighlighted(-1); }}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Search movies…"
-            aria-label="Search movies"
-            className={`
-              flex-1 h-10 bg-transparent text-white text-lg leading-none rounded-full 
-              border-none outline-none font-sans font-light shadow
-              transition duration-200 placeholder-zinc-400
-            `}
-            style={{
-              fontFamily: "Inter, sans-serif",
-              boxShadow: "none",
-              border: "none",
-              minWidth: 0,
-            }}
-            onKeyDown={e => {
-              if (e.key === "ArrowDown" && results.length > 0) {
-                setHighlighted(0);
-              }
-            }}
-          />
-          {search && (
-            <button
-              className="inline-flex items-center justify-center h-10 w-10 text-zinc-400 hover:text-red-400 bg-transparent border-none shadow-none outline-none p-0 m-0"
-              onClick={clearSearch}
-              aria-label="Clear search"
-              tabIndex={0}
-              style={{
-                boxShadow: "none",
-                border: "none",
-                background: "transparent"
-              }}
-            >
-              <XIcon size={18} />
-            </button>
-          )}
-          <button
-            tabIndex={0}
-            aria-label="Search"
-            type="button"
-            className="inline-flex items-center justify-center h-10 w-10 bg-transparent p-0 shadow-none border-none outline-none"
-            style={{
-              boxShadow: "none",
-              border: "none",
-              background: "transparent"
-            }}
-          >
-            <SearchIcon size={18} color="#aaa" />
-          </button>
-        </div>
+        {renderInput()}
         {searchOpen && <SearchResultsDropdown />}
       </div>
-      {/* Mobile Search Modal */}
+
       {showMobileSearch && <MobileSearchModal />}
-      {/* Animations and Responsive Poster Sizing */}
-      <style>
-        {`
-          @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(12px);}
-            to { opacity: 1; transform: translateY(0);}
-          }
-          .animate-fadeIn {
-            animation: fadeIn 0.21s cubic-bezier(.33,1,.68,1) both;
-          }
-          @media (max-width: 600px) {
-            .searchbar-poster {
-              width: 33px !important;
-              height: 49px !important;
-              min-width: 33px !important;
-              min-height: 49px !important;
-              max-width: 33px !important;
-              max-height: 49px !important;
-              border-radius: 6px !important;
-            }
-          }
-          @media (min-width: 601px) {
-            .searchbar-poster {
-              width: 44px !important;
-              height: 66px !important;
-              min-width: 44px !important;
-              min-height: 66px !important;
-              max-width: 44px !important;
-              max-height: 66px !important;
-              border-radius: 9px !important;
-            }
-          }
-        `}
-      </style>
+
+      {/* Styles */}
+      <style>{`
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); }
+                            to   { opacity: 1; transform: translateY(0); } }
+        .animate-fadeIn { animation: fadeIn 0.22s both; }
+
+        /* poster size tweaks */
+        @media (max-width:600px){
+          .search-poster{width:33px;height:49px;border-radius:6px}
+        }
+        @media (min-width:601px){
+          .search-poster{width:44px;height:66px;border-radius:9px}
+        }
+      `}</style>
     </>
   );
 }

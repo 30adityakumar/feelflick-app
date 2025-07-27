@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import BrowseSearchBar from "@/app/pages/movies/components/BrowseSearchBar";
 import FilterBar from "@/app/pages/shared/FilterBar";
 import ResultsGrid from "@/app/pages/movies/components/ResultsGrid";
 import { Pagination } from "@/app/pages/movies/components/Pagination";
-import { supabase } from "@/shared/lib/supabase/client";
 
 const SORT_OPTIONS = [
   { value: "popularity.desc", label: "Most Popular" },
@@ -14,6 +14,7 @@ const SORT_OPTIONS = [
 ];
 
 export default function MoviesTab({ session }) {
+  const navigate = useNavigate();
   const [results, setResults] = useState([]);
   const [totalResults, setTotalResults] = useState(0);
   const [genreMap, setGenreMap] = useState({});
@@ -23,6 +24,10 @@ export default function MoviesTab({ session }) {
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+
+  // Get all years for filter (e.g., 2024-1960)
+  const currentYear = new Date().getFullYear();
+  const allYears = Array.from({ length: currentYear - 1959 }, (_, i) => `${currentYear - i}`);
 
   // --- Fetch genres on mount ---
   useEffect(() => {
@@ -70,21 +75,10 @@ export default function MoviesTab({ session }) {
     setPage(1);
   };
 
-  // --- Years & genres for filter bar ---
-  const allYears = Array.from(new Set(results.map(m => m.release_date && new Date(m.release_date).getFullYear()).filter(Boolean))).sort((a, b) => b - a);
-  const allGenres = (() => {
-    const genreIdSet = new Set();
-    results.forEach(m =>
-      Array.isArray(m.genre_ids) &&
-      m.genre_ids.forEach(id => genreIdSet.add(id))
-    );
-    return Array.from(genreIdSet)
-      .filter(id => genreMap[id])
-      .map(id => ({ id, name: genreMap[id] }))
-      .sort((a, b) => a.name.localeCompare(b.name));
-  })();
+  // --- Genre options for filter bar (use all genres from TMDb) ---
+  const allGenres = Object.entries(genreMap).map(([id, name]) => ({ id, name }));
 
-  // --- Enhanced onResults for SearchBar ---
+  // --- SearchBar: search handler ---
   function handleSearchResults(searchResults, searchText) {
     setQuery(searchText || "");
     setResults(searchResults || []);
@@ -92,9 +86,9 @@ export default function MoviesTab({ session }) {
   }
 
   return (
-    <div className="min-h-screen bg-[#101015] w-full pb-20 pt-4 px-0 sm:px-4 md:px-10 lg:px-20 xl:px-32 box-border">
-      {/* Filter Bar */}
-      <div className="w-full max-w-[1200px] mx-auto px-2 pt-1 pb-2">
+    <div className="min-h-screen bg-[#101015] w-full pb-20 pt-2 px-2 sm:px-4 md:px-8 box-border">
+      {/* Filters at top, then searchbar */}
+      <div className="w-full max-w-[1200px] mx-auto flex flex-col gap-3 pt-1 pb-2">
         <FilterBar
           sortBy={sortBy}
           setSortBy={setSortBy}
@@ -107,33 +101,28 @@ export default function MoviesTab({ session }) {
           sortOptions={SORT_OPTIONS}
           clearFilters={clearFilters}
         />
-      </div>
-      {/* Search Bar */}
-      <div className="w-full flex justify-center px-2 mb-3">
-        <div className="w-full max-w-[1200px]">
-          <BrowseSearchBar
-            onResults={handleSearchResults}
-            onSearch={setQuery}
-            value={query}
-          />
-        </div>
+        <BrowseSearchBar
+          onResults={handleSearchResults}
+          onSearch={setQuery}
+          value={query}
+        />
       </div>
 
       {/* Section Title */}
-      <div className="max-w-6xl mx-auto font-bold text-lg md:text-xl text-white mt-2 mb-6 flex items-center gap-2 px-3">
+      <div className="max-w-6xl mx-auto font-bold text-base md:text-xl text-white mt-2 mb-4 flex items-center gap-2 px-3">
         {query
           ? <><span role="img" aria-label="search" className="text-2xl">🔍</span> Search Results</>
           : <><span role="img" aria-label="popcorn" className="text-2xl">🍿</span> Recent Releases</>
         }
       </div>
 
-      {/* Movie Results: 5 in a row, 20 per page, responsive */}
-      <div className="max-w-[1240px] mx-auto min-h-[240px] pb-1 px-1 sm:px-4">
+      {/* Movie Results: 5 in a row, 20 per page, mobile-friendly */}
+      <div className="max-w-[1240px] mx-auto min-h-[240px] pb-1 px-0 sm:px-2">
         {results.length ? (
           <>
             <ResultsGrid
               results={results.slice(0, 20)}
-              onMovieClick={m => {/* open modal, etc. */}}
+              onMovieClick={m => navigate(`/movie/${m.id}`)}
             />
             <Pagination
               page={page}

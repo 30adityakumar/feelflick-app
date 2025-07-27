@@ -186,30 +186,31 @@ export default function SearchBar() {
           {/* Main input row - MOBILE */}
           <div className="flex items-center h-10 bg-[#23212b] rounded-full px-3 sm:px-5 w-full">
             <input
-              value={search}
-              ref={inputRef}
-              onFocus={() => { setSearchOpen(true); setHighlighted(-1); }}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Search movies…"
-              aria-label="Search movies"
-              className={`
-                flex-1 h-10 bg-transparent text-white text-base leading-none rounded-full 
-                border-none outline-none font-sans font-light shadow
-                transition duration-200
-                placeholder-zinc-400 placeholder:font-light placeholder:text-base pl-5
-              `}
-              style={{
-                fontFamily: "Inter, sans-serif",
-                boxShadow: "none",
-                border: "none",
-                minWidth: 0,
-              }}
-              onKeyDown={e => {
-                if (e.key === "ArrowDown" && results.length > 0) {
-                  setHighlighted(0);
-                }
-              }}
-            />
+  value={search}
+  ref={inputRef}
+  onFocus={() => { setSearchOpen(true); setHighlighted(-1); }}
+  onChange={e => setSearch(e.target.value)}
+  placeholder="Search movies…"
+  aria-label="Search movies"
+  className={`
+    flex-1 h-10 bg-transparent text-white text-sm leading-tight pt-[2px] pl-7
+    border-none outline-none font-sans font-light shadow
+    placeholder-zinc-400 placeholder:font-light placeholder:text-sm
+    transition duration-200
+  `}
+  style={{
+    fontFamily: "Inter, sans-serif",
+    boxShadow: "none",
+    border: "none",
+    minWidth: 0,
+  }}
+  onKeyDown={e => {
+    if (e.key === "ArrowDown" && results.length > 0) {
+      setHighlighted(0);
+    }
+  }}
+/>
+
 
             {search && (
               <button

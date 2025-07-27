@@ -9,13 +9,6 @@ const SIDEBAR_LINKS = [
   { to: "/watchlist",  icon: <Bookmark size={24} />, label: "Watchlist" },
 ];
 
-// --- Haptic feedback for tap (mobile only)
-function hapticTap() {
-  if ("vibrate" in navigator) {
-    navigator.vibrate(15); // 15ms short vibration
-  }
-}
-
 export default function Sidebar() {
   return (
     <>
@@ -25,7 +18,7 @@ export default function Sidebar() {
           fixed left-0 z-40
           top-[56px] md:top-[56px]
           h-[calc(100vh-56px)]
-          w-16 bg-[#18151c] flex-col py-3 border-r border-zinc-900
+          w-16 bg-black flex-col py-3 border-r border-zinc-900
           hidden md:flex
         "
       >
@@ -49,7 +42,7 @@ export default function Sidebar() {
       <nav
         className="
           fixed bottom-0 left-0 right-0 z-40
-          bg-[#18151c] border-t border-zinc-900
+          bg-black border-t border-zinc-900
           flex md:hidden justify-between px-2 py-1
         "
         style={{ height: "54px" }}
@@ -63,8 +56,6 @@ export default function Sidebar() {
                ${isActive ? "text-orange-400 font-bold" : ""}
               `
             }
-            // Haptic on tap (mobile only)
-            onClick={hapticTap}
             tabIndex={0}
             aria-label={link.label}
           >

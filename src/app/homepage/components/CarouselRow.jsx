@@ -10,7 +10,7 @@ async function fetchMovies(endpoint) {
   return (data.results || []).filter(m => !!m.poster_path);
 }
 
-export default function CarouselRow({ title, endpoint, emptyMessage }) {
+export default function CarouselRow({ title, endpoint, emptyMessage, cardType }) {
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -27,21 +27,23 @@ export default function CarouselRow({ title, endpoint, emptyMessage }) {
   }, [endpoint]);
 
   function scrollLeft() {
-    carouselRef.current.scrollBy({ left: -210, behavior: "smooth" });
+    carouselRef.current.scrollBy({ left: -170, behavior: "smooth" });
   }
   function scrollRight() {
-    carouselRef.current.scrollBy({ left: 210, behavior: "smooth" });
+    carouselRef.current.scrollBy({ left: 170, behavior: "smooth" });
   }
+
+  // Netflix-like card sizes for mobile
+  const cardClass = cardType === "big"
+    ? "w-[44vw] md:w-32 aspect-[2/3]"
+    : "w-24 md:w-32 aspect-[2/3]";
 
   return (
     <section className="w-full m-0 p-0">
-      {/* Title Row: absolutely zero margin/padding on mobile */}
-      <div className="flex items-center gap-2 pl-0 pr-0 pt-0 pb-1">
-        <h3 className="text-lg md:text-xl font-bold tracking-tight flex-1 pl-2 md:pl-0">
-          {title}
-        </h3>
-        {/* Hide arrows on mobile, only show on desktop if many cards */}
-        {movies.length > 5 && (
+      <div className="flex items-center gap-2 pl-3 pr-0 pt-0 pb-2">
+        <h3 className="text-base md:text-lg font-bold tracking-tight flex-1">{title}</h3>
+        {/* Hide arrows on mobile, only show on desktop */}
+        {movies.length > 6 && (
           <div className="hidden sm:flex gap-2 pr-3">
             <button
               className="p-1 rounded-full hover:bg-zinc-800 active:scale-95 transition disabled:opacity-30"
@@ -64,7 +66,6 @@ export default function CarouselRow({ title, endpoint, emptyMessage }) {
           </div>
         )}
       </div>
-      {/* Carousel: no px or margin, tighter gap on mobile */}
       <div className="relative">
         <div
           ref={carouselRef}
@@ -77,10 +78,10 @@ export default function CarouselRow({ title, endpoint, emptyMessage }) {
           style={{ WebkitOverflowScrolling: "touch" }}
         >
           {loading &&
-            Array.from({ length: 5 }).map((_, i) => (
+            Array.from({ length: 6 }).map((_, i) => (
               <div
                 key={i}
-                className="w-24 md:w-32 aspect-[2/3] rounded-lg bg-zinc-900 animate-pulse"
+                className={`${cardClass} rounded-lg bg-zinc-900 animate-pulse`}
               />
             ))}
           {error && (
@@ -96,11 +97,11 @@ export default function CarouselRow({ title, endpoint, emptyMessage }) {
           {movies.map(movie => (
             <div
               key={movie.id}
-              className="
-                w-24 md:w-32 aspect-[2/3] flex-shrink-0 rounded-lg overflow-hidden bg-zinc-900
+              className={`
+                ${cardClass} flex-shrink-0 rounded-lg overflow-hidden bg-zinc-900
                 cursor-pointer transition hover:scale-105 hover:shadow-lg focus-within:scale-105
                 snap-start group
-              "
+              `}
               tabIndex={0}
               role="button"
               aria-label={`Open details for ${movie.title}`}
@@ -118,18 +119,9 @@ export default function CarouselRow({ title, endpoint, emptyMessage }) {
                 draggable={false}
                 loading="lazy"
               />
-              <div className="pt-2 pb-3 w-full flex flex-col items-center gap-0.5 bg-zinc-950/90">
-                <div className="font-semibold text-xs text-white truncate w-full text-center">
-                  {movie.title}
-                </div>
-                <div className="text-xs text-zinc-400">
-                  {movie.release_date ? movie.release_date.slice(0, 4) : ""}
-                </div>
-                {movie.vote_average > 0 && (
-                  <span className="px-1 py-0.5 rounded bg-[#23212b] text-yellow-300 font-bold text-[10px] mt-1">
-                    ★ {movie.vote_average.toFixed(1)}
-                  </span>
-                )}
+              {/* Title overlay like Netflix: visible on hover/focus or always for mobile */}
+              <div className="w-full bg-zinc-950/80 py-1 px-1 text-xs font-semibold text-white text-center truncate block md:hidden">
+                {movie.title}
               </div>
             </div>
           ))}

@@ -8,8 +8,6 @@ async function fetchFeaturedMovieWithGenres() {
   const res = await fetch(`https://api.themoviedb.org/3/movie/popular?api_key=${apiKey}&language=en-US&page=1`);
   const data = await res.json();
   const movie = data.results[Math.floor(Math.random() * data.results.length)];
-
-  // grab genres for hero
   const detail = await fetch(`https://api.themoviedb.org/3/movie/${movie.id}?api_key=${apiKey}&language=en-US`)
                  .then(r => r.json());
   return { ...movie, genres: detail.genres?.map(g => g.name) || [] };
@@ -23,7 +21,7 @@ export default function HomePage() {
 
   return (
     <div className="w-full min-h-screen pb-12 bg-zinc-950">
-      {/* ---------- Hero (edge-to-edge on mobile) ---------- */}
+      {/* Hero Section */}
       <section className="relative w-full min-h-[230px] md:min-h-[340px] flex items-center px-0 md:px-4 mb-8 overflow-hidden">
         {/* blurred backdrop */}
         {featured?.backdrop_path && (
@@ -36,12 +34,10 @@ export default function HomePage() {
           />
         )}
         <div className="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-zinc-950 to-transparent" />
-
         {/* hero inner */}
-        <div className="relative flex flex-col md:flex-row w-full md:max-w-[1100px] mx-0 md:mx-auto items-center md:items-end pt-6 md:pt-8 pb-3 md:pb-7 px-0 md:px-0">
-          {/* Poster */}
+        <div className="relative flex flex-col md:flex-row w-full md:max-w-[1100px] mx-0 md:mx-auto items-center md:items-end pt-5 md:pt-8 pb-3 md:pb-7 px-0 md:px-0">
           {featured?.poster_path && (
-            <div className="flex shrink-0">
+            <div className="flex shrink-0 px-0 md:pl-0">
               <img
                 src={`https://image.tmdb.org/t/p/w342${featured.poster_path}`}
                 alt={featured.title}
@@ -50,12 +46,9 @@ export default function HomePage() {
               />
             </div>
           )}
-
-          {/* Text */}
-          <div className="flex flex-col justify-center flex-1 min-w-0 pt-5 md:pt-0 px-4 md:px-6">
+          <div className="flex flex-col justify-center flex-1 min-w-0 pt-5 md:pt-0 pl-0 md:pl-6">
             {featured && (
               <>
-                {/* title row */}
                 <div className="flex flex-wrap items-center gap-2 md:gap-3">
                   <Film className="text-orange-400" size={20} />
                   <h1 className="font-semibold text-white text-xl md:text-2xl truncate">
@@ -72,8 +65,6 @@ export default function HomePage() {
                     </span>
                   )}
                 </div>
-
-                {/* genres */}
                 {featured.genres.length > 0 && (
                   <div className="flex gap-2 mt-1 flex-wrap">
                     {featured.genres.slice(0, 2).map(g => (
@@ -83,12 +74,9 @@ export default function HomePage() {
                     ))}
                   </div>
                 )}
-
-                {/* overview */}
                 <p className="text-sm text-zinc-200 opacity-90 mt-1 line-clamp-2">
                   {featured.overview}
                 </p>
-
                 <button
                   onClick={() => navigate(`/movie/${featured.id}`)}
                   className="mt-3 self-start py-1.5 px-6 rounded-lg bg-gradient-to-r from-orange-400 to-red-500 text-white font-semibold text-sm md:text-base shadow hover:scale-105 transition"
@@ -100,8 +88,7 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* ---------- Rows (no outer padding on mobile) ---------- */}
+      {/* Rows (no outer padding on mobile) */}
       <div className="flex flex-col gap-10 md:gap-14 w-full md:max-w-[1100px] mx-0 md:mx-auto px-0">
         <CarouselRow
           title={<span className="inline-flex items-center gap-2 text-orange-300 font-semibold"><Flame size={18} /> Popular&nbsp;Now</span>}

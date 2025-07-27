@@ -57,17 +57,6 @@ export default function Sidebar() {
           >
             {({ isActive }) => (
               <>
-                {/* Active indicator bar (YouTube-style) */}
-                {isActive && (
-                  <span
-                    className="
-                      absolute top-0 left-1/2 -translate-x-1/2
-                      w-6 h-[3px] rounded-b-xl
-                      bg-gradient-to-r from-orange-400 to-red-500
-                      animate-fadeIn z-10
-                    "
-                  />
-                )}
                 {/* Highlight background for active tab */}
                 {isActive && (
                   <span

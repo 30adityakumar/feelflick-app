@@ -19,8 +19,10 @@ export default function MovieDetail() {
   const [similar, setSimilar] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const [watchlistStatus, setWatchlistStatus] = useState(null); // null | "want_to_watch" | "watched"
-  const [watchlistLoading, setWatchlistLoading] = useState(false);
+  // Separate state for watchlist and watched
+  const [inWatchlist, setInWatchlist] = useState(false);
+  const [isWatched, setIsWatched] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
     async function getUser() {
@@ -59,22 +61,28 @@ export default function MovieDetail() {
     fetchData();
   }, [id]);
 
+  // Check watchlist and watched status
   useEffect(() => {
     if (!user || !id) return;
-    setWatchlistLoading(true);
-    async function fetchWatchlistStatus() {
-      const { data } = await supabase
+    async function fetchStatuses() {
+      const { data: wl } = await supabase
         .from('user_watchlist')
-        .select('status')
+        .select('movie_id')
         .eq('user_id', user.id)
         .eq('movie_id', id)
-        .single();
-      if (data) setWatchlistStatus(data.status);
-      else setWatchlistStatus(null);
-      setWatchlistLoading(false);
+        .maybeSingle();
+      setInWatchlist(!!wl);
+
+      const { data: mw } = await supabase
+        .from('movies_watched')
+        .select('movie_id')
+        .eq('user_id', user.id)
+        .eq('movie_id', id)
+        .maybeSingle();
+      setIsWatched(!!mw);
     }
-    fetchWatchlistStatus();
-  }, [user, id]);
+    fetchStatuses();
+  }, [user, id, actionLoading]);
 
   async function ensureMovieInTable(movieData) {
     if (!movieData) return;
@@ -119,53 +127,40 @@ export default function MovieDetail() {
       }], { onConflict: ['id'] });
   }
 
-  // Add to watchlist (also for analytics, upsert in movies_watched)
+  // Add to Watchlist
   async function handleAddToWatchlist() {
     if (!user || !movie) return;
-    setWatchlistLoading(true);
+    setActionLoading(true);
 
     await ensureMovieInTable(movie);
 
-    await supabase
-      .from('user_watchlist')
-      .upsert({
-        user_id: user.id,
-        movie_id: movie.id,
-        status: 'want_to_watch',
-      }, { onConflict: ['user_id', 'movie_id'] });
-
-    const genresArray = movie.genres ? movie.genres.map(g => g.id) : null;
-    await supabase
-      .from('movies_watched')
-      .upsert({
-        user_id: user.id,
-        movie_id: movie.id,
-        title: movie.title,
-        poster: movie.poster_path,
-        release_date: movie.release_date,
-        vote_average: movie.vote_average,
-        genre_ids: genresArray,
-      }, { onConflict: ['user_id', 'movie_id'] });
-
-    setWatchlistStatus('want_to_watch');
-    setWatchlistLoading(false);
+    // Only add if not watched
+    if (!isWatched) {
+      await supabase
+        .from('user_watchlist')
+        .upsert({
+          user_id: user.id,
+          movie_id: movie.id,
+        }, { onConflict: ['user_id', 'movie_id'] });
+    }
+    setActionLoading(false);
   }
 
-  // Mark as watched (also upsert in movies_watched)
+  // Mark as Watched (remove from watchlist, add to movies_watched)
   async function handleMarkAsWatched() {
     if (!user || !movie) return;
-    setWatchlistLoading(true);
+    setActionLoading(true);
 
     await ensureMovieInTable(movie);
 
+    // Remove from user_watchlist if present
     await supabase
       .from('user_watchlist')
-      .upsert({
-        user_id: user.id,
-        movie_id: movie.id,
-        status: 'watched',
-      }, { onConflict: ['user_id', 'movie_id'] });
+      .delete()
+      .eq('user_id', user.id)
+      .eq('movie_id', movie.id);
 
+    // Upsert into movies_watched
     const genresArray = movie.genres ? movie.genres.map(g => g.id) : null;
     await supabase
       .from('movies_watched')
@@ -179,13 +174,13 @@ export default function MovieDetail() {
         genre_ids: genresArray,
       }, { onConflict: ['user_id', 'movie_id'] });
 
-    setWatchlistStatus('watched');
-    setWatchlistLoading(false);
+    setActionLoading(false);
   }
 
+  // Remove from Watchlist only
   async function handleRemoveFromWatchlist() {
     if (!user || !movie) return;
-    setWatchlistLoading(true);
+    setActionLoading(true);
 
     await supabase
       .from('user_watchlist')
@@ -193,14 +188,7 @@ export default function MovieDetail() {
       .eq('user_id', user.id)
       .eq('movie_id', movie.id);
 
-    await supabase
-      .from('movies_watched')
-      .delete()
-      .eq('user_id', user.id)
-      .eq('movie_id', movie.id);
-
-    setWatchlistStatus(null);
-    setWatchlistLoading(false);
+    setActionLoading(false);
   }
 
   if (loading) return <div className="text-white text-center mt-16">Loading...</div>;
@@ -217,7 +205,6 @@ export default function MovieDetail() {
   return (
     <div>
       <Header />
-      {/* HERO BACKDROP */}
       <div
         className="relative w-full min-h-[66vh] md:min-h-[440px] bg-black"
         style={{
@@ -227,7 +214,6 @@ export default function MovieDetail() {
         }}
       >
         <div className="absolute inset-0 bg-gradient-to-t from-[#161623] to-transparent" />
-        {/* POSTER FLOATING OVER BACKDROP */}
         <div className="relative z-10 max-w-6xl mx-auto flex flex-col md:flex-row items-center pt-12 pb-8 px-4 md:px-8">
           <div className="w-[210px] min-w-[140px] -mt-24 md:mt-0 md:mr-10 flex-shrink-0">
             <img
@@ -237,7 +223,6 @@ export default function MovieDetail() {
               onError={e => { e.currentTarget.src = "/placeholder-movie.png"; }}
             />
           </div>
-          {/* MAIN INFO */}
           <div className="flex-1 mt-8 md:mt-0 md:ml-7 text-left">
             <div className="flex items-center flex-wrap gap-3 mb-2">
               <span className="text-3xl md:text-4xl font-black text-white drop-shadow">{movie.title}</span>
@@ -251,7 +236,6 @@ export default function MovieDetail() {
               {runtime && <span className="text-zinc-400">• {runtime}</span>}
               {director && <span className="text-zinc-400">• Dir: <span className="text-white">{director.name}</span></span>}
             </div>
-            {/* RATINGS */}
             <div className="flex gap-2 mb-5">
               {movie.vote_average && (
                 <span className="bg-[#393] text-white rounded-md px-2 py-1 font-semibold text-sm">TMDb {movie.vote_average.toFixed(1)}</span>
@@ -268,46 +252,47 @@ export default function MovieDetail() {
                 </span>
               )}
             </div>
-            {/* BUTTONS */}
             <div className="flex flex-wrap items-center gap-3 mt-3">
-              {/* Add/Remove Watchlist */}
-              {(watchlistStatus === "want_to_watch" || watchlistStatus === "watched") ? (
-                <button
-                  className="flex items-center gap-2 px-5 py-2 rounded-full font-semibold border border-orange-400 text-orange-400 bg-[#251d11]/80 hover:bg-orange-400 hover:text-black shadow"
-                  disabled={watchlistLoading}
-                  title="Remove from Watchlist"
-                  onClick={handleRemoveFromWatchlist}
-                >
-                  <Trash2 size={20} /> Remove
-                </button>
-              ) : (
+              {/* Add to Watchlist */}
+              {!isWatched && !inWatchlist && (
                 <button
                   className="flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-r from-orange-400 to-red-500 text-white font-semibold shadow hover:scale-[1.03] transition"
-                  disabled={watchlistLoading}
+                  disabled={actionLoading}
                   onClick={handleAddToWatchlist}
                 >
                   <Bookmark size={20} /> Add to Watchlist
                 </button>
               )}
-
+              {/* Remove from Watchlist */}
+              {!isWatched && inWatchlist && (
+                <button
+                  className="flex items-center gap-2 px-5 py-2 rounded-full font-semibold border border-orange-400 text-orange-400 bg-[#251d11]/80 hover:bg-orange-400 hover:text-black shadow"
+                  disabled={actionLoading}
+                  title="Remove from Watchlist"
+                  onClick={handleRemoveFromWatchlist}
+                >
+                  <Trash2 size={20} /> Remove
+                </button>
+              )}
               {/* Mark as Watched */}
-              {watchlistStatus === "watched" ? (
+              {!isWatched && (
+                <button
+                  className="flex items-center gap-2 px-5 py-2 rounded-full bg-[#272d3e] text-white border border-zinc-600 font-semibold shadow hover:bg-green-700/80 hover:text-green-100 transition"
+                  disabled={actionLoading}
+                  onClick={handleMarkAsWatched}
+                >
+                  <CheckCircle size={20} /> Mark as Watched
+                </button>
+              )}
+              {/* Watched Badge */}
+              {isWatched && (
                 <button
                   className="flex items-center gap-2 px-5 py-2 rounded-full bg-[#244e23] text-green-300 border border-green-500 font-semibold shadow"
                   disabled
                 >
                   <CheckCircle size={20} /> Watched
                 </button>
-              ) : (
-                <button
-                  className="flex items-center gap-2 px-5 py-2 rounded-full bg-[#272d3e] text-white border border-zinc-600 font-semibold shadow hover:bg-green-700/80 hover:text-green-100 transition"
-                  disabled={watchlistLoading}
-                  onClick={handleMarkAsWatched}
-                >
-                  <CheckCircle size={20} /> Mark as Watched
-                </button>
               )}
-
               {/* Trailer */}
               {trailer && (
                 <a
@@ -323,16 +308,13 @@ export default function MovieDetail() {
           </div>
         </div>
       </div>
-
       {/* DESCRIPTION + CAST */}
       <div className="max-w-5xl mx-auto px-4 md:px-8 py-10">
         <div className="grid md:grid-cols-3 gap-8">
-          {/* Overview */}
           <div className="md:col-span-2">
             <div className="text-lg text-white font-semibold mb-2">Overview</div>
             <div className="text-zinc-200 leading-relaxed mb-4 text-base">{movie.overview}</div>
           </div>
-          {/* Cast */}
           <div>
             <div className="text-lg text-white font-semibold mb-2">Top Cast</div>
             <div className="flex flex-wrap gap-x-5 gap-y-1 text-[15px]">
@@ -348,7 +330,6 @@ export default function MovieDetail() {
           </div>
         </div>
       </div>
-
       {/* SIMILAR MOVIES */}
       {similar.length > 0 && (
         <div className="max-w-5xl mx-auto px-4 md:px-8 pb-12">

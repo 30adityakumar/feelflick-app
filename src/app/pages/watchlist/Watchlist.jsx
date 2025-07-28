@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/shared/lib/supabase/client";
 import Header from "@/app/header/Header";
-import Sidebar from "@/components/Sidebar";
+import Sidebar from "@/app/header/sidebar/Sidebar";
 import { Bookmark } from "lucide-react";
 
 const TMDB_IMG = "https://image.tmdb.org/t/p/w342";

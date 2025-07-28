@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/shared/lib/supabase/client";
 import Header from "@/app/header/Header";
-import Sidebar from "@/app/header/sidebar/Sidebar";
-import { Bookmark } from "lucide-react";
+import Sidebar from "@/components/Sidebar";
+import { Bookmark, Trash2 } from "lucide-react";
 
 const TMDB_IMG = "https://image.tmdb.org/t/p/w342";
 
@@ -11,6 +11,7 @@ export default function Watchlist() {
   const [user, setUser] = useState(null);
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [removingId, setRemovingId] = useState(null);
 
   useEffect(() => {
     async function getUser() {
@@ -58,17 +59,26 @@ export default function Watchlist() {
       setLoading(false);
     }
     fetchWatchlist();
-  }, [user]);
+  }, [user, removingId]); // update when removing
+
+  async function handleRemove(id) {
+    if (!user) return;
+    setRemovingId(id);
+    await supabase
+      .from('user_watchlist')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('movie_id', id);
+    setRemovingId(null);
+    setMovies(prev => prev.filter(m => m.id !== id));
+  }
 
   return (
-    <div className="flex bg-[#161623] min-h-screen">
-      {/* SIDEBAR */}
+    <div className="flex bg-black min-h-screen">
       <Sidebar />
-
-      {/* MAIN CONTENT */}
-      <div className="flex-1 min-h-screen pl-0 md:pl-16">
+      <div className="flex-1 min-h-screen pl-0 md:pl-16 pt-[56px]">
         <Header />
-        <main className="max-w-6xl mx-auto px-2 sm:px-4 pt-8 pb-16">
+        <main className="max-w-6xl mx-auto px-2 sm:px-4 pt-7 pb-16">
           {/* Section Header */}
           <div className="flex items-center gap-2 mb-8">
             <span className="bg-orange-500/20 text-orange-400 rounded-full p-2">
@@ -78,7 +88,6 @@ export default function Watchlist() {
               Your Watchlist
             </h1>
           </div>
-
           {/* Content */}
           {(!user || loading) ? (
             <div className="text-center text-white mt-20">Loading your Watchlist...</div>
@@ -102,58 +111,59 @@ export default function Watchlist() {
               ) : (
                 <div
                   className={`
-                    grid gap-6
-                    grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5
-                    ${movies.length < 4 ? "justify-center" : ""}
+                    grid gap-4
+                    grid-cols-2 sm:grid-cols-3 md:grid-cols-5
+                    ${movies.length < 5 ? "justify-center" : ""}
                   `}
                 >
-                  {movies.map((movie, idx) => (
-                    <Link
-                      key={movie.id}
-                      to={`/movie/${movie.id}`}
-                      className={`
-                        group relative bg-[#191923] rounded-2xl overflow-hidden
-                        hover:scale-[1.045] hover:z-10 focus:z-10 shadow-xl transition
-                        border border-zinc-900
-                      `}
-                      style={{
-                        boxShadow:
-                          "0 2px 12px 0 rgba(0,0,0,.18), 0 0px 2px 0 rgba(0,0,0,.12)",
-                      }}
-                    >
-                      {/* Glass overlay for poster */}
-                      <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#15151b]/90 z-10 rounded-2xl pointer-events-none" />
-                      <img
-                        src={movie.poster_path ? `${TMDB_IMG}${movie.poster_path}` : "/placeholder-movie.png"}
-                        alt={movie.title}
-                        className="rounded-2xl w-full h-[230px] sm:h-[260px] md:h-[285px] object-cover group-hover:opacity-90 transition"
-                        loading="lazy"
-                      />
-                      <div className="absolute left-2 top-2 z-20">
-                        <span className="bg-black/70 text-zinc-200 px-2 py-[2px] rounded-full text-xs font-bold backdrop-blur shadow">
-                          {movie.release_date ? movie.release_date.slice(0, 4) : "—"}
-                        </span>
-                      </div>
-                      {/* Title appears on hover */}
-                      <div className={`
-                        absolute bottom-0 left-0 w-full z-20 px-3 py-2 
-                        bg-gradient-to-t from-[#161623]/80 via-transparent to-transparent
-                        flex flex-col
-                      `}>
-                        <div className={`
-                          text-white font-bold text-base truncate drop-shadow
-                          transition duration-200 opacity-90 group-hover:opacity-100
-                        `}>
-                          {movie.title}
+                  {movies.map((movie) => (
+                    <div key={movie.id} className="relative group">
+                      {/* Remove Button */}
+                      <button
+                        className={`
+                          absolute top-2 right-2 z-30 bg-black/70 hover:bg-red-600/90
+                          text-zinc-200 hover:text-white p-2 rounded-full shadow
+                          transition opacity-0 group-hover:opacity-100 focus:opacity-100
+                          sm:opacity-0 md:opacity-0 lg:opacity-0
+                          ${removingId === movie.id ? "opacity-100 animate-pulse pointer-events-none" : ""}
+                        `}
+                        aria-label="Remove from watchlist"
+                        tabIndex={0}
+                        onClick={() => handleRemove(movie.id)}
+                        disabled={removingId === movie.id}
+                        style={{ pointerEvents: removingId === movie.id ? 'none' : 'auto' }}
+                      >
+                        <Trash2 size={20} />
+                      </button>
+                      <Link
+                        to={`/movie/${movie.id}`}
+                        className={`
+                          group bg-[#18181c] rounded-xl shadow-md hover:shadow-lg
+                          hover:ring-2 hover:ring-orange-500/30 focus:ring-2 focus:ring-orange-500/70
+                          transition-all block overflow-hidden relative
+                          hover:scale-[1.035]
+                          border border-zinc-900
+                        `}
+                        tabIndex={0}
+                      >
+                        {/* Poster */}
+                        <img
+                          src={movie.poster_path ? `${TMDB_IMG}${movie.poster_path}` : "/placeholder-movie.png"}
+                          alt={movie.title}
+                          className="rounded-xl w-full h-[178px] sm:h-[220px] md:h-[188px] object-cover group-hover:opacity-95 transition"
+                          loading="lazy"
+                        />
+                        {/* Overlay for title and year */}
+                        <div className="absolute bottom-0 left-0 w-full z-10 px-3 pb-2 pt-6 bg-gradient-to-t from-black/85 via-black/0 to-transparent">
+                          <div className="text-white font-bold text-sm truncate drop-shadow">
+                            {movie.title}
+                          </div>
+                          <div className="text-xs text-zinc-300 mt-1">
+                            {movie.release_date ? movie.release_date.slice(0, 4) : ""}
+                          </div>
                         </div>
-                      </div>
-                      {/* Subtle outline on hover/focus */}
-                      <div className={`
-                        pointer-events-none absolute inset-0 rounded-2xl ring-2 ring-orange-400/0 
-                        group-hover:ring-2 group-hover:ring-orange-500/40
-                        transition
-                      `} />
-                    </Link>
+                      </Link>
+                    </div>
                   ))}
                 </div>
               )}

@@ -1,159 +1,93 @@
-import { useNavigate } from "react-router-dom";
-import HERO_VIDEO from '@/assets/videos/background.mp4'
+import { useCallback } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { ArrowRight } from 'lucide-react'
 
+/**
+ * LandingHero
+ * - Fully responsive, mobile-first
+ * - Gradient background with soft shapes (no external assets required)
+ * - CTA: Get started (primary, gradient) / Sign in (secondary, outline)
+ * - Prefetches auth route on hover/focus for snappy navigation
+ * - Uses our theme tokens + Tailwind utilities
+ */
 export default function LandingHero() {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
+
+  // Prewarm the auth route chunk on intent (hover/focus)
+  const prefetchAuth = useCallback(() => {
+    // Non-blocking; ignored by bundlers if already loaded
+    import('@/features/auth/AuthPage').catch(() => {})
+  }, [])
+
+  function onGetStarted() {
+    navigate('/auth/sign-up')
+  }
 
   return (
-    <>
-      <style>{`
-        .fflick-hero-section { background: #000 !important; }
-        .fflick-hero-left {
-          position: absolute !important;
-          left: clamp(7vw, 7%, 32px);
-          top: 50%;
-          transform: translateY(-50%);
-          z-index: 3;
-          max-width: 590px;
-          color: #fff;
-          display: flex;
-          flex-direction: column;
-          align-items: flex-start;
-        }
-        .fflick-hero-title {
-          font-size: clamp(2.4rem, 5.5vw, 3.7rem) !important;
-        }
-        .fflick-hero-desc {
-          font-size: clamp(0.9rem, 1.7vw, 1.1rem) !important;
-        }
-        .fflick-hero-btn {
-          font-size: clamp(0.92rem, 2.4vw, 1.08rem) !important;
-          padding: clamp(8px, 2vw, 13px) clamp(16px, 6vw, 44px) !important;
-          min-width: clamp(80px, 23vw, 140px) !important;
-          min-height: clamp(38px, 8.2vw, 44px) !important;
-          border-radius: 14px !important;
-        }
-      `}</style>
+    <section
+      className="relative cq mx-auto flex min-h-[86vh] w-full max-w-7xl items-center px-3 pt-24 sm:px-6 sm:pt-28 md:pt-32"
+      aria-label="Hero"
+    >
+      {/* Background: layered gradients + subtle vignette for readability */}
+      <HeroBackground />
 
+      <div className="relative z-10 mx-auto w-full max-w-3xl text-center">
+        <h1 className="mx-auto max-w-2xl text-balance text-[clamp(2.2rem,6.5vw,4.2rem)] font-black leading-[1.04] tracking-[-0.02em] text-white">
+          Movies by <span className="text-brand-100">mood</span>.  
+          Discover what <span className="text-brand-100">feels</span> right.
+        </h1>
 
-      <section
-        className="fflick-hero-section"
-        style={{
-          position: "relative",
-          width: "100vw",
-          minHeight: "98vh",
-          display: "flex",
-          alignItems: "stretch",
-          justifyContent: "flex-end",
-          background: "#000",
-          padding: 0,
-          overflow: "hidden",
-          zIndex: 2,
-        }}
-        aria-label="Main hero section"
-      >
-        {/* ---- Video as background, starts right of the text ---- */}
-        <video
-          src={HERO_VIDEO}
-          autoPlay
-          loop
-          muted
-          playsInline
-          poster="/background-poster.jpg"
-          aria-hidden="true"
-          className="fflick-hero-video"
-          style={{
-            position: "absolute",
-            left: "24vw",
-            top: 0,
-            width: "76vw",
-            height: "100%",
-            objectFit: "cover",
-            zIndex: 1,
-            transition: "left 0.18s, width 0.18s",
-          }}
-        />
+        <p className="mx-auto mt-4 max-w-2xl text-pretty text-base text-white/80 sm:mt-5 sm:text-lg">
+          Tell us how you feel and we’ll surface films you’ll actually enjoy—fast, personal, and ad-free.
+        </p>
 
-        {/* ---- Black to transparent overlay (on top of video, under text) ---- */}
-        <div
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            left: 0,
-            top: 0,
-            width: "100vw",
-            height: "100%",
-            zIndex: 2,
-            pointerEvents: "none",
-            background: "linear-gradient(90deg, #000 0%, rgba(0,0,0,0.96) 22%, rgba(0,0,0,0.64) 52%, rgba(0,0,0,0.13) 88%, rgba(0,0,0,0) 100%)"
-          }}
-        />
-
-        {/* ---- Hero content overlays on left ---- */}
-        <div className="fflick-hero-left" tabIndex={0}>
-          <h1
-            className="fflick-hero-title"
-            style={{
-              fontWeight: 900,
-              color: "#fff",
-              letterSpacing: "-0.3px",
-              marginBottom: 18,
-              textShadow: "0 4px 22px #000c, 0 2px 8px #18406d77",
-              lineHeight: 1.09,
-              outline: "none",
-            }}
-            tabIndex={0}
-            aria-label="Movies that match your mood"
-          >
-            Movies that match your mood.
-          </h1>
-          <div
-            className="fflick-hero-desc"
-            style={{
-              fontWeight: 400,
-              color: "#F6E3D7",
-              opacity: 0.97,
-              marginBottom: 30,
-              lineHeight: 1.57,
-              textShadow: "0 2px 8px #0003",
-              outline: "none",
-            }}
-            tabIndex={0}
-            aria-label="Get the perfect recommendation based on your taste and how you feel. Fast, private, and always free."
-          >
-            Get the perfect recommendation based on your taste and how you feel.<br />
-            Fast, private, and always free.
-          </div>
+        {/* CTAs */}
+        <div className="mx-auto mt-7 flex w-full max-w-md items-center justify-center gap-3 sm:mt-8">
           <button
-            className="fflick-hero-btn"
-            tabIndex={0}
-            aria-label="Get started with FeelFlick"
-            onClick={() => navigate("/auth/sign-up")}
-            style={{
-              background: "linear-gradient(90deg,#fe9245 10%,#eb423b 90%)",
-              color: "#fff",
-              border: "none",
-              borderRadius: 14,
-              fontWeight: 900,
-              cursor: "pointer",
-              letterSpacing: "0.01em",
-              transition: "filter 0.12s, transform 0.12s, opacity 0.12s",
-              outline: "none",
-            }}
-            onFocus={e => (e.currentTarget.style.filter = "brightness(1.09)")}
-            onBlur={e => (e.currentTarget.style.filter = "none")}
-            onKeyDown={e => {
-              if (e.key === "Enter" || e.key === " ") navigate("/auth/sign-up");
-            }}
-            onMouseDown={e => (e.currentTarget.style.transform = "scale(.97)")}
-            onMouseUp={e => (e.currentTarget.style.transform = "scale(1)")}
-            onMouseEnter={e => (e.currentTarget.style.filter = "brightness(1.06)")}
-            onMouseLeave={e => (e.currentTarget.style.filter = "none")}
+            onClick={onGetStarted}
+            onMouseEnter={prefetchAuth}
+            onFocus={prefetchAuth}
+            className="inline-flex h-11 w-full items-center justify-center rounded-full bg-gradient-to-r from-[#fe9245] to-[#eb423b] px-5 text-[0.95rem] font-semibold text-white shadow-lift transition-transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-brand/60 sm:h-11 sm:w-auto"
           >
             Get started
+            <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
           </button>
+
+          <Link
+            to="/auth/sign-in"
+            onMouseEnter={prefetchAuth}
+            onFocus={prefetchAuth}
+            className="inline-flex h-11 w-full items-center justify-center rounded-full border border-white/25 px-5 text-[0.95rem] font-semibold text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60 sm:h-11 sm:w-auto"
+          >
+            Sign in
+          </Link>
         </div>
-      </section>
+
+        <p className="mx-auto mt-3 max-w-md text-center text-xs text-white/60">
+          No spam. You can remove your data any time.
+        </p>
+      </div>
+    </section>
+  )
+}
+
+/* -------------------------- internal components -------------------------- */
+
+function HeroBackground() {
+  return (
+    <>
+      {/* deep backdrop */}
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(90%_70%_at_10%_10%,#1b1b27_0%,#0c0c12_60%,#09090f_100%)]" />
+      {/* warm sweep */}
+      <div className="pointer-events-none absolute inset-0 -z-10 opacity-[.85] mix-blend-screen"
+           style={{
+             background:
+               'conic-gradient(from 200deg at 10% 10%, rgba(254,146,69,.55), rgba(235,66,59,.55), rgba(24,64,109,.35), transparent 70%)'
+           }} />
+      {/* vignette for text contrast */}
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(60%_50%_at_50%_40%,transparent_0%,rgba(0,0,0,.55)_100%)]" />
+      {/* decorative noise (tiny, cached) */}
+      <div className="pointer-events-none absolute inset-0 -z-10 opacity-20 [background:repeating-linear-gradient(0deg,transparent_0,transparent_2px,rgba(255,255,255,.02)_3px,transparent_4px)]" />
     </>
-  );
+  )
 }

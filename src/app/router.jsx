@@ -25,12 +25,9 @@ import HistoryPage from '@/app/pages/watched/WatchedTab'
 import NotFound from '@/app/pages/NotFound'
 
 /* ----------------------------- Public layout ----------------------------- */
-/** Minimal layout (no header/sidebar) for landing/auth flows */
 function PublicShell() {
   return (
     <div className="min-h-screen bg-black text-white">
-      {/* Keep the a11y helpers here too so auth pages are accessible */}
-      <div className="sr-only" aria-hidden />
       <main id="main" className="min-h-[70vh]">
         <Outlet />
       </main>
@@ -39,43 +36,30 @@ function PublicShell() {
 }
 
 /* ------------------------------ Auth guards ------------------------------ */
-/** Protects app-only routes; redirects signed-out users to /auth */
 function RequireAuth() {
   const [status, setStatus] = useState('loading') // 'loading' | 'authed' | 'anon'
   const loc = useLocation()
 
   useEffect(() => {
     let unsubscribe
-
-    // Initial session check
     supabase.auth.getSession().then(({ data: { session } }) => {
       setStatus(session ? 'authed' : 'anon')
     })
-
-    // Live updates
     const { data } = supabase.auth.onAuthStateChange((_evt, session) => {
       setStatus(session ? 'authed' : 'anon')
     })
-
     unsubscribe = data?.subscription?.unsubscribe
-    return () => {
-      if (typeof unsubscribe === 'function') unsubscribe()
-    }
+    return () => { if (typeof unsubscribe === 'function') unsubscribe() }
   }, [])
 
-  if (status === 'loading') {
-    return <div className="p-6 text-white/70">Loading…</div>
-  }
-  if (status === 'anon') {
-    return <Navigate to="/auth" replace state={{ from: loc }} />
-  }
+  if (status === 'loading') return <div className="p-6 text-white/70">Loading…</div>
+  if (status === 'anon') return <Navigate to="/auth" replace state={{ from: loc }} />
   return <Outlet />
 }
 
-/** Wraps public pages that should bounce signed-in users into the app (/, /auth, /login, /signup, etc.) */
+/** Public pages that should bounce signed-in users into the app (/, /auth, etc.) */
 function RedirectIfAuthed({ children }) {
   const [status, setStatus] = useState('loading')
-
   useEffect(() => {
     let unsubscribe
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -85,14 +69,25 @@ function RedirectIfAuthed({ children }) {
       setStatus(session ? 'authed' : 'anon')
     })
     unsubscribe = data?.subscription?.unsubscribe
-    return () => {
-      if (typeof unsubscribe === 'function') unsubscribe()
-    }
+    return () => { if (typeof unsubscribe === 'function') unsubscribe() }
   }, [])
-
   if (status === 'loading') return <div className="p-6 text-white/70">Loading…</div>
   if (status === 'authed') return <Navigate to="/home" replace />
   return children
+}
+
+/* ------------------------------- /app alias ------------------------------- */
+/** Redirects /app → /home and /app/* → /* (strip /app prefix) */
+function AppPrefixAlias() {
+  const loc = useLocation()
+  const path = loc.pathname || '/app'
+  // If exactly "/app" → send to "/home"
+  if (path === '/app') {
+    return <Navigate to={`/home${loc.search}${loc.hash}`} replace />
+  }
+  // Strip the leading "/app" for deep links: "/app/movies" → "/movies"
+  const stripped = path.replace(/^\/app/, '') || '/home'
+  return <Navigate to={`${stripped}${loc.search}${loc.hash}`} replace />
 }
 
 /* -------------------------------- Router --------------------------------- */
@@ -102,46 +97,18 @@ export const router = createBrowserRouter([
     element: <PublicShell />,
     children: [
       // Landing (signed-out only)
-      {
-        index: true,
-        element: (
-          <RedirectIfAuthed>
-            <Landing />
-          </RedirectIfAuthed>
-        ),
-      },
+      { index: true, element: <RedirectIfAuthed><Landing /></RedirectIfAuthed> },
 
       // Auth hub (signed-out only)
-      {
-        path: 'auth',
-        element: (
-          <RedirectIfAuthed>
-            <AuthPage />
-          </RedirectIfAuthed>
-        ),
-      },
+      { path: 'auth', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
 
-      // Legacy aliases that should behave like /auth
-      {
-        path: 'login',
-        element: (
-          <RedirectIfAuthed>
-            <AuthPage />
-          </RedirectIfAuthed>
-        ),
-      },
-      {
-        path: 'signup',
-        element: (
-          <RedirectIfAuthed>
-            <AuthPage />
-          </RedirectIfAuthed>
-        ),
-      },
+      // Legacy aliases → behave like /auth
+      { path: 'login', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
+      { path: 'signup', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
       { path: 'signin', element: <Navigate to="/login" replace /> },
       { path: 'register', element: <Navigate to="/signup" replace /> },
 
-      // Auth flows (public endpoints used by Supabase emails)
+      // Auth email flows
       { path: 'reset-password', element: <ResetPassword /> },
       { path: 'confirm-email', element: <ConfirmEmail /> },
     ],
@@ -151,7 +118,7 @@ export const router = createBrowserRouter([
   {
     element: <AppShell />,
     children: [
-      // Publicly viewable app pages (keep header/sidebar chrome)
+      // Publicly viewable app pages (with chrome)
       { path: 'movies', element: <MoviesTab /> },
       { path: 'movie/:id', element: <MovieDetail /> },
 
@@ -169,6 +136,10 @@ export const router = createBrowserRouter([
       },
     ],
   },
+
+  /* ---- /app legacy alias (must be before 404) ---- */
+  { path: 'app', element: <AppPrefixAlias /> },
+  { path: 'app/*', element: <AppPrefixAlias /> },
 
   /* 404 catch-all (last) */
   { path: '*', element: <NotFound /> },

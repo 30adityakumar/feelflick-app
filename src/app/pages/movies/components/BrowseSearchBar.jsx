@@ -1,86 +1,113 @@
-import { useState } from "react";
-import { Search as SearchIcon, X as XIcon } from "lucide-react";
+import { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Search } from 'lucide-react'
+import Spinner from '@/shared/ui/Spinner'
+import ErrorState from '@/shared/ui/ErrorState'
+import { searchMovies, tmdbImg, posterSrcSet } from '@/shared/api/tmdb'
+import { useAsync } from '@/shared/hooks/useAsync'
 
-const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY;
+/**
+ * BrowseSearchBar
+ * - Same engine as the header search
+ * - Designed for the Movies/Browse page context
+ * - On select: navigates to /movie/:id (you can later swap to filter the grid)
+ */
+export default function BrowseSearchBar() {
+  const [q, setQ] = useState('')
+  const [open, setOpen] = useState(false)
+  const [active, setActive] = useState(0)
 
-export default function BrowseSearchBar({ onResults, onSearch, value }) {
-  const [search, setSearch] = useState(value || "");
-  const [loading, setLoading] = useState(false);
+  const inputRef = useRef(null)
+  const navigate = useNavigate()
+  const { data, error, loading, run } = useAsync()
 
-  async function handleSubmit(e) {
-    e.preventDefault();
-    if (!search.trim()) return;
-    setLoading(true);
-    const res = await fetch(
-      `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&language=en-US&query=${encodeURIComponent(search)}&include_adult=false&page=1`
-    );
-    const data = await res.json();
-    setLoading(false);
-    onResults((data.results || []).filter(m => !!m.title && m.poster_path), search);
-    if (onSearch) onSearch(search);
+  useEffect(() => {
+    if (!q.trim()) { setOpen(false); return }
+    setOpen(true)
+    const id = setTimeout(() => {
+      run((signal) => searchMovies(q.trim(), { page: 1, signal }))
+    }, 250)
+    return () => clearTimeout(id)
+  }, [q, run])
+
+  const results = data?.results?.slice(0, 8) ?? []
+
+  function goToMovie(id) {
+    setOpen(false)
+    setQ('')
+    navigate(`/movie/${id}`)
   }
 
-  function clearInput() {
-    setSearch("");
-    onResults([], "");
-    if (onSearch) onSearch("");
+  function onKeyDown(e) {
+    if (!open) return
+    if (e.key === 'ArrowDown') { e.preventDefault(); setActive((i) => Math.min(i + 1, results.length - 1)) }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); setActive((i) => Math.max(i - 1, 0)) }
+    else if (e.key === 'Enter') { const m = results[active]; if (m) goToMovie(m.id) }
+    else if (e.key === 'Escape') { setOpen(false) }
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="w-full flex items-center justify-center"
-      style={{ marginBottom: 18 }}
-    >
-      <div className="
-        relative flex items-center w-full
-        bg-[#16161cdd] rounded-2xl shadow-2xl border border-orange-400/40
-        focus-within:ring-2 focus-within:ring-orange-400
-        browse-searchbar
-      " style={{ maxWidth: 1200, minHeight: 45, backdropFilter: "blur(10px)" }}>
-        <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-orange-400" size={22} />
+    <div className="relative w-full">
+      <label className="mb-1 block text-xs font-medium text-white/70">Search movies</label>
+      <div className="flex items-center gap-2 rounded-md border border-white/15 bg-white/5 px-3 py-2">
+        <Search className="h-4 w-4 opacity-70" aria-hidden />
         <input
-          type="text"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder="Search any movie…"
-          className="w-full pl-12 pr-12 py-2 rounded-2xl bg-transparent text-white placeholder-zinc-400 text-lg font-bold outline-none transition"
-          style={{ letterSpacing: "0.01em", height: 42 }}
+          ref={inputRef}
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          onFocus={() => q && setOpen(true)}
+          onKeyDown={onKeyDown}
+          placeholder="Type to search…"
+          className="h-6 w-full bg-transparent text-sm text-white placeholder-white/60 focus:outline-none"
+          aria-autocomplete="list"
+          aria-expanded={open}
+          aria-controls="browse-search-results"
         />
-        {search && (
-          <button
-            type="button"
-            onClick={clearInput}
-            className="absolute right-12 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-orange-400 transition"
-            aria-label="Clear search"
-          >
-            <XIcon size={20} />
-          </button>
-        )}
-        <button
-          type="submit"
-          className={`
-            absolute right-3 top-1/2 -translate-y-1/2 px-4 py-1.5 bg-gradient-to-r from-orange-400 to-red-500
-            text-white font-bold text-base rounded-full shadow hover:scale-105 transition
-            ${loading ? "opacity-70 pointer-events-none" : ""}
-          `}
-          disabled={loading}
-          aria-label="Search"
-        >
-          {loading ? (
-            <svg className="animate-spin h-5 w-5 mx-auto" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-            </svg>
-          ) : "Go"}
-        </button>
+        {loading ? <Spinner size={16} className="text-white/60" /> : null}
       </div>
-      <style>{`
-        @media (max-width: 600px) {
-          .browse-searchbar input { font-size: 1rem !important; padding-top: 8px; padding-bottom: 8px; }
-          .browse-searchbar { min-height: 40px !important; }
-        }
-      `}</style>
-    </form>
-  );
+
+      {open && (
+        <div
+          id="browse-search-results"
+          role="listbox"
+          className="absolute z-40 mt-2 w-full overflow-hidden rounded-lg border border-white/15 bg-neutral-900/95 p-2 shadow-xl backdrop-blur"
+        >
+          {error ? (
+            <ErrorState title="Search failed" detail={error?.message} onRetry={() => run((s) => searchMovies(q, { signal: s }))} />
+          ) : results.length === 0 && !loading ? (
+            <div className="p-3 text-sm text-white/70">No results</div>
+          ) : (
+            <ul>
+              {results.map((m, i) => (
+                <li
+                  key={m.id}
+                  role="option"
+                  aria-selected={i === active}
+                  onMouseEnter={() => setActive(i)}
+                  onClick={() => goToMovie(m.id)}
+                  className={`flex cursor-pointer items-center gap-3 rounded-md p-2 hover:bg-white/5 ${i === active ? 'bg-white/10' : ''}`}
+                >
+                  <img
+                    alt={m.title}
+                    src={tmdbImg(m.poster_path, 'w154')}
+                    srcSet={posterSrcSet(m.poster_path)}
+                    loading="lazy"
+                    width="56"
+                    height="84"
+                    className="h-14 w-10 rounded-md object-cover"
+                  />
+                  <div className="min-w-0">
+                    <div className="truncate text-sm text-white">{m.title}</div>
+                    <div className="text-xs text-white/60">
+                      {(m.release_date || '').slice(0, 4)} • ⭐ {m.vote_average?.toFixed?.(1) ?? '—'}
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </div>
+  )
 }

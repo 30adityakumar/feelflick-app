@@ -1,28 +1,28 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { Film, Menu, X, LogIn } from 'lucide-react'
+import { useEffect, useRef, useState, useMemo } from 'react'
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { Film, Menu, X } from 'lucide-react'
+import logoPng from '@/assets/images/logo.png'
 
 export default function TopNav() {
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
-  const [logoSrc, setLogoSrc] = useState('/logo.svg') // will auto-fallback to png, then icon
   const btnRef = useRef(null)
   const drawerRef = useRef(null)
   const firstLinkRef = useRef(null)
   const prevFocusRef = useRef(null)
-  const navigate = useNavigate()
 
-  // Solid/blurred bar after a tiny scroll (throttled)
+  const navigate = useNavigate()
+  const location = useLocation()
+
+  // Scroll-aware header (throttled)
   useEffect(() => {
     let ticking = false
     const onScroll = () => {
       if (ticking) return
       ticking = true
       requestAnimationFrame(() => {
-        setScrolled((s) => {
-          const next = window.scrollY > 8
-          return s === next ? s : next
-        })
+        const next = window.scrollY > 8
+        setScrolled((s) => (s === next ? s : next))
         ticking = false
       })
     }
@@ -31,7 +31,7 @@ export default function TopNav() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  // Mobile drawer: outside click, Esc, focus trap-ish, and scroll lock
+  // Mobile drawer a11y: outside click, Esc, focus, scroll lock
   useEffect(() => {
     if (!open) return
     const onPointerDown = (e) => {
@@ -42,27 +42,30 @@ export default function TopNav() {
     const onKey = (e) => { if (e.key === 'Escape') setOpen(false) }
     document.addEventListener('pointerdown', onPointerDown)
     document.addEventListener('keydown', onKey)
-    // lock scroll
     const { overflow } = document.body.style
     document.body.style.overflow = 'hidden'
-    // focus mgmt
     prevFocusRef.current = document.activeElement
     const id = setTimeout(() => firstLinkRef.current?.focus(), 0)
-
     return () => {
       document.removeEventListener('pointerdown', onPointerDown)
       document.removeEventListener('keydown', onKey)
       document.body.style.overflow = overflow
       clearTimeout(id)
-      // restore focus back to toggle
       if (prevFocusRef.current && prevFocusRef.current.focus) prevFocusRef.current.focus()
     }
   }, [open])
 
-  // Brand logo fallback (svg -> png -> icon)
-  const onLogoError = () => {
-    if (logoSrc === '/logo.svg') setLogoSrc('/logo.png')
-    else setLogoSrc('') // triggers icon fallback
+  // Brand click: scroll to top if already on "/"
+  function onBrandClick(e) {
+    if (location.pathname === '/') {
+      e.preventDefault()
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      if (open) setOpen(false)
+    } else {
+      // Navigate to home; our global focus handler will place focus correctly
+      if (open) setOpen(false)
+      navigate('/', { replace: false })
+    }
   }
 
   const navLinks = useMemo(
@@ -74,7 +77,7 @@ export default function TopNav() {
   )
 
   function onGetStarted() {
-    // public entry → /auth (RedirectIfAuthed will bounce authed users to /home)
+    if (open) setOpen(false)
     navigate('/auth')
   }
 
@@ -86,64 +89,62 @@ export default function TopNav() {
 
   return (
     <header className={shellClass} data-scrolled={scrolled}>
-      <div className="mx-auto flex w-full max-w-7xl items-center gap-3 px-4 py-3 md:px-6">
-        {/* Brand (larger on mobile for prominence) */}
-        <Link to="/" className="flex items-center gap-2 text-white">
-          {logoSrc ? (
-            <img
-              src={logoSrc}
-              alt=""
-              width="28"
-              height="28"
-              className="h-7 w-7 rounded-md object-contain"
-              onError={onLogoError}
-              fetchpriority="high"
-            />
-          ) : (
-            <Film className="h-6 w-6" aria-hidden />
-          )}
-          <span className="text-base font-extrabold tracking-tight sm:text-lg">
-            FeelFlick
+      <div className="mx-auto flex w-full max-w-7xl items-center gap-4 px-4 py-4 md:px-6">
+        {/* Brand — bigger on mobile; logo before FEELFLICK */}
+        <a
+          href="/"
+          onClick={onBrandClick}
+          className="flex items-center gap-2 text-white focus:outline-none focus:ring-2 focus:ring-brand/60 rounded-md"
+          aria-label="Go to top"
+        >
+          <img
+            src={logoPng}
+            alt="FeelFlick logo"
+            width="32"
+            height="32"
+            className="h-8 w-8 rounded-md object-contain sm:h-7 sm:w-7"
+            fetchpriority="high"
+          />
+          <span className="text-xl font-black tracking-tight sm:text-lg">
+            FEELFLICK
           </span>
-        </Link>
+        </a>
 
         {/* Desktop nav */}
-        <nav className="ml-4 hidden items-center gap-1 sm:flex">
+        <nav className="ml-1 hidden items-center gap-1 sm:flex">
           {navLinks.map((l) => (
             <NavItem key={l.to} to={l.to} label={l.label} />
           ))}
         </nav>
 
-        {/* Spacer */}
         <div className="flex-1" />
 
-        {/* Desktop actions (bigger tap targets) */}
-        <div className="hidden items-center gap-2 sm:flex">
+        {/* Desktop actions — “Sign in” more prominent */}
+        <div className="hidden items-center gap-3 sm:flex">
           <Link
             to="/auth"
-            className="inline-flex min-h-10 items-center gap-2 rounded-full border border-white/20 px-3.5 py-2 text-sm text-white/90 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60"
+            className="inline-flex h-10 items-center justify-center rounded-full bg-white px-4 text-sm font-semibold text-black shadow-soft hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-brand/60"
           >
-            <LogIn className="h-4 w-4" aria-hidden />
-            <span>Sign in</span>
+            Sign in
           </Link>
           <button
             onClick={onGetStarted}
-            className="inline-flex min-h-10 items-center justify-center rounded-full bg-gradient-to-r from-brand-500 to-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-lift transition-transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-brand/60"
+            className="inline-flex h-10 items-center justify-center rounded-full bg-gradient-to-r from-brand-500 to-brand-600 px-4 text-sm font-semibold text-white shadow-lift transition-transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-brand/60"
           >
             Get started
           </button>
         </div>
 
-        {/* Mobile toggle (larger hit area) */}
+        {/* Mobile menu toggle — bigger target */}
         <button
           ref={btnRef}
-          className="inline-flex h-10 w-10 items-center justify-center rounded-md text-white/85 hover:bg-white/10 sm:hidden"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-md text-white/85 hover:bg-white/10 sm:hidden"
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
           aria-controls="mobile-menu"
           aria-label="Menu"
         >
-          {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          {open ? <X className="h-7 w-7" /> : <Menu className="h-7 w-7" />}
         </button>
       </div>
 
@@ -163,7 +164,7 @@ export default function TopNav() {
                   ref={i === 0 ? firstLinkRef : undefined}
                   to={l.to}
                   onClick={() => setOpen(false)}
-                  className="block rounded-lg px-3 py-3 text-[0.95rem] text-white hover:bg-white/10 focus:bg-white/10 focus:outline-none"
+                  className="block rounded-lg px-3 py-3.5 text-base text-white hover:bg-white/10 focus:bg-white/10 focus:outline-none"
                 >
                   {l.label}
                 </Link>
@@ -173,18 +174,15 @@ export default function TopNav() {
               <Link
                 to="/auth"
                 onClick={() => setOpen(false)}
-                className="block rounded-lg px-3 py-3 text-[0.95rem] text-white/90 hover:bg-white/10 focus:bg-white/10 focus:outline-none"
+                className="block rounded-lg px-3 py-3.5 text-base font-semibold text-black bg-white hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-brand/60"
               >
                 Sign in
               </Link>
             </li>
             <li className="mt-1">
               <button
-                onClick={() => {
-                  setOpen(false)
-                  onGetStarted()
-                }}
-                className="flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 px-3 py-3 text-[0.95rem] font-semibold text-white shadow-lift focus:outline-none focus:ring-2 focus:ring-brand/60"
+                onClick={onGetStarted}
+                className="flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 px-3 py-3.5 text-base font-semibold text-white shadow-lift focus:outline-none focus:ring-2 focus:ring-brand/60"
               >
                 Get started
               </button>
@@ -196,7 +194,7 @@ export default function TopNav() {
   )
 }
 
-/* ----------------------------- helpers ----------------------------- */
+/* -------------------------------- helpers -------------------------------- */
 function NavItem({ to, label }) {
   return (
     <NavLink

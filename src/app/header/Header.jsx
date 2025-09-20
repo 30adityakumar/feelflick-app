@@ -12,9 +12,12 @@ export default function Header() {
 
   const navigate = useNavigate()
   const loc = useLocation()
-  const menuRef = useRef(null)
 
-  // Keep user session in sync
+  // separate refs so outside-click doesn't misfire on desktop
+  const avatarBtnRef = useRef(null)
+  const desktopMenuRef = useRef(null)
+
+  /* --------------------------- session sync --------------------------- */
   useEffect(() => {
     let unsubscribe
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -30,17 +33,23 @@ export default function Header() {
     return () => { if (typeof unsubscribe === 'function') unsubscribe() }
   }, [])
 
-  // Close menu on route change or outside click
+  // close menu on route change
   useEffect(() => { setMenuOpen(false) }, [loc.pathname])
+
+  // close menu on outside click (desktop)
   useEffect(() => {
-    function onClickOutside(e) {
-      if (!menuRef.current) return
-      if (!menuRef.current.contains(e.target)) setMenuOpen(false)
+    if (!menuOpen) return
+    function onDocPointerDown(e) {
+      const t = e.target
+      if (desktopMenuRef.current && desktopMenuRef.current.contains(t)) return
+      if (avatarBtnRef.current && avatarBtnRef.current.contains(t)) return
+      setMenuOpen(false)
     }
-    if (menuOpen) document.addEventListener('mousedown', onClickOutside)
-    return () => document.removeEventListener('mousedown', onClickOutside)
+    document.addEventListener('pointerdown', onDocPointerDown)
+    return () => document.removeEventListener('pointerdown', onDocPointerDown)
   }, [menuOpen])
 
+  /* --------------------------- sign out --------------------------- */
   async function handleSignOut() {
     if (signingOut) return
     setSigningOut(true)
@@ -48,11 +57,9 @@ export default function Header() {
       const { error } = await supabase.auth.signOut()
       if (error) {
         console.error('Sign out failed:', error)
-        // Fall back to server-side signout route if anything goes wrong
-        window.location.assign('/logout')
+        window.location.assign('/logout') // hard fallback
         return
       }
-      // Navigate only AFTER session is cleared
       navigate('/auth', { replace: true })
     } finally {
       setMenuOpen(false)
@@ -63,29 +70,29 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-white/10 bg-neutral-950/70 backdrop-blur">
       <div className="mx-auto flex w-full max-w-7xl items-center gap-3 px-4 py-3 md:px-6">
-        {/* Left: brand */}
+        {/* Brand */}
         <Link to="/" className="flex items-center gap-2 text-white">
           <Film className="h-5 w-5" />
           <span className="text-sm font-semibold tracking-wide">FeelFlick</span>
         </Link>
 
-        {/* Center: search (hidden on xs) */}
+        {/* Search */}
         <div className="ml-3 hidden flex-1 sm:block">
           <SearchBar />
         </div>
 
-        {/* Right: auth / user menu */}
+        {/* Right cluster */}
         <div className="ml-auto flex items-center gap-2">
-          {/* Mobile search / nav toggler (optional) */}
+          {/* Mobile menu toggle */}
           <button
             className="inline-flex items-center justify-center rounded-md p-2 text-white/80 hover:bg-white/10 sm:hidden"
-            onClick={() => setMenuOpen((v) => !v)}
+            onClick={() => setMenuOpen(v => !v)}
             aria-label="Toggle menu"
           >
             {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
 
-          {/* If not logged in: show Auth link */}
+          {/* Sign in (desktop) */}
           {!user && (
             <Link
               to="/auth"
@@ -95,11 +102,12 @@ export default function Header() {
             </Link>
           )}
 
-          {/* User menu trigger */}
+          {/* Avatar (desktop) */}
           {user && (
             <button
-              onClick={() => setMenuOpen((v) => !v)}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-sm font-semibold text-white"
+              ref={avatarBtnRef}
+              onClick={() => setMenuOpen(v => !v)}
+              className="hidden h-8 w-8 items-center justify-center rounded-full bg-white/10 text-sm font-semibold text-white sm:inline-flex"
               aria-haspopup="menu"
               aria-expanded={menuOpen}
               aria-label="Open user menu"
@@ -110,7 +118,7 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Desktop nav bar (under header row) */}
+      {/* Desktop nav row */}
       <div className="hidden border-t border-white/10 sm:block">
         <nav className="mx-auto flex w-full max-w-7xl items-center gap-4 px-4 py-2 text-sm md:px-6">
           <NavItem to="/home" label="Home" />
@@ -125,11 +133,10 @@ export default function Header() {
         </nav>
       </div>
 
-      {/* Dropdown / mobile menu */}
+      {/* Mobile sheet (no ref to avoid ref collisions) */}
       {(menuOpen || !user) && (
-        <div className="sm:hidden" ref={menuRef}>
+        <div className="sm:hidden">
           <div className="space-y-1 border-t border-white/10 px-3 pb-3 pt-2">
-            {/* If signed out, show quick auth button on mobile */}
             {!user && (
               <Link
                 to="/auth"
@@ -140,7 +147,6 @@ export default function Header() {
               </Link>
             )}
 
-            {/* Mobile nav links */}
             <LinkItem to="/home" icon={<Film className="h-4 w-4" />} text="Home" onNavigate={() => setMenuOpen(false)} />
             <LinkItem to="/movies" icon={<Film className="h-4 w-4" />} text="Browse" onNavigate={() => setMenuOpen(false)} />
             <LinkItem to="/trending" icon={<Film className="h-4 w-4" />} text="Trending" onNavigate={() => setMenuOpen(false)} />
@@ -165,11 +171,11 @@ export default function Header() {
         </div>
       )}
 
-      {/* Desktop user dropdown */}
+      {/* Desktop dropdown */}
       {user && (
         <div
+          ref={desktopMenuRef}
           className={`absolute right-4 top-14 z-50 hidden min-w-56 rounded-xl border border-white/15 bg-neutral-900/95 p-2 shadow-xl backdrop-blur sm:block ${menuOpen ? '' : 'pointer-events-none opacity-0'}`}
-          ref={menuRef}
           role="menu"
         >
           <button
@@ -210,7 +216,7 @@ export default function Header() {
             <LogOut className="h-4 w-4" />
             {signingOut ? 'Signing out…' : 'Sign out'}
           </button>
-          {/* Pure anchor fallback if you ever want zero-JS signout:
+          {/* If you ever prefer zero-JS signout:
           <a href="/logout" className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-white hover:bg-white/10">
             <LogOut className="h-4 w-4" /> Sign out
           </a> */}

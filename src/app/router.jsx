@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate, Outlet, useLocation } from 'react-router-dom'
+import { createBrowserRouter, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/shared/lib/supabase/client'
 
@@ -76,18 +76,25 @@ function RedirectIfAuthed({ children }) {
   return children
 }
 
-/* ------------------------------- /app alias ------------------------------- */
+/* ------------------------------- Utilities -------------------------------- */
 /** Redirects /app → /home and /app/* → /* (strip /app prefix) */
 function AppPrefixAlias() {
   const loc = useLocation()
   const path = loc.pathname || '/app'
-  // If exactly "/app" → send to "/home"
-  if (path === '/app') {
-    return <Navigate to={`/home${loc.search}${loc.hash}`} replace />
-  }
-  // Strip the leading "/app" for deep links: "/app/movies" → "/movies"
+  if (path === '/app') return <Navigate to={`/home${loc.search}${loc.hash}`} replace />
   const stripped = path.replace(/^\/app/, '') || '/home'
   return <Navigate to={`${stripped}${loc.search}${loc.hash}`} replace />
+}
+
+/** Route that signs out and redirects to /auth (works even if header button fails) */
+function SignOutRoute() {
+  const nav = useNavigate()
+  useEffect(() => {
+    supabase.auth.signOut().finally(() => {
+      nav('/auth', { replace: true })
+    })
+  }, [nav])
+  return <div className="p-6 text-white/70">Signing you out…</div>
 }
 
 /* -------------------------------- Router --------------------------------- */
@@ -102,7 +109,9 @@ export const router = createBrowserRouter([
       // Auth hub (signed-out only)
       { path: 'auth', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
 
-      // Legacy aliases → behave like /auth
+      // Legacy/alt auth paths
+      { path: 'auth/sign-in', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
+      { path: 'auth/sign-up', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
       { path: 'login', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
       { path: 'signup', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
       { path: 'signin', element: <Navigate to="/login" replace /> },
@@ -111,6 +120,9 @@ export const router = createBrowserRouter([
       // Auth email flows
       { path: 'reset-password', element: <ResetPassword /> },
       { path: 'confirm-email', element: <ConfirmEmail /> },
+
+      // Explicit logout route (works from any state)
+      { path: 'logout', element: <SignOutRoute /> },
     ],
   },
 
@@ -118,9 +130,13 @@ export const router = createBrowserRouter([
   {
     element: <AppShell />,
     children: [
-      // Publicly viewable app pages (with chrome)
+      // Publicly viewable pages with app chrome
       { path: 'movies', element: <MoviesTab /> },
       { path: 'movie/:id', element: <MovieDetail /> },
+
+      // Old slugs → same component
+      { path: 'browse', element: <MoviesTab /> },
+      { path: 'trending', element: <MoviesTab /> },
 
       // Auth-required pages
       {
@@ -132,6 +148,9 @@ export const router = createBrowserRouter([
           { path: 'preferences', element: <Preferences /> },
           { path: 'watchlist', element: <Watchlist /> },
           { path: 'watched', element: <HistoryPage /> },
+
+          // Old alias → history
+          { path: 'history', element: <HistoryPage /> },
         ],
       },
     ],

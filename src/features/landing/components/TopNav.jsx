@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { Film, Menu, X, LogIn } from 'lucide-react'
+import { Menu, X, LogIn } from 'lucide-react'
 import logoPng from '@/assets/images/logo.png'
 
 export default function TopNav() {
@@ -21,7 +21,7 @@ export default function TopNav() {
       if (ticking) return
       ticking = true
       requestAnimationFrame(() => {
-        const next = window.scrollY > 8
+        const next = window.scrollY > 4
         setScrolled((s) => (s === next ? s : next))
         ticking = false
       })
@@ -83,18 +83,18 @@ export default function TopNav() {
   const shellClass =
     'fixed inset-x-0 top-0 z-50 transition-colors will-change-backdrop-filter ' +
     (scrolled
-      ? 'border-b border-white/10 bg-neutral-950/80 backdrop-blur'
+      ? 'border-b border-white/10 bg-neutral-950/75 backdrop-blur-md'
       : 'bg-transparent')
 
   return (
     <header className={shellClass} data-scrolled={scrolled}>
-      {/* Bigger on mobile: py-5; slightly tighter on ≥sm */}
-      <div className="mx-auto flex w-full max-w-7xl items-center gap-4 px-4 py-5 md:px-6 sm:py-4">
-        {/* Brand — logo before FEELFLICK, larger & closer */}
+      {/* Bigger on mobile: taller bar, less left padding */}
+      <div className="mx-auto flex w-full max-w-7xl items-center gap-4 px-3 py-6 sm:py-4 md:px-6">
+        {/* Brand — logo before FEELFLICK, closer & larger */}
         <a
           href="/"
           onClick={onBrandClick}
-          className="flex items-center gap-1.5 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-brand/60"
+          className="flex items-center gap-1 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-brand/60"
           aria-label="Go to top"
         >
           <img
@@ -105,7 +105,7 @@ export default function TopNav() {
             className="h-9 w-9 rounded-md object-contain sm:h-8 sm:w-8"
             fetchpriority="high"
           />
-          <span className="text-[1.5rem] font-black tracking-tight text-brand-200 sm:text-xl">
+          <span className="text-[1.6rem] font-black tracking-tight text-brand-100 sm:text-xl">
             FEELFLICK
           </span>
         </a>
@@ -119,11 +119,11 @@ export default function TopNav() {
 
         <div className="flex-1" />
 
-        {/* Desktop actions — Sign in (bordered pill, as before) */}
+        {/* Desktop actions — Sign in prominent (pill) */}
         <div className="hidden items-center gap-3 sm:flex">
           <Link
             to="/auth"
-            className="inline-flex h-10 items-center gap-2 rounded-full border border-white/20 px-4 text-sm font-semibold text-white/90 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60"
+            className="inline-flex h-10 items-center gap-2 rounded-full border border-white/25 px-4 text-sm font-semibold text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60"
           >
             <LogIn className="h-4 w-4" aria-hidden />
             <span>Sign in</span>
@@ -149,7 +149,7 @@ export default function TopNav() {
         </button>
       </div>
 
-      {/* Mobile drawer */}
+      {/* Mobile drawer (items smaller/optimized) */}
       <div
         id="mobile-menu"
         ref={drawerRef}
@@ -157,7 +157,7 @@ export default function TopNav() {
           open ? 'max-h-[70vh] opacity-100' : 'pointer-events-none max-h-0 opacity-0'
         }`}
       >
-        <div className="mx-4 mb-3 rounded-2xl border border-white/10 bg-neutral-900/95 p-2 shadow-xl backdrop-blur">
+        <div className="mx-3 mb-3 rounded-2xl border border-white/10 bg-neutral-900/95 p-2 shadow-xl backdrop-blur">
           <ul className="flex flex-col">
             {navLinks.map((l, i) => (
               <li key={l.to}>
@@ -165,7 +165,7 @@ export default function TopNav() {
                   ref={i === 0 ? firstLinkRef : undefined}
                   to={l.to}
                   onClick={() => setOpen(false)}
-                  className="block rounded-lg px-3 py-3.5 text-[1.05rem] text-white hover:bg-white/10 focus:bg-white/10 focus:outline-none"
+                  className="block rounded-lg px-3 py-2.5 text-sm text-white hover:bg-white/10 focus:bg-white/10 focus:outline-none"
                 >
                   {l.label}
                 </Link>
@@ -175,7 +175,7 @@ export default function TopNav() {
               <Link
                 to="/auth"
                 onClick={() => setOpen(false)}
-                className="block rounded-full border border-white/20 px-3 py-3.5 text-center text-[1.05rem] font-semibold text-white/90 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60"
+                className="block rounded-full border border-white/25 px-3 py-2.5 text-center text-sm font-semibold text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60"
               >
                 Sign in
               </Link>
@@ -183,7 +183,7 @@ export default function TopNav() {
             <li className="mt-1">
               <button
                 onClick={onGetStarted}
-                className="flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 px-3 py-3.5 text-[1.05rem] font-semibold text-white shadow-lift focus:outline-none focus:ring-2 focus:ring-brand/60"
+                className="flex w-full items-center justify-center rounded-lg bg-gradient-to-r from-brand-500 to-brand-600 px-3 py-2.5 text-sm font-semibold text-white shadow-lift focus:outline-none focus:ring-2 focus:ring-brand/60"
               >
                 Get started
               </button>
@@ -201,7 +201,7 @@ function NavItem({ to, label }) {
     <NavLink
       to={to}
       className={({ isActive }) =>
-        `rounded-lg px-3 py-2 text-[0.98rem] transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60 ${
+        `rounded-lg px-3 py-2 text-[0.95rem] transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60 ${
           isActive ? 'bg-white/15 text-white' : 'text-white/80'
         }`
       }

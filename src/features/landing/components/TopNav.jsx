@@ -1,97 +1,169 @@
-import { useEffect, useRef, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useEffect, useRef, useState } from 'react'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { Film, Menu, X, LogIn, Sparkles } from 'lucide-react'
 
+/**
+ * Landing Top Nav (public pages only)
+ * - Transparent over hero; solid/blurred on scroll
+ * - Mobile drawer with focus management & outside-click close
+ * - Uses Tailwind + your theme tokens (see index.css)
+ */
 export default function TopNav() {
-  const [hidden, setHidden] = useState(false);
-  const lastScroll = useRef(0);
-  const location = useLocation();
+  const [scrolled, setScrolled] = useState(false)
+  const [open, setOpen] = useState(false)
+  const navRef = useRef(null)
+  const btnRef = useRef(null)
+  const firstLinkRef = useRef(null)
+  const navigate = useNavigate()
 
+  // Solidify nav after small scroll
   useEffect(() => {
-    const handleScroll = () => {
-      const currentScroll = window.scrollY;
-      setHidden(currentScroll > 48 && currentScroll > lastScroll.current);
-      lastScroll.current = currentScroll;
-    };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+    const onScroll = () => setScrolled(window.scrollY > 8)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  // Close on outside click (mobile drawer)
+  useEffect(() => {
+    if (!open) return
+    function onPointerDown(e) {
+      const t = e.target
+      if (navRef.current?.contains(t) || btnRef.current?.contains(t)) return
+      setOpen(false)
+    }
+    document.addEventListener('pointerdown', onPointerDown)
+    return () => document.removeEventListener('pointerdown', onPointerDown)
+  }, [open])
+
+  // Focus first item when opening the drawer
+  useEffect(() => {
+    if (open) {
+      const id = setTimeout(() => firstLinkRef.current?.focus(), 0)
+      return () => clearTimeout(id)
+    }
+  }, [open])
+
+  const navLinks = [
+    { to: '/movies', label: 'Browse' },
+    { to: '/trending', label: 'Trending' },
+  ]
+
+  function onGetStarted() {
+    // Public entry → /auth (RedirectIfAuthed will bounce signed-in users to /home)
+    navigate('/auth')
+  }
+
+  const shellClass = scrolled
+    ? 'border-b border-white/10 bg-neutral-950/80 backdrop-blur'
+    : 'bg-transparent'
 
   return (
-    <header
-      className={`
-        fixed z-50 w-full top-0 left-0 right-0
-        flex justify-center pointer-events-none
-      `}
-      style={{
-        transform: hidden ? "translateY(-130%)" : "translateY(0)"
-      }}
-      role="banner"
-    >
-      <nav
-        className={`
-          pointer-events-auto w-full flex items-center
-          bg-[rgba(18, 18, 22, 0.2)] backdrop-blur
-          min-h-[48px] md:min-h-[60px]
-        `}
-        aria-label="Main navigation"
-        role="navigation"
-        style={{
-          padding: "0",
-          margin: "0",
-          borderRadius: "0",
-          boxShadow: "none"
-        }}
-      >
-        {/* FEELFLICK brand only, no logo */}
-        <Link
-          to="/"
-          className="flex items-center pointer-events-auto select-none focus-visible:outline-2 w-fit"
-          aria-label="Go to FeelFlick home page"
-          tabIndex={0}
-        >
-          <span
-            className={`
-              uppercase font-extrabold text-xl sm:text-2xl md:text-3xl
-              tracking-wide text-[#F6E3D7] pl-4 md:pl-10
-              whitespace-nowrap
-            `}
-            style={{
-              letterSpacing: "0.05em",
-              textShadow: "0 1px 10px #fff1, 0 1px 20px #18406d24",
-              lineHeight: "1"
-            }}
-          >
-            FEELFLICK
-          </span>
+    <header className={`fixed inset-x-0 top-0 z-50 transition-colors ${shellClass}`}>
+      <div className="mx-auto flex w-full max-w-7xl items-center gap-3 px-4 py-3 md:px-6">
+        {/* Brand */}
+        <Link to="/" className="flex items-center gap-2 text-white">
+          <Film className="h-5 w-5" />
+          <span className="text-sm font-semibold tracking-wide">FeelFlick</span>
         </Link>
-        <span className="flex-1" />
 
-        {/* Sign In button */}
-        {location.pathname !== "/auth/sign-in" && (
+        {/* Desktop nav */}
+        <nav className="ml-6 hidden items-center gap-1 sm:flex">
+          {navLinks.map((l) => (
+            <NavItem key={l.to} to={l.to} label={l.label} />
+          ))}
+        </nav>
+
+        {/* Spacer */}
+        <div className="flex-1" />
+
+        {/* Desktop actions */}
+        <div className="hidden items-center gap-2 sm:flex">
           <Link
-            to="/auth/sign-in"
-            className={`
-              bg-gradient-to-r from-orange-400 to-red-500
-              text-white font-semibold
-              px-3 py-1 rounded-lg
-              md:px-6 md:py-1.9 md:rounded-xl
-              focus-visible:outline-2 focus-visible:outline-white
-              min-w-[70px] md:min-w-[90px] text-sm md:text-base text-center
-              mr-4 md:mr-10
-              transition-all
-            `}
-            aria-label="Sign in"
-            tabIndex={0}
-            style={{
-              boxShadow: "0 2px 12px #eb423b1a",
-              fontSize: "0.98rem",
-              minHeight: "28px",
-            }}
+            to="/auth"
+            className="inline-flex items-center gap-2 rounded-full border border-white/20 px-3 py-1.5 text-sm text-white/90 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60"
           >
+            <LogIn className="h-4 w-4" />
             Sign in
           </Link>
-        )}
-      </nav>
+          <button
+            onClick={onGetStarted}
+            className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand-500 to-brand-600 px-4 py-1.5 text-sm font-semibold text-white shadow-lift transition-transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-brand/60"
+          >
+            <Sparkles className="h-4 w-4" />
+            Get started
+          </button>
+        </div>
+
+        {/* Mobile toggle */}
+        <button
+          ref={btnRef}
+          className="inline-flex items-center justify-center rounded-md p-2 text-white/85 hover:bg-white/10 sm:hidden"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          aria-controls="mobile-menu"
+          aria-label="Menu"
+        >
+          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </button>
+      </div>
+
+      {/* Mobile drawer */}
+      <div
+        id="mobile-menu"
+        ref={navRef}
+        className={`sm:hidden transition-[max-height,opacity] ${open ? 'max-h-[60vh] opacity-100' : 'pointer-events-none max-h-0 opacity-0'}`}
+      >
+        <div className="mx-4 mb-3 rounded-xl border border-white/10 bg-neutral-900/95 p-2 shadow-xl backdrop-blur">
+          <ul className="flex flex-col">
+            {navLinks.map((l, i) => (
+              <li key={l.to}>
+                <Link
+                  ref={i === 0 ? firstLinkRef : undefined}
+                  to={l.to}
+                  onClick={() => setOpen(false)}
+                  className="block rounded-md px-3 py-2 text-sm text-white hover:bg-white/10 focus:bg-white/10 focus:outline-none"
+                >
+                  {l.label}
+                </Link>
+              </li>
+            ))}
+            <li className="mt-1 border-t border-white/10 pt-2">
+              <Link
+                to="/auth"
+                onClick={() => setOpen(false)}
+                className="block rounded-md px-3 py-2 text-sm text-white/90 hover:bg-white/10 focus:bg-white/10 focus:outline-none"
+              >
+                Sign in
+              </Link>
+            </li>
+            <li className="mt-1">
+              <button
+                onClick={() => { setOpen(false); onGetStarted() }}
+                className="flex w-full items-center justify-center gap-2 rounded-md bg-gradient-to-r from-brand-500 to-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-lift focus:outline-none focus:ring-2 focus:ring-brand/60"
+              >
+                <Sparkles className="h-4 w-4" />
+                Get started
+              </button>
+            </li>
+          </ul>
+        </div>
+      </div>
     </header>
-  );
+  )
+}
+
+function NavItem({ to, label }) {
+  return (
+    <NavLink
+      to={to}
+      className={({ isActive }) =>
+        `rounded-md px-3 py-1.5 text-sm transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60 ${
+          isActive ? 'bg-white/15 text-white' : 'text-white/80'
+        }`
+      }
+    >
+      {label}
+    </NavLink>
+  )
 }

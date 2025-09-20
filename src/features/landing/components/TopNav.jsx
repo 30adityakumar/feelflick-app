@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState, useMemo } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { Film, Menu, X } from 'lucide-react'
+import { Film, Menu, X, LogIn } from 'lucide-react'
 import logoPng from '@/assets/images/logo.png'
 
 export default function TopNav() {
@@ -14,7 +14,7 @@ export default function TopNav() {
   const navigate = useNavigate()
   const location = useLocation()
 
-  // Scroll-aware header (throttled)
+  // Solid/blurred bar after tiny scroll (rAF-throttled)
   useEffect(() => {
     let ticking = false
     const onScroll = () => {
@@ -55,14 +55,13 @@ export default function TopNav() {
     }
   }, [open])
 
-  // Brand click: scroll to top if already on "/"
+  // Brand click → scroll to top if already on home
   function onBrandClick(e) {
     if (location.pathname === '/') {
       e.preventDefault()
       window.scrollTo({ top: 0, behavior: 'smooth' })
       if (open) setOpen(false)
     } else {
-      // Navigate to home; our global focus handler will place focus correctly
       if (open) setOpen(false)
       navigate('/', { replace: false })
     }
@@ -89,23 +88,24 @@ export default function TopNav() {
 
   return (
     <header className={shellClass} data-scrolled={scrolled}>
-      <div className="mx-auto flex w-full max-w-7xl items-center gap-4 px-4 py-4 md:px-6">
-        {/* Brand — bigger on mobile; logo before FEELFLICK */}
+      {/* Bigger on mobile: py-5; slightly tighter on ≥sm */}
+      <div className="mx-auto flex w-full max-w-7xl items-center gap-4 px-4 py-5 md:px-6 sm:py-4">
+        {/* Brand — logo before FEELFLICK, larger & closer */}
         <a
           href="/"
           onClick={onBrandClick}
-          className="flex items-center gap-2 text-white focus:outline-none focus:ring-2 focus:ring-brand/60 rounded-md"
+          className="flex items-center gap-1.5 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-brand/60"
           aria-label="Go to top"
         >
           <img
             src={logoPng}
             alt="FeelFlick logo"
-            width="32"
-            height="32"
-            className="h-8 w-8 rounded-md object-contain sm:h-7 sm:w-7"
+            width="36"
+            height="36"
+            className="h-9 w-9 rounded-md object-contain sm:h-8 sm:w-8"
             fetchpriority="high"
           />
-          <span className="text-xl font-black tracking-tight sm:text-lg">
+          <span className="text-[1.5rem] font-black tracking-tight text-brand-200 sm:text-xl">
             FEELFLICK
           </span>
         </a>
@@ -119,13 +119,14 @@ export default function TopNav() {
 
         <div className="flex-1" />
 
-        {/* Desktop actions — “Sign in” more prominent */}
+        {/* Desktop actions — Sign in (bordered pill, as before) */}
         <div className="hidden items-center gap-3 sm:flex">
           <Link
             to="/auth"
-            className="inline-flex h-10 items-center justify-center rounded-full bg-white px-4 text-sm font-semibold text-black shadow-soft hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-brand/60"
+            className="inline-flex h-10 items-center gap-2 rounded-full border border-white/20 px-4 text-sm font-semibold text-white/90 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60"
           >
-            Sign in
+            <LogIn className="h-4 w-4" aria-hidden />
+            <span>Sign in</span>
           </Link>
           <button
             onClick={onGetStarted}
@@ -138,7 +139,7 @@ export default function TopNav() {
         {/* Mobile menu toggle — bigger target */}
         <button
           ref={btnRef}
-          className="inline-flex h-11 w-11 items-center justify-center rounded-md text-white/85 hover:bg-white/10 sm:hidden"
+          className="inline-flex h-12 w-12 items-center justify-center rounded-md text-white/85 hover:bg-white/10 sm:hidden"
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
           aria-controls="mobile-menu"
@@ -164,7 +165,7 @@ export default function TopNav() {
                   ref={i === 0 ? firstLinkRef : undefined}
                   to={l.to}
                   onClick={() => setOpen(false)}
-                  className="block rounded-lg px-3 py-3.5 text-base text-white hover:bg-white/10 focus:bg-white/10 focus:outline-none"
+                  className="block rounded-lg px-3 py-3.5 text-[1.05rem] text-white hover:bg-white/10 focus:bg-white/10 focus:outline-none"
                 >
                   {l.label}
                 </Link>
@@ -174,7 +175,7 @@ export default function TopNav() {
               <Link
                 to="/auth"
                 onClick={() => setOpen(false)}
-                className="block rounded-lg px-3 py-3.5 text-base font-semibold text-black bg-white hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-brand/60"
+                className="block rounded-full border border-white/20 px-3 py-3.5 text-center text-[1.05rem] font-semibold text-white/90 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60"
               >
                 Sign in
               </Link>
@@ -182,7 +183,7 @@ export default function TopNav() {
             <li className="mt-1">
               <button
                 onClick={onGetStarted}
-                className="flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 px-3 py-3.5 text-base font-semibold text-white shadow-lift focus:outline-none focus:ring-2 focus:ring-brand/60"
+                className="flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 px-3 py-3.5 text-[1.05rem] font-semibold text-white shadow-lift focus:outline-none focus:ring-2 focus:ring-brand/60"
               >
                 Get started
               </button>
@@ -200,7 +201,7 @@ function NavItem({ to, label }) {
     <NavLink
       to={to}
       className={({ isActive }) =>
-        `rounded-lg px-3 py-2 text-[0.95rem] transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60 ${
+        `rounded-lg px-3 py-2 text-[0.98rem] transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60 ${
           isActive ? 'bg-white/15 text-white' : 'text-white/80'
         }`
       }

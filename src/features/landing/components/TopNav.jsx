@@ -14,7 +14,7 @@ export default function TopNav() {
   const navigate = useNavigate()
   const location = useLocation()
 
-  // Solid + BLURRED bar after tiny scroll (rAF-throttled)
+  // Solid + blurred bar after tiny scroll (rAF-throttled)
   useEffect(() => {
     let ticking = false
     const onScroll = () => {
@@ -31,7 +31,7 @@ export default function TopNav() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [scrolled])
 
-  // Mobile drawer a11y: outside click, Esc, focus trap-ish, scroll lock
+  // Mobile drawer a11y: outside click, Esc, focus mgmt, scroll lock
   useEffect(() => {
     if (!open) return
     const onPointerDown = (e) => {
@@ -55,7 +55,7 @@ export default function TopNav() {
     }
   }, [open])
 
-  // Brand click: scroll to top if already on "/", otherwise navigate then scroll
+  // Brand click: scroll to top if on '/', otherwise navigate then scroll
   function onBrandClick(e) {
     e.preventDefault()
     if (open) setOpen(false)
@@ -63,67 +63,67 @@ export default function TopNav() {
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } else {
       navigate('/', { replace: false })
-      // ensure we land at top after route change
       setTimeout(() => window.scrollTo({ top: 0, behavior: 'auto' }), 0)
     }
   }
 
   function onGetStarted() {
     if (open) setOpen(false)
-    navigate('/auth')
+    navigate('/auth/sign-up')
   }
 
   const shellClass =
     'fixed inset-x-0 top-0 z-50 transition-colors ' +
     (scrolled
-      ? // more visible blur when scrolled
-        'border-b border-white/10 bg-neutral-950/60 backdrop-blur-md'
+      ? 'border-b border-white/10 bg-neutral-950/60 backdrop-blur-md'
       : 'bg-transparent')
 
   return (
     <header className={shellClass} data-scrolled={scrolled}>
-      {/* Mobile: less left padding, taller bar with smaller top padding */}
-      <div className="mx-auto flex w-full max-w-7xl items-center gap-3 px-2 pt-3 pb-5 sm:py-4 md:px-6">
-        {/* Brand — bigger, closer, brand-100 text */}
+      {/* Mobile: less left padding + slightly shorter top padding; desktop unchanged */}
+      <div className="mx-auto flex w-full max-w-7xl items-center gap-3 px-2 pt-2.5 pb-5 sm:py-4 md:px-6">
+        {/* Brand — bigger & tighter */}
         <a
           href="/"
           onClick={onBrandClick}
           className="flex items-center gap-1 rounded-md focus:outline-none focus:ring-2 focus:ring-brand/60"
           aria-label="Go to top"
         >
+          {/* Bigger logo on both mobile/desktop */}
           <img
             src={logoPng}
             alt="FeelFlick logo"
-            width="40"
-            height="40"
-            className="h-10 w-10 rounded-md object-contain sm:h-9 sm:w-9"
+            width="44"
+            height="44"
+            className="h-11 w-11 rounded-md object-contain sm:h-10 sm:w-10"
             fetchpriority="high"
           />
-          <span className="text-[1.6rem] font-black tracking-tight text-brand-100 sm:text-xl">
+          {/* FEELFLICK larger + brand-100 */}
+          <span className="text-[1.8rem] font-black tracking-tight text-brand-100 sm:text-2xl">
             FEELFLICK
           </span>
         </a>
 
         <div className="flex-1" />
 
-        {/* Desktop actions — Sign in pill + Gradient Get started */}
-        <div className="hidden items-center gap-3 sm:flex">
+        {/* Desktop actions — slightly smaller buttons */}
+        <div className="hidden items-center gap-2 sm:flex">
           <Link
-            to="/auth"
-            className="inline-flex h-11 items-center gap-2 rounded-full border border-white/25 px-5 text-sm font-semibold text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60"
+            to="/auth/sign-in"
+            className="inline-flex h-9 items-center gap-2 rounded-full border border-white/25 px-3.5 text-[0.9rem] font-semibold text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60"
           >
             <LogIn className="h-4 w-4" aria-hidden />
             <span>Sign in</span>
           </Link>
           <button
             onClick={onGetStarted}
-            className="inline-flex h-11 items-center justify-center rounded-full px-5 text-sm font-semibold text-white shadow-lift transition-transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-brand/60 bg-gradient-to-r from-[#fe9245] to-[#eb423b]"
+            className="inline-flex h-10 items-center justify-center rounded-full px-4 text-[0.95rem] font-semibold text-white shadow-lift transition-transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-brand/60 bg-gradient-to-r from-[#fe9245] to-[#eb423b]"
           >
             Get started
           </button>
         </div>
 
-        {/* Mobile toggle — large target */}
+        {/* Mobile menu toggle — large target */}
         <button
           ref={btnRef}
           className="inline-flex h-12 w-12 items-center justify-center rounded-md text-white/85 hover:bg-white/10 sm:hidden"
@@ -136,7 +136,7 @@ export default function TopNav() {
         </button>
       </div>
 
-      {/* Mobile drawer — smaller/optimized items */}
+      {/* Mobile drawer — compact items */}
       <div
         id="mobile-menu"
         ref={drawerRef}
@@ -149,7 +149,7 @@ export default function TopNav() {
             <li>
               <Link
                 ref={firstLinkRef}
-                to="/auth"
+                to="/auth/sign-in"
                 onClick={() => setOpen(false)}
                 className="block rounded-full border border-white/25 px-3 py-2.5 text-center text-sm font-semibold text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60"
               >

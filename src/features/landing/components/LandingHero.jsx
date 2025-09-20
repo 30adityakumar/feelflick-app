@@ -1,101 +1,105 @@
-import { Link } from 'react-router-dom'
-import { Clapperboard, Sparkles, Heart, ListChecks } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { useCallback } from 'react'
+import logoPng from '@/assets/images/logo.png'
 
 /**
  * LandingHero
- * - Sits under TopNav (TopNav is fixed); hero adds top padding to clear it.
- * - Uses your global background: <div className="feelflick-landing-bg" />
- * - Fully responsive, fluid type, minimal CLS.
+ * - Big, readable hero that adapts fluidly
+ * - Optimized hero image: high fetch priority, async decode
+ * - Brand gradient CTA
+ * - Buttons: Sign in → /auth/sign-in, Get started → /auth/sign-up
+ * - Clicking the brand button also scrolls to top (Landing keeps TopNav doing that too)
  */
-export default function LandingHero() {
+export default function LandingHero({
+  title = 'Find movies by mood, vibe, and feels',
+  subtitle = 'Stop doom-scrolling. Tell us how you feel and we’ll surface the right film—fast.',
+  // Fallback uses your existing collage. Replace with your preferred hero assets anytime.
+  imageSrc = '/collage.jpg',
+}) {
+  const navigate = useNavigate()
+
+  const hideIfError = useCallback((e) => {
+    // If a custom image path 404s, keep the gradient background clean.
+    e.currentTarget.style.display = 'none'
+  }, [])
+
   return (
-    <section className="relative overflow-hidden">
-      {/* Background (your collage + gradient) */}
-      <div className="feelflick-landing-bg" aria-hidden="true" />
+    <section
+      className="relative isolate overflow-hidden"
+      aria-labelledby="landing-hero-title"
+    >
+      {/* Background image + gradient overlays */}
+      <div className="absolute inset-0 -z-10">
+        <img
+          src={imageSrc}
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover brightness-[.5]"
+          fetchpriority="high"
+          decoding="async"
+          loading="eager"
+          sizes="100vw"
+          onError={hideIfError}
+        />
+        {/* soft vignette + brand tint for text legibility */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/35 to-black/70" />
+        <div className="absolute inset-0 bg-gradient-to-tr from-brand-600/20 via-transparent to-transparent" />
+      </div>
 
-      {/* Subtle radial light to add depth behind text */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-0 opacity-60"
-        style={{
-          background:
-            'radial-gradient(700px 300px at 20% 15%, rgba(254,146,69,.25) 0%, transparent 60%)',
-        }}
-      />
+      {/* Content container (mobile-first, comfy spacing) */}
+      <div className="mx-auto flex max-w-7xl flex-col items-center px-4 pb-14 pt-24 text-center sm:pb-20 sm:pt-28 md:pb-24 md:pt-32 lg:pt-40">
+        {/* Brand mini-button (optional) — scroll-to-top affordance + visual anchor */}
+        <button
+          type="button"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-black/20 px-3 py-1.5 text-xs text-white/80 backdrop-blur hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60 sm:text-[0.8rem]"
+        >
+          <img
+            src={logoPng}
+            alt=""
+            width="20"
+            height="20"
+            className="h-5 w-5 rounded"
+          />
+          FEELFLICK
+        </button>
 
-      <div className="relative z-10 mx-auto max-w-7xl px-4 pt-24 pb-14 sm:pt-28 sm:pb-20 md:px-6">
-        <div className="cq grid items-center gap-10 md:grid-cols-2">
-          {/* Left: copy + ctas */}
-          <div>
-            <h1 className="text-4xl font-black tracking-tight text-white sm:text-6xl">
-              Movies that match <span className="text-brand-100">how you feel</span>
-            </h1>
+        {/* Headline */}
+        <h1
+          id="landing-hero-title"
+          className="max-w-[16ch] text-balance text-4xl font-black leading-tight tracking-[-0.02em] text-white sm:text-5xl md:text-6xl"
+        >
+          {title}
+        </h1>
 
-            <p className="mt-4 max-w-xl text-base leading-relaxed text-white/80 sm:text-lg">
-              Browse smarter, build your watchlist, and keep track of what you’ve loved —
-              all in a clean, fast, and beautiful experience.
-            </p>
+        {/* Subhead */}
+        <p className="mt-4 max-w-[52ch] text-pretty text-base leading-relaxed text-white/80 sm:text-lg">
+          {subtitle}
+        </p>
 
-            {/* CTAs */}
-            <div className="mt-8 flex flex-wrap items-center gap-3">
-              <Link
-                to="/auth/sign-up"
-                className="inline-flex h-11 items-center justify-center rounded-full px-5 text-[0.95rem] font-semibold text-white shadow-lift transition-transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-brand/60 bg-gradient-to-r from-[#fe9245] to-[#eb423b]"
-              >
-                Get started
-              </Link>
-              <Link
-                to="/auth/sign-in"
-                className="inline-flex h-11 items-center justify-center rounded-full border border-white/25 px-5 text-[0.95rem] font-semibold text-white/95 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60"
-              >
-                Sign in
-              </Link>
-              <span className="ml-1 text-sm text-white/55">No spam. No commitments.</span>
-            </div>
+        {/* CTAs */}
+        <div className="mt-7 flex w-full flex-col items-center justify-center gap-3 sm:mt-8 sm:flex-row sm:gap-4">
+          {/* Sign in — outlined pill (a bit smaller on desktop, bigger on mobile) */}
+          <Link
+            to="/auth/sign-in"
+            className="inline-flex h-12 items-center justify-center rounded-full border border-white/25 px-5 text-[1.05rem] font-semibold text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/40 sm:h-10 sm:px-4 sm:text-[0.92rem]"
+          >
+            Sign in
+          </Link>
 
-            {/* Feature chips */}
-            <ul className="mt-8 grid w-full max-w-xl grid-cols-1 gap-2 sm:grid-cols-2">
-              <FeatureChip icon={<Clapperboard className="h-4 w-4" />} text="Trending & discoverable" />
-              <FeatureChip icon={<ListChecks className="h-4 w-4" />} text="Watchlist & history" />
-              <FeatureChip icon={<Heart className="h-4 w-4" />} text="Personalized picks" />
-              <FeatureChip icon={<Sparkles className="h-4 w-4" />} text="Fast, clean UI" />
-            </ul>
-          </div>
+          {/* Get started — brand gradient */}
+          <Link
+            to="/auth/sign-up"
+            className="inline-flex h-12 items-center justify-center rounded-full bg-gradient-to-r from-[#fe9245] to-[#eb423b] px-6 text-[1.05rem] font-extrabold text-white shadow-lift transition-transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-white/40 sm:h-10 sm:px-5 sm:text-[0.96rem]"
+          >
+            Get started
+          </Link>
+        </div>
 
-          {/* Right: visual mock panel (safe if you don't have an image yet) */}
-          <div className="hidden md:block">
-            <div className="card-surface relative rounded-3xl p-3">
-              <div className="absolute inset-0 -z-10 rounded-3xl bg-gradient-to-tr from-brand-600/10 to-transparent" />
-              <div className="aspect-[10/7] w-full overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/60">
-                {/* Placeholder grid to avoid CLS; swap with an image later if you like */}
-                <div className="grid h-full grid-cols-3 gap-2 p-2">
-                  {[...Array(9)].map((_, i) => (
-                    <div
-                      key={i}
-                      className="rounded-lg bg-white/5"
-                      style={{ containIntrinsicSize: '120px 160px', contentVisibility: 'auto' }}
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
-            <p className="mt-3 text-xs text-white/50">
-              Screens are illustrative. TMDb data used under license.
-            </p>
-          </div>
+        {/* Social proof / secondary row (optional) */}
+        <div className="mt-8 text-xs text-white/50 sm:text-sm">
+          No ads. Free to try. Works on any device.
         </div>
       </div>
     </section>
-  )
-}
-
-function FeatureChip({ icon, text }) {
-  return (
-    <li className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/90">
-      <span className="grid place-items-center rounded-md bg-white/10 p-1.5 text-brand-100">
-        {icon}
-      </span>
-      <span className="truncate">{text}</span>
-    </li>
   )
 }

@@ -1,9 +1,12 @@
 import { Outlet } from 'react-router-dom'
 import { Suspense } from 'react'
+
+// A11y helpers (already added in Step 7)
 import SkipLink from '@/app/a11y/SkipLink'
 import RouteAnnouncer from '@/app/a11y/RouteAnnouncer'
 import FocusOnNavigate from '@/app/a11y/FocusOnNavigate'
 
+// Global chrome
 import Header from '@/app/header/Header'
 import Sidebar from '@/app/header/sidebar/Sidebar'
 
@@ -15,10 +18,10 @@ export default function AppShell() {
       <RouteAnnouncer />
       <FocusOnNavigate />
 
-      {/* Global chrome */}
+      {/* Global header */}
       <Header />
 
-      {/* Body with optional sidebar */}
+      {/* Body with sidebar + page outlet */}
       <div className="mx-auto flex w-full max-w-7xl gap-4 px-4 pb-8 pt-4 md:px-6">
         <aside className="hidden w-56 shrink-0 md:block">
           <Sidebar />

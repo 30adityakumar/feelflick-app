@@ -23,6 +23,7 @@ function PublicShell() {
 }
 
 /* ------------------------------ Auth guard ------------------------------- */
+/** Protects app-only routes; redirects signed-out users to /auth */
 function RequireAuth() {
   const [status, setStatus] = useState('loading') // 'loading' | 'authed' | 'anon'
   const loc = useLocation()
@@ -57,24 +58,86 @@ function RequireAuth() {
   return <Outlet />
 }
 
+/** Wrap public pages that should bounce signed-in users into the app (e.g., /, /auth). */
+function RedirectIfAuthed({ children }) {
+  const [status, setStatus] = useState('loading')
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setStatus(session ? 'authed' : 'anon')
+    })
+    const { data } = supabase.auth.onAuthStateChange((_evt, session) => {
+      setStatus(session ? 'authed' : 'anon')
+    })
+    return () => data?.subscription?.unsubscribe?.()
+  }, [])
+  if (status === 'loading') return <div className="p-6"><Spinner className="text-white/70" /></div>
+  if (status === 'authed') return <Navigate to="/home" replace />
+  return children
+}
+
 /* ------------------------------- Router ---------------------------------- */
 export const router = createBrowserRouter([
   /* Public branch (no header/sidebar) */
   {
     element: <PublicShell />,
     children: [
+      // Landing: show Landing when signed-out, redirect to /home when signed-in
       {
         index: true,
-        lazy: async () => ({
-          Component: (await import('@/features/landing/Landing')).default,
-        }),
+        lazy: async () => {
+          const Landing = (await import('@/features/landing/Landing')).default
+          const Component = () => (
+            <RedirectIfAuthed>
+              <Landing />
+            </RedirectIfAuthed>
+          )
+          return { Component }
+        },
       },
+
+      // Auth hub (login/signup UI). Signed-in users bounce to /home.
       {
         path: 'auth',
-        lazy: async () => ({
-          Component: (await import('@/features/auth/AuthPage')).default,
-        }),
+        lazy: async () => {
+          const AuthPage = (await import('@/features/auth/AuthPage')).default
+          const Component = () => (
+            <RedirectIfAuthed>
+              <AuthPage />
+            </RedirectIfAuthed>
+          )
+          return { Component }
+        },
       },
+
+      // Common legacy aliases → reuse AuthPage
+      {
+        path: 'login',
+        lazy: async () => {
+          const AuthPage = (await import('@/features/auth/AuthPage')).default
+          const Component = () => (
+            <RedirectIfAuthed>
+              <AuthPage />
+            </RedirectIfAuthed>
+          )
+          return { Component }
+        },
+      },
+      {
+        path: 'signup',
+        lazy: async () => {
+          const AuthPage = (await import('@/features/auth/AuthPage')).default
+          const Component = () => (
+            <RedirectIfAuthed>
+              <AuthPage />
+            </RedirectIfAuthed>
+          )
+          return { Component }
+        },
+      },
+      { path: 'signin', element: <Navigate to="/login" replace /> },
+      { path: 'register', element: <Navigate to="/signup" replace /> },
+
+      // Auth flows
       {
         path: 'reset-password',
         lazy: async () => ({
@@ -94,7 +157,7 @@ export const router = createBrowserRouter([
   {
     element: <AppShell />,
     children: [
-      // Publicly viewable app pages (keep header/sidebar)
+      // Publicly viewable app pages (keep header/sidebar visible)
       {
         path: 'movies',
         lazy: async () => ({
@@ -108,7 +171,7 @@ export const router = createBrowserRouter([
         }),
       },
 
-      // Auth-required pages
+      // Auth-required pages (RequireAuth wraps this group)
       {
         element: <RequireAuth />,
         children: [

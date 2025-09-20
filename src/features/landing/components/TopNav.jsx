@@ -31,7 +31,7 @@ export default function TopNav() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [scrolled])
 
-  // Mobile drawer a11y: outside click, Esc, focus mgmt, scroll lock
+  // Mobile drawer a11y: outside click, Esc, scroll lock, focus return
   useEffect(() => {
     if (!open) return
     const onPointerDown = (e) => {
@@ -55,7 +55,7 @@ export default function TopNav() {
     }
   }, [open])
 
-  // Brand click: scroll to top if on '/', otherwise navigate then scroll
+  // Brand click → scroll to top or navigate then scroll
   function onBrandClick(e) {
     e.preventDefault()
     if (open) setOpen(false)
@@ -80,44 +80,44 @@ export default function TopNav() {
 
   return (
     <header className={shellClass} data-scrolled={scrolled}>
-      {/* Mobile: less left padding + slightly shorter top padding; desktop unchanged */}
-      <div className="mx-auto flex w-full max-w-7xl items-center gap-3 px-2 pt-2.5 pb-5 sm:py-4 md:px-6">
-        {/* Brand — bigger & tighter */}
+      {/* Mobile: tighter left padding, slightly shorter top padding; desktop unchanged */}
+      <div className="mx-auto flex w-full max-w-7xl items-center gap-3 px-2 pt-2 pb-5 sm:py-4 md:px-6">
+        {/* Brand — bigger & tighter gap */}
         <a
           href="/"
           onClick={onBrandClick}
           className="flex items-center gap-1 rounded-md focus:outline-none focus:ring-2 focus:ring-brand/60"
           aria-label="Go to top"
         >
-          {/* Bigger logo on both mobile/desktop */}
+          {/* Bigger logo on mobile & desktop */}
           <img
             src={logoPng}
             alt="FeelFlick logo"
-            width="44"
-            height="44"
-            className="h-11 w-11 rounded-md object-contain sm:h-10 sm:w-10"
+            width="48"
+            height="48"
+            className="h-12 w-12 rounded-md object-contain sm:h-11 sm:w-11"
             fetchpriority="high"
           />
           {/* FEELFLICK larger + brand-100 */}
-          <span className="text-[1.8rem] font-black tracking-tight text-brand-100 sm:text-2xl">
+          <span className="text-[2rem] font-black tracking-tight text-brand-100 sm:text-[1.7rem]">
             FEELFLICK
           </span>
         </a>
 
         <div className="flex-1" />
 
-        {/* Desktop actions — slightly smaller buttons */}
+        {/* Desktop actions — smaller text for Sign in / Get started */}
         <div className="hidden items-center gap-2 sm:flex">
           <Link
             to="/auth/sign-in"
-            className="inline-flex h-9 items-center gap-2 rounded-full border border-white/25 px-3.5 text-[0.9rem] font-semibold text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60"
+            className="inline-flex h-9 items-center gap-2 rounded-full border border-white/25 px-3.5 text-[0.85rem] font-semibold text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60"
           >
             <LogIn className="h-4 w-4" aria-hidden />
             <span>Sign in</span>
           </Link>
           <button
             onClick={onGetStarted}
-            className="inline-flex h-10 items-center justify-center rounded-full px-4 text-[0.95rem] font-semibold text-white shadow-lift transition-transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-brand/60 bg-gradient-to-r from-[#fe9245] to-[#eb423b]"
+            className="inline-flex h-9 items-center justify-center rounded-full px-4 text-[0.9rem] font-semibold text-white shadow-lift transition-transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-brand/60 bg-gradient-to-r from-[#fe9245] to-[#eb423b]"
           >
             Get started
           </button>
@@ -136,7 +136,7 @@ export default function TopNav() {
         </button>
       </div>
 
-      {/* Mobile drawer — compact items */}
+      {/* Mobile drawer — compact items; thin white focus ring */}
       <div
         id="mobile-menu"
         ref={drawerRef}
@@ -151,7 +151,7 @@ export default function TopNav() {
                 ref={firstLinkRef}
                 to="/auth/sign-in"
                 onClick={() => setOpen(false)}
-                className="block rounded-full border border-white/25 px-3 py-2.5 text-center text-sm font-semibold text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60"
+                className="block rounded-full border border-white/25 px-3 py-2.5 text-center text-[1.02rem] font-semibold text-white hover:bg-white/10 focus:outline-none focus:ring-1 focus:ring-white/40"
               >
                 Sign in
               </Link>
@@ -159,7 +159,7 @@ export default function TopNav() {
             <li className="mt-1">
               <button
                 onClick={onGetStarted}
-                className="flex w-full items-center justify-center rounded-lg px-3 py-2.5 text-sm font-semibold text-white shadow-lift focus:outline-none focus:ring-2 focus:ring-brand/60 bg-gradient-to-r from-[#fe9245] to-[#eb423b]"
+                className="flex w-full items-center justify-center rounded-lg px-3 py-2.5 text-[1.02rem] font-semibold text-white shadow-lift focus:outline-none focus:ring-1 focus:ring-white/30 bg-gradient-to-r from-[#fe9245] to-[#eb423b]"
               >
                 Get started
               </button>

@@ -24,11 +24,11 @@ function PublicShell() {
 
 /* ------------------------------ Auth guard ------------------------------- */
 function RequireAuth() {
-  const [status, setStatus] = useState<'loading' | 'authed' | 'anon'>('loading')
+  const [status, setStatus] = useState('loading') // 'loading' | 'authed' | 'anon'
   const loc = useLocation()
 
   useEffect(() => {
-    let unsubscribe: (() => void) | undefined
+    let unsubscribe
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setStatus(session ? 'authed' : 'anon')
@@ -39,11 +39,17 @@ function RequireAuth() {
     })
 
     unsubscribe = data?.subscription?.unsubscribe
-    return () => unsubscribe?.()
+    return () => {
+      if (typeof unsubscribe === 'function') unsubscribe()
+    }
   }, [])
 
   if (status === 'loading') {
-    return <div className="p-6"><Spinner className="text-white/70" /></div>
+    return (
+      <div className="p-6">
+        <Spinner className="text-white/70" />
+      </div>
+    )
   }
   if (status === 'anon') {
     return <Navigate to="/auth" replace state={{ from: loc }} />
@@ -146,9 +152,6 @@ export const router = createBrowserRouter([
       },
     ],
   },
-
-  /* Legacy aliases / redirects (optional: keep if you used them before) */
-  // { path: 'login', element: <Navigate to="/auth" replace /> },
 
   /* 404 catch-all (last) */
   {

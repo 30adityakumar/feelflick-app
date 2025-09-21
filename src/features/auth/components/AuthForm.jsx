@@ -138,7 +138,7 @@ export default function AuthForm({ mode = 'sign-in' }) {
                 Password
               </label>
               {mode === 'sign-in' && (
-                <Link to="/auth/components/reset-password" className="text-[0.75rem] text-white/70 hover:text-white">
+                <Link to="/auth/reset-password" className="text-[0.75rem] text-white/70 hover:text-white">
                   Forgot?
                 </Link>
               )}

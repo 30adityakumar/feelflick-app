@@ -1,11 +1,13 @@
+// src/features/landing/WhyFeelFlick.jsx
 import { useEffect, useRef, useState } from "react"
 import { Link } from "react-router-dom"
 import { Sparkles, ListChecks, Heart, ShieldCheck } from "lucide-react"
 
 /**
- * WhyFeelFlick – lightweight “why us” block under the hero.
- * - Netflix/Plex style: bold headline, short benefits, tiny UI mock, repeat CTA.
- * - No images; fast to render. Subtle in-view reveal (respects reduced-motion).
+ * WhyFeelFlick – concise value section under the hero
+ * - Lighter cards & tighter spacing on mobile
+ * - In-view reveal (respects reduced-motion)
+ * - Copy avoids repeating the hero
  */
 export default function WhyFeelFlick() {
   const ref = useRef(null)
@@ -13,63 +15,53 @@ export default function WhyFeelFlick() {
 
   useEffect(() => {
     const m = window.matchMedia?.("(prefers-reduced-motion: reduce)")
-    const reduce = !!m?.matches
-    if (reduce) { setVisible(true); return }
-
-    const io = new IntersectionObserver(
-      ([e]) => e.isIntersecting && setVisible(true),
-      { threshold: 0.2 }
-    )
+    if (m?.matches) { setVisible(true); return }
+    const io = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) setVisible(true)
+    }, { threshold: 0.2 })
     if (ref.current) io.observe(ref.current)
     return () => io.disconnect()
   }, [])
 
   return (
-    <section
-      ref={ref}
-      className="relative overflow-hidden"
-      aria-labelledby="why-title"
-    >
-      <div className="mx-auto max-w-7xl px-4 py-16 md:px-6 md:py-24">
-        {/* Header row */}
+    <section ref={ref} className="relative overflow-hidden" aria-labelledby="why-title">
+      <div className="mx-auto max-w-7xl px-4 py-14 md:px-6 md:py-20">
         <div
           className={[
-            "grid items-start gap-10 md:grid-cols-2",
+            "grid items-start gap-8 md:grid-cols-2 md:gap-10",
             "transition-all duration-700 motion-safe",
             visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6",
           ].join(" ")}
         >
-          {/* Left: copy */}
+          {/* Left: headline + benefits */}
           <div>
-            <h2
-              id="why-title"
-              className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl"
-            >
-              Why <span className="text-brand-100">FeelFlick</span>?
+            <h2 id="why-title" className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+              Why <span className="text-brand-100">FeelFlick</span>
             </h2>
+
+            {/* Short, non-redundant explainer */}
             <p className="mt-3 max-w-xl text-white/80">
-              Skip the endless scroll. Tell us how you want to feel and get a short,
-              spot-on list you’ll actually watch—save favorites, track what you’ve loved,
-              and keep everything in one place.
+              Built to end indecision: mood-first picks, short lists, and a tidy place to
+              keep what you loved—so movie night starts sooner.
             </p>
 
-            {/* 3–4 compact benefits */}
+            {/* Benefits */}
             <ul className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <Benefit icon={<Sparkles className="h-4 w-4" />} title="Mood-first picks">
-                Recommendations tuned to how you feel right now.
+              <Benefit icon={<Sparkles className="h-4 w-4" />} title="Mood engine">
+                Tell us the vibe; we’ll surface the right films.
               </Benefit>
-              <Benefit icon={<ListChecks className="h-4 w-4" />} title="No scroll fatigue">
-                Short, watchable lists—updated and easy to choose from.
+              <Benefit icon={<ListChecks className="h-4 w-4" />} title="Shortlists, not feeds">
+                6–12 choices you can actually pick from.
               </Benefit>
               <Benefit icon={<Heart className="h-4 w-4" />} title="Watchlist & history">
-                Save, rate, and revisit your favorites.
+                Save, rate, and revisit with one tap.
               </Benefit>
               <Benefit icon={<ShieldCheck className="h-4 w-4" />} title="No spam, ever">
-                Free to start. You’re in control.
+                Start free. You stay in control.
               </Benefit>
             </ul>
 
-            {/* CTA repeat */}
+            {/* CTA (kept compact to avoid repeating hero) */}
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link
                 to="/auth/sign-up"
@@ -83,14 +75,13 @@ export default function WhyFeelFlick() {
               >
                 Sign in
               </Link>
-              <span className="ml-1 text-sm text-white/60">Free to start. Your mood, your movie.</span>
+              <span className="ml-1 text-sm text-white/60">Create a free account in seconds.</span>
             </div>
           </div>
 
-          {/* Right: tiny UI mock (letterboxd-ish social vibe, plex polish) */}
+          {/* Right: lightweight “UI vibe” mock */}
           <div className="relative">
-            {/* Card stack */}
-            <div className="relative mx-auto w-full max-w-md">
+            <div className="relative mx-auto w-full max-w-sm md:max-w-md">
               <MockCard
                 title="Shared with you"
                 subtitle="@jason • 2h"
@@ -102,8 +93,8 @@ export default function WhyFeelFlick() {
               <MockCard
                 className="mt-4 ml-8"
                 title="Tonight’s picks"
-                subtitle="5 items • mood: cozy"
-                body="Shortlist tailored to you. No endless scrolling."
+                subtitle="6 items • mood: cozy"
+                body="A small, spot-on list—no endless scrolling."
                 accent="from-fuchsia-500/25 to-transparent"
                 delay="120ms"
                 visible={visible}
@@ -119,7 +110,7 @@ export default function WhyFeelFlick() {
               />
             </div>
 
-            {/* micro “stars” row */}
+            {/* Tiny social proof */}
             <div
               className={[
                 "mt-6 flex items-center justify-center gap-1 text-brand-100/90",
@@ -143,6 +134,8 @@ export default function WhyFeelFlick() {
   )
 }
 
+/* --------------------------- small components --------------------------- */
+
 function Benefit({ icon, title, children }) {
   return (
     <li className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-white/90">
@@ -161,8 +154,8 @@ function MockCard({ title, subtitle, body, className = "", accent = "from-brand-
   return (
     <div
       className={[
-        "rounded-2xl border border-white/10 bg-white/[0.06] p-3 backdrop-blur-sm",
-        "shadow-[0_0_0_1px_rgba(255,255,255,0.06)_inset]",
+        "rounded-xl border border-white/10 bg-white/[0.06] p-3 backdrop-blur-sm",
+        "shadow-[0_0_0_1px_rgba(255,255,255,0.05)_inset]",
         "transition-all duration-700 motion-safe",
         visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3",
         className,
@@ -176,12 +169,11 @@ function MockCard({ title, subtitle, body, className = "", accent = "from-brand-
             <div className="truncate text-sm font-semibold text-white/95">{title}</div>
             <div className="truncate text-xs text-white/60">{subtitle}</div>
           </div>
-          {/* avatar chip */}
           <div className="grid h-7 w-7 place-items-center rounded-full bg-gradient-to-br from-white/90 to-white/70 text-[11px] font-bold text-neutral-900 ring-1 ring-white/40">
             A
           </div>
         </div>
-        <div className="rounded-xl border border-white/10 bg-neutral-900/60 p-3 text-sm text-white/80">
+        <div className="rounded-lg border border-white/10 bg-neutral-900/60 p-3 text-sm text-white/80">
           {body}
         </div>
       </div>

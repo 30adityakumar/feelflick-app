@@ -1,3 +1,4 @@
+// src/app/router.jsx
 import { createBrowserRouter, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/shared/lib/supabase/client'
@@ -41,15 +42,13 @@ function RequireAuth() {
   const loc = useLocation()
 
   useEffect(() => {
-    let unsubscribe
     supabase.auth.getSession().then(({ data: { session } }) => {
       setStatus(session ? 'authed' : 'anon')
     })
-    const { data } = supabase.auth.onAuthStateChange((_evt, session) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((_evt, session) => {
       setStatus(session ? 'authed' : 'anon')
     })
-    unsubscribe = data?.subscription?.unsubscribe
-    return () => { if (typeof unsubscribe === 'function') unsubscribe() }
+    return () => sub?.subscription?.unsubscribe?.()
   }, [])
 
   if (status === 'loading') return <div className="p-6 text-white/70">Loading…</div>
@@ -61,15 +60,13 @@ function RequireAuth() {
 function RedirectIfAuthed({ children }) {
   const [status, setStatus] = useState('loading')
   useEffect(() => {
-    let unsubscribe
     supabase.auth.getSession().then(({ data: { session } }) => {
       setStatus(session ? 'authed' : 'anon')
     })
-    const { data } = supabase.auth.onAuthStateChange((_evt, session) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((_evt, session) => {
       setStatus(session ? 'authed' : 'anon')
     })
-    unsubscribe = data?.subscription?.unsubscribe
-    return () => { if (typeof unsubscribe === 'function') unsubscribe() }
+    return () => sub?.subscription?.unsubscribe?.()
   }, [])
   if (status === 'loading') return <div className="p-6 text-white/70">Loading…</div>
   if (status === 'authed') return <Navigate to="/home" replace />
@@ -108,19 +105,23 @@ export const router = createBrowserRouter([
 
       // Auth hub (signed-out only)
       { path: 'auth', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
+      { path: 'auth/sign-in', element: <RedirectIfAuthed><AuthPage mode="sign-in" /></RedirectIfAuthed> },
+      { path: 'auth/sign-up', element: <RedirectIfAuthed><AuthPage mode="sign-up" /></RedirectIfAuthed> },
+
+      // Password reset (both aliases)
+      { path: 'auth/reset-password', element: <ResetPassword /> },
+      { path: 'reset-password', element: <ResetPassword /> },
+
+      // Email confirmation (primary path used by templates)
+      { path: 'auth/confirm', element: <ConfirmEmail /> },
+      // Legacy alias you had earlier
+      { path: 'confirm-email', element: <ConfirmEmail /> },
 
       // Legacy/alt auth paths
-      { path: 'auth/sign-in', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
-      { path: 'auth/sign-up', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
-      { path: 'login', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
-      { path: 'signup', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
+      { path: 'login', element: <RedirectIfAuthed><AuthPage mode="sign-in" /></RedirectIfAuthed> },
+      { path: 'signup', element: <RedirectIfAuthed><AuthPage mode="sign-up" /></RedirectIfAuthed> },
       { path: 'signin', element: <Navigate to="/login" replace /> },
       { path: 'register', element: <Navigate to="/signup" replace /> },
-      { path: '/auth/reset-password', element: <ResetPassword /> },
-
-      // Auth email flows
-      { path: 'reset-password', element: <ResetPassword /> },
-      { path: 'confirm-email', element: <ConfirmEmail /> },
 
       // Explicit logout route (works from any state)
       { path: 'logout', element: <SignOutRoute /> },
@@ -149,9 +150,7 @@ export const router = createBrowserRouter([
           { path: 'preferences', element: <Preferences /> },
           { path: 'watchlist', element: <Watchlist /> },
           { path: 'watched', element: <HistoryPage /> },
-
-          // Old alias → history
-          { path: 'history', element: <HistoryPage /> },
+          { path: 'history', element: <HistoryPage /> }, // alias
         ],
       },
     ],

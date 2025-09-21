@@ -1,38 +1,40 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
-/* --- tiny helpers --- */
-const imgUrl = (path, size = 'w1280') =>
+const tmdbImg = (path, size = 'w780') =>
   path ? `https://image.tmdb.org/t/p/${size}${path}` : null
 
-const srcSet = (path) =>
+const srcSetFor = (path) =>
   path
-    ? `${imgUrl(path, 'w500')} 500w, ${imgUrl(path, 'w780')} 780w, ${imgUrl(path, 'w1280')} 1280w, ${imgUrl(path, 'original')} 1920w`
+    ? `${tmdbImg(path, 'w342')} 342w, ${tmdbImg(path, 'w500')} 500w, ${tmdbImg(path, 'w780')} 780w, ${tmdbImg(path, 'w1280')} 1280w`
     : undefined
 
 export default function LandingHero() {
-  /* TMDb: supports either v3 key or v4 bearer */
-  const key = import.meta.env.VITE_TMDB_API_KEY
-  const isBearer = useMemo(() => !!key && key.includes('.'), [key])
-  const buildUrl = (p, q = {}) => {
-    const u = new URL(`https://api.themoviedb.org/3${p}`)
-    Object.entries(q).forEach(([k, v]) => u.searchParams.set(k, v))
-    if (!isBearer && key) u.searchParams.set('api_key', key)
-    return u.toString()
+  const navigate = useNavigate()
+
+  // --- TMDb client (v3 key or v4 bearer) ---
+  const token = import.meta.env.VITE_TMDB_API_KEY
+  const isBearer = useMemo(() => !!token && token.includes('.'), [token])
+  const buildUrl = (path, params = {}) => {
+    const url = new URL(`https://api.themoviedb.org/3${path}`)
+    Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v))
+    if (!isBearer && token) url.searchParams.set('api_key', token)
+    return url.toString()
   }
   const headers = isBearer
-    ? { Authorization: `Bearer ${key}`, accept: 'application/json' }
+    ? { Authorization: `Bearer ${token}`, accept: 'application/json' }
     : { accept: 'application/json' }
 
-  /* data */
-  const [items, setItems] = useState([]) // [{id, backdrop_path, poster_path}]
-  const [i, setI] = useState(0)
+  // --- Data ---
+  const [items, setItems] = useState([])
+  const [index, setIndex] = useState(0)
   const [loading, setLoading] = useState(false)
+  const [errored, setErrored] = useState(false)
 
-  /* motion guards */
+  // --- Motion guards ---
+  const [play, setPlay] = useState(true)
   const reduceMotion = useRef(false)
-  const heroRef = useRef(null)
-  const [inView, setInView] = useState(true)
+  const visRef = useRef(null)
   const rotRef = useRef(null)
 
   useEffect(() => {
@@ -44,21 +46,22 @@ export default function LandingHero() {
   }, [])
 
   useEffect(() => {
-    if (!heroRef.current) return
+    const el = visRef.current
+    if (!el) return
     const io = new IntersectionObserver(
-      (entries) => setInView(entries[0]?.isIntersecting ?? true),
+      (entries) => entries.forEach((e) => setPlay(e.isIntersecting)),
       { threshold: 0.25 }
     )
-    io.observe(heroRef.current)
+    io.observe(el)
     return () => io.disconnect()
   }, [])
 
-  /* fetch top-rated images */
+  // Fetch top rated
   useEffect(() => {
     let cancelled = false
     async function run() {
-      if (!key) return
-      setLoading(true)
+      if (!token) return
+      setLoading(true); setErrored(false)
       try {
         const r = await fetch(
           buildUrl('/movie/top_rated', { language: 'en-US', page: '1', region: 'US' }),
@@ -66,9 +69,11 @@ export default function LandingHero() {
         )
         const j = r.ok ? await r.json() : { results: [] }
         const list = (j.results || [])
-          .filter((m) => m && (m.backdrop_path || m.poster_path))
+          .filter(m => m && (m.backdrop_path || m.poster_path))
           .slice(0, 12)
         if (!cancelled) setItems(list)
+      } catch {
+        if (!cancelled) setErrored(true)
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -76,91 +81,62 @@ export default function LandingHero() {
     run()
     return () => { cancelled = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key, isBearer])
+  }, [token, isBearer])
 
-  /* rotate background (very subtle) */
+  // Cross-fade rotation
   useEffect(() => {
     clearInterval(rotRef.current)
-    if (!items.length || reduceMotion.current || !inView) return
+    if (!items.length || reduceMotion.current || !play) return
     rotRef.current = setInterval(() => {
-      setI((x) => (x + 1) % items.length)
-    }, 6000) // ~2s fade + ~4s hold
+      setIndex(i => (i + 1) % items.length)
+    }, 5500) // ~2s fade + ~3.5s hold
     return () => clearInterval(rotRef.current)
-  }, [items.length, inView])
+  }, [items.length, play])
 
-  /* preload next */
+  // Preload next
   useEffect(() => {
     if (!items.length) return
-    const n = items[(i + 1) % items.length]
-    const src = imgUrl(n?.backdrop_path || n?.poster_path, 'w1280')
+    const next = items[(index + 1) % items.length]
+    const src = tmdbImg(next?.backdrop_path || next?.poster_path, 'w780')
     if (src) { const img = new Image(); img.src = src }
-  }, [i, items])
+  }, [index, items])
 
-  const curPath = items[i]?.backdrop_path || items[i]?.poster_path
-  const prevPath = items[(i - 1 + (items.length || 1)) % (items.length || 1)]?.backdrop_path
-    || items[(i - 1 + (items.length || 1)) % (items.length || 1)]?.poster_path
+  const cur = items[index]
+  const prev = items[(index - 1 + (items.length || 1)) % (items.length || 1)]
+  const curPath = cur?.backdrop_path || cur?.poster_path
+  const prevPath = prev?.backdrop_path || prev?.poster_path
 
   return (
-    <section ref={heroRef} className="relative overflow-hidden">
-      {/* Base background you already have */}
+    <section className="relative overflow-hidden">
+      {/* Background + soft radial light */}
       <div className="feelflick-landing-bg" aria-hidden="true" />
-
-      {/* NEW: posters as full-bleed background (subtle) */}
-      <div aria-hidden className="absolute inset-0 -z-0">
-        {/* previous (fade out) */}
-        {prevPath && (
-          <img
-            key={`prev-${prevPath}`}
-            src={imgUrl(prevPath, 'w1280')}
-            srcSet={srcSet(prevPath)}
-            sizes="100vw"
-            alt=""
-            className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-700"
-            style={{ filter: 'blur(1px) saturate(1.05) brightness(.85)', transform: 'scale(1.05)' }}
-          />
-        )}
-        {/* current (fade in) */}
-        {curPath && (
-          <img
-            key={`cur-${curPath}`}
-            src={imgUrl(curPath, 'w1280')}
-            srcSet={srcSet(curPath)}
-            sizes="100vw"
-            alt=""
-            className="absolute inset-0 h-full w-full object-cover opacity-100 transition-opacity duration-700"
-            style={{ filter: 'blur(1px) saturate(1.05) brightness(.85)', transform: 'scale(1.06)' }}
-          />
-        )}
-      </div>
-
-      {/* Keep your bluish overlay EXACTLY as-is */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 opacity-60"
+        className="pointer-events-none absolute inset-0 -z-0 opacity-60"
         style={{
           background:
             'radial-gradient(700px 300px at 20% 15%, rgba(254,146,69,.25) 0%, transparent 60%)',
         }}
       />
 
-      {/* Content container — perfectly centered vertically */}
       <div
         className="relative z-10 mx-auto max-w-7xl px-4 md:px-6"
-        style={{ ['--nav-h']: '72px' }}
+        style={{ ['--nav-h']: '72px' }} // fallback if you don’t set this in TopNav
       >
-        <div className="grid min-h-[calc(100svh-var(--nav-h))] items-center py-10 sm:py-12">
-          <div className="cq mx-auto w-full max-w-3xl text-center md:max-w-2xl">
-            <h1 className="text-[clamp(2.25rem,8vw,4.25rem)] font-black leading-[1.05] tracking-tight text-white">
+        {/* Center the hero vertically with equal top/bottom feel */}
+        <div className="grid items-center gap-8 md:grid-cols-2 md:gap-10 min-h-[calc(100svh-var(--nav-h))] py-10 sm:py-12">
+          {/* Left: centered block */}
+          <div>
+            <h1 className="text-4xl font-black tracking-tight text-white sm:text-6xl">
               Movies that match <span className="text-brand-100">how you feel</span>
             </h1>
 
-            <p className="mx-auto mt-4 max-w-xl text-[clamp(1rem,2.7vw,1.25rem)] leading-relaxed text-white/85">
+            <p className="mt-4 max-w-xl text-base leading-relaxed text-white/80 sm:text-lg">
               Tell us how you want to feel. We hand-pick a short, spot-on list you’ll actually
               watch—no endless scrolling. Save favorites and keep your watchlist in one place.
             </p>
 
-            {/* CTAs */}
-            <div className="mx-auto mt-7 flex max-w-sm flex-col items-center justify-center gap-3 sm:max-w-none sm:flex-row">
+            <div className="mt-7 flex flex-wrap items-center gap-3">
               <Link
                 to="/auth/sign-up"
                 className="inline-flex h-11 items-center justify-center rounded-full px-6 text-[0.95rem] font-semibold text-white shadow-lift transition-transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-brand/60 bg-gradient-to-r from-[#fe9245] to-[#eb423b]"
@@ -173,12 +149,113 @@ export default function LandingHero() {
               >
                 Sign in
               </Link>
+              <span className="ml-1 text-sm text-white/60">
+                Free to start. Your mood, your movie.
+              </span>
             </div>
 
-            <p className="mt-3 text-sm text-white/65">Free to start. Your mood, your movie.</p>
+            {/* Mobile showcase (16:9) */}
+            <div className="mt-8 md:hidden">
+              <PosterShowcase
+                refEl={visRef}
+                cur={cur}
+                prev={prev}
+                curPath={curPath}
+                prevPath={prevPath}
+                navigate={navigate}
+                loading={loading || !token || errored}
+                variant="mobile"
+              />
+              {/* Hide note on mobile to keep the fold clean */}
+              <p className="mt-3 hidden text-center text-xs text-white/50 sm:block">
+                Screens are illustrative. TMDb data used under license.
+              </p>
+            </div>
+          </div>
+
+          {/* Desktop showcase */}
+          <div className="hidden md:block">
+            <PosterShowcase
+              refEl={visRef}
+              cur={cur}
+              prev={prev}
+              curPath={curPath}
+              prevPath={prevPath}
+              navigate={navigate}
+              loading={loading || !token || errored}
+              variant="desktop"
+            />
+            <p className="mt-3 text-center text-xs text-white/50">
+              Screens are illustrative. TMDb data used under license.
+            </p>
           </div>
         </div>
       </div>
     </section>
+  )
+}
+
+/* ---------------------------- Poster Showcase ---------------------------- */
+function PosterShowcase({ refEl, cur, prev, curPath, prevPath, navigate, loading, variant = 'desktop' }) {
+  const isMobile = variant === 'mobile'
+  const outerPad = isMobile ? 'p-2' : 'p-3'
+  const aspect = isMobile ? 'aspect-video' : 'aspect-[10/7]'
+  const sizes = isMobile ? '(max-width: 767px) 100vw, 640px' : '(min-width: 768px) 640px, 100vw'
+
+  return (
+    <div ref={refEl} className={`card-surface relative overflow-hidden rounded-3xl ${outerPad}`}>
+      <div className="absolute inset-0 -z-10 rounded-3xl bg-gradient-to-tr from-brand-600/10 to-transparent" />
+      <div className={`relative ${aspect} w-full overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/60`}>
+        {/* Skeleton */}
+        {loading && <div className="absolute inset-0 animate-pulse rounded-2xl bg-white/10" />}
+
+        {/* Previous (fade out) */}
+        {prevPath && (
+          <img
+            key={`prev-${prev?.id}-${prevPath}`}
+            src={tmdbImg(prevPath, 'w780')}
+            srcSet={srcSetFor(prevPath)}
+            sizes={sizes}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-700"
+            style={{ transform: 'scale(1.02)' }}
+          />
+        )}
+
+        {/* Current (fade in, slight zoom) */}
+        {curPath && (
+          <img
+            key={`cur-${cur?.id}-${curPath}`}
+            src={tmdbImg(curPath, 'w780')}
+            srcSet={srcSetFor(curPath)}
+            sizes={sizes}
+            alt={cur?.title || cur?.name || 'Movie'}
+            className="absolute inset-0 h-full w-full object-cover opacity-100 transition-opacity duration-700"
+            style={{ transform: 'scale(1.04)' }}
+          />
+        )}
+
+        {/* Soft vignettes + caption */}
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-black/80 to-transparent" />
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/60 to-transparent" />
+
+        {cur && (
+          <>
+            <button
+              onClick={() => navigate(`/movie/${cur.id}`)}
+              className="absolute inset-0"
+              aria-label={`Open ${cur.title || cur.name}`}
+              title={cur.title || cur.name}
+            />
+            <div className="pointer-events-none absolute bottom-0 left-0 right-0 p-3">
+              <div className="truncate text-sm font-semibold text-white/90">
+                {cur.title || cur.name}
+              </div>
+              <div className="text-xs text-white/60">Top rated picks</div>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
   )
 }

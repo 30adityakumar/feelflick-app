@@ -107,11 +107,7 @@ export default function LandingHero() {
   const prevPath = prev?.backdrop_path || prev?.poster_path
 
   return (
-    <section
-      className="relative overflow-hidden"
-      // Ensure the hero begins *below* the fixed TopNav
-      style={{ marginTop: 'var(--topnav-h, var(--nav-h, 72px))' }}
-    >
+    <section className="relative overflow-hidden">
       {/* Background + soft radial light */}
       <div className="feelflick-landing-bg" aria-hidden="true" />
       <div
@@ -125,14 +121,10 @@ export default function LandingHero() {
 
       <div
         className="relative z-10 mx-auto max-w-7xl px-4 md:px-6"
-        // Provide a fallback nav height if TopNav doesn't set --topnav-h
-        style={{ ['--nav-h']: '72px' }}
+        style={{ ['--nav-h']: '72px' }} // fallback if you don’t set this in TopNav
       >
         {/* Center the hero vertically with equal top/bottom feel */}
-        <div
-          className="grid items-center gap-8 md:grid-cols-2 md:gap-10 py-10 sm:py-12"
-          style={{ minHeight: 'calc(100svh - var(--topnav-h, var(--nav-h, 72px)))' }}
-        >
+        <div className="grid items-center gap-8 md:grid-cols-2 md:gap-10 min-h-[calc(100svh-var(--nav-h))] py-10 sm:py-12">
           {/* Left: centered block */}
           <div>
             <h1 className="text-4xl font-black tracking-tight text-white sm:text-6xl">

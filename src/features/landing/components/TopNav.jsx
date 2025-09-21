@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Menu, X, LogIn } from 'lucide-react'
 import logoPng from '@/assets/images/logo.png'
 
@@ -10,12 +10,11 @@ export default function TopNav() {
   const drawerRef = useRef(null)
   const firstLinkRef = useRef(null)
   const prevFocusRef = useRef(null)
-  const barRef = useRef(null) // NEW: measure visible bar height
 
   const navigate = useNavigate()
   const location = useLocation()
 
-  // rAF-throttled scroll state (for blur)
+  // Solid + blurred bar after tiny scroll (rAF-throttled)
   useEffect(() => {
     let ticking = false
     const onScroll = () => {
@@ -32,7 +31,7 @@ export default function TopNav() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [scrolled])
 
-  // Mobile drawer a11y + scroll lock
+  // Mobile drawer a11y: outside click, Esc, scroll lock, focus return
   useEffect(() => {
     if (!open) return
     const onPointerDown = (e) => {
@@ -73,22 +72,6 @@ export default function TopNav() {
     navigate('/auth/sign-up')
   }
 
-  // NEW: publish actual bar height → CSS var (--topnav-h)
-  useEffect(() => {
-    const setVar = () => {
-      const h = barRef.current?.offsetHeight || 72
-      document.documentElement.style.setProperty('--topnav-h', `${h}px`)
-    }
-    setVar()
-    const ro = new ResizeObserver(setVar)
-    if (barRef.current) ro.observe(barRef.current)
-    window.addEventListener('resize', setVar)
-    return () => {
-      ro.disconnect()
-      window.removeEventListener('resize', setVar)
-    }
-  }, [])
-
   const shellClass =
     'fixed inset-x-0 top-0 z-50 transition-colors ' +
     (scrolled
@@ -97,18 +80,16 @@ export default function TopNav() {
 
   return (
     <header className={shellClass} data-scrolled={scrolled}>
-      {/* Measured bar (ref) */}
-      <div
-        ref={barRef}
-        className="mx-auto flex w-full max-w-7xl items-center gap-3 px-2 pt-2 pb-5 sm:py-4 md:px-6"
-      >
-        {/* Brand */}
+      {/* Mobile: tighter left padding, slightly shorter top padding; desktop unchanged */}
+      <div className="mx-auto flex w-full max-w-7xl items-center gap-3 px-2 pt-2 pb-5 sm:py-4 md:px-6">
+        {/* Brand — bigger & tighter gap */}
         <a
           href="/"
           onClick={onBrandClick}
           className="flex items-center gap-1 rounded-md focus:outline-none focus:ring-2 focus:ring-brand/60"
           aria-label="Go to top"
         >
+          {/* Bigger logo on mobile & desktop */}
           <img
             src={logoPng}
             alt="FeelFlick logo"
@@ -117,6 +98,7 @@ export default function TopNav() {
             className="h-12 w-12 rounded-md object-contain sm:h-11 sm:w-11"
             fetchpriority="high"
           />
+          {/* FEELFLICK larger + brand-100 */}
           <span className="text-[2rem] font-black tracking-tight text-brand-100 sm:text-[1.7rem]">
             FEELFLICK
           </span>
@@ -124,7 +106,7 @@ export default function TopNav() {
 
         <div className="flex-1" />
 
-        {/* Desktop actions */}
+        {/* Desktop actions — smaller text for Sign in / Get started */}
         <div className="hidden items-center gap-2 sm:flex">
           <Link
             to="/auth/sign-in"
@@ -141,7 +123,7 @@ export default function TopNav() {
           </button>
         </div>
 
-        {/* Mobile menu toggle */}
+        {/* Mobile menu toggle — large target */}
         <button
           ref={btnRef}
           className="inline-flex h-12 w-12 items-center justify-center rounded-md text-white/85 hover:bg-white/10 sm:hidden"
@@ -154,7 +136,7 @@ export default function TopNav() {
         </button>
       </div>
 
-      {/* Mobile drawer */}
+      {/* Mobile drawer — compact items; thin white focus ring */}
       <div
         id="mobile-menu"
         ref={drawerRef}
@@ -175,32 +157,16 @@ export default function TopNav() {
               </Link>
             </li>
             <li className="mt-1">
-              <Link
-                to="/auth/sign-up"
-                onClick={() => setOpen(false)}
+              <button
+                onClick={onGetStarted}
                 className="flex w-full items-center justify-center rounded-lg px-3 py-2.5 text-[1.02rem] font-semibold text-white shadow-lift focus:outline-none focus:ring-1 focus:ring-white/30 bg-gradient-to-r from-[#fe9245] to-[#eb423b]"
               >
                 Get started
-              </Link>
+              </button>
             </li>
           </ul>
         </div>
       </div>
     </header>
-  )
-}
-
-function NavItem({ to, label }) {
-  return (
-    <NavLink
-      to={to}
-      className={({ isActive }) =>
-        `rounded-lg px-3 py-2 text-[0.95rem] transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60 ${
-          isActive ? 'bg-white/15 text-white' : 'text-white/80'
-        }`
-      }
-    >
-      {label}
-    </NavLink>
   )
 }

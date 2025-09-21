@@ -1,3 +1,4 @@
+// src/features/landing/components/TopNav.jsx
 import { useEffect, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { LogIn } from 'lucide-react'
@@ -9,7 +10,7 @@ export default function TopNav() {
   const navigate = useNavigate()
   const isHome = location.pathname === '/'
 
-  // Expose height to the page so the hero can start below it
+  // Expose height to CSS so LandingHero can start below the fixed bar
   useEffect(() => {
     const el = navRef.current
     if (!el) return
@@ -30,7 +31,6 @@ export default function TopNav() {
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } else {
       navigate('/')
-      // no smooth needed; landing will mount at top
     }
   }
 
@@ -46,13 +46,14 @@ export default function TopNav() {
             href="/"
             onClick={handleBrandClick}
             className="inline-flex items-center gap-2 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
+            aria-label="FeelFlick — back to top"
           >
             <img
               src={logoPng}
               width="28"
               height="28"
-              alt="FeelFlick"
-              className="h-7 w-7 rounded"
+              alt="FeelFlick logo"
+              className="h-7 w-7 rounded object-contain"
               decoding="async"
             />
             <span className="text-lg font-extrabold tracking-wide text-brand-100">
@@ -60,9 +61,8 @@ export default function TopNav() {
             </span>
           </a>
 
-          {/* Right CTAs */}
+          {/* Right side: ONLY Sign in (removed Get started) */}
           <nav className="flex items-center gap-2">
-            {/* Show ONLY Sign in on the landing for conversion focus */}
             <Link
               to="/auth/sign-in"
               className="inline-flex h-9 items-center gap-2 rounded-full border border-white/20 px-4 text-sm font-semibold text-white/95 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
@@ -70,16 +70,6 @@ export default function TopNav() {
               <LogIn className="h-4 w-4" aria-hidden />
               <span>Sign in</span>
             </Link>
-
-            {/* Show Get started on non-landing routes only */}
-            {!isHome && (
-              <Link
-                to="/auth/sign-up"
-                className="inline-flex h-9 items-center justify-center rounded-full bg-gradient-to-r from-[#fe9245] to-[#eb423b] px-4 text-sm font-semibold text-white shadow-lift focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
-              >
-                Get started
-              </Link>
-            )}
           </nav>
         </div>
       </div>

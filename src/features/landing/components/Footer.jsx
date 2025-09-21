@@ -1,16 +1,16 @@
+// src/features/landing/components/Footer.jsx
 import { Link } from 'react-router-dom'
 
 export default function Footer() {
   const year = new Date().getFullYear()
   return (
-    <footer
-      id="footer"  // ← anchor target for the affordance
-      className="relative mt-0 border-t border-white/10 bg-neutral-950/60 backdrop-blur-md"
-    >
+    // CHANGED: mt-0 (no gap above footer)
+    <footer className="relative mt-0 border-t border-white/10 bg-neutral-950/60 backdrop-blur-md">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 -top-px h-px bg-gradient-to-r from-brand-600/40 via-white/10 to-transparent"
       />
+
       <div className="mx-auto max-w-7xl px-4 py-6 md:px-6 md:py-8">
         <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
           <div className="text-xs text-white/60">
@@ -19,11 +19,21 @@ export default function Footer() {
             <FooterTextLink to="/terms">Terms</FooterTextLink>{' · '}
             <FooterTextLink to="/status">Status</FooterTextLink>
           </div>
+
           <div className="flex items-center gap-2.5">
-            <FooterIconLink href="https://www.instagram.com/feelflick" label="Instagram" icon={<InstaIcon className="h-4 w-4" />} />
-            <FooterIconLink href="https://www.tiktok.com/@feelflick" label="TikTok" icon={<TikTokIcon className="h-4 w-4" />} />
+            <FooterIconLink
+              href="https://www.instagram.com/feelflick"
+              label="Instagram"
+              icon={<InstaIcon className="h-4 w-4" />}
+            />
+            <FooterIconLink
+              href="https://www.tiktok.com/@feelflick"
+              label="TikTok"
+              icon={<TikTokIcon className="h-4 w-4" />}
+            />
           </div>
         </div>
+
         <div className="mt-3 text-center text-[11px] leading-relaxed text-white/50 sm:text-left">
           This product uses the TMDB API but is not endorsed or certified by TMDB.
         </div>
@@ -71,6 +81,7 @@ function InstaIcon({ className = '' }) {
     </svg>
   )
 }
+
 function TikTokIcon({ className = '' }) {
   return (
     <svg viewBox="0 0 24 24" className={className} aria-hidden>

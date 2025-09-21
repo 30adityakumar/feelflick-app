@@ -1,80 +1,40 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/shared/lib/supabase/client";
-import TopNav from '@/features/landing/components/TopNav'
-import LandingHero from '@/features/landing/components/LandingHero'
-import WhyFeelFlick from '@/features/landing/components/WhyFeelFlick'
-import TrendingToday from '@/features/landing/components/TrendingToday'
-import Footer from '@/features/landing/components/Footer'
+// src/features/landing/Landing.jsx
+import { lazy, Suspense } from 'react'
+import LandingHero from '@/features/landing/LandingHero'
+
+// Lazy-load the secondary block so the hero ships fast
+const WhyFeelFlick = lazy(() => import('@/features/landing/WhyFeelFlick'))
 
 export default function Landing() {
-  const navigate = useNavigate();
-  const [checkingSession, setCheckingSession] = useState(true);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) {
-        navigate("/app", { replace: true });
-      } else {
-        setCheckingSession(false);
-      }
-    });
-  }, [navigate]);
-
-  // Use these functions for all navigation actions:
-  const handleSignIn = () => navigate("/auth/sign-in");
-  const handleSignUp = () => navigate("/auth/sign-up");
-
-  // Optionally show a loader while checking session
-  if (checkingSession) {
-    return (
-      <div style={{ width: "100vw", height: "100vh", background: "#101015", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div className="text-white text-xl">Loading...</div>
-      </div>
-    );
-  }
-
   return (
-    <div style={{ width: "100vw", minHeight: "100vh", background: "#101015", overflowX: "hidden", position: "relative" }}>
-      {/* Background video */}
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        poster="/background-poster.jpg"
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          width: "100vw",
-          height: "100vh",
-          objectFit: "cover",
-          zIndex: 0,
-          filter: "brightness(0.54) blur(0.6px)"
-        }}
-      >
-        <source src="/background.mp4" type="video/mp4" />
-      </video>
-      {/* Overlay for readability */}
-      <div
-        style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(20,24,35,0.42)',
-          zIndex: 1,
-          pointerEvents: "none"
-        }}
-      />
+    <main id="landing" className="min-h-screen">
+      {/* Above-the-fold: conversion-first hero */}
+      <LandingHero />
 
-      {/* The rest of your site */}
-      <div style={{ position: "relative", zIndex: 2 }}>
-        <TopNav onSignIn={handleSignIn} />
-        <LandingHero onGetStarted={handleSignUp} />
+      {/* Slim “why us” section; loads when scrolled near */}
+      <Suspense fallback={<SectionSkeleton />}>
         <WhyFeelFlick />
-        <TrendingToday onSignUp={handleSignUp} />
-        <Footer />
+      </Suspense>
+    </main>
+  )
+}
+
+/* Lightweight skeleton while WhyFeelFlick loads */
+function SectionSkeleton() {
+  return (
+    <section className="mx-auto max-w-7xl px-4 py-16 md:px-6 md:py-24">
+      <div className="grid items-start gap-10 md:grid-cols-2">
+        <div className="space-y-3">
+          <div className="h-8 w-56 rounded-lg bg-white/10" />
+          <div className="h-4 w-80 rounded bg-white/10" />
+          <div className="h-4 w-64 rounded bg-white/10" />
+          <div className="mt-6 flex gap-2">
+            <div className="h-11 w-32 rounded-full bg-white/10" />
+            <div className="h-11 w-28 rounded-full bg-white/10" />
+          </div>
+        </div>
+        <div className="h-64 rounded-2xl bg-white/5 ring-1 ring-white/10" />
       </div>
-    </div>
-  );
+    </section>
+  )
 }

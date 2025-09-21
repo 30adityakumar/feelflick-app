@@ -9,6 +9,7 @@ export default function TopNav() {
   const barRef = useRef(null)
   const navigate = useNavigate()
   const location = useLocation()
+  const onAuth = location.pathname.startsWith('/auth')
 
   // Set --topnav-h immediately and on resize (prevents micro-CLS)
   useEffect(() => {
@@ -54,7 +55,6 @@ export default function TopNav() {
 
   return (
     <header className={shellClass} data-scrolled={scrolled}>
-      {/* Skip to content for a11y */}
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:rounded-md focus:bg-neutral-900 focus:px-3 focus:py-2 focus:text-white focus:ring-2 focus:ring-brand/60"
@@ -88,27 +88,31 @@ export default function TopNav() {
         </a>
 
         {/* Right side actions */}
-        {/* Desktop */}
-        <div className="hidden md:flex items-center gap-2">
-          <Link
-            to="/auth/sign-in"
-            className="group relative inline-flex h-10 items-center gap-2 rounded-full border border-white/20 px-4 text-[0.9rem] font-semibold text-white/95 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 active:scale-[.98]"
-          >
-            <LogIn className="h-4 w-4 text-white/90" aria-hidden />
-            <span>Sign in</span>
-          </Link>
-        </div>
-
-        {/* Mobile: show Sign in button directly (no hamburger) */}
-        <div className="md:hidden">
-          <Link
-            to="/auth/sign-in"
-            className="inline-flex h-11 items-center gap-2 rounded-full border border-white/20 bg-white/5 px-4 text-[0.95rem] font-semibold text-white/95 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60 active:scale-[.98]"
-          >
-            <LogIn className="h-4 w-4 text-white/90" aria-hidden />
-            <span>Sign in</span>
-          </Link>
-        </div>
+        {/* Hide Sign in button on /auth/* routes */}
+        {!onAuth && (
+          <>
+            {/* Desktop */}
+            <div className="hidden md:flex items-center gap-2">
+              <Link
+                to="/auth/sign-in"
+                className="group relative inline-flex h-10 items-center gap-2 rounded-full border border-white/20 px-4 text-[0.9rem] font-semibold text-white/95 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 active:scale-[.98]"
+              >
+                <LogIn className="h-4 w-4 text-white/90" aria-hidden />
+                <span>Sign in</span>
+              </Link>
+            </div>
+            {/* Mobile */}
+            <div className="md:hidden">
+              <Link
+                to="/auth/sign-in"
+                className="inline-flex h-11 items-center gap-2 rounded-full border border-white/20 bg-white/5 px-4 text-[0.95rem] font-semibold text-white/95 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60 active:scale-[.98]"
+              >
+                <LogIn className="h-4 w-4 text-white/90" aria-hidden />
+                <span>Sign in</span>
+              </Link>
+            </div>
+          </>
+        )}
       </div>
     </header>
   )

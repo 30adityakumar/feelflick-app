@@ -1,88 +1,86 @@
 import { Link } from 'react-router-dom'
-import { useState } from 'react'
 
 /**
- * LandingHero
- * Props (all optional):
- *  - backgroundUrl: string (hero image); if missing, we render a gradient-only hero.
- *  - title: string
- *  - subtitle: string
+ * Landing hero for the public page.
+ * - Uses CSS class `.feelflick-landing-bg` you already have as the backdrop
+ * - High-contrast overlay for readability
+ * - Mobile-first, fluid type, accessible
  */
-export default function LandingHero({
-  backgroundUrl,
-  title = 'Find what to watch by how you feel.',
-  subtitle = 'Smart mood-based discovery across movies and shows—curated for you.'
-}) {
-  const [imgOk, setImgOk] = useState(true)
-
+export default function LandingHero() {
   return (
     <section
-      className="relative isolate cq overflow-hidden bg-black text-white"
-      aria-label="FeelFlick landing hero"
+      className="relative isolate overflow-hidden"
+      aria-labelledby="landing-hero-h1"
     >
-      {/* Backdrop image (optional) */}
-      <div className="pointer-events-none absolute inset-0 -z-10">
-        {backgroundUrl && imgOk ? (
-          <img
-            src={backgroundUrl}
-            alt=""
-            fetchpriority="high"
-            decoding="async"
-            loading="eager"
-            className="h-full w-full object-cover"
-            onError={() => setImgOk(false)}
-          />
-        ) : null}
-
-        {/* Gradient overlays for readability */}
-        <div className="absolute inset-0 bg-[radial-gradient(80%_60%_at_20%_10%,rgba(255,255,255,.08),transparent_60%),linear-gradient(to_bottom,rgba(0,0,0,.55),rgba(0,0,0,.72))]" />
-      </div>
-
-      {/* Extra blur when the page is scrolled (TopNav applies backdrop-blur; we ensure readability here too) */}
-      <div className="absolute inset-0 -z-10 backdrop-blur-0 motion-safe:transition-[backdrop-filter] data-[scrolled=true]:backdrop-blur-sm" />
+      {/* Background: your existing collage + gradient */}
+      <div aria-hidden className="feelflick-landing-bg" />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-gradient-to-br from-black/75 via-black/55 to-black/20"
+      />
 
       {/* Content */}
-      <div className="relative mx-auto max-w-7xl px-3 pt-28 pb-16 sm:px-6 sm:pt-32 sm:pb-24">
-        <div className="max-w-3xl">
+      <div className="relative mx-auto max-w-7xl px-4 pt-28 pb-16 sm:pt-32 sm:pb-24 md:px-6 lg:pt-36 lg:pb-28">
+        <div className="cq mx-auto max-w-3xl text-center">
           <h1
-            className="text-[clamp(1.9rem,5.2vw,3.4rem)] font-black leading-tight tracking-tight"
+            id="landing-hero-h1"
+            className="font-black tracking-tight text-white
+                       text-[clamp(2.2rem,7vw,4rem)] leading-[1.06]"
           >
-            {title}
+            Find the <span className="text-brand-100">right movie</span> for your mood.
           </h1>
-          <p className="mt-3 text-[clamp(1rem,2.5vw,1.25rem)] text-white/80">
-            {subtitle}
+
+          <p
+            className="mt-4 text-white/80
+                       text-[clamp(1rem,2.8vw,1.25rem)] leading-relaxed"
+          >
+            Browse by feeling, keep spoilers off, and build your watchlist in seconds.
           </p>
 
           {/* CTAs */}
-          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <Link
-              to="/auth/sign-up"
-              className="inline-flex h-12 items-center justify-center rounded-full px-6 text-[clamp(1rem,2.6vw,0.95rem)] font-semibold text-white shadow-lift focus:outline-none focus:ring-2 focus:ring-brand/60 bg-gradient-to-r from-[#fe9245] to-[#eb423b] hover:scale-[1.02] motion-safe:transition-transform"
-            >
-              Get started
-            </Link>
-
+          <div className="mx-auto mt-6 flex max-w-md flex-col gap-3 sm:mt-7 sm:flex-row sm:items-center sm:justify-center">
             <Link
               to="/auth/sign-in"
-              className="inline-flex h-12 items-center justify-center rounded-full border border-white/25 px-6 text-[clamp(1rem,2.6vw,0.9rem)] font-semibold text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/40"
+              className="inline-flex h-11 items-center justify-center rounded-full
+                         border border-white/25 px-5
+                         text-[clamp(.95rem,2.8vw,0.9rem)] font-semibold text-white
+                         hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60"
             >
               Sign in
             </Link>
+
+            <Link
+              to="/auth/sign-up"
+              className="inline-flex h-11 items-center justify-center rounded-full
+                         px-6 text-[clamp(1rem,3vw,0.95rem)] font-semibold text-white
+                         shadow-lift transition-transform hover:scale-[1.02]
+                         focus:outline-none focus:ring-2 focus:ring-brand/60
+                         bg-gradient-to-r from-[#fe9245] to-[#eb423b]"
+            >
+              Get started
+            </Link>
           </div>
 
-          {/* Social proof / mini features (optional, easy to hide) */}
-          <ul className="mt-6 flex flex-wrap gap-x-4 gap-y-2 text-sm text-white/60">
-            <li>⚡ Fast, ad-free browsing</li>
-            <li>•</li>
-            <li>🎯 Mood-based filters</li>
-            <li>•</li>
-            <li>🔒 Secure with Supabase</li>
+          {/* Quick value bullets */}
+          <ul
+            className="mt-6 grid grid-cols-1 gap-2 text-left text-[0.95rem] text-white/80 sm:mt-7 sm:grid-cols-3 sm:text-sm"
+            aria-label="Highlights"
+          >
+            <li className="flex items-center gap-2 justify-center sm:justify-start">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-brand-400" />
+              Mood-first discovery
+            </li>
+            <li className="flex items-center gap-2 justify-center sm:justify-start">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-brand-400" />
+              Zero-spoilers mode
+            </li>
+            <li className="flex items-center gap-2 justify-center sm:justify-start">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-brand-400" />
+              One-tap watchlist
+            </li>
           </ul>
         </div>
       </div>
-
-      {/* Decorative bottom fade to help next section contrast */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent to-black/80" />
     </section>
   )
 }

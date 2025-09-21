@@ -1,4 +1,4 @@
-// src/features/landing/LandingHero.jsx
+// src/features/landing/components/LandingHero.jsx
 import { Link } from 'react-router-dom'
 import { LogIn } from 'lucide-react'
 
@@ -37,7 +37,7 @@ export default function LandingHero() {
         <div className="absolute inset-0 bg-[radial-gradient(100%_80%_at_50%_0%,rgba(255,255,255,0.06),rgba(255,255,255,0)_60%)]" />
       </div>
 
-      {/* Soft radial highlight you liked */}
+      {/* Soft radial highlight */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 -z-0 opacity-60"
@@ -47,16 +47,16 @@ export default function LandingHero() {
         }}
       />
 
-      {/* Content: perfectly centered within remaining viewport */}
+      {/* Content: exactly fills viewport below TopNav */}
       <div
         className="relative z-10 mx-auto max-w-7xl px-4 md:px-6"
         style={{ ['--nav-h']: '72px' }}
       >
         <div
-          className="grid items-center py-12 sm:py-16"
+          className="grid items-center py-8 sm:py-10"
           style={{
-            // Cap hero height on tall screens so the next section peeks
-            minHeight: 'min(calc(100svh - var(--topnav-h, var(--nav-h, 72px))), 880px)',
+            // EXACT height so the next section (footer) is immediately next on scroll
+            height: 'calc(100svh - var(--topnav-h, var(--nav-h, 72px)))',
           }}
         >
           <div className="mx-auto w-full max-w-3xl text-center md:max-w-2xl">
@@ -86,8 +86,8 @@ export default function LandingHero() {
               </Link>
             </div>
 
-            {/* Safe-area padding so copy/CTAs never collide with iOS toolbar */}
-            <p className="mt-3 text-sm text-white/65 pb-[calc(env(safe-area-inset-bottom))]">
+            {/* Removed extra bottom padding to make footer appear right after a single scroll */}
+            <p className="mt-3 text-sm text-white/65">
               Free to start. Your mood, your movie.
             </p>
           </div>

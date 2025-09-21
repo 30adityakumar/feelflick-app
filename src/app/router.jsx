@@ -91,7 +91,7 @@ async function getOnboardingDecision() {
     user.user_metadata?.onboarded
   if (typeof meta !== 'undefined') return { authed: true, onboarded: !!meta }
 
-  // 2) Try profiles table (any of three possible flags)
+  // 2) Try profiles table (if present)
   try {
     const { data, error } = await supabase
       .from('profiles')
@@ -110,14 +110,13 @@ async function getOnboardingDecision() {
     // ignore – fall through to default
   }
 
-  // 3) Default: assume onboarded so we don’t trap legacy users
+  // 3) Default: assume onboarded so legacy users aren’t blocked
   return { authed: true, onboarded: true }
 }
 
 /** Used at /app to decide the real “start” route after sign-in */
 function AppEntryRouter() {
   const nav = useNavigate()
-  const [done, setDone] = useState(false)
 
   useEffect(() => {
     let alive = true
@@ -140,7 +139,7 @@ function AppEntryRouter() {
 
 /** If not onboarded, push to /onboarding; otherwise render the page */
 function HomeGate({ children }) {
-  const [state, setState] = useState<'loading' | 'home' | 'onboarding'>('loading')
+  const [state, setState] = useState('loading') // 'loading' | 'home' | 'onboarding'
 
   useEffect(() => {
     let alive = true
@@ -159,7 +158,7 @@ function HomeGate({ children }) {
 
 /** If already onboarded, don’t show the flow again */
 function OnboardingGate() {
-  const [state, setState] = useState<'loading' | 'home' | 'onboarding'>('loading')
+  const [state, setState] = useState('loading') // 'loading' | 'home' | 'onboarding'
 
   useEffect(() => {
     let alive = true
@@ -184,7 +183,7 @@ function AppPrefixAliasStripper() {
   return <Navigate to={`${stripped}${loc.search}${loc.hash}`} replace />
 }
 
-/** Route that signs out and redirects to /auth (works even if header button fails) */
+/** Route that signs out and redirects to /auth (works from any state) */
 function SignOutRoute() {
   const nav = useNavigate()
   useEffect(() => {

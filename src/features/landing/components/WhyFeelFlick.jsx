@@ -1,188 +1,190 @@
-import React from 'react';
+import { useEffect, useRef, useState } from "react"
+import { Link } from "react-router-dom"
+import { Sparkles, ListChecks, Heart, ShieldCheck } from "lucide-react"
 
-const cards = [
-  {
-    title: 'Mood-Driven, Personalized Picks',
-    description:
-      "FeelFlick learns your movie taste and listens to your current mood. No generic suggestions — just titles that match your vibe. The more you watch and share how you feel, the smarter and more personal your recommendations become.",
-  },
-  {
-    title: 'Fast, Simple, and Private',
-    description:
-      "Tired of scrolling for something to watch? FeelFlick delivers quick and clutter-free suggestions. No ratings, no filters, no noise — just the right movie when you need it. Your data stays private, always secure and never shared.",
-  },
-  {
-    title: 'Track What You Love For Free',
-    description:
-      "Keep a personal log of every movie you’ve seen. Build watchlists, revisit past favorites, and reflect on your evolving taste. FeelFlick helps you stay organized, sentimental, and inspired — all in one place. Always free, with no paywalls or limits.",
-  },
-];
-
+/**
+ * WhyFeelFlick – lightweight “why us” block under the hero.
+ * - Netflix/Plex style: bold headline, short benefits, tiny UI mock, repeat CTA.
+ * - No images; fast to render. Subtle in-view reveal (respects reduced-motion).
+ */
 export default function WhyFeelFlick() {
+  const ref = useRef(null)
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    const m = window.matchMedia?.("(prefers-reduced-motion: reduce)")
+    const reduce = !!m?.matches
+    if (reduce) { setVisible(true); return }
+
+    const io = new IntersectionObserver(
+      ([e]) => e.isIntersecting && setVisible(true),
+      { threshold: 0.2 }
+    )
+    if (ref.current) io.observe(ref.current)
+    return () => io.disconnect()
+  }, [])
+
   return (
-    <>
-      <style>{`
-        @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(38px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .fflick-box { animation: fadeInUp 0.7s ease both; }
+    <section
+      ref={ref}
+      className="relative overflow-hidden"
+      aria-labelledby="why-title"
+    >
+      <div className="mx-auto max-w-7xl px-4 py-16 md:px-6 md:py-24">
+        {/* Header row */}
+        <div
+          className={[
+            "grid items-start gap-10 md:grid-cols-2",
+            "transition-all duration-700 motion-safe",
+            visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6",
+          ].join(" ")}
+        >
+          {/* Left: copy */}
+          <div>
+            <h2
+              id="why-title"
+              className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl"
+            >
+              Why <span className="text-brand-100">FeelFlick</span>?
+            </h2>
+            <p className="mt-3 max-w-xl text-white/80">
+              Skip the endless scroll. Tell us how you want to feel and get a short,
+              spot-on list you’ll actually watch—save favorites, track what you’ve loved,
+              and keep everything in one place.
+            </p>
 
-        .fflick-card:focus-visible {
-          outline: 2.5px solid #fe9245;
-          outline-offset: 2px;
-        }
+            {/* 3–4 compact benefits */}
+            <ul className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Benefit icon={<Sparkles className="h-4 w-4" />} title="Mood-first picks">
+                Recommendations tuned to how you feel right now.
+              </Benefit>
+              <Benefit icon={<ListChecks className="h-4 w-4" />} title="No scroll fatigue">
+                Short, watchable lists—updated and easy to choose from.
+              </Benefit>
+              <Benefit icon={<Heart className="h-4 w-4" />} title="Watchlist & history">
+                Save, rate, and revisit your favorites.
+              </Benefit>
+              <Benefit icon={<ShieldCheck className="h-4 w-4" />} title="No spam, ever">
+                Free to start. You’re in control.
+              </Benefit>
+            </ul>
 
-        .fflick-section-title {
-          font-size: clamp(1.09rem, 3vw, 1.37rem) !important;
-          margin-bottom: clamp(16px, 3vw, 22px) !important;
-          margin-top: 10px !important;
-          letter-spacing: 0.14em !important;
-          font-weight: 900 !important;
-          color: #fff !important;
-          text-transform: uppercase;
-        }
-        .fflick-box {
-          padding: clamp(0.3rem, 2.5vw, 0.7rem) clamp(0.7rem, 7vw, 2.5rem) !important;
-          border-radius: clamp(16px, 2vw, 28px) !important;
-          gap: clamp(1.1rem, 3vw, 2rem) !important;
-        }
-        .fflick-card {
-          padding: clamp(1rem, 3vw, 1.6rem) clamp(1rem, 4vw, 1.4rem) !important;
-          border-radius: clamp(13px, 2vw, 22px) !important;
-          min-width: clamp(210px, 29vw, 335px) !important;
-          max-width: clamp(99vw, 33vw, 480px) !important;
-          background: rgba(12, 8, 4, 0.98) !important;  /* darker */
-          border: 1.5px solid rgba(255,91,46,0.13);
-          box-shadow: 0 2.5px 12px 0 rgba(40,24,14,0.10);
-          transition: none;
-          position: relative;
-          cursor: default;
-        }
-        .fflick-title {
-          font-size: clamp(1.14rem, 3.5vw, 1.85rem) !important;
-          background: linear-gradient(92deg, #ffd7b0 0%, #fe9245 77%);
-          WebkitBackgroundClip: text;
-          WebkitTextFillColor: transparent;
-          text-shadow: 0 3px 16px #fe924561, 0 2.5px 8px rgba(0,0,0,0.18);
-          font-weight: 950;
-        }
-        .fflick-desc {
-          font-size: clamp(0.87rem, 2vw, 0.99rem) !important;
-          color: #fff !important;        /* lighter, more visible */
-          opacity: 0.97 !important;
-        }
-        @media (max-width: 1020px) {
-          .fflick-box { flex-direction: column !important; align-items: center !important; }
-          .fflick-card { width: 96vw !important; max-width: 99vw !important; margin-bottom: 1rem !important;}
-        }
-        @media (max-width: 600px) {
-          .fflick-section-title {
-            font-size: 1.03rem !important;
-            margin-bottom: 14px !important;
-            margin-top: 6px !important;
-          }
-          .fflick-box {
-            padding: 14px 8vw !important;    /* EVEN padding on mobile */
-            border-radius: 18px !important;
-          }
-        }
-      `}</style>
-
-      <section
-        role="region"
-        aria-labelledby="whyfeelflick-heading"
-        style={{
-          width: '100vw',
-          background: 'rgba(10,10,10,0.73)',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'flex-start',
-          justifyContent: 'center',
-          padding: '14px 0 10px 0',
-          boxSizing: 'border-box',
-        }}
-      >
-        <div style={{
-          width: '100%',
-          padding: '0 7vw',
-          boxSizing: 'border-box',
-          display: 'flex',
-          flexDirection: 'column',
-        }}>
-          {/* Section Title */}
-          <h2 id="whyfeelflick-heading" className="fflick-section-title">
-            More Reasons To Join
-          </h2>
-          <div
-            className="fflick-box"
-            style={{
-              background: 'rgba(12, 11, 10, 0.80)',
-              borderRadius: '28px',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'stretch',
-              width: '100%',
-              maxWidth: '1450px',
-              margin: '0 auto',
-              boxShadow: '0 8px 48px 0 rgba(0,0,0,0.12)',
-              flexWrap: 'nowrap',
-            }}
-          >
-            {cards.map((card, idx) => (
-              <article
-                key={idx}
-                className="fflick-card"
-                style={{
-                  flex: '0 1 34%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'flex-start',
-                  background: 'rgba(22,16,10,0.94)',
-                  border: '1.5px solid rgba(255,91,46,0.12)',
-                  boxShadow: '0 2.5px 12px 0 rgba(40,24,14,0.11)',
-                  transition: 'none',
-                  position: 'relative',
-                  cursor: 'default',
-                  animation: `fadeInUp 0.7s cubic-bezier(.25,.7,.3,1.1) ${(idx * 0.14).toFixed(2)}s both`,
-                }}
-                tabIndex={0}
-                aria-labelledby={`whyfeelflick-card-title-${idx}`}
-                aria-describedby={`whyfeelflick-card-desc-${idx}`}
+            {/* CTA repeat */}
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <Link
+                to="/auth/sign-up"
+                className="inline-flex h-11 items-center justify-center rounded-full px-6 text-[0.95rem] font-semibold text-white shadow-lift transition-transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-brand/60 bg-gradient-to-r from-[#fe9245] to-[#eb423b]"
               >
-                <h3
-                  id={`whyfeelflick-card-title-${idx}`}
-                  className="fflick-title"
-                  style={{
-                    margin: '0 0 1.2rem',
-                    fontWeight: 950,
-                    lineHeight: 1.19,
-                    background: 'linear-gradient(88deg, var(--theme-color,#FF5B2E), var(--theme-color-secondary,#367cff) 80%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    textShadow: '0 2.5px 8px rgba(0,0,0,0.16)',
-                  }}
-                >
-                  {card.title}
-                </h3>
-                <p
-                  id={`whyfeelflick-card-desc-${idx}`}
-                  className="fflick-desc"
-                  style={{
-                    margin: 0,
-                    color: '#ffffffff',
-                    lineHeight: '1.72',
-                    fontWeight: 200,
-                    letterSpacing: '0.013em',
-                  }}
-                >
-                  {card.description}
-                </p>
-              </article>
-            ))}
+                Get started
+              </Link>
+              <Link
+                to="/auth/sign-in"
+                className="inline-flex h-11 items-center justify-center rounded-full border border-white/25 px-5 text-[0.95rem] font-semibold text-white/95 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60"
+              >
+                Sign in
+              </Link>
+              <span className="ml-1 text-sm text-white/60">Free to start. Your mood, your movie.</span>
+            </div>
+          </div>
+
+          {/* Right: tiny UI mock (letterboxd-ish social vibe, plex polish) */}
+          <div className="relative">
+            {/* Card stack */}
+            <div className="relative mx-auto w-full max-w-md">
+              <MockCard
+                title="Shared with you"
+                subtitle="@jason • 2h"
+                body="“Smart, human, and unforgettable. Perfect when you want something hopeful.”"
+                accent="from-brand-500/25 to-transparent"
+                delay="0ms"
+                visible={visible}
+              />
+              <MockCard
+                className="mt-4 ml-8"
+                title="Tonight’s picks"
+                subtitle="5 items • mood: cozy"
+                body="Shortlist tailored to you. No endless scrolling."
+                accent="from-fuchsia-500/25 to-transparent"
+                delay="120ms"
+                visible={visible}
+              />
+              <MockCard
+                className="mt-4 -ml-2"
+                title="Watchlist"
+                subtitle="12 saved"
+                body="Keep what you love in one place."
+                accent="from-sky-500/25 to-transparent"
+                delay="240ms"
+                visible={visible}
+              />
+            </div>
+
+            {/* micro “stars” row */}
+            <div
+              className={[
+                "mt-6 flex items-center justify-center gap-1 text-brand-100/90",
+                "transition-opacity duration-700 motion-safe",
+                visible ? "opacity-100" : "opacity-0",
+              ].join(" ")}
+            >
+              {Array.from({ length: 5 }).map((_, i) => (
+                <svg key={i} className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
+                  <path d="M10 1.5l2.6 5.27 5.82.85-4.21 4.1.99 5.78L10 14.9l-5.2 2.6.99-5.78L1.5 7.62l5.82-.85L10 1.5z" />
+                </svg>
+              ))}
+            </div>
+            <p className="mt-2 text-center text-xs text-white/60">
+              Loved by movie fans who value time over scrolling.
+            </p>
           </div>
         </div>
-      </section>
-    </>
-  );
+      </div>
+    </section>
+  )
+}
+
+function Benefit({ icon, title, children }) {
+  return (
+    <li className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-white/90">
+      <span className="mt-0.5 grid place-items-center rounded-md bg-white/10 p-1.5 text-brand-100">
+        {icon}
+      </span>
+      <div className="min-w-0">
+        <div className="truncate font-semibold">{title}</div>
+        <div className="text-white/70">{children}</div>
+      </div>
+    </li>
+  )
+}
+
+function MockCard({ title, subtitle, body, className = "", accent = "from-brand-500/20 to-transparent", delay = "0ms", visible }) {
+  return (
+    <div
+      className={[
+        "rounded-2xl border border-white/10 bg-white/[0.06] p-3 backdrop-blur-sm",
+        "shadow-[0_0_0_1px_rgba(255,255,255,0.06)_inset]",
+        "transition-all duration-700 motion-safe",
+        visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3",
+        className,
+      ].join(" ")}
+      style={{ transitionDelay: delay }}
+    >
+      <div className="relative overflow-hidden rounded-xl">
+        <div className={`absolute inset-0 -z-10 rounded-xl bg-gradient-to-tr ${accent}`} />
+        <div className="flex items-center justify-between gap-3 p-2">
+          <div className="min-w-0">
+            <div className="truncate text-sm font-semibold text-white/95">{title}</div>
+            <div className="truncate text-xs text-white/60">{subtitle}</div>
+          </div>
+          {/* avatar chip */}
+          <div className="grid h-7 w-7 place-items-center rounded-full bg-gradient-to-br from-white/90 to-white/70 text-[11px] font-bold text-neutral-900 ring-1 ring-white/40">
+            A
+          </div>
+        </div>
+        <div className="rounded-xl border border-white/10 bg-neutral-900/60 p-3 text-sm text-white/80">
+          {body}
+        </div>
+      </div>
+    </div>
+  )
 }

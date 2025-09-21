@@ -1,6 +1,5 @@
 // src/features/landing/components/LandingHero.jsx
 import { Link } from 'react-router-dom'
-import { LogIn } from 'lucide-react'
 
 export default function LandingHero() {
   return (
@@ -69,24 +68,17 @@ export default function LandingHero() {
               watch—no endless scrolling. Save favorites and keep your watchlist in one place.
             </p>
 
-            {/* CTAs */}
+            {/* CTA: Get started only (slightly longer) */}
             <div className="mx-auto mt-7 flex max-w-sm flex-col items-center justify-center gap-3 sm:max-w-none sm:flex-row">
               <Link
                 to="/auth/sign-up"
-                className="inline-flex h-11 items-center justify-center rounded-full px-6 text-[0.95rem] font-semibold text-white shadow-lift transition-transform hover:scale-[1.02] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 active:scale-[.98] bg-gradient-to-r from-[#fe9245] to-[#eb423b]"
+                className="inline-flex h-11 items-center justify-center rounded-full px-8 sm:px-9 text-[0.95rem] font-semibold text-white shadow-lift transition-transform hover:scale-[1.02] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 active:scale-[.98] bg-gradient-to-r from-[#fe9245] to-[#eb423b]"
               >
                 Get started
               </Link>
-              <Link
-                to="/auth/sign-in"
-                className="group relative inline-flex h-11 items-center gap-2 rounded-full border border-white/25 px-5 text-[0.95rem] font-semibold text-white/95 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 active:scale-[.98]"
-              >
-                <LogIn className="h-4 w-4 text-white/90" aria-hidden />
-                <span>Sign in</span>
-              </Link>
             </div>
 
-            {/* Removed extra bottom padding to make footer appear right after a single scroll */}
+            {/* Proof line */}
             <p className="mt-3 text-sm text-white/65">
               Free to start. Your mood, your movie.
             </p>

@@ -4,8 +4,8 @@ import { Link } from 'react-router-dom'
 export default function Footer() {
   const year = new Date().getFullYear()
   return (
-    <footer className="relative mt-8 border-t border-white/10 bg-neutral-950/60 backdrop-blur-md">
-      {/* hairline glow */}
+    // CHANGED: mt-0 (no gap above footer)
+    <footer className="relative mt-0 border-t border-white/10 bg-neutral-950/60 backdrop-blur-md">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 -top-px h-px bg-gradient-to-r from-brand-600/40 via-white/10 to-transparent"
@@ -20,7 +20,6 @@ export default function Footer() {
             <FooterTextLink to="/status">Status</FooterTextLink>
           </div>
 
-          {/* Socials: Instagram + TikTok only */}
           <div className="flex items-center gap-2.5">
             <FooterIconLink
               href="https://www.instagram.com/feelflick"
@@ -35,7 +34,6 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* TMDb attribution (keep for compliance) */}
         <div className="mt-3 text-center text-[11px] leading-relaxed text-white/50 sm:text-left">
           This product uses the TMDB API but is not endorsed or certified by TMDB.
         </div>
@@ -43,8 +41,6 @@ export default function Footer() {
     </footer>
   )
 }
-
-/* --------------------------- small components --------------------------- */
 
 function FooterIconLink({ href, label, icon }) {
   const isExternal = href.startsWith('http')
@@ -75,8 +71,6 @@ function FooterTextLink({ to, children }) {
     </Link>
   )
 }
-
-/* --------------------------- inline icons --------------------------- */
 
 function InstaIcon({ className = '' }) {
   return (

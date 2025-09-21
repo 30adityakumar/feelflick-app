@@ -9,7 +9,7 @@ export default function Landing() {
       {/* Fixed header (sets --topnav-h for the hero spacing) */}
       <TopNav />
 
-      <main id="main" className="min-h-screen">
+      <main id="main">
         {/* Above-the-fold: conversion-first hero */}
         <LandingHero />
 

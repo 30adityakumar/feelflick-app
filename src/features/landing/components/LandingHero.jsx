@@ -31,12 +31,15 @@ export default function LandingHero() {
   const [loading, setLoading] = useState(false)
   const [errored, setErrored] = useState(false)
 
-  // --- Motion guards ---
+  // --- Motion & layout guards ---
   const [play, setPlay] = useState(true)
   const reduceMotion = useRef(false)
   const visRef = useRef(null)
   const rotRef = useRef(null)
+  const [isMobile, setIsMobile] = useState(false)
+  const [canShowPosterMobile, setCanShowPosterMobile] = useState(true)
 
+  // prefers-reduced-motion
   useEffect(() => {
     const m = window.matchMedia?.('(prefers-reduced-motion: reduce)')
     reduceMotion.current = !!m?.matches
@@ -45,6 +48,24 @@ export default function LandingHero() {
     return () => m?.removeEventListener?.('change', onChange)
   }, [])
 
+  // viewport size -> isMobile
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)')
+    const set = () => setIsMobile(!!mq.matches)
+    set()
+    mq.addEventListener?.('change', set)
+    return () => mq.removeEventListener?.('change', set)
+  }, [])
+
+  // network guard for mobile posters
+  useEffect(() => {
+    const c = navigator.connection
+    const slow = c && (c.saveData || /2g|3g/.test(c.effectiveType || ''))
+    const m = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
+    setCanShowPosterMobile(!slow && !m)
+  }, [])
+
+  // pause rotation when the desktop showcase isn’t visible
   useEffect(() => {
     const el = visRef.current
     if (!el) return
@@ -83,23 +104,23 @@ export default function LandingHero() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, isBearer])
 
-  // Cross-fade rotation
+  // Cross-fade rotation (desktop only; mobile stays static)
   useEffect(() => {
     clearInterval(rotRef.current)
-    if (!items.length || reduceMotion.current || !play) return
+    if (!items.length || reduceMotion.current || !play || isMobile) return
     rotRef.current = setInterval(() => {
       setIndex(i => (i + 1) % items.length)
     }, 5500) // ~2s fade + ~3.5s hold
     return () => clearInterval(rotRef.current)
-  }, [items.length, play])
+  }, [items.length, play, isMobile])
 
-  // Preload next
+  // Preload next (desktop)
   useEffect(() => {
-    if (!items.length) return
+    if (!items.length || isMobile) return
     const next = items[(index + 1) % items.length]
     const src = tmdbImg(next?.backdrop_path || next?.poster_path, 'w780')
     if (src) { const img = new Image(); img.src = src }
-  }, [index, items])
+  }, [index, items, isMobile])
 
   const cur = items[index]
   const prev = items[(index - 1 + (items.length || 1)) % (items.length || 1)]
@@ -107,7 +128,11 @@ export default function LandingHero() {
   const prevPath = prev?.backdrop_path || prev?.poster_path
 
   return (
-    <section className="relative overflow-hidden">
+    <section
+      className="relative overflow-hidden"
+      // Ensure the hero begins *below* the fixed TopNav
+      style={{ marginTop: 'var(--topnav-h, var(--nav-h, 72px))' }}
+    >
       {/* Background + soft radial light */}
       <div className="feelflick-landing-bg" aria-hidden="true" />
       <div
@@ -121,10 +146,14 @@ export default function LandingHero() {
 
       <div
         className="relative z-10 mx-auto max-w-7xl px-4 md:px-6"
-        style={{ ['--nav-h']: '72px' }} // fallback if you don’t set this in TopNav
+        // Provide a fallback nav height if TopNav doesn't set --topnav-h
+        style={{ ['--nav-h']: '72px' }}
       >
-        {/* Center the hero vertically with equal top/bottom feel */}
-        <div className="grid items-center gap-8 md:grid-cols-2 md:gap-10 min-h-[calc(100svh-var(--nav-h))] py-10 sm:py-12">
+        {/* A touch more breathing room, still vertically centered */}
+        <div
+          className="grid items-center gap-8 md:grid-cols-2 md:gap-10 py-12 sm:py-16"
+          style={{ minHeight: 'calc(100svh - var(--topnav-h, var(--nav-h, 72px)))' }}
+        >
           {/* Left: centered block */}
           <div>
             <h1 className="text-4xl font-black tracking-tight text-white sm:text-6xl">
@@ -154,26 +183,24 @@ export default function LandingHero() {
               </span>
             </div>
 
-            {/* Mobile showcase (16:9) */}
+            {/* Mobile: show a single static poster only if cheap */}
             <div className="mt-8 md:hidden">
-              <PosterShowcase
-                refEl={visRef}
-                cur={cur}
-                prev={prev}
-                curPath={curPath}
-                prevPath={prevPath}
-                navigate={navigate}
-                loading={loading || !token || errored}
-                variant="mobile"
-              />
-              {/* Hide note on mobile to keep the fold clean */}
-              <p className="mt-3 hidden text-center text-xs text-white/50 sm:block">
-                Screens are illustrative. TMDb data used under license.
-              </p>
+              {canShowPosterMobile && (
+                <PosterShowcase
+                  refEl={null} // no observer needed on mobile
+                  cur={cur}
+                  prev={null} // static only
+                  curPath={curPath}
+                  prevPath={null}
+                  navigate={navigate}
+                  loading={loading || !token || errored}
+                  variant="mobile"
+                />
+              )}
             </div>
           </div>
 
-          {/* Desktop showcase */}
+          {/* Desktop showcase (16:9, single outline, gentle cross-fade) */}
           <div className="hidden md:block">
             <PosterShowcase
               refEl={visRef}
@@ -185,9 +212,6 @@ export default function LandingHero() {
               loading={loading || !token || errored}
               variant="desktop"
             />
-            <p className="mt-3 text-center text-xs text-white/50">
-              Screens are illustrative. TMDb data used under license.
-            </p>
           </div>
         </div>
       </div>
@@ -199,18 +223,20 @@ export default function LandingHero() {
 function PosterShowcase({ refEl, cur, prev, curPath, prevPath, navigate, loading, variant = 'desktop' }) {
   const isMobile = variant === 'mobile'
   const outerPad = isMobile ? 'p-2' : 'p-3'
-  const aspect = isMobile ? 'aspect-video' : 'aspect-[10/7]'
+  // Use 16:9 everywhere for a lighter, cinematic feel
+  const aspect = 'aspect-video'
   const sizes = isMobile ? '(max-width: 767px) 100vw, 640px' : '(min-width: 768px) 640px, 100vw'
 
   return (
-    <div ref={refEl} className={`card-surface relative overflow-hidden rounded-3xl ${outerPad}`}>
-      <div className="absolute inset-0 -z-10 rounded-3xl bg-gradient-to-tr from-brand-600/10 to-transparent" />
-      <div className={`relative ${aspect} w-full overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/60`}>
+    <div ref={refEl} className={`relative overflow-hidden rounded-3xl ${outerPad}`}>
+      <div
+        className={`relative ${aspect} w-full overflow-hidden rounded-2xl bg-neutral-900/60 shadow-[0_0_0_1px_rgba(255,255,255,0.08)]`}
+      >
         {/* Skeleton */}
         {loading && <div className="absolute inset-0 animate-pulse rounded-2xl bg-white/10" />}
 
-        {/* Previous (fade out) */}
-        {prevPath && (
+        {/* Previous (fade out) — desktop only */}
+        {!isMobile && prevPath && (
           <img
             key={`prev-${prev?.id}-${prevPath}`}
             src={tmdbImg(prevPath, 'w780')}

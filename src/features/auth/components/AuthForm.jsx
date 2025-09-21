@@ -1,310 +1,236 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/shared/lib/supabase/client";
-import { FcGoogle } from "react-icons/fc";
+import { useEffect, useMemo, useState } from 'react'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { supabase } from '@/shared/lib/supabase/client'
+import { Eye, EyeOff, Loader2 } from 'lucide-react'
 
-export default function AuthForm({ mode = "sign-in", onSwitchMode }) {
-  const isSignUp = mode === "sign-up";
-  const navigate = useNavigate();
+const APP_ROUTE = '/app' // change if your post-auth destination is different
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirm] = useState("");
-  const [name, setName] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [showReset, setShowReset] = useState(false);
-  const [resetEmail, setResetEmail] = useState("");
-  const [resetError, setResetError] = useState("");
-  const [resetSent, setResetSent] = useState(false);
-  const [checkInbox, setCheckInbox] = useState(false);
+export default function AuthForm({ mode = 'sign-in' }) {
+  const navigate = useNavigate()
+  const { state } = useLocation()
+  const [email, setEmail] = useState(state?.email ?? '')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState(null) // success info
+  const [error, setError] = useState(null)
+  const [showPw, setShowPw] = useState(false)
+  const [useMagicLink, setUseMagicLink] = useState(false)
 
-  const C = { accent: "#fe9245", accent2: "#eb423b" };
+  const origin = useMemo(
+    () => (import.meta.env.VITE_SITE_URL || window.location.origin).replace(/\/$/, ''),
+    []
+  )
 
-  // --- Auth Handlers ---
-  async function handleSubmit(e) {
-    e.preventDefault();
-    setError(""); setLoading(true);
+  useEffect(() => {
+    setError(null)
+    setMessage(null)
+  }, [mode])
 
-    if (isSignUp) {
-      if (password !== confirmPassword) {
-        setError("Passwords do not match."); setLoading(false); return;
+  async function handleEmailPassword(e) {
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
+    setMessage(null)
+    try {
+      if (!email) throw new Error('Please enter a valid email.')
+      if (mode === 'sign-up' && (!password || password.length < 8)) {
+        throw new Error('Use at least 8 characters for your password.')
       }
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { name },
-          emailRedirectTo: `${window.location.origin}/auth/confirm`
-        }
-      });
-      setLoading(false);
-      if (error) return setError(error.message);
-      setCheckInbox(true);
-      return;
+
+      if (mode === 'sign-in') {
+        const { error: err } = await supabase.auth.signInWithPassword({ email, password })
+        if (err) throw err
+        // success → go to app
+        navigate(APP_ROUTE, { replace: true })
+      } else {
+        const { error: err } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { emailRedirectTo: `${origin}/auth/confirm` },
+        })
+        if (err) throw err
+        setMessage('Check your email to confirm your account.')
+      }
+    } catch (err) {
+      setError(prettify(err))
+    } finally {
+      setLoading(false)
     }
-
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (error) setError(error.message);
-    else navigate("/onboarding");
   }
 
-  async function handleGoogle() {
-    setError(""); setLoading(true);
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}/onboarding` }
-    });
-    setLoading(false);
+  async function handleMagicLink(e) {
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
+    setMessage(null)
+    try {
+      if (!email) throw new Error('Please enter a valid email.')
+      const { error: err } = await supabase.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: `${origin}/auth/reset-password` }, // deep-link back
+      })
+      if (err) throw err
+      setMessage('Magic link sent. Check your email.')
+    } catch (err) {
+      setError(prettify(err))
+    } finally {
+      setLoading(false)
+    }
   }
 
-  async function handleResetSubmit(e) {
-    e.preventDefault(); setResetError(""); setResetSent(false);
-    if (!resetEmail) return setResetError("Please enter your email.");
-    const { error } = await supabase.auth.resetPasswordForEmail(
-      resetEmail,
-      { redirectTo: `${window.location.origin}/auth/reset-password` }
-    );
-    if (error) setResetError(error.message); else setResetSent(true);
+  async function handleOAuth(provider) {
+    setLoading(true)
+    setError(null)
+    try {
+      const { error: err } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${origin}${APP_ROUTE}`,
+          queryParams: { prompt: 'select_account' },
+        },
+      })
+      if (err) throw err
+      // Redirect is handled by Supabase
+    } catch (err) {
+      setLoading(false)
+      setError(prettify(err))
+    }
   }
 
-  // --- Check Inbox Splash ---
-  if (checkInbox) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#101015] text-white px-4">
-        <div className="max-w-[480px] w-full bg-[#18141c] px-7 py-10 rounded-2xl shadow-[0_8px_38px_#000c] text-center">
-          <div className="text-[1.7rem] font-black mb-4 tracking-tight">Confirm your e-mail 📧</div>
-          <p className="leading-[1.6] text-base opacity-90 mb-3">
-            We just sent a verification link to <b>{email}</b>.<br />
-            Click the button in that e-mail to activate your account.
-          </p>
-          <button
-            onClick={() => setCheckInbox(false)}
-            className="mt-6 bg-[#232330] text-white text-base font-bold px-6 py-2 rounded-lg transition hover:bg-[#232330]/80"
-          >
-            ‹ Back
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // --- Main Auth Form ---
   return (
-    <>
-      <form
-        onSubmit={handleSubmit}
-        className={`
-          w-full max-w-[430px] mx-auto mt-[9vh]
-          bg-[rgba(24,22,32,0.94)] rounded-2xl shadow-[0_8px_48px_#0008]
-          px-7 py-8 flex flex-col
-        `}
-      >
-        <div className="text-[1.4rem] font-black text-white mb-4 text-center tracking-tight">
-          {isSignUp ? "Sign Up" : "Sign In"}
-        </div>
-
-        {isSignUp && (
-          <input
-            type="text"
-            placeholder="Your name"
-            required
-            value={name}
-            onChange={e => setName(e.target.value)}
-            className={`
-              my-2 px-4 py-[13px] rounded-lg border-none text-base
-              bg-[#232330] text-white font-medium tracking-tight outline-none
-              shadow-[0_1.5px_8px_#0004] placeholder:text-zinc-400
-            `}
-          />
-        )}
-
+    <form className="space-y-4" onSubmit={useMagicLink ? handleMagicLink : handleEmailPassword}>
+      {/* email */}
+      <div>
+        <label htmlFor="email" className="block text-sm font-medium text-white/90">
+          Email
+        </label>
         <input
+          id="email"
           type="email"
-          placeholder="Email address"
+          autoComplete="email"
+          inputMode="email"
           required
           value={email}
-          onChange={e => setEmail(e.target.value)}
-          className={`
-            my-2 px-4 py-[13px] rounded-lg border-none text-base
-            bg-[#232330] text-white font-medium tracking-tight outline-none
-            shadow-[0_1.5px_8px_#0004] placeholder:text-zinc-400
-          `}
+          onChange={(e) => setEmail(e.target.value)}
+          className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-white placeholder-white/40 outline-none focus:ring-2 focus:ring-brand/60"
+          placeholder="name@email.com"
         />
+      </div>
 
-        <input
-          type="password"
-          placeholder="Password"
-          required
-          autoComplete={isSignUp ? "new-password" : "current-password"}
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          className={`
-            my-2 px-4 py-[13px] rounded-lg border-none text-base
-            bg-[#232330] text-white font-medium tracking-tight outline-none
-            shadow-[0_1.5px_8px_#0004] placeholder:text-zinc-400
-          `}
-        />
-
-        {isSignUp && (
-          <input
-            type="password"
-            placeholder="Confirm password"
-            required
-            value={confirmPassword}
-            onChange={e => setConfirm(e.target.value)}
-            className={`
-              my-2 px-4 py-[13px] rounded-lg border-none text-base
-              bg-[#232330] text-white font-medium tracking-tight outline-none
-              shadow-[0_1.5px_8px_#0004] placeholder:text-zinc-400
-            `}
-          />
-        )}
-
-        {!isSignUp && (
-          <div className="text-right my-0 mb-1">
-            <span
-              onClick={() => setShowReset(true)}
-              className="text-[13.5px] font-semibold cursor-pointer"
-              style={{ color: C.accent }}
-            >
-              Forgot your password?
-            </span>
-          </div>
-        )}
-
-        {error && (
-          <div className="text-center text-[15px] font-semibold my-1" style={{ color: C.accent2 }}>
-            {error}
-          </div>
-        )}
-
-        <button
-          type="submit"
-          disabled={loading}
-          className={`
-            mt-3 rounded-lg font-extrabold text-[16.2px] py-[11px] shadow-[0_2px_11px_#fe924522]
-            transition duration-100
-          `}
-          style={{
-            background: `linear-gradient(90deg,${C.accent} 10%,${C.accent2} 90%)`,
-            color: "#fff",
-            border: "none",
-            opacity: loading ? 0.7 : 1,
-            cursor: loading ? "not-allowed" : "pointer",
-          }}
-        >
-          {loading
-            ? isSignUp
-              ? "Signing up…"
-              : "Signing in…"
-            : isSignUp
-              ? "Sign Up"
-              : "Sign In"}
-        </button>
-
-        {/* OR Divider */}
-        <div className="flex items-center my-3">
-          <div className="flex-1 h-[1px] bg-zinc-700" />
-          <span className="text-zinc-400 text-[11.6px] font-semibold px-3">or</span>
-          <div className="flex-1 h-[1px] bg-zinc-700" />
-        </div>
-
-        <button
-          type="button"
-          disabled={loading}
-          onClick={handleGoogle}
-          className={`
-            bg-white text-zinc-900 font-bold text-[15px] py-2 rounded-lg
-            shadow-[0_1.5px_8px_#0003]
-            flex items-center justify-center gap-2 mb-1 transition
-            active:scale-[0.97] hover:bg-zinc-100
-          `}
-          style={{
-            cursor: loading ? "not-allowed" : "pointer",
-            opacity: loading ? 0.7 : 1,
-          }}
-        >
-          <FcGoogle size={20} /> Continue with Google
-        </button>
-
-        {/* Switch link */}
-        <div className="text-zinc-400 mt-3 text-center text-[13.5px]">
-          {isSignUp ? (
-            <>
-              Already have an account?{" "}
-              <span
-                className="font-bold cursor-pointer"
-                style={{ color: C.accent }}
-                onClick={() => onSwitchMode("sign-in")}
+      {/* password (hidden when magic link) */}
+      {!useMagicLink && (
+        <div>
+          <div className="flex items-center justify-between">
+            <label htmlFor="password" className="block text-sm font-medium text-white/90">
+              Password
+            </label>
+            {mode === 'sign-in' && (
+              <Link
+                to="/auth/reset-password"
+                className="text-xs text-white/70 hover:text-white/90"
               >
-                Sign in
-              </span>
-            </>
-          ) : (
-            <>
-              New to FeelFlick?{" "}
-              <span
-                className="font-bold cursor-pointer"
-                style={{ color: C.accent }}
-                onClick={() => onSwitchMode("sign-up")}
-              >
-                Sign up now.
-              </span>
-            </>
-          )}
-        </div>
-      </form>
-
-      {/* Forgot password modal */}
-      {showReset && (
-        <div className="fixed inset-0 bg-black/80 z-[4000] flex items-center justify-center">
-          <form
-            onSubmit={handleResetSubmit}
-            className="bg-[#191924] rounded-xl p-7 pt-6 pb-6 shadow-[0_8px_38px_#0007] max-w-[340px] w-[93vw] flex flex-col"
-          >
-            <div className="font-extrabold text-lg mb-3 text-white text-center">
-              Reset your password
-            </div>
+                Forgot?
+              </Link>
+            )}
+          </div>
+          <div className="mt-1 relative">
             <input
-              type="email"
-              placeholder="Your e-mail"
-              value={resetEmail}
-              onChange={e => setResetEmail(e.target.value)}
+              id="password"
+              type={showPw ? 'text' : 'password'}
+              autoComplete={mode === 'sign-up' ? 'new-password' : 'current-password'}
               required
-              className={`
-                my-2 px-4 py-[13px] rounded-lg border-none text-base
-                bg-[#232330] text-white font-medium tracking-tight outline-none
-                shadow-[0_1.5px_8px_#0004] placeholder:text-zinc-400
-              `}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 pr-10 text-white placeholder-white/40 outline-none focus:ring-2 focus:ring-brand/60"
+              placeholder={mode === 'sign-up' ? 'Create a password' : 'Your password'}
+              minLength={8}
             />
-            {resetError && (
-              <div className="text-center text-[15px] my-1 font-semibold" style={{ color: C.accent2 }}>
-                {resetError}
-              </div>
-            )}
-            {resetSent && (
-              <div className="text-center mt-2 font-semibold" style={{ color: C.accent }}>
-                Reset link sent! Check your inbox.
-              </div>
-            )}
-            <button
-              type="submit"
-              className="bg-gradient-to-r from-orange-400 to-red-500 text-white font-bold rounded-lg py-2 mt-4"
-            >
-              Send reset link
-            </button>
             <button
               type="button"
-              onClick={() => setShowReset(false)}
-              className="bg-none border-none text-zinc-400 font-semibold text-sm mt-3 hover:text-zinc-200 transition"
+              onClick={() => setShowPw((v) => !v)}
+              className="absolute inset-y-0 right-2 grid w-8 place-items-center rounded-md text-white/70 hover:text-white/90 focus:outline-none focus:ring-2 focus:ring-brand/60"
+              aria-label={showPw ? 'Hide password' : 'Show password'}
             >
-              Cancel
+              {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
-          </form>
+          </div>
         </div>
       )}
-    </>
-  );
+
+      {/* mode toggle for sign-in only */}
+      {mode === 'sign-in' && (
+        <div className="flex items-center justify-between pt-1">
+          <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-white/80">
+            <input
+              type="checkbox"
+              checked={useMagicLink}
+              onChange={(e) => setUseMagicLink(e.target.checked)}
+              className="h-4 w-4 rounded border-white/20 bg-black/30 text-brand-600 focus:ring-brand/60"
+            />
+            Use magic link
+          </label>
+          <Link to="/auth/sign-up" className="text-sm text-white/80 hover:text-white">
+            Create account
+          </Link>
+        </div>
+      )}
+
+      {/* submit */}
+      <button
+        type="submit"
+        disabled={loading}
+        className="mt-2 inline-flex h-11 w-full items-center justify-center rounded-full bg-gradient-to-r from-[#fe9245] to-[#eb423b] px-5 font-semibold text-white shadow-lift transition-transform hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-brand/60 disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        {useMagicLink ? 'Send magic link' : mode === 'sign-up' ? 'Create account' : 'Sign in'}
+      </button>
+
+      {/* OAuth */}
+      <div className="relative my-3 text-center text-xs text-white/40">
+        <span className="bg-white/5 px-2">or</span>
+        <div className="absolute left-0 right-0 top-1/2 -z-10 h-px -translate-y-1/2 bg-white/10" />
+      </div>
+
+      <button
+        type="button"
+        disabled={loading}
+        onClick={() => handleOAuth('google')}
+        className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-white/15 bg-black/30 px-5 font-semibold text-white/95 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60 disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        <svg width="18" height="18" viewBox="0 0 533.5 544.3" aria-hidden>
+          <path fill="#EA4335" d="M533.5 278.4c0-17.4-1.6-34-4.6-50.2H272v95h146.9c-6.3 33.7-25.2 62.2-53.8 81.3v67.4h86.9c50.8-46.8 80.5-115.9 80.5-193.5z"/>
+          <path fill="#34A853" d="M272 544.3c72.8 0 134-24 178.6-65.5l-86.9-67.4c-24.1 16.2-55 25.9-91.7 25.9-70.4 0-130.1-47.5-151.4-111.2H31.9v69.9C76 497.9 168.2 544.3 272 544.3z"/>
+          <path fill="#4A90E2" d="M120.6 325.1c-10.2-30.5-10.2-63.3 0-93.8v-69.9H31.9c-43.6 86.7-43.6 186.8 0 273.5l88.7-69.8z"/>
+          <path fill="#FBBC05" d="M272 107.7c39.5-.6 77.1 14 105.7 41.4l79-79C407.8 25.1 342.1.2 272 .3 168.2.3 76 47 31.9 143.3l88.7 69.9C141.9 149.4 201.6 102.9 272 107.7z"/>
+        </svg>
+        Continue with Google
+      </button>
+
+      {/* feedback */}
+      {message && (
+        <p className="mt-3 text-center text-sm text-emerald-300/90">{message}</p>
+      )}
+      {error && (
+        <p className="mt-2 text-center text-sm text-rose-300/90">{error}</p>
+      )}
+
+      {/* footer link for sign-up page */}
+      {mode === 'sign-up' && (
+        <p className="mt-4 text-center text-sm text-white/70">
+          Already have an account?{' '}
+          <Link to="/auth/sign-in" className="text-white hover:underline">
+            Sign in
+          </Link>
+        </p>
+      )}
+    </form>
+  )
+}
+
+function prettify(err) {
+  const msg = typeof err === 'string' ? err : err?.message || 'Something went wrong.'
+  if (/invalid login credentials/i.test(msg)) return 'Incorrect email or password.'
+  if (/email not confirmed/i.test(msg)) return 'Please confirm your email first.'
+  if (/rate limit/i.test(msg)) return 'Too many attempts. Please wait a moment.'
+  return msg
 }

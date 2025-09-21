@@ -116,6 +116,7 @@ export const router = createBrowserRouter([
       { path: 'signup', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
       { path: 'signin', element: <Navigate to="/login" replace /> },
       { path: 'register', element: <Navigate to="/signup" replace /> },
+      { path: '/auth/reset-password', element: <ResetPassword /> },
 
       // Auth email flows
       { path: 'reset-password', element: <ResetPassword /> },

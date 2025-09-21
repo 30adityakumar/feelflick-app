@@ -42,13 +42,15 @@ function RequireAuth() {
   const loc = useLocation()
 
   useEffect(() => {
+    let unsubscribe
     supabase.auth.getSession().then(({ data: { session } }) => {
       setStatus(session ? 'authed' : 'anon')
     })
-    const { data: sub } = supabase.auth.onAuthStateChange((_evt, session) => {
+    const { data } = supabase.auth.onAuthStateChange((_evt, session) => {
       setStatus(session ? 'authed' : 'anon')
     })
-    return () => sub?.subscription?.unsubscribe?.()
+    unsubscribe = data?.subscription?.unsubscribe
+    return () => { if (typeof unsubscribe === 'function') unsubscribe() }
   }, [])
 
   if (status === 'loading') return <div className="p-6 text-white/70">Loading…</div>
@@ -60,26 +62,125 @@ function RequireAuth() {
 function RedirectIfAuthed({ children }) {
   const [status, setStatus] = useState('loading')
   useEffect(() => {
+    let unsubscribe
     supabase.auth.getSession().then(({ data: { session } }) => {
       setStatus(session ? 'authed' : 'anon')
     })
-    const { data: sub } = supabase.auth.onAuthStateChange((_evt, session) => {
+    const { data } = supabase.auth.onAuthStateChange((_evt, session) => {
       setStatus(session ? 'authed' : 'anon')
     })
-    return () => sub?.subscription?.unsubscribe?.()
+    unsubscribe = data?.subscription?.unsubscribe
+    return () => { if (typeof unsubscribe === 'function') unsubscribe() }
   }, [])
   if (status === 'loading') return <div className="p-6 text-white/70">Loading…</div>
-  if (status === 'authed') return <Navigate to="/home" replace />
+  if (status === 'authed') return <Navigate to="/app" replace />
   return children
 }
 
+/* --------------------------- Onboarding helpers -------------------------- */
+async function getOnboardingDecision() {
+  // Returns { authed: boolean, onboarded?: boolean }
+  const { data: userData } = await supabase.auth.getUser()
+  const user = userData?.user
+  if (!user) return { authed: false }
+
+  // 1) Try user metadata
+  const meta =
+    user.user_metadata?.onboarding_complete ??
+    user.user_metadata?.has_onboarded ??
+    user.user_metadata?.onboarded
+  if (typeof meta !== 'undefined') return { authed: true, onboarded: !!meta }
+
+  // 2) Try profiles table (any of three possible flags)
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('onboarding_complete, has_onboarded, onboarded')
+      .eq('id', user.id)
+      .maybeSingle()
+
+    if (!error && data) {
+      const flag =
+        data.onboarding_complete ??
+        data.has_onboarded ??
+        data.onboarded
+      if (typeof flag !== 'undefined') return { authed: true, onboarded: !!flag }
+    }
+  } catch {
+    // ignore – fall through to default
+  }
+
+  // 3) Default: assume onboarded so we don’t trap legacy users
+  return { authed: true, onboarded: true }
+}
+
+/** Used at /app to decide the real “start” route after sign-in */
+function AppEntryRouter() {
+  const nav = useNavigate()
+  const [done, setDone] = useState(false)
+
+  useEffect(() => {
+    let alive = true
+    ;(async () => {
+      const s = await supabase.auth.getSession()
+      if (!s.data.session) {
+        if (!alive) return
+        nav('/auth', { replace: true })
+        return
+      }
+      const res = await getOnboardingDecision()
+      if (!alive) return
+      nav(res.onboarded ? '/home' : '/onboarding', { replace: true })
+    })()
+    return () => { alive = false }
+  }, [nav])
+
+  return <div className="p-6 text-white/70">Loading…</div>
+}
+
+/** If not onboarded, push to /onboarding; otherwise render the page */
+function HomeGate({ children }) {
+  const [state, setState] = useState<'loading' | 'home' | 'onboarding'>('loading')
+
+  useEffect(() => {
+    let alive = true
+    ;(async () => {
+      const res = await getOnboardingDecision()
+      if (!alive) return
+      setState(res.onboarded ? 'home' : 'onboarding')
+    })()
+    return () => { alive = false }
+  }, [])
+
+  if (state === 'loading') return <div className="p-6 text-white/70">Loading…</div>
+  if (state === 'onboarding') return <Navigate to="/onboarding" replace />
+  return children
+}
+
+/** If already onboarded, don’t show the flow again */
+function OnboardingGate() {
+  const [state, setState] = useState<'loading' | 'home' | 'onboarding'>('loading')
+
+  useEffect(() => {
+    let alive = true
+    ;(async () => {
+      const res = await getOnboardingDecision()
+      if (!alive) return
+      setState(res.onboarded ? 'home' : 'onboarding')
+    })()
+    return () => { alive = false }
+  }, [])
+
+  if (state === 'loading') return <div className="p-6 text-white/70">Loading…</div>
+  if (state === 'home') return <Navigate to="/home" replace />
+  return <Onboarding />
+}
+
 /* ------------------------------- Utilities -------------------------------- */
-/** Redirects /app → /home and /app/* → /* (strip /app prefix) */
-function AppPrefixAlias() {
+/** Redirects /app/* legacy paths; /app itself uses AppEntryRouter */
+function AppPrefixAliasStripper() {
   const loc = useLocation()
-  const path = loc.pathname || '/app'
-  if (path === '/app') return <Navigate to={`/home${loc.search}${loc.hash}`} replace />
-  const stripped = path.replace(/^\/app/, '') || '/home'
+  const stripped = (loc.pathname || '').replace(/^\/app/, '') || '/home'
   return <Navigate to={`${stripped}${loc.search}${loc.hash}`} replace />
 }
 
@@ -105,23 +206,19 @@ export const router = createBrowserRouter([
 
       // Auth hub (signed-out only)
       { path: 'auth', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
-      { path: 'auth/sign-in', element: <RedirectIfAuthed><AuthPage mode="sign-in" /></RedirectIfAuthed> },
-      { path: 'auth/sign-up', element: <RedirectIfAuthed><AuthPage mode="sign-up" /></RedirectIfAuthed> },
-
-      // Password reset (both aliases)
-      { path: 'auth/reset-password', element: <ResetPassword /> },
-      { path: 'reset-password', element: <ResetPassword /> },
-
-      // Email confirmation (primary path used by templates)
-      { path: 'auth/confirm', element: <ConfirmEmail /> },
-      // Legacy alias you had earlier
-      { path: 'confirm-email', element: <ConfirmEmail /> },
 
       // Legacy/alt auth paths
-      { path: 'login', element: <RedirectIfAuthed><AuthPage mode="sign-in" /></RedirectIfAuthed> },
-      { path: 'signup', element: <RedirectIfAuthed><AuthPage mode="sign-up" /></RedirectIfAuthed> },
+      { path: 'auth/sign-in', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
+      { path: 'auth/sign-up', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
+      { path: 'login', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
+      { path: 'signup', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
       { path: 'signin', element: <Navigate to="/login" replace /> },
       { path: 'register', element: <Navigate to="/signup" replace /> },
+
+      // Password + email flows
+      { path: 'auth/reset-password', element: <ResetPassword /> },
+      { path: 'reset-password', element: <ResetPassword /> },
+      { path: 'confirm-email', element: <ConfirmEmail /> },
 
       // Explicit logout route (works from any state)
       { path: 'logout', element: <SignOutRoute /> },
@@ -144,21 +241,33 @@ export const router = createBrowserRouter([
       {
         element: <RequireAuth />,
         children: [
-          { path: 'home', element: <HomePage /> },
-          { path: 'onboarding', element: <Onboarding /> },
+          // Home decides against onboarding
+          { path: 'home', element: (
+              <HomeGate>
+                <HomePage />
+              </HomeGate>
+            )
+          },
+          // Onboarding bounces if already done
+          { path: 'onboarding', element: <OnboardingGate /> },
+
           { path: 'account', element: <Account /> },
           { path: 'preferences', element: <Preferences /> },
           { path: 'watchlist', element: <Watchlist /> },
           { path: 'watched', element: <HistoryPage /> },
-          { path: 'history', element: <HistoryPage /> }, // alias
+
+          // Old alias → history
+          { path: 'history', element: <HistoryPage /> },
         ],
       },
     ],
   },
 
-  /* ---- /app legacy alias (must be before 404) ---- */
-  { path: 'app', element: <AppPrefixAlias /> },
-  { path: 'app/*', element: <AppPrefixAlias /> },
+  /* ---- /app entry & legacy alias ---- */
+  // Hitting exactly /app chooses /home vs /onboarding
+  { path: 'app', element: <AppEntryRouter /> },
+  // Anything else under /app/* strips the prefix
+  { path: 'app/*', element: <AppPrefixAliasStripper /> },
 
   /* 404 catch-all (last) */
   { path: '*', element: <NotFound /> },

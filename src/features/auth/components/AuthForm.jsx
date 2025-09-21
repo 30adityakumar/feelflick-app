@@ -5,7 +5,7 @@ import { supabase } from '@/shared/lib/supabase/client'
 import { ArrowLeft, Eye, EyeOff, Loader2, Mail } from 'lucide-react'
 import logoPng from '@/assets/images/logo.png'
 
-const APP_ROUTE = '/app' // change if your post-auth destination differs
+const APP_ROUTE = '/app' // destination after successful sign-in
 
 export default function AuthForm({ mode = 'sign-in' }) {
   const navigate = useNavigate()
@@ -18,7 +18,7 @@ export default function AuthForm({ mode = 'sign-in' }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [message, setMessage] = useState(null)
-  const [useMagic, setUseMagic] = useState(false)
+  const [useMagic, setUseMagic] = useState(false) // sign-in only
 
   const origin = useMemo(
     () => (import.meta.env.VITE_SITE_URL || window.location.origin).replace(/\/$/, ''),
@@ -27,8 +27,40 @@ export default function AuthForm({ mode = 'sign-in' }) {
 
   useEffect(() => { setError(null); setMessage(null) }, [mode, useMagic])
 
-  async function handleSignIn(e) {
+  /** ---------- SUBMIT HANDLERS ---------- */
+  async function handleSubmit(e) {
     e.preventDefault()
+    if (mode === 'sign-up') return handleSignUp()
+    return handleSignIn()
+  }
+
+  async function handleSignUp() {
+    setLoading(true); setError(null); setMessage(null)
+    try {
+      if (!email) throw new Error('Please enter a valid email address.')
+      if (!password || password.length < 8) {
+        throw new Error('Please create a password with at least 8 characters.')
+      }
+
+      const { error: err } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${origin}/auth/confirm`, // your confirm route
+        },
+      })
+      if (err) throw err
+
+      // Most projects have email confirmation on; don’t auto-log in.
+      setMessage('Check your email to confirm your account.')
+    } catch (err) {
+      setError(prettify(err, 'sign-up'))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function handleSignIn() {
     setLoading(true); setError(null); setMessage(null)
     try {
       if (!email) throw new Error('Please enter a valid email address.')
@@ -46,7 +78,7 @@ export default function AuthForm({ mode = 'sign-in' }) {
         navigate(APP_ROUTE, { replace: true })
       }
     } catch (err) {
-      setError(prettify(err))
+      setError(prettify(err, 'sign-in'))
     } finally {
       setLoading(false)
     }
@@ -74,7 +106,7 @@ export default function AuthForm({ mode = 'sign-in' }) {
       className="animate-[fadeIn_.35s_ease-out] rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur md:p-5"
       style={{ '--tw-animate': 'fadeIn' }}
     >
-      {/* Top row: arrow-only back, plus a tiny brand lockup */}
+      {/* Top row: arrow-only back + tiny brand */}
       <div className="mb-3 flex items-center justify-between">
         <Link
           to="/"
@@ -84,8 +116,6 @@ export default function AuthForm({ mode = 'sign-in' }) {
         >
           <ArrowLeft className="h-4 w-4" aria-hidden />
         </Link>
-
-        {/* Subtle brand lockup */}
         <div className="inline-flex items-center gap-2 rounded px-2 py-1">
           <img
             src={logoPng}
@@ -100,23 +130,19 @@ export default function AuthForm({ mode = 'sign-in' }) {
         </div>
       </div>
 
-      {/* Compact heading (smaller per request) */}
+      {/* Compact heading */}
       <h1 className="text-center text-[1.125rem] font-extrabold tracking-tight text-white sm:text-[1.35rem]">
         {mode === 'sign-up' ? 'Create your account' : 'Welcome back'}
       </h1>
       {mode === 'sign-in' && (
-        <p className="mt-1 text-center text-xs text-white/70">
-          Sign in to pick up where you left off.
-        </p>
+        <p className="mt-1 text-center text-xs text-white/70">Sign in to pick up where you left off.</p>
       )}
 
       {/* Form */}
-      <form className="mt-5 space-y-3.5" onSubmit={handleSignIn} noValidate>
+      <form className="mt-5 space-y-3.5" onSubmit={handleSubmit} noValidate>
         {/* Email */}
         <div>
-          <label htmlFor="email" className="block text-[0.8rem] font-medium text-white/90">
-            Email
-          </label>
+          <label htmlFor="email" className="block text-[0.8rem] font-medium text-white/90">Email</label>
           <input
             id="email"
             type="email"
@@ -130,13 +156,11 @@ export default function AuthForm({ mode = 'sign-in' }) {
           />
         </div>
 
-        {/* Password (hidden if magic link) */}
-        {!useMagic && (
+        {/* Password (hidden if magic link on sign-in) */}
+        {!(mode === 'sign-in' && useMagic) && (
           <div>
             <div className="flex items-center justify-between">
-              <label htmlFor="password" className="block text-[0.8rem] font-medium text-white/90">
-                Password
-              </label>
+              <label htmlFor="password" className="block text-[0.8rem] font-medium text-white/90">Password</label>
               {mode === 'sign-in' && (
                 <Link to="/auth/reset-password" className="text-[0.75rem] text-white/70 hover:text-white">
                   Forgot?
@@ -149,7 +173,7 @@ export default function AuthForm({ mode = 'sign-in' }) {
                 type={showPw ? 'text' : 'password'}
                 autoComplete={mode === 'sign-up' ? 'new-password' : 'current-password'}
                 minLength={8}
-                required={!useMagic}
+                required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 pr-10 text-[0.95rem] text-white placeholder-white/40 outline-none focus:ring-2 focus:ring-brand/60"
@@ -210,7 +234,7 @@ export default function AuthForm({ mode = 'sign-in' }) {
           Continue with Google
         </button>
 
-        {/* Moved below OAuth — center aligned */}
+        {/* Below OAuth link */}
         <div className="text-center">
           {mode === 'sign-in' ? (
             <Link to="/auth/sign-up" className="mt-3 inline-block text-sm text-white/80 hover:text-white">
@@ -223,7 +247,7 @@ export default function AuthForm({ mode = 'sign-in' }) {
           )}
         </div>
 
-        {/* Feedback (kept compact to avoid overflow) */}
+        {/* Feedback */}
         {message && (
           <p className="text-center text-[12px] text-emerald-300/90" role="status" aria-live="polite">
             {message}
@@ -239,10 +263,13 @@ export default function AuthForm({ mode = 'sign-in' }) {
   )
 }
 
-function prettify(err) {
+function prettify(err, phase) {
   const msg = typeof err === 'string' ? err : err?.message || 'Something went wrong.'
-  if (/invalid login credentials/i.test(msg)) return 'Incorrect email or password.'
+  if (/invalid login credentials|invalid_grant/i.test(msg)) return 'Incorrect email or password.'
   if (/email not confirmed/i.test(msg)) return 'Please confirm your email first.'
+  if (/User already registered/i.test(msg)) return 'That email is already registered. Try signing in.'
+  if (/password should be at least|Password should be at least/i.test(msg)) return 'Password must be at least 8 characters.'
   if (/rate limit/i.test(msg)) return 'Too many attempts. Please wait a moment.'
+  if (phase === 'sign-up' && /Signup disabled/i.test(msg)) return 'Sign ups are disabled for this project.'
   return msg
 }

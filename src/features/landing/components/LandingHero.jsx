@@ -1,71 +1,99 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
-/**
- * Landing hero
- * - Keeps your existing collage background via `.feelflick-landing-bg`
- * - Right-side "device" shows a 3x3 poster grid:
- *    row1 = top rated, row2 = popular, row3 = hidden gems (high rating, low votes)
- * - If TMDb key is missing, we show tasteful skeletons (no errors).
- */
-
 const TMDB_IMG = (path, size = 'w342') =>
-  path ? `https://image.tmdb.org/t/p/${size}${path}` : null // TMDb image basics
+  path ? `https://image.tmdb.org/t/p/${size}${path}` : null
 
 export default function LandingHero() {
   const navigate = useNavigate()
-  const [sections, setSections] = useState({
-    topRated: [],
-    popular: [],
-    gems: [],
-  })
-  const [loading, setLoading] = useState(true)
+  const [gridMovies, setGridMovies] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [errored, setErrored] = useState(false)
 
-  // Use the same env var you've been using elsewhere. It should be a v4 Bearer token.
+  // ------- TMDb client: supports v3 key OR v4 bearer token -------
   const tmdbToken = import.meta.env.VITE_TMDB_API_KEY
+  const isBearer = useMemo(() => {
+    // crude but reliable: Bearer tokens are long JWTs containing "."
+    return !!tmdbToken && tmdbToken.includes('.')
+  }, [tmdbToken])
 
+  function buildUrl(path, params = {}) {
+    const url = new URL(`https://api.themoviedb.org/3${path}`)
+    Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v))
+    if (!isBearer && tmdbToken) url.searchParams.set('api_key', tmdbToken) // v3
+    return url.toString()
+  }
+
+  function buildHeaders() {
+    return isBearer
+      ? { Authorization: `Bearer ${tmdbToken}`, accept: 'application/json' }
+      : { accept: 'application/json' }
+  }
+
+  // ------- Fetch 3x (TopRated, Popular, HiddenGems) and compose 9 -------
   useEffect(() => {
     let cancelled = false
     async function run() {
-      if (!tmdbToken) {
-        setLoading(false)
-        return
-      }
+      if (!tmdbToken) return // show placeholders if not configured
       setLoading(true)
+      setErrored(false)
       try {
-        const headers = { Authorization: `Bearer ${tmdbToken}`, accept: 'application/json' }
-
-        // Fetch in parallel
-        const [topRated, popular, gems] = await Promise.all([
-          fetch(`https://api.themoviedb.org/3/movie/top_rated?language=en-US&page=1`, { headers }).then(r => r.json()).catch(() => ({ results: [] })),
-          fetch(`https://api.themoviedb.org/3/movie/popular?language=en-US&page=1`, { headers }).then(r => r.json()).catch(() => ({ results: [] })),
-          // "Hidden gems": well-rated but not ultra-voted (tweak thresholds as you like)
-          fetch(`https://api.themoviedb.org/3/discover/movie?language=en-US&sort_by=vote_average.desc&vote_average.gte=7.2&vote_count.lte=600&with_original_language=en&page=1`, { headers })
-            .then(r => r.json())
-            .catch(() => ({ results: [] })),
+        const [topRes, popRes, gemRes] = await Promise.all([
+          fetch(
+            buildUrl('/movie/top_rated', { language: 'en-US', page: '1' }),
+            { headers: buildHeaders() }
+          ),
+          fetch(
+            buildUrl('/movie/popular', { language: 'en-US', page: '1' }),
+            { headers: buildHeaders() }
+          ),
+          fetch(
+            buildUrl('/discover/movie', {
+              // “Hidden gems”: great rating with fewer votes
+              sort_by: 'vote_average.desc',
+              'vote_average.gte': '7.4',
+              'vote_count.lte': '1200',
+              'vote_count.gte': '80',
+              include_adult: 'false',
+              language: 'en-US',
+              page: '1',
+            }),
+            { headers: buildHeaders() }
+          ),
         ])
 
-        if (cancelled) return
-        setSections({
-          topRated: (topRated?.results ?? []).slice(0, 3),
-          popular:  (popular?.results ?? []).slice(0, 3),
-          gems:     (gems?.results ?? []).slice(0, 3),
-        })
+        const [top, pop, gem] = await Promise.all([
+          topRes.ok ? topRes.json() : { results: [] },
+          popRes.ok ? popRes.json() : { results: [] },
+          gemRes.ok ? gemRes.json() : { results: [] },
+        ])
+
+        const pick = (arr, n) =>
+          (Array.isArray(arr) ? arr : []).filter(Boolean).slice(0, n)
+
+        // Compose 3 + 3 + 3 (dedup by id)
+        const chosen = [...pick(top.results, 5), ...pick(pop.results, 5), ...pick(gem.results, 5)]
+          .filter(Boolean)
+          .reduce((acc, m) => {
+            if (!acc.some((x) => x.id === m.id) && m.poster_path) acc.push(m)
+            return acc
+          }, [])
+          .slice(0, 9)
+
+        if (!cancelled) setGridMovies(chosen)
+      } catch {
+        if (!cancelled) setErrored(true)
       } finally {
         if (!cancelled) setLoading(false)
       }
     }
     run()
-    return () => { cancelled = true }
-  }, [tmdbToken])
+    return () => {
+      cancelled = true
+    }
+  }, [tmdbToken, isBearer])
 
-  const posters = useMemo(() => {
-    const { topRated, popular, gems } = sections
-    // fill in order: 3 + 3 + 3, fallback to whatever we have
-    const joined = [...topRated, ...popular, ...gems].slice(0, 9)
-    return joined
-  }, [sections])
-
+  // ------- UI -------
   return (
     <section className="relative isolate overflow-hidden" aria-labelledby="landing-hero-h1">
       {/* Background you already ship */}
@@ -73,16 +101,16 @@ export default function LandingHero() {
       <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-br from-black/75 via-black/55 to-black/20" />
 
       <div className="relative mx-auto max-w-7xl px-4 pt-28 pb-16 sm:pt-32 sm:pb-24 md:px-6 lg:pt-36 lg:pb-28">
-        <div className="grid items-center gap-10 lg:grid-cols-2">
-          {/* Left copy */}
+        {/* 2-col on lg+, stacked on mobile */}
+        <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-2">
+          {/* Left: copy + CTAs (keep your look) */}
           <div className="cq max-w-3xl">
             <h1
               id="landing-hero-h1"
-              className="font-black tracking-tight text-white text-[clamp(2.2rem,7vw,4rem)] leading-[1.06]"
+              className="font-black tracking-tight text-white text-[clamp(2.3rem,7.2vw,4.2rem)] leading-[1.02]"
             >
-              Movies that match
-              <br />
-              <span className="text-brand-100">how you feel</span>
+              Movies that match <br className="hidden sm:block" />
+              how <span className="text-brand-100">you feel</span>
             </h1>
 
             <p className="mt-4 text-white/80 text-[clamp(1rem,2.8vw,1.25rem)] leading-relaxed">
@@ -105,58 +133,57 @@ export default function LandingHero() {
               </Link>
             </div>
 
-            {/* Microcopy (replaces "No spam. No commitments.") */}
-            <p className="mt-3 text-sm text-white/60">
-              Start browsing in seconds. Create an account only if you want to save your picks.
+            {/* Small line under CTAs (updated) */}
+            <p className="mt-3 text-white/70 text-sm sm:text-base">
+              <span className="align-middle">Your mood, your movie. Nothing else.</span>
             </p>
           </div>
 
-          {/* Right "device" with 3x3 posters */}
+          {/* Right: framed 3×3 poster grid */}
           <div className="relative">
-            <div className="rounded-[2rem] border border-white/10 bg-black/30 p-3 shadow-[0_20px_60px_rgba(0,0,0,0.45)] backdrop-blur-sm">
-              <div className="rounded-[1.6rem] border border-white/10 bg-[#111317] p-2">
-                <div className="grid grid-cols-3 gap-2 p-1">
-                  {(loading ? Array.from({ length: 9 }) : posters).map((m, i) => {
-                    if (loading) {
+            <div className="rounded-[20px] border border-white/10 bg-black/20 p-2 shadow-2xl backdrop-blur-sm md:p-3">
+              <div className="rounded-[16px] border border-white/10 bg-neutral-900/60 p-2 md:p-3">
+                <div className="grid grid-cols-3 gap-2 md:gap-3 lg:gap-3">
+                  {(loading || !tmdbToken || errored || gridMovies.length === 0) &&
+                    Array.from({ length: 9 }).map((_, i) => (
+                      <div
+                        key={`ph-${i}`}
+                        className="aspect-[2/3] animate-pulse rounded-[12px] bg-white/10"
+                      />
+                    ))}
+
+                  {gridMovies.length > 0 &&
+                    gridMovies.map((m) => {
+                      const src = TMDB_IMG(m.poster_path, 'w342')
                       return (
-                        <div
-                          key={i}
-                          className="aspect-[2/3] w-full animate-pulse rounded-xl bg-white/10"
-                          aria-hidden
-                        />
+                        <button
+                          key={m.id}
+                          onClick={() => navigate(`/movie/${m.id}`)}
+                          className="group overflow-hidden rounded-[12px] border border-white/10 bg-white/5"
+                          title={m.title || m.name}
+                        >
+                          {src ? (
+                            <img
+                              src={src}
+                              alt={m.title || m.name}
+                              loading="lazy"
+                              decoding="async"
+                              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.04]"
+                              style={{ aspectRatio: '2 / 3' }}
+                            />
+                          ) : (
+                            <div className="flex aspect-[2/3] items-center justify-center text-xs text-white/60">
+                              No image
+                            </div>
+                          )}
+                        </button>
                       )
-                    }
-                    const src = TMDB_IMG(m?.poster_path, 'w342')
-                    return (
-                      <button
-                        key={m.id ?? i}
-                        className="group overflow-hidden rounded-xl border border-white/10 bg-white/5"
-                        title={m?.title || m?.name}
-                        onClick={() => m?.id && navigate(`/movie/${m.id}`)}
-                      >
-                        {src ? (
-                          <img
-                            src={src}
-                            alt={m?.title || m?.name || 'Movie poster'}
-                            loading="lazy"
-                            decoding="async"
-                            className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
-                            style={{ aspectRatio: '2 / 3' }}
-                          />
-                        ) : (
-                          <div className="flex aspect-[2/3] items-center justify-center text-xs text-white/60">
-                            No image
-                          </div>
-                        )}
-                      </button>
-                    )
-                  })}
+                    })}
                 </div>
               </div>
             </div>
 
-            {/* Footnote */}
-            <p className="mt-3 text-center text-xs text-white/50">
+            <p className="mt-3 text-center text-xs text-white/45">
               Screens are illustrative. TMDb data used under license.
             </p>
           </div>

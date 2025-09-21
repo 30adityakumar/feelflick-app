@@ -1,11 +1,11 @@
 // src/features/landing/Landing.jsx
 import { lazy, Suspense } from 'react'
-import TopNav from '@/features/landing/TopNav'            // adjust path if your TopNav lives elsewhere
-import LandingHero from '@/features/landing/LandingHero'
-import Footer from '@/features/landing/Footer'
+import TopNav from '@/features/landing/components/TopNav'            // adjust path if your TopNav lives elsewhere
+import LandingHero from '@/features/landing/components/LandingHero'
+import Footer from '@/features/landing/components/Footer'
 
 // Lazy-load the secondary block so the hero ships fast
-const WhyFeelFlick = lazy(() => import('@/features/landing/WhyFeelFlick'))
+const WhyFeelFlick = lazy(() => import('@/features/landing/components/WhyFeelFlick'))
 
 export default function Landing() {
   return (

@@ -1,43 +1,32 @@
-// src/features/landing/components/LandingHero.jsx
 import { Link } from 'react-router-dom'
-import { LogIn } from 'lucide-react'
+import { ChevronDown, LogIn } from 'lucide-react'
 
 export default function LandingHero() {
   return (
     <section
       className="relative overflow-hidden"
-      // Start below fixed TopNav; TopNav sets --topnav-h at runtime (fallbacks here)
       style={{ marginTop: 'var(--topnav-h, var(--nav-h, 72px))' }}
     >
-      {/* Keep your existing collage layer if you use it */}
       <div className="feelflick-landing-bg" aria-hidden="true" />
 
-      {/* MULTI-COLOR ABSTRACT BACKGROUND (logo-inspired) */}
+      {/* Abstract brand gradient */}
       <div aria-hidden className="absolute inset-0 -z-10">
-        {/* Deep base */}
         <div className="absolute inset-0 bg-[linear-gradient(120deg,#0a121a_0%,#0d1722_50%,#0c1017_100%)]" />
-
-        {/* Brand aurora blobs (tuned for readability) */}
         <div className="pointer-events-none absolute -top-40 -left-40 h-[65vmin] w-[65vmin] rounded-full blur-3xl opacity-60 bg-[radial-gradient(closest-side,rgba(254,146,69,0.45),rgba(254,146,69,0)_70%)]" />
         <div className="pointer-events-none absolute -bottom-44 -right-44 h-[70vmin] w-[70vmin] rounded-full blur-3xl opacity-55 bg-[radial-gradient(closest-side,rgba(235,66,59,0.38),rgba(235,66,59,0)_70%)]" />
         <div className="pointer-events-none absolute top-1/2 left-1/2 h-[80vmin] w-[80vmin] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl opacity-45 bg-[radial-gradient(closest-side,rgba(45,119,255,0.35),rgba(45,119,255,0)_70%)]" />
-        {/* Extra hues for richness */}
         <div className="pointer-events-none absolute -top-24 right-[15%] h-[45vmin] w-[45vmin] rounded-full blur-3xl opacity-45 bg-[radial-gradient(closest-side,rgba(255,99,196,0.35),rgba(255,99,196,0)_70%)]" />
         <div className="pointer-events-none absolute bottom-[8%] left-[12%] h-[50vmin] w-[50vmin] rounded-full blur-3xl opacity-40 bg-[radial-gradient(closest-side,rgba(124,58,237,0.30),rgba(124,58,237,0)_70%)]" />
         <div className="pointer-events-none absolute top-[18%] left-[7%] h-[40vmin] w-[40vmin] rounded-full blur-3xl opacity-40 bg-[radial-gradient(closest-side,rgba(0,209,255,0.30),rgba(0,209,255,0)_70%)]" />
-
-        {/* Subtle conic shimmer (desktop only, motion-safe) */}
         <div className="pointer-events-none absolute inset-0 opacity-35 mix-blend-screen">
           <div className="absolute left-1/2 top-1/2 h-[140vmin] w-[140vmin] -translate-x-1/2 -translate-y-1/2 rounded-full
                           bg-[conic-gradient(from_220deg_at_50%_50%,rgba(255,255,255,0.08),rgba(255,255,255,0)_65%)]
                           motion-safe:md:animate-[spin_48s_linear_infinite]" />
         </div>
-
-        {/* Gentle vignette for readability */}
         <div className="absolute inset-0 bg-[radial-gradient(100%_80%_at_50%_0%,rgba(255,255,255,0.06),rgba(255,255,255,0)_60%)]" />
       </div>
 
-      {/* Soft radial highlight */}
+      {/* Subtle highlight */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 -z-0 opacity-60"
@@ -47,17 +36,11 @@ export default function LandingHero() {
         }}
       />
 
-      {/* Content: exactly fills viewport below TopNav */}
-      <div
-        className="relative z-10 mx-auto max-w-7xl px-4 md:px-6"
-        style={{ ['--nav-h']: '72px' }}
-      >
+      {/* Content: exactly one viewport tall below TopNav */}
+      <div className="relative z-10 mx-auto max-w-7xl px-4 md:px-6" style={{ ['--nav-h']: '72px' }}>
         <div
           className="grid items-center py-8 sm:py-10"
-          style={{
-            // EXACT height so the next section (footer) is immediately next on scroll
-            height: 'calc(100svh - var(--topnav-h, var(--nav-h, 72px)))',
-          }}
+          style={{ height: 'calc(100svh - var(--topnav-h, var(--nav-h, 72px)))' }}
         >
           <div className="mx-auto w-full max-w-3xl text-center md:max-w-2xl">
             <h1 className="text-balance text-[clamp(2.5rem,9vw,4.7rem)] font-black leading-[1.05] tracking-tight text-white">
@@ -70,7 +53,7 @@ export default function LandingHero() {
             </p>
 
             {/* CTAs */}
-            <div className="mx-auto mt-7 flex max-w-sm flex-col items-center justify-center gap-3 sm:max-w-none sm:flex-row">
+            <div className="mx-auto mt-7 flex max-w-sm flex-col items-center justify-center gap-3 sm:max-w-none sm:flex-row pb-[env(safe-area-inset-bottom,0)]">
               <Link
                 to="/auth/sign-up"
                 className="inline-flex h-11 items-center justify-center rounded-full px-6 text-[0.95rem] font-semibold text-white shadow-lift transition-transform hover:scale-[1.02] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 active:scale-[.98] bg-gradient-to-r from-[#fe9245] to-[#eb423b]"
@@ -86,12 +69,18 @@ export default function LandingHero() {
               </Link>
             </div>
 
-            {/* Removed extra bottom padding to make footer appear right after a single scroll */}
-            <p className="mt-3 text-sm text-white/65">
-              Free to start. Your mood, your movie.
-            </p>
+            <p className="mt-3 text-sm text-white/65">Free to start. Your mood, your movie.</p>
           </div>
         </div>
+
+        {/* Scroll affordance → footer */}
+        <a
+          href="#footer"
+          className="group absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full border border-white/15 bg-white/5 p-2 text-white/80 backdrop-blur hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
+          aria-label="Scroll to footer"
+        >
+          <ChevronDown className="h-5 w-5 transition-transform group-hover:translate-y-0.5" />
+        </a>
       </div>
     </section>
   )

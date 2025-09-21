@@ -12,7 +12,7 @@ const srcSetFor = (path) =>
 export default function LandingHero() {
   const navigate = useNavigate()
 
-  // --- TMDb client (v3 key or v4 bearer token) ---
+  // --- TMDb client (v3 key or v4 bearer) ---
   const token = import.meta.env.VITE_TMDB_API_KEY
   const isBearer = useMemo(() => !!token && token.includes('.'), [token])
   const buildUrl = (path, params = {}) => {
@@ -25,19 +25,18 @@ export default function LandingHero() {
     ? { Authorization: `Bearer ${token}`, accept: 'application/json' }
     : { accept: 'application/json' }
 
-  // --- Data state ---
-  const [items, setItems] = useState([]) // [{id,title,backdrop_path,poster_path}]
+  // --- Data ---
+  const [items, setItems] = useState([])
   const [index, setIndex] = useState(0)
   const [loading, setLoading] = useState(false)
   const [errored, setErrored] = useState(false)
 
-  // --- Motion & visibility guards ---
+  // --- Motion guards ---
   const [play, setPlay] = useState(true)
   const reduceMotion = useRef(false)
-  const frameRef = useRef(null)
+  const visRef = useRef(null)
   const rotRef = useRef(null)
 
-  // Prefers-reduced-motion
   useEffect(() => {
     const m = window.matchMedia?.('(prefers-reduced-motion: reduce)')
     reduceMotion.current = !!m?.matches
@@ -46,9 +45,8 @@ export default function LandingHero() {
     return () => m?.removeEventListener?.('change', onChange)
   }, [])
 
-  // Pause when hero not visible
   useEffect(() => {
-    const el = frameRef.current
+    const el = visRef.current
     if (!el) return
     const io = new IntersectionObserver(
       (entries) => entries.forEach((e) => setPlay(e.isIntersecting)),
@@ -58,7 +56,7 @@ export default function LandingHero() {
     return () => io.disconnect()
   }, [])
 
-  // Fetch top-rated posters
+  // Fetch top rated
   useEffect(() => {
     let cancelled = false
     async function run() {
@@ -71,7 +69,7 @@ export default function LandingHero() {
         )
         const j = r.ok ? await r.json() : { results: [] }
         const list = (j.results || [])
-          .filter((m) => m && (m.backdrop_path || m.poster_path))
+          .filter(m => m && (m.backdrop_path || m.poster_path))
           .slice(0, 12)
         if (!cancelled) setItems(list)
       } catch {
@@ -85,17 +83,17 @@ export default function LandingHero() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, isBearer])
 
-  // Cross-fade rotation (stop for reduced motion or when not visible)
+  // Cross-fade rotation
   useEffect(() => {
     clearInterval(rotRef.current)
     if (!items.length || reduceMotion.current || !play) return
     rotRef.current = setInterval(() => {
-      setIndex((i) => (i + 1) % items.length)
+      setIndex(i => (i + 1) % items.length)
     }, 5500) // ~2s fade + ~3.5s hold
     return () => clearInterval(rotRef.current)
   }, [items.length, play])
 
-  // Preload next image
+  // Preload next
   useEffect(() => {
     if (!items.length) return
     const next = items[(index + 1) % items.length]
@@ -110,7 +108,7 @@ export default function LandingHero() {
 
   return (
     <section className="relative overflow-hidden">
-      {/* Background */}
+      {/* Background + soft radial light */}
       <div className="feelflick-landing-bg" aria-hidden="true" />
       <div
         aria-hidden="true"
@@ -121,10 +119,13 @@ export default function LandingHero() {
         }}
       />
 
-      <div className="relative z-10 mx-auto max-w-7xl px-4 pt-24 pb-10 sm:pt-28 sm:pb-16 md:px-6">
-        {/* 2-col on md+, stacked on mobile */}
-        <div className="cq grid items-start gap-8 md:gap-10 md:grid-cols-2">
-          {/* Left: copy + CTAs */}
+      <div
+        className="relative z-10 mx-auto max-w-7xl px-4 md:px-6"
+        style={{ ['--nav-h']: '72px' }} // fallback if you don’t set this in TopNav
+      >
+        {/* Center the hero vertically with equal top/bottom feel */}
+        <div className="grid items-center gap-8 md:grid-cols-2 md:gap-10 min-h-[calc(100svh-var(--nav-h))] py-10 sm:py-12">
+          {/* Left: centered block */}
           <div>
             <h1 className="text-4xl font-black tracking-tight text-white sm:text-6xl">
               Movies that match <span className="text-brand-100">how you feel</span>
@@ -148,13 +149,15 @@ export default function LandingHero() {
               >
                 Sign in
               </Link>
-              <span className="ml-1 text-sm text-white/60">Free to start. Your mood, your movie.</span>
+              <span className="ml-1 text-sm text-white/60">
+                Free to start. Your mood, your movie.
+              </span>
             </div>
 
             {/* Mobile showcase (16:9) */}
             <div className="mt-8 md:hidden">
               <PosterShowcase
-                refEl={frameRef}
+                refEl={visRef}
                 cur={cur}
                 prev={prev}
                 curPath={curPath}
@@ -163,7 +166,8 @@ export default function LandingHero() {
                 loading={loading || !token || errored}
                 variant="mobile"
               />
-              <p className="mt-3 text-center text-xs text-white/50">
+              {/* Hide note on mobile to keep the fold clean */}
+              <p className="mt-3 hidden text-center text-xs text-white/50 sm:block">
                 Screens are illustrative. TMDb data used under license.
               </p>
             </div>
@@ -172,7 +176,7 @@ export default function LandingHero() {
           {/* Desktop showcase */}
           <div className="hidden md:block">
             <PosterShowcase
-              refEl={frameRef}
+              refEl={visRef}
               cur={cur}
               prev={prev}
               curPath={curPath}
@@ -196,18 +200,16 @@ function PosterShowcase({ refEl, cur, prev, curPath, prevPath, navigate, loading
   const isMobile = variant === 'mobile'
   const outerPad = isMobile ? 'p-2' : 'p-3'
   const aspect = isMobile ? 'aspect-video' : 'aspect-[10/7]'
-  const sizes = isMobile ? '(max-width: 767px) 100vw, 600px' : '(min-width: 768px) 600px, 100vw'
+  const sizes = isMobile ? '(max-width: 767px) 100vw, 640px' : '(min-width: 768px) 640px, 100vw'
 
   return (
     <div ref={refEl} className={`card-surface relative overflow-hidden rounded-3xl ${outerPad}`}>
       <div className="absolute inset-0 -z-10 rounded-3xl bg-gradient-to-tr from-brand-600/10 to-transparent" />
       <div className={`relative ${aspect} w-full overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/60`}>
         {/* Skeleton */}
-        {loading && (
-          <div className="absolute inset-0 animate-pulse rounded-2xl bg-white/10" />
-        )}
+        {loading && <div className="absolute inset-0 animate-pulse rounded-2xl bg-white/10" />}
 
-        {/* Previous image (fading out) */}
+        {/* Previous (fade out) */}
         {prevPath && (
           <img
             key={`prev-${prev?.id}-${prevPath}`}
@@ -220,7 +222,7 @@ function PosterShowcase({ refEl, cur, prev, curPath, prevPath, navigate, loading
           />
         )}
 
-        {/* Current image (fading in) */}
+        {/* Current (fade in, slight zoom) */}
         {curPath && (
           <img
             key={`cur-${cur?.id}-${curPath}`}
@@ -233,9 +235,10 @@ function PosterShowcase({ refEl, cur, prev, curPath, prevPath, navigate, loading
           />
         )}
 
-        {/* Vignette + caption */}
+        {/* Soft vignettes + caption */}
         <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-black/80 to-transparent" />
         <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/60 to-transparent" />
+
         {cur && (
           <>
             <button

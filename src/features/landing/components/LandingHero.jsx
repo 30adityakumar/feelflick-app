@@ -1,51 +1,78 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
-const TMDB_IMG = (path, size = 'w1280') =>
+const tmdbImg = (path, size = 'w780') =>
   path ? `https://image.tmdb.org/t/p/${size}${path}` : null
+
+const srcSetFor = (path) =>
+  path
+    ? `${tmdbImg(path, 'w342')} 342w, ${tmdbImg(path, 'w500')} 500w, ${tmdbImg(path, 'w780')} 780w, ${tmdbImg(path, 'w1280')} 1280w`
+    : undefined
 
 export default function LandingHero() {
   const navigate = useNavigate()
 
-  // ------------------- TMDb client (v3 key or v4 bearer) -------------------
-  const tmdbToken = import.meta.env.VITE_TMDB_API_KEY
-  const isBearer = useMemo(() => !!tmdbToken && tmdbToken.includes('.'), [tmdbToken])
-
+  // --- TMDb client (v3 key or v4 bearer token) ---
+  const token = import.meta.env.VITE_TMDB_API_KEY
+  const isBearer = useMemo(() => !!token && token.includes('.'), [token])
   const buildUrl = (path, params = {}) => {
     const url = new URL(`https://api.themoviedb.org/3${path}`)
     Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v))
-    if (!isBearer && tmdbToken) url.searchParams.set('api_key', tmdbToken) // v3 query param
+    if (!isBearer && token) url.searchParams.set('api_key', token)
     return url.toString()
   }
-  const buildHeaders = () =>
-    isBearer ? { Authorization: `Bearer ${tmdbToken}`, accept: 'application/json' } : { accept: 'application/json' }
+  const headers = isBearer
+    ? { Authorization: `Bearer ${token}`, accept: 'application/json' }
+    : { accept: 'application/json' }
 
-  // ------------------- Showcase state & rotation -------------------
-  const [items, setItems] = useState([])           // [{id,title,backdrop_path,poster_path}]
+  // --- Data state ---
+  const [items, setItems] = useState([]) // [{id,title,backdrop_path,poster_path}]
   const [index, setIndex] = useState(0)
-  const [videoMap, setVideoMap] = useState({})     // id -> youtubeKey | null
   const [loading, setLoading] = useState(false)
   const [errored, setErrored] = useState(false)
-  const [iframeLoaded, setIframeLoaded] = useState(false)
-  const [fading, setFading] = useState(false)
-  const rotTimer = useRef(null)
-  const iframeLoadTimer = useRef(null)
 
-  // Fetch Top Rated (up to 10)
+  // --- Motion & visibility guards ---
+  const [play, setPlay] = useState(true)
+  const reduceMotion = useRef(false)
+  const frameRef = useRef(null)
+  const rotRef = useRef(null)
+
+  // Prefers-reduced-motion
+  useEffect(() => {
+    const m = window.matchMedia?.('(prefers-reduced-motion: reduce)')
+    reduceMotion.current = !!m?.matches
+    const onChange = () => (reduceMotion.current = !!m?.matches)
+    m?.addEventListener?.('change', onChange)
+    return () => m?.removeEventListener?.('change', onChange)
+  }, [])
+
+  // Pause when hero not visible
+  useEffect(() => {
+    const el = frameRef.current
+    if (!el) return
+    const io = new IntersectionObserver(
+      (entries) => entries.forEach((e) => setPlay(e.isIntersecting)),
+      { threshold: 0.25 }
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
+
+  // Fetch top-rated posters
   useEffect(() => {
     let cancelled = false
     async function run() {
-      if (!tmdbToken) return
+      if (!token) return
       setLoading(true); setErrored(false)
       try {
-        const res = await fetch(
+        const r = await fetch(
           buildUrl('/movie/top_rated', { language: 'en-US', page: '1', region: 'US' }),
-          { headers: buildHeaders() }
+          { headers }
         )
-        const data = res.ok ? await res.json() : { results: [] }
-        const list = (data.results || [])
-          .filter(m => m && (m.backdrop_path || m.poster_path))
-          .slice(0, 10)
+        const j = r.ok ? await r.json() : { results: [] }
+        const list = (j.results || [])
+          .filter((m) => m && (m.backdrop_path || m.poster_path))
+          .slice(0, 12)
         if (!cancelled) setItems(list)
       } catch {
         if (!cancelled) setErrored(true)
@@ -56,94 +83,56 @@ export default function LandingHero() {
     run()
     return () => { cancelled = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tmdbToken, isBearer])
+  }, [token, isBearer])
 
-  // Fetch trailer key lazily for current item
+  // Cross-fade rotation (stop for reduced motion or when not visible)
   useEffect(() => {
-    let cancelled = false
-    const cur = items[index]
-    if (!tmdbToken || !cur || videoMap[cur.id] !== undefined) return
-    async function getVideos() {
-      try {
-        const r = await fetch(buildUrl(`/movie/${cur.id}/videos`, { language: 'en-US' }), { headers: buildHeaders() })
-        const j = r.ok ? await r.json() : { results: [] }
-        const vids = Array.isArray(j.results) ? j.results : []
-        const pick =
-          vids.find(v => v.site === 'YouTube' && v.type === 'Trailer') ||
-          vids.find(v => v.site === 'YouTube' && v.type === 'Teaser')
-        if (!cancelled) setVideoMap(prev => ({ ...prev, [cur.id]: pick?.key ?? null }))
-      } catch {
-        if (!cancelled) setVideoMap(prev => ({ ...prev, [cur.id]: null }))
-      }
-    }
-    getVideos()
-    return () => { cancelled = true }
-  }, [index, items, tmdbToken, isBearer])
+    clearInterval(rotRef.current)
+    if (!items.length || reduceMotion.current || !play) return
+    rotRef.current = setInterval(() => {
+      setIndex((i) => (i + 1) % items.length)
+    }, 5500) // ~2s fade + ~3.5s hold
+    return () => clearInterval(rotRef.current)
+  }, [items.length, play])
 
-  // Smooth cross-fade + timed rotation (15s for trailer segment, 5s for image)
+  // Preload next image
   useEffect(() => {
-    if (items.length === 0) return
-    const cur = items[index]
-    const hasTrailer = !!videoMap[cur?.id]
-
-    clearInterval(rotTimer.current)
-    const duration = hasTrailer ? 15000 : 5000
-
-    rotTimer.current = setInterval(() => {
-      setFading(true)
-      setTimeout(() => {
-        setIframeLoaded(false) // reset for next iframe
-        setIndex(i => (i + 1) % items.length)
-        setFading(false)
-      }, 220) // fade out duration
-    }, duration)
-
-    return () => clearInterval(rotTimer.current)
-  }, [items, index, videoMap])
-
-  // If iframe doesn't load quickly → treat as broken and fall back to image
-  useEffect(() => {
-    clearTimeout(iframeLoadTimer.current)
-    setIframeLoaded(false)
-    if (!videoMap[items[index]?.id]) return
-    iframeLoadTimer.current = setTimeout(() => setIframeLoaded(false), 3000)
-    return () => clearTimeout(iframeLoadTimer.current)
-  }, [index, videoMap, items])
-
-  // Preload next backdrop
-  useEffect(() => {
-    const next = items[(index + 1) % (items.length || 1)]
-    const src = TMDB_IMG(next?.backdrop_path || next?.poster_path, 'w1280')
+    if (!items.length) return
+    const next = items[(index + 1) % items.length]
+    const src = tmdbImg(next?.backdrop_path || next?.poster_path, 'w780')
     if (src) { const img = new Image(); img.src = src }
   }, [index, items])
 
   const cur = items[index]
-  const curBackdrop = TMDB_IMG(cur?.backdrop_path || cur?.poster_path, 'w1280')
-  const curYouTubeKey = videoMap[cur?.id]
+  const prev = items[(index - 1 + (items.length || 1)) % (items.length || 1)]
+  const curPath = cur?.backdrop_path || cur?.poster_path
+  const prevPath = prev?.backdrop_path || prev?.poster_path
 
-  // ------------------- UI -------------------
   return (
     <section className="relative overflow-hidden">
-      {/* Background + radial light */}
+      {/* Background */}
       <div className="feelflick-landing-bg" aria-hidden="true" />
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 -z-0 opacity-60"
-        style={{ background: 'radial-gradient(700px 300px at 20% 15%, rgba(254,146,69,.25) 0%, transparent 60%)' }}
+        style={{
+          background:
+            'radial-gradient(700px 300px at 20% 15%, rgba(254,146,69,.25) 0%, transparent 60%)',
+        }}
       />
 
       <div className="relative z-10 mx-auto max-w-7xl px-4 pt-24 pb-10 sm:pt-28 sm:pb-16 md:px-6">
         {/* 2-col on md+, stacked on mobile */}
         <div className="cq grid items-start gap-8 md:gap-10 md:grid-cols-2">
-          {/* Left: copy + CTAs (selling point tightened) */}
+          {/* Left: copy + CTAs */}
           <div>
             <h1 className="text-4xl font-black tracking-tight text-white sm:text-6xl">
               Movies that match <span className="text-brand-100">how you feel</span>
             </h1>
 
             <p className="mt-4 max-w-xl text-base leading-relaxed text-white/80 sm:text-lg">
-              Tell us how you want to feel. We’ll hand-pick a short, spot-on list you’ll actually watch —
-              no endless scrolling. Save favorites and keep your watchlist in one place.
+              Tell us how you want to feel. We hand-pick a short, spot-on list you’ll actually
+              watch—no endless scrolling. Save favorites and keep your watchlist in one place.
             </p>
 
             <div className="mt-7 flex flex-wrap items-center gap-3">
@@ -159,18 +148,19 @@ export default function LandingHero() {
               >
                 Sign in
               </Link>
-              <span className="ml-1 text-sm text-white/60">Your mood, your movie.</span>
+              <span className="ml-1 text-sm text-white/60">Free to start. Your mood, your movie.</span>
             </div>
 
             {/* Mobile showcase (16:9) */}
             <div className="mt-8 md:hidden">
-              <ShowcaseFrame
+              <PosterShowcase
+                refEl={frameRef}
                 cur={cur}
-                curBackdrop={curBackdrop}
-                curYouTubeKey={curYouTubeKey}
-                fading={fading}
-                onClick={() => cur && navigate(`/movie/${cur.id}`)}
-                setIframeLoaded={setIframeLoaded}
+                prev={prev}
+                curPath={curPath}
+                prevPath={prevPath}
+                navigate={navigate}
+                loading={loading || !token || errored}
                 variant="mobile"
               />
               <p className="mt-3 text-center text-xs text-white/50">
@@ -181,13 +171,14 @@ export default function LandingHero() {
 
           {/* Desktop showcase */}
           <div className="hidden md:block">
-            <ShowcaseFrame
+            <PosterShowcase
+              refEl={frameRef}
               cur={cur}
-              curBackdrop={curBackdrop}
-              curYouTubeKey={curYouTubeKey}
-              fading={fading}
-              onClick={() => cur && navigate(`/movie/${cur.id}`)}
-              setIframeLoaded={setIframeLoaded}
+              prev={prev}
+              curPath={curPath}
+              prevPath={prevPath}
+              navigate={navigate}
+              loading={loading || !token || errored}
               variant="desktop"
             />
             <p className="mt-3 text-center text-xs text-white/50">
@@ -200,61 +191,59 @@ export default function LandingHero() {
   )
 }
 
-/* ------------------------------------------------------------------ */
-/*                               Framed UI                            */
-/* ------------------------------------------------------------------ */
-function ShowcaseFrame({ cur, curBackdrop, curYouTubeKey, fading, onClick, setIframeLoaded, variant = 'desktop' }) {
-  // style presets
+/* ---------------------------- Poster Showcase ---------------------------- */
+function PosterShowcase({ refEl, cur, prev, curPath, prevPath, navigate, loading, variant = 'desktop' }) {
   const isMobile = variant === 'mobile'
   const outerPad = isMobile ? 'p-2' : 'p-3'
   const aspect = isMobile ? 'aspect-video' : 'aspect-[10/7]'
+  const sizes = isMobile ? '(max-width: 767px) 100vw, 600px' : '(min-width: 768px) 600px, 100vw'
 
   return (
-    <div className={`card-surface relative overflow-hidden rounded-3xl ${outerPad}`}>
+    <div ref={refEl} className={`card-surface relative overflow-hidden rounded-3xl ${outerPad}`}>
       <div className="absolute inset-0 -z-10 rounded-3xl bg-gradient-to-tr from-brand-600/10 to-transparent" />
-      <div
-        className={`relative ${aspect} w-full overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/60 transition-opacity duration-200 ${fading ? 'opacity-0' : 'opacity-100'}`}
-      >
-        {/* Base image fallback */}
-        {curBackdrop ? (
-          <img
-            key={curBackdrop}
-            src={curBackdrop}
-            alt={cur?.title || cur?.name || 'Movie'}
-            className="absolute inset-0 h-full w-full object-cover"
-            loading="eager"
-            decoding="async"
-            onError={(e) => { e.currentTarget.style.display = 'none' }}
-          />
-        ) : (
+      <div className={`relative ${aspect} w-full overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/60`}>
+        {/* Skeleton */}
+        {loading && (
           <div className="absolute inset-0 animate-pulse rounded-2xl bg-white/10" />
         )}
 
-        {/* Trailer iframe (UI stripped, cropped, slightly zoomed) */}
-        {curYouTubeKey && (
-          <iframe
-            key={curYouTubeKey}
-            title={cur?.title || cur?.name || 'Trailer'}
-            src={`https://www.youtube-nocookie.com/embed/${curYouTubeKey}?autoplay=1&mute=1&controls=0&rel=0&modestbranding=1&iv_load_policy=3&fs=0&disablekb=1&playsinline=1&start=15&end=30`}
-            className="absolute left-1/2 top-1/2 h-[115%] w-[115%] -translate-x-1/2 -translate-y-1/2"
-            style={{ pointerEvents: 'none', transform: 'translate(-50%,-50%) scale(1.03)' }}
-            allow="autoplay; encrypted-media"
-            referrerPolicy="strict-origin-when-cross-origin"
-            loading="eager"
-            onLoad={() => setIframeLoaded?.(true)}
-            sandbox="allow-same-origin allow-scripts allow-presentation"
+        {/* Previous image (fading out) */}
+        {prevPath && (
+          <img
+            key={`prev-${prev?.id}-${prevPath}`}
+            src={tmdbImg(prevPath, 'w780')}
+            srcSet={srcSetFor(prevPath)}
+            sizes={sizes}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-700"
+            style={{ transform: 'scale(1.02)' }}
           />
         )}
 
-        {/* Vignettes/masks to hide any residual UI */}
+        {/* Current image (fading in) */}
+        {curPath && (
+          <img
+            key={`cur-${cur?.id}-${curPath}`}
+            src={tmdbImg(curPath, 'w780')}
+            srcSet={srcSetFor(curPath)}
+            sizes={sizes}
+            alt={cur?.title || cur?.name || 'Movie'}
+            className="absolute inset-0 h-full w-full object-cover opacity-100 transition-opacity duration-700"
+            style={{ transform: 'scale(1.04)' }}
+          />
+        )}
+
+        {/* Vignette + caption */}
         <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-black/80 to-transparent" />
         <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/60 to-transparent" />
-        <div aria-hidden className="pointer-events-none absolute bottom-0 right-0 h-16 w-16 bg-[radial-gradient(closest-side,rgba(0,0,0,.85),transparent)]" />
-
-        {/* Caption + click-through */}
         {cur && (
           <>
-            <button onClick={onClick} className="absolute inset-0" aria-label={`Open ${cur.title || cur.name}`} />
+            <button
+              onClick={() => navigate(`/movie/${cur.id}`)}
+              className="absolute inset-0"
+              aria-label={`Open ${cur.title || cur.name}`}
+              title={cur.title || cur.name}
+            />
             <div className="pointer-events-none absolute bottom-0 left-0 right-0 p-3">
               <div className="truncate text-sm font-semibold text-white/90">
                 {cur.title || cur.name}

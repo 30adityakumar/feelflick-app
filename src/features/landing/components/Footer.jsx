@@ -1,8 +1,42 @@
-// src/app/footer/Footer.jsx
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import logoPng from '@/assets/images/logo.png'
 
-export default function Footer() {
+export default function Footer({ variant = 'full' }) {
+  return variant === 'micro' ? <MicroFooter /> : <FullFooter />
+}
+
+/* --------------------------- MICRO VARIANT --------------------------- */
+function MicroFooter() {
+  const year = new Date().getFullYear()
+  return (
+    <footer className="relative mt-8 border-t border-white/10 bg-neutral-950/60 backdrop-blur-md">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 -top-px h-px bg-gradient-to-r from-brand-600/40 via-white/10 to-transparent"
+      />
+      <div className="mx-auto max-w-7xl px-4 py-6 md:px-6 md:py-8">
+        <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
+          <div className="text-xs text-white/60">
+            © {year} FeelFlick ·{' '}
+            <FooterTextLink to="/privacy">Privacy</FooterTextLink>{' · '}
+            <FooterTextLink to="/terms">Terms</FooterTextLink>{' · '}
+            <FooterTextLink to="/status">Status</FooterTextLink>
+          </div>
+          <div className="flex items-center gap-2.5">
+            <FooterIconLink href="https://www.instagram.com/feelflick" label="Instagram" icon={<InstaIcon className="h-4 w-4" />} />
+            <FooterIconLink href="https://www.tiktok.com/@feelflick" label="TikTok" icon={<TikTokIcon className="h-4 w-4" />} />
+          </div>
+        </div>
+        <div className="mt-3 text-center text-[11px] leading-relaxed text-white/50 sm:text-left">
+          This product uses the TMDB API but is not endorsed or certified by TMDB.
+        </div>
+      </div>
+    </footer>
+  )
+}
+
+/* --------------------------- FULL VARIANT --------------------------- */
+function FullFooter() {
   const navigate = useNavigate()
   const location = useLocation()
   const year = new Date().getFullYear()
@@ -19,12 +53,10 @@ export default function Footer() {
 
   return (
     <footer className="relative mt-10 md:mt-16 border-t border-white/10 bg-neutral-950/60 backdrop-blur-md">
-      {/* hairline glow */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 -top-px h-px bg-gradient-to-r from-brand-600/40 via-white/10 to-transparent"
       />
-
       <div className="mx-auto max-w-7xl px-4 py-10 md:px-6 md:py-14">
         <div className="grid gap-10 md:grid-cols-12 md:gap-8">
           {/* Brand + copy */}
@@ -51,23 +83,14 @@ export default function Footer() {
               Movies that match how you feel. Shortlists you’ll actually watch—no endless scrolling.
             </p>
 
-            {/* TMDb attribution */}
             <p className="mt-4 text-[12px] leading-relaxed text-white/50">
               This product uses the TMDB API but is not endorsed or certified by TMDB.
             </p>
 
-            {/* Socials: Instagram + TikTok only */}
+            {/* Socials: Instagram + TikTok */}
             <div className="mt-5 flex items-center gap-2.5">
-              <FooterIconLink
-                href="https://www.instagram.com/feelflick"
-                label="Instagram"
-                icon={<InstaIcon className="h-4 w-4" />}
-              />
-              <FooterIconLink
-                href="https://www.tiktok.com/@feelflick"
-                label="TikTok"
-                icon={<TikTokIcon className="h-4 w-4" />}
-              />
+              <FooterIconLink href="https://www.instagram.com/feelflick" label="Instagram" icon={<InstaIcon className="h-4 w-4" />} />
+              <FooterIconLink href="https://www.tiktok.com/@feelflick" label="TikTok" icon={<TikTokIcon className="h-4 w-4" />} />
             </div>
           </div>
 
@@ -117,7 +140,7 @@ export default function Footer() {
   )
 }
 
-/* --------------------------- small components --------------------------- */
+/* --------------------------- shared bits --------------------------- */
 
 function FooterIconLink({ href, label, icon }) {
   const isExternal = href.startsWith('http')
@@ -167,15 +190,9 @@ function FooterTextLink({ to, children }) {
 /* --------------------------- inline icons --------------------------- */
 
 function InstaIcon({ className = '' }) {
-  // Minimal Instagram glyph (rounded square + lens)
   return (
     <svg viewBox="0 0 24 24" className={className} aria-hidden>
-      <path
-        d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5Z"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-      />
+      <path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5Z" fill="none" stroke="currentColor" strokeWidth="1.5" />
       <circle cx="12" cy="12" r="3.5" fill="none" stroke="currentColor" strokeWidth="1.5" />
       <circle cx="17.5" cy="6.5" r="1" fill="currentColor" />
     </svg>
@@ -183,13 +200,9 @@ function InstaIcon({ className = '' }) {
 }
 
 function TikTokIcon({ className = '' }) {
-  // Simple TikTok-like note mark
   return (
     <svg viewBox="0 0 24 24" className={className} aria-hidden>
-      <path
-        d="M14 3v9.2a3.8 3.8 0 1 1-2.4-3.56V4.5c1.2 1.6 3.06 2.7 5.2 2.94V10a6.7 6.7 0 0 1-4.8-2.1V3h2Z"
-        fill="currentColor"
-      />
+      <path d="M14 3v9.2a3.8 3.8 0 1 1-2.4-3.56V4.5c1.2 1.6 3.06 2.7 5.2 2.94V10a6.7 6.7 0 0 1-4.8-2.1V3h2Z" fill="currentColor" />
     </svg>
   )
 }

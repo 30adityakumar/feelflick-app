@@ -30,6 +30,7 @@ import HistoryPage from '@/app/pages/watched/WatchedTab'
 
 // 404
 import NotFound from '@/app/pages/NotFound'
+import ErrorBoundary from '@/app/ErrorBoundary'
 
 /* ----------------------------- Public layout ----------------------------- */
 function PublicShell() {
@@ -87,7 +88,7 @@ function RedirectIfAuthed({ children }) {
 const isStrictTrue = (v) => v === true
 
 function PostAuthGate() {
-  const [state, setState] = useState<'checking' | 'ready'>('checking')
+  const [phase, setPhase] = useState('checking') // 'checking' | 'ready'
   const [done, setDone] = useState(false)
   const loc = useLocation()
 
@@ -95,18 +96,20 @@ function PostAuthGate() {
     let mounted = true
     async function check() {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { setDone(false); setState('ready'); return }
+      if (!user) { mounted && setDone(false); mounted && setPhase('ready'); return }
 
-      // metadata first
+      // 1) metadata quick check
       const meta = user.user_metadata || {}
-      if (isStrictTrue(meta.onboarding_complete) ||
-          isStrictTrue(meta.has_onboarded) ||
-          isStrictTrue(meta.onboarded)) {
-        if (mounted) { setDone(true); setState('ready') }
+      if (
+        isStrictTrue(meta.onboarding_complete) ||
+        isStrictTrue(meta.has_onboarded) ||
+        isStrictTrue(meta.onboarded)
+      ) {
+        if (mounted) { setDone(true); setPhase('ready') }
         return
       }
 
-      // users table: handle id or uid
+      // 2) users table (supports id or uid column)
       const uid = user.id
       const { data, error } = await supabase
         .from('users')
@@ -116,7 +119,7 @@ function PostAuthGate() {
 
       if (error) {
         console.warn('users select error:', error)
-        if (mounted) { setDone(false); setState('ready') }
+        if (mounted) { setDone(false); setPhase('ready') }
         return
       }
 
@@ -126,15 +129,13 @@ function PostAuthGate() {
         isStrictTrue(data?.onboarded) ||
         Boolean(data?.onboarding_completed_at)
 
-      if (mounted) { setDone(completed); setState('ready') }
+      if (mounted) { setDone(completed); setPhase('ready') }
     }
     check()
     return () => { mounted = false }
   }, [])
 
-  if (state === 'checking') {
-    return <div className="p-6 text-white/70">Loading…</div>
-  }
+  if (phase === 'checking') return <div className="p-6 text-white/70">Loading…</div>
 
   // If not done and not already on /onboarding → send to /onboarding
   if (!done && loc.pathname !== '/onboarding') {
@@ -183,9 +184,12 @@ export const router = createBrowserRouter([
       { path: 'signin', element: <Navigate to="/login" replace /> },
       { path: 'register', element: <Navigate to="/signup" replace /> },
 
-      // Email flows
+      // Email flows (add several aliases so any template works)
       { path: 'reset-password', element: <ResetPassword /> },
+      { path: 'auth/reset-password', element: <ResetPassword /> },
       { path: 'confirm-email', element: <ConfirmEmail /> },
+      { path: 'auth/confirm', element: <ConfirmEmail /> },
+      { path: 'auth/verify', element: <ConfirmEmail /> },
 
       { path: 'logout', element: <SignOutRoute /> },
     ],
@@ -206,9 +210,9 @@ export const router = createBrowserRouter([
         element: <RequireAuth />,
         children: [
           {
-            element: <PostAuthGate />,    // <— THIS enforces onboarding
+            element: <PostAuthGate />,    // <— enforces onboarding
             children: [
-              { path: 'home', element: <HomePage /> },
+              { path: 'home', element: <ErrorBoundary><HomePage /></ErrorBoundary> },
               { path: 'onboarding', element: <Onboarding /> },
               { path: 'account', element: <Account /> },
               { path: 'preferences', element: <Preferences /> },

@@ -1,13 +1,24 @@
-// src/app/router.jsx
-import { createBrowserRouter, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
+// src/router.jsx
+import {
+  createBrowserRouter,
+  Navigate,
+  Outlet,
+  useLocation,
+  useNavigate,
+} from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/shared/lib/supabase/client'
 
+// Root shells
 import AppShell from '@/app/AppShell'
+
+// Public pages (no header/sidebar)
 import Landing from '@/features/landing/Landing'
 import AuthPage from '@/features/auth/AuthPage'
 import ResetPassword from '@/features/auth/components/ResetPassword'
 import ConfirmEmail from '@/features/auth/components/ConfirmEmail'
+
+// App pages (with header/sidebar)
 import HomePage from '@/app/homepage/HomePage'
 import MoviesTab from '@/app/pages/movies/MoviesTab'
 import MovieDetail from '@/app/pages/MovieDetail'
@@ -16,8 +27,11 @@ import Account from '@/app/header/components/Account'
 import Preferences from '@/app/header/components/Preferences'
 import Watchlist from '@/app/pages/watchlist/Watchlist'
 import HistoryPage from '@/app/pages/watched/WatchedTab'
+
+// 404
 import NotFound from '@/app/pages/NotFound'
 
+/* ----------------------------- Public layout ----------------------------- */
 function PublicShell() {
   return (
     <div className="min-h-screen bg-black text-white">
@@ -28,141 +42,119 @@ function PublicShell() {
   )
 }
 
+/* ------------------------------ Auth guards ------------------------------ */
 function RequireAuth() {
-  const [status, setStatus] = useState('loading')
+  const [status, setStatus] = useState('loading') // 'loading' | 'authed' | 'anon'
   const loc = useLocation()
+
   useEffect(() => {
     let unsub
-    supabase.auth.getSession().then(({ data: { session } }) => setStatus(session ? 'authed' : 'anon'))
-    const { data } = supabase.auth.onAuthStateChange((_e, s) => setStatus(s ? 'authed' : 'anon'))
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setStatus(session ? 'authed' : 'anon')
+    })
+    const { data } = supabase.auth.onAuthStateChange((_evt, session) => {
+      setStatus(session ? 'authed' : 'anon')
+    })
     unsub = data?.subscription?.unsubscribe
     return () => { if (typeof unsub === 'function') unsub() }
   }, [])
+
   if (status === 'loading') return <div className="p-6 text-white/70">Loading…</div>
   if (status === 'anon') return <Navigate to="/auth" replace state={{ from: loc }} />
   return <Outlet />
 }
 
+/** Redirect signed-in users away from public pages (/, /auth) */
 function RedirectIfAuthed({ children }) {
   const [status, setStatus] = useState('loading')
   useEffect(() => {
     let unsub
-    supabase.auth.getSession().then(({ data: { session } }) => setStatus(session ? 'authed' : 'anon'))
-    const { data } = supabase.auth.onAuthStateChange((_e, s) => setStatus(s ? 'authed' : 'anon'))
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setStatus(session ? 'authed' : 'anon')
+    })
+    const { data } = supabase.auth.onAuthStateChange((_evt, session) => {
+      setStatus(session ? 'authed' : 'anon')
+    })
     unsub = data?.subscription?.unsubscribe
     return () => { if (typeof unsub === 'function') unsub() }
   }, [])
   if (status === 'loading') return <div className="p-6 text-white/70">Loading…</div>
-  if (status === 'authed') return <Navigate to="/app" replace />
+  if (status === 'authed') return <Navigate to="/home" replace />
   return children
 }
 
-/* --------------------------- Onboarding helpers -------------------------- */
+/* ---------------------- Onboarding completion gate ----------------------- */
+const isStrictTrue = (v) => v === true
 
-// Only accept a true boolean from metadata; ignore 1/"true"/etc.
-function strictMetaBoolean(meta) {
-  for (const k of ['onboarding_complete', 'has_onboarded', 'onboarded']) {
-    if (Object.prototype.hasOwnProperty.call(meta, k)) {
-      if (typeof meta[k] === 'boolean') return meta[k]
-      // anything else (number/string) is ignored to avoid accidental bypass
-      return null
-    }
-  }
-  return null
-}
+function PostAuthGate() {
+  const [state, setState] = useState<'checking' | 'ready'>('checking')
+  const [done, setDone] = useState(false)
+  const loc = useLocation()
 
-async function getOnboardingDecision() {
-  const { data: userData } = await supabase.auth.getUser()
-  const user = userData?.user
-  if (!user) return { authed: false }
+  useEffect(() => {
+    let mounted = true
+    async function check() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { setDone(false); setState('ready'); return }
 
-  // 1) Metadata (strict)
-  const meta = user.user_metadata || {}
-  const metaFlag = strictMetaBoolean(meta)
-  if (metaFlag !== null) return { authed: true, onboarded: metaFlag }
-
-  // 2) Profiles row (strict)
-  try {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('onboarding_complete, has_onboarded, onboarded, onboarding_completed_at')
-      .eq('id', user.id)
-      .maybeSingle()
-
-    if (error) {
-      // If table truly doesn’t exist, don’t block legacy apps
-      const msg = `${error.code || ''} ${error.message || ''}`
-      if (/42P01/.test(msg) || /relation .* does not exist/i.test(msg)) {
-        return { authed: true, onboarded: true }
+      // metadata first
+      const meta = user.user_metadata || {}
+      if (isStrictTrue(meta.onboarding_complete) ||
+          isStrictTrue(meta.has_onboarded) ||
+          isStrictTrue(meta.onboarded)) {
+        if (mounted) { setDone(true); setState('ready') }
+        return
       }
-      // For permission or any other error, be strict: not onboarded
-      return { authed: true, onboarded: false }
+
+      // users table: handle id or uid
+      const uid = user.id
+      const { data, error } = await supabase
+        .from('users')
+        .select('onboarding_complete,has_onboarded,onboarded,onboarding_completed_at')
+        .or(`id.eq.${uid},uid.eq.${uid}`)
+        .maybeSingle()
+
+      if (error) {
+        console.warn('users select error:', error)
+        if (mounted) { setDone(false); setState('ready') }
+        return
+      }
+
+      const completed =
+        isStrictTrue(data?.onboarding_complete) ||
+        isStrictTrue(data?.has_onboarded) ||
+        isStrictTrue(data?.onboarded) ||
+        Boolean(data?.onboarding_completed_at)
+
+      if (mounted) { setDone(completed); setState('ready') }
     }
+    check()
+    return () => { mounted = false }
+  }, [])
 
-    if (!data) return { authed: true, onboarded: false }
-
-    const flag =
-      data.onboarding_complete === true ||
-      data.has_onboarded === true ||
-      data.onboarded === true ||
-      Boolean(data.onboarding_completed_at)
-
-    return { authed: true, onboarded: flag }
-  } catch {
-    return { authed: true, onboarded: false }
+  if (state === 'checking') {
+    return <div className="p-6 text-white/70">Loading…</div>
   }
-}
 
-function AppEntryRouter() {
-  const nav = useNavigate()
-  useEffect(() => {
-    let alive = true
-    ;(async () => {
-      const s = await supabase.auth.getSession()
-      if (!s.data.session) { if (alive) nav('/auth', { replace: true }); return }
-      const res = await getOnboardingDecision()
-      if (!alive) return
-      nav(res.onboarded ? '/home' : '/onboarding', { replace: true })
-    })()
-    return () => { alive = false }
-  }, [nav])
-  return <div className="p-6 text-white/70">Loading…</div>
-}
+  // If not done and not already on /onboarding → send to /onboarding
+  if (!done && loc.pathname !== '/onboarding') {
+    return <Navigate to="/onboarding" replace state={{ from: loc }} />
+  }
 
-function HomeGate({ children }) {
-  const [state, setState] = useState('loading') // 'loading' | 'home' | 'onboarding'
-  useEffect(() => {
-    let alive = true
-    ;(async () => {
-      const res = await getOnboardingDecision()
-      if (alive) setState(res.onboarded ? 'home' : 'onboarding')
-    })()
-    return () => { alive = false }
-  }, [])
-  if (state === 'loading') return <div className="p-6 text-white/70">Loading…</div>
-  if (state === 'onboarding') return <Navigate to="/onboarding" replace />
-  return children
-}
+  // If done but on /onboarding → send to /home
+  if (done && loc.pathname === '/onboarding') {
+    return <Navigate to="/home" replace />
+  }
 
-function OnboardingGate() {
-  const [state, setState] = useState('loading') // 'loading' | 'home' | 'onboarding'
-  useEffect(() => {
-    let alive = true
-    ;(async () => {
-      const res = await getOnboardingDecision()
-      if (alive) setState(res.onboarded ? 'home' : 'onboarding')
-    })()
-    return () => { alive = false }
-  }, [])
-  if (state === 'loading') return <div className="p-6 text-white/70">Loading…</div>
-  if (state === 'home') return <Navigate to="/home" replace />
-  return <Onboarding />
+  return <Outlet />
 }
 
 /* ------------------------------- Utilities -------------------------------- */
-function AppPrefixAliasStripper() {
+function AppPrefixAlias() {
   const loc = useLocation()
-  const stripped = (loc.pathname || '').replace(/^\/app/, '') || '/home'
+  const path = loc.pathname || '/app'
+  if (path === '/app') return <Navigate to={`/home${loc.search}${loc.hash}`} replace />
+  const stripped = path.replace(/^\/app/, '') || '/home'
   return <Navigate to={`${stripped}${loc.search}${loc.hash}`} replace />
 }
 
@@ -176,45 +168,64 @@ function SignOutRoute() {
 
 /* -------------------------------- Router --------------------------------- */
 export const router = createBrowserRouter([
+  // Public branch
   {
     element: <PublicShell />,
     children: [
       { index: true, element: <RedirectIfAuthed><Landing /></RedirectIfAuthed> },
       { path: 'auth', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
+
+      // legacy/aliases
       { path: 'auth/sign-in', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
       { path: 'auth/sign-up', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
       { path: 'login', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
       { path: 'signup', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
       { path: 'signin', element: <Navigate to="/login" replace /> },
       { path: 'register', element: <Navigate to="/signup" replace /> },
-      { path: 'auth/reset-password', element: <ResetPassword /> },
+
+      // Email flows
       { path: 'reset-password', element: <ResetPassword /> },
       { path: 'confirm-email', element: <ConfirmEmail /> },
+
       { path: 'logout', element: <SignOutRoute /> },
     ],
   },
+
+  // App branch
   {
     element: <AppShell />,
     children: [
+      // Public pages that still show app chrome
       { path: 'movies', element: <MoviesTab /> },
       { path: 'movie/:id', element: <MovieDetail /> },
-      { path: 'browse', element: <MoviesTab /> },
+      { path: 'browse', element: <MoviesTab /> },   // aliases
       { path: 'trending', element: <MoviesTab /> },
+
+      // Auth-required + onboarding gate
       {
         element: <RequireAuth />,
         children: [
-          { path: 'home', element: (<HomeGate><HomePage /></HomeGate>) },
-          { path: 'onboarding', element: <OnboardingGate /> },
-          { path: 'account', element: <Account /> },
-          { path: 'preferences', element: <Preferences /> },
-          { path: 'watchlist', element: <Watchlist /> },
-          { path: 'watched', element: <HistoryPage /> },
-          { path: 'history', element: <HistoryPage /> },
+          {
+            element: <PostAuthGate />,    // <— THIS enforces onboarding
+            children: [
+              { path: 'home', element: <HomePage /> },
+              { path: 'onboarding', element: <Onboarding /> },
+              { path: 'account', element: <Account /> },
+              { path: 'preferences', element: <Preferences /> },
+              { path: 'watchlist', element: <Watchlist /> },
+              { path: 'watched', element: <HistoryPage /> },
+              { path: 'history', element: <HistoryPage /> }, // legacy
+            ],
+          },
         ],
       },
     ],
   },
-  { path: 'app', element: <AppEntryRouter /> },
-  { path: 'app/*', element: <AppPrefixAliasStripper /> },
+
+  // /app legacy alias
+  { path: 'app', element: <AppPrefixAlias /> },
+  { path: 'app/*', element: <AppPrefixAlias /> },
+
+  // 404
   { path: '*', element: <NotFound /> },
 ])

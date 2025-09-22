@@ -78,40 +78,58 @@ function RedirectIfAuthed({ children }) {
 }
 
 /* --------------------------- Onboarding helpers -------------------------- */
+/**
+ * Decide where to send an authenticated user.
+ * Rules:
+ *  - If metadata has a boolean flag, trust it.
+ *  - Else, read profiles(id=uid). If no row OR row says false → NOT onboarded.
+ *  - If the table truly doesn’t exist (relation error), assume onboarded (legacy).
+ */
 async function getOnboardingDecision() {
-  // Returns { authed: boolean, onboarded?: boolean }
   const { data: userData } = await supabase.auth.getUser()
   const user = userData?.user
   if (!user) return { authed: false }
 
-  // 1) Try user metadata
-  const meta =
-    user.user_metadata?.onboarding_complete ??
-    user.user_metadata?.has_onboarded ??
-    user.user_metadata?.onboarded
-  if (typeof meta !== 'undefined') return { authed: true, onboarded: !!meta }
+  const meta = user.user_metadata || {}
+  for (const k of ['onboarding_complete', 'has_onboarded', 'onboarded']) {
+    if (Object.prototype.hasOwnProperty.call(meta, k)) {
+      return { authed: true, onboarded: !!meta[k] }
+    }
+  }
 
-  // 2) Try profiles table (if present)
   try {
     const { data, error } = await supabase
       .from('profiles')
-      .select('onboarding_complete, has_onboarded, onboarded')
+      .select('onboarding_complete, has_onboarded, onboarded, onboarding_completed_at')
       .eq('id', user.id)
       .maybeSingle()
 
-    if (!error && data) {
-      const flag =
-        data.onboarding_complete ??
-        data.has_onboarded ??
-        data.onboarded
-      if (typeof flag !== 'undefined') return { authed: true, onboarded: !!flag }
+    if (error) {
+      // If the relation truly doesn’t exist, don’t block legacy apps
+      const msg = `${error.code || ''} ${error.message || ''}`
+      if (/42P01/.test(msg) || /relation .* does not exist/i.test(msg)) {
+        return { authed: true, onboarded: true }
+      }
+      // For permission/404/other errors, be strict → treat as NOT onboarded
+      return { authed: true, onboarded: false }
     }
-  } catch {
-    // ignore – fall through to default
-  }
 
-  // 3) Default: assume onboarded so legacy users aren’t blocked
-  return { authed: true, onboarded: true }
+    if (!data) {
+      // No row yet → push user through onboarding to create it
+      return { authed: true, onboarded: false }
+    }
+
+    const flag =
+      data.onboarding_complete ??
+      data.has_onboarded ??
+      data.onboarded ??
+      Boolean(data.onboarding_completed_at)
+
+    return { authed: true, onboarded: !!flag }
+  } catch {
+    // Network or unknown → be strict
+    return { authed: true, onboarded: false }
+  }
 }
 
 /** Used at /app to decide the real “start” route after sign-in */
@@ -176,14 +194,12 @@ function OnboardingGate() {
 }
 
 /* ------------------------------- Utilities -------------------------------- */
-/** Redirects /app/* legacy paths; /app itself uses AppEntryRouter */
 function AppPrefixAliasStripper() {
   const loc = useLocation()
   const stripped = (loc.pathname || '').replace(/^\/app/, '') || '/home'
   return <Navigate to={`${stripped}${loc.search}${loc.hash}`} replace />
 }
 
-/** Route that signs out and redirects to /auth (works from any state) */
 function SignOutRoute() {
   const nav = useNavigate()
   useEffect(() => {
@@ -200,13 +216,8 @@ export const router = createBrowserRouter([
   {
     element: <PublicShell />,
     children: [
-      // Landing (signed-out only)
       { index: true, element: <RedirectIfAuthed><Landing /></RedirectIfAuthed> },
-
-      // Auth hub (signed-out only)
       { path: 'auth', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
-
-      // Legacy/alt auth paths
       { path: 'auth/sign-in', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
       { path: 'auth/sign-up', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
       { path: 'login', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
@@ -219,7 +230,6 @@ export const router = createBrowserRouter([
       { path: 'reset-password', element: <ResetPassword /> },
       { path: 'confirm-email', element: <ConfirmEmail /> },
 
-      // Explicit logout route (works from any state)
       { path: 'logout', element: <SignOutRoute /> },
     ],
   },
@@ -228,46 +238,35 @@ export const router = createBrowserRouter([
   {
     element: <AppShell />,
     children: [
-      // Publicly viewable pages with app chrome
       { path: 'movies', element: <MoviesTab /> },
       { path: 'movie/:id', element: <MovieDetail /> },
-
-      // Old slugs → same component
       { path: 'browse', element: <MoviesTab /> },
       { path: 'trending', element: <MoviesTab /> },
 
-      // Auth-required pages
       {
         element: <RequireAuth />,
         children: [
-          // Home decides against onboarding
           { path: 'home', element: (
               <HomeGate>
                 <HomePage />
               </HomeGate>
             )
           },
-          // Onboarding bounces if already done
           { path: 'onboarding', element: <OnboardingGate /> },
-
           { path: 'account', element: <Account /> },
           { path: 'preferences', element: <Preferences /> },
           { path: 'watchlist', element: <Watchlist /> },
           { path: 'watched', element: <HistoryPage /> },
-
-          // Old alias → history
           { path: 'history', element: <HistoryPage /> },
         ],
       },
     ],
   },
 
-  /* ---- /app entry & legacy alias ---- */
-  // Hitting exactly /app chooses /home vs /onboarding
+  /* /app entry + legacy */
   { path: 'app', element: <AppEntryRouter /> },
-  // Anything else under /app/* strips the prefix
   { path: 'app/*', element: <AppPrefixAliasStripper /> },
 
-  /* 404 catch-all (last) */
+  /* 404 */
   { path: '*', element: <NotFound /> },
 ])

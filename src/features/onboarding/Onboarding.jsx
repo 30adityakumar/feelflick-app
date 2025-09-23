@@ -54,7 +54,8 @@ export default function Onboarding() {
       }
 
       if (data?.onboarding_complete || session.user.user_metadata?.onboarding_complete) {
-        nav('/home', { replace: true })
+        // Jump straight to Home and tell the gate to skip its re-check once
+        nav('/home', { replace: true, state: { fromOnboarding: true } })
       } else {
         setChecking(false)
       }

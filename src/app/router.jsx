@@ -30,7 +30,6 @@ import HistoryPage from '@/app/pages/watched/WatchedTab'
 
 // 404
 import NotFound from '@/app/pages/NotFound'
-import ErrorBoundary from '@/app/ErrorBoundary'
 
 /* ----------------------------- Public layout ----------------------------- */
 function PublicShell() {
@@ -88,65 +87,69 @@ function RedirectIfAuthed({ children }) {
 const isStrictTrue = (v) => v === true
 
 function PostAuthGate() {
-  const [phase, setPhase] = useState('checking') // 'checking' | 'ready'
+  const [state, setState] = useState('checking') // 'checking' | 'ready'
   const [done, setDone] = useState(false)
   const loc = useLocation()
 
+  // If we *just* finished onboarding, skip the gate once to avoid the flash
+  if (loc.state?.fromOnboarding === true) {
+    return <Outlet />
+  }
+
   useEffect(() => {
     let mounted = true
-    async function check() {
+    ;(async () => {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { mounted && setDone(false); mounted && setPhase('ready'); return }
+      if (!user) {
+        if (mounted) { setDone(false); setState('ready') }
+        return
+      }
 
-      // 1) metadata quick check
+      // fast path via auth metadata
       const meta = user.user_metadata || {}
       if (
         isStrictTrue(meta.onboarding_complete) ||
         isStrictTrue(meta.has_onboarded) ||
         isStrictTrue(meta.onboarded)
       ) {
-        if (mounted) { setDone(true); setPhase('ready') }
+        if (mounted) { setDone(true); setState('ready') }
         return
       }
 
-      // 2) users table (supports id or uid column)
-      const uid = user.id
+      // users table (primary key is auth.users.id)
       const { data, error } = await supabase
         .from('users')
-        .select('onboarding_complete,has_onboarded,onboarded,onboarding_completed_at')
-        .or(`id.eq.${uid},uid.eq.${uid}`)
+        .select('onboarding_complete,onboarding_completed_at')
+        .eq('id', user.id)
         .maybeSingle()
 
-      if (error) {
-        console.warn('users select error:', error)
-        if (mounted) { setDone(false); setPhase('ready') }
-        return
+      if (mounted) {
+        if (error) {
+          console.warn('users select error:', error)
+          setDone(false)
+        } else {
+          const completed =
+            isStrictTrue(data?.onboarding_complete) ||
+            Boolean(data?.onboarding_completed_at)
+          setDone(completed)
+        }
+        setState('ready')
       }
-
-      const completed =
-        isStrictTrue(data?.onboarding_complete) ||
-        isStrictTrue(data?.has_onboarded) ||
-        isStrictTrue(data?.onboarded) ||
-        Boolean(data?.onboarding_completed_at)
-
-      if (mounted) { setDone(completed); setPhase('ready') }
-    }
-    check()
+    })()
     return () => { mounted = false }
   }, [])
 
-  if (phase === 'checking') return <div className="p-6 text-white/70">Loading…</div>
+  if (state === 'checking') {
+    // render nothing to avoid a full-screen “Loading profile…” flash
+    return null
+  }
 
-  // If not done and not already on /onboarding → send to /onboarding
   if (!done && loc.pathname !== '/onboarding') {
     return <Navigate to="/onboarding" replace state={{ from: loc }} />
   }
-
-  // If done but on /onboarding → send to /home
   if (done && loc.pathname === '/onboarding') {
     return <Navigate to="/home" replace />
   }
-
   return <Outlet />
 }
 
@@ -184,12 +187,9 @@ export const router = createBrowserRouter([
       { path: 'signin', element: <Navigate to="/login" replace /> },
       { path: 'register', element: <Navigate to="/signup" replace /> },
 
-      // Email flows (add several aliases so any template works)
+      // Email flows
       { path: 'reset-password', element: <ResetPassword /> },
-      { path: 'auth/reset-password', element: <ResetPassword /> },
       { path: 'confirm-email', element: <ConfirmEmail /> },
-      { path: 'auth/confirm', element: <ConfirmEmail /> },
-      { path: 'auth/verify', element: <ConfirmEmail /> },
 
       { path: 'logout', element: <SignOutRoute /> },
     ],
@@ -202,7 +202,7 @@ export const router = createBrowserRouter([
       // Public pages that still show app chrome
       { path: 'movies', element: <MoviesTab /> },
       { path: 'movie/:id', element: <MovieDetail /> },
-      { path: 'browse', element: <MoviesTab /> },   // aliases
+      { path: 'browse', element: <MoviesTab /> },
       { path: 'trending', element: <MoviesTab /> },
 
       // Auth-required + onboarding gate
@@ -210,9 +210,9 @@ export const router = createBrowserRouter([
         element: <RequireAuth />,
         children: [
           {
-            element: <PostAuthGate />,    // <— enforces onboarding
+            element: <PostAuthGate />, // enforces onboarding (and skips after finishing)
             children: [
-              { path: 'home', element: <ErrorBoundary><HomePage /></ErrorBoundary> },
+              { path: 'home', element: <HomePage /> },
               { path: 'onboarding', element: <Onboarding /> },
               { path: 'account', element: <Account /> },
               { path: 'preferences', element: <Preferences /> },

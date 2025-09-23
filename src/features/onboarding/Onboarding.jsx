@@ -2,108 +2,98 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/shared/lib/supabase/client";
+import { markOnboardingComplete } from "@/shared/lib/supabase/onboarding";
 
-const ACCENT  = "#fe9245";
-const ACCENT2 = "#eb423b";
-const OUTLINE = "1.1px solid #fe9245";
-const BTN_BG  = "linear-gradient(90deg,#fe9245 10%,#eb423b 90%)";
+const BTN_BG = "linear-gradient(90deg,#fe9245 10%,#eb423b 90%)";
 const GENRE_SELECTED_BG =
   "linear-gradient(88deg, var(--theme-color,#FF5B2E), var(--theme-color-secondary,#367cff) 80%)";
 const DARK_BG = "rgba(22,19,28,0.9)";
 
-// Accept only a true boolean; ignore 1 / "true" etc.
-const isStrictTrue = (v) => v === true;
-
 export default function Onboarding() {
   const navigate = useNavigate();
 
-  const [session, setSession] = useState(null);
   const [checking, setChecking] = useState(true);
   const [step, setStep] = useState(1);
-
   const [selectedGenres, setSelectedGenres] = useState([]);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [showAllResults, setShowAllResults] = useState(false);
   const [watchlist, setWatchlist] = useState([]);
-
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
-  /* --------------------------- session bootstrap -------------------------- */
+  /* ------------------------------------------------------------------ */
+  /* 0) If onboarding already complete (metadata OR table) → go /home   */
+  /* ------------------------------------------------------------------ */
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSession(data.session));
-    const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
-    return () => data?.subscription?.unsubscribe();
-  }, []);
-
-  /* -------------------- check if user already onboarded ------------------- */
-  useEffect(() => {
-    if (!session?.user) return;
-
+    let mounted = true;
     (async () => {
-      try {
-        // 1) Strict metadata check first
-        const meta = session.user.user_metadata || {};
-        if (
-          isStrictTrue(meta.onboarding_complete) ||
-          isStrictTrue(meta.has_onboarded) ||
-          isStrictTrue(meta.onboarded)
-        ) {
-          navigate("/home", { replace: true });
-          return;
-        }
-
-        // 2) Fall back to DB row (users table)
-        const { data, error: selErr } = await supabase
-          .from("users")
-          .select("onboarding_complete, has_onboarded, onboarded, onboarding_completed_at")
-          .eq("id", session.user.id)
-          .maybeSingle();
-
-        if (selErr) {
-          console.warn("users select error:", selErr);
-          // Be strict on errors (treat as not onboarded) so they see the flow.
-          setChecking(false);
-          return;
-        }
-
-        const done =
-          isStrictTrue(data?.onboarding_complete) ||
-          isStrictTrue(data?.has_onboarded) ||
-          isStrictTrue(data?.onboarded) ||
-          Boolean(data?.onboarding_completed_at);
-
-        if (done) {
-          navigate("/home", { replace: true });
-        } else {
-          setChecking(false);
-        }
-      } catch (e) {
-        console.error("Onboarding status check failed:", e);
-        setChecking(false);
+      const { data: { user }, error: uerr } = await supabase.auth.getUser();
+      if (uerr) console.warn(uerr);
+      if (!user) {
+        navigate("/auth", { replace: true });
+        return;
       }
-    })();
-  }, [session, navigate]);
 
-  /* --------------------------------- genres -------------------------------- */
+      const meta = user.user_metadata || {};
+      const metaDone =
+        meta.onboarding_complete === true ||
+        meta.has_onboarded === true ||
+        meta.onboarded === true ||
+        !!meta.onboarding_completed_at;
+
+      let tableDone = false;
+      const { data, error } = await supabase
+        .from("users")
+        .select("onboarding_complete")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (!error) tableDone = !!data?.onboarding_complete;
+
+      if (metaDone || tableDone) {
+        navigate("/home", { replace: true });
+        return;
+      }
+
+      if (mounted) setChecking(false);
+    })();
+
+    return () => {
+      mounted = false;
+    };
+  }, [navigate]);
+
+  /* ----------------------------------------------- */
+  /* 1) Static genres list                           */
+  /* ----------------------------------------------- */
   const GENRES = useMemo(
     () => [
-      { id: 28, label: "Action" }, { id: 12, label: "Adventure" },
-      { id: 16, label: "Animation" }, { id: 35, label: "Comedy" },
-      { id: 80, label: "Crime" }, { id: 99, label: "Documentary" },
-      { id: 18, label: "Drama" }, { id: 10751, label: "Family" },
-      { id: 14, label: "Fantasy" }, { id: 36, label: "History" },
-      { id: 27, label: "Horror" }, { id: 10402, label: "Music" },
-      { id: 9648, label: "Mystery" }, { id: 10749, label: "Romance" },
-      { id: 878, label: "Sci-fi" }, { id: 53, label: "Thriller" }
+      { id: 28, label: "Action" },
+      { id: 12, label: "Adventure" },
+      { id: 16, label: "Animation" },
+      { id: 35, label: "Comedy" },
+      { id: 80, label: "Crime" },
+      { id: 99, label: "Documentary" },
+      { id: 18, label: "Drama" },
+      { id: 10751, label: "Family" },
+      { id: 14, label: "Fantasy" },
+      { id: 36, label: "History" },
+      { id: 27, label: "Horror" },
+      { id: 10402, label: "Music" },
+      { id: 9648, label: "Mystery" },
+      { id: 10749, label: "Romance" },
+      { id: 878, label: "Sci-fi" },
+      { id: 53, label: "Thriller" },
     ],
     []
   );
 
-  /* -------------------------------- search --------------------------------- */
+  /* ----------------------------------------------- */
+  /* 2) TMDb search                                  */
+  /* ----------------------------------------------- */
   useEffect(() => {
     let active = true;
     if (!query) {
@@ -120,7 +110,7 @@ export default function Onboarding() {
       .then((r) => r.json())
       .then((data) => {
         if (!active) return;
-        const all = (data.results || []).sort(
+        const all = (data?.results || []).sort(
           (a, b) =>
             (b.popularity || 0) - (a.popularity || 0) ||
             (b.vote_average || 0) - (a.vote_average || 0)
@@ -128,21 +118,23 @@ export default function Onboarding() {
         setResults(all);
         setShowAllResults(false);
       })
-      .catch(() => {
-        if (active) setResults([]);
-      });
+      .catch((e) => console.warn("TMDb search failed:", e));
 
     return () => {
       active = false;
     };
   }, [query, TMDB_KEY]);
 
-  /* ------------------------------ UI handlers ------------------------------ */
+  /* ----------------------------------------------- */
+  /* 3) UI helpers                                   */
+  /* ----------------------------------------------- */
   const toggleGenre = (id) =>
     setSelectedGenres((g) => (g.includes(id) ? g.filter((x) => x !== id) : [...g, id]));
 
   const handleAddMovie = (m) => {
-    setWatchlist((w) => (w.some((x) => x.id === m.id) ? w : [...w, m]));
+    if (!watchlist.some((x) => x.id === m.id)) {
+      setWatchlist((w) => [...w, m]);
+    }
     setQuery("");
     setResults([]);
     setShowAllResults(false);
@@ -151,135 +143,124 @@ export default function Onboarding() {
   const handleRemoveMovie = (id) =>
     setWatchlist((w) => w.filter((m) => m.id !== id));
 
-  /* --------------------------- save & finish flow -------------------------- */
-  async function saveAndGo(skipGenres = false, skipMovies = false) {
-    if (!session?.user) return;
+  /* ------------------------------------------------------------------ */
+  /* 4) Save + mark complete (writes both auth metadata & users table)  */
+  /* ------------------------------------------------------------------ */
+  async function saveAndFinish({ skipGenres = false, skipMovies = false } = {}) {
     setError("");
     setLoading(true);
-
     try {
-      const user_id = session.user.id;
-      const email = session.user.email;
-      const name = session.user.user_metadata?.name || "";
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not signed in.");
 
-      // Ensure users row exists
-      const { error: upErr } = await supabase
-        .from("users")
-        .upsert([{ id: user_id, email, name }], { onConflict: ["id"] });
-      if (upErr) throw upErr;
+      const user_id = user.id;
+      const email = user.email ?? null;
+      const name = user.user_metadata?.name ?? null;
+
+      // Ensure a row exists in public.users (RLS policies must allow this)
+      {
+        const { error } = await supabase
+          .from("users")
+          .upsert({ id: user_id, email, name }, { onConflict: "id" });
+        if (error) throw error;
+      }
 
       // Preferences
       if (!skipGenres) {
-        const { error: delPrefErr } = await supabase
-          .from("user_preferences")
-          .delete()
-          .eq("user_id", user_id);
-        if (delPrefErr) throw delPrefErr;
-
+        await supabase.from("user_preferences").delete().eq("user_id", user_id);
         if (selectedGenres.length) {
-          const { error: upPrefErr } = await supabase
+          const rows = selectedGenres.map((genre_id) => ({ user_id, genre_id }));
+          const { error } = await supabase
             .from("user_preferences")
-            .upsert(
-              selectedGenres.map((genre_id) => ({ user_id, genre_id })),
-              { onConflict: ["user_id", "genre_id"] }
-            );
-          if (upPrefErr) throw upPrefErr;
+            .upsert(rows, { onConflict: "user_id,genre_id" });
+          if (error) throw error;
         }
       }
 
-      // Movies
+      // Movies / watchlist
       if (!skipMovies && watchlist.length) {
-        // Upsert movie metadata & watched/watchlist in parallel
-        const upsertMovies = supabase
+        // Seed main movies table (idempotent)
+        const movieRows = watchlist.map((m) => ({
+          tmdb_id: m.id,
+          title: m.title,
+          poster_path: m.poster_path ?? null,
+          release_date: m.release_date ?? null,
+        }));
+        const { error: moviesErr } = await supabase
           .from("movies")
-          .upsert(
-            watchlist.map((m) => ({
-              tmdb_id: m.id,
-              title: m.title,
-              poster_path: m.poster_path,
-              release_date: m.release_date,
-            })),
-            { onConflict: ["tmdb_id"] }
-          );
+          .upsert(movieRows, { onConflict: "tmdb_id" });
+        if (moviesErr) throw moviesErr;
 
-        const upsertWatched = supabase
+        // Optional: your “watched” table
+        const watchedRows = watchlist.map((m) => ({
+          user_id,
+          movie_id: m.id,
+          title: m.title,
+          poster: m.poster_path ?? null,
+          release_date: m.release_date ?? null,
+          vote_average: m.vote_average ?? null,
+          genre_ids: m.genre_ids ?? null,
+        }));
+        const { error: watchedErr } = await supabase
           .from("movies_watched")
-          .upsert(
-            watchlist.map((m) => ({
-              user_id,
-              movie_id: m.id,
-              title: m.title,
-              poster: m.poster_path,
-              release_date: m.release_date,
-              vote_average: m.vote_average,
-              genre_ids: m.genre_ids || null,
-            })),
-            { onConflict: ["user_id", "movie_id"] }
-          );
+          .upsert(watchedRows, { onConflict: "user_id,movie_id" });
+        if (watchedErr) console.warn("movies_watched upsert warning:", watchedErr);
 
-        const clearWatchlist = supabase
+        // Clean + upsert onboarding watchlist
+        await supabase
           .from("user_watchlist")
           .delete()
           .eq("user_id", user_id)
           .eq("status", "onboarding");
 
-        const upsertWatchlist = supabase
+        const wlRows = watchlist.map((m) => ({
+          user_id,
+          movie_id: m.id,
+          status: "onboarding",
+        }));
+        const { error: wlErr } = await supabase
           .from("user_watchlist")
-          .upsert(
-            watchlist.map((m) => ({
-              user_id,
-              movie_id: m.id,
-              status: "onboarding",
-            })),
-            { onConflict: ["user_id", "movie_id"] }
-          );
-
-        const [{ error: e1 }, { error: e2 }, { error: e3 }, { error: e4 }] =
-          await Promise.all([upsertMovies, upsertWatched, clearWatchlist, upsertWatchlist]);
-        if (e1 || e2 || e3 || e4) throw e1 || e2 || e3 || e4;
+          .upsert(wlRows, { onConflict: "user_id,movie_id" });
+        if (wlErr) throw wlErr;
       }
 
-      // Mark onboarding complete (strict boolean both places)
-      const [{ error: dbErr }] = await Promise.all([
-        supabase
-          .from("users")
-          .update({
-            onboarding_complete: true,
-            onboarding_completed_at: new Date().toISOString(),
-          })
-          .eq("id", session.user.id),
-        supabase.auth.updateUser({ data: { onboarding_complete: true } }),
-      ]);
-      if (dbErr) throw dbErr;
+      // ✅ Belt + suspenders: updates auth metadata + users.onboarding_complete
+      await markOnboardingComplete();
 
       navigate("/home", { replace: true });
     } catch (e) {
       console.error("Onboarding save failed:", e);
-      setError("Could not save your preferences — please try again.");
+      setError(e?.message || "Could not save your preferences — please try again.");
     } finally {
       setLoading(false);
     }
   }
 
-  /* --------------------------------- view ---------------------------------- */
+  /* ----------------------------------------------- */
+  /* 5) Loader                                       */
+  /* ----------------------------------------------- */
   if (checking) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-black text-white font-bold text-lg tracking-wide">
-        Loading&nbsp;profile…
+      <div className="min-h-screen grid place-items-center bg-black text-white">
+        <div className="text-lg font-bold">Loading profile…</div>
       </div>
     );
   }
 
-  const small = typeof window !== "undefined" && window.innerWidth < 700;
-  const CARD_WIDTH = small ? "100vw" : "700px";
-  const CARD_MARGIN = small ? "11px" : "0 auto";
-  const genreFontSize = 12;
+  /* ----------------------------------------------- */
+  /* 6) UI                                           */
+  /* ----------------------------------------------- */
+  const CARD_WIDTH = typeof window !== "undefined" && window.innerWidth < 700 ? "100vw" : "700px";
+  const CARD_MARGIN =
+    typeof window !== "undefined" && window.innerWidth < 700 ? "11px" : "0 auto";
 
   return (
     <div
       className="min-h-screen w-screen flex flex-col items-stretch justify-stretch relative font-sans"
+      // Same family as your LandingHero so the transition feels smooth
       style={{
-        // Gentle gradient to match LandingHero
         background:
           "linear-gradient(120deg,#0a121a 0%,#0d1722 50%,#0c1017 100%)",
       }}
@@ -296,6 +277,7 @@ export default function Onboarding() {
         </span>
       </div>
 
+      {/* Card */}
       <div
         className="self-center flex flex-col"
         style={{
@@ -317,14 +299,14 @@ export default function Onboarding() {
           </div>
         )}
 
-        {/* ------------------------------ Step 1 ------------------------------ */}
+        {/* ---------- STEP 1: GENRES ---------- */}
         {step === 1 && (
           <>
             <h2 className="text-2xl font-extrabold text-white text-center mb-1 tracking-tight">
               Let’s get to know your taste.
             </h2>
             <div className="text-[13px] font-normal text-[#e9e9ef] text-center mb-2 mt-1 tracking-tight">
-              Pick a few genres you love — it helps us recommend movies that truly match your energy.
+              Pick a few genres you love — it helps us recommend movies that match your energy.
             </div>
 
             <div className="grid grid-cols-4 gap-2 w-full mx-auto mb-3 justify-items-center items-center">
@@ -332,12 +314,12 @@ export default function Onboarding() {
                 <button
                   key={g.id}
                   type="button"
-                  className={`w-[120px] h-[34px] rounded-xl border text-white font-medium text-[${genreFontSize}px] text-center transition-all duration-150 ${
+                  className={`w-[120px] h-[34px] rounded-xl border text-white font-medium transition-all duration-150 ${
                     selectedGenres.includes(g.id) ? "shadow-md" : ""
                   }`}
                   style={{
                     margin: "3px 0",
-                    border: OUTLINE,
+                    border: "1.1px solid #fe9245",
                     background: selectedGenres.includes(g.id)
                       ? GENRE_SELECTED_BG
                       : "transparent",
@@ -346,6 +328,7 @@ export default function Onboarding() {
                       : "none",
                     outline: "none",
                     padding: "3.5px 0",
+                    fontSize: 12,
                   }}
                   onClick={() => toggleGenre(g.id)}
                 >
@@ -372,9 +355,9 @@ export default function Onboarding() {
                 Next
               </button>
               <button
-                className="bg-none text-[#fe9245] font-extrabold text-[13.5px] border-none cursor-pointer min-w-[44px]"
+                className="bg-none text-[#fe9245] font-extrabold text-[13.5px]"
                 disabled={loading}
-                onClick={() => saveAndGo(true, false)}
+                onClick={() => saveAndFinish({ skipGenres: true })}
               >
                 Skip
               </button>
@@ -382,7 +365,7 @@ export default function Onboarding() {
           </>
         )}
 
-        {/* ------------------------------ Step 2 ------------------------------ */}
+        {/* ---------- STEP 2: MOVIES ---------- */}
         {step === 2 && (
           <>
             <h2 className="text-2xl font-extrabold text-white text-center mb-1 tracking-tight">
@@ -417,15 +400,14 @@ export default function Onboarding() {
                       alt={r.title}
                       className="w-[27px] h-[40px] object-cover rounded-[5px] mr-0.5 mb-0.5 bg-[#101012]"
                     />
-                    <span className="text-white font-semibold text-[13px] flex flex-col">
-                      {r.title}
-                      <span className="text-[#eee] font-normal text-[12px]">
+                    <span className="text-white font-semibold text-[13px]">
+                      {r.title}{" "}
+                      <span className="text-[#eee] font-normal text-[13px] ml-1.5">
                         {r.release_date ? `(${r.release_date.slice(0, 4)})` : ""}
                       </span>
                     </span>
                   </div>
                 ))}
-
                 {!showAllResults && results.length > 3 && (
                   <div
                     className="text-center py-1 text-[#fe9245] font-semibold text-[14px] cursor-pointer select-none"
@@ -475,13 +457,12 @@ export default function Onboarding() {
 
             <div className="flex justify-center mt-2 gap-4">
               <button
-                className="px-3 py-1.5 rounded-md font-extrabold text-xs text-[#fe9245] bg-none border-none mr-2 cursor-pointer"
+                className="px-3 py-1.5 rounded-md font-extrabold text-xs text-[#fe9245] bg-none"
                 disabled={loading}
                 onClick={() => setStep(1)}
               >
                 &lt; Back
               </button>
-
               <button
                 className="px-6 py-2 rounded-xl font-extrabold text-[15px] text-white"
                 style={{
@@ -491,15 +472,14 @@ export default function Onboarding() {
                   minWidth: 65,
                 }}
                 disabled={loading}
-                onClick={() => saveAndGo(false, false)}
+                onClick={() => saveAndFinish({ skipGenres: false, skipMovies: false })}
               >
                 Finish
               </button>
-
               <button
-                className="bg-none text-[#fe9245] font-extrabold text-xs border-none cursor-pointer min-w-[44px]"
+                className="bg-none text-[#fe9245] font-extrabold text-xs"
                 disabled={loading}
-                onClick={() => saveAndGo(false, true)}
+                onClick={() => saveAndFinish({ skipGenres: false, skipMovies: true })}
               >
                 Skip
               </button>

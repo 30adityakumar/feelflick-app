@@ -8,10 +8,9 @@ export default function LandingHero({ embedded = false }) {
       className="relative h-full overflow-hidden"
       style={embedded ? undefined : { marginTop: 'var(--topnav-h, var(--nav-h, 72px))' }}
     >
-      {/* optional collage */}
       <div className="feelflick-landing-bg" aria-hidden="true" />
 
-      {/* background */}
+      {/* Background */}
       <div aria-hidden className="absolute inset-0 -z-10">
         <div className="absolute inset-0 bg-[linear-gradient(120deg,#0a121a_0%,#0d1722_50%,#0c1017_100%)]" />
         <div className="pointer-events-none absolute -top-40 -left-40 h-[65vmin] w-[65vmin] rounded-full blur-3xl opacity-60 bg-[radial-gradient(closest-side,rgba(254,146,69,0.45),rgba(254,146,69,0)_70%)]" />
@@ -25,7 +24,7 @@ export default function LandingHero({ embedded = false }) {
         <div className="absolute inset-0 bg-[radial-gradient(100%_80%_at_50%_0%,rgba(255,255,255,0.06),rgba(255,255,255,0)_60%)]" />
       </div>
 
-      {/* content */}
+      {/* Content */}
       <div className="relative z-10 mx-auto h-full w-full max-w-7xl px-3 md:px-6" style={{ ['--nav-h']: '72px' }}>
         <div
           className="
@@ -39,20 +38,21 @@ export default function LandingHero({ embedded = false }) {
               : { height: 'calc(100svh - var(--topnav-h, var(--nav-h,72px)) - var(--footer-h,0px))' }
           }
         >
-          {/* Posters — top on mobile, right on desktop; pad right 6 */}
+          {/* Posters — pad right 6 on desktop */}
           <div className="order-1 md:order-2 md:col-start-2 w-full flex justify-center md:justify-start md:pr-6">
             <MovieStack />
           </div>
 
-          {/* Copy — bottom on mobile, left on desktop; pad left 6 */}
+          {/* Copy — pad left 6 on desktop */}
           <div className="order-2 md:order-1 md:col-start-1 mx-auto w-full max-w-3xl md:max-w-[620px] text-center md:text-left md:pl-6">
             <h1 className="text-balance text-[clamp(1.9rem,6vw,3.7rem)] font-black leading-[1.05] tracking-tight text-white">
               Movies that match your <span className="text-brand-100">mood</span>
             </h1>
 
-            {/* 1) Subheading: keep only the single sentence + smaller font */}
+            {/* Combined subheadline (smaller) */}
             <p className="mx-auto md:mx-0 mt-2 max-w-xl text-[clamp(.8rem,1.5vw,.95rem)] leading-relaxed text-white/85">
-              Get the perfect movie recommendation based on your taste and how you feel.
+              Get the perfect movie recommendation based on your taste and how you feel — fast,
+              private, and always free.
             </p>
 
             <div className="mt-4 flex justify-center md:justify-start">
@@ -63,11 +63,6 @@ export default function LandingHero({ embedded = false }) {
                 Get started
               </Link>
             </div>
-
-            {/* 2) Tagline under button; narrow, never wider than button */}
-            <p className="mt-2 mx-auto md:mx-0 max-w-fit text-[11px] leading-none text-white/60">
-              Fast · Private · Free
-            </p>
           </div>
         </div>
       </div>

@@ -47,7 +47,7 @@ function MicroFooter() {
 function FooterTextLink({ to, children }) {
   const isExternal = to.startsWith('http')
   const cls =
-    'underline-offset-2 hover:underline text-white/75 hover:text-white focus:outline-none focus:ring-2 focus:ring-brand/60 rounded'
+    'underline-offset-2 hover:underline text-white/50 hover:text-white focus:outline-none focus:ring-2 focus:ring-brand/60 rounded'
   return isExternal ? (
     <a href={to} target="_blank" rel="noopener noreferrer" className={cls}>
       {children}

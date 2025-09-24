@@ -1,4 +1,5 @@
 // src/features/landing/components/Footer.jsx
+import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 
 export default function Footer() {
@@ -8,9 +9,28 @@ export default function Footer() {
 /* --------------------------- MICRO ONLY --------------------------- */
 function MicroFooter() {
   const year = new Date().getFullYear()
+  const barRef = useRef(null)
+
+  // Keep Hero perfectly centered by exposing --footer-h (actual px)
+  useEffect(() => {
+    const setVar = () => {
+      const h = barRef.current?.offsetHeight || 56
+      document.documentElement.style.setProperty('--footer-h', `${h}px`)
+    }
+    setVar()
+    const ro = new ResizeObserver(setVar)
+    if (barRef.current) ro.observe(barRef.current)
+    return () => ro.disconnect()
+  }, [])
+
   return (
-    <footer className="relative mt-0 border-t border-white/10 bg-transparent">
-      <div className="mx-auto max-w-7xl px-4 py-4 md:px-6">
+    <footer
+      ref={barRef}
+      // Fixed to the bottom; transparent so it blends with the hero bg.
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-transparent"
+    >
+      {/* Tight vertical padding → no visual gap under the footer */}
+      <div className="mx-auto max-w-7xl px-4 py-3 md:px-6">
         <div className="flex items-center justify-between gap-3">
           {/* Left: text (uniform size) */}
           <div className="text-[13px] text-white/65">

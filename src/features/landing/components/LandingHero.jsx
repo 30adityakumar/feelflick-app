@@ -56,7 +56,7 @@ export default function LandingHero({ embedded = false }) {
               Movies that match your <span className="text-brand-100">mood</span>
             </h1>
 
-            <p className="mx-auto md:mx-0 mt-3 max-w-xl text-[clamp(.95rem,2.3vw,1.08rem)] leading-relaxed text-white/85">
+            <p className="mx-auto md:mx-0 mt-3 max-w-xl text-[clamp(.85rem,1.8vw,0.98rem)] leading-relaxed text-white/85">
               Get the perfect movie recommendation based on your taste and how you feel — fast,
               private, and always free.
             </p>

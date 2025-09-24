@@ -31,7 +31,7 @@ function MicroFooter() {
       {/* ultra-tight padding, centered content */}
       <div className="mx-auto max-w-7xl px-2 py-1 md:px-3">
         <div className="flex items-center justify-center">
-          <div className="text-[11px] md:text-[12px] leading-5 text-white/65 text-center">
+          <div className="text-[11px] md:text-[12px] leading-5 text-white/50 text-center">
             © {year} FeelFlick ·{' '}
             <FooterTextLink to="/about">About</FooterTextLink>{' · '}
             <FooterTextLink to="/privacy">Privacy</FooterTextLink>{' · '}

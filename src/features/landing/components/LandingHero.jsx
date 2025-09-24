@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom'
 export default function LandingHero({ embedded = false }) {
   return (
     <section
-      className="relative overflow-hidden"
+      className={`relative overflow-hidden ${embedded ? 'h-full' : ''}`}
       style={embedded ? undefined : { marginTop: 'var(--topnav-h, var(--nav-h, 72px))' }}
     >
       {/* Optional collage layer */}
@@ -36,9 +36,12 @@ export default function LandingHero({ embedded = false }) {
       />
 
       {/* Content + Stack */}
-      <div className="relative z-10 mx-auto max-w-7xl px-4 md:px-6" style={{ ['--nav-h']: '72px' }}>
+      <div
+        className={`relative z-10 mx-auto max-w-7xl px-4 md:px-6 ${embedded ? 'h-full' : ''}`}
+        style={{ ['--nav-h']: '72px' }}
+      >
         <div
-          className={`grid items-center gap-8 md:grid-cols-12 ${embedded ? 'py-6 sm:py-8' : 'py-6 sm:py-8'}`}
+          className={`grid items-center gap-8 md:grid-cols-12 ${embedded ? 'h-full py-6 sm:py-8' : 'py-6 sm:py-8'}`}
           style={
             embedded
               ? undefined

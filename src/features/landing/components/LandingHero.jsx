@@ -2,13 +2,23 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
+/* ------------------------------------------------------------- */
+/* Brand tokens (logo-inspired)                                  */
+/* ------------------------------------------------------------- */
+const BRAND = {
+  orange: '#fe9245',
+  red:    '#eb423b',
+  blue:   '#2D77FF',
+  cyan:   '#00D1FF',
+}
+
 export default function LandingHero({ embedded = false }) {
   return (
     <section
       className="relative h-full overflow-hidden"
       style={embedded ? undefined : { marginTop: 'var(--topnav-h, var(--nav-h, 72px))' }}
     >
-      <div className="feelflick-landing-bg" aria-hidden="true" />
+      <div className="feelflick-landing-bg" aria-hidden />
 
       {/* Background */}
       <div aria-hidden className="absolute inset-0 -z-10">
@@ -111,35 +121,38 @@ function MovieStack() {
         title={items[2]?.title}
         src={items[2]?.poster_path ? `${imgBase}${items[2].poster_path}` : null}
         className="absolute left-1/2 top-1/2 w-[34%] -translate-x-[106%] -translate-y-[60%] rotate-[-16deg] opacity-95"
-        badges={[
-          { variant: 'star', pos: 'tr', overlap: 'half' },
-        ]}
-      />
+      >
+        {/* keep inside for distant cards */}
+        <BrandBadge variant="heart" placement="inside" className="left-2 top-2" ariaLabel="Like" />
+      </PosterCard>
+
       {/* Middle card */}
       <PosterCard
         title={items[1]?.title}
         src={items[1]?.poster_path ? `${imgBase}${items[1].poster_path}` : null}
         className="absolute left-1/2 top-1/2 w-[38%] translate-x-[8%] -translate-y-[58%] rotate-[13deg] opacity-95"
-        badges={[
-          { variant: 'heart', pos: 'tl', overlap: 'half' },
-        ]}
-      />
-      {/* Front card */}
+      >
+        <BrandBadge variant="bookmark" placement="inside" className="right-2 bottom-2" ariaLabel="Watchlist" />
+      </PosterCard>
+
+      {/* Front/primary card */}
       <PosterCard
         title={items[0]?.title}
         src={items[0]?.poster_path ? `${imgBase}${items[0].poster_path}` : null}
         className="absolute left-1/2 top-1/2 w-[46%] -translate-x-[42%] -translate-y-[50%] rotate-[-5deg] shadow-2xl"
         glow
-        badges={[
-          { variant: 'bookmark', pos: 'br', overlap: 'half' },
-        ]}
-      />
+      >
+        {/* half-outside edge placements */}
+        <BrandBadge variant="heart"     placement="edge" className="-left-3 top-4" ariaLabel="Like" />
+        <BrandBadge variant="star"      placement="edge" className="-right-3 top-3" ariaLabel="Top" />
+        <BrandBadge variant="bookmark"  placement="edge" className="-right-3 bottom-4" ariaLabel="Watchlist" />
+      </PosterCard>
     </div>
   )
 }
 
 /* --------------------------- PosterCard --------------------------- */
-function PosterCard({ src, title, className = '', glow = false, badges = [] }) {
+function PosterCard({ src, title, className = '', glow = false, children }) {
   return (
     <div
       className={`group relative rounded-3xl overflow-hidden ring-1 ring-white/10 bg-white/5 backdrop-blur-sm ${className}`}
@@ -158,91 +171,80 @@ function PosterCard({ src, title, className = '', glow = false, badges = [] }) {
         <div className="h-full w-full bg-[linear-gradient(135deg,#111827_0%,#0b1220_100%)]" />
       )}
 
-      {/* subtle bottom fade for text legibility (if used later) */}
+      {/* gradient subtle footer */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/60 to-transparent" />
 
-      {/* Brand badges anchored to the card */}
-      {badges.map((b, i) => (
-        <BadgeAnchor key={i} pos={b.pos} overlap={b.overlap}>
-          <BrandBadge variant={b.variant} />
-        </BadgeAnchor>
-      ))}
+      {/* in-card overlay area for badges */}
+      <div className="pointer-events-none absolute inset-0">
+        {/* children can add pointer events if needed */}
+        <div className="pointer-events-auto relative h-full w-full">{children}</div>
+      </div>
     </div>
   )
 }
 
-/* --------------------------- Badge system --------------------------- */
-/** Puts a badge inside the card or half outside it (never fully outside). */
-function BadgeAnchor({ pos = 'tr', overlap = 'in', children }) {
-  // base corners
-  const corner =
-    pos === 'tl' ? 'top-2 left-2 md:top-3 md:left-3'
-    : pos === 'tr' ? 'top-2 right-2 md:top-3 md:right-3'
-    : pos === 'bl' ? 'bottom-2 left-2 md:bottom-3 md:left-3'
-    : /* br */       'bottom-2 right-2 md:bottom-3 md:right-3'
+/* --------------------------- BrandBadge --------------------------- */
+function BrandBadge({ variant = 'heart', placement = 'edge', className = '', ariaLabel }) {
+  // ring uses only brand colors
+  const ring = `conic-gradient(from 180deg at 50% 50%, ${BRAND.orange}, ${BRAND.red}, ${BRAND.blue}, ${BRAND.cyan}, ${BRAND.orange})`
 
-  // half-overlap translates (move the badge by ~50% outside on both axes)
-  const half =
-    pos === 'tl' ? '-translate-x-1/2 -translate-y-1/2'
-    : pos === 'tr' ? 'translate-x-1/2 -translate-y-1/2'
-    : pos === 'bl' ? '-translate-x-1/2 translate-y-1/2'
-    : /* br */       'translate-x-1/2 translate-y-1/2'
+  // inner gradient per variant (brand-only)
+  const innerBg =
+    variant === 'bookmark'
+      ? `linear-gradient(135deg, ${BRAND.blue}, ${BRAND.cyan})`
+      : variant === 'star'
+      ? `linear-gradient(135deg, ${BRAND.orange}, ${BRAND.red})`
+      : `linear-gradient(135deg, ${BRAND.orange}, ${BRAND.red})` // heart
+
+  // edge = half outside; inside = fully in-card
+  const edgeShift = placement === 'edge' ? 'translate-y-0' : ''
+  const edgeX =
+    placement === 'edge'
+      ? (className.includes('left') ? '-translate-x-1/2' : className.includes('right') ? 'translate-x-1/2' : '')
+      : ''
 
   return (
     <div
-      className={[
-        'absolute',
-        corner,
-        overlap === 'half' ? half : '',
-        'drop-shadow-[0_10px_30px_rgba(0,0,0,.35)]',
-      ].join(' ')}
+      aria-label={ariaLabel}
+      className={`absolute ${className} ${edgeShift} ${edgeX} h-8 w-8 md:h-9 md:w-9 rounded-full p-[2px] shadow-[0_10px_30px_rgba(0,0,0,.35)]`}
+      style={{ background: ring }}
     >
-      {children}
-    </div>
-  )
-}
-
-/** Brand-colored badge (heart/star/bookmark) inspired by your logo palette. */
-function BrandBadge({ variant = 'heart', size = 'md' }) {
-  const ring = 'conic-gradient(from 180deg at 50% 50%, #fe9245, #eb423b, #2D77FF, #00D1FF, #fe9245)'
-  const dims = size === 'sm' ? 'h-8 w-8' : 'h-9 w-9'
-  const innerBg =
-    variant === 'bookmark'
-      ? 'radial-gradient(60% 60% at 35% 30%, rgba(255,255,255,.22) 0%, rgba(255,255,255,0) 60%), linear-gradient(135deg,#2D77FF,#00D1FF)'
-      : /* heart & star stick to orange/coral brand */
-        'radial-gradient(60% 60% at 35% 30%, rgba(255,255,255,.22) 0%, rgba(255,255,255,0) 60%), linear-gradient(135deg,#fe9245,#eb423b)'
-
-  return (
-    <div className={`relative ${dims} rounded-full p-[2px]`} style={{ background: ring }}>
       <div
         className="relative grid h-full w-full place-items-center rounded-full text-white backdrop-blur-[2px]"
-        style={{ background: innerBg }}
+        style={{
+          background: `
+            radial-gradient(60% 60% at 35% 30%, rgba(255,255,255,.22) 0%, rgba(255,255,255,0) 60%),
+            ${innerBg}
+          `,
+        }}
       >
-        <div className="pointer-events-none absolute inset-0 rounded-full bg-[radial-gradient(55%_40%_at_35%_28%,rgba(255,255,255,.28),rgba(255,255,255,0)_70%)]" />
         {variant === 'star' ? <IconStar /> : variant === 'bookmark' ? <IconBookmark /> : <IconHeart />}
       </div>
     </div>
   )
 }
 
-/* --------------------------- Inline icons --------------------------- */
+/* --------------------------- Icons --------------------------- */
 function IconHeart() {
   return (
-    <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden>
-      <path d="M12 21s-7-4.35-9.33-8.09A5.5 5.5 0 0 1 12 6.2a5.5 5.5 0 0 1 9.33 6.71C19 16.65 12 21 12 21Z" fill="currentColor" />
+    <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden>
+      <path
+        d="M12 21s-7-4.35-9.33-8.09A5.5 5.5 0 0 1 12 6.2a5.5 5.5 0 0 1 9.33 6.71C19 16.65 12 21 12 21Z"
+        fill="currentColor"
+      />
     </svg>
   )
 }
 function IconStar() {
   return (
-    <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden>
+    <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden>
       <path d="m12 2 2.7 6.2 6.8.6-5.1 4.4 1.6 6.8-6-3.5-6 3.5 1.6-6.8-5.1-4.4 6.8-.6L12 2Z" fill="currentColor" />
     </svg>
   )
 }
 function IconBookmark() {
   return (
-    <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden>
+    <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden>
       <path d="M6 2h12a1 1 0 0 1 1 1v18l-7-4-7 4V3a1 1 0 0 1 1-1Z" fill="currentColor" />
     </svg>
   )

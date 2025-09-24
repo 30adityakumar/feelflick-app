@@ -5,12 +5,12 @@ import { Link } from 'react-router-dom'
 export default function LandingHero({ embedded = false }) {
   return (
     <section
-      className="relative overflow-hidden"
+      className="relative h-full overflow-hidden"
       style={embedded ? undefined : { marginTop: 'var(--topnav-h, var(--nav-h, 72px))' }}
     >
       <div className="feelflick-landing-bg" aria-hidden="true" />
 
-      {/* Logo-inspired ambient bg */}
+      {/* Background */}
       <div aria-hidden className="absolute inset-0 -z-10">
         <div className="absolute inset-0 bg-[linear-gradient(120deg,#0a121a_0%,#0d1722_50%,#0c1017_100%)]" />
         <div className="pointer-events-none absolute -top-40 -left-40 h-[65vmin] w-[65vmin] rounded-full blur-3xl opacity-60 bg-[radial-gradient(closest-side,rgba(254,146,69,0.45),rgba(254,146,69,0)_70%)]" />
@@ -24,38 +24,37 @@ export default function LandingHero({ embedded = false }) {
         <div className="absolute inset-0 bg-[radial-gradient(100%_80%_at_50%_0%,rgba(255,255,255,0.06),rgba(255,255,255,0)_60%)]" />
       </div>
 
-      {/* Soft radial highlight */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 -z-0 opacity-60"
-        style={{
-          background:
-            'radial-gradient(700px 300px at 20% 15%, rgba(254,146,69,.25) 0%, transparent 60%)',
-        }}
-      />
-
-      {/* Content + Posters */}
-      <div className="relative z-10 mx-auto max-w-7xl px-4 md:px-6" style={{ ['--nav-h']: '72px' }}>
+      {/* Content */}
+      <div className="relative z-10 mx-auto h-full w-full max-w-7xl px-3 md:px-6" style={{ ['--nav-h']: '72px' }}>
         <div
-          className={`grid min-h-[calc(100svh-var(--topnav-h,72px)-var(--footer-h,0px))] place-items-center md:grid-cols-12 gap-y-6 md:gap-y-0 gap-x-6 md:gap-x-8`}
+          className="
+            grid h-full place-content-center place-items-center
+            gap-y-6 md:gap-y-0 md:gap-x-6
+            md:[grid-template-columns:max-content_minmax(0,560px)]
+          "
+          style={
+            embedded
+              ? undefined
+              : { height: 'calc(100svh - var(--topnav-h, var(--nav-h,72px)) - var(--footer-h,0px))' }
+          }
         >
-          {/* Posters — right on desktop, top on mobile */}
-          <div className="order-1 md:order-2 md:col-span-6 w-full flex justify-center md:justify-end pr-6">
+          {/* Posters — pad right 6 on desktop */}
+          <div className="order-1 md:order-2 md:col-start-2 w-full flex justify-center md:justify-start md:pr-6">
             <MovieStack />
           </div>
 
-          {/* Copy — left on desktop, bottom on mobile */}
-          <div className="order-2 md:order-1 md:col-span-6 w-full md:max-w-xl text-center md:text-left pl-6">
-            <h1 className="text-balance text-[clamp(1.85rem,6vw,3.5rem)] font-black leading-[1.05] tracking-tight text-white">
+          {/* Copy — pad left 6 on desktop */}
+          <div className="order-2 md:order-1 md:col-start-1 mx-auto w-full max-w-3xl md:max-w-[620px] text-center md:text-left md:pl-6">
+            <h1 className="text-balance text-[clamp(1.9rem,6vw,3.7rem)] font-black leading-[1.05] tracking-tight text-white">
               Movies that match your <span className="text-brand-100">mood</span>
             </h1>
 
-            <p className="mx-auto md:mx-0 mt-3 max-w-xl text-[clamp(.9rem,1.7vw,.98rem)] leading-relaxed text-white/85">
+            <p className="mx-auto md:mx-0 mt-2 max-w-xl text-[clamp(.8rem,1.5vw,.95rem)] leading-relaxed text-white/85">
               Get the perfect movie recommendation based on your taste and how you feel — fast,
               private, and always free.
             </p>
 
-            <div className="mt-6 flex justify-center md:justify-start">
+            <div className="mt-4 flex justify-center md:justify-start">
               <Link
                 to="/auth/sign-up"
                 className="inline-flex h-11 items-center justify-center rounded-full px-8 sm:px-9 text-[0.95rem] font-semibold text-white shadow-lift transition-transform hover:scale-[1.02] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 active:scale-[.98] bg-gradient-to-r from-[#fe9245] to-[#eb423b]"
@@ -71,7 +70,6 @@ export default function LandingHero({ embedded = false }) {
 }
 
 /* --------------------------- MovieStack --------------------------- */
-
 function MovieStack() {
   const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY
   const [items, setItems] = useState([])
@@ -91,9 +89,7 @@ function MovieStack() {
     async function load() {
       try {
         if (!TMDB_KEY) return setItems(fallbacks)
-        const r = await fetch(
-          `https://api.themoviedb.org/3/trending/movie/week?api_key=${TMDB_KEY}`
-        )
+        const r = await fetch(`https://api.themoviedb.org/3/trending/movie/week?api_key=${TMDB_KEY}`)
         const j = await r.json()
         const top = (j?.results || [])
           .filter(m => m.poster_path)
@@ -109,50 +105,44 @@ function MovieStack() {
   }, [TMDB_KEY, fallbacks])
 
   return (
-    <div
-      className="relative w-[min(90vw,460px)] md:w-[460px] aspect-[5/4] md:aspect-[4/3] select-none"
-      aria-hidden
-    >
-      {/* Back card — peek more on the left */}
+    <div className="relative w-[min(86vw,480px)] md:w-[500px] aspect-[5/4] md:aspect-[4/3] select-none" aria-hidden>
+      {/* Back card */}
       <PosterCard
         title={items[2]?.title}
         src={items[2]?.poster_path ? `${imgBase}${items[2].poster_path}` : null}
-        className="absolute left-1/2 top-1/2 w-[34%] -translate-x-[115%] -translate-y-[60%] rotate-[-15deg] opacity-[.98]"
+        className="absolute left-1/2 top-1/2 w-[34%] -translate-x-[106%] -translate-y-[60%] rotate-[-16deg] opacity-95"
+        badges={[
+          { variant: 'star', pos: 'tr', overlap: 'half' },
+        ]}
       />
-
-      {/* Middle card — peek more on the right */}
+      {/* Middle card */}
       <PosterCard
         title={items[1]?.title}
         src={items[1]?.poster_path ? `${imgBase}${items[1].poster_path}` : null}
-        className="absolute left-1/2 top-1/2 w-[38%] translate-x-[22%] -translate-y-[58%] rotate-[12deg] opacity-[.98]"
+        className="absolute left-1/2 top-1/2 w-[38%] translate-x-[8%] -translate-y-[58%] rotate-[13deg] opacity-95"
+        badges={[
+          { variant: 'heart', pos: 'tl', overlap: 'half' },
+        ]}
       />
-
       {/* Front card */}
       <PosterCard
         title={items[0]?.title}
         src={items[0]?.poster_path ? `${imgBase}${items[0].poster_path}` : null}
-        className="absolute left-1/2 top-1/2 w-[48%] -translate-x-[42%] -translate-y-[50%] rotate-[-5deg] shadow-2xl"
+        className="absolute left-1/2 top-1/2 w-[46%] -translate-x-[42%] -translate-y-[50%] rotate-[-5deg] shadow-2xl"
         glow
+        badges={[
+          { variant: 'bookmark', pos: 'br', overlap: 'half' },
+        ]}
       />
-
-      {/* Badges */}
-      <div className="absolute -left-1 top-[22%] hidden md:block">
-        <FancyBadge variant="heart" />
-      </div>
-      <div className="absolute right-[1%] top-[16%] hidden md:block">
-        <FancyBadge variant="star" />
-      </div>
-      <div className="absolute right-[8%] bottom-[9%] hidden md:block">
-        <FancyBadge variant="bookmark" />
-      </div>
     </div>
   )
 }
 
-function PosterCard({ src, title, className = '', glow = false }) {
+/* --------------------------- PosterCard --------------------------- */
+function PosterCard({ src, title, className = '', glow = false, badges = [] }) {
   return (
     <div
-      className={`group rounded-3xl overflow-hidden ring-1 ring-white/10 bg-white/5 backdrop-blur-sm ${className}`}
+      className={`group relative rounded-3xl overflow-hidden ring-1 ring-white/10 bg-white/5 backdrop-blur-sm ${className}`}
       style={{ boxShadow: glow ? '0 30px 70px rgba(0,0,0,.45)' : undefined }}
       title={title || 'Movie poster'}
     >
@@ -167,33 +157,75 @@ function PosterCard({ src, title, className = '', glow = false }) {
       ) : (
         <div className="h-full w-full bg-[linear-gradient(135deg,#111827_0%,#0b1220_100%)]" />
       )}
+
+      {/* subtle bottom fade for text legibility (if used later) */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/60 to-transparent" />
+
+      {/* Brand badges anchored to the card */}
+      {badges.map((b, i) => (
+        <BadgeAnchor key={i} pos={b.pos} overlap={b.overlap}>
+          <BrandBadge variant={b.variant} />
+        </BadgeAnchor>
+      ))}
     </div>
   )
 }
 
-/* --------------------------- Fancy badges --------------------------- */
+/* --------------------------- Badge system --------------------------- */
+/** Puts a badge inside the card or half outside it (never fully outside). */
+function BadgeAnchor({ pos = 'tr', overlap = 'in', children }) {
+  // base corners
+  const corner =
+    pos === 'tl' ? 'top-2 left-2 md:top-3 md:left-3'
+    : pos === 'tr' ? 'top-2 right-2 md:top-3 md:right-3'
+    : pos === 'bl' ? 'bottom-2 left-2 md:bottom-3 md:left-3'
+    : /* br */       'bottom-2 right-2 md:bottom-3 md:right-3'
 
-function FancyBadge({ variant = 'heart' }) {
-  const ring =
-    'conic-gradient(from 180deg at 50% 50%, #fe9245, #eb423b, #2D77FF, #00D1FF, #fe9245)'
-  const innerBg =
-    variant === 'star'
-      ? 'radial-gradient(60% 60% at 35% 30%, rgba(255,255,255,.22) 0%, rgba(255,255,255,0) 60%), linear-gradient(140deg,#20c997,#198754)'
-      : variant === 'bookmark'
-      ? 'radial-gradient(60% 60% at 35% 30%, rgba(255,255,255,.22) 0%, rgba(255,255,255,0) 60%), linear-gradient(135deg,#2D77FF,#00D1FF)'
-      : 'radial-gradient(60% 60% at 35% 30%, rgba(255,255,255,.22) 0%, rgba(255,255,255,0) 60%), linear-gradient(135deg,#fe9245,#eb423b)'
+  // half-overlap translates (move the badge by ~50% outside on both axes)
+  const half =
+    pos === 'tl' ? '-translate-x-1/2 -translate-y-1/2'
+    : pos === 'tr' ? 'translate-x-1/2 -translate-y-1/2'
+    : pos === 'bl' ? '-translate-x-1/2 translate-y-1/2'
+    : /* br */       'translate-x-1/2 translate-y-1/2'
 
   return (
-    <div className="relative h-9 w-9 rounded-full p-[2px] shadow-[0_10px_30px_rgba(0,0,0,.35)]" style={{ background: ring }}>
-      <div className="relative grid h-full w-full place-items-center rounded-full text-white backdrop-blur-[2px]" style={{ background: innerBg }}>
-        <div className="pointer-events-none absolute inset-0 rounded-full bg-[radial-gradient(55%_40%_at_35%_28%,rgba(255,255,255,.35),rgba(255,255,255,0)_70%)]" />
+    <div
+      className={[
+        'absolute',
+        corner,
+        overlap === 'half' ? half : '',
+        'drop-shadow-[0_10px_30px_rgba(0,0,0,.35)]',
+      ].join(' ')}
+    >
+      {children}
+    </div>
+  )
+}
+
+/** Brand-colored badge (heart/star/bookmark) inspired by your logo palette. */
+function BrandBadge({ variant = 'heart', size = 'md' }) {
+  const ring = 'conic-gradient(from 180deg at 50% 50%, #fe9245, #eb423b, #2D77FF, #00D1FF, #fe9245)'
+  const dims = size === 'sm' ? 'h-8 w-8' : 'h-9 w-9'
+  const innerBg =
+    variant === 'bookmark'
+      ? 'radial-gradient(60% 60% at 35% 30%, rgba(255,255,255,.22) 0%, rgba(255,255,255,0) 60%), linear-gradient(135deg,#2D77FF,#00D1FF)'
+      : /* heart & star stick to orange/coral brand */
+        'radial-gradient(60% 60% at 35% 30%, rgba(255,255,255,.22) 0%, rgba(255,255,255,0) 60%), linear-gradient(135deg,#fe9245,#eb423b)'
+
+  return (
+    <div className={`relative ${dims} rounded-full p-[2px]`} style={{ background: ring }}>
+      <div
+        className="relative grid h-full w-full place-items-center rounded-full text-white backdrop-blur-[2px]"
+        style={{ background: innerBg }}
+      >
+        <div className="pointer-events-none absolute inset-0 rounded-full bg-[radial-gradient(55%_40%_at_35%_28%,rgba(255,255,255,.28),rgba(255,255,255,0)_70%)]" />
         {variant === 'star' ? <IconStar /> : variant === 'bookmark' ? <IconBookmark /> : <IconHeart />}
       </div>
     </div>
   )
 }
 
+/* --------------------------- Inline icons --------------------------- */
 function IconHeart() {
   return (
     <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden>

@@ -6,15 +6,15 @@ export default function Footer() {
   return <MicroFooter />
 }
 
-/* --------------------------- MICRO ONLY --------------------------- */
+/* --------------------------- MICRO ONLY (smaller) --------------------------- */
 function MicroFooter() {
   const year = new Date().getFullYear()
   const barRef = useRef(null)
 
-  // Keep Hero perfectly centered by exposing --footer-h (actual px)
+  // Expose actual footer height to layout (keeps hero perfectly centered)
   useEffect(() => {
     const setVar = () => {
-      const h = barRef.current?.offsetHeight || 56
+      const h = barRef.current?.offsetHeight || 44
       document.documentElement.style.setProperty('--footer-h', `${h}px`)
     }
     setVar()
@@ -26,33 +26,34 @@ function MicroFooter() {
   return (
     <footer
       ref={barRef}
-      // Fixed to the bottom; transparent so it blends with the hero bg.
       className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-transparent"
     >
-      {/* Tight vertical padding → no visual gap under the footer */}
-      <div className="mx-auto max-w-7xl px-4 py-3 md:px-6">
-        <div className="flex items-center justify-between gap-3">
-          {/* Left: text (uniform size) */}
-          <div className="text-[13px] text-white/65">
+      {/* tighter vertical rhythm */}
+      <div className="mx-auto max-w-7xl px-3 py-2 md:px-5">
+        <div className="flex items-center justify-between gap-2">
+          {/* Left: compact text */}
+          <div className="text-[12px] leading-5 text-white/65">
             © {year} FeelFlick ·{' '}
             <FooterTextLink to="/privacy">Privacy</FooterTextLink>{' · '}
             <FooterTextLink to="/terms">Terms</FooterTextLink>{' · '}
-            <FooterTextLink to="/status">Status</FooterTextLink>
+            <FooterTextLink to="/about">About</FooterTextLink>
           </div>
 
-          {/* Right: socials */}
-          <div className="flex items-center gap-2.5">
+          {/* Right: smaller socials */}
+          <div className="flex items-center gap-2">
             <FooterIconLink
               href="https://www.instagram.com/feelflick"
               label="Instagram"
+              size="sm"
             >
-              <InstaIcon className="h-4 w-4" />
+              <InstaIcon className="h-3.5 w-3.5" />
             </FooterIconLink>
             <FooterIconLink
               href="https://www.tiktok.com/@feelflick"
               label="TikTok"
+              size="sm"
             >
-              <TikTokIcon className="h-4 w-4" />
+              <TikTokIcon className="h-3.5 w-3.5" />
             </FooterIconLink>
           </div>
         </div>
@@ -63,7 +64,13 @@ function MicroFooter() {
 
 /* --------------------------- helpers --------------------------- */
 
-function FooterIconLink({ href, label, children }) {
+function FooterIconLink({ href, label, children, size = 'sm' }) {
+  const base =
+    'inline-flex items-center justify-center rounded-lg border text-white/85 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60'
+  const dims =
+    size === 'sm'
+      ? 'h-8 w-8 border-white/10 bg-white/5'
+      : 'h-9 w-9 border-white/10 bg-white/5'
   return (
     <a
       href={href}
@@ -71,7 +78,7 @@ function FooterIconLink({ href, label, children }) {
       rel="noopener noreferrer"
       aria-label={label}
       title={label}
-      className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/85 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60"
+      className={`${base} ${dims}`}
     >
       {children}
     </a>
@@ -81,7 +88,7 @@ function FooterIconLink({ href, label, children }) {
 function FooterTextLink({ to, children }) {
   const isExternal = to.startsWith('http')
   const cls =
-    'text-[13px] text-white/70 hover:text-white/90 focus:outline-none focus:ring-2 focus:ring-brand/60 rounded'
+    'text-[12px] leading-5 text-white/70 hover:text-white/90 focus:outline-none focus:ring-2 focus:ring-brand/60 rounded'
   return isExternal ? (
     <a href={to} target="_blank" rel="noopener noreferrer" className={cls}>
       {children}

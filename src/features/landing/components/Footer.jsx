@@ -11,10 +11,10 @@ function MicroFooter() {
   const year = new Date().getFullYear()
   const barRef = useRef(null)
 
-  // Expose actual footer height to layout (keeps hero perfectly centered)
+  // Expose footer height so the hero can perfectly center itself
   useEffect(() => {
     const setVar = () => {
-      const h = barRef.current?.offsetHeight || 44
+      const h = barRef.current?.offsetHeight || 36
       document.documentElement.style.setProperty('--footer-h', `${h}px`)
     }
     setVar()
@@ -28,32 +28,32 @@ function MicroFooter() {
       ref={barRef}
       className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-transparent"
     >
-      {/* tighter vertical rhythm */}
-      <div className="mx-auto max-w-7xl px-3 py-2 md:px-5">
+      {/* ultra-tight padding */}
+      <div className="mx-auto max-w-7xl px-2 py-1 md:px-4">
         <div className="flex items-center justify-between gap-2">
-          {/* Left: compact text */}
+          {/* Left: compact text, requested order: About · Privacy · Terms */}
           <div className="text-[12px] leading-5 text-white/65">
             © {year} FeelFlick ·{' '}
+            <FooterTextLink to="/about">About</FooterTextLink>{' · '}
             <FooterTextLink to="/privacy">Privacy</FooterTextLink>{' · '}
-            <FooterTextLink to="/terms">Terms</FooterTextLink>{' · '}
-            <FooterTextLink to="/about">About</FooterTextLink>
+            <FooterTextLink to="/terms">Terms</FooterTextLink>
           </div>
 
           {/* Right: smaller socials */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <FooterIconLink
               href="https://www.instagram.com/feelflick"
               label="Instagram"
-              size="sm"
+              size="xs"
             >
-              <InstaIcon className="h-3.5 w-3.5" />
+              <InstaIcon className="h-3 w-3" />
             </FooterIconLink>
             <FooterIconLink
               href="https://www.tiktok.com/@feelflick"
               label="TikTok"
-              size="sm"
+              size="xs"
             >
-              <TikTokIcon className="h-3.5 w-3.5" />
+              <TikTokIcon className="h-3 w-3" />
             </FooterIconLink>
           </div>
         </div>
@@ -64,13 +64,13 @@ function MicroFooter() {
 
 /* --------------------------- helpers --------------------------- */
 
-function FooterIconLink({ href, label, children, size = 'sm' }) {
+function FooterIconLink({ href, label, children, size = 'xs' }) {
   const base =
     'inline-flex items-center justify-center rounded-lg border text-white/85 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60'
   const dims =
-    size === 'sm'
-      ? 'h-8 w-8 border-white/10 bg-white/5'
-      : 'h-9 w-9 border-white/10 bg-white/5'
+    size === 'xs'
+      ? 'h-7 w-7 border-white/10 bg-white/5'
+      : 'h-8 w-8 border-white/10 bg-white/5'
   return (
     <a
       href={href}

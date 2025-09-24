@@ -38,21 +38,25 @@ export default function LandingHero({ embedded = false }) {
       {/* Content + Stack */}
       <div className="relative z-10 mx-auto max-w-7xl px-4 md:px-6" style={{ ['--nav-h']: '72px' }}>
         <div
-          className={`grid items-center gap-10 md:grid-cols-12 ${embedded ? 'h-full py-8 sm:py-10' : 'py-8 sm:py-10'}`}
-          style={embedded ? undefined : { height: 'calc(100svh - var(--topnav-h, var(--nav-h, 72px)) - var(--footer-h, 0px))' }}
+          className={`grid content-center items-center gap-10 md:grid-cols-12 ${embedded ? 'h-full py-6 sm:py-8' : 'py-6 sm:py-8'}`}
+          style={
+            embedded
+              ? undefined
+              : { height: 'calc(100svh - var(--topnav-h,72px) - var(--footer-h,0px))' }
+          }
         >
           {/* Poster stack — top on mobile, right on desktop */}
           <div className="order-1 md:order-2 md:col-span-6 w-full flex justify-center md:justify-end">
             <MovieStack />
           </div>
 
-          {/* Copy + CTA — bottom on mobile, left on desktop */}
-          <div className="order-2 md:order-1 md:col-span-6 mx-auto w-full max-w-3xl text-center md:text-left md:max-w-xl">
-            <h1 className="text-balance text-[clamp(2.3rem,7.6vw,4.7rem)] font-black leading-[1.05] tracking-tight text-white">
+          {/* Copy + CTA — bottom on mobile, left on desktop (with a touch of left padding) */}
+          <div className="order-2 md:order-1 md:col-span-6 mx-auto w-full max-w-3xl text-center md:text-left md:max-w-xl md:pl-6 lg:pl-8">
+            <h1 className="text-balance text-[clamp(2.1rem,6.4vw,4.3rem)] font-black leading-[1.05] tracking-tight text-white">
               Movies that match your <span className="text-brand-100">mood</span>
             </h1>
 
-            <p className="mx-auto md:mx-0 mt-4 max-w-xl text-[clamp(1rem,2.6vw,1.25rem)] leading-relaxed text-white/85">
+            <p className="mx-auto md:mx-0 mt-4 max-w-xl text-[clamp(.95rem,2.2vw,1.15rem)] leading-relaxed text-white/85">
               Get the perfect movie recommendation based on your taste and how you feel — fast,
               private, and always free.
             </p>
@@ -81,10 +85,8 @@ export default function LandingHero({ embedded = false }) {
 function MovieStack() {
   const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY
   const [items, setItems] = useState([])
-
   const imgBase = 'https://image.tmdb.org/t/p/w500'
 
-  // Simple fallback if no key / failed fetch
   const fallbacks = useMemo(
     () => [
       { id: 'a', title: 'Top pick', poster_path: '' },
@@ -116,40 +118,45 @@ function MovieStack() {
     return () => { abort = true }
   }, [TMDB_KEY, fallbacks])
 
-  // Little decorative badges
   return (
     <div
       className="relative w-[min(92vw,520px)] md:w-[520px] aspect-[5/4] md:aspect-[4/3] select-none"
       aria-hidden
     >
-      {/* Back card */}
+      {/* BACK card — peek on the LEFT */}
       <PosterCard
         title={items[2]?.title}
         src={items[2]?.poster_path ? `${imgBase}${items[2].poster_path}` : null}
-        className="absolute left-1/2 top-1/2 w-[56%] -translate-x-[60%] -translate-y-[58%] rotate-[-10deg] opacity-90"
+        className="absolute left-1/2 top-1/2 w-[48%] -translate-x-[88%] -translate-y-[60%] rotate-[-14deg] opacity-90"
       />
 
-      {/* Middle card */}
+      {/* MIDDLE card — peek on the RIGHT */}
       <PosterCard
         title={items[1]?.title}
         src={items[1]?.poster_path ? `${imgBase}${items[1].poster_path}` : null}
-        className="absolute left-1/2 top-1/2 w-[58%] -translate-x-1/2 -translate-y-[55%] rotate-[7deg]"
+        className="absolute left-1/2 top-1/2 w-[54%] -translate-x-[10%] -translate-y-[56%] rotate-[12deg]"
       />
 
-      {/* Front/primary card */}
+      {/* FRONT card */}
       <PosterCard
         title={items[0]?.title}
         src={items[0]?.poster_path ? `${imgBase}${items[0].poster_path}` : null}
-        className="absolute left-1/2 top-1/2 w-[64%] -translate-x-[40%] -translate-y-[50%] rotate-[-2deg] shadow-2xl"
+        className="absolute left-1/2 top-1/2 w-[64%] -translate-x-[40%] -translate-y-[50%] rotate-[-3deg] shadow-2xl"
         glow
       />
 
-      {/* Cute badges (purely decorative) */}
-      <div className="absolute -left-2 top-[18%] hidden md:block">
+      {/* Brand-tinted badges */}
+      <div className="absolute -left-3 top-[18%] hidden md:block">
         <BadgeHeart />
       </div>
-      <div className="absolute right-[8%] top-[32%] hidden md:block">
+      <div className="absolute right-[6%] top-[28%] hidden md:block">
         <BadgeStar />
+      </div>
+      <div className="absolute right-[2%] bottom-[8%] hidden md:block">
+        <BadgeBookmark />
+      </div>
+      <div className="absolute left-[8%] bottom-[22%] hidden md:block">
+        <BadgeComment />
       </div>
     </div>
   )
@@ -172,24 +179,51 @@ function PosterCard({ src, title, className = '', glow = false }) {
       ) : (
         <div className="h-full w-full bg-[linear-gradient(135deg,#111827_0%,#0b1220_100%)]" />
       )}
-      {/* subtle glass bar at bottom for polish */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/60 to-transparent" />
     </div>
   )
 }
 
+/* --------------------------- Decorative badges --------------------------- */
+/* Colors mirror your logo: warm orange→red, plus cool blue accents */
+
 function BadgeHeart() {
   return (
-    <div className="inline-flex h-9 items-center rounded-full bg-gradient-to-r from-pink-500 to-orange-400 px-3 text-sm font-bold text-white shadow-xl shadow-pink-500/20">
-      ♥︎
+    <div className="inline-flex h-10 items-center rounded-full bg-gradient-to-r from-[#ff6b6b] to-[#fe9245] px-3 text-sm font-bold text-white shadow-xl shadow-rose-500/25">
+      <svg width="16" height="16" viewBox="0 0 24 24" className="mr-1" aria-hidden>
+        <path fill="currentColor" d="M12 21s-7.5-4.7-9.4-8.6C1.3 9.9 2.6 7 5.4 6.3c1.8-.4 3.6.5 4.6 2 1-1.5 2.8-2.4 4.6-2 2.8.7 4.1 3.6 2.8 6.1C19.5 16.2 12 21 12 21z"/>
+      </svg>
+      Like
     </div>
   )
 }
-
 function BadgeStar() {
   return (
-    <div className="inline-flex items-center gap-1 rounded-full bg-emerald-500 px-3 py-1 text-xs font-semibold text-white shadow-xl shadow-emerald-500/20">
-      ★ <span>Top rated</span>
+    <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500 px-3 py-1 text-xs font-semibold text-white shadow-xl shadow-emerald-500/20">
+      <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden>
+        <path fill="currentColor" d="M12 17.3l-5.9 3.2 1.1-6.5L2 8.9l6.6-1L12 2l3.4 5.9 6.6 1-4.8 5.1 1.1 6.5z"/>
+      </svg>
+      Top rated
+    </div>
+  )
+}
+function BadgeBookmark() {
+  return (
+    <div className="inline-flex items-center gap-1.5 rounded-full bg-[linear-gradient(90deg,#367cff,#00d1ff)] px-3 py-1 text-xs font-semibold text-white shadow-xl shadow-sky-500/20">
+      <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden>
+        <path fill="currentColor" d="M6 2h12a1 1 0 0 1 1 1v18l-7-4-7 4V3a1 1 0 0 1 1-1z"/>
+      </svg>
+      Watchlist
+    </div>
+  )
+}
+function BadgeComment() {
+  return (
+    <div className="inline-flex items-center gap-1.5 rounded-full bg-[linear-gradient(90deg,#fe9245,#eb423b)] px-3 py-1 text-xs font-semibold text-white shadow-xl shadow-orange-500/20">
+      <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden>
+        <path fill="currentColor" d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-5 5v-5H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
+      </svg>
+      Comment
     </div>
   )
 }

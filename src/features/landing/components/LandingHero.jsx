@@ -25,7 +25,7 @@ export default function LandingHero({ embedded = false }) {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 mx-auto h-full w-full max-w-7xl px-3 md:px-6" style={{ ['--nav-h']: '72px' }}>
+      <div className="relative z-10 mx-auto h-full w-full max-w-7xl px-6 md:px-6" style={{ ['--nav-h']: '72px' }}>
         <div
           className="
             grid h-full place-content-center place-items-center

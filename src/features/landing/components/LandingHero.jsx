@@ -45,7 +45,7 @@ export default function LandingHero({ embedded = false }) {
               : { height: 'calc(100svh - var(--topnav-h, var(--nav-h, 72px)) - var(--footer-h, 0px))' }
           }
         >
-          {/* Poster stack — top on mobile, right on desktop */}
+          {/* Posters — top on mobile, right on desktop */}
           <div className="order-1 md:order-2 md:col-span-6 w-full flex justify-center md:justify-end pt-2">
             <MovieStack />
           </div>
@@ -125,33 +125,33 @@ function MovieStack() {
       className="relative w-[min(92vw,520px)] md:w-[520px] aspect-[5/4] md:aspect-[4/3] select-none"
       aria-hidden
     >
-      {/* Back card — peek further left */}
+      {/* Back card — smaller & farther left for a clearer peek */}
       <PosterCard
         title={items[2]?.title}
         src={items[2]?.poster_path ? `${imgBase}${items[2].poster_path}` : null}
-        className="absolute left-1/2 top-1/2 w-[52%] -translate-x-[85%] -translate-y-[60%] rotate-[-14deg] opacity-90"
+        className="absolute left-1/2 top-1/2 w-[44%] -translate-x-[98%] -translate-y-[62%] rotate-[-15deg] opacity-95"
       />
 
-      {/* Middle card — peek a bit right */}
+      {/* Middle card — smaller & nudged right */}
       <PosterCard
         title={items[1]?.title}
         src={items[1]?.poster_path ? `${imgBase}${items[1].poster_path}` : null}
-        className="absolute left-1/2 top-1/2 w-[54%] -translate-x-[10%] -translate-y-[56%] rotate-[10deg]"
+        className="absolute left-1/2 top-1/2 w-[48%] translate-x-[12%] -translate-y-[58%] rotate-[12deg]"
       />
 
-      {/* Front/primary card */}
+      {/* Front/primary card — a bit smaller too */}
       <PosterCard
         title={items[0]?.title}
         src={items[0]?.poster_path ? `${imgBase}${items[0].poster_path}` : null}
-        className="absolute left-1/2 top-1/2 w-[62%] -translate-x-[45%] -translate-y-[50%] rotate-[-3deg] shadow-2xl"
+        className="absolute left-1/2 top-1/2 w-[58%] -translate-x-[38%] -translate-y-[50%] rotate-[-4deg] shadow-2xl"
         glow
       />
 
-      {/* Brand-colored badges */}
-      <div className="absolute -left-3 top-[22%] hidden md:block">
+      {/* Brand-colored icon badges (no text) */}
+      <div className="absolute -left-2 top-[22%] hidden md:block">
         <BadgeHeart />
       </div>
-      <div className="absolute right-[4%] top-[20%] hidden md:block">
+      <div className="absolute right-[2%] top-[18%] hidden md:block">
         <BadgeStar />
       </div>
       <div className="absolute right-[8%] bottom-[10%] hidden md:block">
@@ -184,13 +184,12 @@ function PosterCard({ src, title, className = '', glow = false }) {
   )
 }
 
-/* --------------------------- Badges --------------------------- */
+/* --------------------------- Badges (icon-only) --------------------------- */
 
 function BadgeHeart() {
-  // Brand orange → red
   return (
-    <div className="inline-flex h-9 items-center justify-center rounded-full bg-gradient-to-r from-[#fe9245] to-[#eb423b] px-3 text-sm font-bold text-white shadow-xl shadow-orange-500/20">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+    <div className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-[#fe9245] to-[#eb423b] text-white shadow-xl shadow-orange-500/25">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
         <path d="M12 21s-7-4.35-9.33-8.09A5.5 5.5 0 0 1 12 6.2a5.5 5.5 0 0 1 9.33 6.71C19 16.65 12 21 12 21Z" />
       </svg>
     </div>
@@ -199,23 +198,20 @@ function BadgeHeart() {
 
 function BadgeStar() {
   return (
-    <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/95 px-3 py-1 text-xs font-semibold text-white shadow-xl shadow-emerald-500/20">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+    <div className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/95 text-white shadow-xl shadow-emerald-500/25">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
         <path d="m12 2 2.79 6.58 7.21.62-5.45 4.65 1.65 7.15L12 17.77 5.8 21 .46 13.85l7.21-.65L10.43 2H12Z" />
       </svg>
-      <span className="whitespace-nowrap">Top rated</span>
     </div>
   )
 }
 
 function BadgeBookmark() {
-  // Blue ribbon vibe
   return (
-    <div className="inline-flex h-8 items-center justify-center rounded-full bg-[linear-gradient(90deg,#2D77FF, #00D1FF)] px-3 text-xs font-semibold text-white shadow-xl shadow-blue-500/25">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+    <div className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[linear-gradient(90deg,#2D77FF,#00D1FF)] text-white shadow-xl shadow-blue-500/25">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
         <path d="M6 2h12a1 1 0 0 1 1 1v18l-7-4-7 4V3a1 1 0 0 1 1-1Z" />
       </svg>
-      <span className="ml-1.5 hidden sm:inline">Watchlist</span>
     </div>
   )
 }

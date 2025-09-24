@@ -1,11 +1,15 @@
-// src/features/landing/components/LandingHero.jsx
 import { Link } from 'react-router-dom'
 
-export default function LandingHero({ embedded = false }) {
+/**
+ * Props:
+ * - embedded: removes standalone offsets/heights for use inside a fixed-height parent
+ * - centered: removes internal vertical padding so content can be perfectly centered by parent
+ */
+export default function LandingHero({ embedded = false, centered = false }) {
   return (
     <section
       className="relative overflow-hidden"
-      // When embedded inside a fixed-height grid, don't push below TopNav
+      // Standalone pages still need to sit below the fixed TopNav
       style={embedded ? undefined : { marginTop: 'var(--topnav-h, var(--nav-h, 72px))' }}
     >
       {/* Optional collage layer */}
@@ -39,8 +43,12 @@ export default function LandingHero({ embedded = false }) {
       {/* Content */}
       <div className="relative z-10 mx-auto max-w-7xl px-4 md:px-6" style={{ ['--nav-h']: '72px' }}>
         <div
-          className={`grid items-center ${embedded ? 'h-full py-8 sm:py-10' : 'py-8 sm:py-10'}`}
-          // When NOT embedded, we keep the hero’s exact viewport height
+          className={[
+            'grid',
+            'items-center',
+            embedded ? 'h-full' : '',
+            centered ? 'py-0' : 'py-8 sm:py-10',
+          ].join(' ')}
           style={
             embedded
               ? undefined
@@ -66,7 +74,7 @@ export default function LandingHero({ embedded = false }) {
               </Link>
             </div>
 
-            {/* Keep the proof line in standalone mode only */}
+            {/* Keep the small proof line only when not embedded */}
             {!embedded && (
               <p className="mt-3 text-sm text-white/65">Free to start. Your mood, your movie.</p>
             )}

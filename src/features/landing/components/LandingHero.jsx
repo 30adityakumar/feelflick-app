@@ -41,7 +41,7 @@ export default function LandingHero({ embedded = false }) {
         style={{ ['--nav-h']: '72px' }}
       >
         <div
-          className={`grid items-center md:grid-cols-12 ${embedded ? 'h-full' : ''} gap-3 md:gap-2 lg:gap-5`}
+          className={`grid items-center md:grid-cols-12 ${embedded ? 'h-full' : ''} gap-0 md:gap-0 lg:gap-2`}
           style={
             embedded
               ? undefined

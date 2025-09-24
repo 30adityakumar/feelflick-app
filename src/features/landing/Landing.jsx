@@ -1,3 +1,4 @@
+// src/features/landing/Landing.jsx
 import { useEffect } from 'react'
 import TopNav from '@/features/landing/components/TopNav'
 import LandingHero from '@/features/landing/components/LandingHero'
@@ -6,8 +7,8 @@ import Footer from '@/features/landing/components/Footer'
 export default function Landing() {
   // Lock scroll only on landing
   useEffect(() => {
-    const { style: html } = document.documentElement
-    const { style: body } = document.body
+    const html = document.documentElement.style
+    const body = document.body.style
     const prevHtml = html.overflow
     const prevBody = body.overflow
     html.overflow = 'hidden'
@@ -20,17 +21,20 @@ export default function Landing() {
 
   return (
     <>
-      {/* Fixed header (already measures --topnav-h) */}
       <TopNav />
 
-      {/* Main section occupies the **visible** viewport, no scroll */}
-      <main id="landing" className="h-[100svh]">
-        {/* Hero height is computed as 100svh - header - footer */}
+      {/* Viewport minus fixed header; footer lives inside this grid */}
+      <main
+        id="landing"
+        className="grid grid-rows-[1fr_auto] overflow-hidden"
+        style={{ height: 'calc(100svh - var(--topnav-h, 72px))' }}
+      >
+        {/* Hero already subtracts header/footer internally; works fine here */}
         <LandingHero fitToFooter />
-      </main>
 
-      {/* Subtle micro footer; measures --footer-h automatically */}
-      <Footer variant="micro" subtle />
+        {/* Subtle micro-footer; also sets --footer-h for the hero calc */}
+        <Footer variant="micro" subtle />
+      </main>
     </>
   )
 }

@@ -11,7 +11,7 @@ export default function LandingHero({ embedded = false }) {
       {/* Optional collage layer */}
       <div className="feelflick-landing-bg" aria-hidden="true" />
 
-      {/* MULTI-COLOR ABSTRACT BACKGROUND (logo-inspired) */}
+      {/* Background */}
       <div aria-hidden className="absolute inset-0 -z-10">
         <div className="absolute inset-0 bg-[linear-gradient(120deg,#0a121a_0%,#0d1722_50%,#0c1017_100%)]" />
         <div className="pointer-events-none absolute -top-40 -left-40 h-[65vmin] w-[65vmin] rounded-full blur-3xl opacity-60 bg-[radial-gradient(closest-side,rgba(254,146,69,0.45),rgba(254,146,69,0)_70%)]" />
@@ -37,11 +37,11 @@ export default function LandingHero({ embedded = false }) {
 
       {/* Content + Stack */}
       <div
-        className={`relative z-10 mx-auto max-w-7xl px-4 md:px-6 ${embedded ? 'h-full' : ''}`}
+        className={`relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-5 md:px-6 ${embedded ? 'h-full' : ''}`}
         style={{ ['--nav-h']: '72px' }}
       >
         <div
-          className={`grid items-center md:grid-cols-12 ${embedded ? 'h-full' : ''} gap-5 md:gap-3`}
+          className={`grid items-center md:grid-cols-12 ${embedded ? 'h-full' : ''} gap-3 md:gap-2 lg:gap-5`}
           style={
             embedded
               ? undefined
@@ -49,22 +49,22 @@ export default function LandingHero({ embedded = false }) {
           }
         >
           {/* Posters — top on mobile, right on desktop */}
-          <div className="order-1 md:order-2 md:col-span-6 w-full flex justify-center md:justify-end pt-2 md:-ml-6 lg:-ml-10">
+          <div className="order-1 md:order-2 md:col-span-6 w-full flex justify-center md:justify-end pt-0">
             <MovieStack />
           </div>
 
           {/* Copy + CTA — bottom on mobile, left on desktop */}
-          <div className="order-2 md:order-1 md:col-span-6 mx-auto w-full max-w-3xl text-center md:text-left md:max-w-xl md:pl-4">
+          <div className="order-2 md:order-1 md:col-span-6 mx-auto w-full max-w-3xl text-center md:text-left md:max-w-xl md:pl-0">
             <h1 className="text-balance text-[clamp(1.9rem,6vw,3.7rem)] font-black leading-[1.05] tracking-tight text-white">
               Movies that match your <span className="text-brand-100">mood</span>
             </h1>
 
-            <p className="mx-auto md:mx-0 mt-3 max-w-xl text-[clamp(.85rem,1.8vw,0.98rem)] leading-relaxed text-white/85">
+            <p className="mx-auto md:mx-0 mt-2 max-w-xl text-[clamp(.85rem,1.8vw,0.98rem)] leading-relaxed text-white/85">
               Get the perfect movie recommendation based on your taste and how you feel — fast,
               private, and always free.
             </p>
 
-            <div className="mt-6 flex justify-center md:justify-start">
+            <div className="mt-4 flex justify-center md:justify-start">
               <Link
                 to="/auth/sign-up"
                 className="inline-flex h-11 items-center justify-center rounded-full px-8 sm:px-9 text-[0.95rem] font-semibold text-white shadow-lift transition-transform hover:scale-[1.02] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 active:scale-[.98] bg-gradient-to-r from-[#fe9245] to-[#eb423b]"
@@ -74,7 +74,7 @@ export default function LandingHero({ embedded = false }) {
             </div>
 
             {!embedded && (
-              <p className="mt-3 text-sm text-white/65">Free to start. Your mood, your movie.</p>
+              <p className="mt-2 text-xs text-white/65">Free to start. Your mood, your movie.</p>
             )}
           </div>
         </div>
@@ -123,32 +123,32 @@ function MovieStack() {
 
   return (
     <div
-      className="relative w-[min(92vw,520px)] md:w-[520px] aspect-[5/4] md:aspect-[4/3] select-none"
+      className="relative w-[min(88vw,480px)] md:w-[500px] aspect-[5/4] md:aspect-[4/3] select-none"
       aria-hidden
     >
-      {/* Back card — SMALLER & farther left */}
+      {/* Back card */}
       <PosterCard
         title={items[2]?.title}
         src={items[2]?.poster_path ? `${imgBase}${items[2].poster_path}` : null}
-        className="absolute left-1/2 top-1/2 w-[36%] -translate-x-[112%] -translate-y-[60%] rotate-[-16deg] opacity-95"
+        className="absolute left-1/2 top-1/2 w-[34%] -translate-x-[112%] -translate-y-[60%] rotate-[-16deg] opacity-95"
       />
 
-      {/* Middle card — SMALLER & nudged right */}
+      {/* Middle card */}
       <PosterCard
         title={items[1]?.title}
         src={items[1]?.poster_path ? `${imgBase}${items[1].poster_path}` : null}
-        className="absolute left-1/2 top-1/2 w-[40%] translate-x-[18%] -translate-y-[58%] rotate-[13deg] opacity-95"
+        className="absolute left-1/2 top-1/2 w-[38%] translate-x-[14%] -translate-y-[58%] rotate-[13deg] opacity-95"
       />
 
-      {/* Front/primary card — SMALLER */}
+      {/* Front/primary card */}
       <PosterCard
         title={items[0]?.title}
         src={items[0]?.poster_path ? `${imgBase}${items[0].poster_path}` : null}
-        className="absolute left-1/2 top-1/2 w-[50%] -translate-x-[40%] -translate-y-[50%] rotate-[-5deg] shadow-2xl"
+        className="absolute left-1/2 top-1/2 w-[48%] -translate-x-[40%] -translate-y-[50%] rotate-[-5deg] shadow-2xl"
         glow
       />
 
-      {/* Fancy icon badges */}
+      {/* Badges */}
       <div className="absolute -left-1 top-[22%] hidden md:block">
         <FancyBadge variant="heart" />
       </div>
@@ -190,7 +190,6 @@ function PosterCard({ src, title, className = '', glow = false }) {
 function FancyBadge({ variant = 'heart' }) {
   const ring =
     'conic-gradient(from 180deg at 50% 50%, #fe9245, #eb423b, #2D77FF, #00D1FF, #fe9245)'
-
   const innerBg =
     variant === 'star'
       ? 'radial-gradient(60% 60% at 35% 30%, rgba(255,255,255,.22) 0%, rgba(255,255,255,0) 60%), linear-gradient(140deg,#20c997,#198754)'
@@ -199,14 +198,8 @@ function FancyBadge({ variant = 'heart' }) {
       : 'radial-gradient(60% 60% at 35% 30%, rgba(255,255,255,.22) 0%, rgba(255,255,255,0) 60%), linear-gradient(135deg,#fe9245,#eb423b)'
 
   return (
-    <div
-      className="relative h-9 w-9 rounded-full p-[2px] shadow-[0_10px_30px_rgba(0,0,0,.35)]"
-      style={{ background: ring }}
-    >
-      <div
-        className="relative grid h-full w-full place-items-center rounded-full text-white backdrop-blur-[2px]"
-        style={{ background: innerBg }}
-      >
+    <div className="relative h-9 w-9 rounded-full p-[2px] shadow-[0_10px_30px_rgba(0,0,0,.35)]" style={{ background: ring }}>
+      <div className="relative grid h-full w-full place-items-center rounded-full text-white backdrop-blur-[2px]" style={{ background: innerBg }}>
         <div className="pointer-events-none absolute inset-0 rounded-full bg-[radial-gradient(55%_40%_at_35%_28%,rgba(255,255,255,.35),rgba(255,255,255,0)_70%)]" />
         {variant === 'star' ? <IconStar /> : variant === 'bookmark' ? <IconBookmark /> : <IconHeart />}
       </div>

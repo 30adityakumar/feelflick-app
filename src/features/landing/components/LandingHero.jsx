@@ -41,7 +41,7 @@ export default function LandingHero({ embedded = false }) {
         style={{ ['--nav-h']: '72px' }}
       >
         <div
-          className={`grid items-center gap-8 md:grid-cols-12 ${embedded ? 'h-full py-6 sm:py-8' : 'py-6 sm:py-8'}`}
+          className={`grid items-center md:grid-cols-12 ${embedded ? 'h-full' : ''} gap-5 md:gap-3`}
           style={
             embedded
               ? undefined
@@ -49,12 +49,12 @@ export default function LandingHero({ embedded = false }) {
           }
         >
           {/* Posters — top on mobile, right on desktop */}
-          <div className="order-1 md:order-2 md:col-span-6 w-full flex justify-center md:justify-end pt-2">
+          <div className="order-1 md:order-2 md:col-span-6 w-full flex justify-center md:justify-end pt-2 md:-ml-6 lg:-ml-10">
             <MovieStack />
           </div>
 
           {/* Copy + CTA — bottom on mobile, left on desktop */}
-          <div className="order-2 md:order-1 md:col-span-6 mx-auto w-full max-w-3xl text-center md:text-left md:max-w-xl md:pl-4 lg:pl-8">
+          <div className="order-2 md:order-1 md:col-span-6 mx-auto w-full max-w-3xl text-center md:text-left md:max-w-xl md:pl-1">
             <h1 className="text-balance text-[clamp(1.9rem,6vw,3.7rem)] font-black leading-[1.05] tracking-tight text-white">
               Movies that match your <span className="text-brand-100">mood</span>
             </h1>
@@ -188,18 +188,15 @@ function PosterCard({ src, title, className = '', glow = false }) {
 /* --------------------------- Fancy badges --------------------------- */
 
 function FancyBadge({ variant = 'heart' }) {
-  // Shared ring
   const ring =
     'conic-gradient(from 180deg at 50% 50%, #fe9245, #eb423b, #2D77FF, #00D1FF, #fe9245)'
 
-  // Inner bg per variant
   const innerBg =
     variant === 'star'
       ? 'radial-gradient(60% 60% at 35% 30%, rgba(255,255,255,.22) 0%, rgba(255,255,255,0) 60%), linear-gradient(140deg,#20c997,#198754)'
       : variant === 'bookmark'
       ? 'radial-gradient(60% 60% at 35% 30%, rgba(255,255,255,.22) 0%, rgba(255,255,255,0) 60%), linear-gradient(135deg,#2D77FF,#00D1FF)'
-      : // heart
-        'radial-gradient(60% 60% at 35% 30%, rgba(255,255,255,.22) 0%, rgba(255,255,255,0) 60%), linear-gradient(135deg,#fe9245,#eb423b)'
+      : 'radial-gradient(60% 60% at 35% 30%, rgba(255,255,255,.22) 0%, rgba(255,255,255,0) 60%), linear-gradient(135deg,#fe9245,#eb423b)'
 
   return (
     <div
@@ -210,7 +207,6 @@ function FancyBadge({ variant = 'heart' }) {
         className="relative grid h-full w-full place-items-center rounded-full text-white backdrop-blur-[2px]"
         style={{ background: innerBg }}
       >
-        {/* subtle glass highlight */}
         <div className="pointer-events-none absolute inset-0 rounded-full bg-[radial-gradient(55%_40%_at_35%_28%,rgba(255,255,255,.35),rgba(255,255,255,0)_70%)]" />
         {variant === 'star' ? <IconStar /> : variant === 'bookmark' ? <IconBookmark /> : <IconHeart />}
       </div>
@@ -221,20 +217,14 @@ function FancyBadge({ variant = 'heart' }) {
 function IconHeart() {
   return (
     <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden>
-      <path
-        d="M12 21s-7-4.35-9.33-8.09A5.5 5.5 0 0 1 12 6.2a5.5 5.5 0 0 1 9.33 6.71C19 16.65 12 21 12 21Z"
-        fill="currentColor"
-      />
+      <path d="M12 21s-7-4.35-9.33-8.09A5.5 5.5 0 0 1 12 6.2a5.5 5.5 0 0 1 9.33 6.71C19 16.65 12 21 12 21Z" fill="currentColor" />
     </svg>
   )
 }
 function IconStar() {
   return (
     <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden>
-      <path
-        d="m12 2 2.7 6.2 6.8.6-5.1 4.4 1.6 6.8-6-3.5-6 3.5 1.6-6.8-5.1-4.4 6.8-.6L12 2Z"
-        fill="currentColor"
-      />
+      <path d="m12 2 2.7 6.2 6.8.6-5.1 4.4 1.6 6.8-6-3.5-6 3.5 1.6-6.8-5.1-4.4 6.8-.6L12 2Z" fill="currentColor" />
     </svg>
   )
 }

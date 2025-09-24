@@ -107,38 +107,72 @@ function MovieStack() {
 
   return (
     <div className="relative w-[min(86vw,480px)] md:w-[500px] aspect-[5/4] md:aspect-[4/3] select-none" aria-hidden>
-      <PosterCard title={items[2]?.title} src={items[2]?.poster_path ? `${imgBase}${items[2].poster_path}` : null}
-        className="absolute left-1/2 top-1/2 w-[34%] -translate-x-[106%] -translate-y-[60%] rotate-[-16deg] opacity-95" />
-      <PosterCard title={items[1]?.title} src={items[1]?.poster_path ? `${imgBase}${items[1].poster_path}` : null}
-        className="absolute left-1/2 top-1/2 w-[38%] translate-x-[8%] -translate-y-[58%] rotate-[13deg] opacity-95" />
-      <PosterCard title={items[0]?.title} src={items[0]?.poster_path ? `${imgBase}${items[0].poster_path}` : null}
-        className="absolute left-1/2 top-1/2 w-[46%] -translate-x-[42%] -translate-y-[50%] rotate-[-5deg] shadow-2xl" glow />
-      <div className="absolute -left-1 top-[22%] hidden md:block"><FancyBadge variant="heart" /></div>
-      <div className="absolute right-[1%] top-[16%] hidden md:block"><FancyBadge variant="star" /></div>
-      <div className="absolute right-[8%] bottom-[9%] hidden md:block"><FancyBadge variant="bookmark" /></div>
+      {/* Back card */}
+      <PosterCard
+        title={items[2]?.title}
+        src={items[2]?.poster_path ? `${imgBase}${items[2].poster_path}` : null}
+        className="absolute left-1/2 top-1/2 w-[34%] -translate-x-[106%] -translate-y-[60%] rotate-[-16deg] opacity-95"
+      >
+        {/* inside the poster */}
+        <FancyBadge variant="star" className="hidden md:flex left-2 top-2" />
+      </PosterCard>
+
+      {/* Middle card */}
+      <PosterCard
+        title={items[1]?.title}
+        src={items[1]?.poster_path ? `${imgBase}${items[1].poster_path}` : null}
+        className="absolute left-1/2 top-1/2 w-[38%] translate-x-[8%] -translate-y-[58%] rotate-[13deg] opacity-95"
+      >
+        <FancyBadge variant="bookmark" className="hidden md:flex right-2 bottom-2" />
+      </PosterCard>
+
+      {/* Front/primary card */}
+      <PosterCard
+        title={items[0]?.title}
+        src={items[0]?.poster_path ? `${imgBase}${items[0].poster_path}` : null}
+        className="absolute left-1/2 top-1/2 w-[46%] -translate-x-[42%] -translate-y-[50%] rotate-[-5deg] shadow-2xl"
+        glow
+      >
+        <FancyBadge variant="heart" className="hidden md:flex left-2 top-2" />
+        <FancyBadge variant="star" className="hidden md:flex right-2 top-2" />
+        <FancyBadge variant="bookmark" className="hidden md:flex right-2 bottom-2" />
+      </PosterCard>
     </div>
   )
 }
 
-function PosterCard({ src, title, className = '', glow = false }) {
+/* --------------------------- PosterCard --------------------------- */
+function PosterCard({ src, title, className = '', glow = false, children }) {
   return (
     <div
-      className={`group rounded-3xl overflow-hidden ring-1 ring-white/10 bg-white/5 backdrop-blur-sm ${className}`}
+      className={`group relative rounded-3xl overflow-hidden ring-1 ring-white/10 bg-white/5 backdrop-blur-sm ${className}`}
       style={{ boxShadow: glow ? '0 30px 70px rgba(0,0,0,.45)' : undefined }}
       title={title || 'Movie poster'}
     >
       {src ? (
-        <img src={src} alt={title || 'Movie poster'} className="h-full w-full object-cover" loading="eager" decoding="async" />
+        <img
+          src={src}
+          alt={title || 'Movie poster'}
+          className="h-full w-full object-cover"
+          loading="eager"
+          decoding="async"
+        />
       ) : (
         <div className="h-full w-full bg-[linear-gradient(135deg,#111827_0%,#0b1220_100%)]" />
       )}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/60 to-transparent" />
+
+      {/* overlay slot for badges on the poster */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="pointer-events-auto relative h-full w-full">{children}</div>
+      </div>
     </div>
   )
 }
 
 /* --------------------------- Badges --------------------------- */
-function FancyBadge({ variant = 'heart' }) {
+/* accepts className; renders as absolute so you can drop it on the card */
+function FancyBadge({ variant = 'heart', className = '' }) {
   const ring = 'conic-gradient(from 180deg at 50% 50%, #fe9245, #eb423b, #2D77FF, #00D1FF, #fe9245)'
   const innerBg =
     variant === 'star'
@@ -146,9 +180,16 @@ function FancyBadge({ variant = 'heart' }) {
       : variant === 'bookmark'
       ? 'radial-gradient(60% 60% at 35% 30%, rgba(255,255,255,.22) 0%, rgba(255,255,255,0) 60%), linear-gradient(135deg,#2D77FF,#00D1FF)'
       : 'radial-gradient(60% 60% at 35% 30%, rgba(255,255,255,.22) 0%, rgba(255,255,255,0) 60%), linear-gradient(135deg,#fe9245,#eb423b)'
+
   return (
-    <div className="relative h-9 w-9 rounded-full p-[2px] shadow-[0_10px_30px_rgba(0,0,0,.35)]" style={{ background: ring }}>
-      <div className="relative grid h-full w-full place-items-center rounded-full text-white backdrop-blur-[2px]" style={{ background: innerBg }}>
+    <div
+      className={`absolute h-8 w-8 md:h-9 md:w-9 rounded-full p-[2px] shadow-[0_10px_30px_rgba(0,0,0,.35)] ${className}`}
+      style={{ background: ring }}
+    >
+      <div
+        className="relative grid h-full w-full place-items-center rounded-full text-white backdrop-blur-[2px]"
+        style={{ background: innerBg }}
+      >
         <div className="pointer-events-none absolute inset-0 rounded-full bg-[radial-gradient(55%_40%_at_35%_28%,rgba(255,255,255,.35),rgba(255,255,255,0)_70%)]" />
         {variant === 'star' ? <IconStar /> : variant === 'bookmark' ? <IconBookmark /> : <IconHeart />}
       </div>

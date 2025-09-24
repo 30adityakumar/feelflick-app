@@ -4,10 +4,14 @@ import { Link } from 'react-router-dom'
 export default function LandingHero({ embedded = false }) {
   return (
     <section
-      className={`relative overflow-hidden ${embedded ? 'h-full' : ''}`}
+      className="relative overflow-hidden"
+      // When embedded inside a fixed-height grid, don't push below TopNav
       style={embedded ? undefined : { marginTop: 'var(--topnav-h, var(--nav-h, 72px))' }}
     >
-      {/* background layers */}
+      {/* Optional collage layer */}
+      <div className="feelflick-landing-bg" aria-hidden="true" />
+
+      {/* MULTI-COLOR ABSTRACT BACKGROUND (logo-inspired) */}
       <div aria-hidden className="absolute inset-0 -z-10">
         <div className="absolute inset-0 bg-[linear-gradient(120deg,#0a121a_0%,#0d1722_50%,#0c1017_100%)]" />
         <div className="pointer-events-none absolute -top-40 -left-40 h-[65vmin] w-[65vmin] rounded-full blur-3xl opacity-60 bg-[radial-gradient(closest-side,rgba(254,146,69,0.45),rgba(254,146,69,0)_70%)]" />
@@ -22,7 +26,7 @@ export default function LandingHero({ embedded = false }) {
         <div className="absolute inset-0 bg-[radial-gradient(100%_80%_at_50%_0%,rgba(255,255,255,0.06),rgba(255,255,255,0)_60%)]" />
       </div>
 
-      {/* soft highlight */}
+      {/* Soft radial highlight */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 -z-0 opacity-60"
@@ -32,13 +36,11 @@ export default function LandingHero({ embedded = false }) {
         }}
       />
 
-      {/* content */}
-      <div
-        className={`relative z-10 mx-auto max-w-7xl px-4 md:px-6 ${embedded ? 'h-full' : ''}`}
-        style={{ ['--nav-h']: '72px' }}
-      >
+      {/* Content */}
+      <div className="relative z-10 mx-auto max-w-7xl px-4 md:px-6" style={{ ['--nav-h']: '72px' }}>
         <div
-          className={`grid items-center ${embedded ? 'h-full min-h-0' : ''} py-8 sm:py-10`}
+          className={`grid items-center ${embedded ? 'h-full py-8 sm:py-10' : 'py-8 sm:py-10'}`}
+          // When NOT embedded, we keep the hero’s exact viewport height
           style={
             embedded
               ? undefined
@@ -47,12 +49,13 @@ export default function LandingHero({ embedded = false }) {
         >
           <div className="mx-auto w-full max-w-3xl text-center md:max-w-2xl">
             <h1 className="text-balance text-[clamp(2.5rem,9vw,4.7rem)] font-black leading-[1.05] tracking-tight text-white">
-              Movies that match <span className="text-brand-100">how you feel</span>
+              Movies that match your <span className="text-brand-100">mood</span>
             </h1>
+
             <p className="mx-auto mt-4 max-w-xl text-[clamp(1rem,2.7vw,1.25rem)] leading-relaxed text-white/85">
-              Tell us how you want to feel. We hand-pick a short, spot-on list you’ll actually
-              watch—no endless scrolling. Save favorites and keep your watchlist in one place.
+              Get the perfect movie recommendation based on your taste and how you feel — Fast, private, and always free.
             </p>
+
             <div className="mx-auto mt-7 flex max-w-sm flex-col items-center justify-center gap-3 sm:max-w-none sm:flex-row">
               <Link
                 to="/auth/sign-up"
@@ -61,6 +64,11 @@ export default function LandingHero({ embedded = false }) {
                 Get started
               </Link>
             </div>
+
+            {/* Keep the proof line in standalone mode only */}
+            {!embedded && (
+              <p className="mt-3 text-sm text-white/65">Free to start. Your mood, your movie.</p>
+            )}
           </div>
         </div>
       </div>

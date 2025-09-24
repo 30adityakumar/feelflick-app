@@ -7,20 +7,17 @@ export default function Landing() {
   return (
     <>
       <TopNav />
-
-      {/* Viewport area below fixed TopNav */}
+      {/* Fill the viewport below the fixed TopNav */}
       <main
         id="landing"
-        className="relative grid w-full overflow-hidden grid-rows-[1fr_auto] min-h-0"
+        className="relative mx-auto w-full overflow-hidden"
         style={{ height: 'calc(100svh - var(--topnav-h, 72px))' }}
       >
-        {/* Row 1: hero must be allowed to shrink/grow -> min-h-0 wrapper */}
-        <div className="min-h-0">
+        {/* 1 row for hero, 1 row for footer = no extra space, no scroll */}
+        <div className="grid h-full grid-rows-[1fr_auto]">
           <LandingHero embedded />
+          <Footer />
         </div>
-
-        {/* Row 2: footer pinned to bottom, no extra space */}
-        <Footer />
       </main>
     </>
   )

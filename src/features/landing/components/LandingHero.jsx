@@ -5,13 +5,13 @@ import { Link } from 'react-router-dom'
 export default function LandingHero({ embedded = false }) {
   return (
     <section
-      className={`relative overflow-hidden ${embedded ? 'h-full' : ''}`}
+      className="relative overflow-hidden"
       style={embedded ? undefined : { marginTop: 'var(--topnav-h, var(--nav-h, 72px))' }}
     >
       {/* Optional collage layer */}
       <div className="feelflick-landing-bg" aria-hidden="true" />
 
-      {/* Background */}
+      {/* MULTI-COLOR ABSTRACT BACKGROUND (logo-inspired) */}
       <div aria-hidden className="absolute inset-0 -z-10">
         <div className="absolute inset-0 bg-[linear-gradient(120deg,#0a121a_0%,#0d1722_50%,#0c1017_100%)]" />
         <div className="pointer-events-none absolute -top-40 -left-40 h-[65vmin] w-[65vmin] rounded-full blur-3xl opacity-60 bg-[radial-gradient(closest-side,rgba(254,146,69,0.45),rgba(254,146,69,0)_70%)]" />
@@ -37,11 +37,16 @@ export default function LandingHero({ embedded = false }) {
 
       {/* Content + Stack */}
       <div
-        className={`relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-5 md:px-6 ${embedded ? 'h-full' : ''}`}
+        className="relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-5 md:px-6"
         style={{ ['--nav-h']: '72px' }}
       >
         <div
-          className={`grid items-center md:grid-cols-12 ${embedded ? 'h-full' : ''} gap-0 md:gap-0 lg:gap-2`}
+          className={`
+            grid items-center gap-y-4 gap-x-2
+            md:[grid-template-columns:max-content_minmax(0,520px)]
+            lg:[grid-template-columns:max-content_minmax(0,560px)]
+            ${embedded ? 'py-4' : ''}
+          `}
           style={
             embedded
               ? undefined
@@ -49,12 +54,12 @@ export default function LandingHero({ embedded = false }) {
           }
         >
           {/* Posters — top on mobile, right on desktop */}
-          <div className="order-1 md:order-2 md:col-span-6 w-full flex justify-center md:justify-end pt-0">
+          <div className="order-1 md:order-2 md:col-start-2 w-full flex justify-center md:justify-start -mt-1 md:mt-0">
             <MovieStack />
           </div>
 
           {/* Copy + CTA — bottom on mobile, left on desktop */}
-          <div className="order-2 md:order-1 md:col-span-6 mx-auto w-full max-w-3xl text-center md:text-left md:max-w-xl md:pl-0">
+          <div className="order-2 md:order-1 md:col-start-1 mx-auto w-full max-w-3xl md:max-w-[620px] text-center md:text-left">
             <h1 className="text-balance text-[clamp(1.9rem,6vw,3.7rem)] font-black leading-[1.05] tracking-tight text-white">
               Movies that match your <span className="text-brand-100">mood</span>
             </h1>
@@ -123,28 +128,28 @@ function MovieStack() {
 
   return (
     <div
-      className="relative w-[min(88vw,480px)] md:w-[500px] aspect-[5/4] md:aspect-[4/3] select-none"
+      className="relative w-[min(86vw,480px)] md:w-[500px] aspect-[5/4] md:aspect-[4/3] select-none"
       aria-hidden
     >
       {/* Back card */}
       <PosterCard
         title={items[2]?.title}
         src={items[2]?.poster_path ? `${imgBase}${items[2].poster_path}` : null}
-        className="absolute left-1/2 top-1/2 w-[34%] -translate-x-[112%] -translate-y-[60%] rotate-[-16deg] opacity-95"
+        className="absolute left-1/2 top-1/2 w-[34%] -translate-x-[106%] -translate-y-[60%] rotate-[-16deg] opacity-95"
       />
 
       {/* Middle card */}
       <PosterCard
         title={items[1]?.title}
         src={items[1]?.poster_path ? `${imgBase}${items[1].poster_path}` : null}
-        className="absolute left-1/2 top-1/2 w-[38%] translate-x-[14%] -translate-y-[58%] rotate-[13deg] opacity-95"
+        className="absolute left-1/2 top-1/2 w-[38%] translate-x-[8%] -translate-y-[58%] rotate-[13deg] opacity-95"
       />
 
       {/* Front/primary card */}
       <PosterCard
         title={items[0]?.title}
         src={items[0]?.poster_path ? `${imgBase}${items[0].poster_path}` : null}
-        className="absolute left-1/2 top-1/2 w-[48%] -translate-x-[40%] -translate-y-[50%] rotate-[-5deg] shadow-2xl"
+        className="absolute left-1/2 top-1/2 w-[46%] -translate-x-[42%] -translate-y-[50%] rotate-[-5deg] shadow-2xl"
         glow
       />
 

@@ -1,34 +1,36 @@
-// src/features/landing/Landing.jsx
+import { useEffect } from 'react'
 import TopNav from '@/features/landing/components/TopNav'
 import LandingHero from '@/features/landing/components/LandingHero'
 import Footer from '@/features/landing/components/Footer'
 
 export default function Landing() {
+  // Lock scroll only on landing
+  useEffect(() => {
+    const { style: html } = document.documentElement
+    const { style: body } = document.body
+    const prevHtml = html.overflow
+    const prevBody = body.overflow
+    html.overflow = 'hidden'
+    body.overflow = 'hidden'
+    return () => {
+      html.overflow = prevHtml || ''
+      body.overflow = prevBody || ''
+    }
+  }, [])
+
   return (
     <>
-      {/* Fixed header (sets --topnav-h for the hero spacing) */}
+      {/* Fixed header (already measures --topnav-h) */}
       <TopNav />
 
-      <main id="main">
-        {/* Above-the-fold: conversion-first hero */}
-        <LandingHero />
-
-        {/*
-          If you later want a slim “Why” slice under the hero, re-enable it like this:
-
-          import { lazy, Suspense } from 'react'
-          const WhyFeelFlick = lazy(() => import('@/features/landing/components/WhyFeelFlick'))
-
-          <Suspense fallback={<SectionSkeleton />}>
-            <WhyFeelFlick />
-          </Suspense>
-
-          And include SectionSkeleton from your previous version.
-        */}
+      {/* Main section occupies the **visible** viewport, no scroll */}
+      <main id="landing" className="h-[100svh]">
+        {/* Hero height is computed as 100svh - header - footer */}
+        <LandingHero fitToFooter />
       </main>
 
-      {/* Micro footer keeps legal + attribution without distraction */}
-      <Footer variant="micro" />
+      {/* Subtle micro footer; measures --footer-h automatically */}
+      <Footer variant="micro" subtle />
     </>
   )
 }

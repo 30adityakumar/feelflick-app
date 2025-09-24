@@ -1,47 +1,58 @@
-// src/features/landing/components/Footer.jsx
+import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 
-export default function Footer() {
+export default function Footer({ variant = 'micro', subtle = false }) {
+  return <MicroFooter subtle={subtle} />
+}
+
+function MicroFooter({ subtle }) {
   const year = new Date().getFullYear()
+  const ref = useRef(null)
+
+  // Measure footer height -> --footer-h
+  useEffect(() => {
+    const setVar = () => {
+      const h = ref.current?.offsetHeight || 64
+      document.documentElement.style.setProperty('--footer-h', `${h}px`)
+    }
+    setVar()
+    const ro = new ResizeObserver(setVar)
+    if (ref.current) ro.observe(ref.current)
+    return () => ro.disconnect()
+  }, [])
+
   return (
-    // CHANGED: mt-0 (no gap above footer)
-    <footer className="relative mt-0 border-t border-white/10 bg-neutral-950/60 backdrop-blur-md">
+    <footer
+      ref={ref}
+      className={
+        'relative border-t ' +
+        (subtle ? 'border-white/10 bg-black/30 backdrop-blur-sm' : 'border-white/10 bg-neutral-950/60 backdrop-blur-md')
+      }
+    >
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 -top-px h-px bg-gradient-to-r from-brand-600/40 via-white/10 to-transparent"
       />
-
-      <div className="mx-auto max-w-7xl px-4 py-6 md:px-6 md:py-8">
+      <div className="mx-auto max-w-7xl px-4 py-5 md:px-6 md:py-6">
         <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
-          <div className="text-xs text-white/60">
-            © {year} FeelFlick ·{' '}
-            <FooterTextLink to="/privacy">Privacy</FooterTextLink>{' · '}
+          <div className="text-xs text-white/65">
+            © {year} FeelFlick · <FooterTextLink to="/privacy">Privacy</FooterTextLink>{' · '}
             <FooterTextLink to="/terms">Terms</FooterTextLink>{' · '}
             <FooterTextLink to="/status">Status</FooterTextLink>
           </div>
 
+          {/* socials kept minimal; remove if you prefer ultra-minimal */}
           <div className="flex items-center gap-2.5">
-            <FooterIconLink
-              href="https://www.instagram.com/feelflick"
-              label="Instagram"
-              icon={<InstaIcon className="h-4 w-4" />}
-            />
-            <FooterIconLink
-              href="https://www.tiktok.com/@feelflick"
-              label="TikTok"
-              icon={<TikTokIcon className="h-4 w-4" />}
-            />
+            <FooterIconLink href="https://www.instagram.com/feelflick" label="Instagram" icon={<InstaIcon className="h-4 w-4" />} />
+            <FooterIconLink href="https://www.tiktok.com/@feelflick"  label="TikTok"    icon={<TikTokIcon className="h-4 w-4" />} />
           </div>
-        </div>
-
-        <div className="mt-3 text-center text-[11px] leading-relaxed text-white/50 sm:text-left">
-          This product uses the TMDB API but is not endorsed or certified by TMDB.
         </div>
       </div>
     </footer>
   )
 }
 
+/* shared bits */
 function FooterIconLink({ href, label, icon }) {
   const isExternal = href.startsWith('http')
   const classes =
@@ -72,6 +83,7 @@ function FooterTextLink({ to, children }) {
   )
 }
 
+/* icons */
 function InstaIcon({ className = '' }) {
   return (
     <svg viewBox="0 0 24 24" className={className} aria-hidden>
@@ -81,7 +93,6 @@ function InstaIcon({ className = '' }) {
     </svg>
   )
 }
-
 function TikTokIcon({ className = '' }) {
   return (
     <svg viewBox="0 0 24 24" className={className} aria-hidden>

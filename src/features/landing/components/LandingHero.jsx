@@ -1,74 +1,25 @@
-// src/features/landing/components/LandingHero.jsx
 import { Link } from 'react-router-dom'
 
-export default function LandingHero() {
+export default function LandingHero({ fitToFooter = false }) {
   return (
     <section
       className="relative overflow-hidden"
-      // Start below fixed TopNav; TopNav sets --topnav-h at runtime (fallbacks here)
-      style={{ marginTop: 'var(--topnav-h, var(--nav-h, 72px))' }}
+      // Keep starting below the fixed TopNav
+      style={{ marginTop: 'var(--topnav-h, 72px)' }}
     >
-      {/* Keep your existing collage layer if you use it */}
       <div className="feelflick-landing-bg" aria-hidden="true" />
 
-      {/* MULTI-COLOR ABSTRACT BACKGROUND (logo-inspired) */}
+      {/* Background you already liked */}
       <div aria-hidden className="absolute inset-0 -z-10">
-        {/* Deep base */}
         <div className="absolute inset-0 bg-[linear-gradient(120deg,#0a121a_0%,#0d1722_50%,#0c1017_100%)]" />
-
-        {/* Brand aurora blobs (tuned for readability) */}
         <div className="pointer-events-none absolute -top-40 -left-40 h-[65vmin] w-[65vmin] rounded-full blur-3xl opacity-60 bg-[radial-gradient(closest-side,rgba(254,146,69,0.45),rgba(254,146,69,0)_70%)]" />
         <div className="pointer-events-none absolute -bottom-44 -right-44 h-[70vmin] w-[70vmin] rounded-full blur-3xl opacity-55 bg-[radial-gradient(closest-side,rgba(235,66,59,0.38),rgba(235,66,59,0)_70%)]" />
         <div className="pointer-events-none absolute top-1/2 left-1/2 h-[80vmin] w-[80vmin] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl opacity-45 bg-[radial-gradient(closest-side,rgba(45,119,255,0.35),rgba(45,119,255,0)_70%)]" />
-        {/* Extra hues for richness */}
-        <div className="pointer-events-none absolute -top-24 right-[15%] h-[45vmin] w-[45vmin] rounded-full blur-3xl opacity-45 bg-[radial-gradient(closest-side,rgba(255,99,196,0.35),rgba(255,99,196,0)_70%)]" />
-        <div className="pointer-events-none absolute bottom-[8%] left-[12%] h-[50vmin] w-[50vmin] rounded-full blur-3xl opacity-40 bg-[radial-gradient(closest-side,rgba(124,58,237,0.30),rgba(124,58,237,0)_70%)]" />
-        <div className="pointer-events-none absolute top-[18%] left-[7%] h-[40vmin] w-[40vmin] rounded-full blur-3xl opacity-40 bg-[radial-gradient(closest-side,rgba(0,209,255,0.30),rgba(0,209,255,0)_70%)]" />
-
-        {/* NEW: S-curve ribbon highlight (logo-blue, faint) */}
-        <div
-          className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
-                     w-[160vmin] h-[80vmin] md:w-[180vmin] md:h-[90vmin] opacity-35 md:opacity-40"
-          aria-hidden
-        >
-          <svg viewBox="0 0 1600 900" className="h-full w-full" preserveAspectRatio="xMidYMid slice">
-            <defs>
-              <linearGradient id="ff-ribbon" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%"  stopColor="#2D77FF" stopOpacity=".36" />
-                <stop offset="55%" stopColor="#4EA1FF" stopOpacity=".34" />
-                <stop offset="100%" stopColor="#0E3EE6" stopOpacity=".28" />
-              </linearGradient>
-              <filter id="ff-ribbon-blur">
-                <feGaussianBlur stdDeviation="28" />
-              </filter>
-            </defs>
-            <path
-              d="M -120 620
-                 C 260 300, 700 780, 1000 420
-                 C 1250 130, 1500 520, 1720 340"
-              fill="none"
-              stroke="url(#ff-ribbon)"
-              strokeWidth="180"
-              strokeLinecap="round"
-              filter="url(#ff-ribbon-blur)"
-            />
-          </svg>
-        </div>
-
-        {/* Subtle conic shimmer (desktop only, motion-safe) */}
-        <div className="pointer-events-none absolute inset-0 opacity-35 mix-blend-screen">
-          <div className="absolute left-1/2 top-1/2 h-[140vmin] w-[140vmin] -translate-x-1/2 -translate-y-1/2 rounded-full
-                          bg-[conic-gradient(from_220deg_at_50%_50%,rgba(255,255,255,0.08),rgba(255,255,255,0)_65%)]
-                          motion-safe:md:animate-[spin_48s_linear_infinite]" />
-        </div>
-
-        {/* Gentle vignette for readability */}
         <div className="absolute inset-0 bg-[radial-gradient(100%_80%_at_50%_0%,rgba(255,255,255,0.06),rgba(255,255,255,0)_60%)]" />
       </div>
 
-      {/* Soft radial highlight */}
       <div
-        aria-hidden="true"
+        aria-hidden
         className="pointer-events-none absolute inset-0 -z-0 opacity-60"
         style={{
           background:
@@ -76,16 +27,13 @@ export default function LandingHero() {
         }}
       />
 
-      {/* Content: exactly fills viewport below TopNav */}
-      <div
-        className="relative z-10 mx-auto max-w-7xl px-4 md:px-6"
-        style={{ ['--nav-h']: '72px' }}
-      >
+      <div className="relative z-10 mx-auto max-w-7xl px-4 md:px-6">
         <div
           className="grid items-center py-8 sm:py-10"
           style={{
-            // EXACT height so the next section (footer) is immediately next on scroll
-            height: 'calc(100svh - var(--topnav-h, var(--nav-h, 72px)))',
+            height: fitToFooter
+              ? 'calc(100svh - var(--topnav-h,72px) - var(--footer-h,64px))'
+              : 'calc(100svh - var(--topnav-h,72px))',
           }}
         >
           <div className="mx-auto w-full max-w-3xl text-center md:max-w-2xl">
@@ -95,10 +43,9 @@ export default function LandingHero() {
 
             <p className="mx-auto mt-4 max-w-xl text-[clamp(1rem,2.7vw,1.25rem)] leading-relaxed text-white/85">
               Tell us how you want to feel. We hand-pick a short, spot-on list you’ll actually
-              watch — no endless scrolling. Save favorites and keep your watchlist in one place.
+              watch—no endless scrolling. Save favorites and keep your watchlist in one place.
             </p>
 
-            {/* CTA: Get started only (slightly longer) */}
             <div className="mx-auto mt-7 flex max-w-sm flex-col items-center justify-center gap-3 sm:max-w-none sm:flex-row">
               <Link
                 to="/auth/sign-up"
@@ -108,7 +55,6 @@ export default function LandingHero() {
               </Link>
             </div>
 
-            {/* Proof line */}
             <p className="mt-3 text-sm text-white/65">
               Free to start. Your mood, your movie.
             </p>

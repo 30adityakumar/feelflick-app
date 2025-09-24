@@ -5,11 +5,13 @@ import { Link } from 'react-router-dom'
 export default function LandingHero({ embedded = false }) {
   return (
     <section
-      className="relative h-full overflow-hidden"          // ⟵ fill row height
+      className="relative h-full overflow-hidden"
       style={embedded ? undefined : { marginTop: 'var(--topnav-h, var(--nav-h, 72px))' }}
     >
-      {/* background layers */}
+      {/* optional collage */}
       <div className="feelflick-landing-bg" aria-hidden="true" />
+
+      {/* background */}
       <div aria-hidden className="absolute inset-0 -z-10">
         <div className="absolute inset-0 bg-[linear-gradient(120deg,#0a121a_0%,#0d1722_50%,#0c1017_100%)]" />
         <div className="pointer-events-none absolute -top-40 -left-40 h-[65vmin] w-[65vmin] rounded-full blur-3xl opacity-60 bg-[radial-gradient(closest-side,rgba(254,146,69,0.45),rgba(254,146,69,0)_70%)]" />
@@ -23,37 +25,36 @@ export default function LandingHero({ embedded = false }) {
         <div className="absolute inset-0 bg-[radial-gradient(100%_80%_at_50%_0%,rgba(255,255,255,0.06),rgba(255,255,255,0)_60%)]" />
       </div>
 
-      <div
-        className="relative z-10 mx-auto h-full w-full max-w-7xl px-3 md:px-6"  // ⟵ same padding as TopNav
-        style={{ ['--nav-h']: '72px' }}
-      >
+      {/* content */}
+      <div className="relative z-10 mx-auto h-full w-full max-w-7xl px-3 md:px-6" style={{ ['--nav-h']: '72px' }}>
         <div
-          className={`
-            grid h-full items-center                          // ⟵ vertical centering
-            gap-y-4 gap-x-2
-            md:[grid-template-columns:max-content_minmax(0,520px)]
-            lg:[grid-template-columns:max-content_minmax(0,560px)]
-          `}
+          className="
+            grid h-full place-content-center place-items-center
+            gap-y-6 md:gap-y-0 md:gap-x-6
+            md:[grid-template-columns:max-content_minmax(0,560px)]
+          "
           style={
             embedded
               ? undefined
               : { height: 'calc(100svh - var(--topnav-h, var(--nav-h,72px)) - var(--footer-h,0px))' }
           }
         >
-          {/* Posters */}
-          <div className="order-1 md:order-2 md:col-start-2 w-full flex justify-center md:justify-start">
+          {/* Posters — top on mobile, right on desktop; pad right 6 */}
+          <div className="order-1 md:order-2 md:col-start-2 w-full flex justify-center md:justify-start md:pr-6">
             <MovieStack />
           </div>
 
-          {/* Copy */}
-          <div className="order-2 md:order-1 md:col-start-1 mx-auto w-full max-w-3xl md:max-w-[620px] text-center md:text-left">
+          {/* Copy — bottom on mobile, left on desktop; pad left 6 */}
+          <div className="order-2 md:order-1 md:col-start-1 mx-auto w-full max-w-3xl md:max-w-[620px] text-center md:text-left md:pl-6">
             <h1 className="text-balance text-[clamp(1.9rem,6vw,3.7rem)] font-black leading-[1.05] tracking-tight text-white">
               Movies that match your <span className="text-brand-100">mood</span>
             </h1>
-            <p className="mx-auto md:mx-0 mt-2 max-w-xl text-[clamp(.85rem,1.8vw,0.98rem)] leading-relaxed text-white/85">
-              Get the perfect movie recommendation based on your taste and how you feel — fast,
-              private, and always free.
+
+            {/* 1) Subheading: keep only the single sentence + smaller font */}
+            <p className="mx-auto md:mx-0 mt-2 max-w-xl text-[clamp(.8rem,1.5vw,.95rem)] leading-relaxed text-white/85">
+              Get the perfect movie recommendation based on your taste and how you feel.
             </p>
+
             <div className="mt-4 flex justify-center md:justify-start">
               <Link
                 to="/auth/sign-up"
@@ -62,6 +63,11 @@ export default function LandingHero({ embedded = false }) {
                 Get started
               </Link>
             </div>
+
+            {/* 2) Tagline under button; narrow, never wider than button */}
+            <p className="mt-2 mx-auto md:mx-0 max-w-fit text-[11px] leading-none text-white/60">
+              Fast · Private · Free
+            </p>
           </div>
         </div>
       </div>
@@ -69,7 +75,7 @@ export default function LandingHero({ embedded = false }) {
   )
 }
 
-/* ---- MovieStack + badges (unchanged from your latest) ---- */
+/* --------------------------- MovieStack --------------------------- */
 function MovieStack() {
   const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY
   const [items, setItems] = useState([])
@@ -93,8 +99,8 @@ function MovieStack() {
         const j = await r.json()
         const top = (j?.results || [])
           .filter(m => m.poster_path)
-          .sort((a,b)=> (b.vote_average||0)-(a.vote_average||0))
-          .slice(0,3)
+          .sort((a, b) => (b.vote_average || 0) - (a.vote_average || 0))
+          .slice(0, 3)
         if (!abort) setItems(top.length ? top : fallbacks)
       } catch {
         if (!abort) setItems(fallbacks)
@@ -121,16 +127,22 @@ function MovieStack() {
 
 function PosterCard({ src, title, className = '', glow = false }) {
   return (
-    <div className={`group rounded-3xl overflow-hidden ring-1 ring-white/10 bg-white/5 backdrop-blur-sm ${className}`}
-         style={{ boxShadow: glow ? '0 30px 70px rgba(0,0,0,.45)' : undefined }}
-         title={title || 'Movie poster'}>
-      {src ? <img src={src} alt={title || 'Movie poster'} className="h-full w-full object-cover" loading="eager" decoding="async" />
-           : <div className="h-full w-full bg-[linear-gradient(135deg,#111827_0%,#0b1220_100%)]" />}
+    <div
+      className={`group rounded-3xl overflow-hidden ring-1 ring-white/10 bg-white/5 backdrop-blur-sm ${className}`}
+      style={{ boxShadow: glow ? '0 30px 70px rgba(0,0,0,.45)' : undefined }}
+      title={title || 'Movie poster'}
+    >
+      {src ? (
+        <img src={src} alt={title || 'Movie poster'} className="h-full w-full object-cover" loading="eager" decoding="async" />
+      ) : (
+        <div className="h-full w-full bg-[linear-gradient(135deg,#111827_0%,#0b1220_100%)]" />
+      )}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/60 to-transparent" />
     </div>
   )
 }
 
+/* --------------------------- Badges --------------------------- */
 function FancyBadge({ variant = 'heart' }) {
   const ring = 'conic-gradient(from 180deg at 50% 50%, #fe9245, #eb423b, #2D77FF, #00D1FF, #fe9245)'
   const innerBg =
@@ -148,6 +160,7 @@ function FancyBadge({ variant = 'heart' }) {
     </div>
   )
 }
+
 function IconHeart(){return(<svg width="15" height="15" viewBox="0 0 24 24" aria-hidden><path d="M12 21s-7-4.35-9.33-8.09A5.5 5.5 0 0 1 12 6.2a5.5 5.5 0 0 1 9.33 6.71C19 16.65 12 21 12 21Z" fill="currentColor"/></svg>)}
 function IconStar(){return(<svg width="15" height="15" viewBox="0 0 24 24" aria-hidden><path d="m12 2 2.7 6.2 6.8.6-5.1 4.4 1.6 6.8-6-3.5-6 3.5 1.6-6.8-5.1-4.4 6.8-.6L12 2Z" fill="currentColor"/></svg>)}
 function IconBookmark(){return(<svg width="15" height="15" viewBox="0 0 24 24" aria-hidden><path d="M6 2h12a1 1 0 0 1 1 1v18l-7-4-7 4V3a1 1 0 0 1 1-1Z" fill="currentColor"/></svg>)}

@@ -1,4 +1,3 @@
-// src/app/header/TopNav.jsx
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { LogIn } from 'lucide-react'
@@ -10,9 +9,12 @@ export default function TopNav() {
   const navigate = useNavigate()
   const location = useLocation()
 
-  // consider anything under /auth a dedicated auth view
-  const isAuthRoute = /^\/(auth|login|signup|sign-in|sign-up)/i.test(location.pathname)
+  // Is an auth-like route? (hide the Sign in button)
+  const isAuthRoute = /^\/(auth|reset-password|confirm-email)(\/|$)?/i.test(
+    location.pathname || ''
+  )
 
+  // Set --topnav-h immediately and on resize (prevents micro-CLS)
   useEffect(() => {
     const setVar = () => {
       const h = barRef.current?.offsetHeight || 72
@@ -24,6 +26,7 @@ export default function TopNav() {
     return () => ro.disconnect()
   }, [])
 
+  // Toggle scrolled style
   useEffect(() => {
     let ticking = false
     const onScroll = () => {
@@ -55,6 +58,7 @@ export default function TopNav() {
 
   return (
     <header className={shellClass} data-scrolled={scrolled}>
+      {/* Skip to content for a11y */}
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:rounded-md focus:bg-neutral-900 focus:px-3 focus:py-2 focus:text-white focus:ring-2 focus:ring-brand/60"
@@ -66,52 +70,52 @@ export default function TopNav() {
         ref={barRef}
         className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3 px-3 pt-[calc(env(safe-area-inset-top)+6px)] pb-3 sm:py-4 md:px-6"
       >
-        {/* Brand (logo + wordmark slightly tighter) */}
+        {/* Brand */}
         <a
           href="/"
           onClick={onBrandClick}
-          className="flex items-center gap-1.5 rounded-md focus:outline-none focus:ring-2 focus:ring-brand/60"
+          className="flex items-center gap-1.5 sm:gap-2 rounded-md focus:outline-none focus:ring-2 focus:ring-brand/60"
           aria-label="FeelFlick home"
         >
           <img
             src={logoPng}
             alt=""
-            width="36"
-            height="36"
-            className="h-9 w-9 object-contain"
+            width="32"
+            height="32"
+            className="h-8 w-8 sm:h-9 sm:w-9 object-contain"
             loading="eager"
             decoding="async"
           />
-          <span className="text-[clamp(1.25rem,4.5vw,1.75rem)] font-extrabold tracking-tight text-brand-100">
+          <span className="text-[clamp(1.15rem,4.5vw,1.75rem)] font-extrabold tracking-tight text-brand-100">
             FEELFLICK
           </span>
         </a>
 
-        {/* Right actions — hidden on auth routes for a seamless feel */}
+        {/* Right side actions */}
+        {/* Desktop */}
         {!isAuthRoute && (
-          <>
-            {/* Desktop */}
-            <div className="hidden md:flex items-center gap-2">
-              <Link
-                to="/auth/sign-in"
-                className="group relative inline-flex h-10 items-center gap-2 rounded-full border border-white/20 px-4 text-[0.9rem] font-semibold text-white/95 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 active:scale-[.98]"
-              >
-                <LogIn className="h-4 w-4 text-white/90" aria-hidden />
-                <span>Sign in</span>
-              </Link>
-            </div>
+          <div className="hidden md:flex items-center gap-2">
+            <Link
+              to="/auth/sign-in"
+              className="group relative inline-flex h-10 items-center gap-2 rounded-full border border-white/20 px-4 text-[0.9rem] font-semibold text-white/95 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 active:scale-[.98]"
+            >
+              <LogIn className="h-4 w-4 text-white/90" aria-hidden />
+              <span>Sign in</span>
+            </Link>
+          </div>
+        )}
 
-            {/* Mobile */}
-            <div className="md:hidden">
-              <Link
-                to="/auth/sign-in"
-                className="inline-flex h-9 items-center gap-2 rounded-full border border-white/20 bg-white/5 px-3.5 text-[0.9rem] font-semibold text-white/95 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60 active:scale-[.98]"
-              >
-                <LogIn className="h-4 w-4 text-white/90" aria-hidden />
-                <span>Sign in</span>
-              </Link>
-            </div>
-          </>
+        {/* Mobile */}
+        {!isAuthRoute && (
+          <div className="md:hidden">
+            <Link
+              to="/auth/sign-in"
+              className="inline-flex h-9 items-center gap-1.5 rounded-full border border-white/20 bg-white/5 px-3 text-[0.88rem] font-semibold text-white/95 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60 active:scale-[.98]"
+            >
+              <LogIn className="h-3.5 w-3.5 text-white/90" aria-hidden />
+              <span>Sign in</span>
+            </Link>
+          </div>
         )}
       </div>
     </header>

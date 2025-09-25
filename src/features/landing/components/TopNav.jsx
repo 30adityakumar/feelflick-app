@@ -64,7 +64,7 @@ export default function TopNav() {
 
       <div
         ref={barRef}
-        className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3 px-3 pt-[calc(env(safe-area-inset-top)+12px)] pb-3 sm:py-4 md:px-6"
+        className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3 px-3 pt-[calc(env(safe-area-inset-top)+14px)] pb-3 sm:py-4 md:px-6"
       >
         {/* Brand */}
         <a

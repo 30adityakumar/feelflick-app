@@ -59,14 +59,14 @@ export default function AuthForm({ mode = 'signin' }) {
 
   return (
     <div
-  className="
-    w-full max-w-[360px] sm:max-w-[388px]
-    rounded-2xl border border-white/10 bg-black/35 backdrop-blur-sm
-    shadow-[0_30px_120px_rgba(0,0,0,.55)]
-    max-h-[calc(100svh-var(--topnav-h,72px)-var(--footer-h,0px)-12px)]
-    overflow-hidden
-  "
->
+      className="
+        w-full max-w-[360px] sm:max-w-[388px]
+        rounded-2xl border border-white/10 bg-black/35 backdrop-blur-sm
+        shadow-[0_30px_120px_rgba(0,0,0,.55)]
+        max-h-[calc(100svh-var(--topnav-h,72px)-var(--footer-h,0px)-12px)]
+        overflow-hidden
+      "
+    >
       {/* Header */}
       <div className="flex items-center justify-between px-3.5 py-2.5 sm:px-4 sm:py-3">
         <button

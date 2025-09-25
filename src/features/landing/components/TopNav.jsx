@@ -10,7 +10,7 @@ export default function TopNav() {
   const navigate = useNavigate()
   const location = useLocation()
 
-  // Set --topnav-h immediately and on resize (prevents micro-CLS)
+  // Set --topnav-h immediately and on resize
   useEffect(() => {
     const setVar = () => {
       const h = barRef.current?.offsetHeight || 72
@@ -70,7 +70,7 @@ export default function TopNav() {
         <a
           href="/"
           onClick={onBrandClick}
-          className="flex items-center gap-2 rounded-md focus:outline-none focus:ring-2 focus:ring-brand/60"
+          className="flex items-center gap-1 sm:gap-2 rounded-md focus:outline-none focus:ring-2 focus:ring-brand/60"
           aria-label="FeelFlick home"
         >
           <img
@@ -99,13 +99,13 @@ export default function TopNav() {
           </Link>
         </div>
 
-        {/* Mobile: show Sign in button directly (no hamburger) */}
+        {/* Mobile: slightly smaller button */}
         <div className="md:hidden">
           <Link
             to="/auth/sign-in"
-            className="inline-flex h-11 items-center gap-2 rounded-full border border-white/20 bg-white/5 px-4 text-[0.95rem] font-semibold text-white/95 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60 active:scale-[.98]"
+            className="inline-flex h-9 items-center gap-1.5 rounded-full border border-white/20 bg-white/5 px-3 text-[0.875rem] font-semibold text-white/95 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60 active:scale-[.98]"
           >
-            <LogIn className="h-4 w-4 text-white/90" aria-hidden />
+            <LogIn className="h-3.5 w-3.5 text-white/90" aria-hidden />
             <span>Sign in</span>
           </Link>
         </div>

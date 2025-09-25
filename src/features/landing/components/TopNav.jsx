@@ -10,6 +10,7 @@ export default function TopNav() {
   const navigate = useNavigate()
   const location = useLocation()
 
+  // Set --topnav-h immediately and on resize
   useEffect(() => {
     const setVar = () => {
       const h = barRef.current?.offsetHeight || 72
@@ -21,6 +22,7 @@ export default function TopNav() {
     return () => ro.disconnect()
   }, [])
 
+  // Toggle scrolled style
   useEffect(() => {
     let ticking = false
     const onScroll = () => {
@@ -46,15 +48,13 @@ export default function TopNav() {
     }
   }
 
-  // Hide the Sign-in button on auth-like pages
-  const onAuthPage = /^\/auth(\/|$)/.test(location.pathname) || /^\/(reset-password|confirm-email)/.test(location.pathname)
-
   const shellClass =
     'fixed inset-x-0 top-0 z-50 transition-colors duration-200 ' +
     (scrolled ? 'bg-neutral-950/60 backdrop-blur-md ring-1 ring-white/10' : 'bg-transparent')
 
   return (
     <header className={shellClass} data-scrolled={scrolled}>
+      {/* Skip to content for a11y */}
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:rounded-md focus:bg-neutral-900 focus:px-3 focus:py-2 focus:text-white focus:ring-2 focus:ring-brand/60"
@@ -64,43 +64,51 @@ export default function TopNav() {
 
       <div
         ref={barRef}
-        className="mx-auto flex w-full max-w-7xl items-center justify-between gap-2 px-3 pt-[calc(env(safe-area-inset-top)+6px)] pb-3 sm:py-4 md:px-6"
+        className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3 px-3 pt-[calc(env(safe-area-inset-top)+14px)] pb-3 sm:py-4 md:px-6"
       >
+        {/* Brand */}
         <a
           href="/"
           onClick={onBrandClick}
-          className="flex items-center gap-1.5 rounded-md focus:outline-none focus:ring-2 focus:ring-brand/60"
+          className="flex items-center gap-1 sm:gap-2 rounded-md focus:outline-none focus:ring-2 focus:ring-brand/60"
           aria-label="FeelFlick home"
         >
-          <img src={logoPng} alt="" width="36" height="36" className="h-8 w-8 md:h-9 md:w-9 object-contain" />
-          <span className="text-[clamp(1.2rem,4vw,1.75rem)] font-extrabold tracking-tight text-brand-100">
+          <img
+            src={logoPng}
+            alt=""
+            width="36"
+            height="36"
+            className="h-9 w-9 object-contain"
+            loading="eager"
+            decoding="async"
+          />
+          <span className="text-[clamp(1.25rem,4.5vw,1.75rem)] font-extrabold tracking-tight text-brand-100">
             FEELFLICK
           </span>
         </a>
 
-        {!onAuthPage && (
-          <div className="hidden md:flex items-center gap-2">
-            <Link
-              to="/auth/sign-in"
-              className="group inline-flex h-10 items-center gap-2 rounded-full border border-white/20 px-4 text-[0.9rem] font-semibold text-white/95 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 active:scale-[.98]"
-            >
-              <LogIn className="h-4 w-4 text-white/90" aria-hidden />
-              <span>Sign in</span>
-            </Link>
-          </div>
-        )}
+        {/* Right side actions */}
+        {/* Desktop */}
+        <div className="hidden md:flex items-center gap-2">
+          <Link
+            to="/auth/sign-in"
+            className="group relative inline-flex h-10 items-center gap-2 rounded-full border border-white/20 px-4 text-[0.9rem] font-semibold text-white/95 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 active:scale-[.98]"
+          >
+            <LogIn className="h-4 w-4 text-white/90" aria-hidden />
+            <span>Sign in</span>
+          </Link>
+        </div>
 
-        {!onAuthPage && (
-          <div className="md:hidden">
-            <Link
-              to="/auth/sign-in"
-              className="inline-flex h-9 items-center gap-2 rounded-full border border-white/20 bg-white/5 px-3.5 text-[0.9rem] font-semibold text-white/95 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60 active:scale-[.98]"
-            >
-              <LogIn className="h-4 w-4 text-white/90" aria-hidden />
-              <span>Sign in</span>
-            </Link>
-          </div>
-        )}
+        {/* Mobile: slightly smaller button */}
+        <div className="md:hidden">
+          <Link
+            to="/auth/sign-in"
+            className="inline-flex h-9 items-center gap-1 rounded-full border border-white/20 bg-white/5 px-3 text-[0.875rem] font-semibold text-white/95 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60 active:scale-[.98]"
+          >
+            <LogIn className="h-3.5 w-3.5 text-white/90" aria-hidden />
+            <span>Sign in</span>
+          </Link>
+        </div>
       </div>
     </header>
   )

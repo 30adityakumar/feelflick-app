@@ -1,3 +1,4 @@
+// src/shared/lib/supabase/onboarding.js
 import { supabase } from "@/shared/lib/supabase/client";
 
 /** Write to BOTH: auth.user_metadata + public.users.onboarding_complete */

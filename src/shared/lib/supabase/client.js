@@ -1,5 +1,5 @@
 /**
- * lib/supabaseClient.js
+ * // src/shared/lib/supabase/client.js
  * Helper to initialize the Supabase client.
  */
 

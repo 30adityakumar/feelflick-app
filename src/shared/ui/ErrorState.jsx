@@ -1,3 +1,4 @@
+// src/shared/ui/ErrorState.jsx
 export default function ErrorState({ title = 'Something went wrong', detail, onRetry }) {
   return (
     <div className="flex w-full flex-col items-center justify-center gap-2 rounded-xl border border-red-200/40 bg-red-50/30 p-4 text-red-700">

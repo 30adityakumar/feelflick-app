@@ -1,16 +1,14 @@
-// src/app/header/TopNav.jsx
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { LogIn } from 'lucide-react'
 import logoPng from '@/assets/images/logo.png'
 
-export default function TopNav() {
+export default function TopNav({ hideAuthCta = false }) {
   const [scrolled, setScrolled] = useState(false)
   const barRef = useRef(null)
   const navigate = useNavigate()
   const location = useLocation()
 
-  // Set --topnav-h immediately and on resize
   useEffect(() => {
     const setVar = () => {
       const h = barRef.current?.offsetHeight || 72
@@ -22,7 +20,6 @@ export default function TopNav() {
     return () => ro.disconnect()
   }, [])
 
-  // Toggle scrolled style
   useEffect(() => {
     let ticking = false
     const onScroll = () => {
@@ -54,23 +51,21 @@ export default function TopNav() {
 
   return (
     <header className={shellClass} data-scrolled={scrolled}>
-      {/* Skip to content for a11y */}
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:rounded-md focus:bg-neutral-900 focus:px-3 focus:py-2 focus:text-white focus:ring-2 focus:ring-brand/60"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:rounded-md focus:bg-neutral-900 focus:px-3 focus:py-2 focus:text-white"
       >
         Skip to content
       </a>
 
       <div
         ref={barRef}
-        className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3 px-3 pt-[calc(env(safe-area-inset-top)+14px)] pb-3 sm:py-4 md:px-6"
+        className="mx-auto flex w-full max-w-7xl items-center justify-between gap-2 px-3 pt-[calc(env(safe-area-inset-top)+6px)] pb-3 sm:py-4 md:px-6"
       >
-        {/* Brand */}
         <a
           href="/"
           onClick={onBrandClick}
-          className="flex items-center gap-1 sm:gap-2 rounded-md focus:outline-none focus:ring-2 focus:ring-brand/60"
+          className="flex items-center gap-1.5 rounded-md"
           aria-label="FeelFlick home"
         >
           <img
@@ -87,28 +82,31 @@ export default function TopNav() {
           </span>
         </a>
 
-        {/* Right side actions */}
-        {/* Desktop */}
-        <div className="hidden md:flex items-center gap-2">
-          <Link
-            to="/auth/sign-in"
-            className="group relative inline-flex h-10 items-center gap-2 rounded-full border border-white/20 px-4 text-[0.9rem] font-semibold text-white/95 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 active:scale-[.98]"
-          >
-            <LogIn className="h-4 w-4 text-white/90" aria-hidden />
-            <span>Sign in</span>
-          </Link>
-        </div>
+        {!hideAuthCta && (
+          <>
+            {/* Desktop */}
+            <div className="hidden md:flex items-center gap-2">
+              <Link
+                to="/auth/sign-in"
+                className="group relative inline-flex h-10 items-center gap-2 rounded-full border border-white/20 px-4 text-[0.9rem] font-semibold text-white/95 hover:bg-white/10 active:scale-[.98] focus:outline-none"
+              >
+                <LogIn className="h-4 w-4 text-white/90" aria-hidden />
+                <span>Sign in</span>
+              </Link>
+            </div>
 
-        {/* Mobile: slightly smaller button */}
-        <div className="md:hidden">
-          <Link
-            to="/auth/sign-in"
-            className="inline-flex h-9 items-center gap-1 rounded-full border border-white/20 bg-white/5 px-3 text-[0.875rem] font-semibold text-white/95 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60 active:scale-[.98]"
-          >
-            <LogIn className="h-3.5 w-3.5 text-white/90" aria-hidden />
-            <span>Sign in</span>
-          </Link>
-        </div>
+            {/* Mobile */}
+            <div className="md:hidden">
+              <Link
+                to="/auth/sign-in"
+                className="inline-flex h-9 items-center gap-2 rounded-full border border-white/20 bg-white/5 px-3.5 text-[0.9rem] font-semibold text-white/95 hover:bg-white/10 active:scale-[.98] focus:outline-none"
+              >
+                <LogIn className="h-4 w-4 text-white/90" aria-hidden />
+                <span>Sign in</span>
+              </Link>
+            </div>
+          </>
+        )}
       </div>
     </header>
   )

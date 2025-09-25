@@ -1,217 +1,204 @@
-import { useEffect, useMemo, useState } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+// src/features/auth/components/AuthForm.jsx
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
-import { ArrowLeft, Eye, EyeOff, Mail, LogIn, UserPlus, ShieldCheck } from 'lucide-react'
+import { ArrowLeft, Mail, Eye, EyeOff, Shield, UserPlus, LogIn } from 'lucide-react'
 
-export default function AuthForm() {
-  const nav = useNavigate()
-  const loc = useLocation()
-
-  // read mode from pathname: /auth/sign-in or /auth/sign-up
-  const initialMode = /sign-up/i.test(loc.pathname) ? 'signup' : 'signin'
-  const [mode, setMode] = useState(initialMode)
+export default function AuthForm({ mode = 'sign-up', onSwap }) {
+  const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [showPass, setShowPass] = useState(false)
-  const [magic, setMagic] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const title = mode === 'signin' ? 'Welcome back' : 'Create your account'
+  const [show, setShow] = useState(false)
+  const [useMagic, setUseMagic] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState('')
 
-  useEffect(() => setMode(initialMode), [initialMode])
+  // if authed already, bounce to /home (router will gate to onboarding if needed)
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) navigate('/home', { replace: true })
+    })
+  }, [navigate])
 
-  const submitLabel = useMemo(
-    () => (magic ? (mode === 'signin' ? 'Send magic link' : 'Send sign-up link') : mode === 'signin' ? 'Sign in' : 'Create account'),
-    [mode, magic]
-  )
-
-  async function handleOAuth(provider = 'google') {
-    try {
-      setLoading(true)
-      setError('')
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: { redirectTo: `${window.location.origin}/auth` },
-      })
-      if (error) throw error
-    } catch (e) {
-      setError(e?.message || 'OAuth error')
-    } finally {
-      setLoading(false)
-    }
+  const handleBack = () => {
+    // go back if possible, else landing
+    if (window.history.length > 1) navigate(-1)
+    else navigate('/', { replace: true })
   }
 
-  async function onSubmit(e) {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
-    try {
-      if (!email) throw new Error('Email is required')
+  const handleForgot = () => navigate('/reset-password')
 
-      if (magic) {
-        // One tap, low-friction
-        const { error } = await supabase.auth.signInWithOtp({
-          email,
-          options: { emailRedirectTo: `${window.location.origin}/auth` },
-        })
+  const submit = async (e) => {
+    e.preventDefault()
+    setErr('')
+    setBusy(true)
+    try {
+      if (useMagic) {
+        const { error } = await supabase.auth.signInWithOtp({ email })
         if (error) throw error
-        nav('/confirm-email', { replace: true, state: { email } })
+        setErr('Check your email for the magic link.')
         return
       }
 
-      if (!password) throw new Error('Password is required')
-
-      if (mode === 'signin') {
+      if (mode === 'sign-in') {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
       } else {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { onboarding_complete: false },
-            emailRedirectTo: `${window.location.origin}/auth`,
-          },
-        })
+        const { error } = await supabase.auth.signUp({ email, password })
         if (error) throw error
       }
-
-      // success → go home; PostAuthGate will route to /onboarding if needed
-      nav('/home', { replace: true })
+      // success -> router will send to /home after session; be explicit too
+      navigate('/home', { replace: true })
     } catch (e) {
-      setError(e?.message || 'Something went wrong')
+      setErr(e.message || 'Something went wrong.')
     } finally {
-      setLoading(false)
+      setBusy(false)
     }
   }
 
-  const goBack = () => {
-    if (window.history.length > 1) nav(-1)
-    else nav('/', { replace: true })
-  }
-
-  const goReset = () => nav('/reset-password')
+  const Title = mode === 'sign-in' ? 'Welcome back' : 'Create your account'
+  const CtaText = mode === 'sign-in' ? 'Sign in' : 'Create account'
+  const CtaIcon = mode === 'sign-in' ? LogIn : UserPlus
+  const SwitchLine =
+    mode === 'sign-in' ? (
+      <>New here? <button type="button" onClick={onSwap} className="text-white hover:text-brand-100 underline-offset-4 hover:underline focus:outline-none">Create account</button></>
+    ) : (
+      <>Have an account? <button type="button" onClick={onSwap} className="text-white hover:text-brand-100 underline-offset-4 hover:underline focus:outline-none">Sign in</button></>
+    )
 
   return (
-    <div className="rounded-[20px] border border-white/10 bg-neutral-900/60 p-4 shadow-[0_20px_80px_rgba(0,0,0,.45)] backdrop-blur-md md:p-6">
-      {/* Card header */}
-      <div className="mb-4 flex items-center justify-between">
-        <button
-          type="button"
-          onClick={goBack}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/15 text-white/85 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60"
-          aria-label="Back"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </button>
-
-        <div className="flex items-center gap-2 text-white">
-          <ShieldCheck className="h-4 w-4 text-brand-100" />
-          <span className="text-sm tracking-wide text-white/80">FEELFLICK</span>
+    <div className="w-[min(92vw,520px)]">
+      <form
+        onSubmit={submit}
+        className="relative rounded-3xl border border-white/10 bg-white/5 p-5 sm:p-6 md:p-7 text-white shadow-[0_20px_80px_rgba(0,0,0,.45)] backdrop-blur-md"
+      >
+        {/* Header row */}
+        <div className="mb-2 flex items-center justify-between">
+          <button
+            type="button"
+            onClick={handleBack}
+            aria-label="Back"
+            className="inline-grid h-10 w-10 place-items-center rounded-full border border-white/15 bg-white/5 hover:bg-white/10 focus:outline-none"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <div className="flex items-center gap-2 text-white/80">
+            <Shield className="h-4 w-4" />
+            <span className="text-sm tracking-wide">FEELFLICK</span>
+          </div>
         </div>
-      </div>
 
-      <h1 className="text-center text-[1.4rem] font-extrabold tracking-tight text-white md:text-[1.55rem]">
-        {title}
-      </h1>
-      <p className="mt-1 text-center text-sm text-white/70">
-        {mode === 'signin' ? 'Sign in to pick up where you left off.' : 'Join free and start finding what fits your mood.'}
-      </p>
+        <h1 className="mt-1 text-center text-[clamp(1.2rem,3.4vw,1.7rem)] font-extrabold tracking-tight">
+          {Title}
+        </h1>
+        <p className="mt-1 text-center text-[0.92rem] text-white/75">
+          {mode === 'sign-in'
+            ? 'Sign in to pick up where you left off.'
+            : 'Join free and start finding what fits your mood.'}
+        </p>
 
-      {/* Form */}
-      <form onSubmit={onSubmit} className="mt-5 space-y-4">
-        {/* email */}
-        <label className="block">
-          <span className="mb-1 block text-xs font-medium text-white/70">EMAIL</span>
-          <div className="relative">
+        {/* Fields */}
+        <div className="mt-5 space-y-4">
+          <label className="block text-xs font-semibold text-white/70">EMAIL</label>
+          <div className="flex items-center gap-2 rounded-2xl border border-white/12 bg-black/30 px-3.5 py-2.5 focus-within:border-white/25">
+            <Mail className="h-4 w-4 text-white/60" />
             <input
               type="email"
               autoComplete="email"
+              required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="h-11 w-full rounded-xl border border-white/10 bg-white/[.07] px-10 text-[0.95rem] text-white placeholder:text-white/45 focus:border-brand/60 focus:outline-none"
               placeholder="name@email.com"
+              className="w-full bg-transparent text-[0.98rem] outline-none placeholder:text-white/40"
             />
-            <Mail className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-white/60" />
           </div>
-        </label>
 
-        {/* password (hidden if magic link) */}
-        {!magic && (
-          <label className="block">
-            <div className="mb-1 flex items-center justify-between">
-              <span className="text-xs font-medium text-white/70">PASSWORD</span>
-              <button
-                type="button"
-                onClick={goReset}
-                className="text-xs font-semibold text-white/75 hover:text-white"
-              >
-                Forgot?
-              </button>
-            </div>
-            <div className="relative">
-              <input
-                type={showPass ? 'text' : 'password'}
-                autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="h-11 w-full rounded-xl border border-white/10 bg-white/[.07] px-4 pr-10 text-[0.95rem] text-white placeholder:text-white/45 focus:border-brand/60 focus:outline-none"
-                placeholder="Your password"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPass((s) => !s)}
-                aria-label={showPass ? 'Hide password' : 'Show password'}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-white/75 hover:bg-white/10"
-              >
-                {showPass ? <EyeOff className="h-4.5 w-4.5" /> : <Eye className="h-4.5 w-4.5" />}
-              </button>
-            </div>
+          {!useMagic && (
+            <>
+              <label className="block text-xs font-semibold text-white/70">PASSWORD</label>
+              <div className="flex items-center gap-2 rounded-2xl border border-white/12 bg-black/30 px-3.5 py-2.5 focus-within:border-white/25">
+                <input
+                  type={show ? 'text' : 'password'}
+                  autoComplete={mode === 'sign-in' ? 'current-password' : 'new-password'}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Your password"
+                  className="w-full bg-transparent text-[0.98rem] outline-none placeholder:text-white/40"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShow((s) => !s)}
+                  className="ml-1 rounded-lg p-2 text-white/70 hover:bg-white/10 focus:outline-none"
+                  aria-label={show ? 'Hide password' : 'Show password'}
+                >
+                  {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+              <div className="mt-1 flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleForgot}
+                  className="text-[0.85rem] text-white/70 underline-offset-4 hover:text-white focus:outline-none hover:underline"
+                >
+                  Forgot password?
+                </button>
+              </div>
+            </>
+          )}
+
+          {/* Magic link toggle */}
+          <label className="flex select-none items-center gap-2 pt-1 text-[0.92rem]">
+            <input
+              type="checkbox"
+              checked={useMagic}
+              onChange={(e) => setUseMagic(e.target.checked)}
+              className="h-4 w-4 rounded border-white/30 bg-transparent text-brand-100 focus:ring-0"
+            />
+            <span className="text-white/80">Use magic link instead</span>
           </label>
-        )}
+        </div>
 
-        {/* magic link toggle */}
-        <label className="flex select-none items-center gap-2 pt-1 text-sm text-white/80">
-          <input
-            type="checkbox"
-            checked={magic}
-            onChange={(e) => setMagic(e.target.checked)}
-            className="h-4 w-4 rounded border-white/30 bg-white/10 text-brand-100 focus:ring-brand/60"
-          />
-          Use magic link instead
-        </label>
-
-        {/* error */}
-        {error && (
-          <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
-            {error}
+        {/* Error / Info */}
+        {!!err && (
+          <div className="mt-3 rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-[0.9rem] text-white/85">
+            {err}
           </div>
         )}
 
-        {/* submit */}
+        {/* CTA */}
         <button
           type="submit"
-          disabled={loading}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#fe9245] to-[#eb423b] py-3 font-semibold text-white shadow-[0_10px_30px_rgba(0,0,0,.35)] disabled:opacity-70"
+          disabled={busy}
+          className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#fe9245] to-[#eb423b] text-[0.98rem] font-semibold text-white shadow-lg shadow-black/30 transition-transform active:scale-[.99] focus:outline-none disabled:opacity-60"
         >
-          {mode === 'signin' ? <LogIn className="h-4.5 w-4.5" /> : <UserPlus className="h-4.5 w-4.5" />}
-          {submitLabel}
+          <CtaIcon className="h-5 w-5" />
+          {CtaText}
         </button>
 
-        {/* divider */}
-        <div className="relative py-1">
-          <div className="h-px w-full bg-white/10" />
-          <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-neutral-900/60 px-2 text-xs text-white/60">
-            or
-          </span>
+        {/* Divider */}
+        <div className="my-4 flex items-center gap-3">
+          <div className="h-px flex-1 bg-white/10" />
+          <span className="text-xs text-white/50">or</span>
+          <div className="h-px flex-1 bg-white/10" />
         </div>
 
         {/* Google */}
         <button
           type="button"
-          disabled={loading}
-          onClick={() => handleOAuth('google')}
-          className="inline-flex w-full items-center justify-center gap-3 rounded-2xl border border-white/15 bg-white/5 py-3 text-[0.95rem] font-semibold text-white hover:bg-white/10"
+          onClick={async () => {
+            setErr('')
+            setBusy(true)
+            try {
+              const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' })
+              if (error) throw error
+            } catch (e) {
+              setErr(e.message || 'Google sign-in failed.')
+            } finally {
+              setBusy(false)
+            }
+          }}
+          className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-2xl border border-white/12 bg-black/30 text-[0.98rem] font-semibold text-white/95 hover:bg-white/10 focus:outline-none"
         >
           <img
             src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
@@ -221,32 +208,8 @@ export default function AuthForm() {
           Continue with Google
         </button>
 
-        {/* mode switch */}
-        <div className="pt-1 text-center text-sm text-white/75">
-          {mode === 'signin' ? (
-            <>
-              New here?{' '}
-              <button
-                type="button"
-                onClick={() => setMode('signup')}
-                className="font-semibold text-white hover:underline"
-              >
-                Create account
-              </button>
-            </>
-          ) : (
-            <>
-              Have an account?{' '}
-              <button
-                type="button"
-                onClick={() => setMode('signin')}
-                className="font-semibold text-white hover:underline"
-              >
-                Sign in
-              </button>
-            </>
-          )}
-        </div>
+        {/* Switch */}
+        <p className="mt-5 text-center text-[0.92rem] text-white/80">{SwitchLine}</p>
       </form>
     </div>
   )

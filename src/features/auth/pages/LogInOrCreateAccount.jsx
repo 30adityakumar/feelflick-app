@@ -19,6 +19,12 @@ export default function LogInOrCreateAccount() {
 
   const valid = emailRegex.test(email)
 
+  const onContinue = (e) => {
+    e.preventDefault()
+    if (!email) return
+    navigate(`/auth/password?email=${encodeURIComponent(email)}`)
+  }
+
   useEffect(() => {
     track('auth_view', { page: 'log-in-or-create-account' })
   }, [])

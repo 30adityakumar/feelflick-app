@@ -18,6 +18,10 @@ import AuthPage from '@/features/auth/AuthPage'
 import ResetPassword from '@/features/auth/components/ResetPassword'
 import ConfirmEmail from '@/features/auth/components/ConfirmEmail'
 
+import LogInOrCreateAccount from '@/features/auth/pages/LogInOrCreateAccount'
+import LogInPassword from '@/features/auth/pages/LogInPassword'
+import CreateAccountPassword from '@/features/auth/pages/CreateAccountPassword'
+
 // App pages (with header/sidebar)
 import HomePage from '@/app/homepage/HomePage'
 import MoviesTab from '@/app/pages/movies/MoviesTab'
@@ -172,28 +176,34 @@ function SignOutRoute() {
 
 /* -------------------------------- Router --------------------------------- */
 export const router = createBrowserRouter([
-  // Public branch
   {
     element: <PublicShell />,
     children: [
       { index: true, element: <RedirectIfAuthed><Landing /></RedirectIfAuthed> },
 
-      // Canonical auth page (double-slash variant kept exactly as requested)
-      { path: 'auth//log-in-or-create-account', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
-      { path: 'auth/log-in-or-create-account',  element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
+      // Auth shell with nested pages
+      {
+        path: 'auth',
+        element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed>,
+        children: [
+          { index: true, element: <Navigate to="/auth/log-in-or-create-account" replace /> },
+          { path: 'log-in-or-create-account', element: <LogInOrCreateAccount /> },
+          { path: 'log-in/password', element: <LogInPassword /> },
+          { path: 'create-account/password', element: <CreateAccountPassword /> },
+        ],
+      },
 
-      // Old entry points → redirect to new page
-      { path: 'auth',           element: <Navigate to="/auth//log-in-or-create-account" replace /> },
-      { path: 'auth/sign-in',   element: <Navigate to="/auth//log-in-or-create-account" replace /> },
-      { path: 'auth/sign-up',   element: <Navigate to="/auth//log-in-or-create-account" replace /> },
-      { path: 'login',          element: <Navigate to="/auth//log-in-or-create-account" replace /> },
-      { path: 'signup',         element: <Navigate to="/auth//log-in-or-create-account" replace /> },
-      { path: 'signin',         element: <Navigate to="/auth//log-in-or-create-account" replace /> },
-      { path: 'register',       element: <Navigate to="/auth//log-in-or-create-account" replace /> },
+      // Legacy/aliases → unify to the entry page
+      { path: 'auth/sign-in', element: <Navigate to="/auth/log-in-or-create-account" replace /> },
+      { path: 'auth/sign-up', element: <Navigate to="/auth/log-in-or-create-account" replace /> },
+      { path: 'login',        element: <Navigate to="/auth/log-in-or-create-account" replace /> },
+      { path: 'signup',       element: <Navigate to="/auth/log-in-or-create-account" replace /> },
+      { path: 'signin',       element: <Navigate to="/auth/log-in-or-create-account" replace /> },
+      { path: 'register',     element: <Navigate to="/auth/log-in-or-create-account" replace /> },
 
-      // Email flows
+      // Email flows unchanged
       { path: 'reset-password', element: <ResetPassword /> },
-      { path: 'confirm-email', element: <ConfirmEmail /> },
+      { path: 'confirm-email',  element: <ConfirmEmail /> },
 
       { path: 'logout', element: <SignOutRoute /> },
     ],

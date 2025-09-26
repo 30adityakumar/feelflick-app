@@ -1,26 +1,19 @@
 // src/features/auth/AuthPage.jsx
-import { useLocation } from 'react-router-dom'
+import { Outlet } from 'react-router-dom'
 import TopNav from '@/features/landing/components/TopNav'
 import Footer from '@/features/landing/components/Footer'
-import AuthForm from '@/features/auth/components/AuthForm'
-
-const swapTo = '/auth//log-in-or-create-account'
 
 export default function AuthPage() {
-  const { pathname } = useLocation()
-  const mode = pathname.includes('sign-up') ? 'signup' : 'signin'
-
   return (
     <>
       <TopNav hideAuthCta />
 
-      {/* Viewport below TopNav; no page scroll */}
       <main
         id="main"
         className="relative mx-auto w-full overflow-hidden"
         style={{ height: 'calc(100svh - var(--topnav-h,72px))' }}
       >
-        {/* FIX 1: Background is now FIXED to the viewport so it sits under the footer as well */}
+        {/* Background (unchanged) */}
         <div aria-hidden className="fixed inset-0 z-0">
           <div className="absolute inset-0 bg-[linear-gradient(120deg,#0a121a_0%,#0d1722_50%,#0c1017_100%)]" />
           <div className="pointer-events-none absolute -top-40 -left-40 h-[65vmin] w-[65vmin] rounded-full blur-3xl opacity-60 bg-[radial-gradient(closest-side,rgba(254,146,69,0.45),rgba(254,146,69,0)_70%)]" />
@@ -33,22 +26,18 @@ export default function AuthPage() {
           <div className="absolute inset-0 bg-[radial-gradient(100%_80%_at_50%_0%,rgba(255,255,255,0.06),rgba(255,255,255,0)_60%)]" />
         </div>
 
-        {/* 1 row = form area (centered), 2nd row = fixed footer visual space only */}
+        {/* Centered page content */}
         <div className="relative z-10 grid h-full min-h-0 grid-rows-[1fr_auto]">
-          {/* FIX 2: Perfect centering between TopNav and bottom edge minus footer height */}
           <section
             className="flex items-center justify-center px-4 md:px-6"
             style={{ height: 'calc(100svh - var(--topnav-h,72px) - var(--footer-h,0px))' }}
           >
-            <AuthForm mode={mode} />
+            <Outlet />
           </section>
-
-          {/* Footer is fixed; we just reserve visual space with this empty row */}
           <div aria-hidden />
         </div>
       </main>
 
-      {/* Real footer (fixed) */}
       <Footer />
     </>
   )

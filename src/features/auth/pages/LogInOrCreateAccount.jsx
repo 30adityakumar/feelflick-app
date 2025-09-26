@@ -40,30 +40,9 @@ export default function LogInOrCreateAccount() {
   async function onSubmit(e) {
     e.preventDefault()
     if (!valid || busy) return
-    setBusy(true)
-    setErr('')
-    try {
-      track('auth_email_submitted')
-      const { data, error } = await supabase.functions.invoke('check-user-by-email', {
-        body: { email: email.trim().toLowerCase() },
-        headers: { 'Content-Type': 'application/json' } // explicit, harmless
-      })
-      if (error) {
-        if (import.meta.env.DEV) console.error('[check-user-by-email] invoke error:', error)
-        throw error
-      }
-      const exists = Boolean(data?.exists)
-      track('auth_route_decision', { exists })
-      if (exists) {
-        nav('/auth/log-in/password', { replace: true, state: { email } })
-      } else {
-        nav('/auth/create-account/password', { replace: true, state: { email } })
-      }
-    } catch (_e) {
-      setErr('Something went wrong. Please try again.')
-    } finally {
-      setBusy(false)
-    }
+    const cleaned = email.trim().toLowerCase()
+    // no server call; just go to the unified password page
+    nav(`/auth/password?email=${encodeURIComponent(cleaned)}`)
   }
 
   return (

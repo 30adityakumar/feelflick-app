@@ -19,12 +19,6 @@ export default function LogInOrCreateAccount() {
 
   const valid = emailRegex.test(email)
 
-  const onContinue = (e) => {
-    e.preventDefault()
-    if (!email) return
-    navigate(`/auth/password?email=${encodeURIComponent(email)}`)
-  }
-
   useEffect(() => {
     track('auth_view', { page: 'log-in-or-create-account' })
   }, [])
@@ -40,9 +34,26 @@ export default function LogInOrCreateAccount() {
   async function onSubmit(e) {
     e.preventDefault()
     if (!valid || busy) return
-    const cleaned = email.trim().toLowerCase()
-    // no server call; just go to the unified password page
-    nav(`/auth/password?email=${encodeURIComponent(cleaned)}`)
+    setBusy(true)
+    setErr('')
+    try {
+      track('auth_email_submitted')
+      const { data, error } = await supabase.functions.invoke('check-user-by-email', {
+        body: { email: email.trim().toLowerCase() },
+      })
+      if (error) throw error
+      const exists = Boolean(data?.exists)
+      track('auth_route_decision', { exists })
+      if (exists) {
+        nav('/auth/log-in/password', { replace: true, state: { email } })
+      } else {
+        nav('/auth/create-account/password', { replace: true, state: { email } })
+      }
+    } catch (_e) {
+      setErr('Something went wrong. Please try again.')
+    } finally {
+      setBusy(false)
+    }
   }
 
   return (

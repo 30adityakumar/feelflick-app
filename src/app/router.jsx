@@ -189,7 +189,8 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <Navigate to="/auth/log-in-or-create-account" replace /> },
           { path: 'log-in-or-create-account', element: <LogInOrCreateAccount /> },
-          { path: 'password', element: <PasswordGate /> },
+          { path: 'log-in/password', element: <LogInPassword /> },
+          { path: 'create-account/password', element: <CreateAccountPassword /> },
         ],
       },
 
@@ -208,6 +209,7 @@ export const router = createBrowserRouter([
       { path: 'logout', element: <SignOutRoute /> },
     ],
   },
+
 
   // App branch
   {

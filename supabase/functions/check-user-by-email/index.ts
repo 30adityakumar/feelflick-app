@@ -1,90 +1,46 @@
 // supabase/functions/check-user-by-email/index.ts
-import { createClient } from "npm:@supabase/supabase-js@2"
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!
-const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "https://app.feelflick.com", // or "*" if not using cookies
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Vary": "Origin",
+};
 
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
-// Allow your production app and local dev. Add preview host(s) if needed.
-const ALLOWED_ORIGINS = new Set([
-  "https://app.feelflick.com",
-  "http://localhost:5173",
-])
-
-function corsHeaders(origin: string | null) {
-  const allow =
-    !!origin &&
-    (ALLOWED_ORIGINS.has(origin) || origin.endsWith(".pages.dev"))
-  return {
-    "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": allow ? origin : "https://app.feelflick.com",
-    "Vary": "Origin",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers":
-      "authorization, x-client-info, apikey, content-type",
-  }
-}
-
-// tiny per-instance throttle
-const BUCKET = new Map<string, number[]>()
-const WINDOW_MS = 60_000
-const LIMIT = 20
-
-Deno.serve(async (req) => {
-  const origin = req.headers.get("origin")
+serve(async (req) => {
+  // 1) Handle preflight
   if (req.method === "OPTIONS") {
-    return new Response(null, { status: 204, headers: corsHeaders(origin) })
-  }
-
-  if (req.method !== "POST") {
-    return new Response(JSON.stringify({ exists: false }), {
-      status: 200,
-      headers: corsHeaders(origin),
-    })
+    return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    // throttle by IP
-    const ip =
-      req.headers.get("cf-connecting-ip") ||
-      req.headers.get("x-forwarded-for") ||
-      "anon"
-    const now = Date.now()
-    const recent = (BUCKET.get(ip) || []).filter((t) => now - t < WINDOW_MS)
-    if (recent.length >= LIMIT) {
-      return new Response(JSON.stringify({ exists: false }), {
-        status: 200,
-        headers: corsHeaders(origin),
-      })
-    }
-    recent.push(now)
-    BUCKET.set(ip, recent)
-
-    // parse + normalize
-    const { email } = await req.json().catch(() => ({}))
-    const e = (email || "").toString().trim().toLowerCase()
-    if (!emailRegex.test(e)) {
-      return new Response(JSON.stringify({ exists: false }), {
-        status: 200,
-        headers: corsHeaders(origin),
-      })
+    const { email } = await req.json();
+    if (!email) {
+      return new Response(JSON.stringify({ error: "email is required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    // admin lookup (don’t leak errors)
-    const { data: { user }, error } = await admin.auth.admin.getUserByEmail(e)
-    const exists = !!user && !error
+    // 2) Use service role for Admin API (not the anon key)
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const serviceRole = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const admin = createClient(supabaseUrl, serviceRole);
 
+    // 3) Check if user exists
+    const { data, error } = await admin.auth.admin.getUserByEmail(email);
+    if (error && error.message !== "User not found") throw error;
+
+    const exists = Boolean(data?.user);
     return new Response(JSON.stringify({ exists }), {
-      status: 200,
-      headers: corsHeaders(origin),
-    })
-  } catch {
-    // generic success response on failure
-    return new Response(JSON.stringify({ exists: false }), {
-      status: 200,
-      headers: corsHeaders(origin),
-    })
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  } catch (err) {
+    return new Response(JSON.stringify({ error: String(err?.message ?? err) }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
-})
+});

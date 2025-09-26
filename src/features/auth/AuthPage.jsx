@@ -1,7 +1,10 @@
+// src/features/auth/AuthPage.jsx
 import { useLocation } from 'react-router-dom'
 import TopNav from '@/features/landing/components/TopNav'
 import Footer from '@/features/landing/components/Footer'
 import AuthForm from '@/features/auth/components/AuthForm'
+
+const swapTo = '/auth//log-in-or-create-account'
 
 export default function AuthPage() {
   const { pathname } = useLocation()

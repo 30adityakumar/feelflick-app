@@ -1,3 +1,4 @@
+// src/features/landing/components/TopNav.jsx
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { LogIn } from 'lucide-react'
@@ -87,22 +88,22 @@ export default function TopNav({ hideAuthCta = false }) {
             {/* Desktop */}
             <div className="hidden md:flex items-center gap-2">
               <Link
-                to="/auth/sign-in"
+                to="/auth/log-in-or-create-account"
                 className="group relative inline-flex h-10 items-center gap-2 rounded-full border border-white/20 px-4 text-[0.9rem] font-semibold text-white/95 hover:bg-white/10 active:scale-[.98] focus:outline-none"
               >
                 <LogIn className="h-4 w-4 text-white/90" aria-hidden />
-                <span>Sign in</span>
+                <span>Log in</span>
               </Link>
             </div>
 
             {/* Mobile */}
             <div className="md:hidden">
               <Link
-                to="/auth/sign-in"
+                to="/auth/log-in-or-create-account"
                 className="inline-flex h-9 items-center gap-2 rounded-full border border-white/20 bg-white/5 px-3.5 text-[0.9rem] font-semibold text-white/95 hover:bg-white/10 active:scale-[.98] focus:outline-none"
               >
                 <LogIn className="h-4 w-4 text-white/90" aria-hidden />
-                <span>Sign in</span>
+                <span>Log in</span>
               </Link>
             </div>
           </>

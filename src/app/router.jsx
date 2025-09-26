@@ -177,15 +177,19 @@ export const router = createBrowserRouter([
     element: <PublicShell />,
     children: [
       { index: true, element: <RedirectIfAuthed><Landing /></RedirectIfAuthed> },
-      { path: 'auth', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
 
-      // legacy/aliases
-      { path: 'auth/sign-in', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
-      { path: 'auth/sign-up', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
-      { path: 'login', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
-      { path: 'signup', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
-      { path: 'signin', element: <Navigate to="/login" replace /> },
-      { path: 'register', element: <Navigate to="/signup" replace /> },
+      // Canonical auth page (double-slash variant kept exactly as requested)
+      { path: 'auth//log-in-or-create-account', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
+      { path: 'auth/log-in-or-create-account',  element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
+
+      // Old entry points → redirect to new page
+      { path: 'auth',           element: <Navigate to="/auth//log-in-or-create-account" replace /> },
+      { path: 'auth/sign-in',   element: <Navigate to="/auth//log-in-or-create-account" replace /> },
+      { path: 'auth/sign-up',   element: <Navigate to="/auth//log-in-or-create-account" replace /> },
+      { path: 'login',          element: <Navigate to="/auth//log-in-or-create-account" replace /> },
+      { path: 'signup',         element: <Navigate to="/auth//log-in-or-create-account" replace /> },
+      { path: 'signin',         element: <Navigate to="/auth//log-in-or-create-account" replace /> },
+      { path: 'register',       element: <Navigate to="/auth//log-in-or-create-account" replace /> },
 
       // Email flows
       { path: 'reset-password', element: <ResetPassword /> },

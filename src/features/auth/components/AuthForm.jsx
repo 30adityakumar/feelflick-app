@@ -1,3 +1,4 @@
+// src/features/auth/components/AuthForm.jsx
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'

@@ -55,7 +55,7 @@ export default function LandingHero({ embedded = false }) {
 
             <div className="mt-4 flex justify-center md:justify-start">
               <Link
-                to="/auth/sign-up"
+                to="/auth/log-in-or-create-account"
                 className="inline-flex h-11 items-center justify-center rounded-full px-8 sm:px-9 text-[0.95rem] font-semibold text-white shadow-lift transition-transform hover:scale-[1.02] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 active:scale-[.98] bg-gradient-to-r from-[#fe9245] to-[#eb423b]"
               >
                 Get started

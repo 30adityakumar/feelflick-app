@@ -40,8 +40,12 @@ export default function LogInOrCreateAccount() {
       track('auth_email_submitted')
       const { data, error } = await supabase.functions.invoke('check-user-by-email', {
         body: { email: email.trim().toLowerCase() },
+        headers: { 'Content-Type': 'application/json' } // explicit, harmless
       })
-      if (error) throw error
+      if (error) {
+        if (import.meta.env.DEV) console.error('[check-user-by-email] invoke error:', error)
+        throw error
+      }
       const exists = Boolean(data?.exists)
       track('auth_route_decision', { exists })
       if (exists) {

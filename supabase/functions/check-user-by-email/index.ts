@@ -1,3 +1,4 @@
+// supabase/functions/check-user-by-email/index.ts
 // Edge Function: check-user-by-email
 // Returns { exists: boolean } without leaking any other info.
 

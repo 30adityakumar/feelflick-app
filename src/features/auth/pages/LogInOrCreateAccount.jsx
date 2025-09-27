@@ -1,3 +1,4 @@
+// src/features/auth/pages/LogInOrCreateAccount.jsx
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
@@ -32,22 +33,30 @@ export default function LogInOrCreateAccount() {
     if (!valid || busy) return
     setBusy(true)
     const normalized = email.trim().toLowerCase()
+
     try {
       track('auth_email_submitted')
-      const { data, error } = await supabase.functions.invoke('check-user-by-email', {
+      const { data } = await supabase.functions.invoke('check-user-by-email', {
         body: { email: normalized },
         headers: { 'Content-Type': 'application/json' },
       })
-      // Only send to login when the function positively confirms existence.
-      const exists = !error && data?.exists === true
-      track('auth_route_decision', { exists })
-      nav(exists ? '/auth/log-in/password' : '/auth/create-account/password', {
+      const ok = data?.ok ?? (typeof data?.exists === 'boolean') // backward compat if old function version
+      const exists = ok && data?.exists === true
+
+      track('auth_route_decision', { ok, exists })
+      // -> If we're not sure, prefer the login path; signup page re-checks and will bounce if needed.
+      const dest = exists ? '/auth/log-in/password' : (ok ? '/auth/create-account/password' : '/auth/log-in/password')
+
+      nav(dest + `?email=${encodeURIComponent(normalized)}`, {
         replace: true,
         state: { email: normalized },
       })
     } catch {
-      // Unknown/errored → go to create-account; that page re-checks and bounces if needed.
-      nav('/auth/create-account/password', { replace: true, state: { email: normalized } })
+      // Unknown (network/etc) → go to login
+      nav(`/auth/log-in/password?email=${encodeURIComponent(normalized)}`, {
+        replace: true,
+        state: { email: normalized },
+      })
     } finally {
       setBusy(false)
     }

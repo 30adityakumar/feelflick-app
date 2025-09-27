@@ -1,4 +1,3 @@
-// src/features/auth/pages/LogInPassword.jsx
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
@@ -49,7 +48,16 @@ export default function LogInPassword() {
       const { error } = await supabase.auth.signInWithPassword({ email, password: pw })
       if (error) {
         const msg = (error.message || '').toLowerCase()
-        const providerLinked = msg.includes('oauth') || msg.includes('identity') || msg.includes('provider')
+        const unconfirmed = /confirm|verified|not\s*confirmed/.test(msg)
+        const providerLinked = !unconfirmed && (msg.includes('oauth') || msg.includes('identity') || msg.includes('provider'))
+
+        if (unconfirmed) {
+          setErr('Please confirm your email. We can resend the link.')
+          nav('/confirm-email', { state: { email } })
+          track('auth_password_submit', { success: false, reason: 'reset_sent' })
+          return
+        }
+
         setErr(providerLinked
           ? 'This email is linked with Google. Try Continue with Google above.'
           : 'Incorrect password. Try again or use “Forgot password?”'
@@ -107,7 +115,7 @@ export default function LogInPassword() {
           <button
             type="button"
             onClick={() => nav('/auth/log-in-or-create-account', { state: { email } })}
-            className="text-[12px] font-semibold text-white/80 hover:text-white focus:outline-none"
+            className="text:[12px] font-semibold text-white/80 hover:text-white focus:outline-none"
             aria-label="Edit email"
           >
             Edit

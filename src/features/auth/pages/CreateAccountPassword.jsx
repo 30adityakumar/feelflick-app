@@ -1,4 +1,3 @@
-// src/features/auth/pages/CreateAccountPassword.jsx
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
@@ -26,18 +25,26 @@ export default function CreateAccountPassword() {
     setBusy(true)
     setErr('')
     try {
-      const { data, error } = await supabase.auth.signUp({ email, password: pw })
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password: pw,
+        options: {
+          // When user clicks the link in their email, bring them right back into the app
+          emailRedirectTo: window.location.origin + '/home',
+        },
+      })
       if (error) throw error
 
-      // If email confirmation is enabled, signUp may not return a session.
+      // If confirmations are enabled there won't be a session yet.
       if (!data.session) {
-        try {
-          await supabase.auth.signInWithPassword({ email, password: pw })
-        } catch { /* ignore; if blocked by verification, fall back to confirm page */ }
+        track('auth_password_submit', { success: true })
+        // Take them to the "check your email" screen with their email prefilled.
+        nav('/confirm-email', { replace: true, state: { email } })
+        return
       }
 
+      // Otherwise (no email confirm required), they're already signed in.
       track('auth_password_submit', { success: true })
-      // Use existing post-auth flow
       nav('/home', { replace: true })
     } catch (_e) {
       setErr('Something went wrong. Please try again.')

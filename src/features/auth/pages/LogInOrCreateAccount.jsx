@@ -1,9 +1,6 @@
-// src/features/auth/pages/LogInOrCreateAccount.jsx
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
-import { ShieldCheck } from 'lucide-react'
-// Optional analytics helper (fallback to noop)
 import { track as _track } from '@/shared/lib/analytics'
 const track = _track || (() => {})
 
@@ -12,12 +9,12 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 export default function LogInOrCreateAccount() {
   const nav = useNavigate()
   const loc = useLocation()
-  const prefill = useMemo(() => loc.state?.email || new URLSearchParams(loc.search).get('email') || '', [loc])
-  const [email, setEmail] = useState(prefill)
+  const initial = useMemo(() => loc.state?.email || '', [loc])
+  const [email, setEmail] = useState(initial)
   const [err, setErr] = useState('')
   const [busy, setBusy] = useState(false)
 
-  const valid = emailRegex.test(email)
+  const valid = emailRegex.test((email || '').trim().toLowerCase())
 
   useEffect(() => {
     track('auth_view', { page: 'log-in-or-create-account' })
@@ -36,21 +33,24 @@ export default function LogInOrCreateAccount() {
     if (!valid || busy) return
     setBusy(true)
     setErr('')
+    const normalized = email.trim().toLowerCase()
     try {
       track('auth_email_submitted')
       const { data, error } = await supabase.functions.invoke('check-user-by-email', {
-        body: { email: email.trim().toLowerCase() },
+        body: { email: normalized },
+        headers: { 'Content-Type': 'application/json' },
       })
-      if (error) throw error
-      const exists = Boolean(data?.exists)
+      // If the function fails for any reason, default to LOGIN (never block the user)
+      const exists = error ? true : Boolean(data?.exists)
       track('auth_route_decision', { exists })
       if (exists) {
-        nav('/auth/log-in/password', { replace: true, state: { email } })
+        nav('/auth/log-in/password', { replace: true, state: { email: normalized } })
       } else {
-        nav('/auth/create-account/password', { replace: true, state: { email } })
+        nav('/auth/create-account/password', { replace: true, state: { email: normalized } })
       }
-    } catch (_e) {
-      setErr('Something went wrong. Please try again.')
+    } catch {
+      // Graceful fallback: go to password login
+      nav('/auth/log-in/password', { replace: true, state: { email: normalized } })
     } finally {
       setBusy(false)
     }
@@ -58,20 +58,11 @@ export default function LogInOrCreateAccount() {
 
   return (
     <div
-      className="
-        w-full max-w-[400px] sm:max-w-[420px]
-        rounded-2xl border border-white/10 bg-black/35 backdrop-blur-sm
-        shadow-[0_30px_120px_rgba(0,0,0,.55)]
-        max-h-[calc(100svh-var(--topnav-h,72px)-var(--footer-h,0px)-12px)]
-        overflow-hidden
-      "
+      className="w-full max-w-[400px] sm:max-w-[420px] rounded-2xl border border-white/10 bg-black/35 backdrop-blur-sm shadow-[0_30px_120px_rgba(0,0,0,.55)] max-h-[calc(100svh-var(--topnav-h,72px)-var(--footer-h,0px)-12px)] overflow-hidden"
     >
-      {/* Card header: brand lockup */}
-      <div className="flex items-center justify-between px-3.5 py-2.5 sm:px-4 sm:py-3">
-        <div className="flex items-center gap-2 text-white/80 mx-auto">
-          <ShieldCheck className="h-4 w-4 text-brand-100" />
-          <span className="text-xs font-semibold tracking-wide">FEELFLICK</span>
-        </div>
+      {/* Header lockup (match other auth cards) */}
+      <div className="flex items-center justify-center px-3.5 py-2.5 sm:px-4 sm:py-3">
+        <span className="text-xs font-extrabold tracking-tight text-brand-100">FEELFLICK</span>
       </div>
 
       <form onSubmit={onSubmit} className="px-4 pb-4 sm:px-5 sm:pb-5 overflow-y-auto" style={{ maxHeight: 'calc(100% - 44px)' }}>
@@ -95,22 +86,18 @@ export default function LogInOrCreateAccount() {
           </span>
         </div>
 
-        <label className="block text-[10.5px] font-medium text-white/70" htmlFor="email">Email address</label>
-        <div className="mt-1">
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => { setEmail(e.target.value); setErr('') }}
-            placeholder="name@email.com"
-            className={`w-full rounded-lg border ${valid || !email ? 'border-white/10' : 'border-red-500/60'} bg-white/5 py-2 px-3 text-[13.5px] text-white placeholder-white/40 focus:outline-none`}
-            aria-invalid={email.length > 0 && !valid}
-            aria-describedby={err ? 'email-error' : undefined}
-            autoFocus
-          />
-        </div>
+        <label htmlFor="email" className="block text-[10.5px] font-medium text-white/70">Email address</label>
+        <input
+          id="email"
+          type="email"
+          value={email}
+          onChange={(e) => { setEmail(e.target.value); setErr('') }}
+          placeholder="you@example.com"
+          className="mt-1 w-full rounded-lg border border-white/10 bg-white/5 py-2 px-3 text-[13.5px] text-white placeholder-white/40 focus:outline-none"
+          autoFocus
+        />
 
-        {err && <p id="email-error" className="mt-2 text-[12px] text-red-400">{err}</p>}
+        {err && <p className="mt-2 text-[12px] text-center text-red-400">{err}</p>}
 
         <button
           type="submit"

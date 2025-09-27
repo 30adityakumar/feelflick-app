@@ -9,7 +9,7 @@ export default function CreateAccountPassword() {
   const nav = useNavigate()
   const loc = useLocation()
   const email = useMemo(
-    () => loc.state?.email || new URLSearchParams(loc.search).get('email') || '',
+    () => (loc.state?.email || new URLSearchParams(loc.search).get('email') || '').trim().toLowerCase(),
     [loc]
   )
   const [pw, setPw] = useState('')
@@ -24,23 +24,21 @@ export default function CreateAccountPassword() {
       return
     }
 
-    // 🔒 Safety net: if this email already exists, send them to the login/password page.
+    // Safety net: if email already exists, go to login/password immediately.
     let cancelled = false
     ;(async () => {
       try {
         const { data, error } = await supabase.functions.invoke('check-user-by-email', {
-          body: { email: email.trim().toLowerCase() },
+          body: { email },
           headers: { 'Content-Type': 'application/json' },
         })
         if (cancelled) return
         if (!error && data?.exists === true) {
           track('auth_route_decision', { exists: true })
           nav('/auth/log-in/password', { replace: true, state: { email } })
-        } else {
-          track('auth_route_decision', { exists: false })
         }
       } catch {
-        // If the check hiccups, we just stay here (new-account path).
+        // ignore—user can still submit; we'll check again on submit
       }
     })()
     return () => { cancelled = true }
@@ -53,43 +51,42 @@ export default function CreateAccountPassword() {
     setErr('')
 
     try {
+      // Check AGAIN right before signUp to avoid race/misroute
+      const { data: existsData, error: existsErr } = await supabase.functions.invoke('check-user-by-email', {
+        body: { email },
+        headers: { 'Content-Type': 'application/json' },
+      })
+      if (!existsErr && existsData?.exists === true) {
+        nav('/auth/log-in/password', { replace: true, state: { email } })
+        return
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password: pw,
-        options: {
-          // After confirming via email, bring them back into the app
-          emailRedirectTo: window.location.origin + '/home',
-        },
+        options: { emailRedirectTo: window.location.origin + '/home' },
       })
 
-      // If email was already registered, route to login instead of confirm page.
+      // If Supabase says "already registered", route to login/password instead of confirm.
       if (error) {
         const msg = (error.message || '').toLowerCase()
-        if (
-          msg.includes('already') ||
-          msg.includes('registered') ||
-          msg.includes('exists')
-        ) {
-          // Known user → go to password login
+        if (error.status === 400 || /already|registered|exists|duplicate/.test(msg)) {
           nav('/auth/log-in/password', { replace: true, state: { email } })
           return
         }
         throw error
       }
 
-      // If confirmations are enabled, there's no session yet → show confirm screen.
       if (!data.session) {
         track('auth_password_submit', { success: true })
         nav('/confirm-email', { replace: true, state: { email } })
         return
       }
 
-      // Otherwise (no email confirmation required), they're signed in immediately.
       track('auth_password_submit', { success: true })
       nav('/home', { replace: true })
     } catch (_e) {
       setErr('Something went wrong. Please try again.')
-      // reason is optional; using the allowed values from your schema
       track('auth_password_submit', { success: false, reason: 'bad_password' })
     } finally {
       setBusy(false)
@@ -107,11 +104,7 @@ export default function CreateAccountPassword() {
         </div>
       </div>
 
-      <form
-        onSubmit={onSubmit}
-        className="px-4 pb-4 sm:px-5 sm:pb-5 overflow-y-auto"
-        style={{ maxHeight: 'calc(100% - 44px)' }}
-      >
+      <form onSubmit={onSubmit} className="px-4 pb-4 sm:px-5 sm:pb-5 overflow-y-auto" style={{ maxHeight: 'calc(100% - 44px)' }}>
         <h1 className="text-center text-[clamp(1rem,1.6vw,1.25rem)] font-bold text-white">Create your account</h1>
         <p className="mt-1 text-center text-[12px] text-white/70">Set your password to continue</p>
 

@@ -1,4 +1,3 @@
-// src/features/auth/pages/LogInOrCreateAccount.jsx
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
@@ -39,16 +38,16 @@ export default function LogInOrCreateAccount() {
         body: { email: normalized },
         headers: { 'Content-Type': 'application/json' },
       })
-      const ok = data?.ok === true
-      const exists = ok ? Boolean(data?.exists) : true // if unknown, bias to LOGIN
+      // Only send to login when the function positively confirms existence.
+      const exists = !error && data?.exists === true
       track('auth_route_decision', { exists })
       nav(exists ? '/auth/log-in/password' : '/auth/create-account/password', {
         replace: true,
         state: { email: normalized },
       })
     } catch {
-      // network hiccup → send to login
-      nav('/auth/log-in/password', { replace: true, state: { email: normalized } })
+      // Unknown/errored → go to create-account; that page re-checks and bounces if needed.
+      nav('/auth/create-account/password', { replace: true, state: { email: normalized } })
     } finally {
       setBusy(false)
     }

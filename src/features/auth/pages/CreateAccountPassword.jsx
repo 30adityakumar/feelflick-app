@@ -1,4 +1,3 @@
-// src/features/auth/pages/CreateAccountPassword.jsx
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
@@ -34,7 +33,7 @@ export default function CreateAccountPassword() {
           headers: { 'Content-Type': 'application/json' },
         })
         if (cancelled) return
-        if (!error && data?.ok === true && data?.exists === true) {
+        if (!error && data?.exists === true) {
           track('auth_route_decision', { exists: true })
           nav('/auth/log-in/password', { replace: true, state: { email } })
         }
@@ -52,35 +51,33 @@ export default function CreateAccountPassword() {
     setErr('')
 
     try {
-      // 1) Hard gate: check existence *now* (just before any signUp)
-      let exists = true // default to login if unknown
+      // 1) Hard gate: check existence now. Only treat as existing when confirmed.
+      let exists = null
       try {
         const { data, error } = await supabase.functions.invoke('check-user-by-email', {
           body: { email },
           headers: { 'Content-Type': 'application/json' },
         })
-        const ok = data?.ok === true
-        exists = ok ? !!data?.exists : true
+        exists = !error && data?.exists === true
       } catch {
-        exists = true
+        exists = null // unknown
       }
 
-      if (exists) {
-        // Existing account: try to sign them in with the password they just chose.
+      if (exists === true) {
+        // Existing account: try to sign them in with the password they just entered.
         const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password: pw })
         if (!signInErr) {
           track('auth_password_submit', { success: true })
           nav('/home', { replace: true })
           return
         }
-
-        // Could be wrong pw, provider-only, or unconfirmed; send to Login page to handle.
+        // Could be wrong pw, provider-only, or unconfirmed; send to Login page to handle specifics.
         track('auth_password_submit', { success: false, reason: 'bad_password' })
         nav('/auth/log-in/password', { replace: true, state: { email } })
         return
       }
 
-      // 2) New account path: create then show confirm-email (if no immediate session)
+      // 2) New or unknown: attempt signUp (server will error if it actually exists).
       const { data, error } = await supabase.auth.signUp({
         email,
         password: pw,
@@ -88,7 +85,7 @@ export default function CreateAccountPassword() {
       })
 
       if (error) {
-        // If Supabase complains this user already exists, route to login instead.
+        // If Supabase reports it already exists, route to login instead.
         const msg = (error.message || '').toLowerCase()
         if (error.status === 400 || /already|registered|exists|duplicate/.test(msg)) {
           nav('/auth/log-in/password', { replace: true, state: { email } })

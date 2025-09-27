@@ -1,3 +1,4 @@
+// src/features/auth/pages/CreateAccountPassword.jsx
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
@@ -33,7 +34,7 @@ export default function CreateAccountPassword() {
           headers: { 'Content-Type': 'application/json' },
         })
         if (cancelled) return
-        if (!error && data?.exists === true) {
+        if (!error && data?.ok === true && data?.exists === true) {
           track('auth_route_decision', { exists: true })
           nav('/auth/log-in/password', { replace: true, state: { email } })
         }
@@ -52,13 +53,14 @@ export default function CreateAccountPassword() {
 
     try {
       // 1) Hard gate: check existence *now* (just before any signUp)
-      let exists = true // bias to safety/login if the check fails
+      let exists = true // default to login if unknown
       try {
         const { data, error } = await supabase.functions.invoke('check-user-by-email', {
           body: { email },
           headers: { 'Content-Type': 'application/json' },
         })
-        exists = error ? true : !!data?.exists
+        const ok = data?.ok === true
+        exists = ok ? !!data?.exists : true
       } catch {
         exists = true
       }

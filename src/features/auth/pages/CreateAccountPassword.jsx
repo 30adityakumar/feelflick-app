@@ -8,7 +8,10 @@ const track = _track || (() => {})
 export default function CreateAccountPassword() {
   const nav = useNavigate()
   const loc = useLocation()
-  const email = useMemo(() => loc.state?.email || new URLSearchParams(loc.search).get('email') || '', [loc])
+  const email = useMemo(
+    () => loc.state?.email || new URLSearchParams(loc.search).get('email') || '',
+    [loc]
+  )
   const [pw, setPw] = useState('')
   const [show, setShow] = useState(false)
   const [err, setErr] = useState('')
@@ -16,7 +19,31 @@ export default function CreateAccountPassword() {
 
   useEffect(() => {
     track('auth_view', { page: 'create-account/password' })
-    if (!email) nav('/auth/log-in-or-create-account', { replace: true })
+    if (!email) {
+      nav('/auth/log-in-or-create-account', { replace: true })
+      return
+    }
+
+    // 🔒 Safety net: if this email already exists, send them to the login/password page.
+    let cancelled = false
+    ;(async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('check-user-by-email', {
+          body: { email: email.trim().toLowerCase() },
+          headers: { 'Content-Type': 'application/json' },
+        })
+        if (cancelled) return
+        if (!error && data?.exists === true) {
+          track('auth_route_decision', { exists: true })
+          nav('/auth/log-in/password', { replace: true, state: { email } })
+        } else {
+          track('auth_route_decision', { exists: false })
+        }
+      } catch {
+        // If the check hiccups, we just stay here (new-account path).
+      }
+    })()
+    return () => { cancelled = true }
   }, [email, nav])
 
   async function onSubmit(e) {
@@ -24,30 +51,45 @@ export default function CreateAccountPassword() {
     if (!pw || busy) return
     setBusy(true)
     setErr('')
+
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
         password: pw,
         options: {
-          // When user clicks the link in their email, bring them right back into the app
+          // After confirming via email, bring them back into the app
           emailRedirectTo: window.location.origin + '/home',
         },
       })
-      if (error) throw error
 
-      // If confirmations are enabled there won't be a session yet.
+      // If email was already registered, route to login instead of confirm page.
+      if (error) {
+        const msg = (error.message || '').toLowerCase()
+        if (
+          msg.includes('already') ||
+          msg.includes('registered') ||
+          msg.includes('exists')
+        ) {
+          // Known user → go to password login
+          nav('/auth/log-in/password', { replace: true, state: { email } })
+          return
+        }
+        throw error
+      }
+
+      // If confirmations are enabled, there's no session yet → show confirm screen.
       if (!data.session) {
         track('auth_password_submit', { success: true })
-        // Take them to the "check your email" screen with their email prefilled.
         nav('/confirm-email', { replace: true, state: { email } })
         return
       }
 
-      // Otherwise (no email confirm required), they're already signed in.
+      // Otherwise (no email confirmation required), they're signed in immediately.
       track('auth_password_submit', { success: true })
       nav('/home', { replace: true })
     } catch (_e) {
       setErr('Something went wrong. Please try again.')
+      // reason is optional; using the allowed values from your schema
       track('auth_password_submit', { success: false, reason: 'bad_password' })
     } finally {
       setBusy(false)
@@ -65,7 +107,11 @@ export default function CreateAccountPassword() {
         </div>
       </div>
 
-      <form onSubmit={onSubmit} className="px-4 pb-4 sm:px-5 sm:pb-5 overflow-y-auto" style={{ maxHeight: 'calc(100% - 44px)' }}>
+      <form
+        onSubmit={onSubmit}
+        className="px-4 pb-4 sm:px-5 sm:pb-5 overflow-y-auto"
+        style={{ maxHeight: 'calc(100% - 44px)' }}
+      >
         <h1 className="text-center text-[clamp(1rem,1.6vw,1.25rem)] font-bold text-white">Create your account</h1>
         <p className="mt-1 text-center text-[12px] text-white/70">Set your password to continue</p>
 

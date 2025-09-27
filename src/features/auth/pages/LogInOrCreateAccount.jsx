@@ -11,7 +11,6 @@ export default function LogInOrCreateAccount() {
   const loc = useLocation()
   const initial = useMemo(() => loc.state?.email || '', [loc])
   const [email, setEmail] = useState(initial)
-  const [err, setErr] = useState('')
   const [busy, setBusy] = useState(false)
 
   const valid = emailRegex.test((email || '').trim().toLowerCase())
@@ -32,7 +31,6 @@ export default function LogInOrCreateAccount() {
     e.preventDefault()
     if (!valid || busy) return
     setBusy(true)
-    setErr('')
     const normalized = email.trim().toLowerCase()
     try {
       track('auth_email_submitted')
@@ -40,16 +38,14 @@ export default function LogInOrCreateAccount() {
         body: { email: normalized },
         headers: { 'Content-Type': 'application/json' },
       })
-      // If the function fails for any reason, default to LOGIN (never block the user)
-      const exists = error ? true : Boolean(data?.exists)
+      const exists = error ? true : Boolean(data?.exists) // bias to LOGIN if uncertain
       track('auth_route_decision', { exists })
-      if (exists) {
-        nav('/auth/log-in/password', { replace: true, state: { email: normalized } })
-      } else {
-        nav('/auth/create-account/password', { replace: true, state: { email: normalized } })
-      }
+      nav(exists ? '/auth/log-in/password' : '/auth/create-account/password', {
+        replace: true,
+        state: { email: normalized },
+      })
     } catch {
-      // Graceful fallback: go to password login
+      // network hiccup → send to login
       nav('/auth/log-in/password', { replace: true, state: { email: normalized } })
     } finally {
       setBusy(false)
@@ -60,7 +56,6 @@ export default function LogInOrCreateAccount() {
     <div
       className="w-full max-w-[400px] sm:max-w-[420px] rounded-2xl border border-white/10 bg-black/35 backdrop-blur-sm shadow-[0_30px_120px_rgba(0,0,0,.55)] max-h-[calc(100svh-var(--topnav-h,72px)-var(--footer-h,0px)-12px)] overflow-hidden"
     >
-      {/* Header lockup (match other auth cards) */}
       <div className="flex items-center justify-center px-3.5 py-2.5 sm:px-4 sm:py-3">
         <span className="text-xs font-extrabold tracking-tight text-brand-100">FEELFLICK</span>
       </div>
@@ -91,13 +86,11 @@ export default function LogInOrCreateAccount() {
           id="email"
           type="email"
           value={email}
-          onChange={(e) => { setEmail(e.target.value); setErr('') }}
+          onChange={(e) => setEmail(e.target.value)}
           placeholder="you@example.com"
           className="mt-1 w-full rounded-lg border border-white/10 bg-white/5 py-2 px-3 text-[13.5px] text-white placeholder-white/40 focus:outline-none"
           autoFocus
         />
-
-        {err && <p className="mt-2 text-[12px] text-center text-red-400">{err}</p>}
 
         <button
           type="submit"

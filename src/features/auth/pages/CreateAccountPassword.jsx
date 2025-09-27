@@ -24,25 +24,21 @@ export default function CreateAccountPassword() {
       return
     }
 
-    // Safety net: if email already exists OR the check is "unknown",
-    // bounce to login/password. This prevents existing users from hitting signup.
+    // Safety net: ONLY redirect to login when we positively know the user exists.
     let cancelled = false
     ;(async () => {
       try {
-        const { data, error } = await supabase.functions.invoke('check-user-by-email', {
+        const { data } = await supabase.functions.invoke('check-user-by-email', {
           body: { email },
           headers: { 'Content-Type': 'application/json' },
         })
         if (cancelled) return
-        const ok = data?.ok ?? (typeof data?.exists === 'boolean')
-        const exists = ok && data?.exists === true
-        if (!error && (exists || !ok)) {
-          track('auth_route_decision', { exists: true, reason: exists ? 'exists' : 'unknown_treated_as_exists' })
+        const exists = data?.exists === true // strictly true
+        if (exists) {
           nav(`/auth/log-in/password?email=${encodeURIComponent(email)}`, { replace: true, state: { email } })
         }
       } catch {
-        // Unknown → treat as existing and send to login
-        nav(`/auth/log-in/password?email=${encodeURIComponent(email)}`, { replace: true, state: { email } })
+        // Unknown → do nothing; allow the user to sign up here.
       }
     })()
     return () => { cancelled = true }
@@ -55,34 +51,34 @@ export default function CreateAccountPassword() {
     setErr('')
 
     try {
-      // Re-check presence; only treat as "new" when we definitively know it doesn't exist.
-      let exists = null // null = unknown
+      // Re-check existence. Treat ONLY `true` as existing; `false` or unknown goes down the signUp path.
+      let exists
       try {
         const { data } = await supabase.functions.invoke('check-user-by-email', {
           body: { email },
           headers: { 'Content-Type': 'application/json' },
         })
-        const ok = data?.ok ?? (typeof data?.exists === 'boolean')
-        exists = ok ? (data?.exists === true) : null
+        exists = data?.exists === true
       } catch {
-        exists = null
+        exists = undefined // unknown
       }
 
-      if (exists !== false) {
-        // Existing or unknown → try sign-in with the entered password.
-        const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password: pw })
-        if (!signInErr) {
+      if (exists === true) {
+        // Existing account → try to sign in with the entered password.
+        const { error } = await supabase.auth.signInWithPassword({ email, password: pw })
+        if (!error) {
           track('auth_password_submit', { success: true })
           nav('/home', { replace: true })
           return
         }
-        // Could be wrong pw / provider / unconfirmed → let Login page show the right messaging.
-        track('auth_password_submit', { success: false, reason: 'bad_password_or_provider_or_unconfirmed' })
+
+        // Handle common cases with correct routing/messaging on the login page.
+        track('auth_password_submit', { success: false, reason: 'bad_password_or_unconfirmed_or_provider' })
         nav(`/auth/log-in/password?email=${encodeURIComponent(email)}`, { replace: true, state: { email } })
         return
       }
 
-      // Definitely new → Sign up and then send to confirm (unless a session is returned).
+      // Brand new (or unknown) → attempt sign up. If it actually exists, Supabase will tell us.
       const { data, error } = await supabase.auth.signUp({
         email,
         password: pw,
@@ -91,8 +87,8 @@ export default function CreateAccountPassword() {
 
       if (error) {
         const msg = (error.message || '').toLowerCase()
-        // If Supabase says it exists, route to login instead of showing confirm.
         if (error.status === 400 || /already|registered|exists|duplicate/.test(msg)) {
+          // Race: user exists after all → go to login/password.
           nav(`/auth/log-in/password?email=${encodeURIComponent(email)}`, { replace: true, state: { email } })
           return
         }
@@ -105,7 +101,7 @@ export default function CreateAccountPassword() {
         return
       }
 
-      // If confirmation is disabled and we got a session.
+      // If email confirmation is off and a session is returned
       track('auth_password_submit', { success: true })
       nav('/home', { replace: true })
     } catch {
@@ -131,7 +127,6 @@ export default function CreateAccountPassword() {
         <h1 className="text-center text-[clamp(1rem,1.6vw,1.25rem)] font-bold text-white">Create your account</h1>
         <p className="mt-1 text-center text-[12px] text-white/70">Set your password to continue</p>
 
-        {/* Read-only email with Edit */}
         <label className="mt-3 block text-[10.5px] font-medium text-white/70">Email address</label>
         <div className="mt-1 flex items-center justify-between gap-2">
           <input
@@ -150,7 +145,6 @@ export default function CreateAccountPassword() {
           </button>
         </div>
 
-        {/* Password */}
         <label className="mt-3 block text-[10.5px] font-medium text-white/70">Password</label>
         <div className="relative">
           <input

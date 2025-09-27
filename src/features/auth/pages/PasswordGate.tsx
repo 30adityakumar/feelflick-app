@@ -1,22 +1,17 @@
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo } from "react"
 import { useSearchParams, useNavigate } from "react-router-dom"
 import { supabase } from "@/shared/lib/supabase/client"
 
 export default function PasswordGate() {
   const [params] = useSearchParams()
   const navigate = useNavigate()
-
   const emailFromQuery = (params.get("email") || "").trim().toLowerCase()
+
   const [email, setEmail] = useState(emailFromQuery)
   const [password, setPassword] = useState("")
   const [err, setErr] = useState<string>("")
   const [submitting, setSubmitting] = useState(false)
   const canSubmit = useMemo(() => !!email && !!password && !submitting, [email, password, submitting])
-
-  useEffect(() => {
-    // If we already know this email exists or not, you can optionally pre-route here.
-    // Keeping this page generic; main fixes are in the actions below.
-  }, [email])
 
   const signIn = async () => {
     const e = (email || "").trim().toLowerCase()
@@ -54,28 +49,24 @@ export default function PasswordGate() {
 
     setSubmitting(true); setErr("")
     try {
-      // Check first. If exists OR unknown, send to login/password instead of attempting signUp.
-      let decision: "exists" | "new" | "unknown" = "unknown"
+      // Check existence. ONLY treat strictly-true as "exists".
+      let exists: boolean | undefined
       try {
         const { data } = await supabase.functions.invoke('check-user-by-email', {
           body: { email: e },
           headers: { 'Content-Type': 'application/json' },
         })
-        const ok = data?.ok ?? (typeof data?.exists === "boolean")
-        if (ok) {
-          decision = data.exists ? "exists" : "new"
-        }
+        exists = data?.exists === true
       } catch {
-        decision = "unknown"
+        exists = undefined // unknown
       }
 
-      if (decision !== "new") {
-        // existing or unknown → go to login/password to avoid accidental signup + confirm
+      if (exists === true) {
         navigate(`/auth/log-in/password?email=${encodeURIComponent(e)}`, { replace: true, state: { email: e } })
         return
       }
 
-      // Definitely new → sign up
+      // New (or unknown) → attempt signup; fall back to login if API says it already exists.
       const { data, error } = await supabase.auth.signUp({
         email: e,
         password,
@@ -111,12 +102,8 @@ export default function PasswordGate() {
       const { error } = await supabase.auth.resetPasswordForEmail(e, {
         redirectTo: `${window.location.origin}/reset-password`,
       })
-      if (error) {
-        setErr(error.message)
-      } else {
-        // Keep UX simple; your app may have a dedicated "check your email" screen.
-        setErr("If an account exists for this email, a reset link has been sent.")
-      }
+      if (error) setErr(error.message)
+      else setErr("If an account exists for this email, a reset link has been sent.")
     } finally {
       setSubmitting(false)
     }

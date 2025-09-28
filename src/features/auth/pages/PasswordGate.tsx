@@ -1,3 +1,4 @@
+// src/features/auth/pages/PasswordGate.tsx
 import { useState, useMemo } from "react"
 import { useSearchParams, useNavigate } from "react-router-dom"
 import { supabase } from "@/shared/lib/supabase/client"

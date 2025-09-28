@@ -22,6 +22,7 @@ import LogInOrCreateAccount from '@/features/auth/pages/LogInOrCreateAccount'
 import LogInPassword from '@/features/auth/pages/LogInPassword'
 import CreateAccountPassword from '@/features/auth/pages/CreateAccountPassword'
 import PasswordGate from '@/features/auth/pages/PasswordGate'
+import OAuthFinish from '@/features/auth/components/OAuthFinish'
 
 // App pages (with header/sidebar)
 import HomePage from '@/app/homepage/HomePage'
@@ -181,6 +182,7 @@ export const router = createBrowserRouter([
     element: <PublicShell />,
     children: [
       { index: true, element: <RedirectIfAuthed><Landing /></RedirectIfAuthed> },
+      { path: 'auth/oauth', element: <OAuthFinish /> },
 
       // Auth shell with nested pages
       {

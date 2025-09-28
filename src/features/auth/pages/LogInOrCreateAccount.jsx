@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/shared/lib/supabase/client'
 import { ShieldCheck } from 'lucide-react'
+import googleIcon from '@/assets/icons/google.svg'
 import { track as _track } from '@/shared/lib/analytics'
 const track = _track || (() => {})
 
@@ -17,20 +18,18 @@ export default function LogInOrCreateAccount() {
       await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          // after Google, land in app (PostAuthGate will send first-timers to onboarding)
+          // After Google, land in app; PostAuthGate handles onboarding vs home.
           redirectTo: window.location.origin + '/home',
         },
       })
-      // Redirect happens; no further code runs here.
     } finally {
       setBusy(false)
     }
   }
 
   return (
-    <div
-      className="w-full max-w-[420px] rounded-2xl border border-white/10 bg-black/35 backdrop-blur-sm shadow-[0_30px_120px_rgba(0,0,0,.55)] overflow-hidden"
-    >
+    <div className="w-full max-w-[420px] rounded-2xl border border-white/10 bg-black/35 backdrop-blur-sm shadow-[0_30px_120px_rgba(0,0,0,.55)] overflow-hidden">
+      {/* Small branded header (unchanged) */}
       <div className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-2 text-white/80 mx-auto">
           <ShieldCheck className="h-4 w-4 text-brand-100" />
@@ -39,9 +38,13 @@ export default function LogInOrCreateAccount() {
       </div>
 
       <div className="px-5 pb-5 text-center">
-        <h1 className="text-[clamp(1rem,1.6vw,1.25rem)] font-bold text-white">Welcome</h1>
-        <p className="mt-1 text-[12px] text-white/70">Sign in to continue</p>
+        {/* 1) New copy */}
+        <h1 className="text-[clamp(1rem,1.6vw,1.25rem)] font-bold text-white">Welcome to FeelFlick</h1>
+        <p className="mt-1 text-[12px] text-white/70">
+          New here? We’ll create an account. Already have one? This signs you in.
+        </p>
 
+        {/* 2) Google logo before label */}
         <button
           type="button"
           onClick={onGoogle}
@@ -49,14 +52,16 @@ export default function LogInOrCreateAccount() {
           className="mt-4 inline-flex w-full items-center justify-center gap-3 rounded-xl border border-white/10 bg-white/5 py-2.5 text-[0.9rem] font-semibold text-white hover:bg-white/10 disabled:opacity-60 focus:outline-none"
           aria-label="Continue with Google"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden>
-            <path fill="currentColor" d="M21.35 11.1H12v2.9h5.3c-.23 1.46-1.6 4.2-5.3 4.2a6.1 6.1 0 1 1 0-12.2c1.74 0 2.9.74 3.57 1.38l2.43-2.35C16.64 3.64 14.53 2.7 12 2.7a9.3 9.3 0 1 0 0 18.6c5.35 0 8.9 3.73 8.9-9.2 0-.62-.06-1.07-.15-1.6Z"/>
-          </svg>
+          <img src={googleIcon} alt="" className="h-[18px] w-[18px]" />
           {busy ? 'Redirecting…' : 'Continue with Google'}
         </button>
 
-        <p className="mt-4 text-[12px] text-white/55">
-          Test build: email/password is disabled.
+        {/* 3) Tiny consent line, never larger than button text size */}
+        <p className="mx-auto mt-2 max-w-full text-[11px] leading-tight text-white/60">
+          By continuing you agree to our{' '}
+          <a href="/terms" className="text-white/70 no-underline hover:text-white/90">Terms</a>
+          {' '} &amp; {' '}
+          <a href="/privacy" className="text-white/70 no-underline hover:text-white/90">Privacy</a>.
         </p>
       </div>
     </div>

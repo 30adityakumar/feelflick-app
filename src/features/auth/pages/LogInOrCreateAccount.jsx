@@ -1,7 +1,6 @@
 // src/features/auth/pages/LogInOrCreateAccount.jsx
 import { useEffect, useState } from 'react'
 import { supabase } from '@/shared/lib/supabase/client'
-import { ShieldCheck } from 'lucide-react'
 import googleIcon from '@/assets/icons/google.svg'
 import { track as _track } from '@/shared/lib/analytics'
 const track = _track || (() => {})
@@ -28,40 +27,67 @@ export default function LogInOrCreateAccount() {
   }
 
   return (
-    <div className="w-full max-w-[420px] rounded-2xl border border-white/10 bg-black/35 backdrop-blur-sm shadow-[0_30px_120px_rgba(0,0,0,.55)] overflow-hidden">
-      {/* Small branded header (unchanged) */}
-      <div className="flex items-center justify-between px-4 py-3">
-        <div className="flex items-center gap-2 text-white/80 mx-auto">
-          <ShieldCheck className="h-4 w-4 text-brand-100" />
-          <span className="text-xs font-semibold tracking-wide">FEELFLICK</span>
-        </div>
+    <div
+      className="
+        relative w-full max-w-[560px]
+        rounded-3xl border border-white/10 bg-[#0b1118]/70 backdrop-blur-md
+        shadow-[0_44px_160px_rgba(0,0,0,.65)]
+        overflow-hidden
+      "
+    >
+      {/* Decorative glows inspired by the logo */}
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <div
+          className="absolute -left-24 -top-20 h-72 w-72 rounded-full blur-3xl opacity-70"
+          style={{ background: 'radial-gradient(closest-side, rgba(254,146,69,.55), rgba(254,146,69,0) 70%)' }}
+        />
+        <div
+          className="absolute -bottom-28 right-[-10%] h-80 w-80 rounded-full blur-3xl opacity-70"
+          style={{ background: 'radial-gradient(closest-side, rgba(45,200,255,.45), rgba(45,200,255,0) 70%)' }}
+        />
+        <div
+          className="absolute inset-0 opacity-30 mix-blend-screen"
+          style={{ background: 'conic-gradient(from 230deg at 60% 40%, rgba(255,255,255,.08), rgba(255,255,255,0) 60%)' }}
+        />
       </div>
 
-      <div className="px-5 pb-5 text-center">
-        {/* 1) New copy */}
-        <h1 className="text-[clamp(1rem,1.6vw,1.25rem)] font-bold text-white">Welcome to FeelFlick</h1>
-        <p className="mt-1 text-[12px] text-white/70">
+      {/* Body */}
+      <div className="relative px-6 sm:px-8 py-8 sm:py-10 text-center">
+        <h1 className="text-[clamp(1.1rem,2.8vw,1.7rem)] font-bold text-white">
+          Welcome to FeelFlick
+        </h1>
+        <p className="mt-1 text-[12.5px] text-white/75">
           New here? We’ll create an account. Already have one? This signs you in.
         </p>
 
-        {/* 2) Google logo before label */}
+        {/* Google CTA */}
         <button
           type="button"
           onClick={onGoogle}
           disabled={busy}
-          className="mt-4 inline-flex w-full items-center justify-center gap-3 rounded-xl border border-white/10 bg-white/5 py-2.5 text-[0.9rem] font-semibold text-white hover:bg-white/10 disabled:opacity-60 focus:outline-none"
           aria-label="Continue with Google"
+          className="
+            mt-5 inline-flex items-center justify-center gap-2
+            h-11 px-5 sm:px-6 rounded-full
+            text-[0.95rem] font-semibold text-white
+            bg-[linear-gradient(90deg,#fe9245_0%,#eb423b_100%)]
+            shadow-[0_10px_30px_rgba(235,66,59,.35)]
+            hover:brightness-110 active:scale-95
+            focus:outline-none disabled:opacity-60
+          "
         >
-          <img src={googleIcon} alt="" className="h-[18px] w-[18px]" />
+          <span className="inline-grid h-5 w-5 place-items-center rounded-full bg-white">
+            <img src={googleIcon} alt="" className="h-[14px] w-[14px]" />
+          </span>
           {busy ? 'Redirecting…' : 'Continue with Google'}
         </button>
 
-        {/* 3) Tiny consent line, never larger than button text size */}
-        <p className="mx-auto mt-2 max-w-full text-[11px] leading-tight text-white/60">
+        {/* Consent line (small, no underline) */}
+        <p className="mx-auto mt-2 max-w-full text-[11px] leading-tight text-white/65">
           By continuing you agree to our{' '}
-          <a href="/terms" className="text-white/70 no-underline hover:text-white/90">Terms</a>
+          <a href="/terms" className="no-underline text-white/75 hover:text-white">Terms</a>
           {' '} &amp; {' '}
-          <a href="/privacy" className="text-white/70 no-underline hover:text-white/90">Privacy</a>.
+          <a href="/privacy" className="no-underline text-white/75 hover:text-white">Privacy</a>.
         </p>
       </div>
     </div>

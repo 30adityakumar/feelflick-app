@@ -1,22 +1,8 @@
 // src/features/landing/components/LandingHero.jsx
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { supabase } from '@/shared/lib/supabase/client'
-import GoogleIcon from '@/assets/icons/google.svg'
+import { Link } from 'react-router-dom'
 
 export default function LandingHero({ embedded = false }) {
-  const nav = useNavigate()
-
-  async function onGoogle() {
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        // land here after Google so we can decide: /home vs /onboarding
-        redirectTo: window.location.origin + '/auth/oauth',
-      },
-    })
-  }
-
   return (
     <section
       className="relative h-full overflow-hidden"
@@ -26,16 +12,16 @@ export default function LandingHero({ embedded = false }) {
 
       {/* Background */}
       <div aria-hidden className="fixed inset-0 z-0">
-        <div className="absolute inset-0 bg-[linear-gradient(120deg,#0a121a_0%,#0d1722_50%,#0c1017_100%)]" />
-        <div className="pointer-events-none absolute -top-40 -left-40 h-[65vmin] w-[65vmin] rounded-full blur-3xl opacity-60 bg-[radial-gradient(closest-side,rgba(254,146,69,0.45),rgba(254,146,69,0)_70%)]" />
-        <div className="pointer-events-none absolute -bottom-44 -right-44 h-[70vmin] w-[70vmin] rounded-full blur-3xl opacity-55 bg-[radial-gradient(closest-side,rgba(235,66,59,0.38),rgba(235,66,59,0)_70%)]" />
-        <div className="pointer-events-none absolute top-1/2 left-1/2 h-[80vmin] w-[80vmin] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl opacity-45 bg-[radial-gradient(closest-side,rgba(45,119,255,0.35),rgba(45,119,255,0)_70%)]" />
-        <div className="pointer-events-none absolute -top-24 right-[15%] h-[45vmin] w-[45vmin] rounded-full blur-3xl opacity-45 bg-[radial-gradient(closest-side,rgba(255,99,196,0.35),rgba(255,99,196,0)_70%)]" />
-        <div className="pointer-events-none absolute inset-0 opacity-35 mix-blend-screen">
-          <div className="absolute left-1/2 top-1/2 h-[140vmin] w-[140vmin] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[conic-gradient(from_220deg_at_50%_50%,rgba(255,255,255,0.08),rgba(255,255,255,0)_65%)] motion-safe:md:animate-[spin_48s_linear_infinite]" />
+          <div className="absolute inset-0 bg-[linear-gradient(120deg,#0a121a_0%,#0d1722_50%,#0c1017_100%)]" />
+          <div className="pointer-events-none absolute -top-40 -left-40 h-[65vmin] w-[65vmin] rounded-full blur-3xl opacity-60 bg-[radial-gradient(closest-side,rgba(254,146,69,0.45),rgba(254,146,69,0)_70%)]" />
+          <div className="pointer-events-none absolute -bottom-44 -right-44 h-[70vmin] w-[70vmin] rounded-full blur-3xl opacity-55 bg-[radial-gradient(closest-side,rgba(235,66,59,0.38),rgba(235,66,59,0)_70%)]" />
+          <div className="pointer-events-none absolute top-1/2 left-1/2 h-[80vmin] w-[80vmin] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl opacity-45 bg-[radial-gradient(closest-side,rgba(45,119,255,0.35),rgba(45,119,255,0)_70%)]" />
+          <div className="pointer-events-none absolute -top-24 right-[15%] h-[45vmin] w-[45vmin] rounded-full blur-3xl opacity-45 bg-[radial-gradient(closest-side,rgba(255,99,196,0.35),rgba(255,99,196,0)_70%)]" />
+          <div className="pointer-events-none absolute inset-0 opacity-35 mix-blend-screen">
+            <div className="absolute left-1/2 top-1/2 h-[140vmin] w-[140vmin] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[conic-gradient(from_220deg_at_50%_50%,rgba(255,255,255,0.08),rgba(255,255,255,0)_65%)] motion-safe:md:animate-[spin_48s_linear_infinite]" />
+          </div>
+          <div className="absolute inset-0 bg-[radial-gradient(100%_80%_at_50%_0%,rgba(255,255,255,0.06),rgba(255,255,255,0)_60%)]" />
         </div>
-        <div className="absolute inset-0 bg-[radial-gradient(100%_80%_at_50%_0%,rgba(255,255,255,0.06),rgba(255,255,255,0)_60%)]" />
-      </div>
 
       {/* Content */}
       <div className="relative z-10 mx-auto h-full w-full max-w-7xl px-7 md:px-6" style={{ ['--nav-h']: '72px' }}>
@@ -51,10 +37,12 @@ export default function LandingHero({ embedded = false }) {
               : { height: 'calc(100svh - var(--topnav-h, var(--nav-h,72px)) - var(--footer-h,0px))' }
           }
         >
+          {/* Posters — pad right 6 on desktop */}
           <div className="order-1 md:order-2 md:col-start-2 w-full flex justify-center md:justify-start md:pr-6">
             <MovieStack />
           </div>
 
+          {/* Copy — pad left 6 on desktop */}
           <div className="order-2 md:order-1 md:col-start-1 mx-auto w-full max-w-3xl md:max-w-[620px] text-center md:text-left md:pl-10">
             <h1 className="text-balance text-[clamp(1.9rem,6vw,3.7rem)] font-black leading-[1.05] tracking-tight text-white">
               Movies that match your <span className="text-brand-100">mood</span>
@@ -64,37 +52,14 @@ export default function LandingHero({ embedded = false }) {
               Get the perfect movie recommendation based on your taste and how you feel — fast,
               private, and always free.
             </p>
-            {/* CTA + consent (compact, gradient, icon chip) */}
-            <div className="mt-4 flex justify-center md:justify-start">
-              <div className="inline-flex flex-col items-start">
-                <button
-                  type="button"
-                  onClick={onGoogle}
-                  className="
-                    group inline-flex items-center gap-2
-                    h-10 rounded-full px-4 text-[0.92rem] font-semibold
-                    text-white
-                    bg-gradient-to-r from-[#fe9245] to-[#eb423b]
-                    shadow-[0_8px_30px_rgba(0,0,0,.20)]
-                    hover:brightness-[1.08] active:scale-[.98]
-                    focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60
-                  "
-                  aria-label="Continue with Google"
-                >
-                  {/* White chip keeps the multicolor G readable on the gradient */}
-                  <span className="grid h-5 w-5 place-items-center rounded-full bg-white">
-                    <img src={GoogleIcon} alt="" className="h-[14px] w-[14px]" />
-                  </span>
-                  <span>Continue with Google</span>
-                </button>
 
-                <p className="mt-2 text-[10px] sm:text-[11px] leading-snug text-white/65">
-                  By continuing you agree to our{' '}
-                  <Link to="/terms" className="no-underline hover:underline">Terms</Link>
-                  {' '} & {' '}
-                  <Link to="/privacy" className="no-underline hover:underline">Privacy</Link>.
-                </p>
-              </div>
+            <div className="mt-4 flex justify-center md:justify-start">
+              <Link
+                to="/auth/log-in-or-create-account"
+                className="inline-flex h-11 items-center justify-center rounded-full px-8 sm:px-9 text-[0.95rem] font-semibold text-white shadow-lift transition-transform hover:scale-[1.02] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 active:scale-[.98] bg-gradient-to-r from-[#fe9245] to-[#eb423b]"
+              >
+                Get started
+              </Link>
             </div>
           </div>
         </div>
@@ -103,7 +68,7 @@ export default function LandingHero({ embedded = false }) {
   )
 }
 
-/* --------------------------- MovieStack (unchanged) --------------------------- */
+/* --------------------------- MovieStack --------------------------- */
 function MovieStack() {
   const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY
   const [items, setItems] = useState([])

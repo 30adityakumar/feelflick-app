@@ -64,30 +64,34 @@ export default function LandingHero({ embedded = false }) {
               Get the perfect movie recommendation based on your taste and how you feel — fast,
               private, and always free.
             </p>
-
-            {/* CTA + consent (kept narrow so consent never looks larger than the button) */}
+            {/* CTA + consent (compact, gradient, icon chip) */}
             <div className="mt-4 flex justify-center md:justify-start">
-              <div className="w-full max-w-[360px]">
+              <div className="inline-flex flex-col items-start">
                 <button
                   type="button"
                   onClick={onGoogle}
                   className="
-                    inline-flex h-10 w-full items-center justify-center gap-2
-                    rounded-full border border-white/15 bg-white px-4 text-[0.9rem]
-                    font-semibold text-[#0a121a] shadow-[0_8px_30px_rgba(0,0,0,.20)]
-                    hover:shadow-[0_10px_36px_rgba(0,0,0,.26)]
-                    active:scale-[.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60
+                    group inline-flex items-center gap-2
+                    h-10 rounded-full px-4 text-[0.92rem] font-semibold
+                    text-white
+                    bg-gradient-to-r from-[#fe9245] to-[#eb423b]
+                    shadow-[0_8px_30px_rgba(0,0,0,.20)]
+                    hover:brightness-[1.08] active:scale-[.98]
+                    focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60
                   "
                   aria-label="Continue with Google"
                 >
-                  <img src={GoogleIcon} alt="" className="h-[18px] w-[18px]" />
+                  {/* White chip keeps the multicolor G readable on the gradient */}
+                  <span className="grid h-5 w-5 place-items-center rounded-full bg-white">
+                    <img src={GoogleIcon} alt="" className="h-[14px] w-[14px]" />
+                  </span>
                   <span>Continue with Google</span>
                 </button>
 
-                <p className="mt-2 text-[10.5px] sm:text-[11.5px] leading-snug text-white/65">
+                <p className="mt-2 text-[10px] sm:text-[11px] leading-snug text-white/65">
                   By continuing you agree to our{' '}
                   <Link to="/terms" className="no-underline hover:underline">Terms</Link>
-                  {' '}&{' '}
+                  {' '} & {' '}
                   <Link to="/privacy" className="no-underline hover:underline">Privacy</Link>.
                 </p>
               </div>

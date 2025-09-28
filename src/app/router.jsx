@@ -184,27 +184,21 @@ export const router = createBrowserRouter([
 
       // Auth shell with nested pages
       {
-        path: 'auth',
-        element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed>,
-        children: [
-          { index: true, element: <Navigate to="/auth/log-in-or-create-account" replace /> },
-          { path: 'log-in-or-create-account', element: <LogInOrCreateAccount /> },
-          { path: 'log-in/password', element: <LogInPassword /> },
-          { path: 'create-account/password', element: <CreateAccountPassword /> },
-        ],
-      },
+      path: 'auth',
+      element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed>,
+      children: [
+        { index: true, element: <Navigate to="/auth/log-in-or-create-account" replace /> },
 
-      // Legacy/aliases → unify to the entry page
-      { path: 'auth/sign-in', element: <Navigate to="/auth/log-in-or-create-account" replace /> },
-      { path: 'auth/sign-up', element: <Navigate to="/auth/log-in-or-create-account" replace /> },
-      { path: 'login',        element: <Navigate to="/auth/log-in-or-create-account" replace /> },
-      { path: 'signup',       element: <Navigate to="/auth/log-in-or-create-account" replace /> },
-      { path: 'signin',       element: <Navigate to="/auth/log-in-or-create-account" replace /> },
-      { path: 'register',     element: <Navigate to="/auth/log-in-or-create-account" replace /> },
+        // The single entry point:
+        { path: 'log-in-or-create-account', element: <LogInOrCreateAccount /> },
 
-      // Email flows unchanged
-      { path: 'reset-password', element: <ResetPassword /> },
-      { path: 'confirm-email',  element: <ConfirmEmail /> },
+        // Force any legacy/deep links to the single page:
+        { path: 'log-in/password',          element: <Navigate to="/auth/log-in-or-create-account" replace /> },
+        { path: 'create-account/password',  element: <Navigate to="/auth/log-in-or-create-account" replace /> },
+        { path: 'sign-in',                  element: <Navigate to="/auth/log-in-or-create-account" replace /> },
+        { path: 'sign-up',                  element: <Navigate to="/auth/log-in-or-create-account" replace /> },
+      ],
+    },
 
       { path: 'logout', element: <SignOutRoute /> },
     ],

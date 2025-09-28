@@ -1,26 +1,20 @@
 // src/features/landing/components/LandingHero.jsx
 import { useEffect, useMemo, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
-import { track as _track } from '@/shared/lib/analytics'
-import googleIcon from '@/assets/icons/google.svg'
-const track = _track || (() => {})
+import GoogleIcon from '@/assets/icons/google.svg'
 
 export default function LandingHero({ embedded = false }) {
+  const nav = useNavigate()
+
   async function onGoogle() {
-    try {
-      track('landing_google_cta_click')
-      await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          // Default behavior: if the user already has a single Google session,
-          // Google may skip the chooser and continue. If multiple, it will show options.
-          redirectTo: window.location.origin + '/home',
-          // queryParams: { prompt: 'select_account' } // (leave off for least friction)
-        },
-      })
-    } catch {
-      // no-op for MVP; Supabase handles the redirect flow/errors
-    }
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        // land here after Google so we can decide: /home vs /onboarding
+        redirectTo: window.location.origin + '/auth/oauth',
+      },
+    })
   }
 
   return (
@@ -57,12 +51,10 @@ export default function LandingHero({ embedded = false }) {
               : { height: 'calc(100svh - var(--topnav-h, var(--nav-h,72px)) - var(--footer-h,0px))' }
           }
         >
-          {/* Posters — pad right 6 on desktop */}
           <div className="order-1 md:order-2 md:col-start-2 w-full flex justify-center md:justify-start md:pr-6">
             <MovieStack />
           </div>
 
-          {/* Copy — pad left 6 on desktop */}
           <div className="order-2 md:order-1 md:col-start-1 mx-auto w-full max-w-3xl md:max-w-[620px] text-center md:text-left md:pl-10">
             <h1 className="text-balance text-[clamp(1.9rem,6vw,3.7rem)] font-black leading-[1.05] tracking-tight text-white">
               Movies that match your <span className="text-brand-100">mood</span>
@@ -73,30 +65,32 @@ export default function LandingHero({ embedded = false }) {
               private, and always free.
             </p>
 
-            <div className="mt-4 flex flex-col items-center md:items-start">
-              <button
-                type="button"
-                onClick={onGoogle}
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-full px-8 sm:px-9 text-[0.95rem] font-semibold text-white shadow-lift transition-transform hover:scale-[1.02] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 active:scale-[.98] bg-gradient-to-r from-[#fe9245] to-[#eb423b]"
-                aria-label="Continue with Google"
-              >
-                <img
-                  src={googleIcon}
-                  alt=""
-                  aria-hidden="true"
-                  className="h-4 w-4"
-                  width="16"
-                  height="16"
-                />
-                <span>Continue with Google</span>
-              </button>
+            {/* CTA + consent (kept narrow so consent never looks larger than the button) */}
+            <div className="mt-4 flex justify-center md:justify-start">
+              <div className="w-full max-w-[360px]">
+                <button
+                  type="button"
+                  onClick={onGoogle}
+                  className="
+                    inline-flex h-10 w-full items-center justify-center gap-2
+                    rounded-full border border-white/15 bg-white px-4 text-[0.9rem]
+                    font-semibold text-[#0a121a] shadow-[0_8px_30px_rgba(0,0,0,.20)]
+                    hover:shadow-[0_10px_36px_rgba(0,0,0,.26)]
+                    active:scale-[.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60
+                  "
+                  aria-label="Continue with Google"
+                >
+                  <img src={GoogleIcon} alt="" className="h-[18px] w-[18px]" />
+                  <span>Continue with Google</span>
+                </button>
 
-              {/* Terms & Privacy microcopy (small, unobtrusive) */}
-              <p className="mt-2 text-[11.5px] text-white/70">
-                By continuing you agree to our{' '}
-                <a href="/terms" className="underline hover:text-white">Terms</a> &{' '}
-                <a href="/privacy" className="underline hover:text-white">Privacy</a>.
-              </p>
+                <p className="mt-2 text-[10.5px] sm:text-[11.5px] leading-snug text-white/65">
+                  By continuing you agree to our{' '}
+                  <Link to="/terms" className="no-underline hover:underline">Terms</Link>
+                  {' '}&{' '}
+                  <Link to="/privacy" className="no-underline hover:underline">Privacy</Link>.
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -105,7 +99,7 @@ export default function LandingHero({ embedded = false }) {
   )
 }
 
-/* --------------------------- MovieStack --------------------------- */
+/* --------------------------- MovieStack (unchanged) --------------------------- */
 function MovieStack() {
   const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY
   const [items, setItems] = useState([])

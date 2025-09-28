@@ -1,8 +1,28 @@
 // src/features/landing/components/LandingHero.jsx
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { supabase } from '@/shared/lib/supabase/client'
+import { track as _track } from '@/shared/lib/analytics'
+import googleIcon from '@/assets/icons/google.svg'
+const track = _track || (() => {})
 
 export default function LandingHero({ embedded = false }) {
+  async function onGoogle() {
+    try {
+      track('landing_google_cta_click')
+      await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          // Default behavior: if the user already has a single Google session,
+          // Google may skip the chooser and continue. If multiple, it will show options.
+          redirectTo: window.location.origin + '/home',
+          // queryParams: { prompt: 'select_account' } // (leave off for least friction)
+        },
+      })
+    } catch {
+      // no-op for MVP; Supabase handles the redirect flow/errors
+    }
+  }
+
   return (
     <section
       className="relative h-full overflow-hidden"
@@ -12,16 +32,16 @@ export default function LandingHero({ embedded = false }) {
 
       {/* Background */}
       <div aria-hidden className="fixed inset-0 z-0">
-          <div className="absolute inset-0 bg-[linear-gradient(120deg,#0a121a_0%,#0d1722_50%,#0c1017_100%)]" />
-          <div className="pointer-events-none absolute -top-40 -left-40 h-[65vmin] w-[65vmin] rounded-full blur-3xl opacity-60 bg-[radial-gradient(closest-side,rgba(254,146,69,0.45),rgba(254,146,69,0)_70%)]" />
-          <div className="pointer-events-none absolute -bottom-44 -right-44 h-[70vmin] w-[70vmin] rounded-full blur-3xl opacity-55 bg-[radial-gradient(closest-side,rgba(235,66,59,0.38),rgba(235,66,59,0)_70%)]" />
-          <div className="pointer-events-none absolute top-1/2 left-1/2 h-[80vmin] w-[80vmin] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl opacity-45 bg-[radial-gradient(closest-side,rgba(45,119,255,0.35),rgba(45,119,255,0)_70%)]" />
-          <div className="pointer-events-none absolute -top-24 right-[15%] h-[45vmin] w-[45vmin] rounded-full blur-3xl opacity-45 bg-[radial-gradient(closest-side,rgba(255,99,196,0.35),rgba(255,99,196,0)_70%)]" />
-          <div className="pointer-events-none absolute inset-0 opacity-35 mix-blend-screen">
-            <div className="absolute left-1/2 top-1/2 h-[140vmin] w-[140vmin] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[conic-gradient(from_220deg_at_50%_50%,rgba(255,255,255,0.08),rgba(255,255,255,0)_65%)] motion-safe:md:animate-[spin_48s_linear_infinite]" />
-          </div>
-          <div className="absolute inset-0 bg-[radial-gradient(100%_80%_at_50%_0%,rgba(255,255,255,0.06),rgba(255,255,255,0)_60%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(120deg,#0a121a_0%,#0d1722_50%,#0c1017_100%)]" />
+        <div className="pointer-events-none absolute -top-40 -left-40 h-[65vmin] w-[65vmin] rounded-full blur-3xl opacity-60 bg-[radial-gradient(closest-side,rgba(254,146,69,0.45),rgba(254,146,69,0)_70%)]" />
+        <div className="pointer-events-none absolute -bottom-44 -right-44 h-[70vmin] w-[70vmin] rounded-full blur-3xl opacity-55 bg-[radial-gradient(closest-side,rgba(235,66,59,0.38),rgba(235,66,59,0)_70%)]" />
+        <div className="pointer-events-none absolute top-1/2 left-1/2 h-[80vmin] w-[80vmin] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl opacity-45 bg-[radial-gradient(closest-side,rgba(45,119,255,0.35),rgba(45,119,255,0)_70%)]" />
+        <div className="pointer-events-none absolute -top-24 right-[15%] h-[45vmin] w-[45vmin] rounded-full blur-3xl opacity-45 bg-[radial-gradient(closest-side,rgba(255,99,196,0.35),rgba(255,99,196,0)_70%)]" />
+        <div className="pointer-events-none absolute inset-0 opacity-35 mix-blend-screen">
+          <div className="absolute left-1/2 top-1/2 h-[140vmin] w-[140vmin] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[conic-gradient(from_220deg_at_50%_50%,rgba(255,255,255,0.08),rgba(255,255,255,0)_65%)] motion-safe:md:animate-[spin_48s_linear_infinite]" />
         </div>
+        <div className="absolute inset-0 bg-[radial-gradient(100%_80%_at_50%_0%,rgba(255,255,255,0.06),rgba(255,255,255,0)_60%)]" />
+      </div>
 
       {/* Content */}
       <div className="relative z-10 mx-auto h-full w-full max-w-7xl px-7 md:px-6" style={{ ['--nav-h']: '72px' }}>
@@ -53,13 +73,30 @@ export default function LandingHero({ embedded = false }) {
               private, and always free.
             </p>
 
-            <div className="mt-4 flex justify-center md:justify-start">
-              <Link
-                to="/auth/log-in-or-create-account"
-                className="inline-flex h-11 items-center justify-center rounded-full px-8 sm:px-9 text-[0.95rem] font-semibold text-white shadow-lift transition-transform hover:scale-[1.02] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 active:scale-[.98] bg-gradient-to-r from-[#fe9245] to-[#eb423b]"
+            <div className="mt-4 flex flex-col items-center md:items-start">
+              <button
+                type="button"
+                onClick={onGoogle}
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-full px-8 sm:px-9 text-[0.95rem] font-semibold text-white shadow-lift transition-transform hover:scale-[1.02] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 active:scale-[.98] bg-gradient-to-r from-[#fe9245] to-[#eb423b]"
+                aria-label="Continue with Google"
               >
-                Get started
-              </Link>
+                <img
+                  src={googleIcon}
+                  alt=""
+                  aria-hidden="true"
+                  className="h-4 w-4"
+                  width="16"
+                  height="16"
+                />
+                <span>Continue with Google</span>
+              </button>
+
+              {/* Terms & Privacy microcopy (small, unobtrusive) */}
+              <p className="mt-2 text-[11.5px] text-white/70">
+                By continuing you agree to our{' '}
+                <a href="/terms" className="underline hover:text-white">Terms</a> &{' '}
+                <a href="/privacy" className="underline hover:text-white">Privacy</a>.
+              </p>
             </div>
           </div>
         </div>

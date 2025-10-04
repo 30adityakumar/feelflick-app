@@ -179,13 +179,16 @@ export const router = createBrowserRouter([
       { path: 'auth/sign-in', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
       { path: 'auth/sign-up', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
 
-      // Legacy aliases
+      // legacy alias someone still links to:
+      { path: 'auth/log-in-or-create-account', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
+
+      // More legacy aliases
       { path: 'login', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
       { path: 'signup', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
       { path: 'signin', element: <Navigate to="/login" replace /> },
       { path: 'register', element: <Navigate to="/signup" replace /> },
 
-      // Explicit logout route (works from any state)
+      // Explicit logout route
       { path: 'logout', element: <SignOutRoute /> },
     ],
   },

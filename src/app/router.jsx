@@ -42,11 +42,11 @@ function PublicShell() {
 
 /* ------------------------------ Auth guards ------------------------------ */
 function RequireAuth() {
-  const [status, setStatus] = useState('loading') // 'loading' | 'authed' | 'anon'
+  const [status, setStatus] = useState<'loading' | 'authed' | 'anon'>('loading')
   const loc = useLocation()
 
   useEffect(() => {
-    let unsub
+    let unsub: undefined | (() => void)
     supabase.auth.getSession().then(({ data: { session } }) => {
       setStatus(session ? 'authed' : 'anon')
     })
@@ -64,9 +64,9 @@ function RequireAuth() {
 
 /** Redirect signed-in users away from public pages (/, /auth) */
 function RedirectIfAuthed({ children }) {
-  const [status, setStatus] = useState('loading')
+  const [status, setStatus] = useState<'loading' | 'authed' | 'anon'>('loading')
   useEffect(() => {
-    let unsub
+    let unsub: undefined | (() => void)
     supabase.auth.getSession().then(({ data: { session } }) => {
       setStatus(session ? 'authed' : 'anon')
     })
@@ -82,14 +82,14 @@ function RedirectIfAuthed({ children }) {
 }
 
 /* ---------------------- Onboarding completion gate ----------------------- */
-const isStrictTrue = (v) => v === true
+const isStrictTrue = (v: unknown) => v === true
 
 function PostAuthGate() {
-  const [state, setState] = useState('checking') // 'checking' | 'ready'
+  const [state, setState] = useState<'checking' | 'ready'>('checking')
   const [done, setDone] = useState(false)
   const loc = useLocation()
 
-  // If we *just* finished onboarding, skip the gate once to avoid the flash
+  // If we *just* finished onboarding, skip the gate once to avoid a flash
   if (loc.state?.fromOnboarding === true) {
     return <Outlet />
   }
@@ -117,7 +117,7 @@ function PostAuthGate() {
       // Users table (primary key is auth.users.id)
       const { data, error } = await supabase
         .from('users')
-        .select('onboarding_complete,onboarding_completed_at')
+        .select('onboarding_complete')
         .eq('id', user.id)
         .maybeSingle()
 
@@ -126,9 +126,7 @@ function PostAuthGate() {
           console.warn('users select error:', error)
           setDone(false)
         } else {
-          const completed =
-            isStrictTrue(data?.onboarding_complete) ||
-            Boolean(data?.onboarding_completed_at)
+          const completed = isStrictTrue(data?.onboarding_complete)
           setDone(completed)
         }
         setState('ready')
@@ -179,10 +177,8 @@ export const router = createBrowserRouter([
       { path: 'auth/sign-in', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
       { path: 'auth/sign-up', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
 
-      // legacy alias someone still links to:
+      // Legacy aliases still pointing at the single Auth page
       { path: 'auth/log-in-or-create-account', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
-
-      // More legacy aliases
       { path: 'login', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
       { path: 'signup', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
       { path: 'signin', element: <Navigate to="/login" replace /> },

@@ -1,4 +1,4 @@
-// src/router.jsx (or src/app/router.jsx)
+// src/app/router.jsx
 import {
   createBrowserRouter,
   Navigate,

@@ -1,57 +1,31 @@
 // src/features/auth/components/AuthForm.jsx
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
-import { Mail, Eye, EyeOff, UserPlus, ShieldCheck, LogIn, ChevronLeft } from 'lucide-react'
+import { ShieldCheck, ChevronLeft, LogIn } from 'lucide-react'
 
 export default function AuthForm({ mode = 'signin' }) {
   const navigate = useNavigate()
-  const isSignup = mode === 'signup'
-
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [showPw, setShowPw] = useState(false)
-  const [useMagic, setUseMagic] = useState(false)
   const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState('')
 
+  // If already authed, bounce to /home
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       if (data?.session) navigate('/home', { replace: true })
     })
   }, [navigate])
 
-  const title = isSignup ? 'Create your account' : 'Welcome back'
-  const cta   = isSignup ? 'Create account' : 'Sign in'
-  const swapQ = isSignup ? 'Have an account?' : 'New here?'
-  const swapL = isSignup ? 'Sign in' : 'Create account'
-  const swapTo = isSignup ? '/auth/sign-in' : '/auth/sign-up'
+  const title = mode === 'signup' ? 'Create your account' : 'Welcome back'
+  const cta   = mode === 'signup' ? 'Continue with Google' : 'Sign in with Google'
 
-  async function onSubmit(e) {
-    e.preventDefault()
+  async function signInWithGoogle() {
     setSubmitting(true)
-    setError('')
     try {
-      if (useMagic) {
-        const { error } = await supabase.auth.signInWithOtp({
-          email,
-          options: { emailRedirectTo: window.location.origin + '/home' },
-        })
-        if (error) throw error
-        navigate('/confirm-email', { replace: true })
-        return
-      }
-      if (isSignup) {
-        const { error } = await supabase.auth.signUp({ email, password })
-        if (error) throw error
-        navigate('/confirm-email', { replace: true })
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password })
-        if (error) throw error
-        navigate('/home', { replace: true })
-      }
-    } catch (err) {
-      setError(err?.message || 'Something went wrong.')
+      await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: `${window.location.origin}/home` },
+      })
+      // Full-page redirect happens; no further code runs here
     } finally {
       setSubmitting(false)
     }
@@ -60,11 +34,9 @@ export default function AuthForm({ mode = 'signin' }) {
   return (
     <div
       className="
-        w-full max-w-[400px] sm:max-w-[420px]
+        w-full max-w-[340px] sm:max-w-[360px]
         rounded-2xl border border-white/10 bg-black/35 backdrop-blur-sm
         shadow-[0_30px_120px_rgba(0,0,0,.55)]
-        /* FIX 3: smaller card + never clipped */
-        max-h-[calc(100svh-var(--topnav-h,72px)-var(--footer-h,0px)-12px)]
         overflow-hidden
       "
     >
@@ -85,113 +57,32 @@ export default function AuthForm({ mode = 'signin' }) {
         </div>
       </div>
 
-      {/* Body: tiny overflow only on very short screens */}
-      <form
-        onSubmit={onSubmit}
-        className="px-4 pb-4 sm:px-5 sm:pb-5 overflow-y-auto"
-        style={{ maxHeight: 'calc(100% - 44px)' }}
-      >
-        {/* FIX 4: smaller typography/spacing */}
-        <h1 className="text-center text-[clamp(1rem,1.6vw,1.25rem)] font-bold text-white">{title}</h1>
+      {/* Body */}
+      <div className="px-4 pb-4 sm:px-5 sm:pb-5">
+        <h1 className="text-center text-[clamp(1rem,1.6vw,1.25rem)] font-bold text-white">
+          {title}
+        </h1>
         <p className="mt-1 text-center text-[12px] text-white/70">
-          {isSignup ? 'Join free and start finding what fits your mood.' : 'Sign in to pick up where you left off.'}
+          Fast, private, and seamless with Google.
         </p>
-
-        <div className="mt-3 space-y-3">
-          <label className="block text-[10.5px] font-medium text-white/70">EMAIL</label>
-          <div className="relative">
-            <Mail className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/50" />
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="name@email.com"
-              className="w-full rounded-lg border border-white/10 bg-white/5 py-2 pl-9 pr-3 text-[13.5px] text-white placeholder-white/40 focus:outline-none"
-            />
-          </div>
-
-          {!useMagic && (
-            <>
-              <label className="mt-1 block text-[10.5px] font-medium text-white/70">PASSWORD</label>
-              <div className="relative">
-                <input
-                  type={showPw ? 'text' : 'password'}
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Your password"
-                  className="w-full rounded-lg border border-white/10 bg-white/5 py-2 pl-3 pr-9 text-[13.5px] text-white placeholder-white/40 focus:outline-none"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPw((s) => !s)}
-                  className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-md p-1 text-white/75 hover:bg-white/10 focus:outline-none"
-                  aria-label={showPw ? 'Hide password' : 'Show password'}
-                >
-                  {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-
-              {/* Below the input, subtle & small */}
-              <div className="mt-1">
-                <Link to="/reset-password" className="text-[11.5px] text-white/70 hover:text-white/90 focus:outline-none">
-                  Forgot password?
-                </Link>
-              </div>
-            </>
-          )}
-
-          <label className="mt-1 inline-flex items-center gap-2 text-[12px] text-white/80">
-            <input
-              type="checkbox"
-              checked={useMagic}
-              onChange={(e) => setUseMagic(e.target.checked)}
-              className="h-4 w-4 rounded border-white/20 bg-transparent text-brand-100 focus:outline-none"
-            />
-            Use magic link instead
-          </label>
-        </div>
-
-        <button
-          type="submit"
-          disabled={submitting}
-          className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#fe9245] to-[#eb423b] py-2.5 text-[0.9rem] font-semibold text-white disabled:opacity-60 focus:outline-none"
-        >
-          {isSignup ? <UserPlus className="h-4 w-4" /> : <LogIn className="h-4 w-4" />}
-          {submitting ? 'Please wait…' : cta}
-        </button>
-
-        <div className="relative my-3">
-          <div className="h-px w-full bg-white/10" />
-          <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/35 px-2 text-[11.5px] text-white/50">
-            or
-          </span>
-        </div>
 
         <button
           type="button"
-          onClick={() =>
-            supabase.auth.signInWithOAuth({
-              provider: 'google',
-              options: { redirectTo: window.location.origin + '/home' },
-            })
-          }
-          className="inline-flex w-full items-center justify-center gap-3 rounded-xl border border-white/10 bg-white/5 py-2.5 text-[0.9rem] font-semibold text-white hover:bg-white/10 focus:outline-none"
+          onClick={signInWithGoogle}
+          disabled={submitting}
+          className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#fe9245] to-[#eb423b] py-2.5 text-[0.92rem] font-semibold text-white disabled:opacity-60 focus:outline-none"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden><path fill="currentColor" d="M21.35 11.1H12v2.9h5.3c-.23 1.46-1.6 4.2-5.3 4.2a6.1 6.1 0 1 1 0-12.2c1.74 0 2.9.74 3.57 1.38l2.43-2.35C16.64 3.64 14.53 2.7 12 2.7a9.3 9.3 0 1 0 0 18.6c5.35 0 8.9 3.73 8.9-9.2 0-.62-.06-1.07-.15-1.6Z"/></svg>
-          Continue with Google
+          <LogIn className="h-4 w-4" />
+          {submitting ? 'Opening Google…' : cta}
         </button>
 
-        {error && <p className="mt-3 text-center text-[12px] text-red-400">{error}</p>}
-
-        <p className="mt-4 text-center text-[12.5px] text-white/70">
-          {swapQ}{' '}
-          <Link to={swapTo} className="font-semibold text-white hover:text-white/90 focus:outline-none">
-            {swapL}
-          </Link>
+        <p className="mt-3 text-center text-[11px] text-white/55">
+          By continuing you agree to our&nbsp;
+          <a href="/privacy" className="underline decoration-white/30 hover:text-white/80">Privacy</a>
+          &nbsp;and&nbsp;
+          <a href="/terms" className="underline decoration-white/30 hover:text-white/80">Terms</a>.
         </p>
-      </form>
+      </div>
     </div>
   )
 }

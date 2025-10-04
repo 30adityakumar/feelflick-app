@@ -103,7 +103,7 @@ function PostAuthGate() {
         return
       }
 
-      // fast path via auth metadata
+      // Fast path via auth metadata
       const meta = user.user_metadata || {}
       if (
         isStrictTrue(meta.onboarding_complete) ||
@@ -114,7 +114,7 @@ function PostAuthGate() {
         return
       }
 
-      // users table (primary key is auth.users.id)
+      // Users table (primary key is auth.users.id)
       const { data, error } = await supabase
         .from('users')
         .select('onboarding_complete,onboarding_completed_at')
@@ -137,10 +137,7 @@ function PostAuthGate() {
     return () => { mounted = false }
   }, [])
 
-  if (state === 'checking') {
-    // render nothing to avoid a full-screen “Loading profile…” flash
-    return null
-  }
+  if (state === 'checking') return null
 
   if (!done && loc.pathname !== '/onboarding') {
     return <Navigate to="/onboarding" replace state={{ from: loc }} />
@@ -170,44 +167,45 @@ function SignOutRoute() {
 
 /* -------------------------------- Router --------------------------------- */
 export const router = createBrowserRouter([
+  /* Public branch (no app chrome) */
   {
     element: <PublicShell />,
     children: [
+      // Landing (signed-out only)
       { index: true, element: <RedirectIfAuthed><Landing /></RedirectIfAuthed> },
 
-      // Auth shell with nested pages
-      {
-      path: 'auth',
-      element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed>,
-      children: [
-        { index: true, element: <Navigate to="/auth/log-in-or-create-account" replace /> },
+      // Auth (Google-only UI; same page for sign-in/sign-up so it feels seamless)
+      { path: 'auth', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
+      { path: 'auth/sign-in', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
+      { path: 'auth/sign-up', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
 
-        // The single entry point:
-        { path: 'log-in-or-create-account', element: <LogInOrCreateAccount /> },
-      ],
-    },
+      // Legacy aliases
+      { path: 'login', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
+      { path: 'signup', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
+      { path: 'signin', element: <Navigate to="/login" replace /> },
+      { path: 'register', element: <Navigate to="/signup" replace /> },
 
+      // Explicit logout route (works from any state)
       { path: 'logout', element: <SignOutRoute /> },
     ],
   },
 
-
-  // App branch
+  /* App branch (header + sidebar chrome) */
   {
     element: <AppShell />,
     children: [
-      // Public pages that still show app chrome
+      // Publicly viewable pages with app chrome
       { path: 'movies', element: <MoviesTab /> },
       { path: 'movie/:id', element: <MovieDetail /> },
       { path: 'browse', element: <MoviesTab /> },
       { path: 'trending', element: <MoviesTab /> },
 
-      // Auth-required + onboarding gate
+      // Auth-required pages (gated by onboarding)
       {
         element: <RequireAuth />,
         children: [
           {
-            element: <PostAuthGate />, // enforces onboarding (and skips after finishing)
+            element: <PostAuthGate />,
             children: [
               { path: 'home', element: <HomePage /> },
               { path: 'onboarding', element: <Onboarding /> },
@@ -223,10 +221,10 @@ export const router = createBrowserRouter([
     ],
   },
 
-  // /app legacy alias
+  /* /app legacy alias */
   { path: 'app', element: <AppPrefixAlias /> },
   { path: 'app/*', element: <AppPrefixAlias /> },
 
-  // 404
+  /* 404 */
   { path: '*', element: <NotFound /> },
 ])

@@ -174,7 +174,6 @@ export const router = createBrowserRouter([
     element: <PublicShell />,
     children: [
       { index: true, element: <RedirectIfAuthed><Landing /></RedirectIfAuthed> },
-      { path: 'auth/oauth', element: <OAuthFinish /> },
 
       // Auth shell with nested pages
       {

@@ -15,14 +15,6 @@ import AppShell from '@/app/AppShell'
 // Public pages (no header/sidebar)
 import Landing from '@/features/landing/Landing'
 import AuthPage from '@/features/auth/AuthPage'
-import ResetPassword from '@/features/auth/components/ResetPassword'
-import ConfirmEmail from '@/features/auth/components/ConfirmEmail'
-
-import LogInOrCreateAccount from '@/features/auth/pages/LogInOrCreateAccount'
-import LogInPassword from '@/features/auth/pages/LogInPassword'
-import CreateAccountPassword from '@/features/auth/pages/CreateAccountPassword'
-import PasswordGate from '@/features/auth/pages/PasswordGate'
-import OAuthFinish from '@/features/auth/components/OAuthFinish'
 
 // App pages (with header/sidebar)
 import HomePage from '@/app/homepage/HomePage'
@@ -193,12 +185,6 @@ export const router = createBrowserRouter([
 
         // The single entry point:
         { path: 'log-in-or-create-account', element: <LogInOrCreateAccount /> },
-
-        // Force any legacy/deep links to the single page:
-        { path: 'log-in/password',          element: <Navigate to="/auth/log-in-or-create-account" replace /> },
-        { path: 'create-account/password',  element: <Navigate to="/auth/log-in-or-create-account" replace /> },
-        { path: 'sign-in',                  element: <Navigate to="/auth/log-in-or-create-account" replace /> },
-        { path: 'sign-up',                  element: <Navigate to="/auth/log-in-or-create-account" replace /> },
       ],
     },
 

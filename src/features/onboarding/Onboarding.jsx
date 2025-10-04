@@ -2,390 +2,251 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
+import { Check, Loader2 } from 'lucide-react'
 
-const ACCENT = '#fe9245'
-const ACCENT2 = '#eb423b'
-const BTN_BG = 'linear-gradient(90deg,#fe9245 10%,#eb423b 90%)'
-const DARK_BG = 'rgba(22,19,28,0.9)'
-
-// Helper
-const strictTrue = (v) => v === true
+const GENRES = [
+  { id: 28, name: 'Action' },
+  { id: 12, name: 'Adventure' },
+  { id: 16, name: 'Animation' },
+  { id: 35, name: 'Comedy' },
+  { id: 80, name: 'Crime' },
+  { id: 18, name: 'Drama' },
+  { id: 14, name: 'Fantasy' },
+  { id: 27, name: 'Horror' },
+  { id: 9648, name: 'Mystery' },
+  { id: 10749, name: 'Romance' },
+  { id: 878, name: 'Sci-Fi' },
+  { id: 53, name: 'Thriller' },
+]
 
 export default function Onboarding() {
   const nav = useNavigate()
-  const [session, setSession] = useState(null)
-  const [checking, setChecking] = useState(true)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-
-  // UI state
-  const [step, setStep] = useState(1)
-  const [selectedGenres, setSelectedGenres] = useState([])
-  const [query, setQuery] = useState('')
-  const [results, setResults] = useState([])
-  const [watchlist, setWatchlist] = useState([])
-
   const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY
+  const [userId, setUserId] = useState(null)
+  const [step, setStep] = useState(1)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+  const [pickedGenres, setPickedGenres] = useState(new Set())
+  const [movies, setMovies] = useState([])
+  const [pickedMovies, setPickedMovies] = useState(new Set())
 
-  /* ----------------------- Auth & pre-check (once) ----------------------- */
+  // Get the authed user id
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSession(data.session))
-    const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s))
-    return () => data?.subscription?.unsubscribe()
-  }, [])
+    supabase.auth.getUser().then(({ data }) => {
+      const id = data?.user?.id || null
+      setUserId(id)
+      if (!id) nav('/auth', { replace: true })
+    })
+  }, [nav])
 
+  // Load 12 trending movies (fallback included)
   useEffect(() => {
-    if (!session?.user) return
+    let abort = false
     ;(async () => {
-      // If already marked complete, bounce to Home
-      const meta = session.user.user_metadata || {}
-      if (strictTrue(meta.onboarding_complete) || strictTrue(meta.has_onboarded)) {
-        setChecking(false)
-        nav('/home', { replace: true })
+      if (!TMDB_KEY) {
+        if (!abort) {
+          setMovies([
+            { id: 155, title: 'The Dark Knight', poster_path: '/1hRoyzDtpgMU7Dz4JF22RANzQO7.jpg' },
+            { id: 680, title: 'Pulp Fiction', poster_path: '/fIE3lAGcZDV1G6XM5KmuWnNsPp1.jpg' },
+            { id: 550, title: 'Fight Club', poster_path: '/a26cQPRhJPX6GbWfQbvZdrrp9j9.jpg' },
+            { id: 603, title: 'The Matrix', poster_path: '/dXNAPwY7VrqMAo51EKhhCJfaGb5.jpg' },
+            { id: 27205, title: 'Inception', poster_path: '/edv5CZvWj09upOsy2Y6IwDhK8bt.jpg' },
+            { id: 1891, title: 'The Empire Strikes Back', poster_path: '/7BuH8itoSrLExs2YZSsM01Qk2no.jpg' },
+          ])
+        }
         return
       }
-      const { data, error } = await supabase
-        .from('users')
-        .select('onboarding_complete,onboarding_completed_at')
-        .eq('id', session.user.id)
-        .maybeSingle()
-      if (error) {
-        console.warn('users select error:', error)
-        setChecking(false)
-        return
+      try {
+        const r = await fetch(`https://api.themoviedb.org/3/trending/movie/week?api_key=${TMDB_KEY}`)
+        const j = await r.json()
+        const top = (j?.results || []).filter(m => m.poster_path).slice(0, 12)
+        if (!abort) setMovies(top)
+      } catch {
+        if (!abort) setMovies([])
       }
-      if (strictTrue(data?.onboarding_complete) || Boolean(data?.onboarding_completed_at)) {
-        setChecking(false)
-        nav('/home', { replace: true })
-        return
-      }
-      setChecking(false)
     })()
-  }, [session, nav])
+    return () => { abort = true }
+  }, [TMDB_KEY])
 
-  /* ----------------------------- TMDb search ----------------------------- */
-  useEffect(() => {
-    let active = true
-    if (!query) {
-      setResults([])
-      return () => {}
-    }
-    fetch(
-      `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${encodeURIComponent(
-        query
-      )}`
-    )
-      .then((r) => r.json())
-      .then((data) => {
-        if (!active) return
-        setResults((data?.results || []).slice(0, 10))
-      })
-      .catch(() => {})
-    return () => {
-      active = false
-    }
-  }, [query, TMDB_KEY])
+  const canContinueStep1 = pickedGenres.size >= 2 && pickedGenres.size <= 5
+  const imgBase = 'https://image.tmdb.org/t/p/w342'
 
-  /* ----------------------------- UI helpers ------------------------------ */
-  const GENRES = useMemo(
-    () => [
-      { id: 28, label: 'Action' },
-      { id: 12, label: 'Adventure' },
-      { id: 16, label: 'Animation' },
-      { id: 35, label: 'Comedy' },
-      { id: 80, label: 'Crime' },
-      { id: 99, label: 'Documentary' },
-      { id: 18, label: 'Drama' },
-      { id: 10751, label: 'Family' },
-      { id: 14, label: 'Fantasy' },
-      { id: 36, label: 'History' },
-      { id: 27, label: 'Horror' },
-      { id: 10402, label: 'Music' },
-      { id: 9648, label: 'Mystery' },
-      { id: 10749, label: 'Romance' },
-      { id: 878, label: 'Sci-fi' },
-      { id: 53, label: 'Thriller' },
-    ],
-    []
-  )
-
-  const toggleGenre = (id) =>
-    setSelectedGenres((g) => (g.includes(id) ? g.filter((x) => x !== id) : [...g, id]))
-
-  const addMovie = (m) => {
-    if (!watchlist.some((x) => x.id === m.id)) setWatchlist((w) => [...w, m])
-    setQuery('')
-    setResults([])
+  function toggleGenre(id) {
+    setPickedGenres(prev => {
+      const s = new Set(prev)
+      if (s.has(id)) s.delete(id)
+      else if (s.size < 5) s.add(id)
+      return s
+    })
   }
 
-  const removeMovie = (id) => setWatchlist((w) => w.filter((m) => m.id !== id))
+  function toggleMovie(id) {
+    setPickedMovies(prev => {
+      const s = new Set(prev)
+      if (s.has(id)) s.delete(id)
+      else if (s.size < 3) s.add(id)
+      return s
+    })
+  }
 
-  /* ------------------------------ Persisting ----------------------------- */
-  async function finishOnboarding({ skipGenres = false, skipMovies = false } = {}) {
-    if (!session?.user) return
+  const pickedGenreList = useMemo(() => Array.from(pickedGenres), [pickedGenres])
+  const pickedMovieList = useMemo(() => Array.from(pickedMovies), [pickedMovies])
+
+  async function finish() {
+    if (!userId) return
+    setSaving(true)
     setError('')
-    setLoading(true)
     try {
-      const userId = session.user.id
-      const email = session.user.email || null
-      const name = session.user.user_metadata?.name || null
-
-      // Ensure row exists
-      await supabase.from('users').upsert([{ id: userId, email, name }], { onConflict: 'id' })
-
-      // Save genres (optional)
-      if (!skipGenres) {
-        await supabase.from('user_preferences').delete().eq('user_id', userId)
-        if (selectedGenres.length) {
-          await supabase
-            .from('user_preferences')
-            .upsert(
-              selectedGenres.map((genre_id) => ({ user_id: userId, genre_id })),
-              { onConflict: 'user_id,genre_id' }
-            )
-        }
+      // 1) save genres
+      if (pickedGenreList.length) {
+        const rows = pickedGenreList.map(gid => ({ user_id: userId, genre_id: gid }))
+        await supabase.from('user_preferences').upsert(rows, { onConflict: 'user_id,genre_id', ignoreDuplicates: true })
       }
-
-      // Save watchlist (optional). Keep it simple: only user_watchlist with a soft “onboarding” tag.
-      if (!skipMovies) {
-        await supabase
-          .from('user_watchlist')
-          .delete()
-          .eq('user_id', userId)
-          .eq('status', 'onboarding')
-
-        if (watchlist.length) {
-          await supabase
-            .from('user_watchlist')
-            .upsert(
-              watchlist.map((m) => ({
-                user_id: userId,
-                movie_id: m.id, // FK to your movies table if present; otherwise keep table FK-free
-                status: 'onboarding',
-              })),
-              { onConflict: 'user_id,movie_id' }
-            )
-        }
+      // 2) optionally seed watchlist with onboarding status
+      if (pickedMovieList.length) {
+        const rows = pickedMovieList.map(mid => ({
+          user_id: userId, movie_id: mid, status: 'onboarding',
+        }))
+        await supabase.from('user_watchlist').upsert(rows, { onConflict: 'user_id,movie_id', ignoreDuplicates: true })
       }
+      // 3) mark onboarding complete
+      await supabase.from('users').update({ onboarding_complete: true }).eq('id', userId)
 
-      // Mark complete in both places (belt-and-suspenders)
-      await supabase.from('users').update({
-        onboarding_complete: true,
-        onboarding_completed_at: new Date().toISOString(),
-      }).eq('id', userId)
-
-      await supabase.auth.updateUser({
-        data: { onboarding_complete: true, has_onboarded: true, onboarded: true },
-      })
-
-      // 👉 Go straight to Home and tell the gate to skip once
+      // 4) go home (tell the PostAuthGate we just finished)
       nav('/home', { replace: true, state: { fromOnboarding: true } })
     } catch (e) {
-      console.error('Onboarding save failed:', e)
-      setError('Could not save your preferences — please try again.')
+      setError(e?.message || 'Could not save preferences.')
     } finally {
-      setLoading(false)
+      setSaving(false)
     }
   }
 
-  /* --------------------------------- UI ---------------------------------- */
-  if (checking) {
-    return (
-      <div className="min-h-screen grid place-items-center bg-black text-white">
-        <div className="text-xl font-extrabold tracking-tight">Loading profile…</div>
-      </div>
-    )
-  }
-
-  const CARD_WIDTH = typeof window !== 'undefined' && window.innerWidth < 700 ? '100vw' : '760px'
-  const CARD_MARGIN =
-    typeof window !== 'undefined' && window.innerWidth < 700 ? '12px' : '0 auto'
-
   return (
-    <div
-      className="min-h-screen w-screen flex flex-col items-stretch justify-stretch relative"
-      style={{ background: `#0b0f15` }}
-    >
-      {/* Brand */}
-      <div className="absolute left-6 top-5 z-10 flex items-center gap-2">
-        <img src="/logo.png" alt="FeelFlick" className="w-9 h-9 rounded-md" />
-        <span className="text-lg font-extrabold text-white tracking-tight">FeelFlick</span>
-      </div>
+    <section className="relative mx-auto w-full max-w-7xl px-4 md:px-6">
+      {/* brand background is provided by your page shell; we keep this section clean */}
+      <div className="mx-auto max-w-5xl">
+        {/* Header */}
+        <div className="mb-6 text-center">
+          <h1 className="text-[clamp(1.4rem,3vw,2rem)] font-extrabold tracking-tight text-white">
+            Let’s tailor FeelFlick to you
+          </h1>
+          <p className="mt-2 text-[13px] text-white/75">
+            Pick a few genres you like {step === 1 ? '→ next, choose a couple of movies (optional).' : 'and confirm.'}
+          </p>
+        </div>
 
-      <div
-        className="self-center"
-        style={{
-          width: CARD_WIDTH,
-          margin: CARD_MARGIN,
-          minHeight: 520,
-          marginTop: 88,
-          marginBottom: 20,
-          background: DARK_BG,
-          borderRadius: 22,
-          boxShadow: '0 10px 44px #0007',
-          padding: '30px 26px',
-        }}
-      >
-        {error && (
-          <div className="mb-4 rounded-md bg-[#3d1113] px-3 py-2 text-center text-[14px] font-semibold text-rose-300">
-            {error}
-          </div>
-        )}
-
-        {step === 1 && (
-          <>
-            <h2 className="mb-2 text-center text-2xl font-extrabold tracking-tight text-white">
-              Pick a few genres you love
-            </h2>
-            <p className="mb-4 text-center text-sm text-white/80">
-              It helps us recommend movies that match your vibe.
-            </p>
-
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-              {GENRES.map((g) => (
-                <button
-                  key={g.id}
-                  type="button"
-                  onClick={() => toggleGenre(g.id)}
-                  className={`rounded-xl border px-3 py-2 text-sm font-medium text-white transition
-                    ${
-                      selectedGenres.includes(g.id)
-                        ? 'border-transparent'
-                        : 'border-white/15 hover:border-white/30'
-                    }`}
-                  style={{
-                    background: selectedGenres.includes(g.id)
-                      ? 'linear-gradient(88deg,#FF5B2E,#367cff 80%)'
-                      : 'transparent',
-                    boxShadow: selectedGenres.includes(g.id) ? '0 2px 7px #fdaf4111' : 'none',
-                  }}
-                >
-                  {g.label}
-                </button>
-              ))}
-            </div>
-
-            <div className="mt-6 flex items-center justify-center gap-4">
-              <button
-                className="rounded-lg px-6 py-2 text-[15px] font-extrabold text-white"
-                style={{ background: BTN_BG, boxShadow: '0 2px 10px #eb423b22' }}
-                onClick={() => setStep(2)}
-              >
-                Next
-              </button>
-              <button
-                className="text-[13px] font-extrabold text-[#fe9245]"
-                onClick={() => finishOnboarding({ skipGenres: true })}
-              >
-                Skip
-              </button>
-            </div>
-          </>
-        )}
-
-        {step === 2 && (
-          <>
-            <h2 className="mb-2 text-center text-2xl font-extrabold tracking-tight text-white">
-              Got some favorite movies?
-            </h2>
-            <p className="mb-3 text-center text-sm text-white/80">
-              Add a few to tune recommendations even more.
-            </p>
-
-            <input
-              type="text"
-              className="mb-2 w-full rounded-lg bg-[#232330] px-3 py-2.5 text-[13px] font-medium text-white outline-none"
-              placeholder="Search a movie…"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-
-            {query && results.length > 0 && (
-              <div className="mb-2 max-h-[220px] overflow-y-auto rounded-xl bg-[#242134]">
-                {results.map((r) => (
-                  <button
-                    key={r.id}
-                    type="button"
-                    onClick={() => addMovie(r)}
-                    className="flex w-full items-center gap-2 border-b border-[#302c37] px-3 py-2 text-left hover:bg-[#232330]"
-                  >
-                    <img
-                      src={
-                        r.poster_path
-                          ? `https://image.tmdb.org/t/p/w92${r.poster_path}`
-                          : 'https://dummyimage.com/46x69/232330/fff&text=?'
-                      }
-                      alt=""
-                      className="h-[69px] w-[46px] rounded object-cover"
-                    />
-                    <div className="text-white">
-                      <div className="text-[13px] font-semibold">{r.title}</div>
-                      <div className="text-[12px] text-white/70">
-                        {r.release_date ? r.release_date.slice(0, 4) : '—'}
-                      </div>
-                    </div>
-                  </button>
-                ))}
+        {/* Card wrapper */}
+        <div className="rounded-2xl border border-white/10 bg-black/35 p-5 backdrop-blur-md">
+          {step === 1 && (
+            <>
+              <div className="mb-4 flex items-center justify-between">
+                <p className="text-[12px] text-white/70">
+                  Choose <span className="text-white/90">2–5</span> genres you enjoy
+                </p>
+                <span className="text-[12px] text-white/60">{pickedGenres.size} selected</span>
               </div>
-            )}
 
-            {watchlist.length > 0 && (
-              <div className="mb-2">
-                <div className="mb-1 text-[14px] font-bold text-white">Your picks:</div>
-                <div className="flex flex-wrap gap-2">
-                  {watchlist.map((m) => (
-                    <div
-                      key={m.id}
-                      className="flex flex-col items-center rounded-md bg-[#231d2d] px-1 py-1"
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+                {GENRES.map(g => {
+                  const active = pickedGenres.has(g.id)
+                  return (
+                    <button
+                      key={g.id}
+                      type="button"
+                      onClick={() => toggleGenre(g.id)}
+                      className={`flex items-center justify-between rounded-xl border px-3 py-2 text-[14px] transition
+                        ${active
+                          ? 'border-brand-100/60 bg-brand-100/10 text-white'
+                          : 'border-white/12 bg-white/[.05] text-white/85 hover:bg-white/10'}
+                      `}
                     >
-                      <img
-                        src={
-                          m.poster_path
-                            ? `https://image.tmdb.org/t/p/w92${m.poster_path}`
-                            : 'https://dummyimage.com/60x90/232330/fff&text=?'
-                        }
-                        alt=""
-                        className="mx-1.5 h-[90px] w-[60px] rounded object-cover"
-                      />
-                      <button
-                        className="mt-0 text-[20px] font-normal text-rose-400"
-                        onClick={() => removeMovie(m.id)}
-                        title="Remove"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
-                </div>
+                      <span>{g.name}</span>
+                      {active && <Check className="h-4 w-4 text-brand-100" />}
+                    </button>
+                  )
+                })}
               </div>
-            )}
 
-            <div className="mt-3 flex items-center justify-center gap-4">
-              <button
-                className="rounded-md px-3 py-1.5 text-xs font-extrabold text-[#fe9245]"
-                onClick={() => setStep(1)}
-              >
-                &lt; Back
-              </button>
-              <button
-                disabled={loading}
-                className="rounded-xl px-6 py-2 text-[15px] font-extrabold text-white disabled:opacity-60"
-                style={{ background: BTN_BG, boxShadow: '0 2px 10px #eb423b22' }}
-                onClick={() => finishOnboarding()}
-              >
-                {loading ? 'Saving…' : 'Finish'}
-              </button>
-              <button
-                disabled={loading}
-                className="text-xs font-extrabold text-[#fe9245]"
-                onClick={() => finishOnboarding({ skipMovies: true })}
-              >
-                Skip
-              </button>
-            </div>
-          </>
-        )}
+              <div className="mt-6 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setStep(2)}
+                  disabled={!canContinueStep1}
+                  className="inline-flex items-center rounded-full bg-gradient-to-r from-[#fe9245] to-[#eb423b] px-5 py-2.5 text-[.95rem] font-semibold text-white disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
+                >
+                  Next
+                </button>
+              </div>
+            </>
+          )}
+
+          {step === 2 && (
+            <>
+              <div className="mb-4 flex items-center justify-between">
+                <p className="text-[12px] text-white/70">
+                  Pick up to <span className="text-white/90">3</span> movies you like (optional)
+                </p>
+                <span className="text-[12px] text-white/60">{pickedMovies.size} selected</span>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6">
+                {movies.map(m => {
+                  const active = pickedMovies.has(m.id)
+                  return (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => toggleMovie(m.id)}
+                      className={`group relative overflow-hidden rounded-2xl ring-1 transition
+                        ${active ? 'ring-brand-100/70' : 'ring-white/10 hover:ring-white/20'}
+                      `}
+                      title={m.title}
+                    >
+                      {m.poster_path ? (
+                        <img
+                          src={`${imgBase}${m.poster_path}`}
+                          alt={m.title}
+                          className="h-full w-full object-cover"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      ) : (
+                        <div className="aspect-[2/3] w-full bg-white/10" />
+                      )}
+                      {active && (
+                        <div className="absolute inset-0 grid place-items-center bg-black/45 text-white">
+                          <Check className="h-6 w-6 text-brand-100" />
+                        </div>
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+
+              <div className="mt-6 flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className="rounded-full border border-white/15 bg-white/5 px-4 py-2 text-[.92rem] text-white/85 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
+                >
+                  Back
+                </button>
+                <button
+                  type="button"
+                  onClick={finish}
+                  disabled={saving || pickedGenreList.length < 2}
+                  className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#fe9245] to-[#eb423b] px-5 py-2.5 text-[.95rem] font-semibold text-white disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
+                >
+                  {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+                  Finish
+                </button>
+              </div>
+            </>
+          )}
+
+          {error && <p className="mt-4 text-center text-sm text-red-400">{error}</p>}
+        </div>
       </div>
-    </div>
+    </section>
   )
 }

@@ -1,4 +1,4 @@
-// src/router.jsx
+// src/router.jsx (or src/app/router.jsx)
 import {
   createBrowserRouter,
   Navigate,
@@ -42,11 +42,11 @@ function PublicShell() {
 
 /* ------------------------------ Auth guards ------------------------------ */
 function RequireAuth() {
-  const [status, setStatus] = useState<'loading' | 'authed' | 'anon'>('loading')
+  const [status, setStatus] = useState('loading') // 'loading' | 'authed' | 'anon'
   const loc = useLocation()
 
   useEffect(() => {
-    let unsub: undefined | (() => void)
+    let unsub
     supabase.auth.getSession().then(({ data: { session } }) => {
       setStatus(session ? 'authed' : 'anon')
     })
@@ -54,7 +54,9 @@ function RequireAuth() {
       setStatus(session ? 'authed' : 'anon')
     })
     unsub = data?.subscription?.unsubscribe
-    return () => { if (typeof unsub === 'function') unsub() }
+    return () => {
+      if (typeof unsub === 'function') unsub()
+    }
   }, [])
 
   if (status === 'loading') return <div className="p-6 text-white/70">Loading…</div>
@@ -64,9 +66,9 @@ function RequireAuth() {
 
 /** Redirect signed-in users away from public pages (/, /auth) */
 function RedirectIfAuthed({ children }) {
-  const [status, setStatus] = useState<'loading' | 'authed' | 'anon'>('loading')
+  const [status, setStatus] = useState('loading')
   useEffect(() => {
-    let unsub: undefined | (() => void)
+    let unsub
     supabase.auth.getSession().then(({ data: { session } }) => {
       setStatus(session ? 'authed' : 'anon')
     })
@@ -74,7 +76,9 @@ function RedirectIfAuthed({ children }) {
       setStatus(session ? 'authed' : 'anon')
     })
     unsub = data?.subscription?.unsubscribe
-    return () => { if (typeof unsub === 'function') unsub() }
+    return () => {
+      if (typeof unsub === 'function') unsub()
+    }
   }, [])
   if (status === 'loading') return <div className="p-6 text-white/70">Loading…</div>
   if (status === 'authed') return <Navigate to="/home" replace />
@@ -82,14 +86,14 @@ function RedirectIfAuthed({ children }) {
 }
 
 /* ---------------------- Onboarding completion gate ----------------------- */
-const isStrictTrue = (v: unknown) => v === true
+const isStrictTrue = (v) => v === true
 
 function PostAuthGate() {
-  const [state, setState] = useState<'checking' | 'ready'>('checking')
+  const [state, setState] = useState('checking') // 'checking' | 'ready'
   const [done, setDone] = useState(false)
   const loc = useLocation()
 
-  // If we *just* finished onboarding, skip the gate once to avoid a flash
+  // If we *just* finished onboarding, skip the gate once to avoid the flash
   if (loc.state?.fromOnboarding === true) {
     return <Outlet />
   }
@@ -126,8 +130,7 @@ function PostAuthGate() {
           console.warn('users select error:', error)
           setDone(false)
         } else {
-          const completed = isStrictTrue(data?.onboarding_complete)
-          setDone(completed)
+          setDone(isStrictTrue(data?.onboarding_complete))
         }
         setState('ready')
       }

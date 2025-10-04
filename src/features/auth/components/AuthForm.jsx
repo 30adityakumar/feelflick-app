@@ -2,86 +2,115 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
-import { ShieldCheck, ChevronLeft, LogIn } from 'lucide-react'
+import { ChevronLeft, LogIn } from 'lucide-react'
 
-export default function AuthForm({ mode = 'signin' }) {
+export default function AuthForm() {
   const navigate = useNavigate()
   const [submitting, setSubmitting] = useState(false)
 
-  // If already authed, bounce to /home
+  // If already authed, bounce to home
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       if (data?.session) navigate('/home', { replace: true })
     })
   }, [navigate])
 
-  const title = mode === 'signup' ? 'Create your account' : 'Welcome back'
-  const cta   = mode === 'signup' ? 'Continue with Google' : 'Sign in with Google'
-
-  async function signInWithGoogle() {
-    setSubmitting(true)
+  async function handleGoogle() {
     try {
+      setSubmitting(true)
       await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: `${window.location.origin}/home` },
+        options: {
+          redirectTo: window.location.origin + '/home',
+          queryParams: { prompt: 'select_account' },
+        },
       })
-      // Full-page redirect happens; no further code runs here
-    } finally {
+      // Supabase will redirect; if popup blocked or error, we re-enable button below.
+    } catch {
       setSubmitting(false)
     }
   }
 
   return (
+    /* Gradient border wrapper for a subtle premium feel */
     <div
       className="
-        w-full max-w-[340px] sm:max-w-[360px]
-        rounded-2xl border border-white/10 bg-black/35 backdrop-blur-sm
-        shadow-[0_30px_120px_rgba(0,0,0,.55)]
-        overflow-hidden
+        w-[min(92vw,520px)]
+        rounded-[22px] p-[1px]
+        bg-[linear-gradient(135deg,rgba(254,146,69,.65),rgba(235,66,59,.65),rgba(45,119,255,.55),rgba(0,209,255,.55))]
+        shadow-[0_40px_120px_rgba(0,0,0,.55)]
+        backdrop-blur-[2px]
       "
     >
-      {/* Header */}
-      <div className="flex items-center justify-between px-3.5 py-2.5 sm:px-4 sm:py-3">
-        <button
-          type="button"
-          onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))}
-          className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/5 text-white/80 hover:bg-white/10 focus:outline-none"
-          aria-label="Go back"
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </button>
-
-        <div className="flex items-center gap-2 text-white/80">
-          <ShieldCheck className="h-4 w-4 text-brand-100" />
-          <span className="text-xs font-semibold tracking-wide">FEELFLICK</span>
+      {/* Card */}
+      <div className="
+          relative rounded-[20px]
+          bg-black/45 backdrop-blur-md
+          ring-1 ring-white/10
+          px-5 py-6 sm:px-7 sm:py-8
+        "
+      >
+        {/* Top row: back only (removed shield + text) */}
+        <div className="mb-3 flex items-center justify-between">
+          <button
+            type="button"
+            onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-white/85 hover:bg-white/10 focus:outline-none"
+            aria-label="Go back"
+            title="Back"
+          >
+            <ChevronLeft className="h-4.5 w-4.5" />
+          </button>
+          {/* empty right side to keep layout balanced */}
+          <span className="inline-block w-9" />
         </div>
-      </div>
 
-      {/* Body */}
-      <div className="px-4 pb-4 sm:px-5 sm:pb-5">
-        <h1 className="text-center text-[clamp(1rem,1.6vw,1.25rem)] font-bold text-white">
-          {title}
-        </h1>
-        <p className="mt-1 text-center text-[12px] text-white/70">
-          Fast, private, and seamless with Google.
-        </p>
+        {/* Heading */}
+        <div className="text-center">
+          <h1 className="text-[clamp(1.05rem,2.2vw,1.35rem)] font-extrabold tracking-tight text-white">
+            Sign in or create account
+          </h1>
+          <p className="mt-1 text-[12.5px] leading-relaxed text-white/75">
+            One tap with Google — fast, secure, no passwords.
+          </p>
+        </div>
 
-        <button
-          type="button"
-          onClick={signInWithGoogle}
-          disabled={submitting}
-          className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#fe9245] to-[#eb423b] py-2.5 text-[0.92rem] font-semibold text-white disabled:opacity-60 focus:outline-none"
-        >
-          <LogIn className="h-4 w-4" />
-          {submitting ? 'Opening Google…' : cta}
-        </button>
+        {/* Primary action */}
+        <div className="mt-6">
+          <button
+            type="button"
+            disabled={submitting}
+            onClick={handleGoogle}
+            className="
+              inline-flex w-full items-center justify-center gap-3
+              rounded-full border border-white/10 bg-white/6
+              py-3.5 px-4 text-[0.95rem] font-semibold text-white/95
+              hover:bg-white/10 active:scale-[.99]
+              focus:outline-none disabled:opacity-60
+            "
+            aria-label="Continue with Google"
+          >
+            {/* Minimal Google 'G' */}
+            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden className="opacity-95">
+              <path fill="currentColor" d="M21.35 11.1H12v2.9h5.3c-.23 1.46-1.6 4.2-5.3 4.2a6.1 6.1 0 1 1 0-12.2c1.74 0 2.9.74 3.57 1.38l2.43-2.35C16.64 3.64 14.53 2.7 12 2.7a9.3 9.3 0 1 0 0 18.6c5.35 0 8.9 3.73 8.9-9.2 0-.62-.06-1.07-.15-1.6Z"/>
+            </svg>
+            {submitting ? 'Opening Google…' : 'Continue with Google'}
+          </button>
+        </div>
 
-        <p className="mt-3 text-center text-[11px] text-white/55">
-          By continuing you agree to our&nbsp;
-          <a href="/privacy" className="underline decoration-white/30 hover:text-white/80">Privacy</a>
-          &nbsp;and&nbsp;
-          <a href="/terms" className="underline decoration-white/30 hover:text-white/80">Terms</a>.
-        </p>
+        {/* Tiny reassurance & legal copy */}
+        <div className="mt-4 text-center text-[11.5px] text-white/55">
+          We never post or share without your permission.
+        </div>
+
+        {/* Divider & fallback email hint (optional, keep minimal) */}
+        <div className="pointer-events-none mt-6 h-px w-full bg-white/10" />
+
+        {/* Sign-in hint for edge cases */}
+        <div className="mt-4 flex items-center justify-center gap-2 text-[12px] text-white/65">
+          <LogIn className="h-3.5 w-3.5" />
+          Use your Google account to sign in or create a new one.
+        </div>
       </div>
     </div>
   )

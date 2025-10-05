@@ -89,21 +89,36 @@ function RedirectIfAuthed({ children }) {
 const isStrictTrue = (v) => v === true
 
 function PostAuthGate() {
-  const [state, setState] = useState('checking') // 'checking' | 'ready'
+  const [ready, setReady] = useState(false)
   const [done, setDone] = useState(false)
+  const decidedAt = useRef(0)
+  const navigating = useRef(false)
   const loc = useLocation()
+  const navigate = useNavigate()
 
-  // If we *just* finished onboarding, skip the gate once to avoid the flash
+  // If we *just* finished onboarding, allow straight through once
   if (loc.state?.fromOnboarding === true) {
     return <Outlet />
   }
 
   useEffect(() => {
     let mounted = true
+
+    // Reuse decision for ~60s to avoid loops/races
+    const now = Date.now()
+    if (decidedAt.current && now - decidedAt.current < 60_000) {
+      setReady(true)
+      return
+    }
+
     ;(async () => {
       const { data: { user } } = await supabase.auth.getUser()
+      if (!mounted) return
+
       if (!user) {
-        if (mounted) { setDone(false); setState('ready') }
+        // not signed in — let RequireAuth handle redirect
+        setDone(false); setReady(true)
+        decidedAt.current = Date.now()
         return
       }
 
@@ -114,38 +129,50 @@ function PostAuthGate() {
         isStrictTrue(meta.has_onboarded) ||
         isStrictTrue(meta.onboarded)
       ) {
-        if (mounted) { setDone(true); setState('ready') }
+        setDone(true); setReady(true)
+        decidedAt.current = Date.now()
         return
       }
 
-      // Users table (primary key is auth.users.id)
+      // DB check
       const { data, error } = await supabase
         .from('users')
-        .select('onboarding_complete')
+        .select('onboarding_complete,onboarding_completed_at')
         .eq('id', user.id)
         .maybeSingle()
 
-      if (mounted) {
-        if (error) {
-          console.warn('users select error:', error)
-          setDone(false)
-        } else {
-          setDone(isStrictTrue(data?.onboarding_complete))
-        }
-        setState('ready')
+      if (!mounted) return
+      if (error) {
+        // On error, don’t bounce forever — assume “not done” for this page-load
+        console.warn('users select error:', error)
+        setDone(false)
+      } else {
+        const completed =
+          isStrictTrue(data?.onboarding_complete) ||
+          Boolean(data?.onboarding_completed_at)
+        setDone(completed)
       }
+      setReady(true)
+      decidedAt.current = Date.now()
     })()
+
     return () => { mounted = false }
   }, [])
 
-  if (state === 'checking') return null
+  // Never call navigate repeatedly
+  useEffect(() => {
+    if (!ready || navigating.current) return
+    if (!done && loc.pathname !== '/onboarding') {
+      navigating.current = true
+      navigate('/onboarding', { replace: true, state: { fromGate: true } })
+    }
+    if (done && loc.pathname === '/onboarding') {
+      navigating.current = true
+      navigate('/home', { replace: true, state: { fromOnboarding: true } })
+    }
+  }, [ready, done, loc.pathname, navigate])
 
-  if (!done && loc.pathname !== '/onboarding') {
-    return <Navigate to="/onboarding" replace state={{ from: loc }} />
-  }
-  if (done && loc.pathname === '/onboarding') {
-    return <Navigate to="/home" replace />
-  }
+  // If we are already on the correct route, just render children.
   return <Outlet />
 }
 

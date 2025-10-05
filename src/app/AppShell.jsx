@@ -41,8 +41,8 @@ export default function AppShell() {
             />
           </div>
 
-          <div className="ml-auto">
-            <Account />
+          <div className="ml-auto relative">   {/* creates the positioning context */}
+            <Account dropdownPlacement="bottom-end" />
           </div>
         </div>
 

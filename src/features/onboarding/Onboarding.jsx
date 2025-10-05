@@ -12,12 +12,12 @@ export default function Onboarding() {
   const [checking, setChecking] = useState(true);
   const [step, setStep]         = useState(1);
 
-  const [selectedGenres, setSelectedGenres] = useState<number[]>([]);
+  const [selectedGenres, setSelectedGenres] = useState([]);
   const [query, setQuery]       = useState("");
-  const [results, setResults]   = useState<any[]>([]);
+  const [results, setResults]   = useState([]);
   const [showAllResults, setShowAllResults] = useState(false);
-  const [watchlist, setWatchlist] = useState<any[]>([]);
-  const [popular, setPopular]   = useState<any[]>([]);
+  const [watchlist, setWatchlist] = useState([]);
+  const [popular, setPopular]   = useState([]);
 
   const [error, setError]       = useState("");
   const [loading, setLoading]   = useState(false);
@@ -26,11 +26,11 @@ export default function Onboarding() {
 
   // session
   useEffect(() => {
-    let unsub: undefined | (() => void)
+    let unsub;
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
     const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
-    unsub = data?.subscription?.unsubscribe
-    return () => { if (typeof unsub === 'function') unsub() }
+    unsub = data?.subscription?.unsubscribe;
+    return () => { if (typeof unsub === 'function') unsub() };
   }, []);
 
   // already onboarded?
@@ -67,22 +67,22 @@ export default function Onboarding() {
 
   // popular picks for step 2
   useEffect(() => {
-    let active = true
-    if (!TMDB_KEY) return
-    ;(async () => {
+    let active = true;
+    if (!TMDB_KEY) return;
+    (async () => {
       try {
-        const r = await fetch(`https://api.themoviedb.org/3/trending/movie/week?api_key=${TMDB_KEY}`)
-        const j = await r.json()
-        if (!active) return
+        const r = await fetch(`https://api.themoviedb.org/3/trending/movie/week?api_key=${TMDB_KEY}`);
+        const j = await r.json();
+        if (!active) return;
         const top = (j?.results || [])
           .filter(m => m.poster_path)
           .sort((a,b) => (b.popularity||0) - (a.popularity||0))
-          .slice(0, 18)
-        setPopular(top)
+          .slice(0, 18);
+        setPopular(top);
       } catch {/* ignore */}
-    })()
-    return () => { active = false }
-  }, [TMDB_KEY])
+    })();
+    return () => { active = false };
+  }, [TMDB_KEY]);
 
   // search
   useEffect(() => {
@@ -120,12 +120,13 @@ export default function Onboarding() {
     { id: 878, label:"Sci-fi" },  { id: 53, label:"Thriller"}
   ], []);
 
-  const toggleGenre      = (id:number) => setSelectedGenres(g => g.includes(id) ? g.filter(x=>x!==id) : [...g,id]);
-  const inPicks          = (id:number) => watchlist.some(x => x.id === id)
-  const addPick          = (m:any) => { if (!inPicks(m.id)) setWatchlist(w => [...w, m]) }
-  const removePick       = (id:number) => setWatchlist(w => w.filter(m => m.id !== id))
+  const toggleGenre      = (id) => setSelectedGenres(g => g.includes(id) ? g.filter(x=>x!==id) : [...g,id]);
+  const inPicks          = (id) => watchlist.some(x => x.id === id);
+  const addPick          = (m)  => { if (!inPicks(m.id)) setWatchlist(w => [...w, m]) };
+  const removePick       = (id) => setWatchlist(w => w.filter(m => m.id !== id));
 
-  async function saveAndGo({skipGenres=false, skipMovies=false} = {}) {
+  async function saveAndGo(opts = {}) {
+    const { skipGenres = false, skipMovies = false } = opts;
     setError(""); setLoading(true);
     try {
       const user_id = session?.user?.id;
@@ -215,7 +216,7 @@ export default function Onboarding() {
           {step === 1 && (
             <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2.5">
               {GENRES.map(g => {
-                const active = selectedGenres.includes(g.id)
+                const active = selectedGenres.includes(g.id);
                 return (
                   <button
                     key={g.id}
@@ -230,7 +231,7 @@ export default function Onboarding() {
                   >
                     <span className="px-3">{g.label}</span>
                   </button>
-                )
+                );
               })}
             </div>
           )}
@@ -252,13 +253,13 @@ export default function Onboarding() {
                   <h3 className="mt-4 mb-2 text-[13px] font-semibold text-white/80">Popular picks this week</h3>
                   <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
                     {popular.map(m => {
-                      const selected = inPicks(m.id)
+                      const selected = inPicks(m.id);
                       return (
                         <button
                           type="button"
                           key={m.id}
                           onClick={() => (selected ? removePick(m.id) : addPick(m))}
-                          className={`relative rounded-lg overflow-hidden ring-1 ring-white/10`}
+                          className="relative rounded-lg overflow-hidden ring-1 ring-white/10"
                           aria-pressed={selected}
                           title={m.title}
                         >
@@ -270,10 +271,10 @@ export default function Onboarding() {
                           />
                           <div className="absolute inset-0 bg-black/30 opacity-0 transition-opacity hover:opacity-100" />
                           {selected && (
-                            <div className="absolute inset-0 ring-2 ring-brand-500/80 rounded-lg" />
+                            <div className="absolute inset-0 ring-2 ring-[#fe9245]/80 rounded-lg" />
                           )}
                         </button>
-                      )
+                      );
                     })}
                   </div>
                 </>
@@ -283,7 +284,7 @@ export default function Onboarding() {
               {query && results.length > 0 && (
                 <div className="mt-3 rounded-xl bg-white/[.04] ring-1 ring-white/10 max-h-[240px] overflow-auto">
                   {(showAllResults ? results : results.slice(0, 8)).map(r => {
-                    const selected = inPicks(r.id)
+                    const selected = inPicks(r.id);
                     return (
                       <button
                         key={r.id}
@@ -302,17 +303,17 @@ export default function Onboarding() {
                             {r.release_date ? r.release_date.slice(0,4) : "—"}
                           </div>
                         </div>
-                        <span className={`text-[12px] ${selected ? 'text-brand-200' : 'text-white/60'}`}>
+                        <span className={`text-[12px] ${selected ? 'text-[#fe9245]' : 'text-white/60'}`}>
                           {selected ? 'Added' : 'Add'}
                         </span>
                       </button>
-                    )
+                    );
                   })}
                   {!showAllResults && results.length > 8 && (
                     <button
                       type="button"
                       onClick={() => setShowAllResults(true)}
-                      className="w-full py-2 text-[12.5px] text-brand-100 font-semibold hover:bg-white/5"
+                      className="w-full py-2 text-[12.5px] text-[#fe9245] font-semibold hover:bg-white/5"
                     >
                       Show more
                     </button>
@@ -386,5 +387,5 @@ export default function Onboarding() {
         </div>
       </div>
     </div>
-  )
+  );
 }

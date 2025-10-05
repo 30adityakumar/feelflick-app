@@ -1,255 +1,126 @@
+// src/app/header/Header.jsx
 import { useEffect, useRef, useState } from 'react'
-import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { Menu, X, Film, User2, Settings, LogOut, BookmarkCheck, History } from 'lucide-react'
-import SearchBar from '@/app/header/components/SearchBar'
+import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
+import logoPng from '@/assets/images/logo.png'
+import { Search, ChevronDown, LogOut, User, History, ListChecks, PanelLeftOpen } from 'lucide-react'
 
-export default function Header() {
+export default function Header({ onOpenSearch }) {
   const [user, setUser] = useState(null)
-  const [avatarText, setAvatarText] = useState('U')
   const [menuOpen, setMenuOpen] = useState(false)
-  const [signingOut, setSigningOut] = useState(false)
+  const nav = useNavigate()
+  const menuRef = useRef(null)
 
-  const navigate = useNavigate()
-  const loc = useLocation()
-
-  // separate refs so outside-click doesn't misfire on desktop
-  const avatarBtnRef = useRef(null)
-  const desktopMenuRef = useRef(null)
-
-  /* --------------------------- session sync --------------------------- */
   useEffect(() => {
-    let unsubscribe
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setUser(user || null)
-      setAvatarText(user?.email?.[0]?.toUpperCase?.() || 'U')
-    })
-    const { data } = supabase.auth.onAuthStateChange((_evt, session) => {
-      const u = session?.user ?? null
-      setUser(u)
-      setAvatarText(u?.email?.[0]?.toUpperCase?.() || 'U')
-    })
-    unsubscribe = data?.subscription?.unsubscribe
-    return () => { if (typeof unsubscribe === 'function') unsubscribe() }
+    let unsub
+    supabase.auth.getUser().then(({ data }) => setUser(data?.user || null))
+    const { data } = supabase.auth.onAuthStateChange((_e, sess) => setUser(sess?.user || null))
+    unsub = data?.subscription?.unsubscribe
+    return () => { if (typeof unsub === 'function') unsub() }
   }, [])
 
-  // close menu on route change
-  useEffect(() => { setMenuOpen(false) }, [loc.pathname])
-
-  // close menu on outside click (desktop)
+  // close on outside click
   useEffect(() => {
-    if (!menuOpen) return
-    function onDocPointerDown(e) {
-      const t = e.target
-      if (desktopMenuRef.current && desktopMenuRef.current.contains(t)) return
-      if (avatarBtnRef.current && avatarBtnRef.current.contains(t)) return
-      setMenuOpen(false)
+    const onClick = (e) => {
+      if (!menuRef.current) return
+      if (!menuRef.current.contains(e.target)) setMenuOpen(false)
     }
-    document.addEventListener('pointerdown', onDocPointerDown)
-    return () => document.removeEventListener('pointerdown', onDocPointerDown)
+    if (menuOpen) document.addEventListener('pointerdown', onClick)
+    return () => document.removeEventListener('pointerdown', onClick)
   }, [menuOpen])
 
-  /* --------------------------- sign out --------------------------- */
-  async function handleSignOut() {
-    if (signingOut) return
-    setSigningOut(true)
-    try {
-      const { error } = await supabase.auth.signOut()
-      if (error) {
-        console.error('Sign out failed:', error)
-        window.location.assign('/logout') // hard fallback
-        return
-      }
-      navigate('/auth', { replace: true })
-    } finally {
-      setMenuOpen(false)
-      setSigningOut(false)
-    }
-  }
+  const initial = (user?.user_metadata?.name || user?.email || 'U').trim()[0]?.toUpperCase()
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/10 bg-neutral-950/70 backdrop-blur">
-      <div className="mx-auto flex w-full max-w-7xl items-center gap-3 px-4 py-3 md:px-6">
+    <header className="sticky top-0 z-40">
+      <div className="mx-auto flex w-full max-w-[1200px] items-center justify-between gap-3 px-4 md:px-6 py-3">
         {/* Brand */}
-        <Link to="/" className="flex items-center gap-2 text-white">
-          <Film className="h-5 w-5" />
-          <span className="text-sm font-semibold tracking-wide">FeelFlick</span>
+        <Link to="/home" className="flex items-center gap-2 rounded-md focus:outline-none focus:ring-2 focus:ring-brand/60">
+          <img src={logoPng} alt="" width="36" height="36" className="h-8 w-8 object-contain" loading="eager" decoding="async" />
+          <span className="text-[clamp(1.1rem,3.5vw,1.4rem)] font-extrabold tracking-tight text-brand-100">FEELFLICK</span>
         </Link>
 
-        {/* Search */}
-        <div className="ml-3 hidden flex-1 sm:block">
-          <SearchBar />
-        </div>
+        {/* Desktop: subtle search activator */}
+        <button
+          type="button"
+          onClick={onOpenSearch}
+          className="hidden md:flex w-[420px] max-w-[42vw] items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-left text-white/70 hover:bg-white/10 focus:outline-none"
+          aria-label="Search movies"
+        >
+          <Search className="h-4 w-4 text-white/70" />
+          <span className="text-[0.95rem] truncate">Search movies…</span>
+          <span className="ml-auto text-xs text-white/45 rounded border border-white/15 px-1.5 py-0.5">/</span>
+        </button>
 
-        {/* Right cluster */}
-        <div className="ml-auto flex items-center gap-2">
-          {/* Mobile menu toggle */}
+        {/* Right: profile menu */}
+        <div className="flex items-center gap-2">
+          {/* Mobile search icon */}
           <button
-            className="inline-flex items-center justify-center rounded-md p-2 text-white/80 hover:bg-white/10 sm:hidden"
-            onClick={() => setMenuOpen(v => !v)}
-            aria-label="Toggle menu"
+            type="button"
+            onClick={onOpenSearch}
+            className="md:hidden inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/90 hover:bg-white/10 focus:outline-none"
+            aria-label="Search"
           >
-            {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            <Search className="h-4.5 w-4.5" />
           </button>
 
-          {/* Sign in (desktop) */}
-          {!user && (
-            <Link
-              to="/auth"
-              className="hidden rounded-full border border-white/20 px-3 py-1.5 text-sm text-white/90 hover:bg-white/10 sm:inline-block"
-            >
-              Sign in
-            </Link>
-          )}
-
-          {/* Avatar (desktop) */}
-          {user && (
+          <div className="relative" ref={menuRef}>
             <button
-              ref={avatarBtnRef}
-              onClick={() => setMenuOpen(v => !v)}
-              className="hidden h-8 w-8 items-center justify-center rounded-full bg-white/10 text-sm font-semibold text-white sm:inline-flex"
+              type="button"
+              onClick={() => setMenuOpen((s) => !s)}
+              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-2.5 py-1.5 text-white/90 hover:bg-white/10 focus:outline-none"
               aria-haspopup="menu"
               aria-expanded={menuOpen}
-              aria-label="Open user menu"
             >
-              {avatarText}
+              <span className="grid h-7 w-7 place-items-center rounded-full bg-gradient-to-br from-[#fe9245] to-[#eb423b] text-[0.95rem] font-bold text-white">
+                {initial}
+              </span>
+              <ChevronDown className="h-4 w-4 text-white/70" />
             </button>
-          )}
-        </div>
-      </div>
 
-      {/* Desktop nav row */}
-      <div className="hidden border-t border-white/10 sm:block">
-        <nav className="mx-auto flex w-full max-w-7xl items-center gap-4 px-4 py-2 text-sm md:px-6">
-          <NavItem to="/home" label="Home" />
-          <NavItem to="/movies" label="Browse" />
-          <NavItem to="/trending" label="Trending" />
-          {user ? (
-            <>
-              <NavItem to="/watchlist" label="Watchlist" />
-              <NavItem to="/watched" label="History" />
-            </>
-          ) : null}
-        </nav>
-      </div>
-
-      {/* Mobile sheet (no ref to avoid ref collisions) */}
-      {(menuOpen || !user) && (
-        <div className="sm:hidden">
-          <div className="space-y-1 border-t border-white/10 px-3 pb-3 pt-2">
-            {!user && (
-              <Link
-                to="/auth"
-                className="block rounded-md px-3 py-2 text-sm text-white hover:bg-white/10"
-                onClick={() => setMenuOpen(false)}
+            {menuOpen && (
+              <div
+                role="menu"
+                className="absolute right-0 mt-2 w-56 rounded-xl border border-white/10 bg-black/70 backdrop-blur-md shadow-2xl p-1.5"
               >
-                Sign in
-              </Link>
-            )}
-
-            <LinkItem to="/home" icon={<Film className="h-4 w-4" />} text="Home" onNavigate={() => setMenuOpen(false)} />
-            <LinkItem to="/movies" icon={<Film className="h-4 w-4" />} text="Browse" onNavigate={() => setMenuOpen(false)} />
-            <LinkItem to="/trending" icon={<Film className="h-4 w-4" />} text="Trending" onNavigate={() => setMenuOpen(false)} />
-
-            {user && (
-              <>
-                <LinkItem to="/watchlist" icon={<BookmarkCheck className="h-4 w-4" />} text="Watchlist" onNavigate={() => setMenuOpen(false)} />
-                <LinkItem to="/watched" icon={<History className="h-4 w-4" />} text="History" onNavigate={() => setMenuOpen(false)} />
-                <LinkItem to="/account" icon={<User2 className="h-4 w-4" />} text="Account" onNavigate={() => setMenuOpen(false)} />
-                <LinkItem to="/preferences" icon={<Settings className="h-4 w-4" />} text="Preferences" onNavigate={() => setMenuOpen(false)} />
-                <button
-                  onClick={handleSignOut}
-                  disabled={signingOut}
-                  className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-white hover:bg-white/10 disabled:opacity-50"
+                <MenuItem icon={<User className="h-4 w-4" />} onClick={() => { setMenuOpen(false); nav('/account') }}>
+                  Account
+                </MenuItem>
+                <MenuItem icon={<PanelLeftOpen className="h-4 w-4" />} onClick={() => { setMenuOpen(false); nav('/browse') }}>
+                  Browse
+                </MenuItem>
+                <div className="my-1 h-px bg-white/10" />
+                <MenuItem icon={<ListChecks className="h-4 w-4" />} onClick={() => { setMenuOpen(false); nav('/watchlist') }}>
+                  Watchlist
+                </MenuItem>
+                <MenuItem icon={<History className="h-4 w-4" />} onClick={() => { setMenuOpen(false); nav('/history') }}>
+                  History
+                </MenuItem>
+                <div className="my-1 h-px bg-white/10" />
+                <MenuItem
+                  icon={<LogOut className="h-4 w-4" />}
+                  onClick={async () => { setMenuOpen(false); await supabase.auth.signOut(); nav('/auth', { replace: true }) }}
                 >
-                  <LogOut className="h-4 w-4" />
-                  {signingOut ? 'Signing out…' : 'Sign out'}
-                </button>
-              </>
+                  Sign out
+                </MenuItem>
+              </div>
             )}
           </div>
         </div>
-      )}
-
-      {/* Desktop dropdown */}
-      {user && (
-        <div
-          ref={desktopMenuRef}
-          className={`absolute right-4 top-14 z-50 hidden min-w-56 rounded-xl border border-white/15 bg-neutral-900/95 p-2 shadow-xl backdrop-blur sm:block ${menuOpen ? '' : 'pointer-events-none opacity-0'}`}
-          role="menu"
-        >
-          <button
-            onClick={() => navigate('/account')}
-            className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-white hover:bg-white/10"
-            role="menuitem"
-          >
-            <User2 className="h-4 w-4" /> Account
-          </button>
-          <button
-            onClick={() => navigate('/preferences')}
-            className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-white hover:bg-white/10"
-            role="menuitem"
-          >
-            <Settings className="h-4 w-4" /> Preferences
-          </button>
-          <button
-            onClick={() => navigate('/watchlist')}
-            className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-white hover:bg-white/10"
-            role="menuitem"
-          >
-            <BookmarkCheck className="h-4 w-4" /> Watchlist
-          </button>
-          <button
-            onClick={() => navigate('/watched')}
-            className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-white hover:bg-white/10"
-            role="menuitem"
-          >
-            <History className="h-4 w-4" /> History
-          </button>
-          <div className="my-1 border-t border-white/10" />
-          <button
-            onClick={handleSignOut}
-            disabled={signingOut}
-            className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-white hover:bg-white/10 disabled:opacity-50"
-            role="menuitem"
-          >
-            <LogOut className="h-4 w-4" />
-            {signingOut ? 'Signing out…' : 'Sign out'}
-          </button>
-          {/* If you ever prefer zero-JS signout:
-          <a href="/logout" className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-white hover:bg-white/10">
-            <LogOut className="h-4 w-4" /> Sign out
-          </a> */}
-        </div>
-      )}
+      </div>
     </header>
   )
 }
 
-/* ----------------------------- helpers ----------------------------- */
-
-function NavItem({ to, label }) {
+function MenuItem({ icon, children, onClick }) {
   return (
-    <NavLink
-      to={to}
-      className={({ isActive }) =>
-        `rounded-md px-3 py-1.5 ${isActive ? 'bg-white/15 text-white' : 'text-white/80 hover:bg-white/10 hover:text-white'}`
-      }
-    >
-      {label}
-    </NavLink>
-  )
-}
-
-function LinkItem({ to, icon, text, onNavigate }) {
-  return (
-    <Link
-      to={to}
-      onClick={onNavigate}
-      className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-white hover:bg-white/10"
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-[0.95rem] text-white/90 hover:bg-white/10 focus:outline-none"
     >
       {icon}
-      {text}
-    </Link>
+      <span>{children}</span>
+    </button>
   )
 }

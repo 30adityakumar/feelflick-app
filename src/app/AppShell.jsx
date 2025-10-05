@@ -1,14 +1,32 @@
 // src/app/AppShell.jsx
-import { NavLink, Outlet, useLocation } from 'react-router-dom'
-import logoPng from '@/assets/images/logo.png'
-import Account from '@/app/header/components/Account'
+import { useEffect, useMemo, useState } from 'react'
+import { Outlet, useLocation } from 'react-router-dom'
+import Header from '@/app/header/Header'
+import Sidebar from '@/app/sidebar/Sidebar'
+import SearchBar from '@/app/header/SearchBar'
 
 export default function AppShell() {
   const { pathname } = useLocation()
+  const [searchOpen, setSearchOpen] = useState(false)
+
+  // Open search with "/" on any app page
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === '/' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault()
+        setSearchOpen(true)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+
+  // Show sidebar only on /browse (desktop will handle its own visibility)
+  const showSidebar = useMemo(() => pathname.startsWith('/browse'), [pathname])
 
   return (
     <div className="relative min-h-screen text-white">
-      {/* Background — same family as Landing/Auth for continuity */}
+      {/* Brand background (same family as Landing/Auth) */}
       <div aria-hidden className="fixed inset-0 -z-10">
         <div className="absolute inset-0 bg-[linear-gradient(120deg,#0a121a_0%,#0d1722_50%,#0c1017_100%)]" />
         <div className="pointer-events-none absolute -top-40 -left-40 h-[65vmin] w-[65vmin] rounded-full blur-3xl opacity-60 bg-[radial-gradient(closest-side,rgba(254,146,69,0.45),rgba(254,146,69,0)_70%)]" />
@@ -21,72 +39,23 @@ export default function AppShell() {
         <div className="absolute inset-0 bg-[radial-gradient(100%_80%_at_50%_0%,rgba(255,255,255,0.06),rgba(255,255,255,0)_60%)]" />
       </div>
 
-      {/* Sticky top bar (brand • search • account) */}
-      <header
-        className="fixed inset-x-0 top-0 z-40 bg-black/40 backdrop-blur-md ring-1 ring-white/10"
-        style={{ ['--topnav-h']: '64px' }}
-      >
-        <div className="mx-auto flex h-16 w-full max-w-7xl items-center gap-3 px-3 md:px-6">
-          <a href="/home" className="group flex items-center gap-2.5">
-            <img src={logoPng} alt="" width="28" height="28" className="h-7 w-7 object-contain" />
-            <span className="text-[1.25rem] font-extrabold tracking-tight text-brand-100">FeelFlick</span>
-          </a>
+      <Header onOpenSearch={() => setSearchOpen(true)} />
 
-          {/* Search (kept simple; wire to your search handler if desired) */}
-          <div className="ml-2 hidden flex-1 md:block">
-            <input
-              type="search"
-              placeholder="Search movies… (press / to focus)"
-              className="w-full rounded-full border border-white/15 bg-white/5 px-4 py-2 text-[0.95rem] text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-brand/60"
-            />
-          </div>
-
-          <div className="ml-auto relative">   {/* creates the positioning context */}
-            <Account dropdownPlacement="bottom-end" />
-          </div>
+      {/* Content grid: optionally reserve sidebar space on /browse */}
+      <div className="relative z-10">
+        <div className={`mx-auto w-full max-w-[1200px] px-4 md:px-6 ${showSidebar ? 'grid grid-cols-12 gap-6' : ''}`}>
+          {showSidebar && (
+            <aside className="hidden lg:block col-span-3 pt-4">
+              <Sidebar />
+            </aside>
+          )}
+          <main className={showSidebar ? 'col-span-12 lg:col-span-9 pt-4' : 'pt-4'}>
+            <Outlet />
+          </main>
         </div>
+      </div>
 
-        {/* Slim sub-nav (no left sidebar, no duplicate tab row) */}
-        <nav className="hidden md:block border-t border-white/10">
-          <div className="mx-auto flex w-full max-w-7xl items-center gap-2 px-3 md:px-6">
-            {[
-              ['Home', '/home'],
-              ['Browse', '/browse'],
-              ['Trending', '/trending'],
-              ['Watchlist', '/watchlist'],
-              ['History', '/history'],
-            ].map(([label, href]) => (
-              <NavLink
-                key={href}
-                to={href}
-                className={({ isActive }) =>
-                  [
-                    'inline-flex h-10 items-center rounded-md px-3 text-[0.92rem] font-semibold',
-                    isActive ? 'text-white' : 'text-white/70 hover:text-white',
-                  ].join(' ')
-                }
-              >
-                {label}
-              </NavLink>
-            ))}
-          </div>
-        </nav>
-      </header>
-
-      {/* Page content */}
-      <main
-        className="relative mx-auto w-full"
-        style={{
-          paddingTop: 'calc(var(--topnav-h,64px) + 42px)', // header + sub-nav
-          paddingBottom: '48px',
-        }}
-      >
-        <div className="mx-auto w-full max-w-7xl px-3 md:px-6">
-          {/* Optional: hide the sub-nav space for routes where you don't want it */}
-          {/* Example: if you later have a fullscreen detail page, check pathname here */}
-          <Outlet />
-        </div>
-      </main>
+      <SearchBar open={searchOpen} onClose={() => setSearchOpen(false)} />
     </div>
   )
 }

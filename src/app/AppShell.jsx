@@ -1,14 +1,13 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Outlet, useLocation } from 'react-router-dom'
+// src/app/AppShell.jsx
+import { useEffect, useState } from 'react'
+import { Outlet } from 'react-router-dom'
 import Header from '@/app/header/Header'
-import Sidebar from '@/app/header/sidebar/Sidebar'
 import SearchBar from '@/app/header/components/SearchBar'
 
 export default function AppShell() {
-  const { pathname } = useLocation()
   const [searchOpen, setSearchOpen] = useState(false)
 
-  // Open search with "/" on any app page
+  // Keyboard: "/" opens search (everywhere in the app shell)
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === '/' && !e.metaKey && !e.ctrlKey && !e.altKey) {
@@ -19,9 +18,6 @@ export default function AppShell() {
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [])
-
-  // Show sidebar only on /browse (desktop will handle its own visibility)
-  const showSidebar = useMemo(() => pathname.startsWith('/browse'), [pathname])
 
   return (
     <div className="relative min-h-screen text-white">
@@ -38,22 +34,20 @@ export default function AppShell() {
         <div className="absolute inset-0 bg-[radial-gradient(100%_80%_at_50%_0%,rgba(255,255,255,0.06),rgba(255,255,255,0)_60%)]" />
       </div>
 
+      {/* Header (top) */}
       <Header onOpenSearch={() => setSearchOpen(true)} />
 
-      {/* Content grid: optionally reserve sidebar space on /browse */}
+      {/* Page content area
+          - Top padding = header height + a little spacing
+          - Bottom padding = room for mobile bottom bar
+      */}
       <div className="relative z-10">
-        <div className={`mx-auto w-full max-w-[1200px] px-4 md:px-6 ${showSidebar ? 'grid grid-cols-12 gap-6' : ''}`}>
-          {showSidebar && (
-            <aside className="hidden lg:block col-span-3 pt-4">
-              <Sidebar />
-            </aside>
-          )}
-          <main className={showSidebar ? 'col-span-12 lg:col-span-9 pt-4' : 'pt-4'}>
-            <Outlet />
-          </main>
+        <div className="mx-auto w-full max-w-[1200px] px-4 md:px-6 pt-[calc(var(--app-header-h,56px)+8px)] pb-[calc(64px+env(safe-area-inset-bottom))] md:pb-6">
+          <Outlet />
         </div>
       </div>
 
+      {/* Global search modal */}
       <SearchBar open={searchOpen} onClose={() => setSearchOpen(false)} />
     </div>
   )

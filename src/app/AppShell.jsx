@@ -1,8 +1,7 @@
-// src/app/AppShell.jsx
 import { useEffect, useMemo, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import Header from '@/app/header/Header'
-import Sidebar from '@/app/Sidebar' // ✅ fixed path
+import Sidebar from '@/app/header/sidebar/Sidebar'
 import SearchBar from '@/app/header/SearchBar'
 
 export default function AppShell() {

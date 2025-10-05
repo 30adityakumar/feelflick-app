@@ -3,12 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/shared/lib/supabase/client";
 
-const ACCENT  = "#fe9245";
-const ACCENT2 = "#eb423b";
-const OUTLINE = "1.1px solid #fe9245";
 const BTN_BG  = "linear-gradient(90deg,#fe9245 10%,#eb423b 90%)";
 const GENRE_SELECTED_BG = "linear-gradient(88deg, var(--theme-color,#FF5B2E), var(--theme-color-secondary,#367cff) 80%)";
-const DARK_BG = "rgba(22,19,28,0.9)";
 
 export default function Onboarding() {
   const navigate = useNavigate();
@@ -16,28 +12,30 @@ export default function Onboarding() {
   const [checking, setChecking] = useState(true);
   const [step, setStep]         = useState(1);
 
-  const [selectedGenres, setSelectedGenres] = useState([]);
+  const [selectedGenres, setSelectedGenres] = useState<number[]>([]);
   const [query, setQuery]       = useState("");
-  const [results, setResults]   = useState([]);
+  const [results, setResults]   = useState<any[]>([]);
   const [showAllResults, setShowAllResults] = useState(false);
-  const [watchlist, setWatchlist] = useState([]);
+  const [watchlist, setWatchlist] = useState<any[]>([]);
+  const [popular, setPopular]   = useState<any[]>([]);
 
   const [error, setError]       = useState("");
   const [loading, setLoading]   = useState(false);
 
   const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
+  // session
   useEffect(() => {
-    let unsub = null;
+    let unsub: undefined | (() => void)
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
     const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
-    unsub = data?.subscription?.unsubscribe;
-    return () => { if (typeof unsub === "function") unsub(); };
+    unsub = data?.subscription?.unsubscribe
+    return () => { if (typeof unsub === 'function') unsub() }
   }, []);
 
+  // already onboarded?
   useEffect(() => {
     if (!session?.user) return;
-
     (async () => {
       try {
         const meta = session.user.user_metadata || {};
@@ -67,21 +65,29 @@ export default function Onboarding() {
     })();
   }, [session, navigate]);
 
-  const GENRES = useMemo(() => [
-    { id: 28,  label:"Action" }, { id: 12, label:"Adventure" },
-    { id: 16,  label:"Animation"}, { id: 35, label:"Comedy" },
-    { id: 80,  label:"Crime" },   { id: 99, label:"Documentary" },
-    { id: 18,  label:"Drama" },   { id: 10751, label:"Family" },
-    { id: 14,  label:"Fantasy" }, { id: 36, label:"History" },
-    { id: 27,  label:"Horror" },  { id: 10402,label:"Music" },
-    { id: 9648,label:"Mystery"},  { id: 10749,label:"Romance" },
-    { id: 878, label:"Sci-fi" },  { id: 53, label:"Thriller"}
-  ], []);
+  // popular picks for step 2
+  useEffect(() => {
+    let active = true
+    if (!TMDB_KEY) return
+    ;(async () => {
+      try {
+        const r = await fetch(`https://api.themoviedb.org/3/trending/movie/week?api_key=${TMDB_KEY}`)
+        const j = await r.json()
+        if (!active) return
+        const top = (j?.results || [])
+          .filter(m => m.poster_path)
+          .sort((a,b) => (b.popularity||0) - (a.popularity||0))
+          .slice(0, 18)
+        setPopular(top)
+      } catch {/* ignore */}
+    })()
+    return () => { active = false }
+  }, [TMDB_KEY])
 
+  // search
   useEffect(() => {
     let active = true;
     if (!query) { setResults([]); setShowAllResults(false); return; }
-
     (async () => {
       try {
         const r = await fetch(
@@ -100,15 +106,26 @@ export default function Onboarding() {
         setResults([]); setShowAllResults(false);
       }
     })();
-
-    return () => { active = false; };
+    return () => { active = false };
   }, [query, TMDB_KEY]);
 
-  const toggleGenre      = (id) => setSelectedGenres(g => g.includes(id) ? g.filter(x=>x!==id) : [...g,id]);
-  const handleAddMovie   = (m)  => { if (!watchlist.some(x => x.id === m.id)) setWatchlist(w => [...w, m]); setQuery(""); setResults([]); setShowAllResults(false); };
-  const handleRemoveMovie= (id) => setWatchlist(w => w.filter(m => m.id !== id));
+  const GENRES = useMemo(() => [
+    { id: 28,  label:"Action" }, { id: 12, label:"Adventure" },
+    { id: 16,  label:"Animation"}, { id: 35, label:"Comedy" },
+    { id: 80,  label:"Crime" },   { id: 99, label:"Documentary" },
+    { id: 18,  label:"Drama" },   { id: 10751, label:"Family" },
+    { id: 14,  label:"Fantasy" }, { id: 36, label:"History" },
+    { id: 27,  label:"Horror" },  { id: 10402,label:"Music" },
+    { id: 9648,label:"Mystery"},  { id: 10749,label:"Romance" },
+    { id: 878, label:"Sci-fi" },  { id: 53, label:"Thriller"}
+  ], []);
 
-  async function saveAndGo(skipGenres=false, skipMovies=false) {
+  const toggleGenre      = (id:number) => setSelectedGenres(g => g.includes(id) ? g.filter(x=>x!==id) : [...g,id]);
+  const inPicks          = (id:number) => watchlist.some(x => x.id === id)
+  const addPick          = (m:any) => { if (!inPicks(m.id)) setWatchlist(w => [...w, m]) }
+  const removePick       = (id:number) => setWatchlist(w => w.filter(m => m.id !== id))
+
+  async function saveAndGo({skipGenres=false, skipMovies=false} = {}) {
     setError(""); setLoading(true);
     try {
       const user_id = session?.user?.id;
@@ -117,24 +134,20 @@ export default function Onboarding() {
       const email   = session.user.email;
       const name    = session.user.user_metadata?.name || "";
 
-      // ---- users: avoid UPSERT to dodge RLS 403s ----
-      const { data: existing, error: selErr } =
+      // create/update users row (no UPSERT to avoid RLS 403)
+      const { data: existing } =
         await supabase.from("users").select("id").eq("id", user_id).maybeSingle();
-
-      if (!selErr && existing) {
+      if (existing) {
         await supabase.from("users").update({ email, name }).eq("id", user_id);
       } else {
-        // Try insert; ignore 403 if RLS forbids client inserts (row might be created server-side)
         await supabase.from("users")
           .insert({ id: user_id, email, name })
           .then(() => {}, (e) => {
-            if (String(e?.code) !== "42501" && String(e?.status) !== "403") {
-              console.warn("users INSERT warning:", e);
-            }
+            // ignore if denied by RLS (may be inserted by backend)
+            if (String(e?.status) !== "403") console.warn("users insert warn:", e);
           });
       }
 
-      // Preferences
       if (!skipGenres) {
         await supabase.from("user_preferences").delete().eq("user_id", user_id);
         if (selectedGenres.length) {
@@ -145,34 +158,21 @@ export default function Onboarding() {
         }
       }
 
-      // Movies/watchlist
-      if (!skipMovies) {
-        // ---- removed movies upsert to avoid 409s ----
-
-        // dedupe selections, then idempotent upsert into watchlist
+      if (!skipMovies && watchlist.length) {
         const uniq = Array.from(new Map(watchlist.map(m => [m.id, m])).values());
-        if (uniq.length) {
-          const { error: wlErr } = await supabase
-            .from("user_watchlist")
-            .upsert(
-              uniq.map(m => ({ user_id, movie_id: m.id, status: "onboarding" })),
-              { onConflict: "user_id,movie_id", ignoreDuplicates: true }
-            );
-          if (wlErr) {
-            const msg = `${wlErr.message || ""}`.toLowerCase();
-            const isDup = wlErr.code === "23505" || msg.includes("duplicate") || msg.includes("conflict");
-            if (!isDup) console.warn("user_watchlist upsert warning:", wlErr);
-          }
-        }
+        const { error: wlErr } = await supabase
+          .from("user_watchlist")
+          .upsert(
+            uniq.map(m => ({ user_id, movie_id: m.id, status: "onboarding" })),
+            { onConflict: "user_id,movie_id", ignoreDuplicates: true }
+          );
+        if (wlErr && wlErr.code !== "23505") console.warn("watchlist upsert warn:", wlErr);
       }
 
-      // Flags
       await supabase.from("users").update({ onboarding_complete: true }).eq("id", user_id);
       await supabase.auth.updateUser({ data: { onboarding_complete: true, has_onboarded: true } });
 
-      // Navigate only after all writes finish
       navigate("/home", { replace: true, state: { fromOnboarding: true } });
-      return;
     } catch (e) {
       console.error("Onboarding save failed:", e);
       setError("Could not save your preferences — please try again.");
@@ -183,172 +183,208 @@ export default function Onboarding() {
 
   if (checking) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-black text-white font-bold text-lg tracking-wide">
+      <div className="min-h-[60vh] grid place-items-center text-white/90 font-semibold">
         Loading profile…
       </div>
     );
   }
 
-  const CARD_WIDTH = typeof window !== "undefined" && window.innerWidth < 700 ? "100vw" : "700px";
-  const CARD_MARGIN = typeof window !== "undefined" && window.innerWidth < 700 ? "11px" : "0 auto";
-  const genreFontSize = 12;
-
   return (
-    <div className="min-h-screen w-screen flex flex-col relative font-sans" style={{ background:"#18141c" }}>
-      {/* Brand */}
-      <div className="absolute left-8 top-6 z-10 flex items-center gap-2.5">
-        <img src="/logo.png" alt="FeelFlick" className="w-[42px] h-[42px] rounded-[12px] shadow-md" />
-        <span className="text-[23px] font-extrabold text-white tracking-tight drop-shadow-lg">FeelFlick</span>
-      </div>
-
-      {/* Card */}
+    <div className="relative w-[min(92vw,920px)] rounded-[22px] p-[1px] bg-[linear-gradient(135deg,rgba(254,146,69,.45),rgba(235,66,59,.35),rgba(45,119,255,.35),rgba(0,209,255,.35))] shadow-[0_40px_120px_rgba(0,0,0,.55)]">
       <div
-        className="self-center flex flex-col"
-        style={{
-          width: CARD_WIDTH, margin: CARD_MARGIN, minHeight: 500,
-          marginTop: 72, marginBottom: 16, background: DARK_BG,
-          borderRadius: 22, boxShadow: "0 8px 44px 0 #0007", padding: "36px 30px 27px 30px", zIndex: 10,
-        }}
+        className="rounded-[21px] bg-black/45 backdrop-blur-md ring-1 ring-white/10 overflow-hidden"
+        style={{ maxHeight: 'calc(100svh - var(--topnav-h,72px) - var(--footer-h,0px) - 18px)' }}
       >
-        {error && (
-          <div className="text-red-400 bg-[#3d1113] rounded-md text-center mb-3 font-semibold text-[14.5px] py-2 px-1.5">
-            {error}
-          </div>
-        )}
+        {/* header */}
+        <div className="px-5 sm:px-6 py-4">
+          <h2 className="text-center text-[clamp(1.1rem,2.2vw,1.5rem)] font-extrabold text-white tracking-tight">
+            {step === 1 ? "Let’s get to know your taste." : "Pick a few favorite movies."}
+          </h2>
+          <p className="mt-1 text-center text-[12.5px] text-white/75">
+            {step === 1
+              ? "Choose a few genres you love — it helps us recommend movies that match your energy."
+              : "Tap some popular picks or search to add more. The more you pick, the better the recs."}
+          </p>
+          {error && (
+            <p className="mt-2 text-center text-[12.5px] text-red-400">{error}</p>
+          )}
+        </div>
 
-        {step === 1 && (
-          <>
-            <h2 className="text-2xl font-extrabold text-white text-center mb-1 tracking-tight">
-              Let’s get to know your taste.
-            </h2>
-            <div className="text-[13px] font-normal text-[#e9e9ef] text-center mb-2 mt-1 tracking-tight">
-              Pick a few genres you love — it helps us recommend movies that truly match your energy.
+        {/* body */}
+        <div className="px-5 sm:px-6 pb-5 sm:pb-6 overflow-y-auto">
+          {step === 1 && (
+            <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2.5">
+              {GENRES.map(g => {
+                const active = selectedGenres.includes(g.id)
+                return (
+                  <button
+                    key={g.id}
+                    type="button"
+                    onClick={() => toggleGenre(g.id)}
+                    className="h-9 rounded-xl border text-white text-[13px] font-medium transition-all"
+                    style={{
+                      borderColor: 'rgba(255,255,255,0.18)',
+                      background: active ? GENRE_SELECTED_BG : 'rgba(255,255,255,0.03)',
+                      boxShadow: active ? '0 2px 10px rgba(254,146,69,.18)' : 'none'
+                    }}
+                  >
+                    <span className="px-3">{g.label}</span>
+                  </button>
+                )
+              })}
             </div>
+          )}
 
-            <div className="grid grid-cols-4 gap-2 w-full mx-auto mb-3 justify-items-center items-center">
-              {GENRES.map((g) => (
-                <button
-                  key={g.id}
-                  type="button"
-                  className="w-[120px] h-[34px] rounded-xl border text-white font-medium text-center transition-all duration-150"
-                  style={{
-                    margin: "3px 0", border: OUTLINE,
-                    background: selectedGenres.includes(g.id) ? GENRE_SELECTED_BG : "transparent",
-                    boxShadow: selectedGenres.includes(g.id) ? "0 2px 7px #fdaf4111" : "none",
-                    outline: "none", padding: "3.5px 0", fontSize: genreFontSize,
-                  }}
-                  onClick={() => toggleGenre(g.id)}
-                >
-                  <span className="font-medium text-center leading-[1.17] truncate">{g.label}</span>
-                </button>
-              ))}
-            </div>
+          {step === 2 && (
+            <>
+              {/* search */}
+              <input
+                type="text"
+                placeholder="Search a movie…"
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-[13.5px] text-white placeholder-white/40 focus:outline-none"
+              />
 
-            <div className="flex justify-center mt-4 gap-6">
+              {/* suggested grid */}
+              {!query && popular.length > 0 && (
+                <>
+                  <h3 className="mt-4 mb-2 text-[13px] font-semibold text-white/80">Popular picks this week</h3>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+                    {popular.map(m => {
+                      const selected = inPicks(m.id)
+                      return (
+                        <button
+                          type="button"
+                          key={m.id}
+                          onClick={() => (selected ? removePick(m.id) : addPick(m))}
+                          className={`relative rounded-lg overflow-hidden ring-1 ring-white/10`}
+                          aria-pressed={selected}
+                          title={m.title}
+                        >
+                          <img
+                            src={`https://image.tmdb.org/t/p/w185${m.poster_path}`}
+                            alt={m.title}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                          />
+                          <div className="absolute inset-0 bg-black/30 opacity-0 transition-opacity hover:opacity-100" />
+                          {selected && (
+                            <div className="absolute inset-0 ring-2 ring-brand-500/80 rounded-lg" />
+                          )}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </>
+              )}
+
+              {/* search results */}
+              {query && results.length > 0 && (
+                <div className="mt-3 rounded-xl bg-white/[.04] ring-1 ring-white/10 max-h-[240px] overflow-auto">
+                  {(showAllResults ? results : results.slice(0, 8)).map(r => {
+                    const selected = inPicks(r.id)
+                    return (
+                      <button
+                        key={r.id}
+                        type="button"
+                        onClick={() => (selected ? removePick(r.id) : addPick(r))}
+                        className="flex w-full items-center gap-3 px-3 py-2 hover:bg-white/5 text-left"
+                      >
+                        <img
+                          src={r.poster_path ? `https://image.tmdb.org/t/p/w92${r.poster_path}` : "https://dummyimage.com/60x90/111/fff&text=?"}
+                          alt=""
+                          className="w-[28px] h-[42px] object-cover rounded"
+                        />
+                        <div className="flex-1">
+                          <div className="text-[13.5px] text-white">{r.title}</div>
+                          <div className="text-[12px] text-white/60">
+                            {r.release_date ? r.release_date.slice(0,4) : "—"}
+                          </div>
+                        </div>
+                        <span className={`text-[12px] ${selected ? 'text-brand-200' : 'text-white/60'}`}>
+                          {selected ? 'Added' : 'Add'}
+                        </span>
+                      </button>
+                    )
+                  })}
+                  {!showAllResults && results.length > 8 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowAllResults(true)}
+                      className="w-full py-2 text-[12.5px] text-brand-100 font-semibold hover:bg-white/5"
+                    >
+                      Show more
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* chosen tiles */}
+              {watchlist.length > 0 && (
+                <>
+                  <h3 className="mt-4 mb-2 text-[13px] font-semibold text-white/80">Your picks</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {watchlist.map(m => (
+                      <div key={m.id} className="relative">
+                        <img
+                          src={m.poster_path ? `https://image.tmdb.org/t/p/w92${m.poster_path}` : "https://dummyimage.com/60x90/111/fff&text=?"}
+                          alt={m.title}
+                          className="w-[60px] h-[90px] object-cover rounded"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removePick(m.id)}
+                          className="absolute -top-2 -right-2 h-5 w-5 grid place-items-center rounded-full bg-black/70 text-white text-xs"
+                          aria-label={`Remove ${m.title}`}
+                        >×</button>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* footer actions */}
+        <div className="px-5 sm:px-6 pb-5 sm:pb-6">
+          {step === 1 ? (
+            <div className="flex items-center justify-center gap-6">
               <button
                 className="px-6 py-2 rounded-lg font-extrabold text-[15px] text-white"
-                style={{ background: BTN_BG, boxShadow: "0 2px 10px #eb423b22", opacity: loading ? 0.7 : 1, minWidth: 80 }}
+                style={{ background: BTN_BG, boxShadow: "0 2px 10px #eb423b22", opacity: loading ? 0.7 : 1 }}
                 disabled={loading}
                 onClick={() => setStep(2)}
               >Next</button>
               <button
-                className="bg-none text-[#fe9245] font-extrabold text-[13.5px] border-none cursor-pointer min-w-[44px]"
+                className="text-[13.5px] font-extrabold text-[#fe9245]"
                 disabled={loading}
-                onClick={() => saveAndGo(true, false)}
+                onClick={() => saveAndGo({ skipGenres: true })}
               >Skip</button>
             </div>
-          </>
-        )}
-
-        {step === 2 && (
-          <>
-            <h2 className="text-2xl font-extrabold text-white text-center mb-1 tracking-tight">
-              Got some favorite movies?
-            </h2>
-            <div className="text-[13px] text-white font-normal text-center mb-2 mt-1 opacity-85 tracking-tight">
-              Pick a few to help us understand your taste and give you more personalized suggestions.
-            </div>
-
-            <input
-              type="text" placeholder="Search a movie…" value={query}
-              onChange={e => setQuery(e.target.value)}
-              className="w-full bg-[#232330] rounded-lg py-2.5 px-3 text-[13px] font-medium text-white outline-none border-none mb-2 mt-0 shadow"
-            />
-
-            {query && results.length > 0 && (
-              <div className="bg-[#242134] rounded-[20px] max-h-[200px] overflow-y-auto mb-1.5 shadow">
-                {(showAllResults ? results : results.slice(0, 6)).map((r) => (
-                  <div
-                    key={r.id}
-                    className="flex items-center px-3 py-1.5 border-b border-[#302c37] cursor-pointer gap-1.5 transition-colors duration-100 hover:bg-[#232330]"
-                    onClick={() => handleAddMovie(r)}
-                  >
-                    <img
-                      src={r.poster_path ? `https://image.tmdb.org/t/p/w185${r.poster_path}` : "https://dummyimage.com/80x120/232330/fff&text=No+Image"}
-                      alt={r.title}
-                      className="w-[27px] h-[40px] object-cover rounded-[5px] mr-0.5 mb-0.5 bg-[#101012]"
-                    />
-                    <span className="text-white font-semibold text-[13px] flex flex-col">
-                      {r.title}
-                      <span className="text-[#eee] font-normal text-[12.5px]">
-                        {r.release_date ? `(${r.release_date.slice(0, 4)})` : ""}
-                      </span>
-                    </span>
-                  </div>
-                ))}
-                {!showAllResults && results.length > 6 && (
-                  <div
-                    className="text-center py-1 text-[#fe9245] font-semibold text-[14px] cursor-pointer select-none"
-                    onClick={() => setShowAllResults(true)}
-                  >See more</div>
-                )}
-              </div>
-            )}
-
-            {watchlist.length > 0 && (
-              <div>
-                <div className="text-white font-bold text-[14px] mt-2.5 mb-1.5">Your picks:</div>
-                <div className="flex flex-wrap gap-2.5 mb-2.5">
-                  {watchlist.map(m => (
-                    <div key={m.id} className="flex flex-col items-center gap-0.5 bg-[#231d2d] rounded-md px-0.5 py-0.5">
-                      <img
-                        src={m.poster_path ? `https://image.tmdb.org/t/p/w92${m.poster_path}` : "https://dummyimage.com/80x120/232330/fff&text=No+Image"}
-                        alt={m.title}
-                        className="w-[60px] h-[90px] object-cover rounded bg-[#101012] mx-1.5"
-                      />
-                      <span className="flex flex-col items-center font-medium text-[13px] text-white mt-1">{m.title}</span>
-                      <button
-                        className="bg-none border-none text-[#fd7069] text-[22px] mt-0 mx-0 cursor-pointer font-normal opacity-80"
-                        onClick={() => handleRemoveMovie(m.id)}
-                        tabIndex={-1}
-                      >×</button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="flex justify-center mt-2 gap-4">
+          ) : (
+            <div className="flex items-center justify-center gap-5">
               <button
-                className="px-3 py-1.5 rounded-md font-extrabold text-xs text-[#fe9245] bg-none border-none mr-2 cursor-pointer"
-                disabled={loading}
+                className="text-[13px] font-semibold text-white/80"
                 onClick={() => setStep(1)}
+                disabled={loading}
               >&lt; Back</button>
               <button
-                className="px-6 py-2 rounded-xl font-extrabold text-[15px] text-white"
-                style={{ background: BTN_BG, boxShadow: "0 2px 10px #eb423b22", opacity: loading ? 0.7 : 1, minWidth: 65 }}
+                className="px-6 py-2 rounded-lg font-extrabold text-[15px] text-white"
+                style={{ background: BTN_BG, boxShadow: "0 2px 10px #eb423b22", opacity: loading ? 0.7 : 1 }}
                 disabled={loading}
-                onClick={() => saveAndGo(false, false)}
+                onClick={() => saveAndGo()}
               >Finish</button>
               <button
-                className="bg-none text-[#fe9245] font-extrabold text-xs border-none cursor-pointer min-w-[44px]"
+                className="text-[13.5px] font-extrabold text-[#fe9245]"
                 disabled={loading}
-                onClick={() => saveAndGo(false, true)}
+                onClick={() => saveAndGo({ skipMovies: true })}
               >Skip</button>
             </div>
-          </>
-        )}
+          )}
+        </div>
       </div>
     </div>
-  );
+  )
 }

@@ -1,35 +1,92 @@
-import { Outlet } from 'react-router-dom'
-import { Suspense } from 'react'
-
-// A11y helpers
-import SkipLink from '@/app/a11y/SkipLink'
-import RouteAnnouncer from '@/app/a11y/RouteAnnouncer'
-import FocusOnNavigate from '@/app/a11y/FocusOnNavigate'
-
-// Global chrome
-import Header from '@/app/header/Header'
-import Sidebar from '@/app/header/sidebar/Sidebar'
+// src/app/AppShell.jsx
+import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import logoPng from '@/assets/images/logo.png'
+import Account from '@/app/header/components/Account'
 
 export default function AppShell() {
+  const { pathname } = useLocation()
+
   return (
-    <div className="min-h-screen bg-black text-white">
-      <SkipLink />
-      <RouteAnnouncer />
-      <FocusOnNavigate />
-
-      <Header />
-
-      <div className="mx-auto flex w-full max-w-7xl gap-4 px-4 pb-8 pt-4 md:px-6">
-        <aside className="hidden w-56 shrink-0 md:block">
-          <Sidebar />
-        </aside>
-
-        <main id="main" className="min-h-[70vh] flex-1">
-          <Suspense fallback={<div className="p-6 text-white/70">Loading…</div>}>
-            <Outlet />
-          </Suspense>
-        </main>
+    <div className="relative min-h-screen text-white">
+      {/* Background — same family as Landing/Auth for continuity */}
+      <div aria-hidden className="fixed inset-0 -z-10">
+        <div className="absolute inset-0 bg-[linear-gradient(120deg,#0a121a_0%,#0d1722_50%,#0c1017_100%)]" />
+        <div className="pointer-events-none absolute -top-40 -left-40 h-[65vmin] w-[65vmin] rounded-full blur-3xl opacity-60 bg-[radial-gradient(closest-side,rgba(254,146,69,0.45),rgba(254,146,69,0)_70%)]" />
+        <div className="pointer-events-none absolute -bottom-44 -right-44 h-[70vmin] w-[70vmin] rounded-full blur-3xl opacity-55 bg-[radial-gradient(closest-side,rgba(235,66,59,0.38),rgba(235,66,59,0)_70%)]" />
+        <div className="pointer-events-none absolute top-1/2 left-1/2 h-[80vmin] w-[80vmin] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl opacity-45 bg-[radial-gradient(closest-side,rgba(45,119,255,0.35),rgba(45,119,255,0)_70%)]" />
+        <div className="pointer-events-none absolute -top-24 right-[15%] h-[45vmin] w-[45vmin] rounded-full blur-3xl opacity-45 bg-[radial-gradient(closest-side,rgba(255,99,196,0.35),rgba(255,99,196,0)_70%)]" />
+        <div className="pointer-events-none absolute inset-0 opacity-35 mix-blend-screen">
+          <div className="absolute left-1/2 top-1/2 h-[140vmin] w-[140vmin] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[conic-gradient(from_220deg_at_50%_50%,rgba(255,255,255,0.08),rgba(255,255,255,0)_65%)] motion-safe:md:animate-[spin_48s_linear_infinite]" />
+        </div>
+        <div className="absolute inset-0 bg-[radial-gradient(100%_80%_at_50%_0%,rgba(255,255,255,0.06),rgba(255,255,255,0)_60%)]" />
       </div>
+
+      {/* Sticky top bar (brand • search • account) */}
+      <header
+        className="fixed inset-x-0 top-0 z-40 bg-black/40 backdrop-blur-md ring-1 ring-white/10"
+        style={{ ['--topnav-h']: '64px' }}
+      >
+        <div className="mx-auto flex h-16 w-full max-w-7xl items-center gap-3 px-3 md:px-6">
+          <a href="/home" className="group flex items-center gap-2.5">
+            <img src={logoPng} alt="" width="28" height="28" className="h-7 w-7 object-contain" />
+            <span className="text-[1.25rem] font-extrabold tracking-tight text-brand-100">FeelFlick</span>
+          </a>
+
+          {/* Search (kept simple; wire to your search handler if desired) */}
+          <div className="ml-2 hidden flex-1 md:block">
+            <input
+              type="search"
+              placeholder="Search movies… (press / to focus)"
+              className="w-full rounded-full border border-white/15 bg-white/5 px-4 py-2 text-[0.95rem] text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-brand/60"
+            />
+          </div>
+
+          <div className="ml-auto">
+            <Account />
+          </div>
+        </div>
+
+        {/* Slim sub-nav (no left sidebar, no duplicate tab row) */}
+        <nav className="hidden md:block border-t border-white/10">
+          <div className="mx-auto flex w-full max-w-7xl items-center gap-2 px-3 md:px-6">
+            {[
+              ['Home', '/home'],
+              ['Browse', '/browse'],
+              ['Trending', '/trending'],
+              ['Watchlist', '/watchlist'],
+              ['History', '/history'],
+            ].map(([label, href]) => (
+              <NavLink
+                key={href}
+                to={href}
+                className={({ isActive }) =>
+                  [
+                    'inline-flex h-10 items-center rounded-md px-3 text-[0.92rem] font-semibold',
+                    isActive ? 'text-white' : 'text-white/70 hover:text-white',
+                  ].join(' ')
+                }
+              >
+                {label}
+              </NavLink>
+            ))}
+          </div>
+        </nav>
+      </header>
+
+      {/* Page content */}
+      <main
+        className="relative mx-auto w-full"
+        style={{
+          paddingTop: 'calc(var(--topnav-h,64px) + 42px)', // header + sub-nav
+          paddingBottom: '48px',
+        }}
+      >
+        <div className="mx-auto w-full max-w-7xl px-3 md:px-6">
+          {/* Optional: hide the sub-nav space for routes where you don't want it */}
+          {/* Example: if you later have a fullscreen detail page, check pathname here */}
+          <Outlet />
+        </div>
+      </main>
     </div>
   )
 }

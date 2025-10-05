@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import Header from '@/app/header/Header'
-import Sidebar from '@/app/sidebar/Sidebar'
+import Sidebar from '@/app/Sidebar' // ✅ fixed path
 import SearchBar from '@/app/header/SearchBar'
 
 export default function AppShell() {

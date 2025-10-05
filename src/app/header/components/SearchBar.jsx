@@ -1,117 +1,113 @@
 // src/app/header/components/SearchBar.jsx
 import { useEffect, useRef, useState } from 'react'
-import { X, Search as SearchIcon } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { Search, X } from 'lucide-react'
 
 export default function SearchBar({ open, onClose }) {
-  const [q, setQ] = useState('')
-  const panelRef = useRef(null)
+  const nav = useNavigate()
   const inputRef = useRef(null)
-  const navigate = useNavigate()
+  const [q, setQ] = useState('')
+  const [results, setResults] = useState([])
+  const [loading, setLoading] = useState(false)
+  const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY
 
-  // Auto-focus when opening
+  // Focus when opened
   useEffect(() => {
     if (open) {
-      const t = setTimeout(() => inputRef.current?.focus(), 0)
-      return () => clearTimeout(t)
+      setTimeout(() => inputRef.current?.focus(), 10)
+    } else {
+      setQ('')
+      setResults([])
+      setLoading(false)
     }
   }, [open])
 
-  // Close on Escape / click-away
+  // Escape to close
   useEffect(() => {
-    if (!open) return
-    const onKey = (e) => {
-      if (e.key === 'Escape') onClose?.()
-    }
-    const onDown = (e) => {
-      if (!panelRef.current) return
-      if (!panelRef.current.contains(e.target)) onClose?.()
-    }
-    document.addEventListener('keydown', onKey)
-    document.addEventListener('mousedown', onDown)
-    return () => {
-      document.removeEventListener('keydown', onKey)
-      document.removeEventListener('mousedown', onDown)
-    }
+    const onKey = (e) => { if (e.key === 'Escape') onClose?.() }
+    if (open) document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
   }, [open, onClose])
 
-  const submit = (e) => {
-    e.preventDefault()
-    if (!q.trim()) return
+  useEffect(() => {
+    let active = true
+    if (!open) return
+    if (!q || !TMDB_KEY) { setResults([]); return }
+
+    const t = setTimeout(async () => {
+      try {
+        setLoading(true)
+        const r = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${encodeURIComponent(q)}`)
+        const j = await r.json()
+        if (!active) return
+        const list = (j?.results || []).slice(0, 8)
+        setResults(list)
+      } finally {
+        if (active) setLoading(false)
+      }
+    }, 200)
+
+    return () => { active = false; clearTimeout(t) }
+  }, [q, TMDB_KEY, open])
+
+  const goMovie = (id) => {
     onClose?.()
-    navigate(`/browse?query=${encodeURIComponent(q.trim())}`)
+    nav(`/movie/${id}`)
   }
 
   if (!open) return null
 
   return (
-    <div
-      className="fixed inset-0 z-[60] flex items-start justify-center bg-black/60 backdrop-blur-sm"
-      role="dialog"
-      aria-modal="true"
-    >
-      <div
-        ref={panelRef}
-        className="
-          mt-[min(14vh,100px)]
-          w-[min(880px,92vw)]
-          rounded-2xl border border-white/10
-          bg-neutral-900/95 shadow-2xl backdrop-blur-md
-          p-3 sm:p-4
-        "
-      >
-        {/* Top row */}
-        <div className="flex items-center justify-between">
-          <h2 className="px-1 text-sm font-semibold text-white/70">
-            Quick search
-          </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-white/85 hover:bg-white/10 focus:outline-none"
-            aria-label="Close search"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        {/* Search input */}
-        <form onSubmit={submit} className="mt-2">
-          <div className="relative">
-            <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-white/60" />
+    <div className="fixed inset-0 z-[60]">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      {/* Desktop panel / Mobile full-screen */}
+      <div className="absolute left-1/2 top-8 w-[min(92vw,720px)] -translate-x-1/2 md:top-24">
+        <div className="rounded-2xl border border-white/10 bg-black/80 p-3 shadow-2xl">
+          <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+            <Search className="h-4 w-4 text-white/70" />
             <input
               ref={inputRef}
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Search movies… (press Enter)"
-              className="
-                w-full rounded-xl border border-white/10 bg-white/5 pl-11 pr-4 py-3
-                text-[0.98rem] text-white placeholder-white/40
-                outline-none focus:ring-2 focus:ring-brand/60
-              "
+              placeholder="Search movies…"
+              className="w-full bg-transparent text-[0.95rem] text-white placeholder-white/50 focus:outline-none"
             />
+            <button onClick={onClose} aria-label="Close" className="inline-flex h-8 w-8 items-center justify-center rounded-md text-white/80 hover:bg-white/10 focus:outline-none">
+              <X className="h-4 w-4" />
+            </button>
           </div>
-        </form>
 
-        {/* Suggestions (MVP: static examples) */}
-        <div className="mt-3">
-          <p className="px-1 text-xs font-semibold uppercase tracking-wider text-white/50">
-            Try
-          </p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {['Batman', 'Cozy', 'Mind-bending', 'Feel-good', 'Nolan'].map((s) => (
-              <button
-                key={s}
-                onClick={() => setQ(s)}
-                className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white/85 hover:bg-white/10 focus:outline-none"
-                type="button"
-              >
-                {s}
-              </button>
-            ))}
+          <div className="mt-2 max-h-[60vh] overflow-y-auto">
+            {loading && <div className="p-3 text-white/60 text-sm">Searching…</div>}
+            {!loading && results.length === 0 && q && (
+              <div className="p-3 text-white/60 text-sm">No results for “{q}”.</div>
+            )}
+            <ul className="divide-y divide-white/10">
+              {results.map((m) => (
+                <li key={m.id}>
+                  <button
+                    className="flex w-full items-center gap-3 p-2 hover:bg-white/5 focus:outline-none rounded-lg"
+                    onClick={() => goMovie(m.id)}
+                  >
+                    <img
+                      src={m.poster_path ? `https://image.tmdb.org/t/p/w92${m.poster_path}` : 'https://dummyimage.com/80x120/1f2937/ffffff&text=No+Image'}
+                      alt={m.title}
+                      className="h-14 w-9 rounded-md object-cover"
+                    />
+                    <div className="text-left">
+                      <div className="text-white text-[0.98rem] font-semibold leading-tight">{m.title}</div>
+                      <div className="text-white/60 text-sm leading-tight">{m.release_date ? m.release_date.slice(0,4) : '—'}</div>
+                    </div>
+                  </button>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </div>
+
+      {/* Mobile fallback (centers panel lower if keyboard overlaps) */}
+      <div className="md:hidden fixed inset-x-0 bottom-0 pointer-events-none" />
     </div>
   )
 }

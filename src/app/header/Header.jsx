@@ -1,24 +1,20 @@
 // src/app/header/Header.jsx
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { Search as SearchIcon, Home, Compass, User2 } from 'lucide-react'
-import { supabase } from '@/shared/lib/supabase/client'
+import { Home as HomeIcon, Compass, Search as SearchIcon, User as UserIcon, LogOut, SlidersHorizontal, Settings, Clock, Heart } from 'lucide-react'
 import logoPng from '@/assets/images/logo.png'
-import Account from '@/app/header/components/Account'
 
 export default function Header({ onOpenSearch }) {
-  const loc = useLocation()
+  const { pathname } = useLocation()
   const navigate = useNavigate()
-  const [scrolled, setScrolled] = useState(false)
-  const [accountOpen, setAccountOpen] = useState(false)
-  const [user, setUser] = useState(null)
   const barRef = useRef(null)
-  const acctRef = useRef(null)
+  const [scrolled, setScrolled] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
 
-  // Lock header height into a CSS var (prevents CLS)
+  // expose header height via CSS var for layout spacing
   useEffect(() => {
     const setVar = () => {
-      const h = barRef.current?.offsetHeight || 64
+      const h = barRef.current?.offsetHeight || 56
       document.documentElement.style.setProperty('--app-header-h', `${h}px`)
     }
     setVar()
@@ -27,7 +23,7 @@ export default function Header({ onOpenSearch }) {
     return () => ro.disconnect()
   }, [])
 
-  // Scroll state (adds subtle glass tint when scrolled a bit)
+  // subtle style on scroll
   useEffect(() => {
     let ticking = false
     const onScroll = () => {
@@ -43,71 +39,41 @@ export default function Header({ onOpenSearch }) {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  // Load current user (avatar initials for the chip + account menu)
+  // close profile menu on outside click
   useEffect(() => {
-    let isMounted = true
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (isMounted) setUser(user || null)
-    })
-    const { data } = supabase.auth.onAuthStateChange((_evt, session) => {
-      setUser(session?.user || null)
-    })
-    return () => data?.subscription?.unsubscribe?.()
-  }, [])
-
-  // Click-away for account popover
-  useEffect(() => {
-    if (!accountOpen) return
-    const onDown = (e) => {
-      if (!acctRef.current) return
-      if (acctRef.current.contains(e.target)) return
-      setAccountOpen(false)
+    const onDoc = (e) => {
+      if (!menuOpen) return
+      if (!barRef.current) return
+      if (!barRef.current.contains(e.target)) setMenuOpen(false)
     }
-    const onEsc = (e) => {
-      if (e.key === 'Escape') setAccountOpen(false)
-    }
-    document.addEventListener('mousedown', onDown)
-    document.addEventListener('keydown', onEsc)
+    document.addEventListener('mousedown', onDoc)
+    document.addEventListener('touchstart', onDoc, { passive: true })
     return () => {
-      document.removeEventListener('mousedown', onDown)
-      document.removeEventListener('keydown', onEsc)
+      document.removeEventListener('mousedown', onDoc)
+      document.removeEventListener('touchstart', onDoc)
     }
-  }, [accountOpen])
+  }, [menuOpen])
 
-  const initials = useMemo(() => {
-    const name = user?.user_metadata?.name || user?.email || 'FF'
-    const parts = String(name).trim().split(' ')
-    const first = parts[0]?.[0] || 'F'
-    const second = parts[1]?.[0] || (parts[0]?.[1] ?? 'F')
-    return (first + second).toUpperCase()
-  }, [user])
+  // active checks
+  const isHome = useMemo(() => pathname === '/home' || pathname === '/', [pathname])
+  const isBrowse = useMemo(() => pathname.startsWith('/browse'), [pathname])
 
-  const headerClass =
-    'fixed top-0 inset-x-0 z-40 transition-colors duration-200 ' +
+  const shell =
+    'fixed inset-x-0 top-0 z-50 transition-colors duration-200 ' +
     (scrolled ? 'bg-neutral-950/60 backdrop-blur-md ring-1 ring-white/10' : 'bg-transparent')
-
-  const linkBase =
-    'relative px-3 py-2 text-sm font-semibold text-white/80 hover:text-white transition-colors'
-  const activeUnderline =
-    'after:absolute after:left-1/2 after:-translate-x-1/2 after:-bottom-[6px] after:h-[2px] after:w-5 after:rounded-full after:bg-gradient-to-r after:from-[#fe9245] after:to-[#2D77FF]'
 
   return (
     <>
-      {/* Skip link for a11y */}
-      <a
-        href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:rounded-md focus:bg-neutral-900 focus:px-3 focus:py-2 focus:text-white focus:ring-2 focus:ring-brand/60"
-      >
-        Skip to content
-      </a>
-
-      <header ref={barRef} className={headerClass}>
-        <div className="mx-auto flex w-full max-w-[1200px] items-center justify-between gap-3 px-4 py-3 md:px-6">
-          {/* Brand */}
+      <header className={shell} role="banner" aria-label="Site header">
+        <div
+          ref={barRef}
+          className="mx-auto flex w-full max-w-[1200px] items-center justify-between gap-3 px-4 md:px-6 py-3 md:py-4"
+        >
+          {/* Left: Brand */}
           <Link
             to="/home"
+            className="flex items-center gap-2 rounded-md focus:outline-none focus:ring-2 focus:ring-brand/60"
             aria-label="FeelFlick home"
-            className="group flex items-center gap-2 rounded-md focus:outline-none focus:ring-2 focus:ring-brand/60"
           >
             <img
               src={logoPng}
@@ -118,69 +84,74 @@ export default function Header({ onOpenSearch }) {
               loading="eager"
               decoding="async"
             />
-            <span className="text-[1.1rem] font-extrabold tracking-tight text-brand-100 group-hover:text-white">
+            <span className="hidden sm:inline text-[clamp(1.05rem,3.5vw,1.35rem)] font-extrabold tracking-tight text-brand-100">
               FEELFLICK
             </span>
           </Link>
 
-          {/* Center nav (desktop) */}
-          <nav className="hidden md:flex items-center gap-1">
-            <NavLink
-              to="/home"
-              className={({ isActive }) => linkBase + (isActive ? ' text-white ' + activeUnderline : '')}
-            >
-              Home
-            </NavLink>
-            <NavLink
-              to="/browse"
-              className={({ isActive }) => linkBase + (isActive ? ' text-white ' + activeUnderline : '')}
-            >
-              Browse
-            </NavLink>
+          {/* Center: Primary nav (desktop) */}
+          <nav className="hidden md:flex items-center gap-1.5" aria-label="Primary">
+            <NavItem to="/home" active={isHome}>Home</NavItem>
+            <NavItem to="/browse" active={isBrowse}>Browse</NavItem>
           </nav>
 
-          {/* Actions */}
+          {/* Right: Search + Profile */}
           <div className="flex items-center gap-2">
-            {/* Search button */}
+            {/* Search trigger (desktop & mobile) */}
             <button
               type="button"
               onClick={onOpenSearch}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white/90 focus:outline-none focus:ring-2 focus:ring-brand/60"
-              aria-label="Search movies (press /)"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white/90 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60"
+              aria-label="Search movies"
               title="Search ( / )"
             >
               <SearchIcon className="h-5 w-5" />
             </button>
 
-            {/* Account chip (avatar + popover) */}
-            <div className="relative" ref={acctRef}>
+            {/* Profile menu */}
+            <div className="relative">
               <button
                 type="button"
-                onClick={() => setAccountOpen((s) => !s)}
-                className="inline-flex items-center gap-2 rounded-full bg-white/5 px-2.5 py-1.5 text-sm font-semibold text-white/90 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60"
-                aria-expanded={accountOpen}
+                onClick={() => setMenuOpen((s) => !s)}
+                className="inline-flex h-10 items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 text-white/90 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60"
                 aria-haspopup="menu"
+                aria-expanded={menuOpen}
+                aria-label="Account menu"
               >
-                <span className="grid h-7 w-7 place-items-center rounded-full bg-gradient-to-br from-[#fe9245] to-[#eb423b] text-[0.8rem] font-black">
-                  {initials}
+                <span className="grid h-6 w-6 place-items-center rounded-full bg-gradient-to-br from-[#fe9245] to-[#eb423b] text-[12px] font-bold">
+                  FF
                 </span>
-                <span className="hidden sm:block">Account</span>
+                <span className="hidden sm:inline text-sm font-semibold">Account</span>
               </button>
 
-              {/* Popover */}
-              {accountOpen && (
+              {/* menu popover */}
+              {menuOpen && (
                 <div
-                  className="absolute right-0 mt-2 w-[300px] rounded-xl border border-white/10 bg-neutral-900/95 p-2 backdrop-blur-md shadow-xl"
                   role="menu"
+                  className="absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border border-white/10 bg-neutral-950/95 backdrop-blur-lg shadow-2xl"
                 >
-                  <Account
-                    user={user}
-                    onClose={() => setAccountOpen(false)}
-                    onGoTo={(path) => {
-                      setAccountOpen(false)
-                      navigate(path)
-                    }}
-                  />
+                  <MenuLink to="/account" onClick={() => setMenuOpen(false)}>
+                    <UserIcon className="h-4 w-4" />
+                    Profile
+                  </MenuLink>
+                  <MenuLink to="/preferences" onClick={() => setMenuOpen(false)}>
+                    <Settings className="h-4 w-4" />
+                    Preferences
+                  </MenuLink>
+                  <div className="my-1 h-px bg-white/10" />
+                  <MenuLink to="/watchlist" onClick={() => setMenuOpen(false)}>
+                    <Heart className="h-4 w-4" />
+                    Watchlist
+                  </MenuLink>
+                  <MenuLink to="/history" onClick={() => setMenuOpen(false)}>
+                    <Clock className="h-4 w-4" />
+                    History
+                  </MenuLink>
+                  <div className="my-1 h-px bg-white/10" />
+                  <MenuLink to="/logout" onClick={() => setMenuOpen(false)}>
+                    <LogOut className="h-4 w-4" />
+                    Sign out
+                  </MenuLink>
                 </div>
               )}
             </div>
@@ -188,59 +159,107 @@ export default function Header({ onOpenSearch }) {
         </div>
       </header>
 
-      {/* Mobile bottom nav */}
-      <MobileNav
-        activePath={loc.pathname}
+      {/* Mobile bottom tab bar */}
+      <MobileBottomBar
+        isHome={isHome}
+        isBrowse={isBrowse}
         onOpenSearch={onOpenSearch}
+        navigate={navigate}
       />
-      {/* Spacer to avoid content under the header */}
-      <div style={{ height: 'var(--app-header-h,64px)' }} aria-hidden />
     </>
   )
 }
 
-/* --------------------------- Mobile bottom nav --------------------------- */
-function MobileNav({ activePath, onOpenSearch }) {
-  const isHome = activePath.startsWith('/home') || activePath === '/'
-  const isBrowse = activePath.startsWith('/browse')
+/* ------------------------ Small building blocks ------------------------- */
 
+function NavItem({ to, active, children }) {
+  return (
+    <NavLink
+      to={to}
+      className={
+        'relative inline-flex items-center rounded-full px-3.5 py-2 text-sm font-semibold text-white/85 hover:text-white focus:outline-none focus:ring-2 focus:ring-brand/60 ' +
+        (active ? 'text-white' : '')
+      }
+      aria-current={active ? 'page' : undefined}
+    >
+      {children}
+      {/* animated underline for active */}
+      <span
+        className={
+          'pointer-events-none absolute inset-x-2 bottom-1 h-[2px] rounded ' +
+          (active ? 'bg-[linear-gradient(90deg,#fe9245_0%,#eb423b_40%,#2D77FF_85%)] opacity-95' : 'opacity-0')
+        }
+      />
+    </NavLink>
+  )
+}
+
+function MenuLink({ to, onClick, children }) {
+  return (
+    <Link
+      to={to}
+      onClick={onClick}
+      className="flex items-center gap-2 px-3.5 py-2.5 text-[0.93rem] text-white/90 hover:bg-white/5 focus:bg-white/10 focus:outline-none"
+      role="menuitem"
+    >
+      {children}
+    </Link>
+  )
+}
+
+function MobileBottomBar({ isHome, isBrowse, onOpenSearch, navigate }) {
   return (
     <nav
-      className="
-        fixed bottom-0 inset-x-0 z-40 md:hidden
-        bg-neutral-950/80 backdrop-blur-md border-t border-white/10
-        px-4 pt-2 pb-[calc(10px+env(safe-area-inset-bottom))]
-        flex items-center justify-between
-      "
-      aria-label="Primary"
+      aria-label="Mobile"
+      className="fixed bottom-0 inset-x-0 z-40 border-t border-white/10 bg-neutral-950/75 backdrop-blur-md md:hidden"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
-      <MobileLink to="/home" label="Home" active={isHome} Icon={Home} />
-      {/* Big search FAB in the middle */}
-      <button
-        type="button"
-        onClick={onOpenSearch}
-        className="relative -mt-8 grid h-14 w-14 place-items-center rounded-full bg-white text-neutral-900 shadow-lg active:scale-[.98] focus:outline-none"
-        aria-label="Search"
-      >
-        <SearchIcon className="h-6 w-6" />
-      </button>
-      <MobileLink to="/browse" label="Browse" active={isBrowse} Icon={Compass} />
+      <div className="mx-auto flex h-14 items-stretch justify-around px-2">
+        <TabButton
+          label="Home"
+          active={isHome}
+          onClick={() => navigate('/home')}
+          icon={<HomeIcon className="h-5 w-5" />}
+        />
+        <button
+          type="button"
+          onClick={onOpenSearch}
+          className="group -mt-3 inline-flex h-12 w-12 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white/95 active:scale-95 focus:outline-none focus:ring-2 focus:ring-brand/60"
+          aria-label="Search"
+        >
+          <SearchIcon className="h-[22px] w-[22px]" />
+        </button>
+        <TabButton
+          label="Browse"
+          active={isBrowse}
+          onClick={() => navigate('/browse')}
+          icon={<Compass className="h-5 w-5" />}
+        />
+      </div>
     </nav>
   )
 }
 
-function MobileLink({ to, label, active, Icon }) {
+function TabButton({ label, active, icon, onClick }) {
   return (
-    <NavLink
-      to={to}
-      className="
-        flex flex-col items-center gap-1 rounded-xl px-3 py-1.5
-        text-[13px] font-semibold text-white/80
-        focus:outline-none focus:ring-2 focus:ring-brand/60
-      "
+    <button
+      type="button"
+      onClick={onClick}
+      className={
+        'flex flex-1 flex-col items-center justify-center gap-0.5 text-[12px] ' +
+        (active ? 'text-white' : 'text-white/70')
+      }
+      aria-current={active ? 'page' : undefined}
     >
-      <Icon className={`h-6 w-6 ${active ? 'text-white' : 'text-white/75'}`} />
-      <span className={active ? 'text-white' : ''}>{label}</span>
-    </NavLink>
+      <span
+        className={
+          'grid h-8 w-8 place-items-center rounded-full ' +
+          (active ? 'bg-white/10 border border-white/15' : '')
+        }
+      >
+        {icon}
+      </span>
+      <span className="leading-none">{label}</span>
+    </button>
   )
 }

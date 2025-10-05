@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/shared/lib/supabase/client";
 
-/* ---- theme bits (unchanged) ---- */
 const ACCENT  = "#fe9245";
 const ACCENT2 = "#eb423b";
 const OUTLINE = "1.1px solid #fe9245";
@@ -28,7 +27,6 @@ export default function Onboarding() {
 
   const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
-  /* -------------------- 1) auth session -------------------- */
   useEffect(() => {
     let unsub = null;
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
@@ -37,20 +35,16 @@ export default function Onboarding() {
     return () => { if (typeof unsub === "function") unsub(); };
   }, []);
 
-  /* -------------------- 2) check onboarding status -------------------- */
   useEffect(() => {
     if (!session?.user) return;
 
     (async () => {
       try {
-        // Fast path: auth metadata
         const meta = session.user.user_metadata || {};
         if (meta.onboarding_complete === true || meta.has_onboarded === true || meta.onboarded === true) {
           navigate("/home", { replace: true });
           return;
         }
-
-        // DB flag
         const { data, error } = await supabase
           .from("users")
           .select("onboarding_complete,onboarding_completed_at")
@@ -59,16 +53,13 @@ export default function Onboarding() {
 
         if (error) {
           console.warn("users SELECT failed:", error.message);
-          setChecking(false);     // allow onboarding UI (safe default)
+          setChecking(false);
           return;
         }
 
         const completed = data?.onboarding_complete === true || Boolean(data?.onboarding_completed_at);
-        if (completed) {
-          navigate("/home", { replace: true });
-        } else {
-          setChecking(false);
-        }
+        if (completed) navigate("/home", { replace: true });
+        else setChecking(false);
       } catch (e) {
         console.warn("onboarding check failed:", e);
         setChecking(false);
@@ -76,7 +67,6 @@ export default function Onboarding() {
     })();
   }, [session, navigate]);
 
-  /* -------------------- 3) genres -------------------- */
   const GENRES = useMemo(() => [
     { id: 28,  label:"Action" }, { id: 12, label:"Adventure" },
     { id: 16,  label:"Animation"}, { id: 35, label:"Comedy" },
@@ -88,7 +78,6 @@ export default function Onboarding() {
     { id: 878, label:"Sci-fi" },  { id: 53, label:"Thriller"}
   ], []);
 
-  /* -------------------- 4) TMDb search -------------------- */
   useEffect(() => {
     let active = true;
     if (!query) { setResults([]); setShowAllResults(false); return; }
@@ -115,15 +104,10 @@ export default function Onboarding() {
     return () => { active = false; };
   }, [query, TMDB_KEY]);
 
-  /* -------------------- 5) UI helpers -------------------- */
   const toggleGenre      = (id) => setSelectedGenres(g => g.includes(id) ? g.filter(x=>x!==id) : [...g,id]);
-  const handleAddMovie   = (m)  => {
-    if (!watchlist.some(x => x.id === m.id)) setWatchlist(w => [...w, m]);
-    setQuery(""); setResults([]); setShowAllResults(false);
-  };
+  const handleAddMovie   = (m)  => { if (!watchlist.some(x => x.id === m.id)) setWatchlist(w => [...w, m]); setQuery(""); setResults([]); setShowAllResults(false); };
   const handleRemoveMovie= (id) => setWatchlist(w => w.filter(m => m.id !== id));
 
-  /* -------------------- 6) save & finish (idempotent) -------------------- */
   async function saveAndGo(skipGenres=false, skipMovies=false) {
     setError(""); setLoading(true);
     try {
@@ -133,11 +117,22 @@ export default function Onboarding() {
       const email   = session.user.email;
       const name    = session.user.user_metadata?.name || "";
 
-      // Ensure users row exists (PK = auth.users.id)
-      await supabase.from("users").upsert(
-        [{ id:user_id, email, name }],
-        { onConflict: "id" }
-      );
+      // ---- users: avoid UPSERT to dodge RLS 403s ----
+      const { data: existing, error: selErr } =
+        await supabase.from("users").select("id").eq("id", user_id).maybeSingle();
+
+      if (!selErr && existing) {
+        await supabase.from("users").update({ email, name }).eq("id", user_id);
+      } else {
+        // Try insert; ignore 403 if RLS forbids client inserts (row might be created server-side)
+        await supabase.from("users")
+          .insert({ id: user_id, email, name })
+          .then(() => {}, (e) => {
+            if (String(e?.code) !== "42501" && String(e?.status) !== "403") {
+              console.warn("users INSERT warning:", e);
+            }
+          });
+      }
 
       // Preferences
       if (!skipGenres) {
@@ -152,40 +147,17 @@ export default function Onboarding() {
 
       // Movies/watchlist
       if (!skipMovies) {
-        // (Optional) Ensure movies table has the titles/posters you picked
-        for (const m of watchlist) {
-          await supabase.from("movies").upsert(
-            {
-              // assuming your movies table uses id = TMDb id; if not, change columns accordingly
-              id: m.id,
-              tmdb_id: m.id,
-              title: m.title,
-              poster_path: m.poster_path,
-              release_date: m.release_date
-            },
-            { onConflict: "id" } // or "tmdb_id" if that's your unique key
-          );
-        }
+        // ---- removed movies upsert to avoid 409s ----
 
-        // Dedupe in case the same title got clicked twice locally
-        const uniq = new Map();
-        for (const m of watchlist) uniq.set(m.id, m);
-
-        const rows = [...uniq.values()].map(m => ({
-          user_id,
-          movie_id: m.id,      // if your FK expects movies.id = TMDb id
-          status: "onboarding"
-        }));
-
-        if (rows.length) {
+        // dedupe selections, then idempotent upsert into watchlist
+        const uniq = Array.from(new Map(watchlist.map(m => [m.id, m])).values());
+        if (uniq.length) {
           const { error: wlErr } = await supabase
             .from("user_watchlist")
-            .upsert(rows, {
-              onConflict: "user_id,movie_id",
-              ignoreDuplicates: true,   // <= prevents 409 on duplicates/races
-            });
-
-          // If the API still returns a warning, swallow duplicates, log others
+            .upsert(
+              uniq.map(m => ({ user_id, movie_id: m.id, status: "onboarding" })),
+              { onConflict: "user_id,movie_id", ignoreDuplicates: true }
+            );
           if (wlErr) {
             const msg = `${wlErr.message || ""}`.toLowerCase();
             const isDup = wlErr.code === "23505" || msg.includes("duplicate") || msg.includes("conflict");
@@ -194,18 +166,13 @@ export default function Onboarding() {
         }
       }
 
-      // Mark onboarding complete in both DB & auth metadata
-      await supabase.from("users")
-        .update({ onboarding_complete: true })
-        .eq("id", user_id);
+      // Flags
+      await supabase.from("users").update({ onboarding_complete: true }).eq("id", user_id);
+      await supabase.auth.updateUser({ data: { onboarding_complete: true, has_onboarded: true } });
 
-      await supabase.auth.updateUser({
-        data: { onboarding_complete: true, has_onboarded: true }
-      });
-
-      // Go home: tell the router gate we *just* finished to avoid a flash/re-check
+      // Navigate only after all writes finish
       navigate("/home", { replace: true, state: { fromOnboarding: true } });
-      return; // stop here so we don't run any setState after navigation
+      return;
     } catch (e) {
       console.error("Onboarding save failed:", e);
       setError("Could not save your preferences — please try again.");
@@ -214,51 +181,33 @@ export default function Onboarding() {
     }
   }
 
-  /* -------------------- 7) loader -------------------- */
   if (checking) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black text-white font-bold text-lg tracking-wide">
-        Loading&nbsp;profile…
+        Loading profile…
       </div>
     );
   }
 
-  /* -------------------- 8) UI -------------------- */
   const CARD_WIDTH = typeof window !== "undefined" && window.innerWidth < 700 ? "100vw" : "700px";
   const CARD_MARGIN = typeof window !== "undefined" && window.innerWidth < 700 ? "11px" : "0 auto";
   const genreFontSize = 12;
 
   return (
-    <div
-      className="min-h-screen w-screen flex flex-col items-stretch justify-stretch relative font-sans"
-      style={{ background: `url(/background-poster.jpg) center/cover, #18141c` }}
-    >
-      {/* Logo */}
+    <div className="min-h-screen w-screen flex flex-col relative font-sans" style={{ background:"#18141c" }}>
+      {/* Brand */}
       <div className="absolute left-8 top-6 z-10 flex items-center gap-2.5">
-        <img
-          src="/logo.png"
-          alt="FeelFlick"
-          className="w-[42px] h-[42px] rounded-[12px] shadow-md"
-        />
-        <span className="text-[23px] font-extrabold text-white tracking-tight drop-shadow-lg">
-          FeelFlick
-        </span>
+        <img src="/logo.png" alt="FeelFlick" className="w-[42px] h-[42px] rounded-[12px] shadow-md" />
+        <span className="text-[23px] font-extrabold text-white tracking-tight drop-shadow-lg">FeelFlick</span>
       </div>
 
       {/* Card */}
       <div
         className="self-center flex flex-col"
         style={{
-          width: CARD_WIDTH,
-          margin: CARD_MARGIN,
-          minHeight: 500,
-          marginTop: 72,
-          marginBottom: 16,
-          background: DARK_BG,
-          borderRadius: 22,
-          boxShadow: "0 8px 44px 0 #0007",
-          padding: "36px 30px 27px 30px",
-          zIndex: 10,
+          width: CARD_WIDTH, margin: CARD_MARGIN, minHeight: 500,
+          marginTop: 72, marginBottom: 16, background: DARK_BG,
+          borderRadius: 22, boxShadow: "0 8px 44px 0 #0007", padding: "36px 30px 27px 30px", zIndex: 10,
         }}
       >
         {error && (
@@ -267,7 +216,6 @@ export default function Onboarding() {
           </div>
         )}
 
-        {/* Step 1: Genres */}
         {step === 1 && (
           <>
             <h2 className="text-2xl font-extrabold text-white text-center mb-1 tracking-tight">
@@ -284,23 +232,14 @@ export default function Onboarding() {
                   type="button"
                   className="w-[120px] h-[34px] rounded-xl border text-white font-medium text-center transition-all duration-150"
                   style={{
-                    margin: "3px 0",
-                    border: OUTLINE,
-                    background: selectedGenres.includes(g.id)
-                      ? GENRE_SELECTED_BG
-                      : "transparent",
-                    boxShadow: selectedGenres.includes(g.id)
-                      ? "0 2px 7px #fdaf4111"
-                      : "none",
-                    outline: "none",
-                    padding: "3.5px 0",
-                    fontSize: genreFontSize,
+                    margin: "3px 0", border: OUTLINE,
+                    background: selectedGenres.includes(g.id) ? GENRE_SELECTED_BG : "transparent",
+                    boxShadow: selectedGenres.includes(g.id) ? "0 2px 7px #fdaf4111" : "none",
+                    outline: "none", padding: "3.5px 0", fontSize: genreFontSize,
                   }}
                   onClick={() => toggleGenre(g.id)}
                 >
-                  <span className="font-medium text-center leading-[1.17] truncate">
-                    {g.label}
-                  </span>
+                  <span className="font-medium text-center leading-[1.17] truncate">{g.label}</span>
                 </button>
               ))}
             </div>
@@ -308,30 +247,19 @@ export default function Onboarding() {
             <div className="flex justify-center mt-4 gap-6">
               <button
                 className="px-6 py-2 rounded-lg font-extrabold text-[15px] text-white"
-                style={{
-                  background: BTN_BG,
-                  boxShadow: "0 2px 10px #eb423b22",
-                  opacity: loading ? 0.7 : 1,
-                  minWidth: 80,
-                  letterSpacing: 0.01,
-                }}
+                style={{ background: BTN_BG, boxShadow: "0 2px 10px #eb423b22", opacity: loading ? 0.7 : 1, minWidth: 80 }}
                 disabled={loading}
                 onClick={() => setStep(2)}
-              >
-                Next
-              </button>
+              >Next</button>
               <button
                 className="bg-none text-[#fe9245] font-extrabold text-[13.5px] border-none cursor-pointer min-w-[44px]"
                 disabled={loading}
                 onClick={() => saveAndGo(true, false)}
-              >
-                Skip
-              </button>
+              >Skip</button>
             </div>
           </>
         )}
 
-        {/* Step 2: Movies */}
         {step === 2 && (
           <>
             <h2 className="text-2xl font-extrabold text-white text-center mb-1 tracking-tight">
@@ -342,14 +270,11 @@ export default function Onboarding() {
             </div>
 
             <input
-              type="text"
-              placeholder="Search a movie…"
-              value={query}
+              type="text" placeholder="Search a movie…" value={query}
               onChange={e => setQuery(e.target.value)}
               className="w-full bg-[#232330] rounded-lg py-2.5 px-3 text-[13px] font-medium text-white outline-none border-none mb-2 mt-0 shadow"
             />
 
-            {/* Suggestions */}
             {query && results.length > 0 && (
               <div className="bg-[#242134] rounded-[20px] max-h-[200px] overflow-y-auto mb-1.5 shadow">
                 {(showAllResults ? results : results.slice(0, 6)).map((r) => (
@@ -375,33 +300,23 @@ export default function Onboarding() {
                   <div
                     className="text-center py-1 text-[#fe9245] font-semibold text-[14px] cursor-pointer select-none"
                     onClick={() => setShowAllResults(true)}
-                  >
-                    See more
-                  </div>
+                  >See more</div>
                 )}
               </div>
             )}
 
-            {/* Watchlist chips */}
             {watchlist.length > 0 && (
               <div>
-                <div className="text-white font-bold text-[14px] mt-2.5 mb-1.5">
-                  Your picks:
-                </div>
+                <div className="text-white font-bold text-[14px] mt-2.5 mb-1.5">Your picks:</div>
                 <div className="flex flex-wrap gap-2.5 mb-2.5">
                   {watchlist.map(m => (
-                    <div
-                      key={m.id}
-                      className="flex flex-col items-center gap-0.5 bg-[#231d2d] rounded-md px-0.5 py-0.5"
-                    >
+                    <div key={m.id} className="flex flex-col items-center gap-0.5 bg-[#231d2d] rounded-md px-0.5 py-0.5">
                       <img
                         src={m.poster_path ? `https://image.tmdb.org/t/p/w92${m.poster_path}` : "https://dummyimage.com/80x120/232330/fff&text=No+Image"}
                         alt={m.title}
                         className="w-[60px] h-[90px] object-cover rounded bg-[#101012] mx-1.5"
                       />
-                      <span className="flex flex-col items-center font-medium text-[13px] text-white mt-1">
-                        {m.title}
-                      </span>
+                      <span className="flex flex-col items-center font-medium text-[13px] text-white mt-1">{m.title}</span>
                       <button
                         className="bg-none border-none text-[#fd7069] text-[22px] mt-0 mx-0 cursor-pointer font-normal opacity-80"
                         onClick={() => handleRemoveMovie(m.id)}
@@ -418,29 +333,18 @@ export default function Onboarding() {
                 className="px-3 py-1.5 rounded-md font-extrabold text-xs text-[#fe9245] bg-none border-none mr-2 cursor-pointer"
                 disabled={loading}
                 onClick={() => setStep(1)}
-              >
-                &lt; Back
-              </button>
+              >&lt; Back</button>
               <button
                 className="px-6 py-2 rounded-xl font-extrabold text-[15px] text-white"
-                style={{
-                  background: BTN_BG,
-                  boxShadow: "0 2px 10px #eb423b22",
-                  opacity: loading ? 0.7 : 1,
-                  minWidth: 65,
-                }}
+                style={{ background: BTN_BG, boxShadow: "0 2px 10px #eb423b22", opacity: loading ? 0.7 : 1, minWidth: 65 }}
                 disabled={loading}
                 onClick={() => saveAndGo(false, false)}
-              >
-                Finish
-              </button>
+              >Finish</button>
               <button
                 className="bg-none text-[#fe9245] font-extrabold text-xs border-none cursor-pointer min-w-[44px]"
                 disabled={loading}
                 onClick={() => saveAndGo(false, true)}
-              >
-                Skip
-              </button>
+              >Skip</button>
             </div>
           </>
         )}

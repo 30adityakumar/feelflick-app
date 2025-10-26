@@ -1,9 +1,12 @@
+// src/app/homepage/components/HeroSliderSection.jsx
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 
 /**
- * Lightweight hero "slider": auto-rotates top trending backdrops.
- * Minimal controls, pause on hover, safe fallbacks.
+ * Lightweight hero slider that auto-rotates trending backdrops.
+ * - Abortable fetch
+ * - Pause on hover
+ * - Safe fallbacks when TMDB key missing
  */
 export default function HeroSliderSection() {
   const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY;
@@ -19,11 +22,10 @@ export default function HeroSliderSection() {
   }, [TMDB_KEY]);
 
   useEffect(() => {
-    let abort = new AbortController();
+    const abort = new AbortController();
     async function run() {
       if (!apiUrl) {
-        // simple fallback (no key)
-        setSlides([]);
+        setSlides([]); // no key → blank hero
         setState("ready");
         return;
       }
@@ -32,27 +34,26 @@ export default function HeroSliderSection() {
         const r = await fetch(apiUrl, { signal: abort.signal });
         if (!r.ok) throw new Error(`TMDB trending ${r.status}`);
         const j = await r.json();
-        const top = (j?.results || [])
-          .filter((m) => m.backdrop_path)
-          .slice(0, 6);
+        const top = (j?.results || []).filter(m => m.backdrop_path).slice(0, 6);
         setSlides(top);
         setState("ready");
       } catch (e) {
-        if (abort.signal.aborted) return;
-        console.warn("Hero fetch failed:", e);
-        setState("error");
+        if (!abort.signal.aborted) {
+          console.warn("Hero fetch failed:", e);
+          setState("error");
+        }
       }
     }
     run();
     return () => abort.abort();
   }, [apiUrl]);
 
-  // auto-rotate
+  // auto-rotate every 6s, paused while hovering
   useEffect(() => {
     clearInterval(timerRef.current);
     timerRef.current = setInterval(() => {
       if (hoverRef.current) return;
-      setI((p) => (p + 1) % Math.max(slides.length || 1, 1));
+      setI(p => (p + 1) % Math.max(slides.length || 1, 1));
     }, 6000);
     return () => clearInterval(timerRef.current);
   }, [slides.length]);
@@ -65,14 +66,16 @@ export default function HeroSliderSection() {
       onMouseEnter={() => (hoverRef.current = true)}
       onMouseLeave={() => (hoverRef.current = false)}
     >
-      {/* Image */}
+      {/* Media */}
       <div className="relative aspect-[16/7] sm:aspect-[16/6] md:aspect-[16/5] w-full">
         {state === "loading" && <div className="h-full w-full animate-pulse bg-white/5" />}
+
         {state === "error" && (
           <div className="flex h-full w-full items-center justify-center text-white/75">
             Couldn’t load spotlight.
           </div>
         )}
+
         {state === "ready" && current ? (
           <>
             <img

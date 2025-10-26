@@ -1,3 +1,4 @@
+// src/app/homepage/components/CarouselRow.jsx
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 

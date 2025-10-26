@@ -1,4 +1,5 @@
-import HeroSliderSection from "@/app/homepage/HeroSliderSection";
+// src/app/homepage/HomePage.jsx
+import HeroSliderSection from "@/app/homepage/components/HeroSliderSection";
 import CarouselRow from "@/app/homepage/components/CarouselRow";
 
 /**

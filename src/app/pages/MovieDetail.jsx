@@ -38,15 +38,13 @@ export default function MovieDetail() {
   const [similar, setSimilar] = useState([])
   const [recs, setRecs] = useState([])
 
-  // watch providers
   const [providers, setProviders] = useState({ flatrate: [], rent: [], buy: [], link: '' })
 
-  // auth + watchlist state
+  // auth + watchlist status: null | 'want_to_watch' | 'watched'
   const [user, setUser] = useState(null)
-  const [wlStatus, setWlStatus] = useState(null) // null | 'want_to_watch' | 'watched'
+  const [wlStatus, setWlStatus] = useState(null)
   const [mutating, setMutating] = useState(false)
 
-  // session
   useEffect(() => {
     let unsub
     supabase.auth.getUser().then(({ data }) => setUser(data?.user || null))
@@ -57,7 +55,7 @@ export default function MovieDetail() {
     return () => { if (typeof unsub === 'function') unsub() }
   }, [])
 
-  // load TMDB data
+  // TMDB data
   useEffect(() => {
     let abort = false
     async function load() {
@@ -72,7 +70,6 @@ export default function MovieDetail() {
           fetch(`${TMDB.base}/movie/${id}/similar?api_key=${TMDB.key}&language=en-US&page=1`).then(r => r.json()),
           fetch(`${TMDB.base}/movie/${id}/recommendations?api_key=${TMDB.key}&language=en-US&page=1`).then(r => r.json()),
         ])
-
         if (abort) return
         if (d?.success === false || d?.status_code) throw new Error(d?.status_message || 'Failed to load')
 
@@ -91,7 +88,7 @@ export default function MovieDetail() {
     return () => { abort = true }
   }, [id])
 
-  // load watch providers (TMDB ↔︎ JustWatch)
+  // Providers (TMDB ↔︎ JustWatch)
   useEffect(() => {
     let active = true
     async function loadProviders() {
@@ -99,8 +96,8 @@ export default function MovieDetail() {
         if (!TMDB.key) return
         const res = await fetch(`${TMDB.base}/movie/${id}/watch/providers?api_key=${TMDB.key}`)
         const json = await res.json()
-        const lang = (navigator?.language || 'en-US').split('-')[1]?.toUpperCase() || 'US'
-        const area = json?.results?.[lang] || json?.results?.US || null
+        const region = (navigator?.language || 'en-US').split('-')[1]?.toUpperCase() || 'US'
+        const area = json?.results?.[region] || json?.results?.US || null
         if (!active) return
 
         if (area) {
@@ -123,7 +120,7 @@ export default function MovieDetail() {
     return () => { active = false }
   }, [id])
 
-  // read watchlist status for signed-in user
+  // Watchlist status
   useEffect(() => {
     let active = true
     async function readWL() {
@@ -153,34 +150,83 @@ export default function MovieDetail() {
     return false
   }
 
-  // Write helpers (idempotent; avoids 409s)
-  async function setStatus(nextStatus) {
+  // ---------------- Safe write helpers (never 409) ----------------
+  async function writeStatus(nextStatus) {
+    // 1) Try UPDATE
+    const { error: updErr, count } = await supabase
+      .from('user_watchlist')
+      .update({ status: nextStatus })
+      .eq('user_id', user.id)
+      .eq('movie_id', Number(id))
+      .select('user_id', { count: 'exact' })
+
+    if (!updErr && (count ?? 0) > 0) return true
+
+    // 2) If nothing updated, try INSERT
+    const { error: insErr } = await supabase
+      .from('user_watchlist')
+      .insert({ user_id: user.id, movie_id: Number(id), status: nextStatus })
+
+    // If a race caused a duplicate, do a final UPDATE
+    if (insErr) {
+      const msg = `${insErr.message || ''}`.toLowerCase()
+      const dup = insErr.code === '23505' || msg.includes('duplicate') || msg.includes('conflict')
+      if (dup) {
+        await supabase
+          .from('user_watchlist')
+          .update({ status: nextStatus })
+          .eq('user_id', user.id)
+          .eq('movie_id', Number(id))
+        return true
+      }
+      throw insErr
+    }
+    return true
+  }
+
+  async function deleteRow() {
+    await supabase.from('user_watchlist')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('movie_id', Number(id))
+  }
+
+  // Explicit toggles so both buttons are always visible
+  async function toggleWatchlist() {
     if (!(await ensureAuthed())) return
     setMutating(true)
     try {
-      setWlStatus(nextStatus)
-      const { error } = await supabase
-        .from('user_watchlist')
-        .upsert([{ user_id: user.id, movie_id: Number(id), status: nextStatus }], { onConflict: 'user_id,movie_id' })
-      if (error) {
-        const msg = `${error.message || ''}`.toLowerCase()
-        const isDup = error.code === '23505' || msg.includes('duplicate') || msg.includes('conflict')
-        if (!isDup) setWlStatus(null)
+      if (wlStatus === 'want_to_watch') {
+        await deleteRow()
+        setWlStatus(null)
+      } else if (wlStatus === 'watched') {
+        await writeStatus('want_to_watch') // move from watched → want_to_watch
+        setWlStatus('want_to_watch')
+      } else {
+        await writeStatus('want_to_watch') // add
+        setWlStatus('want_to_watch')
       }
     } finally {
       setMutating(false)
     }
   }
-  async function removeFromList() {
+
+  async function toggleWatched() {
     if (!(await ensureAuthed())) return
     setMutating(true)
     try {
-      setWlStatus(null)
-      await supabase.from('user_watchlist').delete().eq('user_id', user.id).eq('movie_id', Number(id))
+      if (wlStatus === 'watched') {
+        await deleteRow() // undo watched
+        setWlStatus(null)
+      } else {
+        await writeStatus('watched') // mark watched (even if not on watchlist)
+        setWlStatus('watched')
+      }
     } finally {
       setMutating(false)
     }
   }
+  // -----------------------------------------------------------------
 
   const rating  = movie?.vote_average ? Math.round(movie.vote_average * 10) / 10 : null
   const year    = yearOf(movie?.release_date)
@@ -188,7 +234,7 @@ export default function MovieDetail() {
 
   return (
     <div className="relative">
-      {/* Hero / Backdrop */}
+      {/* Hero */}
       <div className="relative min-h-[420px] md:min-h-[520px]">
         <div
           className="absolute inset-0"
@@ -201,9 +247,7 @@ export default function MovieDetail() {
         />
         <div className="absolute inset-0 bg-[radial-gradient(120%_80%_at_40%_0%,rgba(0,0,0,.55),rgba(0,0,0,.9))]" />
 
-        {/* Content row */}
         <div className="relative z-10 mx-auto grid max-w-6xl grid-cols-1 gap-6 px-4 py-8 md:grid-cols-[auto,1fr] md:gap-8 md:px-6 md:py-10">
-          {/* Poster */}
           <div className="mx-auto md:mx-0">
             <div className="overflow-hidden rounded-2xl ring-1 ring-white/10 bg-white/5">
               {movie?.poster_path ? (
@@ -222,7 +266,6 @@ export default function MovieDetail() {
             </div>
           </div>
 
-          {/* Headline & actions */}
           <div className="flex flex-col justify-end">
             {loading ? (
               <div className="animate-pulse">
@@ -238,7 +281,6 @@ export default function MovieDetail() {
                   <h1 className="text-balance text-[clamp(1.4rem,4.2vw,2.6rem)] font-extrabold leading-tight tracking-tight text-white">
                     {movie?.title}
                   </h1>
-                  {/* Status pills */}
                   {wlStatus === 'want_to_watch' && (
                     <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/85 ring-1 ring-white/15">
                       Watchlisted
@@ -273,49 +315,32 @@ export default function MovieDetail() {
                     </a>
                   )}
 
-                  {/* Watchlist toggle */}
-                  {wlStatus === 'want_to_watch' ? (
-                    <div className="flex items-center gap-2">
-                      <button
-                        disabled={mutating}
-                        onClick={removeFromList}
-                        className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-[0.95rem] font-semibold text-white hover:bg-white/10 disabled:opacity-60"
-                        title="Remove from Watchlist"
-                      >
-                        <Bookmark className="h-4 w-4" />
-                        Remove from Watchlist
-                      </button>
-                      <button
-                        disabled={mutating}
-                        onClick={() => setStatus('watched')}
-                        className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#fe9245] to-[#eb423b] px-4 py-2 text-[0.95rem] font-semibold text-white disabled:opacity-60"
-                        title="Mark Watched"
-                      >
-                        <Check className="h-4 w-4" />
-                        Mark Watched
-                      </button>
-                    </div>
-                  ) : wlStatus === 'watched' ? (
-                    <button
-                      disabled={mutating}
-                      onClick={() => setStatus('want_to_watch')}
-                      className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-[0.95rem] font-semibold text-white hover:bg-white/10 disabled:opacity-60"
-                      title="Mark Want to Watch"
-                    >
-                      <CheckCheck className="h-4 w-4" />
-                      Mark Want to Watch
-                    </button>
-                  ) : (
-                    <button
-                      disabled={mutating}
-                      onClick={() => setStatus('want_to_watch')}
-                      className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-[0.95rem] font-semibold text-white hover:bg-white/10 disabled:opacity-60"
-                      title="Add to Watchlist"
-                    >
-                      <Bookmark className="h-4 w-4" />
-                      Add to Watchlist
-                    </button>
-                  )}
+                  {/* Always show both actions */}
+                  <button
+                    disabled={mutating}
+                    onClick={toggleWatchlist}
+                    className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-[0.95rem] font-semibold text-white hover:bg-white/10 disabled:opacity-60"
+                    title={wlStatus === 'want_to_watch' ? 'Remove from Watchlist' : wlStatus === 'watched' ? 'Move to Watchlist' : 'Add to Watchlist'}
+                  >
+                    <Bookmark className="h-4 w-4" />
+                    {wlStatus === 'want_to_watch' ? 'Remove from Watchlist'
+                      : wlStatus === 'watched' ? 'Move to Watchlist'
+                      : 'Add to Watchlist'}
+                  </button>
+
+                  <button
+                    disabled={mutating}
+                    onClick={toggleWatched}
+                    className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-[0.95rem] font-semibold disabled:opacity-60 ${
+                      wlStatus === 'watched'
+                        ? 'border border-white/15 bg-white/5 hover:bg-white/10'
+                        : 'bg-gradient-to-r from-[#fe9245] to-[#eb423b] text-white'
+                    }`}
+                    title={wlStatus === 'watched' ? 'Undo Watched' : 'Mark as Watched'}
+                  >
+                    <Check className="h-4 w-4" />
+                    {wlStatus === 'watched' ? 'Undo Watched' : 'Mark as Watched'}
+                  </button>
                 </div>
               </>
             )}
@@ -325,13 +350,10 @@ export default function MovieDetail() {
 
       {/* Body */}
       <div className="mx-auto max-w-6xl px-4 py-6 md:px-6 md:py-8">
-        {/* Overview */}
         {movie?.overview && <CollapsibleText text={movie.overview} />}
 
-        {/* WHERE TO WATCH */}
         <WhereToWatch providers={providers} />
 
-        {/* Cast */}
         {cast?.length > 0 && (
           <section className="mt-8">
             <h2 className="mb-3 text-lg font-bold tracking-tight text-white/95">Top cast</h2>
@@ -359,7 +381,6 @@ export default function MovieDetail() {
           </section>
         )}
 
-        {/* Similar & Recommended */}
         {similar?.length > 0 && <Rail title="Similar" items={similar} />}
         {recs?.length > 0 && <Rail title="Recommended" items={recs} />}
       </div>

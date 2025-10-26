@@ -1,211 +1,265 @@
 // src/app/header/Header.jsx
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { Compass, Home as HomeIcon, Search } from 'lucide-react'
-import { supabase } from '@/shared/lib/supabase/client'
-import Account from '@/app/header/components/Account'
+import { Home as HomeIcon, Compass, Search as SearchIcon, User as UserIcon, LogOut, SlidersHorizontal, Settings, Clock, Heart } from 'lucide-react'
+import logoPng from '@/assets/images/logo.png'
 
 export default function Header({ onOpenSearch }) {
-  const nav = useNavigate()
   const { pathname } = useLocation()
-
-  const [user, setUser] = useState(null)
+  const navigate = useNavigate()
+  const barRef = useRef(null)
+  const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
 
-  const wrapperRef = useRef(null)
-  const popRef = useRef(null)
-  const buttonRef = useRef(null)
-  const lastActiveRef = useRef(null)
-
-  // Keep a CSS var with header height (prevents content jump)
+  // expose header height via CSS var for layout spacing
   useEffect(() => {
     const setVar = () => {
-      const h = wrapperRef.current?.offsetHeight || 64
+      const h = barRef.current?.offsetHeight || 56
       document.documentElement.style.setProperty('--app-header-h', `${h}px`)
     }
     setVar()
     const ro = new ResizeObserver(setVar)
-    if (wrapperRef.current) ro.observe(wrapperRef.current)
+    if (barRef.current) ro.observe(barRef.current)
     return () => ro.disconnect()
   }, [])
 
-  // Auth presence
+  // subtle style on scroll
   useEffect(() => {
-    let unsub
-    supabase.auth.getSession().then(({ data }) => setUser(data?.session?.user || null))
-    const { data } = supabase.auth.onAuthStateChange((_evt, session) => {
-      setUser(session?.user || null)
-    })
-    unsub = data?.subscription?.unsubscribe
-    return () => { if (typeof unsub === 'function') unsub() }
+    let ticking = false
+    const onScroll = () => {
+      if (ticking) return
+      ticking = true
+      requestAnimationFrame(() => {
+        setScrolled((window.scrollY || document.documentElement.scrollTop) > 8)
+        ticking = false
+      })
+    }
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  // Close popover on route change / outside click / ESC
-  useEffect(() => { setMenuOpen(false) }, [pathname])
+  // close profile menu on outside click
   useEffect(() => {
-    const onKey = (e) => { if (e.key === 'Escape') setMenuOpen(false) }
-    const onClick = (e) => {
+    const onDoc = (e) => {
       if (!menuOpen) return
-      const inBtn = buttonRef.current?.contains(e.target)
-      const inPop = popRef.current?.contains(e.target)
-      if (!inBtn && !inPop) setMenuOpen(false)
+      if (!barRef.current) return
+      if (!barRef.current.contains(e.target)) setMenuOpen(false)
     }
-    document.addEventListener('keydown', onKey)
-    document.addEventListener('mousedown', onClick)
+    document.addEventListener('mousedown', onDoc)
+    document.addEventListener('touchstart', onDoc, { passive: true })
     return () => {
-      document.removeEventListener('keydown', onKey)
-      document.removeEventListener('mousedown', onClick)
+      document.removeEventListener('mousedown', onDoc)
+      document.removeEventListener('touchstart', onDoc)
     }
   }, [menuOpen])
 
-  const initials = (() => {
-    const source = user?.user_metadata?.name || user?.email || 'FF'
-    const fromName = source.trim().split(/\s+/).map(s => s[0]).join('').slice(0, 2)
-    if (fromName) return fromName.toUpperCase()
-    const beforeAt = (user?.email || '').split('@')[0]
-    return (beforeAt.slice(0, 2) || 'FF').toUpperCase()
-  })()
+  // active checks
+  const isHome = useMemo(() => pathname === '/home' || pathname === '/', [pathname])
+  const isBrowse = useMemo(() => pathname.startsWith('/browse'), [pathname])
 
-  function openSearch() {
-    lastActiveRef.current = document.activeElement
-    onOpenSearch?.()
-  }
+  const shell =
+    'fixed inset-x-0 top-0 z-50 transition-colors duration-200 ' +
+    (scrolled ? 'bg-neutral-950/60 backdrop-blur-md ring-1 ring-white/10' : 'bg-transparent')
 
   return (
-    <header
-      ref={wrapperRef}
-      className="sticky top-0 z-40 w-full backdrop-blur-md bg-neutral-950/60 ring-1 ring-white/10"
-      role="banner"
-    >
-      <div className="mx-auto flex max-w-[1200px] items-center justify-between gap-3 px-4 py-3 md:px-6">
-        {/* Brand */}
-        <Link to="/home" className="group flex items-center gap-2 min-w-0" aria-label="FeelFlick home">
-          <img
-            src="/logo.png"
-            alt=""
-            width="28"
-            height="28"
-            className="h-7 w-7 rounded-md"
-            loading="eager"
-            decoding="async"
-          />
-          <span className="text-lg sm:text-xl font-extrabold tracking-tight text-white group-hover:opacity-95">
-            FEELFLICK
-          </span>
-        </Link>
-
-        {/* Desktop primary nav */}
-        <nav className="hidden md:flex items-center gap-2" aria-label="Primary">
-          <TopLink to="/home" icon={<HomeIcon className="h-4.5 w-4.5" />}>Home</TopLink>
-          <TopLink to="/browse" icon={<Compass className="h-4.5 w-4.5" />}>Browse</TopLink>
-        </nav>
-
-        {/* Actions (search + account) */}
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={openSearch}
-            className="inline-grid h-9 w-9 place-items-center rounded-full bg-white/10 text-white/90 hover:bg-white/15 focus:outline-none"
-            aria-label="Search movies"
+    <>
+      <header className={shell} role="banner" aria-label="Site header">
+        <div
+          ref={barRef}
+          className="mx-auto flex w-full max-w-[1200px] items-center justify-between gap-3 px-4 md:px-6 py-3 md:py-4"
+        >
+          {/* Left: Brand */}
+          <Link
+            to="/home"
+            className="flex items-center gap-2 rounded-md focus:outline-none focus:ring-2 focus:ring-brand/60"
+            aria-label="FeelFlick home"
           >
-            <Search className="h-5 w-5" />
-          </button>
+            <img
+              src={logoPng}
+              alt=""
+              width="28"
+              height="28"
+              className="h-7 w-7 object-contain"
+              loading="eager"
+              decoding="async"
+            />
+            <span className="hidden sm:inline text-[clamp(1.05rem,3.5vw,1.35rem)] font-extrabold tracking-tight text-brand-100">
+              FEELFLICK
+            </span>
+          </Link>
 
-          {/* Account popover trigger */}
-          <div className="relative">
+          {/* Center: Primary nav (desktop) */}
+          <nav className="hidden md:flex items-center gap-1.5" aria-label="Primary">
+            <NavItem to="/home" active={isHome}>Home</NavItem>
+            <NavItem to="/browse" active={isBrowse}>Browse</NavItem>
+          </nav>
+
+          {/* Right: Search + Profile */}
+          <div className="flex items-center gap-2">
+            {/* Search trigger (desktop & mobile) */}
             <button
-              ref={buttonRef}
               type="button"
-              aria-haspopup="menu"
-              aria-expanded={menuOpen}
-              onClick={() => setMenuOpen(s => !s)}
-              className="inline-flex items-center gap-2 rounded-full bg-white/10 px-2.5 py-1.5 text-sm font-semibold text-white hover:bg-white/15 focus:outline-none"
+              onClick={onOpenSearch}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white/90 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60"
+              aria-label="Search movies"
+              title="Search ( / )"
             >
-              <span className="inline-grid h-7 w-7 place-items-center rounded-full bg-gradient-to-br from-[#fe9245] to-[#eb423b] text-[12px] font-extrabold text-white">
-                {initials}
-              </span>
-              <span className="hidden sm:inline">{user ? 'Account' : 'Sign in'}</span>
+              <SearchIcon className="h-5 w-5" />
             </button>
 
-            {menuOpen && (
-              <div
-                ref={popRef}
-                role="menu"
-                className="absolute right-0 mt-2 w-[320px] rounded-2xl border border-white/10 bg-black/75 p-3 shadow-2xl backdrop-blur-xl"
+            {/* Profile menu */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setMenuOpen((s) => !s)}
+                className="inline-flex h-10 items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 text-white/90 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60"
+                aria-haspopup="menu"
+                aria-expanded={menuOpen}
+                aria-label="Account menu"
               >
-                <Account
-                  user={user && {
-                    id: user.id,
-                    email: user.email,
-                    name: user.user_metadata?.name || ''
-                  }}
-                  onProfileUpdate={(patch) => {
-                    if (patch?.name) {
-                      setUser(u => (u ? { ...u, user_metadata: { ...(u.user_metadata || {}), name: patch.name } } : u))
-                    }
-                  }}
-                  onClose={() => setMenuOpen(false)}
-                  variant="dropdown"
-                />
-              </div>
-            )}
+                <span className="grid h-6 w-6 place-items-center rounded-full bg-gradient-to-br from-[#fe9245] to-[#eb423b] text-[12px] font-bold">
+                  FF
+                </span>
+                <span className="hidden sm:inline text-sm font-semibold">Account</span>
+              </button>
+
+              {/* menu popover */}
+              {menuOpen && (
+                <div
+                  role="menu"
+                  className="absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border border-white/10 bg-neutral-950/95 backdrop-blur-lg shadow-2xl"
+                >
+                  <MenuLink to="/account" onClick={() => setMenuOpen(false)}>
+                    <UserIcon className="h-4 w-4" />
+                    Profile
+                  </MenuLink>
+                  <MenuLink to="/preferences" onClick={() => setMenuOpen(false)}>
+                    <Settings className="h-4 w-4" />
+                    Preferences
+                  </MenuLink>
+                  <div className="my-1 h-px bg-white/10" />
+                  <MenuLink to="/watchlist" onClick={() => setMenuOpen(false)}>
+                    <Heart className="h-4 w-4" />
+                    Watchlist
+                  </MenuLink>
+                  <MenuLink to="/history" onClick={() => setMenuOpen(false)}>
+                    <Clock className="h-4 w-4" />
+                    History
+                  </MenuLink>
+                  <div className="my-1 h-px bg-white/10" />
+                  <MenuLink to="/logout" onClick={() => setMenuOpen(false)}>
+                    <LogOut className="h-4 w-4" />
+                    Sign out
+                  </MenuLink>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Mobile bottom nav: Home · Search · Browse */}
-      <nav
-        className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-3 border-t border-white/10 bg-neutral-950/70 px-3 py-2 backdrop-blur-md md:hidden"
-        aria-label="Primary"
-      >
-        <TabLink to="/home" label="Home" icon={<HomeIcon className="h-5 w-5" />} />
+      {/* Mobile bottom tab bar */}
+      <MobileBottomBar
+        isHome={isHome}
+        isBrowse={isBrowse}
+        onOpenSearch={onOpenSearch}
+        navigate={navigate}
+      />
+    </>
+  )
+}
+
+/* ------------------------ Small building blocks ------------------------- */
+
+function NavItem({ to, active, children }) {
+  return (
+    <NavLink
+      to={to}
+      className={
+        'relative inline-flex items-center rounded-full px-3.5 py-2 text-sm font-semibold text-white/85 hover:text-white focus:outline-none focus:ring-2 focus:ring-brand/60 ' +
+        (active ? 'text-white' : '')
+      }
+      aria-current={active ? 'page' : undefined}
+    >
+      {children}
+      {/* animated underline for active */}
+      <span
+        className={
+          'pointer-events-none absolute inset-x-2 bottom-1 h-[2px] rounded ' +
+          (active ? 'bg-[linear-gradient(90deg,#fe9245_0%,#eb423b_40%,#2D77FF_85%)] opacity-95' : 'opacity-0')
+        }
+      />
+    </NavLink>
+  )
+}
+
+function MenuLink({ to, onClick, children }) {
+  return (
+    <Link
+      to={to}
+      onClick={onClick}
+      className="flex items-center gap-2 px-3.5 py-2.5 text-[0.93rem] text-white/90 hover:bg-white/5 focus:bg-white/10 focus:outline-none"
+      role="menuitem"
+    >
+      {children}
+    </Link>
+  )
+}
+
+function MobileBottomBar({ isHome, isBrowse, onOpenSearch, navigate }) {
+  return (
+    <nav
+      aria-label="Mobile"
+      className="fixed bottom-0 inset-x-0 z-40 border-t border-white/10 bg-neutral-950/75 backdrop-blur-md md:hidden"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+    >
+      <div className="mx-auto flex h-14 items-stretch justify-around px-2">
+        <TabButton
+          label="Home"
+          active={isHome}
+          onClick={() => navigate('/home')}
+          icon={<HomeIcon className="h-5 w-5" />}
+        />
         <button
           type="button"
-          onClick={openSearch}
-          className="group inline-flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-1.5 text-[12px] font-semibold text-white/85 hover:text-white focus:outline-none"
-          aria-label="Search movies"
+          onClick={onOpenSearch}
+          className="group -mt-3 inline-flex h-12 w-12 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white/95 active:scale-95 focus:outline-none focus:ring-2 focus:ring-brand/60"
+          aria-label="Search"
         >
-          <Search className="h-5 w-5" />
-          <span>Search</span>
+          <SearchIcon className="h-[22px] w-[22px]" />
         </button>
-        <TabLink to="/browse" label="Browse" icon={<Compass className="h-5 w-5" />} />
-      </nav>
-    </header>
+        <TabButton
+          label="Browse"
+          active={isBrowse}
+          onClick={() => navigate('/browse')}
+          icon={<Compass className="h-5 w-5" />}
+        />
+      </div>
+    </nav>
   )
 }
 
-function TopLink({ to, icon, children }) {
+function TabButton({ label, active, icon, onClick }) {
   return (
-    <NavLink
-      to={to}
-      className={({ isActive }) =>
-        [
-          'inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold transition-colors',
-          'text-white/85 hover:text-white',
-          isActive ? 'bg-white/10 ring-1 ring-white/15' : 'bg-transparent'
-        ].join(' ')
+    <button
+      type="button"
+      onClick={onClick}
+      className={
+        'flex flex-1 flex-col items-center justify-center gap-0.5 text-[12px] ' +
+        (active ? 'text-white' : 'text-white/70')
       }
+      aria-current={active ? 'page' : undefined}
     >
-      {icon}
-      <span>{children}</span>
-    </NavLink>
-  )
-}
-
-function TabLink({ to, label, icon }) {
-  return (
-    <NavLink
-      to={to}
-      className={({ isActive }) =>
-        [
-          'inline-flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-1.5 text-[12px] font-semibold',
-          'text-white/80 hover:text-white',
-          isActive ? 'bg-white/10 ring-1 ring-white/15' : 'bg-transparent'
-        ].join(' ')
-      }
-    >
-      {icon}
-      <span>{label}</span>
-    </NavLink>
+      <span
+        className={
+          'grid h-8 w-8 place-items-center rounded-full ' +
+          (active ? 'bg-white/10 border border-white/15' : '')
+        }
+      >
+        {icon}
+      </span>
+      <span className="leading-none">{label}</span>
+    </button>
   )
 }

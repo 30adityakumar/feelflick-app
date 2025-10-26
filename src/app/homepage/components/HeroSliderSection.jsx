@@ -1,67 +1,133 @@
-// HeroSliderSection.jsx
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 
-async function fetchFeatured() {
-  const apiKey = import.meta.env.VITE_TMDB_API_KEY;
-  const res = await fetch(
-    `https://api.themoviedb.org/3/movie/now_playing?api_key=${apiKey}&language=en-US&page=1`
-  );
-  const data = await res.json();
-  return (data.results || []).slice(0, 5);
-}
-
+/**
+ * Lightweight hero "slider": auto-rotates top trending backdrops.
+ * Minimal controls, pause on hover, safe fallbacks.
+ */
 export default function HeroSliderSection() {
-  const nav = useNavigate();
+  const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY;
   const [slides, setSlides] = useState([]);
-  const [idx, setIdx] = useState(0);
+  const [state, setState] = useState("loading"); // loading | ready | error
+  const [i, setI] = useState(0);
+  const hoverRef = useRef(false);
+  const timerRef = useRef(null);
+
+  const apiUrl = useMemo(() => {
+    if (!TMDB_KEY) return null;
+    return `https://api.themoviedb.org/3/trending/movie/day?api_key=${TMDB_KEY}`;
+  }, [TMDB_KEY]);
 
   useEffect(() => {
-    fetchFeatured().then(setSlides);
-  }, []);
+    let abort = new AbortController();
+    async function run() {
+      if (!apiUrl) {
+        // simple fallback (no key)
+        setSlides([]);
+        setState("ready");
+        return;
+      }
+      try {
+        setState("loading");
+        const r = await fetch(apiUrl, { signal: abort.signal });
+        if (!r.ok) throw new Error(`TMDB trending ${r.status}`);
+        const j = await r.json();
+        const top = (j?.results || [])
+          .filter((m) => m.backdrop_path)
+          .slice(0, 6);
+        setSlides(top);
+        setState("ready");
+      } catch (e) {
+        if (abort.signal.aborted) return;
+        console.warn("Hero fetch failed:", e);
+        setState("error");
+      }
+    }
+    run();
+    return () => abort.abort();
+  }, [apiUrl]);
 
+  // auto-rotate
   useEffect(() => {
-    if (!slides.length) return;
-    const id = setInterval(() => setIdx(i => (i + 1) % slides.length), 5000);
-    return () => clearInterval(id);
-  }, [slides]);
+    clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      if (hoverRef.current) return;
+      setI((p) => (p + 1) % Math.max(slides.length || 1, 1));
+    }, 6000);
+    return () => clearInterval(timerRef.current);
+  }, [slides.length]);
 
-  if (!slides[idx]) {
-    return <div className="h-64 sm:h-80 md:h-96 bg-zinc-900 animate-pulse" />;
-  }
-
-  const m = slides[idx];
+  const current = slides[i];
 
   return (
-    <div className="relative h-64 sm:h-80 md:h-96 mb-6 sm:mb-8 overflow-hidden">
-      <img
-        src={`https://image.tmdb.org/t/p/original${m.backdrop_path}`}
-        alt={m.title}
-        className="w-full h-full object-cover"
-        loading="eager"
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
-      
-      {/* Mobile-optimized content container */}
-      <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 md:p-6">
-        <div className="max-w-full">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 leading-tight break-words">
-            {m.title}
-          </h1>
-          
-          {/* Text with proper mobile constraints */}
-          <p className="text-sm sm:text-base md:text-lg opacity-90 mb-3 sm:mb-4 leading-relaxed break-words line-clamp-3 sm:line-clamp-4 md:line-clamp-none">
-            {m.overview}
-          </p>
-          
-          <button
-            onClick={() => nav(`/movie/${m.id}`)}
-            className="bg-red-600 hover:bg-red-700 active:bg-red-800 px-4 sm:px-6 py-2 rounded-lg font-semibold transition-colors text-sm sm:text-base touch-manipulation"
-          >
-            Watch Now
-          </button>
+    <section
+      className="relative mb-6 overflow-hidden rounded-2xl ring-1 ring-white/10 bg-white/5"
+      onMouseEnter={() => (hoverRef.current = true)}
+      onMouseLeave={() => (hoverRef.current = false)}
+    >
+      {/* Image */}
+      <div className="relative aspect-[16/7] sm:aspect-[16/6] md:aspect-[16/5] w-full">
+        {state === "loading" && <div className="h-full w-full animate-pulse bg-white/5" />}
+        {state === "error" && (
+          <div className="flex h-full w-full items-center justify-center text-white/75">
+            Couldn’t load spotlight.
+          </div>
+        )}
+        {state === "ready" && current ? (
+          <>
+            <img
+              src={`https://image.tmdb.org/t/p/w1280${current.backdrop_path}`}
+              alt={current.title || "Featured movie"}
+              className="absolute inset-0 h-full w-full object-cover"
+              loading="eager"
+              decoding="async"
+            />
+            {/* overlays */}
+            <div className="absolute inset-0 bg-gradient-to-tr from-black/55 via-black/30 to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/70 to-transparent" />
+          </>
+        ) : null}
+
+        {/* Copy */}
+        <div className="absolute bottom-3 left-3 right-3 sm:bottom-5 sm:left-6 sm:right-6">
+          <div className="max-w-[820px]">
+            <h3 className="text-[clamp(1.1rem,3.5vw,2rem)] font-extrabold leading-tight tracking-tight text-white drop-shadow">
+              {current?.title || "Discover something you’ll love"}
+            </h3>
+            {current?.overview && (
+              <p className="mt-1 line-clamp-2 text-[clamp(.8rem,1.8vw,.95rem)] text-white/85">
+                {current.overview}
+              </p>
+            )}
+            {current?.id && (
+              <div className="mt-3">
+                <Link
+                  to={`/movie/${current.id}`}
+                  className="inline-flex h-10 items-center justify-center rounded-full bg-gradient-to-r from-[#fe9245] to-[#eb423b] px-5 text-[0.95rem] font-semibold text-white shadow-lift hover:opacity-95 active:scale-[.99] focus:outline-none"
+                >
+                  View details
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
+
+        {/* Dots */}
+        {slides.length > 1 && (
+          <div className="absolute right-3 top-3 flex gap-1.5">
+            {slides.map((_, idx) => (
+              <button
+                key={idx}
+                aria-label={`Go to slide ${idx + 1}`}
+                onClick={() => setI(idx)}
+                className={`h-2.5 w-2.5 rounded-full transition ${
+                  idx === i ? "bg-white/90" : "bg-white/40 hover:bg-white/60"
+                }`}
+              />
+            ))}
+          </div>
+        )}
       </div>
-    </div>
+    </section>
   );
 }

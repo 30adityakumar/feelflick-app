@@ -1,265 +1,174 @@
 // src/app/header/Header.jsx
-import { useEffect, useRef, useState, useMemo } from 'react'
-import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { Home as HomeIcon, Compass, Search as SearchIcon, User as UserIcon, LogOut, SlidersHorizontal, Settings, Clock, Heart } from 'lucide-react'
-import logoPng from '@/assets/images/logo.png'
+// Header.jsx — Production‑grade MVP header for FeelFlick
+// - Single file, no new deps (uses plain React + Tailwind classes)
+// - Desktop: sticky top header with logo, inline nav, account
+// - Mobile: compact top bar + bottom tab bar (YouTube‑style)
+// - Accessible: skip link, aria-current on active items, keyboard focus rings
+// - Works with any router (anchors). If you have <Link>, swap <a> with it.
+// - Active state is derived from window.location.pathname.
 
-export default function Header({ onOpenSearch }) {
-  const { pathname } = useLocation()
-  const navigate = useNavigate()
-  const barRef = useRef(null)
-  const [scrolled, setScrolled] = useState(false)
-  const [menuOpen, setMenuOpen] = useState(false)
+import React from 'react'
 
-  // expose header height via CSS var for layout spacing
-  useEffect(() => {
-    const setVar = () => {
-      const h = barRef.current?.offsetHeight || 56
-      document.documentElement.style.setProperty('--app-header-h', `${h}px`)
-    }
-    setVar()
-    const ro = new ResizeObserver(setVar)
-    if (barRef.current) ro.observe(barRef.current)
-    return () => ro.disconnect()
-  }, [])
+// ------- Small inline icons (no external libs) -------
+const IconHome = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
+    <path d="M3 10.5 12 3l9 7.5"/>
+    <path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/>
+  </svg>
+)
 
-  // subtle style on scroll
-  useEffect(() => {
-    let ticking = false
-    const onScroll = () => {
-      if (ticking) return
-      ticking = true
-      requestAnimationFrame(() => {
-        setScrolled((window.scrollY || document.documentElement.scrollTop) > 8)
-        ticking = false
-      })
-    }
-    onScroll()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
+const IconGrid = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
+    <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+    <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+    <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+    <rect x="14" y="14" width="7" height="7" rx="1.5"/>
+  </svg>
+)
 
-  // close profile menu on outside click
-  useEffect(() => {
-    const onDoc = (e) => {
-      if (!menuOpen) return
-      if (!barRef.current) return
-      if (!barRef.current.contains(e.target)) setMenuOpen(false)
-    }
-    document.addEventListener('mousedown', onDoc)
-    document.addEventListener('touchstart', onDoc, { passive: true })
-    return () => {
-      document.removeEventListener('mousedown', onDoc)
-      document.removeEventListener('touchstart', onDoc)
-    }
-  }, [menuOpen])
+const IconSearch = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
+    <circle cx="11" cy="11" r="7"/>
+    <path d="m20 20-3.5-3.5"/>
+  </svg>
+)
 
-  // active checks
-  const isHome = useMemo(() => pathname === '/home' || pathname === '/', [pathname])
-  const isBrowse = useMemo(() => pathname.startsWith('/browse'), [pathname])
+const IconUser = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
+    <path d="M20 21a8 8 0 1 0-16 0"/>
+    <circle cx="12" cy="8" r="4"/>
+  </svg>
+)
 
-  const shell =
-    'fixed inset-x-0 top-0 z-50 transition-colors duration-200 ' +
-    (scrolled ? 'bg-neutral-950/60 backdrop-blur-md ring-1 ring-white/10' : 'bg-transparent')
+// ------- Helpers -------
+const isActive = (href) => {
+  try {
+    const path = window.location?.pathname || '/'
+    if (href === '/') return path === '/'
+    return path === href || path.startsWith(href + '/')
+  } catch {
+    return false
+  }
+}
 
+const classes = (...xs) => xs.filter(Boolean).join(' ')
+
+function NavItem({ href, label, icon: Icon, variant = 'desktop' }) {
+  const active = isActive(href)
+  const base = 'inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring focus-visible:ring-offset-2 focus-visible:ring-neutral-400 dark:focus-visible:ring-neutral-600 focus-visible:ring-offset-transparent'
+
+  if (variant === 'mobile') {
+    return (
+      <a href={href} aria-label={label} aria-current={active ? 'page' : undefined} className={classes(
+        'flex flex-col items-center justify-center gap-1 min-w-[64px] py-2',
+        active ? 'text-black dark:text-white' : 'text-neutral-600 dark:text-neutral-300'
+      )}>
+        <Icon className="h-6 w-6" />
+        <span className={classes('text-[11px] leading-none', active && 'font-semibold')}>{label}</span>
+      </a>
+    )
+  }
+
+  // desktop
+  return (
+    <a href={href} aria-current={active ? 'page' : undefined} className={classes(
+      base,
+      active
+        ? 'bg-neutral-200/70 text-black dark:bg-neutral-800/70 dark:text-white'
+        : 'text-neutral-700 hover:bg-neutral-200/60 dark:text-neutral-200 dark:hover:bg-neutral-800/50'
+    )}>
+      <Icon className="h-[18px] w-[18px]" />
+      <span>{label}</span>
+    </a>
+  )
+}
+
+// ------- Main Header -------
+export default function Header({ user, onSignOut }) {
+  // Ensure we render a skip link and safe top/bottom bars
   return (
     <>
-      <header className={shell} role="banner" aria-label="Site header">
-        <div
-          ref={barRef}
-          className="mx-auto flex w-full max-w-[1200px] items-center justify-between gap-3 px-4 md:px-6 py-3 md:py-4"
-        >
-          {/* Left: Brand */}
-          <Link
-            to="/home"
-            className="flex items-center gap-2 rounded-md focus:outline-none focus:ring-2 focus:ring-brand/60"
-            aria-label="FeelFlick home"
-          >
-            <img
-              src={logoPng}
-              alt=""
-              width="28"
-              height="28"
-              className="h-7 w-7 object-contain"
-              loading="eager"
-              decoding="async"
-            />
-            <span className="hidden sm:inline text-[clamp(1.05rem,3.5vw,1.35rem)] font-extrabold tracking-tight text-brand-100">
-              FEELFLICK
-            </span>
-          </Link>
+      {/* Skip to content for keyboard users */}
+      <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-black focus:px-3 focus:py-2 focus:text-white">Skip to content</a>
 
-          {/* Center: Primary nav (desktop) */}
-          <nav className="hidden md:flex items-center gap-1.5" aria-label="Primary">
-            <NavItem to="/home" active={isHome}>Home</NavItem>
-            <NavItem to="/browse" active={isBrowse}>Browse</NavItem>
-          </nav>
+      {/* Sticky top header (desktop & tablet) */}
+      <header className="sticky top-0 z-50 hidden border-b border-neutral-200/80 bg-white/70 backdrop-blur supports-[backdrop-filter]:bg-white/50 dark:border-neutral-800/80 dark:bg-neutral-950/60 md:block">
+        <div className="mx-auto max-w-6xl px-4">
+          <div className="flex h-14 items-center justify-between gap-3">
+            {/* Left: Brand */}
+            <a href="/" className="group flex items-center gap-2 rounded-lg p-1 focus-visible:outline-none focus-visible:ring focus-visible:ring-neutral-400 dark:focus-visible:ring-neutral-700">
+              {/* If you have an image logo, place it here */}
+              <div aria-hidden className="h-6 w-6 rounded-md bg-black dark:bg-white" />
+              <span className="text-sm font-bold tracking-wide text-neutral-900 group-hover:opacity-90 dark:text-neutral-100">FeelFlick</span>
+            </a>
 
-          {/* Right: Search + Profile */}
-          <div className="flex items-center gap-2">
-            {/* Search trigger (desktop & mobile) */}
-            <button
-              type="button"
-              onClick={onOpenSearch}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white/90 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60"
-              aria-label="Search movies"
-              title="Search ( / )"
-            >
-              <SearchIcon className="h-5 w-5" />
-            </button>
+            {/* Center: Primary nav */}
+            <nav aria-label="Primary" className="flex items-center gap-1">
+              <NavItem href="/" label="Home" icon={IconHome} />
+              <NavItem href="/browse" label="Browse" icon={IconGrid} />
+              <NavItem href="/search" label="Search" icon={IconSearch} />
+            </nav>
 
-            {/* Profile menu */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setMenuOpen((s) => !s)}
-                className="inline-flex h-10 items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 text-white/90 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-brand/60"
-                aria-haspopup="menu"
-                aria-expanded={menuOpen}
-                aria-label="Account menu"
-              >
-                <span className="grid h-6 w-6 place-items-center rounded-full bg-gradient-to-br from-[#fe9245] to-[#eb423b] text-[12px] font-bold">
-                  FF
-                </span>
-                <span className="hidden sm:inline text-sm font-semibold">Account</span>
-              </button>
-
-              {/* menu popover */}
-              {menuOpen && (
-                <div
-                  role="menu"
-                  className="absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border border-white/10 bg-neutral-950/95 backdrop-blur-lg shadow-2xl"
-                >
-                  <MenuLink to="/account" onClick={() => setMenuOpen(false)}>
-                    <UserIcon className="h-4 w-4" />
-                    Profile
-                  </MenuLink>
-                  <MenuLink to="/preferences" onClick={() => setMenuOpen(false)}>
-                    <Settings className="h-4 w-4" />
-                    Preferences
-                  </MenuLink>
-                  <div className="my-1 h-px bg-white/10" />
-                  <MenuLink to="/watchlist" onClick={() => setMenuOpen(false)}>
-                    <Heart className="h-4 w-4" />
-                    Watchlist
-                  </MenuLink>
-                  <MenuLink to="/history" onClick={() => setMenuOpen(false)}>
-                    <Clock className="h-4 w-4" />
-                    History
-                  </MenuLink>
-                  <div className="my-1 h-px bg-white/10" />
-                  <MenuLink to="/logout" onClick={() => setMenuOpen(false)}>
-                    <LogOut className="h-4 w-4" />
-                    Sign out
-                  </MenuLink>
+            {/* Right: Account */}
+            <div className="flex items-center gap-2">
+              {user ? (
+                <div className="flex items-center gap-3">
+                  <a href="/account" className="flex items-center gap-2 rounded-xl px-2 py-1.5 text-sm text-neutral-800 hover:bg-neutral-200/60 dark:text-neutral-100 dark:hover:bg-neutral-800/60">
+                    <div className="h-7 w-7 overflow-hidden rounded-full ring-1 ring-neutral-300 dark:ring-neutral-700">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={user.avatarUrl || 'https://api.dicebear.com/9.x/identicon/svg?seed=user'} alt="" className="h-full w-full object-cover" />
+                    </div>
+                    <span className="hidden sm:inline-block max-w-[160px] truncate">{user.name || 'Account'}</span>
+                  </a>
+                  {onSignOut && (
+                    <button type="button" onClick={onSignOut} className="rounded-xl px-3 py-1.5 text-sm text-neutral-700 ring-1 ring-neutral-300 hover:bg-neutral-200/70 dark:text-neutral-200 dark:ring-neutral-700 dark:hover:bg-neutral-800/70">
+                      Sign out
+                    </button>
+                  )}
                 </div>
+              ) : (
+                <a href="/account" className="rounded-xl px-3 py-1.5 text-sm text-neutral-700 ring-1 ring-neutral-300 hover:bg-neutral-200/70 dark:text-neutral-200 dark:ring-neutral-700 dark:hover:bg-neutral-800/70">
+                  Sign in
+                </a>
               )}
             </div>
           </div>
         </div>
       </header>
 
-      {/* Mobile bottom tab bar */}
-      <MobileBottomBar
-        isHome={isHome}
-        isBrowse={isBrowse}
-        onOpenSearch={onOpenSearch}
-        navigate={navigate}
-      />
+      {/* Compact top bar for mobile (brand + search shortcut) */}
+      <header className="sticky top-0 z-50 border-b border-neutral-200/80 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:border-neutral-800/80 dark:bg-neutral-950/70 md:hidden">
+        <div className="mx-auto max-w-6xl px-3">
+          <div className="flex h-12 items-center justify-between">
+            <a href="/" className="flex items-center gap-2">
+              <div aria-hidden className="h-5 w-5 rounded-md bg-black dark:bg-white" />
+              <span className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">FeelFlick</span>
+            </a>
+            <a href="/search" aria-label="Search" className="rounded-lg p-2 text-neutral-700 hover:bg-neutral-200/60 focus-visible:outline-none focus-visible:ring dark:text-neutral-200 dark:hover:bg-neutral-800/60">
+              <IconSearch className="h-5 w-5" />
+            </a>
+          </div>
+        </div>
+      </header>
+
+      {/* Bottom tab bar (mobile only) */}
+      <nav aria-label="Bottom" className="fixed inset-x-0 bottom-0 z-50 border-t border-neutral-200/80 bg-white/85 pb-[env(safe-area-inset-bottom)] backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:border-neutral-800/80 dark:bg-neutral-950/70 md:hidden">
+        <div className="mx-auto max-w-3xl">
+          <div className="grid grid-cols-4">
+            <NavItem href="/" label="Home" icon={IconHome} variant="mobile" />
+            <NavItem href="/browse" label="Browse" icon={IconGrid} variant="mobile" />
+            <NavItem href="/search" label="Search" icon={IconSearch} variant="mobile" />
+            <NavItem href="/account" label="Account" icon={IconUser} variant="mobile" />
+          </div>
+        </div>
+      </nav>
     </>
   )
 }
 
-/* ------------------------ Small building blocks ------------------------- */
-
-function NavItem({ to, active, children }) {
-  return (
-    <NavLink
-      to={to}
-      className={
-        'relative inline-flex items-center rounded-full px-3.5 py-2 text-sm font-semibold text-white/85 hover:text-white focus:outline-none focus:ring-2 focus:ring-brand/60 ' +
-        (active ? 'text-white' : '')
-      }
-      aria-current={active ? 'page' : undefined}
-    >
-      {children}
-      {/* animated underline for active */}
-      <span
-        className={
-          'pointer-events-none absolute inset-x-2 bottom-1 h-[2px] rounded ' +
-          (active ? 'bg-[linear-gradient(90deg,#fe9245_0%,#eb423b_40%,#2D77FF_85%)] opacity-95' : 'opacity-0')
-        }
-      />
-    </NavLink>
-  )
-}
-
-function MenuLink({ to, onClick, children }) {
-  return (
-    <Link
-      to={to}
-      onClick={onClick}
-      className="flex items-center gap-2 px-3.5 py-2.5 text-[0.93rem] text-white/90 hover:bg-white/5 focus:bg-white/10 focus:outline-none"
-      role="menuitem"
-    >
-      {children}
-    </Link>
-  )
-}
-
-function MobileBottomBar({ isHome, isBrowse, onOpenSearch, navigate }) {
-  return (
-    <nav
-      aria-label="Mobile"
-      className="fixed bottom-0 inset-x-0 z-40 border-t border-white/10 bg-neutral-950/75 backdrop-blur-md md:hidden"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
-    >
-      <div className="mx-auto flex h-14 items-stretch justify-around px-2">
-        <TabButton
-          label="Home"
-          active={isHome}
-          onClick={() => navigate('/home')}
-          icon={<HomeIcon className="h-5 w-5" />}
-        />
-        <button
-          type="button"
-          onClick={onOpenSearch}
-          className="group -mt-3 inline-flex h-12 w-12 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white/95 active:scale-95 focus:outline-none focus:ring-2 focus:ring-brand/60"
-          aria-label="Search"
-        >
-          <SearchIcon className="h-[22px] w-[22px]" />
-        </button>
-        <TabButton
-          label="Browse"
-          active={isBrowse}
-          onClick={() => navigate('/browse')}
-          icon={<Compass className="h-5 w-5" />}
-        />
-      </div>
-    </nav>
-  )
-}
-
-function TabButton({ label, active, icon, onClick }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={
-        'flex flex-1 flex-col items-center justify-center gap-0.5 text-[12px] ' +
-        (active ? 'text-white' : 'text-white/70')
-      }
-      aria-current={active ? 'page' : undefined}
-    >
-      <span
-        className={
-          'grid h-8 w-8 place-items-center rounded-full ' +
-          (active ? 'bg-white/10 border border-white/15' : '')
-        }
-      >
-        {icon}
-      </span>
-      <span className="leading-none">{label}</span>
-    </button>
-  )
-}
+// Notes:
+// 1) If you already use a router (e.g., custom, Next.js, React Router), replace <a> with your Link.
+// 2) Ensure your main content has an id="main" and bottom padding on mobile, e.g.:
+//    <main id="main" className="pb-16 md:pb-0"> ... </main>  // to avoid tab bar overlap
+// 3) Replace the square brand placeholder with your SVG/logo image.
+// 4) If you have a theme toggle, you can slot it at the right side of the desktop header.

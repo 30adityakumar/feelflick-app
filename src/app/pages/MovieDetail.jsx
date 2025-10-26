@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
 import {
-  Play, Bookmark, CheckCheck, Check, Star, Clock, Calendar, ChevronRight, Tv2
+  Play, Bookmark, Check, Star, Clock, Calendar, ChevronRight, Tv2
 } from 'lucide-react'
 
 const IMG = {
@@ -150,9 +150,66 @@ export default function MovieDetail() {
     return false
   }
 
-  // ---------------- Safe write helpers (never 409) ----------------
+  // Ensure movies row exists BEFORE watchlist writes (fixes FK 23503)
+  async function ensureMovieRow(d) {
+    try {
+      // Minimal payload—adjust to your schema
+      const row = {
+        id: d.id,
+        title: d.title || d.name || '',
+        poster_path: d.poster_path || null,
+        backdrop_path: d.backdrop_path || null,
+        release_date: d.release_date || null,
+        vote_average: d.vote_average ?? null,
+        popularity: d.popularity ?? null,
+      }
+
+      const { data: existing, error: selErr } =
+        await supabase.from('movies').select('id').eq('id', d.id).maybeSingle()
+
+      if (selErr) {
+        // If RLS blocks SELECT, try a blind INSERT and ignore duplicates
+        const { error: insBlindErr } = await supabase.from('movies').insert(row)
+        if (insBlindErr) {
+          // If duplicate or conflict, we’re fine; anything else bubble up
+          const msg = `${insBlindErr.message || ''}`.toLowerCase()
+          const dup = insBlindErr.code === '23505' || msg.includes('duplicate') || msg.includes('conflict')
+          if (!dup) throw insBlindErr
+        }
+        return
+      }
+
+      if (existing) {
+        // Optional: keep some fields fresh
+        await supabase.from('movies').update({
+          poster_path: row.poster_path,
+          backdrop_path: row.backdrop_path,
+          vote_average: row.vote_average,
+          popularity: row.popularity,
+          release_date: row.release_date,
+          title: row.title,
+        }).eq('id', d.id)
+      } else {
+        const { error: insErr } = await supabase.from('movies').insert(row)
+        if (insErr) {
+          const msg = `${insErr.message || ''}`.toLowerCase()
+          const dup = insErr.code === '23505' || msg.includes('duplicate') || msg.includes('conflict')
+          if (!dup) throw insErr
+        }
+      }
+    } catch (e) {
+      // If movies table has RLS too strict, you’ll get 403 here.
+      // See the RLS notes at the bottom.
+      throw e
+    }
+  }
+
+  // ---------------- Safe write helpers (no UPSERT, no 409) ----------------
   async function writeStatus(nextStatus) {
-    // 1) Try UPDATE
+    // Satisfy FK first
+    await ensureMovieRow(movie)
+
+    // 1) UPDATE first
     const { error: updErr, count } = await supabase
       .from('user_watchlist')
       .update({ status: nextStatus })
@@ -162,13 +219,13 @@ export default function MovieDetail() {
 
     if (!updErr && (count ?? 0) > 0) return true
 
-    // 2) If nothing updated, try INSERT
+    // 2) INSERT if no row updated
     const { error: insErr } = await supabase
       .from('user_watchlist')
       .insert({ user_id: user.id, movie_id: Number(id), status: nextStatus })
 
-    // If a race caused a duplicate, do a final UPDATE
     if (insErr) {
+      // Race-safe: if duplicate happened between update & insert, finalize with update
       const msg = `${insErr.message || ''}`.toLowerCase()
       const dup = insErr.code === '23505' || msg.includes('duplicate') || msg.includes('conflict')
       if (dup) {
@@ -185,13 +242,13 @@ export default function MovieDetail() {
   }
 
   async function deleteRow() {
-    await supabase.from('user_watchlist')
+    await supabase
+      .from('user_watchlist')
       .delete()
       .eq('user_id', user.id)
       .eq('movie_id', Number(id))
   }
 
-  // Explicit toggles so both buttons are always visible
   async function toggleWatchlist() {
     if (!(await ensureAuthed())) return
     setMutating(true)
@@ -200,12 +257,14 @@ export default function MovieDetail() {
         await deleteRow()
         setWlStatus(null)
       } else if (wlStatus === 'watched') {
-        await writeStatus('want_to_watch') // move from watched → want_to_watch
+        await writeStatus('want_to_watch')
         setWlStatus('want_to_watch')
       } else {
-        await writeStatus('want_to_watch') // add
+        await writeStatus('want_to_watch')
         setWlStatus('want_to_watch')
       }
+    } catch (e) {
+      console.warn('watchlist write failed:', e)
     } finally {
       setMutating(false)
     }
@@ -216,12 +275,14 @@ export default function MovieDetail() {
     setMutating(true)
     try {
       if (wlStatus === 'watched') {
-        await deleteRow() // undo watched
+        await deleteRow()
         setWlStatus(null)
       } else {
-        await writeStatus('watched') // mark watched (even if not on watchlist)
+        await writeStatus('watched')
         setWlStatus('watched')
       }
+    } catch (e) {
+      console.warn('watched write failed:', e)
     } finally {
       setMutating(false)
     }

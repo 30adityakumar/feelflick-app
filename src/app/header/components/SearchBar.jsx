@@ -1,102 +1,184 @@
 // src/app/header/components/SearchBar.jsx
-import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Search, X } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { X, Search as SearchIcon } from "lucide-react";
 
-/**
- * Simple modal search.
- * - ESC closes
- * - Focus returns to the previously focused element
- * - Basic two-element focus loop (input / close)
- */
 export default function SearchBar({ open, onClose }) {
-  const nav = useNavigate()
-  const [q, setQ] = useState('')
-  const inputRef = useRef(null)
-  const closeRef = useRef(null)
-  const lastActiveRef = useRef(null)
+  const nav = useNavigate();
+  const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
-  /* Focus: capture and restore */
-  useEffect(() => {
-    if (!open) return
-    lastActiveRef.current = document.activeElement
-    const t = setTimeout(() => inputRef.current?.focus(), 40)
-    return () => clearTimeout(t)
-  }, [open])
+  const [q, setQ] = useState("");
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [sel, setSel] = useState(-1);
+  const inputRef = useRef(null);
 
+  // Focus when opened
   useEffect(() => {
-    if (!open) return
-    return () => {
-      const el = lastActiveRef.current
-      if (el && typeof el.focus === 'function') el.focus()
+    if (open) {
+      setTimeout(() => inputRef.current?.focus(), 10);
+    } else {
+      setQ("");
+      setResults([]);
+      setSel(-1);
+      setLoading(false);
     }
-  }, [open])
+  }, [open]);
 
-  /* ESC + minimal focus loop */
+  // Close on Escape
   useEffect(() => {
-    if (!open) return
-    const onKey = (e) => {
-      if (e.key === 'Escape') onClose?.()
-      if (e.key === 'Tab') {
-        const els = [inputRef.current, closeRef.current].filter(Boolean)
-        if (els.length < 2) return
-        const idx = els.indexOf(document.activeElement)
-        if (e.shiftKey) {
-          if (idx === 0) { e.preventDefault(); els[1].focus() }
-        } else {
-          if (idx === 1) { e.preventDefault(); els[0].focus() }
+    if (!open) return;
+    function onKey(e) {
+      if (e.key === "Escape") onClose?.();
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+
+  // Debounced search
+  const debouncedQ = useDebounce(q, 250);
+
+  useEffect(() => {
+    let abort = false;
+    async function run() {
+      if (!open) return;
+      if (!TMDB_KEY || !debouncedQ || debouncedQ.trim().length < 2) {
+        setResults([]);
+        setLoading(false);
+        return;
+      }
+      setLoading(true);
+      try {
+        const r = await fetch(
+          `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${encodeURIComponent(
+            debouncedQ
+          )}`
+        );
+        const j = await r.json();
+        if (!abort) {
+          const list = (j?.results || []).slice(0, 12);
+          setResults(list);
         }
+      } catch {
+        if (!abort) setResults([]);
+      } finally {
+        if (!abort) setLoading(false);
       }
     }
-    document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
-  }, [open, onClose])
+    run();
+    return () => { abort = true; };
+  }, [debouncedQ, TMDB_KEY, open]);
 
-  function submit(e) {
-    e.preventDefault()
-    const term = q.trim()
-    if (!term) return
-    onClose?.()
-    nav(`/browse?q=${encodeURIComponent(term)}`)
-    setQ('')
+  function goToMovie(m) {
+    onClose?.();
+    nav(`/movie/${m.id}`);
   }
 
-  if (!open) return null
+  // Keyboard nav for list
+  function onListKey(e) {
+    if (!results.length) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setSel((s) => (s + 1) % results.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setSel((s) => (s - 1 + results.length) % results.length);
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      const m = results[Math.max(0, sel)];
+      if (m) goToMovie(m);
+    }
+  }
+
+  if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[60]" role="dialog" aria-modal="true" aria-label="Search movies">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-
-      {/* Surface */}
-      <div
-        className="absolute left-1/2 top-[calc(var(--app-header-h,64px)+4vh)] w-[min(92vw,720px)] -translate-x-1/2"
-        style={{ maxWidth: '720px' }}
-      >
-        <form
-          onSubmit={submit}
-          className="flex items-center gap-2 rounded-2xl border border-white/12 bg-neutral-900/85 p-2 pl-3 shadow-2xl backdrop-blur-xl"
-        >
-          <Search className="h-5 w-5 text-white/70" aria-hidden />
+    <div
+      className="
+        fixed inset-0 z-[60] grid place-items-start bg-black/60 px-3 pt-8
+        md:place-items-center md:px-6
+      "
+      aria-modal="true"
+      role="dialog"
+    >
+      <div className="w-full max-w-[720px] rounded-2xl border border-white/10 bg-neutral-950/85 backdrop-blur-md shadow-2xl">
+        {/* Input row */}
+        <div className="flex items-center gap-2 border-b border-white/10 px-3 py-2.5 md:px-4">
+          <SearchIcon className="h-5 w-5 text-white/70" />
           <input
             ref={inputRef}
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search movies… (press / to focus)"
-            className="h-11 w-full bg-transparent text-[1rem] text-white placeholder:text-white/50 focus:outline-none"
+            onKeyDown={onListKey}
+            placeholder="Search movies…"
+            className="flex-1 bg-transparent text-[15px] text-white placeholder-white/50 focus:outline-none"
             aria-label="Search movies"
           />
           <button
-            ref={closeRef}
-            type="button"
             onClick={onClose}
-            className="inline-grid h-9 w-9 place-items-center rounded-xl bg-white/10 text-white/80 hover:bg-white/15 focus:outline-none"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-white/5 text-white/80 hover:bg-white/10 focus:outline-none"
             aria-label="Close search"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4" />
           </button>
-        </form>
+        </div>
+
+        {/* Results */}
+        <div className="max-h-[60vh] overflow-y-auto px-2 py-2 md:px-3 md:py-3">
+          {!q && (
+            <p className="px-2 py-6 text-center text-sm text-white/65">
+              Type at least 2 characters to search.
+            </p>
+          )}
+          {q && loading && (
+            <p className="px-2 py-6 text-center text-sm text-white/65">Searching…</p>
+          )}
+          {q && !loading && results.length === 0 && (
+            <p className="px-2 py-6 text-center text-sm text-white/65">No results.</p>
+          )}
+          {results.map((m, i) => (
+            <button
+              key={m.id}
+              onClick={() => goToMovie(m)}
+              onMouseEnter={() => setSel(i)}
+              className={[
+                "grid w-full grid-cols-[44px_1fr_auto] items-center gap-3 rounded-lg px-2 py-2 text-left hover:bg-white/5 focus:outline-none",
+                sel === i ? "bg-white/10" : "",
+              ].join(" ")}
+            >
+              <img
+                src={
+                  m.poster_path
+                    ? `https://image.tmdb.org/t/p/w92${m.poster_path}`
+                    : "https://dummyimage.com/44x66/0b0f18/ffffff&text=–"
+                }
+                alt=""
+                className="h-16 w-11 rounded object-cover"
+                loading="lazy"
+              />
+              <div className="min-w-0">
+                <div className="truncate text-[14px] font-semibold text-white">
+                  {m.title}
+                </div>
+                <div className="mt-0.5 text-[12px] text-white/65">
+                  {(m.release_date || "").slice(0, 4)} • ★ {m.vote_average?.toFixed?.(1) ?? "–"}
+                </div>
+              </div>
+              <div className="text-[12px] text-white/55">Open</div>
+            </button>
+          ))}
+        </div>
       </div>
     </div>
-  )
+  );
+}
+
+/* --------------------------- hook: debounce --------------------------- */
+function useDebounce(value, delay) {
+  const [v, setV] = useState(value);
+  useEffect(() => {
+    const id = setTimeout(() => setV(value), delay);
+    return () => clearTimeout(id);
+  }, [value, delay]);
+  return v;
 }

@@ -1,160 +1,110 @@
 // src/app/header/Header.jsx
-import { memo, useEffect, useRef, useState } from 'react'
-import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { Compass, Home as HomeIcon, Search } from 'lucide-react'
-import { supabase } from '@/shared/lib/supabase/client'
-import Account from '@/app/header/components/Account'
+import { useEffect, useRef, useState, Fragment } from "react";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { supabase } from "@/shared/lib/supabase/client";
+import {
+  Home,
+  Compass,
+  Search as SearchIcon,
+  ChevronDown,
+  LogOut,
+  User as UserIcon,
+  Settings,
+} from "lucide-react";
+import logoPng from "@/assets/images/logo.png";
 
-function Header({ onOpenSearch }) {
-  const nav = useNavigate()
-  const { pathname } = useLocation()
+export default function Header({ onOpenSearch }) {
+  const { pathname } = useLocation();
+  const [user, setUser] = useState(null);
 
-  const [user, setUser] = useState(null)
-  const [menuOpen, setMenuOpen] = useState(false)
-
-  const rootRef = useRef(null)
-  const popRef = useRef(null)
-  const btnRef = useRef(null)
-
-  /* Keep header height in a CSS var to avoid layout jank */
+  // Get current user (lightweight)
   useEffect(() => {
-    const syncVar = () => {
-      const h = rootRef.current?.offsetHeight || 64
-      document.documentElement.style.setProperty('--app-header-h', `${h}px`)
-    }
-    syncVar()
-    const ro = new ResizeObserver(syncVar)
-    if (rootRef.current) ro.observe(rootRef.current)
-    return () => ro.disconnect()
-  }, [])
-
-  /* Auth presence */
-  useEffect(() => {
-    let unsub
-    supabase.auth.getSession().then(({ data }) => setUser(data?.session?.user || null))
+    let unsub;
+    supabase.auth.getUser().then(({ data }) => setUser(data?.user || null));
     const { data } = supabase.auth.onAuthStateChange((_evt, session) => {
-      setUser(session?.user || null)
-    })
-    unsub = data?.subscription?.unsubscribe
-    return () => { if (typeof unsub === 'function') unsub() }
-  }, [])
-
-  /* Close popover when route changes / outside click / ESC */
-  useEffect(() => setMenuOpen(false), [pathname])
-  useEffect(() => {
-    if (!menuOpen) return
-    const onKey = (e) => e.key === 'Escape' && setMenuOpen(false)
-    const onClick = (e) => {
-      const inBtn = btnRef.current?.contains(e.target)
-      const inPop = popRef.current?.contains(e.target)
-      if (!inBtn && !inPop) setMenuOpen(false)
-    }
-    document.addEventListener('keydown', onKey)
-    document.addEventListener('mousedown', onClick)
-    return () => {
-      document.removeEventListener('keydown', onKey)
-      document.removeEventListener('mousedown', onClick)
-    }
-  }, [menuOpen])
-
-  const initials = (() => {
-    const src = (user?.user_metadata?.name || user?.email || 'FF').trim()
-    const nameInitials = src.split(/\s+/).map(s => s[0]).join('').slice(0, 2)
-    if (nameInitials) return nameInitials.toUpperCase()
-    const beforeAt = (user?.email || '').split('@')[0] || 'ff'
-    return beforeAt.slice(0, 2).toUpperCase()
-  })()
-
-  function openSearch() {
-    onOpenSearch?.()
-  }
+      setUser(session?.user || null);
+    });
+    unsub = data?.subscription?.unsubscribe;
+    return () => { if (typeof unsub === "function") unsub(); };
+  }, []);
 
   return (
-    <header
-      ref={rootRef}
-      className="sticky top-0 z-40 w-full backdrop-blur-md bg-neutral-950/60 ring-1 ring-white/10"
-      role="banner"
-    >
-      <div className="mx-auto flex max-w-[1200px] items-center justify-between gap-3 px-4 py-3 md:px-6">
-        {/* Brand */}
-        <Link to="/home" className="group flex items-center gap-2 min-w-0" aria-label="FeelFlick home">
-          <img
-            src="/logo.png"
-            alt=""
-            width="28"
-            height="28"
-            className="h-7 w-7 rounded-md"
-            loading="eager"
-            decoding="async"
-          />
-          <span className="text-lg sm:text-xl font-extrabold tracking-tight text-white group-hover:opacity-95">
-            FEELFLICK
-          </span>
-        </Link>
-
-        {/* Desktop primary nav */}
-        <nav className="hidden md:flex items-center gap-2" aria-label="Primary">
-          <TopLink to="/home" icon={<HomeIcon className="h-4.5 w-4.5" />}>Home</TopLink>
-          <TopLink to="/browse" icon={<Compass className="h-4.5 w-4.5" />}>Browse</TopLink>
-        </nav>
-
-        {/* Actions: search + account */}
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={openSearch}
-            className="inline-grid h-9 w-9 place-items-center rounded-full bg-white/10 text-white/90 hover:bg-white/15 focus:outline-none"
-            aria-label="Search movies"
-          >
-            <Search className="h-5 w-5" />
-          </button>
-
-          <div className="relative">
-            <button
-              ref={btnRef}
-              type="button"
-              aria-haspopup="menu"
-              aria-expanded={menuOpen}
-              onClick={() => setMenuOpen(s => !s)}
-              className="inline-flex items-center gap-2 rounded-full bg-white/10 px-2.5 py-1.5 text-sm font-semibold text-white hover:bg-white/15 focus:outline-none"
+    <>
+      {/* Top app bar (sticky, blurred) */}
+      <header
+        className="
+          sticky top-0 z-40
+          backdrop-blur-md bg-neutral-950/55 ring-1 ring-white/10
+        "
+      >
+        <div className="mx-auto flex h-14 w-full max-w-[1200px] items-center justify-between gap-2 px-4 md:h-[64px] md:px-6">
+          {/* Brand + nav */}
+          <div className="flex min-w-0 items-center gap-3">
+            <Link
+              to="/home"
+              className="group flex items-center gap-2 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
+              aria-label="FeelFlick Home"
             >
-              <span className="inline-grid h-7 w-7 place-items-center rounded-full bg-gradient-to-br from-[#fe9245] to-[#eb423b] text-[12px] font-extrabold text-white">
-                {initials}
+              <img
+                src={logoPng}
+                alt=""
+                width="30"
+                height="30"
+                className="h-[28px] w-[28px] md:h-[30px] md:w-[30px] object-contain"
+                loading="eager"
+                decoding="async"
+              />
+              <span className="hidden text-[1.05rem] font-extrabold tracking-tight text-brand-100 sm:block">
+                FEELFLICK
               </span>
-              <span className="hidden sm:inline">{user ? 'Account' : 'Sign in'}</span>
+            </Link>
+
+            {/* Primary nav (desktop) */}
+            <nav className="ml-2 hidden items-center gap-1 md:flex">
+              <TopLink to="/home" icon={<Home className="h-4.5 w-4.5" />}>
+                Home
+              </TopLink>
+              <TopLink to="/browse" icon={<Compass className="h-4.5 w-4.5" />}>
+                Browse
+              </TopLink>
+            </nav>
+          </div>
+
+          {/* Right cluster */}
+          <div className="flex items-center gap-1.5">
+            {/* Open search (desktop button) */}
+            <button
+              type="button"
+              onClick={onOpenSearch}
+              className="
+                hidden md:inline-flex h-9 items-center gap-2 rounded-full
+                border border-white/15 bg-white/5 px-3 text-[0.9rem] text-white/90
+                hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60
+              "
+              aria-label="Search"
+              title="Search"
+            >
+              <SearchIcon className="h-4 w-4 text-white/85" />
+              <span className="text-white/80">Search</span>
+              <kbd className="ml-1 hidden rounded bg-white/10 px-1.5 py-0.5 text-[10px] text-white/60 md:inline">
+                /
+              </kbd>
             </button>
 
-            {menuOpen && (
-              <div
-                ref={popRef}
-                role="menu"
-                className="absolute right-0 mt-2 w-[320px] rounded-2xl border border-white/10 bg-black/75 p-3 shadow-2xl backdrop-blur-xl"
-              >
-                <Account
-                  user={user && {
-                    id: user.id,
-                    email: user.email,
-                    name: user.user_metadata?.name || ''
-                  }}
-                  onProfileUpdate={(patch) => {
-                    if (patch?.name) {
-                      setUser(u => (u ? { ...u, user_metadata: { ...(u.user_metadata || {}), name: patch.name } } : u))
-                    }
-                  }}
-                  onClose={() => setMenuOpen(false)}
-                  variant="dropdown"
-                />
-              </div>
-            )}
+            {/* Account dropdown */}
+            <AccountMenu user={user} />
+
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Mobile bottom nav (Home · Search · Browse) */}
-      <MobileTabs openSearch={openSearch} />
-    </header>
-  )
+      {/* Bottom mobile nav (YouTube-style) */}
+      <MobileBar pathname={pathname} onOpenSearch={onOpenSearch} />
+    </>
+  );
 }
+
+/* --------------------------- Helpers --------------------------- */
 
 function TopLink({ to, icon, children }) {
   return (
@@ -162,70 +112,175 @@ function TopLink({ to, icon, children }) {
       to={to}
       className={({ isActive }) =>
         [
-          'inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold transition-colors',
-          'text-white/85 hover:text-white',
-          isActive ? 'bg-white/10 ring-1 ring-white/15' : 'bg-transparent'
-        ].join(' ')
+          "inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold transition-colors",
+          isActive
+            ? "bg-white/10 text-white ring-1 ring-white/10"
+            : "text-white/75 hover:text-white hover:bg-white/10",
+        ].join(" ")
       }
     >
       {icon}
       <span>{children}</span>
     </NavLink>
-  )
+  );
 }
 
-function MobileTabs({ openSearch }) {
-  // keep bottom tabbar height for safe spacing if you need it later
-  useEffect(() => {
-    const el = document.getElementById('ff-tabbar')
-    if (!el) return
-    const sync = () => {
-      const h = el.offsetHeight
-      document.documentElement.style.setProperty('--app-tabbar-h', `${h}px`)
-    }
-    sync()
-    const ro = new ResizeObserver(sync)
-    ro.observe(el)
-    return () => ro.disconnect()
-  }, [])
-
-  return (
-    <nav
-      id="ff-tabbar"
-      className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-3 border-t border-white/10 bg-neutral-950/70 px-3 py-2 backdrop-blur-md md:hidden"
-      aria-label="Primary"
-    >
-      <TabLink to="/home" label="Home" icon={<HomeIcon className="h-5 w-5" />} />
-      <button
-        type="button"
-        onClick={openSearch}
-        className="group inline-flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-1.5 text-[12px] font-semibold text-white/85 hover:text-white focus:outline-none"
-        aria-label="Search movies"
-      >
-        <Search className="h-5 w-5" />
-        <span>Search</span>
-      </button>
-      <TabLink to="/browse" label="Browse" icon={<Compass className="h-5 w-5" />} />
-    </nav>
-  )
-}
-
-function TabLink({ to, label, icon }) {
-  return (
+function MobileBar({ pathname, onOpenSearch }) {
+  const Item = ({ to, icon, label, active }) => (
     <NavLink
       to={to}
       className={({ isActive }) =>
         [
-          'inline-flex flex-col items-center justify-center gap-1 rounded-xl px-2 py-1.5 text-[12px] font-semibold',
-          'text-white/80 hover:text-white',
-          isActive ? 'bg-white/10 ring-1 ring-white/15' : 'bg-transparent'
-        ].join(' ')
+          "flex flex-col items-center justify-center rounded-xl px-3 py-1.5 text-[11px] font-semibold transition",
+          (isActive || active) ? "text-white" : "text-white/70",
+        ].join(" ")
       }
     >
       {icon}
-      <span>{label}</span>
+      <span className="mt-0.5">{label}</span>
     </NavLink>
-  )
+  );
+
+  return (
+    <div
+      className="
+        fixed inset-x-0 bottom-0 z-40 border-t border-white/10
+        bg-neutral-950/75 backdrop-blur-md md:hidden
+      "
+    >
+      <div className="mx-auto grid h-14 max-w-[640px] grid-cols-3 items-center px-4">
+        <Item
+          to="/home"
+          label="Home"
+          icon={<Home className="h-5 w-5" />}
+          active={pathname === "/"}
+        />
+        <button
+          type="button"
+          onClick={onOpenSearch}
+          className="
+            mx-auto inline-flex h-10 w-28 items-center justify-center gap-2 rounded-full
+            border border-white/15 bg-white/5 text-[13px] font-semibold text-white/90
+            hover:bg-white/10 focus:outline-none
+          "
+          aria-label="Search"
+        >
+          <SearchIcon className="h-4.5 w-4.5" />
+          Search
+        </button>
+        <Item to="/browse" label="Browse" icon={<Compass className="h-5 w-5" />} />
+      </div>
+    </div>
+  );
 }
 
-export default memo(Header)
+function AccountMenu({ user }) {
+  const nav = useNavigate();
+  const [open, setOpen] = useState(false);
+  const btnRef = useRef(null);
+  const popRef = useRef(null);
+
+  useEffect(() => {
+    function onDoc(e) {
+      if (!open) return;
+      if (
+        popRef.current &&
+        !popRef.current.contains(e.target) &&
+        btnRef.current &&
+        !btnRef.current.contains(e.target)
+      ) {
+        setOpen(false);
+      }
+    }
+    function onKey(e) {
+      if (!open) return;
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("mousedown", onDoc);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDoc);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  async function signOut() {
+    await supabase.auth.signOut();
+    nav("/auth", { replace: true });
+  }
+
+  const name =
+    user?.user_metadata?.name ||
+    user?.email?.split("@")[0] ||
+    "Account";
+
+  return (
+    <div className="relative">
+      <button
+        ref={btnRef}
+        type="button"
+        onClick={() => setOpen((s) => !s)}
+        className="
+          inline-flex items-center gap-2 rounded-full border border-white/15
+          bg-white/5 px-2.5 py-1.5 text-white/90 hover:bg-white/10
+          focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60
+        "
+        aria-haspopup="menu"
+        aria-expanded={open}
+      >
+        <UserIcon className="h-4.5 w-4.5 text-white/85" />
+        <span className="hidden text-[13px] font-semibold md:block">
+          {name}
+        </span>
+        <ChevronDown className="hidden h-4 w-4 opacity-70 md:block" />
+      </button>
+
+      {open && (
+        <div
+          ref={popRef}
+          role="menu"
+          className="
+            absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border border-white/10
+            bg-neutral-950/90 backdrop-blur-md shadow-xl ring-1 ring-black/20
+          "
+        >
+          <MenuLink to="/account" icon={<UserIcon className="h-4 w-4" />} onClick={() => setOpen(false)}>
+            Account
+          </MenuLink>
+          <MenuLink to="/preferences" icon={<Settings className="h-4 w-4" />} onClick={() => setOpen(false)}>
+            Preferences
+          </MenuLink>
+
+          <div className="my-1 h-px bg-white/10" />
+          <button
+            type="button"
+            onClick={signOut}
+            className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-[13px] font-semibold text-white/85 hover:bg-white/10 focus:outline-none"
+          >
+            <LogOut className="h-4 w-4" />
+            Sign out
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MenuLink({ to, icon, children, onClick }) {
+  return (
+    <NavLink
+      to={to}
+      onClick={onClick}
+      className={({ isActive }) =>
+        [
+          "flex items-center gap-2 px-3 py-2.5 text-[13px] font-semibold",
+          isActive ? "bg-white/10 text-white" : "text-white/85 hover:bg-white/10",
+        ].join(" ")
+      }
+      role="menuitem"
+    >
+      {icon}
+      {children}
+    </NavLink>
+  );
+}

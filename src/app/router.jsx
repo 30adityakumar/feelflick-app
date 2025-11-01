@@ -32,6 +32,9 @@ import NotFound from '@/app/pages/NotFound'
 import TopNav from '@/features/landing/components/TopNav'
 import Footer from '@/features/landing/components/Footer'
 
+// Post-auth decision gate (spinner + routing)
+import PostAuthGate from '@/features/auth/PostAuthGate'
+
 /* ----------------------------- Public layout ----------------------------- */
 function PublicShell() {
   return (
@@ -80,98 +83,9 @@ function RedirectIfAuthed({ children }) {
     return () => { if (typeof unsub === 'function') unsub() }
   }, [])
   if (status === 'loading') return <div className="p-6 text-white/70">Loading…</div>
-  if (status === 'authed') return <Navigate to="/home" replace />
+  // ⬇️ Always send authed users to the gate, not /home — avoids any home flash
+  if (status === 'authed') return <Navigate to="/post-auth" replace />
   return children
-}
-
-/* ---------------------- Onboarding completion gate ----------------------- */
-const isStrictTrue = (v) => v === true
-
-function SplashSpinner() {
-  return (
-    <div className="fixed inset-0 z-[9999] grid place-items-center bg-[linear-gradient(120deg,#0a121a_0%,#0d1722_50%,#0c1017_100%)]">
-      <div className="flex items-center gap-3 text-white/90">
-        <svg className="h-6 w-6 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden>
-          <circle cx="12" cy="12" r="9" stroke="currentColor" strokeOpacity=".25" strokeWidth="4" />
-          <path d="M21 12a9 9 0 0 0-9-9v9z" fill="currentColor" />
-        </svg>
-        <span className="text-[0.95rem] font-semibold">One moment…</span>
-      </div>
-    </div>
-  )
-}
-
-function PostAuthGate({ standalone = false }) {
-  const [state, setState] = useState('checking') // 'checking' | 'ready'
-  const [done, setDone] = useState(false)
-  const loc = useLocation()
-
-  // If we just finished onboarding, allow render without checks to avoid flash
-  if (loc.state?.fromOnboarding === true) {
-    return <Outlet />
-  }
-
-  useEffect(() => {
-    let mounted = true
-    ;(async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        if (mounted) { setDone(false); setState('ready') }
-        return
-      }
-
-      const meta = user.user_metadata || {}
-      if (
-        isStrictTrue(meta.onboarding_complete) ||
-        isStrictTrue(meta.has_onboarded) ||
-        isStrictTrue(meta.onboarded)
-      ) {
-        if (mounted) { setDone(true); setState('ready') }
-        return
-      }
-
-      const { data, error } = await supabase
-        .from('users')
-        .select('onboarding_complete,onboarding_completed_at')
-        .eq('id', user.id)
-        .maybeSingle()
-
-      if (!mounted) return
-      if (error) {
-        console.warn('users select error:', error)
-        setDone(false)
-      } else {
-        const completed =
-          isStrictTrue(data?.onboarding_complete) ||
-          Boolean(data?.onboarding_completed_at)
-        setDone(completed)
-      }
-      setState('ready')
-    })()
-    return () => { mounted = false }
-  }, [])
-
-  // Full-bleed spinner overlay while deciding (prevents /home flash)
-  if (state === 'checking') {
-    return standalone ? (
-      <div className="relative min-h-screen">
-        <div aria-hidden className="fixed inset-0 z-0">
-          <div className="absolute inset-0 bg-[linear-gradient(120deg,#0a121a_0%,#0d1722_50%,#0c1017_100%)]" />
-        </div>
-        <SplashSpinner />
-      </div>
-    ) : (
-      <SplashSpinner />
-    )
-  }
-
-  if (!done && loc.pathname !== '/onboarding') {
-    return <Navigate to="/onboarding" replace state={{ from: loc }} />
-  }
-  if (done && loc.pathname === '/onboarding') {
-    return <Navigate to="/home" replace />
-  }
-  return <Outlet />
 }
 
 /* ------------------------ Auth-style chrome (bg) ------------------------- */
@@ -241,7 +155,7 @@ export const router = createBrowserRouter([
       // OAuth return → gate decides /home vs /onboarding with spinner (no flash)
       { path: 'post-auth', element: <PostAuthGate standalone /> },
 
-      // Legacy auth aliases → send to landing (inline auth)
+      // Legacy auth aliases → send to landing (inline auth UX)
       { path: 'auth', element: <Navigate to="/" replace /> },
       { path: 'auth/sign-in', element: <Navigate to="/" replace /> },
       { path: 'auth/sign-up', element: <Navigate to="/" replace /> },
@@ -266,29 +180,31 @@ export const router = createBrowserRouter([
     ],
   },
 
-  // App branch (header + sidebar chrome)
+  // App branch — AppShell mounts ONLY after RequireAuth + PostAuthGate are satisfied
   {
-    element: <AppShell />,
+    // Do NOT mount AppShell here; gate first, then shell
     children: [
-      // Publicly viewable (adjust if you want auth-only)
-      { path: 'movies', element: <MoviesTab /> },
-      { path: 'movie/:id', element: <MovieDetail /> },
-      { path: 'browse', element: <MoviesTab /> },
-      { path: 'trending', element: <MoviesTab /> },
-
-      // Auth-required + onboarding gate
       {
         element: <RequireAuth />,
         children: [
           {
-            element: <PostAuthGate />,
+            element: <PostAuthGate />, // while checking: spinner; once ready: continues
             children: [
-              { path: 'home', element: <HomePage /> },
-              { path: 'account', element: <Account /> },
-              { path: 'preferences', element: <Preferences /> },
-              { path: 'watchlist', element: <Watchlist /> },
-              { path: 'watched', element: <HistoryPage /> },
-              { path: 'history', element: <HistoryPage /> }, // legacy
+              {
+                element: <AppShell />, // ⬅️ App chrome mounts only after gate resolves
+                children: [
+                  { path: 'home', element: <HomePage /> },
+                  { path: 'movies', element: <MoviesTab /> },
+                  { path: 'movie/:id', element: <MovieDetail /> },
+                  { path: 'browse', element: <MoviesTab /> },
+                  { path: 'trending', element: <MoviesTab /> },
+                  { path: 'account', element: <Account /> },
+                  { path: 'preferences', element: <Preferences /> },
+                  { path: 'watchlist', element: <Watchlist /> },
+                  { path: 'watched', element: <HistoryPage /> },
+                  { path: 'history', element: <HistoryPage /> }, // legacy
+                ],
+              },
             ],
           },
         ],

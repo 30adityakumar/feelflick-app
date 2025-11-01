@@ -12,9 +12,7 @@ export default function Landing() {
 
   return (
     <>
-      {/* Pass the opener so TopNav's Log in can swap inline */}
       <TopNav onAuthOpen={openInlineAuth} />
-
       {/* Fill the viewport below the fixed TopNav */}
       <main
         id="landing"

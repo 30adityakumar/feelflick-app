@@ -1,7 +1,7 @@
 // src/features/landing/components/LandingHero.jsx
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
-import AuthForm from '@/features/auth/components/AuthForm' // ✅ use existing form
+import { supabase } from '@/shared/lib/supabase/client'
+import googleSvg from '@/assets/icons/google.svg'
 
 export default function LandingHero({ embedded = false, showInlineAuth = false, onAuthOpen, onAuthClose }) {
   return (
@@ -11,7 +11,7 @@ export default function LandingHero({ embedded = false, showInlineAuth = false, 
     >
       <div className="feelflick-landing-bg" aria-hidden="true" />
 
-      {/* Background (unchanged) */}
+      {/* Background */}
       <div aria-hidden className="fixed inset-0 z-0">
         <div className="absolute inset-0 bg-[linear-gradient(120deg,#0a121a_0%,#0d1722_50%,#0c1017_100%)]" />
         <div className="pointer-events-none absolute -top-40 -left-40 h-[65vmin] w-[65vmin] rounded-full blur-3xl opacity-60 bg-[radial-gradient(closest-side,rgba(254,146,69,0.45),rgba(254,146,69,0)_70%)]" />
@@ -38,49 +38,54 @@ export default function LandingHero({ embedded = false, showInlineAuth = false, 
               : { height: 'calc(100svh - var(--topnav-h, var(--nav-h,72px)) - var(--footer-h,0px))' }
           }
         >
-          {/* Posters — unchanged */}
+          {/* Posters — pad right 6 on desktop */}
           <div className="order-1 md:order-2 md:col-start-2 w-full flex justify-center md:justify-start md:pr-6">
             <MovieStack />
           </div>
 
-          {/* Right column — copy OR inline AuthForm */}
+          {/* Copy — pad left 6 on desktop */}
           <div className="order-2 md:order-1 md:col-start-1 mx-auto w-full max-w-3xl md:max-w-[620px] text-center md:text-left md:pl-10">
+            {/* Heading stays as-is */}
+            <h1 className="text-balance text-[clamp(2.1rem,6.5vw,3.9rem)] font-black leading-[1.05] tracking-tight text-white">
+              Movies that match your <span className="text-brand-100">mood</span>
+            </h1>
+
+            {/* Subheading swaps when inline auth is open */}
             {showInlineAuth ? (
-              /* ✅ Inline AuthForm in place of the copy */
-              <div className="grid place-items-center md:block">
-                <AuthForm />
-                <div className="mt-3 hidden md:block">
-                  <button
-                    type="button"
-                    onClick={onAuthClose}
-                    className="text-sm text-white/70 hover:text-white/90 underline decoration-white/20"
-                  >
-                    Back
-                  </button>
-                </div>
-              </div>
+              <p className="mx-auto md:mx-0 mt-2 max-w-xl text-[clamp(.95rem,2vw,1.1rem)] leading-relaxed text-white/85">
+                We’re piloting FeelFlick right now — feel free to explore and help us build a better
+                mood-based movie recommendation platform.
+              </p>
             ) : (
-              /* Original hero copy/CTA */
-              <>
-                <h1 className="text-balance text-[clamp(2.1rem,6.5vw,3.9rem)] font-black leading-[1.05] tracking-tight text-white">
-                  Movies that match your <span className="text-brand-100">mood</span>
-                </h1>
-                <p className="mx-auto md:mx-0 mt-2 max-w-xl text-[clamp(.95rem,2vw,1.1rem)] leading-relaxed text-white/85">
-                  Get the perfect movie recommendation based on your taste and how you feel — fast,
-                  private, and always free.
-                </p>
-                <div className="mt-4 flex justify-center md:justify-start">
-                  <button
-                    type="button"
-                    onClick={onAuthOpen}                /* ✅ swap inline on click */
-                    className="inline-flex h-11 items-center justify-center rounded-full px-8 sm:px-9 text-[0.95rem] font-semibold text-white shadow-lift transition-transform hover:scale-[1.02] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 active:scale-[.98] bg-gradient-to-r from-[#fe9245] to-[#eb423b]"
-                    aria-label="Get started"
-                  >
-                    Get started
-                  </button>
-                </div>
-              </>
+              <p className="mx-auto md:mx-0 mt-2 max-w-xl text-[clamp(.95rem,2vw,1.1rem)] leading-relaxed text-white/85">
+                Get the perfect movie recommendation based on your taste and how you feel — fast,
+                private, and always free.
+              </p>
             )}
+
+            {/* CTA → becomes Continue with Google */}
+            <div className="mt-4 flex flex-col items-center gap-3 md:items-start">
+              {showInlineAuth ? (
+                <>
+                  <GoogleButton />
+                  <p className="text-[11.5px] text-white/60">
+                    By continuing, you agree to our{' '}
+                    <a href="/terms" className="underline decoration-white/30 hover:text-white/90">Terms</a>{' '}
+                    and{' '}
+                    <a href="/privacy" className="underline decoration-white/30 hover:text-white/90">Privacy Policy</a>.
+                  </p>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={onAuthOpen}
+                  className="inline-flex h-11 items-center justify-center rounded-full px-8 sm:px-9 text-[0.95rem] font-semibold text-white shadow-lift transition-transform hover:scale-[1.02] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 active:scale-[.98] bg-gradient-to-r from-[#fe9245] to-[#eb423b]"
+                  aria-label="Get started"
+                >
+                  Get started
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -88,7 +93,52 @@ export default function LandingHero({ embedded = false, showInlineAuth = false, 
   )
 }
 
-/* --------------------------- MovieStack --------------------------- */
+/* --------------------------- GoogleButton --------------------------- */
+function GoogleButton() {
+  const [submitting, setSubmitting] = useState(false)
+
+  async function handleGoogle() {
+    try {
+      setSubmitting(true)
+      await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin + '/home',
+          queryParams: { prompt: 'select_account' },
+        },
+      })
+    } catch {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      disabled={submitting}
+      onClick={handleGoogle}
+      className="
+        group inline-flex items-center justify-center gap-3
+        rounded-full border border-white/12 bg-white/[.06]
+        py-3 px-5 text-[0.95rem] font-semibold text-white/95
+        hover:bg-white/10 active:scale-[.99] focus:outline-none disabled:opacity-60
+      "
+      aria-label="Continue with Google"
+    >
+      <img
+        src={googleSvg}
+        width="18"
+        height="18"
+        alt=""
+        aria-hidden="true"
+        className="opacity-95"
+      />
+      <span>Continue with Google</span>
+    </button>
+  )
+}
+
+/* --------------------------- MovieStack (unchanged) --------------------------- */
 function MovieStack() {
   const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY
   const [items, setItems] = useState([])

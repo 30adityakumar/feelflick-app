@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { LogIn } from 'lucide-react'
 
-export default function TopNav({ hideAuthCta = false }) {
+export default function TopNav({ hideAuthCta = false, onAuthOpen }) {
   const [scrolled, setScrolled] = useState(false)
   const barRef = useRef(null)
   const navigate = useNavigate()
@@ -60,12 +60,7 @@ export default function TopNav({ hideAuthCta = false }) {
 
       <div
         ref={barRef}
-        className="
-          mx-auto flex w-full max-w-7xl items-center justify-between gap-2
-          px-3
-          pt-[calc(env(safe-area-inset-top)+14px)]  /* mobile top padding */
-          pb-3 sm:py-4 md:px-6
-        "
+        className="mx-auto flex w-full max-w-7xl items-center justify-between gap-2 px-3 pt-[calc(env(safe-area-inset-top)+14px)] pb-3 sm:py-4 md:px-6"
       >
         {/* Brand text only (logo removed) */}
         <a
@@ -74,7 +69,6 @@ export default function TopNav({ hideAuthCta = false }) {
           className="flex items-center rounded-md"
           aria-label="FeelFlick home"
         >
-          {/* 🔠 Slightly bigger FEELFLICK text */}
           <span className="text-[clamp(1.6rem,5.2vw,2.25rem)] font-extrabold tracking-tight text-brand-100 uppercase">
             FEELFLICK
           </span>
@@ -84,30 +78,48 @@ export default function TopNav({ hideAuthCta = false }) {
           <>
             {/* Desktop */}
             <div className="hidden md:flex items-center gap-2">
-              <Link
-                to="/auth/log-in-or-create-account"
-                className="group relative inline-flex h-10 items-center gap-2 rounded-full border border-white/20 px-4 text-[0.9rem] font-semibold text-white/95 hover:bg-white/10 active:scale-[.98] focus:outline-none"
-              >
-                <LogIn className="h-4 w-4 text-white/90" aria-hidden />
-                <span>Log in</span>
-              </Link>
+              {onAuthOpen ? (
+                <button
+                  type="button"
+                  onClick={onAuthOpen}
+                  className="group relative inline-flex h-10 items-center gap-2 rounded-full border border-white/20 px-4 text-[0.9rem] font-semibold text-white/95 hover:bg-white/10 active:scale-[.98] focus:outline-none"
+                  aria-label="Log in"
+                >
+                  <LogIn className="h-4 w-4 text-white/90" aria-hidden />
+                  <span>Log in</span>
+                </button>
+              ) : (
+                <Link
+                  to="/auth/log-in-or-create-account"
+                  className="group relative inline-flex h-10 items-center gap-2 rounded-full border border-white/20 px-4 text-[0.9rem] font-semibold text-white/95 hover:bg-white/10 active:scale-[.98] focus:outline-none"
+                >
+                  <LogIn className="h-4 w-4 text-white/90" aria-hidden />
+                  <span>Log in</span>
+                </Link>
+              )}
             </div>
 
             {/* Mobile */}
             <div className="md:hidden">
-              <Link
-                to="/auth/log-in-or-create-account"
-                className="
-                  inline-flex items-center gap-2
-                  h-10 px-4
-                  rounded-full border border-white/20
-                  bg-white/5 text-[0.95rem] font-semibold text-white/95
-                  hover:bg-white/10 active:scale-[.98] focus:outline-none
-                "
-              >
-                <LogIn className="h-4 w-4 text-white/90" aria-hidden />
-                <span>Log in</span>
-              </Link>
+              {onAuthOpen ? (
+                <button
+                  type="button"
+                  onClick={onAuthOpen}
+                  className="inline-flex items-center gap-2 h-10 px-4 rounded-full border border-white/20 bg-white/5 text-[0.95rem] font-semibold text-white/95 hover:bg-white/10 active:scale-[.98] focus:outline-none"
+                  aria-label="Log in"
+                >
+                  <LogIn className="h-4 w-4 text-white/90" aria-hidden />
+                  <span>Log in</span>
+                </button>
+              ) : (
+                <Link
+                  to="/auth/log-in-or-create-account"
+                  className="inline-flex items-center gap-2 h-10 px-4 rounded-full border border-white/20 bg-white/5 text-[0.95rem] font-semibold text-white/95 hover:bg-white/10 active:scale-[.98] focus:outline-none"
+                >
+                  <LogIn className="h-4 w-4 text-white/90" aria-hidden />
+                  <span>Log in</span>
+                </Link>
+              )}
             </div>
           </>
         )}

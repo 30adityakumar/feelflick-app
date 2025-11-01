@@ -74,8 +74,8 @@ export default function TopNav({ hideAuthCta = false }) {
           className="flex items-center rounded-md"
           aria-label="FeelFlick home"
         >
-          {/* 🔠 Increased FEELFLICK text size */}
-          <span className="text-[clamp(1.5rem,5vw,2rem)] font-extrabold tracking-tight text-brand-100 uppercase">
+          {/* 🔠 Slightly bigger FEELFLICK text */}
+          <span className="text-[clamp(1.6rem,5.2vw,2.25rem)] font-extrabold tracking-tight text-brand-100 uppercase">
             FEELFLICK
           </span>
         </a>

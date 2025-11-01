@@ -38,23 +38,21 @@ export default function LandingHero({ embedded = false, showInlineAuth = false, 
               : { height: 'calc(100svh - var(--topnav-h, var(--nav-h,72px)) - var(--footer-h,0px))' }
           }
         >
-          {/* Posters — pad right 6 on desktop */}
+          {/* Posters */}
           <div className="order-1 md:order-2 md:col-start-2 w-full flex justify-center md:justify-start md:pr-6">
             <MovieStack />
           </div>
 
-          {/* Copy — pad left 6 on desktop */}
+          {/* Copy */}
           <div className="order-2 md:order-1 md:col-start-1 mx-auto w-full max-w-3xl md:max-w-[620px] text-center md:text-left md:pl-10">
-            {/* Heading stays as-is */}
             <h1 className="text-balance text-[clamp(2.1rem,6.5vw,3.9rem)] font-black leading-[1.05] tracking-tight text-white">
               Movies that match your <span className="text-brand-100">mood</span>
             </h1>
 
-            {/* Subheading swaps when inline auth is open */}
             {showInlineAuth ? (
               <p className="mx-auto md:mx-0 mt-2 max-w-xl text-[clamp(.95rem,2vw,1.1rem)] leading-relaxed text-white/85">
-                We’re piloting FeelFlick right now — feel free to explore and help us build a better
-                mood-based movie recommendation platform.
+                We’re piloting FeelFlick — explore and help us shape mood-based movie recommendation
+                platform.
               </p>
             ) : (
               <p className="mx-auto md:mx-0 mt-2 max-w-xl text-[clamp(.95rem,2vw,1.1rem)] leading-relaxed text-white/85">
@@ -63,18 +61,9 @@ export default function LandingHero({ embedded = false, showInlineAuth = false, 
               </p>
             )}
 
-            {/* CTA → becomes Continue with Google */}
             <div className="mt-4 flex flex-col items-center gap-3 md:items-start">
               {showInlineAuth ? (
-                <>
-                  <GoogleButton />
-                  <p className="text-[11.5px] text-white/60">
-                    By continuing, you agree to our{' '}
-                    <a href="/terms" className="underline decoration-white/30 hover:text-white/90">Terms</a>{' '}
-                    and{' '}
-                    <a href="/privacy" className="underline decoration-white/30 hover:text-white/90">Privacy Policy</a>.
-                  </p>
-                </>
+                <GoogleButton />
               ) : (
                 <button
                   type="button"

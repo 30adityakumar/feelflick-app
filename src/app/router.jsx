@@ -61,7 +61,6 @@ function RequireAuth() {
   }, [])
 
   if (status === 'loading') return <div className="p-6 text-white/70">Loading…</div>
-  // ⬇️ Redirect anonymous users back to landing (inline auth UX)
   if (status === 'anon') return <Navigate to="/" replace state={{ from: loc }} />
   return <Outlet />
 }
@@ -88,12 +87,26 @@ function RedirectIfAuthed({ children }) {
 /* ---------------------- Onboarding completion gate ----------------------- */
 const isStrictTrue = (v) => v === true
 
-function PostAuthGate() {
+function SplashSpinner() {
+  return (
+    <div className="fixed inset-0 z-[9999] grid place-items-center bg-[linear-gradient(120deg,#0a121a_0%,#0d1722_50%,#0c1017_100%)]">
+      <div className="flex items-center gap-3 text-white/90">
+        <svg className="h-6 w-6 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden>
+          <circle cx="12" cy="12" r="9" stroke="currentColor" strokeOpacity=".25" strokeWidth="4" />
+          <path d="M21 12a9 9 0 0 0-9-9v9z" fill="currentColor" />
+        </svg>
+        <span className="text-[0.95rem] font-semibold">One moment…</span>
+      </div>
+    </div>
+  )
+}
+
+function PostAuthGate({ standalone = false }) {
   const [state, setState] = useState('checking') // 'checking' | 'ready'
   const [done, setDone] = useState(false)
   const loc = useLocation()
 
-  // If we *just* finished onboarding, skip once to avoid flash
+  // If we just finished onboarding, allow render without checks to avoid flash
   if (loc.state?.fromOnboarding === true) {
     return <Outlet />
   }
@@ -123,23 +136,34 @@ function PostAuthGate() {
         .eq('id', user.id)
         .maybeSingle()
 
-      if (mounted) {
-        if (error) {
-          console.warn('users select error:', error)
-          setDone(false)
-        } else {
-          const completed =
-            isStrictTrue(data?.onboarding_complete) ||
-            Boolean(data?.onboarding_completed_at)
-          setDone(completed)
-        }
-        setState('ready')
+      if (!mounted) return
+      if (error) {
+        console.warn('users select error:', error)
+        setDone(false)
+      } else {
+        const completed =
+          isStrictTrue(data?.onboarding_complete) ||
+          Boolean(data?.onboarding_completed_at)
+        setDone(completed)
       }
+      setState('ready')
     })()
     return () => { mounted = false }
   }, [])
 
-  if (state === 'checking') return null
+  // Full-bleed spinner overlay while deciding (prevents /home flash)
+  if (state === 'checking') {
+    return standalone ? (
+      <div className="relative min-h-screen">
+        <div aria-hidden className="fixed inset-0 z-0">
+          <div className="absolute inset-0 bg-[linear-gradient(120deg,#0a121a_0%,#0d1722_50%,#0c1017_100%)]" />
+        </div>
+        <SplashSpinner />
+      </div>
+    ) : (
+      <SplashSpinner />
+    )
+  }
 
   if (!done && loc.pathname !== '/onboarding') {
     return <Navigate to="/onboarding" replace state={{ from: loc }} />
@@ -207,9 +231,6 @@ function SignOutRoute() {
 }
 
 /* -------------------------------- Router --------------------------------- */
-// NOTE: We removed dedicated /auth pages to keep inline auth on landing.
-// We added /post-auth so Supabase OAuth can return to a tiny gate that decides /home vs /onboarding.
-
 export const router = createBrowserRouter([
   // Public branch (no app chrome)
   {
@@ -217,8 +238,8 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <RedirectIfAuthed><Landing /></RedirectIfAuthed> },
 
-      // OAuth return → gate decides /home vs /onboarding without UI flicker
-      { path: 'post-auth', element: <PostAuthGate /> },
+      // OAuth return → gate decides /home vs /onboarding with spinner (no flash)
+      { path: 'post-auth', element: <PostAuthGate standalone /> },
 
       // Legacy auth aliases → send to landing (inline auth)
       { path: 'auth', element: <Navigate to="/" replace /> },
@@ -249,7 +270,7 @@ export const router = createBrowserRouter([
   {
     element: <AppShell />,
     children: [
-      // Publicly viewable (if you really want these public; otherwise wrap with RequireAuth)
+      // Publicly viewable (adjust if you want auth-only)
       { path: 'movies', element: <MoviesTab /> },
       { path: 'movie/:id', element: <MovieDetail /> },
       { path: 'browse', element: <MoviesTab /> },

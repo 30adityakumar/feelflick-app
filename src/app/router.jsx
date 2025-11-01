@@ -6,7 +6,7 @@ import {
   useLocation,
   useNavigate,
 } from 'react-router-dom'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '@/shared/lib/supabase/client'
 
 // Root shells
@@ -14,7 +14,6 @@ import AppShell from '@/app/AppShell'
 
 // Public pages (no app chrome)
 import Landing from '@/features/landing/Landing'
-import AuthPage from '@/features/auth/AuthPage'
 
 // App pages (with header/sidebar)
 import HomePage from '@/app/homepage/HomePage'
@@ -62,11 +61,12 @@ function RequireAuth() {
   }, [])
 
   if (status === 'loading') return <div className="p-6 text-white/70">Loading…</div>
-  if (status === 'anon') return <Navigate to="/auth" replace state={{ from: loc }} />
+  // ⬇️ Redirect anonymous users back to landing (inline auth UX)
+  if (status === 'anon') return <Navigate to="/" replace state={{ from: loc }} />
   return <Outlet />
 }
 
-/** Redirect signed-in users away from public pages (/, /auth) */
+/** Redirect signed-in users away from public pages (/, legacy /auth aliases) */
 function RedirectIfAuthed({ children }) {
   const [status, setStatus] = useState('loading')
   useEffect(() => {
@@ -201,12 +201,15 @@ function AppPrefixAlias() {
 function SignOutRoute() {
   const nav = useNavigate()
   useEffect(() => {
-    supabase.auth.signOut().finally(() => nav('/auth', { replace: true }))
+    supabase.auth.signOut().finally(() => nav('/', { replace: true }))
   }, [nav])
   return <div className="p-6 text-white/70">Signing you out…</div>
 }
 
 /* -------------------------------- Router --------------------------------- */
+// NOTE: We removed dedicated /auth pages to keep inline auth on landing.
+// We added /post-auth so Supabase OAuth can return to a tiny gate that decides /home vs /onboarding.
+
 export const router = createBrowserRouter([
   // Public branch (no app chrome)
   {
@@ -214,23 +217,24 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <RedirectIfAuthed><Landing /></RedirectIfAuthed> },
 
-      // Auth (Google-only) — same page for sign-in/sign-up
-      { path: 'auth', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
-      { path: 'auth/sign-in', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
-      { path: 'auth/sign-up', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
+      // OAuth return → gate decides /home vs /onboarding without UI flicker
+      { path: 'post-auth', element: <PostAuthGate /> },
 
-      // legacy aliases
-      { path: 'auth/log-in-or-create-account', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
-      { path: 'login', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
-      { path: 'signup', element: <RedirectIfAuthed><AuthPage /></RedirectIfAuthed> },
-      { path: 'signin', element: <Navigate to="/login" replace /> },
-      { path: 'register', element: <Navigate to="/signup" replace /> },
+      // Legacy auth aliases → send to landing (inline auth)
+      { path: 'auth', element: <Navigate to="/" replace /> },
+      { path: 'auth/sign-in', element: <Navigate to="/" replace /> },
+      { path: 'auth/sign-up', element: <Navigate to="/" replace /> },
+      { path: 'auth/log-in-or-create-account', element: <Navigate to="/" replace /> },
+      { path: 'login', element: <Navigate to="/" replace /> },
+      { path: 'signup', element: <Navigate to="/" replace /> },
+      { path: 'signin', element: <Navigate to="/" replace /> },
+      { path: 'register', element: <Navigate to="/" replace /> },
 
       { path: 'logout', element: <SignOutRoute /> },
     ],
   },
 
-  // Onboarding — auth required, but NO app chrome (uses auth-style chrome)
+  // Onboarding — auth required, but NO app chrome (uses landing-style bg)
   {
     element: <OnboardingShell />,
     children: [
@@ -245,7 +249,7 @@ export const router = createBrowserRouter([
   {
     element: <AppShell />,
     children: [
-      // Publicly viewable
+      // Publicly viewable (if you really want these public; otherwise wrap with RequireAuth)
       { path: 'movies', element: <MoviesTab /> },
       { path: 'movie/:id', element: <MovieDetail /> },
       { path: 'browse', element: <MoviesTab /> },

@@ -12,12 +12,12 @@ export default function Onboarding() {
   const [checking, setChecking] = useState(true);
   const [step, setStep]         = useState(1);
 
-  const [selectedGenres, setSelectedGenres] = useState([]);
+  const [selectedGenres, setSelectedGenres] = useState<number[]>([]);
   const [query, setQuery]       = useState("");
-  const [results, setResults]   = useState([]);
+  const [results, setResults]   = useState<any[]>([]);
   const [showAllResults, setShowAllResults] = useState(false);
-  const [watchlist, setWatchlist] = useState([]);
-  const [popular, setPopular]   = useState([]);
+  const [watchlist, setWatchlist] = useState<any[]>([]);
+  const [popular, setPopular]   = useState<any[]>([]);
 
   const [error, setError]       = useState("");
   const [loading, setLoading]   = useState(false);
@@ -26,20 +26,20 @@ export default function Onboarding() {
 
   // session
   useEffect(() => {
-    let unsub;
+    let unsub: (() => void) | undefined;
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
     const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
     unsub = data?.subscription?.unsubscribe;
     return () => { if (typeof unsub === 'function') unsub() };
   }, []);
 
-  // already onboarded?
+  // already onboarded? (metadata hint → users table = source of truth)
   useEffect(() => {
     if (!session?.user) return;
     (async () => {
       try {
-        const meta = session.user.user_metadata || {};
-        if (meta.onboarding_complete === true || meta.has_onboarded === true || meta.onboarded === true) {
+        const hint = session.user.user_metadata || {};
+        if (hint.onboarding_complete || hint.has_onboarded || hint.onboarded) {
           navigate("/home", { replace: true });
           return;
         }
@@ -49,21 +49,30 @@ export default function Onboarding() {
           .eq("id", session.user.id)
           .maybeSingle();
 
-        if (error) {
-          console.warn("users SELECT failed:", error.message);
-          setChecking(false);
-          return;
-        }
+        if (error) { setChecking(false); return; }
 
         const completed = data?.onboarding_complete === true || Boolean(data?.onboarding_completed_at);
-        if (completed) navigate("/home", { replace: true });
-        else setChecking(false);
-      } catch (e) {
-        console.warn("onboarding check failed:", e);
+        completed ? navigate("/home", { replace: true }) : setChecking(false);
+      } catch {
         setChecking(false);
       }
     })();
   }, [session, navigate]);
+
+  // preselect genres if any exist for returning-but-not-complete users
+  useEffect(() => {
+    if (!session?.user) return;
+    (async () => {
+      const { data } = await supabase
+        .from('user_preferences')
+        .select('genre_id')
+        .eq('user_id', session.user.id);
+
+      if (Array.isArray(data) && data.length) {
+        setSelectedGenres(Array.from(new Set(data.map(d => d.genre_id))));
+      }
+    })();
+  }, [session]);
 
   // popular picks for step 2
   useEffect(() => {
@@ -84,17 +93,17 @@ export default function Onboarding() {
     return () => { active = false };
   }, [TMDB_KEY]);
 
-  // search
+  // search (debounced + abortable)
   useEffect(() => {
-    let active = true;
     if (!query) { setResults([]); setShowAllResults(false); return; }
-    (async () => {
+    const ctrl = new AbortController();
+    const t = setTimeout(async () => {
       try {
         const r = await fetch(
-          `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${encodeURIComponent(query)}`
+          `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${encodeURIComponent(query)}`,
+          { signal: ctrl.signal }
         );
         const data = await r.json();
-        if (!active) return;
         const all = (data.results || []).sort(
           (a, b) =>
             (b.popularity || 0) - (a.popularity || 0) ||
@@ -102,11 +111,10 @@ export default function Onboarding() {
         );
         setResults(all); setShowAllResults(false);
       } catch {
-        if (!active) return;
-        setResults([]); setShowAllResults(false);
+        /* aborted or failed */
       }
-    })();
-    return () => { active = false };
+    }, 250);
+    return () => { ctrl.abort(); clearTimeout(t); };
   }, [query, TMDB_KEY]);
 
   const GENRES = useMemo(() => [
@@ -120,12 +128,12 @@ export default function Onboarding() {
     { id: 878, label:"Sci-fi" },  { id: 53, label:"Thriller"}
   ], []);
 
-  const toggleGenre      = (id) => setSelectedGenres(g => g.includes(id) ? g.filter(x=>x!==id) : [...g,id]);
-  const inPicks          = (id) => watchlist.some(x => x.id === id);
-  const addPick          = (m)  => { if (!inPicks(m.id)) setWatchlist(w => [...w, m]) };
-  const removePick       = (id) => setWatchlist(w => w.filter(m => m.id !== id));
+  const toggleGenre      = (id: number) => setSelectedGenres(g => g.includes(id) ? g.filter(x=>x!==id) : [...g,id]);
+  const inPicks          = (id: number) => watchlist.some(x => x.id === id);
+  const addPick          = (m: any)  => { if (!inPicks(m.id)) setWatchlist(w => [...w, m]) };
+  const removePick       = (id: number) => setWatchlist(w => w.filter(m => m.id !== id));
 
-  async function saveAndGo(opts = {}) {
+  async function saveAndGo(opts: { skipGenres?: boolean; skipMovies?: boolean } = {}) {
     const { skipGenres = false, skipMovies = false } = opts;
     setError(""); setLoading(true);
     try {
@@ -144,7 +152,6 @@ export default function Onboarding() {
         await supabase.from("users")
           .insert({ id: user_id, email, name })
           .then(() => {}, (e) => {
-            // ignore if denied by RLS (may be inserted by backend)
             if (String(e?.status) !== "403") console.warn("users insert warn:", e);
           });
       }
@@ -170,7 +177,12 @@ export default function Onboarding() {
         if (wlErr && wlErr.code !== "23505") console.warn("watchlist upsert warn:", wlErr);
       }
 
-      await supabase.from("users").update({ onboarding_complete: true }).eq("id", user_id);
+      // mark onboarding complete (single authority + timestamp)
+      await supabase.from("users")
+        .update({ onboarding_complete: true, onboarding_completed_at: new Date().toISOString() })
+        .eq("id", user_id);
+
+      // cache hint in auth metadata
       await supabase.auth.updateUser({ data: { onboarding_complete: true, has_onboarded: true } });
 
       navigate("/home", { replace: true, state: { fromOnboarding: true } });
@@ -198,7 +210,12 @@ export default function Onboarding() {
       >
         {/* header */}
         <div className="px-5 sm:px-6 py-4">
-          <h2 className="text-center text-[clamp(1.1rem,2.2vw,1.5rem)] font-extrabold text-white tracking-tight">
+          <div className="flex items-center justify-center gap-3 text-white/70 text-[12px]">
+            <span className={step === 1 ? 'text-white font-semibold' : ''}>Step 1 of 2</span>
+            <span>•</span>
+            <span className={step === 2 ? 'text-white font-semibold' : ''}>Step 2 of 2</span>
+          </div>
+          <h2 className="mt-1 text-center text-[clamp(1.1rem,2.2vw,1.5rem)] font-extrabold text-white tracking-tight">
             {step === 1 ? "Let’s get to know your taste." : "Pick a few favorite movies."}
           </h2>
           <p className="mt-1 text-center text-[12.5px] text-white/75">
@@ -221,7 +238,10 @@ export default function Onboarding() {
                   <button
                     key={g.id}
                     type="button"
-                    onClick={() => toggleGenre(g.id)}
+                    onClick={() => {
+                      toggleGenre(g.id);
+                      // move focus hint to next control on keyboard flows
+                    }}
                     className="h-9 rounded-xl border text-white text-[13px] font-medium transition-all"
                     style={{
                       borderColor: 'rgba(255,255,255,0.18)',
@@ -245,6 +265,7 @@ export default function Onboarding() {
                 value={query}
                 onChange={e => setQuery(e.target.value)}
                 className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-[13.5px] text-white placeholder-white/40 focus:outline-none"
+                autoFocus
               />
 
               {/* suggested grid */}
@@ -296,6 +317,7 @@ export default function Onboarding() {
                           src={r.poster_path ? `https://image.tmdb.org/t/p/w92${r.poster_path}` : "https://dummyimage.com/60x90/111/fff&text=?"}
                           alt=""
                           className="w-[28px] h-[42px] object-cover rounded"
+                          loading="lazy"
                         />
                         <div className="flex-1">
                           <div className="text-[13.5px] text-white">{r.title}</div>
@@ -332,6 +354,7 @@ export default function Onboarding() {
                           src={m.poster_path ? `https://image.tmdb.org/t/p/w92${m.poster_path}` : "https://dummyimage.com/60x90/111/fff&text=?"}
                           alt={m.title}
                           className="w-[60px] h-[90px] object-cover rounded"
+                          loading="lazy"
                         />
                         <button
                           type="button"

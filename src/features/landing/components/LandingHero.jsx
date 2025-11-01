@@ -92,7 +92,7 @@ function GoogleButton() {
       await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin + '/home',
+          redirectTo: window.location.origin + '/post-auth', // ← go to gate
           queryParams: { prompt: 'select_account' },
         },
       })
@@ -130,7 +130,7 @@ function GoogleButton() {
 /* --------------------------- MovieStack (unchanged) --------------------------- */
 function MovieStack() {
   const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY
-  const [items, setItems] = useState([])
+  const [items, setItems] = useState<any[]>([])
   const imgBase = 'https://image.tmdb.org/t/p/w500'
 
   const fallbacks = useMemo(

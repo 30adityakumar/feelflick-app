@@ -194,17 +194,17 @@ export default function Onboarding() {
   // - We still center using CSS grid
   return (
     <div
-      className="px-3 md:px-0"
-      style={{
-        minHeight: 'calc(100svh - var(--footer-h,0px))',
-        paddingTop: 'calc(var(--topnav-h,72px) + 4px)',   // slightly less top gap
-        paddingBottom: '4px',                              // reduced bottom padding
-        display: 'grid',
-        placeItems: 'center',
-      }}
-    >
+    className="px-3 md:px-0"
+    style={{
+      minHeight: 'calc(100svh - var(--footer-h,0px))',
+      paddingTop: 'var(--topnav-h,72px)',
+      paddingBottom: '4px',                              // reduced bottom padding
+      display: 'grid',
+      placeItems: 'center',
+    }}
+  >
       {/* Card wrapper (glow softened on mobile to avoid visual overlap) */}
-      <div className="relative isolate w-[min(92vw,920px)] rounded-[22px] p-[1px] bg-[linear-gradient(135deg,rgba(254,146,69,.45),rgba(235,66,59,.35),rgba(45,119,255,.35),rgba(0,209,255,.35))] shadow-[0_40px_120px_rgba(0,0,0,.55)]">
+      <div className="relative isolate w-[min(92vw,920px)] rounded-[22px] p-[1px] bg-[linear-gradient(135deg,rgba(254,146,69,.45),rgba(235,66,59,.35),rgba(45,119,255,.35),rgba(0,209,255,.35))] shadow-[0_40px_120px_rgba(0,0,0,.55)] -translate-y-[2vh] md:-translate-y-[3vh] lg:-translate-y-[4vh]">
         <div
           aria-hidden
           className="pointer-events-none absolute -z-10 rounded-[28px] opacity-70 blur-2xl md:-inset-4 -inset-1"

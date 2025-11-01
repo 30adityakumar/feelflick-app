@@ -197,8 +197,8 @@ export default function Onboarding() {
       className="px-3 md:px-0"
       style={{
         minHeight: 'calc(100svh - var(--footer-h,0px))',
-        paddingTop: 'calc(var(--topnav-h,72px) + 8px)',
-        paddingBottom: '12px',
+        paddingTop: 'calc(var(--topnav-h,72px) + 4px)',   // slightly less top gap
+        paddingBottom: '4px',                              // reduced bottom padding
         display: 'grid',
         placeItems: 'center',
       }}

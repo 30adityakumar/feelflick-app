@@ -33,13 +33,13 @@ export default function Onboarding() {
     return () => { if (typeof unsub === 'function') unsub() };
   }, []);
 
-  // already onboarded? (metadata hint → users table = source of truth)
+  // already onboarded?
   useEffect(() => {
     if (!session?.user) return;
     (async () => {
       try {
-        const hint = session.user.user_metadata || {};
-        if (hint.onboarding_complete || hint.has_onboarded || hint.onboarded) {
+        const meta = session.user.user_metadata || {};
+        if (meta.onboarding_complete === true || meta.has_onboarded === true || meta.onboarded === true) {
           navigate("/home", { replace: true });
           return;
         }
@@ -49,30 +49,21 @@ export default function Onboarding() {
           .eq("id", session.user.id)
           .maybeSingle();
 
-        if (error) { setChecking(false); return; }
+        if (error) {
+          console.warn("users SELECT failed:", error.message);
+          setChecking(false);
+          return;
+        }
 
         const completed = data?.onboarding_complete === true || Boolean(data?.onboarding_completed_at);
-        completed ? navigate("/home", { replace: true }) : setChecking(false);
-      } catch {
+        if (completed) navigate("/home", { replace: true });
+        else setChecking(false);
+      } catch (e) {
+        console.warn("onboarding check failed:", e);
         setChecking(false);
       }
     })();
   }, [session, navigate]);
-
-  // preselect genres if any exist for returning-but-not-complete users
-  useEffect(() => {
-    if (!session?.user) return;
-    (async () => {
-      const { data } = await supabase
-        .from('user_preferences')
-        .select('genre_id')
-        .eq('user_id', session.user.id);
-
-      if (Array.isArray(data) && data.length) {
-        setSelectedGenres(Array.from(new Set(data.map(d => d.genre_id))));
-      }
-    })();
-  }, [session]);
 
   // popular picks for step 2
   useEffect(() => {
@@ -93,17 +84,17 @@ export default function Onboarding() {
     return () => { active = false };
   }, [TMDB_KEY]);
 
-  // search (debounced + abortable)
+  // search
   useEffect(() => {
+    let active = true;
     if (!query) { setResults([]); setShowAllResults(false); return; }
-    const ctrl = new AbortController();
-    const t = setTimeout(async () => {
+    (async () => {
       try {
         const r = await fetch(
-          `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${encodeURIComponent(query)}`,
-          { signal: ctrl.signal }
+          `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${encodeURIComponent(query)}`
         );
         const data = await r.json();
+        if (!active) return;
         const all = (data.results || []).sort(
           (a, b) =>
             (b.popularity || 0) - (a.popularity || 0) ||
@@ -111,10 +102,11 @@ export default function Onboarding() {
         );
         setResults(all); setShowAllResults(false);
       } catch {
-        /* aborted or failed */
+        if (!active) return;
+        setResults([]); setShowAllResults(false);
       }
-    }, 250);
-    return () => { ctrl.abort(); clearTimeout(t); };
+    })();
+    return () => { active = false };
   }, [query, TMDB_KEY]);
 
   const GENRES = useMemo(() => [
@@ -128,10 +120,10 @@ export default function Onboarding() {
     { id: 878, label:"Sci-fi" },  { id: 53, label:"Thriller"}
   ], []);
 
-  const toggleGenre = (id) => setSelectedGenres(g => g.includes(id) ? g.filter(x=>x!==id) : [...g,id]);
-  const inPicks     = (id) => watchlist.some(x => x.id === id);
-  const addPick     = (m)  => { if (!inPicks(m.id)) setWatchlist(w => [...w, m]) };
-  const removePick  = (id) => setWatchlist(w => w.filter(m => m.id !== id));
+  const toggleGenre      = (id) => setSelectedGenres(g => g.includes(id) ? g.filter(x=>x!==id) : [...g,id]);
+  const inPicks          = (id) => watchlist.some(x => x.id === id);
+  const addPick          = (m)  => { if (!inPicks(m.id)) setWatchlist(w => [...w, m]) };
+  const removePick       = (id) => setWatchlist(w => w.filter(m => m.id !== id));
 
   async function saveAndGo(opts = {}) {
     const { skipGenres = false, skipMovies = false } = opts;
@@ -177,12 +169,7 @@ export default function Onboarding() {
         if (wlErr && wlErr.code !== "23505") console.warn("watchlist upsert warn:", wlErr);
       }
 
-      // mark onboarding complete (single authority + timestamp)
-      await supabase.from("users")
-        .update({ onboarding_complete: true, onboarding_completed_at: new Date().toISOString() })
-        .eq("id", user_id);
-
-      // cache hint in auth metadata
+      await supabase.from("users").update({ onboarding_complete: true }).eq("id", user_id);
       await supabase.auth.updateUser({ data: { onboarding_complete: true, has_onboarded: true } });
 
       navigate("/home", { replace: true, state: { fromOnboarding: true } });
@@ -202,210 +189,225 @@ export default function Onboarding() {
     );
   }
 
+  // --- ABSOLUTE CENTER: this wrapper guarantees perfect centering
   return (
-    <div className="relative w-[min(92vw,920px)] rounded-[22px] p-[1px] bg-[linear-gradient(135deg,rgba(254,146,69,.45),rgba(235,66,59,.35),rgba(45,119,255,.35),rgba(0,209,255,.35))] shadow-[0_40px_120px_rgba(0,0,0,.55)]">
-      <div
-        className="rounded-[21px] bg-black/45 backdrop-blur-md ring-1 ring-white/10 overflow-hidden"
-        style={{ maxHeight: 'calc(100svh - var(--topnav-h,72px) - var(--footer-h,0px) - 18px)' }}
-      >
-        {/* header */}
-        <div className="px-5 sm:px-6 py-4">
-          <div className="flex items-center justify-center gap-3 text-white/70 text-[12px]">
-            <span className={step === 1 ? 'text-white font-semibold' : ''}>Step 1 of 2</span>
-            <span>•</span>
-            <span className={step === 2 ? 'text-white font-semibold' : ''}>Step 2 of 2</span>
+    <div
+      className="
+        grid place-items-center
+        min-h-[calc(100svh-var(--topnav-h,72px)-var(--footer-h,0px))]
+        px-3 md:px-0
+      "
+    >
+      {/* Card wrapper (no overlap with TopNav thanks to min-h above) */}
+      <div className="relative w-[min(92vw,920px)] rounded-[22px] p-[1px] bg-[linear-gradient(135deg,rgba(254,146,69,.45),rgba(235,66,59,.35),rgba(45,119,255,.35),rgba(0,209,255,.35))] shadow-[0_40px_120px_rgba(0,0,0,.55)]">
+        {/* soft brand glow behind the card (contained to this block) */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -inset-4 -z-10 rounded-[28px] opacity-70 blur-2xl"
+          style={{
+            background:
+              'radial-gradient(65% 55% at 18% 12%, rgba(254,146,69,.18), transparent 60%), radial-gradient(70% 60% at 85% 20%, rgba(0,209,255,.16), transparent 65%)',
+          }}
+        />
+
+        <div
+          className="rounded-[21px] bg-black/45 backdrop-blur-md ring-1 ring-white/10 overflow-hidden"
+          style={{ maxHeight: 'calc(100svh - var(--topnav-h,72px) - var(--footer-h,0px) - 18px)' }}
+        >
+          {/* header */}
+          <div className="px-5 sm:px-6 py-4">
+            {/* Step indicator — only show the current one */}
+            <p className="text-center text-[12.5px] font-semibold text-white/70 tracking-wide">
+              {step === 1 ? "Step 1 of 2" : "Step 2 of 2"}
+            </p>
+
+            <h2 className="mt-1 text-center text-[clamp(1.1rem,2.2vw,1.5rem)] font-extrabold text-white tracking-tight">
+              {step === 1 ? "Let’s get to know your taste." : "Pick a few favorite movies."}
+            </h2>
+            <p className="mt-1 text-center text-[12.5px] text-white/75">
+              {step === 1
+                ? "Choose a few genres you love — it helps us recommend movies that match your energy."
+                : "Tap some popular picks or search to add more. The more you pick, the better the recs."}
+            </p>
+            {error && (
+              <p className="mt-2 text-center text-[12.5px] text-red-400">{error}</p>
+            )}
           </div>
-          <h2 className="mt-1 text-center text-[clamp(1.1rem,2.2vw,1.5rem)] font-extrabold text-white tracking-tight">
-            {step === 1 ? "Let’s get to know your taste." : "Pick a few favorite movies."}
-          </h2>
-          <p className="mt-1 text-center text-[12.5px] text-white/75">
-            {step === 1
-              ? "Choose a few genres you love — it helps us recommend movies that match your energy."
-              : "Tap some popular picks or search to add more. The more you pick, the better the recs."}
-          </p>
-          {error && (
-            <p className="mt-2 text-center text-[12.5px] text-red-400">{error}</p>
-          )}
-        </div>
 
-        {/* body */}
-        <div className="px-5 sm:px-6 pb-5 sm:pb-6 overflow-y-auto">
-          {step === 1 && (
-            <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2.5">
-              {GENRES.map(g => {
-                const active = selectedGenres.includes(g.id);
-                return (
-                  <button
-                    key={g.id}
-                    type="button"
-                    onClick={() => {
-                      toggleGenre(g.id);
-                    }}
-                    className="h-9 rounded-xl border text-white text-[13px] font-medium transition-all"
-                    style={{
-                      borderColor: 'rgba(255,255,255,0.18)',
-                      background: active ? GENRE_SELECTED_BG : 'rgba(255,255,255,0.03)',
-                      boxShadow: active ? '0 2px 10px rgba(254,146,69,.18)' : 'none'
-                    }}
-                  >
-                    <span className="px-3">{g.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
+          {/* body */}
+          <div className="px-5 sm:px-6 pb-5 sm:pb-6 overflow-y-auto">
+            {step === 1 && (
+              <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2.5">
+                {GENRES.map(g => {
+                  const active = selectedGenres.includes(g.id);
+                  return (
+                    <button
+                      key={g.id}
+                      type="button"
+                      onClick={() => toggleGenre(g.id)}
+                      className="h-9 rounded-xl border text-white text-[13px] font-medium transition-all"
+                      style={{
+                        borderColor: 'rgba(255,255,255,0.18)',
+                        background: active ? GENRE_SELECTED_BG : 'rgba(255,255,255,0.03)',
+                        boxShadow: active ? '0 2px 10px rgba(254,146,69,.18)' : 'none'
+                      }}
+                    >
+                      <span className="px-3">{g.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
 
-          {step === 2 && (
-            <>
-              {/* search */}
-              <input
-                type="text"
-                placeholder="Search a movie…"
-                value={query}
-                onChange={e => setQuery(e.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-[13.5px] text-white placeholder-white/40 focus:outline-none"
-                autoFocus
-              />
+            {step === 2 && (
+              <>
+                {/* search */}
+                <input
+                  type="text"
+                  placeholder="Search a movie…"
+                  value={query}
+                  onChange={e => setQuery(e.target.value)}
+                  className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-[13.5px] text-white placeholder-white/40 focus:outline-none"
+                />
 
-              {/* suggested grid */}
-              {!query && popular.length > 0 && (
-                <>
-                  <h3 className="mt-4 mb-2 text-[13px] font-semibold text-white/80">Popular picks this week</h3>
-                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
-                    {popular.map(m => {
-                      const selected = inPicks(m.id);
+                {/* suggested grid */}
+                {!query && popular.length > 0 && (
+                  <>
+                    <h3 className="mt-4 mb-2 text-[13px] font-semibold text-white/80">Popular picks this week</h3>
+                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+                      {popular.map(m => {
+                        const selected = inPicks(m.id);
+                        return (
+                          <button
+                            type="button"
+                            key={m.id}
+                            onClick={() => (selected ? removePick(m.id) : addPick(m))}
+                            className="relative rounded-lg overflow-hidden ring-1 ring-white/10"
+                            aria-pressed={selected}
+                            title={m.title}
+                          >
+                            <img
+                              src={`https://image.tmdb.org/t/p/w185${m.poster_path}`}
+                              alt={m.title}
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                            />
+                            <div className="absolute inset-0 bg-black/30 opacity-0 transition-opacity hover:opacity-100" />
+                            {selected && (
+                              <div className="absolute inset-0 ring-2 ring-[#fe9245]/80 rounded-lg" />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+
+                {/* search results */}
+                {query && results.length > 0 && (
+                  <div className="mt-3 rounded-xl bg-white/[.04] ring-1 ring-white/10 max-h-[240px] overflow-auto">
+                    {(showAllResults ? results : results.slice(0, 8)).map(r => {
+                      const selected = inPicks(r.id);
                       return (
                         <button
+                          key={r.id}
                           type="button"
-                          key={m.id}
-                          onClick={() => (selected ? removePick(m.id) : addPick(m))}
-                          className="relative rounded-lg overflow-hidden ring-1 ring-white/10"
-                          aria-pressed={selected}
-                          title={m.title}
+                          onClick={() => (selected ? removePick(r.id) : addPick(r))}
+                          className="flex w-full items-center gap-3 px-3 py-2 hover:bg-white/5 text-left"
                         >
                           <img
-                            src={`https://image.tmdb.org/t/p/w185${m.poster_path}`}
-                            alt={m.title}
-                            className="w-full h-full object-cover"
-                            loading="lazy"
+                            src={r.poster_path ? `https://image.tmdb.org/t/p/w92${r.poster_path}` : "https://dummyimage.com/60x90/111/fff&text=?"}
+                            alt=""
+                            className="w-[28px] h-[42px] object-cover rounded"
                           />
-                          <div className="absolute inset-0 bg-black/30 opacity-0 transition-opacity hover:opacity-100" />
-                          {selected && (
-                            <div className="absolute inset-0 ring-2 ring-[#fe9245]/80 rounded-lg" />
-                          )}
+                          <div className="flex-1">
+                            <div className="text-[13.5px] text-white">{r.title}</div>
+                            <div className="text-[12px] text-white/60">
+                              {r.release_date ? r.release_date.slice(0,4) : "—"}
+                            </div>
+                          </div>
+                          <span className={`text-[12px] ${selected ? 'text-[#fe9245]' : 'text-white/60'}`}>
+                            {selected ? 'Added' : 'Add'}
+                          </span>
                         </button>
                       );
                     })}
-                  </div>
-                </>
-              )}
-
-              {/* search results */}
-              {query && results.length > 0 && (
-                <div className="mt-3 rounded-xl bg-white/[.04] ring-1 ring-white/10 max-h-[240px] overflow-auto">
-                  {(showAllResults ? results : results.slice(0, 8)).map(r => {
-                    const selected = inPicks(r.id);
-                    return (
+                    {!showAllResults && results.length > 8 && (
                       <button
-                        key={r.id}
                         type="button"
-                        onClick={() => (selected ? removePick(r.id) : addPick(r))}
-                        className="flex w-full items-center gap-3 px-3 py-2 hover:bg-white/5 text-left"
+                        onClick={() => setShowAllResults(true)}
+                        className="w-full py-2 text-[12.5px] text-[#fe9245] font-semibold hover:bg-white/5"
                       >
-                        <img
-                          src={r.poster_path ? `https://image.tmdb.org/t/p/w92${r.poster_path}` : "https://dummyimage.com/60x90/111/fff&text=?"}
-                          alt=""
-                          className="w-[28px] h-[42px] object-cover rounded"
-                          loading="lazy"
-                        />
-                        <div className="flex-1">
-                          <div className="text-[13.5px] text-white">{r.title}</div>
-                          <div className="text-[12px] text-white/60">
-                            {r.release_date ? r.release_date.slice(0,4) : "—"}
-                          </div>
-                        </div>
-                        <span className={`text-[12px] ${selected ? 'text-[#fe9245]' : 'text-white/60'}`}>
-                          {selected ? 'Added' : 'Add'}
-                        </span>
+                        Show more
                       </button>
-                    );
-                  })}
-                  {!showAllResults && results.length > 8 && (
-                    <button
-                      type="button"
-                      onClick={() => setShowAllResults(true)}
-                      className="w-full py-2 text-[12.5px] text-[#fe9245] font-semibold hover:bg-white/5"
-                    >
-                      Show more
-                    </button>
-                  )}
-                </div>
-              )}
-
-              {/* chosen tiles */}
-              {watchlist.length > 0 && (
-                <>
-                  <h3 className="mt-4 mb-2 text-[13px] font-semibold text-white/80">Your picks</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {watchlist.map(m => (
-                      <div key={m.id} className="relative">
-                        <img
-                          src={m.poster_path ? `https://image.tmdb.org/t/p/w92${m.poster_path}` : "https://dummyimage.com/60x90/111/fff&text=?"}
-                          alt={m.title}
-                          className="w-[60px] h-[90px] object-cover rounded"
-                          loading="lazy"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removePick(m.id)}
-                          className="absolute -top-2 -right-2 h-5 w-5 grid place-items-center rounded-full bg-black/70 text-white text-xs"
-                          aria-label={`Remove ${m.title}`}
-                        >×</button>
-                      </div>
-                    ))}
+                    )}
                   </div>
-                </>
-              )}
-            </>
-          )}
-        </div>
+                )}
 
-        {/* footer actions */}
-        <div className="px-5 sm:px-6 pb-5 sm:pb-6">
-          {step === 1 ? (
-            <div className="flex items-center justify-center gap-6">
-              <button
-                className="px-6 py-2 rounded-lg font-extrabold text-[15px] text-white"
-                style={{ background: BTN_BG, boxShadow: "0 2px 10px #eb423b22", opacity: loading ? 0.7 : 1 }}
-                disabled={loading}
-                onClick={() => setStep(2)}
-              >Next</button>
-              <button
-                className="text-[13.5px] font-extrabold text-[#fe9245]"
-                disabled={loading}
-                onClick={() => saveAndGo({ skipGenres: true })}
-              >Skip</button>
-            </div>
-          ) : (
-            <div className="flex items-center justify-center gap-5">
-              <button
-                className="text-[13px] font-semibold text-white/80"
-                onClick={() => setStep(1)}
-                disabled={loading}
-              >&lt; Back</button>
-              <button
-                className="px-6 py-2 rounded-lg font-extrabold text-[15px] text-white"
-                style={{ background: BTN_BG, boxShadow: "0 2px 10px #eb423b22", opacity: loading ? 0.7 : 1 }}
-                disabled={loading}
-                onClick={() => saveAndGo()}
-              >Finish</button>
-              <button
-                className="text-[13.5px] font-extrabold text-[#fe9245]"
-                disabled={loading}
-                onClick={() => saveAndGo({ skipMovies: true })}
-              >Skip</button>
-            </div>
-          )}
+                {/* chosen tiles */}
+                {watchlist.length > 0 && (
+                  <>
+                    <h3 className="mt-4 mb-2 text-[13px] font-semibold text-white/80">Your picks</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {watchlist.map(m => (
+                        <div key={m.id} className="relative">
+                          <img
+                            src={m.poster_path ? `https://image.tmdb.org/t/p/w92${m.poster_path}` : "https://dummyimage.com/60x90/111/fff&text=?"}
+                            alt={m.title}
+                            className="w-[60px] h-[90px] object-cover rounded"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removePick(m.id)}
+                            className="absolute -top-2 -right-2 h-5 w-5 grid place-items-center rounded-full bg-black/70 text-white text-xs"
+                            aria-label={`Remove ${m.title}`}
+                          >×</button>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* footer actions */}
+          <div className="px-5 sm:px-6 pb-5 sm:pb-6">
+            {step === 1 ? (
+              <div className="flex items-center justify-center gap-6">
+                <button
+                  className="px-6 py-2 rounded-lg font-extrabold text-[15px] text-white"
+                  style={{ background: BTN_BG, boxShadow: "0 2px 10px #eb423b22", opacity: loading ? 0.7 : 1 }}
+                  disabled={loading}
+                  onClick={() => setStep(2)}
+                >Next</button>
+                <button
+                  className="text-[13.5px] font-extrabold text-[#fe9245]"
+                  disabled={loading}
+                  onClick={() => saveAndGo({ skipGenres: true })}
+                >Skip</button>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center gap-5">
+                <button
+                  className="text-[13px] font-semibold text-white/80"
+                  onClick={() => setStep(1)}
+                  disabled={loading}
+                >&lt; Back</button>
+                <button
+                  className="px-6 py-2 rounded-lg font-extrabold text-[15px] text-white"
+                  style={{ background: BTN_BG, boxShadow: "0 2px 10px #eb423b22", opacity: loading ? 0.7 : 1 }}
+                  disabled={loading}
+                  onClick={() => saveAndGo()}
+                >Finish</button>
+                <button
+                  className="text-[13.5px] font-extrabold text-[#fe9245]"
+                  disabled={loading}
+                  onClick={() => saveAndGo({ skipMovies: true })}
+                >Skip</button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

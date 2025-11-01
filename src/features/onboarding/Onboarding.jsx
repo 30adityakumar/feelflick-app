@@ -12,12 +12,12 @@ export default function Onboarding() {
   const [checking, setChecking] = useState(true);
   const [step, setStep]         = useState(1);
 
-  const [selectedGenres, setSelectedGenres] = useState<number[]>([]);
+  const [selectedGenres, setSelectedGenres] = useState([]);
   const [query, setQuery]       = useState("");
-  const [results, setResults]   = useState<any[]>([]);
+  const [results, setResults]   = useState([]);
   const [showAllResults, setShowAllResults] = useState(false);
-  const [watchlist, setWatchlist] = useState<any[]>([]);
-  const [popular, setPopular]   = useState<any[]>([]);
+  const [watchlist, setWatchlist] = useState([]);
+  const [popular, setPopular]   = useState([]);
 
   const [error, setError]       = useState("");
   const [loading, setLoading]   = useState(false);
@@ -26,7 +26,7 @@ export default function Onboarding() {
 
   // session
   useEffect(() => {
-    let unsub: (() => void) | undefined;
+    let unsub;
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
     const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
     unsub = data?.subscription?.unsubscribe;
@@ -128,12 +128,12 @@ export default function Onboarding() {
     { id: 878, label:"Sci-fi" },  { id: 53, label:"Thriller"}
   ], []);
 
-  const toggleGenre      = (id: number) => setSelectedGenres(g => g.includes(id) ? g.filter(x=>x!==id) : [...g,id]);
-  const inPicks          = (id: number) => watchlist.some(x => x.id === id);
-  const addPick          = (m: any)  => { if (!inPicks(m.id)) setWatchlist(w => [...w, m]) };
-  const removePick       = (id: number) => setWatchlist(w => w.filter(m => m.id !== id));
+  const toggleGenre = (id) => setSelectedGenres(g => g.includes(id) ? g.filter(x=>x!==id) : [...g,id]);
+  const inPicks     = (id) => watchlist.some(x => x.id === id);
+  const addPick     = (m)  => { if (!inPicks(m.id)) setWatchlist(w => [...w, m]) };
+  const removePick  = (id) => setWatchlist(w => w.filter(m => m.id !== id));
 
-  async function saveAndGo(opts: { skipGenres?: boolean; skipMovies?: boolean } = {}) {
+  async function saveAndGo(opts = {}) {
     const { skipGenres = false, skipMovies = false } = opts;
     setError(""); setLoading(true);
     try {
@@ -240,7 +240,6 @@ export default function Onboarding() {
                     type="button"
                     onClick={() => {
                       toggleGenre(g.id);
-                      // move focus hint to next control on keyboard flows
                     }}
                     className="h-9 rounded-xl border text-white text-[13px] font-medium transition-all"
                     style={{

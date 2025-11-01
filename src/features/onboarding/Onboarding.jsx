@@ -189,23 +189,22 @@ export default function Onboarding() {
     );
   }
 
-  /**
-   * Centering notes:
-   * - The parent page already sets main height = (100svh - TopNav - Footer).
-   * - We center within that space; the card will never overlap TopNav.
-   * - To avoid *visual* overlap on small screens, the glow's spread is reduced.
-   */
+  // Absolute-center BELOW the fixed TopNav:
+  // - We reserve space using paddingTop: var(--topnav-h)
+  // - We still center using CSS grid
   return (
     <div
-      className="
-        grid place-items-center
-        min-h-[calc(100svh-var(--topnav-h,72px)-var(--footer-h,0px))]
-        px-3 md:px-0
-      "
+      className="px-3 md:px-0"
+      style={{
+        minHeight: 'calc(100svh - var(--footer-h,0px))',
+        paddingTop: 'calc(var(--topnav-h,72px) + 8px)',
+        paddingBottom: '12px',
+        display: 'grid',
+        placeItems: 'center',
+      }}
     >
-      {/* Card wrapper */}
+      {/* Card wrapper (glow softened on mobile to avoid visual overlap) */}
       <div className="relative isolate w-[min(92vw,920px)] rounded-[22px] p-[1px] bg-[linear-gradient(135deg,rgba(254,146,69,.45),rgba(235,66,59,.35),rgba(45,119,255,.35),rgba(0,209,255,.35))] shadow-[0_40px_120px_rgba(0,0,0,.55)]">
-        {/* soft brand glow (reduced spread on mobile to prevent visual overlap with TopNav) */}
         <div
           aria-hidden
           className="pointer-events-none absolute -z-10 rounded-[28px] opacity-70 blur-2xl md:-inset-4 -inset-1"
@@ -221,7 +220,6 @@ export default function Onboarding() {
         >
           {/* header */}
           <div className="px-5 sm:px-6 py-4">
-            {/* Step indicator — only show the current one */}
             <p className="text-center text-[12.5px] font-semibold text-white/70 tracking-wide">
               {step === 1 ? "Step 1 of 2" : "Step 2 of 2"}
             </p>

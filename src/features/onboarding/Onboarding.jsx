@@ -189,7 +189,12 @@ export default function Onboarding() {
     );
   }
 
-  // --- ABSOLUTE CENTER: this wrapper guarantees perfect centering
+  /**
+   * Centering notes:
+   * - The parent page already sets main height = (100svh - TopNav - Footer).
+   * - We center within that space; the card will never overlap TopNav.
+   * - To avoid *visual* overlap on small screens, the glow's spread is reduced.
+   */
   return (
     <div
       className="
@@ -198,12 +203,12 @@ export default function Onboarding() {
         px-3 md:px-0
       "
     >
-      {/* Card wrapper (no overlap with TopNav thanks to min-h above) */}
-      <div className="relative w-[min(92vw,920px)] rounded-[22px] p-[1px] bg-[linear-gradient(135deg,rgba(254,146,69,.45),rgba(235,66,59,.35),rgba(45,119,255,.35),rgba(0,209,255,.35))] shadow-[0_40px_120px_rgba(0,0,0,.55)]">
-        {/* soft brand glow behind the card (contained to this block) */}
+      {/* Card wrapper */}
+      <div className="relative isolate w-[min(92vw,920px)] rounded-[22px] p-[1px] bg-[linear-gradient(135deg,rgba(254,146,69,.45),rgba(235,66,59,.35),rgba(45,119,255,.35),rgba(0,209,255,.35))] shadow-[0_40px_120px_rgba(0,0,0,.55)]">
+        {/* soft brand glow (reduced spread on mobile to prevent visual overlap with TopNav) */}
         <div
           aria-hidden
-          className="pointer-events-none absolute -inset-4 -z-10 rounded-[28px] opacity-70 blur-2xl"
+          className="pointer-events-none absolute -z-10 rounded-[28px] opacity-70 blur-2xl md:-inset-4 -inset-1"
           style={{
             background:
               'radial-gradient(65% 55% at 18% 12%, rgba(254,146,69,.18), transparent 60%), radial-gradient(70% 60% at 85% 20%, rgba(0,209,255,.16), transparent 65%)',

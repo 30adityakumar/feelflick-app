@@ -2,7 +2,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { LogIn } from 'lucide-react'
-import logoPng from '@/assets/images/logo.png'
 
 export default function TopNav({ hideAuthCta = false }) {
   const [scrolled, setScrolled] = useState(false)
@@ -62,28 +61,20 @@ export default function TopNav({ hideAuthCta = false }) {
       <div
         ref={barRef}
         className="
-          mx-auto flex w-full max-w-7xl items-center justify-between gap-2 
-          px-3 
-          pt-[calc(env(safe-area-inset-top)+14px)]  /* ⬆️ added a bit more top padding for mobile */
+          mx-auto flex w-full max-w-7xl items-center justify-between gap-2
+          px-3
+          pt-[calc(env(safe-area-inset-top)+14px)]  /* mobile top padding */
           pb-3 sm:py-4 md:px-6
         "
       >
+        {/* Brand text only (logo removed) */}
         <a
           href="/"
           onClick={onBrandClick}
-          className="flex items-center gap-1.5 rounded-md"
+          className="flex items-center rounded-md"
           aria-label="FeelFlick home"
         >
-          <img
-            src={logoPng}
-            alt=""
-            width="36"
-            height="36"
-            className="h-9 w-9 object-contain"
-            loading="eager"
-            decoding="async"
-          />
-          <span className="text-[clamp(1.25rem,4.5vw,1.75rem)] font-extrabold tracking-tight text-brand-100">
+          <span className="text-[0.95rem] sm:text-[0.9rem] md:text-[1rem] font-extrabold tracking-tight text-brand-100 uppercase">
             FEELFLICK
           </span>
         </a>
@@ -106,9 +97,9 @@ export default function TopNav({ hideAuthCta = false }) {
               <Link
                 to="/auth/log-in-or-create-account"
                 className="
-                  inline-flex items-center gap-2 
-                  h-10 px-4  /* ⬆️ was h-9 px-3.5 — slightly bigger on mobile */
-                  rounded-full border border-white/20 
+                  inline-flex items-center gap-2
+                  h-10 px-4
+                  rounded-full border border-white/20
                   bg-white/5 text-[0.95rem] font-semibold text-white/95
                   hover:bg-white/10 active:scale-[.98] focus:outline-none
                 "

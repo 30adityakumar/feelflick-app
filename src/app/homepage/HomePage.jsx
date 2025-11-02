@@ -1,8 +1,8 @@
 // src/app/homepage/HomePage.jsx
 import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/shared/lib/supabase/client";
-import HeroSliderSection from "./HeroSliderSection";
-import CarouselRow from "./CarouselRow";
+import HeroSliderSection from "@/homepage/components/HeroSliderSection";
+import CarouselRow from "@/homepage/components/CarouselRow";
 
 const TMDB = {
   key: import.meta.env.VITE_TMDB_API_KEY,

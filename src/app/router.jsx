@@ -32,7 +32,7 @@ import NotFound from '@/app/pages/NotFound'
 import TopNav from '@/features/landing/components/TopNav'
 import Footer from '@/features/landing/components/Footer'
 
-// Post-auth decision gate (spinner + routing)
+// Auth/onboarding gate
 import PostAuthGate from '@/features/auth/PostAuthGate'
 
 /* ----------------------------- Public layout ----------------------------- */
@@ -44,6 +44,42 @@ function PublicShell() {
       </main>
     </div>
   )
+}
+
+/* ------------------------------ Small UI bits ---------------------------- */
+function FullScreenSpinner() {
+  return (
+    <div className="grid min-h-[60vh] place-items-center text-white/80">
+      <div className="inline-flex items-center gap-3">
+        <svg className="h-6 w-6 animate-spin text-brand-100" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeOpacity=".25" strokeWidth="4" />
+          <path d="M4 12a8 8 0 018-8v8z" fill="currentColor" />
+        </svg>
+        <span>Loading…</span>
+      </div>
+    </div>
+  )
+}
+
+/** Root entry: if authed → /home, otherwise show Landing (no /post-auth URL) */
+function RootEntry() {
+  const [status, setStatus] = useState('loading') // 'loading' | 'authed' | 'anon'
+
+  useEffect(() => {
+    let unsub
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setStatus(session ? 'authed' : 'anon')
+    })
+    const { data } = supabase.auth.onAuthStateChange((_evt, session) => {
+      setStatus(session ? 'authed' : 'anon')
+    })
+    unsub = data?.subscription?.unsubscribe
+    return () => { if (typeof unsub === 'function') unsub() }
+  }, [])
+
+  if (status === 'loading') return <FullScreenSpinner />
+  if (status === 'authed') return <Navigate to="/home" replace />
+  return <Landing />
 }
 
 /* ------------------------------ Auth guards ------------------------------ */
@@ -63,29 +99,9 @@ function RequireAuth() {
     return () => { if (typeof unsub === 'function') unsub() }
   }, [])
 
-  if (status === 'loading') return <div className="p-6 text-white/70">Loading…</div>
+  if (status === 'loading') return <FullScreenSpinner />
   if (status === 'anon') return <Navigate to="/" replace state={{ from: loc }} />
   return <Outlet />
-}
-
-/** Redirect signed-in users away from public pages (/, legacy /auth aliases) */
-function RedirectIfAuthed({ children }) {
-  const [status, setStatus] = useState('loading')
-  useEffect(() => {
-    let unsub
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setStatus(session ? 'authed' : 'anon')
-    })
-    const { data } = supabase.auth.onAuthStateChange((_evt, session) => {
-      setStatus(session ? 'authed' : 'anon')
-    })
-    unsub = data?.subscription?.unsubscribe
-    return () => { if (typeof unsub === 'function') unsub() }
-  }, [])
-  if (status === 'loading') return <div className="p-6 text-white/70">Loading…</div>
-  // ⬇️ Always send authed users to the gate, not /home — avoids any home flash
-  if (status === 'authed') return <Navigate to="/post-auth" replace />
-  return children
 }
 
 /* ------------------------ Auth-style chrome (bg) ------------------------- */
@@ -141,7 +157,7 @@ function SignOutRoute() {
   useEffect(() => {
     supabase.auth.signOut().finally(() => nav('/', { replace: true }))
   }, [nav])
-  return <div className="p-6 text-white/70">Signing you out…</div>
+  return <FullScreenSpinner />
 }
 
 /* -------------------------------- Router --------------------------------- */
@@ -150,12 +166,10 @@ export const router = createBrowserRouter([
   {
     element: <PublicShell />,
     children: [
-      { index: true, element: <RedirectIfAuthed><Landing /></RedirectIfAuthed> },
+      // Root decides: Landing (anon) or /home (authed)
+      { index: true, element: <RootEntry /> },
 
-      // OAuth return → gate decides /home vs /onboarding with spinner (no flash)
-      { path: 'post-auth', element: <PostAuthGate standalone /> },
-
-      // Legacy auth aliases → send to landing (inline auth UX)
+      // Legacy auth aliases → just go to root (we no longer use /auth pages)
       { path: 'auth', element: <Navigate to="/" replace /> },
       { path: 'auth/sign-in', element: <Navigate to="/" replace /> },
       { path: 'auth/sign-up', element: <Navigate to="/" replace /> },
@@ -169,7 +183,7 @@ export const router = createBrowserRouter([
     ],
   },
 
-  // Onboarding — auth required, but NO app chrome (uses landing-style bg)
+  // Onboarding — auth required, but NO app chrome (uses auth-style chrome)
   {
     element: <OnboardingShell />,
     children: [
@@ -180,31 +194,29 @@ export const router = createBrowserRouter([
     ],
   },
 
-  // App branch — AppShell mounts ONLY after RequireAuth + PostAuthGate are satisfied
+  // App branch (header + sidebar chrome)
   {
-    // Do NOT mount AppShell here; gate first, then shell
+    element: <AppShell />,
     children: [
+      // Publicly viewable
+      { path: 'movies', element: <MoviesTab /> },
+      { path: 'movie/:id', element: <MovieDetail /> },
+      { path: 'browse', element: <MoviesTab /> },
+      { path: 'trending', element: <MoviesTab /> },
+
+      // Auth-required + onboarding gate
       {
         element: <RequireAuth />,
         children: [
           {
-            element: <PostAuthGate />, // while checking: spinner; once ready: continues
+            element: <PostAuthGate />, // runs gate, URL stays as the child route (e.g., /home)
             children: [
-              {
-                element: <AppShell />, // ⬅️ App chrome mounts only after gate resolves
-                children: [
-                  { path: 'home', element: <HomePage /> },
-                  { path: 'movies', element: <MoviesTab /> },
-                  { path: 'movie/:id', element: <MovieDetail /> },
-                  { path: 'browse', element: <MoviesTab /> },
-                  { path: 'trending', element: <MoviesTab /> },
-                  { path: 'account', element: <Account /> },
-                  { path: 'preferences', element: <Preferences /> },
-                  { path: 'watchlist', element: <Watchlist /> },
-                  { path: 'watched', element: <HistoryPage /> },
-                  { path: 'history', element: <HistoryPage /> }, // legacy
-                ],
-              },
+              { path: 'home', element: <HomePage /> },
+              { path: 'account', element: <Account /> },
+              { path: 'preferences', element: <Preferences /> },
+              { path: 'watchlist', element: <Watchlist /> },
+              { path: 'watched', element: <HistoryPage /> },
+              { path: 'history', element: <HistoryPage /> }, // legacy
             ],
           },
         ],

@@ -11,24 +11,19 @@ const TMDB = {
 
 export default function HomePage() {
   const [session, setSession] = useState(null);
-
-  // rows
   const [trending, setTrending] = useState([]);
   const [topRated, setTopRated] = useState([]);
   const [forYou, setForYou] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // session
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
     const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
     return () => data?.subscription?.unsubscribe?.();
   }, []);
 
-  // fetch rows
   useEffect(() => {
     let alive = true;
-
     async function load() {
       setLoading(true);
 
@@ -48,7 +43,6 @@ export default function HomePage() {
             .from("user_preferences")
             .select("genre_id")
             .eq("user_id", uid);
-
           const chosen = (prefs || []).map(p => p.genre_id).slice(0, 3);
           if (chosen.length) {
             const lists = await Promise.all(
@@ -64,17 +58,15 @@ export default function HomePage() {
       } catch { /* ignore */ }
 
       if (!alive) return;
-
       const tidy = arr => (arr || [])
         .filter(m => m && (m.poster_path || m.backdrop_path))
-        .slice(0, 20);
+        .slice(0, 24);
 
       setTrending(tidy(t.results));
       setTopRated(tidy(tr.results));
       setForYou(tidy(fy));
       setLoading(false);
     }
-
     load();
     return () => { alive = false; };
   }, [session]);
@@ -89,19 +81,20 @@ export default function HomePage() {
       className="
         w-full min-h-screen overflow-x-hidden
         bg-[radial-gradient(90%_120%_at_0%_0%,rgba(14,20,28,.55),transparent_40%),radial-gradient(70%_100%_at_100%_0%,rgba(0,209,255,.22),transparent_55%),#0b0e13]
-        pt-0
       "
     >
+      {/* FULL-BLEED HERO (no outer padding) */}
       <HeroSliderSection items={heroItems} loading={loading} />
 
-      <section className="w-full space-y-10 pb-16">
+      {/* EDGE-TO-EDGE CAROUSELS (no side/top padding) */}
+      <section className="w-full space-y-8 pb-16">
         {forYou.length > 0 && (
           <CarouselRow
             title="Picked for you"
+            pill="Personalized"
             items={forYou}
             tmdbBase={TMDB.img}
             loading={loading}
-            pill="Personalized"
           />
         )}
         <CarouselRow

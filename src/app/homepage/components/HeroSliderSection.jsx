@@ -16,16 +16,15 @@ export default function HeroSliderSection({ items = [], loading }) {
   }, [items.length]);
 
   if (loading) {
-    return (
-      <div className="w-full h-[42svh] md:h-[58svh] bg-white/[.02] animate-pulse" />
-    );
+    return <div className="w-full h-[50svh] md:h-[62svh] bg-white/[.02] animate-pulse" />;
   }
   if (!items.length) return null;
 
   const cur = items[idx];
 
   return (
-    <div className="relative w-full h-[42svh] md:h-[58svh]">
+    <div className="relative w-full h-[50svh] md:h-[62svh]">
+      {/* Backdrop */}
       <img
         src={
           cur.backdrop_path
@@ -40,9 +39,13 @@ export default function HeroSliderSection({ items = [], loading }) {
         decoding="async"
       />
 
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,.55),rgba(0,0,0,.3)_40%,rgba(0,0,0,.75))]" />
+      {/* Overlays / vignettes */}
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,.55),rgba(0,0,0,.28)_40%,rgba(0,0,0,.8))]" />
+      <div className="pointer-events-none absolute inset-y-0 left-0 w-[12vw] bg-gradient-to-r from-black/60 to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 w-[12vw] bg-gradient-to-l from-black/60 to-transparent" />
 
-      <div className="absolute top-6 right-6 flex gap-1 opacity-70">
+      {/* Progress dots */}
+      <div className="absolute top-5 right-5 flex gap-1 opacity-80">
         {items.slice(0, 6).map((_, i) => (
           <span
             key={i}
@@ -51,16 +54,18 @@ export default function HeroSliderSection({ items = [], loading }) {
         ))}
       </div>
 
-      <div className="relative z-10 h-full w-full px-4 sm:px-6 lg:px-10 flex items-end pb-8">
-        <div className="max-w-3xl">
-          <h1 className="text-white font-black tracking-tight text-[clamp(1.3rem,2.8vw,2.4rem)]">
+      {/* Content (no outer page padding; we keep a tiny safe padding via CSS var) */}
+      <div className="relative z-10 h-full w-full flex items-end pb-7">
+        <div className="ml-[max(10px,2.4vw)] max-w-[min(88ch,70vw)]">
+          <h1 className="text-white font-black tracking-tight text-[clamp(1.35rem,3.2vw,2.6rem)]">
             {cur.title}
           </h1>
           {cur.overview && (
-            <p className="mt-2 text-white/85 text-[clamp(.9rem,1.4vw,1.05rem)] line-clamp-3">
+            <p className="mt-2 text-white/85 text-[clamp(.9rem,1.6vw,1.05rem)] line-clamp-3">
               {cur.overview}
             </p>
           )}
+
           <div className="mt-5 flex gap-3">
             <button
               onClick={() => nav(`/movie/${cur.id}`)}

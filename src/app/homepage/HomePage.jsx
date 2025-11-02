@@ -1,116 +1,42 @@
-// src/app/homepage/HomePage.jsx
-import { useEffect, useMemo, useState } from "react";
-import { supabase } from "@/shared/lib/supabase/client";
+import { useEffect, useState } from "react";
 import HeroSliderSection from "./components/HeroSliderSection";
 import CarouselRow from "./components/CarouselRow";
-
-const TMDB = {
-  key: import.meta.env.VITE_TMDB_API_KEY,
-  img: "https://image.tmdb.org/t/p",
-};
+import { supabase } from "@/shared/lib/supabase/client";
 
 export default function HomePage() {
   const [session, setSession] = useState(null);
-  const [trending, setTrending] = useState([]);
-  const [topRated, setTopRated] = useState([]);
-  const [forYou, setForYou] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
-    const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
-    return () => data?.subscription?.unsubscribe?.();
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
+    return () => sub?.subscription?.unsubscribe();
   }, []);
 
-  useEffect(() => {
-    let alive = true;
-    async function load() {
-      setLoading(true);
-
-      const t = await fetch(
-        `https://api.themoviedb.org/3/trending/movie/week?api_key=${TMDB.key}`
-      ).then(r => r.json()).catch(() => ({}));
-
-      const tr = await fetch(
-        `https://api.themoviedb.org/3/movie/top_rated?api_key=${TMDB.key}`
-      ).then(r => r.json()).catch(() => ({}));
-
-      let fy = [];
-      try {
-        const uid = session?.user?.id;
-        if (uid) {
-          const { data: prefs } = await supabase
-            .from("user_preferences")
-            .select("genre_id")
-            .eq("user_id", uid);
-          const chosen = (prefs || []).map(p => p.genre_id).slice(0, 3);
-          if (chosen.length) {
-            const lists = await Promise.all(
-              chosen.map(g =>
-                fetch(
-                  `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB.key}&with_genres=${g}&sort_by=popularity.desc`
-                ).then(r => r.json()).catch(() => ({}))
-              )
-            );
-            fy = lists.flatMap(x => x.results || []);
-          }
-        }
-      } catch {}
-
-      if (!alive) return;
-      const tidy = arr => (arr || [])
-        .filter(m => m && (m.poster_path || m.backdrop_path))
-        .slice(0, 24);
-
-      setTrending(tidy(t.results));
-      setTopRated(tidy(tr.results));
-      setForYou(tidy(fy));
-      setLoading(false);
-    }
-    load();
-    return () => { alive = false; };
-  }, [session]);
-
-  const heroItems = useMemo(
-    () => (trending.length ? trending : topRated).slice(0, 8),
-    [trending, topRated]
-  );
-
   return (
-    <main
-      className="
-        w-full min-h-screen overflow-x-hidden relative
-        bg-[#0b0e13]
-      "
-    >
-      {/* FULL-BLEED HERO, touches top and sides */}
-      <div className="absolute top-0 left-0 w-full">
-        <HeroSliderSection items={heroItems} loading={loading} />
-      </div>
+    <main className="w-full bg-[#121215]">
+      {/* HERO — full width, no top/side padding */}
+      <HeroSliderSection className="full-bleed" />
 
-      {/* Content — shifted up so it hugs hero bottom */}
-      <section className="relative z-10 w-full space-y-10 pt-[58svh] pb-16">
-        {forYou.length > 0 && (
+      {/* CONTENT ROWS (edge-to-edge rails with a safe inner gutter) */}
+      <section className="full-bleed py-6 md:py-8">
+        <div className="mx-auto w-full max-w-[1680px] px-4 md:px-8">
           <CarouselRow
             title="Picked for you"
-            pill="Personalized"
-            items={forYou}
-            tmdbBase={TMDB.img}
-            loading={loading}
+            subtitle="Personalized"
+            tmdbCategory="popular"
+            rowId="picked"
           />
-        )}
-        <CarouselRow
-          title="Popular Now"
-          items={trending}
-          tmdbBase={TMDB.img}
-          loading={loading}
-        />
-        <CarouselRow
-          title="Top Rated"
-          items={topRated}
-          tmdbBase={TMDB.img}
-          loading={loading}
-        />
+          <CarouselRow
+            title="Top Rated"
+            tmdbCategory="top_rated"
+            rowId="top"
+          />
+          <CarouselRow
+            title="Trending Now"
+            tmdbCategory="now_playing"
+            rowId="trending"
+          />
+        </div>
       </section>
     </main>
   );

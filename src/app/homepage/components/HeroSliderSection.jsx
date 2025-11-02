@@ -1,86 +1,114 @@
-// src/app/homepage/components/HeroSliderSection.jsx
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const TMDB = "https://image.tmdb.org/t/p";
+const TMDB_IMG = (path, size = "w1280") =>
+  path ? `https://image.tmdb.org/t/p/${size}${path}` : "";
 
-export default function HeroSliderSection({ items = [], loading }) {
+export default function HeroSliderSection({ className = "" }) {
+  const [slides, setSlides] = useState([]);
+  const [i, setI] = useState(0);
   const nav = useNavigate();
-  const [idx, setIdx] = useState(0);
   const timer = useRef(null);
 
   useEffect(() => {
-    if (!items.length) return;
-    timer.current = setInterval(() => setIdx(i => (i + 1) % items.length), 6000);
+    // lightweight list for hero
+    fetch(
+      `https://api.themoviedb.org/3/movie/popular?api_key=${import.meta.env.VITE_TMDB_API_KEY}&language=en-US&page=1`
+    )
+      .then((r) => r.json())
+      .then((j) => setSlides(j?.results?.slice(0, 6) ?? []))
+      .catch(() => setSlides([]));
+  }, []);
+
+  // auto-advance
+  useEffect(() => {
+    if (!slides.length) return;
+    timer.current && clearInterval(timer.current);
+    timer.current = setInterval(() => setI((p) => (p + 1) % slides.length), 5500);
     return () => clearInterval(timer.current);
-  }, [items.length]);
+  }, [slides.length]);
 
-  if (loading) {
-    return <div className="w-full h-[58svh] bg-white/[.02] animate-pulse" />;
+  const current = slides[i] || {};
+  const backdrop = useMemo(
+    () => TMDB_IMG(current.backdrop_path || current.poster_path, "w1280"),
+    [current]
+  );
+
+  function viewDetails() {
+    if (current?.id) nav(`/movie/${current.id}`);
   }
-  if (!items.length) return null;
-
-  const cur = items[idx];
 
   return (
-    <div className="relative w-full h-[58svh] overflow-hidden">
-      <img
-        src={
-          cur.backdrop_path
-            ? `${TMDB}/w1280${cur.backdrop_path}`
-            : cur.poster_path
-            ? `${TMDB}/w780${cur.poster_path}`
-            : ""
-        }
-        alt={cur.title}
-        className="absolute inset-0 h-full w-full object-cover"
-        loading="eager"
-      />
-
-      {/* Overlays for cinematic effect */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/90" />
-      <div className="absolute inset-y-0 left-0 w-[10vw] bg-gradient-to-r from-black/80 to-transparent" />
-      <div className="absolute inset-y-0 right-0 w-[10vw] bg-gradient-to-l from-black/80 to-transparent" />
-
-      {/* Dots */}
-      <div className="absolute top-6 right-8 flex gap-1 opacity-80">
-        {items.slice(0, 6).map((_, i) => (
-          <span
-            key={i}
-            className={`h-1.5 w-1.5 rounded-full ${i === idx ? "bg-white" : "bg-white/40"}`}
+    <section
+      className={[
+        // full-bleed container, zero top spacing
+        "relative w-[100vw] overflow-hidden select-none",
+        "bg-[#0f0f10]",
+        className,
+      ].join(" ")}
+      style={{ marginTop: 0 }}
+    >
+      {/* MEDIA */}
+      <div className="relative w-[100vw] aspect-[16/7] sm:aspect-[16/6] lg:aspect-[16/5]">
+        {/* image */}
+        {backdrop && (
+          <img
+            src={backdrop}
+            alt={current?.title || ""}
+            className="absolute inset-0 h-full w-full object-cover"
+            decoding="async"
+            loading="eager"
           />
-        ))}
+        )}
+
+        {/* gradient for text legibility */}
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,.45)_0%,rgba(0,0,0,.35)_35%,rgba(0,0,0,.65)_100%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(1200px_500px_at_15%_60%,rgba(0,0,0,.62),transparent_60%)]" />
       </div>
 
-      {/* Hero text */}
-      <div className="relative z-10 h-full flex items-end pb-[6vh] px-[5vw]">
-        <div className="max-w-[min(85ch,70vw)]">
-          <h1 className="text-white font-black text-[clamp(1.6rem,3.4vw,2.8rem)] leading-tight drop-shadow">
-            {cur.title}
-          </h1>
-          {cur.overview && (
-            <p className="mt-2 text-white/85 text-[clamp(.9rem,1.3vw,1.05rem)] line-clamp-3">
-              {cur.overview}
-            </p>
-          )}
-          <div className="mt-5 flex gap-3">
-            <button
-              onClick={() => nav(`/movie/${cur.id}`)}
-              className="rounded-full px-6 py-2.5 text-[15px] font-bold text-white
-                         bg-[linear-gradient(90deg,#fe9245,#eb423b)] shadow-lg"
-            >
-              View details
-            </button>
-            <button
-              onClick={() => setIdx((idx + 1) % items.length)}
-              className="rounded-full px-5 py-2.5 text-[14px] font-semibold text-white/90
-                         border border-white/20 bg-white/5 hover:bg-white/10"
-            >
-              Next
-            </button>
+      {/* COPY + CTA (safe gutter) */}
+      <div className="absolute inset-0 flex items-end">
+        <div className="mx-auto mb-8 w-full max-w-[1680px] px-4 md:px-8">
+          <div className="max-w-[780px]">
+            <h1 className="text-white font-black tracking-tight leading-tight text-[clamp(1.8rem,3.4vw,3.2rem)] drop-shadow-[0_2px_18px_rgba(0,0,0,.6)]">
+              {current?.title || "Featured"}
+            </h1>
+            {current?.overview && (
+              <p className="mt-2 text-white/85 text-base md:text-[1.05rem] leading-relaxed line-clamp-4">
+                {current.overview}
+              </p>
+            )}
+
+            <div className="mt-5 flex items-center gap-3">
+              <button
+                onClick={viewDetails}
+                className="inline-flex items-center justify-center rounded-[14px] bg-gradient-to-r from-[#fe9245] to-[#eb423b] px-5 py-2.5 text-[0.95rem] font-semibold text-white shadow-[0_10px_30px_rgba(0,0,0,.28)] hover:brightness-[1.05] focus:outline-none"
+              >
+                View details
+              </button>
+              <button
+                onClick={() => setI((p) => (p + 1) % (slides.length || 1))}
+                className="inline-flex items-center justify-center rounded-[14px] border border-white/25 bg-black/30 px-5 py-2.5 text-[0.95rem] font-semibold text-white/90 backdrop-blur-sm hover:bg-white/10 focus:outline-none"
+              >
+                Next
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* PIPS */}
+      <div className="pointer-events-none absolute right-6 top-5 hidden gap-1.5 md:flex">
+        {slides.map((_, idx) => (
+          <span
+            key={idx}
+            className={[
+              "h-1.5 w-1.5 rounded-full",
+              idx === i ? "bg-white/90" : "bg-white/40",
+            ].join(" ")}
+          />
+        ))}
+      </div>
+    </section>
   );
 }

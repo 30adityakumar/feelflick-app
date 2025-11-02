@@ -326,7 +326,7 @@ export default function Onboarding() {
           className="rounded-[21px] bg-black/45 backdrop-blur-md ring-1 ring-white/10 overflow-hidden flex flex-col"
           style={{
             height:
-              "min(680px, calc(100svh - var(--topnav-h,72px) - var(--footer-h,0px) - 36px))",
+              "min(660px, calc(100svh - var(--topnav-h,72px) - var(--footer-h,0px) - 40px))",
           }}
         >
           {/* header */}

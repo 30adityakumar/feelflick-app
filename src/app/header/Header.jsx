@@ -1,5 +1,5 @@
 // src/app/header/Header.jsx
-import { useEffect, useRef, useState, Fragment } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/shared/lib/supabase/client";
 import {
@@ -12,11 +12,19 @@ import {
   Settings,
 } from "lucide-react";
 
+/**
+ * Production-grade header:
+ * - Wordmark only (FEELFLICK)
+ * - Clean responsive nav
+ * - Keyboard '/' to open search (desktop)
+ * - Accessible account menu
+ * - Mobile bottom nav
+ */
 export default function Header({ onOpenSearch }) {
   const { pathname } = useLocation();
   const [user, setUser] = useState(null);
 
-  // Get current user (lightweight)
+  // Lightweight user fetch
   useEffect(() => {
     let unsub;
     supabase.auth.getUser().then(({ data }) => setUser(data?.user || null));
@@ -27,54 +35,69 @@ export default function Header({ onOpenSearch }) {
     return () => { if (typeof unsub === "function") unsub(); };
   }, []);
 
+  // Desktop keyboard shortcut for search
+  useEffect(() => {
+    function onKey(e) {
+      if (e.key === "/" && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        const tag = (e.target?.tagName || "").toLowerCase();
+        if (tag !== "input" && tag !== "textarea") {
+          e.preventDefault();
+          onOpenSearch?.();
+        }
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onOpenSearch]);
+
   return (
     <>
-      {/* Top app bar (sticky, blurred) */}
+      {/* Top app bar */}
       <header
         className="
           sticky top-0 z-40
-          backdrop-blur-md bg-neutral-950/55 ring-1 ring-white/10
+          backdrop-blur-md bg-neutral-950/60 ring-1 ring-white/10
         "
       >
-        <div className="mx-auto flex h-14 w-full max-w-[1200px] items-center justify-between gap-2 px-4 md:h-[64px] md:px-6">
-          {/* Brand + nav */}
-          <div className="flex min-w-0 items-center gap-2">
+        <div className="mx-auto grid h-14 w-full max-w-[1200px] grid-cols-[1fr_auto_1fr] items-center gap-2 px-3 sm:px-4 md:h-16 md:px-6">
+          {/* Brand (left) */}
+          <div className="min-w-0">
             <Link
               to="/home"
-              className="group flex items-center rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
+              className="inline-flex items-center rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
               aria-label="FeelFlick Home"
             >
-             <span
-              className="
-                text-[clamp(1.05rem,2.2vw,1.4rem)]  
-                font-extrabold tracking-tight text-brand-100 uppercase
-                group-hover:text-white transition-colors
+              <span
+                className="
+                  text-[clamp(1.05rem,2.2vw,1.35rem)]
+                  font-extrabold tracking-tight text-brand-100 uppercase
+                  hover:text-white transition-colors
                 "
               >
                 FEELFLICK
               </span>
             </Link>
-
-            {/* Primary nav (desktop) */}
-            <nav className="ml-2 hidden items-center gap-1 md:flex">
-              <TopLink to="/home" icon={<Home className="h-4.5 w-4.5" />}>
-                Home
-              </TopLink>
-              <TopLink to="/browse" icon={<Compass className="h-4.5 w-4.5" />}>
-                Browse
-              </TopLink>
-            </nav>
           </div>
 
-          {/* Right cluster */}
-          <div className="flex items-center gap-1.5">
-            {/* Open search (desktop button) */}
+          {/* Primary nav (center; hides on small) */}
+          <nav className="hidden min-w-0 items-center justify-center gap-1 md:flex">
+            <TopLink to="/home" icon={<Home className="h-4.5 w-4.5" />}>
+              Home
+            </TopLink>
+            <TopLink to="/browse" icon={<Compass className="h-4.5 w-4.5" />}>
+              Browse
+            </TopLink>
+          </nav>
+
+          {/* Utilities (right) */}
+          <div className="flex min-w-0 items-center justify-end gap-1.5">
+            {/* Desktop search */}
             <button
               type="button"
               onClick={onOpenSearch}
               className="
                 hidden md:inline-flex h-9 items-center gap-2 rounded-full
-                border border-white/15 bg-white/5 px-3 text-[0.9rem] text-white/90
+                border border-white/12 bg-white/5 px-3 text-[0.92rem] text-white/90
                 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60
               "
               aria-label="Search"
@@ -87,14 +110,28 @@ export default function Header({ onOpenSearch }) {
               </kbd>
             </button>
 
+            {/* Mobile search (icon only) */}
+            <button
+              type="button"
+              onClick={onOpenSearch}
+              className="
+                inline-flex h-9 w-9 items-center justify-center rounded-full
+                border border-white/12 bg-white/5 text-white/90 hover:bg-white/10
+                focus:outline-none md:hidden
+              "
+              aria-label="Search"
+              title="Search"
+            >
+              <SearchIcon className="h-4.5 w-4.5" />
+            </button>
+
             {/* Account dropdown */}
             <AccountMenu user={user} />
-
           </div>
         </div>
       </header>
 
-      {/* Bottom mobile nav (YouTube-style) */}
+      {/* Bottom mobile nav */}
       <MobileBar pathname={pathname} onOpenSearch={onOpenSearch} />
     </>
   );
@@ -114,6 +151,7 @@ function TopLink({ to, icon, children }) {
             : "text-white/75 hover:text-white hover:bg-white/10",
         ].join(" ")
       }
+      aria-current={({ isActive }) => (isActive ? "page" : undefined)}
     >
       {icon}
       <span>{children}</span>
@@ -131,6 +169,7 @@ function MobileBar({ pathname, onOpenSearch }) {
           (isActive || active) ? "text-white" : "text-white/70",
         ].join(" ")
       }
+      aria-current={({ isActive }) => (isActive ? "page" : undefined)}
     >
       {icon}
       <span className="mt-0.5">{label}</span>
@@ -202,7 +241,7 @@ function AccountMenu({ user }) {
 
   async function signOut() {
     await supabase.auth.signOut();
-    nav("/auth", { replace: true });
+    nav("/", { replace: true });
   }
 
   const name =
@@ -217,7 +256,7 @@ function AccountMenu({ user }) {
         type="button"
         onClick={() => setOpen((s) => !s)}
         className="
-          inline-flex items-center gap-2 rounded-full border border-white/15
+          inline-flex items-center gap-2 rounded-full border border-white/12
           bg-white/5 px-2.5 py-1.5 text-white/90 hover:bg-white/10
           focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60
         "
@@ -274,6 +313,7 @@ function MenuLink({ to, icon, children, onClick }) {
         ].join(" ")
       }
       role="menuitem"
+      aria-current={({ isActive }) => (isActive ? "page" : undefined)}
     >
       {icon}
       {children}

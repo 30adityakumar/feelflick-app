@@ -296,7 +296,7 @@ export default function Onboarding() {
     );
   }
 
-  // Positioned just above center, below TopNav
+  // Page itself does not scroll; block centers under TopNav
   return (
     <div
       className="px-3 md:px-0"
@@ -306,9 +306,10 @@ export default function Onboarding() {
         paddingBottom: "4px",
         display: "grid",
         placeItems: "center",
+        overflow: "hidden", // prevent page scroll
       }}
     >
-      {/* Card wrapper with slight upward offset */}
+      {/* Card wrapper with slight upward offset to feel centered with header visible */}
       <div className="relative isolate w-[min(92vw,920px)] rounded-[22px] p-[1px] bg-[linear-gradient(135deg,rgba(254,146,69,.45),rgba(235,66,59,.35),rgba(45,119,255,.35),rgba(0,209,255,.35))] shadow-[0_40px_120px_rgba(0,0,0,.55)] -translate-y-[2vh] md:-translate-y-[3vh] lg:-translate-y-[4vh]">
         {/* soft brand glow */}
         <div
@@ -320,10 +321,12 @@ export default function Onboarding() {
           }}
         />
 
+        {/* CARD: fixed height, flex column; header/body/footer sections */}
         <div
           className="rounded-[21px] bg-black/45 backdrop-blur-md ring-1 ring-white/10 overflow-hidden flex flex-col"
           style={{
-            height: "min(720px, calc(100svh - var(--topnav-h,72px) - var(--footer-h,0px) - 18px))",
+            height:
+              "min(720px, calc(100svh - var(--topnav-h,72px) - var(--footer-h,0px) - 18px))",
           }}
         >
           {/* header */}
@@ -349,7 +352,7 @@ export default function Onboarding() {
             )}
           </div>
 
-          {/* body */}
+          {/* body — takes remaining height and scrolls inside */}
           <div className="flex-1 px-5 sm:px-6 pb-6 sm:pb-7 overflow-y-auto">
             {step === 1 && (
               <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2.5">
@@ -452,13 +455,14 @@ export default function Onboarding() {
                           <button
                             key={r.id}
                             type="button"
-                            oonClick={() => {
-                              if (selected) {removePick(r.id)
-                                } else {
-                                  addPick(r)
-                                  setQuery('')
-                                  setResults([])
-                                  }
+                            onClick={() => {
+                              if (selected) {
+                                removePick(r.id);
+                              } else {
+                                addPick(r);
+                                setQuery("");
+                                setResults([]);
+                              }
                             }}
                             className="flex w-full items-center gap-3 px-3 py-2 hover:bg-white/5 text-left"
                           >
@@ -539,7 +543,7 @@ export default function Onboarding() {
             )}
           </div>
 
-          {/* footer actions */}
+          {/* footer actions — fixed at bottom of card */}
           <div className="shrink-0 px-5 sm:px-6 pb-5 sm:pb-6">
             {step === 1 ? (
               <div className="flex items-center justify-center gap-6">

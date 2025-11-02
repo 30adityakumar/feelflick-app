@@ -3,8 +3,15 @@ import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/shared/lib/supabase/client";
 import {
-  Home, Compass, Search as SearchIcon, ChevronDown,
-  LogOut, User as UserIcon, Settings,
+  Home,
+  Compass,
+  Search as SearchIcon,
+  ChevronDown,
+  LogOut,
+  User as UserIcon,
+  Settings,
+  Bookmark,      // ⬅️ NEW: for Watchlist
+  Clock,         // ⬅️ NEW: for History
 } from "lucide-react";
 
 // Full-bleed shell: no max-width (removes the side gaps)
@@ -171,10 +178,26 @@ function AccountMenu({ user }) {
           role="menu"
           className="absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border border-white/10 bg-neutral-950/90 backdrop-blur-md shadow-xl ring-1 ring-black/20"
         >
+          {/* Profile section */}
           <MenuLink to="/account" icon={<UserIcon className="h-4 w-4" />} onClick={() => setOpen(false)}>Account</MenuLink>
           <MenuLink to="/preferences" icon={<Settings className="h-4 w-4" />} onClick={() => setOpen(false)}>Preferences</MenuLink>
+
           <div className="my-1 h-px bg-white/10" />
-          <button type="button" onClick={signOut} className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-[13px] font-semibold text-white/85 hover:bg-white/10 focus:outline-none">
+
+          {/* Library quick links — ⬅️ NEW */}
+          <MenuLink to="/watchlist" icon={<Bookmark className="h-4 w-4" />} onClick={() => setOpen(false)}>
+            Watchlist
+          </MenuLink>
+          <MenuLink to="/history" icon={<Clock className="h-4 w-4" />} onClick={() => setOpen(false)}>
+            History
+          </MenuLink>
+
+          <div className="my-1 h-px bg-white/10" />
+          <button
+            type="button"
+            onClick={signOut}
+            className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-[13px] font-semibold text-white/85 hover:bg-white/10 focus:outline-none"
+          >
             <LogOut className="h-4 w-4" /> Sign out
           </button>
         </div>

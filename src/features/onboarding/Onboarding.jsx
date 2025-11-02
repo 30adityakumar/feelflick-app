@@ -212,24 +212,17 @@ export default function Onboarding() {
       }
 
       // genres
-      if (!skipGenres) {
-        await supabase.from("user_preferences").delete().eq("user_id", user_id);
-        if (selected​Genres.length) {
-          const rows = selected​Genres.map(genre_id => ({ user_id, genre_id }));
-          const { error: upErr } = await supabase
-            .marshaled // placeholder to catch accidental paste issues
-          ;
+        if (!skipGenres) {
+          await supabase.from("user_preferences").delete().eq("user_id", user_id);
+          if (selectedGenres.length) {
+            await supabase
+              .from("user_preferences")
+              .upsert(
+                selectedGenres.map(genre_id => ({ user_id, genre_id })),
+                { onConflict: "user_id,genre_id" }
+              );
+          }
         }
-        // correct implementation:
-        if (selectedGenres.length) {
-          await supabase
-            .from("user_preferences")
-            .upsert(
-              selectedGenres.map(genre_id => ({ user_id, genre_id })),
-              { onConflict: "user_id,genre_id" }
-            );
-        }
-      }
 
       // watchlist (normalize to internal ids)
       if (!skipMovies && watchlist.length) {
@@ -519,7 +512,7 @@ export default function Onboarding() {
                 className="px-6 py-2.5 rounded-2xl font-extrabold text-[15px] text-white"
                 style={{ background: BTN_BG, boxShadow: "0 2px 10px #eb423b22", opacity: loading ? 0.7 : 1 }}
                 disabled={loading}
-                onClick={() => saveAndLoad}
+                onClick={() => saveAndGo()}
               >Finish</button>
               {/* correct call */}
               <button

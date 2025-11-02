@@ -3,11 +3,11 @@ import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/shared/lib/supabase/client';
 import WatchedHistory from '@/app/pages/watched/components/WatchedHistory';
 
-const SHELL = 'w-full px-4 sm:px-6 lg:px-8';        // same outer gutters as Header/Watchlist
-const CONTAINER = 'max-w-screen-2xl mx-auto';       // keeps content nicely centered
+const SHELL = 'w-full px-4 sm:px-6 lg:px-8';
+const CONTAINER = 'max-w-screen-2xl mx-auto';
 
 export default function WatchedTab({ session: sessionProp }) {
-  /* ---------------- 1) Session ---------------- */
+  /* ---------------- 1. Session ---------------- */
   const [session, setSession] = useState(sessionProp ?? null);
   useEffect(() => {
     let unsub;
@@ -17,7 +17,7 @@ export default function WatchedTab({ session: sessionProp }) {
     return () => { if (typeof unsub === 'function') unsub(); };
   }, []);
 
-  /* ---------------- 2) State ------------------ */
+  /* ---------------- 2. State ------------------ */
   const [loading, setLoading] = useState(true);
   const [watched, setWatched] = useState([]);
   const [genreMap, setGenreMap] = useState({});
@@ -26,7 +26,7 @@ export default function WatchedTab({ session: sessionProp }) {
   const [genreFilter, setGenreFilter] = useState('');
   const [search, setSearch] = useState('');
 
-  /* ---------------- 3) TMDb genres ------------ */
+  /* ---------------- 3. Genres ----------------- */
   useEffect(() => {
     fetch(
       `https://api.themoviedb.org/3/genre/movie/list?api_key=${import.meta.env.VITE_TMDB_API_KEY}&language=en-US`
@@ -38,7 +38,7 @@ export default function WatchedTab({ session: sessionProp }) {
       .catch(() => {});
   }, []);
 
-  /* ---------------- 4) Fetch watched ---------- */
+  /* ---------------- 4. Fetch Watched ---------- */
   useEffect(() => {
     if (!session?.user?.id) return;
     setLoading(true);
@@ -51,7 +51,7 @@ export default function WatchedTab({ session: sessionProp }) {
       .finally(() => setLoading(false));
   }, [session]);
 
-  /* ---------------- 5) Normalize -------------- */
+  /* ---------------- 5. Normalize -------------- */
   const normalized = useMemo(
     () =>
       (watched || []).map(m => ({
@@ -62,7 +62,7 @@ export default function WatchedTab({ session: sessionProp }) {
     [watched]
   );
 
-  /* ---------------- 6) Filter/sort lists ------ */
+  /* ---------------- 6. Filtering -------------- */
   const years = useMemo(() => {
     const set = new Set(
       normalized
@@ -81,14 +81,14 @@ export default function WatchedTab({ session: sessionProp }) {
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [normalized, genreMap]);
 
-  function sortMovies(movies, key) {
+  const sortMovies = (movies, key) => {
     switch (key) {
       case 'added-desc':  return [...movies].sort((a, b) => (b.id ?? 0) - (a.id ?? 0));
       case 'year-desc':   return [...movies].sort((a, b) => (b.release_date ?? '').localeCompare(a.release_date ?? ''));
       case 'rating-desc': return [...movies].sort((a, b) => (b.vote_average ?? 0) - (a.vote_average ?? 0));
       default:            return movies;
     }
-  }
+  };
 
   const view = useMemo(() => {
     let r = normalized;
@@ -104,7 +104,7 @@ export default function WatchedTab({ session: sessionProp }) {
     return sortMovies(r, sortBy);
   }, [normalized, sortBy, yearFilter, genreFilter, search]);
 
-  /* ---------------- 7) Remove ----------------- */
+  /* ---------------- 7. Remove ----------------- */
   const removeFromWatched = async (movie_id) => {
     if (!session?.user?.id) return;
     await supabase.from('movies_watched')
@@ -119,15 +119,18 @@ export default function WatchedTab({ session: sessionProp }) {
     setWatched(data ?? []);
   };
 
-  /* ---------------- 8) Render ----------------- */
+  /* ---------------- 8. Render ----------------- */
   return (
-    <div className="min-h-screen bg-[#0b0f14] text-white">
-      {/* TOOLBAR — full-width, no box/border (matches Watchlist) */}
-      <section className={`${SHELL}`}>
-        <div className={`${CONTAINER} pt-6 pb-2`}>
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+    <div
+      className="min-h-screen bg-gradient-to-b from-[#0b0f14] via-[#0c1118] to-[#0a0d11] text-white"
+    >
+      {/* Toolbar (same layout as Watchlist top row) */}
+      <main className={`${SHELL}`}>
+        <div className={`${CONTAINER} pt-8 pb-2`}>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
             <div className="flex items-center gap-3">
-              <h1 className="text-[clamp(1.05rem,2vw,1.35rem)] font-extrabold tracking-tight">
+              <h1 className="text-[clamp(1.1rem,2.1vw,1.6rem)] font-extrabold tracking-tight flex items-center gap-2">
+                <span role="img" aria-label="clapperboard">🎬</span>
                 Watched History
               </h1>
               <span className="rounded-full bg-white/10 px-2.5 py-1 text-xs font-semibold text-white/80">
@@ -170,7 +173,12 @@ export default function WatchedTab({ session: sessionProp }) {
                 ))}
               </select>
               <button
-                onClick={() => { setSortBy('added-desc'); setYearFilter(''); setGenreFilter(''); setSearch(''); }}
+                onClick={() => {
+                  setSortBy('added-desc');
+                  setYearFilter('');
+                  setGenreFilter('');
+                  setSearch('');
+                }}
                 className="h-9 rounded-lg border border-white/10 bg-white/5 px-3 text-[13px] font-semibold hover:bg-white/10"
               >
                 Clear
@@ -178,11 +186,9 @@ export default function WatchedTab({ session: sessionProp }) {
             </div>
           </div>
         </div>
-      </section>
 
-      {/* GRID — also full-width like Watchlist */}
-      <main className={`${SHELL}`}>
-        <div className={`${CONTAINER} pt-4 pb-16`}>
+        {/* Movie grid (same layout as Watchlist) */}
+        <div className={`${CONTAINER} pt-6 pb-20`}>
           {loading ? (
             <SkeletonGrid />
           ) : (
@@ -199,12 +205,15 @@ export default function WatchedTab({ session: sessionProp }) {
   );
 }
 
-/* --------- lightweight skeleton --------- */
+/* -------------- Skeleton Loader -------------- */
 function SkeletonGrid() {
   return (
     <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 2xl:grid-cols-6">
       {Array.from({ length: 10 }).map((_, i) => (
-        <div key={i} className="aspect-[2/3] w-full rounded-xl bg-white/[.06] animate-pulse" />
+        <div
+          key={i}
+          className="aspect-[2/3] w-full rounded-xl bg-white/[.06] animate-pulse"
+        />
       ))}
     </div>
   );

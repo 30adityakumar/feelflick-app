@@ -399,7 +399,7 @@ export default function Onboarding() {
                   onClick={() => setStep(2)}
                 >Next</button>
                 <button
-                  className="text-[13.5px] font-extrabold text-[#fe9245]"
+                  className="text-[13.5px] font-extrabold text-[#fe9245] focus:outline-none focus:ring-0 active:outline-none"
                   disabled={loading}
                   onClick={() => saveAndGo({ skipGenres: true })}
                 >Skip</button>

@@ -189,22 +189,21 @@ export default function Onboarding() {
     );
   }
 
-  // Absolute-center BELOW the fixed TopNav:
-  // - We reserve space using paddingTop: var(--topnav-h)
-  // - We still center using CSS grid
+  // Positioned just above center, below TopNav
   return (
     <div
-    className="px-3 md:px-0"
-    style={{
-      minHeight: 'calc(100svh - var(--footer-h,0px))',
-      paddingTop: 'var(--topnav-h,72px)',
-      paddingBottom: '4px',                              // reduced bottom padding
-      display: 'grid',
-      placeItems: 'center',
-    }}
-  >
-      {/* Card wrapper (glow softened on mobile to avoid visual overlap) */}
+      className="px-3 md:px-0"
+      style={{
+        minHeight: 'calc(100svh - var(--footer-h,0px))',
+        paddingTop: 'var(--topnav-h,72px)',
+        paddingBottom: '4px',
+        display: 'grid',
+        placeItems: 'center',
+      }}
+    >
+      {/* Card wrapper with slight upward offset */}
       <div className="relative isolate w-[min(92vw,920px)] rounded-[22px] p-[1px] bg-[linear-gradient(135deg,rgba(254,146,69,.45),rgba(235,66,59,.35),rgba(45,119,255,.35),rgba(0,209,255,.35))] shadow-[0_40px_120px_rgba(0,0,0,.55)] -translate-y-[2vh] md:-translate-y-[3vh] lg:-translate-y-[4vh]">
+        {/* soft brand glow */}
         <div
           aria-hidden
           className="pointer-events-none absolute -z-10 rounded-[28px] opacity-70 blur-2xl md:-inset-4 -inset-1"
@@ -248,12 +247,9 @@ export default function Onboarding() {
                       key={g.id}
                       type="button"
                       onClick={() => toggleGenre(g.id)}
-                      className={`h-9 rounded-xl border text-white text-[13px] font-medium transition-all
-                                  ${selectedGenres.includes(g.id)
-                                    ? 'ring-1 ring-white/10 backdrop-blur-md'
-                                    : ''}`}
+                      className={`h-9 rounded-xl border text-white text-[13px] font-medium transition-all ${active ? 'ring-1 ring-white/10 backdrop-blur-md' : ''}`}
                       style={
-                        selectedGenres.includes(g.id)
+                        active
                           ? {
                               borderColor: 'rgba(255,255,255,0.22)',
                               background:
@@ -267,8 +263,6 @@ export default function Onboarding() {
                             }
                       }
                     >
-                      <span className="px-3">{g.label}</span>
-                    </button>
                       <span className="px-3">{g.label}</span>
                     </button>
                   );
@@ -412,7 +406,7 @@ export default function Onboarding() {
                   disabled={loading}
                 >&lt; Back</button>
                 <button
-                  className="px-6 py-2.5 rounded-2xl font-extrabold text-[15px] text-white"
+                  className="px-6 py-2 rounded-lg font-extrabold text-[15px] text-white"
                   style={{ background: BTN_BG, boxShadow: "0 2px 10px #eb423b22", opacity: loading ? 0.7 : 1 }}
                   disabled={loading}
                   onClick={() => saveAndGo()}

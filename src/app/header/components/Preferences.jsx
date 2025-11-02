@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/shared/lib/supabase/client";
 
+/** Static genre catalog (aligns with onboarding) */
 const GENRES = [
   { id: 28, label: "Action" }, { id: 12, label: "Adventure" },
   { id: 16, label: "Animation" }, { id: 35, label: "Comedy" },
@@ -10,23 +11,54 @@ const GENRES = [
   { id: 14, label: "Fantasy" }, { id: 36, label: "History" },
   { id: 27, label: "Horror" }, { id: 10402, label: "Music" },
   { id: 9648, label: "Mystery" }, { id: 10749, label: "Romance" },
-  { id: 878, label: "Sci-Fi" }, { id: 53, label: "Thriller" },
+  { id: 878, label: "Sci-fi" }, { id: 53, label: "Thriller" },
 ];
+
+function Chip({ active, onClick, label }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={[
+        "min-w-[108px] rounded-xl px-3 py-2 text-sm font-semibold transition outline-none",
+        active
+          ? "text-white ring-1 ring-white/15"
+          : "text-white/85 hover:bg-white/[.09] border border-white/15 bg-white/[.05] focus:ring-2 focus:ring-white/20",
+      ].join(" ")}
+      style={
+        active
+          ? {
+              border: "1px solid transparent",
+              background:
+                "linear-gradient(135deg, rgba(60,120,255,0.55), rgba(100,70,255,0.45))",
+              boxShadow:
+                "inset 0 1px 0 rgba(255,255,255,0.2), 0 0 10px rgba(80,140,255,0.25)",
+              backdropFilter: "blur(6px)",
+            }
+          : undefined
+      }
+    >
+      {label}
+    </button>
+  );
+}
 
 export default function Preferences() {
   const [userId, setUserId] = useState(null);
-  const [selected, setSelected] = useState([]);
+
+  const [selected, setSelected] = useState([]); // current UI selection
+  const [initial, setInitial] = useState([]);   // last-saved snapshot
+
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
 
-  // Load user + current preferences
+  // --- Load auth user and current preferences ---
   useEffect(() => {
     let mounted = true;
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!mounted) return;
-      if (!user) return;
-
+      if (!mounted || !user) return;
       setUserId(user.id);
 
       const { data, error } = await supabase
@@ -35,7 +67,9 @@ export default function Preferences() {
         .eq("user_id", user.id);
 
       if (!error && Array.isArray(data)) {
-        setSelected(data.map((r) => r.genre_id));
+        const values = data.map(r => r.genre_id);
+        setSelected(values);
+        setInitial(values);
       }
     })();
     return () => { mounted = false; };
@@ -44,53 +78,43 @@ export default function Preferences() {
   const toggle = (id) =>
     setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
 
+  // Track if there are unsaved changes
+  const dirty = useMemo(() => {
+    if (initial.length !== selected.length) return true;
+    const setInit = new Set(initial);
+    for (const g of selected) if (!setInit.has(g)) return true;
+    return false;
+  }, [initial, selected]);
+
   async function save() {
-    if (!userId) return;
+    if (!userId || !dirty) return;
     setSaving(true);
     setMsg("");
 
     try {
+      // replace user's genre set atomically (two simple queries)
       await supabase.from("user_preferences").delete().eq("user_id", userId);
+
       if (selected.length) {
+        const rows = selected.map((genre_id) => ({ user_id: userId, genre_id }));
         await supabase
           .from("user_preferences")
-          .upsert(
-            selected.map((genre_id) => ({ user_id: userId, genre_id })),
-            { onConflict: "user_id,genre_id" }
-          );
+          .upsert(rows, { onConflict: "user_id,genre_id" });
       }
+
+      setInitial(selected);
       setMsg("Preferences saved!");
     } catch (e) {
       console.warn("prefs save error", e);
-      setMsg("Could not save. Please try again.");
+      setMsg("Could not save. Check your connection and try again.");
     } finally {
       setSaving(false);
-      setTimeout(() => setMsg(""), 1800);
+      setTimeout(() => setMsg(""), 2000);
     }
   }
 
-  const chips = useMemo(
-    () =>
-      GENRES.map((g) => {
-        const active = selected.includes(g.id);
-        return (
-          <button
-            key={g.id}
-            type="button"
-            onClick={() => toggle(g.id)}
-            className={[
-              "min-w-[108px] rounded-xl border px-3 py-2 text-sm font-semibold transition",
-              active
-                ? "border-transparent bg-[linear-gradient(135deg,#fe9245,#eb423b)] text-white"
-                : "border-white/15 bg-white/[.05] text-white/85 hover:bg-white/[.09]",
-            ].join(" ")}
-          >
-            {g.label}
-          </button>
-        );
-      }),
-    [selected]
-  );
+  // Optional: quick presets
+  const applyPreset = (ids) => setSelected(ids);
 
   return (
     <div className="mx-auto mt-10 max-w-[820px] rounded-2xl border border-white/10 bg-neutral-950/70 p-6 text-white backdrop-blur-md shadow-2xl md:mt-14">
@@ -99,23 +123,63 @@ export default function Preferences() {
         Pick a few genres you enjoy; we’ll tune recommendations to your vibe.
       </p>
 
-      <div className="mt-5 grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4">
-        {chips}
+      {/* Utility row: count + quick actions */}
+      <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-white/70">
+        <span>
+          Selected{" "}
+          <span className="font-semibold text-white">{selected.length}</span>
+        </span>
+        <span className="opacity-40">•</span>
+        <button
+          type="button"
+          className="rounded-md border border-white/12 px-2.5 py-1 hover:bg-white/10"
+          onClick={() => setSelected([])}
+        >
+          Clear
+        </button>
+        <button
+          type="button"
+          className="rounded-md border border-white/12 px-2.5 py-1 hover:bg-white/10"
+          onClick={() => applyPreset([28, 12, 16, 35])} // Action/Adventure/Animation/Comedy
+        >
+          Action Pack
+        </button>
+        <button
+          type="button"
+          className="rounded-md border border-white/12 px-2.5 py-1 hover:bg_WHITE/10"
+          onClick={() => applyPreset([10751, 35, 10402])} // Family/Comedy/Music
+        >
+          Cozy Night
+        </button>
       </div>
 
-      <div className="mt-6 flex items-center gap-3">
+      {/* Chips */}
+      <div className="mt-5 grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4">
+        {GENRES.map((g) => (
+          <Chip
+            key={g.id}
+            active={selected.includes(g.id)}
+            onClick={() => toggle(g.id)}
+            label={g.label}
+          />
+        ))}
+      </div>
+
+      {/* Save + feedback */}
+      <div className="mt-6 flex flex-wrap items-center gap-3">
         <button
           onClick={save}
-          disabled={saving}
-          className="
-            inline-flex items-center justify-center rounded-xl bg-gradient-to-r
-            from-[#fe9245] to-[#eb423b] px-5 py-2.5 text-[0.95rem] font-semibold text-white
-            disabled:opacity-60 focus:outline-none
-          "
+          disabled={saving || !dirty}
+          className="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-[0.95rem] font-semibold text-white disabled:opacity-60 focus:outline-none"
+          style={{ background: "linear-gradient(90deg,#fe9245 10%,#eb423b 90%)" }}
         >
-          {saving ? "Saving…" : "Save"}
+          {saving ? "Saving…" : dirty ? "Save changes" : "Saved"}
         </button>
-        {msg && <span className="text-sm text-white/70">{msg}</span>}
+        {msg && (
+          <div className="rounded-lg border border-white/12 bg-white/[.06] px-3 py-2 text-sm text-white/85">
+            {msg}
+          </div>
+        )}
       </div>
     </div>
   );

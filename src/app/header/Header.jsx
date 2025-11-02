@@ -11,7 +11,6 @@ import {
   User as UserIcon,
   Settings,
 } from "lucide-react";
-import logoPng from "@/assets/images/logo.png";
 
 export default function Header({ onOpenSearch }) {
   const { pathname } = useLocation();
@@ -39,22 +38,19 @@ export default function Header({ onOpenSearch }) {
       >
         <div className="mx-auto flex h-14 w-full max-w-[1200px] items-center justify-between gap-2 px-4 md:h-[64px] md:px-6">
           {/* Brand + nav */}
-          <div className="flex min-w-0 items-center gap-3">
+          <div className="flex min-w-0 items-center gap-2">
             <Link
               to="/home"
-              className="group flex items-center gap-2 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
+              className="group flex items-center rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
               aria-label="FeelFlick Home"
             >
-              <img
-                src={logoPng}
-                alt=""
-                width="30"
-                height="30"
-                className="h-[28px] w-[28px] md:h-[30px] md:w-[30px] object-contain"
-                loading="eager"
-                decoding="async"
-              />
-              <span className="hidden text-[1.05rem] font-extrabold tracking-tight text-brand-100 sm:block">
+             <span
+              className="
+                text-[clamp(1.05rem,2.2vw,1.4rem)]  
+                font-extrabold tracking-tight text-brand-100 uppercase
+                group-hover:text-white transition-colors
+                "
+              >
                 FEELFLICK
               </span>
             </Link>

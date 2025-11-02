@@ -251,15 +251,17 @@ export default function Onboarding() {
                       style={
                         active
                           ? {
-                              borderColor: 'rgba(255,255,255,0.22)',
+                              borderColor: 'rgba(150,180,255,0.45)',
                               background:
-                                'linear-gradient(135deg, rgba(254,146,69,.22), rgba(45,119,255,.22))',
+                                'linear-gradient(135deg, rgba(60,120,255,0.55), rgba(100,70,255,0.45))',
                               boxShadow:
-                                '0 8px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.12)',
+                                'inset 0 1px 0 rgba(255,255,255,0.2), 0 0 12px rgba(80,140,255,0.4)',
+                              backdropFilter: 'blur(6px)',
                             }
                           : {
-                              borderColor: 'rgba(255,255,255,0.18)',
+                              borderColor: 'rgba(255,255,255,0.15)',
                               background: 'rgba(255,255,255,0.03)',
+                              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
                             }
                       }
                     >

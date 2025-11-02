@@ -1,83 +1,101 @@
 // src/app/homepage/components/HeroSliderSection.jsx
-import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { ChevronRight } from "lucide-react";
-import { supabase } from "@/shared/lib/supabase/client";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-const TMDB_IMG = "https://image.tmdb.org/t/p/original";
+const tmdbImg = (p, s = "w1280") => (p ? `https://image.tmdb.org/t/p/${s}${p}` : "");
 
-export default function HeroSliderSection() {
+export default function HeroSliderSection({ className = "" }) {
   const [slides, setSlides] = useState([]);
-  const [idx, setIdx] = useState(0);
+  const [i, setI] = useState(0);
   const nav = useNavigate();
+  const timer = useRef(null);
 
   useEffect(() => {
-    (async () => {
-      const { data, error } = await supabase
-        .from("homepage_hero")
-        .select("movie_id,backdrop_path,title,overview")
-        .order("rank", { ascending: true });
-      if (!error) setSlides(data || []);
-    })();
+    fetch(
+      `https://api.themoviedb.org/3/movie/popular?api_key=${import.meta.env.VITE_TMDB_API_KEY}&language=en-US&page=1`
+    )
+      .then((r) => r.json())
+      .then((j) => setSlides(j?.results?.slice(0, 6) ?? []))
+      .catch(() => setSlides([]));
   }, []);
 
   useEffect(() => {
     if (!slides.length) return;
-    const t = setInterval(() => setIdx(i => (i + 1) % slides.length), 6000);
-    return () => clearInterval(t);
+    clearInterval(timer.current);
+    timer.current = setInterval(() => setI((p) => (p + 1) % slides.length), 5500);
+    return () => clearInterval(timer.current);
   }, [slides.length]);
 
-  const s = slides[idx];
-  if (!s) return null;
+  const cur = slides[i] || {};
+  const backdrop = useMemo(
+    () => tmdbImg(cur.backdrop_path || cur.poster_path, "w1280"),
+    [cur]
+  );
+
+  const viewDetails = () => cur?.id && nav(`/movie/${cur.id}`);
 
   return (
-    /* full-bleed + no-header-gap so it tucks right under the sticky header */
-    <section className="full-bleed no-header-gap m-0 p-0">
-      <div className="relative aspect-[16/7] w-screen overflow-hidden">
-        {/* Backdrop */}
-        <img
-          src={`${TMDB_IMG}${s.backdrop_path}`}
-          alt={s.title}
-          className="h-full w-full object-cover"
-          draggable={false}
-        />
+    <section
+      className={[
+        "relative w-[100vw] overflow-hidden select-none bg-[#0f0f10]",
+        className,
+      ].join(" ")}
+      style={{ marginTop: 0 }}
+    >
+      {/* Media */}
+      <div className="relative w-[100vw] aspect-[16/10] xs:aspect-[16/9] sm:aspect-[16/7] lg:aspect-[16/5]">
+        {backdrop && (
+          <img
+            src={backdrop}
+            alt={cur?.title || ""}
+            className="absolute inset-0 h-full w-full object-cover"
+            decoding="async"
+            loading="eager"
+          />
+        )}
+        {/* Legibility overlays */}
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,.45)_0%,rgba(0,0,0,.35)_35%,rgba(0,0,0,.65)_100%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(900px_420px_at_14%_60%,rgba(0,0,0,.62),transparent_60%)]" />
+      </div>
 
-        {/* Vignette + copy */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/10" />
-        <div className="absolute inset-x-0 bottom-0 p-5 sm:p-8 md:p-10 lg:p-14">
-          <h2 className="text-white text-3xl sm:text-4xl md:text-5xl font-black tracking-tight leading-tight">
-            {s.title}
-          </h2>
-          <p className="mt-3 max-w-3xl text-white/85 text-base sm:text-lg leading-relaxed line-clamp-4">
-            {s.overview}
-          </p>
-
-          <div className="mt-5 flex items-center gap-3">
-            <Link
-              to={`/movie/${s.movie_id}`}
-              className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-[#fe9245] to-[#eb423b] px-4 py-2.5 text-white font-semibold"
-            >
-              View details
-            </Link>
-            <button
-              type="button"
-              onClick={() => setIdx(i => (i + 1) % slides.length)}
-              className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-black/30 px-4 py-2.5 text-white/90"
-            >
-              Next <ChevronRight className="h-4 w-4" />
-            </button>
+      {/* Copy + CTA */}
+      <div className="absolute inset-0 flex items-end pb-4 sm:pb-6 md:pb-7">
+        <div className="mx-auto w-full max-w-[1680px] px-3 sm:px-4 md:px-8">
+          <div className="max-w-[760px]">
+            <h1 className="text-white font-black tracking-tight leading-tight text-[clamp(1.65rem,3.3vw,3rem)] drop-shadow-[0_2px_18px_rgba(0,0,0,.6)]">
+              {cur?.title || "Featured"}
+            </h1>
+            {!!cur?.overview && (
+              <p className="mt-2 text-white/85 text-[clamp(.95rem,1.1vw,1.05rem)] leading-relaxed line-clamp-4">
+                {cur.overview}
+              </p>
+            )}
+            <div className="mt-4 flex items-center gap-2.5 sm:gap-3">
+              <button
+                onClick={viewDetails}
+                className="inline-flex min-h-10 items-center justify-center rounded-[14px] bg-gradient-to-r from-[#fe9245] to-[#eb423b] px-4.5 sm:px-5 py-2.5 text-[.95rem] font-semibold text-white shadow-[0_10px_30px_rgba(0,0,0,.28)] hover:brightness-[1.05] focus:outline-none"
+              >
+                View details
+              </button>
+              <button
+                onClick={() => setI((p) => (p + 1) % (slides.length || 1))}
+                className="inline-flex min-h-10 items-center justify-center rounded-[14px] border border-white/25 bg-black/30 px-4.5 sm:px-5 py-2.5 text-[.95rem] font-semibold text-white/90 backdrop-blur-sm hover:bg-white/10 focus:outline-none"
+              >
+                Next
+              </button>
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* Dots (top-right) */}
-        <div className="pointer-events-none absolute right-6 top-6 flex gap-2">
-          {slides.map((_, i) => (
-            <span
-              key={i}
-              className={`h-1.5 w-1.5 rounded-full ${i === idx ? "bg-white" : "bg-white/40"}`}
-            />
-          ))}
-        </div>
+      {/* Pips */}
+      <div className="pointer-events-none absolute right-4 top-4 hidden gap-1.5 sm:flex">
+        {slides.map((_, idx) => (
+          <span
+            key={idx}
+            className={["h-1.5 w-1.5 rounded-full", idx === i ? "bg-white/90" : "bg-white/40"].join(" ")}
+          />
+        ))}
       </div>
     </section>
   );

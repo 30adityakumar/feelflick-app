@@ -2,8 +2,19 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/shared/lib/supabase/client";
-import { Home, Compass, Search as SearchIcon, ChevronDown, LogOut, User as UserIcon, Settings } from "lucide-react";
+import {
+  Home,
+  Compass,
+  Search as SearchIcon,
+  ChevronDown,
+  LogOut,
+  User as UserIcon,
+  Settings,
+  Bookmark,      // ⬅️ NEW: for Watchlist
+  Clock,         // ⬅️ NEW: for History
+} from "lucide-react";
 
+// Full-bleed shell: no max-width (removes the side gaps)
 const SHELL = "w-full px-4 sm:px-6 lg:px-8";
 
 export default function Header({ onOpenSearch }) {
@@ -22,21 +33,32 @@ export default function Header({ onOpenSearch }) {
 
   return (
     <>
-      {/* NOTE: add the `sticky` class so our global CSS can apply the no-gap sibling rule */}
-      <header className="sticky top-0 z-40 ring-1 ring-white/10 bg-[rgba(0,0,0,.5)] backdrop-blur-md">
+      {/* Themed, full-bleed header */}
+      <header className="sticky top-0 z-40 ring-1 ring-white/10">
+        {/* gradient background layer (landing vibe) */}
+        <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+          <div className="absolute inset-0 bg-[linear-gradient(120deg,#0a121a_0%,#0d1722_50%,#0c1017_100%)]" />
+          <div className="absolute -top-24 left-[8%] h-[40vmin] w-[40vmin] rounded-full blur-3xl opacity-60 bg-[radial-gradient(closest-side,rgba(254,146,69,0.35),rgba(254,146,69,0)_70%)]" />
+          <div className="absolute -top-28 right-[10%] h-[42vmin] w-[42vmin] rounded-full blur-3xl opacity-45 bg-[radial-gradient(closest-side,rgba(45,119,255,0.30),rgba(45,119,255,0)_70%)]" />
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-md" />
+        </div>
+
         <div className={`${SHELL} flex h-14 md:h-16 items-center justify-between gap-3`}>
+          {/* Brand + desktop nav */}
           <div className="flex min-w-0 items-center gap-4">
             <Link to="/home" aria-label="FeelFlick Home" className="select-none">
               <span className="block text-[clamp(1.2rem,2.6vw,1.7rem)] font-extrabold tracking-[0.06em] text-white/95 uppercase">
                 FEELFLICK
               </span>
             </Link>
+
             <nav className="hidden md:flex items-center gap-2">
               <TopLink to="/home" icon={<Home className="h-4.5 w-4.5" />}>Home</TopLink>
               <TopLink to="/browse" icon={<Compass className="h-4.5 w-4.5" />}>Browse</TopLink>
             </nav>
           </div>
 
+          {/* Search (desktop) + account */}
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -54,6 +76,7 @@ export default function Header({ onOpenSearch }) {
         </div>
       </header>
 
+      {/* Mobile bottom bar unchanged */}
       <MobileBar pathname={pathname} onOpenSearch={onOpenSearch} />
     </>
   );
@@ -75,7 +98,6 @@ function TopLink({ to, icon, children }) {
     </NavLink>
   );
 }
-
 
 function MobileBar({ pathname, onOpenSearch }) {
   const Item = ({ to, icon, label, active }) => (

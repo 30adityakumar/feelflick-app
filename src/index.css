@@ -1,66 +1,180 @@
-/* Brand font */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-
-/* ======================================================================
-   THEME TOKENS
-   ====================================================================== */
-:root{
-  --bg:#121215; --surface:#141418; --panel:#18181d;
-  --text:#fff; --muted:#a1a1aa;
-  --brand-50:#fff3ec; --brand-100:#ffe4d6; --brand-200:#ffd0b8; --brand-300:#ffb086;
-  --brand-400:#ff8b57; --brand-500:#fe6e3a; --brand-600:#f2542c; --brand-700:#e23d28;
-  --brand-800:#c13225; --brand-900:#8f251b; --brand:var(--brand-600);
-  --ring:#fe9245;
-  --radius:12px; --shadow-soft:0 10px 30px rgba(0,0,0,.28); --shadow-lift:0 8px 18px rgba(0,0,0,.22);
-}
-
-/* ======================================================================
-   BASE
-   ====================================================================== */
-html{ color-scheme:dark; background:var(--bg); font-size:clamp(14px,1.2vw + 10px,18px) }
-html,body{ margin:0; padding:0; background:var(--bg);
-  font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,'Helvetica Neue',Arial,sans-serif }
-*,*::before,*::after{ box-sizing:border-box }
-body{ -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; text-rendering:optimizeLegibility }
-
-/* ====== THE IMPORTANT RESETS THAT FIX THE GAP ====== */
-/* 1) Kill default top/bottom margins on structural blocks to prevent margin-collapsing */
-main, section, article, header, footer, nav { margin:0; padding:0 }
-/* 2) Headings’ external margins can also collapse; keep them internal only */
-h1,h2,h3,h4,h5,h6{ margin-block:0.25em }
-/* 3) Ensure the first content block after the sticky header does NOT start with a margin */
-header.sticky + *{ margin-top:0 !important }
-/* 4) If your header has a 1px bottom border/ring, let content tuck under by 1px to appear seamless */
-header.sticky + main,
-header.sticky + div > main{ margin-top:-1px !important }
-
-/* Utility – used by pages that should always attach to the header */
-.no-header-gap{ margin-top:0 !important }
-
-/* Utility – true full-bleed block */
-@layer utilities{
-  .full-bleed{
-    width:100vw; position:relative; left:50%; right:50%;
-    margin-left:-50vw; margin-right:-50vw;
-  }
-}
-
-/* Scrollbar/other helpers */
-.no-scrollbar{ scrollbar-width:none } .no-scrollbar::-webkit-scrollbar{ display:none }
-.cq{ container-type:inline-size }
-.card-surface{ background:var(--panel); border:1px solid rgba(255,255,255,.08); border-radius:var(--radius); box-shadow:var(--shadow-soft) }
-img{ max-width:100%; height:auto; image-rendering:-webkit-optimize-contrast }
-img.lazy{ content-visibility:auto; contain-intrinsic-size:300px 450px }
-
-/* --- your existing legacy/global styles kept as-is (shortened for brevity) --- */
-.container{ max-width:1200px; margin:0 auto; padding:0 16px }
-.section-bar{ border-bottom:1.5px solid #222227; margin-bottom:28px; padding-bottom:4px; font-size:1.4rem; font-weight:800; letter-spacing:-.5px; color:#fff; display:flex; align-items:center; gap:12px }
-.movie-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:2rem 2.5rem; justify-items:center; align-items:flex-start; margin:0 auto 32px; width:100%; max-width:1000px }
-@media (max-width:950px){ .movie-grid{ grid-template-columns:repeat(3,1fr)!important } }
-@media (max-width:700px){
-  .movie-grid{ grid-template-columns:repeat(2,1fr)!important; gap:1.25rem .4rem }
-}
-/* Tailwind hooks */
+/* Tailwind first (so layers cascade predictably) */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Brand font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+
+/* ==========================================================================
+   THEME TOKENS
+   ========================================================================== */
+:root {
+  /* Base palette (dark) */
+  --bg: #121215;
+  --surface: #141418;
+  --panel: #18181d;
+  --text: #ffffff;
+  --muted: #a1a1aa;
+
+  /* Brand (warm accent used across the app) */
+  --brand-50:  #fff3ec;
+  --brand-100: #ffe4d6;
+  --brand-200: #ffd0b8;
+  --brand-300: #ffb086;
+  --brand-400: #ff8b57;
+  --brand-500: #fe6e3a;
+  --brand-600: #f2542c;   /* ~#eb423b */
+  --brand-700: #e23d28;
+  --brand-800: #c13225;
+  --brand-900: #8f251b;
+  --brand: var(--brand-600);
+
+  /* Focus ring */
+  --ring: #fe9245;
+
+  /* Radii / shadows */
+  --radius: 12px;
+  --shadow-soft: 0 10px 30px rgba(0,0,0,.28);
+  --shadow-lift: 0 8px 18px rgba(0,0,0,.22);
+}
+
+/* ==========================================================================
+   BASE
+   ========================================================================== */
+html {
+  color-scheme: dark;
+  background: var(--bg);
+  font-size: clamp(14px, 1.2vw + 10px, 18px);
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  overflow-x: hidden;              /* prevent 100vw scrollbars */
+  background: var(--bg);
+}
+
+body {
+  color: var(--text);
+  font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+* { box-sizing: border-box; }      /* keep it light – don’t overwrite colors/fonts globally */
+
+/* Selection & focus */
+::selection { background: color-mix(in oklab, var(--brand) 25%, white); color: #000; }
+:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: 6px; }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+/* ==========================================================================
+   GLOBAL UTILITIES (small, safe)
+   ========================================================================== */
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+
+.cq { container-type: inline-size; }
+
+.card-surface {
+  background: var(--panel);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-soft);
+}
+
+img { max-width: 100%; height: auto; image-rendering: -webkit-optimize-contrast; }
+img.lazy { content-visibility: auto; contain-intrinsic-size: 300px 450px; }
+
+.line-clamp-3 {
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.line-clamp-4 {
+  display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;
+}
+
+.touch-manipulation { touch-action: manipulation; }
+
+/* Full-bleed helper for edge-to-edge sections (hero, carousels) */
+@layer utilities {
+  .full-bleed {
+    width: 100vw;
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+
+  /* This removes that black line by overlapping the header border by 1px */
+  .stick-to-header {
+    margin-top: -1px !important;
+  }
+}
+
+/* ==========================================================================
+   LEGACY CLASSES – scoped to avoid fighting Tailwind/layout
+   If you still use a classic “container”, use .ff-container instead.
+   ========================================================================== */
+.ff-container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
+@media (max-width: 800px) { .ff-container { padding: 0 8px; } }
+@media (max-width: 900px) { .ff-container { max-width: 99vw; padding: 0 6px; } }
+
+/* Movie grid (used in watchlist/history) */
+.movie-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 2rem 2.5rem;
+  justify-items: center;
+  align-items: flex-start;
+  margin: 0 auto 32px auto;
+  width: 100%;
+  max-width: 1000px;
+}
+@media (max-width: 950px) { .movie-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 700px) {
+  .movie-grid { grid-template-columns: repeat(2, 1fr); gap: 1.25rem 0.4rem; }
+}
+
+/* Floating filter/search bar look */
+.floating-bar {
+  box-shadow: 0 2px 24px 0 rgba(0,0,0,0.12);
+  background: #18181d;
+  border-radius: 12px;
+  padding: 0.7rem 1.5rem;
+  margin: 0 auto 22px auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.1rem;
+  justify-content: center;
+  align-items: center;
+  max-width: 950px;
+}
+
+/* Landing glass + background (auth) */
+.feelflick-landing-bg {
+  position: fixed; inset: 0; width: 100vw; height: 100vh;
+  background: linear-gradient(115deg, #18406d 60%, #fe9245 150%), url('/collage.jpg') center/cover no-repeat;
+  filter: brightness(0.38) blur(4px);
+  z-index: 0;
+  transition: filter 0.3s;
+}
+.feelflick-glass {
+  position: relative; z-index: 2; max-width: 400px; margin: 10vh auto 0;
+  border-radius: 20px; background: rgba(24, 22, 36, 0.77);
+  box-shadow: 0 8px 48px 0 #0007; backdrop-filter: blur(6px) saturate(1.2);
+  padding: 46px 38px 32px 38px; display: flex; flex-direction: column; min-height: 370px;
+}
+@media (max-width: 600px) { .feelflick-glass { padding: 26px 8vw 22px; max-width: 96vw; margin-top: 7vh; } }

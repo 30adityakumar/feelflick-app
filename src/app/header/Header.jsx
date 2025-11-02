@@ -1,104 +1,80 @@
-import { useEffect, useRef, useState } from "react"
-import { Link, NavLink, useLocation, useNavigate } from "react-router-dom"
-import { supabase } from "@/shared/lib/supabase/client"
+// src/app/header/Header.jsx
+import { useEffect, useRef, useState } from "react";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { supabase } from "@/shared/lib/supabase/client";
 import {
-  Home, Compass, Search as SearchIcon, ChevronDown,
-  LogOut, User as UserIcon, Settings
-} from "lucide-react"
+  Home,
+  Compass,
+  Search as SearchIcon,
+  ChevronDown,
+  LogOut,
+  User as UserIcon,
+  Settings,
+} from "lucide-react";
 
-/**
- * Header
- * - Sticky, blurred, production-grade header
- * - Exposes --app-header-h for consistent page layout
- * - Works with external SearchBar (use onOpenSearch)
- */
+// One container to rule them all: aligns header with page sections/hero
+const SHELL =
+  "mx-auto w-full max-w-[1280px] px-4 sm:px-6 lg:px-8";
+
 export default function Header({ onOpenSearch }) {
-  const { pathname } = useLocation()
-  const [user, setUser] = useState(null)
+  const { pathname } = useLocation();
+  const [user, setUser] = useState(null);
 
-  // Fetch lightweight auth info
   useEffect(() => {
-    let unsub
-    supabase.auth.getUser().then(({ data }) => setUser(data?.user || null))
+    let unsub;
+    supabase.auth.getUser().then(({ data }) => setUser(data?.user || null));
     const { data } = supabase.auth.onAuthStateChange((_evt, session) => {
-      setUser(session?.user || null)
-    })
-    unsub = data?.subscription?.unsubscribe
-    return () => { if (typeof unsub === "function") unsub() }
-  }, [])
-
-  // Keyboard shortcut: open search with "/"
-  useEffect(() => {
-    function onKey(e) {
-      if (e.key === "/" && !e.metaKey && !e.ctrlKey && !e.altKey) {
-        // ignore when typing in inputs/textareas/contenteditable
-        const t = e.target
-        const isTyping =
-          t?.tagName === "INPUT" || t?.tagName === "TEXTAREA" ||
-          t?.isContentEditable
-        if (!isTyping) {
-          e.preventDefault()
-          onOpenSearch?.()
-        }
-      }
-    }
-    document.addEventListener("keydown", onKey)
-    return () => document.removeEventListener("keydown", onKey)
-  }, [onOpenSearch])
+      setUser(session?.user || null);
+    });
+    unsub = data?.subscription?.unsubscribe;
+    return () => { if (typeof unsub === "function") unsub(); };
+  }, []);
 
   return (
     <>
-      <header
-        className="
-          sticky top-0 z-40 backdrop-blur-md
-          bg-neutral-950/60 ring-1 ring-white/10
-        "
-        // expose header height for layout consumers
-        style={{ ["--app-header-h"]: "64px" }}
-      >
-        <div
-          className="
-            mx-auto flex w-full max-w-[1200px]
-            items-center justify-between gap-2
-            px-4 md:px-6
-            h-14 md:h-16
-          "
-        >
-          {/* Brand + Primary nav */}
-          <div className="flex min-w-0 items-center gap-2 md:gap-3">
+      {/* Top App Bar */}
+      <header className="sticky top-0 z-40 bg-neutral-950/70 backdrop-blur-md ring-1 ring-white/10">
+        <div className={`${SHELL} flex h-14 md:h-[64px] items-center justify-between gap-3`}>
+          {/* Left: Brand + Desktop Nav */}
+          <div className="flex min-w-0 items-center gap-4">
             <Link
               to="/home"
-              className="group flex items-center rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
               aria-label="FeelFlick Home"
+              className="select-none"
             >
               <span
                 className="
-                  text-[clamp(1.05rem,2.2vw,1.4rem)]
-                  font-extrabold tracking-tight uppercase
-                  text-brand-100 group-hover:text-white transition-colors
+                  block
+                  text-[clamp(1.1rem,2.6vw,1.6rem)]
+                  font-extrabold tracking-[0.06em]
+                  text-white/95 uppercase
                 "
               >
                 FEELFLICK
               </span>
             </Link>
 
-            {/* Desktop primary nav */}
-            <nav className="ml-1 hidden items-center gap-1 md:flex">
-              <TopLink to="/home" icon={<Home className="h-4.5 w-4.5" />}>Home</TopLink>
-              <TopLink to="/browse" icon={<Compass className="h-4.5 w-4.5" />}>Browse</TopLink>
+            {/* Primary nav (desktop) */}
+            <nav className="hidden md:flex items-center gap-2">
+              <TopLink to="/home" icon={<Home className="h-4.5 w-4.5" />}>
+                Home
+              </TopLink>
+              <TopLink to="/browse" icon={<Compass className="h-4.5 w-4.5" />}>
+                Browse
+              </TopLink>
             </nav>
           </div>
 
-          {/* Right cluster */}
-          <div className="flex items-center gap-1.5">
-            {/* Desktop Search */}
+          {/* Right: Search (desktop) + Account */}
+          <div className="flex items-center gap-2">
+            {/* Desktop search trigger */}
             <button
               type="button"
               onClick={onOpenSearch}
               className="
                 hidden md:inline-flex h-9 items-center gap-2 rounded-full
                 border border-white/15 bg-white/5 px-3 text-[0.9rem] text-white/90
-                hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60
+                hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30
               "
               aria-label="Search"
               title="Search"
@@ -110,16 +86,15 @@ export default function Header({ onOpenSearch }) {
               </kbd>
             </button>
 
-            {/* Account */}
             <AccountMenu user={user} />
           </div>
         </div>
       </header>
 
-      {/* Bottom mobile nav */}
+      {/* Bottom mobile bar */}
       <MobileBar pathname={pathname} onOpenSearch={onOpenSearch} />
     </>
-  )
+  );
 }
 
 /* --------------------------- Helpers --------------------------- */
@@ -140,7 +115,7 @@ function TopLink({ to, icon, children }) {
       {icon}
       <span>{children}</span>
     </NavLink>
-  )
+  );
 }
 
 function MobileBar({ pathname, onOpenSearch }) {
@@ -157,29 +132,32 @@ function MobileBar({ pathname, onOpenSearch }) {
       {icon}
       <span className="mt-0.5">{label}</span>
     </NavLink>
-  )
+  );
 
   return (
     <div
       className="
         fixed inset-x-0 bottom-0 z-40 border-t border-white/10
-        bg-neutral-950/75 backdrop-blur-md md:hidden
-        pb-[max(env(safe-area-inset-bottom),0px)]
+        bg-neutral-950/80 backdrop-blur-md md:hidden
+        pb-[max(env(safe-area-inset-bottom),8px)]
       "
     >
-      <div className="mx-auto grid h-14 max-w-[640px] grid-cols-3 items-center px-4">
+      <div className={`${"mx-auto max-w-[720px]"} grid h-[60px] grid-cols-3 items-center px-4`}>
         <Item
           to="/home"
           label="Home"
           icon={<Home className="h-5 w-5" />}
           active={pathname === "/"}
         />
+
+        {/* Center search pill */}
         <button
           type="button"
           onClick={onOpenSearch}
           className="
-            mx-auto inline-flex h-10 w-28 items-center justify-center gap-2 rounded-full
+            mx-auto inline-flex h-10 w-[44vw] max-w-[260px] items-center justify-center gap-2 rounded-full
             border border-white/15 bg-white/5 text-[13px] font-semibold text-white/90
+            shadow-[0_6px_24px_rgba(0,0,0,.35)]
             hover:bg-white/10 focus:outline-none
           "
           aria-label="Search"
@@ -187,68 +165,78 @@ function MobileBar({ pathname, onOpenSearch }) {
           <SearchIcon className="h-4.5 w-4.5" />
           Search
         </button>
+
         <Item to="/browse" label="Browse" icon={<Compass className="h-5 w-5" />} />
       </div>
     </div>
-  )
+  );
 }
 
 function AccountMenu({ user }) {
-  const nav = useNavigate()
-  const [open, setOpen] = useState(false)
-  const btnRef = useRef(null)
-  const popRef = useRef(null)
+  const nav = useNavigate();
+  const [open, setOpen] = useState(false);
+  const btnRef = useRef(null);
+  const popRef = useRef(null);
 
   useEffect(() => {
     function onDoc(e) {
-      if (!open) return
+      if (!open) return;
       if (
         popRef.current &&
         !popRef.current.contains(e.target) &&
         btnRef.current &&
         !btnRef.current.contains(e.target)
       ) {
-        setOpen(false)
+        setOpen(false);
       }
     }
     function onKey(e) {
-      if (!open) return
-      if (e.key === "Escape") setOpen(false)
+      if (!open) return;
+      if (e.key === "Escape") setOpen(false);
     }
-    document.addEventListener("mousedown", onDoc)
-    document.addEventListener("keydown", onKey)
+    document.addEventListener("mousedown", onDoc);
+    document.addEventListener("keydown", onKey);
     return () => {
-      document.removeEventListener("mousedown", onDoc)
-      document.removeEventListener("keydown", onKey)
-    }
-  }, [open])
+      document.removeEventListener("mousedown", onDoc);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
 
   async function signOut() {
-    await supabase.auth.signOut()
-    nav("/auth", { replace: true })
+    await supabase.auth.signOut();
+    nav("/auth", { replace: true });
   }
 
   const name =
     user?.user_metadata?.name ||
     user?.email?.split("@")[0] ||
-    "Account"
+    "Account";
+
+  const initials =
+    (name || "")
+      .split(" ")
+      .map(s => s[0]?.toUpperCase())
+      .slice(0, 2)
+      .join("") || "U";
 
   return (
     <div className="relative">
       <button
         ref={btnRef}
         type="button"
-        onClick={() => setOpen(s => !s)}
+        onClick={() => setOpen((s) => !s)}
         className="
           inline-flex items-center gap-2 rounded-full border border-white/15
-          bg-white/5 px-2.5 py-1.5 text-white/90 hover:bg-white/10
-          focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60
+          bg-white/5 pl-1 pr-2 py-1 text-white/90 hover:bg-white/10
+          focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30
         "
         aria-haspopup="menu"
         aria-expanded={open}
       >
-        <UserIcon className="h-4.5 w-4.5 text-white/85" />
-        <span className="hidden text-[13px] font-semibold md:block">
+        <span className="grid h-7 w-7 place-items-center rounded-full bg-white/15 text-[12px] font-bold">
+          {initials}
+        </span>
+        <span className="hidden text-[13px] font-semibold md:block max-w-[160px] truncate">
           {name}
         </span>
         <ChevronDown className="hidden h-4 w-4 opacity-70 md:block" />
@@ -259,9 +247,8 @@ function AccountMenu({ user }) {
           ref={popRef}
           role="menu"
           className="
-            absolute right-0 mt-2 w-56 overflow-hidden rounded-xl
-            border border-white/10 bg-neutral-950/90 backdrop-blur-md
-            shadow-xl ring-1 ring-black/20
+            absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border border-white/10
+            bg-neutral-950/90 backdrop-blur-md shadow-xl ring-1 ring-black/20
           "
         >
           <MenuLink to="/account" icon={<UserIcon className="h-4 w-4" />} onClick={() => setOpen(false)}>
@@ -271,8 +258,7 @@ function AccountMenu({ user }) {
             Preferences
           </MenuLink>
 
-            <div className="my-1 h-px bg-white/10" />
-
+          <div className="my-1 h-px bg-white/10" />
           <button
             type="button"
             onClick={signOut}
@@ -284,7 +270,7 @@ function AccountMenu({ user }) {
         </div>
       )}
     </div>
-  )
+  );
 }
 
 function MenuLink({ to, icon, children, onClick }) {
@@ -303,5 +289,5 @@ function MenuLink({ to, icon, children, onClick }) {
       {icon}
       {children}
     </NavLink>
-  )
+  );
 }

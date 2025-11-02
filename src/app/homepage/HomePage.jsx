@@ -1,3 +1,4 @@
+// src/app/homepage/HomePage.jsx
 import { useEffect, useState } from "react";
 import HeroSliderSection from "./components/HeroSliderSection";
 import CarouselRow from "./components/CarouselRow";
@@ -14,28 +15,20 @@ export default function HomePage() {
 
   return (
     <main className="w-full bg-[#121215]">
-      {/* HERO — full width, no top/side padding */}
-      <HeroSliderSection className="full-bleed" />
+      {/* HERO — stick to header (no top spacing), full-bleed */}
+      <HeroSliderSection className="full-bleed -mt-px" />
 
       {/* CONTENT ROWS (edge-to-edge rails with a safe inner gutter) */}
-      <section className="full-bleed py-6 md:py-8">
-        <div className="mx-auto w-full max-w-[1680px] px-4 md:px-8">
+      <section className="full-bleed py-5 md:py-7">
+        <div className="mx-auto w-full max-w-[1680px] px-3 sm:px-4 md:px-8">
           <CarouselRow
             title="Picked for you"
             subtitle="Personalized"
             tmdbCategory="popular"
             rowId="picked"
           />
-          <CarouselRow
-            title="Top Rated"
-            tmdbCategory="top_rated"
-            rowId="top"
-          />
-          <CarouselRow
-            title="Trending Now"
-            tmdbCategory="now_playing"
-            rowId="trending"
-          />
+          <CarouselRow title="Top Rated" tmdbCategory="top_rated" rowId="top" />
+          <CarouselRow title="Trending Now" tmdbCategory="now_playing" rowId="trending" />
         </div>
       </section>
     </main>

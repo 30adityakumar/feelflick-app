@@ -114,6 +114,13 @@ img.lazy { content-visibility: auto; contain-intrinsic-size: 300px 450px; }
     right: 50%;
     margin-left: -50vw;
     margin-right: -50vw;
+    margin-top: 0 !important;        /* ✅ Removes any top gap */
+    padding-top: 0 !important;       /* ✅ Prevents extra internal spacing */
+  }
+
+  /* Optional helper: use this on sections that should stick right below the header */
+  .full-bleed.stick-to-header {
+    margin-top: -1px;                /* ✅ Tucks under header border if one exists */
   }
 }
 

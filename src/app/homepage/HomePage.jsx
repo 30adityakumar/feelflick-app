@@ -55,7 +55,7 @@ export default function HomePage() {
             fy = lists.flatMap(x => x.results || []);
           }
         }
-      } catch { /* ignore */ }
+      } catch {}
 
       if (!alive) return;
       const tidy = arr => (arr || [])
@@ -79,15 +79,17 @@ export default function HomePage() {
   return (
     <main
       className="
-        w-full min-h-screen overflow-x-hidden
-        bg-[radial-gradient(90%_120%_at_0%_0%,rgba(14,20,28,.55),transparent_40%),radial-gradient(70%_100%_at_100%_0%,rgba(0,209,255,.22),transparent_55%),#0b0e13]
+        w-full min-h-screen overflow-x-hidden relative
+        bg-[#0b0e13]
       "
     >
-      {/* FULL-BLEED HERO (no outer padding) */}
-      <HeroSliderSection items={heroItems} loading={loading} />
+      {/* FULL-BLEED HERO, touches top and sides */}
+      <div className="absolute top-0 left-0 w-full">
+        <HeroSliderSection items={heroItems} loading={loading} />
+      </div>
 
-      {/* EDGE-TO-EDGE CAROUSELS (no side/top padding) */}
-      <section className="w-full space-y-8 pb-16">
+      {/* Content — shifted up so it hugs hero bottom */}
+      <section className="relative z-10 w-full space-y-10 pt-[58svh] pb-16">
         {forYou.length > 0 && (
           <CarouselRow
             title="Picked for you"

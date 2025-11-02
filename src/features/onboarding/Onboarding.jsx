@@ -248,13 +248,27 @@ export default function Onboarding() {
                       key={g.id}
                       type="button"
                       onClick={() => toggleGenre(g.id)}
-                      className="h-9 rounded-xl border text-white text-[13px] font-medium transition-all"
-                      style={{
-                        borderColor: 'rgba(255,255,255,0.18)',
-                        background: active ? GENRE_SELECTED_BG : 'rgba(255,255,255,0.03)',
-                        boxShadow: active ? '0 2px 10px rgba(254,146,69,.18)' : 'none'
-                      }}
+                      className={`h-9 rounded-xl border text-white text-[13px] font-medium transition-all
+                                  ${selectedGenres.includes(g.id)
+                                    ? 'ring-1 ring-white/10 backdrop-blur-md'
+                                    : ''}`}
+                      style={
+                        selectedGenres.includes(g.id)
+                          ? {
+                              borderColor: 'rgba(255,255,255,0.22)',
+                              background:
+                                'linear-gradient(135deg, rgba(254,146,69,.22), rgba(45,119,255,.22))',
+                              boxShadow:
+                                '0 8px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.12)',
+                            }
+                          : {
+                              borderColor: 'rgba(255,255,255,0.18)',
+                              background: 'rgba(255,255,255,0.03)',
+                            }
+                      }
                     >
+                      <span className="px-3">{g.label}</span>
+                    </button>
                       <span className="px-3">{g.label}</span>
                     </button>
                   );
@@ -379,7 +393,7 @@ export default function Onboarding() {
             {step === 1 ? (
               <div className="flex items-center justify-center gap-6">
                 <button
-                  className="px-6 py-2 rounded-lg font-extrabold text-[15px] text-white"
+                  className="px-6 py-2.5 rounded-2xl font-extrabold text-[15px] text-white"
                   style={{ background: BTN_BG, boxShadow: "0 2px 10px #eb423b22", opacity: loading ? 0.7 : 1 }}
                   disabled={loading}
                   onClick={() => setStep(2)}
@@ -398,13 +412,13 @@ export default function Onboarding() {
                   disabled={loading}
                 >&lt; Back</button>
                 <button
-                  className="px-6 py-2 rounded-lg font-extrabold text-[15px] text-white"
+                  className="px-6 py-2.5 rounded-2xl font-extrabold text-[15px] text-white"
                   style={{ background: BTN_BG, boxShadow: "0 2px 10px #eb423b22", opacity: loading ? 0.7 : 1 }}
                   disabled={loading}
                   onClick={() => saveAndGo()}
                 >Finish</button>
                 <button
-                  className="text-[13.5px] font-extrabold text-[#fe9245]"
+                  className="text-[13.5px] font-extrabold text-[#fe9245] focus:outline-none focus:ring-0 active:outline-none"
                   disabled={loading}
                   onClick={() => saveAndGo({ skipMovies: true })}
                 >Skip</button>

@@ -9,7 +9,6 @@ export default function HeroSliderSection({ items = [], loading }) {
   const [idx, setIdx] = useState(0);
   const timer = useRef(null);
 
-  // autoplay
   useEffect(() => {
     if (!items.length) return;
     timer.current = setInterval(() => setIdx(i => (i + 1) % items.length), 6000);
@@ -27,7 +26,6 @@ export default function HeroSliderSection({ items = [], loading }) {
 
   return (
     <div className="relative w-full h-[42svh] md:h-[58svh]">
-      {/* image */}
       <img
         src={
           cur.backdrop_path
@@ -42,20 +40,17 @@ export default function HeroSliderSection({ items = [], loading }) {
         decoding="async"
       />
 
-      {/* overlays */}
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,.55),rgba(0,0,0,.3)_40%,rgba(0,0,0,.75))]" />
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-6 right-6 flex gap-1 opacity-70">
-          {items.slice(0, 6).map((_, i) => (
-            <span
-              key={i}
-              className={`h-1.5 w-1.5 rounded-full ${i === idx ? "bg-white" : "bg-white/40"}`}
-            />
-          ))}
-        </div>
+
+      <div className="absolute top-6 right-6 flex gap-1 opacity-70">
+        {items.slice(0, 6).map((_, i) => (
+          <span
+            key={i}
+            className={`h-1.5 w-1.5 rounded-full ${i === idx ? "bg-white" : "bg-white/40"}`}
+          />
+        ))}
       </div>
 
-      {/* content */}
       <div className="relative z-10 h-full w-full px-4 sm:px-6 lg:px-10 flex items-end pb-8">
         <div className="max-w-3xl">
           <h1 className="text-white font-black tracking-tight text-[clamp(1.3rem,2.8vw,2.4rem)]">

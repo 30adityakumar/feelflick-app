@@ -34,7 +34,7 @@ export default function CarouselRow({
 
   return (
     <div className="w-full">
-      <div className="flex items-end justify-between px-3 sm:px-6 lg:px-10 mb-3">
+      <div className="flex items-end justify-between px-4 sm:px-6 lg:px-10 mb-3">
         <div className="flex items-center gap-3">
           <h2 className="text-white font-black tracking-tight text-[clamp(1.05rem,2vw,1.35rem)]">
             {title}
@@ -46,20 +46,18 @@ export default function CarouselRow({
             </span>
           )}
         </div>
-        {/* arrows (desktop) */}
-        <div className="hidden md:flex gap-2 pr-3 lg:pr-10">
+        <div className="hidden md:flex gap-2 pr-4 lg:pr-10">
           <IconBtn onClick={() => scrollBy("left")}><ChevronLeft /></IconBtn>
           <IconBtn onClick={() => scrollBy("right")}><ChevronRight /></IconBtn>
         </div>
       </div>
 
-      {/* horizontal list — full-bleed, invisible scrollbar */}
       <div className="relative">
         <div
           ref={scroller}
           className="
             flex gap-3 sm:gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory
-            px-3 sm:px-6 lg:px-10 pb-1
+            px-4 sm:px-6 lg:px-10 pb-1
             [scrollbar-width:none] [&::-webkit-scrollbar]:hidden
           "
         >
@@ -72,7 +70,7 @@ export default function CarouselRow({
                   key={c.id}
                   onClick={() => nav(`/movie/${c.id}`)}
                   className="
-                    group relative w-[42vw] xs:w-[36vw] sm:w-[200px] lg:w-[220px]
+                    group relative w-[46vw] sm:w-[200px] lg:w-[220px]
                     shrink-0 snap-start rounded-2xl overflow-hidden ring-1 ring-white/7
                     bg-white/[.03] hover:bg-white/[.05] transition
                   "
@@ -83,16 +81,15 @@ export default function CarouselRow({
                     <img
                       src={c.poster}
                       alt=""
-                      className="h-[58vw] xs:h-[52vw] sm:h-[300px] lg:h-[320px] w-full object-cover"
+                      className="h-[64vw] sm:h-[300px] lg:h-[320px] w-full object-cover"
                       loading="lazy"
                     />
                   ) : (
-                    <div className="h-[58vw] xs:h-[52vw] sm:h-[300px] lg:h-[320px] grid place-items-center text-white/40">
+                    <div className="h-[64vw] sm:h-[300px] lg:h-[320px] grid place-items-center text-white/40">
                       No image
                     </div>
                   )}
 
-                  {/* gradient and text */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/0 to-transparent opacity-95" />
                   <div className="absolute bottom-0 left-0 right-0 p-3">
                     <div className="text-white font-bold text-sm line-clamp-2 drop-shadow">
@@ -131,8 +128,8 @@ function IconBtn({ children, onClick }) {
 
 function SkeletonCard() {
   return (
-    <div className="w-[42vw] xs:w-[36vw] sm:w-[200px] lg:w-[220px] shrink-0 snap-start">
-      <div className="h-[58vw] xs:h-[52vw] sm:h-[300px] lg:h-[320px] rounded-2xl bg-white/[.06] animate-pulse" />
+    <div className="w-[46vw] sm:w-[200px] lg:w-[220px] shrink-0 snap-start">
+      <div className="h-[64vw] sm:h-[300px] lg:h-[320px] rounded-2xl bg-white/[.06] animate-pulse" />
     </div>
   );
 }

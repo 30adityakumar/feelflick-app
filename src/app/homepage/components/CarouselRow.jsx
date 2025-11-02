@@ -1,189 +1,138 @@
 // src/app/homepage/components/CarouselRow.jsx
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { useMemo, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
-/**
- * Minimal, production-grade carousel row for TMDB lists.
- * Props:
- *   - title: string
- *   - endpoint: "popular" | "top_rated" | any /movie/:endpoint TMDB path
- */
-export default function CarouselRow({ title = "Movies", endpoint = "popular" }) {
-  const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY;
-  const [items, setItems] = useState([]);
-  const [state, setState] = useState("loading"); // loading | ready | error
-  const scrollerRef = useRef(null);
-  const [hasOverflow, setHasOverflow] = useState(false);
+export default function CarouselRow({
+  title,
+  items = [],
+  tmdbBase = "https://image.tmdb.org/t/p",
+  loading,
+  pill,
+}) {
+  const nav = useNavigate();
+  const scroller = useRef(null);
 
-  const apiUrl = useMemo(() => {
-    if (!TMDB_KEY) return null;
-    return `https://api.themoviedb.org/3/movie/${endpoint}?api_key=${TMDB_KEY}&page=1`;
-  }, [TMDB_KEY, endpoint]);
-
-  // Fetch
-  useEffect(() => {
-    let abort = new AbortController();
-    async function run() {
-      if (!apiUrl) {
-        // Fallback (no key) – show a tiny placeholder list
-        setItems([]);
-        setState("ready");
-        return;
-      }
-      try {
-        setState("loading");
-        const r = await fetch(apiUrl, { signal: abort.signal });
-        if (!r.ok) throw new Error(`TMDB ${endpoint} ${r.status}`);
-        const j = await r.json();
-        setItems((j?.results || []).filter(Boolean));
-        setState("ready");
-      } catch (e) {
-        if (abort.signal.aborted) return;
-        console.warn("CarouselRow fetch failed:", e);
-        setState("error");
-      }
-    }
-    run();
-    return () => abort.abort();
-  }, [apiUrl, endpoint]);
-
-  // Detect overflow for showing arrows
-  useEffect(() => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    const check = () => setHasOverflow(el.scrollWidth > el.clientWidth + 4);
-    check();
-    const ro = new ResizeObserver(check);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [items]);
+  const cards = useMemo(
+    () =>
+      items.map((m) => ({
+        id: m.id,
+        title: m.title,
+        poster: m.poster_path ? `${tmdbBase}/w342${m.poster_path}` : null,
+        year: m.release_date ? m.release_date.slice(0, 4) : "",
+        rating: m.vote_average ? Math.round(m.vote_average * 10) / 10 : null,
+      })),
+    [items, tmdbBase]
+  );
 
   const scrollBy = (dir) => {
-    const el = scrollerRef.current;
+    const el = scroller.current;
     if (!el) return;
-    const amount = Math.floor(el.clientWidth * 0.9);
-    el.scrollBy({ left: dir * amount, behavior: "smooth" });
+    const delta = Math.round(el.clientWidth * 0.9) * (dir === "left" ? -1 : 1);
+    el.scrollBy({ left: delta, behavior: "smooth" });
   };
 
   return (
-    <section className="w-full">
-      <div className="mb-2 flex items-end justify-between">
-        <h2 className="text-[clamp(1.05rem,2.2vw,1.35rem)] font-extrabold tracking-tight text-white">
-          {title}
-        </h2>
-        {/* Optional "See all" can go here later */}
-      </div>
-
-      <div className="relative group">
-        {/* Left arrow */}
-        {hasOverflow && (
-          <button
-            type="button"
-            aria-label="Scroll left"
-            onClick={() => scrollBy(-1)}
-            className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 items-center justify-center rounded-full bg-black/40 ring-1 ring-white/15 text-white/90 hover:bg-black/60 opacity-0 group-hover:opacity-100 transition"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden>
-              <path d="M15 19 8 12l7-7" fill="none" stroke="currentColor" strokeWidth="2" />
-            </svg>
-          </button>
-        )}
-
-        {/* Scroller */}
-        <div
-          ref={scrollerRef}
-          className="flex gap-3 overflow-x-auto snap-x snap-mandatory scroll-smooth scrollbar-none pb-1"
-          style={{ scrollPaddingLeft: 2 }}
-        >
-          {state === "loading" &&
-            Array.from({ length: 8 }).map((_, i) => (
-              <SkeletonCard key={i} />
-            ))}
-
-          {state === "error" && (
-            <div className="text-white/75 text-sm px-2 py-6">
-              Couldn’t load movies. Please try again later.
-            </div>
+    <div className="w-full">
+      <div className="flex items-end justify-between px-3 sm:px-6 lg:px-10 mb-3">
+        <div className="flex items-center gap-3">
+          <h2 className="text-white font-black tracking-tight text-[clamp(1.05rem,2vw,1.35rem)]">
+            {title}
+          </h2>
+          {pill && (
+            <span className="rounded-full px-2.5 py-1 text-[12px] font-semibold text-white/90
+                             bg-white/10 ring-1 ring-white/10">
+              {pill}
+            </span>
           )}
-
-          {state === "ready" &&
-            items.map((m) => (
-              <MovieCard key={m.id} m={m} />
-            ))}
         </div>
-
-        {/* Right arrow */}
-        {hasOverflow && (
-          <button
-            type="button"
-            aria-label="Scroll right"
-            onClick={() => scrollBy(1)}
-            className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 items-center justify-center rounded-full bg-black/40 ring-1 ring-white/15 text-white/90 hover:bg-black/60 opacity-0 group-hover:opacity-100 transition"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden>
-              <path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" strokeWidth="2" />
-            </svg>
-          </button>
-        )}
+        {/* arrows (desktop) */}
+        <div className="hidden md:flex gap-2 pr-3 lg:pr-10">
+          <IconBtn onClick={() => scrollBy("left")}><ChevronLeft /></IconBtn>
+          <IconBtn onClick={() => scrollBy("right")}><ChevronRight /></IconBtn>
+        </div>
       </div>
-    </section>
+
+      {/* horizontal list — full-bleed, invisible scrollbar */}
+      <div className="relative">
+        <div
+          ref={scroller}
+          className="
+            flex gap-3 sm:gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory
+            px-3 sm:px-6 lg:px-10 pb-1
+            [scrollbar-width:none] [&::-webkit-scrollbar]:hidden
+          "
+        >
+          {loading
+            ? Array.from({ length: 10 }).map((_, i) => (
+                <SkeletonCard key={i} />
+              ))
+            : cards.map((c) => (
+                <button
+                  key={c.id}
+                  onClick={() => nav(`/movie/${c.id}`)}
+                  className="
+                    group relative w-[42vw] xs:w-[36vw] sm:w-[200px] lg:w-[220px]
+                    shrink-0 snap-start rounded-2xl overflow-hidden ring-1 ring-white/7
+                    bg-white/[.03] hover:bg-white/[.05] transition
+                  "
+                  aria-label={c.title}
+                  title={c.title}
+                >
+                  {c.poster ? (
+                    <img
+                      src={c.poster}
+                      alt=""
+                      className="h-[58vw] xs:h-[52vw] sm:h-[300px] lg:h-[320px] w-full object-cover"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="h-[58vw] xs:h-[52vw] sm:h-[300px] lg:h-[320px] grid place-items-center text-white/40">
+                      No image
+                    </div>
+                  )}
+
+                  {/* gradient and text */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/0 to-transparent opacity-95" />
+                  <div className="absolute bottom-0 left-0 right-0 p-3">
+                    <div className="text-white font-bold text-sm line-clamp-2 drop-shadow">
+                      {c.title}
+                    </div>
+                    <div className="mt-1 flex items-center gap-2 text-[12px] text-white/80">
+                      {c.year && <span>{c.year}</span>}
+                      {c.rating !== null && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-black/50 px-1.5 py-0.5">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                          {c.rating}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              ))}
+        </div>
+      </div>
+    </div>
   );
 }
 
-function MovieCard({ m }) {
-  const title = m.title || m.name || "Movie";
-  const poster = m.poster_path
-    ? `https://image.tmdb.org/t/p/w342${m.poster_path}`
-    : null;
-  const rating = m.vote_average ? Math.round(m.vote_average * 10) / 10 : null;
-
+function IconBtn({ children, onClick }) {
   return (
-    <Link
-      to={`/movie/${m.id}`}
-      className="group relative w-[38vw] max-w-[180px] sm:w-[160px] sm:max-w-[190px] shrink-0 snap-start"
-      aria-label={title}
+    <button
+      onClick={onClick}
+      className="h-9 w-9 grid place-items-center rounded-full bg-white/10 text-white
+                 hover:bg-white/15 ring-1 ring-white/10"
+      aria-label="scroll"
     >
-      <div className="aspect-[2/3] w-full overflow-hidden rounded-xl ring-1 ring-white/10 bg-white/5">
-        {poster ? (
-          <img
-            src={poster}
-            alt={title}
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-            loading="lazy"
-            decoding="async"
-          />
-        ) : (
-          <div className="h-full w-full bg-[linear-gradient(135deg,#111827_0%,#0b1220_100%)]" />
-        )}
-        {/* bottom fade */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/65 to-transparent" />
-      </div>
-
-      <div className="mt-1">
-        <div className="line-clamp-1 text-[13px] font-semibold text-white/95">
-          {title}
-        </div>
-        {rating != null && (
-          <div className="mt-0.5 inline-flex items-center gap-1 text-xs text-white/70">
-            <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden>
-              <path
-                d="m12 2 2.7 6.2 6.8.6-5.1 4.4 1.6 6.8-6-3.5-6 3.5 1.6-6.8-5.1-4.4 6.8-.6L12 2Z"
-                fill="currentColor"
-              />
-            </svg>
-            {rating}
-          </div>
-        )}
-      </div>
-    </Link>
+      <span className="h-5 w-5">{children}</span>
+    </button>
   );
 }
 
 function SkeletonCard() {
   return (
-    <div className="w-[38vw] max-w-[180px] sm:w-[160px] sm:max-w-[190px] shrink-0 snap-start">
-      <div className="aspect-[2/3] w-full overflow-hidden rounded-xl bg-white/5 ring-1 ring-white/10 animate-pulse" />
-      <div className="mt-1 h-3 w-3/4 rounded bg-white/10 animate-pulse" />
+    <div className="w-[42vw] xs:w-[36vw] sm:w-[200px] lg:w-[220px] shrink-0 snap-start">
+      <div className="h-[58vw] xs:h-[52vw] sm:h-[300px] lg:h-[320px] rounded-2xl bg-white/[.06] animate-pulse" />
     </div>
   );
 }

@@ -321,14 +321,13 @@ export default function Onboarding() {
         />
 
         <div
-          className="rounded-[21px] bg-black/45 backdrop-blur-md ring-1 ring-white/10 overflow-hidden"
+          className="rounded-[21px] bg-black/45 backdrop-blur-md ring-1 ring-white/10 overflow-hidden flex flex-col"
           style={{
-            maxHeight:
-              "calc(100svh - var(--topnav-h,72px) - var(--footer-h,0px) - 18px)",
+            height: "min(720px, calc(100svh - var(--topnav-h,72px) - var(--footer-h,0px) - 18px))",
           }}
         >
           {/* header */}
-          <div className="px-5 sm:px-6 py-4">
+          <div className="px-5 sm:px-6 py-4 shrink-0">
             <p className="text-center text-[12.5px] font-semibold text-white/70 tracking-wide">
               {step === 1 ? "Step 1 of 2" : "Step 2 of 2"}
             </p>
@@ -351,7 +350,7 @@ export default function Onboarding() {
           </div>
 
           {/* body */}
-          <div className="px-5 sm:px-6 pb-5 sm:pb-6 overflow-y-auto">
+          <div className="flex-1 px-5 sm:px-6 pb-6 sm:pb-7 overflow-y-auto">
             {step === 1 && (
               <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2.5">
                 {GENRES.map((g) => {
@@ -453,9 +452,14 @@ export default function Onboarding() {
                           <button
                             key={r.id}
                             type="button"
-                            onClick={() =>
-                              selected ? removePick(r.id) : addPick(r)
-                            }
+                            oonClick={() => {
+                              if (selected) {removePick(r.id)
+                                } else {
+                                  addPick(r)
+                                  setQuery('')
+                                  setResults([])
+                                  }
+                            }}
                             className="flex w-full items-center gap-3 px-3 py-2 hover:bg-white/5 text-left"
                           >
                             <img
@@ -536,7 +540,7 @@ export default function Onboarding() {
           </div>
 
           {/* footer actions */}
-          <div className="px-5 sm:px-6 pb-5 sm:pb-6">
+          <div className="shrink-0 px-5 sm:px-6 pb-5 sm:pb-6">
             {step === 1 ? (
               <div className="flex items-center justify-center gap-6">
                 <button

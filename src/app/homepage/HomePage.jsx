@@ -16,7 +16,7 @@ export default function HomePage() {
   return (
     <main className="w-full bg-[#121215]">
       {/* HERO — stick to header (no top spacing), full-bleed */}
-      <HeroSliderSection className="full-bleed -mt-px" />
+      <HeroSliderSection className="full-bleed stick-to-header" />
 
       {/* CONTENT ROWS (edge-to-edge rails with a safe inner gutter) */}
       <section className="full-bleed py-5 md:py-7">

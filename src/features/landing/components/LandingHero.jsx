@@ -25,7 +25,10 @@ export default function LandingHero({ embedded = false, showInlineAuth = false, 
       </div>
 
       {/* Content */}
-      <div className="relative z-10 mx-auto h-full w-full max-w-7xl px-7 md:px-6" style={{ ['--nav-h']: '72px' }}>
+      <div
+        className="relative z-10 mx-auto h-full w-full max-w-7xl px-7 md:px-6"
+        style={{ ['--nav-h']: '72px' }}
+      >
         <div
           className="
             grid h-full place-content-center place-items-center
@@ -34,6 +37,7 @@ export default function LandingHero({ embedded = false, showInlineAuth = false, 
           "
           style={
             embedded
+              ? undefined
               : {
                   height:
                     'calc(100svh - var(--topnav-h, var(--nav-h,72px)) - var(--footer-h,0px))',

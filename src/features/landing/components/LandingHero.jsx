@@ -34,8 +34,12 @@ export default function LandingHero({ embedded = false, showInlineAuth = false, 
           "
           style={
             embedded
-              ? undefined
-              : { height: 'calc(100svh - var(--topnav-h, var(--nav-h,72px)) - var(--footer-h,0px))' }
+              : {
+                  height:
+                    'calc(100svh - var(--topnav-h, var(--nav-h,72px)) - var(--footer-h,0px))',
+                  /* 👇 bias the block slightly DOWN to increase top space */
+                  transform: 'translateY(5vh)',
+                }
           }
         >
           {/* Posters */}

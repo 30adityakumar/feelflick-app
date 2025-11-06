@@ -359,7 +359,7 @@ export default function Onboarding() {
               height: "min(640px, calc(100svh - 40px))",
             }}
           >
-            {/* header — a little more top padding to bias composition downward */}
+            {/* header */}
             <div className="px-5 sm:px-6 pt-6 pb-3 shrink-0">
               <p className="text-center text-[12.5px] font-semibold text-white/70 tracking-wide">
                 {step === 1 ? "Step 1 of 2" : "Step 2 of 2"}
@@ -382,7 +382,7 @@ export default function Onboarding() {
               )}
             </div>
 
-            {/* body — nudged slightly DOWN to visually anchor CTAs lower */}
+            {/* body */}
             <div className="flex-1 px-5 sm:px-6 pb-6 sm:pb-7 overflow-y-auto md:translate-y-[0.8vh]">
               {step === 1 && (
                 <StepGenres
@@ -410,7 +410,7 @@ export default function Onboarding() {
               )}
             </div>
 
-            {/* footer actions — slightly tighter bottom padding */}
+            {/* footer actions */}
             <div className="shrink-0 px-5 sm:px-6 pb-4 sm:pb-5">
               {step === 1 ? (
                 <div className="flex items-center justify-center gap-6">
@@ -475,7 +475,13 @@ export default function Onboarding() {
 /* ----------------------------- Subcomponents ---------------------------- */
 function StepGenres({ GENRES, selectedGenres, toggleGenre }) {
   return (
-    <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2.5">
+    <div
+      className="
+        grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4
+        gap-3 md:gap-4
+        [grid-auto-rows:minmax(56px,1fr)] md:[grid-auto-rows:minmax(64px,1fr)]
+      "
+    >
       {GENRES.map((g) => {
         const active = selectedGenres.includes(g.id);
         return (
@@ -483,9 +489,9 @@ function StepGenres({ GENRES, selectedGenres, toggleGenre }) {
             key={g.id}
             type="button"
             onClick={() => toggleGenre(g.id)}
-            className={`h-9 rounded-xl border text-white text-[13px] font-medium transition-all ${
-              active ? "ring-1 ring-white/10 backdrop-blur-md" : ""
-            }`}
+            className={`w-full h-full rounded-2xl border text-white flex items-center justify-center
+                        text-[14.5px] md:text-[16px] font-semibold transition-all
+                        ${active ? "ring-1 ring-white/10 backdrop-blur-md" : ""}`}
             style={
               active
                 ? {
@@ -503,7 +509,7 @@ function StepGenres({ GENRES, selectedGenres, toggleGenre }) {
                   }
             }
           >
-            <span className="px-3">{g.label}</span>
+            <span className="px-4 md:px-6">{g.label}</span>
           </button>
         );
       })}

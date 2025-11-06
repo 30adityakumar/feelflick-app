@@ -322,8 +322,7 @@ export default function Onboarding() {
     );
   }
 
-  // 🔒 IMMERSIVE MODE:
-  // Make onboarding a full-screen layer above header/mobile bar (no header/footer visible)
+  // 🔒 IMMERSIVE MODE (no header/footer)
   return (
     <div
       className="fixed inset-0 z-[60] overflow-hidden"
@@ -360,8 +359,8 @@ export default function Onboarding() {
               height: "min(640px, calc(100svh - 40px))",
             }}
           >
-            {/* header */}
-            <div className="px-5 sm:px-6 py-4 shrink-0">
+            {/* header — a little more top padding to bias composition downward */}
+            <div className="px-5 sm:px-6 pt-6 pb-3 shrink-0">
               <p className="text-center text-[12.5px] font-semibold text-white/70 tracking-wide">
                 {step === 1 ? "Step 1 of 2" : "Step 2 of 2"}
               </p>
@@ -383,8 +382,8 @@ export default function Onboarding() {
               )}
             </div>
 
-            {/* body */}
-            <div className="flex-1 px-5 sm:px-6 pb-6 sm:pb-7 overflow-y-auto">
+            {/* body — nudged slightly DOWN to visually anchor CTAs lower */}
+            <div className="flex-1 px-5 sm:px-6 pb-6 sm:pb-7 overflow-y-auto md:translate-y-[0.8vh]">
               {step === 1 && (
                 <StepGenres
                   GENRES={GENRES}
@@ -411,8 +410,8 @@ export default function Onboarding() {
               )}
             </div>
 
-            {/* footer actions */}
-            <div className="shrink-0 px-5 sm:px-6 pb-5 sm:pb-6">
+            {/* footer actions — slightly tighter bottom padding */}
+            <div className="shrink-0 px-5 sm:px-6 pb-4 sm:pb-5">
               {step === 1 ? (
                 <div className="flex items-center justify-center gap-6">
                   <button

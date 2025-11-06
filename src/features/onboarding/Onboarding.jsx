@@ -477,44 +477,52 @@ function StepGenres({ GENRES, selectedGenres, toggleGenre }) {
   return (
     <div
       className="
-        grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4
-        gap-3 md:gap-4
-        [grid-auto-rows:minmax(56px,1fr)] md:[grid-auto-rows:minmax(64px,1fr)]
+        grid grid-cols-4            /* 4 columns even on mobile so 4x4 = 16 visible without scroll */
+        gap-2 sm:gap-3 md:gap-4
+        [grid-auto-rows:minmax(44px,1fr)]  /* compact row height on mobile */
+        sm:[grid-auto-rows:minmax(56px,1fr)]
+        md:[grid-auto-rows:minmax(64px,1fr)]
       "
     >
       {GENRES.map((g) => {
-        const active = selectedGenres.includes(g.id);
+        const active = selectedGenres.includes(g.id)
         return (
           <button
             key={g.id}
             type="button"
             onClick={() => toggleGenre(g.id)}
-            className={`w-full h-full rounded-2xl border text-white flex items-center justify-center
-                        text-[14.5px] md:text-[16px] font-semibold transition-all
-                        ${active ? "ring-1 ring-white/10 backdrop-blur-md" : ""}`}
+            className={`
+              w-full h-full rounded-xl md:rounded-2xl border flex items-center justify-center
+              text-[12.5px] sm:text-[14px] md:text-[16px] font-semibold
+              transition-all
+              ${active ? "ring-1 ring-white/10 backdrop-blur-md" : ""}
+            `}
             style={
               active
                 ? {
-                    borderColor: "rgba(150,180,255,0.45)",
+                    /* ✨ selected: warm brand gradient + subtle glow */
                     background:
-                      "linear-gradient(135deg, rgba(60,120,255,0.55), rgba(100,70,255,0.45))",
+                      "linear-gradient(135deg, rgba(254,146,69,0.95) 0%, rgba(235,66,59,0.95) 100%)",
+                    borderColor: "rgba(255,180,140,0.65)",
                     boxShadow:
-                      "inset 0 1px 0 rgba(255,255,255,0.2), 0 0 12px rgba(80,140,255,0.4)",
-                    backdropFilter: "blur(6px)",
+                      "inset 0 1px 0 rgba(255,255,255,0.25), 0 6px 18px rgba(235,66,59,0.35)",
+                    color: "#fff",
                   }
                 : {
+                    /* idle: soft translucent pill */
                     borderColor: "rgba(255,255,255,0.15)",
-                    background: "rgba(255,255,255,0.03)",
+                    background: "rgba(255,255,255,0.04)",
                     boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05)",
+                    color: "rgba(255,255,255,0.92)",
                   }
             }
           >
-            <span className="px-4 md:px-6">{g.label}</span>
+            <span className="px-2 sm:px-3 whitespace-nowrap">{g.label}</span>
           </button>
-        );
+        )
       })}
     </div>
-  );
+  )
 }
 
 function StepMovies({

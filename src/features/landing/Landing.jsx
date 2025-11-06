@@ -15,27 +15,22 @@ export default function Landing() {
       <TopNav onAuthOpen={openInlineAuth} />
 
       {/* 
-        Layout:
-        - Starts right after TopNav
-        - Centers hero content
-        - Slightly shifted downward for better visual balance
+        Layout improvements:
+        - Starts right after TopNav but with a little extra top spacing for balance
+        - Keeps footer spacing and full-height centering intact
       */}
       <main
         id="landing"
         className="relative mx-auto w-full overflow-hidden flex flex-col"
         style={{
-          paddingTop: 'var(--topnav-h, 72px)',
+          // 👇 slightly increase top spacing (adds ~4vh visual balance)
+          paddingTop: 'calc(var(--topnav-h, 72px) + 4vh)',
           paddingBottom: 'var(--footer-h, 0px)',
           minHeight: 'calc(100svh - var(--topnav-h, 72px))'
         }}
       >
-        {/* Hero Centered & Shifted Down */}
-        <div
-          className="flex-1 grid place-items-center"
-          style={{
-            transform: 'translateY(5vh)', // 👈 adjust vertical offset (3vh–8vh works best)
-          }}
-        >
+        {/* Center the hero in the available area below TopNav */}
+        <div className="flex-1 grid place-items-center">
           <LandingHero
             embedded
             showInlineAuth={showInlineAuth}
@@ -44,6 +39,7 @@ export default function Landing() {
           />
         </div>
 
+        {/* Fixed footer still computes --footer-h for correct bottom padding */}
         <Footer />
       </main>
     </>

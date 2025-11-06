@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 
 const SHELL = "w-full px-3 sm:px-5 lg:px-7";
-// Unified control sizes (keep everything visually symmetrical)
 const ITEM_TXT = "text-[13px] md:text-[14px]";
 const ITEM_H = "h-8 md:h-9";
 
@@ -35,9 +34,9 @@ export default function Header({ onOpenSearch }) {
 
   return (
     <>
-      {/* Always pinned to the top */}
+      {/* Always pinned to the top on all devices */}
       <header className="sticky top-0 z-50 shadow-[0_4px_20px_rgba(0,0,0,.25)]">
-        {/* Translucent gradient background (not pure black) */}
+        {/* Subtle gradient (not pure black) */}
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
           <div className="absolute inset-0 bg-[linear-gradient(115deg,#0b1320_0%,#0f1b2b_52%,#111824_100%)]" />
           <div className="absolute -top-20 left-[8%] h-[32vmin] w-[32vmin] rounded-full blur-3xl opacity-35 bg-[radial-gradient(closest-side,rgba(254,146,69,.35),rgba(254,146,69,0)_70%)]" />
@@ -56,37 +55,35 @@ export default function Header({ onOpenSearch }) {
             </Link>
 
             <nav className="hidden md:flex items-center gap-1.5">
-              <TopLink to="/home" icon={<Home className="h-4 w-4" />}>
-                Home
-              </TopLink>
-              <TopLink to="/browse" icon={<Compass className="h-4 w-4" />}>
-                Browse
-              </TopLink>
+              <TopLink to="/home" icon={<Home className="h-4 w-4" />}>Home</TopLink>
+              <TopLink to="/browse" icon={<Compass className="h-4 w-4" />}>Browse</TopLink>
             </nav>
           </div>
 
-          {/* Search (desktop) + account */}
+          {/* Search (now visible on mobile at the top) + account (desktop only) */}
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={onOpenSearch}
-              className={`hidden md:inline-flex ${ITEM_H} items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 ${ITEM_TXT} text-white/90 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30`}
+              className={`inline-flex ${ITEM_H} items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 ${ITEM_TXT} text-white/90 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30`}
               aria-label="Search"
               title="Search"
             >
               <SearchIcon className="h-4 w-4 text-white/85" />
-              <span className="text-white/80">Search</span>
-              <kbd className="ml-1 hidden rounded bg-white/10 px-1.5 py-0.5 text-[10px] text-white/60 md:inline">
-                /
-              </kbd>
+              <span className="hidden sm:inline text-white/80">Search</span>
+              <kbd className="ml-1 hidden rounded bg-white/10 px-1.5 py-0.5 text-[10px] text-white/60 md:inline">/</kbd>
             </button>
-            <AccountMenu user={user} />
+
+            {/* Profile moved to bottom on mobile; keep dropdown only on ≥ md */}
+            <div className="hidden md:block">
+              <AccountMenu user={user} />
+            </div>
           </div>
         </div>
       </header>
 
-      {/* Mobile bottom bar */}
-      <MobileBar pathname={pathname} onOpenSearch={onOpenSearch} />
+      {/* Mobile bottom bar now includes Profile (Home • Profile • Browse) */}
+      <MobileBar pathname={pathname} />
     </>
   );
 }
@@ -97,32 +94,29 @@ function TopLink({ to, icon, children }) {
       to={to}
       className={({ isActive }) =>
         [
-          // unified size with search + profile
           "inline-flex items-center gap-1.5 rounded-full px-3 md:px-3.5 py-0",
           ITEM_H,
           ITEM_TXT,
           "font-semibold transition-colors",
-          isActive
-            ? "bg-white/10 text-white ring-1 ring-white/10"
-            : "text-white/75 hover:text-white hover:bg-white/10",
+          isActive ? "bg-white/10 text-white ring-1 ring-white/10"
+                   : "text-white/75 hover:text-white hover:bg-white/10",
         ].join(" ")
       }
     >
-      {icon}
-      <span>{children}</span>
+      {icon}<span>{children}</span>
     </NavLink>
   );
 }
 
-function MobileBar({ pathname, onOpenSearch }) {
-  const Item = ({ to, icon, label, active }) => (
+function MobileBar({ pathname }) {
+  const Item = ({ to, icon, label }) => (
     <NavLink
       to={to}
       className={({ isActive }) =>
         [
           "flex flex-col items-center justify-center rounded-xl px-2.5 py-1 font-semibold transition",
           "text-[11px]",
-          (isActive || active) ? "text-white" : "text-white/70",
+          isActive ? "text-white" : "text-white/70",
         ].join(" ")
       }
     >
@@ -133,40 +127,11 @@ function MobileBar({ pathname, onOpenSearch }) {
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[rgba(12,18,28,.85)] backdrop-blur-md md:hidden">
-      <div
-        className="mx-auto max-w-[720px] grid items-center px-4"
-        style={{ gridTemplateColumns: "1fr auto 1fr" }}
-      >
-        <div className="h-[60px] flex items-center justify-start">
-          <Item
-            to="/home"
-            label="Home"
-            icon={<Home className="h-5 w-5" />}
-            active={pathname === "/"}
-          />
-        </div>
-
-        <div className="h-[60px] flex items-center justify-center">
-          <button
-            type="button"
-            onClick={onOpenSearch}
-            className="inline-flex h-10 min-w-[46vw] max-w-[260px] items-center justify-center gap-2 rounded-full border border-white/15 bg-white/8 px-4 text-[13px] font-semibold text-white/90 shadow-[0_6px_24px_rgba(0,0,0,.35)] hover:bg-white/12 focus:outline-none"
-            aria-label="Search"
-          >
-            <SearchIcon className="h-5 w-5" />
-            Search
-          </button>
-        </div>
-
-        <div className="h-[60px] flex items-center justify-end">
-          <Item
-            to="/browse"
-            label="Browse"
-            icon={<Compass className="h-5 w-5" />}
-          />
-        </div>
+      <div className="mx-auto max-w-[720px] grid grid-cols-3 items-center px-4 h-[60px]">
+        <Item to="/home"   label="Home"    icon={<Home className="h-5 w-5" />} />
+        <Item to="/account" label="Profile" icon={<UserIcon className="h-5 w-5" />} />
+        <Item to="/browse" label="Browse"  icon={<Compass className="h-5 w-5" />} />
       </div>
-      {/* safe-area padding for iOS home indicator */}
       <div className="pb-[max(env(safe-area-inset-bottom),8px)]" />
     </div>
   );
@@ -181,18 +146,12 @@ function AccountMenu({ user }) {
   useEffect(() => {
     function onDoc(e) {
       if (!open) return;
-      if (
-        popRef.current &&
-        !popRef.current.contains(e.target) &&
-        btnRef.current &&
-        !btnRef.current.contains(e.target)
-      ) {
+      if (popRef.current && !popRef.current.contains(e.target) &&
+          btnRef.current && !btnRef.current.contains(e.target)) {
         setOpen(false);
       }
     }
-    function onKey(e) {
-      if (open && e.key === "Escape") setOpen(false);
-    }
+    function onKey(e) { if (open && e.key === "Escape") setOpen(false); }
     document.addEventListener("mousedown", onDoc);
     document.addEventListener("keydown", onKey);
     return () => {
@@ -206,21 +165,15 @@ function AccountMenu({ user }) {
     nav("/auth", { replace: true });
   }
 
-  const name =
-    user?.user_metadata?.name || user?.email?.split("@")[0] || "Account";
-  const initials =
-    (name || "")
-      .split(" ")
-      .map((s) => s[0]?.toUpperCase())
-      .slice(0, 2)
-      .join("") || "U";
+  const name = user?.user_metadata?.name || user?.email?.split("@")[0] || "Account";
+  const initials = (name || "").split(" ").map(s => s[0]?.toUpperCase()).slice(0,2).join("") || "U";
 
   return (
     <div className="relative">
       <button
         ref={btnRef}
         type="button"
-        onClick={() => setOpen((s) => !s)}
+        onClick={() => setOpen(s => !s)}
         className={[
           "inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5",
           "pl-1.5 pr-2 py-0",
@@ -231,12 +184,8 @@ function AccountMenu({ user }) {
         aria-haspopup="menu"
         aria-expanded={open}
       >
-        <span className="grid h-7 w-7 place-items-center rounded-full bg-white/15 text-[12px] font-bold">
-          {initials}
-        </span>
-        <span className="hidden font-semibold md:block max-w-[160px] truncate">
-          {name}
-        </span>
+        <span className="grid h-7 w-7 place-items-center rounded-full bg-white/15 text-[12px] font-bold">{initials}</span>
+        <span className="hidden font-semibold md:block max-w-[160px] truncate">{name}</span>
         <ChevronDown className="hidden h-4 w-4 opacity-70 md:block" />
       </button>
 
@@ -290,8 +239,7 @@ function MenuLink({ to, icon, children, onClick }) {
       }
       role="menuitem"
     >
-      {icon}
-      {children}
+      {icon}{children}
     </NavLink>
   );
 }

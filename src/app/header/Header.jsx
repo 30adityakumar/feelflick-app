@@ -15,6 +15,9 @@ import {
 } from "lucide-react";
 
 const SHELL = "w-full px-3 sm:px-5 lg:px-7";
+// Unified control sizes (keep everything visually symmetrical)
+const ITEM_TXT = "text-[13px] md:text-[14px]";
+const ITEM_H = "h-8 md:h-9";
 
 export default function Header({ onOpenSearch }) {
   const { pathname } = useLocation();
@@ -32,18 +35,17 @@ export default function Header({ onOpenSearch }) {
 
   return (
     <>
-      {/* compact, translucent gradient header */}
+      {/* Always pinned to the top */}
       <header className="sticky top-0 z-50 shadow-[0_4px_20px_rgba(0,0,0,.25)]">
+        {/* Translucent gradient background (not pure black) */}
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-          {/* desaturated deep blue gradient (not pure black) */}
           <div className="absolute inset-0 bg-[linear-gradient(115deg,#0b1320_0%,#0f1b2b_52%,#111824_100%)]" />
-          {/* soft tint blobs */}
           <div className="absolute -top-20 left-[8%] h-[32vmin] w-[32vmin] rounded-full blur-3xl opacity-35 bg-[radial-gradient(closest-side,rgba(254,146,69,.35),rgba(254,146,69,0)_70%)]" />
           <div className="absolute -top-24 right-[10%] h-[34vmin] w-[34vmin] rounded-full blur-3xl opacity-30 bg-[radial-gradient(closest-side,rgba(45,119,255,.30),rgba(45,119,255,0)_70%)]" />
-          {/* slight glass */}
           <div className="absolute inset-0 bg-black/35 backdrop-blur-md ring-1 ring-white/10" />
         </div>
 
+        {/* Bar */}
         <div className={`${SHELL} flex h-12 md:h-14 items-center justify-between gap-3`}>
           {/* Brand + desktop nav */}
           <div className="flex min-w-0 items-center gap-3">
@@ -54,8 +56,12 @@ export default function Header({ onOpenSearch }) {
             </Link>
 
             <nav className="hidden md:flex items-center gap-1.5">
-              <TopLink to="/home" icon={<Home className="h-4 w-4" />}>Home</TopLink>
-              <TopLink to="/browse" icon={<Compass className="h-4 w-4" />}>Browse</TopLink>
+              <TopLink to="/home" icon={<Home className="h-4 w-4" />}>
+                Home
+              </TopLink>
+              <TopLink to="/browse" icon={<Compass className="h-4 w-4" />}>
+                Browse
+              </TopLink>
             </nav>
           </div>
 
@@ -64,7 +70,7 @@ export default function Header({ onOpenSearch }) {
             <button
               type="button"
               onClick={onOpenSearch}
-              className="hidden md:inline-flex h-8 items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 text-[0.875rem] text-white/90 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+              className={`hidden md:inline-flex ${ITEM_H} items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 ${ITEM_TXT} text-white/90 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30`}
               aria-label="Search"
               title="Search"
             >
@@ -91,7 +97,11 @@ function TopLink({ to, icon, children }) {
       to={to}
       className={({ isActive }) =>
         [
-          "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[13px] font-semibold transition-colors",
+          // unified size with search + profile
+          "inline-flex items-center gap-1.5 rounded-full px-3 md:px-3.5 py-0",
+          ITEM_H,
+          ITEM_TXT,
+          "font-semibold transition-colors",
           isActive
             ? "bg-white/10 text-white ring-1 ring-white/10"
             : "text-white/75 hover:text-white hover:bg-white/10",
@@ -110,7 +120,8 @@ function MobileBar({ pathname, onOpenSearch }) {
       to={to}
       className={({ isActive }) =>
         [
-          "flex flex-col items-center justify-center rounded-xl px-2.5 py-1 text-[11px] font-semibold transition",
+          "flex flex-col items-center justify-center rounded-xl px-2.5 py-1 font-semibold transition",
+          "text-[11px]",
           (isActive || active) ? "text-white" : "text-white/70",
         ].join(" ")
       }
@@ -122,8 +133,10 @@ function MobileBar({ pathname, onOpenSearch }) {
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[rgba(12,18,28,.85)] backdrop-blur-md md:hidden">
-      <div className="mx-auto max-w-[720px] grid items-center px-4"
-           style={{ gridTemplateColumns: "1fr auto 1fr" }}>
+      <div
+        className="mx-auto max-w-[720px] grid items-center px-4"
+        style={{ gridTemplateColumns: "1fr auto 1fr" }}
+      >
         <div className="h-[60px] flex items-center justify-start">
           <Item
             to="/home"
@@ -153,7 +166,7 @@ function MobileBar({ pathname, onOpenSearch }) {
           />
         </div>
       </div>
-      {/* safe-area padding */}
+      {/* safe-area padding for iOS home indicator */}
       <div className="pb-[max(env(safe-area-inset-bottom),8px)]" />
     </div>
   );
@@ -208,14 +221,20 @@ function AccountMenu({ user }) {
         ref={btnRef}
         type="button"
         onClick={() => setOpen((s) => !s)}
-        className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 pl-1.5 pr-2 py-1 text-white/90 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+        className={[
+          "inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5",
+          "pl-1.5 pr-2 py-0",
+          ITEM_H,
+          ITEM_TXT,
+          "text-white/90 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30",
+        ].join(" ")}
         aria-haspopup="menu"
         aria-expanded={open}
       >
         <span className="grid h-7 w-7 place-items-center rounded-full bg-white/15 text-[12px] font-bold">
           {initials}
         </span>
-        <span className="hidden text-[13px] font-semibold md:block max-w-[160px] truncate">
+        <span className="hidden font-semibold md:block max-w-[160px] truncate">
           {name}
         </span>
         <ChevronDown className="hidden h-4 w-4 opacity-70 md:block" />
@@ -264,7 +283,8 @@ function MenuLink({ to, icon, children, onClick }) {
       onClick={onClick}
       className={({ isActive }) =>
         [
-          "flex items-center gap-2 px-3 py-2.5 text-[13px] font-semibold",
+          "flex items-center gap-2 px-3 py-2.5",
+          "text-[13px] font-semibold",
           isActive ? "bg-white/10 text-white" : "text-white/85 hover:bg-white/10",
         ].join(" ")
       }

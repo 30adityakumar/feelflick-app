@@ -12,7 +12,6 @@ import {
   Settings,
   Bookmark,
   Clock,
-  X,
 } from "lucide-react";
 
 const SHELL = "w-full px-3 sm:px-5 lg:px-7";
@@ -22,6 +21,8 @@ const ITEM_H = "h-8 md:h-9";
 export default function Header({ onOpenSearch }) {
   const { pathname } = useLocation();
   const [user, setUser] = useState(null);
+  const hdrRef = useRef(null);
+  const [mobileProfileOpen, setMobileProfileOpen] = useState(false);
 
   useEffect(() => {
     let unsub;
@@ -33,17 +34,29 @@ export default function Header({ onOpenSearch }) {
     return () => typeof unsub === "function" && unsub();
   }, []);
 
+  // Measure header height to anchor the mobile profile panel just under it
+  useEffect(() => {
+    const setVar = () => {
+      const h = hdrRef.current?.offsetHeight || 56; // ~h-14
+      document.documentElement.style.setProperty("--hdr-h", `${h}px`);
+    };
+    setVar();
+    const ro = new ResizeObserver(setVar);
+    if (hdrRef.current) ro.observe(hdrRef.current);
+    return () => ro.disconnect();
+  }, []);
+
   return (
     <>
-      {/* Header stays pinned; ONLY on mobile the height is a little bigger */}
-      <header className="sticky top-0 z-50 shadow-[0_4px_20px_rgba(0,0,0,.25)]">
+      {/* Sticky header (mobile slightly taller) */}
+      <header ref={hdrRef} className="sticky top-0 z-50 shadow-[0_4px_20px_rgba(0,0,0,.25)]">
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
           <div className="absolute inset-0 bg-[linear-gradient(115deg,#0b1320_0%,#0f1b2b_52%,#111824_100%)]" />
           <div className="absolute inset-0 bg-black/35 backdrop-blur-md ring-1 ring-white/10" />
         </div>
 
-        {/* NOTE: was h-12 md:h-14; increased mobile to h-14 (desktop unchanged) */}
         <div className={`${SHELL} flex h-14 md:h-14 items-center justify-between gap-3`}>
+          {/* Brand + desktop nav */}
           <div className="flex min-w-0 items-center gap-3">
             <Link to="/home" aria-label="FeelFlick Home" className="select-none">
               <span className="block text-[clamp(1.05rem,2vw,1.35rem)] font-extrabold tracking-[.06em] text-white/95 uppercase">
@@ -57,7 +70,7 @@ export default function Header({ onOpenSearch }) {
             </nav>
           </div>
 
-          {/* Search (kept at the top; visible on mobile too) + account (desktop only) */}
+          {/* Search (top on all devices) + desktop account */}
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -71,7 +84,6 @@ export default function Header({ onOpenSearch }) {
               <kbd className="ml-1 hidden rounded bg-white/10 px-1.5 py-0.5 text-[10px] text-white/60 md:inline">/</kbd>
             </button>
 
-            {/* Desktop profile dropdown remains in header */}
             <div className="hidden md:block">
               <AccountMenu user={user} />
             </div>
@@ -79,8 +91,18 @@ export default function Header({ onOpenSearch }) {
         </div>
       </header>
 
-      {/* Mobile bottom bar: order = Home | Browse | Profile (profile on extreme right) */}
-      <MobileBar pathname={pathname} user={user} />
+      {/* Mobile bottom bar (Home | Browse | Profile). Tapping Profile opens a panel BELOW the header like YouTube. */}
+      <MobileBar
+        pathname={pathname}
+        user={user}
+        onOpenProfile={() => setMobileProfileOpen((s) => !s)}
+      />
+
+      {/* Mobile profile panel anchored under header (NOT a bottom sheet) */}
+      <MobileProfilePanel
+        open={mobileProfileOpen}
+        onClose={() => setMobileProfileOpen(false)}
+      />
     </>
   );
 }
@@ -105,10 +127,8 @@ function TopLink({ to, icon, children }) {
   );
 }
 
-/* ----------------------- MOBILE BOTTOM BAR (updated) ---------------------- */
-function MobileBar({ pathname, user }) {
-  const [menuOpen, setMenuOpen] = useState(false);
-
+/* -------------------------- MOBILE BOTTOM BAR -------------------------- */
+function MobileBar({ pathname, user, onOpenProfile }) {
   const Item = ({ to, icon, label }) => (
     <NavLink
       to={to}
@@ -131,105 +151,111 @@ function MobileBar({ pathname, user }) {
   })();
 
   return (
-    <>
-      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[rgba(12,18,28,.85)] backdrop-blur-md md:hidden">
-        <div className="mx-auto max-w-[720px] grid grid-cols-3 items-center px-4 h-[60px]">
-          <Item to="/home"   label="Home"   icon={<Home className="h-5 w-5" />} />
-          <Item to="/browse" label="Browse" icon={<Compass className="h-5 w-5" />} />
+    <div className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[rgba(12,18,28,.85)] backdrop-blur-md md:hidden">
+      <div className="mx-auto max-w-[720px] grid grid-cols-3 items-center px-4 h-[60px]">
+        <Item to="/home"   label="Home"   icon={<Home className="h-5 w-5" />} />
+        <Item to="/browse" label="Browse" icon={<Compass className="h-5 w-5" />} />
 
-          {/* Profile at extreme right; opens a menu with same options as desktop */}
-          <button
-            type="button"
-            onClick={() => setMenuOpen(true)}
-            className="flex flex-col items-center justify-center rounded-xl px-2.5 py-1 text-[11px] font-semibold text-white/80"
-            aria-haspopup="menu"
-            aria-expanded={menuOpen}
-            aria-label="Profile menu"
-          >
-            <span className="grid h-5 w-5 place-items-center rounded-full bg-white/20 text-[10px] font-bold">
-              {initials}
-            </span>
-            <span className="mt-0.5">Profile</span>
-          </button>
-        </div>
-        <div className="pb-[max(env(safe-area-inset-bottom),8px)]" />
+        {/* Profile (extreme right). Opens under-header panel; bottom bar stays put. */}
+        <button
+          type="button"
+          onClick={onOpenProfile}
+          className="flex flex-col items-center justify-center rounded-xl px-2.5 py-1 text-[11px] font-semibold text-white/80"
+          aria-haspopup="menu"
+          aria-expanded={undefined}
+          aria-label="Profile menu"
+        >
+          <span className="grid h-5 w-5 place-items-center rounded-full bg-white/20 text-[10px] font-bold">
+            {initials}
+          </span>
+          <span className="mt-0.5">Profile</span>
+        </button>
       </div>
+      <div className="pb-[max(env(safe-area-inset-bottom),8px)]" />
+    </div>
+  );
+}
 
-      {/* Mobile profile menu (bottom sheet) */}
-      {menuOpen && (
-        <MobileProfileSheet onClose={() => setMenuOpen(false)} />
-      )}
+/* --------------- MOBILE PROFILE PANEL (below sticky header) --------------- */
+function MobileProfilePanel({ open, onClose }) {
+  const nav = useNavigate();
+
+  // Click outside (on scrim) closes; bottom bar remains visible/interactive
+  if (!open) return null;
+
+  const go = (to) => {
+    onClose();
+    nav(to);
+  };
+
+  return (
+    <>
+      {/* Scrim covers only the content area below the panel; leaves header + bottom bar visible */}
+      <div
+        className="fixed inset-x-0 z-[60]"
+        style={{
+          top: "var(--hdr-h,56px)",
+          bottom: "60px", // bottom bar height
+          background: "rgba(0,0,0,.45)",
+        }}
+        onClick={onClose}
+        aria-hidden
+      />
+
+      {/* Panel anchored under header */}
+      <div
+        role="menu"
+        className="fixed inset-x-0 z-[61] mx-auto max-w-[720px] overflow-hidden rounded-b-2xl border border-t-0 border-white/10 bg-[rgba(12,18,28,.96)] backdrop-blur-md shadow-2xl md:hidden"
+        style={{
+          top: "var(--hdr-h,56px)",
+          maxHeight: "calc(100svh - var(--hdr-h,56px) - 60px - max(env(safe-area-inset-bottom),8px))",
+        }}
+      >
+        <div className="px-4 py-3">
+          <span className="text-[13px] font-semibold text-white/70">Account</span>
+        </div>
+
+        <div className="py-1">
+          <PanelRow onClick={() => go("/account")}     icon={<UserIcon className="h-4 w-4" />} label="Profile" />
+          <PanelRow onClick={() => go("/preferences")} icon={<Settings className="h-4 w-4" />} label="Preferences" />
+          <PanelRow onClick={() => go("/watchlist")}   icon={<Bookmark className="h-4 w-4" />} label="Watchlist" />
+          <PanelRow onClick={() => go("/history")}     icon={<Clock className="h-4 w-4" />} label="History" />
+          <SignOutRow onDone={onClose} />
+        </div>
+      </div>
     </>
   );
 }
 
-/* ---------------------- MOBILE PROFILE BOTTOM SHEET ---------------------- */
-function MobileProfileSheet({ onClose }) {
-  const nav = useNavigate();
-
-  async function signOut() {
-    await supabase.auth.signOut();
-    onClose();
-    nav("/auth", { replace: true });
-  }
-
-  const Row = ({ to, icon, label, onClick }) => (
-    <NavLink
-      to={to}
-      onClick={() => {
-        if (onClick) onClick();
-        onClose();
-      }}
-      className="flex items-center gap-3 px-4 py-3 text-[14px] font-semibold text-white/90 hover:bg-white/10"
+function PanelRow({ icon, label, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex w-full items-center gap-3 px-4 py-3 text-left text-[14px] font-semibold text-white/90 hover:bg-white/10"
       role="menuitem"
     >
       {icon}
       <span>{label}</span>
-    </NavLink>
+    </button>
   );
+}
 
+function SignOutRow({ onDone }) {
+  const nav = useNavigate();
+  const doSignOut = async () => {
+    await supabase.auth.signOut();
+    onDone?.();
+    nav("/auth", { replace: true });
+  };
   return (
-    <>
-      {/* scrim */}
-      <div
-        className="fixed inset-0 z-[60] bg-black/60"
-        onClick={onClose}
-        aria-hidden
-      />
-      {/* sheet */}
-      <div
-        role="menu"
-        className="fixed inset-x-0 bottom-0 z-[61] overflow-hidden rounded-t-2xl border-t border-white/10 bg-[rgba(12,18,28,.96)] backdrop-blur-md shadow-2xl"
-      >
-        <div className="flex items-center justify-between px-4 py-3">
-          <span className="text-[13px] font-semibold text-white/70">Account</span>
-          <button
-            type="button"
-            onClick={onClose}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/10"
-            aria-label="Close"
-          >
-            <X className="h-4 w-4 text-white/80" />
-          </button>
-        </div>
-
-        <div className="py-1">
-          <Row to="/account"     icon={<UserIcon className="h-4 w-4" />}      label="Profile"     />
-          <Row to="/preferences" icon={<Settings className="h-4 w-4" />}      label="Preferences" />
-          <Row to="/watchlist"   icon={<Bookmark className="h-4 w-4" />}      label="Watchlist"   />
-          <Row to="/history"     icon={<Clock className="h-4 w-4" />}         label="History"     />
-          <button
-            type="button"
-            onClick={signOut}
-            className="flex w-full items-center gap-3 px-4 py-3 text-left text-[14px] font-semibold text-white/90 hover:bg-white/10"
-          >
-            <LogOut className="h-4 w-4" /> Sign out
-          </button>
-        </div>
-
-        <div className="pb-[max(env(safe-area-inset-bottom),10px)]" />
-      </div>
-    </>
+    <button
+      type="button"
+      onClick={doSignOut}
+      className="flex w-full items-center gap-3 px-4 py-3 text-left text-[14px] font-semibold text-white/90 hover:bg-white/10"
+    >
+      <LogOut className="h-4 w-4" /> Sign out
+    </button>
   );
 }
 
@@ -243,8 +269,10 @@ function AccountMenu({ user }) {
   useEffect(() => {
     function onDoc(e) {
       if (!open) return;
-      if (popRef.current && !popRef.current.contains(e.target) &&
-          btnRef.current && !btnRef.current.contains(e.target)) {
+      if (
+        popRef.current && !popRef.current.contains(e.target) &&
+        btnRef.current && !btnRef.current.contains(e.target)
+      ) {
         setOpen(false);
       }
     }

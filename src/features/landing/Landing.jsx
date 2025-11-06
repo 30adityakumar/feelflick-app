@@ -15,10 +15,10 @@ export default function Landing() {
       <TopNav onAuthOpen={openInlineAuth} />
 
       {/* 
-        Key layout fixes:
-        - pad the top by TopNav height so content starts immediately below it
-        - reserve bottom padding for fixed Footer height
-        - min-height fills the viewport minus TopNav, so centering is true visual center
+        Layout:
+        - Starts below TopNav (paddingTop)
+        - Centers hero vertically in remaining viewport
+        - Adds subtle downward shift for better balance
       */}
       <main
         id="landing"
@@ -29,8 +29,13 @@ export default function Landing() {
           minHeight: 'calc(100svh - var(--topnav-h, 72px))'
         }}
       >
-        {/* Center the hero in the available area below TopNav */}
-        <div className="flex-1 grid place-items-center">
+        {/* Hero section: centered + slightly lower for balance */}
+        <div
+          className="flex-1 grid place-items-center"
+          style={{
+            transform: 'translateY(6vh)', // 👈 adjust this for exact visual balance (try 5–8vh)
+          }}
+        >
           <LandingHero
             embedded
             showInlineAuth={showInlineAuth}
@@ -39,7 +44,6 @@ export default function Landing() {
           />
         </div>
 
-        {/* Fixed footer still computes --footer-h for correct bottom padding */}
         <Footer />
       </main>
     </>

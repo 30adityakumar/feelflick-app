@@ -9,6 +9,11 @@ export default function TopNav({ hideAuthCta = false, onAuthOpen }) {
   const navigate = useNavigate()
   const location = useLocation()
 
+  // 🚫 Do not render TopNav on onboarding route (true in-app feel)
+  if (location.pathname.startsWith('/onboarding')) {
+    return null
+  }
+
   useEffect(() => {
     const setVar = () => {
       const h = barRef.current?.offsetHeight || 72
@@ -62,7 +67,7 @@ export default function TopNav({ hideAuthCta = false, onAuthOpen }) {
         ref={barRef}
         className="mx-auto flex w-full max-w-7xl items-center justify-between gap-2 px-3 pt-[calc(env(safe-area-inset-top)+14px)] pb-3 sm:py-4 md:px-6"
       >
-        {/* Brand text only (logo removed) */}
+        {/* Brand */}
         <a
           href="/"
           onClick={onBrandClick}

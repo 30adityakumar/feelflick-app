@@ -359,7 +359,7 @@ export default function Onboarding() {
               height: "min(640px, calc(100svh - 40px))",
             }}
           >
-            {/* header */}
+            {/* header — a little more top padding to bias composition downward */}
             <div className="px-5 sm:px-6 pt-6 pb-3 shrink-0">
               <p className="text-center text-[12.5px] font-semibold text-white/70 tracking-wide">
                 {step === 1 ? "Step 1 of 2" : "Step 2 of 2"}
@@ -382,13 +382,8 @@ export default function Onboarding() {
               )}
             </div>
 
-            {/* body */}
-            <div
-              className="
-                flex-1 px-5 sm:px-6 pb-6 sm:pb-7
-                overflow-visible md:overflow-y-auto   /* no scroll on mobile, scroll on md+ */
-              "
-            >
+            {/* body — nudged slightly DOWN to visually anchor CTAs lower */}
+            <div className="flex-1 px-5 sm:px-6 pb-6 sm:pb-7 overflow-y-auto md:translate-y-[0.8vh]">
               {step === 1 && (
                 <StepGenres
                   GENRES={GENRES}
@@ -415,7 +410,7 @@ export default function Onboarding() {
               )}
             </div>
 
-            {/* footer actions */}
+            {/* footer actions — slightly tighter bottom padding */}
             <div className="shrink-0 px-5 sm:px-6 pb-4 sm:pb-5">
               {step === 1 ? (
                 <div className="flex items-center justify-center gap-6">
@@ -480,16 +475,7 @@ export default function Onboarding() {
 /* ----------------------------- Subcomponents ---------------------------- */
 function StepGenres({ GENRES, selectedGenres, toggleGenre }) {
   return (
-    <div
-      className="
-        grid
-        grid-cols-2 gap-2                        /* mobile: 2 columns */
-        [grid-template-rows:repeat(8,minmax(40px,1fr))]   /* 8 rows; fixed row height so all fit */
-        sm:[grid-template-rows:repeat(8,minmax(44px,1fr))]
-        md:grid-cols-4 md:gap-4                  /* desktop: 4 columns */
-        md:[grid-auto-rows:minmax(64px,1fr)]     /* desktop row height */
-      "
-    >
+    <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2.5">
       {GENRES.map((g) => {
         const active = selectedGenres.includes(g.id);
         return (
@@ -497,21 +483,18 @@ function StepGenres({ GENRES, selectedGenres, toggleGenre }) {
             key={g.id}
             type="button"
             onClick={() => toggleGenre(g.id)}
-            className={`
-              w-full h-full rounded-2xl border flex items-center justify-center
-              text-white font-semibold transition-all
-              text-[14px] sm:text-[14.5px] md:text-[16px]
-              ${active ? "ring-1 ring-white/10 backdrop-blur-md" : ""}
-            `}
+            className={`h-9 rounded-xl border text-white text-[13px] font-medium transition-all ${
+              active ? "ring-1 ring-white/10 backdrop-blur-md" : ""
+            }`}
             style={
               active
                 ? {
-                    // radish → pinkish gradient when selected
+                    borderColor: "rgba(150,180,255,0.45)",
                     background:
-                      "linear-gradient(135deg, #ff6a88 0%, #ff99ac 100%)",
-                    borderColor: "rgba(255,255,255,0.22)",
+                      "linear-gradient(135deg, rgba(60,120,255,0.55), rgba(100,70,255,0.45))",
                     boxShadow:
-                      "inset 0 1px 0 rgba(255,255,255,0.25), 0 6px 22px rgba(255,105,135,0.35)",
+                      "inset 0 1px 0 rgba(255,255,255,0.2), 0 0 12px rgba(80,140,255,0.4)",
+                    backdropFilter: "blur(6px)",
                   }
                 : {
                     borderColor: "rgba(255,255,255,0.15)",
@@ -520,7 +503,7 @@ function StepGenres({ GENRES, selectedGenres, toggleGenre }) {
                   }
             }
           >
-            <span className="px-4 md:px-6">{g.label}</span>
+            <span className="px-3">{g.label}</span>
           </button>
         );
       })}

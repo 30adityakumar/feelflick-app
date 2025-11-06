@@ -322,27 +322,32 @@ export default function Onboarding() {
     );
   }
 
-  // 🔒 IMMERSIVE MODE:
-  // Make onboarding a full-screen layer above header/mobile bar (no header/footer visible)
+  // IMMERSIVE full-screen layer: no header/footer
   return (
     <div
       className="fixed inset-0 z-[60] overflow-hidden"
       style={{
         WebkitOverflowScrolling: "touch",
-        background:
-          "linear-gradient(120deg,#0a121a 0%,#0d1722 50%,#0c1017 100%)",
+        background: "linear-gradient(120deg,#0a121a 0%,#0d1722 50%,#0c1017 100%)",
       }}
     >
+      {/* Subtle animated BG accents (Option 3) */}
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <div className="absolute -top-40 -left-40 h-[65vmin] w-[65vmin] rounded-full blur-3xl opacity-60 bg-[radial-gradient(closest-side,rgba(254,146,69,0.35),rgba(254,146,69,0)_70%)] animate-slow-pulse" />
+        <div className="absolute -bottom-44 -right-44 h-[70vmin] w-[70vmin] rounded-full blur-3xl opacity-55 bg-[radial-gradient(closest-side,rgba(235,66,59,0.3),rgba(235,66,59,0)_70%)] animate-slow-pulse [animation-delay:1.2s]" />
+        <div className="absolute inset-0 bg-[radial-gradient(100%_80%_at_50%_0%,rgba(255,255,255,0.05),rgba(255,255,255,0)_60%)]" />
+      </div>
+
       {/* Inner scroller so iOS keyboard/safe areas behave nicely */}
       <div
         className="h-[100svh] w-full grid place-items-center px-3 md:px-0"
         style={{
-          paddingTop: "max(env(safe-area-inset-top),12px)",
-          paddingBottom: "max(env(safe-area-inset-bottom),8px)",
+          paddingTop: "max(env(safe-area-inset-top),10px)",
+          paddingBottom: "max(env(safe-area-inset-bottom),10px)",
         }}
       >
         {/* Card wrapper */}
-        <div className="relative isolate w-[min(92vw,920px)] rounded-[22px] p-[1px] bg-[linear-gradient(135deg,rgba(254,146,69,.45),rgba(235,66,59,.35),rgba(45,119,255,.35),rgba(0,209,255,.35))] shadow-[0_40px_120px_rgba(0,0,0,.55)]">
+        <div className="relative isolate w-[min(94vw,980px)] rounded-[22px] p-[1px] bg-[linear-gradient(135deg,rgba(254,146,69,.45),rgba(235,66,59,.35),rgba(45,119,255,.35),rgba(0,209,255,.35))] shadow-[0_40px_120px_rgba(0,0,0,.55)]">
           {/* soft brand glow */}
           <div
             aria-hidden
@@ -357,16 +362,17 @@ export default function Onboarding() {
           <div
             className="rounded-[21px] bg-black/45 backdrop-blur-md ring-1 ring-white/10 overflow-hidden flex flex-col"
             style={{
-              height: "min(640px, calc(100svh - 40px))",
+              // slightly taller but we bias composition upward (Option 1)
+              height: "min(680px, calc(100svh - 48px))",
             }}
           >
             {/* header */}
-            <div className="px-5 sm:px-6 py-4 shrink-0">
+            <div className="px-5 sm:px-7 pt-5 pb-3 shrink-0">
               <p className="text-center text-[12.5px] font-semibold text-white/70 tracking-wide">
                 {step === 1 ? "Step 1 of 2" : "Step 2 of 2"}
               </p>
 
-              <h2 className="mt-1 text-center text-[clamp(1.1rem,2.2vw,1.5rem)] font-extrabold text-white tracking-tight">
+              <h2 className="mt-1 text-center text-[clamp(1.2rem,2.6vw,1.6rem)] font-extrabold text-white tracking-tight">
                 {step === 1
                   ? "Let’s get to know your taste."
                   : "Pick a few favorite movies."}
@@ -383,8 +389,8 @@ export default function Onboarding() {
               )}
             </div>
 
-            {/* body */}
-            <div className="flex-1 px-5 sm:px-6 pb-6 sm:pb-7 overflow-y-auto">
+            {/* body — composition shifted down a touch on desktop (Option 1) */}
+            <div className="flex-1 px-5 sm:px-7 pb-6 sm:pb-7 overflow-y-auto md:-translate-y-[0.5vh]">
               {step === 1 && (
                 <StepGenres
                   GENRES={GENRES}
@@ -411,15 +417,22 @@ export default function Onboarding() {
               )}
             </div>
 
-            {/* footer actions */}
-            <div className="shrink-0 px-5 sm:px-6 pb-5 sm:pb-6">
+            {/* micro-copy anchor above CTAs (Option 4) */}
+            <p className="px-5 sm:px-7 -mt-1 mb-2 text-center text-[12.5px] text-white/60">
+              {step === 1
+                ? "Pick as many as you like — you can always change these later."
+                : "Add a few now; it makes your first recommendations smarter."}
+            </p>
+
+            {/* footer actions — with soft “breathe” animation (Option 6) */}
+            <div className="shrink-0 px-5 sm:px-7 pb-5 sm:pb-6">
               {step === 1 ? (
                 <div className="flex items-center justify-center gap-6">
                   <button
-                    className="px-6 py-2.5 rounded-2xl font-extrabold text-[15px] text-white"
+                    className="px-7 py-3 rounded-2xl font-extrabold text-[15px] text-white shadow-md hover:shadow-lg transition-all duration-200 animate-cta-breathe"
                     style={{
                       background: BTN_BG,
-                      boxShadow: "0 2px 10px #eb423b22",
+                      boxShadow: "0 10px 30px rgba(235,66,59,.25)",
                       opacity: loading ? 0.7 : 1,
                     }}
                     disabled={loading}
@@ -428,7 +441,7 @@ export default function Onboarding() {
                     Next
                   </button>
                   <button
-                    className="text-[13.5px] font-extrabold text-[#fe9245] focus:outline-none focus:ring-0 active:outline-none"
+                    className="text-[13.5px] font-extrabold text-[#fe9245] focus:outline-none focus:ring-0 active:outline-none hover:opacity-90"
                     disabled={loading}
                     onClick={() => saveAndGo({ skipGenres: true })}
                   >
@@ -438,17 +451,17 @@ export default function Onboarding() {
               ) : (
                 <div className="flex items-center justify-center gap-5">
                   <button
-                    className="text-[13px] font-semibold text-white/80"
+                    className="text-[13px] font-semibold text-white/80 hover:text-white"
                     onClick={() => setStep(1)}
                     disabled={loading}
                   >
                     &lt; Back
                   </button>
                   <button
-                    className="px-6 py-2.5 rounded-2xl font-extrabold text-[15px] text-white"
+                    className="px-7 py-3 rounded-2xl font-extrabold text-[15px] text-white shadow-md hover:shadow-lg transition-all duration-200 animate-cta-breathe"
                     style={{
                       background: BTN_BG,
-                      boxShadow: "0 2px 10px #eb423b22",
+                      boxShadow: "0 10px 30px rgba(235,66,59,.25)",
                       opacity: loading ? 0.7 : 1,
                     }}
                     disabled={loading}
@@ -457,7 +470,7 @@ export default function Onboarding() {
                     Finish
                   </button>
                   <button
-                    className="text-[13.5px] font-extrabold text-[#fe9245] focus:outline-none focus:ring-0 active:outline-none"
+                    className="text-[13.5px] font-extrabold text-[#fe9245] focus:outline-none focus:ring-0 active:outline-none hover:opacity-90"
                     disabled={loading}
                     onClick={() => saveAndGo({ skipMovies: true })}
                   >
@@ -469,14 +482,30 @@ export default function Onboarding() {
           </div>
         </div>
       </div>
+
+      {/* tiny CSS helpers used above (local to this screen) */}
+      <style>{`
+        @keyframes cta-breathe {
+          0%, 100% { transform: translateY(0); box-shadow: 0 10px 30px rgba(235,66,59,.25); }
+          50%      { transform: translateY(-1px); box-shadow: 0 16px 36px rgba(235,66,59,.30); }
+        }
+        .animate-cta-breathe { animation: cta-breathe 3.2s ease-in-out infinite; }
+
+        @keyframes slowPulse {
+          0%, 100% { opacity: .45; transform: scale(1); }
+          50%      { opacity: .65; transform: scale(1.04); }
+        }
+        .animate-slow-pulse { animation: slowPulse 12s ease-in-out infinite; }
+      `}</style>
     </div>
   );
 }
 
 /* ----------------------------- Subcomponents ---------------------------- */
 function StepGenres({ GENRES, selectedGenres, toggleGenre }) {
+  // Option 2 + 5: fuller chips, denser gaps; wider grid on desktop
   return (
-    <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2.5">
+    <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 md:gap-2.5">
       {GENRES.map((g) => {
         const active = selectedGenres.includes(g.id);
         return (
@@ -484,9 +513,9 @@ function StepGenres({ GENRES, selectedGenres, toggleGenre }) {
             key={g.id}
             type="button"
             onClick={() => toggleGenre(g.id)}
-            className={`h-9 rounded-xl border text-white text-[13px] font-medium transition-all ${
-              active ? "ring-1 ring-white/10 backdrop-blur-md" : ""
-            }`}
+            className={`h-10 md:h-11 rounded-2xl border text-white text-[13.5px] md:text-[14px] font-semibold transition-all
+              ${active ? "ring-1 ring-white/10 backdrop-blur-md" : ""}
+            `}
             style={
               active
                 ? {
@@ -494,17 +523,17 @@ function StepGenres({ GENRES, selectedGenres, toggleGenre }) {
                     background:
                       "linear-gradient(135deg, rgba(60,120,255,0.55), rgba(100,70,255,0.45))",
                     boxShadow:
-                      "inset 0 1px 0 rgba(255,255,255,0.2), 0 0 12px rgba(80,140,255,0.4)",
+                      "inset 0 1px 0 rgba(255,255,255,0.25), 0 0 12px rgba(80,140,255,0.4)",
                     backdropFilter: "blur(6px)",
                   }
                 : {
-                    borderColor: "rgba(255,255,255,0.15)",
-                    background: "rgba(255,255,255,0.03)",
-                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05)",
+                    borderColor: "rgba(255,255,255,0.16)",
+                    background: "rgba(255,255,255,0.04)",
+                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06)",
                   }
             }
           >
-            <span className="px-3">{g.label}</span>
+            <span className="px-4 md:px-6">{g.label}</span>
           </button>
         );
       })}

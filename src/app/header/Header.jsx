@@ -16,7 +16,7 @@ import {
 
 const SHELL = "w-full px-3 sm:px-5 lg:px-7";
 const ITEM_TXT = "text-[13px] md:text-[14px]";
-const ITEM_H = "h-8 md:h-9";
+const ITEM_H = "h-9 md:h-10"; // ↑ slightly larger touch target, incl. mobile
 
 export default function Header({ onOpenSearch }) {
   const { pathname } = useLocation();
@@ -34,9 +34,9 @@ export default function Header({ onOpenSearch }) {
 
   return (
     <>
-      {/* Always pinned to the top on all devices */}
+      {/* Always pinned to the very top */}
       <header className="sticky top-0 z-50 shadow-[0_4px_20px_rgba(0,0,0,.25)]">
-        {/* Subtle gradient (not pure black) */}
+        {/* Not pure black; soft gradient + blur */}
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
           <div className="absolute inset-0 bg-[linear-gradient(115deg,#0b1320_0%,#0f1b2b_52%,#111824_100%)]" />
           <div className="absolute -top-20 left-[8%] h-[32vmin] w-[32vmin] rounded-full blur-3xl opacity-35 bg-[radial-gradient(closest-side,rgba(254,146,69,.35),rgba(254,146,69,0)_70%)]" />
@@ -44,12 +44,12 @@ export default function Header({ onOpenSearch }) {
           <div className="absolute inset-0 bg-black/35 backdrop-blur-md ring-1 ring-white/10" />
         </div>
 
-        {/* Bar */}
-        <div className={`${SHELL} flex h-12 md:h-14 items-center justify-between gap-3`}>
+        {/* Bar (↑ taller on mobile now: h-14) */}
+        <div className={`${SHELL} flex h-14 md:h-16 items-center justify-between gap-3`}>
           {/* Brand + desktop nav */}
           <div className="flex min-w-0 items-center gap-3">
             <Link to="/home" aria-label="FeelFlick Home" className="select-none">
-              <span className="block text-[clamp(1.05rem,2vw,1.35rem)] font-extrabold tracking-[.06em] text-white/95 uppercase">
+              <span className="block text-[clamp(1.1rem,2.1vw,1.4rem)] font-extrabold tracking-[.06em] text-white/95 uppercase">
                 FEELFLICK
               </span>
             </Link>
@@ -60,7 +60,7 @@ export default function Header({ onOpenSearch }) {
             </nav>
           </div>
 
-          {/* Search (now visible on mobile at the top) + account (desktop only) */}
+          {/* Right cluster: Search (left) + Profile (moved to extreme right on mobile) */}
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -74,15 +74,13 @@ export default function Header({ onOpenSearch }) {
               <kbd className="ml-1 hidden rounded bg-white/10 px-1.5 py-0.5 text-[10px] text-white/60 md:inline">/</kbd>
             </button>
 
-            {/* Profile moved to bottom on mobile; keep dropdown only on ≥ md */}
-            <div className="hidden md:block">
-              <AccountMenu user={user} />
-            </div>
+            {/* Profile now visible on mobile at the far right */}
+            <AccountMenu user={user} />
           </div>
         </div>
       </header>
 
-      {/* Mobile bottom bar now includes Profile (Home • Profile • Browse) */}
+      {/* Mobile bottom bar keeps Home & Browse (profile moved to header) */}
       <MobileBar pathname={pathname} />
     </>
   );
@@ -127,10 +125,9 @@ function MobileBar({ pathname }) {
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[rgba(12,18,28,.85)] backdrop-blur-md md:hidden">
-      <div className="mx-auto max-w-[720px] grid grid-cols-3 items-center px-4 h-[60px]">
-        <Item to="/home"   label="Home"    icon={<Home className="h-5 w-5" />} />
-        <Item to="/account" label="Profile" icon={<UserIcon className="h-5 w-5" />} />
-        <Item to="/browse" label="Browse"  icon={<Compass className="h-5 w-5" />} />
+      <div className="mx-auto max-w-[720px] grid grid-cols-2 items-center px-4 h-[60px]">
+        <Item to="/home"   label="Home"   icon={<Home className="h-5 w-5" />} />
+        <Item to="/browse" label="Browse" icon={<Compass className="h-5 w-5" />} />
       </div>
       <div className="pb-[max(env(safe-area-inset-bottom),8px)]" />
     </div>
@@ -170,6 +167,7 @@ function AccountMenu({ user }) {
 
   return (
     <div className="relative">
+      {/* On mobile this is icon-only (extreme right); on desktop we also show name & chevron */}
       <button
         ref={btnRef}
         type="button"
@@ -183,33 +181,26 @@ function AccountMenu({ user }) {
         ].join(" ")}
         aria-haspopup="menu"
         aria-expanded={open}
+        aria-label="Account menu"
       >
-        <span className="grid h-7 w-7 place-items-center rounded-full bg-white/15 text-[12px] font-bold">{initials}</span>
-        <span className="hidden font-semibold md:block max-w-[160px] truncate">{name}</span>
-        <ChevronDown className="hidden h-4 w-4 opacity-70 md:block" />
+        <span className="grid h-8 w-8 place-items-center rounded-full bg-white/15 text-[12px] font-bold">
+          {initials}
+        </span>
+        <span className="hidden md:block font-semibold max-w-[160px] truncate">{name}</span>
+        <ChevronDown className="hidden md:block h-4 w-4 opacity-70" />
       </button>
 
       {open && (
         <div
           ref={popRef}
           role="menu"
-          className="absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border border-white/10 bg-[rgba(12,18,28,.92)] backdrop-blur-md shadow-xl ring-1 ring-black/20"
+          className="absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border border-white/10 bg-[rgba(12,18,28,.96)] backdrop-blur-md shadow-xl ring-1 ring-black/20 z-[60]"
         >
-          <MenuLink to="/account" icon={<UserIcon className="h-4 w-4" />} onClick={() => setOpen(false)}>
-            Account
-          </MenuLink>
-          <MenuLink to="/preferences" icon={<Settings className="h-4 w-4" />} onClick={() => setOpen(false)}>
-            Preferences
-          </MenuLink>
-
-          <div className="my-1 h-px bg-white/10" />
-
-          <MenuLink to="/watchlist" icon={<Bookmark className="h-4 w-4" />} onClick={() => setOpen(false)}>
-            Watchlist
-          </MenuLink>
-          <MenuLink to="/history" icon={<Clock className="h-4 w-4" />} onClick={() => setOpen(false)}>
-            History
-          </MenuLink>
+          {/* Exactly the options you asked for */}
+          <MenuLink to="/account"     icon={<UserIcon className="h-4 w-4" />} onClick={() => setOpen(false)}>Profile</MenuLink>
+          <MenuLink to="/preferences" icon={<Settings className="h-4 w-4" />} onClick={() => setOpen(false)}>Preferences</MenuLink>
+          <MenuLink to="/watchlist"   icon={<Bookmark className="h-4 w-4" />} onClick={() => setOpen(false)}>Watchlist</MenuLink>
+          <MenuLink to="/history"     icon={<Clock className="h-4 w-4" />} onClick={() => setOpen(false)}>History</MenuLink>
 
           <div className="my-1 h-px bg-white/10" />
           <button

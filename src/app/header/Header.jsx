@@ -12,11 +12,12 @@ import {
   Settings,
   Bookmark,
   Clock,
+  X,
 } from "lucide-react";
 
 const SHELL = "w-full px-3 sm:px-5 lg:px-7";
 const ITEM_TXT = "text-[13px] md:text-[14px]";
-const ITEM_H = "h-9 md:h-10"; // ↑ slightly larger touch target, incl. mobile
+const ITEM_H = "h-8 md:h-9";
 
 export default function Header({ onOpenSearch }) {
   const { pathname } = useLocation();
@@ -34,22 +35,18 @@ export default function Header({ onOpenSearch }) {
 
   return (
     <>
-      {/* Always pinned to the very top */}
+      {/* Header stays pinned; ONLY on mobile the height is a little bigger */}
       <header className="sticky top-0 z-50 shadow-[0_4px_20px_rgba(0,0,0,.25)]">
-        {/* Not pure black; soft gradient + blur */}
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
           <div className="absolute inset-0 bg-[linear-gradient(115deg,#0b1320_0%,#0f1b2b_52%,#111824_100%)]" />
-          <div className="absolute -top-20 left-[8%] h-[32vmin] w-[32vmin] rounded-full blur-3xl opacity-35 bg-[radial-gradient(closest-side,rgba(254,146,69,.35),rgba(254,146,69,0)_70%)]" />
-          <div className="absolute -top-24 right-[10%] h-[34vmin] w-[34vmin] rounded-full blur-3xl opacity-30 bg-[radial-gradient(closest-side,rgba(45,119,255,.30),rgba(45,119,255,0)_70%)]" />
           <div className="absolute inset-0 bg-black/35 backdrop-blur-md ring-1 ring-white/10" />
         </div>
 
-        {/* Bar (↑ taller on mobile now: h-14) */}
-        <div className={`${SHELL} flex h-14 md:h-16 items-center justify-between gap-3`}>
-          {/* Brand + desktop nav */}
+        {/* NOTE: was h-12 md:h-14; increased mobile to h-14 (desktop unchanged) */}
+        <div className={`${SHELL} flex h-14 md:h-14 items-center justify-between gap-3`}>
           <div className="flex min-w-0 items-center gap-3">
             <Link to="/home" aria-label="FeelFlick Home" className="select-none">
-              <span className="block text-[clamp(1.1rem,2.1vw,1.4rem)] font-extrabold tracking-[.06em] text-white/95 uppercase">
+              <span className="block text-[clamp(1.05rem,2vw,1.35rem)] font-extrabold tracking-[.06em] text-white/95 uppercase">
                 FEELFLICK
               </span>
             </Link>
@@ -60,7 +57,7 @@ export default function Header({ onOpenSearch }) {
             </nav>
           </div>
 
-          {/* Right cluster: Search (left) + Profile (moved to extreme right on mobile) */}
+          {/* Search (kept at the top; visible on mobile too) + account (desktop only) */}
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -74,14 +71,16 @@ export default function Header({ onOpenSearch }) {
               <kbd className="ml-1 hidden rounded bg-white/10 px-1.5 py-0.5 text-[10px] text-white/60 md:inline">/</kbd>
             </button>
 
-            {/* Profile now visible on mobile at the far right */}
-            <AccountMenu user={user} />
+            {/* Desktop profile dropdown remains in header */}
+            <div className="hidden md:block">
+              <AccountMenu user={user} />
+            </div>
           </div>
         </div>
       </header>
 
-      {/* Mobile bottom bar keeps Home & Browse (profile moved to header) */}
-      <MobileBar pathname={pathname} />
+      {/* Mobile bottom bar: order = Home | Browse | Profile (profile on extreme right) */}
+      <MobileBar pathname={pathname} user={user} />
     </>
   );
 }
@@ -106,7 +105,10 @@ function TopLink({ to, icon, children }) {
   );
 }
 
-function MobileBar({ pathname }) {
+/* ----------------------- MOBILE BOTTOM BAR (updated) ---------------------- */
+function MobileBar({ pathname, user }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   const Item = ({ to, icon, label }) => (
     <NavLink
       to={to}
@@ -123,17 +125,115 @@ function MobileBar({ pathname }) {
     </NavLink>
   );
 
+  const initials = (() => {
+    const name = user?.user_metadata?.name || user?.email?.split("@")[0] || "U";
+    return name.split(" ").map(s => s[0]?.toUpperCase()).slice(0,2).join("") || "U";
+  })();
+
   return (
-    <div className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[rgba(12,18,28,.85)] backdrop-blur-md md:hidden">
-      <div className="mx-auto max-w-[720px] grid grid-cols-2 items-center px-4 h-[60px]">
-        <Item to="/home"   label="Home"   icon={<Home className="h-5 w-5" />} />
-        <Item to="/browse" label="Browse" icon={<Compass className="h-5 w-5" />} />
+    <>
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[rgba(12,18,28,.85)] backdrop-blur-md md:hidden">
+        <div className="mx-auto max-w-[720px] grid grid-cols-3 items-center px-4 h-[60px]">
+          <Item to="/home"   label="Home"   icon={<Home className="h-5 w-5" />} />
+          <Item to="/browse" label="Browse" icon={<Compass className="h-5 w-5" />} />
+
+          {/* Profile at extreme right; opens a menu with same options as desktop */}
+          <button
+            type="button"
+            onClick={() => setMenuOpen(true)}
+            className="flex flex-col items-center justify-center rounded-xl px-2.5 py-1 text-[11px] font-semibold text-white/80"
+            aria-haspopup="menu"
+            aria-expanded={menuOpen}
+            aria-label="Profile menu"
+          >
+            <span className="grid h-5 w-5 place-items-center rounded-full bg-white/20 text-[10px] font-bold">
+              {initials}
+            </span>
+            <span className="mt-0.5">Profile</span>
+          </button>
+        </div>
+        <div className="pb-[max(env(safe-area-inset-bottom),8px)]" />
       </div>
-      <div className="pb-[max(env(safe-area-inset-bottom),8px)]" />
-    </div>
+
+      {/* Mobile profile menu (bottom sheet) */}
+      {menuOpen && (
+        <MobileProfileSheet onClose={() => setMenuOpen(false)} />
+      )}
+    </>
   );
 }
 
+/* ---------------------- MOBILE PROFILE BOTTOM SHEET ---------------------- */
+function MobileProfileSheet({ onClose }) {
+  const nav = useNavigate();
+
+  async function signOut() {
+    await supabase.auth.signOut();
+    onClose();
+    nav("/auth", { replace: true });
+  }
+
+  const Row = ({ to, icon, label, onClick }) => (
+    <NavLink
+      to={to}
+      onClick={() => {
+        if (onClick) onClick();
+        onClose();
+      }}
+      className="flex items-center gap-3 px-4 py-3 text-[14px] font-semibold text-white/90 hover:bg-white/10"
+      role="menuitem"
+    >
+      {icon}
+      <span>{label}</span>
+    </NavLink>
+  );
+
+  return (
+    <>
+      {/* scrim */}
+      <div
+        className="fixed inset-0 z-[60] bg-black/60"
+        onClick={onClose}
+        aria-hidden
+      />
+      {/* sheet */}
+      <div
+        role="menu"
+        className="fixed inset-x-0 bottom-0 z-[61] overflow-hidden rounded-t-2xl border-t border-white/10 bg-[rgba(12,18,28,.96)] backdrop-blur-md shadow-2xl"
+      >
+        <div className="flex items-center justify-between px-4 py-3">
+          <span className="text-[13px] font-semibold text-white/70">Account</span>
+          <button
+            type="button"
+            onClick={onClose}
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/10"
+            aria-label="Close"
+          >
+            <X className="h-4 w-4 text-white/80" />
+          </button>
+        </div>
+
+        <div className="py-1">
+          <Row to="/account"     icon={<UserIcon className="h-4 w-4" />}      label="Profile"     />
+          <Row to="/preferences" icon={<Settings className="h-4 w-4" />}      label="Preferences" />
+          <Row to="/watchlist"   icon={<Bookmark className="h-4 w-4" />}      label="Watchlist"   />
+          <Row to="/history"     icon={<Clock className="h-4 w-4" />}         label="History"     />
+          <button
+            type="button"
+            onClick={signOut}
+            className="flex w-full items-center gap-3 px-4 py-3 text-left text-[14px] font-semibold text-white/90 hover:bg-white/10"
+          >
+            <LogOut className="h-4 w-4" /> Sign out
+          </button>
+        </div>
+
+        <div className="pb-[max(env(safe-area-inset-bottom),10px)]" />
+      </div>
+    </>
+  );
+}
+
+/* ---------------------------- DESKTOP ACCOUNT ---------------------------- */
 function AccountMenu({ user }) {
   const nav = useNavigate();
   const [open, setOpen] = useState(false);
@@ -167,7 +267,6 @@ function AccountMenu({ user }) {
 
   return (
     <div className="relative">
-      {/* On mobile this is icon-only (extreme right); on desktop we also show name & chevron */}
       <button
         ref={btnRef}
         type="button"
@@ -181,31 +280,42 @@ function AccountMenu({ user }) {
         ].join(" ")}
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label="Account menu"
       >
-        <span className="grid h-8 w-8 place-items-center rounded-full bg-white/15 text-[12px] font-bold">
-          {initials}
-        </span>
-        <span className="hidden md:block font-semibold max-w-[160px] truncate">{name}</span>
-        <ChevronDown className="hidden md:block h-4 w-4 opacity-70" />
+        <span className="grid h-7 w-7 place-items-center rounded-full bg-white/15 text-[12px] font-bold">{initials}</span>
+        <span className="hidden font-semibold md:block max-w-[160px] truncate">{name}</span>
+        <ChevronDown className="hidden h-4 w-4 opacity-70 md:block" />
       </button>
 
       {open && (
         <div
           ref={popRef}
           role="menu"
-          className="absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border border-white/10 bg-[rgba(12,18,28,.96)] backdrop-blur-md shadow-xl ring-1 ring-black/20 z-[60]"
+          className="absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border border-white/10 bg-[rgba(12,18,28,.92)] backdrop-blur-md shadow-xl ring-1 ring-black/20"
         >
-          {/* Exactly the options you asked for */}
-          <MenuLink to="/account"     icon={<UserIcon className="h-4 w-4" />} onClick={() => setOpen(false)}>Profile</MenuLink>
-          <MenuLink to="/preferences" icon={<Settings className="h-4 w-4" />} onClick={() => setOpen(false)}>Preferences</MenuLink>
-          <MenuLink to="/watchlist"   icon={<Bookmark className="h-4 w-4" />} onClick={() => setOpen(false)}>Watchlist</MenuLink>
-          <MenuLink to="/history"     icon={<Clock className="h-4 w-4" />} onClick={() => setOpen(false)}>History</MenuLink>
+          <MenuLink to="/account" icon={<UserIcon className="h-4 w-4" />} onClick={() => setOpen(false)}>
+            Account
+          </MenuLink>
+          <MenuLink to="/preferences" icon={<Settings className="h-4 w-4" />} onClick={() => setOpen(false)}>
+            Preferences
+          </MenuLink>
+
+          <div className="my-1 h-px bg-white/10" />
+
+          <MenuLink to="/watchlist" icon={<Bookmark className="h-4 w-4" />} onClick={() => setOpen(false)}>
+            Watchlist
+          </MenuLink>
+          <MenuLink to="/history" icon={<Clock className="h-4 w-4" />} onClick={() => setOpen(false)}>
+            History
+          </MenuLink>
 
           <div className="my-1 h-px bg-white/10" />
           <button
             type="button"
-            onClick={signOut}
+            onClick={async () => {
+              await supabase.auth.signOut();
+              setOpen(false);
+              nav("/auth", { replace: true });
+            }}
             className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-[13px] font-semibold text-white/85 hover:bg-white/10 focus:outline-none"
           >
             <LogOut className="h-4 w-4" /> Sign out

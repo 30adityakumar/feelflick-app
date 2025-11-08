@@ -91,14 +91,14 @@ export default function Header({ onOpenSearch }) {
         </div>
       </header>
 
-      <MobileBar 
-        pathname={pathname} 
-        user={user} 
+      <MobileBar
+        pathname={pathname}
+        user={user}
         mobileAccountOpen={mobileAccountOpen}
         onToggleAccount={() => setMobileAccountOpen(s => !s)}
       />
 
-      {/* Mobile full-screen account panel */}
+      {/* Mobile Account Panel overlays content, tabs stay at bottom */}
       <MobileAccountPanel
         open={mobileAccountOpen}
         user={user}
@@ -142,10 +142,10 @@ function TopLink({ to, icon, children }) {
   );
 }
 
-// Mobile tab bar - Account toggles panel instead of navigating
+// Mobile tab bar - Account toggles panel
 function MobileBar({ pathname, user, mobileAccountOpen, onToggleAccount }) {
   const nav = useNavigate();
-  
+
   const Item = ({ to, icon, label, onClick, isActive }) => (
     <button
       type="button"
@@ -160,25 +160,25 @@ function MobileBar({ pathname, user, mobileAccountOpen, onToggleAccount }) {
       <span className="mt-0.5">{label}</span>
     </button>
   );
-  
+
   const initials = (() => {
     const name = user?.user_metadata?.name || user?.email?.split("@")[0] || "U";
     return name.split(" ").map(s => s[0]?.toUpperCase()).slice(0,2).join("") || "U";
   })();
-  
+
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[rgba(12,18,28,.92)] backdrop-blur-lg md:hidden">
       <div className="mx-auto max-w-[720px] grid grid-cols-3 items-center px-4 h-[64px]">
-        <Item 
-          to="/home" 
-          label="Home" 
+        <Item
+          to="/home"
+          label="Home"
           icon={<Home className="h-6 w-6" />}
           onClick={() => nav("/home")}
           isActive={pathname === "/home"}
         />
-        <Item 
-          to="/browse" 
-          label="Browse" 
+        <Item
+          to="/browse"
+          label="Browse"
           icon={<Compass className="h-6 w-6" />}
           onClick={() => nav("/browse")}
           isActive={pathname === "/browse"}
@@ -199,7 +199,7 @@ function MobileBar({ pathname, user, mobileAccountOpen, onToggleAccount }) {
   );
 }
 
-// Mobile full-screen account panel (like YouTube's "You" tab)
+// Mobile full-screen account panel, tabs remain visible
 function MobileAccountPanel({ open, user, onClose }) {
   const nav = useNavigate();
 
@@ -228,7 +228,14 @@ function MobileAccountPanel({ open, user, onClose }) {
   ];
 
   return (
-    <div className="fixed inset-0 z-[100] bg-[#0a0f1a] md:hidden overflow-y-auto">
+    <div
+      className="fixed left-0 right-0 z-[100] bg-[#0a0f1a] md:hidden overflow-y-auto"
+      style={{
+        top: "var(--hdr-h,64px)",
+        bottom: "64px", // bottom bar height
+        borderRadius: '0 0 1.5rem 1.5rem',
+      }}
+    >
       {/* Header */}
       <div className="sticky top-0 bg-gradient-to-r from-[#0b1320] via-[#0f1b2b] to-[#111824] backdrop-blur-lg border-b border-white/10 px-4 py-4">
         <div className="flex items-center justify-between">
@@ -288,14 +295,12 @@ function MobileAccountPanel({ open, user, onClose }) {
           <ChevronRight className="h-5 w-5 text-white/40" />
         </button>
       </div>
-
-      {/* Safe area padding at bottom */}
-      <div className="h-[calc(64px+max(env(safe-area-inset-bottom),10px))]" />
+      <div className="h-2" />
     </div>
   );
 }
 
-// Desktop account menu dropdown
+// Desktop account menu dropdown remains the same
 function AccountMenu({ user }) {
   const nav = useNavigate();
   const [open, setOpen] = useState(false);

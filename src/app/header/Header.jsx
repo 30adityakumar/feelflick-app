@@ -14,9 +14,9 @@ import {
   Clock,
 } from "lucide-react";
 
-const SHELL = "w-full px-4 sm:px-6 lg:px-12";
-const ITEM_TXT = "text-[14px] md:text-[15px]";
-const ITEM_H = "h-10 md:h-12";
+const SHELL = "w-full px-2 sm:px-4 lg:px-8";
+const ITEM_TXT = "text-[13px] md:text-[14px]";
+const ITEM_H = "h-10";
 
 export default function Header({ onOpenSearch }) {
   const { pathname } = useLocation();
@@ -36,7 +36,7 @@ export default function Header({ onOpenSearch }) {
 
   useEffect(() => {
     const setVar = () => {
-      const h = hdrRef.current?.offsetHeight || 64;
+      const h = hdrRef.current?.offsetHeight || 48; // 48px header
       document.documentElement.style.setProperty("--hdr-h", `${h}px`);
     };
     setVar();
@@ -47,35 +47,35 @@ export default function Header({ onOpenSearch }) {
 
   return (
     <>
-      <header ref={hdrRef} className="sticky top-0 z-50 backdrop-blur-lg shadow-[0_4px_20px_rgba(0,0,0,.25)]">
+      <header ref={hdrRef} className="sticky top-0 z-50 h-12 bg-black/85 backdrop-blur-lg shadow-[0_2px_8px_rgba(0,0,0,0.12)]">
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
           <div className="absolute inset-0 bg-gradient-to-r from-[#0b1320] via-[#0f1b2b] to-[#111824]" />
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-xl ring-1 ring-white/10" />
+          <div className="absolute inset-0 bg-black/30 backdrop-blur-xl ring-1 ring-white/10" />
         </div>
-        <div className={`${SHELL} flex h-16 items-center justify-between gap-3`}>
-          <div className="flex min-w-0 items-center gap-5">
+        <div className={`${SHELL} flex h-12 items-center justify-between gap-2`}>
+          <div className="flex min-w-0 items-center gap-3">
             <Link to="/home" aria-label="FeelFlick Home" className="select-none">
-              <span className="block text-2xl font-extrabold tracking-wide text-white uppercase">
+              <span className="block text-lg font-extrabold tracking-[.06em] text-white/95 uppercase">
                 FEELFLICK
               </span>
             </Link>
-            <nav className="hidden md:flex items-center gap-2">
-              <TopLink to="/home" icon={<Home className="h-5 w-5" />}>Home</TopLink>
-              <TopLink to="/browse" icon={<Compass className="h-5 w-5" />}>Browse</TopLink>
+            <nav className="hidden md:flex items-center gap-1">
+              <TopLink to="/home" icon={<Home className="h-4 w-4" />}>Home</TopLink>
+              <TopLink to="/browse" icon={<Compass className="h-4 w-4" />}>Browse</TopLink>
             </nav>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <div className="hidden md:flex items-center">
               <SearchBar onOpenSearch={onOpenSearch} />
             </div>
             <button
               type="button"
               onClick={onOpenSearch}
-              className="md:hidden inline-flex items-center justify-center rounded-full bg-white/15 p-2 ml-1"
+              className="md:hidden inline-flex items-center justify-center rounded-full bg-white/10 p-1.5"
               aria-label="Search"
               title="Search"
             >
-              <SearchIcon className="h-6 w-6 text-white/85" />
+              <SearchIcon className="h-5 w-5 text-white/85" />
             </button>
             <div className="hidden md:block">
               <AccountMenu user={user} />
@@ -106,13 +106,13 @@ function SearchBar({ onOpenSearch }) {
     <button
       type="button"
       onClick={onOpenSearch}
-      className="inline-flex items-center h-10 rounded-full bg-white/10 px-5 gap-2 text-white/90 hover:bg-white/20 focus:outline-none shadow-md transition"
+      className="inline-flex items-center h-9 rounded-full bg-white/10 px-3 gap-2 text-white/85 hover:bg-white/20 focus:outline-none shadow transition"
       aria-label="Search"
       title="Search"
     >
-      <SearchIcon className="h-5 w-5 text-white/80" />
-      <span className="font-medium text-white/85">Search</span>
-      <kbd className="ml-2 rounded bg-white/10 px-2 py-1 text-xs text-white/60">/</kbd>
+      <SearchIcon className="h-4 w-4 text-white/80" />
+      <span className="font-medium text-white/80 text-[13px]">Search</span>
+      <kbd className="ml-2 rounded bg-white/10 px-1.5 py-0.5 text-xs text-white/60">/</kbd>
     </button>
   );
 }
@@ -123,8 +123,8 @@ function TopLink({ to, icon, children }) {
       to={to}
       className={({ isActive }) =>
         [
-          "inline-flex items-center gap-2 rounded-full px-4 py-2 font-semibold transition",
-          isActive ? "bg-white/20 text-white ring-2 ring-white/25" : "text-white/75 hover:bg-white/15",
+          "inline-flex items-center gap-1 rounded-full px-2.5 py-1 font-semibold transition text-[13px]",
+          isActive ? "bg-white/15 text-white underline underline-offset-4" : "text-white/60 hover:bg-white/10",
         ].join(" ")
       }
     >
@@ -140,7 +140,7 @@ function MobileBar({ pathname, user, mobileAccountOpen, onToggleAccount, onClose
       type="button"
       onClick={onClick}
       className={[
-        "flex flex-col items-center justify-center rounded-lg px-2.5 py-1 font-semibold transition text-[12px]",
+        "flex flex-col items-center justify-center rounded-lg px-2 py-0 font-semibold transition text-[12px]",
         isActive ? "text-white" : "text-white/70",
       ].join(" ")}
       aria-label={label}
@@ -154,12 +154,12 @@ function MobileBar({ pathname, user, mobileAccountOpen, onToggleAccount, onClose
     return name.split(" ").map(s => s[0]?.toUpperCase()).slice(0,2).join("") || "U";
   })();
   return (
-    <div className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[rgba(12,18,28,.92)] backdrop-blur-lg md:hidden">
-      <div className="mx-auto max-w-[720px] grid grid-cols-3 items-center px-4 h-[64px]">
+    <div className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[rgba(12,18,28,0.90)] backdrop-blur-md md:hidden">
+      <div className="mx-auto max-w-[720px] grid grid-cols-3 items-center px-2 h-[52px]">
         <Item
           to="/home"
           label="Home"
-          icon={<Home className="h-6 w-6" />}
+          icon={<Home className="h-5 w-5" />}
           onClick={() => {
             if (mobileAccountOpen) onCloseAccountPanel();
             nav("/home");
@@ -169,7 +169,7 @@ function MobileBar({ pathname, user, mobileAccountOpen, onToggleAccount, onClose
         <Item
           to="/browse"
           label="Browse"
-          icon={<Compass className="h-6 w-6" />}
+          icon={<Compass className="h-5 w-5" />}
           onClick={() => {
             if (mobileAccountOpen) onCloseAccountPanel();
             nav("/browse");
@@ -179,7 +179,7 @@ function MobileBar({ pathname, user, mobileAccountOpen, onToggleAccount, onClose
         <Item
           label="Account"
           icon={
-            <span className="grid h-6 w-6 place-items-center rounded-full bg-white/15 text-xs font-bold">
+            <span className="grid h-5 w-5 place-items-center rounded-full bg-white/15 text-xs font-bold">
               {initials}
             </span>
           }
@@ -187,7 +187,7 @@ function MobileBar({ pathname, user, mobileAccountOpen, onToggleAccount, onClose
           isActive={mobileAccountOpen}
         />
       </div>
-      <div className="pb-[max(env(safe-area-inset-bottom),10px)]" />
+      <div className="pb-[max(env(safe-area-inset-bottom),6px)]" />
     </div>
   );
 }
@@ -212,29 +212,29 @@ function MobileAccountPanel({ open, user, onClose }) {
   };
 
   const menuItems = [
-    { icon: <UserIcon className="h-6 w-6" />, label: "Profile", path: "/account" },
-    { icon: <Settings className="h-6 w-6" />, label: "Preferences", path: "/preferences" },
-    { icon: <Bookmark className="h-6 w-6" />, label: "Watchlist", path: "/watchlist" },
-    { icon: <Clock className="h-6 w-6" />, label: "History", path: "/history" },
+    { icon: <UserIcon className="h-5 w-5" />, label: "Profile", path: "/account" },
+    { icon: <Settings className="h-5 w-5" />, label: "Preferences", path: "/preferences" },
+    { icon: <Bookmark className="h-5 w-5" />, label: "Watchlist", path: "/watchlist" },
+    { icon: <Clock className="h-5 w-5" />, label: "History", path: "/history" },
   ];
 
   return (
     <div
       className="fixed left-0 right-0 z-[100] bg-[#0a0f1a] md:hidden overflow-y-auto"
       style={{
-        top: "var(--hdr-h,64px)",
-        bottom: "64px", // bottom bar height
-        borderRadius: '0 0 1.5rem 1.5rem',
+        top: "var(--hdr-h,48px)",
+        bottom: "52px",
+        borderRadius: '0 0 1.2rem 1.2rem',
       }}
     >
-      <div className="px-4 py-6 border-b border-white/10">
-        <div className="flex items-center gap-4">
-          <div className="grid h-16 w-16 place-items-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-2xl font-bold text-white">
+      <div className="px-4 py-5 border-b border-white/10">
+        <div className="flex items-center gap-3">
+          <div className="grid h-12 w-12 place-items-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-xl font-bold text-white">
             {initials}
           </div>
           <div className="flex-1 min-w-0">
-            <h2 className="text-lg font-bold text-white truncate">{name}</h2>
-            <p className="text-sm text-white/60 truncate">{email}</p>
+            <h2 className="text-base font-semibold text-white truncate">{name}</h2>
+            <p className="text-xs text-white/60 truncate">{email}</p>
           </div>
         </div>
       </div>
@@ -243,24 +243,20 @@ function MobileAccountPanel({ open, user, onClose }) {
           <button
             key={item.label}
             onClick={() => handleNavigate(item.path)}
-            className="flex w-full items-center justify-between px-4 py-4 text-white/90 hover:bg-white/5 transition"
+            className="flex w-full items-center gap-4 px-4 py-3 text-white/90 hover:bg-white/5 transition"
           >
-            <div className="flex items-center gap-4">
-              <div className="text-white/80">{item.icon}</div>
-              <span className="text-[15px] font-semibold">{item.label}</span>
-            </div>
+            <div className="text-white/80">{item.icon}</div>
+            <span className="text-[14px] font-semibold">{item.label}</span>
           </button>
         ))}
         <button
           onClick={handleSignOut}
-          className="flex w-full items-center justify-between px-4 py-4 text-white/90 hover:bg-white/5 transition border-t border-white/10 mt-2"
+          className="flex w-full items-center gap-4 px-4 py-3 text-white/90 hover:bg-white/5 transition border-t border-white/10 mt-2"
         >
-          <div className="flex items-center gap-4">
-            <div className="text-white/80">
-              <LogOut className="h-6 w-6" />
-            </div>
-            <span className="text-[15px] font-semibold">Sign Out</span>
+          <div className="text-white/80">
+            <LogOut className="h-5 w-5" />
           </div>
+          <span className="text-[14px] font-semibold">Sign Out</span>
         </button>
       </div>
       <div className="h-2" />
@@ -307,31 +303,31 @@ function AccountMenu({ user }) {
         ref={btnRef}
         type="button"
         onClick={() => setOpen(s => !s)}
-        className="inline-flex items-center gap-3 rounded-full bg-white/10 px-2 py-1 h-11 text-white/90 font-semibold focus:outline-none hover:bg-white/20 transition"
+        className="inline-flex items-center gap-2 rounded-full bg-white/10 px-1 py-0.5 h-8 text-white/90 font-semibold focus:outline-none hover:bg-white/20 transition"
         aria-haspopup="menu"
         aria-expanded={open}
       >
-        <span className="grid h-8 w-8 place-items-center rounded-full bg-white/15 text-[14px] font-bold">{initials}</span>
-        <span className="hidden md:block max-w-[160px] truncate">{name}</span>
-        <ChevronDown className="hidden md:block h-5 w-5 opacity-70" />
+        <span className="grid h-7 w-7 place-items-center rounded-full bg-white/15 text-[13px] font-bold">{initials}</span>
+        <span className="hidden md:block max-w-[120px] truncate">{name}</span>
+        <ChevronDown className="hidden md:block h-4 w-4 opacity-70" />
       </button>
       {open && (
         <div
           ref={popRef}
           role="menu"
-          className="absolute right-0 mt-3 w-64 overflow-hidden rounded-xl border border-white/10 bg-[rgba(12,18,28,.96)] backdrop-blur-xl shadow-2xl ring-1 ring-black/20 transition-transform transition-opacity duration-300 animate-fadeIn"
+          className="absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border border-white/10 bg-[rgba(12,18,28,.96)] backdrop-blur-xl shadow-xl ring-1 ring-black/20 transition-opacity duration-300"
         >
-          <MenuLink to="/account" icon={<UserIcon className="h-5 w-5" />} onClick={() => setOpen(false)}>
+          <MenuLink to="/account" icon={<UserIcon className="h-4 w-4" />} onClick={() => setOpen(false)}>
             Profile
           </MenuLink>
-          <MenuLink to="/preferences" icon={<Settings className="h-5 w-5" />} onClick={() => setOpen(false)}>
+          <MenuLink to="/preferences" icon={<Settings className="h-4 w-4" />} onClick={() => setOpen(false)}>
             Preferences
           </MenuLink>
           <div className="my-1 h-px bg-white/10" />
-          <MenuLink to="/watchlist" icon={<Bookmark className="h-5 w-5" />} onClick={() => setOpen(false)}>
+          <MenuLink to="/watchlist" icon={<Bookmark className="h-4 w-4" />} onClick={() => setOpen(false)}>
             Watchlist
           </MenuLink>
-          <MenuLink to="/history" icon={<Clock className="h-5 w-5" />} onClick={() => setOpen(false)}>
+          <MenuLink to="/history" icon={<Clock className="h-4 w-4" />} onClick={() => setOpen(false)}>
             History
           </MenuLink>
           <div className="my-1 h-px bg-white/10" />
@@ -342,9 +338,9 @@ function AccountMenu({ user }) {
               setOpen(false);
               nav("/auth", { replace: true });
             }}
-            className="flex w-full items-center gap-3 px-3 py-3 text-left text-[14px] font-semibold text-white/85 hover:bg-white/10 focus:outline-none transition"
+            className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] font-semibold text-white/85 hover:bg-white/10 focus:outline-none transition"
           >
-            <LogOut className="h-5 w-5" /> Sign Out
+            <LogOut className="h-4 w-4" /> Sign Out
           </button>
         </div>
       )}
@@ -359,8 +355,8 @@ function MenuLink({ to, icon, children, onClick }) {
       onClick={onClick}
       className={({ isActive }) =>
         [
-          "flex items-center gap-3 px-3 py-3 text-[14px] font-semibold transition",
-          isActive ? "bg-white/15 text-white" : "text-white/85 hover:bg-white/15",
+          "flex items-center gap-2 px-3 py-2 text-[13px] font-semibold transition",
+          isActive ? "bg-white/10 text-white" : "text-white/85 hover:bg-white/10",
         ].join(" ")
       }
       role="menuitem"

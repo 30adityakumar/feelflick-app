@@ -6,11 +6,9 @@ import {
   Camera, Loader2, CheckCircle2, LogOut, Shield, Key, RefreshCcw, Trash2,
 } from "lucide-react";
 
-// Sizing tokens for avatars, icons, buttons, text
+const BTN_GRAD = "linear-gradient(90deg,#fe9245 10%,#eb423b 90%)";
 const AVATAR_SIZE = "h-14 w-14";
 const BTN_ICON_SIZE = "h-5 w-5";
-const CONTAINER_CLASSES = "mx-auto mt-6 max-w-[440px] md:max-w-[820px] rounded-2xl border border-white/10 bg-neutral-950/70 p-4 sm:p-6 text-white backdrop-blur-md shadow-[0_32px_80px_rgba(0,0,0,.45)]";
-const BTN_GRAD = "linear-gradient(90deg,#fe9245 10%,#eb423b 90%)";
 
 export default function Account() {
   const nav = useNavigate();
@@ -20,8 +18,6 @@ export default function Account() {
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
-
-  // avatar
   const [avatarUrl, setAvatarUrl] = useState("");
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef(null);
@@ -64,14 +60,12 @@ export default function Account() {
     if (!authUser) return;
     setSaving(true);
     setMsg("");
-
     try {
       const { data: existing } = await supabase
         .from("users")
         .select("id")
         .eq("id", authUser.id)
         .maybeSingle();
-
       if (existing) {
         await supabase.from("users").update({ name }).eq("id", authUser.id);
       } else {
@@ -174,17 +168,24 @@ export default function Account() {
 
   if (!authUser) {
     return (
-      <div className="mx-auto mt-12 max-w-[440px] rounded-2xl border border-white/10 bg-neutral-950/70 p-4 text-white/80 backdrop-blur-md">
+      <div className="mx-auto mt-8 max-w-[440px] rounded-2xl border border-white/10 bg-neutral-950/70 p-4 text-white/80 backdrop-blur-md">
         <p>You’re signed out.</p>
       </div>
     );
   }
 
   return (
-    <div className={CONTAINER_CLASSES}>
+    <div
+      className="mx-auto max-w-[820px] rounded-2xl border border-white/10 bg-neutral-950/70 text-white backdrop-blur-md shadow-[0_32px_80px_rgba(0,0,0,.45)]"
+      style={{
+        padding: 20,
+        marginTop: 24,
+        marginBottom: 24,
+        maxWidth: "820px",
+      }}
+    >
       {/* Header row */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
-        {/* Avatar */}
         <div className="relative">
           <div
             className={`grid ${AVATAR_SIZE} place-items-center rounded-full bg-white/10 text-lg font-bold select-none ring-1 ring-white/15`}
@@ -210,7 +211,7 @@ export default function Account() {
             onChange={onPickFile}
           />
         </div>
-        {/* Name + email */}
+
         <div className="flex-1 min-w-0">
           <h1 className="text-lg font-semibold tracking-tight">My Account</h1>
           <p className="mt-0.5 text-xs text-white/75">{authUser.email}</p>
@@ -231,6 +232,7 @@ export default function Account() {
               {saving ? "Saving…" : "Save"}
             </button>
           </form>
+
           {msg && (
             <div className="mt-2 inline-flex items-center gap-1 text-xs text-white/80">
               <CheckCircle2 className={`${BTN_ICON_SIZE} text-green-400`} /> {msg}
@@ -238,13 +240,17 @@ export default function Account() {
           )}
         </div>
       </div>
+
       {/* Meta tiles */}
       <div className="mt-5 grid gap-2 sm:grid-cols-2">
         <MetaRow label="Joined">{profile?.joined_at ? new Date(profile.joined_at).toLocaleDateString() : "—"}</MetaRow>
         <MetaRow label="Sign-in method">{profile?.signup_source || authUser?.app_metadata?.provider || "—"}</MetaRow>
         <MetaRow label="Onboarding">{profile?.onboarding_complete || profile?.onboarding_completed_at ? "Completed" : "Not completed"}</MetaRow>
+
         <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[.04] p-3">
-          <span className="text-xs font-semibold uppercase tracking-wide text-white/60">Re-run Onboarding</span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-white/60">
+            Re-run Onboarding
+          </span>
           <button
             type="button"
             onClick={rerunOnboarding}
@@ -255,6 +261,7 @@ export default function Account() {
           </button>
         </div>
       </div>
+
       {/* Sections */}
       <Section title="Security">
         <div className="flex flex-col sm:flex-row gap-2">
@@ -282,6 +289,7 @@ export default function Account() {
           </button>
         </div>
       </Section>
+
       <Section title="Danger Zone">
         <div className="flex items-center justify-between rounded-xl border border-red-400/20 bg-red-400/5 p-3">
           <div className="text-xs text-white/80">
@@ -300,11 +308,14 @@ export default function Account() {
   );
 }
 
-/* --- Small helpers --- */
+/* ---------- Small helpers ---------- */
+
 function MetaRow({ label, children }) {
   return (
     <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[.04] p-3">
-      <span className="text-xs font-semibold uppercase tracking-wide text-white/60">{label}</span>
+      <span className="text-xs font-semibold uppercase tracking-wide text-white/60">
+        {label}
+      </span>
       <span className="text-xs text-white/85">{children}</span>
     </div>
   );

@@ -63,7 +63,6 @@ export default function Header({ onOpenSearch }) {
                 FEELFLICK
               </span>
             </Link>
-
             <nav className="hidden md:flex items-center gap-1.5">
               <TopLink to="/home" icon={<Home className="h-4 w-4" />}>Home</TopLink>
               <TopLink to="/browse" icon={<Compass className="h-4 w-4" />}>Browse</TopLink>
@@ -75,11 +74,11 @@ export default function Header({ onOpenSearch }) {
             <button
               type="button"
               onClick={onOpenSearch}
-              className={`inline-flex ${ITEM_H} items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 ${ITEM_TXT} text-white/90 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30`}
+              className={`inline-flex ${ITEM_H} items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 ${ITEM_TXT} text-white/90 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30`}
               aria-label="Search"
               title="Search"
             >
-              <SearchIcon className="h-4 w-4 text-white/85" />
+              <SearchIcon className="h-5 w-5 text-white/85" />
               <span className="hidden sm:inline text-white/80">Search</span>
               <kbd className="ml-1 hidden rounded bg-white/10 px-1.5 py-0.5 text-[10px] text-white/60 md:inline">/</kbd>
             </button>
@@ -91,7 +90,7 @@ export default function Header({ onOpenSearch }) {
         </div>
       </header>
 
-      {/* Mobile bottom bar (Home | Browse | Profile). Tapping Profile opens a panel BELOW the header like YouTube. */}
+      {/* Mobile bottom bar (Home | Browse | Account). Tapping Account opens a panel BELOW the header like YouTube. */}
       <MobileBar
         pathname={pathname}
         user={user}
@@ -156,19 +155,19 @@ function MobileBar({ pathname, user, onOpenProfile }) {
         <Item to="/home"   label="Home"   icon={<Home className="h-5 w-5" />} />
         <Item to="/browse" label="Browse" icon={<Compass className="h-5 w-5" />} />
 
-        {/* Profile (extreme right). Opens under-header panel; bottom bar stays put. */}
+        {/* Account (extreme right). Opens under-header panel; bottom bar stays put. */}
         <button
           type="button"
           onClick={onOpenProfile}
           className="flex flex-col items-center justify-center rounded-xl px-2.5 py-1 text-[11px] font-semibold text-white/80"
           aria-haspopup="menu"
           aria-expanded={undefined}
-          aria-label="Profile menu"
+          aria-label="Account menu"
         >
           <span className="grid h-5 w-5 place-items-center rounded-full bg-white/20 text-[10px] font-bold">
             {initials}
           </span>
-          <span className="mt-0.5">Profile</span>
+          <span className="mt-0.5">Account</span>
         </button>
       </div>
       <div className="pb-[max(env(safe-area-inset-bottom),8px)]" />
@@ -179,9 +178,18 @@ function MobileBar({ pathname, user, onOpenProfile }) {
 /* --------------- MOBILE PROFILE PANEL (below sticky header) --------------- */
 function MobileProfilePanel({ open, onClose }) {
   const nav = useNavigate();
+  const [isAnimating, setIsAnimating] = useState(false);
 
-  // Click outside (on scrim) closes; bottom bar remains visible/interactive
-  if (!open) return null;
+  useEffect(() => {
+    if (open) {
+      setIsAnimating(true);
+    } else if (!open && isAnimating) {
+      const timer = setTimeout(() => setIsAnimating(false), 300); // animation duration
+      return () => clearTimeout(timer);
+    }
+  }, [open, isAnimating]);
+
+  if (!open && !isAnimating) return null;
 
   const go = (to) => {
     onClose();
@@ -190,22 +198,22 @@ function MobileProfilePanel({ open, onClose }) {
 
   return (
     <>
-      {/* Scrim covers only the content area below the panel; leaves header + bottom bar visible */}
+      {/* Scrim with fade animation */}
       <div
-        className="fixed inset-x-0 z-[60]"
+        className={`fixed inset-x-0 z-[60] transition-opacity duration-300 ${open ? "opacity-100" : "opacity-0 pointer-events-none"}`}
         style={{
           top: "var(--hdr-h,56px)",
           bottom: "60px", // bottom bar height
           background: "rgba(0,0,0,.45)",
         }}
         onClick={onClose}
-        aria-hidden
+        aria-hidden="true"
       />
 
-      {/* Panel anchored under header */}
+      {/* Panel anchored under header with slide animation */}
       <div
         role="menu"
-        className="fixed inset-x-0 z-[61] mx-auto max-w-[720px] overflow-hidden rounded-b-2xl border border-t-0 border-white/10 bg-[rgba(12,18,28,.96)] backdrop-blur-md shadow-2xl md:hidden"
+        className={`fixed inset-x-0 z-[61] mx-auto max-w-[720px] overflow-hidden rounded-b-2xl border border-t-0 border-white/10 bg-[rgba(12,18,28,.96)] backdrop-blur-md shadow-2xl ring-1 ring-black/20 transition-transform duration-300 ${open ? "translate-y-0" : "-translate-y-full"}`}
         style={{
           top: "var(--hdr-h,56px)",
           maxHeight: "calc(100svh - var(--hdr-h,56px) - 60px - max(env(safe-area-inset-bottom),8px))",

@@ -12,6 +12,7 @@ import {
   Settings,
   Bookmark,
   Clock,
+  ChevronRight,
 } from "lucide-react";
 
 const SHELL = "w-full px-4 sm:px-6 lg:px-12";
@@ -22,6 +23,7 @@ export default function Header({ onOpenSearch }) {
   const { pathname } = useLocation();
   const [user, setUser] = useState(null);
   const hdrRef = useRef(null);
+  const [mobileAccountOpen, setMobileAccountOpen] = useState(false);
 
   useEffect(() => {
     let unsub;
@@ -36,7 +38,7 @@ export default function Header({ onOpenSearch }) {
   // Sticky header height for layout
   useEffect(() => {
     const setVar = () => {
-      const h = hdrRef.current?.offsetHeight || 64; // ~h-16
+      const h = hdrRef.current?.offsetHeight || 64;
       document.documentElement.style.setProperty("--hdr-h", `${h}px`);
     };
     setVar();
@@ -89,8 +91,19 @@ export default function Header({ onOpenSearch }) {
         </div>
       </header>
 
-      <MobileBar pathname={pathname} user={user} />
+      <MobileBar 
+        pathname={pathname} 
+        user={user} 
+        mobileAccountOpen={mobileAccountOpen}
+        onToggleAccount={() => setMobileAccountOpen(s => !s)}
+      />
 
+      {/* Mobile full-screen account panel */}
+      <MobileAccountPanel
+        open={mobileAccountOpen}
+        user={user}
+        onClose={() => setMobileAccountOpen(false)}
+      />
     </>
   );
 }
@@ -129,18 +142,17 @@ function TopLink({ to, icon, children }) {
   );
 }
 
-// Mobile tab bar, Account goes to "/account"
-function MobileBar({ pathname, user }) {
+// Mobile tab bar - Account toggles panel instead of navigating
+function MobileBar({ pathname, user, mobileAccountOpen, onToggleAccount }) {
   const nav = useNavigate();
-  const Item = ({ to, icon, label, onClick }) => (
+  
+  const Item = ({ to, icon, label, onClick, isActive }) => (
     <button
       type="button"
-      onClick={() => onClick ? onClick() : nav(to)}
+      onClick={onClick}
       className={[
         "flex flex-col items-center justify-center rounded-lg px-2.5 py-1 font-semibold transition text-[12px]",
-        pathname === to
-          ? "text-white"
-          : "text-white/70",
+        isActive ? "text-white" : "text-white/70",
       ].join(" ")}
       aria-label={label}
     >
@@ -148,26 +160,137 @@ function MobileBar({ pathname, user }) {
       <span className="mt-0.5">{label}</span>
     </button>
   );
+  
   const initials = (() => {
     const name = user?.user_metadata?.name || user?.email?.split("@")[0] || "U";
     return name.split(" ").map(s => s[0]?.toUpperCase()).slice(0,2).join("") || "U";
   })();
+  
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[rgba(12,18,28,.92)] backdrop-blur-lg md:hidden">
       <div className="mx-auto max-w-[720px] grid grid-cols-3 items-center px-4 h-[64px]">
-        <Item to="/home" label="Home" icon={<Home className="h-6 w-6" />} />
-        <Item to="/browse" label="Browse" icon={<Compass className="h-6 w-6" />} />
+        <Item 
+          to="/home" 
+          label="Home" 
+          icon={<Home className="h-6 w-6" />}
+          onClick={() => nav("/home")}
+          isActive={pathname === "/home"}
+        />
+        <Item 
+          to="/browse" 
+          label="Browse" 
+          icon={<Compass className="h-6 w-6" />}
+          onClick={() => nav("/browse")}
+          isActive={pathname === "/browse"}
+        />
         <Item
-          to="/account"
           label="Account"
           icon={
             <span className="grid h-6 w-6 place-items-center rounded-full bg-white/15 text-xs font-bold">
               {initials}
             </span>
           }
+          onClick={onToggleAccount}
+          isActive={mobileAccountOpen}
         />
       </div>
       <div className="pb-[max(env(safe-area-inset-bottom),10px)]" />
+    </div>
+  );
+}
+
+// Mobile full-screen account panel (like YouTube's "You" tab)
+function MobileAccountPanel({ open, user, onClose }) {
+  const nav = useNavigate();
+
+  if (!open) return null;
+
+  const name = user?.user_metadata?.name || user?.email?.split("@")[0] || "User";
+  const email = user?.email || "";
+  const initials = (name || "").split(" ").map(s => s[0]?.toUpperCase()).slice(0,2).join("") || "U";
+
+  const handleNavigate = (path) => {
+    onClose();
+    nav(path);
+  };
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    onClose();
+    nav("/auth", { replace: true });
+  };
+
+  const menuItems = [
+    { icon: <UserIcon className="h-6 w-6" />, label: "Profile", path: "/account" },
+    { icon: <Settings className="h-6 w-6" />, label: "Preferences", path: "/preferences" },
+    { icon: <Bookmark className="h-6 w-6" />, label: "Watchlist", path: "/watchlist" },
+    { icon: <Clock className="h-6 w-6" />, label: "History", path: "/history" },
+  ];
+
+  return (
+    <div className="fixed inset-0 z-[100] bg-[#0a0f1a] md:hidden overflow-y-auto">
+      {/* Header */}
+      <div className="sticky top-0 bg-gradient-to-r from-[#0b1320] via-[#0f1b2b] to-[#111824] backdrop-blur-lg border-b border-white/10 px-4 py-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-bold text-white">Account</h1>
+          <button
+            onClick={onClose}
+            className="text-white/70 hover:text-white transition"
+            aria-label="Close"
+          >
+            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      {/* User Info Section */}
+      <div className="px-4 py-6 border-b border-white/10">
+        <div className="flex items-center gap-4">
+          <div className="grid h-16 w-16 place-items-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-2xl font-bold text-white">
+            {initials}
+          </div>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-lg font-bold text-white truncate">{name}</h2>
+            <p className="text-sm text-white/60 truncate">{email}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Menu Items */}
+      <div className="py-2">
+        {menuItems.map((item) => (
+          <button
+            key={item.label}
+            onClick={() => handleNavigate(item.path)}
+            className="flex w-full items-center justify-between px-4 py-4 text-white/90 hover:bg-white/5 transition"
+          >
+            <div className="flex items-center gap-4">
+              <div className="text-white/80">{item.icon}</div>
+              <span className="text-[15px] font-semibold">{item.label}</span>
+            </div>
+            <ChevronRight className="h-5 w-5 text-white/40" />
+          </button>
+        ))}
+
+        {/* Sign Out */}
+        <button
+          onClick={handleSignOut}
+          className="flex w-full items-center justify-between px-4 py-4 text-white/90 hover:bg-white/5 transition border-t border-white/10 mt-2"
+        >
+          <div className="flex items-center gap-4">
+            <div className="text-white/80">
+              <LogOut className="h-6 w-6" />
+            </div>
+            <span className="text-[15px] font-semibold">Sign Out</span>
+          </div>
+          <ChevronRight className="h-5 w-5 text-white/40" />
+        </button>
+      </div>
+
+      {/* Safe area padding at bottom */}
+      <div className="h-[calc(64px+max(env(safe-area-inset-bottom),10px))]" />
     </div>
   );
 }
@@ -227,7 +350,7 @@ function AccountMenu({ user }) {
           className="absolute right-0 mt-3 w-64 overflow-hidden rounded-xl border border-white/10 bg-[rgba(12,18,28,.96)] backdrop-blur-xl shadow-2xl ring-1 ring-black/20 transition-transform transition-opacity duration-300 animate-fadeIn"
         >
           <MenuLink to="/account" icon={<UserIcon className="h-5 w-5" />} onClick={() => setOpen(false)}>
-            Account
+            Profile
           </MenuLink>
           <MenuLink to="/preferences" icon={<Settings className="h-5 w-5" />} onClick={() => setOpen(false)}>
             Preferences
@@ -249,7 +372,7 @@ function AccountMenu({ user }) {
             }}
             className="flex w-full items-center gap-3 px-3 py-3 text-left text-[14px] font-semibold text-white/85 hover:bg-white/10 focus:outline-none transition"
           >
-            <LogOut className="h-5 w-5" /> Sign out
+            <LogOut className="h-5 w-5" /> Sign Out
           </button>
         </div>
       )}

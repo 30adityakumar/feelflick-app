@@ -14,9 +14,9 @@ import {
   Clock,
 } from "lucide-react";
 
-const SHELL = "w-full px-3 sm:px-5 lg:px-12";
-const ITEM_TXT = "text-[13px] md:text-[14px]";
-const ITEM_H = "h-10 md:h-11";
+const SHELL = "w-full px-4 sm:px-6 lg:px-12";
+const ITEM_TXT = "text-[14px] md:text-[15px]";
+const ITEM_H = "h-10 md:h-12";
 
 export default function Header({ onOpenSearch }) {
   const { pathname } = useLocation();
@@ -33,10 +33,10 @@ export default function Header({ onOpenSearch }) {
     return () => typeof unsub === "function" && unsub();
   }, []);
 
-  // Dynamic header height for safe area anchors
+  // Sticky header height for layout
   useEffect(() => {
     const setVar = () => {
-      const h = hdrRef.current?.offsetHeight || 44; // ~h-11
+      const h = hdrRef.current?.offsetHeight || 64; // ~h-16
       document.documentElement.style.setProperty("--hdr-h", `${h}px`);
     };
     setVar();
@@ -48,33 +48,39 @@ export default function Header({ onOpenSearch }) {
   return (
     <>
       {/* Sticky header */}
-      <header ref={hdrRef} className="sticky top-0 z-50 h-11 bg-black/70 backdrop-blur-md shadow-[0_2px_4px_rgba(0,0,0,0.08)]">
-        <div className={`${SHELL} flex h-11 items-center justify-between`}>
+      <header ref={hdrRef} className="sticky top-0 z-50 backdrop-blur-lg shadow-[0_4px_20px_rgba(0,0,0,.25)]">
+        <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0b1320] via-[#0f1b2b] to-[#111824]" />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-xl ring-1 ring-white/10" />
+        </div>
+        <div className={`${SHELL} flex h-16 items-center justify-between gap-3`}>
           {/* Brand + desktop nav */}
-          <div className="flex min-w-0 items-center gap-3">
+          <div className="flex min-w-0 items-center gap-5">
             <Link to="/home" aria-label="FeelFlick Home" className="select-none">
-              <span className="text-lg font-extrabold tracking-tighter text-white uppercase">
+              <span className="block text-2xl font-extrabold tracking-wide text-white uppercase">
                 FEELFLICK
               </span>
             </Link>
-            <nav className="hidden md:flex items-center gap-1">
+            <nav className="hidden md:flex items-center gap-2">
               <TopLink to="/home" icon={<Home className="h-5 w-5" />}>Home</TopLink>
               <TopLink to="/browse" icon={<Compass className="h-5 w-5" />}>Browse</TopLink>
             </nav>
           </div>
-          {/* Search + account desktop */}
-          <div className="flex items-center gap-2">
+          {/* Search (desktop pill, mobile icon) + account */}
+          <div className="flex items-center gap-3">
+            {/* Desktop search pill */}
             <div className="hidden md:flex items-center">
               <SearchBar onOpenSearch={onOpenSearch} />
             </div>
+            {/* Mobile search button */}
             <button
               type="button"
               onClick={onOpenSearch}
-              className="md:hidden flex items-center justify-center rounded-full bg-white/10 p-2"
+              className="md:hidden inline-flex items-center justify-center rounded-full bg-white/15 p-2 ml-1"
               aria-label="Search"
               title="Search"
             >
-              <SearchIcon className="h-5 w-5 text-white/85" />
+              <SearchIcon className="h-6 w-6 text-white/85" />
             </button>
             <div className="hidden md:block">
               <AccountMenu user={user} />
@@ -82,8 +88,9 @@ export default function Header({ onOpenSearch }) {
           </div>
         </div>
       </header>
-      {/* Mobile tab bar */}
-      <MobileTabBar user={user} pathname={pathname} />
+
+      <MobileBar pathname={pathname} user={user} />
+
     </>
   );
 }
@@ -94,7 +101,7 @@ function SearchBar({ onOpenSearch }) {
     <button
       type="button"
       onClick={onOpenSearch}
-      className="inline-flex items-center h-9 rounded-full bg-white/10 px-4 gap-2 text-white/90 hover:bg-white/20 focus:outline-none shadow-md transition"
+      className="inline-flex items-center h-10 rounded-full bg-white/10 px-5 gap-2 text-white/90 hover:bg-white/20 focus:outline-none shadow-md transition"
       aria-label="Search"
       title="Search"
     >
@@ -112,8 +119,8 @@ function TopLink({ to, icon, children }) {
       to={to}
       className={({ isActive }) =>
         [
-          "inline-flex items-center gap-1 rounded-full px-3 py-1 font-semibold transition text-[13px]",
-          isActive ? "underline underline-offset-4 text-white" : "text-white/60 hover:text-white",
+          "inline-flex items-center gap-2 rounded-full px-4 py-2 font-semibold transition",
+          isActive ? "bg-white/20 text-white ring-2 ring-white/25" : "text-white/75 hover:bg-white/15",
         ].join(" ")
       }
     >
@@ -122,46 +129,50 @@ function TopLink({ to, icon, children }) {
   );
 }
 
-// Mobile tab bar with Account as tab
-function MobileTabBar({ pathname, user }) {
+// Mobile tab bar, Account goes to "/account"
+function MobileBar({ pathname, user }) {
+  const nav = useNavigate();
+  const Item = ({ to, icon, label, onClick }) => (
+    <button
+      type="button"
+      onClick={() => onClick ? onClick() : nav(to)}
+      className={[
+        "flex flex-col items-center justify-center rounded-lg px-2.5 py-1 font-semibold transition text-[12px]",
+        pathname === to
+          ? "text-white"
+          : "text-white/70",
+      ].join(" ")}
+      aria-label={label}
+    >
+      {icon}
+      <span className="mt-0.5">{label}</span>
+    </button>
+  );
   const initials = (() => {
     const name = user?.user_metadata?.name || user?.email?.split("@")[0] || "U";
     return name.split(" ").map(s => s[0]?.toUpperCase()).slice(0,2).join("") || "U";
   })();
-  const tabs = [
-    { to: "/home", label: "Home", icon: <Home className="h-5 w-5" /> },
-    { to: "/browse", label: "Browse", icon: <Compass className="h-5 w-5" /> },
-    { to: "/account", label: "Account", icon: (
-      <span className="grid h-5 w-5 place-items-center rounded-full bg-white/15 text-xs font-bold">
-        {initials}
-      </span>
-    )},
-  ];
   return (
-    <div className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[rgba(12,18,28,.90)] backdrop-blur-md md:hidden">
-      <div className="mx-auto max-w-[720px] flex items-center justify-between px-3 h-12">
-        {tabs.map(({to, label, icon}) => (
-          <NavLink
-            key={label}
-            to={to}
-            className={({ isActive }) =>
-              [
-                "flex flex-col items-center justify-center rounded-lg px-1.5 py-0 font-semibold text-[12px] transition w-1/3",
-                isActive ? "text-white" : "text-white/70 hover:text-white/90",
-              ].join(" ")
-            }
-          >
-            {icon}
-            <span className="mt-0.5">{label}</span>
-          </NavLink>
-        ))}
+    <div className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[rgba(12,18,28,.92)] backdrop-blur-lg md:hidden">
+      <div className="mx-auto max-w-[720px] grid grid-cols-3 items-center px-4 h-[64px]">
+        <Item to="/home" label="Home" icon={<Home className="h-6 w-6" />} />
+        <Item to="/browse" label="Browse" icon={<Compass className="h-6 w-6" />} />
+        <Item
+          to="/account"
+          label="Account"
+          icon={
+            <span className="grid h-6 w-6 place-items-center rounded-full bg-white/15 text-xs font-bold">
+              {initials}
+            </span>
+          }
+        />
       </div>
-      <div className="pb-[max(env(safe-area-inset-bottom),6px)]" />
+      <div className="pb-[max(env(safe-area-inset-bottom),10px)]" />
     </div>
   );
 }
 
-// Desktop user account dropdown
+// Desktop account menu dropdown
 function AccountMenu({ user }) {
   const nav = useNavigate();
   const [open, setOpen] = useState(false);
@@ -201,31 +212,31 @@ function AccountMenu({ user }) {
         ref={btnRef}
         type="button"
         onClick={() => setOpen(s => !s)}
-        className="inline-flex items-center gap-2 rounded-full bg-white/10 px-2 py-1 h-9 text-white/90 font-semibold focus:outline-none hover:bg-white/20 transition"
+        className="inline-flex items-center gap-3 rounded-full bg-white/10 px-2 py-1 h-11 text-white/90 font-semibold focus:outline-none hover:bg-white/20 transition"
         aria-haspopup="menu"
         aria-expanded={open}
       >
-        <span className="grid h-7 w-7 place-items-center rounded-full bg-white/15 text-[13px] font-bold">{initials}</span>
-        <span className="hidden md:block max-w-[120px] truncate">{name}</span>
-        <ChevronDown className="hidden md:block h-4 w-4 opacity-70" />
+        <span className="grid h-8 w-8 place-items-center rounded-full bg-white/15 text-[14px] font-bold">{initials}</span>
+        <span className="hidden md:block max-w-[160px] truncate">{name}</span>
+        <ChevronDown className="hidden md:block h-5 w-5 opacity-70" />
       </button>
       {open && (
         <div
           ref={popRef}
           role="menu"
-          className="absolute right-0 mt-2 w-52 overflow-hidden rounded-xl border border-white/10 bg-[rgba(12,18,28,.96)] backdrop-blur-md shadow-xl ring-1 ring-black/20 transition-opacity duration-300"
+          className="absolute right-0 mt-3 w-64 overflow-hidden rounded-xl border border-white/10 bg-[rgba(12,18,28,.96)] backdrop-blur-xl shadow-2xl ring-1 ring-black/20 transition-transform transition-opacity duration-300 animate-fadeIn"
         >
-          <MenuLink to="/account" icon={<UserIcon className="h-4 w-4" />} onClick={() => setOpen(false)}>
+          <MenuLink to="/account" icon={<UserIcon className="h-5 w-5" />} onClick={() => setOpen(false)}>
             Account
           </MenuLink>
-          <MenuLink to="/preferences" icon={<Settings className="h-4 w-4" />} onClick={() => setOpen(false)}>
+          <MenuLink to="/preferences" icon={<Settings className="h-5 w-5" />} onClick={() => setOpen(false)}>
             Preferences
           </MenuLink>
           <div className="my-1 h-px bg-white/10" />
-          <MenuLink to="/watchlist" icon={<Bookmark className="h-4 w-4" />} onClick={() => setOpen(false)}>
+          <MenuLink to="/watchlist" icon={<Bookmark className="h-5 w-5" />} onClick={() => setOpen(false)}>
             Watchlist
           </MenuLink>
-          <MenuLink to="/history" icon={<Clock className="h-4 w-4" />} onClick={() => setOpen(false)}>
+          <MenuLink to="/history" icon={<Clock className="h-5 w-5" />} onClick={() => setOpen(false)}>
             History
           </MenuLink>
           <div className="my-1 h-px bg-white/10" />
@@ -236,9 +247,9 @@ function AccountMenu({ user }) {
               setOpen(false);
               nav("/auth", { replace: true });
             }}
-            className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] font-semibold text-white/85 hover:bg-white/10 focus:outline-none transition"
+            className="flex w-full items-center gap-3 px-3 py-3 text-left text-[14px] font-semibold text-white/85 hover:bg-white/10 focus:outline-none transition"
           >
-            <LogOut className="h-4 w-4" /> Sign out
+            <LogOut className="h-5 w-5" /> Sign out
           </button>
         </div>
       )}
@@ -253,8 +264,8 @@ function MenuLink({ to, icon, children, onClick }) {
       onClick={onClick}
       className={({ isActive }) =>
         [
-          "flex items-center gap-2 px-3 py-2 text-[13px] font-semibold transition",
-          isActive ? "bg-white/10 text-white" : "text-white/85 hover:bg-white/10",
+          "flex items-center gap-3 px-3 py-3 text-[14px] font-semibold transition",
+          isActive ? "bg-white/15 text-white" : "text-white/85 hover:bg-white/15",
         ].join(" ")
       }
       role="menuitem"

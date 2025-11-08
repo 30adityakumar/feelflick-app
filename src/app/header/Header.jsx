@@ -36,7 +36,7 @@ export default function Header({ onOpenSearch }) {
 
   useEffect(() => {
     const setVar = () => {
-      const h = hdrRef.current?.offsetHeight || 48; // 48px header
+      const h = hdrRef.current?.offsetHeight || 48;
       document.documentElement.style.setProperty("--hdr-h", `${h}px`);
     };
     setVar();
@@ -55,13 +55,13 @@ export default function Header({ onOpenSearch }) {
         <div className={`${SHELL} flex h-12 items-center justify-between gap-2`}>
           <div className="flex min-w-0 items-center gap-3">
             <Link to="/home" aria-label="FeelFlick Home" className="select-none">
-              <span className="block text-lg font-extrabold tracking-[.06em] text-white/95 uppercase">
+              <span className="block text-lg font-extrabold tracking-[.06em] text-white/95 uppercase leading-none h-7 flex items-center">
                 FEELFLICK
               </span>
             </Link>
             <nav className="hidden md:flex items-center gap-1">
-              <TopLink to="/home" icon={<Home className="h-4 w-4" />}>Home</TopLink>
-              <TopLink to="/browse" icon={<Compass className="h-4 w-4" />}>Browse</TopLink>
+              <TopLink to="/home" icon={<Home className="h-5 w-5" />}>Home</TopLink>
+              <TopLink to="/browse" icon={<Compass className="h-5 w-5" />}>Browse</TopLink>
             </nav>
           </div>
           <div className="flex items-center gap-2">
@@ -71,11 +71,11 @@ export default function Header({ onOpenSearch }) {
             <button
               type="button"
               onClick={onOpenSearch}
-              className="md:hidden inline-flex items-center justify-center rounded-full bg-white/10 p-1.5"
+              className="md:hidden flex items-center justify-center rounded-full bg-white/10 p-1.5"
               aria-label="Search"
               title="Search"
             >
-              <SearchIcon className="h-5 w-5 text-white/85" />
+              <SearchIcon className="h-7 w-7 text-white/85" />
             </button>
             <div className="hidden md:block">
               <AccountMenu user={user} />
@@ -110,7 +110,7 @@ function SearchBar({ onOpenSearch }) {
       aria-label="Search"
       title="Search"
     >
-      <SearchIcon className="h-4 w-4 text-white/80" />
+      <SearchIcon className="h-5 w-5 text-white/80" />
       <span className="font-medium text-white/80 text-[13px]">Search</span>
       <kbd className="ml-2 rounded bg-white/10 px-1.5 py-0.5 text-xs text-white/60">/</kbd>
     </button>
@@ -140,13 +140,15 @@ function MobileBar({ pathname, user, mobileAccountOpen, onToggleAccount, onClose
       type="button"
       onClick={onClick}
       className={[
-        "flex flex-col items-center justify-center rounded-lg px-2 py-0 font-semibold transition text-[12px]",
+        "flex flex-col items-center justify-center rounded-lg px-2 py-0 font-normal transition w-full",
         isActive ? "text-white" : "text-white/70",
       ].join(" ")}
       aria-label={label}
     >
-      {icon}
-      <span className="mt-0.5">{label}</span>
+      <span className="flex items-center justify-center h-7 w-7">
+        {icon}
+      </span>
+      <span className="mt-0.5 text-[11px] font-normal tracking-tighter">{label}</span>
     </button>
   );
   const initials = (() => {
@@ -155,11 +157,11 @@ function MobileBar({ pathname, user, mobileAccountOpen, onToggleAccount, onClose
   })();
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[rgba(12,18,28,0.90)] backdrop-blur-md md:hidden">
-      <div className="mx-auto max-w-[720px] grid grid-cols-3 items-center px-2 h-[52px]">
+      <div className="mx-auto max-w-[720px] grid grid-cols-3 items-center px-2 h-[58px]">
         <Item
           to="/home"
           label="Home"
-          icon={<Home className="h-5 w-5" />}
+          icon={<Home className="h-7 w-7" />}
           onClick={() => {
             if (mobileAccountOpen) onCloseAccountPanel();
             nav("/home");
@@ -169,7 +171,7 @@ function MobileBar({ pathname, user, mobileAccountOpen, onToggleAccount, onClose
         <Item
           to="/browse"
           label="Browse"
-          icon={<Compass className="h-5 w-5" />}
+          icon={<Compass className="h-7 w-7" />}
           onClick={() => {
             if (mobileAccountOpen) onCloseAccountPanel();
             nav("/browse");
@@ -179,7 +181,7 @@ function MobileBar({ pathname, user, mobileAccountOpen, onToggleAccount, onClose
         <Item
           label="Account"
           icon={
-            <span className="grid h-5 w-5 place-items-center rounded-full bg-white/15 text-xs font-bold">
+            <span className="grid h-7 w-7 place-items-center rounded-full bg-white/15 text-base font-bold">
               {initials}
             </span>
           }
@@ -212,10 +214,10 @@ function MobileAccountPanel({ open, user, onClose }) {
   };
 
   const menuItems = [
-    { icon: <UserIcon className="h-5 w-5" />, label: "Profile", path: "/account" },
-    { icon: <Settings className="h-5 w-5" />, label: "Preferences", path: "/preferences" },
-    { icon: <Bookmark className="h-5 w-5" />, label: "Watchlist", path: "/watchlist" },
-    { icon: <Clock className="h-5 w-5" />, label: "History", path: "/history" },
+    { icon: <UserIcon className="h-6 w-6" />, label: "Profile", path: "/account" },
+    { icon: <Settings className="h-6 w-6" />, label: "Preferences", path: "/preferences" },
+    { icon: <Bookmark className="h-6 w-6" />, label: "Watchlist", path: "/watchlist" },
+    { icon: <Clock className="h-6 w-6" />, label: "History", path: "/history" },
   ];
 
   return (
@@ -223,13 +225,13 @@ function MobileAccountPanel({ open, user, onClose }) {
       className="fixed left-0 right-0 z-[100] bg-[#0a0f1a] md:hidden overflow-y-auto"
       style={{
         top: "var(--hdr-h,48px)",
-        bottom: "52px",
+        bottom: "58px",
         borderRadius: '0 0 1.2rem 1.2rem',
       }}
     >
       <div className="px-4 py-5 border-b border-white/10">
         <div className="flex items-center gap-3">
-          <div className="grid h-12 w-12 place-items-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-xl font-bold text-white">
+          <div className="grid h-12 w-12 place-items-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-lg font-bold text-white">
             {initials}
           </div>
           <div className="flex-1 min-w-0">
@@ -317,17 +319,17 @@ function AccountMenu({ user }) {
           role="menu"
           className="absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border border-white/10 bg-[rgba(12,18,28,.96)] backdrop-blur-xl shadow-xl ring-1 ring-black/20 transition-opacity duration-300"
         >
-          <MenuLink to="/account" icon={<UserIcon className="h-4 w-4" />} onClick={() => setOpen(false)}>
+          <MenuLink to="/account" icon={<UserIcon className="h-5 w-5" />} onClick={() => setOpen(false)}>
             Profile
           </MenuLink>
-          <MenuLink to="/preferences" icon={<Settings className="h-4 w-4" />} onClick={() => setOpen(false)}>
+          <MenuLink to="/preferences" icon={<Settings className="h-5 w-5" />} onClick={() => setOpen(false)}>
             Preferences
           </MenuLink>
           <div className="my-1 h-px bg-white/10" />
-          <MenuLink to="/watchlist" icon={<Bookmark className="h-4 w-4" />} onClick={() => setOpen(false)}>
+          <MenuLink to="/watchlist" icon={<Bookmark className="h-5 w-5" />} onClick={() => setOpen(false)}>
             Watchlist
           </MenuLink>
-          <MenuLink to="/history" icon={<Clock className="h-4 w-4" />} onClick={() => setOpen(false)}>
+          <MenuLink to="/history" icon={<Clock className="h-5 w-5" />} onClick={() => setOpen(false)}>
             History
           </MenuLink>
           <div className="my-1 h-px bg-white/10" />

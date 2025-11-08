@@ -12,7 +12,6 @@ import {
   Settings,
   Bookmark,
   Clock,
-  ChevronRight,
 } from "lucide-react";
 
 const SHELL = "w-full px-4 sm:px-6 lg:px-12";
@@ -35,7 +34,6 @@ export default function Header({ onOpenSearch }) {
     return () => typeof unsub === "function" && unsub();
   }, []);
 
-  // Sticky header height for layout
   useEffect(() => {
     const setVar = () => {
       const h = hdrRef.current?.offsetHeight || 64;
@@ -49,14 +47,12 @@ export default function Header({ onOpenSearch }) {
 
   return (
     <>
-      {/* Sticky header */}
       <header ref={hdrRef} className="sticky top-0 z-50 backdrop-blur-lg shadow-[0_4px_20px_rgba(0,0,0,.25)]">
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
           <div className="absolute inset-0 bg-gradient-to-r from-[#0b1320] via-[#0f1b2b] to-[#111824]" />
           <div className="absolute inset-0 bg-black/40 backdrop-blur-xl ring-1 ring-white/10" />
         </div>
         <div className={`${SHELL} flex h-16 items-center justify-between gap-3`}>
-          {/* Brand + desktop nav */}
           <div className="flex min-w-0 items-center gap-5">
             <Link to="/home" aria-label="FeelFlick Home" className="select-none">
               <span className="block text-2xl font-extrabold tracking-wide text-white uppercase">
@@ -68,13 +64,10 @@ export default function Header({ onOpenSearch }) {
               <TopLink to="/browse" icon={<Compass className="h-5 w-5" />}>Browse</TopLink>
             </nav>
           </div>
-          {/* Search (desktop pill, mobile icon) + account */}
           <div className="flex items-center gap-3">
-            {/* Desktop search pill */}
             <div className="hidden md:flex items-center">
               <SearchBar onOpenSearch={onOpenSearch} />
             </div>
-            {/* Mobile search button */}
             <button
               type="button"
               onClick={onOpenSearch}
@@ -99,7 +92,6 @@ export default function Header({ onOpenSearch }) {
         onCloseAccountPanel={() => setMobileAccountOpen(false)}
       />
 
-      {/* Mobile Account Panel overlays content, tabs stay at bottom */}
       <MobileAccountPanel
         open={mobileAccountOpen}
         user={user}
@@ -109,7 +101,6 @@ export default function Header({ onOpenSearch }) {
   );
 }
 
-// Desktop pill search bar
 function SearchBar({ onOpenSearch }) {
   return (
     <button
@@ -126,7 +117,6 @@ function SearchBar({ onOpenSearch }) {
   );
 }
 
-// Navigation links
 function TopLink({ to, icon, children }) {
   return (
     <NavLink
@@ -143,10 +133,8 @@ function TopLink({ to, icon, children }) {
   );
 }
 
-// Mobile tab bar with Account toggler and active panel closing logic
 function MobileBar({ pathname, user, mobileAccountOpen, onToggleAccount, onCloseAccountPanel }) {
   const nav = useNavigate();
-
   const Item = ({ to, icon, label, onClick, isActive }) => (
     <button
       type="button"
@@ -161,16 +149,13 @@ function MobileBar({ pathname, user, mobileAccountOpen, onToggleAccount, onClose
       <span className="mt-0.5">{label}</span>
     </button>
   );
-
   const initials = (() => {
     const name = user?.user_metadata?.name || user?.email?.split("@")[0] || "U";
     return name.split(" ").map(s => s[0]?.toUpperCase()).slice(0,2).join("") || "U";
   })();
-
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[rgba(12,18,28,.92)] backdrop-blur-lg md:hidden">
       <div className="mx-auto max-w-[720px] grid grid-cols-3 items-center px-4 h-[64px]">
-        {/* If Account panel is open and user taps Home/Browse, close panel then navigate */}
         <Item
           to="/home"
           label="Home"
@@ -207,10 +192,8 @@ function MobileBar({ pathname, user, mobileAccountOpen, onToggleAccount, onClose
   );
 }
 
-// Mobile full-screen account panel, tabs remain visible
 function MobileAccountPanel({ open, user, onClose }) {
   const nav = useNavigate();
-
   if (!open) return null;
 
   const name = user?.user_metadata?.name || user?.email?.split("@")[0] || "User";
@@ -244,23 +227,6 @@ function MobileAccountPanel({ open, user, onClose }) {
         borderRadius: '0 0 1.5rem 1.5rem',
       }}
     >
-      {/* Header */}
-      <div className="sticky top-0 bg-gradient-to-r from-[#0b1320] via-[#0f1b2b] to-[#111824] backdrop-blur-lg border-b border-white/10 px-4 py-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold text-white">Account</h1>
-          <button
-            onClick={onClose}
-            className="text-white/70 hover:text-white transition"
-            aria-label="Close"
-          >
-            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      {/* User Info Section */}
       <div className="px-4 py-6 border-b border-white/10">
         <div className="flex items-center gap-4">
           <div className="grid h-16 w-16 place-items-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-2xl font-bold text-white">
@@ -272,8 +238,6 @@ function MobileAccountPanel({ open, user, onClose }) {
           </div>
         </div>
       </div>
-
-      {/* Menu Items */}
       <div className="py-2">
         {menuItems.map((item) => (
           <button
@@ -285,11 +249,8 @@ function MobileAccountPanel({ open, user, onClose }) {
               <div className="text-white/80">{item.icon}</div>
               <span className="text-[15px] font-semibold">{item.label}</span>
             </div>
-            <ChevronRight className="h-5 w-5 text-white/40" />
           </button>
         ))}
-
-        {/* Sign Out */}
         <button
           onClick={handleSignOut}
           className="flex w-full items-center justify-between px-4 py-4 text-white/90 hover:bg-white/5 transition border-t border-white/10 mt-2"
@@ -300,7 +261,6 @@ function MobileAccountPanel({ open, user, onClose }) {
             </div>
             <span className="text-[15px] font-semibold">Sign Out</span>
           </div>
-          <ChevronRight className="h-5 w-5 text-white/40" />
         </button>
       </div>
       <div className="h-2" />
@@ -308,7 +268,6 @@ function MobileAccountPanel({ open, user, onClose }) {
   );
 }
 
-// Desktop account menu dropdown remains the same
 function AccountMenu({ user }) {
   const nav = useNavigate();
   const [open, setOpen] = useState(false);

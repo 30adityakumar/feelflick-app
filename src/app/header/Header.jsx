@@ -96,6 +96,7 @@ export default function Header({ onOpenSearch }) {
         user={user}
         mobileAccountOpen={mobileAccountOpen}
         onToggleAccount={() => setMobileAccountOpen(s => !s)}
+        onCloseAccountPanel={() => setMobileAccountOpen(false)}
       />
 
       {/* Mobile Account Panel overlays content, tabs stay at bottom */}
@@ -142,8 +143,8 @@ function TopLink({ to, icon, children }) {
   );
 }
 
-// Mobile tab bar - Account toggles panel
-function MobileBar({ pathname, user, mobileAccountOpen, onToggleAccount }) {
+// Mobile tab bar with Account toggler and active panel closing logic
+function MobileBar({ pathname, user, mobileAccountOpen, onToggleAccount, onCloseAccountPanel }) {
   const nav = useNavigate();
 
   const Item = ({ to, icon, label, onClick, isActive }) => (
@@ -169,19 +170,26 @@ function MobileBar({ pathname, user, mobileAccountOpen, onToggleAccount }) {
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[rgba(12,18,28,.92)] backdrop-blur-lg md:hidden">
       <div className="mx-auto max-w-[720px] grid grid-cols-3 items-center px-4 h-[64px]">
+        {/* If Account panel is open and user taps Home/Browse, close panel then navigate */}
         <Item
           to="/home"
           label="Home"
           icon={<Home className="h-6 w-6" />}
-          onClick={() => nav("/home")}
-          isActive={pathname === "/home"}
+          onClick={() => {
+            if (mobileAccountOpen) onCloseAccountPanel();
+            nav("/home");
+          }}
+          isActive={pathname === "/home" && !mobileAccountOpen}
         />
         <Item
           to="/browse"
           label="Browse"
           icon={<Compass className="h-6 w-6" />}
-          onClick={() => nav("/browse")}
-          isActive={pathname === "/browse"}
+          onClick={() => {
+            if (mobileAccountOpen) onCloseAccountPanel();
+            nav("/browse");
+          }}
+          isActive={pathname === "/browse" && !mobileAccountOpen}
         />
         <Item
           label="Account"

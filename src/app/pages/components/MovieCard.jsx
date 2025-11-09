@@ -79,7 +79,7 @@ export default function MovieCard({
                 : "/placeholder-movie.png"
             }
             alt={`${movie.title} poster`}
-            className="w-full rounded-t-xl object-cover aspect-[11/16]"
+            className="w-full rounded-t-xl object-cover aspect-[11/16] h-[180px] sm:h-[220px]"
             loading="lazy"
           />
           <div

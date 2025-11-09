@@ -2,7 +2,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/shared/lib/supabase/client";
 
-/** Static genre catalog (aligns with onboarding) */
 const GENRES = [
   { id: 28, label: "Action" }, { id: 12, label: "Adventure" },
   { id: 16, label: "Animation" }, { id: 35, label: "Comedy" },
@@ -46,12 +45,11 @@ function Chip({ active, onClick, label }) {
 
 export default function Preferences() {
   const [userId, setUserId] = useState(null);
-  const [selected, setSelected] = useState([]); // current UI selection
-  const [initial, setInitial] = useState([]);   // last-saved snapshot
+  const [selected, setSelected] = useState([]);
+  const [initial, setInitial] = useState([]);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
 
-  // --- Load auth user and current preferences ---
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -76,7 +74,6 @@ export default function Preferences() {
   const toggle = (id) =>
     setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
 
-  // Track if there are unsaved changes
   const dirty = useMemo(() => {
     if (initial.length !== selected.length) return true;
     const setInit = new Set(initial);
@@ -88,18 +85,14 @@ export default function Preferences() {
     if (!userId || !dirty) return;
     setSaving(true);
     setMsg("");
-
     try {
-      // replace user's genre set atomically (two simple queries)
       await supabase.from("user_preferences").delete().eq("user_id", userId);
-
       if (selected.length) {
         const rows = selected.map((genre_id) => ({ user_id: userId, genre_id }));
         await supabase
           .from("user_preferences")
           .upsert(rows, { onConflict: "user_id,genre_id" });
       }
-
       setInitial(selected);
       setMsg("Preferences saved!");
     } catch (e) {
@@ -111,7 +104,6 @@ export default function Preferences() {
     }
   }
 
-  // Optional: quick presets
   const applyPreset = (ids) => setSelected(ids);
 
   return (
@@ -121,7 +113,8 @@ export default function Preferences() {
         minHeight: "calc(100vh - var(--hdr-h,48px) - 58px)",
       }}
     >
-      <div className="px-4 pt-3 md:px-0 md:pt-0">
+      {/* Remove pt and mt on mobile (keep only in md+): */}
+      <div className="px-4 md:px-0 pt-0 md:pt-0 mt-0 md:mt-0">
         <h1 className="text-xl font-extrabold tracking-tight">Preferences</h1>
         <p className="mt-1 text-sm text-white/70">
           Pick a few genres you enjoy; we’ll tune recommendations to your vibe.

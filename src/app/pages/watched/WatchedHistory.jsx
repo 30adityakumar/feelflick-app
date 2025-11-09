@@ -7,11 +7,12 @@ import { Loader2 } from "lucide-react";
 
 export default function WatchedHistory() {
   const [user, setUser] = useState(null);
-  const [movies, setMovies] = useState([]);
+  const [watched, setWatched] = useState([]);    // user_watched table entries
+  const [movies, setMovies] = useState([]);      // merged movie data with poster/title/etc
   const [loading, setLoading] = useState(true);
   const [removingId, setRemovingId] = useState(null);
 
-  // Fetch user session
+  // Get current user
   useEffect(() => {
     let active = true;
     (async () => {
@@ -21,7 +22,7 @@ export default function WatchedHistory() {
     return () => { active = false; };
   }, []);
 
-  // Fetch watched movies for user
+  // Get watched movie IDs for this user
   useEffect(() => {
     if (!user) return;
     let active = true;
@@ -29,19 +30,53 @@ export default function WatchedHistory() {
 
     (async () => {
       try {
-        const { data, error } = await supabase
+        const { data: watchedRows, error } = await supabase
           .from("movies_watched")
-          .select("*")
+          .select("movie_id,added_at")   // add ,status if you use for highlighting
           .eq("user_id", user.id)
           .order("id", { ascending: false });
-
         if (error) throw error;
 
-        if (active) setMovies(data ?? []);
-      } catch {
-        if (active) setMovies([]);
-      } finally {
-        if (active) setLoading(false);
+        if (!watchedRows?.length) {
+          if (active) {
+            setWatched([]);
+            setMovies([]);
+            setLoading(false);
+          }
+          return;
+        }
+        // Get unique movie IDs
+        const ids = watchedRows.map(row => row.movie_id).filter(Boolean);
+
+        // Fetch movie details for those IDs from your "movies" table (local TMDB mirror)
+        const { data: movieRows, error: moviesErr } = await supabase
+          .from("movies")
+          .select("id,title,poster_path,release_date,vote_average")
+          .in("id", ids);
+
+        if (moviesErr) throw moviesErr;
+
+        // Merge: only show valid/matching movies, keep added_at for sorting if wanted
+        const moviesById = Object.fromEntries((movieRows || []).map(m => [m.id, m]));
+        const merged = watchedRows
+          .map(row => ({
+            ...(moviesById[row.movie_id] || {}),
+            movie_id: row.movie_id,
+            added_at: row.added_at
+          }))
+          .filter(m => m.id); // only movies found in the movies table
+
+        if (active) {
+          setWatched(watchedRows);
+          setMovies(merged);
+          setLoading(false);
+        }
+      } catch (err) {
+        if (active) {
+          setWatched([]);
+          setMovies([]);
+          setLoading(false);
+        }
       }
     })();
 

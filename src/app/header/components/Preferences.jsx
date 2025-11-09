@@ -113,8 +113,8 @@ export default function Preferences() {
         minHeight: "calc(100vh - var(--hdr-h,48px) - 58px)",
       }}
     >
-      {/* Remove pt and mt on mobile (keep only in md+): */}
-      <div className="px-4 md:px-0 pt-0 md:pt-0 mt-0 md:mt-0">
+      {/* Add small pt on mobile: */}
+      <div className="px-4 pt-3 md:px-0 md:pt-0 mt-0 md:mt-0">
         <h1 className="text-xl font-extrabold tracking-tight">Preferences</h1>
         <p className="mt-1 text-sm text-white/70">
           Pick a few genres you enjoy; we’ll tune recommendations to your vibe.

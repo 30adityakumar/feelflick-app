@@ -37,12 +37,9 @@ export default function AppShell() {
       {/* Header (top) */}
       <Header onOpenSearch={() => setSearchOpen(true)} />
 
-      {/* Page content area
-          - Top padding = header height + a little spacing
-          - Bottom padding = room for mobile bottom bar
-      */}
+      {/* Page content area: NO top padding or margin */}
       <div className="relative z-10">
-        <div className="mx-auto w-full max-w-[1200px] px-4 md:px-6 pt-[calc(var(--app-header-h,56px)+8px)] pb-[calc(64px+env(safe-area-inset-bottom))] md:pb-6">
+        <div className="mx-auto w-full max-w-[1200px] px-4 md:px-6 pb-[calc(64px+env(safe-area-inset-bottom))] md:pb-6">
           <Outlet />
         </div>
       </div>

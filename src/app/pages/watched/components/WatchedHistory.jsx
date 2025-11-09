@@ -1,6 +1,7 @@
 // src/app/pages/watched/components/WatchedHistory.jsx
 import { Link } from "react-router-dom";
-import MovieCard from "@/app/pages/shared/MovieCard";
+import MovieCard from "@/app/pages/components/MovieCard";
+import MovieGrid from "@/app/pages/components/MovieGrid";
 
 export default function WatchedHistory({
   watched,
@@ -20,17 +21,16 @@ export default function WatchedHistory({
   }
 
   return (
-    <div
-      className={`
-        grid gap-x-4 gap-y-8
-        grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6
-        ${gridClass || ""}
-      `}
-      aria-label="Watched movies grid"
+    <MovieGrid
+      className={`${gridClass || ""}
+        grid-cols-[repeat(auto-fill,minmax(140px,1fr))]
+        sm:grid-cols-[repeat(auto-fill,minmax(160px,1fr))]
+        md:grid-cols-[repeat(auto-fill,minmax(180px,1fr))]
+        lg:grid-cols-[repeat(auto-fill,minmax(200px,1fr))]
+        xl:grid-cols-[repeat(auto-fill,minmax(220px,1fr))]`}
     >
       {watched.map((m) => {
         const id = m.movie_id ?? m.id;
-
         return (
           <Link
             key={id}
@@ -47,6 +47,6 @@ export default function WatchedHistory({
           </Link>
         );
       })}
-    </div>
+    </MovieGrid>
   );
 }

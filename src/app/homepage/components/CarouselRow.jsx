@@ -1,4 +1,4 @@
-// 
+// src/app/homepage/components/CarouselRow.jsx
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";

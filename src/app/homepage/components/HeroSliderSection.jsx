@@ -7,6 +7,7 @@ const tmdbImg = (p, s = "w1280") => (p ? `https://image.tmdb.org/t/p/${s}${p}` :
 export default function HeroSliderSection({ className = "" }) {
   const [slides, setSlides] = useState([]);
   const [i, setI] = useState(0);
+  const [fade, setFade] = useState("in");
   const nav = useNavigate();
   const timer = useRef(null);
 
@@ -22,9 +23,15 @@ export default function HeroSliderSection({ className = "" }) {
   useEffect(() => {
     if (!slides.length) return;
     clearInterval(timer.current);
-    timer.current = setInterval(() => setI((p) => (p + 1) % slides.length), 5500);
+    timer.current = setInterval(() => {
+      setFade("out");
+      setTimeout(() => {
+        setI((prev) => (prev + 1) % slides.length);
+        setFade("in");
+      }, 400);
+    }, 5200);
     return () => clearInterval(timer.current);
-  }, [slides.length]);
+  }, [slides.length, i]);
 
   const cur = slides[i] || {};
   const backdrop = useMemo(
@@ -37,49 +44,70 @@ export default function HeroSliderSection({ className = "" }) {
   return (
     <section
       className={[
-        "relative w-[100vw] overflow-hidden select-none bg-[#0f0f10]",
+        "relative w-full overflow-hidden select-none bg-[#0f0f10] transition-all duration-500",
         className,
       ].join(" ")}
       style={{ marginTop: 0 }}
+      aria-label="Featured carousel"
     >
       {/* Media */}
-      <div className="relative w-[100vw] aspect-[16/10] xs:aspect-[16/9] sm:aspect-[16/7] lg:aspect-[16/5]">
+      <div
+        className="relative w-full aspect-[16/10] xs:aspect-[16/9] sm:aspect-[16/7] lg:aspect-[16/5] flex items-center justify-center"
+        style={{ background: "#151517" }}
+      >
         {backdrop && (
           <img
             src={backdrop}
             alt={cur?.title || ""}
-            className="absolute inset-0 h-full w-full object-cover"
+            className={[
+              "absolute inset-0 w-full h-full object-cover transition-opacity duration-400",
+              fade === "in" ? "opacity-100" : "opacity-0"
+            ].join(" ")}
             decoding="async"
             loading="eager"
+            draggable={false}
           />
         )}
+        {/* Fallback placeholder for slow/no images */}
+        {!backdrop && (
+          <div className="absolute inset-0 w-full h-full bg-neutral-900/40 flex items-center justify-center">
+            <span className="text-3xl text-white/60 font-bold">Featured</span>
+          </div>
+        )}
         {/* Legibility overlays */}
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,.45)_0%,rgba(0,0,0,.35)_35%,rgba(0,0,0,.65)_100%)]" />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(900px_420px_at_14%_60%,rgba(0,0,0,.62),transparent_60%)]" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(20,24,32,0.40)_0%,rgba(22,25,35,0.38)_35%,rgba(20,29,52,0.58)_100%)] pointer-events-none" />
       </div>
 
       {/* Copy + CTA */}
-      <div className="absolute inset-0 flex items-end pb-4 sm:pb-6 md:pb-7">
-        <div className="mx-auto w-full max-w-[1680px] px-3 sm:px-4 md:px-8">
-          <div className="max-w-[760px]">
-            <h1 className="text-white font-black tracking-tight leading-tight text-[clamp(1.65rem,3.3vw,3rem)] drop-shadow-[0_2px_18px_rgba(0,0,0,.6)]">
+      <div className="absolute inset-0 flex items-end pb-5 sm:pb-7 md:pb-9">
+        <div className="mx-auto w-full max-w-[1680px] px-4 xs:px-6 md:px-10 transition-all">
+          <div className="max-w-[700px]">
+            <h1 className="text-white font-extrabold tracking-tight leading-tight text-[clamp(1.55rem,4vw,3.1rem)] drop-shadow-[0_3px_16px_rgba(0,0,0,.62)]">
               {cur?.title || "Featured"}
             </h1>
             {!!cur?.overview && (
-              <p className="mt-2 text-white/85 text-[clamp(.95rem,1.1vw,1.05rem)] leading-relaxed line-clamp-4">
+              <p className="mt-2 text-white/90 text-[clamp(.92rem,1.14vw,1rem)] leading-relaxed line-clamp-4">
                 {cur.overview}
               </p>
             )}
-            <div className="mt-4 flex items-center gap-2.5 sm:gap-3">
+            <div className="mt-5 flex flex-wrap gap-2.5 sm:gap-4">
               <button
                 onClick={viewDetails}
-                className="inline-flex min-h-10 items-center justify-center rounded-[14px] bg-gradient-to-r from-[#fe9245] to-[#eb423b] px-4.5 sm:px-5 py-2.5 text-[.95rem] font-semibold text-white shadow-[0_10px_30px_rgba(0,0,0,.28)] hover:brightness-[1.05] focus:outline-none"
+                className="inline-flex min-h-10 items-center justify-center rounded-[15px] bg-gradient-to-r from-[#fe9245] to-[#eb423b] px-5 sm:px-7 py-2.5 text-[1.05rem] font-semibold text-white shadow-[0_10px_36px_rgba(0,0,0,.30)] hover:brightness-110 active:brightness-95 focus:outline-none focus:ring-2 focus:ring-orange-400 transition"
               >
                 View details
               </button>
               <button
-                onClick={() => setI((p) => (p + 1) % (slides.length || 1))}
-                className="inline-flex min-h-10 items-center justify-center rounded-[14px] border border-white/25 bg-black/30 px-4.5 sm:px-5 py-2.5 text-[.95rem] font-semibold text-white/90 backdrop-blur-sm hover:bg-white/10 focus:outline-none"
+                aria-label="Next slide"
+                onClick={() => {
+                  setFade("out");
+                  setTimeout(() => {
+                    setI((prev) => (prev + 1) % (slides.length || 1));
+                    setFade("in");
+                  }, 400);
+                }}
+                className="inline-flex min-h-10 items-center justify-center rounded-[15px] border border-white/25 bg-black/60 px-5 sm:px-7 py-2.5 text-[1.03rem] font-semibold text-white/90 backdrop-blur-sm hover:bg-white/10 active:bg-white/15 focus:outline-none focus:ring-2 focus:ring-white/40 transition"
               >
                 Next
               </button>
@@ -88,12 +116,19 @@ export default function HeroSliderSection({ className = "" }) {
         </div>
       </div>
 
-      {/* Pips */}
-      <div className="pointer-events-none absolute right-4 top-4 hidden gap-1.5 sm:flex">
+      {/* Dots/pips: visible on all screens, accessible */}
+      <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2 z-20" aria-label="Carousel navigation">
         {slides.map((_, idx) => (
-          <span
+          <button
             key={idx}
-            className={["h-1.5 w-1.5 rounded-full", idx === i ? "bg-white/90" : "bg-white/40"].join(" ")}
+            type="button"
+            aria-label={`Slide ${idx + 1}`}
+            className={[
+              "h-2.5 w-2.5 rounded-full transition-colors duration-300",
+              idx === i ? "bg-white/90 scale-125 shadow-lg" : "bg-white/50"
+            ].join(" ")}
+            onClick={() => { setI(idx); setFade("in"); }}
+            tabIndex={0}
           />
         ))}
       </div>

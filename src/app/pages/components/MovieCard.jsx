@@ -5,14 +5,14 @@ import { Link } from "react-router-dom";
 const TMDB_IMG_BASE = "https://image.tmdb.org/t/p/w342";
 
 export default function MovieCard({
-  movie,
+  movie,           // { id, title, poster_path, release_date, vote_average, status }
   onRemove,
   removing,
-  showRemove = true,
+  showRemove = true
 }) {
   const [hovered, setHovered] = useState(false);
 
-  // Detect mobile touch device (optional) to always show remove on mobile
+  // Mobile device detection
   const isTouchDevice = typeof window !== "undefined" && ("ontouchstart" in window || navigator.maxTouchPoints > 0);
 
   return (
@@ -77,6 +77,7 @@ export default function MovieCard({
         </button>
       )}
 
+      {/* Movie link and poster */}
       <Link to={`/movie/${movie.id}`} aria-label={`Go to movie details for ${movie.title}`}>
         <div className="relative aspect-[11/16] w-full bg-black rounded-t-xl overflow-hidden">
           <img

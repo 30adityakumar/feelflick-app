@@ -35,7 +35,7 @@ export default function SearchBar({ open, onClose }) {
     return () => document.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
-  // Debounced search
+  // Debounced search hook
   const debouncedQ = useDebounce(q, 250);
 
   useEffect(() => {
@@ -74,7 +74,7 @@ export default function SearchBar({ open, onClose }) {
     nav(`/movie/${m.id}`);
   }
 
-  // Keyboard nav for list
+  // Keyboard navigation among results
   function onListKey(e) {
     if (!results.length) return;
     if (e.key === "ArrowDown") {
@@ -95,36 +95,45 @@ export default function SearchBar({ open, onClose }) {
   return (
     <div
       className="
-        fixed inset-0 z-[60] grid place-items-start bg-black/60 px-3 pt-8
-        md:place-items-center md:px-6
+        fixed inset-0 z-[60] -ml-3 -mr-3 bg-black/80
+        md:ml-0 md:mr-0 md:grid md:place-items-center
       "
       aria-modal="true"
       role="dialog"
     >
-      <div className="w-full max-w-[720px] rounded-2xl border border-white/10 bg-neutral-950/85 backdrop-blur-md shadow-2xl">
+      <div
+        className="
+          w-full max-w-full
+          rounded-none px-4 pt-6 pb-4
+          md:max-w-[720px] md:rounded-2xl md:bg-neutral-950/85 md:backdrop-blur-md md:p-0 md:shadow-2xl
+          md:px-0 md:pt-0 md:pb-0
+          flex flex-col
+          md:block
+        "
+      >
         {/* Input row */}
-        <div className="flex items-center gap-2 border-b border-white/10 px-3 py-2.5 md:px-4">
-          <SearchIcon className="h-5 w-5 text-white/70" />
+        <div className="flex items-center gap-2 border-b border-white/10 md:px-4 md:py-2.5 px-1 py-2">
+          <SearchIcon className="h-6 w-6 text-white/70 md:h-5 md:w-5" />
           <input
             ref={inputRef}
             value={q}
             onChange={(e) => setQ(e.target.value)}
             onKeyDown={onListKey}
-            placeholder="Search movies…"
-            className="flex-1 bg-transparent text-[15px] text-white placeholder-white/50 focus:outline-none"
+            placeholder="Search movies..."
+            className="flex-1 bg-transparent text-[16px] text-white placeholder-white/60 focus:outline-none md:text-[15px]"
             aria-label="Search movies"
           />
           <button
             onClick={onClose}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-white/5 text-white/80 hover:bg-white/10 focus:outline-none"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-white/10 text-white/80 hover:bg-white/20 focus:outline-none md:h-8 md:w-8"
             aria-label="Close search"
           >
-            <X className="h-4 w-4" />
+            <X className="h-5 w-5 md:h-4 md:w-4" />
           </button>
         </div>
 
         {/* Results */}
-        <div className="max-h-[60vh] overflow-y-auto px-2 py-2 md:px-3 md:py-3">
+        <div className="max-h-[60vh] overflow-y-auto px-1 py-2 md:px-3 md:py-3">
           {!q && (
             <p className="px-2 py-6 text-center text-sm text-white/65">
               Type at least 2 characters to search.
@@ -142,8 +151,8 @@ export default function SearchBar({ open, onClose }) {
               onClick={() => goToMovie(m)}
               onMouseEnter={() => setSel(i)}
               className={[
-                "grid w-full grid-cols-[44px_1fr_auto] items-center gap-3 rounded-lg px-2 py-2 text-left hover:bg-white/5 focus:outline-none",
-                sel === i ? "bg-white/10" : "",
+                "grid w-full grid-cols-[50px_1fr_auto] items-center gap-3 rounded-md px-2 py-3 text-left hover:bg-white/10 focus:outline-none transition-colors",
+                sel === i ? "bg-white/20" : "",
               ].join(" ")}
             >
               <img
@@ -152,19 +161,20 @@ export default function SearchBar({ open, onClose }) {
                     ? `https://image.tmdb.org/t/p/w92${m.poster_path}`
                     : "https://dummyimage.com/44x66/0b0f18/ffffff&text=–"
                 }
-                alt=""
-                className="h-16 w-11 rounded object-cover"
+                alt={m.title}
+                className="h-16 w-11 rounded-md object-cover"
                 loading="lazy"
               />
-              <div className="min-w-0">
-                <div className="truncate text-[14px] font-semibold text-white">
+              <div className="min-w-0 flex flex-col justify-center overflow-hidden">
+                <div className="truncate font-semibold text-white text-[15px] md:text-[14px]">
                   {m.title}
                 </div>
-                <div className="mt-0.5 text-[12px] text-white/65">
-                  {(m.release_date || "").slice(0, 4)} • ★ {m.vote_average?.toFixed?.(1) ?? "–"}
+                <div className="mt-0.5 text-xs text-white/60 truncate">
+                  {(m.release_date || "").slice(0, 4)} • ★{" "}
+                  {m.vote_average?.toFixed?.(1) ?? "–"}
                 </div>
               </div>
-              <div className="text-[12px] text-white/55">Open</div>
+              <div className="hidden md:block text-xs text-white/50">Open</div>
             </button>
           ))}
         </div>
@@ -173,12 +183,14 @@ export default function SearchBar({ open, onClose }) {
   );
 }
 
-/* --------------------------- hook: debounce --------------------------- */
+/* Debounce hook */
 function useDebounce(value, delay) {
-  const [v, setV] = useState(value);
+  const [debouncedValue, setDebouncedValue] = useState(value);
   useEffect(() => {
-    const id = setTimeout(() => setV(value), delay);
-    return () => clearTimeout(id);
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+    return () => clearTimeout(handler);
   }, [value, delay]);
-  return v;
+  return debouncedValue;
 }

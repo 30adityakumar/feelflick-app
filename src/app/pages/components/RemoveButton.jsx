@@ -6,7 +6,7 @@ export default function RemoveButton({ onClick, disabled, label = "Remove" }) {
       onClick={onClick}
       disabled={disabled}
       aria-label={label}
-      className={`inline-flex items-center justify-center rounded-full bg-black/70 p-2 text-white transition-colors hover:bg-red-600 focus:outline-none 
+      className={`inline-flex items-center justify-center rounded-full bg-black/60 p-2 text-white shadow-lg shadow-black/60 transition-colors hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-orange-400
                   ${disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
     >
       {disabled ? (

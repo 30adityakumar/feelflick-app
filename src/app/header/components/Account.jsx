@@ -174,17 +174,21 @@ export default function Account() {
     );
   }
 
-  // Responsive class: no box, no border, no radius, no margin or padding on mobile
-  // Card appearance only for md+ (desktop/tablet)
   return (
     <div
-      className="w-full md:mx-auto md:mt-6 md:mb-6 md:max-w-[820px] md:rounded-2xl md:border md:border-white/10 md:bg-neutral-950/70 md:shadow-[0_32px_80px_rgba(0,0,0,.45)] md:p-6 md:backdrop-blur-md"
+      className={`
+        w-full
+        md:mx-auto md:mt-6 md:mb-6 md:max-w-[820px] md:rounded-2xl md:border md:border-white/10 md:bg-neutral-950/70 md:shadow-[0_32px_80px_rgba(0,0,0,.45)] md:p-6 md:backdrop-blur-md
+        min-h-screen
+        flex flex-col
+      `}
       style={{
-        minHeight: "calc(100vh - var(--hdr-h,48px) - 58px)", // fit all available screen minus header and bottom nav, adjust bottom nav height as needed
+        minHeight: "calc(100vh - var(--hdr-h,48px) - 58px)", // fits header+tab bar
+        padding: 0,
       }}
     >
-      {/* Header row */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 px-4 pt-5 md:px-0 md:pt-0">
+      {/* Header row, no extra padding on mobile */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 px-4 pt-3 md:px-0 md:pt-0">
         {/* Avatar */}
         <div className="relative">
           <div
@@ -213,20 +217,25 @@ export default function Account() {
         </div>
         {/* Name + email */}
         <div className="flex-1 min-w-0">
-          <h1 className="text-lg font-semibold tracking-tight">My Account</h1>
-          <p className="mt-0.5 text-xs text-white/75">{authUser.email}</p>
-          <form onSubmit={handleSave} className="mt-3 flex flex-col sm:flex-row gap-2">
+          <h1 className="text-[1.3rem] font-semibold tracking-tight leading-snug mb-0.5">My Account</h1>
+          <p className="text-xs text-white/75 mb-2">{authUser.email}</p>
+          <form onSubmit={handleSave} className="flex flex-col sm:flex-row gap-2">
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Your name"
-              className="flex-1 rounded-lg border border-white/10 bg-white/[.06] px-2 py-2 text-[13px] text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-white/30"
+              className="flex-1 rounded-lg border border-white/15 bg-[#181a20] px-3 py-2 text-[15px] font-medium text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-white/25"
+              style={{ minHeight: 40 }}
             />
             <button
               type="submit"
               disabled={saving}
-              className="inline-flex items-center justify-center rounded-xl px-3 py-2 text-[13px] font-semibold text-white focus:outline-none"
-              style={{ background: BTN_GRAD, opacity: saving ? 0.7 : 1 }}
+              className="rounded-xl px-5 py-2 min-h-[40px] text-base font-semibold text-white focus:outline-none"
+              style={{
+                background: BTN_GRAD,
+                opacity: saving ? 0.7 : 1,
+                letterSpacing: 0.1,
+              }}
             >
               {saving ? "Saving…" : "Save"}
             </button>
@@ -238,8 +247,9 @@ export default function Account() {
           )}
         </div>
       </div>
+
       {/* Meta tiles */}
-      <div className="mt-5 grid gap-2 sm:grid-cols-2 px-4 md:px-0">
+      <div className="mt-5 flex flex-col gap-2 px-4 md:px-0">
         <MetaRow label="Joined">{profile?.joined_at ? new Date(profile.joined_at).toLocaleDateString() : "—"}</MetaRow>
         <MetaRow label="Sign-in method">{profile?.signup_source || authUser?.app_metadata?.provider || "—"}</MetaRow>
         <MetaRow label="Onboarding">{profile?.onboarding_complete || profile?.onboarding_completed_at ? "Completed" : "Not completed"}</MetaRow>
@@ -249,36 +259,23 @@ export default function Account() {
             type="button"
             onClick={rerunOnboarding}
             disabled={busy}
-            className="inline-flex items-center gap-1 rounded-lg border border-white/12 bg-white/5 px-2 py-1 text-xs font-semibold text-white hover:bg-white/10"
+            className="inline-flex items-center gap-1 rounded-lg border border-white/12 bg-white/5 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-white/10"
+            style={{ minHeight: 34 }}
           >
             <RefreshCcw className={BTN_ICON_SIZE} /> Start
           </button>
         </div>
       </div>
+
       {/* Sections */}
       <Section title="Security" extraClass="px-4 md:px-0">
-        <div className="flex flex-col sm:flex-row gap-2">
+        <div className="flex flex-col gap-2">
           <button
             type="button"
             onClick={openResetPassword}
-            className="inline-flex items-center gap-1 rounded-xl border border-white/12 bg-white/5 px-3 py-2 text-xs font-semibold text-white hover:bg-white/10"
+            className="flex items-center gap-2 rounded-xl border border-white/15 bg-[#181a20] px-4 py-3 text-[15px] font-semibold text-white hover:bg-white/10 min-h-[44px]"
           >
             <Key className={BTN_ICON_SIZE} /> Change password
-          </button>
-          <button
-            type="button"
-            onClick={signOutEverywhere}
-            disabled={busy}
-            className="inline-flex items-center gap-1 rounded-xl border border-white/12 bg-white/5 px-3 py-2 text-xs font-semibold text-white hover:bg-white/10"
-          >
-            <Shield className={BTN_ICON_SIZE} /> Sign out all devices
-          </button>
-          <button
-            type="button"
-            onClick={signOut}
-            className="inline-flex items-center gap-1 rounded-xl border border-white/12 bg-white/5 px-3 py-2 text-xs font-semibold text-white hover:bg-white/10"
-          >
-            <LogOut className={BTN_ICON_SIZE} /> Sign out
           </button>
         </div>
       </Section>
@@ -312,8 +309,8 @@ function MetaRow({ label, children }) {
 function Section({ title, children, extraClass }) {
   return (
     <div className={`mt-4 ${extraClass || ""}`}>
-      <h2 className="text-xs font-bold uppercase tracking-wide text-white/60">{title}</h2>
-      <div className="mt-2">{children}</div>
+      <h2 className="text-xs font-bold uppercase tracking-wide text-white/60 mb-2">{title}</h2>
+      {children}
     </div>
   );
 }

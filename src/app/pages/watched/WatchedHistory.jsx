@@ -7,8 +7,7 @@ import { Loader2 } from "lucide-react";
 
 export default function WatchedHistory() {
   const [user, setUser] = useState(null);
-  const [watched, setWatched] = useState([]);    // user_watched table entries
-  const [movies, setMovies] = useState([]);      // merged movie data with poster/title/etc
+  const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [removingId, setRemovingId] = useState(null);
 
@@ -22,7 +21,7 @@ export default function WatchedHistory() {
     return () => { active = false; };
   }, []);
 
-  // Get watched movie IDs for this user
+  // Get watched movies for this user (from movies_watched, all display fields present)
   useEffect(() => {
     if (!user) return;
     let active = true;
@@ -30,53 +29,17 @@ export default function WatchedHistory() {
 
     (async () => {
       try {
-        const { data: watchedRows, error } = await supabase
+        const { data, error } = await supabase
           .from("movies_watched")
-          .select("movie_id,added_at")   // add ,status if you use for highlighting
+          .select("*")
           .eq("user_id", user.id)
           .order("id", { ascending: false });
         if (error) throw error;
-
-        if (!watchedRows?.length) {
-          if (active) {
-            setWatched([]);
-            setMovies([]);
-            setLoading(false);
-          }
-          return;
-        }
-        // Get unique movie IDs
-        const ids = watchedRows.map(row => row.movie_id).filter(Boolean);
-
-        // Fetch movie details for those IDs from your "movies" table (local TMDB mirror)
-        const { data: movieRows, error: moviesErr } = await supabase
-          .from("movies")
-          .select("id,title,poster_path,release_date,vote_average")
-          .in("id", ids);
-
-        if (moviesErr) throw moviesErr;
-
-        // Merge: only show valid/matching movies, keep added_at for sorting if wanted
-        const moviesById = Object.fromEntries((movieRows || []).map(m => [m.id, m]));
-        const merged = watchedRows
-          .map(row => ({
-            ...(moviesById[row.movie_id] || {}),
-            movie_id: row.movie_id,
-            added_at: row.added_at
-          }))
-          .filter(m => m.id); // only movies found in the movies table
-
-        if (active) {
-          setWatched(watchedRows);
-          setMovies(merged);
-          setLoading(false);
-        }
+        if (active) setMovies(data ?? []);
       } catch (err) {
-        if (active) {
-          setWatched([]);
-          setMovies([]);
-          setLoading(false);
-        }
+        if (active) setMovies([]);
+      } finally {
+        if (active) setLoading(false);
       }
     })();
 
@@ -121,7 +84,15 @@ export default function WatchedHistory() {
           {movies.map(m => (
             <MovieCard
               key={m.movie_id}
-              movie={m}
+              // MovieCard expects { id, title, poster_path, release_date, vote_average}
+              movie={{
+                id: m.movie_id,
+                title: m.title,
+                poster_path: m.poster,
+                release_date: m.release_date,
+                vote_average: m.vote_average,
+                status: m.source // show onboarding badge if wanted
+              }}
               onRemove={() => remove(m.movie_id)}
               removing={removingId === m.movie_id}
             />

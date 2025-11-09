@@ -23,7 +23,7 @@ import Onboarding from '@/features/onboarding/Onboarding'
 import Account from '@/app/header/components/Account'
 import Preferences from '@/app/header/components/Preferences'
 import Watchlist from '@/app/pages/watchlist/Watchlist'
-import HistoryPage from '@/app/pages/watched/WatchedTab'
+import HistoryPage from '@/app/pages/watched/WatchedHistory'
 
 // 404
 import NotFound from '@/app/pages/NotFound'

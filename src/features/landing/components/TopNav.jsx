@@ -1,4 +1,6 @@
 // src/features/landing/components/TopNav.jsx
+// src/features/landing/components/TopNav.jsx
+
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { LogIn } from 'lucide-react'
@@ -19,6 +21,7 @@ export default function TopNav({ hideAuthCta = false, onAuthOpen }) {
       const h = barRef.current?.offsetHeight || 72
       document.documentElement.style.setProperty('--topnav-h', `${h}px`)
     }
+
     setVar()
     const ro = new ResizeObserver(setVar)
     if (barRef.current) ro.observe(barRef.current)
@@ -35,6 +38,7 @@ export default function TopNav({ hideAuthCta = false, onAuthOpen }) {
         ticking = false
       })
     }
+
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
@@ -55,78 +59,28 @@ export default function TopNav({ hideAuthCta = false, onAuthOpen }) {
     (scrolled ? 'bg-neutral-950/60 backdrop-blur-md ring-1 ring-white/10' : 'bg-transparent')
 
   return (
-    <header className={shellClass} data-scrolled={scrolled}>
-      <a
-        href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:rounded-md focus:bg-neutral-900 focus:px-3 focus:py-2 focus:text-white"
-      >
-        Skip to content
-      </a>
-
-      <div
-        ref={barRef}
-        className="mx-auto flex w-full max-w-7xl items-center justify-between gap-2 px-3 pt-[calc(env(safe-area-inset-top)+14px)] pb-3 sm:py-4 md:px-6"
-      >
-        {/* Brand */}
-        <a
-          href="/"
+    <header ref={barRef} className={shellClass}>
+      <div className="mx-auto flex h-16 items-center justify-between px-4 sm:h-[72px] sm:px-6 md:px-8">
+        {/* Logo with FeelFlick Gradient */}
+        <Link
+          to="/"
           onClick={onBrandClick}
-          className="flex items-center rounded-md"
-          aria-label="FeelFlick home"
+          className="group flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 rounded"
         >
-          <span className="text-[clamp(1.6rem,5.2vw,2.25rem)] font-extrabold tracking-tight text-brand-100 uppercase">
+          <span className="text-2xl font-black tracking-tight bg-gradient-to-r from-[#FF9245] via-[#EB423B] to-[#E03C9E] bg-clip-text text-transparent transition-opacity group-hover:opacity-80">
             FEELFLICK
           </span>
-        </a>
+        </Link>
 
+        {/* Auth CTA */}
         {!hideAuthCta && (
-          <>
-            {/* Desktop */}
-            <div className="hidden md:flex items-center gap-2">
-              {onAuthOpen ? (
-                <button
-                  type="button"
-                  onClick={onAuthOpen}
-                  className="group relative inline-flex h-10 items-center gap-2 rounded-full border border-white/20 px-4 text-[0.9rem] font-semibold text-white/95 hover:bg-white/10 active:scale-[.98] focus:outline-none"
-                  aria-label="Log in"
-                >
-                  <LogIn className="h-4 w-4 text-white/90" aria-hidden />
-                  <span>Log in</span>
-                </button>
-              ) : (
-                <Link
-                  to="/auth/log-in-or-create-account"
-                  className="group relative inline-flex h-10 items-center gap-2 rounded-full border border-white/20 px-4 text-[0.9rem] font-semibold text-white/95 hover:bg-white/10 active:scale-[.98] focus:outline-none"
-                >
-                  <LogIn className="h-4 w-4 text-white/90" aria-hidden />
-                  <span>Log in</span>
-                </Link>
-              )}
-            </div>
-
-            {/* Mobile */}
-            <div className="md:hidden">
-              {onAuthOpen ? (
-                <button
-                  type="button"
-                  onClick={onAuthOpen}
-                  className="inline-flex items-center gap-2 h-10 px-4 rounded-full border border-white/20 bg-white/5 text-[0.95rem] font-semibold text-white/95 hover:bg-white/10 active:scale-[.98] focus:outline-none"
-                  aria-label="Log in"
-                >
-                  <LogIn className="h-4 w-4 text-white/90" aria-hidden />
-                  <span>Log in</span>
-                </button>
-              ) : (
-                <Link
-                  to="/auth/log-in-or-create-account"
-                  className="inline-flex items-center gap-2 h-10 px-4 rounded-full border border-white/20 bg-white/5 text-[0.95rem] font-semibold text-white/95 hover:bg-white/10 active:scale-[.98] focus:outline-none"
-                >
-                  <LogIn className="h-4 w-4 text-white/90" aria-hidden />
-                  <span>Log in</span>
-                </Link>
-              )}
-            </div>
-          </>
+          <button
+            onClick={() => onAuthOpen?.()}
+            className="group inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-white/10 hover:border-white/25 focus:outline-none focus:ring-2 focus:ring-white/50 active:scale-95"
+          >
+            <LogIn className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            <span>Sign In</span>
+          </button>
         )}
       </div>
     </header>

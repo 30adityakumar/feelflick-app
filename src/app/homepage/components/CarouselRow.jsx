@@ -32,7 +32,7 @@ export default function CarouselRow({ title, tmdbCategory = "popular", rowId }) 
   const scroll = (dir) => {
     const rail = railRef.current;
     if (!rail) return;
-    const scrollAmount = rail.clientWidth * 0.8;
+    const scrollAmount = rail.clientWidth * 0.75;
     rail.scrollBy({ left: dir === "left" ? -scrollAmount : scrollAmount, behavior: "smooth" });
   };
 
@@ -57,34 +57,34 @@ export default function CarouselRow({ title, tmdbCategory = "popular", rowId }) 
     if (e.key === "ArrowLeft") scroll("left");
   };
 
-  const skeletons = Array.from({ length: 8 }).map((_, idx) => (
+  const skeletons = Array.from({ length: 6 }).map((_, idx) => (
     <div
       key={idx}
-      className="aspect-[2/3] w-[36vw] min-w-[36vw] xs:w-[32vw] xs:min-w-[32vw] sm:w-[26vw] sm:min-w-[26vw] md:w-[20vw] md:min-w-[20vw] lg:w-[16vw] lg:min-w-[16vw] xl:w-[14vw] xl:min-w-[14vw] 2xl:w-[240px] 2xl:min-w-[240px] rounded-lg bg-neutral-800/60 animate-pulse"
+      className="aspect-[2/3] w-[38vw] min-w-[38vw] xs:w-[34vw] xs:min-w-[34vw] sm:w-[28vw] sm:min-w-[28vw] md:w-[22vw] md:min-w-[22vw] lg:w-[17vw] lg:min-w-[17vw] xl:w-[15vw] xl:min-w-[15vw] 2xl:w-[240px] 2xl:min-w-[240px] rounded-lg bg-neutral-800/60 animate-pulse"
     />
   ));
 
   return (
-    <div className="relative group px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16">
-      {/* Header */}
-      <div className="mb-4 md:mb-5 lg:mb-6">
+    <div className="relative group w-full overflow-hidden">
+      {/* Header with proper padding */}
+      <div className="mb-4 md:mb-5 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16">
         <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold tracking-tight text-white">
           {title}
         </h2>
       </div>
 
       {/* Carousel Container */}
-      <div className="relative -mx-4 sm:-mx-6 md:-mx-8 lg:-mx-12 xl:-mx-16">
-        {/* Desktop Navigation Arrows */}
+      <div className="relative w-full">
+        {/* Desktop Navigation Arrows with proper positioning */}
         {!loading && (
           <>
             {showLeftArrow && (
               <button
                 onClick={() => scroll("left")}
-                className="hidden md:grid absolute left-0 top-0 bottom-0 z-20 w-12 lg:w-16 xl:w-20 place-items-center bg-gradient-to-r from-black via-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 focus:opacity-100"
+                className="hidden md:grid absolute left-0 top-0 bottom-0 z-30 w-12 lg:w-16 xl:w-20 place-items-center bg-gradient-to-r from-black via-black/90 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 focus:opacity-100"
                 aria-label={`${rowId}-prev`}
               >
-                <div className="grid h-12 w-12 lg:h-14 lg:w-14 place-items-center rounded-full bg-black/70 backdrop-blur-sm text-white hover:bg-black/90 hover:scale-110 transition-all shadow-2xl border border-white/10">
+                <div className="grid h-12 w-12 lg:h-14 lg:w-14 place-items-center rounded-full bg-black/80 backdrop-blur-sm text-white hover:bg-black/95 hover:scale-110 transition-all shadow-2xl border border-white/10">
                   <ChevronLeft className="h-7 w-7 lg:h-8 lg:w-8" strokeWidth={2.5} />
                 </div>
               </button>
@@ -92,10 +92,10 @@ export default function CarouselRow({ title, tmdbCategory = "popular", rowId }) 
             {showRightArrow && (
               <button
                 onClick={() => scroll("right")}
-                className="hidden md:grid absolute right-0 top-0 bottom-0 z-20 w-12 lg:w-16 xl:w-20 place-items-center bg-gradient-to-l from-black via-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 focus:opacity-100"
+                className="hidden md:grid absolute right-0 top-0 bottom-0 z-30 w-12 lg:w-16 xl:w-20 place-items-center bg-gradient-to-l from-black via-black/90 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 focus:opacity-100"
                 aria-label={`${rowId}-next`}
               >
-                <div className="grid h-12 w-12 lg:h-14 lg:w-14 place-items-center rounded-full bg-black/70 backdrop-blur-sm text-white hover:bg-black/90 hover:scale-110 transition-all shadow-2xl border border-white/10">
+                <div className="grid h-12 w-12 lg:h-14 lg:w-14 place-items-center rounded-full bg-black/80 backdrop-blur-sm text-white hover:bg-black/95 hover:scale-110 transition-all shadow-2xl border border-white/10">
                   <ChevronRight className="h-7 w-7 lg:h-8 lg:w-8" strokeWidth={2.5} />
                 </div>
               </button>
@@ -103,14 +103,15 @@ export default function CarouselRow({ title, tmdbCategory = "popular", rowId }) 
           </>
         )}
 
-        {/* Carousel Rail */}
+        {/* Carousel Rail with proper padding */}
         <div
           ref={railRef}
-          className="flex gap-2 md:gap-3 lg:gap-4 overflow-x-auto overflow-y-hidden scrollbar-hide snap-x snap-mandatory scroll-smooth pb-4 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16"
+          className="flex gap-2 md:gap-3 lg:gap-4 overflow-x-auto overflow-y-hidden scrollbar-hide snap-x snap-mandatory scroll-smooth pb-4 pl-4 pr-4 sm:pl-6 sm:pr-6 md:pl-8 md:pr-8 lg:pl-12 lg:pr-12 xl:pl-16 xl:pr-16"
           onKeyDown={handleKeyDown}
           tabIndex={0}
           role="list"
           aria-label={title}
+          style={{ scrollPaddingLeft: '1rem', scrollPaddingRight: '1rem' }}
         >
           {loading
             ? skeletons
@@ -118,7 +119,7 @@ export default function CarouselRow({ title, tmdbCategory = "popular", rowId }) 
                 <button
                   key={m.id}
                   onClick={() => nav(`/movie/${m.id}`)}
-                  className="group/card relative aspect-[2/3] w-[36vw] min-w-[36vw] xs:w-[32vw] xs:min-w-[32vw] sm:w-[26vw] sm:min-w-[26vw] md:w-[20vw] md:min-w-[20vw] lg:w-[16vw] lg:min-w-[16vw] xl:w-[14vw] xl:min-w-[14vw] 2xl:w-[240px] 2xl:min-w-[240px] snap-start overflow-hidden rounded-lg bg-neutral-900 transition-all duration-300 hover:scale-105 hover:z-10 hover:shadow-2xl focus:scale-105 focus:z-10 focus:outline-none focus:ring-2 focus:ring-white/60 shadow-lg"
+                  className="group/card relative aspect-[2/3] w-[38vw] min-w-[38vw] xs:w-[34vw] xs:min-w-[34vw] sm:w-[28vw] sm:min-w-[28vw] md:w-[22vw] md:min-w-[22vw] lg:w-[17vw] lg:min-w-[17vw] xl:w-[15vw] xl:min-w-[15vw] 2xl:w-[240px] 2xl:min-w-[240px] snap-start overflow-hidden rounded-lg bg-neutral-900 transition-all duration-300 hover:scale-105 hover:z-20 hover:shadow-2xl focus:scale-105 focus:z-20 focus:outline-none focus:ring-2 focus:ring-white/60 shadow-lg flex-shrink-0"
                   role="listitem"
                   aria-label={m.title}
                   tabIndex={0}

@@ -1,150 +1,216 @@
 // src/features/landing/components/LandingHero.jsx
-import { useState } from 'react'
-import { Sparkles, Heart, TrendingUp, Loader2 } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/shared/lib/supabase/client'
+import googleSvg from '@/assets/icons/google.svg'
 
-// Brand gradient constant
-const BRAND_GRADIENT = 'from-[#FF9245] via-[#EB423B] to-[#E03C9E]'
+export default function LandingHero({ embedded = false, showInlineAuth = false, onAuthOpen, onAuthClose }) {
+  return (
+    <section
+      className="relative h-full overflow-hidden"
+      style={embedded ? undefined : { marginTop: 'var(--topnav-h, var(--nav-h, 72px))' }}
+    >
+      <div className="feelflick-landing-bg" aria-hidden="true" />
 
-const FEATURES = [
-  {
-    icon: Sparkles,
-    title: 'Mood-Based Discovery',
-    description: 'Find movies that match exactly how you feel right now.',
-  },
-  {
-    icon: Heart,
-    title: 'Personal Watchlists',
-    description: 'Save and organize movies you want to watch.',
-  },
-  {
-    icon: TrendingUp,
-    title: 'Track Your Journey',
-    description: 'Keep a history of everything you've watched.',
-  },
-]
+      {/* Background */}
+      <div aria-hidden className="fixed inset-0 z-0">
+        <div className="absolute inset-0 bg-[linear-gradient(120deg,#0a121a_0%,#0d1722_50%,#0c1017_100%)]" />
+        <div className="pointer-events-none absolute -top-40 -left-40 h-[65vmin] w-[65vmin] rounded-full blur-3xl opacity-60 bg-[radial-gradient(closest-side,rgba(254,146,69,0.45),rgba(254,146,69,0)_70%)]" />
+        <div className="pointer-events-none absolute -bottom-44 -right-44 h-[70vmin] w-[70vmin] rounded-full blur-3xl opacity-55 bg-[radial-gradient(closest-side,rgba(235,66,59,0.38),rgba(235,66,59,0)_70%)]" />
+        <div className="pointer-events-none absolute top-1/2 left-1/2 h-[80vmin] w-[80vmin] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl opacity-45 bg-[radial-gradient(closest-side,rgba(45,119,255,0.35),rgba(45,119,255,0)_70%)]" />
+        <div className="pointer-events-none absolute -top-24 right-[15%] h-[45vmin] w-[45vmin] rounded-full blur-3xl opacity-45 bg-[radial-gradient(closest-side,rgba(255,99,196,0.35),rgba(255,99,196,0)_70%)]" />
+        <div className="pointer-events-none absolute inset-0 opacity-35 mix-blend-screen">
+          <div className="absolute left-1/2 top-1/2 h-[140vmin] w-[140vmin] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[conic-gradient(from_220deg_at_50%_50%,rgba(255,255,255,0.08),rgba(255,255,255,0)_65%)] motion-safe:md:animate-[spin_48s_linear_infinite]" />
+        </div>
+        <div className="absolute inset-0 bg-[radial-gradient(100%_80%_at_50%_0%,rgba(255,255,255,0.06),rgba(255,255,255,0)_60%)]" />
+      </div>
 
-export default function LandingHero() {
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+      {/* Content */}
+      <div
+        className="relative z-10 mx-auto h-full w-full max-w-7xl px-7 md:px-6"
+        style={{ ['--nav-h']: '72px' }}
+      >
+        <div
+          className="
+            grid h-full place-content-center place-items-center
+            gap-y-6 md:gap-y-0 md:gap-x-6
+            md:[grid-template-columns:max-content_minmax(0,560px)]
+          "
+          style={
+            embedded
+              ? undefined
+              : {
+                  height:
+                    'calc(100svh - var(--topnav-h, var(--nav-h,72px)) - var(--footer-h,0px))',
+                  /* 👇 bias the block slightly DOWN to increase top space */
+                  transform: 'translateY(5vh)',
+                }
+          }
+        >
+          {/* Posters */}
+          <div className="order-1 md:order-2 md:col-start-2 w-full flex justify-center md:justify-start md:pr-6">
+            <MovieStack />
+          </div>
 
-  const handleGoogleSignIn = async () => {
-    setLoading(true)
-    setError('')
-    
+          {/* Copy */}
+          <div className="order-2 md:order-1 md:col-start-1 mx-auto w-full max-w-3xl md:max-w-[620px] text-center md:text-left md:pl-10">
+            <h1 className="text-balance text-[clamp(2.1rem,6.5vw,3.9rem)] font-black leading-[1.05] tracking-tight text-white">
+              Movies that match your <span className="text-brand-100">mood</span>
+            </h1>
+
+            {showInlineAuth ? (
+              <p className="mx-auto md:mx-0 mt-2 max-w-xl text-[clamp(.95rem,2vw,1.1rem)] leading-relaxed text-white/85">
+                We’re piloting FeelFlick — explore and help us shape mood-based movie recommendation
+                platform.
+              </p>
+            ) : (
+              <p className="mx-auto md:mx-0 mt-2 max-w-xl text-[clamp(.95rem,2vw,1.1rem)] leading-relaxed text-white/85">
+                Get the perfect movie recommendation based on your taste and how you feel — fast,
+                private, and always free.
+              </p>
+            )}
+
+            <div className="mt-4 flex flex-col items-center gap-3 md:items-start">
+              {showInlineAuth ? (
+                <GoogleButton />
+              ) : (
+                <button
+                  type="button"
+                  onClick={onAuthOpen}
+                  className="inline-flex h-11 items-center justify-center rounded-full px-8 sm:px-9 text-[0.95rem] font-semibold text-white shadow-lift transition-transform hover:scale-[1.02] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 active:scale-[.98] bg-gradient-to-r from-[#fe9245] to-[#eb423b]"
+                  aria-label="Get started"
+                >
+                  Get started
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* --------------------------- GoogleButton --------------------------- */
+function GoogleButton() {
+  const [submitting, setSubmitting] = useState(false)
+
+  async function handleGoogle() {
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      setSubmitting(true)
+      await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/home`,
+          redirectTo: window.location.origin + '/home',
+          queryParams: { prompt: 'select_account' },
         },
       })
-      
-      if (error) throw error
-    } catch (err) {
-      console.error('Sign in error:', err)
-      setError('Unable to sign in. Please try again.')
-    } finally {
-      setLoading(false)
+    } catch {
+      setSubmitting(false)
     }
   }
 
   return (
-    <section className="relative flex min-h-[calc(100vh-var(--topnav-h,72px)-var(--footer-h,80px))] flex-col items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
-      {/* Hero Content */}
-      <div className="w-full max-w-4xl text-center">
-        {/* Main Heading */}
-        <h1 className="mb-6 text-balance text-4xl font-black leading-tight tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
-          <span className={`bg-gradient-to-r ${BRAND_GRADIENT} bg-clip-text text-transparent`}>
-            Movies
-          </span>{' '}
-          that match
-          <br />
-          your{' '}
-          <span className={`bg-gradient-to-r ${BRAND_GRADIENT} bg-clip-text text-transparent`}>
-            mood
-          </span>
-        </h1>
+    <button
+      type="button"
+      disabled={submitting}
+      onClick={handleGoogle}
+      className="
+        group inline-flex items-center justify-center gap-3
+        rounded-full border border-white/12 bg-white/[.06]
+        py-3 px-5 text-[0.95rem] font-semibold text-white/95
+        hover:bg-white/10 active:scale-[.99] focus:outline-none disabled:opacity-60
+      "
+      aria-label="Continue with Google"
+    >
+      <img
+        src={googleSvg}
+        width="18"
+        height="18"
+        alt=""
+        aria-hidden="true"
+        className="opacity-95"
+      />
+      <span>Continue with Google</span>
+    </button>
+  )
+}
 
-        {/* Subtitle */}
-        <p className="mx-auto mb-8 max-w-2xl text-balance text-base text-white/80 sm:text-lg md:text-xl lg:text-2xl">
-          Discover, track, and share movies based on how you feel. Fast, simple, and free.
-        </p>
+/* --------------------------- MovieStack (unchanged) --------------------------- */
+function MovieStack() {
+  const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY
+  const [items, setItems] = useState([])
+  const imgBase = 'https://image.tmdb.org/t/p/w500'
 
-        {/* CTA */}
-        <div className="mx-auto flex max-w-md flex-col items-center gap-4">
-          <button
-            onClick={handleGoogleSignIn}
-            disabled={loading}
-            className={`group relative w-full rounded-xl bg-gradient-to-r ${BRAND_GRADIENT} px-8 py-4 text-lg font-bold text-white shadow-2xl transition-all hover:scale-105 hover:shadow-[0_0_40px_rgba(255,146,69,0.4)] active:scale-95 disabled:opacity-50 disabled:hover:scale-100 focus:outline-none focus:ring-4 focus:ring-white/30`}
-          >
-            {loading ? (
-              <span className="flex items-center justify-center gap-2">
-                <Loader2 className="h-5 w-5 animate-spin" />
-                Connecting...
-              </span>
-            ) : (
-              <span className="flex items-center justify-center gap-3">
-                <svg className="h-5 w-5" viewBox="0 0 24 24">
-                  <path
-                    fill="currentColor"
-                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                  />
-                  <path
-                    fill="currentColor"
-                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                  />
-                  <path
-                    fill="currentColor"
-                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                  />
-                  <path
-                    fill="currentColor"
-                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                  />
-                </svg>
-                Continue with Google
-              </span>
-            )}
-          </button>
+  const fallbacks = useMemo(
+    () => [
+      { id: 'a', title: 'Top pick', poster_path: '' },
+      { id: 'b', title: 'Critics love it', poster_path: '' },
+      { id: 'c', title: 'Fan favorite', poster_path: '' },
+    ],
+    []
+  )
 
-          {error && (
-            <p className="text-sm text-red-400 animate-in fade-in slide-in-from-top-1 duration-300">
-              {error}
-            </p>
-          )}
+  useEffect(() => {
+    let abort = false
+    async function load() {
+      try {
+        if (!TMDB_KEY) return setItems(fallbacks)
+        const r = await fetch(`https://api.themoviedb.org/3/trending/movie/week?api_key=${TMDB_KEY}`)
+        const j = await r.json()
+        const top = (j?.results || [])
+          .filter(m => m.poster_path)
+          .sort((a, b) => (b.vote_average || 0) - (a.vote_average || 0))
+          .slice(0, 3)
+        if (!abort) setItems(top.length ? top : fallbacks)
+      } catch {
+        if (!abort) setItems(fallbacks)
+      }
+    }
+    load()
+    return () => { abort = true }
+  }, [TMDB_KEY, fallbacks])
 
-          <p className="text-xs text-white/50">
-            No credit card required · Free forever
-          </p>
-        </div>
-      </div>
+  return (
+    <div className="relative w-[min(90vw,520px)] md:w-[540px] aspect-[5/4] md:aspect-[4/3] select-none" aria-hidden>
+      <PosterCard
+        title={items[2]?.title}
+        src={items[2]?.poster_path ? `${imgBase}${items[2].poster_path}` : null}
+        className="absolute left-1/2 top-1/2 w-[38%] -translate-x-[110%] -translate-y-[62%] rotate-[-16deg] opacity-95"
+      />
+      <PosterCard
+        title={items[1]?.title}
+        src={items[1]?.poster_path ? `${imgBase}${items[1].poster_path}` : null}
+        className="absolute left-1/2 top-1/2 w-[42%] translate-x-[10%] -translate-y-[60%] rotate-[13deg] opacity-95"
+      />
+      <PosterCard
+        title={items[0]?.title}
+        src={items[0]?.poster_path ? `${imgBase}${items[0].poster_path}` : null}
+        className="absolute left-1/2 top-1/2 w-[52%] -translate-x-[44%] -translate-y-[51%] rotate-[-5deg] shadow-2xl"
+        glow
+      />
+    </div>
+  )
+}
 
-      {/* Feature Cards */}
-      <div className="mt-16 sm:mt-20 md:mt-24 w-full max-w-6xl">
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {FEATURES.map((feature, idx) => {
-            const Icon = feature.icon
-            return (
-              <div
-                key={feature.title}
-                className="group rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm transition-all hover:border-white/20 hover:bg-white/10 hover:shadow-2xl hover:shadow-white/5 animate-in fade-in slide-in-from-bottom-4 duration-500"
-                style={{ animationDelay: `${idx * 100}ms` }}
-              >
-                <div className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${BRAND_GRADIENT} shadow-lg`}>
-                  <Icon className="h-6 w-6 text-white" />
-                </div>
-                <h3 className="mb-2 text-lg font-bold text-white">
-                  {feature.title}
-                </h3>
-                <p className="text-sm leading-relaxed text-white/70">
-                  {feature.description}
-                </p>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-    </section>
+function PosterCard({ src, title, className = '', glow = false }) {
+  return (
+    <div
+      className={`group rounded-3xl overflow-hidden ring-1 ring-white/10 bg-white/5 backdrop-blur-sm ${className}`}
+      style={{ boxShadow: glow ? '0 30px 70px rgba(0,0,0,.45)' : undefined }}
+      title={title || 'Movie poster'}
+    >
+      {src ? (
+        <img
+          src={src}
+          alt={title || 'Movie poster'}
+          className="h-full w-full object-cover"
+          loading="eager"
+          decoding="async"
+        />
+      ) : (
+        <div className="h-full w-full bg-[linear-gradient(135deg,#111827_0%,#0b1220_100%)]" />
+      )}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/60 to-transparent" />
+    </div>
   )
 }

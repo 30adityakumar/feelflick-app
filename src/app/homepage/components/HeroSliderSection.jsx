@@ -1,7 +1,7 @@
 // src/app/homepage/components/HeroSliderSection.jsx
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Play, Info, ChevronRight } from "lucide-react";
+import { Play, Info } from "lucide-react";
 
 const tmdbImg = (p, s = "original") => (p ? `https://image.tmdb.org/t/p/${s}${p}` : "");
 
@@ -16,7 +16,6 @@ export default function HeroSliderSection({ className = "" }) {
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
 
-  // Fetch trending/popular movies for hero
   useEffect(() => {
     setLoading(true);
     fetch(
@@ -34,7 +33,6 @@ export default function HeroSliderSection({ className = "" }) {
       });
   }, []);
 
-  // Auto-advance slider
   useEffect(() => {
     if (!slides.length || isPaused) return;
     clearInterval(timerRef.current);
@@ -51,13 +49,6 @@ export default function HeroSliderSection({ className = "" }) {
     setTimeout(() => setIsTransitioning(false), 800);
   };
 
-  const prevSlide = () => {
-    if (isTransitioning) return;
-    setIsTransitioning(true);
-    setCurrentIndex((prev) => (prev - 1 + slides.length) % slides.length);
-    setTimeout(() => setIsTransitioning(false), 800);
-  };
-
   const goToSlide = (index) => {
     if (isTransitioning || index === currentIndex) return;
     setIsTransitioning(true);
@@ -65,7 +56,6 @@ export default function HeroSliderSection({ className = "" }) {
     setTimeout(() => setIsTransitioning(false), 800);
   };
 
-  // Touch handlers for mobile swipe
   const handleTouchStart = (e) => {
     touchStartX.current = e.touches[0].clientX;
   };
@@ -78,18 +68,22 @@ export default function HeroSliderSection({ className = "" }) {
     const diff = touchStartX.current - touchEndX.current;
     if (Math.abs(diff) > 50) {
       if (diff > 0) nextSlide();
-      else prevSlide();
+      else {
+        if (isTransitioning) return;
+        setIsTransitioning(true);
+        setCurrentIndex((prev) => (prev - 1 + slides.length) % slides.length);
+        setTimeout(() => setIsTransitioning(false), 800);
+      }
     }
   };
 
   const currentMovie = slides[currentIndex] || {};
-
   const viewDetails = () => currentMovie?.id && nav(`/movie/${currentMovie.id}`);
 
   if (loading) {
     return (
       <section className={`relative w-full bg-neutral-950 ${className}`}>
-        <div className="aspect-[16/9] md:aspect-[21/9] animate-pulse bg-neutral-900" />
+        <div className="aspect-[9/16] sm:aspect-[16/10] md:aspect-[21/9] animate-pulse bg-neutral-900" />
       </section>
     );
   }
@@ -105,9 +99,9 @@ export default function HeroSliderSection({ className = "" }) {
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Hero Image Container */}
-      <div className="relative w-full aspect-[9/14] xs:aspect-[16/11] sm:aspect-[16/9] md:aspect-[21/9]">
-        {/* Background Images with Crossfade */}
+      {/* Hero Image Container with proper aspect ratios */}
+      <div className="relative w-full aspect-[9/16] xs:aspect-[3/4] sm:aspect-[16/10] md:aspect-[16/8] lg:aspect-[21/9]">
+        {/* Background Images */}
         {slides.map((movie, idx) => {
           const bg = tmdbImg(movie.backdrop_path || movie.poster_path, "original");
           return (
@@ -120,33 +114,33 @@ export default function HeroSliderSection({ className = "" }) {
               <img
                 src={bg}
                 alt={movie.title || ""}
-                className="absolute inset-0 h-full w-full object-cover"
+                className="absolute inset-0 h-full w-full object-cover object-center"
                 loading={idx === 0 ? "eager" : "lazy"}
               />
             </div>
           );
         })}
 
-        {/* Gradient Overlays - Netflix style */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent z-20" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/30 to-transparent z-20" />
-        <div className="absolute bottom-0 inset-x-0 h-32 bg-gradient-to-t from-black to-transparent z-20" />
+        {/* Gradient Overlays */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent z-20" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/20 to-transparent z-20" />
+        <div className="absolute bottom-0 inset-x-0 h-24 sm:h-32 md:h-40 bg-gradient-to-t from-black to-transparent z-20" />
       </div>
 
-      {/* Content Overlay */}
-      <div className="absolute inset-0 z-30 flex items-end pb-12 sm:pb-16 md:pb-20 lg:pb-24">
-        <div className="w-full max-w-[1800px] mx-auto px-4 sm:px-6 md:px-8 lg:px-12">
-          <div className="max-w-xl lg:max-w-2xl">
-            {/* Title */}
-            <h1 className="text-white font-black tracking-tight leading-[0.95] text-4xl sm:text-5xl md:text-6xl lg:text-7xl drop-shadow-2xl mb-4 md:mb-5 animate-fade-in">
+      {/* Content Overlay - Properly constrained */}
+      <div className="absolute inset-0 z-30 flex items-end pb-8 sm:pb-12 md:pb-16 lg:pb-20">
+        <div className="w-full px-4 sm:px-6 md:px-8 lg:px-12 max-w-[1920px] mx-auto">
+          <div className="max-w-xl md:max-w-2xl lg:max-w-3xl">
+            {/* Title - Responsive sizing */}
+            <h1 className="text-white font-black tracking-tight leading-tight text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl drop-shadow-2xl mb-2 sm:mb-3 md:mb-4">
               {currentMovie?.title || "Featured"}
             </h1>
 
             {/* Meta Info */}
-            <div className="flex items-center gap-3 mb-4 text-sm md:text-base">
+            <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4 text-xs sm:text-sm md:text-base">
               {currentMovie?.vote_average && (
-                <div className="flex items-center gap-1.5 text-green-400 font-bold">
-                  <span className="text-lg">★</span>
+                <div className="flex items-center gap-1 text-green-400 font-bold">
+                  <span className="text-base sm:text-lg">★</span>
                   <span>{currentMovie.vote_average.toFixed(1)}</span>
                 </div>
               )}
@@ -157,36 +151,37 @@ export default function HeroSliderSection({ className = "" }) {
               )}
             </div>
 
-            {/* Overview */}
+            {/* Overview - Hidden on very small screens, progressively shown */}
             {currentMovie?.overview && (
-              <p className="text-white/95 text-sm sm:text-base md:text-lg leading-relaxed line-clamp-2 sm:line-clamp-3 md:line-clamp-4 drop-shadow-lg mb-5 md:mb-7 max-w-2xl">
+              <p className="hidden xs:block text-white/90 text-xs sm:text-sm md:text-base lg:text-lg leading-relaxed line-clamp-2 sm:line-clamp-3 md:line-clamp-4 drop-shadow-lg mb-4 sm:mb-5 md:mb-6">
                 {currentMovie.overview}
               </p>
             )}
 
             {/* Action Buttons */}
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               <button
                 onClick={viewDetails}
-                className="inline-flex items-center justify-center gap-2.5 rounded-md bg-white px-6 sm:px-8 py-3 sm:py-3.5 text-base sm:text-lg font-bold text-black transition-all hover:bg-white/90 active:scale-95 focus:outline-none focus:ring-2 focus:ring-white/50 shadow-xl"
+                className="inline-flex items-center justify-center gap-1.5 sm:gap-2 rounded-md bg-white px-4 sm:px-6 md:px-8 py-2 sm:py-2.5 md:py-3 text-sm sm:text-base md:text-lg font-bold text-black transition-all hover:bg-white/90 active:scale-95 focus:outline-none focus:ring-2 focus:ring-white/50 shadow-xl"
               >
-                <Play className="h-5 w-5 sm:h-6 sm:w-6 fill-current" />
+                <Play className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 fill-current" />
                 <span>Play</span>
               </button>
               <button
                 onClick={viewDetails}
-                className="inline-flex items-center justify-center gap-2.5 rounded-md bg-white/25 backdrop-blur-md px-6 sm:px-8 py-3 sm:py-3.5 text-base sm:text-lg font-bold text-white transition-all hover:bg-white/35 active:scale-95 focus:outline-none focus:ring-2 focus:ring-white/50 shadow-xl"
+                className="inline-flex items-center justify-center gap-1.5 sm:gap-2 rounded-md bg-white/25 backdrop-blur-md px-4 sm:px-6 md:px-8 py-2 sm:py-2.5 md:py-3 text-sm sm:text-base md:text-lg font-bold text-white transition-all hover:bg-white/35 active:scale-95 focus:outline-none focus:ring-2 focus:ring-white/50 shadow-xl"
               >
-                <Info className="h-5 w-5 sm:h-6 sm:w-6" />
-                <span>More Info</span>
+                <Info className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
+                <span className="hidden xs:inline">More Info</span>
+                <span className="xs:hidden">Info</span>
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Slide Indicators (Pips) - Bottom right */}
-      <div className="absolute bottom-6 right-6 md:bottom-8 md:right-8 z-40 flex items-center gap-2">
+      {/* Slide Indicators */}
+      <div className="absolute bottom-4 sm:bottom-6 md:bottom-8 right-4 sm:right-6 md:right-8 z-40 flex items-center gap-1.5 sm:gap-2">
         {slides.map((_, idx) => (
           <button
             key={idx}
@@ -194,8 +189,8 @@ export default function HeroSliderSection({ className = "" }) {
             aria-label={`Go to slide ${idx + 1}`}
             className={`h-1 rounded-full transition-all duration-500 focus:outline-none ${
               idx === currentIndex
-                ? "w-8 bg-white shadow-lg"
-                : "w-1 bg-white/40 hover:bg-white/60"
+                ? "w-6 sm:w-8 bg-white shadow-lg"
+                : "w-1 sm:w-1.5 bg-white/40 hover:bg-white/60"
             }`}
           />
         ))}

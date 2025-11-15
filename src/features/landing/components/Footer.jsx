@@ -1,4 +1,5 @@
 // src/features/landing/components/Footer.jsx
+// src/features/landing/components/Footer.jsx
 import { useEffect, useRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 
@@ -15,7 +16,7 @@ export default function Footer() {
 
 /* --------------------------- MICRO ONLY (centered, tiny) --------------------------- */
 function MicroFooter() {
-  const year = new Date().getFullYear()
+  const year = new Date().getFullYear() // ✅ Already dynamic!
   const barRef = useRef(null)
 
   // Expose footer height so the hero can perfectly center itself

@@ -1,27 +1,42 @@
 // src/app/pages/watched/WatchedHistory.jsx
 import { useEffect, useState } from "react";
 import { supabase } from "@/shared/lib/supabase/client";
-import MovieCard from "@/app/pages/components/MovieCard";
-import MovieGrid from "@/app/pages/components/MovieGrid";
-import { Loader2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import {
+  Loader2,
+  Clock,
+  Search,
+  SlidersHorizontal,
+  Trash2,
+  Calendar,
+  TrendingUp,
+} from "lucide-react";
 
 export default function WatchedHistory() {
+  const nav = useNavigate();
   const [user, setUser] = useState(null);
   const [movies, setMovies] = useState([]);
+  const [filteredMovies, setFilteredMovies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [removingId, setRemovingId] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState("recent"); // 'recent' | 'title' | 'rating'
 
   // Get current user
   useEffect(() => {
     let active = true;
     (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (active) setUser(user || null);
     })();
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, []);
 
-  // Get watched movies for this user (from movies_watched, all display fields present)
+  // Get watched movies
   useEffect(() => {
     if (!user) return;
     let active = true;
@@ -33,82 +48,315 @@ export default function WatchedHistory() {
           .from("movies_watched")
           .select("*")
           .eq("user_id", user.id)
-          .order("id", { ascending: false });
+          .order("created_at", { ascending: false });
+
         if (error) throw error;
-        if (active) setMovies(data ?? []);
+        if (active) {
+          setMovies(data ?? []);
+          setFilteredMovies(data ?? []);
+        }
       } catch (err) {
-        if (active) setMovies([]);
+        if (active) {
+          setMovies([]);
+          setFilteredMovies([]);
+        }
       } finally {
         if (active) setLoading(false);
       }
     })();
 
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [user, removingId]);
 
-  // Remove a movie from watched history
+  // Filter and sort
+  useEffect(() => {
+    let result = [...movies];
+
+    // Filter by search
+    if (searchQuery) {
+      result = result.filter((m) =>
+        m.title?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Sort
+    result.sort((a, b) => {
+      if (sortBy === "title") {
+        return (a.title || "").localeCompare(b.title || "");
+      } else if (sortBy === "rating") {
+        return (b.vote_average || 0) - (a.vote_average || 0);
+      } else {
+        // Default: recent (by created_at)
+        return new Date(b.created_at || 0) - new Date(a.created_at || 0);
+      }
+    });
+
+    setFilteredMovies(result);
+  }, [movies, searchQuery, sortBy]);
+
+  // Remove a movie from history
   async function remove(movie_id) {
     if (!user) return;
     setRemovingId(movie_id);
     try {
-      await supabase.from("movies_watched")
+      await supabase
+        .from("movies_watched")
         .delete()
         .eq("user_id", user.id)
         .eq("movie_id", movie_id);
-      setMovies(prev => prev.filter(m => m.movie_id !== movie_id));
+      setMovies((prev) => prev.filter((m) => m.movie_id !== movie_id));
     } finally {
       setRemovingId(null);
     }
   }
 
-  return (
-    <main className="w-full px-4 sm:px-6 lg:px-8 py-6 md:py-8 min-h-screen">
-      <div className="flex items-center gap-2 mb-4">
-        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white">
-          Watched History
-        </h1>
-        <span className="text-white/70 font-semibold">
-          {loading ? "Loading…" : movies.length + " movies"}
-        </span>
-      </div>
+  function goToMovie(id) {
+    nav(`/movie/${id}`);
+  }
 
-      {loading ? (
-        <div className="flex items-center justify-center h-[40vh] text-white/80">
-          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-          Loading your watched history…
+  // Calculate stats
+  const totalMovies = movies.length;
+  const avgRating =
+    movies.length > 0
+      ? (
+          movies.reduce((sum, m) => sum + (m.vote_average || 0), 0) /
+          movies.length
+        ).toFixed(1)
+      : 0;
+
+  return (
+    <main
+      className="bg-black text-white w-full pb-20 md:pb-8"
+      style={{
+        paddingTop: "var(--hdr-h, 64px)",
+        minHeight: "100vh",
+      }}
+    >
+      <div className="mx-auto max-w-7xl px-4 py-4 sm:py-6 md:py-8">
+        {/* Header */}
+        <div className="mb-4 sm:mb-6">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+              <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight">
+                Watch History
+              </h1>
+              <p className="text-xs sm:text-sm text-white/60">
+                Track your movie journey
+              </p>
+            </div>
+          </div>
+
+          {/* Stats */}
+          {!loading && movies.length > 0 && (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md p-3 sm:p-4">
+                <div className="flex items-center gap-2 text-white/60 mb-1">
+                  <Calendar className="h-4 w-4" />
+                  <span className="text-xs font-medium">Total Watched</span>
+                </div>
+                <p className="text-xl sm:text-2xl font-bold">{totalMovies}</p>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md p-3 sm:p-4">
+                <div className="flex items-center gap-2 text-white/60 mb-1">
+                  <TrendingUp className="h-4 w-4" />
+                  <span className="text-xs font-medium">Avg Rating</span>
+                </div>
+                <p className="text-xl sm:text-2xl font-bold">
+                  <span className="text-yellow-400">★</span> {avgRating}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
-      ) : movies.length === 0 ? (
-        <EmptyState />
-      ) : (
-        <MovieGrid>
-          {movies.map(m => (
-            <MovieCard
-              key={m.movie_id}
-              // MovieCard expects { id, title, poster_path, release_date, vote_average}
-              movie={{
-                id: m.movie_id,
-                title: m.title,
-                poster_path: m.poster,
-                release_date: m.release_date,
-                vote_average: m.vote_average,
-                status: m.source // show onboarding badge if wanted
-              }}
-              onRemove={() => remove(m.movie_id)}
-              removing={removingId === m.movie_id}
-            />
-          ))}
-        </MovieGrid>
-      )}
+
+        {/* Search & Sort Bar */}
+        {!loading && movies.length > 0 && (
+          <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row gap-3">
+            {/* Search */}
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+              <input
+                type="text"
+                placeholder="Search history..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 sm:py-3 text-sm text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all"
+              />
+            </div>
+
+            {/* Sort */}
+            <div className="relative">
+              <SlidersHorizontal className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="appearance-none bg-white/5 border border-white/10 rounded-xl pl-10 pr-10 py-2.5 sm:py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all cursor-pointer"
+              >
+                <option value="recent">Recently Watched</option>
+                <option value="title">Title (A-Z)</option>
+                <option value="rating">Highest Rated</option>
+              </select>
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                <svg
+                  className="h-4 w-4 text-white/40"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Content */}
+        {loading ? (
+          <div className="flex items-center justify-center h-[50vh] text-white/80">
+            <div className="text-center">
+              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-purple-500" />
+              <p className="text-sm">Loading your history...</p>
+            </div>
+          </div>
+        ) : filteredMovies.length === 0 && searchQuery ? (
+          <div className="flex flex-col items-center justify-center h-[50vh] text-center">
+            <Search className="h-12 w-12 text-white/20 mb-4" />
+            <p className="text-white/70 mb-2">
+              No movies found for "{searchQuery}"
+            </p>
+            <button
+              onClick={() => setSearchQuery("")}
+              className="text-sm text-purple-400 hover:text-purple-300 transition-colors"
+            >
+              Clear search
+            </button>
+          </div>
+        ) : movies.length === 0 ? (
+          <EmptyState />
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+            {filteredMovies.map((m) => (
+              <MovieCard
+                key={m.movie_id}
+                movie={{
+                  id: m.movie_id,
+                  title: m.title,
+                  poster_path: m.poster,
+                  release_date: m.release_date,
+                  vote_average: m.vote_average,
+                  created_at: m.created_at,
+                }}
+                onRemove={() => remove(m.movie_id)}
+                onClick={() => goToMovie(m.movie_id)}
+                removing={removingId === m.movie_id}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </main>
   );
 }
 
+/* ===== Movie Card Component ===== */
+function MovieCard({ movie, onRemove, onClick, removing }) {
+  return (
+    <div className="group relative">
+      <button
+        onClick={onClick}
+        className="relative block w-full aspect-[2/3] rounded-lg overflow-hidden bg-white/5 transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+      >
+        {movie.poster_path ? (
+          <img
+            src={
+              movie.poster_path.startsWith("http")
+                ? movie.poster_path
+                : `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+            }
+            alt={movie.title}
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-white/10">
+            <span className="text-white/40 text-xs">No Image</span>
+          </div>
+        )}
+
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+          <div className="absolute bottom-0 left-0 right-0 p-3">
+            <h3 className="text-xs sm:text-sm font-bold text-white leading-tight line-clamp-2 drop-shadow-lg">
+              {movie.title}
+            </h3>
+            <div className="flex items-center gap-2 mt-1 text-[10px] sm:text-xs text-white/80">
+              {movie.release_date && (
+                <span>{new Date(movie.release_date).getFullYear()}</span>
+              )}
+              {movie.vote_average && (
+                <>
+                  <span>•</span>
+                  <span className="flex items-center gap-1">
+                    <span className="text-yellow-400">★</span>
+                    {movie.vote_average.toFixed(1)}
+                  </span>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </button>
+
+      {/* Remove Button */}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onRemove();
+        }}
+        disabled={removing}
+        className="absolute top-2 right-2 z-10 h-8 w-8 rounded-full bg-black/70 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white/80 hover:text-red-400 hover:bg-black/90 transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100 active:scale-90 disabled:opacity-50"
+        title="Remove from history"
+      >
+        {removing ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <Trash2 className="h-4 w-4" />
+        )}
+      </button>
+    </div>
+  );
+}
+
+/* ===== Empty State ===== */
 function EmptyState() {
   return (
-    <div className="mt-14 flex flex-col items-center justify-center text-center text-white/90">
-      <span role="img" aria-label="Empty" className="block text-3xl mb-2">🍿</span>
-      <div className="text-xl font-semibold">No watched movies yet.</div>
-      <div className="mt-1 text-white/60">Mark some as watched to see them here!</div>
+    <div className="flex flex-col items-center justify-center h-[50vh] text-center px-4">
+      <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-full bg-white/5 flex items-center justify-center mb-6">
+        <Clock className="h-10 w-10 sm:h-12 sm:w-12 text-white/20" />
+      </div>
+      <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">
+        No watch history yet
+      </h2>
+      <p className="text-sm sm:text-base text-white/60 mb-6 max-w-md">
+        Start watching movies to build your viewing history and get personalized
+        recommendations
+      </p>
+      <a
+        href="/browse"
+        className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-3 rounded-xl text-sm font-bold text-white hover:scale-105 transition-transform"
+      >
+        Browse Movies
+      </a>
     </div>
   );
 }

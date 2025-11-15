@@ -121,13 +121,13 @@ export default function HeroSliderSection({ className = "" }) {
         })}
 
         {/* Gradients for text legibility */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent z-20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent z-20" />
         <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/30 md:via-black/20 to-transparent z-20" />
-        <div className="absolute bottom-0 inset-x-0 h-1/2 sm:h-1/3 bg-gradient-to-t from-black via-black/70 to-transparent z-20" />
+        <div className="absolute bottom-0 inset-x-0 h-1/2 sm:h-2/5 bg-gradient-to-t from-black via-black/80 to-transparent z-20" />
       </div>
 
-      {/* Content Overlay */}
-      <div className="absolute inset-0 z-30 flex items-end pb-16 sm:pb-20 md:pb-24 lg:pb-28">
+      {/* Content Overlay - Extra bottom padding to prevent overlap */}
+      <div className="absolute inset-0 z-30 flex items-end pb-24 sm:pb-28 md:pb-32 lg:pb-36 xl:pb-40">
         <div className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16">
           <div className="max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl xl:max-w-3xl">
             {/* Title */}

@@ -1,5 +1,5 @@
 // src/app/header/Header.jsx
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/shared/lib/supabase/client";
 import {
@@ -14,32 +14,56 @@ import {
   Clock,
   Bell,
   X,
+  ChevronRight,
+  Film,
+  TrendingUp,
 } from "lucide-react";
 
 export default function Header({ onOpenSearch }) {
   const { pathname } = useLocation();
   const [user, setUser] = useState(null);
   const [scrolled, setScrolled] = useState(false);
+  const [scrollDirection, setScrollDirection] = useState("up");
+  const [lastScrollY, setLastScrollY] = useState(0);
   const hdrRef = useRef(null);
 
+  // User session management
   useEffect(() => {
     let unsub;
-    supabase.auth.getUser().then(({ data }) => setUser(data?.user || null));
-    const { data } = supabase.auth.onAuthStateChange((_e, s) =>
-      setUser(s?.user || null)
-    );
+    const getUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      setUser(data?.user || null);
+    };
+    getUser();
+
+    const { data } = supabase.auth.onAuthStateChange((_e, s) => {
+      setUser(s?.user || null);
+    });
     unsub = data?.subscription?.unsubscribe;
     return () => typeof unsub === "function" && unsub();
   }, []);
 
-  // Scroll detection for header background
+  // Smart scroll detection - hide on scroll down, show on scroll up
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 10);
+      const currentScrollY = window.scrollY;
+      
+      // Set scrolled state
+      setScrolled(currentScrollY > 10);
+
+      // Determine scroll direction
+      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        setScrollDirection("down");
+      } else {
+        setScrollDirection("up");
+      }
+
+      setLastScrollY(currentScrollY);
     };
-    window.addEventListener("scroll", handleScroll);
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [lastScrollY]);
 
   // Set CSS variable for header height
   useEffect(() => {
@@ -59,50 +83,59 @@ export default function Header({ onOpenSearch }) {
       <header
         ref={hdrRef}
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          scrollDirection === "down" && scrolled
+            ? "-translate-y-full"
+            : "translate-y-0"
+        } ${
           scrolled
-            ? "bg-black/95 backdrop-blur-xl shadow-lg"
-            : "bg-gradient-to-b from-black/80 to-transparent backdrop-blur-sm"
+            ? "bg-black/98 backdrop-blur-2xl shadow-2xl border-b border-white/5"
+            : "bg-gradient-to-b from-black/90 via-black/70 to-transparent backdrop-blur-md"
         }`}
       >
-        <div className="mx-auto max-w-[2000px] px-4 sm:px-6 lg:px-8 xl:px-12">
-          <div className="flex h-16 md:h-[72px] items-center justify-between gap-4">
+        <div className="mx-auto max-w-[2000px] px-3 sm:px-4 md:px-6 lg:px-8 xl:px-12">
+          <div className="flex h-14 sm:h-16 md:h-[72px] items-center justify-between gap-2 sm:gap-4">
             {/* Left: Logo + Nav */}
-            <div className="flex items-center gap-6 lg:gap-8 min-w-0">
+            <div className="flex items-center gap-4 sm:gap-6 lg:gap-8 min-w-0 flex-1">
               {/* Logo */}
               <Link
                 to="/home"
                 aria-label="FeelFlick Home"
-                className="flex-shrink-0 group"
+                className="flex-shrink-0 group relative"
               >
-                <span className="block text-xl md:text-2xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-500 group-hover:from-orange-400 group-hover:to-red-400 transition-all">
+                <span className="block text-lg sm:text-xl md:text-2xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 group-hover:from-orange-400 group-hover:via-red-400 group-hover:to-pink-400 transition-all duration-300">
                   FEELFLICK
                 </span>
+                {/* Subtle underline animation */}
+                <span className="absolute bottom-0 left-0 h-0.5 w-0 bg-gradient-to-r from-orange-500 to-red-500 group-hover:w-full transition-all duration-300" />
               </Link>
 
               {/* Desktop Navigation */}
               <nav className="hidden md:flex items-center gap-1">
-                <NavItem to="/home" icon={<Home className="h-5 w-5" />}>
+                <NavItem to="/home" icon={<Home className="h-4 w-4" />}>
                   Home
                 </NavItem>
-                <NavItem to="/browse" icon={<Compass className="h-5 w-5" />}>
+                <NavItem to="/browse" icon={<Compass className="h-4 w-4" />}>
                   Browse
+                </NavItem>
+                <NavItem to="/watchlist" icon={<Bookmark className="h-4 w-4" />}>
+                  Watchlist
                 </NavItem>
               </nav>
             </div>
 
-            {/* Right: Search + Notifications + Account */}
+            {/* Right: Search + Account */}
             <div className="flex items-center gap-2 sm:gap-3">
               {/* Desktop Search */}
               <button
                 onClick={onOpenSearch}
-                className="hidden md:inline-flex items-center gap-2 h-10 px-4 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 transition-all group"
-                aria-label="Search"
+                className="hidden sm:inline-flex items-center gap-2 h-9 md:h-10 px-3 md:px-4 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 hover:border-white/20 transition-all duration-300 group"
+                aria-label="Search movies"
               >
                 <SearchIcon className="h-4 w-4 text-white/70 group-hover:text-white transition-colors" />
-                <span className="text-sm text-white/70 group-hover:text-white transition-colors">
+                <span className="hidden lg:inline text-sm text-white/70 group-hover:text-white transition-colors">
                   Search
                 </span>
-                <kbd className="hidden lg:inline-block ml-2 px-2 py-0.5 text-xs rounded bg-white/10 text-white/50 border border-white/10">
+                <kbd className="hidden xl:inline-block ml-2 px-2 py-0.5 text-xs rounded bg-white/10 text-white/50 border border-white/10">
                   /
                 </kbd>
               </button>
@@ -110,20 +143,10 @@ export default function Header({ onOpenSearch }) {
               {/* Mobile Search Icon */}
               <button
                 onClick={onOpenSearch}
-                className="md:hidden flex items-center justify-center h-10 w-10 rounded-full hover:bg-white/10 transition-colors"
-                aria-label="Search"
+                className="sm:hidden flex items-center justify-center h-10 w-10 rounded-full hover:bg-white/10 active:scale-95 transition-all"
+                aria-label="Search movies"
               >
-                <SearchIcon className="h-5 w-5 text-white/80" />
-              </button>
-
-              {/* Notifications (Optional) */}
-              <button
-                className="hidden lg:flex items-center justify-center h-10 w-10 rounded-full hover:bg-white/10 transition-colors relative"
-                aria-label="Notifications"
-              >
-                <Bell className="h-5 w-5 text-white/80" />
-                {/* Notification badge */}
-                <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500 ring-2 ring-black" />
+                <SearchIcon className="h-5 w-5 text-white/90" />
               </button>
 
               {/* Desktop Account Menu */}
@@ -136,7 +159,7 @@ export default function Header({ onOpenSearch }) {
       </header>
 
       {/* Mobile Bottom Navigation */}
-      <MobileBottomNav pathname={pathname} user={user} />
+      <MobileBottomNav pathname={pathname} user={user} onOpenSearch={onOpenSearch} />
     </>
   );
 }
@@ -147,15 +170,22 @@ function NavItem({ to, icon, children }) {
     <NavLink
       to={to}
       className={({ isActive }) =>
-        `inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all ${
+        `inline-flex items-center gap-2 px-3 md:px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 relative group ${
           isActive
-            ? "bg-white/15 text-white"
+            ? "bg-white/15 text-white shadow-lg shadow-white/5"
             : "text-white/70 hover:text-white hover:bg-white/10"
         }`
       }
     >
-      {icon}
-      <span>{children}</span>
+      {({ isActive }) => (
+        <>
+          {icon}
+          <span>{children}</span>
+          {isActive && (
+            <span className="absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 w-8 bg-gradient-to-r from-orange-500 to-red-500 rounded-full" />
+          )}
+        </>
+      )}
     </NavLink>
   );
 }
@@ -164,6 +194,7 @@ function NavItem({ to, icon, children }) {
 function AccountMenu({ user }) {
   const nav = useNavigate();
   const [open, setOpen] = useState(false);
+  const [hoveredItem, setHoveredItem] = useState(null);
   const btnRef = useRef(null);
   const popRef = useRef(null);
 
@@ -190,8 +221,7 @@ function AccountMenu({ user }) {
     };
   }, [open]);
 
-  const name =
-    user?.user_metadata?.name || user?.email?.split("@")[0] || "Account";
+  const name = user?.user_metadata?.name || user?.email?.split("@")[0] || "Account";
   const email = user?.email || "";
   const initials = name
     .split(" ")
@@ -205,165 +235,195 @@ function AccountMenu({ user }) {
     nav("/", { replace: true });
   }
 
+  const menuSections = [
+    {
+      items: [
+        { to: "/account", icon: <UserIcon className="h-4 w-4" />, label: "Profile" },
+        { to: "/preferences", icon: <Settings className="h-4 w-4" />, label: "Settings" },
+      ],
+    },
+    {
+      items: [
+        { to: "/watchlist", icon: <Bookmark className="h-4 w-4" />, label: "Watchlist" },
+        { to: "/history", icon: <Clock className="h-4 w-4" />, label: "History" },
+      ],
+    },
+  ];
+
   return (
     <div className="relative">
       <button
         ref={btnRef}
         onClick={() => setOpen((s) => !s)}
-        className="inline-flex items-center gap-2 h-10 px-2 pr-3 rounded-full bg-white/10 hover:bg-white/20 transition-all group"
+        className={`inline-flex items-center gap-2 h-10 pl-1.5 pr-3 rounded-full transition-all duration-300 ${
+          open
+            ? "bg-white/20 shadow-lg shadow-white/10"
+            : "bg-white/10 hover:bg-white/15 hover:shadow-lg hover:shadow-white/5"
+        }`}
         aria-label="Account menu"
       >
-        <div className="h-8 w-8 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-sm font-bold text-white">
+        <div className="h-8 w-8 rounded-full bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 flex items-center justify-center text-sm font-bold text-white ring-2 ring-white/20">
           {initials}
         </div>
         <span className="hidden lg:block text-sm font-semibold text-white max-w-[100px] truncate">
           {name}
         </span>
         <ChevronDown
-          className={`h-4 w-4 text-white/70 transition-transform duration-200 ${
-            open ? "rotate-180" : ""
+          className={`h-4 w-4 text-white/70 transition-all duration-300 ${
+            open ? "rotate-180 text-white" : ""
           }`}
         />
       </button>
 
       {/* Dropdown Menu */}
       {open && (
-        <div
-          ref={popRef}
-          className="absolute right-0 mt-2 w-64 rounded-2xl bg-black/95 backdrop-blur-xl border border-white/10 shadow-2xl overflow-hidden animate-slide-down"
-        >
-          {/* User Info */}
-          <div className="px-4 py-4 border-b border-white/10">
-            <div className="flex items-center gap-3">
-              <div className="h-12 w-12 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-lg font-bold text-white flex-shrink-0">
-                {initials}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-white truncate">{name}</p>
-                <p className="text-xs text-white/60 truncate">{email}</p>
+        <>
+          {/* Backdrop for desktop too */}
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          
+          <div
+            ref={popRef}
+            className="absolute right-0 mt-3 w-72 rounded-2xl bg-black/98 backdrop-blur-2xl border border-white/10 shadow-2xl overflow-hidden z-50"
+            style={{
+              animation: "slideDown 0.2s ease-out",
+            }}
+          >
+            {/* User Info Header */}
+            <div className="px-4 py-4 border-b border-white/10 bg-gradient-to-br from-white/5 to-transparent">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-full bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 flex items-center justify-center text-lg font-bold text-white flex-shrink-0 ring-2 ring-white/20">
+                  {initials}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-white truncate">{name}</p>
+                  <p className="text-xs text-white/60 truncate">{email}</p>
+                </div>
               </div>
             </div>
+
+            {/* Menu Sections */}
+            {menuSections.map((section, idx) => (
+              <div key={idx}>
+                <div className="py-2">
+                  {section.items.map((item) => (
+                    <MenuItem
+                      key={item.to}
+                      to={item.to}
+                      icon={item.icon}
+                      onClick={() => setOpen(false)}
+                      onHover={() => setHoveredItem(item.to)}
+                      isHovered={hoveredItem === item.to}
+                    >
+                      {item.label}
+                    </MenuItem>
+                  ))}
+                </div>
+                {idx < menuSections.length - 1 && (
+                  <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+                )}
+              </div>
+            ))}
+
+            <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+
+            {/* Sign Out */}
+            <button
+              onClick={handleSignOut}
+              onMouseEnter={() => setHoveredItem("signout")}
+              onMouseLeave={() => setHoveredItem(null)}
+              className="flex w-full items-center gap-3 px-4 py-3 text-sm font-semibold text-red-400 hover:bg-red-500/10 transition-all duration-200 group"
+            >
+              <LogOut className="h-4 w-4 group-hover:scale-110 transition-transform" />
+              <span>Sign Out</span>
+              <ChevronRight className="h-4 w-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+            </button>
           </div>
-
-          {/* Menu Items */}
-          <div className="py-2">
-            <MenuItem
-              to="/account"
-              icon={<UserIcon className="h-4 w-4" />}
-              onClick={() => setOpen(false)}
-            >
-              Profile
-            </MenuItem>
-            <MenuItem
-              to="/preferences"
-              icon={<Settings className="h-4 w-4" />}
-              onClick={() => setOpen(false)}
-            >
-              Preferences
-            </MenuItem>
-          </div>
-
-          <div className="h-px bg-white/10" />
-
-          <div className="py-2">
-            <MenuItem
-              to="/watchlist"
-              icon={<Bookmark className="h-4 w-4" />}
-              onClick={() => setOpen(false)}
-            >
-              Watchlist
-            </MenuItem>
-            <MenuItem
-              to="/history"
-              icon={<Clock className="h-4 w-4" />}
-              onClick={() => setOpen(false)}
-            >
-              History
-            </MenuItem>
-          </div>
-
-          <div className="h-px bg-white/10" />
-
-          {/* Sign Out */}
-          <button
-            onClick={handleSignOut}
-            className="flex w-full items-center gap-3 px-4 py-3 text-sm font-semibold text-red-400 hover:bg-white/5 transition-colors"
-          >
-            <LogOut className="h-4 w-4" />
-            <span>Sign Out</span>
-          </button>
-        </div>
+        </>
       )}
     </div>
   );
 }
 
-function MenuItem({ to, icon, children, onClick }) {
+function MenuItem({ to, icon, children, onClick, onHover, isHovered }) {
   return (
     <NavLink
       to={to}
       onClick={onClick}
+      onMouseEnter={onHover}
       className={({ isActive }) =>
-        `flex items-center gap-3 px-4 py-3 text-sm font-semibold transition-colors ${
+        `flex items-center gap-3 px-4 py-3 text-sm font-semibold transition-all duration-200 group relative ${
           isActive
             ? "bg-white/10 text-white"
             : "text-white/80 hover:bg-white/5 hover:text-white"
         }`
       }
     >
-      {icon}
+      <div className="text-white/80 group-hover:text-white group-hover:scale-110 transition-all">
+        {icon}
+      </div>
       <span>{children}</span>
+      <ChevronRight className="h-4 w-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
     </NavLink>
   );
 }
 
 /* ===== Mobile Bottom Navigation ===== */
-function MobileBottomNav({ pathname, user }) {
+function MobileBottomNav({ pathname, user, onOpenSearch }) {
   const nav = useNavigate();
   const [accountOpen, setAccountOpen] = useState(false);
+  const location = useLocation();
 
-  const name =
-    user?.user_metadata?.name || user?.email?.split("@")[0] || "User";
+  // Close account panel when route changes
+  useEffect(() => {
+    setAccountOpen(false);
+  }, [location.pathname]);
+
+  const name = user?.user_metadata?.name || user?.email?.split("@")[0] || "User";
   const initials = name
     .split(" ")
     .map((s) => s[0]?.toUpperCase())
     .slice(0, 2)
     .join("") || "U";
 
+  const navItems = [
+    { icon: <Home className="h-6 w-6" />, label: "Home", path: "/home" },
+    { icon: <SearchIcon className="h-6 w-6" />, label: "Search", action: "search" },
+    { icon: <Bookmark className="h-6 w-6" />, label: "Saved", path: "/watchlist" },
+  ];
+
   return (
     <>
       {/* Bottom Nav Bar */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-black/95 backdrop-blur-xl border-t border-white/10 safe-area-pb">
-        <div className="grid grid-cols-3 h-16">
-          <MobileNavButton
-            icon={<Home className="h-6 w-6" />}
-            label="Home"
-            isActive={pathname === "/home" && !accountOpen}
-            onClick={() => {
-              setAccountOpen(false);
-              nav("/home");
-            }}
-          />
-          <MobileNavButton
-            icon={<Compass className="h-6 w-6" />}
-            label="Browse"
-            isActive={pathname === "/browse" && !accountOpen}
-            onClick={() => {
-              setAccountOpen(false);
-              nav("/browse");
-            }}
-          />
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-black/98 backdrop-blur-2xl border-t border-white/10">
+        <div className="grid grid-cols-4 h-16 px-2">
+          {navItems.map((item) => (
+            <MobileNavButton
+              key={item.label}
+              icon={item.icon}
+              label={item.label}
+              isActive={item.path ? pathname === item.path : false}
+              onClick={() => {
+                setAccountOpen(false);
+                if (item.action === "search") {
+                  onOpenSearch();
+                } else if (item.path) {
+                  nav(item.path);
+                }
+              }}
+            />
+          ))}
           <MobileNavButton
             icon={
-              <div className="h-7 w-7 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-xs font-bold">
+              <div className="h-7 w-7 rounded-full bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 flex items-center justify-center text-xs font-bold ring-2 ring-white/20">
                 {initials}
               </div>
             }
-            label="Account"
+            label="You"
             isActive={accountOpen}
             onClick={() => setAccountOpen((s) => !s)}
           />
         </div>
+        <div className="h-[env(safe-area-inset-bottom)]" />
       </div>
 
       {/* Mobile Account Panel */}
@@ -380,12 +440,19 @@ function MobileNavButton({ icon, label, isActive, onClick }) {
   return (
     <button
       onClick={onClick}
-      className={`flex flex-col items-center justify-center gap-1 transition-colors ${
+      className={`flex flex-col items-center justify-center gap-1 transition-all duration-300 active:scale-95 ${
         isActive ? "text-white" : "text-white/60"
       }`}
     >
-      {icon}
-      <span className="text-[10px] font-medium">{label}</span>
+      <div className={`transition-transform duration-300 ${isActive ? "scale-110" : ""}`}>
+        {icon}
+      </div>
+      <span className={`text-[10px] font-semibold transition-all ${isActive ? "text-white" : "text-white/60"}`}>
+        {label}
+      </span>
+      {isActive && (
+        <span className="absolute bottom-0 h-0.5 w-8 bg-gradient-to-r from-orange-500 to-red-500 rounded-full" />
+      )}
     </button>
   );
 }
@@ -394,10 +461,20 @@ function MobileNavButton({ icon, label, isActive, onClick }) {
 function MobileAccountPanel({ open, user, onClose }) {
   const nav = useNavigate();
 
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
+
   if (!open) return null;
 
-  const name =
-    user?.user_metadata?.name || user?.email?.split("@")[0] || "User";
+  const name = user?.user_metadata?.name || user?.email?.split("@")[0] || "User";
   const email = user?.email || "";
   const initials = name
     .split(" ")
@@ -407,19 +484,18 @@ function MobileAccountPanel({ open, user, onClose }) {
 
   const handleNavigate = (path) => {
     onClose();
-    nav(path);
+    setTimeout(() => nav(path), 150);
   };
 
   async function handleSignOut() {
     await supabase.auth.signOut();
     onClose();
-    nav("/", { replace: true });
+    setTimeout(() => nav("/", { replace: true }), 150);
   }
 
   const menuItems = [
     { icon: <UserIcon className="h-5 w-5" />, label: "Profile", path: "/account" },
-    { icon: <Settings className="h-5 w-5" />, label: "Preferences", path: "/preferences" },
-    { icon: <Bookmark className="h-5 w-5" />, label: "Watchlist", path: "/watchlist" },
+    { icon: <Settings className="h-5 w-5" />, label: "Settings", path: "/preferences" },
     { icon: <Clock className="h-5 w-5" />, label: "History", path: "/history" },
   ];
 
@@ -427,31 +503,40 @@ function MobileAccountPanel({ open, user, onClose }) {
     <>
       {/* Backdrop */}
       <div
-        className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40 animate-fade-in"
+        className="md:hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-40"
+        style={{ animation: "fadeIn 0.2s ease-out" }}
         onClick={onClose}
       />
 
       {/* Panel */}
-      <div className="md:hidden fixed bottom-16 left-0 right-0 z-50 bg-black/95 backdrop-blur-xl border-t border-white/10 rounded-t-3xl shadow-2xl max-h-[70vh] overflow-y-auto animate-slide-up">
+      <div
+        className="md:hidden fixed bottom-16 left-0 right-0 z-50 bg-black/98 backdrop-blur-2xl border-t border-white/10 rounded-t-3xl shadow-2xl max-h-[75vh] overflow-y-auto"
+        style={{ animation: "slideUp 0.3s ease-out" }}
+      >
+        {/* Handle Bar */}
+        <div className="flex justify-center pt-3 pb-2">
+          <div className="w-12 h-1 bg-white/20 rounded-full" />
+        </div>
+
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+        <div className="flex items-center justify-between px-6 py-3">
           <h2 className="text-lg font-bold text-white">Account</h2>
           <button
             onClick={onClose}
-            className="h-8 w-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
+            className="h-9 w-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 active:scale-95 transition-all"
           >
             <X className="h-5 w-5 text-white" />
           </button>
         </div>
 
         {/* User Info */}
-        <div className="px-6 py-5 border-b border-white/10">
+        <div className="px-6 py-5 border-y border-white/10 bg-gradient-to-br from-white/5 to-transparent">
           <div className="flex items-center gap-4">
-            <div className="h-14 w-14 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-xl font-bold text-white flex-shrink-0">
+            <div className="h-16 w-16 rounded-full bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 flex items-center justify-center text-2xl font-bold text-white flex-shrink-0 ring-4 ring-white/10">
               {initials}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-base font-semibold text-white truncate">{name}</p>
+              <p className="text-lg font-bold text-white truncate">{name}</p>
               <p className="text-sm text-white/60 truncate">{email}</p>
             </div>
           </div>
@@ -459,29 +544,71 @@ function MobileAccountPanel({ open, user, onClose }) {
 
         {/* Menu Items */}
         <div className="py-2">
-          {menuItems.map((item) => (
+          {menuItems.map((item, idx) => (
             <button
               key={item.label}
               onClick={() => handleNavigate(item.path)}
-              className="flex w-full items-center gap-4 px-6 py-4 text-white/90 hover:bg-white/5 transition-colors"
+              className="flex w-full items-center gap-4 px-6 py-4 text-white/90 hover:bg-white/5 active:bg-white/10 transition-all group"
+              style={{ animationDelay: `${idx * 50}ms` }}
             >
-              <div className="text-white/80">{item.icon}</div>
-              <span className="text-base font-semibold">{item.label}</span>
+              <div className="text-white/80 group-hover:text-white group-active:scale-110 transition-all">
+                {item.icon}
+              </div>
+              <span className="text-base font-semibold flex-1 text-left">{item.label}</span>
+              <ChevronRight className="h-5 w-5 text-white/40 group-hover:text-white/70 transition-all" />
             </button>
           ))}
         </div>
 
         {/* Sign Out */}
-        <div className="border-t border-white/10">
+        <div className="border-t border-white/10 mt-2">
           <button
             onClick={handleSignOut}
-            className="flex w-full items-center gap-4 px-6 py-4 text-red-400 hover:bg-white/5 transition-colors"
+            className="flex w-full items-center gap-4 px-6 py-4 text-red-400 hover:bg-red-500/10 active:bg-red-500/20 transition-all group"
           >
-            <LogOut className="h-5 w-5" />
-            <span className="text-base font-semibold">Sign Out</span>
+            <LogOut className="h-5 w-5 group-active:scale-110 transition-transform" />
+            <span className="text-base font-semibold flex-1 text-left">Sign Out</span>
           </button>
         </div>
+
+        <div className="h-4" />
       </div>
     </>
   );
 }
+
+// Add these animations to your global CSS or tailwind config
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+`;
+document.head.appendChild(style);

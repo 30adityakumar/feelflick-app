@@ -3,12 +3,18 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/shared/lib/supabase/client";
 import {
-  Camera, Loader2, CheckCircle2, LogOut, Shield, Key, RefreshCcw, Trash2,
+  Camera,
+  Loader2,
+  CheckCircle2,
+  LogOut,
+  Shield,
+  Key,
+  RefreshCcw,
+  Trash2,
+  User as UserIcon,
 } from "lucide-react";
 
 const BTN_GRAD = "linear-gradient(90deg,#fe9245 10%,#eb423b 90%)";
-const AVATAR_SIZE = "h-14 w-14";
-const BTN_ICON_SIZE = "h-5 w-5";
 
 export default function Account() {
   const nav = useNavigate();
@@ -25,20 +31,26 @@ export default function Account() {
   useEffect(() => {
     let mounted = true;
     (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!mounted) return;
       setAuthUser(user || null);
       if (!user) return;
       const { data } = await supabase
         .from("users")
-        .select("name,email,avatar_url,signup_source,joined_at,onboarding_complete,onboarding_completed_at")
+        .select(
+          "name,email,avatar_url,signup_source,joined_at,onboarding_complete,onboarding_completed_at"
+        )
         .eq("id", user.id)
         .maybeSingle();
       setProfile(data || null);
-      setName((data?.name) || user.user_metadata?.name || "");
+      setName(data?.name || user.user_metadata?.name || "");
       setAvatarUrl(data?.avatar_url || "");
     })();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const initials = useMemo(() => {
@@ -47,12 +59,14 @@ export default function Account() {
       authUser?.user_metadata?.name ||
       authUser?.email?.split("@")[0] ||
       "User";
-    return base
-      .trim()
-      .split(/\s+/)
-      .map(s => s[0]?.toUpperCase())
-      .slice(0, 2)
-      .join("") || "U";
+    return (
+      base
+        .trim()
+        .split(/\s+/)
+        .map((s) => s[0]?.toUpperCase())
+        .slice(0, 2)
+        .join("") || "U"
+    );
   }, [profile, authUser]);
 
   async function handleSave(e) {
@@ -76,30 +90,30 @@ export default function Account() {
           avatar_url: avatarUrl || null,
         });
       }
-      setMsg("Saved!");
+      setMsg("Profile updated successfully!");
     } catch (e) {
       console.warn("Account save error", e);
       setMsg("Could not save. Please try again.");
     } finally {
       setSaving(false);
-      setTimeout(() => setMsg(""), 1800);
+      setTimeout(() => setMsg(""), 2500);
     }
   }
 
   async function signOut() {
     await supabase.auth.signOut();
-    nav("/auth", { replace: true });
+    nav("/", { replace: true });
   }
 
   async function signOutEverywhere() {
     try {
       setBusy(true);
       await supabase.auth.signOut({ scope: "global" });
-      nav("/auth", { replace: true });
+      nav("/", { replace: true });
     } catch (e) {
       console.warn("Global signout error", e);
       await supabase.auth.signOut();
-      nav("/auth", { replace: true });
+      nav("/", { replace: true });
     } finally {
       setBusy(false);
     }
@@ -140,12 +154,15 @@ export default function Account() {
       });
       if (up.error) {
         console.warn("Avatar upload error:", up.error.message);
-        setMsg("Could not upload avatar (storage not configured).");
+        setMsg("Could not upload avatar.");
         return;
       }
       const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
       const publicUrl = pub?.publicUrl || "";
-      await supabase.from("users").update({ avatar_url: publicUrl }).eq("id", authUser.id);
+      await supabase
+        .from("users")
+        .update({ avatar_url: publicUrl })
+        .eq("id", authUser.id);
       setAvatarUrl(publicUrl);
       setMsg("Avatar updated!");
     } catch (e) {
@@ -168,145 +185,252 @@ export default function Account() {
 
   if (!authUser) {
     return (
-      <div className="mx-auto mt-8 max-w-[440px] rounded-2xl border border-white/10 bg-neutral-950/70 p-4 text-white/80 backdrop-blur-md">
-        <p>You’re signed out.</p>
+      <div
+        className="flex items-center justify-center bg-black text-white"
+        style={{
+          minHeight: "calc(100vh - var(--hdr-h, 64px))",
+          paddingTop: "var(--hdr-h, 64px)",
+          paddingBottom: "env(safe-area-inset-bottom)",
+        }}
+      >
+        <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md p-6 text-center max-w-sm mx-4">
+          <UserIcon className="h-12 w-12 mx-auto text-white/40 mb-4" />
+          <p className="text-white/80">You're signed out.</p>
+        </div>
       </div>
     );
   }
 
   return (
     <div
-      className="w-full md:mx-auto md:mt-6 md:mb-6 md:max-w-[820px] md:rounded-2xl md:border md:border-white/10 md:bg-neutral-950/70 md:shadow-[0_32px_80px_rgba(0,0,0,.45)] md:p-6 md:backdrop-blur-md"
+      className="bg-black text-white w-full pb-20 md:pb-6"
       style={{
-        minHeight: "calc(100vh - var(--hdr-h,48px) - 58px)",
+        paddingTop: "var(--hdr-h, 64px)",
+        minHeight: "100vh",
       }}
     >
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 px-4 md:px-0 pt-2 md:pt-0">
-        <div className="relative">
-          <div
-            className={`grid ${AVATAR_SIZE} place-items-center rounded-full bg-white/10 text-lg font-bold select-none ring-1 ring-white/15`}
-            style={{
-              background: avatarUrl ? `center/cover url(${avatarUrl})` : undefined,
-            }}
-          >
-            {!avatarUrl && initials}
-          </div>
-          <button
-            type="button"
-            onClick={() => fileRef.current?.click()}
-            className="absolute -bottom-1 -right-1 inline-flex items-center justify-center rounded-full bg-white/15 p-1 ring-1 ring-white/20 hover:bg-white/25"
-            title="Change avatar"
-          >
-            {uploading ? <Loader2 className={`${BTN_ICON_SIZE} animate-spin`} /> : <Camera className={BTN_ICON_SIZE} />}
-          </button>
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/png,image/jpeg,image/jpg"
-            className="hidden"
-            onChange={onPickFile}
-          />
+      <div className="mx-auto max-w-4xl px-4 py-6 md:py-8">
+        {/* Header Section */}
+        <div className="mb-6">
+          <h1 className="text-2xl md:text-3xl font-black tracking-tight mb-2">
+            Account Settings
+          </h1>
+          <p className="text-sm md:text-base text-white/60">
+            Manage your profile and account preferences
+          </p>
         </div>
-        <div className="flex-1 min-w-0">
-          <h1 className="text-lg font-semibold tracking-tight">My Account</h1>
-          <p className="mt-0.5 text-xs text-white/75">{authUser.email}</p>
-          <form onSubmit={handleSave} className="mt-3 flex flex-col sm:flex-row gap-2">
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Your name"
-              className="flex-1 rounded-lg border border-white/10 bg-white/[.06] px-2 py-2 text-[13px] text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-white/30"
-            />
-            <button
-              type="submit"
-              disabled={saving}
-              className="inline-flex items-center justify-center rounded-xl px-3 py-2 text-[13px] font-semibold text-white focus:outline-none"
-              style={{ background: BTN_GRAD, opacity: saving ? 0.7 : 1 }}
-            >
-              {saving ? "Saving…" : "Save"}
-            </button>
-          </form>
-          {msg && (
-            <div className="mt-2 inline-flex items-center gap-1 text-xs text-white/80">
-              <CheckCircle2 className={`${BTN_ICON_SIZE} text-green-400`} /> {msg}
+
+        {/* Profile Card */}
+        <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md p-6 mb-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+            {/* Avatar */}
+            <div className="relative flex-shrink-0">
+              <div
+                className="h-20 w-20 md:h-24 md:w-24 rounded-full bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 flex items-center justify-center text-2xl md:text-3xl font-bold text-white ring-4 ring-white/10"
+                style={{
+                  background: avatarUrl
+                    ? `center/cover url(${avatarUrl})`
+                    : undefined,
+                }}
+              >
+                {!avatarUrl && initials}
+              </div>
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                className="absolute -bottom-1 -right-1 h-10 w-10 flex items-center justify-center rounded-full bg-white/15 backdrop-blur-sm ring-2 ring-white/20 hover:bg-white/25 transition-all active:scale-95"
+                title="Change avatar"
+                disabled={uploading}
+              >
+                {uploading ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <Camera className="h-5 w-5" />
+                )}
+              </button>
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/png,image/jpeg,image/jpg"
+                className="hidden"
+                onChange={onPickFile}
+              />
             </div>
-          )}
-        </div>
-      </div>
-      <div className="mt-5 grid gap-2 sm:grid-cols-2 px-4 md:px-0">
-        <MetaRow label="Joined">{profile?.joined_at ? new Date(profile.joined_at).toLocaleDateString() : "—"}</MetaRow>
-        <MetaRow label="Sign-in method">{profile?.signup_source || authUser?.app_metadata?.provider || "—"}</MetaRow>
-        <MetaRow label="Onboarding">{profile?.onboarding_complete || profile?.onboarding_completed_at ? "Completed" : "Not completed"}</MetaRow>
-        <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[.04] p-3">
-          <span className="text-xs font-semibold uppercase tracking-wide text-white/60">Re-run Onboarding</span>
-          <button
-            type="button"
-            onClick={rerunOnboarding}
-            disabled={busy}
-            className="inline-flex items-center gap-1 rounded-lg border border-white/12 bg-white/5 px-2 py-1 text-xs font-semibold text-white hover:bg-white/10"
-          >
-            <RefreshCcw className={BTN_ICON_SIZE} /> Start
-          </button>
-        </div>
-      </div>
-      <Section title="Security" extraClass="px-4 md:px-0">
-        <div className="flex flex-col sm:flex-row gap-2">
-          <button
-            type="button"
-            onClick={openResetPassword}
-            className="inline-flex items-center gap-1 rounded-xl border border-white/12 bg-white/5 px-3 py-2 text-xs font-semibold text-white hover:bg-white/10"
-          >
-            <Key className={BTN_ICON_SIZE} /> Change password
-          </button>
-          <button
-            type="button"
-            onClick={signOutEverywhere}
-            disabled={busy}
-            className="inline-flex items-center gap-1 rounded-xl border border-white/12 bg-white/5 px-3 py-2 text-xs font-semibold text-white hover:bg-white/10"
-          >
-            <Shield className={BTN_ICON_SIZE} /> Sign out all devices
-          </button>
-          <button
-            type="button"
-            onClick={signOut}
-            className="inline-flex items-center gap-1 rounded-xl border border-white/12 bg-white/5 px-3 py-2 text-xs font-semibold text-white hover:bg-white/10"
-          >
-            <LogOut className={BTN_ICON_SIZE} /> Sign out
-          </button>
-        </div>
-      </Section>
-      <Section title="Danger Zone" extraClass="px-4 md:px-0">
-        <div className="flex items-center justify-between rounded-xl border border-red-400/20 bg-red-400/5 p-3">
-          <div className="text-xs text-white/80">
-            Permanently delete your account. This action cannot be undone.
+
+            {/* Profile Form */}
+            <div className="flex-1 w-full min-w-0">
+              <div className="mb-3">
+                <p className="text-sm font-medium text-white/70 mb-1">Email</p>
+                <p className="text-base font-semibold text-white truncate">
+                  {authUser.email}
+                </p>
+              </div>
+              <form onSubmit={handleSave} className="space-y-3">
+                <div>
+                  <label className="text-sm font-medium text-white/70 block mb-2">
+                    Display Name
+                  </label>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <input
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Your name"
+                      className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-orange-500/50 transition-all"
+                    />
+                    <button
+                      type="submit"
+                      disabled={saving}
+                      className="inline-flex items-center justify-center rounded-xl px-6 py-3 text-sm font-bold text-white focus:outline-none transition-all hover:scale-105 active:scale-95 disabled:opacity-70 disabled:hover:scale-100"
+                      style={{ background: BTN_GRAD }}
+                    >
+                      {saving ? "Saving..." : "Save Changes"}
+                    </button>
+                  </div>
+                </div>
+              </form>
+              {msg && (
+                <div className="mt-3 inline-flex items-center gap-2 text-sm text-white/90 bg-green-500/10 border border-green-500/20 rounded-lg px-3 py-2">
+                  <CheckCircle2 className="h-4 w-4 text-green-400" />
+                  {msg}
+                </div>
+              )}
+            </div>
           </div>
-          <button
-            type="button"
-            onClick={requestDelete}
-            className="inline-flex items-center gap-1 rounded-lg border border-red-400/30 bg-red-500/10 px-2 py-1 text-xs font-semibold text-red-200 hover:bg-red-500/15"
-          >
-            <Trash2 className={BTN_ICON_SIZE} /> Request deletion
-          </button>
         </div>
-      </Section>
+
+        {/* Account Details */}
+        <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md p-6 mb-6">
+          <h2 className="text-lg font-bold mb-4">Account Details</h2>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <MetaRow label="Joined">
+              {profile?.joined_at
+                ? new Date(profile.joined_at).toLocaleDateString()
+                : "—"}
+            </MetaRow>
+            <MetaRow label="Sign-in method">
+              {profile?.signup_source ||
+                authUser?.app_metadata?.provider ||
+                "Email"}
+            </MetaRow>
+            <MetaRow label="Onboarding Status">
+              {profile?.onboarding_complete ||
+              profile?.onboarding_completed_at
+                ? "Completed"
+                : "Not completed"}
+            </MetaRow>
+            <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 p-4">
+              <span className="text-sm font-semibold text-white/70">
+                Re-run Onboarding
+              </span>
+              <button
+                type="button"
+                onClick={rerunOnboarding}
+                disabled={busy}
+                className="inline-flex items-center gap-2 rounded-lg bg-white/10 hover:bg-white/20 px-3 py-2 text-sm font-semibold text-white transition-all active:scale-95"
+              >
+                <RefreshCcw className="h-4 w-4" />
+                Start
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Security Section */}
+        <Section title="Security & Privacy">
+          <div className="flex flex-col gap-3">
+            <ActionButton
+              icon={<Key className="h-5 w-5" />}
+              label="Change Password"
+              onClick={openResetPassword}
+            />
+            <ActionButton
+              icon={<Shield className="h-5 w-5" />}
+              label="Sign Out All Devices"
+              onClick={signOutEverywhere}
+              disabled={busy}
+            />
+            <ActionButton
+              icon={<LogOut className="h-5 w-5" />}
+              label="Sign Out"
+              onClick={signOut}
+            />
+          </div>
+        </Section>
+
+        {/* Danger Zone */}
+        <Section title="Danger Zone">
+          <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h3 className="text-sm font-bold text-red-300 mb-1">
+                  Delete Account
+                </h3>
+                <p className="text-xs text-white/70">
+                  Permanently delete your account. This action cannot be undone.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={requestDelete}
+                className="inline-flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 px-4 py-3 text-sm font-semibold text-red-300 transition-all active:scale-95 whitespace-nowrap"
+              >
+                <Trash2 className="h-4 w-4" />
+                Request Deletion
+              </button>
+            </div>
+          </div>
+        </Section>
+      </div>
     </div>
   );
 }
 
+/* ===== Helper Components ===== */
 function MetaRow({ label, children }) {
   return (
-    <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[.04] p-3">
-      <span className="text-xs font-semibold uppercase tracking-wide text-white/60">{label}</span>
-      <span className="text-xs text-white/85">{children}</span>
+    <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 p-4">
+      <span className="text-sm font-semibold text-white/70">{label}</span>
+      <span className="text-sm font-medium text-white">{children}</span>
     </div>
   );
 }
 
-function Section({ title, children, extraClass }) {
+function Section({ title, children }) {
   return (
-    <div className={`mt-4 ${extraClass || ""}`}>
-      <h2 className="text-xs font-bold uppercase tracking-wide text-white/60">{title}</h2>
-      <div className="mt-2">{children}</div>
+    <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md p-6 mb-6">
+      <h2 className="text-lg font-bold mb-4">{title}</h2>
+      {children}
     </div>
+  );
+}
+
+function ActionButton({ icon, label, onClick, disabled }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className="flex items-center justify-between w-full rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 p-4 text-left transition-all group active:scale-[0.98]"
+    >
+      <span className="flex items-center gap-3 text-sm font-semibold text-white">
+        <span className="text-white/70 group-hover:text-white transition-colors">
+          {icon}
+        </span>
+        {label}
+      </span>
+      <svg
+        className="h-5 w-5 text-white/40 group-hover:text-white/70 transition-colors"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M9 5l7 7-7 7"
+        />
+      </svg>
+    </button>
   );
 }

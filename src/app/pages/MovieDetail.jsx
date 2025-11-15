@@ -91,7 +91,7 @@ export default function MovieDetail() {
           throw new Error(d?.status_message || 'Failed to load')
 
         setMovie(d)
-        setCast((c?.cast || []).slice(0, 8))
+        setCast((c?.cast || []).slice(0, 10))
         setVideos(v?.results || [])
         setSimilar((s?.results || []).slice(0, 12))
         setRecs((r?.results || []).slice(0, 12))
@@ -484,10 +484,10 @@ export default function MovieDetail() {
       <div className="relative -mt-10 sm:-mt-12 md:-mt-16 z-30">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8 lg:px-12">
           {/* Two Column Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr,320px] xl:grid-cols-[1fr,360px] gap-6 md:gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr,300px] xl:grid-cols-[1fr,340px] gap-6 md:gap-8">
             {/* Main Content */}
-            <div className="space-y-6 md:space-y-8">
-              {/* Overview (Full) */}
+            <div className="space-y-6 md:space-y-8 min-w-0">
+              {/* Overview */}
               {movie?.overview && (
                 <div className="rounded-xl bg-white/5 backdrop-blur border border-white/10 p-5 sm:p-6">
                   <h2 className="text-lg font-bold mb-3">Overview</h2>
@@ -508,8 +508,7 @@ export default function MovieDetail() {
             </div>
 
             {/* Sidebar */}
-            <div className="space-y-6">
-              {/* Where to Watch */}
+            <div className="space-y-6 lg:sticky lg:top-20 lg:self-start">
               <WhereToWatch providers={providers} />
             </div>
           </div>
@@ -590,9 +589,9 @@ function CastSection({ cast }) {
   return (
     <div>
       <h2 className="text-lg font-bold mb-4">Top Cast</h2>
-      <div className="grid grid-cols-4 gap-3 sm:gap-4">
+      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
         {cast.map((p) => (
-          <div key={p.id} className="group">
+          <div key={p.id} className="flex-shrink-0 w-[100px] sm:w-[110px] group">
             <div className="aspect-[2/3] overflow-hidden rounded-lg bg-white/5 border border-white/10 mb-2">
               {p.profile_path ? (
                 <img
@@ -622,7 +621,7 @@ function Rail({ title, items }) {
   return (
     <div>
       <h2 className="text-lg font-bold mb-4">{title}</h2>
-      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 gap-3 sm:gap-4">
         {items.map((m) => (
           <Link key={m.id} to={`/movie/${m.id}`} className="group" title={m.title}>
             <div className="aspect-[2/3] overflow-hidden rounded-lg bg-white/5 border border-white/10 mb-2">

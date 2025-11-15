@@ -1,6 +1,4 @@
 // src/features/landing/components/TopNav.jsx
-// src/features/landing/components/TopNav.jsx
-
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { LogIn } from 'lucide-react'
@@ -61,13 +59,13 @@ export default function TopNav({ hideAuthCta = false, onAuthOpen }) {
   return (
     <header ref={barRef} className={shellClass}>
       <div className="mx-auto flex h-16 items-center justify-between px-4 sm:h-[72px] sm:px-6 md:px-8">
-        {/* Logo with FeelFlick Gradient */}
+        {/* Logo with FeelFlick Gradient - Netflix-sized */}
         <Link
           to="/"
           onClick={onBrandClick}
           className="group flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 rounded"
         >
-          <span className="text-2xl font-black tracking-tight bg-gradient-to-r from-[#FF9245] via-[#EB423B] to-[#E03C9E] bg-clip-text text-transparent transition-opacity group-hover:opacity-80">
+          <span className="text-[1.75rem] sm:text-[2rem] md:text-[2.25rem] lg:text-[2.5rem] font-black tracking-tight leading-none bg-gradient-to-r from-[#FF9245] via-[#EB423B] to-[#E03C9E] bg-clip-text text-transparent transition-opacity group-hover:opacity-80">
             FEELFLICK
           </span>
         </Link>

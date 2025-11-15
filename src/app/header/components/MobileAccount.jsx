@@ -9,9 +9,6 @@ import {
   Bookmark,
   Clock,
   LogOut,
-  HelpCircle,
-  Shield,
-  Bell,
 } from "lucide-react";
 
 export default function MobileAccount() {
@@ -53,29 +50,22 @@ export default function MobileAccount() {
         { icon: <Clock className="h-5 w-5" />, label: "History", path: "/history" },
       ],
     },
-    {
-      title: "More",
-      items: [
-        { icon: <Bell className="h-5 w-5" />, label: "Notifications", path: "/notifications" },
-        { icon: <Shield className="h-5 w-5" />, label: "Privacy", path: "/privacy" },
-        { icon: <HelpCircle className="h-5 w-5" />, label: "Help & Support", path: "/help" },
-      ],
-    },
   ];
 
   return (
-    <div className="min-h-screen bg-black text-white pb-20">
-      {/* Header with User Info */}
-      <div className="sticky top-0 z-40 bg-black/95 backdrop-blur-2xl border-b border-white/10">
-        <div className="px-4 py-6">
-          <div className="flex items-center gap-4">
-            <div className="h-20 w-20 rounded-full bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 flex items-center justify-center text-3xl font-bold text-white flex-shrink-0 ring-4 ring-white/10">
-              {initials}
-            </div>
-            <div className="flex-1 min-w-0">
-              <h1 className="text-2xl font-black text-white truncate">{name}</h1>
-              <p className="text-sm text-white/60 truncate mt-1">{email}</p>
-            </div>
+    <div 
+      className="min-h-screen bg-black text-white pb-20"
+      style={{ paddingTop: 'var(--hdr-h, 64px)' }}
+    >
+      {/* User Info Card */}
+      <div className="px-4 py-6 border-b border-white/10">
+        <div className="flex items-center gap-4">
+          <div className="h-20 w-20 rounded-full bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 flex items-center justify-center text-3xl font-bold text-white flex-shrink-0 ring-4 ring-white/10">
+            {initials}
+          </div>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl font-black text-white truncate">{name}</h1>
+            <p className="text-sm text-white/60 truncate mt-1">{email}</p>
           </div>
         </div>
       </div>

@@ -1,171 +1,134 @@
 // src/features/landing/components/TopNav.jsx
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { supabase } from '@/shared/lib/supabase/client'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { LogIn } from 'lucide-react'
 
-export default function TopNav({ hideAuthCta }) {
-  const [showSignIn, setShowSignIn] = useState(false)
+export default function TopNav({ hideAuthCta = false, onAuthOpen }) {
+  const [scrolled, setScrolled] = useState(false)
+  const barRef = useRef(null)
+  const navigate = useNavigate()
+  const location = useLocation()
 
-  return (
-    <>
-      <nav
-        className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10"
-        style={{ height: 'var(--topnav-h, 72px)' }}
-      >
-        <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-4 sm:px-6 md:px-8">
-          {/* Logo */}
-          <Link
-            to="/"
-            className="text-xl sm:text-2xl font-black tracking-tight transition-transform hover:scale-105 active:scale-95"
-          >
-            <span className="bg-gradient-to-r from-[#FF9245] via-[#EB423B] to-[#E03C9E] bg-clip-text text-transparent">
-              FEELFLICK
-            </span>
-          </Link>
+  // 🚫 Do not render TopNav on onboarding route (true in-app feel)
+  if (location.pathname.startsWith('/onboarding')) {
+    return null
+  }
 
-          {/* Auth CTAs */}
-          {!hideAuthCta && (
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setShowSignIn(true)}
-                className="hidden sm:inline-flex items-center px-4 py-2 text-sm font-semibold text-white/90 hover:text-white transition-colors"
-              >
-                Sign In
-              </button>
-              <Link
-                to="/onboarding"
-                className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#FF9245] to-[#EB423B] px-4 sm:px-6 py-2 sm:py-2.5 text-sm sm:text-base font-bold text-white shadow-lg transition-all hover:shadow-xl hover:scale-105 active:scale-95"
-              >
-                Get Started
-              </Link>
-            </div>
-          )}
-        </div>
-      </nav>
+  useEffect(() => {
+    const setVar = () => {
+      const h = barRef.current?.offsetHeight || 72
+      document.documentElement.style.setProperty('--topnav-h', `${h}px`)
+    }
+    setVar()
+    const ro = new ResizeObserver(setVar)
+    if (barRef.current) ro.observe(barRef.current)
+    return () => ro.disconnect()
+  }, [])
 
-      {/* Sign In Modal */}
-      {showSignIn && (
-        <SignInModal onClose={() => setShowSignIn(false)} />
-      )}
-    </>
-  )
-}
-
-function SignInModal({ onClose }) {
-  const [email, setEmail] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [success, setSuccess] = useState(false)
-  const [error, setError] = useState('')
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
-
-    try {
-      const { error: authError } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/home`,
-        },
+  useEffect(() => {
+    let ticking = false
+    const onScroll = () => {
+      if (ticking) return
+      ticking = true
+      requestAnimationFrame(() => {
+        setScrolled((window.scrollY || document.documentElement.scrollTop) > 8)
+        ticking = false
       })
+    }
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
-      if (authError) throw authError
-      setSuccess(true)
-    } catch (err) {
-      setError(err.message || 'Failed to send magic link')
-    } finally {
-      setLoading(false)
+  const onBrandClick = (e) => {
+    e.preventDefault()
+    if (location.pathname === '/') {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    } else {
+      navigate('/')
+      setTimeout(() => window.scrollTo({ top: 0, behavior: 'auto' }), 0)
     }
   }
 
+  const shellClass =
+    'fixed inset-x-0 top-0 z-50 transition-colors duration-200 ' +
+    (scrolled ? 'bg-neutral-950/60 backdrop-blur-md ring-1 ring-white/10' : 'bg-transparent')
+
   return (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
-      onClick={onClose}
-    >
-      <div
-        className="relative w-full max-w-md rounded-2xl bg-gradient-to-b from-neutral-900 to-black border border-white/10 p-6 sm:p-8 shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
+    <header className={shellClass} data-scrolled={scrolled}>
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:rounded-md focus:bg-neutral-900 focus:px-3 focus:py-2 focus:text-white"
       >
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-white/60 hover:text-white transition-colors"
-          aria-label="Close"
+        Skip to content
+      </a>
+
+      <div
+        ref={barRef}
+        className="mx-auto flex w-full max-w-7xl items-center justify-between gap-2 px-3 pt-[calc(env(safe-area-inset-top)+14px)] pb-3 sm:py-4 md:px-6"
+      >
+        {/* Brand */}
+        <a
+          href="/"
+          onClick={onBrandClick}
+          className="flex items-center rounded-md"
+          aria-label="FeelFlick home"
         >
-          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
+          <span className="text-[clamp(1.6rem,5.2vw,2.25rem)] font-extrabold tracking-tight text-brand-100 uppercase">
+            FEELFLICK
+          </span>
+        </a>
 
-        {success ? (
-          <div className="text-center">
-            <div className="mb-4 mx-auto w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center">
-              <svg className="w-8 h-8 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <h2 className="text-2xl font-bold text-white mb-2">Check your email</h2>
-            <p className="text-white/70 text-sm">
-              We sent a magic link to <span className="font-semibold text-white">{email}</span>
-            </p>
-            <p className="text-white/60 text-xs mt-4">
-              Click the link in the email to sign in
-            </p>
-          </div>
-        ) : (
+        {!hideAuthCta && (
           <>
-            <h2 className="text-2xl font-bold text-white mb-2">Welcome back</h2>
-            <p className="text-white/70 text-sm mb-6">
-              Enter your email to receive a magic link
-            </p>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label htmlFor="email" className="sr-only">
-                  Email address
-                </label>
-                <input
-                  id="email"
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your@email.com"
-                  className="w-full rounded-lg bg-white/5 border border-white/10 px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-[#FF9245] transition-all"
-                  disabled={loading}
-                />
-              </div>
-
-              {error && (
-                <div className="rounded-lg bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-300">
-                  {error}
-                </div>
+            {/* Desktop */}
+            <div className="hidden md:flex items-center gap-2">
+              {onAuthOpen ? (
+                <button
+                  type="button"
+                  onClick={onAuthOpen}
+                  className="group relative inline-flex h-10 items-center gap-2 rounded-full border border-white/20 px-4 text-[0.9rem] font-semibold text-white/95 hover:bg-white/10 active:scale-[.98] focus:outline-none"
+                  aria-label="Log in"
+                >
+                  <LogIn className="h-4 w-4 text-white/90" aria-hidden />
+                  <span>Log in</span>
+                </button>
+              ) : (
+                <Link
+                  to="/auth/log-in-or-create-account"
+                  className="group relative inline-flex h-10 items-center gap-2 rounded-full border border-white/20 px-4 text-[0.9rem] font-semibold text-white/95 hover:bg-white/10 active:scale-[.98] focus:outline-none"
+                >
+                  <LogIn className="h-4 w-4 text-white/90" aria-hidden />
+                  <span>Log in</span>
+                </Link>
               )}
+            </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full rounded-lg bg-gradient-to-r from-[#FF9245] to-[#EB423B] px-4 py-3 font-bold text-white shadow-lg transition-all hover:shadow-xl hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? 'Sending...' : 'Send Magic Link'}
-              </button>
-            </form>
-
-            <p className="text-center text-xs text-white/50 mt-6">
-              Don't have an account?{' '}
-              <Link
-                to="/onboarding"
-                className="text-[#FF9245] hover:text-[#EB423B] font-semibold transition-colors"
-                onClick={onClose}
-              >
-                Get Started
-              </Link>
-            </p>
+            {/* Mobile */}
+            <div className="md:hidden">
+              {onAuthOpen ? (
+                <button
+                  type="button"
+                  onClick={onAuthOpen}
+                  className="inline-flex items-center gap-2 h-10 px-4 rounded-full border border-white/20 bg-white/5 text-[0.95rem] font-semibold text-white/95 hover:bg-white/10 active:scale-[.98] focus:outline-none"
+                  aria-label="Log in"
+                >
+                  <LogIn className="h-4 w-4 text-white/90" aria-hidden />
+                  <span>Log in</span>
+                </button>
+              ) : (
+                <Link
+                  to="/auth/log-in-or-create-account"
+                  className="inline-flex items-center gap-2 h-10 px-4 rounded-full border border-white/20 bg-white/5 text-[0.95rem] font-semibold text-white/95 hover:bg-white/10 active:scale-[.98] focus:outline-none"
+                >
+                  <LogIn className="h-4 w-4 text-white/90" aria-hidden />
+                  <span>Log in</span>
+                </Link>
+              )}
+            </div>
           </>
         )}
       </div>
-    </div>
+    </header>
   )
 }

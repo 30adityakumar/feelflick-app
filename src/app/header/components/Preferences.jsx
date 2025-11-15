@@ -1,25 +1,25 @@
 // src/app/header/components/Preferences.jsx
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/shared/lib/supabase/client";
-import { CheckCircle2, Sparkles, Zap, Heart } from "lucide-react";
+import { CheckCircle2, Sparkles, Zap, Heart, Check } from "lucide-react";
 
 const GENRES = [
-  { id: 28, label: "Action", emoji: "💥" },
-  { id: 12, label: "Adventure", emoji: "🗺️" },
-  { id: 16, label: "Animation", emoji: "🎨" },
-  { id: 35, label: "Comedy", emoji: "😂" },
-  { id: 80, label: "Crime", emoji: "🔫" },
-  { id: 99, label: "Documentary", emoji: "🎥" },
-  { id: 18, label: "Drama", emoji: "🎭" },
-  { id: 10751, label: "Family", emoji: "👨‍👩‍👧‍👦" },
-  { id: 14, label: "Fantasy", emoji: "🧙" },
-  { id: 36, label: "History", emoji: "📜" },
-  { id: 27, label: "Horror", emoji: "👻" },
-  { id: 10402, label: "Music", emoji: "🎵" },
-  { id: 9648, label: "Mystery", emoji: "🔍" },
-  { id: 10749, label: "Romance", emoji: "💕" },
-  { id: 878, label: "Sci-Fi", emoji: "🚀" },
-  { id: 53, label: "Thriller", emoji: "😱" },
+  { id: 28, label: "Action" },
+  { id: 12, label: "Adventure" },
+  { id: 16, label: "Animation" },
+  { id: 35, label: "Comedy" },
+  { id: 80, label: "Crime" },
+  { id: 99, label: "Documentary" },
+  { id: 18, label: "Drama" },
+  { id: 10751, label: "Family" },
+  { id: 14, label: "Fantasy" },
+  { id: 36, label: "History" },
+  { id: 27, label: "Horror" },
+  { id: 10402, label: "Music" },
+  { id: 9648, label: "Mystery" },
+  { id: 10749, label: "Romance" },
+  { id: 878, label: "Sci-Fi" },
+  { id: 53, label: "Thriller" },
 ];
 
 const PRESETS = [
@@ -27,19 +27,16 @@ const PRESETS = [
     name: "Action Pack",
     icon: <Zap className="h-4 w-4" />,
     genres: [28, 12, 53, 878],
-    description: "High-octane entertainment",
   },
   {
     name: "Cozy Night",
     icon: <Heart className="h-4 w-4" />,
     genres: [10751, 35, 10402, 16],
-    description: "Feel-good favorites",
   },
   {
     name: "Mind Bending",
     icon: <Sparkles className="h-4 w-4" />,
     genres: [9648, 53, 878, 14],
-    description: "Thought-provoking stories",
   },
 ];
 
@@ -98,13 +95,13 @@ export default function Preferences() {
           .upsert(rows, { onConflict: "user_id,genre_id" });
       }
       setInitial(selected);
-      setMsg("Preferences saved successfully!");
+      setMsg("Saved!");
     } catch (e) {
       console.warn("prefs save error", e);
-      setMsg("Could not save. Please try again.");
+      setMsg("Error saving");
     } finally {
       setSaving(false);
-      setTimeout(() => setMsg(""), 2500);
+      setTimeout(() => setMsg(""), 2000);
     }
   }
 
@@ -112,36 +109,36 @@ export default function Preferences() {
 
   return (
     <div
-      className="bg-black text-white w-full pb-20 md:pb-6"
+      className="bg-black text-white w-full pb-20 md:pb-8"
       style={{
         paddingTop: "var(--hdr-h, 64px)",
         minHeight: "100vh",
       }}
     >
-      <div className="mx-auto max-w-4xl px-4 py-6 md:py-8">
+      <div className="mx-auto max-w-5xl px-4 py-4 sm:py-6 md:py-8">
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl md:text-3xl font-black tracking-tight mb-2">
+        <div className="mb-4 sm:mb-6">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight mb-1 sm:mb-2">
             Genre Preferences
           </h1>
-          <p className="text-sm md:text-base text-white/60">
-            Choose your favorite genres to personalize your recommendations
+          <p className="text-xs sm:text-sm md:text-base text-white/60">
+            Choose genres to personalize your recommendations
           </p>
         </div>
 
-        {/* Stats & Actions Bar */}
-        <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md p-4 mb-6">
-          <div className="flex flex-wrap items-center gap-3">
+        {/* Stats Bar */}
+        <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md p-3 sm:p-4 mb-4 sm:mb-6">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-white/70">Selected</span>
-              <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-orange-500/20 text-sm font-bold text-orange-400">
+              <span className="text-xs sm:text-sm text-white/70">Selected</span>
+              <span className="inline-flex items-center justify-center h-5 w-5 sm:h-6 sm:w-6 rounded-full bg-orange-500/20 text-xs sm:text-sm font-bold text-orange-400">
                 {selected.length}
               </span>
             </div>
-            <div className="h-4 w-px bg-white/20" />
+            <div className="h-3 sm:h-4 w-px bg-white/20" />
             <button
               type="button"
-              className="text-sm font-semibold text-white/70 hover:text-white transition-colors"
+              className="text-xs sm:text-sm font-semibold text-white/70 hover:text-white transition-colors active:scale-95"
               onClick={() => setSelected([])}
             >
               Clear All
@@ -150,29 +147,24 @@ export default function Preferences() {
         </div>
 
         {/* Quick Presets */}
-        <div className="mb-6">
-          <h2 className="text-sm font-bold text-white/70 uppercase tracking-wider mb-3">
+        <div className="mb-4 sm:mb-6">
+          <h2 className="text-[10px] sm:text-xs font-bold text-white/70 uppercase tracking-wider mb-2 sm:mb-3">
             Quick Presets
           </h2>
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-2 sm:gap-3 grid-cols-3">
             {PRESETS.map((preset) => (
               <button
                 key={preset.name}
                 onClick={() => applyPreset(preset.genres)}
-                className="group rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 p-4 text-left transition-all active:scale-[0.98]"
+                className="group rounded-lg sm:rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 p-2.5 sm:p-3 md:p-4 text-left transition-all active:scale-95"
               >
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white flex-shrink-0">
                     {preset.icon}
                   </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-white">
-                      {preset.name}
-                    </h3>
-                    <p className="text-xs text-white/60">
-                      {preset.description}
-                    </p>
-                  </div>
+                  <h3 className="text-xs sm:text-sm font-bold text-white leading-tight">
+                    {preset.name}
+                  </h3>
                 </div>
               </button>
             ))}
@@ -180,30 +172,29 @@ export default function Preferences() {
         </div>
 
         {/* Genre Grid */}
-        <div className="mb-6">
-          <h2 className="text-sm font-bold text-white/70 uppercase tracking-wider mb-3">
+        <div className="mb-4 sm:mb-6">
+          <h2 className="text-[10px] sm:text-xs font-bold text-white/70 uppercase tracking-wider mb-2 sm:mb-3">
             All Genres
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-2.5 md:gap-3">
             {GENRES.map((g) => (
               <GenreChip
                 key={g.id}
                 active={selected.includes(g.id)}
                 onClick={() => toggle(g.id)}
                 label={g.label}
-                emoji={g.emoji}
               />
             ))}
           </div>
         </div>
 
-        {/* Save Button */}
-        <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md p-6">
+        {/* Save Section */}
+        <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md p-4 sm:p-5 md:p-6">
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             <button
               onClick={save}
               disabled={saving || !dirty}
-              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-bold text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-105 active:scale-95 disabled:hover:scale-100"
+              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 rounded-xl px-5 sm:px-6 py-2.5 sm:py-3 text-sm font-bold text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-105 active:scale-95 disabled:hover:scale-100"
               style={{
                 background: "linear-gradient(90deg,#fe9245 10%,#eb423b 90%)",
               }}
@@ -211,26 +202,30 @@ export default function Preferences() {
               {saving ? (
                 <>
                   <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                  Saving...
+                  <span className="hidden sm:inline">Saving...</span>
+                  <span className="sm:hidden">Saving...</span>
                 </>
               ) : dirty ? (
-                "Save Changes"
+                <>
+                  <span className="hidden sm:inline">Save Changes</span>
+                  <span className="sm:hidden">Save</span>
+                </>
               ) : (
                 <>
                   <CheckCircle2 className="h-4 w-4" />
-                  Saved
+                  <span>Saved</span>
                 </>
               )}
             </button>
             {msg && (
-              <div className="inline-flex items-center gap-2 text-sm text-white/90 bg-green-500/10 border border-green-500/20 rounded-lg px-4 py-3">
-                <CheckCircle2 className="h-4 w-4 text-green-400" />
+              <div className="inline-flex items-center gap-2 text-xs sm:text-sm text-white/90 bg-green-500/10 border border-green-500/20 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5">
+                <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4 text-green-400" />
                 {msg}
               </div>
             )}
           </div>
-          <p className="text-xs text-white/50 mt-3">
-            Your preferences help us recommend movies you'll love
+          <p className="text-[10px] sm:text-xs text-white/50 mt-2 sm:mt-3">
+            Preferences help us recommend movies you'll love
           </p>
         </div>
       </div>
@@ -239,30 +234,26 @@ export default function Preferences() {
 }
 
 /* ===== Genre Chip Component ===== */
-function GenreChip({ active, onClick, label, emoji }) {
+function GenreChip({ active, onClick, label }) {
   return (
     <button
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`group relative rounded-xl p-4 text-left transition-all duration-300 ${
+      className={`group relative rounded-lg sm:rounded-xl p-3 sm:p-3.5 md:p-4 text-center transition-all duration-300 ${
         active
-          ? "bg-gradient-to-br from-orange-500/20 to-red-500/20 border-2 border-orange-500/50 scale-105 shadow-lg shadow-orange-500/20"
-          : "bg-white/5 border-2 border-white/10 hover:border-white/30 hover:bg-white/10"
+          ? "bg-gradient-to-br from-orange-500/20 to-red-500/20 border-2 border-orange-500/50 scale-[1.02] shadow-lg shadow-orange-500/10"
+          : "bg-white/5 border-2 border-white/10 hover:border-white/30 hover:bg-white/10 active:scale-95"
       }`}
     >
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-2xl">{emoji}</span>
+      <div className="flex items-center justify-center gap-2">
+        <div className="text-xs sm:text-sm font-bold text-white">{label}</div>
         {active && (
-          <div className="h-6 w-6 rounded-full bg-orange-500 flex items-center justify-center">
-            <CheckCircle2 className="h-4 w-4 text-white" />
+          <div className="h-4 w-4 sm:h-5 sm:w-5 rounded-full bg-orange-500 flex items-center justify-center flex-shrink-0">
+            <Check className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-white" />
           </div>
         )}
       </div>
-      <div className="text-sm font-bold text-white">{label}</div>
-      {active && (
-        <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-orange-500/10 to-red-500/10 pointer-events-none" />
-      )}
     </button>
   );
 }

@@ -7,7 +7,6 @@ import SearchBar from '@/app/header/components/SearchBar'
 export default function AppShell() {
   const [searchOpen, setSearchOpen] = useState(false)
 
-  // Keyboard: "/" opens search (everywhere in the app shell)
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === '/' && !e.metaKey && !e.ctrlKey && !e.altKey) {
@@ -21,7 +20,7 @@ export default function AppShell() {
 
   return (
     <div className="relative min-h-screen text-white">
-      {/* Brand background (same family as Landing/Auth) */}
+      {/* Brand background */}
       <div aria-hidden className="fixed inset-0 -z-10">
         <div className="absolute inset-0 bg-[linear-gradient(120deg,#0a121a_0%,#0d1722_50%,#0c1017_100%)]" />
         <div className="pointer-events-none absolute -top-40 -left-40 h-[65vmin] w-[65vmin] rounded-full blur-3xl opacity-60 bg-[radial-gradient(closest-side,rgba(254,146,69,0.45),rgba(254,146,69,0)_70%)]" />
@@ -34,14 +33,12 @@ export default function AppShell() {
         <div className="absolute inset-0 bg-[radial-gradient(100%_80%_at_50%_0%,rgba(255,255,255,0.06),rgba(255,255,255,0)_60%)]" />
       </div>
 
-      {/* Header (top) */}
+      {/* Header */}
       <Header onOpenSearch={() => setSearchOpen(true)} />
 
-      {/* Page content area: NO top padding or margin */}
-      <div className="relative z-10">
-        <div className="mx-auto w-full max-w-[1200px] px-4 md:px-6 pb-[calc(64px+env(safe-area-inset-bottom))] md:pb-6">
-          <Outlet />
-        </div>
+      {/* Page content - FULL WIDTH, no container wrapper */}
+      <div className="relative z-10 w-full">
+        <Outlet />
       </div>
 
       {/* Global search modal */}

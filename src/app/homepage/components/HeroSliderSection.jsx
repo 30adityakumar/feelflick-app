@@ -1,9 +1,10 @@
 // src/app/homepage/components/HeroSliderSection.jsx
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Play, Info } from "lucide-react";
+import { Play, Info, Volume2, VolumeX } from "lucide-react";
 
-const tmdbImg = (p, s = "original") => (p ? `https://image.tmdb.org/t/p/${s}${p}` : "");
+const tmdbImg = (p, s = "original") =>
+  p ? `https://image.tmdb.org/t/p/${s}${p}` : "";
 
 export default function HeroSliderSection({ className = "" }) {
   const [slides, setSlides] = useState([]);
@@ -11,6 +12,7 @@ export default function HeroSliderSection({ className = "" }) {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [muted, setMuted] = useState(true);
   const nav = useNavigate();
   const timerRef = useRef(null);
   const touchStartX = useRef(0);
@@ -19,7 +21,9 @@ export default function HeroSliderSection({ className = "" }) {
   useEffect(() => {
     setLoading(true);
     fetch(
-      `https://api.themoviedb.org/3/trending/movie/week?api_key=${import.meta.env.VITE_TMDB_API_KEY}&language=en-US`
+      `https://api.themoviedb.org/3/trending/movie/week?api_key=${
+        import.meta.env.VITE_TMDB_API_KEY
+      }&language=en-US`
     )
       .then((r) => r.json())
       .then((j) => {
@@ -38,7 +42,7 @@ export default function HeroSliderSection({ className = "" }) {
     clearInterval(timerRef.current);
     timerRef.current = setInterval(() => {
       nextSlide();
-    }, 7000);
+    }, 6000);
     return () => clearInterval(timerRef.current);
   }, [slides.length, currentIndex, isPaused]);
 
@@ -83,7 +87,7 @@ export default function HeroSliderSection({ className = "" }) {
   if (loading) {
     return (
       <section className={`relative w-full bg-neutral-950 ${className}`}>
-        <div className="aspect-[9/16] sm:aspect-[3/4] md:aspect-[16/9] lg:aspect-[21/9] animate-pulse bg-neutral-900" />
+        <div className="aspect-[9/16] sm:aspect-[2/3] md:aspect-[16/9] lg:aspect-[21/9] animate-pulse bg-neutral-900" />
       </section>
     );
   }
@@ -99,10 +103,14 @@ export default function HeroSliderSection({ className = "" }) {
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Hero Image - Proper aspect ratios */}
-      <div className="relative w-full aspect-[9/16] sm:aspect-[3/4] md:aspect-[16/9] lg:aspect-[21/9]">
+      {/* Hero Image Container */}
+      <div className="relative w-full aspect-[9/16] sm:aspect-[2/3] md:aspect-[16/9] lg:aspect-[21/9]">
+        {/* Images */}
         {slides.map((movie, idx) => {
-          const bg = tmdbImg(movie.backdrop_path || movie.poster_path, "original");
+          const bg = tmdbImg(
+            movie.backdrop_path || movie.poster_path,
+            "original"
+          );
           return (
             <div
               key={movie.id}
@@ -121,26 +129,30 @@ export default function HeroSliderSection({ className = "" }) {
         })}
 
         {/* Gradients for text legibility */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent z-20" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/30 md:via-black/20 to-transparent z-20" />
-        <div className="absolute bottom-0 inset-x-0 h-1/2 sm:h-2/5 bg-gradient-to-t from-black via-black/80 to-transparent z-20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent z-20" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/40 md:via-black/20 to-transparent z-20" />
+        <div className="absolute bottom-0 inset-x-0 h-2/5 bg-gradient-to-t from-black via-black/90 to-transparent z-20" />
       </div>
 
-      {/* Content Overlay - Extra bottom padding to prevent overlap */}
-      <div className="absolute inset-0 z-30 flex items-end pb-24 sm:pb-28 md:pb-32 lg:pb-36 xl:pb-40">
+      {/* Content Overlay */}
+      <div className="absolute inset-0 z-30 flex items-end pb-16 sm:pb-20 md:pb-24 lg:pb-28 xl:pb-32">
         <div className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16">
-          <div className="max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl xl:max-w-3xl">
+          <div className="max-w-xl sm:max-w-2xl md:max-w-3xl lg:max-w-4xl">
             {/* Title */}
-            <h1 className="text-white font-black tracking-tight leading-[0.9] text-[2.5rem] xs:text-[3rem] sm:text-[3.5rem] md:text-[4rem] lg:text-[5rem] xl:text-[6rem] drop-shadow-2xl mb-2 sm:mb-3 md:mb-4">
+            <h1 className="text-white font-black tracking-tight leading-[0.95] text-[2rem] xs:text-[2.5rem] sm:text-[3rem] md:text-[4rem] lg:text-[5rem] xl:text-[6rem] drop-shadow-2xl mb-3 sm:mb-4 md:mb-5">
               {currentMovie?.title || "Featured"}
             </h1>
 
             {/* Meta Info */}
-            <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4 md:mb-5 text-sm sm:text-base md:text-lg">
+            <div className="flex items-center gap-3 mb-3 sm:mb-4 md:mb-5 text-sm sm:text-base">
               {currentMovie?.vote_average && (
-                <div className="flex items-center gap-1 text-green-400 font-bold">
-                  <span className="text-base sm:text-lg md:text-xl">★</span>
-                  <span>{currentMovie.vote_average.toFixed(1)}</span>
+                <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-green-500/20 border border-green-500/30">
+                  <span className="text-green-400 font-bold text-base sm:text-lg">
+                    ★
+                  </span>
+                  <span className="text-green-400 font-bold">
+                    {currentMovie.vote_average.toFixed(1)}
+                  </span>
                 </div>
               )}
               {currentMovie?.release_date && (
@@ -148,11 +160,14 @@ export default function HeroSliderSection({ className = "" }) {
                   {new Date(currentMovie.release_date).getFullYear()}
                 </span>
               )}
+              <span className="px-2 py-0.5 rounded bg-white/10 text-white/80 text-xs font-semibold">
+                HD
+              </span>
             </div>
 
-            {/* Overview - Progressive display */}
+            {/* Overview */}
             {currentMovie?.overview && (
-              <p className="hidden sm:block text-white/90 text-sm md:text-base lg:text-lg leading-relaxed line-clamp-2 md:line-clamp-3 drop-shadow-lg mb-4 sm:mb-5 md:mb-6">
+              <p className="hidden sm:block text-white/90 text-sm md:text-base lg:text-lg leading-relaxed line-clamp-2 md:line-clamp-3 drop-shadow-lg mb-5 sm:mb-6 md:mb-7 max-w-2xl">
                 {currentMovie.overview}
               </p>
             )}
@@ -161,17 +176,17 @@ export default function HeroSliderSection({ className = "" }) {
             <div className="flex items-center gap-2 sm:gap-3">
               <button
                 onClick={viewDetails}
-                className="inline-flex items-center justify-center gap-1.5 sm:gap-2 rounded-md bg-white px-4 sm:px-6 md:px-8 py-2 sm:py-2.5 md:py-3 text-sm sm:text-base md:text-lg font-bold text-black transition-all hover:bg-white/90 active:scale-95 focus:outline-none focus:ring-2 focus:ring-white/50 shadow-xl"
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-white px-5 sm:px-7 md:px-9 py-2.5 sm:py-3 md:py-3.5 text-sm sm:text-base md:text-lg font-bold text-black transition-all hover:bg-white/90 active:scale-95 focus:outline-none focus:ring-2 focus:ring-white/50 shadow-2xl"
               >
                 <Play className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 fill-current" />
                 <span>Play</span>
               </button>
               <button
                 onClick={viewDetails}
-                className="inline-flex items-center justify-center gap-1.5 sm:gap-2 rounded-md bg-white/25 backdrop-blur-md px-4 sm:px-6 md:px-8 py-2 sm:py-2.5 md:py-3 text-sm sm:text-base md:text-lg font-bold text-white transition-all hover:bg-white/35 active:scale-95 focus:outline-none focus:ring-2 focus:ring-white/50 shadow-xl"
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-white/20 backdrop-blur-md px-5 sm:px-7 md:px-9 py-2.5 sm:py-3 md:py-3.5 text-sm sm:text-base md:text-lg font-bold text-white transition-all hover:bg-white/30 active:scale-95 focus:outline-none focus:ring-2 focus:ring-white/50 shadow-xl"
               >
                 <Info className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
-                <span>Info</span>
+                <span>More Info</span>
               </button>
             </div>
           </div>
@@ -179,7 +194,7 @@ export default function HeroSliderSection({ className = "" }) {
       </div>
 
       {/* Indicators */}
-      <div className="absolute bottom-3 sm:bottom-4 md:bottom-6 right-4 sm:right-6 md:right-8 lg:right-12 z-40 flex items-center gap-1.5 sm:gap-2">
+      <div className="absolute bottom-4 sm:bottom-6 md:bottom-8 right-4 sm:right-6 md:right-8 lg:right-12 z-40 flex items-center gap-2">
         {slides.map((_, idx) => (
           <button
             key={idx}
@@ -187,12 +202,20 @@ export default function HeroSliderSection({ className = "" }) {
             aria-label={`Go to slide ${idx + 1}`}
             className={`h-1 rounded-full transition-all duration-500 focus:outline-none ${
               idx === currentIndex
-                ? "w-6 sm:w-8 md:w-10 bg-white shadow-lg"
+                ? "w-8 sm:w-10 md:w-12 bg-white shadow-lg"
                 : "w-1 sm:w-1.5 bg-white/40 hover:bg-white/60"
             }`}
           />
         ))}
       </div>
+
+      {/* Mute Toggle (Optional) */}
+      <button
+        onClick={() => setMuted(!muted)}
+        className="absolute bottom-4 left-4 z-40 h-10 w-10 rounded-full bg-black/60 backdrop-blur-md border border-white/20 flex items-center justify-center text-white hover:bg-black/80 transition-all opacity-0 group-hover:opacity-100"
+      >
+        {muted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+      </button>
     </section>
   );
 }

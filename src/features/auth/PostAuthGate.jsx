@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { Outlet, useNavigate } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
-import { hasCompletedOnboarding } from '@/shared/lib/supabase/onboarding'
+import { hasCompletedOnboarding } from '@/features/onboarding/Onboarding'
 import { Loader2 } from 'lucide-react'
 
 export default function PostAuthGate() {

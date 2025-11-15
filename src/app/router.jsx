@@ -9,37 +9,44 @@ import {
 import { useEffect, useState } from 'react'
 import { supabase } from '@/shared/lib/supabase/client'
 
+
 // Root shells
 import AppShell from '@/app/AppShell'
+
 
 // Public pages (no app chrome)
 import Landing from '@/features/landing/Landing'
 
+
 // App pages (with header/sidebar)
-import HomePage from '@/app/pages/home/HomePage'
-import MoviesTab from '@/app/pages/browse/MoviesTab'
+import HomePage from '@/app/homepage/HomePage'
+import MoviesTab from '@/app/pages/movies/MoviesTab'
 import MovieDetail from '@/app/pages/MovieDetail'
 import Onboarding from '@/features/onboarding/Onboarding'
 import Account from '@/app/header/components/Account'
 import Preferences from '@/app/header/components/Preferences'
 import Watchlist from '@/app/pages/watchlist/Watchlist'
-import HistoryPage from '@/app/pages/history/WatchedHistory'
+import HistoryPage from '@/app/pages/watched/WatchedHistory'
 import MobileAccount from '@/app/header/components/MobileAccount'
 
-// Legal pages
-import AboutPage from '@/app/pages/legal/AboutPage'
-import PrivacyPage from '@/app/pages/legal/PrivacyPage'
-import TermsPage from '@/app/pages/legal/TermsPage'
 
 // 404
 import NotFound from '@/app/pages/NotFound'
+
 
 // Shared top/bottom
 import TopNav from '@/features/landing/components/TopNav'
 import Footer from '@/features/landing/components/Footer'
 
+
 // Auth/onboarding gate
 import PostAuthGate from '@/features/auth/PostAuthGate'
+
+
+// Import the new pages
+import AboutPage from '@/app/pages/legal/AboutPage'
+import PrivacyPage from '@/app/pages/legal/PrivacyPage'
+import TermsPage from '@/app/pages/legal/TermsPage'
 
 /* ----------------------------- Public layout ----------------------------- */
 function PublicShell() {

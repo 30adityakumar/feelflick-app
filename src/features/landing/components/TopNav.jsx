@@ -1,195 +1,134 @@
 // src/features/landing/components/TopNav.jsx
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { Menu, X } from 'lucide-react'
-import { supabase } from '@/shared/lib/supabase/client'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { LogIn } from 'lucide-react'
 
-// Brand gradient constant
-const BRAND_GRADIENT = 'bg-gradient-to-r from-[#FF9245] via-[#EB423B] to-[#E03C9E]'
+export default function TopNav({ hideAuthCta = false, onAuthOpen }) {
+  const [scrolled, setScrolled] = useState(false)
+  const barRef = useRef(null)
+  const navigate = useNavigate()
+  const location = useLocation()
 
-export default function TopNav({ hideAuthCta = false }) {
-  const [user, setUser] = useState(null)
-  const [menuOpen, setMenuOpen] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const navRef = useRef(null)
-  const menuRef = useRef(null)
-
-  useEffect(() => {
-    // Get current user
-    supabase.auth.getUser().then(({ data }) => setUser(data?.user || null))
-    
-    // Subscribe to auth changes
-    const { data } = supabase.auth.onAuthStateChange((_e, session) => {
-      setUser(session?.user || null)
-    })
-    
-    return () => data?.subscription?.unsubscribe?.()
-  }, [])
+  // 🚫 Do not render TopNav on onboarding route (true in-app feel)
+  if (location.pathname.startsWith('/onboarding')) {
+    return null
+  }
 
   useEffect(() => {
-    // Set CSS variable for layout calculations
-    if (navRef.current) {
-      const h = navRef.current.getBoundingClientRect().height
+    const setVar = () => {
+      const h = barRef.current?.offsetHeight || 72
       document.documentElement.style.setProperty('--topnav-h', `${h}px`)
     }
+    setVar()
+    const ro = new ResizeObserver(setVar)
+    if (barRef.current) ro.observe(barRef.current)
+    return () => ro.disconnect()
   }, [])
 
   useEffect(() => {
-    // Close menu on escape key
-    const handleEscape = (e) => {
-      if (e.key === 'Escape' && menuOpen) {
-        setMenuOpen(false)
-      }
-    }
-    
-    document.addEventListener('keydown', handleEscape)
-    return () => document.removeEventListener('keydown', handleEscape)
-  }, [menuOpen])
-
-  useEffect(() => {
-    // Lock body scroll when menu is open
-    if (menuOpen) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
-    }
-    
-    return () => {
-      document.body.style.overflow = ''
-    }
-  }, [menuOpen])
-
-  const handleGoogleSignIn = async () => {
-    setLoading(true)
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/home`,
-        },
+    let ticking = false
+    const onScroll = () => {
+      if (ticking) return
+      ticking = true
+      requestAnimationFrame(() => {
+        setScrolled((window.scrollY || document.documentElement.scrollTop) > 8)
+        ticking = false
       })
-      if (error) throw error
-    } catch (err) {
-      console.error('Sign in error:', err)
-      alert('Unable to sign in. Please try again.')
-    } finally {
-      setLoading(false)
+    }
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  const onBrandClick = (e) => {
+    e.preventDefault()
+    if (location.pathname === '/') {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    } else {
+      navigate('/')
+      setTimeout(() => window.scrollTo({ top: 0, behavior: 'auto' }), 0)
     }
   }
 
-  const handleSignOut = async () => {
-    setLoading(true)
-    try {
-      await supabase.auth.signOut()
-    } catch (err) {
-      console.error('Sign out error:', err)
-    } finally {
-      setLoading(false)
-    }
-  }
+  const shellClass =
+    'fixed inset-x-0 top-0 z-50 transition-colors duration-200 ' +
+    (scrolled ? 'bg-neutral-950/60 backdrop-blur-md ring-1 ring-white/10' : 'bg-transparent')
 
   return (
-    <nav
-      ref={navRef}
-      className="sticky top-0 z-50 w-full border-b border-white/5 bg-black/80 backdrop-blur-xl"
-    >
-      <div className="mx-auto flex h-16 sm:h-18 md:h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* Logo */}
-        <Link
-          to="/"
-          className="flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-white/50 rounded-lg"
+    <header className={shellClass} data-scrolled={scrolled}>
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:rounded-md focus:bg-neutral-900 focus:px-3 focus:py-2 focus:text-white"
+      >
+        Skip to content
+      </a>
+
+      <div
+        ref={barRef}
+        className="mx-auto flex w-full max-w-7xl items-center justify-between gap-2 px-3 pt-[calc(env(safe-area-inset-top)+14px)] pb-3 sm:py-4 md:px-6"
+      >
+        {/* Brand */}
+        <a
+          href="/"
+          onClick={onBrandClick}
+          className="flex items-center rounded-md"
+          aria-label="FeelFlick home"
         >
-          <span className={`text-xl sm:text-2xl md:text-3xl font-black tracking-tight ${BRAND_GRADIENT} bg-clip-text text-transparent`}>
+          <span className="text-[clamp(1.6rem,5.2vw,2.25rem)] font-extrabold tracking-tight text-brand-100 uppercase">
             FEELFLICK
           </span>
-        </Link>
+        </a>
 
-        {/* Desktop Navigation */}
         {!hideAuthCta && (
-          <div className="hidden md:flex items-center gap-4">
-            {user ? (
-              <>
-                <Link
-                  to="/home"
-                  className="rounded-lg px-4 py-2 text-sm font-semibold text-white/90 hover:text-white hover:bg-white/10 transition-all focus:outline-none focus:ring-2 focus:ring-white/50"
-                >
-                  Go to App
-                </Link>
+          <>
+            {/* Desktop */}
+            <div className="hidden md:flex items-center gap-2">
+              {onAuthOpen ? (
                 <button
-                  onClick={handleSignOut}
-                  disabled={loading}
-                  className="rounded-lg px-4 py-2 text-sm font-semibold text-white/90 hover:text-white hover:bg-white/10 transition-all disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-white/50"
+                  type="button"
+                  onClick={onAuthOpen}
+                  className="group relative inline-flex h-10 items-center gap-2 rounded-full border border-white/20 px-4 text-[0.9rem] font-semibold text-white/95 hover:bg-white/10 active:scale-[.98] focus:outline-none"
+                  aria-label="Log in"
                 >
-                  {loading ? 'Signing out...' : 'Sign Out'}
+                  <LogIn className="h-4 w-4 text-white/90" aria-hidden />
+                  <span>Log in</span>
                 </button>
-              </>
-            ) : (
-              <button
-                onClick={handleGoogleSignIn}
-                disabled={loading}
-                className={`rounded-lg ${BRAND_GRADIENT} px-6 py-2.5 text-sm font-bold text-white hover:opacity-90 transition-all disabled:opacity-50 shadow-lg hover:shadow-xl active:scale-95 focus:outline-none focus:ring-2 focus:ring-white/50`}
-              >
-                {loading ? 'Loading...' : 'Get Started'}
-              </button>
-            )}
-          </div>
-        )}
+              ) : (
+                <Link
+                  to="/auth/log-in-or-create-account"
+                  className="group relative inline-flex h-10 items-center gap-2 rounded-full border border-white/20 px-4 text-[0.9rem] font-semibold text-white/95 hover:bg-white/10 active:scale-[.98] focus:outline-none"
+                >
+                  <LogIn className="h-4 w-4 text-white/90" aria-hidden />
+                  <span>Log in</span>
+                </Link>
+              )}
+            </div>
 
-        {/* Mobile Menu Button */}
-        {!hideAuthCta && (
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="md:hidden grid h-10 w-10 place-items-center rounded-lg text-white hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-white/50"
-            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-            aria-expanded={menuOpen}
-          >
-            {menuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
+            {/* Mobile */}
+            <div className="md:hidden">
+              {onAuthOpen ? (
+                <button
+                  type="button"
+                  onClick={onAuthOpen}
+                  className="inline-flex items-center gap-2 h-10 px-4 rounded-full border border-white/20 bg-white/5 text-[0.95rem] font-semibold text-white/95 hover:bg-white/10 active:scale-[.98] focus:outline-none"
+                  aria-label="Log in"
+                >
+                  <LogIn className="h-4 w-4 text-white/90" aria-hidden />
+                  <span>Log in</span>
+                </button>
+              ) : (
+                <Link
+                  to="/auth/log-in-or-create-account"
+                  className="inline-flex items-center gap-2 h-10 px-4 rounded-full border border-white/20 bg-white/5 text-[0.95rem] font-semibold text-white/95 hover:bg-white/10 active:scale-[.98] focus:outline-none"
+                >
+                  <LogIn className="h-4 w-4 text-white/90" aria-hidden />
+                  <span>Log in</span>
+                </Link>
+              )}
+            </div>
+          </>
         )}
       </div>
-
-      {/* Mobile Menu */}
-      {menuOpen && (
-        <div
-          ref={menuRef}
-          className="fixed inset-x-0 top-[var(--topnav-h,64px)] bottom-0 z-50 bg-black/95 backdrop-blur-xl md:hidden animate-in fade-in slide-in-from-top-4 duration-300"
-        >
-          <div className="flex flex-col items-center justify-center gap-6 h-full p-8">
-            {user ? (
-              <>
-                <Link
-                  to="/home"
-                  onClick={() => setMenuOpen(false)}
-                  className="w-full max-w-xs rounded-lg px-6 py-3 text-center text-lg font-semibold text-white bg-white/10 hover:bg-white/20 transition-all focus:outline-none focus:ring-2 focus:ring-white/50"
-                >
-                  Go to App
-                </Link>
-                <button
-                  onClick={() => {
-                    handleSignOut()
-                    setMenuOpen(false)
-                  }}
-                  disabled={loading}
-                  className="w-full max-w-xs rounded-lg px-6 py-3 text-lg font-semibold text-white bg-white/10 hover:bg-white/20 transition-all disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-white/50"
-                >
-                  {loading ? 'Signing out...' : 'Sign Out'}
-                </button>
-              </>
-            ) : (
-              <button
-                onClick={() => {
-                  handleGoogleSignIn()
-                  setMenuOpen(false)
-                }}
-                disabled={loading}
-                className={`w-full max-w-xs rounded-lg ${BRAND_GRADIENT} px-6 py-3 text-lg font-bold text-white hover:opacity-90 transition-all disabled:opacity-50 shadow-xl active:scale-95 focus:outline-none focus:ring-2 focus:ring-white/50`}
-              >
-                {loading ? 'Loading...' : 'Get Started'}
-              </button>
-            )}
-          </div>
-        </div>
-      )}
-    </nav>
+    </header>
   )
 }

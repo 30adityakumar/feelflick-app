@@ -1,5 +1,5 @@
 // src/app/homepage/components/HeroSliderSection.jsx
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Play, Info } from "lucide-react";
 
@@ -83,7 +83,7 @@ export default function HeroSliderSection({ className = "" }) {
   if (loading) {
     return (
       <section className={`relative w-full bg-neutral-950 ${className}`}>
-        <div className="aspect-[9/16] sm:aspect-[16/10] md:aspect-[21/9] animate-pulse bg-neutral-900" />
+        <div className="aspect-[2/3] sm:aspect-[3/4] md:aspect-[16/9] lg:aspect-[21/9] animate-pulse bg-neutral-900" />
       </section>
     );
   }
@@ -99,9 +99,9 @@ export default function HeroSliderSection({ className = "" }) {
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Hero Image Container with proper aspect ratios */}
-      <div className="relative w-full aspect-[9/16] xs:aspect-[3/4] sm:aspect-[16/10] md:aspect-[16/8] lg:aspect-[21/9]">
-        {/* Background Images */}
+      {/* Hero Image Container - Netflix-style aspect ratios */}
+      <div className="relative w-full aspect-[2/3] sm:aspect-[3/4] md:aspect-[16/9] lg:aspect-[21/9]">
+        {/* Background Images with Crossfade */}
         {slides.map((movie, idx) => {
           const bg = tmdbImg(movie.backdrop_path || movie.poster_path, "original");
           return (
@@ -121,23 +121,23 @@ export default function HeroSliderSection({ className = "" }) {
           );
         })}
 
-        {/* Gradient Overlays */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent z-20" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/20 to-transparent z-20" />
-        <div className="absolute bottom-0 inset-x-0 h-24 sm:h-32 md:h-40 bg-gradient-to-t from-black to-transparent z-20" />
+        {/* Gradient Overlays - More aggressive for better readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent z-20" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/30 md:via-black/20 to-transparent z-20" />
+        <div className="absolute bottom-0 inset-x-0 h-1/3 bg-gradient-to-t from-black via-black/80 to-transparent z-20" />
       </div>
 
-      {/* Content Overlay - Properly constrained */}
-      <div className="absolute inset-0 z-30 flex items-end pb-8 sm:pb-12 md:pb-16 lg:pb-20">
-        <div className="w-full px-4 sm:px-6 md:px-8 lg:px-12 max-w-[1920px] mx-auto">
-          <div className="max-w-xl md:max-w-2xl lg:max-w-3xl">
-            {/* Title - Responsive sizing */}
-            <h1 className="text-white font-black tracking-tight leading-tight text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl drop-shadow-2xl mb-2 sm:mb-3 md:mb-4">
+      {/* Content Overlay */}
+      <div className="absolute inset-0 z-30 flex items-end pb-20 sm:pb-24 md:pb-28 lg:pb-32">
+        <div className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 max-w-[2000px] mx-auto">
+          <div className="max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl">
+            {/* Title - Better mobile sizing */}
+            <h1 className="text-white font-black tracking-tight leading-[0.9] text-[clamp(2rem,8vw,5rem)] md:text-[clamp(3rem,5vw,4.5rem)] lg:text-[clamp(4rem,6vw,6rem)] drop-shadow-2xl mb-3 sm:mb-4 md:mb-5">
               {currentMovie?.title || "Featured"}
             </h1>
 
-            {/* Meta Info */}
-            <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4 text-xs sm:text-sm md:text-base">
+            {/* Meta Info - Compact on mobile */}
+            <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4 md:mb-5 text-sm sm:text-base">
               {currentMovie?.vote_average && (
                 <div className="flex items-center gap-1 text-green-400 font-bold">
                   <span className="text-base sm:text-lg">★</span>
@@ -145,35 +145,34 @@ export default function HeroSliderSection({ className = "" }) {
                 </div>
               )}
               {currentMovie?.release_date && (
-                <span className="text-white/80 font-semibold">
+                <span className="text-white/90 font-semibold">
                   {new Date(currentMovie.release_date).getFullYear()}
                 </span>
               )}
             </div>
 
-            {/* Overview - Hidden on very small screens, progressively shown */}
+            {/* Overview - Hidden on mobile, shown progressively */}
             {currentMovie?.overview && (
-              <p className="hidden xs:block text-white/90 text-xs sm:text-sm md:text-base lg:text-lg leading-relaxed line-clamp-2 sm:line-clamp-3 md:line-clamp-4 drop-shadow-lg mb-4 sm:mb-5 md:mb-6">
+              <p className="hidden sm:block text-white/95 text-sm md:text-base lg:text-lg leading-relaxed line-clamp-2 md:line-clamp-3 drop-shadow-lg mb-5 md:mb-6 lg:mb-7">
                 {currentMovie.overview}
               </p>
             )}
 
-            {/* Action Buttons */}
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            {/* Action Buttons - Properly sized and spaced */}
+            <div className="flex items-center gap-2 sm:gap-3">
               <button
                 onClick={viewDetails}
-                className="inline-flex items-center justify-center gap-1.5 sm:gap-2 rounded-md bg-white px-4 sm:px-6 md:px-8 py-2 sm:py-2.5 md:py-3 text-sm sm:text-base md:text-lg font-bold text-black transition-all hover:bg-white/90 active:scale-95 focus:outline-none focus:ring-2 focus:ring-white/50 shadow-xl"
+                className="inline-flex items-center justify-center gap-2 rounded-md bg-white px-5 sm:px-7 md:px-9 py-2.5 sm:py-3 md:py-3.5 text-sm sm:text-base md:text-lg font-bold text-black transition-all hover:bg-white/90 active:scale-95 focus:outline-none focus:ring-2 focus:ring-white/50 shadow-xl"
               >
                 <Play className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 fill-current" />
                 <span>Play</span>
               </button>
               <button
                 onClick={viewDetails}
-                className="inline-flex items-center justify-center gap-1.5 sm:gap-2 rounded-md bg-white/25 backdrop-blur-md px-4 sm:px-6 md:px-8 py-2 sm:py-2.5 md:py-3 text-sm sm:text-base md:text-lg font-bold text-white transition-all hover:bg-white/35 active:scale-95 focus:outline-none focus:ring-2 focus:ring-white/50 shadow-xl"
+                className="inline-flex items-center justify-center gap-2 rounded-md bg-white/25 backdrop-blur-md px-5 sm:px-7 md:px-9 py-2.5 sm:py-3 md:py-3.5 text-sm sm:text-base md:text-lg font-bold text-white transition-all hover:bg-white/35 active:scale-95 focus:outline-none focus:ring-2 focus:ring-white/50 shadow-xl"
               >
                 <Info className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
-                <span className="hidden xs:inline">More Info</span>
-                <span className="xs:hidden">Info</span>
+                <span>Info</span>
               </button>
             </div>
           </div>
@@ -181,7 +180,7 @@ export default function HeroSliderSection({ className = "" }) {
       </div>
 
       {/* Slide Indicators */}
-      <div className="absolute bottom-4 sm:bottom-6 md:bottom-8 right-4 sm:right-6 md:right-8 z-40 flex items-center gap-1.5 sm:gap-2">
+      <div className="absolute bottom-4 sm:bottom-6 md:bottom-8 lg:bottom-10 right-4 sm:right-6 md:right-8 lg:right-12 z-40 flex items-center gap-1.5 sm:gap-2">
         {slides.map((_, idx) => (
           <button
             key={idx}
@@ -189,7 +188,7 @@ export default function HeroSliderSection({ className = "" }) {
             aria-label={`Go to slide ${idx + 1}`}
             className={`h-1 rounded-full transition-all duration-500 focus:outline-none ${
               idx === currentIndex
-                ? "w-6 sm:w-8 bg-white shadow-lg"
+                ? "w-6 sm:w-8 md:w-10 bg-white shadow-lg"
                 : "w-1 sm:w-1.5 bg-white/40 hover:bg-white/60"
             }`}
           />

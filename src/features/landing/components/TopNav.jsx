@@ -1,134 +1,158 @@
 // src/features/landing/components/TopNav.jsx
-import { useEffect, useRef, useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { LogIn } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { Menu, X } from 'lucide-react'
+import { supabase } from '@/shared/lib/supabase/client'
 
-export default function TopNav({ hideAuthCta = false, onAuthOpen }) {
-  const [scrolled, setScrolled] = useState(false)
-  const barRef = useRef(null)
+export default function TopNav() {
+  const [user, setUser] = useState(null)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const navigate = useNavigate()
-  const location = useLocation()
-
-  // 🚫 Do not render TopNav on onboarding route (true in-app feel)
-  if (location.pathname.startsWith('/onboarding')) {
-    return null
-  }
 
   useEffect(() => {
-    const setVar = () => {
-      const h = barRef.current?.offsetHeight || 72
-      document.documentElement.style.setProperty('--topnav-h', `${h}px`)
-    }
-    setVar()
-    const ro = new ResizeObserver(setVar)
-    if (barRef.current) ro.observe(barRef.current)
-    return () => ro.disconnect()
+    supabase.auth.getUser().then(({ data }) => setUser(data?.user || null))
+    const { data } = supabase.auth.onAuthStateChange((_e, session) => {
+      setUser(session?.user || null)
+    })
+    return () => data?.subscription?.unsubscribe()
   }, [])
 
-  useEffect(() => {
-    let ticking = false
-    const onScroll = () => {
-      if (ticking) return
-      ticking = true
-      requestAnimationFrame(() => {
-        setScrolled((window.scrollY || document.documentElement.scrollTop) > 8)
-        ticking = false
-      })
-    }
-    onScroll()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
-
-  const onBrandClick = (e) => {
-    e.preventDefault()
-    if (location.pathname === '/') {
-      window.scrollTo({ top: 0, behavior: 'smooth' })
+  const handleGetStarted = () => {
+    if (user) {
+      navigate('/home')
     } else {
-      navigate('/')
-      setTimeout(() => window.scrollTo({ top: 0, behavior: 'auto' }), 0)
+      navigate('/', { state: { showAuth: true } })
     }
   }
-
-  const shellClass =
-    'fixed inset-x-0 top-0 z-50 transition-colors duration-200 ' +
-    (scrolled ? 'bg-neutral-950/60 backdrop-blur-md ring-1 ring-white/10' : 'bg-transparent')
 
   return (
-    <header className={shellClass} data-scrolled={scrolled}>
-      <a
-        href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:rounded-md focus:bg-neutral-900 focus:px-3 focus:py-2 focus:text-white"
-      >
-        Skip to content
-      </a>
+    <nav className="relative z-50 border-b border-white/5 backdrop-blur-xl bg-black/30">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 sm:h-20 items-center justify-between">
+          {/* Logo */}
+          <Link 
+            to="/" 
+            className="flex items-center group"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            <span className="text-2xl sm:text-3xl font-black tracking-tight bg-gradient-to-r from-[#FF9245] via-[#EB423B] to-[#E03C9E] bg-clip-text text-transparent group-hover:scale-105 transition-transform">
+              FEELFLICK
+            </span>
+          </Link>
 
-      <div
-        ref={barRef}
-        className="mx-auto flex w-full max-w-7xl items-center justify-between gap-2 px-3 pt-[calc(env(safe-area-inset-top)+14px)] pb-3 sm:py-4 md:px-6"
-      >
-        {/* Brand */}
-        <a
-          href="/"
-          onClick={onBrandClick}
-          className="flex items-center rounded-md"
-          aria-label="FeelFlick home"
-        >
-          <span className="text-[clamp(1.6rem,5.2vw,2.25rem)] font-extrabold tracking-tight text-brand-100 uppercase">
-            FEELFLICK
-          </span>
-        </a>
-
-        {!hideAuthCta && (
-          <>
-            {/* Desktop */}
-            <div className="hidden md:flex items-center gap-2">
-              {onAuthOpen ? (
-                <button
-                  type="button"
-                  onClick={onAuthOpen}
-                  className="group relative inline-flex h-10 items-center gap-2 rounded-full border border-white/20 px-4 text-[0.9rem] font-semibold text-white/95 hover:bg-white/10 active:scale-[.98] focus:outline-none"
-                  aria-label="Log in"
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-8">
+            <Link 
+              to="/browse" 
+              className="text-sm font-medium text-white/80 hover:text-white transition-colors"
+            >
+              Discover
+            </Link>
+            {user && (
+              <>
+                <Link 
+                  to="/watchlist" 
+                  className="text-sm font-medium text-white/80 hover:text-white transition-colors"
                 >
-                  <LogIn className="h-4 w-4 text-white/90" aria-hidden />
-                  <span>Log in</span>
-                </button>
-              ) : (
-                <Link
-                  to="/auth/log-in-or-create-account"
-                  className="group relative inline-flex h-10 items-center gap-2 rounded-full border border-white/20 px-4 text-[0.9rem] font-semibold text-white/95 hover:bg-white/10 active:scale-[.98] focus:outline-none"
-                >
-                  <LogIn className="h-4 w-4 text-white/90" aria-hidden />
-                  <span>Log in</span>
+                  Watchlist
                 </Link>
-              )}
-            </div>
-
-            {/* Mobile */}
-            <div className="md:hidden">
-              {onAuthOpen ? (
-                <button
-                  type="button"
-                  onClick={onAuthOpen}
-                  className="inline-flex items-center gap-2 h-10 px-4 rounded-full border border-white/20 bg-white/5 text-[0.95rem] font-semibold text-white/95 hover:bg-white/10 active:scale-[.98] focus:outline-none"
-                  aria-label="Log in"
+                <Link 
+                  to="/account" 
+                  className="text-sm font-medium text-white/80 hover:text-white transition-colors"
                 >
-                  <LogIn className="h-4 w-4 text-white/90" aria-hidden />
-                  <span>Log in</span>
-                </button>
-              ) : (
-                <Link
-                  to="/auth/log-in-or-create-account"
-                  className="inline-flex items-center gap-2 h-10 px-4 rounded-full border border-white/20 bg-white/5 text-[0.95rem] font-semibold text-white/95 hover:bg-white/10 active:scale-[.98] focus:outline-none"
-                >
-                  <LogIn className="h-4 w-4 text-white/90" aria-hidden />
-                  <span>Log in</span>
+                  Account
                 </Link>
-              )}
-            </div>
-          </>
-        )}
+              </>
+            )}
+          </div>
+
+          {/* Desktop CTA */}
+          <div className="hidden md:flex items-center gap-3">
+            {user ? (
+              <Link
+                to="/home"
+                className="inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-[#FF9245] to-[#EB423B] hover:to-[#E03C9E] px-5 py-2.5 text-sm font-bold text-white shadow-lg hover:shadow-xl transition-all hover:scale-105 active:scale-95"
+              >
+                Go to App
+              </Link>
+            ) : (
+              <button
+                onClick={handleGetStarted}
+                className="inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-[#FF9245] to-[#EB423B] hover:to-[#E03C9E] px-5 py-2.5 text-sm font-bold text-white shadow-lg hover:shadow-xl transition-all hover:scale-105 active:scale-95"
+              >
+                Get Started
+              </button>
+            )}
+          </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden inline-flex items-center justify-center rounded-lg p-2 text-white hover:bg-white/10 transition-colors"
+            aria-label="Toggle menu"
+          >
+            {mobileMenuOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Menu className="h-6 w-6" />
+            )}
+          </button>
+        </div>
       </div>
-    </header>
+
+      {/* Mobile Menu */}
+      {mobileMenuOpen && (
+        <div className="md:hidden border-t border-white/5 bg-black/95 backdrop-blur-xl">
+          <div className="space-y-1 px-4 pb-4 pt-2">
+            <Link
+              to="/browse"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block rounded-lg px-4 py-3 text-base font-medium text-white/80 hover:bg-white/10 hover:text-white transition-colors"
+            >
+              Discover
+            </Link>
+            {user && (
+              <>
+                <Link
+                  to="/watchlist"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block rounded-lg px-4 py-3 text-base font-medium text-white/80 hover:bg-white/10 hover:text-white transition-colors"
+                >
+                  Watchlist
+                </Link>
+                <Link
+                  to="/account"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block rounded-lg px-4 py-3 text-base font-medium text-white/80 hover:bg-white/10 hover:text-white transition-colors"
+                >
+                  Account
+                </Link>
+              </>
+            )}
+            <div className="pt-2">
+              {user ? (
+                <Link
+                  to="/home"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block rounded-lg bg-gradient-to-r from-[#FF9245] to-[#EB423B] px-4 py-3 text-center text-base font-bold text-white shadow-lg"
+                >
+                  Go to App
+                </Link>
+              ) : (
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false)
+                    handleGetStarted()
+                  }}
+                  className="w-full rounded-lg bg-gradient-to-r from-[#FF9245] to-[#EB423B] px-4 py-3 text-center text-base font-bold text-white shadow-lg"
+                >
+                  Get Started
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </nav>
   )
 }

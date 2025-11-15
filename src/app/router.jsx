@@ -24,6 +24,7 @@ import Account from '@/app/header/components/Account'
 import Preferences from '@/app/header/components/Preferences'
 import Watchlist from '@/app/pages/watchlist/Watchlist'
 import HistoryPage from '@/app/pages/watched/WatchedHistory'
+import MobileAccount from '@/app/header/components/MobileAccount'
 
 // 404
 import NotFound from '@/app/pages/NotFound'
@@ -52,7 +53,7 @@ function FullScreenSpinner() {
     <div className="grid min-h-[60vh] place-items-center text-white/80">
       <div className="inline-flex items-center gap-3">
         <svg className="h-6 w-6 animate-spin text-brand-100" viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeOpacity=".25" strokeWidth="4" />
+          ircle cx="12" cy="12" r="10" stroke="currentColor" strokeOpacity=".25" strokeWidth="="4" />
           <path d="M4 12a8 8 0 018-8v8z" fill="currentColor" />
         </svg>
         <span>Loading…</span>
@@ -217,6 +218,9 @@ export const router = createBrowserRouter([
               { path: 'watchlist', element: <Watchlist /> },
               { path: 'watched', element: <HistoryPage /> },
               { path: 'history', element: <HistoryPage /> }, // legacy
+              
+              // Mobile-only account page (YouTube-style full-screen)
+              { path: 'mobile-account', element: <MobileAccount /> },
             ],
           },
         ],

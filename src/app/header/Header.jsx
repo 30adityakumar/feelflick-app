@@ -14,6 +14,8 @@ import {
   Clock,
   X,
   ChevronRight,
+  HelpCircle,
+  Shield,
 } from "lucide-react";
 
 export default function Header({ onOpenSearch }) {
@@ -24,6 +26,7 @@ export default function Header({ onOpenSearch }) {
   const [lastScrollY, setLastScrollY] = useState(0);
   const hdrRef = useRef(null);
 
+  // User session
   useEffect(() => {
     let unsub;
     const getUser = async () => {
@@ -39,6 +42,7 @@ export default function Header({ onOpenSearch }) {
     return () => typeof unsub === "function" && unsub();
   }, []);
 
+  // Smart scroll
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
@@ -57,6 +61,7 @@ export default function Header({ onOpenSearch }) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
 
+  // Set CSS variable
   useEffect(() => {
     const setVar = () => {
       const h = hdrRef.current?.offsetHeight || 64;
@@ -70,6 +75,7 @@ export default function Header({ onOpenSearch }) {
 
   return (
     <>
+      {/* Desktop & Mobile Header */}
       <header
         ref={hdrRef}
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -84,6 +90,7 @@ export default function Header({ onOpenSearch }) {
       >
         <div className="mx-auto max-w-[2000px] px-3 sm:px-4 md:px-6 lg:px-8 xl:px-12">
           <div className="flex h-14 sm:h-16 md:h-[72px] items-center justify-between gap-2 sm:gap-4">
+            {/* Left: Logo + Nav */}
             <div className="flex items-center gap-4 sm:gap-6 lg:gap-8 min-w-0 flex-1">
               <Link
                 to="/home"
@@ -96,6 +103,7 @@ export default function Header({ onOpenSearch }) {
                 <span className="absolute bottom-0 left-0 h-0.5 w-0 bg-gradient-to-r from-orange-500 to-red-500 group-hover:w-full transition-all duration-300" />
               </Link>
 
+              {/* Desktop Navigation */}
               <nav className="hidden md:flex items-center gap-1">
                 <NavItem to="/home" icon={<Home className="h-4 w-4" />}>
                   Home
@@ -109,7 +117,9 @@ export default function Header({ onOpenSearch }) {
               </nav>
             </div>
 
+            {/* Right: Search + Account */}
             <div className="flex items-center gap-2 sm:gap-3">
+              {/* Desktop Search */}
               <button
                 onClick={onOpenSearch}
                 className="hidden sm:inline-flex items-center gap-2 h-9 md:h-10 px-3 md:px-4 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 hover:border-white/20 transition-all duration-300 group"
@@ -124,14 +134,16 @@ export default function Header({ onOpenSearch }) {
                 </kbd>
               </button>
 
+              {/* Mobile Search Icon */}
               <button
                 onClick={onOpenSearch}
                 className="sm:hidden flex items-center justify-center h-10 w-10 rounded-full hover:bg-white/10 active:scale-95 transition-all"
-                aria-label="Search movies"
+                aria-label="Search"
               >
                 <SearchIcon className="h-5 w-5 text-white/90" />
               </button>
 
+              {/* Desktop Account */}
               <div className="hidden md:block">
                 <AccountMenu user={user} />
               </div>
@@ -140,11 +152,13 @@ export default function Header({ onOpenSearch }) {
         </div>
       </header>
 
+      {/* Mobile Bottom Navigation */}
       <MobileBottomNav pathname={pathname} user={user} />
     </>
   );
 }
 
+/* ===== Desktop Nav Item ===== */
 function NavItem({ to, icon, children }) {
   return (
     <NavLink
@@ -170,6 +184,7 @@ function NavItem({ to, icon, children }) {
   );
 }
 
+/* ===== Desktop Account Menu ===== */
 function AccountMenu({ user }) {
   const nav = useNavigate();
   const [open, setOpen] = useState(false);
@@ -236,9 +251,8 @@ function AccountMenu({ user }) {
         className={`inline-flex items-center gap-2 h-10 pl-1.5 pr-3 rounded-full transition-all duration-300 ${
           open
             ? "bg-white/20 shadow-lg shadow-white/10"
-            : "bg-white/10 hover:bg-white/15 hover:shadow-lg hover:shadow-white/5"
+            : "bg-white/10 hover:bg-white/15"
         }`}
-        aria-label="Account menu"
       >
         <div className="h-8 w-8 rounded-full bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 flex items-center justify-center text-sm font-bold text-white ring-2 ring-white/20">
           {initials}
@@ -256,11 +270,9 @@ function AccountMenu({ user }) {
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          
           <div
             ref={popRef}
-            className="absolute right-0 mt-3 w-72 rounded-2xl bg-black/98 backdrop-blur-2xl border border-white/10 shadow-2xl overflow-hidden z-50"
-            style={{ animation: "slideDown 0.2s ease-out" }}
+            className="absolute right-0 mt-3 w-72 rounded-2xl bg-black/98 backdrop-blur-2xl border border-white/10 shadow-2xl overflow-hidden z-50 animate-slideDown"
           >
             <div className="px-4 py-4 border-b border-white/10 bg-gradient-to-br from-white/5 to-transparent">
               <div className="flex items-center gap-3">
@@ -317,7 +329,7 @@ function MenuItem({ to, icon, children, onClick }) {
       to={to}
       onClick={onClick}
       className={({ isActive }) =>
-        `flex items-center gap-3 px-4 py-3 text-sm font-semibold transition-all duration-200 group relative ${
+        `flex items-center gap-3 px-4 py-3 text-sm font-semibold transition-all duration-200 group ${
           isActive
             ? "bg-white/10 text-white"
             : "text-white/80 hover:bg-white/5 hover:text-white"
@@ -333,14 +345,13 @@ function MenuItem({ to, icon, children, onClick }) {
   );
 }
 
+/* ===== Mobile Bottom Navigation ===== */
 function MobileBottomNav({ pathname, user }) {
   const nav = useNavigate();
-  const [accountOpen, setAccountOpen] = useState(false);
   const location = useLocation();
 
-  useEffect(() => {
-    setAccountOpen(false);
-  }, [location.pathname]);
+  // Check if we're on the mobile account page
+  const isAccountPage = pathname === "/mobile-account";
 
   const name = user?.user_metadata?.name || user?.email?.split("@")[0] || "User";
   const initials = name
@@ -352,45 +363,33 @@ function MobileBottomNav({ pathname, user }) {
   const navItems = [
     { icon: <Home className="h-6 w-6" />, label: "Home", path: "/home" },
     { icon: <Compass className="h-6 w-6" />, label: "Browse", path: "/browse" },
-    { icon: <Bookmark className="h-6 w-6" />, label: "Watchlist", path: "/watchlist" },
   ];
 
   return (
-    <>
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-black/98 backdrop-blur-2xl border-t border-white/10">
-        <div className="grid grid-cols-4 h-16 px-2">
-          {navItems.map((item) => (
-            <MobileNavButton
-              key={item.label}
-              icon={item.icon}
-              label={item.label}
-              isActive={pathname === item.path}
-              onClick={() => {
-                setAccountOpen(false);
-                nav(item.path);
-              }}
-            />
-          ))}
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-black/98 backdrop-blur-2xl border-t border-white/10">
+      <div className="grid grid-cols-3 h-16 px-2">
+        {navItems.map((item) => (
           <MobileNavButton
-            icon={
-              <div className="h-7 w-7 rounded-full bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 flex items-center justify-center text-xs font-bold ring-2 ring-white/20">
-                {initials}
-              </div>
-            }
-            label="Account"
-            isActive={accountOpen}
-            onClick={() => setAccountOpen(true)}
+            key={item.label}
+            icon={item.icon}
+            label={item.label}
+            isActive={pathname === item.path && !isAccountPage}
+            onClick={() => nav(item.path)}
           />
-        </div>
-        <div className="h-[env(safe-area-inset-bottom)]" />
+        ))}
+        <MobileNavButton
+          icon={
+            <div className="h-7 w-7 rounded-full bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 flex items-center justify-center text-xs font-bold ring-2 ring-white/20">
+              {initials}
+            </div>
+          }
+          label="Account"
+          isActive={isAccountPage}
+          onClick={() => nav("/mobile-account")}
+        />
       </div>
-
-      <MobileAccountPanel
-        open={accountOpen}
-        user={user}
-        onClose={() => setAccountOpen(false)}
-      />
-    </>
+      <div className="h-[env(safe-area-inset-bottom)]" />
+    </div>
   );
 }
 
@@ -398,14 +397,14 @@ function MobileNavButton({ icon, label, isActive, onClick }) {
   return (
     <button
       onClick={onClick}
-      className={`flex flex-col items-center justify-center gap-1 transition-all duration-300 active:scale-95 relative ${
+      className={`flex flex-col items-center justify-center gap-1 transition-all duration-300 active:scale-95 ${
         isActive ? "text-white" : "text-white/60"
       }`}
     >
       <div className={`transition-transform duration-300 ${isActive ? "scale-110" : ""}`}>
         {icon}
       </div>
-      <span className={`text-[10px] font-semibold transition-all ${isActive ? "text-white" : "text-white/60"}`}>
+      <span className={`text-[10px] font-semibold ${isActive ? "text-white" : "text-white/60"}`}>
         {label}
       </span>
       {isActive && (
@@ -413,132 +412,4 @@ function MobileNavButton({ icon, label, isActive, onClick }) {
       )}
     </button>
   );
-}
-
-function MobileAccountPanel({ open, user, onClose }) {
-  const nav = useNavigate();
-
-  useEffect(() => {
-    if (open) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [open]);
-
-  if (!open) return null;
-
-  const name = user?.user_metadata?.name || user?.email?.split("@")[0] || "User";
-  const email = user?.email || "";
-  const initials = name
-    .split(" ")
-    .map((s) => s[0]?.toUpperCase())
-    .slice(0, 2)
-    .join("") || "U";
-
-  const handleNavigate = (path) => {
-    onClose();
-    setTimeout(() => nav(path), 200);
-  };
-
-  async function handleSignOut() {
-    await supabase.auth.signOut();
-    onClose();
-    setTimeout(() => nav("/", { replace: true }), 200);
-  }
-
-  const menuItems = [
-    { icon: <UserIcon className="h-6 w-6" />, label: "Profile", path: "/account" },
-    { icon: <Settings className="h-6 w-6" />, label: "Settings", path: "/preferences" },
-    { icon: <Bookmark className="h-6 w-6" />, label: "Watchlist", path: "/watchlist" },
-    { icon: <Clock className="h-6 w-6" />, label: "History", path: "/history" },
-  ];
-
-  return (
-    <>
-      {/* Full Screen Overlay */}
-      <div
-        className="md:hidden fixed inset-0 bg-black z-[100]"
-        style={{ animation: "fadeIn 0.3s ease-out" }}
-      >
-        {/* Header */}
-        <div className="sticky top-0 z-10 bg-black/95 backdrop-blur-xl border-b border-white/10">
-          <div className="flex items-center justify-between px-4 h-16">
-            <h1 className="text-xl font-bold text-white">Account</h1>
-            <button
-              onClick={onClose}
-              className="h-10 w-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 active:scale-95 transition-all"
-            >
-              <X className="h-6 w-6 text-white" />
-            </button>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="overflow-y-auto h-[calc(100vh-4rem)] pb-8">
-          {/* User Info Section */}
-          <div className="px-6 py-8 border-b border-white/10 bg-gradient-to-b from-white/5 to-transparent">
-            <div className="flex flex-col items-center text-center">
-              <div className="h-24 w-24 rounded-full bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 flex items-center justify-center text-3xl font-bold text-white ring-4 ring-white/10 mb-4">
-                {initials}
-              </div>
-              <h2 className="text-2xl font-bold text-white mb-1">{name}</h2>
-              <p className="text-sm text-white/60">{email}</p>
-            </div>
-          </div>
-
-          {/* Menu Items */}
-          <div className="py-4">
-            {menuItems.map((item, idx) => (
-              <button
-                key={item.label}
-                onClick={() => handleNavigate(item.path)}
-                className="flex w-full items-center gap-4 px-6 py-5 text-white/90 hover:bg-white/5 active:bg-white/10 transition-all group border-b border-white/5"
-                style={{ animationDelay: `${idx * 50}ms` }}
-              >
-                <div className="h-12 w-12 rounded-full bg-white/10 flex items-center justify-center text-white/80 group-hover:text-white group-hover:bg-white/15 transition-all">
-                  {item.icon}
-                </div>
-                <div className="flex-1 text-left">
-                  <span className="text-lg font-semibold block">{item.label}</span>
-                </div>
-                <ChevronRight className="h-6 w-6 text-white/40 group-hover:text-white/70 transition-all" />
-              </button>
-            ))}
-          </div>
-
-          {/* Sign Out */}
-          <div className="px-6 pt-4">
-            <button
-              onClick={handleSignOut}
-              className="flex w-full items-center justify-center gap-3 px-6 py-4 rounded-2xl bg-red-500/10 text-red-400 hover:bg-red-500/20 active:bg-red-500/30 transition-all group border border-red-500/20"
-            >
-              <LogOut className="h-5 w-5 group-active:scale-110 transition-transform" />
-              <span className="text-lg font-bold">Sign Out</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-}
-
-// Add animations
-const style = document.createElement('style');
-style.textContent = `
-  @keyframes slideDown {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-`;
-if (!document.head.querySelector('#header-animations')) {
-  style.id = 'header-animations';
-  document.head.appendChild(style);
 }

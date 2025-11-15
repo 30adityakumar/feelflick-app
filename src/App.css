@@ -1,6 +1,4 @@
-/* Keep CRA/Vite starter bits minimal; avoid overriding global layout/colors.
-   Most app-wide styles now live in index.css to prevent conflicts. */
-
+/* src/App.css */
 .App { text-align: center; }
 
 /* Optional demo animation kept for dev pages only */
@@ -51,4 +49,19 @@ img { display: block; max-width: 100%; }
 @media (max-width: 700px) {
   .movie-card { max-width: 98vw !important; min-width: 44vw !important; height: 230px !important; }
   .movie-card img { height: 155px !important; }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slideDown {
+  animation: slideDown 0.2s ease-out;
 }

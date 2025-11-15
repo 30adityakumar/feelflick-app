@@ -9,8 +9,6 @@ export default function LandingHero({ embedded = false, showInlineAuth = false, 
       className="relative h-full overflow-hidden"
       style={embedded ? undefined : { marginTop: 'var(--topnav-h, var(--nav-h, 72px))' }}
     >
-      <div className="feelflick-landing-bg" aria-hidden="true" />
-
       {/* Background */}
       <div aria-hidden className="fixed inset-0 z-0">
         <div className="absolute inset-0 bg-[linear-gradient(120deg,#0a121a_0%,#0d1722_50%,#0c1017_100%)]" />
@@ -59,7 +57,7 @@ export default function LandingHero({ embedded = false, showInlineAuth = false, 
 
             {showInlineAuth ? (
               <p className="mx-auto md:mx-0 mt-2 max-w-xl text-[clamp(.95rem,2vw,1.1rem)] leading-relaxed text-white/85">
-                We’re piloting FeelFlick — explore and help us shape mood-based movie recommendation
+                We're piloting FeelFlick — explore and help us shape mood-based movie recommendation
                 platform.
               </p>
             ) : (
@@ -74,13 +72,12 @@ export default function LandingHero({ embedded = false, showInlineAuth = false, 
                 <GoogleButton />
               ) : (
                 <button
-                onClick={onAuthOpen}
-                className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-[#FF9245] to-[#EB423B] px-8 py-3 text-base font-bold text-white shadow-xl transition-all hover:from-[#FF9245] hover:to-[#E03C9E] hover:shadow-2xl active:scale-95 focus:outline-none focus:ring-2 focus:ring-orange-500/50"
-              >
-                Get started
-              </button>
-
-                            )}
+                  onClick={onAuthOpen}
+                  className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-[#FF9245] to-[#EB423B] px-8 py-3 text-base font-bold text-white shadow-xl transition-all hover:from-[#FF9245] hover:to-[#E03C9E] hover:shadow-2xl active:scale-95 focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                >
+                  Get started
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -134,7 +131,7 @@ function GoogleButton() {
   )
 }
 
-/* --------------------------- MovieStack (unchanged) --------------------------- */
+/* --------------------------- MovieStack --------------------------- */
 function MovieStack() {
   const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY
   const [items, setItems] = useState([])
@@ -157,7 +154,7 @@ function MovieStack() {
         const r = await fetch(`https://api.themoviedb.org/3/trending/movie/week?api_key=${TMDB_KEY}`)
         const j = await r.json()
         const top = (j?.results || [])
-          .filter(m => m.poster_path)
+          .filter((m) => m.poster_path)
           .sort((a, b) => (b.vote_average || 0) - (a.vote_average || 0))
           .slice(0, 3)
         if (!abort) setItems(top.length ? top : fallbacks)
@@ -166,7 +163,9 @@ function MovieStack() {
       }
     }
     load()
-    return () => { abort = true }
+    return () => {
+      abort = true
+    }
   }, [TMDB_KEY, fallbacks])
 
   return (

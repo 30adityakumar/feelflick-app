@@ -1,5 +1,5 @@
 // src/app/header/Header.jsx
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/shared/lib/supabase/client";
 import {
@@ -12,11 +12,8 @@ import {
   Settings,
   Bookmark,
   Clock,
-  Bell,
   X,
   ChevronRight,
-  Film,
-  TrendingUp,
 } from "lucide-react";
 
 export default function Header({ onOpenSearch }) {
@@ -27,7 +24,6 @@ export default function Header({ onOpenSearch }) {
   const [lastScrollY, setLastScrollY] = useState(0);
   const hdrRef = useRef(null);
 
-  // User session management
   useEffect(() => {
     let unsub;
     const getUser = async () => {
@@ -43,15 +39,11 @@ export default function Header({ onOpenSearch }) {
     return () => typeof unsub === "function" && unsub();
   }, []);
 
-  // Smart scroll detection - hide on scroll down, show on scroll up
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      
-      // Set scrolled state
       setScrolled(currentScrollY > 10);
 
-      // Determine scroll direction
       if (currentScrollY > lastScrollY && currentScrollY > 100) {
         setScrollDirection("down");
       } else {
@@ -65,7 +57,6 @@ export default function Header({ onOpenSearch }) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
 
-  // Set CSS variable for header height
   useEffect(() => {
     const setVar = () => {
       const h = hdrRef.current?.offsetHeight || 64;
@@ -79,7 +70,6 @@ export default function Header({ onOpenSearch }) {
 
   return (
     <>
-      {/* Desktop & Mobile Header */}
       <header
         ref={hdrRef}
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -94,9 +84,7 @@ export default function Header({ onOpenSearch }) {
       >
         <div className="mx-auto max-w-[2000px] px-3 sm:px-4 md:px-6 lg:px-8 xl:px-12">
           <div className="flex h-14 sm:h-16 md:h-[72px] items-center justify-between gap-2 sm:gap-4">
-            {/* Left: Logo + Nav */}
             <div className="flex items-center gap-4 sm:gap-6 lg:gap-8 min-w-0 flex-1">
-              {/* Logo */}
               <Link
                 to="/home"
                 aria-label="FeelFlick Home"
@@ -105,11 +93,9 @@ export default function Header({ onOpenSearch }) {
                 <span className="block text-lg sm:text-xl md:text-2xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 group-hover:from-orange-400 group-hover:via-red-400 group-hover:to-pink-400 transition-all duration-300">
                   FEELFLICK
                 </span>
-                {/* Subtle underline animation */}
                 <span className="absolute bottom-0 left-0 h-0.5 w-0 bg-gradient-to-r from-orange-500 to-red-500 group-hover:w-full transition-all duration-300" />
               </Link>
 
-              {/* Desktop Navigation */}
               <nav className="hidden md:flex items-center gap-1">
                 <NavItem to="/home" icon={<Home className="h-4 w-4" />}>
                   Home
@@ -123,9 +109,7 @@ export default function Header({ onOpenSearch }) {
               </nav>
             </div>
 
-            {/* Right: Search + Account */}
             <div className="flex items-center gap-2 sm:gap-3">
-              {/* Desktop Search */}
               <button
                 onClick={onOpenSearch}
                 className="hidden sm:inline-flex items-center gap-2 h-9 md:h-10 px-3 md:px-4 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 hover:border-white/20 transition-all duration-300 group"
@@ -140,7 +124,6 @@ export default function Header({ onOpenSearch }) {
                 </kbd>
               </button>
 
-              {/* Mobile Search Icon */}
               <button
                 onClick={onOpenSearch}
                 className="sm:hidden flex items-center justify-center h-10 w-10 rounded-full hover:bg-white/10 active:scale-95 transition-all"
@@ -149,7 +132,6 @@ export default function Header({ onOpenSearch }) {
                 <SearchIcon className="h-5 w-5 text-white/90" />
               </button>
 
-              {/* Desktop Account Menu */}
               <div className="hidden md:block">
                 <AccountMenu user={user} />
               </div>
@@ -158,13 +140,11 @@ export default function Header({ onOpenSearch }) {
         </div>
       </header>
 
-      {/* Mobile Bottom Navigation */}
-      <MobileBottomNav pathname={pathname} user={user} onOpenSearch={onOpenSearch} />
+      <MobileBottomNav pathname={pathname} user={user} />
     </>
   );
 }
 
-/* ===== Desktop Nav Item ===== */
 function NavItem({ to, icon, children }) {
   return (
     <NavLink
@@ -190,11 +170,9 @@ function NavItem({ to, icon, children }) {
   );
 }
 
-/* ===== Desktop Account Menu ===== */
 function AccountMenu({ user }) {
   const nav = useNavigate();
   const [open, setOpen] = useState(false);
-  const [hoveredItem, setHoveredItem] = useState(null);
   const btnRef = useRef(null);
   const popRef = useRef(null);
 
@@ -275,20 +253,15 @@ function AccountMenu({ user }) {
         />
       </button>
 
-      {/* Dropdown Menu */}
       {open && (
         <>
-          {/* Backdrop for desktop too */}
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
           
           <div
             ref={popRef}
             className="absolute right-0 mt-3 w-72 rounded-2xl bg-black/98 backdrop-blur-2xl border border-white/10 shadow-2xl overflow-hidden z-50"
-            style={{
-              animation: "slideDown 0.2s ease-out",
-            }}
+            style={{ animation: "slideDown 0.2s ease-out" }}
           >
-            {/* User Info Header */}
             <div className="px-4 py-4 border-b border-white/10 bg-gradient-to-br from-white/5 to-transparent">
               <div className="flex items-center gap-3">
                 <div className="h-12 w-12 rounded-full bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 flex items-center justify-center text-lg font-bold text-white flex-shrink-0 ring-2 ring-white/20">
@@ -301,7 +274,6 @@ function AccountMenu({ user }) {
               </div>
             </div>
 
-            {/* Menu Sections */}
             {menuSections.map((section, idx) => (
               <div key={idx}>
                 <div className="py-2">
@@ -311,8 +283,6 @@ function AccountMenu({ user }) {
                       to={item.to}
                       icon={item.icon}
                       onClick={() => setOpen(false)}
-                      onHover={() => setHoveredItem(item.to)}
-                      isHovered={hoveredItem === item.to}
                     >
                       {item.label}
                     </MenuItem>
@@ -326,11 +296,8 @@ function AccountMenu({ user }) {
 
             <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
-            {/* Sign Out */}
             <button
               onClick={handleSignOut}
-              onMouseEnter={() => setHoveredItem("signout")}
-              onMouseLeave={() => setHoveredItem(null)}
               className="flex w-full items-center gap-3 px-4 py-3 text-sm font-semibold text-red-400 hover:bg-red-500/10 transition-all duration-200 group"
             >
               <LogOut className="h-4 w-4 group-hover:scale-110 transition-transform" />
@@ -344,12 +311,11 @@ function AccountMenu({ user }) {
   );
 }
 
-function MenuItem({ to, icon, children, onClick, onHover, isHovered }) {
+function MenuItem({ to, icon, children, onClick }) {
   return (
     <NavLink
       to={to}
       onClick={onClick}
-      onMouseEnter={onHover}
       className={({ isActive }) =>
         `flex items-center gap-3 px-4 py-3 text-sm font-semibold transition-all duration-200 group relative ${
           isActive
@@ -367,13 +333,11 @@ function MenuItem({ to, icon, children, onClick, onHover, isHovered }) {
   );
 }
 
-/* ===== Mobile Bottom Navigation ===== */
-function MobileBottomNav({ pathname, user, onOpenSearch }) {
+function MobileBottomNav({ pathname, user }) {
   const nav = useNavigate();
   const [accountOpen, setAccountOpen] = useState(false);
   const location = useLocation();
 
-  // Close account panel when route changes
   useEffect(() => {
     setAccountOpen(false);
   }, [location.pathname]);
@@ -387,13 +351,12 @@ function MobileBottomNav({ pathname, user, onOpenSearch }) {
 
   const navItems = [
     { icon: <Home className="h-6 w-6" />, label: "Home", path: "/home" },
-    { icon: <SearchIcon className="h-6 w-6" />, label: "Search", action: "search" },
-    { icon: <Bookmark className="h-6 w-6" />, label: "Saved", path: "/watchlist" },
+    { icon: <Compass className="h-6 w-6" />, label: "Browse", path: "/browse" },
+    { icon: <Bookmark className="h-6 w-6" />, label: "Watchlist", path: "/watchlist" },
   ];
 
   return (
     <>
-      {/* Bottom Nav Bar */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-black/98 backdrop-blur-2xl border-t border-white/10">
         <div className="grid grid-cols-4 h-16 px-2">
           {navItems.map((item) => (
@@ -401,14 +364,10 @@ function MobileBottomNav({ pathname, user, onOpenSearch }) {
               key={item.label}
               icon={item.icon}
               label={item.label}
-              isActive={item.path ? pathname === item.path : false}
+              isActive={pathname === item.path}
               onClick={() => {
                 setAccountOpen(false);
-                if (item.action === "search") {
-                  onOpenSearch();
-                } else if (item.path) {
-                  nav(item.path);
-                }
+                nav(item.path);
               }}
             />
           ))}
@@ -418,15 +377,14 @@ function MobileBottomNav({ pathname, user, onOpenSearch }) {
                 {initials}
               </div>
             }
-            label="You"
+            label="Account"
             isActive={accountOpen}
-            onClick={() => setAccountOpen((s) => !s)}
+            onClick={() => setAccountOpen(true)}
           />
         </div>
         <div className="h-[env(safe-area-inset-bottom)]" />
       </div>
 
-      {/* Mobile Account Panel */}
       <MobileAccountPanel
         open={accountOpen}
         user={user}
@@ -440,7 +398,7 @@ function MobileNavButton({ icon, label, isActive, onClick }) {
   return (
     <button
       onClick={onClick}
-      className={`flex flex-col items-center justify-center gap-1 transition-all duration-300 active:scale-95 ${
+      className={`flex flex-col items-center justify-center gap-1 transition-all duration-300 active:scale-95 relative ${
         isActive ? "text-white" : "text-white/60"
       }`}
     >
@@ -457,7 +415,6 @@ function MobileNavButton({ icon, label, isActive, onClick }) {
   );
 }
 
-/* ===== Mobile Account Panel ===== */
 function MobileAccountPanel({ open, user, onClose }) {
   const nav = useNavigate();
 
@@ -484,131 +441,104 @@ function MobileAccountPanel({ open, user, onClose }) {
 
   const handleNavigate = (path) => {
     onClose();
-    setTimeout(() => nav(path), 150);
+    setTimeout(() => nav(path), 200);
   };
 
   async function handleSignOut() {
     await supabase.auth.signOut();
     onClose();
-    setTimeout(() => nav("/", { replace: true }), 150);
+    setTimeout(() => nav("/", { replace: true }), 200);
   }
 
   const menuItems = [
-    { icon: <UserIcon className="h-5 w-5" />, label: "Profile", path: "/account" },
-    { icon: <Settings className="h-5 w-5" />, label: "Settings", path: "/preferences" },
-    { icon: <Clock className="h-5 w-5" />, label: "History", path: "/history" },
+    { icon: <UserIcon className="h-6 w-6" />, label: "Profile", path: "/account" },
+    { icon: <Settings className="h-6 w-6" />, label: "Settings", path: "/preferences" },
+    { icon: <Bookmark className="h-6 w-6" />, label: "Watchlist", path: "/watchlist" },
+    { icon: <Clock className="h-6 w-6" />, label: "History", path: "/history" },
   ];
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Full Screen Overlay */}
       <div
-        className="md:hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-40"
-        style={{ animation: "fadeIn 0.2s ease-out" }}
-        onClick={onClose}
-      />
-
-      {/* Panel */}
-      <div
-        className="md:hidden fixed bottom-16 left-0 right-0 z-50 bg-black/98 backdrop-blur-2xl border-t border-white/10 rounded-t-3xl shadow-2xl max-h-[75vh] overflow-y-auto"
-        style={{ animation: "slideUp 0.3s ease-out" }}
+        className="md:hidden fixed inset-0 bg-black z-[100]"
+        style={{ animation: "fadeIn 0.3s ease-out" }}
       >
-        {/* Handle Bar */}
-        <div className="flex justify-center pt-3 pb-2">
-          <div className="w-12 h-1 bg-white/20 rounded-full" />
-        </div>
-
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-3">
-          <h2 className="text-lg font-bold text-white">Account</h2>
-          <button
-            onClick={onClose}
-            className="h-9 w-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 active:scale-95 transition-all"
-          >
-            <X className="h-5 w-5 text-white" />
-          </button>
-        </div>
-
-        {/* User Info */}
-        <div className="px-6 py-5 border-y border-white/10 bg-gradient-to-br from-white/5 to-transparent">
-          <div className="flex items-center gap-4">
-            <div className="h-16 w-16 rounded-full bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 flex items-center justify-center text-2xl font-bold text-white flex-shrink-0 ring-4 ring-white/10">
-              {initials}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-lg font-bold text-white truncate">{name}</p>
-              <p className="text-sm text-white/60 truncate">{email}</p>
-            </div>
+        <div className="sticky top-0 z-10 bg-black/95 backdrop-blur-xl border-b border-white/10">
+          <div className="flex items-center justify-between px-4 h-16">
+            <h1 className="text-xl font-bold text-white">Account</h1>
+            <button
+              onClick={onClose}
+              className="h-10 w-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 active:scale-95 transition-all"
+            >
+              <X className="h-6 w-6 text-white" />
+            </button>
           </div>
         </div>
 
-        {/* Menu Items */}
-        <div className="py-2">
-          {menuItems.map((item, idx) => (
-            <button
-              key={item.label}
-              onClick={() => handleNavigate(item.path)}
-              className="flex w-full items-center gap-4 px-6 py-4 text-white/90 hover:bg-white/5 active:bg-white/10 transition-all group"
-              style={{ animationDelay: `${idx * 50}ms` }}
-            >
-              <div className="text-white/80 group-hover:text-white group-active:scale-110 transition-all">
-                {item.icon}
+        {/* Content */}
+        <div className="overflow-y-auto h-[calc(100vh-4rem)] pb-8">
+          {/* User Info Section */}
+          <div className="px-6 py-8 border-b border-white/10 bg-gradient-to-b from-white/5 to-transparent">
+            <div className="flex flex-col items-center text-center">
+              <div className="h-24 w-24 rounded-full bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 flex items-center justify-center text-3xl font-bold text-white ring-4 ring-white/10 mb-4">
+                {initials}
               </div>
-              <span className="text-base font-semibold flex-1 text-left">{item.label}</span>
-              <ChevronRight className="h-5 w-5 text-white/40 group-hover:text-white/70 transition-all" />
+              <h2 className="text-2xl font-bold text-white mb-1">{name}</h2>
+              <p className="text-sm text-white/60">{email}</p>
+            </div>
+          </div>
+
+          {/* Menu Items */}
+          <div className="py-4">
+            {menuItems.map((item, idx) => (
+              <button
+                key={item.label}
+                onClick={() => handleNavigate(item.path)}
+                className="flex w-full items-center gap-4 px-6 py-5 text-white/90 hover:bg-white/5 active:bg-white/10 transition-all group border-b border-white/5"
+                style={{ animationDelay: `${idx * 50}ms` }}
+              >
+                <div className="h-12 w-12 rounded-full bg-white/10 flex items-center justify-center text-white/80 group-hover:text-white group-hover:bg-white/15 transition-all">
+                  {item.icon}
+                </div>
+                <div className="flex-1 text-left">
+                  <span className="text-lg font-semibold block">{item.label}</span>
+                </div>
+                <ChevronRight className="h-6 w-6 text-white/40 group-hover:text-white/70 transition-all" />
+              </button>
+            ))}
+          </div>
+
+          {/* Sign Out */}
+          <div className="px-6 pt-4">
+            <button
+              onClick={handleSignOut}
+              className="flex w-full items-center justify-center gap-3 px-6 py-4 rounded-2xl bg-red-500/10 text-red-400 hover:bg-red-500/20 active:bg-red-500/30 transition-all group border border-red-500/20"
+            >
+              <LogOut className="h-5 w-5 group-active:scale-110 transition-transform" />
+              <span className="text-lg font-bold">Sign Out</span>
             </button>
-          ))}
+          </div>
         </div>
-
-        {/* Sign Out */}
-        <div className="border-t border-white/10 mt-2">
-          <button
-            onClick={handleSignOut}
-            className="flex w-full items-center gap-4 px-6 py-4 text-red-400 hover:bg-red-500/10 active:bg-red-500/20 transition-all group"
-          >
-            <LogOut className="h-5 w-5 group-active:scale-110 transition-transform" />
-            <span className="text-base font-semibold flex-1 text-left">Sign Out</span>
-          </button>
-        </div>
-
-        <div className="h-4" />
       </div>
     </>
   );
 }
 
-// Add these animations to your global CSS or tailwind config
+// Add animations
 const style = document.createElement('style');
 style.textContent = `
   @keyframes slideDown {
-    from {
-      opacity: 0;
-      transform: translateY(-10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
   }
-
-  @keyframes slideUp {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
   @keyframes fadeIn {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 `;
-document.head.appendChild(style);
+if (!document.head.querySelector('#header-animations')) {
+  style.id = 'header-animations';
+  document.head.appendChild(style);
+}

@@ -1,134 +1,131 @@
 // src/features/landing/components/TopNav.jsx
-import { useEffect, useRef, useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { LogIn } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
+import { Menu, X } from 'lucide-react'
 
-export default function TopNav({ hideAuthCta = false, onAuthOpen }) {
+export default function TopNav({ hideAuthCta = false }) {
   const [scrolled, setScrolled] = useState(false)
-  const barRef = useRef(null)
-  const navigate = useNavigate()
-  const location = useLocation()
-
-  // 🚫 Do not render TopNav on onboarding route (true in-app feel)
-  if (location.pathname.startsWith('/onboarding')) {
-    return null
-  }
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   useEffect(() => {
-    const setVar = () => {
-      const h = barRef.current?.offsetHeight || 72
-      document.documentElement.style.setProperty('--topnav-h', `${h}px`)
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20)
     }
-    setVar()
-    const ro = new ResizeObserver(setVar)
-    if (barRef.current) ro.observe(barRef.current)
-    return () => ro.disconnect()
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  // Close mobile menu when clicking outside
   useEffect(() => {
-    let ticking = false
-    const onScroll = () => {
-      if (ticking) return
-      ticking = true
-      requestAnimationFrame(() => {
-        setScrolled((window.scrollY || document.documentElement.scrollTop) > 8)
-        ticking = false
-      })
-    }
-    onScroll()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
-
-  const onBrandClick = (e) => {
-    e.preventDefault()
-    if (location.pathname === '/') {
-      window.scrollTo({ top: 0, behavior: 'smooth' })
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden'
     } else {
-      navigate('/')
-      setTimeout(() => window.scrollTo({ top: 0, behavior: 'auto' }), 0)
+      document.body.style.overflow = 'unset'
     }
-  }
-
-  const shellClass =
-    'fixed inset-x-0 top-0 z-50 transition-colors duration-200 ' +
-    (scrolled ? 'bg-neutral-950/60 backdrop-blur-md ring-1 ring-white/10' : 'bg-transparent')
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [mobileMenuOpen])
 
   return (
-    <header className={shellClass} data-scrolled={scrolled}>
-      <a
-        href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:rounded-md focus:bg-neutral-900 focus:px-3 focus:py-2 focus:text-white"
-      >
-        Skip to content
-      </a>
+    <nav
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrolled
+          ? 'bg-black/95 backdrop-blur-md shadow-lg'
+          : 'bg-transparent'
+      }`}
+      style={{ '--topnav-h': '64px' }}
+    >
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 items-center justify-between">
+          {/* Logo */}
+          <Link
+            to="/"
+            className="group flex items-center gap-2 transition-transform duration-300 hover:scale-105 active:scale-95"
+          >
+            <span className="text-2xl font-black tracking-tight bg-gradient-to-r from-[#FF9245] via-[#EB423B] to-[#E03C9E] bg-clip-text text-transparent">
+              FEELFLICK
+            </span>
+          </Link>
 
-      <div
-        ref={barRef}
-        className="mx-auto flex w-full max-w-7xl items-center justify-between gap-2 px-3 pt-[calc(env(safe-area-inset-top)+14px)] pb-3 sm:py-4 md:px-6"
-      >
-        {/* Brand */}
-        <a
-          href="/"
-          onClick={onBrandClick}
-          className="flex items-center rounded-md"
-          aria-label="FeelFlick home"
-        >
-          <span className="text-[clamp(1.6rem,5.2vw,2.25rem)] font-extrabold tracking-tight text-brand-100 uppercase">
-            FEELFLICK
-          </span>
-        </a>
-
-        {!hideAuthCta && (
-          <>
-            {/* Desktop */}
-            <div className="hidden md:flex items-center gap-2">
-              {onAuthOpen ? (
-                <button
-                  type="button"
-                  onClick={onAuthOpen}
-                  className="group relative inline-flex h-10 items-center gap-2 rounded-full border border-white/20 px-4 text-[0.9rem] font-semibold text-white/95 hover:bg-white/10 active:scale-[.98] focus:outline-none"
-                  aria-label="Log in"
-                >
-                  <LogIn className="h-4 w-4 text-white/90" aria-hidden />
-                  <span>Log in</span>
-                </button>
-              ) : (
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-6">
+            {!hideAuthCta && (
+              <>
                 <Link
-                  to="/auth/log-in-or-create-account"
-                  className="group relative inline-flex h-10 items-center gap-2 rounded-full border border-white/20 px-4 text-[0.9rem] font-semibold text-white/95 hover:bg-white/10 active:scale-[.98] focus:outline-none"
+                  to="/"
+                  className="text-sm font-medium text-white/80 hover:text-white transition-colors duration-200"
                 >
-                  <LogIn className="h-4 w-4 text-white/90" aria-hidden />
-                  <span>Log in</span>
+                  Features
                 </Link>
-              )}
-            </div>
-
-            {/* Mobile */}
-            <div className="md:hidden">
-              {onAuthOpen ? (
-                <button
-                  type="button"
-                  onClick={onAuthOpen}
-                  className="inline-flex items-center gap-2 h-10 px-4 rounded-full border border-white/20 bg-white/5 text-[0.95rem] font-semibold text-white/95 hover:bg-white/10 active:scale-[.98] focus:outline-none"
-                  aria-label="Log in"
-                >
-                  <LogIn className="h-4 w-4 text-white/90" aria-hidden />
-                  <span>Log in</span>
-                </button>
-              ) : (
                 <Link
-                  to="/auth/log-in-or-create-account"
-                  className="inline-flex items-center gap-2 h-10 px-4 rounded-full border border-white/20 bg-white/5 text-[0.95rem] font-semibold text-white/95 hover:bg-white/10 active:scale-[.98] focus:outline-none"
+                  to="/"
+                  className="text-sm font-medium text-white/80 hover:text-white transition-colors duration-200"
                 >
-                  <LogIn className="h-4 w-4 text-white/90" aria-hidden />
-                  <span>Log in</span>
+                  How It Works
                 </Link>
+                <Link
+                  to="/"
+                  className="inline-flex items-center justify-center px-5 py-2 rounded-lg bg-gradient-to-r from-[#FF9245] to-[#EB423B] text-white font-bold text-sm transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/50 hover:scale-105 active:scale-95"
+                >
+                  Get Started
+                </Link>
+              </>
+            )}
+          </div>
+
+          {/* Mobile Menu Button */}
+          {!hideAuthCta && (
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden p-2 text-white hover:text-white/80 transition-colors"
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
               )}
-            </div>
-          </>
-        )}
+            </button>
+          )}
+        </div>
       </div>
-    </header>
+
+      {/* Mobile Menu */}
+      {!hideAuthCta && (
+        <div
+          className={`md:hidden fixed inset-x-0 top-16 bg-black/98 backdrop-blur-lg transition-all duration-300 ease-in-out ${
+            mobileMenuOpen
+              ? 'opacity-100 translate-y-0'
+              : 'opacity-0 -translate-y-4 pointer-events-none'
+          }`}
+          style={{ maxHeight: 'calc(100vh - 4rem)' }}
+        >
+          <div className="px-4 pt-4 pb-6 space-y-3">
+            <Link
+              to="/"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block px-4 py-3 text-base font-medium text-white/80 hover:text-white hover:bg-white/5 rounded-lg transition-all duration-200"
+            >
+              Features
+            </Link>
+            <Link
+              to="/"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block px-4 py-3 text-base font-medium text-white/80 hover:text-white hover:bg-white/5 rounded-lg transition-all duration-200"
+            >
+              How It Works
+            </Link>
+            <Link
+              to="/"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block w-full px-4 py-3 rounded-lg bg-gradient-to-r from-[#FF9245] to-[#EB423B] text-white font-bold text-center transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/50 active:scale-95"
+            >
+              Get Started
+            </Link>
+          </div>
+        </div>
+      )}
+    </nav>
   )
 }

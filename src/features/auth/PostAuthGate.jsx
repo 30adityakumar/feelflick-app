@@ -1,117 +1,112 @@
 // src/features/auth/PostAuthGate.jsx
 import { useEffect, useState } from 'react'
-import { Navigate, Outlet, useLocation } from 'react-router-dom'
+import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
-
-const isStrictTrue = (v) => v === true
-
-function SplashSpinner() {
-  return (
-    <div className="fixed inset-0 z-[9999] grid place-items-center bg-[linear-gradient(120deg,#0a121a_0%,#0d1722_50%,#0c1017_100%)]">
-      <div className="flex items-center gap-3 text-white/90">
-        <svg className="h-6 w-6 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden>
-          <circle cx="12" cy="12" r="9" stroke="currentColor" strokeOpacity=".25" strokeWidth="4" />
-          <path d="M21 12a9 9 0 0 0-9-9v9z" fill="currentColor" />
-        </svg>
-        <span className="text-[0.95rem] font-semibold">One moment…</span>
-      </div>
-    </div>
-  )
-}
+import { Loader2 } from 'lucide-react'
 
 /**
- * Decides where to send the user immediately after OAuth:
- * - If not signed in → back to "/"
- * - If signed in and onboarding complete → proceed (or redirect /onboarding → /home)
- * - If signed in and onboarding incomplete → redirect to "/onboarding"
- *
- * Use `<PostAuthGate standalone />` on the public `/post-auth` route
- * to render a clean background + spinner (prevents home flash).
+ * PostAuthGate: Ensures user completes onboarding before accessing app
+ * Checks if user has preferences set, redirects to onboarding if not
  */
-export default function PostAuthGate({ standalone = false }) {
-  const [state, setState] = useState('checking') // 'checking' | 'ready'
-  const [done, setDone] = useState(false)
-  const [hasUser, setHasUser] = useState(null) // null | boolean
-  const loc = useLocation()
-
-  // If we *just* finished onboarding, skip checks once to avoid flash
-  if (loc.state?.fromOnboarding === true) {
-    return <Outlet />
-  }
+export default function PostAuthGate() {
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const navigate = useNavigate()
+  const location = useLocation()
 
   useEffect(() => {
-    let mounted = true
-    ;(async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!mounted) return
+    let isMounted = true
 
-      if (!user) {
-        setHasUser(false)
-        setDone(false)
-        setState('ready')
-        return
+    async function checkOnboardingStatus() {
+      try {
+        // Get current user
+        const {
+          data: { user },
+          error: userError,
+        } = await supabase.auth.getUser()
+
+        if (userError) throw userError
+        if (!user) {
+          navigate('/', { replace: true })
+          return
+        }
+
+        // Check if user has completed onboarding
+        const { data: preferences, error: prefError } = await supabase
+          .from('user_preferences')
+          .select('genres')
+          .eq('user_id', user.id)
+          .maybeSingle()
+
+        if (prefError && prefError.code !== 'PGRST116') throw prefError
+
+        // If no preferences, redirect to onboarding
+        if (!preferences || !preferences.genres || preferences.genres.length === 0) {
+          if (isMounted) {
+            navigate('/onboarding', {
+              replace: true,
+              state: { from: location.pathname },
+            })
+          }
+          return
+        }
+
+        // User is good to go
+        if (isMounted) {
+          setLoading(false)
+        }
+      } catch (err) {
+        console.error('PostAuthGate error:', err)
+        if (isMounted) {
+          setError(err.message || 'Failed to verify account status')
+          setLoading(false)
+        }
       }
-      setHasUser(true)
+    }
 
-      const meta = user.user_metadata || {}
-      if (
-        isStrictTrue(meta.onboarding_complete) ||
-        isStrictTrue(meta.has_onboarded) ||
-        isStrictTrue(meta.onboarded)
-      ) {
-        setDone(true)
-        setState('ready')
-        return
-      }
+    checkOnboardingStatus()
 
-      const { data, error } = await supabase
-        .from('users')
-        .select('onboarding_complete,onboarding_completed_at')
-        .eq('id', user.id)
-        .maybeSingle()
+    return () => {
+      isMounted = false
+    }
+  }, [navigate, location])
 
-      if (!mounted) return
-      if (error) {
-        console.warn('users select error:', error)
-        setDone(false)
-      } else {
-        const completed =
-          isStrictTrue(data?.onboarding_complete) ||
-          Boolean(data?.onboarding_completed_at)
-        setDone(completed)
-      }
-      setState('ready')
-    })()
-    return () => { mounted = false }
-  }, [])
-
-  // Full-bleed spinner overlay while deciding (prevents /home flash)
-  if (state === 'checking') {
-    return standalone ? (
-      <div className="relative min-h-screen">
-        <div aria-hidden className="fixed inset-0 z-0">
-          <div className="absolute inset-0 bg-[linear-gradient(120deg,#0a121a_0%,#0d1722_50%,#0c1017_100%)]" />
+  // Loading State
+  if (loading) {
+    return (
+      <div className="fixed inset-0 bg-black flex items-center justify-center">
+        <div className="text-center">
+          <div className="relative inline-block mb-4">
+            <Loader2 className="h-12 w-12 animate-spin text-transparent bg-gradient-to-r from-[#FF9245] via-[#EB423B] to-[#E03C9E] bg-clip-text" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="h-12 w-12 rounded-full border-4 border-transparent border-t-[#FF9245] border-r-[#EB423B] border-b-[#E03C9E] animate-spin" />
+            </div>
+          </div>
+          <p className="text-white/60 text-sm">Loading your profile...</p>
         </div>
-        <SplashSpinner />
       </div>
-    ) : (
-      <SplashSpinner />
     )
   }
 
-  // Not authenticated? Back to landing.
-  if (hasUser === false) {
-    return <Navigate to="/" replace />
+  // Error State
+  if (error) {
+    return (
+      <div className="fixed inset-0 bg-black flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white/5 backdrop-blur border border-white/10 rounded-xl p-6 text-center">
+          <div className="text-red-400 mb-4">⚠️</div>
+          <h2 className="text-xl font-bold text-white mb-2">Something went wrong</h2>
+          <p className="text-white/60 text-sm mb-6">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-6 py-3 rounded-lg font-bold text-white bg-gradient-to-r from-[#FF9245] to-[#EB423B] hover:from-[#FF9245] hover:to-[#E03C9E] transition-all duration-300 hover:scale-105 active:scale-95"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    )
   }
 
-  // Authenticated: route based on onboarding completion.
-  if (!done && loc.pathname !== '/onboarding') {
-    return <Navigate to="/onboarding" replace state={{ from: loc }} />
-  }
-  if (done && loc.pathname === '/onboarding') {
-    return <Navigate to="/home" replace />
-  }
-
-  // Otherwise render nested route
+  // Success - render child routes
   return <Outlet />
 }

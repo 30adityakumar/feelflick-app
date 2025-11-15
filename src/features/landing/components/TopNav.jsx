@@ -1,134 +1,139 @@
 // src/features/landing/components/TopNav.jsx
-import { useEffect, useRef, useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { LogIn } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { supabase } from '@/shared/lib/supabase/client'
+import { Menu, X } from 'lucide-react'
 
-export default function TopNav({ hideAuthCta = false, onAuthOpen }) {
-  const [scrolled, setScrolled] = useState(false)
-  const barRef = useRef(null)
+export default function TopNav({ hideAuthCta = false }) {
+  const [isOpen, setIsOpen] = useState(false)
+  const [session, setSession] = useState(null)
+  const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
-  const location = useLocation()
-
-  // 🚫 Do not render TopNav on onboarding route (true in-app feel)
-  if (location.pathname.startsWith('/onboarding')) {
-    return null
-  }
 
   useEffect(() => {
-    const setVar = () => {
-      const h = barRef.current?.offsetHeight || 72
-      document.documentElement.style.setProperty('--topnav-h', `${h}px`)
-    }
-    setVar()
-    const ro = new ResizeObserver(setVar)
-    if (barRef.current) ro.observe(barRef.current)
-    return () => ro.disconnect()
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+      setLoading(false)
+    })
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+    })
+
+    return () => subscription.unsubscribe()
   }, [])
 
+  // Close mobile menu on navigation
   useEffect(() => {
-    let ticking = false
-    const onScroll = () => {
-      if (ticking) return
-      ticking = true
-      requestAnimationFrame(() => {
-        setScrolled((window.scrollY || document.documentElement.scrollTop) > 8)
-        ticking = false
-      })
-    }
-    onScroll()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
+    setIsOpen(false)
+  }, [navigate])
 
-  const onBrandClick = (e) => {
-    e.preventDefault()
-    if (location.pathname === '/') {
-      window.scrollTo({ top: 0, behavior: 'smooth' })
+  // Prevent body scroll when menu open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isOpen])
+
+  const handleGetStarted = () => {
+    if (session) {
+      navigate('/home')
     } else {
       navigate('/')
-      setTimeout(() => window.scrollTo({ top: 0, behavior: 'auto' }), 0)
+      document.getElementById('email-signup')?.scrollIntoView({ behavior: 'smooth' })
     }
   }
 
-  const shellClass =
-    'fixed inset-x-0 top-0 z-50 transition-colors duration-200 ' +
-    (scrolled ? 'bg-neutral-950/60 backdrop-blur-md ring-1 ring-white/10' : 'bg-transparent')
-
   return (
-    <header className={shellClass} data-scrolled={scrolled}>
-      <a
-        href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:rounded-md focus:bg-neutral-900 focus:px-3 focus:py-2 focus:text-white"
-      >
-        Skip to content
-      </a>
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-lg border-b border-white/10">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 sm:h-18 items-center justify-between">
+          {/* Logo */}
+          <Link
+            to="/"
+            className="text-xl sm:text-2xl font-black tracking-tight focus:outline-none focus:ring-2 focus:ring-white/30 rounded-lg"
+          >
+            <span className="bg-gradient-to-r from-[#FF9245] via-[#EB423B] to-[#E03C9E] bg-clip-text text-transparent">
+              FEELFLICK
+            </span>
+          </Link>
 
-      <div
-        ref={barRef}
-        className="mx-auto flex w-full max-w-7xl items-center justify-between gap-2 px-3 pt-[calc(env(safe-area-inset-top)+14px)] pb-3 sm:py-4 md:px-6"
-      >
-        {/* Brand */}
-        <a
-          href="/"
-          onClick={onBrandClick}
-          className="flex items-center rounded-md"
-          aria-label="FeelFlick home"
-        >
-          <span className="text-[clamp(1.6rem,5.2vw,2.25rem)] font-extrabold tracking-tight text-brand-100 uppercase">
-            FEELFLICK
-          </span>
-        </a>
+          {/* Desktop Nav */}
+          <div className="hidden md:flex items-center gap-6">
+            {!hideAuthCta && !loading && (
+              <>
+                {session ? (
+                  <Link
+                    to="/home"
+                    className="px-6 py-2.5 rounded-lg font-bold text-white bg-gradient-to-r from-[#FF9245] to-[#EB423B] hover:from-[#FF9245] hover:to-[#E03C9E] transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl"
+                  >
+                    Go to App
+                  </Link>
+                ) : (
+                  <button
+                    onClick={handleGetStarted}
+                    className="px-6 py-2.5 rounded-lg font-bold text-white bg-gradient-to-r from-[#FF9245] to-[#EB423B] hover:from-[#FF9245] hover:to-[#E03C9E] transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl"
+                  >
+                    Get Started
+                  </button>
+                )}
+              </>
+            )}
+          </div>
 
-        {!hideAuthCta && (
-          <>
-            {/* Desktop */}
-            <div className="hidden md:flex items-center gap-2">
-              {onAuthOpen ? (
-                <button
-                  type="button"
-                  onClick={onAuthOpen}
-                  className="group relative inline-flex h-10 items-center gap-2 rounded-full border border-white/20 px-4 text-[0.9rem] font-semibold text-white/95 hover:bg-white/10 active:scale-[.98] focus:outline-none"
-                  aria-label="Log in"
-                >
-                  <LogIn className="h-4 w-4 text-white/90" aria-hidden />
-                  <span>Log in</span>
-                </button>
-              ) : (
-                <Link
-                  to="/auth/log-in-or-create-account"
-                  className="group relative inline-flex h-10 items-center gap-2 rounded-full border border-white/20 px-4 text-[0.9rem] font-semibold text-white/95 hover:bg-white/10 active:scale-[.98] focus:outline-none"
-                >
-                  <LogIn className="h-4 w-4 text-white/90" aria-hidden />
-                  <span>Log in</span>
-                </Link>
-              )}
-            </div>
-
-            {/* Mobile */}
-            <div className="md:hidden">
-              {onAuthOpen ? (
-                <button
-                  type="button"
-                  onClick={onAuthOpen}
-                  className="inline-flex items-center gap-2 h-10 px-4 rounded-full border border-white/20 bg-white/5 text-[0.95rem] font-semibold text-white/95 hover:bg-white/10 active:scale-[.98] focus:outline-none"
-                  aria-label="Log in"
-                >
-                  <LogIn className="h-4 w-4 text-white/90" aria-hidden />
-                  <span>Log in</span>
-                </button>
-              ) : (
-                <Link
-                  to="/auth/log-in-or-create-account"
-                  className="inline-flex items-center gap-2 h-10 px-4 rounded-full border border-white/20 bg-white/5 text-[0.95rem] font-semibold text-white/95 hover:bg-white/10 active:scale-[.98] focus:outline-none"
-                >
-                  <LogIn className="h-4 w-4 text-white/90" aria-hidden />
-                  <span>Log in</span>
-                </Link>
-              )}
-            </div>
-          </>
-        )}
+          {/* Mobile Menu Button */}
+          {!hideAuthCta && (
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="md:hidden p-2 text-white hover:bg-white/10 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-white/30"
+              aria-label="Toggle menu"
+              aria-expanded={isOpen}
+            >
+              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          )}
+        </div>
       </div>
-    </header>
+
+      {/* Mobile Menu */}
+      {!hideAuthCta && (
+        <div
+          className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${
+            isOpen ? 'max-h-screen' : 'max-h-0'
+          }`}
+        >
+          <div className="px-4 py-6 space-y-4 bg-black/95 backdrop-blur-xl border-t border-white/10">
+            {!loading && (
+              <>
+                {session ? (
+                  <Link
+                    to="/home"
+                    className="block w-full px-6 py-3 rounded-lg font-bold text-center text-white bg-gradient-to-r from-[#FF9245] to-[#EB423B] hover:from-[#FF9245] hover:to-[#E03C9E] transition-all duration-300 active:scale-95"
+                  >
+                    Go to App
+                  </Link>
+                ) : (
+                  <button
+                    onClick={handleGetStarted}
+                    className="block w-full px-6 py-3 rounded-lg font-bold text-center text-white bg-gradient-to-r from-[#FF9245] to-[#EB423B] hover:from-[#FF9245] hover:to-[#E03C9E] transition-all duration-300 active:scale-95"
+                  >
+                    Get Started
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </nav>
   )
 }

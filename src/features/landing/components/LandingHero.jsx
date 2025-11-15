@@ -1,216 +1,186 @@
 // src/features/landing/components/LandingHero.jsx
-import { useEffect, useMemo, useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
-import googleSvg from '@/assets/icons/google.svg'
+import { Play, ArrowRight, Loader2 } from 'lucide-react'
 
-export default function LandingHero({ embedded = false, showInlineAuth = false, onAuthOpen, onAuthClose }) {
+export default function LandingHero() {
+  const [email, setEmail] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [session, setSession] = useState(null)
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+    })
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setError('')
+
+    // Basic validation
+    if (!email || !email.includes('@')) {
+      setError('Please enter a valid email address')
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      const { error: signInError } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/home`,
+        },
+      })
+
+      if (signInError) throw signInError
+
+      // Success - show confirmation
+      alert('✨ Check your email for the magic link!')
+      setEmail('')
+    } catch (err) {
+      setError(err.message || 'Something went wrong. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleGetStarted = () => {
+    if (session) {
+      navigate('/home')
+    } else {
+      document.getElementById('email-signup')?.scrollIntoView({ behavior: 'smooth' })
+    }
+  }
+
   return (
-    <section
-      className="relative h-full overflow-hidden"
-      style={embedded ? undefined : { marginTop: 'var(--topnav-h, var(--nav-h, 72px))' }}
-    >
-      <div className="feelflick-landing-bg" aria-hidden="true" />
-
-      {/* Background */}
-      <div aria-hidden className="fixed inset-0 z-0">
-        <div className="absolute inset-0 bg-[linear-gradient(120deg,#0a121a_0%,#0d1722_50%,#0c1017_100%)]" />
-        <div className="pointer-events-none absolute -top-40 -left-40 h-[65vmin] w-[65vmin] rounded-full blur-3xl opacity-60 bg-[radial-gradient(closest-side,rgba(254,146,69,0.45),rgba(254,146,69,0)_70%)]" />
-        <div className="pointer-events-none absolute -bottom-44 -right-44 h-[70vmin] w-[70vmin] rounded-full blur-3xl opacity-55 bg-[radial-gradient(closest-side,rgba(235,66,59,0.38),rgba(235,66,59,0)_70%)]" />
-        <div className="pointer-events-none absolute top-1/2 left-1/2 h-[80vmin] w-[80vmin] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl opacity-45 bg-[radial-gradient(closest-side,rgba(45,119,255,0.35),rgba(45,119,255,0)_70%)]" />
-        <div className="pointer-events-none absolute -top-24 right-[15%] h-[45vmin] w-[45vmin] rounded-full blur-3xl opacity-45 bg-[radial-gradient(closest-side,rgba(255,99,196,0.35),rgba(255,99,196,0)_70%)]" />
-        <div className="pointer-events-none absolute inset-0 opacity-35 mix-blend-screen">
-          <div className="absolute left-1/2 top-1/2 h-[140vmin] w-[140vmin] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[conic-gradient(from_220deg_at_50%_50%,rgba(255,255,255,0.08),rgba(255,255,255,0)_65%)] motion-safe:md:animate-[spin_48s_linear_infinite]" />
-        </div>
-        <div className="absolute inset-0 bg-[radial-gradient(100%_80%_at_50%_0%,rgba(255,255,255,0.06),rgba(255,255,255,0)_60%)]" />
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Background Video */}
+      <div className="absolute inset-0 z-0">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover opacity-40"
+          poster="/background-poster.jpg"
+        >
+          <source src="/background.mp4" type="video/mp4" />
+        </video>
+        {/* Gradient Overlays */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black via-black/80 to-black" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-transparent to-black/50" />
       </div>
 
       {/* Content */}
-      <div
-        className="relative z-10 mx-auto h-full w-full max-w-7xl px-7 md:px-6"
-        style={{ ['--nav-h']: '72px' }}
-      >
-        <div
-          className="
-            grid h-full place-content-center place-items-center
-            gap-y-6 md:gap-y-0 md:gap-x-6
-            md:[grid-template-columns:max-content_minmax(0,560px)]
-          "
-          style={
-            embedded
-              ? undefined
-              : {
-                  height:
-                    'calc(100svh - var(--topnav-h, var(--nav-h,72px)) - var(--footer-h,0px))',
-                  /* 👇 bias the block slightly DOWN to increase top space */
-                  transform: 'translateY(5vh)',
-                }
-          }
-        >
-          {/* Posters */}
-          <div className="order-1 md:order-2 md:col-start-2 w-full flex justify-center md:justify-start md:pr-6">
-            <MovieStack />
-          </div>
+      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-20 sm:py-24 md:py-32">
+        <div className="text-center max-w-4xl mx-auto">
+          {/* Headline */}
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tight leading-[1.1] mb-6 sm:mb-8">
+            <span className="text-white">Movies that match</span>
+            <br />
+            <span className="bg-gradient-to-r from-[#FF9245] via-[#EB423B] to-[#E03C9E] bg-clip-text text-transparent">
+              your mood
+            </span>
+          </h1>
 
-          {/* Copy */}
-          <div className="order-2 md:order-1 md:col-start-1 mx-auto w-full max-w-3xl md:max-w-[620px] text-center md:text-left md:pl-10">
-            <h1 className="text-balance text-[clamp(2.1rem,6.5vw,3.9rem)] font-black leading-[1.05] tracking-tight text-white">
-              Movies that match your <span className="text-brand-100">mood</span>
-            </h1>
+          {/* Subheadline */}
+          <p className="text-lg sm:text-xl md:text-2xl text-white/80 mb-8 sm:mb-10 max-w-2xl mx-auto leading-relaxed">
+            Discover films through emotion, not endless scrolling. Build watchlists, track history,
+            and share with friends.
+          </p>
 
-            {showInlineAuth ? (
-              <p className="mx-auto md:mx-0 mt-2 max-w-xl text-[clamp(.95rem,2vw,1.1rem)] leading-relaxed text-white/85">
-                We’re piloting FeelFlick — explore and help us shape mood-based movie recommendation
-                platform.
+          {/* CTA Section */}
+          {session ? (
+            <button
+              onClick={() => navigate('/home')}
+              className="group inline-flex items-center gap-3 px-8 py-4 rounded-xl font-bold text-lg text-white bg-gradient-to-r from-[#FF9245] to-[#EB423B] hover:from-[#FF9245] hover:to-[#E03C9E] transition-all duration-300 hover:scale-105 active:scale-95 shadow-2xl"
+            >
+              <Play className="h-6 w-6 fill-current" />
+              <span>Go to App</span>
+              <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+            </button>
+          ) : (
+            <div className="max-w-md mx-auto space-y-4">
+              {/* Email Signup Form */}
+              <form onSubmit={handleSubmit} id="email-signup" className="space-y-3">
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Enter your email"
+                    disabled={loading}
+                    className="flex-1 px-5 py-4 rounded-lg bg-white/10 backdrop-blur border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-[#FF9245] focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    required
+                  />
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="px-8 py-4 rounded-lg font-bold text-white bg-gradient-to-r from-[#FF9245] to-[#EB423B] hover:from-[#FF9245] hover:to-[#E03C9E] transition-all duration-300 hover:scale-105 active:scale-95 shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 inline-flex items-center justify-center gap-2"
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        <span>Sending...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Get Started</span>
+                        <ArrowRight className="h-5 w-5" />
+                      </>
+                    )}
+                  </button>
+                </div>
+                {error && (
+                  <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-2">
+                    {error}
+                  </p>
+                )}
+              </form>
+
+              <p className="text-sm text-white/60">
+                Free forever. No credit card required.
               </p>
-            ) : (
-              <p className="mx-auto md:mx-0 mt-2 max-w-xl text-[clamp(.95rem,2vw,1.1rem)] leading-relaxed text-white/85">
-                Get the perfect movie recommendation based on your taste and how you feel — fast,
-                private, and always free.
-              </p>
-            )}
+            </div>
+          )}
 
-            <div className="mt-4 flex flex-col items-center gap-3 md:items-start">
-              {showInlineAuth ? (
-                <GoogleButton />
-              ) : (
-                <button
-                  type="button"
-                  onClick={onAuthOpen}
-                  className="inline-flex h-11 items-center justify-center rounded-full px-8 sm:px-9 text-[0.95rem] font-semibold text-white shadow-lift transition-transform hover:scale-[1.02] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 active:scale-[.98] bg-gradient-to-r from-[#fe9245] to-[#eb423b]"
-                  aria-label="Get started"
-                >
-                  Get started
-                </button>
-              )}
+          {/* Features */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 mt-16 sm:mt-20 max-w-3xl mx-auto">
+            <div className="text-center">
+              <div className="text-3xl mb-2">🎭</div>
+              <h3 className="font-bold text-white mb-1">Mood-Based</h3>
+              <p className="text-sm text-white/60">
+                Find movies by how you feel, not just genre
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl mb-2">⚡</div>
+              <h3 className="font-bold text-white mb-1">Lightning Fast</h3>
+              <p className="text-sm text-white/60">No endless scrolling, instant results</p>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl mb-2">🎬</div>
+              <h3 className="font-bold text-white mb-1">Your Library</h3>
+              <p className="text-sm text-white/60">
+                Track, share, and organize your movie journey
+              </p>
             </div>
           </div>
         </div>
       </div>
     </section>
-  )
-}
-
-/* --------------------------- GoogleButton --------------------------- */
-function GoogleButton() {
-  const [submitting, setSubmitting] = useState(false)
-
-  async function handleGoogle() {
-    try {
-      setSubmitting(true)
-      await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: window.location.origin + '/home',
-          queryParams: { prompt: 'select_account' },
-        },
-      })
-    } catch {
-      setSubmitting(false)
-    }
-  }
-
-  return (
-    <button
-      type="button"
-      disabled={submitting}
-      onClick={handleGoogle}
-      className="
-        group inline-flex items-center justify-center gap-3
-        rounded-full border border-white/12 bg-white/[.06]
-        py-3 px-5 text-[0.95rem] font-semibold text-white/95
-        hover:bg-white/10 active:scale-[.99] focus:outline-none disabled:opacity-60
-      "
-      aria-label="Continue with Google"
-    >
-      <img
-        src={googleSvg}
-        width="18"
-        height="18"
-        alt=""
-        aria-hidden="true"
-        className="opacity-95"
-      />
-      <span>Continue with Google</span>
-    </button>
-  )
-}
-
-/* --------------------------- MovieStack (unchanged) --------------------------- */
-function MovieStack() {
-  const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY
-  const [items, setItems] = useState([])
-  const imgBase = 'https://image.tmdb.org/t/p/w500'
-
-  const fallbacks = useMemo(
-    () => [
-      { id: 'a', title: 'Top pick', poster_path: '' },
-      { id: 'b', title: 'Critics love it', poster_path: '' },
-      { id: 'c', title: 'Fan favorite', poster_path: '' },
-    ],
-    []
-  )
-
-  useEffect(() => {
-    let abort = false
-    async function load() {
-      try {
-        if (!TMDB_KEY) return setItems(fallbacks)
-        const r = await fetch(`https://api.themoviedb.org/3/trending/movie/week?api_key=${TMDB_KEY}`)
-        const j = await r.json()
-        const top = (j?.results || [])
-          .filter(m => m.poster_path)
-          .sort((a, b) => (b.vote_average || 0) - (a.vote_average || 0))
-          .slice(0, 3)
-        if (!abort) setItems(top.length ? top : fallbacks)
-      } catch {
-        if (!abort) setItems(fallbacks)
-      }
-    }
-    load()
-    return () => { abort = true }
-  }, [TMDB_KEY, fallbacks])
-
-  return (
-    <div className="relative w-[min(90vw,520px)] md:w-[540px] aspect-[5/4] md:aspect-[4/3] select-none" aria-hidden>
-      <PosterCard
-        title={items[2]?.title}
-        src={items[2]?.poster_path ? `${imgBase}${items[2].poster_path}` : null}
-        className="absolute left-1/2 top-1/2 w-[38%] -translate-x-[110%] -translate-y-[62%] rotate-[-16deg] opacity-95"
-      />
-      <PosterCard
-        title={items[1]?.title}
-        src={items[1]?.poster_path ? `${imgBase}${items[1].poster_path}` : null}
-        className="absolute left-1/2 top-1/2 w-[42%] translate-x-[10%] -translate-y-[60%] rotate-[13deg] opacity-95"
-      />
-      <PosterCard
-        title={items[0]?.title}
-        src={items[0]?.poster_path ? `${imgBase}${items[0].poster_path}` : null}
-        className="absolute left-1/2 top-1/2 w-[52%] -translate-x-[44%] -translate-y-[51%] rotate-[-5deg] shadow-2xl"
-        glow
-      />
-    </div>
-  )
-}
-
-function PosterCard({ src, title, className = '', glow = false }) {
-  return (
-    <div
-      className={`group rounded-3xl overflow-hidden ring-1 ring-white/10 bg-white/5 backdrop-blur-sm ${className}`}
-      style={{ boxShadow: glow ? '0 30px 70px rgba(0,0,0,.45)' : undefined }}
-      title={title || 'Movie poster'}
-    >
-      {src ? (
-        <img
-          src={src}
-          alt={title || 'Movie poster'}
-          className="h-full w-full object-cover"
-          loading="eager"
-          decoding="async"
-        />
-      ) : (
-        <div className="h-full w-full bg-[linear-gradient(135deg,#111827_0%,#0b1220_100%)]" />
-      )}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/60 to-transparent" />
-    </div>
   )
 }

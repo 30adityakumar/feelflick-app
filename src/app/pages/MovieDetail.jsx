@@ -3,19 +3,29 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
 import {
-  Play, Bookmark, Check, Star, Clock, Calendar, ChevronRight, Tv2
+  Play,
+  Bookmark,
+  Check,
+  Star,
+  Clock,
+  Calendar,
+  ChevronRight,
+  Tv2,
+  Info,
+  Share2,
+  Heart,
 } from 'lucide-react'
 
 const IMG = {
-  backdrop: (p) => (p ? `https://image.tmdb.org/t/p/w1280${p}` : ''),
-  poster:   (p) => (p ? `https://image.tmdb.org/t/p/w342${p}`  : ''),
-  profile:  (p) => (p ? `https://image.tmdb.org/t/p/w185${p}`  : ''),
-  logo:     (p) => (p ? `https://image.tmdb.org/t/p/w92${p}`   : ''),
+  backdrop: (p) => (p ? `https://image.tmdb.org/t/p/original${p}` : ''),
+  poster: (p) => (p ? `https://image.tmdb.org/t/p/w500${p}` : ''),
+  profile: (p) => (p ? `https://image.tmdb.org/t/p/w185${p}` : ''),
+  logo: (p) => (p ? `https://image.tmdb.org/t/p/w92${p}` : ''),
 }
 
 const TMDB = {
   base: 'https://api.themoviedb.org/3',
-  key:  import.meta.env.VITE_TMDB_API_KEY,
+  key: import.meta.env.VITE_TMDB_API_KEY,
 }
 
 function formatRuntime(mins) {
@@ -37,14 +47,13 @@ export default function MovieDetail() {
   const [videos, setVideos] = useState([])
   const [similar, setSimilar] = useState([])
   const [recs, setRecs] = useState([])
-
   const [providers, setProviders] = useState({ flatrate: [], rent: [], buy: [], link: '' })
 
-  // auth + watchlist status: null | 'want_to_watch' | 'watched'
   const [user, setUser] = useState(null)
   const [wlStatus, setWlStatus] = useState(null)
   const [mutating, setMutating] = useState(false)
 
+  // Auth
   useEffect(() => {
     let unsub
     supabase.auth.getUser().then(({ data }) => setUser(data?.user || null))
@@ -52,7 +61,9 @@ export default function MovieDetail() {
       setUser(session?.user || null)
     })
     unsub = data?.subscription?.unsubscribe
-    return () => { if (typeof unsub === 'function') unsub() }
+    return () => {
+      if (typeof unsub === 'function') unsub()
+    }
   }, [])
 
   // TMDB data
@@ -64,14 +75,15 @@ export default function MovieDetail() {
       try {
         if (!TMDB.key) throw new Error('TMDB key missing')
         const [d, c, v, s, r] = await Promise.all([
-          fetch(`${TMDB.base}/movie/${id}?api_key=${TMDB.key}&language=en-US`).then(r => r.json()),
-          fetch(`${TMDB.base}/movie/${id}/credits?api_key=${TMDB.key}&language=en-US`).then(r => r.json()),
-          fetch(`${TMDB.base}/movie/${id}/videos?api_key=${TMDB.key}&language=en-US`).then(r => r.json()),
-          fetch(`${TMDB.base}/movie/${id}/similar?api_key=${TMDB.key}&language=en-US&page=1`).then(r => r.json()),
-          fetch(`${TMDB.base}/movie/${id}/recommendations?api_key=${TMDB.key}&language=en-US&page=1`).then(r => r.json()),
+          fetch(`${TMDB.base}/movie/${id}?api_key=${TMDB.key}&language=en-US`).then((r) => r.json()),
+          fetch(`${TMDB.base}/movie/${id}/credits?api_key=${TMDB.key}&language=en-US`).then((r) => r.json()),
+          fetch(`${TMDB.base}/movie/${id}/videos?api_key=${TMDB.key}&language=en-US`).then((r) => r.json()),
+          fetch(`${TMDB.base}/movie/${id}/similar?api_key=${TMDB.key}&language=en-US&page=1`).then((r) => r.json()),
+          fetch(`${TMDB.base}/movie/${id}/recommendations?api_key=${TMDB.key}&language=en-US&page=1`).then((r) => r.json()),
         ])
         if (abort) return
-        if (d?.success === false || d?.status_code) throw new Error(d?.status_message || 'Failed to load')
+        if (d?.success === false || d?.status_code)
+          throw new Error(d?.status_message || 'Failed to load')
 
         setMovie(d)
         setCast((c?.cast || []).slice(0, 12))
@@ -85,10 +97,12 @@ export default function MovieDetail() {
       }
     }
     load()
-    return () => { abort = true }
+    return () => {
+      abort = true
+    }
   }, [id])
 
-  // Providers (TMDB ↔︎ JustWatch)
+  // Providers
   useEffect(() => {
     let active = true
     async function loadProviders() {
@@ -104,9 +118,9 @@ export default function MovieDetail() {
           const pick = (k) => (area[k] || []).slice(0, 16)
           setProviders({
             flatrate: pick('flatrate'),
-            rent:     pick('rent'),
-            buy:      pick('buy'),
-            link:     area.link || '',
+            rent: pick('rent'),
+            buy: pick('buy'),
+            link: area.link || '',
           })
         } else {
           setProviders({ flatrate: [], rent: [], buy: [], link: '' })
@@ -117,14 +131,19 @@ export default function MovieDetail() {
       }
     }
     loadProviders()
-    return () => { active = false }
+    return () => {
+      active = false
+    }
   }, [id])
 
   // Watchlist status
   useEffect(() => {
     let active = true
     async function readWL() {
-      if (!user?.id) { setWlStatus(null); return }
+      if (!user?.id) {
+        setWlStatus(null)
+        return
+      }
       const { data, error } = await supabase
         .from('user_watchlist')
         .select('status')
@@ -136,12 +155,22 @@ export default function MovieDetail() {
       else setWlStatus(data?.status || null)
     }
     readWL()
-    return () => { active = false }
+    return () => {
+      active = false
+    }
   }, [user, id])
 
   const ytTrailer = useMemo(() => {
-    const t = (videos || []).find(v => v.site === 'YouTube' && (v.type === 'Trailer' || v.type === 'Teaser'))
-    return t ? `https://www.youtube.com/watch?v=${t.key}` : (movie?.title ? `https://www.youtube.com/results?search_query=${encodeURIComponent(movie.title + ' trailer official')}` : null)
+    const t = (videos || []).find(
+      (v) => v.site === 'YouTube' && (v.type === 'Trailer' || v.type === 'Teaser')
+    )
+    return t
+      ? `https://www.youtube.com/watch?v=${t.key}`
+      : movie?.title
+      ? `https://www.youtube.com/results?search_query=${encodeURIComponent(
+          movie.title + ' trailer official'
+        )}`
+      : null
   }, [videos, movie])
 
   async function ensureAuthed() {
@@ -150,10 +179,8 @@ export default function MovieDetail() {
     return false
   }
 
-  // Ensure movies row exists BEFORE watchlist writes (fixes FK 23503)
   async function ensureMovieRow(d) {
     try {
-      // Minimal payload—adjust to your schema
       const row = {
         id: d.id,
         title: d.title || d.name || '',
@@ -164,31 +191,35 @@ export default function MovieDetail() {
         popularity: d.popularity ?? null,
       }
 
-      const { data: existing, error: selErr } =
-        await supabase.from('movies').select('id').eq('id', d.id).maybeSingle()
+      const { data: existing, error: selErr } = await supabase
+        .from('movies')
+        .select('id')
+        .eq('id', d.id)
+        .maybeSingle()
 
       if (selErr) {
-        // If RLS blocks SELECT, try a blind INSERT and ignore duplicates
         const { error: insBlindErr } = await supabase.from('movies').insert(row)
         if (insBlindErr) {
-          // If duplicate or conflict, we’re fine; anything else bubble up
           const msg = `${insBlindErr.message || ''}`.toLowerCase()
-          const dup = insBlindErr.code === '23505' || msg.includes('duplicate') || msg.includes('conflict')
+          const dup =
+            insBlindErr.code === '23505' || msg.includes('duplicate') || msg.includes('conflict')
           if (!dup) throw insBlindErr
         }
         return
       }
 
       if (existing) {
-        // Optional: keep some fields fresh
-        await supabase.from('movies').update({
-          poster_path: row.poster_path,
-          backdrop_path: row.backdrop_path,
-          vote_average: row.vote_average,
-          popularity: row.popularity,
-          release_date: row.release_date,
-          title: row.title,
-        }).eq('id', d.id)
+        await supabase
+          .from('movies')
+          .update({
+            poster_path: row.poster_path,
+            backdrop_path: row.backdrop_path,
+            vote_average: row.vote_average,
+            popularity: row.popularity,
+            release_date: row.release_date,
+            title: row.title,
+          })
+          .eq('id', d.id)
       } else {
         const { error: insErr } = await supabase.from('movies').insert(row)
         if (insErr) {
@@ -198,18 +229,13 @@ export default function MovieDetail() {
         }
       }
     } catch (e) {
-      // If movies table has RLS too strict, you’ll get 403 here.
-      // See the RLS notes at the bottom.
       throw e
     }
   }
 
-  // ---------------- Safe write helpers (no UPSERT, no 409) ----------------
   async function writeStatus(nextStatus) {
-    // Satisfy FK first
     await ensureMovieRow(movie)
 
-    // 1) UPDATE first
     const { error: updErr, count } = await supabase
       .from('user_watchlist')
       .update({ status: nextStatus })
@@ -219,13 +245,11 @@ export default function MovieDetail() {
 
     if (!updErr && (count ?? 0) > 0) return true
 
-    // 2) INSERT if no row updated
     const { error: insErr } = await supabase
       .from('user_watchlist')
       .insert({ user_id: user.id, movie_id: Number(id), status: nextStatus })
 
     if (insErr) {
-      // Race-safe: if duplicate happened between update & insert, finalize with update
       const msg = `${insErr.message || ''}`.toLowerCase()
       const dup = insErr.code === '23505' || msg.includes('duplicate') || msg.includes('conflict')
       if (dup) {
@@ -287,207 +311,240 @@ export default function MovieDetail() {
       setMutating(false)
     }
   }
-  // -----------------------------------------------------------------
 
-  const rating  = movie?.vote_average ? Math.round(movie.vote_average * 10) / 10 : null
-  const year    = yearOf(movie?.release_date)
+  const rating = movie?.vote_average ? Math.round(movie.vote_average * 10) / 10 : null
+  const year = yearOf(movie?.release_date)
   const runtime = formatRuntime(movie?.runtime)
 
   return (
-    <div className="relative">
-      {/* Hero */}
-      <div className="relative min-h-[420px] md:min-h-[520px]">
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage: movie?.backdrop_path ? `url(${IMG.backdrop(movie.backdrop_path)})` : 'none',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            filter: 'brightness(.9)',
-          }}
-        />
-        <div className="absolute inset-0 bg-[radial-gradient(120%_80%_at_40%_0%,rgba(0,0,0,.55),rgba(0,0,0,.9))]" />
-
-        <div className="relative z-10 mx-auto grid max-w-6xl grid-cols-1 gap-6 px-4 py-8 md:grid-cols-[auto,1fr] md:gap-8 md:px-6 md:py-10">
-          <div className="mx-auto md:mx-0">
-            <div className="overflow-hidden rounded-2xl ring-1 ring-white/10 bg-white/5">
-              {movie?.poster_path ? (
-                <img
-                  src={IMG.poster(movie.poster_path)}
-                  alt={movie?.title || 'Poster'}
-                  className="h-[340px] w-[226px] object-cover md:h-[420px] md:w-[280px]"
-                  loading="eager"
-                  decoding="async"
-                />
-              ) : (
-                <div className="grid h-[340px] w-[226px] place-items-center text-white/60 md:h-[420px] md:w-[280px]">
-                  No poster
-                </div>
-              )}
-            </div>
+    <div className="relative bg-black text-white min-h-screen pb-20 md:pb-8">
+      {/* Hero Section - Full Bleed */}
+      <div className="relative w-full" style={{ paddingTop: 'var(--hdr-h, 64px)' }}>
+        <div className="relative h-[85vh] sm:h-[80vh] md:h-[85vh] lg:h-[90vh]">
+          {/* Backdrop Image */}
+          <div className="absolute inset-0">
+            {movie?.backdrop_path ? (
+              <img
+                src={IMG.backdrop(movie.backdrop_path)}
+                alt={movie?.title || 'Backdrop'}
+                className="w-full h-full object-cover"
+                loading="eager"
+              />
+            ) : (
+              <div className="w-full h-full bg-neutral-900" />
+            )}
           </div>
 
-          <div className="flex flex-col justify-end">
-            {loading ? (
-              <div className="animate-pulse">
-                <div className="h-8 w-2/3 rounded bg-white/20" />
-                <div className="mt-3 h-4 w-1/2 rounded bg-white/15" />
-                <div className="mt-6 h-10 w-3/4 rounded bg-white/15" />
+          {/* Gradients */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/50 md:via-black/30 to-transparent" />
+          <div className="absolute bottom-0 inset-x-0 h-2/5 bg-gradient-to-t from-black via-black/95 to-transparent" />
+
+          {/* Content Overlay */}
+          <div className="absolute inset-0 flex flex-col justify-end pb-12 sm:pb-16 md:pb-20 lg:pb-24">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8 lg:px-12 w-full">
+              <div className="grid grid-cols-1 md:grid-cols-[auto,1fr] gap-6 md:gap-8 items-end">
+                {/* Poster - Hidden on smallest screens, show on sm+ */}
+                <div className="hidden sm:block">
+                  <div className="overflow-hidden rounded-xl ring-2 ring-white/20 bg-white/5 shadow-2xl">
+                    {movie?.poster_path ? (
+                      <img
+                        src={IMG.poster(movie.poster_path)}
+                        alt={movie?.title || 'Poster'}
+                        className="h-[300px] w-[200px] md:h-[360px] md:w-[240px] lg:h-[420px] lg:w-[280px] object-cover"
+                        loading="eager"
+                      />
+                    ) : (
+                      <div className="h-[300px] w-[200px] md:h-[360px] md:w-[240px] lg:h-[420px] lg:w-[280px] grid place-items-center text-white/40 text-sm">
+                        No poster
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Movie Info */}
+                <div className="flex flex-col justify-end max-w-3xl">
+                  {loading ? (
+                    <div className="animate-pulse space-y-4">
+                      <div className="h-10 w-3/4 rounded bg-white/20" />
+                      <div className="h-6 w-1/2 rounded bg-white/15" />
+                      <div className="h-12 w-full rounded bg-white/15" />
+                    </div>
+                  ) : error ? (
+                    <div className="rounded-xl bg-red-500/10 p-4 text-red-300 ring-1 ring-red-500/30">
+                      {error}
+                    </div>
+                  ) : (
+                    <>
+                      {/* Title + Status Badges */}
+                      <div className="flex flex-wrap items-center gap-3 mb-3">
+                        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black leading-tight tracking-tight drop-shadow-2xl">
+                          {movie?.title}
+                        </h1>
+                        {wlStatus === 'want_to_watch' && (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-500/20 border border-blue-500/30 text-xs sm:text-sm font-bold text-blue-300">
+                            <Bookmark className="h-3 w-3 sm:h-4 sm:w-4" />
+                            Watchlisted
+                          </span>
+                        )}
+                        {wlStatus === 'watched' && (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-500/20 border border-green-500/30 text-xs sm:text-sm font-bold text-green-300">
+                            <Check className="h-3 w-3 sm:h-4 sm:w-4" />
+                            Watched
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Meta Info */}
+                      <div className="flex flex-wrap items-center gap-3 mb-4 text-sm sm:text-base">
+                        {rating && (
+                          <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-green-500/20 border border-green-500/30">
+                            <Star className="h-4 w-4 text-green-400 fill-current" />
+                            <span className="text-green-400 font-bold">{rating}</span>
+                          </div>
+                        )}
+                        {year && (
+                          <span className="inline-flex items-center gap-1.5 text-white/90 font-semibold">
+                            <Calendar className="h-4 w-4" />
+                            {year}
+                          </span>
+                        )}
+                        {runtime && (
+                          <span className="inline-flex items-center gap-1.5 text-white/90 font-semibold">
+                            <Clock className="h-4 w-4" />
+                            {runtime}
+                          </span>
+                        )}
+                        {movie?.genres?.length > 0 && (
+                          <span className="text-white/70 font-medium">
+                            • {movie.genres.map((g) => g.name).slice(0, 3).join(', ')}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Overview - Mobile */}
+                      {movie?.overview && (
+                        <p className="text-sm sm:text-base text-white/90 leading-relaxed line-clamp-3 mb-5 drop-shadow-lg max-w-2xl">
+                          {movie.overview}
+                        </p>
+                      )}
+
+                      {/* Action Buttons */}
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                        {ytTrailer && (
+                          <a
+                            href={ytTrailer}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 sm:px-7 md:px-9 py-2.5 sm:py-3 text-sm sm:text-base font-bold text-black hover:bg-white/90 transition-all active:scale-95 shadow-2xl"
+                          >
+                            <Play className="h-4 w-4 sm:h-5 sm:w-5 fill-current" />
+                            <span>Play Trailer</span>
+                          </a>
+                        )}
+
+                        <button
+                          disabled={mutating}
+                          onClick={toggleWatchlist}
+                          className="inline-flex items-center justify-center gap-2 rounded-xl bg-white/20 backdrop-blur-md px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base font-bold text-white hover:bg-white/30 transition-all active:scale-95 disabled:opacity-50 shadow-xl"
+                          title={
+                            wlStatus === 'want_to_watch'
+                              ? 'Remove from Watchlist'
+                              : 'Add to Watchlist'
+                          }
+                        >
+                          <Bookmark className="h-4 w-4 sm:h-5 sm:w-5" />
+                          <span className="hidden xs:inline">
+                            {wlStatus === 'want_to_watch' ? 'Remove' : 'Watchlist'}
+                          </span>
+                        </button>
+
+                        <button
+                          disabled={mutating}
+                          onClick={toggleWatched}
+                          className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base font-bold transition-all active:scale-95 disabled:opacity-50 shadow-xl ${
+                            wlStatus === 'watched'
+                              ? 'bg-white/20 backdrop-blur-md hover:bg-white/30'
+                              : 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-400 hover:to-red-400'
+                          }`}
+                        >
+                          <Check className="h-4 w-4 sm:h-5 sm:w-5" />
+                          <span className="hidden xs:inline">
+                            {wlStatus === 'watched' ? 'Watched' : 'Mark Watched'}
+                          </span>
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
-            ) : error ? (
-              <div className="rounded-lg bg-red-500/10 p-4 text-red-300 ring-1 ring-red-500/30">{error}</div>
-            ) : (
-              <>
-                <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-balance text-[clamp(1.4rem,4.2vw,2.6rem)] font-extrabold leading-tight tracking-tight text-white">
-                    {movie?.title}
-                  </h1>
-                  {wlStatus === 'want_to_watch' && (
-                    <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/85 ring-1 ring-white/15">
-                      Watchlisted
-                    </span>
-                  )}
-                  {wlStatus === 'watched' && (
-                    <span className="rounded-full bg-green-500/20 px-3 py-1 text-xs font-semibold text-green-200 ring-1 ring-green-400/30">
-                      Watched
-                    </span>
-                  )}
-                </div>
-
-                <div className="mt-2 flex flex-wrap items-center gap-3 text-white/80">
-                  {year && <span className="inline-flex items-center gap-1.5 text-sm"><Calendar className="h-4 w-4 opacity-80" />{year}</span>}
-                  {runtime && <span className="inline-flex items-center gap-1.5 text-sm"><Clock className="h-4 w-4 opacity-80" />{runtime}</span>}
-                  {rating &&  <span className="inline-flex items-center gap-1.5 text-sm"><Star className="h-4 w-4 text-yellow-300" />{rating}</span>}
-                  {!!(movie?.genres?.length) && (
-                    <span className="text-sm text-white/70">• {movie.genres.map(g => g.name).slice(0, 3).join(', ')}</span>
-                  )}
-                </div>
-
-                <div className="mt-5 flex flex-wrap items-center gap-2">
-                  {ytTrailer && (
-                    <a
-                      href={ytTrailer}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-[0.95rem] font-semibold text-white hover:bg-white/15 focus:outline-none"
-                    >
-                      <Play className="h-4 w-4" />
-                      Watch trailer
-                    </a>
-                  )}
-
-                  {/* Always show both actions */}
-                  <button
-                    disabled={mutating}
-                    onClick={toggleWatchlist}
-                    className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-[0.95rem] font-semibold text-white hover:bg-white/10 disabled:opacity-60"
-                    title={wlStatus === 'want_to_watch' ? 'Remove from Watchlist' : wlStatus === 'watched' ? 'Move to Watchlist' : 'Add to Watchlist'}
-                  >
-                    <Bookmark className="h-4 w-4" />
-                    {wlStatus === 'want_to_watch' ? 'Remove from Watchlist'
-                      : wlStatus === 'watched' ? 'Move to Watchlist'
-                      : 'Add to Watchlist'}
-                  </button>
-
-                  <button
-                    disabled={mutating}
-                    onClick={toggleWatched}
-                    className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-[0.95rem] font-semibold disabled:opacity-60 ${
-                      wlStatus === 'watched'
-                        ? 'border border-white/15 bg-white/5 hover:bg-white/10'
-                        : 'bg-gradient-to-r from-[#fe9245] to-[#eb423b] text-white'
-                    }`}
-                    title={wlStatus === 'watched' ? 'Undo Watched' : 'Mark as Watched'}
-                  >
-                    <Check className="h-4 w-4" />
-                    {wlStatus === 'watched' ? 'Undo Watched' : 'Mark as Watched'}
-                  </button>
-                </div>
-              </>
-            )}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Body */}
-      <div className="mx-auto max-w-6xl px-4 py-6 md:px-6 md:py-8">
-        {movie?.overview && <CollapsibleText text={movie.overview} />}
-
-        <WhereToWatch providers={providers} />
-
-        {cast?.length > 0 && (
-          <section className="mt-8">
-            <h2 className="mb-3 text-lg font-bold tracking-tight text-white/95">Top cast</h2>
-            <div className="flex snap-x gap-4 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-              {cast.map(p => (
-                <div key={p.id} className="w-[96px] shrink-0 snap-start">
-                  <div className="overflow-hidden rounded-xl bg-white/5 ring-1 ring-white/10">
-                    {p.profile_path ? (
-                      <img
-                        src={IMG.profile(p.profile_path)}
-                        alt={p.name}
-                        className="h-[120px] w-full object-cover"
-                        loading="lazy"
-                        decoding="async"
-                      />
-                    ) : (
-                      <div className="grid h-[120px] place-items-center text-xs text-white/60">No photo</div>
-                    )}
-                  </div>
-                  <div className="mt-1.5 text-[12.5px] font-semibold text-white/90 line-clamp-2">{p.name}</div>
-                  <div className="text-[11.5px] text-white/60 line-clamp-2">{p.character}</div>
-                </div>
-              ))}
+      {/* Content Body */}
+      <div className="relative -mt-16 sm:-mt-20 md:-mt-24 lg:-mt-28 z-30">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8 lg:px-12 space-y-8 md:space-y-10">
+          {/* Overview - Desktop Expanded */}
+          {movie?.overview && (
+            <div className="rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 p-5 sm:p-6 md:p-8">
+              <h2 className="text-lg sm:text-xl font-bold mb-3 flex items-center gap-2">
+                <Info className="h-5 w-5" />
+                Overview
+              </h2>
+              <p className="text-sm sm:text-base text-white/85 leading-relaxed">
+                {movie.overview}
+              </p>
             </div>
-          </section>
-        )}
+          )}
 
-        {similar?.length > 0 && <Rail title="Similar" items={similar} />}
-        {recs?.length > 0 && <Rail title="Recommended" items={recs} />}
+          {/* Where to Watch */}
+          <WhereToWatch providers={providers} />
+
+          {/* Cast */}
+          {cast?.length > 0 && <CastSection cast={cast} />}
+
+          {/* Similar & Recommended */}
+          {similar?.length > 0 && <Rail title="Similar Movies" items={similar} />}
+          {recs?.length > 0 && <Rail title="You Might Also Like" items={recs} />}
+        </div>
       </div>
     </div>
   )
 }
 
-/* ----------------------------- Helpers ---------------------------------- */
-
-function CollapsibleText({ text }) {
-  const [open, setOpen] = useState(false)
-  if (!text) return null
-  return (
-    <div className="rounded-2xl bg-white/5 p-4 ring-1 ring-white/10">
-      <p className={`text-[0.98rem] leading-relaxed text-white/85 ${open ? '' : 'line-clamp-5'}`}>
-        {text}
-      </p>
-      <button
-        type="button"
-        onClick={() => setOpen(o => !o)}
-        className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-white/80 hover:text-white focus:outline-none"
-      >
-        {open ? 'Show less' : 'Read more'}
-        <ChevronRight className={`h-4 w-4 transition-transform ${open ? 'rotate-90' : ''}`} />
-      </button>
-    </div>
-  )
-}
+/* ===== Components ===== */
 
 function WhereToWatch({ providers }) {
-  const hasAny = (providers.flatrate?.length || providers.rent?.length || providers.buy?.length)
+  const hasAny =
+    providers.flatrate?.length || providers.rent?.length || providers.buy?.length
   if (!hasAny) return null
 
   const Row = ({ label, list }) => {
     if (!list?.length) return null
     return (
-      <div className="mt-2">
-        <div className="mb-2 text-sm font-semibold text-white/80">{label}</div>
-        <div className="flex snap-x items-center gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-          {list.map(p => (
-            <div key={`${label}-${p.provider_id}`} className="shrink-0 snap-start">
-              <div className="grid w-[64px] place-items-center rounded-xl bg-white/5 p-2 ring-1 ring-white/10">
-                {p.logo_path
-                  ? <img src={IMG.logo(p.logo_path)} alt={p.provider_name} className="h-10 w-10 object-contain" loading="lazy" />
-                  : <div className="text-[10px] text-white/70 text-center px-1 py-3">{p.provider_name}</div>
-                }
+      <div className="mt-4">
+        <h3 className="text-sm font-bold text-white/80 mb-3">{label}</h3>
+        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+          {list.map((p) => (
+            <div
+              key={`${label}-${p.provider_id}`}
+              className="flex-shrink-0 w-14 sm:w-16"
+            >
+              <div className="aspect-square rounded-xl bg-white/5 border border-white/10 p-2 flex items-center justify-center">
+                {p.logo_path ? (
+                  <img
+                    src={IMG.logo(p.logo_path)}
+                    alt={p.provider_name}
+                    className="w-full h-full object-contain"
+                    loading="lazy"
+                  />
+                ) : (
+                  <span className="text-[10px] text-white/60 text-center px-1">
+                    {p.provider_name}
+                  </span>
+                )}
               </div>
             </div>
           ))}
@@ -497,47 +554,101 @@ function WhereToWatch({ providers }) {
   }
 
   return (
-    <section className="mt-8 rounded-2xl bg-white/5 p-4 ring-1 ring-white/10">
-      <div className="mb-1 flex items-center gap-2">
-        <Tv2 className="h-5 w-5 text-white/90" />
-        <h2 className="text-base font-bold tracking-tight text-white/95">Where to watch</h2>
-        <span className="ml-auto text-[11px] text-white/50">Data via JustWatch</span>
+    <div className="rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 p-5 sm:p-6 md:p-8">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg sm:text-xl font-bold flex items-center gap-2">
+          <Tv2 className="h-5 w-5" />
+          Where to Watch
+        </h2>
+        <span className="text-[10px] sm:text-xs text-white/50">via JustWatch</span>
       </div>
       <Row label="Stream" list={providers.flatrate} />
-      <Row label="Rent"   list={providers.rent} />
-      <Row label="Buy"    list={providers.buy} />
+      <Row label="Rent" list={providers.rent} />
+      <Row label="Buy" list={providers.buy} />
       {providers.link && (
         <a
           href={providers.link}
           target="_blank"
           rel="noreferrer"
-          className="mt-3 inline-block text-[12.5px] font-semibold text-white/80 underline underline-offset-4 hover:text-white"
+          className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-white/80 hover:text-white transition-colors"
         >
-          See providers for your region →
+          More options in your region
+          <ChevronRight className="h-4 w-4" />
         </a>
       )}
-    </section>
+    </div>
+  )
+}
+
+function CastSection({ cast }) {
+  return (
+    <div>
+      <h2 className="text-lg sm:text-xl font-bold mb-4">Top Cast</h2>
+      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-6 gap-3 sm:gap-4">
+        {cast.map((p) => (
+          <div key={p.id} className="group">
+            <div className="aspect-[2/3] overflow-hidden rounded-xl bg-white/5 border border-white/10 mb-2">
+              {p.profile_path ? (
+                <img
+                  src={IMG.profile(p.profile_path)}
+                  alt={p.name}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="w-full h-full grid place-items-center text-white/40 text-xs">
+                  No photo
+                </div>
+              )}
+            </div>
+            <h3 className="text-xs sm:text-sm font-bold text-white/90 line-clamp-2 leading-tight">
+              {p.name}
+            </h3>
+            <p className="text-[10px] sm:text-xs text-white/60 line-clamp-2">{p.character}</p>
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }
 
 function Rail({ title, items }) {
   return (
-    <section className="mt-8">
-      <h2 className="mb-3 text-lg font-bold tracking-tight text-white/95">{title}</h2>
-      <div className="flex snap-x gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-        {items.map(m => (
-          <Link key={m.id} to={`/movie/${m.id}`} className="group w-[116px] shrink-0 snap-start" title={m.title}>
-            <div className="overflow-hidden rounded-xl ring-1 ring-white/10 bg-white/5">
-              {m.poster_path
-                ? <img src={`https://image.tmdb.org/t/p/w185${m.poster_path}`} alt={m.title} className="h-[174px] w-full object-cover transition-transform duration-200 group-hover:scale-[1.03]" loading="lazy" />
-                : <div className="grid h-[174px] place-items-center text-xs text-white/60">No poster</div>
-              }
+    <div>
+      <h2 className="text-lg sm:text-xl font-bold mb-4">{title}</h2>
+      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 sm:gap-4">
+        {items.map((m) => (
+          <Link
+            key={m.id}
+            to={`/movie/${m.id}`}
+            className="group"
+            title={m.title}
+          >
+            <div className="aspect-[2/3] overflow-hidden rounded-xl bg-white/5 border border-white/10 mb-2">
+              {m.poster_path ? (
+                <img
+                  src={`https://image.tmdb.org/t/p/w342${m.poster_path}`}
+                  alt={m.title}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="w-full h-full grid place-items-center text-white/40 text-xs">
+                  No poster
+                </div>
+              )}
             </div>
-            <div className="mt-2 line-clamp-2 text-[12.5px] font-semibold text-white/90">{m.title}</div>
-            {m.vote_average ? <div className="text-[11.5px] text-white/60">{Math.round(m.vote_average * 10) / 10} ★</div> : null}
+            <h3 className="text-xs sm:text-sm font-bold text-white/90 line-clamp-2 leading-tight mb-1">
+              {m.title}
+            </h3>
+            {m.vote_average && (
+              <p className="text-[10px] sm:text-xs text-white/60">
+                ★ {Math.round(m.vote_average * 10) / 10}
+              </p>
+            )}
           </Link>
         ))}
       </div>
-    </section>
+    </div>
   )
 }

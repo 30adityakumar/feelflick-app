@@ -1,7 +1,7 @@
 // src/app/header/components/SearchBar.jsx
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { X, Search as SearchIcon, TrendingUp, Clock, Plus, Bookmark } from 'lucide-react'
+import { X, Search as SearchIcon, Clock } from 'lucide-react'
 
 export default function SearchBar({ open, onClose }) {
   const nav = useNavigate()
@@ -12,34 +12,15 @@ export default function SearchBar({ open, onClose }) {
   const [loading, setLoading] = useState(false)
   const [sel, setSel] = useState(-1)
   const [recentSearches, setRecentSearches] = useState([])
-  const [trending, setTrending] = useState([])
   const inputRef = useRef(null)
 
-  // Load recent searches and trending
+  // Load recent searches
   useEffect(() => {
     if (open) {
       const recent = JSON.parse(localStorage.getItem('recentSearches') || '[]')
       setRecentSearches(recent.slice(0, 5))
-      fetchTrending()
     }
   }, [open])
-
-  // Fetch trending movies for empty state
-  async function fetchTrending() {
-    if (!TMDB_KEY) return
-    try {
-      const r = await fetch(
-        `https://api.themoviedb.org/3/trending/movie/week?api_key=${TMDB_KEY}`
-      )
-      const j = await r.json()
-      const list = (j?.results || [])
-        .filter((m) => m.poster_path)
-        .slice(0, 6)
-      setTrending(list)
-    } catch {
-      setTrending([])
-    }
-  }
 
   // Focus and lock scroll when opened
   useEffect(() => {
@@ -194,39 +175,16 @@ export default function SearchBar({ open, onClose }) {
 
           {/* Results Area */}
           <div className="max-h-[65vh] md:max-h-[500px] overflow-y-auto">
-            {/* Empty State with Trending */}
+            {/* Empty State */}
             {!q && !loading && recentSearches.length === 0 && (
-              <div className="py-4">
-                {trending.length > 0 ? (
-                  <>
-                    <div className="px-4 md:px-6 py-2">
-                      <h3 className="text-sm font-semibold text-white/70 flex items-center gap-2">
-                        <TrendingUp className="h-4 w-4" />
-                        Trending This Week
-                      </h3>
-                    </div>
-                    <div className="space-y-1 px-2 md:px-3">
-                      {trending.map((m) => (
-                        <MovieResultCard
-                          key={m.id}
-                          movie={m}
-                          onClick={() => goToMovie(m)}
-                          isSelected={false}
-                        />
-                      ))}
-                    </div>
-                  </>
-                ) : (
-                  <div className="px-6 py-12 text-center">
-                    <SearchIcon className="h-12 w-12 mx-auto text-white/20 mb-4" />
-                    <p className="text-white/60 text-sm md:text-base">
-                      Search for your favorite movies
-                    </p>
-                    <p className="text-white/40 text-xs md:text-sm mt-2">
-                      Start typing to find what you're looking for
-                    </p>
-                  </div>
-                )}
+              <div className="px-6 py-12 text-center">
+                <SearchIcon className="h-12 w-12 mx-auto text-white/20 mb-4" />
+                <p className="text-white/60 text-sm md:text-base">
+                  Search for your favorite movies
+                </p>
+                <p className="text-white/40 text-xs md:text-sm mt-2">
+                  Start typing to find what you're looking for
+                </p>
               </div>
             )}
 
@@ -255,28 +213,6 @@ export default function SearchBar({ open, onClose }) {
                     />
                   ))}
                 </div>
-
-                {/* Show trending below recent */}
-                {trending.length > 0 && (
-                  <>
-                    <div className="px-4 md:px-6 py-2 mt-4 border-t border-white/10">
-                      <h3 className="text-sm font-semibold text-white/70 flex items-center gap-2">
-                        <TrendingUp className="h-4 w-4" />
-                        Trending This Week
-                      </h3>
-                    </div>
-                    <div className="space-y-1 px-2 md:px-3">
-                      {trending.slice(0, 4).map((m) => (
-                        <MovieResultCard
-                          key={m.id}
-                          movie={m}
-                          onClick={() => goToMovie(m)}
-                          isSelected={false}
-                        />
-                      ))}
-                    </div>
-                  </>
-                )}
               </div>
             )}
 

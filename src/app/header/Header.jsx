@@ -13,7 +13,7 @@ import {
   Bookmark,
   Clock,
   X,
-  Menu,
+  ChevronRight,
 } from 'lucide-react'
 
 export default function Header({ onOpenSearch }) {
@@ -24,7 +24,7 @@ export default function Header({ onOpenSearch }) {
   const [scrollDirection, setScrollDirection] = useState('up')
   const [lastScrollY, setLastScrollY] = useState(0)
   const [dropdownOpen, setDropdownOpen] = useState(false)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false)
   const hdrRef = useRef(null)
   const dropdownRef = useRef(null)
 
@@ -85,14 +85,15 @@ export default function Header({ onOpenSearch }) {
     return () => ro.disconnect()
   }, [])
 
-  // Close mobile menu on route change
+  // Close account menu on route change
   useEffect(() => {
-    setMobileMenuOpen(false)
+    setAccountMenuOpen(false)
   }, [pathname])
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
     setDropdownOpen(false)
+    setAccountMenuOpen(false)
     navigate('/')
   }
 
@@ -128,13 +129,15 @@ export default function Header({ onOpenSearch }) {
               </div>
             </Link>
 
-            {/* Desktop Navigation */}
+            {/* Desktop Navigation - More prominent active state */}
             <nav className="hidden md:flex items-center gap-6">
               <NavLink
                 to="/home"
                 className={({ isActive }) =>
-                  `text-sm font-semibold transition-colors ${
-                    isActive ? 'text-white' : 'text-white/70 hover:text-white'
+                  `text-sm font-bold transition-all ${
+                    isActive 
+                      ? 'text-white border-b-2 border-[#FF9245] pb-0.5' 
+                      : 'text-white/70 hover:text-white border-b-2 border-transparent'
                   }`
                 }
               >
@@ -143,8 +146,10 @@ export default function Header({ onOpenSearch }) {
               <NavLink
                 to="/browse"
                 className={({ isActive }) =>
-                  `text-sm font-semibold transition-colors ${
-                    isActive ? 'text-white' : 'text-white/70 hover:text-white'
+                  `text-sm font-bold transition-all ${
+                    isActive 
+                      ? 'text-white border-b-2 border-[#FF9245] pb-0.5' 
+                      : 'text-white/70 hover:text-white border-b-2 border-transparent'
                   }`
                 }
               >
@@ -153,8 +158,10 @@ export default function Header({ onOpenSearch }) {
               <NavLink
                 to="/watchlist"
                 className={({ isActive }) =>
-                  `text-sm font-semibold transition-colors ${
-                    isActive ? 'text-white' : 'text-white/70 hover:text-white'
+                  `text-sm font-bold transition-all ${
+                    isActive 
+                      ? 'text-white border-b-2 border-[#FF9245] pb-0.5' 
+                      : 'text-white/70 hover:text-white border-b-2 border-transparent'
                   }`
                 }
               >
@@ -173,16 +180,7 @@ export default function Header({ onOpenSearch }) {
                 <SearchIcon className="h-5 w-5" />
               </button>
 
-              {/* Mobile Menu Button (md and below) */}
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-all active:scale-95"
-                aria-label="Menu"
-              >
-                {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-              </button>
-
-              {/* User Dropdown (Desktop) */}
+              {/* User Dropdown (Desktop only) */}
               {user && (
                 <div className="hidden md:block relative" ref={dropdownRef}>
                   <button
@@ -269,112 +267,9 @@ export default function Header({ onOpenSearch }) {
             </div>
           </div>
         </div>
-
-        {/* Mobile Menu Overlay */}
-        {mobileMenuOpen && (
-          <div className="md:hidden fixed inset-0 top-16 bg-black/95 backdrop-blur-lg z-40 animate-in fade-in duration-200">
-            <div className="h-full overflow-y-auto px-4 py-6">
-              {/* User Info */}
-              {user && (
-                <div className="flex items-center gap-3 mb-6 pb-6 border-b border-white/10">
-                  {userAvatar ? (
-                    <img
-                      src={userAvatar}
-                      alt={userName}
-                      className="h-12 w-12 rounded-full object-cover ring-2 ring-white/20"
-                    />
-                  ) : (
-                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-[#FF9245] to-[#EB423B] flex items-center justify-center text-white text-lg font-bold">
-                      {userName.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-white truncate">{userName}</div>
-                    <div className="text-sm text-white/60 truncate">{userEmail}</div>
-                  </div>
-                </div>
-              )}
-
-              {/* Mobile Navigation Links - removed Watchlist */}
-              <nav className="space-y-1 mb-6">
-                <NavLink
-                  to="/home"
-                  className={({ isActive }) =>
-                    `flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-colors ${
-                      isActive
-                        ? 'bg-white/10 text-white'
-                        : 'text-white/70 hover:bg-white/5 hover:text-white'
-                    }`
-                  }
-                >
-                  <Home className="h-5 w-5" />
-                  Home
-                </NavLink>
-                <NavLink
-                  to="/browse"
-                  className={({ isActive }) =>
-                    `flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-colors ${
-                      isActive
-                        ? 'bg-white/10 text-white'
-                        : 'text-white/70 hover:bg-white/5 hover:text-white'
-                    }`
-                  }
-                >
-                  <Compass className="h-5 w-5" />
-                  Discover
-                </NavLink>
-                <NavLink
-                  to="/history"
-                  className={({ isActive }) =>
-                    `flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-colors ${
-                      isActive
-                        ? 'bg-white/10 text-white'
-                        : 'text-white/70 hover:bg-white/5 hover:text-white'
-                    }`
-                  }
-                >
-                  <Clock className="h-5 w-5" />
-                  History
-                </NavLink>
-              </nav>
-
-              {/* Account Section */}
-              <div className="pt-6 border-t border-white/10 space-y-1">
-                <Link
-                  to="/account"
-                  className="flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium text-white/70 hover:bg-white/5 hover:text-white transition-colors"
-                >
-                  <UserIcon className="h-5 w-5" />
-                  Profile
-                </Link>
-                <Link
-                  to="/watchlist"
-                  className="flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium text-white/70 hover:bg-white/5 hover:text-white transition-colors"
-                >
-                  <Bookmark className="h-5 w-5" />
-                  Watchlist
-                </Link>
-                <Link
-                  to="/preferences"
-                  className="flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium text-white/70 hover:bg-white/5 hover:text-white transition-colors"
-                >
-                  <Settings className="h-5 w-5" />
-                  Settings
-                </Link>
-                <button
-                  onClick={handleSignOut}
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors"
-                >
-                  <LogOut className="h-5 w-5" />
-                  Sign Out
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </header>
 
-      {/* Mobile Bottom Navigation - Replace Watchlist with Account */}
+      {/* Mobile Bottom Navigation */}
       <nav
         className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#0a0a0a]/95 backdrop-blur-md border-t border-white/10 shadow-2xl"
         style={{
@@ -426,9 +321,9 @@ export default function Header({ onOpenSearch }) {
             <span className="text-xs font-medium">Search</span>
           </button>
 
-          {/* Account button - highlighted when in account section */}
-          <Link
-            to="/account"
+          {/* Account button - opens bottom sheet */}
+          <button
+            onClick={() => setAccountMenuOpen(true)}
             className={`flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-all ${
               isAccountSection 
                 ? 'text-white bg-white/10' 
@@ -451,9 +346,120 @@ export default function Header({ onOpenSearch }) {
               </div>
             )}
             <span className="text-xs font-medium">Account</span>
-          </Link>
+          </button>
         </div>
       </nav>
+
+      {/* Mobile Account Menu - Bottom Sheet */}
+      {accountMenuOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="md:hidden fixed inset-0 bg-black/60 z-[60] animate-in fade-in duration-200"
+            onClick={() => setAccountMenuOpen(false)}
+          />
+
+          {/* Bottom Sheet */}
+          <div className="md:hidden fixed bottom-0 left-0 right-0 z-[70] bg-[#0d0d0d] rounded-t-2xl animate-in slide-in-from-bottom duration-300">
+            <div className="relative">
+              {/* Handle bar */}
+              <div className="flex justify-center pt-3 pb-2">
+                <div className="w-12 h-1 bg-white/20 rounded-full" />
+              </div>
+
+              {/* Close button */}
+              <button
+                onClick={() => setAccountMenuOpen(false)}
+                className="absolute top-4 right-4 p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-all active:scale-95"
+                aria-label="Close"
+              >
+                <X className="h-5 w-5" />
+              </button>
+
+              {/* User Info */}
+              <div className="flex items-center gap-3 px-6 py-4 border-b border-white/10">
+                {userAvatar ? (
+                  <img
+                    src={userAvatar}
+                    alt={userName}
+                    className="h-14 w-14 rounded-full object-cover ring-2 ring-white/20"
+                  />
+                ) : (
+                  <div className="h-14 w-14 rounded-full bg-gradient-to-br from-[#FF9245] to-[#EB423B] flex items-center justify-center text-white text-xl font-bold">
+                    {userName.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="text-lg font-bold text-white truncate">{userName}</div>
+                  <div className="text-sm text-white/60 truncate">{userEmail}</div>
+                </div>
+              </div>
+
+              {/* Menu Items */}
+              <div className="px-3 py-3 space-y-1">
+                <Link
+                  to="/account"
+                  onClick={() => setAccountMenuOpen(false)}
+                  className="flex items-center justify-between px-4 py-3.5 rounded-xl text-white/80 hover:bg-white/10 hover:text-white transition-colors active:scale-95"
+                >
+                  <div className="flex items-center gap-3">
+                    <UserIcon className="h-5 w-5" />
+                    <span className="font-medium">Profile</span>
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-white/40" />
+                </Link>
+
+                <Link
+                  to="/watchlist"
+                  onClick={() => setAccountMenuOpen(false)}
+                  className="flex items-center justify-between px-4 py-3.5 rounded-xl text-white/80 hover:bg-white/10 hover:text-white transition-colors active:scale-95"
+                >
+                  <div className="flex items-center gap-3">
+                    <Bookmark className="h-5 w-5" />
+                    <span className="font-medium">Watchlist</span>
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-white/40" />
+                </Link>
+
+                <Link
+                  to="/history"
+                  onClick={() => setAccountMenuOpen(false)}
+                  className="flex items-center justify-between px-4 py-3.5 rounded-xl text-white/80 hover:bg-white/10 hover:text-white transition-colors active:scale-95"
+                >
+                  <div className="flex items-center gap-3">
+                    <Clock className="h-5 w-5" />
+                    <span className="font-medium">History</span>
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-white/40" />
+                </Link>
+
+                <Link
+                  to="/preferences"
+                  onClick={() => setAccountMenuOpen(false)}
+                  className="flex items-center justify-between px-4 py-3.5 rounded-xl text-white/80 hover:bg-white/10 hover:text-white transition-colors active:scale-95"
+                >
+                  <div className="flex items-center gap-3">
+                    <Settings className="h-5 w-5" />
+                    <span className="font-medium">Settings</span>
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-white/40" />
+                </Link>
+              </div>
+
+              {/* Sign Out Button */}
+              <div className="px-3 pb-6 pt-3 border-t border-white/10">
+                <button
+                  onClick={handleSignOut}
+                  className="w-full flex items-center justify-center gap-3 px-4 py-3.5 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 font-medium transition-all active:scale-95"
+                >
+                  <LogOut className="h-5 w-5" />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </>
   )
 }

@@ -14,7 +14,6 @@ import {
   Clock,
   X,
   Menu,
-  Bell,
 } from 'lucide-react'
 
 export default function Header({ onOpenSearch }) {
@@ -51,7 +50,7 @@ export default function Header({ onOpenSearch }) {
       setScrolled(currentScrollY > 10)
       if (currentScrollY > lastScrollY && currentScrollY > 100) {
         setScrollDirection('down')
-        setDropdownOpen(false) // Close dropdown on scroll down
+        setDropdownOpen(false)
       } else {
         setScrollDirection('up')
       }
@@ -120,7 +119,7 @@ export default function Header({ onOpenSearch }) {
             {/* Logo */}
             <Link to="/home" className="flex items-center gap-2 group">
               <div className="text-2xl sm:text-3xl font-black bg-gradient-to-r from-[#FF9245] to-[#EB423B] bg-clip-text text-transparent group-hover:scale-105 transition-transform">
-                FeelFlick
+                FEELFLICK
               </div>
             </Link>
 
@@ -137,7 +136,7 @@ export default function Header({ onOpenSearch }) {
                 Home
               </NavLink>
               <NavLink
-                to="/discover"
+                to="/browse"
                 className={({ isActive }) =>
                   `text-sm font-semibold transition-colors ${
                     isActive ? 'text-white' : 'text-white/70 hover:text-white'
@@ -215,7 +214,7 @@ export default function Header({ onOpenSearch }) {
                       {/* Menu Items */}
                       <div className="py-2">
                         <Link
-                          to="/profile"
+                          to="/account"
                           onClick={() => setDropdownOpen(false)}
                           className="flex items-center gap-3 px-4 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-colors"
                         >
@@ -239,7 +238,7 @@ export default function Header({ onOpenSearch }) {
                           History
                         </Link>
                         <Link
-                          to="/settings"
+                          to="/preferences"
                           onClick={() => setDropdownOpen(false)}
                           className="flex items-center gap-3 px-4 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-colors"
                         >
@@ -307,7 +306,7 @@ export default function Header({ onOpenSearch }) {
                   Home
                 </NavLink>
                 <NavLink
-                  to="/discover"
+                  to="/browse"
                   className={({ isActive }) =>
                     `flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-colors ${
                       isActive
@@ -350,14 +349,14 @@ export default function Header({ onOpenSearch }) {
               {/* Account Section */}
               <div className="pt-6 border-t border-white/10 space-y-1">
                 <Link
-                  to="/profile"
+                  to="/account"
                   className="flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium text-white/70 hover:bg-white/5 hover:text-white transition-colors"
                 >
                   <UserIcon className="h-5 w-5" />
                   Profile
                 </Link>
                 <Link
-                  to="/settings"
+                  to="/preferences"
                   className="flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium text-white/70 hover:bg-white/5 hover:text-white transition-colors"
                 >
                   <Settings className="h-5 w-5" />
@@ -401,7 +400,7 @@ export default function Header({ onOpenSearch }) {
           </NavLink>
 
           <NavLink
-            to="/discover"
+            to="/browse"
             className={({ isActive }) =>
               `flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-colors ${
                 isActive ? 'text-white' : 'text-white/60'

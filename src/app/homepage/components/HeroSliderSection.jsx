@@ -1,7 +1,7 @@
 // src/app/homepage/components/HeroSliderSection.jsx
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Play, Info } from "lucide-react";
+import { Info } from "lucide-react";
 import { supabase } from "@/shared/lib/supabase/client";
 
 const tmdbImg = (p, s = "original") =>
@@ -113,7 +113,7 @@ export default function HeroSliderSection({ className = "" }) {
   if (loading) {
     return (
       <section className={`relative w-full bg-black ${className}`}>
-        <div className="h-[60vh] md:h-[65vh] animate-pulse bg-neutral-900" />
+        <div className="h-[60vh] md:h-[75vh] animate-pulse bg-neutral-900" />
       </section>
     );
   }
@@ -129,9 +129,9 @@ export default function HeroSliderSection({ className = "" }) {
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Hero Image Container - Reduced height for scroll hint */}
-      <div className="relative w-full h-[60vh] md:h-[65vh]">
-        {/* Background Images - Clear and bright */}
+      {/* Hero Image Container - Increased desktop height */}
+      <div className="relative w-full h-[60vh] md:h-[75vh]">
+        {/* Background Images */}
         {slides.map((movie, idx) => {
           const bg = tmdbImg(
             movie.backdrop_path || movie.poster_path,
@@ -154,19 +154,19 @@ export default function HeroSliderSection({ className = "" }) {
           );
         })}
 
-        {/* Targeted Gradients - Only darken bottom section for text */}
+        {/* Refined Gradients - Better text legibility */}
         {/* Top fade - subtle */}
         <div className="absolute top-0 inset-x-0 h-16 md:h-20 bg-gradient-to-b from-black/70 to-transparent z-20" />
         
-        {/* Left side fade for text area */}
-        <div className="absolute inset-y-0 left-0 w-1/2 md:w-2/5 bg-gradient-to-r from-black/40 via-black/30 to-transparent z-20" />
+        {/* Bottom-left corner fade for text readability */}
+        <div className="absolute bottom-0 left-0 w-3/4 md:w-1/2 h-2/3 md:h-3/5 bg-gradient-to-tr from-black via-black/70 to-transparent z-20" />
         
-        {/* Bottom dark area ONLY - where text sits */}
-        <div className="absolute bottom-0 inset-x-0 h-2/5 bg-gradient-to-t from-black via-black/80 to-transparent z-20" />
+        {/* Bottom strip for text base */}
+        <div className="absolute bottom-0 inset-x-0 h-1/4 bg-gradient-to-t from-black/90 to-transparent z-20" />
       </div>
 
       {/* Content Overlay */}
-      <div className="absolute inset-0 z-30 flex flex-col justify-end pb-8 md:pb-12 pt-20">
+      <div className="absolute inset-0 z-30 flex flex-col justify-end pb-10 md:pb-16 pt-20">
         <div className="w-full px-4 md:px-12 lg:px-16">
           <div className="max-w-2xl">
             {/* Title */}
@@ -194,40 +194,29 @@ export default function HeroSliderSection({ className = "" }) {
               </span>
             </div>
 
-            {/* Overview - 2 lines max, smaller, hidden on mobile */}
+            {/* Overview - 2 lines max */}
             {currentMovie?.overview && (
-              <p className="hidden md:block text-white/90 text-sm leading-relaxed line-clamp-2 drop-shadow-lg mb-3 max-w-xl">
+              <p className="hidden md:block text-white/95 text-sm leading-relaxed line-clamp-2 drop-shadow-lg mb-4 max-w-xl">
                 {currentMovie.overview}
               </p>
             )}
 
-            {/* Action Buttons */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={viewDetails}
-                className="inline-flex items-center justify-center gap-2 rounded-lg px-6 py-2.5 text-sm font-bold text-white transition-all hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-orange-500/50 shadow-2xl"
-                style={{
-                  background: "linear-gradient(90deg, #fe9245 10%, #eb423b 90%)",
-                }}
-              >
-                <Play className="h-4 w-4 fill-current" />
-                <span>Play Now</span>
-              </button>
-
-              <button
-                onClick={viewDetails}
-                className="inline-flex items-center justify-center gap-2 rounded-lg bg-white/10 backdrop-blur-md border border-white/20 px-6 py-2.5 text-sm font-bold text-white transition-all hover:bg-white/20 active:scale-95 focus:outline-none focus:ring-2 focus:ring-white/50"
-              >
-                <Info className="h-4 w-4" />
-                <span className="hidden sm:inline">More Info</span>
-                <span className="sm:hidden">Info</span>
-              </button>
-            </div>
+            {/* Single Button - More Info */}
+            <button
+              onClick={viewDetails}
+              className="inline-flex items-center justify-center gap-2 rounded-lg px-8 py-3 text-sm font-bold text-white transition-all hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-orange-500/50 shadow-2xl"
+              style={{
+                background: "linear-gradient(90deg, #fe9245 10%, #eb423b 90%)",
+              }}
+            >
+              <Info className="h-4 w-4" />
+              <span>More Info</span>
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Subtle Navigation Arrows - Only visible on hover */}
+      {/* Subtle Navigation Arrows */}
       <button
         onClick={prevSlide}
         disabled={isTransitioning}

@@ -13,7 +13,6 @@ import {
   Bookmark,
   Clock,
   X,
-  ChevronRight,
 } from 'lucide-react'
 
 export default function Header({ onOpenSearch }) {
@@ -321,7 +320,7 @@ export default function Header({ onOpenSearch }) {
             <span className="text-xs font-medium">Search</span>
           </button>
 
-          {/* Account button - opens bottom sheet */}
+          {/* Account button - opens full-screen menu */}
           <button
             onClick={() => setAccountMenuOpen(true)}
             className={`flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-all ${
@@ -350,34 +349,26 @@ export default function Header({ onOpenSearch }) {
         </div>
       </nav>
 
-      {/* Mobile Account Menu - Bottom Sheet */}
+      {/* Mobile Account Menu - YouTube-Style Full-Screen Overlay */}
       {accountMenuOpen && (
-        <>
-          {/* Backdrop */}
-          <div
-            className="md:hidden fixed inset-0 bg-black/60 z-[60] animate-in fade-in duration-200"
-            onClick={() => setAccountMenuOpen(false)}
-          />
+        <div className="md:hidden fixed inset-0 z-[60] bg-black/95 backdrop-blur-lg animate-in fade-in duration-200">
+          {/* Top bar with close */}
+          <div className="flex items-center justify-between px-4 py-4 border-b border-white/10">
+            <h2 className="text-lg font-bold text-white">Account</h2>
+            <button
+              onClick={() => setAccountMenuOpen(false)}
+              className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-all active:scale-95"
+              aria-label="Close"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          </div>
 
-          {/* Bottom Sheet */}
-          <div className="md:hidden fixed bottom-0 left-0 right-0 z-[70] bg-[#0d0d0d] rounded-t-2xl animate-in slide-in-from-bottom duration-300">
-            <div className="relative">
-              {/* Handle bar */}
-              <div className="flex justify-center pt-3 pb-2">
-                <div className="w-12 h-1 bg-white/20 rounded-full" />
-              </div>
-
-              {/* Close button */}
-              <button
-                onClick={() => setAccountMenuOpen(false)}
-                className="absolute top-4 right-4 p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-all active:scale-95"
-                aria-label="Close"
-              >
-                <X className="h-5 w-5" />
-              </button>
-
-              {/* User Info */}
-              <div className="flex items-center gap-3 px-6 py-4 border-b border-white/10">
+          {/* Scrollable content */}
+          <div className="h-full overflow-y-auto pb-24 px-4 py-6">
+            {/* User Info */}
+            {user && (
+              <div className="flex items-center gap-3 mb-6 pb-6 border-b border-white/10">
                 {userAvatar ? (
                   <img
                     src={userAvatar}
@@ -394,71 +385,59 @@ export default function Header({ onOpenSearch }) {
                   <div className="text-sm text-white/60 truncate">{userEmail}</div>
                 </div>
               </div>
+            )}
 
-              {/* Menu Items */}
-              <div className="px-3 py-3 space-y-1">
-                <Link
-                  to="/account"
-                  onClick={() => setAccountMenuOpen(false)}
-                  className="flex items-center justify-between px-4 py-3.5 rounded-xl text-white/80 hover:bg-white/10 hover:text-white transition-colors active:scale-95"
-                >
-                  <div className="flex items-center gap-3">
-                    <UserIcon className="h-5 w-5" />
-                    <span className="font-medium">Profile</span>
-                  </div>
-                  <ChevronRight className="h-5 w-5 text-white/40" />
-                </Link>
+            {/* Menu Items */}
+            <nav className="space-y-1">
+              <Link
+                to="/account"
+                onClick={() => setAccountMenuOpen(false)}
+                className="flex items-center gap-3 px-4 py-3.5 rounded-lg text-base font-medium text-white/80 hover:bg-white/10 hover:text-white transition-colors active:scale-95"
+              >
+                <UserIcon className="h-5 w-5" />
+                Profile
+              </Link>
 
-                <Link
-                  to="/watchlist"
-                  onClick={() => setAccountMenuOpen(false)}
-                  className="flex items-center justify-between px-4 py-3.5 rounded-xl text-white/80 hover:bg-white/10 hover:text-white transition-colors active:scale-95"
-                >
-                  <div className="flex items-center gap-3">
-                    <Bookmark className="h-5 w-5" />
-                    <span className="font-medium">Watchlist</span>
-                  </div>
-                  <ChevronRight className="h-5 w-5 text-white/40" />
-                </Link>
+              <Link
+                to="/watchlist"
+                onClick={() => setAccountMenuOpen(false)}
+                className="flex items-center gap-3 px-4 py-3.5 rounded-lg text-base font-medium text-white/80 hover:bg-white/10 hover:text-white transition-colors active:scale-95"
+              >
+                <Bookmark className="h-5 w-5" />
+                Watchlist
+              </Link>
 
-                <Link
-                  to="/history"
-                  onClick={() => setAccountMenuOpen(false)}
-                  className="flex items-center justify-between px-4 py-3.5 rounded-xl text-white/80 hover:bg-white/10 hover:text-white transition-colors active:scale-95"
-                >
-                  <div className="flex items-center gap-3">
-                    <Clock className="h-5 w-5" />
-                    <span className="font-medium">History</span>
-                  </div>
-                  <ChevronRight className="h-5 w-5 text-white/40" />
-                </Link>
+              <Link
+                to="/history"
+                onClick={() => setAccountMenuOpen(false)}
+                className="flex items-center gap-3 px-4 py-3.5 rounded-lg text-base font-medium text-white/80 hover:bg-white/10 hover:text-white transition-colors active:scale-95"
+              >
+                <Clock className="h-5 w-5" />
+                History
+              </Link>
 
-                <Link
-                  to="/preferences"
-                  onClick={() => setAccountMenuOpen(false)}
-                  className="flex items-center justify-between px-4 py-3.5 rounded-xl text-white/80 hover:bg-white/10 hover:text-white transition-colors active:scale-95"
-                >
-                  <div className="flex items-center gap-3">
-                    <Settings className="h-5 w-5" />
-                    <span className="font-medium">Settings</span>
-                  </div>
-                  <ChevronRight className="h-5 w-5 text-white/40" />
-                </Link>
-              </div>
+              <Link
+                to="/preferences"
+                onClick={() => setAccountMenuOpen(false)}
+                className="flex items-center gap-3 px-4 py-3.5 rounded-lg text-base font-medium text-white/80 hover:bg-white/10 hover:text-white transition-colors active:scale-95"
+              >
+                <Settings className="h-5 w-5" />
+                Settings
+              </Link>
+            </nav>
 
-              {/* Sign Out Button */}
-              <div className="px-3 pb-6 pt-3 border-t border-white/10">
-                <button
-                  onClick={handleSignOut}
-                  className="w-full flex items-center justify-center gap-3 px-4 py-3.5 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 font-medium transition-all active:scale-95"
-                >
-                  <LogOut className="h-5 w-5" />
-                  <span>Sign Out</span>
-                </button>
-              </div>
+            {/* Sign Out Button */}
+            <div className="mt-6 pt-6 border-t border-white/10">
+              <button
+                onClick={handleSignOut}
+                className="w-full flex items-center justify-center gap-3 px-4 py-3.5 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 font-medium text-base transition-all active:scale-95"
+              >
+                <LogOut className="h-5 w-5" />
+                <span>Sign Out</span>
+              </button>
             </div>
           </div>
-        </>
+        </div>
       )}
     </>
   )

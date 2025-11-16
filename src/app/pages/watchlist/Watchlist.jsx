@@ -342,7 +342,7 @@ function MovieCard({ movie, onRemove, onMarkWatched, onClick, removing, markingW
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
     >
-      {/* Swipe Indicators */}
+      {/* Swipe Indicators (Mobile) */}
       <div className={`md:hidden absolute inset-0 z-0 rounded-lg overflow-hidden transition-opacity ${swipeDirection ? 'opacity-100' : 'opacity-0'}`}>
         {swipeDirection === "left" && (
           <div className="absolute inset-0 bg-red-500/20 flex items-center justify-end pr-4">
@@ -397,72 +397,40 @@ function MovieCard({ movie, onRemove, onMarkWatched, onClick, removing, markingW
         </div>
       </button>
 
-      {/* Desktop Buttons */}
-      <div className="hidden md:block">
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onMarkWatched(movie);
-          }}
-          disabled={markingWatched}
-          className="absolute top-2 left-2 z-10 h-7 w-7 rounded-full bg-black/80 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white/80 hover:text-green-400 hover:bg-black/95 hover:border-green-500/30 transition-all opacity-0 group-hover:opacity-100 active:scale-90 disabled:opacity-50"
-          title="Mark as watched"
-        >
-          {markingWatched ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          ) : (
-            <Check className="h-3.5 w-3.5" />
-          )}
-        </button>
+      {/* Action Buttons - Always Top for Both Desktop & Mobile */}
+      {/* Mark as Watched Button (Left) */}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onMarkWatched(movie);
+        }}
+        disabled={markingWatched}
+        className="absolute top-2 left-2 z-10 h-7 w-7 rounded-full bg-black/80 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white/80 hover:text-green-400 hover:bg-black/95 hover:border-green-500/30 transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100 active:scale-90 disabled:opacity-50"
+        title="Mark as watched"
+      >
+        {markingWatched ? (
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        ) : (
+          <Check className="h-3.5 w-3.5" />
+        )}
+      </button>
 
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onRemove(movie.id);
-          }}
-          disabled={removing}
-          className="absolute top-2 right-2 z-10 h-7 w-7 rounded-full bg-black/80 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white/80 hover:text-red-400 hover:bg-black/95 hover:border-red-500/30 transition-all opacity-0 group-hover:opacity-100 active:scale-90 disabled:opacity-50"
-          title="Remove from watchlist"
-        >
-          {removing ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          ) : (
-            <Trash2 className="h-3.5 w-3.5" />
-          )}
-        </button>
-      </div>
-
-      {/* Mobile Buttons */}
-      <div className="md:hidden flex gap-1 absolute bottom-2 left-2 right-2 z-10">
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onMarkWatched(movie);
-          }}
-          disabled={markingWatched}
-          className="flex-1 h-7 rounded-md bg-black/80 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white/80 hover:text-green-400 hover:border-green-500/30 transition-all active:scale-95 disabled:opacity-50"
-        >
-          {markingWatched ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          ) : (
-            <Check className="h-3.5 w-3.5" />
-          )}
-        </button>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onRemove(movie.id);
-          }}
-          disabled={removing}
-          className="flex-1 h-7 rounded-md bg-black/80 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white/80 hover:text-red-400 hover:border-red-500/30 transition-all active:scale-95 disabled:opacity-50"
-        >
-          {removing ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          ) : (
-            <Trash2 className="h-3.5 w-3.5" />
-          )}
-        </button>
-      </div>
+      {/* Remove Button (Right) */}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onRemove(movie.id);
+        }}
+        disabled={removing}
+        className="absolute top-2 right-2 z-10 h-7 w-7 rounded-full bg-black/80 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white/80 hover:text-red-400 hover:bg-black/95 hover:border-red-500/30 transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100 active:scale-90 disabled:opacity-50"
+        title="Remove from watchlist"
+      >
+        {removing ? (
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        ) : (
+          <Trash2 className="h-3.5 w-3.5" />
+        )}
+      </button>
     </div>
   );
 }

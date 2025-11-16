@@ -323,9 +323,9 @@ export default function MovieDetail() {
 
   return (
     <div className="relative bg-black text-white min-h-screen pb-20 md:pb-8">
-      {/* Hero Section */}
+      {/* Hero Section - Compact 60vh */}
       <div className="relative w-full" style={{ paddingTop: 'var(--hdr-h, 64px)' }}>
-        <div className="relative h-[70vh] sm:h-[75vh] md:h-[80vh]">
+        <div className="relative h-[60vh] md:h-[65vh]">
           {/* Backdrop */}
           <div className="absolute inset-0">
             {movie?.backdrop_path ? (
@@ -340,27 +340,27 @@ export default function MovieDetail() {
             )}
           </div>
 
-          {/* Gradients */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/60 md:via-black/40 to-transparent" />
-          <div className="absolute bottom-0 inset-x-0 h-2/5 bg-gradient-to-t from-black via-black/95 to-transparent" />
+          {/* Enhanced Gradients - Stronger for readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/85 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/70 md:via-black/50 to-transparent" />
+          <div className="absolute bottom-0 inset-x-0 h-3/5 bg-gradient-to-t from-black to-transparent" />
 
-          {/* Content */}
-          <div className="absolute inset-0 flex flex-col justify-end pb-10 sm:pb-14 md:pb-16 lg:pb-20">
-            <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8 lg:px-12 w-full">
-              <div className="grid grid-cols-1 md:grid-cols-[auto,1fr] gap-6 md:gap-8 items-end max-w-6xl">
-                {/* Poster */}
-                <div className="hidden sm:block">
-                  <div className="overflow-hidden rounded-lg ring-2 ring-white/20 shadow-2xl">
+          {/* Content - Compact layout */}
+          <div className="absolute inset-0 flex flex-col justify-end pb-8 md:pb-12">
+            <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-12 w-full">
+              <div className="grid grid-cols-1 md:grid-cols-[auto,1fr] gap-4 md:gap-6 items-end max-w-6xl">
+                {/* Poster - Smaller, responsive */}
+                <div className="hidden md:block">
+                  <div className="overflow-hidden rounded-md ring-2 ring-white/20 shadow-2xl">
                     {movie?.poster_path ? (
                       <img
                         src={IMG.poster(movie.poster_path)}
                         alt={movie?.title}
-                        className="h-[320px] w-[213px] md:h-[360px] md:w-[240px] object-cover"
+                        className="h-[280px] w-[187px] lg:h-[320px] lg:w-[213px] object-cover"
                         loading="eager"
                       />
                     ) : (
-                      <div className="h-[320px] w-[213px] md:h-[360px] md:w-[240px] grid place-items-center bg-white/5 text-white/40">
+                      <div className="h-[280px] w-[187px] lg:h-[320px] lg:w-[213px] grid place-items-center bg-white/5 text-white/40 text-xs">
                         No poster
                       </div>
                     )}
@@ -370,88 +370,88 @@ export default function MovieDetail() {
                 {/* Info */}
                 <div className="max-w-3xl">
                   {loading ? (
-                    <div className="animate-pulse space-y-3">
-                      <div className="h-12 w-3/4 rounded bg-white/20" />
-                      <div className="h-6 w-1/2 rounded bg-white/15" />
+                    <div className="animate-pulse space-y-2">
+                      <div className="h-10 w-3/4 rounded bg-white/20" />
+                      <div className="h-5 w-1/2 rounded bg-white/15" />
                     </div>
                   ) : error ? (
-                    <div className="rounded-lg bg-red-500/10 p-4 text-red-300 text-sm">
+                    <div className="rounded-lg bg-red-500/10 p-3 text-red-300 text-sm">
                       {error}
                     </div>
                   ) : (
                     <>
-                      {/* Title + Badges */}
-                      <div className="flex flex-wrap items-center gap-2 mb-3">
-                        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black leading-tight tracking-tight">
+                      {/* Title + Status Badges - Compact */}
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
+                        <h1 className="text-2xl sm:text-3xl md:text-4xl font-black leading-tight tracking-tight drop-shadow-2xl">
                           {movie?.title}
                         </h1>
                         {wlStatus === 'want_to_watch' && (
-                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-blue-500/20 border border-blue-500/30 text-xs font-bold text-blue-300">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-500/20 border border-blue-500/30 text-[10px] font-bold text-blue-300">
                             <Bookmark className="h-3 w-3" />
                             Watchlisted
                           </span>
                         )}
                         {wlStatus === 'watched' && (
-                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-500/20 border border-green-500/30 text-xs font-bold text-green-300">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/20 border border-green-500/30 text-[10px] font-bold text-green-300">
                             <Check className="h-3 w-3" />
                             Watched
                           </span>
                         )}
                       </div>
 
-                      {/* Meta */}
-                      <div className="flex flex-wrap items-center gap-3 mb-4 text-sm">
+                      {/* Meta - Compact badges */}
+                      <div className="flex flex-wrap items-center gap-2 mb-3 text-xs">
                         {rating && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-green-500/20 text-green-400 font-bold">
-                            <Star className="h-3.5 w-3.5 fill-current" />
-                            {rating}
-                          </span>
+                          <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-green-500/20 border border-green-500/30">
+                            <Star className="h-3 w-3 fill-current text-green-400" />
+                            <span className="text-green-400 font-bold">{rating}</span>
+                          </div>
                         )}
                         {year && (
-                          <span className="inline-flex items-center gap-1 text-white/80">
-                            <Calendar className="h-3.5 w-3.5" />
+                          <span className="inline-flex items-center gap-1 text-white/80 font-medium">
+                            <Calendar className="h-3 w-3" />
                             {year}
                           </span>
                         )}
                         {runtime && (
-                          <span className="inline-flex items-center gap-1 text-white/80">
-                            <Clock className="h-3.5 w-3.5" />
+                          <span className="inline-flex items-center gap-1 text-white/80 font-medium">
+                            <Clock className="h-3 w-3" />
                             {runtime}
                           </span>
                         )}
                         {movie?.genres?.length > 0 && (
-                          <span className="text-white/70">
+                          <span className="text-white/70 font-medium">
                             • {movie.genres.map((g) => g.name).slice(0, 3).join(', ')}
                           </span>
                         )}
                       </div>
 
-                      {/* Overview */}
+                      {/* Overview - 2 lines only */}
                       {movie?.overview && (
-                        <p className="text-sm sm:text-base text-white/90 leading-relaxed line-clamp-3 mb-5 max-w-2xl">
+                        <p className="hidden md:block text-sm text-white/90 leading-relaxed line-clamp-2 mb-3 max-w-2xl drop-shadow-lg">
                           {movie.overview}
                         </p>
                       )}
 
-                      {/* Actions */}
-                      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                      {/* Actions - Compact buttons */}
+                      <div className="flex flex-wrap items-center gap-2">
                         {ytTrailer && (
                           <a
                             href={ytTrailer}
                             target="_blank"
                             rel="noreferrer"
-                            className="inline-flex items-center gap-2 rounded-lg bg-white px-5 sm:px-7 py-2.5 sm:py-3 text-sm sm:text-base font-bold text-black hover:bg-white/90 transition-all active:scale-95 shadow-xl"
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-white px-5 py-2 text-sm font-bold text-black hover:bg-white/90 transition-all active:scale-95 shadow-xl"
                           >
-                            <Play className="h-4 w-4 sm:h-5 sm:w-5 fill-current" />
+                            <Play className="h-4 w-4 fill-current" />
                             Play Trailer
                           </a>
                         )}
                         <button
                           disabled={mutating}
                           onClick={toggleWatchlist}
-                          className="inline-flex items-center gap-2 rounded-lg bg-white/20 backdrop-blur px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base font-bold hover:bg-white/30 transition-all active:scale-95 disabled:opacity-50"
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-white/20 backdrop-blur px-4 py-2 text-sm font-bold hover:bg-white/30 transition-all active:scale-95 disabled:opacity-50"
                         >
-                          <Bookmark className="h-4 w-4 sm:h-5 sm:w-5" />
+                          <Bookmark className="h-4 w-4" />
                           <span className="hidden xs:inline">
                             {wlStatus === 'want_to_watch' ? 'Remove' : 'Watchlist'}
                           </span>
@@ -459,13 +459,13 @@ export default function MovieDetail() {
                         <button
                           disabled={mutating}
                           onClick={toggleWatched}
-                          className={`inline-flex items-center gap-2 rounded-lg px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base font-bold transition-all active:scale-95 disabled:opacity-50 ${
+                          className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-bold transition-all active:scale-95 disabled:opacity-50 ${
                             wlStatus === 'watched'
                               ? 'bg-white/20 backdrop-blur hover:bg-white/30'
                               : 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-400 hover:to-red-400'
                           }`}
                         >
-                          <Check className="h-4 w-4 sm:h-5 sm:w-5" />
+                          <Check className="h-4 w-4" />
                           <span className="hidden xs:inline">
                             {wlStatus === 'watched' ? 'Watched' : 'Watch'}
                           </span>
@@ -480,24 +480,24 @@ export default function MovieDetail() {
         </div>
       </div>
 
-      {/* Content Sections */}
-      <div className="relative -mt-10 sm:-mt-12 md:-mt-16 z-30">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8 lg:px-12">
+      {/* Content Sections - De-zoomed spacing */}
+      <div className="relative -mt-8 md:-mt-10 z-30">
+        <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-12">
           {/* Two Column Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr,300px] xl:grid-cols-[1fr,340px] gap-6 md:gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr,280px] xl:grid-cols-[1fr,320px] gap-6">
             {/* Main Content */}
-            <div className="space-y-6 md:space-y-8 min-w-0">
-              {/* Overview */}
+            <div className="space-y-6 min-w-0">
+              {/* Overview - Only show if not in hero */}
               {movie?.overview && (
-                <div className="rounded-xl bg-white/5 backdrop-blur border border-white/10 p-5 sm:p-6">
-                  <h2 className="text-lg font-bold mb-3">Overview</h2>
-                  <p className="text-sm sm:text-base text-white/85 leading-relaxed">
+                <div className="md:hidden rounded-lg bg-white/5 backdrop-blur border border-white/10 p-4">
+                  <h2 className="text-base font-bold mb-2">Overview</h2>
+                  <p className="text-sm text-white/85 leading-relaxed">
                     {movie.overview}
                   </p>
                 </div>
               )}
 
-              {/* Cast */}
+              {/* Cast - With proper padding */}
               {cast?.length > 0 && <CastSection cast={cast} />}
 
               {/* Similar */}
@@ -507,9 +507,10 @@ export default function MovieDetail() {
               {recs?.length > 0 && <Rail title="You Might Also Like" items={recs} />}
             </div>
 
-            {/* Sidebar */}
+            {/* Sidebar - Sticky on desktop */}
             <div className="space-y-6 lg:sticky lg:top-20 lg:self-start">
               <WhereToWatch providers={providers} />
+              {movie && <MovieDetails movie={movie} />}
             </div>
           </div>
         </div>
@@ -528,7 +529,7 @@ function WhereToWatch({ providers }) {
   const Row = ({ label, list }) => {
     if (!list?.length) return null
     return (
-      <div className="mt-4 first:mt-0">
+      <div className="mt-3 first:mt-0">
         <h3 className="text-xs font-bold text-white/70 uppercase tracking-wider mb-2">
           {label}
         </h3>
@@ -536,7 +537,7 @@ function WhereToWatch({ providers }) {
           {list.map((p) => (
             <div
               key={`${label}-${p.provider_id}`}
-              className="w-12 h-12 rounded-lg bg-white/10 border border-white/10 p-1.5 flex items-center justify-center"
+              className="w-12 h-12 rounded-md bg-white/10 border border-white/10 p-1.5 flex items-center justify-center hover:scale-110 transition-transform"
               title={p.provider_name}
             >
               {p.logo_path ? (
@@ -559,9 +560,9 @@ function WhereToWatch({ providers }) {
   }
 
   return (
-    <div className="rounded-xl bg-white/5 backdrop-blur border border-white/10 p-5">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-base font-bold flex items-center gap-2">
+    <div className="rounded-lg bg-white/5 backdrop-blur border border-white/10 p-4">
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-sm font-bold flex items-center gap-2">
           <Tv2 className="h-4 w-4" />
           Where to Watch
         </h2>
@@ -574,13 +575,38 @@ function WhereToWatch({ providers }) {
           href={providers.link}
           target="_blank"
           rel="noreferrer"
-          className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-white/70 hover:text-white transition-colors"
+          className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-white/70 hover:text-white transition-colors"
         >
           More options
           <ChevronRight className="h-3 w-3" />
         </a>
       )}
-      <p className="text-[10px] text-white/40 mt-3">via JustWatch</p>
+      <p className="text-[10px] text-white/40 mt-2">via JustWatch</p>
+    </div>
+  )
+}
+
+function MovieDetails({ movie }) {
+  const details = [
+    { label: 'Budget', value: movie?.budget ? `$${(movie.budget / 1000000).toFixed(1)}M` : null },
+    { label: 'Revenue', value: movie?.revenue ? `$${(movie.revenue / 1000000).toFixed(1)}M` : null },
+    { label: 'Status', value: movie?.status },
+    { label: 'Original Language', value: movie?.original_language?.toUpperCase() },
+  ].filter(d => d.value)
+
+  if (!details.length) return null
+
+  return (
+    <div className="rounded-lg bg-white/5 backdrop-blur border border-white/10 p-4">
+      <h2 className="text-sm font-bold mb-3">Details</h2>
+      <div className="space-y-2">
+        {details.map((d, i) => (
+          <div key={i} className="flex justify-between text-xs">
+            <span className="text-white/60">{d.label}</span>
+            <span className="text-white/90 font-medium">{d.value}</span>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
@@ -588,11 +614,11 @@ function WhereToWatch({ providers }) {
 function CastSection({ cast }) {
   return (
     <div>
-      <h2 className="text-lg font-bold mb-4">Top Cast</h2>
-      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+      <h2 className="text-base font-bold mb-3">Top Cast</h2>
+      <div className="flex gap-3 overflow-x-auto pb-3 scrollbar-hide px-0.5">
         {cast.map((p) => (
-          <div key={p.id} className="flex-shrink-0 w-[100px] sm:w-[110px] group">
-            <div className="aspect-[2/3] overflow-hidden rounded-lg bg-white/5 border border-white/10 mb-2">
+          <div key={p.id} className="flex-shrink-0 w-[100px] group">
+            <div className="aspect-[2/3] overflow-hidden rounded-md bg-white/5 border border-white/10 mb-2 shadow-md">
               {p.profile_path ? (
                 <img
                   src={IMG.profile(p.profile_path)}
@@ -618,18 +644,25 @@ function CastSection({ cast }) {
 }
 
 function Rail({ title, items }) {
+  const navigate = useNavigate()
+  
   return (
     <div>
-      <h2 className="text-lg font-bold mb-4">{title}</h2>
-      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 gap-3 sm:gap-4">
+      <h2 className="text-base font-bold mb-3">{title}</h2>
+      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-5 gap-3">
         {items.map((m) => (
-          <Link key={m.id} to={`/movie/${m.id}`} className="group" title={m.title}>
-            <div className="aspect-[2/3] overflow-hidden rounded-lg bg-white/5 border border-white/10 mb-2">
+          <button
+            key={m.id}
+            onClick={() => navigate(`/movie/${m.id}`)}
+            className="group text-left"
+            title={m.title}
+          >
+            <div className="aspect-[2/3] overflow-hidden rounded-md bg-white/5 border border-white/10 mb-2 shadow-md group-hover:scale-105 group-hover:shadow-xl transition-all duration-300">
               {m.poster_path ? (
                 <img
                   src={`https://image.tmdb.org/t/p/w342${m.poster_path}`}
                   alt={m.title}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                  className="w-full h-full object-cover"
                   loading="lazy"
                 />
               ) : (
@@ -638,15 +671,16 @@ function Rail({ title, items }) {
                 </div>
               )}
             </div>
-            <h3 className="text-xs font-bold text-white/90 line-clamp-2 leading-tight mb-1">
+            <h3 className="text-xs font-bold text-white/90 line-clamp-2 leading-tight mb-0.5">
               {m.title}
             </h3>
-            {m.vote_average && (
-              <p className="text-[10px] text-white/60">
-                ★ {Math.round(m.vote_average * 10) / 10}
+            {m.vote_average > 0 && (
+              <p className="text-[10px] text-white/60 flex items-center gap-0.5">
+                <span className="text-yellow-400">★</span>
+                {Math.round(m.vote_average * 10) / 10}
               </p>
             )}
-          </Link>
+          </button>
         ))}
       </div>
     </div>

@@ -128,7 +128,7 @@ export default function Header({ onOpenSearch }) {
               </div>
             </Link>
 
-            {/* Desktop Navigation - More prominent active state */}
+            {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-6">
               <NavLink
                 to="/home"
@@ -320,7 +320,7 @@ export default function Header({ onOpenSearch }) {
             <span className="text-xs font-medium">Search</span>
           </button>
 
-          {/* Account button - opens full-screen menu */}
+          {/* Account button */}
           <button
             onClick={() => setAccountMenuOpen(true)}
             className={`flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-all ${
@@ -349,23 +349,29 @@ export default function Header({ onOpenSearch }) {
         </div>
       </nav>
 
-      {/* Mobile Account Menu - YouTube-Style Full-Screen Overlay */}
+      {/* Mobile Account Menu - Fits between top and bottom headers */}
       {accountMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-[60] bg-black/95 backdrop-blur-lg animate-in fade-in duration-200">
-          {/* Top bar with close */}
-          <div className="flex items-center justify-between px-4 py-4 border-b border-white/10">
+        <div 
+          className="md:hidden fixed left-0 right-0 z-[45] bg-black/95 backdrop-blur-lg animate-in fade-in duration-200 overflow-y-auto"
+          style={{
+            top: '64px', // Top header height
+            bottom: 'calc(68px + env(safe-area-inset-bottom))', // Bottom nav height + safe area
+          }}
+        >
+          {/* Close button - top right */}
+          <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-3 bg-black/80 backdrop-blur-md border-b border-white/10">
             <h2 className="text-lg font-bold text-white">Account</h2>
             <button
               onClick={() => setAccountMenuOpen(false)}
               className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-all active:scale-95"
               aria-label="Close"
             >
-              <X className="h-6 w-6" />
+              <X className="h-5 w-5" />
             </button>
           </div>
 
-          {/* Scrollable content */}
-          <div className="h-full overflow-y-auto pb-24 px-4 py-6">
+          {/* Content */}
+          <div className="px-4 py-6">
             {/* User Info */}
             {user && (
               <div className="flex items-center gap-3 mb-6 pb-6 border-b border-white/10">

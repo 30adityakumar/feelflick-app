@@ -25,8 +25,6 @@ export default function Watchlist() {
   const [markingWatched, setMarkingWatched] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("added");
-  const [genreFilter, setGenreFilter] = useState("all");
-  const [durationFilter, setDurationFilter] = useState("all");
 
   // Fetch user
   useEffect(() => {
@@ -38,7 +36,7 @@ export default function Watchlist() {
     return () => { active = false; };
   }, []);
 
-  // Fetch watchlist with runtime
+  // Fetch watchlist - FIXED: Using original working query
   useEffect(() => {
     if (!user) return;
     let active = true;
@@ -64,9 +62,10 @@ export default function Watchlist() {
           return;
         }
 
+        // FIXED: Back to original working query
         const { data: rows, error: mErr } = await supabase
           .from("movies")
-          .select("id,title,poster_path,release_date,vote_average,runtime,genres")
+          .select("id,title,poster_path,release_date,vote_average")
           .in("id", ids);
 
         if (mErr) throw mErr;
@@ -97,25 +96,6 @@ export default function Watchlist() {
     return () => { active = false; };
   }, [user, removingId, markingWatched]);
 
-  // Calculate total watch time
-  const totalWatchTime = useMemo(() => {
-    const totalMinutes = filteredMovies.reduce((sum, m) => sum + (m.runtime || 0), 0);
-    const hours = Math.floor(totalMinutes / 60);
-    const minutes = totalMinutes % 60;
-    return { hours, minutes, total: totalMinutes };
-  }, [filteredMovies]);
-
-  // Get unique genres
-  const availableGenres = useMemo(() => {
-    const genreSet = new Set();
-    movies.forEach(m => {
-      if (m.genres && Array.isArray(m.genres)) {
-        m.genres.forEach(g => genreSet.add(g));
-      }
-    });
-    return Array.from(genreSet).sort();
-  }, [movies]);
-
   // Filter and sort
   useEffect(() => {
     let result = [...movies];
@@ -125,24 +105,6 @@ export default function Watchlist() {
       result = result.filter((m) =>
         m.title?.toLowerCase().includes(searchQuery.toLowerCase())
       );
-    }
-
-    // Filter by genre
-    if (genreFilter !== "all") {
-      result = result.filter(m => 
-        m.genres && m.genres.includes(genreFilter)
-      );
-    }
-
-    // Filter by duration
-    if (durationFilter !== "all") {
-      result = result.filter(m => {
-        const runtime = m.runtime || 0;
-        if (durationFilter === "short") return runtime > 0 && runtime < 90;
-        if (durationFilter === "medium") return runtime >= 90 && runtime <= 150;
-        if (durationFilter === "long") return runtime > 150;
-        return true;
-      });
     }
 
     // Sort
@@ -157,7 +119,7 @@ export default function Watchlist() {
     });
 
     setFilteredMovies(result);
-  }, [movies, searchQuery, sortBy, genreFilter, durationFilter]);
+  }, [movies, searchQuery, sortBy]);
 
   async function remove(movieId) {
     if (!user) return;
@@ -203,8 +165,6 @@ export default function Watchlist() {
     nav(`/movie/${id}`);
   }
 
-  const hasFilters = genreFilter !== "all" || durationFilter !== "all";
-
   return (
     <main
       className="bg-black text-white w-full pb-20 md:pb-6"
@@ -216,146 +176,81 @@ export default function Watchlist() {
       <div className="mx-auto max-w-7xl px-4 py-4 md:py-6">
         {/* Header with Stats */}
         <div className="mb-4">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2.5">
-              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center flex-shrink-0">
-                <Bookmark className="h-4 w-4 text-white" />
-              </div>
-              <div className="min-w-0">
-                <h1 className="text-xl md:text-2xl font-black tracking-tight">
-                  My Watchlist
-                </h1>
-              </div>
+          <div className="flex items-center gap-2.5 mb-2">
+            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center flex-shrink-0">
+              <Bookmark className="h-4 w-4 text-white" />
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-xl md:text-2xl font-black tracking-tight">
+                My Watchlist
+              </h1>
             </div>
           </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-3">
-            <div className="rounded-lg border border-white/10 bg-white/5 p-2.5">
-              <div className="text-[10px] text-white/60 mb-0.5">Movies</div>
-              <div className="text-lg font-bold text-white">
-                {filteredMovies.length}
-              </div>
+          {/* Simple Stats */}
+          <div className="flex items-center gap-3 text-xs text-white/60">
+            <div className="flex items-center gap-1.5">
+              <span className="font-semibold text-white">{filteredMovies.length}</span>
+              <span>{filteredMovies.length === 1 ? 'movie' : 'movies'}</span>
             </div>
-            <div className="rounded-lg border border-white/10 bg-white/5 p-2.5">
-              <div className="text-[10px] text-white/60 mb-0.5 flex items-center gap-1">
-                <Clock className="h-3 w-3" />
-                Watch Time
-              </div>
-              <div className="text-lg font-bold text-white">
-                {totalWatchTime.hours > 0 && `${totalWatchTime.hours}h `}
-                {totalWatchTime.minutes}m
-              </div>
-            </div>
-            <div className="rounded-lg border border-white/10 bg-white/5 p-2.5 col-span-2 sm:col-span-1">
-              <div className="text-[10px] text-white/60 mb-0.5">Avg Rating</div>
-              <div className="text-lg font-bold text-white flex items-center gap-1">
-                <span className="text-yellow-400 text-sm">★</span>
-                {filteredMovies.length > 0
-                  ? (filteredMovies.reduce((sum, m) => sum + (m.vote_average || 0), 0) / filteredMovies.length).toFixed(1)
-                  : '0.0'}
-              </div>
-            </div>
+            {filteredMovies.length > 0 && (
+              <>
+                <span>•</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-yellow-400">★</span>
+                  <span>
+                    {(filteredMovies.reduce((sum, m) => sum + (m.vote_average || 0), 0) / filteredMovies.length).toFixed(1)} avg
+                  </span>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
-        {/* Search & Filters */}
+        {/* Search & Sort */}
         {!loading && movies.length > 0 && (
-          <div className="mb-4 space-y-2">
-            {/* Search & Sort Row */}
-            <div className="flex gap-2">
-              {/* Search */}
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40 pointer-events-none" />
-                <input
-                  type="text"
-                  placeholder="Search watchlist..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-9 py-2 text-sm text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-orange-500/50 transition-all"
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery("")}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors"
-                  >
-                    <X className="h-3.5 w-3.5 text-white/60" />
-                  </button>
-                )}
-              </div>
-
-              {/* Sort */}
-              <div className="relative w-40">
-                <SlidersHorizontal className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40 pointer-events-none" />
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="appearance-none w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-8 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50 transition-all cursor-pointer"
-                >
-                  <option value="added">Recent</option>
-                  <option value="title">A-Z</option>
-                  <option value="rating">Rating</option>
-                </select>
-                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40 pointer-events-none" />
-              </div>
-            </div>
-
-            {/* Filter Pills Row */}
-            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-              {/* Genre Filter */}
-              <select
-                value={genreFilter}
-                onChange={(e) => setGenreFilter(e.target.value)}
-                className={`appearance-none bg-white/5 border rounded-lg px-3 py-1.5 pr-8 text-xs font-medium transition-all cursor-pointer ${
-                  genreFilter !== "all"
-                    ? "border-orange-500/50 text-white bg-orange-500/10"
-                    : "border-white/10 text-white/70 hover:border-white/20"
-                }`}
-              >
-                <option value="all">All Genres</option>
-                {availableGenres.map(g => (
-                  <option key={g} value={g}>{g}</option>
-                ))}
-              </select>
-
-              {/* Duration Filter */}
-              <select
-                value={durationFilter}
-                onChange={(e) => setDurationFilter(e.target.value)}
-                className={`appearance-none bg-white/5 border rounded-lg px-3 py-1.5 pr-8 text-xs font-medium transition-all cursor-pointer ${
-                  durationFilter !== "all"
-                    ? "border-orange-500/50 text-white bg-orange-500/10"
-                    : "border-white/10 text-white/70 hover:border-white/20"
-                }`}
-              >
-                <option value="all">Any Length</option>
-                <option value="short">&lt; 90 min</option>
-                <option value="medium">90-150 min</option>
-                <option value="long">&gt; 150 min</option>
-              </select>
-
-              {/* Clear Filters */}
-              {hasFilters && (
+          <div className="mb-4 flex gap-2">
+            {/* Search */}
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Search watchlist..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-9 py-2 text-sm text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-orange-500/50 transition-all"
+              />
+              {searchQuery && (
                 <button
-                  onClick={() => {
-                    setGenreFilter("all");
-                    setDurationFilter("all");
-                  }}
-                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-orange-400 hover:text-orange-300 transition-colors whitespace-nowrap"
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors"
                 >
-                  <X className="h-3 w-3" />
-                  Clear
+                  <X className="h-3.5 w-3.5 text-white/60" />
                 </button>
               )}
+            </div>
+
+            {/* Sort */}
+            <div className="relative w-40">
+              <SlidersHorizontal className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40 pointer-events-none" />
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="appearance-none w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-8 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50 transition-all cursor-pointer"
+              >
+                <option value="added">Recent</option>
+                <option value="title">A-Z</option>
+                <option value="rating">Rating</option>
+              </select>
+              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40 pointer-events-none" />
             </div>
           </div>
         )}
 
         {/* Results Info */}
-        {!loading && movies.length > 0 && (searchQuery || hasFilters) && (
+        {!loading && movies.length > 0 && searchQuery && (
           <div className="mb-3 text-xs text-white/60">
             Showing {filteredMovies.length} of {movies.length} movies
-            {totalWatchTime.total > 0 && ` • ${totalWatchTime.hours}h ${totalWatchTime.minutes}m total`}
           </div>
         )}
 
@@ -367,19 +262,15 @@ export default function Watchlist() {
               <p className="text-sm text-white/80">Loading your watchlist...</p>
             </div>
           </div>
-        ) : filteredMovies.length === 0 && (searchQuery || hasFilters) ? (
+        ) : filteredMovies.length === 0 && searchQuery ? (
           <div className="flex flex-col items-center justify-center h-[50vh] text-center">
-            <Filter className="h-10 w-10 text-white/20 mb-3" />
-            <p className="text-sm text-white/70 mb-2">No movies match your filters</p>
+            <Search className="h-10 w-10 text-white/20 mb-3" />
+            <p className="text-sm text-white/70 mb-2">No movies found for "{searchQuery}"</p>
             <button
-              onClick={() => {
-                setSearchQuery("");
-                setGenreFilter("all");
-                setDurationFilter("all");
-              }}
+              onClick={() => setSearchQuery("")}
               className="text-xs text-orange-400 hover:text-orange-300 transition-colors px-3 py-1.5 rounded-lg hover:bg-white/5"
             >
-              Clear all filters
+              Clear search
             </button>
           </div>
         ) : movies.length === 0 ? (
@@ -410,7 +301,6 @@ function MovieCard({ movie, onRemove, onMarkWatched, onClick, removing, markingW
   const [touchEnd, setTouchEnd] = useState(null);
   const [swipeDirection, setSwipeDirection] = useState(null);
 
-  // Swipe threshold
   const minSwipeDistance = 50;
 
   const onTouchStart = (e) => {
@@ -426,13 +316,9 @@ function MovieCard({ movie, onRemove, onMarkWatched, onClick, removing, markingW
     const isLeftSwipe = distance > minSwipeDistance;
     const isRightSwipe = distance < -minSwipeDistance;
 
-    if (isLeftSwipe) {
-      setSwipeDirection("left");
-    } else if (isRightSwipe) {
-      setSwipeDirection("right");
-    } else {
-      setSwipeDirection(null);
-    }
+    if (isLeftSwipe) setSwipeDirection("left");
+    else if (isRightSwipe) setSwipeDirection("right");
+    else setSwipeDirection(null);
   };
 
   const onTouchEnd = () => {
@@ -441,11 +327,8 @@ function MovieCard({ movie, onRemove, onMarkWatched, onClick, removing, markingW
     const isLeftSwipe = distance > minSwipeDistance;
     const isRightSwipe = distance < -minSwipeDistance;
 
-    if (isLeftSwipe) {
-      onRemove(movie.id);
-    } else if (isRightSwipe) {
-      onMarkWatched(movie);
-    }
+    if (isLeftSwipe) onRemove(movie.id);
+    else if (isRightSwipe) onMarkWatched(movie);
     
     setSwipeDirection(null);
     setTouchStart(null);
@@ -459,7 +342,7 @@ function MovieCard({ movie, onRemove, onMarkWatched, onClick, removing, markingW
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
     >
-      {/* Swipe Indicators (Mobile) */}
+      {/* Swipe Indicators */}
       <div className={`md:hidden absolute inset-0 z-0 rounded-lg overflow-hidden transition-opacity ${swipeDirection ? 'opacity-100' : 'opacity-0'}`}>
         {swipeDirection === "left" && (
           <div className="absolute inset-0 bg-red-500/20 flex items-center justify-end pr-4">
@@ -509,20 +392,13 @@ function MovieCard({ movie, onRemove, onMarkWatched, onClick, removing, markingW
                   </span>
                 </>
               )}
-              {movie.runtime > 0 && (
-                <>
-                  <span>•</span>
-                  <span>{movie.runtime}m</span>
-                </>
-              )}
             </div>
           </div>
         </div>
       </button>
 
-      {/* Desktop Action Buttons */}
+      {/* Desktop Buttons */}
       <div className="hidden md:block">
-        {/* Mark as Watched Button */}
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -539,7 +415,6 @@ function MovieCard({ movie, onRemove, onMarkWatched, onClick, removing, markingW
           )}
         </button>
 
-        {/* Remove Button */}
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -557,7 +432,7 @@ function MovieCard({ movie, onRemove, onMarkWatched, onClick, removing, markingW
         </button>
       </div>
 
-      {/* Mobile Action Buttons (Always Visible) */}
+      {/* Mobile Buttons */}
       <div className="md:hidden flex gap-1 absolute bottom-2 left-2 right-2 z-10">
         <button
           onClick={(e) => {
@@ -588,13 +463,6 @@ function MovieCard({ movie, onRemove, onMarkWatched, onClick, removing, markingW
           )}
         </button>
       </div>
-
-      {/* Mobile Swipe Hint (First few movies) */}
-      {movie.id && (
-        <div className="md:hidden absolute -bottom-6 left-0 right-0 text-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-          <p className="text-[9px] text-white/40">Swipe ← to delete, → to watch</p>
-        </div>
-      )}
     </div>
   );
 }

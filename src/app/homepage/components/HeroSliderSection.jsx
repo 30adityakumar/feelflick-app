@@ -1,7 +1,7 @@
 // src/app/homepage/components/HeroSliderSection.jsx
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bookmark, Plus, Info, ChevronLeft, ChevronRight } from "lucide-react";
+import { Bookmark, Plus, Info, ChevronLeft, ChevronRight, Star } from "lucide-react";
 import { supabase } from "@/shared/lib/supabase/client";
 
 const tmdbImg = (p, s = "original") =>
@@ -140,7 +140,7 @@ export default function HeroSliderSection({ className = "" }) {
   if (loading) {
     return (
       <section className={`relative w-full bg-neutral-950 ${className}`}>
-        <div className="h-[50vh] sm:h-[55vh] md:h-[60vh] lg:h-[65vh] animate-pulse bg-neutral-900" />
+        <div className="h-[45vh] sm:h-[50vh] md:h-[55vh] animate-pulse bg-neutral-900" />
       </section>
     );
   }
@@ -156,8 +156,8 @@ export default function HeroSliderSection({ className = "" }) {
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Hero Image Container - SMALLER */}
-      <div className="relative w-full h-[50vh] sm:h-[55vh] md:h-[60vh] lg:h-[65vh]">
+      {/* Hero Image Container - MUCH SMALLER */}
+      <div className="relative w-full h-[45vh] sm:h-[50vh] md:h-[55vh]">
         {/* Images */}
         {slides.map((movie, idx) => {
           const bg = tmdbImg(
@@ -181,34 +181,34 @@ export default function HeroSliderSection({ className = "" }) {
           );
         })}
 
-        {/* Stronger gradients for better readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent z-20" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/60 md:via-black/40 to-transparent z-20" />
-        <div className="absolute bottom-0 inset-x-0 h-1/3 bg-gradient-to-t from-black to-transparent z-20" />
-        <div className="absolute top-0 inset-x-0 h-20 bg-gradient-to-b from-black/60 to-transparent z-20" />
+        {/* Stronger gradients */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent z-20" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/50 md:via-black/30 to-transparent z-20" />
+        <div className="absolute bottom-0 inset-x-0 h-1/2 bg-gradient-to-t from-black to-transparent z-20" />
+        <div className="absolute top-0 inset-x-0 h-16 bg-gradient-to-b from-black/50 to-transparent z-20" />
       </div>
 
-      {/* Content Overlay - SMALLER & MORE COMPACT */}
-      <div className="absolute inset-0 z-30 flex flex-col justify-end pb-6 sm:pb-8 md:pb-12 lg:pb-16 pt-16">
+      {/* Content Overlay - ULTRA COMPACT */}
+      <div className="absolute inset-0 z-30 flex flex-col justify-end pb-6 sm:pb-8 md:pb-10 pt-16">
         <div className="w-full px-4 sm:px-6 md:px-8 lg:px-12">
-          <div className="max-w-xl sm:max-w-2xl md:max-w-3xl">
-            {/* Title - MUCH SMALLER */}
-            <h1 className="text-white font-black tracking-tight leading-tight text-2xl sm:text-3xl md:text-4xl lg:text-5xl drop-shadow-2xl mb-2 line-clamp-2">
+          <div className="max-w-2xl">
+            {/* Title - SMALLER */}
+            <h1 className="text-white font-black tracking-tight leading-none text-2xl sm:text-3xl md:text-4xl lg:text-5xl drop-shadow-2xl mb-2 line-clamp-2">
               {currentMovie?.title || "Featured"}
             </h1>
 
-            {/* Meta Info - More compact */}
-            <div className="flex items-center gap-2 mb-2 text-xs">
+            {/* Meta Info - INLINE & COMPACT */}
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
               {currentMovie?.vote_average && (
-                <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-green-500/20 border border-green-500/30">
-                  <span className="text-green-400 font-bold">★</span>
-                  <span className="text-green-400 font-semibold">
+                <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-green-500/20 border border-green-500/30">
+                  <Star className="h-3 w-3 fill-green-400 text-green-400" />
+                  <span className="text-green-400 font-bold text-xs">
                     {currentMovie.vote_average.toFixed(1)}
                   </span>
                 </div>
               )}
               {currentMovie?.release_date && (
-                <span className="text-white/90 font-semibold">
+                <span className="text-white/90 font-semibold text-xs">
                   {new Date(currentMovie.release_date).getFullYear()}
                 </span>
               )}
@@ -217,47 +217,47 @@ export default function HeroSliderSection({ className = "" }) {
               </span>
             </div>
 
-            {/* Overview - SMALLER */}
+            {/* Overview - SINGLE LINE ONLY */}
             {currentMovie?.overview && (
-              <p className="hidden md:block text-white/90 text-sm leading-relaxed line-clamp-2 drop-shadow-lg mb-3 max-w-2xl">
+              <p className="hidden md:block text-white/80 text-xs lg:text-sm leading-snug line-clamp-1 drop-shadow-lg mb-3 max-w-xl">
                 {currentMovie.overview}
               </p>
             )}
 
-            {/* Buttons - FeelFlick Theme with Orange Gradient */}
+            {/* Buttons - IMPROVED CONTRAST & LABELS */}
             <div className="flex items-center gap-2">
-              {/* Watch Now Button - Orange gradient like your brand */}
+              {/* View Details - Primary Action */}
               <button
                 onClick={viewDetails}
-                className="inline-flex items-center justify-center gap-1.5 rounded-lg px-5 py-2 text-xs sm:text-sm font-bold text-white transition-all hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-orange-500/50 shadow-xl"
+                className="inline-flex items-center justify-center gap-1.5 rounded-lg px-4 sm:px-5 py-2 text-xs sm:text-sm font-bold text-white transition-all hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-orange-500/50 shadow-xl"
                 style={{
-                  background: "linear-gradient(90deg, #fe9245 10%, #eb423b 90%)",
+                  background: "linear-gradient(135deg, #fe9245 0%, #eb423b 100%)",
                 }}
               >
                 <Info className="h-3.5 w-3.5" />
-                <span>View Details</span>
+                <span>Details</span>
               </button>
 
-              {/* Add to Watchlist - Cleaner design */}
+              {/* Watchlist Button - CLEARER DESIGN */}
               {user && (
                 <button
                   onClick={toggleWatchlist}
                   disabled={addingToWatchlist}
-                  className={`inline-flex items-center justify-center gap-1.5 rounded-lg px-4 py-2 text-xs sm:text-sm font-bold transition-all hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 disabled:opacity-50 ${
+                  className={`inline-flex items-center justify-center gap-1.5 rounded-lg px-4 sm:px-5 py-2 text-xs sm:text-sm font-bold transition-all hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-white/30 disabled:opacity-50 ${
                     isInWatchlist
-                      ? "bg-white/20 text-white border border-white/30 hover:bg-white/30"
-                      : "bg-white/10 text-white border border-white/20 hover:bg-white/20"
+                      ? "bg-white text-black hover:bg-white/90"
+                      : "bg-white/20 text-white border border-white/30 hover:bg-white/30 backdrop-blur-sm"
                   }`}
                 >
                   {isInWatchlist ? (
                     <>
                       <Bookmark className="h-3.5 w-3.5 fill-current" />
-                      <span className="hidden sm:inline">In Watchlist</span>
+                      <span>Saved</span>
                     </>
                   ) : (
                     <>
                       <Plus className="h-3.5 w-3.5" />
-                      <span className="hidden sm:inline">Watchlist</span>
+                      <span>My List</span>
                     </>
                   )}
                 </button>
@@ -267,40 +267,52 @@ export default function HeroSliderSection({ className = "" }) {
         </div>
       </div>
 
-      {/* Navigation Arrows - Desktop */}
+      {/* Navigation Arrows - MORE VISIBLE */}
       <div className="hidden md:block">
         <button
           onClick={prevSlide}
           disabled={isTransitioning}
-          className="absolute left-4 top-1/2 -translate-y-1/2 z-40 h-10 w-10 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-black/70 transition-all opacity-0 group-hover:opacity-100 disabled:opacity-30"
-          aria-label="Previous slide"
+          className="absolute left-4 top-1/2 -translate-y-1/2 z-40 h-12 w-12 rounded-full bg-black/60 backdrop-blur-sm border border-white/30 flex items-center justify-center text-white hover:bg-black/80 hover:scale-110 transition-all opacity-0 group-hover:opacity-100 disabled:opacity-20"
+          aria-label="Previous"
         >
-          <ChevronLeft className="h-5 w-5" />
+          <ChevronLeft className="h-6 w-6" />
         </button>
         <button
           onClick={nextSlide}
           disabled={isTransitioning}
-          className="absolute right-4 top-1/2 -translate-y-1/2 z-40 h-10 w-10 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-black/70 transition-all opacity-0 group-hover:opacity-100 disabled:opacity-30"
-          aria-label="Next slide"
+          className="absolute right-4 top-1/2 -translate-y-1/2 z-40 h-12 w-12 rounded-full bg-black/60 backdrop-blur-sm border border-white/30 flex items-center justify-center text-white hover:bg-black/80 hover:scale-110 transition-all opacity-0 group-hover:opacity-100 disabled:opacity-20"
+          aria-label="Next"
         >
-          <ChevronRight className="h-5 w-5" />
+          <ChevronRight className="h-6 w-6" />
         </button>
       </div>
 
-      {/* Indicators */}
-      <div className="absolute bottom-4 right-4 sm:right-6 md:right-8 z-40 flex items-center gap-1.5">
+      {/* Indicators - BOTTOM LEFT */}
+      <div className="absolute bottom-4 left-4 sm:left-6 md:left-8 z-40 flex items-center gap-1.5">
         {slides.map((_, idx) => (
           <button
             key={idx}
             onClick={() => goToSlide(idx)}
-            aria-label={`Go to slide ${idx + 1}`}
+            aria-label={`Slide ${idx + 1}`}
             className={`h-1 rounded-full transition-all duration-500 focus:outline-none ${
               idx === currentIndex
-                ? "w-8 bg-gradient-to-r from-orange-500 to-red-500 shadow-lg"
-                : "w-1 bg-white/40 hover:bg-white/60"
+                ? "w-8 shadow-lg"
+                : "w-1 bg-white/40 hover:bg-white/60 hover:w-2"
             }`}
+            style={
+              idx === currentIndex
+                ? { background: "linear-gradient(90deg, #fe9245 0%, #eb423b 100%)" }
+                : {}
+            }
           />
         ))}
+      </div>
+
+      {/* Slide Counter - TOP RIGHT */}
+      <div className="absolute top-20 right-4 sm:right-6 md:right-8 z-40 bg-black/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/20">
+        <span className="text-white text-xs font-semibold">
+          {currentIndex + 1} / {slides.length}
+        </span>
       </div>
     </section>
   );

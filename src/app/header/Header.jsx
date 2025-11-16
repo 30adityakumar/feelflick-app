@@ -13,6 +13,7 @@ import {
   Bookmark,
   Clock,
   X,
+  ChevronRight,
 } from 'lucide-react'
 
 export default function Header({ onOpenSearch }) {
@@ -23,7 +24,7 @@ export default function Header({ onOpenSearch }) {
   const [scrollDirection, setScrollDirection] = useState('up')
   const [lastScrollY, setLastScrollY] = useState(0)
   const [dropdownOpen, setDropdownOpen] = useState(false)
-  const [accountMenuOpen, setAccountMenuOpen] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const hdrRef = useRef(null)
   const dropdownRef = useRef(null)
 
@@ -42,9 +43,9 @@ export default function Header({ onOpenSearch }) {
     return () => typeof unsub === 'function' && unsub()
   }, [])
 
-  // Smart scroll - disable when account menu is open
+  // Smart scroll - disable when mobile menu is open
   useEffect(() => {
-    if (accountMenuOpen) return // Don't hide header when menu is open
+    if (mobileMenuOpen) return
 
     const handleScroll = () => {
       const currentScrollY = window.scrollY
@@ -59,7 +60,7 @@ export default function Header({ onOpenSearch }) {
     }
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [lastScrollY, accountMenuOpen])
+  }, [lastScrollY, mobileMenuOpen])
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -86,33 +87,49 @@ export default function Header({ onOpenSearch }) {
     return () => ro.disconnect()
   }, [])
 
-  // Close account menu on route change
+  // Close mobile menu on route change
   useEffect(() => {
-    setAccountMenuOpen(false)
+    setMobileMenuOpen(false)
   }, [pathname])
 
-  // Force header to show when account menu opens
+  // Force header to show when mobile menu opens
   useEffect(() => {
-    if (accountMenuOpen) {
+    if (mobileMenuOpen) {
       setScrollDirection('up')
     }
-  }, [accountMenuOpen])
+  }, [mobileMenuOpen])
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
     setDropdownOpen(false)
-    setAccountMenuOpen(false)
+    setMobileMenuOpen(false)
     navigate('/')
   }
 
   const userName = user?.user_metadata?.name || user?.email?.split('@')[0] || 'User'
   const userEmail = user?.email || ''
   const userAvatar = user?.user_metadata?.avatar_url || null
+  const initials = userName.charAt(0).toUpperCase()
 
   // Check if current path matches account section
   const isAccountSection = ['/account', '/preferences', '/watchlist', '/history'].some(path => 
     pathname.startsWith(path)
   )
+
+  const menuSections = [
+    {
+      items: [
+        { to: '/account', icon: <UserIcon className="h-4 w-4" />, label: 'Profile' },
+        { to: '/watchlist', icon: <Bookmark className="h-4 w-4" />, label: 'Watchlist' },
+        { to: '/history', icon: <Clock className="h-4 w-4" />, label: 'History' },
+      ],
+    },
+    {
+      items: [
+        { to: '/preferences', icon: <Settings className="h-4 w-4" />, label: 'Settings' },
+      ],
+    },
+  ]
 
   return (
     <>
@@ -123,7 +140,7 @@ export default function Header({ onOpenSearch }) {
           scrolled
             ? 'bg-[#0a0a0a]/95 backdrop-blur-md shadow-lg'
             : 'bg-gradient-to-b from-black/80 to-transparent'
-        } ${scrollDirection === 'down' && !accountMenuOpen ? '-translate-y-full' : 'translate-y-0'}`}
+        } ${scrollDirection === 'down' && !mobileMenuOpen ? '-translate-y-full' : 'translate-y-0'}`}
         style={{
           paddingTop: 'env(safe-area-inset-top)',
         }}
@@ -137,7 +154,7 @@ export default function Header({ onOpenSearch }) {
               </div>
             </Link>
 
-            {/* Desktop Navigation - More prominent active state */}
+            {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-6">
               <NavLink
                 to="/home"
@@ -203,7 +220,7 @@ export default function Header({ onOpenSearch }) {
                       />
                     ) : (
                       <div className="h-8 w-8 rounded-full bg-gradient-to-br from-[#FF9245] to-[#EB423B] flex items-center justify-center text-white text-sm font-bold">
-                        {userName.charAt(0).toUpperCase()}
+                        {initials}
                       </div>
                     )}
                     <ChevronDown
@@ -215,59 +232,70 @@ export default function Header({ onOpenSearch }) {
 
                   {/* Dropdown Menu */}
                   {dropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-56 rounded-xl bg-[#1a1a1a] border border-white/10 shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="absolute right-0 mt-2 w-72 rounded-2xl bg-black/98 backdrop-blur-2xl border border-white/10 shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
                       {/* User Info */}
-                      <div className="px-4 py-3 border-b border-white/10">
-                        <div className="font-semibold text-white text-sm truncate">{userName}</div>
-                        <div className="text-xs text-white/60 truncate">{userEmail}</div>
+                      <div className="px-4 py-4 border-b border-white/10 bg-gradient-to-br from-white/5 to-transparent">
+                        <div className="flex items-center gap-3">
+                          {userAvatar ? (
+                            <img
+                              src={userAvatar}
+                              alt={userName}
+                              className="h-12 w-12 rounded-full object-cover ring-2 ring-white/20 flex-shrink-0"
+                            />
+                          ) : (
+                            <div className="h-12 w-12 rounded-full bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 flex items-center justify-center text-lg font-bold text-white flex-shrink-0 ring-2 ring-white/20">
+                              {initials}
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-white truncate">{userName}</p>
+                            <p className="text-xs text-white/60 truncate">{userEmail}</p>
+                          </div>
+                        </div>
                       </div>
 
-                      {/* Menu Items */}
-                      <div className="py-2">
-                        <Link
-                          to="/account"
-                          onClick={() => setDropdownOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-colors"
-                        >
-                          <UserIcon className="h-4 w-4" />
-                          Profile
-                        </Link>
-                        <Link
-                          to="/watchlist"
-                          onClick={() => setDropdownOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-colors"
-                        >
-                          <Bookmark className="h-4 w-4" />
-                          Watchlist
-                        </Link>
-                        <Link
-                          to="/history"
-                          onClick={() => setDropdownOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-colors"
-                        >
-                          <Clock className="h-4 w-4" />
-                          History
-                        </Link>
-                        <Link
-                          to="/preferences"
-                          onClick={() => setDropdownOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-colors"
-                        >
-                          <Settings className="h-4 w-4" />
-                          Settings
-                        </Link>
-                      </div>
+                      {/* Menu Sections */}
+                      {menuSections.map((section, idx) => (
+                        <div key={idx}>
+                          <div className="py-2">
+                            {section.items.map((item) => (
+                              <NavLink
+                                key={item.to}
+                                to={item.to}
+                                onClick={() => setDropdownOpen(false)}
+                                className={({ isActive }) =>
+                                  `flex items-center gap-3 px-4 py-3 text-sm font-semibold transition-all duration-200 group ${
+                                    isActive
+                                      ? 'bg-white/10 text-white'
+                                      : 'text-white/80 hover:bg-white/5 hover:text-white'
+                                  }`
+                                }
+                              >
+                                <div className="text-white/80 group-hover:text-white group-hover:scale-110 transition-all">
+                                  {item.icon}
+                                </div>
+                                <span>{item.label}</span>
+                                <ChevronRight className="h-4 w-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+                              </NavLink>
+                            ))}
+                          </div>
+                          {idx < menuSections.length - 1 && (
+                            <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+                          )}
+                        </div>
+                      ))}
+
+                      <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
                       {/* Sign Out */}
-                      <div className="border-t border-white/10 py-2">
-                        <button
-                          onClick={handleSignOut}
-                          className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors"
-                        >
-                          <LogOut className="h-4 w-4" />
-                          Sign Out
-                        </button>
-                      </div>
+                      <button
+                        onClick={handleSignOut}
+                        className="flex w-full items-center gap-3 px-4 py-3 text-sm font-semibold text-red-400 hover:bg-red-500/10 transition-all duration-200 group"
+                      >
+                        <LogOut className="h-4 w-4 group-hover:scale-110 transition-transform" />
+                        <span>Sign Out</span>
+                        <ChevronRight className="h-4 w-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </button>
                     </div>
                   )}
                 </div>
@@ -329,9 +357,9 @@ export default function Header({ onOpenSearch }) {
             <span className="text-xs font-medium">Search</span>
           </button>
 
-          {/* Account button - opens full-screen menu */}
+          {/* Account button */}
           <button
-            onClick={() => setAccountMenuOpen(true)}
+            onClick={() => setMobileMenuOpen(true)}
             className={`flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-all ${
               isAccountSection 
                 ? 'text-white bg-white/10' 
@@ -350,7 +378,7 @@ export default function Header({ onOpenSearch }) {
               <div className={`h-6 w-6 rounded-full bg-gradient-to-br from-[#FF9245] to-[#EB423B] flex items-center justify-center text-white text-[10px] font-bold ${
                 isAccountSection ? 'ring-2 ring-white/40' : ''
               }`}>
-                {userName.charAt(0).toUpperCase()}
+                {initials}
               </div>
             )}
             <span className="text-xs font-medium">Account</span>
@@ -358,21 +386,21 @@ export default function Header({ onOpenSearch }) {
         </div>
       </nav>
 
-      {/* Mobile Account Menu - Fits Between Top and Bottom Headers */}
-      {accountMenuOpen && (
+      {/* Mobile Account Menu - Fits Between Headers */}
+      {mobileMenuOpen && (
         <div 
-          className="md:hidden fixed z-40 bg-black/95 backdrop-blur-lg overflow-y-auto animate-in fade-in duration-200"
+          className="md:hidden fixed z-40 bg-black/95 backdrop-blur-xl overflow-y-auto animate-in fade-in duration-200"
           style={{
-            top: '64px', // Height of top header
-            bottom: '72px', // Height of bottom nav (approximate)
+            top: '64px',
+            bottom: '72px',
             left: 0,
             right: 0,
           }}
         >
-          {/* Close button - positioned at top right */}
-          <div className="sticky top-0 z-10 flex justify-end px-4 pt-4 pb-2 bg-gradient-to-b from-black/95 to-transparent">
+          {/* Close button */}
+          <div className="sticky top-0 z-10 flex justify-end px-4 pt-4 pb-2 bg-gradient-to-b from-black/95 via-black/90 to-transparent">
             <button
-              onClick={() => setAccountMenuOpen(false)}
+              onClick={() => setMobileMenuOpen(false)}
               className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-all active:scale-95"
               aria-label="Close"
             >
@@ -380,75 +408,68 @@ export default function Header({ onOpenSearch }) {
             </button>
           </div>
 
-          {/* Content */}
           <div className="px-4 pb-6">
             {/* User Info */}
             {user && (
-              <div className="flex items-center gap-3 mb-6 pb-6 border-b border-white/10">
-                {userAvatar ? (
-                  <img
-                    src={userAvatar}
-                    alt={userName}
-                    className="h-14 w-14 rounded-full object-cover ring-2 ring-white/20"
-                  />
-                ) : (
-                  <div className="h-14 w-14 rounded-full bg-gradient-to-br from-[#FF9245] to-[#EB423B] flex items-center justify-center text-white text-xl font-bold">
-                    {userName.charAt(0).toUpperCase()}
+              <div className="px-4 py-4 mb-4 rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-transparent">
+                <div className="flex items-center gap-3">
+                  {userAvatar ? (
+                    <img
+                      src={userAvatar}
+                      alt={userName}
+                      className="h-14 w-14 rounded-full object-cover ring-2 ring-white/20 flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="h-14 w-14 rounded-full bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 flex items-center justify-center text-xl font-bold text-white flex-shrink-0 ring-2 ring-white/20">
+                      {initials}
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-lg font-bold text-white truncate">{userName}</p>
+                    <p className="text-sm text-white/60 truncate">{userEmail}</p>
                   </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <div className="text-lg font-bold text-white truncate">{userName}</div>
-                  <div className="text-sm text-white/60 truncate">{userEmail}</div>
                 </div>
               </div>
             )}
 
-            {/* Menu Items */}
-            <nav className="space-y-1 mb-6">
-              <Link
-                to="/account"
-                onClick={() => setAccountMenuOpen(false)}
-                className="flex items-center gap-3 px-4 py-3.5 rounded-lg text-base font-medium text-white/80 hover:bg-white/10 hover:text-white transition-colors active:scale-95"
-              >
-                <UserIcon className="h-5 w-5" />
-                Profile
-              </Link>
+            {/* Menu Sections */}
+            {menuSections.map((section, idx) => (
+              <div key={idx} className="mb-3">
+                <div className="space-y-1">
+                  {section.items.map((item) => (
+                    <NavLink
+                      key={item.to}
+                      to={item.to}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={({ isActive }) =>
+                        `flex items-center gap-3 px-4 py-3.5 rounded-xl text-base font-semibold transition-all duration-200 group ${
+                          isActive
+                            ? 'bg-white/10 text-white'
+                            : 'text-white/80 hover:bg-white/5 hover:text-white'
+                        }`
+                      }
+                    >
+                      <div className="text-white/80 group-hover:text-white group-hover:scale-110 transition-all">
+                        {item.icon}
+                      </div>
+                      <span>{item.label}</span>
+                      <ChevronRight className="h-5 w-5 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </NavLink>
+                  ))}
+                </div>
+                {idx < menuSections.length - 1 && (
+                  <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent my-3" />
+                )}
+              </div>
+            ))}
 
-              <Link
-                to="/watchlist"
-                onClick={() => setAccountMenuOpen(false)}
-                className="flex items-center gap-3 px-4 py-3.5 rounded-lg text-base font-medium text-white/80 hover:bg-white/10 hover:text-white transition-colors active:scale-95"
-              >
-                <Bookmark className="h-5 w-5" />
-                Watchlist
-              </Link>
-
-              <Link
-                to="/history"
-                onClick={() => setAccountMenuOpen(false)}
-                className="flex items-center gap-3 px-4 py-3.5 rounded-lg text-base font-medium text-white/80 hover:bg-white/10 hover:text-white transition-colors active:scale-95"
-              >
-                <Clock className="h-5 w-5" />
-                History
-              </Link>
-
-              <Link
-                to="/preferences"
-                onClick={() => setAccountMenuOpen(false)}
-                className="flex items-center gap-3 px-4 py-3.5 rounded-lg text-base font-medium text-white/80 hover:bg-white/10 hover:text-white transition-colors active:scale-95"
-              >
-                <Settings className="h-5 w-5" />
-                Settings
-              </Link>
-            </nav>
-
-            {/* Sign Out Button */}
-            <div className="pt-6 border-t border-white/10">
+            {/* Sign Out */}
+            <div className="mt-6 pt-6 border-t border-white/10">
               <button
                 onClick={handleSignOut}
-                className="w-full flex items-center justify-center gap-3 px-4 py-3.5 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 font-medium text-base transition-all active:scale-95"
+                className="flex w-full items-center justify-center gap-3 px-4 py-3.5 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 font-semibold text-base transition-all duration-200 group"
               >
-                <LogOut className="h-5 w-5" />
+                <LogOut className="h-5 w-5 group-hover:scale-110 transition-transform" />
                 <span>Sign Out</span>
               </button>
             </div>

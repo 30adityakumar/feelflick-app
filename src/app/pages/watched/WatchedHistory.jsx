@@ -10,6 +10,8 @@ import {
   Trash2,
   Calendar,
   TrendingUp,
+  X,
+  ChevronDown,
 } from "lucide-react";
 
 export default function WatchedHistory() {
@@ -20,7 +22,7 @@ export default function WatchedHistory() {
   const [loading, setLoading] = useState(true);
   const [removingId, setRemovingId] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState("recent"); // 'recent' | 'title' | 'rating'
+  const [sortBy, setSortBy] = useState("recent");
 
   // Get current user
   useEffect(() => {
@@ -88,7 +90,6 @@ export default function WatchedHistory() {
       } else if (sortBy === "rating") {
         return (b.vote_average || 0) - (a.vote_average || 0);
       } else {
-        // Default: recent (by created_at)
         return new Date(b.created_at || 0) - new Date(a.created_at || 0);
       }
     });
@@ -124,119 +125,113 @@ export default function WatchedHistory() {
           movies.reduce((sum, m) => sum + (m.vote_average || 0), 0) /
           movies.length
         ).toFixed(1)
-      : 0;
+      : "0.0";
 
   return (
     <main
-      className="bg-black text-white w-full pb-20 md:pb-8"
+      className="bg-black text-white w-full pb-20 md:pb-6"
       style={{
         paddingTop: "var(--hdr-h, 64px)",
         minHeight: "100vh",
       }}
     >
-      <div className="mx-auto max-w-7xl px-4 py-4 sm:py-6 md:py-8">
+      <div className="mx-auto max-w-7xl px-4 py-4 md:py-6">
         {/* Header */}
-        <div className="mb-4 sm:mb-6">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-              <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+        <div className="mb-4">
+          <div className="flex items-center gap-2.5 mb-2">
+            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
+              <Clock className="h-4 w-4 text-white" />
             </div>
-            <div>
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight">
+            <div className="min-w-0">
+              <h1 className="text-xl md:text-2xl font-black tracking-tight">
                 Watch History
               </h1>
-              <p className="text-xs sm:text-sm text-white/60">
-                Track your movie journey
-              </p>
             </div>
           </div>
 
-          {/* Stats */}
-          {!loading && movies.length > 0 && (
-            <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md p-3 sm:p-4">
-                <div className="flex items-center gap-2 text-white/60 mb-1">
-                  <Calendar className="h-4 w-4" />
-                  <span className="text-xs font-medium">Total Watched</span>
-                </div>
-                <p className="text-xl sm:text-2xl font-bold">{totalMovies}</p>
-              </div>
-              <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md p-3 sm:p-4">
-                <div className="flex items-center gap-2 text-white/60 mb-1">
-                  <TrendingUp className="h-4 w-4" />
-                  <span className="text-xs font-medium">Avg Rating</span>
-                </div>
-                <p className="text-xl sm:text-2xl font-bold">
-                  <span className="text-yellow-400">★</span> {avgRating}
-                </p>
-              </div>
+          {/* Simple Stats */}
+          <div className="flex items-center gap-3 text-xs text-white/60">
+            <div className="flex items-center gap-1.5">
+              <span className="font-semibold text-white">{totalMovies}</span>
+              <span>{totalMovies === 1 ? 'movie' : 'movies'} watched</span>
             </div>
-          )}
+            {totalMovies > 0 && (
+              <>
+                <span>•</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-yellow-400">★</span>
+                  <span>{avgRating} avg</span>
+                </div>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Search & Sort Bar */}
         {!loading && movies.length > 0 && (
-          <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row gap-3">
+          <div className="mb-4 flex gap-2">
             {/* Search */}
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40 pointer-events-none" />
               <input
                 type="text"
                 placeholder="Search history..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 sm:py-3 text-sm text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all"
+                className="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-9 py-2 text-sm text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all"
               />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors"
+                  aria-label="Clear search"
+                >
+                  <X className="h-3.5 w-3.5 text-white/60" />
+                </button>
+              )}
             </div>
 
             {/* Sort */}
-            <div className="relative">
-              <SlidersHorizontal className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+            <div className="relative w-40">
+              <SlidersHorizontal className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40 pointer-events-none" />
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="appearance-none bg-white/5 border border-white/10 rounded-xl pl-10 pr-10 py-2.5 sm:py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all cursor-pointer"
+                className="appearance-none w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-8 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all cursor-pointer"
               >
-                <option value="recent">Recently Watched</option>
-                <option value="title">Title (A-Z)</option>
-                <option value="rating">Highest Rated</option>
+                <option value="recent">Recent</option>
+                <option value="title">A-Z</option>
+                <option value="rating">Rating</option>
               </select>
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                <svg
-                  className="h-4 w-4 text-white/40"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </div>
+              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40 pointer-events-none" />
             </div>
+          </div>
+        )}
+
+        {/* Results Info */}
+        {!loading && movies.length > 0 && searchQuery && (
+          <div className="mb-3 text-xs text-white/60">
+            Showing {filteredMovies.length} of {movies.length} movies
           </div>
         )}
 
         {/* Content */}
         {loading ? (
-          <div className="flex items-center justify-center h-[50vh] text-white/80">
+          <div className="flex items-center justify-center h-[50vh]">
             <div className="text-center">
-              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-purple-500" />
-              <p className="text-sm">Loading your history...</p>
+              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-3 text-purple-500" />
+              <p className="text-sm text-white/80">Loading your history...</p>
             </div>
           </div>
         ) : filteredMovies.length === 0 && searchQuery ? (
           <div className="flex flex-col items-center justify-center h-[50vh] text-center">
-            <Search className="h-12 w-12 text-white/20 mb-4" />
-            <p className="text-white/70 mb-2">
+            <Search className="h-10 w-10 text-white/20 mb-3" />
+            <p className="text-sm text-white/70 mb-2">
               No movies found for "{searchQuery}"
             </p>
             <button
               onClick={() => setSearchQuery("")}
-              className="text-sm text-purple-400 hover:text-purple-300 transition-colors"
+              className="text-xs text-purple-400 hover:text-purple-300 transition-colors px-3 py-1.5 rounded-lg hover:bg-white/5"
             >
               Clear search
             </button>
@@ -244,7 +239,7 @@ export default function WatchedHistory() {
         ) : movies.length === 0 ? (
           <EmptyState />
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
             {filteredMovies.map((m) => (
               <MovieCard
                 key={m.movie_id}
@@ -274,7 +269,7 @@ function MovieCard({ movie, onRemove, onClick, removing }) {
     <div className="group relative">
       <button
         onClick={onClick}
-        className="relative block w-full aspect-[2/3] rounded-lg overflow-hidden bg-white/5 transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+        className="relative block w-full aspect-[2/3] rounded-lg overflow-hidden bg-white/5 transition-all duration-200 hover:scale-105 hover:shadow-2xl focus:outline-none focus:ring-2 focus:ring-purple-500/50 active:scale-[1.02]"
       >
         {movie.poster_path ? (
           <img
@@ -294,19 +289,19 @@ function MovieCard({ movie, onRemove, onClick, removing }) {
         )}
 
         {/* Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-          <div className="absolute bottom-0 left-0 right-0 p-3">
-            <h3 className="text-xs sm:text-sm font-bold text-white leading-tight line-clamp-2 drop-shadow-lg">
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200">
+          <div className="absolute bottom-0 left-0 right-0 p-2.5">
+            <h3 className="text-xs font-bold text-white leading-tight line-clamp-2 mb-1">
               {movie.title}
             </h3>
-            <div className="flex items-center gap-2 mt-1 text-[10px] sm:text-xs text-white/80">
+            <div className="flex items-center gap-1.5 text-[10px] text-white/80">
               {movie.release_date && (
                 <span>{new Date(movie.release_date).getFullYear()}</span>
               )}
-              {movie.vote_average && (
+              {movie.vote_average > 0 && (
                 <>
                   <span>•</span>
-                  <span className="flex items-center gap-1">
+                  <span className="flex items-center gap-0.5">
                     <span className="text-yellow-400">★</span>
                     {movie.vote_average.toFixed(1)}
                   </span>
@@ -324,13 +319,13 @@ function MovieCard({ movie, onRemove, onClick, removing }) {
           onRemove();
         }}
         disabled={removing}
-        className="absolute top-2 right-2 z-10 h-8 w-8 rounded-full bg-black/70 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white/80 hover:text-red-400 hover:bg-black/90 transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100 active:scale-90 disabled:opacity-50"
+        className="absolute top-2 right-2 z-10 h-7 w-7 rounded-full bg-black/80 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white/80 hover:text-red-400 hover:bg-black/95 hover:border-red-500/30 transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100 active:scale-90 disabled:opacity-50"
         title="Remove from history"
       >
         {removing ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
         ) : (
-          <Trash2 className="h-4 w-4" />
+          <Trash2 className="h-3.5 w-3.5" />
         )}
       </button>
     </div>
@@ -341,19 +336,19 @@ function MovieCard({ movie, onRemove, onClick, removing }) {
 function EmptyState() {
   return (
     <div className="flex flex-col items-center justify-center h-[50vh] text-center px-4">
-      <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-full bg-white/5 flex items-center justify-center mb-6">
-        <Clock className="h-10 w-10 sm:h-12 sm:w-12 text-white/20" />
+      <div className="h-16 w-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
+        <Clock className="h-8 w-8 text-white/20" />
       </div>
-      <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">
+      <h2 className="text-lg font-bold text-white mb-2">
         No watch history yet
       </h2>
-      <p className="text-sm sm:text-base text-white/60 mb-6 max-w-md">
+      <p className="text-xs text-white/60 mb-4 max-w-sm">
         Start watching movies to build your viewing history and get personalized
         recommendations
       </p>
       <a
         href="/browse"
-        className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-3 rounded-xl text-sm font-bold text-white hover:scale-105 transition-transform"
+        className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 px-5 py-2.5 rounded-lg text-xs font-bold text-white hover:scale-105 active:scale-95 transition-transform"
       >
         Browse Movies
       </a>

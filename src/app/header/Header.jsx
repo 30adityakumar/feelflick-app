@@ -91,10 +91,21 @@ export default function Header({ onOpenSearch }) {
     setAccountMenuOpen(false)
   }, [pathname])
 
-  // Force header to show when account menu opens
+  // Prevent body scroll when account menu is open
   useEffect(() => {
     if (accountMenuOpen) {
-      setScrollDirection('up')
+      document.body.style.overflow = 'hidden'
+      document.body.style.position = 'fixed'
+      document.body.style.width = '100%'
+    } else {
+      document.body.style.overflow = ''
+      document.body.style.position = ''
+      document.body.style.width = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+      document.body.style.position = ''
+      document.body.style.width = ''
     }
   }, [accountMenuOpen])
 
@@ -109,21 +120,21 @@ export default function Header({ onOpenSearch }) {
   const userEmail = user?.email || ''
   const userAvatar = user?.user_metadata?.avatar_url || null
 
-  // Check if current path matches account section OR menu is open
-  const isAccountActive = accountMenuOpen || ['/account', '/preferences', '/watchlist', '/history'].some(path => 
+  // Account tab is active when on account routes (NOT when menu is open)
+  const isAccountRoute = ['/account', '/preferences', '/watchlist', '/history'].some(path => 
     pathname.startsWith(path)
   )
 
   return (
     <>
-      {/* Desktop & Tablet Header - ALWAYS visible, even on mobile when account menu open */}
+      {/* Desktop & Tablet Header - ALWAYS visible on desktop */}
       <header
         ref={hdrRef}
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          scrolled || accountMenuOpen
+          scrolled
             ? 'bg-[#0a0a0a]/95 backdrop-blur-md shadow-lg'
             : 'bg-gradient-to-b from-black/80 to-transparent'
-        } ${scrollDirection === 'down' && !accountMenuOpen ? '-translate-y-full' : 'translate-y-0'}`}
+        } ${scrollDirection === 'down' ? 'md:translate-y-0 -translate-y-full' : 'translate-y-0'}`}
         style={{
           paddingTop: 'env(safe-area-inset-top)',
         }}
@@ -324,58 +335,48 @@ export default function Header({ onOpenSearch }) {
             <span className="text-xs font-medium">Search</span>
           </button>
 
-          {/* Account button - PROMINENT when active, same as Home/Browse */}
+          {/* Account button - active when on account routes OR menu is open */}
           <button
             onClick={() => setAccountMenuOpen(!accountMenuOpen)}
             className={`flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-all ${
-              isAccountActive 
+              isAccountRoute || accountMenuOpen
                 ? 'text-white bg-white/10' 
                 : 'text-white/60 hover:text-white hover:bg-white/5'
             }`}
           >
-            {/* Icon container - consistent with other nav items */}
-            <div className="h-6 w-6 flex items-center justify-center">
-              {userAvatar ? (
-                <img
-                  src={userAvatar}
-                  alt={userName}
-                  className={`h-6 w-6 rounded-full object-cover transition-all ${
-                    isAccountActive ? 'ring-2 ring-white/40' : 'ring-2 ring-white/10'
-                  }`}
-                />
-              ) : (
-                <UserIcon className={`h-6 w-6 ${isAccountActive ? 'fill-current' : ''}`} />
-              )}
-            </div>
+            {userAvatar ? (
+              <img
+                src={userAvatar}
+                alt={userName}
+                className={`h-6 w-6 rounded-full object-cover ${
+                  isAccountRoute || accountMenuOpen ? 'ring-2 ring-white/40' : 'ring-2 ring-white/10'
+                }`}
+              />
+            ) : (
+              <div className={`h-6 w-6 rounded-full bg-gradient-to-br from-[#FF9245] to-[#EB423B] flex items-center justify-center text-white text-[10px] font-bold ${
+                isAccountRoute || accountMenuOpen ? 'ring-2 ring-white/40' : ''
+              }`}>
+                {userName.charAt(0).toUpperCase()}
+              </div>
+            )}
             <span className="text-xs font-medium">Account</span>
           </button>
         </div>
       </nav>
 
-      {/* Mobile Account Menu - FULL SCREEN (below top header, above bottom nav) */}
+      {/* Mobile Account Menu - FULL SCREEN (top header visible, covers content, bottom nav visible) */}
       {accountMenuOpen && (
         <div 
           className="md:hidden fixed z-40 bg-[#0a0a0a] overflow-y-auto"
           style={{
-            top: '64px', // Below top header
-            bottom: '72px', // Above bottom nav
+            top: 'var(--hdr-h, 64px)', // Start below the top header
             left: 0,
             right: 0,
+            bottom: '72px', // Space for bottom nav
           }}
         >
-          {/* Content */}
-          <div className="h-full px-4 pt-4 pb-6">
-            {/* Close button at top right */}
-            <div className="flex justify-end mb-4">
-              <button
-                onClick={() => setAccountMenuOpen(false)}
-                className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-all active:scale-95"
-                aria-label="Close"
-              >
-                <X className="h-6 w-6" />
-              </button>
-            </div>
-
+          {/* Content with padding */}
+          <div className="min-h-full px-4 pt-4 pb-6">
             {/* User Info */}
             {user && (
               <div className="flex items-center gap-3 mb-6 pb-6 border-b border-white/10">

@@ -11,6 +11,10 @@ import {
   Calendar,
   ChevronRight,
   Tv2,
+  Film,
+  Image as ImageIcon,
+  Tag,
+  Share2,
 } from 'lucide-react'
 
 const IMG = {
@@ -18,6 +22,7 @@ const IMG = {
   poster: (p) => (p ? `https://image.tmdb.org/t/p/w500${p}` : ''),
   profile: (p) => (p ? `https://image.tmdb.org/t/p/w185${p}` : ''),
   logo: (p) => (p ? `https://image.tmdb.org/t/p/w92${p}` : ''),
+  still: (p) => (p ? `https://image.tmdb.org/t/p/w500${p}` : ''),
 }
 
 const TMDB = {
@@ -40,11 +45,14 @@ export default function MovieDetail() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [movie, setMovie] = useState(null)
-  const [cast, setCast] = useState([])
+  const [credits, setCredits] = useState({ cast: [], crew: [] })
   const [videos, setVideos] = useState([])
   const [similar, setSimilar] = useState([])
   const [recs, setRecs] = useState([])
   const [providers, setProviders] = useState({ flatrate: [], rent: [], buy: [], link: '' })
+  const [images, setImages] = useState({ backdrops: [] })
+  const [keywords, setKeywords] = useState([])
+  const [certification, setCertification] = useState('')
 
   const [user, setUser] = useState(null)
   const [wlStatus, setWlStatus] = useState(null)
@@ -63,7 +71,7 @@ export default function MovieDetail() {
     }
   }, [])
 
-  // TMDB data
+  // TMDB data - Enhanced with more endpoints
   useEffect(() => {
     let abort = false
     async function load() {
@@ -71,7 +79,7 @@ export default function MovieDetail() {
       setError('')
       try {
         if (!TMDB.key) throw new Error('TMDB key missing')
-        const [d, c, v, s, r] = await Promise.all([
+        const [d, c, v, s, r, i, k, rel] = await Promise.all([
           fetch(`${TMDB.base}/movie/${id}?api_key=${TMDB.key}&language=en-US`).then((r) => r.json()),
           fetch(`${TMDB.base}/movie/${id}/credits?api_key=${TMDB.key}&language=en-US`).then((r) =>
             r.json()
@@ -85,16 +93,27 @@ export default function MovieDetail() {
           fetch(
             `${TMDB.base}/movie/${id}/recommendations?api_key=${TMDB.key}&language=en-US&page=1`
           ).then((r) => r.json()),
+          fetch(`${TMDB.base}/movie/${id}/images?api_key=${TMDB.key}`).then((r) => r.json()),
+          fetch(`${TMDB.base}/movie/${id}/keywords?api_key=${TMDB.key}`).then((r) => r.json()),
+          fetch(`${TMDB.base}/movie/${id}/release_dates?api_key=${TMDB.key}`).then((r) => r.json()),
         ])
         if (abort) return
         if (d?.success === false || d?.status_code)
           throw new Error(d?.status_message || 'Failed to load')
 
         setMovie(d)
-        setCast((c?.cast || []).slice(0, 10))
+        setCredits({ cast: (c?.cast || []).slice(0, 10), crew: c?.crew || [] })
         setVideos(v?.results || [])
         setSimilar((s?.results || []).slice(0, 12))
         setRecs((r?.results || []).slice(0, 12))
+        setImages({ backdrops: (i?.backdrops || []).slice(0, 6) })
+        setKeywords((k?.keywords || []).slice(0, 12))
+        
+        // Get US certification
+        const usCert = rel?.results
+          ?.find((r) => r.iso_3166_1 === 'US')
+          ?.release_dates?.[0]?.certification
+        setCertification(usCert || '')
       } catch (e) {
         if (!abort) setError(e?.message || 'Could not load movie.')
       } finally {
@@ -169,14 +188,12 @@ export default function MovieDetail() {
     const t = (videos || []).find(
       (v) => v.site === 'YouTube' && (v.type === 'Trailer' || v.type === 'Teaser')
     )
-    return t
-      ? `https://www.youtube.com/watch?v=${t.key}`
-      : movie?.title
-      ? `https://www.youtube.com/results?search_query=${encodeURIComponent(
-          movie.title + ' trailer official'
-        )}`
-      : null
-  }, [videos, movie])
+    return t ? `https://www.youtube.com/watch?v=${t.key}` : null
+  }, [videos])
+
+  const director = useMemo(() => {
+    return credits.crew?.find((c) => c.job === 'Director')
+  }, [credits])
 
   async function ensureAuthed() {
     if (user?.id) return true
@@ -323,9 +340,9 @@ export default function MovieDetail() {
 
   return (
     <div className="relative bg-black text-white min-h-screen pb-20 md:pb-8">
-      {/* Hero Section - Compact 60vh */}
+      {/* Hero Section - Compact, Immersive */}
       <div className="relative w-full" style={{ paddingTop: 'var(--hdr-h, 64px)' }}>
-        <div className="relative h-[60vh] md:h-[65vh]">
+        <div className="relative h-[55vh] md:h-[60vh]">
           {/* Backdrop */}
           <div className="absolute inset-0">
             {movie?.backdrop_path ? (
@@ -340,27 +357,27 @@ export default function MovieDetail() {
             )}
           </div>
 
-          {/* Enhanced Gradients - Stronger for readability */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/85 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/70 md:via-black/50 to-transparent" />
+          {/* Enhanced Gradients */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/90 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/75 md:via-black/60 to-transparent" />
           <div className="absolute bottom-0 inset-x-0 h-3/5 bg-gradient-to-t from-black to-transparent" />
 
-          {/* Content - Compact layout */}
-          <div className="absolute inset-0 flex flex-col justify-end pb-8 md:pb-12">
+          {/* Content */}
+          <div className="absolute inset-0 flex flex-col justify-end pb-6 md:pb-10">
             <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-12 w-full">
               <div className="grid grid-cols-1 md:grid-cols-[auto,1fr] gap-4 md:gap-6 items-end max-w-6xl">
-                {/* Poster - Smaller, responsive */}
+                {/* Poster - Compact */}
                 <div className="hidden md:block">
                   <div className="overflow-hidden rounded-md ring-2 ring-white/20 shadow-2xl">
                     {movie?.poster_path ? (
                       <img
                         src={IMG.poster(movie.poster_path)}
                         alt={movie?.title}
-                        className="h-[280px] w-[187px] lg:h-[320px] lg:w-[213px] object-cover"
+                        className="h-[260px] w-[173px] lg:h-[300px] lg:w-[200px] object-cover"
                         loading="eager"
                       />
                     ) : (
-                      <div className="h-[280px] w-[187px] lg:h-[320px] lg:w-[213px] grid place-items-center bg-white/5 text-white/40 text-xs">
+                      <div className="h-[260px] w-[173px] lg:h-[300px] lg:w-[200px] grid place-items-center bg-white/5 text-white/40 text-xs">
                         No poster
                       </div>
                     )}
@@ -368,7 +385,7 @@ export default function MovieDetail() {
                 </div>
 
                 {/* Info */}
-                <div className="max-w-3xl">
+                <div className="max-w-3xl space-y-2">
                   {loading ? (
                     <div className="animate-pulse space-y-2">
                       <div className="h-10 w-3/4 rounded bg-white/20" />
@@ -380,8 +397,8 @@ export default function MovieDetail() {
                     </div>
                   ) : (
                     <>
-                      {/* Title + Status Badges - Compact */}
-                      <div className="flex flex-wrap items-center gap-2 mb-2">
+                      {/* Title + Status Badges */}
+                      <div className="flex flex-wrap items-center gap-2">
                         <h1 className="text-2xl sm:text-3xl md:text-4xl font-black leading-tight tracking-tight drop-shadow-2xl">
                           {movie?.title}
                         </h1>
@@ -399,13 +416,32 @@ export default function MovieDetail() {
                         )}
                       </div>
 
+                      {/* Tagline */}
+                      {movie?.tagline && (
+                        <p className="text-sm text-white/70 italic leading-tight">
+                          "{movie.tagline}"
+                        </p>
+                      )}
+
+                      {/* Director */}
+                      {director && (
+                        <p className="text-xs text-white/80">
+                          Directed by <span className="font-semibold text-white/95">{director.name}</span>
+                        </p>
+                      )}
+
                       {/* Meta - Compact badges */}
-                      <div className="flex flex-wrap items-center gap-2 mb-3 text-xs">
+                      <div className="flex flex-wrap items-center gap-2 text-xs">
                         {rating && (
                           <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-green-500/20 border border-green-500/30">
                             <Star className="h-3 w-3 fill-current text-green-400" />
                             <span className="text-green-400 font-bold">{rating}</span>
                           </div>
+                        )}
+                        {certification && (
+                          <span className="px-2 py-0.5 rounded border border-white/30 text-white/90 font-bold">
+                            {certification}
+                          </span>
                         )}
                         {year && (
                           <span className="inline-flex items-center gap-1 text-white/80 font-medium">
@@ -419,22 +455,31 @@ export default function MovieDetail() {
                             {runtime}
                           </span>
                         )}
-                        {movie?.genres?.length > 0 && (
-                          <span className="text-white/70 font-medium">
-                            • {movie.genres.map((g) => g.name).slice(0, 3).join(', ')}
-                          </span>
-                        )}
                       </div>
 
-                      {/* Overview - 2 lines only */}
+                      {/* Genres - Badge style */}
+                      {movie?.genres?.length > 0 && (
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {movie.genres.slice(0, 4).map((g) => (
+                            <span
+                              key={g.id}
+                              className="px-2 py-0.5 rounded bg-white/10 text-white/70 text-[11px] font-medium"
+                            >
+                              {g.name}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Overview - 2 lines */}
                       {movie?.overview && (
-                        <p className="hidden md:block text-sm text-white/90 leading-relaxed line-clamp-2 mb-3 max-w-2xl drop-shadow-lg">
+                        <p className="hidden md:block text-sm text-white/90 leading-relaxed line-clamp-2 max-w-2xl drop-shadow-lg">
                           {movie.overview}
                         </p>
                       )}
 
-                      {/* Actions - Compact buttons */}
-                      <div className="flex flex-wrap items-center gap-2">
+                      {/* Actions */}
+                      <div className="flex flex-wrap items-center gap-2 pt-1">
                         {ytTrailer && (
                           <a
                             href={ytTrailer}
@@ -470,6 +515,20 @@ export default function MovieDetail() {
                             {wlStatus === 'watched' ? 'Watched' : 'Watch'}
                           </span>
                         </button>
+                        <button
+                          onClick={() => {
+                            if (navigator.share) {
+                              navigator.share({
+                                title: movie?.title,
+                                text: movie?.overview,
+                                url: window.location.href,
+                              })
+                            }
+                          }}
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-white/10 backdrop-blur px-3 py-2 text-sm font-bold hover:bg-white/20 transition-all active:scale-95"
+                        >
+                          <Share2 className="h-4 w-4" />
+                        </button>
                       </div>
                     </>
                   )}
@@ -480,14 +539,14 @@ export default function MovieDetail() {
         </div>
       </div>
 
-      {/* Content Sections - De-zoomed spacing */}
-      <div className="relative -mt-8 md:-mt-10 z-30">
+      {/* Content Sections */}
+      <div className="relative -mt-6 md:-mt-8 z-30">
         <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-12">
           {/* Two Column Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr,280px] xl:grid-cols-[1fr,320px] gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr,300px] xl:grid-cols-[1fr,340px] gap-6">
             {/* Main Content */}
             <div className="space-y-6 min-w-0">
-              {/* Overview - Only show if not in hero */}
+              {/* Overview - Mobile only */}
               {movie?.overview && (
                 <div className="md:hidden rounded-lg bg-white/5 backdrop-blur border border-white/10 p-4">
                   <h2 className="text-base font-bold mb-2">Overview</h2>
@@ -497,8 +556,14 @@ export default function MovieDetail() {
                 </div>
               )}
 
-              {/* Cast - With proper padding */}
-              {cast?.length > 0 && <CastSection cast={cast} />}
+              {/* Cast */}
+              {credits.cast?.length > 0 && <CastSection cast={credits.cast} />}
+
+              {/* Videos */}
+              {videos?.length > 0 && <VideosSection videos={videos} />}
+
+              {/* Images Gallery */}
+              {images.backdrops?.length > 0 && <ImagesSection images={images.backdrops} />}
 
               {/* Similar */}
               {similar?.length > 0 && <Rail title="Similar Movies" items={similar} />}
@@ -507,10 +572,17 @@ export default function MovieDetail() {
               {recs?.length > 0 && <Rail title="You Might Also Like" items={recs} />}
             </div>
 
-            {/* Sidebar - Sticky on desktop */}
-            <div className="space-y-6 lg:sticky lg:top-20 lg:self-start">
+            {/* Sidebar */}
+            <div className="space-y-4 lg:sticky lg:top-20 lg:self-start">
               <WhereToWatch providers={providers} />
               {movie && <MovieDetails movie={movie} />}
+              {movie?.production_companies?.length > 0 && (
+                <ProductionCompanies companies={movie.production_companies} />
+              )}
+              {keywords?.length > 0 && <KeywordsSection keywords={keywords} />}
+              {movie?.belongs_to_collection && (
+                <CollectionCard collection={movie.belongs_to_collection} />
+              )}
             </div>
           </div>
         </div>
@@ -591,8 +663,8 @@ function MovieDetails({ movie }) {
     { label: 'Budget', value: movie?.budget ? `$${(movie.budget / 1000000).toFixed(1)}M` : null },
     { label: 'Revenue', value: movie?.revenue ? `$${(movie.revenue / 1000000).toFixed(1)}M` : null },
     { label: 'Status', value: movie?.status },
-    { label: 'Original Language', value: movie?.original_language?.toUpperCase() },
-  ].filter(d => d.value)
+    { label: 'Language', value: movie?.original_language?.toUpperCase() },
+  ].filter((d) => d.value)
 
   if (!details.length) return null
 
@@ -607,6 +679,93 @@ function MovieDetails({ movie }) {
           </div>
         ))}
       </div>
+    </div>
+  )
+}
+
+function ProductionCompanies({ companies }) {
+  const top = companies.slice(0, 3)
+  if (!top.length) return null
+
+  return (
+    <div className="rounded-lg bg-white/5 backdrop-blur border border-white/10 p-4">
+      <h2 className="text-sm font-bold mb-3">Production</h2>
+      <div className="flex flex-wrap gap-3">
+        {top.map((c) => (
+          <div
+            key={c.id}
+            className="flex items-center justify-center h-12 px-3 rounded bg-white/10 border border-white/10"
+            title={c.name}
+          >
+            {c.logo_path ? (
+              <img
+                src={IMG.logo(c.logo_path)}
+                alt={c.name}
+                className="max-h-8 max-w-[80px] object-contain"
+                loading="lazy"
+              />
+            ) : (
+              <span className="text-[10px] text-white/70 text-center">{c.name}</span>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function KeywordsSection({ keywords }) {
+  if (!keywords?.length) return null
+
+  return (
+    <div className="rounded-lg bg-white/5 backdrop-blur border border-white/10 p-4">
+      <h2 className="text-sm font-bold mb-3 flex items-center gap-2">
+        <Tag className="h-4 w-4" />
+        Keywords
+      </h2>
+      <div className="flex flex-wrap gap-1.5">
+        {keywords.map((k) => (
+          <span
+            key={k.id}
+            className="px-2 py-1 rounded bg-white/10 text-white/70 text-[11px] font-medium hover:bg-white/20 transition-colors cursor-pointer"
+          >
+            {k.name}
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function CollectionCard({ collection }) {
+  const navigate = useNavigate()
+  
+  return (
+    <div className="rounded-lg bg-white/5 backdrop-blur border border-white/10 p-4 overflow-hidden">
+      <h2 className="text-sm font-bold mb-2">Part of a Collection</h2>
+      <div className="relative aspect-[16/9] rounded overflow-hidden mb-2">
+        {collection.backdrop_path ? (
+          <img
+            src={IMG.backdrop(collection.backdrop_path)}
+            alt={collection.name}
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
+        ) : (
+          <div className="w-full h-full bg-white/10" />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+        <div className="absolute bottom-2 left-2 right-2">
+          <p className="text-xs font-bold text-white line-clamp-2">{collection.name}</p>
+        </div>
+      </div>
+      <button
+        onClick={() => navigate(`/collection/${collection.id}`)}
+        className="w-full text-xs font-semibold text-white/70 hover:text-white transition-colors flex items-center justify-center gap-1"
+      >
+        View Collection
+        <ChevronRight className="h-3 w-3" />
+      </button>
     </div>
   )
 }
@@ -643,9 +802,79 @@ function CastSection({ cast }) {
   )
 }
 
+function VideosSection({ videos }) {
+  const filtered = videos.filter((v) => v.site === 'YouTube').slice(0, 6)
+  if (!filtered.length) return null
+
+  return (
+    <div>
+      <h2 className="text-base font-bold mb-3 flex items-center gap-2">
+        <Film className="h-4 w-4" />
+        Videos & Trailers
+      </h2>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        {filtered.map((v) => (
+          <a
+            key={v.id}
+            href={`https://www.youtube.com/watch?v=${v.key}`}
+            target="_blank"
+            rel="noreferrer"
+            className="group relative aspect-video rounded-md overflow-hidden bg-white/5 border border-white/10"
+          >
+            <img
+              src={`https://img.youtube.com/vi/${v.key}/mqdefault.jpg`}
+              alt={v.name}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              loading="lazy"
+            />
+            <div className="absolute inset-0 bg-black/40 group-hover:bg-black/60 transition-colors flex items-center justify-center">
+              <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center group-hover:scale-110 transition-transform shadow-xl">
+                <Play className="h-5 w-5 fill-current text-black ml-0.5" />
+              </div>
+            </div>
+            <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black to-transparent">
+              <p className="text-[10px] font-bold text-white line-clamp-2 leading-tight">
+                {v.name}
+              </p>
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function ImagesSection({ images }) {
+  if (!images?.length) return null
+
+  return (
+    <div>
+      <h2 className="text-base font-bold mb-3 flex items-center gap-2">
+        <ImageIcon className="h-4 w-4" />
+        Images
+      </h2>
+      <div className="flex gap-3 overflow-x-auto pb-3 scrollbar-hide px-0.5">
+        {images.map((img, idx) => (
+          <div
+            key={idx}
+            className="flex-shrink-0 w-[200px] md:w-[240px] aspect-video rounded-md overflow-hidden bg-white/5 border border-white/10 shadow-md group"
+          >
+            <img
+              src={IMG.still(img.file_path)}
+              alt=""
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              loading="lazy"
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function Rail({ title, items }) {
   const navigate = useNavigate()
-  
+
   return (
     <div>
       <h2 className="text-base font-bold mb-3">{title}</h2>

@@ -90,9 +90,10 @@ export default function HeroSliderSection({ className = "" }) {
     setTimeout(() => setIsTransitioning(false), 1000);
   };
 
-  // Touch gestures
+  // Touch gestures for swipe navigation
   const handleTouchStart = (e) => {
     touchStartX.current = e.touches[0].clientX;
+    touchEndX.current = e.touches[0].clientX;
   };
 
   const handleTouchMove = (e) => {
@@ -100,11 +101,22 @@ export default function HeroSliderSection({ className = "" }) {
   };
 
   const handleTouchEnd = () => {
-    const diff = touchStartX.current - touchEndX.current;
-    if (Math.abs(diff) > 50) {
-      if (diff > 0) nextSlide();
-      else prevSlide();
+    const diffX = touchStartX.current - touchEndX.current;
+    const minSwipeDistance = 50; // Minimum distance for a swipe
+    
+    if (Math.abs(diffX) > minSwipeDistance) {
+      if (diffX > 0) {
+        // Swiped left - go to next
+        nextSlide();
+      } else {
+        // Swiped right - go to previous
+        prevSlide();
+      }
     }
+    
+    // Reset
+    touchStartX.current = 0;
+    touchEndX.current = 0;
   };
 
   const currentMovie = slides[currentIndex] || {};
@@ -129,7 +141,7 @@ export default function HeroSliderSection({ className = "" }) {
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Hero Image Container - 75vh for strong presence */}
+      {/* Hero Image Container - 75vh */}
       <div className="relative w-full h-[75vh]">
         {/* Background Images */}
         {slides.map((movie, idx) => {
@@ -154,15 +166,15 @@ export default function HeroSliderSection({ className = "" }) {
           );
         })}
 
-        {/* Balanced Gradients - Visibility + Readability */}
-        {/* Top fade - for header */}
-        <div className="absolute top-0 inset-x-0 h-20 md:h-24 bg-gradient-to-b from-black/80 to-transparent z-20" />
+        {/* Enhanced Black Gradients - Stronger for better text contrast */}
+        {/* Top fade - header protection */}
+        <div className="absolute top-0 inset-x-0 h-24 md:h-28 bg-gradient-to-b from-black via-black/70 to-transparent z-20" />
         
-        {/* Left side fade - for text readability */}
-        <div className="absolute inset-y-0 left-0 w-1/2 md:w-2/5 bg-gradient-to-r from-black/50 via-black/30 to-transparent z-20" />
+        {/* Left side fade - text readability */}
+        <div className="absolute inset-y-0 left-0 w-3/5 md:w-1/2 bg-gradient-to-r from-black/70 via-black/50 to-transparent z-20" />
         
-        {/* Bottom fade - for text area */}
-        <div className="absolute bottom-0 inset-x-0 h-1/2 bg-gradient-to-t from-black via-black/70 to-transparent z-20" />
+        {/* Bottom fade - strong text area */}
+        <div className="absolute bottom-0 inset-x-0 h-3/5 bg-gradient-to-t from-black via-black/85 to-transparent z-20" />
       </div>
 
       {/* Content Overlay */}
@@ -201,10 +213,10 @@ export default function HeroSliderSection({ className = "" }) {
               </p>
             )}
 
-            {/* Single Button - Orange Gradient "More Info" */}
+            {/* Single Button - Smaller size */}
             <button
               onClick={viewDetails}
-              className="inline-flex items-center justify-center gap-2 rounded-lg px-8 py-3 text-sm font-bold text-white transition-all hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-orange-500/50 shadow-2xl"
+              className="inline-flex items-center justify-center gap-1.5 rounded-lg px-5 py-2 text-sm font-bold text-white transition-all hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-orange-500/50 shadow-2xl"
               style={{
                 background: "linear-gradient(90deg, #fe9245 10%, #eb423b 90%)",
               }}
@@ -216,7 +228,7 @@ export default function HeroSliderSection({ className = "" }) {
         </div>
       </div>
 
-      {/* Subtle Navigation Arrows - Hover only */}
+      {/* Subtle Navigation Arrows - Desktop only, hover to show */}
       <button
         onClick={prevSlide}
         disabled={isTransitioning}

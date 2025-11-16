@@ -113,14 +113,12 @@ export default function HeroSliderSection({ className = "" }) {
   if (loading) {
     return (
       <section className={`relative w-full bg-black ${className}`}>
-        <div className="h-[85vh] md:h-[90vh] animate-pulse bg-neutral-900" />
+        <div className="h-[60vh] md:h-[65vh] animate-pulse bg-neutral-900" />
       </section>
     );
   }
 
   if (!slides.length) return null;
-
-  const isInWatchlist = watchlistIds.has(currentMovie?.id);
 
   return (
     <section
@@ -131,9 +129,9 @@ export default function HeroSliderSection({ className = "" }) {
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Hero Image Container */}
-      <div className="relative w-full h-[85vh] md:h-[90vh]">
-        {/* Background Images */}
+      {/* Hero Image Container - Reduced height for scroll hint */}
+      <div className="relative w-full h-[60vh] md:h-[65vh]">
+        {/* Background Images - Clear and bright */}
         {slides.map((movie, idx) => {
           const bg = tmdbImg(
             movie.backdrop_path || movie.poster_path,
@@ -156,24 +154,28 @@ export default function HeroSliderSection({ className = "" }) {
           );
         })}
 
-        {/* Premium Gradients */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent z-20" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/60 to-transparent z-20" />
-        <div className="absolute bottom-0 inset-x-0 h-1/3 bg-gradient-to-t from-black to-transparent z-20" />
-        <div className="absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-black/90 to-transparent z-20" />
+        {/* Targeted Gradients - Only darken bottom section for text */}
+        {/* Top fade - subtle */}
+        <div className="absolute top-0 inset-x-0 h-16 md:h-20 bg-gradient-to-b from-black/70 to-transparent z-20" />
+        
+        {/* Left side fade for text area */}
+        <div className="absolute inset-y-0 left-0 w-1/2 md:w-2/5 bg-gradient-to-r from-black/40 via-black/30 to-transparent z-20" />
+        
+        {/* Bottom dark area ONLY - where text sits */}
+        <div className="absolute bottom-0 inset-x-0 h-2/5 bg-gradient-to-t from-black via-black/80 to-transparent z-20" />
       </div>
 
       {/* Content Overlay */}
-      <div className="absolute inset-0 z-30 flex flex-col justify-end pb-16 md:pb-24 pt-20">
+      <div className="absolute inset-0 z-30 flex flex-col justify-end pb-8 md:pb-12 pt-20">
         <div className="w-full px-4 md:px-12 lg:px-16">
           <div className="max-w-2xl">
-            {/* Title - Reduced size */}
-            <h1 className="text-white font-black tracking-tight leading-tight text-3xl sm:text-4xl md:text-5xl lg:text-5xl drop-shadow-2xl mb-3 line-clamp-2">
+            {/* Title */}
+            <h1 className="text-white font-black tracking-tight leading-tight text-3xl sm:text-4xl md:text-5xl drop-shadow-2xl mb-2 line-clamp-2">
               {currentMovie?.title || "Featured"}
             </h1>
 
             {/* Meta Info */}
-            <div className="flex items-center gap-2 mb-3 text-sm">
+            <div className="flex items-center gap-2 mb-2 text-sm">
               {currentMovie?.vote_average && (
                 <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-green-500/20 border border-green-500/40">
                   <span className="text-green-400 font-bold text-sm">★</span>
@@ -192,9 +194,9 @@ export default function HeroSliderSection({ className = "" }) {
               </span>
             </div>
 
-            {/* Overview - Fixed to 2 lines max, smaller text */}
+            {/* Overview - 2 lines max, smaller, hidden on mobile */}
             {currentMovie?.overview && (
-              <p className="hidden md:block text-white/90 text-sm leading-relaxed line-clamp-2 drop-shadow-lg mb-5 max-w-xl">
+              <p className="hidden md:block text-white/90 text-sm leading-relaxed line-clamp-2 drop-shadow-lg mb-3 max-w-xl">
                 {currentMovie.overview}
               </p>
             )}
@@ -203,7 +205,7 @@ export default function HeroSliderSection({ className = "" }) {
             <div className="flex items-center gap-2">
               <button
                 onClick={viewDetails}
-                className="inline-flex items-center justify-center gap-2 rounded-lg px-6 md:px-8 py-2.5 text-sm font-bold text-white transition-all hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-orange-500/50 shadow-2xl"
+                className="inline-flex items-center justify-center gap-2 rounded-lg px-6 py-2.5 text-sm font-bold text-white transition-all hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-orange-500/50 shadow-2xl"
                 style={{
                   background: "linear-gradient(90deg, #fe9245 10%, #eb423b 90%)",
                 }}
@@ -214,7 +216,7 @@ export default function HeroSliderSection({ className = "" }) {
 
               <button
                 onClick={viewDetails}
-                className="inline-flex items-center justify-center gap-2 rounded-lg bg-white/10 backdrop-blur-md border border-white/20 px-6 md:px-8 py-2.5 text-sm font-bold text-white transition-all hover:bg-white/20 active:scale-95 focus:outline-none focus:ring-2 focus:ring-white/50"
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-white/10 backdrop-blur-md border border-white/20 px-6 py-2.5 text-sm font-bold text-white transition-all hover:bg-white/20 active:scale-95 focus:outline-none focus:ring-2 focus:ring-white/50"
               >
                 <Info className="h-4 w-4" />
                 <span className="hidden sm:inline">More Info</span>
@@ -225,11 +227,11 @@ export default function HeroSliderSection({ className = "" }) {
         </div>
       </div>
 
-      {/* Subtle Navigation Arrows - Only on hover */}
+      {/* Subtle Navigation Arrows - Only visible on hover */}
       <button
         onClick={prevSlide}
         disabled={isTransitioning}
-        className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 z-40 items-center justify-center h-10 w-10 rounded-full bg-black/30 backdrop-blur-sm text-white/60 transition-all hover:bg-black/50 hover:text-white opacity-0 hover:opacity-100 group-hover:opacity-100 active:scale-95 disabled:opacity-0 focus:outline-none"
+        className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 z-40 items-center justify-center h-10 w-10 rounded-full bg-black/30 backdrop-blur-sm text-white/60 transition-all hover:bg-black/50 hover:text-white opacity-0 hover:opacity-100 active:scale-95 disabled:opacity-0 focus:outline-none"
         aria-label="Previous slide"
       >
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -240,7 +242,7 @@ export default function HeroSliderSection({ className = "" }) {
       <button
         onClick={nextSlide}
         disabled={isTransitioning}
-        className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 z-40 items-center justify-center h-10 w-10 rounded-full bg-black/30 backdrop-blur-sm text-white/60 transition-all hover:bg-black/50 hover:text-white opacity-0 hover:opacity-100 group-hover:opacity-100 active:scale-95 disabled:opacity-0 focus:outline-none"
+        className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 z-40 items-center justify-center h-10 w-10 rounded-full bg-black/30 backdrop-blur-sm text-white/60 transition-all hover:bg-black/50 hover:text-white opacity-0 hover:opacity-100 active:scale-95 disabled:opacity-0 focus:outline-none"
         aria-label="Next slide"
       >
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -249,7 +251,7 @@ export default function HeroSliderSection({ className = "" }) {
       </button>
 
       {/* Slide Indicators */}
-      <div className="absolute bottom-6 md:bottom-8 right-4 md:right-8 z-40 flex items-center gap-2">
+      <div className="absolute bottom-4 md:bottom-6 right-4 md:right-8 z-40 flex items-center gap-2">
         {slides.map((_, idx) => (
           <button
             key={idx}
@@ -263,18 +265,6 @@ export default function HeroSliderSection({ className = "" }) {
           />
         ))}
       </div>
-
-      {/* Progress Bar */}
-      {!isPaused && (
-        <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/10 z-40">
-          <div
-            className="h-full bg-gradient-to-r from-orange-500 to-red-500 transition-all ease-linear"
-            style={{
-              width: `${((currentIndex + 1) / slides.length) * 100}%`,
-            }}
-          />
-        </div>
-      )}
     </section>
   );
 }

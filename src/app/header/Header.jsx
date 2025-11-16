@@ -91,6 +91,13 @@ export default function Header({ onOpenSearch }) {
     setAccountMenuOpen(false)
   }, [pathname])
 
+  // Force header to show when account menu opens
+  useEffect(() => {
+    if (accountMenuOpen) {
+      setScrollDirection('up')
+    }
+  }, [accountMenuOpen])
+
   const handleSignOut = async () => {
     await supabase.auth.signOut()
     setDropdownOpen(false)
@@ -109,13 +116,11 @@ export default function Header({ onOpenSearch }) {
 
   return (
     <>
-      {/* Desktop & Tablet Header - hidden on mobile when account menu open */}
+      {/* Desktop & Tablet Header - ALWAYS visible, even on mobile when account menu open */}
       <header
         ref={hdrRef}
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          accountMenuOpen ? 'md:block hidden' : 'block'
-        } ${
-          scrolled
+          scrolled || accountMenuOpen
             ? 'bg-[#0a0a0a]/95 backdrop-blur-md shadow-lg'
             : 'bg-gradient-to-b from-black/80 to-transparent'
         } ${scrollDirection === 'down' && !accountMenuOpen ? '-translate-y-full' : 'translate-y-0'}`}
@@ -319,7 +324,7 @@ export default function Header({ onOpenSearch }) {
             <span className="text-xs font-medium">Search</span>
           </button>
 
-          {/* Account button - shows as selected when menu is open */}
+          {/* Account button - PROMINENT when active, same as Home/Browse */}
           <button
             onClick={() => setAccountMenuOpen(!accountMenuOpen)}
             className={`flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-all ${
@@ -328,36 +333,38 @@ export default function Header({ onOpenSearch }) {
                 : 'text-white/60 hover:text-white hover:bg-white/5'
             }`}
           >
-            {userAvatar ? (
-              <img
-                src={userAvatar}
-                alt={userName}
-                className={`h-6 w-6 rounded-full object-cover ${
-                  isAccountActive ? 'ring-2 ring-white/40' : 'ring-2 ring-white/10'
-                }`}
-              />
-            ) : (
-              <div className={`h-6 w-6 rounded-full bg-gradient-to-br from-[#FF9245] to-[#EB423B] flex items-center justify-center text-white text-[10px] font-bold ${
-                isAccountActive ? 'ring-2 ring-white/40' : ''
-              }`}>
-                {userName.charAt(0).toUpperCase()}
-              </div>
-            )}
+            {/* Icon container - consistent with other nav items */}
+            <div className="h-6 w-6 flex items-center justify-center">
+              {userAvatar ? (
+                <img
+                  src={userAvatar}
+                  alt={userName}
+                  className={`h-6 w-6 rounded-full object-cover transition-all ${
+                    isAccountActive ? 'ring-2 ring-white/40' : 'ring-2 ring-white/10'
+                  }`}
+                />
+              ) : (
+                <UserIcon className={`h-6 w-6 ${isAccountActive ? 'fill-current' : ''}`} />
+              )}
+            </div>
             <span className="text-xs font-medium">Account</span>
           </button>
         </div>
       </nav>
 
-      {/* Mobile Account Menu - FULL SCREEN (covers everything except bottom nav) */}
+      {/* Mobile Account Menu - FULL SCREEN (below top header, above bottom nav) */}
       {accountMenuOpen && (
         <div 
-          className="md:hidden fixed inset-0 z-40 bg-[#0a0a0a] overflow-y-auto"
+          className="md:hidden fixed z-40 bg-[#0a0a0a] overflow-y-auto"
           style={{
-            paddingBottom: '72px', // Space for bottom nav
+            top: '64px', // Below top header
+            bottom: '72px', // Above bottom nav
+            left: 0,
+            right: 0,
           }}
         >
-          {/* Content with padding from top */}
-          <div className="min-h-full px-4 pt-4 pb-6">
+          {/* Content */}
+          <div className="h-full px-4 pt-4 pb-6">
             {/* Close button at top right */}
             <div className="flex justify-end mb-4">
               <button

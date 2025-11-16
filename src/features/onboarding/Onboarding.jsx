@@ -89,13 +89,13 @@ export default function Onboarding() {
         const data = await r.json()
         if (!active) return
         const all = (data.results || [])
-          .filter((m) => m.poster_path) // Only show movies with posters
+          .filter((m) => m.poster_path)
           .sort(
             (a, b) =>
               (b.popularity || 0) - (a.popularity || 0) ||
               (b.vote_average || 0) - (a.vote_average || 0)
           )
-          .slice(0, 8) // Limit to 8 results for clean UX
+          .slice(0, 8)
         setResults(all)
       } catch {
         if (!active) return
@@ -254,63 +254,63 @@ export default function Onboarding() {
 
   return (
     <div className="fixed inset-0 z-[60] bg-[linear-gradient(120deg,#0a121a_0%,#0d1722_50%,#0c1017_100%)]">
-      {/* Gradient orbs (very subtle) */}
+      {/* Gradient orbs */}
       <div aria-hidden className="pointer-events-none fixed inset-0">
-        <div className="absolute -top-40 -left-40 h-[45vmin] w-[45vmin] rounded-full blur-3xl opacity-20 bg-[radial-gradient(closest-side,rgba(254,146,69,0.45),rgba(254,146,69,0)_70%)]" />
-        <div className="absolute -bottom-44 -right-44 h-[55vmin] w-[55vmin] rounded-full blur-3xl opacity-25 bg-[radial-gradient(closest-side,rgba(235,66,59,0.38),rgba(235,66,59,0)_70%)]" />
+        <div className="absolute -top-40 -left-40 h-[50vmin] w-[50vmin] rounded-full blur-3xl opacity-25 bg-[radial-gradient(closest-side,rgba(254,146,69,0.45),rgba(254,146,69,0)_70%)]" />
+        <div className="absolute -bottom-44 -right-44 h-[60vmin] w-[60vmin] rounded-full blur-3xl opacity-30 bg-[radial-gradient(closest-side,rgba(235,66,59,0.38),rgba(235,66,59,0)_70%)]" />
       </div>
 
-      {/* Content - no scroll needed */}
+      {/* Content - centered, breathable */}
       <div
-        className="h-full w-full flex items-center justify-center px-3 py-3"
+        className="h-full w-full flex items-center justify-center px-4 py-4 sm:py-6"
         style={{
-          paddingTop: 'max(env(safe-area-inset-top), 12px)',
-          paddingBottom: 'max(env(safe-area-inset-bottom), 12px)',
+          paddingTop: 'max(env(safe-area-inset-top), 16px)',
+          paddingBottom: 'max(env(safe-area-inset-bottom), 16px)',
         }}
       >
-        {/* Card - fits viewport perfectly */}
-        <div className="relative w-full max-w-xl">
+        {/* Card */}
+        <div className="relative w-full max-w-lg">
           {/* Gradient glow */}
           <div
             aria-hidden
-            className="pointer-events-none absolute -inset-1.5 rounded-xl opacity-30 blur-xl bg-gradient-to-r from-orange-500/15 via-red-500/15 to-pink-500/15"
+            className="pointer-events-none absolute -inset-2 sm:-inset-3 rounded-2xl opacity-40 sm:opacity-50 blur-xl bg-gradient-to-r from-orange-500/20 via-red-500/20 to-pink-500/20"
           />
 
           {/* Card container */}
-          <div className="relative rounded-xl bg-black/70 backdrop-blur-xl border border-white/10 shadow-2xl overflow-hidden">
-            {/* Progress indicator - minimal */}
-            <div className="flex items-center justify-center gap-1.5 pt-3 pb-2.5">
+          <div className="relative rounded-xl sm:rounded-2xl bg-black/65 backdrop-blur-xl border border-white/10 shadow-2xl overflow-hidden">
+            {/* Progress indicator */}
+            <div className="flex items-center justify-center gap-2 pt-5 pb-4">
               <div
-                className={`h-0.5 w-10 rounded-full transition-all duration-300 ${
-                  step === 1 ? 'bg-gradient-to-r from-[#FF9245] to-[#EB423B]' : 'bg-white/15'
+                className={`h-1 w-14 rounded-full transition-all duration-300 ${
+                  step === 1 ? 'bg-gradient-to-r from-[#FF9245] to-[#EB423B]' : 'bg-white/20'
                 }`}
               />
               <div
-                className={`h-0.5 w-10 rounded-full transition-all duration-300 ${
-                  step === 2 ? 'bg-gradient-to-r from-[#FF9245] to-[#EB423B]' : 'bg-white/15'
+                className={`h-1 w-14 rounded-full transition-all duration-300 ${
+                  step === 2 ? 'bg-gradient-to-r from-[#FF9245] to-[#EB423B]' : 'bg-white/20'
                 }`}
               />
             </div>
 
-            {/* Header - ultra-compact */}
-            <div className="px-4 pb-3">
-              <h2 className="text-center text-lg sm:text-xl font-black text-white mb-1">
+            {/* Header */}
+            <div className="px-5 sm:px-6 pb-5">
+              <h2 className="text-center text-xl sm:text-2xl font-black text-white mb-2">
                 {step === 1 ? 'Pick your favorite genres' : 'Add movies you love'}
               </h2>
-              <p className="text-center text-[11px] sm:text-xs text-white/65 leading-snug">
+              <p className="text-center text-xs sm:text-sm text-white/70 leading-relaxed">
                 {step === 1
                   ? 'Select genres that match your taste'
                   : 'Search and add movies to personalize your experience'}
               </p>
               {error && (
-                <p className="mt-2 text-center text-[10px] sm:text-xs text-red-400 bg-red-500/10 rounded-lg px-3 py-1.5">
+                <p className="mt-3 text-center text-xs text-red-400 bg-red-500/10 rounded-lg px-4 py-2">
                   {error}
                 </p>
               )}
             </div>
 
-            {/* Body - compact, no scroll */}
-            <div className="px-4 pb-3">
+            {/* Body - scrollable if needed */}
+            <div className="px-5 sm:px-6 pb-5 max-h-[50vh] overflow-y-auto">
               {step === 1 ? (
                 <StepGenres
                   GENRES={GENRES}
@@ -330,19 +330,19 @@ export default function Onboarding() {
               )}
             </div>
 
-            {/* Footer actions - minimal padding */}
-            <div className="px-4 py-2.5 border-t border-white/10 bg-black/50">
+            {/* Footer actions */}
+            <div className="px-5 sm:px-6 py-4 border-t border-white/10 bg-black/50">
               {step === 1 ? (
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center justify-between gap-4">
                   <button
-                    className="text-[11px] sm:text-xs font-semibold text-white/50 hover:text-white/80 transition-colors disabled:opacity-50 active:scale-95"
+                    className="text-xs sm:text-sm font-semibold text-white/60 hover:text-white transition-colors disabled:opacity-50 active:scale-95"
                     disabled={loading}
                     onClick={() => saveAndGo({ skipGenres: true })}
                   >
                     Skip
                   </button>
                   <button
-                    className="flex-1 max-w-[200px] px-6 py-2 rounded-full bg-gradient-to-r from-[#FF9245] to-[#EB423B] text-white text-xs sm:text-sm font-bold shadow-lg hover:shadow-xl hover:from-[#FF9245] hover:to-[#E03C9E] transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 max-w-xs px-7 py-2.5 rounded-full bg-gradient-to-r from-[#FF9245] to-[#EB423B] text-white text-sm font-bold shadow-lg hover:shadow-xl hover:from-[#FF9245] hover:to-[#E03C9E] transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={loading || selectedGenres.length === 0}
                     onClick={() => setStep(2)}
                   >
@@ -350,16 +350,16 @@ export default function Onboarding() {
                   </button>
                 </div>
               ) : (
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center justify-between gap-4">
                   <button
-                    className="text-[11px] sm:text-xs font-semibold text-white/70 hover:text-white transition-colors disabled:opacity-50 active:scale-95"
+                    className="text-xs sm:text-sm font-semibold text-white/70 hover:text-white transition-colors disabled:opacity-50 active:scale-95"
                     onClick={() => setStep(1)}
                     disabled={loading}
                   >
                     ← Back
                   </button>
                   <button
-                    className="flex-1 max-w-[200px] px-6 py-2 rounded-full bg-gradient-to-r from-[#FF9245] to-[#EB423B] text-white text-xs sm:text-sm font-bold shadow-lg hover:shadow-xl hover:from-[#FF9245] hover:to-[#E03C9E] transition-all active:scale-95 disabled:opacity-50"
+                    className="flex-1 max-w-xs px-7 py-2.5 rounded-full bg-gradient-to-r from-[#FF9245] to-[#EB423B] text-white text-sm font-bold shadow-lg hover:shadow-xl hover:from-[#FF9245] hover:to-[#E03C9E] transition-all active:scale-95 disabled:opacity-50"
                     disabled={loading}
                     onClick={() => saveAndGo()}
                   >
@@ -378,7 +378,7 @@ export default function Onboarding() {
 /* ----------------------------- Step Components ----------------------------- */
 function StepGenres({ GENRES, selectedGenres, toggleGenre }) {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 sm:gap-2">
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-2.5">
       {GENRES.map((g) => {
         const isSelected = selectedGenres.includes(g.id)
         return (
@@ -386,16 +386,16 @@ function StepGenres({ GENRES, selectedGenres, toggleGenre }) {
             key={g.id}
             type="button"
             onClick={() => toggleGenre(g.id)}
-            className={`relative h-9 sm:h-10 rounded-lg border-2 font-semibold text-[11px] sm:text-xs transition-all active:scale-95 ${
+            className={`relative h-11 sm:h-12 rounded-lg sm:rounded-xl border-2 font-semibold text-xs sm:text-sm transition-all active:scale-95 ${
               isSelected
-                ? 'border-[#FF9245] bg-gradient-to-br from-[#FF9245]/25 to-[#EB423B]/20 text-white shadow-md scale-[1.02]'
+                ? 'border-[#FF9245] bg-gradient-to-br from-[#FF9245]/20 to-[#EB423B]/20 text-white shadow-lg scale-[1.02]'
                 : 'border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:border-white/20'
             }`}
           >
             <span className="relative z-10">{g.label}</span>
             {isSelected && (
-              <div className="absolute top-1 right-1">
-                <Check className="h-3 w-3 text-[#FF9245]" />
+              <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2">
+                <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#FF9245]" />
               </div>
             )}
           </button>
@@ -415,32 +415,32 @@ function StepMovies({
   favoriteMovies,
 }) {
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {/* Search input */}
       <div className="relative">
-        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/40" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
         <input
           type="text"
           placeholder="Search your favorite movies…"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="w-full pl-8 pr-3 py-2 rounded-lg border border-white/10 bg-white/5 text-xs sm:text-sm text-white placeholder-white/40 focus:outline-none focus:border-[#FF9245] focus:ring-1 focus:ring-[#FF9245]/30 transition-all"
+          className="w-full pl-10 pr-4 py-2.5 rounded-lg sm:rounded-xl border border-white/10 bg-white/5 text-sm text-white placeholder-white/40 focus:outline-none focus:border-[#FF9245] focus:ring-2 focus:ring-[#FF9245]/20 transition-all"
         />
       </div>
 
-      {/* Empty state with helpful hint */}
+      {/* Empty state */}
       {!query && favoriteMovies.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-6 text-center">
-          <Sparkles className="h-8 w-8 text-white/20 mb-2" />
-          <p className="text-[11px] text-white/50 leading-relaxed max-w-xs">
+        <div className="flex flex-col items-center justify-center py-8 text-center">
+          <Sparkles className="h-10 w-10 text-white/30 mb-3" />
+          <p className="text-xs text-white/60 leading-relaxed max-w-xs">
             Search for movies you love. This helps us understand your taste and give you better recommendations.
           </p>
         </div>
       )}
 
-      {/* Search results - compact */}
+      {/* Search results */}
       {query && results.length > 0 && (
-        <div className="rounded-lg bg-white/5 border border-white/10 overflow-hidden max-h-[180px] overflow-y-auto">
+        <div className="rounded-lg sm:rounded-xl bg-white/5 border border-white/10 overflow-hidden max-h-56 overflow-y-auto">
           {results.map((r) => {
             const selected = isMovieSelected(r.id)
             const canAdd = !selected && favoriteMovies.length < 10
@@ -457,25 +457,25 @@ function StepMovies({
                   }
                 }}
                 disabled={!selected && !canAdd}
-                className="flex w-full items-center gap-2 px-2.5 py-2 hover:bg-white/5 text-left transition-colors active:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex w-full items-center gap-3 px-3 py-2.5 hover:bg-white/5 text-left transition-colors active:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <img
                   src={`https://image.tmdb.org/t/p/w92${r.poster_path}`}
                   alt=""
-                  className="w-8 h-12 object-cover rounded flex-shrink-0"
+                  className="w-10 h-15 object-cover rounded flex-shrink-0"
                 />
                 <div className="flex-1 min-w-0">
-                  <div className="text-[11px] sm:text-xs font-medium text-white truncate">{r.title}</div>
-                  <div className="text-[10px] text-white/50">
+                  <div className="text-xs sm:text-sm font-medium text-white truncate">{r.title}</div>
+                  <div className="text-[10px] sm:text-xs text-white/60">
                     {r.release_date ? r.release_date.slice(0, 4) : 'Unknown'}
                   </div>
                 </div>
                 {selected ? (
-                  <Check className="h-3.5 w-3.5 text-[#FF9245] flex-shrink-0" />
+                  <Check className="h-4 w-4 text-[#FF9245] flex-shrink-0" />
                 ) : canAdd ? (
-                  <span className="text-[10px] text-white/50 flex-shrink-0">Add</span>
+                  <span className="text-xs text-white/60 flex-shrink-0">Add</span>
                 ) : (
-                  <span className="text-[10px] text-white/30 flex-shrink-0">Max 10</span>
+                  <span className="text-[10px] text-white/40 flex-shrink-0">Limit reached</span>
                 )}
               </button>
             )
@@ -485,37 +485,37 @@ function StepMovies({
 
       {/* No results */}
       {query && results.length === 0 && (
-        <div className="text-center py-4">
-          <p className="text-[11px] text-white/50">No movies found. Try a different search.</p>
+        <div className="text-center py-6">
+          <p className="text-xs text-white/60">No movies found. Try a different search.</p>
         </div>
       )}
 
-      {/* Selected movies - horizontal scroll */}
+      {/* Selected movies */}
       {favoriteMovies.length > 0 && (
         <div>
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-[11px] sm:text-xs font-semibold text-white/70">
+          <div className="flex items-center justify-between mb-2.5">
+            <h3 className="text-xs sm:text-sm font-semibold text-white/80">
               Your picks ({favoriteMovies.length}/10)
             </h3>
             {favoriteMovies.length >= 3 && (
-              <span className="text-[10px] text-green-400">✓ Good to go!</span>
+              <span className="text-[10px] sm:text-xs text-green-400">✓ Great selection!</span>
             )}
           </div>
-          <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+          <div className="flex gap-2.5 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
             {favoriteMovies.map((m) => (
               <div key={m.id} className="relative group flex-shrink-0">
                 <img
                   src={`https://image.tmdb.org/t/p/w92${m.poster_path}`}
                   alt={m.title}
-                  className="w-12 h-[72px] object-cover rounded-md ring-2 ring-white/10"
+                  className="w-16 h-24 object-cover rounded-lg ring-2 ring-white/10"
                 />
                 <button
                   type="button"
                   onClick={() => removeMovie(m.id)}
-                  className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center shadow-lg transition-colors active:scale-90"
+                  className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center shadow-lg transition-colors active:scale-90"
                   aria-label={`Remove ${m.title}`}
                 >
-                  <X className="h-2.5 w-2.5 text-white" />
+                  <X className="h-3 w-3 text-white" />
                 </button>
               </div>
             ))}

@@ -73,8 +73,8 @@ export default function CarouselRow({
 
   return (
     <div className="relative group w-full">
-      {/* Header - More padding on desktop */}
-      <div className="mb-3 px-4 sm:px-6 md:px-10 lg:px-16">
+      {/* Header - Desktop padding */}
+      <div className="mb-3 px-4 md:px-12 lg:px-16 xl:px-20">
         <h2 className="text-base md:text-lg font-bold tracking-tight text-white/95">
           {title}
         </h2>
@@ -82,16 +82,16 @@ export default function CarouselRow({
 
       {/* Carousel Container */}
       <div className="relative w-full">
-        {/* Navigation Arrows - Positioned inside padding zone */}
+        {/* Navigation Arrows - Outside the card zone */}
         {!loading && (
           <>
             {showLeftArrow && (
               <button
                 onClick={() => scroll("left")}
-                className="hidden md:flex absolute left-4 lg:left-6 top-0 bottom-0 z-40 w-12 items-center justify-center bg-gradient-to-r from-black/90 via-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                className="hidden lg:flex absolute left-0 top-1/2 -translate-y-1/2 z-40 h-full w-16 items-center justify-start pl-2 bg-gradient-to-r from-black/90 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                 aria-label="Previous"
               >
-                <div className="h-10 w-10 rounded-full bg-black/80 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white hover:text-black hover:scale-110 transition-all duration-200 shadow-xl border border-white/10">
+                <div className="h-10 w-10 rounded-full bg-black/90 backdrop-blur-md flex items-center justify-center text-white hover:bg-white hover:text-black hover:scale-110 transition-all duration-200 shadow-2xl border border-white/20">
                   <ChevronLeft className="h-6 w-6" strokeWidth={2.5} />
                 </div>
               </button>
@@ -99,10 +99,10 @@ export default function CarouselRow({
             {showRightArrow && (
               <button
                 onClick={() => scroll("right")}
-                className="hidden md:flex absolute right-4 lg:right-6 top-0 bottom-0 z-40 w-12 items-center justify-center bg-gradient-to-l from-black/90 via-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                className="hidden lg:flex absolute right-0 top-1/2 -translate-y-1/2 z-40 h-full w-16 items-center justify-end pr-2 bg-gradient-to-l from-black/90 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                 aria-label="Next"
               >
-                <div className="h-10 w-10 rounded-full bg-black/80 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white hover:text-black hover:scale-110 transition-all duration-200 shadow-xl border border-white/10">
+                <div className="h-10 w-10 rounded-full bg-black/90 backdrop-blur-md flex items-center justify-center text-white hover:bg-white hover:text-black hover:scale-110 transition-all duration-200 shadow-2xl border border-white/20">
                   <ChevronRight className="h-6 w-6" strokeWidth={2.5} />
                 </div>
               </button>
@@ -110,10 +110,10 @@ export default function CarouselRow({
           </>
         )}
 
-        {/* Carousel Rail - Increased desktop padding */}
+        {/* Carousel Rail - Desktop padding, mobile stays compact */}
         <div
           ref={railRef}
-          className="flex gap-2 md:gap-3 overflow-x-auto scrollbar-hide scroll-smooth pb-4 px-4 sm:px-6 md:px-10 lg:px-16"
+          className="flex gap-2 md:gap-3 overflow-x-auto scrollbar-hide scroll-smooth pb-4 px-4 md:px-12 lg:px-16 xl:px-20"
           style={{
             scrollSnapType: "x mandatory",
             scrollPaddingLeft: "1rem",
@@ -137,7 +137,7 @@ export default function CarouselRow({
   );
 }
 
-/* ===== Movie Card Component - Bug Fixed ===== */
+/* ===== Movie Card Component ===== */
 function MovieCard({ movie, onClick, index }) {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -162,16 +162,16 @@ function MovieCard({ movie, onClick, index }) {
         loading="lazy"
       />
 
-      {/* Multi-layer Shadow for Depth */}
+      {/* Multi-layer Shadow */}
       <div className="absolute inset-0 shadow-[0_4px_12px_rgba(0,0,0,0.5)] group-hover/card:shadow-[0_8px_30px_rgba(0,0,0,0.8)] transition-shadow duration-300" />
 
-      {/* Gradient Overlay - FIXED: Always visible, no conditional opacity */}
+      {/* Gradient Overlay - Always visible */}
       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-100">
         {/* Content Container */}
         <div className="absolute inset-0 flex flex-col justify-end p-3">
-          {/* Movie Info - Always visible */}
+          {/* Movie Info */}
           <div className="space-y-1">
-            {/* Title - Strong text shadow for readability */}
+            {/* Title */}
             <h3 className="text-xs font-bold text-white leading-tight line-clamp-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
               {movie.title}
             </h3>

@@ -368,7 +368,7 @@ export default function Onboarding() {
               </h2>
               <p className="text-center text-sm text-white/70">
                 {step === 1
-                  ? 'Pick a few genres that match your taste. We'll use this to find movies you'll love.'
+                  ? 'Pick a few genres that match your taste. We will use this to find movies you love.'
                   : 'Search or pick from popular movies. The more you add, the better your recommendations.'}
               </p>
               {error && (

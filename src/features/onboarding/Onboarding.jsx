@@ -244,48 +244,54 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="min-h-screen bg-[linear-gradient(120deg,#0a121a_0%,#0d1722_50%,#0c1017_100%)] flex flex-col">
+    <div className="fixed inset-0 bg-[linear-gradient(120deg,#0a121a_0%,#0d1722_50%,#0c1017_100%)] overflow-hidden">
       {/* Gradient orbs */}
       <div aria-hidden className="pointer-events-none fixed inset-0">
         <div className="absolute -top-40 -left-40 h-[50vmin] w-[50vmin] rounded-full blur-3xl opacity-25 bg-[radial-gradient(closest-side,rgba(254,146,69,0.45),rgba(254,146,69,0)_70%)]" />
         <div className="absolute -bottom-44 -right-44 h-[60vmin] w-[60vmin] rounded-full blur-3xl opacity-30 bg-[radial-gradient(closest-side,rgba(235,66,59,0.38),rgba(235,66,59,0)_70%)]" />
       </div>
 
-      {/* Content - centered with max-width, full height */}
-      <div className="relative flex-1 flex flex-col max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
-        {/* Progress indicator */}
-        <div className="flex items-center justify-center gap-2 mb-6 sm:mb-8">
+      {/* Content wrapper - calculated heights */}
+      <div className="relative h-full flex flex-col max-w-5xl mx-auto w-full">
+        {/* Progress indicator - fixed height */}
+        <div className="flex items-center justify-center gap-2 pt-4 sm:pt-6 pb-3 sm:pb-4 px-4">
           <div
-            className={`h-1 w-20 sm:w-24 rounded-full transition-all duration-300 ${
+            className={`h-1 w-16 sm:w-20 rounded-full transition-all duration-300 ${
               step === 1 ? 'bg-gradient-to-r from-[#FF9245] to-[#EB423B]' : 'bg-white/20'
             }`}
           />
           <div
-            className={`h-1 w-20 sm:w-24 rounded-full transition-all duration-300 ${
+            className={`h-1 w-16 sm:w-20 rounded-full transition-all duration-300 ${
               step === 2 ? 'bg-gradient-to-r from-[#FF9245] to-[#EB423B]' : 'bg-white/20'
             }`}
           />
         </div>
 
-        {/* Header */}
-        <div className="text-center mb-8 sm:mb-10">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white mb-3">
+        {/* Header - fixed height */}
+        <div className="px-4 sm:px-6 pb-4 sm:pb-5">
+          <h2 className="text-center text-2xl sm:text-3xl lg:text-4xl font-black text-white mb-2">
             {step === 1 ? 'Pick your favorite genres' : 'Add movies you love'}
           </h2>
-          <p className="text-sm sm:text-base lg:text-lg text-white/70 leading-relaxed max-w-2xl mx-auto">
+          <p className="text-center text-sm sm:text-base text-white/70 leading-relaxed max-w-2xl mx-auto">
             {step === 1
               ? 'Select genres that match your taste'
               : 'Search and add up to 50 movies to personalize your experience'}
           </p>
           {error && (
-            <p className="mt-4 text-sm text-red-400 bg-red-500/10 rounded-xl px-4 py-3 max-w-lg mx-auto">
+            <p className="mt-3 text-center text-xs sm:text-sm text-red-400 bg-red-500/10 rounded-xl px-4 py-2 max-w-lg mx-auto">
               {error}
             </p>
           )}
         </div>
 
-        {/* Body - flex-grow to fill space */}
-        <div className="flex-1 mb-8 overflow-y-auto">
+        {/* Body - flex-grow with overflow, leaves space for footer */}
+        <div 
+          className="flex-1 px-4 sm:px-6 overflow-y-auto"
+          style={{
+            /* Reserve space for footer: 80px buttons + 24px padding + safe-area */
+            maxHeight: 'calc(100vh - 200px - env(safe-area-inset-bottom))',
+          }}
+        >
           {step === 1 ? (
             <StepGenres
               GENRES={GENRES}
@@ -305,19 +311,24 @@ export default function Onboarding() {
           )}
         </div>
 
-        {/* Footer actions */}
-        <div className="border-t border-white/10 pt-6">
+        {/* Footer actions - fixed at bottom, always visible */}
+        <div 
+          className="mt-auto border-t border-white/10 bg-[#0a121a]/80 backdrop-blur-md px-4 sm:px-6 py-4 sm:py-5"
+          style={{
+            paddingBottom: 'max(1rem, env(safe-area-inset-bottom))',
+          }}
+        >
           {step === 1 ? (
             <div className="flex items-center justify-between gap-4 max-w-2xl mx-auto">
               <button
-                className="text-sm sm:text-base font-semibold text-white/60 hover:text-white transition-colors disabled:opacity-50 active:scale-95"
+                className="text-sm sm:text-base font-semibold text-white/60 hover:text-white transition-colors disabled:opacity-50 active:scale-95 px-2"
                 disabled={loading}
                 onClick={() => saveAndGo({ skipGenres: true })}
               >
                 Skip
               </button>
               <button
-                className="flex-1 max-w-md px-8 py-3.5 rounded-full bg-gradient-to-r from-[#FF9245] to-[#EB423B] text-white text-sm sm:text-base font-bold shadow-lg hover:shadow-xl hover:from-[#FF9245] hover:to-[#E03C9E] transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 max-w-md px-6 sm:px-8 py-3 sm:py-3.5 rounded-full bg-gradient-to-r from-[#FF9245] to-[#EB423B] text-white text-sm sm:text-base font-bold shadow-lg hover:shadow-xl hover:from-[#FF9245] hover:to-[#E03C9E] transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={loading || selectedGenres.length === 0}
                 onClick={() => setStep(2)}
               >
@@ -327,14 +338,14 @@ export default function Onboarding() {
           ) : (
             <div className="flex items-center justify-between gap-4 max-w-2xl mx-auto">
               <button
-                className="text-sm sm:text-base font-semibold text-white/70 hover:text-white transition-colors disabled:opacity-50 active:scale-95"
+                className="text-sm sm:text-base font-semibold text-white/70 hover:text-white transition-colors disabled:opacity-50 active:scale-95 px-2"
                 onClick={() => setStep(1)}
                 disabled={loading}
               >
                 ← Back
               </button>
               <button
-                className="flex-1 max-w-md px-8 py-3.5 rounded-full bg-gradient-to-r from-[#FF9245] to-[#EB423B] text-white text-sm sm:text-base font-bold shadow-lg hover:shadow-xl hover:from-[#FF9245] hover:to-[#E03C9E] transition-all active:scale-95 disabled:opacity-50"
+                className="flex-1 max-w-md px-6 sm:px-8 py-3 sm:py-3.5 rounded-full bg-gradient-to-r from-[#FF9245] to-[#EB423B] text-white text-sm sm:text-base font-bold shadow-lg hover:shadow-xl hover:from-[#FF9245] hover:to-[#E03C9E] transition-all active:scale-95 disabled:opacity-50"
                 disabled={loading}
                 onClick={() => saveAndGo()}
               >
@@ -351,7 +362,7 @@ export default function Onboarding() {
 /* ----------------------------- Step Components ----------------------------- */
 function StepGenres({ GENRES, selectedGenres, toggleGenre }) {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3 pb-4">
       {GENRES.map((g) => {
         const isSelected = selectedGenres.includes(g.id)
         return (
@@ -359,7 +370,7 @@ function StepGenres({ GENRES, selectedGenres, toggleGenre }) {
             key={g.id}
             type="button"
             onClick={() => toggleGenre(g.id)}
-            className={`relative h-14 sm:h-16 rounded-xl border-2 font-bold text-sm sm:text-base transition-all active:scale-95 ${
+            className={`relative h-12 sm:h-14 rounded-xl border-2 font-bold text-sm sm:text-base transition-all active:scale-95 ${
               isSelected
                 ? 'border-[#FF9245] bg-gradient-to-br from-[#FF9245]/20 to-[#EB423B]/20 text-white shadow-lg shadow-orange-500/20'
                 : 'border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:border-white/20'
@@ -368,7 +379,7 @@ function StepGenres({ GENRES, selectedGenres, toggleGenre }) {
             <span className="relative z-10">{g.label}</span>
             {isSelected && (
               <div className="absolute top-2 right-2">
-                <Check className="h-5 w-5 text-[#FF9245]" />
+                <Check className="h-4 w-4 sm:h-5 sm:w-5 text-[#FF9245]" />
               </div>
             )}
           </button>
@@ -388,7 +399,7 @@ function StepMovies({
   favoriteMovies,
 }) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 pb-4">
       {/* Search input */}
       <div className="relative max-w-2xl mx-auto">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/40" />
@@ -397,15 +408,15 @@ function StepMovies({
           placeholder="Search your favorite movies…"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="w-full pl-12 pr-4 py-4 rounded-xl border border-white/10 bg-white/5 text-base text-white placeholder-white/40 focus:outline-none focus:border-[#FF9245] focus:ring-2 focus:ring-[#FF9245]/30 transition-all"
+          className="w-full pl-12 pr-4 py-3 sm:py-3.5 rounded-xl border border-white/10 bg-white/5 text-sm sm:text-base text-white placeholder-white/40 focus:outline-none focus:border-[#FF9245] focus:ring-2 focus:ring-[#FF9245]/30 transition-all"
         />
       </div>
 
       {/* Empty state */}
       {!query && favoriteMovies.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <Sparkles className="h-16 w-16 text-white/30 mb-4" />
-          <p className="text-base text-white/60 leading-relaxed max-w-md">
+        <div className="flex flex-col items-center justify-center py-12 sm:py-16 text-center">
+          <Sparkles className="h-12 w-12 sm:h-14 sm:w-14 text-white/30 mb-3" />
+          <p className="text-sm sm:text-base text-white/60 leading-relaxed max-w-md px-4">
             Search for movies you love. The more you add, the better your recommendations will be.
           </p>
         </div>
@@ -413,7 +424,7 @@ function StepMovies({
 
       {/* Search results */}
       {query && results.length > 0 && (
-        <div className="max-w-2xl mx-auto rounded-xl bg-white/5 border border-white/10 overflow-hidden max-h-80 overflow-y-auto">
+        <div className="max-w-2xl mx-auto rounded-xl bg-white/5 border border-white/10 overflow-hidden max-h-72 overflow-y-auto">
           {results.map((r) => {
             const selected = isMovieSelected(r.id)
             const canAdd = !selected && favoriteMovies.length < 50
@@ -430,12 +441,12 @@ function StepMovies({
                   }
                 }}
                 disabled={!selected && !canAdd}
-                className="flex w-full items-center gap-4 px-4 py-3 hover:bg-white/5 text-left transition-colors active:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex w-full items-center gap-3 sm:gap-4 px-4 py-3 hover:bg-white/5 text-left transition-colors active:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <img
                   src={`https://image.tmdb.org/t/p/w92${r.poster_path}`}
                   alt=""
-                  className="w-12 h-18 object-cover rounded-lg flex-shrink-0 shadow-md"
+                  className="w-10 h-15 sm:w-12 sm:h-18 object-cover rounded-lg flex-shrink-0 shadow-md"
                 />
                 <div className="flex-1 min-w-0">
                   <div className="text-sm sm:text-base font-medium text-white truncate">{r.title}</div>
@@ -444,11 +455,11 @@ function StepMovies({
                   </div>
                 </div>
                 {selected ? (
-                  <Check className="h-5 w-5 text-[#FF9245] flex-shrink-0" />
+                  <Check className="h-4 w-4 sm:h-5 sm:w-5 text-[#FF9245] flex-shrink-0" />
                 ) : canAdd ? (
-                  <span className="text-sm text-white/60 flex-shrink-0">Add</span>
+                  <span className="text-xs sm:text-sm text-white/60 flex-shrink-0">Add</span>
                 ) : (
-                  <span className="text-xs text-white/40 flex-shrink-0">Limit reached</span>
+                  <span className="text-[10px] sm:text-xs text-white/40 flex-shrink-0">Limit reached</span>
                 )}
               </button>
             )
@@ -458,23 +469,23 @@ function StepMovies({
 
       {/* No results */}
       {query && results.length === 0 && (
-        <div className="text-center py-8">
-          <p className="text-base text-white/60">No movies found. Try a different search.</p>
+        <div className="text-center py-6">
+          <p className="text-sm sm:text-base text-white/60">No movies found. Try a different search.</p>
         </div>
       )}
 
       {/* Selected movies */}
       {favoriteMovies.length > 0 && (
         <div className="max-w-4xl mx-auto">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-base sm:text-lg font-bold text-white">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm sm:text-base font-bold text-white">
               Your picks ({favoriteMovies.length}/50)
             </h3>
             {favoriteMovies.length >= 5 && (
-              <span className="text-sm text-green-400 font-semibold">✓ Excellent selection!</span>
+              <span className="text-xs sm:text-sm text-green-400 font-semibold">✓ Excellent!</span>
             )}
           </div>
-          <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-3 sm:gap-4">
+          <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-2.5 sm:gap-3">
             {favoriteMovies.map((m) => (
               <div key={m.id} className="relative group">
                 <img
@@ -485,10 +496,10 @@ function StepMovies({
                 <button
                   type="button"
                   onClick={() => removeMovie(m.id)}
-                  className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center shadow-lg transition-all active:scale-90"
+                  className="absolute -top-1.5 -right-1.5 h-6 w-6 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center shadow-lg transition-all active:scale-90"
                   aria-label={`Remove ${m.title}`}
                 >
-                  <X className="h-4 w-4 text-white" />
+                  <X className="h-3.5 w-3.5 text-white" />
                 </button>
               </div>
             ))}

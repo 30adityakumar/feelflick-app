@@ -100,6 +100,11 @@ export default function Header({ onOpenSearch }) {
   const userEmail = user?.email || ''
   const userAvatar = user?.user_metadata?.avatar_url || null
 
+  // Check if current path matches account section
+  const isAccountSection = ['/account', '/preferences', '/watchlist', '/history'].some(path => 
+    pathname.startsWith(path)
+  )
+
   return (
     <>
       {/* Desktop & Tablet Header */}
@@ -290,7 +295,7 @@ export default function Header({ onOpenSearch }) {
                 </div>
               )}
 
-              {/* Mobile Navigation Links */}
+              {/* Mobile Navigation Links - removed Watchlist */}
               <nav className="space-y-1 mb-6">
                 <NavLink
                   to="/home"
@@ -319,19 +324,6 @@ export default function Header({ onOpenSearch }) {
                   Discover
                 </NavLink>
                 <NavLink
-                  to="/watchlist"
-                  className={({ isActive }) =>
-                    `flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-colors ${
-                      isActive
-                        ? 'bg-white/10 text-white'
-                        : 'text-white/70 hover:bg-white/5 hover:text-white'
-                    }`
-                  }
-                >
-                  <Bookmark className="h-5 w-5" />
-                  Watchlist
-                </NavLink>
-                <NavLink
                   to="/history"
                   className={({ isActive }) =>
                     `flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-colors ${
@@ -356,6 +348,13 @@ export default function Header({ onOpenSearch }) {
                   Profile
                 </Link>
                 <Link
+                  to="/watchlist"
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium text-white/70 hover:bg-white/5 hover:text-white transition-colors"
+                >
+                  <Bookmark className="h-5 w-5" />
+                  Watchlist
+                </Link>
+                <Link
                   to="/preferences"
                   className="flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium text-white/70 hover:bg-white/5 hover:text-white transition-colors"
                 >
@@ -375,7 +374,7 @@ export default function Header({ onOpenSearch }) {
         )}
       </header>
 
-      {/* Mobile Bottom Navigation */}
+      {/* Mobile Bottom Navigation - Replace Watchlist with Account */}
       <nav
         className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#0a0a0a]/95 backdrop-blur-md border-t border-white/10 shadow-2xl"
         style={{
@@ -386,8 +385,10 @@ export default function Header({ onOpenSearch }) {
           <NavLink
             to="/home"
             className={({ isActive }) =>
-              `flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-colors ${
-                isActive ? 'text-white' : 'text-white/60'
+              `flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-all ${
+                isActive 
+                  ? 'text-white bg-white/10' 
+                  : 'text-white/60 hover:text-white hover:bg-white/5'
               }`
             }
           >
@@ -402,8 +403,10 @@ export default function Header({ onOpenSearch }) {
           <NavLink
             to="/browse"
             className={({ isActive }) =>
-              `flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-colors ${
-                isActive ? 'text-white' : 'text-white/60'
+              `flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-all ${
+                isActive 
+                  ? 'text-white bg-white/10' 
+                  : 'text-white/60 hover:text-white hover:bg-white/5'
               }`
             }
           >
@@ -417,27 +420,38 @@ export default function Header({ onOpenSearch }) {
 
           <button
             onClick={onOpenSearch}
-            className="flex flex-col items-center gap-1 px-4 py-2 rounded-lg text-white/60 hover:text-white transition-colors active:scale-95"
+            className="flex flex-col items-center gap-1 px-4 py-2 rounded-lg text-white/60 hover:text-white hover:bg-white/5 transition-all active:scale-95"
           >
             <SearchIcon className="h-6 w-6" />
             <span className="text-xs font-medium">Search</span>
           </button>
 
-          <NavLink
-            to="/watchlist"
-            className={({ isActive }) =>
-              `flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-colors ${
-                isActive ? 'text-white' : 'text-white/60'
-              }`
-            }
+          {/* Account button - highlighted when in account section */}
+          <Link
+            to="/account"
+            className={`flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-all ${
+              isAccountSection 
+                ? 'text-white bg-white/10' 
+                : 'text-white/60 hover:text-white hover:bg-white/5'
+            }`}
           >
-            {({ isActive }) => (
-              <>
-                <Bookmark className={`h-6 w-6 ${isActive ? 'fill-current' : ''}`} />
-                <span className="text-xs font-medium">Watchlist</span>
-              </>
+            {userAvatar ? (
+              <img
+                src={userAvatar}
+                alt={userName}
+                className={`h-6 w-6 rounded-full object-cover ${
+                  isAccountSection ? 'ring-2 ring-white/40' : 'ring-2 ring-white/10'
+                }`}
+              />
+            ) : (
+              <div className={`h-6 w-6 rounded-full bg-gradient-to-br from-[#FF9245] to-[#EB423B] flex items-center justify-center text-white text-[10px] font-bold ${
+                isAccountSection ? 'ring-2 ring-white/40' : ''
+              }`}>
+                {userName.charAt(0).toUpperCase()}
+              </div>
             )}
-          </NavLink>
+            <span className="text-xs font-medium">Account</span>
+          </Link>
         </div>
       </nav>
     </>

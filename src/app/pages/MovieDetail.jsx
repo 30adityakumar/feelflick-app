@@ -339,257 +339,249 @@ export default function MovieDetail() {
   const runtime = formatRuntime(movie?.runtime)
 
   return (
-    <div className="relative bg-black text-white min-h-screen pb-20 md:pb-8">
-      {/* Hero Section - Compact, Immersive */}
-      <div className="relative w-full" style={{ paddingTop: 'var(--hdr-h, 64px)' }}>
-        <div className="relative h-[55vh] md:h-[60vh]">
-          {/* Backdrop */}
-          <div className="absolute inset-0">
-            {movie?.backdrop_path ? (
-              <img
-                src={IMG.backdrop(movie.backdrop_path)}
-                alt=""
-                className="w-full h-full object-cover"
-                loading="eager"
-              />
-            ) : (
-              <div className="w-full h-full bg-neutral-900" />
-            )}
-          </div>
+  <div className="relative bg-black text-white min-h-screen pb-20 md:pb-8">
+    {/* Hero Section - Fixed header clearance */}
+    <div className="relative w-full pt-[var(--hdr-h,64px)]">
+      <div className="relative h-[55vh] md:h-[60vh]">
+        {/* Backdrop */}
+        <div className="absolute inset-0">
+          {movie?.backdrop_path ? (
+            <img
+              src={IMG.backdrop(movie.backdrop_path)}
+              alt=""
+              className="w-full h-full object-cover"
+              loading="eager"
+            />
+          ) : (
+            <div className="w-full h-full bg-neutral-900" />
+          )}
+        </div>
 
-          {/* Enhanced Gradients */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/90 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/75 md:via-black/60 to-transparent" />
-          <div className="absolute bottom-0 inset-x-0 h-3/5 bg-gradient-to-t from-black to-transparent" />
+        {/* Enhanced Gradients */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/90 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/75 md:via-black/60 to-transparent" />
+        <div className="absolute bottom-0 inset-x-0 h-3/5 bg-gradient-to-t from-black to-transparent" />
 
-          {/* Content */}
-          <div className="absolute inset-0 flex flex-col justify-end pb-6 md:pb-10">
-            <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-12 w-full">
-              <div className="grid grid-cols-1 md:grid-cols-[auto,1fr] gap-4 md:gap-6 items-end max-w-6xl">
-                {/* Poster - Compact */}
-                <div className="hidden md:block">
-                  <div className="overflow-hidden rounded-md ring-2 ring-white/20 shadow-2xl">
-                    {movie?.poster_path ? (
-                      <img
-                        src={IMG.poster(movie.poster_path)}
-                        alt={movie?.title}
-                        className="h-[260px] w-[173px] lg:h-[300px] lg:w-[200px] object-cover"
-                        loading="eager"
-                      />
-                    ) : (
-                      <div className="h-[260px] w-[173px] lg:h-[300px] lg:w-[200px] grid place-items-center bg-white/5 text-white/40 text-xs">
-                        No poster
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Info */}
-                <div className="max-w-3xl space-y-2">
-                  {loading ? (
-                    <div className="animate-pulse space-y-2">
-                      <div className="h-10 w-3/4 rounded bg-white/20" />
-                      <div className="h-5 w-1/2 rounded bg-white/15" />
-                    </div>
-                  ) : error ? (
-                    <div className="rounded-lg bg-red-500/10 p-3 text-red-300 text-sm">
-                      {error}
-                    </div>
+        {/* Content */}
+        <div className="absolute inset-0 flex flex-col justify-end pb-6 md:pb-10">
+          <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-12 w-full">
+            <div className="grid grid-cols-1 md:grid-cols-[auto,1fr] gap-4 md:gap-6 items-end max-w-6xl">
+              {/* Poster - Compact */}
+              <div className="hidden md:block">
+                <div className="overflow-hidden rounded-md ring-2 ring-white/20 shadow-2xl">
+                  {movie?.poster_path ? (
+                    <img
+                      src={IMG.poster(movie.poster_path)}
+                      alt={movie?.title}
+                      className="h-[260px] w-[173px] lg:h-[300px] lg:w-[200px] object-cover"
+                      loading="eager"
+                    />
                   ) : (
-                    <>
-                      {/* Title + Status Badges */}
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h1 className="text-2xl sm:text-3xl md:text-4xl font-black leading-tight tracking-tight drop-shadow-2xl">
-                          {movie?.title}
-                        </h1>
-                        {wlStatus === 'want_to_watch' && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-500/20 border border-blue-500/30 text-[10px] font-bold text-blue-300">
-                            <Bookmark className="h-3 w-3" />
-                            Watchlisted
-                          </span>
-                        )}
-                        {wlStatus === 'watched' && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/20 border border-green-500/30 text-[10px] font-bold text-green-300">
-                            <Check className="h-3 w-3" />
-                            Watched
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Tagline */}
-                      {movie?.tagline && (
-                        <p className="text-sm text-white/70 italic leading-tight">
-                          "{movie.tagline}"
-                        </p>
-                      )}
-
-                      {/* Director */}
-                      {director && (
-                        <p className="text-xs text-white/80">
-                          Directed by <span className="font-semibold text-white/95">{director.name}</span>
-                        </p>
-                      )}
-
-                      {/* Meta - Compact badges */}
-                      <div className="flex flex-wrap items-center gap-2 text-xs">
-                        {rating && (
-                          <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-green-500/20 border border-green-500/30">
-                            <Star className="h-3 w-3 fill-current text-green-400" />
-                            <span className="text-green-400 font-bold">{rating}</span>
-                          </div>
-                        )}
-                        {certification && (
-                          <span className="px-2 py-0.5 rounded border border-white/30 text-white/90 font-bold">
-                            {certification}
-                          </span>
-                        )}
-                        {year && (
-                          <span className="inline-flex items-center gap-1 text-white/80 font-medium">
-                            <Calendar className="h-3 w-3" />
-                            {year}
-                          </span>
-                        )}
-                        {runtime && (
-                          <span className="inline-flex items-center gap-1 text-white/80 font-medium">
-                            <Clock className="h-3 w-3" />
-                            {runtime}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Genres - Badge style */}
-                      {movie?.genres?.length > 0 && (
-                        <div className="flex flex-wrap items-center gap-1.5">
-                          {movie.genres.slice(0, 4).map((g) => (
-                            <span
-                              key={g.id}
-                              className="px-2 py-0.5 rounded bg-white/10 text-white/70 text-[11px] font-medium"
-                            >
-                              {g.name}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Overview - 2 lines */}
-                      {movie?.overview && (
-                        <p className="hidden md:block text-sm text-white/90 leading-relaxed line-clamp-2 max-w-2xl drop-shadow-lg">
-                          {movie.overview}
-                        </p>
-                      )}
-
-                      {/* Actions */}
-                      <div className="flex flex-wrap items-center gap-2 pt-1">
-                        {ytTrailer && (
-                          <a
-                            href={ytTrailer}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1.5 rounded-lg bg-white px-5 py-2 text-sm font-bold text-black hover:bg-white/90 transition-all active:scale-95 shadow-xl"
-                          >
-                            <Play className="h-4 w-4 fill-current" />
-                            Play Trailer
-                          </a>
-                        )}
-                        <button
-                          disabled={mutating}
-                          onClick={toggleWatchlist}
-                          className="inline-flex items-center gap-1.5 rounded-lg bg-white/20 backdrop-blur px-4 py-2 text-sm font-bold hover:bg-white/30 transition-all active:scale-95 disabled:opacity-50"
-                        >
-                          <Bookmark className="h-4 w-4" />
-                          <span className="hidden xs:inline">
-                            {wlStatus === 'want_to_watch' ? 'Remove' : 'Watchlist'}
-                          </span>
-                        </button>
-                        <button
-                          disabled={mutating}
-                          onClick={toggleWatched}
-                          className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-bold transition-all active:scale-95 disabled:opacity-50 ${
-                            wlStatus === 'watched'
-                              ? 'bg-white/20 backdrop-blur hover:bg-white/30'
-                              : 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-400 hover:to-red-400'
-                          }`}
-                        >
-                          <Check className="h-4 w-4" />
-                          <span className="hidden xs:inline">
-                            {wlStatus === 'watched' ? 'Watched' : 'Watch'}
-                          </span>
-                        </button>
-                        <button
-                          onClick={() => {
-                            if (navigator.share) {
-                              navigator.share({
-                                title: movie?.title,
-                                text: movie?.overview,
-                                url: window.location.href,
-                              })
-                            }
-                          }}
-                          className="inline-flex items-center gap-1.5 rounded-lg bg-white/10 backdrop-blur px-3 py-2 text-sm font-bold hover:bg-white/20 transition-all active:scale-95"
-                        >
-                          <Share2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </>
+                    <div className="h-[260px] w-[173px] lg:h-[300px] lg:w-[200px] grid place-items-center bg-white/5 text-white/40 text-xs">
+                      No poster
+                    </div>
                   )}
                 </div>
+              </div>
+
+              {/* Info */}
+              <div className="max-w-3xl space-y-2">
+                {loading ? (
+                  <div className="animate-pulse space-y-2">
+                    <div className="h-10 w-3/4 rounded bg-white/20" />
+                    <div className="h-5 w-1/2 rounded bg-white/15" />
+                  </div>
+                ) : error ? (
+                  <div className="rounded-lg bg-red-500/10 p-3 text-red-300 text-sm">
+                    {error}
+                  </div>
+                ) : (
+                  <>
+                    {/* Title + Status Badges */}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h1 className="text-2xl sm:text-3xl md:text-4xl font-black leading-tight tracking-tight drop-shadow-2xl">
+                        {movie?.title}
+                      </h1>
+                      {wlStatus === 'want_to_watch' && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-500/20 border border-blue-500/30 text-[10px] font-bold text-blue-300">
+                          <Bookmark className="h-3 w-3" />
+                          Watchlisted
+                        </span>
+                      )}
+                      {wlStatus === 'watched' && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/20 border border-green-500/30 text-[10px] font-bold text-green-300">
+                          <Check className="h-3 w-3" />
+                          Watched
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Tagline */}
+                    {movie?.tagline && (
+                      <p className="text-sm text-white/70 italic leading-tight">
+                        "{movie.tagline}"
+                      </p>
+                    )}
+
+                    {/* Director */}
+                    {director && (
+                      <p className="text-xs text-white/80">
+                        Directed by <span className="font-semibold text-white/95">{director.name}</span>
+                      </p>
+                    )}
+
+                    {/* Meta - Compact badges */}
+                    <div className="flex flex-wrap items-center gap-2 text-xs">
+                      {rating && (
+                        <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-green-500/20 border border-green-500/30">
+                          <Star className="h-3 w-3 fill-current text-green-400" />
+                          <span className="text-green-400 font-bold">{rating}</span>
+                        </div>
+                      )}
+                      {certification && (
+                        <span className="px-2 py-0.5 rounded border border-white/30 text-white/90 font-bold">
+                          {certification}
+                        </span>
+                      )}
+                      {year && (
+                        <span className="inline-flex items-center gap-1 text-white/80 font-medium">
+                          <Calendar className="h-3 w-3" />
+                          {year}
+                        </span>
+                      )}
+                      {runtime && (
+                        <span className="inline-flex items-center gap-1 text-white/80 font-medium">
+                          <Clock className="h-3 w-3" />
+                          {runtime}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Genres - Badge style */}
+                    {movie?.genres?.length > 0 && (
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {movie.genres.slice(0, 4).map((g) => (
+                          <span
+                            key={g.id}
+                            className="px-2 py-0.5 rounded bg-white/10 text-white/70 text-[11px] font-medium"
+                          >
+                            {g.name}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Overview - 2 lines */}
+                    {movie?.overview && (
+                      <p className="hidden md:block text-sm text-white/90 leading-relaxed line-clamp-2 max-w-2xl drop-shadow-lg">
+                        {movie.overview}
+                      </p>
+                    )}
+
+                    {/* Actions */}
+                    <div className="flex flex-wrap items-center gap-2 pt-1">
+                      {ytTrailer && (
+                        <a
+                          href={ytTrailer}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-white px-5 py-2 text-sm font-bold text-black hover:bg-white/90 transition-all active:scale-95 shadow-xl"
+                        >
+                          <Play className="h-4 w-4 fill-current" />
+                          Play Trailer
+                        </a>
+                      )}
+                      <button
+                        disabled={mutating}
+                        onClick={toggleWatchlist}
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-white/20 backdrop-blur px-4 py-2 text-sm font-bold hover:bg-white/30 transition-all active:scale-95 disabled:opacity-50"
+                      >
+                        <Bookmark className="h-4 w-4" />
+                        <span className="hidden xs:inline">
+                          {wlStatus === 'want_to_watch' ? 'Remove' : 'Watchlist'}
+                        </span>
+                      </button>
+                      <button
+                        disabled={mutating}
+                        onClick={toggleWatched}
+                        className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-bold transition-all active:scale-95 disabled:opacity-50 ${
+                          wlStatus === 'watched'
+                            ? 'bg-white/20 backdrop-blur hover:bg-white/30'
+                            : 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-400 hover:to-red-400'
+                        }`}
+                      >
+                        <Check className="h-4 w-4" />
+                        <span className="hidden xs:inline">
+                          {wlStatus === 'watched' ? 'Watched' : 'Watch'}
+                        </span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (navigator.share) {
+                            navigator.share({
+                              title: movie?.title,
+                              text: movie?.overview,
+                              url: window.location.href,
+                            })
+                          }
+                        }}
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-white/10 backdrop-blur px-3 py-2 text-sm font-bold hover:bg-white/20 transition-all active:scale-95"
+                      >
+                        <Share2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
         </div>
       </div>
+    </div>
 
-      {/* Content Sections */}
-      <div className="relative -mt-6 md:-mt-8 z-30">
-        <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-12">
-          {/* Two Column Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr,300px] xl:grid-cols-[1fr,340px] gap-6">
-            {/* Main Content */}
-            <div className="space-y-6 min-w-0">
-              {/* Overview - Mobile only */}
-              {movie?.overview && (
-                <div className="md:hidden rounded-lg bg-white/5 backdrop-blur border border-white/10 p-4">
-                  <h2 className="text-base font-bold mb-2">Overview</h2>
-                  <p className="text-sm text-white/85 leading-relaxed">
-                    {movie.overview}
-                  </p>
-                </div>
-              )}
+    {/* Content Sections - Fixed mobile spacing */}
+    <div className="relative mt-4 md:-mt-8 z-30">
+      <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-12">
+        {/* Two Column Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr,300px] xl:grid-cols-[1fr,340px] gap-6">
+          {/* Main Content */}
+          <div className="space-y-6 min-w-0">
+            {/* Overview - Mobile only with proper spacing */}
+            {movie?.overview && (
+              <div className="md:hidden rounded-lg bg-white/5 backdrop-blur border border-white/10 p-4">
+                <h2 className="text-base font-bold mb-2">Overview</h2>
+                <p className="text-sm text-white/85 leading-relaxed">
+                  {movie.overview}
+                </p>
+              </div>
+            )}
 
-              {/* Cast */}
-              {credits.cast?.length > 0 && <CastSection cast={credits.cast} />}
+            {/* Rest of your sections... */}
+            {credits.cast?.length > 0 && <CastSection cast={credits.cast} />}
+            {videos?.length > 0 && <VideosSection videos={videos} />}
+            {images.backdrops?.length > 0 && <ImagesSection images={images.backdrops} />}
+            {similar?.length > 0 && <Rail title="Similar Movies" items={similar} />}
+            {recs?.length > 0 && <Rail title="You Might Also Like" items={recs} />}
+          </div>
 
-              {/* Videos */}
-              {videos?.length > 0 && <VideosSection videos={videos} />}
-
-              {/* Images Gallery */}
-              {images.backdrops?.length > 0 && <ImagesSection images={images.backdrops} />}
-
-              {/* Similar */}
-              {similar?.length > 0 && <Rail title="Similar Movies" items={similar} />}
-
-              {/* Recommended */}
-              {recs?.length > 0 && <Rail title="You Might Also Like" items={recs} />}
-            </div>
-
-            {/* Sidebar */}
-            <div className="space-y-4 lg:sticky lg:top-20 lg:self-start">
-              <WhereToWatch providers={providers} />
-              {movie && <MovieDetails movie={movie} />}
-              {movie?.production_companies?.length > 0 && (
-                <ProductionCompanies companies={movie.production_companies} />
-              )}
-              {keywords?.length > 0 && <KeywordsSection keywords={keywords} />}
-              {movie?.belongs_to_collection && (
-                <CollectionCard collection={movie.belongs_to_collection} />
-              )}
-            </div>
+          {/* Sidebar */}
+          <div className="space-y-4 lg:sticky lg:top-20 lg:self-start">
+            <WhereToWatch providers={providers} />
+            {movie && <MovieDetails movie={movie} />}
+            {movie?.production_companies?.length > 0 && (
+              <ProductionCompanies companies={movie.production_companies} />
+            )}
+            {keywords?.length > 0 && <KeywordsSection keywords={keywords} />}
+            {movie?.belongs_to_collection && (
+              <CollectionCard collection={movie.belongs_to_collection} />
+            )}
           </div>
         </div>
       </div>
     </div>
-  )
-}
+  </div>
+)
+
 
 /* ===== Components ===== */
 

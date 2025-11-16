@@ -47,7 +47,6 @@ export default function MovieDetail() {
   const [movie, setMovie] = useState(null)
   const [credits, setCredits] = useState({ cast: [], crew: [] })
   const [videos, setVideos] = useState([])
-  const [similar, setSimilar] = useState([])
   const [recs, setRecs] = useState([])
   const [providers, setProviders] = useState({ flatrate: [], rent: [], buy: [], link: '' })
   const [images, setImages] = useState({ backdrops: [] })
@@ -79,16 +78,13 @@ export default function MovieDetail() {
       setError('')
       try {
         if (!TMDB.key) throw new Error('TMDB key missing')
-        const [d, c, v, s, r, i, k, rel] = await Promise.all([
+        const [d, c, v, r, i, k, rel] = await Promise.all([
           fetch(`${TMDB.base}/movie/${id}?api_key=${TMDB.key}&language=en-US`).then((r) => r.json()),
           fetch(`${TMDB.base}/movie/${id}/credits?api_key=${TMDB.key}&language=en-US`).then((r) =>
             r.json()
           ),
           fetch(`${TMDB.base}/movie/${id}/videos?api_key=${TMDB.key}&language=en-US`).then((r) =>
             r.json()
-          ),
-          fetch(`${TMDB.base}/movie/${id}/similar?api_key=${TMDB.key}&language=en-US&page=1`).then(
-            (r) => r.json()
           ),
           fetch(
             `${TMDB.base}/movie/${id}/recommendations?api_key=${TMDB.key}&language=en-US&page=1`
@@ -104,7 +100,6 @@ export default function MovieDetail() {
         setMovie(d)
         setCredits({ cast: (c?.cast || []).slice(0, 10), crew: c?.crew || [] })
         setVideos(v?.results || [])
-        setSimilar((s?.results || []).slice(0, 12))
         setRecs((r?.results || []).slice(0, 12))
         setImages({ backdrops: (i?.backdrops || []).slice(0, 6) })
         setKeywords((k?.keywords || []).slice(0, 12))
@@ -340,8 +335,8 @@ export default function MovieDetail() {
 
   return (
     <div className="relative bg-black text-white min-h-screen pb-20 md:pb-8">
-      {/* Hero Section - Fixed header clearance */}
-      <div className="relative w-full pt-[var(--hdr-h,64px)]">
+      {/* Hero Section - Fixed header clearance with marginTop */}
+      <div className="relative w-full" style={{ marginTop: 'var(--hdr-h, 64px)' }}>
         <div className="relative h-[55vh] md:h-[60vh]">
           {/* Backdrop */}
           <div className="absolute inset-0">
@@ -556,6 +551,11 @@ export default function MovieDetail() {
                 </div>
               )}
 
+              {/* Where to Watch - Mobile Priority (shows at top) */}
+              <div className="lg:hidden">
+                <WhereToWatch providers={providers} />
+              </div>
+
               {/* Cast */}
               {credits.cast?.length > 0 && <CastSection cast={credits.cast} />}
 
@@ -565,15 +565,12 @@ export default function MovieDetail() {
               {/* Images Gallery */}
               {images.backdrops?.length > 0 && <ImagesSection images={images.backdrops} />}
 
-              {/* Similar */}
-              {similar?.length > 0 && <Rail title="Similar Movies" items={similar} />}
-
               {/* Recommended */}
               {recs?.length > 0 && <Rail title="You Might Also Like" items={recs} />}
             </div>
 
-            {/* Sidebar */}
-            <div className="space-y-4 lg:sticky lg:top-20 lg:self-start">
+            {/* Sidebar - Desktop Only */}
+            <div className="hidden lg:block space-y-4 lg:sticky lg:top-20 lg:self-start">
               <WhereToWatch providers={providers} />
               {movie && <MovieDetails movie={movie} />}
               {movie?.production_companies?.length > 0 && (
@@ -594,42 +591,8 @@ export default function MovieDetail() {
 /* ===== Components ===== */
 
 function WhereToWatch({ providers }) {
-  const hasAny =
-    providers.flatrate?.length || providers.rent?.length || providers.buy?.length
-  if (!hasAny) return null
-
-  const Row = ({ label, list }) => {
-    if (!list?.length) return null
-    return (
-      <div className="mt-3 first:mt-0">
-        <h3 className="text-xs font-bold text-white/70 uppercase tracking-wider mb-2">
-          {label}
-        </h3>
-        <div className="flex flex-wrap gap-2">
-          {list.map((p) => (
-            <div
-              key={`${label}-${p.provider_id}`}
-              className="w-12 h-12 rounded-md bg-white/10 border border-white/10 p-1.5 flex items-center justify-center hover:scale-110 transition-transform"
-              title={p.provider_name}
-            >
-              {p.logo_path ? (
-                <img
-                  src={IMG.logo(p.logo_path)}
-                  alt={p.provider_name}
-                  className="w-full h-full object-contain"
-                  loading="lazy"
-                />
-              ) : (
-                <span className="text-[8px] text-white/60 text-center leading-tight">
-                  {p.provider_name}
-                </span>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-    )
-  }
+  // Only show if flatrate (streaming) is available
+  if (!providers.flatrate?.length) return null
 
   return (
     <div className="rounded-lg bg-white/5 backdrop-blur border border-white/10 p-4">
@@ -639,9 +602,28 @@ function WhereToWatch({ providers }) {
           Where to Watch
         </h2>
       </div>
-      <Row label="Stream" list={providers.flatrate} />
-      <Row label="Rent" list={providers.rent} />
-      <Row label="Buy" list={providers.buy} />
+      <div className="flex flex-wrap gap-2">
+        {providers.flatrate.map((p) => (
+          <div
+            key={p.provider_id}
+            className="w-12 h-12 rounded-md bg-white/10 border border-white/10 p-1.5 flex items-center justify-center hover:scale-110 transition-transform"
+            title={p.provider_name}
+          >
+            {p.logo_path ? (
+              <img
+                src={IMG.logo(p.logo_path)}
+                alt={p.provider_name}
+                className="w-full h-full object-contain"
+                loading="lazy"
+              />
+            ) : (
+              <span className="text-[8px] text-white/60 text-center leading-tight">
+                {p.provider_name}
+              </span>
+            )}
+          </div>
+        ))}
+      </div>
       {providers.link && (
         <a
           href={providers.link}

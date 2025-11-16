@@ -1,7 +1,7 @@
 // src/app/homepage/components/CarouselRow.jsx
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Play } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const img = (p, s = "w500") =>
   p ? `https://image.tmdb.org/t/p/${s}${p}` : "/placeholder-movie.png";
@@ -73,8 +73,8 @@ export default function CarouselRow({
 
   return (
     <div className="relative group w-full">
-      {/* Header - Production-grade spacing */}
-      <div className="mb-3 px-4 sm:px-6 md:px-8 lg:px-12">
+      {/* Header - More padding on desktop */}
+      <div className="mb-3 px-4 sm:px-6 md:px-10 lg:px-16">
         <h2 className="text-base md:text-lg font-bold tracking-tight text-white/95">
           {title}
         </h2>
@@ -82,13 +82,13 @@ export default function CarouselRow({
 
       {/* Carousel Container */}
       <div className="relative w-full">
-        {/* Navigation Arrows - Netflix-style */}
+        {/* Navigation Arrows - Positioned inside padding zone */}
         {!loading && (
           <>
             {showLeftArrow && (
               <button
                 onClick={() => scroll("left")}
-                className="hidden md:flex absolute left-2 top-0 bottom-0 z-40 w-12 items-center justify-center bg-gradient-to-r from-black/90 via-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                className="hidden md:flex absolute left-4 lg:left-6 top-0 bottom-0 z-40 w-12 items-center justify-center bg-gradient-to-r from-black/90 via-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                 aria-label="Previous"
               >
                 <div className="h-10 w-10 rounded-full bg-black/80 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white hover:text-black hover:scale-110 transition-all duration-200 shadow-xl border border-white/10">
@@ -99,7 +99,7 @@ export default function CarouselRow({
             {showRightArrow && (
               <button
                 onClick={() => scroll("right")}
-                className="hidden md:flex absolute right-2 top-0 bottom-0 z-40 w-12 items-center justify-center bg-gradient-to-l from-black/90 via-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                className="hidden md:flex absolute right-4 lg:right-6 top-0 bottom-0 z-40 w-12 items-center justify-center bg-gradient-to-l from-black/90 via-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                 aria-label="Next"
               >
                 <div className="h-10 w-10 rounded-full bg-black/80 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white hover:text-black hover:scale-110 transition-all duration-200 shadow-xl border border-white/10">
@@ -110,10 +110,10 @@ export default function CarouselRow({
           </>
         )}
 
-        {/* Carousel Rail - Edge padding prevents cutoff */}
+        {/* Carousel Rail - Increased desktop padding */}
         <div
           ref={railRef}
-          className="flex gap-2 md:gap-3 overflow-x-auto scrollbar-hide scroll-smooth pb-4 px-4 sm:px-6 md:px-8 lg:px-12"
+          className="flex gap-2 md:gap-3 overflow-x-auto scrollbar-hide scroll-smooth pb-4 px-4 sm:px-6 md:px-10 lg:px-16"
           style={{
             scrollSnapType: "x mandatory",
             scrollPaddingLeft: "1rem",
@@ -137,7 +137,7 @@ export default function CarouselRow({
   );
 }
 
-/* ===== Production-Grade Movie Card Component ===== */
+/* ===== Movie Card Component - Bug Fixed ===== */
 function MovieCard({ movie, onClick, index }) {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -165,29 +165,14 @@ function MovieCard({ movie, onClick, index }) {
       {/* Multi-layer Shadow for Depth */}
       <div className="absolute inset-0 shadow-[0_4px_12px_rgba(0,0,0,0.5)] group-hover/card:shadow-[0_8px_30px_rgba(0,0,0,0.8)] transition-shadow duration-300" />
 
-      {/* Gradient Overlay - Always visible on mobile, hover on desktop */}
-      <div
-        className={`absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent transition-opacity duration-300 ${
-          isHovered ? "opacity-100" : "opacity-100 md:opacity-0"
-        }`}
-      >
+      {/* Gradient Overlay - FIXED: Always visible, no conditional opacity */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-100">
         {/* Content Container */}
         <div className="absolute inset-0 flex flex-col justify-end p-3">
-          {/* Play Button - Netflix-style, desktop only */}
-          <div
-            className={`hidden md:block absolute top-2 right-2 transition-all duration-300 ${
-              isHovered ? "opacity-100 scale-100" : "opacity-0 scale-90"
-            }`}
-          >
-            <div className="h-8 w-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-black hover:bg-white hover:scale-110 transition-all shadow-lg">
-              <Play className="h-4 w-4 fill-current ml-0.5" />
-            </div>
-          </div>
-
-          {/* Movie Info */}
+          {/* Movie Info - Always visible */}
           <div className="space-y-1">
-            {/* Title */}
-            <h3 className="text-xs font-bold text-white leading-tight line-clamp-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+            {/* Title - Strong text shadow for readability */}
+            <h3 className="text-xs font-bold text-white leading-tight line-clamp-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
               {movie.title}
             </h3>
 
@@ -195,16 +180,16 @@ function MovieCard({ movie, onClick, index }) {
             <div className="flex items-center gap-2 text-[10px] text-white/90">
               {/* Year */}
               {movie.release_date && (
-                <span className="font-medium">
+                <span className="font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                   {new Date(movie.release_date).getFullYear()}
                 </span>
               )}
 
-              {/* Rating Badge - Netflix-style */}
+              {/* Rating Badge */}
               {movie.vote_average > 0 && (
                 <>
                   <span className="text-white/40">•</span>
-                  <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-green-500/20 border border-green-500/30">
+                  <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-green-500/20 border border-green-500/30 backdrop-blur-sm">
                     <span className="text-green-400 text-[10px]">★</span>
                     <span className="text-green-400 font-semibold">
                       {movie.vote_average.toFixed(1)}
@@ -213,26 +198,16 @@ function MovieCard({ movie, onClick, index }) {
                 </>
               )}
 
-              {/* HD Badge - Prime Video style */}
-              <span className="ml-auto px-1.5 py-0.5 rounded bg-white/10 text-white/70 text-[9px] font-bold tracking-wide">
+              {/* HD Badge */}
+              <span className="ml-auto px-1.5 py-0.5 rounded bg-white/10 text-white/70 text-[9px] font-bold tracking-wide backdrop-blur-sm">
                 HD
               </span>
-            </div>
-
-            {/* Quick Action - Mobile only */}
-            <div
-              className={`md:hidden flex items-center gap-1.5 text-[10px] font-semibold text-white/80 transition-all duration-300 ${
-                isHovered ? "opacity-100" : "opacity-0"
-              }`}
-            >
-              <Play className="h-3 w-3 fill-current" />
-              <span>Play Now</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Hover Border Glow - Prime Video style */}
+      {/* Hover Border Glow */}
       <div
         className={`absolute inset-0 rounded-md transition-all duration-300 ${
           isHovered

@@ -335,9 +335,9 @@ export default function MovieDetail() {
 
   return (
     <div className="relative bg-black text-white min-h-screen pb-20 md:pb-8">
-      {/* Hero Section - Fixed header clearance with marginTop */}
-      <div className="relative w-full" style={{ marginTop: 'var(--hdr-h, 64px)' }}>
-        <div className="relative h-[55vh] md:h-[60vh]">
+      {/* Hero Section - Fixed header clearance */}
+      <div className="relative w-full">
+        <div className="relative h-[55vh] md:h-[60vh]" style={{ marginTop: 'var(--hdr-h, 64px)' }}>
           {/* Backdrop */}
           <div className="absolute inset-0">
             {movie?.backdrop_path ? (

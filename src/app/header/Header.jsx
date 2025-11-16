@@ -42,8 +42,10 @@ export default function Header({ onOpenSearch }) {
     return () => typeof unsub === 'function' && unsub()
   }, [])
 
-  // Smart scroll
+  // Smart scroll - disable when account menu is open
   useEffect(() => {
+    if (accountMenuOpen) return // Don't hide header when menu is open
+
     const handleScroll = () => {
       const currentScrollY = window.scrollY
       setScrolled(currentScrollY > 10)
@@ -57,7 +59,7 @@ export default function Header({ onOpenSearch }) {
     }
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [lastScrollY])
+  }, [lastScrollY, accountMenuOpen])
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -89,6 +91,13 @@ export default function Header({ onOpenSearch }) {
     setAccountMenuOpen(false)
   }, [pathname])
 
+  // Force header to show when account menu opens
+  useEffect(() => {
+    if (accountMenuOpen) {
+      setScrollDirection('up')
+    }
+  }, [accountMenuOpen])
+
   const handleSignOut = async () => {
     await supabase.auth.signOut()
     setDropdownOpen(false)
@@ -114,7 +123,7 @@ export default function Header({ onOpenSearch }) {
           scrolled
             ? 'bg-[#0a0a0a]/95 backdrop-blur-md shadow-lg'
             : 'bg-gradient-to-b from-black/80 to-transparent'
-        } ${scrollDirection === 'down' ? '-translate-y-full' : 'translate-y-0'}`}
+        } ${scrollDirection === 'down' && !accountMenuOpen ? '-translate-y-full' : 'translate-y-0'}`}
         style={{
           paddingTop: 'env(safe-area-inset-top)',
         }}
@@ -128,7 +137,7 @@ export default function Header({ onOpenSearch }) {
               </div>
             </Link>
 
-            {/* Desktop Navigation */}
+            {/* Desktop Navigation - More prominent active state */}
             <nav className="hidden md:flex items-center gap-6">
               <NavLink
                 to="/home"
@@ -320,7 +329,7 @@ export default function Header({ onOpenSearch }) {
             <span className="text-xs font-medium">Search</span>
           </button>
 
-          {/* Account button */}
+          {/* Account button - opens full-screen menu */}
           <button
             onClick={() => setAccountMenuOpen(true)}
             className={`flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-all ${
@@ -349,29 +358,30 @@ export default function Header({ onOpenSearch }) {
         </div>
       </nav>
 
-      {/* Mobile Account Menu - Fits between top and bottom headers */}
+      {/* Mobile Account Menu - Fits Between Top and Bottom Headers */}
       {accountMenuOpen && (
         <div 
-          className="md:hidden fixed left-0 right-0 z-[45] bg-black/95 backdrop-blur-lg animate-in fade-in duration-200 overflow-y-auto"
+          className="md:hidden fixed z-40 bg-black/95 backdrop-blur-lg overflow-y-auto animate-in fade-in duration-200"
           style={{
-            top: '64px', // Top header height
-            bottom: 'calc(68px + env(safe-area-inset-bottom))', // Bottom nav height + safe area
+            top: '64px', // Height of top header
+            bottom: '72px', // Height of bottom nav (approximate)
+            left: 0,
+            right: 0,
           }}
         >
-          {/* Close button - top right */}
-          <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-3 bg-black/80 backdrop-blur-md border-b border-white/10">
-            <h2 className="text-lg font-bold text-white">Account</h2>
+          {/* Close button - positioned at top right */}
+          <div className="sticky top-0 z-10 flex justify-end px-4 pt-4 pb-2 bg-gradient-to-b from-black/95 to-transparent">
             <button
               onClick={() => setAccountMenuOpen(false)}
               className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-all active:scale-95"
               aria-label="Close"
             >
-              <X className="h-5 w-5" />
+              <X className="h-6 w-6" />
             </button>
           </div>
 
           {/* Content */}
-          <div className="px-4 py-6">
+          <div className="px-4 pb-6">
             {/* User Info */}
             {user && (
               <div className="flex items-center gap-3 mb-6 pb-6 border-b border-white/10">
@@ -394,7 +404,7 @@ export default function Header({ onOpenSearch }) {
             )}
 
             {/* Menu Items */}
-            <nav className="space-y-1">
+            <nav className="space-y-1 mb-6">
               <Link
                 to="/account"
                 onClick={() => setAccountMenuOpen(false)}
@@ -433,7 +443,7 @@ export default function Header({ onOpenSearch }) {
             </nav>
 
             {/* Sign Out Button */}
-            <div className="mt-6 pt-6 border-t border-white/10">
+            <div className="pt-6 border-t border-white/10">
               <button
                 onClick={handleSignOut}
                 className="w-full flex items-center justify-center gap-3 px-4 py-3.5 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 font-medium text-base transition-all active:scale-95"

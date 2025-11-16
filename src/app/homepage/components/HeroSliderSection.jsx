@@ -1,8 +1,7 @@
 // src/app/homepage/components/HeroSliderSection.jsx
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bookmark, Plus, Info, ChevronLeft, ChevronRight, Star } from "lucide-react";
-import { supabase } from "@/shared/lib/supabase/client";
+import { Play, Info } from "lucide-react";
 
 const tmdbImg = (p, s = "original") =>
   p ? `https://image.tmdb.org/t/p/${s}${p}` : "";
@@ -13,30 +12,10 @@ export default function HeroSliderSection({ className = "" }) {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null);
-  const [watchlistIds, setWatchlistIds] = useState(new Set());
-  const [addingToWatchlist, setAddingToWatchlist] = useState(false);
   const nav = useNavigate();
   const timerRef = useRef(null);
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
-
-  // Get user and watchlist
-  useEffect(() => {
-    (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setUser(user);
-        const { data } = await supabase
-          .from("user_watchlist")
-          .select("movie_id")
-          .eq("user_id", user.id);
-        if (data) {
-          setWatchlistIds(new Set(data.map(item => item.movie_id)));
-        }
-      }
-    })();
-  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -73,13 +52,6 @@ export default function HeroSliderSection({ className = "" }) {
     setTimeout(() => setIsTransitioning(false), 800);
   };
 
-  const prevSlide = () => {
-    if (isTransitioning) return;
-    setIsTransitioning(true);
-    setCurrentIndex((prev) => (prev - 1 + slides.length) % slides.length);
-    setTimeout(() => setIsTransitioning(false), 800);
-  };
-
   const goToSlide = (index) => {
     if (isTransitioning || index === currentIndex) return;
     setIsTransitioning(true);
@@ -99,48 +71,22 @@ export default function HeroSliderSection({ className = "" }) {
     const diff = touchStartX.current - touchEndX.current;
     if (Math.abs(diff) > 50) {
       if (diff > 0) nextSlide();
-      else prevSlide();
+      else {
+        if (isTransitioning) return;
+        setIsTransitioning(true);
+        setCurrentIndex((prev) => (prev - 1 + slides.length) % slides.length);
+        setTimeout(() => setIsTransitioning(false), 800);
+      }
     }
   };
 
   const currentMovie = slides[currentIndex] || {};
-  const isInWatchlist = watchlistIds.has(currentMovie.id);
-
   const viewDetails = () => currentMovie?.id && nav(`/movie/${currentMovie.id}`);
-
-  const toggleWatchlist = async () => {
-    if (!user || !currentMovie.id || addingToWatchlist) return;
-    
-    setAddingToWatchlist(true);
-    try {
-      if (isInWatchlist) {
-        await supabase
-          .from("user_watchlist")
-          .delete()
-          .eq("user_id", user.id)
-          .eq("movie_id", currentMovie.id);
-        setWatchlistIds(prev => {
-          const next = new Set(prev);
-          next.delete(currentMovie.id);
-          return next;
-        });
-      } else {
-        await supabase.from("user_watchlist").insert({
-          user_id: user.id,
-          movie_id: currentMovie.id,
-          status: "plan_to_watch"
-        });
-        setWatchlistIds(prev => new Set([...prev, currentMovie.id]));
-      }
-    } finally {
-      setAddingToWatchlist(false);
-    }
-  };
 
   if (loading) {
     return (
       <section className={`relative w-full bg-neutral-950 ${className}`}>
-        <div className="h-[45vh] sm:h-[50vh] md:h-[55vh] animate-pulse bg-neutral-900" />
+        <div className="h-[70vh] sm:h-[75vh] md:h-[80vh] lg:h-[85vh] xl:h-[90vh] animate-pulse bg-neutral-900" />
       </section>
     );
   }
@@ -149,15 +95,15 @@ export default function HeroSliderSection({ className = "" }) {
 
   return (
     <section
-      className={`relative w-full overflow-hidden bg-black group ${className}`}
+      className={`relative w-full overflow-hidden bg-black ${className}`}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Hero Image Container - MUCH SMALLER */}
-      <div className="relative w-full h-[45vh] sm:h-[50vh] md:h-[55vh]">
+      {/* Hero Image Container - Optimized heights */}
+      <div className="relative w-full h-[70vh] sm:h-[75vh] md:h-[80vh] lg:h-[85vh] xl:h-[90vh]">
         {/* Images */}
         {slides.map((movie, idx) => {
           const bg = tmdbImg(
@@ -181,138 +127,89 @@ export default function HeroSliderSection({ className = "" }) {
           );
         })}
 
-        {/* Stronger gradients */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent z-20" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/50 md:via-black/30 to-transparent z-20" />
-        <div className="absolute bottom-0 inset-x-0 h-1/2 bg-gradient-to-t from-black to-transparent z-20" />
-        <div className="absolute top-0 inset-x-0 h-16 bg-gradient-to-b from-black/50 to-transparent z-20" />
+        {/* Enhanced Gradients for better text legibility */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent z-20" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/50 md:via-black/30 to-transparent z-20" />
+        <div className="absolute bottom-0 inset-x-0 h-2/5 bg-gradient-to-t from-black via-black/95 to-transparent z-20" />
+        
+        {/* Top gradient to prevent header overlap */}
+        <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-black/80 to-transparent z-20" />
       </div>
 
-      {/* Content Overlay - ULTRA COMPACT */}
-      <div className="absolute inset-0 z-30 flex flex-col justify-end pb-6 sm:pb-8 md:pb-10 pt-16">
-        <div className="w-full px-4 sm:px-6 md:px-8 lg:px-12">
-          <div className="max-w-2xl">
-            {/* Title - SMALLER */}
-            <h1 className="text-white font-black tracking-tight leading-none text-2xl sm:text-3xl md:text-4xl lg:text-5xl drop-shadow-2xl mb-2 line-clamp-2">
+      {/* Content Overlay - Better positioning */}
+      <div className="absolute inset-0 z-30 flex flex-col justify-end pb-12 sm:pb-16 md:pb-20 lg:pb-24 xl:pb-28 pt-24">
+        <div className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16">
+          <div className="max-w-xl sm:max-w-2xl md:max-w-3xl lg:max-w-4xl">
+            {/* Title - Optimized sizes */}
+            <h1 className="text-white font-black tracking-tight leading-[0.9] text-[1.75rem] xs:text-[2rem] sm:text-[2.5rem] md:text-[3.5rem] lg:text-[4.5rem] xl:text-[5.5rem] drop-shadow-2xl mb-2 sm:mb-3 md:mb-4 line-clamp-2">
               {currentMovie?.title || "Featured"}
             </h1>
 
-            {/* Meta Info - INLINE & COMPACT */}
-            <div className="flex items-center gap-2 mb-2 flex-wrap">
+            {/* Meta Info */}
+            <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3 md:mb-4 text-xs sm:text-sm">
               {currentMovie?.vote_average && (
-                <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-green-500/20 border border-green-500/30">
-                  <Star className="h-3 w-3 fill-green-400 text-green-400" />
-                  <span className="text-green-400 font-bold text-xs">
+                <div className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-green-500/20 border border-green-500/30">
+                  <span className="text-green-400 font-bold text-sm sm:text-base">
+                    ★
+                  </span>
+                  <span className="text-green-400 font-bold text-xs sm:text-sm">
                     {currentMovie.vote_average.toFixed(1)}
                   </span>
                 </div>
               )}
               {currentMovie?.release_date && (
-                <span className="text-white/90 font-semibold text-xs">
+                <span className="text-white/90 font-semibold">
                   {new Date(currentMovie.release_date).getFullYear()}
                 </span>
               )}
-              <span className="px-1.5 py-0.5 rounded bg-white/10 text-white/80 text-[10px] font-semibold">
+              <span className="px-1.5 py-0.5 rounded bg-white/10 text-white/80 text-[10px] sm:text-xs font-semibold">
                 HD
               </span>
             </div>
 
-            {/* Overview - SINGLE LINE ONLY */}
+            {/* Overview - Progressive display */}
             {currentMovie?.overview && (
-              <p className="hidden md:block text-white/80 text-xs lg:text-sm leading-snug line-clamp-1 drop-shadow-lg mb-3 max-w-xl">
+              <p className="hidden sm:block text-white/90 text-xs sm:text-sm md:text-base lg:text-lg leading-relaxed line-clamp-2 md:line-clamp-3 drop-shadow-lg mb-4 sm:mb-5 md:mb-6 max-w-2xl">
                 {currentMovie.overview}
               </p>
             )}
 
-            {/* Buttons - IMPROVED CONTRAST & LABELS */}
-            <div className="flex items-center gap-2">
-              {/* View Details - Primary Action */}
+            {/* Buttons - Compact on mobile */}
+            <div className="flex items-center gap-2 sm:gap-3">
               <button
                 onClick={viewDetails}
-                className="inline-flex items-center justify-center gap-1.5 rounded-lg px-4 sm:px-5 py-2 text-xs sm:text-sm font-bold text-white transition-all hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-orange-500/50 shadow-xl"
-                style={{
-                  background: "linear-gradient(135deg, #fe9245 0%, #eb423b 100%)",
-                }}
+                className="inline-flex items-center justify-center gap-1.5 sm:gap-2 rounded-lg bg-white px-4 sm:px-6 md:px-8 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm md:text-base font-bold text-black transition-all hover:bg-white/90 active:scale-95 focus:outline-none focus:ring-2 focus:ring-white/50 shadow-2xl"
               >
-                <Info className="h-3.5 w-3.5" />
-                <span>Details</span>
+                <Play className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5 fill-current" />
+                <span>Play</span>
               </button>
-
-              {/* Watchlist Button - CLEARER DESIGN */}
-              {user && (
-                <button
-                  onClick={toggleWatchlist}
-                  disabled={addingToWatchlist}
-                  className={`inline-flex items-center justify-center gap-1.5 rounded-lg px-4 sm:px-5 py-2 text-xs sm:text-sm font-bold transition-all hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-white/30 disabled:opacity-50 ${
-                    isInWatchlist
-                      ? "bg-white text-black hover:bg-white/90"
-                      : "bg-white/20 text-white border border-white/30 hover:bg-white/30 backdrop-blur-sm"
-                  }`}
-                >
-                  {isInWatchlist ? (
-                    <>
-                      <Bookmark className="h-3.5 w-3.5 fill-current" />
-                      <span>Saved</span>
-                    </>
-                  ) : (
-                    <>
-                      <Plus className="h-3.5 w-3.5" />
-                      <span>My List</span>
-                    </>
-                  )}
-                </button>
-              )}
+              <button
+                onClick={viewDetails}
+                className="inline-flex items-center justify-center gap-1.5 sm:gap-2 rounded-lg bg-white/20 backdrop-blur-md px-4 sm:px-6 md:px-8 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm md:text-base font-bold text-white transition-all hover:bg-white/30 active:scale-95 focus:outline-none focus:ring-2 focus:ring-white/50 shadow-xl"
+              >
+                <Info className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5" />
+                <span className="hidden xs:inline">More Info</span>
+                <span className="xs:hidden">Info</span>
+              </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Navigation Arrows - MORE VISIBLE */}
-      <div className="hidden md:block">
-        <button
-          onClick={prevSlide}
-          disabled={isTransitioning}
-          className="absolute left-4 top-1/2 -translate-y-1/2 z-40 h-12 w-12 rounded-full bg-black/60 backdrop-blur-sm border border-white/30 flex items-center justify-center text-white hover:bg-black/80 hover:scale-110 transition-all opacity-0 group-hover:opacity-100 disabled:opacity-20"
-          aria-label="Previous"
-        >
-          <ChevronLeft className="h-6 w-6" />
-        </button>
-        <button
-          onClick={nextSlide}
-          disabled={isTransitioning}
-          className="absolute right-4 top-1/2 -translate-y-1/2 z-40 h-12 w-12 rounded-full bg-black/60 backdrop-blur-sm border border-white/30 flex items-center justify-center text-white hover:bg-black/80 hover:scale-110 transition-all opacity-0 group-hover:opacity-100 disabled:opacity-20"
-          aria-label="Next"
-        >
-          <ChevronRight className="h-6 w-6" />
-        </button>
-      </div>
-
-      {/* Indicators - BOTTOM LEFT */}
-      <div className="absolute bottom-4 left-4 sm:left-6 md:left-8 z-40 flex items-center gap-1.5">
+      {/* Indicators - Better positioning */}
+      <div className="absolute bottom-3 sm:bottom-4 md:bottom-6 right-4 sm:right-6 md:right-8 lg:right-12 z-40 flex items-center gap-1.5 sm:gap-2">
         {slides.map((_, idx) => (
           <button
             key={idx}
             onClick={() => goToSlide(idx)}
-            aria-label={`Slide ${idx + 1}`}
-            className={`h-1 rounded-full transition-all duration-500 focus:outline-none ${
+            aria-label={`Go to slide ${idx + 1}`}
+            className={`h-0.5 sm:h-1 rounded-full transition-all duration-500 focus:outline-none ${
               idx === currentIndex
-                ? "w-8 shadow-lg"
-                : "w-1 bg-white/40 hover:bg-white/60 hover:w-2"
+                ? "w-6 sm:w-8 md:w-10 bg-white shadow-lg"
+                : "w-0.5 sm:w-1 bg-white/40 hover:bg-white/60"
             }`}
-            style={
-              idx === currentIndex
-                ? { background: "linear-gradient(90deg, #fe9245 0%, #eb423b 100%)" }
-                : {}
-            }
           />
         ))}
-      </div>
-
-      {/* Slide Counter - TOP RIGHT */}
-      <div className="absolute top-20 right-4 sm:right-6 md:right-8 z-40 bg-black/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/20">
-        <span className="text-white text-xs font-semibold">
-          {currentIndex + 1} / {slides.length}
-        </span>
       </div>
     </section>
   );

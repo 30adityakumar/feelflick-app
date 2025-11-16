@@ -1,7 +1,8 @@
 // src/app/homepage/components/HeroSliderSection.jsx
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Play, Info, Plus, Check, Volume2, VolumeX } from "lucide-react";
+import { Play, Info } from "lucide-react";
+import { supabase } from "@/shared/lib/supabase/client";
 
 const tmdbImg = (p, s = "original") =>
   p ? `https://image.tmdb.org/t/p/${s}${p}` : "";
@@ -12,12 +13,31 @@ export default function HeroSliderSection({ className = "" }) {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [isInWatchlist, setIsInWatchlist] = useState(false);
-  const [muted, setMuted] = useState(true);
+  const [user, setUser] = useState(null);
+  const [watchlistIds, setWatchlistIds] = useState(new Set());
   const nav = useNavigate();
   const timerRef = useRef(null);
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
+
+  // Get user and watchlist
+  useEffect(() => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+
+      if (user) {
+        const { data } = await supabase
+          .from("user_watchlist")
+          .select("movie_id")
+          .eq("user_id", user.id);
+        
+        if (data) {
+          setWatchlistIds(new Set(data.map(item => item.movie_id)));
+        }
+      }
+    })();
+  }, []);
 
   // Fetch trending movies
   useEffect(() => {
@@ -45,7 +65,7 @@ export default function HeroSliderSection({ className = "" }) {
     clearInterval(timerRef.current);
     timerRef.current = setInterval(() => {
       nextSlide();
-    }, 7000); // Slower transition - Netflix style
+    }, 7000);
     return () => clearInterval(timerRef.current);
   }, [slides.length, currentIndex, isPaused]);
 
@@ -89,7 +109,6 @@ export default function HeroSliderSection({ className = "" }) {
 
   const currentMovie = slides[currentIndex] || {};
   const viewDetails = () => currentMovie?.id && nav(`/movie/${currentMovie.id}`);
-  const toggleWatchlist = () => setIsInWatchlist(!isInWatchlist);
 
   if (loading) {
     return (
@@ -100,6 +119,8 @@ export default function HeroSliderSection({ className = "" }) {
   }
 
   if (!slides.length) return null;
+
+  const isInWatchlist = watchlistIds.has(currentMovie?.id);
 
   return (
     <section
@@ -135,26 +156,24 @@ export default function HeroSliderSection({ className = "" }) {
           );
         })}
 
-        {/* Premium Gradients - Netflix/Prime style */}
+        {/* Premium Gradients */}
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent z-20" />
         <div className="absolute inset-0 bg-gradient-to-r from-black via-black/60 to-transparent z-20" />
         <div className="absolute bottom-0 inset-x-0 h-1/3 bg-gradient-to-t from-black to-transparent z-20" />
-        
-        {/* Top fade for header */}
         <div className="absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-black/90 to-transparent z-20" />
       </div>
 
       {/* Content Overlay */}
       <div className="absolute inset-0 z-30 flex flex-col justify-end pb-16 md:pb-24 pt-20">
         <div className="w-full px-4 md:px-12 lg:px-16">
-          <div className="max-w-2xl lg:max-w-3xl">
-            {/* Title */}
-            <h1 className="text-white font-black tracking-tight leading-tight text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl drop-shadow-2xl mb-3 md:mb-4 line-clamp-2">
+          <div className="max-w-2xl">
+            {/* Title - Reduced size */}
+            <h1 className="text-white font-black tracking-tight leading-tight text-3xl sm:text-4xl md:text-5xl lg:text-5xl drop-shadow-2xl mb-3 line-clamp-2">
               {currentMovie?.title || "Featured"}
             </h1>
 
-            {/* Meta Info - Compact */}
-            <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-4 text-sm">
+            {/* Meta Info */}
+            <div className="flex items-center gap-2 mb-3 text-sm">
               {currentMovie?.vote_average && (
                 <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-green-500/20 border border-green-500/40">
                   <span className="text-green-400 font-bold text-sm">★</span>
@@ -173,18 +192,18 @@ export default function HeroSliderSection({ className = "" }) {
               </span>
             </div>
 
-            {/* Overview - Netflix style */}
+            {/* Overview - Fixed to 2 lines max, smaller text */}
             {currentMovie?.overview && (
-              <p className="hidden md:block text-white/90 text-sm lg:text-base leading-relaxed line-clamp-3 drop-shadow-lg mb-5 lg:mb-6 max-w-2xl">
+              <p className="hidden md:block text-white/90 text-sm leading-relaxed line-clamp-2 drop-shadow-lg mb-5 max-w-xl">
                 {currentMovie.overview}
               </p>
             )}
 
-            {/* Action Buttons - FeelFlick Orange gradient */}
-            <div className="flex items-center gap-2 md:gap-3">
+            {/* Action Buttons */}
+            <div className="flex items-center gap-2">
               <button
                 onClick={viewDetails}
-                className="inline-flex items-center justify-center gap-2 rounded-lg px-6 md:px-8 py-2.5 md:py-3 text-sm font-bold text-white transition-all hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-orange-500/50 shadow-2xl"
+                className="inline-flex items-center justify-center gap-2 rounded-lg px-6 md:px-8 py-2.5 text-sm font-bold text-white transition-all hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-orange-500/50 shadow-2xl"
                 style={{
                   background: "linear-gradient(90deg, #fe9245 10%, #eb423b 90%)",
                 }}
@@ -195,67 +214,41 @@ export default function HeroSliderSection({ className = "" }) {
 
               <button
                 onClick={viewDetails}
-                className="inline-flex items-center justify-center gap-2 rounded-lg bg-white/10 backdrop-blur-md border border-white/20 px-6 md:px-8 py-2.5 md:py-3 text-sm font-bold text-white transition-all hover:bg-white/20 active:scale-95 focus:outline-none focus:ring-2 focus:ring-white/50"
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-white/10 backdrop-blur-md border border-white/20 px-6 md:px-8 py-2.5 text-sm font-bold text-white transition-all hover:bg-white/20 active:scale-95 focus:outline-none focus:ring-2 focus:ring-white/50"
               >
                 <Info className="h-4 w-4" />
                 <span className="hidden sm:inline">More Info</span>
                 <span className="sm:hidden">Info</span>
-              </button>
-
-              {/* Watchlist Toggle - Netflix style */}
-              <button
-                onClick={toggleWatchlist}
-                className="hidden lg:inline-flex items-center justify-center h-10 w-10 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white transition-all hover:bg-white/20 hover:border-white/40 active:scale-90 focus:outline-none focus:ring-2 focus:ring-white/50"
-                title={isInWatchlist ? "Remove from watchlist" : "Add to watchlist"}
-              >
-                {isInWatchlist ? (
-                  <Check className="h-5 w-5" />
-                ) : (
-                  <Plus className="h-5 w-5" />
-                )}
-              </button>
-
-              {/* Mute Toggle - Prime Video style */}
-              <button
-                onClick={() => setMuted(!muted)}
-                className="hidden lg:inline-flex items-center justify-center h-10 w-10 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white transition-all hover:bg-white/20 hover:border-white/40 active:scale-90 focus:outline-none focus:ring-2 focus:ring-white/50"
-                title={muted ? "Unmute" : "Mute"}
-              >
-                {muted ? (
-                  <VolumeX className="h-5 w-5" />
-                ) : (
-                  <Volume2 className="h-5 w-5" />
-                )}
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Navigation Arrows - Desktop only */}
+      {/* Subtle Navigation Arrows - Only on hover */}
       <button
         onClick={prevSlide}
         disabled={isTransitioning}
-        className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 z-40 items-center justify-center h-12 w-12 rounded-full bg-black/50 backdrop-blur-md border border-white/20 text-white transition-all hover:bg-black/70 hover:scale-110 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 focus:outline-none focus:ring-2 focus:ring-white/50"
+        className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 z-40 items-center justify-center h-10 w-10 rounded-full bg-black/30 backdrop-blur-sm text-white/60 transition-all hover:bg-black/50 hover:text-white opacity-0 hover:opacity-100 group-hover:opacity-100 active:scale-95 disabled:opacity-0 focus:outline-none"
         aria-label="Previous slide"
       >
-        <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
         </svg>
       </button>
 
       <button
         onClick={nextSlide}
         disabled={isTransitioning}
-        className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 z-40 items-center justify-center h-12 w-12 rounded-full bg-black/50 backdrop-blur-md border border-white/20 text-white transition-all hover:bg-black/70 hover:scale-110 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 focus:outline-none focus:ring-2 focus:ring-white/50"
+        className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 z-40 items-center justify-center h-10 w-10 rounded-full bg-black/30 backdrop-blur-sm text-white/60 transition-all hover:bg-black/50 hover:text-white opacity-0 hover:opacity-100 group-hover:opacity-100 active:scale-95 disabled:opacity-0 focus:outline-none"
         aria-label="Next slide"
       >
-        <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
         </svg>
       </button>
 
-      {/* Slide Indicators - Crave/Netflix style */}
+      {/* Slide Indicators */}
       <div className="absolute bottom-6 md:bottom-8 right-4 md:right-8 z-40 flex items-center gap-2">
         {slides.map((_, idx) => (
           <button
@@ -271,7 +264,7 @@ export default function HeroSliderSection({ className = "" }) {
         ))}
       </div>
 
-      {/* Progress Bar - Auto-advance indicator */}
+      {/* Progress Bar */}
       {!isPaused && (
         <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/10 z-40">
           <div

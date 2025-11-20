@@ -4,7 +4,7 @@ import Footer from '@/features/landing/components/Footer'
 
 // NEW SECTIONS
 import HeroSection from '@/features/landing/sections/HeroSection'
-import ProblemSection from '@/features/landing/sections/ProblemSection'
+// import ProblemSection from '@/features/landing/sections/ProblemSection'
 import HowItWorksSection from '@/features/landing/sections/HowItWorksSection'
 import FeaturesGrid from '@/features/landing/sections/FeaturesGrid'
 import TestimonialsSection from '@/features/landing/sections/TestimonialsSection'
@@ -18,8 +18,6 @@ export default function Landing() {
 
       {/* All Homepage Sections */}
       <HeroSection />
-      
-      <ProblemSection />
       
       <HowItWorksSection />
       

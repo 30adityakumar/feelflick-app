@@ -1,5 +1,5 @@
 // src/features/landing/sections/HowItWorksSection.jsx
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useStaggeredAnimation } from '@/features/landing/utils/scrollAnimations'
 import { Star, Sparkles, Play, ArrowRight, Check } from 'lucide-react'
 import { supabase } from '@/shared/lib/supabase/client'
@@ -15,7 +15,8 @@ export default function HowItWorksSection() {
       icon: <Star className="h-6 w-6 sm:h-7 sm:w-7" />,
       title: 'Rate Your Favorites',
       description: 'Swipe through movies you know. Love it? Hate it? Every rating sharpens your taste profile.',
-      detail: '60 seconds',
+      detail: '60',
+      detailSuffix: ' seconds',
       detailIcon: <Check className="h-3 w-3" />,
       color: 'amber',
       features: ['Tinder-style swiping', 'Rate 10+ movies', 'Skip what you don\'t know'],
@@ -25,7 +26,8 @@ export default function HowItWorksSection() {
       icon: <Sparkles className="h-6 w-6 sm:h-7 sm:w-7" />,
       title: 'Get Mood Matches',
       description: 'Our AI analyzes emotional tone, pacing, and crowd sentiment—not just genre tags.',
-      detail: '98% accuracy',
+      detail: '98',
+      detailSuffix: '% accuracy',
       detailIcon: <Sparkles className="h-3 w-3" />,
       color: 'purple',
       features: ['Emotion-based', 'Not just genres', 'Learns your taste'],
@@ -36,9 +38,11 @@ export default function HowItWorksSection() {
       title: 'Watch Instantly',
       description: 'See exactly where to stream it. Netflix, Prime, Hulu, Max—we check 100+ services.',
       detail: 'One click',
+      detailSuffix: '',
       detailIcon: <Play className="h-3 w-3" />,
       color: 'teal',
       features: ['100+ services', 'Direct links', 'Rent/buy options'],
+      isText: true,
     },
   ]
 
@@ -66,7 +70,7 @@ export default function HowItWorksSection() {
   }
 
   return (
-    <section className="relative mt-16 sm:mt-24 md:mt-32 py-16 sm:py-24 md:py-32 bg-black overflow-hidden">
+    <section id="how-it-works" className="relative pb-24 bg-black overflow-hidden">
       {/* Ambient glow orbs */}
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '8s' }} />
       <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-teal-500/10 rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '10s', animationDelay: '2s' }} />
@@ -103,15 +107,12 @@ export default function HowItWorksSection() {
                 isHovered={hoveredStep === index}
               />
 
-              {/* Arrow connector (desktop only, not after last item) */}
-              {!step.isLast && index < steps.length - 1 && (
-                <div className="hidden md:flex absolute top-1/2 -right-5 lg:-right-10 -translate-y-1/2 z-20 items-center justify-center">
-                  <ArrowRight 
-                    className={`h-6 w-6 lg:h-7 lg:w-7 text-white/20 transition-all duration-700 ${
-                      itemsVisible.includes(index) ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'
-                    }`} 
-                  />
-                </div>
+              {/* Animated SVG connector (desktop only, not after last item) */}
+              {index < steps.length - 1 && (
+                <AnimatedConnector 
+                  isVisible={itemsVisible.includes(index)} 
+                  color={step.color === 'amber' ? '#f59e0b' : step.color === 'purple' ? '#a855f7' : '#14b8a6'}
+                />
               )}
             </div>
           ))}
@@ -136,12 +137,109 @@ export default function HowItWorksSection() {
 }
 
 /**
- * 🎴 Enhanced Step Card with micro-interactions and responsive design
+ * ✨ WOW FACTOR #1: Animated Counter
+ */
+function AnimatedNumber({ value, suffix = '', isVisible }) {
+  const [count, setCount] = useState(0)
+
+  useEffect(() => {
+    if (!isVisible) return
+    const target = parseInt(value)
+    if (isNaN(target)) return
+
+    const duration = 1500
+    const increment = target / (duration / 16)
+    let current = 0
+
+    const timer = setInterval(() => {
+      current += increment
+      if (current >= target) {
+        setCount(target)
+        clearInterval(timer)
+      } else {
+        setCount(Math.floor(current))
+      }
+    }, 16)
+
+    return () => clearInterval(timer)
+  }, [isVisible, value])
+
+  return <>{count}{suffix}</>
+}
+
+/**
+ * ✨ WOW FACTOR #2: Animated SVG Connecting Lines
+ */
+function AnimatedConnector({ isVisible, color }) {
+  return (
+    <div className="hidden md:flex absolute top-1/2 -right-5 lg:-right-10 -translate-y-1/2 z-20 w-10 lg:w-20 h-8 items-center justify-center">
+      <svg 
+        className="w-full h-full"
+        viewBox="0 0 100 40"
+        fill="none"
+      >
+        <defs>
+          <linearGradient id={`gradient-${color}`} x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor={color} stopOpacity="0.2" />
+            <stop offset="50%" stopColor={color} stopOpacity="0.5" />
+            <stop offset="100%" stopColor={color} stopOpacity="0.8" />
+          </linearGradient>
+        </defs>
+        {/* Main line */}
+        <path
+          d="M 5 20 L 80 20"
+          stroke={`url(#gradient-${color})`}
+          strokeWidth="2"
+          strokeDasharray="75"
+          strokeDashoffset={isVisible ? "0" : "75"}
+          style={{
+            transition: 'stroke-dashoffset 0.8s ease-out 0.5s'
+          }}
+        />
+        {/* Arrow head */}
+        <path
+          d="M 75 15 L 85 20 L 75 25"
+          stroke={color}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+          opacity={isVisible ? "0.8" : "0"}
+          style={{
+            transition: 'opacity 0.3s ease-out 1.2s'
+          }}
+        />
+      </svg>
+    </div>
+  )
+}
+
+/**
+ * ✨ WOW FACTOR #3: 3D Card Tilt + Enhanced Step Card
  */
 function StepCard({ step, index, isVisible, onHover, isHovered }) {
-  const { number, icon, title, description, detail, detailIcon, color, features } = step
+  const { number, icon, title, description, detail, detailSuffix, detailIcon, color, features, isText } = step
+  const cardRef = useRef(null)
 
-  // Color system with more nuanced palettes
+  // 3D Tilt Effect
+  const handleMouseMove = (e) => {
+    if (!cardRef.current) return
+    const rect = cardRef.current.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+    const centerX = rect.width / 2
+    const centerY = rect.height / 2
+    const rotateX = (y - centerY) / 25
+    const rotateY = (centerX - x) / 25
+
+    cardRef.current.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`
+  }
+
+  const handleMouseLeave = () => {
+    if (!cardRef.current) return
+    cardRef.current.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)'
+  }
+
   const colorClasses = {
     amber: {
       iconBg: 'bg-amber-500/10',
@@ -185,36 +283,51 @@ function StepCard({ step, index, isVisible, onHover, isHovered }) {
 
   return (
     <div
+      ref={cardRef}
       onMouseEnter={() => onHover(index)}
-      onMouseLeave={() => onHover(null)}
+      onMouseLeave={() => {
+        onHover(null)
+        handleMouseLeave()
+      }}
+      onMouseMove={handleMouseMove}
       className={`group relative p-6 sm:p-7 md:p-8 rounded-2xl sm:rounded-3xl bg-neutral-900/50 backdrop-blur-sm border border-white/10 ${colors.cardBorder} ${colors.cardGlow} shadow-2xl transition-all duration-700 ${
         isVisible 
           ? 'opacity-100 translate-y-0' 
           : 'opacity-0 translate-y-12'
       }`}
+      style={{ 
+        transformStyle: 'preserve-3d',
+        transition: 'transform 0.1s ease-out, opacity 0.7s, translate 0.7s, border-color 0.3s, box-shadow 0.3s'
+      }}
     >
-      {/* Large background number - responsive sizing */}
-      <div className={`absolute top-4 sm:top-6 right-4 sm:right-6 text-6xl sm:text-7xl md:text-8xl font-black ${colors.numberText} select-none pointer-events-none transition-all duration-500 ${
-        isHovered ? 'scale-110 opacity-100' : 'scale-100 opacity-100'
-      }`}>
+      {/* Large background number */}
+      <div 
+        className={`absolute top-4 sm:top-6 right-4 sm:right-6 text-6xl sm:text-7xl md:text-8xl font-black ${colors.numberText} select-none pointer-events-none transition-all duration-500 ${
+          isHovered ? 'scale-110 opacity-100' : 'scale-100 opacity-100'
+        }`}
+        style={{ transform: 'translateZ(20px)' }}
+      >
         {number}
       </div>
 
-      {/* Icon with enhanced glow - responsive sizing */}
-      <div className={`relative inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl ${colors.iconBg} ${colors.iconText} mb-5 sm:mb-6 shadow-lg ${colors.iconGlow} transition-all duration-500 ${
-        isHovered ? 'scale-110 rotate-6' : 'scale-100 rotate-0'
-      }`}>
+      {/* Icon with enhanced glow */}
+      <div 
+        className={`relative inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl ${colors.iconBg} ${colors.iconText} mb-5 sm:mb-6 shadow-lg ${colors.iconGlow} transition-all duration-500 ${
+          isHovered ? 'scale-110 rotate-6' : 'scale-100 rotate-0'
+        }`}
+        style={{ transform: 'translateZ(30px)' }}
+      >
         {icon}
       </div>
 
       {/* Content */}
-      <div className="relative z-10">
-        {/* Title - responsive sizing */}
+      <div className="relative z-10" style={{ transform: 'translateZ(40px)' }}>
+        {/* Title */}
         <h3 className="text-xl sm:text-2xl font-bold text-white mb-2 sm:mb-3 leading-tight">
           {title}
         </h3>
 
-        {/* Description - responsive sizing */}
+        {/* Description */}
         <p className="text-sm sm:text-base text-white/70 leading-relaxed mb-5 sm:mb-6">
           {description}
         </p>
@@ -231,13 +344,17 @@ function StepCard({ step, index, isVisible, onHover, isHovered }) {
           ))}
         </div>
 
-        {/* Detail badge - responsive sizing */}
+        {/* Detail badge with animated counter */}
         <div className={`inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg sm:rounded-xl ${colors.detailBg} border ${colors.detailBorder} backdrop-blur-sm transition-all duration-300 ${
           isHovered ? 'scale-105' : 'scale-100'
         }`}>
           <span className="flex-shrink-0">{detailIcon}</span>
           <span className={`text-xs sm:text-sm font-bold ${colors.detailText}`}>
-            {detail}
+            {isText ? (
+              detail
+            ) : (
+              <AnimatedNumber value={detail} suffix={detailSuffix} isVisible={isVisible} />
+            )}
           </span>
         </div>
       </div>

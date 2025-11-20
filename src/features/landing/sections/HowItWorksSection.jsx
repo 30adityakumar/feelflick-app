@@ -70,7 +70,7 @@ export default function HowItWorksSection() {
   }
 
   return (
-    <section id="how-it-works" className="relative pt-24 pb-24 bg-gradient-to-b from-black via-black to-black overflow-hidden">
+    <section id="how-it-works" className="relative py-16 sm:py-24 md:py-32 bg-gradient-to-b from-black via-black to-black overflow-hidden">
       {/* Ambient glow orbs */}
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '8s' }} />
       <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-teal-500/10 rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '10s', animationDelay: '2s' }} />

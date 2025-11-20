@@ -47,7 +47,7 @@ export default function TestimonialsSection() {
   ]
 
   return (
-    <section id="testimonials" className="relative pt-16 pb-20 sm:pt-24 sm:pb-32 bg-black overflow-hidden">
+    <section id="testimonials" className="relative pt-6 pb-8 sm:pt-10 sm:pb-12 md:pt-12 md:pb-16 bg-black overflow-hidden">
       {/* Decorative gradient orbs */}
       <div className="absolute top-0 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -66,45 +66,7 @@ export default function TestimonialsSection() {
             Real people, real discoveries, real results. Join the community that's changing how we watch.
           </p>
         </div>
-
-        {/* 🎯 TESTIMONIALS GRID */}
-        <div
-          ref={containerRef}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 mb-20"
-        >
-          {testimonials.map((testimonial, index) => (
-            <TestimonialCard
-              key={testimonial.id}
-              testimonial={testimonial}
-              isVisible={itemsVisible.includes(index)}
-            />
-          ))}
         </div>
-
-        {/* 📊 STATS ROW - Enhanced Visuals */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8 border-t border-white/10 pt-12 sm:pt-16">
-          <StatItem 
-            number="10k+" 
-            label="Active Users" 
-            icon={<Users className="w-5 h-5 text-purple-400" />}
-          />
-          <StatItem 
-            number="4.8" 
-            label="Average Rating" 
-            icon={<Star className="w-5 h-5 text-amber-400 fill-amber-400" />}
-          />
-          <StatItem 
-            number="92%" 
-            label="Match Accuracy" 
-            icon={<TrendingUp className="w-5 h-5 text-green-400" />}
-          />
-          <StatItem 
-            number="100+" 
-            label="Streaming Services" 
-            icon={<Film className="w-5 h-5 text-blue-400" />}
-          />
-        </div>
-      </div>
     </section>
   )
 }

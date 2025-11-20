@@ -7,7 +7,7 @@ export default function FeaturesGrid() {
   const { containerRef, itemsVisible } = useStaggeredAnimation(3, 180)
 
   return (
-    <section id="features" className="relative pt-10 pb-14 sm:pt-16 sm:pb-20 bg-black overflow-hidden">
+    <section id="features" className="relative pt-6 pb-8 sm:pt-10 sm:pb-12 md:pt-12 md:pb-16 bg-black overflow-hidden">
       {/* Gradient orbs */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-900/20 rounded-full blur-[128px] pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-900/20 rounded-full blur-[128px] pointer-events-none" />

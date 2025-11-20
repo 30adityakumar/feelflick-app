@@ -10,7 +10,7 @@ export default function HowItWorksSection() {
   return (
     <section
       id="how-it-works"
-      className="relative pt-24 pb-24 bg-black overflow-hidden"
+      className="relative py-24 bg-black overflow-hidden"
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         
@@ -27,21 +27,21 @@ export default function HowItWorksSection() {
           </p>
         </div>
 
-        <div className="lg:grid lg:grid-cols-2 lg:gap-16 items-center">
+        <div className="flex flex-col lg:flex-row items-center gap-16">
           
           {/* LEFT: iPhone 16 Pro Mockup */}
-          <div className="relative mx-auto lg:mx-0 mb-16 lg:mb-0 flex justify-center">
+          <div className="w-full lg:w-1/2 flex justify-center relative">
             {/* Ambient glow */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-purple-500/20 blur-[120px] rounded-full pointer-events-none" />
             
-            {/* iPhone Frame - guaranteed visible */}
-            <div className="relative z-10 w-full max-w-[375px]">
+            {/* iPhone Frame */}
+            <div className="relative z-10 w-full max-w-[340px] mx-auto">
               <iPhone16ProFrame />
             </div>
           </div>
 
           {/* RIGHT: Steps */}
-          <div ref={containerRef} className="space-y-8">
+          <div ref={containerRef} className="w-full lg:w-1/2 space-y-8">
             <Step 
               icon={<Star className="w-6 h-6 text-amber-400" />} 
               title="1. Rate what you've seen" 
@@ -72,167 +72,109 @@ function iPhone16ProFrame() {
   return (
     <div className="relative w-full">
       {/* Phone outer shell */}
-      <div className="relative bg-neutral-900 rounded-[3.5rem] p-3 shadow-2xl ring-1 ring-white/10">
+      <div className="relative bg-neutral-900 rounded-[3rem] p-3 shadow-2xl ring-1 ring-white/10">
         
-        {/* Screen container with proper aspect ratio */}
-        <div className="relative bg-black rounded-[3rem] overflow-hidden" style={{ paddingBottom: '216.67%' }}>
+        {/* Screen container */}
+        <div className="relative bg-black rounded-[2.5rem] overflow-hidden aspect-[9/19.5] w-full">
           
-          {/* Absolute positioned content */}
-          <div className="absolute inset-0">
-            
-            {/* Dynamic Island */}
-            <div className="absolute top-6 left-1/2 -translate-x-1/2 w-32 h-9 bg-black rounded-full z-50 shadow-xl" />
-            
-            {/* Status Bar */}
-            <div className="absolute top-0 inset-x-0 h-14 flex items-center justify-between px-8 pt-3 z-40">
-              <span className="text-white text-sm font-semibold">9:41</span>
-              <div className="flex items-center gap-1.5">
-                <div className="flex gap-0.5">
-                  {[...Array(4)].map((_, i) => (
-                    <div key={i} className="w-0.5 h-3 bg-white rounded-full" style={{ opacity: 1 - i * 0.2 }} />
-                  ))}
-                </div>
-                <svg className="w-6 h-3" viewBox="0 0 24 12" fill="white">
-                  <rect x="0" y="0" width="18" height="12" rx="2" opacity="0.35"/>
-                  <rect x="0" y="0" width="14" height="12" rx="2" opacity="1"/>
-                  <rect x="20" y="4" width="2" height="4" rx="0.5" opacity="0.4"/>
-                </svg>
+          {/* Dynamic Island */}
+          <div className="absolute top-5 left-1/2 -translate-x-1/2 w-28 h-8 bg-black rounded-full z-50 shadow-xl" />
+          
+          {/* Status Bar */}
+          <div className="absolute top-0 inset-x-0 h-12 flex items-center justify-between px-6 pt-3 z-40">
+            <span className="text-white text-[10px] font-semibold">9:41</span>
+            <div className="flex items-center gap-1.5">
+              <div className="flex gap-0.5">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="w-0.5 h-2.5 bg-white rounded-full" style={{ opacity: 1 - i * 0.2 }} />
+                ))}
+              </div>
+              <div className="w-5 h-2.5 border border-white/30 rounded-[2px] relative">
+                <div className="absolute inset-0.5 bg-white rounded-[1px]" />
               </div>
             </div>
+          </div>
 
-            {/* Screen Content - Scrollable */}
-            <div className="absolute inset-0 overflow-y-auto pt-16 pb-8 px-4 bg-neutral-950">
-              <MovieScreenContent />
-            </div>
+          {/* Screen Content */}
+          <div className="absolute inset-0 pt-14 pb-6 px-4 bg-neutral-950 overflow-hidden">
+            <MovieScreenContent />
           </div>
         </div>
       </div>
 
       {/* Side buttons */}
-      <div className="absolute left-0 top-24 w-1 h-12 bg-neutral-800 rounded-r-sm -translate-x-full" />
-      <div className="absolute left-0 top-40 w-1 h-16 bg-neutral-800 rounded-r-sm -translate-x-full" />
-      <div className="absolute right-0 top-32 w-1 h-20 bg-neutral-800 rounded-l-sm translate-x-full" />
+      <div className="absolute left-0 top-24 w-1 h-10 bg-neutral-800 rounded-r-sm -translate-x-full" />
+      <div className="absolute left-0 top-40 w-1 h-14 bg-neutral-800 rounded-r-sm -translate-x-full" />
+      <div className="absolute right-0 top-32 w-1 h-16 bg-neutral-800 rounded-l-sm translate-x-full" />
     </div>
   )
 }
 
-// 📱 Movie Screen Content (what's inside the phone)
+// 📱 Movie Screen Content
 function MovieScreenContent() {
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 h-full flex flex-col">
       
-      {/* Movie Poster Card */}
-      <div className="relative rounded-3xl overflow-hidden group">
+      {/* Movie Poster */}
+      <div className="relative rounded-2xl overflow-hidden group aspect-[2/3] w-full">
         <img 
           src="https://image.tmdb.org/t/p/w780/oYuLEt3zVCKq57qu2F8dT7NIa6f.jpg" 
           alt="Inception"
-          className="w-full h-[400px] object-cover group-hover:scale-105 transition-transform duration-700"
+          className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
         
-        {/* Match Score Badge */}
-        <div className="absolute top-4 right-4 bg-green-500 text-black font-black px-3 py-1.5 rounded-xl text-sm shadow-lg shadow-green-500/50">
+        {/* Match Badge */}
+        <div className="absolute top-3 right-3 bg-green-500 text-black font-black px-2 py-1 rounded-lg text-xs shadow-lg">
           96% MATCH
         </div>
 
-        {/* Watchlist Button */}
-        <button className="absolute top-4 left-4 w-10 h-10 rounded-full bg-black/60 backdrop-blur-md border border-white/20 flex items-center justify-center text-white/80 hover:bg-white/20 hover:text-white transition-all">
-          <Heart className="w-5 h-5" />
-        </button>
-
         {/* Title Overlay */}
-        <div className="absolute bottom-0 left-0 right-0 p-5">
-          <h3 className="text-2xl font-bold text-white mb-1">Inception</h3>
-          <div className="flex items-center gap-2 text-white/70 text-xs">
-            <span>2010</span>
-            <span>•</span>
-            <span>148 min</span>
-            <span>•</span>
-            <span>⭐ 8.8</span>
+        <div className="absolute bottom-0 left-0 right-0 p-4">
+          <h3 className="text-xl font-bold text-white mb-1">Inception</h3>
+          <div className="flex items-center gap-2 text-white/70 text-[10px]">
+            <span>2010</span><span>•</span><span>148m</span><span>•</span><span>⭐ 8.8</span>
           </div>
         </div>
       </div>
 
-      {/* Genre Tags */}
-      <div className="flex items-center gap-2 px-1">
-        <span className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white/80 text-xs font-medium">
-          Sci-Fi
-        </span>
-        <span className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white/80 text-xs font-medium">
-          Action
-        </span>
-        <span className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white/80 text-xs font-medium">
-          Thriller
-        </span>
-      </div>
-
       {/* Streaming Services */}
-      <div className="bg-neutral-900/50 backdrop-blur-md rounded-2xl p-4 border border-white/10">
-        <div className="flex items-center gap-2 text-sm font-semibold text-white/90 mb-3">
-          <Play className="w-4 h-4 text-teal-400" />
+      <div className="bg-neutral-900/50 rounded-xl p-3 border border-white/10">
+        <div className="flex items-center gap-2 text-xs font-semibold text-white/90 mb-2">
+          <Play className="w-3 h-3 text-teal-400" />
           <span>Available On</span>
         </div>
         <div className="flex items-center gap-2">
-          <StreamingBadge logo={netflixLogo} name="Netflix" />
-          <StreamingBadge logo={primeLogo} name="Prime" />
+          <img src={netflixLogo} alt="Netflix" className="h-5 w-auto" />
+          <img src={primeLogo} alt="Prime" className="h-5 w-auto" />
         </div>
       </div>
 
       {/* Why You'll Love It */}
-      <div className="bg-neutral-900/50 backdrop-blur-md rounded-2xl p-4 border border-white/10">
-        <div className="flex items-center gap-2 text-sm font-semibold text-white/90 mb-3">
-          <Sparkles className="w-4 h-4 text-purple-400" />
+      <div className="bg-neutral-900/50 rounded-xl p-3 border border-white/10 flex-1">
+        <div className="flex items-center gap-2 text-xs font-semibold text-white/90 mb-2">
+          <Sparkles className="w-3 h-3 text-purple-400" />
           <span>Why You'll Love It</span>
         </div>
         <ul className="space-y-2">
-          <WhyBullet text="Mind-bending plot with layered storytelling" />
-          <WhyBullet text="Stunning visuals & practical effects" />
-          <WhyBullet text="Perfect for fans of intelligent thrillers" />
+          <WhyBullet text="Mind-bending plot" />
+          <WhyBullet text="Stunning visuals" />
+          <WhyBullet text="Intelligent thriller" />
         </ul>
       </div>
-
-      {/* Action Buttons */}
-      <div className="grid grid-cols-2 gap-3 pt-2">
-        <button className="py-3 px-4 rounded-xl bg-white/5 border border-white/10 text-white/70 font-semibold text-sm hover:bg-white/10 hover:text-white transition-all flex items-center justify-center gap-2">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-          Pass
-        </button>
-        <button className="py-3 px-4 rounded-xl bg-green-500/20 border border-green-500/30 text-green-400 font-semibold text-sm hover:bg-green-500/30 transition-all flex items-center justify-center gap-2">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-          Watch
-        </button>
-      </div>
     </div>
   )
 }
 
-// Streaming Service Badge (compact for mobile)
-function StreamingBadge({ logo, name }) {
-  return (
-    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-all">
-      <img src={logo} alt={name} className="w-5 h-5 object-contain" />
-      <span className="text-xs text-white/70 font-medium">
-        {name}
-      </span>
-    </div>
-  )
-}
-
-// Why Bullet Point
 function WhyBullet({ text }) {
   return (
-    <li className="flex items-start gap-2 text-xs text-white/70">
-      <CheckCircle2 className="w-4 h-4 text-purple-400 mt-0.5 flex-shrink-0" />
+    <li className="flex items-start gap-2 text-[10px] text-white/70">
+      <CheckCircle2 className="w-3 h-3 text-purple-400 mt-0.5 flex-shrink-0" />
       <span>{text}</span>
     </li>
   )
 }
 
-// Step Component
 function Step({ icon, title, desc, isVisible }) {
   return (
     <div 

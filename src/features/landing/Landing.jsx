@@ -19,15 +19,12 @@ export default function Landing() {
 
       {/* Hero - z-0 */}
       <HeroSection />
-      
-      {/* Sections - z-10 to cover hero when scrolling */}
-      <div className="relative z-10 bg-black">
-        {/* No ProblemSection */}
+      <main className="relative bg-black">
         <HowItWorksSection />
         <FeaturesGrid />
         <TestimonialsSection />
         <FinalCTASection />
-      </div>
+      </main>
 
       {/* Footer - z-10 */}
       <Footer />

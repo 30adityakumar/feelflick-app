@@ -109,66 +109,75 @@ export default function TestimonialsSection() {
 function TestimonialCard({ testimonial, isVisible }) {
   const { name, role, location, avatar, quote, metric, detail, rating } = testimonial
 
+  // Soft color for gradient backgrounds—could alternate with index or persona
+  const gradient = 'from-purple-600/70 via-indigo-500/70 to-pink-500/70'
+
   return (
     <div
-      className={`group relative p-6 sm:p-8 rounded-2xl bg-neutral-900/50 backdrop-blur-sm border border-white/10 hover:border-purple-500/30 transition-all duration-700 ${
-        isVisible 
-          ? 'opacity-100 translate-y-0' 
-          : 'opacity-0 translate-y-8'
-      }`}
+      className={`group relative p-6 sm:p-8 rounded-2xl bg-gradient-to-br ${gradient} bg-clip-padding backdrop-filter backdrop-blur-xl border border-white/20 shadow-2xl transition-all duration-700
+        ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}
+      `}
+      style={{ boxShadow: '0 2px 32px 0 rgba(128,0,192,0.10), 0 8px 64px -8px rgba(255,35,170,0.08)' }}
     >
-      {/* Quote Icon */}
-      <div className="absolute top-6 right-6 text-purple-500/20">
-        <Quote className="h-12 w-12" />
+      {/* Noisy Overlay */}
+      <div className="absolute inset-0 opacity-[.025] pointer-events-none mix-blend-soft-light"
+           style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 400 400\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.8\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")' }} />
+
+      {/* Animated Quote Icon */}
+      <div className="absolute top-6 right-6 z-10">
+        <span className="block rounded-full p-2 bg-gradient-to-br from-purple-500/10 to-pink-500/10 shadow-lg group-hover:scale-110 group-hover:bg-pink-500/20 transition-all duration-300">
+          <Quote className="h-10 w-10 text-purple-400/80 group-hover:rotate-6 group-hover:text-pink-500 transition-all duration-300" />
+        </span>
       </div>
 
-      {/* Star Rating */}
+      {/* Star Rating Row */}
       <div className="flex items-center gap-1 mb-4">
         {[...Array(rating)].map((_, i) => (
-          <Star key={i} className="h-4 w-4 fill-purple-500 text-purple-500" />
+          <Star key={i} className="h-4 w-4 fill-gradient-star text-transparent drop-shadow-md
+            animate-[bounce_2s_infinite]" 
+            style={{
+              background: 'linear-gradient(90deg, #d946ef 0%, #c026d3 50%, #f472b6 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}
+          />
         ))}
       </div>
 
-      {/* Quote */}
-      <blockquote className="relative z-10 text-base sm:text-lg text-white/90 leading-relaxed mb-6">
-        "{quote}"
+      {/* Quoted Testimonial */}
+      <blockquote className="relative z-20 text-base sm:text-lg text-white/90 leading-relaxed mb-5 font-light italic select-none">
+        “{quote}”
       </blockquote>
 
       {/* Metric Badge */}
-      <div className="mb-6">
-        <div className="inline-flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 px-4 py-2 rounded-lg bg-purple-500/10 border border-purple-500/20">
-          <span className="text-sm font-bold text-purple-400">
-            {metric}
-          </span>
-          <span className="text-xs text-white/50">
-            {detail}
-          </span>
+      <div className="mb-5">
+        <div className="inline-flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 px-4 py-2 rounded-lg bg-white/10 border border-purple-500/20 shadow-sm group-hover:scale-105 transition-transform duration-300">
+          <span className="text-sm font-bold text-purple-300">{metric}</span>
+          <span className="text-xs text-white/60">{detail}</span>
         </div>
       </div>
 
-      {/* Author Info */}
-      <div className="flex items-center gap-4 pt-6 border-t border-white/10">
+      {/* Animated Divider */}
+      <div className="w-full h-0.5 bg-gradient-to-r from-white/10 via-purple-500/50 to-transparent rounded-full mb-3" />
+
+      {/* Author Row */}
+      <div className="flex items-center gap-4 pt-3">
         {/* Avatar */}
-        <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm shadow-lg">
+        <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-extrabold shadow-lg text-lg border-2 border-white/30">
           {avatar}
         </div>
-
-        {/* Name & Location */}
-        <div className="flex-1 min-w-0">
-          <div className="font-semibold text-white text-sm sm:text-base truncate">
-            {name}
-          </div>
-          <div className="text-xs text-white/60 truncate">
-            {role} • {location}
-          </div>
+        <div>
+          <div className="text-white font-bold text-sm sm:text-base">{name}</div>
+          <div className="text-xs text-white/60">{role} • {location}</div>
         </div>
       </div>
 
-      {/* Hover gradient overlay */}
-      <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+      {/* Glow On Hover */}
+      <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-400/30 to-pink-400/15 opacity-0 group-hover:opacity-80 transition-opacity duration-300 pointer-events-none" />
     </div>
   )
 }
+
 
 /**
  * 📊 STAT ITEM

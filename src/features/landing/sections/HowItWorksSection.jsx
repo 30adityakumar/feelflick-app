@@ -13,10 +13,10 @@ export default function HowItWorksSection() {
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="lg:grid lg:grid-cols-2 lg:gap-16 items-center">
           
-          {/* 📱 iPhone Mockup - Optimized */}
-          <div className="relative mx-auto lg:mx-0 w-[280px] sm:w-[320px] lg:w-[340px] mb-12 lg:mb-0 order-2 lg:order-1">
+          {/* 📱 iPhone Mockup - LEFT SIDE */}
+          <div className="relative mx-auto lg:mx-0 w-[240px] sm:w-[280px] lg:w-[300px] mb-12 lg:mb-0">
             {/* Ambient glow */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[280px] h-[400px] bg-purple-500/15 blur-[100px] rounded-full animate-pulse" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[240px] h-[360px] bg-purple-500/15 blur-[100px] rounded-full animate-pulse" />
             
             {/* Phone Frame */}
             <div className="relative z-10 w-full aspect-[9/19.5] border-[6px] border-neutral-800 bg-black rounded-[2.25rem] shadow-[0_20px_60px_-10px_rgba(0,0,0,0.8)] overflow-hidden ring-1 ring-white/5">
@@ -25,69 +25,69 @@ export default function HowItWorksSection() {
               <div className="absolute inset-0 bg-neutral-900 flex flex-col">
                 
                 {/* Status Bar */}
-                <div className="h-7 w-full bg-black flex justify-between items-center px-5">
-                  <div className="w-10 h-2.5 bg-neutral-700 rounded-full" />
+                <div className="h-6 w-full bg-black flex justify-between items-center px-4">
+                  <div className="w-8 h-2 bg-neutral-700 rounded-full" />
                   <div className="flex gap-1">
-                    <div className="w-2.5 h-2.5 bg-neutral-700 rounded-full" />
-                    <div className="w-2.5 h-2.5 bg-neutral-700 rounded-full" />
+                    <div className="w-2 h-2 bg-neutral-700 rounded-full" />
+                    <div className="w-2 h-2 bg-neutral-700 rounded-full" />
                   </div>
                 </div>
                 
                 {/* App Content */}
-                <div className="flex-1 p-3 flex flex-col relative">
+                <div className="flex-1 p-2.5 flex flex-col relative">
                   
                   {/* Movie Card */}
-                  <div className="relative flex-1 rounded-xl overflow-hidden mb-3 shadow-lg">
+                  <div className="relative flex-1 rounded-xl overflow-hidden mb-2.5 shadow-lg">
                     <img 
-                      src="https://image.tmdb.org/t/p/w780/q6y0Go1rZgVoTFZYpK391L0imU.jpg" 
-                      alt="Pulp Fiction"
+                      src="https://image.tmdb.org/t/p/w780/oYuLEt3zVCKq57qu2F8dT7NIa6f.jpg" 
+                      alt="Inception"
                       className="absolute inset-0 w-full h-full object-cover"
                       loading="lazy"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent" />
                     
                     {/* Movie Info */}
-                    <div className="absolute bottom-0 left-0 right-0 p-4">
-                      <h3 className="text-white text-lg sm:text-xl font-bold leading-tight mb-1">
-                        Pulp Fiction
+                    <div className="absolute bottom-0 left-0 right-0 p-3">
+                      <h3 className="text-white text-base sm:text-lg font-bold leading-tight mb-0.5">
+                        Inception
                       </h3>
-                      <div className="flex items-center gap-1.5 text-white/60 text-xs">
-                        <span>1994</span>
+                      <div className="flex items-center gap-1.5 text-white/60 text-[10px] sm:text-xs">
+                        <span>2010</span>
                         <span>•</span>
-                        <span>Crime, Drama</span>
+                        <span>Sci-Fi, Thriller</span>
                       </div>
                     </div>
                   </div>
                   
                   {/* Action Buttons */}
-                  <div className="flex gap-2.5 h-12">
+                  <div className="flex gap-2 h-10 sm:h-11">
                     <button 
                       className="flex-1 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500 hover:bg-red-500/20 transition-colors"
                       aria-label="Dislike"
                     >
-                      <ThumbsDown className="w-5 h-5" />
+                      <ThumbsDown className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>
                     <button 
                       className="flex-1 rounded-lg bg-green-500/10 border border-green-500/20 flex items-center justify-center text-green-500 hover:bg-green-500/20 transition-colors"
                       aria-label="Like"
                     >
-                      <ThumbsUp className="w-5 h-5" />
+                      <ThumbsUp className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>
                   </div>
                 </div>
                 
                 {/* Bottom Nav */}
-                <div className="h-14 bg-black border-t border-white/5 flex justify-around items-center px-4">
-                  <div className="w-5 h-5 rounded-full bg-purple-500" />
-                  <div className="w-5 h-5 rounded-full bg-neutral-700" />
-                  <div className="w-5 h-5 rounded-full bg-neutral-700" />
+                <div className="h-12 bg-black border-t border-white/5 flex justify-around items-center px-3">
+                  <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-purple-500" />
+                  <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-neutral-700" />
+                  <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-neutral-700" />
                 </div>
               </div>
             </div>
           </div>
 
-          {/* 📝 Content - Steps */}
-          <div ref={containerRef} className="space-y-8 order-1 lg:order-2">
+          {/* 📝 Content - RIGHT SIDE */}
+          <div ref={containerRef} className="space-y-8">
             
             {/* Section Header */}
             <div className="text-center lg:text-left">

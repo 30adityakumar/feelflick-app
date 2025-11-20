@@ -1,5 +1,4 @@
 // src/features/landing/utils/scrollAnimations.js
-
 import { useEffect, useRef, useState } from 'react'
 
 /**

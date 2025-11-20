@@ -1,28 +1,32 @@
 // src/features/landing/components/Footer.jsx
-// src/features/landing/components/Footer.jsx
 import { useEffect, useRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import { Film, Twitter, Instagram, Youtube } from 'lucide-react'
 
+/**
+ * 🎬 FOOTER
+ * 
+ * Premium footer with:
+ * - Purple/pink gradient branding
+ * - Social links
+ * - Quick navigation
+ * - Legal links
+ * 
+ * Inspired by: Plex, Apple TV+, Spotify
+ */
 export default function Footer() {
   const location = useLocation()
+  const barRef = useRef(null)
 
-  // 🚫 Hide footer completely on onboarding route for in-app feel
+  // Hide on onboarding
   if (location.pathname.startsWith('/onboarding')) {
     return null
   }
 
-  return <MicroFooter />
-}
-
-/* --------------------------- MICRO ONLY (centered, tiny) --------------------------- */
-function MicroFooter() {
-  const year = new Date().getFullYear() // ✅ Already dynamic!
-  const barRef = useRef(null)
-
-  // Expose footer height so the hero can perfectly center itself
+  // Set CSS variable for footer height
   useEffect(() => {
     const setVar = () => {
-      const h = barRef.current?.offsetHeight || 32
+      const h = barRef.current?.offsetHeight || 80
       document.documentElement.style.setProperty('--footer-h', `${h}px`)
     }
     setVar()
@@ -31,38 +35,127 @@ function MicroFooter() {
     return () => ro.disconnect()
   }, [])
 
+  const year = new Date().getFullYear()
+
   return (
     <footer
       ref={barRef}
-      className="fixed inset-x-0 bottom-0 z-40 bg-transparent"
+      className="relative bg-black border-t border-white/10 py-12 sm:py-16"
     >
-      {/* ultra-tight padding, centered content */}
-      <div className="mx-auto max-w-7xl px-2 py-1 md:px-3">
-        <div className="flex items-center justify-center">
-          <div className="text-[11px] md:text-[12px] leading-5 text-white/50 text-center">
-            © {year} FeelFlick ·{' '}
-            <FooterTextLink to="/about">About</FooterTextLink>{' · '}
-            <FooterTextLink to="/privacy">Privacy</FooterTextLink>{' · '}
-            <FooterTextLink to="/terms">Terms</FooterTextLink>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        {/* Main Footer Content */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+          
+          {/* Brand Column */}
+          <div className="md:col-span-1">
+            <Link
+              to="/"
+              className="group inline-flex items-center gap-2 mb-4 transition-transform hover:scale-105"
+            >
+              {/* Icon */}
+              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500">
+                <Film className="w-6 h-6 text-white" />
+              </div>
+              
+              {/* Brand Text */}
+              <span className="text-xl font-black tracking-tight">
+                <span className="bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
+                  Feel
+                </span>
+                <span className="text-white">Flick</span>
+              </span>
+            </Link>
+            
+            <p className="text-sm text-white/60 leading-relaxed mb-4">
+              Find movies you'll love in 60 seconds. AI-powered recommendations for your unique taste.
+            </p>
+
+            {/* Social Links */}
+            <div className="flex items-center gap-3">
+              <SocialLink href="https://twitter.com/feelflick" icon={<Twitter className="w-4 h-4" />} />
+              <SocialLink href="https://instagram.com/feelflick" icon={<Instagram className="w-4 h-4" />} />
+              <SocialLink href="https://youtube.com/@feelflick" icon={<Youtube className="w-4 h-4" />} />
+            </div>
           </div>
+
+          {/* Product Column */}
+          <div>
+            <h3 className="text-sm font-bold text-white mb-4">Product</h3>
+            <ul className="space-y-2">
+              <FooterLink to="/#how-it-works">How It Works</FooterLink>
+              <FooterLink to="/#features">Features</FooterLink>
+              <FooterLink to="/#testimonials">Reviews</FooterLink>
+              <FooterLink to="/pricing">Pricing</FooterLink>
+            </ul>
+          </div>
+
+          {/* Company Column */}
+          <div>
+            <h3 className="text-sm font-bold text-white mb-4">Company</h3>
+            <ul className="space-y-2">
+              <FooterLink to="/about">About Us</FooterLink>
+              <FooterLink to="/blog">Blog</FooterLink>
+              <FooterLink to="/careers">Careers</FooterLink>
+              <FooterLink to="/contact">Contact</FooterLink>
+            </ul>
+          </div>
+
+          {/* Legal Column */}
+          <div>
+            <h3 className="text-sm font-bold text-white mb-4">Legal</h3>
+            <ul className="space-y-2">
+              <FooterLink to="/privacy">Privacy Policy</FooterLink>
+              <FooterLink to="/terms">Terms of Service</FooterLink>
+              <FooterLink to="/cookies">Cookie Policy</FooterLink>
+              <FooterLink to="/dmca">DMCA</FooterLink>
+            </ul>
+          </div>
+        </div>
+
+        {/* Bottom Bar */}
+        <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-sm text-white/50">
+            © {year} FeelFlick. All rights reserved.
+          </p>
+          
+          <p className="text-xs text-white/40">
+            Made with 💜 for movie lovers
+          </p>
         </div>
       </div>
     </footer>
   )
 }
 
-/* --------------------------- helper --------------------------- */
-function FooterTextLink({ to, children }) {
-  const isExternal = to.startsWith('http')
-  const cls =
-    'underline-offset-2 hover:underline text-white/50 hover:text-white focus:outline-none focus:ring-2 focus:ring-brand/60 rounded'
-  return isExternal ? (
-    <a href={to} target="_blank" rel="noopener noreferrer" className={cls}>
-      {children}
+/**
+ * Footer Link Component
+ */
+function FooterLink({ to, children }) {
+  return (
+    <li>
+      <Link
+        to={to}
+        className="text-sm text-white/60 hover:text-white transition-colors inline-block"
+      >
+        {children}
+      </Link>
+    </li>
+  )
+}
+
+/**
+ * Social Link Component
+ */
+function SocialLink({ href, icon }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex items-center justify-center w-9 h-9 rounded-lg bg-white/5 text-white/60 hover:bg-gradient-to-br hover:from-purple-500 hover:to-pink-500 hover:text-white transition-all duration-300 hover:scale-110"
+    >
+      {icon}
     </a>
-  ) : (
-    <Link to={to} className={cls}>
-      {children}
-    </Link>
   )
 }

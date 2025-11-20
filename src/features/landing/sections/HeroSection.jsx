@@ -162,9 +162,7 @@ export default function HeroSection() {
       <div
         ref={contentRef}
         className="relative z-20 max-w-5xl mx-auto px-4 text-center"
-        style={{
-          transform: `translateY(${parallaxY}px)`,
-        }}
+        // style={{transform: `translateY(${parallaxY}px)`,}}
       >
         {/* Badge */}
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md mb-8 hover:bg-white/10 hover:border-white/20 transition-all duration-300 cursor-default">

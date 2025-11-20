@@ -75,13 +75,6 @@ export default function HowItWorksSection() {
         
         {/* Section Header */}
         <div className="text-center mb-16 sm:mb-20">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md mb-6 hover:bg-white/10 transition-all duration-300">
-            <Sparkles className="w-4 h-4 text-purple-400 animate-pulse" />
-            <span className="text-sm font-medium text-white/80">
-              Three steps to movie magic
-            </span>
-          </div>
-
           <h2 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight mb-6">
             How{' '}
             <span className="bg-gradient-to-r from-purple-500 via-pink-500 to-amber-500 bg-clip-text text-transparent">

@@ -1,21 +1,16 @@
 // src/features/landing/components/Footer.jsx
 import { useEffect, useRef } from 'react'
-import { Link, useLocation } from 'react-router-dom'
-import { Film, Twitter, Instagram, Youtube } from 'lucide-react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Twitter, Instagram, Youtube } from 'lucide-react'
 
 /**
  * 🎬 FOOTER
  * 
- * Premium footer with:
- * - Purple/pink gradient branding
- * - Social links
- * - Quick navigation
- * - Legal links
- * 
- * Inspired by: Plex, Apple TV+, Spotify
+ * Premium footer with gradient branding
  */
 export default function Footer() {
   const location = useLocation()
+  const navigate = useNavigate()
   const barRef = useRef(null)
 
   // Hide on onboarding
@@ -37,6 +32,28 @@ export default function Footer() {
 
   const year = new Date().getFullYear()
 
+  // Smooth scroll to section
+  const scrollToSection = (sectionId) => {
+    if (location.pathname !== '/') {
+      navigate('/')
+      setTimeout(() => {
+        const element = document.getElementById(sectionId)
+        if (element) {
+          const offset = 80
+          const elementPosition = element.getBoundingClientRect().top + window.scrollY
+          window.scrollTo({ top: elementPosition - offset, behavior: 'smooth' })
+        }
+      }, 100)
+    } else {
+      const element = document.getElementById(sectionId)
+      if (element) {
+        const offset = 80
+        const elementPosition = element.getBoundingClientRect().top + window.scrollY
+        window.scrollTo({ top: elementPosition - offset, behavior: 'smooth' })
+      }
+    }
+  }
+
   return (
     <footer
       ref={barRef}
@@ -51,19 +68,19 @@ export default function Footer() {
           <div className="md:col-span-1">
             <Link
               to="/"
-              className="group inline-flex items-center gap-2 mb-4 transition-transform hover:scale-105"
+              onClick={(e) => {
+                e.preventDefault()
+                if (location.pathname === '/') {
+                  window.scrollTo({ top: 0, behavior: 'smooth' })
+                } else {
+                  navigate('/')
+                  setTimeout(() => window.scrollTo({ top: 0, behavior: 'auto' }), 0)
+                }
+              }}
+              className="group inline-block mb-4 transition-transform hover:scale-105"
             >
-              {/* Icon */}
-              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500">
-                <Film className="w-6 h-6 text-white" />
-              </div>
-              
-              {/* Brand Text */}
-              <span className="text-xl font-black tracking-tight">
-                <span className="bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
-                  Feel
-                </span>
-                <span className="text-white">Flick</span>
+              <span className="text-2xl font-black tracking-tight bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
+                FEELFLICK
               </span>
             </Link>
             
@@ -83,9 +100,15 @@ export default function Footer() {
           <div>
             <h3 className="text-sm font-bold text-white mb-4">Product</h3>
             <ul className="space-y-2">
-              <FooterLink to="/#how-it-works">How It Works</FooterLink>
-              <FooterLink to="/#features">Features</FooterLink>
-              <FooterLink to="/#testimonials">Reviews</FooterLink>
+              <FooterLink onClick={() => scrollToSection('how-it-works')}>
+                How It Works
+              </FooterLink>
+              <FooterLink onClick={() => scrollToSection('features')}>
+                Features
+              </FooterLink>
+              <FooterLink onClick={() => scrollToSection('testimonials')}>
+                Reviews
+              </FooterLink>
               <FooterLink to="/pricing">Pricing</FooterLink>
             </ul>
           </div>
@@ -131,7 +154,20 @@ export default function Footer() {
 /**
  * Footer Link Component
  */
-function FooterLink({ to, children }) {
+function FooterLink({ to, onClick, children }) {
+  if (onClick) {
+    return (
+      <li>
+        <button
+          onClick={onClick}
+          className="text-sm text-white/60 hover:text-white transition-colors inline-block text-left"
+        >
+          {children}
+        </button>
+      </li>
+    )
+  }
+  
   return (
     <li>
       <Link

@@ -69,7 +69,7 @@ export default function FeaturesGrid() {
   const { containerRef, itemsVisible } = useStaggeredAnimation(3, 200)
 
   return (
-    <section className="relative py-16 sm:py-24 md:py-32 bg-gradient-to-b from-black via-neutral-950 to-black overflow-hidden">
+    <section id="features" className="relative py-16 sm:py-24 md:py-32 bg-gradient-to-b from-black via-neutral-950 to-black overflow-hidden">
       {/* Decorative elements */}
       <div className="absolute top-1/4 -left-32 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl" />
       <div className="absolute bottom-1/4 -right-32 w-64 h-64 bg-pink-500/20 rounded-full blur-3xl" />

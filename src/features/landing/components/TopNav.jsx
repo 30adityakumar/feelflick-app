@@ -1,18 +1,12 @@
 // src/features/landing/components/TopNav.jsx
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Film, LogIn, Menu, X } from 'lucide-react'
+import { LogIn, Menu, X } from 'lucide-react'
 
 /**
  * 🎬 TOP NAVIGATION
  * 
- * Premium glassmorphism nav with:
- * - Sticky blur background on scroll
- * - Purple/pink gradient logo
- * - Mobile menu
- * - Smooth animations
- * 
- * Inspired by: Plex, Apple TV+, Netflix
+ * Premium glassmorphism nav with smooth scroll to sections
  */
 export default function TopNav({ hideAuthCta = false, onAuthOpen }) {
   const [scrolled, setScrolled] = useState(false)
@@ -65,6 +59,30 @@ export default function TopNav({ hideAuthCta = false, onAuthOpen }) {
     }
   }
 
+  // Smooth scroll to section
+  const scrollToSection = (sectionId) => {
+    setMobileMenuOpen(false)
+    
+    if (location.pathname !== '/') {
+      navigate('/')
+      setTimeout(() => {
+        const element = document.getElementById(sectionId)
+        if (element) {
+          const offset = 80 // Account for fixed nav height
+          const elementPosition = element.getBoundingClientRect().top + window.scrollY
+          window.scrollTo({ top: elementPosition - offset, behavior: 'smooth' })
+        }
+      }, 100)
+    } else {
+      const element = document.getElementById(sectionId)
+      if (element) {
+        const offset = 80
+        const elementPosition = element.getBoundingClientRect().top + window.scrollY
+        window.scrollTo({ top: elementPosition - offset, behavior: 'smooth' })
+      }
+    }
+  }
+
   return (
     <>
       {/* Main Nav */}
@@ -79,34 +97,28 @@ export default function TopNav({ hideAuthCta = false, onAuthOpen }) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 sm:h-20">
             
-            {/* Logo */}
+            {/* Logo - Gradient Text Only */}
             <Link
               to="/"
               onClick={onBrandClick}
-              className="group flex items-center gap-2 sm:gap-3 transition-transform hover:scale-105 active:scale-95"
+              className="group transition-transform hover:scale-105 active:scale-95"
             >
-              {/* Icon */}
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <div className="relative flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500">
-                  <Film className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                </div>
-              </div>
-              
-              {/* Brand Text */}
-              <span className="text-xl sm:text-2xl font-black tracking-tight">
-                <span className="bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
-                  Feel
-                </span>
-                <span className="text-white">Flick</span>
+              <span className="text-2xl sm:text-3xl font-black tracking-tight bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
+                FEELFLICK
               </span>
             </Link>
 
             {/* Desktop Nav Links */}
             <div className="hidden md:flex items-center gap-8">
-              <NavLink to="/#how-it-works">How It Works</NavLink>
-              <NavLink to="/#features">Features</NavLink>
-              <NavLink to="/#testimonials">Reviews</NavLink>
+              <NavLink onClick={() => scrollToSection('how-it-works')}>
+                How It Works
+              </NavLink>
+              <NavLink onClick={() => scrollToSection('features')}>
+                Features
+              </NavLink>
+              <NavLink onClick={() => scrollToSection('testimonials')}>
+                Reviews
+              </NavLink>
             </div>
 
             {/* Desktop CTA */}
@@ -155,13 +167,13 @@ export default function TopNav({ hideAuthCta = false, onAuthOpen }) {
         {/* Menu Content */}
         <div className="relative h-full flex flex-col pt-24 pb-8 px-6">
           <nav className="flex flex-col gap-2">
-            <MobileNavLink to="/#how-it-works" onClick={() => setMobileMenuOpen(false)}>
+            <MobileNavLink onClick={() => scrollToSection('how-it-works')}>
               How It Works
             </MobileNavLink>
-            <MobileNavLink to="/#features" onClick={() => setMobileMenuOpen(false)}>
+            <MobileNavLink onClick={() => scrollToSection('features')}>
               Features
             </MobileNavLink>
-            <MobileNavLink to="/#testimonials" onClick={() => setMobileMenuOpen(false)}>
+            <MobileNavLink onClick={() => scrollToSection('testimonials')}>
               Reviews
             </MobileNavLink>
           </nav>
@@ -188,29 +200,28 @@ export default function TopNav({ hideAuthCta = false, onAuthOpen }) {
 /**
  * Desktop Nav Link
  */
-function NavLink({ to, children }) {
+function NavLink({ onClick, children }) {
   return (
-    <a
-      href={to}
+    <button
+      onClick={onClick}
       className="relative text-sm font-medium text-white/70 hover:text-white transition-colors group"
     >
       {children}
       <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500 group-hover:w-full transition-all duration-300" />
-    </a>
+    </button>
   )
 }
 
 /**
  * Mobile Nav Link
  */
-function MobileNavLink({ to, onClick, children }) {
+function MobileNavLink({ onClick, children }) {
   return (
-    <a
-      href={to}
+    <button
       onClick={onClick}
-      className="px-4 py-3 rounded-xl text-lg font-semibold text-white/80 hover:text-white hover:bg-white/10 transition-all"
+      className="px-4 py-3 rounded-xl text-lg font-semibold text-white/80 hover:text-white hover:bg-white/10 transition-all text-left"
     >
       {children}
-    </a>
+    </button>
   )
 }

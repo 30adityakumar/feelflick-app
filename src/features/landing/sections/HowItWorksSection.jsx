@@ -65,13 +65,13 @@ export default function HowItWorksSection() {
     }
   }
 
-  return (
-    <section id="how-it-works" className="relative pb-24 bg-black overflow-hidden">
+    return (
+    <section id="how-it-works" className="relative pb-24 bg-gradient-to-b from-black via-black to-black overflow-hidden">
+      {/* ⬆️ CHANGED: Added solid black gradient background */}
+      
       {/* Ambient glow orbs */}
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '8s' }} />
       <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-teal-500/10 rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '10s', animationDelay: '2s' }} />
-
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
         <div className="text-center mb-16 sm:mb-20">

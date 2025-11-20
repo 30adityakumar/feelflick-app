@@ -5,6 +5,7 @@ import { LogIn, Menu, X } from 'lucide-react'
 
 /**
  * 🎬 TOP NAVIGATION
+ * 
  * Premium glassmorphism nav with smooth scroll to sections
  */
 export default function TopNav({ hideAuthCta = false, onAuthOpen }) {
@@ -14,10 +15,12 @@ export default function TopNav({ hideAuthCta = false, onAuthOpen }) {
   const navigate = useNavigate()
   const location = useLocation()
 
+  // Hide on onboarding
   if (location.pathname.startsWith('/onboarding')) {
     return null
   }
 
+  // Set CSS variable for TopNav height
   useEffect(() => {
     const setVar = () => {
       const h = barRef.current?.offsetHeight || 72
@@ -29,15 +32,14 @@ export default function TopNav({ hideAuthCta = false, onAuthOpen }) {
     return () => ro.disconnect()
   }, [])
 
+  // Scroll detection for glassmorphism
   useEffect(() => {
     let ticking = false
     const onScroll = () => {
       if (ticking) return
       ticking = true
       requestAnimationFrame(() => {
-        setScrolled(
-          (window.scrollY || document.documentElement.scrollTop) > 20,
-        )
+        setScrolled((window.scrollY || document.documentElement.scrollTop) > 20)
         ticking = false
       })
     }
@@ -57,34 +59,34 @@ export default function TopNav({ hideAuthCta = false, onAuthOpen }) {
     }
   }
 
+  // Smooth scroll to section
   const scrollToSection = (sectionId) => {
     setMobileMenuOpen(false)
-
-    const doScroll = () => {
+    
+    if (location.pathname !== '/') {
+      navigate('/')
+      setTimeout(() => {
+        const element = document.getElementById(sectionId)
+        if (element) {
+          const offset = 80 // Account for fixed nav height
+          const elementPosition = element.getBoundingClientRect().top + window.scrollY
+          window.scrollTo({ top: elementPosition - offset, behavior: 'smooth' })
+        }
+      }, 100)
+    } else {
       const element = document.getElementById(sectionId)
       if (element) {
         const offset = 80
-        const elementPosition =
-          element.getBoundingClientRect().top + window.scrollY
-        window.scrollTo({
-          top: elementPosition - offset,
-          behavior: 'smooth',
-        })
+        const elementPosition = element.getBoundingClientRect().top + window.scrollY
+        window.scrollTo({ top: elementPosition - offset, behavior: 'smooth' })
       }
-    }
-
-    if (location.pathname !== '/') {
-      navigate('/')
-      setTimeout(doScroll, 100)
-    } else {
-      doScroll()
     }
   }
 
   return (
     <>
+      {/* Main Nav */}
       <nav
-        id="top-nav"
         ref={barRef}
         className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
           scrolled
@@ -94,6 +96,8 @@ export default function TopNav({ hideAuthCta = false, onAuthOpen }) {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 sm:h-20">
+            
+            {/* Logo - Gradient Text Only */}
             <Link
               to="/"
               onClick={onBrandClick}
@@ -104,6 +108,7 @@ export default function TopNav({ hideAuthCta = false, onAuthOpen }) {
               </span>
             </Link>
 
+            {/* Desktop Nav Links */}
             <div className="hidden md:flex items-center gap-8">
               <NavLink onClick={() => scrollToSection('how-it-works')}>
                 How It Works
@@ -116,6 +121,7 @@ export default function TopNav({ hideAuthCta = false, onAuthOpen }) {
               </NavLink>
             </div>
 
+            {/* Desktop CTA */}
             {!hideAuthCta && (
               <div className="hidden md:block">
                 <button
@@ -128,6 +134,7 @@ export default function TopNav({ hideAuthCta = false, onAuthOpen }) {
               </div>
             )}
 
+            {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="md:hidden p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
@@ -143,7 +150,7 @@ export default function TopNav({ hideAuthCta = false, onAuthOpen }) {
         </div>
       </nav>
 
-      {/* Mobile menu */}
+      {/* Mobile Menu */}
       <div
         className={`fixed inset-0 z-40 md:hidden transition-all duration-300 ${
           mobileMenuOpen
@@ -151,10 +158,13 @@ export default function TopNav({ hideAuthCta = false, onAuthOpen }) {
             : 'opacity-0 pointer-events-none'
         }`}
       >
+        {/* Backdrop */}
         <div
           className="absolute inset-0 bg-black/90 backdrop-blur-xl"
           onClick={() => setMobileMenuOpen(false)}
         />
+
+        {/* Menu Content */}
         <div className="relative h-full flex flex-col pt-24 pb-8 px-6">
           <nav className="flex flex-col gap-2">
             <MobileNavLink onClick={() => scrollToSection('how-it-works')}>
@@ -168,11 +178,12 @@ export default function TopNav({ hideAuthCta = false, onAuthOpen }) {
             </MobileNavLink>
           </nav>
 
+          {/* Mobile CTA */}
           {!hideAuthCta && (
             <button
               onClick={() => {
                 setMobileMenuOpen(false)
-                if (onAuthOpen) onAuthOpen()
+                onAuthOpen()
               }}
               className="mt-8 w-full inline-flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold shadow-lg shadow-purple-500/50"
             >
@@ -186,6 +197,9 @@ export default function TopNav({ hideAuthCta = false, onAuthOpen }) {
   )
 }
 
+/**
+ * Desktop Nav Link
+ */
 function NavLink({ onClick, children }) {
   return (
     <button
@@ -198,6 +212,9 @@ function NavLink({ onClick, children }) {
   )
 }
 
+/**
+ * Mobile Nav Link
+ */
 function MobileNavLink({ onClick, children }) {
   return (
     <button

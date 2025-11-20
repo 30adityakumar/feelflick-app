@@ -179,7 +179,9 @@ img.lazy { content-visibility: auto; contain-intrinsic-size: 300px 450px; }
 }
 @media (max-width: 600px) { .feelflick-glass { padding: 26px 8vw 22px; max-width: 96vw; margin-top: 7vh; } }
 
-/* src/index.css or App.css */
+/* ==========================================================================
+   LANDING PAGE ANIMATIONS (for new sections)
+   ========================================================================== */
 
 /* Fade in animation */
 @keyframes fadeIn {

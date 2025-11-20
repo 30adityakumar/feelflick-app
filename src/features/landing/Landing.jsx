@@ -3,7 +3,7 @@ import { useState, useCallback } from 'react'
 import TopNav from '@/features/landing/components/TopNav'
 import Footer from '@/features/landing/components/Footer'
 
-// 🎬 NEW SECTIONS (we'll build these next)
+// NEW SECTIONS
 import HeroSection from '@/features/landing/sections/HeroSection'
 import ProblemSection from '@/features/landing/sections/ProblemSection'
 import HowItWorksSection from '@/features/landing/sections/HowItWorksSection'
@@ -19,48 +19,27 @@ export default function Landing() {
 
   return (
     <div className="relative bg-black text-white min-h-screen">
-      {/* 
-        🎯 Navigation Bar
-        - Sticky on scroll
-        - Transparent → Solid transition
-        - Auth CTA in top right
-      */}
+      {/* Navigation */}
       <TopNav onAuthOpen={openInlineAuth} />
 
-      {/* 
-        🎬 HOMEPAGE SECTIONS
-        Each section is self-contained, responsive, and accessible
-        Scroll-triggered animations handled within each component
-      */}
-      
-      {/* 1️⃣ HERO - Cinematic first impression */}
+      {/* All Homepage Sections */}
       <HeroSection 
         showInlineAuth={showInlineAuth}
         onAuthOpen={openInlineAuth}
         onAuthClose={closeInlineAuth}
       />
-
-      {/* 2️⃣ PROBLEM - Agitate the pain point */}
+      
       <ProblemSection />
-
-      {/* 3️⃣ HOW IT WORKS - 3-step process */}
+      
       <HowItWorksSection />
-
-      {/* 4️⃣ FEATURES - Key capabilities with metrics */}
+      
       <FeaturesGrid />
-
-      {/* 5️⃣ TESTIMONIALS - Social proof */}
+      
       <TestimonialsSection />
-
-      {/* 6️⃣ FINAL CTA - Conversion closer */}
+      
       <FinalCTASection onAuthOpen={openInlineAuth} />
 
-      {/* 
-        🦶 Footer
-        - Minimal design
-        - Legal links
-        - Social media
-      */}
+      {/* Footer */}
       <Footer />
     </div>
   )

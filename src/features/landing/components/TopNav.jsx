@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { LogIn, Menu, X } from 'lucide-react'
+import { supabase } from '@/shared/lib/supabase/client'
 
 /**
  * 🎬 TOP NAVIGATION
@@ -10,6 +11,7 @@ import { LogIn, Menu, X } from 'lucide-react'
 export default function TopNav({ hideAuthCta = false, onAuthOpen }) {
   const [scrolled, setScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [isAuthenticating, setIsAuthenticating] = useState(false)
   const barRef = useRef(null)
   const navigate = useNavigate()
   const location = useLocation()
@@ -81,6 +83,37 @@ export default function TopNav({ hideAuthCta = false, onAuthOpen }) {
     }
   }
 
+  // 🔧 Sign in handler with fallback
+  const handleSignIn = async () => {
+    // If parent provides onAuthOpen (modal), use that
+    if (onAuthOpen) {
+      onAuthOpen()
+      return
+    }
+
+    // Otherwise, trigger Google OAuth directly
+    if (isAuthenticating) return
+    setIsAuthenticating(true)
+
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo:
+            typeof window !== 'undefined'
+              ? `${window.location.origin}/onboarding`
+              : undefined,
+        },
+      })
+      if (error) throw error
+    } catch (error) {
+      console.error('Auth error:', error)
+      alert('Sign in failed. Please try again.')
+    } finally {
+      setIsAuthenticating(false)
+    }
+  }
+
   return (
     <>
       <nav
@@ -97,11 +130,13 @@ export default function TopNav({ hideAuthCta = false, onAuthOpen }) {
             <Link
               to="/"
               onClick={onBrandClick}
-              className="group transition-transform hover:scale-105 active:scale-95"
+              className="group relative transition-transform hover:scale-105 active:scale-95"
             >
               <span className="text-2xl sm:text-3xl font-black tracking-tight bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
                 FEELFLICK
               </span>
+              {/* Optional: Subtle shimmer on hover */}
+              <span className="absolute inset-0 bg-gradient-to-r from-purple-400/0 via-pink-400/30 to-purple-400/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl -z-10" />
             </Link>
 
             <div className="hidden md:flex items-center gap-8">
@@ -119,11 +154,12 @@ export default function TopNav({ hideAuthCta = false, onAuthOpen }) {
             {!hideAuthCta && (
               <div className="hidden md:block">
                 <button
-                  onClick={onAuthOpen}
-                  className="group inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold hover:shadow-lg hover:shadow-purple-500/50 transition-all duration-300 hover:scale-105 active:scale-95"
+                  onClick={handleSignIn}
+                  disabled={isAuthenticating}
+                  className="group inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold hover:shadow-lg hover:shadow-purple-500/50 transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   <LogIn className="w-4 h-4" />
-                  <span>Sign In</span>
+                  <span>{isAuthenticating ? 'Signing In...' : 'Sign In'}</span>
                 </button>
               </div>
             )}
@@ -172,12 +208,13 @@ export default function TopNav({ hideAuthCta = false, onAuthOpen }) {
             <button
               onClick={() => {
                 setMobileMenuOpen(false)
-                if (onAuthOpen) onAuthOpen()
+                handleSignIn()
               }}
-              className="mt-8 w-full inline-flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold shadow-lg shadow-purple-500/50"
+              disabled={isAuthenticating}
+              className="mt-8 w-full inline-flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold shadow-lg shadow-purple-500/50 disabled:opacity-70 disabled:cursor-not-allowed"
             >
               <LogIn className="w-5 h-5" />
-              <span>Sign In</span>
+              <span>{isAuthenticating ? 'Signing In...' : 'Sign In'}</span>
             </button>
           )}
         </div>

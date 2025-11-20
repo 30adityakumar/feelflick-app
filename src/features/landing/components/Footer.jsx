@@ -5,7 +5,6 @@ import { Twitter, Instagram, Youtube } from 'lucide-react'
 
 /**
  * 🎬 FOOTER
- * 
  * Premium footer with gradient branding
  */
 export default function Footer() {
@@ -13,12 +12,10 @@ export default function Footer() {
   const navigate = useNavigate()
   const barRef = useRef(null)
 
-  // Hide on onboarding
   if (location.pathname.startsWith('/onboarding')) {
     return null
   }
 
-  // Set CSS variable for footer height
   useEffect(() => {
     const setVar = () => {
       const h = barRef.current?.offsetHeight || 80
@@ -32,25 +29,25 @@ export default function Footer() {
 
   const year = new Date().getFullYear()
 
-  // Smooth scroll to section
   const scrollToSection = (sectionId) => {
-    if (location.pathname !== '/') {
-      navigate('/')
-      setTimeout(() => {
-        const element = document.getElementById(sectionId)
-        if (element) {
-          const offset = 80
-          const elementPosition = element.getBoundingClientRect().top + window.scrollY
-          window.scrollTo({ top: elementPosition - offset, behavior: 'smooth' })
-        }
-      }, 100)
-    } else {
+    const doScroll = () => {
       const element = document.getElementById(sectionId)
       if (element) {
         const offset = 80
-        const elementPosition = element.getBoundingClientRect().top + window.scrollY
-        window.scrollTo({ top: elementPosition - offset, behavior: 'smooth' })
+        const elementPosition =
+          element.getBoundingClientRect().top + window.scrollY
+        window.scrollTo({
+          top: elementPosition - offset,
+          behavior: 'smooth',
+        })
       }
+    }
+
+    if (location.pathname !== '/') {
+      navigate('/')
+      setTimeout(doScroll, 100)
+    } else {
+      doScroll()
     }
   }
 
@@ -60,11 +57,7 @@ export default function Footer() {
       className="relative bg-black border-t border-white/10 py-12 sm:py-16"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* Main Footer Content */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-          
-          {/* Brand Column */}
           <div className="md:col-span-1">
             <Link
               to="/"
@@ -74,7 +67,14 @@ export default function Footer() {
                   window.scrollTo({ top: 0, behavior: 'smooth' })
                 } else {
                   navigate('/')
-                  setTimeout(() => window.scrollTo({ top: 0, behavior: 'auto' }), 0)
+                  setTimeout(
+                    () =>
+                      window.scrollTo({
+                        top: 0,
+                        behavior: 'auto',
+                      }),
+                    0,
+                  )
                 }
               }}
               className="group inline-block mb-4 transition-transform hover:scale-105"
@@ -83,20 +83,28 @@ export default function Footer() {
                 FEELFLICK
               </span>
             </Link>
-            
+
             <p className="text-sm text-white/60 leading-relaxed mb-4">
-              Find movies you'll love in 60 seconds. AI-powered recommendations for your unique taste.
+              Find movies that match your mood in under a minute. AI-powered
+              discovery that feels human.
             </p>
 
-            {/* Social Links */}
             <div className="flex items-center gap-3">
-              <SocialLink href="https://twitter.com/feelflick" icon={<Twitter className="w-4 h-4" />} />
-              <SocialLink href="https://instagram.com/feelflick" icon={<Instagram className="w-4 h-4" />} />
-              <SocialLink href="https://youtube.com/@feelflick" icon={<Youtube className="w-4 h-4" />} />
+              <SocialLink
+                href="https://twitter.com"
+                icon={<Twitter className="w-4 h-4" />}
+              />
+              <SocialLink
+                href="https://instagram.com"
+                icon={<Instagram className="w-4 h-4" />}
+              />
+              <SocialLink
+                href="https://youtube.com"
+                icon={<Youtube className="w-4 h-4" />}
+              />
             </div>
           </div>
 
-          {/* Product Column */}
           <div>
             <h3 className="text-sm font-bold text-white mb-4">Product</h3>
             <ul className="space-y-2">
@@ -113,7 +121,6 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Company Column */}
           <div>
             <h3 className="text-sm font-bold text-white mb-4">Company</h3>
             <ul className="space-y-2">
@@ -124,7 +131,6 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Legal Column */}
           <div>
             <h3 className="text-sm font-bold text-white mb-4">Legal</h3>
             <ul className="space-y-2">
@@ -136,14 +142,12 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Bottom Bar */}
         <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm text-white/50">
             © {year} FeelFlick. All rights reserved.
           </p>
-          
           <p className="text-xs text-white/40">
-            Made with 💜 for movie lovers
+            Made with 💜 for movie lovers everywhere.
           </p>
         </div>
       </div>
@@ -151,9 +155,6 @@ export default function Footer() {
   )
 }
 
-/**
- * Footer Link Component
- */
 function FooterLink({ to, onClick, children }) {
   if (onClick) {
     return (
@@ -167,7 +168,7 @@ function FooterLink({ to, onClick, children }) {
       </li>
     )
   }
-  
+
   return (
     <li>
       <Link
@@ -180,9 +181,6 @@ function FooterLink({ to, onClick, children }) {
   )
 }
 
-/**
- * Social Link Component
- */
 function SocialLink({ href, icon }) {
   return (
     <a

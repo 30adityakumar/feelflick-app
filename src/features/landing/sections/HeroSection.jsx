@@ -25,10 +25,10 @@ const POSTER_ROWS = [
     '/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg', // Parasite
     '/6oom5QYQ2yQTMJIbnvbkBL9cHo6.jpg', // Spirited Away
     '/q719jXXEzOoYaps6babgKnONONX.jpg', // Your Name
-  ]
+  ],
 ]
 
-export default function HeroSection({ showInlineAuth, onAuthOpen }) {
+export default function HeroSection() {
   const [isAuthenticating, setIsAuthenticating] = useState(false)
 
   async function handleGoogleSignIn() {
@@ -51,61 +51,66 @@ export default function HeroSection({ showInlineAuth, onAuthOpen }) {
 
   const scrollToHowItWorks = () => {
     const element = document.getElementById('how-it-works')
-    if (element) {
-      // Account for fixed header height
-      const headerOffset = 80
-      const elementPosition = element.getBoundingClientRect().top
-      const offsetPosition = elementPosition + window.pageYOffset - headerOffset
-      
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      })
-    }
+    if (!element) return
+
+    const headerOffset = 80
+    const elementPosition = element.getBoundingClientRect().top
+    const offsetPosition = elementPosition + window.pageYOffset - headerOffset
+
+    window.scrollTo({
+      top: offsetPosition,
+      behavior: 'smooth',
+    })
   }
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black pt-20">
-      
-      {/* 🎬 ANIMATED POSTER WALL BACKGROUND */}
+      {/* 🎬 Animated poster wall */}
       <div className="absolute inset-0 z-0 opacity-30 select-none pointer-events-none">
-        {/* Vignette Overlay (Top/Bottom fade) */}
         <div className="absolute inset-0 z-10 bg-gradient-to-b from-black via-transparent to-black" />
-        <div className="absolute inset-0 z-10 bg-black/40" /> {/* General dim */}
+        <div className="absolute inset-0 z-10 bg-black/40" />
 
         <div className="flex flex-col justify-center h-full gap-6 scale-110 rotate-[-2deg] origin-center">
-          {/* Row 1: Moves Left */}
+          {/* Row 1 */}
           <div className="flex gap-6 animate-scroll-left w-[200%]">
-            {[...POSTER_ROWS[0], ...POSTER_ROWS[0], ...POSTER_ROWS[0]].map((path, i) => (
-              <div key={`r1-${i}`} className="relative w-48 h-72 shrink-0 rounded-xl overflow-hidden shadow-2xl border border-white/10">
-                <img 
-                  src={`https://image.tmdb.org/t/p/w500${path}`} 
+            {[...POSTER_ROWS[0], ...POSTER_ROWS[0], ...POSTER_ROWS[0]].map(
+              (path, i),
+            ) => (
+              <div
+                key={`r1-${i}`}
+                className="relative w-48 h-72 shrink-0 rounded-xl overflow-hidden shadow-2xl border border-white/10"
+              >
+                <img
+                  src={`https://image.tmdb.org/t/p/w500${path}`}
                   className="w-full h-full object-cover"
-                  alt="" 
+                  alt=""
                 />
               </div>
-            ))}
+            )}
           </div>
 
-          {/* Row 2: Moves Right */}
+          {/* Row 2 */}
           <div className="flex gap-6 animate-scroll-right w-[200%]">
-            {[...POSTER_ROWS[1], ...POSTER_ROWS[1], ...POSTER_ROWS[1]].map((path, i) => (
-              <div key={`r2-${i}`} className="relative w-48 h-72 shrink-0 rounded-xl overflow-hidden shadow-2xl border border-white/10">
-                <img 
-                  src={`https://image.tmdb.org/t/p/w500${path}`} 
+            {[...POSTER_ROWS[1], ...POSTER_ROWS[1], ...POSTER_ROWS[1]].map(
+              (path, i),
+            ) => (
+              <div
+                key={`r2-${i}`}
+                className="relative w-48 h-72 shrink-0 rounded-xl overflow-hidden shadow-2xl border border-white/10"
+              >
+                <img
+                  src={`https://image.tmdb.org/t/p/w500${path}`}
                   className="w-full h-full object-cover"
-                  alt="" 
+                  alt=""
                 />
               </div>
-            ))}
+            )}
           </div>
         </div>
       </div>
 
-      {/* 📝 CONTENT LAYER */}
+      {/* 📝 Content */}
       <div className="relative z-20 max-w-5xl mx-auto px-4 text-center">
-        
-        {/* "Spotify for Movies" Badge */}
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md mb-8 hover:bg-white/10 transition-colors cursor-default">
           <Sparkles className="w-4 h-4 text-amber-400" />
           <span className="text-sm font-medium text-amber-100/90">
@@ -113,7 +118,6 @@ export default function HeroSection({ showInlineAuth, onAuthOpen }) {
           </span>
         </div>
 
-        {/* Headline */}
         <h1 className="text-5xl sm:text-7xl md:text-8xl font-black tracking-tight mb-8 leading-tight">
           <span className="block text-white drop-shadow-2xl">
             Stop Scrolling.
@@ -123,12 +127,12 @@ export default function HeroSection({ showInlineAuth, onAuthOpen }) {
           </span>
         </h1>
 
-        {/* Subheadline - Updated with your context */}
         <p className="text-lg sm:text-2xl text-white/70 max-w-2xl mx-auto mb-10 leading-relaxed font-medium">
-          Like Spotify for movies. Discover films based on your <span className="text-white font-bold">vibe, emotion, and taste</span>—not just what's trending.
+          Like Spotify for movies. Discover films based on your{' '}
+          <span className="text-white font-bold">vibe, emotion, and taste</span>
+          —not just what&apos;s trending.
         </p>
 
-        {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
           <button
             onClick={handleGoogleSignIn}
@@ -141,7 +145,7 @@ export default function HeroSection({ showInlineAuth, onAuthOpen }) {
               ) : (
                 <>
                   <img src={googleSvg} alt="Google" className="w-5 h-5" />
-                  <span>Get Started — It's Free</span>
+                  <span>Get Started — It&apos;s Free</span>
                 </>
               )}
             </span>
@@ -156,7 +160,6 @@ export default function HeroSection({ showInlineAuth, onAuthOpen }) {
           </button>
         </div>
 
-        {/* Trust Signals - Updated */}
         <div className="mt-12 flex flex-wrap items-center justify-center gap-x-8 gap-y-4 text-sm text-white/40 font-medium">
           <span>✓ Always Free</span>
           <span>✓ No Ads</span>

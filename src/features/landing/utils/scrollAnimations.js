@@ -1,13 +1,9 @@
 // src/features/landing/utils/scrollAnimations.js
-
 import { useEffect, useRef, useState } from 'react'
 
 /**
  * 🎬 Intersection Observer Hook
  * Triggers animation when element enters viewport
- * 
- * @param {Object} options - IntersectionObserver options
- * @returns {Object} { ref, isVisible }
  */
 export function useScrollAnimation(options = {}) {
   const [isVisible, setIsVisible] = useState(false)
@@ -24,7 +20,7 @@ export function useScrollAnimation(options = {}) {
       {
         threshold: 0.1,
         ...options,
-      }
+      },
     )
 
     if (ref.current) {
@@ -40,10 +36,6 @@ export function useScrollAnimation(options = {}) {
 /**
  * 🎬 Staggered Animation Hook
  * For animating multiple children with delay
- * 
- * @param {number} itemCount - Number of items to animate
- * @param {number} delay - Delay between each item (ms)
- * @returns {Object} { containerRef, itemsVisible }
  */
 export function useStaggeredAnimation(itemCount, delay = 100) {
   const [itemsVisible, setItemsVisible] = useState([])
@@ -55,13 +47,13 @@ export function useStaggeredAnimation(itemCount, delay = 100) {
         if (entry.isIntersecting) {
           for (let i = 0; i < itemCount; i++) {
             setTimeout(() => {
-              setItemsVisible(prev => [...prev, i])
+              setItemsVisible((prev) => [...prev, i])
             }, i * delay)
           }
           observer.disconnect()
         }
       },
-      { threshold: 0.1 }
+      { threshold: 0.1 },
     )
 
     if (containerRef.current) {

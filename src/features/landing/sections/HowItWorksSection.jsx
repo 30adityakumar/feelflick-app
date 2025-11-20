@@ -2,6 +2,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { Star, Sparkles, Play, Heart, X } from 'lucide-react'
 
+// Import streaming icons
+import netflixIcon from '@/assets/icons/Netflix.svg'
+import primeIcon from '@/assets/icons/Prime.svg'
+import huluIcon from '@/assets/icons/Hulu.svg'
+
 export default function HowItWorksSection() {
   const [inView, setInView] = useState(false)
   const [activeStep, setActiveStep] = useState(0)
@@ -24,7 +29,7 @@ export default function HowItWorksSection() {
     return () => observer.disconnect()
   }, [])
 
-  // Auto-cycle through steps
+  // Auto-cycle through steps every 3 seconds
   useEffect(() => {
     if (!inView) return
     const interval = setInterval(() => {
@@ -48,7 +53,7 @@ export default function HowItWorksSection() {
       <div className="relative w-full max-w-[1400px] mx-auto px-6 lg:px-8">
         
         {/* Section Title */}
-        <div className={`text-center mb-12 transition-all duration-1000 ${inView ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-8'}`}>
+        <div className={`text-center mb-8 lg:mb-12 transition-all duration-1000 ${inView ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-8'}`}>
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight">
             How{' '}
             <span className="bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
@@ -59,28 +64,31 @@ export default function HowItWorksSection() {
         </div>
 
         {/* Main Grid */}
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
           
-          {/* LEFT: iPhone 16 Pro with Exploded UI */}
-          <div className={`relative h-[600px] transition-all duration-1000 delay-200 ${inView ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}>
+          {/* LEFT: Exploded iPhone UI */}
+          <div className={`relative h-[580px] transition-all duration-1000 delay-200 ${inView ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}>
             
             {/* Background iPhone (semi-transparent) */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[280px] opacity-20">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[280px] opacity-15">
               <div className="relative w-full aspect-[9/19.5] bg-neutral-900 border-[3px] border-neutral-700 rounded-[3rem] shadow-2xl" />
             </div>
 
-            {/* Exploded UI Elements */}
-            <div className="relative h-full flex flex-col justify-center items-center gap-8">
+            {/* Exploded UI Cards */}
+            <div className="relative h-full flex flex-col justify-center items-center gap-6">
               
               {/* 1. Rating Card (Top) */}
               <div 
-                className={`relative w-[320px] transition-all duration-700 ${
-                  activeStep === 0 ? 'scale-110 opacity-100 translate-y-0' : 'scale-95 opacity-40 translate-y-4'
+                className={`relative w-[320px] transition-all duration-700 cursor-pointer ${
+                  activeStep === 0 ? 'scale-105 opacity-100 translate-y-0 z-30' : 'scale-90 opacity-30 translate-y-4 z-10'
                 }`}
+                onClick={() => setActiveStep(0)}
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl blur-xl" />
-                <div className="relative bg-neutral-900 rounded-2xl border border-white/10 overflow-hidden shadow-2xl">
-                  <div className="relative w-full aspect-[3/4]">
+                {activeStep === 0 && (
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500/30 to-pink-500/30 rounded-2xl blur-2xl" />
+                )}
+                <div className="relative bg-neutral-900 rounded-2xl border border-white/20 overflow-hidden shadow-2xl">
+                  <div className="relative w-full aspect-[3/4.2]">
                     <img 
                       src="https://image.tmdb.org/t/p/w500/oYuLEt3zVCKq57qu2F8dT7NIa6f.jpg"
                       alt="Inception"
@@ -106,12 +114,15 @@ export default function HowItWorksSection() {
 
               {/* 2. Match Card (Middle) */}
               <div 
-                className={`relative w-[320px] transition-all duration-700 ${
-                  activeStep === 1 ? 'scale-110 opacity-100 translate-y-0' : 'scale-95 opacity-40 translate-y-4'
+                className={`relative w-[320px] transition-all duration-700 cursor-pointer ${
+                  activeStep === 1 ? 'scale-105 opacity-100 translate-y-0 z-30' : 'scale-90 opacity-30 translate-y-4 z-10'
                 }`}
+                onClick={() => setActiveStep(1)}
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl blur-xl" />
-                <div className="relative bg-neutral-900 rounded-2xl border border-white/10 p-6 shadow-2xl">
+                {activeStep === 1 && (
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500/30 to-pink-500/30 rounded-2xl blur-2xl" />
+                )}
+                <div className="relative bg-neutral-900 rounded-2xl border border-white/20 p-6 shadow-2xl">
                   <div className="flex items-center gap-4 mb-4">
                     <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
                       <Sparkles className="w-8 h-8 text-white" />
@@ -140,26 +151,29 @@ export default function HowItWorksSection() {
 
               {/* 3. Streaming Card (Bottom) */}
               <div 
-                className={`relative w-[320px] transition-all duration-700 ${
-                  activeStep === 2 ? 'scale-110 opacity-100 translate-y-0' : 'scale-95 opacity-40 translate-y-4'
+                className={`relative w-[320px] transition-all duration-700 cursor-pointer ${
+                  activeStep === 2 ? 'scale-105 opacity-100 translate-y-0 z-30' : 'scale-90 opacity-30 translate-y-4 z-10'
                 }`}
+                onClick={() => setActiveStep(2)}
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl blur-xl" />
-                <div className="relative bg-neutral-900 rounded-2xl border border-white/10 p-6 shadow-2xl">
+                {activeStep === 2 && (
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500/30 to-pink-500/30 rounded-2xl blur-2xl" />
+                )}
+                <div className="relative bg-neutral-900 rounded-2xl border border-white/20 p-6 shadow-2xl">
                   <div className="text-white font-bold text-lg mb-4">Available on</div>
                   <div className="grid grid-cols-3 gap-3">
-                    {/* Replace these with real icons when uploaded */}
-                    <div className="aspect-square rounded-xl bg-[#E50914] flex items-center justify-center shadow-lg hover:scale-110 transition-transform cursor-pointer">
-                      <span className="text-white text-2xl font-black">N</span>
+                    {/* Real streaming icons */}
+                    <div className="aspect-square rounded-xl bg-neutral-800 flex items-center justify-center shadow-lg hover:scale-110 transition-transform cursor-pointer border border-white/10 p-2">
+                      <img src={netflixIcon} alt="Netflix" className="w-full h-full object-contain" />
                     </div>
-                    <div className="aspect-square rounded-xl bg-[#00A8E1] flex items-center justify-center shadow-lg hover:scale-110 transition-transform cursor-pointer">
-                      <span className="text-white text-2xl font-black">P</span>
+                    <div className="aspect-square rounded-xl bg-neutral-800 flex items-center justify-center shadow-lg hover:scale-110 transition-transform cursor-pointer border border-white/10 p-2">
+                      <img src={primeIcon} alt="Prime Video" className="w-full h-full object-contain" />
                     </div>
-                    <div className="aspect-square rounded-xl bg-[#1CE783] flex items-center justify-center shadow-lg hover:scale-110 transition-transform cursor-pointer">
-                      <span className="text-black text-2xl font-black">H</span>
+                    <div className="aspect-square rounded-xl bg-neutral-800 flex items-center justify-center shadow-lg hover:scale-110 transition-transform cursor-pointer border border-white/10 p-2">
+                      <img src={huluIcon} alt="Hulu" className="w-full h-full object-contain" />
                     </div>
                   </div>
-                  <button className="w-full mt-4 h-12 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold hover:shadow-lg hover:shadow-purple-500/50 transition-all">
+                  <button className="w-full mt-4 h-12 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold hover:shadow-lg hover:shadow-purple-500/50 transition-all hover:scale-105">
                     Watch Now
                   </button>
                 </div>
@@ -168,7 +182,7 @@ export default function HowItWorksSection() {
           </div>
 
           {/* RIGHT: Interactive Steps */}
-          <div className="space-y-6">
+          <div className="space-y-5">
             <InteractiveStep 
               number="01"
               icon={<Star className="w-6 h-6 text-amber-400" />}
@@ -211,9 +225,9 @@ function InteractiveStep({ number, icon, title, desc, isActive, onClick, inView,
   return (
     <button
       onClick={onClick}
-      className={`group relative w-full flex gap-5 p-6 rounded-2xl transition-all duration-700 text-left ${delay} ${
+      className={`group relative w-full flex gap-5 p-5 lg:p-6 rounded-2xl transition-all duration-700 text-left ${delay} ${
         isActive 
-          ? 'bg-white/10 border-2 border-purple-500 shadow-lg shadow-purple-500/20' 
+          ? 'bg-white/10 border-2 border-purple-500 shadow-lg shadow-purple-500/20 scale-[1.02]' 
           : 'bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20'
       } ${
         inView ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-12'
@@ -239,7 +253,7 @@ function InteractiveStep({ number, icon, title, desc, isActive, onClick, inView,
       
       {/* Content */}
       <div className="flex-1 pt-1">
-        <h3 className={`text-lg font-bold mb-2 transition-colors ${
+        <h3 className={`text-base lg:text-lg font-bold mb-2 transition-colors ${
           isActive ? 'text-purple-300' : 'text-white group-hover:text-purple-300'
         }`}>
           {title}

@@ -73,9 +73,7 @@ export default function HeroSection() {
         <div className="flex flex-col justify-center h-full gap-6 scale-110 rotate-[-2deg] origin-center">
           {/* Row 1 */}
           <div className="flex gap-6 animate-scroll-left w-[200%]">
-            {[...POSTER_ROWS[0], ...POSTER_ROWS[0], ...POSTER_ROWS[0]].map(
-              (path, i),
-            ) => (
+            {[...POSTER_ROWS[0], ...POSTER_ROWS[0], ...POSTER_ROWS[0]].map((path, i) => (
               <div
                 key={`r1-${i}`}
                 className="relative w-48 h-72 shrink-0 rounded-xl overflow-hidden shadow-2xl border border-white/10"
@@ -86,14 +84,12 @@ export default function HeroSection() {
                   alt=""
                 />
               </div>
-            )}
+            ))}
           </div>
 
           {/* Row 2 */}
           <div className="flex gap-6 animate-scroll-right w-[200%]">
-            {[...POSTER_ROWS[1], ...POSTER_ROWS[1], ...POSTER_ROWS[1]].map(
-              (path, i),
-            ) => (
+            {[...POSTER_ROWS[1], ...POSTER_ROWS[1], ...POSTER_ROWS[1]].map((path, i) => (
               <div
                 key={`r2-${i}`}
                 className="relative w-48 h-72 shrink-0 rounded-xl overflow-hidden shadow-2xl border border-white/10"
@@ -104,7 +100,7 @@ export default function HeroSection() {
                   alt=""
                 />
               </div>
-            )}
+            ))}
           </div>
         </div>
       </div>

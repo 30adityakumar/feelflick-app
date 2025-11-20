@@ -1,160 +1,172 @@
 // src/features/landing/sections/HowItWorksSection.jsx
-import { useState, useEffect, useRef } from 'react'
-import { Star, Sparkles, Play } from 'lucide-react'
-
-// Import streaming icons
-import netflixIcon from '@/assets/icons/Netflix.svg'
-import primeIcon from '@/assets/icons/Prime.svg'
-import huluIcon from '@/assets/icons/Hulu.svg'
+import { useStaggeredAnimation } from '@/features/landing/utils/scrollAnimations'
+import { Star, Sparkles, Play, Clock } from 'lucide-react'
+import netflixLogo from '@/assets/icons/netflix-logo-icon.svg'
+import primeLogo from '@/assets/icons/amazon-prime-video.svg'
 
 export default function HowItWorksSection() {
-  const [inView, setInView] = useState(false)
-  const sectionRef = useRef(null)
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) setInView(true)
-      },
-      { threshold: 0.2 }
-    )
-
-    if (sectionRef.current) observer.observe(sectionRef.current)
-    return () => observer.disconnect()
-  }, [])
+  const { containerRef, itemsVisible } = useStaggeredAnimation(3, 200)
 
   return (
     <section
-      ref={sectionRef}
       id="how-it-works"
-      className="relative min-h-screen flex items-center bg-black py-16"
+      className="relative pb-24 bg-black overflow-hidden"
     >
-      {/* Subtle background glow */}
-      <div className="absolute inset-0 bg-gradient-to-b from-purple-600/5 via-transparent to-pink-600/5 pointer-events-none" />
-
-      <div className="relative w-full max-w-6xl mx-auto px-6">
-        
-        {/* Title */}
-        <div className={`text-center mb-16 transition-all duration-1000 ${inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-black mb-4">
-            How{' '}
-            <span className="bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
-              FeelFlick
-            </span>
-            {' '}Works
-          </h2>
-          <p className="text-white/60 text-lg">Three simple steps to your perfect movie</p>
-        </div>
-
-        {/* Steps Grid */}
-        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <div className="lg:grid lg:grid-cols-2 lg:gap-16 items-center">
           
-          {/* Step 1: Rate */}
-          <Step 
-            number="01"
-            icon={<Star className="w-8 h-8 text-amber-400" />}
-            title="Rate movies"
-            description="Swipe to rate. Our AI learns your taste with every choice."
-            image="https://image.tmdb.org/t/p/w500/oYuLEt3zVCKq57qu2F8dT7NIa6f.jpg"
-            delay="delay-200"
-            inView={inView}
-          />
+          {/* 🎬 VISUAL: Floating Movie Card (iPhone 16 Pro Style) */}
+          <div className="relative mx-auto lg:mx-0 max-w-sm mb-16 lg:mb-0">
+            {/* Glow effect */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-purple-500/20 blur-[100px] rounded-full animate-pulse" />
+            
+            {/* Movie Card */}
+            <div className="relative z-10 bg-gradient-to-br from-neutral-900 via-neutral-900 to-neutral-800 rounded-3xl shadow-2xl overflow-hidden border border-white/10 hover:scale-[1.02] transition-transform duration-300">
+              
+              {/* Poster with gradient overlay */}
+              <div className="relative h-80 overflow-hidden">
+                <img 
+                  src="https://image.tmdb.org/t/p/w780/gEU2QniL6E77NI6lCU6MxlNBvIx.jpg" 
+                  alt="Interstellar"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-neutral-900 via-neutral-900/60 to-transparent" />
+                
+                {/* Match badge */}
+                <div className="absolute top-4 right-4 bg-green-500 text-black font-black px-3 py-1.5 rounded-lg text-sm shadow-lg">
+                  98% MATCH
+                </div>
+              </div>
 
-          {/* Step 2: Match */}
-          <Step 
-            number="02"
-            icon={<Sparkles className="w-8 h-8 text-purple-400" />}
-            title="Get matched"
-            description="AI analyzes mood, pacing, and emotional tone for perfect recommendations."
-            matchBadge="98% Match"
-            delay="delay-400"
-            inView={inView}
-          />
+              {/* Content */}
+              <div className="p-6 space-y-4">
+                {/* Title & Year */}
+                <div>
+                  <h3 className="text-2xl font-black text-white mb-1">Interstellar</h3>
+                  <div className="flex items-center gap-2 text-sm text-white/50">
+                    <span>2014</span>
+                    <span>•</span>
+                    <span>2h 49m</span>
+                    <span>•</span>
+                    <span className="flex items-center gap-1">
+                      <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                      8.7
+                    </span>
+                  </div>
+                </div>
 
-          {/* Step 3: Watch */}
-          <Step 
-            number="03"
-            icon={<Play className="w-8 h-8 text-teal-400" />}
-            title="Watch instantly"
-            description="See where to stream across all your services."
-            streamingIcons={[netflixIcon, primeIcon, huluIcon]}
-            delay="delay-600"
-            inView={inView}
-          />
+                {/* Genre tags */}
+                <div className="flex flex-wrap gap-2">
+                  <span className="px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/30 text-purple-300 text-xs font-semibold">
+                    Sci-Fi
+                  </span>
+                  <span className="px-3 py-1 rounded-full bg-blue-500/20 border border-blue-500/30 text-blue-300 text-xs font-semibold">
+                    Drama
+                  </span>
+                  <span className="px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-300 text-xs font-semibold">
+                    Adventure
+                  </span>
+                </div>
+
+                {/* Why recommended */}
+                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                  <div className="flex items-start gap-2 mb-2">
+                    <Sparkles className="w-4 h-4 text-purple-400 mt-0.5 flex-shrink-0" />
+                    <div className="text-xs font-semibold text-purple-400">WHY YOU'LL LOVE THIS</div>
+                  </div>
+                  <p className="text-sm text-white/70 leading-relaxed">
+                    Epic visuals, mind-bending story, emotional depth. Perfect for fans of thought-provoking sci-fi with stunning cinematography.
+                  </p>
+                </div>
+
+                {/* Streaming services */}
+                <div className="flex items-center gap-3 pt-2">
+                  <span className="text-xs text-white/40 font-medium">WATCH ON</span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center hover:scale-110 transition-transform">
+                      <img src={netflixLogo} alt="Netflix" className="w-5 h-5" />
+                    </div>
+                    <div className="w-8 h-8 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center hover:scale-110 transition-transform">
+                      <img src={primeLogo} alt="Prime Video" className="w-5 h-5" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 📝 CONTENT: Steps */}
+          <div ref={containerRef} className="space-y-10">
+            <div className="text-center lg:text-left mb-12">
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight mb-4 leading-tight">
+                Your Perfect Movie
+                <br />
+                <span className="bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
+                  In 3 Simple Steps
+                </span>
+              </h2>
+              <p className="text-white/60 text-lg leading-relaxed">
+                No complex setup. No algorithm training. Just instant, accurate recommendations.
+              </p>
+            </div>
+
+            <Step 
+              icon={<Star className="w-6 h-6 text-amber-400" />} 
+              number="01"
+              title="Rate movies you've seen" 
+              desc="Swipe through familiar titles. Love it? Hate it? Each rating teaches our AI your unique taste." 
+              isVisible={itemsVisible.includes(0)} 
+            />
+            
+            <Step 
+              icon={<Sparkles className="w-6 h-6 text-purple-400" />} 
+              number="02"
+              title="Get mood-based matches" 
+              desc="Our AI analyzes emotional tone, pacing, and sentiment—not just genre tags. See exactly why each movie is recommended." 
+              isVisible={itemsVisible.includes(1)} 
+            />
+            
+            <Step 
+              icon={<Play className="w-6 h-6 text-teal-400" />} 
+              number="03"
+              title="Watch instantly anywhere" 
+              desc="See where to stream across 100+ services. Netflix, Prime, Hulu, Max—all in one place. No more dead ends." 
+              isVisible={itemsVisible.includes(2)} 
+            />
+          </div>
         </div>
       </div>
     </section>
   )
 }
 
-// Minimal Step Component
-function Step({ number, icon, title, description, image, matchBadge, streamingIcons, delay, inView }) {
+function Step({ icon, number, title, desc, isVisible }) {
   return (
     <div 
-      className={`group relative transition-all duration-700 ${delay} ${
-        inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+      className={`flex gap-5 transition-all duration-700 ${
+        isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-12'
       }`}
     >
-      {/* Card */}
-      <div className="relative bg-neutral-900 rounded-2xl border border-white/10 overflow-hidden hover:border-white/20 transition-all hover:scale-105">
-        
-        {/* Visual Content */}
-        <div className="relative h-64 bg-neutral-800 overflow-hidden">
-          
-          {/* Movie Poster */}
-          {image && (
-            <>
-              <img 
-                src={image}
-                alt="Movie example"
-                className="absolute inset-0 w-full h-full object-cover opacity-70"
-                loading="lazy"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-neutral-900 via-neutral-900/40 to-transparent" />
-            </>
-          )}
-
-          {/* Match Badge */}
-          {matchBadge && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="bg-neutral-900/90 backdrop-blur-sm rounded-2xl border border-purple-500/50 px-6 py-8 text-center">
-                <Sparkles className="w-12 h-12 text-purple-400 mx-auto mb-3" />
-                <div className="text-3xl font-black text-white mb-1">{matchBadge}</div>
-                <div className="text-white/60 text-sm">Based on your mood</div>
-              </div>
-            </div>
-          )}
-
-          {/* Streaming Icons */}
-          {streamingIcons && (
-            <div className="absolute inset-0 flex items-center justify-center gap-4">
-              {streamingIcons.map((icon, i) => (
-                <div 
-                  key={i}
-                  className="w-16 h-16 rounded-xl bg-neutral-900/90 backdrop-blur-sm border border-white/10 flex items-center justify-center p-3 hover:scale-110 transition-transform"
-                >
-                  <img src={icon} alt="Streaming service" className="w-full h-full object-contain" />
-                </div>
-              ))}
-            </div>
-          )}
+      {/* Number badge */}
+      <div className="flex-shrink-0">
+        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30 flex items-center justify-center">
+          <span className="text-lg font-black bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+            {number}
+          </span>
         </div>
+      </div>
 
-        {/* Text Content */}
-        <div className="p-6">
-          <div className="flex items-center gap-4 mb-3">
-            <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-neutral-800 border border-white/10 flex items-center justify-center">
-              {icon}
-            </div>
-            <h3 className="text-xl font-bold text-white">{title}</h3>
-          </div>
-          <p className="text-white/60 text-sm leading-relaxed">{description}</p>
+      {/* Content */}
+      <div className="flex-1 pt-1">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="text-white/60">{icon}</div>
+          <h3 className="text-xl font-bold text-white">
+            {title}
+          </h3>
         </div>
-
-        {/* Number Badge */}
-        <div className="absolute -top-3 -right-3 w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-sm font-black shadow-lg ring-4 ring-black">
-          {number}
-        </div>
+        <p className="text-white/60 leading-relaxed">
+          {desc}
+        </p>
       </div>
     </div>
   )

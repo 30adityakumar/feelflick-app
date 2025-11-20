@@ -1,196 +1,113 @@
 // src/features/landing/sections/FeaturesGrid.jsx
-import { useScrollAnimation, useStaggeredAnimation } from '@/features/landing/utils/scrollAnimations'
-import { Sparkles, Tv2, Heart, TrendingUp, Lock, Zap } from 'lucide-react'
+import { useStaggeredAnimation } from '@/features/landing/utils/scrollAnimations'
 
-/**
- * 💎 FEATURES GRID SECTION
- * 
- * Plex-inspired feature showcase + Chexy-style quantification
- * 
- * Shows 3 primary features:
- * 1. AI-Powered Discovery (92% accuracy)
- * 2. 100+ Streaming Services (comprehensive)
- * 3. Never Forget (unlimited watchlists)
- * 
- * Each feature has:
- * - Icon (visual recognition)
- * - Metric (quantified benefit)
- * - Title (capability)
- * - Description (how it helps)
- */
 export default function FeaturesGrid() {
-  const features = [
-  {
-    icon: <Sparkles className="h-8 w-8" />,
-    metric: '92% Match Accuracy',
-    title: 'AI-Powered Discovery',
-    description: 'Our algorithm learns your unique taste—not your demographic. Get recommendations that actually match how you feel.',
-    gradient: 'from-purple-500 to-purple-600',
-    glowColor: 'purple',
-  },
-  {
-    icon: <Tv2 className="h-8 w-8" />,
-    metric: '100+ Services Indexed',
-    title: 'Find Where to Watch',
-    description: 'Netflix, Prime, Disney+, HBO Max, Hulu, and 95+ more. One click shows you exactly where to stream any movie.',
-    gradient: 'from-pink-500 to-pink-600',
-    glowColor: 'pink',
-  },
-  {
-    icon: <Heart className="h-8 w-8" />,
-    metric: 'Unlimited Watchlists',
-    title: 'Never Forget a Great Movie',
-    description: "Save movies you want to watch, create custom lists, and rate what you've seen. Your personal movie library.",
-    gradient: 'from-purple-500 to-pink-500',
-    glowColor: 'purple',
-  },
-]
-
-
-  // Bonus features (smaller cards)
-  const bonusFeatures = [
-    {
-      icon: <TrendingUp className="h-5 w-5" />,
-      title: 'Gets Better Over Time',
-      description: 'The more you rate, the smarter recommendations become',
-    },
-    {
-      icon: <Lock className="h-5 w-5" />,
-      title: 'Privacy-First',
-      description: 'We never sell your data or share your viewing habits',
-    },
-    {
-      icon: <Zap className="h-5 w-5" />,
-      title: 'Lightning Fast',
-      description: 'Find your perfect movie in under 60 seconds',
-    },
-  ]
-  
   const { containerRef, itemsVisible } = useStaggeredAnimation(3, 200)
 
   return (
-    <section id="features" className="relative py-16 sm:py-24 md:py-32 bg-gradient-to-b from-black via-neutral-950 to-black overflow-hidden">
-      {/* Decorative elements */}
-      <div className="absolute top-1/4 -left-32 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl" />
-      <div className="absolute bottom-1/4 -right-32 w-64 h-64 bg-pink-500/20 rounded-full blur-3xl" />
+    <section id="features" className="py-24 bg-black relative overflow-hidden">
+      {/* Background ambient glow */}
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-900/20 rounded-full blur-[128px]" />
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-900/20 rounded-full blur-[128px]" />
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* 📝 SECTION HEADER */}
-        <div className="text-center mb-12 sm:mb-16">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight mb-4 sm:mb-6">
-            Why Choose{' '}
+      <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
+        <div className="text-center mb-20">
+          <h2 className="text-4xl sm:text-5xl font-black tracking-tight mb-6">
+            More Than Just <br/>
             <span className="bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
-              FeelFlick?
+              Recommendations
             </span>
           </h2>
-          <p className="text-lg sm:text-xl text-white/70 max-w-2xl mx-auto leading-relaxed">
-            Smarter recommendations. Faster discovery. Better movies.
+          <p className="text-white/60 text-xl max-w-2xl mx-auto">
+            A complete ecosystem for movie lovers. Discover, track, and watch—all in one place.
           </p>
         </div>
-
-        {/* 🎯 PRIMARY FEATURES GRID */}
-        <div
+        
+        <div 
           ref={containerRef}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 mb-8 sm:mb-12"
+          className="grid md:grid-cols-3 gap-8"
         >
-          {features.map((feature, index) => (
-            <FeatureCard
-              key={feature.title}
-              feature={feature}
-              isVisible={itemsVisible.includes(index)}
-            />
-          ))}
-        </div>
+          {/* Card 1: AI Precision */}
+          <FeatureCard 
+            title="AI Precision"
+            desc="We don't just guess. We know what you'll love based on emotional context."
+            image="https://image.tmdb.org/t/p/w500/gEU2QniL6E77NI6lCU6MxlNBvIx.jpg" // Interstellar
+            overlayColor="from-purple-900/40"
+            isVisible={itemsVisible.includes(0)}
+          >
+            <div className="absolute top-6 right-6 bg-green-500/90 text-black font-black px-3 py-1 rounded-lg rotate-3 shadow-[0_0_20px_rgba(34,197,94,0.4)] backdrop-blur-sm transform group-hover:scale-110 transition-transform duration-300">
+              98% MATCH
+            </div>
+          </FeatureCard>
 
-        {/* 🌟 BONUS FEATURES (smaller cards) */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-          {bonusFeatures.map((feature, index) => (
-            <BonusFeatureCard
-              key={feature.title}
-              feature={feature}
-              delay={index * 100}
-            />
-          ))}
+          {/* Card 2: Universal Watchlist */}
+          <FeatureCard 
+            title="Universal Watchlist"
+            desc="One list for every streaming service. Never forget a recommendation again."
+            image="https://image.tmdb.org/t/p/w500/8b8R8l88Qje9dn9OE8UIyBSXL3b.jpg" // Dune Part Two (Visual stunning)
+            overlayColor="from-amber-900/40"
+            isVisible={itemsVisible.includes(1)}
+          >
+            {/* Abstract List UI */}
+            <div className="absolute inset-0 p-6 flex flex-col gap-3 opacity-40 pointer-events-none">
+              <div className="h-12 bg-white/20 rounded-xl w-full backdrop-blur-md" />
+              <div className="h-12 bg-white/10 rounded-xl w-3/4 backdrop-blur-md" />
+              <div className="h-12 bg-white/5 rounded-xl w-5/6 backdrop-blur-md" />
+            </div>
+          </FeatureCard>
+
+          {/* Card 3: Stream Anywhere */}
+          <FeatureCard 
+            title="Stream Anywhere"
+            desc="Instantly see where it's streaming. We index Netflix, Hulu, Prime, and 100+ others."
+            image="https://image.tmdb.org/t/p/w500/8Vt6mWEReuy4Of61Lnj5Xj704m8.jpg" // Spider-Verse (Colorful)
+            overlayColor="from-blue-900/40"
+            isVisible={itemsVisible.includes(2)}
+          >
+            {/* Service Logos Placeholder */}
+            <div className="absolute top-6 right-6 flex -space-x-3">
+              <div className="w-10 h-10 rounded-full bg-[#E50914] border-2 border-black shadow-lg flex items-center justify-center text-[10px] font-bold text-white">N</div>
+              <div className="w-10 h-10 rounded-full bg-[#00A8E1] border-2 border-black shadow-lg flex items-center justify-center text-[10px] font-bold text-white">P</div>
+              <div className="w-10 h-10 rounded-full bg-[#1CE783] border-2 border-black shadow-lg flex items-center justify-center text-[10px] font-bold text-black">H</div>
+            </div>
+          </FeatureCard>
         </div>
       </div>
     </section>
   )
 }
 
-/**
- * 🎴 FEATURE CARD (Primary Features)
- * Large card with icon, metric, title, description
- */
-function FeatureCard({ feature, isVisible }) {
-  const { icon, metric, title, description, gradient, glowColor } = feature
-
+function FeatureCard({ title, desc, image, overlayColor, children, isVisible }) {
   return (
-    <div
-      className={`group relative p-6 sm:p-8 rounded-2xl bg-neutral-900/50 backdrop-blur-sm border border-white/10 hover:border-white/20 transition-all duration-700 ${
-        isVisible 
-          ? 'opacity-100 translate-y-0' 
-          : 'opacity-0 translate-y-8'
+    <div 
+      className={`relative group h-[420px] rounded-3xl overflow-hidden border border-white/10 bg-neutral-900 transition-all duration-700 ${
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
       }`}
     >
-      {/* Icon with gradient background */}
-      <div className="relative mb-6">
-        <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br ${gradient} text-white shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:shadow-2xl`}>
-          {icon}
-        </div>
-        {/* Glow effect */}
-        <div className={`absolute inset-0 w-16 h-16 rounded-2xl bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-50 blur-xl transition-opacity duration-300`} />
+      {/* Background Image */}
+      <div className="absolute inset-0">
+        <img 
+          src={image} 
+          alt={title}
+          className="w-full h-full object-cover opacity-50 group-hover:opacity-60 group-hover:scale-105 transition-all duration-700"
+        />
+        {/* Gradient Overlay */}
+        <div className={`absolute inset-0 bg-gradient-to-b ${overlayColor} via-black/20 to-black`} />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
       </div>
 
-      {/* Metric badge */}
-      <div className="mb-4">
-        <span className={`inline-flex items-center px-3 py-1 rounded-full bg-gradient-to-r ${gradient} text-white text-xs font-bold shadow-md`}>
-          {metric}
-        </span>
+      {/* Custom Visual Elements (Badges/UI) */}
+      {children}
+
+      {/* Text Content */}
+      <div className="absolute bottom-0 inset-x-0 p-8 transform transition-transform duration-500 group-hover:-translate-y-2">
+        <h3 className="text-2xl font-bold text-white mb-3 drop-shadow-lg">
+          {title}
+        </h3>
+        <p className="text-white/70 leading-relaxed text-sm font-medium drop-shadow-md">
+          {desc}
+        </p>
       </div>
-
-      {/* Title */}
-      <h3 className="text-xl sm:text-2xl font-bold text-white mb-3 leading-tight">
-        {title}
-      </h3>
-
-      {/* Description */}
-      <p className="text-sm sm:text-base text-white/70 leading-relaxed">
-        {description}
-      </p>
-
-      {/* Hover gradient overlay */}
-      <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-[0.03] transition-opacity duration-300 pointer-events-none`} />
-    </div>
-  )
-}
-
-/**
- * 🌟 BONUS FEATURE CARD (Secondary Features)
- * Smaller card with icon, title, description
- */
-function BonusFeatureCard({ feature, delay }) {
-  const { icon, title, description } = feature
-
-  return (
-    <div
-      className="group p-4 sm:p-6 rounded-xl bg-neutral-900/30 backdrop-blur-sm border border-white/5 hover:border-purple-500/30 hover:bg-neutral-900/50 transition-all duration-300"
-      style={{ animationDelay: `${delay}ms` }}
-    >
-      {/* Icon */}
-      <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-white/5 text-purple-400 mb-3 group-hover:bg-purple-500/10 transition-colors duration-300">
-        {icon}
-      </div>
-
-      {/* Title */}
-      <h4 className="text-base sm:text-lg font-bold text-white mb-2 leading-tight">
-        {title}
-      </h4>
-
-      {/* Description */}
-      <p className="text-xs sm:text-sm text-white/60 leading-snug">
-        {description}
-      </p>
     </div>
   )
 }

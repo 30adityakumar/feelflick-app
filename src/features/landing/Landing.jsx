@@ -18,8 +18,9 @@ export default function Landing() {
       <TopNav />
 
       {/* Hero - z-0 */}
-      <HeroSection />
+      
       <main className="relative bg-black">
+        <HeroSection />
         <HowItWorksSection />
         <FeaturesGrid />
         <TestimonialsSection />

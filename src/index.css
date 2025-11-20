@@ -246,38 +246,3 @@ img.lazy { content-visibility: auto; contain-intrinsic-size: 300px 450px; }
   animation: bounce 2s ease-in-out infinite;
 }
 
-/* Add to src/index.css after existing content */
-
-/* ==========================================================================
-   P1: SECONDARY COLOR SYSTEM
-   ========================================================================== */
-
-:root {
-  /* Primary (Purple/Pink) - AI/Discovery */
-  --color-primary-from: #a855f7; /* purple-500 */
-  --color-primary-to: #ec4899; /* pink-500 */
-  
-  /* Secondary (Blue/Cyan) - Streaming */
-  --color-secondary-from: #3b82f6; /* blue-500 */
-  --color-secondary-to: #06b6d4; /* cyan-500 */
-  
-  /* Tertiary (Amber/Orange) - Social/Memory */
-  --color-tertiary-from: #f59e0b; /* amber-500 */
-  --color-tertiary-to: #f97316; /* orange-500 */
-  
-  /* Success (Green) - Positive outcomes */
-  --color-success: #10b981; /* green-500 */
-}
-
-/* Gradient utilities */
-.gradient-primary {
-  background: linear-gradient(to right, var(--color-primary-from), var(--color-primary-to));
-}
-
-.gradient-secondary {
-  background: linear-gradient(to right, var(--color-secondary-from), var(--color-secondary-to));
-}
-
-.gradient-tertiary {
-  background: linear-gradient(to right, var(--color-tertiary-from), var(--color-tertiary-to));
-}

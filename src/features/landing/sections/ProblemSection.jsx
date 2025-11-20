@@ -1,126 +1,77 @@
 // src/features/landing/sections/ProblemSection.jsx
-import { useScrollAnimation, useStaggeredAnimation } from '@/features/landing/utils/scrollAnimations'
-import { Clock, Search, Frown } from 'lucide-react'
+import { useScrollAnimation } from '@/features/landing/utils/scrollAnimations'
+import { Clock } from 'lucide-react'
 
 /**
  * 🎯 PROBLEM SECTION
  * 
- * Chexy-inspired pain point agitation with emotional resonance
- * 
- * Strategy:
- * - Lead with relatable question
- * - Show the math (overwhelm)
- * - Emphasize wasted time
- * - Position FeelFlick as solution
+ * Shows the pain point with streaming service logos
  */
+
 export default function ProblemSection() {
-  const { ref, isVisible } = useScrollAnimation({ threshold: 0.2 })
+  const { ref, isVisible } = useScrollAnimation({ threshold: 0.1 })
 
   return (
     <section
+      id="problem"
       ref={ref}
-      className="relative py-16 sm:py-24 md:py-32 bg-gradient-to-b from-black via-neutral-950 to-black"
+      className="relative py-20 sm:py-28 bg-black"
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto text-center space-y-8 sm:space-y-12">
-          
-          {/* 🎯 MAIN HEADLINE - The Hook */}
-          <h2
-            className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight leading-tight transition-all duration-1000 ${
-              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-            }`}
-          >
-            Tired of{' '}
-            <span className="bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
-              30-Minute Scroll Sessions?
-            </span>
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        {/* Headline */}
+        <div className="text-center space-y-6 mb-16">
+          <h2 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight leading-tight">
+            Tired of <span className="bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">30-Minute Scroll Sessions?</span>
           </h2>
-
-          {/* 💬 SUBHEADLINE - Relatable pain */}
-          <p
-            className={`text-lg sm:text-xl md:text-2xl text-white/70 leading-relaxed transition-all duration-1000 delay-200 ${
-              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-            }`}
-          >
-            You finally have time to watch a movie.
-            <br className="hidden sm:block" />
-            But choosing one feels like a <span className="text-pink-400 font-semibold">full-time job</span>.
+          
+          <p className="text-lg sm:text-xl text-white/70 max-w-2xl mx-auto">
+            You finally have time to watch a movie.<br />
+            But choosing one feels like a <span className="text-pink-400 font-bold">full-time job</span>.
           </p>
+        </div>
 
-          {/* 📊 THE MATH - Overwhelming stats */}
-          <div
-            className={`grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 py-8 transition-all duration-1000 delay-400 ${
-              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-            }`}
-          >
-            {/* Netflix */}
-            <StatCard
-              platform="Netflix"
-              count="15,000+"
-              label="titles"
-              icon={<Search className="h-8 w-8" />}
-              delay="delay-[600ms]"
-              isVisible={isVisible}
-            />
+        {/* Stats Grid */}
+        <div
+          className={`grid grid-cols-1 sm:grid-cols-3 gap-6 transition-all duration-700 ${
+            isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
+          }`}
+        >
+          {/* Netflix */}
+          <StatCard
+            logo={<NetflixLogo />}
+            platform="Netflix"
+            count="15,000+"
+            label="titles"
+          />
 
-            {/* Prime Video */}
-            <StatCard
-              platform="Prime Video"
-              count="12,000+"
-              label="titles"
-              icon={<Search className="h-8 w-8" />}
-              delay="delay-[800ms]"
-              isVisible={isVisible}
-            />
+          {/* Prime Video */}
+          <StatCard
+            logo={<PrimeLogo />}
+            platform="Prime Video"
+            count="12,000+"
+            label="titles"
+          />
 
-            {/* Your Time */}
-            <StatCard
-              platform="Your Time"
-              count="2 hours"
-              label="to actually watch"
-              icon={<Clock className="h-8 w-8" />}
-              accent
-              delay="delay-[1000ms]"
-              isVisible={isVisible}
-            />
-          </div>
+          {/* Your Time */}
+          <StatCard
+            logo={<Clock className="h-12 w-12 text-blue-400" />}
+            platform="Your Time"
+            count="2 hours"
+            label="to actually watch"
+            accent
+          />
+        </div>
 
-          {/* 😫 EMOTIONAL PAIN POINTS */}
-          <div
-            className={`grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 transition-all duration-1000 delay-700 ${
-              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-            }`}
-          >
-            <PainPoint
-              icon={<Frown className="h-6 w-6" />}
-              text="You spend 30 minutes browsing, only to watch nothing"
-            />
-            <PainPoint
-              icon={<Frown className="h-6 w-6" />}
-              text="You end up rewatching The Office for the 10th time"
-            />
-            <PainPoint
-              icon={<Frown className="h-6 w-6" />}
-              text="You pick something random and regret it 20 minutes in"
-            />
-          </div>
-
-          {/* 🎬 SOLUTION TEASER */}
-          <div
-            className={`pt-8 transition-all duration-1000 delay-1000 ${
-              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-            }`}
-          >
-            <p className="text-xl sm:text-2xl font-semibold text-white mb-4">
-              There's a better way.
-            </p>
-            <p className="text-base sm:text-lg text-white/60 max-w-2xl mx-auto">
-              FeelFlick finds your perfect match in{' '}
-              <span className="text-purple-400 font-bold">60 seconds</span>
-              —no endless scrolling, no decision fatigue.
-            </p>
-          </div>
-
+        {/* Solution Teaser */}
+        <div className="text-center mt-16">
+          <p className="text-xl sm:text-2xl text-white/90 font-semibold mb-2">
+            There's a better way.
+          </p>
+          <p className="text-lg text-white/60">
+            FeelFlick finds your perfect match in{' '}
+            <span className="text-blue-400 font-bold">60 seconds</span>—no endless scrolling, no decision fatigue.
+          </p>
         </div>
       </div>
     </section>
@@ -128,65 +79,49 @@ export default function ProblemSection() {
 }
 
 /**
- * 📊 STAT CARD COMPONENT
- * Shows overwhelming platform stats
+ * Stat Card Component
  */
-function StatCard({ platform, count, label, icon, accent = false, delay, isVisible }) {
+function StatCard({ logo, platform, count, label, accent }) {
   return (
     <div
-      className={`relative group p-6 sm:p-8 rounded-2xl bg-neutral-900/50 backdrop-blur-sm border ${
-        accent 
-          ? 'border-purple-500/30 bg-purple-500/5' 
-          : 'border-white/10'
-      } hover:border-purple-500/50 transition-all duration-300 ${delay} ${
-        isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+      className={`relative p-8 rounded-2xl backdrop-blur-sm transition-all duration-300 hover:scale-105 ${
+        accent
+          ? 'bg-gradient-to-br from-blue-500/20 to-cyan-400/20 border border-blue-500/30'
+          : 'bg-white/5 border border-white/10 hover:border-white/20'
       }`}
     >
-      {/* Icon */}
-      <div className={`flex justify-center mb-4 ${accent ? 'text-purple-400' : 'text-white/40'}`}>
-        {icon}
-      </div>
+      {/* Logo/Icon */}
+      <div className="flex justify-center mb-4">{logo}</div>
 
-      {/* Platform */}
-      <div className="text-sm font-medium text-white/60 mb-2">
-        {platform}
-      </div>
+      {/* Platform Name */}
+      <p className="text-sm text-white/60 text-center mb-2">{platform}</p>
 
       {/* Count */}
-      <div className={`text-3xl sm:text-4xl font-black mb-1 ${
-        accent 
-          ? 'bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent' 
-          : 'text-white'
-      }`}>
+      <p className={`text-3xl sm:text-4xl font-black text-center mb-1 ${accent ? 'text-blue-400' : 'text-white'}`}>
         {count}
-      </div>
+      </p>
 
       {/* Label */}
-      <div className="text-xs sm:text-sm text-white/50">
-        {label}
-      </div>
-
-      {/* Glow effect on hover */}
-      {accent && (
-        <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl" />
-      )}
+      <p className="text-sm text-white/50 text-center">{label}</p>
     </div>
   )
 }
 
 /**
- * 😫 PAIN POINT COMPONENT
- * Individual frustration point
+ * Logo Components (Simplified SVG paths)
  */
-function PainPoint({ icon, text }) {
+function NetflixLogo() {
   return (
-    <div className="flex items-start gap-3 p-4 rounded-xl bg-neutral-900/30 border border-white/5">
-      <div className="flex-shrink-0 text-pink-400 mt-0.5">
-        {icon}
-      </div>
-      <p className="text-sm sm:text-base text-white/70 leading-snug text-left">
-        {text}
-      </p>
-    </div>
+    <svg className="h-12 w-12 text-white/50" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M5.398 0v.006c3.028 8.556 5.37 15.175 8.348 23.596 2.344.058 4.85.398 4.854.398-2.8-7.924-5.923-16.747-8.487-24zm8.489 0v9.63L18.6 22.951c-.043-7.86-.004-15.913.002-22.95zM5.398 1.05V24c1.873-.225 2.81-.312 4.715-.398v-9.22z"/>
+    </svg>
+  )
+}
+
+function PrimeLogo() {
+  return (
+    <svg className="h-12 w-12 text-white/50" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M5.398 6c-.072.036-1.124.52-1.124 1.642v8.716c0 1.122 1.052 1.606 1.124 1.642v.73c-1.444-.155-3.398-.845-3.398-2.372V7.642C2 6.115 3.954 5.425 5.398 5.27zm13.204 0c.072.036 1.124.52 1.124 1.642v8.716c0 1.122-1.052 1.606-1.124 1.642v.73c1.444-.155 3.398-.845 3.398-2.372V7.642C22 6.115 20.046 5.425 18.602 5.27zM12 8l-4 4 4 4 4-4z"/>
+    </svg>
   )
 }

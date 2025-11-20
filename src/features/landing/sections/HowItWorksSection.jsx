@@ -1,6 +1,7 @@
 // src/features/landing/sections/HowItWorksSection.jsx
+import { useState } from 'react'
 import { useStaggeredAnimation } from '@/features/landing/utils/scrollAnimations'
-import { Star, Sparkles, Play, Clock } from 'lucide-react'
+import { Star, Sparkles, Play, ThumbsUp, ThumbsDown } from 'lucide-react'
 import netflixLogo from '@/assets/icons/netflix-logo-icon.svg'
 import primeLogo from '@/assets/icons/amazon-prime-video.svg'
 
@@ -10,127 +11,44 @@ export default function HowItWorksSection() {
   return (
     <section
       id="how-it-works"
-      className="relative pb-24 bg-black overflow-hidden"
+      className="relative pb-24 bg-neutral-950 overflow-hidden"
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="lg:grid lg:grid-cols-2 lg:gap-16 items-center">
+        <div className="lg:grid lg:grid-cols-2 lg:gap-20 items-center">
           
-          {/* 🎬 VISUAL: Floating Movie Card (iPhone 16 Pro Style) */}
-          <div className="relative mx-auto lg:mx-0 max-w-sm mb-16 lg:mb-0">
-            {/* Glow effect */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-purple-500/20 blur-[100px] rounded-full animate-pulse" />
-            
-            {/* Movie Card */}
-            <div className="relative z-10 bg-gradient-to-br from-neutral-900 via-neutral-900 to-neutral-800 rounded-3xl shadow-2xl overflow-hidden border border-white/10 hover:scale-[1.02] transition-transform duration-300">
-              
-              {/* Poster with gradient overlay */}
-              <div className="relative h-80 overflow-hidden">
-                <img 
-                  src="https://image.tmdb.org/t/p/w780/gEU2QniL6E77NI6lCU6MxlNBvIx.jpg" 
-                  alt="Interstellar"
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-neutral-900 via-neutral-900/60 to-transparent" />
-                
-                {/* Match badge */}
-                <div className="absolute top-4 right-4 bg-green-500 text-black font-black px-3 py-1.5 rounded-lg text-sm shadow-lg">
-                  98% MATCH
-                </div>
-              </div>
+          {/* VISUAL: Floating Movie Card */}
+          <MovieCardDemo />
 
-              {/* Content */}
-              <div className="p-6 space-y-4">
-                {/* Title & Year */}
-                <div>
-                  <h3 className="text-2xl font-black text-white mb-1">Interstellar</h3>
-                  <div className="flex items-center gap-2 text-sm text-white/50">
-                    <span>2014</span>
-                    <span>•</span>
-                    <span>2h 49m</span>
-                    <span>•</span>
-                    <span className="flex items-center gap-1">
-                      <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                      8.7
-                    </span>
-                  </div>
-                </div>
-
-                {/* Genre tags */}
-                <div className="flex flex-wrap gap-2">
-                  <span className="px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/30 text-purple-300 text-xs font-semibold">
-                    Sci-Fi
-                  </span>
-                  <span className="px-3 py-1 rounded-full bg-blue-500/20 border border-blue-500/30 text-blue-300 text-xs font-semibold">
-                    Drama
-                  </span>
-                  <span className="px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-300 text-xs font-semibold">
-                    Adventure
-                  </span>
-                </div>
-
-                {/* Why recommended */}
-                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                  <div className="flex items-start gap-2 mb-2">
-                    <Sparkles className="w-4 h-4 text-purple-400 mt-0.5 flex-shrink-0" />
-                    <div className="text-xs font-semibold text-purple-400">WHY YOU'LL LOVE THIS</div>
-                  </div>
-                  <p className="text-sm text-white/70 leading-relaxed">
-                    Epic visuals, mind-bending story, emotional depth. Perfect for fans of thought-provoking sci-fi with stunning cinematography.
-                  </p>
-                </div>
-
-                {/* Streaming services */}
-                <div className="flex items-center gap-3 pt-2">
-                  <span className="text-xs text-white/40 font-medium">WATCH ON</span>
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center hover:scale-110 transition-transform">
-                      <img src={netflixLogo} alt="Netflix" className="w-5 h-5" />
-                    </div>
-                    <div className="w-8 h-8 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center hover:scale-110 transition-transform">
-                      <img src={primeLogo} alt="Prime Video" className="w-5 h-5" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 📝 CONTENT: Steps */}
-          <div ref={containerRef} className="space-y-10">
+          {/* CONTENT: Steps */}
+          <div ref={containerRef} className="space-y-12 mt-16 lg:mt-0">
             <div className="text-center lg:text-left mb-12">
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight mb-4 leading-tight">
-                Your Perfect Movie
-                <br />
+              <h2 className="text-3xl sm:text-4xl font-black tracking-tight mb-4">
+                Your Personal <br/>
                 <span className="bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
-                  In 3 Simple Steps
+                  Movie Curator
                 </span>
               </h2>
-              <p className="text-white/60 text-lg leading-relaxed">
-                No complex setup. No algorithm training. Just instant, accurate recommendations.
+              <p className="text-white/60 text-lg">
+                Stop relying on random algorithms. Tell us how you feel, and we&apos;ll do the rest.
               </p>
             </div>
 
             <Step 
               icon={<Star className="w-6 h-6 text-amber-400" />} 
-              number="01"
-              title="Rate movies you've seen" 
-              desc="Swipe through familiar titles. Love it? Hate it? Each rating teaches our AI your unique taste." 
+              title="1. Rate what you've seen" 
+              desc="Swipe through movies you know. Love it? Hate it? Every rating sharpens your taste profile." 
               isVisible={itemsVisible.includes(0)} 
             />
-            
             <Step 
               icon={<Sparkles className="w-6 h-6 text-purple-400" />} 
-              number="02"
-              title="Get mood-based matches" 
-              desc="Our AI analyzes emotional tone, pacing, and sentiment—not just genre tags. See exactly why each movie is recommended." 
+              title="2. Get mood-based matches" 
+              desc="Our AI analyzes emotional tone, pacing, and crowd sentiment—not just genre tags." 
               isVisible={itemsVisible.includes(1)} 
             />
-            
             <Step 
               icon={<Play className="w-6 h-6 text-teal-400" />} 
-              number="03"
-              title="Watch instantly anywhere" 
-              desc="See where to stream across 100+ services. Netflix, Prime, Hulu, Max—all in one place. No more dead ends." 
+              title="3. Watch instantly" 
+              desc="See exactly where to stream it. Netflix, Prime, Hulu, Max—we check 100+ services." 
               isVisible={itemsVisible.includes(2)} 
             />
           </div>
@@ -140,30 +58,121 @@ export default function HowItWorksSection() {
   )
 }
 
-function Step({ icon, number, title, desc, isVisible }) {
+// 🎬 Floating Movie Card Component
+function MovieCardDemo() {
+  const [liked, setLiked] = useState(null)
+
   return (
-    <div 
-      className={`flex gap-5 transition-all duration-700 ${
-        isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-12'
-      }`}
-    >
-      {/* Number badge */}
-      <div className="flex-shrink-0">
-        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30 flex items-center justify-center">
-          <span className="text-lg font-black bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-            {number}
-          </span>
+    <div className="relative mx-auto lg:mx-0 w-full max-w-sm mb-16 lg:mb-0">
+      {/* Ambient glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-purple-500/20 blur-[120px] rounded-full animate-pulse" />
+      
+      {/* Card */}
+      <div className="relative z-10 bg-gradient-to-br from-neutral-900 to-neutral-950 rounded-3xl shadow-2xl border border-white/10 overflow-hidden group">
+        
+        {/* Poster Image */}
+        <div className="relative aspect-[2/3] overflow-hidden">
+          <img 
+            src="https://image.tmdb.org/t/p/w780/q6y0Go1rZgVoTFZYpK391L0imU.jpg" 
+            alt="Pulp Fiction"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+          />
+          
+          {/* Gradient overlay for text readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
+          
+          {/* Match Badge */}
+          <div className="absolute top-4 right-4 bg-green-500 text-black font-black px-3 py-1 rounded-lg text-sm rotate-3 shadow-lg">
+            98% MATCH
+          </div>
+          
+          {/* Streaming Services */}
+          <div className="absolute top-4 left-4 flex gap-2">
+            <div className="w-8 h-8 rounded-lg bg-black/60 backdrop-blur-md border border-white/20 p-1 flex items-center justify-center">
+              <img src={netflixLogo} alt="Netflix" className="w-full h-full object-contain" />
+            </div>
+            <div className="w-8 h-8 rounded-lg bg-black/60 backdrop-blur-md border border-white/20 p-1 flex items-center justify-center">
+              <img src={primeLogo} alt="Prime Video" className="w-full h-full object-contain" />
+            </div>
+          </div>
+          
+          {/* Movie Info (bottom overlay) */}
+          <div className="absolute bottom-0 left-0 right-0 p-6 z-10">
+            <h3 className="text-2xl font-black text-white mb-2 drop-shadow-lg">
+              Pulp Fiction
+            </h3>
+            <div className="flex items-center gap-3 text-sm text-white/80 mb-3">
+              <div className="flex items-center gap-1">
+                <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+                <span className="font-bold">8.9</span>
+              </div>
+              <span>•</span>
+              <span>1994</span>
+              <span>•</span>
+              <span>2h 34m</span>
+            </div>
+            <div className="flex gap-2 flex-wrap">
+              <GenreTag>Crime</GenreTag>
+              <GenreTag>Drama</GenreTag>
+              <GenreTag>Thriller</GenreTag>
+            </div>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="p-6 flex gap-4">
+          <button
+            onClick={() => setLiked(false)}
+            className={`flex-1 py-4 rounded-2xl font-bold text-lg transition-all duration-300 flex items-center justify-center gap-2 ${
+              liked === false
+                ? 'bg-red-500 text-white shadow-lg shadow-red-500/50 scale-95'
+                : 'bg-red-500/10 border-2 border-red-500/30 text-red-400 hover:bg-red-500/20 hover:scale-105'
+            }`}
+          >
+            <ThumbsDown className="w-5 h-5" />
+            <span>Nope</span>
+          </button>
+          <button
+            onClick={() => setLiked(true)}
+            className={`flex-1 py-4 rounded-2xl font-bold text-lg transition-all duration-300 flex items-center justify-center gap-2 ${
+              liked === true
+                ? 'bg-green-500 text-black shadow-lg shadow-green-500/50 scale-95'
+                : 'bg-green-500/10 border-2 border-green-500/30 text-green-400 hover:bg-green-500/20 hover:scale-105'
+            }`}
+          >
+            <ThumbsUp className="w-5 h-5" />
+            <span>Love It</span>
+          </button>
         </div>
       </div>
+    </div>
+  )
+}
 
-      {/* Content */}
-      <div className="flex-1 pt-1">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="text-white/60">{icon}</div>
-          <h3 className="text-xl font-bold text-white">
-            {title}
-          </h3>
-        </div>
+// 🏷️ Genre Tag Component
+function GenreTag({ children }) {
+  return (
+    <span className="px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-semibold text-white/90">
+      {children}
+    </span>
+  )
+}
+
+// 📝 Step Component
+function Step({ icon, title, desc, isVisible }) {
+  return (
+    <div 
+      className={`flex gap-6 p-6 rounded-2xl transition-all duration-500 hover:bg-white/5 border border-transparent hover:border-white/5 group ${
+        isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'
+      }`}
+    >
+      <div className="flex-shrink-0 w-14 h-14 rounded-2xl bg-neutral-900 flex items-center justify-center border border-white/10 group-hover:scale-110 transition-transform shadow-lg">
+        {icon}
+      </div>
+      <div>
+        <h3 className="text-xl font-bold text-white mb-2 group-hover:text-purple-300 transition-colors">
+          {title}
+        </h3>
         <p className="text-white/60 leading-relaxed">
           {desc}
         </p>

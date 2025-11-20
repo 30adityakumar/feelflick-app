@@ -314,3 +314,49 @@ section:hover .animate-scroll-right {
   animation: scroll-right 60s linear infinite;
 }
 
+/* Enhanced scroll animations with variable speeds */
+@keyframes scroll-left {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-33.33%); }
+}
+
+@keyframes scroll-left-slow {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-33.33%); }
+}
+
+@keyframes scroll-right {
+  0% { transform: translateX(-33.33%); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes scroll-right-slow {
+  0% { transform: translateX(-33.33%); }
+  100% { transform: translateX(0); }
+}
+
+.animate-scroll-left {
+  animation: scroll-left 50s linear infinite;
+}
+
+.animate-scroll-left-slow {
+  animation: scroll-left-slow 70s linear infinite;
+}
+
+.animate-scroll-right {
+  animation: scroll-right 55s linear infinite;
+}
+
+.animate-scroll-right-slow {
+  animation: scroll-right-slow 75s linear infinite;
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .animate-scroll-left,
+  .animate-scroll-left-slow,
+  .animate-scroll-right,
+  .animate-scroll-right-slow {
+    animation: none;
+  }
+}

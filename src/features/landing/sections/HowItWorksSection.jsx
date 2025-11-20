@@ -10,12 +10,12 @@ export default function HowItWorksSection() {
   return (
     <section
       id="how-it-works"
-      className="relative pb-24 bg-black overflow-hidden"
+      className="relative pt-24 pb-24 bg-black overflow-hidden"
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-20">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight mb-6">
             Your Personal{' '}
             <span className="bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
@@ -30,12 +30,12 @@ export default function HowItWorksSection() {
         <div className="lg:grid lg:grid-cols-2 lg:gap-16 items-center">
           
           {/* LEFT: iPhone 16 Pro Mockup */}
-          <div className="relative mx-auto lg:mx-0 mb-16 lg:mb-0">
+          <div className="relative mx-auto lg:mx-0 mb-16 lg:mb-0 flex justify-center">
             {/* Ambient glow */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-purple-500/20 blur-[120px] rounded-full" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-purple-500/20 blur-[120px] rounded-full pointer-events-none" />
             
-            {/* iPhone Frame */}
-            <div className="relative z-10 mx-auto" style={{ width: '375px' }}>
+            {/* iPhone Frame - guaranteed visible */}
+            <div className="relative z-10 w-full max-w-[375px]">
               <iPhone16ProFrame />
             </div>
           </div>
@@ -70,36 +70,40 @@ export default function HowItWorksSection() {
 // 📱 iPhone 16 Pro Frame Component
 function iPhone16ProFrame() {
   return (
-    <div className="relative">
+    <div className="relative w-full">
       {/* Phone outer shell */}
       <div className="relative bg-neutral-900 rounded-[3.5rem] p-3 shadow-2xl ring-1 ring-white/10">
         
-        {/* Screen container */}
-        <div className="relative bg-black rounded-[3rem] overflow-hidden" style={{ aspectRatio: '9/19.5' }}>
+        {/* Screen container with proper aspect ratio */}
+        <div className="relative bg-black rounded-[3rem] overflow-hidden" style={{ paddingBottom: '216.67%' }}>
           
-          {/* Dynamic Island */}
-          <div className="absolute top-6 left-1/2 -translate-x-1/2 w-32 h-9 bg-black rounded-full z-50 shadow-xl" />
-          
-          {/* Status Bar */}
-          <div className="absolute top-0 inset-x-0 h-14 flex items-center justify-between px-8 pt-3 z-40">
-            <span className="text-white text-sm font-semibold">9:41</span>
-            <div className="flex items-center gap-1.5">
-              <div className="flex gap-0.5">
-                {[...Array(4)].map((_, i) => (
-                  <div key={i} className="w-0.5 h-3 bg-white rounded-full" style={{ opacity: 1 - i * 0.2 }} />
-                ))}
+          {/* Absolute positioned content */}
+          <div className="absolute inset-0">
+            
+            {/* Dynamic Island */}
+            <div className="absolute top-6 left-1/2 -translate-x-1/2 w-32 h-9 bg-black rounded-full z-50 shadow-xl" />
+            
+            {/* Status Bar */}
+            <div className="absolute top-0 inset-x-0 h-14 flex items-center justify-between px-8 pt-3 z-40">
+              <span className="text-white text-sm font-semibold">9:41</span>
+              <div className="flex items-center gap-1.5">
+                <div className="flex gap-0.5">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="w-0.5 h-3 bg-white rounded-full" style={{ opacity: 1 - i * 0.2 }} />
+                  ))}
+                </div>
+                <svg className="w-6 h-3" viewBox="0 0 24 12" fill="white">
+                  <rect x="0" y="0" width="18" height="12" rx="2" opacity="0.35"/>
+                  <rect x="0" y="0" width="14" height="12" rx="2" opacity="1"/>
+                  <rect x="20" y="4" width="2" height="4" rx="0.5" opacity="0.4"/>
+                </svg>
               </div>
-              <svg className="w-6 h-3" viewBox="0 0 24 12" fill="white">
-                <rect x="0" y="0" width="18" height="12" rx="2" opacity="0.35"/>
-                <rect x="0" y="0" width="14" height="12" rx="2" opacity="1"/>
-                <rect x="20" y="4" width="2" height="4" rx="0.5" opacity="0.4"/>
-              </svg>
             </div>
-          </div>
 
-          {/* Screen Content - Scrollable */}
-          <div className="absolute inset-0 overflow-y-auto pt-16 pb-8 px-4 bg-neutral-950">
-            <MovieScreenContent />
+            {/* Screen Content - Scrollable */}
+            <div className="absolute inset-0 overflow-y-auto pt-16 pb-8 px-4 bg-neutral-950">
+              <MovieScreenContent />
+            </div>
           </div>
         </div>
       </div>

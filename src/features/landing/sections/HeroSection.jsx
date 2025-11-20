@@ -178,7 +178,7 @@ export default function HeroSection() {
             Stop Scrolling.
           </span>
           <span className="block bg-gradient-to-r from-purple-400 via-pink-500 to-amber-500 bg-clip-text text-transparent drop-shadow-2xl pb-2">
-            Start Feeling.
+            Start Watching.
           </span>
         </h1>
 

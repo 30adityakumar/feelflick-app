@@ -134,7 +134,7 @@ export default function HeroSection() {
   const parallaxY = scrollY * 0.3
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black pt-20">
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black pt-20 isolate">
       {/* 🎬 Animated poster wall */}
       <div className="absolute inset-0 z-0 opacity-30 select-none pointer-events-none">
         {/* Gradients */}

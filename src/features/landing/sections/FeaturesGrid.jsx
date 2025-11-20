@@ -35,7 +35,7 @@ export default function FeaturesGrid() {
       badgeColor: 'from-amber-500 to-orange-500', // Memory/Social = Amber
       iconBg: 'from-amber-500 to-orange-500',
       title: 'Never Forget a Great Movie',
-      description: 'Save movies you want to watch, create custom lists, and rate what you've seen. Your personal movie library.',
+      description: "Save movies you want to watch, create custom lists, and rate what you've seen. Your personal movie library.",
     },
   ]
 

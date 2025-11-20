@@ -84,6 +84,7 @@ export default function TopNav({ hideAuthCta = false, onAuthOpen }) {
   return (
     <>
       <nav
+        id="top-nav"
         ref={barRef}
         className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
           scrolled
@@ -171,7 +172,7 @@ export default function TopNav({ hideAuthCta = false, onAuthOpen }) {
             <button
               onClick={() => {
                 setMobileMenuOpen(false)
-                onAuthOpen()
+                if (onAuthOpen) onAuthOpen()
               }}
               className="mt-8 w-full inline-flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold shadow-lg shadow-purple-500/50"
             >

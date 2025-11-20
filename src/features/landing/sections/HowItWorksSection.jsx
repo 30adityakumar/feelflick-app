@@ -12,7 +12,7 @@ export default function HowItWorksSection() {
   const steps = [
     {
       number: '01',
-      icon: <Star className="h-7 w-7" />,
+      icon: <Star className="h-6 w-6 sm:h-7 sm:w-7" />,
       title: 'Rate Your Favorites',
       description: 'Swipe through movies you know. Love it? Hate it? Every rating sharpens your taste profile.',
       detail: '60 seconds',
@@ -22,7 +22,7 @@ export default function HowItWorksSection() {
     },
     {
       number: '02',
-      icon: <Sparkles className="h-7 w-7" />,
+      icon: <Sparkles className="h-6 w-6 sm:h-7 sm:w-7" />,
       title: 'Get Mood Matches',
       description: 'Our AI analyzes emotional tone, pacing, and crowd sentiment—not just genre tags.',
       detail: '98% accuracy',
@@ -32,7 +32,7 @@ export default function HowItWorksSection() {
     },
     {
       number: '03',
-      icon: <Play className="h-7 w-7" />,
+      icon: <Play className="h-6 w-6 sm:h-7 sm:w-7" />,
       title: 'Watch Instantly',
       description: 'See exactly where to stream it. Netflix, Prime, Hulu, Max—we check 100+ services.',
       detail: 'One click',
@@ -66,9 +66,7 @@ export default function HowItWorksSection() {
   }
 
   return (
-    <section id="how-it-works" className="relative pb-24 bg-gradient-to-b from-black via-black to-black overflow-hidden">
-      {/* ⬆️ CHANGED: Added solid black gradient background */}
-      
+    <section id="how-it-works" className="relative pb-24 bg-black overflow-hidden">
       {/* Ambient glow orbs */}
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '8s' }} />
       <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-teal-500/10 rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '10s', animationDelay: '2s' }} />
@@ -76,15 +74,15 @@ export default function HowItWorksSection() {
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="text-center mb-16 sm:mb-20">
-          <h2 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight mb-6">
+        <div className="text-center mb-12 sm:mb-16 md:mb-20">
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight mb-4 sm:mb-6">
             How{' '}
             <span className="bg-gradient-to-r from-purple-500 via-pink-500 to-amber-500 bg-clip-text text-transparent">
               FeelFlick
             </span>
             {' '}Works
           </h2>
-          <p className="text-lg sm:text-xl text-white/60 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-base sm:text-lg md:text-xl text-white/60 max-w-2xl mx-auto leading-relaxed px-4">
             No complex setup. No training period. Just instant, personalized recommendations.
           </p>
         </div>
@@ -92,7 +90,7 @@ export default function HowItWorksSection() {
         {/* Steps Grid */}
         <div
           ref={containerRef}
-          className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-10 mb-16"
+          className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 lg:gap-10 mb-12 sm:mb-16"
         >
           {steps.map((step, index) => (
             <div key={step.number} className="relative">
@@ -124,13 +122,13 @@ export default function HowItWorksSection() {
           <button 
             onClick={handleGetStarted}
             disabled={isAuthenticating}
-            className="group inline-flex items-center gap-3 px-8 py-4 rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold text-lg hover:shadow-[0_0_40px_-10px_rgba(168,85,247,0.6)] transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden"
+            className="group inline-flex items-center gap-2 sm:gap-3 px-6 sm:px-8 py-3 sm:py-4 rounded-xl sm:rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold text-base sm:text-lg hover:shadow-[0_0_40px_-10px_rgba(168,85,247,0.6)] transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden"
           >
             <span className="absolute inset-0 bg-gradient-to-r from-purple-400/0 via-purple-400/20 to-purple-400/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-shimmer" />
             <span className="relative">{isAuthenticating ? 'Starting...' : 'Try It Free'}</span>
-            <ArrowRight className="relative h-5 w-5 group-hover:translate-x-1 transition-transform" />
+            <ArrowRight className="relative h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 transition-transform" />
           </button>
-          <p className="mt-4 text-sm text-white/40">No credit card required • Takes 60 seconds</p>
+          <p className="mt-3 sm:mt-4 text-xs sm:text-sm text-white/40">No credit card required • Takes 60 seconds</p>
         </div>
       </div>
     </section>
@@ -138,7 +136,7 @@ export default function HowItWorksSection() {
 }
 
 /**
- * 🎴 Enhanced Step Card with micro-interactions
+ * 🎴 Enhanced Step Card with micro-interactions and responsive design
  */
 function StepCard({ step, index, isVisible, onHover, isHovered }) {
   const { number, icon, title, description, detail, detailIcon, color, features } = step
@@ -189,21 +187,21 @@ function StepCard({ step, index, isVisible, onHover, isHovered }) {
     <div
       onMouseEnter={() => onHover(index)}
       onMouseLeave={() => onHover(null)}
-      className={`group relative p-8 rounded-3xl bg-neutral-900/50 backdrop-blur-sm border border-white/10 ${colors.cardBorder} ${colors.cardGlow} shadow-2xl transition-all duration-700 ${
+      className={`group relative p-6 sm:p-7 md:p-8 rounded-2xl sm:rounded-3xl bg-neutral-900/50 backdrop-blur-sm border border-white/10 ${colors.cardBorder} ${colors.cardGlow} shadow-2xl transition-all duration-700 ${
         isVisible 
           ? 'opacity-100 translate-y-0' 
           : 'opacity-0 translate-y-12'
       }`}
     >
-      {/* Large background number */}
-      <div className={`absolute top-6 right-6 text-7xl sm:text-8xl font-black ${colors.numberText} select-none pointer-events-none transition-all duration-500 ${
+      {/* Large background number - responsive sizing */}
+      <div className={`absolute top-4 sm:top-6 right-4 sm:right-6 text-6xl sm:text-7xl md:text-8xl font-black ${colors.numberText} select-none pointer-events-none transition-all duration-500 ${
         isHovered ? 'scale-110 opacity-100' : 'scale-100 opacity-100'
       }`}>
         {number}
       </div>
 
-      {/* Icon with enhanced glow */}
-      <div className={`relative inline-flex items-center justify-center w-16 h-16 rounded-2xl ${colors.iconBg} ${colors.iconText} mb-6 shadow-lg ${colors.iconGlow} transition-all duration-500 ${
+      {/* Icon with enhanced glow - responsive sizing */}
+      <div className={`relative inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl ${colors.iconBg} ${colors.iconText} mb-5 sm:mb-6 shadow-lg ${colors.iconGlow} transition-all duration-500 ${
         isHovered ? 'scale-110 rotate-6' : 'scale-100 rotate-0'
       }`}>
         {icon}
@@ -211,41 +209,41 @@ function StepCard({ step, index, isVisible, onHover, isHovered }) {
 
       {/* Content */}
       <div className="relative z-10">
-        {/* Title */}
-        <h3 className="text-2xl font-bold text-white mb-3 leading-tight">
+        {/* Title - responsive sizing */}
+        <h3 className="text-xl sm:text-2xl font-bold text-white mb-2 sm:mb-3 leading-tight">
           {title}
         </h3>
 
-        {/* Description */}
-        <p className="text-base text-white/70 leading-relaxed mb-6">
+        {/* Description - responsive sizing */}
+        <p className="text-sm sm:text-base text-white/70 leading-relaxed mb-5 sm:mb-6">
           {description}
         </p>
 
         {/* Features list (shows on hover) */}
-        <div className={`space-y-2 mb-6 transition-all duration-500 ${
+        <div className={`space-y-2 mb-5 sm:mb-6 transition-all duration-500 ${
           isHovered ? 'opacity-100 max-h-40' : 'opacity-0 max-h-0 overflow-hidden'
         }`}>
           {features.map((feature, i) => (
-            <div key={i} className="flex items-center gap-2 text-sm text-white/60">
+            <div key={i} className="flex items-center gap-2 text-xs sm:text-sm text-white/60">
               <div className={`w-1.5 h-1.5 rounded-full ${colors.featureDot}`} />
               <span>{feature}</span>
             </div>
           ))}
         </div>
 
-        {/* Detail badge */}
-        <div className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl ${colors.detailBg} border ${colors.detailBorder} backdrop-blur-sm transition-all duration-300 ${
+        {/* Detail badge - responsive sizing */}
+        <div className={`inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg sm:rounded-xl ${colors.detailBg} border ${colors.detailBorder} backdrop-blur-sm transition-all duration-300 ${
           isHovered ? 'scale-105' : 'scale-100'
         }`}>
-          {detailIcon}
-          <span className={`text-sm font-bold ${colors.detailText}`}>
+          <span className="flex-shrink-0">{detailIcon}</span>
+          <span className={`text-xs sm:text-sm font-bold ${colors.detailText}`}>
             {detail}
           </span>
         </div>
       </div>
 
       {/* Hover glow overlay */}
-      <div className={`absolute inset-0 rounded-3xl bg-gradient-to-br ${
+      <div className={`absolute inset-0 rounded-2xl sm:rounded-3xl bg-gradient-to-br ${
         color === 'amber' ? 'from-amber-500/5 to-transparent' :
         color === 'purple' ? 'from-purple-500/5 to-transparent' :
         'from-teal-500/5 to-transparent'

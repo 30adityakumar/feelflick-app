@@ -1,8 +1,8 @@
 // src/features/landing/sections/HowItWorksSection.jsx
 import { useStaggeredAnimation } from '@/features/landing/utils/scrollAnimations'
-import { Star, Sparkles, Play, Heart, CheckCircle2 } from 'lucide-react'
-import netflixLogo from '@/assets/icons/netflix-logo-icon.svg'
-import primeLogo from '@/assets/icons/amazon-prime-video.svg'
+import { Star, Sparkles, Play, ThumbsUp, ThumbsDown } from 'lucide-react'
+import netflixIcon from '@/assets/icons/netflix-logo-icon.svg'
+import primeIcon from '@/assets/icons/amazon-prime-video.svg'
 
 export default function HowItWorksSection() {
   const { containerRef, itemsVisible } = useStaggeredAnimation(3, 200)
@@ -10,168 +10,113 @@ export default function HowItWorksSection() {
   return (
     <section
       id="how-it-works"
-      className="relative py-24 bg-black overflow-hidden"
+      className="relative pb-24 bg-neutral-950 overflow-hidden"
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        
-        {/* Section Header */}
-        <div className="text-center mb-20">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight mb-6">
-            Your Personal{' '}
-            <span className="bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
-              Movie Curator
-            </span>
-          </h2>
-          <p className="text-white/60 text-lg sm:text-xl max-w-2xl mx-auto">
-            Stop relying on random algorithms. Tell us how you feel, and we'll do the rest.
-          </p>
-        </div>
-
-        <div className="flex flex-col lg:flex-row items-center gap-16">
+        <div className="lg:grid lg:grid-cols-2 lg:gap-20 items-center">
           
-          {/* LEFT: iPhone 16 Pro Mockup */}
-          <div className="w-full lg:w-1/2 flex justify-center relative">
-            {/* Ambient glow */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-purple-500/20 blur-[120px] rounded-full pointer-events-none" />
+          {/* 📱 VISUAL: iPhone 16 Pro Mockup */}
+          <div className="relative mx-auto lg:mx-0 w-[320px] h-[660px] mb-16 lg:mb-0">
+            {/* Glow Effect */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] h-[600px] bg-purple-500/20 blur-[100px] rounded-full" />
             
-            {/* iPhone Frame */}
-            <div className="relative z-10 w-full max-w-[340px] mx-auto">
-              <iPhone16ProFrame />
+            {/* Phone Frame (Titanium Finish) */}
+            <div className="relative z-10 w-full h-full border-[6px] border-neutral-800 bg-black rounded-[3rem] shadow-2xl overflow-hidden ring-1 ring-white/20">
+              
+              {/* Dynamic Island */}
+              <div className="absolute top-4 left-1/2 -translate-x-1/2 w-28 h-8 bg-black rounded-full z-30 flex items-center justify-center space-x-2">
+                <div className="w-2 h-2 rounded-full bg-neutral-900/50" />
+              </div>
+
+              {/* Screen Content */}
+              <div className="absolute inset-0 bg-black flex flex-col">
+                
+                {/* 🎬 Movie Poster Background (Inception) */}
+                <div className="relative h-3/5 w-full">
+                  <img 
+                    src="https://image.tmdb.org/t/p/w780/9gk7admal4zl22Pb0IBRurlk4fW.jpg" 
+                    alt="Inception"
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+                  
+                  {/* Floating "Match" Badge */}
+                  <div className="absolute top-16 right-6 bg-green-500/90 text-black text-xs font-black px-3 py-1 rounded-full shadow-lg backdrop-blur-md transform rotate-2">
+                    98% MATCH
+                  </div>
+                </div>
+
+                {/* 📝 Movie Details (Popped Out Style) */}
+                <div className="flex-1 px-6 -mt-12 relative z-20 flex flex-col gap-6">
+                  
+                  {/* Title & Genre */}
+                  <div>
+                    <h3 className="text-3xl font-bold text-white leading-tight drop-shadow-lg">Inception</h3>
+                    <div className="flex items-center gap-2 mt-2 text-white/70 text-sm font-medium">
+                      <span className="bg-white/10 px-2 py-0.5 rounded text-xs">Sci-Fi</span>
+                      <span className="bg-white/10 px-2 py-0.5 rounded text-xs">Thriller</span>
+                      <span>•</span>
+                      <span>2010</span>
+                    </div>
+                  </div>
+
+                  {/* Why Recommended */}
+                  <div className="bg-neutral-900/80 backdrop-blur-md p-4 rounded-2xl border border-white/10">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Sparkles className="w-4 h-4 text-purple-400" />
+                      <span className="text-xs font-bold text-purple-300 uppercase tracking-wide">Why you'll like it</span>
+                    </div>
+                    <p className="text-sm text-white/80 leading-relaxed">
+                      Matches your love for <span className="text-white font-semibold">mind-bending plots</span> and high-stakes tension.
+                    </p>
+                  </div>
+
+                  {/* Streaming Availability */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex -space-x-3">
+                      {/* Using real SVGs if available, else fallback to colored circles */}
+                      <div className="w-10 h-10 rounded-full bg-black border-2 border-neutral-800 flex items-center justify-center overflow-hidden shadow-lg z-10">
+                        <img src={netflixIcon} alt="Netflix" className="w-full h-full object-cover scale-110" />
+                      </div>
+                      <div className="w-10 h-10 rounded-full bg-black border-2 border-neutral-800 flex items-center justify-center overflow-hidden shadow-lg z-0">
+                        <img src={primeIcon} alt="Prime" className="w-full h-full object-cover scale-110" />
+                      </div>
+                    </div>
+                    
+                    {/* Action Buttons */}
+                    <div className="flex gap-3">
+                      <button className="w-12 h-12 rounded-full bg-neutral-800 flex items-center justify-center text-red-400 hover:bg-neutral-700 transition-colors">
+                        <ThumbsDown className="w-5 h-5" />
+                      </button>
+                      <button className="w-12 h-12 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 transition-transform shadow-[0_0_15px_rgba(255,255,255,0.3)]">
+                        <ThumbsUp className="w-6 h-6 fill-current" />
+                      </button>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* RIGHT: Steps */}
-          <div ref={containerRef} className="w-full lg:w-1/2 space-y-8">
-            <Step 
-              icon={<Star className="w-6 h-6 text-amber-400" />} 
-              title="1. Rate what you've seen" 
-              desc="Swipe through movies you know. Love it? Hate it? Every rating sharpens your taste profile." 
-              isVisible={itemsVisible.includes(0)} 
-            />
-            <Step 
-              icon={<Sparkles className="w-6 h-6 text-purple-400" />} 
-              title="2. Get mood-based matches" 
-              desc="Our AI analyzes emotional tone, pacing, and crowd sentiment—not just genre tags." 
-              isVisible={itemsVisible.includes(1)} 
-            />
-            <Step 
-              icon={<Play className="w-6 h-6 text-teal-400" />} 
-              title="3. Watch instantly" 
-              desc="See exactly where to stream it. Netflix, Prime, Hulu, Max—we check 100+ services." 
-              isVisible={itemsVisible.includes(2)} 
-            />
+          {/* CONTENT: Steps */}
+          <div ref={containerRef} className="space-y-12">
+            <div className="text-center lg:text-left mb-12">
+              <h2 className="text-3xl sm:text-4xl font-black tracking-tight mb-4">
+                Your Personal <br/>
+                <span className="bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
+                  Movie Curator
+                </span>
+              </h2>
+              <p className="text-white/60 text-lg">Stop relying on random algorithms. Tell us how you feel, and we&apos;ll do the rest.</p>
+            </div>
+            <Step icon={<Star className="w-6 h-6 text-amber-400" />} title="1. Rate what you've seen" desc="Swipe through movies you know. Love it? Hate it? Every rating sharpens your taste profile." isVisible={itemsVisible.includes(0)} />
+            <Step icon={<Sparkles className="w-6 h-6 text-purple-400" />} title="2. Get mood-based matches" desc="Our AI analyzes emotional tone, pacing, and crowd sentiment—not just genre tags." isVisible={itemsVisible.includes(1)} />
+            <Step icon={<Play className="w-6 h-6 text-teal-400" />} title="3. Watch instantly" desc="See exactly where to stream it. Netflix, Prime, Hulu, Max—we check 100+ services." isVisible={itemsVisible.includes(2)} />
           </div>
         </div>
       </div>
     </section>
-  )
-}
-
-// 📱 iPhone 16 Pro Frame Component
-function iPhone16ProFrame() {
-  return (
-    <div className="relative w-full">
-      {/* Phone outer shell */}
-      <div className="relative bg-neutral-900 rounded-[3rem] p-3 shadow-2xl ring-1 ring-white/10">
-        
-        {/* Screen container */}
-        <div className="relative bg-black rounded-[2.5rem] overflow-hidden aspect-[9/19.5] w-full">
-          
-          {/* Dynamic Island */}
-          <div className="absolute top-5 left-1/2 -translate-x-1/2 w-28 h-8 bg-black rounded-full z-50 shadow-xl" />
-          
-          {/* Status Bar */}
-          <div className="absolute top-0 inset-x-0 h-12 flex items-center justify-between px-6 pt-3 z-40">
-            <span className="text-white text-[10px] font-semibold">9:41</span>
-            <div className="flex items-center gap-1.5">
-              <div className="flex gap-0.5">
-                {[...Array(4)].map((_, i) => (
-                  <div key={i} className="w-0.5 h-2.5 bg-white rounded-full" style={{ opacity: 1 - i * 0.2 }} />
-                ))}
-              </div>
-              <div className="w-5 h-2.5 border border-white/30 rounded-[2px] relative">
-                <div className="absolute inset-0.5 bg-white rounded-[1px]" />
-              </div>
-            </div>
-          </div>
-
-          {/* Screen Content */}
-          <div className="absolute inset-0 pt-14 pb-6 px-4 bg-neutral-950 overflow-hidden">
-            <MovieScreenContent />
-          </div>
-        </div>
-      </div>
-
-      {/* Side buttons */}
-      <div className="absolute left-0 top-24 w-1 h-10 bg-neutral-800 rounded-r-sm -translate-x-full" />
-      <div className="absolute left-0 top-40 w-1 h-14 bg-neutral-800 rounded-r-sm -translate-x-full" />
-      <div className="absolute right-0 top-32 w-1 h-16 bg-neutral-800 rounded-l-sm translate-x-full" />
-    </div>
-  )
-}
-
-// 📱 Movie Screen Content
-function MovieScreenContent() {
-  return (
-    <div className="space-y-4 h-full flex flex-col">
-      
-      {/* Movie Poster */}
-      <div className="relative rounded-2xl overflow-hidden group aspect-[2/3] w-full">
-        <img 
-          src="https://image.tmdb.org/t/p/w780/oYuLEt3zVCKq57qu2F8dT7NIa6f.jpg" 
-          alt="Inception"
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
-        
-        {/* Match Badge */}
-        <div className="absolute top-3 right-3 bg-green-500 text-black font-black px-2 py-1 rounded-lg text-xs shadow-lg">
-          96% MATCH
-        </div>
-
-        {/* Title Overlay */}
-        <div className="absolute bottom-0 left-0 right-0 p-4">
-          <h3 className="text-xl font-bold text-white mb-1">Inception</h3>
-          <div className="flex items-center gap-2 text-white/70 text-[10px]">
-            <span>2010</span><span>•</span><span>148m</span><span>•</span><span>⭐ 8.8</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Streaming Services */}
-      <div className="bg-neutral-900/50 rounded-xl p-3 border border-white/10">
-        <div className="flex items-center gap-2 text-xs font-semibold text-white/90 mb-2">
-          <Play className="w-3 h-3 text-teal-400" />
-          <span>Available On</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <img src={netflixLogo} alt="Netflix" className="h-5 w-auto" />
-          <img src={primeLogo} alt="Prime" className="h-5 w-auto" />
-        </div>
-      </div>
-
-      {/* Why You'll Love It */}
-      <div className="bg-neutral-900/50 rounded-xl p-3 border border-white/10 flex-1">
-        <div className="flex items-center gap-2 text-xs font-semibold text-white/90 mb-2">
-          <Sparkles className="w-3 h-3 text-purple-400" />
-          <span>Why You'll Love It</span>
-        </div>
-        <ul className="space-y-2">
-          <WhyBullet text="Mind-bending plot" />
-          <WhyBullet text="Stunning visuals" />
-          <WhyBullet text="Intelligent thriller" />
-        </ul>
-      </div>
-    </div>
-  )
-}
-
-function WhyBullet({ text }) {
-  return (
-    <li className="flex items-start gap-2 text-[10px] text-white/70">
-      <CheckCircle2 className="w-3 h-3 text-purple-400 mt-0.5 flex-shrink-0" />
-      <span>{text}</span>
-    </li>
   )
 }
 

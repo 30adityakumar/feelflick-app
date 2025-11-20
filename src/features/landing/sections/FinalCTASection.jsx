@@ -4,19 +4,6 @@ import { supabase } from '@/shared/lib/supabase/client'
 import { ArrowRight, Check, Sparkles } from 'lucide-react'
 import googleSvg from '@/assets/icons/google.svg'
 
-/**
- * 🎯 FINAL CTA SECTION
- * 
- * Conversion closer that removes all objections
- * 
- * Strategy:
- * - Compelling headline (FOMO)
- * - Clear benefit reminder
- * - Prominent CTA
- * - Trust signals (no CC, free, privacy)
- * - Social proof (10,000+ users)
- * - Secondary CTA (explore first option)
- */
 export default function FinalCTASection({ onAuthOpen }) {
   const [isAuthenticating, setIsAuthenticating] = useState(false)
 
@@ -39,27 +26,25 @@ export default function FinalCTASection({ onAuthOpen }) {
   }
 
   return (
-    <section className="relative py-16 sm:py-24 md:py-32 bg-gradient-to-b from-black via-neutral-950 to-black overflow-hidden">
-      {/* Animated gradient background */}
-      <div className="absolute inset-0">
+    <section className="relative pt-10 pb-14 sm:pt-16 sm:pb-20 bg-gradient-to-b from-black via-neutral-950 to-black overflow-hidden">
+      {/* Animated background */}
+      <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-pink-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* Main CTA Card */}
+        {/* CTA Card */}
         <div className="max-w-4xl mx-auto text-center">
-          
-          {/* 🏷️ BADGE */}
+          {/* Badge */}
           <div className="flex justify-center mb-6">
-            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 text-sm font-medium backdrop-blur-sm">
+            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 text-sm font-medium backdrop-blur-sm shadow-sm">
               <Sparkles className="h-4 w-4" />
               Join 10,000+ Movie Lovers
             </span>
           </div>
 
-          {/* 🎯 HEADLINE */}
+          {/* Headline */}
           <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight leading-tight mb-6">
             <span className="block text-white mb-2">
               Ready to Stop Scrolling?
@@ -69,7 +54,7 @@ export default function FinalCTASection({ onAuthOpen }) {
             </span>
           </h2>
 
-          {/* 💬 SUBHEADLINE */}
+          {/* Subheadline */}
           <p className="text-lg sm:text-xl md:text-2xl text-white/70 leading-relaxed max-w-2xl mx-auto mb-8 sm:mb-10">
             Get personalized movie recommendations in{' '}
             <span className="text-purple-400 font-bold">60 seconds</span>.
@@ -77,7 +62,7 @@ export default function FinalCTASection({ onAuthOpen }) {
             No credit card. No commitment. Just movies you'll love.
           </p>
 
-          {/* 🎬 CTA BUTTONS */}
+          {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
             {/* Primary CTA */}
             <button
@@ -92,7 +77,6 @@ export default function FinalCTASection({ onAuthOpen }) {
               {/* Glow effect */}
               <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 blur-xl opacity-0 group-hover:opacity-40 transition-opacity duration-300" />
             </button>
-
             {/* Secondary CTA */}
             <button
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
@@ -102,21 +86,11 @@ export default function FinalCTASection({ onAuthOpen }) {
             </button>
           </div>
 
-          {/* ✅ TRUST SIGNALS */}
+          {/* Trust Badges */}
           <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-white/60 mb-8">
             <TrustBadge icon={<Check className="h-4 w-4" />} text="Free forever" />
             <TrustBadge icon={<Check className="h-4 w-4" />} text="No credit card required" />
             <TrustBadge icon={<Check className="h-4 w-4" />} text="Privacy-first" />
-          </div>
-
-          {/* 📊 SOCIAL PROOF STATS */}
-          <div className="pt-8 border-t border-white/10">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-              <MiniStat number="10,000+" label="Users" />
-              <MiniStat number="4.8/5" label="Rating" />
-              <MiniStat number="92%" label="Accuracy" />
-              <MiniStat number="100+" label="Services" />
-            </div>
           </div>
         </div>
       </div>
@@ -124,10 +98,7 @@ export default function FinalCTASection({ onAuthOpen }) {
   )
 }
 
-/**
- * ✅ TRUST BADGE
- * Small checkmark + text combo
- */
+/* Trust Badge row */
 function TrustBadge({ icon, text }) {
   return (
     <div className="flex items-center gap-2">
@@ -135,23 +106,6 @@ function TrustBadge({ icon, text }) {
         {icon}
       </div>
       <span className="font-medium">{text}</span>
-    </div>
-  )
-}
-
-/**
- * 📊 MINI STAT
- * Compact stat display
- */
-function MiniStat({ number, label }) {
-  return (
-    <div className="text-center">
-      <div className="text-xl sm:text-2xl font-black text-white mb-1">
-        {number}
-      </div>
-      <div className="text-xs text-white/50">
-        {label}
-      </div>
     </div>
   )
 }

@@ -73,8 +73,6 @@ function PosterTile({ path }) {
 export default function HeroSection() {
   const [isAuthenticating, setIsAuthenticating] = useState(false)
   const [scrollY, setScrollY] = useState(0)
-  const [isHoveringPosters, setIsHoveringPosters] = useState(false)
-  const [mounted, setMounted] = useState(false)
   const contentRef = useRef(null)
   const [row1, row2] = usePosterRows()
 
@@ -92,11 +90,6 @@ export default function HeroSection() {
 
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
-
-  // 🎬 Fade-in animation on mount
-  useEffect(() => {
-    setMounted(true)
   }, [])
 
   async function handleGoogleSignIn() {
@@ -142,40 +135,22 @@ export default function HeroSection() {
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black pt-20">
-      {/* 🎬 Animated poster wall with hover pause */}
-      <div
-        className="absolute inset-0 z-0 opacity-30 select-none pointer-events-auto"
-        onMouseEnter={() => setIsHoveringPosters(true)}
-        onMouseLeave={() => setIsHoveringPosters(false)}
-      >
+      {/* 🎬 Animated poster wall */}
+      <div className="absolute inset-0 z-0 opacity-30 select-none pointer-events-none">
         {/* Gradients */}
-        <div className="absolute inset-0 z-10 bg-gradient-to-b from-black via-black/40 to-black pointer-events-none" />
-        <div className="absolute inset-0 z-10 bg-gradient-to-tr from-purple-900/40 via-transparent to-amber-700/20 pointer-events-none" />
+        <div className="absolute inset-0 z-10 bg-gradient-to-b from-black via-black/40 to-black" />
+        <div className="absolute inset-0 z-10 bg-gradient-to-tr from-purple-900/40 via-transparent to-amber-700/20" />
 
-        <div
-          className={`flex flex-col justify-center h-full gap-6 scale-[1.08] rotate-[-2deg] origin-center transition-all duration-300 ${
-            isHoveringPosters ? 'opacity-60' : 'opacity-100'
-          }`}
-        >
-          {/* Row 1 - Animation pauses on hover */}
-          <div
-            className={`flex gap-4 sm:gap-5 md:gap-6 w-[220%] ${
-              isHoveringPosters ? '' : 'animate-scroll-left'
-            }`}
-            style={isHoveringPosters ? { animationPlayState: 'paused' } : {}}
-          >
+        <div className="flex flex-col justify-center h-full gap-6 scale-[1.08] rotate-[-2deg] origin-center">
+          {/* Row 1 */}
+          <div className="flex gap-4 sm:gap-5 md:gap-6 animate-scroll-left w-[220%]">
             {row1.map((path, i) => (
               <PosterTile key={`r1-${i}`} path={path} />
             ))}
           </div>
 
-          {/* Row 2 - Animation pauses on hover */}
-          <div
-            className={`flex gap-4 sm:gap-5 md:gap-6 w-[220%] ${
-              isHoveringPosters ? '' : 'animate-scroll-right'
-            }`}
-            style={isHoveringPosters ? { animationPlayState: 'paused' } : {}}
-          >
+          {/* Row 2 */}
+          <div className="flex gap-4 sm:gap-5 md:gap-6 animate-scroll-right w-[220%]">
             {row2.map((path, i) => (
               <PosterTile key={`r2-${i}`} path={path} />
             ))}
@@ -183,19 +158,17 @@ export default function HeroSection() {
         </div>
       </div>
 
-      {/* 📝 Content with parallax and fade-in */}
+      {/* 📝 Content with parallax */}
       <div
         ref={contentRef}
-        className={`relative z-20 max-w-5xl mx-auto px-4 text-center transition-all duration-1000 ${
-          mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-        }`}
+        className="relative z-20 max-w-5xl mx-auto px-4 text-center"
         style={{
           transform: `translateY(${parallaxY}px)`,
         }}
       >
         {/* Badge */}
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md mb-8 hover:bg-white/10 hover:border-white/20 transition-all duration-300 cursor-default">
-          <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
+          <Sparkles className="w-4 h-4 text-amber-400" />
           <span className="text-sm font-medium text-amber-100/90">
             Find movies that match your mood
           </span>
@@ -206,7 +179,7 @@ export default function HeroSection() {
           <span className="block text-white drop-shadow-2xl">
             Stop Scrolling.
           </span>
-          <span className="block bg-gradient-to-r from-purple-400 via-pink-500 to-amber-500 bg-clip-text text-transparent drop-shadow-2xl pb-2 animate-gradient">
+          <span className="block bg-gradient-to-r from-purple-400 via-pink-500 to-amber-500 bg-clip-text text-transparent drop-shadow-2xl pb-2">
             Start Feeling.
           </span>
         </h1>

@@ -29,7 +29,7 @@ export default function FeaturesGrid() {
     {
       icon: <Lock className="w-6 h-6" />,
       title: 'Never Forget a Great Movie',
-      description: 'Save movies you want to watch, create custom lists, and rate what you've seen. Your personal movie library.',
+      description: "Save movies you want to watch, create custom lists, and rate what you've seen. Your personal movie library.",
       badge: 'Unlimited Watchlists',
       color: 'pink',
     },

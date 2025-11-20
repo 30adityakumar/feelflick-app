@@ -1,5 +1,5 @@
 // src/features/landing/sections/TestimonialsSection.jsx
-import { useStaggeredAnimation } from '@/features/landing/utils/scrollAnimations'
+import { useScrollAnimation, useStaggeredAnimation } from '@/features/landing/utils/scrollAnimations'
 import { Star, Quote } from 'lucide-react'
 
 /**

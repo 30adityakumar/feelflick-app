@@ -1,5 +1,5 @@
 // src/features/landing/sections/HowItWorksSection.jsx
-import { useStaggeredAnimation } from '@/features/landing/utils/scrollAnimations'
+import { useScrollAnimation, useStaggeredAnimation } from '@/features/landing/utils/scrollAnimations'
 import { Star, Sparkles, PlayCircle, ArrowRight } from 'lucide-react'
 
 /**

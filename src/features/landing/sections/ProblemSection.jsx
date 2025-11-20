@@ -1,5 +1,5 @@
 // src/features/landing/sections/ProblemSection.jsx
-import { useScrollAnimation } from '@/features/landing/utils/scrollAnimations'
+import { useScrollAnimation, useStaggeredAnimation } from '@/features/landing/utils/scrollAnimations'
 import { Clock, Search, Frown } from 'lucide-react'
 
 /**

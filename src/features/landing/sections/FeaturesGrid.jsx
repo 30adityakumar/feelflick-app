@@ -1,5 +1,5 @@
 // src/features/landing/sections/FeaturesGrid.jsx
-import { useStaggeredAnimation } from '@/features/landing/utils/scrollAnimations'
+import { useScrollAnimation, useStaggeredAnimation } from '@/features/landing/utils/scrollAnimations'
 import { Sparkles, Tv2, Heart, TrendingUp, Lock, Zap } from 'lucide-react'
 
 /**

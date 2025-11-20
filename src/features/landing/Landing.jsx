@@ -1,5 +1,4 @@
 // src/features/landing/Landing.jsx
-import { useState, useCallback } from 'react'
 import TopNav from '@/features/landing/components/TopNav'
 import Footer from '@/features/landing/components/Footer'
 
@@ -12,22 +11,13 @@ import TestimonialsSection from '@/features/landing/sections/TestimonialsSection
 import FinalCTASection from '@/features/landing/sections/FinalCTASection'
 
 export default function Landing() {
-  const [showInlineAuth, setShowInlineAuth] = useState(false)
-
-  const openInlineAuth = useCallback(() => setShowInlineAuth(true), [])
-  const closeInlineAuth = useCallback(() => setShowInlineAuth(false), [])
-
   return (
     <div className="relative bg-black text-white min-h-screen">
       {/* Navigation */}
-      <TopNav onAuthOpen={openInlineAuth} />
+      <TopNav />
 
       {/* All Homepage Sections */}
-      <HeroSection 
-        showInlineAuth={showInlineAuth}
-        onAuthOpen={openInlineAuth}
-        onAuthClose={closeInlineAuth}
-      />
+      <HeroSection />
       
       <ProblemSection />
       
@@ -37,7 +27,7 @@ export default function Landing() {
       
       <TestimonialsSection />
       
-      <FinalCTASection onAuthOpen={openInlineAuth} />
+      <FinalCTASection />
 
       {/* Footer */}
       <Footer />

@@ -12,22 +12,24 @@ import FinalCTASection from '@/features/landing/sections/FinalCTASection'
 
 export default function Landing() {
   return (
-    <div className="relative bg-black text-white min-h-screen">
-      {/* Navigation */}
+    // Ensure the main container is relative
+    <div className="relative bg-black text-white min-h-screen overflow-x-hidden">
+      {/* Navigation - Fixed z-50 */}
       <TopNav />
 
-      {/* All Homepage Sections */}
+      {/* Hero - z-0 */}
       <HeroSection />
       
-      <HowItWorksSection />
-      
-      <FeaturesGrid />
-      
-      <TestimonialsSection />
-      
-      <FinalCTASection />
+      {/* Sections - z-10 to cover hero when scrolling */}
+      <div className="relative z-10 bg-black">
+        {/* No ProblemSection */}
+        <HowItWorksSection />
+        <FeaturesGrid />
+        <TestimonialsSection />
+        <FinalCTASection />
+      </div>
 
-      {/* Footer */}
+      {/* Footer - z-10 */}
       <Footer />
     </div>
   )

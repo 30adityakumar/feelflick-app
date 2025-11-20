@@ -1,4 +1,5 @@
 // src/features/landing/utils/scrollAnimations.js
+
 import { useEffect, useRef, useState } from 'react'
 
 /**
@@ -17,12 +18,11 @@ export function useScrollAnimation(options = {}) {
       ([entry]) => {
         if (entry.isIntersecting) {
           setIsVisible(true)
-          // Once visible, stop observing (animation only plays once)
           observer.disconnect()
         }
       },
       {
-        threshold: 0.1, // Trigger when 10% visible
+        threshold: 0.1,
         ...options,
       }
     )
@@ -53,7 +53,6 @@ export function useStaggeredAnimation(itemCount, delay = 100) {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          // Stagger the reveal
           for (let i = 0; i < itemCount; i++) {
             setTimeout(() => {
               setItemsVisible(prev => [...prev, i])

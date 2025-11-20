@@ -3,7 +3,7 @@ import { useState, useCallback } from 'react'
 import TopNav from '@/features/landing/components/TopNav'
 import Footer from '@/features/landing/components/Footer'
 
-// NEW SECTIONS
+// NEW SECTIONS (P0-P2 enhanced)
 import HeroSection from '@/features/landing/sections/HeroSection'
 import ProblemSection from '@/features/landing/sections/ProblemSection'
 import HowItWorksSection from '@/features/landing/sections/HowItWorksSection'
@@ -22,7 +22,7 @@ export default function Landing() {
       {/* Navigation */}
       <TopNav onAuthOpen={openInlineAuth} />
 
-      {/* All Homepage Sections */}
+      {/* 🎬 P0-P2 ENHANCED SECTIONS */}
       <HeroSection 
         showInlineAuth={showInlineAuth}
         onAuthOpen={openInlineAuth}

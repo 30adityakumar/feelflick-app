@@ -1,126 +1,110 @@
 // src/features/landing/sections/ProblemSection.jsx
-import { useScrollAnimation, useStaggeredAnimation } from '@/features/landing/utils/scrollAnimations'
-import { Clock, Search, Frown } from 'lucide-react'
+import { useStaggeredAnimation } from '@/features/landing/utils/scrollAnimations'
+import { Search, Clock, Frown } from 'lucide-react'
 
 /**
- * 🎯 PROBLEM SECTION
+ * 😩 PROBLEM SECTION
  * 
- * Chexy-inspired pain point agitation with emotional resonance
- * 
- * Strategy:
- * - Lead with relatable question
- * - Show the math (overwhelm)
- * - Emphasize wasted time
- * - Position FeelFlick as solution
+ * P2 IMPROVEMENTS:
+ * - Added streaming service logos/screenshots
+ * - Specific movie examples (The Office)
+ * - More concrete visual context
  */
+
 export default function ProblemSection() {
-  const { ref, isVisible } = useScrollAnimation({ threshold: 0.2 })
+  const problems = [
+    {
+      icon: Search,
+      stat: '30 minutes',
+      issue: 'You spend 30 minutes browsing',
+      context: 'Netflix • Prime Video • Disney+',
+      description: 'only to watch nothing',
+      visual: '🔍',
+    },
+    {
+      icon: Clock,
+      stat: 'The Office',
+      issue: 'You end up rewatching',
+      context: 'For the 10th time',
+      description: 'for the 10th time',
+      visual: '📺',
+    },
+    {
+      icon: Frown,
+      stat: '20 minutes',
+      issue: 'You pick something random',
+      context: 'And give up on it',
+      description: 'and regret it 20 minutes in',
+      visual: '😞',
+    },
+  ]
+
+  const { containerRef, itemsVisible } = useStaggeredAnimation(3, 200)
 
   return (
-    <section
-      ref={ref}
-      className="relative py-16 sm:py-24 md:py-32 bg-gradient-to-b from-black via-neutral-950 to-black"
-    >
+    <section className="relative py-16 sm:py-24 md:py-32 bg-black overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto text-center space-y-8 sm:space-y-12">
-          
-          {/* 🎯 MAIN HEADLINE - The Hook */}
-          <h2
-            className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight leading-tight transition-all duration-1000 ${
-              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-            }`}
-          >
-            Tired of{' '}
+        
+        {/* Header */}
+        <div className="text-center mb-12 sm:mb-16">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight mb-6">
+            <span className="text-white">Tired of </span>
             <span className="bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
-              30-Minute Scroll Sessions?
+              30-Minute Scroll
+            </span>
+            <br />
+            <span className="bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
+              Sessions?
             </span>
           </h2>
-
-          {/* 💬 SUBHEADLINE - Relatable pain */}
-          <p
-            className={`text-lg sm:text-xl md:text-2xl text-white/70 leading-relaxed transition-all duration-1000 delay-200 ${
-              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-            }`}
-          >
+          <p className="text-lg sm:text-xl text-white/70 max-w-2xl mx-auto leading-relaxed">
             You finally have time to watch a movie.
-            <br className="hidden sm:block" />
-            But choosing one feels like a <span className="text-pink-400 font-semibold">full-time job</span>.
+            <br />
+            But choosing one feels like a{' '}
+            <span className="text-pink-400 font-bold">full-time job</span>.
           </p>
+        </div>
 
-          {/* 📊 THE MATH - Overwhelming stats */}
-          <div
-            className={`grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 py-8 transition-all duration-1000 delay-400 ${
-              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-            }`}
-          >
-            {/* Netflix */}
-            <StatCard
-              platform="Netflix"
-              count="15,000+"
-              label="titles"
-              icon={<Search className="h-8 w-8" />}
-              delay="delay-[600ms]"
-              isVisible={isVisible}
+        {/* Problem Cards */}
+        <div
+          ref={containerRef}
+          className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 mb-12"
+        >
+          {problems.map((problem, index) => (
+            <ProblemCard
+              key={problem.stat}
+              problem={problem}
+              isVisible={itemsVisible.includes(index)}
             />
+          ))}
+        </div>
 
-            {/* Prime Video */}
-            <StatCard
-              platform="Prime Video"
-              count="12,000+"
-              label="titles"
-              icon={<Search className="h-8 w-8" />}
-              delay="delay-[800ms]"
-              isVisible={isVisible}
-            />
-
-            {/* Your Time */}
-            <StatCard
-              platform="Your Time"
-              count="2 hours"
-              label="to actually watch"
-              icon={<Clock className="h-8 w-8" />}
-              accent
-              delay="delay-[1000ms]"
-              isVisible={isVisible}
-            />
+        {/* P2: Visual Streaming Service Context */}
+        <div className="relative mt-12 sm:mt-16">
+          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 opacity-40">
+            {/* Streaming service logos */}
+            <StreamingLogo name="Netflix" color="#E50914" />
+            <StreamingLogo name="Prime Video" color="#00A8E1" />
+            <StreamingLogo name="Your Time" color="#A855F7" highlight />
+            <StreamingLogo name="Disney+" color="#113CCF" />
+            <StreamingLogo name="HBO Max" color="#7B27D9" />
           </div>
+          
+          <p className="text-center text-white/60 mt-6 text-sm">
+            15,000+ titles on Netflix. 12,000+ on Prime Video.
+            <span className="block mt-2 text-purple-400 font-semibold">But only 2 hours to actually watch.</span>
+          </p>
+        </div>
 
-          {/* 😫 EMOTIONAL PAIN POINTS */}
-          <div
-            className={`grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 transition-all duration-1000 delay-700 ${
-              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-            }`}
-          >
-            <PainPoint
-              icon={<Frown className="h-6 w-6" />}
-              text="You spend 30 minutes browsing, only to watch nothing"
-            />
-            <PainPoint
-              icon={<Frown className="h-6 w-6" />}
-              text="You end up rewatching The Office for the 10th time"
-            />
-            <PainPoint
-              icon={<Frown className="h-6 w-6" />}
-              text="You pick something random and regret it 20 minutes in"
-            />
-          </div>
-
-          {/* 🎬 SOLUTION TEASER */}
-          <div
-            className={`pt-8 transition-all duration-1000 delay-1000 ${
-              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-            }`}
-          >
-            <p className="text-xl sm:text-2xl font-semibold text-white mb-4">
-              There's a better way.
-            </p>
-            <p className="text-base sm:text-lg text-white/60 max-w-2xl mx-auto">
-              FeelFlick finds your perfect match in{' '}
-              <span className="text-purple-400 font-bold">60 seconds</span>
-              —no endless scrolling, no decision fatigue.
-            </p>
-          </div>
-
+        {/* Transition Text */}
+        <div className="text-center mt-16 sm:mt-20">
+          <p className="text-xl sm:text-2xl font-bold text-white mb-3">
+            There's a better way.
+          </p>
+          <p className="text-lg text-white/70">
+            FeelFlick finds your perfect match in{' '}
+            <span className="text-purple-400 font-bold">60 seconds</span>—no endless scrolling, no decision fatigue.
+          </p>
         </div>
       </div>
     </section>
@@ -128,65 +112,51 @@ export default function ProblemSection() {
 }
 
 /**
- * 📊 STAT CARD COMPONENT
- * Shows overwhelming platform stats
+ * Problem Card Component
  */
-function StatCard({ platform, count, label, icon, accent = false, delay, isVisible }) {
+function ProblemCard({ problem, isVisible }) {
+  const { icon: Icon, stat, issue, context, visual } = problem
+
   return (
     <div
-      className={`relative group p-6 sm:p-8 rounded-2xl bg-neutral-900/50 backdrop-blur-sm border ${
-        accent 
-          ? 'border-purple-500/30 bg-purple-500/5' 
-          : 'border-white/10'
-      } hover:border-purple-500/50 transition-all duration-300 ${delay} ${
-        isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+      className={`relative p-6 sm:p-8 rounded-2xl bg-neutral-900/30 border border-white/10 transition-all duration-700 ${
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
       }`}
     >
-      {/* Icon */}
-      <div className={`flex justify-center mb-4 ${accent ? 'text-purple-400' : 'text-white/40'}`}>
-        {icon}
+      {/* Icon/Visual */}
+      <div className="flex items-center justify-center w-16 h-16 rounded-xl bg-neutral-800/50 border border-white/10 mb-6">
+        <span className="text-3xl">{visual}</span>
       </div>
 
-      {/* Platform */}
-      <div className="text-sm font-medium text-white/60 mb-2">
-        {platform}
+      {/* Stat */}
+      <div className="mb-3">
+        <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-pink-500/20 text-pink-400 border border-pink-500/30">
+          {stat}
+        </span>
       </div>
 
-      {/* Count */}
-      <div className={`text-3xl sm:text-4xl font-black mb-1 ${
-        accent 
-          ? 'bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent' 
-          : 'text-white'
-      }`}>
-        {count}
-      </div>
+      {/* Issue */}
+      <h3 className="text-lg font-bold text-white mb-2">
+        {issue}
+      </h3>
 
-      {/* Label */}
-      <div className="text-xs sm:text-sm text-white/50">
-        {label}
-      </div>
-
-      {/* Glow effect on hover */}
-      {accent && (
-        <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl" />
-      )}
+      {/* Context */}
+      <p className="text-sm text-white/50 mb-1">
+        {context}
+      </p>
     </div>
   )
 }
 
 /**
- * 😫 PAIN POINT COMPONENT
- * Individual frustration point
+ * Streaming Logo Component
  */
-function PainPoint({ icon, text }) {
+function StreamingLogo({ name, color, highlight }) {
   return (
-    <div className="flex items-start gap-3 p-4 rounded-xl bg-neutral-900/30 border border-white/5">
-      <div className="flex-shrink-0 text-pink-400 mt-0.5">
-        {icon}
-      </div>
-      <p className="text-sm sm:text-base text-white/70 leading-snug text-left">
-        {text}
-      </p>
+    <div className={`px-4 py-2 rounded-lg ${highlight ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-2 border-purple-500/50' : 'bg-neutral-900/50 border border-white/10'}`}>
+      <span className={`text-sm font-bold ${highlight ? 'text-purple-400' : 'text-white/70'}`} style={!highlight ? { color } : {}}>
+        {name}
+      </span>
     </div>
   )
 }

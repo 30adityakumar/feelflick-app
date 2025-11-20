@@ -65,6 +65,8 @@ export default function FeaturesGrid() {
       description: 'Find your perfect movie in under 60 seconds',
     },
   ]
+  // ✅ get containerRef and itemsVisible from the hook
+  const { containerRef, itemsVisible } = useStaggeredAnimation(features.length, 200)
 
   return (
     <section className="relative py-16 sm:py-24 md:py-32 bg-gradient-to-b from-black via-neutral-950 to-black overflow-hidden">

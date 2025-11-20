@@ -7,24 +7,6 @@ module.exports = {
     './src/**/*.{js,jsx,ts,tsx}',
   ],
   theme: {
-    extend: {
-      animation: {
-        'scroll-left': 'scroll-left 80s linear infinite',
-        'scroll-right': 'scroll-right 80s linear infinite',
-      },
-      keyframes: {
-        'scroll-left': {
-          '0%': { transform: 'translateX(0)' },
-          '100%': { transform: 'translateX(-33.33%)' },
-        },
-        'scroll-right': {
-          '0%': { transform: 'translateX(-33.33%)' },
-          '100%': { transform: 'translateX(0)' },
-        },
-      },
-    },
-  },
-  theme: {
     container: {
       center: true,
       padding: {

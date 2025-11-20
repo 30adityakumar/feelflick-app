@@ -1,12 +1,7 @@
 // src/features/landing/sections/TestimonialsSection.jsx
 import { useStaggeredAnimation } from '@/features/landing/utils/scrollAnimations'
-import { Star, Quote, TrendingUp, Users, Film, Award } from 'lucide-react'
+import { Star, Quote } from 'lucide-react'
 
-/**
- * ⭐ TESTIMONIALS SECTION
- * 
- * Social proof with specificity and emotional resonance.
- */
 export default function TestimonialsSection() {
   const { containerRef, itemsVisible } = useStaggeredAnimation(3, 200)
 
@@ -53,27 +48,41 @@ export default function TestimonialsSection() {
       <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl pointer-events-none" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* 📝 SECTION HEADER */}
-        <div className="text-center mb-16 sm:mb-20">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight mb-6">
+
+        {/* Section header */}
+        <div className="text-center mb-12 sm:mb-16">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight mb-5">
             Loved by{' '}
             <span className="bg-gradient-to-r from-purple-500 via-pink-500 to-amber-500 bg-clip-text text-transparent">
               Movie Lovers
             </span>
           </h2>
-          <p className="text-lg sm:text-xl text-white/60 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-lg sm:text-xl text-white/70 max-w-2xl mx-auto leading-relaxed">
             Real people, real discoveries, real results. Join the community that's changing how we watch.
           </p>
         </div>
+
+        {/* Testimonials grid */}
+        <div
+          ref={containerRef}
+          className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8"
+        >
+          {testimonials.map((testimonial, index) => (
+            <TestimonialCard
+              key={testimonial.id}
+              testimonial={testimonial}
+              isVisible={itemsVisible.includes(index)}
+            />
+          ))}
         </div>
+      </div>
     </section>
   )
 }
 
 /**
- * 💬 TESTIMONIAL CARD
- * Individual testimonial with photo, quote, metric
+ * 💬 Testimonial card
+ * Shows avatar, quote, metric, star rating, name/location
  */
 function TestimonialCard({ testimonial, isVisible }) {
   const { name, role, location, avatar, quote, metric, detail, rating } = testimonial
@@ -91,20 +100,20 @@ function TestimonialCard({ testimonial, isVisible }) {
         <Quote className="h-10 w-10 fill-current" />
       </div>
 
-      {/* Author Info (Top) */}
+      {/* Author info */}
       <div className="flex items-center gap-4 mb-6">
         <img 
           src={avatar} 
           alt={name} 
-          className="w-14 h-14 rounded-full object-cover border-2 border-white/10 group-hover:border-purple-500/50 transition-colors duration-300"
+          className="w-14 h-14 rounded-full object-cover border-2 border-white/10 group-hover:border-purple-500/50 transition-colors duration-300 shadow-lg"
         />
         <div>
-          <div className="font-bold text-white text-lg leading-tight">{name}</div>
+          <div className="font-bold text-white text-lg">{name}</div>
           <div className="text-sm text-white/50">{role} • {location}</div>
         </div>
       </div>
 
-      {/* Star Rating */}
+      {/* Rating */}
       <div className="flex items-center gap-1 mb-4">
         {[...Array(rating)].map((_, i) => (
           <Star key={i} className="h-4 w-4 fill-amber-500 text-amber-500" />
@@ -116,7 +125,7 @@ function TestimonialCard({ testimonial, isVisible }) {
         "{quote}"
       </blockquote>
 
-      {/* Metric Badge (Bottom) */}
+      {/* Metric badge */}
       <div className="pt-6 border-t border-white/5">
         <div className="flex flex-col gap-1">
           <span className="text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
@@ -126,26 +135,6 @@ function TestimonialCard({ testimonial, isVisible }) {
             {detail}
           </span>
         </div>
-      </div>
-    </div>
-  )
-}
-
-/**
- * 📊 STAT ITEM
- * Enhanced stat display
- */
-function StatItem({ number, label, icon }) {
-  return (
-    <div className="flex flex-col items-center justify-center text-center p-4 group cursor-default">
-      <div className="mb-3 p-3 rounded-2xl bg-white/5 group-hover:bg-white/10 transition-colors duration-300 border border-white/5">
-        {icon}
-      </div>
-      <div className="text-3xl sm:text-4xl font-black text-white mb-1 tracking-tight">
-        {number}
-      </div>
-      <div className="text-sm text-white/50 font-medium">
-        {label}
       </div>
     </div>
   )

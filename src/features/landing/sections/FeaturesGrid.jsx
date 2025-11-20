@@ -25,7 +25,7 @@ export default function FeaturesGrid() {
           <AnimatedFeatureCard 
             title="AI Precision"
             desc="We don't just guess. We learn your emotional taste and surface films you'll actually finish."
-            image="https://image.tmdb.org/t/p/w500/gEU2QniL6E77NI6lCU6MxlNBvIx.jpg"
+            image="https://image.tmdb.org/t/p/w500/eCOtqtfvn7mxGl6nfmq4b1exJRc.jpg"
             overlayColor="from-purple-900/40"
             isVisible={itemsVisible.includes(0)}
             badge={<div className="absolute top-5 right-5 bg-green-500/90 text-black font-black px-3 py-1 rounded-lg rotate-3 shadow-[0_0_20px_rgba(34,197,94,0.4)] backdrop-blur-sm group-hover:scale-110 transition-transform duration-300">98% MATCH</div>}
@@ -33,7 +33,7 @@ export default function FeaturesGrid() {
           <AnimatedFeatureCard 
             title="Universal Watchlist"
             desc="One watchlist for every streaming service. Add once, forget never."
-            image="https://image.tmdb.org/t/p/w500/8b8R8l88Qje9dn9OE8UIyBSXL3b.jpg"
+            image="https://image.tmdb.org/t/p/w500/xlaY2zyzMfkhk0HSC5VUwzoZPU1.jpg"
             overlayColor="from-amber-900/40"
             isVisible={itemsVisible.includes(1)}
             badge={

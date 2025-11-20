@@ -19,34 +19,33 @@ import { Sparkles, Tv2, Heart, TrendingUp, Lock, Zap } from 'lucide-react'
  * - Description (how it helps)
  */
 export default function FeaturesGrid() {
-  const { containerRef, itemsVisible } = useStaggeredAnimation(3, 200)
-
   const features = [
-    {
-      icon: <Sparkles className="h-8 w-8" />,
-      metric: '92% Match Accuracy',
-      title: 'AI-Powered Discovery',
-      description: 'Our algorithm learns your unique taste—not your demographic. Get recommendations that actually match how you feel.',
-      gradient: 'from-purple-500 to-purple-600',
-      glowColor: 'purple',
-    },
-    {
-      icon: <Tv2 className="h-8 w-8" />,
-      metric: '100+ Services Indexed',
-      title: 'Find Where to Watch',
-      description: 'Netflix, Prime, Disney+, HBO Max, Hulu, and 95+ more. One click shows you exactly where to stream any movie.',
-      gradient: 'from-pink-500 to-pink-600',
-      glowColor: 'pink',
-    },
-    {
-      icon: <Heart className="h-8 w-8" />,
-      metric: 'Unlimited Watchlists',
-      title: 'Never Forget a Great Movie',
-      description: 'Save movies you want to watch, create custom lists, and rate what you've seen. Your personal movie library.',
-      gradient: 'from-purple-500 to-pink-500',
-      glowColor: 'purple',
-    },
-  ]
+  {
+    icon: <Sparkles className="h-8 w-8" />,
+    metric: '92% Match Accuracy',
+    title: 'AI-Powered Discovery',
+    description: 'Our algorithm learns your unique taste—not your demographic. Get recommendations that actually match how you feel.',
+    gradient: 'from-purple-500 to-purple-600',
+    glowColor: 'purple',
+  },
+  {
+    icon: <Tv2 className="h-8 w-8" />,
+    metric: '100+ Services Indexed',
+    title: 'Find Where to Watch',
+    description: 'Netflix, Prime, Disney+, HBO Max, Hulu, and 95+ more. One click shows you exactly where to stream any movie.',
+    gradient: 'from-pink-500 to-pink-600',
+    glowColor: 'pink',
+  },
+  {
+    icon: <Heart className="h-8 w-8" />,
+    metric: 'Unlimited Watchlists',
+    title: 'Never Forget a Great Movie',
+    description: "Save movies you want to watch, create custom lists, and rate what you've seen. Your personal movie library.",
+    gradient: 'from-purple-500 to-pink-500',
+    glowColor: 'purple',
+  },
+]
+
 
   // Bonus features (smaller cards)
   const bonusFeatures = [

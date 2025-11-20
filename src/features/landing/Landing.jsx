@@ -1,8 +1,15 @@
 // src/features/landing/Landing.jsx
 import { useState, useCallback } from 'react'
 import TopNav from '@/features/landing/components/TopNav'
-import LandingHero from '@/features/landing/components/LandingHero'
 import Footer from '@/features/landing/components/Footer'
+
+// 🎬 NEW SECTIONS (we'll build these next)
+import HeroSection from '@/features/landing/sections/HeroSection'
+import ProblemSection from '@/features/landing/sections/ProblemSection'
+import HowItWorksSection from '@/features/landing/sections/HowItWorksSection'
+import FeaturesGrid from '@/features/landing/sections/FeaturesGrid'
+import TestimonialsSection from '@/features/landing/sections/TestimonialsSection'
+import FinalCTASection from '@/features/landing/sections/FinalCTASection'
 
 export default function Landing() {
   const [showInlineAuth, setShowInlineAuth] = useState(false)
@@ -11,37 +18,50 @@ export default function Landing() {
   const closeInlineAuth = useCallback(() => setShowInlineAuth(false), [])
 
   return (
-    <>
+    <div className="relative bg-black text-white min-h-screen">
+      {/* 
+        🎯 Navigation Bar
+        - Sticky on scroll
+        - Transparent → Solid transition
+        - Auth CTA in top right
+      */}
       <TopNav onAuthOpen={openInlineAuth} />
 
       {/* 
-        Layout improvements:
-        - Starts right after TopNav but with a little extra top spacing for balance
-        - Keeps footer spacing and full-height centering intact
+        🎬 HOMEPAGE SECTIONS
+        Each section is self-contained, responsive, and accessible
+        Scroll-triggered animations handled within each component
       */}
-      <main
-        id="landing"
-        className="relative mx-auto w-full overflow-hidden flex flex-col"
-        style={{
-          // 👇 slightly increase top spacing (adds ~4vh visual balance)
-          paddingTop: 'calc(var(--topnav-h, 72px) + 4vh)',
-          paddingBottom: 'var(--footer-h, 0px)',
-          minHeight: 'calc(100svh - var(--topnav-h, 72px))'
-        }}
-      >
-        {/* Center the hero in the available area below TopNav */}
-        <div className="flex-1 grid place-items-center">
-          <LandingHero
-            embedded
-            showInlineAuth={showInlineAuth}
-            onAuthOpen={openInlineAuth}
-            onAuthClose={closeInlineAuth}
-          />
-        </div>
+      
+      {/* 1️⃣ HERO - Cinematic first impression */}
+      <HeroSection 
+        showInlineAuth={showInlineAuth}
+        onAuthOpen={openInlineAuth}
+        onAuthClose={closeInlineAuth}
+      />
 
-        {/* Fixed footer still computes --footer-h for correct bottom padding */}
-        <Footer />
-      </main>
-    </>
+      {/* 2️⃣ PROBLEM - Agitate the pain point */}
+      <ProblemSection />
+
+      {/* 3️⃣ HOW IT WORKS - 3-step process */}
+      <HowItWorksSection />
+
+      {/* 4️⃣ FEATURES - Key capabilities with metrics */}
+      <FeaturesGrid />
+
+      {/* 5️⃣ TESTIMONIALS - Social proof */}
+      <TestimonialsSection />
+
+      {/* 6️⃣ FINAL CTA - Conversion closer */}
+      <FinalCTASection onAuthOpen={openInlineAuth} />
+
+      {/* 
+        🦶 Footer
+        - Minimal design
+        - Legal links
+        - Social media
+      */}
+      <Footer />
+    </div>
   )
 }

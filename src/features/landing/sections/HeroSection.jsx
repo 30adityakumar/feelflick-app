@@ -1,5 +1,5 @@
 // src/features/landing/sections/HeroSection.jsx
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { supabase } from '@/shared/lib/supabase/client'
 import { Sparkles, PlayCircle } from 'lucide-react'
 import googleSvg from '@/assets/icons/google.svg'
@@ -28,7 +28,7 @@ const POSTER_ROWS = [
   ],
 ]
 
-// 🔹 Small helper so we don't spread arrays directly inline every render
+// 🔹 Helper to prevent array spread on every render
 function usePosterRows() {
   return useMemo(
     () => [
@@ -40,11 +40,10 @@ function usePosterRows() {
 }
 
 // 🔹 Single tile with robust error handling
-function PosterTile({ path, id }) {
+function PosterTile({ path }) {
   const [failed, setFailed] = useState(false)
 
   if (!path) {
-    // Defensive: if path is falsy, render gradient tile instead of mounting an <img>
     return (
       <div
         className="relative w-40 sm:w-44 md:w-48 h-60 sm:h-68 md:h-72 shrink-0 rounded-xl overflow-hidden shadow-2xl border border-white/10 bg-gradient-to-br from-purple-900 via-black to-amber-900/40"
@@ -55,7 +54,7 @@ function PosterTile({ path, id }) {
 
   return (
     <div
-      className="relative w-40 sm:w-44 md:w-48 h-60 sm:h-68 md:h-72 shrink-0 rounded-xl overflow-hidden shadow-2xl border border-white/10 bg-gradient-to-br from-purple-900 via-black to-amber-900/40"
+      className="relative w-40 sm:w-44 md:w-48 h-60 sm:h-68 md:h-72 shrink-0 rounded-xl overflow-hidden shadow-2xl border border-white/10 bg-gradient-to-br from-purple-900 via-black to-amber-900/40 transition-transform duration-300 hover:scale-105"
       aria-hidden="true"
     >
       {!failed && (
@@ -73,7 +72,32 @@ function PosterTile({ path, id }) {
 
 export default function HeroSection() {
   const [isAuthenticating, setIsAuthenticating] = useState(false)
+  const [scrollY, setScrollY] = useState(0)
+  const [isHoveringPosters, setIsHoveringPosters] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  const contentRef = useRef(null)
   const [row1, row2] = usePosterRows()
+
+  // 🎬 Parallax effect on scroll
+  useEffect(() => {
+    let ticking = false
+    const handleScroll = () => {
+      if (ticking) return
+      ticking = true
+      requestAnimationFrame(() => {
+        setScrollY(window.scrollY)
+        ticking = false
+      })
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  // 🎬 Fade-in animation on mount
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   async function handleGoogleSignIn() {
     if (isAuthenticating) return
@@ -83,7 +107,6 @@ export default function HeroSection() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          // Safe-guard: window should exist in browser environment
           redirectTo:
             typeof window !== 'undefined'
               ? `${window.location.origin}/onboarding`
@@ -93,7 +116,6 @@ export default function HeroSection() {
       if (error) throw error
     } catch (error) {
       console.error('Auth error:', error)
-      // In production you might swap this for a toast/snackbar
       alert('Sign in failed. Please try again.')
     } finally {
       setIsAuthenticating(false)
@@ -115,26 +137,45 @@ export default function HeroSection() {
     })
   }
 
+  // Subtle parallax transform (less than 10% of scroll for smoothness)
+  const parallaxY = scrollY * 0.3
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black pt-20">
-      {/* 🎬 Animated poster wall */}
-      <div className="absolute inset-0 z-0 opacity-30 select-none pointer-events-none">
-        {/* Slightly richer gradient instead of aurora:
-            - Keeps focus on content
-            - Avoids visual noise on top of posters */}
-        <div className="absolute inset-0 z-10 bg-gradient-to-b from-black via-black/40 to-black" />
-        <div className="absolute inset-0 z-10 bg-gradient-to-tr from-purple-900/40 via-transparent to-amber-700/20" />
+      {/* 🎬 Animated poster wall with hover pause */}
+      <div
+        className="absolute inset-0 z-0 opacity-30 select-none pointer-events-auto"
+        onMouseEnter={() => setIsHoveringPosters(true)}
+        onMouseLeave={() => setIsHoveringPosters(false)}
+      >
+        {/* Gradients */}
+        <div className="absolute inset-0 z-10 bg-gradient-to-b from-black via-black/40 to-black pointer-events-none" />
+        <div className="absolute inset-0 z-10 bg-gradient-to-tr from-purple-900/40 via-transparent to-amber-700/20 pointer-events-none" />
 
-        <div className="flex flex-col justify-center h-full gap-6 scale-[1.08] rotate-[-2deg] origin-center">
-          {/* Row 1 */}
-          <div className="flex gap-4 sm:gap-5 md:gap-6 animate-scroll-left w-[220%]">
+        <div
+          className={`flex flex-col justify-center h-full gap-6 scale-[1.08] rotate-[-2deg] origin-center transition-all duration-300 ${
+            isHoveringPosters ? 'opacity-60' : 'opacity-100'
+          }`}
+        >
+          {/* Row 1 - Animation pauses on hover */}
+          <div
+            className={`flex gap-4 sm:gap-5 md:gap-6 w-[220%] ${
+              isHoveringPosters ? '' : 'animate-scroll-left'
+            }`}
+            style={isHoveringPosters ? { animationPlayState: 'paused' } : {}}
+          >
             {row1.map((path, i) => (
               <PosterTile key={`r1-${i}`} path={path} />
             ))}
           </div>
 
-          {/* Row 2 */}
-          <div className="flex gap-4 sm:gap-5 md:gap-6 animate-scroll-right w-[220%]">
+          {/* Row 2 - Animation pauses on hover */}
+          <div
+            className={`flex gap-4 sm:gap-5 md:gap-6 w-[220%] ${
+              isHoveringPosters ? '' : 'animate-scroll-right'
+            }`}
+            style={isHoveringPosters ? { animationPlayState: 'paused' } : {}}
+          >
             {row2.map((path, i) => (
               <PosterTile key={`r2-${i}`} path={path} />
             ))}
@@ -142,11 +183,19 @@ export default function HeroSection() {
         </div>
       </div>
 
-      {/* 📝 Content */}
-      <div className="relative z-20 max-w-5xl mx-auto px-4 text-center">
+      {/* 📝 Content with parallax and fade-in */}
+      <div
+        ref={contentRef}
+        className={`relative z-20 max-w-5xl mx-auto px-4 text-center transition-all duration-1000 ${
+          mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+        }`}
+        style={{
+          transform: `translateY(${parallaxY}px)`,
+        }}
+      >
         {/* Badge */}
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md mb-8 hover:bg-white/10 transition-colors cursor-default">
-          <Sparkles className="w-4 h-4 text-amber-400" />
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md mb-8 hover:bg-white/10 hover:border-white/20 transition-all duration-300 cursor-default">
+          <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
           <span className="text-sm font-medium text-amber-100/90">
             Find movies that match your mood
           </span>
@@ -157,7 +206,7 @@ export default function HeroSection() {
           <span className="block text-white drop-shadow-2xl">
             Stop Scrolling.
           </span>
-          <span className="block bg-gradient-to-r from-purple-400 via-pink-500 to-amber-500 bg-clip-text text-transparent drop-shadow-2xl pb-2">
+          <span className="block bg-gradient-to-r from-purple-400 via-pink-500 to-amber-500 bg-clip-text text-transparent drop-shadow-2xl pb-2 animate-gradient">
             Start Feeling.
           </span>
         </h1>
@@ -174,9 +223,12 @@ export default function HeroSection() {
           <button
             onClick={handleGoogleSignIn}
             disabled={isAuthenticating}
-            className="group relative w-full max-w-xs sm:max-w-none sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 rounded-2xl bg-white text-black font-bold text-base sm:text-lg shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] hover:shadow-[0_0_60px_-10px_rgba(255,255,255,0.5)] transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+            className="group relative w-full max-w-xs sm:max-w-none sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 rounded-2xl bg-white text-black font-bold text-base sm:text-lg shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] hover:shadow-[0_0_60px_-10px_rgba(255,255,255,0.5)] transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden"
           >
-            <span className="flex items-center justify-center gap-3">
+            {/* Glow pulse effect on hover */}
+            <span className="absolute inset-0 bg-gradient-to-r from-purple-400/0 via-purple-400/20 to-purple-400/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-shimmer" />
+            
+            <span className="relative flex items-center justify-center gap-3">
               {isAuthenticating ? (
                 'Signing in...'
               ) : (
@@ -190,18 +242,18 @@ export default function HeroSection() {
 
           <button
             onClick={scrollToHowItWorks}
-            className="w-full max-w-xs sm:max-w-none sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-white font-bold text-base sm:text-lg hover:bg-white/20 transition-all duration-300 hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
+            className="w-full max-w-xs sm:max-w-none sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-white font-bold text-base sm:text-lg hover:bg-white/20 hover:border-white/20 transition-all duration-300 hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
           >
             <PlayCircle className="w-5 h-5" />
             <span>How It Works</span>
           </button>
         </div>
 
-        {/* Trust signals (100+ services removed) */}
+        {/* Trust signals */}
         <div className="mt-12 flex flex-wrap items-center justify-center gap-x-8 gap-y-4 text-sm text-white/40 font-medium">
-          <span>✓ Always Free</span>
-          <span>✓ No Ads</span>
-          <span>✓ Privacy First</span>
+          <span className="hover:text-white/60 transition-colors">✓ Always Free</span>
+          <span className="hover:text-white/60 transition-colors">✓ No Ads</span>
+          <span className="hover:text-white/60 transition-colors">✓ Privacy First</span>
         </div>
       </div>
     </section>

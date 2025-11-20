@@ -314,3 +314,60 @@ section:hover .animate-scroll-right {
   animation: scroll-right 60s linear infinite;
 }
 
+/* ==========================================================================
+   HERO POSTER WALL ANIMATIONS
+   ========================================================================== */
+@keyframes scroll-left {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-33.33%);
+  }
+}
+
+@keyframes scroll-right {
+  0% {
+    transform: translateX(-33.33%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.animate-scroll-left {
+  animation: scroll-left 60s linear infinite;
+}
+
+.animate-scroll-right {
+  animation: scroll-right 60s linear infinite;
+}
+
+/* Gradient animation for headline */
+@keyframes gradient {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient 8s ease infinite;
+}
+
+/* Shimmer effect for CTA button */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s ease-in-out infinite;
+}

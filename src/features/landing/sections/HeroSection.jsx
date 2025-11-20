@@ -1,7 +1,7 @@
 // src/features/landing/sections/HeroSection.jsx
 import { useState } from 'react'
 import { supabase } from '@/shared/lib/supabase/client'
-import { Sparkles, PlayCircle, Info } from 'lucide-react'
+import { Sparkles, PlayCircle } from 'lucide-react'
 import googleSvg from '@/assets/icons/google.svg'
 
 // 🎬 Curated high-quality posters (TMDB paths)
@@ -28,7 +28,7 @@ const POSTER_ROWS = [
   ]
 ]
 
-export default function HeroSection({ showInlineAuth, onAuthOpen, onAuthClose }) {
+export default function HeroSection({ showInlineAuth, onAuthOpen }) {
   const [isAuthenticating, setIsAuthenticating] = useState(false)
 
   async function handleGoogleSignIn() {
@@ -46,6 +46,21 @@ export default function HeroSection({ showInlineAuth, onAuthOpen, onAuthClose })
       alert('Sign in failed. Please try again.')
     } finally {
       setIsAuthenticating(false)
+    }
+  }
+
+  const scrollToHowItWorks = () => {
+    const element = document.getElementById('how-it-works')
+    if (element) {
+      // Account for fixed header height
+      const headerOffset = 80
+      const elementPosition = element.getBoundingClientRect().top
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset
+      
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      })
     }
   }
 
@@ -90,11 +105,11 @@ export default function HeroSection({ showInlineAuth, onAuthOpen, onAuthClose })
       {/* 📝 CONTENT LAYER */}
       <div className="relative z-20 max-w-5xl mx-auto px-4 text-center">
         
-        {/* New "Premium" Badge */}
+        {/* "Spotify for Movies" Badge */}
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md mb-8 hover:bg-white/10 transition-colors cursor-default">
           <Sparkles className="w-4 h-4 text-amber-400" />
           <span className="text-sm font-medium text-amber-100/90">
-            Discover movies you'll actually love
+            Find movies that match your mood
           </span>
         </div>
 
@@ -104,13 +119,13 @@ export default function HeroSection({ showInlineAuth, onAuthOpen, onAuthClose })
             Stop Scrolling.
           </span>
           <span className="block bg-gradient-to-r from-purple-400 via-pink-500 to-amber-500 bg-clip-text text-transparent drop-shadow-2xl pb-2">
-            Start Watching.
+            Start Feeling.
           </span>
         </h1>
 
-        {/* Subheadline */}
+        {/* Subheadline - Updated with your context */}
         <p className="text-lg sm:text-2xl text-white/70 max-w-2xl mx-auto mb-10 leading-relaxed font-medium">
-          Your personal AI movie curator. Find hidden gems, track your watchlist, and see where to stream—all in one place.
+          Like Spotify for movies. Discover films based on your <span className="text-white font-bold">vibe, emotion, and taste</span>—not just what's trending.
         </p>
 
         {/* CTA Buttons */}
@@ -126,14 +141,14 @@ export default function HeroSection({ showInlineAuth, onAuthOpen, onAuthClose })
               ) : (
                 <>
                   <img src={googleSvg} alt="Google" className="w-5 h-5" />
-                  <span>Start Free Trial</span>
+                  <span>Get Started — It's Free</span>
                 </>
               )}
             </span>
           </button>
 
           <button
-            onClick={onAuthOpen}
+            onClick={scrollToHowItWorks}
             className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-white font-bold text-lg hover:bg-white/20 transition-all duration-300 hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
           >
             <PlayCircle className="w-5 h-5" />
@@ -141,10 +156,11 @@ export default function HeroSection({ showInlineAuth, onAuthOpen, onAuthClose })
           </button>
         </div>
 
-        {/* Trust Signals */}
-        <div className="mt-12 flex items-center justify-center gap-8 text-sm text-white/40 font-medium">
-          <span>✓ No credit card required</span>
-          <span>✓ Cancel anytime</span>
+        {/* Trust Signals - Updated */}
+        <div className="mt-12 flex flex-wrap items-center justify-center gap-x-8 gap-y-4 text-sm text-white/40 font-medium">
+          <span>✓ Always Free</span>
+          <span>✓ No Ads</span>
+          <span>✓ Privacy First</span>
           <span>✓ 100+ Streaming Services</span>
         </div>
       </div>

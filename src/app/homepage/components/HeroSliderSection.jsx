@@ -97,15 +97,14 @@ export default function HeroSliderSection({ className = '' }) {
   if (!slides.length) return null
 
   return (
-      <section 
-        className={`relative w-full overflow-hidden bg-black ${className}`}
-        style={{ marginTop: 'calc(var(--hdr-h, 64px) * 0.8)' }}
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-      >
+    <section 
+      className={`relative w-full overflow-hidden bg-black ${className}`}
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
       {/* Hero Image Container - 75vh */}
       <div className="relative w-full h-[75vh]">
         {/* Background Images */}

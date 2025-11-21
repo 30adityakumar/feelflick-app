@@ -13,19 +13,17 @@ function LoadingFallback() {
 
 export default function HomePage() {
   return (
-    <Suspense fallback={<LoadingFallback />}>
-      <div className="relative w-full bg-black text-white min-h-screen">
-        {/* Hero Section - Full bleed with header overlay */}
-        <HeroSliderSection />
+    <div className="relative w-full bg-black text-white min-h-screen">
+      {/* Hero Section - Full bleed with header overlay */}
+      <HeroSliderSection className="mt-6 md:mt-10" />
 
-        {/* Content Rows - Proper spacing */}
-        <div className="relative z-30 space-y-6 sm:space-y-8 md:space-y-10 lg:space-y-12 pb-20 md:pb-8">
-          <CarouselRow title="Trending Now" tmdbCategory="popular" rowId="trending" />
-          <CarouselRow title="Top Rated" tmdbCategory="top_rated" rowId="top-rated" />
-          <CarouselRow title="Now Playing" tmdbCategory="now_playing" rowId="now-playing" />
-          <CarouselRow title="Upcoming" tmdbCategory="upcoming" rowId="upcoming" />
-        </div>
+      {/* Content Rows - Proper spacing */}
+      <div className="relative z-30 space-y-6 sm:space-y-8 md:space-y-10 lg:space-y-12 pb-20 md:pb-8">
+        <CarouselRow title="Trending Now" tmdbCategory="popular" rowId="trending" />
+        <CarouselRow title="Top Rated" tmdbCategory="top_rated" rowId="top-rated" />
+        <CarouselRow title="Now Playing" tmdbCategory="now_playing" rowId="now-playing" />
+        <CarouselRow title="Upcoming" tmdbCategory="upcoming" rowId="upcoming" />
       </div>
-    </Suspense>
+    </div>
   )
 }

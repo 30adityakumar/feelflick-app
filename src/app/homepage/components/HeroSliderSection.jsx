@@ -97,13 +97,9 @@ export default function HeroSliderSection({ className = '' }) {
   if (!slides.length) return null
 
   return (
-    <section 
+    <section
       className={`relative w-full overflow-hidden bg-black ${className}`}
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
+      style={{ paddingTop: 'calc(0.8 * var(--hdr-h, 64px))' }}
     >
       {/* Hero Image Container - 75vh + header height for overlap */}
       <div className="relative w-full h-[75vh]">

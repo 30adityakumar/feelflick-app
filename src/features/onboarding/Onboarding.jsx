@@ -7,7 +7,9 @@ import {
   ChevronLeft, ChevronRight, Info
 } from 'lucide-react'
 
+
 const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY
+
 
 export default function Onboarding() {
   const navigate = useNavigate()
@@ -23,6 +25,7 @@ export default function Onboarding() {
   const [error, setError] = useState('')
   const [celebrate, setCelebrate] = useState(false)
 
+
   const searchInputRef = useRef(null)
   
   // Auto-focus search (Apple principle: guide users naturally)
@@ -32,6 +35,7 @@ export default function Onboarding() {
     }
   }, [step])
 
+
   // Session management
   useEffect(() => {
     let unsub
@@ -40,6 +44,7 @@ export default function Onboarding() {
     unsub = data?.subscription?.unsubscribe
     return () => { if (typeof unsub === 'function') unsub() }
   }, [])
+
 
   // Check completion status
   useEffect(() => {
@@ -62,6 +67,7 @@ export default function Onboarding() {
       } catch { setChecking(false) }
     })()
   }, [session, navigate])
+
 
   // Intelligent debounced search (Netflix principle: instant feedback)
   useEffect(() => {
@@ -101,6 +107,7 @@ export default function Onboarding() {
     }
   }, [query])
 
+
   const GENRES = useMemo(
     () => [
       { id: 28, label: 'Action' },
@@ -123,6 +130,7 @@ export default function Onboarding() {
     []
   )
 
+
   const toggleGenre = (id) => setSelectedGenres(g => g.includes(id) ? g.filter(x => x !== id) : [...g, id])
   const isMovieSelected = (id) => favoriteMovies.some(x => x.id === id)
   const addMovie = (m) => {
@@ -131,6 +139,7 @@ export default function Onboarding() {
     }
   }
   const removeMovie = (id) => setFavoriteMovies(prev => prev.filter(m => m.id !== id))
+
 
   async function ensureUserRowOrFail(user) {
     const { data: existing } = await supabase.from('users').select('id').eq('id', user.id).maybeSingle()
@@ -143,6 +152,7 @@ export default function Onboarding() {
     if (error) throw new Error('Could not create your profile')
     return true
   }
+
 
   async function saveAndGo(opts = {}) {
     setError('')
@@ -209,6 +219,7 @@ export default function Onboarding() {
     }
   }
 
+
   // Loading state (Apple principle: branded, minimal)
   if (checking) {
     return (
@@ -225,6 +236,7 @@ export default function Onboarding() {
       </div>
     )
   }
+
 
   // Celebration (Netflix principle: reward completion)
   if (celebrate) {
@@ -246,6 +258,7 @@ export default function Onboarding() {
     )
   }
 
+
   return (
     <div className="fixed inset-0 bg-[#0B1120] flex flex-col">
       {/* Ambient background (subtle depth) */}
@@ -253,6 +266,7 @@ export default function Onboarding() {
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#667eea]/10 rounded-full blur-3xl animate-float-slow" />
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#764ba2]/10 rounded-full blur-3xl animate-float-slow-delayed" />
       </div>
+
 
       {/* Main Container */}
       <div className="relative z-10 flex flex-col h-full max-w-6xl mx-auto w-full">
@@ -295,6 +309,7 @@ export default function Onboarding() {
           )}
         </div>
       </div>
+
 
       {/* Global Styles */}
       <style jsx>{`
@@ -343,6 +358,7 @@ export default function Onboarding() {
   )
 }
 
+
 // Progress Indicator (Apple-inspired minimal design)
 function ProgressIndicator({ step, totalSteps }) {
   const progressPercent = ((step + 1) / totalSteps) * 100
@@ -367,6 +383,7 @@ function ProgressIndicator({ step, totalSteps }) {
   )
 }
 
+
 // Welcome Step (Netflix-inspired hero)
 function WelcomeStep({ onNext, name }) {
   return (
@@ -388,6 +405,7 @@ function WelcomeStep({ onNext, name }) {
           </p>
         </div>
 
+
         <div className="flex items-center justify-center gap-2 text-sm text-white/40">
           <Info className="h-4 w-4" />
           <span>Takes about 90 seconds</span>
@@ -405,6 +423,7 @@ function WelcomeStep({ onNext, name }) {
   )
 }
 
+
 // Genre Step (Apple-inspired grid with smart feedback)
 function StepGenres({ GENRES, selectedGenres, toggleGenre, error, loading, onNext, onBack }) {
   const getSmartFeedback = () => {
@@ -415,8 +434,10 @@ function StepGenres({ GENRES, selectedGenres, toggleGenre, error, loading, onNex
     return { text: `${count} selected — you love variety!`, color: 'text-[#f093fb]' }
   }
 
+
   const feedback = getSmartFeedback()
   const canProceed = selectedGenres.length >= 3
+
 
   return (
     <div className="h-full flex flex-col px-6 py-6">
@@ -430,11 +451,13 @@ function StepGenres({ GENRES, selectedGenres, toggleGenre, error, loading, onNex
         </p>
       </div>
 
+
       {error && (
         <div className="flex-none max-w-md mx-auto mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-sm text-center backdrop-blur-sm">
           {error}
         </div>
       )}
+
 
       {/* Scrollable Grid */}
       <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar -mx-2 px-2">
@@ -461,17 +484,17 @@ function StepGenres({ GENRES, selectedGenres, toggleGenre, error, loading, onNex
                 </span>
                 {isSelected && (
                   <div className="absolute top-1.5 right-1.5 bg-[#0B1120] rounded-full p-0.5 shadow-lg z-10">
-                    <div className="bg-gradient-to-r from-emerald-400 to-green-500 rounded-full p-1.5">
-                      <Check className="h-3 w-3 text-white stroke-[3]" />
-                    </div>
+                  <div className="bg-gradient-to-r from-emerald-400 to-green-500 rounded-full p-1.5">
+                    <Check className="h-3 w-3 text-white stroke-[3]" />
                   </div>
-
+                </div>
                 )}
               </button>
             )
           })}
         </div>
       </div>
+
 
       {/* Footer Actions */}
       <div className="flex-none pt-6 border-t border-white/5 flex items-center justify-between">
@@ -500,6 +523,7 @@ function StepGenres({ GENRES, selectedGenres, toggleGenre, error, loading, onNex
   )
 }
 
+
 // Movies Step (Plex-inspired content discovery)
 function StepMovies({
   query, setQuery, results, searching, isMovieSelected, addMovie, removeMovie, favoriteMovies,
@@ -513,8 +537,10 @@ function StepMovies({
     return { text: `${count} movies — amazing taste!`, color: 'text-[#f093fb]' }
   }
 
+
   const feedback = getSmartFeedback()
   const canProceed = favoriteMovies.length >= 5
+
 
   return (
     <div className="h-full flex flex-col px-6 py-6">
@@ -528,11 +554,13 @@ function StepMovies({
         </p>
       </div>
 
+
       {error && (
         <div className="flex-none max-w-md mx-auto mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-sm text-center backdrop-blur-sm">
           {error}
         </div>
       )}
+
 
       {/* Search Bar */}
       <div className="flex-none relative max-w-2xl mx-auto mb-5 w-full">
@@ -560,6 +588,7 @@ function StepMovies({
         )}
       </div>
 
+
       {/* Scrollable Content */}
       <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar -mx-2 px-2">
         
@@ -572,6 +601,7 @@ function StepMovies({
             </p>
           </div>
         )}
+
 
         {/* Search Results */}
         {query && results.length > 0 && (
@@ -621,12 +651,14 @@ function StepMovies({
           </div>
         )}
 
+
         {/* No Results */}
         {query && !searching && results.length === 0 && (
           <div className="text-center py-12 text-white/50 text-sm">
             No movies found. Try a different search term.
           </div>
         )}
+
 
         {/* Selected Collection */}
         {favoriteMovies.length > 0 && (
@@ -657,22 +689,22 @@ function StepMovies({
                   />
                   
                   {/* Remove Button Overlay */}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeMovie(m.id)
-                    }}
-                    className="absolute top-2 right-2 h-7 w-7 rounded-full bg-red-500/90 hover:bg-red-600 flex items-center justify-center shadow-md z-20 transition-all"
-                    title="Remove"
-                  >
-                    <X className="h-4 w-4 text-white stroke-[3]" />
-                  </button>
-                  <img ... />
-                  <span className="absolute bottom-2 left-2 right-2 text-[11px] font-medium text-white/90 px-2 text-center line-clamp-2 bg-black/60 rounded shadow-sm">
-                    {m.title}
-                  </span>
-
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center gap-2">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeMovie(m.id)
+                      }}
+                      className="absolute top-2 right-2 h-7 w-7 rounded-full bg-red-500/90 hover:bg-red-600 flex items-center justify-center shadow-md z-20 transition-all"
+                      title="Remove"
+                    >
+                      <X className="h-4 w-4 text-white stroke-[3]" />
+                    </button>
+                    <img ... />
+                    <span className="absolute bottom-2 left-2 right-2 text-[11px] font-medium text-white/90 px-2 text-center line-clamp-2 bg-black/60 rounded shadow-sm">
+                      {m.title}
+                    </span>
                   </div>
                 </div>
               ))}
@@ -680,6 +712,7 @@ function StepMovies({
           </div>
         )}
       </div>
+
 
       {/* Footer Actions */}
       <div className="flex-none pt-6 border-t border-white/5 flex items-center justify-between bg-[#0B1120]">

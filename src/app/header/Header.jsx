@@ -11,17 +11,21 @@ import {
   User as UserIcon,
   Settings,
   Bookmark,
-  Clock
+  Clock,
+  Sparkles,
+  Menu,
+  X as CloseIcon
 } from 'lucide-react'
 
 export default function Header({ onOpenSearch }) {
-  const pathname = useLocation().pathname
+  const { pathname } = useLocation()
   const navigate = useNavigate()
   const [user, setUser] = useState(null)
   const [scrolled, setScrolled] = useState(false)
   const [scrollDirection, setScrollDirection] = useState('up')
   const [lastScrollY, setLastScrollY] = useState(0)
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const hdrRef = useRef(null)
   const dropdownRef = useRef(null)
 
@@ -29,257 +33,310 @@ export default function Header({ onOpenSearch }) {
   useEffect(() => {
     let unsub
     const getUser = async () => {
-      const data = await supabase.auth.getUser()
-      setUser(data?.user ?? null)
+      const { data } = await supabase.auth.getUser()
+      setUser(data?.user || null)
     }
     getUser()
-    const { data } = supabase.auth.onAuthStateChange((e, s) => setUser(s?.user ?? null))
+    const { data } = supabase.auth.onAuthStateChange((_e, session) => {
+      setUser(session?.user || null)
+    })
     unsub = data?.subscription?.unsubscribe
     return () => { if (typeof unsub === 'function') unsub() }
   }, [])
 
-  // Smart scroll
+  // Smart scroll behavior (Netflix-style: hide on scroll down, show on scroll up)
   useEffect(() => {
     const handleScroll = () => {
-      const cur = window.scrollY
-      setScrolled(cur > 16)
-      setScrollDirection(cur > lastScrollY ? 'down' : 'up')
-      setLastScrollY(cur)
+      const currentScrollY = window.scrollY
+      
+      // Determine scroll direction
+      if (currentScrollY > lastScrollY && currentScrollY > 80) {
+        setScrollDirection('down')
+      } else {
+        setScrollDirection('up')
+      }
+      
+      // Set scrolled state (for background)
+      setScrolled(currentScrollY > 20)
+      setLastScrollY(currentScrollY)
     }
-    window.addEventListener('scroll', handleScroll)
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [lastScrollY])
 
-  // Set header height variable for layout
-  useEffect(() => {
-    const el = hdrRef.current
-    if (!el) return
-    const setHeight = () => {
-      document.body.style.setProperty('--header-h', `${el.offsetHeight}px`)
-    }
-    setHeight()
-    window.addEventListener('resize', setHeight)
-    return () => window.removeEventListener('resize', setHeight)
-  }, [])
-
   // Close dropdown when clicking outside
   useEffect(() => {
-    function handleClick(e) {
-      if (!dropdownRef.current) return
-      if (!dropdownRef.current.contains(e.target)) setDropdownOpen(false)
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setDropdownOpen(false)
+      }
     }
-    if (dropdownOpen) document.addEventListener('mousedown', handleClick)
-    else document.removeEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
+    if (dropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [dropdownOpen])
 
-  // Sign out
-  async function signOut() {
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMobileMenuOpen(false)
+  }, [pathname])
+
+  const handleLogout = async () => {
     await supabase.auth.signOut()
-    setDropdownOpen(false)
-    navigate('/login')
+    navigate('/login', { replace: true })
   }
 
-  // Main branding and nav
+  const getUserInitial = () => {
+    if (!user) return '?'
+    const name = user.user_metadata?.name || user.email
+    return name.charAt(0).toUpperCase()
+  }
+
+  const navLinks = [
+    { to: '/home', icon: Home, label: 'Home' },
+    { to: '/discover', icon: Compass, label: 'Discover' },
+    { to: '/watchlist', icon: Bookmark, label: 'Watchlist' },
+  ]
+
   return (
     <>
-      {/* Top Header */}
+      {/* Desktop & Tablet Header */}
       <header
         ref={hdrRef}
-        className={`fixed top-0 left-0 w-full z-30 transition-all duration-300 bg-[#0B1120]/90 shadow-lg backdrop-blur-xl
-          ${scrolled && scrollDirection === 'down' ? '-translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}
-        `}
-        style={{ height: '72px' }}
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-out ${
+          scrollDirection === 'down' ? '-translate-y-full' : 'translate-y-0'
+        } ${
+          scrolled
+            ? 'bg-[#0B1120]/95 backdrop-blur-xl border-b border-white/10 shadow-xl'
+            : 'bg-transparent'
+        }`}
       >
-        <div className="flex items-center h-18 max-w-7xl mx-auto px-4 md:px-8">
-          {/* Branding */}
-          <Link
-            to="/home"
-            className="flex items-center gap-2 mr-6 select-none"
-            aria-label="FeelFlick Home"
-          >
-            <span className="text-3xl font-extrabold bg-gradient-to-r from-[#667eea] via-[#764ba2] to-[#f093fb] bg-clip-text text-transparent tracking-tight drop-shadow-md">
-              FEELFLICK
-            </span>
-          </Link>
-          {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-3 flex-1">
-            <NavLink
-              to="/home"
-              className={({ isActive }) =>
-                `px-3 py-2 rounded-xl font-semibold text-sm transition-colors duration-200 ${
-                  isActive ? 'text-[#667eea] bg-white/5' : 'text-white/80 hover:text-white'
-                }`
-              }
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            
+            {/* Logo */}
+            <Link 
+              to="/home" 
+              className="flex items-center gap-2 group"
             >
-              <Home className="inline h-5 w-5 mr-2" />
-              Home
-            </NavLink>
-            <NavLink
-              to="/discover"
-              className={({ isActive }) =>
-                `px-3 py-2 rounded-xl font-semibold text-sm transition-colors duration-200 ${
-                  isActive ? 'text-[#764ba2] bg-white/5' : 'text-white/80 hover:text-white'
-                }`
-              }
-            >
-              <Compass className="inline h-5 w-5 mr-2" />
-              Discover
-            </NavLink>
-            <NavLink
-              to="/watchlist"
-              className={({ isActive }) =>
-                `px-3 py-2 rounded-xl font-semibold text-sm transition-colors duration-200 ${
-                  isActive ? 'text-[#f093fb] bg-white/5' : 'text-white/80 hover:text-white'
-                }`
-              }
-            >
-              <Bookmark className="inline h-5 w-5 mr-2" />
-              Watchlist
-            </NavLink>
-            <button
-              type="button"
-              onClick={onOpenSearch}
-              className="ml-4 px-3 py-2 rounded-xl font-semibold text-sm text-white/80 bg-white/5 hover:bg-white/10 transition-colors flex items-center"
-            >
-              <SearchIcon className="h-5 w-5 mr-2" />
-              Search
-            </button>
-          </nav>
-          {/* Profile Dropdown */}
-          <div className="relative ml-4">
-            <button
-              className="flex items-center gap-2 px-2 py-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors"
-              onClick={() => setDropdownOpen(!dropdownOpen)}
-              aria-label="User profile"
-            >
-              {user?.user_metadata?.avatar_url ? (
-                <img
-                  src={user.user_metadata.avatar_url}
-                  alt="Avatar"
-                  className="h-8 w-8 rounded-full border-2 border-[#667eea] object-cover"
-                />
-              ) : (
-                <UserIcon className="h-7 w-7 text-white/80" />
-              )}
-              <ChevronDown className="h-4 w-4 text-white/60" />
-            </button>
-            {/* Dropdown Menu */}
-            {dropdownOpen && (
-              <div
-                ref={dropdownRef}
-                className="absolute top-10 right-0 min-w-[200px] bg-[#18181d] rounded-lg shadow-lg border border-white/10 z-50 py-2"
-              >
-                <button
-                  className="w-full px-5 py-3 text-left flex items-center gap-2 hover:bg-white/5 transition-colors"
-                  onClick={() => {
-                    setDropdownOpen(false)
-                    navigate('/account')
-                  }}
-                >
-                  <UserIcon className="h-5 w-5" />
-                  Account
-                </button>
-                <button
-                  className="w-full px-5 py-3 text-left flex items-center gap-2 hover:bg-white/5 transition-colors"
-                  onClick={() => {
-                    setDropdownOpen(false)
-                    navigate('/watchlist')
-                  }}
-                >
-                  <Bookmark className="h-5 w-5" />
-                  Watchlist
-                </button>
-                <button
-                  className="w-full px-5 py-3 text-left flex items-center gap-2 hover:bg-white/5 transition-colors"
-                  onClick={() => {
-                    setDropdownOpen(false)
-                    navigate('/history')
-                  }}
-                >
-                  <Clock className="h-5 w-5" />
-                  History
-                </button>
-                <button
-                  className="w-full px-5 py-3 text-left flex items-center gap-2 hover:bg-white/5 transition-colors"
-                  onClick={() => {
-                    setDropdownOpen(false)
-                    navigate('/settings')
-                  }}
-                >
-                  <Settings className="h-5 w-5" />
-                  Settings
-                </button>
-                <hr className="my-2 border-white/10" />
-                <button
-                  className="w-full px-5 py-3 text-left flex items-center gap-2 text-red-400 hover:bg-red-500/10 transition-colors"
-                  onClick={signOut}
-                >
-                  <LogOut className="h-5 w-5" />
-                  Sign Out
-                </button>
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-[#667eea] to-[#764ba2] rounded-lg blur-md opacity-0 group-hover:opacity-50 transition-opacity duration-300" />
+                <Sparkles className="relative h-6 w-6 text-[#667eea] group-hover:rotate-12 transition-transform duration-300" />
               </div>
-            )}
+              <span className="relative text-xl font-black bg-gradient-to-r from-[#667eea] via-[#764ba2] to-[#f093fb] bg-clip-text text-transparent">
+                FEELFLICK
+              </span>
+            </Link>
+
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center gap-1">
+              {navLinks.map((link) => (
+                <NavLink
+                  key={link.to}
+                  to={link.to}
+                  className={({ isActive }) =>
+                    `flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm transition-all duration-300 ${
+                      isActive
+                        ? 'text-white bg-white/10 shadow-lg shadow-[#667eea]/20'
+                        : 'text-white/70 hover:text-white hover:bg-white/5'
+                    }`
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      <link.icon className={`h-4 w-4 ${isActive ? 'text-[#667eea]' : ''}`} />
+                      <span>{link.label}</span>
+                    </>
+                  )}
+                </NavLink>
+              ))}
+            </nav>
+
+            {/* Right Side Actions */}
+            <div className="flex items-center gap-3">
+              
+              {/* Search Button */}
+              <button
+                onClick={onOpenSearch}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 hover:text-white border border-white/10 hover:border-[#667eea]/50 transition-all duration-300 group"
+                aria-label="Search movies"
+              >
+                <SearchIcon className="h-4 w-4 group-hover:text-[#667eea] transition-colors" />
+                <span className="hidden sm:inline text-sm font-medium">Search</span>
+              </button>
+
+              {/* User Dropdown */}
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-[#667eea]/50 transition-all duration-300 group"
+                  aria-label="User menu"
+                >
+                  <div className="h-7 w-7 rounded-full bg-gradient-to-br from-[#667eea] to-[#764ba2] flex items-center justify-center text-white text-xs font-bold shadow-lg">
+                    {getUserInitial()}
+                  </div>
+                  <ChevronDown className={`h-4 w-4 text-white/50 transition-transform duration-300 ${dropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {/* Dropdown Menu */}
+                {dropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-[#0f172a]/95 backdrop-blur-xl border border-white/10 shadow-2xl overflow-hidden animate-fade-in-up">
+                    {/* User Info */}
+                    <div className="px-4 py-3 border-b border-white/10">
+                      <p className="text-sm font-semibold text-white truncate">
+                        {user?.user_metadata?.name || 'User'}
+                      </p>
+                      <p className="text-xs text-white/50 truncate">{user?.email}</p>
+                    </div>
+
+                    {/* Menu Items */}
+                    <div className="py-2">
+                      <Link
+                        to="/account"
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-white/80 hover:text-white hover:bg-white/5 transition-colors"
+                        onClick={() => setDropdownOpen(false)}
+                      >
+                        <UserIcon className="h-4 w-4" />
+                        <span>Account</span>
+                      </Link>
+                      <Link
+                        to="/preferences"
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-white/80 hover:text-white hover:bg-white/5 transition-colors"
+                        onClick={() => setDropdownOpen(false)}
+                      >
+                        <Settings className="h-4 w-4" />
+                        <span>Preferences</span>
+                      </Link>
+                      <Link
+                        to="/history"
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-white/80 hover:text-white hover:bg-white/5 transition-colors"
+                        onClick={() => setDropdownOpen(false)}
+                      >
+                        <Clock className="h-4 w-4" />
+                        <span>Watch History</span>
+                      </Link>
+                    </div>
+
+                    {/* Logout */}
+                    <div className="border-t border-white/10 py-2">
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        <span>Sign Out</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Mobile Menu Toggle */}
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="md:hidden flex items-center justify-center h-10 w-10 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white transition-all"
+                aria-label="Toggle mobile menu"
+              >
+                {mobileMenuOpen ? <CloseIcon className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </button>
+            </div>
           </div>
         </div>
       </header>
 
-      {/* Mobile Tab Bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 w-full z-30 bg-[#101016]/95 border-t border-white/10 shadow-xl flex">
-        <NavLink
-          to="/home"
-          className={({ isActive }) =>
-            `flex-1 flex flex-col items-center py-2 justify-center text-xs font-semibold ${
-              isActive ? 'text-[#667eea] bg-[#18181d]/60' : 'text-white/70'
-            }`
-          }
-        >
-          <Home className="h-6 w-6 mb-1" />
-          Home
-        </NavLink>
-        <NavLink
-          to="/discover"
-          className={({ isActive }) =>
-            `flex-1 flex flex-col items-center py-2 justify-center text-xs font-semibold ${
-              isActive ? 'text-[#764ba2] bg-[#18181d]/60' : 'text-white/70'
-            }`
-          }
-        >
-          <Compass className="h-6 w-6 mb-1" />
-          Discover
-        </NavLink>
-        <button
-          type="button"
-          className="flex-1 flex flex-col items-center py-2 justify-center text-xs font-semibold text-white/70"
-          onClick={onOpenSearch}
-        >
-          <SearchIcon className="h-6 w-6 mb-1" />
-          Search
-        </button>
-        <NavLink
-          to="/account"
-          className={({ isActive }) =>
-            `flex-1 flex flex-col items-center py-2 justify-center text-xs font-semibold ${
-              isActive ? 'text-[#f093fb] bg-[#18181d]/60' : 'text-white/70'
-            }`
-          }
-        >
-          {user?.user_metadata?.avatar_url ? (
-            <img
-              src={user.user_metadata.avatar_url}
-              alt="Avatar"
-              className="h-6 w-6 mb-1 rounded-full border-2 border-[#667eea] object-cover"
-            />
-          ) : (
-            <UserIcon className="h-6 w-6 mb-1" />
-          )}
-          Account
-        </NavLink>
-      </nav>
+      {/* Mobile Menu Overlay */}
+      {mobileMenuOpen && (
+        <div className="md:hidden fixed inset-0 z-40 bg-[#0B1120]/98 backdrop-blur-xl animate-fade-in">
+          <div className="flex flex-col h-full pt-20 px-6 pb-safe">
+            <nav className="flex flex-col gap-2">
+              {navLinks.map((link) => (
+                <NavLink
+                  key={link.to}
+                  to={link.to}
+                  className={({ isActive }) =>
+                    `flex items-center gap-4 px-6 py-4 rounded-2xl font-semibold text-lg transition-all duration-300 ${
+                      isActive
+                        ? 'text-white bg-gradient-to-r from-[#667eea]/20 to-[#764ba2]/20 border-2 border-[#667eea]/50 shadow-lg'
+                        : 'text-white/70 hover:text-white border-2 border-transparent hover:bg-white/5'
+                    }`
+                  }
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {({ isActive }) => (
+                    <>
+                      <link.icon className={`h-6 w-6 ${isActive ? 'text-[#667eea]' : ''}`} />
+                      <span>{link.label}</span>
+                    </>
+                  )}
+                </NavLink>
+              ))}
+            </nav>
+          </div>
+        </div>
+      )}
 
-      {/* Header CSS variable for layout usage */}
-      <style>{`
-        body { --topnav-h: 72px; }
+      {/* Mobile Bottom Navigation */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#0B1120]/95 backdrop-blur-xl border-t border-white/10 pb-safe">
+        <div className="flex items-center justify-around px-2 py-2">
+          {navLinks.map((link) => (
+            <NavLink
+              key={link.to}
+              to={link.to}
+              className={({ isActive }) =>
+                `flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all duration-300 ${
+                  isActive ? 'text-[#667eea]' : 'text-white/50 active:scale-95'
+                }`
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  <link.icon className={`h-6 w-6 ${isActive ? 'scale-110' : ''} transition-transform`} />
+                  <span className="text-xs font-medium">{link.label}</span>
+                  {isActive && (
+                    <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-8 h-1 rounded-full bg-[#667eea]" />
+                  )}
+                </>
+              )}
+            </NavLink>
+          ))}
+          
+          <button
+            onClick={onOpenSearch}
+            className="flex flex-col items-center gap-1 px-4 py-2 rounded-xl text-white/50 active:scale-95 transition-transform"
+          >
+            <SearchIcon className="h-6 w-6" />
+            <span className="text-xs font-medium">Search</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Global Styles */}
+      <style jsx>{`
+        @keyframes fade-in-up {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        .animate-fade-in-up {
+          animation: fade-in-up 0.3s ease-out;
+        }
+        .animate-fade-in {
+          animation: fade-in 0.2s ease-out;
+        }
+        .pb-safe {
+          padding-bottom: env(safe-area-inset-bottom);
+        }
       `}</style>
     </>
   )

@@ -93,12 +93,15 @@ export default function Header({ onOpenSearch }) {
       {/* Desktop / Tablet Header */}
       <header 
         ref={hdrRef}
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          scrolled 
-            ? 'bg-[#0a0a0a]/95 backdrop-blur-xl shadow-lg shadow-purple-900/5 border-b border-white/5' 
-            : 'bg-gradient-to-b from-black/80 to-transparent'
-        } ${scrollDirection === 'down' ? 'md:-translate-y-full' : 'translate-y-0'}`}
-        style={{ paddingTop: 'env(safe-area-inset-top)' }}
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300
+          bg-gradient-to-b from-black via-black/90 to-black/70
+          ${scrolled ? 'shadow-lg shadow-purple-900/5 border-b border-white/5' : ''}
+          ${scrollDirection === 'down' ? 'md:-translate-y-full' : 'translate-y-0'}
+        `}
+        style={{
+          paddingTop: 'max(env(safe-area-inset-top), 0px)',
+          backgroundImage: 'linear-gradient(180deg, rgba(0,0,0,0.98) 0%, rgba(0,0,0,0.92) 38%, rgba(0,0,0,0.85) 80%, transparent 100%)'
+        }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 sm:h-20">

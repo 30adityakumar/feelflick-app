@@ -236,7 +236,7 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0B1120] relative">
+    <div className="fixed inset-0 bg-[#0B1120] overflow-hidden">
       {/* Subtle background gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#667eea]/5 via-transparent to-[#764ba2]/5" />
 
@@ -347,7 +347,7 @@ function WelcomeStep({ onNext, name }) {
 
 function StepGenres({ GENRES, selectedGenres, toggleGenre, error, loading, onNext, onSkip }) {
   return (
-    <div className="flex flex-col py-4 px-4 sm:px-6 md:px-8">
+    <div className="flex-1 flex flex-col py-4 max-h-full">
       <div className="text-center mb-4">
         <h2 className="text-2xl sm:text-3xl font-black text-white mb-2">
           Select Your Favorite Genres
@@ -425,7 +425,7 @@ function StepMovies({
   error, loading, searchInputRef, onBack, onFinish
 }) {
   return (
-    <div className="flex flex-col py-4 px-4 sm:px-6 md:px-8">
+    <div className="flex-1 flex flex-col py-4 max-h-full">
       <div className="text-center mb-4">
         <h2 className="text-2xl sm:text-3xl font-black text-white mb-2">
           Add Your Favorite Movies
@@ -541,11 +541,7 @@ function StepMovies({
                   <button
                     type="button"
                     onClick={() => removeMovie(m.id)}
-                    className={`
-                      absolute -top-1.5 -right-1.5 h-6 w-6 rounded-full bg-red-500 hover:bg-red-600 
-                      flex items-center justify-center transition-all active:scale-90
-                      opacity-100 md:opacity-0 md:group-hover:opacity-100
-                    `}
+                    className="absolute -top-1.5 -right-1.5 h-6 w-6 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center transition-all active:scale-90 opacity-0 group-hover:opacity-100"
                     aria-label={`Remove ${m.title}`}
                   >
                     <X className="h-3 w-3 text-white stroke-[3]" />

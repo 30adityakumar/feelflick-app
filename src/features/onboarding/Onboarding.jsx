@@ -13,7 +13,7 @@ export default function Onboarding() {
   const navigate = useNavigate()
   const [session, setSession] = useState(null)
   const [checking, setChecking] = useState(true)
-  const [step, setStep] = useState(-1)
+  const [step, setStep] = useState(-1) // -1 = welcome, 0 = genres, 1 = movies
   const [selectedGenres, setSelectedGenres] = useState([])
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
@@ -25,12 +25,14 @@ export default function Onboarding() {
 
   const searchInputRef = useRef(null)
   
+  // Auto-focus search (Apple principle: guide users naturally)
   useEffect(() => {
     if (step === 1 && searchInputRef.current) {
       setTimeout(() => searchInputRef.current?.focus(), 150)
     }
   }, [step])
 
+  // Session management
   useEffect(() => {
     let unsub
     supabase.auth.getSession().then(({ data }) => setSession(data.session))
@@ -39,6 +41,7 @@ export default function Onboarding() {
     return () => { if (typeof unsub === 'function') unsub() }
   }, [])
 
+  // Check completion status
   useEffect(() => {
     if (!session?.user) return
     ;(async () => {
@@ -60,6 +63,7 @@ export default function Onboarding() {
     })()
   }, [session, navigate])
 
+  // Intelligent debounced search (Netflix principle: instant feedback)
   useEffect(() => {
     let active = true
     let timeout
@@ -205,6 +209,7 @@ export default function Onboarding() {
     }
   }
 
+  // Loading state (Apple principle: branded, minimal)
   if (checking) {
     return (
       <div className="h-screen grid place-items-center bg-[#0B1120]">
@@ -221,6 +226,7 @@ export default function Onboarding() {
     )
   }
 
+  // Celebration (Netflix principle: reward completion)
   if (celebrate) {
     return (
       <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-gradient-to-br from-[#667eea] via-[#764ba2] to-[#f093fb]">
@@ -241,29 +247,21 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="fixed inset-0 bg-[#0B1120] flex flex-col overflow-hidden onboarding-root">
-      {/* MOBILE SAFE AREA FIX: Padding for iOS safe-area */}
-      <style>{`
-        .onboarding-root {
-          padding-bottom: constant(safe-area-inset-bottom, 0);
-          padding-bottom: env(safe-area-inset-bottom, 0);
-        }
-      `}</style>
-
-      {/* Ambient background */}
+    <div className="fixed inset-0 bg-[#0B1120] flex flex-col">
+      {/* Ambient background (subtle depth) */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#667eea]/10 rounded-full blur-3xl animate-float-slow" />
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#764ba2]/10 rounded-full blur-3xl animate-float-slow-delayed" />
       </div>
 
       {/* Main Container */}
-      <div className="relative z-10 flex flex-col h-full max-w-6xl mx-auto w-full overflow-hidden">
+      <div className="relative z-10 flex flex-col h-full max-w-6xl mx-auto w-full">
         
-        {/* Progress Bar */}
+        {/* Progress Bar (Plex principle: clear progress indication) */}
         {step >= 0 && <ProgressIndicator step={step} totalSteps={2} />}
         
-        {/* Content Area - Scrollable with Safe Area Padding */}
-        <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
+        {/* Content Area (perfectly scrollable) */}
+        <div className="flex-1 min-h-0 overflow-hidden">
           {step === -1 && <WelcomeStep onNext={() => setStep(0)} name={session?.user?.user_metadata?.name} />}
           
           {step === 0 && (
@@ -320,12 +318,17 @@ export default function Onboarding() {
           from { opacity: 0; }
           to { opacity: 1; }
         }
+        @keyframes shimmer {
+          0% { background-position: -200% center; }
+          100% { background-position: 200% center; }
+        }
         .animate-float-slow { animation: float-slow 20s ease-in-out infinite; }
         .animate-float-slow-delayed { animation: float-slow-delayed 25s ease-in-out infinite; }
         .animate-bounce-gentle { animation: bounce-gentle 2s ease-in-out infinite; }
         .animate-slide-up { animation: slide-up 0.6s ease-out; }
         .animate-fade-in { animation: fade-in 0.8s ease-out; }
         
+        /* Custom scrollbar (Plex-style) */
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); }
         .custom-scrollbar::-webkit-scrollbar-thumb { 
@@ -340,6 +343,7 @@ export default function Onboarding() {
   )
 }
 
+// Progress Indicator (Apple-inspired minimal design)
 function ProgressIndicator({ step, totalSteps }) {
   const progressPercent = ((step + 1) / totalSteps) * 100
   
@@ -363,10 +367,11 @@ function ProgressIndicator({ step, totalSteps }) {
   )
 }
 
+// Welcome Step (Netflix-inspired hero)
 function WelcomeStep({ onNext, name }) {
   return (
-    <div className="h-full flex flex-col items-center justify-center text-center px-6 py-8 overflow-y-auto custom-scrollbar">
-      <div className="max-w-xl mx-auto space-y-8 animate-fade-in pb-[env(safe-area-inset-bottom)]">
+    <div className="h-full flex flex-col items-center justify-center text-center px-6 py-12 overflow-y-auto custom-scrollbar">
+      <div className="max-w-xl mx-auto space-y-8 animate-fade-in">
         <div className="relative inline-block">
           <div className="absolute inset-0 bg-[#667eea]/20 rounded-full blur-2xl" />
           <Sparkles className="relative h-14 w-14 text-[#667eea] mx-auto" />
@@ -400,6 +405,7 @@ function WelcomeStep({ onNext, name }) {
   )
 }
 
+// Genre Step (Apple-inspired grid with smart feedback)
 function StepGenres({ GENRES, selectedGenres, toggleGenre, error, loading, onNext, onBack }) {
   const getSmartFeedback = () => {
     const count = selectedGenres.length
@@ -413,7 +419,7 @@ function StepGenres({ GENRES, selectedGenres, toggleGenre, error, loading, onNex
   const canProceed = selectedGenres.length >= 3
 
   return (
-    <div className="h-full flex flex-col px-6 py-6 overflow-hidden">
+    <div className="h-full flex flex-col px-6 py-6">
       {/* Header */}
       <div className="flex-none text-center mb-6">
         <h2 className="text-3xl sm:text-4xl font-black text-white mb-3">
@@ -466,8 +472,8 @@ function StepGenres({ GENRES, selectedGenres, toggleGenre, error, loading, onNex
         </div>
       </div>
 
-      {/* Footer Actions - MOBILE SAFE AREA */}
-      <div className="flex-none py-4 border-t border-white/5 flex items-center justify-between mt-auto pb-[env(safe-area-inset-bottom,1rem)]">
+      {/* Footer Actions */}
+      <div className="flex-none pt-6 border-t border-white/5 flex items-center justify-between">
         <button
           onClick={onBack}
           className="flex items-center gap-2 text-sm font-medium text-white/50 hover:text-white/80 transition-colors"
@@ -493,6 +499,7 @@ function StepGenres({ GENRES, selectedGenres, toggleGenre, error, loading, onNex
   )
 }
 
+// Movies Step (Plex-inspired content discovery)
 function StepMovies({
   query, setQuery, results, searching, isMovieSelected, addMovie, removeMovie, favoriteMovies,
   error, loading, searchInputRef, onBack, onFinish
@@ -509,7 +516,7 @@ function StepMovies({
   const canProceed = favoriteMovies.length >= 5
 
   return (
-    <div className="h-full flex flex-col px-6 py-6 overflow-hidden">
+    <div className="h-full flex flex-col px-6 py-6">
       {/* Header */}
       <div className="flex-none text-center mb-5">
         <h2 className="text-3xl sm:text-4xl font-black text-white mb-3">
@@ -672,8 +679,8 @@ function StepMovies({
         )}
       </div>
 
-      {/* Footer Actions - MOBILE SAFE AREA */}
-      <div className="flex-none py-4 border-t border-white/5 flex items-center justify-between bg-[#0B1120] pb-[env(safe-area-inset-bottom,1rem)]">
+      {/* Footer Actions */}
+      <div className="flex-none pt-6 border-t border-white/5 flex items-center justify-between bg-[#0B1120]">
         <button
           onClick={onBack}
           disabled={loading}

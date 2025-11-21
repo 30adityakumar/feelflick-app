@@ -13,7 +13,7 @@ export default function Onboarding() {
   const navigate = useNavigate()
   const [session, setSession] = useState(null)
   const [checking, setChecking] = useState(true)
-  const [step, setStep] = useState(-1)
+  const [step, setStep] = useState(-1) // -1 = welcome, 0 = genres, 1 = movies
   const [selectedGenres, setSelectedGenres] = useState([])
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
@@ -25,12 +25,14 @@ export default function Onboarding() {
 
   const searchInputRef = useRef(null)
   
+  // Auto-focus search (Apple principle: guide users naturally)
   useEffect(() => {
     if (step === 1 && searchInputRef.current) {
       setTimeout(() => searchInputRef.current?.focus(), 150)
     }
   }, [step])
 
+  // Session management
   useEffect(() => {
     let unsub
     supabase.auth.getSession().then(({ data }) => setSession(data.session))
@@ -39,6 +41,7 @@ export default function Onboarding() {
     return () => { if (typeof unsub === 'function') unsub() }
   }, [])
 
+  // Check completion status
   useEffect(() => {
     if (!session?.user) return
     ;(async () => {
@@ -60,6 +63,7 @@ export default function Onboarding() {
     })()
   }, [session, navigate])
 
+  // Intelligent debounced search (Netflix principle: instant feedback)
   useEffect(() => {
     let active = true
     let timeout
@@ -205,6 +209,7 @@ export default function Onboarding() {
     }
   }
 
+  // Loading state (Apple principle: branded, minimal)
   if (checking) {
     return (
       <div className="h-screen grid place-items-center bg-[#0B1120]">
@@ -221,6 +226,7 @@ export default function Onboarding() {
     )
   }
 
+  // Celebration (Netflix principle: reward completion)
   if (celebrate) {
     return (
       <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-gradient-to-br from-[#667eea] via-[#764ba2] to-[#f093fb]">
@@ -242,7 +248,7 @@ export default function Onboarding() {
 
   return (
     <div className="fixed inset-0 bg-[#0B1120] flex flex-col">
-      {/* Ambient background */}
+      {/* Ambient background (subtle depth) */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#667eea]/10 rounded-full blur-3xl animate-float-slow" />
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#764ba2]/10 rounded-full blur-3xl animate-float-slow-delayed" />
@@ -251,10 +257,10 @@ export default function Onboarding() {
       {/* Main Container */}
       <div className="relative z-10 flex flex-col h-full max-w-6xl mx-auto w-full">
         
-        {/* Progress Bar */}
+        {/* Progress Bar (Plex principle: clear progress indication) */}
         {step >= 0 && <ProgressIndicator step={step} totalSteps={2} />}
         
-        {/* Content Area */}
+        {/* Content Area (perfectly scrollable) */}
         <div className="flex-1 min-h-0 overflow-hidden">
           {step === -1 && <WelcomeStep onNext={() => setStep(0)} name={session?.user?.user_metadata?.name} />}
           
@@ -312,13 +318,17 @@ export default function Onboarding() {
           from { opacity: 0; }
           to { opacity: 1; }
         }
+        @keyframes shimmer {
+          0% { background-position: -200% center; }
+          100% { background-position: 200% center; }
+        }
         .animate-float-slow { animation: float-slow 20s ease-in-out infinite; }
         .animate-float-slow-delayed { animation: float-slow-delayed 25s ease-in-out infinite; }
         .animate-bounce-gentle { animation: bounce-gentle 2s ease-in-out infinite; }
         .animate-slide-up { animation: slide-up 0.6s ease-out; }
         .animate-fade-in { animation: fade-in 0.8s ease-out; }
         
-        /* Custom scrollbar */
+        /* Custom scrollbar (Plex-style) */
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); }
         .custom-scrollbar::-webkit-scrollbar-thumb { 
@@ -333,6 +343,7 @@ export default function Onboarding() {
   )
 }
 
+// Progress Indicator (Apple-inspired minimal design)
 function ProgressIndicator({ step, totalSteps }) {
   const progressPercent = ((step + 1) / totalSteps) * 100
   
@@ -356,6 +367,7 @@ function ProgressIndicator({ step, totalSteps }) {
   )
 }
 
+// Welcome Step (Netflix-inspired hero)
 function WelcomeStep({ onNext, name }) {
   return (
     <div className="h-full flex flex-col items-center justify-center text-center px-6 py-12 overflow-y-auto custom-scrollbar">
@@ -393,6 +405,7 @@ function WelcomeStep({ onNext, name }) {
   )
 }
 
+// Genre Step (Apple-inspired grid with smart feedback)
 function StepGenres({ GENRES, selectedGenres, toggleGenre, error, loading, onNext, onBack }) {
   const getSmartFeedback = () => {
     const count = selectedGenres.length
@@ -424,7 +437,7 @@ function StepGenres({ GENRES, selectedGenres, toggleGenre, error, loading, onNex
       )}
 
       {/* Scrollable Grid */}
-      <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar -mx-2 px-2 pb-2">
+      <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar -mx-2 px-2">
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 max-w-4xl mx-auto pb-6">
           {GENRES.map((g, idx) => {
             const isSelected = selectedGenres.includes(g.id)
@@ -433,7 +446,7 @@ function StepGenres({ GENRES, selectedGenres, toggleGenre, error, loading, onNex
                 key={g.id}
                 type="button"
                 onClick={() => toggleGenre(g.id)}
-                className={`relative h-16 rounded-2xl border-2 font-semibold text-sm transition-all duration-300 active:scale-95 overflow-visible ${
+                className={`relative h-16 rounded-2xl border-2 font-semibold text-sm transition-all duration-300 active:scale-95 ${
                   isSelected
                     ? 'border-[#667eea] bg-gradient-to-br from-[#667eea]/20 to-[#764ba2]/20 text-white shadow-lg shadow-[#667eea]/20'
                     : 'border-white/10 bg-white/5 text-white/80 hover:bg-white/10 hover:border-white/20 hover:shadow-md'
@@ -447,9 +460,9 @@ function StepGenres({ GENRES, selectedGenres, toggleGenre, error, loading, onNex
                   {g.label}
                 </span>
                 {isSelected && (
-                  <div className="absolute -top-2.5 -right-2.5 z-10 bg-[#0B1120] rounded-full p-0.5 shadow-lg">
+                  <div className="absolute -top-2 -right-2 bg-[#0B1120] rounded-full p-0.5">
                     <div className="bg-gradient-to-r from-emerald-400 to-green-500 rounded-full p-1.5">
-                      <Check className="h-3.5 w-3.5 text-white stroke-[3]" />
+                      <Check className="h-3 w-3 text-white stroke-[3]" />
                     </div>
                   </div>
                 )}
@@ -459,8 +472,8 @@ function StepGenres({ GENRES, selectedGenres, toggleGenre, error, loading, onNex
         </div>
       </div>
 
-      {/* Footer Actions - FIXED FOR MOBILE */}
-      <div className="flex-none pt-4 pb-safe border-t border-white/5 flex items-center justify-between bg-[#0B1120] safe-bottom">
+      {/* Footer Actions */}
+      <div className="flex-none pt-6 border-t border-white/5 flex items-center justify-between">
         <button
           onClick={onBack}
           className="flex items-center gap-2 text-sm font-medium text-white/50 hover:text-white/80 transition-colors"
@@ -486,6 +499,7 @@ function StepGenres({ GENRES, selectedGenres, toggleGenre, error, loading, onNex
   )
 }
 
+// Movies Step (Plex-inspired content discovery)
 function StepMovies({
   query, setQuery, results, searching, isMovieSelected, addMovie, removeMovie, favoriteMovies,
   error, loading, searchInputRef, onBack, onFinish
@@ -519,9 +533,9 @@ function StepMovies({
         </div>
       )}
 
-      {/* Search Bar - FIXED BLUR */}
+      {/* Search Bar */}
       <div className="flex-none relative max-w-2xl mx-auto mb-5 w-full">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/40 pointer-events-none" style={{ transform: 'translateY(-50%) translateZ(0)', WebkitTransform: 'translateY(-50%) translateZ(0)' }} />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/40" />
         <input
           ref={searchInputRef}
           type="text"
@@ -546,7 +560,7 @@ function StepMovies({
       </div>
 
       {/* Scrollable Content */}
-      <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar -mx-2 px-2 pb-2">
+      <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar -mx-2 px-2">
         
         {/* Empty State */}
         {!query && favoriteMovies.length === 0 && (
@@ -613,7 +627,7 @@ function StepMovies({
           </div>
         )}
 
-        {/* Selected Collection - FIXED REMOVE BUTTON */}
+        {/* Selected Collection */}
         {favoriteMovies.length > 0 && (
           <div className="max-w-5xl mx-auto pb-6">
             <div className="flex items-center justify-between mb-4 sticky top-0 z-10 bg-[#0B1120]/95 backdrop-blur-sm py-2 border-b border-white/5">
@@ -625,11 +639,11 @@ function StepMovies({
               </h3>
             </div>
             
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+            <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-3">
               {favoriteMovies.map((m, idx) => (
                 <div 
                   key={m.id} 
-                  className="group relative aspect-[2/3] rounded-xl overflow-hidden shadow-lg ring-1 ring-white/10 hover:ring-[#667eea]/50 transition-all duration-300"
+                  className="group relative aspect-[2/3] rounded-xl overflow-hidden shadow-lg ring-1 ring-white/10 hover:ring-[#667eea]/50 transition-all duration-300 hover:scale-105"
                   style={{ 
                     animationDelay: `${idx * 30}ms`,
                     animation: 'slide-up 0.4s ease-out backwards'
@@ -641,23 +655,20 @@ function StepMovies({
                     className="w-full h-full object-cover"
                   />
                   
-                  {/* FIXED: Always Visible Remove Button */}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      removeMovie(m.id)
-                    }}
-                    className="absolute top-2 right-2 z-20 h-7 w-7 rounded-full bg-red-500/90 hover:bg-red-600 backdrop-blur-sm flex items-center justify-center shadow-lg transform hover:scale-110 transition-all active:scale-90"
-                    title="Remove"
-                    aria-label={`Remove ${m.title}`}
-                  >
-                    <X className="h-4 w-4 text-white stroke-[3]" />
-                  </button>
-                  
-                  {/* Title overlay on hover */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-2">
-                    <span className="text-white text-[10px] font-medium line-clamp-2 leading-tight">
+                  {/* Remove Button Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center gap-2">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        removeMovie(m.id)
+                      }}
+                      className="h-10 w-10 rounded-full bg-red-500/90 hover:bg-red-600 flex items-center justify-center shadow-lg transform hover:scale-110 transition-all"
+                      title="Remove"
+                    >
+                      <X className="h-5 w-5 text-white stroke-[3]" />
+                    </button>
+                    <span className="text-[11px] font-medium text-white/90 px-2 text-center line-clamp-2 leading-tight">
                       {m.title}
                     </span>
                   </div>
@@ -668,8 +679,8 @@ function StepMovies({
         )}
       </div>
 
-      {/* Footer Actions - FIXED FOR MOBILE */}
-      <div className="flex-none pt-4 pb-safe border-t border-white/5 flex items-center justify-between bg-[#0B1120] safe-bottom">
+      {/* Footer Actions */}
+      <div className="flex-none pt-6 border-t border-white/5 flex items-center justify-between bg-[#0B1120]">
         <button
           onClick={onBack}
           disabled={loading}

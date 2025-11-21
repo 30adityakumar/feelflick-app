@@ -105,7 +105,7 @@ export default function HeroSliderSection({ className = '' }) {
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Hero Image Container - 75vh */}
+      {/* Hero Image Container - 75vh + header height for overlap */}
       <div className="relative w-full h-[75vh]">
         {/* Background Images */}
         {slides.map((movie, idx) => {
@@ -127,18 +127,18 @@ export default function HeroSliderSection({ className = '' }) {
           )
         })}
 
-        {/* Enhanced Black Gradients */}
-        {/* Top fade - header protection */}
-        <div className="absolute top-0 inset-x-0 h-24 md:h-28 bg-gradient-to-b from-black via-black/70 to-transparent z-20 pointer-events-none" />
-        
+        {/* Enhanced Black Gradients - DON'T overlap with header gradient */}
         {/* Left side fade */}
         <div className="absolute inset-y-0 left-0 w-3/5 md:w-1/2 bg-gradient-to-r from-black/70 via-black/50 to-transparent z-20 pointer-events-none" />
         
         {/* Bottom fade */}
         <div className="absolute bottom-0 inset-x-0 h-3/5 bg-gradient-to-t from-black via-black/85 to-transparent z-20 pointer-events-none" />
 
-        {/* Content Overlay */}
-        <div className="absolute inset-0 z-30 flex flex-col justify-end pb-12 md:pb-16 pt-20">
+        {/* Content Overlay - STARTS AFTER HEADER */}
+        <div 
+          className="absolute inset-0 z-30 flex flex-col justify-end pb-12 md:pb-16"
+          style={{ paddingTop: 'calc(var(--hdr-h, 64px) + 2rem)' }}
+        >
           <div className="w-full px-4 md:px-12 lg:px-16">
             <div className="max-w-2xl">
               {/* Title */}

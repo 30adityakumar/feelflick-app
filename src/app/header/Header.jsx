@@ -12,9 +12,6 @@ import {
   Settings,
   Bookmark,
   Clock,
-  Sparkles,
-  Menu,
-  X as CloseIcon
 } from 'lucide-react'
 
 export default function Header({ onOpenSearch }) {
@@ -25,7 +22,6 @@ export default function Header({ onOpenSearch }) {
   const [scrollDirection, setScrollDirection] = useState('up')
   const [lastScrollY, setLastScrollY] = useState(0)
   const [dropdownOpen, setDropdownOpen] = useState(false)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const hdrRef = useRef(null)
   const dropdownRef = useRef(null)
 
@@ -37,38 +33,34 @@ export default function Header({ onOpenSearch }) {
       setUser(data?.user || null)
     }
     getUser()
-    const { data } = supabase.auth.onAuthStateChange((_e, session) => {
-      setUser(session?.user || null)
+    const { data } = supabase.auth.onAuthStateChange((_e, s) => {
+      setUser(s?.user || null)
     })
     unsub = data?.subscription?.unsubscribe
-    return () => { if (typeof unsub === 'function') unsub() }
+    return () => typeof unsub === 'function' && unsub()
   }, [])
 
-  // Smart scroll behavior (Netflix-style: hide on scroll down, show on scroll up)
+  // Smart scroll
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY
-      
-      // Determine scroll direction
-      if (currentScrollY > lastScrollY && currentScrollY > 80) {
+      setScrolled(currentScrollY > 10)
+      if (currentScrollY > lastScrollY && currentScrollY > 100) {
         setScrollDirection('down')
+        setDropdownOpen(false)
       } else {
         setScrollDirection('up')
       }
-      
-      // Set scrolled state (for background)
-      setScrolled(currentScrollY > 20)
       setLastScrollY(currentScrollY)
     }
-
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [lastScrollY])
 
-  // Close dropdown when clicking outside
+  // Close dropdown on click outside
   useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setDropdownOpen(false)
       }
     }
@@ -78,266 +70,272 @@ export default function Header({ onOpenSearch }) {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [dropdownOpen])
 
-  // Close mobile menu on route change
+  // Set CSS variable for header height
   useEffect(() => {
-    setMobileMenuOpen(false)
-  }, [pathname])
+    const setVar = () => {
+      const h = hdrRef.current?.offsetHeight || 64
+      document.documentElement.style.setProperty('--hdr-h', `${h}px`)
+    }
+    setVar()
+    const ro = new ResizeObserver(setVar)
+    if (hdrRef.current) ro.observe(hdrRef.current)
+    return () => ro.disconnect()
+  }, [])
 
-  const handleLogout = async () => {
+  const handleSignOut = async () => {
     await supabase.auth.signOut()
-    navigate('/login', { replace: true })
+    setDropdownOpen(false)
+    navigate('/')
   }
 
-  const getUserInitial = () => {
-    if (!user) return '?'
-    const name = user.user_metadata?.name || user.email
-    return name.charAt(0).toUpperCase()
-  }
-
-  const navLinks = [
-    { to: '/home', icon: Home, label: 'Home' },
-    { to: '/discover', icon: Compass, label: 'Discover' },
-    { to: '/watchlist', icon: Bookmark, label: 'Watchlist' },
-  ]
+  const userName = user?.user_metadata?.name || user?.email?.split('@')[0] || 'User'
+  const userEmail = user?.email || ''
+  const userAvatar = user?.user_metadata?.avatar_url || null
 
   return (
     <>
       {/* Desktop & Tablet Header */}
       <header
         ref={hdrRef}
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-out ${
-          scrollDirection === 'down' ? '-translate-y-full' : 'translate-y-0'
-        } ${
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           scrolled
-            ? 'bg-[#0B1120]/95 backdrop-blur-xl border-b border-white/10 shadow-xl'
-            : 'bg-transparent'
-        }`}
+            ? 'bg-[#0a0a0a]/95 backdrop-blur-md shadow-lg'
+            : 'bg-gradient-to-b from-black/80 to-transparent'
+        } ${scrollDirection === 'down' ? 'md:translate-y-0 -translate-y-full' : 'translate-y-0'}`}
+        style={{
+          paddingTop: 'env(safe-area-inset-top)',
+        }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            
             {/* Logo */}
-            <Link 
-              to="/home" 
-              className="flex items-center gap-2 group"
-            >
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-[#667eea] to-[#764ba2] rounded-lg blur-md opacity-0 group-hover:opacity-50 transition-opacity duration-300" />
-                <Sparkles className="relative h-6 w-6 text-[#667eea] group-hover:rotate-12 transition-transform duration-300" />
-              </div>
-              <span className="relative text-xl font-black bg-gradient-to-r from-[#667eea] via-[#764ba2] to-[#f093fb] bg-clip-text text-transparent">
+            <Link to="/home" className="flex items-center gap-2 group">
+              <div className="text-2xl sm:text-3xl font-black bg-gradient-to-r from-[#FF9245] to-[#EB423B] bg-clip-text text-transparent group-hover:scale-105 transition-transform">
                 FEELFLICK
-              </span>
+              </div>
             </Link>
 
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-1">
-              {navLinks.map((link) => (
-                <NavLink
-                  key={link.to}
-                  to={link.to}
-                  className={({ isActive }) =>
-                    `flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm transition-all duration-300 ${
-                      isActive
-                        ? 'text-white bg-white/10 shadow-lg shadow-[#667eea]/20'
-                        : 'text-white/70 hover:text-white hover:bg-white/5'
-                    }`
-                  }
-                >
-                  {({ isActive }) => (
-                    <>
-                      <link.icon className={`h-4 w-4 ${isActive ? 'text-[#667eea]' : ''}`} />
-                      <span>{link.label}</span>
-                    </>
-                  )}
-                </NavLink>
-              ))}
+            <nav className="hidden md:flex items-center gap-6">
+              <NavLink
+                to="/home"
+                className={({ isActive }) =>
+                  `text-sm font-bold transition-all ${
+                    isActive 
+                      ? 'text-white border-b-2 border-[#FF9245] pb-0.5' 
+                      : 'text-white/70 hover:text-white border-b-2 border-transparent'
+                  }`
+                }
+              >
+                Home
+              </NavLink>
+              <NavLink
+                to="/browse"
+                className={({ isActive }) =>
+                  `text-sm font-bold transition-all ${
+                    isActive 
+                      ? 'text-white border-b-2 border-[#FF9245] pb-0.5' 
+                      : 'text-white/70 hover:text-white border-b-2 border-transparent'
+                  }`
+                }
+              >
+                Discover
+              </NavLink>
+              <NavLink
+                to="/watchlist"
+                className={({ isActive }) =>
+                  `text-sm font-bold transition-all ${
+                    isActive 
+                      ? 'text-white border-b-2 border-[#FF9245] pb-0.5' 
+                      : 'text-white/70 hover:text-white border-b-2 border-transparent'
+                  }`
+                }
+              >
+                Watchlist
+              </NavLink>
             </nav>
 
             {/* Right Side Actions */}
-            <div className="flex items-center gap-3">
-              
+            <div className="flex items-center gap-3 sm:gap-4">
               {/* Search Button */}
               <button
                 onClick={onOpenSearch}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 hover:text-white border border-white/10 hover:border-[#667eea]/50 transition-all duration-300 group"
-                aria-label="Search movies"
+                className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-all active:scale-95"
+                aria-label="Search"
               >
-                <SearchIcon className="h-4 w-4 group-hover:text-[#667eea] transition-colors" />
-                <span className="hidden sm:inline text-sm font-medium">Search</span>
+                <SearchIcon className="h-5 w-5" />
               </button>
 
-              {/* User Dropdown */}
-              <div className="relative" ref={dropdownRef}>
-                <button
-                  onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-[#667eea]/50 transition-all duration-300 group"
-                  aria-label="User menu"
-                >
-                  <div className="h-7 w-7 rounded-full bg-gradient-to-br from-[#667eea] to-[#764ba2] flex items-center justify-center text-white text-xs font-bold shadow-lg">
-                    {getUserInitial()}
-                  </div>
-                  <ChevronDown className={`h-4 w-4 text-white/50 transition-transform duration-300 ${dropdownOpen ? 'rotate-180' : ''}`} />
-                </button>
+              {/* User Dropdown (Desktop only) */}
+              {user && (
+                <div className="hidden md:block relative" ref={dropdownRef}>
+                  <button
+                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                    className="flex items-center gap-2 p-1.5 hover:bg-white/10 rounded-lg transition-all"
+                  >
+                    {userAvatar ? (
+                      <img
+                        src={userAvatar}
+                        alt={userName}
+                        className="h-8 w-8 rounded-full object-cover ring-2 ring-white/20"
+                      />
+                    ) : (
+                      <div className="h-8 w-8 rounded-full bg-gradient-to-br from-[#FF9245] to-[#EB423B] flex items-center justify-center text-white text-sm font-bold">
+                        {userName.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <ChevronDown
+                      className={`h-4 w-4 text-white/70 transition-transform ${
+                        dropdownOpen ? 'rotate-180' : ''
+                      }`}
+                    />
+                  </button>
 
-                {/* Dropdown Menu */}
-                {dropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-[#0f172a]/95 backdrop-blur-xl border border-white/10 shadow-2xl overflow-hidden animate-fade-in-up">
-                    {/* User Info */}
-                    <div className="px-4 py-3 border-b border-white/10">
-                      <p className="text-sm font-semibold text-white truncate">
-                        {user?.user_metadata?.name || 'User'}
-                      </p>
-                      <p className="text-xs text-white/50 truncate">{user?.email}</p>
+                  {/* Dropdown Menu */}
+                  {dropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-56 rounded-xl bg-[#1a1a1a] border border-white/10 shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                      <div className="px-4 py-3 border-b border-white/10">
+                        <div className="font-semibold text-white text-sm truncate">{userName}</div>
+                        <div className="text-xs text-white/60 truncate">{userEmail}</div>
+                      </div>
+                      <div className="py-2">
+                        <Link
+                          to="/account"
+                          onClick={() => setDropdownOpen(false)}
+                          className="flex items-center gap-3 px-4 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-colors"
+                        >
+                          <UserIcon className="h-4 w-4" />
+                          Profile
+                        </Link>
+                        <Link
+                          to="/watchlist"
+                          onClick={() => setDropdownOpen(false)}
+                          className="flex items-center gap-3 px-4 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-colors"
+                        >
+                          <Bookmark className="h-4 w-4" />
+                          Watchlist
+                        </Link>
+                        <Link
+                          to="/history"
+                          onClick={() => setDropdownOpen(false)}
+                          className="flex items-center gap-3 px-4 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-colors"
+                        >
+                          <Clock className="h-4 w-4" />
+                          History
+                        </Link>
+                        <Link
+                          to="/preferences"
+                          onClick={() => setDropdownOpen(false)}
+                          className="flex items-center gap-3 px-4 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-colors"
+                        >
+                          <Settings className="h-4 w-4" />
+                          Settings
+                        </Link>
+                      </div>
+                      <div className="border-t border-white/10 py-2">
+                        <button
+                          onClick={handleSignOut}
+                          className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors"
+                        >
+                          <LogOut className="h-4 w-4" />
+                          Sign Out
+                        </button>
+                      </div>
                     </div>
-
-                    {/* Menu Items */}
-                    <div className="py-2">
-                      <Link
-                        to="/account"
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-white/80 hover:text-white hover:bg-white/5 transition-colors"
-                        onClick={() => setDropdownOpen(false)}
-                      >
-                        <UserIcon className="h-4 w-4" />
-                        <span>Account</span>
-                      </Link>
-                      <Link
-                        to="/preferences"
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-white/80 hover:text-white hover:bg-white/5 transition-colors"
-                        onClick={() => setDropdownOpen(false)}
-                      >
-                        <Settings className="h-4 w-4" />
-                        <span>Preferences</span>
-                      </Link>
-                      <Link
-                        to="/history"
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-white/80 hover:text-white hover:bg-white/5 transition-colors"
-                        onClick={() => setDropdownOpen(false)}
-                      >
-                        <Clock className="h-4 w-4" />
-                        <span>Watch History</span>
-                      </Link>
-                    </div>
-
-                    {/* Logout */}
-                    <div className="border-t border-white/10 py-2">
-                      <button
-                        onClick={handleLogout}
-                        className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"
-                      >
-                        <LogOut className="h-4 w-4" />
-                        <span>Sign Out</span>
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Mobile Menu Toggle */}
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden flex items-center justify-center h-10 w-10 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white transition-all"
-                aria-label="Toggle mobile menu"
-              >
-                {mobileMenuOpen ? <CloseIcon className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-              </button>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
       </header>
 
-      {/* Mobile Menu Overlay */}
-      {mobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-40 bg-[#0B1120]/98 backdrop-blur-xl animate-fade-in">
-          <div className="flex flex-col h-full pt-20 px-6 pb-safe">
-            <nav className="flex flex-col gap-2">
-              {navLinks.map((link) => (
-                <NavLink
-                  key={link.to}
-                  to={link.to}
-                  className={({ isActive }) =>
-                    `flex items-center gap-4 px-6 py-4 rounded-2xl font-semibold text-lg transition-all duration-300 ${
-                      isActive
-                        ? 'text-white bg-gradient-to-r from-[#667eea]/20 to-[#764ba2]/20 border-2 border-[#667eea]/50 shadow-lg'
-                        : 'text-white/70 hover:text-white border-2 border-transparent hover:bg-white/5'
-                    }`
-                  }
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {({ isActive }) => (
-                    <>
-                      <link.icon className={`h-6 w-6 ${isActive ? 'text-[#667eea]' : ''}`} />
-                      <span>{link.label}</span>
-                    </>
-                  )}
-                </NavLink>
-              ))}
-            </nav>
-          </div>
-        </div>
-      )}
+      {/* Mobile Bottom Navigation - ALWAYS visible */}
+      <nav
+        className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#0a0a0a]/95 backdrop-blur-md border-t border-white/10 shadow-2xl"
+        style={{
+          paddingBottom: 'max(env(safe-area-inset-bottom), 0.5rem)',
+        }}
+      >
+        <div className="flex items-center justify-around px-2 pt-2">
+          <NavLink
+            to="/home"
+            className={({ isActive }) =>
+              `flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-all ${
+                isActive 
+                  ? 'text-white bg-white/10' 
+                  : 'text-white/60 hover:text-white hover:bg-white/5'
+              }`
+            }
+          >
+            {({ isActive }) => (
+              <>
+                <Home className={`h-6 w-6 ${isActive ? 'fill-current' : ''}`} />
+                <span className="text-xs font-medium">Home</span>
+              </>
+            )}
+          </NavLink>
 
-      {/* Mobile Bottom Navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#0B1120]/95 backdrop-blur-xl border-t border-white/10 pb-safe">
-        <div className="flex items-center justify-around px-2 py-2">
-          {navLinks.map((link) => (
-            <NavLink
-              key={link.to}
-              to={link.to}
-              className={({ isActive }) =>
-                `flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all duration-300 ${
-                  isActive ? 'text-[#667eea]' : 'text-white/50 active:scale-95'
-                }`
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  <link.icon className={`h-6 w-6 ${isActive ? 'scale-110' : ''} transition-transform`} />
-                  <span className="text-xs font-medium">{link.label}</span>
-                  {isActive && (
-                    <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-8 h-1 rounded-full bg-[#667eea]" />
-                  )}
-                </>
-              )}
-            </NavLink>
-          ))}
-          
+          <NavLink
+            to="/browse"
+            className={({ isActive }) =>
+              `flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-all ${
+                isActive 
+                  ? 'text-white bg-white/10' 
+                  : 'text-white/60 hover:text-white hover:bg-white/5'
+              }`
+            }
+          >
+            {({ isActive }) => (
+              <>
+                <Compass className={`h-6 w-6 ${isActive ? 'fill-current' : ''}`} />
+                <span className="text-xs font-medium">Discover</span>
+              </>
+            )}
+          </NavLink>
+
           <button
             onClick={onOpenSearch}
-            className="flex flex-col items-center gap-1 px-4 py-2 rounded-xl text-white/50 active:scale-95 transition-transform"
+            className="flex flex-col items-center gap-1 px-4 py-2 rounded-lg text-white/60 hover:text-white hover:bg-white/5 transition-all active:scale-95"
           >
             <SearchIcon className="h-6 w-6" />
             <span className="text-xs font-medium">Search</span>
           </button>
-        </div>
-      </div>
 
-      {/* Global Styles */}
-      <style jsx>{`
-        @keyframes fade-in-up {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        @keyframes fade-in {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        .animate-fade-in-up {
-          animation: fade-in-up 0.3s ease-out;
-        }
-        .animate-fade-in {
-          animation: fade-in 0.2s ease-out;
-        }
-        .pb-safe {
-          padding-bottom: env(safe-area-inset-bottom);
-        }
-      `}</style>
+          {/* Account button - navigates to /mobile-account route */}
+          <NavLink
+            to="/mobile-account"
+            className={({ isActive }) =>
+              `flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-all ${
+                isActive 
+                  ? 'text-white bg-white/10' 
+                  : 'text-white/60 hover:text-white hover:bg-white/5'
+              }`
+            }
+          >
+            {({ isActive }) => (
+              <>
+                {userAvatar ? (
+                  <img
+                    src={userAvatar}
+                    alt={userName}
+                    className={`h-6 w-6 rounded-full object-cover ${
+                      isActive ? 'ring-2 ring-white/40' : 'ring-2 ring-white/10'
+                    }`}
+                  />
+                ) : (
+                  <div className={`h-6 w-6 rounded-full bg-gradient-to-br from-[#FF9245] to-[#EB423B] flex items-center justify-center text-white text-[10px] font-bold ${
+                    isActive ? 'ring-2 ring-white/40' : ''
+                  }`}>
+                    {userName.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <span className="text-xs font-medium">Account</span>
+              </>
+            )}
+          </NavLink>
+        </div>
+      </nav>
     </>
   )
 }

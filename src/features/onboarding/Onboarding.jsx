@@ -535,14 +535,14 @@ function StepMovies({
 
       {/* Search Bar */}
       <div className="flex-none relative max-w-2xl mx-auto mb-5 w-full">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/40" />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/40 z-10" />
         <input
           ref={searchInputRef}
           type="text"
           placeholder="Search for movies (e.g., Inception, The Matrix)"
           value={query}
           onChange={e => setQuery(e.target.value)}
-          className="w-full pl-12 pr-12 py-3.5 rounded-xl border-2 border-[#667eea]/30 bg-white/5 text-sm text-white placeholder-white/40 focus:outline-none focus:border-[#667eea] focus:ring-4 focus:ring-[#667eea]/20 transition-all backdrop-blur-sm"
+          className="w-full pl-12 pr-12 py-3.5 rounded-xl border-2 border-[#667eea]/30 bg-white/5 text-sm text-white placeholder-white/40 focus:outline-none focus:border-[#667eea] focus:ring-4 focus:ring-[#667eea]/20 transition-all"
         />
         {searching && (
           <div className="absolute right-4 top-1/2 -translate-y-1/2">

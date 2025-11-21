@@ -3,9 +3,7 @@ import { useEffect, useMemo, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
 import { 
-  Check, Search, X, Sparkles, ArrowRight, Loader2, Star, ChevronLeft,
-  Zap, Map, Palette, Laugh, Shield, Camera, Drama, Users, Wand2,
-  BookOpen, Ghost, Music, Eye, Heart, Rocket, Flame
+  Check, Search, X, Sparkles, ArrowRight, Loader2, Star, ChevronLeft
 } from 'lucide-react'
 
 const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY
@@ -98,27 +96,29 @@ export default function Onboarding() {
     }
   }, [query])
 
+  // Remove Icon from useMemo
   const GENRES = useMemo(
     () => [
-      { id: 28, label: 'Action', Icon: Zap },
-      { id: 12, label: 'Adventure', Icon: Map },
-      { id: 16, label: 'Animation', Icon: Palette },
-      { id: 35, label: 'Comedy', Icon: Laugh },
-      { id: 80, label: 'Crime', Icon: Shield },
-      { id: 99, label: 'Documentary', Icon: Camera },
-      { id: 18, label: 'Drama', Icon: Drama },
-      { id: 10751, label: 'Family', Icon: Users },
-      { id: 14, label: 'Fantasy', Icon: Wand2 },
-      { id: 36, label: 'History', Icon: BookOpen },
-      { id: 27, label: 'Horror', Icon: Ghost },
-      { id: 10402, label: 'Music', Icon: Music },
-      { id: 9648, label: 'Mystery', Icon: Eye },
-      { id: 10749, label: 'Romance', Icon: Heart },
-      { id: 878, label: 'Sci-Fi', Icon: Rocket },
-      { id: 53, label: 'Thriller', Icon: Flame },
+      { id: 28, label: 'Action' },
+      { id: 12, label: 'Adventure' },
+      { id: 16, label: 'Animation' },
+      { id: 35, label: 'Comedy' },
+      { id: 80, label: 'Crime' },
+      { id: 99, label: 'Documentary' },
+      { id: 18, label: 'Drama' },
+      { id: 10751, label: 'Family' },
+      { id: 14, label: 'Fantasy' },
+      { id: 36, label: 'History' },
+      { id: 27, label: 'Horror' },
+      { id: 10402, label: 'Music' },
+      { id: 9648, label: 'Mystery' },
+      { id: 10749, label: 'Romance' },
+      { id: 878, label: 'Sci-Fi' },
+      { id: 53, label: 'Thriller' },
     ],
     []
   )
+
 
   const toggleGenre = (id) => setSelectedGenres(g => g.includes(id) ? g.filter(x => x !== id) : [...g, id])
   const isMovieSelected = (id) => favoriteMovies.some(x => x.id === id)
@@ -372,21 +372,19 @@ function StepGenres({ GENRES, selectedGenres, toggleGenre, error, loading, onNex
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 max-w-5xl mx-auto">
           {GENRES.map((g) => {
             const isSelected = selectedGenres.includes(g.id)
-            const Icon = g.Icon
             return (
               <button
                 key={g.id}
                 type="button"
                 onClick={() => toggleGenre(g.id)}
-                className={`relative h-16 sm:h-18 rounded-xl border-2 font-semibold text-xs sm:text-sm transition-all duration-300 active:scale-95 ${
+                className={`relative h-14 rounded-xl border-2 font-semibold text-sm transition-all duration-300 active:scale-95 ${
                   isSelected
                     ? 'border-[#667eea] bg-gradient-to-br from-[#667eea]/20 to-[#764ba2]/20 text-white'
                     : 'border-white/10 bg-white/5 text-white/80 hover:bg-white/10 hover:border-white/20'
                 }`}
               >
-                <span className="flex flex-col items-center justify-center h-full gap-1">
-                  <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
-                  <span>{g.label}</span>
+                <span className="flex items-center justify-center h-full">
+                  {g.label}
                 </span>
                 {isSelected && (
                   <div className="absolute -top-1.5 -right-1.5">
@@ -420,6 +418,7 @@ function StepGenres({ GENRES, selectedGenres, toggleGenre, error, loading, onNex
     </div>
   )
 }
+
 
 function StepMovies({
   query, setQuery, results, searching, isMovieSelected, addMovie, removeMovie, favoriteMovies,

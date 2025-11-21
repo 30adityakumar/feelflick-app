@@ -88,7 +88,7 @@ export default function HeroSliderSection({ className = '' }) {
 
   if (loading) {
     return (
-      <section className={`relative w-full bg-black ${className}`} style={{ marginTop: 'calc(var(--hdr-h, 80px) * 0.8)' }}>
+      <section className={`relative w-full bg-black ${className}`}>
         <div className="h-[75vh] animate-pulse bg-neutral-900" />
       </section>
     )
@@ -99,8 +99,6 @@ export default function HeroSliderSection({ className = '' }) {
   return (
     <section 
       className={`relative w-full overflow-hidden bg-black ${className}`}
-      // Moves the slider down by 80% of the header height so it starts just under the heavy black gradient
-      style={{ marginTop: 'calc(var(--hdr-h, 80px) * 0.8)' }}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       onTouchStart={handleTouchStart}
@@ -129,12 +127,14 @@ export default function HeroSliderSection({ className = '' }) {
           )
         })}
 
-        {/* Gradients */}
-        {/* Top fade removed mostly since header covers it, but kept light for blending */}
-        <div className="absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-black/40 to-transparent z-20 pointer-events-none" />
+        {/* Enhanced Black Gradients */}
+        {/* Top fade - header protection */}
+        <div className="absolute top-0 inset-x-0 h-24 md:h-28 bg-gradient-to-b from-black via-black/70 to-transparent z-20 pointer-events-none" />
         
-        {/* Side & Bottom fades */}
+        {/* Left side fade */}
         <div className="absolute inset-y-0 left-0 w-3/5 md:w-1/2 bg-gradient-to-r from-black/70 via-black/50 to-transparent z-20 pointer-events-none" />
+        
+        {/* Bottom fade */}
         <div className="absolute bottom-0 inset-x-0 h-3/5 bg-gradient-to-t from-black via-black/85 to-transparent z-20 pointer-events-none" />
 
         {/* Content Overlay */}
@@ -169,7 +169,7 @@ export default function HeroSliderSection({ className = '' }) {
                 </p>
               )}
 
-              {/* Button */}
+              {/* Single Button */}
               <button 
                 onClick={viewDetails}
                 className="inline-flex items-center justify-center gap-1.5 rounded-xl px-6 py-2.5 text-sm font-bold text-white transition-all hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-purple-500/20 shadow-xl shadow-purple-900/20 bg-gradient-to-r from-purple-600 to-pink-600"
@@ -181,11 +181,12 @@ export default function HeroSliderSection({ className = '' }) {
           </div>
         </div>
 
-        {/* Arrows */}
+        {/* Navigation Arrows (Desktop) */}
         <button 
           onClick={prevSlide} 
           disabled={isTransitioning}
           className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 z-40 items-center justify-center h-10 w-10 rounded-full bg-black/30 backdrop-blur-sm text-white/60 transition-all hover:bg-black/50 hover:text-white opacity-0 hover:opacity-100 active:scale-95 disabled:opacity-0 focus:outline-none group"
+          aria-label="Previous slide"
         >
           <svg className="h-5 w-5 fill-none viewBox-0 0 24 24 stroke-current group-hover:-translate-x-0.5 transition-transform">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
@@ -196,18 +197,20 @@ export default function HeroSliderSection({ className = '' }) {
           onClick={nextSlide} 
           disabled={isTransitioning}
           className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 z-40 items-center justify-center h-10 w-10 rounded-full bg-black/30 backdrop-blur-sm text-white/60 transition-all hover:bg-black/50 hover:text-white opacity-0 hover:opacity-100 active:scale-95 disabled:opacity-0 focus:outline-none group"
+          aria-label="Next slide"
         >
           <svg className="h-5 w-5 fill-none viewBox-0 0 24 24 stroke-current group-hover:translate-x-0.5 transition-transform">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
           </svg>
         </button>
 
-        {/* Indicators */}
+        {/* Slide Indicators */}
         <div className="absolute bottom-4 md:bottom-6 right-4 md:right-8 z-40 flex items-center gap-2">
           {slides.map((_, idx) => (
             <button
               key={idx}
               onClick={() => goToSlide(idx)}
+              aria-label={`Go to slide ${idx + 1}`}
               className={`h-1 rounded-full transition-all duration-500 focus:outline-none focus:ring-2 focus:ring-white/50 ${
                 idx === currentIndex 
                   ? 'w-8 bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg shadow-purple-500/50' 

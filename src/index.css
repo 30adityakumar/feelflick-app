@@ -371,3 +371,15 @@ section:hover .animate-scroll-right {
 .animate-shimmer {
   animation: shimmer 2s ease-in-out infinite;
 }
+
+/* In index.css, App.css, or a global CSS file */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  /* For legacy iOS Safari, fallback: */
+  padding-bottom: constant(safe-area-inset-bottom, 0); 
+}
+
+.onboarding-root {
+  min-height: 100dvh;
+  background: #0B1120; /* or your gradient bg */
+}

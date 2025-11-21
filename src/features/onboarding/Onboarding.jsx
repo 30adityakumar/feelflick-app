@@ -446,7 +446,7 @@ function StepGenres({ GENRES, selectedGenres, toggleGenre, error, loading, onNex
                 key={g.id}
                 type="button"
                 onClick={() => toggleGenre(g.id)}
-                className={`relative h-16 rounded-2xl border-2 font-semibold text-sm transition-all duration-300 active:scale-95 ${
+                className={`relative h-16 overflow-visible rounded-2xl border-2 font-semibold text-sm transition-all duration-300 active:scale-95 ${
                   isSelected
                     ? 'border-[#667eea] bg-gradient-to-br from-[#667eea]/20 to-[#764ba2]/20 text-white shadow-lg shadow-[#667eea]/20'
                     : 'border-white/10 bg-white/5 text-white/80 hover:bg-white/10 hover:border-white/20 hover:shadow-md'
@@ -460,11 +460,12 @@ function StepGenres({ GENRES, selectedGenres, toggleGenre, error, loading, onNex
                   {g.label}
                 </span>
                 {isSelected && (
-                  <div className="absolute -top-2 -right-2 bg-[#0B1120] rounded-full p-0.5">
+                  <div className="absolute top-1.5 right-1.5 bg-[#0B1120] rounded-full p-0.5 shadow-lg z-10">
                     <div className="bg-gradient-to-r from-emerald-400 to-green-500 rounded-full p-1.5">
                       <Check className="h-3 w-3 text-white stroke-[3]" />
                     </div>
                   </div>
+
                 )}
               </button>
             )
@@ -656,21 +657,22 @@ function StepMovies({
                   />
                   
                   {/* Remove Button Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center gap-2">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        removeMovie(m.id)
-                      }}
-                      className="h-10 w-10 rounded-full bg-red-500/90 hover:bg-red-600 flex items-center justify-center shadow-lg transform hover:scale-110 transition-all"
-                      title="Remove"
-                    >
-                      <X className="h-5 w-5 text-white stroke-[3]" />
-                    </button>
-                    <span className="text-[11px] font-medium text-white/90 px-2 text-center line-clamp-2 leading-tight">
-                      {m.title}
-                    </span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeMovie(m.id)
+                    }}
+                    className="absolute top-2 right-2 h-7 w-7 rounded-full bg-red-500/90 hover:bg-red-600 flex items-center justify-center shadow-md z-20 transition-all"
+                    title="Remove"
+                  >
+                    <X className="h-4 w-4 text-white stroke-[3]" />
+                  </button>
+                  <img ... />
+                  <span className="absolute bottom-2 left-2 right-2 text-[11px] font-medium text-white/90 px-2 text-center line-clamp-2 bg-black/60 rounded shadow-sm">
+                    {m.title}
+                  </span>
+
                   </div>
                 </div>
               ))}

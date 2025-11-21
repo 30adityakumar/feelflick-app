@@ -1,160 +1,250 @@
-// src/app/header/Header.jsx
-import { useEffect, useRef, useState } from 'react'
-import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
-import {
-  Home, Compass, Search as SearchIcon, ChevronDown, LogOut, User as UserIcon,
-  Settings, Bookmark, Clock, X, ChevronRight, HelpCircle, Shield,
-} from 'lucide-react'
+// src/features/home/components/Header.jsx
+import { useState, useEffect, useRef } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
+import { Menu, X, Film, Sparkles, ChevronDown, LogOut, Settings, User, Heart } from 'lucide-react'
 
-export default function Header({ onOpenSearch }) {
-  const pathname = useLocation()
+export default function Header() {
+  const navigate = useNavigate()
   const [user, setUser] = useState(null)
-  const [scrolled, setScrolled] = useState(false)
-  const [scrollDirection, setScrollDirection] = useState('up')
-  const [lastScrollY, setLastScrollY] = useState(0)
-  const hdrRef = useRef(null)
+  const [loading, setLoading] = useState(true)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const dropdownRef = useRef(null)
 
-  // User session
   useEffect(() => {
-    let unsub
-    const getUser = async () => {
-      const { data } = await supabase.auth.getUser()
-      setUser(data?.user ?? null)
-    }
-    getUser()
-    const { data } = supabase.auth.onAuthStateChange((_e, s) => setUser(s?.user ?? null))
-    unsub = data?.subscription?.unsubscribe
-    return () => { if (typeof unsub === 'function') unsub() }
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null)
+      setLoading(false)
+    })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+    })
+
+    return () => subscription.unsubscribe()
   }, [])
 
-  // Smart scroll
+  // Close dropdown when clicking outside
   useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY
-      setScrolled(currentScrollY > 10)
-      setScrollDirection(currentScrollY > lastScrollY ? 'down' : 'up')
-      setLastScrollY(currentScrollY)
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false)
+      }
     }
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [lastScrollY])
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
-  // Navigation links
-  const links = [
-    { to: '/', icon: <Home />, label: 'Home', exact: true },
-    { to: '/discover', icon: <Compass />, label: 'Discover' },
-    { to: '/watchlist', icon: <Bookmark />, label: 'Watchlist' },
-    { to: '/history', icon: <Clock />, label: 'History' }
-  ]
-
-  // Color theme gradients
-  const gradientText = "bg-gradient-to-r from-purple-500 via-pink-400 to-amber-400 bg-clip-text text-transparent"
-  const buttonGradient = "bg-gradient-to-r from-purple-500 via-pink-500 to-amber-400"
-  const glowShadow = "shadow-2xl shadow-purple-500/60"
+  async function handleSignOut() {
+    await supabase.auth.signOut()
+    navigate('/', { replace: true })
+  }
 
   return (
-    <>
-      {/* Desktop Header */}
-      <header
-        ref={hdrRef}
-        className={`fixed top-0 left-0 right-0 z-40 flex items-center justify-between h-16 px-6 sm:px-10 bg-gradient-to-b from-black/80 via-[#0c1017]/90 to-transparent backdrop-blur-md border-b border-white/10 transition-all duration-500 ${scrolled ? 'shadow-2xl shadow-purple-500/20' : ''}`}
-      >
-        {/* Logo */}
-        <Link to="/" className="inline-flex items-center gap-2 group">
-          <span className={`block text-xl md:text-2xl font-black tracking-tight select-none ${gradientText} transition-all duration-300`}>
-            FEELFLICK
-          </span>
-        </Link>
-
-        {/* Main Nav */}
-        <nav className="hidden md:flex items-center gap-6 flex-1 justify-center xl:gap-10">
-          {links.map((link, idx) => (
-            <NavLink
-              key={link.to}
-              exact={link.exact}
-              to={link.to}
-              className={({ isActive }) =>
-                `relative flex items-center gap-2 px-3 py-2 rounded-xl text-base font-semibold transition-all duration-300 group
-                ${isActive
-                  ? `${gradientText} ${glowShadow}`
-                  : "text-white/70 hover:text-white hover:bg-white/5 hover:shadow-lg hover:shadow-purple-500/40"
-                }`
-              }
-            >
-              <span className="mr-1">{link.icon}</span>
-              <span>{link.label}</span>
-            </NavLink>
-          ))}
-
-          {/* Search Button */}
-          <button
-            onClick={onOpenSearch}
-            className={`inline-flex items-center gap-2 h-10 px-5 rounded-full font-semibold text-base ${buttonGradient} text-white ${glowShadow} border border-white/10 hover:border-white/30 transition-all duration-300 group`}
-            aria-label="Search movies"
-          >
-            <SearchIcon className="h-5 w-5 text-white group-hover:text-amber-400 transition-colors" />
-            <span className="ml-2 hidden lg:inline group-hover:text-amber-400 transition-colors">Search</span>
-          </button>
-        </nav>
-
-        {/* Account Menu */}
-        {user ? (
-          <div className="flex items-center gap-4">
-            {/* Avatar */}
-            <div className="h-9 w-9 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-amber-400 flex items-center justify-center text-base font-bold text-white ring-2 ring-white/20 shadow-2xl shadow-purple-500/30">
-              {user?.user_metadata?.name?.charAt(0) ?? <UserIcon className="h-4 w-4 text-white" />}
+    <header className="sticky top-0 z-50 backdrop-blur-md bg-gradient-to-r from-[#0a121a]/95 via-[#0d1722]/95 to-[#0c1017]/95 border-b border-white/5">
+      {/* Atmospheric gradient glow */}
+      <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 via-pink-500/5 to-amber-500/5 pointer-events-none" />
+      
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 sm:h-20">
+          
+          {/* Logo - Cinematic Gradient */}
+          <Link to="/home" className="flex items-center gap-3 group">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full blur-lg opacity-40 group-hover:opacity-60 transition-opacity duration-300" />
+              <div className="relative h-10 w-10 sm:h-11 sm:w-11 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-amber-500 flex items-center justify-center shadow-xl shadow-purple-500/50 group-hover:shadow-pink-500/50 transition-all duration-300 group-hover:scale-105">
+                <Film className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+              </div>
             </div>
-            {/* Name */}
-            <span
-              className={`text-lg font-bold ${gradientText} transition-all duration-300 truncate max-w-[140px]`}
-              title={user?.user_metadata?.name}
-            >
-              {user?.user_metadata?.name?.split(' ')[0]}
+            <span className="text-xl sm:text-2xl font-black bg-gradient-to-r from-purple-400 via-pink-400 to-amber-400 bg-clip-text text-transparent group-hover:from-purple-300 group-hover:via-pink-300 group-hover:to-amber-300 transition-all duration-300">
+              FeelFlick
             </span>
-            {/* Dropdown */}
-            <button
-              className="pl-2 pr-1 py-2 hover:bg-white/10 rounded-xl text-white"
-              aria-label="Account menu"
-            >
-              <ChevronDown className="h-5 w-5" />
-            </button>
-          </div>
-        ) : (
-          <Link
-            to="/login"
-            className={`ml-6 px-5 py-2 rounded-full font-semibold text-base ${buttonGradient} text-white ${glowShadow} transition-all duration-300 hover:scale-105 hover:shadow-2xl`}
-          >
-            Login
           </Link>
-        )}
-      </header>
 
-      {/* MOBILE Navigation / Bottom Nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-b from-black/90 via-purple-950 to-black/90 backdrop-blur-md border-t border-white/10 shadow-2xl shadow-purple-500/20 flex justify-around items-center h-16 px-3">
-        {links.map((link) => (
-          <NavLink
-            key={link.to}
-            to={link.to}
-            className={({ isActive }) =>
-              `relative flex flex-col items-center justify-center px-2 pt-1 rounded-xl text-xs font-semibold group transition-all
-              ${isActive ? "text-amber-400" : "text-white/70 hover:text-white"}`
-            }
+          {/* Desktop Navigation - Premium Feel */}
+          <nav className="hidden md:flex items-center gap-2">
+            <NavLink to="/home" icon={<Sparkles className="h-4 w-4" />}>
+              Discover
+            </NavLink>
+            <NavLink to="/watchlist" icon={<Heart className="h-4 w-4" />}>
+              My List
+            </NavLink>
+            <NavLink to="/preferences" icon={<Settings className="h-4 w-4" />}>
+              Preferences
+            </NavLink>
+          </nav>
+
+          {/* Desktop User Menu */}
+          <div className="hidden md:flex items-center gap-3">
+            {loading ? (
+              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-purple-500/20 to-pink-500/20 animate-pulse" />
+            ) : user ? (
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  className="flex items-center gap-3 px-4 py-2.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-purple-500/50 transition-all duration-300 group"
+                >
+                  <div className="h-8 w-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
+                    <User className="h-4 w-4 text-white" />
+                  </div>
+                  <span className="text-sm font-semibold text-white/90 group-hover:text-white transition-colors">
+                    {user.user_metadata?.name?.split(' ')[0] || 'Account'}
+                  </span>
+                  <ChevronDown className={`h-4 w-4 text-white/60 transition-transform duration-300 ${dropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {dropdownOpen && (
+                  <div className="absolute right-0 mt-3 w-56 rounded-2xl bg-[#0d1722]/95 backdrop-blur-xl border border-white/10 shadow-2xl shadow-black/50 overflow-hidden animate-fade-in">
+                    <div className="p-4 border-b border-white/10">
+                      <p className="text-sm font-semibold text-white">{user.user_metadata?.name || 'User'}</p>
+                      <p className="text-xs text-white/50 truncate">{user.email}</p>
+                    </div>
+                    <div className="p-2">
+                      <DropdownItem icon={<User />} onClick={() => navigate('/account')}>
+                        Account Settings
+                      </DropdownItem>
+                      <DropdownItem icon={<Settings />} onClick={() => navigate('/preferences')}>
+                        Preferences
+                      </DropdownItem>
+                      <DropdownItem icon={<Heart />} onClick={() => navigate('/watchlist')}>
+                        My Watchlist
+                      </DropdownItem>
+                      <div className="h-px bg-white/10 my-2" />
+                      <DropdownItem icon={<LogOut />} onClick={handleSignOut} danger>
+                        Sign Out
+                      </DropdownItem>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link
+                to="/"
+                className="px-6 py-2.5 rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-amber-500 text-white font-semibold text-sm shadow-xl shadow-purple-500/50 hover:shadow-pink-500/50 hover:scale-105 transition-all duration-300"
+              >
+                Sign In
+              </Link>
+            )}
+          </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="md:hidden p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all duration-300"
           >
-            <span className={`mb-1 ${isActive ? "text-amber-400" : "text-white/70 group-hover:text-pink-400"}`}>
-              {link.icon}
-            </span>
-            <span>{link.label}</span>
-          </NavLink>
-        ))}
+            {menuOpen ? (
+              <X className="h-6 w-6 text-white" />
+            ) : (
+              <Menu className="h-6 w-6 text-white" />
+            )}
+          </button>
+        </div>
 
-        {/* Mobile Avatar */}
-        {user && (
-          <div className="h-7 w-7 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-amber-400 flex items-center justify-center text-xs font-bold ring-2 ring-white/20 shadow-lg shadow-purple-500/30 ml-2">
-            {user.user_metadata?.name?.charAt(0) ?? <UserIcon className="h-3 w-3 text-white" />}
+        {/* Mobile Menu - Cinematic Slide-down */}
+        {menuOpen && (
+          <div className="md:hidden py-6 border-t border-white/10 animate-fade-in">
+            <div className="space-y-2">
+              <MobileNavLink to="/home" icon={<Sparkles />} onClick={() => setMenuOpen(false)}>
+                Discover
+              </MobileNavLink>
+              <MobileNavLink to="/watchlist" icon={<Heart />} onClick={() => setMenuOpen(false)}>
+                My List
+              </MobileNavLink>
+              <MobileNavLink to="/preferences" icon={<Settings />} onClick={() => setMenuOpen(false)}>
+                Preferences
+              </MobileNavLink>
+              {user && (
+                <>
+                  <div className="h-px bg-white/10 my-3" />
+                  <MobileNavLink to="/account" icon={<User />} onClick={() => setMenuOpen(false)}>
+                    Account Settings
+                  </MobileNavLink>
+                  <button
+                    onClick={() => {
+                      handleSignOut()
+                      setMenuOpen(false)
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-red-400 hover:bg-red-500/10 transition-all duration-300 group"
+                  >
+                    <LogOut className="h-5 w-5" />
+                    <span className="font-medium">Sign Out</span>
+                  </button>
+                </>
+              )}
+              {!user && (
+                <Link
+                  to="/"
+                  onClick={() => setMenuOpen(false)}
+                  className="block w-full px-4 py-3 rounded-xl bg-gradient-to-r from-purple-500 via-pink-500 to-amber-500 text-white font-semibold text-center shadow-xl shadow-purple-500/50 hover:shadow-pink-500/50 transition-all duration-300"
+                >
+                  Sign In
+                </Link>
+              )}
+            </div>
           </div>
         )}
-      </nav>
-    </>
+      </div>
+
+      <style jsx>{`
+        @keyframes fade-in {
+          from { opacity: 0; transform: translateY(-10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.3s ease-out;
+        }
+      `}</style>
+    </header>
+  )
+}
+
+// Desktop Navigation Link Component
+function NavLink({ to, icon, children }) {
+  return (
+    <Link
+      to={to}
+      className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white/70 hover:text-white hover:bg-white/10 transition-all duration-300 group"
+    >
+      <span className="text-white/50 group-hover:text-purple-400 transition-colors duration-300">
+        {icon}
+      </span>
+      {children}
+    </Link>
+  )
+}
+
+// Dropdown Item Component
+function DropdownItem({ icon, onClick, children, danger }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-sm font-medium transition-all duration-300 group ${
+        danger
+          ? 'text-red-400 hover:bg-red-500/10'
+          : 'text-white/80 hover:text-white hover:bg-white/10'
+      }`}
+    >
+      <span className={`h-4 w-4 ${danger ? 'text-red-400' : 'text-white/50 group-hover:text-purple-400'} transition-colors duration-300`}>
+        {icon}
+      </span>
+      {children}
+    </button>
+  )
+}
+
+// Mobile Navigation Link Component
+function MobileNavLink({ to, icon, onClick, children }) {
+  return (
+    <Link
+      to={to}
+      onClick={onClick}
+      className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all duration-300 group"
+    >
+      <span className="h-5 w-5 text-white/50 group-hover:text-purple-400 transition-colors duration-300">
+        {icon}
+      </span>
+      <span className="font-semibold">{children}</span>
+    </Link>
   )
 }

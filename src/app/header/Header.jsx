@@ -1,7 +1,8 @@
 // src/app/header/Header.jsx
-import { useEffect, useRef, useState } from 'react';
-import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { supabase } from '@/shared/lib/supabase/client';
+
+import { useEffect, useRef, useState } from "react";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { supabase } from "@/shared/lib/supabase/client";
 import {
   Home,
   Compass,
@@ -12,328 +13,218 @@ import {
   Settings,
   Bookmark,
   Clock,
-  Film,
-  Heart,
-} from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+  X,
+  ChevronRight,
+  HelpCircle,
+  Shield,
+} from "lucide-react";
+
+// Utility: Get initials from name/email if avatar missing
+const getInitials = (user) => {
+  if (!user) return "FF";
+  const name = user.user_metadata?.name || user.email || "";
+  return name.split(" ").map(p => p[0]).join("").slice(0, 2).toUpperCase();
+};
 
 export default function Header({ onOpenSearch }) {
   const { pathname } = useLocation();
-  const navigate = useNavigate();
-
   const [user, setUser] = useState(null);
   const [scrolled, setScrolled] = useState(false);
-  const [scrollDirection, setScrollDirection] = useState('up');
-  const [lastScrollY, setLastScrollY] = useState(0);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
-
+  const [lastScrollY, setLastScrollY] = useState(0);
   const hdrRef = useRef(null);
-  const dropdownRef = useRef(null);
+  const navigate = useNavigate();
 
-  // User session
+  // User session: load on mount and update on change
   useEffect(() => {
     let unsub;
-
-    const getUser = async () => {
+    async function getUser() {
       const { data } = await supabase.auth.getUser();
       setUser(data?.user || null);
-    };
-
+    }
     getUser();
-
-    const { data } = supabase.auth.onAuthStateChange((_e, s) => {
-      setUser(s?.user || null);
-    });
+    const { data } = supabase.auth.onAuthStateChange((_e, s) =>
+      setUser(s?.user || null)
+    );
     unsub = data?.subscription?.unsubscribe;
-
-    return () => typeof unsub === 'function' && unsub();
+    return () => typeof unsub === "function" && unsub();
   }, []);
 
-  // Smart scroll with hidden/show on scroll direction
+  // Smart scroll: add shadow/blur if scrolled
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       setScrolled(currentScrollY > 10);
-
-      if (currentScrollY > lastScrollY && currentScrollY > 100) {
-        setScrollDirection('down');
-        setDropdownOpen(false);
-      } else {
-        setScrollDirection('up');
-      }
-
       setLastScrollY(currentScrollY);
     };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY]);
-
-  // Close dropdown on click outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setDropdownOpen(false);
-      }
-    };
-
-    if (dropdownOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }
-  }, [dropdownOpen]);
-
-  // Set CSS variable for header height
+  // Height CSS var for other components (e.g. offset sticky content)
   useEffect(() => {
     const setVar = () => {
       const h = hdrRef.current?.offsetHeight || 64;
-      document.documentElement.style.setProperty('--hdr-h', `${h}px`);
+      document.documentElement.style.setProperty("--hdr-h", `${h}px`);
     };
-
     setVar();
     const ro = new ResizeObserver(setVar);
     if (hdrRef.current) ro.observe(hdrRef.current);
     return () => ro.disconnect();
   }, []);
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    setDropdownOpen(false);
-    navigate('/');
-  };
+  // Handle dropdown on click outside
+  useEffect(() => {
+    if (!dropdownOpen) return;
+    const handler = (e) => {
+      if (!hdrRef.current.contains(e.target)) setDropdownOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [dropdownOpen]);
 
-  const userName = user?.user_metadata?.name || user?.email?.split('@')[0] || 'User';
-  const userEmail = user?.email || '';
-  const userAvatar = user?.user_metadata?.avatar_url || null;
+  // Theme Gradient Colors (FeelFlick)
+  const gradient = "from-[#667eea] via-[#764ba2] to-[#f093fb]";
 
-  const isMobile = window.innerWidth < 768;
-
-  // Navigation items
-  const navItems = [
-    { to: '/', icon: Home, label: 'Home' },
-    { to: '/discover', icon: Compass, label: 'Discover' },
-    { to: '/watchlist', icon: Bookmark, label: 'Watchlist' },
-    { to: '/history', icon: Clock, label: 'History' },
+  // Navigation links
+  const navLinks = [
+    { to: "/home", label: "Home", icon: <Home className="h-4 w-4 mr-1" /> },
+    { to: "/browse", label: "Browse", icon: <Compass className="h-4 w-4 mr-1" /> },
+    // Add more as needed ...
   ];
 
   return (
-    <>
-      {/* Desktop & Tablet Header - Glassmorphism with purplish theme */}
-      <motion.header
-        ref={hdrRef}
-        className={`
-          fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-out
-          backdrop-blur-xl bg-gradient-to-r from-purple-900/80 via-indigo-900/80 to-purple-900/80
-          border-b border-purple-500/30 shadow-lg
-          ${scrolled ? 'py-3' : 'py-4'} 
-          ${scrollDirection === 'down' && scrolled ? '-translate-y-full' : 'translate-y-0'}
-          ${isMobile ? 'hidden' : 'block'}
-        `}
-        initial={{ y: -100 }}
-        animate={{ y: scrolled && scrollDirection === 'down' ? -100 : 0 }}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo - Inspired by Apple/Netflix clean branding */}
-            <motion.div
-              className="flex items-center space-x-2"
-              whileHover={{ scale: 1.05 }}
-              transition={{ duration: 0.2 }}
+    <header
+      ref={hdrRef}
+      className={`fixed left-0 right-0 top-0 z-50 transition-all duration-300 ${
+        scrolled ? "backdrop-blur-2xl shadow-2xl bg-[#181825]/90 border-b border-white/10" : "bg-gradient-to-b from-[#181825]/90 to-transparent"
+      }`}
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-8">
+        <div className="flex items-center justify-between h-16">
+
+          {/* Logo */}
+          <Link to="/home" aria-label="FeelFlick Home" className="flex items-center gap-3 group">
+            <span className={`text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r ${gradient} animate-gradient`}>
+              FEELFLICK
+            </span>
+          </Link>
+
+          {/* Navigation */}
+          <nav className="hidden md:flex items-center gap-2">
+            {navLinks.map((n) => (
+              <NavLink
+                key={n.to}
+                to={n.to}
+                className={({ isActive }) =>
+                  `relative px-4 py-2 rounded-full text-sm font-bold transition duration-200 ${
+                    isActive
+                      ? `bg-gradient-to-r ${gradient} text-white shadow-lg`
+                      : "text-white/80 hover:text-white bg-none"
+                  }`
+                }
+              >
+                {n.icon}
+                <span>{n.label}</span>
+                {/* Underline for active */}
+                <span
+                  className={`absolute left-3 bottom-1.5 right-3 h-[3px] rounded-full bg-gradient-to-r ${gradient} opacity-0 ${
+                    pathname === n.to ? "opacity-100" : ""
+                  } transition-all duration-500`}
+                />
+              </NavLink>
+            ))}
+          </nav>
+
+          {/* Search (large, gradient accent, shortcut hint) */}
+          <button
+            onClick={onOpenSearch}
+            className="hidden sm:flex items-center gap-2 px-4 h-10 rounded-full bg-[#282b38]/90 border border-[#667eea]/10 text-white shadow-lg hover:bg-[#667eea]/20 hover:border-[#764ba2]/30 transition relative"
+            aria-label="Search"
+          >
+            <SearchIcon className="h-5 w-5 text-[#667eea]" />
+            <span className="hidden xl:inline text-white/70 font-medium">Search</span>
+            <kbd className="hidden xl:inline ml-2 px-2 py-0.5 text-xs rounded bg-white/5 text-white/70 border border-white/10">⌘K</kbd>
+          </button>
+
+          {/* Profile + Avatar + Dropdown */}
+          <div className="relative group">
+            <button
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+              className="flex items-center gap-2 h-10 px-3 rounded-full bg-gradient-to-br from-[#764ba2] to-[#f093fb] text-white shadow-xl ring-2 ring-[#667eea]/30"
+              aria-label="Account"
             >
-              <Film className="h-8 w-8 text-purple-400" />
-              <Link
-                to="/"
-                className="text-2xl font-bold bg-gradient-to-r from-purple-400 via-indigo-400 to-purple-600 bg-clip-text text-transparent hover:from-purple-300 hover:to-purple-500 transition-all duration-300"
-              >
-                FeelFlick
-              </Link>
-            </motion.div>
-
-            {/* Search Bar - Prominent like Netflix */}
-            <AnimatePresence>
-              {searchOpen ? (
-                <motion.div
-                  className="flex-1 max-w-md mx-8 relative"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                >
-                  <div className="relative">
-                    <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-purple-300" />
-                    <input
-                      type="text"
-                      placeholder="Search movies, shows..."
-                      className="w-full pl-12 pr-4 py-3 rounded-full bg-white/10 border border-purple-500/30 text-white placeholder-purple-300 focus:outline-none focus:border-purple-400 focus:ring-4 focus:ring-purple-500/20 transition-all backdrop-blur-sm"
-                      onKeyDown={(e) => e.key === 'Escape' && setSearchOpen(false)}
-                    />
-                  </div>
-                </motion.div>
-              ) : (
-                <motion.button
-                  onClick={() => setSearchOpen(true)}
-                  className="hidden md:flex items-center space-x-2 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 border border-purple-500/30 text-purple-300 hover:text-white transition-all duration-200"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <SearchIcon className="h-5 w-5" />
-                  <span>Search</span>
-                </motion.button>
-              )}
-            </AnimatePresence>
-
-            {/* Navigation Links - Minimalist like Apple */}
-            <nav className="hidden md:flex items-center space-x-8">
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <NavLink
-                    key={item.to}
-                    to={item.to}
-                    className={({ isActive }) =>
-                      `flex items-center space-x-2 px-3 py-2 rounded-full text-purple-300 hover:text-white hover:bg-white/10 transition-all duration-200 ${
-                        isActive ? 'text-white bg-white/20' : ''
-                      }`
-                    }
-                    whileHover={{ scale: 1.05 }}
+              <span className={`flex items-center justify-center h-8 w-8 rounded-full bg-gradient-to-br ${gradient} text-lg font-bold`}>
+                {getInitials(user)}
+              </span>
+              <span className="hidden lg:max-w-[100px] lg:truncate lg:block font-semibold">{user?.user_metadata?.name || user?.email || "Account"}</span>
+              <ChevronDown className="h-4 w-4 text-white/70 group-hover:text-white ml-1 transition" />
+            </button>
+            {dropdownOpen && (
+              <div className="absolute right-0 mt-3 w-64 bg-gradient-to-br from-[#282b38]/95 to-[#181825]/95 border border-white/10 rounded-2xl shadow-2xl p-4 z-50 backdrop-blur-2xl animate-fade-in">
+                <div className="flex flex-col gap-2">
+                  <Link
+                    to="/profile"
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#667eea]/10 transition text-white/90"
                   >
-                    {({ isActive }) => (
-                      <>
-                        <Icon className={`h-5 w-5 ${isActive ? 'text-purple-400' : ''}`} />
-                        <span>{item.label}</span>
-                      </>
-                    )}
-                  </NavLink>
-                );
-              })}
-            </nav>
-
-            {/* User Profile Dropdown - Elegant like Prime */}
-            <div className="relative" ref={dropdownRef}>
-              <motion.button
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="flex items-center space-x-2 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 border border-purple-500/30 text-white transition-all duration-200"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                {userAvatar ? (
-                  <img src={userAvatar} alt={userName} className="h-8 w-8 rounded-full" />
-                ) : (
-                  <UserIcon className="h-8 w-8" />
-                )}
-                <ChevronDown className={`h-4 w-4 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
-              </motion.button>
-
-              <AnimatePresence>
-                {dropdownOpen && (
-                  <motion.div
-                    className="absolute right-0 mt-2 w-48 bg-gradient-to-b from-purple-800/95 to-indigo-800/95 backdrop-blur-xl border border-purple-500/30 rounded-xl shadow-2xl py-2"
-                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                    transition={{ duration: 0.15 }}
+                    <UserIcon className="h-4 w-4" />
+                    Profile
+                  </Link>
+                  <Link
+                    to="/settings"
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#764ba2]/10 transition text-white/90"
                   >
-                    <div className="px-4 py-3 border-b border-purple-500/20">
-                      <p className="text-white font-medium">{userName}</p>
-                      <p className="text-purple-300 text-sm">{userEmail}</p>
-                    </div>
-                    <Link
-                      to="/account"
-                      className="flex items-center space-x-3 px-4 py-3 text-purple-300 hover:text-white hover:bg-purple-500/20 transition-all w-full"
-                      onClick={() => setDropdownOpen(false)}
-                    >
-                      <UserIcon className="h-5 w-5" />
-                      <span>Profile</span>
-                    </Link>
-                    <Link
-                      to="/settings"
-                      className="flex items-center space-x-3 px-4 py-3 text-purple-300 hover:text-white hover:bg-purple-500/20 transition-all w-full"
-                      onClick={() => setDropdownOpen(false)}
-                    >
-                      <Settings className="h-5 w-5" />
-                      <span>Settings</span>
-                    </Link>
-                    <button
-                      onClick={handleSignOut}
-                      className="flex items-center space-x-3 px-4 py-3 text-purple-300 hover:text-white hover:bg-purple-500/20 transition-all w-full"
-                    >
-                      <LogOut className="h-5 w-5" />
-                      <span>Sign Out</span>
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+                    <Settings className="h-4 w-4" />
+                    Settings
+                  </Link>
+                  <Link
+                    to="/watchlist"
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#f093fb]/10 transition text-white/90"
+                  >
+                    <Bookmark className="h-4 w-4" />
+                    Watchlist
+                  </Link>
+                  <Link
+                    to="/history"
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#667eea]/10 transition text-white/90"
+                  >
+                    <Clock className="h-4 w-4" />
+                    History
+                  </Link>
+                  <button
+                    onClick={async () => {
+                      await supabase.auth.signOut();
+                      navigate("/");
+                    }}
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-red-600/20 transition text-red-400 mt-2"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Sign Out
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
-      </motion.header>
-
-      {/* Mobile Bottom Navigation - Persistent like Plex/Netflix mobile */}
-      {isMobile && (
-        <motion.footer
-          className={`
-            fixed bottom-0 left-0 right-0 z-40
-            backdrop-blur-xl bg-gradient-to-r from-purple-900/90 via-indigo-900/90 to-purple-900/90
-            border-t border-purple-500/30 shadow-lg
-            py-2 px-4
-          `}
-          initial={{ y: 100 }}
-          animate={{ y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <nav className="flex items-center justify-around max-w-2xl mx-auto">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  className={({ isActive }) =>
-                    `flex flex-col items-center gap-1 p-2 rounded-xl transition-all duration-200 ${
-                      isActive
-                        ? 'text-purple-400 bg-white/10 scale-110'
-                        : 'text-white/60 hover:text-white hover:bg-white/5'
-                    }`
-                  }
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  {({ isActive }) => (
-                    <>
-                      <Icon className={`h-6 w-6 ${isActive ? 'fill-purple-400' : ''}`} />
-                      <span className="text-xs font-medium">{item.label}</span>
-                    </>
-                  )}
-                </NavLink>
-              );
-            })}
-            {/* Mobile Search Button */}
-            <motion.button
-              onClick={onOpenSearch || (() => setSearchOpen(true))}
-              className="flex flex-col items-center gap-1 p-2 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-all"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <SearchIcon className="h-6 w-6" />
-              <span className="text-xs font-medium">Search</span>
-            </motion.button>
-            {/* Mobile Account Button */}
-            <Link
-              to="/account"
-              className="flex flex-col items-center gap-1 p-2 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-all"
-            >
-              {userAvatar ? (
-                <img src={userAvatar} alt={userName} className="h-8 w-8 rounded-full" />
-              ) : (
-                <div className="h-8 w-8 rounded-full bg-purple-500/50 flex items-center justify-center">
-                  <span className="text-white text-sm font-bold">{userName.charAt(0).toUpperCase()}</span>
-                </div>
-              )}
-              <span className="text-xs font-medium">Account</span>
-            </Link>
-          </nav>
-        </motion.footer>
-      )}
-    </>
+      </div>
+      {/* Mobile bottom nav can go here if wanted */}
+      <style jsx>{`
+        @keyframes gradient {
+          0% { background-position: 0% 50%; }
+          100% { background-position: 100% 50%; }
+        }
+        .animate-gradient {
+          background-size: 200% 200%;
+          animation: gradient 6s ease-in-out infinite alternate;
+        }
+        .animate-fade-in {
+          animation: fade-in 0.8s ease-out;
+        }
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+      `}</style>
+    </header>
   );
 }

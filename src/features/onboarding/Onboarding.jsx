@@ -141,52 +141,81 @@ export default function Onboarding() {
     return true
   }
 
-  async function saveAndGo(opts = {}) {
-    setError('')
-    setLoading(true)
-    try {
-      const user_id = session?.user?.id
-      if (!user_id) throw new Error('No authenticated user.')
-      await ensureUserRowOrFail(session.user)
-      
-      // Save genres
-      if (!opts.skipGenres && selectedGenres.length) {
-        await supabase.from('user_preferences').delete().eq('user_id', user_id)
-        const rows = selectedGenres.map(genre_id => ({ user_id, genre_id }))
-        await supabase.from('user_preferences').upsert(rows, { onConflict: 'user_id,genre_id' })
-      }
-      
-      // Save movies
-      if (!opts.skipMovies && favoriteMovies.length) {
-        const rows = favoriteMovies.map(m => ({
-          user_id,
-          movie_id: m.id,
-          title: m.title ?? null,
-          poster: m.poster_path ? `https://image.tmdb.org/t/p/w500${m.poster_path}` : null,
-          release_date: m.release_date ?? null,
-          vote_average: typeof m.vote_average === 'number' ? m.vote_average : null,
-          genre_ids: Array.isArray(m.genre_ids) ? m.genre_ids : null,
-        }))
-        await Promise.all(rows.map(row =>
-          supabase.from('movies_watched').upsert(row, { onConflict: 'user_id,movie_id' })
-        ))
-      }
-      
-      // Mark complete
-      await supabase.from('users').update({
+  // In your Onboarding.jsx saveAndGo function, REPLACE the navigation logic:
+
+async function saveAndGo(opts = {}) {
+  setError('')
+  setLoading(true)
+  try {
+    const user_id = session?.user?.id
+    if (!user_id) throw new Error('No authenticated user.')
+    
+    await ensureUserRowOrFail(session.user)
+    
+    // Save genres
+    if (!opts.skipGenres && selectedGenres.length) {
+      await supabase.from('user_preferences').delete().eq('user_id', user_id)
+      const rows = selectedGenres.map(genre_id => ({ user_id, genre_id }))
+      await supabase.from('user_preferences').upsert(rows, { onConflict: 'user_id,genre_id' })
+    }
+    
+    // Save movies
+    if (!opts.skipMovies && favoriteMovies.length) {
+      const rows = favoriteMovies.map(m => ({
+        user_id,
+        movie_id: m.id,
+        title: m.title ?? null,
+        poster: m.poster_path ? `https://image.tmdb.org/t/p/w500${m.poster_path}` : null,
+        release_date: m.release_date ?? null,
+        vote_average: typeof m.vote_average === 'number' ? m.vote_average : null,
+        genre_ids: Array.isArray(m.genre_ids) ? m.genre_ids : null,
+      }))
+      await Promise.all(rows.map(row =>
+        supabase.from('movies_watched').upsert(row, { onConflict: 'user_id,movie_id' })
+      ))
+    }
+    
+    // Mark complete in DB
+    await supabase.from('users').update({
         onboarding_complete: true,
         onboarding_completed_at: new Date().toISOString(),
       }).eq('id', user_id)
-      await supabase.auth.updateUser({ data: { onboarding_complete: true, has_onboarded: true } })
+      
+      // Update auth metadata
+      await supabase.auth.updateUser({ 
+        data: { onboarding_complete: true, has_onboarded: true } 
+      })
+      
+      // ✅ CRITICAL FIX: Wait for session to refresh before navigating
+      // This ensures the auth state is fully propagated
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      // Verify session is updated (optional but recommended)
+      const { data: { session: updatedSession } } = await supabase.auth.getSession()
+      if (!updatedSession?.user?.user_metadata?.onboarding_complete) {
+        console.warn('Session not yet updated, forcing reload')
+        window.location.href = '/home' // Hard reload as fallback
+        return
+      }
       
       setLoading(false)
       setCelebrate(true)
-      setTimeout(() => navigate('/home', { replace: true, state: { fromOnboarding: true } }), 2200)
+      
+      // Navigate after celebration animation
+      setTimeout(() => {
+        navigate('/home', { 
+          replace: true, 
+          state: { fromOnboarding: true } 
+        })
+      }, 2200)
+      
     } catch (e) {
+      console.error('Onboarding save failed:', e)
       setError(e.message || 'Could not save your preferences. Please try again.')
       setLoading(false)
     }
   }
+
 
   // Loading spinner
   if (checking) {

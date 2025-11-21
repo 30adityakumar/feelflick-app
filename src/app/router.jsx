@@ -9,19 +9,17 @@ import {
 import { useEffect, useState } from 'react'
 import { supabase } from '@/shared/lib/supabase/client'
 
-
 // Root shells
 import AppShell from '@/app/AppShell'
 
-
 // Public pages (no app chrome)
 import Landing from '@/features/landing/Landing'
-
 
 // App pages (with header/sidebar)
 import HomePage from '@/app/homepage/HomePage'
 import MoviesTab from '@/app/pages/movies/MoviesTab'
 import MovieDetail from '@/app/pages/MovieDetail'
+import ErrorBoundary from './ErrorBoundary'
 import Onboarding from '@/features/onboarding/Onboarding'
 import Account from '@/app/header/components/Account'
 import Preferences from '@/app/header/components/Preferences'
@@ -29,19 +27,15 @@ import Watchlist from '@/app/pages/watchlist/Watchlist'
 import HistoryPage from '@/app/pages/watched/WatchedHistory'
 import MobileAccount from '@/app/header/components/MobileAccount'
 
-
 // 404
 import NotFound from '@/app/pages/NotFound'
-
 
 // Shared top/bottom
 import TopNav from '@/features/landing/components/TopNav'
 import Footer from '@/features/landing/components/Footer'
 
-
 // Auth/onboarding gate
 import PostAuthGate from '@/features/auth/PostAuthGate'
-
 
 // Import the new pages
 import AboutPage from '@/app/pages/legal/AboutPage'
@@ -178,6 +172,7 @@ export const router = createBrowserRouter([
   // Public branch (no app chrome)
   {
     element: <PublicShell />,
+    errorElement: <ErrorBoundary />, // ← Global error boundary for public routes
     children: [
       // Root decides: Landing (anon) or /home (authed)
       { index: true, element: <RootEntry /> },
@@ -204,10 +199,18 @@ export const router = createBrowserRouter([
   // Onboarding — auth required, but NO app chrome (uses auth-style chrome)
   {
     element: <OnboardingShell />,
+    errorElement: <ErrorBoundary />, // ← Error boundary for onboarding flow
     children: [
       {
         element: <RequireAuth />,
-        children: [{ path: 'onboarding', element: <Onboarding /> }],
+        errorElement: <ErrorBoundary />, // ← Nested error boundary for auth checks
+        children: [
+          { 
+            path: 'onboarding', 
+            element: <Onboarding />,
+            errorElement: <ErrorBoundary /> // ← Specific error boundary for onboarding component
+          }
+        ],
       },
     ],
   },
@@ -215,29 +218,32 @@ export const router = createBrowserRouter([
   // App branch (header + sidebar chrome)
   {
     element: <AppShell />,
+    errorElement: <ErrorBoundary />, // ← Global error boundary for app routes
     children: [
       // Publicly viewable
-      { path: 'movies', element: <MoviesTab /> },
-      { path: 'movie/:id', element: <MovieDetail /> },
-      { path: 'browse', element: <MoviesTab /> },
-      { path: 'trending', element: <MoviesTab /> },
+      { path: 'movies', element: <MoviesTab />, errorElement: <ErrorBoundary /> },
+      { path: 'movie/:id', element: <MovieDetail />, errorElement: <ErrorBoundary /> },
+      { path: 'browse', element: <MoviesTab />, errorElement: <ErrorBoundary /> },
+      { path: 'trending', element: <MoviesTab />, errorElement: <ErrorBoundary /> },
 
       // Auth-required + onboarding gate
       {
         element: <RequireAuth />,
+        errorElement: <ErrorBoundary />, // ← Error boundary for auth guard
         children: [
           {
             element: <PostAuthGate />, // runs gate, URL stays as the child route (e.g., /home)
+            errorElement: <ErrorBoundary />, // ← Error boundary for post-auth gate
             children: [
-              { path: 'home', element: <HomePage /> },
-              { path: 'account', element: <Account /> },
-              { path: 'preferences', element: <Preferences /> },
-              { path: 'watchlist', element: <Watchlist /> },
-              { path: 'watched', element: <HistoryPage /> },
-              { path: 'history', element: <HistoryPage /> }, // legacy
+              { path: 'home', element: <HomePage />, errorElement: <ErrorBoundary /> },
+              { path: 'account', element: <Account />, errorElement: <ErrorBoundary /> },
+              { path: 'preferences', element: <Preferences />, errorElement: <ErrorBoundary /> },
+              { path: 'watchlist', element: <Watchlist />, errorElement: <ErrorBoundary /> },
+              { path: 'watched', element: <HistoryPage />, errorElement: <ErrorBoundary /> },
+              { path: 'history', element: <HistoryPage />, errorElement: <ErrorBoundary /> }, // legacy
               
               // Mobile-only account page (YouTube-style full-screen)
-              { path: 'mobile-account', element: <MobileAccount /> },
+              { path: 'mobile-account', element: <MobileAccount />, errorElement: <ErrorBoundary /> },
             ],
           },
         ],
@@ -246,9 +252,9 @@ export const router = createBrowserRouter([
   },
 
   // /app legacy alias
-  { path: 'app', element: <AppPrefixAlias /> },
-  { path: 'app/*', element: <AppPrefixAlias /> },
+  { path: 'app', element: <AppPrefixAlias />, errorElement: <ErrorBoundary /> },
+  { path: 'app/*', element: <AppPrefixAlias />, errorElement: <ErrorBoundary /> },
 
   // 404
-  { path: '*', element: <NotFound /> },
+  { path: '*', element: <NotFound />, errorElement: <ErrorBoundary /> },
 ])

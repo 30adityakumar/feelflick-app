@@ -94,14 +94,19 @@ export default function Header({ onOpenSearch }) {
       <header 
         ref={hdrRef}
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          scrolled 
-            ? 'bg-[#0a0a0a]/95 backdrop-blur-xl shadow-lg shadow-purple-900/5 border-b border-white/5' 
-            : 'bg-gradient-to-b from-black/80 to-transparent'
-        } ${scrollDirection === 'down' ? 'md:-translate-y-full' : 'translate-y-0'}`}
+          scrollDirection === 'down' ? 'md:-translate-y-full' : 'translate-y-0'
+        }`}
         style={{ paddingTop: 'env(safe-area-inset-top)' }}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 sm:h-20">
+        {/* Gradient overlay on top, solid black on bottom */}
+        <div className={`absolute inset-0 transition-all duration-300 ${
+          scrolled 
+            ? 'bg-black/95 backdrop-blur-xl border-b border-white/10' 
+            : 'bg-gradient-to-b from-black/80 via-black/60 to-black'
+        }`} />
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-14 sm:h-16">
             
             {/* Logo */}
             <Link to="/home" className="flex items-center gap-2 group relative">
@@ -236,7 +241,7 @@ export default function Header({ onOpenSearch }) {
 }
 
 // ------------------------------------------------------------------
-// Sub-components for cleaner code & TopNav alignment
+// Sub-components
 // ------------------------------------------------------------------
 
 function DesktopNavLink({ to, children }) {
@@ -251,7 +256,6 @@ function DesktopNavLink({ to, children }) {
       {({ isActive }) => (
         <>
           {children}
-          {/* Expanding underline animation from TopNav */}
           <span className={`absolute bottom-0 left-0 h-[2px] bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-300 ${isActive ? 'w-full' : 'w-0 group-hover:w-full'}`} />
         </>
       )}

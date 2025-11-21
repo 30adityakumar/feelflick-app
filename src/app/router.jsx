@@ -138,8 +138,8 @@ function OnboardingShell() {
         style={{ height: 'calc(100svh - var(--topnav-h,72px))' }}
       >
         <LandingBg />
-        <div className="relative z-10 grid h-full min-h-0" style={{ gridTemplateRows: '1fr var(--footer-h,0px)' }}>
-          <section className="grid h-full place-items-center px-3 md:px-6">
+        <div className="relative z-10 flex flex-col h-full">
+          <section className="flex-1 flex flex-col overflow-y-auto">
             <Outlet />
           </section>
           <div aria-hidden />

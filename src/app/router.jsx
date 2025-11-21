@@ -132,11 +132,7 @@ function OnboardingShell() {
   return (
     <>
       <TopNav hideAuthCta />
-      <main
-        id="main"
-        className="relative mx-auto w-full overflow-hidden"
-        style={{ height: 'calc(100svh - var(--topnav-h,72px))' }}
-      >
+      <main id="main" className="relative mx-auto w-full min-h-screen" style={{ minHeight: '100dvh' }}>
         <LandingBg />
         <div className="relative z-10 flex flex-col h-full">
           <section className="flex-1 flex flex-col overflow-y-auto">

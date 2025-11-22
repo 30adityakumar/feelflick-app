@@ -15,8 +15,9 @@ export default function HeroSliderSection({ className = '' }) {
   
   // User Data State
   const [user, setUser] = useState(null)
-  const [watchlistIds, setWatchlistIds] = useState(new Set())
-  const [watchedIds, setWatchedIds] = useState(new Set())
+  // NOTE: These sets store TMDB IDs to make UI checking easier against the slide data
+  const [watchlistTmdbIds, setWatchlistTmdbIds] = useState(new Set())
+  const [watchedTmdbIds, setWatchedTmdbIds] = useState(new Set())
   
   // Swipe State
   const [touchStart, setTouchStart] = useState(null)
@@ -34,7 +35,7 @@ export default function HeroSliderSection({ className = '' }) {
     })()
   }, [])
 
-  // 2. Fetch Trending Movies & Status
+  // 2. Fetch Trending Movies & Sync Status
   useEffect(() => {
     setLoading(true)
     Promise.all([
@@ -42,7 +43,6 @@ export default function HeroSliderSection({ className = '' }) {
       fetch(`https://api.themoviedb.org/3/genre/movie/list?api_key=${import.meta.env.VITE_TMDB_API_KEY}`).then(r => r.json())
     ])
       .then(async ([moviesRes, genresRes]) => {
-        // Process Movies
         const genreMap = new Map(genresRes.genres?.map(g => [g.id, g.name]) || [])
         const movies = moviesRes?.results?.slice(0, 5).map(m => ({
           ...m,
@@ -51,29 +51,45 @@ export default function HeroSliderSection({ className = '' }) {
         
         setSlides(movies)
 
-        // If user is logged in, check status for THESE specific movies
-        // This is more efficient than fetching the entire user history
+        // Sync Status with DB
         const { data: { user } } = await supabase.auth.getUser()
         if (user && movies.length > 0) {
-          const movieIds = movies.map(m => m.id)
+          const tmdbIds = movies.map(m => m.id)
 
-          // Check Watchlist
-          const { data: wl } = await supabase
-            .from('user_watchlist')
-            .select('movie_id')
-            .eq('user_id', user.id)
-            .in('movie_id', movieIds)
-          
-          if (wl) setWatchlistIds(new Set(wl.map(i => i.movie_id)))
+          // 1. Find internal IDs for these TMDB IDs
+          const { data: dbMovies } = await supabase
+            .from('movies')
+            .select('id, tmdb_id')
+            .in('tmdb_id', tmdbIds)
 
-          // Check History
-          const { data: wh } = await supabase
-            .from('movies_watched')
-            .select('movie_id')
-            .eq('user_id', user.id)
-            .in('movie_id', movieIds)
+          if (dbMovies && dbMovies.length > 0) {
+            const internalIdMap = new Map(dbMovies.map(m => [m.id, m.tmdb_id]))
+            const internalIds = dbMovies.map(m => m.id)
+
+            // 2. Check Watchlist using Internal IDs
+            const { data: wl } = await supabase
+              .from('user_watchlist')
+              .select('movie_id')
+              .eq('user_id', user.id)
+              .in('movie_id', internalIds)
             
-          if (wh) setWatchedIds(new Set(wh.map(i => i.movie_id)))
+            if (wl) {
+              const foundTmdbIds = new Set(wl.map(w => internalIdMap.get(w.movie_id)))
+              setWatchlistTmdbIds(foundTmdbIds)
+            }
+
+            // 3. Check History using Internal IDs
+            const { data: wh } = await supabase
+              .from('movies_watched')
+              .select('movie_id')
+              .eq('user_id', user.id)
+              .in('movie_id', internalIds)
+            
+            if (wh) {
+              const foundTmdbIds = new Set(wh.map(w => internalIdMap.get(w.movie_id)))
+              setWatchedTmdbIds(foundTmdbIds)
+            }
+          }
         }
         
         setLoading(false)
@@ -138,12 +154,44 @@ export default function HeroSliderSection({ className = '' }) {
   }
 
   // --------------------------------------------------
-  // ACTION HANDLERS
+  // HELPER: Upsert Movie to DB
+  // --------------------------------------------------
+  const ensureMovieInDb = async (movie) => {
+    // Upsert based on tmdb_id (unique constraint)
+    const { data, error } = await supabase
+      .from('movies')
+      .upsert({
+        tmdb_id: movie.id,
+        title: movie.title,
+        original_title: movie.original_title,
+        overview: movie.overview,
+        poster_path: movie.poster_path,
+        backdrop_path: movie.backdrop_path,
+        release_date: movie.release_date || null,
+        vote_average: movie.vote_average,
+        vote_count: movie.vote_count,
+        popularity: movie.popularity,
+        original_language: movie.original_language,
+        json_data: movie // Store raw data as backup
+      }, { onConflict: 'tmdb_id' })
+      .select('id')
+      .single()
+    
+    if (error) {
+      console.error('Error upserting movie:', error)
+      return null
+    }
+    return data.id // Return internal ID
+  }
+
+  // --------------------------------------------------
+  // ACTIONS
   // --------------------------------------------------
   
   const currentMovie = slides[currentIndex]
-  const isInWatchlist = currentMovie?.id && watchlistIds.has(currentMovie.id)
-  const isWatched = currentMovie?.id && watchedIds.has(currentMovie.id)
+  // Use TMDB IDs for checking state
+  const isInWatchlist = currentMovie?.id && watchlistTmdbIds.has(currentMovie.id)
+  const isWatched = currentMovie?.id && watchedTmdbIds.has(currentMovie.id)
 
   const handleViewDetails = () => {
     if (currentMovie?.id) nav(`/movie/${currentMovie.id}`)
@@ -152,55 +200,62 @@ export default function HeroSliderSection({ className = '' }) {
   const toggleWatchlist = async () => {
     if (!user || !currentMovie?.id) return
     const movie = currentMovie
+    const tmdbId = movie.id
     
-    // Optimistic Update
+    // Optimistic UI Update
     if (isInWatchlist) {
-      setWatchlistIds(prev => { const n = new Set(prev); n.delete(movie.id); return n })
-      await supabase.from('user_watchlist').delete().eq('user_id', user.id).eq('movie_id', movie.id)
-    } else {
-      setWatchlistIds(prev => new Set(prev).add(movie.id))
+      setWatchlistTmdbIds(prev => { const n = new Set(prev); n.delete(tmdbId); return n })
       
-      // 1. Ensure movie exists in 'movies' table first (Foreign Key Constraint)
-      await supabase.from('movies').upsert({
-        id: movie.id,
-        title: movie.title,
-        poster_path: movie.poster_path,
-        release_date: movie.release_date || null,
-        vote_average: movie.vote_average
-      })
-
-      // 2. Add to watchlist
-      await supabase.from('user_watchlist').upsert({
-        user_id: user.id,
-        movie_id: movie.id,
-        added_at: new Date().toISOString(),
-        status: 'want_to_watch'
-      })
+      // We need the internal ID to delete from watchlist
+      const { data: dbMovie } = await supabase.from('movies').select('id').eq('tmdb_id', tmdbId).single()
+      if (dbMovie) {
+        await supabase.from('user_watchlist').delete().eq('user_id', user.id).eq('movie_id', dbMovie.id)
+      }
+    } else {
+      setWatchlistTmdbIds(prev => new Set(prev).add(tmdbId))
+      
+      const internalId = await ensureMovieInDb(movie)
+      if (internalId) {
+        await supabase.from('user_watchlist').upsert({
+          user_id: user.id,
+          movie_id: internalId,
+          added_at: new Date().toISOString(),
+          status: 'want_to_watch'
+        })
+      }
     }
   }
 
   const toggleWatched = async () => {
     if (!user || !currentMovie?.id) return
     const movie = currentMovie
+    const tmdbId = movie.id
 
-    // Optimistic Update
+    // Optimistic UI Update
     if (isWatched) {
-      setWatchedIds(prev => { const n = new Set(prev); n.delete(movie.id); return n })
-      await supabase.from('movies_watched').delete().eq('user_id', user.id).eq('movie_id', movie.id)
-    } else {
-      setWatchedIds(prev => new Set(prev).add(movie.id))
+      setWatchedTmdbIds(prev => { const n = new Set(prev); n.delete(tmdbId); return n })
       
-      await supabase.from('movies_watched').upsert({
-        user_id: user.id,
-        movie_id: movie.id,
-        title: movie.title,
-        poster: movie.poster_path,
-        release_date: movie.release_date || null,
-        vote_average: movie.vote_average,
-        genre_ids: movie.genre_ids,
-        watched_at: new Date().toISOString(),
-        source: 'hero_slider'
-      })
+      const { data: dbMovie } = await supabase.from('movies').select('id').eq('tmdb_id', tmdbId).single()
+      if (dbMovie) {
+        await supabase.from('movies_watched').delete().eq('user_id', user.id).eq('movie_id', dbMovie.id)
+      }
+    } else {
+      setWatchedTmdbIds(prev => new Set(prev).add(tmdbId))
+      
+      const internalId = await ensureMovieInDb(movie)
+      if (internalId) {
+        await supabase.from('movies_watched').upsert({
+          user_id: user.id,
+          movie_id: internalId,
+          title: movie.title, // Redundant but requested in schema
+          poster: movie.poster_path, // Redundant but requested in schema
+          release_date: movie.release_date || null,
+          vote_average: movie.vote_average,
+          genre_ids: movie.genre_ids,
+          watched_at: new Date().toISOString(),
+          source: 'hero_slider'
+        })
+      }
     }
   }
 
@@ -225,7 +280,7 @@ export default function HeroSliderSection({ className = '' }) {
     >
       <div className="relative w-full h-[75vh] sm:h-[80vh] min-h-[500px]">
         
-        {/* Slides Container */}
+        {/* Slides */}
         <div 
           className="relative w-full h-full"
           style={{
@@ -306,7 +361,6 @@ export default function HeroSliderSection({ className = '' }) {
 
                 {user && (
                   <>
-                    {/* Watchlist */}
                     <div className="relative group/tooltip">
                       <button onClick={toggleWatchlist} className={`inline-flex items-center justify-center h-[42px] md:h-[48px] w-[42px] md:w-[48px] rounded-lg md:rounded-xl text-white transition-all hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-white/20 backdrop-blur-md border shadow-xl ${isInWatchlist ? 'bg-purple-500/20 border-purple-500 text-purple-300' : 'bg-white/10 hover:bg-white/20 border-white/20'}`}>
                         {isInWatchlist ? <Check className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
@@ -316,7 +370,6 @@ export default function HeroSliderSection({ className = '' }) {
                       </span>
                     </div>
 
-                    {/* Already Watched */}
                     <div className="relative group/tooltip">
                       <button onClick={toggleWatched} className={`inline-flex items-center justify-center h-[42px] md:h-[48px] w-[42px] md:w-[48px] rounded-lg md:rounded-xl text-white transition-all hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-white/20 backdrop-blur-md border shadow-xl ${isWatched ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300' : 'bg-white/10 hover:bg-white/20 border-white/20'}`}>
                         {isWatched ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}

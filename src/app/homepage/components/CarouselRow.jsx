@@ -1,220 +1,261 @@
 // src/app/homepage/components/CarouselRow.jsx
-import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { ChevronLeft, ChevronRight, Plus, Check, Eye } from 'lucide-react'
+import { supabase } from '@/shared/lib/supabase/client'
 
-const img = (p, s = "w500") =>
-  p ? `https://image.tmdb.org/t/p/${s}${p}` : "/placeholder-movie.png";
+const img = (p, s = 'w500') => p ? `https://image.tmdb.org/t/p/${s}${p}` : '/placeholder-movie.png'
 
-export default function CarouselRow({
-  title,
-  tmdbCategory = "popular",
-  rowId,
-}) {
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showLeftArrow, setShowLeftArrow] = useState(false);
-  const [showRightArrow, setShowRightArrow] = useState(true);
-  const railRef = useRef(null);
-  const nav = useNavigate();
+export default function CarouselRow({ title, tmdbCategory = 'popular', rowId }) {
+  const [items, setItems] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [showLeftArrow, setShowLeftArrow] = useState(false)
+  const [showRightArrow, setShowRightArrow] = useState(true)
+  
+  // User State
+  const [user, setUser] = useState(null)
+  const [watchlistTmdbIds, setWatchlistTmdbIds] = useState(new Set())
+  const [watchedTmdbIds, setWatchedTmdbIds] = useState(new Set())
+  
+  const railRef = useRef(null)
+  const nav = useNavigate()
 
+  // Get User
   useEffect(() => {
-    setLoading(true);
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      setUser(user)
+    })()
+  }, [])
+
+  // Fetch Movies & Sync Status
+  useEffect(() => {
+    setLoading(true)
     fetch(
-      `https://api.themoviedb.org/3/movie/${tmdbCategory}?api_key=${
-        import.meta.env.VITE_TMDB_API_KEY
-      }&language=en-US&page=1`
+      `https://api.themoviedb.org/3/movie/${tmdbCategory}?api_key=${import.meta.env.VITE_TMDB_API_KEY}&language=en-US&page=1`
     )
-      .then((r) => r.json())
-      .then((j) => {
-        setItems(j?.results?.slice(0, 20) ?? []);
-        setLoading(false);
+      .then(r => r.json())
+      .then(async j => {
+        const movies = j?.results?.slice(0, 20) ?? []
+        setItems(movies)
+
+        // Sync status if user is logged in
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user && movies.length > 0) {
+          const tmdbIds = movies.map(m => m.id)
+
+          // Check Watchlist
+          const { data: wl } = await supabase
+            .from('user_watchlist')
+            .select('movie_id')
+            .eq('user_id', user.id)
+            .in('movie_id', tmdbIds)
+          if (wl) setWatchlistTmdbIds(new Set(wl.map(w => w.movie_id)))
+
+          // Check History
+          const { data: wh } = await supabase
+            .from('movies_watched')
+            .select('movie_id')
+            .eq('user_id', user.id)
+            .in('movie_id', tmdbIds)
+          if (wh) setWatchedTmdbIds(new Set(wh.map(w => w.movie_id)))
+        }
+
+        setLoading(false)
       })
       .catch(() => {
-        setItems([]);
-        setLoading(false);
-      });
-  }, [tmdbCategory]);
+        setItems([])
+        setLoading(false)
+      })
+  }, [tmdbCategory])
 
-  const scroll = (dir) => {
-    const rail = railRef.current;
-    if (!rail) return;
-    const scrollAmount = rail.clientWidth * 0.75;
-    rail.scrollBy({
-      left: dir === "left" ? -scrollAmount : scrollAmount,
-      behavior: "smooth",
-    });
-  };
+  const scroll = dir => {
+    const rail = railRef.current
+    if (!rail) return
+    const scrollAmount = rail.clientWidth * 0.75
+    rail.scrollBy({ left: dir === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' })
+  }
 
   const handleScroll = () => {
-    const rail = railRef.current;
-    if (!rail) return;
-    setShowLeftArrow(rail.scrollLeft > 10);
-    setShowRightArrow(
-      rail.scrollLeft < rail.scrollWidth - rail.clientWidth - 10
-    );
-  };
+    const rail = railRef.current
+    if (!rail) return
+    setShowLeftArrow(rail.scrollLeft > 10)
+    setShowRightArrow(rail.scrollLeft < rail.scrollWidth - rail.clientWidth - 10)
+  }
 
   useEffect(() => {
-    const rail = railRef.current;
+    const rail = railRef.current
     if (rail) {
-      rail.addEventListener("scroll", handleScroll);
-      handleScroll();
-      return () => rail.removeEventListener("scroll", handleScroll);
+      rail.addEventListener('scroll', handleScroll)
+      handleScroll()
+      return () => rail.removeEventListener('scroll', handleScroll)
     }
-  }, [items]);
+  }, [items])
+
+  // Helper: Ensure movie in DB
+  const ensureMovieInDb = async movie => {
+    await supabase.from('movies').upsert({
+      tmdb_id: movie.id,
+      title: movie.title,
+      poster_path: movie.poster_path,
+      backdrop_path: movie.backdrop_path,
+      release_date: movie.release_date || null,
+      vote_average: movie.vote_average,
+      vote_count: movie.vote_count,
+      popularity: movie.popularity,
+      original_language: movie.original_language,
+      overview: movie.overview
+    }, { onConflict: 'tmdb_id' })
+  }
+
+  // Toggle Watchlist
+  const toggleWatchlist = async (movie, e) => {
+    e.stopPropagation()
+    if (!user) return
+    const tmdbId = movie.id
+    const isInWatchlist = watchlistTmdbIds.has(tmdbId)
+
+    if (isInWatchlist) {
+      setWatchlistTmdbIds(prev => { const n = new Set(prev); n.delete(tmdbId); return n })
+      await supabase.from('user_watchlist').delete().eq('user_id', user.id).eq('movie_id', tmdbId)
+    } else {
+      setWatchlistTmdbIds(prev => new Set(prev).add(tmdbId))
+      setWatchedTmdbIds(prev => { const n = new Set(prev); n.delete(tmdbId); return n })
+      await ensureMovieInDb(movie)
+      await Promise.all([
+        supabase.from('user_watchlist').upsert({ user_id: user.id, movie_id: tmdbId, added_at: new Date().toISOString(), status: 'want_to_watch' }, { onConflict: 'user_id,movie_id' }),
+        supabase.from('movies_watched').delete().eq('user_id', user.id).eq('movie_id', tmdbId)
+      ])
+    }
+  }
 
   const skeletons = Array.from({ length: 6 }).map((_, idx) => (
-    <div
-      key={idx}
-      className="aspect-[2/3] w-[150px] min-w-[150px] sm:w-[180px] sm:min-w-[180px] md:w-[200px] md:min-w-[200px] rounded-md bg-neutral-800/60 animate-pulse flex-shrink-0"
-    />
-  ));
+    <div key={idx} className="flex-shrink-0 w-[140px] sm:w-[160px] md:w-[180px] lg:w-[200px]">
+      <div className="aspect-[2/3] rounded-lg bg-white/10 animate-pulse" />
+    </div>
+  ))
 
   return (
-    <div className="relative group w-full">
-      {/* Header - Desktop padding */}
-      <div className="mb-3 px-4 md:px-12 lg:px-16 xl:px-20">
-        <h2 className="text-base md:text-lg font-bold tracking-tight text-white/95">
+    <section className="relative w-full py-4 md:py-6 px-4 md:px-6 lg:px-8">
+      {/* Header */}
+      <div className="flex items-center gap-2 mb-3 md:mb-4">
+        <h2 className="text-lg md:text-xl font-black bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
           {title}
         </h2>
       </div>
 
       {/* Carousel Container */}
-      <div className="relative w-full">
-        {/* Navigation Arrows - Outside the card zone */}
-        {!loading && (
-          <>
-            {showLeftArrow && (
-              <button
-                onClick={() => scroll("left")}
-                className="hidden lg:flex absolute left-0 top-1/2 -translate-y-1/2 z-40 h-full w-16 items-center justify-start pl-2 bg-gradient-to-r from-black/90 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                aria-label="Previous"
-              >
-                <div className="h-10 w-10 rounded-full bg-black/90 backdrop-blur-md flex items-center justify-center text-white hover:bg-white hover:text-black hover:scale-110 transition-all duration-200 shadow-2xl border border-white/20">
-                  <ChevronLeft className="h-6 w-6" strokeWidth={2.5} />
-                </div>
-              </button>
-            )}
-            {showRightArrow && (
-              <button
-                onClick={() => scroll("right")}
-                className="hidden lg:flex absolute right-0 top-1/2 -translate-y-1/2 z-40 h-full w-16 items-center justify-end pr-2 bg-gradient-to-l from-black/90 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                aria-label="Next"
-              >
-                <div className="h-10 w-10 rounded-full bg-black/90 backdrop-blur-md flex items-center justify-center text-white hover:bg-white hover:text-black hover:scale-110 transition-all duration-200 shadow-2xl border border-white/20">
-                  <ChevronRight className="h-6 w-6" strokeWidth={2.5} />
-                </div>
-              </button>
-            )}
-          </>
+      <div className="relative group/carousel">
+        {/* Left Arrow */}
+        {showLeftArrow && (
+          <button
+            onClick={() => scroll('left')}
+            className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-30 items-center justify-center h-24 w-10 bg-gradient-to-r from-black via-black/90 to-transparent opacity-0 group-hover/carousel:opacity-100 transition-opacity hover:scale-110 active:scale-95"
+            aria-label="Scroll left"
+          >
+            <div className="h-10 w-10 rounded-full bg-black/60 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-purple-600 hover:border-purple-500 transition-all">
+              <ChevronLeft className="h-6 w-6" />
+            </div>
+          </button>
         )}
 
-        {/* Carousel Rail - Desktop padding, mobile stays compact */}
+        {/* Right Arrow */}
+        {showRightArrow && (
+          <button
+            onClick={() => scroll('right')}
+            className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-30 items-center justify-center h-24 w-10 bg-gradient-to-l from-black via-black/90 to-transparent opacity-0 group-hover/carousel:opacity-100 transition-opacity hover:scale-110 active:scale-95"
+            aria-label="Scroll right"
+          >
+            <div className="h-10 w-10 rounded-full bg-black/60 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-purple-600 hover:border-purple-500 transition-all">
+              <ChevronRight className="h-6 w-6" />
+            </div>
+          </button>
+        )}
+
+        {/* Rail */}
         <div
           ref={railRef}
-          className="flex gap-2 md:gap-3 overflow-x-auto scrollbar-hide scroll-smooth pb-4 px-4 md:px-12 lg:px-16 xl:px-20"
-          style={{
-            scrollSnapType: "x mandatory",
-            scrollPaddingLeft: "1rem",
-          }}
-          role="list"
-          aria-label={title}
+          className="flex gap-3 overflow-x-auto scrollbar-hide scroll-smooth"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
-          {loading
-            ? skeletons
-            : items.map((m, idx) => (
-                <MovieCard
-                  key={m.id}
-                  movie={m}
-                  onClick={() => nav(`/movie/${m.id}`)}
-                  index={idx}
-                />
-              ))}
+          {loading ? (
+            skeletons
+          ) : items.length === 0 ? (
+            <div className="w-full py-8 text-center text-white/60 text-sm">No movies found</div>
+          ) : (
+            items.map(movie => {
+              const isInWatchlist = watchlistTmdbIds.has(movie.id)
+              const isWatched = watchedTmdbIds.has(movie.id)
+
+              return (
+                <div key={movie.id} className="group/card relative flex-shrink-0 w-[140px] sm:w-[160px] md:w-[180px] lg:w-[200px]">
+                  <button
+                    onClick={() => nav(`/movie/${movie.id}`)}
+                    className="relative block w-full aspect-[2/3] rounded-lg overflow-hidden bg-white/5 transition-all duration-200 hover:scale-105 hover:shadow-2xl focus:outline-none focus:ring-2 focus:ring-purple-500/50 active:scale-100"
+                  >
+                    <img
+                      src={img(movie.poster_path)}
+                      alt={movie.title}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+
+                    {/* Gradient Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-200" />
+
+                    {/* Info Overlay */}
+                    <div className="absolute bottom-0 left-0 right-0 p-2 translate-y-2 opacity-0 group-hover/card:translate-y-0 group-hover/card:opacity-100 transition-all duration-200">
+                      <h3 className="text-xs font-bold text-white leading-tight line-clamp-2 mb-1">
+                        {movie.title}
+                      </h3>
+                      <div className="flex items-center gap-1.5 text-[10px] text-white/90">
+                        {movie.release_date && (
+                          <span>{new Date(movie.release_date).getFullYear()}</span>
+                        )}
+                        {movie.vote_average > 0 && (
+                          <span className="flex items-center gap-0.5">
+                            <span className="text-yellow-400">★</span>
+                            {movie.vote_average.toFixed(1)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Status Badges (Top Right) */}
+                    <div className="absolute top-2 right-2 flex flex-col gap-1 opacity-0 group-hover/card:opacity-100 transition-opacity duration-200">
+                      {isWatched && (
+                        <div className="h-6 w-6 rounded-full bg-emerald-500/90 backdrop-blur-sm flex items-center justify-center">
+                          <Eye className="h-3.5 w-3.5 text-white" />
+                        </div>
+                      )}
+                      {isInWatchlist && (
+                        <div className="h-6 w-6 rounded-full bg-purple-500/90 backdrop-blur-sm flex items-center justify-center">
+                          <Check className="h-3.5 w-3.5 text-white" />
+                        </div>
+                      )}
+                    </div>
+                  </button>
+
+                  {/* Quick Add to Watchlist Button */}
+                  {user && !isWatched && (
+                    <button
+                      onClick={(e) => toggleWatchlist(movie, e)}
+                      className={`absolute -bottom-2 left-1/2 -translate-x-1/2 z-20 h-7 w-7 rounded-full backdrop-blur-md border shadow-lg flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-all hover:scale-110 active:scale-95 ${
+                        isInWatchlist
+                          ? 'bg-purple-500/90 border-purple-400 text-white'
+                          : 'bg-black/80 border-white/20 text-white/80 hover:bg-purple-600 hover:border-purple-500'
+                      }`}
+                      title={isInWatchlist ? 'In Watchlist' : 'Add to Watchlist'}
+                    >
+                      {isInWatchlist ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                    </button>
+                  )}
+                </div>
+              )
+            })
+          )}
         </div>
       </div>
-    </div>
-  );
-}
-
-/* ===== Movie Card Component ===== */
-function MovieCard({ movie, onClick, index }) {
-  const [isHovered, setIsHovered] = useState(false);
-
-  return (
-    <button
-      onClick={onClick}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      className="group/card relative aspect-[2/3] w-[150px] min-w-[150px] sm:w-[180px] sm:min-w-[180px] md:w-[200px] md:min-w-[200px] flex-shrink-0 overflow-hidden rounded-md bg-neutral-900 transition-all duration-300 hover:scale-105 hover:z-50 hover:shadow-2xl focus:scale-105 focus:z-50 focus:outline-none focus:ring-2 focus:ring-white/50"
-      style={{
-        scrollSnapAlign: "start",
-        transformOrigin: index === 0 ? "left" : "center",
-      }}
-      role="listitem"
-      aria-label={movie.title}
-    >
-      {/* Poster Image */}
-      <img
-        src={img(movie.poster_path)}
-        alt={movie.title}
-        className="absolute inset-0 h-full w-full object-cover"
-        loading="lazy"
-      />
-
-      {/* Multi-layer Shadow */}
-      <div className="absolute inset-0 shadow-[0_4px_12px_rgba(0,0,0,0.5)] group-hover/card:shadow-[0_8px_30px_rgba(0,0,0,0.8)] transition-shadow duration-300" />
-
-      {/* Gradient Overlay - Always visible */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-100">
-        {/* Content Container */}
-        <div className="absolute inset-0 flex flex-col justify-end p-3">
-          {/* Movie Info */}
-          <div className="space-y-1">
-            {/* Title */}
-            <h3 className="text-xs font-bold text-white leading-tight line-clamp-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
-              {movie.title}
-            </h3>
-
-            {/* Metadata Row */}
-            <div className="flex items-center gap-2 text-[10px] text-white/90">
-              {/* Year */}
-              {movie.release_date && (
-                <span className="font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-                  {new Date(movie.release_date).getFullYear()}
-                </span>
-              )}
-
-              {/* Rating Badge */}
-              {movie.vote_average > 0 && (
-                <>
-                  <span className="text-white/40">•</span>
-                  <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-green-500/20 border border-green-500/30 backdrop-blur-sm">
-                    <span className="text-green-400 text-[10px]">★</span>
-                    <span className="text-green-400 font-semibold">
-                      {movie.vote_average.toFixed(1)}
-                    </span>
-                  </div>
-                </>
-              )}
-
-              {/* HD Badge */}
-              <span className="ml-auto px-1.5 py-0.5 rounded bg-white/10 text-white/70 text-[9px] font-bold tracking-wide backdrop-blur-sm">
-                HD
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Hover Border Glow */}
-      <div
-        className={`absolute inset-0 rounded-md transition-all duration-300 ${
-          isHovered
-            ? "ring-2 ring-white/20 ring-offset-2 ring-offset-black/50"
-            : ""
-        }`}
-      />
-    </button>
-  );
+    </section>
+  )
 }

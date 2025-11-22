@@ -15,7 +15,6 @@ export default function HeroSliderSection({ className = '' }) {
   
   // User Data
   const [user, setUser] = useState(null)
-  // We store TMDB IDs in state for easy UI checking against the slide data (which uses TMDB IDs)
   const [watchlistTmdbIds, setWatchlistTmdbIds] = useState(new Set())
   const [watchedTmdbIds, setWatchedTmdbIds] = useState(new Set())
   
@@ -56,42 +55,23 @@ export default function HeroSliderSection({ className = '' }) {
         if (user && movies.length > 0) {
           const tmdbIds = movies.map(m => m.id)
 
-          // 1. Resolve TMDB IDs to Internal IDs
-          const { data: dbMovies } = await supabase
-            .from('movies')
-            .select('id, tmdb_id')
-            .in('tmdb_id', tmdbIds)
+          // Check Watchlist - movie_id stores TMDB ID directly
+          const { data: wl } = await supabase
+            .from('user_watchlist')
+            .select('movie_id')
+            .eq('user_id', user.id)
+            .in('movie_id', tmdbIds)
+          
+          if (wl) setWatchlistTmdbIds(new Set(wl.map(w => w.movie_id)))
 
-          if (dbMovies && dbMovies.length > 0) {
-            const internalToTmdbMap = new Map(dbMovies.map(m => [m.id, m.tmdb_id]))
-            const internalIds = dbMovies.map(m => m.id)
-
-            // 2. Check Watchlist (using Internal IDs)
-            const { data: wl } = await supabase
-              .from('user_watchlist')
-              .select('movie_id')
-              .eq('user_id', user.id)
-              .in('movie_id', internalIds)
-            
-            if (wl) {
-              // Map back to TMDB IDs for UI state
-              const foundTmdbIds = new Set(wl.map(w => internalToTmdbMap.get(w.movie_id)).filter(Boolean))
-              setWatchlistTmdbIds(foundTmdbIds)
-            }
-
-            // 3. Check History (using Internal IDs)
-            const { data: wh } = await supabase
-              .from('movies_watched')
-              .select('movie_id')
-              .eq('user_id', user.id)
-              .in('movie_id', internalIds)
-            
-            if (wh) {
-              // Map back to TMDB IDs for UI state
-              const foundTmdbIds = new Set(wh.map(w => internalToTmdbMap.get(w.movie_id)).filter(Boolean))
-              setWatchedTmdbIds(foundTmdbIds)
-            }
-          }
+          // Check History - movie_id stores TMDB ID directly
+          const { data: wh } = await supabase
+            .from('movies_watched')
+            .select('movie_id')
+            .eq('user_id', user.id)
+            .in('movie_id', tmdbIds)
+          
+          if (wh) setWatchedTmdbIds(new Set(wh.map(w => w.movie_id)))
         }
         
         setLoading(false)
@@ -150,22 +130,14 @@ export default function HeroSliderSection({ className = '' }) {
   }
 
   // --------------------------------------------------
-  // HELPER: Get Internal ID from TMDB ID (Upsert if needed)
+  // HELPER: Ensure Movie Exists in Movies Table
   // --------------------------------------------------
-  const getInternalMovieId = async (movie) => {
-    // Try to find existing movie by TMDB ID
-    const { data: existing } = await supabase
+  const ensureMovieInDb = async (movie) => {
+    // This just ensures the movie exists in the movies table for reference
+    // We don't need the internal ID - we use tmdb_id everywhere
+    await supabase
       .from('movies')
-      .select('id')
-      .eq('tmdb_id', movie.id)
-      .maybeSingle()
-
-    if (existing) return existing.id
-
-    // If not found, insert it
-    const { data: inserted, error } = await supabase
-      .from('movies')
-      .insert({
+      .upsert({
         tmdb_id: movie.id,
         title: movie.title,
         original_title: movie.original_title,
@@ -178,15 +150,7 @@ export default function HeroSliderSection({ className = '' }) {
         popularity: movie.popularity,
         original_language: movie.original_language,
         json_data: movie
-      })
-      .select('id')
-      .single()
-    
-    if (error) {
-      console.error('Error inserting movie:', error)
-      return null
-    }
-    return inserted.id
+      }, { onConflict: 'tmdb_id' })
   }
 
   // --------------------------------------------------
@@ -207,32 +171,35 @@ export default function HeroSliderSection({ className = '' }) {
     const tmdbId = movie.id
     
     if (isInWatchlist) {
-      // REMOVE logic
+      // REMOVE from Watchlist
       setWatchlistTmdbIds(prev => { const n = new Set(prev); n.delete(tmdbId); return n })
       
-      // We need the internal ID to delete
-      const { data: dbMovie } = await supabase.from('movies').select('id').eq('tmdb_id', tmdbId).single()
-      if (dbMovie) {
-        await supabase.from('user_watchlist').delete().eq('user_id', user.id).eq('movie_id', dbMovie.id)
-      }
+      // Delete using TMDB ID directly
+      await supabase
+        .from('user_watchlist')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('movie_id', tmdbId)
     } else {
-      // ADD logic
+      // ADD to Watchlist
       setWatchlistTmdbIds(prev => new Set(prev).add(tmdbId))
-      setWatchedTmdbIds(prev => { const n = new Set(prev); n.delete(tmdbId); return n }) // Optimistic remove from watched
+      setWatchedTmdbIds(prev => { const n = new Set(prev); n.delete(tmdbId); return n })
 
-      const internalId = await getInternalMovieId(movie)
-      if (internalId) {
-        await Promise.all([
-          supabase.from('user_watchlist').upsert({ 
-            user_id: user.id, 
-            movie_id: internalId, // Store INTERNAL ID
-            added_at: new Date().toISOString(), 
-            status: 'want_to_watch' 
-          }, { onConflict: 'user_id, movie_id' }),
-          
-          supabase.from('movies_watched').delete().eq('user_id', user.id).eq('movie_id', internalId)
-        ])
-      }
+      // Ensure movie exists in movies table
+      await ensureMovieInDb(movie)
+
+      // Insert into watchlist using TMDB ID as movie_id
+      await Promise.all([
+        supabase.from('user_watchlist').upsert({ 
+          user_id: user.id, 
+          movie_id: tmdbId, // Store TMDB ID directly
+          added_at: new Date().toISOString(), 
+          status: 'want_to_watch' 
+        }, { onConflict: 'user_id,movie_id' }),
+        
+        // Remove from watched if exists
+        supabase.from('movies_watched').delete().eq('user_id', user.id).eq('movie_id', tmdbId)
+      ])
     }
   }
 
@@ -242,36 +209,40 @@ export default function HeroSliderSection({ className = '' }) {
     const tmdbId = movie.id
 
     if (isWatched) {
-      // REMOVE logic
+      // REMOVE from Watched
       setWatchedTmdbIds(prev => { const n = new Set(prev); n.delete(tmdbId); return n })
       
-      const { data: dbMovie } = await supabase.from('movies').select('id').eq('tmdb_id', tmdbId).single()
-      if (dbMovie) {
-        await supabase.from('movies_watched').delete().eq('user_id', user.id).eq('movie_id', dbMovie.id)
-      }
+      // Delete using TMDB ID directly
+      await supabase
+        .from('movies_watched')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('movie_id', tmdbId)
     } else {
-      // ADD logic
+      // ADD to Watched
       setWatchedTmdbIds(prev => new Set(prev).add(tmdbId))
-      setWatchlistTmdbIds(prev => { const n = new Set(prev); n.delete(tmdbId); return n }) // Optimistic remove from watchlist
+      setWatchlistTmdbIds(prev => { const n = new Set(prev); n.delete(tmdbId); return n })
       
-      const internalId = await getInternalMovieId(movie)
-      if (internalId) {
-        await Promise.all([
-          supabase.from('movies_watched').upsert({
-            user_id: user.id,
-            movie_id: internalId, // Store INTERNAL ID
-            title: movie.title,
-            poster: movie.poster_path,
-            release_date: movie.release_date || null,
-            vote_average: movie.vote_average,
-            genre_ids: movie.genre_ids,
-            watched_at: new Date().toISOString(),
-            source: 'hero_slider'
-          }, { onConflict: 'user_id, movie_id' }),
-          
-          supabase.from('user_watchlist').delete().eq('user_id', user.id).eq('movie_id', internalId)
-        ])
-      }
+      // Ensure movie exists in movies table
+      await ensureMovieInDb(movie)
+
+      // Insert into watched using TMDB ID as movie_id
+      await Promise.all([
+        supabase.from('movies_watched').upsert({
+          user_id: user.id,
+          movie_id: tmdbId, // Store TMDB ID directly
+          title: movie.title,
+          poster: movie.poster_path,
+          release_date: movie.release_date || null,
+          vote_average: movie.vote_average,
+          genre_ids: movie.genre_ids,
+          watched_at: new Date().toISOString(),
+          source: 'hero_slider'
+        }, { onConflict: 'user_id,movie_id' }),
+        
+        // Remove from watchlist if exists
+        supabase.from('user_watchlist').delete().eq('user_id', user.id).eq('movie_id', tmdbId)
+      ])
     }
   }
 
@@ -304,20 +275,10 @@ export default function HeroSliderSection({ className = '' }) {
         >
           {slides.map((movie, idx) => {
             const bg = tmdbImg(movie.backdrop_path || movie.poster_path, 'original')
-            let opacityClass = 'opacity-0 z-0 scale-105'
-            if (idx === currentIndex) opacityClass = 'opacity-100 z-10 scale-100'
-            
+            const opacityClass = idx === currentIndex ? 'opacity-100 z-10 scale-100' : 'opacity-0 z-0 scale-105'
             return (
-              <div 
-                key={movie.id}
-                className={`absolute inset-0 transition-all duration-500 ease-out ${opacityClass}`}
-              >
-                <img 
-                  src={bg} 
-                  alt={movie.title} 
-                  className="absolute inset-0 h-full w-full object-cover pointer-events-none select-none"
-                  loading={idx === 0 ? "eager" : "lazy"}
-                />
+              <div key={movie.id} className={`absolute inset-0 transition-all duration-500 ease-out ${opacityClass}`}>
+                <img src={bg} alt={movie.title} className="absolute inset-0 h-full w-full object-cover pointer-events-none select-none" loading={idx === 0 ? "eager" : "lazy"} />
               </div>
             )
           })}

@@ -83,6 +83,7 @@ export default function MovieDetail() {
         setImages({ backdrops: i?.backdrops?.slice(0, 6) || [] })
         setKeywords(k?.keywords?.slice(0, 12) || [])
 
+        // Get US certification
         const usCert = rel?.results?.find(r => r.iso_3166_1 === 'US')?.release_dates?.[0]?.certification
         setCertification(usCert || '')
 
@@ -173,6 +174,7 @@ export default function MovieDetail() {
   // --- ACTION HANDLERS ---
 
   async function ensureMovieInDb(movieData) {
+    // Uses TMDB ID as unique key
     await supabase
       .from('movies')
       .upsert({
@@ -198,9 +200,11 @@ export default function MovieDetail() {
 
     try {
       if (isInWatchlist) {
+        // Remove from Watchlist
         await supabase.from('user_watchlist').delete().eq('user_id', user.id).eq('movie_id', tmdbId)
         setIsInWatchlist(false)
       } else {
+        // Add to Watchlist (and remove from Watched to enforce exclusivity)
         setIsInWatchlist(true)
         setIsWatched(false) // Optimistic update
 
@@ -218,6 +222,7 @@ export default function MovieDetail() {
       }
     } catch (e) {
       console.warn('watchlist toggle failed', e)
+      // Revert optimistic update on error could be added here
     } finally {
       setMutating(false)
     }
@@ -230,9 +235,11 @@ export default function MovieDetail() {
 
     try {
       if (isWatched) {
+        // Remove from History
         await supabase.from('movies_watched').delete().eq('user_id', user.id).eq('movie_id', tmdbId)
         setIsWatched(false)
       } else {
+        // Mark as Watched (and remove from Watchlist)
         setIsWatched(true)
         setIsInWatchlist(false) // Optimistic update
 
@@ -265,202 +272,245 @@ export default function MovieDetail() {
   const runtime = formatRuntime(movie?.runtime)
 
   return (
-    // REMOVED: style={{ marginTop: 'var(--hdr-h, 64px)' }} on the main image container
     <div className="relative bg-black text-white min-h-screen pb-20 md:pb-8">
-      
-      {/* Hero Section - Full Bleed */}
-      <div className="relative w-full h-[70vh] md:h-[80vh]"> {/* Increased height for better impact */}
-        
-        {/* Backdrop - Absolute top 0 */}
-        <div className="absolute inset-0">
-          {movie?.backdrop_path ? (
-            <img
-              src={IMG.backdrop(movie.backdrop_path)}
-              alt=""
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full bg-neutral-900" />
-          )}
-          
-          {/* Gradients - Same as HeroSlider */}
-          <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-black via-black/70 to-transparent z-10" />
-          <div className="absolute inset-y-0 left-0 w-full md:w-3/5 bg-gradient-to-r from-black via-black/70 md:via-black/40 to-transparent z-10" />
-          <div className="absolute bottom-0 inset-x-0 h-4/5 bg-gradient-to-t from-black via-black/90 to-transparent z-10" />
-        </div>
+      {/* Hero Section - Fixed header clearance */}
+      <div className="relative w-full">
+        <div className="relative h-[55vh] md:h-[60vh]" style={{ marginTop: 'var(--hdr-h, 64px)' }}>
+          {/* Backdrop */}
+          <div className="absolute inset-0">
+            {movie?.backdrop_path ? (
+              <img
+                src={IMG.backdrop(movie.backdrop_path)}
+                alt=""
+                className="w-full h-full object-cover loading-eager"
+              />
+            ) : (
+              <div className="w-full h-full bg-neutral-900" />
+            )}
+            {/* Enhanced Gradients */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/90 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black via-black/75 md:via-black/60 to-transparent" />
+            <div className="absolute bottom-0 inset-x-0 h-35 bg-gradient-to-t from-black to-transparent" />
+          </div>
 
-        {/* Content Overlay */}
-        <div className="absolute inset-0 z-20 flex flex-col justify-end pb-8 md:pb-12 pt-24"> {/* Added pt-24 for header clearance */}
-          <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-12 w-full">
-            <div className="grid grid-cols-1 md:grid-cols-[auto,1fr] gap-6 md:gap-10 items-end">
-              
-              {/* Poster - Desktop Only */}
-              <div className="hidden md:block flex-shrink-0">
-                <div className="rounded-xl overflow-hidden ring-1 ring-white/20 shadow-[0_0_50px_rgba(0,0,0,0.5)]">
-                  {movie?.poster_path ? (
-                    <img
-                      src={IMG.poster(movie.poster_path)}
-                      alt={movie?.title}
-                      className="w-[220px] lg:w-[260px] aspect-[2/3] object-cover"
-                    />
-                  ) : (
-                    <div className="w-[220px] lg:w-[260px] aspect-[2/3] grid place-items-center bg-white/5 text-white/40 text-xs">
-                      No poster
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Info */}
-              <div className="space-y-4 md:space-y-6 max-w-4xl">
-                {loading ? (
-                  <div className="animate-pulse space-y-4">
-                    <div className="h-12 w-3/4 rounded bg-white/10" />
-                    <div className="h-6 w-1/2 rounded bg-white/10" />
-                  </div>
-                ) : error ? (
-                  <div className="rounded-lg bg-red-500/10 p-4 text-red-300 text-sm border border-red-500/20">{error}</div>
-                ) : (
-                  <>
-                    {/* Title Block */}
-                    <div className="space-y-2">
-                      <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight leading-[1.1] drop-shadow-2xl">
-                        {movie?.title}
-                      </h1>
-                      
-                      {/* Tagline */}
-                      {movie?.tagline && (
-                        <p className="text-lg text-white/80 font-medium italic drop-shadow-md">
-                          "{movie.tagline}"
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Meta Row */}
-                    <div className="flex flex-wrap items-center gap-3 text-sm md:text-base font-medium">
-                      {rating && (
-                        <div className="flex items-center gap-1.5 text-purple-400">
-                          <Star className="h-4 w-4 fill-current" />
-                          <span className="text-white font-bold">{rating}</span>
-                        </div>
-                      )}
-                      {year && <span className="text-white/90">{year}</span>}
-                      {runtime && (
-                        <div className="flex items-center gap-1.5 text-white/70">
-                          <span className="w-1 h-1 rounded-full bg-white/40" />
-                          {runtime}
-                        </div>
-                      )}
-                      {certification && (
-                        <span className="px-2 py-0.5 rounded border border-white/30 text-white/80 text-xs font-bold">
-                          {certification}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Genres */}
-                    {movie?.genres?.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {movie.genres.slice(0, 4).map(g => (
-                          <span key={g.id} className="px-3 py-1 rounded-full bg-white/10 border border-white/10 text-white/90 text-xs font-medium backdrop-blur-sm">
-                            {g.name}
-                          </span>
-                        ))}
+          {/* Content */}
+          <div className="absolute inset-0 flex flex-col justify-end pb-6 md:pb-10">
+            <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-12 w-full">
+              <div className="grid grid-cols-1 md:grid-cols-[auto,1fr] gap-4 md:gap-6 items-end max-w-6xl">
+                
+                {/* Poster - Compact */}
+                <div className="hidden md:block">
+                  <div className="overflow-hidden rounded-md ring-2 ring-white/20 shadow-2xl">
+                    {movie?.poster_path ? (
+                      <img
+                        src={IMG.poster(movie.poster_path)}
+                        alt={movie?.title}
+                        className="h-[260px] w-[173px] lg:h-[300px] lg:w-[200px] object-cover loading-eager"
+                      />
+                    ) : (
+                      <div className="h-[260px] w-[173px] lg:h-[300px] lg:w-[200px] grid place-items-center bg-white/5 text-white/40 text-xs">
+                        No poster
                       </div>
                     )}
+                  </div>
+                </div>
 
-                    {/* Overview */}
-                    {movie?.overview && (
-                      <p className="hidden md:block text-white/80 text-base md:text-lg leading-relaxed line-clamp-3 max-w-3xl drop-shadow-md">
-                        {movie.overview}
-                      </p>
-                    )}
+                {/* Info */}
+                <div className="max-w-3xl space-y-2">
+                  {loading ? (
+                    <div className="animate-pulse space-y-2">
+                      <div className="h-10 w-3/4 rounded bg-white/20" />
+                      <div className="h-5 w-1/2 rounded bg-white/15" />
+                    </div>
+                  ) : error ? (
+                    <div className="rounded-lg bg-red-500/10 p-3 text-red-300 text-sm">{error}</div>
+                  ) : (
+                    <>
+                      {/* Title & Status Badges */}
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h1 className="text-2xl sm:text-3xl md:text-4xl font-black leading-tight tracking-tight drop-shadow-2xl">
+                          {movie?.title}
+                        </h1>
+                        
+                        {isInWatchlist && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-500/20 border border-purple-500/30 text-[10px] font-bold text-purple-300">
+                            <Bookmark className="h-3 w-3" />
+                            Watchlist
+                          </span>
+                        )}
+                        {isWatched && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/20 border border-green-500/30 text-[10px] font-bold text-green-300">
+                            <Check className="h-3 w-3" />
+                            Watched
+                          </span>
+                        )}
+                      </div>
 
-                    {/* Actions */}
-                    <div className="flex flex-wrap items-center gap-3 pt-2">
-                      {ytTrailer && (
-                        <a
-                          href={ytTrailer}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center gap-2 h-12 px-6 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold shadow-lg shadow-purple-900/20 transition-all hover:scale-105 active:scale-95"
-                        >
-                          <Play className="h-5 w-5 fill-current" />
-                          Watch Trailer
-                        </a>
+                      {/* Tagline */}
+                      {movie?.tagline && (
+                        <p className="text-sm text-white/70 italic leading-tight">
+                          {movie.tagline}
+                        </p>
                       )}
 
-                      <button
-                        disabled={mutating}
-                        onClick={toggleWatchlist}
-                        className={`inline-flex items-center justify-center h-12 px-6 rounded-xl font-bold transition-all border backdrop-blur-md ${
-                          isInWatchlist 
-                            ? 'bg-purple-500/20 border-purple-500/50 text-purple-300' 
-                            : 'bg-white/10 border-white/10 text-white hover:bg-white/20'
-                        }`}
-                      >
-                        {isInWatchlist ? <Check className="h-5 w-5 mr-2" /> : <Plus className="h-5 w-5 mr-2" />}
-                        {isInWatchlist ? 'In Watchlist' : 'Watchlist'}
-                      </button>
+                      {/* Director */}
+                      {director && (
+                        <p className="text-xs text-white/80">
+                          Directed by <span className="font-semibold text-white/95">{director.name}</span>
+                        </p>
+                      )}
 
-                      <button
-                        disabled={mutating}
-                        onClick={toggleWatched}
-                        className={`inline-flex items-center justify-center h-12 w-12 rounded-xl transition-all border backdrop-blur-md ${
-                          isWatched 
-                            ? 'bg-green-500/20 border-green-500/50 text-green-300' 
-                            : 'bg-white/10 border-white/10 text-white hover:bg-white/20'
-                        }`}
-                        title={isWatched ? 'Mark as Unwatched' : 'Mark as Watched'}
-                      >
-                        {isWatched ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
-                      </button>
+                      {/* Meta - Compact badges */}
+                      <div className="flex flex-wrap items-center gap-2 text-xs">
+                        {rating && (
+                          <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-400/30">
+                            <Star className="h-3 w-3 fill-current text-purple-400" />
+                            <span className="text-purple-300 font-bold">{rating}</span>
+                          </div>
+                        )}
+                        {certification && (
+                          <span className="px-2 py-0.5 rounded border border-white/30 text-white/90 font-bold">
+                            {certification}
+                          </span>
+                        )}
+                        {year && (
+                          <span className="inline-flex items-center gap-1 text-white/80 font-medium">
+                            <Calendar className="h-3 w-3" />
+                            {year}
+                          </span>
+                        )}
+                        {runtime && (
+                          <span className="inline-flex items-center gap-1 text-white/80 font-medium">
+                            <Clock className="h-3 w-3" />
+                            {runtime}
+                          </span>
+                        )}
+                      </div>
 
-                      <button
-                        onClick={() => navigator.share?.({ title: movie?.title, text: movie?.overview, url: window.location.href })}
-                        className="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-white/10 border border-white/10 text-white hover:bg-white/20 transition-all backdrop-blur-md"
-                      >
-                        <Share2 className="h-5 w-5" />
-                      </button>
-                    </div>
-                  </>
-                )}
+                      {/* Genres - Badge style */}
+                      {movie?.genres?.length > 0 && (
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {movie.genres.slice(0, 4).map(g => (
+                            <span key={g.id} className="px-2 py-0.5 rounded bg-white/10 text-white/70 text-[11px] font-medium">
+                              {g.name}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Overview - 2 lines */}
+                      {movie?.overview && (
+                        <p className="hidden md:block text-sm text-white/90 leading-relaxed line-clamp-2 max-w-2xl drop-shadow-lg">
+                          {movie.overview}
+                        </p>
+                      )}
+
+                      {/* Actions */}
+                      <div className="flex flex-wrap items-center gap-2 pt-1">
+                        {ytTrailer && (
+                          <a
+                            href={ytTrailer}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 px-5 py-2 text-sm font-bold text-white shadow-xl transition-all active:scale-95"
+                          >
+                            <Play className="h-4 w-4 fill-current" />
+                            Trailer
+                          </a>
+                        )}
+
+                        <button
+                          disabled={mutating}
+                          onClick={toggleWatchlist}
+                          className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-bold transition-all active:scale-95 disabled:opacity-50 backdrop-blur border shadow-lg ${
+                            isInWatchlist 
+                              ? 'bg-purple-500/20 border-purple-500 text-purple-300' 
+                              : 'bg-white/10 hover:bg-white/20 border-white/20 text-white'
+                          }`}
+                        >
+                          {isInWatchlist ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                          <span className="hidden xs:inline">{isInWatchlist ? 'In Watchlist' : 'Watchlist'}</span>
+                        </button>
+
+                        <button
+                          disabled={mutating}
+                          onClick={toggleWatched}
+                          className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-bold transition-all active:scale-95 disabled:opacity-50 backdrop-blur border shadow-lg ${
+                            isWatched 
+                              ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300' 
+                              : 'bg-white/10 hover:bg-white/20 border-white/20 text-white'
+                          }`}
+                        >
+                          {isWatched ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                          <span className="hidden xs:inline">{isWatched ? 'Watched' : 'Mark Watched'}</span>
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            if (navigator.share) {
+                              navigator.share({
+                                title: movie?.title,
+                                text: movie?.overview,
+                                url: window.location.href,
+                              })
+                            }
+                          }}
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-white/10 backdrop-blur px-3 py-2 text-sm font-bold hover:bg-white/20 transition-all active:scale-95 border border-white/20"
+                        >
+                          <Share2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Content Sections */}
-      <div className="relative z-30 mt-8 md:mt-12">
+      {/* Content Sections - Fixed mobile spacing */}
+      <div className="relative mt-4 md:-mt-8 z-30">
         <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-12">
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr,320px] xl:grid-cols-[1fr,360px] gap-8 lg:gap-12">
+          
+          {/* Two Column Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr,300px] xl:grid-cols-[1fr,340px] gap-6">
             
             {/* Main Content */}
-            <div className="space-y-10 min-w-0">
-              {/* Mobile Overview */}
+            <div className="space-y-6 min-w-0">
+              
+              {/* Overview - Mobile only with proper spacing */}
               {movie?.overview && (
-                <div className="md:hidden">
-                  <h2 className="text-xl font-bold mb-3">Overview</h2>
-                  <p className="text-white/80 leading-relaxed">{movie.overview}</p>
+                <div className="md:hidden rounded-lg bg-white/5 backdrop-blur border border-white/10 p-4">
+                  <h2 className="text-base font-bold mb-2">Overview</h2>
+                  <p className="text-sm text-white/85 leading-relaxed">
+                    {movie.overview}
+                  </p>
                 </div>
               )}
 
-              {/* Mobile Providers */}
+              {/* Where to Watch - Mobile Priority shows at top */}
               <div className="lg:hidden">
                 <WhereToWatch providers={providers} />
               </div>
 
+              {/* Cast */}
               {credits.cast?.length > 0 && <CastSection cast={credits.cast} />}
+
+              {/* Videos */}
               {videos?.length > 0 && <VideosSection videos={videos} />}
+
+              {/* Images Gallery */}
               {images.backdrops?.length > 0 && <ImagesSection images={images.backdrops} />}
+
+              {/* Recommended */}
               {recs?.length > 0 && <Rail title="You Might Also Like" items={recs} />}
             </div>
 
-            {/* Sidebar */}
-            <div className="hidden lg:block space-y-6">
+            {/* Sidebar - Desktop Only */}
+            <div className="hidden lg:block space-y-4 lg:sticky lg:top-20 lg:self-start">
               <WhereToWatch providers={providers} />
-              <MovieDetails movie={movie} director={director} />
+              <MovieDetails movie={movie} />
               {movie?.production_companies?.length > 0 && <ProductionCompanies companies={movie.production_companies} />}
               {keywords?.length > 0 && <KeywordsSection keywords={keywords} />}
               {movie?.belongs_to_collection && <CollectionCard collection={movie.belongs_to_collection} />}
@@ -473,30 +523,44 @@ export default function MovieDetail() {
   )
 }
 
-// --- Component Helpers ---
+// --- Components ---
 
 function WhereToWatch({ providers }) {
+  // Only show if flatrate streaming is available
   if (!providers.flatrate?.length) return null
+
   return (
-    <div className="p-5 rounded-2xl bg-neutral-900/50 border border-white/5">
-      <h3 className="font-bold mb-4 flex items-center gap-2 text-purple-300">
-        <Tv2 className="h-4 w-4" /> Where to Watch
-      </h3>
-      <div className="flex flex-wrap gap-3">
+    <div className="rounded-lg bg-white/5 backdrop-blur border border-white/10 p-4">
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-sm font-bold flex items-center gap-2">
+          <Tv2 className="h-4 w-4" />
+          Where to Watch
+        </h2>
+      </div>
+      <div className="flex flex-wrap gap-2">
         {providers.flatrate.map((p) => (
-          <div key={p.provider_id} className="w-12 h-12 rounded-xl bg-white/5 p-2 border border-white/5" title={p.provider_name}>
-            <img src={IMG.logo(p.logo_path)} alt={p.provider_name} className="w-full h-full object-contain rounded-md" />
+          <div key={p.provider_id} className="w-12 h-12 rounded-md bg-white/10 border border-white/10 p-1.5 flex items-center justify-center hover:scale-110 transition-transform" title={p.provider_name}>
+            {p.logo_path ? (
+              <img src={IMG.logo(p.logo_path)} alt={p.provider_name} className="w-full h-full object-contain loading-lazy" />
+            ) : (
+              <span className="text-[8px] text-white/60 text-center leading-tight">{p.provider_name}</span>
+            )}
           </div>
         ))}
       </div>
-      <p className="text-[10px] text-white/30 mt-3">Data via JustWatch</p>
+      {providers.link && (
+        <a href={providers.link} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-white/70 hover:text-white transition-colors">
+          More options
+          <ChevronRight className="h-3 w-3" />
+        </a>
+      )}
+      <p className="text-[10px] text-white/40 mt-2">via JustWatch</p>
     </div>
   )
 }
 
-function MovieDetails({ movie, director }) {
+function MovieDetails({ movie }) {
   const details = [
-    { label: 'Director', value: director?.name },
     { label: 'Budget', value: movie?.budget ? `$${(movie.budget / 1000000).toFixed(1)}M` : null },
     { label: 'Revenue', value: movie?.revenue ? `$${(movie.revenue / 1000000).toFixed(1)}M` : null },
     { label: 'Status', value: movie?.status },
@@ -504,14 +568,15 @@ function MovieDetails({ movie, director }) {
   ].filter(d => d.value)
 
   if (!details.length) return null
+
   return (
-    <div className="p-5 rounded-2xl bg-neutral-900/50 border border-white/5">
-      <h3 className="font-bold mb-4 text-purple-300">Details</h3>
-      <div className="space-y-3">
+    <div className="rounded-lg bg-white/5 backdrop-blur border border-white/10 p-4">
+      <h2 className="text-sm font-bold mb-3">Details</h2>
+      <div className="space-y-2">
         {details.map((d, i) => (
-          <div key={i} className="flex justify-between text-sm border-b border-white/5 pb-2 last:border-0 last:pb-0">
-            <span className="text-white/50">{d.label}</span>
-            <span className="text-white font-medium">{d.value}</span>
+          <div key={i} className="flex justify-between text-xs">
+            <span className="text-white/60">{d.label}</span>
+            <span className="text-white/90 font-medium">{d.value}</span>
           </div>
         ))}
       </div>
@@ -523,15 +588,15 @@ function ProductionCompanies({ companies }) {
   const top = companies.slice(0, 3)
   if (!top.length) return null
   return (
-    <div className="p-5 rounded-2xl bg-neutral-900/50 border border-white/5">
-      <h3 className="font-bold mb-4 text-purple-300">Production</h3>
+    <div className="rounded-lg bg-white/5 backdrop-blur border border-white/10 p-4">
+      <h2 className="text-sm font-bold mb-3">Production</h2>
       <div className="flex flex-wrap gap-3">
         {top.map(c => (
-          <div key={c.id} className="h-10 px-3 rounded-lg bg-white/10 flex items-center justify-center border border-white/5">
+          <div key={c.id} className="flex items-center justify-center h-12 px-3 rounded bg-white/10 border border-white/10" title={c.name}>
             {c.logo_path ? (
-              <img src={IMG.logo(c.logo_path)} alt={c.name} className="h-5 w-auto object-contain brightness-0 invert" />
+              <img src={IMG.logo(c.logo_path)} alt={c.name} className="max-h-8 max-w-[80px] object-contain loading-lazy" />
             ) : (
-              <span className="text-xs text-white/70">{c.name}</span>
+              <span className="text-[10px] text-white/70 text-center">{c.name}</span>
             )}
           </div>
         ))}
@@ -543,13 +608,14 @@ function ProductionCompanies({ companies }) {
 function KeywordsSection({ keywords }) {
   if (!keywords?.length) return null
   return (
-    <div className="p-5 rounded-2xl bg-neutral-900/50 border border-white/5">
-      <h3 className="font-bold mb-4 flex items-center gap-2 text-purple-300">
-        <Tag className="h-4 w-4" /> Keywords
-      </h3>
-      <div className="flex flex-wrap gap-2">
+    <div className="rounded-lg bg-white/5 backdrop-blur border border-white/10 p-4">
+      <h2 className="text-sm font-bold mb-3 flex items-center gap-2">
+        <Tag className="h-4 w-4" />
+        Keywords
+      </h2>
+      <div className="flex flex-wrap gap-1.5">
         {keywords.map(k => (
-          <span key={k.id} className="px-3 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-xs text-white/70 transition-colors cursor-default border border-white/5">
+          <span key={k.id} className="px-2 py-1 rounded bg-white/10 text-white/70 text-[11px] font-medium hover:bg-white/20 transition-colors cursor-pointer">
             {k.name}
           </span>
         ))}
@@ -561,117 +627,123 @@ function KeywordsSection({ keywords }) {
 function CollectionCard({ collection }) {
   const navigate = useNavigate()
   return (
-    <div className="p-5 rounded-2xl bg-neutral-900/50 border border-white/5 group cursor-pointer" onClick={() => navigate(`/collection/${collection.id}`)}>
-      <h3 className="font-bold mb-4 text-purple-300">Part of a Collection</h3>
-      <div className="relative aspect-video rounded-xl overflow-hidden">
+    <div className="rounded-lg bg-white/5 backdrop-blur border border-white/10 p-4 overflow-hidden">
+      <h2 className="text-sm font-bold mb-2">Part of a Collection</h2>
+      <div className="relative aspect-16/9 rounded overflow-hidden mb-2">
         {collection.backdrop_path ? (
-          <img src={IMG.backdrop(collection.backdrop_path)} alt={collection.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+          <img src={IMG.backdrop(collection.backdrop_path)} alt={collection.name} className="w-full h-full object-cover loading-lazy" />
         ) : (
           <div className="w-full h-full bg-white/10" />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 to-transparent" />
-        <div className="absolute bottom-3 left-3 right-3">
-          <p className="font-bold text-white group-hover:text-purple-300 transition-colors">{collection.name}</p>
-          <p className="text-xs text-white/60 flex items-center gap-1 mt-1">
-            View Collection <ChevronRight className="h-3 w-3" />
-          </p>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+        <div className="absolute bottom-2 left-2 right-2">
+          <p className="text-xs font-bold text-white line-clamp-2">{collection.name}</p>
         </div>
       </div>
+      <button onClick={() => navigate(`/collection/${collection.id}`)} className="w-full text-xs font-semibold text-white/70 hover:text-white transition-colors flex items-center justify-center gap-1">
+        View Collection <ChevronRight className="h-3 w-3" />
+      </button>
     </div>
   )
 }
 
 function CastSection({ cast }) {
   return (
-    <section>
-      <h2 className="text-xl font-bold mb-4 flex items-center gap-2">Top Cast</h2>
-      <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
+    <div>
+      <h2 className="text-base font-bold mb-3">Top Cast</h2>
+      <div className="flex gap-3 overflow-x-auto pb-3 scrollbar-hide px-0.5">
         {cast.map(p => (
-          <div key={p.id} className="flex-shrink-0 w-32 group">
-            <div className="aspect-[2/3] rounded-xl overflow-hidden bg-white/5 mb-3 shadow-md">
+          <div key={p.id} className="flex-shrink-0 w-[100px] group">
+            <div className="aspect-[2/3] overflow-hidden rounded-md bg-white/5 border border-white/10 mb-2 shadow-md">
               {p.profile_path ? (
-                <img src={IMG.profile(p.profile_path)} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                <img src={IMG.profile(p.profile_path)} alt={p.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300 loading-lazy" />
               ) : (
-                <div className="w-full h-full grid place-items-center text-white/20 text-xs">No Image</div>
+                <div className="w-full h-full grid place-items-center text-white/30 text-xs">No photo</div>
               )}
             </div>
-            <h3 className="font-bold text-sm truncate group-hover:text-purple-400 transition-colors">{p.name}</h3>
-            <p className="text-xs text-white/50 truncate">{p.character}</p>
+            <h3 className="text-xs font-bold text-white/90 line-clamp-2 leading-tight mb-0.5">{p.name}</h3>
+            <p className="text-[10px] text-white/60 line-clamp-1">{p.character}</p>
           </div>
         ))}
       </div>
-    </section>
+    </div>
   )
 }
 
 function VideosSection({ videos }) {
-  const filtered = videos.filter(v => v.site === 'YouTube').slice(0, 4)
+  const filtered = videos.filter(v => v.site === 'YouTube').slice(0, 6)
   if (!filtered.length) return null
+
   return (
-    <section>
-      <h2 className="text-xl font-bold mb-4 flex items-center gap-2">Videos</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div>
+      <h2 className="text-base font-bold mb-3 flex items-center gap-2">
+        <Film className="h-4 w-4" />
+        Videos & Trailers
+      </h2>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
         {filtered.map(v => (
-          <a key={v.id} href={`https://www.youtube.com/watch?v=${v.key}`} target="_blank" rel="noreferrer" className="group relative aspect-video rounded-xl overflow-hidden bg-white/5 ring-1 ring-white/10 hover:ring-purple-500/50 transition-all">
-            <img src={`https://img.youtube.com/vi/${v.key}/mqdefault.jpg`} alt={v.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-            <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center">
-              <div className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center group-hover:scale-110 transition-transform border border-white/20">
-                <Play className="h-6 w-6 fill-white text-white ml-1" />
+          <a key={v.id} href={`https://www.youtube.com/watch?v=${v.key}`} target="_blank" rel="noreferrer" className="group relative aspect-video rounded-md overflow-hidden bg-white/5 border border-white/10">
+            <img src={`https://img.youtube.com/vi/${v.key}/mqdefault.jpg`} alt={v.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 loading-lazy" />
+            <div className="absolute inset-0 bg-black/40 group-hover:bg-black/60 transition-colors flex items-center justify-center">
+              <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center group-hover:scale-110 transition-transform shadow-xl">
+                <Play className="h-5 w-5 fill-current text-black ml-0.5" />
               </div>
             </div>
-            <div className="absolute bottom-0 inset-x-0 p-3 bg-gradient-to-t from-black/90 to-transparent">
-              <p className="text-sm font-medium truncate">{v.name}</p>
+            <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black to-transparent">
+              <p className="text-[10px] font-bold text-white line-clamp-2 leading-tight">{v.name}</p>
             </div>
           </a>
         ))}
       </div>
-    </section>
+    </div>
   )
 }
 
 function ImagesSection({ images }) {
   if (!images?.length) return null
   return (
-    <section>
-      <h2 className="text-xl font-bold mb-4 flex items-center gap-2">Backdrops</h2>
-      <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
+    <div>
+      <h2 className="text-base font-bold mb-3 flex items-center gap-2">
+        <ImageIcon className="h-4 w-4" />
+        Images
+      </h2>
+      <div className="flex gap-3 overflow-x-auto pb-3 scrollbar-hide px-0.5">
         {images.map((img, idx) => (
-          <div key={idx} className="flex-shrink-0 w-64 aspect-video rounded-xl overflow-hidden bg-white/5 shadow-lg hover:ring-1 hover:ring-purple-500/50 transition-all">
-            <img src={IMG.still(img.file_path)} alt="" className="w-full h-full object-cover" />
+          <div key={idx} className="flex-shrink-0 w-[200px] md:w-[240px] aspect-video rounded-md overflow-hidden bg-white/5 border border-white/10 shadow-md group">
+            <img src={IMG.still(img.file_path)} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 loading-lazy" />
           </div>
         ))}
       </div>
-    </section>
+    </div>
   )
 }
 
 function Rail({ title, items }) {
   const navigate = useNavigate()
   if (!items?.length) return null
+
   return (
-    <section>
-      <h2 className="text-xl font-bold mb-4">{title}</h2>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+    <div>
+      <h2 className="text-base font-bold mb-3">{title}</h2>
+      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-5 gap-3">
         {items.map(m => (
-          <div key={m.id} onClick={() => navigate(`/movie/${m.id}`)} className="group cursor-pointer">
-            <div className="aspect-[2/3] rounded-xl overflow-hidden bg-white/5 mb-2 shadow-lg relative">
+          <button key={m.id} onClick={() => navigate(`/movie/${m.id}`)} className="group text-left" title={m.title}>
+            <div className="aspect-[2/3] overflow-hidden rounded-md bg-white/5 border border-white/10 mb-2 shadow-md group-hover:scale-105 group-hover:shadow-xl transition-all duration-300">
               {m.poster_path ? (
-                <img src={`https://image.tmdb.org/t/p/w342${m.poster_path}`} alt={m.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                <img src={`https://image.tmdb.org/t/p/w342${m.poster_path}`} alt={m.title} className="w-full h-full object-cover loading-lazy" />
               ) : (
-                <div className="w-full h-full grid place-items-center text-white/20">No Poster</div>
-              )}
-              {m.vote_average > 0 && (
-                <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded-md bg-black/60 backdrop-blur text-[10px] font-bold flex items-center gap-1 border border-white/10">
-                  <Star className="h-2.5 w-2.5 fill-purple-500 text-purple-500" />
-                  {m.vote_average.toFixed(1)}
-                </div>
+                <div className="w-full h-full grid place-items-center text-white/30 text-xs">No poster</div>
               )}
             </div>
-            <h3 className="text-sm font-bold leading-tight group-hover:text-purple-400 transition-colors line-clamp-1">{m.title}</h3>
-            <p className="text-xs text-white/40">{yearOf(m.release_date)}</p>
-          </div>
+            <h3 className="text-xs font-bold text-white/90 line-clamp-2 leading-tight mb-0.5">{m.title}</h3>
+            {m.vote_average > 0 && (
+              <p className="text-[10px] text-white/60 flex items-center gap-0.5">
+                <span className="text-purple-400">★</span> {Math.round(m.vote_average * 10) / 10}
+              </p>
+            )}
+          </button>
         ))}
       </div>
-    </section>
+    </div>
   )
 }

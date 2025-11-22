@@ -1,7 +1,23 @@
 // src/features/landing/components/Footer.jsx
 import { useEffect, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Twitter, Instagram, Youtube } from 'lucide-react'
+import { Instagram } from 'lucide-react'
+
+// Custom TikTok Icon since lucide-react doesn't have it yet
+const TikTokIcon = ({ className }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
+  </svg>
+)
 
 /**
  * 🎬 FOOTER
@@ -34,8 +50,7 @@ export default function Footer() {
       const element = document.getElementById(sectionId)
       if (element) {
         const offset = 80
-        const elementPosition =
-          element.getBoundingClientRect().top + window.scrollY
+        const elementPosition = element.getBoundingClientRect().top + window.scrollY
         window.scrollTo({
           top: elementPosition - offset,
           behavior: 'smooth',
@@ -52,102 +67,73 @@ export default function Footer() {
   }
 
   return (
-    <footer
-      ref={barRef}
-      className="relative bg-black border-t border-white/10 py-12 sm:py-16"
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-          <div className="md:col-span-1">
-            <Link
-              to="/"
-              onClick={(e) => {
-                e.preventDefault()
-                if (location.pathname === '/') {
-                  window.scrollTo({ top: 0, behavior: 'smooth' })
-                } else {
-                  navigate('/')
-                  setTimeout(
-                    () =>
-                      window.scrollTo({
-                        top: 0,
-                        behavior: 'auto',
-                      }),
-                    0,
-                  )
-                }
-              }}
-              className="group inline-block mb-4 transition-transform hover:scale-105"
-            >
-              <span className="text-2xl font-black tracking-tight bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
+    <footer ref={barRef} className="relative bg-black pt-20 pb-10 overflow-hidden border-t border-white/10">
+      {/* Glow effect */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-px bg-gradient-to-r from-transparent via-purple-500/50 to-transparent blur-sm" />
+
+      <div className="mx-auto max-w-7xl px-6 lg:px-8 relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 lg:gap-16 mb-16">
+          
+          {/* Brand Column */}
+          <div className="md:col-span-5 space-y-6">
+            <Link to="/" className="inline-block group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+              <span className="font-black text-2xl tracking-tighter bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 bg-clip-text text-transparent bg-[length:200%_auto] group-hover:animate-gradient">
                 FEELFLICK
               </span>
             </Link>
-
-            <p className="text-sm text-white/60 leading-relaxed mb-4">
-              Find movies that match your mood in under a minute. AI-powered
-              discovery that feels human.
+            <p className="text-white/60 text-sm leading-relaxed max-w-sm">
+              Your mood, your movie. Discover the perfect film for every moment with our emotion-based recommendation engine.
             </p>
-
-            <div className="flex items-center gap-3">
-              <SocialLink
-                href="https://twitter.com"
-                icon={<Twitter className="w-4 h-4" />}
-              />
-              <SocialLink
-                href="https://instagram.com"
-                icon={<Instagram className="w-4 h-4" />}
-              />
-              <SocialLink
-                href="https://youtube.com"
-                icon={<Youtube className="w-4 h-4" />}
-              />
+            <div className="flex gap-4">
+              <SocialLink href="https://instagram.com/feelflick" icon={Instagram} label="Instagram" />
+              <SocialLink href="https://tiktok.com/@feelflick" icon={TikTokIcon} label="TikTok" />
             </div>
           </div>
 
-          <div>
-            <h3 className="text-sm font-bold text-white mb-4">Product</h3>
-            <ul className="space-y-2">
-              <FooterLink onClick={() => scrollToSection('how-it-works')}>
-                How It Works
-              </FooterLink>
-              <FooterLink onClick={() => scrollToSection('features')}>
-                Features
-              </FooterLink>
-              <FooterLink onClick={() => scrollToSection('testimonials')}>
-                Reviews
-              </FooterLink>
-              <FooterLink to="/pricing">Pricing</FooterLink>
-            </ul>
-          </div>
+          {/* Links Grid */}
+          <div className="md:col-span-7 grid grid-cols-2 sm:grid-cols-3 gap-8">
+            
+            {/* Product */}
+            <div>
+              <h3 className="text-white font-bold text-sm tracking-wide mb-4">Product</h3>
+              <ul className="space-y-3">
+                <li><FooterLink onClick={() => scrollToSection('features')}>Features</FooterLink></li>
+                <li><FooterLink onClick={() => scrollToSection('how-it-works')}>How it Works</FooterLink></li>
+                <li><FooterLink onClick={() => scrollToSection('testimonials')}>Stories</FooterLink></li>
+                <li><FooterLink to="/browse">Browse Movies</FooterLink></li>
+              </ul>
+            </div>
 
-          <div>
-            <h3 className="text-sm font-bold text-white mb-4">Company</h3>
-            <ul className="space-y-2">
-              <FooterLink to="/about">About Us</FooterLink>
-              <FooterLink to="/blog">Blog</FooterLink>
-              <FooterLink to="/careers">Careers</FooterLink>
-              <FooterLink to="/contact">Contact</FooterLink>
-            </ul>
-          </div>
+            {/* Company */}
+            <div>
+              <h3 className="text-white font-bold text-sm tracking-wide mb-4">Company</h3>
+              <ul className="space-y-3">
+                <li><FooterLink to="/about">About Us</FooterLink></li>
+                {/* Removed Blog, Careers, Pricing, Contact */}
+              </ul>
+            </div>
 
-          <div>
-            <h3 className="text-sm font-bold text-white mb-4">Legal</h3>
-            <ul className="space-y-2">
-              <FooterLink to="/privacy">Privacy Policy</FooterLink>
-              <FooterLink to="/terms">Terms of Service</FooterLink>
-              <FooterLink to="/cookies">Cookie Policy</FooterLink>
-              <FooterLink to="/dmca">DMCA</FooterLink>
-            </ul>
+            {/* Legal */}
+            <div>
+              <h3 className="text-white font-bold text-sm tracking-wide mb-4">Legal</h3>
+              <ul className="space-y-3">
+                <li><FooterLink to="/privacy">Privacy Policy</FooterLink></li>
+                <li><FooterLink to="/terms">Terms of Service</FooterLink></li>
+                {/* Removed Cookie Policy, DMCA */}
+              </ul>
+            </div>
           </div>
         </div>
 
-        <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-white/50">
-            © {year} FeelFlick. All rights reserved.
+        {/* Bottom Bar */}
+        <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <p className="text-white/40 text-xs">
+            &copy; {year} FeelFlick. All rights reserved.
           </p>
-          <p className="text-xs text-white/40">
-            Made with 💜 for movie lovers everywhere.
+          <p className="text-white/30 text-[10px] flex items-center gap-1">
+            <span>Made with</span>
+            <span className="text-pink-500">♥</span>
+            <span>for movie lovers</span>
           </p>
         </div>
       </div>
@@ -158,38 +144,36 @@ export default function Footer() {
 function FooterLink({ to, onClick, children }) {
   if (onClick) {
     return (
-      <li>
-        <button
-          onClick={onClick}
-          className="text-sm text-white/60 hover:text-white transition-colors inline-block text-left"
-        >
-          {children}
-        </button>
-      </li>
-    )
-  }
-
-  return (
-    <li>
-      <Link
-        to={to}
-        className="text-sm text-white/60 hover:text-white transition-colors inline-block"
+      <button 
+        onClick={onClick}
+        className="text-white/60 hover:text-white text-sm transition-colors duration-200 text-left"
       >
         {children}
-      </Link>
-    </li>
+      </button>
+    )
+  }
+  
+  return (
+    <Link 
+      to={to} 
+      className="text-white/60 hover:text-white text-sm transition-colors duration-200 inline-block"
+      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+    >
+      {children}
+    </Link>
   )
 }
 
-function SocialLink({ href, icon }) {
+function SocialLink({ href, icon: Icon, label }) {
   return (
     <a
       href={href}
       target="_blank"
-      rel="noopener noreferrer"
-      className="flex items-center justify-center w-9 h-9 rounded-lg bg-white/5 text-white/60 hover:bg-gradient-to-br hover:from-purple-500 hover:to-pink-500 hover:text-white transition-all duration-300 hover:scale-110"
+      rel="noreferrer"
+      aria-label={label}
+      className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-white/60 hover:text-white transition-all hover:scale-110 group"
     >
-      {icon}
+      <Icon className="h-5 w-5 transition-transform group-hover:-rotate-12" />
     </a>
   )
 }

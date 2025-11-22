@@ -1,7 +1,7 @@
 // src/app/homepage/components/HeroSliderSection.jsx
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Info, Plus, Check, Eye } from 'lucide-react'
+import { Info, Plus, Check, Eye, EyeOff } from 'lucide-react'
 import { supabase } from '@/shared/lib/supabase/client'
 
 const tmdbImg = (p, s = 'original') => p ? `https://image.tmdb.org/t/p/${s}${p}` : ''
@@ -15,28 +15,28 @@ export default function HeroSliderSection({ className = '' }) {
   const [user, setUser] = useState(null)
   const [watchlistIds, setWatchlistIds] = useState(new Set())
   const [watchedIds, setWatchedIds] = useState(new Set())
+  
   const nav = useNavigate()
   const timerRef = useRef(null)
   const touchStartX = useRef(0)
   const touchEndX = useRef(0)
 
-  // Get user, watchlist, and watch history
+  // Get user, watchlist, and watched history
   useEffect(() => {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser()
       setUser(user)
-      
       if (user) {
-        // Fetch watchlist
+        // Fetch Watchlist
         const { data: watchlistData } = await supabase
           .from('user_watchlist')
           .select('movie_id')
           .eq('user_id', user.id)
         if (watchlistData) setWatchlistIds(new Set(watchlistData.map(item => item.movie_id)))
 
-        // Fetch watch history
+        // Fetch History (Already Watched)
         const { data: historyData } = await supabase
-          .from('user_history')
+          .from('movies_watched') // Assuming table name from previous context
           .select('movie_id')
           .eq('user_id', user.id)
         if (historyData) setWatchedIds(new Set(historyData.map(item => item.movie_id)))
@@ -152,10 +152,10 @@ export default function HeroSliderSection({ className = '' }) {
   const toggleWatched = async () => {
     if (!user || !currentMovie?.id) return
     const movieId = currentMovie.id
-    
+
     if (isWatched) {
       await supabase
-        .from('user_history')
+        .from('movies_watched')
         .delete()
         .eq('user_id', user.id)
         .eq('movie_id', movieId)
@@ -166,11 +166,13 @@ export default function HeroSliderSection({ className = '' }) {
       })
     } else {
       await supabase
-        .from('user_history')
+        .from('movies_watched')
         .upsert({
           user_id: user.id,
           movie_id: movieId,
-          watched_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
+          // assuming you want to store basic movie data or just the ID relation
+          // add other columns if your schema requires them (title, poster_path, etc)
         })
       setWatchedIds(prev => new Set(prev).add(movieId))
     }
@@ -195,9 +197,9 @@ export default function HeroSliderSection({ className = '' }) {
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Hero Container - 90vh for more immersive feel */}
+      {/* Hero Container - 90vh for immersive feel */}
       <div className="relative w-full h-[90vh] min-h-[600px]">
-        {/* Background Images with Ken Burns effect */}
+        {/* Background Images */}
         {slides.map((movie, idx) => {
           const bg = tmdbImg(movie.backdrop_path || movie.poster_path, 'original')
           return (
@@ -235,27 +237,20 @@ export default function HeroSliderSection({ className = '' }) {
 
               {/* Meta Info Row */}
               <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-4 md:mb-5 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
-                {/* Rating Badge */}
                 {currentMovie?.vote_average > 0 && (
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-400/30 backdrop-blur-md shadow-lg">
                     <span className="text-purple-300 text-base font-bold">★</span>
                     <span className="text-white font-bold text-sm">{currentMovie.vote_average.toFixed(1)}</span>
                   </div>
                 )}
-
-                {/* Year */}
                 {currentMovie?.release_date && (
                   <span className="text-white/90 font-bold text-base drop-shadow-lg">
                     {new Date(currentMovie.release_date).getFullYear()}
                   </span>
                 )}
-
-                {/* Quality Badge */}
                 <span className="px-2 py-0.5 rounded border border-white/30 text-white/90 text-xs font-bold backdrop-blur-sm">
                   4K
                 </span>
-
-                {/* Genres */}
                 {currentMovie?.genres?.slice(0, 2).map(genre => (
                   <span 
                     key={genre}
@@ -280,48 +275,48 @@ export default function HeroSliderSection({ className = '' }) {
                   onClick={handleViewDetails}
                   className="group inline-flex items-center justify-center gap-2 md:gap-2.5 rounded-lg md:rounded-xl px-6 md:px-8 py-3 md:py-3.5 text-sm md:text-base font-bold text-white transition-all hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-purple-500/30 shadow-2xl shadow-purple-900/40 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500"
                 >
-                  <Info className="h-4 w-4 md:h-5 md:w-5 group-hover:scale-110 transition-transform" />
+                  <Info className="h-4 w-4 md:h-5 md:w-5 fill-white group-hover:scale-110 transition-transform" />
                   <span>View Details</span>
                 </button>
 
-                {/* Watchlist Toggle */}
                 {user && (
-                  <div className="relative group/tooltip">
-                    <button 
-                      onClick={toggleWatchlist}
-                      className="inline-flex items-center justify-center h-[48px] md:h-[52px] w-[48px] md:w-[52px] rounded-lg md:rounded-xl text-white transition-all hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-white/20 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 shadow-xl"
-                      aria-label={isInWatchlist ? "Remove from Watchlist" : "Add to Watchlist"}
-                    >
-                      {isInWatchlist ? (
-                        <Check className="h-5 w-5 md:h-6 md:w-6" />
-                      ) : (
-                        <Plus className="h-5 w-5 md:h-6 md:w-6" />
-                      )}
-                    </button>
-                    {/* Tooltip */}
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-black/90 text-white text-xs font-medium rounded-lg whitespace-nowrap opacity-0 group-hover/tooltip:opacity-100 pointer-events-none transition-opacity duration-200 backdrop-blur-sm">
-                      {isInWatchlist ? "Remove from Watchlist" : "Add to Watchlist"}
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-black/90"></div>
+                  <>
+                    {/* Watchlist Toggle */}
+                    <div className="relative group/tooltip">
+                      <button 
+                        onClick={toggleWatchlist}
+                        className={`inline-flex items-center justify-center h-[48px] md:h-[52px] w-[48px] md:w-[52px] rounded-lg md:rounded-xl text-white transition-all hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-white/20 backdrop-blur-md border shadow-xl ${
+                          isInWatchlist 
+                            ? 'bg-purple-500/20 border-purple-500 text-purple-300' 
+                            : 'bg-white/10 hover:bg-white/20 border-white/20'
+                        }`}
+                      >
+                        {isInWatchlist ? <Check className="h-5 w-5 md:h-6 md:w-6" /> : <Plus className="h-5 w-5 md:h-6 md:w-6" />}
+                      </button>
+                      {/* Tooltip */}
+                      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs font-medium text-white bg-black/80 rounded-md opacity-0 group-hover/tooltip:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                        {isInWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}
+                      </span>
                     </div>
-                  </div>
-                )}
 
-                {/* Already Watched Toggle */}
-                {user && (
-                  <div className="relative group/tooltip">
-                    <button 
-                      onClick={toggleWatched}
-                      className="inline-flex items-center justify-center h-[48px] md:h-[52px] w-[48px] md:w-[52px] rounded-lg md:rounded-xl text-white transition-all hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-white/20 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 shadow-xl"
-                      aria-label={isWatched ? "Mark as Unwatched" : "Mark as Watched"}
-                    >
-                      <Eye className={`h-5 w-5 md:h-6 md:w-6 ${isWatched ? 'fill-white' : ''}`} />
-                    </button>
-                    {/* Tooltip */}
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-black/90 text-white text-xs font-medium rounded-lg whitespace-nowrap opacity-0 group-hover/tooltip:opacity-100 pointer-events-none transition-opacity duration-200 backdrop-blur-sm">
-                      {isWatched ? "Mark as Unwatched" : "Mark as Watched"}
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-black/90"></div>
+                    {/* Already Watched Toggle */}
+                    <div className="relative group/tooltip">
+                      <button 
+                        onClick={toggleWatched}
+                        className={`inline-flex items-center justify-center h-[48px] md:h-[52px] w-[48px] md:w-[52px] rounded-lg md:rounded-xl text-white transition-all hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-white/20 backdrop-blur-md border shadow-xl ${
+                          isWatched 
+                            ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300' 
+                            : 'bg-white/10 hover:bg-white/20 border-white/20'
+                        }`}
+                      >
+                        {isWatched ? <Eye className="h-5 w-5 md:h-6 md:w-6" /> : <EyeOff className="h-5 w-5 md:h-6 md:w-6" />}
+                      </button>
+                      {/* Tooltip */}
+                      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs font-medium text-white bg-black/80 rounded-md opacity-0 group-hover/tooltip:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                        {isWatched ? 'Mark as Unwatched' : 'Mark as Watched'}
+                      </span>
                     </div>
-                  </div>
+                  </>
                 )}
               </div>
             </div>

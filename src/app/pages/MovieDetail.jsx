@@ -273,28 +273,30 @@ export default function MovieDetail() {
 
   return (
     <div className="relative bg-black text-white min-h-screen pb-20 md:pb-8">
-      {/* Hero Section - Fixed header clearance */}
+      {/* Hero Section - NO MARGIN, Absolute positioning to go under header */}
       <div className="relative w-full">
-        <div className="relative h-[55vh] md:h-[60vh]" style={{ marginTop: 'var(--hdr-h, 64px)' }}>
+        {/* REMOVE marginTop, let it start from top */}
+        <div className="relative h-[70vh] md:h-[75vh]">
           {/* Backdrop */}
           <div className="absolute inset-0">
             {movie?.backdrop_path ? (
               <img
                 src={IMG.backdrop(movie.backdrop_path)}
                 alt=""
-                className="w-full h-full object-cover loading-eager"
+                className="w-full h-full object-cover"
+                loading="eager"
               />
             ) : (
               <div className="w-full h-full bg-neutral-900" />
             )}
             {/* Enhanced Gradients */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/90 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-r from-black via-black/75 md:via-black/60 to-transparent" />
-            <div className="absolute bottom-0 inset-x-0 h-35 bg-gradient-to-t from-black to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black via-black/60 md:via-black/40 to-transparent" />
+            <div className="absolute bottom-0 inset-x-0 h-40 bg-gradient-to-t from-black to-transparent" />
           </div>
 
-          {/* Content */}
-          <div className="absolute inset-0 flex flex-col justify-end pb-6 md:pb-10">
+          {/* Content - Add top padding to clear header */}
+          <div className="absolute inset-0 flex flex-col justify-end pb-6 md:pb-10 pt-20 md:pt-24">
             <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-12 w-full">
               <div className="grid grid-cols-1 md:grid-cols-[auto,1fr] gap-4 md:gap-6 items-end max-w-6xl">
                 

@@ -14,13 +14,11 @@ export default function CarouselRow({ title, tmdbCategory, rowId }) {
   const [hoveredMovie, setHoveredMovie] = useState(null)
   const [scrollPosition, setScrollPosition] = useState(0)
   const [genres, setGenres] = useState({})
-  const [showExpandedContent, setShowExpandedContent] = useState(false)
-  
   const scrollContainerRef = useRef(null)
   const hoverTimeoutRef = useRef(null)
-  const contentTimeoutRef = useRef(null)
   const nav = useNavigate()
 
+  // Get User
   useEffect(() => {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser()
@@ -28,6 +26,7 @@ export default function CarouselRow({ title, tmdbCategory, rowId }) {
     })()
   }, [])
 
+  // Fetch Genres
   useEffect(() => {
     fetch(`https://api.themoviedb.org/3/genre/movie/list?api_key=${import.meta.env.VITE_TMDB_API_KEY}`)
       .then(r => r.json())
@@ -39,6 +38,7 @@ export default function CarouselRow({ title, tmdbCategory, rowId }) {
       .catch(console.error)
   }, [])
 
+  // Fetch Movies & Sync Status
   useEffect(() => {
     const fetchMovies = async () => {
       try {
@@ -69,7 +69,7 @@ export default function CarouselRow({ title, tmdbCategory, rowId }) {
   const scroll = (direction) => {
     const container = scrollContainerRef.current
     if (!container) return
-    const scrollAmount = container.clientWidth * 0.85
+    const scrollAmount = container.clientWidth * 0.8
     const newPosition = direction === 'left' 
       ? Math.max(0, scrollPosition - scrollAmount)
       : Math.min(container.scrollWidth - container.clientWidth, scrollPosition + scrollAmount)
@@ -105,9 +105,7 @@ export default function CarouselRow({ title, tmdbCategory, rowId }) {
       setWatchedTmdbIds(prev => { const n = new Set(prev); n.delete(tmdbId); return n })
       await ensureMovieInDb(movie)
       await Promise.all([
-        supabase.from('user_watchlist').upsert({ 
-          user_id: user.id, movie_id: tmdbId, added_at: new Date().toISOString(), status: 'want_to_watch' 
-        }, { onConflict: 'user_id,movie_id' }),
+        supabase.from('user_watchlist').upsert({ user_id: user.id, movie_id: tmdbId, added_at: new Date().toISOString(), status: 'want_to_watch' }, { onConflict: 'user_id,movie_id' }),
         supabase.from('movies_watched').delete().eq('user_id', user.id).eq('movie_id', tmdbId)
       ])
     }
@@ -139,73 +137,60 @@ export default function CarouselRow({ title, tmdbCategory, rowId }) {
 
   const handleMouseEnter = (movie) => {
     clearTimeout(hoverTimeoutRef.current)
-    clearTimeout(contentTimeoutRef.current)
-    
-    hoverTimeoutRef.current = setTimeout(() => {
-      setHoveredMovie(movie.id)
-      // Staged animation: content appears after scale animation
-      contentTimeoutRef.current = setTimeout(() => {
-        setShowExpandedContent(true)
-      }, 250)
-    }, 400)
+    hoverTimeoutRef.current = setTimeout(() => setHoveredMovie(movie.id), 300)
   }
 
   const handleMouseLeave = () => {
     clearTimeout(hoverTimeoutRef.current)
-    clearTimeout(contentTimeoutRef.current)
-    setShowExpandedContent(false)
-    setTimeout(() => setHoveredMovie(null), 100)
+    hoverTimeoutRef.current = setTimeout(() => setHoveredMovie(null), 200)
   }
 
-  const canScrollLeft = scrollPosition > 5
+  const canScrollLeft = scrollPosition > 0
   const canScrollRight = scrollContainerRef.current 
-    ? scrollPosition < scrollContainerRef.current.scrollWidth - scrollContainerRef.current.clientWidth - 5
+    ? scrollPosition < scrollContainerRef.current.scrollWidth - scrollContainerRef.current.clientWidth - 10
     : false
 
   if (!movies.length) return null
 
   return (
-    <div className="relative mb-6 md:mb-8 lg:mb-12">
+    <div className="relative mb-10 md:mb-12 lg:mb-14">
       {/* Section Title */}
-      <h2 className="text-white text-xl md:text-2xl lg:text-3xl font-bold mb-4 md:mb-5 px-4 md:px-12 lg:px-16 tracking-tight">
+      <h2 className="text-white text-xl md:text-2xl lg:text-3xl font-bold mb-5 md:mb-6 px-4 sm:px-6 md:px-12 lg:px-16">
         {title}
       </h2>
 
       {/* Carousel Container */}
-      <div className="relative group/carousel">
-        {/* Navigation Arrows */}
+      <div className="relative group">
+        {/* Left Arrow */}
         {canScrollLeft && (
           <button 
             onClick={() => scroll('left')} 
-            className="absolute left-0 md:left-2 top-0 bottom-0 z-40 w-12 md:w-16 bg-gradient-to-r from-black/90 via-black/70 to-transparent flex items-center justify-start pl-2 md:pl-4 text-white opacity-0 group-hover/carousel:opacity-100 transition-opacity duration-300 hover:from-black" 
+            className="absolute left-2 md:left-4 lg:left-6 top-1/2 -translate-y-1/2 z-30 h-12 w-12 rounded-full bg-black/70 hover:bg-black/90 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 backdrop-blur-sm shadow-xl" 
             aria-label="Scroll left"
           >
-            <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-black/40 backdrop-blur-sm border border-white/10 flex items-center justify-center hover:bg-black/60 hover:scale-110 transition-all duration-200">
-              <ChevronLeft className="h-6 w-6 md:h-7 md:w-7" />
-            </div>
+            <ChevronLeft className="h-6 w-6" />
           </button>
         )}
 
+        {/* Right Arrow */}
         {canScrollRight && (
           <button 
             onClick={() => scroll('right')} 
-            className="absolute right-0 md:right-2 top-0 bottom-0 z-40 w-12 md:w-16 bg-gradient-to-l from-black/90 via-black/70 to-transparent flex items-center justify-end pr-2 md:pr-4 text-white opacity-0 group-hover/carousel:opacity-100 transition-opacity duration-300 hover:from-black" 
+            className="absolute right-2 md:right-4 lg:right-6 top-1/2 -translate-y-1/2 z-30 h-12 w-12 rounded-full bg-black/70 hover:bg-black/90 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 backdrop-blur-sm shadow-xl" 
             aria-label="Scroll right"
           >
-            <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-black/40 backdrop-blur-sm border border-white/10 flex items-center justify-center hover:bg-black/60 hover:scale-110 transition-all duration-200">
-              <ChevronRight className="h-6 w-6 md:h-7 md:w-7" />
-            </div>
+            <ChevronRight className="h-6 w-6" />
           </button>
         )}
 
         {/* Movies Scroll Container */}
         <div 
           ref={scrollContainerRef} 
-          onScroll={handleScroll}
-          className="flex gap-1.5 md:gap-2 overflow-x-scroll scrollbar-hide px-4 md:px-12 lg:px-16 scroll-smooth py-16 md:py-20" 
+          onScroll={handleScroll} 
+          className="flex gap-2 sm:gap-3 md:gap-4 overflow-x-scroll scrollbar-hide px-4 sm:px-6 md:px-12 lg:px-16 scroll-smooth py-10 md:py-12 lg:py-16" 
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
-          {movies.map((movie, index) => {
+          {movies.map((movie) => {
             const isInWatchlist = watchlistTmdbIds.has(movie.id)
             const isWatched = watchedTmdbIds.has(movie.id)
             const isHovered = hoveredMovie === movie.id
@@ -214,88 +199,60 @@ export default function CarouselRow({ title, tmdbCategory, rowId }) {
             return (
               <div
                 key={`${rowId}-${movie.id}`}
-                className="relative flex-shrink-0 w-[140px] md:w-[180px] lg:w-[200px] group/card"
+                className="relative flex-shrink-0 w-[140px] sm:w-[160px] md:w-[180px] lg:w-[200px] transition-all duration-300 ease-out"
                 style={{
-                  transform: isHovered ? 'scale(1.5) translateY(-10px)' : 'scale(1)',
-                  transformOrigin: 'center center',
-                  transition: 'transform 350ms cubic-bezier(0.34, 1.56, 0.64, 1)',
-                  zIndex: isHovered ? 50 : 1,
-                  marginLeft: isHovered ? '60px' : '0',
-                  marginRight: isHovered ? '60px' : '0',
-                  transitionProperty: 'transform, margin',
-                  transitionDuration: '350ms, 350ms',
-                  transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1), ease-out'
+                  transform: isHovered ? 'scale(1.35)' : 'scale(1)',
+                  zIndex: isHovered ? 40 : 10,
+                  marginLeft: isHovered ? '28px' : '0',
+                  marginRight: isHovered ? '28px' : '0'
                 }}
                 onMouseEnter={() => handleMouseEnter(movie)}
                 onMouseLeave={handleMouseLeave}
               >
-                {/* Movie Card */}
+                {/* Card Container */}
                 <div 
-                  className={`relative rounded-lg overflow-hidden cursor-pointer bg-neutral-900 ${
-                    isHovered ? 'shadow-2xl shadow-black/60' : 'shadow-lg shadow-black/30'
+                  className={`relative bg-neutral-900 rounded-lg overflow-hidden shadow-2xl cursor-pointer transition-all duration-300 ${
+                    isHovered ? 'shadow-black/80' : 'shadow-black/40'
                   }`}
-                  style={{
-                    transition: 'box-shadow 350ms cubic-bezier(0.34, 1.56, 0.64, 1)'
-                  }}
                   onClick={() => nav(`/movie/${movie.id}`)}
                 >
-                  {/* Poster Container */}
+                  {/* Poster Image */}
                   <div className="relative aspect-[2/3] overflow-hidden">
-                    {/* Main Poster Image */}
                     <img 
-                      src={tmdbImg(movie.poster_path, isHovered ? 'w780' : 'w500')} 
+                      src={tmdbImg(movie.poster_path)} 
                       alt={movie.title} 
-                      className="w-full h-full object-cover transition-opacity duration-300"
-                      loading="lazy"
+                      className="w-full h-full object-cover" 
+                      loading="lazy" 
                     />
-
-                    {/* Multi-layer Gradient Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-300" />
                     
-                    {/* Rating Badge - Top Right */}
-                    <div className={`absolute top-2 right-2 transition-all duration-300 ${isHovered ? 'opacity-0' : 'opacity-100'}`}>
-                      {movie.vote_average > 0 && (
-                        <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-gradient-to-br from-purple-600/95 to-pink-600/95 backdrop-blur-md shadow-xl border border-white/10">
-                          <span className="text-white text-xs font-bold">★</span>
-                          <span className="text-white text-xs font-bold">{movie.vote_average.toFixed(1)}</span>
-                        </div>
-                      )}
-                    </div>
+                    {/* Rating Badge - Always Visible */}
+                    {movie.vote_average > 0 && (
+                      <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-md bg-gradient-to-br from-purple-500/95 to-pink-500/95 backdrop-blur-sm shadow-lg">
+                        <span className="text-white text-xs font-bold">★</span>
+                        <span className="text-white text-xs font-bold">{movie.vote_average.toFixed(1)}</span>
+                      </div>
+                    )}
                   </div>
 
-                  {/* Expanded Info Panel - Prime Video Style */}
+                  {/* Expanded Info Panel - Shows on Hover */}
                   {isHovered && (
-                    <div 
-                      className={`absolute inset-0 flex flex-col justify-end p-4 bg-gradient-to-t from-black via-black/95 to-black/40 transition-opacity duration-200 ${
-                        showExpandedContent ? 'opacity-100' : 'opacity-0'
-                      }`}
-                    >
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/95 to-transparent flex flex-col justify-end p-4">
                       {/* Title */}
-                      <h3 className="text-white text-base md:text-lg font-bold mb-2 line-clamp-2 leading-tight drop-shadow-lg">
+                      <h3 className="text-white text-base md:text-lg font-bold line-clamp-2 mb-2">
                         {movie.title}
                       </h3>
 
-                      {/* Meta Row */}
-                      <div className="flex items-center gap-2 mb-2.5 text-xs md:text-sm">
-                        {/* Rating with gradient */}
-                        {movie.vote_average > 0 && (
-                          <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-gradient-to-r from-purple-500/30 to-pink-500/30 border border-purple-400/30 backdrop-blur-sm">
-                            <span className="text-purple-300 font-bold">★</span>
-                            <span className="text-white font-bold">{movie.vote_average.toFixed(1)}</span>
-                          </div>
-                        )}
-                        
-                        {/* Year */}
+                      {/* Meta Info */}
+                      <div className="flex items-center gap-2 mb-2 text-xs text-white/80">
                         {movie.release_date && (
-                          <span className="text-white/90 font-semibold">
-                            {new Date(movie.release_date).getFullYear()}
-                          </span>
+                          <span className="font-semibold">{new Date(movie.release_date).getFullYear()}</span>
                         )}
-
-                        {/* Quality Badge */}
-                        <span className="px-1.5 py-0.5 rounded border border-white/30 text-white/80 text-[10px] font-bold">
-                          HD
-                        </span>
+                        {movie.vote_average > 0 && (
+                          <>
+                            <span>•</span>
+                            <span className="text-purple-300 font-bold">★ {movie.vote_average.toFixed(1)}</span>
+                          </>
+                        )}
                       </div>
 
                       {/* Genres */}
@@ -304,7 +261,7 @@ export default function CarouselRow({ title, tmdbCategory, rowId }) {
                           {movieGenres.map(genre => (
                             <span 
                               key={genre} 
-                              className="px-2 py-0.5 rounded-full bg-white/10 hover:bg-white/20 text-white/80 text-[10px] md:text-xs font-medium backdrop-blur-sm border border-white/10 transition-colors"
+                              className="px-2 py-0.5 rounded-full bg-white/10 text-white/70 text-[10px] font-medium backdrop-blur-sm"
                             >
                               {genre}
                             </span>
@@ -314,17 +271,17 @@ export default function CarouselRow({ title, tmdbCategory, rowId }) {
 
                       {/* Description */}
                       {movie.overview && (
-                        <p className="text-white/80 text-[11px] md:text-xs leading-relaxed line-clamp-3 mb-3">
+                        <p className="text-white/70 text-xs leading-relaxed line-clamp-3 mb-4">
                           {movie.overview}
                         </p>
                       )}
 
-                      {/* Action Buttons */}
+                      {/* Action Buttons Row */}
                       <div className="flex items-center gap-2">
-                        {/* Primary CTA - View Details */}
+                        {/* View Details Button */}
                         <button
                           onClick={(e) => { e.stopPropagation(); nav(`/movie/${movie.id}`) }}
-                          className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white text-xs md:text-sm font-bold transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg shadow-purple-900/50"
+                          className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white text-xs font-bold transition-all hover:scale-105 shadow-lg"
                         >
                           <Info className="h-3.5 w-3.5" />
                           <span>Details</span>
@@ -332,28 +289,28 @@ export default function CarouselRow({ title, tmdbCategory, rowId }) {
 
                         {user && (
                           <>
-                            {/* Watchlist Toggle */}
+                            {/* Watchlist Button */}
                             <button
                               onClick={(e) => toggleWatchlist(e, movie)}
-                              className={`flex items-center justify-center h-9 w-9 rounded-lg transition-all duration-200 hover:scale-110 active:scale-95 backdrop-blur-md border ${
+                              className={`flex items-center justify-center h-9 w-9 rounded-lg transition-all hover:scale-110 backdrop-blur-md border shadow-lg ${
                                 isInWatchlist 
-                                  ? 'bg-purple-500/25 border-purple-400/50 text-purple-300 shadow-lg shadow-purple-900/30' 
-                                  : 'bg-white/10 hover:bg-white/20 border-white/20 text-white shadow-lg'
+                                  ? 'bg-purple-500/30 border-purple-400 text-purple-300' 
+                                  : 'bg-white/10 hover:bg-white/20 border-white/20 text-white'
                               }`}
                               title={isInWatchlist ? 'In Watchlist' : 'Add to Watchlist'}
                             >
                               {isInWatchlist ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
                             </button>
 
-                            {/* Watched Toggle */}
+                            {/* Watched Button */}
                             <button
                               onClick={(e) => toggleWatched(e, movie)}
-                              className={`flex items-center justify-center h-9 w-9 rounded-lg transition-all duration-200 hover:scale-110 active:scale-95 backdrop-blur-md border ${
+                              className={`flex items-center justify-center h-9 w-9 rounded-lg transition-all hover:scale-110 backdrop-blur-md border shadow-lg ${
                                 isWatched 
-                                  ? 'bg-emerald-500/25 border-emerald-400/50 text-emerald-300 shadow-lg shadow-emerald-900/30' 
-                                  : 'bg-white/10 hover:bg-white/20 border-white/20 text-white shadow-lg'
+                                  ? 'bg-emerald-500/30 border-emerald-400 text-emerald-300' 
+                                  : 'bg-white/10 hover:bg-white/20 border-white/20 text-white'
                               }`}
-                              title={isWatched ? 'Watched' : 'Mark as Watched'}
+                              title={isWatched ? 'Mark as Unwatched' : 'Mark as Watched'}
                             >
                               {isWatched ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                             </button>
@@ -363,15 +320,6 @@ export default function CarouselRow({ title, tmdbCategory, rowId }) {
                     </div>
                   )}
                 </div>
-
-                {/* Title Below Card - Hidden on Hover */}
-                {!isHovered && (
-                  <div className="mt-2 px-1">
-                    <p className="text-white text-xs md:text-sm font-semibold line-clamp-2 leading-tight">
-                      {movie.title}
-                    </p>
-                  </div>
-                )}
               </div>
             )
           })}

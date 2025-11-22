@@ -36,7 +36,7 @@ export default function HeroSliderSection({ className = '' }) {
 
         // Fetch History (Already Watched)
         const { data: historyData } = await supabase
-          .from('movies_watched') // Assuming table name from previous context
+          .from('movies_watched')
           .select('movie_id')
           .eq('user_id', user.id)
         if (historyData) setWatchedIds(new Set(historyData.map(item => item.movie_id)))
@@ -171,8 +171,6 @@ export default function HeroSliderSection({ className = '' }) {
           user_id: user.id,
           movie_id: movieId,
           created_at: new Date().toISOString(),
-          // assuming you want to store basic movie data or just the ID relation
-          // add other columns if your schema requires them (title, poster_path, etc)
         })
       setWatchedIds(prev => new Set(prev).add(movieId))
     }
@@ -197,18 +195,14 @@ export default function HeroSliderSection({ className = '' }) {
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Hero Container - 90vh for immersive feel */}
       <div className="relative w-full h-[90vh] min-h-[600px]">
-        {/* Background Images */}
         {slides.map((movie, idx) => {
           const bg = tmdbImg(movie.backdrop_path || movie.poster_path, 'original')
           return (
             <div 
               key={movie.id}
               className={`absolute inset-0 transition-all duration-1000 ease-out ${
-                idx === currentIndex 
-                  ? 'opacity-100 z-10 scale-100' 
-                  : 'opacity-0 z-0 scale-105'
+                idx === currentIndex ? 'opacity-100 z-10 scale-100' : 'opacity-0 z-0 scale-105'
               }`}
             >
               <img 
@@ -221,21 +215,24 @@ export default function HeroSliderSection({ className = '' }) {
           )
         })}
 
-        {/* Enhanced Cinematic Gradients */}
-        <div className="absolute top-0 inset-x-0 h-32 md:h-40 bg-gradient-to-b from-black via-black/80 to-transparent z-20 pointer-events-none" />
-        <div className="absolute inset-y-0 left-0 w-full md:w-3/5 bg-gradient-to-r from-black via-black/70 md:via-black/40 to-transparent z-20 pointer-events-none" />
-        <div className="absolute bottom-0 inset-x-0 h-4/5 bg-gradient-to-t from-black via-black/90 to-transparent z-20 pointer-events-none" />
+        {/* --- GRADIENT OVERLAYS --- */}
+        {/* Top fade - Reduced height */}
+        <div className="absolute top-0 inset-x-0 h-28 bg-gradient-to-b from-black/90 to-transparent z-20 pointer-events-none" />
+        
+        {/* Left side fade - Narrower on desktop */}
+        <div className="absolute inset-y-0 left-0 w-full md:w-2/5 bg-gradient-to-r from-black via-black/50 to-transparent z-20 pointer-events-none" />
+        
+        {/* Bottom fade - Reduced height */}
+        <div className="absolute bottom-0 inset-x-0 h-2/3 bg-gradient-to-t from-black via-black/80 to-transparent z-20 pointer-events-none" />
 
         {/* Content Overlay */}
         <div className="absolute inset-0 z-30 flex flex-col justify-end pb-16 md:pb-20 lg:pb-24 pt-24">
           <div className="w-full px-4 md:px-12 lg:px-16 xl:px-20">
             <div className="max-w-3xl">
-              {/* Title */}
               <h1 className="text-white font-black tracking-tight leading-[0.95] text-4xl sm:text-5xl md:text-6xl lg:text-7xl drop-shadow-2xl mb-4 md:mb-5 animate-in fade-in slide-in-from-bottom-4 duration-700">
                 {currentMovie?.title}
               </h1>
 
-              {/* Meta Info Row */}
               <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-4 md:mb-5 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
                 {currentMovie?.vote_average > 0 && (
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-400/30 backdrop-blur-md shadow-lg">
@@ -252,66 +249,52 @@ export default function HeroSliderSection({ className = '' }) {
                   4K
                 </span>
                 {currentMovie?.genres?.slice(0, 2).map(genre => (
-                  <span 
-                    key={genre}
-                    className="text-white/80 text-sm font-medium drop-shadow-md"
-                  >
+                  <span key={genre} className="text-white/80 text-sm font-medium drop-shadow-md">
                     {genre}
                   </span>
                 ))}
               </div>
 
-              {/* Overview */}
               {currentMovie?.overview && (
                 <p className="hidden md:block text-white/95 text-base md:text-lg leading-relaxed line-clamp-3 drop-shadow-xl mb-6 md:mb-7 max-w-2xl font-medium animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
                   {currentMovie.overview}
                 </p>
               )}
 
-              {/* Action Buttons */}
               <div className="flex flex-wrap items-center gap-3 md:gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
-                {/* Primary CTA - View Details */}
                 <button 
                   onClick={handleViewDetails}
                   className="group inline-flex items-center justify-center gap-2 md:gap-2.5 rounded-lg md:rounded-xl px-6 md:px-8 py-3 md:py-3.5 text-sm md:text-base font-bold text-white transition-all hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-purple-500/30 shadow-2xl shadow-purple-900/40 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500"
                 >
-                  <Info className="h-4 w-4 md:h-5 md:w-5 fill-white group-hover:scale-110 transition-transform" />
+                  <Info className="h-4 w-4 md:h-5 md:w-5" />
                   <span>View Details</span>
                 </button>
 
                 {user && (
                   <>
-                    {/* Watchlist Toggle */}
                     <div className="relative group/tooltip">
                       <button 
                         onClick={toggleWatchlist}
                         className={`inline-flex items-center justify-center h-[48px] md:h-[52px] w-[48px] md:w-[52px] rounded-lg md:rounded-xl text-white transition-all hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-white/20 backdrop-blur-md border shadow-xl ${
-                          isInWatchlist 
-                            ? 'bg-purple-500/20 border-purple-500 text-purple-300' 
-                            : 'bg-white/10 hover:bg-white/20 border-white/20'
+                          isInWatchlist ? 'bg-purple-500/20 border-purple-500 text-purple-300' : 'bg-white/10 hover:bg-white/20 border-white/20'
                         }`}
                       >
                         {isInWatchlist ? <Check className="h-5 w-5 md:h-6 md:w-6" /> : <Plus className="h-5 w-5 md:h-6 md:w-6" />}
                       </button>
-                      {/* Tooltip */}
                       <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs font-medium text-white bg-black/80 rounded-md opacity-0 group-hover/tooltip:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                        {isInWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}
+                        {isInWatchlist ? 'In Watchlist' : 'Add to Watchlist'}
                       </span>
                     </div>
 
-                    {/* Already Watched Toggle */}
                     <div className="relative group/tooltip">
                       <button 
                         onClick={toggleWatched}
                         className={`inline-flex items-center justify-center h-[48px] md:h-[52px] w-[48px] md:w-[52px] rounded-lg md:rounded-xl text-white transition-all hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-white/20 backdrop-blur-md border shadow-xl ${
-                          isWatched 
-                            ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300' 
-                            : 'bg-white/10 hover:bg-white/20 border-white/20'
+                          isWatched ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300' : 'bg-white/10 hover:bg-white/20 border-white/20'
                         }`}
                       >
                         {isWatched ? <Eye className="h-5 w-5 md:h-6 md:w-6" /> : <EyeOff className="h-5 w-5 md:h-6 md:w-6" />}
                       </button>
-                      {/* Tooltip */}
                       <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs font-medium text-white bg-black/80 rounded-md opacity-0 group-hover/tooltip:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
                         {isWatched ? 'Mark as Unwatched' : 'Mark as Watched'}
                       </span>
@@ -323,42 +306,16 @@ export default function HeroSliderSection({ className = '' }) {
           </div>
         </div>
 
-        {/* Navigation Arrows */}
-        <button 
-          onClick={prevSlide} 
-          disabled={isTransitioning}
-          className="hidden lg:flex absolute left-4 xl:left-8 top-1/2 -translate-y-1/2 z-40 items-center justify-center h-12 w-12 rounded-full bg-black/30 backdrop-blur-sm text-white/60 transition-all hover:bg-black/60 hover:text-white opacity-0 hover:opacity-100 group-hover:opacity-100 active:scale-95 disabled:opacity-0 focus:outline-none group"
-          aria-label="Previous slide"
-        >
-          <svg className="h-6 w-6 stroke-current stroke-[2.5]" fill="none" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-          </svg>
+        <button onClick={prevSlide} disabled={isTransitioning} className="hidden lg:flex absolute left-4 xl:left-8 top-1/2 -translate-y-1/2 z-40 items-center justify-center h-12 w-12 rounded-full bg-black/30 backdrop-blur-sm text-white/60 transition-all hover:bg-black/60 hover:text-white opacity-0 hover:opacity-100 group-hover:opacity-100 active:scale-95 disabled:opacity-0 focus:outline-none group" aria-label="Previous slide">
+          <svg className="h-6 w-6 stroke-current stroke-[2.5]" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
         </button>
-        
-        <button 
-          onClick={nextSlide} 
-          disabled={isTransitioning}
-          className="hidden lg:flex absolute right-4 xl:right-8 top-1/2 -translate-y-1/2 z-40 items-center justify-center h-12 w-12 rounded-full bg-black/30 backdrop-blur-sm text-white/60 transition-all hover:bg-black/60 hover:text-white opacity-0 hover:opacity-100 group-hover:opacity-100 active:scale-95 disabled:opacity-0 focus:outline-none group"
-          aria-label="Next slide"
-        >
-          <svg className="h-6 w-6 stroke-current stroke-[2.5]" fill="none" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-          </svg>
+        <button onClick={nextSlide} disabled={isTransitioning} className="hidden lg:flex absolute right-4 xl:right-8 top-1/2 -translate-y-1/2 z-40 items-center justify-center h-12 w-12 rounded-full bg-black/30 backdrop-blur-sm text-white/60 transition-all hover:bg-black/60 hover:text-white opacity-0 hover:opacity-100 group-hover:opacity-100 active:scale-95 disabled:opacity-0 focus:outline-none group" aria-label="Next slide">
+          <svg className="h-6 w-6 stroke-current stroke-[2.5]" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
         </button>
 
-        {/* Slide Indicators */}
         <div className="absolute bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2">
           {slides.map((_, idx) => (
-            <button
-              key={idx}
-              onClick={() => goToSlide(idx)}
-              aria-label={`Go to slide ${idx + 1}`}
-              className={`transition-all duration-500 focus:outline-none focus:ring-2 focus:ring-white/50 rounded-full ${
-                idx === currentIndex 
-                  ? 'h-1.5 w-8 bg-white shadow-lg shadow-white/30' 
-                  : 'h-1.5 w-1.5 bg-white/40 hover:bg-white/70 hover:w-2'
-              }`}
-            />
+            <button key={idx} onClick={() => goToSlide(idx)} aria-label={`Go to slide ${idx + 1}`} className={`transition-all duration-500 focus:outline-none focus:ring-2 focus:ring-white/50 rounded-full ${idx === currentIndex ? 'h-1.5 w-8 bg-white shadow-lg shadow-white/30' : 'h-1.5 w-1.5 bg-white/40 hover:bg-white/70 hover:w-2'}`} />
           ))}
         </div>
       </div>

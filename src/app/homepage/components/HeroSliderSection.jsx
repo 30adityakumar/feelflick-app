@@ -197,7 +197,7 @@ export default function HeroSliderSection({ className = '' }) {
             <div className="max-w-3xl">
               
               {/* Title: Decreased size (text-3xl -> text-2xl, up to 5xl) */}
-              <h1 className="text-white font-black tracking-tight leading-[0.95] text-2xl sm:text-3xl md:text-4xl lg:text-5xl drop-shadow-2xl mb-3 md:mb-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
+              <h1 className="text-white font-black tracking-tight leading-[0.95] text-3xl sm:text-4xl md:text-5xl lg:text-6xl drop-shadow-2xl mb-3 md:mb-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
                 {currentMovie?.title}
               </h1>
 

@@ -1,7 +1,7 @@
 // src/app/homepage/components/CarouselRow.jsx
 import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, Plus, Check, Eye, EyeOff, Info } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, Check, Eye, EyeOff, Info, Play } from 'lucide-react'
 import { supabase } from '@/shared/lib/supabase/client'
 
 const tmdbImg = (p, s = 'w500') => p ? `https://image.tmdb.org/t/p/${s}${p}` : ''
@@ -153,43 +153,23 @@ export default function CarouselRow({ title, tmdbCategory, rowId }) {
   if (!movies.length) return null
 
   return (
-    <div className="relative mb-10 md:mb-12 lg:mb-14">
-      {/* Section Title */}
-      <h2 className="text-white text-xl md:text-2xl lg:text-3xl font-bold mb-5 md:mb-6 px-4 sm:px-6 md:px-12 lg:px-16">
-        {title}
-      </h2>
+    <div className="relative mb-8 md:mb-10 lg:mb-14">
+      <h2 className="text-white text-xl md:text-2xl font-bold mb-4 px-4 md:px-12 lg:px-16">{title}</h2>
 
-      {/* Carousel Container */}
       <div className="relative group">
-        {/* Left Arrow */}
         {canScrollLeft && (
-          <button 
-            onClick={() => scroll('left')} 
-            className="absolute left-2 md:left-4 lg:left-6 top-1/2 -translate-y-1/2 z-30 h-12 w-12 rounded-full bg-black/70 hover:bg-black/90 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 backdrop-blur-sm shadow-xl" 
-            aria-label="Scroll left"
-          >
+          <button onClick={() => scroll('left')} className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-30 h-12 w-12 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 backdrop-blur-sm" aria-label="Scroll left">
             <ChevronLeft className="h-6 w-6" />
           </button>
         )}
 
-        {/* Right Arrow */}
         {canScrollRight && (
-          <button 
-            onClick={() => scroll('right')} 
-            className="absolute right-2 md:right-4 lg:right-6 top-1/2 -translate-y-1/2 z-30 h-12 w-12 rounded-full bg-black/70 hover:bg-black/90 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 backdrop-blur-sm shadow-xl" 
-            aria-label="Scroll right"
-          >
+          <button onClick={() => scroll('right')} className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-30 h-12 w-12 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 backdrop-blur-sm" aria-label="Scroll right">
             <ChevronRight className="h-6 w-6" />
           </button>
         )}
 
-        {/* Movies Scroll Container */}
-        <div 
-          ref={scrollContainerRef} 
-          onScroll={handleScroll} 
-          className="flex gap-2 sm:gap-3 md:gap-4 overflow-x-scroll scrollbar-hide px-4 sm:px-6 md:px-12 lg:px-16 scroll-smooth py-10 md:py-12 lg:py-16" 
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-        >
+        <div ref={scrollContainerRef} onScroll={handleScroll} className="flex gap-2 md:gap-3 overflow-x-scroll scrollbar-hide px-4 md:px-12 lg:px-16 scroll-smooth py-12" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           {movies.map((movie) => {
             const isInWatchlist = watchlistTmdbIds.has(movie.id)
             const isWatched = watchedTmdbIds.has(movie.id)
@@ -199,12 +179,12 @@ export default function CarouselRow({ title, tmdbCategory, rowId }) {
             return (
               <div
                 key={`${rowId}-${movie.id}`}
-                className="relative flex-shrink-0 w-[140px] sm:w-[160px] md:w-[180px] lg:w-[200px] transition-all duration-300 ease-out"
+                className="relative flex-shrink-0 w-[160px] md:w-[200px] lg:w-[220px] transition-all duration-300 ease-out"
                 style={{
                   transform: isHovered ? 'scale(1.35)' : 'scale(1)',
                   zIndex: isHovered ? 40 : 10,
-                  marginLeft: isHovered ? '28px' : '0',
-                  marginRight: isHovered ? '28px' : '0'
+                  marginLeft: isHovered ? '30px' : '0',
+                  marginRight: isHovered ? '30px' : '0'
                 }}
                 onMouseEnter={() => handleMouseEnter(movie)}
                 onMouseLeave={handleMouseLeave}
@@ -218,16 +198,11 @@ export default function CarouselRow({ title, tmdbCategory, rowId }) {
                 >
                   {/* Poster Image */}
                   <div className="relative aspect-[2/3] overflow-hidden">
-                    <img 
-                      src={tmdbImg(movie.poster_path)} 
-                      alt={movie.title} 
-                      className="w-full h-full object-cover" 
-                      loading="lazy" 
-                    />
+                    <img src={tmdbImg(movie.poster_path)} alt={movie.title} className="w-full h-full object-cover" loading="lazy" />
                     
-                    {/* Rating Badge - Always Visible */}
+                    {/* Top Right Badge - Always Visible */}
                     {movie.vote_average > 0 && (
-                      <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-md bg-gradient-to-br from-purple-500/95 to-pink-500/95 backdrop-blur-sm shadow-lg">
+                      <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-md bg-gradient-to-br from-purple-500/90 to-pink-500/90 backdrop-blur-sm shadow-lg">
                         <span className="text-white text-xs font-bold">★</span>
                         <span className="text-white text-xs font-bold">{movie.vote_average.toFixed(1)}</span>
                       </div>
@@ -238,31 +213,24 @@ export default function CarouselRow({ title, tmdbCategory, rowId }) {
                   {isHovered && (
                     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/95 to-transparent flex flex-col justify-end p-4">
                       {/* Title */}
-                      <h3 className="text-white text-base md:text-lg font-bold line-clamp-2 mb-2">
-                        {movie.title}
-                      </h3>
+                      <h3 className="text-white text-base font-bold line-clamp-2 mb-2">{movie.title}</h3>
 
                       {/* Meta Info */}
                       <div className="flex items-center gap-2 mb-2 text-xs text-white/80">
-                        {movie.release_date && (
-                          <span className="font-semibold">{new Date(movie.release_date).getFullYear()}</span>
-                        )}
+                        {movie.release_date && <span>{new Date(movie.release_date).getFullYear()}</span>}
                         {movie.vote_average > 0 && (
                           <>
                             <span>•</span>
-                            <span className="text-purple-300 font-bold">★ {movie.vote_average.toFixed(1)}</span>
+                            <span className="text-purple-300 font-semibold">★ {movie.vote_average.toFixed(1)}</span>
                           </>
                         )}
                       </div>
 
                       {/* Genres */}
                       {movieGenres.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 mb-3">
+                        <div className="flex flex-wrap gap-1 mb-3">
                           {movieGenres.map(genre => (
-                            <span 
-                              key={genre} 
-                              className="px-2 py-0.5 rounded-full bg-white/10 text-white/70 text-[10px] font-medium backdrop-blur-sm"
-                            >
+                            <span key={genre} className="px-2 py-0.5 rounded-full bg-white/10 text-white/70 text-[10px] font-medium backdrop-blur-sm">
                               {genre}
                             </span>
                           ))}
@@ -271,44 +239,40 @@ export default function CarouselRow({ title, tmdbCategory, rowId }) {
 
                       {/* Description */}
                       {movie.overview && (
-                        <p className="text-white/70 text-xs leading-relaxed line-clamp-3 mb-4">
+                        <p className="text-white/70 text-xs line-clamp-3 leading-relaxed mb-3">
                           {movie.overview}
                         </p>
                       )}
 
                       {/* Action Buttons Row */}
                       <div className="flex items-center gap-2">
-                        {/* View Details Button */}
+                        {/* View Details */}
                         <button
                           onClick={(e) => { e.stopPropagation(); nav(`/movie/${movie.id}`) }}
-                          className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white text-xs font-bold transition-all hover:scale-105 shadow-lg"
+                          className="flex-1 flex items-center justify-center gap-1.5 h-8 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white text-xs font-bold transition-all hover:scale-105"
                         >
-                          <Info className="h-3.5 w-3.5" />
+                          <Info className="h-3 w-3" />
                           <span>Details</span>
                         </button>
 
                         {user && (
                           <>
-                            {/* Watchlist Button */}
+                            {/* Watchlist */}
                             <button
                               onClick={(e) => toggleWatchlist(e, movie)}
-                              className={`flex items-center justify-center h-9 w-9 rounded-lg transition-all hover:scale-110 backdrop-blur-md border shadow-lg ${
-                                isInWatchlist 
-                                  ? 'bg-purple-500/30 border-purple-400 text-purple-300' 
-                                  : 'bg-white/10 hover:bg-white/20 border-white/20 text-white'
+                              className={`flex items-center justify-center h-8 w-8 rounded-lg transition-all hover:scale-110 backdrop-blur-md border shadow-lg ${
+                                isInWatchlist ? 'bg-purple-500/30 border-purple-400 text-purple-300' : 'bg-white/10 hover:bg-white/20 border-white/20 text-white'
                               }`}
                               title={isInWatchlist ? 'In Watchlist' : 'Add to Watchlist'}
                             >
                               {isInWatchlist ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
                             </button>
 
-                            {/* Watched Button */}
+                            {/* Watched */}
                             <button
                               onClick={(e) => toggleWatched(e, movie)}
-                              className={`flex items-center justify-center h-9 w-9 rounded-lg transition-all hover:scale-110 backdrop-blur-md border shadow-lg ${
-                                isWatched 
-                                  ? 'bg-emerald-500/30 border-emerald-400 text-emerald-300' 
-                                  : 'bg-white/10 hover:bg-white/20 border-white/20 text-white'
+                              className={`flex items-center justify-center h-8 w-8 rounded-lg transition-all hover:scale-110 backdrop-blur-md border shadow-lg ${
+                                isWatched ? 'bg-emerald-500/30 border-emerald-400 text-emerald-300' : 'bg-white/10 hover:bg-white/20 border-white/20 text-white'
                               }`}
                               title={isWatched ? 'Mark as Unwatched' : 'Mark as Watched'}
                             >
@@ -320,6 +284,11 @@ export default function CarouselRow({ title, tmdbCategory, rowId }) {
                     </div>
                   )}
                 </div>
+
+                {/* Title Below (Hidden on Hover) */}
+                {!isHovered && (
+                  <p className="text-white text-sm font-medium mt-2 line-clamp-2 px-1">{movie.title}</p>
+                )}
               </div>
             )
           })}

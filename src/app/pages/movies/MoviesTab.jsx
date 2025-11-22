@@ -1,9 +1,9 @@
 // src/app/pages/browse/MoviesTab.jsx
 import { useEffect, useState } from 'react'
 import { supabase } from '@/shared/lib/supabase/client'
-import BrowseSearchBar from './BrowseSearchBar'
-import ResultsGrid from './ResultsGrid'
-import Pagination from './Pagination'
+import BrowseSearchBar from './components/BrowseSearchBar'
+import ResultsGrid from './components/ResultsGrid'
+import Pagination from './components/Pagination'
 
 const TMDB_BASE = 'https://api.themoviedb.org/3'
 const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY

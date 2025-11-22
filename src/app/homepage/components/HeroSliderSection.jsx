@@ -15,7 +15,6 @@ export default function HeroSliderSection({ className = '' }) {
   
   // User Data State
   const [user, setUser] = useState(null)
-  // NOTE: These sets store TMDB IDs to make UI checking easier against the slide data
   const [watchlistTmdbIds, setWatchlistTmdbIds] = useState(new Set())
   const [watchedTmdbIds, setWatchedTmdbIds] = useState(new Set())
   
@@ -51,44 +50,23 @@ export default function HeroSliderSection({ className = '' }) {
         
         setSlides(movies)
 
-        // Sync Status with DB
         const { data: { user } } = await supabase.auth.getUser()
         if (user && movies.length > 0) {
           const tmdbIds = movies.map(m => m.id)
 
-          // 1. Find internal IDs for these TMDB IDs
-          const { data: dbMovies } = await supabase
-            .from('movies')
-            .select('id, tmdb_id')
-            .in('tmdb_id', tmdbIds)
+          const { data: dbMovies } = await supabase.from('movies').select('id, tmdb_id').in('tmdb_id', tmdbIds)
 
           if (dbMovies && dbMovies.length > 0) {
             const internalIdMap = new Map(dbMovies.map(m => [m.id, m.tmdb_id]))
             const internalIds = dbMovies.map(m => m.id)
 
-            // 2. Check Watchlist using Internal IDs
-            const { data: wl } = await supabase
-              .from('user_watchlist')
-              .select('movie_id')
-              .eq('user_id', user.id)
-              .in('movie_id', internalIds)
-            
-            if (wl) {
-              const foundTmdbIds = new Set(wl.map(w => internalIdMap.get(w.movie_id)))
-              setWatchlistTmdbIds(foundTmdbIds)
-            }
+            // Check Watchlist
+            const { data: wl } = await supabase.from('user_watchlist').select('movie_id').eq('user_id', user.id).in('movie_id', internalIds)
+            if (wl) setWatchlistTmdbIds(new Set(wl.map(w => internalIdMap.get(w.movie_id))))
 
-            // 3. Check History using Internal IDs
-            const { data: wh } = await supabase
-              .from('movies_watched')
-              .select('movie_id')
-              .eq('user_id', user.id)
-              .in('movie_id', internalIds)
-            
-            if (wh) {
-              const foundTmdbIds = new Set(wh.map(w => internalIdMap.get(w.movie_id)))
-              setWatchedTmdbIds(foundTmdbIds)
-            }
+            // Check History
+            const { data: wh } = await supabase.from('movies_watched').select('movie_id').eq('user_id', user.id).in('movie_id', internalIds)
+            if (wh) setWatchedTmdbIds(new Set(wh.map(w => internalIdMap.get(w.movie_id))))
           }
         }
         
@@ -130,23 +108,17 @@ export default function HeroSliderSection({ className = '' }) {
     setTimeout(() => setIsTransitioning(false), 500)
   }
 
-  // Swipe Handlers
+  // Swipe
   const minSwipeDistance = 50
   const onTouchStart = (e) => {
-    setTouchEnd(null)
-    setTouchStart(e.targetTouches[0].clientX)
-    setDragOffset(0)
+    setTouchEnd(null); setTouchStart(e.targetTouches[0].clientX); setDragOffset(0)
   }
   const onTouchMove = (e) => {
     setTouchEnd(e.targetTouches[0].clientX)
-    if (touchStart !== null) {
-      setDragOffset(e.targetTouches[0].clientX - touchStart) 
-    }
+    if (touchStart !== null) setDragOffset(e.targetTouches[0].clientX - touchStart)
   }
   const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) {
-      setTouchStart(null); setTouchEnd(null); setDragOffset(0); return
-    }
+    if (!touchStart || !touchEnd) { setTouchStart(null); setTouchEnd(null); setDragOffset(0); return }
     const distance = touchStart - touchEnd
     if (distance > minSwipeDistance) nextSlide()
     else if (distance < -minSwipeDistance) prevSlide()
@@ -154,10 +126,9 @@ export default function HeroSliderSection({ className = '' }) {
   }
 
   // --------------------------------------------------
-  // HELPER: Upsert Movie to DB
+  // HELPER: Upsert Movie
   // --------------------------------------------------
   const ensureMovieInDb = async (movie) => {
-    // Upsert based on tmdb_id (unique constraint)
     const { data, error } = await supabase
       .from('movies')
       .upsert({
@@ -172,24 +143,20 @@ export default function HeroSliderSection({ className = '' }) {
         vote_count: movie.vote_count,
         popularity: movie.popularity,
         original_language: movie.original_language,
-        json_data: movie // Store raw data as backup
+        json_data: movie
       }, { onConflict: 'tmdb_id' })
       .select('id')
       .single()
     
-    if (error) {
-      console.error('Error upserting movie:', error)
-      return null
-    }
-    return data.id // Return internal ID
+    if (error) { console.error('Error upserting movie:', error); return null }
+    return data.id
   }
 
   // --------------------------------------------------
-  // ACTIONS
+  // TOGGLE LOGIC (Mutually Exclusive)
   // --------------------------------------------------
   
   const currentMovie = slides[currentIndex]
-  // Use TMDB IDs for checking state
   const isInWatchlist = currentMovie?.id && watchlistTmdbIds.has(currentMovie.id)
   const isWatched = currentMovie?.id && watchedTmdbIds.has(currentMovie.id)
 
@@ -202,26 +169,22 @@ export default function HeroSliderSection({ className = '' }) {
     const movie = currentMovie
     const tmdbId = movie.id
     
-    // Optimistic UI Update
     if (isInWatchlist) {
+      // Remove from Watchlist
       setWatchlistTmdbIds(prev => { const n = new Set(prev); n.delete(tmdbId); return n })
-      
-      // We need the internal ID to delete from watchlist
       const { data: dbMovie } = await supabase.from('movies').select('id').eq('tmdb_id', tmdbId).single()
-      if (dbMovie) {
-        await supabase.from('user_watchlist').delete().eq('user_id', user.id).eq('movie_id', dbMovie.id)
-      }
+      if (dbMovie) await supabase.from('user_watchlist').delete().eq('user_id', user.id).eq('movie_id', dbMovie.id)
     } else {
+      // Add to Watchlist -> Must remove from Watched
       setWatchlistTmdbIds(prev => new Set(prev).add(tmdbId))
-      
+      setWatchedTmdbIds(prev => { const n = new Set(prev); n.delete(tmdbId); return n }) // Optimistic remove from watched
+
       const internalId = await ensureMovieInDb(movie)
       if (internalId) {
-        await supabase.from('user_watchlist').upsert({
-          user_id: user.id,
-          movie_id: internalId,
-          added_at: new Date().toISOString(),
-          status: 'want_to_watch'
-        })
+        await Promise.all([
+          supabase.from('user_watchlist').upsert({ user_id: user.id, movie_id: internalId, added_at: new Date().toISOString(), status: 'want_to_watch' }),
+          supabase.from('movies_watched').delete().eq('user_id', user.id).eq('movie_id', internalId) // Enforce exclusive
+        ])
       }
     }
   }
@@ -231,30 +194,32 @@ export default function HeroSliderSection({ className = '' }) {
     const movie = currentMovie
     const tmdbId = movie.id
 
-    // Optimistic UI Update
     if (isWatched) {
+      // Remove from Watched
       setWatchedTmdbIds(prev => { const n = new Set(prev); n.delete(tmdbId); return n })
-      
       const { data: dbMovie } = await supabase.from('movies').select('id').eq('tmdb_id', tmdbId).single()
-      if (dbMovie) {
-        await supabase.from('movies_watched').delete().eq('user_id', user.id).eq('movie_id', dbMovie.id)
-      }
+      if (dbMovie) await supabase.from('movies_watched').delete().eq('user_id', user.id).eq('movie_id', dbMovie.id)
     } else {
+      // Add to Watched -> Must remove from Watchlist
       setWatchedTmdbIds(prev => new Set(prev).add(tmdbId))
+      setWatchlistTmdbIds(prev => { const n = new Set(prev); n.delete(tmdbId); return n }) // Optimistic remove from watchlist
       
       const internalId = await ensureMovieInDb(movie)
       if (internalId) {
-        await supabase.from('movies_watched').upsert({
-          user_id: user.id,
-          movie_id: internalId,
-          title: movie.title, // Redundant but requested in schema
-          poster: movie.poster_path, // Redundant but requested in schema
-          release_date: movie.release_date || null,
-          vote_average: movie.vote_average,
-          genre_ids: movie.genre_ids,
-          watched_at: new Date().toISOString(),
-          source: 'hero_slider'
-        })
+        await Promise.all([
+          supabase.from('movies_watched').upsert({
+            user_id: user.id,
+            movie_id: internalId,
+            title: movie.title,
+            poster: movie.poster_path,
+            release_date: movie.release_date || null,
+            vote_average: movie.vote_average,
+            genre_ids: movie.genre_ids,
+            watched_at: new Date().toISOString(),
+            source: 'hero_slider'
+          }),
+          supabase.from('user_watchlist').delete().eq('user_id', user.id).eq('movie_id', internalId) // Enforce exclusive
+        ])
       }
     }
   }
@@ -279,8 +244,6 @@ export default function HeroSliderSection({ className = '' }) {
       onTouchEnd={onTouchEnd}
     >
       <div className="relative w-full h-[75vh] sm:h-[80vh] min-h-[500px]">
-        
-        {/* Slides */}
         <div 
           className="relative w-full h-full"
           style={{
@@ -290,31 +253,19 @@ export default function HeroSliderSection({ className = '' }) {
         >
           {slides.map((movie, idx) => {
             const bg = tmdbImg(movie.backdrop_path || movie.poster_path, 'original')
-            let opacityClass = 'opacity-0 z-0 scale-105'
-            if (idx === currentIndex) opacityClass = 'opacity-100 z-10 scale-100'
-            
+            const opacityClass = idx === currentIndex ? 'opacity-100 z-10 scale-100' : 'opacity-0 z-0 scale-105'
             return (
-              <div 
-                key={movie.id}
-                className={`absolute inset-0 transition-all duration-500 ease-out ${opacityClass}`}
-              >
-                <img 
-                  src={bg} 
-                  alt={movie.title} 
-                  className="absolute inset-0 h-full w-full object-cover pointer-events-none select-none"
-                  loading={idx === 0 ? "eager" : "lazy"}
-                />
+              <div key={movie.id} className={`absolute inset-0 transition-all duration-500 ease-out ${opacityClass}`}>
+                <img src={bg} alt={movie.title} className="absolute inset-0 h-full w-full object-cover pointer-events-none select-none" loading={idx === 0 ? "eager" : "lazy"} />
               </div>
             )
           })}
         </div>
 
-        {/* Gradients */}
         <div className="absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-black/90 to-transparent z-20 pointer-events-none" />
         <div className="absolute inset-y-0 left-0 w-full md:w-2/5 bg-gradient-to-r from-black via-black/50 to-transparent z-20 pointer-events-none" />
         <div className="absolute bottom-0 inset-x-0 h-2/3 bg-gradient-to-t from-black via-black/80 to-transparent z-20 pointer-events-none" />
 
-        {/* Content */}
         <div className="absolute inset-0 z-30 flex flex-col justify-end pb-12 md:pb-16 lg:pb-20 pt-20 pointer-events-none">
           <div className="w-full px-4 md:px-12 lg:px-16 xl:px-20 pointer-events-auto">
             <div className="max-w-3xl">
@@ -334,13 +285,9 @@ export default function HeroSliderSection({ className = '' }) {
                     {new Date(currentMovie.release_date).getFullYear()}
                   </span>
                 )}
-                <span className="px-1.5 py-0.5 rounded border border-white/30 text-white/90 text-[10px] font-bold backdrop-blur-sm">
-                  4K
-                </span>
+                <span className="px-1.5 py-0.5 rounded border border-white/30 text-white/90 text-[10px] font-bold backdrop-blur-sm">4K</span>
                 {currentMovie?.genres?.slice(0, 2).map(genre => (
-                  <span key={genre} className="text-white/80 text-xs font-medium drop-shadow-md">
-                    {genre}
-                  </span>
+                  <span key={genre} className="text-white/80 text-xs font-medium drop-shadow-md">{genre}</span>
                 ))}
               </div>
 

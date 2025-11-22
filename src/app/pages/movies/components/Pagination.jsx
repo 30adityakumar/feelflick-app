@@ -1,31 +1,56 @@
+// src/app/pages/movies/components/Pagination.jsx
+
 /**
  * Pagination
- * - Dumb pager with Prev/Next + clamped bounds
- * - Props: page (number), totalPages (number), onChange(nextPage), className?
+ * - Simple Previous / Next control with clamped bounds
+ * - Props: page, totalPages, onChange(nextPage), className?
  */
-export default function Pagination({ page = 1, totalPages = 1, onChange, className = '' }) {
-  const prev = () => onChange?.(Math.max(1, page - 1))
-  const next = () => onChange?.(Math.min(totalPages, page + 1))
+export default function Pagination({
+  page = 1,
+  totalPages = 1,
+  onChange,
+  className = '',
+}) {
+  const prevDisabled = page <= 1
+  const nextDisabled = page >= totalPages
+
+  const prev = () => {
+    if (!prevDisabled) onChange?.(page - 1)
+  }
+
+  const next = () => {
+    if (!nextDisabled) onChange?.(page + 1)
+  }
+
+  if (totalPages <= 1) return null
 
   return (
-    <div className={`flex items-center justify-center gap-3 ${className}`}>
+    <nav
+      className={`inline-flex items-center gap-3 text-sm text-white/80 ${className}`}
+      aria-label="Pagination"
+    >
       <button
+        type="button"
         onClick={prev}
-        disabled={page <= 1}
-        className="rounded-md border border-white/20 px-3 py-1.5 text-sm text-white/90 disabled:opacity-40"
+        disabled={prevDisabled}
+        className="px-3 py-1.5 rounded-full border border-white/15 bg-white/5 text-xs font-semibold hover:bg-white/15 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
       >
-        Prev
+        Previous
       </button>
-      <div className="text-xs text-white/70">
-        Page {page} / {totalPages}
-      </div>
+
+      <span className="text-xs sm:text-sm text-white/60">
+        Page <span className="font-semibold text-white/90">{page}</span> of{' '}
+        <span className="font-semibold text-white/90">{totalPages}</span>
+      </span>
+
       <button
+        type="button"
         onClick={next}
-        disabled={page >= totalPages}
-        className="rounded-md border border-white/20 px-3 py-1.5 text-sm text-white/90 disabled:opacity-40"
+        disabled={nextDisabled}
+        className="px-3 py-1.5 rounded-full border border-white/15 bg-white/5 text-xs font-semibold hover:bg-white/15 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
       >
         Next
       </button>
-    </div>
+    </nav>
   )
 }

@@ -15,7 +15,7 @@ export default function HomePage() {
   return (
     <div className="relative w-full bg-black text-white min-h-screen">
       {/* Hero Section - Full bleed with header overlay */}
-      <HeroSliderSection className="mt-6 md:mt-10" />
+      <HeroSliderSection className="mt-10 md:mt-12" />
 
       {/* Content Rows - Proper spacing */}
       <div className="relative z-30 space-y-6 sm:space-y-8 md:space-y-10 lg:space-y-12 pb-20 md:pb-8">

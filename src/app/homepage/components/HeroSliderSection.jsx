@@ -1,7 +1,7 @@
 // src/app/homepage/components/HeroSliderSection.jsx
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Play, Info, Plus, Check } from 'lucide-react'
+import { Info, Plus, Check, Eye } from 'lucide-react'
 import { supabase } from '@/shared/lib/supabase/client'
 
 const tmdbImg = (p, s = 'original') => p ? `https://image.tmdb.org/t/p/${s}${p}` : ''
@@ -14,22 +14,32 @@ export default function HeroSliderSection({ className = '' }) {
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState(null)
   const [watchlistIds, setWatchlistIds] = useState(new Set())
+  const [watchedIds, setWatchedIds] = useState(new Set())
   const nav = useNavigate()
   const timerRef = useRef(null)
   const touchStartX = useRef(0)
   const touchEndX = useRef(0)
 
-  // Get user and watchlist
+  // Get user, watchlist, and watch history
   useEffect(() => {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser()
       setUser(user)
+      
       if (user) {
-        const { data } = await supabase
+        // Fetch watchlist
+        const { data: watchlistData } = await supabase
           .from('user_watchlist')
           .select('movie_id')
           .eq('user_id', user.id)
-        if (data) setWatchlistIds(new Set(data.map(item => item.movie_id)))
+        if (watchlistData) setWatchlistIds(new Set(watchlistData.map(item => item.movie_id)))
+
+        // Fetch watch history
+        const { data: historyData } = await supabase
+          .from('user_history')
+          .select('movie_id')
+          .eq('user_id', user.id)
+        if (historyData) setWatchedIds(new Set(historyData.map(item => item.movie_id)))
       }
     })()
   }, [])
@@ -106,12 +116,9 @@ export default function HeroSliderSection({ className = '' }) {
   // Actions
   const currentMovie = slides[currentIndex]
   const isInWatchlist = currentMovie?.id && watchlistIds.has(currentMovie.id)
+  const isWatched = currentMovie?.id && watchedIds.has(currentMovie.id)
 
-  const handleWatchNow = () => {
-    if (currentMovie?.id) nav(`/movie/${currentMovie.id}`)
-  }
-
-  const handleMoreInfo = () => {
+  const handleViewDetails = () => {
     if (currentMovie?.id) nav(`/movie/${currentMovie.id}`)
   }
 
@@ -139,6 +146,33 @@ export default function HeroSliderSection({ className = '' }) {
           added_at: new Date().toISOString()
         })
       setWatchlistIds(prev => new Set(prev).add(movieId))
+    }
+  }
+
+  const toggleWatched = async () => {
+    if (!user || !currentMovie?.id) return
+    const movieId = currentMovie.id
+    
+    if (isWatched) {
+      await supabase
+        .from('user_history')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('movie_id', movieId)
+      setWatchedIds(prev => {
+        const next = new Set(prev)
+        next.delete(movieId)
+        return next
+      })
+    } else {
+      await supabase
+        .from('user_history')
+        .upsert({
+          user_id: user.id,
+          movie_id: movieId,
+          watched_at: new Date().toISOString()
+        })
+      setWatchedIds(prev => new Set(prev).add(movieId))
     }
   }
 
@@ -186,25 +220,20 @@ export default function HeroSliderSection({ className = '' }) {
         })}
 
         {/* Enhanced Cinematic Gradients */}
-        {/* Top fade - stronger for header */}
         <div className="absolute top-0 inset-x-0 h-32 md:h-40 bg-gradient-to-b from-black via-black/80 to-transparent z-20 pointer-events-none" />
-        
-        {/* Left side fade - more pronounced */}
         <div className="absolute inset-y-0 left-0 w-full md:w-3/5 bg-gradient-to-r from-black via-black/70 md:via-black/40 to-transparent z-20 pointer-events-none" />
-        
-        {/* Bottom fade - much stronger */}
         <div className="absolute bottom-0 inset-x-0 h-4/5 bg-gradient-to-t from-black via-black/90 to-transparent z-20 pointer-events-none" />
 
-        {/* Content Overlay - Netflix/Prime style positioning */}
+        {/* Content Overlay */}
         <div className="absolute inset-0 z-30 flex flex-col justify-end pb-16 md:pb-20 lg:pb-24 pt-24">
           <div className="w-full px-4 md:px-12 lg:px-16 xl:px-20">
             <div className="max-w-3xl">
-              {/* Title - Bigger, bolder */}
+              {/* Title */}
               <h1 className="text-white font-black tracking-tight leading-[0.95] text-4xl sm:text-5xl md:text-6xl lg:text-7xl drop-shadow-2xl mb-4 md:mb-5 animate-in fade-in slide-in-from-bottom-4 duration-700">
                 {currentMovie?.title}
               </h1>
 
-              {/* Meta Info Row - Netflix style */}
+              {/* Meta Info Row */}
               <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-4 md:mb-5 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
                 {/* Rating Badge */}
                 {currentMovie?.vote_average > 0 && (
@@ -237,53 +266,69 @@ export default function HeroSliderSection({ className = '' }) {
                 ))}
               </div>
 
-              {/* Overview - Prime style */}
+              {/* Overview */}
               {currentMovie?.overview && (
                 <p className="hidden md:block text-white/95 text-base md:text-lg leading-relaxed line-clamp-3 drop-shadow-xl mb-6 md:mb-7 max-w-2xl font-medium animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
                   {currentMovie.overview}
                 </p>
               )}
 
-              {/* Action Buttons - Prime/Netflix style */}
+              {/* Action Buttons */}
               <div className="flex flex-wrap items-center gap-3 md:gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
-                {/* Primary CTA - Watch Now */}
+                {/* Primary CTA - View Details */}
                 <button 
-                  onClick={handleWatchNow}
+                  onClick={handleViewDetails}
                   className="group inline-flex items-center justify-center gap-2 md:gap-2.5 rounded-lg md:rounded-xl px-6 md:px-8 py-3 md:py-3.5 text-sm md:text-base font-bold text-white transition-all hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-purple-500/30 shadow-2xl shadow-purple-900/40 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500"
                 >
-                  <Play className="h-4 w-4 md:h-5 md:w-5 fill-white group-hover:scale-110 transition-transform" />
-                  <span>Watch Now</span>
-                </button>
-
-                {/* Secondary CTA - More Info */}
-                <button 
-                  onClick={handleMoreInfo}
-                  className="inline-flex items-center justify-center gap-2 md:gap-2.5 rounded-lg md:rounded-xl px-6 md:px-8 py-3 md:py-3.5 text-sm md:text-base font-bold text-white transition-all hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-white/20 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 shadow-xl"
-                >
-                  <Info className="h-4 w-4 md:h-5 md:w-5" />
-                  <span>More Info</span>
+                  <Info className="h-4 w-4 md:h-5 md:w-5 group-hover:scale-110 transition-transform" />
+                  <span>View Details</span>
                 </button>
 
                 {/* Watchlist Toggle */}
                 {user && (
-                  <button 
-                    onClick={toggleWatchlist}
-                    className="inline-flex items-center justify-center h-[48px] md:h-[52px] w-[48px] md:w-[52px] rounded-lg md:rounded-xl text-white transition-all hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-white/20 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 shadow-xl"
-                    title={isInWatchlist ? "Remove from Watchlist" : "Add to Watchlist"}
-                  >
-                    {isInWatchlist ? (
-                      <Check className="h-5 w-5 md:h-6 md:w-6" />
-                    ) : (
-                      <Plus className="h-5 w-5 md:h-6 md:w-6" />
-                    )}
-                  </button>
+                  <div className="relative group/tooltip">
+                    <button 
+                      onClick={toggleWatchlist}
+                      className="inline-flex items-center justify-center h-[48px] md:h-[52px] w-[48px] md:w-[52px] rounded-lg md:rounded-xl text-white transition-all hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-white/20 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 shadow-xl"
+                      aria-label={isInWatchlist ? "Remove from Watchlist" : "Add to Watchlist"}
+                    >
+                      {isInWatchlist ? (
+                        <Check className="h-5 w-5 md:h-6 md:w-6" />
+                      ) : (
+                        <Plus className="h-5 w-5 md:h-6 md:w-6" />
+                      )}
+                    </button>
+                    {/* Tooltip */}
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-black/90 text-white text-xs font-medium rounded-lg whitespace-nowrap opacity-0 group-hover/tooltip:opacity-100 pointer-events-none transition-opacity duration-200 backdrop-blur-sm">
+                      {isInWatchlist ? "Remove from Watchlist" : "Add to Watchlist"}
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-black/90"></div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Already Watched Toggle */}
+                {user && (
+                  <div className="relative group/tooltip">
+                    <button 
+                      onClick={toggleWatched}
+                      className="inline-flex items-center justify-center h-[48px] md:h-[52px] w-[48px] md:w-[52px] rounded-lg md:rounded-xl text-white transition-all hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-white/20 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 shadow-xl"
+                      aria-label={isWatched ? "Mark as Unwatched" : "Mark as Watched"}
+                    >
+                      <Eye className={`h-5 w-5 md:h-6 md:w-6 ${isWatched ? 'fill-white' : ''}`} />
+                    </button>
+                    {/* Tooltip */}
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-black/90 text-white text-xs font-medium rounded-lg whitespace-nowrap opacity-0 group-hover/tooltip:opacity-100 pointer-events-none transition-opacity duration-200 backdrop-blur-sm">
+                      {isWatched ? "Mark as Unwatched" : "Mark as Watched"}
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-black/90"></div>
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
           </div>
         </div>
 
-        {/* Navigation Arrows - Subtle, appear on hover */}
+        {/* Navigation Arrows */}
         <button 
           onClick={prevSlide} 
           disabled={isTransitioning}
@@ -306,7 +351,7 @@ export default function HeroSliderSection({ className = '' }) {
           </svg>
         </button>
 
-        {/* Slide Indicators - Center bottom, Netflix style */}
+        {/* Slide Indicators */}
         <div className="absolute bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2">
           {slides.map((_, idx) => (
             <button

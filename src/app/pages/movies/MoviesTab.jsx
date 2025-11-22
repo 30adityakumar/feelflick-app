@@ -1,104 +1,103 @@
-// src/app/pages/movies/MoviesTab.jsx
-import { useEffect, useMemo } from 'react'
-import { useSearchParams } from 'react-router-dom'
+// src/app/pages/browse/MoviesTab.jsx
+import { useEffect, useState } from 'react'
+import { supabase } from '@/shared/lib/supabase/client'
+import BrowseSearchBar from './BrowseSearchBar'
+import ResultsGrid from './ResultsGrid'
+import Pagination from './Pagination'
 
-import BrowseSearchBar from './components/BrowseSearchBar'
-import ResultsGrid from './components/ResultsGrid'
-import Pagination from './components/Pagination'
+const TMDB_BASE = 'https://api.themoviedb.org/3'
+const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY
 
-import Spinner from '@/shared/ui/Spinner'
-import ErrorState from '@/shared/ui/ErrorState'
-import { discoverMovies } from '@/shared/api/tmdb'
-import { useAsync } from '@/shared/hooks/useAsync'
-
-/**
- * MoviesTab
- * - Controller for the browse/list page
- * - Uses TMDB Discover API
- * - Syncs `page` to URL (?page=)
- */
 export default function MoviesTab() {
-  const [params, setParams] = useSearchParams()
-  const page = Math.max(1, Number(params.get('page') || 1))
+  const [movies, setMovies] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [genre, setGenre] = useState('')
+  const [query, setQuery] = useState('')
+  const [sortBy, setSortBy] = useState('popularity.desc')
+  const [user, setUser] = useState(null)
 
-  // You can later expose these as filters/sorts
-  const sortBy = 'popularity.desc'
-  const genreIds = undefined
-  const year = undefined
-
-  const { data, error, loading, run } = useAsync()
-
-  const totalPages = useMemo(() => {
-    const raw = data?.total_pages ?? 1
-    return Math.min(500, Math.max(1, raw))
-  }, [data])
-
+  // Auth
   useEffect(() => {
-    run((signal) =>
-      discoverMovies({
-        page,
-        sortBy,
-        genreIds,
-        year,
-        signal,
-      })
-    )
-  }, [page, sortBy, genreIds, year, run])
+    supabase.auth.getUser().then(({ data }) => setUser(data?.user ?? null))
+    const { data } = supabase.auth.onAuthStateChange((_e, session) => setUser(session?.user ?? null))
+    return () => data?.subscription?.unsubscribe?.()
+  }, [])
 
-  function handlePageChange(nextPage) {
-    const np = Math.min(totalPages, Math.max(1, nextPage))
-    params.set('page', String(np))
-    setParams(params, { replace: false })
+  // Fetch Movies
+  useEffect(() => {
+    let active = true
+    async function fetchMovies() {
+      setLoading(true)
+      try {
+        let url
+        if (query.trim()) {
+          // Search mode
+          url = `${TMDB_BASE}/search/movie?api_key=${TMDB_KEY}&language=en-US&query=${encodeURIComponent(query)}&page=${page}`
+        } else {
+          // Discover mode
+          url = `${TMDB_BASE}/discover/movie?api_key=${TMDB_KEY}&language=en-US&page=${page}&sort_by=${sortBy}`
+          if (genre) url += `&with_genres=${genre}`
+        }
+
+        const res = await fetch(url)
+        const data = await res.json()
+        
+        if (!active) return
+        
+        setMovies(data.results || [])
+        setTotalPages(Math.min(data.total_pages || 1, 500)) // TMDB limits to 500 pages
+      } catch (error) {
+        console.error('Error fetching movies:', error)
+        if (active) setMovies([])
+      } finally {
+        if (active) setLoading(false)
+      }
+    }
+
+    fetchMovies()
+    return () => { active = false }
+  }, [page, genre, query, sortBy])
+
+  const handleSearch = (searchQuery, selectedGenre, selectedSort) => {
+    setQuery(searchQuery)
+    setGenre(selectedGenre)
+    setSortBy(selectedSort)
+    setPage(1) // Reset to page 1 on new search
   }
 
-  const results = data?.results ?? []
+  const handlePageChange = (newPage) => {
+    setPage(newPage)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   return (
-    <div className="min-h-screen bg-black text-white pb-16">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-12">
-        {/* Page header */}
-        <header className="pt-24 pb-6 flex flex-col gap-3">
-          <div>
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight">
-              Browse Movies
-            </h1>
-            <p className="mt-1 text-sm sm:text-base text-white/70 max-w-2xl">
-              Discover popular hits, hidden gems, and everything in between powered by TMDB.
-            </p>
-          </div>
-          <div className="mt-2 max-w-xl">
-            <BrowseSearchBar />
-          </div>
-        </header>
+    <div className="min-h-screen bg-black text-white pb-12">
+      {/* Search Bar */}
+      <div className="sticky top-0 z-40 bg-black/95 backdrop-blur-lg border-b border-white/10 pt-20 md:pt-24 pb-4">
+        <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-12">
+          <BrowseSearchBar onSearch={handleSearch} />
+        </div>
+      </div>
 
-        {/* Content */}
-        {loading && !results.length && (
-          <div className="py-16 flex justify-center">
-            <Spinner />
+      {/* Results */}
+      <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-12 mt-8">
+        {loading ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+            {[...Array(18)].map((_, i) => (
+              <div key={i} className="aspect-[2/3] rounded-lg bg-white/5 animate-pulse" />
+            ))}
           </div>
-        )}
-
-        {error && !loading && (
-          <div className="py-10">
-            <ErrorState
-              title="Unable to load movies"
-              description="Please try again in a moment."
-            />
-          </div>
-        )}
-
-        {!loading && !error && (
+        ) : movies.length > 0 ? (
           <>
-            <ResultsGrid results={results} />
-
-            <div className="mt-8 flex justify-center">
-              <Pagination
-                page={page}
-                totalPages={totalPages}
-                onChange={handlePageChange}
-              />
-            </div>
+            <ResultsGrid movies={movies} user={user} />
+            <Pagination currentPage={page} totalPages={totalPages} onPageChange={handlePageChange} />
           </>
+        ) : (
+          <div className="text-center py-20">
+            <p className="text-white/60 text-lg">No movies found. Try a different search.</p>
+          </div>
         )}
       </div>
     </div>

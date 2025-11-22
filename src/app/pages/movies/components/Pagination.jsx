@@ -1,56 +1,33 @@
-// src/app/pages/movies/components/Pagination.jsx
+// src/app/pages/browse/Pagination.jsx
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 
-/**
- * Pagination
- * - Simple Previous / Next control with clamped bounds
- * - Props: page, totalPages, onChange(nextPage), className?
- */
-export default function Pagination({
-  page = 1,
-  totalPages = 1,
-  onChange,
-  className = '',
-}) {
-  const prevDisabled = page <= 1
-  const nextDisabled = page >= totalPages
-
-  const prev = () => {
-    if (!prevDisabled) onChange?.(page - 1)
-  }
-
-  const next = () => {
-    if (!nextDisabled) onChange?.(page + 1)
-  }
-
-  if (totalPages <= 1) return null
+export default function Pagination({ currentPage, totalPages, onPageChange }) {
+  const canGoPrev = currentPage > 1
+  const canGoNext = currentPage < totalPages
 
   return (
-    <nav
-      className={`inline-flex items-center gap-3 text-sm text-white/80 ${className}`}
-      aria-label="Pagination"
-    >
+    <div className="flex items-center justify-center gap-4 mt-12">
       <button
-        type="button"
-        onClick={prev}
-        disabled={prevDisabled}
-        className="px-3 py-1.5 rounded-full border border-white/15 bg-white/5 text-xs font-semibold hover:bg-white/15 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        disabled={!canGoPrev}
+        onClick={() => onPageChange(currentPage - 1)}
+        className="flex items-center gap-2 px-6 py-3 rounded-lg bg-white/10 hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed text-white font-semibold transition-all active:scale-95"
       >
+        <ChevronLeft className="h-5 w-5" />
         Previous
       </button>
 
-      <span className="text-xs sm:text-sm text-white/60">
-        Page <span className="font-semibold text-white/90">{page}</span> of{' '}
-        <span className="font-semibold text-white/90">{totalPages}</span>
+      <span className="text-white/70 text-sm font-medium">
+        Page {currentPage} of {totalPages}
       </span>
 
       <button
-        type="button"
-        onClick={next}
-        disabled={nextDisabled}
-        className="px-3 py-1.5 rounded-full border border-white/15 bg-white/5 text-xs font-semibold hover:bg-white/15 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        disabled={!canGoNext}
+        onClick={() => onPageChange(currentPage + 1)}
+        className="flex items-center gap-2 px-6 py-3 rounded-lg bg-white/10 hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed text-white font-semibold transition-all active:scale-95"
       >
         Next
+        <ChevronRight className="h-5 w-5" />
       </button>
-    </nav>
+    </div>
   )
 }

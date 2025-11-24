@@ -1,188 +1,208 @@
 // src/features/landing/sections/FeaturesGrid.jsx
-import { useRef, useState } from 'react'
+import { useRef, useState, useCallback } from 'react'
 import { useStaggeredAnimation } from '@/features/landing/utils/scrollAnimations'
-import { Sparkles, TrendingUp, Zap } from 'lucide-react'
+import { Sparkles, TrendingUp, Zap, CheckCircle2, MonitorPlay } from 'lucide-react'
 
 export default function FeaturesGrid() {
   const { containerRef, itemsVisible } = useStaggeredAnimation(3, 180)
 
   return (
-    <section id="features" className="relative pt-6 pb-8 sm:pt-10 sm:pb-12 md:pt-12 md:pb-16 bg-black overflow-hidden">
-      {/* Gradient orbs */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-900/20 rounded-full blur-[128px] pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-900/20 rounded-full blur-[128px] pointer-events-none" />
-      
+    <section id="features" className="relative pt-16 pb-24 bg-black overflow-hidden">
+      {/* Deep Ambient Backgrounds - Subtler and Darker */}
+      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-purple-900/10 rounded-full blur-[128px] pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-blue-900/10 rounded-full blur-[128px] pointer-events-none" />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Header */}
-        <div className="text-center mb-10 sm:mb-16">
-          <h2 className="text-4xl sm:text-5xl font-black tracking-tight mb-4 sm:mb-6">
+        <div className="text-center mb-20">
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight mb-6">
             More Than Just <br />
-            <span className="bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">Recommendations</span>
+            <span className="bg-gradient-to-r from-purple-400 via-pink-500 to-amber-500 bg-clip-text text-transparent">
+              Recommendations
+            </span>
           </h2>
-          <p className="text-white/60 text-base sm:text-xl max-w-2xl mx-auto">A complete ecosystem for movie lovers. Discover, track, and watch—all in one place.</p>
+          <p className="text-white/60 text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed">
+            A complete ecosystem for movie lovers. Discover with mood, track your watchlist, and find where to stream—all in one beautiful interface.
+          </p>
         </div>
 
-        {/* Cards */}
-        <div ref={containerRef} className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+        {/* Grid */}
+        <div ref={containerRef} className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          
           {/* Card 1: AI Precision */}
           <RichFeatureCard 
-            title="AI Precision"
-            desc="We don't just guess. We learn your emotional taste and surface films you'll actually finish."
-            image="https://image.tmdb.org/t/p/w500/eCOtqtfvn7mxGl6nfmq4b1exJRc.jpg"
-            overlayColor="from-purple-900/50"
+            title="Mood Precision"
+            desc="We don't guess. We analyze emotional tone to surface films you'll actually finish."
+            image="https://image.tmdb.org/t/p/w780/eCOtqtfvn7mxGl6nfmq4b1exJRc.jpg" // Inception
+            overlayColor="from-purple-950/80"
             accentColor="purple"
             isVisible={itemsVisible.includes(0)}
           >
-            {/* Animated Match Badge */}
-            <div className="absolute top-5 right-5 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-black px-4 py-2 rounded-xl rotate-3 shadow-[0_0_30px_rgba(34,197,94,0.5)] backdrop-blur-sm group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 animate-pulse" />
-                <span className="text-sm">98% MATCH</span>
+            {/* Floating UI Element: Match Score */}
+            <div className="absolute top-6 right-6">
+              <div className="bg-white/10 backdrop-blur-md border border-white/20 px-4 py-2 rounded-full shadow-[0_0_20px_rgba(168,85,247,0.2)] flex items-center gap-2 transform rotate-3 transition-transform group-hover:rotate-6 group-hover:scale-105 duration-500">
+                <Sparkles className="w-4 h-4 text-purple-300 fill-purple-300 animate-pulse" />
+                <span className="text-sm font-bold text-white tracking-wide">98% MATCH</span>
               </div>
             </div>
-            
-            {/* Floating Stats */}
-            <div className="absolute bottom-24 left-5 bg-black/60 backdrop-blur-md border border-white/10 rounded-xl p-3 opacity-0 group-hover:opacity-100 transition-all duration-500 group-hover:translate-y-[-8px]">
-              <div className="flex items-center gap-2 text-xs text-white/90">
-                <TrendingUp className="w-4 h-4 text-green-400" />
-                <span className="font-semibold">+15% accuracy this month</span>
+
+            {/* Floating UI Element: Context */}
+            <div className="absolute bottom-28 left-6 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 delay-100">
+              <div className="bg-black/60 backdrop-blur-md border border-white/10 rounded-lg p-3 flex items-center gap-3 shadow-xl">
+                <div className="bg-green-500/20 p-1.5 rounded-md">
+                  <TrendingUp className="w-4 h-4 text-green-400" />
+                </div>
+                <div>
+                  <div className="text-[10px] text-white/50 uppercase tracking-wider font-bold">Analysis</div>
+                  <div className="text-xs font-semibold text-white">High emotional resonance</div>
+                </div>
               </div>
             </div>
           </RichFeatureCard>
 
           {/* Card 2: Universal Watchlist */}
           <RichFeatureCard 
-            title="Universal Watchlist"
-            desc="One watchlist for every streaming service. Add once, forget never."
-            image="https://image.tmdb.org/t/p/w500/xlaY2zyzMfkhk0HSC5VUwzoZPU1.jpg"
-            overlayColor="from-amber-900/50"
+            title="One Watchlist"
+            desc="Stop scattering movies across Notes apps and screenshots. Add once, track forever."
+            image="https://image.tmdb.org/t/p/w780/xlaY2zyzMfkhk0HSC5VUwzoZPU1.jpg" // The Martian
+            overlayColor="from-amber-950/80"
             accentColor="amber"
             isVisible={itemsVisible.includes(1)}
           >
-            {/* Stacked List Preview */}
-            <div className="absolute inset-0 p-4 sm:p-6 flex flex-col gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
-              <div className="h-12 bg-white/15 rounded-xl w-full backdrop-blur-md border border-white/10 flex items-center px-4 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-                <div className="w-8 h-8 rounded bg-gradient-to-br from-amber-400 to-orange-500" />
-                <div className="ml-3 flex-1">
-                  <div className="h-2 bg-white/40 rounded w-3/4" />
-                </div>
-              </div>
-              <div className="h-12 bg-white/10 rounded-xl w-3/4 backdrop-blur-md border border-white/10 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 delay-75" />
-              <div className="h-12 bg-white/5 rounded-xl w-5/6 backdrop-blur-md border border-white/10 transform translate-y-6 group-hover:translate-y-0 transition-transform duration-300 delay-150" />
-            </div>
-
-            {/* Count Badge */}
-            <div className="absolute top-5 right-5 bg-amber-500/20 backdrop-blur-md border border-amber-500/30 rounded-full px-4 py-2 group-hover:scale-110 transition-transform duration-300">
-              <span className="text-sm font-bold text-amber-300">47 movies</span>
+            {/* Floating UI Element: List Items */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 pointer-events-none">
+               <div className="w-4/5 bg-neutral-900/90 backdrop-blur-xl border border-white/10 rounded-xl p-3 mb-2 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 shadow-2xl">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-10 bg-amber-500/20 rounded-sm shrink-0" />
+                    <div className="h-2 bg-white/20 rounded w-1/2" />
+                    <CheckCircle2 className="w-4 h-4 text-amber-500 ml-auto" />
+                  </div>
+               </div>
+               <div className="w-4/5 bg-neutral-900/90 backdrop-blur-xl border border-white/10 rounded-xl p-3 transform translate-y-8 group-hover:translate-y-0 transition-all duration-500 delay-75 shadow-2xl scale-95 opacity-80">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-10 bg-white/10 rounded-sm shrink-0" />
+                    <div className="h-2 bg-white/20 rounded w-1/3" />
+                  </div>
+               </div>
             </div>
           </RichFeatureCard>
 
           {/* Card 3: Stream Anywhere */}
           <RichFeatureCard 
             title="Stream Anywhere"
-            desc="See exactly where to watch—Netflix, Prime, Hulu, Max, and 100+ more."
-            image="https://image.tmdb.org/t/p/w500/8Vt6mWEReuy4Of61Lnj5Xj704m8.jpg"
-            overlayColor="from-blue-900/50"
+            desc="We check Netflix, Prime, Hulu, Max, and 100+ others so you don't have to."
+            image="https://image.tmdb.org/t/p/w780/8Vt6mWEReuy4Of61Lnj5Xj704m8.jpg" // Spider-Verse
+            overlayColor="from-blue-950/80"
             accentColor="blue"
             isVisible={itemsVisible.includes(2)}
           >
-            {/* Streaming Service Badges */}
-            <div className="absolute top-5 right-5 flex -space-x-3 group-hover:space-x-1 transition-all duration-300">
-              <div className="w-10 h-10 rounded-full bg-[#E50914] border-2 border-black shadow-lg flex items-center justify-center text-xs font-bold text-white transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">N</div>
-              <div className="w-10 h-10 rounded-full bg-[#00A8E1] border-2 border-black shadow-lg flex items-center justify-center text-xs font-bold text-white transform group-hover:scale-110 transition-all duration-300 delay-75">P</div>
-              <div className="w-10 h-10 rounded-full bg-[#1CE783] border-2 border-black shadow-lg flex items-center justify-center text-xs font-bold text-black transform group-hover:scale-110 group-hover:rotate-[-6deg] transition-all duration-300 delay-150">H</div>
-            </div>
+             {/* Floating UI Element: Service Icons */}
+             <div className="absolute top-6 right-6 flex -space-x-3">
+                <ServiceBadge color="#E50914" label="N" delay={0} />
+                <ServiceBadge color="#00A8E1" label="P" delay={75} />
+                <ServiceBadge color="#00D856" label="H" delay={150} />
+             </div>
 
-            {/* Availability Indicator */}
-            <div className="absolute bottom-24 right-5 bg-black/60 backdrop-blur-md border border-white/10 rounded-xl p-3 opacity-0 group-hover:opacity-100 transition-all duration-500 group-hover:translate-y-[-8px]">
-              <div className="flex items-center gap-2 text-xs text-white/90">
-                <Zap className="w-4 h-4 text-blue-400" />
-                <span className="font-semibold">100+ services</span>
-              </div>
-            </div>
+             <div className="absolute bottom-28 right-6 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 delay-100">
+                <div className="bg-blue-500/20 backdrop-blur-md border border-blue-500/30 px-3 py-1.5 rounded-lg flex items-center gap-2">
+                  <MonitorPlay className="w-3.5 h-3.5 text-blue-300" />
+                  <span className="text-xs font-bold text-blue-100">Available Now</span>
+                </div>
+             </div>
           </RichFeatureCard>
+
         </div>
       </div>
     </section>
   )
 }
 
-// Enhanced 3D card with rich interactions
+// Helper for Service Icons
+function ServiceBadge({ color, label, delay }) {
+  return (
+    <div 
+      className="w-9 h-9 rounded-full border-2 border-black shadow-lg flex items-center justify-center text-[10px] font-black text-white transform transition-all duration-300 group-hover:scale-110 group-hover:-translate-y-1"
+      style={{ backgroundColor: color, transitionDelay: `${delay}ms` }}
+    >
+      {label}
+    </div>
+  )
+}
+
+// 🎥 The Rich 3D Card Component
 function RichFeatureCard({ title, desc, image, overlayColor, accentColor, children, isVisible }) {
   const cardRef = useRef(null)
-  const [isHovered, setIsHovered] = useState(false)
+  const [rotate, setRotate] = useState({ x: 0, y: 0 })
 
-  // 3D tilt handler
-  const handleMouseMove = (e) => {
+  // 🖱️ SMOOTHER Mouse Movement
+  const onMouseMove = useCallback((e) => {
     if (!cardRef.current) return
     const rect = cardRef.current.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
-    const centerX = rect.width / 2
-    const centerY = rect.height / 2
-    const rotateX = (y - centerY) / 20
-    const rotateY = (centerX - x) / 20
-    cardRef.current.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`
+    const width = rect.width
+    const height = rect.height
+    const mouseX = e.clientX - rect.left
+    const mouseY = e.clientY - rect.top
+
+    // Reduced sensitivity (dividing by 40 instead of 20) for less "shake"
+    const rotateY = ((mouseX - width / 2) / 40) 
+    const rotateX = ((height / 2 - mouseY) / 40)
+
+    setRotate({ x: rotateX, y: rotateY })
+  }, [])
+
+  const onMouseLeave = () => {
+    setRotate({ x: 0, y: 0 })
   }
 
-  const handleMouseLeave = () => {
-    if (!cardRef.current) return
-    cardRef.current.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)'
-    setIsHovered(false)
-  }
-
-  const handleMouseEnter = () => {
-    setIsHovered(true)
-  }
-
-  // Accent color classes
-  const accentClasses = {
-    purple: 'from-purple-500/20 to-transparent',
-    amber: 'from-amber-500/20 to-transparent',
-    blue: 'from-blue-500/20 to-transparent',
+  const accentGradients = {
+    purple: 'from-purple-500 via-pink-500 to-transparent',
+    amber: 'from-amber-500 via-orange-500 to-transparent',
+    blue: 'from-blue-500 via-cyan-500 to-transparent',
   }
 
   return (
     <div
       ref={cardRef}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      onMouseEnter={handleMouseEnter}
-      className={`relative group h-[350px] sm:h-[400px] md:h-[420px] rounded-2xl sm:rounded-3xl overflow-hidden border border-white/10 bg-neutral-900 shadow-2xl hover:shadow-[0_20px_60px_-10px_rgba(0,0,0,0.5)] transition-all duration-700
-        ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
+      onMouseMove={onMouseMove}
+      onMouseLeave={onMouseLeave}
+      className={`group relative h-[420px] rounded-3xl overflow-hidden bg-neutral-900 transition-all duration-1000 ease-out transform perspective-1000
+        ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-16'}`}
       style={{
-        transition: 'transform 0.15s cubic-bezier(.17,.67,.83,.67), box-shadow 0.3s, opacity 0.7s, translate 0.7s'
+        transform: `perspective(1000px) rotateX(${rotate.x}deg) rotateY(${rotate.y}deg) scale3d(1, 1, 1)`,
+        transition: 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 1s ease-out, translate 1s ease-out'
       }}
     >
-      {/* Background Image with Parallax */}
-      <div className="absolute inset-0">
+      {/* Background Image with Zoom Effect */}
+      <div className="absolute inset-0 overflow-hidden">
         <img 
-          src={image}
-          alt={title}
-          className="w-full h-full object-cover opacity-40 group-hover:opacity-55 group-hover:scale-110 transition-all duration-1000"
+          src={image} 
+          alt="" 
+          className="w-full h-full object-cover transition-transform duration-[1.5s] ease-out group-hover:scale-110 opacity-60"
         />
-        {/* Layered Gradients for Depth */}
-        <div className={`absolute inset-0 bg-gradient-to-b ${overlayColor} via-black/30 to-black`} />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent" />
-        <div className={`absolute inset-0 bg-gradient-to-br ${accentClasses[accentColor]} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
       </div>
 
-      {/* Noise Texture Overlay */}
-      <div className="absolute inset-0 opacity-[0.015] mix-blend-overlay pointer-events-none" 
-           style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 400 400\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")' }} 
-      />
+      {/* Multi-layer Gradient Overlays for Legibility */}
+      <div className={`absolute inset-0 bg-gradient-to-t ${overlayColor} via-black/40 to-transparent`} />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/90" />
+      
+      {/* Hover Accent Gradient */}
+      <div className={`absolute inset-0 bg-gradient-to-br ${accentGradients[accentColor]} opacity-0 group-hover:opacity-20 transition-opacity duration-500`} />
 
-      {/* Top-right badges and overlays */}
-      <div className="relative z-20">{children}</div>
-
-      {/* Card Content with Slide-Up Animation */}
-      <div className="absolute bottom-0 inset-x-0 p-6 sm:p-8 transform transition-all duration-500 group-hover:-translate-y-2 z-20">
-        <h3 className="text-xl sm:text-2xl font-bold text-white mb-2 drop-shadow-2xl group-hover:text-white transition-colors">{title}</h3>
-        <p className="text-white/70 leading-relaxed text-sm sm:text-base font-medium drop-shadow-lg group-hover:text-white/90 transition-colors">{desc}</p>
+      {/* Card Content (Pinned to bottom) */}
+      <div className="absolute bottom-0 left-0 right-0 p-8 z-20 transform transition-transform duration-500 group-hover:-translate-y-2">
+        <h3 className="text-2xl sm:text-3xl font-bold text-white mb-3 drop-shadow-md">{title}</h3>
+        <p className="text-white/80 text-sm sm:text-base font-medium leading-relaxed line-clamp-3 group-hover:text-white transition-colors">
+          {desc}
+        </p>
       </div>
 
-      {/* Bottom Glow Line */}
-      <div className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r ${accentColor === 'purple' ? 'from-purple-500 to-pink-500' : accentColor === 'amber' ? 'from-amber-500 to-orange-500' : 'from-blue-500 to-cyan-500'} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+      {/* Border Glow */}
+      <div className="absolute inset-0 border border-white/10 rounded-3xl pointer-events-none group-hover:border-white/20 transition-colors duration-300" />
+      
+      {/* Inject Custom UI Elements */}
+      <div className="relative w-full h-full z-10">
+        {children}
+      </div>
     </div>
   )
 }

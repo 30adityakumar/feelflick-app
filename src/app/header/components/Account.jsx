@@ -105,10 +105,6 @@ export default function Account() {
     }
   }
 
-  function openResetPassword() {
-    nav('/auth/reset-password')
-  }
-
   async function rerunOnboarding() {
     if (!authUser) return
     try {

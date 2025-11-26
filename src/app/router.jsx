@@ -36,6 +36,7 @@ import Footer from '@/features/landing/components/Footer'
 
 // Auth/onboarding gate
 import PostAuthGate from '@/features/auth/PostAuthGate'
+import OAuthCallback from '@/features/auth/OAuthCallback'
 
 // Import the new pages
 import AboutPage from '@/app/pages/legal/AboutPage'
@@ -68,9 +69,9 @@ function FullScreenSpinner() {
   )
 }
 
-/** Root entry: if authed → /home, otherwise show Landing (no /post-auth URL) */
+/** Root entry: if authed → /home, otherwise show Landing */
 function RootEntry() {
-  const [status, setStatus] = useState('loading') // 'loading' | 'authed' | 'anon'
+  const [status, setStatus] = useState('loading')
 
   useEffect(() => {
     let unsub
@@ -91,7 +92,7 @@ function RootEntry() {
 
 /* ------------------------------ Auth guards ------------------------------ */
 function RequireAuth() {
-  const [status, setStatus] = useState('loading') // 'loading' | 'authed' | 'anon'
+  const [status, setStatus] = useState('loading')
   const loc = useLocation()
 
   useEffect(() => {
@@ -168,17 +169,20 @@ export const router = createBrowserRouter([
   // Public branch (no app chrome)
   {
     element: <PublicShell />,
-    errorElement: <ErrorBoundary />, // ← Global error boundary for public routes
+    errorElement: <ErrorBoundary />,
     children: [
       // Root decides: Landing (anon) or /home (authed)
       { index: true, element: <RootEntry /> },
+
+      // OAuth callback route - MUST come before legacy auth redirects
+      { path: 'auth/callback', element: <OAuthCallback /> },
 
       // Legal pages (publicly accessible)
       { path: 'about', element: <AboutPage /> },
       { path: 'privacy', element: <PrivacyPage /> },
       { path: 'terms', element: <TermsPage /> },
 
-      // Legacy auth aliases → just go to root (we no longer use /auth pages)
+      // Legacy auth aliases → just go to root
       { path: 'auth', element: <Navigate to="/" replace /> },
       { path: 'auth/sign-in', element: <Navigate to="/" replace /> },
       { path: 'auth/sign-up', element: <Navigate to="/" replace /> },
@@ -192,19 +196,19 @@ export const router = createBrowserRouter([
     ],
   },
 
-  // Onboarding — auth required, but NO app chrome (uses auth-style chrome)
+  // Onboarding — auth required, but NO app chrome
   {
     element: <OnboardingShell />,
-    errorElement: <ErrorBoundary />, // ← Error boundary for onboarding flow
+    errorElement: <ErrorBoundary />,
     children: [
       {
         element: <RequireAuth />,
-        errorElement: <ErrorBoundary />, // ← Nested error boundary for auth checks
+        errorElement: <ErrorBoundary />,
         children: [
           { 
             path: 'onboarding', 
             element: <Onboarding />,
-            errorElement: <ErrorBoundary /> // ← Specific error boundary for onboarding component
+            errorElement: <ErrorBoundary />
           }
         ],
       },
@@ -214,7 +218,7 @@ export const router = createBrowserRouter([
   // App branch (header + sidebar chrome)
   {
     element: <AppShell />,
-    errorElement: <ErrorBoundary />, // ← Global error boundary for app routes
+    errorElement: <ErrorBoundary />,
     children: [
       // Publicly viewable
       { path: 'movies', element: <MoviesTab />, errorElement: <ErrorBoundary /> },
@@ -225,20 +229,18 @@ export const router = createBrowserRouter([
       // Auth-required + onboarding gate
       {
         element: <RequireAuth />,
-        errorElement: <ErrorBoundary />, // ← Error boundary for auth guard
+        errorElement: <ErrorBoundary />,
         children: [
           {
-            element: <PostAuthGate />, // runs gate, URL stays as the child route (e.g., /home)
-            errorElement: <ErrorBoundary />, // ← Error boundary for post-auth gate
+            element: <PostAuthGate />,
+            errorElement: <ErrorBoundary />,
             children: [
               { path: 'home', element: <HomePage />, errorElement: <ErrorBoundary /> },
               { path: 'account', element: <Account />, errorElement: <ErrorBoundary /> },
               { path: 'preferences', element: <Preferences />, errorElement: <ErrorBoundary /> },
               { path: 'watchlist', element: <Watchlist />, errorElement: <ErrorBoundary /> },
               { path: 'watched', element: <HistoryPage />, errorElement: <ErrorBoundary /> },
-              { path: 'history', element: <HistoryPage />, errorElement: <ErrorBoundary /> }, // legacy
-              
-              // Mobile-only account page (YouTube-style full-screen)
+              { path: 'history', element: <HistoryPage />, errorElement: <ErrorBoundary /> },
               { path: 'mobile-account', element: <MobileAccount />, errorElement: <ErrorBoundary /> },
             ],
           },

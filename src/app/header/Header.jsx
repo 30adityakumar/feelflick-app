@@ -93,7 +93,7 @@ export default function Header({ onOpenSearch }) {
       {/* Desktop / Tablet Header */}
       <header 
           ref={hdrRef}
-          className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          className={`fixed top-0 left-0 right-0 z-50 mt-[-7px] transition-all duration-300 ${
             scrolled 
               ? 'bg-[#0a0a0a]/95 backdrop-blur-xl shadow-lg shadow-purple-900/5 border-b border-white/5' 
               : 'bg-gradient-to-b from-black/95 via-black/80 to-transparent'
@@ -101,8 +101,7 @@ export default function Header({ onOpenSearch }) {
           style={{ paddingTop: 'env(safe-area-inset-top)' }}
         >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between min-h-[4rem] sm:min-h-[5rem] py-3">
-
+          <div className="flex items-center justify-between h-16 sm:h-20">
             
             {/* Logo */}
             <Link to="/home" className="flex items-center gap-2 group relative">

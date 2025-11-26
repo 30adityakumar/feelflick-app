@@ -306,7 +306,6 @@ export default function Account() {
         <div className="rounded-2xl border border-white/10 bg-[#111]/50 backdrop-blur-md p-6 mb-6 shadow-xl">
           <h2 className="text-lg font-bold mb-4 text-white">Security</h2>
           <div className="flex flex-col gap-2">
-            <ActionButton icon={Key} label="Change Password" onClick={openResetPassword} />
             <ActionButton 
               icon={Shield} 
               label="Sign Out All Devices" 

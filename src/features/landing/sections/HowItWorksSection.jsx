@@ -14,46 +14,31 @@ export default function HowItWorksSection() {
       number: '01',
       icon: <Star className="h-6 w-6 sm:h-7 sm:w-7" />,
       title: 'Rate Your Favorites',
-      description: 'Swipe through movies you know. Every reaction sharpens your taste.',
+      description: 'Every reaction sharpens your recommendations.',
       detail: '60',
       detailSuffix: ' seconds',
       detailIcon: <Check className="h-3 w-3" />,
       color: 'amber',
-      features: [
-        'Tinder-like swiping',
-        'Rate 10+ movies',
-        "Skip what you don’t know"
-      ],
     },
     {
       number: '02',
       icon: <Sparkles className="h-6 w-6 sm:h-7 sm:w-7" />,
       title: 'Get Mood Matches',
-      description: 'AI reads emotional tone, pacing, crowd feel—not just genres.',
+      description: 'AI reads emotional tone, pacing, crowd feel - not just genres.',
       detail: '98',
       detailSuffix: '% accuracy',
       detailIcon: <Sparkles className="h-3 w-3" />,
       color: 'purple',
-      features: [
-        'Emotion–driven',
-        "Doesn't rely on genre",
-        'Quick learning'
-      ],
     },
     {
       number: '03',
       icon: <Play className="h-6 w-6 sm:h-7 sm:w-7" />,
       title: 'Watch Instantly',
-      description: 'See where to stream—Netflix, Prime, Hulu, Max, 100+ more.',
+      description: 'See where to stream - Netflix, Prime, Hulu, Max, 100+ more.',
       detail: 'One click',
       detailSuffix: '',
       detailIcon: <Play className="h-3 w-3" />,
       color: 'teal',
-      features: [
-        '100+ services checked',
-        'Direct streaming links',
-        'No-hassle discovery'
-      ],
       isText: true,
     },
   ]
@@ -106,7 +91,7 @@ export default function HowItWorksSection() {
         {/* Steps Grid */}
         <div
           ref={containerRef}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 lg:gap-10 mb-12 sm:mb-20"
+          className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 lg:gap-10 mb-8 sm:mb-10"
         >
           {steps.map((step, index) => (
             <div key={step.number} className="relative">
@@ -206,10 +191,9 @@ function AnimatedConnector({ isVisible, color }) {
   )
 }
 
-// Step card, color-enhanced, 3D hover
+// Step card with hover effects
 function StepCard({ step, index, isVisible, onHover, isHovered }) {
-  const { number, icon, title, description, detail, detailSuffix, detailIcon, color, features, isText } = step
-  const cardRef = useRef(null)
+  const { number, icon, title, description, detail, detailSuffix, detailIcon, color, isText } = step
   const colorClasses = {
     amber: {
       iconBg: 'bg-amber-500/10',
@@ -217,7 +201,6 @@ function StepCard({ step, index, isVisible, onHover, isHovered }) {
       numberText: 'text-amber-400/10',
       border: 'hover:border-amber-400/60',
       badge: 'bg-amber-600/10 border border-amber-400/30 text-amber-300',
-      featureDot: 'bg-amber-400',
     },
     purple: {
       iconBg: 'bg-purple-500/10',
@@ -225,7 +208,6 @@ function StepCard({ step, index, isVisible, onHover, isHovered }) {
       numberText: 'text-purple-400/10',
       border: 'hover:border-purple-400/60',
       badge: 'bg-purple-600/10 border border-purple-400/30 text-purple-300',
-      featureDot: 'bg-purple-400',
     },
     teal: {
       iconBg: 'bg-teal-500/10',
@@ -233,37 +215,16 @@ function StepCard({ step, index, isVisible, onHover, isHovered }) {
       numberText: 'text-teal-400/10',
       border: 'hover:border-teal-400/60',
       badge: 'bg-teal-600/10 border border-teal-400/30 text-teal-300',
-      featureDot: 'bg-teal-400',
     }
   }
   const colors = colorClasses[color]
 
-  // 3D tilt effect
-  const handleMouseMove = (e) => {
-    if (!cardRef.current) return
-    const rect = cardRef.current.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
-    const centerX = rect.width / 2
-    const centerY = rect.height / 2
-    const rotateX = (y - centerY) / 25
-    const rotateY = (centerX - x) / 25
-    cardRef.current.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.03, 1.03, 1.03)`
-  }
-  const handleMouseLeave = () => {
-    if (!cardRef.current) return
-    cardRef.current.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)'
-  }
-
   return (
     <div
-      ref={cardRef}
       onMouseEnter={() => onHover(index)}
-      onMouseLeave={() => { onHover(null); handleMouseLeave() }}
-      onMouseMove={handleMouseMove}
+      onMouseLeave={() => onHover(null)}
       className={`group relative p-6 sm:p-7 md:p-8 rounded-2xl bg-neutral-900/70 border border-white/10 ${colors.border} shadow-2xl
-        transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}
-      style={{ transition: 'transform 0.1s, opacity 0.7s, border-color 0.3s' }}
+        transition-all duration-700 hover:scale-105 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}
     >
       {/* Large faded step number */}
       <div className={`absolute top-4 right-4 text-6xl font-black ${colors.numberText} select-none pointer-events-none`}>{number}</div>
@@ -273,15 +234,6 @@ function StepCard({ step, index, isVisible, onHover, isHovered }) {
       </div>
       <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">{title}</h3>
       <p className="text-sm sm:text-base text-white/70 leading-relaxed mb-4">{description}</p>
-      {/* Features reveal on hover */}
-      <div className={`space-y-2 mb-4 transition-all duration-500 ${isHovered ? 'opacity-100 max-h-40' : 'opacity-0 max-h-0 overflow-hidden'}`}>
-        {features.map((f, i) => (
-          <div key={i} className="flex items-center gap-2 text-xs text-white/60">
-            <div className={`w-1.5 h-1.5 rounded-full ${colors.featureDot}`} />
-            <span>{f}</span>
-          </div>
-        ))}
-      </div>
       {/* Animated detail badge */}
       <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg ${colors.badge}`}>
         <span>{detailIcon}</span>

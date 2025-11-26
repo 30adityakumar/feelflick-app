@@ -184,9 +184,9 @@ export default function HeroSection() {
 
         {/* Subheadline */}
         <p className="text-lg sm:text-2xl text-white/70 max-w-2xl mx-auto mb-10 leading-relaxed font-medium">
-          Like Spotify for movies. Discover films based on your{' '}
-          <span className="text-white font-bold">vibe, emotion, and taste</span>
-           - not just what&apos;s trending.
+          Discover films based on your{' '}
+          <span className="text-white font-bold">vibe, emotion, and taste </span>
+          - not just what&apos;s trending.
         </p>
 
         {/* CTAs */}

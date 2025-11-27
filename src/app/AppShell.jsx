@@ -1,15 +1,33 @@
 // src/app/AppShell.jsx
 import { useEffect, useState, useRef } from 'react'
-import { Outlet, useLocation } from 'react-router-dom'
+import { Outlet, useLocation, NavLink } from 'react-router-dom'
+import { Home, Search, Bookmark, User } from 'lucide-react'
+import { supabase } from '@/shared/lib/supabase/client'
 import Header from '@/app/header/Header'
 import SearchBar from '@/app/header/components/SearchBar'
 
 export default function AppShell() {
   const [searchOpen, setSearchOpen] = useState(false)
   const [headerVisible, setHeaderVisible] = useState(true)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const lastScrollY = useRef(0)
   const ticking = useRef(false)
   const location = useLocation()
+
+  // Check authentication status
+  useEffect(() => {
+    // Initial check
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session)
+    })
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session)
+    })
+
+    return () => subscription?.unsubscribe()
+  }, [])
 
   // Keyboard shortcut for search (/)
   useEffect(() => {
@@ -100,10 +118,33 @@ export default function AppShell() {
         <Header onOpenSearch={() => setSearchOpen(true)} />
       </div>
 
-      {/* Page content - Full width, each page controls its own layout */}
-      <main className="relative z-10 w-full pt-16">
+      {/* Page content - Full width, with bottom padding for mobile nav */}
+      <main className={`relative z-10 w-full pt-16 ${isAuthenticated ? 'pb-20 md:pb-0' : ''}`}>
         <Outlet />
       </main>
+
+      {/* Mobile Bottom Navigation - Only shown when authenticated */}
+      {isAuthenticated && (
+        <nav 
+          className="fixed bottom-0 left-0 right-0 z-40 md:hidden border-t border-white/10 bg-black/95 backdrop-blur-xl"
+          aria-label="Mobile navigation"
+        >
+          <div className="flex items-center justify-around h-16 px-2">
+            <MobileNavLink to="/home" icon={Home} label="Home" />
+            <MobileNavLink 
+              to="#" 
+              icon={Search} 
+              label="Search" 
+              onClick={(e) => {
+                e.preventDefault()
+                setSearchOpen(true)
+              }}
+            />
+            <MobileNavLink to="/watchlist" icon={Bookmark} label="Watchlist" />
+            <MobileNavLink to="/mobile-account" icon={User} label="Account" />
+          </div>
+        </nav>
+      )}
 
       {/* Global search modal */}
       <SearchBar open={searchOpen} onClose={() => setSearchOpen(false)} />
@@ -111,6 +152,35 @@ export default function AppShell() {
       {/* Loading indicator for route transitions */}
       <RouteLoadingIndicator />
     </div>
+  )
+}
+
+/**
+ * Mobile navigation link component
+ */
+function MobileNavLink({ to, icon: Icon, label, onClick }) {
+  const location = useLocation()
+  const isActive = location.pathname === to
+
+  const Component = onClick ? 'button' : NavLink
+
+  return (
+    <Component
+      to={onClick ? undefined : to}
+      onClick={onClick}
+      className={`flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-colors min-w-[64px] ${
+        isActive 
+          ? 'text-brand-100' 
+          : 'text-white/60 hover:text-white/90 active:text-white'
+      }`}
+      aria-label={label}
+      aria-current={isActive ? 'page' : undefined}
+    >
+      <Icon className="h-5 w-5" strokeWidth={isActive ? 2.5 : 2} />
+      <span className={`text-xs font-medium ${isActive ? 'font-semibold' : ''}`}>
+        {label}
+      </span>
+    </Component>
   )
 }
 

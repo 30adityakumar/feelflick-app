@@ -192,17 +192,29 @@ function RouteLoadingIndicator() {
   const [loading, setLoading] = useState(false)
   const location = useLocation()
   const timeoutRef = useRef(null)
+  const clearTimeoutRef = useRef(null)
 
   useEffect(() => {
+    // Clear any existing timeouts
+    if (clearTimeoutRef.current) {
+      clearTimeout(clearTimeoutRef.current)
+    }
+    
     // Show loading indicator after a short delay (avoid flash for fast loads)
+    setLoading(false) // Reset first
     timeoutRef.current = setTimeout(() => {
       setLoading(true)
     }, 200)
 
-    // Hide when route changes complete
-    return () => {
-      clearTimeout(timeoutRef.current)
+    // Hide loading indicator after route change completes
+    clearTimeoutRef.current = setTimeout(() => {
       setLoading(false)
+    }, 1000) // Adjust this duration as needed
+
+    // Cleanup
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
+      if (clearTimeoutRef.current) clearTimeout(clearTimeoutRef.current)
     }
   }, [location.pathname])
 
@@ -215,9 +227,9 @@ function RouteLoadingIndicator() {
       aria-label="Loading page"
     >
       <div 
-        className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-amber-500 animate-loading-bar"
+        className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-amber-500"
         style={{
-          animation: 'loading-bar 1.5s ease-in-out infinite',
+          animation: 'loading-bar 1s ease-in-out',
         }}
       />
     </div>

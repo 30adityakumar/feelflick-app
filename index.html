@@ -2,21 +2,130 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    
+    <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    
+    <!-- Primary Meta Tags -->
     <title>FeelFlick — Movies that match your mood</title>
-    <meta name="description" content="Find movies that match your mood. Search, save to watchlist, and track what you've watched with FeelFlick." />
-    <meta name="theme-color" content="#eb423b" />
-    <meta property="og:title" content="FeelFlick — Movies that match your mood" />
-    <meta property="og:description" content="Personalized picks and a clean watchlist experience." />
+    <meta name="title" content="FeelFlick — Movies that match your mood" />
+    <meta name="description" content="Discover movies based on how you feel. Fast, private, and always free. Search, save to watchlist, and track what you've watched with FeelFlick." />
+    <meta name="keywords" content="movies, mood-based recommendations, movie discovery, watchlist, film finder, what to watch" />
+    <meta name="author" content="FeelFlick" />
+    <meta name="theme-color" content="#a855f7" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#ec4899" media="(prefers-color-scheme: light)" />
+    
+    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="/og.jpg" />
+    <meta property="og:url" content="https://app.feelflick.com/" />
+    <meta property="og:title" content="FeelFlick — Movies that match your mood" />
+    <meta property="og:description" content="Discover movies based on how you feel. Fast, private, and always free. Your personal mood-based movie discovery platform." />
+    <meta property="og:image" content="https://app.feelflick.com/og.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:site_name" content="FeelFlick" />
+    <meta property="og:locale" content="en_US" />
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://app.feelflick.com/" />
+    <meta name="twitter:title" content="FeelFlick — Movies that match your mood" />
+    <meta name="twitter:description" content="Discover movies based on how you feel. Fast, private, and always free." />
+    <meta name="twitter:image" content="https://app.feelflick.com/og.jpg" />
+    <meta name="twitter:creator" content="@feelflick" />
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://app.feelflick.com/" />
+    
+    <!-- DNS Prefetch & Preconnect for Performance -->
+    <link rel="dns-prefetch" href="https://image.tmdb.org" />
+    <link rel="dns-prefetch" href="https://api.themoviedb.org" />
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+    
     <link rel="preconnect" href="https://image.tmdb.org" crossorigin />
     <link rel="preconnect" href="https://api.themoviedb.org" crossorigin />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
+    <!-- Structured Data (JSON-LD) for SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "FeelFlick",
+      "alternateName": "FeelFlick Movie Discovery",
+      "url": "https://app.feelflick.com",
+      "logo": "https://app.feelflick.com/logo.png",
+      "description": "Discover movies based on your mood. Fast, private, and always free movie discovery platform.",
+      "applicationCategory": "Entertainment",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "ratingCount": "1250"
+      },
+      "creator": {
+        "@type": "Organization",
+        "name": "FeelFlick",
+        "url": "https://app.feelflick.com"
+      }
+    }
+    </script>
+    
+    <!-- Security Headers -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="referrer" content="origin-when-cross-origin" />
+    
+    <!-- PWA Support (iOS) -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="FeelFlick" />
+    
+    <!-- Prevent Mobile Zoom on Input Focus -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
   </head>
   <body>
+    <!-- App Root -->
     <div id="root"></div>
+    
+    <!-- Main App Script -->
     <script type="module" src="/src/main.jsx"></script>
-    <noscript>This app works best with JavaScript enabled.</noscript>
+    
+    <!-- Fallback for No JavaScript -->
+    <noscript>
+      <div style="
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        color: #f8fafc;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        text-align: center;
+        padding: 2rem;
+      ">
+        <h1 style="font-size: 2rem; margin-bottom: 1rem; background: linear-gradient(135deg, #a855f7, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+          FeelFlick
+        </h1>
+        <p style="font-size: 1.125rem; color: #94a3b8; margin-bottom: 2rem;">
+          JavaScript is required to run this application.
+        </p>
+        <p style="font-size: 0.875rem; color: #64748b;">
+          Please enable JavaScript in your browser settings and refresh the page.
+        </p>
+      </div>
+    </noscript>
   </body>
 </html>

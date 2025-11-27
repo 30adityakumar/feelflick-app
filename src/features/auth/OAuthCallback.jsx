@@ -1,6 +1,6 @@
 // src/features/auth/OAuthCallback.jsx
 import { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
 
 function SplashSpinner() {
@@ -19,14 +19,23 @@ function SplashSpinner() {
 
 export default function OAuthCallback() {
   const navigate = useNavigate()
+  const location = useLocation()
 
   useEffect(() => {
     async function handleOAuthCallback() {
       try {
-        // Parse hash from URL
-        const hashParams = new URLSearchParams(window.location.hash.substring(1))
+        // Check if tokens are in window.location.hash (they might be there from redirect)
+        let hashParams = new URLSearchParams(window.location.hash.substring(1))
+        
+        // Also check the normal hash in case React Router moved it
+        if (!hashParams.has('access_token')) {
+          hashParams = new URLSearchParams(location.hash?.substring(1) || '')
+        }
+        
         const access_token = hashParams.get('access_token')
         const refresh_token = hashParams.get('refresh_token')
+
+        console.log('OAuth callback - tokens found:', { access_token: !!access_token, refresh_token: !!refresh_token })
 
         if (access_token && refresh_token) {
           // Set the session explicitly
@@ -69,7 +78,7 @@ export default function OAuthCallback() {
     }
 
     handleOAuthCallback()
-  }, [navigate])
+  }, [navigate, location])
 
   return <SplashSpinner />
 }

@@ -11,4 +11,12 @@ export default defineConfig({
       '@shared': path.resolve(__dirname, 'src/shared'),
     },
   },
+  server: {
+    host: true, // Listen on all addresses, required for Codespaces
+    port: 5173,
+    strictPort: true,
+    hmr: {
+      clientPort: 443 // Use HTTPS port for Codespaces
+    }
+  },
 })

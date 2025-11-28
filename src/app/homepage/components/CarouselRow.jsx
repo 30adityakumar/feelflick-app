@@ -4,8 +4,16 @@ import { useNavigate } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, Plus, Check, Eye, EyeOff, Info, Loader2 } from 'lucide-react'
 import { supabase } from '@/shared/lib/supabase/client'
 
-const tmdbImg = (p, s = 'w500') => p ? `https://image.tmdb.org/t/p/${s}${p}` : ''
+// Lines 7-8 - Add image preloading and optimization
+const tmdbImg = (p, s = 'w342') => p ? `https://image.tmdb.org/t/p/${s}${p}` : ''
 const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY
+
+// Add intersection observer for lazy loading
+const observerOptions = {
+  root: null,
+  rootMargin: '200px',
+  threshold: 0.01
+}
 
 export default function CarouselRow({ title, tmdbCategory, rowId }) {
   const [movies, setMovies] = useState([])
@@ -53,9 +61,9 @@ export default function CarouselRow({ title, tmdbCategory, rowId }) {
     return () => { mounted = false }
   }, [])
 
+  // Lines 56-89 - Optimize data fetching, show movies immediately
   useEffect(() => {
     let mounted = true
-    setLoading(true)
 
     const fetchMovies = async () => {
       try {
@@ -69,8 +77,11 @@ export default function CarouselRow({ title, tmdbCategory, rowId }) {
         
         if (!mounted) return
 
+        // Show movies immediately
         setMovies(data.results || [])
+        setLoading(false)
 
+        // Fetch user status in background
         const { data: { user: currentUser } } = await supabase.auth.getUser()
         if (currentUser && data.results?.length > 0) {
           const tmdbIds = data.results.map(m => m.id)
@@ -85,8 +96,6 @@ export default function CarouselRow({ title, tmdbCategory, rowId }) {
             if (whRes.data) setWatchedTmdbIds(new Set(whRes.data.map(w => w.movie_id)))
           }
         }
-
-        if (mounted) setLoading(false)
       } catch (error) {
         console.error('[CarouselRow] Fetch error:', error)
         if (mounted) {
@@ -253,17 +262,18 @@ export default function CarouselRow({ title, tmdbCategory, rowId }) {
     ? scrollPosition < scrollContainerRef.current.scrollWidth - scrollContainerRef.current.clientWidth
     : false
 
+  // Lines 256-272 - Minimal skeleton loader
   if (loading) {
     return (
-      <section className="mb-8 md:mb-12">
-        <h2 className="text-white text-lg md:text-xl lg:text-2xl font-bold mb-3 md:mb-4 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16">
+      <section className="mb-6">
+        <h2 className="text-white text-xl font-bold mb-2 px-12">
           {title}
         </h2>
-        <div className="flex gap-2 sm:gap-2.5 md:gap-3 lg:gap-4 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 overflow-hidden">
-          {[...Array(6)].map((_, i) => (
+        <div className="flex gap-2 px-12 overflow-hidden">
+          {[...Array(8)].map((_, i) => (
             <div
               key={i}
-              className="flex-shrink-0 w-[140px] sm:w-[160px] md:w-[180px] lg:w-[200px] xl:w-[220px] aspect-[2/3] bg-white/10 rounded-lg animate-pulse"
+              className="flex-shrink-0 w-[160px] md:w-[185px] aspect-[2/3] bg-white/5 rounded-md"
             />
           ))}
         </div>

@@ -4,7 +4,15 @@ import { useNavigate } from 'react-router-dom'
 import { Info, Plus, Check, Eye, EyeOff } from 'lucide-react'
 import { supabase } from '@/shared/lib/supabase/client'
 
+// Line 8 - Add preload for first image
 const tmdbImg = (p, s = 'original') => p ? `https://image.tmdb.org/t/p/${s}${p}` : ''
+const preloadFirstImage = (url) => {
+  const link = document.createElement('link')
+  link.rel = 'preload'
+  link.as = 'image'
+  link.href = url
+  document.head.appendChild(link)
+}
 
 export default function HeroSliderSection({ className = '' }) {
   const [slides, setSlides] = useState([])
@@ -50,6 +58,11 @@ export default function HeroSliderSection({ className = '' }) {
         })) || []
 
         setSlides(movies)
+
+        // Preload first image for faster initial render
+        if (movies[0]?.backdrop_path) {
+          preloadFirstImage(tmdbImg(movies[0].backdrop_path, 'original'))
+        }
 
         // Sync watchlist and watched status from DB
         const { data: { user } } = await supabase.auth.getUser()
@@ -253,19 +266,15 @@ export default function HeroSliderSection({ className = '' }) {
     }
   }
 
-  if (loading) {
-    return (
-      <section className={`relative w-full bg-black ${className}`}>
-        <div className="h-[80vh] animate-pulse bg-neutral-900" />
-      </section>
-    )
+  if (loading && !slides.length) {
+    return null
   }
 
   if (!slides.length) return null
 
   return (
     <section
-      className={`relative w-full overflow-hidden bg-black ${className}`}
+      className={`relative w-full overflow-hidden bg-black -mt-3 md:-mt-3 ${className}`}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       onTouchStart={onTouchStart}
@@ -276,7 +285,7 @@ export default function HeroSliderSection({ className = '' }) {
     >
       {/* Background Images */}
       <div
-        className="relative w-full h-[75vh] sm:h-[80vh] min-h-[500px] select-none"
+        className="relative w-full h-[70vh] sm:h-[75vh] min-h-[500px] select-none"
         aria-live="polite"
         aria-atomic="true"
       >
@@ -358,7 +367,7 @@ export default function HeroSliderSection({ className = '' }) {
                   className="group inline-flex items-center justify-center gap-2 rounded-lg md:rounded-xl px-6 py-2.5 md:py-3 text-sm font-bold text-white transition-all hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-purple-500/30 shadow-2xl shadow-purple-900/40 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500"
                   type="button"
                 >
-                  <Info className="h-4 w-4 fill-white group-hover:scale-110 transition-transform" />
+                  <Info className="h-4 w-4 group-hover:scale-110 transition-transform" />
                   <span>View Details</span>
                 </button>
 

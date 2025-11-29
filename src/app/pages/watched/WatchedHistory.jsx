@@ -38,94 +38,127 @@ export default function WatchedHistory() {
     };
   }, []);
 
-  // Get watched movies
-  useEffect(() => {
-    if (!user) return;
-    let active = true;
-    setLoading(true);
+  // Get watched movies from user_history (NEW)
+useEffect(() => {
+  if (!user) return;
 
-    (async () => {
-      try {
-        const { data, error } = await supabase
-          .from("movies_watched")
-          .select("*")
-          .eq("user_id", user.id)
-          .order("created_at", { ascending: false });
+  let active = true;
+  setLoading(true);
 
-        if (error) throw error;
-        if (active) {
-          setMovies(data ?? []);
-          setFilteredMovies(data ?? []);
-        }
-      } catch (err) {
-        if (active) {
-          setMovies([]);
-          setFilteredMovies([]);
-        }
-      } finally {
-        if (active) setLoading(false);
+  (async () => {
+    try {
+      const { data, error } = await supabase
+        .from("user_history")
+        .select(`
+          id,
+          user_id,
+          movie_id,
+          watched_at,
+          source,
+          watch_duration_minutes,
+          mood_session_id,
+          movies (
+            id,
+            title,
+            poster_path,
+            release_date,
+            vote_average,
+            tmdb_id
+          )
+        `)
+        .eq("user_id", user.id)
+        .order("watched_at", { ascending: false });
+
+      if (error) throw error;
+
+      if (active) {
+        setMovies(data ?? []);
+        setFilteredMovies(data ?? []);
       }
-    })();
+    } catch (err) {
+      if (active) {
+        setMovies([]);
+        setFilteredMovies([]);
+      }
+    } finally {
+      if (active) setLoading(false);
+    }
+  })();
 
-    return () => {
-      active = false;
-    };
-  }, [user, removingId]);
+  return () => {
+    active = false;
+  };
+}, [user, removingId]);
 
-  // Filter and sort
+
+  // Filter and sort (UPDATED for new data structure)
   useEffect(() => {
     let result = [...movies];
 
-    // Filter by search
+    // Filter by search (search movie title)
     if (searchQuery) {
       result = result.filter((m) =>
-        m.title?.toLowerCase().includes(searchQuery.toLowerCase())
+        m.movies?.title?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
     // Sort
     result.sort((a, b) => {
       if (sortBy === "title") {
-        return (a.title || "").localeCompare(b.title || "");
+        return (a.movies?.title || "").localeCompare(b.movies?.title || "");
       } else if (sortBy === "rating") {
-        return (b.vote_average || 0) - (a.vote_average || 0);
+        return (b.movies?.vote_average || 0) - (a.movies?.vote_average || 0);
       } else {
-        return new Date(b.created_at || 0) - new Date(a.created_at || 0);
+        // Default: most recent watched
+        return new Date(b.watched_at || 0) - new Date(a.watched_at || 0);
       }
     });
 
     setFilteredMovies(result);
   }, [movies, searchQuery, sortBy]);
 
-  // Remove a movie from history
+
+  // Remove a movie from history (UPDATED)
   async function remove(movie_id) {
     if (!user) return;
+
     setRemovingId(movie_id);
+
     try {
       await supabase
-        .from("movies_watched")
+        .from("user_history")
         .delete()
         .eq("user_id", user.id)
         .eq("movie_id", movie_id);
+
       setMovies((prev) => prev.filter((m) => m.movie_id !== movie_id));
     } finally {
       setRemovingId(null);
     }
   }
 
-  function goToMovie(id) {
-    nav(`/movie/${id}`);
+
+  // 1. Fixed goToMovie function
+  function goToMovie(movie) {
+    const tmdbId = movie.movies?.tmdb_id || movie.tmdb_id;
+    if (tmdbId) {
+      nav(`/movie/${tmdbId}`);
+    } else {
+      console.warn('No TMDB ID found for movie:', movie);
+    }
   }
 
-  // Calculate stats
+
+  // Calculate stats (UPDATED)
   const totalMovies = movies.length;
   const avgRating =
     movies.length > 0
       ? (
-          movies.reduce((sum, m) => sum + (m.vote_average || 0), 0) /
+          movies.reduce((sum, m) => sum + (m.movies?.vote_average || 0), 0) /
           movies.length
         ).toFixed(1)
       : "0.0";
+
 
   return (
     <main
@@ -245,14 +278,14 @@ export default function WatchedHistory() {
                 key={m.movie_id}
                 movie={{
                   id: m.movie_id,
-                  title: m.title,
-                  poster_path: m.poster,
-                  release_date: m.release_date,
-                  vote_average: m.vote_average,
-                  created_at: m.created_at,
+                  title: m.movies.title,
+                  poster_path: m.movies.poster_path ? `https://image.tmdb.org/t/p/w500${m.movies.poster_path}` : null,
+                  release_date: m.movies.release_date,
+                  vote_average: m.movies.vote_average,
+                  created_at: m.movies.created_at,
                 }}
                 onRemove={() => remove(m.movie_id)}
-                onClick={() => goToMovie(m.movie_id)}
+                onClick={() => goToMovie(m)}
                 removing={removingId === m.movie_id}
               />
             ))}

@@ -144,70 +144,178 @@ export default function Onboarding() {
     return true
   }
 
-  async function saveAndGo(opts = {}) {
-    setError('')
-    setLoading(true)
+  /**
+ * Ensures a movie exists in our database before user interactions.
+ * Fetches full details from TMDB, upserts into movies table, returns internal ID.
+ */
+async function ensureMovieExists(tmdbMovie) {
+  try {
+    // First check if we already have this movie
+    const { data: existing } = await supabase
+      .from('movies')
+      .select('id')
+      .eq('tmdb_id', tmdbMovie.id)
+      .maybeSingle()
+    
+    if (existing) return existing.id
+
+    // Fetch full movie details from TMDB for better data quality
+    let fullMovie = tmdbMovie
     try {
-      const user_id = session?.user?.id
-      if (!user_id) throw new Error('No authenticated user.')
-      
-      await ensureUserRowOrFail(session.user)
-      
-      if (!opts.skipGenres && selectedGenres.length) {
-        await supabase.from('user_preferences').delete().eq('user_id', user_id)
-        const rows = selectedGenres.map(genre_id => ({ user_id, genre_id }))
-        await supabase.from('user_preferences').upsert(rows, { onConflict: 'user_id,genre_id' })
+      const detailsRes = await fetch(
+        `https://api.themoviedb.org/3/movie/${tmdbMovie.id}?api_key=${TMDB_KEY}`
+      )
+      if (detailsRes.ok) {
+        fullMovie = await detailsRes.json()
       }
+    } catch (err) {
+      console.warn('Could not fetch full movie details, using search data:', err)
+    }
+
+    // Insert movie into our database
+    const movieRow = {
+      tmdb_id: fullMovie.id,
+      title: fullMovie.title,
+      original_title: fullMovie.original_title,
+      release_date: fullMovie.release_date || null,
+      overview: fullMovie.overview || null,
+      poster_path: fullMovie.poster_path,
+      backdrop_path: fullMovie.backdrop_path,
+      runtime: fullMovie.runtime || null,
+      vote_average: fullMovie.vote_average || null,
+      vote_count: fullMovie.vote_count || null,
+      popularity: fullMovie.popularity || null,
+      original_language: fullMovie.original_language,
+      adult: fullMovie.adult || false,
+      budget: fullMovie.budget || null,
+      revenue: fullMovie.revenue || null,
+      status: fullMovie.status || null,
+      tagline: fullMovie.tagline || null,
+      homepage: fullMovie.homepage || null,
+      imdb_id: fullMovie.imdb_id || null,
+      json_data: fullMovie, // Store full TMDB response for future enrichment
+    }
+
+    const { data: inserted, error } = await supabase
+      .from('movies')
+      .upsert(movieRow, { 
+        onConflict: 'tmdb_id',
+        ignoreDuplicates: false 
+      })
+      .select('id')
+      .single()
+
+    if (error) {
+      console.error('Failed to insert movie:', error)
+      throw new Error(`Could not save movie: ${fullMovie.title}`)
+    }
+
+    return inserted.id
+  } catch (err) {
+    console.error('ensureMovieExists failed:', err)
+    throw err
+  }
+}
+
+
+  async function saveAndGo(opts = {}) {
+  setError('')
+  setLoading(true)
+
+  try {
+    const user_id = session?.user?.id
+    if (!user_id) throw new Error('No authenticated user.')
+
+    await ensureUserRowOrFail(session.user)
+
+    // 1. Save genre preferences
+    if (!opts.skipGenres && selectedGenres.length) {
+      await supabase.from('user_preferences').delete().eq('user_id', user_id)
       
-      if (!opts.skipMovies && favoriteMovies.length) {
-        const rows = favoriteMovies.map(m => ({
-          user_id,
-          movie_id: m.id,
-          title: m.title ?? null,
-          poster: m.poster_path ? `https://image.tmdb.org/t/p/w500${m.poster_path}` : null,
-          release_date: m.release_date ?? null,
-          vote_average: typeof m.vote_average === 'number' ? m.vote_average : null,
-          genre_ids: Array.isArray(m.genre_ids) ? m.genre_ids : null,
-        }))
-        await Promise.all(rows.map(row =>
-          supabase.from('movies_watched').upsert(row, { onConflict: 'user_id,movie_id' })
-        ))
+      const genreRows = selectedGenres.map(genre_id => ({ user_id, genre_id }))
+      await supabase.from('user_preferences').upsert(genreRows, { 
+        onConflict: 'user_id,genre_id' 
+      })
+    }
+
+    // 2. Save favorite movies - NEW LOGIC
+    if (!opts.skipMovies && favoriteMovies.length) {
+      // Ensure all movies exist in database and get their internal IDs
+      const moviePromises = favoriteMovies.map(async (tmdbMovie) => {
+        try {
+          const internalMovieId = await ensureMovieExists(tmdbMovie)
+          return {
+            user_id,
+            movie_id: internalMovieId, // Use our internal movies.id
+            watched_at: new Date().toISOString(),
+            source: 'onboarding',
+            watch_duration_minutes: null, // Haven't actually watched yet
+            mood_session_id: null, // No mood context during onboarding
+          }
+        } catch (err) {
+          console.error(`Failed to process movie ${tmdbMovie.title}:`, err)
+          return null // Skip this movie if it fails
+        }
+      })
+
+      const historyRows = (await Promise.all(moviePromises)).filter(Boolean)
+
+      // Bulk insert into user_history
+      if (historyRows.length > 0) {
+        const { error: historyError } = await supabase
+          .from('user_history')
+          .insert(historyRows)
+
+        if (historyError) {
+          console.error('Failed to save watch history:', historyError)
+          throw new Error('Could not save your favorite movies')
+        }
       }
-      
-      await supabase.from('users').update({
+    }
+
+    // 3. Mark onboarding complete
+    await supabase
+      .from('users')
+      .update({
         onboarding_complete: true,
         onboarding_completed_at: new Date().toISOString(),
-      }).eq('id', user_id)
-      
-      await supabase.auth.updateUser({ 
-        data: { onboarding_complete: true, has_onboarded: true } 
       })
-      
-      await new Promise(resolve => setTimeout(resolve, 500))
-      
-      const { data: { session: updatedSession } } = await supabase.auth.getSession()
-      if (!updatedSession?.user?.user_metadata?.onboarding_complete) {
-        console.warn('Session not yet updated, forcing reload')
-        window.location.href = '/home'
-        return
+      .eq('id', user_id)
+
+    await supabase.auth.updateUser({
+      data: { 
+        onboarding_complete: true, 
+        has_onboarded: true 
       }
-      
-      setLoading(false)
-      setCelebrate(true)
-      
-      setTimeout(() => {
-        navigate('/home', { 
-          replace: true, 
-          state: { fromOnboarding: true } 
-        })
-      }, 2000)
-      
-    } catch (e) {
-      console.error('Onboarding save failed:', e)
-      setError(e.message || 'Could not save your preferences. Please try again.')
-      setLoading(false)
+    })
+
+    // Wait for session to update
+    await new Promise(resolve => setTimeout(resolve, 500))
+    const { data: { session: updatedSession } } = await supabase.auth.getSession()
+
+    if (!updatedSession?.user?.user_metadata?.onboarding_complete) {
+      console.warn('Session not yet updated, forcing reload')
+      window.location.href = '/home'
+      return
     }
+
+    setLoading(false)
+    setCelebrate(true)
+
+    setTimeout(() => {
+      navigate('/home', { 
+        replace: true, 
+        state: { fromOnboarding: true } 
+      })
+    }, 2000)
+
+  } catch (e) {
+    console.error('Onboarding save failed:', e)
+    setError(e.message || 'Could not save your preferences. Please try again.')
+    setLoading(false)
   }
+}
+
 
   // Loading state (Apple principle: branded, minimal)
   if (checking) {

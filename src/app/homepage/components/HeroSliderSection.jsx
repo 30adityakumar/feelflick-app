@@ -42,56 +42,119 @@ export default function HeroSliderSection({ className = '' }) {
     })()
   }, [])
 
-  // Fetch trending movies + genres, sync watchlist & history
-  useEffect(() => {
-    setLoading(true)
-    Promise.all([
-      fetch(`https://api.themoviedb.org/3/trending/movie/week?api_key=${import.meta.env.VITE_TMDB_API_KEY}`).then(res => res.json()),
-      fetch(`https://api.themoviedb.org/3/genre/movie/list?api_key=${import.meta.env.VITE_TMDB_API_KEY}`).then(res => res.json())
-    ])
-      .then(async ([moviesRes, genresRes]) => {
-        // Map genre ids to names
-        const genreMap = new Map(genresRes.genres?.map(g => [g.id, g.name]) || [])
-        const movies = moviesRes?.results?.slice(0, 5).map(m => ({
-          ...m,
-          genres: m.genre_ids?.slice(0, 3).map(id => genreMap.get(id)).filter(Boolean) || []
-        })) || []
+// Fetch trending movies + genres (movies only), separate live sync
+useEffect(() => {
+  setLoading(true)
+  
+  Promise.all([
+    fetch(`https://api.themoviedb.org/3/trending/movie/week?api_key=${import.meta.env.VITE_TMDB_API_KEY}`).then(res => res.json()),
+    fetch(`https://api.themoviedb.org/3/genre/movie/list?api_key=${import.meta.env.VITE_TMDB_API_KEY}`).then(res => res.json())
+  ])
+    .then(([moviesRes, genresRes]) => {
+      // Map genre ids to names
+      const genreMap = new Map(genresRes.genres?.map(g => [g.id, g.name]) || [])
+      const movies = moviesRes?.results?.slice(0, 5).map(m => ({
+        ...m,
+        genres: m.genre_ids?.slice(0, 3).map(id => genreMap.get(id)).filter(Boolean) || []
+      })) || []
 
-        setSlides(movies)
+      setSlides(movies)
 
-        // Preload first image for faster initial render
-        if (movies[0]?.backdrop_path) {
-          preloadFirstImage(tmdbImg(movies[0].backdrop_path, 'original'))
-        }
+      // Preload first image for faster initial render
+      if (movies[0]?.backdrop_path) {
+        preloadFirstImage(tmdbImg(movies[0].backdrop_path, 'original'))
+      }
 
-        // Sync watchlist and watched status from DB
-        const { data: { user } } = await supabase.auth.getUser()
-        if (user && movies.length) {
-          const tmdbIds = movies.map(m => m.id)
+      setLoading(false)
+    })
+    .catch(err => {
+      console.error('HeroSliderSection fetch error:', err)
+      setSlides([])
+      setLoading(false)
+    })
+}, [])
 
-          const { data: wl } = await supabase
-            .from('user_watchlist')
-            .select('movie_id')
-            .eq('user_id', user.id)
-            .in('movie_id', tmdbIds)
+// NEW: Separate live sync effect with real-time subscriptions
+useEffect(() => {
+  if (!user || !slides.length) return
 
-          const { data: wh } = await supabase
-            .from('movies_watched')
-            .select('movie_id')
-            .eq('user_id', user.id)
-            .in('movie_id', tmdbIds)
+  const syncStatus = async () => {
+    // Sync watchlist status
+    const { data: wl } = await supabase
+      .from('user_watchlist')
+      .select(`
+        movie_id,
+        movies!inner(tmdb_id)
+      `)
+      .eq('user_id', user.id)
 
-          if (wl) setWatchlistTmdbIds(new Set(wl.map(w => w.movie_id)))
-          if (wh) setWatchedTmdbIds(new Set(wh.map(w => w.movie_id)))
-        }
-        setLoading(false)
-      })
-      .catch(err => {
-        console.error('HeroSliderSection fetch error:', err)
-        setSlides([])
-        setLoading(false)
-      })
-  }, [])
+    // Sync watched status  
+    const { data: wh } = await supabase
+      .from('user_history')
+      .select(`
+        movie_id,
+        movies!inner(tmdb_id)
+      `)
+      .eq('user_id', user.id)
+
+    // Extract TMDB IDs for current slider movies only
+    const sliderTmdbIds = slides.map(m => m.id)
+    
+    if (wl) {
+      setWatchlistTmdbIds(new Set(
+        wl
+          .filter(w => sliderTmdbIds.includes(w.movies.tmdb_id))
+          .map(w => w.movies.tmdb_id)
+      ))
+    }
+
+    if (wh) {
+      setWatchedTmdbIds(new Set(
+        wh
+          .filter(w => sliderTmdbIds.includes(w.movies.tmdb_id))
+          .map(w => w.movies.tmdb_id)
+      ))
+    }
+  }
+
+  // Initial sync
+  syncStatus()
+
+  // Real-time subscriptions for live updates
+  const watchlistChannel = supabase
+    .channel('user_watchlist_changes')
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'user_watchlist',
+        filter: `user_id=eq.${user.id}`
+      },
+      syncStatus
+    )
+    .subscribe()
+
+  const historyChannel = supabase
+    .channel('user_history_changes')
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'user_history',
+        filter: `user_id=eq.${user.id}`
+      },
+      syncStatus
+    )
+    .subscribe()
+
+  return () => {
+    supabase.removeChannel(watchlistChannel)
+    supabase.removeChannel(historyChannel)
+  }
+}, [user, slides.length])
+
 
   // Auto-advance slides every 8 sec, disabled while paused or touching
   useEffect(() => {
@@ -150,25 +213,50 @@ export default function HeroSliderSection({ className = '' }) {
     setDragOffset(0)
   }
 
-  // Ensure movie in DB (for watchlist/history syncing)
-  const ensureMovieInDb = async (movie) => {
-    await supabase
-      .from('movies')
-      .upsert({
-        tmdb_id: movie.id,
-        title: movie.title,
-        original_title: movie.original_title,
-        overview: movie.overview,
-        poster_path: movie.poster_path,
-        backdrop_path: movie.backdrop_path,
-        release_date: movie.release_date || null,
-        vote_average: movie.vote_average,
-        vote_count: movie.vote_count,
-        popularity: movie.popularity,
-        original_language: movie.original_language,
-        json_data: movie
-      }, { onConflict: 'tmdb_id' })
-  }
+  // Ensure movie in DB (UPDATED - returns internal ID)
+    const ensureMovieInDb = async (movie) => {
+      try {
+        // First check if exists
+        const { data: existing } = await supabase
+          .from('movies')
+          .select('id')
+          .eq('tmdb_id', movie.id)
+          .maybeSingle()
+        
+        if (existing) return existing.id
+
+        // Upsert movie
+        const { data: inserted, error } = await supabase
+          .from('movies')
+          .upsert({
+            tmdb_id: movie.id,
+            title: movie.title,
+            original_title: movie.original_title,
+            overview: movie.overview,
+            poster_path: movie.poster_path,
+            backdrop_path: movie.backdrop_path,
+            release_date: movie.release_date || null,
+            vote_average: movie.vote_average,
+            vote_count: movie.vote_count,
+            popularity: movie.popularity,
+            original_language: movie.original_language,
+            json_data: movie
+          }, { onConflict: 'tmdb_id' })
+          .select('id')
+          .single()
+
+        if (error) {
+          console.error('Failed to ensure movie in DB:', error)
+          return null
+        }
+
+        return inserted.id  // ← CRITICAL: Return internal movies.id
+      } catch (err) {
+        console.error('ensureMovieInDb failed:', err)
+        return null
+      }
+    }
+
 
   // Actions
   const currentMovie = slides[currentIndex]
@@ -179,92 +267,114 @@ export default function HeroSliderSection({ className = '' }) {
     if (currentMovie?.id) nav(`/movie/${currentMovie.id}`)
   }
 
-  // Toggle Watchlist status
-  const toggleWatchlist = async () => {
-    if (!user || !currentMovie?.id) return
-    const movie = currentMovie
-    const tmdbId = movie.id
+  // Toggle Watchlist status (UPDATED)
+const toggleWatchlist = async () => {
+  if (!user || !currentMovie?.id) return
 
-    if (isInWatchlist) {
-      // Remove from Watchlist
-      setWatchlistTmdbIds(prev => {
-        const n = new Set(prev)
-        n.delete(tmdbId)
-        return n
+  const movie = currentMovie
+  const tmdbId = movie.id
+
+  if (isInWatchlist) {
+    // Remove from Watchlist
+    setWatchlistTmdbIds(prev => {
+      const n = new Set(prev)
+      n.delete(tmdbId)
+      return n
+    })
+
+    await supabase
+      .from('user_watchlist')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('movie_id', tmdbId)  // Still works if tmdbId matches internal ID temporarily
+
+  } else {
+    // Add to Watchlist
+    setWatchlistTmdbIds(prev => new Set(prev).add(tmdbId))
+    setWatchedTmdbIds(prev => {
+      const n = new Set(prev)
+      n.delete(tmdbId)
+      return n
+    })
+
+    const internalMovieId = await ensureMovieInDb(movie)
+    if (internalMovieId) {
+      await supabase.from('user_watchlist').upsert({
+      user_id: user.id,
+      movie_id: internalMovieId,
+      added_at: new Date().toISOString(),
+      status: 'want_to_watch',
+      added_from_recommendation: true,
+      mood_session_id: null,
+      source: 'hero_slider'  // ← NEW
+    }, { onConflict: 'user_id,movie_id' })
+
+
+      // Remove from watched history if exists
+      await supabase
+        .from('user_history')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('movie_id', internalMovieId)
+    }
+  }
+}
+
+
+  // Toggle Watched status (UPDATED)
+const toggleWatched = async () => {
+  if (!user || !currentMovie?.id) return
+
+  const movie = currentMovie
+  const tmdbId = movie.id
+
+  if (isWatched) {
+    // Remove from Watched
+    setWatchedTmdbIds(prev => {
+      const n = new Set(prev)
+      n.delete(tmdbId)
+      return n
+    })
+
+    const internalMovieId = await ensureMovieInDb(movie)
+    if (internalMovieId) {
+      await supabase
+        .from('user_history')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('movie_id', internalMovieId)
+    }
+
+  } else {
+    // Add to Watched
+    setWatchedTmdbIds(prev => new Set(prev).add(tmdbId))
+    setWatchlistTmdbIds(prev => {
+      const n = new Set(prev)
+      n.delete(tmdbId)
+      return n
+    })
+
+    const internalMovieId = await ensureMovieInDb(movie)
+    if (internalMovieId) {
+      await supabase.from('user_history').insert({
+        user_id: user.id,
+        movie_id: internalMovieId,        // ← Use internal ID
+        watched_at: new Date().toISOString(),
+        source: 'hero_slider',
+        watch_duration_minutes: null,
+        mood_session_id: null
       })
+
+      // Remove from watchlist
       await supabase
         .from('user_watchlist')
         .delete()
         .eq('user_id', user.id)
-        .eq('movie_id', tmdbId)
-    } else {
-      // Add to Watchlist, remove Watched if present
-      setWatchlistTmdbIds(prev => new Set(prev).add(tmdbId))
-      setWatchedTmdbIds(prev => {
-        const n = new Set(prev)
-        n.delete(tmdbId)
-        return n
-      })
-
-      await ensureMovieInDb(movie)
-
-      await Promise.all([
-        supabase.from('user_watchlist').upsert({
-          user_id: user.id,
-          movie_id: tmdbId,
-          added_at: new Date().toISOString(),
-          status: 'want_to_watch'
-        }, { onConflict: 'user_id,movie_id' }),
-        supabase.from('movies_watched').delete().eq('user_id', user.id).eq('movie_id', tmdbId)
-      ])
+        .eq('movie_id', internalMovieId)
     }
   }
+}
 
-  // Toggle Watched status
-  const toggleWatched = async () => {
-    if (!user || !currentMovie?.id) return
-    const movie = currentMovie
-    const tmdbId = movie.id
-
-    if (isWatched) {
-      // Remove from Watched
-      setWatchedTmdbIds(prev => {
-        const n = new Set(prev)
-        n.delete(tmdbId)
-        return n
-      })
-      await supabase
-        .from('movies_watched')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('movie_id', tmdbId)
-    } else {
-      // Add to Watched, remove Watchlist if present
-      setWatchedTmdbIds(prev => new Set(prev).add(tmdbId))
-      setWatchlistTmdbIds(prev => {
-        const n = new Set(prev)
-        n.delete(tmdbId)
-        return n
-      })
-
-      await ensureMovieInDb(movie)
-
-      await Promise.all([
-        supabase.from('movies_watched').upsert({
-          user_id: user.id,
-          movie_id: tmdbId,
-          title: movie.title,
-          poster: movie.poster_path,
-          release_date: movie.release_date || null,
-          vote_average: movie.vote_average,
-          genre_ids: movie.genre_ids,
-          watched_at: new Date().toISOString(),
-          source: 'hero_slider'
-        }, { onConflict: 'user_id,movie_id' }),
-        supabase.from('user_watchlist').delete().eq('user_id', user.id).eq('movie_id', tmdbId)
-      ])
-    }
-  }
 
   if (loading && !slides.length) {
     return null

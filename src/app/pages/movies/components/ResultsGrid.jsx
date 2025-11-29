@@ -26,61 +26,73 @@ export default function ResultsGrid({ movies, user }) {
   }, [])
 
   // Sync Status from Supabase
-  useEffect(() => {
-    let active = true
-    async function syncStatus() {
-      if (!user?.id || !movies.length) return
+  // Sync Status from Supabase (normalized)
+useEffect(() => {
+  let active = true
 
-      const tmdbIds = movies.map(m => m.id)
+  async function syncStatus() {
+    if (!user?.id || !movies.length) return
 
-      // Fetch from user_watchlist (uses tmdb_id via movies table)
-      const { data: moviesData } = await supabase
-        .from('movies')
-        .select('id, tmdb_id')
-        .in('tmdb_id', tmdbIds)
+    const tmdbIds = movies.map(m => m.id)
 
-      if (!moviesData) return
+    // Map TMDB → internal movies.id
+    const { data: moviesData, error: moviesErr } = await supabase
+      .from('movies')
+      .select('id, tmdb_id')
+      .in('tmdb_id', tmdbIds)
 
-      const tmdbToInternalId = {}
-      moviesData.forEach(m => { tmdbToInternalId[m.tmdb_id] = m.id })
-
-      const internalIds = moviesData.map(m => m.id)
-
-      const { data: wl } = await supabase
-        .from('user_watchlist')
-        .select('movie_id')
-        .eq('user_id', user.id)
-        .in('movie_id', internalIds)
-
-      const { data: wh } = await supabase
-        .from('movies_watched')
-        .select('movie_id')
-        .eq('user_id', user.id)
-        .in('movie_id', internalIds)
-
-      if (!active) return
-
-      // Convert back to TMDB IDs for UI state
-      const watchlistTmdb = new Set()
-      const watchedTmdb = new Set()
-
-      wl?.forEach(w => {
-        const tmdbId = Object.keys(tmdbToInternalId).find(key => tmdbToInternalId[key] === w.movie_id)
-        if (tmdbId) watchlistTmdb.add(Number(tmdbId))
-      })
-
-      wh?.forEach(w => {
-        const tmdbId = Object.keys(tmdbToInternalId).find(key => tmdbToInternalId[key] === w.movie_id)
-        if (tmdbId) watchedTmdb.add(Number(tmdbId))
-      })
-
-      setWatchlistTmdbIds(watchlistTmdb)
-      setWatchedTmdbIds(watchedTmdb)
+    if (moviesErr) {
+      console.error('[ResultsGrid] movies lookup error:', moviesErr)
+      return
     }
+    if (!moviesData?.length) return
 
-    syncStatus()
-    return () => { active = false }
-  }, [user, movies])
+    const tmdbToInternalId = {}
+    moviesData.forEach(m => {
+      tmdbToInternalId[m.tmdb_id] = m.id
+    })
+    const internalIds = moviesData.map(m => m.id)
+
+    const { data: wl, error: wlErr } = await supabase
+      .from('user_watchlist')
+      .select('movie_id')
+      .eq('user_id', user.id)
+      .in('movie_id', internalIds)
+
+    const { data: wh, error: whErr } = await supabase
+      .from('user_history')
+      .select('movie_id')
+      .eq('user_id', user.id)
+      .in('movie_id', internalIds)
+
+    if (wlErr) console.error('[ResultsGrid] watchlist status error:', wlErr)
+    if (whErr) console.error('[ResultsGrid] history status error:', whErr)
+    if (!active) return
+
+    // Convert back to TMDB IDs for UI state
+    const watchlistTmdb = new Set()
+    const watchedTmdb = new Set()
+
+    wl?.forEach(w => {
+      const tmdbId = Object.keys(tmdbToInternalId)
+        .find(key => tmdbToInternalId[key] === w.movie_id)
+      if (tmdbId) watchlistTmdb.add(Number(tmdbId))
+    })
+
+    wh?.forEach(w => {
+      const tmdbId = Object.keys(tmdbToInternalId)
+        .find(key => tmdbToInternalId[key] === w.movie_id)
+      if (tmdbId) watchedTmdb.add(Number(tmdbId))
+    })
+
+    setWatchlistTmdbIds(watchlistTmdb)
+    setWatchedTmdbIds(watchedTmdb)
+  }
+
+  syncStatus()
+  return () => { active = false }
+}, [user, movies])
+
 
   async function ensureMovieInDb(movie) {
     const { data } = await supabase
@@ -106,63 +118,111 @@ export default function ResultsGrid({ movies, user }) {
   }
 
   const toggleWatchlist = async (e, movie) => {
-    e.stopPropagation()
-    if (!user) return navigate('/auth')
+  e.stopPropagation()
+  if (!user) return navigate('/auth')
 
-    const tmdbId = movie.id
-    const isInWatchlist = watchlistTmdbIds.has(tmdbId)
+  const tmdbId = movie.id
+  const isInWatchlist = watchlistTmdbIds.has(tmdbId)
 
-    if (isInWatchlist) {
-      setWatchlistTmdbIds(prev => { const n = new Set(prev); n.delete(tmdbId); return n })
-      const internalId = await ensureMovieInDb(movie)
-      await supabase.from('user_watchlist').delete().eq('user_id', user.id).eq('movie_id', internalId)
-    } else {
-      setWatchlistTmdbIds(prev => new Set(prev).add(tmdbId))
-      setWatchedTmdbIds(prev => { const n = new Set(prev); n.delete(tmdbId); return n })
-      const internalId = await ensureMovieInDb(movie)
+  if (isInWatchlist) {
+    // Remove from watchlist
+    setWatchlistTmdbIds(prev => {
+      const n = new Set(prev); n.delete(tmdbId); return n
+    })
+
+    const internalId = await ensureMovieInDb(movie)
+    if (internalId) {
+      await supabase
+        .from('user_watchlist')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('movie_id', internalId)
+    }
+  } else {
+    // Add to watchlist, remove watched flag
+    setWatchlistTmdbIds(prev => new Set(prev).add(tmdbId))
+    setWatchedTmdbIds(prev => {
+      const n = new Set(prev); n.delete(tmdbId); return n
+    })
+
+    const internalId = await ensureMovieInDb(movie)
+    if (internalId) {
       await Promise.all([
-        supabase.from('user_watchlist').upsert({
-          user_id: user.id,
-          movie_id: internalId,
-          added_at: new Date().toISOString(),
-          status: 'want_to_watch'
-        }, { onConflict: 'user_id,movie_id' }),
-        supabase.from('movies_watched').delete().eq('user_id', user.id).eq('movie_id', internalId)
+        supabase
+          .from('user_watchlist')
+          .upsert({
+            user_id: user.id,
+            movie_id: internalId,
+            added_at: new Date().toISOString(),
+            status: 'want_to_watch',
+            added_from_recommendation: false,
+            mood_session_id: null,
+            source: 'browse',
+          }, { onConflict: 'user_id,movie_id' }),
+
+        supabase
+          .from('user_history')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('movie_id', internalId),
       ])
     }
   }
+}
+
 
   const toggleWatched = async (e, movie) => {
-    e.stopPropagation()
-    if (!user) return navigate('/auth')
+  e.stopPropagation()
+  if (!user) return navigate('/auth')
 
-    const tmdbId = movie.id
-    const isWatched = watchedTmdbIds.has(tmdbId)
+  const tmdbId = movie.id
+  const isWatched = watchedTmdbIds.has(tmdbId)
 
-    if (isWatched) {
-      setWatchedTmdbIds(prev => { const n = new Set(prev); n.delete(tmdbId); return n })
-      const internalId = await ensureMovieInDb(movie)
-      await supabase.from('movies_watched').delete().eq('user_id', user.id).eq('movie_id', internalId)
-    } else {
-      setWatchedTmdbIds(prev => new Set(prev).add(tmdbId))
-      setWatchlistTmdbIds(prev => { const n = new Set(prev); n.delete(tmdbId); return n })
-      const internalId = await ensureMovieInDb(movie)
+  if (isWatched) {
+    // Remove from history
+    setWatchedTmdbIds(prev => {
+      const n = new Set(prev); n.delete(tmdbId); return n
+    })
+
+    const internalId = await ensureMovieInDb(movie)
+    if (internalId) {
+      await supabase
+        .from('user_history')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('movie_id', internalId)
+    }
+  } else {
+    // Mark as watched, remove from watchlist
+    setWatchedTmdbIds(prev => new Set(prev).add(tmdbId))
+    setWatchlistTmdbIds(prev => {
+      const n = new Set(prev); n.delete(tmdbId); return n
+    })
+
+    const internalId = await ensureMovieInDb(movie)
+    if (internalId) {
       await Promise.all([
-        supabase.from('movies_watched').upsert({
-          user_id: user.id,
-          movie_id: internalId,
-          title: movie.title,
-          poster: movie.poster_path,
-          release_date: movie.release_date || null,
-          vote_average: movie.vote_average,
-          genre_ids: movie.genre_ids,
-          watched_at: new Date().toISOString(),
-          source: 'browse'
-        }, { onConflict: 'user_id,movie_id' }),
-        supabase.from('user_watchlist').delete().eq('user_id', user.id).eq('movie_id', internalId)
+        supabase
+          .from('user_history')
+          .insert({
+            user_id: user.id,
+            movie_id: internalId,
+            watched_at: new Date().toISOString(),
+            source: 'browse',
+            watch_duration_minutes: null,
+            mood_session_id: null,
+          }),
+
+        supabase
+          .from('user_watchlist')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('movie_id', internalId),
       ])
     }
   }
+}
+
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">

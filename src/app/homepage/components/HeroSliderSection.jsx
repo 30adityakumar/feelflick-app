@@ -274,18 +274,19 @@ export default function HeroSliderSection({ className = '' }) {
 
   return (
     <section
-      className={`relative w-full overflow-hidden bg-black -mt-10 md:-mt-1 ${className}`}
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
-      onTouchStart={onTouchStart}
-      onTouchMove={onTouchMove}
-      onTouchEnd={onTouchEnd}
-      aria-label="Hero movie slider"
-      role="region"
-    >
+        className={`relative w-full overflow-hidden bg-black  ${className}`}
+        style={{ marginTop: '-15px' }} // Adjust this value to match your header height
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        aria-label="Hero movie slider"
+        role="region"
+      >
       {/* Background Images */}
       <div
-        className="relative w-full h-[70vh] sm:h-[75vh] min-h-[500px] select-none"
+        className="relative w-full h-[70vh] sm:h-[80vh] min-h-[500px] select-none"
         aria-live="polite"
         aria-atomic="true"
       >
@@ -318,12 +319,14 @@ export default function HeroSliderSection({ className = '' }) {
         </div>
 
         {/* Gradient overlays for better text readability */}
-        <div className="absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-black/90 to-transparent z-20 pointer-events-none" />
+        // Update gradient overlays - adjust top gradient to account for header
+        <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-black via-black/60 to-transparent z-20 pointer-events-none" />
         <div className="absolute inset-y-0 left-0 w-full md:w-2/5 bg-gradient-to-r from-black via-black/50 to-transparent z-20 pointer-events-none" />
         <div className="absolute bottom-0 inset-x-0 h-2/3 bg-gradient-to-t from-black via-black/80 to-transparent z-20 pointer-events-none" />
 
         {/* Slide Content */}
-        <div className="absolute inset-0 z-30 flex flex-col justify-end pb-12 md:pb-16 lg:pb-20 pt-20 pointer-events-none">
+        // Update content positioning - add more top padding
+        <div className="absolute inset-0 z-30 flex flex-col justify-end pb-12 md:pb-16 lg:pb-20 pt-32 pointer-events-none">
           <div className="w-full px-4 md:px-12 lg:px-16 xl:px-20 pointer-events-auto max-w-3xl">
               <h1 className="text-white font-black tracking-tight leading-[0.95] text-3xl sm:text-4xl md:text-5xl lg:text-6xl drop-shadow-2xl mb-3 md:mb-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
                 {currentMovie?.title}

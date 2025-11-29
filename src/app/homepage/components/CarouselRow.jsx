@@ -4,9 +4,11 @@ import { useNavigate } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, Plus, Check, Eye, EyeOff, Info, Loader2 } from 'lucide-react'
 import { supabase } from '@/shared/lib/supabase/client'
 
+
 // Lines 7-8 - Add image preloading and optimization
 const tmdbImg = (p, s = 'w342') => p ? `https://image.tmdb.org/t/p/${s}${p}` : ''
 const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY
+
 
 // Add intersection observer for lazy loading
 const observerOptions = {
@@ -14,6 +16,7 @@ const observerOptions = {
   rootMargin: '200px',
   threshold: 0.01
 }
+
 
 export default function CarouselRow({ title, tmdbCategory, rowId }) {
   const [movies, setMovies] = useState([])
@@ -31,6 +34,8 @@ export default function CarouselRow({ title, tmdbCategory, rowId }) {
   const hoverTimeoutRef = useRef(null)
   const nav = useNavigate()
 
+
+
   useEffect(() => {
     let mounted = true
     ;(async () => {
@@ -43,6 +48,7 @@ export default function CarouselRow({ title, tmdbCategory, rowId }) {
     })()
     return () => { mounted = false }
   }, [])
+
 
   useEffect(() => {
     let mounted = true
@@ -58,12 +64,15 @@ export default function CarouselRow({ title, tmdbCategory, rowId }) {
       })
       .catch(err => console.error('[CarouselRow] Genre fetch error:', err))
 
+
     return () => { mounted = false }
   }, [])
 
-  // Lines 56-89 - Optimize data fetching, show movies immediately
-  useEffect(() => {
+
+// Fetch movies from TMDB (CRITICAL - was missing!)
+useEffect(() => {
     let mounted = true
+
 
     const fetchMovies = async () => {
       try {
@@ -77,25 +86,10 @@ export default function CarouselRow({ title, tmdbCategory, rowId }) {
         
         if (!mounted) return
 
+
         // Show movies immediately
         setMovies(data.results || [])
         setLoading(false)
-
-        // Fetch user status in background
-        const { data: { user: currentUser } } = await supabase.auth.getUser()
-        if (currentUser && data.results?.length > 0) {
-          const tmdbIds = data.results.map(m => m.id)
-
-          const [wlRes, whRes] = await Promise.all([
-            supabase.from('user_watchlist').select('movie_id').eq('user_id', currentUser.id).in('movie_id', tmdbIds),
-            supabase.from('movies_watched').select('movie_id').eq('user_id', currentUser.id).in('movie_id', tmdbIds)
-          ])
-
-          if (mounted) {
-            if (wlRes.data) setWatchlistTmdbIds(new Set(wlRes.data.map(w => w.movie_id)))
-            if (whRes.data) setWatchedTmdbIds(new Set(whRes.data.map(w => w.movie_id)))
-          }
-        }
       } catch (error) {
         console.error('[CarouselRow] Fetch error:', error)
         if (mounted) {
@@ -105,10 +99,109 @@ export default function CarouselRow({ title, tmdbCategory, rowId }) {
       }
     }
 
+
     fetchMovies()
+
 
     return () => { mounted = false }
   }, [tmdbCategory])
+  
+// Live sync watchlist and watched status (FIXED - uses existing states)
+useEffect(() => {
+  if (!user || !movies.length) return
+
+
+  const syncStatus = async () => {
+    try {
+      // Sync watchlist status
+      const { data: wl } = await supabase
+        .from('user_watchlist')
+        .select(`
+          movie_id,
+          movies!inner(tmdb_id)
+        `)
+        .eq('user_id', user.id)
+
+
+      // Sync watched history
+      const { data: wh } = await supabase
+        .from('user_history')
+        .select(`
+          movie_id,
+          movies!inner(tmdb_id)
+        `)
+        .eq('user_id', user.id)
+
+
+      // Filter to only current carousel movies
+      const movieTmdbIds = movies.map(m => m.id)
+      
+      if (wl?.length) {
+        const watchlistTmdbIds = wl
+          .filter(item => movieTmdbIds.includes(item.movies.tmdb_id))
+          .map(item => item.movies.tmdb_id)
+        setWatchlistTmdbIds(new Set(watchlistTmdbIds))  // ✅ Use EXISTING state
+      } else {
+        setWatchlistTmdbIds(new Set())                   // ✅ Use EXISTING state
+      }
+
+
+      if (wh?.length) {
+        const watchedTmdbIds = wh
+          .filter(item => movieTmdbIds.includes(item.movies.tmdb_id))
+          .map(item => item.movies.tmdb_id)
+        setWatchedTmdbIds(new Set(watchedTmdbIds))       // ✅ Use EXISTING state
+      } else {
+        setWatchedTmdbIds(new Set())                     // ✅ Use EXISTING state
+      }
+    } catch (err) {
+      console.error('CarouselRow sync failed:', err)
+    }
+  }
+
+
+  // Initial sync
+  syncStatus()
+
+
+  // Real-time subscriptions
+  const watchlistChannel = supabase
+    .channel('carousel_watchlist')
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'user_watchlist',
+        filter: `user_id=eq.${user.id}`
+      },
+      syncStatus
+    )
+    .subscribe()
+
+
+  const historyChannel = supabase
+    .channel('carousel_history')
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'user_history',
+        filter: `user_id=eq.${user.id}`
+      },
+      syncStatus
+    )
+    .subscribe()
+
+
+  return () => {
+    supabase.removeChannel(watchlistChannel)
+    supabase.removeChannel(historyChannel)
+  }
+}, [user, movies.length])
+
+
 
   const scroll = useCallback((direction) => {
     const container = scrollContainerRef.current
@@ -123,127 +216,247 @@ export default function CarouselRow({ title, tmdbCategory, rowId }) {
     setScrollPosition(newPosition)
   }, [scrollPosition])
 
+
   const handleScroll = useCallback(() => {
     if (scrollContainerRef.current) {
       setScrollPosition(scrollContainerRef.current.scrollLeft)
     }
   }, [])
 
-  const ensureMovieInDb = async (movie) => {
+
+  // Ensure movie exists in DB and return internal ID (NEW)
+  // Ensure movie exists in DB and return internal ID (UPDATED like HeroSlider)
+const ensureMovieInDb = async (movie) => {
+  try {
+    // Check if movie already exists
+    const { data: existing } = await supabase
+      .from('movies')
+      .select('id')
+      .eq('tmdb_id', movie.id)
+      .maybeSingle()
+
+    if (existing) return existing.id
+
+    // Try to fetch full details from TMDB for better data
+    let fullMovie = movie
     try {
-      await supabase.from('movies').upsert({
-        tmdb_id: movie.id,
-        title: movie.title,
-        original_title: movie.original_title,
-        overview: movie.overview,
-        poster_path: movie.poster_path,
-        backdrop_path: movie.backdrop_path,
-        release_date: movie.release_date || null,
-        vote_average: movie.vote_average,
-        vote_count: movie.vote_count,
-        popularity: movie.popularity,
-        original_language: movie.original_language,
-        json_data: movie
+      const detailsRes = await fetch(
+        `https://api.themoviedb.org/3/movie/${movie.id}?api_key=${TMDB_KEY}&language=en-US`
+      )
+      if (detailsRes.ok) {
+        fullMovie = await detailsRes.json()
+      }
+    } catch (err) {
+      console.warn('[CarouselRow] Failed to fetch full movie details, using list data:', err)
+    }
+
+    // Upsert full movie data
+    const { data: inserted, error } = await supabase
+      .from('movies')
+      .upsert({
+        tmdb_id: fullMovie.id,
+        title: fullMovie.title,
+        original_title: fullMovie.original_title,
+        overview: fullMovie.overview || null,
+        poster_path: fullMovie.poster_path,
+        backdrop_path: fullMovie.backdrop_path,
+        release_date: fullMovie.release_date || null,
+        vote_average: fullMovie.vote_average || null,
+        vote_count: fullMovie.vote_count || null,
+        popularity: fullMovie.popularity || null,
+        original_language: fullMovie.original_language,
+        adult: fullMovie.adult || false,
+        json_data: fullMovie
       }, { onConflict: 'tmdb_id' })
-    } catch (err) {
-      console.error('[CarouselRow] Movie upsert error:', err)
+      .select('id')
+      .single()
+
+    if (error) {
+      console.error('[CarouselRow] Failed to insert movie:', error)
+      throw error
     }
+
+    return inserted.id
+  } catch (err) {
+    console.error('[CarouselRow] ensureMovieInDb failed:', err)
+    throw err   // IMPORTANT: surface the failure
   }
+}
 
-  const toggleWatchlist = async (e, movie) => {
-    e.stopPropagation()
-    if (!user || actionLoading[`wl-${movie.id}`]) return
 
-    const tmdbId = movie.id
-    const isInWatchlist = watchlistTmdbIds.has(tmdbId)
 
-    setActionLoading(prev => ({ ...prev, [`wl-${tmdbId}`]: true }))
 
-    try {
-      if (isInWatchlist) {
-        await supabase.from('user_watchlist').delete()
-          .eq('user_id', user.id).eq('movie_id', tmdbId)
-        setWatchlistTmdbIds(prev => {
-          const n = new Set(prev)
-          n.delete(tmdbId)
-          return n
-        })
-      } else {
-        await ensureMovieInDb(movie)
-        await Promise.all([
-          supabase.from('user_watchlist').upsert({
-            user_id: user.id,
-            movie_id: tmdbId,
-            added_at: new Date().toISOString(),
-            status: 'want_to_watch'
-          }, { onConflict: 'user_id,movie_id' }),
-          supabase.from('movies_watched').delete()
-            .eq('user_id', user.id).eq('movie_id', tmdbId)
-        ])
-        setWatchlistTmdbIds(prev => new Set(prev).add(tmdbId))
-        setWatchedTmdbIds(prev => {
-          const n = new Set(prev)
-          n.delete(tmdbId)
-          return n
-        })
+// Toggle watchlist (FIXED - without source until schema updated)
+const toggleWatchlist = async (e, movie) => {
+  e.stopPropagation()
+  if (!user || !movie?.id) return
+
+  const tmdbId = movie.id
+  const wasInWatchlist = watchlistTmdbIds.has(tmdbId)
+
+  setActionLoading(prev => ({ ...prev, [`wl-${movie.id}`]: true }))
+
+  try {
+    if (wasInWatchlist) {
+      // Remove from watchlist
+      setWatchlistTmdbIds(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(tmdbId)
+        return newSet
+      })
+
+      const internalMovieId = await ensureMovieInDb(movie)
+      if (internalMovieId) {
+        const { error: deleteError } = await supabase
+          .from('user_watchlist')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('movie_id', internalMovieId)
+        
+        if (deleteError) {
+          console.error('[CarouselRow] Delete watchlist error:', deleteError)
+          throw deleteError
+        }
       }
-    } catch (err) {
-      console.error('[CarouselRow] Watchlist error:', err)
-      alert('Failed to update watchlist')
-    } finally {
-      setActionLoading(prev => ({ ...prev, [`wl-${tmdbId}`]: false }))
-    }
-  }
+    } else {
+      // Add to watchlist
+      setWatchlistTmdbIds(prev => new Set([...prev, tmdbId]))
+      setWatchedTmdbIds(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(tmdbId)
+        return newSet
+      })
 
-  const toggleWatched = async (e, movie) => {
-    e.stopPropagation()
-    if (!user || actionLoading[`wh-${movie.id}`]) return
-
-    const tmdbId = movie.id
-    const isWatched = watchedTmdbIds.has(tmdbId)
-
-    setActionLoading(prev => ({ ...prev, [`wh-${tmdbId}`]: true }))
-
-    try {
-      if (isWatched) {
-        await supabase.from('movies_watched').delete()
-          .eq('user_id', user.id).eq('movie_id', tmdbId)
-        setWatchedTmdbIds(prev => {
-          const n = new Set(prev)
-          n.delete(tmdbId)
-          return n
-        })
-      } else {
-        await ensureMovieInDb(movie)
-        await Promise.all([
-          supabase.from('movies_watched').upsert({
-            user_id: user.id,
-            movie_id: tmdbId,
-            title: movie.title,
-            poster: movie.poster_path,
-            release_date: movie.release_date || null,
-            vote_average: movie.vote_average,
-            genre_ids: movie.genre_ids,
-            watched_at: new Date().toISOString(),
-            source: 'carousel_row'
-          }, { onConflict: 'user_id,movie_id' }),
-          supabase.from('user_watchlist').delete()
-            .eq('user_id', user.id).eq('movie_id', tmdbId)
-        ])
-        setWatchedTmdbIds(prev => new Set(prev).add(tmdbId))
-        setWatchlistTmdbIds(prev => {
-          const n = new Set(prev)
-          n.delete(tmdbId)
-          return n
-        })
+      const internalMovieId = await ensureMovieInDb(movie)
+      if (!internalMovieId) {
+        throw new Error('Failed to get internal movie ID')
       }
-    } catch (err) {
-      console.error('[CarouselRow] Watched error:', err)
-      alert('Failed to update watch status')
-    } finally {
-      setActionLoading(prev => ({ ...prev, [`wh-${tmdbId}`]: false }))
+
+      console.log('[CarouselRow] Inserting watchlist with ID:', internalMovieId)
+
+      // Insert into watchlist (WITHOUT source for now)
+      const { data: insertData, error: insertError } = await supabase
+        .from('user_watchlist')
+        .upsert({
+          user_id: user.id,
+          movie_id: internalMovieId,
+          added_at: new Date().toISOString(),
+          status: 'want_to_watch',
+          added_from_recommendation: false,
+          mood_session_id: null,
+          source: 'carousel_row'  // ❌ REMOVE THIS LINE until schema updated
+        }, { onConflict: 'user_id,movie_id' })
+        .select()
+
+      if (insertError) {
+        console.error('[CarouselRow] Insert watchlist error:', insertError)
+        throw insertError
+      }
+
+      console.log('[CarouselRow] Watchlist insert success:', insertData)
+
+      // Remove from history if exists
+      await supabase
+        .from('user_history')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('movie_id', internalMovieId)
     }
+  } catch (error) {
+    console.error('[CarouselRow] toggleWatchlist failed:', error)
+    
+    // Revert optimistic update
+    if (wasInWatchlist) {
+      setWatchlistTmdbIds(prev => new Set([...prev, tmdbId]))
+    } else {
+      setWatchlistTmdbIds(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(tmdbId)
+        return newSet
+      })
+    }
+  } finally {
+    setActionLoading(prev => ({ ...prev, [`wl-${movie.id}`]: false }))
   }
+}
+
+  // Toggle watched (UPDATED - normalized tables)
+// Toggle watched (FIXED - uses existing states)
+const toggleWatched = async (e, movie) => {
+  e.stopPropagation()
+  if (!user || !movie?.id) return
+
+
+  const tmdbId = movie.id
+  const wasWatched = watchedTmdbIds.has(tmdbId)  // ✅ OLD state name
+
+
+  setActionLoading(prev => ({ ...prev, [`wh-${movie.id}`]: true }))  // ✅ Per-movie
+
+
+  try {
+    if (wasWatched) {
+      setWatchedTmdbIds(prev => {      // ✅ OLD state name
+        const newSet = new Set(prev)
+        newSet.delete(tmdbId)
+        return newSet
+      })
+
+
+      const internalMovieId = await ensureMovieInDb(movie)
+      if (internalMovieId) {
+        await supabase
+          .from('user_history')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('movie_id', internalMovieId)
+      }
+    } else {
+      setWatchedTmdbIds(prev => new Set([...prev, tmdbId]))  // ✅ OLD state name
+      setWatchlistTmdbIds(prev => {                          // ✅ OLD state name
+        const newSet = new Set(prev)
+        newSet.delete(tmdbId)
+        return newSet
+      })
+
+
+      const internalMovieId = await ensureMovieInDb(movie)
+      if (internalMovieId) {
+        await supabase.from('user_history').insert({
+          user_id: user.id,
+          movie_id: internalMovieId,
+          watched_at: new Date().toISOString(),
+          source: 'carousel_row',
+          watch_duration_minutes: null,
+          mood_session_id: null
+        })
+
+
+        await supabase
+          .from('user_watchlist')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('movie_id', internalMovieId)
+      }
+    }
+  } catch (error) {
+    console.error('toggleWatched failed:', error)
+    // Revert
+    if (wasWatched) {
+      setWatchedTmdbIds(prev => new Set([...prev, tmdbId]))
+    } else {
+      setWatchedTmdbIds(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(tmdbId)
+        return newSet
+      })
+    }
+  } finally {
+    setActionLoading(prev => ({ ...prev, [`wh-${movie.id}`]: false }))
+  }
+}
+
+
 
   const handleMouseEnter = useCallback((movie) => {
     clearTimeout(hoverTimeoutRef.current)
@@ -252,15 +465,18 @@ export default function CarouselRow({ title, tmdbCategory, rowId }) {
     }, 300)
   }, [])
 
+
   const handleMouseLeave = useCallback(() => {
     clearTimeout(hoverTimeoutRef.current)
     setHoveredMovie(null)
   }, [])
 
+
   const canScrollLeft = scrollPosition > 0
   const canScrollRight = scrollContainerRef.current
     ? scrollPosition < scrollContainerRef.current.scrollWidth - scrollContainerRef.current.clientWidth
     : false
+
 
   // Lines 256-272 - Minimal skeleton loader
   if (loading) {
@@ -281,6 +497,7 @@ export default function CarouselRow({ title, tmdbCategory, rowId }) {
     )
   }
 
+
   if (!movies.length) {
     return (
       <section className="mb-8 md:mb-12">
@@ -294,11 +511,13 @@ export default function CarouselRow({ title, tmdbCategory, rowId }) {
     )
   }
 
+
   return (
     <section className="mb-8 md:mb-12">
       <h2 className="text-white text-lg md:text-xl lg:text-2xl font-bold mb-3 md:mb-4 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16">
         {title}
       </h2>
+
 
       <div className="relative group">
         {canScrollLeft && (
@@ -311,6 +530,7 @@ export default function CarouselRow({ title, tmdbCategory, rowId }) {
           </button>
         )}
 
+
         {canScrollRight && (
           <button
             onClick={() => scroll('right')}
@@ -320,6 +540,7 @@ export default function CarouselRow({ title, tmdbCategory, rowId }) {
             <ChevronRight className="h-5 w-5 md:h-6 md:w-6" />
           </button>
         )}
+
 
         <div
           ref={scrollContainerRef}
@@ -334,6 +555,7 @@ export default function CarouselRow({ title, tmdbCategory, rowId }) {
             const movieGenres = movie.genre_ids?.slice(0, 3).map(id => genres[id]).filter(Boolean) || []
             const wlLoading = actionLoading[`wl-${movie.id}`]
             const whLoading = actionLoading[`wh-${movie.id}`]
+
 
             return (
               <article
@@ -368,6 +590,7 @@ export default function CarouselRow({ title, tmdbCategory, rowId }) {
                       style={{ opacity: imageLoaded[movie.id] ? 1 : 0, transition: 'opacity 0.3s' }}
                     />
 
+
                     {movie.vote_average > 0 && (
                       <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-md bg-gradient-to-br from-purple-500/95 to-pink-500/95 backdrop-blur-sm shadow-lg text-xs font-bold text-white select-none">
                         <span>★</span>
@@ -376,9 +599,11 @@ export default function CarouselRow({ title, tmdbCategory, rowId }) {
                     )}
                   </div>
 
+
                   {isHovered && (
                     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/95 to-transparent flex flex-col justify-end p-3 md:p-4 text-white select-none z-50">
                       <h3 className="text-sm md:text-base font-bold line-clamp-2 mb-2">{movie.title}</h3>
+
 
                       <div className="flex items-center gap-2 mb-2 text-xs text-white/80">
                         {movie.release_date && (
@@ -391,6 +616,7 @@ export default function CarouselRow({ title, tmdbCategory, rowId }) {
                           </>
                         )}
                       </div>
+
 
                       {movieGenres.length > 0 && (
                         <div className="flex flex-wrap gap-1 mb-2.5">
@@ -405,11 +631,13 @@ export default function CarouselRow({ title, tmdbCategory, rowId }) {
                         </div>
                       )}
 
+
                       {movie.overview && (
                         <p className="text-white/70 text-[11px] md:text-xs line-clamp-2 md:line-clamp-3 leading-relaxed mb-3">
                           {movie.overview}
                         </p>
                       )}
+
 
                       <div className="flex items-center gap-2">
                         <button
@@ -423,6 +651,7 @@ export default function CarouselRow({ title, tmdbCategory, rowId }) {
                           <Info className="h-3 w-3" />
                           <span>Details</span>
                         </button>
+
 
                         {user && (
                           <>
@@ -444,6 +673,7 @@ export default function CarouselRow({ title, tmdbCategory, rowId }) {
                                 <Plus className="h-3.5 w-3.5" />
                               )}
                             </button>
+
 
                             <button
                               onClick={(e) => toggleWatched(e, movie)}

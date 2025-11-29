@@ -26,63 +26,70 @@ export default function Watchlist() {
   }, [])
 
   // Fetch watchlist
-  useEffect(() => {
-    if (!user) return
-    let active = true
-    setLoading(true)
-    
-    ;(async () => {
-      try {
-        const { data: watchlist, error } = await supabase
-          .from('user_watchlist')
-          .select('movie_id,status,added_at')
-          .eq('user_id', user.id)
-          .order('added_at', { ascending: false })
+  // Fetch watchlist (normalized: user_watchlist + movies)
+useEffect(() => {
+  if (!user) return
 
-        if (error) throw error
+  let active = true
+  setLoading(true)
 
-        const ids = watchlist?.map(r => r.movie_id)
-        if (!ids || ids.length === 0) {
-          if (active) {
-            setMovies([])
-            setFilteredMovies([])
-            setLoading(false)
-          }
-          return
-        }
+  ;(async () => {
+    try {
+      const { data: watchlist, error } = await supabase
+        .from('user_watchlist')
+        .select('movie_id,status,added_at')
+        .eq('user_id', user.id)
+        .order('added_at', { ascending: false })
 
-        const { data: rows, error: mErr } = await supabase
-          .from('movies')
-          .select('id,title,poster_path,release_date,vote_average')
-          .in('id', ids)
+      if (error) throw error
 
-        if (mErr) throw mErr
-
-        const map = new Map(rows.map(r => [r.id, r]))
-        const merged = watchlist
-          .map(w => {
-            const m = map.get(w.movie_id)
-            return m ? { ...m, added_at: w.added_at, status: w.status } : null
-          })
-          .filter(Boolean)
-
-        if (active) {
-          setMovies(merged)
-          setFilteredMovies(merged)
-        }
-      } catch (e) {
-        console.error('Watchlist fetch error:', e)
+      const ids = watchlist?.map(r => r.movie_id)
+      if (!ids || ids.length === 0) {
         if (active) {
           setMovies([])
           setFilteredMovies([])
+          setLoading(false)
         }
-      } finally {
-        if (active) setLoading(false)
+        return
       }
-    })()
-    
-    return () => { active = false }
-  }, [user, removingId, markingWatched])
+
+      const { data: rows, error: mErr } = await supabase
+        .from('movies')
+        .select('id,title,poster_path,release_date,vote_average,tmdb_id')
+        .in('id', ids)
+
+      if (mErr) throw mErr
+
+      const map = new Map(rows.map(r => [r.id, r]))
+      const merged = watchlist
+        .map(w => {
+          const m = map.get(w.movie_id)
+          return m ? { 
+            ...m,                     // id is internal movies.id
+            added_at: w.added_at,
+            status: w.status
+          } : null
+        })
+        .filter(Boolean)
+
+      if (active) {
+        setMovies(merged)
+        setFilteredMovies(merged)
+      }
+    } catch (e) {
+      console.error('Watchlist fetch error:', e)
+      if (active) {
+        setMovies([])
+        setFilteredMovies([])
+      }
+    } finally {
+      if (active) setLoading(false)
+    }
+  })()
+
+  return () => { active = false }
+}, [user, removingId, markingWatched])
+
 
   // Filter and sort
   useEffect(() => {
@@ -104,48 +111,57 @@ export default function Watchlist() {
   }, [movies, searchQuery, sortBy])
 
   async function remove(movieId) {
-    if (!user) return
-    setRemovingId(movieId)
-    try {
-      await supabase
-        .from('user_watchlist')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('movie_id', movieId)
-      
-      setMovies(prev => prev.filter(m => m.id !== movieId))
-    } finally {
-      setRemovingId(null)
-    }
+  if (!user) return
+  setRemovingId(movieId)
+  try {
+    await supabase
+      .from('user_watchlist')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('movie_id', movieId)
+
+    setMovies(prev => prev.filter(m => m.id !== movieId))
+  } finally {
+    setRemovingId(null)
   }
+}
+
 
   async function markAsWatched(movie) {
-    if (!user) return
-    setMarkingWatched(movie.id)
-    try {
-      // Add to history
-      await supabase.from('user_history').upsert({
+  if (!user) return
+  setMarkingWatched(movie.id)
+
+  try {
+    // Add to history (allow multiple watches distinguished by watched_at)
+    await supabase
+      .from('user_history')
+      .insert({
         user_id: user.id,
-        movie_id: movie.id,
+        movie_id: movie.id,                 // internal movies.id
         watched_at: new Date().toISOString(),
-      }, { onConflict: 'user_id,movie_id' })
+        source: 'watchlist',
+        watch_duration_minutes: null,
+        mood_session_id: null
+      })
 
-      // Remove from watchlist
-      await supabase
-        .from('user_watchlist')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('movie_id', movie.id)
-      
-      setMovies(prev => prev.filter(m => m.id !== movie.id))
-    } finally {
-      setMarkingWatched(null)
-    }
-  }
+    // Remove from watchlist
+    await supabase
+      .from('user_watchlist')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('movie_id', movie.id)
 
-  function goToMovie(id) {
-    nav(`/movie/${id}`)
+    setMovies(prev => prev.filter(m => m.id !== movie.id))
+  } finally {
+    setMarkingWatched(null)
   }
+}
+
+
+  function goToMovie(movie) {
+  const tmdbId = movie.tmdb_id || movie.id  // fallback
+  nav(`/movie/${tmdbId}`)
+}
 
   return (
     <main 
@@ -263,7 +279,7 @@ export default function Watchlist() {
                     movie={m} 
                     onRemove={remove} 
                     onMarkWatched={markAsWatched} 
-                    onClick={() => goToMovie(m.id)}
+                    onClick={() => goToMovie(m)}
                     removing={removingId === m.id}
                     markingWatched={markingWatched === m.id}
                   />

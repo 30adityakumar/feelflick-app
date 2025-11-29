@@ -268,13 +268,15 @@ useEffect(() => {
   }
 
   // Toggle Watchlist status (UPDATED)
+// Toggle Watchlist status (FIXED)
 const toggleWatchlist = async () => {
   if (!user || !currentMovie?.id) return
 
   const movie = currentMovie
   const tmdbId = movie.id
+  const wasInWatchlist = isInWatchlist
 
-  if (isInWatchlist) {
+  if (wasInWatchlist) {
     // Remove from Watchlist
     setWatchlistTmdbIds(prev => {
       const n = new Set(prev)
@@ -282,12 +284,15 @@ const toggleWatchlist = async () => {
       return n
     })
 
-    await supabase
-      .from('user_watchlist')
-      .delete()
-      .eq('user_id', user.id)
-      .eq('movie_id', tmdbId)  // Still works if tmdbId matches internal ID temporarily
-
+    // Need internal movies.id to delete correctly
+    const internalMovieId = await ensureMovieInDb(movie)
+    if (internalMovieId) {
+      await supabase
+        .from('user_watchlist')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('movie_id', internalMovieId)   // ← key change: use internal ID
+    }
   } else {
     // Add to Watchlist
     setWatchlistTmdbIds(prev => new Set(prev).add(tmdbId))
@@ -299,18 +304,19 @@ const toggleWatchlist = async () => {
 
     const internalMovieId = await ensureMovieInDb(movie)
     if (internalMovieId) {
-      await supabase.from('user_watchlist').upsert({
-      user_id: user.id,
-      movie_id: internalMovieId,
-      added_at: new Date().toISOString(),
-      status: 'want_to_watch',
-      added_from_recommendation: true,
-      mood_session_id: null,
-      source: 'hero_slider'  // ← NEW
-    }, { onConflict: 'user_id,movie_id' })
+      await supabase
+        .from('user_watchlist')
+        .upsert({
+          user_id: user.id,
+          movie_id: internalMovieId,
+          added_at: new Date().toISOString(),
+          status: 'want_to_watch',
+          added_from_recommendation: true,
+          mood_session_id: null,
+          source: 'hero_slider'
+        }, { onConflict: 'user_id,movie_id' })
 
-
-      // Remove from watched history if exists
+      // Optional: clean up history if it exists
       await supabase
         .from('user_history')
         .delete()

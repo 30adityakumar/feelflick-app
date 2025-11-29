@@ -124,37 +124,67 @@ export default function MovieDetail() {
   }, [id])
 
   // Watchlist & Watched Status Sync
-  useEffect(() => {
-    let active = true
-    async function syncStatus() {
-      if (!user?.id || !id) return
-      
-      const tmdbId = Number(id)
+  // Watchlist & Watched Status Sync (normalized)
+useEffect(() => {
+  let active = true
 
-      // Check Watchlist (using TMDB ID directly)
-      const { data: wl } = await supabase
-        .from('user_watchlist')
-        .select('movie_id')
-        .eq('user_id', user.id)
-        .eq('movie_id', tmdbId)
-        .maybeSingle()
-      
-      // Check History (using TMDB ID directly)
-      const { data: wh } = await supabase
-        .from('movies_watched')
-        .select('movie_id')
-        .eq('user_id', user.id)
-        .eq('movie_id', tmdbId)
-        .maybeSingle()
+  async function syncStatus() {
+    if (!user?.id || !id) return
 
-      if (!active) return
-      
-      setIsInWatchlist(!!wl)
-      setIsWatched(!!wh)
+    const tmdbId = Number(id)
+
+    // Find internal movies.id from tmdb_id
+    const { data: movieRow, error: movieErr } = await supabase
+      .from('movies')
+      .select('id')
+      .eq('tmdb_id', tmdbId)
+      .maybeSingle()
+
+    if (movieErr) {
+      console.error('[MovieDetail] movie lookup error:', movieErr)
+      return
     }
-    syncStatus()
-    return () => { active = false }
-  }, [user, id])
+
+    if (!movieRow) {
+      if (active) {
+        setIsInWatchlist(false)
+        setIsWatched(false)
+      }
+      return
+    }
+
+    const internalMovieId = movieRow.id
+
+    const { data: wl, error: wlErr } = await supabase
+      .from('user_watchlist')
+      .select('movie_id')
+      .eq('user_id', user.id)
+      .eq('movie_id', internalMovieId)
+      .maybeSingle()
+
+    const { data: wh, error: whErr } = await supabase
+      .from('user_history')
+      .select('movie_id')
+      .eq('user_id', user.id)
+      .eq('movie_id', internalMovieId)
+      .maybeSingle()
+
+    if (wlErr) console.error('[MovieDetail] watchlist status error:', wlErr)
+    if (whErr) console.error('[MovieDetail] history status error:', whErr)
+
+    if (!active) return
+
+    setIsInWatchlist(!!wl)
+    setIsWatched(!!wh)
+  }
+
+  syncStatus()
+
+  return () => {
+    active = false
+  }
+}, [user, id])
+
 
   const ytTrailer = useMemo(() => {
     const t = videos.find(v => v.site === 'YouTube' && (v.type === 'Trailer' || v.type === 'Teaser'))
@@ -173,91 +203,148 @@ export default function MovieDetail() {
 
   // --- ACTION HANDLERS ---
 
-  async function ensureMovieInDb(movieData) {
-    // Uses TMDB ID as unique key
-    await supabase
-      .from('movies')
-      .upsert({
-        tmdb_id: movieData.id,
-        title: movieData.title,
-        original_title: movieData.original_title,
-        overview: movieData.overview,
-        poster_path: movieData.poster_path,
-        backdrop_path: movieData.backdrop_path,
-        release_date: movieData.release_date || null,
-        vote_average: movieData.vote_average,
-        vote_count: movieData.vote_count,
-        popularity: movieData.popularity,
-        original_language: movieData.original_language,
-        json_data: movieData
-      }, { onConflict: 'tmdb_id' })
+  // Ensure movie exists and return internal movies.id
+async function ensureMovieInDb(movieData) {
+  if (!movieData) return null
+
+  // 1) Check existing
+  const tmdbId = movieData.id
+  const { data: existing, error: existingErr } = await supabase
+    .from('movies')
+    .select('id')
+    .eq('tmdb_id', tmdbId)
+    .maybeSingle()
+
+  if (existingErr) {
+    console.error('[MovieDetail] ensureMovieInDb lookup error:', existingErr)
+    throw existingErr
   }
 
-  // Lines 196-228 - Update toggleWatchlist to match CarouselRow/HeroSlider logic
-  const toggleWatchlist = useCallback(async () => {
-    if (!await ensureAuthed() || mutating.watchlist) return
-    
-    setMutating(prev => ({ ...prev, watchlist: true }))
-    const tmdbId = Number(id)
+  if (existing) return existing.id
 
-    try {
-      if (isInWatchlist) {
-        await supabase.from('user_watchlist').delete()
-          .eq('user_id', user.id).eq('movie_id', tmdbId)
-        setIsInWatchlist(false)
-      } else {
-        await ensureMovieInDb(movie)
-        await Promise.all([
-          supabase.from('user_watchlist').upsert({
-            user_id: user.id,
-            movie_id: tmdbId,
-            added_at: new Date().toISOString(),
-            status: 'want_to_watch'
-          }, { onConflict: 'user_id,movie_id' }),
-          supabase.from('movies_watched').delete()
-            .eq('user_id', user.id).eq('movie_id', tmdbId)
-        ])
-        setIsInWatchlist(true)
-        setIsWatched(false)
-      }
-    } catch (err) {
-      console.error('[MovieDetail] Watchlist error:', err)
-      alert('Failed to update watchlist')
-    } finally {
-      setMutating(prev => ({ ...prev, watchlist: false }))
+  // 2) Insert / upsert
+  const { data: inserted, error } = await supabase
+    .from('movies')
+    .upsert({
+      tmdb_id: movieData.id,
+      title: movieData.title,
+      original_title: movieData.original_title,
+      overview: movieData.overview,
+      poster_path: movieData.poster_path,
+      backdrop_path: movieData.backdrop_path,
+      release_date: movieData.release_date || null,
+      vote_average: movieData.vote_average,
+      vote_count: movieData.vote_count,
+      popularity: movieData.popularity,
+      original_language: movieData.original_language,
+      runtime: movieData.runtime ?? null,
+      adult: movieData.adult || false,
+      json_data: movieData,
+    }, { onConflict: 'tmdb_id' })
+    .select('id')
+    .single()
+
+  if (error) {
+    console.error('[MovieDetail] ensureMovieInDb upsert error:', error)
+    throw error
+  }
+
+  return inserted.id
+}
+
+
+  // Lines 196-228 - Update toggleWatchlist to match CarouselRow/HeroSlider logic
+  // Toggle watchlist (normalized, internal movie_id)
+const toggleWatchlist = useCallback(async () => {
+  if (!await ensureAuthed() || mutating.watchlist || !movie) return
+
+  setMutating(prev => ({ ...prev, watchlist: true }))
+
+  try {
+    const internalMovieId = await ensureMovieInDb(movie)
+    if (!internalMovieId) throw new Error('Missing internal movie id')
+
+    if (isInWatchlist) {
+      // Remove from watchlist
+      await supabase
+        .from('user_watchlist')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('movie_id', internalMovieId)
+
+      setIsInWatchlist(false)
+    } else {
+      // Add to watchlist, remove from history
+      await supabase
+        .from('user_watchlist')
+        .upsert({
+          user_id: user.id,
+          movie_id: internalMovieId,
+          added_at: new Date().toISOString(),
+          status: 'want_to_watch',
+          added_from_recommendation: false,
+          mood_session_id: null,
+          source: 'movie_detail',
+        }, { onConflict: 'user_id,movie_id' })
+
+      await supabase
+        .from('user_history')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('movie_id', internalMovieId)
+
+      setIsInWatchlist(true)
+      setIsWatched(false)
     }
-  }, [ensureAuthed, mutating.watchlist, isInWatchlist, id, user, movie, ensureMovieInDb])
+  } catch (err) {
+    console.error('[MovieDetail] Watchlist error:', err)
+    alert('Failed to update watchlist')
+  } finally {
+    setMutating(prev => ({ ...prev, watchlist: false }))
+  }
+}, [ensureAuthed, mutating.watchlist, isInWatchlist, user, movie])
+
   
 
   // Lines 231-262 - Update toggleWatched to match CarouselRow/HeroSlider logic
+// Toggle watched (normalized, user_history)
 const toggleWatched = useCallback(async () => {
-  if (!await ensureAuthed() || mutating.watched) return
-  
+  if (!await ensureAuthed() || mutating.watched || !movie) return
+
   setMutating(prev => ({ ...prev, watched: true }))
-  const tmdbId = Number(id)
 
   try {
+    const internalMovieId = await ensureMovieInDb(movie)
+    if (!internalMovieId) throw new Error('Missing internal movie id')
+
     if (isWatched) {
-      await supabase.from('movies_watched').delete()
-        .eq('user_id', user.id).eq('movie_id', tmdbId)
+      // Remove from history
+      await supabase
+        .from('user_history')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('movie_id', internalMovieId)
+
       setIsWatched(false)
     } else {
-      await ensureMovieInDb(movie)
-      await Promise.all([
-        supabase.from('movies_watched').upsert({
+      // Add to history, remove from watchlist
+      await supabase
+        .from('user_history')
+        .insert({
           user_id: user.id,
-          movie_id: tmdbId,
-          title: movie.title,
-          poster: movie.poster_path,
-          release_date: movie.release_date || null,
-          vote_average: movie.vote_average,
-          genre_ids: movie.genres?.map(g => g.id),
+          movie_id: internalMovieId,
           watched_at: new Date().toISOString(),
-          source: 'movie_detail'
-        }, { onConflict: 'user_id,movie_id' }),
-        supabase.from('user_watchlist').delete()
-          .eq('user_id', user.id).eq('movie_id', tmdbId)
-      ])
+          source: 'movie_detail',
+          watch_duration_minutes: null,
+          mood_session_id: null,
+        })
+
+      await supabase
+        .from('user_watchlist')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('movie_id', internalMovieId)
+
       setIsWatched(true)
       setIsInWatchlist(false)
     }
@@ -267,7 +354,8 @@ const toggleWatched = useCallback(async () => {
   } finally {
     setMutating(prev => ({ ...prev, watched: false }))
   }
-}, [ensureAuthed, mutating.watched, isWatched, id, user, movie, ensureMovieInDb])
+}, [ensureAuthed, mutating.watched, isWatched, user, movie])
+
 
     
   

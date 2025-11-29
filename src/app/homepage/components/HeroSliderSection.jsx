@@ -274,7 +274,7 @@ export default function HeroSliderSection({ className = '' }) {
 
   return (
     <section
-      className={`relative w-full overflow-hidden bg-black -mt-3 md:-mt-3 ${className}`}
+      className={`relative w-full overflow-hidden bg-black -mt-10 md:-mt-1 ${className}`}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       onTouchStart={onTouchStart}

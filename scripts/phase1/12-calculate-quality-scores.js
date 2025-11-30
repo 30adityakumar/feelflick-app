@@ -1,3 +1,4 @@
+// scripts/phase1/12-calculate-quality-scores.js
 require('dotenv').config();
 const { createClient } = require('@supabase/supabase-js');
 

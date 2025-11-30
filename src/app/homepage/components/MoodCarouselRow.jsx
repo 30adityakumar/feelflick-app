@@ -1,3 +1,4 @@
+// src/app/homepage/components/MoodCarouselRow.jsx
 import { useRecommendations } from '@/shared/hooks/useRecommendations';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -9,7 +10,7 @@ export default function MoodCarouselRow({ moodId, moodName, moodEmoji }) {
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
 
-  const { recommendations, loading, error } = useRecommendations(moodId, 1, 1, 20);
+  const { recommendations, loading, error } = useRecommendations(moodId, 1, 1, 10);
 
   const handleScroll = () => {
     if (!scrollRef.current) return;

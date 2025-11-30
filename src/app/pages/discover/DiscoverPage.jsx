@@ -1,3 +1,4 @@
+// src/app/pages/discover/DiscoverPage.jsx
 import { useState, useEffect } from 'react';
 import { useRecommendations } from '@/shared/hooks/useRecommendations';
 import { useNavigate } from 'react-router-dom';
@@ -17,7 +18,7 @@ export default function DiscoverPage() {
     selectedMood,
     viewingContext,
     experienceType,
-    20
+    5
   );
 
   // Create mood session when mood selected
@@ -196,8 +197,13 @@ useEffect(() => {
                         </div>
                       )}
                       <div className="p-3">
-                        <div className="text-xs text-purple-400 font-bold mb-1">
-                          #{idx + 1}
+                        <div className="flex justify-between items-start mb-1">
+                          <div className="text-xs text-purple-400 font-bold">
+                            #{idx + 1}
+                          </div>
+                          <div className="text-xs font-bold bg-green-500/20 text-green-400 px-2 py-0.5 rounded">
+                            {Math.min(100, Math.round(movie.final_score))}%
+                          </div>
                         </div>
                         <h3 className="font-medium text-sm line-clamp-2">{movie.title}</h3>
                         <div className="text-xs text-white/50 mt-1">

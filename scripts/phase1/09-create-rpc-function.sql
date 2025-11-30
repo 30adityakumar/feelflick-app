@@ -87,7 +87,9 @@ BEGIN
     m.release_date,
     (
       mms.score + 
-      COALESCE(m.quality_score * 0.3, (m.vote_average - 6.0) * 5) +
+      COALESCE(m.quality_score * 0.8, (m.vote_average - 6.0) * 10) +
+      (LEAST(m.popularity / 10, 20)) +
+      (CASE WHEN m.vote_count > 5000 THEN 15 ELSE 0 END) +
       
       -- User onboarding genre preferences boost
       CASE 
@@ -136,7 +138,7 @@ BEGIN
           SELECT 1 FROM movie_genres mg5
           WHERE mg5.movie_id = m.id 
           AND mg5.genre_id = ANY(exp_avoid_genres)
-        ) THEN -15
+        ) THEN -8
         ELSE 0
       END +
       
@@ -150,7 +152,8 @@ BEGIN
   JOIN movies m ON m.id = mms.movie_id
   WHERE mms.mood_id = p_mood_id
     AND mms.score >= 30
-    AND m.vote_average >= 6.0
+    AND m.vote_average >= 6.5
+    AND m.vote_count >= 500
     AND (fav_movie_ids IS NULL OR m.id != ALL(fav_movie_ids))
   ORDER BY final_score DESC
   LIMIT p_limit;

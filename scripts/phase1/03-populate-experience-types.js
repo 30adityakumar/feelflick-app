@@ -1,3 +1,4 @@
+// scripts/phase1/01-populate-moods.js
 require('dotenv').config();
 const { createClient } = require('@supabase/supabase-js');
 

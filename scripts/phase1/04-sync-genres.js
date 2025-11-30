@@ -1,3 +1,4 @@
+// scripts/phase1/04-sync-genres.js
 require('dotenv').config();
 const { createClient } = require('@supabase/supabase-js');
 const axios = require('axios');

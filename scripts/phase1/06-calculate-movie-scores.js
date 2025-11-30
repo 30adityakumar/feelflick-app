@@ -1,3 +1,4 @@
+// scripts/phase1/06-calculate-movie-scores.js
 require('dotenv').config();
 const { createClient } = require('@supabase/supabase-js');
 

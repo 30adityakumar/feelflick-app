@@ -1,3 +1,4 @@
+// scripts/phase1/05-fetch-movies.js
 require('dotenv').config();
 const { createClient } = require('@supabase/supabase-js');
 const axios = require('axios');

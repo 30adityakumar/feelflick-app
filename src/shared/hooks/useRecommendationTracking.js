@@ -1,3 +1,4 @@
+// src/shared/hooks/useRecommendationTracking.js
 import { supabase } from '@/shared/lib/supabase/client';
 
 export function useRecommendationTracking() {
@@ -12,9 +13,9 @@ export function useRecommendationTracking() {
         user_id: user.id,
         movie_id: movieId,
         rank_position: rankPosition,
-        score: score,
-        reason: reason,
-        shown: true
+        recommendation_score: score,
+        recommendation_reason: reason,
+        shown_at: new Date().toISOString()
       });
     } catch (error) {
       console.error('Error tracking recommendation shown:', error);
@@ -29,7 +30,6 @@ export function useRecommendationTracking() {
       await supabase
         .from('recommendation_events')
         .update({ 
-          clicked: true, 
           clicked_at: new Date().toISOString() 
         })
         .eq('mood_session_id', sessionId)
@@ -47,7 +47,6 @@ export function useRecommendationTracking() {
       await supabase
         .from('recommendation_events')
         .update({ 
-          watched: true, 
           watched_at: new Date().toISOString() 
         })
         .eq('mood_session_id', sessionId)
@@ -65,8 +64,7 @@ export function useRecommendationTracking() {
       await supabase
         .from('recommendation_events')
         .update({ 
-          added_to_watchlist: true, 
-          watchlist_added_at: new Date().toISOString() 
+          added_to_watchlist_at: new Date().toISOString() 
         })
         .eq('mood_session_id', sessionId)
         .eq('movie_id', movieId);

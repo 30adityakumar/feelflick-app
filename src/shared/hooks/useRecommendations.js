@@ -1,3 +1,4 @@
+// src/shared/hooks/useRecommendations.js
 import { useState, useEffect } from 'react';
 import { supabase } from '@/shared/lib/supabase/client';
 

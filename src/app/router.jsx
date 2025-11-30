@@ -43,6 +43,11 @@ import AboutPage from '@/app/pages/legal/AboutPage'
 import PrivacyPage from '@/app/pages/legal/PrivacyPage'
 import TermsPage from '@/app/pages/legal/TermsPage'
 
+// Test recommendations page
+import TestRecommendations from '@/app/pages/TestRecommendations'
+
+import DiscoverPage from '@/app/pages/discover/DiscoverPage'
+
 /* ----------------------------- Public layout ----------------------------- */
 function PublicShell() {
   return (
@@ -225,6 +230,7 @@ export const router = createBrowserRouter([
       { path: 'movie/:id', element: <MovieDetail />, errorElement: <ErrorBoundary /> },
       { path: 'browse', element: <MoviesTab />, errorElement: <ErrorBoundary /> },
       { path: 'trending', element: <MoviesTab />, errorElement: <ErrorBoundary /> },
+      { path: 'discover', element: <DiscoverPage />, errorElement: <ErrorBoundary /> },
 
       // Auth-required + onboarding gate
       {
@@ -242,6 +248,9 @@ export const router = createBrowserRouter([
               { path: 'watched', element: <HistoryPage />, errorElement: <ErrorBoundary /> },
               { path: 'history', element: <HistoryPage />, errorElement: <ErrorBoundary /> },
               { path: 'mobile-account', element: <MobileAccount />, errorElement: <ErrorBoundary /> },
+              { path: 'test-recommendations', element: <TestRecommendations />, errorElement: <ErrorBoundary /> },
+            
+              
             ],
           },
         ],

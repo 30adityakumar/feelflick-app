@@ -1,3 +1,4 @@
+// src/app/header/components/MobileAccount.jsx
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'

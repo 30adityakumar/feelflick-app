@@ -115,7 +115,8 @@ export default function Header({ onOpenSearch }) {
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-8">
               <DesktopNavLink to="/home">Home</DesktopNavLink>
-              <DesktopNavLink to="/browse">Discover</DesktopNavLink>
+              <DesktopNavLink to="/discover">Discover</DesktopNavLink>
+              <DesktopNavLink to="/browse">Browse</DesktopNavLink>
               <DesktopNavLink to="/watchlist">Watchlist</DesktopNavLink>
             </nav>
 
@@ -191,16 +192,8 @@ export default function Header({ onOpenSearch }) {
       >
         <div className="flex items-center justify-around px-2 pt-2">
           <MobileNavLink to="/home" icon={Home} label="Home" />
-          <MobileNavLink to="/browse" icon={Compass} label="Discover" />
-          
-          {/* Search is special on mobile bottom bar */}
-          <button 
-            onClick={onOpenSearch}
-            className="flex flex-col items-center gap-1 px-4 py-2 rounded-xl text-white/60 hover:text-white transition-colors active:scale-95"
-          >
-            <SearchIcon className="h-6 w-6" />
-            <span className="text-[10px] font-medium">Search</span>
-          </button>
+          <MobileNavLink to="/discover" icon={Compass} label="Discover" />
+          <MobileNavLink to="/browse" icon={SearchIcon} label="Browse" />
 
           {/* Account Nav Item */}
           <NavLink 

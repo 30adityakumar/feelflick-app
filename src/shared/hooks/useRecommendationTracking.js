@@ -73,10 +73,26 @@ export function useRecommendationTracking() {
     }
   };
 
+  const trackRating = async (sessionId, movieId, rating) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || !sessionId) return;
+
+      await supabase
+        .from('recommendation_events')
+        .update({ rating })
+        .eq('mood_session_id', sessionId)
+        .eq('movie_id', movieId);
+    } catch (error) {
+      console.error('Error tracking rating:', error);
+    }
+  };
+
   return {
     trackRecommendationShown,
     trackRecommendationClicked,
     trackRecommendationWatched,
-    trackAddedToWatchlist
+    trackAddedToWatchlist,
+    trackRating
   };
 }

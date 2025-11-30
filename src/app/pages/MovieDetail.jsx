@@ -3,6 +3,8 @@ import { useEffect, useMemo, useState, useCallback } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
 import { Play, Bookmark, Check, Star, Clock, Calendar, ChevronRight, Tv2, Film, Image as ImageIcon, Tag, Share2, Eye, EyeOff, Plus } from 'lucide-react'
+import { useLocation } from 'react-router-dom';
+import RecommendationFeedback from '@/shared/components/RecommendationFeedback';
 
 const IMG = {
   backdrop: (p) => (p ? `https://image.tmdb.org/t/p/original${p}` : ''),
@@ -28,6 +30,8 @@ const yearOf = (d) => d?.slice?.(0, 4)
 
 export default function MovieDetail() {
   const { id } = useParams()
+  const location = useLocation();
+  const { sessionId, movieId } = location.state || {};
   const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -366,6 +370,10 @@ const toggleWatched = useCallback(async () => {
 
   return (
     <div className="relative bg-black text-white min-h-screen pb-20 md:pb-8">
+      {/* Recommendation Feedback */}
+        {sessionId && movieId && (
+          <RecommendationFeedback sessionId={sessionId} movieId={movieId} />
+        )}
       {/* Hero Section - NO MARGIN, Absolute positioning to go under header */}
       <div className="relative w-full">
         {/* REMOVE marginTop, let it start from top */}

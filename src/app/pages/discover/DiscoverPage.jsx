@@ -181,7 +181,9 @@ useEffect(() => {
                         if (sessionId) {
                           trackRecommendationClicked(sessionId, movie.movie_id);
                         }
-                        navigate(`/movie/${movie.tmdb_id}`);
+                        navigate(`/movie/${movie.tmdb_id}`, {
+                          state: { sessionId, movieId: movie.movie_id }
+                        });
                       }}
                       className="bg-white/5 rounded-lg overflow-hidden hover:bg-white/10 hover:scale-105 transition-all cursor-pointer"
                     >

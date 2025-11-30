@@ -1,7 +1,7 @@
 // src/app/AppShell.jsx
 import { useEffect, useState, useRef } from 'react'
 import { Outlet, useLocation, NavLink } from 'react-router-dom'
-import { Home, Search, Bookmark, User } from 'lucide-react'
+import { Home, Sparkles, Bookmark, User, Compass } from 'lucide-react'
 import { supabase } from '@/shared/lib/supabase/client'
 import Header from '@/app/header/Header'
 import SearchBar from '@/app/header/components/SearchBar'
@@ -131,20 +131,13 @@ export default function AppShell() {
         >
           <div className="flex items-center justify-around h-16 px-2">
             <MobileNavLink to="/home" icon={Home} label="Home" />
-            <MobileNavLink 
-              to="#" 
-              icon={Search} 
-              label="Search" 
-              onClick={(e) => {
-                e.preventDefault()
-                setSearchOpen(true)
-              }}
-            />
-            <MobileNavLink to="/watchlist" icon={Bookmark} label="Watchlist" />
+            <MobileNavLink to="/discover" icon={Sparkles} label="Discover" />
+            <MobileNavLink to="/browse" icon={Compass} label="Browse" />
             <MobileNavLink to="/mobile-account" icon={User} label="Account" />
           </div>
         </nav>
       )}
+
 
       {/* Global search modal */}
       <SearchBar open={searchOpen} onClose={() => setSearchOpen(false)} />

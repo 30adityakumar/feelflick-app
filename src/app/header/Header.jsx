@@ -185,45 +185,9 @@ export default function Header({ onOpenSearch }) {
         </div>
       </header>
 
-      {/* Mobile Bottom Navigation - ALWAYS visible */}
-      <nav 
-        className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#0a0a0a]/95 backdrop-blur-xl border-t border-white/10 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]"
-        style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 0.5rem)' }}
-      >
-        <div className="flex items-center justify-around px-2 pt-2">
-          <MobileNavLink to="/home" icon={Home} label="Home" />
-          <MobileNavLink to="/discover" icon={Compass} label="Discover" />
-          <MobileNavLink to="/browse" icon={SearchIcon} label="Browse" />
+       {/* MOBILE BOTTOM NAV: See src/app/AppShell.jsx (not defined here) */}
+       {/* This Header component only renders the desktop/tablet top navigation. */}
 
-          {/* Account Nav Item */}
-          <NavLink 
-            to="/mobile-account"
-            className={({ isActive }) => `
-              flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all duration-300
-              ${isActive ? 'text-white' : 'text-white/60 hover:text-white'}
-            `}
-          >
-            {({ isActive }) => (
-              <>
-                {userAvatar ? (
-                  <img 
-                    src={userAvatar} 
-                    alt={userName} 
-                    className={`h-6 w-6 rounded-full object-cover transition-all ${isActive ? 'ring-2 ring-purple-500' : 'ring-1 ring-white/20'}`}
-                  />
-                ) : (
-                  <div className={`h-6 w-6 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-[10px] font-bold ${isActive ? 'ring-2 ring-purple-400' : ''}`}>
-                    {userName.charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <span className={`text-[10px] font-medium ${isActive ? 'text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 font-bold' : ''}`}>
-                  Account
-                </span>
-              </>
-            )}
-          </NavLink>
-        </div>
-      </nav>
     </>
   )
 }

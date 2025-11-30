@@ -202,7 +202,7 @@ useEffect(() => {
                             #{idx + 1}
                           </div>
                           <div className="text-xs font-bold bg-green-500/20 text-green-400 px-2 py-0.5 rounded">
-                            {Math.min(100, Math.round(movie.final_score))}%
+                            {movie.match_percentage}%
                           </div>
                         </div>
                         <h3 className="font-medium text-sm line-clamp-2">{movie.title}</h3>

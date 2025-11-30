@@ -21,7 +21,7 @@ export function useRecommendations(moodId, viewingContextId = 1, experienceTypeI
         // Get current user
         const { data: { user } } = await supabase.auth.getUser();
 
-        const { data, error: rpcError } = await supabase.rpc('get_mood_recommendations', {
+        const { data, error: rpcError } = await supabase.rpc('get_mood_recommendations_v2', {
           p_mood_id: moodId,
           p_viewing_context_id: viewingContextId,
           p_experience_type_id: experienceTypeId,

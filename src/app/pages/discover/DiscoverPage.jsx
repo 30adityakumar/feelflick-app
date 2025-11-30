@@ -4,6 +4,7 @@ import { useRecommendations } from '@/shared/hooks/useRecommendations';
 import { useNavigate } from 'react-router-dom';
 import { useMoodSession } from '@/shared/hooks/useMoodSession';
 import { useRecommendationTracking } from '@/shared/hooks/useRecommendationTracking';
+import { useMovieExplanation } from '@/shared/hooks/useMovieExplanation';
 
 export default function DiscoverPage() {
   const navigate = useNavigate();
@@ -72,6 +73,16 @@ useEffect(() => {
     { id: 4, name: 'Think' },
     { id: 5, name: 'Zone Out' }
   ];
+
+  function MovieExplanation({ movie, moodName }) {
+    const { explanation } = useMovieExplanation(movie, moodName, movie.match_percentage);
+    
+    return (
+      <div className="text-xs text-purple-300/80 mt-1 line-clamp-1">
+        {explanation}
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-black to-black text-white">
@@ -208,9 +219,7 @@ useEffect(() => {
                           </div>
                         </div>
                         <h3 className="font-medium text-sm line-clamp-2">{movie.title}</h3>
-                        <div className="text-xs text-white/50 mt-1">
-                          ⭐ {movie.vote_average?.toFixed(1)}
-                        </div>
+                          <MovieExplanation movie={movie} moodName={moods.find(m => m.id === selectedMood)?.name} />
                       </div>
                     </div>
                   ))}

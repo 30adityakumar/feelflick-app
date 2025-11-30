@@ -77,7 +77,7 @@ async function fetchMovies() {
   console.log('🎥 Fetching movies from TMDB...\n');
   console.log('This will take ~10-15 minutes for 2000 movies\n');
 
-  const genreIds = [28, 12, 16, 35, 80, 18, 14, 27, 10749, 878, 53];
+  const genreIds = [28, 12, 16, 35, 80, 18, 14, 27, 10749, 878, 53, 9648, 36, 10752, 37];
   let totalMovies = 0;
   const movieIds = new Set();
 
@@ -86,7 +86,7 @@ async function fetchMovies() {
     for (const genreId of genreIds) {
       console.log(`\n📂 Fetching genre ${genreId}...`);
 
-      for (let page = 1; page <= 5; page++) {
+      for (let page = 1; page <= 10; page++) {
         const response = await axios.get(
           `${TMDB_BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&with_genres=${genreId}&sort_by=popularity.desc&vote_count.gte=100&vote_average.gte=6.0&page=${page}`
         );

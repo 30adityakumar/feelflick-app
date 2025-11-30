@@ -57,7 +57,7 @@ async function fetchExternalRatings() {
     .from('movies')
     .select('id, imdb_id, title')
     .not('imdb_id', 'is', null)
-    .limit(100); // Start with 100 for testing
+    .limit(1000); // Start with 1000 for testing
 
   if (error) {
     console.error('❌ Error fetching movies:', error.message);

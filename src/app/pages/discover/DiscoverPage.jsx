@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRecommendations } from '@/shared/hooks/useRecommendations';
 import { useNavigate } from 'react-router-dom';
+import { useMoodSession } from '@/shared/hooks/useMoodSession';
+import { useRecommendationTracking } from '@/shared/hooks/useRecommendationTracking';
 
 export default function DiscoverPage() {
   const navigate = useNavigate();
@@ -8,12 +10,36 @@ export default function DiscoverPage() {
   const [viewingContext, setViewingContext] = useState(1);
   const [experienceType, setExperienceType] = useState(1);
 
+  const { sessionId, createMoodSession, endMoodSession } = useMoodSession();
+  const { trackRecommendationShown, trackRecommendationClicked } = useRecommendationTracking();
+
   const { recommendations, loading, error } = useRecommendations(
     selectedMood,
     viewingContext,
     experienceType,
     20
   );
+
+  // Create mood session when mood selected
+useEffect(() => {
+  if (selectedMood) {
+    createMoodSession(selectedMood, viewingContext, experienceType);
+  }
+  return () => {
+    if (sessionId) {
+      endMoodSession();
+    }
+  };
+}, [selectedMood, viewingContext, experienceType]);
+
+// Track recommendations shown
+useEffect(() => {
+  if (sessionId && recommendations.length > 0) {
+    recommendations.forEach((movie, idx) => {
+      trackRecommendationShown(sessionId, movie.movie_id, idx + 1, movie.final_score);
+    });
+  }
+}, [sessionId, recommendations]);
 
   const moods = [
     { id: 1, name: 'Cozy', emoji: '☕', description: 'Warm and comforting', color: 'from-orange-500 to-amber-600' },
@@ -150,7 +176,12 @@ export default function DiscoverPage() {
                   {recommendations.map((movie, idx) => (
                     <div
                       key={movie.movie_id}
-                      onClick={() => navigate(`/movie/${movie.tmdb_id}`)}
+                      onClick={() => {
+                        if (sessionId) {
+                          trackRecommendationClicked(sessionId, movie.movie_id);
+                        }
+                        navigate(`/movie/${movie.tmdb_id}`);
+                      }}
                       className="bg-white/5 rounded-lg overflow-hidden hover:bg-white/10 hover:scale-105 transition-all cursor-pointer"
                     >
                       {movie.poster_path ? (

@@ -354,3 +354,332 @@ export async function getFallbackRecommendations(options = {}) {
     return []
   }
 }
+
+export async function getTopPickForUser(userId, options = {}) {
+  const { signal } = options
+
+  try {
+    // 1. Try history-based recs first (most specific)
+    const historyRecs = await getHistoryBasedRecommendations(userId, { limit: 20, signal })
+    const goodHistory = (historyRecs || []).filter(
+      m => m && m.vote_average && m.vote_average >= 7.0
+    )
+
+    if (goodHistory.length > 0) {
+      return goodHistory[0]
+    }
+
+    // 2. Fall back to genre-based recs
+    const genreRecs = await getGenreBasedRecommendations(userId, { limit: 20, signal })
+    const goodGenre = (genreRecs || []).filter(
+      m => m && m.vote_average && m.vote_average >= 7.0
+    )
+
+    if (goodGenre.length > 0) {
+      return goodGenre[0]
+    }
+
+    // 3. Fallback popular/high quality
+    const fallback = await getFallbackRecommendations({ limit: 20, signal })
+    if (fallback && fallback.length > 0) {
+      return fallback[0]
+    }
+
+    return null
+  } catch (error) {
+    console.error('[Recommendations] getTopPickForUser failed:', error)
+    return null
+  }
+}
+
+export async function getQuickPicksForUser(userId, options = {}) {
+  const { limit = 20, excludeTmdbId = null, signal } = options
+
+  try {
+    const [historyRecs, genreRecs] = await Promise.all([
+      getHistoryBasedRecommendations(userId, { limit: 30, signal }),
+      getGenreBasedRecommendations(userId, { limit: 30, signal }),
+    ])
+
+    const poolMap = new Map()
+
+    function addToPool(list, baseScore = 1) {
+      if (!list) return
+      list.forEach((movie, idx) => {
+        if (!movie || !movie.id) return
+        const existing = poolMap.get(movie.id) || {
+          movie,
+          score: 0,
+        }
+        const rankBoost = 1 / (idx + 1)
+        existing.score += baseScore * rankBoost
+        poolMap.set(movie.id, existing)
+      })
+    }
+
+    addToPool(historyRecs, 2) // history a bit more important
+    addToPool(genreRecs, 1)
+
+    let items = Array.from(poolMap.values())
+      .map(entry => entry.movie)
+
+    if (excludeTmdbId) {
+      items = items.filter(m => m.id !== excludeTmdbId)
+    }
+
+    // Filter by basic quality
+    items = items.filter(m => m.poster_path && (m.vote_average || 0) >= 6.0)
+
+    return items.slice(0, limit)
+  } catch (error) {
+    console.error('[Recommendations] getQuickPicksForUser failed:', error)
+    return []
+  }
+}
+
+export async function getBecauseYouWatchedRows(userId, options = {}) {
+  const { maxSeeds = 2, limitPerSeed = 20, signal } = options
+
+  try {
+    // Get recent history with movies.join to get tmdb_ids
+    const { data: history, error } = await supabase
+      .from('user_history')
+      .select(`
+        movie_id,
+        watched_at,
+        movies!inner (tmdb_id, title)
+      `)
+      .eq('user_id', userId)
+      .order('watched_at', { ascending: false })
+      .limit(20)
+
+    if (error) throw error
+    if (!history || history.length === 0) return []
+
+    // Deduplicate seeds by movie_id
+    const seenMovies = new Set()
+    const seeds = []
+    for (const item of history) {
+      if (!item.movies?.tmdb_id) continue
+      if (seenMovies.has(item.movie_id)) continue
+      seeds.push(item)
+      seenMovies.add(item.movie_id)
+      if (seeds.length >= maxSeeds) break
+    }
+
+    if (seeds.length === 0) return []
+
+    const rows = []
+
+    for (const seed of seeds) {
+      try {
+        const tmdbId = seed.movies.tmdb_id
+        const [similar, recommended] = await Promise.all([
+          tmdb.getSimilarMovies(tmdbId, { page: 1, signal }),
+          tmdb.getMovieRecommendations(tmdbId, { page: 1, signal }),
+        ])
+
+        const combined = [
+          ...(similar.results || []),
+          ...(recommended.results || []),
+        ]
+
+        // Get watched ids to exclude
+        const { data: allWatched } = await supabase
+          .from('user_history')
+          .select('movie_id')
+          .eq('user_id', userId)
+
+        const watchedTmdbIds = new Set()
+        if (allWatched && allWatched.length > 0) {
+          const { data: movies } = await supabase
+            .from('movies')
+            .select('tmdb_id')
+            .in('id', allWatched.map(m => m.movie_id))
+          if (movies) movies.forEach(m => watchedTmdbIds.add(m.tmdb_id))
+        }
+
+        const filtered = combined
+          .filter(m => m.poster_path && !watchedTmdbIds.has(m.id))
+
+        const uniqueMap = new Map()
+        filtered.forEach(m => {
+          if (!uniqueMap.has(m.id)) uniqueMap.set(m.id, m)
+        })
+
+        const movies = Array.from(uniqueMap.values()).slice(0, limitPerSeed)
+
+        if (movies.length > 0) {
+          rows.push({
+            seedTitle: seed.movies.title,
+            seedTmdbId: tmdbId,
+            movies,
+          })
+        }
+      } catch (innerErr) {
+        console.warn('[Recommendations] seed row failed:', innerErr)
+      }
+    }
+
+    return rows
+  } catch (error) {
+    console.error('[Recommendations] getBecauseYouWatchedRows failed:', error)
+    return []
+  }
+}
+
+export async function getTopGenresForUser(userId, options = {}) {
+  const { limit = 3 } = options
+
+  try {
+    const { data: prefs, error } = await supabase
+      .from('user_preferences')
+      .select('genre_id')
+      .eq('user_id', userId)
+
+    if (error) throw error
+    if (!prefs || prefs.length === 0) return []
+
+    const counts = new Map()
+    prefs.forEach(p => {
+      counts.set(p.genre_id, (counts.get(p.genre_id) || 0) + 1)
+    })
+
+    const sorted = Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, limit)
+      .map(entry => entry[0])
+
+    return sorted
+  } catch (error) {
+    console.error('[Recommendations] getTopGenresForUser failed:', error)
+    return []
+  }
+}
+
+export async function getTrendingForUser(userId, options = {}) {
+  const { limit = 20, signal } = options
+
+  try {
+    // Get user's preferred genres
+    const { data: prefs } = await supabase
+      .from('user_preferences')
+      .select('genre_id')
+      .eq('user_id', userId)
+
+    const preferredGenres = prefs ? prefs.map(p => p.genre_id) : []
+
+    // Watched exclusion
+    const { data: watchedMovies } = await supabase
+      .from('user_history')
+      .select('movie_id')
+      .eq('user_id', userId)
+
+    const watchedTmdbIds = new Set()
+    if (watchedMovies && watchedMovies.length > 0) {
+      const { data: movies } = await supabase
+        .from('movies')
+        .select('tmdb_id')
+        .in('id', watchedMovies.map(m => m.movie_id))
+
+      if (movies) {
+        movies.forEach(m => watchedTmdbIds.add(m.tmdb_id))
+      }
+    }
+
+    // Start from popular/trending
+    const response = await tmdb.getPopularMovies({ page: 1, signal })
+    if (!response.results) return []
+
+    const filtered = response.results
+      .filter(m => {
+        if (!m.poster_path) return false
+        if (watchedTmdbIds.has(m.id)) return false
+        if (!preferredGenres || preferredGenres.length === 0) return true
+        // Some overlap in genres (if genres array present in m)
+        if (!m.genre_ids) return true
+        return m.genre_ids.some(g => preferredGenres.includes(g))
+      })
+      .slice(0, limit)
+
+    return filtered
+  } catch (error) {
+    console.error('[Recommendations] getTrendingForUser failed:', error)
+    return []
+  }
+}
+
+export async function getHiddenGemsForUser(userId, options = {}) {
+  const { limit = 20, signal } = options
+
+  try {
+    // 1. Get top genres (if none, just bail gracefully)
+    const topGenres = await getTopGenresForUser(userId, { limit: 3 })
+    if (!topGenres || topGenres.length === 0) {
+      console.warn('[Recommendations] Hidden gems: no top genres for user')
+      return []
+    }
+
+    // 2. Get watched ids to exclude
+    const { data: watchedMovies, error: watchedError } = await supabase
+      .from('user_history')
+      .select('movie_id')
+      .eq('user_id', userId)
+
+    if (watchedError) {
+      console.warn('[Recommendations] Hidden gems: user_history error', watchedError)
+    }
+
+    const watchedTmdbIds = new Set()
+    if (watchedMovies && watchedMovies.length > 0) {
+      const { data: movies, error: moviesError } = await supabase
+        .from('movies')
+        .select('tmdb_id')
+        .in('id', watchedMovies.map(m => m.movie_id))
+
+      if (moviesError) {
+        console.warn('[Recommendations] Hidden gems: movies lookup error', moviesError)
+      } else if (movies) {
+        movies.forEach(m => {
+          if (m.tmdb_id) watchedTmdbIds.add(m.tmdb_id)
+        })
+      }
+    }
+
+    // 3. Call TMDB discover
+    const response = await tmdb.discoverMovies({
+      genreIds: topGenres.join(','),
+      sortBy: 'vote_average.desc',
+      voteCountGte: 100,
+      page: 1,
+      signal,
+    })
+
+    if (!response || !response.results) {
+      console.warn('[Recommendations] Hidden gems: no TMDB results')
+      return []
+    }
+
+    // 4. Hidden gem heuristic
+    const candidates = response.results
+      .filter(m =>
+        m &&
+        m.poster_path &&
+        (m.vote_average || 0) >= 7.0 &&
+        // Not too popular – tune threshold as needed
+        (m.popularity || 0) < 60 &&
+        !watchedTmdbIds.has(m.id)
+      )
+      .slice(0, limit)
+
+    console.log(
+      `[Recommendations] Hidden gems: returning ${candidates.length} candidates`
+    )
+
+    return candidates
+  } catch (error) {
+    console.error('[Recommendations] getHiddenGemsForUser failed:', error)
+    // Fail soft – no row rather than breaking homepage
+    return []
+  }
+}

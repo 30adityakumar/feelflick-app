@@ -1,64 +1,45 @@
 // src/app/homepage/HomePage.jsx
-import { Sparkles, History, TrendingUp } from 'lucide-react'
-import HeroSliderSection from './components/HeroSliderSection'
-import CarouselRow from './components/CarouselRow'
-import MoodCarouselRow from './components/MoodCarouselRow'
+
+import HeroTopPick from './components/HeroTopPick'
+import QuickPicksRow from './components/QuickPicksRow'
 import PersonalizedCarouselRow from './components/PersonalizedCarouselRow'
-import { useGenreRecommendations, useHistoryRecommendations } from '@/shared/hooks/useRecommendations'
+import BecauseYouWatchedSection from './components/BecauseYouWatchedSection'
+import HiddenGemsRow from './components/HiddenGemsRow'
+import TrendingForYouRow from './components/TrendingForYouRow'
+import { useHistoryRecommendations, useGenreRecommendations } from '@/shared/hooks/useRecommendations'
 
 export default function HomePage() {
-  // Fetch personalized recommendations
+  // Existing personalized hooks (still reused for a simple row)
   const genreRecs = useGenreRecommendations({ limit: 20 })
   const historyRecs = useHistoryRecommendations({ limit: 20 })
 
   return (
     <div className="relative w-full bg-black text-white min-h-screen">
-      {/* Hero Section */}
-      <HeroSliderSection className="mt-9 md:mt-12" />
+      {/* Hero: Tonight's top pick */}
+      <HeroTopPick />
 
       {/* Content Rows */}
-      <div className="relative z-30 space-y-6 sm:space-y-8 md:space-y-10 lg:space-y-12 pb-20 md:pb-8">
-        
-        {/* PERSONALIZED SECTIONS - Top Priority */}
+      <div className="relative z-30 space-y-6 sm:space-y-8 md:space-y-10 lg:space-y-12 pb-20 md:pb-8 mt-4">
+        {/* Block 2: Quick picks */}
+        <QuickPicksRow />
+
+        {/* Block 3: Because you watched (seeded rows) */}
+        <BecauseYouWatchedSection />
+
+        {/* Block 4: From your favorite genres (simple combined row for now) */}
         <PersonalizedCarouselRow
-          title="Picked For You"
+          title="From your favorite genres"
           movies={genreRecs.data}
           loading={genreRecs.loading}
           error={genreRecs.error}
-          icon={Sparkles}
-          rowId="picked-for-you"
+          rowId="favorite-genres"
         />
 
-        <PersonalizedCarouselRow
-          title="Because You Watched"
-          movies={historyRecs.data}
-          loading={historyRecs.loading}
-          error={historyRecs.error}
-          icon={History}
-          rowId="because-you-watched"
-        />
+        {/* Block 5: Hidden gems */}
+        <HiddenGemsRow />
 
-        {/* PERSONALIZED MOOD ROWS */}
-        <MoodCarouselRow moodId={1} moodName="Cozy Tonight" moodEmoji="☕" />
-        <MoodCarouselRow moodId={8} moodName="Romantic" moodEmoji="💕" />
-        
-        {/* GENERIC CONTENT - Fallback */}
-        <CarouselRow 
-          title="Trending Now" 
-          tmdbCategory="popular" 
-          rowId="trending"
-          icon={TrendingUp}
-        />
-        
-        <MoodCarouselRow moodId={2} moodName="Adventurous" moodEmoji="🗺️" />
-        <MoodCarouselRow moodId={10} moodName="Silly & Fun" moodEmoji="🤪" />
-        
-        <CarouselRow title="Top Rated" tmdbCategory="top_rated" rowId="top-rated" />
-        
-        <MoodCarouselRow moodId={11} moodName="Dark & Intense" moodEmoji="🌑" />
-        
-        <CarouselRow title="Now Playing" tmdbCategory="now_playing" rowId="now-playing" />
-        <CarouselRow title="Upcoming" tmdbCategory="upcoming" rowId="upcoming" />
+        {/* Block 6: Trending this week (for you) */}
+        <TrendingForYouRow />
       </div>
     </div>
   )

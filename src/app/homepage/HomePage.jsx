@@ -6,6 +6,8 @@ import PersonalizedCarouselRow from './components/PersonalizedCarouselRow'
 import BecauseYouWatchedSection from './components/BecauseYouWatchedSection'
 import HiddenGemsRow from './components/HiddenGemsRow'
 import TrendingForYouRow from './components/TrendingForYouRow'
+import SlowContemplativeRow from './components/SlowContemplativeRow'
+import QuickWatchesRow from './components/QuickWatchesRow'
 import { useHistoryRecommendations, useGenreRecommendations } from '@/shared/hooks/useRecommendations'
 
 export default function HomePage() {
@@ -40,6 +42,12 @@ export default function HomePage() {
 
         {/* Block 6: Trending this week (for you) */}
         <TrendingForYouRow />
+
+        {/* Block 7: Slow & Contemplative */}
+        <SlowContemplativeRow />
+
+        {/* Block 8: Quick Watches: movies under 90 minutes */}
+        <QuickWatchesRow />
       </div>
     </div>
   )

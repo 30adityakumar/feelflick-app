@@ -1,3 +1,4 @@
+// src/app/homepage/components/PersonalizedCarouselRow.jsx
 /**
  * Personalized carousel row component
  * Displays recommendations with loading and error states

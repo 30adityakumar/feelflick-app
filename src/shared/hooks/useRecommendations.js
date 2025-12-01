@@ -430,6 +430,93 @@ export function useTrendingForYou(options = {}) {
   return { data, loading, error }
 }
 
+/**
+ * Hook: Slow & Contemplative films
+ */
+export function useSlowContemplative(options = {}) {
+  const { limit = 20, enabled = true } = options
+  const userId = useUserId()
+  const [data, setData] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    if (!enabled || !userId) {
+      setLoading(false)
+      return
+    }
+
+    const controller = new AbortController()
+
+    async function fetch() {
+      try {
+        setLoading(true)
+        setError(null)
+        const items = await recommendationService.getSlowContemplative(userId, {
+          limit,
+          signal: controller.signal,
+        })
+        setData(items || [])
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          console.error('[useSlowContemplative] Error:', err)
+          setError(err)
+        }
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetch()
+    return () => controller.abort()
+  }, [userId, limit, enabled])
+
+  return { data, loading, error }
+}
+
+/**
+ * Hook: Quick Watches under 90 min
+ */
+export function useQuickWatches(options = {}) {
+  const { limit = 20, enabled = true } = options
+  const userId = useUserId()
+  const [data, setData] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    if (!enabled || !userId) {
+      setLoading(false)
+      return
+    }
+
+    const controller = new AbortController()
+
+    async function fetch() {
+      try {
+        setLoading(true)
+        setError(null)
+        const items = await recommendationService.getQuickWatches(userId, {
+          limit,
+          signal: controller.signal,
+        })
+        setData(items || [])
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          console.error('[useQuickWatches] Error:', err)
+          setError(err)
+        }
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetch()
+    return () => controller.abort()
+  }, [userId, limit, enabled])
+
+  return { data, loading, error }
+}
 
 /**
  * Legacy hook for mood-based recommendations with scoring

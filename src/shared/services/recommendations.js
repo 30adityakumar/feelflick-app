@@ -683,3 +683,79 @@ export async function getHiddenGemsForUser(userId, options = {}) {
     return []
   }
 }
+
+/**
+ * Get themed row using new enhanced scoring (Phase 1-2)
+ * Uses quality_score, star_power, content dimensions
+ */
+export async function getThemedRow(userId, rowType, options = {}) {
+  const { limit = 20, signal } = options
+
+  // Get user's preferred genres
+  const { data: userPrefs } = await supabase
+    .from('user_preferences')
+    .select('genre_id')
+    .eq('user_id', userId)
+
+  const userGenres = userPrefs?.map(p => p.genre_id) || []
+
+  let query = supabase
+    .from('movies')
+    .select('id, tmdb_id, title, poster_path, vote_average, popularity, runtime, star_power, quality_score, pacing_score, intensity_score, emotional_depth_score, dialogue_density')
+    .not('vote_average', 'is', null)
+
+  // Apply row-specific filters
+  if (rowType === 'hidden_gems') {
+    query = query
+      .gte('vote_average', 7.0)
+      .lt('popularity', 60)
+      .gte('vote_count', 100)
+  } else if (rowType === 'slow_contemplative') {
+    query = query
+      .lt('pacing_score', 40)
+      .gt('emotional_depth_score', 70)
+      .gte('vote_average', 7.0)
+  } else if (rowType === 'high_energy') {
+    query = query
+      .gt('pacing_score', 70)
+      .gt('intensity_score', 70)
+      .gte('vote_average', 6.5)
+  } else if (rowType === 'quick_watches') {
+    query = query
+      .lt('runtime', 90)
+      .gte('vote_average', 7.0)
+      .not('runtime', 'is', null)
+  }
+
+  const { data: movies, error } = await query.limit(limit * 2)
+
+  if (error) throw error
+
+  // Calculate enhanced scores
+  const scored = movies.map(movie => {
+    const score = 
+      (movie.popularity * 0.005) +
+      (movie.vote_average * 10) +
+      (movie.quality_score || 0) * 0.3 +
+      (movie.star_power === 'no_stars' && rowType === 'hidden_gems' ? 15 : 0)
+
+    return { ...movie, score }
+  })
+
+  // Sort and return
+  return scored.sort((a, b) => b.score - a.score).slice(0, limit)
+}
+
+/**
+ * Get slow & contemplative films (pacing < 40, depth > 70)
+ */
+export async function getSlowContemplative(userId, options = {}) {
+  return getThemedRow(userId, 'slow_contemplative', options)
+}
+
+/**
+ * Get quick watches under 90 minutes
+ */
+export async function getQuickWatches(userId, options = {}) {
+  return getThemedRow(userId, 'quick_watches', options)
+}

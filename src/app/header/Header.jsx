@@ -15,7 +15,7 @@ export default function Header({ onOpenSearch }) {
   const [scrollDirection, setScrollDirection] = useState('up')
   const [lastScrollY, setLastScrollY] = useState(0)
   const [dropdownOpen, setDropdownOpen] = useState(false)
-  
+
   const hdrRef = useRef(null)
   const dropdownRef = useRef(null)
 
@@ -39,7 +39,7 @@ export default function Header({ onOpenSearch }) {
     const handleScroll = () => {
       const currentScrollY = window.scrollY
       setScrolled(currentScrollY > 10)
-      
+
       if (currentScrollY > lastScrollY && currentScrollY > 100) {
         setScrollDirection('down')
         setDropdownOpen(false)
@@ -48,7 +48,7 @@ export default function Header({ onOpenSearch }) {
       }
       setLastScrollY(currentScrollY)
     }
-    
+
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [lastScrollY])
@@ -69,7 +69,7 @@ export default function Header({ onOpenSearch }) {
   // Set CSS variable for header height
   useEffect(() => {
     const setVar = () => {
-      const h = hdrRef.current?.offsetHeight || 64
+      const h = hdrRef.current?.offsetHeight || 56
       document.documentElement.style.setProperty('--hdr-h', `${h}px`)
     }
     setVar()
@@ -101,11 +101,12 @@ export default function Header({ onOpenSearch }) {
           style={{ paddingTop: 'env(safe-area-inset-top)' }}
         >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 sm:h-20">
-            
+          <div className="flex items-center justify-between h-14 sm:h-16">
+
+
             {/* Logo */}
             <Link to="/home" className="flex items-center gap-2 group relative">
-              <div className="text-2xl sm:text-3xl font-black bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent group-hover:scale-105 transition-transform duration-300">
+              <div className="text-xl sm:text-2xl font-black bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent group-hover:scale-105 transition-transform duration-300">
                 FEELFLICK
               </div>
               {/* Subtle glow effect behind logo */}
@@ -113,7 +114,7 @@ export default function Header({ onOpenSearch }) {
             </Link>
 
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-8">
+            <nav className="hidden md:flex items-center gap-6">
               <DesktopNavLink to="/home">Home</DesktopNavLink>
               <DesktopNavLink to="/discover">Discover</DesktopNavLink>
               <DesktopNavLink to="/browse">Browse</DesktopNavLink>
@@ -121,11 +122,11 @@ export default function Header({ onOpenSearch }) {
             </nav>
 
             {/* Right Side Actions */}
-            <div className="flex items-center gap-3 sm:gap-4">
+            <div className="flex items-center gap-2 sm:gap-3">
               {/* Search Button */}
               <button 
                 onClick={onOpenSearch}
-                className="p-2.5 text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-all active:scale-95"
+                className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-all active:scale-95"
                 aria-label="Search"
               >
                 <SearchIcon className="h-5 w-5" />
@@ -136,16 +137,16 @@ export default function Header({ onOpenSearch }) {
                 <div className="hidden md:block relative" ref={dropdownRef}>
                   <button 
                     onClick={() => setDropdownOpen(!dropdownOpen)}
-                    className="flex items-center gap-2 p-1.5 hover:bg-white/10 rounded-full transition-all group"
+                    className="flex items-center gap-2 p-1 hover:bg-white/10 rounded-full transition-all group"
                   >
                     {userAvatar ? (
                       <img 
                         src={userAvatar} 
                         alt={userName} 
-                        className="h-9 w-9 rounded-full object-cover ring-2 ring-white/10 group-hover:ring-purple-500/50 transition-all" 
+                        className="h-8 w-8 rounded-full object-cover ring-2 ring-white/10 group-hover:ring-purple-500/50 transition-all" 
                       />
                     ) : (
-                      <div className="h-9 w-9 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-sm font-bold shadow-lg shadow-purple-500/20">
+                      <div className="h-8 w-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-sm font-bold shadow-lg shadow-purple-500/20">
                         {userName.charAt(0).toUpperCase()}
                       </div>
                     )}
@@ -159,7 +160,7 @@ export default function Header({ onOpenSearch }) {
                         <div className="font-bold text-white text-sm truncate">{userName}</div>
                         <div className="text-xs text-white/50 truncate">{userEmail}</div>
                       </div>
-                      
+
                       <div className="py-2">
                         <DropdownLink to="/account" icon={UserIcon}>Profile</DropdownLink>
                         <DropdownLink to="/watchlist" icon={Bookmark}>Watchlist</DropdownLink>

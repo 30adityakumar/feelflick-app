@@ -212,6 +212,7 @@ export function useTopPick(options = {}) {
       setLoading(false)
       return
     }
+    
 
     const controller = new AbortController()
 

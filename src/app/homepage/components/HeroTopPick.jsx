@@ -111,10 +111,9 @@ export default function HeroTopPick() {
   if (error || !movie) return null
 
   const year = movie.release_date ? new Date(movie.release_date).getFullYear() : null
-  const rating = movie.vote_average > 0 ? movie.vote_average : 0
-  const ratingPercent = Math.round(rating * 10)
   const hours = movie.runtime ? Math.floor(movie.runtime / 60) : 0
   const mins = movie.runtime ? movie.runtime % 60 : 0
+
 
   return (
     <section className="relative w-full h-[75vh] min-h-[500px] max-h-[800px] overflow-hidden bg-black">
@@ -124,11 +123,11 @@ export default function HeroTopPick() {
         <div
           className={`absolute inset-0 scale-110 transition-opacity duration-1000 ${backdropLoaded ? 'opacity-0' : 'opacity-100'}`}
           style={{
-            backgroundImage: movie.backdrop_path ? `url(${tmdbImg(movie.backdrop_path, 'w300')})` : undefined,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center 20%',
-            filter: 'blur(30px) saturate(1.2)'
-          }}
+          backgroundImage: movie.backdrop_path ? `url(${tmdbImg(movie.backdrop_path, 'w300')})` : undefined,
+          backgroundSize: 'cover',
+          backgroundPosition: '70% 20%',
+          filter: 'blur(30px) saturate(1.2)'
+        }}
         />
         
         {/* Full backdrop */}
@@ -137,10 +136,16 @@ export default function HeroTopPick() {
             src={tmdbImg(movie.backdrop_path, 'original')}
             alt=""
             aria-hidden="true"
-            className={`absolute inset-0 w-full h-full object-cover object-[center_20%] transition-opacity duration-1000 ${backdropLoaded ? 'opacity-100' : 'opacity-0'}`}
+            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
+              backdropLoaded ? 'opacity-100' : 'opacity-0'
+            }`}
+            style={{
+              objectPosition: '70% 20%' // shift focus to the right; tweak this if needed
+            }}
             onLoad={() => setBackdropLoaded(true)}
           />
         )}
+
 
         {/* Cinematic gradients - Netflix/Apple style */}
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent" />
@@ -159,7 +164,14 @@ export default function HeroTopPick() {
         <div className="flex flex-col sm:flex-row gap-5 sm:gap-6 lg:gap-10 w-full">
           
           {/* Poster - Hidden on mobile, elegant on larger screens */}
-          <div className={`hidden sm:block flex-shrink-0 transition-all duration-700 ease-out ${revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          <div
+              className={`hidden sm:block flex-shrink-0 transition-all duration-700 ease-out ${
+                revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+              }`}
+            >
+
+
+
             <button
               onClick={goToDetails}
               className="group relative w-[180px] lg:w-[240px] xl:w-[260px] rounded-lg overflow-hidden shadow-2xl shadow-black/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-4 focus-visible:ring-offset-black transition-transform duration-500 hover:scale-[1.02]"
@@ -224,11 +236,6 @@ export default function HeroTopPick() {
 
             {/* Metadata pills */}
             <div className={`flex flex-wrap items-center gap-2 sm:gap-2.5 mb-4 sm:mb-5 transition-all duration-700 delay-100 ${revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-              {/* Score pill */}
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/10 backdrop-blur-sm">
-                <div className="w-2 h-2 rounded-full bg-emerald-400" />
-                <span className="text-xs font-bold text-white tabular-nums">{ratingPercent}%</span>
-              </div>
               
               {movie.certification && (
                 <span className="px-2 py-1 rounded bg-white/10 text-[11px] font-bold text-white/90 backdrop-blur-sm">

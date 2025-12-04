@@ -1,17 +1,14 @@
 // src/app/homepage/components/HeroTopPick.jsx
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import {
   Loader2,
-  Info,
   Play,
   Sparkles,
-  Plus,
   Check,
   Eye,
   EyeOff,
-  List,
-  Heart,
-  Bookmark
+  Bookmark,
+  ChevronRight
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { tmdbImg } from '@/shared/api/tmdb'
@@ -19,38 +16,57 @@ import { useTopPick } from '@/shared/hooks/useRecommendations'
 import { supabase } from '@/shared/lib/supabase/client'
 import { useUserMovieStatus } from '@/shared/hooks/useUserMovieStatus'
 
+// Minimal tooltip for icon buttons
+function Tooltip({ children, label }) {
+  const [visible, setVisible] = useState(false)
+  const timeout = useRef(null)
+
+  return (
+    <div
+      className="relative"
+      onMouseEnter={() => { timeout.current = setTimeout(() => setVisible(true), 500) }}
+      onMouseLeave={() => { clearTimeout(timeout.current); setVisible(false) }}
+    >
+      {children}
+      <div className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 rounded-md bg-black/95 border border-white/10 text-[11px] text-white font-medium whitespace-nowrap pointer-events-none transition-all duration-200 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-1'}`}>
+        {label}
+      </div>
+    </div>
+  )
+}
+
 export default function HeroTopPick() {
   const { data: movie, loading, error } = useTopPick()
   const navigate = useNavigate()
-  const [imageLoaded, setImageLoaded] = useState(false)
+  const [posterLoaded, setPosterLoaded] = useState(false)
+  const [backdropLoaded, setBackdropLoaded] = useState(false)
+  const [revealed, setRevealed] = useState(false)
   const [user, setUser] = useState(null)
 
-  // Fetch current user
+  // Auth
   useEffect(() => {
     let mounted = true
-
-    ;(async () => {
-      try {
-        const {
-          data: { user: currentUser }
-        } = await supabase.auth.getUser()
-        if (mounted) setUser(currentUser)
-      } catch (err) {
-        console.error('[HeroTopPick] User fetch error:', err)
-      }
-    })()
-
-    return () => {
-      mounted = false
-    }
+    supabase.auth.getUser().then(({ data: { user: u } }) => {
+      if (mounted) setUser(u)
+    })
+    return () => { mounted = false }
   }, [])
 
-  // Reset image loading state when movie changes
+  // Reset on movie change
   useEffect(() => {
-    setImageLoaded(false)
+    setPosterLoaded(false)
+    setBackdropLoaded(false)
+    setRevealed(false)
   }, [movie?.id])
 
-  // Shared watchlist / watched logic (backed by movies, user_watchlist, user_history)
+  // Staggered reveal
+  useEffect(() => {
+    if (posterLoaded || backdropLoaded) {
+      const t = setTimeout(() => setRevealed(true), 100)
+      return () => clearTimeout(t)
+    }
+  }, [posterLoaded, backdropLoaded])
+
   const {
     isInWatchlist,
     isWatched,
@@ -59,27 +75,32 @@ export default function HeroTopPick() {
     toggleWatched
   } = useUserMovieStatus({ user, movie, source: 'hero_top_pick' })
 
-  const handleClick = useCallback(() => {
-    if (!movie?.id) return
-    navigate(`/movie/${movie.id}`)
+  const goToDetails = useCallback(() => {
+    if (movie?.id) navigate(`/movie/${movie.id}`)
   }, [movie?.id, navigate])
 
+  const playTrailer = useCallback(() => {
+    if (movie?.trailer_url) window.open(movie.trailer_url, '_blank', 'noopener')
+  }, [movie?.trailer_url])
+
+  // Loading state
   if (loading) {
     return (
-      <section className="relative px-4 sm:px-6 lg:px-12 mt-12 mb-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center gap-3 mb-6">
-            <Loader2 className="h-5 w-5 text-purple-400 animate-spin" />
-            <span className="text-white/60 text-sm font-medium">
-              Finding your perfect match...
-            </span>
-          </div>
-          <div className="flex flex-col lg:flex-row gap-6 lg:gap-10">
-            <div className="w-full max-w-[280px] sm:max-w-[320px] lg:w-[320px] aspect-[2/3] bg-white/5 rounded-lg animate-pulse" />
-            <div className="flex-1 space-y-4">
-              <div className="h-8 w-48 bg-white/5 rounded animate-pulse" />
-              <div className="h-12 w-3/4 bg-white/5 rounded animate-pulse" />
-              <div className="h-20 w-full bg-white/5 rounded animate-pulse" />
+      <section className="relative w-full h-[75vh] min-h-[500px] max-h-[800px] bg-black">
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-950/30 via-black to-black" />
+        <div className="relative z-10 h-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 flex items-end pb-12 lg:pb-16">
+          <div className="flex flex-col lg:flex-row gap-6 lg:gap-10 w-full">
+            <div className="hidden sm:block w-[200px] lg:w-[260px] flex-shrink-0">
+              <div className="aspect-[2/3] rounded-lg bg-white/5 animate-pulse" />
+            </div>
+            <div className="flex-1 space-y-4 pb-2">
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 text-purple-400 animate-spin" />
+                <span className="text-white/40 text-xs font-medium tracking-wide">Finding your perfect match...</span>
+              </div>
+              <div className="h-10 lg:h-14 w-2/3 bg-white/5 rounded animate-pulse" />
+              <div className="h-4 w-1/3 bg-white/5 rounded animate-pulse" />
+              <div className="h-16 w-full max-w-xl bg-white/5 rounded animate-pulse" />
             </div>
           </div>
         </div>
@@ -89,260 +110,246 @@ export default function HeroTopPick() {
 
   if (error || !movie) return null
 
-  const year = movie.release_date
-    ? new Date(movie.release_date).getFullYear()
-    : null
+  const year = movie.release_date ? new Date(movie.release_date).getFullYear() : null
   const rating = movie.vote_average > 0 ? movie.vote_average : 0
   const ratingPercent = Math.round(rating * 10)
-  const circumference = 2 * Math.PI * 24
+  const hours = movie.runtime ? Math.floor(movie.runtime / 60) : 0
+  const mins = movie.runtime ? movie.runtime % 60 : 0
 
   return (
-    <section className="relative px-4 sm:px-6 lg:px-12 mt-12 mb-8 overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-purple-900/10 via-transparent to-pink-900/10 pointer-events-none" />
+    <section className="relative w-full h-[75vh] min-h-[500px] max-h-[800px] overflow-hidden bg-black">
+      {/* === BACKDROP === */}
+      <div className="absolute inset-0">
+        {/* Blur placeholder */}
+        <div
+          className={`absolute inset-0 scale-110 transition-opacity duration-1000 ${backdropLoaded ? 'opacity-0' : 'opacity-100'}`}
+          style={{
+            backgroundImage: movie.backdrop_path ? `url(${tmdbImg(movie.backdrop_path, 'w300')})` : undefined,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center 20%',
+            filter: 'blur(30px) saturate(1.2)'
+          }}
+        />
+        
+        {/* Full backdrop */}
+        {movie.backdrop_path && (
+          <img
+            src={tmdbImg(movie.backdrop_path, 'original')}
+            alt=""
+            aria-hidden="true"
+            className={`absolute inset-0 w-full h-full object-cover object-[center_20%] transition-opacity duration-1000 ${backdropLoaded ? 'opacity-100' : 'opacity-0'}`}
+            onLoad={() => setBackdropLoaded(true)}
+          />
+        )}
 
-      <div className="relative max-w-7xl mx-auto">
-        <div className="flex items-center gap-2 mb-4">
-          <Sparkles className="h-4 w-4 text-purple-400" />
-          <span className="text-xs font-bold uppercase tracking-widest text-purple-400">
-            Tonight&apos;s Top Pick For You
-          </span>
-        </div>
+        {/* Cinematic gradients - Netflix/Apple style */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/60 to-transparent" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_20%_80%,rgba(0,0,0,0.9),transparent)]" />
+        
+        {/* Subtle color wash */}
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-950/10 via-transparent to-rose-950/10 mix-blend-overlay" />
+        
+        {/* Film grain texture */}
+        <div className="absolute inset-0 opacity-[0.015]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\'/%3E%3C/svg%3E")' }} />
+      </div>
 
-        <div className="flex flex-col lg:flex-row gap-6 lg:gap-10">
-          <div className="flex flex-col">
+      {/* === CONTENT === */}
+      <div className="relative z-10 h-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 flex items-end pb-10 sm:pb-12 lg:pb-14">
+        <div className="flex flex-col sm:flex-row gap-5 sm:gap-6 lg:gap-10 w-full">
+          
+          {/* Poster - Hidden on mobile, elegant on larger screens */}
+          <div className={`hidden sm:block flex-shrink-0 transition-all duration-700 ease-out ${revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             <button
-              onClick={handleClick}
-              className="group relative w-full max-w-[280px] sm:max-w-[320px] lg:w-[320px] flex-shrink-0 rounded-lg overflow-hidden focus:outline-none focus:ring-4 focus:ring-purple-500/50 transition-all mb-4"
-              aria-label={`View details for ${movie.title}`}
+              onClick={goToDetails}
+              className="group relative w-[180px] lg:w-[240px] xl:w-[260px] rounded-lg overflow-hidden shadow-2xl shadow-black/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-4 focus-visible:ring-offset-black transition-transform duration-500 hover:scale-[1.02]"
+              aria-label={`View ${movie.title}`}
             >
-              <div className="aspect-[2/3] bg-neutral-900 relative">
-                {!imageLoaded && (
-                  <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 to-pink-900/20 animate-pulse" />
+              <div className="aspect-[2/3] bg-neutral-900">
+                {/* Poster blur placeholder */}
+                {!posterLoaded && (
+                  <div
+                    className="absolute inset-0 scale-105"
+                    style={{
+                      backgroundImage: movie.poster_path ? `url(${tmdbImg(movie.poster_path, 'w92')})` : undefined,
+                      backgroundSize: 'cover',
+                      filter: 'blur(8px)'
+                    }}
+                  />
                 )}
                 <img
                   src={tmdbImg(movie.poster_path || movie.backdrop_path, 'w500')}
                   alt={movie.title}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  loading="eager"
-                  onLoad={() => setImageLoaded(true)}
-                  style={{ opacity: imageLoaded ? 1 : 0 }}
+                  className={`w-full h-full object-cover transition-all duration-700 ${posterLoaded ? 'opacity-100' : 'opacity-0'} group-hover:scale-105`}
+                  onLoad={() => setPosterLoaded(true)}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <div className="h-16 w-16 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center">
-                    <Info className="h-7 w-7 text-black" />
-                  </div>
+                
+                {/* Hover overlay */}
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                  <span className="text-white text-sm font-semibold">View Details</span>
                 </div>
               </div>
             </button>
-
+            
+            {/* Provider badge */}
             {movie.providers?.flatrate?.[0] && (
-              <div className="w-full max-w-[280px] sm:max-w-[320px] lg:w-[320px] flex items-center gap-3 px-4 py-3 rounded-lg bg-[#1a2332] border border-white/10">
+              <div className={`mt-3 flex items-center gap-2.5 px-3 py-2 rounded-lg bg-white/[0.03] backdrop-blur-sm border border-white/[0.06] transition-all duration-700 delay-100 ${revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
                 <img
                   src={`https://image.tmdb.org/t/p/w92${movie.providers.flatrate[0].logo_path}`}
-                  alt={movie.providers.flatrate[0].provider_name}
-                  className="h-10 w-10 rounded object-cover"
+                  alt=""
+                  className="h-8 w-8 rounded object-cover"
                 />
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs text-white/50 font-medium mb-0.5">
-                    Now Streaming
-                  </p>
-                  <p className="text-sm text-white font-bold">Watch Now</p>
+                <div className="min-w-0">
+                  <p className="text-[9px] uppercase tracking-widest text-white/30 font-medium">Streaming on</p>
+                  <p className="text-xs text-white/80 font-semibold truncate">{movie.providers.flatrate[0].provider_name}</p>
                 </div>
               </div>
             )}
           </div>
 
-          <div className="flex-1 flex flex-col justify-center min-w-0">
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white mb-3 leading-[1.1]">
+          {/* Main content */}
+          <div className="flex-1 min-w-0 flex flex-col justify-end">
+            {/* Label */}
+            <div className={`flex items-center gap-2 mb-3 sm:mb-4 transition-all duration-500 ${revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+              <Sparkles className="h-3 w-3 text-purple-400" />
+              <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.15em] text-purple-400/90">
+                Tonight's Top Pick
+              </span>
+            </div>
+
+            {/* Title */}
+            <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-[3.5rem] font-black text-white leading-[1.1] mb-3 sm:mb-4 transition-all duration-700 delay-75 ${revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
               {movie.title}
             </h1>
 
-            <div className="flex flex-wrap items-center gap-2 text-sm text-white/70 mb-5">
+            {/* Metadata pills */}
+            <div className={`flex flex-wrap items-center gap-2 sm:gap-2.5 mb-4 sm:mb-5 transition-all duration-700 delay-100 ${revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+              {/* Score pill */}
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/10 backdrop-blur-sm">
+                <div className="w-2 h-2 rounded-full bg-emerald-400" />
+                <span className="text-xs font-bold text-white tabular-nums">{ratingPercent}%</span>
+              </div>
+              
               {movie.certification && (
-                <span className="px-2 py-0.5 rounded border border-white/30 text-xs font-bold text-white/90">
+                <span className="px-2 py-1 rounded bg-white/10 text-[11px] font-bold text-white/90 backdrop-blur-sm">
                   {movie.certification}
                 </span>
               )}
-              {year && <span className="font-medium">{year}</span>}
-              {movie.genres?.slice(0, 3).map((genre, idx) => (
-                <span key={genre.id} className="flex items-center gap-2">
-                  {idx > 0 && <span className="text-white/40">•</span>}
-                  <span>{genre.name}</span>
+              
+              {year && (
+                <span className="text-xs text-white/50 font-medium">{year}</span>
+              )}
+              
+              {movie.genres?.slice(0, 2).map((g, i) => (
+                <span key={g.id} className="text-xs text-white/50 font-medium">
+                  {i > 0 || year ? <span className="mr-2 text-white/20">•</span> : null}
+                  {g.name}
                 </span>
               ))}
-              {movie.runtime && (
-                <>
-                  <span className="text-white/40">•</span>
-                  <span>
-                    {Math.floor(movie.runtime / 60)}h {movie.runtime % 60}m
-                  </span>
-                </>
-              )}
-            </div>
-
-            <div className="flex items-center gap-6 mb-5">
-              <div className="flex items-center gap-3">
-                <div className="relative w-16 h-16">
-                  <svg className="w-full h-full transform -rotate-90">
-                    <circle
-                      cx="32"
-                      cy="32"
-                      r="24"
-                      stroke="currentColor"
-                      strokeWidth="3"
-                      fill="none"
-                      className="text-white/10"
-                    />
-                    <circle
-                      cx="32"
-                      cy="32"
-                      r="24"
-                      stroke="currentColor"
-                      strokeWidth="3"
-                      fill="none"
-                      strokeDasharray={circumference}
-                      strokeDashoffset={circumference * (1 - rating / 10)}
-                      className="text-emerald-400 transition-all duration-1000"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-white font-bold text-base">
-                      {ratingPercent}
-                      <sup className="text-[10px]">%</sup>
-                    </span>
-                  </div>
-                </div>
-                <div>
-                  <p className="text-white text-xs font-bold leading-tight">
-                    User
-                  </p>
-                  <p className="text-white text-xs font-bold leading-tight">
-                    Score
-                  </p>
-                </div>
-              </div>
-
-              {movie.mood_emojis && (
-                <div className="flex items-center gap-1">
-                  {movie.mood_emojis.split('').map((emoji, i) => (
-                    <span key={i} className="text-2xl">
-                      {emoji}
-                    </span>
-                  ))}
-                </div>
+              
+              {movie.runtime > 0 && (
+                <span className="text-xs text-white/50 font-medium">
+                  <span className="mr-2 text-white/20">•</span>
+                  {hours > 0 && `${hours}h `}{mins}m
+                </span>
               )}
 
+              {/* Mood match */}
               {movie.mood_match_percent && (
-                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-500/20 border border-emerald-400/30">
-                  <div>
-                    <p className="text-xs text-white/70 leading-tight">
-                      Your Vibe
-                    </p>
-                    <p className="text-sm font-black text-emerald-400">
-                      {movie.mood_match_percent}%
-                    </p>
-                  </div>
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/20">
+                  <span className="text-[10px] text-emerald-400/80 font-medium">Vibe Match</span>
+                  <span className="text-xs font-bold text-emerald-400">{movie.mood_match_percent}%</span>
                 </div>
               )}
             </div>
 
-            {user && (
-              <div className="flex items-center gap-3 mb-5">
-                <button
-                  onClick={handleClick}
-                  className="h-12 w-12 rounded-full bg-[#1a2332] hover:bg-[#243142] border border-white/10 flex items-center justify-center transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-white/20"
-                  aria-label="Add to list"
-                >
-                  <List className="h-5 w-5 text-white" />
-                </button>
-                <button
-                  onClick={handleClick}
-                  className="h-12 w-12 rounded-full bg-[#1a2332] hover:bg-[#243142] border border-white/10 flex items-center justify-center transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-white/20"
-                  aria-label="Add to favorites"
-                >
-                  <Heart className="h-5 w-5 text-white" />
-                </button>
-                <button
-                  onClick={toggleWatchlist}
-                  disabled={actionLoading.watchlist}
-                  className={`h-12 w-12 rounded-full border transition-all hover:scale-110 focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center ${
-                    isInWatchlist
-                      ? 'bg-purple-500/30 border-purple-400 focus:ring-purple-300'
-                      : 'bg-[#1a2332] hover:bg-[#243142] border-white/10 focus:ring-white/20'
-                  }`}
-                  aria-label={
-                    isInWatchlist ? 'Remove from watchlist' : 'Add to watchlist'
-                  }
-                >
-                  {actionLoading.watchlist ? (
-                    <Loader2 className="h-5 w-5 text-white animate-spin" />
-                  ) : isInWatchlist ? (
-                    <Check className="h-5 w-5 text-purple-300" />
-                  ) : (
-                    <Bookmark className="h-5 w-5 text-white" />
-                  )}
-                </button>
-                <button
-                  onClick={toggleWatched}
-                  disabled={actionLoading.watched}
-                  className={`h-12 w-12 rounded-full border transition-all hover:scale-110 focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center ${
-                    isWatched
-                      ? 'bg-emerald-500/30 border-emerald-400 focus:ring-emerald-300'
-                      : 'bg-[#1a2332] hover:bg-[#243142] border-white/10 focus:ring-white/20'
-                  }`}
-                  aria-label={isWatched ? 'Mark as unwatched' : 'Mark as watched'}
-                >
-                  {actionLoading.watched ? (
-                    <Loader2 className="h-5 w-5 text-white animate-spin" />
-                  ) : isWatched ? (
-                    <Eye className="h-5 w-5 text-emerald-300" />
-                  ) : (
-                    <EyeOff className="h-5 w-5 text-white" />
-                  )}
-                </button>
-                {movie.trailer_url && (
-                  <button
-                    onClick={() => window.open(movie.trailer_url, '_blank')}
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-[#1a2332] hover:bg-[#243142] border border-white/10 text-white font-semibold text-sm transition-all focus:outline-none focus:ring-2 focus:ring-white/20"
-                  >
-                    <Play className="h-4 w-4" />
-                    <span>Play Trailer</span>
-                  </button>
-                )}
-              </div>
-            )}
-
-            {movie.tagline && (
-              <p className="text-white/50 italic text-sm mb-5 font-medium">
-                {movie.tagline}
+            {/* Overview */}
+            {movie.overview && (
+              <p className={`text-sm sm:text-[15px] text-white/60 leading-relaxed max-w-xl mb-5 sm:mb-6 line-clamp-2 sm:line-clamp-3 transition-all duration-700 delay-150 ${revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+                {movie.overview}
               </p>
             )}
 
-            <div className="mb-5">
-              <h2 className="text-white font-bold text-lg mb-2">Overview</h2>
-              {movie.overview && (
-                <p className="text-base text-white/80 leading-relaxed">
-                  {movie.overview}
-                </p>
+            {/* Actions */}
+            <div className={`flex flex-wrap items-center gap-2.5 sm:gap-3 transition-all duration-700 delay-200 ${revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+              {/* Primary: View Details */}
+              <button
+                onClick={goToDetails}
+                className="group inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full bg-white text-black font-semibold text-sm transition-all duration-300 hover:bg-white/90 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+              >
+                <span>View Details</span>
+                <ChevronRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+              </button>
+
+              {/* Secondary: Trailer */}
+              {movie.trailer_url && (
+                <button
+                  onClick={playTrailer}
+                  className="group inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full bg-white/10 hover:bg-white/15 backdrop-blur-sm border border-white/10 hover:border-white/20 text-white font-semibold text-sm transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                >
+                  <Play className="h-4 w-4 fill-current" />
+                  <span>Trailer</span>
+                </button>
+              )}
+
+              {/* Icon actions - Watchlist & Watched */}
+              {user && (
+                <div className="flex items-center gap-2 ml-1">
+                  <Tooltip label={isInWatchlist ? 'In Watchlist' : 'Add to Watchlist'}>
+                    <button
+                      onClick={toggleWatchlist}
+                      disabled={actionLoading.watchlist}
+                      className={`h-10 w-10 sm:h-11 sm:w-11 rounded-full border backdrop-blur-sm transition-all duration-300 flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95 ${
+                        isInWatchlist
+                          ? 'bg-purple-500/30 border-purple-400/50 text-purple-300 focus-visible:ring-purple-400'
+                          : 'bg-white/5 hover:bg-white/10 border-white/10 hover:border-white/20 text-white focus-visible:ring-white/50'
+                      }`}
+                    >
+                      {actionLoading.watchlist ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : isInWatchlist ? (
+                        <Check className="h-4 w-4" />
+                      ) : (
+                        <Bookmark className="h-4 w-4" />
+                      )}
+                    </button>
+                  </Tooltip>
+
+                  <Tooltip label={isWatched ? 'Watched' : 'Mark Watched'}>
+                    <button
+                      onClick={toggleWatched}
+                      disabled={actionLoading.watched}
+                      className={`h-10 w-10 sm:h-11 sm:w-11 rounded-full border backdrop-blur-sm transition-all duration-300 flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95 ${
+                        isWatched
+                          ? 'bg-emerald-500/30 border-emerald-400/50 text-emerald-300 focus-visible:ring-emerald-400'
+                          : 'bg-white/5 hover:bg-white/10 border-white/10 hover:border-white/20 text-white focus-visible:ring-white/50'
+                      }`}
+                    >
+                      {actionLoading.watched ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : isWatched ? (
+                        <Eye className="h-4 w-4" />
+                      ) : (
+                        <EyeOff className="h-4 w-4" />
+                      )}
+                    </button>
+                  </Tooltip>
+                </div>
               )}
             </div>
 
+            {/* Director - subtle */}
             {movie.director && (
-              <div>
-                <h3 className="text-white font-bold text-base">
-                  {movie.director.name}
-                </h3>
-                <p className="text-white/60 text-sm">
-                  Director
-                  {movie.director.roles?.includes('Writer') ? ', Writer' : ''}
-                </p>
-              </div>
+              <p className={`mt-4 sm:mt-5 text-xs text-white/40 transition-all duration-700 delay-300 ${revealed ? 'opacity-100' : 'opacity-0'}`}>
+                Directed by <span className="text-white/60 font-medium">{movie.director.name}</span>
+              </p>
             )}
           </div>
         </div>
       </div>
+
+      {/* Bottom fade for seamless transition to content below */}
+      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black to-transparent pointer-events-none" />
     </section>
   )
 }

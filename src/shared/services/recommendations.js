@@ -359,38 +359,79 @@ export async function getTopPickForUser(userId, options = {}) {
   const { signal } = options
 
   try {
+    let topPick = null
+
     // 1. Try history-based recs first (most specific)
-    const historyRecs = await getHistoryBasedRecommendations(userId, { limit: 20, signal })
+    const historyRecs = await getHistoryBasedRecommendations(userId, {
+      limit: 20,
+      signal,
+    })
     const goodHistory = (historyRecs || []).filter(
-      m => m && m.vote_average && m.vote_average >= 7.0
+      (m) => m && m.vote_average && m.vote_average >= 7.0
     )
 
     if (goodHistory.length > 0) {
-      return goodHistory[0]
+      topPick = goodHistory[0]
+    } else {
+      // 2. Fall back to genre-based recs
+      const genreRecs = await getGenreBasedRecommendations(userId, {
+        limit: 20,
+        signal,
+      })
+      const goodGenre = (genreRecs || []).filter(
+        (m) => m && m.vote_average && m.vote_average >= 7.0
+      )
+
+      if (goodGenre.length > 0) {
+        topPick = goodGenre[0]
+      } else {
+        // 3. Fallback popular/high quality
+        const fallback = await getFallbackRecommendations({ limit: 20, signal })
+        if (fallback && fallback.length > 0) {
+          topPick = fallback[0]
+        }
+      }
     }
 
-    // 2. Fall back to genre-based recs
-    const genreRecs = await getGenreBasedRecommendations(userId, { limit: 20, signal })
-    const goodGenre = (genreRecs || []).filter(
-      m => m && m.vote_average && m.vote_average >= 7.0
-    )
-
-    if (goodGenre.length > 0) {
-      return goodGenre[0]
+    // If nothing at all, just bail
+    if (!topPick) {
+      return null
     }
 
-    // 3. Fallback popular/high quality
-    const fallback = await getFallbackRecommendations({ limit: 20, signal })
-    if (fallback && fallback.length > 0) {
-      return fallback[0]
+    // 4. Hydrate genres from Supabase movies table
+    // movies.genres is jsonb like ["Drama","History","War"]
+    try {
+      const { data: dbMovie, error: dbError } = await supabase
+        .from('movies')
+        .select('genres')
+        .eq('tmdb_id', topPick.id) // TMDB id on the movie object
+        .maybeSingle()
+
+      if (dbError) {
+        console.warn(
+          '[Recommendations] getTopPickForUser genres lookup error:',
+          dbError
+        )
+      } else if (dbMovie && Array.isArray(dbMovie.genres)) {
+        topPick = {
+          ...topPick,
+          genres: dbMovie.genres, // <- this is what HeroTopPick will read
+        }
+      }
+    } catch (dbErr) {
+      console.warn(
+        '[Recommendations] getTopPickForUser genres hydrate failed:',
+        dbErr
+      )
     }
 
-    return null
+    return topPick
   } catch (error) {
     console.error('[Recommendations] getTopPickForUser failed:', error)
     return null
   }
 }
+
 
 export async function getQuickPicksForUser(userId, options = {}) {
   const { limit = 20, excludeTmdbId = null, signal } = options

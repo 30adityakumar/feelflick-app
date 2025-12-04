@@ -1,88 +1,534 @@
 // src/app/homepage/components/HeroTopPick.jsx
-import { Loader2, AlertCircle, Info } from 'lucide-react'
+import { useEffect, useState, useCallback } from 'react'
+import {
+  Loader2,
+  Info,
+  Play,
+  Sparkles,
+  Plus,
+  Check,
+  Eye,
+  EyeOff,
+  List,
+  Heart,
+  Bookmark
+} from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { tmdbImg } from '@/shared/api/tmdb'
 import { useTopPick } from '@/shared/hooks/useRecommendations'
+import { supabase } from '@/shared/lib/supabase/client'
 
 export default function HeroTopPick() {
   const { data: movie, loading, error } = useTopPick()
   const navigate = useNavigate()
+  const [imageLoaded, setImageLoaded] = useState(false)
+  const [user, setUser] = useState(null)
+  const [isInWatchlist, setIsInWatchlist] = useState(false)
+  const [isWatched, setIsWatched] = useState(false)
+  const [actionLoading, setActionLoading] = useState({
+    watchlist: false,
+    watched: false
+  })
+
+  // Fetch current user
+  useEffect(() => {
+    let mounted = true
+
+    ;(async () => {
+      try {
+        const {
+          data: { user: currentUser }
+        } = await supabase.auth.getUser()
+        if (mounted) setUser(currentUser)
+      } catch (err) {
+        console.error('[HeroTopPick] User fetch error:', err)
+      }
+    })()
+
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  // Reset image loading state when movie changes
+  useEffect(() => {
+    setImageLoaded(false)
+  }, [movie?.id])
+
+  // Ensure movie exists in movies table and return internal movies.id
+  // (same pattern as HeroSlider)
+  const ensureMovieInDb = useCallback(async () => {
+    if (!movie) return null
+
+    try {
+      // First try to find an existing movie by tmdb_id
+      const { data: existing, error: existingError } = await supabase
+        .from('movies')
+        .select('id')
+        .eq('tmdb_id', movie.id)
+        .maybeSingle()
+
+      if (existingError) {
+        console.error('[HeroTopPick] Movie lookup error:', existingError)
+      }
+
+      if (existing?.id) {
+        return existing.id
+      }
+
+      // If not found, upsert and return the new internal id
+      const { data: inserted, error } = await supabase
+        .from('movies')
+        .upsert(
+          {
+            tmdb_id: movie.id,
+            title: movie.title,
+            original_title: movie.original_title,
+            overview: movie.overview,
+            poster_path: movie.poster_path,
+            backdrop_path: movie.backdrop_path,
+            release_date: movie.release_date || null,
+            vote_average: movie.vote_average,
+            vote_count: movie.vote_count,
+            popularity: movie.popularity,
+            original_language: movie.original_language,
+            json_data: movie
+          },
+          { onConflict: 'tmdb_id' }
+        )
+        .select('id')
+        .single()
+
+      if (error) {
+        console.error('[HeroTopPick] Movie upsert error:', error)
+        return null
+      }
+
+      return inserted?.id ?? null
+    } catch (err) {
+      console.error('[HeroTopPick] Movie upsert/lookup error:', err)
+      return null
+    }
+  }, [movie])
+
+  // Sync watchlist / watched state from DB using internal movies.id
+  useEffect(() => {
+    if (!user?.id || !movie?.id) return
+
+    let mounted = true
+
+    ;(async () => {
+      try {
+        const internalMovieId = await ensureMovieInDb()
+        if (!internalMovieId || !mounted) return
+
+        const [wlRes, whRes] = await Promise.all([
+          supabase
+            .from('user_watchlist')
+            .select('movie_id')
+            .eq('user_id', user.id)
+            .eq('movie_id', internalMovieId)
+            .maybeSingle(),
+          supabase
+            .from('user_history')
+            .select('movie_id')
+            .eq('user_id', user.id)
+            .eq('movie_id', internalMovieId)
+            .maybeSingle()
+        ])
+
+        if (!mounted) return
+
+        setIsInWatchlist(Boolean(wlRes.data))
+        setIsWatched(Boolean(whRes.data))
+      } catch (err) {
+        console.error('[HeroTopPick] Status sync error:', err)
+      }
+    })()
+
+    return () => {
+      mounted = false
+    }
+  }, [user?.id, movie?.id, ensureMovieInDb])
+
+  // Toggle Watchlist (user_watchlist + user_history, internal movies.id)
+  const toggleWatchlist = useCallback(async () => {
+    if (!user || !movie || actionLoading.watchlist) return
+
+    setActionLoading(prev => ({ ...prev, watchlist: true }))
+
+    try {
+      const internalMovieId = await ensureMovieInDb()
+      if (!internalMovieId) return
+
+      if (isInWatchlist) {
+        // Remove from watchlist
+        setIsInWatchlist(false)
+
+        await supabase
+          .from('user_watchlist')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('movie_id', internalMovieId)
+      } else {
+        // Add to watchlist and remove from watched
+        setIsInWatchlist(true)
+        setIsWatched(false)
+
+        // IMPORTANT: match the "simple" payload that used to work
+        await supabase
+          .from('user_watchlist')
+          .upsert(
+            {
+              user_id: user.id,
+              movie_id: internalMovieId,
+              added_at: new Date().toISOString(),
+              status: 'want_to_watch'
+            },
+            { onConflict: 'user_id,movie_id' }
+          )
+
+        // Clean up history if it exists
+        await supabase
+          .from('user_history')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('movie_id', internalMovieId)
+      }
+    } catch (err) {
+      console.error('[HeroTopPick] Watchlist error:', err)
+    } finally {
+      setActionLoading(prev => ({ ...prev, watchlist: false }))
+    }
+  }, [user, movie, actionLoading.watchlist, isInWatchlist, ensureMovieInDb])
+
+  // Toggle Watched (user_history + user_watchlist, internal movies.id)
+  const toggleWatched = useCallback(async () => {
+    if (!user || !movie || actionLoading.watched) return
+
+    setActionLoading(prev => ({ ...prev, watched: true }))
+
+    try {
+      const internalMovieId = await ensureMovieInDb()
+      if (!internalMovieId) return
+
+      if (isWatched) {
+        // Remove from watched
+        setIsWatched(false)
+
+        await supabase
+          .from('user_history')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('movie_id', internalMovieId)
+      } else {
+        // Add to watched and remove from watchlist
+        setIsWatched(true)
+        setIsInWatchlist(false)
+
+        await supabase.from('user_history').insert({
+          user_id: user.id,
+          movie_id: internalMovieId,
+          watched_at: new Date().toISOString(),
+          source: 'hero_top_pick',
+          watch_duration_minutes: null,
+          mood_session_id: null
+        })
+
+        await supabase
+          .from('user_watchlist')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('movie_id', internalMovieId)
+      }
+    } catch (err) {
+      console.error('[HeroTopPick] Watched error:', err)
+    } finally {
+      setActionLoading(prev => ({ ...prev, watched: false }))
+    }
+  }, [user, movie, actionLoading.watched, isWatched, ensureMovieInDb])
+
+  const handleClick = useCallback(() => {
+    if (!movie?.id) return
+    navigate(`/movie/${movie.id}`)
+  }, [movie?.id, navigate])
 
   if (loading) {
     return (
-      <section className="px-4 sm:px-6 lg:px-8 mt-10">
-        <div className="flex items-center gap-3 mb-4">
-          <Loader2 className="h-6 w-6 text-[#667eea] animate-spin" />
-          <span className="text-white/70 text-sm">Finding tonight&apos;s top pick…</span>
+      <section className="relative px-4 sm:px-6 lg:px-12 mt-12 mb-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center gap-3 mb-6">
+            <Loader2 className="h-5 w-5 text-purple-400 animate-spin" />
+            <span className="text-white/60 text-sm font-medium">
+              Finding your perfect match...
+            </span>
+          </div>
+          <div className="flex flex-col lg:flex-row gap-6 lg:gap-10">
+            <div className="w-full max-w-[280px] sm:max-w-[320px] lg:w-[320px] aspect-[2/3] bg-white/5 rounded-lg animate-pulse" />
+            <div className="flex-1 space-y-4">
+              <div className="h-8 w-48 bg-white/5 rounded animate-pulse" />
+              <div className="h-12 w-3/4 bg-white/5 rounded animate-pulse" />
+              <div className="h-20 w-full bg-white/5 rounded animate-pulse" />
+            </div>
+          </div>
         </div>
       </section>
     )
   }
 
-  if (error || !movie) {
-    return null
-  }
+  if (error || !movie) return null
 
-  const handleClick = () => {
-    navigate(`/movie/${movie.id}`)
-  }
+  const year = movie.release_date
+    ? new Date(movie.release_date).getFullYear()
+    : null
+  const rating = movie.vote_average > 0 ? movie.vote_average : 0
+  const ratingPercent = Math.round(rating * 10)
+  const circumference = 2 * Math.PI * 24
 
   return (
-    <section className="px-4 sm:px-6 lg:px-8 mt-10">
-      <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-stretch">
-        {/* Poster */}
-        <button
-          onClick={handleClick}
-          className="relative w-full md:w-1/3 max-w-sm rounded-xl overflow-hidden group focus:outline-none focus:ring-2 focus:ring-[#667eea]"
-        >
-          <div className="aspect-[2/3] bg-gray-900">
-            <img
-              src={tmdbImg(movie.poster_path || movie.backdrop_path, 'w500')}
-              alt={movie.title}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            />
-          </div>
-        </button>
+    <section className="relative px-4 sm:px-6 lg:px-12 mt-12 mb-8 overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-900/10 via-transparent to-pink-900/10 pointer-events-none" />
 
-        {/* Text */}
-        <div className="flex-1 flex flex-col justify-center">
-          <p className="text-xs uppercase tracking-[0.2em] text-[#9f7aea] mb-2">
-            Tonight&apos;s top pick for you
-          </p>
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white mb-3">
-            {movie.title}
-          </h1>
-          <div className="flex items-center gap-3 text-sm text-white/70 mb-4">
-            {movie.release_date && (
-              <span>{new Date(movie.release_date).getFullYear()}</span>
-            )}
-            {movie.vote_average > 0 && (
-              <span className="flex items-center gap-1">
-                <span className="text-yellow-400">★</span>
-                {movie.vote_average.toFixed(1)}
-              </span>
-            )}
-          </div>
-          {movie.overview && (
-            <p className="text-sm md:text-base text-white/80 mb-4 line-clamp-4">
-              {movie.overview}
-            </p>
-          )}
+      <div className="relative max-w-7xl mx-auto">
+        <div className="flex items-center gap-2 mb-4">
+          <Sparkles className="h-4 w-4 text-purple-400" />
+          <span className="text-xs font-bold uppercase tracking-widest text-purple-400">
+            Tonight&apos;s Top Pick For You
+          </span>
+        </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-10">
+          <div className="flex flex-col">
             <button
               onClick={handleClick}
-              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-white text-black font-semibold text-sm hover:bg-gray-100 transition-colors"
+              className="group relative w-full max-w-[280px] sm:max-w-[320px] lg:w-[320px] flex-shrink-0 rounded-lg overflow-hidden focus:outline-none focus:ring-4 focus:ring-purple-500/50 transition-all mb-4"
+              aria-label={`View details for ${movie.title}`}
             >
-              <span>View details</span>
+              <div className="aspect-[2/3] bg-neutral-900 relative">
+                {!imageLoaded && (
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 to-pink-900/20 animate-pulse" />
+                )}
+                <img
+                  src={tmdbImg(movie.poster_path || movie.backdrop_path, 'w500')}
+                  alt={movie.title}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  loading="eager"
+                  onLoad={() => setImageLoaded(true)}
+                  style={{ opacity: imageLoaded ? 1 : 0 }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <div className="h-16 w-16 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center">
+                    <Info className="h-7 w-7 text-black" />
+                  </div>
+                </div>
+              </div>
             </button>
-            <button
-              type="button"
-              className="inline-flex items-center gap-2 text-xs text-white/70"
-            >
-              <Info className="h-4 w-4" />
-              <span>Why this pick?</span>
-            </button>
+
+            {movie.providers?.flatrate?.[0] && (
+              <div className="w-full max-w-[280px] sm:max-w-[320px] lg:w-[320px] flex items-center gap-3 px-4 py-3 rounded-lg bg-[#1a2332] border border-white/10">
+                <img
+                  src={`https://image.tmdb.org/t/p/w92${movie.providers.flatrate[0].logo_path}`}
+                  alt={movie.providers.flatrate[0].provider_name}
+                  className="h-10 w-10 rounded object-cover"
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-white/50 font-medium mb-0.5">
+                    Now Streaming
+                  </p>
+                  <p className="text-sm text-white font-bold">Watch Now</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex-1 flex flex-col justify-center min-w-0">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white mb-3 leading-[1.1]">
+              {movie.title}
+            </h1>
+
+            <div className="flex flex-wrap items-center gap-2 text-sm text-white/70 mb-5">
+              {movie.certification && (
+                <span className="px-2 py-0.5 rounded border border-white/30 text-xs font-bold text-white/90">
+                  {movie.certification}
+                </span>
+              )}
+              {year && <span className="font-medium">{year}</span>}
+              {movie.genres?.slice(0, 3).map((genre, idx) => (
+                <span key={genre.id} className="flex items-center gap-2">
+                  {idx > 0 && <span className="text-white/40">•</span>}
+                  <span>{genre.name}</span>
+                </span>
+              ))}
+              {movie.runtime && (
+                <>
+                  <span className="text-white/40">•</span>
+                  <span>
+                    {Math.floor(movie.runtime / 60)}h {movie.runtime % 60}m
+                  </span>
+                </>
+              )}
+            </div>
+
+            <div className="flex items-center gap-6 mb-5">
+              <div className="flex items-center gap-3">
+                <div className="relative w-16 h-16">
+                  <svg className="w-full h-full transform -rotate-90">
+                    <circle
+                      cx="32"
+                      cy="32"
+                      r="24"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      fill="none"
+                      className="text-white/10"
+                    />
+                    <circle
+                      cx="32"
+                      cy="32"
+                      r="24"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      fill="none"
+                      strokeDasharray={circumference}
+                      strokeDashoffset={circumference * (1 - rating / 10)}
+                      className="text-emerald-400 transition-all duration-1000"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-white font-bold text-base">
+                      {ratingPercent}
+                      <sup className="text-[10px]">%</sup>
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-white text-xs font-bold leading-tight">
+                    User
+                  </p>
+                  <p className="text-white text-xs font-bold leading-tight">
+                    Score
+                  </p>
+                </div>
+              </div>
+
+              {movie.mood_emojis && (
+                <div className="flex items-center gap-1">
+                  {movie.mood_emojis.split('').map((emoji, i) => (
+                    <span key={i} className="text-2xl">
+                      {emoji}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {movie.mood_match_percent && (
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-500/20 border border-emerald-400/30">
+                  <div>
+                    <p className="text-xs text-white/70 leading-tight">
+                      Your Vibe
+                    </p>
+                    <p className="text-sm font-black text-emerald-400">
+                      {movie.mood_match_percent}%
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {user && (
+              <div className="flex items-center gap-3 mb-5">
+                <button
+                  onClick={handleClick}
+                  className="h-12 w-12 rounded-full bg-[#1a2332] hover:bg-[#243142] border border-white/10 flex items-center justify-center transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-white/20"
+                  aria-label="Add to list"
+                >
+                  <List className="h-5 w-5 text-white" />
+                </button>
+                <button
+                  onClick={handleClick}
+                  className="h-12 w-12 rounded-full bg-[#1a2332] hover:bg-[#243142] border border-white/10 flex items-center justify-center transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-white/20"
+                  aria-label="Add to favorites"
+                >
+                  <Heart className="h-5 w-5 text-white" />
+                </button>
+                <button
+                  onClick={toggleWatchlist}
+                  disabled={actionLoading.watchlist}
+                  className={`h-12 w-12 rounded-full border transition-all hover:scale-110 focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center ${
+                    isInWatchlist
+                      ? 'bg-purple-500/30 border-purple-400 focus:ring-purple-300'
+                      : 'bg-[#1a2332] hover:bg-[#243142] border-white/10 focus:ring-white/20'
+                  }`}
+                  aria-label={
+                    isInWatchlist ? 'Remove from watchlist' : 'Add to watchlist'
+                  }
+                >
+                  {actionLoading.watchlist ? (
+                    <Loader2 className="h-5 w-5 text-white animate-spin" />
+                  ) : isInWatchlist ? (
+                    <Check className="h-5 w-5 text-purple-300" />
+                  ) : (
+                    <Bookmark className="h-5 w-5 text-white" />
+                  )}
+                </button>
+                <button
+                  onClick={toggleWatched}
+                  disabled={actionLoading.watched}
+                  className={`h-12 w-12 rounded-full border transition-all hover:scale-110 focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center ${
+                    isWatched
+                      ? 'bg-emerald-500/30 border-emerald-400 focus:ring-emerald-300'
+                      : 'bg-[#1a2332] hover:bg-[#243142] border-white/10 focus:ring-white/20'
+                  }`}
+                  aria-label={isWatched ? 'Mark as unwatched' : 'Mark as watched'}
+                >
+                  {actionLoading.watched ? (
+                    <Loader2 className="h-5 w-5 text-white animate-spin" />
+                  ) : isWatched ? (
+                    <Eye className="h-5 w-5 text-emerald-300" />
+                  ) : (
+                    <EyeOff className="h-5 w-5 text-white" />
+                  )}
+                </button>
+                {movie.trailer_url && (
+                  <button
+                    onClick={() => window.open(movie.trailer_url, '_blank')}
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-[#1a2332] hover:bg-[#243142] border border-white/10 text-white font-semibold text-sm transition-all focus:outline-none focus:ring-2 focus:ring-white/20"
+                  >
+                    <Play className="h-4 w-4" />
+                    <span>Play Trailer</span>
+                  </button>
+                )}
+              </div>
+            )}
+
+            {movie.tagline && (
+              <p className="text-white/50 italic text-sm mb-5 font-medium">
+                {movie.tagline}
+              </p>
+            )}
+
+            <div className="mb-5">
+              <h2 className="text-white font-bold text-lg mb-2">Overview</h2>
+              {movie.overview && (
+                <p className="text-base text-white/80 leading-relaxed">
+                  {movie.overview}
+                </p>
+              )}
+            </div>
+
+            {movie.director && (
+              <div>
+                <h3 className="text-white font-bold text-base">
+                  {movie.director.name}
+                </h3>
+                <p className="text-white/60 text-sm">
+                  Director
+                  {movie.director.roles?.includes('Writer') ? ', Writer' : ''}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>

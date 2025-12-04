@@ -1,582 +1,488 @@
 // src/app/homepage/components/HeroSliderSection.jsx
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
+import { Loader2, Info, Plus, Check, Eye, EyeOff, Sparkles } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { Info, Plus, Check, Eye, EyeOff } from 'lucide-react'
+import { tmdbImg } from '@/shared/api/tmdb'
+import { useTopPick } from '@/shared/hooks/useRecommendations'
 import { supabase } from '@/shared/lib/supabase/client'
 
-// Line 8 - Add preload for first image
-const tmdbImg = (p, s = 'original') => p ? `https://image.tmdb.org/t/p/${s}${p}` : ''
-const preloadFirstImage = (url) => {
-  const link = document.createElement('link')
-  link.rel = 'preload'
-  link.as = 'image'
-  link.href = url
-  document.head.appendChild(link)
-}
-
-export default function HeroSliderSection({ className = '' }) {
-  const [slides, setSlides] = useState([])
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const [isTransitioning, setIsTransitioning] = useState(false)
-  const [isPaused, setIsPaused] = useState(false)
-  const [loading, setLoading] = useState(true)
-
-  // User Data
+export default function HeroTopPick() {
+  const { data: movie, loading, error } = useTopPick()
+  const navigate = useNavigate()
+  const [imageLoaded, setImageLoaded] = useState(false)
   const [user, setUser] = useState(null)
-  const [watchlistTmdbIds, setWatchlistTmdbIds] = useState(new Set())
-  const [watchedTmdbIds, setWatchedTmdbIds] = useState(new Set())
+  const [isInWatchlist, setIsInWatchlist] = useState(false)
+  const [isWatched, setIsWatched] = useState(false)
+  const [providers, setProviders] = useState(null)
 
-  // Swipe State
-  const [touchStart, setTouchStart] = useState(null)
-  const [touchEnd, setTouchEnd] = useState(null)
-  const [dragOffset, setDragOffset] = useState(0)
-
-  const nav = useNavigate()
-  const timerRef = useRef(null)
-
-  // Fetch user on mount
   useEffect(() => {
-    (async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      setUser(user)
+    let mounted = true
+    ;(async () => {
+      try {
+        const { data: { user: currentUser } } = await supabase.auth.getUser()
+        if (mounted) setUser(currentUser)
+      } catch (err) {
+        console.error('[HeroTopPick] User fetch error:', err)
+      }
     })()
+    return () => { mounted = false }
   }, [])
 
-// Fetch trending movies + genres (movies only), separate live sync
-useEffect(() => {
-  setLoading(true)
-  
-  Promise.all([
-    fetch(`https://api.themoviedb.org/3/trending/movie/week?api_key=${import.meta.env.VITE_TMDB_API_KEY}`).then(res => res.json()),
-    fetch(`https://api.themoviedb.org/3/genre/movie/list?api_key=${import.meta.env.VITE_TMDB_API_KEY}`).then(res => res.json())
-  ])
-    .then(([moviesRes, genresRes]) => {
-      // Map genre ids to names
-      const genreMap = new Map(genresRes.genres?.map(g => [g.id, g.name]) || [])
-      const movies = moviesRes?.results?.slice(0, 5).map(m => ({
-        ...m,
-        genres: m.genre_ids?.slice(0, 3).map(id => genreMap.get(id)).filter(Boolean) || []
-      })) || []
+  useEffect(() => {
+    setImageLoaded(false)
+  }, [movie?.id])
 
-      setSlides(movies)
-
-      // Preload first image for faster initial render
-      if (movies[0]?.backdrop_path) {
-        preloadFirstImage(tmdbImg(movies[0].backdrop_path, 'original'))
-      }
-
-      setLoading(false)
-    })
-    .catch(err => {
-      console.error('HeroSliderSection fetch error:', err)
-      setSlides([])
-      setLoading(false)
-    })
-}, [])
-
-// NEW: Separate live sync effect with real-time subscriptions
-useEffect(() => {
-  if (!user || !slides.length) return
-
-  const syncStatus = async () => {
-    // Sync watchlist status
-    const { data: wl } = await supabase
-      .from('user_watchlist')
-      .select(`
-        movie_id,
-        movies!inner(tmdb_id)
-      `)
-      .eq('user_id', user.id)
-
-    // Sync watched status  
-    const { data: wh } = await supabase
-      .from('user_history')
-      .select(`
-        movie_id,
-        movies!inner(tmdb_id)
-      `)
-      .eq('user_id', user.id)
-
-    // Extract TMDB IDs for current slider movies only
-    const sliderTmdbIds = slides.map(m => m.id)
+  useEffect(() => {
+    let mounted = true
     
-    if (wl) {
-      setWatchlistTmdbIds(new Set(
-        wl
-          .filter(w => sliderTmdbIds.includes(w.movies.tmdb_id))
-          .map(w => w.movies.tmdb_id)
-      ))
+    async function fetchProviders() {
+      if (!movie?.id) return
+      
+      try {
+        const res = await fetch(
+          `https://api.themoviedb.org/3/movie/${movie.id}/watch/providers?api_key=${import.meta.env.VITE_TMDB_API_KEY}`
+        )
+        const data = await res.json()
+        const us = data?.results?.US
+        
+        if (mounted && us) {
+          setProviders({
+            streaming: us.flatrate?.[0] || null,
+            link: us.link || null
+          })
+        }
+      } catch (err) {
+        console.error('[HeroTopPick] Providers fetch error:', err)
+      }
     }
+    
+    fetchProviders()
+    return () => { mounted = false }
+  }, [movie?.id])
 
-    if (wh) {
-      setWatchedTmdbIds(new Set(
-        wh
-          .filter(w => sliderTmdbIds.includes(w.movies.tmdb_id))
-          .map(w => w.movies.tmdb_id)
-      ))
+  useEffect(() => {
+    let mounted = true
+    
+    async function syncStatus() {
+      if (!user?.id || !movie?.id) return
+      
+      try {
+        const [wlRes, whRes] = await Promise.all([
+          supabase
+            .from('user_watchlist')
+            .select('movie_id, movies!inner(tmdb_id)')
+            .eq('user_id', user.id)
+            .eq('movies.tmdb_id', movie.id)
+            .maybeSingle(),
+          supabase
+            .from('user_history')
+            .select('movie_id, movies!inner(tmdb_id)')
+            .eq('user_id', user.id)
+            .eq('movies.tmdb_id', movie.id)
+            .maybeSingle()
+        ])
+
+        if (mounted) {
+          setIsInWatchlist(!!wlRes.data)
+          setIsWatched(!!whRes.data)
+        }
+      } catch (err) {
+        console.error('[HeroTopPick] Status sync error:', err)
+      }
     }
-  }
+    
+    syncStatus()
 
-  // Initial sync
-  syncStatus()
+    if (!user?.id) return
 
-  // Real-time subscriptions for live updates
-  const watchlistChannel = supabase
-    .channel('user_watchlist_changes')
-    .on(
-      'postgres_changes',
-      {
+    const watchlistChannel = supabase
+      .channel('herotoppick_watchlist')
+      .on('postgres_changes', {
         event: '*',
         schema: 'public',
         table: 'user_watchlist',
         filter: `user_id=eq.${user.id}`
-      },
-      syncStatus
-    )
-    .subscribe()
+      }, syncStatus)
+      .subscribe()
 
-  const historyChannel = supabase
-    .channel('user_history_changes')
-    .on(
-      'postgres_changes',
-      {
+    const historyChannel = supabase
+      .channel('herotoppick_history')
+      .on('postgres_changes', {
         event: '*',
         schema: 'public',
         table: 'user_history',
         filter: `user_id=eq.${user.id}`
-      },
-      syncStatus
-    )
-    .subscribe()
+      }, syncStatus)
+      .subscribe()
 
-  return () => {
-    supabase.removeChannel(watchlistChannel)
-    supabase.removeChannel(historyChannel)
-  }
-}, [user, slides.length])
-
-
-  // Auto-advance slides every 8 sec, disabled while paused or touching
-  useEffect(() => {
-    if (!slides.length || isPaused || touchStart !== null) return
-    clearInterval(timerRef.current)
-    timerRef.current = setInterval(() => nextSlide(), 8000)
-    return () => clearInterval(timerRef.current)
-  }, [slides.length, currentIndex, isPaused, touchStart])
-
-  const nextSlide = () => {
-    if (isTransitioning) return
-    setIsTransitioning(true)
-    setCurrentIndex(prev => (prev + 1) % slides.length)
-    setTimeout(() => setIsTransitioning(false), 500)
-  }
-
-  const prevSlide = () => {
-    if (isTransitioning) return
-    setIsTransitioning(true)
-    setCurrentIndex(prev => (prev - 1 + slides.length) % slides.length)
-    setTimeout(() => setIsTransitioning(false), 500)
-  }
-
-  const goToSlide = (index) => {
-    if (isTransitioning || index === currentIndex) return
-    setIsTransitioning(true)
-    setCurrentIndex(index)
-    setTimeout(() => setIsTransitioning(false), 500)
-  }
-
-  // Swipe handlers
-  const minSwipeDistance = 50
-  const onTouchStart = (e) => {
-    setTouchEnd(null)
-    setTouchStart(e.targetTouches[0].clientX)
-    setDragOffset(0)
-  }
-  const onTouchMove = (e) => {
-    setTouchEnd(e.targetTouches[0].clientX)
-    if (touchStart !== null) {
-      setDragOffset(e.targetTouches[0].clientX - touchStart)
+    return () => {
+      supabase.removeChannel(watchlistChannel)
+      supabase.removeChannel(historyChannel)
+      mounted = false
     }
-  }
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) {
-      setTouchStart(null)
-      setTouchEnd(null)
-      setDragOffset(0)
-      return
-    }
-    const distance = touchStart - touchEnd
-    if (distance > minSwipeDistance) nextSlide()
-    else if (distance < -minSwipeDistance) prevSlide()
-    setTouchStart(null)
-    setTouchEnd(null)
-    setDragOffset(0)
-  }
+  }, [user?.id, movie?.id])
 
-  // Ensure movie in DB (UPDATED - returns internal ID)
-    const ensureMovieInDb = async (movie) => {
-      try {
-        // First check if exists
-        const { data: existing } = await supabase
-          .from('movies')
-          .select('id')
-          .eq('tmdb_id', movie.id)
-          .maybeSingle()
-        
-        if (existing) return existing.id
+  const ensureMovieInDb = useCallback(async () => {
+    if (!movie) return null
+    
+    try {
+      const { data: existing } = await supabase
+        .from('movies')
+        .select('id')
+        .eq('tmdb_id', movie.id)
+        .maybeSingle()
+      
+      if (existing) return existing.id
 
-        // Upsert movie
-        const { data: inserted, error } = await supabase
-          .from('movies')
-          .upsert({
-            tmdb_id: movie.id,
-            title: movie.title,
-            original_title: movie.original_title,
-            overview: movie.overview,
-            poster_path: movie.poster_path,
-            backdrop_path: movie.backdrop_path,
-            release_date: movie.release_date || null,
-            vote_average: movie.vote_average,
-            vote_count: movie.vote_count,
-            popularity: movie.popularity,
-            original_language: movie.original_language,
-            json_data: movie
-          }, { onConflict: 'tmdb_id' })
-          .select('id')
-          .single()
+      const { data: inserted, error } = await supabase
+        .from('movies')
+        .upsert({
+          tmdb_id: movie.id,
+          title: movie.title,
+          original_title: movie.original_title,
+          overview: movie.overview,
+          poster_path: movie.poster_path,
+          backdrop_path: movie.backdrop_path,
+          release_date: movie.release_date || null,
+          vote_average: movie.vote_average,
+          vote_count: movie.vote_count,
+          popularity: movie.popularity,
+          original_language: movie.original_language,
+          json_data: movie
+        }, { onConflict: 'tmdb_id' })
+        .select('id')
+        .single()
 
-        if (error) {
-          console.error('Failed to ensure movie in DB:', error)
-          return null
-        }
-
-        return inserted.id  // ← CRITICAL: Return internal movies.id
-      } catch (err) {
-        console.error('ensureMovieInDb failed:', err)
+      if (error) {
+        console.error('[HeroTopPick] Movie upsert error:', error)
         return null
       }
+
+      return inserted.id
+    } catch (err) {
+      console.error('[HeroTopPick] ensureMovieInDb error:', err)
+      return null
     }
+  }, [movie])
 
+  const toggleWatchlist = useCallback(async () => {
+    if (!user || !movie) return
+    
+    const wasInWatchlist = isInWatchlist
 
-  // Actions
-  const currentMovie = slides[currentIndex]
-  const isInWatchlist = currentMovie?.id && watchlistTmdbIds.has(currentMovie.id)
-  const isWatched = currentMovie?.id && watchedTmdbIds.has(currentMovie.id)
+    if (wasInWatchlist) {
+      setIsInWatchlist(false)
+      
+      const internalMovieId = await ensureMovieInDb()
+      if (internalMovieId) {
+        await supabase
+          .from('user_watchlist')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('movie_id', internalMovieId)
+      }
+    } else {
+      setIsInWatchlist(true)
+      setIsWatched(false)
+      
+      const internalMovieId = await ensureMovieInDb()
+      if (internalMovieId) {
+        await supabase
+          .from('user_watchlist')
+          .upsert({
+            user_id: user.id,
+            movie_id: internalMovieId,
+            added_at: new Date().toISOString(),
+            status: 'want_to_watch',
+            added_from_recommendation: true,
+            mood_session_id: null,
+            source: 'hero_top_pick'
+          }, { onConflict: 'user_id,movie_id' })
 
-  const handleViewDetails = () => {
-    if (currentMovie?.id) nav(`/movie/${currentMovie.id}`)
-  }
-
-  // Toggle Watchlist status (UPDATED)
-// Toggle Watchlist status (FIXED)
-const toggleWatchlist = async () => {
-  if (!user || !currentMovie?.id) return
-
-  const movie = currentMovie
-  const tmdbId = movie.id
-  const wasInWatchlist = isInWatchlist
-
-  if (wasInWatchlist) {
-    // Remove from Watchlist
-    setWatchlistTmdbIds(prev => {
-      const n = new Set(prev)
-      n.delete(tmdbId)
-      return n
-    })
-
-    // Need internal movies.id to delete correctly
-    const internalMovieId = await ensureMovieInDb(movie)
-    if (internalMovieId) {
-      await supabase
-        .from('user_watchlist')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('movie_id', internalMovieId)   // ← key change: use internal ID
+        await supabase
+          .from('user_history')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('movie_id', internalMovieId)
+      }
     }
-  } else {
-    // Add to Watchlist
-    setWatchlistTmdbIds(prev => new Set(prev).add(tmdbId))
-    setWatchedTmdbIds(prev => {
-      const n = new Set(prev)
-      n.delete(tmdbId)
-      return n
-    })
+  }, [user, movie, isInWatchlist, ensureMovieInDb])
 
-    const internalMovieId = await ensureMovieInDb(movie)
-    if (internalMovieId) {
-      await supabase
-        .from('user_watchlist')
-        .upsert({
+  const toggleWatched = useCallback(async () => {
+    if (!user || !movie) return
+
+    if (isWatched) {
+      setIsWatched(false)
+      
+      const internalMovieId = await ensureMovieInDb()
+      if (internalMovieId) {
+        await supabase
+          .from('user_history')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('movie_id', internalMovieId)
+      }
+    } else {
+      setIsWatched(true)
+      setIsInWatchlist(false)
+      
+      const internalMovieId = await ensureMovieInDb()
+      if (internalMovieId) {
+        await supabase.from('user_history').insert({
           user_id: user.id,
           movie_id: internalMovieId,
-          added_at: new Date().toISOString(),
-          status: 'want_to_watch',
-          added_from_recommendation: true,
-          mood_session_id: null,
-          source: 'hero_slider'
-        }, { onConflict: 'user_id,movie_id' })
+          watched_at: new Date().toISOString(),
+          source: 'hero_top_pick',
+          watch_duration_minutes: null,
+          mood_session_id: null
+        })
 
-      // Optional: clean up history if it exists
-      await supabase
-        .from('user_history')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('movie_id', internalMovieId)
+        await supabase
+          .from('user_watchlist')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('movie_id', internalMovieId)
+      }
     }
-  }
-}
+  }, [user, movie, isWatched, ensureMovieInDb])
 
+  const handleClick = useCallback(() => {
+    navigate(`/movie/${movie.id}`)
+  }, [movie?.id, navigate])
 
-  // Toggle Watched status (UPDATED)
-const toggleWatched = async () => {
-  if (!user || !currentMovie?.id) return
-
-  const movie = currentMovie
-  const tmdbId = movie.id
-
-  if (isWatched) {
-    // Remove from Watched
-    setWatchedTmdbIds(prev => {
-      const n = new Set(prev)
-      n.delete(tmdbId)
-      return n
-    })
-
-    const internalMovieId = await ensureMovieInDb(movie)
-    if (internalMovieId) {
-      await supabase
-        .from('user_history')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('movie_id', internalMovieId)
-    }
-
-  } else {
-    // Add to Watched
-    setWatchedTmdbIds(prev => new Set(prev).add(tmdbId))
-    setWatchlistTmdbIds(prev => {
-      const n = new Set(prev)
-      n.delete(tmdbId)
-      return n
-    })
-
-    const internalMovieId = await ensureMovieInDb(movie)
-    if (internalMovieId) {
-      await supabase.from('user_history').insert({
-        user_id: user.id,
-        movie_id: internalMovieId,        // ← Use internal ID
-        watched_at: new Date().toISOString(),
-        source: 'hero_slider',
-        watch_duration_minutes: null,
-        mood_session_id: null
-      })
-
-      // Remove from watchlist
-      await supabase
-        .from('user_watchlist')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('movie_id', internalMovieId)
-    }
-  }
-}
-
-
-  if (loading && !slides.length) {
-    return null
-  }
-
-  if (!slides.length) return null
-
-  return (
-    <section
-        className={`relative w-full overflow-hidden bg-black  ${className}`}
-        style={{ marginTop: '-15px' }} // Adjust this value to match your header height
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
-        aria-label="Hero movie slider"
-        role="region"
-      >
-      {/* Background Images */}
-      <div
-        className="relative w-full h-[70vh] sm:h-[80vh] min-h-[500px] select-none"
-        aria-live="polite"
-        aria-atomic="true"
-      >
-        <div
-          className="relative w-full h-full"
-          style={{
-            transform: touchStart !== null ? `translateX(${dragOffset}px)` : 'translateX(0)',
-            transition: touchStart !== null ? 'none' : 'transform 0.3s ease-out'
-          }}
-        >
-          {slides.map((movie, idx) => {
-            const bg = tmdbImg(movie.backdrop_path || movie.poster_path, 'original')
-            const opacityClass = idx === currentIndex ? 'opacity-100 z-10 scale-100' : 'opacity-0 z-0 scale-105'
-            return (
-              <div
-                key={movie.id}
-                className={`absolute inset-0 transition-all duration-500 ease-out ${opacityClass}`}
-                aria-hidden={idx !== currentIndex}
-              >
-                <img
-                  src={bg}
-                  alt={`Backdrop image for ${movie.title}`}
-                  className="absolute inset-0 h-full w-full object-cover pointer-events-none"
-                  loading={idx === 0 ? 'eager' : 'lazy'}
-                  draggable={false}
-                />
-              </div>
-            )
-          })}
-        </div>
-
-        {/* Gradient overlays for better text readability */}
-        // Update gradient overlays - adjust top gradient to account for header
-        <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-black via-black/60 to-transparent z-20 pointer-events-none" />
-        <div className="absolute inset-y-0 left-0 w-full md:w-2/5 bg-gradient-to-r from-black via-black/50 to-transparent z-20 pointer-events-none" />
-        <div className="absolute bottom-0 inset-x-0 h-2/3 bg-gradient-to-t from-black via-black/80 to-transparent z-20 pointer-events-none" />
-
-        {/* Slide Content */}
-        // Update content positioning - add more top padding
-        <div className="absolute inset-0 z-30 flex flex-col justify-end pb-12 md:pb-16 lg:pb-20 pt-32 pointer-events-none">
-          <div className="w-full px-4 md:px-12 lg:px-16 xl:px-20 pointer-events-auto max-w-3xl">
-              <h1 className="text-white font-black tracking-tight leading-[0.95] text-3xl sm:text-4xl md:text-5xl lg:text-6xl drop-shadow-2xl mb-3 md:mb-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                {currentMovie?.title}
-              </h1>
-
-              <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-3 md:mb-4 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100" aria-label="Movie ratings and genres">
-                {currentMovie?.vote_average > 0 && (
-                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-400/30 backdrop-blur-md shadow-lg" aria-label={`Rating: ${currentMovie.vote_average.toFixed(1)} stars`}>
-                    <span className="text-purple-300 text-xs md:text-sm font-bold" aria-hidden="true">★</span>
-                    <span className="text-white font-bold text-[10px] md:text-xs">{currentMovie.vote_average.toFixed(1)}</span>
-                  </div>
-                )}
-                {currentMovie?.release_date && (
-                  <span className="text-white/90 font-bold text-xs md:text-sm drop-shadow-lg" aria-label={`Release Year: ${new Date(currentMovie.release_date).getFullYear()}`}>
-                    {new Date(currentMovie.release_date).getFullYear()}
-                  </span>
-                )}
-                <span className="px-1.5 py-0.5 rounded border border-white/30 text-white/90 text-[10px] font-bold backdrop-blur-sm" aria-label="4K resolution available">
-                  4K
-                </span>
-                {currentMovie?.genres?.slice(0, 2).map(genre => (
-                  <span key={genre} className="text-white/80 text-xs font-medium drop-shadow-md" aria-label={`Genre: ${genre}`}>
-                    {genre}
-                  </span>
-                ))}
-              </div>
-
-              {currentMovie?.overview && (
-                <p
-                  className="hidden md:block text-white/90 text-sm leading-relaxed line-clamp-3 drop-shadow-xl mb-5 md:mb-6 max-w-xl font-medium animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200"
-                  aria-label="Movie overview"
-                >
-                  {currentMovie.overview}
-                </p>
-              )}
-
-              <div className="flex flex-wrap items-center gap-3 md:gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
-                <button
-                  onClick={handleViewDetails}
-                  aria-label={`View details about ${currentMovie?.title}`}
-                  className="group inline-flex items-center justify-center gap-2 rounded-lg md:rounded-xl px-6 py-2.5 md:py-3 text-sm font-bold text-white transition-all hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-purple-500/30 shadow-2xl shadow-purple-900/40 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500"
-                  type="button"
-                >
-                  <Info className="h-4 w-4 group-hover:scale-110 transition-transform" />
-                  <span>View Details</span>
-                </button>
-
-                {user && (
-                  <>
-                    <div className="relative group/tooltip">
-                      <button
-                        onClick={toggleWatchlist}
-                        aria-pressed={isInWatchlist}
-                        aria-label={isInWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}
-                        className={`inline-flex items-center justify-center h-[42px] md:h-[48px] w-[42px] md:w-[48px] rounded-lg md:rounded-xl text-white transition-all hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-white/20 backdrop-blur-md border shadow-xl ${
-                          isInWatchlist
-                            ? 'bg-purple-500/20 border-purple-500 text-purple-300'
-                            : 'bg-white/10 hover:bg-white/20 border-white/20'
-                        }`}
-                        type="button"
-                      >
-                        {isInWatchlist ? <Check className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
-                      </button>
-                      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs font-medium text-white bg-black/80 rounded-md opacity-0 group-hover/tooltip:opacity-100 transition-opacity whitespace-nowrap pointer-events-none select-none">
-                        {isInWatchlist ? 'In Watchlist' : 'Add to Watchlist'}
-                      </span>
-                    </div>
-
-                    <div className="relative group/tooltip">
-                      <button
-                        onClick={toggleWatched}
-                        aria-pressed={isWatched}
-                        aria-label={isWatched ? 'Mark as Unwatched' : 'Mark as Watched'}
-                        className={`inline-flex items-center justify-center h-[42px] md:h-[48px] w-[42px] md:w-[48px] rounded-lg md:rounded-xl text-white transition-all hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-white/20 backdrop-blur-md border shadow-xl ${
-                          isWatched
-                            ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300'
-                            : 'bg-white/10 hover:bg-white/20 border-white/20'
-                        }`}
-                        type="button"
-                      >
-                        {isWatched ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
-                      </button>
-                      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs font-medium text-white bg-black/80 rounded-md opacity-0 group-hover/tooltip:opacity-100 transition-opacity whitespace-nowrap pointer-events-none select-none">
-                        {isWatched ? 'Mark as Unwatched' : 'Already Watched'}
-                      </span>
-                    </div>
-                  </>
-                )}
-              </div>
+  if (loading) {
+    return (
+      <section className="relative px-4 sm:px-6 lg:px-12 mt-12 mb-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center gap-3 mb-6">
+            <Loader2 className="h-5 w-5 text-purple-400 animate-spin" />
+            <span className="text-white/60 text-sm font-medium">Finding your perfect match...</span>
+          </div>
+          <div className="flex flex-col lg:flex-row gap-6 lg:gap-10">
+            <div className="w-full max-w-[280px] sm:max-w-[320px] lg:w-[320px] aspect-[2/3] bg-white/5 rounded-lg animate-pulse" />
+            <div className="flex-1 space-y-4">
+              <div className="h-8 w-48 bg-white/5 rounded animate-pulse" />
+              <div className="h-12 w-3/4 bg-white/5 rounded animate-pulse" />
+              <div className="h-20 w-full bg-white/5 rounded animate-pulse" />
+            </div>
           </div>
         </div>
+      </section>
+    )
+  }
 
-        {/* Navigation buttons */}
-        <button
-          onClick={prevSlide}
-          disabled={isTransitioning}
-          aria-label="Previous slide"
-          className="hidden lg:flex absolute left-4 xl:left-8 top-1/2 -translate-y-1/2 z-40 items-center justify-center h-12 w-12 rounded-full bg-black/30 backdrop-blur-sm text-white/60 transition-all hover:bg-black/60 hover:text-white opacity-0 hover:opacity-100 group-hover:opacity-100 active:scale-95 disabled:opacity-0 focus:outline-none"
-          type="button"
-        >
-          <svg className="h-6 w-6 stroke-current stroke-[2.5]" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
+  if (error || !movie) return null
 
-        <button
-          onClick={nextSlide}
-          disabled={isTransitioning}
-          aria-label="Next slide"
-          className="hidden lg:flex absolute right-4 xl:right-8 top-1/2 -translate-y-1/2 z-40 items-center justify-center h-12 w-12 rounded-full bg-black/30 backdrop-blur-sm text-white/60 transition-all hover:bg-black/60 hover:text-white opacity-0 hover:opacity-100 group-hover:opacity-100 active:scale-95 disabled:opacity-0 focus:outline-none"
-          type="button"
-        >
-          <svg className="h-6 w-6 stroke-current stroke-[2.5]" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
+  const year = movie.release_date ? new Date(movie.release_date).getFullYear() : null
+  const rating = movie.vote_average > 0 ? movie.vote_average : 0
+  const ratingPercent = Math.round(rating * 10)
+  const circumference = 2 * Math.PI * 24
 
-        {/* Slide indicators */}
-        <div className="absolute bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2" role="tablist" aria-label="Slide navigation">
-          {slides.map((_, idx) => (
+  return (
+    <section className="relative px-4 sm:px-6 lg:px-12 mt-12 mb-8 overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-900/10 via-transparent to-pink-900/10 pointer-events-none" />
+      
+      <div className="relative max-w-7xl mx-auto">
+        <div className="flex items-center gap-2 mb-4">
+          <Sparkles className="h-4 w-4 text-purple-400" />
+          <span className="text-xs font-bold uppercase tracking-widest text-purple-400">
+            Tonight's Top Pick For You
+          </span>
+        </div>
+
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-10">
+          <div className="flex flex-col">
             <button
-              key={idx}
-              onClick={() => goToSlide(idx)}
-              aria-label={`Go to slide ${idx + 1}`}
-              aria-selected={idx === currentIndex}
-              role="tab"
-              className={`transition-all duration-500 focus:outline-none focus:ring-2 focus:ring-white/50 rounded-full ${
-                idx === currentIndex
-                  ? 'h-1.5 w-8 bg-white shadow-lg shadow-white/30'
-                  : 'h-1.5 w-1.5 bg-white/40 hover:bg-white/70 hover:w-2'
-              }`}
-              type="button"
-            />
-          ))}
+              onClick={handleClick}
+              className="group relative w-full max-w-[280px] sm:max-w-[320px] lg:w-[320px] flex-shrink-0 rounded-lg overflow-hidden focus:outline-none focus:ring-4 focus:ring-purple-500/50 transition-all mb-4"
+              aria-label={`View details for ${movie.title}`}
+            >
+              <div className="aspect-[2/3] bg-neutral-900 relative">
+                {!imageLoaded && (
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 to-pink-900/20 animate-pulse" />
+                )}
+                <img
+                  src={tmdbImg(movie.poster_path || movie.backdrop_path, 'w500')}
+                  alt={movie.title}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  loading="eager"
+                  onLoad={() => setImageLoaded(true)}
+                  style={{ opacity: imageLoaded ? 1 : 0 }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <div className="h-16 w-16 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-2xl">
+                    <Info className="h-7 w-7 text-black" />
+                  </div>
+                </div>
+              </div>
+            </button>
+
+            {providers?.streaming && (
+              
+                href={providers.link || '#'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full max-w-[280px] sm:max-w-[320px] lg:w-[320px] flex items-center gap-3 px-4 py-3 rounded-lg bg-[#1a2332] hover:bg-[#243142] border border-white/10 transition-colors group"
+              >
+                <img 
+                  src={`https://image.tmdb.org/t/p/w92${providers.streaming.logo_path}`}
+                  alt={providers.streaming.provider_name}
+                  className="h-10 w-10 rounded object-cover flex-shrink-0"
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-white/50 font-medium mb-0.5">Now Streaming</p>
+                  <p className="text-sm text-white font-bold group-hover:text-purple-400 transition-colors">Watch Now</p>
+                </div>
+              </a>
+            )}
+          </div>
+
+          <div className="flex-1 flex flex-col justify-center min-w-0">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white mb-3 leading-[1.1]">
+              {movie.title}
+            </h1>
+
+            <div className="flex flex-wrap items-center gap-2 text-sm text-white/70 mb-5">
+              {movie.certification && (
+                <span className="px-2 py-0.5 rounded border border-white/30 text-xs font-bold text-white/90">
+                  {movie.certification}
+                </span>
+              )}
+              {year && (
+                <span className="font-medium">{year}</span>
+              )}
+              {movie.genres?.slice(0, 3).map((genre, idx) => (
+                <span key={genre.id} className="flex items-center gap-2">
+                  {idx > 0 && <span className="text-white/40">•</span>}
+                  <span>{genre.name}</span>
+                </span>
+              ))}
+              {movie.runtime && (
+                <>
+                  <span className="text-white/40">•</span>
+                  <span>{Math.floor(movie.runtime / 60)}h {movie.runtime % 60}m</span>
+                </>
+              )}
+            </div>
+
+            <div className="flex items-center gap-6 mb-5">
+              <div className="flex items-center gap-3">
+                <div className="relative w-16 h-16">
+                  <svg className="w-full h-full transform -rotate-90">
+                    <circle
+                      cx="32"
+                      cy="32"
+                      r="24"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      fill="none"
+                      className="text-white/10"
+                    />
+                    <circle
+                      cx="32"
+                      cy="32"
+                      r="24"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      fill="none"
+                      strokeDasharray={circumference}
+                      strokeDashoffset={circumference * (1 - rating / 10)}
+                      className="text-emerald-400 transition-all duration-1000"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-white font-bold text-base">
+                      {ratingPercent}
+                      <sup className="text-[10px]">%</sup>
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-white text-xs font-bold leading-tight">User</p>
+                  <p className="text-white text-xs font-bold leading-tight">Score</p>
+                </div>
+              </div>
+
+              {movie.mood_match_percent && (
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-500/20 border border-emerald-400/30">
+                  <div>
+                    <p className="text-xs text-white/70 leading-tight">Your Vibe</p>
+                    <p className="text-sm font-black text-emerald-400">{movie.mood_match_percent}%</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3 mb-5">
+              <button
+                onClick={handleClick}
+                className="inline-flex items-center justify-center gap-2 rounded-lg px-6 py-3 text-sm font-bold text-white transition-all hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-purple-500/30 shadow-2xl shadow-purple-900/40 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500"
+              >
+                <Info className="h-4 w-4" />
+                <span>View Details</span>
+              </button>
+
+              {user && (
+                <>
+                  <div className="relative group/tooltip">
+                    <button
+                      onClick={toggleWatchlist}
+                      className={`inline-flex items-center justify-center h-12 w-12 rounded-lg text-white transition-all hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-white/20 backdrop-blur-md border shadow-xl ${
+                        isInWatchlist
+                          ? 'bg-purple-500/20 border-purple-500 text-purple-300'
+                          : 'bg-white/10 hover:bg-white/20 border-white/20'
+                      }`}
+                    >
+                      {isInWatchlist ? <Check className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
+                    </button>
+                    <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs font-medium text-white bg-black/80 rounded-md opacity-0 group-hover/tooltip:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                      {isInWatchlist ? 'In Watchlist' : 'Add to Watchlist'}
+                    </span>
+                  </div>
+
+                  <div className="relative group/tooltip">
+                    <button
+                      onClick={toggleWatched}
+                      className={`inline-flex items-center justify-center h-12 w-12 rounded-lg text-white transition-all hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-white/20 backdrop-blur-md border shadow-xl ${
+                        isWatched
+                          ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300'
+                          : 'bg-white/10 hover:bg-white/20 border-white/20'
+                      }`}
+                    >
+                      {isWatched ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
+                    </button>
+                    <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs font-medium text-white bg-black/80 rounded-md opacity-0 group-hover/tooltip:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                      {isWatched ? 'Mark as Unwatched' : 'Already Watched'}
+                    </span>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {movie.tagline && (
+              <p className="text-white/50 italic text-sm mb-5 font-medium">
+                {movie.tagline}
+              </p>
+            )}
+
+            <div className="mb-5">
+              <h2 className="text-white font-bold text-lg mb-2">Overview</h2>
+              {movie.overview && (
+                <p className="text-base text-white/80 leading-relaxed">
+                  {movie.overview}
+                </p>
+              )}
+            </div>
+
+            {movie.director && (
+              <div>
+                <h3 className="text-white font-bold text-base">{movie.director.name}</h3>
+                <p className="text-white/60 text-sm">Director{movie.director.roles?.includes('Writer') ? ', Writer' : ''}</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </section>

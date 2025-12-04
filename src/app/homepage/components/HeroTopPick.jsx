@@ -17,18 +17,13 @@ import { useNavigate } from 'react-router-dom'
 import { tmdbImg } from '@/shared/api/tmdb'
 import { useTopPick } from '@/shared/hooks/useRecommendations'
 import { supabase } from '@/shared/lib/supabase/client'
+import { useUserMovieStatus } from '@/shared/hooks/useUserMovieStatus'
 
 export default function HeroTopPick() {
   const { data: movie, loading, error } = useTopPick()
   const navigate = useNavigate()
   const [imageLoaded, setImageLoaded] = useState(false)
   const [user, setUser] = useState(null)
-  const [isInWatchlist, setIsInWatchlist] = useState(false)
-  const [isWatched, setIsWatched] = useState(false)
-  const [actionLoading, setActionLoading] = useState({
-    watchlist: false,
-    watched: false
-  })
 
   // Fetch current user
   useEffect(() => {
@@ -55,198 +50,14 @@ export default function HeroTopPick() {
     setImageLoaded(false)
   }, [movie?.id])
 
-  // Ensure movie exists in movies table and return internal movies.id
-  // (same pattern as HeroSlider)
-  const ensureMovieInDb = useCallback(async () => {
-    if (!movie) return null
-
-    try {
-      // First try to find an existing movie by tmdb_id
-      const { data: existing, error: existingError } = await supabase
-        .from('movies')
-        .select('id')
-        .eq('tmdb_id', movie.id)
-        .maybeSingle()
-
-      if (existingError) {
-        console.error('[HeroTopPick] Movie lookup error:', existingError)
-      }
-
-      if (existing?.id) {
-        return existing.id
-      }
-
-      // If not found, upsert and return the new internal id
-      const { data: inserted, error } = await supabase
-        .from('movies')
-        .upsert(
-          {
-            tmdb_id: movie.id,
-            title: movie.title,
-            original_title: movie.original_title,
-            overview: movie.overview,
-            poster_path: movie.poster_path,
-            backdrop_path: movie.backdrop_path,
-            release_date: movie.release_date || null,
-            vote_average: movie.vote_average,
-            vote_count: movie.vote_count,
-            popularity: movie.popularity,
-            original_language: movie.original_language,
-            json_data: movie
-          },
-          { onConflict: 'tmdb_id' }
-        )
-        .select('id')
-        .single()
-
-      if (error) {
-        console.error('[HeroTopPick] Movie upsert error:', error)
-        return null
-      }
-
-      return inserted?.id ?? null
-    } catch (err) {
-      console.error('[HeroTopPick] Movie upsert/lookup error:', err)
-      return null
-    }
-  }, [movie])
-
-  // Sync watchlist / watched state from DB using internal movies.id
-  useEffect(() => {
-    if (!user?.id || !movie?.id) return
-
-    let mounted = true
-
-    ;(async () => {
-      try {
-        const internalMovieId = await ensureMovieInDb()
-        if (!internalMovieId || !mounted) return
-
-        const [wlRes, whRes] = await Promise.all([
-          supabase
-            .from('user_watchlist')
-            .select('movie_id')
-            .eq('user_id', user.id)
-            .eq('movie_id', internalMovieId)
-            .maybeSingle(),
-          supabase
-            .from('user_history')
-            .select('movie_id')
-            .eq('user_id', user.id)
-            .eq('movie_id', internalMovieId)
-            .maybeSingle()
-        ])
-
-        if (!mounted) return
-
-        setIsInWatchlist(Boolean(wlRes.data))
-        setIsWatched(Boolean(whRes.data))
-      } catch (err) {
-        console.error('[HeroTopPick] Status sync error:', err)
-      }
-    })()
-
-    return () => {
-      mounted = false
-    }
-  }, [user?.id, movie?.id, ensureMovieInDb])
-
-  // Toggle Watchlist (user_watchlist + user_history, internal movies.id)
-  const toggleWatchlist = useCallback(async () => {
-    if (!user || !movie || actionLoading.watchlist) return
-
-    setActionLoading(prev => ({ ...prev, watchlist: true }))
-
-    try {
-      const internalMovieId = await ensureMovieInDb()
-      if (!internalMovieId) return
-
-      if (isInWatchlist) {
-        // Remove from watchlist
-        setIsInWatchlist(false)
-
-        await supabase
-          .from('user_watchlist')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('movie_id', internalMovieId)
-      } else {
-        // Add to watchlist and remove from watched
-        setIsInWatchlist(true)
-        setIsWatched(false)
-
-        // IMPORTANT: match the "simple" payload that used to work
-        await supabase
-          .from('user_watchlist')
-          .upsert(
-            {
-              user_id: user.id,
-              movie_id: internalMovieId,
-              added_at: new Date().toISOString(),
-              status: 'want_to_watch'
-            },
-            { onConflict: 'user_id,movie_id' }
-          )
-
-        // Clean up history if it exists
-        await supabase
-          .from('user_history')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('movie_id', internalMovieId)
-      }
-    } catch (err) {
-      console.error('[HeroTopPick] Watchlist error:', err)
-    } finally {
-      setActionLoading(prev => ({ ...prev, watchlist: false }))
-    }
-  }, [user, movie, actionLoading.watchlist, isInWatchlist, ensureMovieInDb])
-
-  // Toggle Watched (user_history + user_watchlist, internal movies.id)
-  const toggleWatched = useCallback(async () => {
-    if (!user || !movie || actionLoading.watched) return
-
-    setActionLoading(prev => ({ ...prev, watched: true }))
-
-    try {
-      const internalMovieId = await ensureMovieInDb()
-      if (!internalMovieId) return
-
-      if (isWatched) {
-        // Remove from watched
-        setIsWatched(false)
-
-        await supabase
-          .from('user_history')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('movie_id', internalMovieId)
-      } else {
-        // Add to watched and remove from watchlist
-        setIsWatched(true)
-        setIsInWatchlist(false)
-
-        await supabase.from('user_history').insert({
-          user_id: user.id,
-          movie_id: internalMovieId,
-          watched_at: new Date().toISOString(),
-          source: 'hero_top_pick',
-          watch_duration_minutes: null,
-          mood_session_id: null
-        })
-
-        await supabase
-          .from('user_watchlist')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('movie_id', internalMovieId)
-      }
-    } catch (err) {
-      console.error('[HeroTopPick] Watched error:', err)
-    } finally {
-      setActionLoading(prev => ({ ...prev, watched: false }))
-    }
-  }, [user, movie, actionLoading.watched, isWatched, ensureMovieInDb])
+  // Shared watchlist / watched logic (backed by movies, user_watchlist, user_history)
+  const {
+    isInWatchlist,
+    isWatched,
+    loading: actionLoading,
+    toggleWatchlist,
+    toggleWatched
+  } = useUserMovieStatus({ user, movie, source: 'hero_top_pick' })
 
   const handleClick = useCallback(() => {
     if (!movie?.id) return

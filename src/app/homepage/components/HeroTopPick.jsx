@@ -1,4 +1,3 @@
-// src/app/homepage/components/HeroTopPick.jsx
 import { useEffect, useState, useCallback, useRef } from 'react'
 import {
   Loader2,
@@ -7,7 +6,8 @@ import {
   Eye,
   EyeOff,
   Bookmark,
-  ChevronRight
+  ChevronRight,
+  Star
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { tmdbImg } from '@/shared/api/tmdb'
@@ -49,23 +49,28 @@ function Tooltip({ children, label }) {
 export default function HeroTopPick() {
   const navigate = useNavigate()
 
-  // Local UI state
+  // Accumulated TMDB IDs the user has said "not tonight" to
+  const [skippedTmdbIds, setSkippedTmdbIds] = useState([])
   const [posterLoaded, setPosterLoaded] = useState(false)
   const [backdropLoaded, setBackdropLoaded] = useState(false)
   const [revealed, setRevealed] = useState(false)
   const [user, setUser] = useState(null)
-  const [providers, setProviders] = useState(null)
-  const [excludeId, setExcludeId] = useState(null)
   const [isSwitching, setIsSwitching] = useState(false)
 
-  // Top pick, with ability to exclude a tmdb_id
+  // Streaming providers (from TMDB / JustWatch)
+  const [providers, setProviders] = useState(null)
+  const [providersLoading, setProvidersLoading] = useState(false)
+
+  // Top pick for user, respecting skipped IDs
   const {
     data: movie,
     loading,
     error
-  } = useTopPick({ excludeTmdbId: excludeId })
+  } = useTopPick({
+    excludeTmdbIds: skippedTmdbIds,
+  })
 
-  // Auth
+  // Auth (for feedback + watchlist/watched actions)
   useEffect(() => {
     let mounted = true
     supabase.auth.getUser().then(({ data: { user: u } }) => {
@@ -76,16 +81,16 @@ export default function HeroTopPick() {
     }
   }, [])
 
-  // Reset on movie change
+  // Reset visual state when movie changes
   useEffect(() => {
     setPosterLoaded(false)
     setBackdropLoaded(false)
     setRevealed(false)
     setProviders(null)
-    setIsSwitching(false)
+    setIsSwitching(false) // re-enable "Show another"
   }, [movie?.id])
 
-  // Staggered reveal
+  // Staggered reveal of content once image is loaded
   useEffect(() => {
     if (posterLoaded || backdropLoaded) {
       const t = setTimeout(() => setRevealed(true), 100)
@@ -93,7 +98,7 @@ export default function HeroTopPick() {
     }
   }, [posterLoaded, backdropLoaded])
 
-  // Fetch watch providers from TMDB (JustWatch under the hood)
+  // Fetch watch providers (JustWatch via TMDB)
   useEffect(() => {
     const tmdbId = movie?.tmdb_id || movie?.id
     if (!tmdbId || !TMDB_API_KEY) {
@@ -105,23 +110,36 @@ export default function HeroTopPick() {
 
     async function loadProviders() {
       try {
+        setProvidersLoading(true)
+
         const res = await fetch(
           `https://api.themoviedb.org/3/movie/${tmdbId}/watch/providers?api_key=${TMDB_API_KEY}`
         )
 
         if (!res.ok) {
           console.error('Failed to fetch watch providers', res.status)
-          if (!cancelled) setProviders(null)
+          if (!cancelled) {
+            setProviders(null)
+          }
           return
         }
 
         const data = await res.json()
-        const regionData = data?.results?.CA || data?.results?.US || null
 
-        if (!cancelled) setProviders(regionData)
+        // Prefer CA, then US as fallback
+        const regionData =
+          data?.results?.CA ||
+          data?.results?.US ||
+          null
+
+        if (!cancelled) {
+          setProviders(regionData)
+        }
       } catch (err) {
         console.error('Error fetching watch providers', err)
         if (!cancelled) setProviders(null)
+      } finally {
+        if (!cancelled) setProvidersLoading(false)
       }
     }
 
@@ -149,52 +167,76 @@ export default function HeroTopPick() {
 
   // Feedback logger
   const logFeedback = useCallback(
-    async ({ feedbackType }) => {
-      if (!user || !movie) return false
+    async ({ feedbackType, feedbackValue = null }) => {
+      if (!user || !movie) return
+
+      const tmdbId = movie.tmdb_id || movie.id
+      if (!tmdbId) return
 
       const payload = {
         user_id: user.id,
-        tmdb_id: movie.tmdb_id || movie.id,
+        tmdb_id: tmdbId,
         feedback_type: feedbackType,
-        source: 'hero_top_pick',
+        feedback_value: feedbackValue,
         page: 'home',
-        placement: 'hero'
+        placement: 'hero_top_pick',
+        position: 0,
+        mood_id: null,
+        viewing_context: null,
+        experience_type: null,
+        algo_version: 'hero_v1',
+        recommendation_score: movie.recommendation_score ?? null,
+        reason_seed_tmdb_id: movie.reason_seed_tmdb_id ?? null,
+        session_id: null,
+        experiment_key: null,
+        experiment_variant: null,
+        meta: {
+          source: 'hero_top_pick',
+          vote_average: movie.vote_average ?? null,
+          runtime: movie.runtime ?? null,
+          skipped_tmdb_ids: skippedTmdbIds,
+        },
       }
 
-      try {
-        const { error } = await supabase
-          .from('user_movie_feedback')
-          .insert(payload)
+      const { data, error: insertError } = await supabase
+        .from('user_movie_feedback')
+        .insert(payload)
+        .select('id')
+        .maybeSingle()
 
-        if (error) {
-          console.error('[HeroTopPick] feedback insert error', error)
-          return false
-        }
-        return true
-      } catch (err) {
-        console.error('[HeroTopPick] feedback insert failed', err)
-        return false
+      if (insertError) {
+        console.error('[HeroTopPick] feedback insert error', insertError)
+      } else {
+        console.debug('[HeroTopPick] feedback logged', data)
       }
     },
-    [user, movie]
+    [user, movie, skippedTmdbIds]
   )
 
-  // "Show another pick" behaviour
+  // "Not tonight / Show another pick" behaviour
   const handleShowAnother = useCallback(() => {
-    if (!user || !movie || isSwitching) return
+    if (!movie || isSwitching) return
+
+    const tmdbId = movie.tmdb_id || movie.id
+    if (!tmdbId) return
 
     setIsSwitching(true)
-    setRevealed(false) // fade out current hero
 
-    // Fire-and-forget feedback
-    logFeedback({ feedbackType: 'hero_skip_not_tonight' })
+    // Accumulate skipped IDs for this session (even for guests)
+    setSkippedTmdbIds((prev) => {
+      const n = Number(tmdbId)
+      if (prev.includes(n)) return prev
+      return [...prev, n]
+    })
 
-    // Tell useTopPick to exclude this tmdb_id next time
-    setExcludeId(movie.tmdb_id || movie.id)
-  }, [user, movie, isSwitching, logFeedback])
+    // Only log feedback if we actually know the user
+    if (user) {
+      logFeedback({ feedbackType: 'hero_skip_not_tonight' })
+    }
+  }, [movie, isSwitching, user, logFeedback])
 
-  // Only show skeleton when we truly have nothing yet
-  if (loading && !movie) {
+  // Loading state
+  if (loading) {
     return (
       <section className="relative w-full h-[75vh] min-h-[500px] max-h-[800px] bg-black">
         <div className="absolute inset-0 bg-gradient-to-br from-purple-950/30 via-black to-black" />
@@ -225,8 +267,9 @@ export default function HeroTopPick() {
   const year = movie.release_date ? new Date(movie.release_date).getFullYear() : null
   const hours = movie.runtime ? Math.floor(movie.runtime / 60) : 0
   const mins = movie.runtime ? movie.runtime % 60 : 0
-  const rating = movie.vote_average > 0 ? movie.vote_average : 0
-  const ratingPercent = Math.round(rating * 10)
+  const rating = typeof movie.vote_average === 'number'
+    ? movie.vote_average.toFixed(1)
+    : null
 
   return (
     <section className="relative w-full h-[75vh] min-h-[500px] max-h-[800px] overflow-hidden bg-black">
@@ -256,9 +299,7 @@ export default function HeroTopPick() {
             className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
               backdropLoaded ? 'opacity-100' : 'opacity-0'
             }`}
-            style={{
-              objectPosition: '70% 20%'
-            }}
+            style={{ objectPosition: '70% 20%' }}
             onLoad={() => setBackdropLoaded(true)}
           />
         )}
@@ -267,11 +308,9 @@ export default function HeroTopPick() {
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-r from-black via-black/60 to-transparent" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_20%_80%,rgba(0,0,0,0.9),transparent)]" />
-
-        {/* Subtle color wash */}
         <div className="absolute inset-0 bg-gradient-to-br from-purple-950/10 via-transparent to-rose-950/10 mix-blend-overlay" />
 
-        {/* Film grain texture */}
+        {/* Film grain */}
         <div
           className="absolute inset-0 opacity-[0.015]"
           style={{
@@ -291,10 +330,7 @@ export default function HeroTopPick() {
             }`}
           >
             <button
-              onClick={() => {
-                logFeedback({ feedbackType: 'hero_poster_click' })
-                goToDetails()
-              }}
+              onClick={goToDetails}
               className="group relative w-[180px] lg:w-[240px] xl:w-[260px] rounded-lg overflow-hidden shadow-2xl shadow-black/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-4 focus-visible:ring-offset-black transition-transform duration-500 hover:scale-[1.02]"
               aria-label={`View ${movie.title}`}
             >
@@ -320,20 +356,16 @@ export default function HeroTopPick() {
                   onLoad={() => setPosterLoaded(true)}
                 />
 
+                {/* Hover overlay */}
                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                  <span className="text-white text-sm font-semibold">View Details</span>
+                  <span className="text-white text-sm font-semibold">View details</span>
                 </div>
               </div>
             </button>
 
             {/* Provider badge */}
             {providers?.flatrate?.[0] && (
-              <button
-                type="button"
-                onClick={() => {
-                  logFeedback({ feedbackType: 'hero_provider_click' })
-                  goToDetails()
-                }}
+              <div
                 className={`mt-3 flex items-center gap-2.5 px-3 py-2 rounded-lg bg-white/[0.03] backdrop-blur-sm border border-white/[0.06] transition-all duration-700 delay-100 ${
                   revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
                 }`}
@@ -343,7 +375,7 @@ export default function HeroTopPick() {
                   alt={providers.flatrate[0].provider_name}
                   className="h-8 w-8 rounded object-cover"
                 />
-                <div className="min-w-0 text-left">
+                <div className="min-w-0">
                   <p className="text-[9px] uppercase tracking-widest text-white/30 font-medium">
                     Streaming on
                   </p>
@@ -351,7 +383,7 @@ export default function HeroTopPick() {
                     {providers.flatrate[0].provider_name}
                   </p>
                 </div>
-              </button>
+              </div>
             )}
           </div>
 
@@ -366,55 +398,51 @@ export default function HeroTopPick() {
               {movie.title}
             </h1>
 
-            {/* Metadata pills */}
+            {/* Metadata row: year · rating · runtime */}
             <div
               className={`flex flex-wrap items-center gap-2 sm:gap-2.5 mb-4 sm:mb-5 transition-all duration-700 delay-100 ${
                 revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
               }`}
             >
-              {/* Rating */}
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/10 backdrop-blur-sm">
-                <div className="w-2 h-2 rounded-full bg-emerald-400" />
-                <span className="text-xs font-bold text-white tabular-nums">
-                  {rating.toFixed(1)} / 10
-                </span>
-                <span className="text-[10px] text-white/50">TMDB</span>
-              </div>
-
-              {movie.certification && (
-                <span className="px-2 py-1 rounded bg-white/10 text-[11px] font-bold text-white/90 backdrop-blur-sm">
-                  {movie.certification}
+              {year && (
+                <span className="text-xs text-white/60 font-medium">
+                  {year}
                 </span>
               )}
 
-              {year && <span className="text-xs text-white/50 font-medium">{year}</span>}
-
-              {/* Genres (string array or objects) */}
-              {(Array.isArray(movie.genres) ? movie.genres : [])
-                .slice(0, 2)
-                .map((g, i) => {
-                  const name = typeof g === 'string' ? g : g?.name
-                  if (!name) return null
-                  return (
-                    <span key={`${name}-${i}`} className="text-xs text-white/50 font-medium">
-                      {i > 0 || year ? <span className="mr-2 text-white/20">•</span> : null}
-                      {name}
-                    </span>
-                  )
-                })}
+              {rating && (
+                <span className="inline-flex items-center gap-1 text-xs text-white/80 font-medium">
+                  {year && <span className="text-white/25">•</span>}
+                  <Star className="h-3 w-3 fill-current text-yellow-300" />
+                  <span>{rating}</span>
+                </span>
+              )}
 
               {movie.runtime > 0 && (
-                <span className="text-xs text-white/50 font-medium">
-                  <span className="mr-2 text-white/20">•</span>
+                <span className="text-xs text-white/60 font-medium">
+                  {(year || rating) && <span className="mr-2 text-white/25">•</span>}
                   {hours > 0 && `${hours}h `}
                   {mins}m
                 </span>
               )}
 
+              {/* Genres (first two) */}
+              {Array.isArray(movie.genres) &&
+                movie.genres.slice(0, 2).map((g, idx) => (
+                  <span
+                    key={g.id || g.name || idx}
+                    className="inline-flex items-center text-xs text-white/60 font-medium"
+                  >
+                    <span className="mx-1 text-white/25">•</span>
+                    {g.name || g}
+                  </span>
+                ))}
+
+              {/* Mood match badge if present */}
               {movie.mood_match_percent && (
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/20">
+                <div className="ml-1 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/20">
                   <span className="text-[10px] text-emerald-400/80 font-medium">
-                    Vibe Match
+                    Vibe match
                   </span>
                   <span className="text-xs font-bold text-emerald-400">
                     {movie.mood_match_percent}%
@@ -436,120 +464,95 @@ export default function HeroTopPick() {
 
             {/* Actions */}
             <div
-              className={`flex flex-wrap items-center gap-2.5 sm:gap-3 transition-all duration-700 delay-200 ${
+              className={`flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between transition-all duration-700 delay-200 ${
                 revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
               }`}
             >
-              {/* Primary: View Details */}
-              <button
-                onClick={() => {
-                  logFeedback({ feedbackType: 'hero_view_details' })
-                  goToDetails()
-                }}
-                className="group inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full bg-white text-black font-semibold text-sm transition-all duration-300 hover:bg-white/90 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-              >
-                <span>View Details</span>
-                <ChevronRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
-              </button>
-
-              {/* Secondary: Trailer */}
-              {movie.trailer_url && (
+              <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
+                {/* Primary: View Details */}
                 <button
-                  onClick={() => {
-                    logFeedback({ feedbackType: 'hero_play_trailer' })
-                    playTrailer()
-                  }}
-                  className="group inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full bg-white/10 hover:bg-white/15 backdrop-blur-sm border border-white/10 hover:border-white/20 text-white font-semibold text-sm transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                  onClick={goToDetails}
+                  className="group inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full bg-white text-black font-semibold text-sm transition-all duration-300 hover:bg-white/90 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
                 >
-                  <Play className="h-4 w-4 fill-current" />
-                  <span>Trailer</span>
+                  <span>View details</span>
+                  <ChevronRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
                 </button>
-              )}
 
-              {/* Icon actions - Watchlist & Watched */}
-              {user && (
-                <div className="flex items-center gap-2 ml-1">
-                  <Tooltip label={isInWatchlist ? 'In Watchlist' : 'Add to Watchlist'}>
-                    <button
-                      onClick={() => {
-                        logFeedback({
-                          feedbackType: isInWatchlist
-                            ? 'hero_remove_watchlist'
-                            : 'hero_add_watchlist'
-                        })
-                        toggleWatchlist()
-                      }}
-                      disabled={actionLoading.watchlist}
-                      className={`h-10 w-10 sm:h-11 sm:w-11 rounded-full border backdrop-blur-sm transition-all duration-300 flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95 ${
-                        isInWatchlist
-                          ? 'bg-purple-500/30 border-purple-400/50 text-purple-300 focus-visible:ring-purple-400'
-                          : 'bg-white/5 hover:bg-white/10 border-white/10 hover:border-white/20 text-white focus-visible:ring-white/50'
-                      }`}
-                    >
-                      {actionLoading.watchlist ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : isInWatchlist ? (
-                        <Check className="h-4 w-4" />
-                      ) : (
-                        <Bookmark className="h-4 w-4" />
-                      )}
-                    </button>
-                  </Tooltip>
+                {/* Secondary: Trailer */}
+                {movie.trailer_url && (
+                  <button
+                    onClick={playTrailer}
+                    className="group inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full bg-white/10 hover:bg-white/15 backdrop-blur-sm border border-white/10 hover:border-white/20 text-white font-semibold text-sm transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                  >
+                    <Play className="h-4 w-4 fill-current" />
+                    <span>Trailer</span>
+                  </button>
+                )}
 
-                  <Tooltip label={isWatched ? 'Watched' : 'Mark Watched'}>
-                    <button
-                      onClick={() => {
-                        logFeedback({
-                          feedbackType: isWatched
-                            ? 'hero_unmark_watched'
-                            : 'hero_mark_watched'
-                        })
-                        toggleWatched()
-                      }}
-                      disabled={actionLoading.watched}
-                      className={`h-10 w-10 sm:h-11 sm:w-11 rounded-full border backdrop-blur-sm transition-all duration-300 flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95 ${
-                        isWatched
-                          ? 'bg-emerald-500/30 border-emerald-400/50 text-emerald-300 focus-visible:ring-emerald-400'
-                          : 'bg-white/5 hover:bg-white/10 border-white/10 hover:border-white/20 text-white focus-visible:ring-white/50'
-                      }`}
-                    >
-                      {actionLoading.watched ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : isWatched ? (
-                        <Eye className="h-4 w-4" />
-                      ) : (
-                        <EyeOff className="h-4 w-4" />
-                      )}
-                    </button>
-                  </Tooltip>
+                {/* Icon actions - Watchlist & Watched */}
+                {user && (
+                  <div className="flex items-center gap-2 ml-1">
+                    <Tooltip label={isInWatchlist ? 'In watchlist' : 'Add to watchlist'}>
+                      <button
+                        onClick={toggleWatchlist}
+                        disabled={actionLoading.watchlist}
+                        className={`h-10 w-10 sm:h-11 sm:w-11 rounded-full border backdrop-blur-sm transition-all duration-300 flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95 ${
+                          isInWatchlist
+                            ? 'bg-purple-500/30 border-purple-400/50 text-purple-300 focus-visible:ring-purple-400'
+                            : 'bg-white/5 hover:bg-white/10 border-white/10 hover:border-white/20 text-white focus-visible:ring-white/50'
+                        }`}
+                      >
+                        {actionLoading.watchlist ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : isInWatchlist ? (
+                          <Check className="h-4 w-4" />
+                        ) : (
+                          <Bookmark className="h-4 w-4" />
+                        )}
+                      </button>
+                    </Tooltip>
 
-                  {/* Tertiary: Show another pick */}
-              {user && (
+                    <Tooltip label={isWatched ? 'Watched' : 'Mark watched'}>
+                      <button
+                        onClick={toggleWatched}
+                        disabled={actionLoading.watched}
+                        className={`h-10 w-10 sm:h-11 sm:w-11 rounded-full border backdrop-blur-sm transition-all duration-300 flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95 ${
+                          isWatched
+                            ? 'bg-emerald-500/30 border-emerald-400/50 text-emerald-300 focus-visible:ring-emerald-400'
+                            : 'bg-white/5 hover:bg-white/10 border-white/10 hover:border-white/20 text-white focus-visible:ring-white/50'
+                        }`}
+                      >
+                        {actionLoading.watched ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : isWatched ? (
+                          <Eye className="h-4 w-4" />
+                        ) : (
+                          <EyeOff className="h-4 w-4" />
+                        )}
+                      </button>
+                    </Tooltip>
+                  </div>
+                )}
+              </div>
+
+              {/* "Not tonight / Show another" */}
+              <div className="flex items-center justify-start sm:justify-end">
                 <button
-                  type="button"
                   onClick={handleShowAnother}
-                  disabled={isSwitching}
-                  className={`inline-flex items-center gap-1.5 px-4 sm:px-5 py-2.5 sm:py-3 rounded-full border text-xs sm:text-sm font-medium transition-all duration-300 ${
-                    isSwitching
-                      ? 'bg-white/5 border-white/20 text-white/60 cursor-wait'
-                      : 'bg-transparent border-white/20 text-white/70 hover:bg-white/10 hover:text-white'
-                  }`}
+                  disabled={isSwitching || loading}
+                  className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs text-white/60 hover:text-white/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
-                  {isSwitching ? (
-                    <>
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      <span>Finding another</span>
-                    </>
-                  ) : (
-                    <span>Show another</span>
-                  )}
+                  <span className="h-1 w-1 rounded-full bg-white/40" />
+                  <span>
+                    {isSwitching
+                      ? 'Finding another pick for you...'
+                      : 'Not feeling this one? Show another'}
+                  </span>
                 </button>
-              )}
-                </div>
-              )}
+              </div>
             </div>
 
-            {/* Director - subtle */}
+            {/* Director */}
             {movie.director && (
               <p
                 className={`mt-4 sm:mt-5 text-xs text-white/40 transition-all duration-700 delay-300 ${
@@ -564,7 +567,7 @@ export default function HeroTopPick() {
         </div>
       </div>
 
-      {/* Bottom fade for seamless transition to content below */}
+      {/* Bottom fade */}
       <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black to-transparent pointer-events-none" />
     </section>
   )

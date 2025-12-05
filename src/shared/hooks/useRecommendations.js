@@ -201,7 +201,7 @@ export function useAllRecommendations(options = {}) {
  * Homepage hero hook - top pick for the user
  */
 export function useTopPick(options = {}) {
-  const { enabled = true, excludeTmdbId = null } = options
+  const { enabled = true, excludeTmdbIds = [] } = options
   const userId = useUserId()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -210,6 +210,7 @@ export function useTopPick(options = {}) {
   useEffect(() => {
     if (!enabled || !userId) {
       setLoading(false)
+      setData(null)
       return
     }
 
@@ -219,10 +220,12 @@ export function useTopPick(options = {}) {
       try {
         setLoading(true)
         setError(null)
+
         const topPick = await recommendationService.getTopPickForUser(userId, {
           signal: controller.signal,
-          excludeTmdbId,
+          excludeTmdbIds,
         })
+
         setData(topPick)
       } catch (err) {
         if (err.name !== 'AbortError') {
@@ -237,10 +240,11 @@ export function useTopPick(options = {}) {
     fetchTopPick()
 
     return () => controller.abort()
-  }, [userId, enabled, excludeTmdbId])
+  }, [userId, enabled, JSON.stringify(excludeTmdbIds)])
 
   return { data, loading, error }
 }
+
 
 
 /**

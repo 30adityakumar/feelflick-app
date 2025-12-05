@@ -355,82 +355,159 @@ export async function getFallbackRecommendations(options = {}) {
   }
 }
 
+// src/shared/services/recommendations.js
+
 export async function getTopPickForUser(userId, options = {}) {
-  const { signal } = options
+  const { signal, excludeTmdbId = null } = options
 
   try {
-    let topPick = null
+    // 1) Pull multiple rec sources in parallel
+    const [historyRecs, genreRecs, trending, hiddenGems] = await Promise.all([
+      getHistoryBasedRecommendations(userId, { limit: 30, signal }),
+      getGenreBasedRecommendations(userId, { limit: 30, signal }),
+      getTrendingForUser(userId, { limit: 30, signal }),
+      getHiddenGemsForUser(userId, { limit: 30, signal }),
+    ])
 
-    // 1. Try history-based recs first (most specific)
-    const historyRecs = await getHistoryBasedRecommendations(userId, {
-      limit: 20,
-      signal,
-    })
-    const goodHistory = (historyRecs || []).filter(
-      (m) => m && m.vote_average && m.vote_average >= 7.0
-    )
+    // 2) Merge into candidate pool
+    const candidateMap = new Map()
 
-    if (goodHistory.length > 0) {
-      topPick = goodHistory[0]
-    } else {
-      // 2. Fall back to genre-based recs
-      const genreRecs = await getGenreBasedRecommendations(userId, {
-        limit: 20,
-        signal,
-      })
-      const goodGenre = (genreRecs || []).filter(
-        (m) => m && m.vote_average && m.vote_average >= 7.0
-      )
+    function addCandidates(list, sourceKey, baseWeight) {
+      if (!list) return
 
-      if (goodGenre.length > 0) {
-        topPick = goodGenre[0]
-      } else {
-        // 3. Fallback popular/high quality
-        const fallback = await getFallbackRecommendations({ limit: 20, signal })
-        if (fallback && fallback.length > 0) {
-          topPick = fallback[0]
+      list.forEach((movie, idx) => {
+        if (!movie || !movie.id) return
+        if (excludeTmdbId && movie.id === excludeTmdbId) return
+        if (!movie.poster_path) return // avoid ugly heroes
+
+        const existing = candidateMap.get(movie.id) || {
+          movie,
+          sources: new Set(),
+          score: 0,
         }
-      }
+
+        const vote = movie.vote_average || 0
+        const popularity = Math.min(movie.popularity || 0, 200)
+        const metaScore = movie._recommendationMeta?.score || 0
+        const rankWeight = 1 / (idx + 1)
+
+        existing.movie = movie
+        existing.sources.add(sourceKey)
+
+        // Hybrid score: source weight + quality + popularity + history meta
+        existing.score +=
+          baseWeight * rankWeight +          // “how high in this list”
+          vote * 1.5 +                       // star rating
+          popularity * 0.01 +                // gently favour well-known
+          metaScore * 0.6                    // history similarity
+
+        candidateMap.set(movie.id, existing)
+      })
     }
 
-    // If nothing at all, just bail
-    if (!topPick) {
-      return null
+    addCandidates(historyRecs, 'history', 3)
+    addCandidates(genreRecs, 'genre', 2)
+    addCandidates(hiddenGems, 'hidden_gem', 1.6)
+    addCandidates(trending, 'trending', 1.2)
+
+    // 3) If still empty, fall back to popular
+    if (candidateMap.size === 0) {
+      const fallback = await getFallbackRecommendations({ limit: 20, signal })
+      fallback.forEach((movie, idx) => {
+        if (!movie || !movie.id) return
+        if (!movie.poster_path) return
+
+        const vote = movie.vote_average || 0
+        const popularity = Math.min(movie.popularity || 0, 200)
+
+        candidateMap.set(movie.id, {
+          movie,
+          sources: new Set(['fallback']),
+          score: vote * 1.5 + popularity * 0.01 / (idx + 1),
+        })
+      })
     }
 
-    // 4. Hydrate genres from Supabase movies table
-    // movies.genres is jsonb like ["Drama","History","War"]
+    if (candidateMap.size === 0) return null
+
+    const candidates = Array.from(candidateMap.values())
+    const tmdbIds = candidates.map(c => c.movie.id)
+
+    // 4) Hydrate DB metadata (genres, quality_score, etc.) in one query
+    let dbByTmdbId = new Map()
+
     try {
-      const { data: dbMovie, error: dbError } = await supabase
+      const { data: dbMovies, error: dbError } = await supabase
         .from('movies')
-        .select('genres')
-        .eq('tmdb_id', topPick.id) // TMDB id on the movie object
-        .maybeSingle()
+        .select('tmdb_id, genres, quality_score, star_power, runtime')
+        .in('tmdb_id', tmdbIds)
 
       if (dbError) {
-        console.warn(
-          '[Recommendations] getTopPickForUser genres lookup error:',
-          dbError
-        )
-      } else if (dbMovie && Array.isArray(dbMovie.genres)) {
-        topPick = {
-          ...topPick,
-          genres: dbMovie.genres, // <- this is what HeroTopPick will read
-        }
+        console.warn('[Recommendations] getTopPickForUser hydrate error:', dbError)
+      } else if (dbMovies) {
+        dbByTmdbId = new Map(dbMovies.map(m => [m.tmdb_id, m]))
       }
     } catch (dbErr) {
-      console.warn(
-        '[Recommendations] getTopPickForUser genres hydrate failed:',
-        dbErr
-      )
+      console.warn('[Recommendations] getTopPickForUser hydrate failed:', dbErr)
     }
 
-    return topPick
+    // 5) Fold DB metadata into scores
+    const scored = candidates.map(entry => {
+      const dbMovie = dbByTmdbId.get(entry.movie.id)
+      let score = entry.score
+
+      if (dbMovie) {
+        if (typeof dbMovie.quality_score === 'number') {
+          score += dbMovie.quality_score * 0.5
+        }
+        if (dbMovie.star_power === 'no_stars') {
+          // hidden-gem boost
+          score += 5
+        }
+        if (dbMovie.runtime && dbMovie.runtime >= 80 && dbMovie.runtime <= 150) {
+          // favour watchable runtimes
+          score += 3
+        }
+      }
+
+      return { ...entry, dbMovie, score }
+    })
+
+    // 6) Pick best candidate
+    const best = scored.sort((a, b) => b.score - a.score)[0]
+    if (!best) return null
+
+    const { movie, dbMovie, sources, score } = best
+
+    const primarySource = sources.has('history')
+      ? 'because_you_watched'
+      : sources.has('genre')
+        ? 'matches_your_genres'
+        : sources.has('hidden_gem')
+          ? 'hidden_gem'
+          : sources.has('trending')
+            ? 'trending_now'
+            : 'popular'
+
+    // 7) Return hero with explanation + hydrated genres
+    return {
+      ...movie,
+      genres: dbMovie?.genres || movie.genres,
+      _heroMeta: {
+        score,
+        primarySource,
+        reasonTitle:
+          primarySource === 'because_you_watched'
+            ? movie._recommendationMeta?.sources?.[0] || null
+            : null,
+      },
+    }
   } catch (error) {
     console.error('[Recommendations] getTopPickForUser failed:', error)
     return null
   }
 }
+
 
 
 export async function getQuickPicksForUser(userId, options = {}) {

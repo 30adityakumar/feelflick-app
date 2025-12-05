@@ -201,7 +201,7 @@ export function useAllRecommendations(options = {}) {
  * Homepage hero hook - top pick for the user
  */
 export function useTopPick(options = {}) {
-  const { enabled = true } = options
+  const { enabled = true, excludeTmdbId = null } = options
   const userId = useUserId()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -212,7 +212,6 @@ export function useTopPick(options = {}) {
       setLoading(false)
       return
     }
-    
 
     const controller = new AbortController()
 
@@ -222,6 +221,7 @@ export function useTopPick(options = {}) {
         setError(null)
         const topPick = await recommendationService.getTopPickForUser(userId, {
           signal: controller.signal,
+          excludeTmdbId,
         })
         setData(topPick)
       } catch (err) {
@@ -237,10 +237,11 @@ export function useTopPick(options = {}) {
     fetchTopPick()
 
     return () => controller.abort()
-  }, [userId, enabled])
+  }, [userId, enabled, excludeTmdbId])
 
   return { data, loading, error }
 }
+
 
 /**
  * Homepage row: quick picks for tonight

@@ -13,6 +13,224 @@
 import { supabase } from '@/shared/lib/supabase/client'
 import * as tmdb from '@/shared/api/tmdb'
 
+// ============================================================================
+// FEELFLICK RECOMMENDATION ENGINE v2 - CONSTANTS
+// ============================================================================
+
+/**
+ * Language to Region mapping for "same region" matching
+ */
+const LANGUAGE_REGIONS = {
+  // South Asian
+  hi: 'south_asian', ta: 'south_asian', te: 'south_asian', ml: 'south_asian',
+  bn: 'south_asian', pa: 'south_asian', mr: 'south_asian', kn: 'south_asian',
+  // East Asian
+  ko: 'east_asian', ja: 'east_asian', zh: 'east_asian', cn: 'east_asian',
+  // Southeast Asian
+  th: 'southeast_asian', id: 'southeast_asian', vi: 'southeast_asian', tl: 'southeast_asian',
+  // European West
+  fr: 'european_west', de: 'european_west', es: 'european_west', it: 'european_west',
+  pt: 'european_west', nl: 'european_west',
+  // European East
+  pl: 'european_east', ru: 'european_east', cs: 'european_east', hu: 'european_east',
+  // Nordic
+  sv: 'nordic', da: 'nordic', no: 'nordic', fi: 'nordic',
+  // Middle Eastern
+  ar: 'middle_eastern', fa: 'middle_eastern', tr: 'middle_eastern', he: 'middle_eastern',
+  // English
+  en: 'anglophone'
+}
+
+/**
+ * Likely-seen penalty weights per row type
+ */
+const LIKELY_SEEN_WEIGHTS = {
+  hero: 0.7,
+  quick_picks: 0.3,
+  hidden_gems: 0.9,
+  trending: 0.0,
+  because_you_watched: 0.2,
+  world_cinema: 0.5,
+  favorite_genres: 0.4,
+  slow_contemplative: 0.5,
+  quick_watches: 0.4,
+  visual_spectacles: 0.3,
+  default: 0.4
+}
+
+/**
+ * Minimum thresholds
+ */
+const THRESHOLDS = {
+  MIN_FF_RATING: 6.5,
+  MIN_FF_CONFIDENCE: 50,
+  MIN_FILMS_FOR_LANGUAGE_PREF: 3,
+  MIN_FILMS_FOR_AFFINITY: 2
+}
+
+// ============================================================================
+// USER PROFILE COMPUTATION
+// ============================================================================
+
+/**
+ * Compute comprehensive user profile from watch history and preferences
+ * @param {string} userId - User UUID
+ * @returns {Promise<Object>} User profile object
+ */
+export async function computeUserProfile(userId) {
+  try {
+    // Fetch all data in parallel
+    const [
+      { data: watchHistory },
+      { data: userPrefs },
+      { data: userRatings }
+    ] = await Promise.all([
+      // Watch history with movie details
+      supabase
+        .from('user_history')
+        .select(`
+          movie_id,
+          source,
+          watched_at,
+          movies!inner (
+            id, original_language, runtime, release_year,
+            pacing_score, intensity_score, emotional_depth_score,
+            dialogue_density, attention_demand, vfx_level_score,
+            ff_rating, director_name, lead_actor_name, genres, keywords
+          )
+        `)
+        .eq('user_id', userId)
+        .order('watched_at', { ascending: false })
+        .limit(100),
+      
+      // Genre preferences
+      supabase
+        .from('user_preferences')
+        .select('genre_id')
+        .eq('user_id', userId),
+      
+      // User ratings (for quality preference)
+      supabase
+        .from('user_ratings')
+        .select('movie_id, rating')
+        .eq('user_id', userId)
+    ])
+
+    // Handle empty history (new user)
+    if (!watchHistory || watchHistory.length === 0) {
+      return buildEmptyProfile(userId, userPrefs)
+    }
+
+    // Separate onboarding favorites from regular history
+    const onboardingMovies = watchHistory.filter(h => h.source === 'onboarding')
+    const regularHistory = watchHistory.filter(h => h.source !== 'onboarding')
+
+    // Build weighted movie list
+    const weightedMovies = []
+    
+    // Onboarding favorites: weight 3x
+    onboardingMovies.forEach(h => {
+      if (h.movies) {
+        weightedMovies.push({ ...h.movies, weight: 3.0, isOnboarding: true })
+      }
+    })
+    
+    // Regular history: recency weighted
+    const now = new Date()
+    regularHistory.forEach(h => {
+      if (h.movies) {
+        const watchedAt = new Date(h.watched_at)
+        const daysSince = (now - watchedAt) / (1000 * 60 * 60 * 24)
+        
+        let weight = 1.0
+        if (daysSince <= 30) weight = 2.0
+        else if (daysSince <= 90) weight = 1.5
+        
+        weightedMovies.push({ ...h.movies, weight, isOnboarding: false })
+      }
+    })
+
+    // Compute all profile components
+    const languages = computeLanguageProfile(weightedMovies)
+    const genres = computeGenreProfile(weightedMovies, userPrefs)
+    const contentProfile = computeContentProfile(weightedMovies)
+    const preferences = computePracticalPreferences(weightedMovies)
+    const affinities = computePeopleAffinities(weightedMovies)
+    const themes = computeThemeAffinities(weightedMovies)
+    const qualityProfile = computeQualityProfile(weightedMovies, userRatings)
+
+    return {
+      userId,
+      languages,
+      genres,
+      contentProfile,
+      preferences,
+      affinities,
+      themes,
+      qualityProfile,
+      meta: {
+        profileVersion: '2.0',
+        computedAt: new Date().toISOString(),
+        dataPoints: weightedMovies.length,
+        confidence: weightedMovies.length >= 30 ? 'high' : 
+                    weightedMovies.length >= 10 ? 'medium' : 'low'
+      }
+    }
+  } catch (error) {
+    console.error('[computeUserProfile] Error:', error)
+    return buildEmptyProfile(userId, null)
+  }
+}
+
+/**
+ * Build empty profile for new users
+ */
+function buildEmptyProfile(userId, userPrefs) {
+  return {
+    userId,
+    languages: {
+      primary: null,
+      secondary: null,
+      distribution: {},
+      openness: 'unknown',
+      regionAffinity: null,
+      distinctCount: 0
+    },
+    genres: {
+      preferred: userPrefs?.map(p => p.genre_id) || [],
+      secondary: [],
+      avoided: []
+    },
+    contentProfile: {
+      avgPacing: 5,
+      avgIntensity: 5,
+      avgEmotionalDepth: 5,
+      avgDialogueDensity: 50,
+      avgAttentionDemand: 50,
+      avgVFX: 50
+    },
+    preferences: {
+      avgRuntime: 120,
+      runtimeRange: [80, 180],
+      preferredDecades: ['2020s', '2010s'],
+      toleratesClassics: true
+    },
+    affinities: { directors: [], actors: [] },
+    themes: { preferred: [] },
+    qualityProfile: {
+      avgFFRating: 7.0,
+      watchesHiddenGems: false,
+      totalMoviesWatched: 0
+    },
+    meta: {
+      profileVersion: '2.0',
+      computedAt: new Date().toISOString(),
+      dataPoints: 0,
+      confidence: 'none'
+    }
+  }
+}
+
 /**
  * Get personalized movie recommendations for a user
  * @param {string} userId - User UUID

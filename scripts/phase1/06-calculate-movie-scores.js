@@ -455,32 +455,45 @@ async function fetchAllMovieData() {
   console.log('📦 Fetching all movie data in parallel...\n');
 
   try {
-    const [
-      { data: movies, error: moviesError },
-      { data: movieGenres },
-      { data: movieKeywords },
-      { data: ratingsExternal },
-      { data: castMetadata }
-    ] = await Promise.all([
-      supabase
-        .from('movies')
-        .select('id, tmdb_id, title, runtime, vote_average, vote_count, popularity, release_date, is_valid, budget, original_language, director_popularity')
-        .eq('is_valid', true),
-      supabase
-        .from('movie_genres')
-        .select('movie_id, genre_id'),
-      supabase
-        .from('movie_keywords')
-        .select('movie_id, keyword:keywords(name)'),
-      supabase
-        .from('ratings_external')
-        .select('movie_id, imdb_rating, imdb_votes, rt_rating, metacritic_score'),
-      supabase
-        .from('movie_cast_metadata')
-        .select('movie_id, avg_cast_popularity, max_cast_popularity, top_3_cast_avg, cast_count')
-    ]);
+    // Helper to fetch all rows with pagination
+    const fetchAllRows = async (table, select, batchSize = 1000) => {
+      let allData = [];
+      let from = 0;
+      
+      while (true) {
+        const { data, error } = await supabase
+          .from(table)
+          .select(select)
+          .range(from, from + batchSize - 1);
+        
+        if (error) throw error;
+        if (!data || data.length === 0) break;
+        
+        allData = allData.concat(data);
+        if (data.length < batchSize) break; // No more data
+        from += batchSize;
+      }
+      
+      return allData;
+    };
+
+    // Fetch movies (these have is_valid filter)
+    const { data: movies, error: moviesError } = await supabase
+      .from('movies')
+      .select('id, tmdb_id, title, runtime, vote_average, vote_count, popularity, release_date, is_valid, budget, original_language, director_popularity')
+      .eq('is_valid', true)
+      .limit(10000);
 
     if (moviesError) throw moviesError;
+
+    // Fetch junction tables (these need full pagination)
+    const [movieGenres, movieKeywords, allKeywords, ratingsExternal, castMetadata] = await Promise.all([
+      fetchAllRows('movie_genres', 'movie_id, genre_id'),
+      fetchAllRows('movie_keywords', 'movie_id, keyword_id'),
+      fetchAllRows('keywords', 'id, name'),
+      fetchAllRows('ratings_external', 'movie_id, imdb_rating, imdb_votes, rt_rating, metacritic_score'),
+      fetchAllRows('movie_cast_metadata', 'movie_id, avg_cast_popularity, max_cast_popularity, top_3_cast_avg, cast_count')
+    ]);
 
     const genreMap = new Map();
     const keywordMap = new Map();
@@ -492,9 +505,16 @@ async function fetchAllMovieData() {
       genreMap.get(mg.movie_id).push(mg.genre_id);
     }
 
+    // Build keyword map from IDs
+    const keywordIdToName = new Map();
+    for (const k of (allKeywords || [])) {
+      keywordIdToName.set(k.id, { name: k.name });
+    }
+
     for (const mk of (movieKeywords || [])) {
       if (!keywordMap.has(mk.movie_id)) keywordMap.set(mk.movie_id, []);
-      if (mk.keyword) keywordMap.get(mk.movie_id).push(mk.keyword);
+      const keyword = keywordIdToName.get(mk.keyword_id);
+      if (keyword) keywordMap.get(mk.movie_id).push(keyword);
     }
 
     for (const r of (ratingsExternal || [])) {
@@ -517,6 +537,8 @@ async function fetchAllMovieData() {
     throw error;
   }
 }
+
+
 
 // ============================================================================
 // MAIN SCORING PIPELINE

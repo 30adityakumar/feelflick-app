@@ -4,12 +4,27 @@ import { supabase } from '@/shared/lib/supabase/client'
 import { ensureMovieInDb } from '@/shared/lib/movies/ensureMovieInDb'
 
 /**
+ * Get internal movie ID - handles both DB movies and TMDB API movies
+ */
+async function getInternalMovieId(movie) {
+  if (!movie) return null
+  
+  // If movie has tmdb_id, it came from our DB - id is already internal
+  if (movie.tmdb_id) {
+    return movie.id
+  }
+  
+  // Otherwise it's from TMDB API - need to ensure it exists in DB
+  return await ensureMovieInDb(movie)
+}
+
+/**
  * Handles user_movie status: watchlist + watched (history)
  * Reusable across HeroSlider, HeroTopPick, etc.
  *
  * @param {object} params
  * @param {object | null} params.user   - Supabase auth user
- * @param {object | null} params.movie  - TMDB movie (must have `id`)
+ * @param {object | null} params.movie  - Movie object (from DB or TMDB)
  * @param {string} params.source        - e.g. 'hero_slider', 'hero_top_pick'
  */
 export function useUserMovieStatus({ user, movie, source }) {
@@ -17,15 +32,18 @@ export function useUserMovieStatus({ user, movie, source }) {
   const [isWatched, setIsWatched] = useState(false)
   const [loading, setLoading] = useState({ watchlist: false, watched: false })
 
+  // Stable movie identifier for dependency tracking
+  const movieKey = movie?.tmdb_id || movie?.id
+
   // Initial sync from DB
   useEffect(() => {
-    if (!user?.id || !movie?.id) return
+    if (!user?.id || !movie) return
 
     let mounted = true
 
     ;(async () => {
       try {
-        const internalMovieId = await ensureMovieInDb(movie)
+        const internalMovieId = await getInternalMovieId(movie)
         if (!internalMovieId || !mounted) return
 
         const [wlRes, whRes] = await Promise.all([
@@ -55,7 +73,7 @@ export function useUserMovieStatus({ user, movie, source }) {
     return () => {
       mounted = false
     }
-  }, [user?.id, movie?.id])
+  }, [user?.id, movieKey])
 
   const toggleWatchlist = useCallback(async () => {
     if (!user || !movie || loading.watchlist) return
@@ -63,7 +81,7 @@ export function useUserMovieStatus({ user, movie, source }) {
     setLoading(prev => ({ ...prev, watchlist: true }))
 
     try {
-      const internalMovieId = await ensureMovieInDb(movie)
+      const internalMovieId = await getInternalMovieId(movie)
       if (!internalMovieId) return
 
       if (isInWatchlist) {
@@ -78,7 +96,6 @@ export function useUserMovieStatus({ user, movie, source }) {
         setIsInWatchlist(true)
         setIsWatched(false)
 
-        // Keep payload minimal (matches what works for you)
         await supabase
           .from('user_watchlist')
           .upsert(
@@ -110,7 +127,7 @@ export function useUserMovieStatus({ user, movie, source }) {
     setLoading(prev => ({ ...prev, watched: true }))
 
     try {
-      const internalMovieId = await ensureMovieInDb(movie)
+      const internalMovieId = await getInternalMovieId(movie)
       if (!internalMovieId) return
 
       if (isWatched) {

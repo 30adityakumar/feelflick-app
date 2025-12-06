@@ -3,6 +3,7 @@ import { memo, useRef, useState, useCallback, useMemo } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useVirtualization } from '../hooks/useVirtualization'
 import { MovieCard } from '../CardContent/MovieCard'
+import { useInViewOnce } from '../hooks/useInViewOnce'
 
 const SCROLL_AMOUNT = 0.8
 const ITEM_WIDTHS = {
@@ -91,6 +92,12 @@ export const CarouselRow = memo(function CarouselRow({
   const handleHover = useCallback((id) => setExpandedId(id), [])
   const handleLeave = useCallback(() => setExpandedId(null), [])
 
+  const { ref: rowRef, hasBeenInView } = useInViewOnce({
+    threshold: 0.15,
+    rootMargin: '60px',
+  })
+
+
   if (loading) {
     return (
       <section className={`py-6 sm:py-8 ${className}`} aria-label={`${title} loading`}>
@@ -140,11 +147,13 @@ return (
     role="region"
     aria-label={title}
   >
-    <div className="px-4 sm:px-6 lg:px-8 mb-4">
-      <h2 className="text-xl sm:text-2xl font-semibold text-white tracking-tight">
+    <div className="px-4 sm:px-6 lg:px-8 mb-4 flex items-center gap-2">
+      <h2 className="text-[1.1rem] sm:text-[1.3rem] font-semibold text-white tracking-tight">
         {title}
       </h2>
+      <div className="h-[1px] flex-1 bg-gradient-to-r from-white/40 via-white/10 to-transparent opacity-60" />
     </div>
+
 
     <ScrollButton
       direction="left"

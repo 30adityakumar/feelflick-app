@@ -3,8 +3,7 @@ import { memo, useState, useEffect, useCallback, useMemo } from 'react'
 import { Plus, Check, Eye, EyeOff, ChevronDown, Star } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { tmdbImg } from '@/shared/api/tmdb'
-import { supabase } from '@/shared/lib/supabase/client'
-import { useUserMovieStatus } from '@/shared/hooks/useUserMovieStatus'
+import { useWatchlistContext } from '@/contexts/WatchlistContext'
 import { Card } from '../Card'
 
 function ActionBtn({
@@ -65,19 +64,23 @@ export const MovieCard = memo(function MovieCard({
 }) {
   const navigate = useNavigate()
   const [imageLoaded, setImageLoaded] = useState(false)
-  const [user, setUser] = useState(null)
+  const { user, ready, makeStatusHelpers } = useWatchlistContext()
 
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user: u } }) => setUser(u))
-  }, [])
-
+  // When context not ready yet, avoid accessing hook
   const {
     isInWatchlist,
     isWatched,
     loading: actionLoading,
     toggleWatchlist,
     toggleWatched,
-  } = useUserMovieStatus({ user, movie, source: 'quick_picks' })
+  } = ready ? makeStatusHelpers(movie) : {
+    isInWatchlist: false,
+    isWatched: false,
+    loading: { watchlist: false, watched: false },
+    toggleWatchlist: () => {},
+    toggleWatched: () => {},
+  }
+
 
   const meta = useMemo(() => {
     const rating =
@@ -110,6 +113,8 @@ export const MovieCard = memo(function MovieCard({
       onMouseEnter={() => onHover?.(movie.id)}
       onMouseLeave={onLeave}
       onClick={handleNavigate}
+      data-movie-id={movie.id}
+      data-index={index}
       tabIndex={0}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -155,11 +160,11 @@ export const MovieCard = memo(function MovieCard({
             {/* Expanded overlay */}
             {isExpanded && (
               <div className="absolute inset-x-0 bottom-0 pt-7 pb-3 px-3 bg-gradient-to-t from-black/90 via-black/70 to-transparent">
-                <h3 className="text-sm font-semibold text-white mb-2 line-clamp-1">
+                <h3 className="text-[0.95rem] font-semibold text-white mb-1.5 line-clamp-1">
                   {movie.title}
                 </h3>
 
-                <div className="flex items-center gap-2 text-[11px] text-white/80 mb-2">
+                <div className="flex items-center gap-2 text-[0.68rem] text-white/80 mb-1.5">
                   {meta.matchPercent && (
                     <span className="text-emerald-400 font-semibold">
                       {meta.matchPercent}% Match
@@ -174,7 +179,7 @@ export const MovieCard = memo(function MovieCard({
                 </div>
 
                 {movie.genres?.length > 0 && (
-                  <div className="flex flex-wrap gap-1 text-[11px] text-white/70 mb-2">
+                  <div className="flex flex-wrap gap-1 text-[0.7rem] text-white/70 mb-1.5">
                     {movie.genres.slice(0, 3).map((g) => (
                       <span key={g.id || g.name} className="opacity-80">
                         {g.name}
@@ -184,7 +189,7 @@ export const MovieCard = memo(function MovieCard({
                 )}
 
                 {meta.shortDesc && (
-                  <p className="text-[11px] text-white/80 line-clamp-2 mb-2">
+                  <p className="text-[0.7rem] text-white/80 line-clamp-2 mb-2">
                     {meta.shortDesc}
                   </p>
                 )}
@@ -225,10 +230,10 @@ export const MovieCard = memo(function MovieCard({
                       e.stopPropagation()
                       handleNavigate()
                     }}
-                    className="ml-auto h-9 w-9 rounded-full border border-white/50 bg-black/60 text-white flex items-center justify-center text-xs hover:bg-black/80 transition-colors"
+                    className="ml-auto h-8 w-8 rounded-full border border-white/50 bg-black/60 text-white flex items-center justify-center text-xs hover:bg-black/80 transition-colors"
                     title="More details"
                   >
-                    <ChevronDown className="h-4 w-4" />
+                    <ChevronDown className="h-3.5 w-3.5" />
                   </button>
                 </div>
               </div>
@@ -239,7 +244,7 @@ export const MovieCard = memo(function MovieCard({
 
       {!isExpanded && (
         <div className="mt-2 px-1">
-          <p className="text-[11px] text-white/80 line-clamp-1">
+          <p className="text-[0.7rem] text-white/80 line-clamp-1">
             {movie.title}
           </p>
         </div>

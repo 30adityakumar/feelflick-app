@@ -438,14 +438,11 @@ export default function HeroTopPick() {
                   </span>
                 ))}
 
-              {/* Mood match badge if present */}
-              {movie.mood_match_percent && (
-                <div className="ml-1 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/20">
-                  <span className="text-[10px] text-emerald-400/80 font-medium">
-                    Vibe match
-                  </span>
-                  <span className="text-xs font-bold text-emerald-400">
-                    {movie.mood_match_percent}%
+              {/* Pick reason badge */}
+              {movie._pickReason?.label && (
+                <div className="ml-1 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-500/20 border border-purple-400/20">
+                  <span className="text-xs text-purple-300 font-medium">
+                    {movie._pickReason.label}
                   </span>
                 </div>
               )}

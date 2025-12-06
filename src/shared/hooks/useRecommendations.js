@@ -200,51 +200,106 @@ export function useAllRecommendations(options = {}) {
 /**
  * Homepage hero hook - top pick for the user
  */
+/**
+ * Homepage hero hook - top pick for the user
+ */
+/**
+ * Homepage hero hook - top pick for the user
+ */
 export function useTopPick(options = {}) {
   const { enabled = true, excludeTmdbIds = [] } = options
   const userId = useUserId()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [authChecked, setAuthChecked] = useState(false)
+
+  // Track when auth check is complete
+  useEffect(() => {
+    let mounted = true
+    
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (mounted) {
+        setAuthChecked(true)
+      }
+    })
+
+    return () => { mounted = false }
+  }, [])
 
   useEffect(() => {
-    if (!enabled || !userId) {
-      setLoading(false)
-      setData(null)
+    // Don't fetch until auth check is complete
+    if (!enabled || !authChecked) {
       return
     }
 
+    // If no user after auth check, use fallback (guest mode)
+    // But for logged-in users, we need userId
     const controller = new AbortController()
+    let isCancelled = false
 
     async function fetchTopPick() {
       try {
         setLoading(true)
         setError(null)
 
-        const topPick = await recommendationService.getTopPickForUser(userId, {
-          signal: controller.signal,
-          excludeTmdbIds,
+        // Convert excludeTmdbIds to internal IDs if needed
+        let excludeIds = []
+        if (excludeTmdbIds.length > 0 && userId) {
+          const { data: mappedIds } = await supabase
+            .from('movies')
+            .select('id')
+            .in('tmdb_id', excludeTmdbIds)
+          excludeIds = mappedIds?.map(m => m.id) || []
+        }
+
+        const result = await recommendationService.getTopPickForUser(userId, {
+          excludeIds,
         })
 
-        setData(topPick)
+        if (isCancelled) return
+
+        // Flatten: attach pickReason and score to movie object
+        if (result?.movie) {
+          const enrichedMovie = {
+            ...result.movie,
+            _pickReason: result.pickReason,
+            _score: result.score,
+            _debug: result.debug,
+            // Map fields for HeroTopPick compatibility
+            trailer_url: result.movie.trailer_youtube_key 
+              ? `https://www.youtube.com/watch?v=${result.movie.trailer_youtube_key}`
+              : null,
+            director: result.movie.director_name 
+              ? { name: result.movie.director_name }
+              : null,
+          }
+          setData(enrichedMovie)
+        } else {
+          setData(null)
+        }
       } catch (err) {
-        if (err.name !== 'AbortError') {
+        if (err.name !== 'AbortError' && !isCancelled) {
           console.error('[useTopPick] Error:', err)
           setError(err)
         }
       } finally {
-        setLoading(false)
+        if (!isCancelled) {
+          setLoading(false)
+        }
       }
     }
 
     fetchTopPick()
 
-    return () => controller.abort()
-  }, [userId, enabled, JSON.stringify(excludeTmdbIds)])
+    return () => {
+      isCancelled = true
+      controller.abort()
+    }
+  }, [userId, enabled, authChecked, JSON.stringify(excludeTmdbIds)])
 
   return { data, loading, error }
 }
-
 
 
 /**

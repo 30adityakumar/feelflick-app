@@ -149,17 +149,28 @@ export default function HeroTopPick() {
     }
   }, [movie?.id, movie?.tmdb_id])
 
+  // For DB operations, we need the internal ID (movie.id)
+  // Pass internalId explicitly to avoid confusion
   const {
     isInWatchlist,
     isWatched,
     loading: actionLoading,
     toggleWatchlist,
     toggleWatched
-  } = useUserMovieStatus({ user, movie, source: 'hero_top_pick' })
+  } = useUserMovieStatus({ 
+    user, 
+    movie,
+    internalMovieId: movie?.id,  // Explicitly pass internal DB ID
+    source: 'hero_top_pick' 
+  })
 
   const goToDetails = useCallback(() => {
-    if (movie?.id) navigate(`/movie/${movie.id}`)
-  }, [movie?.id, navigate])
+  // Use tmdb_id for routing, fall back to id only if necessary
+  const tmdbId = movie?.tmdb_id || movie?.id
+  if (tmdbId) {
+    navigate(`/movie/${tmdbId}`)
+  }
+}, [movie?.tmdb_id, movie?.id, navigate])
 
   const playTrailer = useCallback(() => {
     if (movie?.trailer_url) window.open(movie.trailer_url, '_blank', 'noopener')

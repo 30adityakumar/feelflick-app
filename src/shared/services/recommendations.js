@@ -1692,6 +1692,31 @@ async function logImpression(userId, selected, placement) {
 }
 
 /**
+ * Update an existing impression with user interaction
+ */
+export async function updateImpression(userId, movieId, placement, updates) {
+  if (!userId || !movieId) return
+  
+  try {
+    const today = new Date().toISOString().split('T')[0]
+    
+    const { error } = await supabase
+      .from('recommendation_impressions')
+      .update(updates)
+      .eq('user_id', userId)
+      .eq('movie_id', movieId)
+      .eq('placement', placement)
+      .eq('shown_date', today)
+    
+    if (error) throw error
+    
+    console.log('[updateImpression] Updated:', { movieId, placement, ...updates })
+  } catch (error) {
+    console.warn('[updateImpression] Error:', error.message)
+  }
+}
+
+/**
  * Weighted random selection from top candidates
  * Weights: #1=35%, #2=25%, #3=20%, #4=12%, #5=8%
  */
@@ -1784,6 +1809,8 @@ async function getFallbackPick(profile) {
 
 /**
  * Get personalized quick picks for homepage row
+ * NOW WITH: Embedding similarity, diversity, impression tracking
+ * 
  * @param {string} userId - User UUID
  * @param {Object} options - Optional overrides
  * @returns {Promise<Object[]>} Array of scored movies
@@ -1795,23 +1822,28 @@ export async function getQuickPicksForUser(userId, options = {}) {
   } = options
 
   try {
-    // 1. Compute user profile
+    if (!userId) {
+      console.log('[getQuickPicksForUser] No userId, returning empty')
+      return []
+    }
+
     // 1. Compute user profile
     const profile = await computeUserProfile(userId)
     
-    console.log('[getTopPickForUser] User profile:', {
+    console.log('[getQuickPicksForUser] User profile:', {
       primaryLang: profile.languages.primary,
-      secondaryLang: profile.languages.secondary,
-      langOpenness: profile.languages.openness,
       preferredGenres: profile.genres.preferred,
-      avgPacing: profile.contentProfile.avgPacing,
-      avgIntensity: profile.contentProfile.avgIntensity,
-      directors: profile.affinities.directors.map(d => d.name),
-      themes: profile.themes.preferred.slice(0, 5),
+      directors: profile.affinities.directors.map(d => d.name).slice(0, 3),
       totalWatched: profile.qualityProfile.totalMoviesWatched
     })
 
-    // 2. Get user's watched movie IDs
+    // 2. Get seed films for embedding search
+    const seedFilms = await getSeedFilms(userId, profile)
+    const seedIds = seedFilms.map(s => s.id).filter(Boolean)
+    
+    console.log('[getQuickPicksForUser] Seed films:', seedFilms.map(s => s.title))
+
+    // 3. Get user's watched movie IDs
     const { data: watchedData } = await supabase
       .from('user_history')
       .select('movie_id')
@@ -1820,49 +1852,225 @@ export async function getQuickPicksForUser(userId, options = {}) {
     const watchedIds = watchedData?.map(w => w.movie_id) || []
     const allExcludeIds = [...new Set([...watchedIds, ...excludeIds])]
 
-    // 3. Fetch candidates - broader pool than hero
-    const { data: candidates, error } = await supabase
+    // 4. Fetch candidates - MULTIPLE POOLS
+    const selectFields = `
+      id, tmdb_id, title, overview, tagline,
+      original_language, runtime, release_year, release_date,
+      poster_path, backdrop_path, trailer_youtube_key,
+      ff_rating, ff_confidence, quality_score, vote_average,
+      pacing_score, intensity_score, emotional_depth_score,
+      dialogue_density, attention_demand, vfx_level_score,
+      cult_status_score, popularity, vote_count, revenue,
+      director_name, lead_actor_name,
+      genres, keywords, primary_genre
+    `
+
+    // Pool 1: Quality films
+    const { data: qualityFilms } = await supabase
       .from('movies')
-      .select(`
-        id, title, overview,
-        original_language, runtime, release_year,
-        poster_path, backdrop_path,
-        ff_rating, ff_confidence, quality_score,
-        pacing_score, intensity_score, emotional_depth_score,
-        dialogue_density, attention_demand, vfx_level_score,
-        cult_status_score, popularity, vote_count, revenue,
-        director_name, lead_actor_name,
-        genres, keywords, primary_genre
-      `)
+      .select(selectFields)
       .eq('is_valid', true)
       .not('poster_path', 'is', null)
       .gte('ff_rating', 6.0)
       .order('ff_rating', { ascending: false })
-      .limit(200)
+      .limit(150)
 
-    if (error) throw error
-    if (!candidates || candidates.length === 0) return []
+    // Pool 2: Embedding neighbors (semantic similarity)
+    let embeddingNeighbors = []
+    if (seedIds.length > 0) {
+      const { data: embeddingMatches, error: embError } = await supabase
+        .rpc('match_movies_by_seeds', {
+          seed_ids: seedIds,
+          exclude_ids: allExcludeIds,
+          match_count: 50,
+          min_ff_rating: 5.5  // Lower threshold for variety
+        })
+      
+      if (embError) {
+        console.warn('[getQuickPicksForUser] Embedding search error:', embError.message)
+      } else {
+        embeddingNeighbors = embeddingMatches || []
+        console.log('[getQuickPicksForUser] Embedding neighbors found:', embeddingNeighbors.length)
+      }
+    }
 
-    // 4. Filter and score
-    const eligible = candidates.filter(m => !allExcludeIds.includes(m.id))
+    // Combine and deduplicate
+    const allCandidates = [
+      ...(qualityFilms || []),
+      ...(embeddingNeighbors || [])
+    ]
+    
+    const candidateMap = new Map()
+    allCandidates.forEach(m => {
+      if (!candidateMap.has(m.id)) {
+        candidateMap.set(m.id, {
+          ...m,
+          _embeddingSimilarity: m.similarity || null,
+          _matchedSeedId: m.matched_seed_id || null,
+          _matchedSeedTitle: m.matched_seed_title || null
+        })
+      } else if (m.similarity && !candidateMap.get(m.id)._embeddingSimilarity) {
+        const existing = candidateMap.get(m.id)
+        existing._embeddingSimilarity = m.similarity
+        existing._matchedSeedId = m.matched_seed_id
+        existing._matchedSeedTitle = m.matched_seed_title
+      }
+    })
+    const candidates = Array.from(candidateMap.values())
 
-    const scored = eligible.map(movie => {
-      const result = scoreMovieForUser(movie, profile, 'quick_picks')
-      return { movie, ...result }
+    console.log('[getQuickPicksForUser] Candidate pools:', {
+      qualityFilms: qualityFilms?.length || 0,
+      embeddingNeighbors: embeddingNeighbors?.length || 0,
+      totalUnique: candidates.length
     })
 
-    // 5. Sort and return top N
+    // 5. Filter out watched/excluded
+    const eligible = candidates.filter(m => !allExcludeIds.includes(m.id))
+
+    console.log('[getQuickPicksForUser] After exclusion:', {
+      eligible: eligible.length,
+      excluded: candidates.length - eligible.length
+    })
+
+    if (eligible.length === 0) return []
+
+    // 6. Score with embedding boost
+    const scored = eligible.map(movie => {
+      const result = scoreMovieForUser(movie, profile, 'quick_picks', seedFilms)
+      
+      // Embedding similarity boost
+      let embeddingBoost = 0
+      let embeddingReason = null
+      
+      if (movie._embeddingSimilarity) {
+        const simNormalized = Math.max(0, movie._embeddingSimilarity - 0.5) / 0.4
+        embeddingBoost = Math.round(simNormalized * 60)  // Max 60 for rows (vs 80 for hero)
+        embeddingReason = {
+          seedTitle: movie._matchedSeedTitle,
+          seedId: movie._matchedSeedId,
+          similarity: movie._embeddingSimilarity
+        }
+      }
+      
+      // Update pick reason if embedding match is strong
+      let pickReason = result.pickReason
+      if (embeddingReason && embeddingBoost >= 25) {
+        pickReason = {
+          label: `Because you loved ${embeddingReason.seedTitle}`,
+          type: 'embedding_similarity',
+          seedTitle: embeddingReason.seedTitle,
+          similarity: embeddingReason.similarity
+        }
+      }
+      
+      return { 
+        movie, 
+        ...result,
+        score: result.score + embeddingBoost,
+        embeddingBoost,
+        embeddingReason,
+        pickReason
+      }
+    })
+
+    // 7. Sort by score
     scored.sort((a, b) => b.score - a.score)
 
-    return scored.slice(0, limit).map(item => ({
+    // 8. Apply diversity filter for final selection
+    const diverse = applyRowDiversityFilter(scored, limit)
+
+    console.log('[getQuickPicksForUser] Final selection:', diverse.slice(0, 5).map(d => ({
+      title: d.movie.title,
+      score: d.score,
+      embeddingBoost: d.embeddingBoost,
+      reason: d.pickReason?.type
+    })))
+
+    // 9. Log impressions (async, don't await)
+    logRowImpressions(userId, diverse, 'quick_picks').catch(err =>
+      console.warn('[getQuickPicksForUser] Failed to log impressions:', err.message)
+    )
+
+    // 10. Return formatted results
+    return diverse.map(item => ({
       ...item.movie,
       _score: item.score,
-      _pickReason: item.pickReason
+      _pickReason: item.pickReason,
+      _embeddingSimilarity: item.embeddingReason?.similarity || null
     }))
 
   } catch (error) {
     console.error('[getQuickPicksForUser] Error:', error)
     return []
+  }
+}
+
+
+/**
+ * Apply diversity filter for carousel rows
+ * Lighter than hero filter - just prevents too much repetition
+ */
+function applyRowDiversityFilter(sortedCandidates, limit) {
+  const result = []
+  const directorCounts = new Map()
+  const genreCounts = new Map()
+  
+  for (const candidate of sortedCandidates) {
+    if (result.length >= limit) break
+    
+    const movie = candidate.movie
+    const director = movie.director_name?.toLowerCase() || 'unknown'
+    const genre = movie.primary_genre?.toLowerCase() || 'unknown'
+    
+    // Max 3 per director in a row
+    const dirCount = directorCounts.get(director) || 0
+    if (dirCount >= 3) continue
+    
+    // Max 5 per genre in a row
+    const genreCount = genreCounts.get(genre) || 0
+    if (genreCount >= 5) continue
+    
+    result.push(candidate)
+    directorCounts.set(director, dirCount + 1)
+    genreCounts.set(genre, genreCount + 1)
+  }
+  
+  return result
+}
+
+
+/**
+ * Log impressions for a carousel row (batch insert)
+ */
+async function logRowImpressions(userId, items, placement) {
+  if (!userId || !items?.length) return
+  
+  try {
+    const impressions = items.slice(0, 20).map(item => ({
+      user_id: userId,
+      movie_id: item.movie.id,
+      placement,
+      pick_reason_type: item.pickReason?.type || 'unknown',
+      pick_reason_label: item.pickReason?.label || null,
+      score: item.score,
+      seed_movie_id: item.embeddingReason?.seedId || null,
+      seed_movie_title: item.embeddingReason?.seedTitle || null,
+      embedding_similarity: item.embeddingReason?.similarity || null,
+      algorithm_version: 'v2.1-embeddings'
+    }))
+    
+    const { error } = await supabase
+      .from('recommendation_impressions')
+      .upsert(impressions, { 
+        onConflict: 'user_id,movie_id,placement,shown_date',
+        ignoreDuplicates: true 
+      })
+    
+    if (error) throw error
+    
+    console.log('[logRowImpressions] Logged:', { placement, count: impressions.length })
+  } catch (error) {
+    console.warn('[logRowImpressions] Error:', error.message)
   }
 }
 

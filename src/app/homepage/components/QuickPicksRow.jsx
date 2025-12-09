@@ -5,8 +5,16 @@ import { useQuickPicks, useTopPick } from '@/shared/hooks/useRecommendations'
 
 export default function QuickPicksRow() {
   const { data: topPick } = useTopPick()
-  const excludeTmdbId = topPick?.id || null
-  const { data: movies, loading, error } = useQuickPicks({ limit: 20, excludeTmdbId })
+  
+  // Exclude hero movie from quick picks
+  const excludeIds = useMemo(() => {
+    return topPick?.id ? [topPick.id] : []
+  }, [topPick?.id])
+  
+  const { data: movies, loading, error } = useQuickPicks({ 
+    limit: 20, 
+    excludeIds 
+  })
 
   const validMovies = useMemo(
     () => (movies || []).filter((m) => m?.poster_path),

@@ -9,11 +9,13 @@ import {
   ChevronRight,
   Star
 } from 'lucide-react'
+import { RefreshCw } from 'lucide-react' // Add to imports at top
 import { useNavigate } from 'react-router-dom'
 import { tmdbImg } from '@/shared/api/tmdb'
 import { useTopPick } from '@/shared/hooks/useRecommendations'
 import { supabase } from '@/shared/lib/supabase/client'
 import { useUserMovieStatus } from '@/shared/hooks/useUserMovieStatus'
+import { updateImpression } from '@/shared/services/recommendations'
 
 // Read TMDB key from Vite env (must be defined in .env)
 const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY
@@ -65,8 +67,9 @@ export default function HeroTopPick() {
   const {
     data: movie,
     loading,
-    error
-  } = useTopPick({
+    error,
+    refetch
+  } = useTopPick({enabled: true,
     excludeTmdbIds: skippedTmdbIds,
   })
 
@@ -164,20 +167,51 @@ export default function HeroTopPick() {
     source: 'hero_top_pick' 
   })
 
+  // Track watchlist/watched interactions for impression learning
+  const prevWatchlistRef = useRef(isInWatchlist)
+  const prevWatchedRef = useRef(isWatched)
+  
+  useEffect(() => {
+    if (!user?.id || !movie?.id) return
+    
+    // Detect watchlist addition
+    if (isInWatchlist && !prevWatchlistRef.current) {
+      updateImpression(user.id, movie.id, 'hero', {
+        added_to_watchlist: true
+      })
+    }
+    
+    // Detect marked as watched - refresh hero
+    if (isWatched && !prevWatchedRef.current) {
+      updateImpression(user.id, movie.id, 'hero', {
+        marked_watched: true
+      })
+      
+      // Show next recommendation after short delay
+      setTimeout(() => {
+        refetch()
+      }, 500)
+    }
+    
+    prevWatchlistRef.current = isInWatchlist
+    prevWatchedRef.current = isWatched
+  }, [isInWatchlist, isWatched, user?.id, movie?.id, refetch])
+
   const goToDetails = useCallback(() => {
-  console.log('🔍 HeroTopPick movie object:', {
-    id: movie?.id,
-    tmdb_id: movie?.tmdb_id,
-    title: movie?.title
-  })
-  
-  const tmdbId = movie?.tmdb_id || movie?.id
-  console.log('🔍 Navigating to:', `/movie/${tmdbId}`)
-  
-  if (tmdbId) {
-    navigate(`/movie/${tmdbId}`)
-  }
-}, [movie?.tmdb_id, movie?.id, navigate])
+    const tmdbId = movie?.tmdb_id ?? movie?.id
+    
+    // Track click
+    if (user?.id && movie?.id) {
+      updateImpression(user.id, movie.id, 'hero', {
+        clicked: true,
+        clicked_at: new Date().toISOString()
+      })
+    }
+    
+    if (tmdbId) {
+      navigate(`/movie/${tmdbId}`)
+    }
+  }, [movie?.tmdb_id, movie?.id, navigate, user?.id])
 
   const playTrailer = useCallback(() => {
     if (movie?.trailer_url) window.open(movie.trailer_url, '_blank', 'noopener')
@@ -233,6 +267,12 @@ export default function HeroTopPick() {
 
   // "Not tonight / Show another pick" behaviour
   const handleShowAnother = useCallback(() => {
+    // Track skip
+    if (user?.id && movie?.id) {
+      updateImpression(user.id, movie.id, 'hero', {
+        skipped: true
+      })
+    }
     if (!movie || isSwitching) return
 
     const tmdbId = movie.tmdb_id || movie.id
@@ -251,12 +291,13 @@ export default function HeroTopPick() {
     if (user) {
       logFeedback({ feedbackType: 'hero_skip_not_tonight' })
     }
-  }, [movie, isSwitching, user, logFeedback])
+  }, [user?.id, movie?.id, movie, isSwitching, user, logFeedback])
 
   // Loading state
   if (loading) {
     return (
-      <section className="relative w-full h-[75vh] min-h-[500px] max-h-[800px] bg-black">
+      <section className="relative w-full h-[75vh] min-h-[500px] max-h-[800px] overflow-hidden bg-black pt-8 sm:pt-12">
+
         <div className="absolute inset-0 bg-gradient-to-br from-purple-950/30 via-black to-black" />
         <div className="relative z-10 h-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 flex items-end pb-12 lg:pb-16">
           <div className="flex flex-col lg:flex-row gap-6 lg:gap-10 w-full">
@@ -303,10 +344,14 @@ export default function HeroTopPick() {
               ? `url(${tmdbImg(movie.backdrop_path, 'w300')})`
               : undefined,
             backgroundSize: 'cover',
-            backgroundPosition: '70% 20%',
+            backgroundPosition: 'center 45%',
             filter: 'blur(30px) saturate(1.2)'
           }}
         />
+        {/* Smooth fade from header */}
+        <div className="absolute top-0 left-0 right-0 h-16 sm:h-20 bg-gradient-to-b from-black/95 via-black/20 to-transparent z-10" />
+
+
 
         {/* Full backdrop */}
         {movie.backdrop_path && (
@@ -317,15 +362,16 @@ export default function HeroTopPick() {
             className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
               backdropLoaded ? 'opacity-100' : 'opacity-0'
             }`}
-            style={{ objectPosition: '70% 20%' }}
+            style={{ objectPosition: 'center 45%' }}
             onLoad={() => setBackdropLoaded(true)}
           />
         )}
 
         {/* Cinematic gradients */}
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/60 to-transparent" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_20%_80%,rgba(0,0,0,0.9),transparent)]" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/40 sm:from-black via-black/25 sm:via-black/30 to-transparent" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_20%_80%,rgba(0,0,0,0.6),transparent)] sm:bg-[radial-gradient(ellipse_80%_50%_at_20%_80%,rgba(0,0,0,0.9),transparent)]" />
+
         <div className="absolute inset-0 bg-gradient-to-br from-purple-950/10 via-transparent to-rose-950/10 mix-blend-overlay" />
 
         {/* Film grain */}
@@ -339,17 +385,22 @@ export default function HeroTopPick() {
       </div>
 
       {/* === CONTENT === */}
-      <div className="relative z-10 h-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 flex items-end pb-10 sm:pb-12 lg:pb-14">
-        <div className="flex flex-col sm:flex-row gap-5 sm:gap-6 lg:gap-10 w-full">
+      <div className="relative z-10 h-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 flex items-end pb-2 sm:pb-3 lg:pb-8">
+
+        <div className="flex flex-col sm:flex-row gap-5 sm:gap-6 lg:gap-10 w-full items-end">
+          {/* Poster glow effect */}
+          <div className="absolute inset-0 bg-gradient-radial from-white/5 via-transparent to-transparent blur-2xl" />
+
           {/* Poster */}
           <div
-            className={`hidden sm:block flex-shrink-0 transition-all duration-700 ease-out ${
+            className={`hidden sm:block flex-shrink-0 self-end transition-all duration-700 ease-out ${
               revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
             }`}
           >
+
             <button
               onClick={goToDetails}
-              className="group relative w-[180px] lg:w-[240px] xl:w-[260px] rounded-lg overflow-hidden shadow-2xl shadow-black/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-4 focus-visible:ring-offset-black transition-transform duration-500 hover:scale-[1.02]"
+              className="group relative w-[180px] lg:w-[240px] xl:w-[260px] rounded-lg overflow-hidden shadow-2xl shadow-black/50 ring-1 ring-white/15 hover:ring-white/10 ring-1 ring-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-4 focus-visible:ring-offset-black transition-transform duration-500 hover:scale-[1.02]"
               aria-label={`View ${movie.title}`}
             >
               <div className="aspect-[2/3] bg-neutral-900">
@@ -384,10 +435,10 @@ export default function HeroTopPick() {
             {/* Provider badge */}
             {providers?.flatrate?.[0] && (
               <div
-                className={`mt-3 flex items-center gap-2.5 px-3 py-2 rounded-lg bg-white/[0.03] backdrop-blur-sm border border-white/[0.06] transition-all duration-700 delay-100 ${
-                  revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-                }`}
-              >
+                  className={`mt-2 flex items-end gap-2.5 px-3 py-2 rounded-lg bg-white/[0.03] backdrop-blur-sm border border-white/[0.06] transition-all duration-700 delay-100 ${
+                    revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                  }`}
+                >
                 <img
                   src={`https://image.tmdb.org/t/p/w92${providers.flatrate[0].logo_path}`}
                   alt={providers.flatrate[0].provider_name}
@@ -469,11 +520,23 @@ export default function HeroTopPick() {
             {/* Overview */}
             {movie.overview && (
               <p
-                className={`text-sm sm:text-[15px] text-white/60 leading-relaxed max-w-xl mb-5 sm:mb-6 line-clamp-2 sm:line-clamp-3 transition-all duration-700 delay-150 ${
+                className={`text-sm sm:text-[15px] text-white/60 leading-relaxed max-w-xl  line-clamp-2 sm:line-clamp-3 transition-all duration-700 delay-150 ${
                   revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
                 }`}
               >
                 {movie.overview}
+              </p>
+            )}
+
+            {/* Director */}
+            {movie.director && (
+              <p
+                className={`mt-4 sm:mt-5 text-xs max-w-xl mb-5 sm:mb-6 text-white/40 transition-all duration-700 delay-300 ${
+                  revealed ? 'opacity-100' : 'opacity-0'
+                }`}
+              >
+                Directed by{' '}
+                <span className="text-white/60 font-medium">{movie.director.name}</span>
               </p>
             )}
 
@@ -487,19 +550,19 @@ export default function HeroTopPick() {
                 {/* Primary: View Details */}
                 <button
                   onClick={goToDetails}
-                  className="group inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full bg-white text-black font-semibold text-sm transition-all duration-300 hover:bg-white/90 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                  className="group inline-flex items-center gap-1.5 px-4 sm:px-6 py-2.5 sm:py-3 rounded-full bg-white text-black font-semibold text-sm transition-all duration-300 hover:bg-white/90 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
                 >
                   <span>View details</span>
-                  <ChevronRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+                  <ChevronRight className="h-4 w-3 transition-transform duration-300 group-hover:translate-x-0.5" />
                 </button>
 
                 {/* Secondary: Trailer */}
                 {movie.trailer_url && (
                   <button
                     onClick={playTrailer}
-                    className="group inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full bg-white/10 hover:bg-white/15 backdrop-blur-sm border border-white/10 hover:border-white/20 text-white font-semibold text-sm transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                    className="group inline-flex items-center gap-1.5 px-4 sm:px-6 py-2.5 sm:py-3 rounded-full bg-white/10 hover:bg-white/15 backdrop-blur-sm border border-white/10 hover:border-white/20 text-white font-semibold text-sm transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
                   >
-                    <Play className="h-4 w-4 fill-current" />
+                    <Play className="h-4 w-3 fill-current" />
                     <span>Trailer</span>
                   </button>
                 )}
@@ -548,42 +611,33 @@ export default function HeroTopPick() {
                     </Tooltip>
                   </div>
                 )}
-              </div>
-
-              {/* "Not tonight / Show another" */}
-              <div className="flex items-center justify-start sm:justify-end">
+              {/* Inside the icon buttons div, after Watched button: */}
+              <Tooltip label="Show another pick">
                 <button
                   onClick={handleShowAnother}
                   disabled={isSwitching || loading}
-                  className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs text-white/60 hover:text-white/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  className={`h-10 w-10 sm:h-11 sm:w-11 rounded-full border backdrop-blur-sm transition-all duration-300 flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95 bg-white/5 hover:bg-white/10 border-white/10 hover:border-white/20 text-white focus-visible:ring-white/50`}
                 >
-                  <span className="h-1 w-1 rounded-full bg-white/40" />
-                  <span>
-                    {isSwitching
-                      ? 'Finding another pick for you...'
-                      : 'Not feeling this one? Show another'}
-                  </span>
+                  {isSwitching ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <RefreshCw className="h-4 w-4" />
+                  )}
                 </button>
+              </Tooltip>
               </div>
             </div>
 
-            {/* Director */}
-            {movie.director && (
-              <p
-                className={`mt-4 sm:mt-5 text-xs text-white/40 transition-all duration-700 delay-300 ${
-                  revealed ? 'opacity-100' : 'opacity-0'
-                }`}
-              >
-                Directed by{' '}
-                <span className="text-white/60 font-medium">{movie.director.name}</span>
-              </p>
-            )}
+            
           </div>
         </div>
       </div>
+      {/* Dark zone for buttons on mobile */}
+      <div className="absolute bottom-0 left-0 right-0 h-32 sm:h-36 bg-gradient-to-t from-black/90 to-transparent md:from-transparent pointer-events-none" />
 
       {/* Bottom fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black to-transparent pointer-events-none" />
+      <div className="absolute bottom-0 left-0 right-0 h-40 sm:h-48 bg-gradient-to-t from-black via-black/95 to-transparent pointer-events-none" />
+
     </section>
   )
 }

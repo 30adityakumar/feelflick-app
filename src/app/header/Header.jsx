@@ -93,11 +93,13 @@ export default function Header({ onOpenSearch }) {
       {/* Desktop / Tablet Header */}
       <header 
           ref={hdrRef}
-          className={`fixed top-0 left-0 right-0 z-50  transition-all duration-300 ${
+          className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
             scrolled 
-              ? 'bg-[#0a0a0a]/95 backdrop-blur-xl shadow-lg shadow-purple-900/5 border-b border-white/5' 
-              : 'bg-gradient-to-b from-black/95 via-black/80 to-transparent'
+              ? 'bg-[#0a0a0a]/90 backdrop-blur-xl shadow-lg shadow-purple-900/5 border-b border-white/5' 
+              : 'bg-gradient-to-b from-black/80 via-black/30 to-transparent backdrop-blur-sm'
+
           } ${scrollDirection === 'down' ? 'md:-translate-y-full' : 'translate-y-0'}`}
+
           style={{ paddingTop: 'env(safe-area-inset-top)' }}
         >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -184,6 +186,9 @@ export default function Header({ onOpenSearch }) {
             </div>
           </div>
         </div>
+        {/* Smooth fade into content */}
+        <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-b from-transparent to-black/20 pointer-events-none" />
+
       </header>
 
        {/* MOBILE BOTTOM NAV: See src/app/AppShell.jsx (not defined here) */}

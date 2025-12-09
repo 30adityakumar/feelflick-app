@@ -4,9 +4,10 @@
  * Uses Supabase auth directly (no AuthProvider wrapper).
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/shared/lib/supabase/client'
 import * as recommendationService from '@/shared/services/recommendations'
+
 
 /**
  * Hook to get current user ID from Supabase session
@@ -200,12 +201,6 @@ export function useAllRecommendations(options = {}) {
 /**
  * Homepage hero hook - top pick for the user
  */
-/**
- * Homepage hero hook - top pick for the user
- */
-/**
- * Homepage hero hook - top pick for the user
- */
 export function useTopPick(options = {}) {
   const { enabled = true, excludeTmdbIds = [] } = options
   const userId = useUserId()
@@ -213,6 +208,7 @@ export function useTopPick(options = {}) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [authChecked, setAuthChecked] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
 
   // Track when auth check is complete
   useEffect(() => {
@@ -296,29 +292,56 @@ export function useTopPick(options = {}) {
       isCancelled = true
       controller.abort()
     }
-  }, [userId, enabled, authChecked, JSON.stringify(excludeTmdbIds)])
+  }, [userId, enabled, authChecked, JSON.stringify(excludeTmdbIds), refreshKey])
 
-  return { data, loading, error }
+  // Function to trigger refetch
+  const refetch = useCallback(() => {
+    setRefreshKey(k => k + 1)
+  }, [])
+
+  return { data, loading, error, refetch }
 }
-
 
 /**
  * Homepage row: quick picks for tonight
  */
 export function useQuickPicks(options = {}) {
-  const { limit = 20, excludeTmdbId = null, enabled = true } = options
+  const { limit = 20, excludeIds = [], enabled = true } = options
   const userId = useUserId()
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [authChecked, setAuthChecked] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
+
+  // Track when auth check is complete
+  useEffect(() => {
+    let mounted = true
+    
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (mounted) {
+        setAuthChecked(true)
+      }
+    })
+
+    return () => { mounted = false }
+  }, [])
 
   useEffect(() => {
-    if (!enabled || !userId) {
+    if (!enabled || !authChecked) {
+      if (authChecked && !userId) {
+        setLoading(false)
+      }
+      return
+    }
+
+    if (!userId) {
       setLoading(false)
       return
     }
 
     const controller = new AbortController()
+    let isCancelled = false
 
     async function fetchQuickPicks() {
       try {
@@ -327,26 +350,38 @@ export function useQuickPicks(options = {}) {
 
         const items = await recommendationService.getQuickPicksForUser(userId, {
           limit,
-          excludeTmdbId,
-          signal: controller.signal,
+          excludeIds,
         })
-        setData(items)
+
+        if (isCancelled) return
+
+        setData(items || [])
       } catch (err) {
-        if (err.name !== 'AbortError') {
+        if (err.name !== 'AbortError' && !isCancelled) {
           console.error('[useQuickPicks] Error:', err)
           setError(err)
         }
       } finally {
-        setLoading(false)
+        if (!isCancelled) {
+          setLoading(false)
+        }
       }
     }
 
     fetchQuickPicks()
 
-    return () => controller.abort()
-  }, [userId, limit, excludeTmdbId, enabled])
+    return () => {
+      isCancelled = true
+      controller.abort()
+    }
+  }, [userId, limit, JSON.stringify(excludeIds), enabled, authChecked, refreshKey])
 
-  return { data, loading, error }
+  // Function to trigger refetch
+  const refetch = useCallback(() => {
+    setRefreshKey(k => k + 1)
+  }, [])
+
+  return { data, loading, error, refetch }
 }
 
 /**

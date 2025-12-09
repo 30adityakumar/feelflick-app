@@ -567,14 +567,18 @@ async function getSeedFilms(userId, profile) {
       .order('watched_at', { ascending: false })
       .limit(100)
 
-    // Get user ratings (if table exists)
-    const { data: ratings } = await supabase
+    // Get user ratings (high-rated movies are strongest seeds)
+    const { data: ratings, error: ratingsError } = await supabase
       .from('user_ratings')
       .select('movie_id, rating')
       .eq('user_id', userId)
       .gte('rating', 4)
-      .order('created_at', { ascending: false })
+      .order('rated_at', { ascending: false })
       .limit(20)
+
+    if (ratingsError) {
+      console.log('[getSeedFilms] Ratings query info:', ratingsError.message)
+    }
 
     if (!history || history.length === 0) return []
 
@@ -1299,6 +1303,8 @@ function determinePickReason(movie, profile, breakdown, seedSimilarity = {}) {
 
 /**
  * Get personalized top pick for Hero section
+ * NOW WITH: Embedding similarity, diversity constraints, impression tracking
+ * 
  * @param {string} userId - User UUID
  * @param {Object} options - Optional overrides
  * @returns {Promise<Object>} { movie, pickReason, score, debug }
@@ -1330,7 +1336,13 @@ export async function getTopPickForUser(userId, options = {}) {
     const watchedIds = watchedData?.map(w => w.movie_id) || []
     const allExcludeIds = [...new Set([...watchedIds, ...excludeIds])]
 
-    // 3. Fetch hero candidates - MULTIPLE POOLS
+    // 3. Get seed films FIRST (needed for embedding search)
+    const seedFilms = await getSeedFilms(userId, profile)
+    const seedIds = seedFilms.map(s => s.id).filter(Boolean)
+    
+    console.log('[getTopPickForUser] Seed films:', seedFilms.map(s => s.title))
+
+    // 4. Fetch hero candidates - MULTIPLE POOLS
     const selectFields = `
       id, tmdb_id, title, overview, tagline,
       original_language, runtime, release_year, release_date,
@@ -1354,7 +1366,7 @@ export async function getTopPickForUser(userId, options = {}) {
       .order('ff_rating', { ascending: false })
       .limit(100)
 
-    // Pool 2: Films from user's favorite directors (ALL of them, not filtered by rating)
+    // Pool 2: Films from user's favorite directors
     const directorNames = profile.affinities.directors.map(d => d.name)
     let directorFilms = []
     if (directorNames.length > 0) {
@@ -1364,7 +1376,7 @@ export async function getTopPickForUser(userId, options = {}) {
         .eq('is_valid', true)
         .not('backdrop_path', 'is', null)
         .in('director_name', directorNames)
-        .gte('ff_rating', 6.0) // Lower threshold for favorite directors
+        .gte('ff_rating', 6.0)
       directorFilms = dirFilms || []
     }
 
@@ -1379,82 +1391,132 @@ export async function getTopPickForUser(userId, options = {}) {
       .gte('release_year', currentYear - 2)
       .limit(50)
 
-    // Combine and deduplicate
-    const allCandidates = [...(topRated || []), ...(directorFilms || []), ...(recentFilms || [])]
+    // Pool 4: EMBEDDING NEIGHBORS (semantic similarity to seeds) - NEW!
+    let embeddingNeighbors = []
+    if (seedIds.length > 0) {
+      const { data: embeddingMatches, error: embError } = await supabase
+        .rpc('match_movies_by_seeds', {
+          seed_ids: seedIds,
+          exclude_ids: allExcludeIds,
+          match_count: 50,
+          min_ff_rating: 6.0
+        })
+      
+      if (embError) {
+        console.warn('[getTopPickForUser] Embedding search error:', embError.message)
+      } else {
+        embeddingNeighbors = embeddingMatches || []
+        console.log('[getTopPickForUser] Embedding neighbors found:', embeddingNeighbors.length)
+      }
+    }
+
+    // Combine and deduplicate all pools
+    const allCandidates = [
+      ...(topRated || []), 
+      ...(directorFilms || []), 
+      ...(recentFilms || []),
+      ...(embeddingNeighbors || [])
+    ]
+    
+    // Deduplicate, but preserve embedding similarity if present
     const candidateMap = new Map()
     allCandidates.forEach(m => {
       if (!candidateMap.has(m.id)) {
-        candidateMap.set(m.id, m)
+        candidateMap.set(m.id, {
+          ...m,
+          _embeddingSimilarity: m.similarity || null,
+          _matchedSeedId: m.matched_seed_id || null,
+          _matchedSeedTitle: m.matched_seed_title || null
+        })
+      } else if (m.similarity && !candidateMap.get(m.id)._embeddingSimilarity) {
+        // Update with embedding data if we didn't have it
+        const existing = candidateMap.get(m.id)
+        existing._embeddingSimilarity = m.similarity
+        existing._matchedSeedId = m.matched_seed_id
+        existing._matchedSeedTitle = m.matched_seed_title
       }
     })
     const candidates = Array.from(candidateMap.values())
 
-    // 4. Filter out watched/excluded movies
+    console.log('[getTopPickForUser] Candidate pools:', {
+      topRated: topRated?.length || 0,
+      directorFilms: directorFilms?.length || 0,
+      recentFilms: recentFilms?.length || 0,
+      embeddingNeighbors: embeddingNeighbors?.length || 0,
+      totalUnique: candidates.length
+    })
+
     console.log('[getTopPickForUser] Exclusion check:', {
       watchedIds: allExcludeIds.slice(0, 10),
       totalWatched: allExcludeIds.length,
       candidatesBefore: candidates.length
     })
-    
-    console.log('[getTopPickForUser] After exclusion:', {
-      candidatesAfter: eligibleCandidates.length,
-      excluded: candidates.length - eligibleCandidates.length
-    })
-    
-    console.log('[getTopPickForUser] Candidate pools:', {
-      topRated: topRated?.length || 0,
-      directorFilms: directorFilms?.length || 0,
-      recentFilms: recentFilms?.length || 0,
-      totalUnique: candidates.length
-    })
 
-    const error = null // No single query error now
-
-    if (error) throw error
     if (!candidates || candidates.length === 0) {
       return await getFallbackPick(profile)
     }
 
-    // 4. Filter out watched/excluded movies
+    // 5. Filter out watched/excluded movies
     const eligibleCandidates = candidates.filter(m => !allExcludeIds.includes(m.id))
+
+    console.log('[getTopPickForUser] After exclusion:', {
+      candidatesAfter: eligibleCandidates.length,
+      excluded: candidates.length - eligibleCandidates.length
+    })
 
     if (eligibleCandidates.length === 0) {
       return await getFallbackPick(profile)
     }
 
-    // 5. Score all candidates
-    // 5. Get seed films (user's favorites for similarity matching)
-    const seedFilms = await getSeedFilms(userId, profile)
-    
-    console.log('[getTopPickForUser] Seed films:', seedFilms.map(s => s.title))
-
-    // 6. Score all candidates (Stage 1: Pure personalization)
+    // 6. Score all candidates with EMBEDDING SIMILARITY boost
     const scoredCandidates = eligibleCandidates.map(movie => {
       const result = scoreMovieForUser(movie, profile, 'hero', seedFilms)
+      
+      // EMBEDDING SIMILARITY BOOST (replaces/supplements rule-based seed similarity)
+      let embeddingBoost = 0
+      let embeddingReason = null
+      
+      if (movie._embeddingSimilarity) {
+        // Scale: 0.5 similarity = 0 points, 0.7 = 40 points, 0.9 = 80 points
+        const simNormalized = Math.max(0, movie._embeddingSimilarity - 0.5) / 0.4
+        embeddingBoost = Math.round(simNormalized * 80)
+        embeddingReason = {
+          seedTitle: movie._matchedSeedTitle,
+          similarity: movie._embeddingSimilarity
+        }
+      }
+      
       return {
         movie,
-        ...result
+        ...result,
+        score: result.score + embeddingBoost,
+        embeddingBoost,
+        embeddingReason,
+        breakdown: {
+          ...result.breakdown,
+          embeddingSimilarity: embeddingBoost
+        }
       }
     })
 
     // Sort by personalization score
     scoredCandidates.sort((a, b) => b.score - a.score)
 
-    // 7. Stage 2: Hero-specific adjustments on top 20
-    const top20 = scoredCandidates.slice(0, 20).map(candidate => {
+    // 7. Stage 2: Hero-specific adjustments on top 30
+    const top30 = scoredCandidates.slice(0, 30).map(candidate => {
       let heroScore = candidate.score
       const movie = candidate.movie
       
-      // Freshness boost for Hero (new releases should feel exciting)
+      // Freshness boost for Hero
       const age = movie.release_year ? currentYear - movie.release_year : 10
-      if (age === 0) heroScore += 20       // This year
-      else if (age === 1) heroScore += 12  // Last year
-      else if (age <= 3) heroScore += 5    // Recent
+      if (age === 0) heroScore += 20
+      else if (age === 1) heroScore += 12
+      else if (age <= 3) heroScore += 5
       
       // Variety boost - favor films from different directors than seeds
       const seedDirectors = seedFilms.map(s => s.director_name?.toLowerCase()).filter(Boolean)
       if (movie.director_name && !seedDirectors.includes(movie.director_name.toLowerCase())) {
-        heroScore += 8  // Discovery bonus
+        heroScore += 8
       }
 
       return {
@@ -1465,31 +1527,43 @@ export async function getTopPickForUser(userId, options = {}) {
     })
 
     // Sort by hero-adjusted score
-    top20.sort((a, b) => b.heroScore - a.heroScore)
+    top30.sort((a, b) => b.heroScore - a.heroScore)
 
-    // 8. Weighted random from top 5 (now hero-optimized)
-    const top5 = top20.slice(0, 5)
-    const selected = weightedRandomSelect(top5)
-    
-    // Use heroScore for final
+    // 8. DIVERSITY FILTER - NEW!
+    const diverseTop5 = applyDiversityFilter(top30, seedFilms)
+
+    // 9. Weighted random from diverse top 5
+    const selected = weightedRandomSelect(diverseTop5)
     selected.score = selected.heroScore
 
+    // 10. Determine final pick reason (prioritize embedding match)
+    if (selected.embeddingReason && selected.embeddingBoost >= 30) {
+      selected.pickReason = {
+        label: `Because you loved ${selected.embeddingReason.seedTitle}`,
+        type: 'embedding_similarity',
+        seedTitle: selected.embeddingReason.seedTitle,
+        similarity: selected.embeddingReason.similarity
+      }
+    }
+
     console.log('[getTopPickForUser] Profile confidence:', profile.meta.confidence)
-    console.log('[getTopPickForUser] Top 5 picks (hero-adjusted):', top5.map(c => ({
+    console.log('[getTopPickForUser] Top 5 picks (diverse, hero-adjusted):', diverseTop5.map(c => ({
       title: c.movie.title,
       heroScore: c.heroScore,
       originalScore: c.originalScore,
+      embeddingBoost: c.embeddingBoost,
+      embeddingSeed: c.embeddingReason?.seedTitle,
       reason: c.pickReason.label,
       year: c.movie.release_year,
-      breakdown: {
-        base: c.breakdown.baseQuality,
-        genre: c.breakdown.genre,
-        people: c.breakdown.people,
-        seedSim: c.breakdown.seedSimilarity,
-        seedMatch: c.breakdown.seedMatch
-      }
+      director: c.movie.director_name,
+      genre: c.movie.primary_genre
     })))
     console.log('[getTopPickForUser] Selected:', selected.movie.title, '| Reason:', selected.pickReason.label)
+
+    // 11. LOG IMPRESSION (async, don't await)
+    logImpression(userId, selected, 'hero').catch(err => 
+      console.warn('[getTopPickForUser] Failed to log impression:', err.message)
+    )
 
     return {
       movie: selected.movie,
@@ -1498,9 +1572,11 @@ export async function getTopPickForUser(userId, options = {}) {
       debug: {
         profileConfidence: profile.meta.confidence,
         candidatesScored: scoredCandidates.length,
-        top5Scores: top5.map(c => ({ 
+        embeddingNeighborsUsed: embeddingNeighbors.length,
+        top5Scores: diverseTop5.map(c => ({ 
           title: c.movie.title, 
-          score: c.score,
+          score: c.heroScore,
+          embeddingBoost: c.embeddingBoost,
           reason: c.pickReason.type 
         }))
       }
@@ -1509,6 +1585,109 @@ export async function getTopPickForUser(userId, options = {}) {
   } catch (error) {
     console.error('[getTopPickForUser] Error:', error)
     return await getFallbackPick(null)
+  }
+}
+
+
+/**
+ * Apply diversity constraints to top candidates
+ * - Max 2 from same director
+ * - Max 2 from same primary genre
+ * - At least 1 "discovery" if possible (different from seeds)
+ */
+function applyDiversityFilter(sortedCandidates, seedFilms) {
+  const result = []
+  const directorCounts = new Map()
+  const genreCounts = new Map()
+  const seedDirectors = new Set(seedFilms.map(s => s.director_name?.toLowerCase()).filter(Boolean))
+  const seedGenres = new Set(seedFilms.map(s => s.primary_genre?.toLowerCase()).filter(Boolean))
+  
+  let hasDiscovery = false
+  
+  for (const candidate of sortedCandidates) {
+    if (result.length >= 5) break
+    
+    const movie = candidate.movie
+    const director = movie.director_name?.toLowerCase() || 'unknown'
+    const genre = movie.primary_genre?.toLowerCase() || 'unknown'
+    
+    // Check director limit
+    const dirCount = directorCounts.get(director) || 0
+    if (dirCount >= 2) continue
+    
+    // Check genre limit
+    const genreCount = genreCounts.get(genre) || 0
+    if (genreCount >= 2) continue
+    
+    // Track if this is a discovery (outside comfort zone)
+    const isDiscovery = !seedDirectors.has(director) && !seedGenres.has(genre)
+    
+    // Add to result
+    result.push({
+      ...candidate,
+      _isDiscovery: isDiscovery
+    })
+    
+    directorCounts.set(director, dirCount + 1)
+    genreCounts.set(genre, genreCount + 1)
+    if (isDiscovery) hasDiscovery = true
+  }
+  
+  // If no discovery in top 5, try to swap one in
+  if (!hasDiscovery && result.length === 5) {
+    const discoveryCandidate = sortedCandidates.find(c => {
+      const director = c.movie.director_name?.toLowerCase() || ''
+      const genre = c.movie.primary_genre?.toLowerCase() || ''
+      return !seedDirectors.has(director) && !seedGenres.has(genre) && !result.includes(c)
+    })
+    
+    if (discoveryCandidate) {
+      // Replace 5th pick with discovery
+      result[4] = { ...discoveryCandidate, _isDiscovery: true }
+      console.log('[applyDiversityFilter] Swapped in discovery:', discoveryCandidate.movie.title)
+    }
+  }
+  
+  console.log('[applyDiversityFilter] Diversity stats:', {
+    directors: Object.fromEntries(directorCounts),
+    genres: Object.fromEntries(genreCounts),
+    hasDiscovery
+  })
+  
+  return result
+}
+
+
+/**
+ * Log recommendation impression for future learning
+ */
+async function logImpression(userId, selected, placement) {
+  if (!userId || !selected?.movie?.id) return
+  
+  try {
+    await supabase
+      .from('recommendation_impressions')
+      .insert({
+        user_id: userId,
+        movie_id: selected.movie.id,
+        placement,
+        pick_reason_type: selected.pickReason?.type || 'unknown',
+        pick_reason_label: selected.pickReason?.label || null,
+        score: selected.score,
+        seed_movie_id: selected.embeddingReason?.seedId || null,
+        seed_movie_title: selected.embeddingReason?.seedTitle || null,
+        embedding_similarity: selected.embeddingReason?.similarity || null,
+        algorithm_version: 'v2.1-embeddings'
+      })
+    
+    console.log('[logImpression] Logged:', {
+      movie: selected.movie.title,
+      placement,
+      reason: selected.pickReason?.type
+    })
+  } catch (error) {
+    // Don't throw - impression logging is non-critical
+    console.warn('[logImpression] Error:', error.message)
   }
 }
 

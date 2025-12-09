@@ -165,8 +165,15 @@ export default function HeroTopPick() {
   })
 
   const goToDetails = useCallback(() => {
-  // Use tmdb_id for routing, fall back to id only if necessary
+  console.log('🔍 HeroTopPick movie object:', {
+    id: movie?.id,
+    tmdb_id: movie?.tmdb_id,
+    title: movie?.title
+  })
+  
   const tmdbId = movie?.tmdb_id || movie?.id
+  console.log('🔍 Navigating to:', `/movie/${tmdbId}`)
+  
   if (tmdbId) {
     navigate(`/movie/${tmdbId}`)
   }

@@ -28,6 +28,7 @@ export default function QuickPicksRow() {
       loading={loading}
       error={error}
       priority
+      placement="quick_picks"
     />
   )
 }

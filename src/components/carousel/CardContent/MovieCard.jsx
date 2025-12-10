@@ -1,10 +1,11 @@
 // src/components/carousel/CardContent/MovieCard.jsx
-import { memo, useState, useEffect, useCallback, useMemo } from 'react'
+import { memo, useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { Plus, Check, Eye, EyeOff, ChevronDown, Star } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { tmdbImg } from '@/shared/api/tmdb'
 import { useWatchlistContext } from '@/contexts/WatchlistContext'
 import { Card } from '../Card'
+import { updateImpression } from '@/shared/services/recommendations'
 
 function ActionBtn({
   onClick,
@@ -61,8 +62,8 @@ export const MovieCard = memo(function MovieCard({
   height,
   priority = false,
   onClick, // optional override from parent
-}) {
-  const navigate = useNavigate()
+  placement = null, // 'hero', 'quick_picks', 'hidden_gems', etc.
+}) {  const navigate = useNavigate()
   const [imageLoaded, setImageLoaded] = useState(false)
   const { user, ready, makeStatusHelpers } = useWatchlistContext()
 
@@ -81,6 +82,30 @@ export const MovieCard = memo(function MovieCard({
     toggleWatched: () => {},
   }
 
+  // Track watchlist/watched changes for impression learning
+  const prevWatchlistRef = useRef(isInWatchlist)
+  const prevWatchedRef = useRef(isWatched)
+
+  useEffect(() => {
+    if (!placement || !user?.id || !movie?.id) return
+
+    // Detect watchlist addition
+    if (isInWatchlist && !prevWatchlistRef.current) {
+      updateImpression(user.id, movie.id, placement, {
+        added_to_watchlist: true
+      })
+    }
+
+    // Detect marked as watched
+    if (isWatched && !prevWatchedRef.current) {
+      updateImpression(user.id, movie.id, placement, {
+        marked_watched: true
+      })
+    }
+
+    prevWatchlistRef.current = isInWatchlist
+    prevWatchedRef.current = isWatched
+  }, [isInWatchlist, isWatched, placement, user?.id, movie?.id])
 
   const meta = useMemo(() => {
     const rating =
@@ -103,9 +128,21 @@ export const MovieCard = memo(function MovieCard({
   }, [movie])
 
   const handleNavigate = useCallback(() => {
+    // Track click for impression learning
+    if (placement && user?.id && movie?.id) {
+      updateImpression(user.id, movie.id, placement, {
+        clicked: true,
+        clicked_at: new Date().toISOString()
+      })
+    }
+    
     if (onClick) onClick(movie)
-    else navigate(`/movie/${movie.id}`)
-  }, [movie, navigate, onClick])
+    else {
+      // Movies from our DB have tmdb_id, movies from TMDB API use id as tmdb_id
+      const tmdbId = movie.tmdb_id ?? movie.id
+      navigate(`/movie/${tmdbId}`)
+    }
+  }, [movie, navigate, onClick, placement, user?.id])
 
   return (
     <div

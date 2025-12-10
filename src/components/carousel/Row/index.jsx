@@ -187,19 +187,19 @@ return (
         const isExpanded = expandedId === item.id
 
         return (
-          <CardComponent
-            key={`${item.id}-${globalIndex}`}
-            item={item}
-            index={globalIndex}
-            isExpanded={isExpanded}
-            onHover={handleHover}
-            onLeave={handleLeave}
-            width={itemWidth}
-            height={itemHeight}
-            priority={priority && globalIndex < 5}
-            {...props}
-          />
-        )
+            <CardComponent
+              key={`${item.id}-${globalIndex}`}
+              item={item}
+              index={globalIndex}
+              isExpanded={isExpanded}
+              onHover={handleHover}
+              onLeave={handleLeave}
+              width={itemWidth}
+              height={itemHeight}
+              priority={priority && globalIndex < 5}
+              {...props}
+            />
+          )
       })}
 
       <div style={{ width: virtualization.rightSpacerWidth, flexShrink: 0 }} />

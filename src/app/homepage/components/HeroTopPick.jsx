@@ -385,7 +385,7 @@ export default function HeroTopPick() {
       </div>
 
       {/* === CONTENT === */}
-      <div className="relative z-10 h-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 flex items-end pb-2 sm:pb-3 lg:pb-8">
+      <div className="relative z-10 h-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 flex items-end pb-4 sm:pb-6 lg:pb-10">
 
         <div className="flex flex-col sm:flex-row gap-5 sm:gap-6 lg:gap-10 w-full items-end">
           {/* Poster glow effect */}

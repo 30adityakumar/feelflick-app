@@ -1,4 +1,5 @@
 // src/app/homepage/components/QuickWatchesRow.jsx
+
 import { Clock } from 'lucide-react'
 import PersonalizedCarouselRow from './PersonalizedCarouselRow'
 import { useQuickWatches } from '@/shared/hooks/useRecommendations'
@@ -14,6 +15,7 @@ export default function QuickWatchesRow() {
       error={error}
       icon={Clock}
       rowId="quick-watches"
+      placement="quick_watches"
     />
   )
 }

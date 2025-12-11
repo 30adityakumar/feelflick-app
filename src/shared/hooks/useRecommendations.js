@@ -38,19 +38,41 @@ function useUserId() {
  * Hook for genre-based recommendations
  */
 export function useGenreRecommendations(options = {}) {
-  const { limit = 20, enabled = true } = options
+  const { limit = 20, excludeIds = [], enabled = true } = options
   const userId = useUserId()
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [authChecked, setAuthChecked] = useState(false)
+
+  // Track when auth check is complete
+  useEffect(() => {
+    let mounted = true
+    
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (mounted) {
+        setAuthChecked(true)
+      }
+    })
+
+    return () => { mounted = false }
+  }, [])
 
   useEffect(() => {
-    if (!enabled || !userId) {
+    if (!enabled || !authChecked) {
+      if (authChecked && !userId) {
+        setLoading(false)
+      }
+      return
+    }
+
+    if (!userId) {
       setLoading(false)
       return
     }
 
     const controller = new AbortController()
+    let isCancelled = false
 
     async function fetchRecommendations() {
       try {
@@ -60,24 +82,31 @@ export function useGenreRecommendations(options = {}) {
         const recommendations =
           await recommendationService.getGenreBasedRecommendations(userId, {
             limit,
-            signal: controller.signal,
+            excludeIds,
           })
 
-        setData(recommendations)
+        if (isCancelled) return
+
+        setData(recommendations || [])
       } catch (err) {
-        if (err.name !== 'AbortError') {
+        if (err.name !== 'AbortError' && !isCancelled) {
           console.error('[useGenreRecommendations] Error:', err)
           setError(err)
         }
       } finally {
-        setLoading(false)
+        if (!isCancelled) {
+          setLoading(false)
+        }
       }
     }
 
     fetchRecommendations()
 
-    return () => controller.abort()
-  }, [userId, limit, enabled])
+    return () => {
+      isCancelled = true
+      controller.abort()
+    }
+  }, [userId, limit, JSON.stringify(excludeIds), enabled, authChecked])
 
   return { data, loading, error }
 }
@@ -388,19 +417,41 @@ export function useQuickPicks(options = {}) {
  * Hook: "Because you watched" seeded rows
  */
 export function useBecauseYouWatchedRows(options = {}) {
-  const { maxSeeds = 2, limitPerSeed = 20, enabled = true } = options
+  const { maxSeeds = 2, limitPerSeed = 20, excludeIds = [], enabled = true } = options
   const userId = useUserId()
-  const [data, setData] = useState([]) // [{ seedTitle, seedTmdbId, movies: [] }]
+  const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [authChecked, setAuthChecked] = useState(false)
+
+  // Track when auth check is complete
+  useEffect(() => {
+    let mounted = true
+    
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (mounted) {
+        setAuthChecked(true)
+      }
+    })
+
+    return () => { mounted = false }
+  }, [])
 
   useEffect(() => {
-    if (!enabled || !userId) {
+    if (!enabled || !authChecked) {
+      if (authChecked && !userId) {
+        setLoading(false)
+      }
+      return
+    }
+
+    if (!userId) {
       setLoading(false)
       return
     }
 
     const controller = new AbortController()
+    let isCancelled = false
 
     async function fetchRows() {
       try {
@@ -410,24 +461,31 @@ export function useBecauseYouWatchedRows(options = {}) {
         const rows = await recommendationService.getBecauseYouWatchedRows(userId, {
           maxSeeds,
           limitPerSeed,
-          signal: controller.signal,
+          excludeIds,
         })
+
+        if (isCancelled) return
 
         setData(rows || [])
       } catch (err) {
-        if (err.name !== 'AbortError') {
+        if (err.name !== 'AbortError' && !isCancelled) {
           console.error('[useBecauseYouWatchedRows] Error:', err)
           setError(err)
         }
       } finally {
-        setLoading(false)
+        if (!isCancelled) {
+          setLoading(false)
+        }
       }
     }
 
     fetchRows()
 
-    return () => controller.abort()
-  }, [userId, maxSeeds, limitPerSeed, enabled])
+    return () => {
+      isCancelled = true
+      controller.abort()
+    }
+  }, [userId, maxSeeds, limitPerSeed, JSON.stringify(excludeIds), enabled, authChecked])
 
   return { data, loading, error }
 }
@@ -436,19 +494,41 @@ export function useBecauseYouWatchedRows(options = {}) {
  * Hook: Hidden gems for user
  */
 export function useHiddenGems(options = {}) {
-  const { limit = 20, enabled = true } = options
+  const { limit = 20, excludeIds = [], enabled = true } = options
   const userId = useUserId()
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [authChecked, setAuthChecked] = useState(false)
+
+  // Track when auth check is complete
+  useEffect(() => {
+    let mounted = true
+    
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (mounted) {
+        setAuthChecked(true)
+      }
+    })
+
+    return () => { mounted = false }
+  }, [])
 
   useEffect(() => {
-    if (!enabled || !userId) {
+    if (!enabled || !authChecked) {
+      if (authChecked && !userId) {
+        setLoading(false)
+      }
+      return
+    }
+
+    if (!userId) {
       setLoading(false)
       return
     }
 
     const controller = new AbortController()
+    let isCancelled = false
 
     async function fetchHiddenGems() {
       try {
@@ -457,24 +537,31 @@ export function useHiddenGems(options = {}) {
 
         const items = await recommendationService.getHiddenGemsForUser(userId, {
           limit,
-          signal: controller.signal,
+          excludeIds,
         })
+
+        if (isCancelled) return
 
         setData(items || [])
       } catch (err) {
-        if (err.name !== 'AbortError') {
+        if (err.name !== 'AbortError' && !isCancelled) {
           console.error('[useHiddenGems] Error:', err)
           setError(err)
         }
       } finally {
-        setLoading(false)
+        if (!isCancelled) {
+          setLoading(false)
+        }
       }
     }
 
     fetchHiddenGems()
 
-    return () => controller.abort()
-  }, [userId, limit, enabled])
+    return () => {
+      isCancelled = true
+      controller.abort()
+    }
+  }, [userId, limit, JSON.stringify(excludeIds), enabled, authChecked])
 
   return { data, loading, error }
 }
@@ -483,19 +570,41 @@ export function useHiddenGems(options = {}) {
  * Hook: Trending this week (for you)
  */
 export function useTrendingForYou(options = {}) {
-  const { limit = 20, enabled = true } = options
+  const { limit = 20, excludeIds = [], enabled = true } = options
   const userId = useUserId()
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [authChecked, setAuthChecked] = useState(false)
+
+  // Track when auth check is complete
+  useEffect(() => {
+    let mounted = true
+    
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (mounted) {
+        setAuthChecked(true)
+      }
+    })
+
+    return () => { mounted = false }
+  }, [])
 
   useEffect(() => {
-    if (!enabled || !userId) {
+    if (!enabled || !authChecked) {
+      if (authChecked && !userId) {
+        setLoading(false)
+      }
+      return
+    }
+
+    if (!userId) {
       setLoading(false)
       return
     }
 
     const controller = new AbortController()
+    let isCancelled = false
 
     async function fetchTrending() {
       try {
@@ -504,24 +613,31 @@ export function useTrendingForYou(options = {}) {
 
         const items = await recommendationService.getTrendingForUser(userId, {
           limit,
-          signal: controller.signal,
+          excludeIds,
         })
+
+        if (isCancelled) return
 
         setData(items || [])
       } catch (err) {
-        if (err.name !== 'AbortError') {
+        if (err.name !== 'AbortError' && !isCancelled) {
           console.error('[useTrendingForYou] Error:', err)
           setError(err)
         }
       } finally {
-        setLoading(false)
+        if (!isCancelled) {
+          setLoading(false)
+        }
       }
     }
 
     fetchTrending()
 
-    return () => controller.abort()
-  }, [userId, limit, enabled])
+    return () => {
+      isCancelled = true
+      controller.abort()
+    }
+  }, [userId, limit, JSON.stringify(excludeIds), enabled, authChecked])
 
   return { data, loading, error }
 }
@@ -530,42 +646,74 @@ export function useTrendingForYou(options = {}) {
  * Hook: Slow & Contemplative films
  */
 export function useSlowContemplative(options = {}) {
-  const { limit = 20, enabled = true } = options
+  const { limit = 20, excludeIds = [], enabled = true } = options
   const userId = useUserId()
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [authChecked, setAuthChecked] = useState(false)
+
+  // Track when auth check is complete
+  useEffect(() => {
+    let mounted = true
+    
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (mounted) {
+        setAuthChecked(true)
+      }
+    })
+
+    return () => { mounted = false }
+  }, [])
 
   useEffect(() => {
-    if (!enabled || !userId) {
+    if (!enabled || !authChecked) {
+      if (authChecked && !userId) {
+        setLoading(false)
+      }
+      return
+    }
+
+    if (!userId) {
       setLoading(false)
       return
     }
 
     const controller = new AbortController()
+    let isCancelled = false
 
     async function fetch() {
       try {
         setLoading(true)
         setError(null)
+
         const items = await recommendationService.getSlowContemplative(userId, {
           limit,
-          signal: controller.signal,
+          excludeIds,
         })
+
+        if (isCancelled) return
+
         setData(items || [])
       } catch (err) {
-        if (err.name !== 'AbortError') {
+        if (err.name !== 'AbortError' && !isCancelled) {
           console.error('[useSlowContemplative] Error:', err)
           setError(err)
         }
       } finally {
-        setLoading(false)
+        if (!isCancelled) {
+          setLoading(false)
+        }
       }
     }
 
     fetch()
-    return () => controller.abort()
-  }, [userId, limit, enabled])
+
+    return () => {
+      isCancelled = true
+      controller.abort()
+    }
+  }, [userId, limit, JSON.stringify(excludeIds), enabled, authChecked])
 
   return { data, loading, error }
 }
@@ -574,42 +722,74 @@ export function useSlowContemplative(options = {}) {
  * Hook: Quick Watches under 90 min
  */
 export function useQuickWatches(options = {}) {
-  const { limit = 20, enabled = true } = options
+  const { limit = 20, excludeIds = [], enabled = true } = options
   const userId = useUserId()
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [authChecked, setAuthChecked] = useState(false)
+
+  // Track when auth check is complete
+  useEffect(() => {
+    let mounted = true
+    
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (mounted) {
+        setAuthChecked(true)
+      }
+    })
+
+    return () => { mounted = false }
+  }, [])
 
   useEffect(() => {
-    if (!enabled || !userId) {
+    if (!enabled || !authChecked) {
+      if (authChecked && !userId) {
+        setLoading(false)
+      }
+      return
+    }
+
+    if (!userId) {
       setLoading(false)
       return
     }
 
     const controller = new AbortController()
+    let isCancelled = false
 
     async function fetch() {
       try {
         setLoading(true)
         setError(null)
+
         const items = await recommendationService.getQuickWatches(userId, {
           limit,
-          signal: controller.signal,
+          excludeIds,
         })
+
+        if (isCancelled) return
+
         setData(items || [])
       } catch (err) {
-        if (err.name !== 'AbortError') {
+        if (err.name !== 'AbortError' && !isCancelled) {
           console.error('[useQuickWatches] Error:', err)
           setError(err)
         }
       } finally {
-        setLoading(false)
+        if (!isCancelled) {
+          setLoading(false)
+        }
       }
     }
 
     fetch()
-    return () => controller.abort()
-  }, [userId, limit, enabled])
+
+    return () => {
+      isCancelled = true
+      controller.abort()
+    }
+  }, [userId, limit, JSON.stringify(excludeIds), enabled, authChecked])
 
   return { data, loading, error }
 }

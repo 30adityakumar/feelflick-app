@@ -8,11 +8,10 @@ import HiddenGemsRow from './components/HiddenGemsRow'
 import TrendingForYouRow from './components/TrendingForYouRow'
 import SlowContemplativeRow from './components/SlowContemplativeRow'
 import QuickWatchesRow from './components/QuickWatchesRow'
-import { useHistoryRecommendations, useGenreRecommendations } from '@/shared/hooks/useRecommendations'
+import { useGenreRecommendations } from '@/shared/hooks/useRecommendations'
 
 export default function HomePage() {
   const genreRecs = useGenreRecommendations({ limit: 20 })
-  const historyRecs = useHistoryRecommendations({ limit: 20 })
 
   return (
     <div className="relative w-full bg-black text-white min-h-screen overflow-x-hidden">
@@ -35,6 +34,7 @@ export default function HomePage() {
             loading={genreRecs.loading}
             error={genreRecs.error}
             rowId="favorite-genres"
+            placement="favorite_genres"
           />
 
           {/* Hidden gems */}

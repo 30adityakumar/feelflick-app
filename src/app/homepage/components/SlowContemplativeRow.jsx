@@ -15,6 +15,7 @@ export default function SlowContemplativeRow() {
       error={error}
       icon={Coffee}
       rowId="slow-contemplative"
+      placement="slow_contemplative"
     />
   )
 }

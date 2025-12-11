@@ -1,6 +1,6 @@
 // src/app/homepage/components/HiddenGemsRow.jsx
 
-import { Sparkles } from 'lucide-react'
+import { Gem } from 'lucide-react'
 import PersonalizedCarouselRow from './PersonalizedCarouselRow'
 import { useHiddenGems } from '@/shared/hooks/useRecommendations'
 
@@ -13,8 +13,9 @@ export default function HiddenGemsRow() {
       movies={data}
       loading={loading}
       error={error}
-      icon={Sparkles}
+      icon={Gem}
       rowId="hidden-gems"
+      placement="hidden_gems"
     />
   )
 }

@@ -15,6 +15,7 @@ export default function TrendingForYouRow() {
       error={error}
       icon={TrendingUp}
       rowId="trending-for-you"
+      placement="trending"
     />
   )
 }

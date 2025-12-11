@@ -1,5 +1,6 @@
 // src/app/homepage/components/BecauseYouWatchedSection.jsx
 
+import { Heart } from 'lucide-react'
 import PersonalizedCarouselRow from './PersonalizedCarouselRow'
 import { useBecauseYouWatchedRows } from '@/shared/hooks/useRecommendations'
 
@@ -10,7 +11,6 @@ export default function BecauseYouWatchedSection() {
   })
 
   if (loading && (!rows || rows.length === 0)) {
-    // Let the row component handle loading state with empty movies
     return (
       <PersonalizedCarouselRow
         title="Because you watched"
@@ -39,15 +39,17 @@ export default function BecauseYouWatchedSection() {
   }
 
   return (
-    <section className="space-y-6">
+    <section className="space-y-2 sm:space-y-4">
       {rows.map((row, idx) => (
         <PersonalizedCarouselRow
-          key={`${row.seedTmdbId}-${idx}`}
-          title={`Because you watched ${row.seedTitle}`}
+          key={`${row.seedId}-${idx}`}
+          title={`Because you loved ${row.seedTitle}`}
           movies={row.movies}
           loading={false}
           error={null}
-          rowId={`because-you-watched-${idx}`}
+          icon={Heart}
+          rowId={`because-you-watched-${row.seedId}`}
+          placement={`because_you_loved`}
         />
       ))}
     </section>

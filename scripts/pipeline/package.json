@@ -7,21 +7,15 @@
     "discover": "node run-pipeline.js discover",
     "refresh": "node run-pipeline.js refresh",
     "deep-refresh": "node run-pipeline.js deep-refresh",
-    "full": "node run-pipeline.js full",
-    "test": "node test-discover-limited.js"
+    "full": "node run-pipeline.js full"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.87.1",
-    "axios": "^1.13.2",
-    "dotenv": "^16.6.1",
-    "openai": "^4.104.0"
+    "@supabase/supabase-js": "^2.39.0",
+    "axios": "^1.6.2",
+    "dotenv": "^16.3.1",
+    "openai": "^4.20.1"
   },
-  "keywords": [
-    "movies",
-    "tmdb",
-    "recommendation",
-    "pipeline"
-  ],
+  "keywords": ["movies", "tmdb", "recommendation"],
   "author": "FeelFlick",
   "license": "MIT"
 }

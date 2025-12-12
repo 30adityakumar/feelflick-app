@@ -1,0 +1,10 @@
+[2025-12-12T17:50:44.512Z] [INFO] Finding movies with incomplete processing...
+[2025-12-12T17:50:45.010Z] [INFO] Found 160 movies with incomplete processing
+[2025-12-12T17:50:45.010Z] [INFO] 
+Breakdown:
+[2025-12-12T17:50:45.011Z] [INFO]   - Need embeddings: 5
+[2025-12-12T17:50:45.011Z] [INFO]   - Need scores: 5
+[2025-12-12T17:50:45.011Z] [INFO]   - Need cast metadata: 5
+[2025-12-12T17:50:45.011Z] [INFO] 
+💡 Run the pipeline to process these movies:
+[2025-12-12T17:50:45.011Z] [INFO]    cd scripts/pipeline && node run-pipeline.js discover

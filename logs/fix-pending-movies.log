@@ -1,0 +1,33 @@
+[2025-12-12T17:30:34.836Z] [INFO] Finding pending movies...
+[2025-12-12T17:30:35.034Z] [INFO] Found 4 pending movies:
+
+[2025-12-12T17:30:35.035Z] [INFO] TMDB 1580353: The Fakenapping
+[2025-12-12T17:30:35.035Z] [INFO]   - Has embeddings: false
+[2025-12-12T17:30:35.035Z] [INFO]   - Has scores: false
+[2025-12-12T17:30:35.035Z] [INFO]   - Has cast: false
+[2025-12-12T17:30:35.035Z] [INFO]   - Has keywords: true
+[2025-12-12T17:30:35.035Z] [INFO]   - FF Rating: NULL
+
+[2025-12-12T17:30:35.036Z] [INFO] TMDB 1352624: The Mastermind
+[2025-12-12T17:30:35.036Z] [INFO]   - Has embeddings: false
+[2025-12-12T17:30:35.036Z] [INFO]   - Has scores: false
+[2025-12-12T17:30:35.036Z] [INFO]   - Has cast: false
+[2025-12-12T17:30:35.036Z] [INFO]   - Has keywords: true
+[2025-12-12T17:30:35.036Z] [INFO]   - FF Rating: NULL
+
+[2025-12-12T17:30:35.036Z] [INFO] TMDB 1407862: Lost in the Spotlight
+[2025-12-12T17:30:35.036Z] [INFO]   - Has embeddings: false
+[2025-12-12T17:30:35.036Z] [INFO]   - Has scores: false
+[2025-12-12T17:30:35.037Z] [INFO]   - Has cast: false
+[2025-12-12T17:30:35.037Z] [INFO]   - Has keywords: true
+[2025-12-12T17:30:35.037Z] [INFO]   - FF Rating: NULL
+
+[2025-12-12T17:30:35.037Z] [INFO] TMDB 801937: Silent Night, Deadly Night
+[2025-12-12T17:30:35.037Z] [INFO]   - Has embeddings: false
+[2025-12-12T17:30:35.037Z] [INFO]   - Has scores: false
+[2025-12-12T17:30:35.037Z] [INFO]   - Has cast: false
+[2025-12-12T17:30:35.037Z] [INFO]   - Has keywords: true
+[2025-12-12T17:30:35.037Z] [INFO]   - FF Rating: NULL
+
+[2025-12-12T17:30:35.037Z] [INFO] Setting all to complete status...
+[2025-12-12T17:30:35.113Z] [SUCCESS] ✓ Updated all pending movies to complete

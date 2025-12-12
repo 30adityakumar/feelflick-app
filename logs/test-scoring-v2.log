@@ -1,0 +1,22 @@
+[2025-12-12T15:26:32.706Z] [INFO] 
+================================================================================
+[2025-12-12T15:26:32.706Z] [INFO] �� TESTING V2 SCORING ON SAMPLE MOVIES
+[2025-12-12T15:26:32.706Z] [INFO] ================================================================================
+
+[2025-12-12T15:26:33.028Z] [INFO] Testing on 10 movies:
+
+[2025-12-12T15:26:33.029Z] [INFO] 1. Interstellar (Current FF: 8.1)
+[2025-12-12T15:26:33.029Z] [INFO] 2. Inception (Current FF: 8.4)
+[2025-12-12T15:26:33.029Z] [INFO] 3. The Dark Knight (Current FF: 9)
+[2025-12-12T15:26:33.029Z] [INFO] 4. The Avengers (Current FF: 8)
+[2025-12-12T15:26:33.029Z] [INFO] 5. Avatar (Current FF: 8)
+[2025-12-12T15:26:33.030Z] [INFO] 6. Deadpool (Current FF: 7.8)
+[2025-12-12T15:26:33.030Z] [INFO] 7. Avengers: Infinity War (Current FF: 8.1)
+[2025-12-12T15:26:33.030Z] [INFO] 8. Fight Club (Current FF: 8.2)
+[2025-12-12T15:26:33.030Z] [INFO] 9. Pulp Fiction (Current FF: 9)
+[2025-12-12T15:26:33.030Z] [INFO] 10. The Shawshank Redemption (Current FF: 8.9)
+[2025-12-12T15:26:33.030Z] [INFO] 
+🚀 Running V2 scoring...
+
+[2025-12-12T15:26:33.030Z] [INFO] 
+✅ Test complete! Check results in database.

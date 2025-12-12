@@ -34,13 +34,11 @@ function calculateMoodScore(movie, mood) {
   // Pacing match score (0-30 points)
   if (movie.pacing_score != null && mood.pacing_preference != null) {
     const difference = Math.abs(movie.pacing_score - mood.pacing_preference);
-    // Perfect match = 30 points, decreases with difference
     pacingMatchScore = Math.max(0, 30 - (difference / 100) * 30);
   }
 
   // Intensity match score (0-30 points)
   if (movie.intensity_score != null && mood.intensity_level != null) {
-    // Mood intensity_level is 1-10, convert to 0-100
     const moodIntensity = mood.intensity_level * 10;
     const difference = Math.abs(movie.intensity_score - moodIntensity);
     intensityMatchScore = Math.max(0, 30 - (difference / 100) * 30);
@@ -59,7 +57,7 @@ function calculateMoodScore(movie, mood) {
   score = Math.max(0, Math.min(100, score));
 
   return {
-    score: Math.round(score * 100) / 100, // Round to 2 decimals
+    score: Math.round(score * 100) / 100,
     genreMatchScore: Math.round(genreMatchScore * 100) / 100,
     pacingMatchScore: Math.round(pacingMatchScore * 100) / 100,
     intensityMatchScore: Math.round(intensityMatchScore * 100) / 100
@@ -83,7 +81,7 @@ async function calculateMovieMoodScores(movie, moods) {
         genre_match_score: genreMatchScore,
         pacing_match_score: pacingMatchScore,
         intensity_match_score: intensityMatchScore,
-        user_feedback_score: null, // Will be updated later based on user interactions
+        user_feedback_score: null,
         times_recommended: 0,
         success_rate: null,
         last_updated_at: new Date().toISOString()
@@ -138,7 +136,7 @@ async function main() {
 
     logger.info(`Found ${moods.length} active moods: ${moods.map(m => m.name).join(', ')}`);
 
-    // Get preferred genres for each mood (from experience_types via mood category)
+    // Get preferred genres for each mood
     const { data: experienceTypes, error: expError } = await supabase
       .from('experience_types')
       .select('name, preferred_genres, avoid_genres');
@@ -146,7 +144,6 @@ async function main() {
     if (expError) {
       logger.warn('Could not fetch experience types:', expError.message);
     } else {
-      // Map experience types to moods based on category matching
       for (const mood of moods) {
         const matchingExp = experienceTypes?.find(et => 
           et.name.toLowerCase().includes(mood.category?.toLowerCase() || 'none')
@@ -158,30 +155,43 @@ async function main() {
       }
     }
 
-    // Get movies that have scores but need mood score calculation
+    // Get movies that have scores
     const { data: movies, error: moviesError } = await supabase
       .from('movies')
       .select('id, tmdb_id, title, primary_genre, genres, pacing_score, intensity_score, quality_score')
       .eq('has_scores', true)
       .not('pacing_score', 'is', null)
       .order('vote_count', { ascending: false })
-      .limit(5000);
+      .limit(10000);
 
     if (moviesError) {
       throw new Error(`Failed to fetch movies: ${moviesError.message}`);
     }
 
-    // Filter movies that don't have mood scores yet
-    const { data: existingScores, error: scoresError } = await supabase
-      .from('movie_mood_scores')
-      .select('movie_id')
-      .in('movie_id', movies.map(m => m.id));
+    // ✨ FIX: Batch check existing scores (avoid "Bad Request" on large .in() queries)
+    const moviesWithScores = new Set();
+    const BATCH_SIZE = 500;
+    const movieIds = movies.map(m => m.id);
 
-    if (scoresError) {
-      logger.warn('Could not fetch existing mood scores:', scoresError.message);
+    logger.info(`Checking ${movieIds.length} movies for existing mood scores (batched)...`);
+
+    for (let i = 0; i < movieIds.length; i += BATCH_SIZE) {
+      const batch = movieIds.slice(i, i + BATCH_SIZE);
+      
+      const { data: existingScores, error: scoresError } = await supabase
+        .from('movie_mood_scores')
+        .select('movie_id')
+        .in('movie_id', batch);
+
+      if (scoresError) {
+        logger.warn(`Could not fetch existing mood scores (batch ${Math.floor(i / BATCH_SIZE) + 1}):`, scoresError.message);
+      } else {
+        existingScores?.forEach(s => moviesWithScores.add(s.movie_id));
+      }
     }
 
-    const moviesWithScores = new Set(existingScores?.map(s => s.movie_id) || []);
+    logger.info(`Found ${moviesWithScores.size} movies that already have mood scores`);
+
     const moviesToProcess = movies.filter(m => !moviesWithScores.has(m.id));
 
     if (moviesToProcess.length === 0) {

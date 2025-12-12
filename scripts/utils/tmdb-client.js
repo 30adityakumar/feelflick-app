@@ -1,5 +1,3 @@
-// scripts/utils/tmdb-client.js
-
 require('dotenv').config();
 const axios = require('axios');
 
@@ -48,6 +46,13 @@ const tmdbClient = {
   },
 
   /**
+   * Get movie credits (cast and crew)
+   */
+  async getMovieCredits(movieId) {
+    return this.request(`/movie/${movieId}/credits`);
+  },
+
+  /**
    * Get trending movies
    */
   async getTrending(timeWindow = 'week', page = 1) {
@@ -87,6 +92,13 @@ const tmdbClient = {
    */
   getRequestCount() {
     return this.requestCount;
+  },
+
+  /**
+   * Reset request count
+   */
+  resetRequestCount() {
+    this.requestCount = 0;
   }
 };
 

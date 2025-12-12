@@ -47,3 +47,378 @@
 [2025-12-12T01:29:05.138Z] [INFO] TMDB API calls: 10
 [2025-12-12T01:29:05.138Z] [SUCCESS] 
 ✅ Discovery complete! Run step 02 to fetch metadata.
+[2025-12-12T13:34:53.286Z] [INFO] 
+================================================================================
+[2025-12-12T13:34:53.286Z] [INFO] 🎬 DISCOVER NEW MOVIES
+[2025-12-12T13:34:53.286Z] [INFO] ================================================================================
+
+[2025-12-12T13:34:53.287Z] [INFO] Mode: LIVE
+[2025-12-12T13:34:53.287Z] [INFO] Target limit: 500 new movies
+[2025-12-12T13:34:53.287Z] [INFO] 
+🔍 Strategy: Now Playing
+[2025-12-12T13:34:53.287Z] [INFO]    Description: Currently in theaters
+[2025-12-12T13:34:53.506Z] [SUCCESS]    Found 60 movies from TMDB
+[2025-12-12T13:34:53.507Z] [INFO] 
+🔍 Strategy: Popular
+[2025-12-12T13:34:53.507Z] [INFO]    Description: Popular movies this week
+[2025-12-12T13:34:53.658Z] [SUCCESS]    Found 60 movies from TMDB
+[2025-12-12T13:34:53.658Z] [INFO] 
+🔍 Strategy: Trending
+[2025-12-12T13:34:53.658Z] [INFO]    Description: Trending movies this week
+[2025-12-12T13:34:53.687Z] [SUCCESS]    Found 40 movies from TMDB
+[2025-12-12T13:34:53.687Z] [INFO] 
+🔍 Strategy: Recent High Quality
+[2025-12-12T13:34:53.688Z] [INFO]    Description: Recent releases with high ratings (2024-2025)
+[2025-12-12T13:34:53.774Z] [SUCCESS]    Found 20 movies from TMDB
+[2025-12-12T13:34:53.775Z] [INFO] 
+🔍 Strategy: Hidden Gems 2023
+[2025-12-12T13:34:53.775Z] [INFO]    Description: Quality 2023 films with low popularity
+[2025-12-12T13:34:53.818Z] [SUCCESS]    Found 20 movies from TMDB
+[2025-12-12T13:34:53.818Z] [INFO] 
+📊 Total unique TMDB IDs found: 132
+[2025-12-12T13:34:53.819Z] [INFO] 🔎 Checking database for existing movies...
+[2025-12-12T13:34:54.138Z] [INFO] ✅ Already in database: 129
+[2025-12-12T13:34:54.138Z] [INFO] 🆕 New movies to add: 3
+[2025-12-12T13:34:54.138Z] [INFO] 
+💾 Adding new movies to database...
+[2025-12-12T13:34:54.290Z] [SUCCESS]    Inserted 3 movies (batch 1)
+[2025-12-12T13:34:54.290Z] [INFO] 
+================================================================================
+[2025-12-12T13:34:54.290Z] [INFO] 📊 DISCOVERY SUMMARY
+[2025-12-12T13:34:54.291Z] [INFO] ================================================================================
+
+[2025-12-12T13:34:54.291Z] [INFO] Strategies executed: 5/5
+[2025-12-12T13:34:54.291Z] [INFO] TMDB movies found: 200
+[2025-12-12T13:34:54.291Z] [INFO] Unique TMDB IDs: 132
+[2025-12-12T13:34:54.291Z] [INFO] Already in database: 129
+[2025-12-12T13:34:54.291Z] [INFO] New movies added: 3
+[2025-12-12T13:34:54.291Z] [INFO] Errors: 0
+[2025-12-12T13:34:54.291Z] [INFO] TMDB API calls: 10
+[2025-12-12T13:34:54.291Z] [SUCCESS] 
+✅ Discovery complete! Run step 02 to fetch metadata.
+[2025-12-12T13:51:53.161Z] [INFO] 
+================================================================================
+[2025-12-12T13:51:53.161Z] [INFO] 🎬 DISCOVER NEW MOVIES
+[2025-12-12T13:51:53.161Z] [INFO] ================================================================================
+
+[2025-12-12T13:51:53.161Z] [INFO] Mode: LIVE
+[2025-12-12T13:51:53.161Z] [INFO] Target limit: 500 new movies
+[2025-12-12T13:51:53.162Z] [INFO] 
+🔍 Strategy: Now Playing
+[2025-12-12T13:51:53.162Z] [INFO]    Description: Currently in theaters
+[2025-12-12T13:51:53.242Z] [SUCCESS]    Found 60 movies from TMDB
+[2025-12-12T13:51:53.242Z] [INFO] 
+🔍 Strategy: Popular
+[2025-12-12T13:51:53.243Z] [INFO]    Description: Popular movies this week
+[2025-12-12T13:51:53.284Z] [SUCCESS]    Found 60 movies from TMDB
+[2025-12-12T13:51:53.284Z] [INFO] 
+🔍 Strategy: Trending
+[2025-12-12T13:51:53.284Z] [INFO]    Description: Trending movies this week
+[2025-12-12T13:51:53.314Z] [SUCCESS]    Found 40 movies from TMDB
+[2025-12-12T13:51:53.314Z] [INFO] 
+🔍 Strategy: Recent High Quality
+[2025-12-12T13:51:53.314Z] [INFO]    Description: Recent releases with high ratings (2024-2025)
+[2025-12-12T13:51:53.323Z] [SUCCESS]    Found 20 movies from TMDB
+[2025-12-12T13:51:53.323Z] [INFO] 
+🔍 Strategy: Hidden Gems 2023
+[2025-12-12T13:51:53.324Z] [INFO]    Description: Quality 2023 films with low popularity
+[2025-12-12T13:51:53.341Z] [SUCCESS]    Found 20 movies from TMDB
+[2025-12-12T13:51:53.341Z] [INFO] 
+📊 Total unique TMDB IDs found: 131
+[2025-12-12T13:51:53.341Z] [INFO] 🔎 Checking database for existing movies...
+[2025-12-12T13:51:53.476Z] [INFO] ✅ Already in database: 130
+[2025-12-12T13:51:53.476Z] [INFO] 🆕 New movies to add: 1
+[2025-12-12T13:51:53.476Z] [INFO] 
+💾 Adding new movies to database...
+[2025-12-12T13:51:53.564Z] [SUCCESS]    Inserted 1 movies (batch 1)
+[2025-12-12T13:51:53.564Z] [INFO] 
+================================================================================
+[2025-12-12T13:51:53.564Z] [INFO] 📊 DISCOVERY SUMMARY
+[2025-12-12T13:51:53.564Z] [INFO] ================================================================================
+
+[2025-12-12T13:51:53.564Z] [INFO] Strategies executed: 5/5
+[2025-12-12T13:51:53.564Z] [INFO] TMDB movies found: 200
+[2025-12-12T13:51:53.564Z] [INFO] Unique TMDB IDs: 131
+[2025-12-12T13:51:53.564Z] [INFO] Already in database: 130
+[2025-12-12T13:51:53.564Z] [INFO] New movies added: 1
+[2025-12-12T13:51:53.565Z] [INFO] Errors: 0
+[2025-12-12T13:51:53.565Z] [INFO] TMDB API calls: 10
+[2025-12-12T13:51:53.565Z] [SUCCESS] 
+✅ Discovery complete! Run step 02 to fetch metadata.
+[2025-12-12T14:06:11.558Z] [INFO] 
+================================================================================
+[2025-12-12T14:06:11.559Z] [INFO] 🎬 DISCOVER NEW MOVIES
+[2025-12-12T14:06:11.559Z] [INFO] ================================================================================
+
+[2025-12-12T14:06:11.559Z] [INFO] Mode: LIVE
+[2025-12-12T14:06:11.559Z] [INFO] Target limit: 500 new movies
+[2025-12-12T14:06:11.559Z] [INFO] 
+🔍 Strategy: Now Playing
+[2025-12-12T14:06:11.559Z] [INFO]    Description: Currently in theaters
+[2025-12-12T14:06:11.560Z] [ERROR]    Failed: tmdbClient.getNowPlaying is not a function
+[2025-12-12T14:06:11.561Z] [INFO] 
+🔍 Strategy: Popular
+[2025-12-12T14:06:11.561Z] [INFO]    Description: Popular movies this week
+[2025-12-12T14:06:11.561Z] [ERROR]    Failed: tmdbClient.getPopular is not a function
+[2025-12-12T14:06:11.561Z] [INFO] 
+🔍 Strategy: Trending
+[2025-12-12T14:06:11.562Z] [INFO]    Description: Trending movies this week
+[2025-12-12T14:06:11.562Z] [ERROR]    Failed: tmdbClient.getTrending is not a function
+[2025-12-12T14:06:11.562Z] [INFO] 
+🔍 Strategy: Recent High Quality
+[2025-12-12T14:06:11.562Z] [INFO]    Description: Recent releases with high ratings (2024-2025)
+[2025-12-12T14:06:11.647Z] [SUCCESS]    Found 20 movies from TMDB
+[2025-12-12T14:06:11.648Z] [INFO] 
+🔍 Strategy: Hidden Gems 2023
+[2025-12-12T14:06:11.648Z] [INFO]    Description: Quality 2023 films with low popularity
+[2025-12-12T14:06:11.680Z] [SUCCESS]    Found 20 movies from TMDB
+[2025-12-12T14:06:11.680Z] [INFO] 
+📊 Total unique TMDB IDs found: 40
+[2025-12-12T14:06:11.680Z] [INFO] 🔎 Checking database for existing movies...
+[2025-12-12T14:06:11.855Z] [INFO] ✅ Already in database: 40
+[2025-12-12T14:06:11.855Z] [INFO] 🆕 New movies to add: 0
+[2025-12-12T14:06:11.855Z] [INFO] 
+================================================================================
+[2025-12-12T14:06:11.855Z] [INFO] 📊 DISCOVERY SUMMARY
+[2025-12-12T14:06:11.856Z] [INFO] ================================================================================
+
+[2025-12-12T14:06:11.856Z] [INFO] Strategies executed: 2/5
+[2025-12-12T14:06:11.856Z] [INFO] TMDB movies found: 40
+[2025-12-12T14:06:11.856Z] [INFO] Unique TMDB IDs: 40
+[2025-12-12T14:06:11.856Z] [INFO] Already in database: 40
+[2025-12-12T14:06:11.856Z] [INFO] New movies added: 0
+[2025-12-12T14:06:11.856Z] [INFO] Errors: 3
+[2025-12-12T14:06:11.856Z] [ERROR] Fatal error: | {"error":"tmdbClient.getRequestCount is not a function"}
+[2025-12-12T14:18:37.860Z] [INFO] 
+================================================================================
+[2025-12-12T14:18:37.860Z] [INFO] 🎬 DISCOVER NEW MOVIES
+[2025-12-12T14:18:37.860Z] [INFO] ================================================================================
+
+[2025-12-12T14:18:37.860Z] [INFO] Mode: LIVE
+[2025-12-12T14:18:37.861Z] [INFO] Target limit: 500 new movies
+[2025-12-12T14:18:37.861Z] [INFO] 
+🔍 Strategy: Now Playing
+[2025-12-12T14:18:37.861Z] [INFO]    Description: Currently in theaters
+[2025-12-12T14:18:37.932Z] [SUCCESS]    Found 60 movies from TMDB
+[2025-12-12T14:18:37.932Z] [INFO] 
+🔍 Strategy: Popular
+[2025-12-12T14:18:37.932Z] [INFO]    Description: Popular movies this week
+[2025-12-12T14:18:37.946Z] [SUCCESS]    Found 60 movies from TMDB
+[2025-12-12T14:18:37.946Z] [INFO] 
+🔍 Strategy: Trending
+[2025-12-12T14:18:37.946Z] [INFO]    Description: Trending movies this week
+[2025-12-12T14:18:38.030Z] [SUCCESS]    Found 40 movies from TMDB
+[2025-12-12T14:18:38.030Z] [INFO] 
+🔍 Strategy: Recent High Quality
+[2025-12-12T14:18:38.030Z] [INFO]    Description: Recent releases with high ratings (2024-2025)
+[2025-12-12T14:18:38.037Z] [SUCCESS]    Found 20 movies from TMDB
+[2025-12-12T14:18:38.037Z] [INFO] 
+🔍 Strategy: Hidden Gems 2023
+[2025-12-12T14:18:38.037Z] [INFO]    Description: Quality 2023 films with low popularity
+[2025-12-12T14:18:38.043Z] [SUCCESS]    Found 20 movies from TMDB
+[2025-12-12T14:18:38.043Z] [INFO] 
+📊 Total unique TMDB IDs found: 131
+[2025-12-12T14:18:38.043Z] [INFO] 🔎 Checking database for existing movies...
+[2025-12-12T14:18:38.193Z] [INFO] ✅ Already in database: 131
+[2025-12-12T14:18:38.193Z] [INFO] 🆕 New movies to add: 0
+[2025-12-12T14:18:38.193Z] [INFO] 
+================================================================================
+[2025-12-12T14:18:38.193Z] [INFO] 📊 DISCOVERY SUMMARY
+[2025-12-12T14:18:38.194Z] [INFO] ================================================================================
+
+[2025-12-12T14:18:38.194Z] [INFO] Strategies executed: 5/5
+[2025-12-12T14:18:38.194Z] [INFO] TMDB movies found: 200
+[2025-12-12T14:18:38.194Z] [INFO] Unique TMDB IDs: 131
+[2025-12-12T14:18:38.194Z] [INFO] Already in database: 131
+[2025-12-12T14:18:38.194Z] [INFO] New movies added: 0
+[2025-12-12T14:18:38.194Z] [INFO] Errors: 0
+[2025-12-12T14:18:38.194Z] [INFO] TMDB API calls: 10
+[2025-12-12T14:18:38.194Z] [WARN] 
+⚠️  No new movies found. Database is up to date.
+[2025-12-12T14:30:26.876Z] [INFO] 
+================================================================================
+[2025-12-12T14:30:26.876Z] [INFO] 🎬 DISCOVER NEW MOVIES
+[2025-12-12T14:30:26.876Z] [INFO] ================================================================================
+
+[2025-12-12T14:30:26.876Z] [INFO] Mode: LIVE
+[2025-12-12T14:30:26.876Z] [INFO] Target limit: 500 new movies
+[2025-12-12T14:30:26.877Z] [INFO] 
+🔍 Strategy: Now Playing
+[2025-12-12T14:30:26.877Z] [INFO]    Description: Currently in theaters
+[2025-12-12T14:30:27.004Z] [SUCCESS]    Found 60 movies from TMDB
+[2025-12-12T14:30:27.004Z] [INFO] 
+🔍 Strategy: Popular
+[2025-12-12T14:30:27.004Z] [INFO]    Description: Popular movies this week
+[2025-12-12T14:30:27.019Z] [SUCCESS]    Found 60 movies from TMDB
+[2025-12-12T14:30:27.019Z] [INFO] 
+🔍 Strategy: Trending
+[2025-12-12T14:30:27.020Z] [INFO]    Description: Trending movies this week
+[2025-12-12T14:30:27.051Z] [SUCCESS]    Found 40 movies from TMDB
+[2025-12-12T14:30:27.051Z] [INFO] 
+🔍 Strategy: Recent High Quality
+[2025-12-12T14:30:27.051Z] [INFO]    Description: Recent releases with high ratings (2024-2025)
+[2025-12-12T14:30:27.059Z] [SUCCESS]    Found 20 movies from TMDB
+[2025-12-12T14:30:27.059Z] [INFO] 
+🔍 Strategy: Hidden Gems 2023
+[2025-12-12T14:30:27.059Z] [INFO]    Description: Quality 2023 films with low popularity
+[2025-12-12T14:30:27.064Z] [SUCCESS]    Found 20 movies from TMDB
+[2025-12-12T14:30:27.064Z] [INFO] 
+📊 Total unique TMDB IDs found: 132
+[2025-12-12T14:30:27.065Z] [INFO] 🔎 Checking database for existing movies...
+[2025-12-12T14:30:27.150Z] [INFO] ✅ Already in database: 132
+[2025-12-12T14:30:27.150Z] [INFO] 🆕 New movies to add: 0
+[2025-12-12T14:30:27.150Z] [INFO] 
+================================================================================
+[2025-12-12T14:30:27.150Z] [INFO] 📊 DISCOVERY SUMMARY
+[2025-12-12T14:30:27.150Z] [INFO] ================================================================================
+
+[2025-12-12T14:30:27.150Z] [INFO] Strategies executed: 5/5
+[2025-12-12T14:30:27.150Z] [INFO] TMDB movies found: 200
+[2025-12-12T14:30:27.150Z] [INFO] Unique TMDB IDs: 132
+[2025-12-12T14:30:27.150Z] [INFO] Already in database: 132
+[2025-12-12T14:30:27.150Z] [INFO] New movies added: 0
+[2025-12-12T14:30:27.150Z] [INFO] Errors: 0
+[2025-12-12T14:30:27.150Z] [INFO] TMDB API calls: 10
+[2025-12-12T14:30:27.151Z] [WARN] 
+⚠️  No new movies found. Database is up to date.
+[2025-12-12T14:43:41.252Z] [INFO] 
+================================================================================
+[2025-12-12T14:43:41.253Z] [INFO] 🎬 DISCOVER NEW MOVIES
+[2025-12-12T14:43:41.253Z] [INFO] ================================================================================
+
+[2025-12-12T14:43:41.253Z] [INFO] Mode: LIVE
+[2025-12-12T14:43:41.253Z] [INFO] Target limit: 500 new movies
+[2025-12-12T14:43:41.253Z] [INFO] 
+🔍 Strategy: Now Playing
+[2025-12-12T14:43:41.253Z] [INFO]    Description: Currently in theaters
+[2025-12-12T14:43:41.385Z] [SUCCESS]    Found 60 movies from TMDB
+[2025-12-12T14:43:41.385Z] [INFO] 
+🔍 Strategy: Popular
+[2025-12-12T14:43:41.385Z] [INFO]    Description: Popular movies this week
+[2025-12-12T14:43:41.401Z] [SUCCESS]    Found 60 movies from TMDB
+[2025-12-12T14:43:41.401Z] [INFO] 
+🔍 Strategy: Trending
+[2025-12-12T14:43:41.402Z] [INFO]    Description: Trending movies this week
+[2025-12-12T14:43:41.443Z] [SUCCESS]    Found 40 movies from TMDB
+[2025-12-12T14:43:41.443Z] [INFO] 
+🔍 Strategy: Recent High Quality
+[2025-12-12T14:43:41.443Z] [INFO]    Description: Recent releases with high ratings (2024-2025)
+[2025-12-12T14:43:41.450Z] [SUCCESS]    Found 20 movies from TMDB
+[2025-12-12T14:43:41.450Z] [INFO] 
+🔍 Strategy: Hidden Gems 2023
+[2025-12-12T14:43:41.450Z] [INFO]    Description: Quality 2023 films with low popularity
+[2025-12-12T14:43:41.455Z] [SUCCESS]    Found 20 movies from TMDB
+[2025-12-12T14:43:41.455Z] [INFO] 
+📊 Total unique TMDB IDs found: 132
+[2025-12-12T14:43:41.455Z] [INFO] 🔎 Checking database for existing movies...
+[2025-12-12T14:43:41.712Z] [INFO] ✅ Already in database: 132
+[2025-12-12T14:43:41.712Z] [INFO] 🆕 New movies to add: 0
+[2025-12-12T14:43:41.712Z] [INFO] 
+================================================================================
+[2025-12-12T14:43:41.713Z] [INFO] 📊 DISCOVERY SUMMARY
+[2025-12-12T14:43:41.713Z] [INFO] ================================================================================
+
+[2025-12-12T14:43:41.713Z] [INFO] Strategies executed: 5/5
+[2025-12-12T14:43:41.713Z] [INFO] TMDB movies found: 200
+[2025-12-12T14:43:41.713Z] [INFO] Unique TMDB IDs: 132
+[2025-12-12T14:43:41.713Z] [INFO] Already in database: 132
+[2025-12-12T14:43:41.713Z] [INFO] New movies added: 0
+[2025-12-12T14:43:41.713Z] [INFO] Errors: 0
+[2025-12-12T14:43:41.713Z] [INFO] TMDB API calls: 10
+[2025-12-12T14:43:41.713Z] [WARN] 
+⚠️  No new movies found. Database is up to date.
+[2025-12-12T14:45:09.476Z] [INFO] 
+================================================================================
+[2025-12-12T14:45:09.477Z] [INFO] 🎬 DISCOVER NEW MOVIES
+[2025-12-12T14:45:09.477Z] [INFO] ================================================================================
+
+[2025-12-12T14:45:09.477Z] [INFO] Mode: LIVE
+[2025-12-12T14:45:09.477Z] [INFO] Target limit: 500 new movies
+[2025-12-12T14:45:09.477Z] [INFO] 
+🔍 Strategy: Now Playing
+[2025-12-12T14:45:09.477Z] [INFO]    Description: Currently in theaters
+[2025-12-12T14:45:09.758Z] [SUCCESS]    Found 60 movies from TMDB
+[2025-12-12T14:45:09.758Z] [INFO] 
+🔍 Strategy: Popular
+[2025-12-12T14:45:09.759Z] [INFO]    Description: Popular movies this week
+[2025-12-12T14:45:09.773Z] [SUCCESS]    Found 60 movies from TMDB
+[2025-12-12T14:45:09.773Z] [INFO] 
+🔍 Strategy: Trending
+[2025-12-12T14:45:09.773Z] [INFO]    Description: Trending movies this week
+[2025-12-12T14:45:09.810Z] [SUCCESS]    Found 40 movies from TMDB
+[2025-12-12T14:45:09.810Z] [INFO] 
+🔍 Strategy: Recent High Quality
+[2025-12-12T14:45:09.810Z] [INFO]    Description: Recent releases with high ratings (2024-2025)
+[2025-12-12T14:45:09.817Z] [SUCCESS]    Found 20 movies from TMDB
+[2025-12-12T14:45:09.817Z] [INFO] 
+🔍 Strategy: Hidden Gems 2023
+[2025-12-12T14:45:09.817Z] [INFO]    Description: Quality 2023 films with low popularity
+[2025-12-12T14:45:09.830Z] [SUCCESS]    Found 20 movies from TMDB
+[2025-12-12T14:45:09.831Z] [INFO] 
+📊 Total unique TMDB IDs found: 132
+[2025-12-12T14:45:09.831Z] [INFO] 🔎 Checking database for existing movies...
+[2025-12-12T14:45:09.918Z] [INFO] ✅ Already in database: 132
+[2025-12-12T14:45:09.918Z] [INFO] 🆕 New movies to add: 0
+[2025-12-12T14:45:09.918Z] [INFO] 
+================================================================================
+[2025-12-12T14:45:09.918Z] [INFO] 📊 DISCOVERY SUMMARY
+[2025-12-12T14:45:09.918Z] [INFO] ================================================================================
+
+[2025-12-12T14:45:09.918Z] [INFO] Strategies executed: 5/5
+[2025-12-12T14:45:09.918Z] [INFO] TMDB movies found: 200
+[2025-12-12T14:45:09.919Z] [INFO] Unique TMDB IDs: 132
+[2025-12-12T14:45:09.919Z] [INFO] Already in database: 132
+[2025-12-12T14:45:09.919Z] [INFO] New movies added: 0
+[2025-12-12T14:45:09.919Z] [INFO] Errors: 0
+[2025-12-12T14:45:09.919Z] [INFO] TMDB API calls: 10
+[2025-12-12T14:45:09.919Z] [WARN] 
+⚠️  No new movies found. Database is up to date.
+[2025-12-12T15:31:43.115Z] [INFO] 
+================================================================================
+[2025-12-12T15:31:43.115Z] [INFO] 🎬 DISCOVER NEW MOVIES
+[2025-12-12T15:31:43.115Z] [INFO] ================================================================================
+
+[2025-12-12T15:31:43.115Z] [INFO] Mode: LIVE
+[2025-12-12T15:31:43.116Z] [INFO] Target limit: 500 new movies
+[2025-12-12T15:31:43.116Z] [INFO] 
+🔍 Strategy: Now Playing
+[2025-12-12T15:31:43.116Z] [INFO]    Description: Currently in theaters
+[2025-12-12T15:31:43.329Z] [SUCCESS]    Found 60 movies from TMDB
+[2025-12-12T15:31:43.329Z] [INFO] 
+🔍 Strategy: Popular
+[2025-12-12T15:31:43.329Z] [INFO]    Description: Popular movies this week
+[2025-12-12T15:31:43.345Z] [SUCCESS]    Found 60 movies from TMDB
+[2025-12-12T15:31:43.345Z] [INFO] 
+🔍 Strategy: Trending
+[2025-12-12T15:31:43.345Z] [INFO]    Description: Trending movies this week
+[2025-12-12T15:31:43.412Z] [SUCCESS]    Found 40 movies from TMDB
+[2025-12-12T15:31:43.412Z] [INFO] 
+🔍 Strategy: Recent High Quality
+[2025-12-12T15:31:43.412Z] [INFO]    Description: Recent releases with high ratings (2024-2025)
+[2025-12-12T15:31:43.419Z] [SUCCESS]    Found 20 movies from TMDB
+[2025-12-12T15:31:43.419Z] [INFO] 
+🔍 Strategy: Hidden Gems 2023
+[2025-12-12T15:31:43.419Z] [INFO]    Description: Quality 2023 films with low popularity
+[2025-12-12T15:31:43.424Z] [SUCCESS]    Found 20 movies from TMDB
+[2025-12-12T15:31:43.424Z] [INFO] 
+📊 Total unique TMDB IDs found: 130
+[2025-12-12T15:31:43.424Z] [INFO] 🔎 Checking database for existing movies...
+[2025-12-12T15:31:43.548Z] [INFO] ✅ Already in database: 128
+[2025-12-12T15:31:43.548Z] [INFO] 🆕 New movies to add: 2
+[2025-12-12T15:31:43.548Z] [INFO] 
+💾 Adding new movies to database...
+[2025-12-12T15:31:43.609Z] [SUCCESS]    Inserted 2 movies (batch 1)
+[2025-12-12T15:31:43.609Z] [INFO] 
+================================================================================
+[2025-12-12T15:31:43.609Z] [INFO] 📊 DISCOVERY SUMMARY
+[2025-12-12T15:31:43.609Z] [INFO] ================================================================================
+
+[2025-12-12T15:31:43.609Z] [INFO] Strategies executed: 5/5
+[2025-12-12T15:31:43.610Z] [INFO] TMDB movies found: 200
+[2025-12-12T15:31:43.610Z] [INFO] Unique TMDB IDs: 130
+[2025-12-12T15:31:43.610Z] [INFO] Already in database: 128
+[2025-12-12T15:31:43.610Z] [INFO] New movies added: 2
+[2025-12-12T15:31:43.610Z] [INFO] Errors: 0
+[2025-12-12T15:31:43.610Z] [INFO] TMDB API calls: 10
+[2025-12-12T15:31:43.610Z] [SUCCESS] 
+✅ Discovery complete! Run step 02 to fetch metadata.

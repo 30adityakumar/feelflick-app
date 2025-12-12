@@ -1,0 +1,137 @@
+[2025-12-12T17:22:22.055Z] [INFO] 
+================================================================================
+[2025-12-12T17:22:22.055Z] [INFO] 🔧 FIX NULL MOVIES
+[2025-12-12T17:22:22.055Z] [INFO] ================================================================================
+
+[2025-12-12T17:22:22.056Z] [INFO] Finding movies with NULL data...
+[2025-12-12T17:22:22.974Z] [ERROR] Error fetching NULL movies: | {"code":"42703","details":null,"hint":null,"message":"column movies.popularity_score does not exist"}
+[2025-12-12T17:22:22.975Z] [SUCCESS] No NULL movies found!
+[2025-12-12T17:22:22.975Z] [SUCCESS] 
+✅ Done!
+[2025-12-12T17:24:03.282Z] [INFO] 
+================================================================================
+[2025-12-12T17:24:03.282Z] [INFO] 🔧 FIX NULL MOVIES
+[2025-12-12T17:24:03.282Z] [INFO] ================================================================================
+
+[2025-12-12T17:24:03.282Z] [INFO] Finding movies with NULL data...
+[2025-12-12T17:24:03.730Z] [INFO] Found 7 movies with NULL data
+[2025-12-12T17:24:03.731Z] [INFO] 
+Found 7 movies with NULL data:
+[2025-12-12T17:24:03.731Z] [INFO]   - TMDB 1507275: title=NULL, date=NULL, pop=NULL
+[2025-12-12T17:24:03.731Z] [INFO]   - TMDB 1407862: title=NULL, date=NULL, pop=NULL
+[2025-12-12T17:24:03.731Z] [INFO]   - TMDB 1580353: title=NULL, date=NULL, pop=NULL
+[2025-12-12T17:24:03.731Z] [INFO]   - TMDB 801937: title=NULL, date=NULL, pop=NULL
+[2025-12-12T17:24:03.731Z] [INFO]   - TMDB 1352624: title=NULL, date=NULL, pop=NULL
+[2025-12-12T17:24:03.732Z] [INFO]   - TMDB 1395083: title=OK, date=OK, pop=OK
+[2025-12-12T17:24:03.732Z] [INFO]   - TMDB 1473994: title=OK, date=OK, pop=OK
+[2025-12-12T17:24:03.732Z] [INFO] 
+Processing TMDB ID: 1507275
+[2025-12-12T17:24:03.732Z] [INFO] Refetching data for TMDB ID: 1507275
+[2025-12-12T17:24:03.732Z] [ERROR] Error refetching movie 1507275: | "tmdbClient.getMovieDetails is not a function"
+[2025-12-12T17:24:04.093Z] [ERROR] Fatal error:
+[2025-12-12T17:24:55.417Z] [INFO] 
+================================================================================
+[2025-12-12T17:24:55.418Z] [INFO] 🔧 FIX NULL MOVIES
+[2025-12-12T17:24:55.418Z] [INFO] ================================================================================
+
+[2025-12-12T17:24:55.418Z] [INFO] Finding movies with NULL data...
+[2025-12-12T17:24:55.839Z] [INFO] Found 6 movies with NULL data
+[2025-12-12T17:24:55.839Z] [INFO] 
+Found 6 movies with NULL data:
+[2025-12-12T17:24:55.839Z] [INFO]   - TMDB 1407862: title=NULL, date=NULL, pop=NULL
+[2025-12-12T17:24:55.839Z] [INFO]   - TMDB 1580353: title=NULL, date=NULL, pop=NULL
+[2025-12-12T17:24:55.840Z] [INFO]   - TMDB 801937: title=NULL, date=NULL, pop=NULL
+[2025-12-12T17:24:55.840Z] [INFO]   - TMDB 1352624: title=NULL, date=NULL, pop=NULL
+[2025-12-12T17:24:55.840Z] [INFO]   - TMDB 1395083: title=OK, date=OK, pop=OK
+[2025-12-12T17:24:55.840Z] [INFO]   - TMDB 1473994: title=OK, date=OK, pop=OK
+[2025-12-12T17:24:55.840Z] [INFO] 
+Processing TMDB ID: 1407862
+[2025-12-12T17:24:55.840Z] [INFO] Refetching data for TMDB ID: 1407862
+[2025-12-12T17:24:56.106Z] [INFO]   ✓ Found: "Lost in the Spotlight" (2025-12-02)
+[2025-12-12T17:24:56.269Z] [ERROR] Error updating movie 1407862: | {"code":"23514","details":"Failing row contains (11621, Lost in the Spotlight, Lupa Daratan, 2025-12-02, On the cusp of landing a lead role in a prestigious biopic, a ce..., /gVufCABbj6NqBYyLaw6eptem28e.jpg, /kMGZK18hxu8y2HeNRvF94pkdefq.jpg, 114, 6.5, 2, 24.964, id, f, 0, 0, Released, null, https://www.netflix.com/title/81718351, tt35668447, null, 2025-12-12 17:07:37.265+00, 2025-12-12 17:07:37.327746+00, 1407862, null, null, null, null, null, null, null, f, null, null, 2025, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 2025-12-12 17:24:56.107, null, 0, null, null, null, f, f, f, f, t, null, null, null, null, null, null, null, null, null, null, null, null, null, null, f).","hint":null,"message":"new row for relation \"movies\" violates check constraint \"movies_status_check_v2\""}
+[2025-12-12T17:24:56.370Z] [INFO] 
+Processing TMDB ID: 1580353
+[2025-12-12T17:24:56.370Z] [INFO] Refetching data for TMDB ID: 1580353
+[2025-12-12T17:24:56.393Z] [INFO]   ✓ Found: "The Fakenapping" (2025-12-06)
+[2025-12-12T17:24:56.579Z] [ERROR] Error updating movie 1580353: | {"code":"23514","details":"Failing row contains (11622, The Fakenapping, The Fakenapping, 2025-12-06, Sattam is a young man plagued by bad luck, with every venture he..., /oByEpwQEU0gtSzVO8nVTyu8fmjm.jpg, /Ae00E0rpUIihDrJ1C0HvhufYa5d.jpg, 85, 0, 0, 17.8945, ar, f, 0, 0, Released, null, null, tt38938597, null, 2025-12-12 17:07:37.265+00, 2025-12-12 17:07:37.327746+00, 1580353, null, null, null, null, null, null, null, f, null, null, 2025, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 2025-12-12 17:24:56.393, null, 0, null, null, null, f, f, f, f, t, null, null, null, null, null, null, null, null, null, null, null, null, null, null, f).","hint":null,"message":"new row for relation \"movies\" violates check constraint \"movies_status_check_v2\""}
+[2025-12-12T17:24:56.680Z] [INFO] 
+Processing TMDB ID: 801937
+[2025-12-12T17:24:56.680Z] [INFO] Refetching data for TMDB ID: 801937
+[2025-12-12T17:24:56.694Z] [INFO]   ✓ Found: "Silent Night, Deadly Night" (2025-12-11)
+[2025-12-12T17:24:56.819Z] [ERROR] Error updating movie 801937: | {"code":"23514","details":"Failing row contains (11623, Silent Night, Deadly Night, Silent Night, Deadly Night, 2025-12-11, After witnessing his parents’ brutal murder on Christmas Eve, ..., /xCdSd7NnRdnL8DGLVhI95WhUNoi.jpg, /qG2uiyOgXkqWhAG7EpfNgwaYTJ3.jpg, 96, 4.8, 3, 10.3795, en, f, 0, 0, Released, Santa’s gonna slay., null, tt34508974, null, 2025-12-12 17:07:37.265+00, 2025-12-12 17:07:37.327746+00, 801937, null, null, null, null, null, null, null, f, null, null, 2025, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 2025-12-12 17:24:56.694, null, 0, null, null, null, f, f, f, f, t, null, null, null, null, null, null, null, null, null, null, null, null, null, null, f).","hint":null,"message":"new row for relation \"movies\" violates check constraint \"movies_status_check_v2\""}
+[2025-12-12T17:24:56.919Z] [INFO] 
+Processing TMDB ID: 1352624
+[2025-12-12T17:24:56.920Z] [INFO] Refetching data for TMDB ID: 1352624
+[2025-12-12T17:24:56.933Z] [INFO]   ✓ Found: "The Mastermind" (2025-10-16)
+[2025-12-12T17:24:57.091Z] [ERROR] Error updating movie 1352624: | {"code":"23514","details":"Failing row contains (11624, The Mastermind, The Mastermind, 2025-10-16, In a sedate Massachusetts suburb circa 1970, unemployed family m..., /hCQjAPmraF3ppv3KfNXA4lkBnbe.jpg, /zFK6Abddsh9FE8GAH61uO2Oq0St.jpg, 110, 5.5, 28, 3.406, en, f, 0, 0, Released, It’s not stealing if you don’t get caught., https://mubi.com/en/films/the-mastermind, tt33455099, null, 2025-12-12 17:07:37.265+00, 2025-12-12 17:07:37.327746+00, 1352624, null, null, null, null, null, null, null, f, null, null, 2025, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 2025-12-12 17:24:56.933, null, 0, null, null, null, f, f, f, f, t, null, null, null, null, null, null, null, null, null, null, null, null, null, null, f).","hint":null,"message":"new row for relation \"movies\" violates check constraint \"movies_status_check_v2\""}
+[2025-12-12T17:24:57.191Z] [INFO] 
+Processing TMDB ID: 1395083
+[2025-12-12T17:24:57.192Z] [INFO] Refetching data for TMDB ID: 1395083
+[2025-12-12T17:24:57.198Z] [INFO]   ✓ Found: "Acid" (2024-11-29)
+[2025-12-12T17:24:57.327Z] [ERROR] Error updating movie 1395083: | {"code":"23514","details":"Failing row contains (11534, Acid, Ácido, 2024-11-29, null, /pvtF3RGqQ1QQfgCc121OKIu6eN7.jpg, null, 6, 10, 1, 0.0379, es, f, 1, 1, Released, null, null, null, {\"spoken_languages\": [{\"name\": \"Español\", \"iso_639_1\": \"es\", \"e..., 2025-12-11 00:29:30.977042+00, 2025-12-12 14:42:50.643+00, 1395083, 7, 7, 6, 2025-12-12 15:31:57.209+00, 100, no_stars, high, f, 50, 40, 2024, null, null, null, null, [\"Science Fiction\", \"Horror\", \"Thriller\", \"Mystery\"], 4, Science Fiction, [\"body horror\"], 1, 0, 15, 0, 0, 0, 0, Lautaro Murúa, 0.0453, Marcos, Belinda Bazquez, 0.0143, 1, null, null, null, 2025-12-12 14:18:43.472, 2025-12-12 17:24:57.198, null, 0, null, null, null, t, t, t, t, t, null, null, [-0.0035426498,0.015561861,-0.019901492,0.0114525715,-0.00076588..., 0, 7.0, 40, 70, 40, 7.3, 65, 64, 0, null, null, t).","hint":null,"message":"new row for relation \"movies\" violates check constraint \"movies_status_check_v2\""}
+[2025-12-12T17:24:57.427Z] [INFO] 
+Processing TMDB ID: 1473994
+[2025-12-12T17:24:57.427Z] [INFO] Refetching data for TMDB ID: 1473994
+[2025-12-12T17:24:57.432Z] [INFO]   ✓ Found: "Jîvâtman" (2025-05-06)
+[2025-12-12T17:24:57.597Z] [ERROR] Error updating movie 1473994: | {"code":"23514","details":"Failing row contains (11532, Jîvâtman, Jîvâtman, 2025-05-06, null, /jGwalEzNVyv7Mv1WOItc6uMMwfE.jpg, null, null, 10, 1, 0.0071, es, f, 20, 0, Released, null, null, null, {\"spoken_languages\": [], \"production_companies\": [], \"production..., 2025-12-11 00:29:30.952631+00, 2025-12-12 14:42:50.643+00, 1473994, 6, 6, 7, 2025-12-12 15:31:57.815+00, 100, no_stars, high, f, 50, 50, 2025, null, null, beatrizgdecarlos, null, [\"Thriller\", \"Science Fiction\", \"Mystery\", \"Drama\"], 4, Thriller, [], 0, 0, 9, 0, 0, 0, 0, Ísara Shiraishi, null, Acto puro, Beatriz de Carlos, 0.0071, 1, null, null, null, 2025-12-12 14:18:43.161, 2025-12-12 17:24:57.433, null, 0, null, null, null, t, t, t, f, t, null, null, [-0.0035426498,0.015561861,-0.019901492,0.0114525715,-0.00076588..., 0, 7.0, 40, 70, 40, 7.5, 67, 40, 0, null, null, t).","hint":null,"message":"new row for relation \"movies\" violates check constraint \"movies_status_check_v2\""}
+[2025-12-12T17:24:57.697Z] [INFO] 
+================================================================================
+[2025-12-12T17:24:57.697Z] [INFO] 📊 SUMMARY
+[2025-12-12T17:24:57.697Z] [INFO] ================================================================================
+
+[2025-12-12T17:24:57.697Z] [INFO] Total NULL movies processed: 6
+[2025-12-12T17:24:57.698Z] [SUCCESS] Fixed: 0
+[2025-12-12T17:24:57.698Z] [ERROR] Fatal error:
+[2025-12-12T17:26:14.191Z] [INFO] 
+================================================================================
+[2025-12-12T17:26:14.192Z] [INFO] 🔧 FIX NULL MOVIES
+[2025-12-12T17:26:14.192Z] [INFO] ================================================================================
+
+[2025-12-12T17:26:14.192Z] [INFO] Finding movies with NULL data...
+[2025-12-12T17:26:14.415Z] [INFO] Found 6 movies with NULL data
+[2025-12-12T17:26:14.415Z] [INFO] 
+Found 6 movies with NULL data:
+[2025-12-12T17:26:14.415Z] [INFO]   - TMDB 1407862: title=NULL, date=NULL, pop=NULL, status=pending
+[2025-12-12T17:26:14.416Z] [INFO]   - TMDB 1580353: title=NULL, date=NULL, pop=NULL, status=pending
+[2025-12-12T17:26:14.416Z] [INFO]   - TMDB 801937: title=NULL, date=NULL, pop=NULL, status=pending
+[2025-12-12T17:26:14.416Z] [INFO]   - TMDB 1352624: title=NULL, date=NULL, pop=NULL, status=pending
+[2025-12-12T17:26:14.416Z] [INFO]   - TMDB 1395083: title=OK, date=OK, pop=OK, status=complete
+[2025-12-12T17:26:14.416Z] [INFO]   - TMDB 1473994: title=OK, date=OK, pop=OK, status=complete
+[2025-12-12T17:26:14.416Z] [INFO] 
+Processing TMDB ID: 1407862
+[2025-12-12T17:26:14.416Z] [INFO] Refetching data for TMDB ID: 1407862
+[2025-12-12T17:26:14.670Z] [INFO]   ✓ Found: "Lost in the Spotlight" (2025-12-02)
+[2025-12-12T17:26:14.821Z] [SUCCESS] ✓ Updated movie 1407862: Lost in the Spotlight
+[2025-12-12T17:26:14.922Z] [INFO] 
+Processing TMDB ID: 1580353
+[2025-12-12T17:26:14.922Z] [INFO] Refetching data for TMDB ID: 1580353
+[2025-12-12T17:26:14.931Z] [INFO]   ✓ Found: "The Fakenapping" (2025-12-06)
+[2025-12-12T17:26:15.053Z] [SUCCESS] ✓ Updated movie 1580353: The Fakenapping
+[2025-12-12T17:26:15.154Z] [INFO] 
+Processing TMDB ID: 801937
+[2025-12-12T17:26:15.154Z] [INFO] Refetching data for TMDB ID: 801937
+[2025-12-12T17:26:15.165Z] [INFO]   ✓ Found: "Silent Night, Deadly Night" (2025-12-11)
+[2025-12-12T17:26:15.243Z] [SUCCESS] ✓ Updated movie 801937: Silent Night, Deadly Night
+[2025-12-12T17:26:15.344Z] [INFO] 
+Processing TMDB ID: 1352624
+[2025-12-12T17:26:15.344Z] [INFO] Refetching data for TMDB ID: 1352624
+[2025-12-12T17:26:15.353Z] [INFO]   ✓ Found: "The Mastermind" (2025-10-16)
+[2025-12-12T17:26:15.492Z] [SUCCESS] ✓ Updated movie 1352624: The Mastermind
+[2025-12-12T17:26:15.592Z] [INFO] 
+Processing TMDB ID: 1395083
+[2025-12-12T17:26:15.592Z] [INFO] Refetching data for TMDB ID: 1395083
+[2025-12-12T17:26:15.597Z] [INFO]   ✓ Found: "Acid" (2024-11-29)
+[2025-12-12T17:26:15.749Z] [SUCCESS] ✓ Updated movie 1395083: Acid
+[2025-12-12T17:26:15.849Z] [INFO] 
+Processing TMDB ID: 1473994
+[2025-12-12T17:26:15.850Z] [INFO] Refetching data for TMDB ID: 1473994
+[2025-12-12T17:26:15.855Z] [INFO]   ✓ Found: "Jîvâtman" (2025-05-06)
+[2025-12-12T17:26:15.978Z] [SUCCESS] ✓ Updated movie 1473994: Jîvâtman
+[2025-12-12T17:26:16.078Z] [INFO] 
+================================================================================
+[2025-12-12T17:26:16.078Z] [INFO] 📊 SUMMARY
+[2025-12-12T17:26:16.079Z] [INFO] ================================================================================
+
+[2025-12-12T17:26:16.079Z] [INFO] Total NULL movies processed: 6
+[2025-12-12T17:26:16.079Z] [SUCCESS] Fixed: 6
+[2025-12-12T17:26:16.079Z] [ERROR] Fatal error:

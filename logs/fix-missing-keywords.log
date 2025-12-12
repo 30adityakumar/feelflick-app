@@ -1,0 +1,780 @@
+[2025-12-12T17:29:42.508Z] [INFO] Finding movies without keywords...
+[2025-12-12T17:29:42.833Z] [INFO] Found 100 movies without keywords
+[2025-12-12T17:29:42.833Z] [INFO] Fetching keywords for: Lost in the Spotlight (1407862)
+[2025-12-12T17:29:43.083Z] [SUCCESS] ✓ Updated Lost in the Spotlight with 5 keywords
+[2025-12-12T17:29:43.183Z] [INFO] Fetching keywords for: The Fakenapping (1580353)
+[2025-12-12T17:29:43.274Z] [SUCCESS] ✓ Updated The Fakenapping with 0 keywords
+[2025-12-12T17:29:43.374Z] [INFO] Fetching keywords for: Silent Night, Deadly Night (801937)
+[2025-12-12T17:29:43.504Z] [SUCCESS] ✓ Updated Silent Night, Deadly Night with 17 keywords
+[2025-12-12T17:29:43.605Z] [INFO] Fetching keywords for: The Mastermind (1352624)
+[2025-12-12T17:29:43.711Z] [SUCCESS] ✓ Updated The Mastermind with 9 keywords
+[2025-12-12T17:29:43.811Z] [INFO] Fetching keywords for: 20 Feet from Stardom (159014)
+[2025-12-12T17:29:43.925Z] [SUCCESS] ✓ Updated 20 Feet from Stardom with 0 keywords
+[2025-12-12T17:29:44.025Z] [INFO] Fetching keywords for: Neşeli Günler (53206)
+[2025-12-12T17:29:44.133Z] [SUCCESS] ✓ Updated Neşeli Günler with 0 keywords
+[2025-12-12T17:29:44.234Z] [INFO] Fetching keywords for: Decalogue VI (118667)
+[2025-12-12T17:29:44.347Z] [SUCCESS] ✓ Updated Decalogue VI with 0 keywords
+[2025-12-12T17:29:44.448Z] [INFO] Fetching keywords for: Heima (14793)
+[2025-12-12T17:29:44.560Z] [SUCCESS] ✓ Updated Heima with 0 keywords
+[2025-12-12T17:29:44.660Z] [INFO] Fetching keywords for: Greed in the Sun (34059)
+[2025-12-12T17:29:44.777Z] [SUCCESS] ✓ Updated Greed in the Sun with 0 keywords
+[2025-12-12T17:29:44.876Z] [INFO] Fetching keywords for: The Jester (693467)
+[2025-12-12T17:29:45.078Z] [SUCCESS] ✓ Updated The Jester with 0 keywords
+[2025-12-12T17:29:45.178Z] [INFO] Fetching keywords for: 48 NOIDED MOVIES (1529610)
+[2025-12-12T17:29:45.311Z] [SUCCESS] ✓ Updated 48 NOIDED MOVIES with 0 keywords
+[2025-12-12T17:29:45.412Z] [INFO] Fetching keywords for: I Can Quit Whenever I Want (250219)
+[2025-12-12T17:29:45.556Z] [SUCCESS] ✓ Updated I Can Quit Whenever I Want with 0 keywords
+[2025-12-12T17:29:45.657Z] [INFO] Fetching keywords for: Fast (391559)
+[2025-12-12T17:29:45.763Z] [SUCCESS] ✓ Updated Fast with 0 keywords
+[2025-12-12T17:29:45.863Z] [INFO] Fetching keywords for: A Pure Formality (19223)
+[2025-12-12T17:29:45.956Z] [SUCCESS] ✓ Updated A Pure Formality with 0 keywords
+[2025-12-12T17:29:46.057Z] [INFO] Fetching keywords for: Winter in Prostokvashino (77762)
+[2025-12-12T17:29:46.127Z] [SUCCESS] ✓ Updated Winter in Prostokvashino with 0 keywords
+[2025-12-12T17:29:46.228Z] [INFO] Fetching keywords for: Kantara - A Legend: Chapter 1 (1083637)
+[2025-12-12T17:29:46.310Z] [SUCCESS] ✓ Updated Kantara - A Legend: Chapter 1 with 0 keywords
+[2025-12-12T17:29:46.411Z] [INFO] Fetching keywords for: Hunting Season (1387382)
+[2025-12-12T17:29:46.485Z] [SUCCESS] ✓ Updated Hunting Season with 0 keywords
+[2025-12-12T17:29:46.585Z] [INFO] Fetching keywords for: World of Tomorrow Episode Two: The Burden of Other People's Thoughts (471495)
+[2025-12-12T17:29:46.698Z] [SUCCESS] ✓ Updated World of Tomorrow Episode Two: The Burden of Other People's Thoughts with 0 keywords
+[2025-12-12T17:29:46.798Z] [INFO] Fetching keywords for: The Misfits Club (261102)
+[2025-12-12T17:29:46.927Z] [SUCCESS] ✓ Updated The Misfits Club with 0 keywords
+[2025-12-12T17:29:47.026Z] [INFO] Fetching keywords for: Chinese Take-Away (67884)
+[2025-12-12T17:29:47.105Z] [SUCCESS] ✓ Updated Chinese Take-Away with 0 keywords
+[2025-12-12T17:29:47.206Z] [INFO] Fetching keywords for: Buffet Froid (38438)
+[2025-12-12T17:29:47.294Z] [SUCCESS] ✓ Updated Buffet Froid with 0 keywords
+[2025-12-12T17:29:47.395Z] [INFO] Fetching keywords for: Monster High: Great Scarrier Reef (382581)
+[2025-12-12T17:29:47.512Z] [SUCCESS] ✓ Updated Monster High: Great Scarrier Reef with 0 keywords
+[2025-12-12T17:29:47.612Z] [INFO] Fetching keywords for: The Rain Children (22502)
+[2025-12-12T17:29:47.680Z] [SUCCESS] ✓ Updated The Rain Children with 0 keywords
+[2025-12-12T17:29:47.781Z] [INFO] Fetching keywords for: King of the Doormen (69610)
+[2025-12-12T17:29:47.839Z] [SUCCESS] ✓ Updated King of the Doormen with 0 keywords
+[2025-12-12T17:29:47.939Z] [INFO] Fetching keywords for: Man - Woman Wanted (81309)
+[2025-12-12T17:29:48.028Z] [SUCCESS] ✓ Updated Man - Woman Wanted with 0 keywords
+[2025-12-12T17:29:48.128Z] [INFO] Fetching keywords for: My Name Is Vendetta (873126)
+[2025-12-12T17:29:48.230Z] [SUCCESS] ✓ Updated My Name Is Vendetta with 0 keywords
+[2025-12-12T17:29:48.330Z] [INFO] Fetching keywords for: A Writer's Odyssey (611698)
+[2025-12-12T17:29:48.468Z] [SUCCESS] ✓ Updated A Writer's Odyssey with 0 keywords
+[2025-12-12T17:29:48.569Z] [INFO] Fetching keywords for: Inside I'm Dancing (31165)
+[2025-12-12T17:29:48.632Z] [SUCCESS] ✓ Updated Inside I'm Dancing with 0 keywords
+[2025-12-12T17:29:48.732Z] [INFO] Fetching keywords for: Carbone (427348)
+[2025-12-12T17:29:48.827Z] [SUCCESS] ✓ Updated Carbone with 0 keywords
+[2025-12-12T17:29:48.927Z] [INFO] Fetching keywords for: Jîvâtman (1473994)
+[2025-12-12T17:29:49.005Z] [SUCCESS] ✓ Updated Jîvâtman with 0 keywords
+[2025-12-12T17:29:49.105Z] [INFO] Fetching keywords for: Let Me Be with You (1294947)
+[2025-12-12T17:29:49.166Z] [SUCCESS] ✓ Updated Let Me Be with You with 0 keywords
+[2025-12-12T17:29:49.267Z] [INFO] Fetching keywords for: Badge Of Steel (586344)
+[2025-12-12T17:29:49.331Z] [SUCCESS] ✓ Updated Badge Of Steel with 0 keywords
+[2025-12-12T17:29:49.432Z] [INFO] Fetching keywords for: Esterno Notte (part I) (977487)
+[2025-12-12T17:29:49.493Z] [SUCCESS] ✓ Updated Esterno Notte (part I) with 0 keywords
+[2025-12-12T17:29:49.594Z] [INFO] Fetching keywords for: The Monster (22826)
+[2025-12-12T17:29:49.658Z] [SUCCESS] ✓ Updated The Monster with 0 keywords
+[2025-12-12T17:29:49.758Z] [INFO] Fetching keywords for: Another Egg and Chicken Movie (37221)
+[2025-12-12T17:29:49.852Z] [SUCCESS] ✓ Updated Another Egg and Chicken Movie with 0 keywords
+[2025-12-12T17:29:49.953Z] [INFO] Fetching keywords for: Spellbound (92499)
+[2025-12-12T17:29:50.026Z] [SUCCESS] ✓ Updated Spellbound with 0 keywords
+[2025-12-12T17:29:50.125Z] [INFO] Fetching keywords for: Le Plaisir (43360)
+[2025-12-12T17:29:50.191Z] [SUCCESS] ✓ Updated Le Plaisir with 0 keywords
+[2025-12-12T17:29:50.291Z] [INFO] Fetching keywords for: Monster High: Frights, Camera, Action! (260234)
+[2025-12-12T17:29:50.364Z] [SUCCESS] ✓ Updated Monster High: Frights, Camera, Action! with 0 keywords
+[2025-12-12T17:29:50.465Z] [INFO] Fetching keywords for: My Dear Brother (80841)
+[2025-12-12T17:29:50.545Z] [SUCCESS] ✓ Updated My Dear Brother with 0 keywords
+[2025-12-12T17:29:50.646Z] [INFO] Fetching keywords for: The Bears' Famous Invasion of Sicily (537655)
+[2025-12-12T17:29:50.724Z] [SUCCESS] ✓ Updated The Bears' Famous Invasion of Sicily with 0 keywords
+[2025-12-12T17:29:50.824Z] [INFO] Fetching keywords for: Tod@s Caen (554590)
+[2025-12-12T17:29:50.882Z] [SUCCESS] ✓ Updated Tod@s Caen with 0 keywords
+[2025-12-12T17:29:50.983Z] [INFO] Fetching keywords for: Death Note Resurrection (1569027)
+[2025-12-12T17:29:51.050Z] [SUCCESS] ✓ Updated Death Note Resurrection with 0 keywords
+[2025-12-12T17:29:51.151Z] [INFO] Fetching keywords for: Chickenhare and the Hamster of Darkness (778855)
+[2025-12-12T17:29:51.238Z] [SUCCESS] ✓ Updated Chickenhare and the Hamster of Darkness with 0 keywords
+[2025-12-12T17:29:51.339Z] [INFO] Fetching keywords for: The Bandit (26900)
+[2025-12-12T17:29:51.407Z] [SUCCESS] ✓ Updated The Bandit with 0 keywords
+[2025-12-12T17:29:51.507Z] [INFO] Fetching keywords for: Decalogue V (118665)
+[2025-12-12T17:29:51.563Z] [SUCCESS] ✓ Updated Decalogue V with 0 keywords
+[2025-12-12T17:29:51.663Z] [INFO] Fetching keywords for: Invisible Sister (360605)
+[2025-12-12T17:29:51.721Z] [SUCCESS] ✓ Updated Invisible Sister with 0 keywords
+[2025-12-12T17:29:51.821Z] [INFO] Fetching keywords for: Underdog (1272228)
+[2025-12-12T17:29:51.925Z] [SUCCESS] ✓ Updated Underdog with 0 keywords
+[2025-12-12T17:29:52.026Z] [INFO] Fetching keywords for: Ok, It's Fine (613013)
+[2025-12-12T17:29:52.091Z] [SUCCESS] ✓ Updated Ok, It's Fine with 0 keywords
+[2025-12-12T17:29:52.192Z] [INFO] Fetching keywords for: The Swallows of Kabul (582881)
+[2025-12-12T17:29:52.285Z] [SUCCESS] ✓ Updated The Swallows of Kabul with 0 keywords
+[2025-12-12T17:29:52.385Z] [INFO] Fetching keywords for: Ivy (312849)
+[2025-12-12T17:29:52.454Z] [SUCCESS] ✓ Updated Ivy with 0 keywords
+[2025-12-12T17:29:52.555Z] [INFO] Fetching keywords for: The Girls (20975)
+[2025-12-12T17:29:52.637Z] [SUCCESS] ✓ Updated The Girls with 0 keywords
+[2025-12-12T17:29:52.738Z] [INFO] Fetching keywords for: Blindsided: The Game (524708)
+[2025-12-12T17:29:52.870Z] [SUCCESS] ✓ Updated Blindsided: The Game with 0 keywords
+[2025-12-12T17:29:52.970Z] [INFO] Fetching keywords for: Reservoir Dogs (443129)
+[2025-12-12T17:29:53.029Z] [SUCCESS] ✓ Updated Reservoir Dogs with 0 keywords
+[2025-12-12T17:29:53.130Z] [INFO] Fetching keywords for: Altered (1309012)
+[2025-12-12T17:29:53.232Z] [SUCCESS] ✓ Updated Altered with 0 keywords
+[2025-12-12T17:29:53.332Z] [INFO] Fetching keywords for: Not A Minute To Lose (467980)
+[2025-12-12T17:29:53.408Z] [SUCCESS] ✓ Updated Not A Minute To Lose with 0 keywords
+[2025-12-12T17:29:53.509Z] [INFO] Fetching keywords for: Speak Up (452406)
+[2025-12-12T17:29:53.569Z] [SUCCESS] ✓ Updated Speak Up with 0 keywords
+[2025-12-12T17:29:53.670Z] [INFO] Fetching keywords for: The Mole Agent (653756)
+[2025-12-12T17:29:53.751Z] [SUCCESS] ✓ Updated The Mole Agent with 0 keywords
+[2025-12-12T17:29:53.852Z] [INFO] Fetching keywords for: Montage (195276)
+[2025-12-12T17:29:53.976Z] [SUCCESS] ✓ Updated Montage with 0 keywords
+[2025-12-12T17:29:54.076Z] [INFO] Fetching keywords for: The Princess (1008779)
+[2025-12-12T17:29:54.172Z] [SUCCESS] ✓ Updated The Princess with 0 keywords
+[2025-12-12T17:29:54.273Z] [INFO] Fetching keywords for: Unforgettable (376494)
+[2025-12-12T17:29:54.347Z] [SUCCESS] ✓ Updated Unforgettable with 0 keywords
+[2025-12-12T17:29:54.447Z] [INFO] Fetching keywords for: Amanda (485166)
+[2025-12-12T17:29:54.553Z] [SUCCESS] ✓ Updated Amanda with 6 keywords
+[2025-12-12T17:29:54.654Z] [INFO] Fetching keywords for: Luxembourg, Luxembourg (1005141)
+[2025-12-12T17:29:54.712Z] [SUCCESS] ✓ Updated Luxembourg, Luxembourg with 0 keywords
+[2025-12-12T17:29:54.813Z] [INFO] Fetching keywords for: Soul Kitchen (31175)
+[2025-12-12T17:29:54.878Z] [SUCCESS] ✓ Updated Soul Kitchen with 0 keywords
+[2025-12-12T17:29:54.978Z] [INFO] Fetching keywords for: Innocence (31413)
+[2025-12-12T17:29:55.082Z] [SUCCESS] ✓ Updated Innocence with 0 keywords
+[2025-12-12T17:29:55.183Z] [INFO] Fetching keywords for: AKA (1102776)
+[2025-12-12T17:29:55.257Z] [SUCCESS] ✓ Updated AKA with 0 keywords
+[2025-12-12T17:29:55.357Z] [INFO] Fetching keywords for: Los Leones (666751)
+[2025-12-12T17:29:55.434Z] [SUCCESS] ✓ Updated Los Leones with 0 keywords
+[2025-12-12T17:29:55.535Z] [INFO] Fetching keywords for: Blind (79374)
+[2025-12-12T17:29:55.607Z] [SUCCESS] ✓ Updated Blind with 0 keywords
+[2025-12-12T17:29:55.707Z] [INFO] Fetching keywords for: The Legendary Giulia and Other Miracles (325690)
+[2025-12-12T17:29:55.777Z] [SUCCESS] ✓ Updated The Legendary Giulia and Other Miracles with 0 keywords
+[2025-12-12T17:29:55.878Z] [INFO] Fetching keywords for: Divaldo Franco (612304)
+[2025-12-12T17:29:55.968Z] [SUCCESS] ✓ Updated Divaldo Franco with 0 keywords
+[2025-12-12T17:29:56.068Z] [INFO] Fetching keywords for: Karol G: Tomorrow Was Beautiful (1469239)
+[2025-12-12T17:29:56.134Z] [SUCCESS] ✓ Updated Karol G: Tomorrow Was Beautiful with 0 keywords
+[2025-12-12T17:29:56.234Z] [INFO] Fetching keywords for: A City of Sadness (49982)
+[2025-12-12T17:29:56.298Z] [SUCCESS] ✓ Updated A City of Sadness with 0 keywords
+[2025-12-12T17:29:56.399Z] [INFO] Fetching keywords for: Soul of Hero (646332)
+[2025-12-12T17:29:56.456Z] [SUCCESS] ✓ Updated Soul of Hero with 0 keywords
+[2025-12-12T17:29:56.557Z] [INFO] Fetching keywords for: Thus Spoke Bellavista (57922)
+[2025-12-12T17:29:56.636Z] [SUCCESS] ✓ Updated Thus Spoke Bellavista with 0 keywords
+[2025-12-12T17:29:56.736Z] [INFO] Fetching keywords for: Shéhérazade (518671)
+[2025-12-12T17:29:56.832Z] [SUCCESS] ✓ Updated Shéhérazade with 0 keywords
+[2025-12-12T17:29:56.933Z] [INFO] Fetching keywords for: Impossible Things (667257)
+[2025-12-12T17:29:57.012Z] [SUCCESS] ✓ Updated Impossible Things with 0 keywords
+[2025-12-12T17:29:57.111Z] [INFO] Fetching keywords for: Ni tuyo, ni mía (671266)
+[2025-12-12T17:29:57.184Z] [SUCCESS] ✓ Updated Ni tuyo, ni mía with 0 keywords
+[2025-12-12T17:29:57.285Z] [INFO] Fetching keywords for: My Mom Is a Character 2 (227932)
+[2025-12-12T17:29:57.348Z] [SUCCESS] ✓ Updated My Mom Is a Character 2 with 0 keywords
+[2025-12-12T17:29:57.449Z] [INFO] Fetching keywords for: Secret Society of Second Born Royals (621870)
+[2025-12-12T17:29:57.507Z] [SUCCESS] ✓ Updated Secret Society of Second Born Royals with 0 keywords
+[2025-12-12T17:29:57.608Z] [INFO] Fetching keywords for: Look Away (526051)
+[2025-12-12T17:29:57.687Z] [SUCCESS] ✓ Updated Look Away with 0 keywords
+[2025-12-12T17:29:57.787Z] [INFO] Fetching keywords for: Mesrine: Public Enemy #1 (15362)
+[2025-12-12T17:29:57.878Z] [SUCCESS] ✓ Updated Mesrine: Public Enemy #1 with 0 keywords
+[2025-12-12T17:29:57.979Z] [INFO] Fetching keywords for: Irreplaceable You (450489)
+[2025-12-12T17:29:58.054Z] [SUCCESS] ✓ Updated Irreplaceable You with 0 keywords
+[2025-12-12T17:29:58.154Z] [INFO] Fetching keywords for: No manches, Frida 2: paraíso destruido (554596)
+[2025-12-12T17:29:58.213Z] [SUCCESS] ✓ Updated No manches, Frida 2: paraíso destruido with 0 keywords
+[2025-12-12T17:29:58.314Z] [INFO] Fetching keywords for: Colombia: Wild Magic (364375)
+[2025-12-12T17:29:58.419Z] [SUCCESS] ✓ Updated Colombia: Wild Magic with 0 keywords
+[2025-12-12T17:29:58.519Z] [INFO] Fetching keywords for: La Leyenda de los Chaneques (1150394)
+[2025-12-12T17:29:58.586Z] [SUCCESS] ✓ Updated La Leyenda de los Chaneques with 0 keywords
+[2025-12-12T17:29:58.686Z] [INFO] Fetching keywords for: Food (60316)
+[2025-12-12T17:29:58.742Z] [SUCCESS] ✓ Updated Food with 0 keywords
+[2025-12-12T17:29:58.842Z] [INFO] Fetching keywords for: Gena the Crocodile (79701)
+[2025-12-12T17:29:58.907Z] [SUCCESS] ✓ Updated Gena the Crocodile with 0 keywords
+[2025-12-12T17:29:59.007Z] [INFO] Fetching keywords for: Anplagghed al Cinema (50472)
+[2025-12-12T17:29:59.218Z] [SUCCESS] ✓ Updated Anplagghed al Cinema with 0 keywords
+[2025-12-12T17:29:59.318Z] [INFO] Fetching keywords for: Master, a Building in Copacabana (60142)
+[2025-12-12T17:29:59.396Z] [SUCCESS] ✓ Updated Master, a Building in Copacabana with 0 keywords
+[2025-12-12T17:29:59.497Z] [INFO] Fetching keywords for: Love Tactics (927855)
+[2025-12-12T17:29:59.565Z] [SUCCESS] ✓ Updated Love Tactics with 0 keywords
+[2025-12-12T17:29:59.666Z] [INFO] Fetching keywords for: Gabriel's Rapture: Part I (850356)
+[2025-12-12T17:29:59.721Z] [SUCCESS] ✓ Updated Gabriel's Rapture: Part I with 0 keywords
+[2025-12-12T17:29:59.821Z] [INFO] Fetching keywords for: Beautiful City (89065)
+[2025-12-12T17:29:59.891Z] [SUCCESS] ✓ Updated Beautiful City with 0 keywords
+[2025-12-12T17:29:59.990Z] [INFO] Fetching keywords for: Tom and Jerry Cowboy Up! (892153)
+[2025-12-12T17:30:00.071Z] [SUCCESS] ✓ Updated Tom and Jerry Cowboy Up! with 0 keywords
+[2025-12-12T17:30:00.172Z] [INFO] Fetching keywords for: Head Full of Honey (269258)
+[2025-12-12T17:30:00.236Z] [SUCCESS] ✓ Updated Head Full of Honey with 0 keywords
+[2025-12-12T17:30:00.336Z] [INFO] Fetching keywords for: All About Me (497106)
+[2025-12-12T17:30:00.393Z] [SUCCESS] ✓ Updated All About Me with 0 keywords
+[2025-12-12T17:30:00.494Z] [INFO] Fetching keywords for: The Weeping Meadow (37952)
+[2025-12-12T17:30:00.586Z] [SUCCESS] ✓ Updated The Weeping Meadow with 0 keywords
+[2025-12-12T17:30:00.685Z] [INFO] Fetching keywords for: Patriots Time (965571)
+[2025-12-12T17:30:00.757Z] [SUCCESS] ✓ Updated Patriots Time with 0 keywords
+[2025-12-12T17:30:00.858Z] [INFO] Fetching keywords for: Qué León (567452)
+[2025-12-12T17:30:00.952Z] [SUCCESS] ✓ Updated Qué León with 0 keywords
+[2025-12-12T17:30:01.053Z] [INFO] Fetching keywords for: Frequencies (218425)
+[2025-12-12T17:30:01.126Z] [SUCCESS] ✓ Updated Frequencies with 0 keywords
+[2025-12-12T17:30:01.226Z] [INFO] Fetching keywords for: The Conductor (541611)
+[2025-12-12T17:30:01.319Z] [SUCCESS] ✓ Updated The Conductor with 0 keywords
+[2025-12-12T17:30:01.420Z] [INFO] Fetching keywords for: Bad Seeds (498249)
+[2025-12-12T17:30:01.496Z] [SUCCESS] ✓ Updated Bad Seeds with 0 keywords
+[2025-12-12T17:30:01.597Z] [INFO] 
+================================================================================
+[2025-12-12T17:30:01.597Z] [INFO] SUMMARY
+[2025-12-12T17:30:01.597Z] [INFO] ================================================================================
+
+[2025-12-12T17:30:01.597Z] [INFO] Fixed: 100
+[2025-12-12T17:30:01.597Z] [INFO] Failed: 0
+[2025-12-12T17:33:09.303Z] [INFO] Finding movies without keywords...
+[2025-12-12T17:33:10.031Z] [INFO] Found 100 movies without keywords
+[2025-12-12T17:33:10.031Z] [INFO] Fetching keywords for: Killing Cabos 2: The Mask of El Máscara (772436)
+[2025-12-12T17:33:10.244Z] [SUCCESS] ✓ Updated Killing Cabos 2: The Mask of El Máscara with 0 keywords
+[2025-12-12T17:33:10.345Z] [INFO] Fetching keywords for: The Consequences of Love (24653)
+[2025-12-12T17:33:10.459Z] [SUCCESS] ✓ Updated The Consequences of Love with 0 keywords
+[2025-12-12T17:33:10.560Z] [INFO] Fetching keywords for: Prayers for the Stolen (670981)
+[2025-12-12T17:33:10.771Z] [SUCCESS] ✓ Updated Prayers for the Stolen with 0 keywords
+[2025-12-12T17:33:10.871Z] [INFO] Fetching keywords for: Ennio (396194)
+[2025-12-12T17:33:11.042Z] [SUCCESS] ✓ Updated Ennio with 0 keywords
+[2025-12-12T17:33:11.143Z] [INFO] Fetching keywords for: You've Got This (746957)
+[2025-12-12T17:33:11.300Z] [SUCCESS] ✓ Updated You've Got This with 0 keywords
+[2025-12-12T17:33:11.401Z] [INFO] Fetching keywords for: The Second Tragic Fantozzi (37769)
+[2025-12-12T17:33:11.565Z] [SUCCESS] ✓ Updated The Second Tragic Fantozzi with 0 keywords
+[2025-12-12T17:33:11.666Z] [INFO] Fetching keywords for: One Direction: This Is Us (164558)
+[2025-12-12T17:33:11.820Z] [SUCCESS] ✓ Updated One Direction: This Is Us with 0 keywords
+[2025-12-12T17:33:11.919Z] [INFO] Fetching keywords for: The Earrings (130027)
+[2025-12-12T17:33:12.041Z] [SUCCESS] ✓ Updated The Earrings with 0 keywords
+[2025-12-12T17:33:12.141Z] [INFO] Fetching keywords for: OLIVIA RODRIGO: driving home 2 u (a SOUR film) (939790)
+[2025-12-12T17:33:12.294Z] [SUCCESS] ✓ Updated OLIVIA RODRIGO: driving home 2 u (a SOUR film) with 0 keywords
+[2025-12-12T17:33:12.395Z] [INFO] Fetching keywords for: Last Night of Amore (978870)
+[2025-12-12T17:33:12.474Z] [SUCCESS] ✓ Updated Last Night of Amore with 0 keywords
+[2025-12-12T17:33:12.575Z] [INFO] Fetching keywords for: Diamonds (1299046)
+[2025-12-12T17:33:12.689Z] [SUCCESS] ✓ Updated Diamonds with 0 keywords
+[2025-12-12T17:33:12.790Z] [INFO] Fetching keywords for: The Thin Yellow Line (268854)
+[2025-12-12T17:33:12.865Z] [SUCCESS] ✓ Updated The Thin Yellow Line with 0 keywords
+[2025-12-12T17:33:12.965Z] [INFO] Fetching keywords for: Cinco de Mayo: The Battle (184374)
+[2025-12-12T17:33:13.037Z] [SUCCESS] ✓ Updated Cinco de Mayo: The Battle with 0 keywords
+[2025-12-12T17:33:13.138Z] [INFO] Fetching keywords for: An Egg Rescue (573164)
+[2025-12-12T17:33:13.217Z] [SUCCESS] ✓ Updated An Egg Rescue with 0 keywords
+[2025-12-12T17:33:13.317Z] [INFO] Fetching keywords for: The Last Dance (1226141)
+[2025-12-12T17:33:13.422Z] [SUCCESS] ✓ Updated The Last Dance with 0 keywords
+[2025-12-12T17:33:13.523Z] [INFO] Fetching keywords for: One Love (568021)
+[2025-12-12T17:33:13.694Z] [SUCCESS] ✓ Updated One Love with 0 keywords
+[2025-12-12T17:33:13.795Z] [INFO] Fetching keywords for: Smiling Eyes (65010)
+[2025-12-12T17:33:14.051Z] [SUCCESS] ✓ Updated Smiling Eyes with 0 keywords
+[2025-12-12T17:33:14.151Z] [INFO] Fetching keywords for: “The Shorts” by Aldo, Giovanni and Giacomo (38288)
+[2025-12-12T17:33:14.237Z] [SUCCESS] ✓ Updated “The Shorts” by Aldo, Giovanni and Giacomo with 0 keywords
+[2025-12-12T17:33:14.337Z] [INFO] Fetching keywords for: I Do...Knot (68941)
+[2025-12-12T17:33:14.464Z] [SUCCESS] ✓ Updated I Do...Knot with 0 keywords
+[2025-12-12T17:33:14.564Z] [INFO] Fetching keywords for: Gigi & Nate (829503)
+[2025-12-12T17:33:14.647Z] [SUCCESS] ✓ Updated Gigi & Nate with 0 keywords
+[2025-12-12T17:33:14.748Z] [INFO] Fetching keywords for: From the Village to the City (74302)
+[2025-12-12T17:33:14.812Z] [SUCCESS] ✓ Updated From the Village to the City with 0 keywords
+[2025-12-12T17:33:14.913Z] [INFO] Fetching keywords for: The Colors of the Mountain (81623)
+[2025-12-12T17:33:14.984Z] [SUCCESS] ✓ Updated The Colors of the Mountain with 0 keywords
+[2025-12-12T17:33:15.085Z] [INFO] Fetching keywords for: Whindersson Nunes: Adult (623392)
+[2025-12-12T17:33:15.162Z] [SUCCESS] ✓ Updated Whindersson Nunes: Adult with 0 keywords
+[2025-12-12T17:33:15.262Z] [INFO] Fetching keywords for: Tres lancheros muy picudos (85925)
+[2025-12-12T17:33:15.326Z] [SUCCESS] ✓ Updated Tres lancheros muy picudos with 0 keywords
+[2025-12-12T17:33:15.427Z] [INFO] Fetching keywords for: Scooby-Doo! and KISS: Rock and Roll Mystery (347688)
+[2025-12-12T17:33:15.492Z] [SUCCESS] ✓ Updated Scooby-Doo! and KISS: Rock and Roll Mystery with 0 keywords
+[2025-12-12T17:33:15.592Z] [INFO] Fetching keywords for: The Night of Counting the Years (46707)
+[2025-12-12T17:33:15.682Z] [SUCCESS] ✓ Updated The Night of Counting the Years with 0 keywords
+[2025-12-12T17:33:15.782Z] [INFO] Fetching keywords for: Now Where Did the Seventh Company Get to? (93289)
+[2025-12-12T17:33:15.850Z] [SUCCESS] ✓ Updated Now Where Did the Seventh Company Get to? with 0 keywords
+[2025-12-12T17:33:15.950Z] [INFO] Fetching keywords for: Emperor (666219)
+[2025-12-12T17:33:16.052Z] [SUCCESS] ✓ Updated Emperor with 0 keywords
+[2025-12-12T17:33:16.153Z] [INFO] Fetching keywords for: Billy & Mandy's Big Boogey Adventure (17305)
+[2025-12-12T17:33:16.253Z] [SUCCESS] ✓ Updated Billy & Mandy's Big Boogey Adventure with 0 keywords
+[2025-12-12T17:33:16.354Z] [INFO] Fetching keywords for: Crazy About Work (554581)
+[2025-12-12T17:33:16.446Z] [SUCCESS] ✓ Updated Crazy About Work with 0 keywords
+[2025-12-12T17:33:16.546Z] [INFO] Fetching keywords for: The Given Word (59990)
+[2025-12-12T17:33:16.639Z] [SUCCESS] ✓ Updated The Given Word with 0 keywords
+[2025-12-12T17:33:16.739Z] [INFO] Fetching keywords for: Hello Ghost (62439)
+[2025-12-12T17:33:16.822Z] [SUCCESS] ✓ Updated Hello Ghost with 0 keywords
+[2025-12-12T17:33:16.923Z] [INFO] Fetching keywords for: Lovecraft (1325426)
+[2025-12-12T17:33:16.989Z] [SUCCESS] ✓ Updated Lovecraft with 0 keywords
+[2025-12-12T17:33:17.090Z] [INFO] Fetching keywords for: I'm Gilda (416680)
+[2025-12-12T17:33:17.186Z] [SUCCESS] ✓ Updated I'm Gilda with 0 keywords
+[2025-12-12T17:33:17.286Z] [INFO] Fetching keywords for: Eddie Izzard: Dress to Kill (13589)
+[2025-12-12T17:33:17.355Z] [SUCCESS] ✓ Updated Eddie Izzard: Dress to Kill with 0 keywords
+[2025-12-12T17:33:17.456Z] [INFO] Fetching keywords for: Life in a Year (447362)
+[2025-12-12T17:33:17.519Z] [SUCCESS] ✓ Updated Life in a Year with 0 keywords
+[2025-12-12T17:33:17.620Z] [INFO] Fetching keywords for: Gabriel's Inferno (696374)
+[2025-12-12T17:33:17.680Z] [SUCCESS] ✓ Updated Gabriel's Inferno with 0 keywords
+[2025-12-12T17:33:17.780Z] [INFO] Fetching keywords for: Setback (268874)
+[2025-12-12T17:33:17.847Z] [SUCCESS] ✓ Updated Setback with 0 keywords
+[2025-12-12T17:33:17.947Z] [INFO] Fetching keywords for: Where Am I Going? (374416)
+[2025-12-12T17:33:18.020Z] [SUCCESS] ✓ Updated Where Am I Going? with 0 keywords
+[2025-12-12T17:33:18.121Z] [INFO] Fetching keywords for: Davaro (31607)
+[2025-12-12T17:33:18.195Z] [SUCCESS] ✓ Updated Davaro with 0 keywords
+[2025-12-12T17:33:18.296Z] [INFO] Fetching keywords for: 35 Up (20562)
+[2025-12-12T17:33:18.398Z] [SUCCESS] ✓ Updated 35 Up with 0 keywords
+[2025-12-12T17:33:18.499Z] [INFO] Fetching keywords for: McQueen (508003)
+[2025-12-12T17:33:18.579Z] [SUCCESS] ✓ Updated McQueen with 0 keywords
+[2025-12-12T17:33:18.680Z] [INFO] Fetching keywords for: Nada que ver (1087771)
+[2025-12-12T17:33:18.763Z] [SUCCESS] ✓ Updated Nada que ver with 0 keywords
+[2025-12-12T17:33:18.863Z] [INFO] Fetching keywords for: Gabriel's Rapture: Part III (971961)
+[2025-12-12T17:33:18.946Z] [SUCCESS] ✓ Updated Gabriel's Rapture: Part III with 0 keywords
+[2025-12-12T17:33:19.047Z] [INFO] Fetching keywords for: Under the Hawthorn Tree (50542)
+[2025-12-12T17:33:19.114Z] [SUCCESS] ✓ Updated Under the Hawthorn Tree with 0 keywords
+[2025-12-12T17:33:19.214Z] [INFO] Fetching keywords for: The Pilgrim's Progress (595172)
+[2025-12-12T17:33:19.294Z] [SUCCESS] ✓ Updated The Pilgrim's Progress with 0 keywords
+[2025-12-12T17:33:19.395Z] [INFO] Fetching keywords for: Josep (680952)
+[2025-12-12T17:33:19.472Z] [SUCCESS] ✓ Updated Josep with 0 keywords
+[2025-12-12T17:33:19.573Z] [INFO] Fetching keywords for: Bendita Suegra (1120558)
+[2025-12-12T17:33:19.636Z] [SUCCESS] ✓ Updated Bendita Suegra with 0 keywords
+[2025-12-12T17:33:19.736Z] [INFO] Fetching keywords for: With You in the Future (1429299)
+[2025-12-12T17:33:19.808Z] [SUCCESS] ✓ Updated With You in the Future with 0 keywords
+[2025-12-12T17:33:19.909Z] [INFO] Fetching keywords for: El gerente (931925)
+[2025-12-12T17:33:19.982Z] [SUCCESS] ✓ Updated El gerente with 0 keywords
+[2025-12-12T17:33:20.082Z] [INFO] Fetching keywords for: Comment c'est loin (366564)
+[2025-12-12T17:33:20.160Z] [SUCCESS] ✓ Updated Comment c'est loin with 0 keywords
+[2025-12-12T17:33:20.261Z] [INFO] Fetching keywords for: A la mala (317925)
+[2025-12-12T17:33:20.323Z] [SUCCESS] ✓ Updated A la mala with 0 keywords
+[2025-12-12T17:33:20.423Z] [INFO] Fetching keywords for: Robin Williams: Live on Broadway (20211)
+[2025-12-12T17:33:20.496Z] [SUCCESS] ✓ Updated Robin Williams: Live on Broadway with 0 keywords
+[2025-12-12T17:33:20.596Z] [INFO] Fetching keywords for: Screaming in the Hallway (75724)
+[2025-12-12T17:33:20.665Z] [SUCCESS] ✓ Updated Screaming in the Hallway with 0 keywords
+[2025-12-12T17:33:20.765Z] [INFO] Fetching keywords for: 5Gang: A Different Kind of Christmas (659153)
+[2025-12-12T17:33:20.832Z] [SUCCESS] ✓ Updated 5Gang: A Different Kind of Christmas with 0 keywords
+[2025-12-12T17:33:20.932Z] [INFO] Fetching keywords for: Asuran (576928)
+[2025-12-12T17:33:20.997Z] [SUCCESS] ✓ Updated Asuran with 0 keywords
+[2025-12-12T17:33:21.097Z] [INFO] Fetching keywords for: Warriors of the Rainbow: Seediq Bale - Part 2: The Rainbow Bridge (313230)
+[2025-12-12T17:33:21.165Z] [SUCCESS] ✓ Updated Warriors of the Rainbow: Seediq Bale - Part 2: The Rainbow Bridge with 0 keywords
+[2025-12-12T17:33:21.266Z] [INFO] Fetching keywords for: Inseparable Bros (571787)
+[2025-12-12T17:33:21.337Z] [SUCCESS] ✓ Updated Inseparable Bros with 0 keywords
+[2025-12-12T17:33:21.436Z] [INFO] Fetching keywords for: Ashes of Time (40751)
+[2025-12-12T17:33:21.504Z] [SUCCESS] ✓ Updated Ashes of Time with 0 keywords
+[2025-12-12T17:33:21.604Z] [INFO] Fetching keywords for: Mary (490174)
+[2025-12-12T17:33:21.665Z] [SUCCESS] ✓ Updated Mary with 0 keywords
+[2025-12-12T17:33:21.766Z] [INFO] Fetching keywords for: Stephen (1561955)
+[2025-12-12T17:33:21.857Z] [SUCCESS] ✓ Updated Stephen with 0 keywords
+[2025-12-12T17:33:21.958Z] [INFO] Fetching keywords for: César (43873)
+[2025-12-12T17:33:22.039Z] [SUCCESS] ✓ Updated César with 0 keywords
+[2025-12-12T17:33:22.140Z] [INFO] Fetching keywords for: Jim's Story (1102938)
+[2025-12-12T17:33:22.240Z] [SUCCESS] ✓ Updated Jim's Story with 0 keywords
+[2025-12-12T17:33:22.339Z] [INFO] Fetching keywords for: The Marquis of Grillo (32480)
+[2025-12-12T17:33:22.398Z] [SUCCESS] ✓ Updated The Marquis of Grillo with 0 keywords
+[2025-12-12T17:33:22.499Z] [INFO] Fetching keywords for: Tyson's Run (860852)
+[2025-12-12T17:33:22.566Z] [SUCCESS] ✓ Updated Tyson's Run with 0 keywords
+[2025-12-12T17:33:22.667Z] [INFO] Fetching keywords for: A Movie of Eggs (16761)
+[2025-12-12T17:33:22.725Z] [SUCCESS] ✓ Updated A Movie of Eggs with 0 keywords
+[2025-12-12T17:33:22.825Z] [INFO] Fetching keywords for: Above Majestic (557646)
+[2025-12-12T17:33:22.887Z] [SUCCESS] ✓ Updated Above Majestic with 0 keywords
+[2025-12-12T17:33:22.988Z] [INFO] Fetching keywords for: Love Me No More (9736)
+[2025-12-12T17:33:23.079Z] [SUCCESS] ✓ Updated Love Me No More with 0 keywords
+[2025-12-12T17:33:23.178Z] [INFO] Fetching keywords for: A Chinese Odyssey Part Two: Cinderella (21835)
+[2025-12-12T17:33:23.265Z] [SUCCESS] ✓ Updated A Chinese Odyssey Part Two: Cinderella with 0 keywords
+[2025-12-12T17:33:23.365Z] [INFO] Fetching keywords for: Hichki (493623)
+[2025-12-12T17:33:23.434Z] [SUCCESS] ✓ Updated Hichki with 0 keywords
+[2025-12-12T17:33:23.535Z] [INFO] Fetching keywords for: Elsa & Fred (22916)
+[2025-12-12T17:33:23.598Z] [SUCCESS] ✓ Updated Elsa & Fred with 0 keywords
+[2025-12-12T17:33:23.699Z] [INFO] Fetching keywords for: Feyzo, The Polite One (27211)
+[2025-12-12T17:33:23.759Z] [SUCCESS] ✓ Updated Feyzo, The Polite One with 0 keywords
+[2025-12-12T17:33:23.859Z] [INFO] Fetching keywords for: 1942: Unknown Battle (647498)
+[2025-12-12T17:33:23.922Z] [SUCCESS] ✓ Updated 1942: Unknown Battle with 0 keywords
+[2025-12-12T17:33:24.022Z] [INFO] Fetching keywords for: Killing Cabos (14399)
+[2025-12-12T17:33:24.085Z] [SUCCESS] ✓ Updated Killing Cabos with 0 keywords
+[2025-12-12T17:33:24.185Z] [INFO] Fetching keywords for: Harry Styles: Behind the Album (456806)
+[2025-12-12T17:33:24.269Z] [SUCCESS] ✓ Updated Harry Styles: Behind the Album with 0 keywords
+[2025-12-12T17:33:24.370Z] [INFO] Fetching keywords for: Come Kiss Me at 0:00AM (617400)
+[2025-12-12T17:33:24.429Z] [SUCCESS] ✓ Updated Come Kiss Me at 0:00AM with 0 keywords
+[2025-12-12T17:33:24.529Z] [INFO] Fetching keywords for: A Wonderful World (69380)
+[2025-12-12T17:33:24.612Z] [SUCCESS] ✓ Updated A Wonderful World with 0 keywords
+[2025-12-12T17:33:24.712Z] [INFO] Fetching keywords for: Gentlemen of Fortune (20871)
+[2025-12-12T17:33:24.775Z] [SUCCESS] ✓ Updated Gentlemen of Fortune with 0 keywords
+[2025-12-12T17:33:24.875Z] [INFO] Fetching keywords for: My Father's Violin (920394)
+[2025-12-12T17:33:24.941Z] [SUCCESS] ✓ Updated My Father's Violin with 0 keywords
+[2025-12-12T17:33:25.040Z] [INFO] Fetching keywords for: Drake & Josh Go Hollywood (43960)
+[2025-12-12T17:33:25.108Z] [SUCCESS] ✓ Updated Drake & Josh Go Hollywood with 0 keywords
+[2025-12-12T17:33:25.209Z] [INFO] Fetching keywords for: The Willoughbys (560044)
+[2025-12-12T17:33:25.274Z] [SUCCESS] ✓ Updated The Willoughbys with 0 keywords
+[2025-12-12T17:33:25.374Z] [INFO] Fetching keywords for: Kumbalangi Nights (575351)
+[2025-12-12T17:33:25.439Z] [SUCCESS] ✓ Updated Kumbalangi Nights with 0 keywords
+[2025-12-12T17:33:25.540Z] [INFO] Fetching keywords for: Dinner in America (653664)
+[2025-12-12T17:33:25.595Z] [SUCCESS] ✓ Updated Dinner in America with 0 keywords
+[2025-12-12T17:33:25.696Z] [INFO] Fetching keywords for: Return (1091834)
+[2025-12-12T17:33:25.759Z] [SUCCESS] ✓ Updated Return with 0 keywords
+[2025-12-12T17:33:25.859Z] [INFO] Fetching keywords for: The Miracle of Marcelino (62395)
+[2025-12-12T17:33:25.953Z] [SUCCESS] ✓ Updated The Miracle of Marcelino with 0 keywords
+[2025-12-12T17:33:26.052Z] [INFO] Fetching keywords for: Franco Escamilla: Eavesdropping (1039026)
+[2025-12-12T17:33:26.154Z] [SUCCESS] ✓ Updated Franco Escamilla: Eavesdropping with 0 keywords
+[2025-12-12T17:33:26.254Z] [INFO] Fetching keywords for: Decalogue I (118662)
+[2025-12-12T17:33:26.317Z] [SUCCESS] ✓ Updated Decalogue I with 0 keywords
+[2025-12-12T17:33:26.417Z] [INFO] Fetching keywords for: Last Bullet (1144430)
+[2025-12-12T17:33:26.481Z] [SUCCESS] ✓ Updated Last Bullet with 0 keywords
+[2025-12-12T17:33:26.581Z] [INFO] Fetching keywords for: The Red Light Bandit (186738)
+[2025-12-12T17:33:26.652Z] [SUCCESS] ✓ Updated The Red Light Bandit with 0 keywords
+[2025-12-12T17:33:26.753Z] [INFO] Fetching keywords for: Can't Quit Mom (1041377)
+[2025-12-12T17:33:26.816Z] [SUCCESS] ✓ Updated Can't Quit Mom with 0 keywords
+[2025-12-12T17:33:26.916Z] [INFO] Fetching keywords for: Test (594040)
+[2025-12-12T17:33:26.977Z] [SUCCESS] ✓ Updated Test with 0 keywords
+[2025-12-12T17:33:27.078Z] [INFO] Fetching keywords for: Nezha Conquers the Dragon King (74037)
+[2025-12-12T17:33:27.144Z] [SUCCESS] ✓ Updated Nezha Conquers the Dragon King with 0 keywords
+[2025-12-12T17:33:27.245Z] [INFO] Fetching keywords for: Welcome al Norte (1160195)
+[2025-12-12T17:33:27.337Z] [SUCCESS] ✓ Updated Welcome al Norte with 0 keywords
+[2025-12-12T17:33:27.438Z] [INFO] Fetching keywords for: Oprah Winfrey Presents: When They See Us Now (608658)
+[2025-12-12T17:33:27.515Z] [SUCCESS] ✓ Updated Oprah Winfrey Presents: When They See Us Now with 0 keywords
+[2025-12-12T17:33:27.614Z] [INFO] Fetching keywords for: Ugly, Dirty and Bad (19413)
+[2025-12-12T17:33:27.682Z] [SUCCESS] ✓ Updated Ugly, Dirty and Bad with 0 keywords
+[2025-12-12T17:33:27.782Z] [INFO] Fetching keywords for: Mesa de regalos (1302151)
+[2025-12-12T17:33:27.860Z] [SUCCESS] ✓ Updated Mesa de regalos with 0 keywords
+[2025-12-12T17:33:27.960Z] [INFO] Fetching keywords for: Las Leyendas: El Origen (667276)
+[2025-12-12T17:33:28.041Z] [SUCCESS] ✓ Updated Las Leyendas: El Origen with 0 keywords
+[2025-12-12T17:33:28.142Z] [INFO] Fetching keywords for: Sisters in Arms (618326)
+[2025-12-12T17:33:28.213Z] [SUCCESS] ✓ Updated Sisters in Arms with 0 keywords
+[2025-12-12T17:33:28.314Z] [INFO] Fetching keywords for: The Women of Fast Food (333447)
+[2025-12-12T17:33:28.396Z] [SUCCESS] ✓ Updated The Women of Fast Food with 0 keywords
+[2025-12-12T17:33:28.496Z] [INFO] Fetching keywords for: The Three Wise Men vs. Santa (987758)
+[2025-12-12T17:33:28.552Z] [SUCCESS] ✓ Updated The Three Wise Men vs. Santa with 0 keywords
+[2025-12-12T17:33:28.652Z] [INFO] 
+================================================================================
+[2025-12-12T17:33:28.652Z] [INFO] SUMMARY
+[2025-12-12T17:33:28.652Z] [INFO] ================================================================================
+
+[2025-12-12T17:33:28.652Z] [INFO] Fixed: 100
+[2025-12-12T17:33:28.652Z] [INFO] Failed: 0
+[2025-12-12T17:33:30.799Z] [INFO] Finding movies without keywords...
+[2025-12-12T17:33:31.324Z] [INFO] Found 100 movies without keywords
+[2025-12-12T17:33:31.324Z] [INFO] Fetching keywords for: A Plastic Ocean (431339)
+[2025-12-12T17:33:31.422Z] [SUCCESS] ✓ Updated A Plastic Ocean with 0 keywords
+[2025-12-12T17:33:31.523Z] [INFO] Fetching keywords for: Paper Lives (785534)
+[2025-12-12T17:33:31.601Z] [SUCCESS] ✓ Updated Paper Lives with 0 keywords
+[2025-12-12T17:33:31.702Z] [INFO] Fetching keywords for: Don't Move (16729)
+[2025-12-12T17:33:31.753Z] [SUCCESS] ✓ Updated Don't Move with 0 keywords
+[2025-12-12T17:33:31.853Z] [INFO] Fetching keywords for: Through the Fire (484751)
+[2025-12-12T17:33:31.919Z] [SUCCESS] ✓ Updated Through the Fire with 0 keywords
+[2025-12-12T17:33:32.019Z] [INFO] Fetching keywords for: Monster High: Friday Night Frights (166747)
+[2025-12-12T17:33:32.084Z] [SUCCESS] ✓ Updated Monster High: Friday Night Frights with 0 keywords
+[2025-12-12T17:33:32.184Z] [INFO] Fetching keywords for: Cindy La Regia (579792)
+[2025-12-12T17:33:32.250Z] [SUCCESS] ✓ Updated Cindy La Regia with 0 keywords
+[2025-12-12T17:33:32.350Z] [INFO] Fetching keywords for: Shame (26372)
+[2025-12-12T17:33:32.410Z] [SUCCESS] ✓ Updated Shame with 0 keywords
+[2025-12-12T17:33:32.511Z] [INFO] Fetching keywords for: SlugTerra: Return of the Elementals (283564)
+[2025-12-12T17:33:32.599Z] [SUCCESS] ✓ Updated SlugTerra: Return of the Elementals with 0 keywords
+[2025-12-12T17:33:32.700Z] [INFO] Fetching keywords for: Crazy Stone (45380)
+[2025-12-12T17:33:32.763Z] [SUCCESS] ✓ Updated Crazy Stone with 0 keywords
+[2025-12-12T17:33:32.864Z] [INFO] Fetching keywords for: The Quack (68797)
+[2025-12-12T17:33:32.926Z] [SUCCESS] ✓ Updated The Quack with 0 keywords
+[2025-12-12T17:33:33.026Z] [INFO] Fetching keywords for: Playing (86321)
+[2025-12-12T17:33:33.103Z] [SUCCESS] ✓ Updated Playing with 0 keywords
+[2025-12-12T17:33:33.203Z] [INFO] Fetching keywords for: The God of Cookery (41343)
+[2025-12-12T17:33:33.271Z] [SUCCESS] ✓ Updated The God of Cookery with 0 keywords
+[2025-12-12T17:33:33.371Z] [INFO] Fetching keywords for: Key of Life (128113)
+[2025-12-12T17:33:33.431Z] [SUCCESS] ✓ Updated Key of Life with 0 keywords
+[2025-12-12T17:33:33.532Z] [INFO] Fetching keywords for: Charm City Kings (552532)
+[2025-12-12T17:33:33.606Z] [SUCCESS] ✓ Updated Charm City Kings with 0 keywords
+[2025-12-12T17:33:33.706Z] [INFO] Fetching keywords for: The Black Devil and the White Prince (401917)
+[2025-12-12T17:33:33.797Z] [SUCCESS] ✓ Updated The Black Devil and the White Prince with 0 keywords
+[2025-12-12T17:33:33.898Z] [INFO] Fetching keywords for: Gabriel's Inferno: Part III (761053)
+[2025-12-12T17:33:33.988Z] [SUCCESS] ✓ Updated Gabriel's Inferno: Part III with 0 keywords
+[2025-12-12T17:33:34.089Z] [INFO] Fetching keywords for: Franco Escamilla: bienvenido al mundo (595723)
+[2025-12-12T17:33:34.251Z] [SUCCESS] ✓ Updated Franco Escamilla: bienvenido al mundo with 0 keywords
+[2025-12-12T17:33:34.352Z] [INFO] Fetching keywords for: Love Hurts (51822)
+[2025-12-12T17:33:34.418Z] [SUCCESS] ✓ Updated Love Hurts with 0 keywords
+[2025-12-12T17:33:34.519Z] [INFO] Fetching keywords for: RBD: Ser o Parecer (En Vivo) (782633)
+[2025-12-12T17:33:34.853Z] [SUCCESS] ✓ Updated RBD: Ser o Parecer (En Vivo) with 0 keywords
+[2025-12-12T17:33:34.954Z] [INFO] Fetching keywords for: Bye Bye Morons (651881)
+[2025-12-12T17:33:35.003Z] [SUCCESS] ✓ Updated Bye Bye Morons with 0 keywords
+[2025-12-12T17:33:35.104Z] [INFO] Fetching keywords for: Decalogue IV (51110)
+[2025-12-12T17:33:35.171Z] [SUCCESS] ✓ Updated Decalogue IV with 0 keywords
+[2025-12-12T17:33:35.271Z] [INFO] Fetching keywords for: Loft (17845)
+[2025-12-12T17:33:35.324Z] [SUCCESS] ✓ Updated Loft with 0 keywords
+[2025-12-12T17:33:35.424Z] [INFO] Fetching keywords for: We All Loved Each Other So Much (42269)
+[2025-12-12T17:33:35.495Z] [SUCCESS] ✓ Updated We All Loved Each Other So Much with 0 keywords
+[2025-12-12T17:33:35.595Z] [INFO] Fetching keywords for: Tear This Heart Out (16382)
+[2025-12-12T17:33:35.651Z] [SUCCESS] ✓ Updated Tear This Heart Out with 0 keywords
+[2025-12-12T17:33:35.752Z] [INFO] Fetching keywords for: Ya veremos (525213)
+[2025-12-12T17:33:35.802Z] [SUCCESS] ✓ Updated Ya veremos with 0 keywords
+[2025-12-12T17:33:35.903Z] [INFO] Fetching keywords for: Remi, Nobody's Boy (458302)
+[2025-12-12T17:33:35.968Z] [SUCCESS] ✓ Updated Remi, Nobody's Boy with 0 keywords
+[2025-12-12T17:33:36.068Z] [INFO] Fetching keywords for: The Most Beautiful Girl in the World (517062)
+[2025-12-12T17:33:36.131Z] [SUCCESS] ✓ Updated The Most Beautiful Girl in the World with 0 keywords
+[2025-12-12T17:33:36.230Z] [INFO] Fetching keywords for: Michael Jackson: The Life of an Icon (78192)
+[2025-12-12T17:33:36.312Z] [SUCCESS] ✓ Updated Michael Jackson: The Life of an Icon with 0 keywords
+[2025-12-12T17:33:36.412Z] [INFO] Fetching keywords for: Star Wars Rebels: The Siege of Lothal (337755)
+[2025-12-12T17:33:36.473Z] [SUCCESS] ✓ Updated Star Wars Rebels: The Siege of Lothal with 0 keywords
+[2025-12-12T17:33:36.573Z] [INFO] Fetching keywords for: Wonderland (635996)
+[2025-12-12T17:33:36.643Z] [SUCCESS] ✓ Updated Wonderland with 0 keywords
+[2025-12-12T17:33:36.744Z] [INFO] Fetching keywords for: Still Time (881462)
+[2025-12-12T17:33:36.799Z] [SUCCESS] ✓ Updated Still Time with 0 keywords
+[2025-12-12T17:33:36.900Z] [INFO] Fetching keywords for: Minha Vida em Marte (564427)
+[2025-12-12T17:33:36.961Z] [SUCCESS] ✓ Updated Minha Vida em Marte with 0 keywords
+[2025-12-12T17:33:37.061Z] [INFO] Fetching keywords for: Veinteañera, divorciada y fantástica (610461)
+[2025-12-12T17:33:37.122Z] [SUCCESS] ✓ Updated Veinteañera, divorciada y fantástica with 0 keywords
+[2025-12-12T17:33:37.222Z] [INFO] Fetching keywords for: Waiting for Bojangles (851303)
+[2025-12-12T17:33:37.287Z] [SUCCESS] ✓ Updated Waiting for Bojangles with 0 keywords
+[2025-12-12T17:33:37.387Z] [INFO] Fetching keywords for: Dad Wanted (737802)
+[2025-12-12T17:33:37.438Z] [SUCCESS] ✓ Updated Dad Wanted with 0 keywords
+[2025-12-12T17:33:37.538Z] [INFO] Fetching keywords for: Tenor (936074)
+[2025-12-12T17:33:37.595Z] [SUCCESS] ✓ Updated Tenor with 0 keywords
+[2025-12-12T17:33:37.696Z] [INFO] Fetching keywords for: Vanishing Time: A Boy Who Returned (382217)
+[2025-12-12T17:33:37.775Z] [SUCCESS] ✓ Updated Vanishing Time: A Boy Who Returned with 0 keywords
+[2025-12-12T17:33:37.876Z] [INFO] Fetching keywords for: 108 Costuras (387743)
+[2025-12-12T17:33:37.932Z] [SUCCESS] ✓ Updated 108 Costuras with 0 keywords
+[2025-12-12T17:33:38.032Z] [INFO] Fetching keywords for: Monster High: Scaris City of Frights (192911)
+[2025-12-12T17:33:38.110Z] [SUCCESS] ✓ Updated Monster High: Scaris City of Frights with 0 keywords
+[2025-12-12T17:33:38.211Z] [INFO] Fetching keywords for: Just the Two of Us (989672)
+[2025-12-12T17:33:38.266Z] [SUCCESS] ✓ Updated Just the Two of Us with 0 keywords
+[2025-12-12T17:33:38.366Z] [INFO] Fetching keywords for: What the Day Owes the Night (119193)
+[2025-12-12T17:33:38.442Z] [SUCCESS] ✓ Updated What the Day Owes the Night with 0 keywords
+[2025-12-12T17:33:38.543Z] [INFO] Fetching keywords for: Little Eggs: A Frozen Rescue (573171)
+[2025-12-12T17:33:38.610Z] [SUCCESS] ✓ Updated Little Eggs: A Frozen Rescue with 0 keywords
+[2025-12-12T17:33:38.709Z] [INFO] Fetching keywords for: The First Snow of Fraggle Rock (1566269)
+[2025-12-12T17:33:38.768Z] [SUCCESS] ✓ Updated The First Snow of Fraggle Rock with 0 keywords
+[2025-12-12T17:33:38.868Z] [INFO] Fetching keywords for: The Untold History Of The United States (189215)
+[2025-12-12T17:33:38.932Z] [SUCCESS] ✓ Updated The Untold History Of The United States with 0 keywords
+[2025-12-12T17:33:39.033Z] [INFO] Fetching keywords for: Let's Not Get Angry (33360)
+[2025-12-12T17:33:39.101Z] [SUCCESS] ✓ Updated Let's Not Get Angry with 0 keywords
+[2025-12-12T17:33:39.201Z] [INFO] Fetching keywords for: Virgin Mountain (320736)
+[2025-12-12T17:33:39.256Z] [SUCCESS] ✓ Updated Virgin Mountain with 0 keywords
+[2025-12-12T17:33:39.356Z] [INFO] Fetching keywords for: Millonario sin amor (901407)
+[2025-12-12T17:33:39.412Z] [SUCCESS] ✓ Updated Millonario sin amor with 0 keywords
+[2025-12-12T17:33:39.513Z] [INFO] Fetching keywords for: Tad, the Lost Explorer and the Emerald Tablet (676701)
+[2025-12-12T17:33:39.579Z] [SUCCESS] ✓ Updated Tad, the Lost Explorer and the Emerald Tablet with 0 keywords
+[2025-12-12T17:33:39.680Z] [INFO] Fetching keywords for: A Dog Named Palma (583833)
+[2025-12-12T17:33:39.733Z] [SUCCESS] ✓ Updated A Dog Named Palma with 0 keywords
+[2025-12-12T17:33:39.834Z] [INFO] Fetching keywords for: The Surrender (1339206)
+[2025-12-12T17:33:39.888Z] [SUCCESS] ✓ Updated The Surrender with 0 keywords
+[2025-12-12T17:33:39.987Z] [INFO] Fetching keywords for: The Last One for the Road (1462322)
+[2025-12-12T17:33:40.049Z] [SUCCESS] ✓ Updated The Last One for the Road with 0 keywords
+[2025-12-12T17:33:40.148Z] [INFO] Fetching keywords for: Scooby-Doo's A Nutcracker Scoob (48919)
+[2025-12-12T17:33:40.231Z] [SUCCESS] ✓ Updated Scooby-Doo's A Nutcracker Scoob with 0 keywords
+[2025-12-12T17:33:40.332Z] [INFO] Fetching keywords for: Mira (864101)
+[2025-12-12T17:33:40.404Z] [SUCCESS] ✓ Updated Mira with 0 keywords
+[2025-12-12T17:33:40.505Z] [INFO] Fetching keywords for: Monster High: Why Do Ghouls Fall in Love? (167313)
+[2025-12-12T17:33:40.596Z] [SUCCESS] ✓ Updated Monster High: Why Do Ghouls Fall in Love? with 0 keywords
+[2025-12-12T17:33:40.696Z] [INFO] Fetching keywords for: Mad Detective (14016)
+[2025-12-12T17:33:40.759Z] [SUCCESS] ✓ Updated Mad Detective with 0 keywords
+[2025-12-12T17:33:40.860Z] [INFO] Fetching keywords for: Ecce Bombo (48282)
+[2025-12-12T17:33:40.947Z] [SUCCESS] ✓ Updated Ecce Bombo with 0 keywords
+[2025-12-12T17:33:41.048Z] [INFO] Fetching keywords for: The House of Flowers: The Movie (833971)
+[2025-12-12T17:33:41.121Z] [SUCCESS] ✓ Updated The House of Flowers: The Movie with 0 keywords
+[2025-12-12T17:33:41.222Z] [INFO] Fetching keywords for: Chaco (662334)
+[2025-12-12T17:33:41.312Z] [SUCCESS] ✓ Updated Chaco with 0 keywords
+[2025-12-12T17:33:41.413Z] [INFO] Fetching keywords for: The (Almost) Legends (1148969)
+[2025-12-12T17:33:41.474Z] [SUCCESS] ✓ Updated The (Almost) Legends with 0 keywords
+[2025-12-12T17:33:41.575Z] [INFO] Fetching keywords for: Jab Tak Hai Jaan (132316)
+[2025-12-12T17:33:41.629Z] [SUCCESS] ✓ Updated Jab Tak Hai Jaan with 0 keywords
+[2025-12-12T17:33:41.730Z] [INFO] Fetching keywords for: Héctor el Father: Conocerás la verdad (511679)
+[2025-12-12T17:33:41.787Z] [SUCCESS] ✓ Updated Héctor el Father: Conocerás la verdad with 0 keywords
+[2025-12-12T17:33:41.887Z] [INFO] Fetching keywords for: L'Emprise (321507)
+[2025-12-12T17:33:41.944Z] [SUCCESS] ✓ Updated L'Emprise with 0 keywords
+[2025-12-12T17:33:42.045Z] [INFO] Fetching keywords for: Don't F*#% With John Wick (600987)
+[2025-12-12T17:33:42.105Z] [SUCCESS] ✓ Updated Don't F*#% With John Wick with 0 keywords
+[2025-12-12T17:33:42.205Z] [INFO] Fetching keywords for: Toto, Peppino, and the Hussy (55960)
+[2025-12-12T17:33:42.266Z] [SUCCESS] ✓ Updated Toto, Peppino, and the Hussy with 0 keywords
+[2025-12-12T17:33:42.367Z] [INFO] Fetching keywords for: What's in a Name (112198)
+[2025-12-12T17:33:42.433Z] [SUCCESS] ✓ Updated What's in a Name with 0 keywords
+[2025-12-12T17:33:42.534Z] [INFO] Fetching keywords for: 36th Precinct (7291)
+[2025-12-12T17:33:42.595Z] [SUCCESS] ✓ Updated 36th Precinct with 0 keywords
+[2025-12-12T17:33:42.695Z] [INFO] Fetching keywords for: My Boyfriend's Meds (557940)
+[2025-12-12T17:33:42.768Z] [SUCCESS] ✓ Updated My Boyfriend's Meds with 0 keywords
+[2025-12-12T17:33:42.868Z] [INFO] Fetching keywords for: The Shadow's Edge (1419406)
+[2025-12-12T17:33:42.939Z] [SUCCESS] ✓ Updated The Shadow's Edge with 0 keywords
+[2025-12-12T17:33:43.040Z] [INFO] Fetching keywords for: Home from Home – Chronicle of a Vision (215740)
+[2025-12-12T17:33:43.106Z] [SUCCESS] ✓ Updated Home from Home – Chronicle of a Vision with 0 keywords
+[2025-12-12T17:33:43.206Z] [INFO] Fetching keywords for: It's Such a Beautiful Day (86517)
+[2025-12-12T17:33:43.267Z] [SUCCESS] ✓ Updated It's Such a Beautiful Day with 0 keywords
+[2025-12-12T17:33:43.366Z] [INFO] Fetching keywords for: Everybody Go Home! (48955)
+[2025-12-12T17:33:43.431Z] [SUCCESS] ✓ Updated Everybody Go Home! with 0 keywords
+[2025-12-12T17:33:43.532Z] [INFO] Fetching keywords for: My Mom Is a Character 3 (620683)
+[2025-12-12T17:33:43.597Z] [SUCCESS] ✓ Updated My Mom Is a Character 3 with 0 keywords
+[2025-12-12T17:33:43.698Z] [INFO] Fetching keywords for: Green Tide (1007631)
+[2025-12-12T17:33:43.750Z] [SUCCESS] ✓ Updated Green Tide with 0 keywords
+[2025-12-12T17:33:43.850Z] [INFO] Fetching keywords for: Lucky and Zorba (49992)
+[2025-12-12T17:33:43.905Z] [SUCCESS] ✓ Updated Lucky and Zorba with 0 keywords
+[2025-12-12T17:33:44.006Z] [INFO] Fetching keywords for: A Sun (622951)
+[2025-12-12T17:33:44.056Z] [SUCCESS] ✓ Updated A Sun with 0 keywords
+[2025-12-12T17:33:44.156Z] [INFO] Fetching keywords for: Gone Mom: The Disappearance of Jennifer Dulos (831223)
+[2025-12-12T17:33:44.210Z] [SUCCESS] ✓ Updated Gone Mom: The Disappearance of Jennifer Dulos with 0 keywords
+[2025-12-12T17:33:44.310Z] [INFO] Fetching keywords for: The Patience Stone (128158)
+[2025-12-12T17:33:44.378Z] [SUCCESS] ✓ Updated The Patience Stone with 0 keywords
+[2025-12-12T17:33:44.478Z] [INFO] Fetching keywords for: Full Time (833417)
+[2025-12-12T17:33:44.526Z] [SUCCESS] ✓ Updated Full Time with 0 keywords
+[2025-12-12T17:33:44.627Z] [INFO] Fetching keywords for: To Rob a Thief (38140)
+[2025-12-12T17:33:44.690Z] [SUCCESS] ✓ Updated To Rob a Thief with 0 keywords
+[2025-12-12T17:33:44.791Z] [INFO] Fetching keywords for: Astro Kid (580600)
+[2025-12-12T17:33:44.849Z] [SUCCESS] ✓ Updated Astro Kid with 0 keywords
+[2025-12-12T17:33:44.949Z] [INFO] Fetching keywords for: Two Worlds One Wish (1522377)
+[2025-12-12T17:33:44.996Z] [SUCCESS] ✓ Updated Two Worlds One Wish with 0 keywords
+[2025-12-12T17:33:45.097Z] [INFO] Fetching keywords for: Remember (302528)
+[2025-12-12T17:33:45.155Z] [SUCCESS] ✓ Updated Remember with 0 keywords
+[2025-12-12T17:33:45.255Z] [INFO] Fetching keywords for: Kidnapping, Caucasian Style (20878)
+[2025-12-12T17:33:45.527Z] [SUCCESS] ✓ Updated Kidnapping, Caucasian Style with 0 keywords
+[2025-12-12T17:33:45.628Z] [INFO] Fetching keywords for: The Five(ish) Doctors Reboot (246202)
+[2025-12-12T17:33:45.692Z] [SUCCESS] ✓ Updated The Five(ish) Doctors Reboot with 0 keywords
+[2025-12-12T17:33:45.791Z] [INFO] Fetching keywords for: Let Go (1214484)
+[2025-12-12T17:33:45.939Z] [SUCCESS] ✓ Updated Let Go with 0 keywords
+[2025-12-12T17:33:46.040Z] [INFO] Fetching keywords for: The Mattei Affair (62382)
+[2025-12-12T17:33:46.626Z] [SUCCESS] ✓ Updated The Mattei Affair with 0 keywords
+[2025-12-12T17:33:46.727Z] [INFO] Fetching keywords for: Hilda and the Mountain King (789708)
+[2025-12-12T17:33:46.790Z] [SUCCESS] ✓ Updated Hilda and the Mountain King with 0 keywords
+[2025-12-12T17:33:46.890Z] [INFO] Fetching keywords for: Succubus (1130276)
+[2025-12-12T17:33:46.961Z] [SUCCESS] ✓ Updated Succubus with 0 keywords
+[2025-12-12T17:33:47.062Z] [INFO] Fetching keywords for: Racionais MC's: From the Streets of São Paulo (1033303)
+[2025-12-12T17:33:47.112Z] [SUCCESS] ✓ Updated Racionais MC's: From the Streets of São Paulo with 0 keywords
+[2025-12-12T17:33:47.213Z] [INFO] Fetching keywords for: Crossword Mysteries: Abracadaver (639289)
+[2025-12-12T17:33:47.279Z] [SUCCESS] ✓ Updated Crossword Mysteries: Abracadaver with 0 keywords
+[2025-12-12T17:33:47.379Z] [INFO] Fetching keywords for: Confession of Murder (140212)
+[2025-12-12T17:33:47.441Z] [SUCCESS] ✓ Updated Confession of Murder with 0 keywords
+[2025-12-12T17:33:47.542Z] [INFO] Fetching keywords for: Me gusta, pero me asusta (476265)
+[2025-12-12T17:33:47.612Z] [SUCCESS] ✓ Updated Me gusta, pero me asusta with 0 keywords
+[2025-12-12T17:33:47.712Z] [INFO] Fetching keywords for: Hotel Coppelia (676150)
+[2025-12-12T17:33:47.771Z] [SUCCESS] ✓ Updated Hotel Coppelia with 0 keywords
+[2025-12-12T17:33:47.872Z] [INFO] Fetching keywords for: ¿Y Cómo Es Él? (671318)
+[2025-12-12T17:33:47.926Z] [SUCCESS] ✓ Updated ¿Y Cómo Es Él? with 0 keywords
+[2025-12-12T17:33:48.026Z] [INFO] Fetching keywords for: Sweet Family (587429)
+[2025-12-12T17:33:48.077Z] [SUCCESS] ✓ Updated Sweet Family with 0 keywords
+[2025-12-12T17:33:48.177Z] [INFO] Fetching keywords for: Return (839321)
+[2025-12-12T17:33:48.268Z] [SUCCESS] ✓ Updated Return with 0 keywords
+[2025-12-12T17:33:48.369Z] [INFO] Fetching keywords for: 18 Presents (630220)
+[2025-12-12T17:33:48.422Z] [SUCCESS] ✓ Updated 18 Presents with 0 keywords
+[2025-12-12T17:33:48.523Z] [INFO] Fetching keywords for: Sanky Panky 3 (407651)
+[2025-12-12T17:33:48.593Z] [SUCCESS] ✓ Updated Sanky Panky 3 with 0 keywords
+[2025-12-12T17:33:48.693Z] [INFO] Fetching keywords for: El estudiante (48502)
+[2025-12-12T17:33:48.756Z] [SUCCESS] ✓ Updated El estudiante with 0 keywords
+[2025-12-12T17:33:48.856Z] [INFO] Fetching keywords for: Those Happy Days (19100)
+[2025-12-12T17:33:48.907Z] [SUCCESS] ✓ Updated Those Happy Days with 0 keywords
+[2025-12-12T17:33:49.008Z] [INFO] 
+================================================================================
+[2025-12-12T17:33:49.008Z] [INFO] SUMMARY
+[2025-12-12T17:33:49.008Z] [INFO] ================================================================================
+
+[2025-12-12T17:33:49.008Z] [INFO] Fixed: 100
+[2025-12-12T17:33:49.008Z] [INFO] Failed: 0
+[2025-12-12T17:33:51.151Z] [INFO] Finding movies without keywords...
+[2025-12-12T17:33:51.495Z] [INFO] Found 72 movies without keywords
+[2025-12-12T17:33:51.495Z] [INFO] Fetching keywords for: El mesero (678580)
+[2025-12-12T17:33:51.593Z] [SUCCESS] ✓ Updated El mesero with 0 keywords
+[2025-12-12T17:33:51.694Z] [INFO] Fetching keywords for: 6 Days to Air: The Making of South Park (76360)
+[2025-12-12T17:33:51.742Z] [SUCCESS] ✓ Updated 6 Days to Air: The Making of South Park with 0 keywords
+[2025-12-12T17:33:51.843Z] [INFO] Fetching keywords for: The New Land (42488)
+[2025-12-12T17:33:51.907Z] [SUCCESS] ✓ Updated The New Land with 0 keywords
+[2025-12-12T17:33:52.008Z] [INFO] Fetching keywords for: My Little Pony: Equestria Girls - Spring Breakdown (592316)
+[2025-12-12T17:33:52.087Z] [SUCCESS] ✓ Updated My Little Pony: Equestria Girls - Spring Breakdown with 0 keywords
+[2025-12-12T17:33:52.188Z] [INFO] Fetching keywords for: Gabriel's Rapture: Part II (953553)
+[2025-12-12T17:33:52.242Z] [SUCCESS] ✓ Updated Gabriel's Rapture: Part II with 0 keywords
+[2025-12-12T17:33:52.343Z] [INFO] Fetching keywords for: The Great Buddha+ (475149)
+[2025-12-12T17:33:52.415Z] [SUCCESS] ✓ Updated The Great Buddha+ with 0 keywords
+[2025-12-12T17:33:52.515Z] [INFO] Fetching keywords for: Trap House (628847)
+[2025-12-12T17:33:52.570Z] [SUCCESS] ✓ Updated Trap House with 0 keywords
+[2025-12-12T17:33:52.671Z] [INFO] Fetching keywords for: The Monkey King (832502)
+[2025-12-12T17:33:52.726Z] [SUCCESS] ✓ Updated The Monkey King with 0 keywords
+[2025-12-12T17:33:52.827Z] [INFO] Fetching keywords for: The Cow (43984)
+[2025-12-12T17:33:52.898Z] [SUCCESS] ✓ Updated The Cow with 0 keywords
+[2025-12-12T17:33:52.998Z] [INFO] Fetching keywords for: Virus: 32 (893370)
+[2025-12-12T17:33:53.067Z] [SUCCESS] ✓ Updated Virus: 32 with 0 keywords
+[2025-12-12T17:33:53.167Z] [INFO] Fetching keywords for: Perras (114168)
+[2025-12-12T17:33:53.219Z] [SUCCESS] ✓ Updated Perras with 0 keywords
+[2025-12-12T17:33:53.320Z] [INFO] Fetching keywords for: Ostap Bender: The Final Hustle (861126)
+[2025-12-12T17:33:53.379Z] [SUCCESS] ✓ Updated Ostap Bender: The Final Hustle with 0 keywords
+[2025-12-12T17:33:53.480Z] [INFO] Fetching keywords for: Decalogue IX (118669)
+[2025-12-12T17:33:53.547Z] [SUCCESS] ✓ Updated Decalogue IX with 0 keywords
+[2025-12-12T17:33:53.647Z] [INFO] Fetching keywords for: Race Against Pandemic (716419)
+[2025-12-12T17:33:53.708Z] [SUCCESS] ✓ Updated Race Against Pandemic with 0 keywords
+[2025-12-12T17:33:53.809Z] [INFO] Fetching keywords for: Esterno Notte (part II) (977566)
+[2025-12-12T17:33:53.861Z] [SUCCESS] ✓ Updated Esterno Notte (part II) with 0 keywords
+[2025-12-12T17:33:53.962Z] [INFO] Fetching keywords for: The Fairly OddParents: Channel Chasers (375273)
+[2025-12-12T17:33:54.020Z] [SUCCESS] ✓ Updated The Fairly OddParents: Channel Chasers with 0 keywords
+[2025-12-12T17:33:54.119Z] [INFO] Fetching keywords for: Our Lovers (381707)
+[2025-12-12T17:33:54.188Z] [SUCCESS] ✓ Updated Our Lovers with 0 keywords
+[2025-12-12T17:33:54.288Z] [INFO] Fetching keywords for: 3 Idiotas (346034)
+[2025-12-12T17:33:54.348Z] [SUCCESS] ✓ Updated 3 Idiotas with 0 keywords
+[2025-12-12T17:33:54.448Z] [INFO] Fetching keywords for: Winx Club: The Secret of the Lost Kingdom (80797)
+[2025-12-12T17:33:54.502Z] [SUCCESS] ✓ Updated Winx Club: The Secret of the Lost Kingdom with 0 keywords
+[2025-12-12T17:33:54.602Z] [INFO] Fetching keywords for: Angry Annie (950849)
+[2025-12-12T17:33:54.669Z] [SUCCESS] ✓ Updated Angry Annie with 0 keywords
+[2025-12-12T17:33:54.769Z] [INFO] Fetching keywords for: La Maladroite (641900)
+[2025-12-12T17:33:54.819Z] [SUCCESS] ✓ Updated La Maladroite with 0 keywords
+[2025-12-12T17:33:54.919Z] [INFO] Fetching keywords for: Rab Ne Bana Di Jodi (14072)
+[2025-12-12T17:33:54.992Z] [SUCCESS] ✓ Updated Rab Ne Bana Di Jodi with 0 keywords
+[2025-12-12T17:33:55.093Z] [INFO] Fetching keywords for: Poverty and Nobility (58007)
+[2025-12-12T17:33:55.152Z] [SUCCESS] ✓ Updated Poverty and Nobility with 0 keywords
+[2025-12-12T17:33:55.253Z] [INFO] Fetching keywords for: I Believe (499338)
+[2025-12-12T17:33:55.315Z] [SUCCESS] ✓ Updated I Believe with 0 keywords
+[2025-12-12T17:33:55.416Z] [INFO] Fetching keywords for: While the Wolf's Away (388284)
+[2025-12-12T17:33:55.473Z] [SUCCESS] ✓ Updated While the Wolf's Away with 0 keywords
+[2025-12-12T17:33:55.574Z] [INFO] Fetching keywords for: A Difficult Life (56343)
+[2025-12-12T17:33:55.693Z] [SUCCESS] ✓ Updated A Difficult Life with 0 keywords
+[2025-12-12T17:33:55.793Z] [INFO] Fetching keywords for: La Civil (833393)
+[2025-12-12T17:33:55.852Z] [SUCCESS] ✓ Updated La Civil with 0 keywords
+[2025-12-12T17:33:55.952Z] [INFO] Fetching keywords for: So Long, My Son (493899)
+[2025-12-12T17:33:56.011Z] [SUCCESS] ✓ Updated So Long, My Son with 0 keywords
+[2025-12-12T17:33:56.111Z] [INFO] Fetching keywords for: Out of the Clear Blue Sky (654299)
+[2025-12-12T17:33:56.163Z] [SUCCESS] ✓ Updated Out of the Clear Blue Sky with 0 keywords
+[2025-12-12T17:33:56.264Z] [INFO] Fetching keywords for: Up to His Ears (61765)
+[2025-12-12T17:33:56.329Z] [SUCCESS] ✓ Updated Up to His Ears with 0 keywords
+[2025-12-12T17:33:56.429Z] [INFO] Fetching keywords for: What a Father! (937337)
+[2025-12-12T17:33:56.494Z] [SUCCESS] ✓ Updated What a Father! with 0 keywords
+[2025-12-12T17:33:56.595Z] [INFO] Fetching keywords for: Shut In (629015)
+[2025-12-12T17:33:56.660Z] [SUCCESS] ✓ Updated Shut In with 0 keywords
+[2025-12-12T17:33:56.759Z] [INFO] Fetching keywords for: Don't Air Your Dirty Laundry In Public (638983)
+[2025-12-12T17:33:56.812Z] [SUCCESS] ✓ Updated Don't Air Your Dirty Laundry In Public with 0 keywords
+[2025-12-12T17:33:56.912Z] [INFO] Fetching keywords for: The Chaos Class Is on Vacation (31402)
+[2025-12-12T17:33:56.962Z] [SUCCESS] ✓ Updated The Chaos Class Is on Vacation with 0 keywords
+[2025-12-12T17:33:57.062Z] [INFO] Fetching keywords for: Vabank (22257)
+[2025-12-12T17:33:57.152Z] [SUCCESS] ✓ Updated Vabank with 6 keywords
+[2025-12-12T17:33:57.252Z] [INFO] Fetching keywords for: The Legend of the Black Charro (494656)
+[2025-12-12T17:33:57.306Z] [SUCCESS] ✓ Updated The Legend of the Black Charro with 0 keywords
+[2025-12-12T17:33:57.406Z] [INFO] Fetching keywords for: Kill Shot (1134055)
+[2025-12-12T17:33:57.461Z] [SUCCESS] ✓ Updated Kill Shot with 0 keywords
+[2025-12-12T17:33:57.561Z] [INFO] Fetching keywords for: The Best Years (606566)
+[2025-12-12T17:33:57.613Z] [SUCCESS] ✓ Updated The Best Years with 0 keywords
+[2025-12-12T17:33:57.713Z] [INFO] Fetching keywords for: Avicii: True Stories (479626)
+[2025-12-12T17:33:57.775Z] [SUCCESS] ✓ Updated Avicii: True Stories with 0 keywords
+[2025-12-12T17:33:57.876Z] [INFO] Fetching keywords for: Athena (852046)
+[2025-12-12T17:33:57.927Z] [SUCCESS] ✓ Updated Athena with 0 keywords
+[2025-12-12T17:33:58.027Z] [INFO] Fetching keywords for: Hi Nanna (1068452)
+[2025-12-12T17:33:58.100Z] [SUCCESS] ✓ Updated Hi Nanna with 0 keywords
+[2025-12-12T17:33:58.201Z] [INFO] Fetching keywords for: El Apocalipsis de san Juan (1262299)
+[2025-12-12T17:33:58.289Z] [SUCCESS] ✓ Updated El Apocalipsis de san Juan with 1 keywords
+[2025-12-12T17:33:58.390Z] [INFO] Fetching keywords for: Teen Bride (530284)
+[2025-12-12T17:33:58.445Z] [SUCCESS] ✓ Updated Teen Bride with 0 keywords
+[2025-12-12T17:33:58.544Z] [INFO] Fetching keywords for: Cars of the Revolution (52668)
+[2025-12-12T17:33:58.618Z] [SUCCESS] ✓ Updated Cars of the Revolution with 0 keywords
+[2025-12-12T17:33:58.718Z] [INFO] Fetching keywords for: Like Crazy (380225)
+[2025-12-12T17:33:58.777Z] [SUCCESS] ✓ Updated Like Crazy with 0 keywords
+[2025-12-12T17:33:58.878Z] [INFO] Fetching keywords for: Fantozzi: White Collar Blues (25606)
+[2025-12-12T17:33:58.939Z] [SUCCESS] ✓ Updated Fantozzi: White Collar Blues with 0 keywords
+[2025-12-12T17:33:59.039Z] [INFO] Fetching keywords for: Rock My Heart (432870)
+[2025-12-12T17:33:59.203Z] [SUCCESS] ✓ Updated Rock My Heart with 0 keywords
+[2025-12-12T17:33:59.304Z] [INFO] Fetching keywords for: Door Lock (563103)
+[2025-12-12T17:33:59.361Z] [SUCCESS] ✓ Updated Door Lock with 0 keywords
+[2025-12-12T17:33:59.461Z] [INFO] Fetching keywords for: The Beasts (848685)
+[2025-12-12T17:33:59.512Z] [SUCCESS] ✓ Updated The Beasts with 0 keywords
+[2025-12-12T17:33:59.611Z] [INFO] Fetching keywords for: Evil Eye (943221)
+[2025-12-12T17:33:59.668Z] [SUCCESS] ✓ Updated Evil Eye with 0 keywords
+[2025-12-12T17:33:59.768Z] [INFO] Fetching keywords for: Me Against You: Mr. S's Vendetta (640344)
+[2025-12-12T17:33:59.824Z] [SUCCESS] ✓ Updated Me Against You: Mr. S's Vendetta with 0 keywords
+[2025-12-12T17:33:59.924Z] [INFO] Fetching keywords for: A Perfect Man (322125)
+[2025-12-12T17:33:59.985Z] [SUCCESS] ✓ Updated A Perfect Man with 0 keywords
+[2025-12-12T17:34:00.086Z] [INFO] Fetching keywords for: The Kissing Booth 2 (583083)
+[2025-12-12T17:34:00.147Z] [SUCCESS] ✓ Updated The Kissing Booth 2 with 0 keywords
+[2025-12-12T17:34:00.247Z] [INFO] Fetching keywords for: The Wise Guys (74767)
+[2025-12-12T17:34:00.309Z] [SUCCESS] ✓ Updated The Wise Guys with 0 keywords
+[2025-12-12T17:34:00.409Z] [INFO] Fetching keywords for: Special Delivery (606403)
+[2025-12-12T17:34:00.476Z] [SUCCESS] ✓ Updated Special Delivery with 0 keywords
+[2025-12-12T17:34:00.575Z] [INFO] Fetching keywords for: The Insult (468284)
+[2025-12-12T17:34:00.644Z] [SUCCESS] ✓ Updated The Insult with 0 keywords
+[2025-12-12T17:34:00.744Z] [INFO] Fetching keywords for: Cuando sea joven (772071)
+[2025-12-12T17:34:00.799Z] [SUCCESS] ✓ Updated Cuando sea joven with 0 keywords
+[2025-12-12T17:34:00.899Z] [INFO] Fetching keywords for: Wicked (834143)
+[2025-12-12T17:34:00.959Z] [SUCCESS] ✓ Updated Wicked with 0 keywords
+[2025-12-12T17:34:01.059Z] [INFO] Fetching keywords for: ¿Quieres ser mi hijo? (1181678)
+[2025-12-12T17:34:01.118Z] [SUCCESS] ✓ Updated ¿Quieres ser mi hijo? with 0 keywords
+[2025-12-12T17:34:01.219Z] [INFO] Fetching keywords for: Divine Intervention (1160007)
+[2025-12-12T17:34:01.283Z] [SUCCESS] ✓ Updated Divine Intervention with 0 keywords
+[2025-12-12T17:34:01.383Z] [INFO] Fetching keywords for: Ferro (759024)
+[2025-12-12T17:34:01.452Z] [SUCCESS] ✓ Updated Ferro with 0 keywords
+[2025-12-12T17:34:01.552Z] [INFO] Fetching keywords for: The Roommate (1229913)
+[2025-12-12T17:34:01.617Z] [SUCCESS] ✓ Updated The Roommate with 0 keywords
+[2025-12-12T17:34:01.717Z] [INFO] Fetching keywords for: The Chaos Class (83651)
+[2025-12-12T17:34:01.794Z] [SUCCESS] ✓ Updated The Chaos Class with 0 keywords
+[2025-12-12T17:34:01.894Z] [INFO] Fetching keywords for: Fala Sério, Mãe! (487491)
+[2025-12-12T17:34:01.957Z] [SUCCESS] ✓ Updated Fala Sério, Mãe! with 0 keywords
+[2025-12-12T17:34:02.058Z] [INFO] Fetching keywords for: Instructions for Su (676842)
+[2025-12-12T17:34:02.111Z] [SUCCESS] ✓ Updated Instructions for Su with 0 keywords
+[2025-12-12T17:34:02.212Z] [INFO] Fetching keywords for: Heroic Losers (596054)
+[2025-12-12T17:34:02.291Z] [SUCCESS] ✓ Updated Heroic Losers with 0 keywords
+[2025-12-12T17:34:02.391Z] [INFO] Fetching keywords for: The High Note (606679)
+[2025-12-12T17:34:02.463Z] [SUCCESS] ✓ Updated The High Note with 0 keywords
+[2025-12-12T17:34:02.564Z] [INFO] Fetching keywords for: The Return (628866)
+[2025-12-12T17:34:02.622Z] [SUCCESS] ✓ Updated The Return with 0 keywords
+[2025-12-12T17:34:02.722Z] [INFO] Fetching keywords for: Soy Luna: Live Concert (492644)
+[2025-12-12T17:34:02.774Z] [SUCCESS] ✓ Updated Soy Luna: Live Concert with 0 keywords
+[2025-12-12T17:34:02.874Z] [INFO] Fetching keywords for: A (1011816)
+[2025-12-12T17:34:02.929Z] [SUCCESS] ✓ Updated A with 0 keywords
+[2025-12-12T17:34:03.028Z] [INFO] Fetching keywords for: Return (1188150)
+[2025-12-12T17:34:03.091Z] [SUCCESS] ✓ Updated Return with 0 keywords
+[2025-12-12T17:34:03.191Z] [INFO] Fetching keywords for: Take Care of Maya (1114901)
+[2025-12-12T17:34:03.247Z] [SUCCESS] ✓ Updated Take Care of Maya with 0 keywords
+[2025-12-12T17:34:03.348Z] [INFO] 
+================================================================================
+[2025-12-12T17:34:03.348Z] [INFO] SUMMARY
+[2025-12-12T17:34:03.348Z] [INFO] ================================================================================
+
+[2025-12-12T17:34:03.348Z] [INFO] Fixed: 72
+[2025-12-12T17:34:03.348Z] [INFO] Failed: 0

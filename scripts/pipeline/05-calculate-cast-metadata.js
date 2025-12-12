@@ -1,5 +1,3 @@
-// scripts/pipeline/05-calculate-cast-metadata.js
-
 const Logger = require('../utils/logger');
 const { supabase, updateMovie } = require('../utils/supabase');
 
@@ -12,7 +10,7 @@ async function calculateCastMetadata(movie) {
   try {
     logger.debug(`Calculating cast metadata for: ${movie.title} (id: ${movie.id})`);
 
-    // Get all cast members for this movie
+    // Get all cast members - FIX: Use 'job' instead of 'department'
     const { data: castMembers, error: castError } = await supabase
       .from('movie_people')
       .select(`
@@ -23,7 +21,7 @@ async function calculateCastMetadata(movie) {
         )
       `)
       .eq('movie_id', movie.id)
-      .eq('department', 'Acting')
+      .or('job.eq.Acting,job.eq.Actor')  // ← FIX: Changed from department
       .order('billing_order', { ascending: true });
 
     if (castError) {
@@ -32,6 +30,17 @@ async function calculateCastMetadata(movie) {
 
     if (!castMembers || castMembers.length === 0) {
       logger.warn(`No cast found for: ${movie.title}`);
+      
+      // ← FIX: STILL UPDATE THE MOVIE WITH 0 VALUES
+      await updateMovie(movie.id, {
+        avg_cast_popularity: 0,
+        max_cast_popularity: 0,
+        min_cast_popularity: 0,
+        top3_cast_avg: 0,
+        cast_count: 0,
+        updated_at: new Date().toISOString()
+      });
+      
       return { success: true, cast_count: 0 };
     }
 
@@ -42,6 +51,17 @@ async function calculateCastMetadata(movie) {
 
     if (popularities.length === 0) {
       logger.warn(`No popularity data for cast of: ${movie.title}`);
+      
+      // ← FIX: STILL UPDATE WITH COUNTS
+      await updateMovie(movie.id, {
+        avg_cast_popularity: 0,
+        max_cast_popularity: 0,
+        min_cast_popularity: 0,
+        top3_cast_avg: 0,
+        cast_count: castMembers.length,
+        updated_at: new Date().toISOString()
+      });
+      
       return { success: true, cast_count: castMembers.length };
     }
 
@@ -50,7 +70,7 @@ async function calculateCastMetadata(movie) {
     const max_cast_popularity = Math.max(...popularities);
     const min_cast_popularity = Math.min(...popularities);
     
-    // Top 3 cast average (for star power calculation)
+    // Top 3 cast average
     const top3 = popularities.slice(0, Math.min(3, popularities.length));
     const top3_cast_avg = top3.reduce((sum, p) => sum + p, 0) / top3.length;
 
@@ -60,10 +80,12 @@ async function calculateCastMetadata(movie) {
       max_cast_popularity,
       min_cast_popularity,
       top3_cast_avg,
+      cast_count: castMembers.length,  // ← FIX: Always include count
       updated_at: new Date().toISOString()
     });
 
     logger.debug(`✓ Cast metadata calculated for: ${movie.title}`, {
+      count: castMembers.length,
       avg: avg_cast_popularity.toFixed(2),
       max: max_cast_popularity.toFixed(2),
       top3: top3_cast_avg.toFixed(2)
@@ -83,9 +105,6 @@ async function calculateCastMetadata(movie) {
   }
 }
 
-/**
- * Main execution
- */
 async function main() {
   const startTime = Date.now();
   
@@ -112,12 +131,12 @@ async function main() {
 
     logger.info(`Found ${movies.length} movies needing cast metadata calculation`);
 
-    // Process movies
     let successCount = 0;
     let failCount = 0;
     const stats = {
       total_cast: 0,
-      movies_with_stars: 0 // avg popularity > 10
+      movies_with_stars: 0,
+      movies_with_zero_cast: 0  // ← Track this
     };
 
     for (let i = 0; i < movies.length; i++) {
@@ -132,6 +151,11 @@ async function main() {
       if (result.success) {
         successCount++;
         stats.total_cast += result.cast_count || 0;
+        
+        if (result.cast_count === 0) {
+          stats.movies_with_zero_cast++;
+        }
+        
         if (result.avg_cast_popularity && result.avg_cast_popularity > 10) {
           stats.movies_with_stars++;
         }
@@ -140,7 +164,6 @@ async function main() {
       }
     }
 
-    // Summary
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
     
     logger.section('📊 SUMMARY');
@@ -151,6 +174,7 @@ async function main() {
     }
     logger.info(`Average cast per movie: ${(stats.total_cast / successCount).toFixed(1)}`);
     logger.info(`Movies with recognizable stars: ${stats.movies_with_stars} (${(stats.movies_with_stars / successCount * 100).toFixed(1)}%)`);
+    logger.info(`Movies with zero cast: ${stats.movies_with_zero_cast}`);
     logger.info(`Duration: ${duration}s`);
 
     logger.success('\n✅ Cast metadata calculation complete!');
@@ -162,7 +186,6 @@ async function main() {
   }
 }
 
-// Run if called directly
 if (require.main === module) {
   main();
 }

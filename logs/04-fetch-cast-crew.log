@@ -2037,3 +2037,356 @@
 [2025-12-12T01:33:45.161Z] [SUCCESS] 
 ✅ Cast/crew fetch complete!
 [2025-12-12T01:33:45.161Z] [INFO] Log file: /workspaces/feelflick-app/logs/04-fetch-cast-crew.log
+[2025-12-12T13:35:07.071Z] [INFO] 
+================================================================================
+[2025-12-12T13:35:07.072Z] [INFO] 🎬 FETCH CAST & CREW DATA
+[2025-12-12T13:35:07.072Z] [INFO] ================================================================================
+
+[2025-12-12T13:35:07.073Z] [INFO] Started at: 2025-12-12T13:35:07.073Z
+[2025-12-12T13:35:07.073Z] [ERROR] Fatal error: | {"error":"getMoviesNeedingUpdate is not a function","stack":"TypeError: getMoviesNeedingUpdate is not a function\n    at main (/workspaces/feelflick-app/scripts/pipeline/04-fetch-cast-crew.js:196:26)\n    at Object.<anonymous> (/workspaces/feelflick-app/scripts/pipeline/04-fetch-cast-crew.js:261:3)\n    at Module._compile (node:internal/modules/cjs/loader:1706:14)\n    at Object..js (node:internal/modules/cjs/loader:1839:10)\n    at Module.load (node:internal/modules/cjs/loader:1441:32)\n    at Function._load (node:internal/modules/cjs/loader:1263:12)\n    at TracingChannel.traceSync (node:diagnostics_channel:328:14)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)\n    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:171:5)\n    at node:internal/main/run_main_module:36:49"}
+[2025-12-12T13:50:14.922Z] [INFO] 
+[2025-12-12T13:50:14.922Z] [INFO] FETCH CAST & CREW DATA
+[2025-12-12T13:50:14.922Z] [INFO] ======================================================================
+[2025-12-12T13:50:14.922Z] [INFO] Started at: | "2025-12-12T13:50:14.922Z"
+[2025-12-12T13:50:15.953Z] [INFO] Found 39 movies needing cast/crew
+[2025-12-12T13:50:15.954Z] [INFO] 1/39 Fetching cast/crew for "Flow"
+[2025-12-12T13:50:15.954Z] [ERROR] Failed to process Flow: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:50:15.954Z] [INFO] 1/39 Fetching cast/crew for "Piper"
+[2025-12-12T13:50:15.955Z] [ERROR] Failed to process Piper: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:50:15.955Z] [INFO] 1/39 Fetching cast/crew for "If Anything Happens I Love You"
+[2025-12-12T13:50:15.955Z] [ERROR] Failed to process If Anything Happens I Love You: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:50:15.955Z] [INFO] 1/39 Fetching cast/crew for "Lifted"
+[2025-12-12T13:50:15.955Z] [ERROR] Failed to process Lifted: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:50:15.956Z] [INFO] 1/39 Fetching cast/crew for "Koyaanisqatsi"
+[2025-12-12T13:50:15.956Z] [ERROR] Failed to process Koyaanisqatsi: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:50:15.956Z] [INFO] 1/39 Fetching cast/crew for "Luxo Jr."
+[2025-12-12T13:50:15.956Z] [ERROR] Failed to process Luxo Jr.: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:50:15.956Z] [INFO] 1/39 Fetching cast/crew for "Knick Knack"
+[2025-12-12T13:50:15.956Z] [ERROR] Failed to process Knick Knack: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:50:15.957Z] [INFO] 1/39 Fetching cast/crew for "One Man Band"
+[2025-12-12T13:50:15.957Z] [ERROR] Failed to process One Man Band: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:50:15.957Z] [INFO] 1/39 Fetching cast/crew for "Return"
+[2025-12-12T13:50:15.957Z] [ERROR] Failed to process Return: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:50:15.957Z] [INFO] 1/39 Fetching cast/crew for "Return"
+[2025-12-12T13:50:15.957Z] [ERROR] Failed to process Return: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:50:15.958Z] [INFO] 1/39 Fetching cast/crew for "Lou"
+[2025-12-12T13:50:15.958Z] [ERROR] Failed to process Lou: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:50:15.958Z] [INFO] 1/39 Fetching cast/crew for "Kitbull"
+[2025-12-12T13:50:15.958Z] [ERROR] Failed to process Kitbull: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:50:15.958Z] [INFO] 1/39 Fetching cast/crew for "Far from the Tree"
+[2025-12-12T13:50:15.958Z] [ERROR] Failed to process Far from the Tree: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:50:15.959Z] [INFO] 1/39 Fetching cast/crew for "Maggie Simpson in "The Longest Daycare""
+[2025-12-12T13:50:15.959Z] [ERROR] Failed to process Maggie Simpson in "The Longest Daycare": | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:50:15.959Z] [INFO] 1/39 Fetching cast/crew for "Us Again"
+[2025-12-12T13:50:15.959Z] [ERROR] Failed to process Us Again: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:50:15.959Z] [INFO] 1/39 Fetching cast/crew for "Inception: The Cobol Job"
+[2025-12-12T13:50:15.960Z] [ERROR] Failed to process Inception: The Cobol Job: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:50:15.960Z] [INFO] 1/39 Fetching cast/crew for "Human"
+[2025-12-12T13:50:15.960Z] [ERROR] Failed to process Human: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:50:15.960Z] [INFO] 1/39 Fetching cast/crew for "9"
+[2025-12-12T13:50:15.960Z] [ERROR] Failed to process 9: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:50:15.961Z] [INFO] 1/39 Fetching cast/crew for "The Adventures of Prince Achmed"
+[2025-12-12T13:50:15.961Z] [ERROR] Failed to process The Adventures of Prince Achmed: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:50:15.961Z] [INFO] 1/39 Fetching cast/crew for "The Little Matchgirl"
+[2025-12-12T13:50:15.961Z] [ERROR] Failed to process The Little Matchgirl: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:50:15.961Z] [INFO] 1/39 Fetching cast/crew for "Father and Daughter"
+[2025-12-12T13:50:15.961Z] [ERROR] Failed to process Father and Daughter: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:50:15.962Z] [INFO] 1/39 Fetching cast/crew for "Blush"
+[2025-12-12T13:50:15.962Z] [ERROR] Failed to process Blush: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:50:15.962Z] [INFO] 1/39 Fetching cast/crew for "More"
+[2025-12-12T13:50:15.962Z] [ERROR] Failed to process More: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:50:15.962Z] [INFO] 1/39 Fetching cast/crew for "The Cat Concerto"
+[2025-12-12T13:50:15.962Z] [ERROR] Failed to process The Cat Concerto: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:50:15.963Z] [INFO] 1/39 Fetching cast/crew for "Dimensions of Dialogue"
+[2025-12-12T13:50:15.963Z] [ERROR] Failed to process Dimensions of Dialogue: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:50:15.963Z] [INFO] 1/39 Fetching cast/crew for "The Maker"
+[2025-12-12T13:50:15.963Z] [ERROR] Failed to process The Maker: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:50:15.963Z] [INFO] 1/39 Fetching cast/crew for "One Small Step"
+[2025-12-12T13:50:15.963Z] [ERROR] Failed to process One Small Step: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:50:15.964Z] [INFO] 1/39 Fetching cast/crew for "Squid Game: Fireplace"
+[2025-12-12T13:50:15.964Z] [ERROR] Failed to process Squid Game: Fireplace: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:50:15.964Z] [INFO] 1/39 Fetching cast/crew for "Darkness, Light, Darkness"
+[2025-12-12T13:50:15.964Z] [ERROR] Failed to process Darkness, Light, Darkness: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:50:15.964Z] [INFO] 1/39 Fetching cast/crew for "Balance"
+[2025-12-12T13:50:15.964Z] [ERROR] Failed to process Balance: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:50:15.965Z] [INFO] 1/39 Fetching cast/crew for "Little Girl"
+[2025-12-12T13:50:15.965Z] [ERROR] Failed to process Little Girl: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:50:15.965Z] [INFO] 1/39 Fetching cast/crew for "Take Care of Maya"
+[2025-12-12T13:50:15.965Z] [ERROR] Failed to process Take Care of Maya: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:50:15.965Z] [INFO] 1/39 Fetching cast/crew for "Bear Story"
+[2025-12-12T13:50:15.965Z] [ERROR] Failed to process Bear Story: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:50:15.966Z] [INFO] 1/39 Fetching cast/crew for "A"
+[2025-12-12T13:50:15.967Z] [ERROR] Failed to process A: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:50:15.967Z] [INFO] 1/39 Fetching cast/crew for "The Employment"
+[2025-12-12T13:50:15.967Z] [ERROR] Failed to process The Employment: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:50:15.967Z] [INFO] 1/39 Fetching cast/crew for "El Cementerio de los Elefantes"
+[2025-12-12T13:50:15.967Z] [ERROR] Failed to process El Cementerio de los Elefantes: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:50:15.967Z] [INFO] 1/39 Fetching cast/crew for "Talking Heads"
+[2025-12-12T13:50:15.968Z] [ERROR] Failed to process Talking Heads: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:50:15.968Z] [INFO] 1/39 Fetching cast/crew for "Puparia"
+[2025-12-12T13:50:15.968Z] [ERROR] Failed to process Puparia: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:50:15.968Z] [INFO] 1/39 Fetching cast/crew for "Ice Merchants"
+[2025-12-12T13:50:15.968Z] [ERROR] Failed to process Ice Merchants: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:50:15.968Z] [INFO] 
+[2025-12-12T13:50:15.969Z] [INFO] SUMMARY
+[2025-12-12T13:50:15.969Z] [INFO] ======================================================================
+[2025-12-12T13:50:15.969Z] [INFO] Movies processed:
+[2025-12-12T13:50:15.969Z] [INFO] Failed:
+[2025-12-12T13:50:15.969Z] [SUCCESS] Cast/crew fetch complete!
+[2025-12-12T13:52:03.847Z] [INFO] 
+[2025-12-12T13:52:03.848Z] [INFO] FETCH CAST & CREW DATA
+[2025-12-12T13:52:03.848Z] [INFO] ======================================================================
+[2025-12-12T13:52:03.848Z] [INFO] Started at: | "2025-12-12T13:52:03.848Z"
+[2025-12-12T13:52:04.509Z] [INFO] Found 38 movies needing cast/crew
+[2025-12-12T13:52:04.510Z] [INFO] 1/38 Fetching cast/crew for "Flow"
+[2025-12-12T13:52:04.510Z] [ERROR] Failed to process Flow: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:52:04.510Z] [INFO] 1/38 Fetching cast/crew for "Piper"
+[2025-12-12T13:52:04.511Z] [ERROR] Failed to process Piper: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:52:04.511Z] [INFO] 1/38 Fetching cast/crew for "If Anything Happens I Love You"
+[2025-12-12T13:52:04.511Z] [ERROR] Failed to process If Anything Happens I Love You: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:52:04.511Z] [INFO] 1/38 Fetching cast/crew for "Lifted"
+[2025-12-12T13:52:04.512Z] [ERROR] Failed to process Lifted: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:52:04.512Z] [INFO] 1/38 Fetching cast/crew for "Koyaanisqatsi"
+[2025-12-12T13:52:04.512Z] [ERROR] Failed to process Koyaanisqatsi: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:52:04.512Z] [INFO] 1/38 Fetching cast/crew for "Luxo Jr."
+[2025-12-12T13:52:04.512Z] [ERROR] Failed to process Luxo Jr.: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:52:04.512Z] [INFO] 1/38 Fetching cast/crew for "Knick Knack"
+[2025-12-12T13:52:04.513Z] [ERROR] Failed to process Knick Knack: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:52:04.513Z] [INFO] 1/38 Fetching cast/crew for "One Man Band"
+[2025-12-12T13:52:04.513Z] [ERROR] Failed to process One Man Band: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:52:04.513Z] [INFO] 1/38 Fetching cast/crew for "Return"
+[2025-12-12T13:52:04.513Z] [ERROR] Failed to process Return: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:52:04.514Z] [INFO] 1/38 Fetching cast/crew for "Return"
+[2025-12-12T13:52:04.514Z] [ERROR] Failed to process Return: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:52:04.514Z] [INFO] 1/38 Fetching cast/crew for "Lou"
+[2025-12-12T13:52:04.514Z] [ERROR] Failed to process Lou: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:52:04.514Z] [INFO] 1/38 Fetching cast/crew for "Kitbull"
+[2025-12-12T13:52:04.514Z] [ERROR] Failed to process Kitbull: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:52:04.515Z] [INFO] 1/38 Fetching cast/crew for "Far from the Tree"
+[2025-12-12T13:52:04.515Z] [ERROR] Failed to process Far from the Tree: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:52:04.515Z] [INFO] 1/38 Fetching cast/crew for "Maggie Simpson in "The Longest Daycare""
+[2025-12-12T13:52:04.515Z] [ERROR] Failed to process Maggie Simpson in "The Longest Daycare": | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:52:04.515Z] [INFO] 1/38 Fetching cast/crew for "Us Again"
+[2025-12-12T13:52:04.516Z] [ERROR] Failed to process Us Again: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:52:04.516Z] [INFO] 1/38 Fetching cast/crew for "Inception: The Cobol Job"
+[2025-12-12T13:52:04.516Z] [ERROR] Failed to process Inception: The Cobol Job: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:52:04.516Z] [INFO] 1/38 Fetching cast/crew for "Human"
+[2025-12-12T13:52:04.516Z] [ERROR] Failed to process Human: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:52:04.516Z] [INFO] 1/38 Fetching cast/crew for "9"
+[2025-12-12T13:52:04.517Z] [ERROR] Failed to process 9: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:52:04.517Z] [INFO] 1/38 Fetching cast/crew for "The Adventures of Prince Achmed"
+[2025-12-12T13:52:04.517Z] [ERROR] Failed to process The Adventures of Prince Achmed: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:52:04.517Z] [INFO] 1/38 Fetching cast/crew for "The Little Matchgirl"
+[2025-12-12T13:52:04.517Z] [ERROR] Failed to process The Little Matchgirl: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:52:04.517Z] [INFO] 1/38 Fetching cast/crew for "Father and Daughter"
+[2025-12-12T13:52:04.517Z] [ERROR] Failed to process Father and Daughter: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:52:04.517Z] [INFO] 1/38 Fetching cast/crew for "Blush"
+[2025-12-12T13:52:04.518Z] [ERROR] Failed to process Blush: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:52:04.518Z] [INFO] 1/38 Fetching cast/crew for "More"
+[2025-12-12T13:52:04.518Z] [ERROR] Failed to process More: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:52:04.518Z] [INFO] 1/38 Fetching cast/crew for "The Cat Concerto"
+[2025-12-12T13:52:04.518Z] [ERROR] Failed to process The Cat Concerto: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:52:04.518Z] [INFO] 1/38 Fetching cast/crew for "Dimensions of Dialogue"
+[2025-12-12T13:52:04.519Z] [ERROR] Failed to process Dimensions of Dialogue: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:52:04.519Z] [INFO] 1/38 Fetching cast/crew for "The Maker"
+[2025-12-12T13:52:04.519Z] [ERROR] Failed to process The Maker: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:52:04.519Z] [INFO] 1/38 Fetching cast/crew for "Darkness, Light, Darkness"
+[2025-12-12T13:52:04.519Z] [ERROR] Failed to process Darkness, Light, Darkness: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:52:04.519Z] [INFO] 1/38 Fetching cast/crew for "Squid Game: Fireplace"
+[2025-12-12T13:52:04.519Z] [ERROR] Failed to process Squid Game: Fireplace: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:52:04.520Z] [INFO] 1/38 Fetching cast/crew for "One Small Step"
+[2025-12-12T13:52:04.520Z] [ERROR] Failed to process One Small Step: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:52:04.521Z] [INFO] 1/38 Fetching cast/crew for "Balance"
+[2025-12-12T13:52:04.521Z] [ERROR] Failed to process Balance: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:52:04.521Z] [INFO] 1/38 Fetching cast/crew for "Take Care of Maya"
+[2025-12-12T13:52:04.521Z] [ERROR] Failed to process Take Care of Maya: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:52:04.522Z] [INFO] 1/38 Fetching cast/crew for "Little Girl"
+[2025-12-12T13:52:04.522Z] [ERROR] Failed to process Little Girl: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:52:04.522Z] [INFO] 1/38 Fetching cast/crew for "Bear Story"
+[2025-12-12T13:52:04.522Z] [ERROR] Failed to process Bear Story: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:52:04.522Z] [INFO] 1/38 Fetching cast/crew for "A"
+[2025-12-12T13:52:04.522Z] [ERROR] Failed to process A: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:52:04.523Z] [INFO] 1/38 Fetching cast/crew for "The Employment"
+[2025-12-12T13:52:04.523Z] [ERROR] Failed to process The Employment: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:52:04.523Z] [INFO] 1/38 Fetching cast/crew for "Talking Heads"
+[2025-12-12T13:52:04.523Z] [ERROR] Failed to process Talking Heads: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:52:04.523Z] [INFO] 1/38 Fetching cast/crew for "Puparia"
+[2025-12-12T13:52:04.523Z] [ERROR] Failed to process Puparia: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:52:04.523Z] [INFO] 1/38 Fetching cast/crew for "Ice Merchants"
+[2025-12-12T13:52:04.524Z] [ERROR] Failed to process Ice Merchants: | "tmdbClient.getMovieCredits is not a function"
+[2025-12-12T13:52:04.524Z] [INFO] 
+[2025-12-12T13:52:04.524Z] [INFO] SUMMARY
+[2025-12-12T13:52:04.524Z] [INFO] ======================================================================
+[2025-12-12T13:52:04.524Z] [INFO] Movies processed:
+[2025-12-12T13:52:04.524Z] [INFO] Failed:
+[2025-12-12T13:52:04.524Z] [SUCCESS] Cast/crew fetch complete!
+[2025-12-12T13:59:11.918Z] [INFO] 
+[2025-12-12T13:59:11.918Z] [INFO] FETCH CAST & CREW DATA
+[2025-12-12T13:59:11.918Z] [INFO] ======================================================================
+[2025-12-12T13:59:11.919Z] [INFO] Started at: | "2025-12-12T13:59:11.919Z"
+[2025-12-12T13:59:12.937Z] [INFO] Found 38 movies needing cast/crew
+[2025-12-12T13:59:12.937Z] [INFO] 1/38 Fetching cast/crew for "Flow"
+[2025-12-12T13:59:13.359Z] [SUCCESS] 1/38 Processed "Flow"
+[2025-12-12T13:59:13.608Z] [INFO] 2/38 Fetching cast/crew for "Piper"
+[2025-12-12T13:59:13.846Z] [SUCCESS] 2/38 Processed "Piper"
+[2025-12-12T13:59:14.096Z] [INFO] 3/38 Fetching cast/crew for "If Anything Happens I Love You"
+[2025-12-12T13:59:14.268Z] [SUCCESS] 3/38 Processed "If Anything Happens I Love You"
+[2025-12-12T13:59:14.519Z] [INFO] 4/38 Fetching cast/crew for "Lifted"
+[2025-12-12T13:59:14.723Z] [SUCCESS] 4/38 Processed "Lifted"
+[2025-12-12T13:59:14.974Z] [INFO] 5/38 Fetching cast/crew for "Koyaanisqatsi"
+[2025-12-12T13:59:15.139Z] [SUCCESS] 5/38 Processed "Koyaanisqatsi"
+[2025-12-12T13:59:15.390Z] [INFO] 6/38 Fetching cast/crew for "Luxo Jr."
+[2025-12-12T13:59:15.564Z] [SUCCESS] 6/38 Processed "Luxo Jr."
+[2025-12-12T13:59:15.814Z] [INFO] 7/38 Fetching cast/crew for "Knick Knack"
+[2025-12-12T13:59:15.951Z] [SUCCESS] 7/38 Processed "Knick Knack"
+[2025-12-12T13:59:16.202Z] [INFO] 8/38 Fetching cast/crew for "One Man Band"
+[2025-12-12T13:59:16.388Z] [SUCCESS] 8/38 Processed "One Man Band"
+[2025-12-12T13:59:16.637Z] [INFO] 9/38 Fetching cast/crew for "Return"
+[2025-12-12T13:59:16.797Z] [SUCCESS] 9/38 Processed "Return"
+[2025-12-12T13:59:17.048Z] [INFO] 10/38 Fetching cast/crew for "Return"
+[2025-12-12T13:59:17.174Z] [SUCCESS] 10/38 Processed "Return"
+[2025-12-12T13:59:17.423Z] [INFO] 11/38 Fetching cast/crew for "Lou"
+[2025-12-12T13:59:17.563Z] [SUCCESS] 11/38 Processed "Lou"
+[2025-12-12T13:59:17.813Z] [INFO] 12/38 Fetching cast/crew for "Kitbull"
+[2025-12-12T13:59:17.946Z] [SUCCESS] 12/38 Processed "Kitbull"
+[2025-12-12T13:59:18.196Z] [INFO] 13/38 Fetching cast/crew for "Far from the Tree"
+[2025-12-12T13:59:18.301Z] [SUCCESS] 13/38 Processed "Far from the Tree"
+[2025-12-12T13:59:18.551Z] [INFO] 14/38 Fetching cast/crew for "Maggie Simpson in "The Longest Daycare""
+[2025-12-12T13:59:18.654Z] [SUCCESS] 14/38 Processed "Maggie Simpson in "The Longest Daycare""
+[2025-12-12T13:59:18.904Z] [INFO] 15/38 Fetching cast/crew for "Us Again"
+[2025-12-12T13:59:19.026Z] [SUCCESS] 15/38 Processed "Us Again"
+[2025-12-12T13:59:19.277Z] [INFO] 16/38 Fetching cast/crew for "Inception: The Cobol Job"
+[2025-12-12T13:59:19.395Z] [SUCCESS] 16/38 Processed "Inception: The Cobol Job"
+[2025-12-12T13:59:19.645Z] [INFO] 17/38 Fetching cast/crew for "Human"
+[2025-12-12T13:59:19.793Z] [SUCCESS] 17/38 Processed "Human"
+[2025-12-12T13:59:20.044Z] [INFO] 18/38 Fetching cast/crew for "9"
+[2025-12-12T13:59:20.163Z] [SUCCESS] 18/38 Processed "9"
+[2025-12-12T13:59:20.413Z] [INFO] 19/38 Fetching cast/crew for "The Adventures of Prince Achmed"
+[2025-12-12T13:59:20.538Z] [SUCCESS] 19/38 Processed "The Adventures of Prince Achmed"
+[2025-12-12T13:59:20.787Z] [INFO] 20/38 Fetching cast/crew for "The Little Matchgirl"
+[2025-12-12T13:59:20.896Z] [SUCCESS] 20/38 Processed "The Little Matchgirl"
+[2025-12-12T13:59:21.147Z] [INFO] 21/38 Fetching cast/crew for "Father and Daughter"
+[2025-12-12T13:59:21.269Z] [SUCCESS] 21/38 Processed "Father and Daughter"
+[2025-12-12T13:59:21.520Z] [INFO] 22/38 Fetching cast/crew for "Blush"
+[2025-12-12T13:59:21.667Z] [SUCCESS] 22/38 Processed "Blush"
+[2025-12-12T13:59:21.918Z] [INFO] 23/38 Fetching cast/crew for "More"
+[2025-12-12T13:59:22.028Z] [SUCCESS] 23/38 Processed "More"
+[2025-12-12T13:59:22.279Z] [INFO] 24/38 Fetching cast/crew for "The Cat Concerto"
+[2025-12-12T13:59:22.393Z] [SUCCESS] 24/38 Processed "The Cat Concerto"
+[2025-12-12T13:59:22.643Z] [INFO] 25/38 Fetching cast/crew for "Dimensions of Dialogue"
+[2025-12-12T13:59:22.750Z] [SUCCESS] 25/38 Processed "Dimensions of Dialogue"
+[2025-12-12T13:59:23.000Z] [INFO] 26/38 Fetching cast/crew for "The Maker"
+[2025-12-12T13:59:23.105Z] [SUCCESS] 26/38 Processed "The Maker"
+[2025-12-12T13:59:23.355Z] [INFO] 27/38 Fetching cast/crew for "Darkness, Light, Darkness"
+[2025-12-12T13:59:23.470Z] [SUCCESS] 27/38 Processed "Darkness, Light, Darkness"
+[2025-12-12T13:59:23.721Z] [INFO] 28/38 Fetching cast/crew for "Squid Game: Fireplace"
+[2025-12-12T13:59:23.834Z] [SUCCESS] 28/38 Processed "Squid Game: Fireplace"
+[2025-12-12T13:59:24.084Z] [INFO] 29/38 Fetching cast/crew for "One Small Step"
+[2025-12-12T13:59:24.206Z] [SUCCESS] 29/38 Processed "One Small Step"
+[2025-12-12T13:59:24.457Z] [INFO] 30/38 Fetching cast/crew for "Balance"
+[2025-12-12T13:59:24.566Z] [SUCCESS] 30/38 Processed "Balance"
+[2025-12-12T13:59:24.815Z] [INFO] 31/38 Fetching cast/crew for "Take Care of Maya"
+[2025-12-12T13:59:24.919Z] [SUCCESS] 31/38 Processed "Take Care of Maya"
+[2025-12-12T13:59:25.170Z] [INFO] 32/38 Fetching cast/crew for "Little Girl"
+[2025-12-12T13:59:25.292Z] [SUCCESS] 32/38 Processed "Little Girl"
+[2025-12-12T13:59:25.541Z] [INFO] 33/38 Fetching cast/crew for "Bear Story"
+[2025-12-12T13:59:25.637Z] [SUCCESS] 33/38 Processed "Bear Story"
+[2025-12-12T13:59:25.887Z] [INFO] 34/38 Fetching cast/crew for "A"
+[2025-12-12T13:59:26.015Z] [SUCCESS] 34/38 Processed "A"
+[2025-12-12T13:59:26.266Z] [INFO] 35/38 Fetching cast/crew for "The Employment"
+[2025-12-12T13:59:26.405Z] [SUCCESS] 35/38 Processed "The Employment"
+[2025-12-12T13:59:26.656Z] [INFO] 36/38 Fetching cast/crew for "Talking Heads"
+[2025-12-12T13:59:26.766Z] [SUCCESS] 36/38 Processed "Talking Heads"
+[2025-12-12T13:59:27.016Z] [INFO] 37/38 Fetching cast/crew for "Puparia"
+[2025-12-12T13:59:27.126Z] [SUCCESS] 37/38 Processed "Puparia"
+[2025-12-12T13:59:27.376Z] [INFO] 38/38 Fetching cast/crew for "Ice Merchants"
+[2025-12-12T13:59:27.474Z] [SUCCESS] 38/38 Processed "Ice Merchants"
+[2025-12-12T13:59:27.724Z] [INFO] 
+[2025-12-12T13:59:27.724Z] [INFO] SUMMARY
+[2025-12-12T13:59:27.724Z] [INFO] ======================================================================
+[2025-12-12T13:59:27.724Z] [INFO] Movies processed:
+[2025-12-12T13:59:27.724Z] [INFO] Failed:
+[2025-12-12T13:59:27.725Z] [SUCCESS] Cast/crew fetch complete!
+[2025-12-12T14:02:36.974Z] [INFO] 
+[2025-12-12T14:02:36.975Z] [INFO] FETCH CAST & CREW DATA
+[2025-12-12T14:02:36.975Z] [INFO] ======================================================================
+[2025-12-12T14:02:36.975Z] [INFO] Started at: | "2025-12-12T14:02:36.975Z"
+[2025-12-12T14:02:37.116Z] [INFO] Found 0 movies needing cast/crew
+[2025-12-12T14:02:37.116Z] [INFO] 
+[2025-12-12T14:02:37.116Z] [INFO] SUMMARY
+[2025-12-12T14:02:37.116Z] [INFO] ======================================================================
+[2025-12-12T14:02:37.117Z] [INFO] Movies processed:
+[2025-12-12T14:02:37.117Z] [INFO] Failed:
+[2025-12-12T14:02:37.117Z] [SUCCESS] Cast/crew fetch complete!
+[2025-12-12T14:06:12.721Z] [INFO] 
+[2025-12-12T14:06:12.722Z] [INFO] FETCH CAST & CREW DATA
+[2025-12-12T14:06:12.722Z] [INFO] ======================================================================
+[2025-12-12T14:06:12.722Z] [INFO] Started at: | "2025-12-12T14:06:12.722Z"
+[2025-12-12T14:06:12.886Z] [INFO] Found 0 movies needing cast/crew
+[2025-12-12T14:06:12.887Z] [INFO] 
+[2025-12-12T14:06:12.887Z] [INFO] SUMMARY
+[2025-12-12T14:06:12.887Z] [INFO] ======================================================================
+[2025-12-12T14:06:12.887Z] [INFO] Movies processed:
+[2025-12-12T14:06:12.887Z] [INFO] Failed:
+[2025-12-12T14:06:12.888Z] [SUCCESS] Cast/crew fetch complete!
+[2025-12-12T14:18:47.019Z] [INFO] 
+[2025-12-12T14:18:47.019Z] [INFO] FETCH CAST & CREW DATA
+[2025-12-12T14:18:47.019Z] [INFO] ======================================================================
+[2025-12-12T14:18:47.019Z] [INFO] Started at: | "2025-12-12T14:18:47.019Z"
+[2025-12-12T14:18:47.172Z] [INFO] Found 3 movies needing cast/crew
+[2025-12-12T14:18:47.172Z] [INFO] 1/3 Fetching cast/crew for "The Flickering Flame"
+[2025-12-12T14:18:47.423Z] [SUCCESS] 1/3 Processed "The Flickering Flame"
+[2025-12-12T14:18:47.674Z] [INFO] 2/3 Fetching cast/crew for "48 NOIDED MOVIES"
+[2025-12-12T14:18:47.735Z] [SUCCESS] 2/3 Processed "48 NOIDED MOVIES"
+[2025-12-12T14:18:47.985Z] [INFO] 3/3 Fetching cast/crew for "Where The Fog Breathes"
+[2025-12-12T14:18:48.067Z] [SUCCESS] 3/3 Processed "Where The Fog Breathes"
+[2025-12-12T14:18:48.317Z] [INFO] 
+[2025-12-12T14:18:48.317Z] [INFO] SUMMARY
+[2025-12-12T14:18:48.317Z] [INFO] ======================================================================
+[2025-12-12T14:18:48.317Z] [INFO] Movies processed:
+[2025-12-12T14:18:48.317Z] [INFO] Failed:
+[2025-12-12T14:18:48.317Z] [SUCCESS] Cast/crew fetch complete!
+[2025-12-12T14:30:31.235Z] [INFO] 
+[2025-12-12T14:30:31.235Z] [INFO] FETCH CAST & CREW DATA
+[2025-12-12T14:30:31.235Z] [INFO] ======================================================================
+[2025-12-12T14:30:31.235Z] [INFO] Started at: | "2025-12-12T14:30:31.235Z"
+[2025-12-12T14:30:31.391Z] [INFO] Found 0 movies needing cast/crew
+[2025-12-12T14:30:31.391Z] [INFO] 
+[2025-12-12T14:30:31.391Z] [INFO] SUMMARY
+[2025-12-12T14:30:31.391Z] [INFO] ======================================================================
+[2025-12-12T14:30:31.391Z] [INFO] Movies processed:
+[2025-12-12T14:30:31.392Z] [INFO] Failed:
+[2025-12-12T14:30:31.392Z] [SUCCESS] Cast/crew fetch complete!
+[2025-12-12T14:43:45.529Z] [INFO] 
+[2025-12-12T14:43:45.529Z] [INFO] FETCH CAST & CREW DATA
+[2025-12-12T14:43:45.530Z] [INFO] ======================================================================
+[2025-12-12T14:43:45.530Z] [INFO] Started at: | "2025-12-12T14:43:45.530Z"
+[2025-12-12T14:43:45.676Z] [INFO] Found 0 movies needing cast/crew
+[2025-12-12T14:43:45.676Z] [INFO] 
+[2025-12-12T14:43:45.676Z] [INFO] SUMMARY
+[2025-12-12T14:43:45.677Z] [INFO] ======================================================================
+[2025-12-12T14:43:45.677Z] [INFO] Movies processed:
+[2025-12-12T14:43:45.677Z] [INFO] Failed:
+[2025-12-12T14:43:45.677Z] [SUCCESS] Cast/crew fetch complete!
+[2025-12-12T14:45:12.221Z] [INFO] 
+[2025-12-12T14:45:12.222Z] [INFO] FETCH CAST & CREW DATA
+[2025-12-12T14:45:12.222Z] [INFO] ======================================================================
+[2025-12-12T14:45:12.222Z] [INFO] Started at: | "2025-12-12T14:45:12.222Z"
+[2025-12-12T14:45:12.412Z] [INFO] Found 0 movies needing cast/crew
+[2025-12-12T14:45:12.412Z] [INFO] 
+[2025-12-12T14:45:12.412Z] [INFO] SUMMARY
+[2025-12-12T14:45:12.413Z] [INFO] ======================================================================
+[2025-12-12T14:45:12.413Z] [INFO] Movies processed:
+[2025-12-12T14:45:12.413Z] [INFO] Failed:
+[2025-12-12T14:45:12.413Z] [SUCCESS] Cast/crew fetch complete!
+[2025-12-12T15:31:46.567Z] [INFO] 
+[2025-12-12T15:31:46.567Z] [INFO] FETCH CAST & CREW DATA
+[2025-12-12T15:31:46.567Z] [INFO] ======================================================================
+[2025-12-12T15:31:46.567Z] [INFO] Started at: | "2025-12-12T15:31:46.567Z"
+[2025-12-12T15:31:46.753Z] [INFO] Found 0 movies needing cast/crew
+[2025-12-12T15:31:46.753Z] [INFO] 
+[2025-12-12T15:31:46.754Z] [INFO] SUMMARY
+[2025-12-12T15:31:46.754Z] [INFO] ======================================================================
+[2025-12-12T15:31:46.754Z] [INFO] Movies processed:
+[2025-12-12T15:31:46.754Z] [INFO] Failed:
+[2025-12-12T15:31:46.754Z] [SUCCESS] Cast/crew fetch complete!

@@ -7,3 +7,196 @@
 [2025-12-12T01:33:51.473Z] [INFO] Max movies per run: 100
 [2025-12-12T01:33:51.473Z] [INFO] OMDb quota remaining: 1000/1000
 [2025-12-12T01:33:51.607Z] [ERROR] Fatal error: | {"error":"Failed to fetch movies: \"failed to parse logic tree ((ratings_external.is.null,ratings_external.fetched_at.lt.2025-11-12T01:33:51.473Z))\" (line 1, column 46)","stack":"Error: Failed to fetch movies: \"failed to parse logic tree ((ratings_external.is.null,ratings_external.fetched_at.lt.2025-11-12T01:33:51.473Z))\" (line 1, column 46)\n    at main (/workspaces/feelflick-app/scripts/pipeline/06-fetch-external-ratings.js:122:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)"}
+[2025-12-12T13:35:12.307Z] [INFO] 
+================================================================================
+[2025-12-12T13:35:12.308Z] [INFO] ⭐ FETCH EXTERNAL RATINGS (OMDb)
+[2025-12-12T13:35:12.308Z] [INFO] ================================================================================
+
+[2025-12-12T13:35:12.308Z] [INFO] Started at: 2025-12-12T13:35:12.308Z
+[2025-12-12T13:35:12.308Z] [INFO] Max movies per run: 100
+[2025-12-12T13:35:12.308Z] [INFO] OMDb quota remaining: 1000/1000
+[2025-12-12T13:35:12.463Z] [ERROR] Fatal error: | {"error":"Failed to fetch movies: \"failed to parse logic tree ((ratings_external.is.null,ratings_external.fetched_at.lt.2025-11-12T13:35:12.308Z))\" (line 1, column 46)","stack":"Error: Failed to fetch movies: \"failed to parse logic tree ((ratings_external.is.null,ratings_external.fetched_at.lt.2025-11-12T13:35:12.308Z))\" (line 1, column 46)\n    at main (/workspaces/feelflick-app/scripts/pipeline/06-fetch-external-ratings.js:122:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)"}
+[2025-12-12T13:50:40.284Z] [INFO] 
+[2025-12-12T13:50:40.284Z] [INFO] FETCH EXTERNAL RATINGS (OMDb)
+[2025-12-12T13:50:40.285Z] [INFO] ======================================================================
+[2025-12-12T13:50:40.285Z] [INFO] Started at: | "2025-12-12T13:50:40.285Z"
+[2025-12-12T13:50:40.728Z] [INFO] Found 6 movies needing external ratings
+[2025-12-12T13:50:40.728Z] [INFO] 1/6 Fetching ratings for "Home Alone 2: Lost in New York"
+[2025-12-12T13:50:40.896Z] [SUCCESS] 1/6 Fetched ratings for "Home Alone 2: Lost in New York"
+[2025-12-12T13:50:41.896Z] [INFO] 2/6 Fetching ratings for "Quantum of Solace"
+[2025-12-12T13:50:41.997Z] [SUCCESS] 2/6 Fetched ratings for "Quantum of Solace"
+[2025-12-12T13:50:42.997Z] [INFO] 3/6 Fetching ratings for "The Expendables"
+[2025-12-12T13:50:43.157Z] [SUCCESS] 3/6 Fetched ratings for "The Expendables"
+[2025-12-12T13:50:44.157Z] [INFO] 4/6 Fetching ratings for "American Pie"
+[2025-12-12T13:50:44.254Z] [SUCCESS] 4/6 Fetched ratings for "American Pie"
+[2025-12-12T13:50:45.255Z] [INFO] 5/6 Fetching ratings for "Ice Age: Continental Drift"
+[2025-12-12T13:50:45.361Z] [SUCCESS] 5/6 Fetched ratings for "Ice Age: Continental Drift"
+[2025-12-12T13:50:46.362Z] [INFO] 6/6 Fetching ratings for "Ocean's Twelve"
+[2025-12-12T13:50:46.491Z] [SUCCESS] 6/6 Fetched ratings for "Ocean's Twelve"
+[2025-12-12T13:50:47.492Z] [INFO] 
+[2025-12-12T13:50:47.492Z] [INFO] SUMMARY
+[2025-12-12T13:50:47.492Z] [INFO] ======================================================================
+[2025-12-12T13:50:47.492Z] [INFO] Movies processed:
+[2025-12-12T13:50:47.492Z] [INFO] Failed:
+[2025-12-12T13:50:47.492Z] [SUCCESS] External ratings fetch complete!
+[2025-12-12T13:52:08.879Z] [INFO] 
+[2025-12-12T13:52:08.879Z] [INFO] FETCH EXTERNAL RATINGS (OMDb)
+[2025-12-12T13:52:08.880Z] [INFO] ======================================================================
+[2025-12-12T13:52:08.880Z] [INFO] Started at: | "2025-12-12T13:52:08.880Z"
+[2025-12-12T13:52:09.101Z] [INFO] Found 6 movies needing external ratings
+[2025-12-12T13:52:09.101Z] [INFO] 1/6 Fetching ratings for "Home Alone 2: Lost in New York"
+[2025-12-12T13:52:09.237Z] [SUCCESS] 1/6 Fetched ratings for "Home Alone 2: Lost in New York"
+[2025-12-12T13:52:10.239Z] [INFO] 2/6 Fetching ratings for "Quantum of Solace"
+[2025-12-12T13:52:10.330Z] [SUCCESS] 2/6 Fetched ratings for "Quantum of Solace"
+[2025-12-12T13:52:11.330Z] [INFO] 3/6 Fetching ratings for "The Expendables"
+[2025-12-12T13:52:11.428Z] [SUCCESS] 3/6 Fetched ratings for "The Expendables"
+[2025-12-12T13:52:12.428Z] [INFO] 4/6 Fetching ratings for "American Pie"
+[2025-12-12T13:52:12.529Z] [SUCCESS] 4/6 Fetched ratings for "American Pie"
+[2025-12-12T13:52:13.529Z] [INFO] 5/6 Fetching ratings for "Ice Age: Continental Drift"
+[2025-12-12T13:52:13.627Z] [SUCCESS] 5/6 Fetched ratings for "Ice Age: Continental Drift"
+[2025-12-12T13:52:14.627Z] [INFO] 6/6 Fetching ratings for "Ocean's Twelve"
+[2025-12-12T13:52:15.281Z] [SUCCESS] 6/6 Fetched ratings for "Ocean's Twelve"
+[2025-12-12T13:52:16.282Z] [INFO] 
+[2025-12-12T13:52:16.282Z] [INFO] SUMMARY
+[2025-12-12T13:52:16.282Z] [INFO] ======================================================================
+[2025-12-12T13:52:16.282Z] [INFO] Movies processed:
+[2025-12-12T13:52:16.283Z] [INFO] Failed:
+[2025-12-12T13:52:16.283Z] [SUCCESS] External ratings fetch complete!
+[2025-12-12T14:06:17.421Z] [INFO] 
+[2025-12-12T14:06:17.421Z] [INFO] FETCH EXTERNAL RATINGS (OMDb)
+[2025-12-12T14:06:17.421Z] [INFO] ======================================================================
+[2025-12-12T14:06:17.421Z] [INFO] Started at: | "2025-12-12T14:06:17.421Z"
+[2025-12-12T14:06:17.701Z] [INFO] Found 6 movies needing external ratings
+[2025-12-12T14:06:17.702Z] [INFO] 1/6 Fetching ratings for "Home Alone 2: Lost in New York"
+[2025-12-12T14:06:17.830Z] [SUCCESS] 1/6 Fetched ratings for "Home Alone 2: Lost in New York"
+[2025-12-12T14:06:18.831Z] [INFO] 2/6 Fetching ratings for "Quantum of Solace"
+[2025-12-12T14:06:18.928Z] [SUCCESS] 2/6 Fetched ratings for "Quantum of Solace"
+[2025-12-12T14:06:19.929Z] [INFO] 3/6 Fetching ratings for "The Expendables"
+[2025-12-12T14:06:20.020Z] [SUCCESS] 3/6 Fetched ratings for "The Expendables"
+[2025-12-12T14:06:21.020Z] [INFO] 4/6 Fetching ratings for "American Pie"
+[2025-12-12T14:06:21.111Z] [SUCCESS] 4/6 Fetched ratings for "American Pie"
+[2025-12-12T14:06:22.112Z] [INFO] 5/6 Fetching ratings for "Ice Age: Continental Drift"
+[2025-12-12T14:06:22.414Z] [SUCCESS] 5/6 Fetched ratings for "Ice Age: Continental Drift"
+[2025-12-12T14:06:23.414Z] [INFO] 6/6 Fetching ratings for "Ocean's Twelve"
+[2025-12-12T14:06:23.498Z] [SUCCESS] 6/6 Fetched ratings for "Ocean's Twelve"
+[2025-12-12T14:06:24.498Z] [INFO] 
+[2025-12-12T14:06:24.499Z] [INFO] SUMMARY
+[2025-12-12T14:06:24.499Z] [INFO] ======================================================================
+[2025-12-12T14:06:24.499Z] [INFO] Movies processed:
+[2025-12-12T14:06:24.499Z] [INFO] Failed:
+[2025-12-12T14:06:24.499Z] [SUCCESS] External ratings fetch complete!
+[2025-12-12T14:18:55.097Z] [INFO] 
+[2025-12-12T14:18:55.097Z] [INFO] FETCH EXTERNAL RATINGS (OMDb)
+[2025-12-12T14:18:55.097Z] [INFO] ======================================================================
+[2025-12-12T14:18:55.098Z] [INFO] Started at: | "2025-12-12T14:18:55.098Z"
+[2025-12-12T14:18:55.317Z] [INFO] Found 6 movies needing external ratings
+[2025-12-12T14:18:55.318Z] [INFO] 1/6 Fetching ratings for "Home Alone 2: Lost in New York"
+[2025-12-12T14:18:55.442Z] [SUCCESS] 1/6 Fetched ratings for "Home Alone 2: Lost in New York"
+[2025-12-12T14:18:56.442Z] [INFO] 2/6 Fetching ratings for "Quantum of Solace"
+[2025-12-12T14:18:56.543Z] [SUCCESS] 2/6 Fetched ratings for "Quantum of Solace"
+[2025-12-12T14:18:57.543Z] [INFO] 3/6 Fetching ratings for "The Expendables"
+[2025-12-12T14:18:57.645Z] [SUCCESS] 3/6 Fetched ratings for "The Expendables"
+[2025-12-12T14:18:58.646Z] [INFO] 4/6 Fetching ratings for "American Pie"
+[2025-12-12T14:18:58.748Z] [SUCCESS] 4/6 Fetched ratings for "American Pie"
+[2025-12-12T14:18:59.748Z] [INFO] 5/6 Fetching ratings for "Ice Age: Continental Drift"
+[2025-12-12T14:18:59.845Z] [SUCCESS] 5/6 Fetched ratings for "Ice Age: Continental Drift"
+[2025-12-12T14:19:00.846Z] [INFO] 6/6 Fetching ratings for "Ocean's Twelve"
+[2025-12-12T14:19:00.943Z] [SUCCESS] 6/6 Fetched ratings for "Ocean's Twelve"
+[2025-12-12T14:19:01.943Z] [INFO] 
+[2025-12-12T14:19:01.943Z] [INFO] SUMMARY
+[2025-12-12T14:19:01.943Z] [INFO] ======================================================================
+[2025-12-12T14:19:01.944Z] [INFO] Movies processed:
+[2025-12-12T14:19:01.944Z] [INFO] Failed:
+[2025-12-12T14:19:01.944Z] [SUCCESS] External ratings fetch complete!
+[2025-12-12T14:30:39.775Z] [INFO] 
+[2025-12-12T14:30:39.776Z] [INFO] FETCH EXTERNAL RATINGS (OMDb)
+[2025-12-12T14:30:39.776Z] [INFO] ======================================================================
+[2025-12-12T14:30:39.776Z] [INFO] Started at: | "2025-12-12T14:30:39.776Z"
+[2025-12-12T14:30:40.011Z] [INFO] Found 6 movies needing external ratings
+[2025-12-12T14:30:40.011Z] [INFO] 1/6 Fetching ratings for "Home Alone 2: Lost in New York"
+[2025-12-12T14:30:40.228Z] [SUCCESS] 1/6 Fetched ratings for "Home Alone 2: Lost in New York"
+[2025-12-12T14:30:41.230Z] [INFO] 2/6 Fetching ratings for "Quantum of Solace"
+[2025-12-12T14:30:41.326Z] [SUCCESS] 2/6 Fetched ratings for "Quantum of Solace"
+[2025-12-12T14:30:42.327Z] [INFO] 3/6 Fetching ratings for "The Expendables"
+[2025-12-12T14:30:42.418Z] [SUCCESS] 3/6 Fetched ratings for "The Expendables"
+[2025-12-12T14:30:43.418Z] [INFO] 4/6 Fetching ratings for "American Pie"
+[2025-12-12T14:30:43.915Z] [SUCCESS] 4/6 Fetched ratings for "American Pie"
+[2025-12-12T14:30:44.915Z] [INFO] 5/6 Fetching ratings for "Ice Age: Continental Drift"
+[2025-12-12T14:30:45.019Z] [SUCCESS] 5/6 Fetched ratings for "Ice Age: Continental Drift"
+[2025-12-12T14:30:46.019Z] [INFO] 6/6 Fetching ratings for "Ocean's Twelve"
+[2025-12-12T14:30:46.117Z] [SUCCESS] 6/6 Fetched ratings for "Ocean's Twelve"
+[2025-12-12T14:30:47.117Z] [INFO] 
+[2025-12-12T14:30:47.117Z] [INFO] SUMMARY
+[2025-12-12T14:30:47.117Z] [INFO] ======================================================================
+[2025-12-12T14:30:47.117Z] [INFO] Movies processed:
+[2025-12-12T14:30:47.117Z] [INFO] Failed:
+[2025-12-12T14:30:47.118Z] [SUCCESS] External ratings fetch complete!
+[2025-12-12T14:43:46.115Z] [INFO] 
+[2025-12-12T14:43:46.116Z] [INFO] FETCH EXTERNAL RATINGS (OMDb)
+[2025-12-12T14:43:46.116Z] [INFO] ======================================================================
+[2025-12-12T14:43:46.116Z] [INFO] Started at: | "2025-12-12T14:43:46.116Z"
+[2025-12-12T14:43:46.358Z] [INFO] Found 6 movies needing external ratings
+[2025-12-12T14:43:46.358Z] [INFO] 1/6 Fetching ratings for "Home Alone 2: Lost in New York"
+[2025-12-12T14:43:46.505Z] [SUCCESS] 1/6 Fetched ratings for "Home Alone 2: Lost in New York"
+[2025-12-12T14:43:47.506Z] [INFO] 2/6 Fetching ratings for "Quantum of Solace"
+[2025-12-12T14:43:47.610Z] [SUCCESS] 2/6 Fetched ratings for "Quantum of Solace"
+[2025-12-12T14:43:48.610Z] [INFO] 3/6 Fetching ratings for "The Expendables"
+[2025-12-12T14:43:48.699Z] [SUCCESS] 3/6 Fetched ratings for "The Expendables"
+[2025-12-12T14:43:49.699Z] [INFO] 4/6 Fetching ratings for "American Pie"
+[2025-12-12T14:43:49.793Z] [SUCCESS] 4/6 Fetched ratings for "American Pie"
+[2025-12-12T14:43:50.793Z] [INFO] 5/6 Fetching ratings for "Ice Age: Continental Drift"
+[2025-12-12T14:43:50.899Z] [SUCCESS] 5/6 Fetched ratings for "Ice Age: Continental Drift"
+[2025-12-12T14:43:51.900Z] [INFO] 6/6 Fetching ratings for "Ocean's Twelve"
+[2025-12-12T14:43:52.014Z] [SUCCESS] 6/6 Fetched ratings for "Ocean's Twelve"
+[2025-12-12T14:43:53.014Z] [INFO] 
+[2025-12-12T14:43:53.015Z] [INFO] SUMMARY
+[2025-12-12T14:43:53.015Z] [INFO] ======================================================================
+[2025-12-12T14:43:53.015Z] [INFO] Movies processed:
+[2025-12-12T14:43:53.015Z] [INFO] Failed:
+[2025-12-12T14:43:53.015Z] [SUCCESS] External ratings fetch complete!
+[2025-12-12T14:45:13.004Z] [INFO] 
+[2025-12-12T14:45:13.005Z] [INFO] FETCH EXTERNAL RATINGS (OMDb)
+[2025-12-12T14:45:13.005Z] [INFO] ======================================================================
+[2025-12-12T14:45:13.005Z] [INFO] Started at: | "2025-12-12T14:45:13.005Z"
+[2025-12-12T14:45:13.223Z] [INFO] Found 6 movies needing external ratings
+[2025-12-12T14:45:13.223Z] [INFO] 1/6 Fetching ratings for "Home Alone 2: Lost in New York"
+[2025-12-12T14:45:13.345Z] [SUCCESS] 1/6 Fetched ratings for "Home Alone 2: Lost in New York"
+[2025-12-12T14:45:14.345Z] [INFO] 2/6 Fetching ratings for "Quantum of Solace"
+[2025-12-12T14:45:14.451Z] [SUCCESS] 2/6 Fetched ratings for "Quantum of Solace"
+[2025-12-12T14:45:15.451Z] [INFO] 3/6 Fetching ratings for "The Expendables"
+[2025-12-12T14:45:15.574Z] [SUCCESS] 3/6 Fetched ratings for "The Expendables"
+[2025-12-12T14:45:16.574Z] [INFO] 4/6 Fetching ratings for "American Pie"
+[2025-12-12T14:45:16.669Z] [SUCCESS] 4/6 Fetched ratings for "American Pie"
+[2025-12-12T14:45:17.669Z] [INFO] 5/6 Fetching ratings for "Ice Age: Continental Drift"
+[2025-12-12T14:45:17.780Z] [SUCCESS] 5/6 Fetched ratings for "Ice Age: Continental Drift"
+[2025-12-12T14:45:18.780Z] [INFO] 6/6 Fetching ratings for "Ocean's Twelve"
+[2025-12-12T14:45:18.890Z] [SUCCESS] 6/6 Fetched ratings for "Ocean's Twelve"
+[2025-12-12T14:45:19.890Z] [INFO] 
+[2025-12-12T14:45:19.890Z] [INFO] SUMMARY
+[2025-12-12T14:45:19.890Z] [INFO] ======================================================================
+[2025-12-12T14:45:19.891Z] [INFO] Movies processed:
+[2025-12-12T14:45:19.891Z] [INFO] Failed:
+[2025-12-12T14:45:19.891Z] [SUCCESS] External ratings fetch complete!
+[2025-12-12T15:31:47.170Z] [INFO] 
+[2025-12-12T15:31:47.170Z] [INFO] FETCH EXTERNAL RATINGS (OMDb)
+[2025-12-12T15:31:47.170Z] [INFO] ======================================================================
+[2025-12-12T15:31:47.170Z] [INFO] Started at: | "2025-12-12T15:31:47.170Z"
+[2025-12-12T15:31:47.457Z] [INFO] Found 6 movies needing external ratings
+[2025-12-12T15:31:47.458Z] [INFO] 1/6 Fetching ratings for "Home Alone 2: Lost in New York"
+[2025-12-12T15:31:47.699Z] [SUCCESS] 1/6 Fetched ratings for "Home Alone 2: Lost in New York"
+[2025-12-12T15:31:48.701Z] [INFO] 2/6 Fetching ratings for "Quantum of Solace"
+[2025-12-12T15:31:48.843Z] [SUCCESS] 2/6 Fetched ratings for "Quantum of Solace"
+[2025-12-12T15:31:49.844Z] [INFO] 3/6 Fetching ratings for "The Expendables"
+[2025-12-12T15:31:49.977Z] [SUCCESS] 3/6 Fetched ratings for "The Expendables"
+[2025-12-12T15:31:50.977Z] [INFO] 4/6 Fetching ratings for "American Pie"
+[2025-12-12T15:31:51.080Z] [SUCCESS] 4/6 Fetched ratings for "American Pie"
+[2025-12-12T15:31:52.081Z] [INFO] 5/6 Fetching ratings for "Ice Age: Continental Drift"
+[2025-12-12T15:31:52.184Z] [SUCCESS] 5/6 Fetched ratings for "Ice Age: Continental Drift"
+[2025-12-12T15:31:53.185Z] [INFO] 6/6 Fetching ratings for "Ocean's Twelve"
+[2025-12-12T15:31:53.317Z] [SUCCESS] 6/6 Fetched ratings for "Ocean's Twelve"
+[2025-12-12T15:31:54.319Z] [INFO] 
+[2025-12-12T15:31:54.319Z] [INFO] SUMMARY
+[2025-12-12T15:31:54.319Z] [INFO] ======================================================================
+[2025-12-12T15:31:54.320Z] [INFO] Movies processed:
+[2025-12-12T15:31:54.320Z] [INFO] Failed:
+[2025-12-12T15:31:54.320Z] [SUCCESS] External ratings fetch complete!

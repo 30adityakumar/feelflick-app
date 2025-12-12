@@ -142,3 +142,405 @@
 [2025-12-12T01:33:59.749Z] [SUCCESS] 
 ✅ Score calculation complete!
 [2025-12-12T01:33:59.749Z] [INFO] Log file: /workspaces/feelflick-app/logs/07-calculate-movie-scores.log
+[2025-12-12T13:35:12.615Z] [INFO] 
+================================================================================
+[2025-12-12T13:35:12.616Z] [INFO] 📊 CALCULATE MOVIE SCORES
+[2025-12-12T13:35:12.616Z] [INFO] ================================================================================
+
+[2025-12-12T13:35:12.616Z] [INFO] Started at: 2025-12-12T13:35:12.616Z
+[2025-12-12T13:35:12.764Z] [INFO] Found 3 movies needing score calculations
+
+[2025-12-12T13:35:12.764Z] [DEBUG] Calculating scores for: Trap House
+[2025-12-12T13:35:12.886Z] [DEBUG] ✓ Scores calculated for: Trap House | {"pacing":65,"intensity":70,"quality":34,"ff_rating":6.3}
+[2025-12-12T13:35:12.886Z] [DEBUG] Calculating scores for: Predators
+[2025-12-12T13:35:12.991Z] [DEBUG] ✓ Scores calculated for: Predators | {"pacing":40,"intensity":40,"quality":34,"ff_rating":6}
+[2025-12-12T13:35:12.992Z] [DEBUG] Calculating scores for: Tell Me Softly
+[2025-12-12T13:35:13.092Z] [DEBUG] ✓ Scores calculated for: Tell Me Softly | {"pacing":45,"intensity":30,"quality":33,"ff_rating":5}
+[2025-12-12T13:35:13.092Z] [INFO] 
+================================================================================
+[2025-12-12T13:35:13.092Z] [INFO] 📊 SUMMARY
+[2025-12-12T13:35:13.092Z] [INFO] ================================================================================
+
+[2025-12-12T13:35:13.092Z] [INFO] Total movies processed: 3
+[2025-12-12T13:35:13.092Z] [SUCCESS] ✓ Successful: 3
+[2025-12-12T13:35:13.093Z] [INFO] Duration: 0.48s
+[2025-12-12T13:35:13.093Z] [INFO] Average: 375.0 movies/minute
+[2025-12-12T13:35:13.093Z] [SUCCESS] 
+✅ Score calculation complete!
+[2025-12-12T13:35:13.093Z] [INFO] Log file: /workspaces/feelflick-app/logs/07-calculate-movie-scores.log
+[2025-12-12T13:47:21.844Z] [INFO] 
+================================================================================
+[2025-12-12T13:47:21.844Z] [INFO] 📊 CALCULATE MOVIE SCORES
+[2025-12-12T13:47:21.844Z] [INFO] ================================================================================
+
+[2025-12-12T13:47:21.844Z] [INFO] Started at: 2025-12-12T13:47:21.844Z
+[2025-12-12T13:47:21.996Z] [INFO] ✓ No movies need score calculations
+[2025-12-12T13:51:00.426Z] [INFO] 
+================================================================================
+[2025-12-12T13:51:00.427Z] [INFO] 📊 CALCULATE MOVIE SCORES
+[2025-12-12T13:51:00.427Z] [INFO] ================================================================================
+
+[2025-12-12T13:51:00.427Z] [INFO] Started at: 2025-12-12T13:51:00.427Z
+[2025-12-12T13:51:00.782Z] [INFO] ✓ No movies need score calculations
+[2025-12-12T13:52:16.374Z] [INFO] 
+================================================================================
+[2025-12-12T13:52:16.375Z] [INFO] 📊 CALCULATE MOVIE SCORES
+[2025-12-12T13:52:16.375Z] [INFO] ================================================================================
+
+[2025-12-12T13:52:16.375Z] [INFO] Started at: 2025-12-12T13:52:16.375Z
+[2025-12-12T13:52:17.952Z] [INFO] Found 134 movies needing score calculations
+
+[2025-12-12T13:52:17.952Z] [DEBUG] Calculating scores for: Home Alone 2: Lost in New York
+[2025-12-12T13:52:18.083Z] [DEBUG] ✓ Scores calculated for: Home Alone 2: Lost in New York | {"pacing":50,"intensity":35,"quality":59,"ff_rating":6.8}
+[2025-12-12T13:52:18.084Z] [DEBUG] Calculating scores for: Quantum of Solace
+[2025-12-12T13:52:18.185Z] [DEBUG] ✓ Scores calculated for: Quantum of Solace | {"pacing":60,"intensity":65,"quality":57,"ff_rating":6.3}
+[2025-12-12T13:52:18.186Z] [DEBUG] Calculating scores for: The Expendables
+[2025-12-12T13:52:18.291Z] [DEBUG] ✓ Scores calculated for: The Expendables | {"pacing":60,"intensity":80,"quality":56,"ff_rating":6.2}
+[2025-12-12T13:52:18.291Z] [DEBUG] Calculating scores for: American Pie
+[2025-12-12T13:52:18.404Z] [DEBUG] ✓ Scores calculated for: American Pie | {"pacing":55,"intensity":35,"quality":58,"ff_rating":6.6}
+[2025-12-12T13:52:18.405Z] [DEBUG] Calculating scores for: Ice Age: Continental Drift
+[2025-12-12T13:52:18.531Z] [DEBUG] ✓ Scores calculated for: Ice Age: Continental Drift | {"pacing":65,"intensity":40,"quality":57,"ff_rating":6.4}
+[2025-12-12T13:52:18.531Z] [DEBUG] Calculating scores for: Ocean's Twelve
+[2025-12-12T13:52:18.633Z] [DEBUG] ✓ Scores calculated for: Ocean's Twelve | {"pacing":55,"intensity":80,"quality":58,"ff_rating":6.6}
+[2025-12-12T13:52:18.634Z] [DEBUG] Calculating scores for: Ghost Rider
+[2025-12-12T13:52:18.735Z] [DEBUG] ✓ Scores calculated for: Ghost Rider | {"pacing":60,"intensity":80,"quality":53,"ff_rating":5.6}
+[2025-12-12T13:52:18.736Z] [DEBUG] Calculating scores for: xXx
+[2025-12-12T13:52:18.831Z] [DEBUG] ✓ Scores calculated for: xXx | {"pacing":60,"intensity":80,"quality":60,"ff_rating":6}
+[2025-12-12T13:52:18.831Z] [DEBUG] Calculating scores for: Predators
+[2025-12-12T13:52:18.953Z] [DEBUG] ✓ Scores calculated for: Predators | {"pacing":55,"intensity":65,"quality":56,"ff_rating":6.3}
+[2025-12-12T13:52:18.953Z] [DEBUG] Calculating scores for: Riddick
+[2025-12-12T13:52:19.070Z] [DEBUG] ✓ Scores calculated for: Riddick | {"pacing":55,"intensity":65,"quality":57,"ff_rating":6.3}
+[2025-12-12T13:52:19.071Z] [DEBUG] Calculating scores for: The First Purge
+[2025-12-12T13:52:19.150Z] [DEBUG] ✓ Scores calculated for: The First Purge | {"pacing":65,"intensity":80,"quality":55,"ff_rating":6}
+[2025-12-12T13:52:19.150Z] [DEBUG] Calculating scores for: Secret Window
+[2025-12-12T13:52:19.243Z] [DEBUG] ✓ Scores calculated for: Secret Window | {"pacing":50,"intensity":70,"quality":58,"ff_rating":6.6}
+[2025-12-12T13:52:19.244Z] [DEBUG] Calculating scores for: Safe House
+[2025-12-12T13:52:19.337Z] [DEBUG] ✓ Scores calculated for: Safe House | {"pacing":65,"intensity":70,"quality":57,"ff_rating":6.5}
+[2025-12-12T13:52:19.337Z] [DEBUG] Calculating scores for: Predator 2
+[2025-12-12T13:52:19.437Z] [DEBUG] ✓ Scores calculated for: Predator 2 | {"pacing":55,"intensity":65,"quality":56,"ff_rating":6.3}
+[2025-12-12T13:52:19.437Z] [DEBUG] Calculating scores for: Austin Powers: The Spy Who Shagged Me
+[2025-12-12T13:52:19.534Z] [DEBUG] ✓ Scores calculated for: Austin Powers: The Spy Who Shagged Me | {"pacing":60,"intensity":55,"quality":57,"ff_rating":6.3}
+[2025-12-12T13:52:19.534Z] [DEBUG] Calculating scores for: Hitman
+[2025-12-12T13:52:19.622Z] [DEBUG] ✓ Scores calculated for: Hitman | {"pacing":75,"intensity":70,"quality":56,"ff_rating":6.1}
+[2025-12-12T13:52:19.622Z] [DEBUG] Calculating scores for: Alexander
+[2025-12-12T13:52:19.716Z] [DEBUG] ✓ Scores calculated for: Alexander | {"pacing":35,"intensity":85,"quality":55,"ff_rating":6}
+[2025-12-12T13:52:19.717Z] [DEBUG] Calculating scores for: Surrogates
+[2025-12-12T13:52:19.807Z] [DEBUG] ✓ Scores calculated for: Surrogates | {"pacing":70,"intensity":65,"quality":56,"ff_rating":6.1}
+[2025-12-12T13:52:19.807Z] [DEBUG] Calculating scores for: Austin Powers in Goldmember
+[2025-12-12T13:52:19.893Z] [DEBUG] ✓ Scores calculated for: Austin Powers in Goldmember | {"pacing":55,"intensity":35,"quality":55,"ff_rating":6}
+[2025-12-12T13:52:19.893Z] [DEBUG] Calculating scores for: Dune
+[2025-12-12T13:52:19.987Z] [DEBUG] ✓ Scores calculated for: Dune | {"pacing":60,"intensity":80,"quality":56,"ff_rating":6.2}
+[2025-12-12T13:52:19.988Z] [DEBUG] Calculating scores for: Shanghai Noon
+[2025-12-12T13:52:20.094Z] [DEBUG] ✓ Scores calculated for: Shanghai Noon | {"pacing":60,"intensity":55,"quality":57,"ff_rating":6.4}
+[2025-12-12T13:52:20.094Z] [DEBUG] Calculating scores for: Jurassic World Rebirth
+[2025-12-12T13:52:20.174Z] [DEBUG] ✓ Scores calculated for: Jurassic World Rebirth | {"pacing":50,"intensity":55,"quality":57,"ff_rating":6.4}
+[2025-12-12T13:52:20.175Z] [DEBUG] Calculating scores for: Sleepless in Seattle
+[2025-12-12T13:52:20.260Z] [DEBUG] ✓ Scores calculated for: Sleepless in Seattle | {"pacing":55,"intensity":35,"quality":59,"ff_rating":6.7}
+[2025-12-12T13:52:20.260Z] [DEBUG] Calculating scores for: Runaway Bride
+[2025-12-12T13:52:20.372Z] [DEBUG] ✓ Scores calculated for: Runaway Bride | {"pacing":55,"intensity":35,"quality":56,"ff_rating":6.1}
+[2025-12-12T13:52:20.373Z] [DEBUG] Calculating scores for: The Jackal
+[2025-12-12T13:52:20.461Z] [DEBUG] ✓ Scores calculated for: The Jackal | {"pacing":60,"intensity":80,"quality":57,"ff_rating":6.4}
+[2025-12-12T13:52:20.461Z] [DEBUG] Calculating scores for: Be Kind Rewind
+[2025-12-12T13:52:20.547Z] [DEBUG] ✓ Scores calculated for: Be Kind Rewind | {"pacing":45,"intensity":45,"quality":57,"ff_rating":6.3}
+[2025-12-12T13:52:20.547Z] [DEBUG] Calculating scores for: The Gift
+[2025-12-12T13:52:20.643Z] [DEBUG] ✓ Scores calculated for: The Gift | {"pacing":60,"intensity":85,"quality":57,"ff_rating":6.5}
+[2025-12-12T13:52:20.644Z] [DEBUG] Calculating scores for: Bill & Ted's Bogus Journey
+[2025-12-12T13:52:20.735Z] [DEBUG] ✓ Scores calculated for: Bill & Ted's Bogus Journey | {"pacing":60,"intensity":55,"quality":56,"ff_rating":6.3}
+[2025-12-12T13:52:20.735Z] [DEBUG] Calculating scores for: Hard Target
+[2025-12-12T13:52:20.828Z] [DEBUG] ✓ Scores calculated for: Hard Target | {"pacing":65,"intensity":80,"quality":57,"ff_rating":6.5}
+[2025-12-12T13:52:20.828Z] [DEBUG] Calculating scores for: Oliver Twist
+[2025-12-12T13:52:20.934Z] [DEBUG] ✓ Scores calculated for: Oliver Twist | {"pacing":45,"intensity":65,"quality":59,"ff_rating":6.7}
+[2025-12-12T13:52:20.935Z] [DEBUG] Calculating scores for: The Salvation
+[2025-12-12T13:52:21.049Z] [DEBUG] ✓ Scores calculated for: The Salvation | {"pacing":45,"intensity":55,"quality":52,"ff_rating":6.5}
+[2025-12-12T13:52:21.049Z] [DEBUG] Calculating scores for: War of the Worlds
+[2025-12-12T13:52:21.163Z] [DEBUG] ✓ Scores calculated for: War of the Worlds | {"pacing":55,"intensity":65,"quality":48,"ff_rating":4.3}
+[2025-12-12T13:52:21.163Z] [DEBUG] Calculating scores for: Apt Pupil
+[2025-12-12T13:52:21.291Z] [DEBUG] ✓ Scores calculated for: Apt Pupil | {"pacing":45,"intensity":55,"quality":53,"ff_rating":6.5}
+[2025-12-12T13:52:21.292Z] [DEBUG] Calculating scores for: TRON: Ares
+[2025-12-12T13:52:21.407Z] [DEBUG] ✓ Scores calculated for: TRON: Ares | {"pacing":55,"intensity":55,"quality":58,"ff_rating":6.6}
+[2025-12-12T13:52:21.407Z] [DEBUG] Calculating scores for: Silent Running
+[2025-12-12T13:52:21.507Z] [DEBUG] ✓ Scores calculated for: Silent Running | {"pacing":70,"intensity":55,"quality":52,"ff_rating":6.4}
+[2025-12-12T13:52:21.508Z] [DEBUG] Calculating scores for: Tad, the Lost Explorer
+[2025-12-12T13:52:21.592Z] [DEBUG] ✓ Scores calculated for: Tad, the Lost Explorer | {"pacing":65,"intensity":40,"quality":52,"ff_rating":6.3}
+[2025-12-12T13:52:21.593Z] [DEBUG] Calculating scores for: Paranoid Park
+[2025-12-12T13:52:21.679Z] [DEBUG] ✓ Scores calculated for: Paranoid Park | {"pacing":55,"intensity":55,"quality":53,"ff_rating":6.5}
+[2025-12-12T13:52:21.679Z] [DEBUG] Calculating scores for: The Man Who Fell to Earth
+[2025-12-12T13:52:21.779Z] [DEBUG] ✓ Scores calculated for: The Man Who Fell to Earth | {"pacing":50,"intensity":55,"quality":52,"ff_rating":6.4}
+[2025-12-12T13:52:21.780Z] [DEBUG] Calculating scores for: Mr. Holland's Opus
+[2025-12-12T13:52:21.899Z] [DEBUG] ✓ Scores calculated for: Mr. Holland's Opus | {"pacing":40,"intensity":45,"quality":49,"ff_rating":6.9}
+[2025-12-12T13:52:21.899Z] [DEBUG] Calculating scores for: Playdate
+[2025-12-12T13:52:21.975Z] [DEBUG] ✓ Scores calculated for: Playdate | {"pacing":65,"intensity":70,"quality":47,"ff_rating":6.2}
+[2025-12-12T13:52:21.975Z] [DEBUG] Calculating scores for: Now You See Me: Now You Don't
+[2025-12-12T13:52:22.068Z] [DEBUG] ✓ Scores calculated for: Now You See Me: Now You Don't | {"pacing":60,"intensity":80,"quality":52,"ff_rating":6.3}
+[2025-12-12T13:52:22.068Z] [DEBUG] Calculating scores for: A Mighty Heart
+[2025-12-12T13:52:22.156Z] [DEBUG] ✓ Scores calculated for: A Mighty Heart | {"pacing":45,"intensity":55,"quality":47,"ff_rating":6.4}
+[2025-12-12T13:52:22.156Z] [DEBUG] Calculating scores for: Domino
+[2025-12-12T13:52:22.243Z] [DEBUG] ✓ Scores calculated for: Domino | {"pacing":65,"intensity":75,"quality":41,"ff_rating":4.6}
+[2025-12-12T13:52:22.244Z] [DEBUG] Calculating scores for: The Cincinnati Kid
+[2025-12-12T13:52:22.368Z] [DEBUG] ✓ Scores calculated for: The Cincinnati Kid | {"pacing":45,"intensity":45,"quality":50,"ff_rating":7}
+[2025-12-12T13:52:22.369Z] [DEBUG] Calculating scores for: Train Dreams
+[2025-12-12T13:52:22.458Z] [DEBUG] ✓ Scores calculated for: Train Dreams | {"pacing":45,"intensity":45,"quality":51,"ff_rating":7.3}
+[2025-12-12T13:52:22.458Z] [DEBUG] Calculating scores for: Troll 2
+[2025-12-12T13:52:22.554Z] [DEBUG] ✓ Scores calculated for: Troll 2 | {"pacing":65,"intensity":70,"quality":54,"ff_rating":6.8}
+[2025-12-12T13:52:22.554Z] [DEBUG] Calculating scores for: Good Morning, Night
+[2025-12-12T13:52:22.641Z] [DEBUG] ✓ Scores calculated for: Good Morning, Night | {"pacing":45,"intensity":45,"quality":50,"ff_rating":7.1}
+[2025-12-12T13:52:22.641Z] [DEBUG] Calculating scores for: M.S. Dhoni: The Untold Story
+[2025-12-12T13:52:22.744Z] [DEBUG] ✓ Scores calculated for: M.S. Dhoni: The Untold Story | {"pacing":30,"intensity":45,"quality":50,"ff_rating":7.2}
+[2025-12-12T13:52:22.744Z] [DEBUG] Calculating scores for: Primitive War
+[2025-12-12T13:52:22.825Z] [DEBUG] ✓ Scores calculated for: Primitive War | {"pacing":60,"intensity":80,"quality":49,"ff_rating":6.8}
+[2025-12-12T13:52:22.825Z] [DEBUG] Calculating scores for: Tabu: A Story of the South Seas
+[2025-12-12T13:52:22.912Z] [DEBUG] ✓ Scores calculated for: Tabu: A Story of the South Seas | {"pacing":60,"intensity":30,"quality":50,"ff_rating":7.1}
+[2025-12-12T13:52:22.912Z] [DEBUG] Calculating scores for: Savior
+[2025-12-12T13:52:23.006Z] [DEBUG] ✓ Scores calculated for: Savior | {"pacing":45,"intensity":55,"quality":50,"ff_rating":7.2}
+[2025-12-12T13:52:23.006Z] [DEBUG] Calculating scores for: Ragtime
+[2025-12-12T13:52:23.088Z] [DEBUG] ✓ Scores calculated for: Ragtime | {"pacing":30,"intensity":55,"quality":50,"ff_rating":7}
+[2025-12-12T13:52:23.089Z] [DEBUG] Calculating scores for: Torrente 3: The Protector
+[2025-12-12T13:52:23.188Z] [DEBUG] ✓ Scores calculated for: Torrente 3: The Protector | {"pacing":55,"intensity":35,"quality":44,"ff_rating":5.4}
+[2025-12-12T13:52:23.188Z] [DEBUG] Calculating scores for: The Prosecutor
+[2025-12-12T13:52:23.284Z] [DEBUG] ✓ Scores calculated for: The Prosecutor | {"pacing":65,"intensity":80,"quality":49,"ff_rating":6.8}
+[2025-12-12T13:52:23.285Z] [DEBUG] Calculating scores for: Ask the Dust
+[2025-12-12T13:52:23.375Z] [DEBUG] ✓ Scores calculated for: Ask the Dust | {"pacing":45,"intensity":30,"quality":44,"ff_rating":5.4}
+[2025-12-12T13:52:23.375Z] [DEBUG] Calculating scores for: The Shadow's Edge
+[2025-12-12T13:52:23.456Z] [DEBUG] ✓ Scores calculated for: The Shadow's Edge | {"pacing":60,"intensity":70,"quality":53,"ff_rating":6.5}
+[2025-12-12T13:52:23.456Z] [DEBUG] Calculating scores for: Regretting You
+[2025-12-12T13:52:23.550Z] [DEBUG] ✓ Scores calculated for: Regretting You | {"pacing":45,"intensity":30,"quality":55,"ff_rating":7}
+[2025-12-12T13:52:23.550Z] [DEBUG] Calculating scores for: She Rides Shotgun
+[2025-12-12T13:52:23.642Z] [DEBUG] ✓ Scores calculated for: She Rides Shotgun | {"pacing":60,"intensity":70,"quality":55,"ff_rating":7.1}
+[2025-12-12T13:52:23.642Z] [DEBUG] Calculating scores for: The Elementary Particles
+[2025-12-12T13:52:23.733Z] [DEBUG] ✓ Scores calculated for: The Elementary Particles | {"pacing":45,"intensity":45,"quality":46,"ff_rating":6.1}
+[2025-12-12T13:52:23.733Z] [DEBUG] Calculating scores for: Mission: Cross
+[2025-12-12T13:52:23.817Z] [DEBUG] ✓ Scores calculated for: Mission: Cross | {"pacing":65,"intensity":70,"quality":49,"ff_rating":7}
+[2025-12-12T13:52:23.818Z] [DEBUG] Calculating scores for: Jay Kelly
+[2025-12-12T13:52:23.902Z] [DEBUG] ✓ Scores calculated for: Jay Kelly | {"pacing":40,"intensity":45,"quality":51,"ff_rating":5.9}
+[2025-12-12T13:52:23.903Z] [DEBUG] Calculating scores for: Jude
+[2025-12-12T13:52:23.985Z] [DEBUG] ✓ Scores calculated for: Jude | {"pacing":40,"intensity":45,"quality":47,"ff_rating":6.3}
+[2025-12-12T13:52:23.985Z] [DEBUG] Calculating scores for: Five Nights at Freddy's 2
+[2025-12-12T13:52:24.061Z] [DEBUG] ✓ Scores calculated for: Five Nights at Freddy's 2 | {"pacing":60,"intensity":85,"quality":52,"ff_rating":6.4}
+[2025-12-12T13:52:24.061Z] [DEBUG] Calculating scores for: 1984
+[2025-12-12T13:52:24.149Z] [DEBUG] ✓ Scores calculated for: 1984 | {"pacing":70,"intensity":55,"quality":48,"ff_rating":6.5}
+[2025-12-12T13:52:24.149Z] [DEBUG] Calculating scores for: Sentimental Value
+[2025-12-12T13:52:24.228Z] [DEBUG] ✓ Scores calculated for: Sentimental Value | {"pacing":40,"intensity":45,"quality":52,"ff_rating":7.6}
+[2025-12-12T13:52:24.228Z] [DEBUG] Calculating scores for: First Squad: The Moment of Truth
+[2025-12-12T13:52:24.367Z] [DEBUG] ✓ Scores calculated for: First Squad: The Moment of Truth | {"pacing":65,"intensity":50,"quality":52,"ff_rating":6.2}
+[2025-12-12T13:52:24.367Z] [DEBUG] Calculating scores for: A Legend
+[2025-12-12T13:52:24.447Z] [DEBUG] ✓ Scores calculated for: A Legend | {"pacing":60,"intensity":70,"quality":54,"ff_rating":6.9}
+[2025-12-12T13:52:24.447Z] [DEBUG] Calculating scores for: Shelby Oaks
+[2025-12-12T13:52:24.550Z] [DEBUG] ✓ Scores calculated for: Shelby Oaks | {"pacing":60,"intensity":95,"quality":45,"ff_rating":5.8}
+[2025-12-12T13:52:24.550Z] [DEBUG] Calculating scores for: Oh. What. Fun.
+[2025-12-12T13:52:24.638Z] [DEBUG] ✓ Scores calculated for: Oh. What. Fun. | {"pacing":55,"intensity":35,"quality":46,"ff_rating":5.9}
+[2025-12-12T13:52:24.638Z] [DEBUG] Calculating scores for: Springsteen: Deliver Me from Nowhere
+[2025-12-12T13:52:24.735Z] [DEBUG] ✓ Scores calculated for: Springsteen: Deliver Me from Nowhere | {"pacing":40,"intensity":45,"quality":50,"ff_rating":7.1}
+[2025-12-12T13:52:24.736Z] [DEBUG] Calculating scores for: Sidelined: The QB and Me
+[2025-12-12T13:52:24.814Z] [DEBUG] ✓ Scores calculated for: Sidelined: The QB and Me | {"pacing":55,"intensity":35,"quality":46,"ff_rating":6.1}
+[2025-12-12T13:52:24.814Z] [DEBUG] Calculating scores for: Die My Love
+[2025-12-12T13:52:24.908Z] [DEBUG] ✓ Scores calculated for: Die My Love | {"pacing":45,"intensity":45,"quality":54,"ff_rating":6.7}
+[2025-12-12T13:52:24.908Z] [DEBUG] Calculating scores for: El Cementerio de los Elefantes
+[2025-12-12T13:52:24.992Z] [DEBUG] ✓ Scores calculated for: El Cementerio de los Elefantes | {"pacing":45,"intensity":45,"quality":56,"ff_rating":9}
+[2025-12-12T13:52:24.992Z] [DEBUG] Calculating scores for: Parched
+[2025-12-12T13:52:25.079Z] [DEBUG] ✓ Scores calculated for: Parched | {"pacing":45,"intensity":55,"quality":43,"ff_rating":7.3}
+[2025-12-12T13:52:25.080Z] [DEBUG] Calculating scores for: El fantasma de mi novia
+[2025-12-12T13:52:25.205Z] [DEBUG] ✓ Scores calculated for: El fantasma de mi novia | {"pacing":55,"intensity":35,"quality":45,"ff_rating":7.4}
+[2025-12-12T13:52:25.205Z] [DEBUG] Calculating scores for: Drowning Love
+[2025-12-12T13:52:25.287Z] [DEBUG] ✓ Scores calculated for: Drowning Love | {"pacing":45,"intensity":30,"quality":41,"ff_rating":6.2}
+[2025-12-12T13:52:25.287Z] [DEBUG] Calculating scores for: High Rollers
+[2025-12-12T13:52:25.399Z] [DEBUG] ✓ Scores calculated for: High Rollers | {"pacing":65,"intensity":70,"quality":46,"ff_rating":6.4}
+[2025-12-12T13:52:25.400Z] [DEBUG] Calculating scores for: My Secret Santa
+[2025-12-12T13:52:25.483Z] [DEBUG] ✓ Scores calculated for: My Secret Santa | {"pacing":55,"intensity":35,"quality":41,"ff_rating":6.4}
+[2025-12-12T13:52:25.483Z] [DEBUG] Calculating scores for: Holy Night: Demon Hunters
+[2025-12-12T13:52:25.573Z] [DEBUG] ✓ Scores calculated for: Holy Night: Demon Hunters | {"pacing":65,"intensity":80,"quality":42,"ff_rating":6.8}
+[2025-12-12T13:52:25.573Z] [DEBUG] Calculating scores for: Iron Eagle III
+[2025-12-12T13:52:25.663Z] [DEBUG] ✓ Scores calculated for: Iron Eagle III | {"pacing":65,"intensity":70,"quality":35,"ff_rating":4.1}
+[2025-12-12T13:52:25.663Z] [DEBUG] Calculating scores for: Kebab Connection
+[2025-12-12T13:52:25.781Z] [DEBUG] ✓ Scores calculated for: Kebab Connection | {"pacing":55,"intensity":35,"quality":42,"ff_rating":6.6}
+[2025-12-12T13:52:25.781Z] [DEBUG] Calculating scores for: Franco Escamilla: RPM
+[2025-12-12T13:52:25.881Z] [DEBUG] ✓ Scores calculated for: Franco Escamilla: RPM | {"pacing":55,"intensity":35,"quality":47,"ff_rating":8.6}
+[2025-12-12T13:52:25.882Z] [DEBUG] Calculating scores for: Bramayugam
+[2025-12-12T13:52:25.957Z] [DEBUG] ✓ Scores calculated for: Bramayugam | {"pacing":55,"intensity":85,"quality":49,"ff_rating":7.6}
+[2025-12-12T13:52:25.957Z] [DEBUG] Calculating scores for: Tornado
+[2025-12-12T13:52:26.056Z] [DEBUG] ✓ Scores calculated for: Tornado | {"pacing":45,"intensity":45,"quality":41,"ff_rating":6.3}
+[2025-12-12T13:52:26.056Z] [DEBUG] Calculating scores for: La bicicleta de los Huanca
+[2025-12-12T13:52:26.232Z] [DEBUG] ✓ Scores calculated for: La bicicleta de los Huanca | {"pacing":55,"intensity":35,"quality":48,"ff_rating":9}
+[2025-12-12T13:52:26.232Z] [DEBUG] Calculating scores for: JUJUTSU KAISEN: Execution -Shibuya Incident x The Culling Game Begins-
+[2025-12-12T13:52:26.329Z] [DEBUG] ✓ Scores calculated for: JUJUTSU KAISEN: Execution -Shibuya Incident x The Culling Game Begins- | {"pacing":65,"intensity":40,"quality":44,"ff_rating":5.4}
+[2025-12-12T13:52:26.329Z] [DEBUG] Calculating scores for: Bureau 749
+[2025-12-12T13:52:26.416Z] [DEBUG] ✓ Scores calculated for: Bureau 749 | {"pacing":60,"intensity":70,"quality":45,"ff_rating":6.1}
+[2025-12-12T13:52:26.416Z] [DEBUG] Calculating scores for: Malcriados
+[2025-12-12T13:52:26.531Z] [DEBUG] ✓ Scores calculated for: Malcriados | {"pacing":55,"intensity":35,"quality":45,"ff_rating":7.8}
+[2025-12-12T13:52:26.532Z] [DEBUG] Calculating scores for: Virtual Sexuality
+[2025-12-12T13:52:26.619Z] [DEBUG] ✓ Scores calculated for: Virtual Sexuality | {"pacing":55,"intensity":35,"quality":38,"ff_rating":5.2}
+[2025-12-12T13:52:26.619Z] [DEBUG] Calculating scores for: Kyan Khojandi : Pulsions
+[2025-12-12T13:52:26.698Z] [DEBUG] ✓ Scores calculated for: Kyan Khojandi : Pulsions | {"pacing":70,"intensity":35,"quality":44,"ff_rating":7.7}
+[2025-12-12T13:52:26.698Z] [DEBUG] Calculating scores for: Wake Up Dead Man: A Knives Out Mystery
+[2025-12-12T13:52:26.781Z] [DEBUG] ✓ Scores calculated for: Wake Up Dead Man: A Knives Out Mystery | {"pacing":45,"intensity":70,"quality":44,"ff_rating":7.7}
+[2025-12-12T13:52:26.781Z] [DEBUG] Calculating scores for: Sisu: Road to Revenge
+[2025-12-12T13:52:26.869Z] [DEBUG] ✓ Scores calculated for: Sisu: Road to Revenge | {"pacing":75,"intensity":70,"quality":36,"ff_rating":7.5}
+[2025-12-12T13:52:26.869Z] [DEBUG] Calculating scores for: Eternity
+[2025-12-12T13:52:26.987Z] [DEBUG] ✓ Scores calculated for: Eternity | {"pacing":45,"intensity":30,"quality":36,"ff_rating":7.5}
+[2025-12-12T13:52:26.987Z] [DEBUG] Calculating scores for: Primary
+[2025-12-12T13:52:27.069Z] [DEBUG] ✓ Scores calculated for: Primary | {"pacing":55,"intensity":40,"quality":35,"ff_rating":6.4}
+[2025-12-12T13:52:27.070Z] [DEBUG] Calculating scores for: Wildcat
+[2025-12-12T13:52:27.156Z] [DEBUG] ✓ Scores calculated for: Wildcat | {"pacing":65,"intensity":70,"quality":39,"ff_rating":6.1}
+[2025-12-12T13:52:27.156Z] [DEBUG] Calculating scores for: Art of Eight Limbs
+[2025-12-12T13:52:27.250Z] [DEBUG] ✓ Scores calculated for: Art of Eight Limbs | {"pacing":65,"intensity":70,"quality":40,"ff_rating":6.4}
+[2025-12-12T13:52:27.250Z] [DEBUG] Calculating scores for: Dhurandhar
+[2025-12-12T13:52:27.332Z] [DEBUG] ✓ Scores calculated for: Dhurandhar | {"pacing":50,"intensity":80,"quality":40,"ff_rating":6.6}
+[2025-12-12T13:52:27.333Z] [DEBUG] Calculating scores for: Keeper
+[2025-12-12T13:52:27.426Z] [DEBUG] ✓ Scores calculated for: Keeper | {"pacing":60,"intensity":85,"quality":38,"ff_rating":5.3}
+[2025-12-12T13:52:27.426Z] [DEBUG] Calculating scores for: Absolut
+[2025-12-12T13:52:27.523Z] [DEBUG] ✓ Scores calculated for: Absolut | {"pacing":60,"intensity":90,"quality":37,"ff_rating":7.8}
+[2025-12-12T13:52:27.523Z] [DEBUG] Calculating scores for: High Forces
+[2025-12-12T13:52:27.608Z] [DEBUG] ✓ Scores calculated for: High Forces | {"pacing":65,"intensity":70,"quality":39,"ff_rating":6}
+[2025-12-12T13:52:27.608Z] [INFO] Progress: 100/134 (100 success, 0 failed)
+[2025-12-12T13:52:27.608Z] [DEBUG] Calculating scores for: 31 Minutes: One Hot Christmas
+[2025-12-12T13:52:27.722Z] [DEBUG] ✓ Scores calculated for: 31 Minutes: One Hot Christmas | {"pacing":50,"intensity":25,"quality":36,"ff_rating":7.5}
+[2025-12-12T13:52:27.722Z] [DEBUG] Calculating scores for: Muzzle: City of Wolves
+[2025-12-12T13:52:27.814Z] [DEBUG] ✓ Scores calculated for: Muzzle: City of Wolves | {"pacing":65,"intensity":70,"quality":36,"ff_rating":7}
+[2025-12-12T13:52:27.814Z] [DEBUG] Calculating scores for: The Three from the Filling Station
+[2025-12-12T13:52:27.896Z] [DEBUG] ✓ Scores calculated for: The Three from the Filling Station | {"pacing":70,"intensity":35,"quality":34,"ff_rating":6.1}
+[2025-12-12T13:52:27.896Z] [DEBUG] Calculating scores for: Two Worlds One Wish
+[2025-12-12T13:52:27.983Z] [DEBUG] ✓ Scores calculated for: Two Worlds One Wish | {"pacing":45,"intensity":30,"quality":37,"ff_rating":7.9}
+[2025-12-12T13:52:27.983Z] [DEBUG] Calculating scores for: Trap House
+[2025-12-12T13:52:28.062Z] [DEBUG] ✓ Scores calculated for: Trap House | {"pacing":65,"intensity":70,"quality":34,"ff_rating":6.3}
+[2025-12-12T13:52:28.062Z] [DEBUG] Calculating scores for: Sarah's Oil
+[2025-12-12T13:52:28.138Z] [DEBUG] ✓ Scores calculated for: Sarah's Oil | {"pacing":45,"intensity":45,"quality":35,"ff_rating":7}
+[2025-12-12T13:52:28.138Z] [DEBUG] Calculating scores for: Christy
+[2025-12-12T13:52:28.213Z] [DEBUG] ✓ Scores calculated for: Christy | {"pacing":40,"intensity":55,"quality":36,"ff_rating":7.4}
+[2025-12-12T13:52:28.213Z] [DEBUG] Calculating scores for: Special Unit - The First Murder
+[2025-12-12T13:52:28.295Z] [DEBUG] ✓ Scores calculated for: Special Unit - The First Murder | {"pacing":45,"intensity":75,"quality":38,"ff_rating":8.8}
+[2025-12-12T13:52:28.295Z] [DEBUG] Calculating scores for: Merv
+[2025-12-12T13:52:28.433Z] [DEBUG] ✓ Scores calculated for: Merv | {"pacing":55,"intensity":35,"quality":34,"ff_rating":5.8}
+[2025-12-12T13:52:28.434Z] [DEBUG] Calculating scores for: Policewoman
+[2025-12-12T13:52:28.513Z] [DEBUG] ✓ Scores calculated for: Policewoman | {"pacing":45,"intensity":55,"quality":35,"ff_rating":6.5}
+[2025-12-12T13:52:28.514Z] [DEBUG] Calculating scores for: Prep & Landing: The Snowball Protocol
+[2025-12-12T13:52:28.592Z] [DEBUG] ✓ Scores calculated for: Prep & Landing: The Snowball Protocol | {"pacing":65,"intensity":40,"quality":36,"ff_rating":7.6}
+[2025-12-12T13:52:28.592Z] [DEBUG] Calculating scores for: The Night My Dad Saved Christmas 2
+[2025-12-12T13:52:28.686Z] [DEBUG] ✓ Scores calculated for: The Night My Dad Saved Christmas 2 | {"pacing":55,"intensity":35,"quality":34,"ff_rating":6}
+[2025-12-12T13:52:28.686Z] [DEBUG] Calculating scores for: Mongolian Ping Pong
+[2025-12-12T13:52:28.779Z] [DEBUG] ✓ Scores calculated for: Mongolian Ping Pong | {"pacing":45,"intensity":45,"quality":34,"ff_rating":6}
+[2025-12-12T13:52:28.780Z] [DEBUG] Calculating scores for: Border Hunters
+[2025-12-12T13:52:28.861Z] [DEBUG] ✓ Scores calculated for: Border Hunters | {"pacing":75,"intensity":70,"quality":42,"ff_rating":7.9}
+[2025-12-12T13:52:28.862Z] [DEBUG] Calculating scores for: The Carpenter's Son
+[2025-12-12T13:52:28.950Z] [DEBUG] ✓ Scores calculated for: The Carpenter's Son | {"pacing":60,"intensity":85,"quality":37,"ff_rating":4.6}
+[2025-12-12T13:52:28.950Z] [DEBUG] Calculating scores for: Hamnet
+[2025-12-12T13:52:29.035Z] [DEBUG] ✓ Scores calculated for: Hamnet | {"pacing":40,"intensity":55,"quality":37,"ff_rating":7.9}
+[2025-12-12T13:52:29.035Z] [DEBUG] Calculating scores for: Diary of a Wimpy Kid: The Last Straw
+[2025-12-12T13:52:29.130Z] [DEBUG] ✓ Scores calculated for: Diary of a Wimpy Kid: The Last Straw | {"pacing":65,"intensity":40,"quality":35,"ff_rating":6.9}
+[2025-12-12T13:52:29.130Z] [DEBUG] Calculating scores for: Hunting Season
+[2025-12-12T13:52:29.227Z] [DEBUG] ✓ Scores calculated for: Hunting Season | {"pacing":65,"intensity":70,"quality":39,"ff_rating":6.2}
+[2025-12-12T13:52:29.228Z] [DEBUG] Calculating scores for: Sidelined 2: Intercepted
+[2025-12-12T13:52:29.306Z] [DEBUG] ✓ Scores calculated for: Sidelined 2: Intercepted | {"pacing":45,"intensity":30,"quality":36,"ff_rating":7.1}
+[2025-12-12T13:52:29.306Z] [DEBUG] Calculating scores for: Predators
+[2025-12-12T13:52:29.387Z] [DEBUG] ✓ Scores calculated for: Predators | {"pacing":40,"intensity":40,"quality":34,"ff_rating":6}
+[2025-12-12T13:52:29.387Z] [DEBUG] Calculating scores for: He's Not Your Son
+[2025-12-12T13:52:29.465Z] [DEBUG] ✓ Scores calculated for: He's Not Your Son | {"pacing":55,"intensity":45,"quality":33,"ff_rating":5.6}
+[2025-12-12T13:52:29.466Z] [DEBUG] Calculating scores for: Avatar: Fire and Ash
+[2025-12-12T13:52:29.542Z] [DEBUG] ✓ Scores calculated for: Avatar: Fire and Ash | {"pacing":45,"intensity":55,"quality":38,"ff_rating":5.2}
+[2025-12-12T13:52:29.542Z] [DEBUG] Calculating scores for: The Footballest 2
+[2025-12-12T13:52:29.623Z] [DEBUG] ✓ Scores calculated for: The Footballest 2 | {"pacing":50,"intensity":25,"quality":35,"ff_rating":6.8}
+[2025-12-12T13:52:29.624Z] [DEBUG] Calculating scores for: The Surrender
+[2025-12-12T13:52:29.706Z] [DEBUG] ✓ Scores calculated for: The Surrender | {"pacing":45,"intensity":45,"quality":32,"ff_rating":4.8}
+[2025-12-12T13:52:29.706Z] [DEBUG] Calculating scores for: The First Snow of Fraggle Rock
+[2025-12-12T13:52:29.794Z] [DEBUG] ✓ Scores calculated for: The First Snow of Fraggle Rock | {"pacing":65,"intensity":25,"quality":40,"ff_rating":6.7}
+[2025-12-12T13:52:29.794Z] [DEBUG] Calculating scores for: Stephen
+[2025-12-12T13:52:29.868Z] [DEBUG] ✓ Scores calculated for: Stephen | {"pacing":55,"intensity":80,"quality":40,"ff_rating":6.8}
+[2025-12-12T13:52:29.869Z] [DEBUG] Calculating scores for: Agak Laen: Menyala Pantiku!
+[2025-12-12T13:52:29.963Z] [DEBUG] ✓ Scores calculated for: Agak Laen: Menyala Pantiku! | {"pacing":55,"intensity":45,"quality":38,"ff_rating":8.5}
+[2025-12-12T13:52:29.963Z] [DEBUG] Calculating scores for: Tell Me Softly
+[2025-12-12T13:52:30.043Z] [DEBUG] ✓ Scores calculated for: Tell Me Softly | {"pacing":45,"intensity":30,"quality":33,"ff_rating":5}
+[2025-12-12T13:52:30.043Z] [DEBUG] Calculating scores for: The French Peep Show
+[2025-12-12T13:52:30.130Z] [DEBUG] ✓ Scores calculated for: The French Peep Show | {"pacing":55,"intensity":40,"quality":50,"ff_rating":null}
+[2025-12-12T13:52:30.131Z] [DEBUG] Calculating scores for: Finders Keepers
+[2025-12-12T13:52:30.235Z] [DEBUG] ✓ Scores calculated for: Finders Keepers | {"pacing":70,"intensity":35,"quality":50,"ff_rating":null}
+[2025-12-12T13:52:30.235Z] [DEBUG] Calculating scores for: 28 Years Later: The Bone Temple
+[2025-12-12T13:52:30.315Z] [DEBUG] ✓ Scores calculated for: 28 Years Later: The Bone Temple | {"pacing":60,"intensity":85,"quality":50,"ff_rating":null}
+[2025-12-12T13:52:30.315Z] [DEBUG] Calculating scores for: Marty Supreme
+[2025-12-12T13:52:30.395Z] [DEBUG] ✓ Scores calculated for: Marty Supreme | {"pacing":30,"intensity":45,"quality":50,"ff_rating":null}
+[2025-12-12T13:52:30.395Z] [DEBUG] Calculating scores for: The Housemaid
+[2025-12-12T13:52:30.478Z] [DEBUG] ✓ Scores calculated for: The Housemaid | {"pacing":45,"intensity":70,"quality":50,"ff_rating":null}
+[2025-12-12T13:52:30.478Z] [DEBUG] Calculating scores for: Taylor Swift | The Eras Tour | The Final Show
+[2025-12-12T13:52:30.551Z] [DEBUG] ✓ Scores calculated for: Taylor Swift | The Eras Tour | The Final Show | {"pacing":40,"intensity":35,"quality":50,"ff_rating":null}
+[2025-12-12T13:52:30.551Z] [INFO] 
+================================================================================
+[2025-12-12T13:52:30.552Z] [INFO] 📊 SUMMARY
+[2025-12-12T13:52:30.552Z] [INFO] ================================================================================
+
+[2025-12-12T13:52:30.552Z] [INFO] Total movies processed: 134
+[2025-12-12T13:52:30.552Z] [SUCCESS] ✓ Successful: 134
+[2025-12-12T13:52:30.552Z] [INFO] Duration: 14.18s
+[2025-12-12T13:52:30.552Z] [INFO] Average: 567.0 movies/minute
+[2025-12-12T13:52:30.552Z] [SUCCESS] 
+✅ Score calculation complete!
+[2025-12-12T13:52:30.552Z] [INFO] Log file: /workspaces/feelflick-app/logs/07-calculate-movie-scores.log
+[2025-12-12T13:59:45.018Z] [INFO] 
+================================================================================
+[2025-12-12T13:59:45.018Z] [INFO] 📊 CALCULATE MOVIE SCORES
+[2025-12-12T13:59:45.018Z] [INFO] ================================================================================
+
+[2025-12-12T13:59:45.018Z] [INFO] Started at: 2025-12-12T13:59:45.018Z
+[2025-12-12T13:59:45.111Z] [INFO] ✓ No movies need score calculations
+[2025-12-12T14:02:55.324Z] [INFO] 
+================================================================================
+[2025-12-12T14:02:55.325Z] [INFO] 📊 CALCULATE MOVIE SCORES
+[2025-12-12T14:02:55.325Z] [INFO] ================================================================================
+
+[2025-12-12T14:02:55.325Z] [INFO] Started at: 2025-12-12T14:02:55.325Z
+[2025-12-12T14:02:55.436Z] [INFO] ✓ No movies need score calculations
+[2025-12-12T14:06:24.591Z] [INFO] 
+================================================================================
+[2025-12-12T14:06:24.592Z] [INFO] 📊 CALCULATE MOVIE SCORES
+[2025-12-12T14:06:24.592Z] [INFO] ================================================================================
+
+[2025-12-12T14:06:24.592Z] [INFO] Started at: 2025-12-12T14:06:24.592Z
+[2025-12-12T14:06:24.694Z] [INFO] ✓ No movies need score calculations
+[2025-12-12T14:19:02.033Z] [INFO] 
+================================================================================
+[2025-12-12T14:19:02.033Z] [INFO] 📊 CALCULATE MOVIE SCORES
+[2025-12-12T14:19:02.033Z] [INFO] ================================================================================
+
+[2025-12-12T14:19:02.033Z] [INFO] Started at: 2025-12-12T14:19:02.033Z
+[2025-12-12T14:19:02.145Z] [INFO] ✓ No movies need score calculations
+[2025-12-12T14:30:47.209Z] [INFO] 
+================================================================================
+[2025-12-12T14:30:47.210Z] [INFO] 📊 CALCULATE MOVIE SCORES
+[2025-12-12T14:30:47.210Z] [INFO] ================================================================================
+
+[2025-12-12T14:30:47.210Z] [INFO] Started at: 2025-12-12T14:30:47.210Z
+[2025-12-12T14:30:47.307Z] [INFO] ✓ No movies need score calculations
+[2025-12-12T14:43:53.109Z] [INFO] 
+================================================================================
+[2025-12-12T14:43:53.109Z] [INFO] 📊 CALCULATE MOVIE SCORES
+[2025-12-12T14:43:53.109Z] [INFO] ================================================================================
+
+[2025-12-12T14:43:53.110Z] [INFO] Started at: 2025-12-12T14:43:53.110Z
+[2025-12-12T14:43:53.215Z] [INFO] ✓ No movies need score calculations
+[2025-12-12T14:45:19.981Z] [INFO] 
+================================================================================
+[2025-12-12T14:45:19.981Z] [INFO] 📊 CALCULATE MOVIE SCORES
+[2025-12-12T14:45:19.981Z] [INFO] ================================================================================
+
+[2025-12-12T14:45:19.981Z] [INFO] Started at: 2025-12-12T14:45:19.981Z
+[2025-12-12T14:45:20.125Z] [INFO] ✓ No movies need score calculations
+[2025-12-12T15:26:55.181Z] [INFO] 
+================================================================================
+[2025-12-12T15:26:55.182Z] [INFO] 🎬 FeelFlick Movie Scoring Engine V2
+[2025-12-12T15:26:55.182Z] [INFO] ================================================================================
+
+[2025-12-12T15:26:55.182Z] [INFO] ======================================================================
+[2025-12-12T15:26:55.182Z] [INFO] 
+
+[2025-12-12T15:26:55.183Z] [INFO] 📦 Fetching all movie data...
+
+[2025-12-12T15:26:55.183Z] [ERROR] ❌ Error fetching data: | "movies is not defined"
+[2025-12-12T15:26:55.183Z] [ERROR] 
+❌ Fatal error: | "movies is not defined"
+[2025-12-12T15:26:55.184Z] [ERROR] ReferenceError: movies is not defined
+    at fetchAllMovieData (/workspaces/feelflick-app/scripts/pipeline/07-calculate-movie-scores.js:18:22)
+    at calculateMovieScores (/workspaces/feelflick-app/scripts/pipeline/07-calculate-movie-scores.js:38:52)
+    at Object.<anonymous> (/workspaces/feelflick-app/scripts/pipeline/07-calculate-movie-scores.js:141:3)
+    at Module._compile (node:internal/modules/cjs/loader:1706:14)
+    at Object..js (node:internal/modules/cjs/loader:1839:10)
+    at Module.load (node:internal/modules/cjs/loader:1441:32)
+    at Function._load (node:internal/modules/cjs/loader:1263:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:171:5)

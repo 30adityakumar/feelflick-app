@@ -12,6 +12,7 @@
 
 import { supabase } from '@/shared/lib/supabase/client'
 import * as tmdb from '@/shared/api/tmdb'
+import { recommendationCache } from '@/shared/lib/cache'
 
 // ============================================================================
 // FEELFLICK RECOMMENDATION ENGINE v2 - CONSTANTS
@@ -1303,7 +1304,7 @@ function determinePickReason(movie, profile, breakdown, seedSimilarity = {}) {
 
 /**
  * Get personalized top pick for Hero section
- * NOW WITH: Embedding similarity, diversity constraints, impression tracking
+ * NOW WITH: Embedding similarity, diversity constraints, impression tracking, CACHING
  * 
  * @param {string} userId - User UUID
  * @param {Object} options - Optional overrides
@@ -1315,13 +1316,27 @@ export async function getTopPickForUser(userId, options = {}) {
     forceRefresh = false
   } = options
 
+  // Check cache first (unless force refresh)
+  if (!forceRefresh) {
+    const cacheKey = recommendationCache.key('top_pick', userId || 'guest', { excludeIds })
+    const cached = recommendationCache.get(cacheKey)
+    if (cached) {
+      console.log('[getTopPickForUser] Cache hit')
+      return cached
+    }
+  }
+
   console.log('[getTopPickForUser] Called with userId:', userId, 'excludeIds:', excludeIds)
 
   try {
     // Handle guest users - use fallback with empty profile
     if (!userId) {
       console.log('[getTopPickForUser] No userId, using fallback')
-      return await getFallbackPick(null)
+      const result = await getFallbackPick(null)
+      // Cache guest picks for 2 minutes only
+      const cacheKey = recommendationCache.key('top_pick', 'guest', { excludeIds })
+      recommendationCache.set(cacheKey, result, 2 * 60 * 1000)
+      return result
     }
 
     // 1. Compute user profile
@@ -1391,7 +1406,7 @@ export async function getTopPickForUser(userId, options = {}) {
       .gte('release_year', currentYear - 2)
       .limit(50)
 
-    // Pool 4: EMBEDDING NEIGHBORS (semantic similarity to seeds) - NEW!
+    // Pool 4: EMBEDDING NEIGHBORS (semantic similarity to seeds)
     let embeddingNeighbors = []
     if (seedIds.length > 0) {
       const { data: embeddingMatches, error: embError } = await supabase
@@ -1429,7 +1444,6 @@ export async function getTopPickForUser(userId, options = {}) {
           _matchedSeedTitle: m.matched_seed_title || null
         })
       } else if (m.similarity && !candidateMap.get(m.id)._embeddingSimilarity) {
-        // Update with embedding data if we didn't have it
         const existing = candidateMap.get(m.id)
         existing._embeddingSimilarity = m.similarity
         existing._matchedSeedId = m.matched_seed_id
@@ -1446,38 +1460,31 @@ export async function getTopPickForUser(userId, options = {}) {
       totalUnique: candidates.length
     })
 
-    console.log('[getTopPickForUser] Exclusion check:', {
-      watchedIds: allExcludeIds.slice(0, 10),
-      totalWatched: allExcludeIds.length,
-      candidatesBefore: candidates.length
-    })
-
     if (!candidates || candidates.length === 0) {
-      return await getFallbackPick(profile)
+      const result = await getFallbackPick(profile)
+      const cacheKey = recommendationCache.key('top_pick', userId, { excludeIds })
+      recommendationCache.set(cacheKey, result)
+      return result
     }
 
     // 5. Filter out watched/excluded movies
     const eligibleCandidates = candidates.filter(m => !allExcludeIds.includes(m.id))
 
-    console.log('[getTopPickForUser] After exclusion:', {
-      candidatesAfter: eligibleCandidates.length,
-      excluded: candidates.length - eligibleCandidates.length
-    })
-
     if (eligibleCandidates.length === 0) {
-      return await getFallbackPick(profile)
+      const result = await getFallbackPick(profile)
+      const cacheKey = recommendationCache.key('top_pick', userId, { excludeIds })
+      recommendationCache.set(cacheKey, result)
+      return result
     }
 
     // 6. Score all candidates with EMBEDDING SIMILARITY boost
     const scoredCandidates = eligibleCandidates.map(movie => {
       const result = scoreMovieForUser(movie, profile, 'hero', seedFilms)
       
-      // EMBEDDING SIMILARITY BOOST (replaces/supplements rule-based seed similarity)
       let embeddingBoost = 0
       let embeddingReason = null
       
       if (movie._embeddingSimilarity) {
-        // Scale: 0.5 similarity = 0 points, 0.7 = 40 points, 0.9 = 80 points
         const simNormalized = Math.max(0, movie._embeddingSimilarity - 0.5) / 0.4
         embeddingBoost = Math.round(simNormalized * 80)
         embeddingReason = {
@@ -1499,7 +1506,6 @@ export async function getTopPickForUser(userId, options = {}) {
       }
     })
 
-    // Sort by personalization score
     scoredCandidates.sort((a, b) => b.score - a.score)
 
     // 7. Stage 2: Hero-specific adjustments on top 30
@@ -1507,13 +1513,11 @@ export async function getTopPickForUser(userId, options = {}) {
       let heroScore = candidate.score
       const movie = candidate.movie
       
-      // Freshness boost for Hero
       const age = movie.release_year ? currentYear - movie.release_year : 10
       if (age === 0) heroScore += 20
       else if (age === 1) heroScore += 12
       else if (age <= 3) heroScore += 5
       
-      // Variety boost - favor films from different directors than seeds
       const seedDirectors = seedFilms.map(s => s.director_name?.toLowerCase()).filter(Boolean)
       if (movie.director_name && !seedDirectors.includes(movie.director_name.toLowerCase())) {
         heroScore += 8
@@ -1526,17 +1530,16 @@ export async function getTopPickForUser(userId, options = {}) {
       }
     })
 
-    // Sort by hero-adjusted score
     top30.sort((a, b) => b.heroScore - a.heroScore)
 
-    // 8. DIVERSITY FILTER - NEW!
+    // 8. DIVERSITY FILTER
     const diverseTop5 = applyDiversityFilter(top30, seedFilms)
 
     // 9. Weighted random from diverse top 5
     const selected = weightedRandomSelect(diverseTop5)
     selected.score = selected.heroScore
 
-    // 10. Determine final pick reason (prioritize embedding match)
+    // 10. Determine final pick reason
     if (selected.embeddingReason && selected.embeddingBoost >= 30) {
       selected.pickReason = {
         label: `Because you loved ${selected.embeddingReason.seedTitle}`,
@@ -1546,18 +1549,6 @@ export async function getTopPickForUser(userId, options = {}) {
       }
     }
 
-    console.log('[getTopPickForUser] Profile confidence:', profile.meta.confidence)
-    console.log('[getTopPickForUser] Top 5 picks (diverse, hero-adjusted):', diverseTop5.map(c => ({
-      title: c.movie.title,
-      heroScore: c.heroScore,
-      originalScore: c.originalScore,
-      embeddingBoost: c.embeddingBoost,
-      embeddingSeed: c.embeddingReason?.seedTitle,
-      reason: c.pickReason.label,
-      year: c.movie.release_year,
-      director: c.movie.director_name,
-      genre: c.movie.primary_genre
-    })))
     console.log('[getTopPickForUser] Selected:', selected.movie.title, '| Reason:', selected.pickReason.label)
 
     // 11. LOG IMPRESSION (async, don't await)
@@ -1565,7 +1556,7 @@ export async function getTopPickForUser(userId, options = {}) {
       console.warn('[getTopPickForUser] Failed to log impression:', err.message)
     )
 
-    return {
+    const result = {
       movie: selected.movie,
       pickReason: selected.pickReason,
       score: selected.score,
@@ -1582,9 +1573,17 @@ export async function getTopPickForUser(userId, options = {}) {
       }
     }
 
+    // Cache the result
+    const cacheKey = recommendationCache.key('top_pick', userId, { excludeIds })
+    recommendationCache.set(cacheKey, result)
+
+    return result
+
   } catch (error) {
     console.error('[getTopPickForUser] Error:', error)
-    return await getFallbackPick(null)
+    const result = await getFallbackPick(null)
+    // Don't cache errors
+    return result
   }
 }
 
@@ -1827,6 +1826,14 @@ export async function getQuickPicksForUser(userId, options = {}) {
       return []
     }
 
+    // Check cache first
+    const cacheKey = recommendationCache.key('quick_picks', userId, { limit, excludeIds })
+    const cached = recommendationCache.get(cacheKey)
+    if (cached) {
+      console.log('[getQuickPicksForUser] Cache hit')
+      return cached
+    }
+
     // 1. Compute user profile
     const profile = await computeUserProfile(userId)
     
@@ -1992,12 +1999,19 @@ export async function getQuickPicksForUser(userId, options = {}) {
     )
 
     // 10. Return formatted results
-    return diverse.map(item => ({
+    const results = diverse.map(item => ({
       ...item.movie,
       _score: item.score,
       _pickReason: item.pickReason,
       _embeddingSimilarity: item.embeddingReason?.similarity || null
     }))
+
+    // Cache successful result
+    if (results?.length) {
+      recommendationCache.set(cacheKey, results)
+    }
+
+    return results
 
   } catch (error) {
     console.error('[getQuickPicksForUser] Error:', error)
@@ -2136,6 +2150,11 @@ export async function getGenreBasedRecommendations(userId, options = {}) {
     limit = 20,
     excludeIds = []
   } = options
+
+  // Check cache first
+  const cacheKey = recommendationCache.key('genre_based', userId || 'guest', { limit, excludeIds })
+  const cached = recommendationCache.get(cacheKey)
+  if (cached) return cached
 
   try {
     if (!userId) {
@@ -2344,18 +2363,25 @@ export async function getGenreBasedRecommendations(userId, options = {}) {
     )
 
     // 10. Return formatted results
-    return diverse.map(item => ({
+    const results = diverse.map(item => ({
       ...item.movie,
       _score: item.score,
       _pickReason: item.pickReason,
       _embeddingSimilarity: item.embeddingReason?.similarity || null
     }))
 
+    if (results?.length) {
+      recommendationCache.set(cacheKey, results)
+    }
+
+    return results
+
   } catch (error) {
     console.error('[getGenreBasedRecommendations] Error:', error)
     return await getGenreFallback(limit)
   }
 }
+
 
 
 /**
@@ -2649,8 +2675,18 @@ export async function getBecauseYouWatchedRows(userId, options = {}) {
   const {
     maxSeeds = 2,
     limitPerSeed = 20,
-    excludeIds = []
+    excludeIds = [],
+    signal
   } = options
+
+  const stableExcludeIds = Array.isArray(excludeIds) ? [...excludeIds].sort() : []
+  const cacheKey = recommendationCache.key('because_you_watched_rows', userId || 'guest', {
+    maxSeeds,
+    limitPerSeed,
+    excludeIds: stableExcludeIds
+  })
+  const cached = recommendationCache.get(cacheKey)
+  if (cached) return cached
 
   try {
     if (!userId) {
@@ -2693,11 +2729,11 @@ export async function getBecauseYouWatchedRows(userId, options = {}) {
     // Prioritize: rated highly > quality films > any recent
     const seenMovies = new Set()
     const potentialSeeds = []
-    
+
     for (const item of history) {
       if (!item.movies?.id || !item.movies?.title) continue
       if (seenMovies.has(item.movies.id)) continue
-      
+
       seenMovies.add(item.movies.id)
       potentialSeeds.push({
         id: item.movies.id,
@@ -2761,12 +2797,12 @@ export async function getBecauseYouWatchedRows(userId, options = {}) {
         const scored = similarMovies.map(movie => {
           // Embedding similarity is already in the result
           const similarity = movie.similarity || 0
-          
+
           // Base score from similarity
           let score = similarity * 100
 
           // Boost for same director
-          if (movie.director_name && seed.director && 
+          if (movie.director_name && seed.director &&
               movie.director_name.toLowerCase() === seed.director.toLowerCase()) {
             score += 15
           }
@@ -2798,15 +2834,15 @@ export async function getBecauseYouWatchedRows(userId, options = {}) {
         // Apply light diversity (max 2 per director)
         const diverse = []
         const directorCounts = new Map()
-        
+
         for (const item of scored) {
           if (diverse.length >= limitPerSeed) break
-          
+
           const director = item.movie.director_name?.toLowerCase() || 'unknown'
           const count = directorCounts.get(director) || 0
-          
+
           if (count >= 2) continue
-          
+
           diverse.push(item)
           directorCounts.set(director, count + 1)
         }
@@ -2862,6 +2898,11 @@ export async function getBecauseYouWatchedRows(userId, options = {}) {
     }
 
     console.log('[getBecauseYouWatchedRows] Total rows:', rows.length)
+
+    if (rows?.length) {
+      recommendationCache.set(cacheKey, rows)
+    }
+
     return rows
 
   } catch (error) {
@@ -2918,10 +2959,17 @@ export async function getTrendingForUser(userId, options = {}) {
     excludeIds = []
   } = options
 
+  // Check cache first
+  const cacheKey = recommendationCache.key('trending', userId || 'guest', { limit, excludeIds })
+  const cached = recommendationCache.get(cacheKey)
+  if (cached) return cached
+
   try {
     if (!userId) {
       console.log('[getTrendingForUser] No userId, returning popular fallback')
-      return await getTrendingFallback(limit)
+      const fallback = await getTrendingFallback(limit)
+      if (fallback?.length) recommendationCache.set(cacheKey, fallback)
+      return fallback
     }
 
     // 1. Compute user profile
@@ -3038,7 +3086,11 @@ export async function getTrendingForUser(userId, options = {}) {
     // 5. Filter out watched/excluded
     const eligible = candidates.filter(m => !allExcludeIds.includes(m.id))
 
-    if (eligible.length === 0) return await getTrendingFallback(limit)
+    if (eligible.length === 0) {
+      const fallback = await getTrendingFallback(limit)
+      if (fallback?.length) recommendationCache.set(cacheKey, fallback)
+      return fallback
+    }
 
     // 6. Score with TRENDING-SPECIFIC weights
     const scored = eligible.map(movie => {
@@ -3126,12 +3178,18 @@ export async function getTrendingForUser(userId, options = {}) {
     )
 
     // 10. Return formatted results
-    return diverse.map(item => ({
+    const results = diverse.map(item => ({
       ...item.movie,
       _score: item.score,
       _pickReason: item.pickReason,
       _embeddingSimilarity: item.embeddingReason?.similarity || null
     }))
+
+    if (results?.length) {
+      recommendationCache.set(cacheKey, results)
+    }
+
+    return results
 
   } catch (error) {
     console.error('[getTrendingForUser] Error:', error)
@@ -3190,10 +3248,17 @@ export async function getHiddenGemsForUser(userId, options = {}) {
     excludeIds = []
   } = options
 
+  // Check cache first
+  const cacheKey = recommendationCache.key('hidden_gems', userId || 'guest', { limit, excludeIds })
+  const cached = recommendationCache.get(cacheKey)
+  if (cached) return cached
+
   try {
     if (!userId) {
       console.log('[getHiddenGemsForUser] No userId, returning fallback')
-      return await getHiddenGemsFallback(limit)
+      const fallback = await getHiddenGemsFallback(limit)
+      if (fallback?.length) recommendationCache.set(cacheKey, fallback)
+      return fallback
     }
 
     // 1. Compute user profile
@@ -3311,7 +3376,11 @@ export async function getHiddenGemsForUser(userId, options = {}) {
     // 5. Filter out watched/excluded
     const eligible = candidates.filter(m => !allExcludeIds.includes(m.id))
 
-    if (eligible.length === 0) return await getHiddenGemsFallback(limit)
+    if (eligible.length === 0) {
+      const fallback = await getHiddenGemsFallback(limit)
+      if (fallback?.length) recommendationCache.set(cacheKey, fallback)
+      return fallback
+    }
 
     // 6. Score with HIDDEN GEM-SPECIFIC weights
     const scored = eligible.map(movie => {
@@ -3406,12 +3475,18 @@ export async function getHiddenGemsForUser(userId, options = {}) {
     )
 
     // 10. Return formatted results
-    return diverse.map(item => ({
+    const results = diverse.map(item => ({
       ...item.movie,
       _score: item.score,
       _pickReason: item.pickReason,
       _embeddingSimilarity: item.embeddingReason?.similarity || null
     }))
+
+    if (results?.length) {
+      recommendationCache.set(cacheKey, results)
+    }
+
+    return results
 
   } catch (error) {
     console.error('[getHiddenGemsForUser] Error:', error)
@@ -3532,10 +3607,17 @@ export async function getSlowContemplative(userId, options = {}) {
     excludeIds = []
   } = options
 
+  // Check cache first
+  const cacheKey = recommendationCache.key('slow_contemplative', userId || 'guest', { limit, excludeIds })
+  const cached = recommendationCache.get(cacheKey)
+  if (cached) return cached
+
   try {
     if (!userId) {
       console.log('[getSlowContemplative] No userId, returning fallback')
-      return await getSlowContemplativeFallback(limit)
+      const fallback = await getSlowContemplativeFallback(limit)
+      if (fallback?.length) recommendationCache.set(cacheKey, fallback)
+      return fallback
     }
 
     // 1. Compute user profile
@@ -3653,7 +3735,11 @@ export async function getSlowContemplative(userId, options = {}) {
     // 5. Filter out watched/excluded
     const eligible = candidates.filter(m => !allExcludeIds.includes(m.id))
 
-    if (eligible.length === 0) return await getSlowContemplativeFallback(limit)
+    if (eligible.length === 0) {
+      const fallback = await getSlowContemplativeFallback(limit)
+      if (fallback?.length) recommendationCache.set(cacheKey, fallback)
+      return fallback
+    }
 
     // 6. Score with MOOD-SPECIFIC weights
     const scored = eligible.map(movie => {
@@ -3755,12 +3841,18 @@ export async function getSlowContemplative(userId, options = {}) {
     )
 
     // 10. Return formatted results
-    return diverse.map(item => ({
+    const results = diverse.map(item => ({
       ...item.movie,
       _score: item.score,
       _pickReason: item.pickReason,
       _embeddingSimilarity: item.embeddingReason?.similarity || null
     }))
+
+    if (results?.length) {
+      recommendationCache.set(cacheKey, results)
+    }
+
+    return results
 
   } catch (error) {
     console.error('[getSlowContemplative] Error:', error)
@@ -3819,10 +3911,17 @@ export async function getQuickWatches(userId, options = {}) {
     excludeIds = []
   } = options
 
+  // Check cache first
+  const cacheKey = recommendationCache.key('quick_watches', userId || 'guest', { limit, excludeIds })
+  const cached = recommendationCache.get(cacheKey)
+  if (cached) return cached
+
   try {
     if (!userId) {
       console.log('[getQuickWatches] No userId, returning fallback')
-      return await getQuickWatchesFallback(limit)
+      const fallback = await getQuickWatchesFallback(limit)
+      if (fallback?.length) recommendationCache.set(cacheKey, fallback)
+      return fallback
     }
 
     // 1. Compute user profile
@@ -3940,7 +4039,11 @@ export async function getQuickWatches(userId, options = {}) {
     // 5. Filter out watched/excluded
     const eligible = candidates.filter(m => !allExcludeIds.includes(m.id))
 
-    if (eligible.length === 0) return await getQuickWatchesFallback(limit)
+    if (eligible.length === 0) {
+      const fallback = await getQuickWatchesFallback(limit)
+      if (fallback?.length) recommendationCache.set(cacheKey, fallback)
+      return fallback
+    }
 
     // 6. Score with RUNTIME-SPECIFIC weights
     const scored = eligible.map(movie => {
@@ -4037,18 +4140,25 @@ export async function getQuickWatches(userId, options = {}) {
     )
 
     // 10. Return formatted results
-    return diverse.map(item => ({
+    const results = diverse.map(item => ({
       ...item.movie,
       _score: item.score,
       _pickReason: item.pickReason,
       _embeddingSimilarity: item.embeddingReason?.similarity || null
     }))
 
+    if (results?.length) {
+      recommendationCache.set(cacheKey, results)
+    }
+
+    return results
+
   } catch (error) {
     console.error('[getQuickWatches] Error:', error)
     return await getQuickWatchesFallback(limit)
   }
 }
+
 
 
 /**

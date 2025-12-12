@@ -8,46 +8,52 @@ import HiddenGemsRow from './components/HiddenGemsRow'
 import TrendingForYouRow from './components/TrendingForYouRow'
 import SlowContemplativeRow from './components/SlowContemplativeRow'
 import QuickWatchesRow from './components/QuickWatchesRow'
+import LazyRow from '@/shared/components/LazyRow'
 import { useGenreRecommendations } from '@/shared/hooks/useRecommendations'
+import { useStaggeredEnabled } from '@/shared/hooks/useStaggeredEnabled'
 
 export default function HomePage() {
-  const genreRecs = useGenreRecommendations({ limit: 20 })
+  // Inside HomePage component
+  const enabledGenre = useStaggeredEnabled(50) // Small delay after BecauseYouWatched
+  const genreRecs = useGenreRecommendations({ limit: 20, enabled: enabledGenre })
 
   return (
     <div className="relative w-full bg-black text-white min-h-screen overflow-x-hidden">
-      {/* Hero: Tonight's top pick */}
       <HeroTopPick />
 
-      {/* Content Rows - overflow-visible is critical for card expansion */}
       <div className="relative z-30 pb-20 md:pb-8 mt-4 overflow-visible">
         <div className="space-y-2 sm:space-y-4 overflow-visible">
-          {/* Quick picks */}
+          {/* Above fold - load immediately */}
           <QuickPicksRow />
-
-          {/* Because you watched */}
           <BecauseYouWatchedSection />
 
-          {/* From your favorite genres */}
-          <PersonalizedCarouselRow
-            title="From your favorite genres"
-            movies={genreRecs.data}
-            loading={genreRecs.loading}
-            error={genreRecs.error}
-            rowId="favorite-genres"
-            placement="favorite_genres"
-          />
+          {/* Below fold - lazy load */}
+          <LazyRow>
+            <PersonalizedCarouselRow
+              title="From your favorite genres"
+              movies={genreRecs.data}
+              loading={genreRecs.loading}
+              error={genreRecs.error}
+              rowId="favorite-genres"
+              placement="favorite_genres"
+            />
+          </LazyRow>
 
-          {/* Hidden gems */}
-          <HiddenGemsRow />
+          <LazyRow>
+            <HiddenGemsRow />
+          </LazyRow>
 
-          {/* Trending this week */}
-          <TrendingForYouRow />
+          <LazyRow>
+            <TrendingForYouRow />
+          </LazyRow>
 
-          {/* Slow & Contemplative */}
-          <SlowContemplativeRow />
+          <LazyRow>
+            <SlowContemplativeRow />
+          </LazyRow>
 
-          {/* Quick Watches */}
-          <QuickWatchesRow />
+          <LazyRow>
+            <QuickWatchesRow />
+          </LazyRow>
         </div>
       </div>
     </div>

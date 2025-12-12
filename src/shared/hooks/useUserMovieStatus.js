@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/shared/lib/supabase/client'
 import { ensureMovieInDb } from '@/shared/lib/movies/ensureMovieInDb'
+import { recommendationCache } from '@/shared/lib/cache'
 
 /**
  * Handles user_movie status: watchlist + watched (history)
@@ -95,102 +96,112 @@ export function useUserMovieStatus({ user, movie, internalMovieId: explicitInter
   }, [user?.id, movieKey, explicitInternalId])
 
   const toggleWatchlist = useCallback(async () => {
-    if (!user || !resolvedInternalId || loading.watchlist) return
+  if (!user || !resolvedInternalId || loading.watchlist) return
 
-    setLoading(prev => ({ ...prev, watchlist: true }))
-    const wasInWatchlist = isInWatchlist
+  setLoading(prev => ({ ...prev, watchlist: true }))
+  const wasInWatchlist = isInWatchlist
 
-    try {
-      console.log('[toggleWatchlist] Using movie_id:', resolvedInternalId)
+  try {
+    console.log('[toggleWatchlist] Using movie_id:', resolvedInternalId)
 
-      if (wasInWatchlist) {
-        setIsInWatchlist(false)
+    if (wasInWatchlist) {
+      setIsInWatchlist(false)
 
-        const { error } = await supabase
-          .from('user_watchlist')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('movie_id', resolvedInternalId)
+      const { error } = await supabase
+        .from('user_watchlist')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('movie_id', resolvedInternalId)
 
-        if (error) throw error
-      } else {
-        setIsInWatchlist(true)
-        setIsWatched(false)
+      if (error) throw error
+    } else {
+      setIsInWatchlist(true)
+      setIsWatched(false)
 
-        const { error } = await supabase
-          .from('user_watchlist')
-          .upsert({
-            user_id: user.id,
-            movie_id: resolvedInternalId,
-            added_at: new Date().toISOString(),
-            status: 'want_to_watch'
-          }, { onConflict: 'user_id,movie_id' })
+      const { error } = await supabase
+        .from('user_watchlist')
+        .upsert({
+          user_id: user.id,
+          movie_id: resolvedInternalId,
+          added_at: new Date().toISOString(),
+          status: 'want_to_watch'
+        }, { onConflict: 'user_id,movie_id' })
 
-        if (error) throw error
+      if (error) throw error
 
-        await supabase
-          .from('user_history')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('movie_id', resolvedInternalId)
-      }
-    } catch (err) {
-      console.error('[toggleWatchlist] error:', err)
-      setIsInWatchlist(wasInWatchlist)
-    } finally {
-      setLoading(prev => ({ ...prev, watchlist: false }))
+      await supabase
+        .from('user_history')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('movie_id', resolvedInternalId)
     }
-  }, [user, resolvedInternalId, loading.watchlist, isInWatchlist])
+
+    // Invalidate cache after successful action
+    recommendationCache.invalidateUser(user.id)
+    console.log('[Cache] Invalidated after watchlist toggle')
+    
+  } catch (err) {
+    console.error('[toggleWatchlist] error:', err)
+    setIsInWatchlist(wasInWatchlist)
+  } finally {
+    setLoading(prev => ({ ...prev, watchlist: false }))
+  }
+}, [user, resolvedInternalId, loading.watchlist, isInWatchlist])
 
   const toggleWatched = useCallback(async () => {
-    if (!user || !resolvedInternalId || loading.watched) return
+  if (!user || !resolvedInternalId || loading.watched) return
 
-    setLoading(prev => ({ ...prev, watched: true }))
-    const wasWatched = isWatched
+  setLoading(prev => ({ ...prev, watched: true }))
+  const wasWatched = isWatched
 
-    try {
-      console.log('[toggleWatched] Using movie_id:', resolvedInternalId)
+  try {
+    console.log('[toggleWatched] Using movie_id:', resolvedInternalId)
 
-      if (wasWatched) {
-        setIsWatched(false)
+    if (wasWatched) {
+      setIsWatched(false)
 
-        const { error } = await supabase
-          .from('user_history')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('movie_id', resolvedInternalId)
+      const { error } = await supabase
+        .from('user_history')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('movie_id', resolvedInternalId)
 
-        if (error) throw error
-      } else {
-        setIsWatched(true)
-        setIsInWatchlist(false)
+      if (error) throw error
+    } else {
+      setIsWatched(true)
+      setIsInWatchlist(false)
 
-        const { error } = await supabase
-          .from('user_history')
-          .insert({
-            user_id: user.id,
-            movie_id: resolvedInternalId,
-            watched_at: new Date().toISOString(),
-            source,
-            watch_duration_minutes: null,
-            mood_session_id: null
-          })
+      const { error } = await supabase
+        .from('user_history')
+        .insert({
+          user_id: user.id,
+          movie_id: resolvedInternalId,
+          watched_at: new Date().toISOString(),
+          source,
+          watch_duration_minutes: null,
+          mood_session_id: null
+        })
 
-        if (error) throw error
+      if (error) throw error
 
-        await supabase
-          .from('user_watchlist')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('movie_id', resolvedInternalId)
-      }
-    } catch (err) {
-      console.error('[toggleWatched] error:', err)
-      setIsWatched(wasWatched)
-    } finally {
-      setLoading(prev => ({ ...prev, watched: false }))
+      await supabase
+        .from('user_watchlist')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('movie_id', resolvedInternalId)
     }
-  }, [user, resolvedInternalId, loading.watched, isWatched, source])
+
+    // Invalidate cache after successful action
+    recommendationCache.invalidateUser(user.id)
+    console.log('[Cache] Invalidated after watched toggle')
+    
+  } catch (err) {
+    console.error('[toggleWatched] error:', err)
+    setIsWatched(wasWatched)
+  } finally {
+    setLoading(prev => ({ ...prev, watched: false }))
+  }
+}, [user, resolvedInternalId, loading.watched, isWatched, source])
 
   return {
     isInWatchlist,

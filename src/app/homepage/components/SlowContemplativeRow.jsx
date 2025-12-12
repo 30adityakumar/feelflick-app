@@ -1,11 +1,12 @@
 // src/app/homepage/components/SlowContemplativeRow.jsx
-
 import { Coffee } from 'lucide-react'
 import PersonalizedCarouselRow from './PersonalizedCarouselRow'
 import { useSlowContemplative } from '@/shared/hooks/useRecommendations'
+import { useStaggeredEnabled } from '@/shared/hooks/useStaggeredEnabled'
 
 export default function SlowContemplativeRow() {
-  const { data, loading, error } = useSlowContemplative({ limit: 20 })
+  const enabled = useStaggeredEnabled(300) // 300ms delay
+  const { data, loading, error } = useSlowContemplative({ limit: 20, enabled })
 
   return (
     <PersonalizedCarouselRow

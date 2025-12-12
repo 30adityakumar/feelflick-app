@@ -1,11 +1,12 @@
 // src/app/homepage/components/TrendingForYouRow.jsx
-
 import { TrendingUp } from 'lucide-react'
 import PersonalizedCarouselRow from './PersonalizedCarouselRow'
 import { useTrendingForYou } from '@/shared/hooks/useRecommendations'
+import { useStaggeredEnabled } from '@/shared/hooks/useStaggeredEnabled'
 
 export default function TrendingForYouRow() {
-  const { data, loading, error } = useTrendingForYou({ limit: 20 })
+  const enabled = useStaggeredEnabled(200) // 200ms delay
+  const { data, loading, error } = useTrendingForYou({ limit: 20, enabled })
 
   return (
     <PersonalizedCarouselRow

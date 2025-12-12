@@ -248,3 +248,66 @@
 [2025-12-12T15:31:46.447Z] [INFO] Keywords: 4950 unique, 11264 links created
 [2025-12-12T15:31:46.447Z] [SUCCESS] 
 ✅ Genre/keyword processing complete! Run step 04 to fetch cast/crew.
+[2025-12-12T18:59:17.550Z] [INFO] 
+================================================================================
+[2025-12-12T18:59:17.550Z] [INFO] 🎭 PROCESS GENRES & KEYWORDS
+[2025-12-12T18:59:17.550Z] [INFO] ================================================================================
+
+[2025-12-12T18:59:17.550Z] [INFO] Limit: 1000 movies
+[2025-12-12T18:59:17.550Z] [INFO] Dry run: NO
+
+[2025-12-12T18:59:17.551Z] [INFO] 📚 Syncing genres from TMDB...
+[2025-12-12T18:59:17.606Z] [INFO]   Found 19 genres from TMDB
+[2025-12-12T18:59:17.716Z] [SUCCESS]   ✓ Synced 19 genres
+[2025-12-12T18:59:17.805Z] [INFO] 📊 Found 4 movies to process
+[2025-12-12T18:59:17.805Z] [INFO] 
+🎭 Processing genres for 4 movies...
+[2025-12-12T18:59:18.181Z] [INFO]   Inserting 10 genre links...
+[2025-12-12T18:59:18.321Z] [SUCCESS]   ✓ Processed 4 movies, inserted 10 genre links
+[2025-12-12T18:59:18.321Z] [INFO] 
+🏷️  Processing keywords for 4 movies...
+[2025-12-12T18:59:18.321Z] [INFO]   Found 0 unique keywords
+[2025-12-12T18:59:18.321Z] [SUCCESS]   ✓ Processed 0 movies
+[2025-12-12T18:59:18.321Z] [SUCCESS]   ✓ Inserted 0 keywords, 0 links
+[2025-12-12T18:59:18.322Z] [INFO] 
+📝 Updating status for 4 movies...
+[2025-12-12T18:59:18.381Z] [SUCCESS]   ✓ Updated 4 movies
+[2025-12-12T18:59:18.381Z] [INFO] 
+================================================================================
+[2025-12-12T18:59:18.381Z] [INFO] 📊 SUMMARY
+[2025-12-12T18:59:18.381Z] [INFO] ================================================================================
+
+[2025-12-12T18:59:18.382Z] [INFO] Total movies: 4
+[2025-12-12T18:59:18.382Z] [INFO] Genres: 10 links created
+[2025-12-12T18:59:18.382Z] [INFO] Keywords: 0 unique, 0 links created
+[2025-12-12T18:59:18.382Z] [INFO] Duration: 0.83s
+[2025-12-12T18:59:18.382Z] [SUCCESS] 
+✅ Genre/keyword processing complete! Run step 04 to fetch cast/crew.
+[2025-12-12T18:59:18.382Z] [INFO] 
+Log file: /workspaces/feelflick-app/logs/03-fetch-genres-keywords.log
+[2025-12-12T19:13:24.435Z] [INFO] 
+================================================================================
+[2025-12-12T19:13:24.435Z] [INFO] 🎭 PROCESS GENRES & KEYWORDS
+[2025-12-12T19:13:24.436Z] [INFO] ================================================================================
+
+[2025-12-12T19:13:24.436Z] [INFO] Limit: 1000 movies
+[2025-12-12T19:13:24.436Z] [INFO] Dry run: NO
+
+[2025-12-12T19:13:24.436Z] [INFO] 📚 Syncing genres from TMDB...
+[2025-12-12T19:13:24.480Z] [INFO]   Found 19 genres from TMDB
+[2025-12-12T19:13:24.626Z] [SUCCESS]   ✓ Synced 19 genres
+[2025-12-12T19:13:24.737Z] [INFO] 📊 Found 0 movies to process
+[2025-12-12T19:13:24.738Z] [WARN] ⚠️  No movies found to process
+[2025-12-12T19:15:45.189Z] [INFO] 
+================================================================================
+[2025-12-12T19:15:45.189Z] [INFO] 🎭 PROCESS GENRES & KEYWORDS
+[2025-12-12T19:15:45.190Z] [INFO] ================================================================================
+
+[2025-12-12T19:15:45.190Z] [INFO] Limit: 1000 movies
+[2025-12-12T19:15:45.190Z] [INFO] Dry run: NO
+
+[2025-12-12T19:15:45.190Z] [INFO] 📚 Syncing genres from TMDB...
+[2025-12-12T19:15:45.235Z] [INFO]   Found 19 genres from TMDB
+[2025-12-12T19:15:45.330Z] [SUCCESS]   ✓ Synced 19 genres
+[2025-12-12T19:15:45.374Z] [INFO] 📊 Found 0 movies to process
+[2025-12-12T19:15:45.375Z] [WARN] ⚠️  No movies found to process

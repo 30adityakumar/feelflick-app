@@ -2708,3 +2708,61 @@
 
 [2025-12-12T15:31:46.889Z] [INFO] Started at: 2025-12-12T15:31:46.889Z
 [2025-12-12T15:31:47.000Z] [INFO] ✓ No movies need cast metadata calculation
+[2025-12-12T18:59:20.860Z] [INFO] 
+================================================================================
+[2025-12-12T18:59:20.861Z] [INFO] 📊 CALCULATE CAST METADATA
+[2025-12-12T18:59:20.861Z] [INFO] ================================================================================
+
+[2025-12-12T18:59:20.861Z] [INFO] Limit: 2000 movies
+[2025-12-12T18:59:20.861Z] [INFO] Dry run: NO
+
+[2025-12-12T18:59:21.918Z] [INFO] ✓ No movies need cast metadata calculation
+[2025-12-12T19:13:27.468Z] [INFO] 
+================================================================================
+[2025-12-12T19:13:27.468Z] [INFO] 📊 CALCULATE CAST METADATA
+[2025-12-12T19:13:27.468Z] [INFO] ================================================================================
+
+[2025-12-12T19:13:27.469Z] [INFO] Limit: 2000 movies
+[2025-12-12T19:13:27.469Z] [INFO] Dry run: NO
+
+[2025-12-12T19:13:28.232Z] [INFO] Found 4 movies needing cast metadata calculation
+
+[2025-12-12T19:13:28.233Z] [DEBUG]   Calculating cast metadata for: A Paw Patrol Christmas (id: 11625)
+[2025-12-12T19:13:28.348Z] [DEBUG]   ✓ Cast metadata calculated for: A Paw Patrol Christmas | {"count":13,"avg":"0.45","max":"1.16","top3":"0.35"}
+[2025-12-12T19:13:28.348Z] [DEBUG]   Calculating cast metadata for: Your Heart Will Be Broken (id: 11626)
+[2025-12-12T19:13:28.413Z] [DEBUG]   ✓ Cast metadata calculated for: Your Heart Will Be Broken | {"count":15,"avg":"0.55","max":"1.91","top3":"1.11"}
+[2025-12-12T19:13:28.413Z] [DEBUG]   Calculating cast metadata for: Nuremberg (id: 11628)
+[2025-12-12T19:13:28.505Z] [DEBUG]   ✓ Cast metadata calculated for: Nuremberg | {"count":15,"avg":"1.93","max":"4.57","top3":"4.14"}
+[2025-12-12T19:13:28.505Z] [DEBUG]   Calculating cast metadata for: The Monuments Men (id: 11627)
+[2025-12-12T19:13:28.561Z] [DEBUG]   ✓ Cast metadata calculated for: The Monuments Men | {"count":15,"avg":"2.94","max":"17.29","top3":"8.61"}
+[2025-12-12T19:13:28.562Z] [INFO] 
+Flushing final batch updates...
+[2025-12-12T19:13:28.649Z] [SUCCESS] ✓ Updated 4 movies
+[2025-12-12T19:13:28.650Z] [INFO] 
+================================================================================
+[2025-12-12T19:13:28.650Z] [INFO] 📊 SUMMARY
+[2025-12-12T19:13:28.650Z] [INFO] ================================================================================
+
+[2025-12-12T19:13:28.650Z] [INFO] Total movies: 4
+[2025-12-12T19:13:28.650Z] [SUCCESS] ✓ Successfully processed: 4
+[2025-12-12T19:13:28.650Z] [INFO] 
+Cast Statistics:
+[2025-12-12T19:13:28.650Z] [INFO]   Average cast per movie: 14.5
+[2025-12-12T19:13:28.650Z] [INFO]   Movies with recognizable stars: 0 (0.0%)
+[2025-12-12T19:13:28.650Z] [INFO]   Movies with zero cast: 0
+[2025-12-12T19:13:28.651Z] [INFO] 
+Duration: 1.18s
+[2025-12-12T19:13:28.651Z] [INFO] Average: 203.4 movies/minute
+[2025-12-12T19:13:28.651Z] [SUCCESS] 
+✅ Cast metadata calculation complete! Run step 06 to fetch external ratings.
+[2025-12-12T19:13:28.651Z] [INFO] 
+Log file: /workspaces/feelflick-app/logs/05-calculate-cast-metadata.log
+[2025-12-12T19:15:45.775Z] [INFO] 
+================================================================================
+[2025-12-12T19:15:45.776Z] [INFO] 📊 CALCULATE CAST METADATA
+[2025-12-12T19:15:45.776Z] [INFO] ================================================================================
+
+[2025-12-12T19:15:45.776Z] [INFO] Limit: 2000 movies
+[2025-12-12T19:15:45.776Z] [INFO] Dry run: NO
+
+[2025-12-12T19:15:46.404Z] [INFO] ✓ No movies need cast metadata calculation

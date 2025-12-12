@@ -532,3 +532,39 @@
 [2025-12-12T15:32:06.472Z] [SUCCESS] 
 ✅ Mood score calculation complete!
 [2025-12-12T15:32:06.472Z] [INFO] Log file: /workspaces/feelflick-app/logs/09-calculate-mood-scores.log
+[2025-12-12T19:01:26.143Z] [INFO] 
+================================================================================
+[2025-12-12T19:01:26.143Z] [INFO] 🎭 CALCULATE MOOD SCORES
+[2025-12-12T19:01:26.143Z] [INFO] ================================================================================
+
+[2025-12-12T19:01:26.143Z] [INFO] Started at: 2025-12-12T19:01:26.143Z
+[2025-12-12T19:01:26.266Z] [INFO] Found 15 active moods: Adventurous, Cozy, Heartbroken, Energized, Curious, Nostalgic, Anxious, Romantic, Inspired, Restless, Melancholic, Playful, Silly, Dark, Overwhelmed
+[2025-12-12T19:01:26.926Z] [INFO] Checking 6880 movies for existing mood scores (batched)...
+[2025-12-12T19:01:31.329Z] [INFO] Found 6880 movies that already have mood scores
+[2025-12-12T19:01:31.330Z] [INFO] ✓ All movies already have mood scores
+[2025-12-12T19:15:56.455Z] [INFO] 
+================================================================================
+[2025-12-12T19:15:56.455Z] [INFO] 🎭 CALCULATE MOOD SCORES
+[2025-12-12T19:15:56.456Z] [INFO] ================================================================================
+
+[2025-12-12T19:15:56.456Z] [INFO] Started at: 2025-12-12T19:15:56.456Z
+[2025-12-12T19:15:56.559Z] [INFO] Found 15 active moods: Adventurous, Cozy, Heartbroken, Energized, Curious, Nostalgic, Anxious, Romantic, Inspired, Restless, Melancholic, Playful, Silly, Dark, Overwhelmed
+[2025-12-12T19:15:57.100Z] [INFO] Checking 6888 movies for existing mood scores (batched)...
+[2025-12-12T19:16:00.513Z] [INFO] Found 6880 movies that already have mood scores
+[2025-12-12T19:16:00.514Z] [INFO] Found 8 movies needing mood score calculations
+[2025-12-12T19:16:00.514Z] [INFO] Calculating 8 movies × 15 moods = 120 total scores
+
+[2025-12-12T19:16:01.369Z] [INFO] 
+================================================================================
+[2025-12-12T19:16:01.369Z] [INFO] 📊 SUMMARY
+[2025-12-12T19:16:01.369Z] [INFO] ================================================================================
+
+[2025-12-12T19:16:01.369Z] [INFO] Total movies processed: 8
+[2025-12-12T19:16:01.369Z] [SUCCESS] ✓ Successful: 8
+[2025-12-12T19:16:01.369Z] [INFO] Total mood scores calculated: 120
+[2025-12-12T19:16:01.370Z] [INFO] Average scores per movie: 15.0
+[2025-12-12T19:16:01.370Z] [INFO] Duration: 4.91s
+[2025-12-12T19:16:01.370Z] [INFO] Average: 97.8 movies/minute
+[2025-12-12T19:16:01.370Z] [SUCCESS] 
+✅ Mood score calculation complete!
+[2025-12-12T19:16:01.370Z] [INFO] Log file: /workspaces/feelflick-app/logs/09-calculate-mood-scores.log

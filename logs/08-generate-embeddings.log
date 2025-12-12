@@ -179,3 +179,140 @@
 [2025-12-12T15:35:32.026Z] [INFO] Batch mode: enabled
 [2025-12-12T15:35:32.026Z] [INFO] Max movies: 10000
 [2025-12-12T15:35:32.371Z] [INFO] ✓ All movies have embeddings
+[2025-12-12T18:58:48.209Z] [INFO] 
+================================================================================
+[2025-12-12T18:58:48.209Z] [INFO] 🤖 GENERATE EMBEDDINGS (OpenAI)
+[2025-12-12T18:58:48.209Z] [INFO] ================================================================================
+
+[2025-12-12T18:58:48.209Z] [INFO] Model: text-embedding-3-small (1536 dimensions)
+[2025-12-12T18:58:48.223Z] [INFO] Max movies: 10
+[2025-12-12T18:58:48.223Z] [INFO] Dry run: NO
+[2025-12-12T18:58:48.223Z] [INFO] API Key: ✓
+
+[2025-12-12T18:58:48.348Z] [INFO] Found 4 movies needing embeddings
+
+[2025-12-12T18:58:48.348Z] [DEBUG] 1/4 Generating embedding: The Fakenapping (~66 tokens)
+[2025-12-12T18:58:49.559Z] [SUCCESS]   ✓ The Fakenapping
+[2025-12-12T18:58:49.710Z] [DEBUG] 2/4 Generating embedding: Lost in the Spotlight (~63 tokens)
+[2025-12-12T18:58:50.689Z] [SUCCESS]   ✓ Lost in the Spotlight
+[2025-12-12T18:58:50.840Z] [DEBUG] 3/4 Generating embedding: Silent Night, Deadly Night (~126 tokens)
+[2025-12-12T18:58:52.149Z] [SUCCESS]   ✓ Silent Night, Deadly Night
+[2025-12-12T18:58:52.300Z] [DEBUG] 4/4 Generating embedding: The Mastermind (~111 tokens)
+[2025-12-12T18:58:53.390Z] [SUCCESS]   ✓ The Mastermind
+[2025-12-12T18:58:53.390Z] [INFO] 
+Flushing final batch...
+[2025-12-12T18:58:53.605Z] [ERROR] Batch update failed: expected 3072 dimensions, not 1536
+[2025-12-12T18:58:53.605Z] [INFO] 
+================================================================================
+[2025-12-12T18:58:53.606Z] [INFO] 📊 SUMMARY
+[2025-12-12T18:58:53.606Z] [INFO] ================================================================================
+
+[2025-12-12T18:58:53.606Z] [INFO] Total movies: 4
+[2025-12-12T18:58:53.606Z] [SUCCESS] ✓ Successfully generated: 4
+[2025-12-12T18:58:53.606Z] [INFO] 
+Tokens & Cost:
+[2025-12-12T18:58:53.606Z] [INFO]   Total tokens: 366
+[2025-12-12T18:58:53.606Z] [INFO]   Estimated cost: $0.0000
+[2025-12-12T18:58:53.606Z] [INFO] 
+Performance:
+[2025-12-12T18:58:53.606Z] [INFO]   Duration: 5.40s
+[2025-12-12T18:58:53.607Z] [INFO]   Average: 44.4 embeddings/minute
+[2025-12-12T18:58:53.607Z] [SUCCESS] 
+✅ Embedding generation complete!
+[2025-12-12T18:58:53.607Z] [SUCCESS]    Movies are now status='complete' and ready for recommendations! 🎉
+[2025-12-12T18:58:53.607Z] [INFO] 
+Log file: /workspaces/feelflick-app/logs/08-generate-embeddings.log
+[2025-12-12T19:01:21.050Z] [INFO] 
+================================================================================
+[2025-12-12T19:01:21.050Z] [INFO] 🤖 GENERATE EMBEDDINGS (OpenAI)
+[2025-12-12T19:01:21.050Z] [INFO] ================================================================================
+
+[2025-12-12T19:01:21.051Z] [INFO] Model: text-embedding-3-small (1536 dimensions)
+[2025-12-12T19:01:21.065Z] [INFO] Max movies: 10,000
+[2025-12-12T19:01:21.065Z] [INFO] Dry run: NO
+[2025-12-12T19:01:21.065Z] [INFO] API Key: ✓
+
+[2025-12-12T19:01:21.185Z] [INFO] Found 4 movies needing embeddings
+
+[2025-12-12T19:01:21.186Z] [DEBUG] 1/4 Generating embedding: The Fakenapping (~66 tokens)
+[2025-12-12T19:01:21.456Z] [SUCCESS]   ✓ The Fakenapping
+[2025-12-12T19:01:21.607Z] [DEBUG] 2/4 Generating embedding: Lost in the Spotlight (~63 tokens)
+[2025-12-12T19:01:22.761Z] [SUCCESS]   ✓ Lost in the Spotlight
+[2025-12-12T19:01:22.912Z] [DEBUG] 3/4 Generating embedding: Silent Night, Deadly Night (~126 tokens)
+[2025-12-12T19:01:24.731Z] [SUCCESS]   ✓ Silent Night, Deadly Night
+[2025-12-12T19:01:24.882Z] [DEBUG] 4/4 Generating embedding: The Mastermind (~111 tokens)
+[2025-12-12T19:01:25.855Z] [SUCCESS]   ✓ The Mastermind
+[2025-12-12T19:01:25.855Z] [INFO] 
+Flushing final batch...
+[2025-12-12T19:01:26.050Z] [ERROR] Batch update failed: expected 3072 dimensions, not 1536
+[2025-12-12T19:01:26.050Z] [INFO] 
+================================================================================
+[2025-12-12T19:01:26.051Z] [INFO] 📊 SUMMARY
+[2025-12-12T19:01:26.051Z] [INFO] ================================================================================
+
+[2025-12-12T19:01:26.051Z] [INFO] Total movies: 4
+[2025-12-12T19:01:26.051Z] [SUCCESS] ✓ Successfully generated: 4
+[2025-12-12T19:01:26.051Z] [INFO] 
+Tokens & Cost:
+[2025-12-12T19:01:26.051Z] [INFO]   Total tokens: 366
+[2025-12-12T19:01:26.051Z] [INFO]   Estimated cost: $0.0000
+[2025-12-12T19:01:26.051Z] [INFO] 
+Performance:
+[2025-12-12T19:01:26.051Z] [INFO]   Duration: 5.00s
+[2025-12-12T19:01:26.052Z] [INFO]   Average: 48.0 embeddings/minute
+[2025-12-12T19:01:26.052Z] [SUCCESS] 
+✅ Embedding generation complete!
+[2025-12-12T19:01:26.052Z] [SUCCESS]    Movies are now status='complete' and ready for recommendations! 🎉
+[2025-12-12T19:01:26.052Z] [INFO] 
+Log file: /workspaces/feelflick-app/logs/08-generate-embeddings.log
+[2025-12-12T19:15:47.988Z] [INFO] 
+================================================================================
+[2025-12-12T19:15:47.989Z] [INFO] 🤖 GENERATE EMBEDDINGS (OpenAI)
+[2025-12-12T19:15:47.989Z] [INFO] ================================================================================
+
+[2025-12-12T19:15:47.989Z] [INFO] Model: text-embedding-3-small (1536 dimensions)
+[2025-12-12T19:15:48.003Z] [INFO] Max movies: 10,000
+[2025-12-12T19:15:48.003Z] [INFO] Dry run: NO
+[2025-12-12T19:15:48.003Z] [INFO] API Key: ✓
+
+[2025-12-12T19:15:48.114Z] [INFO] Found 8 movies needing embeddings
+
+[2025-12-12T19:15:48.115Z] [DEBUG] 1/8 Generating embedding: The Fakenapping (~66 tokens)
+[2025-12-12T19:15:49.153Z] [SUCCESS]   ✓ The Fakenapping
+[2025-12-12T19:15:49.303Z] [DEBUG] 2/8 Generating embedding: Silent Night, Deadly Night (~126 tokens)
+[2025-12-12T19:15:50.315Z] [SUCCESS]   ✓ Silent Night, Deadly Night
+[2025-12-12T19:15:50.465Z] [DEBUG] 3/8 Generating embedding: A Paw Patrol Christmas (~106 tokens)
+[2025-12-12T19:15:50.927Z] [SUCCESS]   ✓ A Paw Patrol Christmas
+[2025-12-12T19:15:51.077Z] [DEBUG] 4/8 Generating embedding: Your Heart Will Be Broken (~99 tokens)
+[2025-12-12T19:15:51.502Z] [SUCCESS]   ✓ Your Heart Will Be Broken
+[2025-12-12T19:15:51.653Z] [DEBUG] 5/8 Generating embedding: Nuremberg (~79 tokens)
+[2025-12-12T19:15:51.839Z] [SUCCESS]   ✓ Nuremberg
+[2025-12-12T19:15:51.989Z] [DEBUG] 6/8 Generating embedding: The Monuments Men (~141 tokens)
+[2025-12-12T19:15:54.134Z] [SUCCESS]   ✓ The Monuments Men
+[2025-12-12T19:15:54.284Z] [DEBUG] 7/8 Generating embedding: Lost in the Spotlight (~63 tokens)
+[2025-12-12T19:15:55.102Z] [SUCCESS]   ✓ Lost in the Spotlight
+[2025-12-12T19:15:55.253Z] [DEBUG] 8/8 Generating embedding: The Mastermind (~111 tokens)
+[2025-12-12T19:15:56.022Z] [SUCCESS]   ✓ The Mastermind
+[2025-12-12T19:15:56.022Z] [INFO] 
+Flushing final batch...
+[2025-12-12T19:15:56.361Z] [SUCCESS] ✓ Final batch updated: 8 movies
+[2025-12-12T19:15:56.362Z] [INFO] 
+================================================================================
+[2025-12-12T19:15:56.362Z] [INFO] 📊 SUMMARY
+[2025-12-12T19:15:56.362Z] [INFO] ================================================================================
+
+[2025-12-12T19:15:56.362Z] [INFO] Total movies: 8
+[2025-12-12T19:15:56.362Z] [SUCCESS] ✓ Successfully generated: 8
+[2025-12-12T19:15:56.362Z] [INFO] 
+Tokens & Cost:
+[2025-12-12T19:15:56.362Z] [INFO]   Total tokens: 791
+[2025-12-12T19:15:56.362Z] [INFO]   Estimated cost: $0.0000
+[2025-12-12T19:15:56.362Z] [INFO] 
+Performance:
+[2025-12-12T19:15:56.363Z] [INFO]   Duration: 8.37s
+[2025-12-12T19:15:56.363Z] [INFO]   Average: 57.3 embeddings/minute
+[2025-12-12T19:15:56.363Z] [SUCCESS] 
+✅ Embedding generation complete!
+[2025-12-12T19:15:56.363Z] [SUCCESS]    Movies are now status='complete' and ready for recommendations! 🎉
+[2025-12-12T19:15:56.363Z] [INFO] 
+Log file: /workspaces/feelflick-app/logs/08-generate-embeddings.log

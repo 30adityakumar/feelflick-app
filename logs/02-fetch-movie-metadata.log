@@ -862,3 +862,87 @@
 [2025-12-12T14:45:10.085Z] [INFO] Update stale: NO
 [2025-12-12T14:45:10.235Z] [INFO] 📊 Found 0 movies needing metadata
 [2025-12-12T14:45:10.235Z] [WARN] ⚠️  No movies found. Database is up to date.
+[2025-12-12T18:58:32.088Z] [INFO] 
+================================================================================
+[2025-12-12T18:58:32.088Z] [INFO] 📥 FETCH MOVIE METADATA FROM TMDB
+[2025-12-12T18:58:32.088Z] [INFO] ================================================================================
+
+[2025-12-12T18:58:32.089Z] [INFO] Limit: 1 movies
+[2025-12-12T18:58:32.089Z] [INFO] Dry run: NO
+[2025-12-12T18:58:32.089Z] [INFO] 
+[2025-12-12T18:58:32.090Z] [INFO] Mode: Fetch new movies (status=pending)
+[2025-12-12T18:58:32.250Z] [INFO] Found 1 movies needing metadata
+
+[2025-12-12T18:58:32.251Z] [DEBUG] 1/1 Fetching: TMDB 1507275
+[2025-12-12T18:58:32.418Z] [SUCCESS]   ✓ A Paw Patrol Christmas (2025)
+[2025-12-12T18:58:32.669Z] [INFO] 
+Flushing final batch updates...
+[2025-12-12T18:58:32.792Z] [SUCCESS] ✓ Updated 1 movies
+[2025-12-12T18:58:32.792Z] [INFO] 
+================================================================================
+[2025-12-12T18:58:32.792Z] [INFO] 📊 SUMMARY
+[2025-12-12T18:58:32.792Z] [INFO] ================================================================================
+
+[2025-12-12T18:58:32.792Z] [INFO] Total movies: 1
+[2025-12-12T18:58:32.792Z] [SUCCESS] ✓ Successfully fetched: 1
+[2025-12-12T18:58:32.792Z] [INFO] TMDB API calls: 1
+[2025-12-12T18:58:32.793Z] [INFO] Duration: 0.70s
+[2025-12-12T18:58:32.793Z] [INFO] Average: 85.7 movies/minute
+[2025-12-12T18:58:32.793Z] [SUCCESS] 
+✅ Metadata fetch complete! Run step 03 to fetch genres/keywords.
+[2025-12-12T18:58:32.793Z] [INFO] 
+Log file: /workspaces/feelflick-app/logs/02-fetch-movie-metadata.log
+[2025-12-12T18:59:16.345Z] [INFO] 
+================================================================================
+[2025-12-12T18:59:16.345Z] [INFO] 📥 FETCH MOVIE METADATA FROM TMDB
+[2025-12-12T18:59:16.345Z] [INFO] ================================================================================
+
+[2025-12-12T18:59:16.345Z] [INFO] Limit: 1000 movies
+[2025-12-12T18:59:16.345Z] [INFO] Dry run: NO
+[2025-12-12T18:59:16.346Z] [INFO] 
+[2025-12-12T18:59:16.346Z] [INFO] Mode: Fetch new movies (status=pending)
+[2025-12-12T18:59:16.517Z] [INFO] Found 3 movies needing metadata
+
+[2025-12-12T18:59:16.517Z] [DEBUG] 1/3 Fetching: TMDB 1523145
+[2025-12-12T18:59:16.551Z] [SUCCESS]   ✓ Your Heart Will Be Broken (2026)
+[2025-12-12T18:59:16.802Z] [DEBUG] 2/3 Fetching: TMDB 152760
+[2025-12-12T18:59:16.822Z] [SUCCESS]   ✓ The Monuments Men (2014)
+[2025-12-12T18:59:17.073Z] [DEBUG] 3/3 Fetching: TMDB 1214931
+[2025-12-12T18:59:17.089Z] [SUCCESS]   ✓ Nuremberg (2025)
+[2025-12-12T18:59:17.340Z] [INFO] 
+Flushing final batch updates...
+[2025-12-12T18:59:17.432Z] [SUCCESS] ✓ Updated 3 movies
+[2025-12-12T18:59:17.432Z] [INFO] 
+================================================================================
+[2025-12-12T18:59:17.432Z] [INFO] 📊 SUMMARY
+[2025-12-12T18:59:17.432Z] [INFO] ================================================================================
+
+[2025-12-12T18:59:17.432Z] [INFO] Total movies: 3
+[2025-12-12T18:59:17.432Z] [SUCCESS] ✓ Successfully fetched: 3
+[2025-12-12T18:59:17.432Z] [INFO] TMDB API calls: 3
+[2025-12-12T18:59:17.433Z] [INFO] Duration: 1.09s
+[2025-12-12T18:59:17.433Z] [INFO] Average: 165.1 movies/minute
+[2025-12-12T18:59:17.433Z] [SUCCESS] 
+✅ Metadata fetch complete! Run step 03 to fetch genres/keywords.
+[2025-12-12T18:59:17.433Z] [INFO] 
+Log file: /workspaces/feelflick-app/logs/02-fetch-movie-metadata.log
+[2025-12-12T19:13:24.043Z] [INFO] 
+================================================================================
+[2025-12-12T19:13:24.043Z] [INFO] 📥 FETCH MOVIE METADATA FROM TMDB
+[2025-12-12T19:13:24.043Z] [INFO] ================================================================================
+
+[2025-12-12T19:13:24.044Z] [INFO] Limit: 1000 movies
+[2025-12-12T19:13:24.044Z] [INFO] Dry run: NO
+[2025-12-12T19:13:24.044Z] [INFO] 
+[2025-12-12T19:13:24.045Z] [INFO] Mode: Fetch new movies (status=pending)
+[2025-12-12T19:13:24.266Z] [INFO] ✓ No movies need metadata fetching
+[2025-12-12T19:15:44.895Z] [INFO] 
+================================================================================
+[2025-12-12T19:15:44.895Z] [INFO] 📥 FETCH MOVIE METADATA FROM TMDB
+[2025-12-12T19:15:44.895Z] [INFO] ================================================================================
+
+[2025-12-12T19:15:44.895Z] [INFO] Limit: 1000 movies
+[2025-12-12T19:15:44.895Z] [INFO] Dry run: NO
+[2025-12-12T19:15:44.895Z] [INFO] 
+[2025-12-12T19:15:44.896Z] [INFO] Mode: Fetch new movies (status=pending)
+[2025-12-12T19:15:45.029Z] [INFO] ✓ No movies need metadata fetching

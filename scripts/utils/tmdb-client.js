@@ -44,7 +44,7 @@ const tmdbClient = {
     const params = appendToResponse ? { append_to_response: appendToResponse } : {};
     return this.request(`/movie/${movieId}`, params);
   },
-
+  
   /**
    * Get movie credits (cast and crew)
    */

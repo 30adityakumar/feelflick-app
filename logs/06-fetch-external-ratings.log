@@ -200,3 +200,459 @@
 [2025-12-12T15:31:54.320Z] [INFO] Movies processed:
 [2025-12-12T15:31:54.320Z] [INFO] Failed:
 [2025-12-12T15:31:54.320Z] [SUCCESS] External ratings fetch complete!
+[2025-12-12T18:59:22.084Z] [INFO] 
+================================================================================
+[2025-12-12T18:59:22.084Z] [INFO] 🎬 FETCH EXTERNAL RATINGS (OMDb)
+[2025-12-12T18:59:22.084Z] [INFO] ================================================================================
+
+[2025-12-12T18:59:22.084Z] [INFO] Limit: 100 movies
+[2025-12-12T18:59:22.084Z] [INFO] Dry run: NO
+[2025-12-12T18:59:22.085Z] [INFO] API Key: ✓
+
+[2025-12-12T18:59:22.244Z] [INFO] Found 100 movies needing external ratings
+
+[2025-12-12T18:59:22.244Z] [DEBUG] 1/100 Your Heart Will Be Broken
+[2025-12-12T18:59:22.244Z] [DEBUG]   Fetching ratings for: Your Heart Will Be Broken (tt38190257)
+[2025-12-12T18:59:22.323Z] [WARN]   ⚠️  Incorrect IMDb ID. for Your Heart Will Be Broken
+[2025-12-12T18:59:23.376Z] [DEBUG] 2/100 Interstellar
+[2025-12-12T18:59:23.376Z] [DEBUG]   Fetching ratings for: Interstellar (tt0816692)
+[2025-12-12T18:59:23.478Z] [ERROR]   ✗ Failed for Interstellar: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T18:59:24.479Z] [DEBUG] 3/100 Inception
+[2025-12-12T18:59:24.479Z] [DEBUG]   Fetching ratings for: Inception (tt1375666)
+[2025-12-12T18:59:24.574Z] [ERROR]   ✗ Failed for Inception: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T18:59:25.575Z] [DEBUG] 4/100 The Dark Knight
+[2025-12-12T18:59:25.576Z] [DEBUG]   Fetching ratings for: The Dark Knight (tt0468569)
+[2025-12-12T18:59:25.680Z] [ERROR]   ✗ Failed for The Dark Knight: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T18:59:26.681Z] [DEBUG] 5/100 The Avengers
+[2025-12-12T18:59:26.681Z] [DEBUG]   Fetching ratings for: The Avengers (tt0848228)
+[2025-12-12T18:59:26.783Z] [ERROR]   ✗ Failed for The Avengers: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T18:59:27.783Z] [DEBUG] 6/100 Avatar
+[2025-12-12T18:59:27.784Z] [DEBUG]   Fetching ratings for: Avatar (tt0499549)
+[2025-12-12T18:59:27.889Z] [ERROR]   ✗ Failed for Avatar: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T18:59:28.889Z] [DEBUG] 7/100 Deadpool
+[2025-12-12T18:59:28.889Z] [DEBUG]   Fetching ratings for: Deadpool (tt1431045)
+[2025-12-12T18:59:28.985Z] [ERROR]   ✗ Failed for Deadpool: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T18:59:29.985Z] [DEBUG] 8/100 Avengers: Infinity War
+[2025-12-12T18:59:29.986Z] [DEBUG]   Fetching ratings for: Avengers: Infinity War (tt4154756)
+[2025-12-12T18:59:30.134Z] [ERROR]   ✗ Failed for Avengers: Infinity War: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T18:59:31.135Z] [DEBUG] 9/100 Fight Club
+[2025-12-12T18:59:31.135Z] [DEBUG]   Fetching ratings for: Fight Club (tt0137523)
+[2025-12-12T18:59:31.276Z] [ERROR]   ✗ Failed for Fight Club: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T18:59:32.275Z] [DEBUG] 10/100 Pulp Fiction
+[2025-12-12T18:59:32.276Z] [DEBUG]   Fetching ratings for: Pulp Fiction (tt0110912)
+[2025-12-12T18:59:32.378Z] [ERROR]   ✗ Failed for Pulp Fiction: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T18:59:33.379Z] [DEBUG] 11/100 The Shawshank Redemption
+[2025-12-12T18:59:33.379Z] [DEBUG]   Fetching ratings for: The Shawshank Redemption (tt0111161)
+[2025-12-12T18:59:33.490Z] [ERROR]   ✗ Failed for The Shawshank Redemption: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T18:59:34.490Z] [DEBUG] 12/100 Guardians of the Galaxy
+[2025-12-12T18:59:34.490Z] [DEBUG]   Fetching ratings for: Guardians of the Galaxy (tt2015381)
+[2025-12-12T18:59:34.597Z] [ERROR]   ✗ Failed for Guardians of the Galaxy: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T18:59:35.598Z] [DEBUG] 13/100 Forrest Gump
+[2025-12-12T18:59:35.598Z] [DEBUG]   Fetching ratings for: Forrest Gump (tt0109830)
+[2025-12-12T18:59:35.697Z] [ERROR]   ✗ Failed for Forrest Gump: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T18:59:36.698Z] [DEBUG] 14/100 Harry Potter and the Philosopher's Stone
+[2025-12-12T18:59:36.698Z] [DEBUG]   Fetching ratings for: Harry Potter and the Philosopher's Stone (tt0241527)
+[2025-12-12T18:59:36.861Z] [ERROR]   ✗ Failed for Harry Potter and the Philosopher's Stone: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T18:59:37.861Z] [DEBUG] 15/100 Iron Man
+[2025-12-12T18:59:37.862Z] [DEBUG]   Fetching ratings for: Iron Man (tt0371746)
+[2025-12-12T18:59:37.991Z] [ERROR]   ✗ Failed for Iron Man: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T18:59:38.991Z] [DEBUG] 16/100 Django Unchained
+[2025-12-12T18:59:38.991Z] [DEBUG]   Fetching ratings for: Django Unchained (tt1853728)
+[2025-12-12T18:59:39.094Z] [ERROR]   ✗ Failed for Django Unchained: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T18:59:40.094Z] [DEBUG] 17/100 The Matrix
+[2025-12-12T18:59:40.095Z] [DEBUG]   Fetching ratings for: The Matrix (tt0133093)
+[2025-12-12T18:59:40.200Z] [ERROR]   ✗ Failed for The Matrix: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T18:59:41.200Z] [DEBUG] 18/100 Joker
+[2025-12-12T18:59:41.201Z] [DEBUG]   Fetching ratings for: Joker (tt7286456)
+[2025-12-12T18:59:41.297Z] [ERROR]   ✗ Failed for Joker: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T18:59:42.297Z] [DEBUG] 19/100 Avengers: Endgame
+[2025-12-12T18:59:42.297Z] [DEBUG]   Fetching ratings for: Avengers: Endgame (tt4154796)
+[2025-12-12T18:59:42.404Z] [ERROR]   ✗ Failed for Avengers: Endgame: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T18:59:43.404Z] [DEBUG] 20/100 The Lord of the Rings: The Fellowship of the Ring
+[2025-12-12T18:59:43.405Z] [DEBUG]   Fetching ratings for: The Lord of the Rings: The Fellowship of the Ring (tt0120737)
+[2025-12-12T18:59:43.494Z] [ERROR]   ✗ Failed for The Lord of the Rings: The Fellowship of the Ring: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T18:59:44.494Z] [DEBUG] 21/100 Titanic
+[2025-12-12T18:59:44.494Z] [DEBUG]   Fetching ratings for: Titanic (tt0120338)
+[2025-12-12T18:59:44.599Z] [ERROR]   ✗ Failed for Titanic: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T18:59:45.599Z] [DEBUG] 22/100 The Lord of the Rings: The Return of the King
+[2025-12-12T18:59:45.599Z] [DEBUG]   Fetching ratings for: The Lord of the Rings: The Return of the King (tt0167260)
+[2025-12-12T18:59:45.690Z] [ERROR]   ✗ Failed for The Lord of the Rings: The Return of the King: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T18:59:46.690Z] [DEBUG] 23/100 The Wolf of Wall Street
+[2025-12-12T18:59:46.690Z] [DEBUG]   Fetching ratings for: The Wolf of Wall Street (tt0993846)
+[2025-12-12T18:59:46.807Z] [ERROR]   ✗ Failed for The Wolf of Wall Street: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T18:59:47.807Z] [DEBUG] 24/100 Shutter Island
+[2025-12-12T18:59:47.807Z] [DEBUG]   Fetching ratings for: Shutter Island (tt1130884)
+[2025-12-12T18:59:47.912Z] [ERROR]   ✗ Failed for Shutter Island: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T18:59:48.913Z] [DEBUG] 25/100 Avengers: Age of Ultron
+[2025-12-12T18:59:48.913Z] [DEBUG]   Fetching ratings for: Avengers: Age of Ultron (tt2395427)
+[2025-12-12T18:59:49.017Z] [ERROR]   ✗ Failed for Avengers: Age of Ultron: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T18:59:50.017Z] [INFO] 
+Progress: 25/100 (0 success, 1 skipped, 24 failed)
+[2025-12-12T18:59:50.018Z] [DEBUG] 26/100 The Dark Knight Rises
+[2025-12-12T18:59:50.018Z] [DEBUG]   Fetching ratings for: The Dark Knight Rises (tt1345836)
+[2025-12-12T18:59:50.217Z] [ERROR]   ✗ Failed for The Dark Knight Rises: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T18:59:51.217Z] [DEBUG] 27/100 Captain America: Civil War
+[2025-12-12T18:59:51.218Z] [DEBUG]   Fetching ratings for: Captain America: Civil War (tt3498820)
+[2025-12-12T18:59:51.308Z] [ERROR]   ✗ Failed for Captain America: Civil War: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T18:59:52.307Z] [DEBUG] 28/100 Mad Max: Fury Road
+[2025-12-12T18:59:52.308Z] [DEBUG]   Fetching ratings for: Mad Max: Fury Road (tt1392190)
+[2025-12-12T18:59:52.415Z] [ERROR]   ✗ Failed for Mad Max: Fury Road: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T18:59:53.416Z] [DEBUG] 29/100 Inglourious Basterds
+[2025-12-12T18:59:53.416Z] [DEBUG]   Fetching ratings for: Inglourious Basterds (tt0361748)
+[2025-12-12T18:59:54.760Z] [ERROR]   ✗ Failed for Inglourious Basterds: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T18:59:55.760Z] [DEBUG] 30/100 The Lord of the Rings: The Two Towers
+[2025-12-12T18:59:55.761Z] [DEBUG]   Fetching ratings for: The Lord of the Rings: The Two Towers (tt0167261)
+[2025-12-12T18:59:55.868Z] [ERROR]   ✗ Failed for The Lord of the Rings: The Two Towers: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T18:59:56.868Z] [DEBUG] 31/100 Harry Potter and the Chamber of Secrets
+[2025-12-12T18:59:56.868Z] [DEBUG]   Fetching ratings for: Harry Potter and the Chamber of Secrets (tt0295297)
+[2025-12-12T18:59:57.180Z] [ERROR]   ✗ Failed for Harry Potter and the Chamber of Secrets: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T18:59:58.181Z] [DEBUG] 32/100 Black Panther
+[2025-12-12T18:59:58.181Z] [DEBUG]   Fetching ratings for: Black Panther (tt1825683)
+[2025-12-12T18:59:58.301Z] [ERROR]   ✗ Failed for Black Panther: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T18:59:59.301Z] [DEBUG] 33/100 Inside Out
+[2025-12-12T18:59:59.302Z] [DEBUG]   Fetching ratings for: Inside Out (tt2096673)
+[2025-12-12T19:00:00.676Z] [ERROR]   ✗ Failed for Inside Out: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:01.677Z] [DEBUG] 34/100 Iron Man 3
+[2025-12-12T19:00:01.677Z] [DEBUG]   Fetching ratings for: Iron Man 3 (tt1300854)
+[2025-12-12T19:00:01.804Z] [ERROR]   ✗ Failed for Iron Man 3: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:02.805Z] [DEBUG] 35/100 Doctor Strange
+[2025-12-12T19:00:02.806Z] [DEBUG]   Fetching ratings for: Doctor Strange (tt1211837)
+[2025-12-12T19:00:03.498Z] [ERROR]   ✗ Failed for Doctor Strange: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:04.498Z] [DEBUG] 36/100 The Hunger Games
+[2025-12-12T19:00:04.498Z] [DEBUG]   Fetching ratings for: The Hunger Games (tt1392170)
+[2025-12-12T19:00:04.603Z] [ERROR]   ✗ Failed for The Hunger Games: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:05.604Z] [DEBUG] 37/100 Spider-Man: Homecoming
+[2025-12-12T19:00:05.604Z] [DEBUG]   Fetching ratings for: Spider-Man: Homecoming (tt2250912)
+[2025-12-12T19:00:06.136Z] [ERROR]   ✗ Failed for Spider-Man: Homecoming: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:07.136Z] [DEBUG] 38/100 Harry Potter and the Prisoner of Azkaban
+[2025-12-12T19:00:07.136Z] [DEBUG]   Fetching ratings for: Harry Potter and the Prisoner of Azkaban (tt0304141)
+[2025-12-12T19:00:07.229Z] [ERROR]   ✗ Failed for Harry Potter and the Prisoner of Azkaban: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:08.230Z] [DEBUG] 39/100 Guardians of the Galaxy Vol. 2
+[2025-12-12T19:00:08.230Z] [DEBUG]   Fetching ratings for: Guardians of the Galaxy Vol. 2 (tt3896198)
+[2025-12-12T19:00:08.378Z] [ERROR]   ✗ Failed for Guardians of the Galaxy Vol. 2: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:09.378Z] [DEBUG] 40/100 Se7en
+[2025-12-12T19:00:09.379Z] [DEBUG]   Fetching ratings for: Se7en (tt0114369)
+[2025-12-12T19:00:10.861Z] [ERROR]   ✗ Failed for Se7en: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:11.861Z] [DEBUG] 41/100 Captain America: The First Avenger
+[2025-12-12T19:00:11.862Z] [DEBUG]   Fetching ratings for: Captain America: The First Avenger (tt0458339)
+[2025-12-12T19:00:11.982Z] [ERROR]   ✗ Failed for Captain America: The First Avenger: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:12.981Z] [DEBUG] 42/100 The Godfather
+[2025-12-12T19:00:12.982Z] [DEBUG]   Fetching ratings for: The Godfather (tt0068646)
+[2025-12-12T19:00:13.113Z] [ERROR]   ✗ Failed for The Godfather: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:14.113Z] [DEBUG] 43/100 Batman Begins
+[2025-12-12T19:00:14.113Z] [DEBUG]   Fetching ratings for: Batman Begins (tt0372784)
+[2025-12-12T19:00:14.236Z] [ERROR]   ✗ Failed for Batman Begins: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:15.237Z] [DEBUG] 44/100 Thor
+[2025-12-12T19:00:15.237Z] [DEBUG]   Fetching ratings for: Thor (tt0800369)
+[2025-12-12T19:00:16.172Z] [ERROR]   ✗ Failed for Thor: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:17.172Z] [DEBUG] 45/100 Iron Man 2
+[2025-12-12T19:00:17.172Z] [DEBUG]   Fetching ratings for: Iron Man 2 (tt1228705)
+[2025-12-12T19:00:17.262Z] [ERROR]   ✗ Failed for Iron Man 2: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:18.262Z] [DEBUG] 46/100 Star Wars
+[2025-12-12T19:00:18.262Z] [DEBUG]   Fetching ratings for: Star Wars (tt0076759)
+[2025-12-12T19:00:18.380Z] [ERROR]   ✗ Failed for Star Wars: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:19.380Z] [DEBUG] 47/100 Pirates of the Caribbean: The Curse of the Black Pearl
+[2025-12-12T19:00:19.380Z] [DEBUG]   Fetching ratings for: Pirates of the Caribbean: The Curse of the Black Pearl (tt0325980)
+[2025-12-12T19:00:19.482Z] [ERROR]   ✗ Failed for Pirates of the Caribbean: The Curse of the Black Pearl: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:20.483Z] [DEBUG] 48/100 Harry Potter and the Goblet of Fire
+[2025-12-12T19:00:20.483Z] [DEBUG]   Fetching ratings for: Harry Potter and the Goblet of Fire (tt0330373)
+[2025-12-12T19:00:20.570Z] [ERROR]   ✗ Failed for Harry Potter and the Goblet of Fire: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:21.569Z] [DEBUG] 49/100 Thor: Ragnarok
+[2025-12-12T19:00:21.570Z] [DEBUG]   Fetching ratings for: Thor: Ragnarok (tt3501632)
+[2025-12-12T19:00:21.657Z] [ERROR]   ✗ Failed for Thor: Ragnarok: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:22.658Z] [DEBUG] 50/100 Harry Potter and the Deathly Hallows: Part 2
+[2025-12-12T19:00:22.658Z] [DEBUG]   Fetching ratings for: Harry Potter and the Deathly Hallows: Part 2 (tt1201607)
+[2025-12-12T19:00:22.765Z] [ERROR]   ✗ Failed for Harry Potter and the Deathly Hallows: Part 2: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:23.766Z] [INFO] 
+Progress: 50/100 (0 success, 1 skipped, 49 failed)
+[2025-12-12T19:00:23.766Z] [DEBUG] 51/100 Spider-Man: No Way Home
+[2025-12-12T19:00:23.766Z] [DEBUG]   Fetching ratings for: Spider-Man: No Way Home (tt10872600)
+[2025-12-12T19:00:23.866Z] [ERROR]   ✗ Failed for Spider-Man: No Way Home: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:24.867Z] [DEBUG] 52/100 Jurassic World
+[2025-12-12T19:00:24.867Z] [DEBUG]   Fetching ratings for: Jurassic World (tt0369610)
+[2025-12-12T19:00:24.971Z] [ERROR]   ✗ Failed for Jurassic World: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:25.972Z] [DEBUG] 53/100 Up
+[2025-12-12T19:00:25.972Z] [DEBUG]   Fetching ratings for: Up (tt1049413)
+[2025-12-12T19:00:26.082Z] [ERROR]   ✗ Failed for Up: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:27.082Z] [DEBUG] 54/100 Back to the Future
+[2025-12-12T19:00:27.082Z] [DEBUG]   Fetching ratings for: Back to the Future (tt0088763)
+[2025-12-12T19:00:27.205Z] [ERROR]   ✗ Failed for Back to the Future: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:28.205Z] [DEBUG] 55/100 The Martian
+[2025-12-12T19:00:28.205Z] [DEBUG]   Fetching ratings for: The Martian (tt3659388)
+[2025-12-12T19:00:28.305Z] [ERROR]   ✗ Failed for The Martian: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:29.305Z] [DEBUG] 56/100 Wonder Woman
+[2025-12-12T19:00:29.305Z] [DEBUG]   Fetching ratings for: Wonder Woman (tt0451279)
+[2025-12-12T19:00:29.425Z] [ERROR]   ✗ Failed for Wonder Woman: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:30.425Z] [DEBUG] 57/100 Coco
+[2025-12-12T19:00:30.425Z] [DEBUG]   Fetching ratings for: Coco (tt2380307)
+[2025-12-12T19:00:30.541Z] [ERROR]   ✗ Failed for Coco: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:31.542Z] [DEBUG] 58/100 Ant-Man
+[2025-12-12T19:00:31.542Z] [DEBUG]   Fetching ratings for: Ant-Man (tt0478970)
+[2025-12-12T19:00:31.640Z] [ERROR]   ✗ Failed for Ant-Man: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:32.641Z] [DEBUG] 59/100 Harry Potter and the Order of the Phoenix
+[2025-12-12T19:00:32.641Z] [DEBUG]   Fetching ratings for: Harry Potter and the Order of the Phoenix (tt0373889)
+[2025-12-12T19:00:32.749Z] [ERROR]   ✗ Failed for Harry Potter and the Order of the Phoenix: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:33.750Z] [DEBUG] 60/100 Harry Potter and the Half-Blood Prince
+[2025-12-12T19:00:33.750Z] [DEBUG]   Fetching ratings for: Harry Potter and the Half-Blood Prince (tt0417741)
+[2025-12-12T19:00:33.853Z] [ERROR]   ✗ Failed for Harry Potter and the Half-Blood Prince: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:34.853Z] [DEBUG] 61/100 Gladiator
+[2025-12-12T19:00:34.854Z] [DEBUG]   Fetching ratings for: Gladiator (tt0172495)
+[2025-12-12T19:00:34.961Z] [ERROR]   ✗ Failed for Gladiator: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:35.962Z] [DEBUG] 62/100 John Wick
+[2025-12-12T19:00:35.962Z] [DEBUG]   Fetching ratings for: John Wick (tt2911666)
+[2025-12-12T19:00:36.067Z] [ERROR]   ✗ Failed for John Wick: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:37.068Z] [DEBUG] 63/100 Star Wars: The Force Awakens
+[2025-12-12T19:00:37.068Z] [DEBUG]   Fetching ratings for: Star Wars: The Force Awakens (tt2488496)
+[2025-12-12T19:00:37.177Z] [ERROR]   ✗ Failed for Star Wars: The Force Awakens: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:38.177Z] [DEBUG] 64/100 Finding Nemo
+[2025-12-12T19:00:38.177Z] [DEBUG]   Fetching ratings for: Finding Nemo (tt0266543)
+[2025-12-12T19:00:38.289Z] [ERROR]   ✗ Failed for Finding Nemo: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:39.289Z] [DEBUG] 65/100 Spider-Man
+[2025-12-12T19:00:39.290Z] [DEBUG]   Fetching ratings for: Spider-Man (tt0145487)
+[2025-12-12T19:00:39.391Z] [ERROR]   ✗ Failed for Spider-Man: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:40.392Z] [DEBUG] 66/100 Logan
+[2025-12-12T19:00:40.392Z] [DEBUG]   Fetching ratings for: Logan (tt3315342)
+[2025-12-12T19:00:40.512Z] [ERROR]   ✗ Failed for Logan: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:41.511Z] [DEBUG] 67/100 Harry Potter and the Deathly Hallows: Part 1
+[2025-12-12T19:00:41.512Z] [DEBUG]   Fetching ratings for: Harry Potter and the Deathly Hallows: Part 1 (tt0926084)
+[2025-12-12T19:00:41.643Z] [ERROR]   ✗ Failed for Harry Potter and the Deathly Hallows: Part 1: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:42.643Z] [DEBUG] 68/100 It
+[2025-12-12T19:00:42.644Z] [DEBUG]   Fetching ratings for: It (tt1396484)
+[2025-12-12T19:00:42.746Z] [ERROR]   ✗ Failed for It: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:43.747Z] [DEBUG] 69/100 Parasite
+[2025-12-12T19:00:43.747Z] [DEBUG]   Fetching ratings for: Parasite (tt6751668)
+[2025-12-12T19:00:43.842Z] [ERROR]   ✗ Failed for Parasite: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:44.842Z] [DEBUG] 70/100 WALL·E
+[2025-12-12T19:00:44.842Z] [DEBUG]   Fetching ratings for: WALL·E (tt0910970)
+[2025-12-12T19:00:44.933Z] [ERROR]   ✗ Failed for WALL·E: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:45.933Z] [DEBUG] 71/100 Captain America: The Winter Soldier
+[2025-12-12T19:00:45.933Z] [DEBUG]   Fetching ratings for: Captain America: The Winter Soldier (tt1843866)
+[2025-12-12T19:00:46.030Z] [ERROR]   ✗ Failed for Captain America: The Winter Soldier: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:47.030Z] [DEBUG] 72/100 The Truman Show
+[2025-12-12T19:00:47.031Z] [DEBUG]   Fetching ratings for: The Truman Show (tt0120382)
+[2025-12-12T19:00:47.125Z] [ERROR]   ✗ Failed for The Truman Show: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:48.125Z] [DEBUG] 73/100 Gone Girl
+[2025-12-12T19:00:48.125Z] [DEBUG]   Fetching ratings for: Gone Girl (tt2267998)
+[2025-12-12T19:00:48.509Z] [ERROR]   ✗ Failed for Gone Girl: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:49.510Z] [DEBUG] 74/100 Fantastic Beasts and Where to Find Them
+[2025-12-12T19:00:49.510Z] [DEBUG]   Fetching ratings for: Fantastic Beasts and Where to Find Them (tt3183660)
+[2025-12-12T19:00:49.611Z] [ERROR]   ✗ Failed for Fantastic Beasts and Where to Find Them: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:50.612Z] [DEBUG] 75/100 Toy Story
+[2025-12-12T19:00:50.612Z] [DEBUG]   Fetching ratings for: Toy Story (tt0114709)
+[2025-12-12T19:00:50.723Z] [ERROR]   ✗ Failed for Toy Story: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:51.724Z] [INFO] 
+Progress: 75/100 (0 success, 1 skipped, 74 failed)
+[2025-12-12T19:00:51.724Z] [DEBUG] 76/100 Monsters, Inc.
+[2025-12-12T19:00:51.724Z] [DEBUG]   Fetching ratings for: Monsters, Inc. (tt0198781)
+[2025-12-12T19:00:51.849Z] [ERROR]   ✗ Failed for Monsters, Inc.: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:52.850Z] [DEBUG] 77/100 The Lion King
+[2025-12-12T19:00:52.850Z] [DEBUG]   Fetching ratings for: The Lion King (tt0110357)
+[2025-12-12T19:00:52.951Z] [ERROR]   ✗ Failed for The Lion King: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:53.950Z] [DEBUG] 78/100 The Hobbit: An Unexpected Journey
+[2025-12-12T19:00:53.951Z] [DEBUG]   Fetching ratings for: The Hobbit: An Unexpected Journey (tt0903624)
+[2025-12-12T19:00:54.059Z] [ERROR]   ✗ Failed for The Hobbit: An Unexpected Journey: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:55.060Z] [DEBUG] 79/100 The Revenant
+[2025-12-12T19:00:55.060Z] [DEBUG]   Fetching ratings for: The Revenant (tt1663202)
+[2025-12-12T19:00:55.177Z] [ERROR]   ✗ Failed for The Revenant: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:56.177Z] [DEBUG] 80/100 Deadpool 2
+[2025-12-12T19:00:56.178Z] [DEBUG]   Fetching ratings for: Deadpool 2 (tt5463162)
+[2025-12-12T19:00:56.322Z] [ERROR]   ✗ Failed for Deadpool 2: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:57.323Z] [DEBUG] 81/100 Arrival
+[2025-12-12T19:00:57.323Z] [DEBUG]   Fetching ratings for: Arrival (tt2543164)
+[2025-12-12T19:00:57.427Z] [ERROR]   ✗ Failed for Arrival: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:58.427Z] [DEBUG] 82/100 The Green Mile
+[2025-12-12T19:00:58.428Z] [DEBUG]   Fetching ratings for: The Green Mile (tt0120689)
+[2025-12-12T19:00:58.549Z] [ERROR]   ✗ Failed for The Green Mile: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:00:59.550Z] [DEBUG] 83/100 The Incredibles
+[2025-12-12T19:00:59.550Z] [DEBUG]   Fetching ratings for: The Incredibles (tt0317705)
+[2025-12-12T19:00:59.665Z] [ERROR]   ✗ Failed for The Incredibles: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:01:00.667Z] [DEBUG] 84/100 The Shining
+[2025-12-12T19:01:00.667Z] [DEBUG]   Fetching ratings for: The Shining (tt0081505)
+[2025-12-12T19:01:00.777Z] [ERROR]   ✗ Failed for The Shining: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:01:01.776Z] [DEBUG] 85/100 Get Out
+[2025-12-12T19:01:01.777Z] [DEBUG]   Fetching ratings for: Get Out (tt5052448)
+[2025-12-12T19:01:01.885Z] [ERROR]   ✗ Failed for Get Out: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:01:02.885Z] [DEBUG] 86/100 Kill Bill: Vol. 1
+[2025-12-12T19:01:02.886Z] [DEBUG]   Fetching ratings for: Kill Bill: Vol. 1 (tt0266697)
+[2025-12-12T19:01:02.986Z] [ERROR]   ✗ Failed for Kill Bill: Vol. 1: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:01:03.987Z] [DEBUG] 87/100 Shrek
+[2025-12-12T19:01:03.987Z] [DEBUG]   Fetching ratings for: Shrek (tt0126029)
+[2025-12-12T19:01:04.079Z] [ERROR]   ✗ Failed for Shrek: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:01:05.079Z] [DEBUG] 88/100 The Amazing Spider-Man
+[2025-12-12T19:01:05.079Z] [DEBUG]   Fetching ratings for: The Amazing Spider-Man (tt0948470)
+[2025-12-12T19:01:05.181Z] [ERROR]   ✗ Failed for The Amazing Spider-Man: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:01:06.181Z] [DEBUG] 89/100 The Hunger Games: Catching Fire
+[2025-12-12T19:01:06.181Z] [DEBUG]   Fetching ratings for: The Hunger Games: Catching Fire (tt1951264)
+[2025-12-12T19:01:06.291Z] [ERROR]   ✗ Failed for The Hunger Games: Catching Fire: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:01:07.291Z] [DEBUG] 90/100 The Intouchables
+[2025-12-12T19:01:07.291Z] [DEBUG]   Fetching ratings for: The Intouchables (tt1675434)
+[2025-12-12T19:01:07.576Z] [ERROR]   ✗ Failed for The Intouchables: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:01:08.577Z] [DEBUG] 91/100 Split
+[2025-12-12T19:01:08.577Z] [DEBUG]   Fetching ratings for: Split (tt4972582)
+[2025-12-12T19:01:08.697Z] [ERROR]   ✗ Failed for Split: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:01:09.697Z] [DEBUG] 92/100 Ratatouille
+[2025-12-12T19:01:09.698Z] [DEBUG]   Fetching ratings for: Ratatouille (tt0382932)
+[2025-12-12T19:01:09.830Z] [ERROR]   ✗ Failed for Ratatouille: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:01:10.830Z] [DEBUG] 93/100 Thor: The Dark World
+[2025-12-12T19:01:10.830Z] [DEBUG]   Fetching ratings for: Thor: The Dark World (tt1981115)
+[2025-12-12T19:01:10.932Z] [ERROR]   ✗ Failed for Thor: The Dark World: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:01:11.932Z] [DEBUG] 94/100 The Empire Strikes Back
+[2025-12-12T19:01:11.932Z] [DEBUG]   Fetching ratings for: The Empire Strikes Back (tt0080684)
+[2025-12-12T19:01:12.031Z] [ERROR]   ✗ Failed for The Empire Strikes Back: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:01:13.032Z] [DEBUG] 95/100 The Maze Runner
+[2025-12-12T19:01:13.032Z] [DEBUG]   Fetching ratings for: The Maze Runner (tt1790864)
+[2025-12-12T19:01:13.142Z] [ERROR]   ✗ Failed for The Maze Runner: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:01:14.142Z] [DEBUG] 96/100 Spirited Away
+[2025-12-12T19:01:14.142Z] [DEBUG]   Fetching ratings for: Spirited Away (tt0245429)
+[2025-12-12T19:01:14.787Z] [ERROR]   ✗ Failed for Spirited Away: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:01:15.787Z] [DEBUG] 97/100 The Imitation Game
+[2025-12-12T19:01:15.787Z] [DEBUG]   Fetching ratings for: The Imitation Game (tt2084970)
+[2025-12-12T19:01:15.886Z] [ERROR]   ✗ Failed for The Imitation Game: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:01:16.887Z] [DEBUG] 98/100 La La Land
+[2025-12-12T19:01:16.887Z] [DEBUG]   Fetching ratings for: La La Land (tt3783958)
+[2025-12-12T19:01:16.994Z] [ERROR]   ✗ Failed for La La Land: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:01:17.995Z] [DEBUG] 99/100 The Hangover
+[2025-12-12T19:01:17.995Z] [DEBUG]   Fetching ratings for: The Hangover (tt1119646)
+[2025-12-12T19:01:18.869Z] [ERROR]   ✗ Failed for The Hangover: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:01:19.869Z] [DEBUG] 100/100 Bohemian Rhapsody
+[2025-12-12T19:01:19.869Z] [DEBUG]   Fetching ratings for: Bohemian Rhapsody (tt1727824)
+[2025-12-12T19:01:19.975Z] [ERROR]   ✗ Failed for Bohemian Rhapsody: Failed to insert ratings: Could not find the 'imdb_id' column of 'ratings_external' in the schema cache
+[2025-12-12T19:01:19.975Z] [INFO] 
+================================================================================
+[2025-12-12T19:01:19.975Z] [INFO] 📊 SUMMARY
+[2025-12-12T19:01:19.975Z] [INFO] ================================================================================
+
+[2025-12-12T19:01:19.975Z] [INFO] Total movies: 100
+[2025-12-12T19:01:19.975Z] [SUCCESS] ✓ Successfully fetched: 0
+[2025-12-12T19:01:19.976Z] [WARN] ⊘ Skipped (not found): 1
+[2025-12-12T19:01:19.976Z] [ERROR] ✗ Failed: 99
+[2025-12-12T19:01:19.976Z] [INFO] 
+Ratings Coverage:
+[2025-12-12T19:01:19.976Z] [INFO]   IMDb ratings: 0 (NaN%)
+[2025-12-12T19:01:19.976Z] [INFO]   Rotten Tomatoes: 0 (NaN%)
+[2025-12-12T19:01:19.976Z] [INFO]   Metacritic: 0 (NaN%)
+[2025-12-12T19:01:19.976Z] [INFO] 
+Duration: 117.89s
+[2025-12-12T19:01:19.976Z] [INFO] Average: 0.0 movies/minute
+[2025-12-12T19:01:19.976Z] [INFO] OMDb API calls: 1
+[2025-12-12T19:01:19.976Z] [INFO] 
+Log file: /workspaces/feelflick-app/logs/06-fetch-external-ratings.log
+[2025-12-12T19:13:28.767Z] [INFO] 
+================================================================================
+[2025-12-12T19:13:28.768Z] [INFO] 🎬 FETCH EXTERNAL RATINGS (OMDb)
+[2025-12-12T19:13:28.768Z] [INFO] ================================================================================
+
+[2025-12-12T19:13:28.768Z] [INFO] Limit: 100 movies
+[2025-12-12T19:13:28.768Z] [INFO] Dry run: NO
+[2025-12-12T19:13:28.768Z] [INFO] API Key: ✓
+
+[2025-12-12T19:13:28.883Z] [INFO] Found 100 movies needing external ratings
+
+[2025-12-12T19:13:28.883Z] [DEBUG] 1/100 Your Heart Will Be Broken
+[2025-12-12T19:13:28.883Z] [DEBUG]   Fetching ratings for: Your Heart Will Be Broken (tt38190257)
+[2025-12-12T19:13:28.954Z] [WARN]   ⚠️  Incorrect IMDb ID. for Your Heart Will Be Broken
+[2025-12-12T19:13:30.000Z] [DEBUG] 2/100 Interstellar
+[2025-12-12T19:13:30.000Z] [DEBUG]   Fetching ratings for: Interstellar (tt0816692)
+[2025-12-12T19:13:31.845Z] [ERROR]   ✗ Failed for Interstellar: Failed to insert ratings: duplicate key value violates unique constraint "ratings_external_pkey"
+[2025-12-12T19:13:32.845Z] [DEBUG] 3/100 Inception
+[2025-12-12T19:13:32.846Z] [DEBUG]   Fetching ratings for: Inception (tt1375666)
+[2025-12-12T19:13:32.953Z] [ERROR]   ✗ Failed for Inception: Failed to insert ratings: duplicate key value violates unique constraint "ratings_external_pkey"
+[2025-12-12T19:13:33.953Z] [DEBUG] 4/100 The Dark Knight
+[2025-12-12T19:13:33.954Z] [DEBUG]   Fetching ratings for: The Dark Knight (tt0468569)
+[2025-12-12T19:13:34.050Z] [ERROR]   ✗ Failed for The Dark Knight: Failed to insert ratings: duplicate key value violates unique constraint "ratings_external_pkey"
+[2025-12-12T19:13:35.052Z] [DEBUG] 5/100 The Avengers
+[2025-12-12T19:13:35.052Z] [DEBUG]   Fetching ratings for: The Avengers (tt0848228)
+[2025-12-12T19:13:35.181Z] [ERROR]   ✗ Failed for The Avengers: Failed to insert ratings: duplicate key value violates unique constraint "ratings_external_pkey"
+[2025-12-12T19:13:36.181Z] [DEBUG] 6/100 Avatar
+[2025-12-12T19:13:36.182Z] [DEBUG]   Fetching ratings for: Avatar (tt0499549)
+[2025-12-12T19:13:36.283Z] [ERROR]   ✗ Failed for Avatar: Failed to insert ratings: duplicate key value violates unique constraint "ratings_external_pkey"
+[2025-12-12T19:13:37.283Z] [DEBUG] 7/100 Deadpool
+[2025-12-12T19:13:37.283Z] [DEBUG]   Fetching ratings for: Deadpool (tt1431045)
+[2025-12-12T19:13:37.412Z] [ERROR]   ✗ Failed for Deadpool: Failed to insert ratings: duplicate key value violates unique constraint "ratings_external_pkey"
+[2025-12-12T19:13:38.413Z] [DEBUG] 8/100 Avengers: Infinity War
+[2025-12-12T19:13:38.413Z] [DEBUG]   Fetching ratings for: Avengers: Infinity War (tt4154756)
+[2025-12-12T19:13:38.579Z] [ERROR]   ✗ Failed for Avengers: Infinity War: Failed to insert ratings: duplicate key value violates unique constraint "ratings_external_pkey"
+[2025-12-12T19:13:39.579Z] [DEBUG] 9/100 Fight Club
+[2025-12-12T19:13:39.579Z] [DEBUG]   Fetching ratings for: Fight Club (tt0137523)
+[2025-12-12T19:13:39.686Z] [ERROR]   ✗ Failed for Fight Club: Failed to insert ratings: duplicate key value violates unique constraint "ratings_external_pkey"
+[2025-12-12T19:13:40.687Z] [DEBUG] 10/100 Pulp Fiction
+[2025-12-12T19:13:40.687Z] [DEBUG]   Fetching ratings for: Pulp Fiction (tt0110912)
+[2025-12-12T19:13:40.793Z] [ERROR]   ✗ Failed for Pulp Fiction: Failed to insert ratings: duplicate key value violates unique constraint "ratings_external_pkey"
+[2025-12-12T19:13:41.794Z] [DEBUG] 11/100 The Shawshank Redemption
+[2025-12-12T19:13:41.794Z] [DEBUG]   Fetching ratings for: The Shawshank Redemption (tt0111161)
+[2025-12-12T19:13:41.917Z] [ERROR]   ✗ Failed for The Shawshank Redemption: Failed to insert ratings: duplicate key value violates unique constraint "ratings_external_pkey"
+[2025-12-12T19:13:42.918Z] [DEBUG] 12/100 Guardians of the Galaxy
+[2025-12-12T19:13:42.918Z] [DEBUG]   Fetching ratings for: Guardians of the Galaxy (tt2015381)
+[2025-12-12T19:13:43.020Z] [ERROR]   ✗ Failed for Guardians of the Galaxy: Failed to insert ratings: duplicate key value violates unique constraint "ratings_external_pkey"
+[2025-12-12T19:13:44.021Z] [DEBUG] 13/100 Forrest Gump
+[2025-12-12T19:13:44.021Z] [DEBUG]   Fetching ratings for: Forrest Gump (tt0109830)
+[2025-12-12T19:13:44.125Z] [ERROR]   ✗ Failed for Forrest Gump: Failed to insert ratings: duplicate key value violates unique constraint "ratings_external_pkey"
+[2025-12-12T19:13:45.125Z] [DEBUG] 14/100 Harry Potter and the Philosopher's Stone
+[2025-12-12T19:13:45.125Z] [DEBUG]   Fetching ratings for: Harry Potter and the Philosopher's Stone (tt0241527)
+[2025-12-12T19:13:45.256Z] [ERROR]   ✗ Failed for Harry Potter and the Philosopher's Stone: Failed to insert ratings: duplicate key value violates unique constraint "ratings_external_pkey"
+[2025-12-12T19:15:29.387Z] [INFO] 
+================================================================================
+[2025-12-12T19:15:29.387Z] [INFO] 🎬 FETCH EXTERNAL RATINGS (OMDb)
+[2025-12-12T19:15:29.387Z] [INFO] ================================================================================
+
+[2025-12-12T19:15:29.387Z] [INFO] Limit: 10 movies
+[2025-12-12T19:15:29.387Z] [INFO] Dry run: NO
+[2025-12-12T19:15:29.387Z] [INFO] API Key: ✓
+
+[2025-12-12T19:15:30.004Z] [INFO] Found 1 movies needing external ratings
+
+[2025-12-12T19:15:30.004Z] [DEBUG] 1/1 Your Heart Will Be Broken
+[2025-12-12T19:15:30.005Z] [DEBUG]   Fetching ratings for: Your Heart Will Be Broken (tt38190257)
+[2025-12-12T19:15:30.064Z] [WARN]   ⚠️  Incorrect IMDb ID. for Your Heart Will Be Broken
+[2025-12-12T19:15:30.118Z] [INFO] 
+================================================================================
+[2025-12-12T19:15:30.118Z] [INFO] 📊 SUMMARY
+[2025-12-12T19:15:30.118Z] [INFO] ================================================================================
+
+[2025-12-12T19:15:30.119Z] [INFO] Total movies: 1
+[2025-12-12T19:15:30.119Z] [SUCCESS] ✓ Successfully fetched: 0
+[2025-12-12T19:15:30.119Z] [WARN] ⊘ Skipped (not found): 1
+[2025-12-12T19:15:30.119Z] [INFO] 
+Ratings Coverage:
+[2025-12-12T19:15:30.119Z] [INFO]   IMDb ratings: 0 (NaN%)
+[2025-12-12T19:15:30.119Z] [INFO]   Rotten Tomatoes: 0 (NaN%)
+[2025-12-12T19:15:30.119Z] [INFO]   Metacritic: 0 (NaN%)
+[2025-12-12T19:15:30.119Z] [INFO] 
+Duration: 0.73s
+[2025-12-12T19:15:30.119Z] [INFO] Average: 0.0 movies/minute
+[2025-12-12T19:15:30.119Z] [INFO] OMDb API calls: 1
+[2025-12-12T19:15:30.120Z] [INFO] 
+Log file: /workspaces/feelflick-app/logs/06-fetch-external-ratings.log
+[2025-12-12T19:15:46.561Z] [INFO] 
+================================================================================
+[2025-12-12T19:15:46.561Z] [INFO] 🎬 FETCH EXTERNAL RATINGS (OMDb)
+[2025-12-12T19:15:46.562Z] [INFO] ================================================================================
+
+[2025-12-12T19:15:46.562Z] [INFO] Limit: 100 movies
+[2025-12-12T19:15:46.562Z] [INFO] Dry run: NO
+[2025-12-12T19:15:46.562Z] [INFO] API Key: ✓
+
+[2025-12-12T19:15:46.802Z] [INFO] Found 1 movies needing external ratings
+
+[2025-12-12T19:15:46.803Z] [DEBUG] 1/1 Your Heart Will Be Broken
+[2025-12-12T19:15:46.803Z] [DEBUG]   Fetching ratings for: Your Heart Will Be Broken (tt38190257)
+[2025-12-12T19:15:46.865Z] [WARN]   ⚠️  Incorrect IMDb ID. for Your Heart Will Be Broken
+[2025-12-12T19:15:46.924Z] [INFO] 
+================================================================================
+[2025-12-12T19:15:46.924Z] [INFO] 📊 SUMMARY
+[2025-12-12T19:15:46.924Z] [INFO] ================================================================================
+
+[2025-12-12T19:15:46.925Z] [INFO] Total movies: 1
+[2025-12-12T19:15:46.925Z] [SUCCESS] ✓ Successfully fetched: 0
+[2025-12-12T19:15:46.925Z] [WARN] ⊘ Skipped (not found): 1
+[2025-12-12T19:15:46.925Z] [INFO] 
+Ratings Coverage:
+[2025-12-12T19:15:46.925Z] [INFO]   IMDb ratings: 0 (NaN%)
+[2025-12-12T19:15:46.925Z] [INFO]   Rotten Tomatoes: 0 (NaN%)
+[2025-12-12T19:15:46.925Z] [INFO]   Metacritic: 0 (NaN%)
+[2025-12-12T19:15:46.925Z] [INFO] 
+Duration: 0.36s
+[2025-12-12T19:15:46.925Z] [INFO] Average: 0.0 movies/minute
+[2025-12-12T19:15:46.925Z] [INFO] OMDb API calls: 1
+[2025-12-12T19:15:46.926Z] [INFO] 
+Log file: /workspaces/feelflick-app/logs/06-fetch-external-ratings.log

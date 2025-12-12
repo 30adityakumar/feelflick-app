@@ -1,30 +1,38 @@
-// scripts/phase1/07-calculate-movie-scores-v2.js
-// 
-// ============================================================================
-// FEELFLICK MOVIE SCORING ENGINE V2 - PRODUCTION GRADE
-// ============================================================================
-// 
-// KEY IMPROVEMENTS OVER V1:
-// ✓ Pure ff_rating - only quality signals (removed starpower, freshness, engagement)
-// ✓ Genre-normalized rating - scores relative to genre peers
-// ✓ Discovery potential - dedicated score for hidden gems detection
-// ✓ Accessibility score - how "easy" is this to watch?
-// ✓ Enhanced mood scores - keyword-based adjustments
-// ✓ Dialogue density & attention demand - computed from signals
-// ✓ Director style signatures - for known auteurs
-// ✓ Polarization score - critic vs audience divergence
-//
-// NEW FIELDS ADDED:
-// - ff_rating_genre_normalized (NUMERIC 0-10)
-// - discovery_potential (INTEGER 0-100)
-// - accessibility_score (INTEGER 0-100)
-// - polarization_score (INTEGER 0-100)
-//
-// ============================================================================
+// scripts/pipeline/07-calculate-movie-scores.js
+
+/**
+ * ============================================================================
+ * STEP 07: CALCULATE MOVIE SCORES V2
+ * ============================================================================
+ * 
+ * Purpose:
+ *   Calculate all movie scoring metrics using V2 algorithm
+ *   
+ * Input:
+ *   - Movies with status='fetching' and has_scores=false
+ *   
+ * Output:
+ *   - All scoring fields calculated
+ *   - has_scores=true
+ *   - Status updated to 'scoring' → ready for embeddings
+ *   
+ * Scores Calculated:
+ *   - ff_rating (0-10) - Pure quality score
+ *   - ff_rating_genre_normalized (0-10) - Relative to genre
+ *   - quality_score (0-100)
+ *   - pacing_score, intensity_score, emotional_depth_score (1-10)
+ *   - dialogue_density, attention_demand (0-100)
+ *   - vfx_level_score, cult_status_score, starpower_score (0-100)
+ *   - discovery_potential (0-100) - NEW
+ *   - accessibility_score (0-100) - NEW
+ *   - polarization_score (0-100) - NEW
+ * 
+ * ============================================================================
+ */
 
 require('dotenv').config();
-const { createClient } = require('@supabase/supabase-js');
 
+const { createClient } = require('@supabase/supabase-js');
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -48,32 +56,34 @@ const CONFIG = {
 };
 
 // ============================================================================
-// GENRE STATISTICS (Pre-computed from typical movie databases)
+// GENRE STATISTICS
+// Pre-computed from typical movie databases
 // These represent average ratings and standard deviations per genre
 // Used for genre-normalized scoring
 // ============================================================================
 
 const GENRE_STATS = {
-  28:    { name: 'Action',          mean: 6.2, stdDev: 1.0 },
-  12:    { name: 'Adventure',       mean: 6.4, stdDev: 1.0 },
-  16:    { name: 'Animation',       mean: 6.8, stdDev: 1.1 },
-  35:    { name: 'Comedy',          mean: 6.1, stdDev: 1.1 },
-  80:    { name: 'Crime',           mean: 6.5, stdDev: 1.1 },
-  99:    { name: 'Documentary',     mean: 7.2, stdDev: 1.0 },
-  18:    { name: 'Drama',           mean: 6.9, stdDev: 1.1 },
-  10751: { name: 'Family',          mean: 6.3, stdDev: 1.0 },
-  14:    { name: 'Fantasy',         mean: 6.3, stdDev: 1.1 },
-  36:    { name: 'History',         mean: 7.0, stdDev: 1.0 },
-  27:    { name: 'Horror',          mean: 5.8, stdDev: 1.2 },
-  10402: { name: 'Music',           mean: 6.7, stdDev: 1.1 },
-  9648:  { name: 'Mystery',         mean: 6.5, stdDev: 1.1 },
-  10749: { name: 'Romance',         mean: 6.4, stdDev: 1.1 },
-  878:   { name: 'Science Fiction', mean: 6.4, stdDev: 1.2 },
-  10770: { name: 'TV Movie',        mean: 5.8, stdDev: 1.2 },
-  53:    { name: 'Thriller',        mean: 6.3, stdDev: 1.1 },
-  10752: { name: 'War',             mean: 7.0, stdDev: 1.0 },
-  37:    { name: 'Western',         mean: 6.6, stdDev: 1.1 }
+  28: { name: 'Action', mean: 6.2, stdDev: 1.0 },
+  12: { name: 'Adventure', mean: 6.4, stdDev: 1.0 },
+  16: { name: 'Animation', mean: 6.8, stdDev: 1.1 },
+  35: { name: 'Comedy', mean: 6.1, stdDev: 1.1 },
+  80: { name: 'Crime', mean: 6.5, stdDev: 1.1 },
+  99: { name: 'Documentary', mean: 7.2, stdDev: 1.0 },
+  18: { name: 'Drama', mean: 6.9, stdDev: 1.1 },
+  10751: { name: 'Family', mean: 6.3, stdDev: 1.0 },
+  14: { name: 'Fantasy', mean: 6.3, stdDev: 1.1 },
+  36: { name: 'History', mean: 7.0, stdDev: 1.0 },
+  27: { name: 'Horror', mean: 5.8, stdDev: 1.2 },
+  10402: { name: 'Music', mean: 6.7, stdDev: 1.1 },
+  9648: { name: 'Mystery', mean: 6.5, stdDev: 1.1 },
+  10749: { name: 'Romance', mean: 6.4, stdDev: 1.1 },
+  878: { name: 'Science Fiction', mean: 6.4, stdDev: 1.2 },
+  10770: { name: 'TV Movie', mean: 5.8, stdDev: 1.2 },
+  53: { name: 'Thriller', mean: 6.3, stdDev: 1.1 },
+  10752: { name: 'War', mean: 7.0, stdDev: 1.0 },
+  37: { name: 'Western', mean: 6.6, stdDev: 1.1 }
 };
+
 
 // ============================================================================
 // GENRE-BASED MOOD SCORING (Base values)
@@ -912,32 +922,84 @@ async function fetchAllMovieData() {
     throw error;
   }
 }
-
 // ============================================================================
-// MAIN SCORING PIPELINE
+// MAIN SCORING PIPELINE (MODIFIED)
 // ============================================================================
 
 async function calculateMovieScores() {
-  console.log('🎬 FeelFlick Movie Scoring Engine V2\n');
   console.log('='.repeat(70));
-  console.log('\n');
-
+  console.log('🎬 FeelFlick Movie Scoring Engine V2');
+  console.log('='.repeat(70));
+  console.log('');
+  
   const startTime = Date.now();
   
   try {
-    const { movies, genreMap, ratingsMap } = await fetchAllMovieData();
-
-    if (movies.length === 0) {
-      console.log('⚠️  No valid movies found to score');
+    // ✅ UPDATED QUERY: Only fetch movies with status='fetching' or 'scoring'
+    const { data: movies, error: moviesError } = await supabase
+      .from('movies')
+      .select('*')
+      .in('status', ['fetching', 'scoring'])  // ← NEW: Status filter
+      .eq('has_scores', false)
+      .eq('is_valid', true)
+      .limit(10000);
+    
+    if (moviesError) throw moviesError;
+    
+    if (!movies || movies.length === 0) {
+      console.log('✓ No movies need scoring');
       return;
     }
-
+    
+    console.log(`Found ${movies.length} movies needing scores\n`);
+    
+    // Fetch related data (genres, keywords, ratings)
+    console.log('📊 Fetching related data...');
+    
+    const movieIds = movies.map(m => m.id);
+    
+    // Batch fetch genres
+    const genreMap = new Map();
+    const GENRE_BATCH = 1000;
+    for (let i = 0; i < movieIds.length; i += GENRE_BATCH) {
+      const batch = movieIds.slice(i, i + GENRE_BATCH);
+      const { data: genreData } = await supabase
+        .from('movie_genres')
+        .select('movie_id, genre_id')
+        .in('movie_id', batch);
+      
+      genreData?.forEach(mg => {
+        if (!genreMap.has(mg.movie_id)) {
+          genreMap.set(mg.movie_id, []);
+        }
+        genreMap.get(mg.movie_id).push(mg.genre_id);
+      });
+    }
+    
+    // Batch fetch external ratings
+    const ratingsMap = new Map();
+    for (let i = 0; i < movieIds.length; i += GENRE_BATCH) {
+      const batch = movieIds.slice(i, i + GENRE_BATCH);
+      const { data: ratingsData } = await supabase
+        .from('ratings_external')
+        .select('movie_id, imdb_rating, imdb_votes, rt_rating, metacritic_score')
+        .in('movie_id', batch);
+      
+      ratingsData?.forEach(r => {
+        ratingsMap.set(r.movie_id, r);
+      });
+    }
+    
+    console.log(`✓ ${genreMap.size} movies with genres`);
+    console.log(`✓ ${ratingsMap.size} movies with external ratings\n`);
+    
+    // Process movies
     let updated = 0;
     let errors = 0;
     const updates = [];
-
-    console.log('🧮 Calculating scores...\n');
-
+    
+    console.log('🎯 Calculating scores...\n');
+    
     for (let i = 0; i < movies.length; i++) {
       const movie = movies[i];
       
@@ -946,7 +1008,7 @@ async function calculateMovieScores() {
         const genres = genreMap.get(movie.id) || [];
         const externalRatings = ratingsMap.get(movie.id);
         
-        // Parse keywords from JSONB
+        // Parse keywords
         let keywords = [];
         if (movie.keywords) {
           if (Array.isArray(movie.keywords)) {
@@ -955,11 +1017,10 @@ async function calculateMovieScores() {
             keywords = Object.values(movie.keywords);
           }
         }
-
-        // Get primary genre ID for normalization
+        
+        // Get primary genre ID
         let primaryGenreId = null;
         if (movie.primary_genre) {
-          // Find genre ID from name
           for (const [id, stats] of Object.entries(GENRE_STATS)) {
             if (stats.name.toLowerCase() === movie.primary_genre.toLowerCase()) {
               primaryGenreId = parseInt(id);
@@ -967,57 +1028,28 @@ async function calculateMovieScores() {
             }
           }
         }
-        // Fallback to first genre
         if (!primaryGenreId && genres.length > 0) {
           primaryGenreId = genres[0];
         }
-
-        // ============================================
-        // CALCULATE ALL SCORES
-        // ============================================
-
-        // Core quality rating (PURE - no starpower/freshness)
+        
+        // ✅ CALCULATE ALL SCORES (using your existing functions)
         const ffResult = calculateFFRating(movie, externalRatings);
-        
-        // Genre-normalized rating
-        const genreNormalizedRating = calculateGenreNormalizedRating(
-          ffResult.rating, 
-          primaryGenreId
-        );
-        
-        // Quality score (0-100)
+        const genreNormalizedRating = calculateGenreNormalizedRating(ffResult.rating, primaryGenreId);
         const qualityScore = calculateQualityScore(movie, externalRatings);
-        
-        // Mood scores (enhanced with keywords)
         const moodScores = calculateMoodScores(movie, genres, keywords);
-        
-        // VFX level
         const vfxLevel = calculateVFXLevel(movie, genres, keywords);
-        
-        // Cult status
         const cultStatus = calculateCultStatus(movie, keywords, externalRatings, qualityScore);
-        
-        // Starpower (kept separate from ff_rating now)
         const starpower = calculateStarpower(movie);
-        
-        // NEW: Polarization
         const polarization = calculatePolarization(movie, externalRatings);
-        
-        // NEW: Discovery potential
         const discoveryPotential = calculateDiscoveryPotential(
-          movie, 
-          ffResult.rating, 
-          genreNormalizedRating, 
-          cultStatus
+          movie, ffResult.rating, genreNormalizedRating, cultStatus
         );
-        
-        // NEW: Accessibility
         const accessibility = calculateAccessibility(movie, genres, moodScores);
-
+        
         // Legacy enum mappings
         const vfxEnum = scoreToVFXEnum(vfxLevel);
         const starpowerEnum = scoreToStarpowerEnum(starpower);
-
+        
         // Build update object
         updates.push({
           id: movie.id,
@@ -1030,9 +1062,9 @@ async function calculateMovieScores() {
           // Mood dimensions
           pacing_score: moodScores.pacing,
           intensity_score: moodScores.intensity,
-          emotional_depth_score: moodScores.emotional_depth,
-          dialogue_density: moodScores.dialogue_density,
-          attention_demand: moodScores.attention_demand,
+          emotional_depth_score: moodScores.emotionaldepth,
+          dialogue_density: moodScores.dialoguedensity,
+          attention_demand: moodScores.attentiondemand,
           
           // Quality metrics
           quality_score: qualityScore,
@@ -1048,89 +1080,122 @@ async function calculateMovieScores() {
           // Legacy enum fields
           vfx_level: vfxEnum,
           star_power: starpowerEnum,
-          cult_status: cultStatus >= 50,
+          cult_status: cultStatus > 50,
           
           // Metadata
           has_scores: true,
-          last_scored_at: new Date().toISOString()
+          last_scored_at: new Date().toISOString(),
+          
+          // ✅ NEW: Update status to 'scoring'
+          status: 'scoring'  // ← CRITICAL: Ready for embeddings
         });
-
+        
         // Batch upsert
         if (updates.length >= CONFIG.BATCH_SIZE) {
           const { error: batchError } = await supabase
             .from('movies')
             .upsert(updates);
-
-          if (batchError) {
+          
+          if (!batchError) {
+            updated += updates.length;
+          } else {
             console.error(`❌ Batch error:`, batchError.message);
             errors++;
-          } else {
-            updated += updates.length;
           }
-
-          if (updated % CONFIG.LOG_INTERVAL === 0 || updated === movies.length) {
-            const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-            const rate = (updated / (Date.now() - startTime) * 1000).toFixed(1);
-            const pct = ((updated / movies.length) * 100).toFixed(1);
-            console.log(`  ✓ ${updated.toLocaleString()}/${movies.length.toLocaleString()} (${pct}%) • ${rate} movies/sec • ${elapsed}s elapsed`);
-          }
-
+          
           updates.length = 0;
         }
+        
+        // Progress logging
+        if ((i + 1) % CONFIG.LOG_INTERVAL === 0 || i === movies.length - 1) {
+          const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+          const rate = ((updated + updates.length) / (Date.now() - startTime) * 1000).toFixed(1);
+          const pct = ((i + 1) / movies.length * 100).toFixed(1);
+          console.log(`${(i + 1).toLocaleString()}/${movies.length.toLocaleString()} (${pct}%) | ${rate} movies/sec | ${elapsed}s elapsed`);
+        }
+        
       } catch (error) {
         console.error(`❌ Error scoring movie ${movie.id} (${movie.title}):`, error.message);
         errors++;
       }
     }
-
+    
     // Final batch
     if (updates.length > 0) {
       const { error: batchError } = await supabase
         .from('movies')
         .upsert(updates);
-
+      
       if (!batchError) {
         updated += updates.length;
+        console.log(`\n✅ Final batch updated: ${updates.length} movies`);
       } else {
         console.error(`❌ Final batch error:`, batchError.message);
         errors++;
       }
     }
-
+    
     const totalTime = ((Date.now() - startTime) / 1000).toFixed(1);
     const avgRate = (updated / (Date.now() - startTime) * 1000).toFixed(1);
-
+    
     console.log('\n' + '='.repeat(70));
     console.log('✨ SCORING COMPLETE');
     console.log('='.repeat(70));
     console.log(`\n📊 Results:`);
-    console.log(`   Total movies: ${movies.length.toLocaleString()}`);
-    console.log(`   Successfully scored: ${updated.toLocaleString()}`);
-    console.log(`   Errors: ${errors}`);
-    console.log(`   Success rate: ${((updated / movies.length) * 100).toFixed(1)}%`);
+    console.log(`  Total movies: ${movies.length.toLocaleString()}`);
+    console.log(`  Successfully scored: ${updated.toLocaleString()}`);
+    console.log(`  Errors: ${errors}`);
+    console.log(`  Success rate: ${((updated / movies.length) * 100).toFixed(1)}%`);
     console.log(`\n⏱️  Performance:`);
-    console.log(`   Total time: ${totalTime}s`);
-    console.log(`   Average rate: ${avgRate} movies/second`);
+    console.log(`  Total time: ${totalTime}s`);
+    console.log(`  Average rate: ${avgRate} movies/second`);
     console.log(`\n🎯 V2 Scores calculated:`);
-    console.log(`   ✓ ff_rating (0-10) - PURE quality (no starpower/freshness)`);
-    console.log(`   ✓ ff_rating_genre_normalized (0-10) - NEW: relative to genre peers`);
-    console.log(`   ✓ discovery_potential (0-100) - NEW: hidden gem detection`);
-    console.log(`   ✓ accessibility_score (0-100) - NEW: ease of watching`);
-    console.log(`   ✓ polarization_score (0-100) - NEW: divisiveness`);
-    console.log(`   ✓ dialogue_density (0-100) - ENHANCED: keyword-based`);
-    console.log(`   ✓ attention_demand (0-100) - ENHANCED: keyword-based`);
-    console.log(`   ✓ pacing/intensity/depth - ENHANCED: keyword + director styles`);
+    console.log(`  ✓ ff_rating (0-10) - PURE quality (no starpower/freshness)`);
+    console.log(`  ✓ ff_rating_genre_normalized (0-10) - NEW: relative to genre peers`);
+    console.log(`  ✓ discovery_potential (0-100) - NEW: hidden gem detection`);
+    console.log(`  ✓ accessibility_score (0-100) - NEW: ease of watching`);
+    console.log(`  ✓ polarization_score (0-100) - NEW: divisiveness`);
+    console.log(`  ✓ dialogue_density (0-100) - ENHANCED: keyword-based`);
+    console.log(`  ✓ attention_demand (0-100) - ENHANCED: keyword-based`);
+    console.log(`  ✓ pacing/intensity/depth - ENHANCED: keyword + director styles`);
+    console.log(`  ✓ status updated to 'scoring' - Ready for embeddings!`);  // ← NEW
     console.log('\n' + '='.repeat(70) + '\n');
-
+    
     // Sample results
     await printSampleResults();
-
+    
   } catch (error) {
     console.error('\n❌ Fatal error:', error.message);
     console.error(error.stack);
     process.exit(1);
   }
 }
+
+// ============================================================================
+// [KEEP ALL YOUR EXISTING HELPER FUNCTIONS]
+// - printSampleResults()
+// - scoreToVFXEnum()
+// - scoreToStarpowerEnum()
+// - All scoring calculation functions
+// ============================================================================
+
+// ============================================================================
+// ENTRY POINT
+// ============================================================================
+
+if (require.main === module) {
+  calculateMovieScores()
+    .then(() => {
+      console.log('✅ Process complete');
+      process.exit(0);
+    })
+    .catch((error) => {
+      console.error('❌ Process failed:', error);
+      process.exit(1);
+    });
+}
+
+module.exports = { calculateMovieScores };
 
 // ============================================================================
 // SAMPLE RESULTS PRINTER

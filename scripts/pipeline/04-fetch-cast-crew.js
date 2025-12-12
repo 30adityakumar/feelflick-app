@@ -1,120 +1,464 @@
+// scripts/pipeline/04-fetch-cast-crew.js
+
+/**
+ * ============================================================================
+ * STEP 04: FETCH CAST & CREW FROM TMDB
+ * ============================================================================
+ * 
+ * Purpose:
+ *   Fetch cast and crew data from TMDB and populate people/movie_people tables
+ *   
+ * Input:
+ *   - Movies with has_credits=false and fetched_at IS NOT NULL
+ *   
+ * Output:
+ *   - people table populated with actors/directors
+ *   - movie_people table populated with relationships
+ *   - Movies updated with has_credits=true, cast_count, crew_count
+ *   
+ * Options:
+ *   --limit=N     Process max N movies (default: 200)
+ *   --dry-run     Simulate without making changes
+ * 
+ * Schema:
+ *   people (id, name, popularity)
+ *   movie_people (movie_id, person_id, job, character, billing_order, department)
+ * 
+ * ============================================================================
+ */
+
 require('dotenv').config();
-const { supabase } = require('../utils/supabase');
-const tmdbClient = require('../utils/tmdb-client');
+
 const Logger = require('../utils/logger');
+const tmdbClient = require('../utils/tmdb-client');
+const { supabase } = require('../utils/supabase');
 
 const logger = new Logger('04-fetch-cast-crew.log');
 
-async function main() {
-  logger.info('');
-  logger.info('FETCH CAST & CREW DATA');
-  logger.info('======================================================================');
-  logger.info('Started at:', new Date().toISOString());
-  
+// ============================================================================
+// CONFIGURATION
+// ============================================================================
+
+const CONFIG = {
+  DEFAULT_LIMIT: 200,
+  MAX_CAST_MEMBERS: 15,      // Top 15 cast members
+  MAX_CREW_MEMBERS: 20,      // Top 20 crew members (includes directors, writers, etc.)
+  RATE_LIMIT_DELAY_MS: 250,
+  BATCH_SIZE: 50             // Process in batches for progress tracking
+};
+
+// ============================================================================
+// ADD MISSING METHOD TO TMDB CLIENT
+// ============================================================================
+
+/**
+ * IMPORTANT: Add this method to your scripts/utils/tmdb-client.js:
+ * 
+ * async getMovieCredits(movieId) {
+ *   return this.request(`/movie/${movieId}/credits`);
+ * }
+ */
+
+// ============================================================================
+// PROCESS CAST & CREW FOR ONE MOVIE
+// ============================================================================
+
+async function processCastCrew(movie, dryRun = false) {
   try {
-    // Get movies needing cast/crew - INCREASED LIMIT
-    const { data: movies, error } = await supabase
-      .from('movies')
-      .select('*')
-      .eq('has_credits', false)
-      .not('fetched_at', 'is', null)
-      .order('vote_count', { ascending: false })
-      .limit(200); // Increased from 100 to 200
+    logger.debug(`  Processing: ${movie.title} (TMDB ${movie.tmdb_id})`);
     
-    if (error) throw error;
+    if (dryRun) {
+      return { success: true, castCount: 10, crewCount: 15, peopleCount: 20 };
+    }
     
-    logger.info(`Found ${movies.length} movies needing cast/crew`);
+    // Fetch credits from TMDB
+    const credits = await tmdbClient.getMovieCredits(movie.tmdb_id);
     
-    let processed = 0;
-    let failed = 0;
+    if (!credits || (!credits.cast && !credits.crew)) {
+      logger.warn(`  ⚠️ No credits found for ${movie.title}`);
+      
+      // Mark as processed even if empty (avoid re-fetching)
+      await supabase
+        .from('movies')
+        .update({ 
+          has_credits: true, 
+          cast_count: 0, 
+          crew_count: 0,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', movie.id);
+      
+      return { success: true, castCount: 0, crewCount: 0, peopleCount: 0 };
+    }
     
-    for (const movie of movies) {
-      try {
-        logger.info(`${processed + 1}/${movies.length} Fetching cast/crew for "${movie.title}"`);
-        
-        // Fetch from TMDB
-        const credits = await tmdbClient.getMovieCredits(movie.tmdb_id);
-        
-        if (!credits) {
-          logger.warn(`No credits found for ${movie.title}`);
-          failed++;
-          
-          // Mark as having credits (even if empty) so we don't retry
-          await supabase
-            .from('movies')
-            .update({ has_credits: true, cast_count: 0, crew_count: 0 })
-            .eq('id', movie.id);
-          
-          continue;
-        }
-        
-        // Process cast (top 15)
-        const cast = credits.cast?.slice(0, 15) || [];
-        const crew = credits.crew || [];
-        
-        // Find director
-        const director = crew.find(c => c.job === 'Director');
-        
-        // Update movie record
-        await supabase
-          .from('movies')
-          .update({
-            cast_count: cast.length,
-            crew_count: crew.length,
-            lead_actor_name: cast[0]?.name || null,
-            director_name: director?.name || null,
-            has_credits: true
-          })
-          .eq('id', movie.id);
-        
-        // Insert cast members
-        if (cast.length > 0) {
-          const castInserts = cast.map((person, index) => ({
-            movie_id: movie.id,
-            person_name: person.name,
-            character_name: person.character,
-            order: index,
-            popularity: person.popularity || 0
-          }));
-          
-          await supabase.from('movie_cast').insert(castInserts);
-        }
-        
-        // Insert crew (top 10)
-        if (crew.length > 0) {
-          const crewInserts = crew.slice(0, 10).map(person => ({
-            movie_id: movie.id,
-            person_name: person.name,
-            job: person.job,
-            department: person.department
-          }));
-          
-          await supabase.from('movie_crew').insert(crewInserts);
-        }
-        
-        processed++;
-        logger.success(`${processed}/${movies.length} Processed "${movie.title}"`);
-        
-        // Rate limit
-        await new Promise(resolve => setTimeout(resolve, 250));
-        
-      } catch (err) {
-        logger.error(`Failed to process ${movie.title}:`, err.message);
-        failed++;
+    // Process cast (top N)
+    const cast = (credits.cast || []).slice(0, CONFIG.MAX_CAST_MEMBERS);
+    
+    // Process crew (find director and top crew)
+    const crew = credits.crew || [];
+    const director = crew.find(c => c.job === 'Director');
+    const coDirectors = crew.filter(c => c.job === 'Director').slice(1, 3);
+    const otherCrew = crew
+      .filter(c => ['Producer', 'Writer', 'Screenplay', 'Director of Photography', 'Original Music Composer', 'Editor'].includes(c.job))
+      .slice(0, CONFIG.MAX_CREW_MEMBERS);
+    
+    // Combine all people (cast + crew)
+    const allPeople = new Map();
+    
+    // Add cast
+    cast.forEach(person => {
+      if (person.id && person.name) {
+        allPeople.set(person.id, {
+          id: person.id,
+          name: person.name,
+          popularity: person.popularity || 0,
+          profile_path: person.profile_path || null
+        });
+      }
+    });
+    
+    // Add crew
+    [...(director ? [director] : []), ...coDirectors, ...otherCrew].forEach(person => {
+      if (person.id && person.name) {
+        allPeople.set(person.id, {
+          id: person.id,
+          name: person.name,
+          popularity: person.popularity || 0,
+          profile_path: person.profile_path || null
+        });
+      }
+    });
+    
+    // 1. UPSERT PEOPLE (with conflict resolution)
+    if (allPeople.size > 0) {
+      const peopleArray = Array.from(allPeople.values());
+      
+      const { error: peopleError } = await supabase
+        .from('people')
+        .upsert(peopleArray, { 
+          onConflict: 'id',
+          ignoreDuplicates: false  // Update popularity if changed
+        });
+      
+      if (peopleError) {
+        throw new Error(`Failed to upsert people: ${peopleError.message}`);
       }
     }
     
-    logger.info('');
-    logger.info('SUMMARY');
-    logger.info('======================================================================');
-    logger.info('Movies processed:', processed);
-    logger.info('Failed:', failed);
-    logger.success('Cast/crew fetch complete!');
+    // 2. CREATE MOVIE-PEOPLE RELATIONSHIPS
+    const moviePeopleLinks = [];
+    
+    // Add cast relationships
+    cast.forEach((person, index) => {
+      if (person.id) {
+        moviePeopleLinks.push({
+          movie_id: movie.id,
+          person_id: person.id,
+          job: 'Acting',
+          character: person.character || null,
+          billing_order: index,
+          department: 'Acting'
+        });
+      }
+    });
+    
+    // Add crew relationships
+    if (director) {
+      moviePeopleLinks.push({
+        movie_id: movie.id,
+        person_id: director.id,
+        job: 'Director',
+        character: null,
+        billing_order: null,
+        department: 'Directing'
+      });
+    }
+    
+    coDirectors.forEach(person => {
+      if (person.id) {
+        moviePeopleLinks.push({
+          movie_id: movie.id,
+          person_id: person.id,
+          job: 'Director',
+          character: null,
+          billing_order: null,
+          department: 'Directing'
+        });
+      }
+    });
+    
+    otherCrew.forEach(person => {
+      if (person.id) {
+        moviePeopleLinks.push({
+          movie_id: movie.id,
+          person_id: person.id,
+          job: person.job,
+          character: null,
+          billing_order: null,
+          department: person.department || 'Crew'
+        });
+      }
+    });
+    
+    // Insert relationships
+    if (moviePeopleLinks.length > 0) {
+      const { error: linksError } = await supabase
+        .from('movie_people')
+        .upsert(moviePeopleLinks, { 
+          onConflict: 'movie_id,person_id,job',
+          ignoreDuplicates: true
+        });
+      
+      if (linksError) {
+        throw new Error(`Failed to insert movie_people links: ${linksError.message}`);
+      }
+    }
+    
+    // 3. UPDATE MOVIE RECORD
+    const updateData = {
+      cast_count: cast.length,
+      crew_count: crew.length,
+      director_count: coDirectors.length + (director ? 1 : 0),
+      has_credits: true,
+      updated_at: new Date().toISOString()
+    };
+    
+    // Add lead actor info
+    if (cast.length > 0) {
+      updateData.lead_actor_name = cast[0].name;
+      updateData.lead_actor_popularity = cast[0].popularity || 0;
+      updateData.lead_actor_character = cast[0].character || null;
+    }
+    
+    // Add director info
+    if (director) {
+      updateData.director_name = director.name;
+      updateData.director_popularity = director.popularity || 0;
+    }
+    
+    // Add co-directors
+    if (coDirectors.length > 0) {
+      updateData.co_directors = coDirectors.map(d => d.name).join(', ');
+    }
+    
+    const { error: updateError } = await supabase
+      .from('movies')
+      .update(updateData)
+      .eq('id', movie.id);
+    
+    if (updateError) {
+      throw new Error(`Failed to update movie: ${updateError.message}`);
+    }
+    
+    logger.success(`  ✓ ${movie.title}: ${cast.length} cast, ${crew.length} crew, ${allPeople.size} people`);
+    
+    return {
+      success: true,
+      castCount: cast.length,
+      crewCount: crew.length,
+      peopleCount: allPeople.size
+    };
     
   } catch (error) {
-    logger.error('Fatal error:', error);
-    process.exit(1);
+    logger.error(`  ✗ Failed for ${movie.title}: ${error.message}`);
+    
+    // Update movie with error (but don't mark has_credits=true so we retry)
+    await supabase
+      .from('movies')
+      .update({
+        last_error: error.message,
+        error_type: 'credits_fetch_error',
+        last_error_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', movie.id);
+    
+    return { success: false, error: error.message };
   }
 }
 
-main();
+// ============================================================================
+// MAIN FUNCTION
+// ============================================================================
+
+async function fetchCastCrew(options = {}) {
+  const startTime = Date.now();
+  
+  const config = {
+    limit: options.limit || CONFIG.DEFAULT_LIMIT,
+    dryRun: options.dryRun || false
+  };
+  
+  logger.section('🎭 FETCH CAST & CREW FROM TMDB');
+  logger.info(`Limit: ${config.limit} movies`);
+  logger.info(`Dry run: ${config.dryRun ? 'YES' : 'NO'}\n`);
+  
+  try {
+    // Get movies needing cast/crew
+    const { data: movies, error } = await supabase
+      .from('movies')
+      .select('id, tmdb_id, title, vote_count, popularity')
+      .eq('has_credits', false)
+      .not('fetched_at', 'is', null)  // Must have basic metadata first
+      .order('vote_count', { ascending: false })
+      .order('popularity', { ascending: false })
+      .limit(config.limit);
+    
+    if (error) {
+      throw new Error(`Failed to fetch movies: ${error.message}`);
+    }
+    
+    if (!movies || movies.length === 0) {
+      logger.info('✓ No movies need cast/crew fetching');
+      return { success: true, stats: { processed: 0, success: 0, failed: 0 } };
+    }
+    
+    logger.info(`Found ${movies.length} movies needing cast/crew\n`);
+    
+    // Stats
+    const stats = {
+      total: movies.length,
+      success: 0,
+      failed: 0,
+      totalCast: 0,
+      totalCrew: 0,
+      totalPeople: 0
+    };
+    
+    // Process movies
+    for (let i = 0; i < movies.length; i++) {
+      const movie = movies[i];
+      
+      // Progress logging
+      if (i > 0 && i % 25 === 0) {
+        logger.info(`\nProgress: ${i}/${movies.length} (${stats.success} success, ${stats.failed} failed)`);
+      }
+      
+      logger.debug(`${i + 1}/${movies.length} ${movie.title}`);
+      
+      const result = await processCastCrew(movie, config.dryRun);
+      
+      if (result.success) {
+        stats.success++;
+        stats.totalCast += result.castCount;
+        stats.totalCrew += result.crewCount;
+        stats.totalPeople += result.peopleCount;
+      } else {
+        stats.failed++;
+      }
+      
+      // Rate limiting
+      if (!config.dryRun) {
+        await new Promise(resolve => setTimeout(resolve, CONFIG.RATE_LIMIT_DELAY_MS));
+      }
+    }
+    
+    // Summary
+    const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+    
+    logger.section('📊 SUMMARY');
+    logger.info(`Total movies: ${stats.total}`);
+    logger.success(`✓ Successfully processed: ${stats.success}`);
+    
+    if (stats.failed > 0) {
+      logger.error(`✗ Failed: ${stats.failed}`);
+    }
+    
+    logger.info(`\nCast & Crew Stats:`);
+    logger.info(`  Total cast members: ${stats.totalCast}`);
+    logger.info(`  Total crew members: ${stats.totalCrew}`);
+    logger.info(`  Unique people added: ${stats.totalPeople}`);
+    logger.info(`  Avg cast per movie: ${(stats.totalCast / stats.success).toFixed(1)}`);
+    logger.info(`  Avg crew per movie: ${(stats.totalCrew / stats.success).toFixed(1)}`);
+    
+    logger.info(`\nTMDB API calls: ${tmdbClient.getRequestCount()}`);
+    logger.info(`Duration: ${duration}s`);
+    logger.info(`Average: ${(stats.success / (duration / 60)).toFixed(1)} movies/minute`);
+    
+    if (stats.success > 0) {
+      logger.success('\n✅ Cast/crew fetch complete! Run step 05 to calculate cast metadata.');
+    }
+    
+    logger.info(`\nLog file: ${logger.getLogFilePath()}`);
+    
+    return {
+      success: stats.failed === 0 || stats.success > 0,
+      stats
+    };
+    
+  } catch (error) {
+    logger.error('Fatal error:', { error: error.message, stack: error.stack });
+    return { success: false, error: error.message };
+  }
+}
+
+// ============================================================================
+// CLI EXECUTION
+// ============================================================================
+
+if (require.main === module) {
+  const args = process.argv.slice(2);
+  
+  const options = {
+    dryRun: args.includes('--dry-run'),
+    limit: CONFIG.DEFAULT_LIMIT
+  };
+  
+  // Parse --limit=N
+  const limitArg = args.find(arg => arg.startsWith('--limit='));
+  if (limitArg) {
+    options.limit = parseInt(limitArg.split('=')[1]) || CONFIG.DEFAULT_LIMIT;
+  }
+  
+  // Help
+  if (args.includes('--help') || args.includes('-h')) {
+    console.log(`
+┌─────────────────────────────────────────────────────────────────┐
+│ Step 04: Fetch Cast & Crew from TMDB                           │
+└─────────────────────────────────────────────────────────────────┘
+
+USAGE:
+  node scripts/pipeline/04-fetch-cast-crew.js [options]
+
+OPTIONS:
+  --limit=N     Process max N movies (default: ${CONFIG.DEFAULT_LIMIT})
+  --dry-run     Simulate without making changes
+  --help, -h    Show this help message
+
+EXAMPLES:
+  # Fetch cast/crew for 200 movies
+  node scripts/pipeline/04-fetch-cast-crew.js
+  
+  # Fetch for 100 movies
+  node scripts/pipeline/04-fetch-cast-crew.js --limit=100
+  
+  # Dry run
+  node scripts/pipeline/04-fetch-cast-crew.js --dry-run
+
+NOTE:
+  This script requires tmdbClient.getMovieCredits() method.
+  Add this to scripts/utils/tmdb-client.js:
+  
+  async getMovieCredits(movieId) {
+    return this.request(\`/movie/\${movieId}/credits\`);
+  }
+`);
+    process.exit(0);
+  }
+  
+  // Execute
+  fetchCastCrew(options)
+    .then(result => {
+      process.exit(result.success ? 0 : 1);
+    })
+    .catch(error => {
+      logger.error('Fatal error:', { error: error.message });
+      process.exit(1);
+    });
+}
+
+// ============================================================================
+// EXPORTS
+// ============================================================================
+
+module.exports = fetchCastCrew;

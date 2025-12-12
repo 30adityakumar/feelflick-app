@@ -2390,3 +2390,99 @@
 [2025-12-12T15:31:46.754Z] [INFO] Movies processed:
 [2025-12-12T15:31:46.754Z] [INFO] Failed:
 [2025-12-12T15:31:46.754Z] [SUCCESS] Cast/crew fetch complete!
+[2025-12-12T18:59:18.503Z] [INFO] 
+================================================================================
+[2025-12-12T18:59:18.503Z] [INFO] 🎭 FETCH CAST & CREW FROM TMDB
+[2025-12-12T18:59:18.504Z] [INFO] ================================================================================
+
+[2025-12-12T18:59:18.504Z] [INFO] Limit: 200 movies
+[2025-12-12T18:59:18.504Z] [INFO] Dry run: NO
+
+[2025-12-12T18:59:18.616Z] [INFO] Found 4 movies needing cast/crew
+
+[2025-12-12T18:59:18.616Z] [DEBUG] 1/4 Your Heart Will Be Broken
+[2025-12-12T18:59:18.617Z] [DEBUG]   Processing: Your Heart Will Be Broken (TMDB 1523145)
+[2025-12-12T18:59:18.861Z] [ERROR]   ✗ Failed for Your Heart Will Be Broken: Failed to insert movie_people links: Could not find the 'character_name' column of 'movie_people' in the schema cache
+[2025-12-12T18:59:19.167Z] [DEBUG] 2/4 The Monuments Men
+[2025-12-12T18:59:19.167Z] [DEBUG]   Processing: The Monuments Men (TMDB 152760)
+[2025-12-12T18:59:19.394Z] [ERROR]   ✗ Failed for The Monuments Men: Failed to insert movie_people links: Could not find the 'character_name' column of 'movie_people' in the schema cache
+[2025-12-12T18:59:19.705Z] [DEBUG] 3/4 Nuremberg
+[2025-12-12T18:59:19.705Z] [DEBUG]   Processing: Nuremberg (TMDB 1214931)
+[2025-12-12T18:59:19.935Z] [ERROR]   ✗ Failed for Nuremberg: Failed to insert movie_people links: Could not find the 'character_name' column of 'movie_people' in the schema cache
+[2025-12-12T18:59:20.232Z] [DEBUG] 4/4 A Paw Patrol Christmas
+[2025-12-12T18:59:20.232Z] [DEBUG]   Processing: A Paw Patrol Christmas (TMDB 1507275)
+[2025-12-12T18:59:20.468Z] [ERROR]   ✗ Failed for A Paw Patrol Christmas: Failed to insert movie_people links: Could not find the 'character_name' column of 'movie_people' in the schema cache
+[2025-12-12T18:59:20.771Z] [INFO] 
+================================================================================
+[2025-12-12T18:59:20.771Z] [INFO] 📊 SUMMARY
+[2025-12-12T18:59:20.772Z] [INFO] ================================================================================
+
+[2025-12-12T18:59:20.772Z] [INFO] Total movies: 4
+[2025-12-12T18:59:20.772Z] [SUCCESS] ✓ Successfully processed: 0
+[2025-12-12T18:59:20.772Z] [ERROR] ✗ Failed: 4
+[2025-12-12T18:59:20.772Z] [INFO] 
+Cast & Crew Stats:
+[2025-12-12T18:59:20.772Z] [INFO]   Total cast members: 0
+[2025-12-12T18:59:20.772Z] [INFO]   Total crew members: 0
+[2025-12-12T18:59:20.772Z] [INFO]   Unique people added: 0
+[2025-12-12T18:59:20.772Z] [INFO]   Avg cast per movie: NaN
+[2025-12-12T18:59:20.772Z] [INFO]   Avg crew per movie: NaN
+[2025-12-12T18:59:20.773Z] [INFO] 
+TMDB API calls: 4
+[2025-12-12T18:59:20.773Z] [INFO] Duration: 2.27s
+[2025-12-12T18:59:20.773Z] [INFO] Average: 0.0 movies/minute
+[2025-12-12T18:59:20.773Z] [INFO] 
+Log file: /workspaces/feelflick-app/logs/04-fetch-cast-crew.log
+[2025-12-12T19:13:24.858Z] [INFO] 
+================================================================================
+[2025-12-12T19:13:24.859Z] [INFO] 🎭 FETCH CAST & CREW FROM TMDB
+[2025-12-12T19:13:24.859Z] [INFO] ================================================================================
+
+[2025-12-12T19:13:24.859Z] [INFO] Limit: 200 movies
+[2025-12-12T19:13:24.859Z] [INFO] Dry run: NO
+
+[2025-12-12T19:13:25.028Z] [INFO] Found 4 movies needing cast/crew
+
+[2025-12-12T19:13:25.028Z] [DEBUG] 1/4 Your Heart Will Be Broken
+[2025-12-12T19:13:25.028Z] [DEBUG]   Processing: Your Heart Will Be Broken (TMDB 1523145)
+[2025-12-12T19:13:25.483Z] [SUCCESS]   ✓ Your Heart Will Be Broken: 15 cast, 8 crew, 22 people
+[2025-12-12T19:13:25.734Z] [DEBUG] 2/4 The Monuments Men
+[2025-12-12T19:13:25.734Z] [DEBUG]   Processing: The Monuments Men (TMDB 152760)
+[2025-12-12T19:13:26.020Z] [SUCCESS]   ✓ The Monuments Men: 15 cast, 52 crew, 20 people
+[2025-12-12T19:13:26.271Z] [DEBUG] 3/4 Nuremberg
+[2025-12-12T19:13:26.271Z] [DEBUG]   Processing: Nuremberg (TMDB 1214931)
+[2025-12-12T19:13:26.562Z] [SUCCESS]   ✓ Nuremberg: 15 cast, 158 crew, 24 people
+[2025-12-12T19:13:26.813Z] [DEBUG] 4/4 A Paw Patrol Christmas
+[2025-12-12T19:13:26.813Z] [DEBUG]   Processing: A Paw Patrol Christmas (TMDB 1507275)
+[2025-12-12T19:13:27.129Z] [SUCCESS]   ✓ A Paw Patrol Christmas: 13 cast, 7 crew, 19 people
+[2025-12-12T19:13:27.379Z] [INFO] 
+================================================================================
+[2025-12-12T19:13:27.380Z] [INFO] 📊 SUMMARY
+[2025-12-12T19:13:27.380Z] [INFO] ================================================================================
+
+[2025-12-12T19:13:27.380Z] [INFO] Total movies: 4
+[2025-12-12T19:13:27.380Z] [SUCCESS] ✓ Successfully processed: 4
+[2025-12-12T19:13:27.380Z] [INFO] 
+Cast & Crew Stats:
+[2025-12-12T19:13:27.380Z] [INFO]   Total cast members: 58
+[2025-12-12T19:13:27.380Z] [INFO]   Total crew members: 225
+[2025-12-12T19:13:27.381Z] [INFO]   Unique people added: 85
+[2025-12-12T19:13:27.381Z] [INFO]   Avg cast per movie: 14.5
+[2025-12-12T19:13:27.381Z] [INFO]   Avg crew per movie: 56.3
+[2025-12-12T19:13:27.381Z] [INFO] 
+TMDB API calls: 4
+[2025-12-12T19:13:27.381Z] [INFO] Duration: 2.52s
+[2025-12-12T19:13:27.381Z] [INFO] Average: 95.2 movies/minute
+[2025-12-12T19:13:27.381Z] [SUCCESS] 
+✅ Cast/crew fetch complete! Run step 05 to calculate cast metadata.
+[2025-12-12T19:13:27.381Z] [INFO] 
+Log file: /workspaces/feelflick-app/logs/04-fetch-cast-crew.log
+[2025-12-12T19:15:45.498Z] [INFO] 
+================================================================================
+[2025-12-12T19:15:45.498Z] [INFO] 🎭 FETCH CAST & CREW FROM TMDB
+[2025-12-12T19:15:45.498Z] [INFO] ================================================================================
+
+[2025-12-12T19:15:45.498Z] [INFO] Limit: 200 movies
+[2025-12-12T19:15:45.498Z] [INFO] Dry run: NO
+
+[2025-12-12T19:15:45.626Z] [INFO] ✓ No movies need cast/crew fetching

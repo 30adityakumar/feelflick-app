@@ -22,14 +22,16 @@ jobs:
           cache: 'npm'
           cache-dependency-path: 'scripts/pipeline/package-lock.json'
       
-      - name: Install dependencies
-        working-directory: ./scripts/pipeline
-        run: npm ci
+      - name: Install dependencies in scripts directory
+        working-directory: ./scripts
+        run: |
+          cp pipeline/package.json .
+          cp pipeline/package-lock.json .
+          npm ci
       
       - name: Run deep refresh pipeline
-        run: |
-          cd scripts/pipeline
-          node run-pipeline.js deep-refresh
+        working-directory: ./scripts/pipeline
+        run: node run-pipeline.js deep-refresh
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}

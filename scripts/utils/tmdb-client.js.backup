@@ -1,0 +1,102 @@
+// scripts/utils/tmdb-client.js
+
+require('dotenv').config();
+const axios = require('axios');
+
+const TMDB_API_KEY = process.env.TMDB_API_KEY;
+const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
+const RATE_LIMIT_DELAY = 20; // 50 req/sec = 20ms between requests
+
+if (!TMDB_API_KEY) {
+  throw new Error('Missing TMDB_API_KEY in environment');
+}
+
+class TMDBClient {
+  constructor() {
+    this.lastRequestTime = 0;
+    this.requestCount = 0;
+  }
+
+  async rateLimit() {
+    const now = Date.now();
+    const timeSinceLastRequest = now - this.lastRequestTime;
+    
+    if (timeSinceLastRequest < RATE_LIMIT_DELAY) {
+      await new Promise(resolve => setTimeout(resolve, RATE_LIMIT_DELAY - timeSinceLastRequest));
+    }
+    
+    this.lastRequestTime = Date.now();
+    this.requestCount++;
+  }
+
+  async request(endpoint, params = {}) {
+    await this.rateLimit();
+
+    try {
+      const response = await axios.get(`${TMDB_BASE_URL}${endpoint}`, {
+        params: { ...params, api_key: TMDB_API_KEY },
+        timeout: 10000
+      });
+      return response.data;
+    } catch (error) {
+      if (error.response) {
+        if (error.response.status === 404) {
+          throw new Error('TMDB_NOT_FOUND');
+        }
+        if (error.response.status === 429) {
+          throw new Error('TMDB_RATE_LIMIT');
+        }
+        throw new Error(`TMDB API error: ${error.response.status} - ${error.response.statusText}`);
+      }
+      throw new Error(`TMDB request failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * Fetch movie metadata with append_to_response
+   */
+  async getMovie(tmdbId, appendToResponse = 'credits,keywords,external_ids,videos') {
+    return await this.request(`/movie/${tmdbId}`, { append_to_response: appendToResponse });
+  }
+
+  /**
+   * Discover movies by filters
+   */
+  async discoverMovies(filters = {}, page = 1) {
+    return await this.request('/discover/movie', { ...filters, page });
+  }
+
+  /**
+   * Get trending movies
+   */
+  async getTrending(timeWindow = 'week', page = 1) {
+    return await this.request(`/trending/movie/${timeWindow}`, { page });
+  }
+
+  /**
+   * Get now playing movies
+   */
+  async getNowPlaying(page = 1) {
+    return await this.request('/movie/now_playing', { page });
+  }
+
+  /**
+   * Get popular movies
+   */
+  async getPopular(page = 1) {
+    return await this.request('/movie/popular', { page });
+  }
+
+  /**
+   * Get request count (for monitoring)
+   */
+  getRequestCount() {
+    return this.requestCount;
+  }
+
+  resetRequestCount() {
+    this.requestCount = 0;
+  }
+}
+
+module.exports = new TMDBClient();

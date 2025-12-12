@@ -1,0 +1,30 @@
+{
+  "name": "feelflick-pipeline",
+  "version": "1.0.0",
+  "description": "FeelFlick movie data pipeline",
+  "scripts": {
+    "pipeline:discover": "node run-pipeline.js discover",
+    "pipeline:refresh": "node run-pipeline.js refresh",
+    "pipeline:deep-refresh": "node run-pipeline.js deep-refresh",
+    "pipeline:full": "node run-pipeline.js full",
+    "pipeline:dry-run": "node run-pipeline.js discover --dry-run",
+    "step:discover": "node 01-discover-new-movies.js",
+    "step:metadata": "node 02-fetch-movie-metadata.js",
+    "step:genres": "node 03-fetch-genres-keywords.js",
+    "step:cast": "node 04-fetch-cast-crew.js",
+    "step:cast-meta": "node 05-calculate-cast-metadata.js",
+    "step:ratings": "node 06-fetch-external-ratings.js",
+    "step:scores": "node 07-calculate-movie-scores.js",
+    "step:embeddings": "node 08-generate-embeddings.js",
+    "step:mood-scores": "node 09-calculate-mood-scores.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "axios": "^1.6.2",
+    "dotenv": "^16.3.1",
+    "openai": "^4.20.1",
+    "resend": "^3.0.0"
+  }
+}
+
+

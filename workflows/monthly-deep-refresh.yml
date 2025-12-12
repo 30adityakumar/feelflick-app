@@ -1,0 +1,114 @@
+name: Monthly Deep Refresh
+
+on:
+  schedule:
+    # Run on the 1st of every month at 3:00 AM UTC (10:00 PM EST / 11:00 PM EDT previous day)
+    - cron: '0 3 1 * *'
+  
+  workflow_dispatch:
+    # Allow manual trigger with options
+    inputs:
+      force_all:
+        description: 'Force refresh ALL ratings (ignore staleness)'
+        required: false
+        type: boolean
+        default: false
+      
+      quota_limit:
+        description: 'OMDb daily quota limit'
+        required: false
+        type: number
+        default: 1000
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  deep-refresh:
+    name: Deep Refresh External Ratings
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Create logs directory
+        run: mkdir -p logs
+
+      - name: Run monthly deep refresh pipeline
+        id: pipeline
+        run: node scripts/pipeline/run-pipeline.js deep-refresh
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+          OMDB_API_KEY: ${{ secrets.OMDB_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        continue-on-error: true
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: monthly-refresh-logs-${{ github.run_number }}
+          path: logs/
+          retention-days: 365
+
+      - name: Check OMDb quota usage
+        if: always()
+        run: |
+          echo "## OMDb Quota Usage" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Extract quota usage from logs
+          if [ -f logs/run-pipeline*.log ]; then
+            grep -A 2 "OMDb" logs/run-pipeline*.log >> $GITHUB_STEP_SUMMARY || echo "No OMDb data found" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Generate detailed summary
+        if: always()
+        run: |
+          echo "## Monthly Deep Refresh Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Run ID:** ${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Mode:** deep-refresh" >> $GITHUB_STEP_SUMMARY
+          echo "**Date:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -f logs/run-pipeline*.log ]; then
+            echo "### Final Summary" >> $GITHUB_STEP_SUMMARY
+            echo '```
+            grep -A 20 "PIPELINE SUMMARY" logs/run-pipeline*.log >> $GITHUB_STEP_SUMMARY || echo "Summary not found" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Send notification with details
+        if: always()
+        uses: daun/webhook-action@v1
+        with:
+          url: ${{ secrets.RESEND_WEBHOOK_URL }}
+          data: |
+            {
+              "type": "monthly_deep_refresh",
+              "status": "${{ steps.pipeline.outcome }}",
+              "run_id": "${{ github.run_number }}",
+              "timestamp": "${{ github.event.repository.updated_at }}",
+              "force_all": "${{ github.event.inputs.force_all }}"
+            }
+        continue-on-error: true
+
+      - name: Check pipeline status
+        if: steps.pipeline.outcome == 'failure'
+        run: |
+          echo "❌ Monthly deep refresh failed. Check logs for details."
+          exit 1

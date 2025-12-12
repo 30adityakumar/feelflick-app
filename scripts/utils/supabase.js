@@ -20,4 +20,51 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
   }
 });
 
-module.exports = { supabase };
+/**
+ * Log a new update run to the database
+ */
+async function logUpdateRun(params) {
+  const { data, error } = await supabase
+    .from('update_runs')
+    .insert({
+      run_type: params.run_type,
+      status: params.status || 'running',
+      started_at: params.started_at || new Date().toISOString(),
+      config: params.config || {}
+    })
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('Error logging update run:', error);
+    return null;
+  }
+  
+  return data;
+}
+
+/**
+ * Complete an update run with final status
+ */
+async function completeUpdateRun(runId, params) {
+  const updates = {
+    status: params.status || 'success',
+    completed_at: new Date().toISOString(),
+    errors: params.errors || []
+  };
+  
+  const { error } = await supabase
+    .from('update_runs')
+    .update(updates)
+    .eq('id', runId);
+  
+  if (error) {
+    console.error('Error completing update run:', error);
+  }
+}
+
+module.exports = { 
+  supabase,
+  logUpdateRun,
+  completeUpdateRun
+};

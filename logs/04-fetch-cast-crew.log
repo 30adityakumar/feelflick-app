@@ -1,0 +1,2039 @@
+[2025-12-12T01:29:16.204Z] [INFO] 
+================================================================================
+[2025-12-12T01:29:16.205Z] [INFO] 🎬 FETCH CAST & CREW DATA
+[2025-12-12T01:29:16.205Z] [INFO] ================================================================================
+
+[2025-12-12T01:29:16.205Z] [INFO] Started at: 2025-12-12T01:29:16.205Z
+[2025-12-12T01:29:16.384Z] [INFO] Found 1000 movies needing cast/crew data
+[2025-12-12T01:29:16.385Z] [INFO] Processing cast/crew for: Interstellar (tmdb_id: 157336)
+[2025-12-12T01:29:16.985Z] [SUCCESS] ✓ Processed 34 cast, 12 crew for: Interstellar
+[2025-12-12T01:29:16.986Z] [INFO] Processing cast/crew for: Inception (tmdb_id: 27205)
+[2025-12-12T01:29:17.427Z] [SUCCESS] ✓ Processed 52 cast, 10 crew for: Inception
+[2025-12-12T01:29:17.427Z] [INFO] Processing cast/crew for: The Dark Knight (tmdb_id: 155)
+[2025-12-12T01:29:18.123Z] [SUCCESS] ✓ Processed 138 cast, 15 crew for: The Dark Knight
+[2025-12-12T01:29:18.123Z] [INFO] Processing cast/crew for: The Avengers (tmdb_id: 24428)
+[2025-12-12T01:29:18.603Z] [SUCCESS] ✓ Processed 113 cast, 15 crew for: The Avengers
+[2025-12-12T01:29:18.603Z] [INFO] Processing cast/crew for: Avatar (tmdb_id: 19995)
+[2025-12-12T01:29:19.019Z] [SUCCESS] ✓ Processed 67 cast, 8 crew for: Avatar
+[2025-12-12T01:29:19.019Z] [INFO] Processing cast/crew for: Deadpool (tmdb_id: 293660)
+[2025-12-12T01:29:19.461Z] [SUCCESS] ✓ Processed 52 cast, 14 crew for: Deadpool
+[2025-12-12T01:29:19.462Z] [INFO] Processing cast/crew for: Avengers: Infinity War (tmdb_id: 299536)
+[2025-12-12T01:29:19.863Z] [SUCCESS] ✓ Processed 69 cast, 14 crew for: Avengers: Infinity War
+[2025-12-12T01:29:19.863Z] [INFO] Processing cast/crew for: Fight Club (tmdb_id: 550)
+[2025-12-12T01:29:20.302Z] [SUCCESS] ✓ Processed 76 cast, 9 crew for: Fight Club
+[2025-12-12T01:29:20.302Z] [INFO] Processing cast/crew for: Pulp Fiction (tmdb_id: 680)
+[2025-12-12T01:29:20.705Z] [SUCCESS] ✓ Processed 52 cast, 9 crew for: Pulp Fiction
+[2025-12-12T01:29:20.705Z] [INFO] Processing cast/crew for: The Shawshank Redemption (tmdb_id: 278)
+[2025-12-12T01:29:21.087Z] [SUCCESS] ✓ Processed 60 cast, 7 crew for: The Shawshank Redemption
+[2025-12-12T01:29:21.087Z] [INFO] Processing cast/crew for: Guardians of the Galaxy (tmdb_id: 118340)
+[2025-12-12T01:29:21.443Z] [SUCCESS] ✓ Processed 74 cast, 12 crew for: Guardians of the Galaxy
+[2025-12-12T01:29:21.443Z] [INFO] Processing cast/crew for: Forrest Gump (tmdb_id: 13)
+[2025-12-12T01:29:22.044Z] [SUCCESS] ✓ Processed 175 cast, 7 crew for: Forrest Gump
+[2025-12-12T01:29:22.044Z] [INFO] Processing cast/crew for: Harry Potter and the Philosopher's Stone (tmdb_id: 671)
+[2025-12-12T01:29:22.370Z] [SUCCESS] ✓ Processed 63 cast, 9 crew for: Harry Potter and the Philosopher's Stone
+[2025-12-12T01:29:22.370Z] [INFO] Processing cast/crew for: Iron Man (tmdb_id: 1726)
+[2025-12-12T01:29:22.671Z] [SUCCESS] ✓ Processed 65 cast, 15 crew for: Iron Man
+[2025-12-12T01:29:22.671Z] [INFO] Processing cast/crew for: Django Unchained (tmdb_id: 68718)
+[2025-12-12T01:29:23.187Z] [SUCCESS] ✓ Processed 136 cast, 11 crew for: Django Unchained
+[2025-12-12T01:29:23.187Z] [INFO] Processing cast/crew for: The Matrix (tmdb_id: 603)
+[2025-12-12T01:29:23.455Z] [SUCCESS] ✓ Processed 37 cast, 13 crew for: The Matrix
+[2025-12-12T01:29:23.455Z] [INFO] Processing cast/crew for: Joker (tmdb_id: 475557)
+[2025-12-12T01:29:23.845Z] [SUCCESS] ✓ Processed 80 cast, 14 crew for: Joker
+[2025-12-12T01:29:23.845Z] [INFO] Processing cast/crew for: Avengers: Endgame (tmdb_id: 299534)
+[2025-12-12T01:29:24.171Z] [SUCCESS] ✓ Processed 106 cast, 14 crew for: Avengers: Endgame
+[2025-12-12T01:29:24.171Z] [INFO] Processing cast/crew for: The Lord of the Rings: The Fellowship of the Ring (tmdb_id: 120)
+[2025-12-12T01:29:24.539Z] [SUCCESS] ✓ Processed 117 cast, 15 crew for: The Lord of the Rings: The Fellowship of the Ring
+[2025-12-12T01:29:24.539Z] [INFO] Processing cast/crew for: Titanic (tmdb_id: 597)
+[2025-12-12T01:29:24.893Z] [SUCCESS] ✓ Processed 116 cast, 7 crew for: Titanic
+[2025-12-12T01:29:24.894Z] [INFO] Processing cast/crew for: The Lord of the Rings: The Return of the King (tmdb_id: 122)
+[2025-12-12T01:29:25.171Z] [SUCCESS] ✓ Processed 78 cast, 14 crew for: The Lord of the Rings: The Return of the King
+[2025-12-12T01:29:25.171Z] [INFO] Processing cast/crew for: The Wolf of Wall Street (tmdb_id: 106646)
+[2025-12-12T01:29:25.700Z] [SUCCESS] ✓ Processed 179 cast, 13 crew for: The Wolf of Wall Street
+[2025-12-12T01:29:25.700Z] [INFO] Processing cast/crew for: Shutter Island (tmdb_id: 11324)
+[2025-12-12T01:29:26.041Z] [SUCCESS] ✓ Processed 41 cast, 8 crew for: Shutter Island
+[2025-12-12T01:29:26.041Z] [INFO] Processing cast/crew for: Avengers: Age of Ultron (tmdb_id: 99861)
+[2025-12-12T01:29:26.316Z] [SUCCESS] ✓ Processed 74 cast, 13 crew for: Avengers: Age of Ultron
+[2025-12-12T01:29:26.316Z] [INFO] Processing cast/crew for: The Dark Knight Rises (tmdb_id: 49026)
+[2025-12-12T01:29:26.782Z] [SUCCESS] ✓ Processed 169 cast, 14 crew for: The Dark Knight Rises
+[2025-12-12T01:29:26.782Z] [INFO] Processing cast/crew for: The Dark Knight Rises (tmdb_id: 1148)
+[2025-12-12T01:29:26.798Z] [ERROR] ✗ Failed to process cast/crew for The Dark Knight Rises: | {"error":"TMDB_NOT_FOUND"}
+[2025-12-12T01:29:26.897Z] [INFO] Processing cast/crew for: Captain America: Civil War (tmdb_id: 271110)
+[2025-12-12T01:29:27.211Z] [SUCCESS] ✓ Processed 104 cast, 13 crew for: Captain America: Civil War
+[2025-12-12T01:29:27.211Z] [INFO] Processing cast/crew for: Mad Max: Fury Road (tmdb_id: 76341)
+[2025-12-12T01:29:27.584Z] [SUCCESS] ✓ Processed 60 cast, 15 crew for: Mad Max: Fury Road
+[2025-12-12T01:29:27.584Z] [INFO] Processing cast/crew for: Inglourious Basterds (tmdb_id: 16869)
+[2025-12-12T01:29:27.954Z] [SUCCESS] ✓ Processed 72 cast, 8 crew for: Inglourious Basterds
+[2025-12-12T01:29:27.954Z] [INFO] Processing cast/crew for: The Lord of the Rings: The Two Towers (tmdb_id: 121)
+[2025-12-12T01:29:28.224Z] [SUCCESS] ✓ Processed 106 cast, 15 crew for: The Lord of the Rings: The Two Towers
+[2025-12-12T01:29:28.224Z] [INFO] Processing cast/crew for: Harry Potter and the Chamber of Secrets (tmdb_id: 672)
+[2025-12-12T01:29:28.505Z] [SUCCESS] ✓ Processed 77 cast, 9 crew for: Harry Potter and the Chamber of Secrets
+[2025-12-12T01:29:28.505Z] [INFO] Processing cast/crew for: Black Panther (tmdb_id: 284054)
+[2025-12-12T01:29:28.799Z] [SUCCESS] ✓ Processed 66 cast, 11 crew for: Black Panther
+[2025-12-12T01:29:28.800Z] [INFO] Processing cast/crew for: Inside Out (tmdb_id: 150540)
+[2025-12-12T01:29:29.085Z] [SUCCESS] ✓ Processed 58 cast, 9 crew for: Inside Out
+[2025-12-12T01:29:29.085Z] [INFO] Processing cast/crew for: Iron Man 3 (tmdb_id: 68721)
+[2025-12-12T01:29:29.381Z] [SUCCESS] ✓ Processed 110 cast, 16 crew for: Iron Man 3
+[2025-12-12T01:29:29.381Z] [INFO] Processing cast/crew for: Doctor Strange (tmdb_id: 284052)
+[2025-12-12T01:29:29.641Z] [SUCCESS] ✓ Processed 42 cast, 13 crew for: Doctor Strange
+[2025-12-12T01:29:29.641Z] [INFO] Processing cast/crew for: The Hunger Games (tmdb_id: 70160)
+[2025-12-12T01:29:29.941Z] [SUCCESS] ✓ Processed 51 cast, 11 crew for: The Hunger Games
+[2025-12-12T01:29:29.941Z] [INFO] Processing cast/crew for: Spider-Man: Homecoming (tmdb_id: 315635)
+[2025-12-12T01:29:30.230Z] [SUCCESS] ✓ Processed 82 cast, 18 crew for: Spider-Man: Homecoming
+[2025-12-12T01:29:30.230Z] [INFO] Processing cast/crew for: Harry Potter and the Prisoner of Azkaban (tmdb_id: 673)
+[2025-12-12T01:29:30.633Z] [SUCCESS] ✓ Processed 58 cast, 11 crew for: Harry Potter and the Prisoner of Azkaban
+[2025-12-12T01:29:30.633Z] [INFO] Processing cast/crew for: Guardians of the Galaxy Vol. 2 (tmdb_id: 283995)
+[2025-12-12T01:29:30.909Z] [SUCCESS] ✓ Processed 59 cast, 10 crew for: Guardians of the Galaxy Vol. 2
+[2025-12-12T01:29:30.910Z] [INFO] Processing cast/crew for: Se7en (tmdb_id: 807)
+[2025-12-12T01:29:31.215Z] [SUCCESS] ✓ Processed 59 cast, 9 crew for: Se7en
+[2025-12-12T01:29:31.215Z] [INFO] Processing cast/crew for: Captain America: The First Avenger (tmdb_id: 1771)
+[2025-12-12T01:29:31.528Z] [SUCCESS] ✓ Processed 98 cast, 12 crew for: Captain America: The First Avenger
+[2025-12-12T01:29:31.529Z] [INFO] Processing cast/crew for: The Godfather (tmdb_id: 238)
+[2025-12-12T01:29:31.819Z] [SUCCESS] ✓ Processed 59 cast, 8 crew for: The Godfather
+[2025-12-12T01:29:31.819Z] [INFO] Processing cast/crew for: Batman Begins (tmdb_id: 1207)
+[2025-12-12T01:29:31.834Z] [ERROR] ✗ Failed to process cast/crew for Batman Begins: | {"error":"TMDB_NOT_FOUND"}
+[2025-12-12T01:29:31.973Z] [INFO] Processing cast/crew for: Batman Begins (tmdb_id: 272)
+[2025-12-12T01:29:32.315Z] [SUCCESS] ✓ Processed 111 cast, 12 crew for: Batman Begins
+[2025-12-12T01:29:32.315Z] [INFO] Processing cast/crew for: Thor (tmdb_id: 10195)
+[2025-12-12T01:29:32.714Z] [SUCCESS] ✓ Processed 56 cast, 14 crew for: Thor
+[2025-12-12T01:29:32.715Z] [INFO] Processing cast/crew for: Iron Man 2 (tmdb_id: 10138)
+[2025-12-12T01:29:33.039Z] [SUCCESS] ✓ Processed 86 cast, 12 crew for: Iron Man 2
+[2025-12-12T01:29:33.039Z] [INFO] Processing cast/crew for: Star Wars (tmdb_id: 11)
+[2025-12-12T01:29:33.356Z] [SUCCESS] ✓ Processed 104 cast, 6 crew for: Star Wars
+[2025-12-12T01:29:33.356Z] [INFO] Processing cast/crew for: Pirates of the Caribbean: The Curse of the Black Pearl (tmdb_id: 22)
+[2025-12-12T01:29:33.729Z] [SUCCESS] ✓ Processed 71 cast, 10 crew for: Pirates of the Caribbean: The Curse of the Black Pearl
+[2025-12-12T01:29:33.729Z] [INFO] Processing cast/crew for: Harry Potter and the Goblet of Fire (tmdb_id: 674)
+[2025-12-12T01:29:34.092Z] [SUCCESS] ✓ Processed 75 cast, 7 crew for: Harry Potter and the Goblet of Fire
+[2025-12-12T01:29:34.092Z] [INFO] Processing cast/crew for: Thor: Ragnarok (tmdb_id: 1320)
+[2025-12-12T01:29:34.107Z] [ERROR] ✗ Failed to process cast/crew for Thor: Ragnarok: | {"error":"TMDB_NOT_FOUND"}
+[2025-12-12T01:29:34.289Z] [INFO] Progress: 50/1000 (47 success, 3 failed)
+[2025-12-12T01:29:34.289Z] [INFO] Processing cast/crew for: Thor: Ragnarok (tmdb_id: 284053)
+[2025-12-12T01:29:34.649Z] [SUCCESS] ✓ Processed 55 cast, 12 crew for: Thor: Ragnarok
+[2025-12-12T01:29:34.649Z] [INFO] Processing cast/crew for: Harry Potter and the Deathly Hallows: Part 2 (tmdb_id: 12445)
+[2025-12-12T01:29:34.987Z] [SUCCESS] ✓ Processed 105 cast, 8 crew for: Harry Potter and the Deathly Hallows: Part 2
+[2025-12-12T01:29:34.987Z] [INFO] Processing cast/crew for: Spider-Man: No Way Home (tmdb_id: 634649)
+[2025-12-12T01:29:35.389Z] [SUCCESS] ✓ Processed 63 cast, 13 crew for: Spider-Man: No Way Home
+[2025-12-12T01:29:35.390Z] [INFO] Processing cast/crew for: Jurassic World (tmdb_id: 135397)
+[2025-12-12T01:29:35.739Z] [SUCCESS] ✓ Processed 53 cast, 13 crew for: Jurassic World
+[2025-12-12T01:29:35.739Z] [INFO] Processing cast/crew for: Up (tmdb_id: 14160)
+[2025-12-12T01:29:36.013Z] [SUCCESS] ✓ Processed 31 cast, 12 crew for: Up
+[2025-12-12T01:29:36.013Z] [INFO] Processing cast/crew for: Back to the Future (tmdb_id: 105)
+[2025-12-12T01:29:36.358Z] [SUCCESS] ✓ Processed 52 cast, 10 crew for: Back to the Future
+[2025-12-12T01:29:36.358Z] [INFO] Processing cast/crew for: The Martian (tmdb_id: 286217)
+[2025-12-12T01:29:36.763Z] [SUCCESS] ✓ Processed 54 cast, 10 crew for: The Martian
+[2025-12-12T01:29:36.763Z] [INFO] Processing cast/crew for: Wonder Woman (tmdb_id: 297762)
+[2025-12-12T01:29:37.104Z] [SUCCESS] ✓ Processed 83 cast, 17 crew for: Wonder Woman
+[2025-12-12T01:29:37.104Z] [INFO] Processing cast/crew for: Coco (tmdb_id: 354912)
+[2025-12-12T01:29:37.446Z] [SUCCESS] ✓ Processed 83 cast, 8 crew for: Coco
+[2025-12-12T01:29:37.446Z] [INFO] Processing cast/crew for: Ant-Man (tmdb_id: 102899)
+[2025-12-12T01:29:37.745Z] [SUCCESS] ✓ Processed 70 cast, 16 crew for: Ant-Man
+[2025-12-12T01:29:37.745Z] [INFO] Processing cast/crew for: Harry Potter and the Order of the Phoenix (tmdb_id: 675)
+[2025-12-12T01:29:38.094Z] [SUCCESS] ✓ Processed 85 cast, 8 crew for: Harry Potter and the Order of the Phoenix
+[2025-12-12T01:29:38.094Z] [INFO] Processing cast/crew for: Harry Potter and the Half-Blood Prince (tmdb_id: 767)
+[2025-12-12T01:29:38.400Z] [SUCCESS] ✓ Processed 60 cast, 7 crew for: Harry Potter and the Half-Blood Prince
+[2025-12-12T01:29:38.400Z] [INFO] Processing cast/crew for: Gladiator (tmdb_id: 98)
+[2025-12-12T01:29:38.683Z] [SUCCESS] ✓ Processed 44 cast, 14 crew for: Gladiator
+[2025-12-12T01:29:38.683Z] [INFO] Processing cast/crew for: John Wick (tmdb_id: 245891)
+[2025-12-12T01:29:38.966Z] [SUCCESS] ✓ Processed 42 cast, 22 crew for: John Wick
+[2025-12-12T01:29:38.966Z] [INFO] Processing cast/crew for: Star Wars: The Force Awakens (tmdb_id: 140607)
+[2025-12-12T01:29:39.384Z] [SUCCESS] ✓ Processed 183 cast, 11 crew for: Star Wars: The Force Awakens
+[2025-12-12T01:29:39.384Z] [INFO] Processing cast/crew for: Finding Nemo (tmdb_id: 12)
+[2025-12-12T01:29:39.698Z] [SUCCESS] ✓ Processed 68 cast, 10 crew for: Finding Nemo
+[2025-12-12T01:29:39.698Z] [INFO] Processing cast/crew for: Spider-Man (tmdb_id: 557)
+[2025-12-12T01:29:39.982Z] [SUCCESS] ✓ Processed 93 cast, 8 crew for: Spider-Man
+[2025-12-12T01:29:39.983Z] [INFO] Processing cast/crew for: Logan (tmdb_id: 263115)
+[2025-12-12T01:29:40.254Z] [SUCCESS] ✓ Processed 96 cast, 14 crew for: Logan
+[2025-12-12T01:29:40.254Z] [INFO] Processing cast/crew for: Harry Potter and the Deathly Hallows: Part 1 (tmdb_id: 12444)
+[2025-12-12T01:29:40.542Z] [SUCCESS] ✓ Processed 105 cast, 8 crew for: Harry Potter and the Deathly Hallows: Part 1
+[2025-12-12T01:29:40.542Z] [INFO] Processing cast/crew for: It (tmdb_id: 346364)
+[2025-12-12T01:29:40.838Z] [SUCCESS] ✓ Processed 50 cast, 17 crew for: It
+[2025-12-12T01:29:40.838Z] [INFO] Processing cast/crew for: Parasite (tmdb_id: 496243)
+[2025-12-12T01:29:41.178Z] [SUCCESS] ✓ Processed 50 cast, 12 crew for: Parasite
+[2025-12-12T01:29:41.178Z] [INFO] Processing cast/crew for: WALL·E (tmdb_id: 10681)
+[2025-12-12T01:29:41.479Z] [SUCCESS] ✓ Processed 29 cast, 11 crew for: WALL·E
+[2025-12-12T01:29:41.479Z] [INFO] Processing cast/crew for: Captain America: The Winter Soldier (tmdb_id: 100402)
+[2025-12-12T01:29:41.761Z] [SUCCESS] ✓ Processed 75 cast, 12 crew for: Captain America: The Winter Soldier
+[2025-12-12T01:29:41.761Z] [INFO] Processing cast/crew for: The Truman Show (tmdb_id: 37165)
+[2025-12-12T01:29:42.015Z] [SUCCESS] ✓ Processed 71 cast, 11 crew for: The Truman Show
+[2025-12-12T01:29:42.015Z] [INFO] Processing cast/crew for: Gone Girl (tmdb_id: 210577)
+[2025-12-12T01:29:42.449Z] [SUCCESS] ✓ Processed 71 cast, 11 crew for: Gone Girl
+[2025-12-12T01:29:42.450Z] [INFO] Processing cast/crew for: Gone Girl (tmdb_id: 1065)
+[2025-12-12T01:29:42.468Z] [ERROR] ✗ Failed to process cast/crew for Gone Girl: | {"error":"TMDB_NOT_FOUND"}
+[2025-12-12T01:29:42.573Z] [INFO] Processing cast/crew for: Fantastic Beasts and Where to Find Them (tmdb_id: 259316)
+[2025-12-12T01:29:42.907Z] [SUCCESS] ✓ Processed 100 cast, 11 crew for: Fantastic Beasts and Where to Find Them
+[2025-12-12T01:29:42.907Z] [INFO] Processing cast/crew for: Toy Story (tmdb_id: 862)
+[2025-12-12T01:29:43.176Z] [SUCCESS] ✓ Processed 37 cast, 10 crew for: Toy Story
+[2025-12-12T01:29:43.176Z] [INFO] Processing cast/crew for: Monsters, Inc. (tmdb_id: 585)
+[2025-12-12T01:29:43.447Z] [SUCCESS] ✓ Processed 53 cast, 7 crew for: Monsters, Inc.
+[2025-12-12T01:29:43.447Z] [INFO] Processing cast/crew for: The Lion King (tmdb_id: 8587)
+[2025-12-12T01:29:43.757Z] [SUCCESS] ✓ Processed 27 cast, 26 crew for: The Lion King
+[2025-12-12T01:29:43.757Z] [INFO] Processing cast/crew for: The Hobbit: An Unexpected Journey (tmdb_id: 49051)
+[2025-12-12T01:29:44.022Z] [SUCCESS] ✓ Processed 47 cast, 15 crew for: The Hobbit: An Unexpected Journey
+[2025-12-12T01:29:44.022Z] [INFO] Processing cast/crew for: The Revenant (tmdb_id: 281957)
+[2025-12-12T01:29:44.324Z] [SUCCESS] ✓ Processed 69 cast, 19 crew for: The Revenant
+[2025-12-12T01:29:44.324Z] [INFO] Processing cast/crew for: Deadpool 2 (tmdb_id: 383498)
+[2025-12-12T01:29:44.660Z] [SUCCESS] ✓ Processed 71 cast, 16 crew for: Deadpool 2
+[2025-12-12T01:29:44.660Z] [INFO] Processing cast/crew for: Arrival (tmdb_id: 329865)
+[2025-12-12T01:29:44.926Z] [SUCCESS] ✓ Processed 72 cast, 15 crew for: Arrival
+[2025-12-12T01:29:44.926Z] [INFO] Processing cast/crew for: The Green Mile (tmdb_id: 497)
+[2025-12-12T01:29:45.180Z] [SUCCESS] ✓ Processed 44 cast, 6 crew for: The Green Mile
+[2025-12-12T01:29:45.180Z] [INFO] Processing cast/crew for: The Incredibles (tmdb_id: 9806)
+[2025-12-12T01:29:45.458Z] [SUCCESS] ✓ Processed 51 cast, 8 crew for: The Incredibles
+[2025-12-12T01:29:45.459Z] [INFO] Processing cast/crew for: The Shining (tmdb_id: 694)
+[2025-12-12T01:29:45.710Z] [SUCCESS] ✓ Processed 29 cast, 8 crew for: The Shining
+[2025-12-12T01:29:45.710Z] [INFO] Processing cast/crew for: Get Out (tmdb_id: 419430)
+[2025-12-12T01:29:45.966Z] [SUCCESS] ✓ Processed 30 cast, 13 crew for: Get Out
+[2025-12-12T01:29:45.966Z] [INFO] Processing cast/crew for: Kill Bill: Vol. 1 (tmdb_id: 24)
+[2025-12-12T01:29:46.207Z] [SUCCESS] ✓ Processed 38 cast, 11 crew for: Kill Bill: Vol. 1
+[2025-12-12T01:29:46.207Z] [INFO] Processing cast/crew for: Shrek (tmdb_id: 808)
+[2025-12-12T01:29:46.423Z] [SUCCESS] ✓ Processed 23 cast, 13 crew for: Shrek
+[2025-12-12T01:29:46.423Z] [INFO] Processing cast/crew for: The Amazing Spider-Man (tmdb_id: 1930)
+[2025-12-12T01:29:46.692Z] [SUCCESS] ✓ Processed 53 cast, 13 crew for: The Amazing Spider-Man
+[2025-12-12T01:29:46.692Z] [INFO] Processing cast/crew for: The Hunger Games: Catching Fire (tmdb_id: 101299)
+[2025-12-12T01:29:46.954Z] [SUCCESS] ✓ Processed 57 cast, 11 crew for: The Hunger Games: Catching Fire
+[2025-12-12T01:29:46.954Z] [INFO] Processing cast/crew for: The Intouchables (tmdb_id: 77338)
+[2025-12-12T01:29:47.223Z] [SUCCESS] ✓ Processed 38 cast, 9 crew for: The Intouchables
+[2025-12-12T01:29:47.223Z] [INFO] Processing cast/crew for: Split (tmdb_id: 381288)
+[2025-12-12T01:29:47.487Z] [SUCCESS] ✓ Processed 41 cast, 11 crew for: Split
+[2025-12-12T01:29:47.487Z] [INFO] Processing cast/crew for: Ratatouille (tmdb_id: 2062)
+[2025-12-12T01:29:47.748Z] [SUCCESS] ✓ Processed 26 cast, 11 crew for: Ratatouille
+[2025-12-12T01:29:47.748Z] [INFO] Processing cast/crew for: Thor: The Dark World (tmdb_id: 76338)
+[2025-12-12T01:29:47.986Z] [SUCCESS] ✓ Processed 49 cast, 16 crew for: Thor: The Dark World
+[2025-12-12T01:29:47.986Z] [INFO] Processing cast/crew for: The Empire Strikes Back (tmdb_id: 1891)
+[2025-12-12T01:29:48.240Z] [SUCCESS] ✓ Processed 80 cast, 9 crew for: The Empire Strikes Back
+[2025-12-12T01:29:48.240Z] [INFO] Processing cast/crew for: The Maze Runner (tmdb_id: 198663)
+[2025-12-12T01:29:48.370Z] [ERROR] ✗ Failed to process cast/crew for The Maze Runner: | {"error":"Failed to upsert people: ON CONFLICT DO UPDATE command cannot affect row a second time"}
+[2025-12-12T01:29:48.473Z] [INFO] Processing cast/crew for: Spirited Away (tmdb_id: 129)
+[2025-12-12T01:29:48.700Z] [SUCCESS] ✓ Processed 48 cast, 6 crew for: Spirited Away
+[2025-12-12T01:29:48.700Z] [INFO] Processing cast/crew for: The Imitation Game (tmdb_id: 205596)
+[2025-12-12T01:29:48.980Z] [SUCCESS] ✓ Processed 47 cast, 8 crew for: The Imitation Game
+[2025-12-12T01:29:48.980Z] [INFO] Progress: 100/1000 (95 success, 5 failed)
+[2025-12-12T01:29:48.980Z] [INFO] Processing cast/crew for: La La Land (tmdb_id: 313369)
+[2025-12-12T01:29:49.357Z] [SUCCESS] ✓ Processed 183 cast, 12 crew for: La La Land
+[2025-12-12T01:29:49.357Z] [INFO] Processing cast/crew for: The Hangover (tmdb_id: 18785)
+[2025-12-12T01:29:49.617Z] [SUCCESS] ✓ Processed 70 cast, 13 crew for: The Hangover
+[2025-12-12T01:29:49.618Z] [INFO] Processing cast/crew for: Bohemian Rhapsody (tmdb_id: 424694)
+[2025-12-12T01:29:50.006Z] [SUCCESS] ✓ Processed 111 cast, 16 crew for: Bohemian Rhapsody
+[2025-12-12T01:29:50.006Z] [INFO] Processing cast/crew for: Kingsman: The Secret Service (tmdb_id: 207703)
+[2025-12-12T01:29:50.245Z] [SUCCESS] ✓ Processed 51 cast, 14 crew for: Kingsman: The Secret Service
+[2025-12-12T01:29:50.245Z] [INFO] Processing cast/crew for: The Silence of the Lambs (tmdb_id: 274)
+[2025-12-12T01:29:50.492Z] [SUCCESS] ✓ Processed 66 cast, 8 crew for: The Silence of the Lambs
+[2025-12-12T01:29:50.492Z] [INFO] Processing cast/crew for: Jurassic Park (tmdb_id: 329)
+[2025-12-12T01:29:50.702Z] [SUCCESS] ✓ Processed 22 cast, 7 crew for: Jurassic Park
+[2025-12-12T01:29:50.702Z] [INFO] Processing cast/crew for: Frozen (tmdb_id: 109445)
+[2025-12-12T01:29:50.966Z] [SUCCESS] ✓ Processed 60 cast, 10 crew for: Frozen
+[2025-12-12T01:29:50.966Z] [INFO] Processing cast/crew for: Zootopia (tmdb_id: 269149)
+[2025-12-12T01:29:51.237Z] [SUCCESS] ✓ Processed 50 cast, 15 crew for: Zootopia
+[2025-12-12T01:29:51.237Z] [INFO] Processing cast/crew for: Dunkirk (tmdb_id: 374720)
+[2025-12-12T01:29:51.523Z] [SUCCESS] ✓ Processed 50 cast, 8 crew for: Dunkirk
+[2025-12-12T01:29:51.523Z] [INFO] Processing cast/crew for: The Prestige (tmdb_id: 876)
+[2025-12-12T01:29:51.537Z] [ERROR] ✗ Failed to process cast/crew for The Prestige: | {"error":"TMDB_NOT_FOUND"}
+[2025-12-12T01:29:51.642Z] [INFO] Processing cast/crew for: The Prestige (tmdb_id: 1124)
+[2025-12-12T01:29:52.094Z] [SUCCESS] ✓ Processed 50 cast, 12 crew for: The Prestige
+[2025-12-12T01:29:52.095Z] [INFO] Processing cast/crew for: Schindler's List (tmdb_id: 424)
+[2025-12-12T01:29:52.385Z] [SUCCESS] ✓ Processed 134 cast, 8 crew for: Schindler's List
+[2025-12-12T01:29:52.386Z] [INFO] Processing cast/crew for: Venom (tmdb_id: 335983)
+[2025-12-12T01:29:52.693Z] [SUCCESS] ✓ Processed 61 cast, 15 crew for: Venom
+[2025-12-12T01:29:52.693Z] [INFO] Processing cast/crew for: Pirates of the Caribbean: Dead Man's Chest (tmdb_id: 58)
+[2025-12-12T01:29:52.938Z] [SUCCESS] ✓ Processed 54 cast, 10 crew for: Pirates of the Caribbean: Dead Man's Chest
+[2025-12-12T01:29:52.938Z] [INFO] Processing cast/crew for: Saving Private Ryan (tmdb_id: 857)
+[2025-12-12T01:29:53.213Z] [SUCCESS] ✓ Processed 93 cast, 8 crew for: Saving Private Ryan
+[2025-12-12T01:29:53.213Z] [INFO] Processing cast/crew for: Spider-Man: Into the Spider-Verse (tmdb_id: 324857)
+[2025-12-12T01:29:53.500Z] [SUCCESS] ✓ Processed 73 cast, 15 crew for: Spider-Man: Into the Spider-Verse
+[2025-12-12T01:29:53.500Z] [INFO] Processing cast/crew for: Catch Me If You Can (tmdb_id: 640)
+[2025-12-12T01:29:53.820Z] [SUCCESS] ✓ Processed 128 cast, 10 crew for: Catch Me If You Can
+[2025-12-12T01:29:53.821Z] [INFO] Processing cast/crew for: Spider-Man: Far From Home (tmdb_id: 429617)
+[2025-12-12T01:29:54.196Z] [SUCCESS] ✓ Processed 140 cast, 15 crew for: Spider-Man: Far From Home
+[2025-12-12T01:29:54.196Z] [INFO] Processing cast/crew for: Return of the Jedi (tmdb_id: 1892)
+[2025-12-12T01:29:54.516Z] [SUCCESS] ✓ Processed 177 cast, 9 crew for: Return of the Jedi
+[2025-12-12T01:29:54.517Z] [INFO] Processing cast/crew for: I Am Legend (tmdb_id: 6479)
+[2025-12-12T01:29:54.770Z] [SUCCESS] ✓ Processed 62 cast, 13 crew for: I Am Legend
+[2025-12-12T01:29:54.770Z] [INFO] Processing cast/crew for: Baby Driver (tmdb_id: 339403)
+[2025-12-12T01:29:55.044Z] [SUCCESS] ✓ Processed 64 cast, 13 crew for: Baby Driver
+[2025-12-12T01:29:55.044Z] [INFO] Processing cast/crew for: The Hunger Games: Mockingjay - Part 1 (tmdb_id: 131631)
+[2025-12-12T01:29:55.323Z] [SUCCESS] ✓ Processed 50 cast, 11 crew for: The Hunger Games: Mockingjay - Part 1
+[2025-12-12T01:29:55.323Z] [INFO] Processing cast/crew for: Ready Player One (tmdb_id: 333339)
+[2025-12-12T01:29:55.617Z] [SUCCESS] ✓ Processed 85 cast, 13 crew for: Ready Player One
+[2025-12-12T01:29:55.617Z] [INFO] Processing cast/crew for: Captain Marvel (tmdb_id: 299537)
+[2025-12-12T01:29:55.968Z] [SUCCESS] ✓ Processed 52 cast, 18 crew for: Captain Marvel
+[2025-12-12T01:29:55.969Z] [INFO] Processing cast/crew for: Now You See Me (tmdb_id: 75656)
+[2025-12-12T01:29:56.288Z] [SUCCESS] ✓ Processed 54 cast, 15 crew for: Now You See Me
+[2025-12-12T01:29:56.288Z] [INFO] Processing cast/crew for: Big Hero 6 (tmdb_id: 177572)
+[2025-12-12T01:29:56.557Z] [SUCCESS] ✓ Processed 47 cast, 11 crew for: Big Hero 6
+[2025-12-12T01:29:56.558Z] [INFO] Processing cast/crew for: Whiplash (tmdb_id: 244786)
+[2025-12-12T01:29:56.802Z] [SUCCESS] ✓ Processed 39 cast, 12 crew for: Whiplash
+[2025-12-12T01:29:56.802Z] [INFO] Processing cast/crew for: World War Z (tmdb_id: 72190)
+[2025-12-12T01:29:57.088Z] [SUCCESS] ✓ Processed 82 cast, 16 crew for: World War Z
+[2025-12-12T01:29:57.088Z] [INFO] Processing cast/crew for: Rogue One: A Star Wars Story (tmdb_id: 330459)
+[2025-12-12T01:29:57.436Z] [SUCCESS] ✓ Processed 172 cast, 13 crew for: Rogue One: A Star Wars Story
+[2025-12-12T01:29:57.437Z] [INFO] Processing cast/crew for: Gravity (tmdb_id: 49047)
+[2025-12-12T01:29:57.673Z] [SUCCESS] ✓ Processed 7 cast, 10 crew for: Gravity
+[2025-12-12T01:29:57.673Z] [INFO] Processing cast/crew for: Star Wars: The Last Jedi (tmdb_id: 181808)
+[2025-12-12T01:29:58.057Z] [SUCCESS] ✓ Processed 111 cast, 11 crew for: Star Wars: The Last Jedi
+[2025-12-12T01:29:58.057Z] [INFO] Processing cast/crew for: X-Men: Days of Future Past (tmdb_id: 127585)
+[2025-12-12T01:29:58.387Z] [SUCCESS] ✓ Processed 83 cast, 14 crew for: X-Men: Days of Future Past
+[2025-12-12T01:29:58.387Z] [INFO] Processing cast/crew for: Spider-Man 2 (tmdb_id: 558)
+[2025-12-12T01:29:58.693Z] [SUCCESS] ✓ Processed 115 cast, 11 crew for: Spider-Man 2
+[2025-12-12T01:29:58.694Z] [INFO] Processing cast/crew for: Eternal Sunshine of the Spotless Mind (tmdb_id: 38)
+[2025-12-12T01:29:58.990Z] [SUCCESS] ✓ Processed 19 cast, 13 crew for: Eternal Sunshine of the Spotless Mind
+[2025-12-12T01:29:58.990Z] [INFO] Processing cast/crew for: Beauty and the Beast (tmdb_id: 321612)
+[2025-12-12T01:29:59.286Z] [SUCCESS] ✓ Processed 139 cast, 10 crew for: Beauty and the Beast
+[2025-12-12T01:29:59.286Z] [INFO] Processing cast/crew for: Man of Steel (tmdb_id: 49521)
+[2025-12-12T01:29:59.564Z] [SUCCESS] ✓ Processed 85 cast, 13 crew for: Man of Steel
+[2025-12-12T01:29:59.564Z] [INFO] Processing cast/crew for: Alien (tmdb_id: 348)
+[2025-12-12T01:29:59.801Z] [SUCCESS] ✓ Processed 9 cast, 10 crew for: Alien
+[2025-12-12T01:29:59.801Z] [INFO] Processing cast/crew for: Charlie and the Chocolate Factory (tmdb_id: 118)
+[2025-12-12T01:30:00.061Z] [SUCCESS] ✓ Processed 49 cast, 12 crew for: Charlie and the Chocolate Factory
+[2025-12-12T01:30:00.062Z] [INFO] Processing cast/crew for: Skyfall (tmdb_id: 37724)
+[2025-12-12T01:30:00.391Z] [SUCCESS] ✓ Processed 69 cast, 9 crew for: Skyfall
+[2025-12-12T01:30:00.391Z] [INFO] Processing cast/crew for: Memento (tmdb_id: 77)
+[2025-12-12T01:30:00.666Z] [SUCCESS] ✓ Processed 13 cast, 7 crew for: Memento
+[2025-12-12T01:30:00.666Z] [INFO] Processing cast/crew for: Despicable Me (tmdb_id: 20352)
+[2025-12-12T01:30:00.931Z] [SUCCESS] ✓ Processed 32 cast, 13 crew for: Despicable Me
+[2025-12-12T01:30:00.931Z] [INFO] Processing cast/crew for: The Departed (tmdb_id: 1422)
+[2025-12-12T01:30:01.261Z] [SUCCESS] ✓ Processed 102 cast, 10 crew for: The Departed
+[2025-12-12T01:30:01.262Z] [INFO] Processing cast/crew for: Léon: The Professional (tmdb_id: 101)
+[2025-12-12T01:30:01.597Z] [SUCCESS] ✓ Processed 55 cast, 6 crew for: Léon: The Professional
+[2025-12-12T01:30:01.597Z] [INFO] Processing cast/crew for: The Grand Budapest Hotel (tmdb_id: 120467)
+[2025-12-12T01:30:01.909Z] [SUCCESS] ✓ Processed 98 cast, 14 crew for: The Grand Budapest Hotel
+[2025-12-12T01:30:01.909Z] [INFO] Processing cast/crew for: Star Wars: Episode I - The Phantom Menace (tmdb_id: 1893)
+[2025-12-12T01:30:02.343Z] [SUCCESS] ✓ Processed 118 cast, 6 crew for: Star Wars: Episode I - The Phantom Menace
+[2025-12-12T01:30:02.343Z] [INFO] Processing cast/crew for: Toy Story 3 (tmdb_id: 10193)
+[2025-12-12T01:30:02.748Z] [SUCCESS] ✓ Processed 60 cast, 9 crew for: Toy Story 3
+[2025-12-12T01:30:02.748Z] [INFO] Processing cast/crew for: Black Swan (tmdb_id: 44214)
+[2025-12-12T01:30:03.123Z] [SUCCESS] ✓ Processed 57 cast, 22 crew for: Black Swan
+[2025-12-12T01:30:03.123Z] [INFO] Processing cast/crew for: V for Vendetta (tmdb_id: 752)
+[2025-12-12T01:30:03.457Z] [SUCCESS] ✓ Processed 89 cast, 12 crew for: V for Vendetta
+[2025-12-12T01:30:03.457Z] [INFO] Processing cast/crew for: Pirates of the Caribbean: At World's End (tmdb_id: 285)
+[2025-12-12T01:30:03.760Z] [SUCCESS] ✓ Processed 84 cast, 14 crew for: Pirates of the Caribbean: At World's End
+[2025-12-12T01:30:03.760Z] [INFO] Processing cast/crew for: Reservoir Dogs (tmdb_id: 500)
+[2025-12-12T01:30:04.097Z] [SUCCESS] ✓ Processed 26 cast, 7 crew for: Reservoir Dogs
+[2025-12-12T01:30:04.097Z] [INFO] Progress: 150/1000 (144 success, 6 failed)
+[2025-12-12T01:30:04.097Z] [INFO] Processing cast/crew for: The Hobbit: The Battle of the Five Armies (tmdb_id: 122917)
+[2025-12-12T01:30:04.451Z] [SUCCESS] ✓ Processed 63 cast, 15 crew for: The Hobbit: The Battle of the Five Armies
+[2025-12-12T01:30:04.452Z] [INFO] Processing cast/crew for: A Quiet Place (tmdb_id: 447332)
+[2025-12-12T01:30:04.726Z] [SUCCESS] ✓ Processed 7 cast, 17 crew for: A Quiet Place
+[2025-12-12T01:30:04.726Z] [INFO] Processing cast/crew for: Her (tmdb_id: 152601)
+[2025-12-12T01:30:05.021Z] [SUCCESS] ✓ Processed 39 cast, 15 crew for: Her
+[2025-12-12T01:30:05.021Z] [INFO] Processing cast/crew for: The Hateful Eight (tmdb_id: 273248)
+[2025-12-12T01:30:05.281Z] [SUCCESS] ✓ Processed 18 cast, 10 crew for: The Hateful Eight
+[2025-12-12T01:30:05.281Z] [INFO] Processing cast/crew for: Cars (tmdb_id: 920)
+[2025-12-12T01:30:05.536Z] [SUCCESS] ✓ Processed 87 cast, 11 crew for: Cars
+[2025-12-12T01:30:05.536Z] [INFO] Processing cast/crew for: Pirates of the Caribbean: On Stranger Tides (tmdb_id: 1865)
+[2025-12-12T01:30:05.908Z] [SUCCESS] ✓ Processed 84 cast, 11 crew for: Pirates of the Caribbean: On Stranger Tides
+[2025-12-12T01:30:05.908Z] [INFO] Processing cast/crew for: Kill Bill: Vol. 2 (tmdb_id: 393)
+[2025-12-12T01:30:06.213Z] [SUCCESS] ✓ Processed 64 cast, 10 crew for: Kill Bill: Vol. 2
+[2025-12-12T01:30:06.213Z] [INFO] Processing cast/crew for: Aquaman (tmdb_id: 297802)
+[2025-12-12T01:30:06.475Z] [SUCCESS] ✓ Processed 53 cast, 15 crew for: Aquaman
+[2025-12-12T01:30:06.475Z] [INFO] Processing cast/crew for: Edge of Tomorrow (tmdb_id: 137113)
+[2025-12-12T01:30:06.739Z] [SUCCESS] ✓ Processed 42 cast, 17 crew for: Edge of Tomorrow
+[2025-12-12T01:30:06.739Z] [INFO] Processing cast/crew for: Blade Runner 2049 (tmdb_id: 335984)
+[2025-12-12T01:30:07.002Z] [SUCCESS] ✓ Processed 40 cast, 17 crew for: Blade Runner 2049
+[2025-12-12T01:30:07.002Z] [INFO] Processing cast/crew for: Blade Runner (tmdb_id: 78)
+[2025-12-12T01:30:07.304Z] [SUCCESS] ✓ Processed 32 cast, 7 crew for: Blade Runner
+[2025-12-12T01:30:07.304Z] [INFO] Processing cast/crew for: Star Wars: Episode III - Revenge of the Sith (tmdb_id: 1895)
+[2025-12-12T01:30:07.608Z] [SUCCESS] ✓ Processed 110 cast, 6 crew for: Star Wars: Episode III - Revenge of the Sith
+[2025-12-12T01:30:07.608Z] [INFO] Processing cast/crew for: Toy Story 2 (tmdb_id: 863)
+[2025-12-12T01:30:07.857Z] [SUCCESS] ✓ Processed 44 cast, 10 crew for: Toy Story 2
+[2025-12-12T01:30:07.857Z] [INFO] Processing cast/crew for: Alice in Wonderland (tmdb_id: 12155)
+[2025-12-12T01:30:08.168Z] [SUCCESS] ✓ Processed 58 cast, 11 crew for: Alice in Wonderland
+[2025-12-12T01:30:08.169Z] [INFO] Processing cast/crew for: Sherlock Holmes (tmdb_id: 10528)
+[2025-12-12T01:30:08.444Z] [SUCCESS] ✓ Processed 42 cast, 15 crew for: Sherlock Holmes
+[2025-12-12T01:30:08.444Z] [INFO] Processing cast/crew for: Hacksaw Ridge (tmdb_id: 324786)
+[2025-12-12T01:30:08.749Z] [SUCCESS] ✓ Processed 94 cast, 28 crew for: Hacksaw Ridge
+[2025-12-12T01:30:08.749Z] [INFO] Processing cast/crew for: Men in Black (tmdb_id: 607)
+[2025-12-12T01:30:09.090Z] [SUCCESS] ✓ Processed 65 cast, 7 crew for: Men in Black
+[2025-12-12T01:30:09.090Z] [INFO] Processing cast/crew for: 300 (tmdb_id: 1271)
+[2025-12-12T01:30:09.429Z] [SUCCESS] ✓ Processed 83 cast, 16 crew for: 300
+[2025-12-12T01:30:09.430Z] [INFO] Processing cast/crew for: Once Upon a Time... in Hollywood (tmdb_id: 466272)
+[2025-12-12T01:30:09.807Z] [SUCCESS] ✓ Processed 102 cast, 9 crew for: Once Upon a Time... in Hollywood
+[2025-12-12T01:30:09.807Z] [INFO] Processing cast/crew for: Dune (tmdb_id: 438631)
+[2025-12-12T01:30:10.085Z] [SUCCESS] ✓ Processed 48 cast, 20 crew for: Dune
+[2025-12-12T01:30:10.085Z] [INFO] Processing cast/crew for: Jumanji: Welcome to the Jungle (tmdb_id: 353486)
+[2025-12-12T01:30:10.363Z] [SUCCESS] ✓ Processed 46 cast, 15 crew for: Jumanji: Welcome to the Jungle
+[2025-12-12T01:30:10.363Z] [INFO] Processing cast/crew for: The Terminator (tmdb_id: 1235)
+[2025-12-12T01:30:10.378Z] [ERROR] ✗ Failed to process cast/crew for The Terminator: | {"error":"TMDB_NOT_FOUND"}
+[2025-12-12T01:30:10.509Z] [INFO] Processing cast/crew for: The Terminator (tmdb_id: 218)
+[2025-12-12T01:30:10.764Z] [SUCCESS] ✓ Processed 48 cast, 8 crew for: The Terminator
+[2025-12-12T01:30:10.764Z] [INFO] Processing cast/crew for: Star Wars: Episode II - Attack of the Clones (tmdb_id: 1894)
+[2025-12-12T01:30:11.010Z] [SUCCESS] ✓ Processed 99 cast, 10 crew for: Star Wars: Episode II - Attack of the Clones
+[2025-12-12T01:30:11.010Z] [INFO] Processing cast/crew for: Ice Age (tmdb_id: 425)
+[2025-12-12T01:30:11.257Z] [SUCCESS] ✓ Processed 23 cast, 8 crew for: Ice Age
+[2025-12-12T01:30:11.258Z] [INFO] Processing cast/crew for: How to Train Your Dragon (tmdb_id: 10191)
+[2025-12-12T01:30:11.496Z] [SUCCESS] ✓ Processed 14 cast, 10 crew for: How to Train Your Dragon
+[2025-12-12T01:30:11.496Z] [INFO] Processing cast/crew for: Passengers (tmdb_id: 274870)
+[2025-12-12T01:30:11.802Z] [SUCCESS] ✓ Processed 43 cast, 15 crew for: Passengers
+[2025-12-12T01:30:11.802Z] [INFO] Processing cast/crew for: Ex Machina (tmdb_id: 264660)
+[2025-12-12T01:30:12.144Z] [SUCCESS] ✓ Processed 12 cast, 10 crew for: Ex Machina
+[2025-12-12T01:30:12.144Z] [INFO] Processing cast/crew for: Brave (tmdb_id: 62177)
+[2025-12-12T01:30:12.459Z] [SUCCESS] ✓ Processed 31 cast, 15 crew for: Brave
+[2025-12-12T01:30:12.459Z] [INFO] Processing cast/crew for: Ant-Man and the Wasp (tmdb_id: 363088)
+[2025-12-12T01:30:12.755Z] [SUCCESS] ✓ Processed 76 cast, 14 crew for: Ant-Man and the Wasp
+[2025-12-12T01:30:12.756Z] [INFO] Processing cast/crew for: The Amazing Spider-Man 2 (tmdb_id: 102382)
+[2025-12-12T01:30:13.029Z] [SUCCESS] ✓ Processed 75 cast, 20 crew for: The Amazing Spider-Man 2
+[2025-12-12T01:30:13.029Z] [INFO] Processing cast/crew for: GoodFellas (tmdb_id: 769)
+[2025-12-12T01:30:13.323Z] [SUCCESS] ✓ Processed 141 cast, 6 crew for: GoodFellas
+[2025-12-12T01:30:13.323Z] [INFO] Processing cast/crew for: John Wick: Chapter 2 (tmdb_id: 324552)
+[2025-12-12T01:30:13.635Z] [SUCCESS] ✓ Processed 67 cast, 14 crew for: John Wick: Chapter 2
+[2025-12-12T01:30:13.635Z] [INFO] Processing cast/crew for: The Hobbit: The Desolation of Smaug (tmdb_id: 1329)
+[2025-12-12T01:30:13.652Z] [ERROR] ✗ Failed to process cast/crew for The Hobbit: The Desolation of Smaug: | {"error":"TMDB_NOT_FOUND"}
+[2025-12-12T01:30:13.751Z] [INFO] Processing cast/crew for: The Hobbit: The Desolation of Smaug (tmdb_id: 57158)
+[2025-12-12T01:30:14.014Z] [SUCCESS] ✓ Processed 67 cast, 16 crew for: The Hobbit: The Desolation of Smaug
+[2025-12-12T01:30:14.014Z] [INFO] Processing cast/crew for: Terminator 2: Judgment Day (tmdb_id: 280)
+[2025-12-12T01:30:14.356Z] [SUCCESS] ✓ Processed 68 cast, 9 crew for: Terminator 2: Judgment Day
+[2025-12-12T01:30:14.356Z] [INFO] Processing cast/crew for: Life Is Beautiful (tmdb_id: 637)
+[2025-12-12T01:30:14.728Z] [SUCCESS] ✓ Processed 54 cast, 10 crew for: Life Is Beautiful
+[2025-12-12T01:30:14.728Z] [INFO] Processing cast/crew for: Life of Pi (tmdb_id: 87827)
+[2025-12-12T01:30:15.010Z] [SUCCESS] ✓ Processed 41 cast, 8 crew for: Life of Pi
+[2025-12-12T01:30:15.010Z] [INFO] Processing cast/crew for: Back to the Future Part II (tmdb_id: 165)
+[2025-12-12T01:30:15.298Z] [SUCCESS] ✓ Processed 53 cast, 11 crew for: Back to the Future Part II
+[2025-12-12T01:30:15.298Z] [INFO] Processing cast/crew for: Maleficent (tmdb_id: 102651)
+[2025-12-12T01:30:15.592Z] [SUCCESS] ✓ Processed 71 cast, 11 crew for: Maleficent
+[2025-12-12T01:30:15.592Z] [INFO] Processing cast/crew for: A Clockwork Orange (tmdb_id: 185)
+[2025-12-12T01:30:15.856Z] [SUCCESS] ✓ Processed 47 cast, 7 crew for: A Clockwork Orange
+[2025-12-12T01:30:15.856Z] [INFO] Processing cast/crew for: X-Men: Apocalypse (tmdb_id: 246655)
+[2025-12-12T01:30:16.152Z] [SUCCESS] ✓ Processed 94 cast, 15 crew for: X-Men: Apocalypse
+[2025-12-12T01:30:16.152Z] [INFO] Processing cast/crew for: Edward Scissorhands (tmdb_id: 162)
+[2025-12-12T01:30:16.446Z] [SUCCESS] ✓ Processed 69 cast, 9 crew for: Edward Scissorhands
+[2025-12-12T01:30:16.446Z] [INFO] Processing cast/crew for: Moana (tmdb_id: 277834)
+[2025-12-12T01:30:16.710Z] [SUCCESS] ✓ Processed 13 cast, 13 crew for: Moana
+[2025-12-12T01:30:16.710Z] [INFO] Processing cast/crew for: Incredibles 2 (tmdb_id: 260513)
+[2025-12-12T01:30:17.010Z] [SUCCESS] ✓ Processed 84 cast, 8 crew for: Incredibles 2
+[2025-12-12T01:30:17.011Z] [INFO] Processing cast/crew for: The Godfather Part II (tmdb_id: 240)
+[2025-12-12T01:30:17.326Z] [SUCCESS] ✓ Processed 85 cast, 6 crew for: The Godfather Part II
+[2025-12-12T01:30:17.326Z] [INFO] Processing cast/crew for: The Curious Case of Benjamin Button (tmdb_id: 4922)
+[2025-12-12T01:30:17.642Z] [SUCCESS] ✓ Processed 110 cast, 9 crew for: The Curious Case of Benjamin Button
+[2025-12-12T01:30:17.642Z] [INFO] Processing cast/crew for: American Sniper (tmdb_id: 190859)
+[2025-12-12T01:30:18.088Z] [SUCCESS] ✓ Processed 83 cast, 13 crew for: American Sniper
+[2025-12-12T01:30:18.088Z] [INFO] Processing cast/crew for: Good Will Hunting (tmdb_id: 489)
+[2025-12-12T01:30:18.376Z] [SUCCESS] ✓ Processed 49 cast, 10 crew for: Good Will Hunting
+[2025-12-12T01:30:18.376Z] [INFO] Processing cast/crew for: Knives Out (tmdb_id: 546554)
+[2025-12-12T01:30:18.656Z] [SUCCESS] ✓ Processed 32 cast, 7 crew for: Knives Out
+[2025-12-12T01:30:18.656Z] [INFO] Progress: 200/1000 (192 success, 8 failed)
+[2025-12-12T01:30:18.656Z] [INFO] Processing cast/crew for: Birdman or (The Unexpected Virtue of Ignorance) (tmdb_id: 194662)
+[2025-12-12T01:30:18.953Z] [SUCCESS] ✓ Processed 54 cast, 14 crew for: Birdman or (The Unexpected Virtue of Ignorance)
+[2025-12-12T01:30:18.953Z] [INFO] Processing cast/crew for: X-Men: First Class (tmdb_id: 49538)
+[2025-12-12T01:30:19.216Z] [SUCCESS] ✓ Processed 67 cast, 16 crew for: X-Men: First Class
+[2025-12-12T01:30:19.217Z] [INFO] Processing cast/crew for: Drive (tmdb_id: 64690)
+[2025-12-12T01:30:19.469Z] [SUCCESS] ✓ Processed 37 cast, 15 crew for: Drive
+[2025-12-12T01:30:19.469Z] [INFO] Processing cast/crew for: Raiders of the Lost Ark (tmdb_id: 85)
+[2025-12-12T01:30:19.797Z] [SUCCESS] ✓ Processed 49 cast, 9 crew for: Raiders of the Lost Ark
+[2025-12-12T01:30:19.797Z] [INFO] Processing cast/crew for: Divergent (tmdb_id: 157350)
+[2025-12-12T01:30:20.078Z] [SUCCESS] ✓ Processed 47 cast, 11 crew for: Divergent
+[2025-12-12T01:30:20.079Z] [INFO] Processing cast/crew for: 1917 (tmdb_id: 530915)
+[2025-12-12T01:30:20.435Z] [SUCCESS] ✓ Processed 54 cast, 14 crew for: 1917
+[2025-12-12T01:30:20.436Z] [INFO] Processing cast/crew for: Avatar: The Way of Water (tmdb_id: 76600)
+[2025-12-12T01:30:20.735Z] [SUCCESS] ✓ Processed 57 cast, 15 crew for: Avatar: The Way of Water
+[2025-12-12T01:30:20.735Z] [INFO] Processing cast/crew for: The Hunger Games: Mockingjay - Part 2 (tmdb_id: 131634)
+[2025-12-12T01:30:21.030Z] [SUCCESS] ✓ Processed 55 cast, 11 crew for: The Hunger Games: Mockingjay - Part 2
+[2025-12-12T01:30:21.030Z] [INFO] Processing cast/crew for: Shrek 2 (tmdb_id: 809)
+[2025-12-12T01:30:21.256Z] [SUCCESS] ✓ Processed 25 cast, 13 crew for: Shrek 2
+[2025-12-12T01:30:21.256Z] [INFO] Processing cast/crew for: Donnie Darko (tmdb_id: 141)
+[2025-12-12T01:30:21.499Z] [SUCCESS] ✓ Processed 41 cast, 13 crew for: Donnie Darko
+[2025-12-12T01:30:21.499Z] [INFO] Processing cast/crew for: Taxi Driver (tmdb_id: 103)
+[2025-12-12T01:30:21.760Z] [SUCCESS] ✓ Processed 54 cast, 6 crew for: Taxi Driver
+[2025-12-12T01:30:21.760Z] [INFO] Processing cast/crew for: Pacific Rim (tmdb_id: 68726)
+[2025-12-12T01:30:22.014Z] [SUCCESS] ✓ Processed 52 cast, 11 crew for: Pacific Rim
+[2025-12-12T01:30:22.014Z] [INFO] Processing cast/crew for: Me Before You (tmdb_id: 296096)
+[2025-12-12T01:30:22.273Z] [SUCCESS] ✓ Processed 28 cast, 9 crew for: Me Before You
+[2025-12-12T01:30:22.273Z] [INFO] Processing cast/crew for: Prometheus (tmdb_id: 70981)
+[2025-12-12T01:30:22.572Z] [SUCCESS] ✓ Processed 45 cast, 12 crew for: Prometheus
+[2025-12-12T01:30:22.572Z] [INFO] Processing cast/crew for: No Country for Old Men (tmdb_id: 6977)
+[2025-12-12T01:30:22.844Z] [SUCCESS] ✓ Processed 52 cast, 11 crew for: No Country for Old Men
+[2025-12-12T01:30:22.844Z] [INFO] Processing cast/crew for: Zombieland (tmdb_id: 19908)
+[2025-12-12T01:30:23.209Z] [SUCCESS] ✓ Processed 41 cast, 10 crew for: Zombieland
+[2025-12-12T01:30:23.209Z] [INFO] Processing cast/crew for: Wreck-It Ralph (tmdb_id: 82690)
+[2025-12-12T01:30:23.472Z] [SUCCESS] ✓ Processed 66 cast, 10 crew for: Wreck-It Ralph
+[2025-12-12T01:30:23.472Z] [INFO] Processing cast/crew for: The Social Network (tmdb_id: 37799)
+[2025-12-12T01:30:23.771Z] [SUCCESS] ✓ Processed 131 cast, 10 crew for: The Social Network
+[2025-12-12T01:30:23.772Z] [INFO] Processing cast/crew for: The Great Gatsby (tmdb_id: 64682)
+[2025-12-12T01:30:24.092Z] [SUCCESS] ✓ Processed 103 cast, 13 crew for: The Great Gatsby
+[2025-12-12T01:30:24.092Z] [INFO] Processing cast/crew for: American Beauty (tmdb_id: 14)
+[2025-12-12T01:30:24.364Z] [SUCCESS] ✓ Processed 41 cast, 6 crew for: American Beauty
+[2025-12-12T01:30:24.364Z] [INFO] Processing cast/crew for: The Devil Wears Prada (tmdb_id: 350)
+[2025-12-12T01:30:24.629Z] [SUCCESS] ✓ Processed 57 cast, 7 crew for: The Devil Wears Prada
+[2025-12-12T01:30:24.629Z] [INFO] Processing cast/crew for: Prisoners (tmdb_id: 146233)
+[2025-12-12T01:30:24.910Z] [SUCCESS] ✓ Processed 39 cast, 13 crew for: Prisoners
+[2025-12-12T01:30:24.910Z] [INFO] Processing cast/crew for: Scarface (tmdb_id: 111)
+[2025-12-12T01:30:25.194Z] [SUCCESS] ✓ Processed 103 cast, 6 crew for: Scarface
+[2025-12-12T01:30:25.194Z] [INFO] Processing cast/crew for: Fury (tmdb_id: 228150)
+[2025-12-12T01:30:25.488Z] [SUCCESS] ✓ Processed 51 cast, 13 crew for: Fury
+[2025-12-12T01:30:25.488Z] [INFO] Processing cast/crew for: The Shape of Water (tmdb_id: 399055)
+[2025-12-12T01:30:25.803Z] [SUCCESS] ✓ Processed 39 cast, 8 crew for: The Shape of Water
+[2025-12-12T01:30:25.803Z] [INFO] Processing cast/crew for: Call Me by Your Name (tmdb_id: 398818)
+[2025-12-12T01:30:26.075Z] [SUCCESS] ✓ Processed 12 cast, 19 crew for: Call Me by Your Name
+[2025-12-12T01:30:26.076Z] [INFO] Processing cast/crew for: Pirates of the Caribbean: Dead Men Tell No Tales (tmdb_id: 166426)
+[2025-12-12T01:30:26.371Z] [SUCCESS] ✓ Processed 78 cast, 13 crew for: Pirates of the Caribbean: Dead Men Tell No Tales
+[2025-12-12T01:30:26.371Z] [INFO] Processing cast/crew for: Finding Dory (tmdb_id: 127380)
+[2025-12-12T01:30:26.650Z] [SUCCESS] ✓ Processed 66 cast, 9 crew for: Finding Dory
+[2025-12-12T01:30:26.650Z] [INFO] Processing cast/crew for: Rise of the Planet of the Apes (tmdb_id: 61791)
+[2025-12-12T01:30:26.949Z] [SUCCESS] ✓ Processed 76 cast, 10 crew for: Rise of the Planet of the Apes
+[2025-12-12T01:30:26.949Z] [INFO] Processing cast/crew for: The Sixth Sense (tmdb_id: 745)
+[2025-12-12T01:30:27.190Z] [SUCCESS] ✓ Processed 50 cast, 8 crew for: The Sixth Sense
+[2025-12-12T01:30:27.190Z] [INFO] Processing cast/crew for: Jurassic World: Fallen Kingdom (tmdb_id: 351286)
+[2025-12-12T01:30:27.441Z] [SUCCESS] ✓ Processed 41 cast, 12 crew for: Jurassic World: Fallen Kingdom
+[2025-12-12T01:30:27.442Z] [INFO] Processing cast/crew for: Green Book (tmdb_id: 490132)
+[2025-12-12T01:30:27.715Z] [SUCCESS] ✓ Processed 65 cast, 16 crew for: Green Book
+[2025-12-12T01:30:27.715Z] [INFO] Processing cast/crew for: Silver Linings Playbook (tmdb_id: 82693)
+[2025-12-12T01:30:28.028Z] [SUCCESS] ✓ Processed 63 cast, 12 crew for: Silver Linings Playbook
+[2025-12-12T01:30:28.028Z] [INFO] Processing cast/crew for: The Conjuring (tmdb_id: 138843)
+[2025-12-12T01:30:28.289Z] [SUCCESS] ✓ Processed 31 cast, 10 crew for: The Conjuring
+[2025-12-12T01:30:28.289Z] [INFO] Processing cast/crew for: I, Robot (tmdb_id: 2048)
+[2025-12-12T01:30:28.555Z] [SUCCESS] ✓ Processed 34 cast, 14 crew for: I, Robot
+[2025-12-12T01:30:28.555Z] [INFO] Processing cast/crew for: Kung Fu Panda (tmdb_id: 9502)
+[2025-12-12T01:30:28.816Z] [SUCCESS] ✓ Processed 26 cast, 10 crew for: Kung Fu Panda
+[2025-12-12T01:30:28.817Z] [INFO] Processing cast/crew for: American History X (tmdb_id: 73)
+[2025-12-12T01:30:29.089Z] [SUCCESS] ✓ Processed 50 cast, 9 crew for: American History X
+[2025-12-12T01:30:29.089Z] [INFO] Processing cast/crew for: The Notebook (tmdb_id: 11036)
+[2025-12-12T01:30:29.398Z] [SUCCESS] ✓ Processed 72 cast, 9 crew for: The Notebook
+[2025-12-12T01:30:29.398Z] [INFO] Processing cast/crew for: 2001: A Space Odyssey (tmdb_id: 62)
+[2025-12-12T01:30:29.655Z] [SUCCESS] ✓ Processed 62 cast, 6 crew for: 2001: A Space Odyssey
+[2025-12-12T01:30:29.655Z] [INFO] Processing cast/crew for: Ocean's Eleven (tmdb_id: 161)
+[2025-12-12T01:30:29.963Z] [SUCCESS] ✓ Processed 78 cast, 8 crew for: Ocean's Eleven
+[2025-12-12T01:30:29.963Z] [INFO] Processing cast/crew for: Your Name. (tmdb_id: 372058)
+[2025-12-12T01:30:30.326Z] [SUCCESS] ✓ Processed 54 cast, 12 crew for: Your Name.
+[2025-12-12T01:30:30.326Z] [INFO] Processing cast/crew for: Kick-Ass (tmdb_id: 23483)
+[2025-12-12T01:30:30.629Z] [SUCCESS] ✓ Processed 57 cast, 19 crew for: Kick-Ass
+[2025-12-12T01:30:30.629Z] [INFO] Processing cast/crew for: Dead Poets Society (tmdb_id: 207)
+[2025-12-12T01:30:30.898Z] [SUCCESS] ✓ Processed 51 cast, 7 crew for: Dead Poets Society
+[2025-12-12T01:30:30.898Z] [INFO] Processing cast/crew for: Amélie (tmdb_id: 194)
+[2025-12-12T01:30:31.217Z] [SUCCESS] ✓ Processed 74 cast, 7 crew for: Amélie
+[2025-12-12T01:30:31.217Z] [INFO] Processing cast/crew for: Tangled (tmdb_id: 38757)
+[2025-12-12T01:30:31.501Z] [SUCCESS] ✓ Processed 36 cast, 8 crew for: Tangled
+[2025-12-12T01:30:31.501Z] [INFO] Processing cast/crew for: A Star Is Born (tmdb_id: 332562)
+[2025-12-12T01:30:31.772Z] [SUCCESS] ✓ Processed 61 cast, 16 crew for: A Star Is Born
+[2025-12-12T01:30:31.773Z] [INFO] Processing cast/crew for: Home Alone (tmdb_id: 771)
+[2025-12-12T01:30:32.100Z] [SUCCESS] ✓ Processed 67 cast, 8 crew for: Home Alone
+[2025-12-12T01:30:32.101Z] [INFO] Processing cast/crew for: Cast Away (tmdb_id: 8358)
+[2025-12-12T01:30:32.401Z] [SUCCESS] ✓ Processed 37 cast, 9 crew for: Cast Away
+[2025-12-12T01:30:32.401Z] [INFO] Processing cast/crew for: Dawn of the Planet of the Apes (tmdb_id: 119450)
+[2025-12-12T01:30:32.730Z] [SUCCESS] ✓ Processed 52 cast, 13 crew for: Dawn of the Planet of the Apes
+[2025-12-12T01:30:32.730Z] [INFO] Processing cast/crew for: In Time (tmdb_id: 49530)
+[2025-12-12T01:30:33.117Z] [SUCCESS] ✓ Processed 77 cast, 12 crew for: In Time
+[2025-12-12T01:30:33.117Z] [INFO] Progress: 250/1000 (242 success, 8 failed)
+[2025-12-12T01:30:33.117Z] [INFO] Processing cast/crew for: X-Men (tmdb_id: 36657)
+[2025-12-12T01:30:33.408Z] [SUCCESS] ✓ Processed 81 cast, 12 crew for: X-Men
+[2025-12-12T01:30:33.409Z] [INFO] Processing cast/crew for: Transformers (tmdb_id: 1858)
+[2025-12-12T01:30:33.688Z] [SUCCESS] ✓ Processed 89 cast, 16 crew for: Transformers
+[2025-12-12T01:30:33.688Z] [INFO] Processing cast/crew for: Die Hard (tmdb_id: 562)
+[2025-12-12T01:30:34.063Z] [SUCCESS] ✓ Processed 65 cast, 9 crew for: Die Hard
+[2025-12-12T01:30:34.063Z] [INFO] Processing cast/crew for: The Big Lebowski (tmdb_id: 115)
+[2025-12-12T01:30:34.383Z] [SUCCESS] ✓ Processed 43 cast, 8 crew for: The Big Lebowski
+[2025-12-12T01:30:34.383Z] [INFO] Processing cast/crew for: American Psycho (tmdb_id: 1359)
+[2025-12-12T01:30:34.761Z] [SUCCESS] ✓ Processed 46 cast, 11 crew for: American Psycho
+[2025-12-12T01:30:34.761Z] [INFO] Processing cast/crew for: Taken (tmdb_id: 8681)
+[2025-12-12T01:30:35.058Z] [SUCCESS] ✓ Processed 36 cast, 8 crew for: Taken
+[2025-12-12T01:30:35.058Z] [INFO] Processing cast/crew for: Despicable Me 2 (tmdb_id: 93456)
+[2025-12-12T01:30:35.377Z] [SUCCESS] ✓ Processed 39 cast, 7 crew for: Despicable Me 2
+[2025-12-12T01:30:35.377Z] [INFO] Processing cast/crew for: 12 Years a Slave (tmdb_id: 76203)
+[2025-12-12T01:30:35.659Z] [SUCCESS] ✓ Processed 84 cast, 14 crew for: 12 Years a Slave
+[2025-12-12T01:30:35.659Z] [INFO] Processing cast/crew for: Aladdin (tmdb_id: 812)
+[2025-12-12T01:30:36.029Z] [SUCCESS] ✓ Processed 24 cast, 25 crew for: Aladdin
+[2025-12-12T01:30:36.029Z] [INFO] Processing cast/crew for: E.T. the Extra-Terrestrial (tmdb_id: 601)
+[2025-12-12T01:30:36.459Z] [SUCCESS] ✓ Processed 37 cast, 6 crew for: E.T. the Extra-Terrestrial
+[2025-12-12T01:30:36.459Z] [INFO] Processing cast/crew for: The Matrix Reloaded (tmdb_id: 604)
+[2025-12-12T01:30:36.957Z] [SUCCESS] ✓ Processed 82 cast, 12 crew for: The Matrix Reloaded
+[2025-12-12T01:30:36.957Z] [INFO] Processing cast/crew for: The Fault in Our Stars (tmdb_id: 222935)
+[2025-12-12T01:30:37.421Z] [SUCCESS] ✓ Processed 40 cast, 10 crew for: The Fault in Our Stars
+[2025-12-12T01:30:37.421Z] [INFO] Processing cast/crew for: The Batman (tmdb_id: 414906)
+[2025-12-12T01:30:37.769Z] [SUCCESS] ✓ Processed 86 cast, 12 crew for: The Batman
+[2025-12-12T01:30:37.769Z] [INFO] Processing cast/crew for: Madagascar (tmdb_id: 953)
+[2025-12-12T01:30:38.049Z] [SUCCESS] ✓ Processed 20 cast, 8 crew for: Madagascar
+[2025-12-12T01:30:38.049Z] [INFO] Processing cast/crew for: Nightcrawler (tmdb_id: 242582)
+[2025-12-12T01:30:38.336Z] [SUCCESS] ✓ Processed 43 cast, 11 crew for: Nightcrawler
+[2025-12-12T01:30:38.337Z] [INFO] Processing cast/crew for: Nightcrawler (tmdb_id: 1215)
+[2025-12-12T01:30:38.350Z] [ERROR] ✗ Failed to process cast/crew for Nightcrawler: | {"error":"TMDB_NOT_FOUND"}
+[2025-12-12T01:30:38.491Z] [INFO] Processing cast/crew for: John Wick: Chapter 3 - Parabellum (tmdb_id: 458156)
+[2025-12-12T01:30:38.762Z] [SUCCESS] ✓ Processed 36 cast, 15 crew for: John Wick: Chapter 3 - Parabellum
+[2025-12-12T01:30:38.762Z] [INFO] Processing cast/crew for: The Fifth Element (tmdb_id: 18)
+[2025-12-12T01:30:39.064Z] [SUCCESS] ✓ Processed 120 cast, 8 crew for: The Fifth Element
+[2025-12-12T01:30:39.064Z] [INFO] Processing cast/crew for: Casino Royale (tmdb_id: 36557)
+[2025-12-12T01:30:39.328Z] [SUCCESS] ✓ Processed 76 cast, 10 crew for: Casino Royale
+[2025-12-12T01:30:39.328Z] [INFO] Processing cast/crew for: Fantastic Beasts: The Crimes of Grindelwald (tmdb_id: 338952)
+[2025-12-12T01:30:39.630Z] [SUCCESS] ✓ Processed 81 cast, 12 crew for: Fantastic Beasts: The Crimes of Grindelwald
+[2025-12-12T01:30:39.630Z] [INFO] Processing cast/crew for: Gran Torino (tmdb_id: 13223)
+[2025-12-12T01:30:39.885Z] [SUCCESS] ✓ Processed 52 cast, 14 crew for: Gran Torino
+[2025-12-12T01:30:39.885Z] [INFO] Processing cast/crew for: Now You See Me 2 (tmdb_id: 291805)
+[2025-12-12T01:30:40.671Z] [SUCCESS] ✓ Processed 38 cast, 13 crew for: Now You See Me 2
+[2025-12-12T01:30:40.671Z] [INFO] Processing cast/crew for: Oblivion (tmdb_id: 75612)
+[2025-12-12T01:30:41.039Z] [SUCCESS] ✓ Processed 10 cast, 14 crew for: Oblivion
+[2025-12-12T01:30:41.039Z] [INFO] Processing cast/crew for: Bruce Almighty (tmdb_id: 310)
+[2025-12-12T01:30:41.369Z] [SUCCESS] ✓ Processed 115 cast, 17 crew for: Bruce Almighty
+[2025-12-12T01:30:41.369Z] [INFO] Processing cast/crew for: Zodiac (tmdb_id: 1949)
+[2025-12-12T01:30:41.655Z] [SUCCESS] ✓ Processed 101 cast, 10 crew for: Zodiac
+[2025-12-12T01:30:41.655Z] [INFO] Processing cast/crew for: The Chronicles of Narnia: The Lion, the Witch and the Wardrobe (tmdb_id: 411)
+[2025-12-12T01:30:41.939Z] [SUCCESS] ✓ Processed 60 cast, 13 crew for: The Chronicles of Narnia: The Lion, the Witch and the Wardrobe
+[2025-12-12T01:30:41.939Z] [INFO] Processing cast/crew for: Back to the Future Part III (tmdb_id: 196)
+[2025-12-12T01:30:42.171Z] [SUCCESS] ✓ Processed 48 cast, 11 crew for: Back to the Future Part III
+[2025-12-12T01:30:42.171Z] [INFO] Processing cast/crew for: Jaws (tmdb_id: 578)
+[2025-12-12T01:30:42.459Z] [SUCCESS] ✓ Processed 41 cast, 7 crew for: Jaws
+[2025-12-12T01:30:42.460Z] [INFO] Processing cast/crew for: Pan's Labyrinth (tmdb_id: 1417)
+[2025-12-12T01:30:42.716Z] [SUCCESS] ✓ Processed 31 cast, 12 crew for: Pan's Labyrinth
+[2025-12-12T01:30:42.716Z] [INFO] Processing cast/crew for: Limitless (tmdb_id: 51876)
+[2025-12-12T01:30:42.957Z] [SUCCESS] ✓ Processed 47 cast, 10 crew for: Limitless
+[2025-12-12T01:30:42.957Z] [INFO] Processing cast/crew for: Full Metal Jacket (tmdb_id: 600)
+[2025-12-12T01:30:43.287Z] [SUCCESS] ✓ Processed 109 cast, 8 crew for: Full Metal Jacket
+[2025-12-12T01:30:43.287Z] [INFO] Processing cast/crew for: One Flew Over the Cuckoo's Nest (tmdb_id: 510)
+[2025-12-12T01:30:43.526Z] [SUCCESS] ✓ Processed 34 cast, 7 crew for: One Flew Over the Cuckoo's Nest
+[2025-12-12T01:30:43.526Z] [INFO] Processing cast/crew for: Monsters University (tmdb_id: 62211)
+[2025-12-12T01:30:43.808Z] [SUCCESS] ✓ Processed 108 cast, 15 crew for: Monsters University
+[2025-12-12T01:30:43.809Z] [INFO] Processing cast/crew for: Soul (tmdb_id: 508442)
+[2025-12-12T01:30:44.097Z] [SUCCESS] ✓ Processed 30 cast, 15 crew for: Soul
+[2025-12-12T01:30:44.097Z] [INFO] Processing cast/crew for: Furious 7 (tmdb_id: 168259)
+[2025-12-12T01:30:44.453Z] [SUCCESS] ✓ Processed 49 cast, 11 crew for: Furious 7
+[2025-12-12T01:30:44.454Z] [INFO] Processing cast/crew for: Slumdog Millionaire (tmdb_id: 12405)
+[2025-12-12T01:30:44.754Z] [SUCCESS] ✓ Processed 89 cast, 6 crew for: Slumdog Millionaire
+[2025-12-12T01:30:44.754Z] [INFO] Processing cast/crew for: Oppenheimer (tmdb_id: 872585)
+[2025-12-12T01:30:45.059Z] [SUCCESS] ✓ Processed 80 cast, 10 crew for: Oppenheimer
+[2025-12-12T01:30:45.059Z] [INFO] Processing cast/crew for: The Usual Suspects (tmdb_id: 629)
+[2025-12-12T01:30:45.356Z] [SUCCESS] ✓ Processed 34 cast, 10 crew for: The Usual Suspects
+[2025-12-12T01:30:45.356Z] [INFO] Processing cast/crew for: Jumanji (tmdb_id: 8844)
+[2025-12-12T01:30:45.648Z] [SUCCESS] ✓ Processed 30 cast, 11 crew for: Jumanji
+[2025-12-12T01:30:45.648Z] [INFO] Processing cast/crew for: Fast & Furious 6 (tmdb_id: 82992)
+[2025-12-12T01:30:46.013Z] [SUCCESS] ✓ Processed 85 cast, 10 crew for: Fast & Furious 6
+[2025-12-12T01:30:46.013Z] [INFO] Processing cast/crew for: The Perks of Being a Wallflower (tmdb_id: 84892)
+[2025-12-12T01:30:46.277Z] [SUCCESS] ✓ Processed 40 cast, 9 crew for: The Perks of Being a Wallflower
+[2025-12-12T01:30:46.277Z] [INFO] Processing cast/crew for: Mr. & Mrs. Smith (tmdb_id: 787)
+[2025-12-12T01:30:46.698Z] [SUCCESS] ✓ Processed 101 cast, 10 crew for: Mr. & Mrs. Smith
+[2025-12-12T01:30:46.698Z] [INFO] Processing cast/crew for: The Theory of Everything (tmdb_id: 266856)
+[2025-12-12T01:30:47.031Z] [SUCCESS] ✓ Processed 48 cast, 11 crew for: The Theory of Everything
+[2025-12-12T01:30:47.032Z] [INFO] Processing cast/crew for: Kong: Skull Island (tmdb_id: 293167)
+[2025-12-12T01:30:47.383Z] [SUCCESS] ✓ Processed 40 cast, 13 crew for: Kong: Skull Island
+[2025-12-12T01:30:47.383Z] [INFO] Processing cast/crew for: Venom: Let There Be Carnage (tmdb_id: 580489)
+[2025-12-12T01:30:47.641Z] [SUCCESS] ✓ Processed 54 cast, 15 crew for: Venom: Let There Be Carnage
+[2025-12-12T01:30:47.641Z] [INFO] Processing cast/crew for: Black Widow (tmdb_id: 497698)
+[2025-12-12T01:30:47.924Z] [SUCCESS] ✓ Processed 80 cast, 11 crew for: Black Widow
+[2025-12-12T01:30:47.925Z] [INFO] Processing cast/crew for: The Mask (tmdb_id: 854)
+[2025-12-12T01:30:48.203Z] [SUCCESS] ✓ Processed 44 cast, 11 crew for: The Mask
+[2025-12-12T01:30:48.203Z] [INFO] Processing cast/crew for: Kingsman: The Golden Circle (tmdb_id: 343668)
+[2025-12-12T01:30:48.469Z] [SUCCESS] ✓ Processed 57 cast, 9 crew for: Kingsman: The Golden Circle
+[2025-12-12T01:30:48.470Z] [INFO] Processing cast/crew for: Maze Runner: The Scorch Trials (tmdb_id: 294254)
+[2025-12-12T01:30:48.722Z] [SUCCESS] ✓ Processed 56 cast, 13 crew for: Maze Runner: The Scorch Trials
+[2025-12-12T01:30:48.723Z] [INFO] Processing cast/crew for: A Beautiful Mind (tmdb_id: 453)
+[2025-12-12T01:30:49.112Z] [SUCCESS] ✓ Processed 100 cast, 8 crew for: A Beautiful Mind
+[2025-12-12T01:30:49.112Z] [INFO] Progress: 300/1000 (291 success, 9 failed)
+[2025-12-12T01:30:49.112Z] [INFO] Processing cast/crew for: Braveheart (tmdb_id: 1019)
+[2025-12-12T01:30:49.131Z] [ERROR] ✗ Failed to process cast/crew for Braveheart: | {"error":"TMDB_NOT_FOUND"}
+[2025-12-12T01:30:49.230Z] [INFO] Processing cast/crew for: Braveheart (tmdb_id: 197)
+[2025-12-12T01:30:49.539Z] [SUCCESS] ✓ Processed 60 cast, 8 crew for: Braveheart
+[2025-12-12T01:30:49.540Z] [INFO] Processing cast/crew for: Indiana Jones and the Last Crusade (tmdb_id: 89)
+[2025-12-12T01:30:49.965Z] [SUCCESS] ✓ Processed 68 cast, 9 crew for: Indiana Jones and the Last Crusade
+[2025-12-12T01:30:49.965Z] [INFO] Processing cast/crew for: Troy (tmdb_id: 652)
+[2025-12-12T01:30:50.236Z] [SUCCESS] ✓ Processed 37 cast, 7 crew for: Troy
+[2025-12-12T01:30:50.236Z] [INFO] Processing cast/crew for: Men in Black 3 (tmdb_id: 41154)
+[2025-12-12T01:30:50.516Z] [SUCCESS] ✓ Processed 79 cast, 8 crew for: Men in Black 3
+[2025-12-12T01:30:50.516Z] [INFO] Processing cast/crew for: 21 Jump Street (tmdb_id: 64688)
+[2025-12-12T01:30:50.735Z] [SUCCESS] ✓ Processed 59 cast, 13 crew for: 21 Jump Street
+[2025-12-12T01:30:50.735Z] [INFO] Processing cast/crew for: (500) Days of Summer (tmdb_id: 19913)
+[2025-12-12T01:30:51.000Z] [SUCCESS] ✓ Processed 64 cast, 10 crew for: (500) Days of Summer
+[2025-12-12T01:30:51.000Z] [INFO] Processing cast/crew for: Sherlock Holmes: A Game of Shadows (tmdb_id: 58574)
+[2025-12-12T01:30:51.345Z] [SUCCESS] ✓ Processed 50 cast, 11 crew for: Sherlock Holmes: A Game of Shadows
+[2025-12-12T01:30:51.345Z] [INFO] Processing cast/crew for: Night at the Museum (tmdb_id: 1593)
+[2025-12-12T01:30:51.622Z] [SUCCESS] ✓ Processed 45 cast, 11 crew for: Night at the Museum
+[2025-12-12T01:30:51.622Z] [INFO] Processing cast/crew for: Psycho (tmdb_id: 539)
+[2025-12-12T01:30:51.854Z] [SUCCESS] ✓ Processed 34 cast, 5 crew for: Psycho
+[2025-12-12T01:30:51.854Z] [INFO] Processing cast/crew for: Howl's Moving Castle (tmdb_id: 4935)
+[2025-12-12T01:30:52.119Z] [SUCCESS] ✓ Processed 57 cast, 7 crew for: Howl's Moving Castle
+[2025-12-12T01:30:52.119Z] [INFO] Processing cast/crew for: Tenet (tmdb_id: 577922)
+[2025-12-12T01:30:52.363Z] [SUCCESS] ✓ Processed 61 cast, 7 crew for: Tenet
+[2025-12-12T01:30:52.363Z] [INFO] Processing cast/crew for: The Fate of the Furious (tmdb_id: 337339)
+[2025-12-12T01:30:52.635Z] [SUCCESS] ✓ Processed 87 cast, 10 crew for: The Fate of the Furious
+[2025-12-12T01:30:52.635Z] [INFO] Processing cast/crew for: X2 (tmdb_id: 36658)
+[2025-12-12T01:30:52.924Z] [SUCCESS] ✓ Processed 73 cast, 15 crew for: X2
+[2025-12-12T01:30:52.925Z] [INFO] Processing cast/crew for: Requiem for a Dream (tmdb_id: 641)
+[2025-12-12T01:30:53.225Z] [SUCCESS] ✓ Processed 74 cast, 10 crew for: Requiem for a Dream
+[2025-12-12T01:30:53.225Z] [INFO] Processing cast/crew for: Birds of Prey (and the Fantabulous Emancipation of One Harley Quinn) (tmdb_id: 495764)
+[2025-12-12T01:30:53.552Z] [SUCCESS] ✓ Processed 97 cast, 12 crew for: Birds of Prey (and the Fantabulous Emancipation of One Harley Quinn)
+[2025-12-12T01:30:53.552Z] [INFO] Processing cast/crew for: Looper (tmdb_id: 59967)
+[2025-12-12T01:30:53.788Z] [SUCCESS] ✓ Processed 42 cast, 11 crew for: Looper
+[2025-12-12T01:30:53.788Z] [INFO] Processing cast/crew for: Three Billboards Outside Ebbing, Missouri (tmdb_id: 359940)
+[2025-12-12T01:30:54.021Z] [SUCCESS] ✓ Processed 31 cast, 12 crew for: Three Billboards Outside Ebbing, Missouri
+[2025-12-12T01:30:54.021Z] [INFO] Processing cast/crew for: The Lion King (tmdb_id: 420818)
+[2025-12-12T01:30:54.260Z] [SUCCESS] ✓ Processed 20 cast, 10 crew for: The Lion King
+[2025-12-12T01:30:54.260Z] [INFO] Processing cast/crew for: The Fast and the Furious (tmdb_id: 9799)
+[2025-12-12T01:30:54.473Z] [SUCCESS] ✓ Processed 31 cast, 10 crew for: The Fast and the Furious
+[2025-12-12T01:30:54.473Z] [INFO] Processing cast/crew for: Zack Snyder's Justice League (tmdb_id: 791373)
+[2025-12-12T01:30:54.714Z] [SUCCESS] ✓ Processed 123 cast, 18 crew for: Zack Snyder's Justice League
+[2025-12-12T01:30:54.714Z] [INFO] Processing cast/crew for: Barbie (tmdb_id: 346698)
+[2025-12-12T01:30:55.077Z] [SUCCESS] ✓ Processed 166 cast, 19 crew for: Barbie
+[2025-12-12T01:30:55.077Z] [INFO] Processing cast/crew for: Mission: Impossible - Ghost Protocol (tmdb_id: 56292)
+[2025-12-12T01:30:55.334Z] [SUCCESS] ✓ Processed 58 cast, 12 crew for: Mission: Impossible - Ghost Protocol
+[2025-12-12T01:30:55.334Z] [INFO] Processing cast/crew for: Aliens (tmdb_id: 679)
+[2025-12-12T01:30:55.595Z] [SUCCESS] ✓ Processed 27 cast, 11 crew for: Aliens
+[2025-12-12T01:30:55.595Z] [INFO] Processing cast/crew for: The Matrix Revolutions (tmdb_id: 605)
+[2025-12-12T01:30:55.879Z] [SUCCESS] ✓ Processed 48 cast, 12 crew for: The Matrix Revolutions
+[2025-12-12T01:30:55.879Z] [INFO] Processing cast/crew for: Aladdin (tmdb_id: 420817)
+[2025-12-12T01:30:56.218Z] [SUCCESS] ✓ Processed 42 cast, 9 crew for: Aladdin
+[2025-12-12T01:30:56.218Z] [INFO] Processing cast/crew for: Godzilla vs. Kong (tmdb_id: 399566)
+[2025-12-12T01:30:56.440Z] [SUCCESS] ✓ Processed 48 cast, 20 crew for: Godzilla vs. Kong
+[2025-12-12T01:30:56.440Z] [INFO] Processing cast/crew for: Beauty and the Beast (tmdb_id: 10020)
+[2025-12-12T01:30:56.666Z] [SUCCESS] ✓ Processed 50 cast, 19 crew for: Beauty and the Beast
+[2025-12-12T01:30:56.666Z] [INFO] Processing cast/crew for: Top Gun: Maverick (tmdb_id: 361743)
+[2025-12-12T01:30:56.911Z] [SUCCESS] ✓ Processed 47 cast, 20 crew for: Top Gun: Maverick
+[2025-12-12T01:30:56.911Z] [INFO] Processing cast/crew for: Bird Box (tmdb_id: 405774)
+[2025-12-12T01:30:57.164Z] [SUCCESS] ✓ Processed 31 cast, 15 crew for: Bird Box
+[2025-12-12T01:30:57.164Z] [INFO] Processing cast/crew for: The Pursuit of Happyness (tmdb_id: 1402)
+[2025-12-12T01:30:57.576Z] [SUCCESS] ✓ Processed 78 cast, 7 crew for: The Pursuit of Happyness
+[2025-12-12T01:30:57.577Z] [INFO] Processing cast/crew for: Miss Peregrine's Home for Peculiar Children (tmdb_id: 283366)
+[2025-12-12T01:30:57.852Z] [SUCCESS] ✓ Processed 56 cast, 10 crew for: Miss Peregrine's Home for Peculiar Children
+[2025-12-12T01:30:57.852Z] [INFO] Processing cast/crew for: Toy Story 4 (tmdb_id: 301528)
+[2025-12-12T01:30:58.129Z] [SUCCESS] ✓ Processed 42 cast, 12 crew for: Toy Story 4
+[2025-12-12T01:30:58.129Z] [INFO] Processing cast/crew for: Home Alone 2: Lost in New York (tmdb_id: 772)
+[2025-12-12T01:30:58.392Z] [SUCCESS] ✓ Processed 77 cast, 9 crew for: Home Alone 2: Lost in New York
+[2025-12-12T01:30:58.393Z] [INFO] Processing cast/crew for: Star Trek (tmdb_id: 13475)
+[2025-12-12T01:30:58.677Z] [SUCCESS] ✓ Processed 178 cast, 11 crew for: Star Trek
+[2025-12-12T01:30:58.677Z] [INFO] Processing cast/crew for: Hidden Figures (tmdb_id: 381284)
+[2025-12-12T01:30:58.944Z] [SUCCESS] ✓ Processed 61 cast, 18 crew for: Hidden Figures
+[2025-12-12T01:30:58.944Z] [INFO] Processing cast/crew for: Mulan (tmdb_id: 10674)
+[2025-12-12T01:30:59.183Z] [SUCCESS] ✓ Processed 53 cast, 21 crew for: Mulan
+[2025-12-12T01:30:59.183Z] [INFO] Processing cast/crew for: Sonic the Hedgehog (tmdb_id: 454626)
+[2025-12-12T01:30:59.394Z] [SUCCESS] ✓ Processed 37 cast, 16 crew for: Sonic the Hedgehog
+[2025-12-12T01:30:59.394Z] [INFO] Processing cast/crew for: How to Train Your Dragon 2 (tmdb_id: 82702)
+[2025-12-12T01:30:59.595Z] [SUCCESS] ✓ Processed 17 cast, 7 crew for: How to Train Your Dragon 2
+[2025-12-12T01:30:59.595Z] [INFO] Processing cast/crew for: Ice Age: The Meltdown (tmdb_id: 950)
+[2025-12-12T01:30:59.826Z] [SUCCESS] ✓ Processed 70 cast, 13 crew for: Ice Age: The Meltdown
+[2025-12-12T01:30:59.826Z] [INFO] Processing cast/crew for: Trainspotting (tmdb_id: 627)
+[2025-12-12T01:31:00.017Z] [SUCCESS] ✓ Processed 26 cast, 4 crew for: Trainspotting
+[2025-12-12T01:31:00.017Z] [INFO] Processing cast/crew for: The Super Mario Bros. Movie (tmdb_id: 502356)
+[2025-12-12T01:31:00.220Z] [SUCCESS] ✓ Processed 38 cast, 9 crew for: The Super Mario Bros. Movie
+[2025-12-12T01:31:00.220Z] [INFO] Processing cast/crew for: Snowpiercer (tmdb_id: 110415)
+[2025-12-12T01:31:00.442Z] [SUCCESS] ✓ Processed 44 cast, 11 crew for: Snowpiercer
+[2025-12-12T01:31:00.442Z] [INFO] Processing cast/crew for: Frozen II (tmdb_id: 330457)
+[2025-12-12T01:31:00.647Z] [SUCCESS] ✓ Processed 64 cast, 15 crew for: Frozen II
+[2025-12-12T01:31:00.647Z] [INFO] Processing cast/crew for: Million Dollar Baby (tmdb_id: 70)
+[2025-12-12T01:31:00.852Z] [SUCCESS] ✓ Processed 62 cast, 11 crew for: Million Dollar Baby
+[2025-12-12T01:31:00.852Z] [INFO] Processing cast/crew for: Independence Day (tmdb_id: 602)
+[2025-12-12T01:31:01.092Z] [SUCCESS] ✓ Processed 118 cast, 9 crew for: Independence Day
+[2025-12-12T01:31:01.092Z] [INFO] Processing cast/crew for: Jojo Rabbit (tmdb_id: 515001)
+[2025-12-12T01:31:01.338Z] [SUCCESS] ✓ Processed 31 cast, 8 crew for: Jojo Rabbit
+[2025-12-12T01:31:01.338Z] [INFO] Processing cast/crew for: Shang-Chi and the Legend of the Ten Rings (tmdb_id: 566525)
+[2025-12-12T01:31:01.596Z] [SUCCESS] ✓ Processed 47 cast, 11 crew for: Shang-Chi and the Legend of the Ten Rings
+[2025-12-12T01:31:01.596Z] [INFO] Processing cast/crew for: The Nightmare Before Christmas (tmdb_id: 9479)
+[2025-12-12T01:31:01.833Z] [SUCCESS] ✓ Processed 36 cast, 8 crew for: The Nightmare Before Christmas
+[2025-12-12T01:31:01.833Z] [INFO] Processing cast/crew for: District 9 (tmdb_id: 17654)
+[2025-12-12T01:31:02.104Z] [SUCCESS] ✓ Processed 96 cast, 11 crew for: District 9
+[2025-12-12T01:31:02.104Z] [INFO] Progress: 350/1000 (340 success, 10 failed)
+[2025-12-12T01:31:02.104Z] [INFO] Processing cast/crew for: Shazam! (tmdb_id: 287947)
+[2025-12-12T01:31:02.423Z] [SUCCESS] ✓ Processed 94 cast, 18 crew for: Shazam!
+[2025-12-12T01:31:02.423Z] [INFO] Processing cast/crew for: Encanto (tmdb_id: 568124)
+[2025-12-12T01:31:02.645Z] [SUCCESS] ✓ Processed 25 cast, 14 crew for: Encanto
+[2025-12-12T01:31:02.645Z] [INFO] Processing cast/crew for: Corpse Bride (tmdb_id: 3933)
+[2025-12-12T01:31:02.879Z] [SUCCESS] ✓ Processed 16 cast, 11 crew for: Corpse Bride
+[2025-12-12T01:31:02.879Z] [INFO] Processing cast/crew for: Doctor Strange in the Multiverse of Madness (tmdb_id: 453395)
+[2025-12-12T01:31:03.146Z] [SUCCESS] ✓ Processed 60 cast, 10 crew for: Doctor Strange in the Multiverse of Madness
+[2025-12-12T01:31:03.146Z] [INFO] Processing cast/crew for: Into the Wild (tmdb_id: 5915)
+[2025-12-12T01:31:03.422Z] [SUCCESS] ✓ Processed 45 cast, 10 crew for: Into the Wild
+[2025-12-12T01:31:03.422Z] [INFO] Processing cast/crew for: The Greatest Showman (tmdb_id: 316029)
+[2025-12-12T01:31:03.708Z] [SUCCESS] ✓ Processed 82 cast, 13 crew for: The Greatest Showman
+[2025-12-12T01:31:03.708Z] [INFO] Processing cast/crew for: Cruella (tmdb_id: 337404)
+[2025-12-12T01:31:03.945Z] [SUCCESS] ✓ Processed 68 cast, 15 crew for: Cruella
+[2025-12-12T01:31:03.945Z] [INFO] Processing cast/crew for: Indiana Jones and the Temple of Doom (tmdb_id: 87)
+[2025-12-12T01:31:04.204Z] [SUCCESS] ✓ Processed 81 cast, 9 crew for: Indiana Jones and the Temple of Doom
+[2025-12-12T01:31:04.204Z] [INFO] Processing cast/crew for: The Pianist (tmdb_id: 423)
+[2025-12-12T01:31:04.465Z] [SUCCESS] ✓ Processed 79 cast, 10 crew for: The Pianist
+[2025-12-12T01:31:04.465Z] [INFO] Processing cast/crew for: The Da Vinci Code (tmdb_id: 591)
+[2025-12-12T01:31:04.727Z] [SUCCESS] ✓ Processed 59 cast, 9 crew for: The Da Vinci Code
+[2025-12-12T01:31:04.727Z] [INFO] Processing cast/crew for: Saw (tmdb_id: 176)
+[2025-12-12T01:31:04.902Z] [SUCCESS] ✓ Processed 18 cast, 12 crew for: Saw
+[2025-12-12T01:31:04.902Z] [INFO] Processing cast/crew for: The Bourne Identity (tmdb_id: 2501)
+[2025-12-12T01:31:05.130Z] [SUCCESS] ✓ Processed 51 cast, 10 crew for: The Bourne Identity
+[2025-12-12T01:31:05.130Z] [INFO] Processing cast/crew for: Alita: Battle Angel (tmdb_id: 399579)
+[2025-12-12T01:31:05.320Z] [SUCCESS] ✓ Processed 48 cast, 9 crew for: Alita: Battle Angel
+[2025-12-12T01:31:05.320Z] [INFO] Processing cast/crew for: Unbreakable (tmdb_id: 9741)
+[2025-12-12T01:31:05.517Z] [SUCCESS] ✓ Processed 42 cast, 9 crew for: Unbreakable
+[2025-12-12T01:31:05.517Z] [INFO] Processing cast/crew for: Watchmen (tmdb_id: 13183)
+[2025-12-12T01:31:05.763Z] [SUCCESS] ✓ Processed 131 cast, 11 crew for: Watchmen
+[2025-12-12T01:31:05.763Z] [INFO] Processing cast/crew for: Mission: Impossible (tmdb_id: 954)
+[2025-12-12T01:31:05.991Z] [SUCCESS] ✓ Processed 54 cast, 10 crew for: Mission: Impossible
+[2025-12-12T01:31:05.991Z] [INFO] Processing cast/crew for: Snatch (tmdb_id: 107)
+[2025-12-12T01:31:06.193Z] [SUCCESS] ✓ Processed 67 cast, 10 crew for: Snatch
+[2025-12-12T01:31:06.193Z] [INFO] Processing cast/crew for: The Mummy (tmdb_id: 564)
+[2025-12-12T01:31:06.412Z] [SUCCESS] ✓ Processed 25 cast, 7 crew for: The Mummy
+[2025-12-12T01:31:06.412Z] [INFO] Processing cast/crew for: The Equalizer (tmdb_id: 156022)
+[2025-12-12T01:31:06.602Z] [SUCCESS] ✓ Processed 45 cast, 16 crew for: The Equalizer
+[2025-12-12T01:31:06.602Z] [INFO] Processing cast/crew for: 12 Angry Men (tmdb_id: 389)
+[2025-12-12T01:31:06.807Z] [SUCCESS] ✓ Processed 17 cast, 7 crew for: 12 Angry Men
+[2025-12-12T01:31:06.808Z] [INFO] Processing cast/crew for: A Bug's Life (tmdb_id: 9487)
+[2025-12-12T01:31:07.038Z] [SUCCESS] ✓ Processed 59 cast, 11 crew for: A Bug's Life
+[2025-12-12T01:31:07.038Z] [INFO] Processing cast/crew for: The Big Short (tmdb_id: 318846)
+[2025-12-12T01:31:07.248Z] [SUCCESS] ✓ Processed 94 cast, 11 crew for: The Big Short
+[2025-12-12T01:31:07.249Z] [INFO] Processing cast/crew for: Room (tmdb_id: 264644)
+[2025-12-12T01:31:07.440Z] [SUCCESS] ✓ Processed 27 cast, 14 crew for: Room
+[2025-12-12T01:31:07.440Z] [INFO] Processing cast/crew for: War for the Planet of the Apes (tmdb_id: 281338)
+[2025-12-12T01:31:07.633Z] [SUCCESS] ✓ Processed 41 cast, 9 crew for: War for the Planet of the Apes
+[2025-12-12T01:31:07.633Z] [INFO] Processing cast/crew for: Ghostbusters (tmdb_id: 620)
+[2025-12-12T01:31:07.864Z] [SUCCESS] ✓ Processed 73 cast, 7 crew for: Ghostbusters
+[2025-12-12T01:31:07.864Z] [INFO] Processing cast/crew for: Free Guy (tmdb_id: 550988)
+[2025-12-12T01:31:08.065Z] [SUCCESS] ✓ Processed 70 cast, 17 crew for: Free Guy
+[2025-12-12T01:31:08.065Z] [INFO] Processing cast/crew for: Star Trek Into Darkness (tmdb_id: 54138)
+[2025-12-12T01:31:08.307Z] [SUCCESS] ✓ Processed 97 cast, 15 crew for: Star Trek Into Darkness
+[2025-12-12T01:31:08.308Z] [INFO] Processing cast/crew for: Mission: Impossible - Rogue Nation (tmdb_id: 177677)
+[2025-12-12T01:31:08.528Z] [SUCCESS] ✓ Processed 79 cast, 13 crew for: Mission: Impossible - Rogue Nation
+[2025-12-12T01:31:08.528Z] [INFO] Processing cast/crew for: Oldboy (tmdb_id: 670)
+[2025-12-12T01:31:08.752Z] [SUCCESS] ✓ Processed 54 cast, 12 crew for: Oldboy
+[2025-12-12T01:31:08.752Z] [INFO] Processing cast/crew for: 365 Days (tmdb_id: 664413)
+[2025-12-12T01:31:08.999Z] [SUCCESS] ✓ Processed 63 cast, 9 crew for: 365 Days
+[2025-12-12T01:31:08.999Z] [INFO] Processing cast/crew for: Elysium (tmdb_id: 68724)
+[2025-12-12T01:31:09.280Z] [SUCCESS] ✓ Processed 30 cast, 8 crew for: Elysium
+[2025-12-12T01:31:09.280Z] [INFO] Processing cast/crew for: The Good, the Bad and the Ugly (tmdb_id: 429)
+[2025-12-12T01:31:09.501Z] [SUCCESS] ✓ Processed 48 cast, 10 crew for: The Good, the Bad and the Ugly
+[2025-12-12T01:31:09.501Z] [INFO] Processing cast/crew for: Minority Report (tmdb_id: 180)
+[2025-12-12T01:31:09.746Z] [SUCCESS] ✓ Processed 108 cast, 11 crew for: Minority Report
+[2025-12-12T01:31:09.746Z] [INFO] Processing cast/crew for: It Chapter Two (tmdb_id: 474350)
+[2025-12-12T01:31:09.984Z] [SUCCESS] ✓ Processed 87 cast, 13 crew for: It Chapter Two
+[2025-12-12T01:31:09.984Z] [INFO] Processing cast/crew for: The Suicide Squad (tmdb_id: 436969)
+[2025-12-12T01:31:10.209Z] [SUCCESS] ✓ Processed 63 cast, 12 crew for: The Suicide Squad
+[2025-12-12T01:31:10.210Z] [INFO] Processing cast/crew for: We're the Millers (tmdb_id: 138832)
+[2025-12-12T01:31:10.480Z] [SUCCESS] ✓ Processed 58 cast, 20 crew for: We're the Millers
+[2025-12-12T01:31:10.480Z] [INFO] Processing cast/crew for: Mean Girls (tmdb_id: 10625)
+[2025-12-12T01:31:10.687Z] [SUCCESS] ✓ Processed 68 cast, 6 crew for: Mean Girls
+[2025-12-12T01:31:10.687Z] [INFO] Processing cast/crew for: Top Gun (tmdb_id: 744)
+[2025-12-12T01:31:10.906Z] [SUCCESS] ✓ Processed 24 cast, 9 crew for: Top Gun
+[2025-12-12T01:31:10.906Z] [INFO] Processing cast/crew for: Sicario (tmdb_id: 273481)
+[2025-12-12T01:31:11.167Z] [SUCCESS] ✓ Processed 56 cast, 11 crew for: Sicario
+[2025-12-12T01:31:11.167Z] [INFO] Processing cast/crew for: Jumanji: The Next Level (tmdb_id: 512200)
+[2025-12-12T01:31:11.390Z] [SUCCESS] ✓ Processed 47 cast, 19 crew for: Jumanji: The Next Level
+[2025-12-12T01:31:11.390Z] [INFO] Processing cast/crew for: The King's Speech (tmdb_id: 45269)
+[2025-12-12T01:31:11.619Z] [SUCCESS] ✓ Processed 41 cast, 13 crew for: The King's Speech
+[2025-12-12T01:31:11.619Z] [INFO] Processing cast/crew for: Solo: A Star Wars Story (tmdb_id: 348350)
+[2025-12-12T01:31:11.874Z] [SUCCESS] ✓ Processed 103 cast, 12 crew for: Solo: A Star Wars Story
+[2025-12-12T01:31:11.874Z] [INFO] Processing cast/crew for: Shaun of the Dead (tmdb_id: 747)
+[2025-12-12T01:31:12.079Z] [SUCCESS] ✓ Processed 63 cast, 12 crew for: Shaun of the Dead
+[2025-12-12T01:31:12.079Z] [INFO] Processing cast/crew for: Crazy, Stupid, Love. (tmdb_id: 50646)
+[2025-12-12T01:31:12.351Z] [SUCCESS] ✓ Processed 62 cast, 11 crew for: Crazy, Stupid, Love.
+[2025-12-12T01:31:12.352Z] [INFO] Processing cast/crew for: About Time (tmdb_id: 122906)
+[2025-12-12T01:31:12.425Z] [ERROR] ✗ Failed to process cast/crew for About Time: | {"error":"Failed to upsert people: ON CONFLICT DO UPDATE command cannot affect row a second time"}
+[2025-12-12T01:31:12.524Z] [INFO] Processing cast/crew for: Hotel Transylvania (tmdb_id: 76492)
+[2025-12-12T01:31:12.773Z] [SUCCESS] ✓ Processed 49 cast, 11 crew for: Hotel Transylvania
+[2025-12-12T01:31:12.773Z] [INFO] Processing cast/crew for: The Conjuring 2 (tmdb_id: 259693)
+[2025-12-12T01:31:12.990Z] [SUCCESS] ✓ Processed 32 cast, 18 crew for: The Conjuring 2
+[2025-12-12T01:31:12.990Z] [INFO] Processing cast/crew for: The Lost World: Jurassic Park (tmdb_id: 330)
+[2025-12-12T01:31:13.273Z] [SUCCESS] ✓ Processed 77 cast, 7 crew for: The Lost World: Jurassic Park
+[2025-12-12T01:31:13.273Z] [INFO] Processing cast/crew for: Don't Look Up (tmdb_id: 646380)
+[2025-12-12T01:31:13.533Z] [SUCCESS] ✓ Processed 133 cast, 9 crew for: Don't Look Up
+[2025-12-12T01:31:13.533Z] [INFO] Processing cast/crew for: War of the Worlds (tmdb_id: 74)
+[2025-12-12T01:31:13.758Z] [SUCCESS] ✓ Processed 115 cast, 9 crew for: War of the Worlds
+[2025-12-12T01:31:13.758Z] [INFO] Progress: 400/1000 (389 success, 11 failed)
+[2025-12-12T01:31:13.758Z] [INFO] Processing cast/crew for: Glass (tmdb_id: 450465)
+[2025-12-12T01:31:13.977Z] [SUCCESS] ✓ Processed 48 cast, 12 crew for: Glass
+[2025-12-12T01:31:13.977Z] [INFO] Processing cast/crew for: Eternals (tmdb_id: 524434)
+[2025-12-12T01:31:14.214Z] [SUCCESS] ✓ Processed 87 cast, 12 crew for: Eternals
+[2025-12-12T01:31:14.214Z] [INFO] Processing cast/crew for: Lady Bird (tmdb_id: 391713)
+[2025-12-12T01:31:14.475Z] [SUCCESS] ✓ Processed 53 cast, 8 crew for: Lady Bird
+[2025-12-12T01:31:14.475Z] [INFO] Processing cast/crew for: Real Steel (tmdb_id: 39254)
+[2025-12-12T01:31:14.688Z] [SUCCESS] ✓ Processed 58 cast, 15 crew for: Real Steel
+[2025-12-12T01:31:14.688Z] [INFO] Processing cast/crew for: Mission: Impossible - Fallout (tmdb_id: 353081)
+[2025-12-12T01:31:14.938Z] [SUCCESS] ✓ Processed 53 cast, 16 crew for: Mission: Impossible - Fallout
+[2025-12-12T01:31:14.938Z] [INFO] Processing cast/crew for: Dallas Buyers Club (tmdb_id: 152532)
+[2025-12-12T01:31:15.162Z] [SUCCESS] ✓ Processed 42 cast, 15 crew for: Dallas Buyers Club
+[2025-12-12T01:31:15.162Z] [INFO] Processing cast/crew for: Twelve Monkeys (tmdb_id: 63)
+[2025-12-12T01:31:15.375Z] [SUCCESS] ✓ Processed 68 cast, 9 crew for: Twelve Monkeys
+[2025-12-12T01:31:15.376Z] [INFO] Processing cast/crew for: Twelve Monkeys (tmdb_id: 1299)
+[2025-12-12T01:31:15.389Z] [ERROR] ✗ Failed to process cast/crew for Twelve Monkeys: | {"error":"TMDB_NOT_FOUND"}
+[2025-12-12T01:31:15.473Z] [INFO] Processing cast/crew for: Source Code (tmdb_id: 45612)
+[2025-12-12T01:31:15.705Z] [SUCCESS] ✓ Processed 27 cast, 10 crew for: Source Code
+[2025-12-12T01:31:15.705Z] [INFO] Processing cast/crew for: The Help (tmdb_id: 50014)
+[2025-12-12T01:31:15.892Z] [SUCCESS] ✓ Processed 55 cast, 15 crew for: The Help
+[2025-12-12T01:31:15.892Z] [INFO] Processing cast/crew for: Apocalypse Now (tmdb_id: 28)
+[2025-12-12T01:31:16.089Z] [SUCCESS] ✓ Processed 50 cast, 8 crew for: Apocalypse Now
+[2025-12-12T01:31:16.090Z] [INFO] Processing cast/crew for: Luca (tmdb_id: 508943)
+[2025-12-12T01:31:16.299Z] [SUCCESS] ✓ Processed 21 cast, 13 crew for: Luca
+[2025-12-12T01:31:16.299Z] [INFO] Processing cast/crew for: Pretty Woman (tmdb_id: 114)
+[2025-12-12T01:31:16.515Z] [SUCCESS] ✓ Processed 75 cast, 7 crew for: Pretty Woman
+[2025-12-12T01:31:16.515Z] [INFO] Processing cast/crew for: Fargo (tmdb_id: 275)
+[2025-12-12T01:31:16.719Z] [SUCCESS] ✓ Processed 40 cast, 8 crew for: Fargo
+[2025-12-12T01:31:16.719Z] [INFO] Processing cast/crew for: Argo (tmdb_id: 68734)
+[2025-12-12T01:31:16.926Z] [SUCCESS] ✓ Processed 119 cast, 13 crew for: Argo
+[2025-12-12T01:31:16.926Z] [INFO] Processing cast/crew for: Predator (tmdb_id: 106)
+[2025-12-12T01:31:17.128Z] [SUCCESS] ✓ Processed 17 cast, 10 crew for: Predator
+[2025-12-12T01:31:17.128Z] [INFO] Processing cast/crew for: Coraline (tmdb_id: 14836)
+[2025-12-12T01:31:17.327Z] [SUCCESS] ✓ Processed 20 cast, 11 crew for: Coraline
+[2025-12-12T01:31:17.327Z] [INFO] Processing cast/crew for: Ice Age: Dawn of the Dinosaurs (tmdb_id: 8355)
+[2025-12-12T01:31:17.551Z] [SUCCESS] ✓ Processed 49 cast, 11 crew for: Ice Age: Dawn of the Dinosaurs
+[2025-12-12T01:31:17.552Z] [INFO] Processing cast/crew for: 10 Things I Hate About You (tmdb_id: 4951)
+[2025-12-12T01:31:17.772Z] [SUCCESS] ✓ Processed 44 cast, 8 crew for: 10 Things I Hate About You
+[2025-12-12T01:31:17.772Z] [INFO] Processing cast/crew for: Princess Mononoke (tmdb_id: 128)
+[2025-12-12T01:31:17.959Z] [SUCCESS] ✓ Processed 24 cast, 9 crew for: Princess Mononoke
+[2025-12-12T01:31:17.959Z] [INFO] Processing cast/crew for: Ford v Ferrari (tmdb_id: 359724)
+[2025-12-12T01:31:18.187Z] [SUCCESS] ✓ Processed 81 cast, 14 crew for: Ford v Ferrari
+[2025-12-12T01:31:18.188Z] [INFO] Processing cast/crew for: To All the Boys I've Loved Before (tmdb_id: 466282)
+[2025-12-12T01:31:18.400Z] [SUCCESS] ✓ Processed 24 cast, 11 crew for: To All the Boys I've Loved Before
+[2025-12-12T01:31:18.401Z] [INFO] Processing cast/crew for: Fast Five (tmdb_id: 51497)
+[2025-12-12T01:31:18.599Z] [SUCCESS] ✓ Processed 35 cast, 10 crew for: Fast Five
+[2025-12-12T01:31:18.599Z] [INFO] Processing cast/crew for: Ocean's Eight (tmdb_id: 402900)
+[2025-12-12T01:31:18.852Z] [SUCCESS] ✓ Processed 125 cast, 13 crew for: Ocean's Eight
+[2025-12-12T01:31:18.852Z] [INFO] Processing cast/crew for: The Day After Tomorrow (tmdb_id: 435)
+[2025-12-12T01:31:19.117Z] [SUCCESS] ✓ Processed 41 cast, 11 crew for: The Day After Tomorrow
+[2025-12-12T01:31:19.117Z] [INFO] Processing cast/crew for: Sin City (tmdb_id: 187)
+[2025-12-12T01:31:19.328Z] [SUCCESS] ✓ Processed 76 cast, 11 crew for: Sin City
+[2025-12-12T01:31:19.328Z] [INFO] Processing cast/crew for: Spotlight (tmdb_id: 314365)
+[2025-12-12T01:31:19.572Z] [SUCCESS] ✓ Processed 81 cast, 18 crew for: Spotlight
+[2025-12-12T01:31:19.572Z] [INFO] Processing cast/crew for: Bad Boys for Life (tmdb_id: 38700)
+[2025-12-12T01:31:19.835Z] [SUCCESS] ✓ Processed 92 cast, 16 crew for: Bad Boys for Life
+[2025-12-12T01:31:19.835Z] [INFO] Processing cast/crew for: Groundhog Day (tmdb_id: 137)
+[2025-12-12T01:31:20.060Z] [SUCCESS] ✓ Processed 50 cast, 9 crew for: Groundhog Day
+[2025-12-12T01:31:20.060Z] [INFO] Processing cast/crew for: Puss in Boots: The Last Wish (tmdb_id: 315162)
+[2025-12-12T01:31:20.292Z] [SUCCESS] ✓ Processed 29 cast, 9 crew for: Puss in Boots: The Last Wish
+[2025-12-12T01:31:20.293Z] [INFO] Processing cast/crew for: Pride & Prejudice (tmdb_id: 4348)
+[2025-12-12T01:31:22.208Z] [SUCCESS] ✓ Processed 31 cast, 9 crew for: Pride & Prejudice
+[2025-12-12T01:31:22.208Z] [INFO] Processing cast/crew for: My Neighbor Totoro (tmdb_id: 8392)
+[2025-12-12T01:31:22.436Z] [SUCCESS] ✓ Processed 21 cast, 7 crew for: My Neighbor Totoro
+[2025-12-12T01:31:22.436Z] [INFO] Processing cast/crew for: After (tmdb_id: 537915)
+[2025-12-12T01:31:22.761Z] [SUCCESS] ✓ Processed 23 cast, 32 crew for: After
+[2025-12-12T01:31:22.761Z] [INFO] Processing cast/crew for: The Terminal (tmdb_id: 594)
+[2025-12-12T01:31:22.999Z] [SUCCESS] ✓ Processed 56 cast, 13 crew for: The Terminal
+[2025-12-12T01:31:22.999Z] [INFO] Processing cast/crew for: 10 Cloverfield Lane (tmdb_id: 333371)
+[2025-12-12T01:31:23.186Z] [SUCCESS] ✓ Processed 8 cast, 11 crew for: 10 Cloverfield Lane
+[2025-12-12T01:31:23.186Z] [INFO] Processing cast/crew for: The Exorcist (tmdb_id: 9552)
+[2025-12-12T01:31:23.430Z] [SUCCESS] ✓ Processed 43 cast, 6 crew for: The Exorcist
+[2025-12-12T01:31:23.430Z] [INFO] Processing cast/crew for: The Nice Guys (tmdb_id: 290250)
+[2025-12-12T01:31:23.659Z] [SUCCESS] ✓ Processed 67 cast, 12 crew for: The Nice Guys
+[2025-12-12T01:31:23.659Z] [INFO] Processing cast/crew for: The Simpsons Movie (tmdb_id: 35)
+[2025-12-12T01:31:23.940Z] [SUCCESS] ✓ Processed 19 cast, 26 crew for: The Simpsons Movie
+[2025-12-12T01:31:23.940Z] [INFO] Processing cast/crew for: The Jungle Book (tmdb_id: 278927)
+[2025-12-12T01:31:24.130Z] [SUCCESS] ✓ Processed 29 cast, 9 crew for: The Jungle Book
+[2025-12-12T01:31:24.130Z] [INFO] Processing cast/crew for: Rocky (tmdb_id: 1366)
+[2025-12-12T01:31:24.353Z] [SUCCESS] ✓ Processed 48 cast, 7 crew for: Rocky
+[2025-12-12T01:31:24.353Z] [INFO] Processing cast/crew for: The Breakfast Club (tmdb_id: 2108)
+[2025-12-12T01:31:24.567Z] [SUCCESS] ✓ Processed 14 cast, 8 crew for: The Breakfast Club
+[2025-12-12T01:31:24.567Z] [INFO] Processing cast/crew for: Armageddon (tmdb_id: 95)
+[2025-12-12T01:31:25.100Z] [SUCCESS] ✓ Processed 95 cast, 13 crew for: Armageddon
+[2025-12-12T01:31:25.100Z] [INFO] Processing cast/crew for: Scott Pilgrim vs. the World (tmdb_id: 22538)
+[2025-12-12T01:31:25.368Z] [SUCCESS] ✓ Processed 44 cast, 13 crew for: Scott Pilgrim vs. the World
+[2025-12-12T01:31:25.369Z] [INFO] Processing cast/crew for: Batman (tmdb_id: 268)
+[2025-12-12T01:31:25.672Z] [SUCCESS] ✓ Processed 61 cast, 10 crew for: Batman
+[2025-12-12T01:31:25.672Z] [INFO] Processing cast/crew for: King Kong (tmdb_id: 254)
+[2025-12-12T01:31:25.934Z] [SUCCESS] ✓ Processed 51 cast, 12 crew for: King Kong
+[2025-12-12T01:31:25.934Z] [INFO] Processing cast/crew for: 22 Jump Street (tmdb_id: 187017)
+[2025-12-12T01:31:26.224Z] [SUCCESS] ✓ Processed 98 cast, 19 crew for: 22 Jump Street
+[2025-12-12T01:31:26.225Z] [INFO] Processing cast/crew for: Sing (tmdb_id: 335797)
+[2025-12-12T01:31:26.595Z] [SUCCESS] ✓ Processed 63 cast, 5 crew for: Sing
+[2025-12-12T01:31:26.595Z] [INFO] Processing cast/crew for: Quantum of Solace (tmdb_id: 10764)
+[2025-12-12T01:31:26.926Z] [SUCCESS] ✓ Processed 75 cast, 12 crew for: Quantum of Solace
+[2025-12-12T01:31:26.927Z] [INFO] Processing cast/crew for: Chappie (tmdb_id: 198184)
+[2025-12-12T01:31:27.175Z] [SUCCESS] ✓ Processed 44 cast, 8 crew for: Chappie
+[2025-12-12T01:31:27.175Z] [INFO] Processing cast/crew for: Hereditary (tmdb_id: 493922)
+[2025-12-12T01:31:27.469Z] [SUCCESS] ✓ Processed 28 cast, 13 crew for: Hereditary
+[2025-12-12T01:31:27.469Z] [INFO] Progress: 450/1000 (438 success, 12 failed)
+[2025-12-12T01:31:27.469Z] [INFO] Processing cast/crew for: The Little Mermaid (tmdb_id: 10144)
+[2025-12-12T01:31:27.746Z] [SUCCESS] ✓ Processed 42 cast, 7 crew for: The Little Mermaid
+[2025-12-12T01:31:27.746Z] [INFO] Processing cast/crew for: The Lego Movie (tmdb_id: 137106)
+[2025-12-12T01:31:28.000Z] [SUCCESS] ✓ Processed 35 cast, 26 crew for: The Lego Movie
+[2025-12-12T01:31:28.001Z] [INFO] Processing cast/crew for: Maze Runner: The Death Cure (tmdb_id: 336843)
+[2025-12-12T01:31:28.262Z] [SUCCESS] ✓ Processed 36 cast, 11 crew for: Maze Runner: The Death Cure
+[2025-12-12T01:31:28.263Z] [INFO] Processing cast/crew for: Beetlejuice (tmdb_id: 4011)
+[2025-12-12T01:31:28.515Z] [SUCCESS] ✓ Processed 30 cast, 10 crew for: Beetlejuice
+[2025-12-12T01:31:28.516Z] [INFO] Processing cast/crew for: Focus (tmdb_id: 256591)
+[2025-12-12T01:31:28.802Z] [SUCCESS] ✓ Processed 79 cast, 10 crew for: Focus
+[2025-12-12T01:31:28.802Z] [INFO] Processing cast/crew for: Wonder (tmdb_id: 406997)
+[2025-12-12T01:31:29.090Z] [SUCCESS] ✓ Processed 62 cast, 14 crew for: Wonder
+[2025-12-12T01:31:29.090Z] [INFO] Processing cast/crew for: Nocturnal Animals (tmdb_id: 340666)
+[2025-12-12T01:31:29.367Z] [SUCCESS] ✓ Processed 47 cast, 6 crew for: Nocturnal Animals
+[2025-12-12T01:31:29.367Z] [INFO] Processing cast/crew for: The Bourne Ultimatum (tmdb_id: 2503)
+[2025-12-12T01:31:29.629Z] [SUCCESS] ✓ Processed 66 cast, 14 crew for: The Bourne Ultimatum
+[2025-12-12T01:31:29.629Z] [INFO] Processing cast/crew for: The Expendables (tmdb_id: 27578)
+[2025-12-12T01:31:29.890Z] [SUCCESS] ✓ Processed 52 cast, 18 crew for: The Expendables
+[2025-12-12T01:31:29.890Z] [INFO] Processing cast/crew for: Spider-Man: Across the Spider-Verse (tmdb_id: 569094)
+[2025-12-12T01:31:30.204Z] [SUCCESS] ✓ Processed 106 cast, 17 crew for: Spider-Man: Across the Spider-Verse
+[2025-12-12T01:31:30.204Z] [INFO] Processing cast/crew for: Train to Busan (tmdb_id: 396535)
+[2025-12-12T01:31:30.470Z] [SUCCESS] ✓ Processed 35 cast, 7 crew for: Train to Busan
+[2025-12-12T01:31:30.470Z] [INFO] Processing cast/crew for: Blood Diamond (tmdb_id: 1372)
+[2025-12-12T01:31:30.738Z] [SUCCESS] ✓ Processed 26 cast, 18 crew for: Blood Diamond
+[2025-12-12T01:31:30.738Z] [INFO] Processing cast/crew for: American Pie (tmdb_id: 2105)
+[2025-12-12T01:31:30.990Z] [SUCCESS] ✓ Processed 102 cast, 8 crew for: American Pie
+[2025-12-12T01:31:30.990Z] [INFO] Processing cast/crew for: Hot Fuzz (tmdb_id: 4638)
+[2025-12-12T01:31:31.271Z] [SUCCESS] ✓ Processed 55 cast, 9 crew for: Hot Fuzz
+[2025-12-12T01:31:31.271Z] [INFO] Processing cast/crew for: 28 Days Later (tmdb_id: 170)
+[2025-12-12T01:31:31.517Z] [SUCCESS] ✓ Processed 37 cast, 5 crew for: 28 Days Later
+[2025-12-12T01:31:31.517Z] [INFO] Processing cast/crew for: The Secret Life of Walter Mitty (tmdb_id: 116745)
+[2025-12-12T01:31:31.817Z] [SUCCESS] ✓ Processed 106 cast, 8 crew for: The Secret Life of Walter Mitty
+[2025-12-12T01:31:31.817Z] [INFO] Processing cast/crew for: Deadpool & Wolverine (tmdb_id: 533535)
+[2025-12-12T01:31:32.174Z] [SUCCESS] ✓ Processed 58 cast, 21 crew for: Deadpool & Wolverine
+[2025-12-12T01:31:32.174Z] [INFO] Processing cast/crew for: How the Grinch Stole Christmas (tmdb_id: 8871)
+[2025-12-12T01:31:32.433Z] [SUCCESS] ✓ Processed 52 cast, 8 crew for: How the Grinch Stole Christmas
+[2025-12-12T01:31:32.433Z] [INFO] Processing cast/crew for: Heat (tmdb_id: 949)
+[2025-12-12T01:31:32.709Z] [SUCCESS] ✓ Processed 87 cast, 8 crew for: Heat
+[2025-12-12T01:31:32.709Z] [INFO] Processing cast/crew for: The Butterfly Effect (tmdb_id: 1954)
+[2025-12-12T01:31:32.843Z] [ERROR] ✗ Failed to process cast/crew for The Butterfly Effect: | {"error":"Failed to upsert people: ON CONFLICT DO UPDATE command cannot affect row a second time"}
+[2025-12-12T01:31:32.976Z] [INFO] Processing cast/crew for: Ice Age: Continental Drift (tmdb_id: 57800)
+[2025-12-12T01:31:33.223Z] [SUCCESS] ✓ Processed 50 cast, 11 crew for: Ice Age: Continental Drift
+[2025-12-12T01:31:33.223Z] [INFO] Processing cast/crew for: Nobody (tmdb_id: 615457)
+[2025-12-12T01:31:33.523Z] [SUCCESS] ✓ Processed 56 cast, 13 crew for: Nobody
+[2025-12-12T01:31:33.523Z] [INFO] Processing cast/crew for: Ralph Breaks the Internet (tmdb_id: 404368)
+[2025-12-12T01:31:33.789Z] [SUCCESS] ✓ Processed 81 cast, 15 crew for: Ralph Breaks the Internet
+[2025-12-12T01:31:33.789Z] [INFO] Processing cast/crew for: City of God (tmdb_id: 598)
+[2025-12-12T01:31:34.138Z] [SUCCESS] ✓ Processed 150 cast, 17 crew for: City of God
+[2025-12-12T01:31:34.138Z] [INFO] Processing cast/crew for: The Bourne Supremacy (tmdb_id: 2502)
+[2025-12-12T01:31:34.348Z] [SUCCESS] ✓ Processed 46 cast, 10 crew for: The Bourne Supremacy
+[2025-12-12T01:31:34.349Z] [INFO] Processing cast/crew for: BlacKkKlansman (tmdb_id: 487558)
+[2025-12-12T01:31:34.568Z] [SUCCESS] ✓ Processed 35 cast, 18 crew for: BlacKkKlansman
+[2025-12-12T01:31:34.568Z] [INFO] Processing cast/crew for: 127 Hours (tmdb_id: 44115)
+[2025-12-12T01:31:34.846Z] [SUCCESS] ✓ Processed 39 cast, 15 crew for: 127 Hours
+[2025-12-12T01:31:34.846Z] [INFO] Processing cast/crew for: Us (tmdb_id: 458723)
+[2025-12-12T01:31:35.079Z] [SUCCESS] ✓ Processed 24 cast, 10 crew for: Us
+[2025-12-12T01:31:35.080Z] [INFO] Processing cast/crew for: Guardians of the Galaxy Vol. 3 (tmdb_id: 447365)
+[2025-12-12T01:31:35.330Z] [SUCCESS] ✓ Processed 89 cast, 10 crew for: Guardians of the Galaxy Vol. 3
+[2025-12-12T01:31:35.330Z] [INFO] Processing cast/crew for: Snow White and the Seven Dwarfs (tmdb_id: 408)
+[2025-12-12T01:31:35.539Z] [SUCCESS] ✓ Processed 15 cast, 18 crew for: Snow White and the Seven Dwarfs
+[2025-12-12T01:31:35.539Z] [INFO] Processing cast/crew for: Valerian and the City of a Thousand Planets (tmdb_id: 339964)
+[2025-12-12T01:31:35.866Z] [SUCCESS] ✓ Processed 120 cast, 6 crew for: Valerian and the City of a Thousand Planets
+[2025-12-12T01:31:35.867Z] [INFO] Processing cast/crew for: Don't Breathe (tmdb_id: 300669)
+[2025-12-12T01:31:36.136Z] [SUCCESS] ✓ Processed 11 cast, 13 crew for: Don't Breathe
+[2025-12-12T01:31:36.136Z] [INFO] Processing cast/crew for: Lost in Translation (tmdb_id: 153)
+[2025-12-12T01:31:36.383Z] [SUCCESS] ✓ Processed 51 cast, 8 crew for: Lost in Translation
+[2025-12-12T01:31:36.383Z] [INFO] Processing cast/crew for: Superbad (tmdb_id: 8363)
+[2025-12-12T01:31:36.627Z] [SUCCESS] ✓ Processed 54 cast, 9 crew for: Superbad
+[2025-12-12T01:31:36.627Z] [INFO] Processing cast/crew for: Creed (tmdb_id: 312221)
+[2025-12-12T01:31:36.905Z] [SUCCESS] ✓ Processed 79 cast, 14 crew for: Creed
+[2025-12-12T01:31:36.905Z] [INFO] Processing cast/crew for: Hercules (tmdb_id: 11970)
+[2025-12-12T01:31:37.148Z] [SUCCESS] ✓ Processed 32 cast, 12 crew for: Hercules
+[2025-12-12T01:31:37.148Z] [INFO] Processing cast/crew for: Midsommar (tmdb_id: 530385)
+[2025-12-12T01:31:37.403Z] [SUCCESS] ✓ Processed 38 cast, 12 crew for: Midsommar
+[2025-12-12T01:31:37.403Z] [INFO] Processing cast/crew for: Constantine (tmdb_id: 561)
+[2025-12-12T01:31:37.643Z] [SUCCESS] ✓ Processed 36 cast, 15 crew for: Constantine
+[2025-12-12T01:31:37.643Z] [INFO] Processing cast/crew for: TRON: Legacy (tmdb_id: 20526)
+[2025-12-12T01:31:37.917Z] [SUCCESS] ✓ Processed 57 cast, 14 crew for: TRON: Legacy
+[2025-12-12T01:31:37.917Z] [INFO] Processing cast/crew for: Kung Fu Panda 2 (tmdb_id: 49444)
+[2025-12-12T01:31:38.149Z] [SUCCESS] ✓ Processed 32 cast, 15 crew for: Kung Fu Panda 2
+[2025-12-12T01:31:38.149Z] [INFO] Processing cast/crew for: 8 Mile (tmdb_id: 65)
+[2025-12-12T01:31:38.411Z] [SUCCESS] ✓ Processed 42 cast, 10 crew for: 8 Mile
+[2025-12-12T01:31:38.411Z] [INFO] Processing cast/crew for: Fast & Furious (tmdb_id: 13804)
+[2025-12-12T01:31:38.676Z] [SUCCESS] ✓ Processed 63 cast, 9 crew for: Fast & Furious
+[2025-12-12T01:31:38.676Z] [INFO] Processing cast/crew for: The Platform (tmdb_id: 619264)
+[2025-12-12T01:31:38.898Z] [SUCCESS] ✓ Processed 21 cast, 9 crew for: The Platform
+[2025-12-12T01:31:38.898Z] [INFO] Processing cast/crew for: Rush (tmdb_id: 96721)
+[2025-12-12T01:31:39.165Z] [SUCCESS] ✓ Processed 81 cast, 16 crew for: Rush
+[2025-12-12T01:31:39.165Z] [INFO] Processing cast/crew for: The Thing (tmdb_id: 1091)
+[2025-12-12T01:31:39.406Z] [SUCCESS] ✓ Processed 19 cast, 9 crew for: The Thing
+[2025-12-12T01:31:39.406Z] [INFO] Processing cast/crew for: Little Miss Sunshine (tmdb_id: 773)
+[2025-12-12T01:31:39.653Z] [SUCCESS] ✓ Processed 44 cast, 13 crew for: Little Miss Sunshine
+[2025-12-12T01:31:39.653Z] [INFO] Processing cast/crew for: Midnight in Paris (tmdb_id: 59436)
+[2025-12-12T01:31:39.883Z] [SUCCESS] ✓ Processed 43 cast, 7 crew for: Midnight in Paris
+[2025-12-12T01:31:39.883Z] [INFO] Processing cast/crew for: Fast & Furious Presents: Hobbs & Shaw (tmdb_id: 384018)
+[2025-12-12T01:31:40.171Z] [SUCCESS] ✓ Processed 114 cast, 15 crew for: Fast & Furious Presents: Hobbs & Shaw
+[2025-12-12T01:31:40.171Z] [INFO] Processing cast/crew for: Scream (tmdb_id: 4232)
+[2025-12-12T01:31:40.398Z] [SUCCESS] ✓ Processed 35 cast, 9 crew for: Scream
+[2025-12-12T01:31:40.398Z] [INFO] Processing cast/crew for: Children of Men (tmdb_id: 9693)
+[2025-12-12T01:31:40.680Z] [SUCCESS] ✓ Processed 79 cast, 16 crew for: Children of Men
+[2025-12-12T01:31:40.680Z] [INFO] Progress: 500/1000 (487 success, 13 failed)
+[2025-12-12T01:31:40.680Z] [INFO] Processing cast/crew for: Big Fish (tmdb_id: 587)
+[2025-12-12T01:31:40.914Z] [SUCCESS] ✓ Processed 62 cast, 8 crew for: Big Fish
+[2025-12-12T01:31:40.914Z] [INFO] Processing cast/crew for: American Hustle (tmdb_id: 168672)
+[2025-12-12T01:31:41.154Z] [SUCCESS] ✓ Processed 74 cast, 13 crew for: American Hustle
+[2025-12-12T01:31:41.154Z] [INFO] Processing cast/crew for: F9 (tmdb_id: 385128)
+[2025-12-12T01:31:41.408Z] [SUCCESS] ✓ Processed 44 cast, 15 crew for: F9
+[2025-12-12T01:31:41.408Z] [INFO] Processing cast/crew for: Cloverfield (tmdb_id: 7191)
+[2025-12-12T01:31:41.686Z] [SUCCESS] ✓ Processed 50 cast, 7 crew for: Cloverfield
+[2025-12-12T01:31:41.686Z] [INFO] Processing cast/crew for: Sully (tmdb_id: 363676)
+[2025-12-12T01:31:41.949Z] [SUCCESS] ✓ Processed 62 cast, 11 crew for: Sully
+[2025-12-12T01:31:41.949Z] [INFO] Processing cast/crew for: Grease (tmdb_id: 621)
+[2025-12-12T01:31:42.198Z] [SUCCESS] ✓ Processed 48 cast, 8 crew for: Grease
+[2025-12-12T01:31:42.198Z] [INFO] Processing cast/crew for: 50 First Dates (tmdb_id: 1824)
+[2025-12-12T01:31:42.457Z] [SUCCESS] ✓ Processed 60 cast, 10 crew for: 50 First Dates
+[2025-12-12T01:31:42.457Z] [INFO] Processing cast/crew for: John Wick: Chapter 4 (tmdb_id: 603692)
+[2025-12-12T01:31:42.701Z] [SUCCESS] ✓ Processed 28 cast, 13 crew for: John Wick: Chapter 4
+[2025-12-12T01:31:42.701Z] [INFO] Processing cast/crew for: Hugo (tmdb_id: 44826)
+[2025-12-12T01:31:42.972Z] [SUCCESS] ✓ Processed 42 cast, 14 crew for: Hugo
+[2025-12-12T01:31:42.972Z] [INFO] Processing cast/crew for: Everything Everywhere All at Once (tmdb_id: 545611)
+[2025-12-12T01:31:43.251Z] [SUCCESS] ✓ Processed 37 cast, 20 crew for: Everything Everywhere All at Once
+[2025-12-12T01:31:43.252Z] [INFO] Processing cast/crew for: The Boy in the Striped Pyjamas (tmdb_id: 14574)
+[2025-12-12T01:31:43.505Z] [SUCCESS] ✓ Processed 26 cast, 7 crew for: The Boy in the Striped Pyjamas
+[2025-12-12T01:31:43.505Z] [INFO] Processing cast/crew for: Juno (tmdb_id: 7326)
+[2025-12-12T01:31:43.755Z] [SUCCESS] ✓ Processed 30 cast, 14 crew for: Juno
+[2025-12-12T01:31:43.756Z] [INFO] Processing cast/crew for: The Witch (tmdb_id: 310131)
+[2025-12-12T01:31:44.030Z] [SUCCESS] ✓ Processed 33 cast, 20 crew for: The Witch
+[2025-12-12T01:31:44.030Z] [INFO] Processing cast/crew for: Jack Reacher (tmdb_id: 75780)
+[2025-12-12T01:31:44.298Z] [SUCCESS] ✓ Processed 51 cast, 14 crew for: Jack Reacher
+[2025-12-12T01:31:44.298Z] [INFO] Processing cast/crew for: Prey (tmdb_id: 766507)
+[2025-12-12T01:31:44.562Z] [SUCCESS] ✓ Processed 31 cast, 14 crew for: Prey
+[2025-12-12T01:31:44.562Z] [INFO] Processing cast/crew for: Mission: Impossible III (tmdb_id: 956)
+[2025-12-12T01:31:44.810Z] [SUCCESS] ✓ Processed 54 cast, 12 crew for: Mission: Impossible III
+[2025-12-12T01:31:44.811Z] [INFO] Processing cast/crew for: The Kissing Booth (tmdb_id: 454983)
+[2025-12-12T01:31:45.036Z] [SUCCESS] ✓ Processed 35 cast, 8 crew for: The Kissing Booth
+[2025-12-12T01:31:45.036Z] [INFO] Processing cast/crew for: The Girl with the Dragon Tattoo (tmdb_id: 65754)
+[2025-12-12T01:31:45.355Z] [SUCCESS] ✓ Processed 89 cast, 11 crew for: The Girl with the Dragon Tattoo
+[2025-12-12T01:31:45.355Z] [INFO] Processing cast/crew for: The Croods (tmdb_id: 49519)
+[2025-12-12T01:31:45.574Z] [SUCCESS] ✓ Processed 8 cast, 11 crew for: The Croods
+[2025-12-12T01:31:45.575Z] [INFO] Processing cast/crew for: Brokeback Mountain (tmdb_id: 142)
+[2025-12-12T01:31:45.808Z] [SUCCESS] ✓ Processed 51 cast, 11 crew for: Brokeback Mountain
+[2025-12-12T01:31:45.808Z] [INFO] Processing cast/crew for: Moonlight (tmdb_id: 376867)
+[2025-12-12T01:31:46.024Z] [SUCCESS] ✓ Processed 26 cast, 11 crew for: Moonlight
+[2025-12-12T01:31:46.024Z] [INFO] Processing cast/crew for: Cloud Atlas (tmdb_id: 83542)
+[2025-12-12T01:31:46.279Z] [SUCCESS] ✓ Processed 52 cast, 25 crew for: Cloud Atlas
+[2025-12-12T01:31:46.279Z] [INFO] Processing cast/crew for: The Last Samurai (tmdb_id: 616)
+[2025-12-12T01:31:46.503Z] [SUCCESS] ✓ Processed 48 cast, 17 crew for: The Last Samurai
+[2025-12-12T01:31:46.503Z] [INFO] Processing cast/crew for: Captain Phillips (tmdb_id: 109424)
+[2025-12-12T01:31:46.752Z] [SUCCESS] ✓ Processed 64 cast, 10 crew for: Captain Phillips
+[2025-12-12T01:31:46.752Z] [INFO] Processing cast/crew for: Cinderella (tmdb_id: 150689)
+[2025-12-12T01:31:46.975Z] [SUCCESS] ✓ Processed 51 cast, 9 crew for: Cinderella
+[2025-12-12T01:31:46.975Z] [INFO] Processing cast/crew for: Dune: Part Two (tmdb_id: 693134)
+[2025-12-12T01:31:47.319Z] [SUCCESS] ✓ Processed 99 cast, 20 crew for: Dune: Part Two
+[2025-12-12T01:31:47.319Z] [INFO] Processing cast/crew for: The Irishman (tmdb_id: 398978)
+[2025-12-12T01:31:49.200Z] [SUCCESS] ✓ Processed 191 cast, 23 crew for: The Irishman
+[2025-12-12T01:31:49.200Z] [INFO] Processing cast/crew for: Megamind (tmdb_id: 38055)
+[2025-12-12T01:31:49.436Z] [SUCCESS] ✓ Processed 19 cast, 9 crew for: Megamind
+[2025-12-12T01:31:49.436Z] [INFO] Processing cast/crew for: The Proposal (tmdb_id: 18240)
+[2025-12-12T01:31:49.671Z] [SUCCESS] ✓ Processed 36 cast, 10 crew for: The Proposal
+[2025-12-12T01:31:49.671Z] [INFO] Processing cast/crew for: Marriage Story (tmdb_id: 492188)
+[2025-12-12T01:31:49.941Z] [SUCCESS] ✓ Processed 56 cast, 7 crew for: Marriage Story
+[2025-12-12T01:31:49.941Z] [INFO] Processing cast/crew for: Hellboy (tmdb_id: 1487)
+[2025-12-12T01:31:50.203Z] [SUCCESS] ✓ Processed 51 cast, 10 crew for: Hellboy
+[2025-12-12T01:31:50.203Z] [INFO] Processing cast/crew for: Madagascar: Escape 2 Africa (tmdb_id: 10527)
+[2025-12-12T01:31:50.471Z] [SUCCESS] ✓ Processed 41 cast, 8 crew for: Madagascar: Escape 2 Africa
+[2025-12-12T01:31:50.471Z] [INFO] Processing cast/crew for: Easy A (tmdb_id: 37735)
+[2025-12-12T01:31:50.746Z] [SUCCESS] ✓ Processed 53 cast, 6 crew for: Easy A
+[2025-12-12T01:31:50.746Z] [INFO] Processing cast/crew for: Pokémon Detective Pikachu (tmdb_id: 447404)
+[2025-12-12T01:31:50.997Z] [SUCCESS] ✓ Processed 23 cast, 21 crew for: Pokémon Detective Pikachu
+[2025-12-12T01:31:50.997Z] [INFO] Processing cast/crew for: Sleepy Hollow (tmdb_id: 2668)
+[2025-12-12T01:31:51.245Z] [SUCCESS] ✓ Processed 33 cast, 8 crew for: Sleepy Hollow
+[2025-12-12T01:31:51.245Z] [INFO] Processing cast/crew for: Mystic River (tmdb_id: 322)
+[2025-12-12T01:31:51.482Z] [SUCCESS] ✓ Processed 59 cast, 8 crew for: Mystic River
+[2025-12-12T01:31:51.482Z] [INFO] Processing cast/crew for: Angels & Demons (tmdb_id: 13448)
+[2025-12-12T01:31:51.816Z] [SUCCESS] ✓ Processed 177 cast, 10 crew for: Angels & Demons
+[2025-12-12T01:31:51.816Z] [INFO] Processing cast/crew for: Black Panther: Wakanda Forever (tmdb_id: 505642)
+[2025-12-12T01:31:52.058Z] [SUCCESS] ✓ Processed 79 cast, 11 crew for: Black Panther: Wakanda Forever
+[2025-12-12T01:31:52.058Z] [INFO] Processing cast/crew for: Insidious (tmdb_id: 49018)
+[2025-12-12T01:31:52.305Z] [SUCCESS] ✓ Processed 16 cast, 9 crew for: Insidious
+[2025-12-12T01:31:52.305Z] [INFO] Processing cast/crew for: Love Actually (tmdb_id: 508)
+[2025-12-12T01:31:53.057Z] [SUCCESS] ✓ Processed 124 cast, 7 crew for: Love Actually
+[2025-12-12T01:31:53.057Z] [INFO] Processing cast/crew for: Tarzan (tmdb_id: 37135)
+[2025-12-12T01:31:53.372Z] [SUCCESS] ✓ Processed 84 cast, 28 crew for: Tarzan
+[2025-12-12T01:31:53.372Z] [INFO] Processing cast/crew for: Raya and the Last Dragon (tmdb_id: 527774)
+[2025-12-12T01:31:53.611Z] [SUCCESS] ✓ Processed 24 cast, 18 crew for: Raya and the Last Dragon
+[2025-12-12T01:31:53.611Z] [INFO] Processing cast/crew for: Bridge of Spies (tmdb_id: 296098)
+[2025-12-12T01:31:53.856Z] [SUCCESS] ✓ Processed 66 cast, 13 crew for: Bridge of Spies
+[2025-12-12T01:31:53.856Z] [INFO] Processing cast/crew for: There Will Be Blood (tmdb_id: 7345)
+[2025-12-12T01:31:54.091Z] [SUCCESS] ✓ Processed 54 cast, 9 crew for: There Will Be Blood
+[2025-12-12T01:31:54.091Z] [INFO] Processing cast/crew for: A Quiet Place Part II (tmdb_id: 520763)
+[2025-12-12T01:31:54.349Z] [SUCCESS] ✓ Processed 30 cast, 11 crew for: A Quiet Place Part II
+[2025-12-12T01:31:54.349Z] [INFO] Processing cast/crew for: The Emperor's New Groove (tmdb_id: 11688)
+[2025-12-12T01:31:54.569Z] [SUCCESS] ✓ Processed 31 cast, 9 crew for: The Emperor's New Groove
+[2025-12-12T01:31:54.569Z] [INFO] Processing cast/crew for: The Intern (tmdb_id: 257211)
+[2025-12-12T01:31:54.822Z] [SUCCESS] ✓ Processed 67 cast, 8 crew for: The Intern
+[2025-12-12T01:31:54.822Z] [INFO] Processing cast/crew for: The Accountant (tmdb_id: 302946)
+[2025-12-12T01:31:55.081Z] [SUCCESS] ✓ Processed 61 cast, 10 crew for: The Accountant
+[2025-12-12T01:31:55.081Z] [INFO] Processing cast/crew for: Bullet Train (tmdb_id: 718930)
+[2025-12-12T01:31:55.370Z] [SUCCESS] ✓ Processed 72 cast, 11 crew for: Bullet Train
+[2025-12-12T01:31:55.370Z] [INFO] Processing cast/crew for: The Game (tmdb_id: 2649)
+[2025-12-12T01:31:55.612Z] [SUCCESS] ✓ Processed 68 cast, 10 crew for: The Game
+[2025-12-12T01:31:55.612Z] [INFO] Progress: 550/1000 (537 success, 13 failed)
+[2025-12-12T01:31:55.612Z] [INFO] Processing cast/crew for: Seven Pounds (tmdb_id: 11321)
+[2025-12-12T01:31:55.843Z] [SUCCESS] ✓ Processed 21 cast, 13 crew for: Seven Pounds
+[2025-12-12T01:31:55.843Z] [INFO] Processing cast/crew for: Rio (tmdb_id: 46195)
+[2025-12-12T01:31:56.085Z] [SUCCESS] ✓ Processed 66 cast, 14 crew for: Rio
+[2025-12-12T01:31:56.086Z] [INFO] Processing cast/crew for: Hachi: A Dog's Tale (tmdb_id: 28178)
+[2025-12-12T01:31:56.347Z] [SUCCESS] ✓ Processed 28 cast, 14 crew for: Hachi: A Dog's Tale
+[2025-12-12T01:31:56.347Z] [INFO] Processing cast/crew for: Cinderella (tmdb_id: 11224)
+[2025-12-12T01:31:56.607Z] [SUCCESS] ✓ Processed 23 cast, 14 crew for: Cinderella
+[2025-12-12T01:31:56.607Z] [INFO] Processing cast/crew for: Rise of the Guardians (tmdb_id: 81188)
+[2025-12-12T01:31:56.823Z] [SUCCESS] ✓ Processed 20 cast, 9 crew for: Rise of the Guardians
+[2025-12-12T01:31:56.823Z] [INFO] Processing cast/crew for: Gangs of New York (tmdb_id: 3131)
+[2025-12-12T01:31:57.109Z] [SUCCESS] ✓ Processed 124 cast, 15 crew for: Gangs of New York
+[2025-12-12T01:31:57.109Z] [INFO] Processing cast/crew for: RED (tmdb_id: 39514)
+[2025-12-12T01:31:57.424Z] [SUCCESS] ✓ Processed 76 cast, 8 crew for: RED
+[2025-12-12T01:31:57.424Z] [INFO] Processing cast/crew for: Lock, Stock and Two Smoking Barrels (tmdb_id: 100)
+[2025-12-12T01:31:57.766Z] [SUCCESS] ✓ Processed 44 cast, 6 crew for: Lock, Stock and Two Smoking Barrels
+[2025-12-12T01:31:57.767Z] [INFO] Processing cast/crew for: The Age of Adaline (tmdb_id: 293863)
+[2025-12-12T01:31:57.997Z] [SUCCESS] ✓ Processed 35 cast, 10 crew for: The Age of Adaline
+[2025-12-12T01:31:57.997Z] [INFO] Processing cast/crew for: mother! (tmdb_id: 381283)
+[2025-12-12T01:31:58.286Z] [SUCCESS] ✓ Processed 65 cast, 8 crew for: mother!
+[2025-12-12T01:31:58.286Z] [INFO] Processing cast/crew for: Nerve (tmdb_id: 328387)
+[2025-12-12T01:31:58.507Z] [SUCCESS] ✓ Processed 23 cast, 9 crew for: Nerve
+[2025-12-12T01:31:58.507Z] [INFO] Processing cast/crew for: Mulan (tmdb_id: 337401)
+[2025-12-12T01:31:58.740Z] [SUCCESS] ✓ Processed 32 cast, 12 crew for: Mulan
+[2025-12-12T01:31:58.740Z] [INFO] Processing cast/crew for: The Others (tmdb_id: 1933)
+[2025-12-12T01:31:59.054Z] [SUCCESS] ✓ Processed 14 cast, 12 crew for: The Others
+[2025-12-12T01:31:59.054Z] [INFO] Processing cast/crew for: Rear Window (tmdb_id: 567)
+[2025-12-12T01:31:59.297Z] [SUCCESS] ✓ Processed 39 cast, 4 crew for: Rear Window
+[2025-12-12T01:31:59.298Z] [INFO] Processing cast/crew for: Star Trek Beyond (tmdb_id: 188927)
+[2025-12-12T01:31:59.515Z] [SUCCESS] ✓ Processed 56 cast, 14 crew for: Star Trek Beyond
+[2025-12-12T01:31:59.515Z] [INFO] Processing cast/crew for: Lilo & Stitch (tmdb_id: 11544)
+[2025-12-12T01:31:59.747Z] [SUCCESS] ✓ Processed 50 cast, 6 crew for: Lilo & Stitch
+[2025-12-12T01:31:59.748Z] [INFO] Processing cast/crew for: Rango (tmdb_id: 44896)
+[2025-12-12T01:31:59.959Z] [SUCCESS] ✓ Processed 33 cast, 11 crew for: Rango
+[2025-12-12T01:31:59.959Z] [INFO] Processing cast/crew for: How to Train Your Dragon: The Hidden World (tmdb_id: 166428)
+[2025-12-12T01:32:00.176Z] [SUCCESS] ✓ Processed 21 cast, 9 crew for: How to Train Your Dragon: The Hidden World
+[2025-12-12T01:32:00.176Z] [INFO] Processing cast/crew for: Super 8 (tmdb_id: 37686)
+[2025-12-12T01:32:00.405Z] [SUCCESS] ✓ Processed 47 cast, 8 crew for: Super 8
+[2025-12-12T01:32:00.405Z] [INFO] Processing cast/crew for: Batman Returns (tmdb_id: 364)
+[2025-12-12T01:32:00.625Z] [SUCCESS] ✓ Processed 49 cast, 12 crew for: Batman Returns
+[2025-12-12T01:32:00.625Z] [INFO] Processing cast/crew for: Predestination (tmdb_id: 206487)
+[2025-12-12T01:32:00.837Z] [SUCCESS] ✓ Processed 69 cast, 14 crew for: Predestination
+[2025-12-12T01:32:00.837Z] [INFO] Processing cast/crew for: Mamma Mia! (tmdb_id: 11631)
+[2025-12-12T01:32:01.098Z] [SUCCESS] ✓ Processed 84 cast, 10 crew for: Mamma Mia!
+[2025-12-12T01:32:01.098Z] [INFO] Processing cast/crew for: Lion (tmdb_id: 334543)
+[2025-12-12T01:32:01.332Z] [SUCCESS] ✓ Processed 36 cast, 14 crew for: Lion
+[2025-12-12T01:32:01.332Z] [INFO] Processing cast/crew for: Pearl Harbor (tmdb_id: 676)
+[2025-12-12T01:32:01.573Z] [SUCCESS] ✓ Processed 114 cast, 16 crew for: Pearl Harbor
+[2025-12-12T01:32:01.574Z] [INFO] Processing cast/crew for: Black Adam (tmdb_id: 436270)
+[2025-12-12T01:32:01.842Z] [SUCCESS] ✓ Processed 56 cast, 19 crew for: Black Adam
+[2025-12-12T01:32:01.842Z] [INFO] Processing cast/crew for: Rain Man (tmdb_id: 380)
+[2025-12-12T01:32:02.116Z] [SUCCESS] ✓ Processed 67 cast, 10 crew for: Rain Man
+[2025-12-12T01:32:02.116Z] [INFO] Processing cast/crew for: No Time to Die (tmdb_id: 370172)
+[2025-12-12T01:32:02.373Z] [SUCCESS] ✓ Processed 63 cast, 13 crew for: No Time to Die
+[2025-12-12T01:32:02.374Z] [INFO] Processing cast/crew for: Mulholland Drive (tmdb_id: 1018)
+[2025-12-12T01:32:02.927Z] [SUCCESS] ✓ Processed 73 cast, 10 crew for: Mulholland Drive
+[2025-12-12T01:32:02.927Z] [INFO] Processing cast/crew for: Jurassic World Dominion (tmdb_id: 507086)
+[2025-12-12T01:32:03.160Z] [SUCCESS] ✓ Processed 48 cast, 12 crew for: Jurassic World Dominion
+[2025-12-12T01:32:03.160Z] [INFO] Processing cast/crew for: Pitch Perfect (tmdb_id: 114150)
+[2025-12-12T01:32:03.413Z] [SUCCESS] ✓ Processed 125 cast, 9 crew for: Pitch Perfect
+[2025-12-12T01:32:03.413Z] [INFO] Processing cast/crew for: Gremlins (tmdb_id: 927)
+[2025-12-12T01:32:03.681Z] [SUCCESS] ✓ Processed 51 cast, 9 crew for: Gremlins
+[2025-12-12T01:32:03.681Z] [INFO] Processing cast/crew for: Bad Boys (tmdb_id: 9737)
+[2025-12-12T01:32:03.890Z] [SUCCESS] ✓ Processed 47 cast, 11 crew for: Bad Boys
+[2025-12-12T01:32:03.890Z] [INFO] Processing cast/crew for: Jackie Brown (tmdb_id: 184)
+[2025-12-12T01:32:04.119Z] [SUCCESS] ✓ Processed 36 cast, 8 crew for: Jackie Brown
+[2025-12-12T01:32:04.119Z] [INFO] Processing cast/crew for: Resident Evil (tmdb_id: 1576)
+[2025-12-12T01:32:04.361Z] [SUCCESS] ✓ Processed 22 cast, 13 crew for: Resident Evil
+[2025-12-12T01:32:04.361Z] [INFO] Processing cast/crew for: Eyes Wide Shut (tmdb_id: 345)
+[2025-12-12T01:32:04.607Z] [SUCCESS] ✓ Processed 78 cast, 8 crew for: Eyes Wide Shut
+[2025-12-12T01:32:04.607Z] [INFO] Processing cast/crew for: Gattaca (tmdb_id: 782)
+[2025-12-12T01:32:04.847Z] [SUCCESS] ✓ Processed 39 cast, 7 crew for: Gattaca
+[2025-12-12T01:32:04.847Z] [INFO] Processing cast/crew for: Tropic Thunder (tmdb_id: 7446)
+[2025-12-12T01:32:05.084Z] [SUCCESS] ✓ Processed 73 cast, 13 crew for: Tropic Thunder
+[2025-12-12T01:32:05.084Z] [INFO] Processing cast/crew for: The Blind Side (tmdb_id: 22881)
+[2025-12-12T01:32:05.366Z] [SUCCESS] ✓ Processed 63 cast, 10 crew for: The Blind Side
+[2025-12-12T01:32:05.366Z] [INFO] Processing cast/crew for: Ocean's Thirteen (tmdb_id: 298)
+[2025-12-12T01:32:05.614Z] [SUCCESS] ✓ Processed 111 cast, 10 crew for: Ocean's Thirteen
+[2025-12-12T01:32:05.614Z] [INFO] Processing cast/crew for: The Polar Express (tmdb_id: 5255)
+[2025-12-12T01:32:05.855Z] [SUCCESS] ✓ Processed 53 cast, 13 crew for: The Polar Express
+[2025-12-12T01:32:05.855Z] [INFO] Processing cast/crew for: Captain Fantastic (tmdb_id: 334533)
+[2025-12-12T01:32:06.128Z] [SUCCESS] ✓ Processed 28 cast, 10 crew for: Captain Fantastic
+[2025-12-12T01:32:06.128Z] [INFO] Processing cast/crew for: First Blood (tmdb_id: 1368)
+[2025-12-12T01:32:06.368Z] [SUCCESS] ✓ Processed 40 cast, 9 crew for: First Blood
+[2025-12-12T01:32:06.368Z] [INFO] Processing cast/crew for: Alice Through the Looking Glass (tmdb_id: 241259)
+[2025-12-12T01:32:06.609Z] [SUCCESS] ✓ Processed 78 cast, 9 crew for: Alice Through the Looking Glass
+[2025-12-12T01:32:06.609Z] [INFO] Processing cast/crew for: The Man from U.N.C.L.E. (tmdb_id: 203801)
+[2025-12-12T01:32:06.835Z] [SUCCESS] ✓ Processed 29 cast, 16 crew for: The Man from U.N.C.L.E.
+[2025-12-12T01:32:06.836Z] [INFO] Processing cast/crew for: National Treasure (tmdb_id: 2059)
+[2025-12-12T01:32:07.085Z] [SUCCESS] ✓ Processed 38 cast, 17 crew for: National Treasure
+[2025-12-12T01:32:07.085Z] [INFO] Processing cast/crew for: The Lobster (tmdb_id: 254320)
+[2025-12-12T01:32:07.601Z] [SUCCESS] ✓ Processed 41 cast, 12 crew for: The Lobster
+[2025-12-12T01:32:07.601Z] [INFO] Processing cast/crew for: Project X (tmdb_id: 57214)
+[2025-12-12T01:32:07.829Z] [SUCCESS] ✓ Processed 52 cast, 12 crew for: Project X
+[2025-12-12T01:32:07.829Z] [INFO] Processing cast/crew for: The Chronicles of Narnia: Prince Caspian (tmdb_id: 2454)
+[2025-12-12T01:32:08.063Z] [SUCCESS] ✓ Processed 50 cast, 10 crew for: The Chronicles of Narnia: Prince Caspian
+[2025-12-12T01:32:08.063Z] [INFO] Processing cast/crew for: Little Women (tmdb_id: 331482)
+[2025-12-12T01:32:08.316Z] [SUCCESS] ✓ Processed 75 cast, 11 crew for: Little Women
+[2025-12-12T01:32:08.316Z] [INFO] Processing cast/crew for: The Godfather Part III (tmdb_id: 242)
+[2025-12-12T01:32:08.567Z] [SUCCESS] ✓ Processed 99 cast, 11 crew for: The Godfather Part III
+[2025-12-12T01:32:08.567Z] [INFO] Progress: 600/1000 (587 success, 13 failed)
+[2025-12-12T01:32:08.567Z] [INFO] Processing cast/crew for: The Purge: Anarchy (tmdb_id: 238636)
+[2025-12-12T01:32:08.800Z] [SUCCESS] ✓ Processed 45 cast, 11 crew for: The Purge: Anarchy
+[2025-12-12T01:32:08.800Z] [INFO] Processing cast/crew for: Speed (tmdb_id: 1637)
+[2025-12-12T01:32:09.326Z] [SUCCESS] ✓ Processed 59 cast, 6 crew for: Speed
+[2025-12-12T01:32:09.326Z] [INFO] Processing cast/crew for: The Impossible (tmdb_id: 80278)
+[2025-12-12T01:32:09.630Z] [SUCCESS] ✓ Processed 59 cast, 12 crew for: The Impossible
+[2025-12-12T01:32:09.630Z] [INFO] Processing cast/crew for: One Hundred and One Dalmatians (tmdb_id: 12230)
+[2025-12-12T01:32:09.899Z] [SUCCESS] ✓ Processed 32 cast, 6 crew for: One Hundred and One Dalmatians
+[2025-12-12T01:32:09.899Z] [INFO] Processing cast/crew for: The Jungle Book (tmdb_id: 9325)
+[2025-12-12T01:32:10.147Z] [SUCCESS] ✓ Processed 22 cast, 8 crew for: The Jungle Book
+[2025-12-12T01:32:10.147Z] [INFO] Processing cast/crew for: Uncharted (tmdb_id: 335787)
+[2025-12-12T01:32:10.400Z] [SUCCESS] ✓ Processed 32 cast, 20 crew for: Uncharted
+[2025-12-12T01:32:10.400Z] [INFO] Processing cast/crew for: The Devil's Advocate (tmdb_id: 1813)
+[2025-12-12T01:32:10.667Z] [SUCCESS] ✓ Processed 87 cast, 13 crew for: The Devil's Advocate
+[2025-12-12T01:32:10.667Z] [INFO] Processing cast/crew for: Notting Hill (tmdb_id: 509)
+[2025-12-12T01:32:10.879Z] [SUCCESS] ✓ Processed 41 cast, 8 crew for: Notting Hill
+[2025-12-12T01:32:10.879Z] [INFO] Processing cast/crew for: Godzilla: King of the Monsters (tmdb_id: 373571)
+[2025-12-12T01:32:11.130Z] [SUCCESS] ✓ Processed 90 cast, 22 crew for: Godzilla: King of the Monsters
+[2025-12-12T01:32:11.130Z] [INFO] Processing cast/crew for: The Hitman's Bodyguard (tmdb_id: 390043)
+[2025-12-12T01:32:11.358Z] [SUCCESS] ✓ Processed 56 cast, 10 crew for: The Hitman's Bodyguard
+[2025-12-12T01:32:11.358Z] [INFO] Processing cast/crew for: The Ring (tmdb_id: 565)
+[2025-12-12T01:32:11.601Z] [SUCCESS] ✓ Processed 35 cast, 10 crew for: The Ring
+[2025-12-12T01:32:11.602Z] [INFO] Processing cast/crew for: A.I. Artificial Intelligence (tmdb_id: 644)
+[2025-12-12T01:32:11.846Z] [SUCCESS] ✓ Processed 77 cast, 9 crew for: A.I. Artificial Intelligence
+[2025-12-12T01:32:11.846Z] [INFO] Processing cast/crew for: The Book of Eli (tmdb_id: 20504)
+[2025-12-12T01:32:12.107Z] [SUCCESS] ✓ Processed 51 cast, 15 crew for: The Book of Eli
+[2025-12-12T01:32:12.107Z] [INFO] Processing cast/crew for: Blade (tmdb_id: 36647)
+[2025-12-12T01:32:12.354Z] [SUCCESS] ✓ Processed 60 cast, 12 crew for: Blade
+[2025-12-12T01:32:12.354Z] [INFO] Processing cast/crew for: Bumblebee (tmdb_id: 424783)
+[2025-12-12T01:32:12.594Z] [SUCCESS] ✓ Processed 56 cast, 14 crew for: Bumblebee
+[2025-12-12T01:32:12.594Z] [INFO] Processing cast/crew for: Die Hard: With a Vengeance (tmdb_id: 1572)
+[2025-12-12T01:32:12.864Z] [SUCCESS] ✓ Processed 89 cast, 9 crew for: Die Hard: With a Vengeance
+[2025-12-12T01:32:12.864Z] [INFO] Processing cast/crew for: Happy Death Day (tmdb_id: 440021)
+[2025-12-12T01:32:13.169Z] [SUCCESS] ✓ Processed 24 cast, 11 crew for: Happy Death Day
+[2025-12-12T01:32:13.169Z] [INFO] Processing cast/crew for: Underworld (tmdb_id: 277)
+[2025-12-12T01:32:13.402Z] [SUCCESS] ✓ Processed 31 cast, 15 crew for: Underworld
+[2025-12-12T01:32:13.402Z] [INFO] Processing cast/crew for: Onward (tmdb_id: 508439)
+[2025-12-12T01:32:13.618Z] [SUCCESS] ✓ Processed 13 cast, 10 crew for: Onward
+[2025-12-12T01:32:13.619Z] [INFO] Processing cast/crew for: Mrs. Doubtfire (tmdb_id: 788)
+[2025-12-12T01:32:13.843Z] [SUCCESS] ✓ Processed 47 cast, 10 crew for: Mrs. Doubtfire
+[2025-12-12T01:32:13.843Z] [INFO] Processing cast/crew for: Extraction (tmdb_id: 545609)
+[2025-12-12T01:32:14.079Z] [SUCCESS] ✓ Processed 56 cast, 19 crew for: Extraction
+[2025-12-12T01:32:14.079Z] [INFO] Processing cast/crew for: Love, Rosie (tmdb_id: 200727)
+[2025-12-12T01:32:14.305Z] [SUCCESS] ✓ Processed 32 cast, 7 crew for: Love, Rosie
+[2025-12-12T01:32:14.305Z] [INFO] Processing cast/crew for: Madagascar 3: Europe's Most Wanted (tmdb_id: 80321)
+[2025-12-12T01:32:14.549Z] [SUCCESS] ✓ Processed 25 cast, 8 crew for: Madagascar 3: Europe's Most Wanted
+[2025-12-12T01:32:14.549Z] [INFO] Processing cast/crew for: Kung Fu Panda 3 (tmdb_id: 140300)
+[2025-12-12T01:32:14.928Z] [SUCCESS] ✓ Processed 35 cast, 11 crew for: Kung Fu Panda 3
+[2025-12-12T01:32:14.928Z] [INFO] Processing cast/crew for: Dirty Dancing (tmdb_id: 88)
+[2025-12-12T01:32:15.150Z] [SUCCESS] ✓ Processed 41 cast, 7 crew for: Dirty Dancing
+[2025-12-12T01:32:15.150Z] [INFO] Processing cast/crew for: The Conjuring: The Devil Made Me Do It (tmdb_id: 423108)
+[2025-12-12T01:32:15.406Z] [SUCCESS] ✓ Processed 32 cast, 14 crew for: The Conjuring: The Devil Made Me Do It
+[2025-12-12T01:32:15.406Z] [INFO] Processing cast/crew for: Maleficent: Mistress of Evil (tmdb_id: 420809)
+[2025-12-12T01:32:15.646Z] [SUCCESS] ✓ Processed 85 cast, 13 crew for: Maleficent: Mistress of Evil
+[2025-12-12T01:32:15.646Z] [INFO] Processing cast/crew for: Bolt (tmdb_id: 13053)
+[2025-12-12T01:32:15.896Z] [SUCCESS] ✓ Processed 48 cast, 7 crew for: Bolt
+[2025-12-12T01:32:15.896Z] [INFO] Processing cast/crew for: Contagion (tmdb_id: 39538)
+[2025-12-12T01:32:16.198Z] [SUCCESS] ✓ Processed 145 cast, 12 crew for: Contagion
+[2025-12-12T01:32:16.198Z] [INFO] Processing cast/crew for: Enola Holmes (tmdb_id: 497582)
+[2025-12-12T01:32:16.418Z] [SUCCESS] ✓ Processed 36 cast, 12 crew for: Enola Holmes
+[2025-12-12T01:32:16.418Z] [INFO] Processing cast/crew for: Training Day (tmdb_id: 2034)
+[2025-12-12T01:32:16.656Z] [SUCCESS] ✓ Processed 50 cast, 8 crew for: Training Day
+[2025-12-12T01:32:16.656Z] [INFO] Processing cast/crew for: What Happened to Monday (tmdb_id: 406990)
+[2025-12-12T01:32:16.902Z] [SUCCESS] ✓ Processed 29 cast, 12 crew for: What Happened to Monday
+[2025-12-12T01:32:16.903Z] [INFO] Processing cast/crew for: The Gentlemen (tmdb_id: 522627)
+[2025-12-12T01:32:17.167Z] [SUCCESS] ✓ Processed 62 cast, 18 crew for: The Gentlemen
+[2025-12-12T01:32:17.167Z] [INFO] Processing cast/crew for: Flight (tmdb_id: 87502)
+[2025-12-12T01:32:17.446Z] [SUCCESS] ✓ Processed 58 cast, 10 crew for: Flight
+[2025-12-12T01:32:17.446Z] [INFO] Processing cast/crew for: Inside Out 2 (tmdb_id: 1022789)
+[2025-12-12T01:32:17.677Z] [SUCCESS] ✓ Processed 32 cast, 12 crew for: Inside Out 2
+[2025-12-12T01:32:17.677Z] [INFO] Processing cast/crew for: Cloudy with a Chance of Meatballs (tmdb_id: 22794)
+[2025-12-12T01:32:17.942Z] [SUCCESS] ✓ Processed 41 cast, 10 crew for: Cloudy with a Chance of Meatballs
+[2025-12-12T01:32:17.943Z] [INFO] Processing cast/crew for: Casino (tmdb_id: 524)
+[2025-12-12T01:32:18.217Z] [SUCCESS] ✓ Processed 150 cast, 5 crew for: Casino
+[2025-12-12T01:32:18.218Z] [INFO] Processing cast/crew for: Ghost Rider (tmdb_id: 1250)
+[2025-12-12T01:32:18.472Z] [SUCCESS] ✓ Processed 27 cast, 12 crew for: Ghost Rider
+[2025-12-12T01:32:18.472Z] [INFO] Processing cast/crew for: From Dusk Till Dawn (tmdb_id: 755)
+[2025-12-12T01:32:18.708Z] [SUCCESS] ✓ Processed 45 cast, 10 crew for: From Dusk Till Dawn
+[2025-12-12T01:32:18.708Z] [INFO] Processing cast/crew for: Space Jam (tmdb_id: 2300)
+[2025-12-12T01:32:18.985Z] [SUCCESS] ✓ Processed 84 cast, 12 crew for: Space Jam
+[2025-12-12T01:32:18.985Z] [INFO] Processing cast/crew for: Spy (tmdb_id: 238713)
+[2025-12-12T01:32:19.229Z] [SUCCESS] ✓ Processed 52 cast, 10 crew for: Spy
+[2025-12-12T01:32:19.229Z] [INFO] Processing cast/crew for: Stand by Me (tmdb_id: 235)
+[2025-12-12T01:32:19.484Z] [SUCCESS] ✓ Processed 32 cast, 8 crew for: Stand by Me
+[2025-12-12T01:32:19.484Z] [INFO] Processing cast/crew for: Glass Onion: A Knives Out Mystery (tmdb_id: 661374)
+[2025-12-12T01:32:19.723Z] [SUCCESS] ✓ Processed 37 cast, 7 crew for: Glass Onion: A Knives Out Mystery
+[2025-12-12T01:32:19.723Z] [INFO] Processing cast/crew for: Grave of the Fireflies (tmdb_id: 12477)
+[2025-12-12T01:32:19.979Z] [SUCCESS] ✓ Processed 18 cast, 5 crew for: Grave of the Fireflies
+[2025-12-12T01:32:19.980Z] [INFO] Processing cast/crew for: Enemy (tmdb_id: 181886)
+[2025-12-12T01:32:20.248Z] [SUCCESS] ✓ Processed 15 cast, 11 crew for: Enemy
+[2025-12-12T01:32:20.248Z] [INFO] Processing cast/crew for: Cars 3 (tmdb_id: 260514)
+[2025-12-12T01:32:20.325Z] [ERROR] ✗ Failed to process cast/crew for Cars 3: | {"error":"Failed to upsert people: ON CONFLICT DO UPDATE command cannot affect row a second time"}
+[2025-12-12T01:32:20.458Z] [INFO] Processing cast/crew for: Interview with the Vampire (tmdb_id: 628)
+[2025-12-12T01:32:20.722Z] [SUCCESS] ✓ Processed 36 cast, 6 crew for: Interview with the Vampire
+[2025-12-12T01:32:20.722Z] [INFO] Processing cast/crew for: Manchester by the Sea (tmdb_id: 334541)
+[2025-12-12T01:32:20.989Z] [SUCCESS] ✓ Processed 49 cast, 14 crew for: Manchester by the Sea
+[2025-12-12T01:32:20.989Z] [INFO] Processing cast/crew for: Total Recall (tmdb_id: 861)
+[2025-12-12T01:32:21.195Z] [SUCCESS] ✓ Processed 60 cast, 10 crew for: Total Recall
+[2025-12-12T01:32:21.195Z] [INFO] Processing cast/crew for: Red Notice (tmdb_id: 512195)
+[2025-12-12T01:32:21.425Z] [SUCCESS] ✓ Processed 33 cast, 12 crew for: Red Notice
+[2025-12-12T01:32:21.425Z] [INFO] Progress: 650/1000 (636 success, 14 failed)
+[2025-12-12T01:32:21.425Z] [INFO] Processing cast/crew for: Love, Simon (tmdb_id: 449176)
+[2025-12-12T01:32:21.718Z] [SUCCESS] ✓ Processed 57 cast, 10 crew for: Love, Simon
+[2025-12-12T01:32:21.718Z] [INFO] Processing cast/crew for: Monty Python and the Holy Grail (tmdb_id: 762)
+[2025-12-12T01:32:21.952Z] [SUCCESS] ✓ Processed 47 cast, 13 crew for: Monty Python and the Holy Grail
+[2025-12-12T01:32:21.952Z] [INFO] Processing cast/crew for: Sweeney Todd: The Demon Barber of Fleet Street (tmdb_id: 13885)
+[2025-12-12T01:32:22.170Z] [SUCCESS] ✓ Processed 52 cast, 9 crew for: Sweeney Todd: The Demon Barber of Fleet Street
+[2025-12-12T01:32:22.170Z] [INFO] Processing cast/crew for: Die Hard 2 (tmdb_id: 1573)
+[2025-12-12T01:32:22.446Z] [SUCCESS] ✓ Processed 93 cast, 10 crew for: Die Hard 2
+[2025-12-12T01:32:22.446Z] [INFO] Processing cast/crew for: Moonrise Kingdom (tmdb_id: 83666)
+[2025-12-12T01:32:22.686Z] [SUCCESS] ✓ Processed 57 cast, 10 crew for: Moonrise Kingdom
+[2025-12-12T01:32:22.686Z] [INFO] Processing cast/crew for: Live Free or Die Hard (tmdb_id: 1571)
+[2025-12-12T01:32:22.944Z] [SUCCESS] ✓ Processed 72 cast, 9 crew for: Live Free or Die Hard
+[2025-12-12T01:32:22.944Z] [INFO] Processing cast/crew for: Inside Man (tmdb_id: 388)
+[2025-12-12T01:32:23.238Z] [SUCCESS] ✓ Processed 67 cast, 9 crew for: Inside Man
+[2025-12-12T01:32:23.238Z] [INFO] Processing cast/crew for: Mortal Kombat (tmdb_id: 460465)
+[2025-12-12T01:32:23.467Z] [SUCCESS] ✓ Processed 32 cast, 17 crew for: Mortal Kombat
+[2025-12-12T01:32:23.467Z] [INFO] Processing cast/crew for: Black Hawk Down (tmdb_id: 855)
+[2025-12-12T01:32:23.535Z] [ERROR] ✗ Failed to process cast/crew for Black Hawk Down: | {"error":"Failed to upsert people: ON CONFLICT DO UPDATE command cannot affect row a second time"}
+[2025-12-12T01:32:23.634Z] [INFO] Processing cast/crew for: Fast X (tmdb_id: 385687)
+[2025-12-12T01:32:23.848Z] [SUCCESS] ✓ Processed 39 cast, 18 crew for: Fast X
+[2025-12-12T01:32:23.849Z] [INFO] Processing cast/crew for: Alice in Wonderland (tmdb_id: 12092)
+[2025-12-12T01:32:24.095Z] [SUCCESS] ✓ Processed 26 cast, 19 crew for: Alice in Wonderland
+[2025-12-12T01:32:24.096Z] [INFO] Processing cast/crew for: Vertigo (tmdb_id: 426)
+[2025-12-12T01:32:24.284Z] [SUCCESS] ✓ Processed 20 cast, 6 crew for: Vertigo
+[2025-12-12T01:32:24.284Z] [INFO] Processing cast/crew for: Pinocchio (tmdb_id: 10895)
+[2025-12-12T01:32:24.479Z] [SUCCESS] ✓ Processed 14 cast, 10 crew for: Pinocchio
+[2025-12-12T01:32:24.479Z] [INFO] Processing cast/crew for: Game Night (tmdb_id: 445571)
+[2025-12-12T01:32:24.696Z] [SUCCESS] ✓ Processed 38 cast, 14 crew for: Game Night
+[2025-12-12T01:32:24.696Z] [INFO] Processing cast/crew for: Ender's Game (tmdb_id: 80274)
+[2025-12-12T01:32:24.910Z] [SUCCESS] ✓ Processed 28 cast, 19 crew for: Ender's Game
+[2025-12-12T01:32:24.910Z] [INFO] Processing cast/crew for: The Invisible Man (tmdb_id: 570670)
+[2025-12-12T01:32:25.122Z] [SUCCESS] ✓ Processed 24 cast, 12 crew for: The Invisible Man
+[2025-12-12T01:32:25.122Z] [INFO] Processing cast/crew for: Mr. Nobody (tmdb_id: 31011)
+[2025-12-12T01:32:25.345Z] [SUCCESS] ✓ Processed 86 cast, 7 crew for: Mr. Nobody
+[2025-12-12T01:32:25.346Z] [INFO] Processing cast/crew for: Paul (tmdb_id: 39513)
+[2025-12-12T01:32:25.561Z] [SUCCESS] ✓ Processed 50 cast, 13 crew for: Paul
+[2025-12-12T01:32:25.562Z] [INFO] Processing cast/crew for: Zombieland: Double Tap (tmdb_id: 338967)
+[2025-12-12T01:32:25.793Z] [SUCCESS] ✓ Processed 48 cast, 14 crew for: Zombieland: Double Tap
+[2025-12-12T01:32:25.793Z] [INFO] Processing cast/crew for: Moon (tmdb_id: 17431)
+[2025-12-12T01:32:26.061Z] [SUCCESS] ✓ Processed 10 cast, 17 crew for: Moon
+[2025-12-12T01:32:26.061Z] [INFO] Processing cast/crew for: I, Tonya (tmdb_id: 389015)
+[2025-12-12T01:32:26.371Z] [SUCCESS] ✓ Processed 42 cast, 15 crew for: I, Tonya
+[2025-12-12T01:32:26.371Z] [INFO] Processing cast/crew for: Collateral (tmdb_id: 1538)
+[2025-12-12T01:32:26.632Z] [SUCCESS] ✓ Processed 103 cast, 12 crew for: Collateral
+[2025-12-12T01:32:26.633Z] [INFO] Processing cast/crew for: The Goonies (tmdb_id: 9340)
+[2025-12-12T01:32:26.887Z] [SUCCESS] ✓ Processed 38 cast, 10 crew for: The Goonies
+[2025-12-12T01:32:26.887Z] [INFO] Processing cast/crew for: Signs (tmdb_id: 2675)
+[2025-12-12T01:32:27.171Z] [SUCCESS] ✓ Processed 26 cast, 8 crew for: Signs
+[2025-12-12T01:32:27.171Z] [INFO] Processing cast/crew for: The Untouchables (tmdb_id: 117)
+[2025-12-12T01:32:27.431Z] [SUCCESS] ✓ Processed 61 cast, 6 crew for: The Untouchables
+[2025-12-12T01:32:27.432Z] [INFO] Processing cast/crew for: Halloween (tmdb_id: 948)
+[2025-12-12T01:32:27.655Z] [SUCCESS] ✓ Processed 26 cast, 8 crew for: Halloween
+[2025-12-12T01:32:27.655Z] [INFO] Processing cast/crew for: Who Framed Roger Rabbit (tmdb_id: 1383)
+[2025-12-12T01:32:27.698Z] [ERROR] ✗ Failed to process cast/crew for Who Framed Roger Rabbit: | {"error":"TMDB_NOT_FOUND"}
+[2025-12-12T01:32:27.814Z] [INFO] Processing cast/crew for: Who Framed Roger Rabbit (tmdb_id: 856)
+[2025-12-12T01:32:28.049Z] [SUCCESS] ✓ Processed 53 cast, 9 crew for: Who Framed Roger Rabbit
+[2025-12-12T01:32:28.049Z] [INFO] Processing cast/crew for: Jungle Cruise (tmdb_id: 451048)
+[2025-12-12T01:32:28.296Z] [SUCCESS] ✓ Processed 36 cast, 14 crew for: Jungle Cruise
+[2025-12-12T01:32:28.296Z] [INFO] Processing cast/crew for: Hotel Transylvania 2 (tmdb_id: 159824)
+[2025-12-12T01:32:28.548Z] [SUCCESS] ✓ Processed 69 cast, 9 crew for: Hotel Transylvania 2
+[2025-12-12T01:32:28.548Z] [INFO] Processing cast/crew for: Apocalypto (tmdb_id: 1579)
+[2025-12-12T01:32:28.793Z] [SUCCESS] ✓ Processed 39 cast, 11 crew for: Apocalypto
+[2025-12-12T01:32:28.793Z] [INFO] Processing cast/crew for: Dr. Strangelove or: How I Learned to Stop Worrying and Love the Bomb (tmdb_id: 935)
+[2025-12-12T01:32:29.016Z] [SUCCESS] ✓ Processed 22 cast, 9 crew for: Dr. Strangelove or: How I Learned to Stop Worrying and Love the Bomb
+[2025-12-12T01:32:29.016Z] [INFO] Processing cast/crew for: School of Rock (tmdb_id: 1584)
+[2025-12-12T01:32:29.278Z] [SUCCESS] ✓ Processed 69 cast, 7 crew for: School of Rock
+[2025-12-12T01:32:29.279Z] [INFO] Processing cast/crew for: The Iron Giant (tmdb_id: 10386)
+[2025-12-12T01:32:29.524Z] [SUCCESS] ✓ Processed 30 cast, 8 crew for: The Iron Giant
+[2025-12-12T01:32:29.524Z] [INFO] Processing cast/crew for: The Princess and the Frog (tmdb_id: 10198)
+[2025-12-12T01:32:29.756Z] [SUCCESS] ✓ Processed 28 cast, 13 crew for: The Princess and the Frog
+[2025-12-12T01:32:29.756Z] [INFO] Processing cast/crew for: The Hurt Locker (tmdb_id: 12162)
+[2025-12-12T01:32:29.974Z] [SUCCESS] ✓ Processed 34 cast, 11 crew for: The Hurt Locker
+[2025-12-12T01:32:29.974Z] [INFO] Processing cast/crew for: Pocahontas (tmdb_id: 10530)
+[2025-12-12T01:32:30.277Z] [SUCCESS] ✓ Processed 19 cast, 20 crew for: Pocahontas
+[2025-12-12T01:32:30.277Z] [INFO] Processing cast/crew for: The Machinist (tmdb_id: 4553)
+[2025-12-12T01:32:30.488Z] [SUCCESS] ✓ Processed 31 cast, 7 crew for: The Machinist
+[2025-12-12T01:32:30.488Z] [INFO] Processing cast/crew for: The Wizard of Oz (tmdb_id: 630)
+[2025-12-12T01:32:30.696Z] [SUCCESS] ✓ Processed 27 cast, 8 crew for: The Wizard of Oz
+[2025-12-12T01:32:30.697Z] [INFO] Processing cast/crew for: King Arthur: Legend of the Sword (tmdb_id: 274857)
+[2025-12-12T01:32:30.917Z] [SUCCESS] ✓ Processed 64 cast, 18 crew for: King Arthur: Legend of the Sword
+[2025-12-12T01:32:30.917Z] [INFO] Processing cast/crew for: Bambi (tmdb_id: 3170)
+[2025-12-12T01:32:31.131Z] [SUCCESS] ✓ Processed 18 cast, 10 crew for: Bambi
+[2025-12-12T01:32:31.131Z] [INFO] Processing cast/crew for: The Danish Girl (tmdb_id: 306819)
+[2025-12-12T01:32:31.341Z] [SUCCESS] ✓ Processed 39 cast, 13 crew for: The Danish Girl
+[2025-12-12T01:32:31.341Z] [INFO] Processing cast/crew for: Sinister (tmdb_id: 82507)
+[2025-12-12T01:32:31.543Z] [SUCCESS] ✓ Processed 16 cast, 9 crew for: Sinister
+[2025-12-12T01:32:31.543Z] [INFO] Processing cast/crew for: Fantastic Mr. Fox (tmdb_id: 10315)
+[2025-12-12T01:32:31.732Z] [SUCCESS] ✓ Processed 30 cast, 11 crew for: Fantastic Mr. Fox
+[2025-12-12T01:32:31.732Z] [INFO] Processing cast/crew for: The Good Dinosaur (tmdb_id: 105864)
+[2025-12-12T01:32:31.973Z] [SUCCESS] ✓ Processed 19 cast, 15 crew for: The Good Dinosaur
+[2025-12-12T01:32:31.973Z] [INFO] Processing cast/crew for: Wrath of Man (tmdb_id: 637649)
+[2025-12-12T01:32:32.215Z] [SUCCESS] ✓ Processed 41 cast, 13 crew for: Wrath of Man
+[2025-12-12T01:32:32.215Z] [INFO] Processing cast/crew for: Citizen Kane (tmdb_id: 15)
+[2025-12-12T01:32:32.476Z] [SUCCESS] ✓ Processed 154 cast, 6 crew for: Citizen Kane
+[2025-12-12T01:32:32.476Z] [INFO] Processing cast/crew for: Ghost (tmdb_id: 251)
+[2025-12-12T01:32:32.708Z] [SUCCESS] ✓ Processed 39 cast, 8 crew for: Ghost
+[2025-12-12T01:32:32.708Z] [INFO] Processing cast/crew for: Five Feet Apart (tmdb_id: 527641)
+[2025-12-12T01:32:32.929Z] [SUCCESS] ✓ Processed 27 cast, 9 crew for: Five Feet Apart
+[2025-12-12T01:32:32.929Z] [INFO] Processing cast/crew for: The Italian Job (tmdb_id: 9654)
+[2025-12-12T01:32:33.167Z] [SUCCESS] ✓ Processed 38 cast, 10 crew for: The Italian Job
+[2025-12-12T01:32:33.167Z] [INFO] Progress: 700/1000 (684 success, 16 failed)
+[2025-12-12T01:32:33.167Z] [INFO] Processing cast/crew for: Casablanca (tmdb_id: 289)
+[2025-12-12T01:32:33.411Z] [SUCCESS] ✓ Processed 106 cast, 8 crew for: Casablanca
+[2025-12-12T01:32:33.412Z] [INFO] Processing cast/crew for: Once Upon a Time in America (tmdb_id: 311)
+[2025-12-12T01:32:33.634Z] [SUCCESS] ✓ Processed 82 cast, 11 crew for: Once Upon a Time in America
+[2025-12-12T01:32:33.634Z] [INFO] Processing cast/crew for: Gifted (tmdb_id: 400928)
+[2025-12-12T01:32:33.960Z] [SUCCESS] ✓ Processed 32 cast, 9 crew for: Gifted
+[2025-12-12T01:32:33.961Z] [INFO] Processing cast/crew for: American Gangster (tmdb_id: 4982)
+[2025-12-12T01:32:34.225Z] [SUCCESS] ✓ Processed 158 cast, 11 crew for: American Gangster
+[2025-12-12T01:32:34.225Z] [INFO] Processing cast/crew for: The Favourite (tmdb_id: 375262)
+[2025-12-12T01:32:34.465Z] [SUCCESS] ✓ Processed 61 cast, 15 crew for: The Favourite
+[2025-12-12T01:32:34.465Z] [INFO] Processing cast/crew for: The Menu (tmdb_id: 593643)
+[2025-12-12T01:32:34.685Z] [SUCCESS] ✓ Processed 34 cast, 14 crew for: The Menu
+[2025-12-12T01:32:34.685Z] [INFO] Processing cast/crew for: The Equalizer 2 (tmdb_id: 345887)
+[2025-12-12T01:32:34.910Z] [SUCCESS] ✓ Processed 57 cast, 15 crew for: The Equalizer 2
+[2025-12-12T01:32:34.910Z] [INFO] Processing cast/crew for: Sonic the Hedgehog 2 (tmdb_id: 675353)
+[2025-12-12T01:32:35.186Z] [SUCCESS] ✓ Processed 77 cast, 17 crew for: Sonic the Hedgehog 2
+[2025-12-12T01:32:35.186Z] [INFO] Processing cast/crew for: The World's End (tmdb_id: 107985)
+[2025-12-12T01:32:35.407Z] [SUCCESS] ✓ Processed 60 cast, 13 crew for: The World's End
+[2025-12-12T01:32:35.407Z] [INFO] Processing cast/crew for: Apollo 13 (tmdb_id: 568)
+[2025-12-12T01:32:35.645Z] [SUCCESS] ✓ Processed 88 cast, 7 crew for: Apollo 13
+[2025-12-12T01:32:35.645Z] [INFO] Processing cast/crew for: The Island (tmdb_id: 1635)
+[2025-12-12T01:32:35.863Z] [SUCCESS] ✓ Processed 67 cast, 11 crew for: The Island
+[2025-12-12T01:32:35.863Z] [INFO] Processing cast/crew for: Southpaw (tmdb_id: 307081)
+[2025-12-12T01:32:36.090Z] [SUCCESS] ✓ Processed 28 cast, 23 crew for: Southpaw
+[2025-12-12T01:32:36.090Z] [INFO] Processing cast/crew for: Face/Off (tmdb_id: 754)
+[2025-12-12T01:32:36.317Z] [SUCCESS] ✓ Processed 60 cast, 12 crew for: Face/Off
+[2025-12-12T01:32:36.317Z] [INFO] Processing cast/crew for: Creed II (tmdb_id: 480530)
+[2025-12-12T01:32:36.569Z] [SUCCESS] ✓ Processed 69 cast, 17 crew for: Creed II
+[2025-12-12T01:32:36.569Z] [INFO] Processing cast/crew for: Brother Bear (tmdb_id: 10009)
+[2025-12-12T01:32:36.804Z] [SUCCESS] ✓ Processed 21 cast, 19 crew for: Brother Bear
+[2025-12-12T01:32:36.804Z] [INFO] Processing cast/crew for: The Adventures of Tintin (tmdb_id: 17578)
+[2025-12-12T01:32:37.034Z] [SUCCESS] ✓ Processed 21 cast, 14 crew for: The Adventures of Tintin
+[2025-12-12T01:32:37.034Z] [INFO] Processing cast/crew for: The Transporter (tmdb_id: 4108)
+[2025-12-12T01:32:37.265Z] [SUCCESS] ✓ Processed 26 cast, 8 crew for: The Transporter
+[2025-12-12T01:32:37.265Z] [INFO] Processing cast/crew for: The Aviator (tmdb_id: 2567)
+[2025-12-12T01:32:37.524Z] [SUCCESS] ✓ Processed 76 cast, 19 crew for: The Aviator
+[2025-12-12T01:32:37.525Z] [INFO] Processing cast/crew for: Peter Pan (tmdb_id: 10693)
+[2025-12-12T01:32:37.791Z] [SUCCESS] ✓ Processed 15 cast, 13 crew for: Peter Pan
+[2025-12-12T01:32:37.792Z] [INFO] Processing cast/crew for: The Mist (tmdb_id: 5876)
+[2025-12-12T01:32:38.008Z] [SUCCESS] ✓ Processed 45 cast, 12 crew for: The Mist
+[2025-12-12T01:32:38.009Z] [INFO] Processing cast/crew for: Turning Red (tmdb_id: 508947)
+[2025-12-12T01:32:38.245Z] [SUCCESS] ✓ Processed 66 cast, 12 crew for: Turning Red
+[2025-12-12T01:32:38.246Z] [INFO] Processing cast/crew for: Enchanted (tmdb_id: 4523)
+[2025-12-12T01:32:38.552Z] [SUCCESS] ✓ Processed 241 cast, 9 crew for: Enchanted
+[2025-12-12T01:32:38.552Z] [INFO] Processing cast/crew for: Non-Stop (tmdb_id: 225574)
+[2025-12-12T01:32:38.760Z] [SUCCESS] ✓ Processed 33 cast, 16 crew for: Non-Stop
+[2025-12-12T01:32:38.760Z] [INFO] Processing cast/crew for: Meet Joe Black (tmdb_id: 297)
+[2025-12-12T01:32:39.000Z] [SUCCESS] ✓ Processed 28 cast, 9 crew for: Meet Joe Black
+[2025-12-12T01:32:39.000Z] [INFO] Processing cast/crew for: Wind River (tmdb_id: 395834)
+[2025-12-12T01:32:39.237Z] [SUCCESS] ✓ Processed 35 cast, 29 crew for: Wind River
+[2025-12-12T01:32:39.237Z] [INFO] Processing cast/crew for: Chronicle (tmdb_id: 76726)
+[2025-12-12T01:32:39.459Z] [SUCCESS] ✓ Processed 39 cast, 9 crew for: Chronicle
+[2025-12-12T01:32:39.459Z] [INFO] Processing cast/crew for: True Grit (tmdb_id: 44264)
+[2025-12-12T01:32:39.660Z] [SUCCESS] ✓ Processed 31 cast, 14 crew for: True Grit
+[2025-12-12T01:32:39.661Z] [INFO] Processing cast/crew for: Bram Stoker's Dracula (tmdb_id: 6114)
+[2025-12-12T01:32:39.893Z] [SUCCESS] ✓ Processed 43 cast, 9 crew for: Bram Stoker's Dracula
+[2025-12-12T01:32:39.893Z] [INFO] Processing cast/crew for: Hook (tmdb_id: 879)
+[2025-12-12T01:32:40.130Z] [SUCCESS] ✓ Processed 75 cast, 10 crew for: Hook
+[2025-12-12T01:32:40.131Z] [INFO] Processing cast/crew for: The Black Phone (tmdb_id: 756999)
+[2025-12-12T01:32:40.357Z] [SUCCESS] ✓ Processed 40 cast, 11 crew for: The Black Phone
+[2025-12-12T01:32:40.358Z] [INFO] Processing cast/crew for: The Wild Robot (tmdb_id: 1184918)
+[2025-12-12T01:32:40.599Z] [SUCCESS] ✓ Processed 30 cast, 5 crew for: The Wild Robot
+[2025-12-12T01:32:40.600Z] [INFO] Processing cast/crew for: In Bruges (tmdb_id: 8321)
+[2025-12-12T01:32:40.805Z] [SUCCESS] ✓ Processed 28 cast, 9 crew for: In Bruges
+[2025-12-12T01:32:40.805Z] [INFO] Processing cast/crew for: Moneyball (tmdb_id: 60308)
+[2025-12-12T01:32:41.032Z] [SUCCESS] ✓ Processed 77 cast, 13 crew for: Moneyball
+[2025-12-12T01:32:41.032Z] [INFO] Processing cast/crew for: A Nightmare on Elm Street (tmdb_id: 377)
+[2025-12-12T01:32:41.246Z] [SUCCESS] ✓ Processed 26 cast, 9 crew for: A Nightmare on Elm Street
+[2025-12-12T01:32:41.246Z] [INFO] Processing cast/crew for: Lady and the Tramp (tmdb_id: 10340)
+[2025-12-12T01:32:41.450Z] [SUCCESS] ✓ Processed 13 cast, 9 crew for: Lady and the Tramp
+[2025-12-12T01:32:41.450Z] [INFO] Processing cast/crew for: RoboCop (tmdb_id: 5548)
+[2025-12-12T01:32:41.658Z] [SUCCESS] ✓ Processed 71 cast, 7 crew for: RoboCop
+[2025-12-12T01:32:41.658Z] [INFO] Processing cast/crew for: First Man (tmdb_id: 369972)
+[2025-12-12T01:32:41.889Z] [SUCCESS] ✓ Processed 90 cast, 11 crew for: First Man
+[2025-12-12T01:32:41.889Z] [INFO] Processing cast/crew for: Anastasia (tmdb_id: 9444)
+[2025-12-12T01:32:42.108Z] [SUCCESS] ✓ Processed 22 cast, 11 crew for: Anastasia
+[2025-12-12T01:32:42.108Z] [INFO] Processing cast/crew for: Orphan (tmdb_id: 21208)
+[2025-12-12T01:32:42.369Z] [SUCCESS] ✓ Processed 24 cast, 22 crew for: Orphan
+[2025-12-12T01:32:42.369Z] [INFO] Processing cast/crew for: Collateral Beauty (tmdb_id: 345920)
+[2025-12-12T01:32:42.569Z] [SUCCESS] ✓ Processed 40 cast, 13 crew for: Collateral Beauty
+[2025-12-12T01:32:42.570Z] [INFO] Processing cast/crew for: Law Abiding Citizen (tmdb_id: 22803)
+[2025-12-12T01:32:42.814Z] [SUCCESS] ✓ Processed 66 cast, 11 crew for: Law Abiding Citizen
+[2025-12-12T01:32:42.814Z] [INFO] Processing cast/crew for: Les Misérables (tmdb_id: 82695)
+[2025-12-12T01:32:43.088Z] [SUCCESS] ✓ Processed 211 cast, 14 crew for: Les Misérables
+[2025-12-12T01:32:43.088Z] [INFO] Processing cast/crew for: Hellboy II: The Golden Army (tmdb_id: 11253)
+[2025-12-12T01:32:43.317Z] [SUCCESS] ✓ Processed 45 cast, 10 crew for: Hellboy II: The Golden Army
+[2025-12-12T01:32:43.318Z] [INFO] Processing cast/crew for: Man on Fire (tmdb_id: 9509)
+[2025-12-12T01:32:43.577Z] [SUCCESS] ✓ Processed 76 cast, 9 crew for: Man on Fire
+[2025-12-12T01:32:43.578Z] [INFO] Processing cast/crew for: Love & Other Drugs (tmdb_id: 43347)
+[2025-12-12T01:32:43.817Z] [SUCCESS] ✓ Processed 85 cast, 14 crew for: Love & Other Drugs
+[2025-12-12T01:32:43.817Z] [INFO] Processing cast/crew for: Pitch Perfect 2 (tmdb_id: 254470)
+[2025-12-12T01:32:44.040Z] [SUCCESS] ✓ Processed 124 cast, 9 crew for: Pitch Perfect 2
+[2025-12-12T01:32:44.040Z] [INFO] Processing cast/crew for: Death Proof (tmdb_id: 1991)
+[2025-12-12T01:32:44.254Z] [SUCCESS] ✓ Processed 35 cast, 10 crew for: Death Proof
+[2025-12-12T01:32:44.254Z] [INFO] Processing cast/crew for: After We Collided (tmdb_id: 613504)
+[2025-12-12T01:32:44.505Z] [SUCCESS] ✓ Processed 30 cast, 16 crew for: After We Collided
+[2025-12-12T01:32:44.505Z] [INFO] Processing cast/crew for: Escape Plan (tmdb_id: 107846)
+[2025-12-12T01:32:44.758Z] [SUCCESS] ✓ Processed 34 cast, 19 crew for: Escape Plan
+[2025-12-12T01:32:44.759Z] [INFO] Processing cast/crew for: The Holiday (tmdb_id: 1581)
+[2025-12-12T01:32:45.047Z] [SUCCESS] ✓ Processed 67 cast, 7 crew for: The Holiday
+[2025-12-12T01:32:45.048Z] [INFO] Progress: 750/1000 (734 success, 16 failed)
+[2025-12-12T01:32:45.048Z] [INFO] Processing cast/crew for: Rush Hour (tmdb_id: 2109)
+[2025-12-12T01:32:45.573Z] [SUCCESS] ✓ Processed 58 cast, 10 crew for: Rush Hour
+[2025-12-12T01:32:45.573Z] [INFO] Processing cast/crew for: 13 Going on 30 (tmdb_id: 10096)
+[2025-12-12T01:32:46.022Z] [SUCCESS] ✓ Processed 72 cast, 10 crew for: 13 Going on 30
+[2025-12-12T01:32:46.022Z] [INFO] Processing cast/crew for: El Camino: A Breaking Bad Movie (tmdb_id: 559969)
+[2025-12-12T01:32:46.282Z] [SUCCESS] ✓ Processed 31 cast, 10 crew for: El Camino: A Breaking Bad Movie
+[2025-12-12T01:32:46.282Z] [INFO] Processing cast/crew for: The Substance (tmdb_id: 933260)
+[2025-12-12T01:32:46.594Z] [SUCCESS] ✓ Processed 120 cast, 10 crew for: The Substance
+[2025-12-12T01:32:46.594Z] [INFO] Processing cast/crew for: The Town (tmdb_id: 23168)
+[2025-12-12T01:32:46.924Z] [SUCCESS] ✓ Processed 78 cast, 13 crew for: The Town
+[2025-12-12T01:32:46.924Z] [INFO] Processing cast/crew for: Boyhood (tmdb_id: 85350)
+[2025-12-12T01:32:47.145Z] [SUCCESS] ✓ Processed 81 cast, 8 crew for: Boyhood
+[2025-12-12T01:32:47.145Z] [INFO] Processing cast/crew for: Darkest Hour (tmdb_id: 399404)
+[2025-12-12T01:32:47.384Z] [SUCCESS] ✓ Processed 61 cast, 10 crew for: Darkest Hour
+[2025-12-12T01:32:47.384Z] [INFO] Processing cast/crew for: Sleeping Beauty (tmdb_id: 10882)
+[2025-12-12T01:32:47.613Z] [SUCCESS] ✓ Processed 12 cast, 11 crew for: Sleeping Beauty
+[2025-12-12T01:32:47.613Z] [INFO] Processing cast/crew for: Dredd (tmdb_id: 49049)
+[2025-12-12T01:32:47.821Z] [SUCCESS] ✓ Processed 34 cast, 12 crew for: Dredd
+[2025-12-12T01:32:47.821Z] [INFO] Processing cast/crew for: The Lighthouse (tmdb_id: 503919)
+[2025-12-12T01:32:48.047Z] [SUCCESS] ✓ Processed 9 cast, 21 crew for: The Lighthouse
+[2025-12-12T01:32:48.047Z] [INFO] Processing cast/crew for: L.A. Confidential (tmdb_id: 2118)
+[2025-12-12T01:32:48.287Z] [SUCCESS] ✓ Processed 95 cast, 10 crew for: L.A. Confidential
+[2025-12-12T01:32:48.287Z] [INFO] Processing cast/crew for: Chicken Run (tmdb_id: 7443)
+[2025-12-12T01:32:48.564Z] [SUCCESS] ✓ Processed 14 cast, 17 crew for: Chicken Run
+[2025-12-12T01:32:48.564Z] [INFO] Processing cast/crew for: The Aristocats (tmdb_id: 10112)
+[2025-12-12T01:32:48.781Z] [SUCCESS] ✓ Processed 25 cast, 12 crew for: The Aristocats
+[2025-12-12T01:32:48.781Z] [INFO] Processing cast/crew for: The Lego Batman Movie (tmdb_id: 324849)
+[2025-12-12T01:32:48.993Z] [SUCCESS] ✓ Processed 49 cast, 20 crew for: The Lego Batman Movie
+[2025-12-12T01:32:48.993Z] [INFO] Processing cast/crew for: War Dogs (tmdb_id: 308266)
+[2025-12-12T01:32:49.225Z] [SUCCESS] ✓ Processed 103 cast, 14 crew for: War Dogs
+[2025-12-12T01:32:49.225Z] [INFO] Processing cast/crew for: Starship Troopers (tmdb_id: 563)
+[2025-12-12T01:32:49.462Z] [SUCCESS] ✓ Processed 90 cast, 6 crew for: Starship Troopers
+[2025-12-12T01:32:49.462Z] [INFO] Processing cast/crew for: Panic Room (tmdb_id: 4547)
+[2025-12-12T01:32:49.681Z] [SUCCESS] ✓ Processed 17 cast, 9 crew for: Panic Room
+[2025-12-12T01:32:49.681Z] [INFO] Processing cast/crew for: The Founder (tmdb_id: 310307)
+[2025-12-12T01:32:49.892Z] [SUCCESS] ✓ Processed 47 cast, 17 crew for: The Founder
+[2025-12-12T01:32:49.892Z] [INFO] Processing cast/crew for: Shooter (tmdb_id: 7485)
+[2025-12-12T01:32:50.100Z] [SUCCESS] ✓ Processed 29 cast, 8 crew for: Shooter
+[2025-12-12T01:32:50.100Z] [INFO] Processing cast/crew for: The Hunchback of Notre Dame (tmdb_id: 10545)
+[2025-12-12T01:32:50.543Z] [SUCCESS] ✓ Processed 52 cast, 23 crew for: The Hunchback of Notre Dame
+[2025-12-12T01:32:50.543Z] [INFO] Processing cast/crew for: The Mule (tmdb_id: 504172)
+[2025-12-12T01:32:50.786Z] [SUCCESS] ✓ Processed 71 cast, 14 crew for: The Mule
+[2025-12-12T01:32:50.786Z] [INFO] Processing cast/crew for: Isle of Dogs (tmdb_id: 399174)
+[2025-12-12T01:32:51.024Z] [SUCCESS] ✓ Processed 49 cast, 16 crew for: Isle of Dogs
+[2025-12-12T01:32:51.024Z] [INFO] Processing cast/crew for: Ferris Bueller's Day Off (tmdb_id: 9377)
+[2025-12-12T01:32:51.255Z] [SUCCESS] ✓ Processed 47 cast, 7 crew for: Ferris Bueller's Day Off
+[2025-12-12T01:32:51.255Z] [INFO] Processing cast/crew for: 28 Weeks Later (tmdb_id: 1562)
+[2025-12-12T01:32:51.477Z] [SUCCESS] ✓ Processed 43 cast, 13 crew for: 28 Weeks Later
+[2025-12-12T01:32:51.477Z] [INFO] Processing cast/crew for: Dumbo (tmdb_id: 11360)
+[2025-12-12T01:32:51.674Z] [SUCCESS] ✓ Processed 21 cast, 11 crew for: Dumbo
+[2025-12-12T01:32:51.675Z] [INFO] Processing cast/crew for: Lemony Snicket's A Series of Unfortunate Events (tmdb_id: 11774)
+[2025-12-12T01:32:51.920Z] [SUCCESS] ✓ Processed 39 cast, 11 crew for: Lemony Snicket's A Series of Unfortunate Events
+[2025-12-12T01:32:51.920Z] [INFO] Processing cast/crew for: The Princess Diaries (tmdb_id: 9880)
+[2025-12-12T01:32:52.140Z] [SUCCESS] ✓ Processed 92 cast, 7 crew for: The Princess Diaries
+[2025-12-12T01:32:52.140Z] [INFO] Processing cast/crew for: The Illusionist (tmdb_id: 1491)
+[2025-12-12T01:32:52.347Z] [SUCCESS] ✓ Processed 60 cast, 13 crew for: The Illusionist
+[2025-12-12T01:32:52.347Z] [INFO] Processing cast/crew for: Bloodshot (tmdb_id: 338762)
+[2025-12-12T01:32:52.555Z] [SUCCESS] ✓ Processed 35 cast, 26 crew for: Bloodshot
+[2025-12-12T01:32:52.555Z] [INFO] Processing cast/crew for: Crimson Peak (tmdb_id: 201085)
+[2025-12-12T01:32:52.773Z] [SUCCESS] ✓ Processed 46 cast, 10 crew for: Crimson Peak
+[2025-12-12T01:32:52.773Z] [INFO] Processing cast/crew for: Uncut Gems (tmdb_id: 473033)
+[2025-12-12T01:32:53.028Z] [SUCCESS] ✓ Processed 84 cast, 16 crew for: Uncut Gems
+[2025-12-12T01:32:53.028Z] [INFO] Processing cast/crew for: Lord of War (tmdb_id: 1830)
+[2025-12-12T01:32:53.263Z] [SUCCESS] ✓ Processed 52 cast, 19 crew for: Lord of War
+[2025-12-12T01:32:53.264Z] [INFO] Processing cast/crew for: Poor Things (tmdb_id: 792307)
+[2025-12-12T01:32:53.567Z] [SUCCESS] ✓ Processed 53 cast, 10 crew for: Poor Things
+[2025-12-12T01:32:53.567Z] [INFO] Processing cast/crew for: Déjà Vu (tmdb_id: 7551)
+[2025-12-12T01:32:53.835Z] [SUCCESS] ✓ Processed 75 cast, 11 crew for: Déjà Vu
+[2025-12-12T01:32:53.835Z] [INFO] Processing cast/crew for: Everest (tmdb_id: 253412)
+[2025-12-12T01:32:54.116Z] [SUCCESS] ✓ Processed 39 cast, 18 crew for: Everest
+[2025-12-12T01:32:54.116Z] [INFO] Processing cast/crew for: Transformers: Rise of the Beasts (tmdb_id: 667538)
+[2025-12-12T01:32:54.391Z] [SUCCESS] ✓ Processed 41 cast, 23 crew for: Transformers: Rise of the Beasts
+[2025-12-12T01:32:54.391Z] [INFO] Processing cast/crew for: The Kissing Booth 2 (tmdb_id: 583083)
+[2025-12-12T01:32:54.643Z] [SUCCESS] ✓ Processed 54 cast, 11 crew for: The Kissing Booth 2
+[2025-12-12T01:32:54.643Z] [INFO] Processing cast/crew for: Bridge to Terabithia (tmdb_id: 1265)
+[2025-12-12T01:32:54.894Z] [SUCCESS] ✓ Processed 28 cast, 8 crew for: Bridge to Terabithia
+[2025-12-12T01:32:54.894Z] [INFO] Processing cast/crew for: Insomnia (tmdb_id: 320)
+[2025-12-12T01:32:55.183Z] [SUCCESS] ✓ Processed 25 cast, 12 crew for: Insomnia
+[2025-12-12T01:32:55.183Z] [INFO] Processing cast/crew for: The Place Beyond the Pines (tmdb_id: 97367)
+[2025-12-12T01:32:55.427Z] [SUCCESS] ✓ Processed 65 cast, 15 crew for: The Place Beyond the Pines
+[2025-12-12T01:32:55.427Z] [INFO] Processing cast/crew for: Elemental (tmdb_id: 976573)
+[2025-12-12T01:32:55.639Z] [SUCCESS] ✓ Processed 18 cast, 13 crew for: Elemental
+[2025-12-12T01:32:55.639Z] [INFO] Processing cast/crew for: Cube (tmdb_id: 431)
+[2025-12-12T01:32:55.836Z] [SUCCESS] ✓ Processed 7 cast, 9 crew for: Cube
+[2025-12-12T01:32:55.836Z] [INFO] Processing cast/crew for: Blade II (tmdb_id: 36586)
+[2025-12-12T01:32:56.147Z] [SUCCESS] ✓ Processed 47 cast, 13 crew for: Blade II
+[2025-12-12T01:32:56.147Z] [INFO] Processing cast/crew for: Hannibal (tmdb_id: 9740)
+[2025-12-12T01:32:56.385Z] [SUCCESS] ✓ Processed 39 cast, 9 crew for: Hannibal
+[2025-12-12T01:32:56.385Z] [INFO] Processing cast/crew for: Atlantis: The Lost Empire (tmdb_id: 10865)
+[2025-12-12T01:32:56.607Z] [SUCCESS] ✓ Processed 16 cast, 11 crew for: Atlantis: The Lost Empire
+[2025-12-12T01:32:56.607Z] [INFO] Processing cast/crew for: The Rock (tmdb_id: 9802)
+[2025-12-12T01:32:56.838Z] [SUCCESS] ✓ Processed 73 cast, 13 crew for: The Rock
+[2025-12-12T01:32:56.838Z] [INFO] Processing cast/crew for: Misery (tmdb_id: 1700)
+[2025-12-12T01:32:57.052Z] [SUCCESS] ✓ Processed 16 cast, 6 crew for: Misery
+[2025-12-12T01:32:57.052Z] [INFO] Processing cast/crew for: Ready or Not (tmdb_id: 567609)
+[2025-12-12T01:32:57.305Z] [SUCCESS] ✓ Processed 27 cast, 14 crew for: Ready or Not
+[2025-12-12T01:32:57.305Z] [INFO] Processing cast/crew for: The Passion of the Christ (tmdb_id: 615)
+[2025-12-12T01:32:57.599Z] [SUCCESS] ✓ Processed 75 cast, 10 crew for: The Passion of the Christ
+[2025-12-12T01:32:57.599Z] [INFO] Processing cast/crew for: Ghostbusters: Afterlife (tmdb_id: 425909)
+[2025-12-12T01:32:57.868Z] [SUCCESS] ✓ Processed 40 cast, 16 crew for: Ghostbusters: Afterlife
+[2025-12-12T01:32:57.868Z] [INFO] Progress: 800/1000 (784 success, 16 failed)
+[2025-12-12T01:32:57.869Z] [INFO] Processing cast/crew for: The Addams Family (tmdb_id: 2907)
+[2025-12-12T01:32:58.089Z] [SUCCESS] ✓ Processed 42 cast, 7 crew for: The Addams Family
+[2025-12-12T01:32:58.090Z] [INFO] Processing cast/crew for: Fantastic Beasts: The Secrets of Dumbledore (tmdb_id: 338953)
+[2025-12-12T01:32:58.328Z] [SUCCESS] ✓ Processed 39 cast, 15 crew for: Fantastic Beasts: The Secrets of Dumbledore
+[2025-12-12T01:32:58.328Z] [INFO] Processing cast/crew for: The Princess Bride (tmdb_id: 2493)
+[2025-12-12T01:32:58.539Z] [SUCCESS] ✓ Processed 21 cast, 7 crew for: The Princess Bride
+[2025-12-12T01:32:58.539Z] [INFO] Processing cast/crew for: Platoon (tmdb_id: 792)
+[2025-12-12T01:32:58.751Z] [SUCCESS] ✓ Processed 44 cast, 7 crew for: Platoon
+[2025-12-12T01:32:58.751Z] [INFO] Processing cast/crew for: Mary Poppins (tmdb_id: 433)
+[2025-12-12T01:32:58.960Z] [SUCCESS] ✓ Processed 20 cast, 6 crew for: Mary Poppins
+[2025-12-12T01:32:58.960Z] [INFO] Processing cast/crew for: The King's Man (tmdb_id: 476669)
+[2025-12-12T01:32:59.205Z] [SUCCESS] ✓ Processed 99 cast, 15 crew for: The King's Man
+[2025-12-12T01:32:59.206Z] [INFO] Processing cast/crew for: Rocketman (tmdb_id: 504608)
+[2025-12-12T01:32:59.484Z] [SUCCESS] ✓ Processed 186 cast, 15 crew for: Rocketman
+[2025-12-12T01:32:59.484Z] [INFO] Processing cast/crew for: Fear and Loathing in Las Vegas (tmdb_id: 1878)
+[2025-12-12T01:32:59.737Z] [SUCCESS] ✓ Processed 68 cast, 12 crew for: Fear and Loathing in Las Vegas
+[2025-12-12T01:32:59.737Z] [INFO] Processing cast/crew for: Airplane! (tmdb_id: 813)
+[2025-12-12T01:32:59.960Z] [SUCCESS] ✓ Processed 74 cast, 12 crew for: Airplane!
+[2025-12-12T01:32:59.960Z] [INFO] Processing cast/crew for: Warrior (tmdb_id: 59440)
+[2025-12-12T01:33:00.179Z] [SUCCESS] ✓ Processed 63 cast, 15 crew for: Warrior
+[2025-12-12T01:33:00.179Z] [INFO] Processing cast/crew for: Greenland (tmdb_id: 524047)
+[2025-12-12T01:33:00.422Z] [SUCCESS] ✓ Processed 48 cast, 21 crew for: Greenland
+[2025-12-12T01:33:00.422Z] [INFO] Processing cast/crew for: Lethal Weapon (tmdb_id: 941)
+[2025-12-12T01:33:00.645Z] [SUCCESS] ✓ Processed 61 cast, 7 crew for: Lethal Weapon
+[2025-12-12T01:33:00.645Z] [INFO] Processing cast/crew for: Perfume: The Story of a Murderer (tmdb_id: 1427)
+[2025-12-12T01:33:00.870Z] [SUCCESS] ✓ Processed 62 cast, 15 crew for: Perfume: The Story of a Murderer
+[2025-12-12T01:33:00.870Z] [INFO] Processing cast/crew for: The Lovely Bones (tmdb_id: 7980)
+[2025-12-12T01:33:01.076Z] [SUCCESS] ✓ Processed 57 cast, 17 crew for: The Lovely Bones
+[2025-12-12T01:33:01.076Z] [INFO] Processing cast/crew for: Equilibrium (tmdb_id: 7299)
+[2025-12-12T01:33:01.286Z] [SUCCESS] ✓ Processed 21 cast, 8 crew for: Equilibrium
+[2025-12-12T01:33:01.286Z] [INFO] Processing cast/crew for: The Invisible Guest (tmdb_id: 411088)
+[2025-12-12T01:33:01.531Z] [SUCCESS] ✓ Processed 27 cast, 12 crew for: The Invisible Guest
+[2025-12-12T01:33:01.531Z] [INFO] Processing cast/crew for: The Royal Tenenbaums (tmdb_id: 9428)
+[2025-12-12T01:33:01.739Z] [SUCCESS] ✓ Processed 63 cast, 10 crew for: The Royal Tenenbaums
+[2025-12-12T01:33:01.739Z] [INFO] Processing cast/crew for: American Made (tmdb_id: 337170)
+[2025-12-12T01:33:01.967Z] [SUCCESS] ✓ Processed 64 cast, 23 crew for: American Made
+[2025-12-12T01:33:01.967Z] [INFO] Processing cast/crew for: Spirit: Stallion of the Cimarron (tmdb_id: 9023)
+[2025-12-12T01:33:02.199Z] [SUCCESS] ✓ Processed 15 cast, 8 crew for: Spirit: Stallion of the Cimarron
+[2025-12-12T01:33:02.199Z] [INFO] Processing cast/crew for: The Northman (tmdb_id: 639933)
+[2025-12-12T01:33:02.436Z] [SUCCESS] ✓ Processed 54 cast, 16 crew for: The Northman
+[2025-12-12T01:33:02.436Z] [INFO] Processing cast/crew for: The Post (tmdb_id: 446354)
+[2025-12-12T01:33:02.697Z] [SUCCESS] ✓ Processed 114 cast, 13 crew for: The Post
+[2025-12-12T01:33:02.697Z] [INFO] Processing cast/crew for: Contact (tmdb_id: 686)
+[2025-12-12T01:33:02.980Z] [SUCCESS] ✓ Processed 126 cast, 11 crew for: Contact
+[2025-12-12T01:33:02.980Z] [INFO] Processing cast/crew for: A Christmas Carol (tmdb_id: 17979)
+[2025-12-12T01:33:03.213Z] [SUCCESS] ✓ Processed 30 cast, 7 crew for: A Christmas Carol
+[2025-12-12T01:33:03.213Z] [INFO] Processing cast/crew for: The Flash (tmdb_id: 298618)
+[2025-12-12T01:33:03.454Z] [SUCCESS] ✓ Processed 59 cast, 10 crew for: The Flash
+[2025-12-12T01:33:03.454Z] [INFO] Processing cast/crew for: Upgrade (tmdb_id: 500664)
+[2025-12-12T01:33:03.698Z] [SUCCESS] ✓ Processed 41 cast, 13 crew for: Upgrade
+[2025-12-12T01:33:03.698Z] [INFO] Processing cast/crew for: Blue Is the Warmest Color (tmdb_id: 152584)
+[2025-12-12T01:33:03.949Z] [SUCCESS] ✓ Processed 65 cast, 7 crew for: Blue Is the Warmest Color
+[2025-12-12T01:33:03.949Z] [INFO] Processing cast/crew for: The Fly (tmdb_id: 9426)
+[2025-12-12T01:33:04.169Z] [SUCCESS] ✓ Processed 12 cast, 7 crew for: The Fly
+[2025-12-12T01:33:04.169Z] [INFO] Processing cast/crew for: Mad Max (tmdb_id: 9659)
+[2025-12-12T01:33:04.379Z] [SUCCESS] ✓ Processed 57 cast, 8 crew for: Mad Max
+[2025-12-12T01:33:04.379Z] [INFO] Processing cast/crew for: The Adjustment Bureau (tmdb_id: 38050)
+[2025-12-12T01:33:04.600Z] [SUCCESS] ✓ Processed 65 cast, 11 crew for: The Adjustment Bureau
+[2025-12-12T01:33:04.600Z] [INFO] Processing cast/crew for: Deepwater Horizon (tmdb_id: 296524)
+[2025-12-12T01:33:04.812Z] [SUCCESS] ✓ Processed 33 cast, 13 crew for: Deepwater Horizon
+[2025-12-12T01:33:04.812Z] [INFO] Processing cast/crew for: Mission: Impossible - Dead Reckoning Part One (tmdb_id: 575264)
+[2025-12-12T01:33:05.049Z] [SUCCESS] ✓ Processed 79 cast, 12 crew for: Mission: Impossible - Dead Reckoning Part One
+[2025-12-12T01:33:05.049Z] [INFO] Processing cast/crew for: Unforgiven (tmdb_id: 33)
+[2025-12-12T01:33:05.267Z] [SUCCESS] ✓ Processed 42 cast, 6 crew for: Unforgiven
+[2025-12-12T01:33:05.268Z] [INFO] Processing cast/crew for: Zero Dark Thirty (tmdb_id: 97630)
+[2025-12-12T01:33:05.484Z] [SUCCESS] ✓ Processed 35 cast, 10 crew for: Zero Dark Thirty
+[2025-12-12T01:33:05.484Z] [INFO] Processing cast/crew for: Hush (tmdb_id: 376570)
+[2025-12-12T01:33:05.729Z] [SUCCESS] ✓ Processed 5 cast, 12 crew for: Hush
+[2025-12-12T01:33:05.729Z] [INFO] Processing cast/crew for: Life of Brian (tmdb_id: 583)
+[2025-12-12T01:33:05.947Z] [SUCCESS] ✓ Processed 22 cast, 13 crew for: Life of Brian
+[2025-12-12T01:33:05.947Z] [INFO] Processing cast/crew for: Moulin Rouge! (tmdb_id: 824)
+[2025-12-12T01:33:06.194Z] [SUCCESS] ✓ Processed 127 cast, 8 crew for: Moulin Rouge!
+[2025-12-12T01:33:06.194Z] [INFO] Processing cast/crew for: Marley & Me (tmdb_id: 14306)
+[2025-12-12T01:33:06.453Z] [SUCCESS] ✓ Processed 38 cast, 9 crew for: Marley & Me
+[2025-12-12T01:33:06.454Z] [INFO] Processing cast/crew for: The Adam Project (tmdb_id: 696806)
+[2025-12-12T01:33:06.692Z] [SUCCESS] ✓ Processed 15 cast, 20 crew for: The Adam Project
+[2025-12-12T01:33:06.692Z] [INFO] Processing cast/crew for: [REC] (tmdb_id: 8329)
+[2025-12-12T01:33:06.897Z] [SUCCESS] ✓ Processed 23 cast, 9 crew for: [REC]
+[2025-12-12T01:33:06.897Z] [INFO] Processing cast/crew for: Doctor Sleep (tmdb_id: 501170)
+[2025-12-12T01:33:07.120Z] [SUCCESS] ✓ Processed 57 cast, 12 crew for: Doctor Sleep
+[2025-12-12T01:33:07.120Z] [INFO] Processing cast/crew for: 1408 (tmdb_id: 3021)
+[2025-12-12T01:33:07.346Z] [SUCCESS] ✓ Processed 32 cast, 11 crew for: 1408
+[2025-12-12T01:33:07.346Z] [INFO] Processing cast/crew for: Hell or High Water (tmdb_id: 338766)
+[2025-12-12T01:33:07.585Z] [SUCCESS] ✓ Processed 45 cast, 14 crew for: Hell or High Water
+[2025-12-12T01:33:07.585Z] [INFO] Processing cast/crew for: Donnie Brasco (tmdb_id: 9366)
+[2025-12-12T01:33:07.803Z] [SUCCESS] ✓ Processed 67 cast, 10 crew for: Donnie Brasco
+[2025-12-12T01:33:07.803Z] [INFO] Processing cast/crew for: Once Upon a Time in the West (tmdb_id: 335)
+[2025-12-12T01:33:08.019Z] [SUCCESS] ✓ Processed 40 cast, 10 crew for: Once Upon a Time in the West
+[2025-12-12T01:33:08.019Z] [INFO] Processing cast/crew for: xXx (tmdb_id: 7451)
+[2025-12-12T01:33:08.253Z] [SUCCESS] ✓ Processed 66 cast, 9 crew for: xXx
+[2025-12-12T01:33:08.254Z] [INFO] Processing cast/crew for: Kingdom of Heaven (tmdb_id: 1495)
+[2025-12-12T01:33:08.479Z] [SUCCESS] ✓ Processed 36 cast, 8 crew for: Kingdom of Heaven
+[2025-12-12T01:33:08.479Z] [INFO] Processing cast/crew for: Over the Hedge (tmdb_id: 7518)
+[2025-12-12T01:33:08.559Z] [ERROR] ✗ Failed to process cast/crew for Over the Hedge: | {"error":"Failed to upsert people: ON CONFLICT DO UPDATE command cannot affect row a second time"}
+[2025-12-12T01:33:08.685Z] [INFO] Processing cast/crew for: Ghostbusters II (tmdb_id: 2978)
+[2025-12-12T01:33:08.933Z] [SUCCESS] ✓ Processed 68 cast, 9 crew for: Ghostbusters II
+[2025-12-12T01:33:08.933Z] [INFO] Processing cast/crew for: Allied (tmdb_id: 369885)
+[2025-12-12T01:33:09.163Z] [SUCCESS] ✓ Processed 66 cast, 12 crew for: Allied
+[2025-12-12T01:33:09.163Z] [INFO] Processing cast/crew for: Matilda (tmdb_id: 10830)
+[2025-12-12T01:33:09.409Z] [SUCCESS] ✓ Processed 67 cast, 11 crew for: Matilda
+[2025-12-12T01:33:09.409Z] [INFO] Progress: 850/1000 (833 success, 17 failed)
+[2025-12-12T01:33:09.409Z] [INFO] Processing cast/crew for: Sing 2 (tmdb_id: 438695)
+[2025-12-12T01:33:09.638Z] [SUCCESS] ✓ Processed 62 cast, 6 crew for: Sing 2
+[2025-12-12T01:33:09.638Z] [INFO] Processing cast/crew for: It's a Wonderful Life (tmdb_id: 1585)
+[2025-12-12T01:33:09.893Z] [SUCCESS] ✓ Processed 117 cast, 8 crew for: It's a Wonderful Life
+[2025-12-12T01:33:09.893Z] [INFO] Processing cast/crew for: Cinema Paradiso (tmdb_id: 11216)
+[2025-12-12T01:33:10.104Z] [SUCCESS] ✓ Processed 30 cast, 8 crew for: Cinema Paradiso
+[2025-12-12T01:33:10.104Z] [INFO] Processing cast/crew for: Rocky IV (tmdb_id: 1374)
+[2025-12-12T01:33:10.336Z] [SUCCESS] ✓ Processed 50 cast, 8 crew for: Rocky IV
+[2025-12-12T01:33:10.336Z] [INFO] Processing cast/crew for: Clueless (tmdb_id: 9603)
+[2025-12-12T01:33:10.601Z] [SUCCESS] ✓ Processed 34 cast, 6 crew for: Clueless
+[2025-12-12T01:33:10.601Z] [INFO] Processing cast/crew for: Pitch Black (tmdb_id: 2787)
+[2025-12-12T01:33:10.818Z] [SUCCESS] ✓ Processed 15 cast, 12 crew for: Pitch Black
+[2025-12-12T01:33:10.818Z] [INFO] Processing cast/crew for: Five Nights at Freddy's (tmdb_id: 507089)
+[2025-12-12T01:33:11.062Z] [SUCCESS] ✓ Processed 32 cast, 14 crew for: Five Nights at Freddy's
+[2025-12-12T01:33:11.062Z] [INFO] Processing cast/crew for: Rocky II (tmdb_id: 1367)
+[2025-12-12T01:33:11.279Z] [SUCCESS] ✓ Processed 58 cast, 6 crew for: Rocky II
+[2025-12-12T01:33:11.279Z] [INFO] Processing cast/crew for: The Old Guard (tmdb_id: 547016)
+[2025-12-12T01:33:11.501Z] [SUCCESS] ✓ Processed 45 cast, 15 crew for: The Old Guard
+[2025-12-12T01:33:11.502Z] [INFO] Processing cast/crew for: Being John Malkovich (tmdb_id: 492)
+[2025-12-12T01:33:11.709Z] [SUCCESS] ✓ Processed 63 cast, 10 crew for: Being John Malkovich
+[2025-12-12T01:33:11.709Z] [INFO] Processing cast/crew for: Nope (tmdb_id: 762504)
+[2025-12-12T01:33:11.926Z] [SUCCESS] ✓ Processed 30 cast, 8 crew for: Nope
+[2025-12-12T01:33:11.926Z] [INFO] Processing cast/crew for: Hotel Transylvania 3: Summer Vacation (tmdb_id: 400155)
+[2025-12-12T01:33:12.173Z] [SUCCESS] ✓ Processed 47 cast, 5 crew for: Hotel Transylvania 3: Summer Vacation
+[2025-12-12T01:33:12.173Z] [INFO] Processing cast/crew for: Ponyo (tmdb_id: 12429)
+[2025-12-12T01:33:12.381Z] [SUCCESS] ✓ Processed 26 cast, 6 crew for: Ponyo
+[2025-12-12T01:33:12.381Z] [INFO] Processing cast/crew for: Coming to America (tmdb_id: 9602)
+[2025-12-12T01:33:12.642Z] [SUCCESS] ✓ Processed 82 cast, 12 crew for: Coming to America
+[2025-12-12T01:33:12.642Z] [INFO] Processing cast/crew for: The Lion King II: Simba's Pride (tmdb_id: 9732)
+[2025-12-12T01:33:12.908Z] [SUCCESS] ✓ Processed 18 cast, 5 crew for: The Lion King II: Simba's Pride
+[2025-12-12T01:33:12.908Z] [INFO] Processing cast/crew for: The Fugitive (tmdb_id: 5503)
+[2025-12-12T01:33:13.163Z] [SUCCESS] ✓ Processed 102 cast, 9 crew for: The Fugitive
+[2025-12-12T01:33:13.163Z] [INFO] Processing cast/crew for: Lone Survivor (tmdb_id: 193756)
+[2025-12-12T01:33:13.401Z] [SUCCESS] ✓ Processed 48 cast, 32 crew for: Lone Survivor
+[2025-12-12T01:33:13.401Z] [INFO] Processing cast/crew for: Raging Bull (tmdb_id: 1578)
+[2025-12-12T01:33:13.756Z] [SUCCESS] ✓ Processed 112 cast, 6 crew for: Raging Bull
+[2025-12-12T01:33:13.756Z] [INFO] Processing cast/crew for: M3GAN (tmdb_id: 536554)
+[2025-12-12T01:33:13.975Z] [SUCCESS] ✓ Processed 26 cast, 15 crew for: M3GAN
+[2025-12-12T01:33:13.975Z] [INFO] Processing cast/crew for: Akira (tmdb_id: 149)
+[2025-12-12T01:33:14.183Z] [SUCCESS] ✓ Processed 21 cast, 8 crew for: Akira
+[2025-12-12T01:33:14.184Z] [INFO] Processing cast/crew for: The Fighter (tmdb_id: 45317)
+[2025-12-12T01:33:14.445Z] [SUCCESS] ✓ Processed 89 cast, 22 crew for: The Fighter
+[2025-12-12T01:33:14.445Z] [INFO] Processing cast/crew for: The Autopsy of Jane Doe (tmdb_id: 397243)
+[2025-12-12T01:33:14.657Z] [SUCCESS] ✓ Processed 9 cast, 13 crew for: The Autopsy of Jane Doe
+[2025-12-12T01:33:14.657Z] [INFO] Processing cast/crew for: Amadeus (tmdb_id: 279)
+[2025-12-12T01:33:14.739Z] [ERROR] ✗ Failed to process cast/crew for Amadeus: | {"error":"Failed to upsert people: ON CONFLICT DO UPDATE command cannot affect row a second time"}
+[2025-12-12T01:33:14.885Z] [INFO] Processing cast/crew for: The Giver (tmdb_id: 227156)
+[2025-12-12T01:33:15.105Z] [SUCCESS] ✓ Processed 23 cast, 14 crew for: The Giver
+[2025-12-12T01:33:15.106Z] [INFO] Processing cast/crew for: Red Dragon (tmdb_id: 9533)
+[2025-12-12T01:33:15.323Z] [SUCCESS] ✓ Processed 62 cast, 7 crew for: Red Dragon
+[2025-12-12T01:33:15.323Z] [INFO] Processing cast/crew for: The Hunt (tmdb_id: 103663)
+[2025-12-12T01:33:15.543Z] [SUCCESS] ✓ Processed 33 cast, 8 crew for: The Hunt
+[2025-12-12T01:33:15.543Z] [INFO] Processing cast/crew for: A Fistful of Dollars (tmdb_id: 391)
+[2025-12-12T01:33:15.753Z] [SUCCESS] ✓ Processed 44 cast, 12 crew for: A Fistful of Dollars
+[2025-12-12T01:33:15.753Z] [INFO] Processing cast/crew for: The Karate Kid (tmdb_id: 1885)
+[2025-12-12T01:33:15.967Z] [SUCCESS] ✓ Processed 49 cast, 6 crew for: The Karate Kid
+[2025-12-12T01:33:15.968Z] [INFO] Processing cast/crew for: Robin Hood (tmdb_id: 11886)
+[2025-12-12T01:33:16.178Z] [SUCCESS] ✓ Processed 19 cast, 5 crew for: Robin Hood
+[2025-12-12T01:33:16.178Z] [INFO] Processing cast/crew for: Atonement (tmdb_id: 4347)
+[2025-12-12T01:33:16.247Z] [ERROR] ✗ Failed to process cast/crew for Atonement: | {"error":"Failed to upsert people: ON CONFLICT DO UPDATE command cannot affect row a second time"}
+[2025-12-12T01:33:16.343Z] [INFO] Processing cast/crew for: Perfect Strangers (tmdb_id: 381341)
+[2025-12-12T01:33:16.543Z] [SUCCESS] ✓ Processed 11 cast, 10 crew for: Perfect Strangers
+[2025-12-12T01:33:16.543Z] [INFO] Processing cast/crew for: Dilwale Dulhania Le Jayenge (tmdb_id: 19404)
+[2025-12-12T01:33:16.891Z] [SUCCESS] ✓ Processed 26 cast, 8 crew for: Dilwale Dulhania Le Jayenge
+[2025-12-12T01:33:16.891Z] [INFO] Processing cast/crew for: Furiosa: A Mad Max Saga (tmdb_id: 786892)
+[2025-12-12T01:33:17.173Z] [SUCCESS] ✓ Processed 82 cast, 11 crew for: Furiosa: A Mad Max Saga
+[2025-12-12T01:33:17.173Z] [INFO] Processing cast/crew for: Dances with Wolves (tmdb_id: 581)
+[2025-12-12T01:33:17.396Z] [SUCCESS] ✓ Processed 52 cast, 7 crew for: Dances with Wolves
+[2025-12-12T01:33:17.396Z] [INFO] Processing cast/crew for: Snowden (tmdb_id: 302401)
+[2025-12-12T01:33:17.601Z] [SUCCESS] ✓ Processed 41 cast, 21 crew for: Snowden
+[2025-12-12T01:33:17.601Z] [INFO] Processing cast/crew for: Miracle in Cell No. 7 (tmdb_id: 637920)
+[2025-12-12T01:33:17.841Z] [SUCCESS] ✓ Processed 26 cast, 8 crew for: Miracle in Cell No. 7
+[2025-12-12T01:33:17.841Z] [INFO] Processing cast/crew for: Castle in the Sky (tmdb_id: 1005)
+[2025-12-12T01:33:17.856Z] [ERROR] ✗ Failed to process cast/crew for Castle in the Sky: | {"error":"TMDB_NOT_FOUND"}
+[2025-12-12T01:33:17.947Z] [INFO] Processing cast/crew for: Castle in the Sky (tmdb_id: 10515)
+[2025-12-12T01:33:18.013Z] [ERROR] ✗ Failed to process cast/crew for Castle in the Sky: | {"error":"Failed to upsert people: ON CONFLICT DO UPDATE command cannot affect row a second time"}
+[2025-12-12T01:33:18.122Z] [INFO] Processing cast/crew for: Con Air (tmdb_id: 1701)
+[2025-12-12T01:33:18.357Z] [SUCCESS] ✓ Processed 85 cast, 11 crew for: Con Air
+[2025-12-12T01:33:18.358Z] [INFO] Processing cast/crew for: Before Sunrise (tmdb_id: 76)
+[2025-12-12T01:33:18.569Z] [SUCCESS] ✓ Processed 30 cast, 7 crew for: Before Sunrise
+[2025-12-12T01:33:18.569Z] [INFO] Processing cast/crew for: The Skin I Live In (tmdb_id: 63311)
+[2025-12-12T01:33:18.776Z] [SUCCESS] ✓ Processed 20 cast, 6 crew for: The Skin I Live In
+[2025-12-12T01:33:18.776Z] [INFO] Processing cast/crew for: Blow (tmdb_id: 4133)
+[2025-12-12T01:33:18.996Z] [SUCCESS] ✓ Processed 80 cast, 12 crew for: Blow
+[2025-12-12T01:33:18.997Z] [INFO] Processing cast/crew for: Philadelphia (tmdb_id: 9800)
+[2025-12-12T01:33:19.229Z] [SUCCESS] ✓ Processed 86 cast, 9 crew for: Philadelphia
+[2025-12-12T01:33:19.229Z] [INFO] Processing cast/crew for: A Simple Favor (tmdb_id: 484247)
+[2025-12-12T01:33:19.457Z] [SUCCESS] ✓ Processed 54 cast, 7 crew for: A Simple Favor
+[2025-12-12T01:33:19.457Z] [INFO] Processing cast/crew for: Vanilla Sky (tmdb_id: 1903)
+[2025-12-12T01:33:19.702Z] [SUCCESS] ✓ Processed 91 cast, 12 crew for: Vanilla Sky
+[2025-12-12T01:33:19.702Z] [INFO] Processing cast/crew for: Dumbo (tmdb_id: 329996)
+[2025-12-12T01:33:19.774Z] [ERROR] ✗ Failed to process cast/crew for Dumbo: | {"error":"Failed to upsert people: ON CONFLICT DO UPDATE command cannot affect row a second time"}
+[2025-12-12T01:33:19.876Z] [INFO] Processing cast/crew for: Treasure Planet (tmdb_id: 9016)
+[2025-12-12T01:33:20.065Z] [SUCCESS] ✓ Processed 31 cast, 13 crew for: Treasure Planet
+[2025-12-12T01:33:20.065Z] [INFO] Processing cast/crew for: Close Encounters of the Third Kind (tmdb_id: 840)
+[2025-12-12T01:33:20.316Z] [SUCCESS] ✓ Processed 58 cast, 7 crew for: Close Encounters of the Third Kind
+[2025-12-12T01:33:20.316Z] [INFO] Processing cast/crew for: The Book Thief (tmdb_id: 203833)
+[2025-12-12T01:33:20.520Z] [SUCCESS] ✓ Processed 35 cast, 7 crew for: The Book Thief
+[2025-12-12T01:33:20.520Z] [INFO] Processing cast/crew for: Okja (tmdb_id: 387426)
+[2025-12-12T01:33:20.790Z] [SUCCESS] ✓ Processed 105 cast, 22 crew for: Okja
+[2025-12-12T01:33:20.790Z] [INFO] Progress: 900/1000 (878 success, 22 failed)
+[2025-12-12T01:33:20.790Z] [INFO] Processing cast/crew for: One Day (tmdb_id: 51828)
+[2025-12-12T01:33:21.007Z] [SUCCESS] ✓ Processed 31 cast, 6 crew for: One Day
+[2025-12-12T01:33:21.007Z] [INFO] Processing cast/crew for: Predators (tmdb_id: 34851)
+[2025-12-12T01:33:21.217Z] [SUCCESS] ✓ Processed 13 cast, 9 crew for: Predators
+[2025-12-12T01:33:21.217Z] [INFO] Processing cast/crew for: Insidious: Chapter 2 (tmdb_id: 91586)
+[2025-12-12T01:33:21.436Z] [SUCCESS] ✓ Processed 31 cast, 14 crew for: Insidious: Chapter 2
+[2025-12-12T01:33:21.436Z] [INFO] Processing cast/crew for: The Blues Brothers (tmdb_id: 525)
+[2025-12-12T01:33:21.705Z] [SUCCESS] ✓ Processed 69 cast, 7 crew for: The Blues Brothers
+[2025-12-12T01:33:21.705Z] [INFO] Processing cast/crew for: Beverly Hills Cop (tmdb_id: 90)
+[2025-12-12T01:33:21.935Z] [SUCCESS] ✓ Processed 58 cast, 11 crew for: Beverly Hills Cop
+[2025-12-12T01:33:21.935Z] [INFO] Processing cast/crew for: O Brother, Where Art Thou? (tmdb_id: 134)
+[2025-12-12T01:33:22.170Z] [SUCCESS] ✓ Processed 46 cast, 8 crew for: O Brother, Where Art Thou?
+[2025-12-12T01:33:22.170Z] [INFO] Processing cast/crew for: Godzilla x Kong: The New Empire (tmdb_id: 823464)
+[2025-12-12T01:33:22.406Z] [SUCCESS] ✓ Processed 24 cast, 23 crew for: Godzilla x Kong: The New Empire
+[2025-12-12T01:33:22.406Z] [INFO] Processing cast/crew for: Klaus (tmdb_id: 508965)
+[2025-12-12T01:33:22.645Z] [SUCCESS] ✓ Processed 30 cast, 15 crew for: Klaus
+[2025-12-12T01:33:22.646Z] [INFO] Processing cast/crew for: Rush Hour 2 (tmdb_id: 5175)
+[2025-12-12T01:33:22.852Z] [SUCCESS] ✓ Processed 38 cast, 11 crew for: Rush Hour 2
+[2025-12-12T01:33:22.852Z] [INFO] Processing cast/crew for: All Quiet on the Western Front (tmdb_id: 49046)
+[2025-12-12T01:33:23.099Z] [SUCCESS] ✓ Processed 55 cast, 12 crew for: All Quiet on the Western Front
+[2025-12-12T01:33:23.099Z] [INFO] Processing cast/crew for: When Harry Met Sally... (tmdb_id: 639)
+[2025-12-12T01:33:23.369Z] [SUCCESS] ✓ Processed 43 cast, 10 crew for: When Harry Met Sally...
+[2025-12-12T01:33:23.369Z] [INFO] Processing cast/crew for: The Parent Trap (tmdb_id: 9820)
+[2025-12-12T01:33:23.607Z] [SUCCESS] ✓ Processed 58 cast, 7 crew for: The Parent Trap
+[2025-12-12T01:33:23.607Z] [INFO] Processing cast/crew for: Kiki's Delivery Service (tmdb_id: 16859)
+[2025-12-12T01:33:23.846Z] [SUCCESS] ✓ Processed 27 cast, 10 crew for: Kiki's Delivery Service
+[2025-12-12T01:33:23.846Z] [INFO] Processing cast/crew for: True Lies (tmdb_id: 36955)
+[2025-12-12T01:33:24.071Z] [SUCCESS] ✓ Processed 50 cast, 12 crew for: True Lies
+[2025-12-12T01:33:24.071Z] [INFO] Processing cast/crew for: The Whale (tmdb_id: 785084)
+[2025-12-12T01:33:24.298Z] [SUCCESS] ✓ Processed 11 cast, 9 crew for: The Whale
+[2025-12-12T01:33:24.298Z] [INFO] Processing cast/crew for: Breakfast at Tiffany's (tmdb_id: 164)
+[2025-12-12T01:33:24.537Z] [SUCCESS] ✓ Processed 83 cast, 6 crew for: Breakfast at Tiffany's
+[2025-12-12T01:33:24.538Z] [INFO] Processing cast/crew for: Changeling (tmdb_id: 3580)
+[2025-12-12T01:33:24.806Z] [SUCCESS] ✓ Processed 95 cast, 13 crew for: Changeling
+[2025-12-12T01:33:24.806Z] [INFO] Processing cast/crew for: Rocky III (tmdb_id: 1371)
+[2025-12-12T01:33:25.060Z] [SUCCESS] ✓ Processed 59 cast, 7 crew for: Rocky III
+[2025-12-12T01:33:25.061Z] [INFO] Processing cast/crew for: The Crow (tmdb_id: 9495)
+[2025-12-12T01:33:25.286Z] [SUCCESS] ✓ Processed 29 cast, 10 crew for: The Crow
+[2025-12-12T01:33:25.286Z] [INFO] Processing cast/crew for: La Haine (tmdb_id: 406)
+[2025-12-12T01:33:25.522Z] [SUCCESS] ✓ Processed 53 cast, 4 crew for: La Haine
+[2025-12-12T01:33:25.522Z] [INFO] Processing cast/crew for: Legally Blonde (tmdb_id: 8835)
+[2025-12-12T01:33:25.772Z] [SUCCESS] ✓ Processed 68 cast, 7 crew for: Legally Blonde
+[2025-12-12T01:33:25.772Z] [INFO] Processing cast/crew for: Puss in Boots (tmdb_id: 417859)
+[2025-12-12T01:33:26.004Z] [SUCCESS] ✓ Processed 19 cast, 12 crew for: Puss in Boots
+[2025-12-12T01:33:26.004Z] [INFO] Processing cast/crew for: Penguins of Madagascar (tmdb_id: 270946)
+[2025-12-12T01:33:26.240Z] [SUCCESS] ✓ Processed 35 cast, 15 crew for: Penguins of Madagascar
+[2025-12-12T01:33:26.240Z] [INFO] Processing cast/crew for: North by Northwest (tmdb_id: 213)
+[2025-12-12T01:33:26.489Z] [SUCCESS] ✓ Processed 96 cast, 5 crew for: North by Northwest
+[2025-12-12T01:33:26.489Z] [INFO] Processing cast/crew for: Fall (tmdb_id: 985939)
+[2025-12-12T01:33:26.711Z] [SUCCESS] ✓ Processed 12 cast, 14 crew for: Fall
+[2025-12-12T01:33:26.711Z] [INFO] Processing cast/crew for: White Chicks (tmdb_id: 12153)
+[2025-12-12T01:33:27.124Z] [SUCCESS] ✓ Processed 51 cast, 16 crew for: White Chicks
+[2025-12-12T01:33:27.124Z] [INFO] Processing cast/crew for: The Birds (tmdb_id: 571)
+[2025-12-12T01:33:27.358Z] [SUCCESS] ✓ Processed 28 cast, 4 crew for: The Birds
+[2025-12-12T01:33:27.358Z] [INFO] Processing cast/crew for: Demon Slayer -Kimetsu no Yaiba- The Movie: Mugen Train (tmdb_id: 635302)
+[2025-12-12T01:33:27.624Z] [SUCCESS] ✓ Processed 34 cast, 7 crew for: Demon Slayer -Kimetsu no Yaiba- The Movie: Mugen Train
+[2025-12-12T01:33:27.625Z] [INFO] Processing cast/crew for: The Chronicles of Riddick (tmdb_id: 2789)
+[2025-12-12T01:33:27.852Z] [SUCCESS] ✓ Processed 28 cast, 9 crew for: The Chronicles of Riddick
+[2025-12-12T01:33:27.852Z] [INFO] Processing cast/crew for: Elf (tmdb_id: 10719)
+[2025-12-12T01:33:28.096Z] [SUCCESS] ✓ Processed 66 cast, 13 crew for: Elf
+[2025-12-12T01:33:28.096Z] [INFO] Processing cast/crew for: Memories of Murder (tmdb_id: 11423)
+[2025-12-12T01:33:28.342Z] [SUCCESS] ✓ Processed 41 cast, 9 crew for: Memories of Murder
+[2025-12-12T01:33:28.342Z] [INFO] Processing cast/crew for: The Judge (tmdb_id: 205587)
+[2025-12-12T01:33:28.623Z] [SUCCESS] ✓ Processed 55 cast, 14 crew for: The Judge
+[2025-12-12T01:33:28.623Z] [INFO] Processing cast/crew for: The Evil Dead (tmdb_id: 764)
+[2025-12-12T01:33:28.838Z] [SUCCESS] ✓ Processed 27 cast, 8 crew for: The Evil Dead
+[2025-12-12T01:33:28.838Z] [INFO] Processing cast/crew for: Lucky Number Slevin (tmdb_id: 186)
+[2025-12-12T01:33:29.066Z] [SUCCESS] ✓ Processed 28 cast, 18 crew for: Lucky Number Slevin
+[2025-12-12T01:33:29.066Z] [INFO] Processing cast/crew for: Love and Monsters (tmdb_id: 590223)
+[2025-12-12T01:33:29.304Z] [SUCCESS] ✓ Processed 31 cast, 10 crew for: Love and Monsters
+[2025-12-12T01:33:29.304Z] [INFO] Processing cast/crew for: How to Lose a Guy in 10 Days (tmdb_id: 9919)
+[2025-12-12T01:33:29.547Z] [SUCCESS] ✓ Processed 33 cast, 10 crew for: How to Lose a Guy in 10 Days
+[2025-12-12T01:33:29.548Z] [INFO] Processing cast/crew for: Dawn of the Dead (tmdb_id: 924)
+[2025-12-12T01:33:29.804Z] [SUCCESS] ✓ Processed 47 cast, 10 crew for: Dawn of the Dead
+[2025-12-12T01:33:29.804Z] [INFO] Processing cast/crew for: The Killing of a Sacred Deer (tmdb_id: 399057)
+[2025-12-12T01:33:30.026Z] [SUCCESS] ✓ Processed 31 cast, 16 crew for: The Killing of a Sacred Deer
+[2025-12-12T01:33:30.026Z] [INFO] Processing cast/crew for: Riddick (tmdb_id: 87421)
+[2025-12-12T01:33:30.239Z] [SUCCESS] ✓ Processed 20 cast, 10 crew for: Riddick
+[2025-12-12T01:33:30.239Z] [INFO] Processing cast/crew for: The Grinch (tmdb_id: 360920)
+[2025-12-12T01:33:30.459Z] [SUCCESS] ✓ Processed 41 cast, 10 crew for: The Grinch
+[2025-12-12T01:33:30.459Z] [INFO] Processing cast/crew for: Stardust (tmdb_id: 2270)
+[2025-12-12T01:33:30.683Z] [SUCCESS] ✓ Processed 45 cast, 14 crew for: Stardust
+[2025-12-12T01:33:30.684Z] [INFO] Processing cast/crew for: A Silent Voice: The Movie (tmdb_id: 378064)
+[2025-12-12T01:33:30.902Z] [SUCCESS] ✓ Processed 21 cast, 15 crew for: A Silent Voice: The Movie
+[2025-12-12T01:33:30.902Z] [INFO] Processing cast/crew for: The Ballad of Buster Scruggs (tmdb_id: 537996)
+[2025-12-12T01:33:31.166Z] [SUCCESS] ✓ Processed 55 cast, 10 crew for: The Ballad of Buster Scruggs
+[2025-12-12T01:33:31.166Z] [INFO] Processing cast/crew for: Unbroken (tmdb_id: 227306)
+[2025-12-12T01:33:31.410Z] [SUCCESS] ✓ Processed 81 cast, 13 crew for: Unbroken
+[2025-12-12T01:33:31.410Z] [INFO] Processing cast/crew for: For a Few Dollars More (tmdb_id: 938)
+[2025-12-12T01:33:31.722Z] [SUCCESS] ✓ Processed 50 cast, 10 crew for: For a Few Dollars More
+[2025-12-12T01:33:31.722Z] [INFO] Processing cast/crew for: If I Stay (tmdb_id: 249164)
+[2025-12-12T01:33:31.925Z] [SUCCESS] ✓ Processed 44 cast, 8 crew for: If I Stay
+[2025-12-12T01:33:31.925Z] [INFO] Processing cast/crew for: Invictus (tmdb_id: 22954)
+[2025-12-12T01:33:32.214Z] [SUCCESS] ✓ Processed 184 cast, 13 crew for: Invictus
+[2025-12-12T01:33:32.214Z] [INFO] Processing cast/crew for: Dungeons & Dragons: Honor Among Thieves (tmdb_id: 493529)
+[2025-12-12T01:33:32.506Z] [SUCCESS] ✓ Processed 72 cast, 18 crew for: Dungeons & Dragons: Honor Among Thieves
+[2025-12-12T01:33:32.506Z] [INFO] Processing cast/crew for: In the Heart of the Sea (tmdb_id: 205775)
+[2025-12-12T01:33:32.747Z] [SUCCESS] ✓ Processed 28 cast, 18 crew for: In the Heart of the Sea
+[2025-12-12T01:33:32.747Z] [INFO] Processing cast/crew for: Match Point (tmdb_id: 116)
+[2025-12-12T01:33:32.968Z] [SUCCESS] ✓ Processed 33 cast, 7 crew for: Match Point
+[2025-12-12T01:33:32.968Z] [INFO] Progress: 950/1000 (928 success, 22 failed)
+[2025-12-12T01:33:32.968Z] [INFO] Processing cast/crew for: Underworld: Evolution (tmdb_id: 834)
+[2025-12-12T01:33:33.193Z] [SUCCESS] ✓ Processed 27 cast, 16 crew for: Underworld: Evolution
+[2025-12-12T01:33:33.194Z] [INFO] Processing cast/crew for: Gone with the Wind (tmdb_id: 770)
+[2025-12-12T01:33:33.442Z] [SUCCESS] ✓ Processed 136 cast, 5 crew for: Gone with the Wind
+[2025-12-12T01:33:33.442Z] [INFO] Processing cast/crew for: Dear John (tmdb_id: 22971)
+[2025-12-12T01:33:33.698Z] [SUCCESS] ✓ Processed 39 cast, 11 crew for: Dear John
+[2025-12-12T01:33:33.699Z] [INFO] Processing cast/crew for: The NeverEnding Story (tmdb_id: 34584)
+[2025-12-12T01:33:33.919Z] [SUCCESS] ✓ Processed 22 cast, 11 crew for: The NeverEnding Story
+[2025-12-12T01:33:33.919Z] [INFO] Processing cast/crew for: The Naked Gun: From the Files of Police Squad! (tmdb_id: 37136)
+[2025-12-12T01:33:34.159Z] [SUCCESS] ✓ Processed 71 cast, 12 crew for: The Naked Gun: From the Files of Police Squad!
+[2025-12-12T01:33:34.159Z] [INFO] Processing cast/crew for: The Descent (tmdb_id: 9392)
+[2025-12-12T01:33:34.456Z] [SUCCESS] ✓ Processed 18 cast, 6 crew for: The Descent
+[2025-12-12T01:33:34.457Z] [INFO] Processing cast/crew for: Monster House (tmdb_id: 9297)
+[2025-12-12T01:33:34.719Z] [SUCCESS] ✓ Processed 39 cast, 11 crew for: Monster House
+[2025-12-12T01:33:34.719Z] [INFO] Processing cast/crew for: Basic Instinct (tmdb_id: 402)
+[2025-12-12T01:33:34.950Z] [SUCCESS] ✓ Processed 48 cast, 6 crew for: Basic Instinct
+[2025-12-12T01:33:34.950Z] [INFO] Processing cast/crew for: Rosemary's Baby (tmdb_id: 805)
+[2025-12-12T01:33:35.222Z] [SUCCESS] ✓ Processed 33 cast, 6 crew for: Rosemary's Baby
+[2025-12-12T01:33:35.222Z] [INFO] Processing cast/crew for: A Walk to Remember (tmdb_id: 10229)
+[2025-12-12T01:33:35.459Z] [SUCCESS] ✓ Processed 42 cast, 10 crew for: A Walk to Remember
+[2025-12-12T01:33:35.459Z] [INFO] Processing cast/crew for: The Prince of Egypt (tmdb_id: 9837)
+[2025-12-12T01:33:35.716Z] [SUCCESS] ✓ Processed 33 cast, 8 crew for: The Prince of Egypt
+[2025-12-12T01:33:35.717Z] [INFO] Processing cast/crew for: The Vow (tmdb_id: 72570)
+[2025-12-12T01:33:35.957Z] [SUCCESS] ✓ Processed 18 cast, 15 crew for: The Vow
+[2025-12-12T01:33:35.957Z] [INFO] Processing cast/crew for: The Edge of Seventeen (tmdb_id: 376660)
+[2025-12-12T01:33:36.204Z] [SUCCESS] ✓ Processed 23 cast, 18 crew for: The Edge of Seventeen
+[2025-12-12T01:33:36.204Z] [INFO] Processing cast/crew for: GoldenEye (tmdb_id: 710)
+[2025-12-12T01:33:36.440Z] [SUCCESS] ✓ Processed 26 cast, 12 crew for: GoldenEye
+[2025-12-12T01:33:36.440Z] [INFO] Processing cast/crew for: Rambo: First Blood Part II (tmdb_id: 1369)
+[2025-12-12T01:33:36.645Z] [SUCCESS] ✓ Processed 25 cast, 9 crew for: Rambo: First Blood Part II
+[2025-12-12T01:33:36.645Z] [INFO] Processing cast/crew for: Fracture (tmdb_id: 6145)
+[2025-12-12T01:33:36.874Z] [SUCCESS] ✓ Processed 50 cast, 10 crew for: Fracture
+[2025-12-12T01:33:36.874Z] [INFO] Processing cast/crew for: Identity (tmdb_id: 2832)
+[2025-12-12T01:33:37.124Z] [SUCCESS] ✓ Processed 22 cast, 6 crew for: Identity
+[2025-12-12T01:33:37.124Z] [INFO] Processing cast/crew for: Space Jam: A New Legacy (tmdb_id: 379686)
+[2025-12-12T01:33:37.398Z] [SUCCESS] ✓ Processed 38 cast, 27 crew for: Space Jam: A New Legacy
+[2025-12-12T01:33:37.398Z] [INFO] Processing cast/crew for: The Patriot (tmdb_id: 2024)
+[2025-12-12T01:33:37.648Z] [SUCCESS] ✓ Processed 62 cast, 10 crew for: The Patriot
+[2025-12-12T01:33:37.648Z] [INFO] Processing cast/crew for: What's Eating Gilbert Grape (tmdb_id: 1587)
+[2025-12-12T01:33:37.862Z] [SUCCESS] ✓ Processed 30 cast, 10 crew for: What's Eating Gilbert Grape
+[2025-12-12T01:33:37.862Z] [INFO] Processing cast/crew for: Carrie (tmdb_id: 7340)
+[2025-12-12T01:33:38.078Z] [SUCCESS] ✓ Processed 31 cast, 5 crew for: Carrie
+[2025-12-12T01:33:38.078Z] [INFO] Processing cast/crew for: Home (tmdb_id: 228161)
+[2025-12-12T01:33:38.302Z] [SUCCESS] ✓ Processed 10 cast, 8 crew for: Home
+[2025-12-12T01:33:38.302Z] [INFO] Processing cast/crew for: Wonka (tmdb_id: 787699)
+[2025-12-12T01:33:38.572Z] [SUCCESS] ✓ Processed 51 cast, 16 crew for: Wonka
+[2025-12-12T01:33:38.572Z] [INFO] Processing cast/crew for: The First Purge (tmdb_id: 442249)
+[2025-12-12T01:33:38.809Z] [SUCCESS] ✓ Processed 64 cast, 12 crew for: The First Purge
+[2025-12-12T01:33:38.809Z] [INFO] Processing cast/crew for: Alien: Romulus (tmdb_id: 945961)
+[2025-12-12T01:33:39.086Z] [SUCCESS] ✓ Processed 14 cast, 12 crew for: Alien: Romulus
+[2025-12-12T01:33:39.086Z] [INFO] Processing cast/crew for: Freaky Friday (tmdb_id: 10330)
+[2025-12-12T01:33:39.307Z] [SUCCESS] ✓ Processed 34 cast, 7 crew for: Freaky Friday
+[2025-12-12T01:33:39.307Z] [INFO] Processing cast/crew for: Rambo (tmdb_id: 7555)
+[2025-12-12T01:33:39.543Z] [SUCCESS] ✓ Processed 43 cast, 19 crew for: Rambo
+[2025-12-12T01:33:39.543Z] [INFO] Processing cast/crew for: Seven Psychopaths (tmdb_id: 86838)
+[2025-12-12T01:33:39.762Z] [SUCCESS] ✓ Processed 33 cast, 8 crew for: Seven Psychopaths
+[2025-12-12T01:33:39.763Z] [INFO] Processing cast/crew for: Legend (tmdb_id: 276907)
+[2025-12-12T01:33:39.986Z] [SUCCESS] ✓ Processed 44 cast, 22 crew for: Legend
+[2025-12-12T01:33:39.986Z] [INFO] Processing cast/crew for: Yesterday (tmdb_id: 515195)
+[2025-12-12T01:33:40.222Z] [SUCCESS] ✓ Processed 63 cast, 14 crew for: Yesterday
+[2025-12-12T01:33:40.222Z] [INFO] Processing cast/crew for: Downfall (tmdb_id: 613)
+[2025-12-12T01:33:40.435Z] [SUCCESS] ✓ Processed 64 cast, 6 crew for: Downfall
+[2025-12-12T01:33:40.435Z] [INFO] Processing cast/crew for: Superman (tmdb_id: 1924)
+[2025-12-12T01:33:40.676Z] [SUCCESS] ✓ Processed 92 cast, 11 crew for: Superman
+[2025-12-12T01:33:40.676Z] [INFO] Processing cast/crew for: The Road (tmdb_id: 20766)
+[2025-12-12T01:33:40.908Z] [SUCCESS] ✓ Processed 17 cast, 9 crew for: The Road
+[2025-12-12T01:33:40.908Z] [INFO] Processing cast/crew for: The Handmaiden (tmdb_id: 290098)
+[2025-12-12T01:33:41.187Z] [SUCCESS] ✓ Processed 56 cast, 8 crew for: The Handmaiden
+[2025-12-12T01:33:41.187Z] [INFO] Processing cast/crew for: Annie Hall (tmdb_id: 703)
+[2025-12-12T01:33:41.438Z] [SUCCESS] ✓ Processed 83 cast, 7 crew for: Annie Hall
+[2025-12-12T01:33:41.438Z] [INFO] Processing cast/crew for: Enemy of the State (tmdb_id: 9798)
+[2025-12-12T01:33:41.690Z] [SUCCESS] ✓ Processed 100 cast, 9 crew for: Enemy of the State
+[2025-12-12T01:33:41.690Z] [INFO] Processing cast/crew for: Chinatown (tmdb_id: 829)
+[2025-12-12T01:33:41.911Z] [SUCCESS] ✓ Processed 43 cast, 5 crew for: Chinatown
+[2025-12-12T01:33:41.911Z] [INFO] Processing cast/crew for: Straight Outta Compton (tmdb_id: 277216)
+[2025-12-12T01:33:42.240Z] [SUCCESS] ✓ Processed 192 cast, 21 crew for: Straight Outta Compton
+[2025-12-12T01:33:42.240Z] [INFO] Processing cast/crew for: The Hitchhiker's Guide to the Galaxy (tmdb_id: 7453)
+[2025-12-12T01:33:42.476Z] [SUCCESS] ✓ Processed 60 cast, 13 crew for: The Hitchhiker's Guide to the Galaxy
+[2025-12-12T01:33:42.476Z] [INFO] Processing cast/crew for: Searching (tmdb_id: 489999)
+[2025-12-12T01:33:42.727Z] [SUCCESS] ✓ Processed 45 cast, 12 crew for: Searching
+[2025-12-12T01:33:42.727Z] [INFO] Processing cast/crew for: The Deer Hunter (tmdb_id: 11778)
+[2025-12-12T01:33:42.960Z] [SUCCESS] ✓ Processed 52 cast, 12 crew for: The Deer Hunter
+[2025-12-12T01:33:42.960Z] [INFO] Processing cast/crew for: Black Mirror: Bandersnatch (tmdb_id: 569547)
+[2025-12-12T01:33:43.197Z] [SUCCESS] ✓ Processed 21 cast, 8 crew for: Black Mirror: Bandersnatch
+[2025-12-12T01:33:43.197Z] [INFO] Processing cast/crew for: Sunshine (tmdb_id: 1272)
+[2025-12-12T01:33:43.419Z] [SUCCESS] ✓ Processed 14 cast, 5 crew for: Sunshine
+[2025-12-12T01:33:43.419Z] [INFO] Processing cast/crew for: Paddington (tmdb_id: 116149)
+[2025-12-12T01:33:43.658Z] [SUCCESS] ✓ Processed 64 cast, 15 crew for: Paddington
+[2025-12-12T01:33:43.658Z] [INFO] Processing cast/crew for: Crank (tmdb_id: 1948)
+[2025-12-12T01:33:43.916Z] [SUCCESS] ✓ Processed 57 cast, 14 crew for: Crank
+[2025-12-12T01:33:43.916Z] [INFO] Processing cast/crew for: Unknown (tmdb_id: 48138)
+[2025-12-12T01:33:44.141Z] [SUCCESS] ✓ Processed 37 cast, 13 crew for: Unknown
+[2025-12-12T01:33:44.141Z] [INFO] Processing cast/crew for: Seven Samurai (tmdb_id: 346)
+[2025-12-12T01:33:44.378Z] [SUCCESS] ✓ Processed 101 cast, 7 crew for: Seven Samurai
+[2025-12-12T01:33:44.378Z] [INFO] Processing cast/crew for: Roma (tmdb_id: 426426)
+[2025-12-12T01:33:44.612Z] [SUCCESS] ✓ Processed 22 cast, 9 crew for: Roma
+[2025-12-12T01:33:44.612Z] [INFO] Processing cast/crew for: Girl, Interrupted (tmdb_id: 3558)
+[2025-12-12T01:33:44.859Z] [SUCCESS] ✓ Processed 49 cast, 10 crew for: Girl, Interrupted
+[2025-12-12T01:33:44.860Z] [INFO] Processing cast/crew for: Gladiator II (tmdb_id: 558449)
+[2025-12-12T01:33:45.160Z] [SUCCESS] ✓ Processed 50 cast, 15 crew for: Gladiator II
+[2025-12-12T01:33:45.160Z] [INFO] 
+================================================================================
+[2025-12-12T01:33:45.160Z] [INFO] 📊 SUMMARY
+[2025-12-12T01:33:45.161Z] [INFO] ================================================================================
+
+[2025-12-12T01:33:45.161Z] [INFO] Total movies processed: 1000
+[2025-12-12T01:33:45.161Z] [SUCCESS] ✓ Successful: 978
+[2025-12-12T01:33:45.161Z] [ERROR] ✗ Failed: 22
+[2025-12-12T01:33:45.161Z] [INFO] Duration: 268.96s
+[2025-12-12T01:33:45.161Z] [INFO] TMDB API calls: 1000
+[2025-12-12T01:33:45.161Z] [SUCCESS] 
+✅ Cast/crew fetch complete!
+[2025-12-12T01:33:45.161Z] [INFO] Log file: /workspaces/feelflick-app/logs/04-fetch-cast-crew.log

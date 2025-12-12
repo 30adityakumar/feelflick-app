@@ -1,0 +1,28 @@
+[2025-12-12T01:15:52.716Z] [INFO] 
+================================================================================
+[2025-12-12T01:15:52.718Z] [INFO] TEST DISCOVER MOVIES
+[2025-12-12T01:15:52.718Z] [INFO] ================================================================================
+
+[2025-12-12T01:15:52.718Z] [INFO] Testing with ONLY 5 movies from trending...
+
+[2025-12-12T01:15:52.853Z] [INFO] Found 5 movies to test
+[2025-12-12T01:15:52.853Z] [INFO] Checking: Chainsaw Man - The Movie: Reze Arc (TMDB ID: 1218925)
+[2025-12-12T01:15:53.839Z] [DEBUG]   Already exists (DB ID: 5552)
+[2025-12-12T01:15:53.840Z] [INFO] Checking: Zootopia 2 (TMDB ID: 1084242)
+[2025-12-12T01:15:54.009Z] [DEBUG]   Already exists (DB ID: 5764)
+[2025-12-12T01:15:54.010Z] [INFO] Checking: Jay Kelly (TMDB ID: 1069905)
+[2025-12-12T01:15:54.438Z] [SUCCESS]   ✓ Added! DB ID: 11558
+[2025-12-12T01:15:54.438Z] [INFO] Checking: Five Nights at Freddy's 2 (TMDB ID: 1228246)
+[2025-12-12T01:15:54.710Z] [SUCCESS]   ✓ Added! DB ID: 11559
+[2025-12-12T01:15:54.710Z] [INFO] Checking: TRON: Ares (TMDB ID: 533533)
+[2025-12-12T01:15:54.836Z] [DEBUG]   Already exists (DB ID: 11364)
+[2025-12-12T01:15:54.836Z] [INFO] 
+================================================================================
+[2025-12-12T01:15:54.836Z] [INFO] RESULTS
+[2025-12-12T01:15:54.836Z] [INFO] ================================================================================
+
+[2025-12-12T01:15:54.836Z] [SUCCESS] New movies added: 2
+[2025-12-12T01:15:54.836Z] [INFO] Already existed: 3
+[2025-12-12T01:15:54.837Z] [INFO] TMDB API calls: 1
+[2025-12-12T01:15:54.837Z] [SUCCESS] 
+✅ Discovery test complete!

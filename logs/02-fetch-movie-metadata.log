@@ -1,0 +1,226 @@
+[2025-12-12T01:29:05.255Z] [INFO] 
+================================================================================
+[2025-12-12T01:29:05.256Z] [INFO] 📥 FETCH MOVIE METADATA FROM TMDB
+[2025-12-12T01:29:05.256Z] [INFO] ================================================================================
+
+[2025-12-12T01:29:05.256Z] [INFO] Mode: LIVE
+[2025-12-12T01:29:05.256Z] [INFO] Limit: 100 movies
+[2025-12-12T01:29:05.256Z] [INFO] Update stale: NO
+[2025-12-12T01:29:05.448Z] [INFO] 📊 Found 100 movies needing metadata
+[2025-12-12T01:29:05.448Z] [INFO] 
+🔄 Fetching metadata from TMDB...
+
+[2025-12-12T01:29:05.449Z] [INFO] [1/100] Fetching: 1228246
+[2025-12-12T01:29:05.625Z] [SUCCESS] [1/100] ✅ Updated: Five Nights at Freddy's 2
+[2025-12-12T01:29:05.625Z] [INFO] [2/100] Fetching: 1387382
+[2025-12-12T01:29:05.703Z] [SUCCESS] [2/100] ✅ Updated: Hunting Season
+[2025-12-12T01:29:05.703Z] [INFO] [3/100] Fetching: 1448560
+[2025-12-12T01:29:05.774Z] [SUCCESS] [3/100] ✅ Updated: Wildcat
+[2025-12-12T01:29:05.774Z] [INFO] [4/100] Fetching: 1419406
+[2025-12-12T01:29:05.850Z] [SUCCESS] [4/100] ✅ Updated: The Shadow's Edge
+[2025-12-12T01:29:05.850Z] [INFO] [5/100] Fetching: 1561955
+[2025-12-12T01:29:05.941Z] [SUCCESS] [5/100] ✅ Updated: Stephen
+[2025-12-12T01:29:05.941Z] [INFO] [6/100] Fetching: 949709
+[2025-12-12T01:29:06.019Z] [SUCCESS] [6/100] ✅ Updated: High Forces
+[2025-12-12T01:29:06.019Z] [INFO] [7/100] Fetching: 1539104
+[2025-12-12T01:29:06.132Z] [SUCCESS] [7/100] ✅ Updated: JUJUTSU KAISEN: Execution -Shibuya Incident x The Culling Game Begins-
+[2025-12-12T01:29:06.132Z] [INFO] [8/100] Fetching: 83533
+[2025-12-12T01:29:06.203Z] [SUCCESS] [8/100] ✅ Updated: Avatar: Fire and Ash
+[2025-12-12T01:29:06.203Z] [INFO] [9/100] Fetching: 1116465
+[2025-12-12T01:29:06.288Z] [SUCCESS] [9/100] ✅ Updated: A Legend
+[2025-12-12T01:29:06.288Z] [INFO] [10/100] Fetching: 1291608
+[2025-12-12T01:29:06.379Z] [SUCCESS] [10/100] ✅ Updated: Dhurandhar
+[2025-12-12T01:29:06.380Z] [INFO] [11/100] Fetching: 1033148
+[2025-12-12T01:29:06.509Z] [SUCCESS] [11/100] ✅ Updated: Die My Love
+[2025-12-12T01:29:06.509Z] [INFO] [12/100] Fetching: 1288072
+[2025-12-12T01:29:06.590Z] [SUCCESS] [12/100] ✅ Updated: Keeper
+[2025-12-12T01:29:06.590Z] [INFO] [13/100] Fetching: 1327862
+[2025-12-12T01:29:06.740Z] [SUCCESS] [13/100] ✅ Updated: Regretting You
+[2025-12-12T01:29:06.741Z] [INFO] [14/100] Fetching: 1286185
+[2025-12-12T01:29:06.823Z] [SUCCESS] [14/100] ✅ Updated: The Carpenter's Son
+[2025-12-12T01:29:06.823Z] [INFO] [15/100] Fetching: 1566269
+[2025-12-12T01:29:06.917Z] [SUCCESS] [15/100] ✅ Updated: The First Snow of Fraggle Rock
+[2025-12-12T01:29:06.917Z] [INFO] [16/100] Fetching: 1248226
+[2025-12-12T01:29:07.030Z] [SUCCESS] [16/100] ✅ Updated: Playdate
+[2025-12-12T01:29:07.030Z] [INFO] [17/100] Fetching: 1441563
+[2025-12-12T01:29:07.112Z] [SUCCESS] [17/100] ✅ Updated: My Secret Santa
+[2025-12-12T01:29:07.112Z] [INFO] [18/100] Fetching: 1261825
+[2025-12-12T01:29:07.199Z] [SUCCESS] [18/100] ✅ Updated: Oh. What. Fun.
+[2025-12-12T01:29:07.199Z] [INFO] [19/100] Fetching: 1392796
+[2025-12-12T01:29:07.294Z] [SUCCESS] [19/100] ✅ Updated: Diary of a Wimpy Kid: The Last Straw
+[2025-12-12T01:29:07.294Z] [INFO] [20/100] Fetching: 1255775
+[2025-12-12T01:29:07.369Z] [SUCCESS] [20/100] ✅ Updated: Merv
+[2025-12-12T01:29:07.369Z] [INFO] [21/100] Fetching: 1128650
+[2025-12-12T01:29:07.434Z] [SUCCESS] [21/100] ✅ Updated: The Prosecutor
+[2025-12-12T01:29:07.435Z] [INFO] [22/100] Fetching: 1196207
+[2025-12-12T01:29:07.525Z] [SUCCESS] [22/100] ✅ Updated: The Night My Dad Saved Christmas 2
+[2025-12-12T01:29:07.525Z] [INFO] [23/100] Fetching: 1339206
+[2025-12-12T01:29:07.611Z] [SUCCESS] [23/100] ✅ Updated: The Surrender
+[2025-12-12T01:29:07.611Z] [INFO] [24/100] Fetching: 1223601
+[2025-12-12T01:29:07.687Z] [SUCCESS] [24/100] ✅ Updated: Sisu: Road to Revenge
+[2025-12-12T01:29:07.687Z] [INFO] [25/100] Fetching: 812583
+[2025-12-12T01:29:07.784Z] [SUCCESS] [25/100] ✅ Updated: Wake Up Dead Man: A Knives Out Mystery
+[2025-12-12T01:29:07.784Z] [INFO] [26/100] Fetching: 937941
+[2025-12-12T01:29:07.881Z] [SUCCESS] [26/100] ✅ Updated: Shelby Oaks
+[2025-12-12T01:29:07.881Z] [INFO] [27/100] Fetching: 1550797
+[2025-12-12T01:29:07.962Z] [SUCCESS] [27/100] ✅ Updated: Prep & Landing: The Snowball Protocol
+[2025-12-12T01:29:07.962Z] [INFO] [28/100] Fetching: 1287571
+[2025-12-12T01:29:08.033Z] [SUCCESS] [28/100] ✅ Updated: Agak Laen: Menyala Pantiku!
+[2025-12-12T01:29:08.033Z] [INFO] [29/100] Fetching: 957119
+[2025-12-12T01:29:08.119Z] [SUCCESS] [29/100] ✅ Updated: Sidelined: The QB and Me
+[2025-12-12T01:29:08.119Z] [INFO] [30/100] Fetching: 1124566
+[2025-12-12T01:29:08.199Z] [SUCCESS] [30/100] ✅ Updated: Sentimental Value
+[2025-12-12T01:29:08.199Z] [INFO] [31/100] Fetching: 1325678
+[2025-12-12T01:29:08.277Z] [SUCCESS] [31/100] ✅ Updated: Sarah's Oil
+[2025-12-12T01:29:08.278Z] [INFO] [32/100] Fetching: 1287322
+[2025-12-12T01:29:08.349Z] [SUCCESS] [32/100] ✅ Updated: Christy
+[2025-12-12T01:29:08.349Z] [INFO] [33/100] Fetching: 793387
+[2025-12-12T01:29:08.413Z] [SUCCESS] [33/100] ✅ Updated: Holy Night: Demon Hunters
+[2025-12-12T01:29:08.413Z] [INFO] [34/100] Fetching: 1429520
+[2025-12-12T01:29:08.499Z] [SUCCESS] [34/100] ✅ Updated: Sidelined 2: Intercepted
+[2025-12-12T01:29:08.499Z] [INFO] [35/100] Fetching: 1241983
+[2025-12-12T01:29:08.602Z] [SUCCESS] [35/100] ✅ Updated: Train Dreams
+[2025-12-12T01:29:08.602Z] [INFO] [36/100] Fetching: 1522377
+[2025-12-12T01:29:08.674Z] [SUCCESS] [36/100] ✅ Updated: Two Worlds One Wish
+[2025-12-12T01:29:08.674Z] [INFO] [37/100] Fetching: 1257009
+[2025-12-12T01:29:08.746Z] [SUCCESS] [37/100] ✅ Updated: Primitive War
+[2025-12-12T01:29:08.746Z] [INFO] [38/100] Fetching: 1237082
+[2025-12-12T01:29:08.821Z] [SUCCESS] [38/100] ✅ Updated: 31 Minutes: One Hot Christmas
+[2025-12-12T01:29:08.822Z] [INFO] [39/100] Fetching: 23527
+[2025-12-12T01:29:08.902Z] [SUCCESS] [39/100] ✅ Updated: First Squad: The Moment of Truth
+[2025-12-12T01:29:08.902Z] [INFO] [40/100] Fetching: 1149167
+[2025-12-12T01:29:08.989Z] [SUCCESS] [40/100] ✅ Updated: High Rollers
+[2025-12-12T01:29:08.989Z] [INFO] [41/100] Fetching: 1033462
+[2025-12-12T01:29:09.070Z] [SUCCESS] [41/100] ✅ Updated: Bureau 749
+[2025-12-12T01:29:09.070Z] [INFO] [42/100] Fetching: 755898
+[2025-12-12T01:29:09.149Z] [SUCCESS] [42/100] ✅ Updated: War of the Worlds
+[2025-12-12T01:29:09.149Z] [INFO] [43/100] Fetching: 1196573
+[2025-12-12T01:29:09.229Z] [SUCCESS] [43/100] ✅ Updated: She Rides Shotgun
+[2025-12-12T01:29:09.229Z] [INFO] [44/100] Fetching: 1469354
+[2025-12-12T01:29:09.301Z] [SUCCESS] [44/100] ✅ Updated: Border Hunters
+[2025-12-12T01:29:09.301Z] [INFO] [45/100] Fetching: 1208561
+[2025-12-12T01:29:09.376Z] [SUCCESS] [45/100] ✅ Updated: Art of Eight Limbs
+[2025-12-12T01:29:09.376Z] [INFO] [46/100] Fetching: 7451
+[2025-12-12T01:29:09.458Z] [SUCCESS] [46/100] ✅ Updated: xXx
+[2025-12-12T01:29:09.459Z] [INFO] [47/100] Fetching: 1311379
+[2025-12-12T01:29:09.528Z] [SUCCESS] [47/100] ✅ Updated: The Footballest 2
+[2025-12-12T01:29:09.529Z] [INFO] [48/100] Fetching: 1234821
+[2025-12-12T01:29:09.604Z] [SUCCESS] [48/100] ✅ Updated: Jurassic World Rebirth
+[2025-12-12T01:29:09.604Z] [INFO] [49/100] Fetching: 1387190
+[2025-12-12T01:29:09.678Z] [SUCCESS] [49/100] ✅ Updated: Special Unit - The First Murder
+[2025-12-12T01:29:09.678Z] [INFO] [50/100] Fetching: 1317288
+[2025-12-12T01:29:09.751Z] [SUCCESS] [50/100] ✅ Updated: Marty Supreme
+[2025-12-12T01:29:09.752Z] [INFO] [51/100] Fetching: 1259102
+[2025-12-12T01:29:09.818Z] [SUCCESS] [51/100] ✅ Updated: Eternity
+[2025-12-12T01:29:09.818Z] [INFO] [52/100] Fetching: 1439112
+[2025-12-12T01:29:09.889Z] [SUCCESS] [52/100] ✅ Updated: Muzzle: City of Wolves
+[2025-12-12T01:29:09.889Z] [INFO] [53/100] Fetching: 1368166
+[2025-12-12T01:29:09.962Z] [SUCCESS] [53/100] ✅ Updated: The Housemaid
+[2025-12-12T01:29:09.962Z] [INFO] [54/100] Fetching: 858024
+[2025-12-12T01:29:10.028Z] [SUCCESS] [54/100] ✅ Updated: Hamnet
+[2025-12-12T01:29:10.028Z] [INFO] [55/100] Fetching: 1272837
+[2025-12-12T01:29:10.103Z] [SUCCESS] [55/100] ✅ Updated: 28 Years Later: The Bone Temple
+[2025-12-12T01:29:10.103Z] [INFO] [56/100] Fetching: Iron Man
+[2025-12-12T01:29:10.212Z] [SUCCESS] [56/100] ✅ Updated: Ghost Rider
+[2025-12-12T01:29:10.212Z] [INFO] [57/100] Fetching: The Dark Knight Rises
+[2025-12-12T01:29:10.230Z] [WARN] [57/100] ⚠️  Not found on TMDB: 1148
+[2025-12-12T01:29:10.291Z] [INFO] [58/100] Fetching: Batman Begins
+[2025-12-12T01:29:10.305Z] [WARN] [58/100] ⚠️  Not found on TMDB: 1207
+[2025-12-12T01:29:10.396Z] [INFO] [59/100] Fetching: Thor: Ragnarok
+[2025-12-12T01:29:10.410Z] [WARN] [59/100] ⚠️  Not found on TMDB: 1320
+[2025-12-12T01:29:10.464Z] [INFO] [60/100] Fetching: Gone Girl
+[2025-12-12T01:29:10.481Z] [WARN] [60/100] ⚠️  Not found on TMDB: 1065
+[2025-12-12T01:29:10.535Z] [INFO] [61/100] Fetching: The Lion King
+[2025-12-12T01:29:10.641Z] [SUCCESS] [61/100] ✅ Updated: Sleepless in Seattle
+[2025-12-12T01:29:10.641Z] [INFO] [62/100] Fetching: The Prestige
+[2025-12-12T01:29:10.681Z] [WARN] [62/100] ⚠️  Not found on TMDB: 876
+[2025-12-12T01:29:10.731Z] [INFO] [63/100] Fetching: The Departed
+[2025-12-12T01:29:10.807Z] [SUCCESS] [63/100] ✅ Updated: Policewoman
+[2025-12-12T01:29:10.807Z] [INFO] [64/100] Fetching: The Terminator
+[2025-12-12T01:29:10.828Z] [WARN] [64/100] ⚠️  Not found on TMDB: 1235
+[2025-12-12T01:29:10.882Z] [INFO] [65/100] Fetching: The Hobbit: The Desolation of Smaug
+[2025-12-12T01:29:10.899Z] [WARN] [65/100] ⚠️  Not found on TMDB: 1329
+[2025-12-12T01:29:10.951Z] [INFO] [66/100] Fetching: Terminator 2: Judgment Day
+[2025-12-12T01:29:11.156Z] [SUCCESS] [66/100] ✅ Updated: The Three from the Filling Station
+[2025-12-12T01:29:11.157Z] [INFO] [67/100] Fetching: A Clockwork Orange
+[2025-12-12T01:29:11.231Z] [SUCCESS] [67/100] ✅ Updated: The Cincinnati Kid
+[2025-12-12T01:29:11.231Z] [INFO] [68/100] Fetching: 1917
+[2025-12-12T01:29:11.308Z] [SUCCESS] [68/100] ✅ Updated: The Man Who Fell to Earth
+[2025-12-12T01:29:11.308Z] [INFO] [69/100] Fetching: Dawn of the Planet of the Apes
+[2025-12-12T01:29:11.377Z] [SUCCESS] [69/100] ✅ Updated: Bill & Ted's Bogus Journey
+[2025-12-12T01:29:11.377Z] [INFO] [70/100] Fetching: Nightcrawler
+[2025-12-12T01:29:11.391Z] [WARN] [70/100] ⚠️  Not found on TMDB: 1215
+[2025-12-12T01:29:11.443Z] [INFO] [71/100] Fetching: Braveheart
+[2025-12-12T01:29:11.456Z] [WARN] [71/100] ⚠️  Not found on TMDB: 1019
+[2025-12-12T01:29:11.502Z] [INFO] [72/100] Fetching: Home Alone 2: Lost in New York
+[2025-12-12T01:29:11.590Z] [SUCCESS] [72/100] ✅ Updated: Home Alone 2: Lost in New York
+[2025-12-12T01:29:11.590Z] [INFO] [73/100] Fetching: Room
+[2025-12-12T01:29:11.655Z] [SUCCESS] [73/100] ✅ Updated: Tabu: A Story of the South Seas
+[2025-12-12T01:29:11.655Z] [INFO] [74/100] Fetching: Twelve Monkeys
+[2025-12-12T01:29:11.692Z] [WARN] [74/100] ⚠️  Not found on TMDB: 1299
+[2025-12-12T01:29:11.739Z] [INFO] [75/100] Fetching: Quantum of Solace
+[2025-12-12T01:29:11.834Z] [SUCCESS] [75/100] ✅ Updated: Quantum of Solace
+[2025-12-12T01:29:11.835Z] [INFO] [76/100] Fetching: The Expendables
+[2025-12-12T01:29:11.930Z] [SUCCESS] [76/100] ✅ Updated: The Expendables
+[2025-12-12T01:29:11.930Z] [INFO] [77/100] Fetching: American Pie
+[2025-12-12T01:29:12.037Z] [SUCCESS] [77/100] ✅ Updated: American Pie
+[2025-12-12T01:29:12.037Z] [INFO] [78/100] Fetching: Ice Age: Continental Drift
+[2025-12-12T01:29:12.118Z] [SUCCESS] [78/100] ✅ Updated: Ice Age: Continental Drift
+[2025-12-12T01:29:12.118Z] [INFO] [79/100] Fetching: Children of Men
+[2025-12-12T01:29:12.201Z] [SUCCESS] [79/100] ✅ Updated: Torrente 3: The Protector
+[2025-12-12T01:29:12.201Z] [INFO] [80/100] Fetching: The Gentlemen
+[2025-12-12T01:29:12.312Z] [SUCCESS] [80/100] ✅ Updated: Absolut
+[2025-12-12T01:29:12.312Z] [INFO] [81/100] Fetching: Who Framed Roger Rabbit
+[2025-12-12T01:29:12.336Z] [WARN] [81/100] ⚠️  Not found on TMDB: 1383
+[2025-12-12T01:29:12.399Z] [INFO] [82/100] Fetching: Castle in the Sky
+[2025-12-12T01:29:12.417Z] [WARN] [82/100] ⚠️  Not found on TMDB: 1005
+[2025-12-12T01:29:12.478Z] [INFO] [83/100] Fetching: Predators
+[2025-12-12T01:29:12.550Z] [SUCCESS] [83/100] ✅ Updated: Predators
+[2025-12-12T01:29:12.550Z] [INFO] [84/100] Fetching: Riddick
+[2025-12-12T01:29:12.643Z] [SUCCESS] [84/100] ✅ Updated: Riddick
+[2025-12-12T01:29:12.644Z] [INFO] [85/100] Fetching: The First Purge
+[2025-12-12T01:29:12.753Z] [SUCCESS] [85/100] ✅ Updated: The First Purge
+[2025-12-12T01:29:12.753Z] [INFO] [86/100] Fetching: Secret Window
+[2025-12-12T01:29:12.828Z] [SUCCESS] [86/100] ✅ Updated: Secret Window
+[2025-12-12T01:29:12.828Z] [INFO] [87/100] Fetching: Safe House
+[2025-12-12T01:29:12.918Z] [SUCCESS] [87/100] ✅ Updated: Safe House
+[2025-12-12T01:29:12.918Z] [INFO] [88/100] Fetching: Predator 2
+[2025-12-12T01:29:12.989Z] [SUCCESS] [88/100] ✅ Updated: Predator 2
+[2025-12-12T01:29:12.989Z] [INFO] [89/100] Fetching: Austin Powers: The Spy Who Shagged Me
+[2025-12-12T01:29:13.059Z] [SUCCESS] [89/100] ✅ Updated: Austin Powers: The Spy Who Shagged Me
+[2025-12-12T01:29:13.060Z] [INFO] [90/100] Fetching: Hitman
+[2025-12-12T01:29:13.146Z] [SUCCESS] [90/100] ✅ Updated: Hitman
+[2025-12-12T01:29:13.146Z] [INFO] [91/100] Fetching: Promising Young Woman
+[2025-12-12T01:29:13.161Z] [WARN] [91/100] ⚠️  Not found on TMDB: 611
+[2025-12-12T01:29:13.224Z] [INFO] [92/100] Fetching: Crouching Tiger, Hidden Dragon
+[2025-12-12T01:29:13.245Z] [WARN] [92/100] ⚠️  Not found on TMDB: 1509
+[2025-12-12T01:29:13.299Z] [INFO] [93/100] Fetching: Alexander
+[2025-12-12T01:29:13.386Z] [SUCCESS] [93/100] ✅ Updated: Alexander
+[2025-12-12T01:29:13.386Z] [INFO] [94/100] Fetching: Surrogates
+[2025-12-12T01:29:13.471Z] [SUCCESS] [94/100] ✅ Updated: Surrogates
+[2025-12-12T01:29:13.471Z] [INFO] [95/100] Fetching: Austin Powers in Goldmember
+[2025-12-12T01:29:13.546Z] [SUCCESS] [95/100] ✅ Updated: Austin Powers in Goldmember
+[2025-12-12T01:29:13.546Z] [INFO] [96/100] Fetching: Dune
+[2025-12-12T01:29:13.618Z] [SUCCESS] [96/100] ✅ Updated: Dune
+[2025-12-12T01:29:13.618Z] [INFO] [97/100] Fetching: Shanghai Noon
+[2025-12-12T01:29:13.690Z] [SUCCESS] [97/100] ✅ Updated: Shanghai Noon
+[2025-12-12T01:29:13.691Z] [INFO] [98/100] Fetching: Frankenstein
+[2025-12-12T01:29:13.767Z] [SUCCESS] [98/100] ✅ Updated: The Elementary Particles
+[2025-12-12T01:29:13.767Z] [INFO] [99/100] Fetching: The Jackal
+[2025-12-12T01:29:13.853Z] [SUCCESS] [99/100] ✅ Updated: The Jackal
+[2025-12-12T01:29:13.853Z] [INFO] [100/100] Fetching: Romancing the Stone
+[2025-12-12T01:29:13.868Z] [WARN] [100/100] ⚠️  Not found on TMDB: 3267
+[2025-12-12T01:29:13.918Z] [INFO] 
+================================================================================
+[2025-12-12T01:29:13.918Z] [INFO] 📊 METADATA FETCH SUMMARY
+[2025-12-12T01:29:13.918Z] [INFO] ================================================================================
+
+[2025-12-12T01:29:13.918Z] [INFO] Movies found: 100
+[2025-12-12T01:29:13.918Z] [INFO] Movies fetched: 85
+[2025-12-12T01:29:13.918Z] [INFO] Movies updated: 85
+[2025-12-12T01:29:13.918Z] [INFO] Movies failed: 15
+[2025-12-12T01:29:13.918Z] [INFO] TMDB API calls: 100
+[2025-12-12T01:29:13.918Z] [WARN] 
+⚠️  15 errors occurred (too many to display)
+[2025-12-12T01:29:13.918Z] [SUCCESS] 
+✅ Metadata fetch complete! Run step 03 to process genres/keywords.

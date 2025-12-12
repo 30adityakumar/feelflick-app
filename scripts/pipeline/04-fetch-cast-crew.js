@@ -109,18 +109,13 @@ async function processCastCrew(movie) {
     }
 
     // Upsert people to database
-    if (peopleToUpsert.length > 0) {
-      const { error: peopleError } = await supabase
-        .from('people')
-        .upsert(peopleToUpsert, { 
-          onConflict: 'id',
-          ignoreDuplicates: false 
-        });
+    const uniquePeople = Array.from(
+      new Map(allPeople.map(p => [p.tmdb_id, p])).values()
+    );
 
-      if (peopleError) {
-        throw new Error(`Failed to upsert people: ${peopleError.message}`);
-      }
-    }
+    const { error: peopleError } = await supabase
+      .from('people')
+      .upsert(uniquePeople, { onConflict: 'tmdb_id' });
 
     // Upsert movie-people relationships
     if (moviePeopleToUpsert.length > 0) {

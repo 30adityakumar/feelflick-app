@@ -1,0 +1,30 @@
+[2025-12-12T01:29:14.030Z] [INFO] 
+================================================================================
+[2025-12-12T01:29:14.030Z] [INFO] 🎭 PROCESS GENRES & KEYWORDS
+[2025-12-12T01:29:14.030Z] [INFO] ================================================================================
+
+[2025-12-12T01:29:14.031Z] [INFO] Mode: LIVE
+[2025-12-12T01:29:14.031Z] [INFO] Limit: 1000 movies
+[2025-12-12T01:29:14.031Z] [INFO] 📚 Syncing genres from TMDB...
+[2025-12-12T01:29:14.086Z] [INFO]    Found 19 genres from TMDB
+[2025-12-12T01:29:14.171Z] [SUCCESS]    ✅ Synced 19 genres
+[2025-12-12T01:29:14.340Z] [INFO] 📊 Found 1000 movies to process
+[2025-12-12T01:29:14.341Z] [INFO] 
+🎭 Processing genres for 1000 movies...
+[2025-12-12T01:29:14.390Z] [INFO]    Inserting 2631 genre links...
+[2025-12-12T01:29:14.739Z] [SUCCESS]    ✅ Processed 1000 movies, inserted 2631 genre links
+[2025-12-12T01:29:14.739Z] [INFO] 
+🏷️  Processing keywords for 1000 movies...
+[2025-12-12T01:29:14.742Z] [INFO]    Found 4499 unique keywords
+[2025-12-12T01:29:15.131Z] [INFO]    Inserting 9593 keyword links...
+[2025-12-12T01:29:16.089Z] [SUCCESS]    ✅ Processed 919 movies
+[2025-12-12T01:29:16.089Z] [SUCCESS]    ✅ Inserted 4499 keywords, 9593 links
+[2025-12-12T01:29:16.089Z] [INFO] 
+================================================================================
+[2025-12-12T01:29:16.089Z] [INFO] 📊 PROCESSING SUMMARY
+[2025-12-12T01:29:16.089Z] [INFO] ================================================================================
+
+[2025-12-12T01:29:16.089Z] [INFO] Genres: 2631 links created
+[2025-12-12T01:29:16.089Z] [INFO] Keywords: 4499 unique, 9593 links created
+[2025-12-12T01:29:16.089Z] [SUCCESS] 
+✅ Genre/keyword processing complete! Run step 04 to fetch cast/crew.

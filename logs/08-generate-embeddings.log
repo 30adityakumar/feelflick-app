@@ -1,0 +1,39 @@
+[2025-12-12T01:33:59.873Z] [INFO] 
+================================================================================
+[2025-12-12T01:33:59.874Z] [INFO] 🤖 GENERATE EMBEDDINGS (OpenAI)
+[2025-12-12T01:33:59.874Z] [INFO] ================================================================================
+
+[2025-12-12T01:33:59.874Z] [INFO] Started at: 2025-12-12T01:33:59.874Z
+[2025-12-12T01:33:59.874Z] [INFO] Batch mode: enabled
+[2025-12-12T01:33:59.874Z] [INFO] Max movies: 5000
+[2025-12-12T01:34:00.000Z] [ERROR] Fatal error: | {"error":"Failed to fetch movies: invalid input syntax for type timestamp: \"last_scored_at\"","stack":"Error: Failed to fetch movies: invalid input syntax for type timestamp: \"last_scored_at\"\n    at main (/workspaces/feelflick-app/scripts/pipeline/08-generate-embeddings.js:127:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)"}
+[2025-12-12T01:49:45.043Z] [INFO] 
+================================================================================
+[2025-12-12T01:49:45.043Z] [INFO] 🤖 GENERATE EMBEDDINGS (OpenAI)
+[2025-12-12T01:49:45.043Z] [INFO] ================================================================================
+
+[2025-12-12T01:49:45.044Z] [INFO] Started at: 2025-12-12T01:49:45.044Z
+[2025-12-12T01:49:45.044Z] [INFO] Batch mode: enabled
+[2025-12-12T01:49:45.044Z] [INFO] Max movies: 5000
+[2025-12-12T01:49:46.742Z] [INFO] Found 85 movies needing embeddings
+
+[2025-12-12T01:50:03.650Z] [INFO] Progress: 10/85 embeddings generated
+[2025-12-12T01:50:08.702Z] [INFO] Progress: 20/85 embeddings generated
+[2025-12-12T01:50:12.722Z] [INFO] Progress: 30/85 embeddings generated
+[2025-12-12T01:50:18.324Z] [INFO] Progress: 40/85 embeddings generated
+[2025-12-12T01:50:22.893Z] [INFO] Progress: 50/85 embeddings generated
+[2025-12-12T01:50:30.833Z] [INFO] Progress: 60/85 embeddings generated
+[2025-12-12T01:50:35.722Z] [INFO] Progress: 70/85 embeddings generated
+[2025-12-12T01:50:38.489Z] [INFO] Progress: 80/85 embeddings generated
+[2025-12-12T01:50:39.998Z] [INFO] 
+================================================================================
+[2025-12-12T01:50:39.998Z] [INFO] 📊 SUMMARY
+[2025-12-12T01:50:39.998Z] [INFO] ================================================================================
+
+[2025-12-12T01:50:39.999Z] [SUCCESS] ✓ Successful: 85
+[2025-12-12T01:50:39.999Z] [INFO] OpenAI API calls: 85
+[2025-12-12T01:50:39.999Z] [INFO] Total cost: $0.0000
+[2025-12-12T01:50:39.999Z] [INFO] Duration: 54.96s
+[2025-12-12T01:50:39.999Z] [SUCCESS] 
+✅ Embedding generation complete!
+[2025-12-12T01:50:39.999Z] [INFO] Log file: /workspaces/feelflick-app/logs/08-generate-embeddings.log

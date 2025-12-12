@@ -1,227 +1,144 @@
 // scripts/pipeline/08-generate-embeddings.js
 
+require('dotenv').config();
 const Logger = require('../utils/logger');
 const openaiClient = require('../utils/openai-client');
-const { supabase, updateMovie, addToRetryQueue } = require('../utils/supabase');
+const { supabase, updateMovie } = require('../utils/supabase');
 
 const logger = new Logger('08-generate-embeddings.log');
 
-const BATCH_SIZE = 50; // Process in batches for efficiency
+const BATCH_SIZE = 50; // Process in batches to avoid overwhelming OpenAI API
+const MAX_MOVIES = 5000; // Maximum movies to process in one run
+const DELAY_MS = 100; // Delay between batches to respect rate limits
 
-/**
- * Generate embedding for a single movie
- */
-async function generateEmbedding(movie) {
-  try {
-    logger.debug(`Generating embedding for: ${movie.title}`);
-
-    // Generate embedding
-    const embedding = await openaiClient.generateEmbedding(movie);
-
-    // Convert array to Postgres vector format: '[0.1, 0.2, ...]'
-    const vectorString = `[${embedding.join(',')}]`;
-
-    // Update movie with embedding
-    await updateMovie(movie.id, {
-      embedding: vectorString,
-      has_embeddings: true,
-      last_embedding_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    });
-
-    logger.debug(`✓ Embedding generated for: ${movie.title}`);
-
-    return { success: true };
-
-  } catch (error) {
-    logger.error(`✗ Failed to generate embedding for ${movie.title}:`, { error: error.message });
-
-    // Add to retry queue
-    if (error.message === 'OPENAI_RATE_LIMIT') {
-      logger.warn('Rate limit hit, will retry later');
-      await addToRetryQueue(movie.tmdb_id, 'generate_embedding', error, 1); // High priority
-    } else {
-      await addToRetryQueue(movie.tmdb_id, 'generate_embedding', error);
-    }
-
-    return { success: false, error: error.message };
-  }
-}
-
-/**
- * Generate embeddings in batch
- */
-async function generateEmbeddingsBatch(movies) {
-  try {
-    logger.debug(`Generating batch of ${movies.length} embeddings`);
-
-    // Generate embeddings
-    const embeddings = await openaiClient.generateEmbeddingsBatch(movies);
-
-    // Update all movies
-    const updates = movies.map((movie, index) => {
-      const vectorString = `[${embeddings[index].join(',')}]`;
-      return {
-        id: movie.id,
-        embedding: vectorString,
-        has_embeddings: true,
-        last_embedding_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-    });
-
-    // Bulk update using upsert
-    const { error } = await supabase
-      .from('movies')
-      .upsert(updates, { onConflict: 'id' });
-
-    if (error) {
-      throw new Error(`Batch update failed: ${error.message}`);
-    }
-
-    logger.debug(`✓ Batch of ${movies.length} embeddings generated`);
-
-    return { success: true, count: movies.length };
-
-  } catch (error) {
-    logger.error(`✗ Failed to generate batch embeddings:`, { error: error.message });
-
-    // Fallback: try individual generation
-    logger.info('Falling back to individual generation...');
-    let successCount = 0;
-    for (const movie of movies) {
-      const result = await generateEmbedding(movie);
-      if (result.success) successCount++;
-    }
-
-    return { success: false, partial: successCount, error: error.message };
-  }
-}
-
-/**
- * Main execution
- */
-async function main(options = {}) {
-  const startTime = Date.now();
-  const useBatch = options.batch !== false; // Default true
-  const maxMovies = options.limit || 5000;
-  
+async function main() {
   logger.section('🤖 GENERATE EMBEDDINGS (OpenAI)');
-  logger.info('Started at: ' + new Date().toISOString());
-  logger.info(`Batch mode: ${useBatch ? 'enabled' : 'disabled'}`);
-  logger.info(`Max movies: ${maxMovies}`);
+  logger.info(`Started at: ${new Date().toISOString()}`);
+  logger.info(`Batch mode: enabled`);
+  logger.info(`Max movies: ${MAX_MOVIES}`);
 
   try {
-    // Get movies needing embeddings
-    // Priority 1: New movies without embeddings
-    // Priority 2: Movies with stale embeddings (scored after last embedding)
+    // Fetch movies that need embeddings
     const { data: movies, error } = await supabase
       .from('movies')
-      .select('id, tmdb_id, title, overview, runtime, vote_average, vote_count, popularity, primary_genre, release_year, pacing_score, intensity_score, emotional_depth_score, star_power, vfx_level, cult_status, keywords, genres, top3_cast_avg, has_embeddings, last_embedding_at, last_scored_at')
-      .eq('has_scores', true) // Must have scores first
-      .or('has_embeddings.is.false,last_embedding_at.lt.last_scored_at')
+      .select('id, tmdb_id, title, overview, genres, runtime, vote_average, primary_genre, keywords')
+      .not('fetched_at', 'is', null) // Has metadata
+      .is('embedding', null) // Missing embedding
       .order('vote_count', { ascending: false })
-      .limit(maxMovies);
+      .limit(MAX_MOVIES);
 
     if (error) {
       throw new Error(`Failed to fetch movies: ${error.message}`);
     }
 
     if (!movies || movies.length === 0) {
-      logger.info('✓ No movies need embeddings');
-      return;
+      logger.warn('No movies need embeddings. All done!');
+      return { success: 0, failed: 0, skipped: 0 };
     }
 
-    logger.info(`Found ${movies.length} movies needing embeddings`);
-    
-    // Estimate cost
-    const estimatedCost = (movies.length * 0.00001).toFixed(4);
-    logger.info(`Estimated cost: $${estimatedCost}\n`);
+    logger.info(`Found ${movies.length} movies needing embeddings\n`);
 
-    // Process movies
-    let successCount = 0;
-    let failCount = 0;
+    const stats = {
+      success: 0,
+      failed: 0,
+      skipped: 0,
+      errors: []
+    };
 
-    if (useBatch) {
-      // Process in batches
-      for (let i = 0; i < movies.length; i += BATCH_SIZE) {
-        const batch = movies.slice(i, Math.min(i + BATCH_SIZE, movies.length));
-        
-        logger.info(`Processing batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(movies.length / BATCH_SIZE)} (${batch.length} movies)`);
-        
-        const result = await generateEmbeddingsBatch(batch);
-        
-        if (result.success) {
-          successCount += result.count;
-        } else if (result.partial) {
-          successCount += result.partial;
-          failCount += batch.length - result.partial;
-        } else {
-          failCount += batch.length;
+    // Process in batches
+    for (let i = 0; i < movies.length; i += BATCH_SIZE) {
+      const batch = movies.slice(i, i + BATCH_SIZE);
+
+      for (const movie of batch) {
+        try {
+          // Build embedding text
+          const genresText = Array.isArray(movie.genres)
+            ? movie.genres.join(', ')
+            : (movie.genres || '');
+          
+          const keywordsText = Array.isArray(movie.keywords)
+            ? movie.keywords.slice(0, 10).join(', ')
+            : '';
+
+          const embeddingText = [
+            movie.title,
+            genresText,
+            movie.primary_genre,
+            keywordsText,
+            movie.overview
+          ]
+            .filter(Boolean)
+            .join('. ')
+            .substring(0, 2000); // Limit to 2000 chars
+
+          // Generate embedding
+          const embedding = await openaiClient.generateEmbedding(embeddingText);
+
+          // Update database
+          await updateMovie(movie.id, {
+            embedding: embedding
+          });
+
+          stats.success++;
+
+          if (stats.success % 10 === 0) {
+            logger.info(`Progress: ${stats.success}/${movies.length} embeddings generated`);
+          }
+        } catch (error) {
+          stats.failed++;
+          stats.errors.push({
+            movie_id: movie.id,
+            title: movie.title,
+            error: error.message
+          });
+
+          logger.error(`✗ Failed for ${movie.title}:`, error.message);
+
+          if (stats.failed > 10) {
+            logger.error('Too many failures. Stopping.');
+            break;
+          }
         }
-
-        // Progress update
-        logger.info(`Progress: ${Math.min(i + BATCH_SIZE, movies.length)}/${movies.length} (${successCount} success, ${failCount} failed)`);
       }
-    } else {
-      // Process individually
-      for (let i = 0; i < movies.length; i++) {
-        const movie = movies[i];
-        
-        if (i > 0 && i % 50 === 0) {
-          logger.info(`Progress: ${i}/${movies.length} (${successCount} success, ${failCount} failed)`);
-        }
 
-        const result = await generateEmbedding(movie);
-        
-        if (result.success) {
-          successCount++;
-        } else {
-          failCount++;
-        }
+      // Delay between batches
+      if (i + BATCH_SIZE < movies.length) {
+        await new Promise(resolve => setTimeout(resolve, DELAY_MS));
       }
     }
 
     // Summary
-    const duration = ((Date.now() - startTime) / 1000).toFixed(2);
-    const actualCost = openaiClient.getTotalCost();
-    
     logger.section('📊 SUMMARY');
-    logger.info(`Total movies processed: ${movies.length}`);
-    logger.success(`✓ Successful: ${successCount}`);
-    if (failCount > 0) {
-      logger.error(`✗ Failed: ${failCount}`);
+    logger.success(`✓ Successful: ${stats.success}`);
+    if (stats.failed > 0) {
+      logger.error(`✗ Failed: ${stats.failed}`);
     }
-    logger.info(`\nOpenAI API usage:`);
-    logger.info(`  - Requests: ${openaiClient.getRequestCount()}`);
-    logger.info(`  - Actual cost: $${actualCost}`);
-    logger.info(`Duration: ${duration}s`);
-    logger.info(`Average: ${(successCount / (duration / 60)).toFixed(1)} embeddings/minute`);
+    
+    logger.info(`OpenAI API calls: ${openaiClient.getRequestCount()}`);
+    logger.info(`Total cost: $${openaiClient.getTotalCost()}`);
+    logger.info(`Duration: ${((Date.now() - startTime) / 1000).toFixed(2)}s`);
+
+    if (stats.errors.length > 0 && stats.errors.length <= 10) {
+      logger.warn('\nErrors:');
+      stats.errors.forEach(e => {
+        logger.warn(`  - ${e.title}: ${e.error}`);
+      });
+    }
 
     logger.success('\n✅ Embedding generation complete!');
     logger.info(`Log file: ${logger.getLogFilePath()}`);
 
+    return stats;
   } catch (error) {
     logger.error('Fatal error:', { error: error.message, stack: error.stack });
     process.exit(1);
   }
 }
 
-// Run if called directly
-if (require.main === module) {
-  const args = process.argv.slice(2);
-  const options = {};
-  
-  if (args.includes('--no-batch')) {
-    options.batch = false;
-  }
-  
-  if (args.includes('--limit')) {
-    const limitIndex = args.indexOf('--limit');
-    options.limit = parseInt(args[limitIndex + 1]) || 5000;
-  }
+const startTime = Date.now();
 
-  main(options);
+if (require.main === module) {
+  main();
 }
 
-module.exports = { generateEmbedding, generateEmbeddingsBatch };
+module.exports = { main };

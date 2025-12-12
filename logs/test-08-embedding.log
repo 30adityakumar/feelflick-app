@@ -1,0 +1,35 @@
+[2025-12-12T01:19:56.046Z] [INFO] 
+================================================================================
+[2025-12-12T01:19:56.046Z] [INFO] TEST GENERATE EMBEDDING
+[2025-12-12T01:19:56.047Z] [INFO] ================================================================================
+
+[2025-12-12T01:19:56.188Z] [INFO] Testing with: Jay Kelly
+[2025-12-12T01:19:56.188Z] [INFO] Text length: 174 characters
+[2025-12-12T01:19:56.188Z] [DEBUG] Preview: "Jay Kelly. Drama, Comedy. Famous movie actor Jay Kelly embarks on a journey of self-discovery, confr..."
+[2025-12-12T01:19:56.188Z] [INFO] 
+Generating embedding via OpenAI...
+[2025-12-12T01:19:57.040Z] [SUCCESS] ✓ Embedding generated!
+[2025-12-12T01:19:57.040Z] [INFO]   Dimensions: 3072
+[2025-12-12T01:19:57.040Z] [INFO]   First 3 values: [-0.0035, 0.0156, -0.0199...]
+[2025-12-12T01:19:57.040Z] [INFO] 
+Updating database...
+[2025-12-12T01:19:57.187Z] [ERROR] Test failed: | {"error":"Failed to update movie 11558: Could not find the 'embedding_text' column of 'movies' in the schema cache","stack":"Error: Failed to update movie 11558: Could not find the 'embedding_text' column of 'movies' in the schema cache\n    at updateMovie (/workspaces/feelflick-app/scripts/utils/supabase.js:77:11)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async testEmbedding (/workspaces/feelflick-app/scripts/test-08-embedding.js:60:5)"}
+[2025-12-12T01:21:07.178Z] [INFO] 
+================================================================================
+[2025-12-12T01:21:07.178Z] [INFO] TEST GENERATE EMBEDDING
+[2025-12-12T01:21:07.179Z] [INFO] ================================================================================
+
+[2025-12-12T01:21:07.382Z] [INFO] Testing with: Jay Kelly
+[2025-12-12T01:21:07.383Z] [INFO] Text length: 174 characters
+[2025-12-12T01:21:07.383Z] [DEBUG] Preview: "Jay Kelly. Drama, Comedy. Famous movie actor Jay Kelly embarks on a journey of self-discovery, confr..."
+[2025-12-12T01:21:07.383Z] [INFO] 
+Generating embedding via OpenAI...
+[2025-12-12T01:21:08.789Z] [SUCCESS] ✓ Embedding generated!
+[2025-12-12T01:21:08.789Z] [INFO]   Dimensions: 3072
+[2025-12-12T01:21:08.790Z] [INFO]   First 3 values: [-0.0035, 0.0156, -0.0199...]
+[2025-12-12T01:21:08.790Z] [INFO] 
+Updating database...
+[2025-12-12T01:21:08.976Z] [SUCCESS] ✓ Database updated
+[2025-12-12T01:21:08.976Z] [INFO] OpenAI cost: $0.0000
+[2025-12-12T01:21:08.977Z] [SUCCESS] 
+✅ Embedding test complete!

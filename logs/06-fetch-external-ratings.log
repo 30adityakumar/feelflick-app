@@ -1,0 +1,9 @@
+[2025-12-12T01:33:51.472Z] [INFO] 
+================================================================================
+[2025-12-12T01:33:51.473Z] [INFO] ⭐ FETCH EXTERNAL RATINGS (OMDb)
+[2025-12-12T01:33:51.473Z] [INFO] ================================================================================
+
+[2025-12-12T01:33:51.473Z] [INFO] Started at: 2025-12-12T01:33:51.473Z
+[2025-12-12T01:33:51.473Z] [INFO] Max movies per run: 100
+[2025-12-12T01:33:51.473Z] [INFO] OMDb quota remaining: 1000/1000
+[2025-12-12T01:33:51.607Z] [ERROR] Fatal error: | {"error":"Failed to fetch movies: \"failed to parse logic tree ((ratings_external.is.null,ratings_external.fetched_at.lt.2025-11-12T01:33:51.473Z))\" (line 1, column 46)","stack":"Error: Failed to fetch movies: \"failed to parse logic tree ((ratings_external.is.null,ratings_external.fetched_at.lt.2025-11-12T01:33:51.473Z))\" (line 1, column 46)\n    at main (/workspaces/feelflick-app/scripts/pipeline/06-fetch-external-ratings.js:122:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)"}

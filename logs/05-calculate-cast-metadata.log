@@ -1,0 +1,190 @@
+[2025-12-12T01:33:45.265Z] [INFO] 
+================================================================================
+[2025-12-12T01:33:45.265Z] [INFO] 📊 CALCULATE CAST METADATA
+[2025-12-12T01:33:45.265Z] [INFO] ================================================================================
+
+[2025-12-12T01:33:45.265Z] [INFO] Started at: 2025-12-12T01:33:45.265Z
+[2025-12-12T01:33:46.127Z] [INFO] Found 85 movies needing cast metadata calculation
+[2025-12-12T01:33:46.127Z] [DEBUG] Calculating cast metadata for: Holy Night: Demon Hunters (id: 11591)
+[2025-12-12T01:33:46.232Z] [WARN] No cast found for: Holy Night: Demon Hunters
+[2025-12-12T01:33:46.232Z] [DEBUG] Calculating cast metadata for: Border Hunters (id: 11602)
+[2025-12-12T01:33:46.325Z] [WARN] No cast found for: Border Hunters
+[2025-12-12T01:33:46.325Z] [DEBUG] Calculating cast metadata for: Five Nights at Freddy's 2 (id: 11559)
+[2025-12-12T01:33:46.391Z] [WARN] No cast found for: Five Nights at Freddy's 2
+[2025-12-12T01:33:46.391Z] [DEBUG] Calculating cast metadata for: Hunting Season (id: 11560)
+[2025-12-12T01:33:46.446Z] [WARN] No cast found for: Hunting Season
+[2025-12-12T01:33:46.446Z] [DEBUG] Calculating cast metadata for: Wildcat (id: 11561)
+[2025-12-12T01:33:46.504Z] [WARN] No cast found for: Wildcat
+[2025-12-12T01:33:46.504Z] [DEBUG] Calculating cast metadata for: The Shadow's Edge (id: 11562)
+[2025-12-12T01:33:46.552Z] [WARN] No cast found for: The Shadow's Edge
+[2025-12-12T01:33:46.552Z] [DEBUG] Calculating cast metadata for: Stephen (id: 11563)
+[2025-12-12T01:33:46.612Z] [WARN] No cast found for: Stephen
+[2025-12-12T01:33:46.612Z] [DEBUG] Calculating cast metadata for: High Forces (id: 11564)
+[2025-12-12T01:33:46.660Z] [WARN] No cast found for: High Forces
+[2025-12-12T01:33:46.660Z] [DEBUG] Calculating cast metadata for: JUJUTSU KAISEN: Execution -Shibuya Incident x The Culling Game Begins- (id: 11565)
+[2025-12-12T01:33:46.724Z] [WARN] No cast found for: JUJUTSU KAISEN: Execution -Shibuya Incident x The Culling Game Begins-
+[2025-12-12T01:33:46.725Z] [DEBUG] Calculating cast metadata for: Avatar: Fire and Ash (id: 11566)
+[2025-12-12T01:33:46.769Z] [WARN] No cast found for: Avatar: Fire and Ash
+[2025-12-12T01:33:46.769Z] [DEBUG] Calculating cast metadata for: A Legend (id: 11567)
+[2025-12-12T01:33:46.817Z] [WARN] No cast found for: A Legend
+[2025-12-12T01:33:46.817Z] [DEBUG] Calculating cast metadata for: Dhurandhar (id: 11568)
+[2025-12-12T01:33:46.916Z] [WARN] No cast found for: Dhurandhar
+[2025-12-12T01:33:46.916Z] [DEBUG] Calculating cast metadata for: Die My Love (id: 11569)
+[2025-12-12T01:33:46.962Z] [WARN] No cast found for: Die My Love
+[2025-12-12T01:33:46.962Z] [DEBUG] Calculating cast metadata for: Keeper (id: 11570)
+[2025-12-12T01:33:47.023Z] [WARN] No cast found for: Keeper
+[2025-12-12T01:33:47.023Z] [DEBUG] Calculating cast metadata for: Regretting You (id: 11571)
+[2025-12-12T01:33:47.071Z] [WARN] No cast found for: Regretting You
+[2025-12-12T01:33:47.071Z] [DEBUG] Calculating cast metadata for: The Carpenter's Son (id: 11572)
+[2025-12-12T01:33:47.134Z] [WARN] No cast found for: The Carpenter's Son
+[2025-12-12T01:33:47.134Z] [DEBUG] Calculating cast metadata for: The First Snow of Fraggle Rock (id: 11573)
+[2025-12-12T01:33:47.204Z] [WARN] No cast found for: The First Snow of Fraggle Rock
+[2025-12-12T01:33:47.204Z] [DEBUG] Calculating cast metadata for: Playdate (id: 11574)
+[2025-12-12T01:33:47.278Z] [WARN] No cast found for: Playdate
+[2025-12-12T01:33:47.278Z] [DEBUG] Calculating cast metadata for: My Secret Santa (id: 11575)
+[2025-12-12T01:33:47.366Z] [WARN] No cast found for: My Secret Santa
+[2025-12-12T01:33:47.366Z] [DEBUG] Calculating cast metadata for: Oh. What. Fun. (id: 11576)
+[2025-12-12T01:33:47.411Z] [WARN] No cast found for: Oh. What. Fun.
+[2025-12-12T01:33:47.411Z] [DEBUG] Calculating cast metadata for: Diary of a Wimpy Kid: The Last Straw (id: 11577)
+[2025-12-12T01:33:47.457Z] [WARN] No cast found for: Diary of a Wimpy Kid: The Last Straw
+[2025-12-12T01:33:47.457Z] [DEBUG] Calculating cast metadata for: Merv (id: 11578)
+[2025-12-12T01:33:47.508Z] [WARN] No cast found for: Merv
+[2025-12-12T01:33:47.508Z] [DEBUG] Calculating cast metadata for: The Prosecutor (id: 11579)
+[2025-12-12T01:33:47.556Z] [WARN] No cast found for: The Prosecutor
+[2025-12-12T01:33:47.556Z] [DEBUG] Calculating cast metadata for: The Night My Dad Saved Christmas 2 (id: 11580)
+[2025-12-12T01:33:47.600Z] [WARN] No cast found for: The Night My Dad Saved Christmas 2
+[2025-12-12T01:33:47.601Z] [DEBUG] Calculating cast metadata for: The Surrender (id: 11581)
+[2025-12-12T01:33:47.645Z] [WARN] No cast found for: The Surrender
+[2025-12-12T01:33:47.645Z] [DEBUG] Calculating cast metadata for: Sisu: Road to Revenge (id: 11582)
+[2025-12-12T01:33:47.692Z] [WARN] No cast found for: Sisu: Road to Revenge
+[2025-12-12T01:33:47.692Z] [DEBUG] Calculating cast metadata for: Wake Up Dead Man: A Knives Out Mystery (id: 11583)
+[2025-12-12T01:33:47.740Z] [WARN] No cast found for: Wake Up Dead Man: A Knives Out Mystery
+[2025-12-12T01:33:47.740Z] [DEBUG] Calculating cast metadata for: Shelby Oaks (id: 11584)
+[2025-12-12T01:33:47.800Z] [WARN] No cast found for: Shelby Oaks
+[2025-12-12T01:33:47.800Z] [DEBUG] Calculating cast metadata for: Prep & Landing: The Snowball Protocol (id: 11585)
+[2025-12-12T01:33:47.849Z] [WARN] No cast found for: Prep & Landing: The Snowball Protocol
+[2025-12-12T01:33:47.849Z] [DEBUG] Calculating cast metadata for: Agak Laen: Menyala Pantiku! (id: 11586)
+[2025-12-12T01:33:47.899Z] [WARN] No cast found for: Agak Laen: Menyala Pantiku!
+[2025-12-12T01:33:47.899Z] [DEBUG] Calculating cast metadata for: Sidelined: The QB and Me (id: 11587)
+[2025-12-12T01:33:47.956Z] [WARN] No cast found for: Sidelined: The QB and Me
+[2025-12-12T01:33:47.956Z] [DEBUG] Calculating cast metadata for: Sentimental Value (id: 11588)
+[2025-12-12T01:33:48.014Z] [WARN] No cast found for: Sentimental Value
+[2025-12-12T01:33:48.014Z] [DEBUG] Calculating cast metadata for: Sarah's Oil (id: 11589)
+[2025-12-12T01:33:48.066Z] [WARN] No cast found for: Sarah's Oil
+[2025-12-12T01:33:48.066Z] [DEBUG] Calculating cast metadata for: Christy (id: 11590)
+[2025-12-12T01:33:48.108Z] [WARN] No cast found for: Christy
+[2025-12-12T01:33:48.108Z] [DEBUG] Calculating cast metadata for: Sidelined 2: Intercepted (id: 11592)
+[2025-12-12T01:33:48.177Z] [WARN] No cast found for: Sidelined 2: Intercepted
+[2025-12-12T01:33:48.177Z] [DEBUG] Calculating cast metadata for: Train Dreams (id: 11593)
+[2025-12-12T01:33:48.222Z] [WARN] No cast found for: Train Dreams
+[2025-12-12T01:33:48.222Z] [DEBUG] Calculating cast metadata for: Two Worlds One Wish (id: 11594)
+[2025-12-12T01:33:48.266Z] [WARN] No cast found for: Two Worlds One Wish
+[2025-12-12T01:33:48.266Z] [DEBUG] Calculating cast metadata for: Primitive War (id: 11595)
+[2025-12-12T01:33:48.336Z] [WARN] No cast found for: Primitive War
+[2025-12-12T01:33:48.336Z] [DEBUG] Calculating cast metadata for: 31 Minutes: One Hot Christmas (id: 11596)
+[2025-12-12T01:33:48.399Z] [WARN] No cast found for: 31 Minutes: One Hot Christmas
+[2025-12-12T01:33:48.399Z] [DEBUG] Calculating cast metadata for: First Squad: The Moment of Truth (id: 11597)
+[2025-12-12T01:33:48.452Z] [WARN] No cast found for: First Squad: The Moment of Truth
+[2025-12-12T01:33:48.452Z] [DEBUG] Calculating cast metadata for: High Rollers (id: 11598)
+[2025-12-12T01:33:48.496Z] [WARN] No cast found for: High Rollers
+[2025-12-12T01:33:48.496Z] [DEBUG] Calculating cast metadata for: Bureau 749 (id: 11599)
+[2025-12-12T01:33:48.544Z] [WARN] No cast found for: Bureau 749
+[2025-12-12T01:33:48.544Z] [DEBUG] Calculating cast metadata for: War of the Worlds (id: 11600)
+[2025-12-12T01:33:48.591Z] [WARN] No cast found for: War of the Worlds
+[2025-12-12T01:33:48.591Z] [DEBUG] Calculating cast metadata for: She Rides Shotgun (id: 11601)
+[2025-12-12T01:33:48.641Z] [WARN] No cast found for: She Rides Shotgun
+[2025-12-12T01:33:48.641Z] [DEBUG] Calculating cast metadata for: Art of Eight Limbs (id: 11603)
+[2025-12-12T01:33:48.689Z] [WARN] No cast found for: Art of Eight Limbs
+[2025-12-12T01:33:48.689Z] [DEBUG] Calculating cast metadata for: The Footballest 2 (id: 11605)
+[2025-12-12T01:33:48.739Z] [WARN] No cast found for: The Footballest 2
+[2025-12-12T01:33:48.739Z] [DEBUG] Calculating cast metadata for: Jurassic World Rebirth (id: 11606)
+[2025-12-12T01:33:48.783Z] [WARN] No cast found for: Jurassic World Rebirth
+[2025-12-12T01:33:48.783Z] [DEBUG] Calculating cast metadata for: Special Unit - The First Murder (id: 11607)
+[2025-12-12T01:33:48.848Z] [WARN] No cast found for: Special Unit - The First Murder
+[2025-12-12T01:33:48.848Z] [DEBUG] Calculating cast metadata for: Marty Supreme (id: 11608)
+[2025-12-12T01:33:48.915Z] [WARN] No cast found for: Marty Supreme
+[2025-12-12T01:33:48.915Z] [DEBUG] Calculating cast metadata for: Eternity (id: 11609)
+[2025-12-12T01:33:48.960Z] [WARN] No cast found for: Eternity
+[2025-12-12T01:33:48.960Z] [DEBUG] Calculating cast metadata for: Muzzle: City of Wolves (id: 11610)
+[2025-12-12T01:33:49.005Z] [WARN] No cast found for: Muzzle: City of Wolves
+[2025-12-12T01:33:49.005Z] [DEBUG] Calculating cast metadata for: The Housemaid (id: 11611)
+[2025-12-12T01:33:49.051Z] [WARN] No cast found for: The Housemaid
+[2025-12-12T01:33:49.051Z] [DEBUG] Calculating cast metadata for: Hamnet (id: 11612)
+[2025-12-12T01:33:49.098Z] [WARN] No cast found for: Hamnet
+[2025-12-12T01:33:49.098Z] [DEBUG] Calculating cast metadata for: 28 Years Later: The Bone Temple (id: 11613)
+[2025-12-12T01:33:49.150Z] [WARN] No cast found for: 28 Years Later: The Bone Temple
+[2025-12-12T01:33:49.150Z] [DEBUG] Calculating cast metadata for: The Three from the Filling Station (id: 11480)
+[2025-12-12T01:33:49.198Z] [WARN] No cast found for: The Three from the Filling Station
+[2025-12-12T01:33:49.198Z] [DEBUG] Calculating cast metadata for: The Man Who Fell to Earth (id: 11448)
+[2025-12-12T01:33:49.245Z] [WARN] No cast found for: The Man Who Fell to Earth
+[2025-12-12T01:33:49.245Z] [DEBUG] Calculating cast metadata for: Bill & Ted's Bogus Journey (id: 11452)
+[2025-12-12T01:33:49.295Z] [WARN] No cast found for: Bill & Ted's Bogus Journey
+[2025-12-12T01:33:49.295Z] [DEBUG] Calculating cast metadata for: Tabu: A Story of the South Seas (id: 11432)
+[2025-12-12T01:33:49.357Z] [WARN] No cast found for: Tabu: A Story of the South Seas
+[2025-12-12T01:33:49.357Z] [DEBUG] Calculating cast metadata for: American Pie (id: 11367)
+[2025-12-12T01:33:49.469Z] [DEBUG] ✓ Cast metadata calculated for: American Pie | {"avg":"0.60","max":"4.03","top3":"1.57"}
+[2025-12-12T01:33:49.469Z] [DEBUG] Calculating cast metadata for: Secret Window (id: 11413)
+[2025-12-12T01:33:49.524Z] [WARN] No cast found for: Secret Window
+[2025-12-12T01:33:49.524Z] [DEBUG] Calculating cast metadata for: Safe House (id: 11419)
+[2025-12-12T01:33:49.569Z] [WARN] No cast found for: Safe House
+[2025-12-12T01:33:49.569Z] [DEBUG] Calculating cast metadata for: Austin Powers: The Spy Who Shagged Me (id: 11512)
+[2025-12-12T01:33:49.614Z] [WARN] No cast found for: Austin Powers: The Spy Who Shagged Me
+[2025-12-12T01:33:49.614Z] [DEBUG] Calculating cast metadata for: Hitman (id: 11411)
+[2025-12-12T01:33:49.673Z] [WARN] No cast found for: Hitman
+[2025-12-12T01:33:49.673Z] [DEBUG] Calculating cast metadata for: Alexander (id: 11517)
+[2025-12-12T01:33:49.720Z] [WARN] No cast found for: Alexander
+[2025-12-12T01:33:49.721Z] [DEBUG] Calculating cast metadata for: Surrogates (id: 11414)
+[2025-12-12T01:33:49.769Z] [WARN] No cast found for: Surrogates
+[2025-12-12T01:33:49.769Z] [DEBUG] Calculating cast metadata for: The Jackal (id: 11412)
+[2025-12-12T01:33:49.855Z] [WARN] No cast found for: The Jackal
+[2025-12-12T01:33:49.855Z] [DEBUG] Calculating cast metadata for: Shanghai Noon (id: 11410)
+[2025-12-12T01:33:49.917Z] [WARN] No cast found for: Shanghai Noon
+[2025-12-12T01:33:49.917Z] [DEBUG] Calculating cast metadata for: Sleepless in Seattle (id: 11458)
+[2025-12-12T01:33:49.975Z] [WARN] No cast found for: Sleepless in Seattle
+[2025-12-12T01:33:49.975Z] [DEBUG] Calculating cast metadata for: Home Alone 2: Lost in New York (id: 11361)
+[2025-12-12T01:33:50.076Z] [DEBUG] ✓ Cast metadata calculated for: Home Alone 2: Lost in New York | {"avg":"1.11","max":"5.54","top3":"3.89"}
+[2025-12-12T01:33:50.076Z] [DEBUG] Calculating cast metadata for: Quantum of Solace (id: 11420)
+[2025-12-12T01:33:50.177Z] [DEBUG] ✓ Cast metadata calculated for: Quantum of Solace | {"avg":"0.93","max":"10.49","top3":"2.94"}
+[2025-12-12T01:33:50.177Z] [DEBUG] Calculating cast metadata for: The Expendables (id: 11416)
+[2025-12-12T01:33:50.284Z] [DEBUG] ✓ Cast metadata calculated for: The Expendables | {"avg":"1.53","max":"14.65","top3":"9.98"}
+[2025-12-12T01:33:50.285Z] [DEBUG] Calculating cast metadata for: Ice Age: Continental Drift (id: 11366)
+[2025-12-12T01:33:50.397Z] [DEBUG] ✓ Cast metadata calculated for: Ice Age: Continental Drift | {"avg":"1.46","max":"5.70","top3":"2.98"}
+[2025-12-12T01:33:50.397Z] [DEBUG] Calculating cast metadata for: Riddick (id: 11370)
+[2025-12-12T01:33:50.498Z] [DEBUG] ✓ Cast metadata calculated for: Riddick | {"avg":"1.86","max":"10.36","top3":"4.89"}
+[2025-12-12T01:33:50.499Z] [DEBUG] Calculating cast metadata for: Ghost Rider (id: 11492)
+[2025-12-12T01:33:50.618Z] [DEBUG] ✓ Cast metadata calculated for: Ghost Rider | {"avg":"1.33","max":"6.71","top3":"5.65"}
+[2025-12-12T01:33:50.618Z] [DEBUG] Calculating cast metadata for: xXx (id: 11604)
+[2025-12-12T01:33:50.742Z] [DEBUG] ✓ Cast metadata calculated for: xXx | {"avg":"1.03","max":"17.12","top3":"5.29"}
+[2025-12-12T01:33:50.742Z] [DEBUG] Calculating cast metadata for: Absolut (id: 11474)
+[2025-12-12T01:33:50.785Z] [WARN] No cast found for: Absolut
+[2025-12-12T01:33:50.785Z] [DEBUG] Calculating cast metadata for: Torrente 3: The Protector (id: 11430)
+[2025-12-12T01:33:50.833Z] [WARN] No cast found for: Torrente 3: The Protector
+[2025-12-12T01:33:50.833Z] [DEBUG] Calculating cast metadata for: Predators (id: 11363)
+[2025-12-12T01:33:50.961Z] [DEBUG] ✓ Cast metadata calculated for: Predators | {"avg":"2.34","max":"4.49","top3":"3.55"}
+[2025-12-12T01:33:50.961Z] [DEBUG] Calculating cast metadata for: The First Purge (id: 11418)
+[2025-12-12T01:33:51.053Z] [DEBUG] ✓ Cast metadata calculated for: The First Purge | {"avg":"0.54","max":"7.37","top3":"0.58"}
+[2025-12-12T01:33:51.053Z] [DEBUG] Calculating cast metadata for: The Elementary Particles (id: 11433)
+[2025-12-12T01:33:51.106Z] [WARN] No cast found for: The Elementary Particles
+[2025-12-12T01:33:51.106Z] [DEBUG] Calculating cast metadata for: Predator 2 (id: 11362)
+[2025-12-12T01:33:51.150Z] [WARN] No cast found for: Predator 2
+[2025-12-12T01:33:51.150Z] [DEBUG] Calculating cast metadata for: The Cincinnati Kid (id: 11443)
+[2025-12-12T01:33:51.200Z] [WARN] No cast found for: The Cincinnati Kid
+[2025-12-12T01:33:51.200Z] [DEBUG] Calculating cast metadata for: Policewoman (id: 11435)
+[2025-12-12T01:33:51.251Z] [WARN] No cast found for: Policewoman
+[2025-12-12T01:33:51.251Z] [DEBUG] Calculating cast metadata for: Austin Powers in Goldmember (id: 11506)
+[2025-12-12T01:33:51.308Z] [WARN] No cast found for: Austin Powers in Goldmember
+[2025-12-12T01:33:51.308Z] [DEBUG] Calculating cast metadata for: Dune (id: 11527)
+[2025-12-12T01:33:51.353Z] [WARN] No cast found for: Dune
+[2025-12-12T01:33:51.353Z] [INFO] 
+================================================================================
+[2025-12-12T01:33:51.354Z] [INFO] 📊 SUMMARY
+[2025-12-12T01:33:51.354Z] [INFO] ================================================================================
+
+[2025-12-12T01:33:51.354Z] [INFO] Total movies processed: 85
+[2025-12-12T01:33:51.354Z] [SUCCESS] ✓ Successful: 85
+[2025-12-12T01:33:51.354Z] [INFO] Average cast per movie: 6.4
+[2025-12-12T01:33:51.354Z] [INFO] Movies with recognizable stars: 0 (0.0%)
+[2025-12-12T01:33:51.354Z] [INFO] Duration: 6.09s
+[2025-12-12T01:33:51.354Z] [SUCCESS] 
+✅ Cast metadata calculation complete!
+[2025-12-12T01:33:51.354Z] [INFO] Log file: /workspaces/feelflick-app/logs/05-calculate-cast-metadata.log

@@ -1,0 +1,55 @@
+[2025-12-12T01:18:52.609Z] [INFO] 
+================================================================================
+[2025-12-12T01:18:52.609Z] [INFO] TEST GENRES & KEYWORDS
+[2025-12-12T01:18:52.609Z] [INFO] ================================================================================
+
+[2025-12-12T01:18:52.789Z] [INFO] Testing with: Jay Kelly
+[2025-12-12T01:18:52.789Z] [INFO] Fetching genres and keywords from TMDB...
+[2025-12-12T01:18:53.066Z] [SUCCESS] ✓ Received data:
+[2025-12-12T01:18:53.066Z] [INFO]   Genres: Drama, Comedy
+[2025-12-12T01:18:53.066Z] [INFO]   Keywords: manager, europe, nostalgic, dramedy, actor...
+[2025-12-12T01:18:53.066Z] [INFO] 
+Updating movie_genres...
+[2025-12-12T01:18:53.492Z] [SUCCESS] ✓ Inserted 2 genre associations
+[2025-12-12T01:18:53.492Z] [INFO] 
+Syncing keywords table...
+[2025-12-12T01:18:53.636Z] [SUCCESS] ✓ Synced 9 keywords
+[2025-12-12T01:18:53.636Z] [INFO] Updating movie_keywords...
+[2025-12-12T01:18:53.872Z] [SUCCESS] ✓ Inserted 9 keyword associations
+[2025-12-12T01:18:53.872Z] [INFO] 
+Updating movie metadata...
+[2025-12-12T01:18:54.031Z] [SUCCESS] ✓ Movie metadata updated!
+[2025-12-12T01:18:54.031Z] [INFO] TMDB API calls: 1
+[2025-12-12T01:18:54.032Z] [SUCCESS] 
+✅ Genres & Keywords test complete!
+[2025-12-12T01:19:02.296Z] [INFO] 
+================================================================================
+[2025-12-12T01:19:02.296Z] [INFO] TEST GENRES & KEYWORDS
+[2025-12-12T01:19:02.296Z] [INFO] ================================================================================
+
+[2025-12-12T01:19:02.674Z] [WARN] No movies need genres/keywords. All good!
+[2025-12-12T01:19:36.474Z] [INFO] 
+================================================================================
+[2025-12-12T01:19:36.475Z] [INFO] TEST GENRES & KEYWORDS
+[2025-12-12T01:19:36.475Z] [INFO] ================================================================================
+
+[2025-12-12T01:19:36.653Z] [INFO] No movies need genres. Testing with a random movie...
+[2025-12-12T01:19:36.736Z] [INFO] Testing with: Ivan's Childhood
+[2025-12-12T01:19:36.736Z] [INFO] Fetching genres and keywords from TMDB...
+[2025-12-12T01:19:36.780Z] [SUCCESS] ✓ Found 2 genres, 11 keywords
+[2025-12-12T01:19:36.780Z] [INFO] Genres:
+[2025-12-12T01:19:36.780Z] [INFO]   - Drama
+[2025-12-12T01:19:36.780Z] [INFO]   - War
+[2025-12-12T01:19:36.781Z] [INFO] Keywords (first 5):
+[2025-12-12T01:19:36.781Z] [INFO]   - dreams
+[2025-12-12T01:19:36.781Z] [INFO]   - spy
+[2025-12-12T01:19:36.781Z] [INFO]   - world war ii
+[2025-12-12T01:19:36.781Z] [INFO]   - swamp
+[2025-12-12T01:19:36.781Z] [INFO]   - flashback
+[2025-12-12T01:19:36.781Z] [INFO] 
+Updating movie_genres...
+[2025-12-12T01:19:37.002Z] [SUCCESS] ✓ Genres updated
+[2025-12-12T01:19:37.243Z] [SUCCESS] ✓ Movie metadata updated
+[2025-12-12T01:19:37.243Z] [INFO] TMDB API calls: 1
+[2025-12-12T01:19:37.243Z] [SUCCESS] 
+✅ Genres & keywords test complete!

@@ -1,0 +1,60 @@
+[2025-12-12T01:19:14.705Z] [INFO] 
+================================================================================
+[2025-12-12T01:19:14.705Z] [INFO] TEST CALCULATE SCORES
+[2025-12-12T01:19:14.705Z] [INFO] ================================================================================
+
+[2025-12-12T01:19:14.849Z] [INFO] Testing with: Jay Kelly
+[2025-12-12T01:19:14.849Z] [INFO]   Genre: Drama
+[2025-12-12T01:19:14.850Z] [INFO]   Runtime: 132 min
+[2025-12-12T01:19:14.850Z] [INFO]   Rating: 5.946/10
+[2025-12-12T01:19:14.850Z] [INFO] 
+Calculating scores...
+[2025-12-12T01:19:14.850Z] [SUCCESS] ✓ Scores calculated:
+[2025-12-12T01:19:14.850Z] [INFO]   Pacing: 50/100
+[2025-12-12T01:19:14.851Z] [INFO]   Intensity: 45/100
+[2025-12-12T01:19:14.851Z] [INFO]   Emotional Depth: 50/100
+[2025-12-12T01:19:14.851Z] [INFO]   Quality Score: 59/100
+[2025-12-12T01:19:14.851Z] [INFO]   FeelFlick Rating: 0.5/10
+[2025-12-12T01:19:14.851Z] [INFO] 
+Updating database...
+[2025-12-12T01:19:14.938Z] [ERROR] Test failed: | {"error":"Failed to update movie 11558: Could not find the 'emotional_depth' column of 'movies' in the schema cache","stack":"Error: Failed to update movie 11558: Could not find the 'emotional_depth' column of 'movies' in the schema cache\n    at updateMovie (/workspaces/feelflick-app/scripts/utils/supabase.js:77:11)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async testScores (/workspaces/feelflick-app/scripts/test-07-scores.js:91:5)"}
+[2025-12-12T01:19:45.205Z] [INFO] 
+================================================================================
+[2025-12-12T01:19:45.206Z] [INFO] TEST CALCULATE SCORES
+[2025-12-12T01:19:45.206Z] [INFO] ================================================================================
+
+[2025-12-12T01:19:45.499Z] [INFO] Testing with: The Best Exotic Marigold Hotel
+[2025-12-12T01:19:45.499Z] [INFO]   Runtime: 124 min
+[2025-12-12T01:19:45.499Z] [INFO]   Rating: 7/10 (1412 votes)
+[2025-12-12T01:19:45.500Z] [INFO]   Primary Genre: Drama
+[2025-12-12T01:19:45.500Z] [INFO] 
+Calculating scores...
+[2025-12-12T01:19:45.500Z] [SUCCESS] ✓ Pacing: 50/100
+[2025-12-12T01:19:45.500Z] [SUCCESS] ✓ Intensity: 45/100
+[2025-12-12T01:19:45.500Z] [SUCCESS] ✓ Quality: 70/100
+[2025-12-12T01:19:45.501Z] [SUCCESS] ✓ FeelFlick Rating: 5.8/10
+[2025-12-12T01:19:45.501Z] [INFO] 
+Updating database...
+[2025-12-12T01:19:45.673Z] [SUCCESS] ✓ Database updated
+[2025-12-12T01:19:45.673Z] [SUCCESS] 
+✅ Scores calculation test complete!
+[2025-12-12T01:20:59.594Z] [INFO] 
+================================================================================
+[2025-12-12T01:20:59.594Z] [INFO] TEST CALCULATE SCORES
+[2025-12-12T01:20:59.594Z] [INFO] ================================================================================
+
+[2025-12-12T01:20:59.829Z] [INFO] Testing with: The Monster
+[2025-12-12T01:20:59.829Z] [INFO]   Runtime: 112 min
+[2025-12-12T01:20:59.830Z] [INFO]   Rating: 6.954/10 (627 votes)
+[2025-12-12T01:20:59.830Z] [INFO]   Primary Genre: Comedy
+[2025-12-12T01:20:59.830Z] [INFO] 
+Calculating scores...
+[2025-12-12T01:20:59.830Z] [SUCCESS] ✓ Pacing: 50/100
+[2025-12-12T01:20:59.830Z] [SUCCESS] ✓ Intensity: 50/100
+[2025-12-12T01:20:59.831Z] [SUCCESS] ✓ Quality: 49/100
+[2025-12-12T01:20:59.831Z] [SUCCESS] ✓ FeelFlick Rating: 5.0/10
+[2025-12-12T01:20:59.831Z] [INFO] 
+Updating database...
+[2025-12-12T01:20:59.982Z] [SUCCESS] ✓ Database updated
+[2025-12-12T01:20:59.982Z] [SUCCESS] 
+✅ Scores calculation test complete!

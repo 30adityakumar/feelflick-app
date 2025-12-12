@@ -1,0 +1,74 @@
+[2025-12-12T01:34:00.143Z] [INFO] 
+================================================================================
+[2025-12-12T01:34:00.144Z] [INFO] 🎭 CALCULATE MOOD SCORES
+[2025-12-12T01:34:00.144Z] [INFO] ================================================================================
+
+[2025-12-12T01:34:00.144Z] [INFO] Started at: 2025-12-12T01:34:00.144Z
+[2025-12-12T01:34:00.267Z] [INFO] Found 15 active moods: Adventurous, Cozy, Heartbroken, Energized, Curious, Nostalgic, Anxious, Romantic, Inspired, Restless, Melancholic, Playful, Silly, Dark, Overwhelmed
+[2025-12-12T01:34:00.721Z] [WARN] Could not fetch existing mood scores: | "Bad Request"
+[2025-12-12T01:34:00.722Z] [INFO] Found 5000 movies needing mood score calculations
+[2025-12-12T01:34:00.722Z] [INFO] Calculating 5000 movies × 15 moods = 75000 total scores
+
+[2025-12-12T01:34:06.720Z] [INFO] Progress: 100/5000 (100 success, 0 failed, 1500 scores)
+[2025-12-12T01:34:12.644Z] [INFO] Progress: 200/5000 (200 success, 0 failed, 3000 scores)
+[2025-12-12T01:34:18.251Z] [INFO] Progress: 300/5000 (300 success, 0 failed, 4500 scores)
+[2025-12-12T01:34:23.034Z] [INFO] Progress: 400/5000 (400 success, 0 failed, 6000 scores)
+[2025-12-12T01:34:27.817Z] [INFO] Progress: 500/5000 (500 success, 0 failed, 7500 scores)
+[2025-12-12T01:34:32.561Z] [INFO] Progress: 600/5000 (600 success, 0 failed, 9000 scores)
+[2025-12-12T01:34:37.606Z] [INFO] Progress: 700/5000 (700 success, 0 failed, 10500 scores)
+[2025-12-12T01:34:42.668Z] [INFO] Progress: 800/5000 (800 success, 0 failed, 12000 scores)
+[2025-12-12T01:34:47.327Z] [INFO] Progress: 900/5000 (900 success, 0 failed, 13500 scores)
+[2025-12-12T01:34:52.068Z] [INFO] Progress: 1000/5000 (1000 success, 0 failed, 15000 scores)
+[2025-12-12T01:34:57.667Z] [INFO] Progress: 1100/5000 (1100 success, 0 failed, 16500 scores)
+[2025-12-12T01:35:03.723Z] [INFO] Progress: 1200/5000 (1200 success, 0 failed, 18000 scores)
+[2025-12-12T01:35:10.005Z] [INFO] Progress: 1300/5000 (1300 success, 0 failed, 19500 scores)
+[2025-12-12T01:35:15.637Z] [INFO] Progress: 1400/5000 (1400 success, 0 failed, 21000 scores)
+[2025-12-12T01:35:20.909Z] [INFO] Progress: 1500/5000 (1500 success, 0 failed, 22500 scores)
+[2025-12-12T01:35:26.106Z] [INFO] Progress: 1600/5000 (1600 success, 0 failed, 24000 scores)
+[2025-12-12T01:35:31.458Z] [INFO] Progress: 1700/5000 (1700 success, 0 failed, 25500 scores)
+[2025-12-12T01:35:36.692Z] [INFO] Progress: 1800/5000 (1800 success, 0 failed, 27000 scores)
+[2025-12-12T01:35:41.931Z] [INFO] Progress: 1900/5000 (1900 success, 0 failed, 28500 scores)
+[2025-12-12T01:35:47.055Z] [INFO] Progress: 2000/5000 (2000 success, 0 failed, 30000 scores)
+[2025-12-12T01:35:52.728Z] [INFO] Progress: 2100/5000 (2100 success, 0 failed, 31500 scores)
+[2025-12-12T01:35:58.626Z] [INFO] Progress: 2200/5000 (2200 success, 0 failed, 33000 scores)
+[2025-12-12T01:36:04.173Z] [INFO] Progress: 2300/5000 (2300 success, 0 failed, 34500 scores)
+[2025-12-12T01:36:09.283Z] [INFO] Progress: 2400/5000 (2400 success, 0 failed, 36000 scores)
+[2025-12-12T01:36:14.603Z] [INFO] Progress: 2500/5000 (2500 success, 0 failed, 37500 scores)
+[2025-12-12T01:36:19.558Z] [INFO] Progress: 2600/5000 (2600 success, 0 failed, 39000 scores)
+[2025-12-12T01:36:24.718Z] [INFO] Progress: 2700/5000 (2700 success, 0 failed, 40500 scores)
+[2025-12-12T01:36:29.974Z] [INFO] Progress: 2800/5000 (2800 success, 0 failed, 42000 scores)
+[2025-12-12T01:36:35.045Z] [INFO] Progress: 2900/5000 (2900 success, 0 failed, 43500 scores)
+[2025-12-12T01:36:40.315Z] [INFO] Progress: 3000/5000 (3000 success, 0 failed, 45000 scores)
+[2025-12-12T01:36:44.617Z] [INFO] Progress: 3100/5000 (3100 success, 0 failed, 46500 scores)
+[2025-12-12T01:36:49.258Z] [INFO] Progress: 3200/5000 (3200 success, 0 failed, 48000 scores)
+[2025-12-12T01:36:54.451Z] [INFO] Progress: 3300/5000 (3300 success, 0 failed, 49500 scores)
+[2025-12-12T01:36:59.340Z] [INFO] Progress: 3400/5000 (3400 success, 0 failed, 51000 scores)
+[2025-12-12T01:37:04.428Z] [INFO] Progress: 3500/5000 (3500 success, 0 failed, 52500 scores)
+[2025-12-12T01:37:09.384Z] [INFO] Progress: 3600/5000 (3600 success, 0 failed, 54000 scores)
+[2025-12-12T01:37:14.128Z] [INFO] Progress: 3700/5000 (3700 success, 0 failed, 55500 scores)
+[2025-12-12T01:37:18.803Z] [INFO] Progress: 3800/5000 (3800 success, 0 failed, 57000 scores)
+[2025-12-12T01:37:23.519Z] [INFO] Progress: 3900/5000 (3900 success, 0 failed, 58500 scores)
+[2025-12-12T01:37:28.444Z] [INFO] Progress: 4000/5000 (4000 success, 0 failed, 60000 scores)
+[2025-12-12T01:37:33.147Z] [INFO] Progress: 4100/5000 (4100 success, 0 failed, 61500 scores)
+[2025-12-12T01:37:38.075Z] [INFO] Progress: 4200/5000 (4200 success, 0 failed, 63000 scores)
+[2025-12-12T01:37:42.617Z] [INFO] Progress: 4300/5000 (4300 success, 0 failed, 64500 scores)
+[2025-12-12T01:37:47.088Z] [INFO] Progress: 4400/5000 (4400 success, 0 failed, 66000 scores)
+[2025-12-12T01:37:51.391Z] [INFO] Progress: 4500/5000 (4500 success, 0 failed, 67500 scores)
+[2025-12-12T01:37:56.016Z] [INFO] Progress: 4600/5000 (4600 success, 0 failed, 69000 scores)
+[2025-12-12T01:38:00.613Z] [INFO] Progress: 4700/5000 (4700 success, 0 failed, 70500 scores)
+[2025-12-12T01:38:05.410Z] [INFO] Progress: 4800/5000 (4800 success, 0 failed, 72000 scores)
+[2025-12-12T01:38:09.852Z] [INFO] Progress: 4900/5000 (4900 success, 0 failed, 73500 scores)
+[2025-12-12T01:38:14.223Z] [INFO] 
+================================================================================
+[2025-12-12T01:38:14.223Z] [INFO] 📊 SUMMARY
+[2025-12-12T01:38:14.223Z] [INFO] ================================================================================
+
+[2025-12-12T01:38:14.223Z] [INFO] Total movies processed: 5000
+[2025-12-12T01:38:14.223Z] [SUCCESS] ✓ Successful: 5000
+[2025-12-12T01:38:14.223Z] [INFO] Total mood scores calculated: 75000
+[2025-12-12T01:38:14.224Z] [INFO] Average scores per movie: 15.0
+[2025-12-12T01:38:14.224Z] [INFO] Duration: 254.08s
+[2025-12-12T01:38:14.224Z] [INFO] Average: 1180.7 movies/minute
+[2025-12-12T01:38:14.224Z] [SUCCESS] 
+✅ Mood score calculation complete!
+[2025-12-12T01:38:14.224Z] [INFO] Log file: /workspaces/feelflick-app/logs/09-calculate-mood-scores.log

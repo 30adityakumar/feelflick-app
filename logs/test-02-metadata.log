@@ -1,0 +1,18 @@
+[2025-12-12T01:16:06.588Z] [INFO] 
+================================================================================
+[2025-12-12T01:16:06.588Z] [INFO] TEST FETCH METADATA
+[2025-12-12T01:16:06.588Z] [INFO] ================================================================================
+
+[2025-12-12T01:16:06.779Z] [INFO] Testing with: TMDB 1069905
+[2025-12-12T01:16:06.779Z] [INFO] Fetching from TMDB...
+[2025-12-12T01:16:06.828Z] [SUCCESS] ✓ Received data for: Jay Kelly
+[2025-12-12T01:16:06.829Z] [INFO]   Runtime: 132 min
+[2025-12-12T01:16:06.829Z] [INFO]   Rating: 5.946/10
+[2025-12-12T01:16:06.829Z] [INFO]   IMDb ID: tt30446847
+[2025-12-12T01:16:06.829Z] [INFO]   Trailer: I8GbcVkqZwQ
+[2025-12-12T01:16:06.829Z] [INFO] 
+Updating database...
+[2025-12-12T01:16:06.980Z] [SUCCESS] ✓ Database updated!
+[2025-12-12T01:16:06.981Z] [INFO] TMDB API calls: 1
+[2025-12-12T01:16:06.981Z] [SUCCESS] 
+✅ Metadata test complete!

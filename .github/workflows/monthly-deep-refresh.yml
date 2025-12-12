@@ -1,0 +1,59 @@
+name: Monthly Deep Refresh
+
+# Run on the 1st of every month at 4 AM UTC
+on:
+  schedule:
+    - cron: '0 4 1 * *'  # 1st of month, 4 AM UTC
+  workflow_dispatch:
+
+jobs:
+  deep-refresh:
+    name: Deep Refresh All Ratings
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: 'scripts/pipeline/package.json'
+      
+      - name: Install dependencies
+        working-directory: ./scripts/pipeline
+        run: npm ci
+      
+      - name: Run deep refresh pipeline
+        working-directory: ./scripts/pipeline
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+          OMDB_API_KEY: ${{ secrets.OMDB_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: node run-pipeline.js deep-refresh
+      
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deep-refresh-logs-${{ github.run_number }}
+          path: logs/*.log
+          retention-days: 30
+      
+      - name: Create success report
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '✅ Monthly Deep Refresh Complete - ' + new Date().toISOString().split('T')[0],
+              body: '## Monthly Deep Refresh Summary\n\nAll external ratings have been refreshed successfully.\n\nView the [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for detailed logs.',
+              labels: ['automation', 'report']
+            })

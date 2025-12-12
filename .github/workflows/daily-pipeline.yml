@@ -1,0 +1,99 @@
+name: Daily Movie Pipeline
+
+# Run daily at 2 AM UTC (9 PM EST / 10 PM EDT)
+on:
+  schedule:
+    - cron: '0 2 * * *'  # 2 AM UTC daily
+  workflow_dispatch:  # Allow manual trigger from GitHub UI
+
+jobs:
+  discover:
+    name: Discover & Process New Movies
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: 'scripts/pipeline/package.json'
+      
+      - name: Install dependencies
+        working-directory: ./scripts/pipeline
+        run: npm ci
+      
+      - name: Run discovery pipeline
+        working-directory: ./scripts/pipeline
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+          OMDB_API_KEY: ${{ secrets.OMDB_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: node run-pipeline.js discover
+      
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-logs-${{ github.run_number }}
+          path: logs/*.log
+          retention-days: 7
+      
+      - name: Notify on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '⚠️ Daily Pipeline Failed - ' + new Date().toISOString().split('T')[0],
+              body: 'The daily movie discovery pipeline failed. Check the [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.',
+              labels: ['bug', 'automation']
+            })
+
+  weekly-refresh:
+    name: Weekly Data Refresh
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    # Only run on Sundays at 3 AM UTC
+    if: github.event.schedule == '0 3 * * 0' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: 'scripts/pipeline/package.json'
+      
+      - name: Install dependencies
+        working-directory: ./scripts/pipeline
+        run: npm ci
+      
+      - name: Run refresh pipeline
+        working-directory: ./scripts/pipeline
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+          OMDB_API_KEY: ${{ secrets.OMDB_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: node run-pipeline.js refresh
+      
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: refresh-logs-${{ github.run_number }}
+          path: logs/*.log
+          retention-days: 14

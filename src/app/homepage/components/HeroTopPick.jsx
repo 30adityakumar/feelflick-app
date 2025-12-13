@@ -1,3 +1,4 @@
+// src/app/homepage/components/HeroTopPick.jsx
 import { useEffect, useState, useCallback, useRef } from 'react'
 import {
   Loader2,

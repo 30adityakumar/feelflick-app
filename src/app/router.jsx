@@ -48,6 +48,9 @@ import TestRecommendations from '@/app/pages/TestRecommendations'
 
 import DiscoverPage from '@/app/pages/discover/DiscoverPage'
 
+// cache monitoring page
+import CacheMonitoring from './admin/CacheMonitoring'
+
 
 /* ----------------------------- Public layout ----------------------------- */
 function PublicShell() {
@@ -199,6 +202,12 @@ export const router = createBrowserRouter([
       { path: 'register', element: <Navigate to="/" replace /> },
 
       { path: 'logout', element: <SignOutRoute /> },
+
+      // cache monitoring
+      {
+        path: '/admin/cache-monitoring',
+        element: <CacheMonitoring />,
+      }
     ],
   },
 

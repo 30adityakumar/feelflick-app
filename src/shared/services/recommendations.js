@@ -75,11 +75,47 @@ const THRESHOLDS = {
 
 /**
  * Compute comprehensive user profile from watch history and preferences
+ * Uses caching to avoid expensive recomputation
  * @param {string} userId - User UUID
+ * @param {boolean} forceRefresh - Skip cache and recompute
  * @returns {Promise<Object>} User profile object
  */
-export async function computeUserProfile(userId) {
+export async function computeUserProfile(userId, forceRefresh = false) {
   try {
+    // Try to fetch from cache first (unless force refresh)
+    if (!forceRefresh) {
+      const { data: cached, error: cacheError } = await supabase
+        .from('user_profiles_computed')
+        .select('profile, seed_films, computed_at, data_points, confidence')
+        .eq('user_id', userId)
+        .maybeSingle()
+
+       if (cached && !cacheError) {
+        const age = Date.now() - new Date(cached.computed_at).getTime()
+        const maxAge = 24 * 60 * 60 * 1000 // 24 hours (was 7 days)
+
+        // Use cache if less than 24 hours old
+        if (age < maxAge) {
+          console.log('[computeUserProfile] Cache HIT:', {
+            userId,
+            age: Math.round(age / 1000 / 60),
+            dataPoints: cached.data_points,
+            confidence: cached.confidence
+          })
+          
+          return {
+            ...cached.profile,
+            _cached: true,
+            _seedFilms: cached.seed_films
+          }
+        } else {
+          console.log('[computeUserProfile] Cache expired, recomputing')
+        }
+      }
+    }
+
+    console.log('[computeUserProfile] Cache MISS or force refresh, computing...')
+
     // Fetch all data in parallel
     const [
       { data: watchHistory },
@@ -119,7 +155,12 @@ export async function computeUserProfile(userId) {
 
     // Handle empty history (new user)
     if (!watchHistory || watchHistory.length === 0) {
-      return buildEmptyProfile(userId, userPrefs)
+      const emptyProfile = buildEmptyProfile(userId, userPrefs)
+      
+      // Cache empty profile
+      await cacheUserProfile(userId, emptyProfile, [])
+      
+      return emptyProfile
     }
 
     // Separate onboarding favorites from regular history
@@ -160,7 +201,7 @@ export async function computeUserProfile(userId) {
     const themes = computeThemeAffinities(weightedMovies)
     const qualityProfile = computeQualityProfile(weightedMovies, userRatings)
 
-    return {
+    const profile = {
       userId,
       languages,
       genres,
@@ -177,9 +218,48 @@ export async function computeUserProfile(userId) {
                     weightedMovies.length >= 10 ? 'medium' : 'low'
       }
     }
+
+    // Compute seed films for caching
+    const seedFilms = await getSeedFilms(userId, profile)
+
+    // Cache the computed profile (async, don't await)
+    cacheUserProfile(userId, profile, seedFilms).catch(err => 
+      console.warn('[computeUserProfile] Cache save failed:', err.message)
+    )
+
+    return profile
+
   } catch (error) {
     console.error('[computeUserProfile] Error:', error)
     return buildEmptyProfile(userId, null)
+  }
+}
+
+/**
+ * Save computed profile to cache
+ */
+async function cacheUserProfile(userId, profile, seedFilms) {
+  try {
+    const { error } = await supabase
+      .from('user_profiles_computed')
+      .upsert({
+        user_id: userId,
+        profile,
+        seed_films: seedFilms,
+        computed_at: new Date().toISOString(),
+        data_points: profile.meta.dataPoints,
+        confidence: profile.meta.confidence
+      }, {
+        onConflict: 'user_id'
+      })
+
+    if (error) {
+      console.error('[cacheUserProfile] Error:', error)
+    } else {
+      console.log('[cacheUserProfile] Cached profile for user:', userId)
+    }
+  } catch (err) {
+    console.error('[cacheUserProfile] Exception:', err)
   }
 }
 
@@ -542,60 +622,57 @@ function computeQualityProfile(weightedMovies, userRatings) {
  * Prioritizes: onboarding favorites > highly rated > recently watched
  */
 /**
- * Get user's seed films - EVOLVING based on behavior
- * Prioritizes: explicit ratings > recent quality watches > onboarding (decaying)
+ * Get seed films for similarity matching
+ * Uses cached seeds from profile if available
  */
 async function getSeedFilms(userId, profile) {
-  if (!userId) return []
-
   try {
-    // Get user's watch history
+    // If profile has cached seeds, use them
+    if (profile._seedFilms && Array.isArray(profile._seedFilms) && profile._seedFilms.length > 0) {
+      console.log('[getSeedFilms] Using cached seeds:', profile._seedFilms.map(s => s.title))
+      return profile._seedFilms
+    }
+
+    // Otherwise compute fresh
     const { data: history } = await supabase
       .from('user_history')
       .select(`
         movie_id,
-        source,
         watched_at,
+        source,
         movies!inner (
-          id, title, director_name, lead_actor_name,
-          genres, keywords, primary_genre,
-          original_language, release_year,
-          pacing_score, intensity_score, emotional_depth_score,
-          ff_rating
+          id, title, tmdb_id, director_name, primary_genre,
+          ff_rating, release_year
         )
       `)
       .eq('user_id', userId)
       .order('watched_at', { ascending: false })
       .limit(100)
 
-    // Get user ratings (high-rated movies are strongest seeds)
-    const { data: ratings, error: ratingsError } = await supabase
+    if (!history || history.length === 0) {
+      return []
+    }
+
+    // Get user's explicit ratings for priority weighting
+    const { data: ratings } = await supabase
       .from('user_ratings')
       .select('movie_id, rating')
       .eq('user_id', userId)
-      .gte('rating', 4)
-      .order('rated_at', { ascending: false })
-      .limit(20)
+      .gte('rating', 4.0) // 4-5 star ratings only
 
-    if (ratingsError) {
-      console.log('[getSeedFilms] Ratings query info:', ratingsError.message)
-    }
-
-    if (!history || history.length === 0) return []
-
-    const totalWatched = profile.qualityProfile?.totalMoviesWatched || history.length
-    const now = new Date()
-    const thirtyDaysAgo = new Date(now - 30 * 24 * 60 * 60 * 1000)
-
-    // Calculate onboarding weight decay
-    let onboardingWeight = 3.0
-    if (totalWatched >= 50) onboardingWeight = 1.0
-    else if (totalWatched >= 30) onboardingWeight = 1.5
-    else if (totalWatched >= 10) onboardingWeight = 2.0
-
-    // Build weighted seed candidates
-    const seedCandidates = []
     const ratedMovieIds = new Set((ratings || []).map(r => r.movie_id))
+
+    // Calculate seed weights
+    const totalWatched = history.length
+    const onboardingCount = history.filter(h => h.source === 'onboarding').length
+    
+    // Decay onboarding weight over time as user builds real history
+    const onboardingWeight = totalWatched <= 10 ? 3.0 :
+                            totalWatched <= 20 ? 2.0 :
+                            totalWatched <= 40 ? 1.5 : 1.0
+
+    const seedCandidates = []
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
 
     history.forEach(h => {
       if (!h.movies) return
@@ -611,17 +688,13 @@ async function getSeedFilms(userId, profile) {
       let weight = 0
 
       if (isHighlyRated) {
-        // User explicitly rated 4-5 stars - STRONGEST signal
-        weight = 5.0
+        weight = 5.0 // User explicitly rated 4-5 stars - STRONGEST signal
       } else if (isOnboarding) {
-        // Onboarding favorites - decays over time
-        weight = onboardingWeight
+        weight = onboardingWeight // Onboarding favorites - decays over time
       } else if (isRecent && isQuality) {
-        // Recent quality watch - good signal
-        weight = 2.0
+        weight = 2.0 // Recent quality watch - good signal
       } else if (isQuality) {
-        // Older quality watch - weak signal
-        weight = 1.0
+        weight = 1.0 // Older quality watch - weak signal
       }
 
       if (weight > 0) {
@@ -643,6 +716,7 @@ async function getSeedFilms(userId, profile) {
     })
 
     return seeds
+
   } catch (error) {
     console.error('[getSeedFilms] Error:', error)
     return []
@@ -2069,37 +2143,6 @@ export const RECOMMENDATION_CONSTANTS = {
   THRESHOLDS
 }
 
-/**
- * Get personalized movie recommendations for a user
- * @param {string} userId - User UUID
- * @param {Object} options - Configuration options
- * @returns {Promise<Object>} Recommendation sets
- */
-export async function getPersonalizedRecommendations(userId, options = {}) {
-  const {
-    limit = 20,
-    includeGenreBased = true,
-    includeHistoryBased = true,
-    signal,
-  } = options
-
-  try {
-    // Run recommendations in parallel for speed
-    const [genreRecs, historyRecs] = await Promise.all([
-      includeGenreBased ? getGenreBasedRecommendations(userId, { limit, signal }) : null,
-      includeHistoryBased ? getHistoryBasedRecommendations(userId, { limit, signal }) : null,
-    ])
-
-    return {
-      genreBased: genreRecs || [],
-      historyBased: historyRecs || [],
-      timestamp: new Date().toISOString(),
-    }
-  } catch (error) {
-    console.error('[Recommendations] Failed to get personalized recommendations:', error)
-    throw error
-  }
-}
 
 // ============================================================================
 // GENRE-BASED RECOMMENDATIONS ROW
@@ -2591,37 +2634,6 @@ export const MOOD_GENRE_MAP = {
   9: [53, 9648, 80], // Suspenseful = Thriller + Mystery + Crime
 }
 
-/**
- * Get fallback recommendations when user has no data
- * Returns curated popular movies
- */
-export async function getFallbackRecommendations(options = {}) {
-  const { limit = 20, signal, excludeTmdbIds = [] } = options
-
-  const excludeSet = new Set(
-    (excludeTmdbIds || []).filter(Boolean).map((n) => Number(n))
-  )
-
-  try {
-    const response = await tmdb.getPopularMovies({ page: 1, signal })
-
-    if (!response.results) return []
-
-    return response.results
-      .filter(
-        (movie) =>
-          movie.poster_path &&
-          movie.vote_average &&
-          movie.vote_average >= 7.0 &&
-          !excludeSet.has(Number(movie.id))
-      )
-      .slice(0, limit)
-  } catch (error) {
-    console.error('[Recommendations] Fallback recommendations failed:', error)
-    return []
-  }
-}
-
 
 // ============================================================================
 // BECAUSE YOU WATCHED ROWS
@@ -2869,35 +2881,6 @@ export async function getBecauseYouWatchedRows(userId, options = {}) {
   })
 }
 
-
-export async function getTopGenresForUser(userId, options = {}) {
-  const { limit = 3 } = options
-
-  try {
-    const { data: prefs, error } = await supabase
-      .from('user_preferences')
-      .select('genre_id')
-      .eq('user_id', userId)
-
-    if (error) throw error
-    if (!prefs || prefs.length === 0) return []
-
-    const counts = new Map()
-    prefs.forEach(p => {
-      counts.set(p.genre_id, (counts.get(p.genre_id) || 0) + 1)
-    })
-
-    const sorted = Array.from(counts.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, limit)
-      .map(entry => entry[0])
-
-    return sorted
-  } catch (error) {
-    console.error('[Recommendations] getTopGenresForUser failed:', error)
-    return []
-  }
-}
 
 // ============================================================================
 // TRENDING FOR YOU ROW
@@ -3461,67 +3444,7 @@ async function getHiddenGemsFallback(limit = 20) {
   }))
 }
 
-/**
- * Get themed row using new enhanced scoring (Phase 1-2)
- * Uses quality_score, star_power, content dimensions
- */
-export async function getThemedRow(userId, rowType, options = {}) {
-  const { limit = 20, signal } = options
 
-  // Get user's preferred genres
-  const { data: userPrefs } = await supabase
-    .from('user_preferences')
-    .select('genre_id')
-    .eq('user_id', userId)
-
-  const userGenres = userPrefs?.map(p => p.genre_id) || []
-
-  let query = supabase
-    .from('movies')
-    .select('id, tmdb_id, title, poster_path, vote_average, popularity, runtime, star_power, quality_score, pacing_score, intensity_score, emotional_depth_score, dialogue_density')
-    .not('vote_average', 'is', null)
-
-  // Apply row-specific filters
-  if (rowType === 'hidden_gems') {
-    query = query
-      .gte('vote_average', 7.0)
-      .lt('popularity', 60)
-      .gte('vote_count', 100)
-  } else if (rowType === 'slow_contemplative') {
-    query = query
-      .lt('pacing_score', 40)
-      .gt('emotional_depth_score', 70)
-      .gte('vote_average', 7.0)
-  } else if (rowType === 'high_energy') {
-    query = query
-      .gt('pacing_score', 70)
-      .gt('intensity_score', 70)
-      .gte('vote_average', 6.5)
-  } else if (rowType === 'quick_watches') {
-    query = query
-      .lt('runtime', 90)
-      .gte('vote_average', 7.0)
-      .not('runtime', 'is', null)
-  }
-
-  const { data: movies, error } = await query.limit(limit * 2)
-
-  if (error) throw error
-
-  // Calculate enhanced scores
-  const scored = movies.map(movie => {
-    const score = 
-      (movie.popularity * 0.005) +
-      (movie.vote_average * 10) +
-      (movie.quality_score || 0) * 0.3 +
-      (movie.star_power === 'no_stars' && rowType === 'hidden_gems' ? 15 : 0)
-
-    return { ...movie, score }
-  })
-
-  // Sort and return
-  return scored.sort((a, b) => b.score - a.score).slice(0, limit)
-}
 
 // ============================================================================
 // SLOW & CONTEMPLATIVE ROW
@@ -4084,4 +4007,94 @@ async function getQuickWatchesFallback(limit = 20) {
     _score: movie.ff_rating * 10,
     _pickReason: { label: `${movie.runtime}m`, type: 'fallback_quick' }
   }))
+}
+
+/**
+ * Utility: Get cache statistics
+ * Usage: Call from browser console or admin dashboard
+ */
+export async function getCacheStats() {
+  try {
+    const { data: stats, error } = await supabase
+      .from('user_profiles_computed')
+      .select('confidence, computed_at')
+
+    if (error) throw error
+
+    const now = Date.now()
+    const byConfidence = { none: 0, low: 0, medium: 0, high: 0 }
+    const byAge = { fresh: 0, recent: 0, stale: 0 }
+
+    stats.forEach(s => {
+      byConfidence[s.confidence]++
+      
+      const age = (now - new Date(s.computed_at).getTime()) / (1000 * 60 * 60)
+      if (age < 1) byAge.fresh++
+      else if (age < 24) byAge.recent++
+      else byAge.stale++
+    })
+
+    return {
+      total: stats.length,
+      byConfidence,
+      byAge,
+      avgAge: stats.reduce((sum, s) => 
+        sum + (now - new Date(s.computed_at).getTime()), 0) / stats.length / 1000 / 60
+    }
+  } catch (error) {
+    console.error('[getCacheStats] Error:', error)
+    return null
+  }
+}
+
+/**
+ * Utility: Clear cache for specific user (for testing)
+ */
+export async function clearProfileCache(userId) {
+  const { error } = await supabase
+    .from('user_profiles_computed')
+    .delete()
+    .eq('user_id', userId)
+
+  if (error) {
+    console.error('[clearProfileCache] Error:', error)
+    return false
+  }
+
+  console.log('[clearProfileCache] Cleared cache for user:', userId)
+  return true
+}
+
+/**
+ * Utility: Warm cache for all active users (run as cron job)
+ */
+export async function warmProfileCache() {
+  try {
+    // Get users active in last 30 days
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+    
+    const { data: activeUsers } = await supabase
+      .from('users')
+      .select('id')
+      .gte('last_active_at', thirtyDaysAgo)
+
+    console.log(`[warmProfileCache] Warming cache for ${activeUsers?.length || 0} active users`)
+
+    let warmed = 0
+    for (const user of activeUsers || []) {
+      try {
+        await computeUserProfile(user.id, true) // Force refresh
+        warmed++
+      } catch (err) {
+        console.error(`[warmProfileCache] Failed for user ${user.id}:`, err.message)
+      }
+    }
+
+    console.log(`[warmProfileCache] Complete: ${warmed}/${activeUsers?.length || 0} profiles warmed`)
+    return warmed
+
+  } catch (error) {
+    console.error('[warmProfileCache] Error:', error)
+    return 0
+  }
 }

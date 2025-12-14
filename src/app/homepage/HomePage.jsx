@@ -1,5 +1,4 @@
 // src/app/homepage/HomePage.jsx
-import { useState, useEffect } from 'react'
 import HeroTopPick from './components/HeroTopPick'
 import QuickPicksRow from './components/QuickPicksRow'
 import PersonalizedCarouselRow from './components/PersonalizedCarouselRow'
@@ -9,36 +8,20 @@ import TrendingForYouRow from './components/TrendingForYouRow'
 import SlowContemplativeRow from './components/SlowContemplativeRow'
 import QuickWatchesRow from './components/QuickWatchesRow'
 import LazyRow from '@/shared/components/LazyRow'
-import FeelFlickLoader from '@/shared/components/FeelFlickLoader'
 import { useGenreRecommendations } from '@/shared/hooks/useRecommendations'
 import { useStaggeredEnabled } from '@/shared/hooks/useStaggeredEnabled'
 
 export default function HomePage() {
-  const [showLoader, setShowLoader] = useState(true)
-
   // Genre recommendations with stagger
   const enabledGenre = useStaggeredEnabled(50)
   const genreRecs = useGenreRecommendations({ limit: 20, enabled: enabledGenre })
 
-  // Show loader for minimum 800ms, then wait for HeroTopPick ready signal
-  useEffect(() => {
-    const minTime = setTimeout(() => {
-      setShowLoader(false)
-    }, 800)
-    
-    return () => clearTimeout(minTime)
-  }, [])
-
-  if (showLoader) {
-    return <FeelFlickLoader stage={2} />
-  }
-
   return (
     <div 
       className="relative w-full bg-black text-white min-h-screen overflow-x-hidden animate-fadeIn"
-      style={{ animationDuration: '0.6s' }}
+      style={{ animationDuration: '0.4s' }}
     >
-      {/* Hero manages its own data - no preloading */}
+      {/* Hero manages its own loading state */}
       <HeroTopPick />
 
       {/* Content Rows */}

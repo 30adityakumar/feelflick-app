@@ -52,7 +52,6 @@ export default function HeroTopPick() {
   const navigate = useNavigate()
   const location = useLocation()
   
-  // Accumulated TMDB IDs skipped in this session
   const [skippedTmdbIds, setSkippedTmdbIds] = useState([])
   const [posterLoaded, setPosterLoaded] = useState(false)
   const [backdropLoaded, setBackdropLoaded] = useState(false)
@@ -60,8 +59,6 @@ export default function HeroTopPick() {
   const [user, setUser] = useState(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [providers, setProviders] = useState(null)
-
-  // Key for forcing refetch - increments on user actions
   const [refreshKey, setRefreshKey] = useState(0)
 
   // Single source of truth - always enabled
@@ -75,7 +72,7 @@ export default function HeroTopPick() {
     excludeTmdbIds: skippedTmdbIds,
   })
 
-  // Reset everything when navigating back to homepage
+  // Reset on navigation
   const locationKey = location.key
   useEffect(() => {
     setSkippedTmdbIds([])
@@ -95,31 +92,51 @@ export default function HeroTopPick() {
   }, [])
 
   // Reset visual state when movie changes
+  // Clear refreshing state when new data arrives after refetch
   useEffect(() => {
-    setPosterLoaded(false)
-    setBackdropLoaded(false)
-    setRevealed(false)
-    setProviders(null)
-    setIsRefreshing(false)
-  }, [movie?.id])
-
-  // Reveal content after images load (with fallback)
-  useEffect(() => {
-    if (posterLoaded || backdropLoaded) {
-      const t = setTimeout(() => setRevealed(true), 100)
-      return () => clearTimeout(t)
+    if (!loading && movie && isRefreshing) {
+      // Clear immediately when new movie arrives
+      setIsRefreshing(false)
     }
+  }, [loading, movie, isRefreshing])
+
+  // Preload next movie's backdrop for instant display
+  useEffect(() => {
+    if (!movie?.backdrop_path) return
     
-    // Fallback: force reveal after 2s
-    const fallback = setTimeout(() => {
-      if (!revealed && movie) {
-        setPosterLoaded(true)
-        setBackdropLoaded(true)
+    const img = new Image()
+    img.src = tmdbImg(movie.backdrop_path, 'w1280')
+  }, [movie?.backdrop_path])
+
+  // PROGRESSIVE REVEAL: Show content quickly, images can lag
+  useEffect(() => {
+    if (!movie) return
+
+    // Strategy: Reveal after 500ms OR when images load (whichever comes first)
+    let revealTimeout
+    let forceRevealTimeout
+
+    // If either image loads, reveal immediately
+    if (posterLoaded || backdropLoaded) {
+      revealTimeout = setTimeout(() => setRevealed(true), 100)
+    }
+
+    // Force reveal after 500ms even if images haven't loaded
+    // This ensures content appears quickly
+    forceRevealTimeout = setTimeout(() => {
+      if (!revealed) {
+        console.log('[HeroTopPick] Force revealing content after 500ms')
         setRevealed(true)
+        // Mark as "loaded" to prevent flicker
+        if (!posterLoaded) setPosterLoaded(true)
+        if (!backdropLoaded) setBackdropLoaded(true)
       }
-    }, 2000)
-    
-    return () => clearTimeout(fallback)
+    }, 500)
+
+    return () => {
+      clearTimeout(revealTimeout)
+      clearTimeout(forceRevealTimeout)
+    }
   }, [posterLoaded, backdropLoaded, revealed, movie])
 
   // Fetch watch providers
@@ -178,37 +195,34 @@ export default function HeroTopPick() {
   const prevWatchedRef = useRef(isWatched)
   
   useEffect(() => {
-    if (!user?.id || !movie?.id) return
+  if (!user?.id || !movie?.id) return
+  
+  if (isInWatchlist && !prevWatchlistRef.current) {
+    updateImpression(user.id, movie.id, 'hero', {
+      added_to_watchlist: true
+    })
+  }
+  
+  // CRITICAL: Set refreshing BEFORE watched state can render
+  if (isWatched && !prevWatchedRef.current) {
+    updateImpression(user.id, movie.id, 'hero', {
+      marked_watched: true
+    })
     
-    if (isInWatchlist && !prevWatchlistRef.current) {
-      updateImpression(user.id, movie.id, 'hero', {
-        added_to_watchlist: true
-      })
-    }
-    
-    // When marked watched - force immediate refresh
-    if (isWatched && !prevWatchedRef.current) {
-      updateImpression(user.id, movie.id, 'hero', {
-        marked_watched: true
-      })
-      
-      handleForceRefresh()
-    }
-    
-    prevWatchlistRef.current = isInWatchlist
-    prevWatchedRef.current = isWatched
-  }, [isInWatchlist, isWatched, user?.id, movie?.id])
-
-  // Force refresh - used by both watched and show another
-  const handleForceRefresh = useCallback(() => {
+    // Immediately set refreshing to prevent watched state from rendering
     setIsRefreshing(true)
     setRefreshKey(k => k + 1)
     
-    // Give visual feedback, then refetch
+    // Then trigger refetch after cache clears
     setTimeout(() => {
       refetch()
-    }, 150)
-  }, [refetch])
+    }, 300)
+  }
+  
+  prevWatchlistRef.current = isInWatchlist
+  prevWatchedRef.current = isWatched
+}, [isInWatchlist, isWatched, user?.id, movie?.id, refetch])
+
 
   const goToDetails = useCallback(() => {
     const tmdbId = movie?.tmdb_id ?? movie?.id
@@ -277,33 +291,35 @@ export default function HeroTopPick() {
   )
 
   const handleShowAnother = useCallback(() => {
-    if (!movie || isRefreshing) return
+  if (!movie || isRefreshing) return
 
-    const tmdbId = movie.tmdb_id || movie.id
-    if (!tmdbId) return
+  const tmdbId = movie.tmdb_id || movie.id
+  if (!tmdbId) return
 
-    // Track skip
-    if (user?.id && movie?.id) {
-      updateImpression(user.id, movie.id, 'hero', {
-        skipped: true
-      })
-    }
-
-    // Add to skip list
-    setSkippedTmdbIds((prev) => {
-      const n = Number(tmdbId)
-      if (prev.includes(n)) return prev
-      return [...prev, n]
+  if (user?.id && movie?.id) {
+    updateImpression(user.id, movie.id, 'hero', {
+      skipped: true
     })
+  }
 
-    // Log feedback
-    if (user) {
-      logFeedback({ feedbackType: 'hero_skip_not_tonight' })
-    }
+  setSkippedTmdbIds((prev) => {
+    const n = Number(tmdbId)
+    if (prev.includes(n)) return prev
+    return [...prev, n]
+  })
 
-    // Force refresh
-    handleForceRefresh()
-  }, [movie, isRefreshing, user, logFeedback, handleForceRefresh])
+  if (user) {
+    logFeedback({ feedbackType: 'hero_skip_not_tonight' })
+  }
+
+  // Inline the refresh logic
+  setIsRefreshing(true)
+  setRefreshKey(k => k + 1)
+  
+  setTimeout(() => {
+    refetch()
+  }, 200)
+}, [movie, isRefreshing, user, logFeedback, refetch])
 
   // Loading state
   if (loading && !movie) {
@@ -345,7 +361,7 @@ export default function HeroTopPick() {
     <section className="relative w-full h-[75vh] min-h-[500px] max-h-[800px] overflow-hidden bg-black">
       {/* Refreshing overlay */}
       {isRefreshing && (
-        <div className="absolute inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center">
+        <div className="absolute inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center animate-fadeIn" style={{ animationDuration: '0.15s' }}>
           <div className="flex items-center gap-3 px-6 py-4 rounded-2xl bg-black/80 border border-white/10">
             <Loader2 className="h-5 w-5 text-purple-400 animate-spin" />
             <span className="text-white/90 text-sm font-medium">Loading next pick...</span>
@@ -355,8 +371,9 @@ export default function HeroTopPick() {
 
       {/* === BACKDROP === */}
       <div className="absolute inset-0">
+        {/* Blur placeholder - always visible during load */}
         <div
-          className={`absolute inset-0 scale-110 transition-opacity duration-1000 ${
+          className={`absolute inset-0 scale-110 transition-opacity duration-700 ${
             backdropLoaded ? 'opacity-0' : 'opacity-100'
           }`}
           style={{
@@ -371,16 +388,18 @@ export default function HeroTopPick() {
         
         <div className="absolute top-0 left-0 right-0 h-16 sm:h-20 bg-gradient-to-b from-black/95 via-black/20 to-transparent z-10" />
 
+        {/* OPTIMIZED: Use w1280 instead of 'original' - 5x smaller file size */}
         {movie.backdrop_path && (
           <img
-            src={tmdbImg(movie.backdrop_path, 'original')}
+            src={tmdbImg(movie.backdrop_path, 'w1280')}
             alt=""
             aria-hidden="true"
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
+            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
               backdropLoaded ? 'opacity-100' : 'opacity-0'
             }`}
             style={{ objectPosition: 'center 45%' }}
             onLoad={() => setBackdropLoaded(true)}
+            loading="eager"
           />
         )}
 
@@ -405,7 +424,7 @@ export default function HeroTopPick() {
 
           {/* Poster */}
           <div
-            className={`hidden sm:block flex-shrink-0 self-end transition-all duration-700 ease-out ${
+            className={`hidden sm:block flex-shrink-0 self-end transition-all duration-500 ease-out ${
               revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
             }`}
           >
@@ -430,10 +449,11 @@ export default function HeroTopPick() {
                 <img
                   src={tmdbImg(movie.poster_path || movie.backdrop_path, 'w500')}
                   alt={movie.title}
-                  className={`w-full h-full object-cover transition-all duration-700 ${
+                  className={`w-full h-full object-cover transition-all duration-500 ${
                     posterLoaded ? 'opacity-100' : 'opacity-0'
                   } group-hover:scale-105`}
                   onLoad={() => setPosterLoaded(true)}
+                  loading="eager"
                 />
 
                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
@@ -444,7 +464,7 @@ export default function HeroTopPick() {
 
             {providers?.flatrate?.[0] && (
               <div
-                className={`mt-2 flex items-end gap-2.5 px-3 py-2 rounded-lg bg-white/[0.03] backdrop-blur-sm border border-white/[0.06] transition-all duration-700 delay-100 ${
+                className={`mt-2 flex items-end gap-2.5 px-3 py-2 rounded-lg bg-white/[0.03] backdrop-blur-sm border border-white/[0.06] transition-all duration-500 delay-100 ${
                   revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
                 }`}
               >
@@ -468,7 +488,7 @@ export default function HeroTopPick() {
           {/* Main content */}
           <div className="flex-1 min-w-0 flex flex-col justify-end">
             <h1
-              className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-[3.5rem] font-black text-white leading-[1.1] mb-3 sm:mb-4 transition-all duration-700 delay-75 ${
+              className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-[3.5rem] font-black text-white leading-[1.1] mb-3 sm:mb-4 transition-all duration-500 delay-75 ${
                 revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
               }`}
             >
@@ -476,7 +496,7 @@ export default function HeroTopPick() {
             </h1>
 
             <div
-              className={`flex flex-wrap items-center gap-2 sm:gap-2.5 mb-4 sm:mb-5 transition-all duration-700 delay-100 ${
+              className={`flex flex-wrap items-center gap-2 sm:gap-2.5 mb-4 sm:mb-5 transition-all duration-500 delay-100 ${
                 revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
               }`}
             >
@@ -524,7 +544,7 @@ export default function HeroTopPick() {
 
             {movie.overview && (
               <p
-                className={`text-sm sm:text-[15px] text-white/60 leading-relaxed max-w-xl line-clamp-2 sm:line-clamp-3 transition-all duration-700 delay-150 ${
+                className={`text-sm sm:text-[15px] text-white/60 leading-relaxed max-w-xl line-clamp-2 sm:line-clamp-3 transition-all duration-500 delay-150 ${
                   revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
                 }`}
               >
@@ -534,7 +554,7 @@ export default function HeroTopPick() {
 
             {movie.director && (
               <p
-                className={`mt-4 sm:mt-5 text-xs max-w-xl mb-5 sm:mb-6 text-white/40 transition-all duration-700 delay-300 ${
+                className={`mt-4 sm:mt-5 text-xs max-w-xl mb-5 sm:mb-6 text-white/40 transition-all duration-500 delay-200 ${
                   revealed ? 'opacity-100' : 'opacity-0'
                 }`}
               >
@@ -544,7 +564,7 @@ export default function HeroTopPick() {
             )}
 
             <div
-              className={`flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between transition-all duration-700 delay-200 ${
+              className={`flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between transition-all duration-500 delay-200 ${
                 revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
               }`}
             >

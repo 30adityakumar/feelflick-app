@@ -1,5 +1,4 @@
 // src/app/AuthInitializer.jsx 
-// src/app/AuthInitializer.jsx
 import { useEffect, useState } from 'react'
 import { supabase } from '@/shared/lib/supabase/client'
 

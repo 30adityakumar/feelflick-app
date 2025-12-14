@@ -2,35 +2,129 @@
 /**
  * React hooks for fetching personalized recommendations.
  * Uses Supabase auth directly (no AuthProvider wrapper).
+ *
+ * Performance notes:
+ * - Previously, each hook performed its own supabase.auth.getSession() "authChecked" flow,
+ *   and useUserId() also performed getSession + onAuthStateChange. That multiplied work and
+ *   introduced extra renders on HomePage.
+ * - This file now uses a small module-level auth store so all hooks share ONE session read
+ *   and ONE onAuthStateChange subscription.
  */
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { supabase } from '@/shared/lib/supabase/client'
 import * as recommendationService from '@/shared/services/recommendations'
 
+/**
+ * Normalize a list of numeric IDs (numbers or numeric strings) into a stable, sorted array.
+ * This avoids unnecessary re-fetches due to ordering differences and provides stable cache keys.
+ */
+function normalizeNumericIdArray(arr) {
+  if (!Array.isArray(arr) || arr.length === 0) return []
+  const out = []
+  for (const v of arr) {
+    const n = typeof v === 'number' ? v : Number(v)
+    if (Number.isFinite(n)) out.push(n)
+  }
+  return Array.from(new Set(out)).sort((a, b) => a - b)
+}
 
 /**
- * Hook to get current user ID from Supabase session
+ * Shared auth store (singleton).
+ * Uses globalThis to reduce duplicate subscriptions during HMR in development.
  */
-function useUserId() {
-  const [userId, setUserId] = useState(null)
+const AUTH_STORE_KEY = '__feelflick_auth_store_v1__'
+
+function getAuthStore() {
+  if (!globalThis[AUTH_STORE_KEY]) {
+    globalThis[AUTH_STORE_KEY] = {
+      initialized: false,
+      state: { userId: null, session: null, ready: false },
+      listeners: new Set(),
+      subscription: null,
+    }
+  }
+  return globalThis[AUTH_STORE_KEY]
+}
+
+function setAuthState(patch) {
+  const store = getAuthStore()
+  store.state = { ...store.state, ...patch }
+  store.listeners.forEach((fn) => {
+    try {
+      fn(store.state)
+    } catch (e) {
+      // Listener errors should never break auth propagation
+      console.warn('[useRecommendations] auth listener error:', e)
+    }
+  })
+}
+
+function initAuthStore() {
+  const store = getAuthStore()
+  if (store.initialized) return
+  store.initialized = true
+
+  // Initial read (fast-path: usually local storage)
+  supabase.auth
+    .getSession()
+    .then(({ data: { session }, error }) => {
+      if (error) {
+        console.warn('[useRecommendations] getSession error:', error)
+      }
+      setAuthState({
+        session: session || null,
+        userId: session?.user?.id || null,
+        ready: true,
+      })
+    })
+    .catch((e) => {
+      console.warn('[useRecommendations] getSession unexpected error:', e)
+      setAuthState({ session: null, userId: null, ready: true })
+    })
+
+  // Subscribe once
+  if (!store.subscription) {
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      setAuthState({
+        session: session || null,
+        userId: session?.user?.id || null,
+        ready: true,
+      })
+    })
+    store.subscription = data?.subscription || null
+  }
+}
+
+/**
+ * Hook to read shared auth state.
+ */
+function useAuthState() {
+  const store = getAuthStore()
+  const [state, setState] = useState(store.state)
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUserId(session?.user?.id || null)
-    })
+    initAuthStore()
 
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUserId(session?.user?.id || null)
-    })
+    const listener = (next) => setState(next)
+    store.listeners.add(listener)
 
-    return () => subscription.unsubscribe()
+    // Sync immediately to the latest state (in case init resolved before this hook mounted)
+    setState(store.state)
+
+    return () => {
+      store.listeners.delete(listener)
+    }
   }, [])
 
+  return state
+}
+
+/**
+ * Backwards-compatible helper: get current user ID from Supabase session.
+ */
+function useUserId() {
+  const { userId } = useAuthState()
   return userId
 }
 
@@ -39,30 +133,17 @@ function useUserId() {
  */
 export function useGenreRecommendations(options = {}) {
   const { limit = 20, excludeIds = [], enabled = true } = options
-  const userId = useUserId()
+  const { userId, ready: authReady } = useAuthState()
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [authChecked, setAuthChecked] = useState(false)
 
-  // Track when auth check is complete
-  useEffect(() => {
-    let mounted = true
-    
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (mounted) {
-        setAuthChecked(true)
-      }
-    })
-
-    return () => { mounted = false }
-  }, [])
+  const stableExcludeIds = useMemo(() => normalizeNumericIdArray(excludeIds), [excludeIds])
+  const excludeKey = stableExcludeIds.join(',')
 
   useEffect(() => {
-    if (!enabled || !authChecked) {
-      if (authChecked && !userId) {
-        setLoading(false)
-      }
+    if (!enabled || !authReady) {
+      if (authReady && !userId) setLoading(false)
       return
     }
 
@@ -71,7 +152,6 @@ export function useGenreRecommendations(options = {}) {
       return
     }
 
-    const controller = new AbortController()
     let isCancelled = false
 
     async function fetchRecommendations() {
@@ -79,14 +159,12 @@ export function useGenreRecommendations(options = {}) {
         setLoading(true)
         setError(null)
 
-        const recommendations =
-          await recommendationService.getGenreBasedRecommendations(userId, {
-            limit,
-            excludeIds,
-          })
+        const recommendations = await recommendationService.getGenreBasedRecommendations(userId, {
+          limit,
+          excludeIds: stableExcludeIds,
+        })
 
         if (isCancelled) return
-
         setData(recommendations || [])
       } catch (err) {
         if (err.name !== 'AbortError' && !isCancelled) {
@@ -101,12 +179,10 @@ export function useGenreRecommendations(options = {}) {
     }
 
     fetchRecommendations()
-
     return () => {
       isCancelled = true
-      controller.abort()
     }
-  }, [userId, limit, JSON.stringify(excludeIds), enabled, authChecked])
+  }, [userId, authReady, limit, excludeKey, enabled])
 
   return { data, loading, error }
 }
@@ -116,13 +192,18 @@ export function useGenreRecommendations(options = {}) {
  */
 export function useHistoryRecommendations(options = {}) {
   const { limit = 20, enabled = true } = options
-  const userId = useUserId()
+  const { userId, ready: authReady } = useAuthState()
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    if (!enabled || !userId) {
+    if (!enabled || !authReady) {
+      if (authReady && !userId) setLoading(false)
+      return
+    }
+
+    if (!userId) {
       setLoading(false)
       return
     }
@@ -134,13 +215,12 @@ export function useHistoryRecommendations(options = {}) {
         setLoading(true)
         setError(null)
 
-        const recommendations =
-          await recommendationService.getHistoryBasedRecommendations(userId, {
-            limit,
-            signal: controller.signal,
-          })
+        const recommendations = await recommendationService.getHistoryBasedRecommendations(userId, {
+          limit,
+          signal: controller.signal,
+        })
 
-        setData(recommendations)
+        setData(recommendations || [])
       } catch (err) {
         if (err.name !== 'AbortError') {
           console.error('[useHistoryRecommendations] Error:', err)
@@ -152,9 +232,8 @@ export function useHistoryRecommendations(options = {}) {
     }
 
     fetchRecommendations()
-
     return () => controller.abort()
-  }, [userId, limit, enabled])
+  }, [userId, authReady, enabled, limit])
 
   return { data, loading, error }
 }
@@ -164,13 +243,18 @@ export function useHistoryRecommendations(options = {}) {
  */
 export function useMoodRecommendations(moodId, options = {}) {
   const { limit = 20, enabled = true } = options
-  const userId = useUserId()
+  const { userId, ready: authReady } = useAuthState()
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    if (!enabled || !userId || !moodId) {
+    if (!enabled || !authReady) {
+      if (authReady && !userId) setLoading(false)
+      return
+    }
+
+    if (!userId || !moodId) {
       setLoading(false)
       return
     }
@@ -182,13 +266,12 @@ export function useMoodRecommendations(moodId, options = {}) {
         setLoading(true)
         setError(null)
 
-        const recommendations =
-          await recommendationService.getMoodRecommendations(userId, moodId, {
-            limit,
-            signal: controller.signal,
-          })
+        const recommendations = await recommendationService.getMoodRecommendations(userId, moodId, {
+          limit,
+          signal: controller.signal,
+        })
 
-        setData(recommendations)
+        setData(recommendations || [])
       } catch (err) {
         if (err.name !== 'AbortError') {
           console.error('[useMoodRecommendations] Error:', err)
@@ -200,15 +283,15 @@ export function useMoodRecommendations(moodId, options = {}) {
     }
 
     fetchRecommendations()
-
     return () => controller.abort()
-  }, [userId, moodId, limit, enabled])
+  }, [userId, authReady, moodId, limit, enabled])
 
   return { data, loading, error }
 }
 
 /**
  * Combined hook for all recommendation types
+ * for all recommendation types
  */
 export function useAllRecommendations(options = {}) {
   const { limit = 20 } = options
@@ -231,36 +314,32 @@ export function useAllRecommendations(options = {}) {
  * Homepage hero hook - top pick for the user
  */
 export function useTopPick(options = {}) {
-  const { enabled = true, excludeTmdbIds = [] } = options
-  const userId = useUserId()
+  const { enabled = true, excludeTmdbIds = [], userId: userIdOverride } = options
+
+  const auth = useAuthState()
+  const effectiveUserId = userIdOverride !== undefined ? userIdOverride : auth.userId
+  const authReady = userIdOverride !== undefined ? true : auth.ready
+
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [authChecked, setAuthChecked] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
 
-  // Track when auth check is complete
-  useEffect(() => {
-    let mounted = true
-    
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (mounted) {
-        setAuthChecked(true)
-      }
-    })
+  const stableExcludeTmdbIds = useMemo(
+    () => normalizeNumericIdArray(excludeTmdbIds),
+    [excludeTmdbIds]
+  )
+  const excludeKey = stableExcludeTmdbIds.join(',')
 
-    return () => { mounted = false }
-  }, [])
+  // Ensure refetch bypasses recommendation-cache once, without disabling caching permanently.
+  const forceRefreshNextRef = useRef(false)
 
   useEffect(() => {
-    // Don't fetch until auth check is complete
-    if (!enabled || !authChecked) {
+    // Don't fetch until auth check is complete (prevents "guest fetch" followed by "user fetch")
+    if (!enabled || !authReady) {
       return
     }
 
-    // If no user after auth check, use fallback (guest mode)
-    // But for logged-in users, we need userId
-    const controller = new AbortController()
     let isCancelled = false
 
     async function fetchTopPick() {
@@ -268,18 +347,12 @@ export function useTopPick(options = {}) {
         setLoading(true)
         setError(null)
 
-        // Convert excludeTmdbIds to internal IDs if needed
-        let excludeIds = []
-        if (excludeTmdbIds.length > 0 && userId) {
-          const { data: mappedIds } = await supabase
-            .from('movies')
-            .select('id')
-            .in('tmdb_id', excludeTmdbIds)
-          excludeIds = mappedIds?.map(m => m.id) || []
-        }
+        const forceRefresh = forceRefreshNextRef.current
+        forceRefreshNextRef.current = false
 
-        const result = await recommendationService.getTopPickForUser(userId, {
-          excludeIds,
+        const result = await recommendationService.getTopPickForUser(effectiveUserId, {
+          excludeTmdbIds: stableExcludeTmdbIds,
+          forceRefresh,
         })
 
         if (isCancelled) return
@@ -292,12 +365,10 @@ export function useTopPick(options = {}) {
             _score: result.score,
             _debug: result.debug,
             // Map fields for HeroTopPick compatibility
-            trailer_url: result.movie.trailer_youtube_key 
+            trailer_url: result.movie.trailer_youtube_key
               ? `https://www.youtube.com/watch?v=${result.movie.trailer_youtube_key}`
               : null,
-            director: result.movie.director_name 
-              ? { name: result.movie.director_name }
-              : null,
+            director: result.movie.director_name ? { name: result.movie.director_name } : null,
           }
           setData(enrichedMovie)
         } else {
@@ -319,13 +390,13 @@ export function useTopPick(options = {}) {
 
     return () => {
       isCancelled = true
-      controller.abort()
     }
-  }, [userId, enabled, authChecked, JSON.stringify(excludeTmdbIds), refreshKey])
+  }, [effectiveUserId, enabled, authReady, excludeKey, refreshKey])
 
-  // Function to trigger refetch
+  // Function to trigger refetch (bypass cache once)
   const refetch = useCallback(() => {
-    setRefreshKey(k => k + 1)
+    forceRefreshNextRef.current = true
+    setRefreshKey((k) => k + 1)
   }, [])
 
   return { data, loading, error, refetch }
@@ -335,41 +406,33 @@ export function useTopPick(options = {}) {
  * Homepage row: quick picks for tonight
  */
 export function useQuickPicks(options = {}) {
-  const { limit = 20, excludeIds = [], enabled = true } = options
-  const userId = useUserId()
+  const { limit = 20, excludeIds = [], enabled = true, userId: userIdOverride } = options
+
+  const auth = useAuthState()
+  const effectiveUserId = userIdOverride !== undefined ? userIdOverride : auth.userId
+  const authReady = userIdOverride !== undefined ? true : auth.ready
+
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [authChecked, setAuthChecked] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
 
-  // Track when auth check is complete
-  useEffect(() => {
-    let mounted = true
-    
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (mounted) {
-        setAuthChecked(true)
-      }
-    })
+  const stableExcludeIds = useMemo(() => normalizeNumericIdArray(excludeIds), [excludeIds])
+  const excludeKey = stableExcludeIds.join(',')
 
-    return () => { mounted = false }
-  }, [])
+  const forceRefreshNextRef = useRef(false)
 
   useEffect(() => {
-    if (!enabled || !authChecked) {
-      if (authChecked && !userId) {
-        setLoading(false)
-      }
+    if (!enabled || !authReady) {
+      if (authReady && !effectiveUserId) setLoading(false)
       return
     }
 
-    if (!userId) {
+    if (!effectiveUserId) {
       setLoading(false)
       return
     }
 
-    const controller = new AbortController()
     let isCancelled = false
 
     async function fetchQuickPicks() {
@@ -377,13 +440,16 @@ export function useQuickPicks(options = {}) {
         setLoading(true)
         setError(null)
 
-        const items = await recommendationService.getQuickPicksForUser(userId, {
+        const forceRefresh = forceRefreshNextRef.current
+        forceRefreshNextRef.current = false
+
+        const items = await recommendationService.getQuickPicksForUser(effectiveUserId, {
           limit,
-          excludeIds,
+          excludeIds: stableExcludeIds,
+          forceRefresh,
         })
 
         if (isCancelled) return
-
         setData(items || [])
       } catch (err) {
         if (err.name !== 'AbortError' && !isCancelled) {
@@ -401,13 +467,13 @@ export function useQuickPicks(options = {}) {
 
     return () => {
       isCancelled = true
-      controller.abort()
     }
-  }, [userId, limit, JSON.stringify(excludeIds), enabled, authChecked, refreshKey])
+  }, [effectiveUserId, limit, excludeKey, enabled, authReady, refreshKey])
 
-  // Function to trigger refetch
+  // Function to trigger refetch (bypass cache once)
   const refetch = useCallback(() => {
-    setRefreshKey(k => k + 1)
+    forceRefreshNextRef.current = true
+    setRefreshKey((k) => k + 1)
   }, [])
 
   return { data, loading, error, refetch }
@@ -418,30 +484,17 @@ export function useQuickPicks(options = {}) {
  */
 export function useBecauseYouWatchedRows(options = {}) {
   const { maxSeeds = 2, limitPerSeed = 20, excludeIds = [], enabled = true } = options
-  const userId = useUserId()
+  const { userId, ready: authReady } = useAuthState()
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [authChecked, setAuthChecked] = useState(false)
 
-  // Track when auth check is complete
-  useEffect(() => {
-    let mounted = true
-    
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (mounted) {
-        setAuthChecked(true)
-      }
-    })
-
-    return () => { mounted = false }
-  }, [])
+  const stableExcludeIds = useMemo(() => normalizeNumericIdArray(excludeIds), [excludeIds])
+  const excludeKey = stableExcludeIds.join(',')
 
   useEffect(() => {
-    if (!enabled || !authChecked) {
-      if (authChecked && !userId) {
-        setLoading(false)
-      }
+    if (!enabled || !authReady) {
+      if (authReady && !userId) setLoading(false)
       return
     }
 
@@ -450,7 +503,6 @@ export function useBecauseYouWatchedRows(options = {}) {
       return
     }
 
-    const controller = new AbortController()
     let isCancelled = false
 
     async function fetchRows() {
@@ -461,11 +513,10 @@ export function useBecauseYouWatchedRows(options = {}) {
         const rows = await recommendationService.getBecauseYouWatchedRows(userId, {
           maxSeeds,
           limitPerSeed,
-          excludeIds,
+          excludeIds: stableExcludeIds,
         })
 
         if (isCancelled) return
-
         setData(rows || [])
       } catch (err) {
         if (err.name !== 'AbortError' && !isCancelled) {
@@ -483,9 +534,8 @@ export function useBecauseYouWatchedRows(options = {}) {
 
     return () => {
       isCancelled = true
-      controller.abort()
     }
-  }, [userId, maxSeeds, limitPerSeed, JSON.stringify(excludeIds), enabled, authChecked])
+  }, [userId, authReady, maxSeeds, limitPerSeed, excludeKey, enabled])
 
   return { data, loading, error }
 }
@@ -495,30 +545,17 @@ export function useBecauseYouWatchedRows(options = {}) {
  */
 export function useHiddenGems(options = {}) {
   const { limit = 20, excludeIds = [], enabled = true } = options
-  const userId = useUserId()
+  const { userId, ready: authReady } = useAuthState()
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [authChecked, setAuthChecked] = useState(false)
 
-  // Track when auth check is complete
-  useEffect(() => {
-    let mounted = true
-    
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (mounted) {
-        setAuthChecked(true)
-      }
-    })
-
-    return () => { mounted = false }
-  }, [])
+  const stableExcludeIds = useMemo(() => normalizeNumericIdArray(excludeIds), [excludeIds])
+  const excludeKey = stableExcludeIds.join(',')
 
   useEffect(() => {
-    if (!enabled || !authChecked) {
-      if (authChecked && !userId) {
-        setLoading(false)
-      }
+    if (!enabled || !authReady) {
+      if (authReady && !userId) setLoading(false)
       return
     }
 
@@ -527,7 +564,6 @@ export function useHiddenGems(options = {}) {
       return
     }
 
-    const controller = new AbortController()
     let isCancelled = false
 
     async function fetchHiddenGems() {
@@ -537,11 +573,10 @@ export function useHiddenGems(options = {}) {
 
         const items = await recommendationService.getHiddenGemsForUser(userId, {
           limit,
-          excludeIds,
+          excludeIds: stableExcludeIds,
         })
 
         if (isCancelled) return
-
         setData(items || [])
       } catch (err) {
         if (err.name !== 'AbortError' && !isCancelled) {
@@ -559,42 +594,28 @@ export function useHiddenGems(options = {}) {
 
     return () => {
       isCancelled = true
-      controller.abort()
     }
-  }, [userId, limit, JSON.stringify(excludeIds), enabled, authChecked])
+  }, [userId, authReady, limit, excludeKey, enabled])
 
   return { data, loading, error }
 }
 
 /**
- * Hook: Trending this week (for you)
+ * Hook: Trending recommendations (personalized fallback)
  */
 export function useTrendingForYou(options = {}) {
   const { limit = 20, excludeIds = [], enabled = true } = options
-  const userId = useUserId()
+  const { userId, ready: authReady } = useAuthState()
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [authChecked, setAuthChecked] = useState(false)
 
-  // Track when auth check is complete
-  useEffect(() => {
-    let mounted = true
-    
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (mounted) {
-        setAuthChecked(true)
-      }
-    })
-
-    return () => { mounted = false }
-  }, [])
+  const stableExcludeIds = useMemo(() => normalizeNumericIdArray(excludeIds), [excludeIds])
+  const excludeKey = stableExcludeIds.join(',')
 
   useEffect(() => {
-    if (!enabled || !authChecked) {
-      if (authChecked && !userId) {
-        setLoading(false)
-      }
+    if (!enabled || !authReady) {
+      if (authReady && !userId) setLoading(false)
       return
     }
 
@@ -603,7 +624,6 @@ export function useTrendingForYou(options = {}) {
       return
     }
 
-    const controller = new AbortController()
     let isCancelled = false
 
     async function fetchTrending() {
@@ -613,15 +633,14 @@ export function useTrendingForYou(options = {}) {
 
         const items = await recommendationService.getTrendingForUser(userId, {
           limit,
-          excludeIds,
+          excludeIds: stableExcludeIds,
         })
 
         if (isCancelled) return
-
         setData(items || [])
       } catch (err) {
         if (err.name !== 'AbortError' && !isCancelled) {
-          console.error('[useTrendingForYou] Error:', err)
+          console.error('[useTrending] Error:', err)
           setError(err)
         }
       } finally {
@@ -635,42 +654,28 @@ export function useTrendingForYou(options = {}) {
 
     return () => {
       isCancelled = true
-      controller.abort()
     }
-  }, [userId, limit, JSON.stringify(excludeIds), enabled, authChecked])
+  }, [userId, authReady, limit, excludeKey, enabled])
 
   return { data, loading, error }
 }
 
 /**
- * Hook: Slow & Contemplative films
+ * Hook: Slow + contemplative picks
  */
 export function useSlowContemplative(options = {}) {
   const { limit = 20, excludeIds = [], enabled = true } = options
-  const userId = useUserId()
+  const { userId, ready: authReady } = useAuthState()
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [authChecked, setAuthChecked] = useState(false)
 
-  // Track when auth check is complete
-  useEffect(() => {
-    let mounted = true
-    
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (mounted) {
-        setAuthChecked(true)
-      }
-    })
-
-    return () => { mounted = false }
-  }, [])
+  const stableExcludeIds = useMemo(() => normalizeNumericIdArray(excludeIds), [excludeIds])
+  const excludeKey = stableExcludeIds.join(',')
 
   useEffect(() => {
-    if (!enabled || !authChecked) {
-      if (authChecked && !userId) {
-        setLoading(false)
-      }
+    if (!enabled || !authReady) {
+      if (authReady && !userId) setLoading(false)
       return
     }
 
@@ -679,21 +684,19 @@ export function useSlowContemplative(options = {}) {
       return
     }
 
-    const controller = new AbortController()
     let isCancelled = false
 
-    async function fetch() {
+    async function fetchSlowContemplative() {
       try {
         setLoading(true)
         setError(null)
 
         const items = await recommendationService.getSlowContemplative(userId, {
           limit,
-          excludeIds,
+          excludeIds: stableExcludeIds,
         })
 
         if (isCancelled) return
-
         setData(items || [])
       } catch (err) {
         if (err.name !== 'AbortError' && !isCancelled) {
@@ -707,46 +710,32 @@ export function useSlowContemplative(options = {}) {
       }
     }
 
-    fetch()
+    fetchSlowContemplative()
 
     return () => {
       isCancelled = true
-      controller.abort()
     }
-  }, [userId, limit, JSON.stringify(excludeIds), enabled, authChecked])
+  }, [userId, authReady, limit, excludeKey, enabled])
 
   return { data, loading, error }
 }
 
 /**
- * Hook: Quick Watches under 90 min
+ * Hook: Quick watches (short runtime)
  */
 export function useQuickWatches(options = {}) {
   const { limit = 20, excludeIds = [], enabled = true } = options
-  const userId = useUserId()
+  const { userId, ready: authReady } = useAuthState()
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [authChecked, setAuthChecked] = useState(false)
 
-  // Track when auth check is complete
-  useEffect(() => {
-    let mounted = true
-    
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (mounted) {
-        setAuthChecked(true)
-      }
-    })
-
-    return () => { mounted = false }
-  }, [])
+  const stableExcludeIds = useMemo(() => normalizeNumericIdArray(excludeIds), [excludeIds])
+  const excludeKey = stableExcludeIds.join(',')
 
   useEffect(() => {
-    if (!enabled || !authChecked) {
-      if (authChecked && !userId) {
-        setLoading(false)
-      }
+    if (!enabled || !authReady) {
+      if (authReady && !userId) setLoading(false)
       return
     }
 
@@ -755,21 +744,19 @@ export function useQuickWatches(options = {}) {
       return
     }
 
-    const controller = new AbortController()
     let isCancelled = false
 
-    async function fetch() {
+    async function fetchQuickWatches() {
       try {
         setLoading(true)
         setError(null)
 
         const items = await recommendationService.getQuickWatches(userId, {
           limit,
-          excludeIds,
+          excludeIds: stableExcludeIds,
         })
 
         if (isCancelled) return
-
         setData(items || [])
       } catch (err) {
         if (err.name !== 'AbortError' && !isCancelled) {
@@ -783,28 +770,30 @@ export function useQuickWatches(options = {}) {
       }
     }
 
-    fetch()
+    fetchQuickWatches()
 
     return () => {
       isCancelled = true
-      controller.abort()
     }
-  }, [userId, limit, JSON.stringify(excludeIds), enabled, authChecked])
+  }, [userId, authReady, limit, excludeKey, enabled])
 
   return { data, loading, error }
 }
 
 /**
- * Legacy hook for mood-based recommendations with scoring
- * Used by DiscoverPage and TestRecommendations - keeps backward compatibility
+ * Hook: Mood-specific recommendations (used outside HomePage)
  */
 export function useRecommendations(moodId, viewingContext, experienceType, limit = 20) {
-  const userId = useUserId()
+  const { userId, ready: authReady } = useAuthState()
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
   useEffect(() => {
+    if (!authReady) {
+      return
+    }
+
     if (!moodId || !userId) {
       setLoading(false)
       return
@@ -817,24 +806,20 @@ export function useRecommendations(moodId, viewingContext, experienceType, limit
         setLoading(true)
         setError(null)
 
-        const recommendations =
-          await recommendationService.getMoodRecommendations(userId, moodId, {
-            limit,
-            signal: controller.signal,
-          })
+        const recommendations = await recommendationService.getMoodRecommendations(userId, moodId, {
+          limit,
+          signal: controller.signal,
+        })
 
         // Transform TMDB format to match existing Discover expectations
-        const transformedData = recommendations.map((movie) => ({
+        const transformedData = (recommendations || []).map((movie) => ({
           movie_id: movie.id,
           tmdb_id: movie.id,
           title: movie.title,
           poster_path: movie.poster_path,
           vote_average: movie.vote_average,
           final_score: movie.popularity || 0,
-          match_percentage: Math.min(
-            99,
-            Math.round(70 + (movie.vote_average || 0) * 3)
-          ),
+          match_percentage: Math.min(99, Math.round(70 + (movie.vote_average || 0) * 3)),
         }))
 
         setData(transformedData)
@@ -849,9 +834,8 @@ export function useRecommendations(moodId, viewingContext, experienceType, limit
     }
 
     fetchRecommendations()
-
     return () => controller.abort()
-  }, [userId, moodId, viewingContext, experienceType, limit])
+  }, [userId, authReady, moodId, viewingContext, experienceType, limit])
 
   return {
     recommendations: data,

@@ -69,15 +69,12 @@ export default function HeroTopPick({ userId: userIdProp = null, preloadedData =
   const refetchTimerRef = useRef(null)
 
   // Single source of truth - always enabled
-  const {
-    data: movie,
-    loading,
-    error,
-    refetch
-  } = useTopPick({
+  const { data: movie, loading, error, refetch } = useTopPick({
     enabled: true,
+    userId,                 // <- key improvement
     excludeTmdbIds: skippedTmdbIds,
   })
+
 
   useEffect(() => {
     loadingRef.current = loading

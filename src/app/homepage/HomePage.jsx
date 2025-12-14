@@ -1,5 +1,4 @@
 // src/app/homepage/HomePage.jsx
-
 import { useState, useEffect } from 'react'
 import HeroTopPick from './components/HeroTopPick'
 import QuickPicksRow from './components/QuickPicksRow'
@@ -11,46 +10,27 @@ import SlowContemplativeRow from './components/SlowContemplativeRow'
 import QuickWatchesRow from './components/QuickWatchesRow'
 import LazyRow from '@/shared/components/LazyRow'
 import FeelFlickLoader from '@/shared/components/FeelFlickLoader'
-import { useGenreRecommendations, useTopPick } from '@/shared/hooks/useRecommendations'
+import { useGenreRecommendations } from '@/shared/hooks/useRecommendations'
 import { useStaggeredEnabled } from '@/shared/hooks/useStaggeredEnabled'
 
 export default function HomePage() {
-  const [loadingStage, setLoadingStage] = useState(1)
-  const [showContent, setShowContent] = useState(false)
-
-  // Prefetch hero immediately
-  const topPick = useTopPick({ enabled: true })
+  const [showLoader, setShowLoader] = useState(true)
 
   // Genre recommendations with stagger
   const enabledGenre = useStaggeredEnabled(50)
   const genreRecs = useGenreRecommendations({ limit: 20, enabled: enabledGenre })
 
-  // Loading stage progression
+  // Show loader for minimum 800ms, then wait for HeroTopPick ready signal
   useEffect(() => {
-    // Stage 1: Auth (handled by PostAuthGate, we're at stage 2)
-    const timer1 = setTimeout(() => setLoadingStage(2), 100)
+    const minTime = setTimeout(() => {
+      setShowLoader(false)
+    }, 800)
     
-    // Stage 2: Loading movies
-    const timer2 = setTimeout(() => setLoadingStage(3), 600)
-    
-    return () => {
-      clearTimeout(timer1)
-      clearTimeout(timer2)
-    }
+    return () => clearTimeout(minTime)
   }, [])
 
-  // Show content when hero is ready
-  useEffect(() => {
-    if (topPick.data && !topPick.loading) {
-      // Add small delay for smooth transition
-      const timer = setTimeout(() => setShowContent(true), 400)
-      return () => clearTimeout(timer)
-    }
-  }, [topPick.data, topPick.loading])
-
-  // Show unified loader until hero is ready
-  if (!showContent) {
-    return <FeelFlickLoader stage={loadingStage} />
+  if (showLoader) {
+    return <FeelFlickLoader stage={2} />
   }
 
   return (
@@ -58,17 +38,15 @@ export default function HomePage() {
       className="relative w-full bg-black text-white min-h-screen overflow-x-hidden animate-fadeIn"
       style={{ animationDuration: '0.6s' }}
     >
-      {/* Hero: Pre-loaded, renders immediately */}
-      <HeroTopPick preloadedData={topPick.data} />
+      {/* Hero manages its own data - no preloading */}
+      <HeroTopPick />
 
       {/* Content Rows */}
       <div className="relative z-30 pb-20 md:pb-8 mt-4 overflow-visible">
         <div className="space-y-2 sm:space-y-4 overflow-visible">
-          {/* Above fold - load immediately */}
           <QuickPicksRow />
           <BecauseYouWatchedSection />
 
-          {/* Below fold - lazy load */}
           <LazyRow>
             <PersonalizedCarouselRow
               title="From your favorite genres"

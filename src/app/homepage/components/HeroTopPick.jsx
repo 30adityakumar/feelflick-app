@@ -48,7 +48,7 @@ function Tooltip({ children, label }) {
   )
 }
 
-export default function HeroTopPick() {
+export default function HeroTopPick({ userId: userIdProp = null, preloadedData = null, preloadedUser = null } = {}) {
   const navigate = useNavigate()
   const location = useLocation()
   
@@ -56,10 +56,17 @@ export default function HeroTopPick() {
   const [posterLoaded, setPosterLoaded] = useState(false)
   const [backdropLoaded, setBackdropLoaded] = useState(false)
   const [revealed, setRevealed] = useState(false)
-  const [user, setUser] = useState(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [providers, setProviders] = useState(null)
-  const [refreshKey, setRefreshKey] = useState(0)
+
+  // User identity is provided by PostAuthGate via HomePage (preferred).
+  // We still accept a full user object when available.
+  const user = preloadedUser ?? (userIdProp ? { id: userIdProp } : null)
+  const userId = user?.id ?? null
+
+  // Avoid duplicate refetches when we add exclusions.
+  const loadingRef = useRef(false)
+  const refetchTimerRef = useRef(null)
 
   // Single source of truth - always enabled
   const {
@@ -72,26 +79,45 @@ export default function HeroTopPick() {
     excludeTmdbIds: skippedTmdbIds,
   })
 
+  useEffect(() => {
+    loadingRef.current = loading
+  }, [loading])
+
+  useEffect(() => {
+    return () => {
+      if (refetchTimerRef.current) clearTimeout(refetchTimerRef.current)
+    }
+  }, [])
+
+  const scheduleRefetchIfIdle = useCallback(
+    (delay = 90) => {
+      if (refetchTimerRef.current) clearTimeout(refetchTimerRef.current)
+      refetchTimerRef.current = setTimeout(() => {
+        if (!loadingRef.current) refetch()
+      }, delay)
+    },
+    [refetch]
+  )
+
+
   // Reset on navigation
   const locationKey = location.key
   useEffect(() => {
     setSkippedTmdbIds([])
-    setRefreshKey(0)
     setIsRefreshing(false)
   }, [locationKey])
 
-  // Auth
-  useEffect(() => {
-    let mounted = true
-    supabase.auth.getUser().then(({ data: { user: u } }) => {
-      if (mounted) setUser(u)
-    })
-    return () => {
-      mounted = false
-    }
-  }, [])
+  // Auth: userId is provided by PostAuthGate → HomePage → HeroTopPick (no session lookup here)
 
   // Reset visual state when movie changes
+  useEffect(() => {
+    if (!movie?.id) return
+    setPosterLoaded(false)
+    setBackdropLoaded(false)
+    setRevealed(false)
+    setProviders(null)
+  }, [movie?.id])
+
   // Clear refreshing state when new data arrives after refetch
   useEffect(() => {
     if (!loading && movie && isRefreshing) {
@@ -141,7 +167,7 @@ export default function HeroTopPick() {
 
   // Fetch watch providers
   useEffect(() => {
-    const tmdbId = movie?.tmdb_id || movie?.id
+    const tmdbId = movie?.tmdb_id
     if (!tmdbId || !TMDB_API_KEY) {
       setProviders(null)
       return
@@ -174,7 +200,7 @@ export default function HeroTopPick() {
     return () => {
       cancelled = true
     }
-  }, [movie?.id, movie?.tmdb_id])
+  }, [movie?.tmdb_id])
 
   // User movie status
   const {
@@ -193,51 +219,53 @@ export default function HeroTopPick() {
   // Track interactions
   const prevWatchlistRef = useRef(isInWatchlist)
   const prevWatchedRef = useRef(isWatched)
-  
+
   useEffect(() => {
-  if (!user?.id || !movie?.id) return
-  
-  if (isInWatchlist && !prevWatchlistRef.current) {
-    updateImpression(user.id, movie.id, 'hero', {
-      added_to_watchlist: true
-    })
-  }
-  
-  // CRITICAL: Set refreshing BEFORE watched state can render
-  if (isWatched && !prevWatchedRef.current) {
-    updateImpression(user.id, movie.id, 'hero', {
-      marked_watched: true
-    })
-    
-    // Immediately set refreshing to prevent watched state from rendering
-    setIsRefreshing(true)
-    setRefreshKey(k => k + 1)
-    
-    // Then trigger refetch after cache clears
-    setTimeout(() => {
-      refetch()
-    }, 300)
-  }
-  
-  prevWatchlistRef.current = isInWatchlist
-  prevWatchedRef.current = isWatched
-}, [isInWatchlist, isWatched, user?.id, movie?.id, refetch])
+    if (!userId || !movie?.id) return
 
+    if (isInWatchlist && !prevWatchlistRef.current) {
+      updateImpression(userId, movie.id, 'hero', {
+        added_to_watchlist: true
+      })
+    }
 
+    // When marked watched, advance immediately to a new pick.
+    if (isWatched && !prevWatchedRef.current) {
+      updateImpression(userId, movie.id, 'hero', {
+        marked_watched: true
+      })
+
+      const tmdbId = movie.tmdb_id
+      if (tmdbId) {
+        setIsRefreshing(true)
+        setSkippedTmdbIds(prev => (prev.includes(tmdbId) ? prev : [...prev, tmdbId]))
+      } else {
+        // If a pick ever arrives without tmdb_id, still attempt to refresh.
+        setIsRefreshing(true)
+      }
+
+      scheduleRefetchIfIdle(140)
+    }
+
+    prevWatchlistRef.current = isInWatchlist
+    prevWatchedRef.current = isWatched
+  }, [isInWatchlist, isWatched, userId, movie?.id, movie?.tmdb_id, scheduleRefetchIfIdle])
   const goToDetails = useCallback(() => {
-    const tmdbId = movie?.tmdb_id ?? movie?.id
-    
-    if (user?.id && movie?.id) {
-      updateImpression(user.id, movie.id, 'hero', {
+    const tmdbId = movie?.tmdb_id
+    if (!tmdbId) {
+      console.warn('[HeroTopPick] Missing tmdb_id; cannot navigate', movie)
+      return
+    }
+
+    if (userId && movie?.id) {
+      updateImpression(userId, movie.id, 'hero', {
         clicked: true,
         clicked_at: new Date().toISOString()
       })
     }
-    
-    if (tmdbId) {
-      navigate(`/movie/${tmdbId}`)
-    }
-  }, [movie?.tmdb_id, movie?.id, navigate, user?.id, movie])
+
+    navigate(`/movie/${tmdbId}`)
+  }, [movie?.tmdb_id, movie?.id, navigate, userId])
 
   const playTrailer = useCallback(() => {
     if (movie?.trailer_url) {
@@ -247,13 +275,13 @@ export default function HeroTopPick() {
 
   const logFeedback = useCallback(
     async ({ feedbackType, feedbackValue = null }) => {
-      if (!user || !movie) return
+      if (!userId || !movie) return
 
-      const tmdbId = movie.tmdb_id || movie.id
+      const tmdbId = movie.tmdb_id
       if (!tmdbId) return
 
       const payload = {
-        user_id: user.id,
+        user_id: userId,
         tmdb_id: tmdbId,
         feedback_type: feedbackType,
         feedback_value: feedbackValue,
@@ -287,39 +315,32 @@ export default function HeroTopPick() {
         console.error('[HeroTopPick] feedback insert error', insertError)
       }
     },
-    [user, movie, skippedTmdbIds]
+    [userId, movie, skippedTmdbIds]
   )
 
   const handleShowAnother = useCallback(() => {
-  if (!movie || isRefreshing) return
+    if (!movie || isRefreshing) return
 
-  const tmdbId = movie.tmdb_id || movie.id
-  if (!tmdbId) return
+    const tmdbId = movie.tmdb_id
+    if (!tmdbId) {
+      console.warn('[HeroTopPick] Missing tmdb_id; cannot skip reliably', movie)
+      setIsRefreshing(true)
+      scheduleRefetchIfIdle(140)
+      return
+    }
 
-  if (user?.id && movie?.id) {
-    updateImpression(user.id, movie.id, 'hero', {
-      skipped: true
-    })
-  }
+    if (userId && movie.id) {
+      updateImpression(userId, movie.id, 'hero', {
+        skipped: true
+      })
+    }
 
-  setSkippedTmdbIds((prev) => {
-    const n = Number(tmdbId)
-    if (prev.includes(n)) return prev
-    return [...prev, n]
-  })
-
-  if (user) {
     logFeedback({ feedbackType: 'hero_skip_not_tonight' })
-  }
 
-  // Inline the refresh logic
-  setIsRefreshing(true)
-  setRefreshKey(k => k + 1)
-  
-  setTimeout(() => {
-    refetch()
-  }, 200)
-}, [movie, isRefreshing, user, logFeedback, refetch])
+    setIsRefreshing(true)
+    setSkippedTmdbIds(prev => (prev.includes(tmdbId) ? prev : [...prev, tmdbId]))
+    scheduleRefetchIfIdle(120)
+  }, [movie, isRefreshing, userId, logFeedback, scheduleRefetchIfIdle])
 
   // Loading state
   if (loading && !movie) {

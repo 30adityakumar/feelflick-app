@@ -1,180 +1,178 @@
-// src/features/auth/PostAuthGate.jsx
-import { useEffect, useState } from 'react'
+// src/app/auth/PostAuthGate.jsx
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
 
-/**
- * Post-Auth Gate Component
- *
- * Routes authenticated users based on onboarding status:
- * - Not authenticated → redirect to landing (/)
- * - Authenticated + onboarding incomplete → redirect to /onboarding
- * - Authenticated + onboarding complete → allow access
- * - On /onboarding when complete → redirect to /home
- *
- * Prevents the "home page flash" by showing a spinner during verification
- */
-
-const isStrictTrue = (v) => v === true
-
-function SplashSpinner() {
+function SplashSpinner({ label = 'Loading your profile…' }) {
   return (
-    <div className="fixed inset-0 z-[9999] grid place-items-center bg-gradient-to-br from-[#0a121a] via-[#0d1722] to-[#0c1017]">
-      {/* Animated background orbs */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-        <div
-          className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse"
-          style={{ animationDuration: '8s' }}
-        />
-        <div
-          className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl animate-pulse"
-          style={{ animationDuration: '10s', animationDelay: '1s' }}
-        />
-      </div>
-
-      <div className="relative flex flex-col items-center gap-6">
-        <svg
-          className="h-12 w-12 animate-spin text-purple-400"
-          viewBox="0 0 24 24"
-          fill="none"
-          aria-hidden="true"
-        >
-          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeOpacity=".25" strokeWidth="4" />
-          <path d="M21 12a9 9 0 0 0-9-9v9z" fill="currentColor" />
-        </svg>
-        <span className="text-lg font-semibold text-white/90">Loading your profile...</span>
+    <div className="fixed inset-0 z-[9999] grid place-items-center bg-black">
+      <div className="flex flex-col items-center gap-3">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-white/20 border-t-white/80" />
+        <div className="text-white/75 text-sm">{label}</div>
       </div>
     </div>
   )
 }
 
-export default function PostAuthGate({ standalone = false }) {
-  const [state, setState] = useState('checking') // 'checking' | 'ready'
-  const [isOnboarded, setIsOnboarded] = useState(false)
-  const [hasUser, setHasUser] = useState(null) // null | boolean
+function isTruthyFlag(v) {
+  return v === true || v === 'true' || v === 1 || v === '1'
+}
+
+function deriveOnboardingFromMetadata(user) {
+  const meta = { ...(user?.app_metadata ?? {}), ...(user?.user_metadata ?? {}) }
+
+  // If any of these keys exist, we treat metadata as “present”
+  const hasAny =
+    meta.onboarding_complete !== undefined ||
+    meta.onboardingComplete !== undefined ||
+    meta.has_onboarded !== undefined ||
+    meta.hasOnboarded !== undefined ||
+    meta.onboarded !== undefined ||
+    meta.onboarding_completed_at !== undefined
+
+  const isComplete =
+    isTruthyFlag(meta.onboarding_complete) ||
+    isTruthyFlag(meta.onboardingComplete) ||
+    isTruthyFlag(meta.has_onboarded) ||
+    isTruthyFlag(meta.hasOnboarded) ||
+    isTruthyFlag(meta.onboarded)
+
+  return { hasAny, isComplete }
+}
+
+/**
+ * Post-Auth Gate
+ *
+ * Responsibilities:
+ * 1) Ensure we have an authenticated session (else redirect to /)
+ * 2) Determine onboarding status with a fast path (auth metadata) and a safe fallback (DB)
+ * 3) Redirect accordingly:
+ *    - Not authenticated → /
+ *    - Authenticated + not onboarded → /onboarding
+ *    - Authenticated + onboarded + currently on /onboarding → /home
+ * 4) Provide an Outlet context so downstream routes can avoid duplicate auth lookups:
+ *    { userId, user, session, isOnboarded }
+ */
+export default function PostAuthGate() {
   const location = useLocation()
 
+  const [phase, setPhase] = useState('checking') // 'checking' | 'ready'
+  const [hasUser, setHasUser] = useState(null) // null | boolean
+  const [isOnboarded, setIsOnboarded] = useState(null) // null | boolean
+  const [sessionUser, setSessionUser] = useState(null)
+  const [session, setSession] = useState(null)
+
+  // Avoid state updates after unmount
+  const mountedRef = useRef(true)
   useEffect(() => {
-    let mounted = true
-    let checkTimeout
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+    }
+  }, [])
 
-    async function verifySession({ forceDbCheck = false } = {}) {
-      try {
-        console.log('[PostAuthGate] Verifying session (fast path)...')
+  // Debug escape hatch:
+  // /home?forceOnboardingDb=1 will bypass metadata fast-path
+  const forceDbCheck = useMemo(() => {
+    try {
+      return new URLSearchParams(location.search).get('forceOnboardingDb') === '1'
+    } catch {
+      return false
+    }
+  }, [location.search])
 
-        // FAST PATH: cached session (no network call in the common case)
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+  const applySession = async (nextSession) => {
+    if (!mountedRef.current) return
 
-        if (!mounted) return
+    setSession(nextSession ?? null)
+    const user = nextSession?.user ?? null
+    setSessionUser(user)
+    setHasUser(Boolean(user))
 
-        if (sessionError || !session) {
-          console.log('[PostAuthGate] No authenticated session')
-          setHasUser(false)
-          setIsOnboarded(false)
-          setState('ready')
-          return
-        }
+    if (!user) {
+      setIsOnboarded(false)
+      setPhase('ready')
+      return
+    }
 
-        const user = session.user
-        console.log('[PostAuthGate] Session found for user:', user?.id)
-        setHasUser(true)
+    // Fast path: trust onboarding flags in auth metadata (very fast, no DB round trip)
+    const meta = deriveOnboardingFromMetadata(user)
+    if (!forceDbCheck && meta.hasAny) {
+      setIsOnboarded(meta.isComplete)
+      setPhase('ready')
+      return
+    }
 
-        // TRUST METADATA FIRST (no DB query needed on normal loads)
-        const meta = user?.user_metadata || {}
+    // Fallback: read onboarding status from DB (rare path; only if metadata absent/forced)
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('onboarding_complete,onboarding_completed_at')
+        .eq('id', user.id)
+        .maybeSingle()
 
-        const hasOnboardingMetadata =
-          Object.prototype.hasOwnProperty.call(meta, 'onboarding_complete') ||
-          Object.prototype.hasOwnProperty.call(meta, 'has_onboarded') ||
-          Object.prototype.hasOwnProperty.call(meta, 'onboarded')
+      if (!mountedRef.current) return
 
-        const metadataComplete =
-          isStrictTrue(meta.onboarding_complete) ||
-          isStrictTrue(meta.has_onboarded) ||
-          isStrictTrue(meta.onboarded)
-
-        // If metadata exists and we are not forcing DB validation, trust it.
-        if (!forceDbCheck && hasOnboardingMetadata) {
-          console.log('[PostAuthGate] Onboarding status (metadata):', metadataComplete)
-          setIsOnboarded(metadataComplete)
-          setState('ready')
-          return
-        }
-
-        // Rare edge case: metadata missing (or we explicitly want to re-check)
-        console.log('[PostAuthGate] Falling back to database check (metadata missing/forced)')
-
-        const { data, error } = await supabase
-          .from('users')
-          .select('onboarding_complete,onboarding_completed_at')
-          .eq('id', user.id)
-          .maybeSingle()
-
-        if (!mounted) return
-
-        if (error) {
-          console.warn('[PostAuthGate] Database check error:', error)
-          setIsOnboarded(false)
-          setState('ready')
-          return
-        }
-
-        const dbComplete =
-          isStrictTrue(data?.onboarding_complete) ||
-          Boolean(data?.onboarding_completed_at)
-
-        console.log('[PostAuthGate] Onboarding status (database):', dbComplete)
-        setIsOnboarded(dbComplete)
-        setState('ready')
-
-        // If DB says complete, ensure metadata is aligned for future fast loads
-        if (dbComplete && !metadataComplete) {
-          console.log('[PostAuthGate] Syncing metadata with database')
-          try {
-            await supabase.auth.updateUser({
-              data: { onboarding_complete: true, has_onboarded: true, onboarded: true }
-            })
-          } catch (e) {
-            console.warn('[PostAuthGate] Metadata sync failed (non-blocking):', e)
-          }
-        }
-      } catch (err) {
-        console.error('[PostAuthGate] Verification error:', err)
-        if (mounted) {
-          setIsOnboarded(false)
-          setState('ready')
-        }
+      if (error) {
+        console.warn('[PostAuthGate] Onboarding DB check error:', error)
+        setIsOnboarded(false)
+        setPhase('ready')
+        return
       }
+
+      const dbComplete =
+        isTruthyFlag(data?.onboarding_complete) ||
+        isTruthyFlag(data?.onboarded) ||
+        isTruthyFlag(data?.has_onboarded)
+
+      setIsOnboarded(dbComplete)
+      setPhase('ready')
+    } catch (e) {
+      if (!mountedRef.current) return
+      console.warn('[PostAuthGate] Onboarding DB check threw:', e)
+      setIsOnboarded(false)
+      setPhase('ready')
+    }
+  }
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function init() {
+      setPhase('checking')
+
+      const { data, error } = await supabase.auth.getSession()
+      if (cancelled || !mountedRef.current) return
+
+      if (error) {
+        console.warn('[PostAuthGate] getSession error:', error)
+        await applySession(null)
+        return
+      }
+
+      await applySession(data?.session ?? null)
     }
 
-    // If coming from onboarding, prefer correctness over speed:
-    // add a short delay + force DB check to avoid stale/propagation race conditions.
-    if (location.state?.fromOnboarding) {
-      console.log('[PostAuthGate] Coming from onboarding, forcing DB verification after short delay')
-      checkTimeout = setTimeout(() => {
-        verifySession({ forceDbCheck: true })
-      }, 800)
-    } else {
-      verifySession()
-    }
+    init()
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, nextSession) => {
+      if (cancelled || !mountedRef.current) return
+      setPhase('checking')
+      await applySession(nextSession ?? null)
+    })
 
     return () => {
-      mounted = false
-      if (checkTimeout) clearTimeout(checkTimeout)
+      cancelled = true
+      subscription?.unsubscribe()
     }
-  }, [location.state?.fromOnboarding])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [forceDbCheck])
 
-  // Show loading spinner while checking
-  if (state === 'checking') {
-    return standalone ? (
-      <div className="relative min-h-screen">
-        <div aria-hidden="true" className="fixed inset-0 z-0">
-          <div className="absolute inset-0 bg-[linear-gradient(120deg,#0a121a_0%,#0d1722_50%,#0c1017_100%)]" />
-        </div>
-        <SplashSpinner />
-      </div>
-    ) : (
-      <SplashSpinner />
-    )
+  // While determining session/onboarding (rarely more than 1–2 round-trips), block route render
+  if (phase !== 'ready' || hasUser === null || isOnboarded === null) {
+    return <SplashSpinner label="Loading your profile…" />
   }
 
   // Not authenticated → redirect to landing
@@ -192,6 +190,12 @@ export default function PostAuthGate({ standalone = false }) {
     return <Navigate to="/home" replace />
   }
 
-  // All checks passed → render nested route
-  return <Outlet />
+  const outletContext = {
+    userId: sessionUser?.id ?? null,
+    user: sessionUser,
+    session,
+    isOnboarded,
+  }
+
+  return <Outlet context={outletContext} />
 }

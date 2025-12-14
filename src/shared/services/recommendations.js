@@ -22,24 +22,62 @@ import { recommendationCache } from '@/shared/lib/cache'
  * Language to Region mapping for "same region" matching
  */
 const LANGUAGE_REGIONS = {
-  // South Asian
-  hi: 'south_asian', ta: 'south_asian', te: 'south_asian', ml: 'south_asian',
-  bn: 'south_asian', pa: 'south_asian', mr: 'south_asian', kn: 'south_asian',
-  // East Asian
-  ko: 'east_asian', ja: 'east_asian', zh: 'east_asian', cn: 'east_asian',
+  // Indian Subcontinent - Split by film industry
+  hi: 'hindi_bollywood',     // Hindi (Bollywood)
+  ta: 'south_indian',        // Tamil (Kollywood)
+  te: 'south_indian',        // Telugu (Tollywood)
+  ml: 'south_indian',        // Malayalam
+  kn: 'south_indian',        // Kannada
+  bn: 'bengali',             // Bengali (Tollywood/Bangladesh)
+  pa: 'punjabi',             // Punjabi
+  mr: 'marathi',             // Marathi
+  
+  // East Asian - Keep separate (distinct traditions)
+  ko: 'korean',
+  ja: 'japanese',
+  zh: 'chinese',             // Mandarin
+  cn: 'chinese',
+  yue: 'cantonese',          // Hong Kong cinema
+  
   // Southeast Asian
-  th: 'southeast_asian', id: 'southeast_asian', vi: 'southeast_asian', tl: 'southeast_asian',
-  // European West
-  fr: 'european_west', de: 'european_west', es: 'european_west', it: 'european_west',
-  pt: 'european_west', nl: 'european_west',
-  // European East
-  pl: 'european_east', ru: 'european_east', cs: 'european_east', hu: 'european_east',
-  // Nordic
-  sv: 'nordic', da: 'nordic', no: 'nordic', fi: 'nordic',
+  th: 'thai',
+  id: 'indonesian',
+  vi: 'vietnamese',
+  tl: 'filipino',
+  
+  // European - Split by film tradition
+  fr: 'french',              // French cinema
+  de: 'german',              // German cinema
+  es: 'spanish_european',    // Spain
+  it: 'italian',             // Italian cinema
+  pt: 'portuguese_european', // Portugal
+  nl: 'dutch',
+  
+  // Latin American
+  'es-MX': 'latin_american', // Mexican
+  'pt-BR': 'brazilian',      // Brazilian
+  
+  // Nordic (keep together - similar traditions)
+  sv: 'nordic', 
+  da: 'nordic', 
+  no: 'nordic', 
+  fi: 'nordic',
+  
+  // Eastern European
+  pl: 'polish',
+  ru: 'russian',
+  cs: 'czech',
+  hu: 'hungarian',
+  ro: 'romanian',
+  
   // Middle Eastern
-  ar: 'middle_eastern', fa: 'middle_eastern', tr: 'middle_eastern', he: 'middle_eastern',
-  // English
-  en: 'anglophone'
+  ar: 'arabic',
+  fa: 'persian',
+  tr: 'turkish',
+  he: 'hebrew',
+  
+  // Anglophone
+  en: 'english'
 }
 
 /**
@@ -821,19 +859,22 @@ export function scoreMovieForUser(movie, profile, rowType = 'default', seedFilms
 /**
  * Language matching score
  */
+// Location: line ~750
 function scoreLangaugeMatch(movie, profile) {
   const movieLang = movie.original_language
-  if (!movieLang || !profile.languages.primary) return 5 // Neutral
+  if (!movieLang || !profile.languages.primary) return 5
 
-  // Primary language match
+  // Primary language match (+30)
   if (movieLang === profile.languages.primary) return 30
 
-  // Secondary language match
+  // Secondary language match (+20)
   if (movieLang === profile.languages.secondary) return 20
 
-  // Same region match
+  // Same region match (+12)
   const movieRegion = LANGUAGE_REGIONS[movieLang]
-  if (movieRegion && movieRegion === profile.languages.regionAffinity) return 12
+  const userRegion = LANGUAGE_REGIONS[profile.languages.primary]
+  
+  if (movieRegion && userRegion && movieRegion === userRegion) return 12
 
   // Adventurous user bonus for foreign films
   if (profile.languages.openness === 'adventurous') return 5

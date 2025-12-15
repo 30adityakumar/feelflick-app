@@ -23,6 +23,9 @@ import { useLocation } from 'react-router-dom'
 import RecommendationFeedback from '@/shared/components/RecommendationFeedback'
 import { useUserMovieStatus } from '@/shared/hooks/useUserMovieStatus'
 
+// At the top with other imports
+import DatabaseValidationPanel from '@/shared/components/DatabaseValidationPanel'
+
 const IMG = {
   backdrop: (p) => (p ? `https://image.tmdb.org/t/p/original${p}` : ''),
   poster: (p) => (p ? `https://image.tmdb.org/t/p/w500${p}` : ''),
@@ -511,6 +514,10 @@ export default function MovieDetail() {
           </div>
         </div>
       </div>
+      {/* Database Validation Panel (Development Only) */}
+      {process.env.NODE_ENV === 'development' && movie?.id && (
+        <DatabaseValidationPanel movieId={movie.id} />
+      )}
     </div>
   )
 }

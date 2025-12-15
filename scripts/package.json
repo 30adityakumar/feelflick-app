@@ -1,3 +1,6 @@
 {
-  "type": "commonjs"
+  "scripts": {
+    "validate-db": "node validate-schema.js",
+    "validate-db:watch": "nodemon validate-schema.js"
+  }
 }

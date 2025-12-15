@@ -3,12 +3,9 @@
  * React hooks for fetching personalized recommendations.
  * Uses Supabase auth directly (no AuthProvider wrapper).
  *
- * Performance notes:
- * - Previously, each hook performed its own supabase.auth.getSession() "authChecked" flow,
- *   and useUserId() also performed getSession + onAuthStateChange. That multiplied work and
- *   introduced extra renders on HomePage.
- * - This file now uses a small module-level auth store so all hooks share ONE session read
- *   and ONE onAuthStateChange subscription.
+ * Key performance change:
+ * - Share ONE supabase.auth.getSession() call and ONE onAuthStateChange subscription
+ *   across the entire app (instead of duplicating work in every hook instance).
  */
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
@@ -16,8 +13,8 @@ import { supabase } from '@/shared/lib/supabase/client'
 import * as recommendationService from '@/shared/services/recommendations'
 
 /**
- * Normalize a list of numeric IDs (numbers or numeric strings) into a stable, sorted array.
- * This avoids unnecessary re-fetches due to ordering differences and provides stable cache keys.
+ * Normalize numeric ID arrays (dedupe + coerce to number + sort)
+ * so dependency keys and cache keys stay stable across renders.
  */
 function normalizeNumericIdArray(arr) {
   if (!Array.isArray(arr) || arr.length === 0) return []
@@ -31,7 +28,7 @@ function normalizeNumericIdArray(arr) {
 
 /**
  * Shared auth store (singleton).
- * Uses globalThis to reduce duplicate subscriptions during HMR in development.
+ * Using globalThis makes this resilient during HMR in dev (prevents resubscribing repeatedly).
  */
 const AUTH_STORE_KEY = '__feelflick_auth_store_v1__'
 
@@ -54,7 +51,7 @@ function setAuthState(patch) {
     try {
       fn(store.state)
     } catch (e) {
-      // Listener errors should never break auth propagation
+      // Listener errors should not break auth propagation
       console.warn('[useRecommendations] auth listener error:', e)
     }
   })
@@ -65,13 +62,11 @@ function initAuthStore() {
   if (store.initialized) return
   store.initialized = true
 
-  // Initial read (fast-path: usually local storage)
+  // Initial read (typically local-storage fast)
   supabase.auth
     .getSession()
     .then(({ data: { session }, error }) => {
-      if (error) {
-        console.warn('[useRecommendations] getSession error:', error)
-      }
+      if (error) console.warn('[useRecommendations] getSession error:', error)
       setAuthState({
         session: session || null,
         userId: session?.user?.id || null,
@@ -96,9 +91,6 @@ function initAuthStore() {
   }
 }
 
-/**
- * Hook to read shared auth state.
- */
 function useAuthState() {
   const store = getAuthStore()
   const [state, setState] = useState(store.state)
@@ -109,7 +101,7 @@ function useAuthState() {
     const listener = (next) => setState(next)
     store.listeners.add(listener)
 
-    // Sync immediately to the latest state (in case init resolved before this hook mounted)
+    // Sync immediately to latest state in case init resolved before mount
     setState(store.state)
 
     return () => {
@@ -132,8 +124,11 @@ function useUserId() {
  * Hook for genre-based recommendations
  */
 export function useGenreRecommendations(options = {}) {
-  const { limit = 20, excludeIds = [], enabled = true } = options
-  const { userId, ready: authReady } = useAuthState()
+  const { limit = 20, excludeIds = [], enabled = true, userId: userIdOverride } = options
+  const auth = useAuthState()
+  const userId = userIdOverride !== undefined ? userIdOverride : auth.userId
+  const authReady = userIdOverride !== undefined ? true : auth.ready
+
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -142,12 +137,10 @@ export function useGenreRecommendations(options = {}) {
   const excludeKey = stableExcludeIds.join(',')
 
   useEffect(() => {
-    if (!enabled || !authReady) {
-      if (authReady && !userId) setLoading(false)
-      return
-    }
+    if (!enabled || !authReady) return
 
     if (!userId) {
+      setData([])
       setLoading(false)
       return
     }
@@ -172,9 +165,7 @@ export function useGenreRecommendations(options = {}) {
           setError(err)
         }
       } finally {
-        if (!isCancelled) {
-          setLoading(false)
-        }
+        if (!isCancelled) setLoading(false)
       }
     }
 
@@ -182,7 +173,7 @@ export function useGenreRecommendations(options = {}) {
     return () => {
       isCancelled = true
     }
-  }, [userId, authReady, limit, excludeKey, enabled])
+  }, [userId, authReady, enabled, limit, excludeKey])
 
   return { data, loading, error }
 }
@@ -191,19 +182,20 @@ export function useGenreRecommendations(options = {}) {
  * Hook for history-based recommendations
  */
 export function useHistoryRecommendations(options = {}) {
-  const { limit = 20, enabled = true } = options
-  const { userId, ready: authReady } = useAuthState()
+  const { limit = 20, enabled = true, userId: userIdOverride } = options
+  const auth = useAuthState()
+  const userId = userIdOverride !== undefined ? userIdOverride : auth.userId
+  const authReady = userIdOverride !== undefined ? true : auth.ready
+
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    if (!enabled || !authReady) {
-      if (authReady && !userId) setLoading(false)
-      return
-    }
+    if (!enabled || !authReady) return
 
     if (!userId) {
+      setData([])
       setLoading(false)
       return
     }
@@ -242,19 +234,20 @@ export function useHistoryRecommendations(options = {}) {
  * Hook for mood-based recommendations
  */
 export function useMoodRecommendations(moodId, options = {}) {
-  const { limit = 20, enabled = true } = options
-  const { userId, ready: authReady } = useAuthState()
+  const { limit = 20, enabled = true, userId: userIdOverride } = options
+  const auth = useAuthState()
+  const userId = userIdOverride !== undefined ? userIdOverride : auth.userId
+  const authReady = userIdOverride !== undefined ? true : auth.ready
+
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    if (!enabled || !authReady) {
-      if (authReady && !userId) setLoading(false)
-      return
-    }
+    if (!enabled || !authReady) return
 
     if (!userId || !moodId) {
+      setData([])
       setLoading(false)
       return
     }
@@ -284,20 +277,19 @@ export function useMoodRecommendations(moodId, options = {}) {
 
     fetchRecommendations()
     return () => controller.abort()
-  }, [userId, authReady, moodId, limit, enabled])
+  }, [userId, authReady, enabled, moodId, limit])
 
   return { data, loading, error }
 }
 
 /**
  * Combined hook for all recommendation types
- * for all recommendation types
  */
 export function useAllRecommendations(options = {}) {
-  const { limit = 20 } = options
+  const { limit = 20, userId: userIdOverride } = options
 
-  const genreRecs = useGenreRecommendations({ limit })
-  const historyRecs = useHistoryRecommendations({ limit })
+  const genreRecs = useGenreRecommendations({ limit, userId: userIdOverride })
+  const historyRecs = useHistoryRecommendations({ limit, userId: userIdOverride })
 
   const loading = genreRecs.loading || historyRecs.loading
   const error = genreRecs.error || historyRecs.error
@@ -317,7 +309,7 @@ export function useTopPick(options = {}) {
   const { enabled = true, excludeTmdbIds = [], userId: userIdOverride } = options
 
   const auth = useAuthState()
-  const effectiveUserId = userIdOverride !== undefined ? userIdOverride : auth.userId
+  const userId = userIdOverride !== undefined ? userIdOverride : auth.userId
   const authReady = userIdOverride !== undefined ? true : auth.ready
 
   const [data, setData] = useState(null)
@@ -331,14 +323,11 @@ export function useTopPick(options = {}) {
   )
   const excludeKey = stableExcludeTmdbIds.join(',')
 
-  // Ensure refetch bypasses recommendation-cache once, without disabling caching permanently.
+  // Ensure refetch bypasses recommendation-cache once (without disabling caching permanently)
   const forceRefreshNextRef = useRef(false)
 
   useEffect(() => {
-    // Don't fetch until auth check is complete (prevents "guest fetch" followed by "user fetch")
-    if (!enabled || !authReady) {
-      return
-    }
+    if (!enabled || !authReady) return
 
     let isCancelled = false
 
@@ -350,21 +339,19 @@ export function useTopPick(options = {}) {
         const forceRefresh = forceRefreshNextRef.current
         forceRefreshNextRef.current = false
 
-        const result = await recommendationService.getTopPickForUser(effectiveUserId, {
+        const result = await recommendationService.getTopPickForUser(userId, {
           excludeTmdbIds: stableExcludeTmdbIds,
           forceRefresh,
         })
 
         if (isCancelled) return
 
-        // Flatten: attach pickReason and score to movie object
         if (result?.movie) {
           const enrichedMovie = {
             ...result.movie,
             _pickReason: result.pickReason,
             _score: result.score,
             _debug: result.debug,
-            // Map fields for HeroTopPick compatibility
             trailer_url: result.movie.trailer_youtube_key
               ? `https://www.youtube.com/watch?v=${result.movie.trailer_youtube_key}`
               : null,
@@ -380,9 +367,7 @@ export function useTopPick(options = {}) {
           setError(err)
         }
       } finally {
-        if (!isCancelled) {
-          setLoading(false)
-        }
+        if (!isCancelled) setLoading(false)
       }
     }
 
@@ -391,9 +376,8 @@ export function useTopPick(options = {}) {
     return () => {
       isCancelled = true
     }
-  }, [effectiveUserId, enabled, authReady, excludeKey, refreshKey])
+  }, [userId, enabled, authReady, excludeKey, refreshKey])
 
-  // Function to trigger refetch (bypass cache once)
   const refetch = useCallback(() => {
     forceRefreshNextRef.current = true
     setRefreshKey((k) => k + 1)
@@ -409,7 +393,7 @@ export function useQuickPicks(options = {}) {
   const { limit = 20, excludeIds = [], enabled = true, userId: userIdOverride } = options
 
   const auth = useAuthState()
-  const effectiveUserId = userIdOverride !== undefined ? userIdOverride : auth.userId
+  const userId = userIdOverride !== undefined ? userIdOverride : auth.userId
   const authReady = userIdOverride !== undefined ? true : auth.ready
 
   const [data, setData] = useState([])
@@ -423,12 +407,10 @@ export function useQuickPicks(options = {}) {
   const forceRefreshNextRef = useRef(false)
 
   useEffect(() => {
-    if (!enabled || !authReady) {
-      if (authReady && !effectiveUserId) setLoading(false)
-      return
-    }
+    if (!enabled || !authReady) return
 
-    if (!effectiveUserId) {
+    if (!userId) {
+      setData([])
       setLoading(false)
       return
     }
@@ -443,7 +425,7 @@ export function useQuickPicks(options = {}) {
         const forceRefresh = forceRefreshNextRef.current
         forceRefreshNextRef.current = false
 
-        const items = await recommendationService.getQuickPicksForUser(effectiveUserId, {
+        const items = await recommendationService.getQuickPicksForUser(userId, {
           limit,
           excludeIds: stableExcludeIds,
           forceRefresh,
@@ -457,20 +439,16 @@ export function useQuickPicks(options = {}) {
           setError(err)
         }
       } finally {
-        if (!isCancelled) {
-          setLoading(false)
-        }
+        if (!isCancelled) setLoading(false)
       }
     }
 
     fetchQuickPicks()
-
     return () => {
       isCancelled = true
     }
-  }, [effectiveUserId, limit, excludeKey, enabled, authReady, refreshKey])
+  }, [userId, authReady, enabled, limit, excludeKey, refreshKey])
 
-  // Function to trigger refetch (bypass cache once)
   const refetch = useCallback(() => {
     forceRefreshNextRef.current = true
     setRefreshKey((k) => k + 1)
@@ -483,8 +461,12 @@ export function useQuickPicks(options = {}) {
  * Hook: "Because you watched" seeded rows
  */
 export function useBecauseYouWatchedRows(options = {}) {
-  const { maxSeeds = 2, limitPerSeed = 20, excludeIds = [], enabled = true } = options
-  const { userId, ready: authReady } = useAuthState()
+  const { maxSeeds = 2, limitPerSeed = 20, excludeIds = [], enabled = true, userId: userIdOverride } = options
+
+  const auth = useAuthState()
+  const userId = userIdOverride !== undefined ? userIdOverride : auth.userId
+  const authReady = userIdOverride !== undefined ? true : auth.ready
+
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -493,12 +475,10 @@ export function useBecauseYouWatchedRows(options = {}) {
   const excludeKey = stableExcludeIds.join(',')
 
   useEffect(() => {
-    if (!enabled || !authReady) {
-      if (authReady && !userId) setLoading(false)
-      return
-    }
+    if (!enabled || !authReady) return
 
     if (!userId) {
+      setData([])
       setLoading(false)
       return
     }
@@ -524,18 +504,15 @@ export function useBecauseYouWatchedRows(options = {}) {
           setError(err)
         }
       } finally {
-        if (!isCancelled) {
-          setLoading(false)
-        }
+        if (!isCancelled) setLoading(false)
       }
     }
 
     fetchRows()
-
     return () => {
       isCancelled = true
     }
-  }, [userId, authReady, maxSeeds, limitPerSeed, excludeKey, enabled])
+  }, [userId, authReady, enabled, maxSeeds, limitPerSeed, excludeKey])
 
   return { data, loading, error }
 }
@@ -544,8 +521,12 @@ export function useBecauseYouWatchedRows(options = {}) {
  * Hook: Hidden gems for user
  */
 export function useHiddenGems(options = {}) {
-  const { limit = 20, excludeIds = [], enabled = true } = options
-  const { userId, ready: authReady } = useAuthState()
+  const { limit = 20, excludeIds = [], enabled = true, userId: userIdOverride } = options
+
+  const auth = useAuthState()
+  const userId = userIdOverride !== undefined ? userIdOverride : auth.userId
+  const authReady = userIdOverride !== undefined ? true : auth.ready
+
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -554,12 +535,10 @@ export function useHiddenGems(options = {}) {
   const excludeKey = stableExcludeIds.join(',')
 
   useEffect(() => {
-    if (!enabled || !authReady) {
-      if (authReady && !userId) setLoading(false)
-      return
-    }
+    if (!enabled || !authReady) return
 
     if (!userId) {
+      setData([])
       setLoading(false)
       return
     }
@@ -584,28 +563,29 @@ export function useHiddenGems(options = {}) {
           setError(err)
         }
       } finally {
-        if (!isCancelled) {
-          setLoading(false)
-        }
+        if (!isCancelled) setLoading(false)
       }
     }
 
     fetchHiddenGems()
-
     return () => {
       isCancelled = true
     }
-  }, [userId, authReady, limit, excludeKey, enabled])
+  }, [userId, authReady, enabled, limit, excludeKey])
 
   return { data, loading, error }
 }
 
 /**
- * Hook: Trending recommendations (personalized fallback)
+ * Hook: Trending this week (for you)
  */
 export function useTrendingForYou(options = {}) {
-  const { limit = 20, excludeIds = [], enabled = true } = options
-  const { userId, ready: authReady } = useAuthState()
+  const { limit = 20, excludeIds = [], enabled = true, userId: userIdOverride } = options
+
+  const auth = useAuthState()
+  const userId = userIdOverride !== undefined ? userIdOverride : auth.userId
+  const authReady = userIdOverride !== undefined ? true : auth.ready
+
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -614,12 +594,10 @@ export function useTrendingForYou(options = {}) {
   const excludeKey = stableExcludeIds.join(',')
 
   useEffect(() => {
-    if (!enabled || !authReady) {
-      if (authReady && !userId) setLoading(false)
-      return
-    }
+    if (!enabled || !authReady) return
 
     if (!userId) {
+      setData([])
       setLoading(false)
       return
     }
@@ -640,32 +618,38 @@ export function useTrendingForYou(options = {}) {
         setData(items || [])
       } catch (err) {
         if (err.name !== 'AbortError' && !isCancelled) {
-          console.error('[useTrending] Error:', err)
+          console.error('[useTrendingForYou] Error:', err)
           setError(err)
         }
       } finally {
-        if (!isCancelled) {
-          setLoading(false)
-        }
+        if (!isCancelled) setLoading(false)
       }
     }
 
     fetchTrending()
-
     return () => {
       isCancelled = true
     }
-  }, [userId, authReady, limit, excludeKey, enabled])
+  }, [userId, authReady, enabled, limit, excludeKey])
 
   return { data, loading, error }
+}
+
+// Backward compatibility: some components may still import useTrending
+export function useTrending(options = {}) {
+  return useTrendingForYou(options)
 }
 
 /**
  * Hook: Slow + contemplative picks
  */
 export function useSlowContemplative(options = {}) {
-  const { limit = 20, excludeIds = [], enabled = true } = options
-  const { userId, ready: authReady } = useAuthState()
+  const { limit = 20, excludeIds = [], enabled = true, userId: userIdOverride } = options
+
+  const auth = useAuthState()
+  const userId = userIdOverride !== undefined ? userIdOverride : auth.userId
+  const authReady = userIdOverride !== undefined ? true : auth.ready
+
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -674,19 +658,18 @@ export function useSlowContemplative(options = {}) {
   const excludeKey = stableExcludeIds.join(',')
 
   useEffect(() => {
-    if (!enabled || !authReady) {
-      if (authReady && !userId) setLoading(false)
-      return
-    }
+    if (!enabled || !authReady) return
 
     if (!userId) {
+      setData([])
       setLoading(false)
       return
     }
 
+    const controller = new AbortController()
     let isCancelled = false
 
-    async function fetchSlowContemplative() {
+    async function fetch() {
       try {
         setLoading(true)
         setError(null)
@@ -694,6 +677,7 @@ export function useSlowContemplative(options = {}) {
         const items = await recommendationService.getSlowContemplative(userId, {
           limit,
           excludeIds: stableExcludeIds,
+          signal: controller.signal,
         })
 
         if (isCancelled) return
@@ -704,18 +688,17 @@ export function useSlowContemplative(options = {}) {
           setError(err)
         }
       } finally {
-        if (!isCancelled) {
-          setLoading(false)
-        }
+        if (!isCancelled) setLoading(false)
       }
     }
 
-    fetchSlowContemplative()
+    fetch()
 
     return () => {
       isCancelled = true
+      controller.abort()
     }
-  }, [userId, authReady, limit, excludeKey, enabled])
+  }, [userId, authReady, enabled, limit, excludeKey])
 
   return { data, loading, error }
 }
@@ -724,8 +707,12 @@ export function useSlowContemplative(options = {}) {
  * Hook: Quick watches (short runtime)
  */
 export function useQuickWatches(options = {}) {
-  const { limit = 20, excludeIds = [], enabled = true } = options
-  const { userId, ready: authReady } = useAuthState()
+  const { limit = 20, excludeIds = [], enabled = true, userId: userIdOverride } = options
+
+  const auth = useAuthState()
+  const userId = userIdOverride !== undefined ? userIdOverride : auth.userId
+  const authReady = userIdOverride !== undefined ? true : auth.ready
+
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -734,19 +721,18 @@ export function useQuickWatches(options = {}) {
   const excludeKey = stableExcludeIds.join(',')
 
   useEffect(() => {
-    if (!enabled || !authReady) {
-      if (authReady && !userId) setLoading(false)
-      return
-    }
+    if (!enabled || !authReady) return
 
     if (!userId) {
+      setData([])
       setLoading(false)
       return
     }
 
+    const controller = new AbortController()
     let isCancelled = false
 
-    async function fetchQuickWatches() {
+    async function fetch() {
       try {
         setLoading(true)
         setError(null)
@@ -754,6 +740,7 @@ export function useQuickWatches(options = {}) {
         const items = await recommendationService.getQuickWatches(userId, {
           limit,
           excludeIds: stableExcludeIds,
+          signal: controller.signal,
         })
 
         if (isCancelled) return
@@ -764,18 +751,17 @@ export function useQuickWatches(options = {}) {
           setError(err)
         }
       } finally {
-        if (!isCancelled) {
-          setLoading(false)
-        }
+        if (!isCancelled) setLoading(false)
       }
     }
 
-    fetchQuickWatches()
+    fetch()
 
     return () => {
       isCancelled = true
+      controller.abort()
     }
-  }, [userId, authReady, limit, excludeKey, enabled])
+  }, [userId, authReady, enabled, limit, excludeKey])
 
   return { data, loading, error }
 }
@@ -784,15 +770,16 @@ export function useQuickWatches(options = {}) {
  * Hook: Mood-specific recommendations (used outside HomePage)
  */
 export function useRecommendations(moodId, viewingContext, experienceType, limit = 20) {
-  const { userId, ready: authReady } = useAuthState()
+  const auth = useAuthState()
+  const userId = auth.userId
+  const authReady = auth.ready
+
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    if (!authReady) {
-      return
-    }
+    if (!authReady) return
 
     if (!moodId || !userId) {
       setLoading(false)
@@ -834,6 +821,7 @@ export function useRecommendations(moodId, viewingContext, experienceType, limit
     }
 
     fetchRecommendations()
+
     return () => controller.abort()
   }, [userId, authReady, moodId, viewingContext, experienceType, limit])
 

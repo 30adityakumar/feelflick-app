@@ -1,6 +1,6 @@
 // src/app/homepage/components/HeroTopPick.jsx
 import { useEffect, useState, useCallback, useRef } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import {
   Loader2,
   Play,
@@ -9,10 +9,10 @@ import {
   EyeOff,
   Bookmark,
   ChevronRight,
-  Star
+  Star,
+  RefreshCw,
 } from 'lucide-react'
-import { RefreshCw } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+
 import { tmdbImg } from '@/shared/api/tmdb'
 import { useTopPick } from '@/shared/hooks/useRecommendations'
 import { supabase } from '@/shared/lib/supabase/client'
@@ -25,6 +25,12 @@ function Tooltip({ children, label }) {
   const [visible, setVisible] = useState(false)
   const timeout = useRef(null)
 
+  useEffect(() => {
+    return () => {
+      if (timeout.current) clearTimeout(timeout.current)
+    }
+  }, [])
+
   return (
     <div
       className="relative"
@@ -32,7 +38,7 @@ function Tooltip({ children, label }) {
         timeout.current = setTimeout(() => setVisible(true), 500)
       }}
       onMouseLeave={() => {
-        clearTimeout(timeout.current)
+        if (timeout.current) clearTimeout(timeout.current)
         setVisible(false)
       }}
     >
@@ -48,10 +54,24 @@ function Tooltip({ children, label }) {
   )
 }
 
-export default function HeroTopPick({ userId: userIdProp = null, preloadedData = null, preloadedUser = null } = {}) {
+/**
+ * HeroTopPick
+ *
+ * Key production improvements vs current:
+ * - Supports `preloadedData` as an instant paint while hook hydrates.
+ * - Emits `onHeroMovie` callback when the hero movie changes (so HomePage can exclude it from rows without re-fetching).
+ * - Removes console noise and cleans up timers.
+ * - Uses AbortController for providers fetch.
+ */
+export default function HeroTopPick({
+  userId: userIdProp = null,
+  preloadedData = null,
+  preloadedUser = null,
+  onHeroMovie = null, // (payload) => void
+} = {}) {
   const navigate = useNavigate()
   const location = useLocation()
-  
+
   const [skippedTmdbIds, setSkippedTmdbIds] = useState([])
   const [posterLoaded, setPosterLoaded] = useState(false)
   const [backdropLoaded, setBackdropLoaded] = useState(false)
@@ -60,7 +80,6 @@ export default function HeroTopPick({ userId: userIdProp = null, preloadedData =
   const [providers, setProviders] = useState(null)
 
   // User identity is provided by PostAuthGate via HomePage (preferred).
-  // We still accept a full user object when available.
   const user = preloadedUser ?? (userIdProp ? { id: userIdProp } : null)
   const userId = user?.id ?? null
 
@@ -68,13 +87,18 @@ export default function HeroTopPick({ userId: userIdProp = null, preloadedData =
   const loadingRef = useRef(false)
   const refetchTimerRef = useRef(null)
 
-  // Single source of truth - always enabled
-  const { data: movie, loading, error, refetch } = useTopPick({
+  // Prevent emitting the same hero movie multiple times.
+  const lastEmittedHeroIdRef = useRef(null)
+
+  // Always keep the hook enabled. Prefer userId passed from HomePage so this fetch starts immediately.
+  const { data: hookMovie, loading, error, refetch } = useTopPick({
     enabled: true,
-    userId,                 // <- key improvement
+    userId,
     excludeTmdbIds: skippedTmdbIds,
   })
 
+  // Preloaded paints immediately; hook result takes precedence once available.
+  const movie = hookMovie ?? preloadedData
 
   useEffect(() => {
     loadingRef.current = loading
@@ -96,15 +120,12 @@ export default function HeroTopPick({ userId: userIdProp = null, preloadedData =
     [refetch]
   )
 
-
   // Reset on navigation
   const locationKey = location.key
   useEffect(() => {
     setSkippedTmdbIds([])
     setIsRefreshing(false)
   }, [locationKey])
-
-  // Auth: userId is provided by PostAuthGate → HomePage → HeroTopPick (no session lookup here)
 
   // Reset visual state when movie changes
   useEffect(() => {
@@ -115,10 +136,22 @@ export default function HeroTopPick({ userId: userIdProp = null, preloadedData =
     setProviders(null)
   }, [movie?.id])
 
+  // Inform parent whenever hero changes (used to exclude hero from other rows without extra fetches)
+  useEffect(() => {
+    if (!movie?.id) return
+    if (lastEmittedHeroIdRef.current === movie.id) return
+
+    lastEmittedHeroIdRef.current = movie.id
+    onHeroMovie?.({
+      internalId: movie.id,
+      tmdbId: movie.tmdb_id ?? null,
+      movie,
+    })
+  }, [movie?.id, movie?.tmdb_id, onHeroMovie]) // eslint-disable-line react-hooks/exhaustive-deps
+
   // Clear refreshing state when new data arrives after refetch
   useEffect(() => {
     if (!loading && movie && isRefreshing) {
-      // Clear immediately when new movie arrives
       setIsRefreshing(false)
     }
   }, [loading, movie, isRefreshing])
@@ -126,43 +159,37 @@ export default function HeroTopPick({ userId: userIdProp = null, preloadedData =
   // Preload next movie's backdrop for instant display
   useEffect(() => {
     if (!movie?.backdrop_path) return
-    
     const img = new Image()
     img.src = tmdbImg(movie.backdrop_path, 'w1280')
   }, [movie?.backdrop_path])
 
-  // PROGRESSIVE REVEAL: Show content quickly, images can lag
+  // PROGRESSIVE REVEAL: show content quickly, images can lag
   useEffect(() => {
     if (!movie) return
 
-    // Strategy: Reveal after 500ms OR when images load (whichever comes first)
     let revealTimeout
     let forceRevealTimeout
 
-    // If either image loads, reveal immediately
+    // If either image loads, reveal quickly
     if (posterLoaded || backdropLoaded) {
       revealTimeout = setTimeout(() => setRevealed(true), 100)
     }
 
     // Force reveal after 500ms even if images haven't loaded
-    // This ensures content appears quickly
     forceRevealTimeout = setTimeout(() => {
-      if (!revealed) {
-        console.log('[HeroTopPick] Force revealing content after 500ms')
-        setRevealed(true)
-        // Mark as "loaded" to prevent flicker
-        if (!posterLoaded) setPosterLoaded(true)
-        if (!backdropLoaded) setBackdropLoaded(true)
-      }
+      setRevealed(true)
+      // Mark as "loaded" to prevent flicker if images come in late
+      if (!posterLoaded) setPosterLoaded(true)
+      if (!backdropLoaded) setBackdropLoaded(true)
     }, 500)
 
     return () => {
       clearTimeout(revealTimeout)
       clearTimeout(forceRevealTimeout)
     }
-  }, [posterLoaded, backdropLoaded, revealed, movie])
+  }, [posterLoaded, backdropLoaded, movie])
 
-  // Fetch watch providers
+  // Fetch watch providers (abortable)
   useEffect(() => {
     const tmdbId = movie?.tmdb_id
     if (!tmdbId || !TMDB_API_KEY) {
@@ -170,33 +197,32 @@ export default function HeroTopPick({ userId: userIdProp = null, preloadedData =
       return
     }
 
-    let cancelled = false
+    const controller = new AbortController()
 
     async function loadProviders() {
       try {
         const res = await fetch(
-          `https://api.themoviedb.org/3/movie/${tmdbId}/watch/providers?api_key=${TMDB_API_KEY}`
+          `https://api.themoviedb.org/3/movie/${tmdbId}/watch/providers?api_key=${TMDB_API_KEY}`,
+          { signal: controller.signal }
         )
 
         if (!res.ok) {
-          if (!cancelled) setProviders(null)
+          setProviders(null)
           return
         }
 
         const data = await res.json()
         const regionData = data?.results?.CA || data?.results?.US || null
-
-        if (!cancelled) setProviders(regionData)
+        setProviders(regionData)
       } catch (err) {
+        if (err?.name === 'AbortError') return
         console.error('Error fetching watch providers', err)
-        if (!cancelled) setProviders(null)
+        setProviders(null)
       }
     }
 
     loadProviders()
-    return () => {
-      cancelled = true
-    }
+    return () => controller.abort()
   }, [movie?.tmdb_id])
 
   // User movie status
@@ -205,12 +231,12 @@ export default function HeroTopPick({ userId: userIdProp = null, preloadedData =
     isWatched,
     loading: actionLoading,
     toggleWatchlist,
-    toggleWatched
-  } = useUserMovieStatus({ 
-    user, 
+    toggleWatched,
+  } = useUserMovieStatus({
+    user,
     movie,
     internalMovieId: movie?.id,
-    source: 'hero_top_pick' 
+    source: 'hero_top_pick',
   })
 
   // Track interactions
@@ -221,32 +247,25 @@ export default function HeroTopPick({ userId: userIdProp = null, preloadedData =
     if (!userId || !movie?.id) return
 
     if (isInWatchlist && !prevWatchlistRef.current) {
-      updateImpression(userId, movie.id, 'hero', {
-        added_to_watchlist: true
-      })
+      updateImpression(userId, movie.id, 'hero', { added_to_watchlist: true })
     }
 
     // When marked watched, advance immediately to a new pick.
     if (isWatched && !prevWatchedRef.current) {
-      updateImpression(userId, movie.id, 'hero', {
-        marked_watched: true
-      })
+      updateImpression(userId, movie.id, 'hero', { marked_watched: true })
 
       const tmdbId = movie.tmdb_id
+      setIsRefreshing(true)
       if (tmdbId) {
-        setIsRefreshing(true)
-        setSkippedTmdbIds(prev => (prev.includes(tmdbId) ? prev : [...prev, tmdbId]))
-      } else {
-        // If a pick ever arrives without tmdb_id, still attempt to refresh.
-        setIsRefreshing(true)
+        setSkippedTmdbIds((prev) => (prev.includes(tmdbId) ? prev : [...prev, tmdbId]))
       }
-
       scheduleRefetchIfIdle(140)
     }
 
     prevWatchlistRef.current = isInWatchlist
     prevWatchedRef.current = isWatched
   }, [isInWatchlist, isWatched, userId, movie?.id, movie?.tmdb_id, scheduleRefetchIfIdle])
+
   const goToDetails = useCallback(() => {
     const tmdbId = movie?.tmdb_id
     if (!tmdbId) {
@@ -257,12 +276,12 @@ export default function HeroTopPick({ userId: userIdProp = null, preloadedData =
     if (userId && movie?.id) {
       updateImpression(userId, movie.id, 'hero', {
         clicked: true,
-        clicked_at: new Date().toISOString()
+        clicked_at: new Date().toISOString(),
       })
     }
 
     navigate(`/movie/${tmdbId}`)
-  }, [movie?.tmdb_id, movie?.id, navigate, userId])
+  }, [movie, navigate, userId])
 
   const playTrailer = useCallback(() => {
     if (movie?.trailer_url) {
@@ -273,7 +292,6 @@ export default function HeroTopPick({ userId: userIdProp = null, preloadedData =
   const logFeedback = useCallback(
     async ({ feedbackType, feedbackValue = null }) => {
       if (!userId || !movie) return
-
       const tmdbId = movie.tmdb_id
       if (!tmdbId) return
 
@@ -319,27 +337,22 @@ export default function HeroTopPick({ userId: userIdProp = null, preloadedData =
     if (!movie || isRefreshing) return
 
     const tmdbId = movie.tmdb_id
-    if (!tmdbId) {
-      console.warn('[HeroTopPick] Missing tmdb_id; cannot skip reliably', movie)
-      setIsRefreshing(true)
-      scheduleRefetchIfIdle(140)
-      return
-    }
+    setIsRefreshing(true)
 
     if (userId && movie.id) {
-      updateImpression(userId, movie.id, 'hero', {
-        skipped: true
-      })
+      updateImpression(userId, movie.id, 'hero', { skipped: true })
     }
 
     logFeedback({ feedbackType: 'hero_skip_not_tonight' })
 
-    setIsRefreshing(true)
-    setSkippedTmdbIds(prev => (prev.includes(tmdbId) ? prev : [...prev, tmdbId]))
+    if (tmdbId) {
+      setSkippedTmdbIds((prev) => (prev.includes(tmdbId) ? prev : [...prev, tmdbId]))
+    }
+
     scheduleRefetchIfIdle(120)
   }, [movie, isRefreshing, userId, logFeedback, scheduleRefetchIfIdle])
 
-  // Loading state
+  // Loading state (only when nothing to render)
   if (loading && !movie) {
     return (
       <section className="relative w-full h-[75vh] min-h-[500px] max-h-[800px] overflow-hidden bg-black">
@@ -366,20 +379,23 @@ export default function HeroTopPick({ userId: userIdProp = null, preloadedData =
     )
   }
 
-  if (error || !movie) return null
+  // Production-friendly: keep the last preloaded movie if hook errors
+  if (!movie) return null
+  if (error && !hookMovie && !preloadedData) return null
 
   const year = movie.release_date ? new Date(movie.release_date).getFullYear() : null
   const hours = movie.runtime ? Math.floor(movie.runtime / 60) : 0
   const mins = movie.runtime ? movie.runtime % 60 : 0
-  const rating = typeof movie.vote_average === 'number'
-    ? movie.vote_average.toFixed(1)
-    : null
+  const rating = typeof movie.vote_average === 'number' ? movie.vote_average.toFixed(1) : null
 
   return (
     <section className="relative w-full h-[75vh] min-h-[500px] max-h-[800px] overflow-hidden bg-black">
       {/* Refreshing overlay */}
       {isRefreshing && (
-        <div className="absolute inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center animate-fadeIn" style={{ animationDuration: '0.15s' }}>
+        <div
+          className="absolute inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center animate-fadeIn"
+          style={{ animationDuration: '0.15s' }}
+        >
           <div className="flex items-center gap-3 px-6 py-4 rounded-2xl bg-black/80 border border-white/10">
             <Loader2 className="h-5 w-5 text-purple-400 animate-spin" />
             <span className="text-white/90 text-sm font-medium">Loading next pick...</span>
@@ -389,24 +405,20 @@ export default function HeroTopPick({ userId: userIdProp = null, preloadedData =
 
       {/* === BACKDROP === */}
       <div className="absolute inset-0">
-        {/* Blur placeholder - always visible during load */}
         <div
           className={`absolute inset-0 scale-110 transition-opacity duration-700 ${
             backdropLoaded ? 'opacity-0' : 'opacity-100'
           }`}
           style={{
-            backgroundImage: movie.backdrop_path
-              ? `url(${tmdbImg(movie.backdrop_path, 'w300')})`
-              : undefined,
+            backgroundImage: movie.backdrop_path ? `url(${tmdbImg(movie.backdrop_path, 'w300')})` : undefined,
             backgroundSize: 'cover',
             backgroundPosition: 'center 45%',
-            filter: 'blur(30px) saturate(1.2)'
+            filter: 'blur(30px) saturate(1.2)',
           }}
         />
-        
+
         <div className="absolute top-0 left-0 right-0 h-16 sm:h-20 bg-gradient-to-b from-black/95 via-black/20 to-transparent z-10" />
 
-        {/* OPTIMIZED: Use w1280 instead of 'original' - 5x smaller file size */}
         {movie.backdrop_path && (
           <img
             src={tmdbImg(movie.backdrop_path, 'w1280')}
@@ -429,8 +441,7 @@ export default function HeroTopPick({ userId: userIdProp = null, preloadedData =
         <div
           className="absolute inset-0 opacity-[0.015]"
           style={{
-            backgroundImage:
-              "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E\")"
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
           }}
         />
       </div>
@@ -456,11 +467,9 @@ export default function HeroTopPick({ userId: userIdProp = null, preloadedData =
                   <div
                     className="absolute inset-0 scale-105"
                     style={{
-                      backgroundImage: movie.poster_path
-                        ? `url(${tmdbImg(movie.poster_path, 'w92')})`
-                        : undefined,
+                      backgroundImage: movie.poster_path ? `url(${tmdbImg(movie.poster_path, 'w92')})` : undefined,
                       backgroundSize: 'cover',
-                      filter: 'blur(8px)'
+                      filter: 'blur(8px)',
                     }}
                   />
                 )}
@@ -492,9 +501,7 @@ export default function HeroTopPick({ userId: userIdProp = null, preloadedData =
                   className="h-8 w-8 rounded object-cover"
                 />
                 <div className="min-w-0">
-                  <p className="text-[9px] uppercase tracking-widest text-white/30 font-medium">
-                    Streaming on
-                  </p>
+                  <p className="text-[9px] uppercase tracking-widest text-white/30 font-medium">Streaming on</p>
                   <p className="text-xs text-white/80 font-semibold truncate">
                     {providers.flatrate[0].provider_name}
                   </p>
@@ -518,11 +525,7 @@ export default function HeroTopPick({ userId: userIdProp = null, preloadedData =
                 revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
               }`}
             >
-              {year && (
-                <span className="text-xs text-white/60 font-medium">
-                  {year}
-                </span>
-              )}
+              {year && <span className="text-xs text-white/60 font-medium">{year}</span>}
 
               {rating && (
                 <span className="inline-flex items-center gap-1 text-xs text-white/80 font-medium">
@@ -542,10 +545,7 @@ export default function HeroTopPick({ userId: userIdProp = null, preloadedData =
 
               {Array.isArray(movie.genres) &&
                 movie.genres.slice(0, 2).map((g, idx) => (
-                  <span
-                    key={g.id || g.name || idx}
-                    className="inline-flex items-center text-xs text-white/60 font-medium"
-                  >
+                  <span key={g.id || g.name || idx} className="inline-flex items-center text-xs text-white/60 font-medium">
                     <span className="mx-1 text-white/25">•</span>
                     {g.name || g}
                   </span>
@@ -553,9 +553,7 @@ export default function HeroTopPick({ userId: userIdProp = null, preloadedData =
 
               {movie._pickReason?.label && (
                 <div className="ml-1 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-500/20 border border-purple-400/20">
-                  <span className="text-xs text-purple-300 font-medium">
-                    {movie._pickReason.label}
-                  </span>
+                  <span className="text-xs text-purple-300 font-medium">{movie._pickReason.label}</span>
                 </div>
               )}
             </div>
@@ -576,8 +574,7 @@ export default function HeroTopPick({ userId: userIdProp = null, preloadedData =
                   revealed ? 'opacity-100' : 'opacity-0'
                 }`}
               >
-                Directed by{' '}
-                <span className="text-white/60 font-medium">{movie.director.name}</span>
+                Directed by <span className="text-white/60 font-medium">{movie.director.name}</span>
               </p>
             )}
 
@@ -648,18 +645,14 @@ export default function HeroTopPick({ userId: userIdProp = null, preloadedData =
                     </Tooltip>
                   </div>
                 )}
-              
+
                 <Tooltip label="Show another pick">
                   <button
                     onClick={handleShowAnother}
-                    disabled={isRefreshing || loading}
-                    className={`h-10 w-10 sm:h-11 sm:w-11 rounded-full border backdrop-blur-sm transition-all duration-300 flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95 bg-white/5 hover:bg-white/10 border-white/10 hover:border-white/20 text-white focus-visible:ring-white/50`}
+                    disabled={isRefreshing || (loading && !movie)}
+                    className="h-10 w-10 sm:h-11 sm:w-11 rounded-full border backdrop-blur-sm transition-all duration-300 flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95 bg-white/5 hover:bg-white/10 border-white/10 hover:border-white/20 text-white focus-visible:ring-white/50"
                   >
-                    {isRefreshing ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <RefreshCw className="h-4 w-4" />
-                    )}
+                    {isRefreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
                   </button>
                 </Tooltip>
               </div>
@@ -667,7 +660,7 @@ export default function HeroTopPick({ userId: userIdProp = null, preloadedData =
           </div>
         </div>
       </div>
-      
+
       <div className="absolute bottom-0 left-0 right-0 h-32 sm:h-36 bg-gradient-to-t from-black/90 to-transparent md:from-transparent pointer-events-none" />
       <div className="absolute bottom-0 left-0 right-0 h-40 sm:h-48 bg-gradient-to-t from-black via-black/95 to-transparent pointer-events-none" />
     </section>

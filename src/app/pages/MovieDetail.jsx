@@ -836,25 +836,3 @@ function Rail({ title, items }) {
   )
 }
 
-// Add at the top with other imports
-import { runAllValidationTests } from '../utils/databaseValidation'
-import { useAuth } from '../contexts/AuthContext'
-
-// Add this button in your JSX (only shows in development)
-{import.meta.env.DEV && (
-  <button
-    onClick={async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        const passed = await runAllValidationTests(user.id, movie.id)
-        alert(passed ? '✅ All tests passed!' : '❌ Some tests failed - check console')
-      } else {
-        alert('Please sign in to run tests')
-      }
-    }}
-    className="fixed bottom-4 right-4 z-50 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2 font-semibold"
-    title="Run database validation tests"
-  >
-    🧪 Run DB Tests
-  </button>
-)}

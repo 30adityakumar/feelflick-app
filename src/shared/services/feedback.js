@@ -1,275 +1,314 @@
-// src/shared/services/feedback.js
-
 /**
  * FeelFlick Feedback Service
  * 
- * Handles user movie feedback including:
- * - Sentiment tracking (loved, liked, meh, disliked, hated)
- * - Viewing context tags (mood match, great reviews, etc.)
- * - What stood out (acting, story, visuals, etc.)
- * - Watched confirmation from watchlist
- * 
- * @module feedback
+ * Handles two types of feedback:
+ * 1. user_movie_feedback - Quick thumbs up/down on recommendations
+ * 2. user_movie_sentiment - Detailed feedback after watching
  */
 
 import { supabase } from '@/shared/lib/supabase/client'
 
+// ============================================================================
+// RECOMMENDATION FEEDBACK (Thumbs Up/Down)
+// ============================================================================
+
 /**
- * Submit or update user feedback for a movie
- * 
+ * Submit thumbs up/down feedback on a recommendation
  * @param {string} userId - User UUID
- * @param {number} tmdbId - TMDB movie ID
- * @param {Object} feedbackData - Feedback payload
- * @param {string} [feedbackData.sentiment] - 'loved', 'liked', 'meh', 'disliked', 'hated'
- * @param {boolean} [feedbackData.watchedConfirmed] - Did user watch this?
- * @param {string[]} [feedbackData.viewingContextTags] - Why they watched/added
- * @param {string[]} [feedbackData.whatStoodOut] - What impressed them
- * @returns {Promise<Object>} The created/updated feedback record
+ * @param {number} movieId - Internal database movie ID
+ * @param {number} feedbackValue - 1 (good), -1 (bad), 0 (reset)
+ * @param {string} [source='recommendation'] - Where feedback came from
+ * @returns {Promise<Object>}
  */
-export async function submitFeedback(userId, tmdbId, feedbackData) {
+export async function submitRecommendationFeedback(userId, movieId, feedbackValue, source = 'recommendation') {
   try {
-    console.log('[submitFeedback] Submitting:', { userId, tmdbId, feedbackData })
+    console.log('[Feedback] Submitting recommendation feedback:', { 
+      userId, 
+      movieId, 
+      feedbackValue,
+      source 
+    })
 
-    // Validate required fields
-    if (!userId) throw new Error('User ID is required')
-    if (!tmdbId) throw new Error('TMDB ID is required')
-
-    // Build the payload
-    const payload = {
-      user_id: userId,
-      tmdb_id: tmdbId,
-      feedback_type: 'sentiment', // Default type
-      sentiment: feedbackData.sentiment || null,
-      watched_confirmed: feedbackData.watchedConfirmed || false,
-      viewing_context_tags: feedbackData.viewingContextTags || null,
-      what_stood_out: feedbackData.whatStoodOut || null,
-      updated_at: new Date().toISOString()
+    // Validate
+    if (!userId) throw new Error('User ID required')
+    if (!movieId) throw new Error('Movie ID required')
+    if (![1, -1, 0].includes(feedbackValue)) {
+      throw new Error('feedbackValue must be 1, -1, or 0')
     }
 
-    // Upsert (insert or update based on unique constraint)
+    // If feedback is 0 (reset), delete the record
+    if (feedbackValue === 0) {
+      const { error } = await supabase
+        .from('user_movie_feedback')
+        .delete()
+        .eq('user_id', userId)
+        .eq('movie_id', movieId)
+      
+      if (error) throw error
+      console.log('[Feedback] Reset successful')
+      return { deleted: true }
+    }
+
+    // Otherwise upsert
+    const payload = {
+      user_id: userId,
+      movie_id: movieId,
+      feedback_type: 'recommendation',
+      feedback_value: feedbackValue,
+      source: source,
+      created_at: new Date().toISOString()
+    }
+
     const { data, error } = await supabase
       .from('user_movie_feedback')
       .upsert(payload, {
-        onConflict: 'user_id,tmdb_id',
+        onConflict: 'user_id,movie_id',
         ignoreDuplicates: false
       })
       .select()
       .single()
 
-    if (error) {
-      console.error('[submitFeedback] Database error:', error)
-      throw error
-    }
+    if (error) throw error
 
-    console.log('[submitFeedback] Success:', data)
+    console.log('[Feedback] ✅ Saved:', data)
     return data
 
   } catch (error) {
-    console.error('[submitFeedback] Error:', error)
+    console.error('[Feedback] ❌ Error:', error)
     throw error
   }
 }
 
 /**
- * Get user's feedback for a specific movie
- * 
- * @param {string} userId - User UUID
- * @param {number} tmdbId - TMDB movie ID
- * @returns {Promise<Object|null>} Feedback record or null if not found
+ * Get user's feedback for a movie
  */
-export async function getFeedback(userId, tmdbId) {
+export async function getRecommendationFeedback(userId, movieId) {
   try {
     const { data, error } = await supabase
       .from('user_movie_feedback')
       .select('*')
       .eq('user_id', userId)
-      .eq('tmdb_id', tmdbId)
+      .eq('movie_id', movieId)
       .maybeSingle()
 
-    if (error) {
-      console.error('[getFeedback] Database error:', error)
-      throw error
-    }
-
+    if (error) throw error
     return data
 
   } catch (error) {
-    console.error('[getFeedback] Error:', error)
+    console.error('[Feedback] Error fetching:', error)
+    return null
+  }
+}
+
+// ============================================================================
+// MOVIE SENTIMENT (Detailed After-Watch Feedback)
+// ============================================================================
+
+/**
+ * Submit detailed sentiment after watching a movie
+ * @param {string} userId - User UUID
+ * @param {number} movieId - Internal database movie ID
+ * @param {Object} sentimentData - Feedback data
+ * @param {string} sentimentData.sentiment - 'loved', 'liked', 'meh', 'disliked', 'hated'
+ * @param {string[]} [sentimentData.viewingContextTags] - Why they watched
+ * @param {string[]} [sentimentData.whatStoodOut] - What impressed them
+ * @param {string} [sentimentData.textFeedback] - Optional text comment
+ * @returns {Promise<Object>}
+ */
+export async function submitMovieSentiment(userId, movieId, sentimentData) {
+  try {
+    console.log('[Sentiment] Submitting:', { userId, movieId, sentimentData })
+
+    // Validate
+    if (!userId) throw new Error('User ID required')
+    if (!movieId) throw new Error('Movie ID required')
+    if (!sentimentData.sentiment) throw new Error('Sentiment required')
+
+    const validSentiments = ['loved', 'liked', 'meh', 'disliked', 'hated']
+    if (!validSentiments.includes(sentimentData.sentiment)) {
+      throw new Error(`Invalid sentiment: ${sentimentData.sentiment}`)
+    }
+
+    const payload = {
+      user_id: userId,
+      movie_id: movieId,
+      sentiment: sentimentData.sentiment,
+      viewing_context_tags: sentimentData.viewingContextTags || null,
+      what_stood_out: sentimentData.whatStoodOut || null,
+      text_feedback: sentimentData.textFeedback || null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }
+
+    const { data, error } = await supabase
+      .from('user_movie_sentiment')
+      .upsert(payload, {
+        onConflict: 'user_id,movie_id',
+        ignoreDuplicates: false
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+
+    console.log('[Sentiment] ✅ Saved:', data)
+    return data
+
+  } catch (error) {
+    console.error('[Sentiment] ❌ Error:', error)
+    throw error
+  }
+}
+
+/**
+ * Get user's sentiment for a movie
+ */
+export async function getMovieSentiment(userId, movieId) {
+  try {
+    const { data, error } = await supabase
+      .from('user_movie_sentiment')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('movie_id', movieId)
+      .maybeSingle()
+
+    if (error) throw error
+    return data
+
+  } catch (error) {
+    console.error('[Sentiment] Error fetching:', error)
     return null
   }
 }
 
 /**
- * Get all feedback for a user (with optional filters)
- * 
- * @param {string} userId - User UUID
- * @param {Object} [filters] - Optional filters
- * @param {string} [filters.sentiment] - Filter by sentiment
- * @param {boolean} [filters.watchedConfirmed] - Filter by watched status
- * @param {number} [filters.limit] - Limit results (default 100)
- * @returns {Promise<Array>} Array of feedback records
+ * Quick sentiment update (just the sentiment, no tags)
  */
-export async function getUserFeedback(userId, filters = {}) {
+export async function updateQuickSentiment(userId, movieId, sentiment) {
+  return submitMovieSentiment(userId, movieId, { sentiment })
+}
+
+/**
+ * Delete sentiment feedback
+ */
+export async function deleteMovieSentiment(userId, movieId) {
   try {
-    let query = supabase
+    const { error } = await supabase
+      .from('user_movie_sentiment')
+      .delete()
+      .eq('user_id', userId)
+      .eq('movie_id', movieId)
+
+    if (error) throw error
+    return true
+
+  } catch (error) {
+    console.error('[Sentiment] Delete error:', error)
+    return false
+  }
+}
+
+// ============================================================================
+// STATISTICS & ANALYTICS
+// ============================================================================
+
+/**
+ * Get feedback statistics for a user
+ */
+export async function getFeedbackStats(userId) {
+  try {
+    const [feedbackData, sentimentData] = await Promise.all([
+      supabase
+        .from('user_movie_feedback')
+        .select('feedback_value')
+        .eq('user_id', userId),
+      supabase
+        .from('user_movie_sentiment')
+        .select('sentiment')
+        .eq('user_id', userId)
+    ])
+
+    if (feedbackData.error) throw feedbackData.error
+    if (sentimentData.error) throw sentimentData.error
+
+    const feedback = feedbackData.data || []
+    const sentiments = sentimentData.data || []
+
+    return {
+      recommendations: {
+        total: feedback.length,
+        positive: feedback.filter(f => f.feedback_value === 1).length,
+        negative: feedback.filter(f => f.feedback_value === -1).length
+      },
+      sentiment: {
+        total: sentiments.length,
+        loved: sentiments.filter(s => s.sentiment === 'loved').length,
+        liked: sentiments.filter(s => s.sentiment === 'liked').length,
+        meh: sentiments.filter(s => s.sentiment === 'meh').length,
+        disliked: sentiments.filter(s => s.sentiment === 'disliked').length,
+        hated: sentiments.filter(s => s.sentiment === 'hated').length
+      }
+    }
+
+  } catch (error) {
+    console.error('[Stats] Error:', error)
+    return {
+      recommendations: { total: 0, positive: 0, negative: 0 },
+      sentiment: { total: 0, loved: 0, liked: 0, meh: 0, disliked: 0, hated: 0 }
+    }
+  }
+}
+
+// ============================================================================
+// BATCH OPERATIONS
+// ============================================================================
+
+/**
+ * Get all recommendations feedback for user
+ */
+export async function getUserRecommendationFeedback(userId, limit = 100) {
+  try {
+    const { data, error } = await supabase
       .from('user_movie_feedback')
-      .select('*')
+      .select('*, movies(tmdb_id, title)')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
+      .limit(limit)
 
-    // Apply filters
-    if (filters.sentiment) {
-      query = query.eq('sentiment', filters.sentiment)
-    }
-
-    if (filters.watchedConfirmed !== undefined) {
-      query = query.eq('watched_confirmed', filters.watchedConfirmed)
-    }
-
-    // Apply limit
-    const limit = filters.limit || 100
-    query = query.limit(limit)
-
-    const { data, error } = await query
-
-    if (error) {
-      console.error('[getUserFeedback] Database error:', error)
-      throw error
-    }
-
+    if (error) throw error
     return data || []
 
   } catch (error) {
-    console.error('[getUserFeedback] Error:', error)
+    console.error('[Feedback] Error fetching batch:', error)
     return []
   }
 }
 
 /**
- * Update sentiment only (quick feedback)
- * 
- * @param {string} userId - User UUID
- * @param {number} tmdbId - TMDB movie ID
- * @param {string} sentiment - 'loved', 'liked', 'meh', 'disliked', 'hated'
- * @returns {Promise<Object>} Updated feedback record
+ * Get all sentiment feedback for user
  */
-export async function updateSentiment(userId, tmdbId, sentiment) {
+export async function getUserSentimentFeedback(userId, filters = {}) {
   try {
-    console.log('[updateSentiment] Updating sentiment:', { userId, tmdbId, sentiment })
-
-    // Validate sentiment value
-    const validSentiments = ['loved', 'liked', 'meh', 'disliked', 'hated']
-    if (!validSentiments.includes(sentiment)) {
-      throw new Error(`Invalid sentiment: ${sentiment}`)
-    }
-
-    return await submitFeedback(userId, tmdbId, { sentiment })
-
-  } catch (error) {
-    console.error('[updateSentiment] Error:', error)
-    throw error
-  }
-}
-
-/**
- * Mark movie as watched (from watchlist)
- * 
- * @param {string} userId - User UUID
- * @param {number} tmdbId - TMDB movie ID
- * @param {string} [sentiment] - Optional sentiment to include
- * @returns {Promise<Object>} Updated feedback record
- */
-export async function markAsWatched(userId, tmdbId, sentiment = null) {
-  try {
-    console.log('[markAsWatched] Marking as watched:', { userId, tmdbId, sentiment })
-
-    const feedbackData = {
-      watchedConfirmed: true,
-      sentiment: sentiment
-    }
-
-    return await submitFeedback(userId, tmdbId, feedbackData)
-
-  } catch (error) {
-    console.error('[markAsWatched] Error:', error)
-    throw error
-  }
-}
-
-/**
- * Delete feedback (rare, but available)
- * 
- * @param {string} userId - User UUID
- * @param {number} tmdbId - TMDB movie ID
- * @returns {Promise<boolean>} Success status
- */
-export async function deleteFeedback(userId, tmdbId) {
-  try {
-    const { error } = await supabase
-      .from('user_movie_feedback')
-      .delete()
+    let query = supabase
+      .from('user_movie_sentiment')
+      .select('*, movies(tmdb_id, title, poster_path)')
       .eq('user_id', userId)
-      .eq('tmdb_id', tmdbId)
+      .order('created_at', { ascending: false })
 
-    if (error) {
-      console.error('[deleteFeedback] Database error:', error)
-      throw error
+    if (filters.sentiment) {
+      query = query.eq('sentiment', filters.sentiment)
     }
 
-    console.log('[deleteFeedback] Deleted successfully')
-    return true
+    const limit = filters.limit || 100
+    query = query.limit(limit)
+
+    const { data, error } = await query
+
+    if (error) throw error
+    return data || []
 
   } catch (error) {
-    console.error('[deleteFeedback] Error:', error)
-    return false
-  }
-}
-
-/**
- * Get feedback statistics for a user
- * 
- * @param {string} userId - User UUID
- * @returns {Promise<Object>} Statistics object
- */
-export async function getFeedbackStats(userId) {
-  try {
-    const { data, error } = await supabase
-      .from('user_movie_feedback')
-      .select('sentiment, watched_confirmed')
-      .eq('user_id', userId)
-
-    if (error) {
-      console.error('[getFeedbackStats] Database error:', error)
-      throw error
-    }
-
-    // Calculate stats
-    const stats = {
-      total: data.length,
-      watched: data.filter(f => f.watched_confirmed).length,
-      bySentiment: {
-        loved: data.filter(f => f.sentiment === 'loved').length,
-        liked: data.filter(f => f.sentiment === 'liked').length,
-        meh: data.filter(f => f.sentiment === 'meh').length,
-        disliked: data.filter(f => f.sentiment === 'disliked').length,
-        hated: data.filter(f => f.sentiment === 'hated').length
-      }
-    }
-
-    return stats
-
-  } catch (error) {
-    console.error('[getFeedbackStats] Error:', error)
-    return {
-      total: 0,
-      watched: 0,
-      bySentiment: {
-        loved: 0,
-        liked: 0,
-        meh: 0,
-        disliked: 0,
-        hated: 0
-      }
-    }
+    console.error('[Sentiment] Error fetching batch:', error)
+    return []
   }
 }

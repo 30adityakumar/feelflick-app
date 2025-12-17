@@ -17,13 +17,17 @@ import {
   Share2,
   Eye,
   EyeOff,
-  Plus
+  Plus,
+  Heart
 } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
 import RecommendationFeedback from '@/shared/components/RecommendationFeedback'
 import { useUserMovieStatus } from '@/shared/hooks/useUserMovieStatus'
 import DatabaseValidationPanel from '@/shared/components/DatabaseValidationPanel'
 import MovieRatingWidget from '@/shared/components/MovieRatingWidget'
+import MovieSentimentWidget from '@/shared/components/MovieSentimentWidget'
+import { usePageView } from '@/shared/hooks/useInteractionTracking'
+import { trackTrailerPlay, trackShare } from '@/shared/services/interactions'
 
 const IMG = {
   backdrop: (p) => (p ? `https://image.tmdb.org/t/p/original${p}` : ''),
@@ -48,7 +52,7 @@ function formatRuntime(mins) {
 const yearOf = (d) => d?.slice?.(0, 4)
 
 export default function MovieDetail() {
-  const { id } = useParams() // TMDB ID
+  const { id } = useParams()
   const location = useLocation()
   const { sessionId, movieId } = location.state || {}
   const navigate = useNavigate()
@@ -71,8 +75,24 @@ export default function MovieDetail() {
   // User State
   const [user, setUser] = useState(null)
 
-  // 🆕 Internal Movie ID State (for ratings)
+  // Internal Movie ID State
   const [internalMovieId, setInternalMovieId] = useState(null)
+  
+  // 🆕 Feedback Modal State
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false)
+  
+  // Track page view
+  usePageView(internalMovieId, 'movie_detail')
+
+  // Track time spent on page
+  useEffect(() => {
+    const startTime = Date.now()
+    
+    return () => {
+      const duration = Date.now() - startTime
+      console.log(`[MovieDetail] User spent ${Math.round(duration / 1000)}s on page`)
+    }
+  }, [internalMovieId])
 
   // Auth
   useEffect(() => {
@@ -130,7 +150,6 @@ export default function MovieDetail() {
         setImages({ backdrops: i?.backdrops?.slice(0, 6) || [] })
         setKeywords(k?.keywords?.slice(0, 12) || [])
 
-        // Get US certification
         const usCert =
           rel?.results
             ?.find((r) => r.iso_3166_1 === 'US')
@@ -183,24 +202,61 @@ export default function MovieDetail() {
     }
   }, [id])
 
-  // 🆕 Get Internal Movie ID (for ratings)
-  // This hook returns internalId from useUserMovieStatus
+  // Get Internal Movie ID
   const {
     isInWatchlist,
     isWatched,
     loading: actionLoading,
     toggleWatchlist: rawToggleWatchlist,
     toggleWatched: rawToggleWatched,
-    internalId // ← Get this from useUserMovieStatus
+    internalId
   } = useUserMovieStatus({ user, movie, source: 'movie_detail' })
 
-  // 🆕 Set internal ID when it's available
   useEffect(() => {
     if (internalId) {
       setInternalMovieId(internalId)
       console.log('[MovieDetail] ✅ Internal movie ID:', internalId)
     }
   }, [internalId])
+
+  // 🆕 Listen for feedback prompt event from useUserMovieStatus
+  useEffect(() => {
+    const handleFeedbackPrompt = (e) => {
+      const { internalMovieId: eventInternalId, tmdbId, movieTitle } = e.detail
+      
+      console.log('[MovieDetail] 💬 Feedback prompt received:', {
+        eventInternalId,
+        tmdbId,
+        movieTitle,
+        currentTmdbId: id,
+        currentInternalId: internalMovieId
+      })
+
+      // Show modal if it matches current movie
+      const tmdbMatches = tmdbId && String(tmdbId) === String(id)
+      const internalMatches = eventInternalId && eventInternalId === internalMovieId
+      
+      if (tmdbMatches || internalMatches) {
+        console.log('[MovieDetail] ✅ Opening feedback modal...')
+        setShowFeedbackModal(true)
+      } else {
+        console.log('[MovieDetail] ⚠️ Movie ID mismatch:', {
+          tmdbMatches,
+          internalMatches,
+          eventTmdbId: tmdbId,
+          currentTmdbId: id,
+          eventInternalId: eventInternalId,
+          currentInternalId: internalMovieId
+        })
+      }
+    }
+
+    window.addEventListener('prompt-movie-feedback', handleFeedbackPrompt)
+    
+    return () => {
+      window.removeEventListener('prompt-movie-feedback', handleFeedbackPrompt)
+    }
+  }, [id, internalMovieId])
 
   const mutating = actionLoading.watchlist || actionLoading.watched
 
@@ -236,6 +292,41 @@ export default function MovieDetail() {
     if (!ok) return
     await rawToggleWatched()
   }, [ensureAuthed, rawToggleWatched])
+
+  // Track trailer click
+  const handleTrailerClick = useCallback(() => {
+    if (internalMovieId) {
+      trackTrailerPlay(internalMovieId, 'movie_detail')
+    }
+  }, [internalMovieId])
+
+  // Track share
+  const handleShare = useCallback(async () => {
+    if (internalMovieId) {
+      trackShare(internalMovieId, 'movie_detail')
+    }
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: movie?.title,
+          text: movie?.overview,
+          url: window.location.href
+        })
+      } catch (err) {
+        console.log('[Share] Cancelled or failed:', err)
+      }
+    }
+  }, [internalMovieId, movie])
+
+  // 🆕 Open feedback modal manually
+  const handleOpenFeedback = useCallback(() => {
+    if (!user) {
+      navigate('/auth', { replace: true, state: { from: `/movie/${id}` } })
+      return
+    }
+    setShowFeedbackModal(true)
+  }, [user, navigate, id])
 
   const rating = movie?.vote_average
     ? Math.round(movie.vote_average * 10) / 10
@@ -398,6 +489,7 @@ export default function MovieDetail() {
                             href={ytTrailer}
                             target="_blank"
                             rel="noreferrer"
+                            onClick={handleTrailerClick}
                             className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 px-5 py-2 text-sm font-bold text-white shadow-xl transition-all active:scale-95"
                           >
                             <Play className="h-4 w-4 fill-current" />
@@ -443,23 +535,26 @@ export default function MovieDetail() {
                           </span>
                         </button>
 
+                        {/* 🆕 Manual Feedback Button (shows when watched) */}
+                        {isWatched && (
+                          <button
+                            onClick={handleOpenFeedback}
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 px-4 py-2 text-sm font-bold text-purple-300 hover:from-purple-500/30 hover:to-pink-500/30 transition-all active:scale-95"
+                          >
+                            <Heart className="h-4 w-4" />
+                            <span className="hidden xs:inline">Rate Experience</span>
+                          </button>
+                        )}
+
                         <button
-                          onClick={() => {
-                            if (navigator.share) {
-                              navigator.share({
-                                title: movie?.title,
-                                text: movie?.overview,
-                                url: window.location.href
-                              })
-                            }
-                          }}
+                          onClick={handleShare}
                           className="inline-flex items-center gap-1.5 rounded-lg bg-white/10 backdrop-blur px-3 py-2 text-sm font-bold hover:bg-white/20 transition-all active:scale-95 border border-white/20"
                         >
                           <Share2 className="h-4 w-4" />
                         </button>
                       </div>
 
-                      {/* 🆕 RATING WIDGET - Only show when we have internal ID */}
+                      {/* Rating Widget */}
                       {internalMovieId && (
                         <div className="pt-3 border-t border-white/10">
                           <MovieRatingWidget 
@@ -471,7 +566,7 @@ export default function MovieDetail() {
                         </div>
                       )}
 
-                      {/* 🆕 Loading state for rating */}
+                      {/* Loading state for rating */}
                       {!internalMovieId && user && (
                         <div className="pt-3 border-t border-white/10">
                           <div className="flex items-center gap-2 text-sm text-white/50">
@@ -516,7 +611,12 @@ export default function MovieDetail() {
               )}
 
               {/* Videos */}
-              {videos?.length > 0 && <VideosSection videos={videos} />}
+              {videos?.length > 0 && (
+                <VideosSection 
+                  videos={videos} 
+                  internalMovieId={internalMovieId}
+                />
+              )}
 
               {/* Images */}
               {images.backdrops?.length > 0 && (
@@ -549,15 +649,27 @@ export default function MovieDetail() {
         </div>
       </div>
 
+      {/* 🆕 Feedback Modal */}
+      {showFeedbackModal && movie && (
+        <MovieSentimentWidget
+          user={user}
+          movie={movie}
+          onClose={() => setShowFeedbackModal(false)}
+        />
+      )}
+
       {/* Database Validation Panel (Development Only) */}
       {process.env.NODE_ENV === 'development' && movie?.id && (
-        <DatabaseValidationPanel movieId={movie.id} />
+        <DatabaseValidationPanel 
+          movieId={movie.id} 
+          internalMovieId={internalMovieId} 
+        />
       )}
     </div>
   )
 }
 
-// --- Components (unchanged) ---
+// --- Components ---
 
 function WhereToWatch({ providers }) {
   if (!providers.flatrate?.length) return null
@@ -767,9 +879,16 @@ function CastSection({ cast }) {
   )
 }
 
-function VideosSection({ videos }) {
+function VideosSection({ videos, internalMovieId }) {
   const filtered = videos.filter((v) => v.site === 'YouTube').slice(0, 6)
   if (!filtered.length) return null
+
+  const handleVideoClick = (video) => {
+    if (internalMovieId) {
+      trackTrailerPlay(internalMovieId, 'videos_section')
+      console.log(`[Video] Tracked play: ${video.name}`)
+    }
+  }
 
   return (
     <div>
@@ -784,6 +903,7 @@ function VideosSection({ videos }) {
             href={`https://www.youtube.com/watch?v=${v.key}`}
             target="_blank"
             rel="noreferrer"
+            onClick={() => handleVideoClick(v)}
             className="group relative aspect-video rounded-md overflow-hidden bg-white/5 border border-white/10"
           >
             <img

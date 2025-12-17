@@ -15,7 +15,7 @@ import { recommendationCache } from '@/shared/lib/cache'
  * @param {object | null} params.user - Supabase auth user
  * @param {object | null} params.movie - Movie object
  * @param {number | null} params.internalMovieId - Explicit internal DB ID (if known)
- * @param {string} params.source - e.g. 'hero_slider', 'hero_top_pick'
+ * @param {string} params.source - e.g. 'hero_slider', 'hero_top_pick', 'movie_detail'
  */
 export function useUserMovieStatus(params = {}) {
   // Handle accidental null being passed as the first argument
@@ -25,7 +25,7 @@ export function useUserMovieStatus(params = {}) {
     user = null,
     movie = null,
     internalMovieId: explicitInternalId = null,
-    source = null
+    source = 'unknown'
   } = safeParams
 
   const [isInWatchlist, setIsInWatchlist] = useState(false)
@@ -125,7 +125,7 @@ export function useUserMovieStatus(params = {}) {
       console.log('[toggleWatchlist] Using movie_id:', resolvedInternalId)
 
       if (wasInWatchlist) {
-        // Optimistic update
+        // REMOVE from watchlist
         setIsInWatchlist(false)
 
         const { error } = await supabase
@@ -135,8 +135,10 @@ export function useUserMovieStatus(params = {}) {
           .eq('movie_id', resolvedInternalId)
 
         if (error) throw error
+
+        console.log('[toggleWatchlist] ✅ Removed from watchlist')
       } else {
-        // Optimistic update
+        // ADD to watchlist
         setIsInWatchlist(true)
         setIsWatched(false)
 
@@ -154,11 +156,14 @@ export function useUserMovieStatus(params = {}) {
 
         if (error) throw error
 
+        // Remove from watched history (mutual exclusivity)
         await supabase
           .from('user_history')
           .delete()
           .eq('user_id', user.id)
           .eq('movie_id', resolvedInternalId)
+
+        console.log('[toggleWatchlist] ✅ Added to watchlist')
       }
 
       // Invalidate cache after successful action
@@ -166,7 +171,7 @@ export function useUserMovieStatus(params = {}) {
       console.log('[Cache] Invalidated after watchlist toggle')
     } catch (err) {
       console.error('[toggleWatchlist] error:', err)
-      // revert optimistic update
+      // Revert optimistic update
       setIsInWatchlist(wasInWatchlist)
     } finally {
       setLoading(prev => ({ ...prev, watchlist: false }))
@@ -183,7 +188,7 @@ export function useUserMovieStatus(params = {}) {
       console.log('[toggleWatched] Using movie_id:', resolvedInternalId)
 
       if (wasWatched) {
-        // Optimistic update
+        // UNMARK as watched
         setIsWatched(false)
 
         const { error } = await supabase
@@ -193,8 +198,10 @@ export function useUserMovieStatus(params = {}) {
           .eq('movie_id', resolvedInternalId)
 
         if (error) throw error
+
+        console.log('[toggleWatched] ✅ Unmarked as watched')
       } else {
-        // Optimistic update
+        // MARK as watched
         setIsWatched(true)
         setIsInWatchlist(false)
 
@@ -202,18 +209,42 @@ export function useUserMovieStatus(params = {}) {
           user_id: user.id,
           movie_id: resolvedInternalId,
           watched_at: new Date().toISOString(),
-          source,
+          source: source || 'manual',
           watch_duration_minutes: null,
           mood_session_id: null
         })
 
         if (error) throw error
 
+        // Remove from watchlist (mutual exclusivity)
         await supabase
           .from('user_watchlist')
           .delete()
           .eq('user_id', user.id)
           .eq('movie_id', resolvedInternalId)
+
+        console.log('[toggleWatched] ✅ Marked as watched')
+
+        // 🆕 EMIT FEEDBACK PROMPT EVENT
+        setTimeout(() => {
+          const tmdbId = movie?.tmdb_id || movie?.id
+          console.log('[toggleWatched] 💬 Prompting for feedback...', {
+            internalMovieId: resolvedInternalId,
+            tmdbId: tmdbId,
+            movieTitle: movie?.title
+          })
+          
+          window.dispatchEvent(
+            new CustomEvent('prompt-movie-feedback', {
+              detail: {
+                internalMovieId: resolvedInternalId,
+                tmdbId: tmdbId,
+                movieTitle: movie?.title || 'this movie',
+                source: source || 'manual'
+              }
+            })
+          )
+        }, 800)
       }
 
       // Invalidate cache after successful action
@@ -221,20 +252,19 @@ export function useUserMovieStatus(params = {}) {
       console.log('[Cache] Invalidated after watched toggle')
     } catch (err) {
       console.error('[toggleWatched] error:', err)
-      // revert optimistic update
+      // Revert optimistic update
       setIsWatched(wasWatched)
     } finally {
       setLoading(prev => ({ ...prev, watched: false }))
     }
-  }, [user?.id, user, resolvedInternalId, loading.watched, isWatched, source])
+  }, [user?.id, user, resolvedInternalId, loading.watched, isWatched, source, movie])
 
-  // 🆕 UPDATED RETURN STATEMENT
   return {
     isInWatchlist,
     isWatched,
     loading,
     toggleWatchlist,
     toggleWatched,
-    internalId: resolvedInternalId // ← ADD THIS LINE!
+    internalId: resolvedInternalId
   }
 }

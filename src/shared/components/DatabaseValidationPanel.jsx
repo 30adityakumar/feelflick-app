@@ -1,26 +1,21 @@
 /**
  * Database Validation Panel
  * Developer-only component for testing database integrity
- * 
- * Usage in MovieDetail.jsx:
- *   {process.env.NODE_ENV === 'development' && (
- *     <DatabaseValidationPanel movieId={movie.id} />
- *   )}
  */
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Activity, CheckCircle2, XCircle, Loader2, AlertTriangle } from 'lucide-react'
 import { supabase } from '@/shared/lib/supabase/client'
 import { runAllValidationTests, quickHealthCheck } from '@/shared/services/databaseValidation'
 
-export default function DatabaseValidationPanel({ movieId }) {
+export default function DatabaseValidationPanel({ movieId, internalMovieId }) {
   const [isOpen, setIsOpen] = useState(false)
   const [isRunning, setIsRunning] = useState(false)
   const [results, setResults] = useState(null)
   const [user, setUser] = useState(null)
 
   // Get current user
-  useState(() => {
+  useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       setUser(data?.user || null)
     })
@@ -32,11 +27,16 @@ export default function DatabaseValidationPanel({ movieId }) {
       return
     }
 
+    // Use internal movie ID if available, otherwise fall back to movieId
+    const testMovieId = internalMovieId || movieId || 242
+    
+    console.log('🧪 Running tests with movie ID:', testMovieId)
+
     setIsRunning(true)
     setResults(null)
 
     const startTime = Date.now()
-    const success = await runAllValidationTests(user.id, movieId)
+    const success = await runAllValidationTests(user.id, testMovieId)
     const duration = ((Date.now() - startTime) / 1000).toFixed(2)
 
     setResults({
@@ -82,18 +82,20 @@ export default function DatabaseValidationPanel({ movieId }) {
           onClick={() => setIsOpen(false)}
           className="h-6 w-6 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors"
         >
-          <span className="text-white/60">×</span>
+          <span className="text-white/60 text-xl">×</span>
         </button>
       </div>
 
       {/* Content */}
       <div className="p-4 space-y-3">
         {/* User Info */}
-        <div className="text-xs text-white/60">
+        <div className="text-xs text-white/60 space-y-1">
           {user ? (
             <>
-              <div>User: {user.email}</div>
-              <div>Movie ID: {movieId}</div>
+              <div>User: {user.email?.slice(0, 20)}...</div>
+              <div>TMDB ID: {movieId}</div>
+              <div>Internal ID: {internalMovieId || 'N/A'}</div>
+              <div className="text-green-400">✓ Test ID: {internalMovieId || movieId || 242}</div>
             </>
           ) : (
             <div className="text-yellow-400">⚠️ Not logged in</div>
@@ -110,7 +112,7 @@ export default function DatabaseValidationPanel({ movieId }) {
                 <XCircle className="h-4 w-4 text-red-400" />
               )}
               <span className="text-sm font-bold text-white">
-                {results.success ? 'All Tests Passed' : 'Tests Failed'}
+                {results.success ? 'All Tests Passed! 🎉' : 'Some Tests Failed'}
               </span>
             </div>
             <div className="text-xs text-white/60 space-y-1">
@@ -151,7 +153,7 @@ export default function DatabaseValidationPanel({ movieId }) {
         </div>
 
         {/* Instructions */}
-        <div className="text-10px text-white/40 leading-relaxed">
+        <div className="text-[10px] text-white/40 leading-relaxed">
           <strong>Full Tests:</strong> Creates test data, validates constraints, cleans up.
           <br />
           <strong>Quick Check:</strong> Non-destructive check for existing issues.

@@ -22,9 +22,8 @@ import {
 import { useLocation } from 'react-router-dom'
 import RecommendationFeedback from '@/shared/components/RecommendationFeedback'
 import { useUserMovieStatus } from '@/shared/hooks/useUserMovieStatus'
-
-// At the top with other imports
 import DatabaseValidationPanel from '@/shared/components/DatabaseValidationPanel'
+import MovieRatingWidget from '@/shared/components/MovieRatingWidget'
 
 const IMG = {
   backdrop: (p) => (p ? `https://image.tmdb.org/t/p/original${p}` : ''),
@@ -49,7 +48,7 @@ function formatRuntime(mins) {
 const yearOf = (d) => d?.slice?.(0, 4)
 
 export default function MovieDetail() {
-  const { id } = useParams()
+  const { id } = useParams() // TMDB ID
   const location = useLocation()
   const { sessionId, movieId } = location.state || {}
   const navigate = useNavigate()
@@ -71,6 +70,9 @@ export default function MovieDetail() {
 
   // User State
   const [user, setUser] = useState(null)
+
+  // 🆕 Internal Movie ID State (for ratings)
+  const [internalMovieId, setInternalMovieId] = useState(null)
 
   // Auth
   useEffect(() => {
@@ -181,14 +183,24 @@ export default function MovieDetail() {
     }
   }, [id])
 
-  // Shared watchlist / watched logic (normalized across app)
+  // 🆕 Get Internal Movie ID (for ratings)
+  // This hook returns internalId from useUserMovieStatus
   const {
     isInWatchlist,
     isWatched,
     loading: actionLoading,
     toggleWatchlist: rawToggleWatchlist,
-    toggleWatched: rawToggleWatched
+    toggleWatched: rawToggleWatched,
+    internalId // ← Get this from useUserMovieStatus
   } = useUserMovieStatus({ user, movie, source: 'movie_detail' })
+
+  // 🆕 Set internal ID when it's available
+  useEffect(() => {
+    if (internalId) {
+      setInternalMovieId(internalId)
+      console.log('[MovieDetail] ✅ Internal movie ID:', internalId)
+    }
+  }, [internalId])
 
   const mutating = actionLoading.watchlist || actionLoading.watched
 
@@ -446,6 +458,28 @@ export default function MovieDetail() {
                           <Share2 className="h-4 w-4" />
                         </button>
                       </div>
+
+                      {/* 🆕 RATING WIDGET - Only show when we have internal ID */}
+                      {internalMovieId && (
+                        <div className="pt-3 border-t border-white/10">
+                          <MovieRatingWidget 
+                            user={user} 
+                            movieInternalId={internalMovieId}
+                            size="md"
+                            showLabel={true}
+                          />
+                        </div>
+                      )}
+
+                      {/* 🆕 Loading state for rating */}
+                      {!internalMovieId && user && (
+                        <div className="pt-3 border-t border-white/10">
+                          <div className="flex items-center gap-2 text-sm text-white/50">
+                            <div className="animate-spin h-4 w-4 border-2 border-white/20 border-t-white/60 rounded-full" />
+                            <span>Loading rating...</span>
+                          </div>
+                        </div>
+                      )}
                     </>
                   )}
                 </div>
@@ -514,6 +548,7 @@ export default function MovieDetail() {
           </div>
         </div>
       </div>
+
       {/* Database Validation Panel (Development Only) */}
       {process.env.NODE_ENV === 'development' && movie?.id && (
         <DatabaseValidationPanel movieId={movie.id} />
@@ -646,7 +681,7 @@ function ProductionCompanies({ companies }) {
 function KeywordsSection({ keywords }) {
   if (!keywords?.length) return null
   return (
-    <div className="rounded-lg bg_white/5 backdrop-blur border border-white/10 p-4">
+    <div className="rounded-lg bg-white/5 backdrop-blur border border-white/10 p-4">
       <h2 className="text-sm font-bold mb-3 flex items-center gap-2">
         <Tag className="h-4 w-4" />
         Keywords
@@ -842,4 +877,3 @@ function Rail({ title, items }) {
     </div>
   )
 }
-

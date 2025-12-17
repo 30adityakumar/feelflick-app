@@ -228,11 +228,13 @@ export function useUserMovieStatus(params = {}) {
     }
   }, [user?.id, user, resolvedInternalId, loading.watched, isWatched, source])
 
+  // 🆕 UPDATED RETURN STATEMENT
   return {
     isInWatchlist,
     isWatched,
     loading,
     toggleWatchlist,
-    toggleWatched
+    toggleWatched,
+    internalId: resolvedInternalId // ← ADD THIS LINE!
   }
 }

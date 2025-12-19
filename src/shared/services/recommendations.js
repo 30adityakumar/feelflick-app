@@ -1,26 +1,33 @@
 // src/shared/services/recommendations.js
 /**
- * FeelFlick Recommendation Engine v2.2
- * 
- * PHILOSOPHY: Surface RECENT, QUALITY, DISCOVERABLE films that STRONGLY match taste
- * 
- * Key improvements:
- * - Uses pre-computed genre-normalized ratings from database
- * - Leverages discovery_potential, accessibility_score, polarization_score
- * - Integrates movie completion stats for quality signals
- * - Optimized queries using database indexes
- * - Strict quality floor (7.0+) after normalization
- * 
- * @module recommendations
+ * FeelFlick Recommendation Engine v2.3 (HeroTopPick-focused)
+ *
+ * FIXES in v2.3:
+ * ✅ Language mismatch fix:
+ *   - Hero language is derived from *actual user_history → movies.original_language* (not stale cached profile)
+ *   - Strong language dominance triggers a HARD language filter (Hindi-only users won’t see English unless you explicitly relax)
+ * ✅ Watched-on-Hero fix:
+ *   - Excludes by BOTH internal movie.id AND movies.tmdb_id (prevents duplicates / re-ingested movie rows from reappearing)
+ * ✅ Removes "likely seen" penalty from scoring (disabled completely)
+ * ✅ Embedding-aware "Similar to / Because you watched":
+ *   - Uses `movie_recommendations` (precomputed neighbors) when available for stronger “similar to” mapping
+ * ✅ Profile cache safety:
+ *   - Auto-bypasses cached profiles from older versions (prevents missing fields like distributionSorted)
  */
 
 import { supabase } from '@/shared/lib/supabase/client'
-import * as tmdb from '@/shared/api/tmdb'
+import * as tmdb from '@/shared/api/tmdb' // kept for compatibility; not required in this file
 import { recommendationCache } from '@/shared/lib/cache'
 
-/**
- * Normalize numeric ID arrays for stable caching
- */
+// ============================================================================
+// VERSION
+// ============================================================================
+const ENGINE_VERSION = '2.3'
+
+// ============================================================================
+// HELPERS
+// ============================================================================
+
 function normalizeNumericIdArray(arr = []) {
   return Array.from(
     new Set(
@@ -32,39 +39,82 @@ function normalizeNumericIdArray(arr = []) {
   ).sort((a, b) => a - b)
 }
 
+function clamp(n, lo, hi) {
+  return Math.max(lo, Math.min(hi, n))
+}
+
+function safeLower(s) {
+  return typeof s === 'string' ? s.toLowerCase() : ''
+}
+
 // ============================================================================
 // CONSTANTS
 // ============================================================================
 
 const LANGUAGE_REGIONS = {
   // Indian Subcontinent
-  hi: 'hindi_bollywood', ta: 'south_indian', te: 'south_indian',
-  ml: 'south_indian', kn: 'south_indian', bn: 'bengali',
-  pa: 'punjabi', mr: 'marathi',
+  hi: 'hindi_bollywood',
+  ta: 'south_indian',
+  te: 'south_indian',
+  ml: 'south_indian',
+  kn: 'south_indian',
+  bn: 'bengali',
+  pa: 'punjabi',
+  mr: 'marathi',
   // East Asian
-  ko: 'korean', ja: 'japanese', zh: 'chinese', cn: 'chinese', yue: 'cantonese',
+  ko: 'korean',
+  ja: 'japanese',
+  zh: 'chinese',
+  cn: 'chinese',
+  yue: 'cantonese',
   // Southeast Asian
-  th: 'thai', id: 'indonesian', vi: 'vietnamese', tl: 'filipino',
+  th: 'thai',
+  id: 'indonesian',
+  vi: 'vietnamese',
+  tl: 'filipino',
   // European
-  fr: 'french', de: 'german', es: 'spanish_european', it: 'italian',
-  pt: 'portuguese_european', nl: 'dutch',
+  fr: 'french',
+  de: 'german',
+  es: 'spanish_european',
+  it: 'italian',
+  pt: 'portuguese_european',
+  nl: 'dutch',
   // Latin American
-  'es-MX': 'latin_american', 'pt-BR': 'brazilian',
+  'es-MX': 'latin_american',
+  'pt-BR': 'brazilian',
   // Nordic
-  sv: 'nordic', da: 'nordic', no: 'nordic', fi: 'nordic',
+  sv: 'nordic',
+  da: 'nordic',
+  no: 'nordic',
+  fi: 'nordic',
   // Eastern European
-  pl: 'polish', ru: 'russian', cs: 'czech', hu: 'hungarian', ro: 'romanian',
+  pl: 'polish',
+  ru: 'russian',
+  cs: 'czech',
+  hu: 'hungarian',
+  ro: 'romanian',
   // Middle Eastern
-  ar: 'arabic', fa: 'persian', tr: 'turkish', he: 'hebrew',
+  ar: 'arabic',
+  fa: 'persian',
+  tr: 'turkish',
+  he: 'hebrew',
   // Anglophone
   en: 'english'
 }
 
+// "Likely seen" is DISABLED per your request (kept for backward compatibility)
 const LIKELY_SEEN_WEIGHTS = {
-  hero: 0, quick_picks: 0.3, hidden_gems: 0.9, trending: 0.0,
-  because_you_watched: 0.2, world_cinema: 0.5, favorite_genres: 0.4,
-  slow_contemplative: 0.5, quick_watches: 0.4, visual_spectacles: 0.3,
-  default: 0.4
+  hero: 0,
+  quick_picks: 0,
+  hidden_gems: 0,
+  trending: 0,
+  because_you_watched: 0,
+  world_cinema: 0,
+  favorite_genres: 0,
+  slow_contemplative: 0,
+  quick_watches: 0,
+  visual_spectacles: 0,
+  default: 0
 }
 
 const THRESHOLDS = {
@@ -75,20 +125,34 @@ const THRESHOLDS = {
 }
 
 const GENRE_NAME_TO_ID = {
-  'action': 28, 'adventure': 12, 'animation': 16, 'comedy': 35,
-  'crime': 80, 'documentary': 99, 'drama': 18, 'family': 10751,
-  'fantasy': 14, 'history': 36, 'horror': 27, 'music': 10402,
-  'mystery': 9648, 'romance': 10749, 'science fiction': 878, 'sci-fi': 878,
-  'tv movie': 10770, 'thriller': 53, 'war': 10752, 'western': 37
+  action: 28,
+  adventure: 12,
+  animation: 16,
+  comedy: 35,
+  crime: 80,
+  documentary: 99,
+  drama: 18,
+  family: 10751,
+  fantasy: 14,
+  history: 36,
+  horror: 27,
+  music: 10402,
+  mystery: 9648,
+  romance: 10749,
+  'science fiction': 878,
+  'sci-fi': 878,
+  'tv movie': 10770,
+  thriller: 53,
+  war: 10752,
+  western: 37
 }
 
 // ============================================================================
-// USER PROFILE COMPUTATION
+// PROFILE COMPUTATION (with cache safety)
 // ============================================================================
 
 export async function computeUserProfile(userId, forceRefresh = false) {
   try {
-    // Try cache first
     if (!forceRefresh) {
       const { data: cached, error: cacheError } = await supabase
         .from('user_profiles_computed')
@@ -96,94 +160,103 @@ export async function computeUserProfile(userId, forceRefresh = false) {
         .eq('user_id', userId)
         .maybeSingle()
 
-      if (cached && !cacheError) {
-        const age = Date.now() - new Date(cached.computed_at).getTime()
-        const maxAge = 24 * 60 * 60 * 1000
+      if (cached && !cacheError && cached.profile) {
+        const cachedVersion = cached.profile?.meta?.profileVersion
+        const isVersionOk = cachedVersion === ENGINE_VERSION
 
-        if (age < maxAge) {
-          console.log('[computeUserProfile] Cache HIT:', {
-            userId, age: Math.round(age / 1000 / 60),
-            dataPoints: cached.data_points, confidence: cached.confidence
-          })
-          return { ...cached.profile, _cached: true, _seedFilms: cached.seed_films }
+        const ageMs = Date.now() - new Date(cached.computed_at).getTime()
+        const maxAgeMs = 24 * 60 * 60 * 1000
+
+        // IMPORTANT: old cached profiles caused language distributionSorted to be missing,
+        // which made language filters silently not apply → English leakage.
+        if (isVersionOk && ageMs < maxAgeMs) {
+          const fixed = ensureLanguageProfileShape(cached.profile)
+          return { ...fixed, _cached: true, _seedFilms: cached.seed_films }
         }
       }
     }
 
-    console.log('[computeUserProfile] Cache MISS, computing...')
-
-    // Fetch data in parallel
     const [
       { data: watchHistory },
       { data: userPrefs },
       { data: userRatings },
       { data: skipFeedback }
     ] = await Promise.all([
-      supabase.from('user_history').select(`
+      supabase
+        .from('user_history')
+        .select(
+          `
         movie_id, source, watched_at, watch_duration_minutes,
         movies!inner (
-          id, original_language, runtime, release_year,
+          id, tmdb_id, original_language, runtime, release_year,
           pacing_score, intensity_score, emotional_depth_score,
           dialogue_density, attention_demand, vfx_level_score,
           ff_rating, director_name, lead_actor_name, genres, keywords
         )
-      `).eq('user_id', userId).order('watched_at', { ascending: false }).limit(100),
+      `
+        )
+        .eq('user_id', userId)
+        .order('watched_at', { ascending: false })
+        .limit(100),
+
+      // ✅ user_preferences is included
       supabase.from('user_preferences').select('genre_id').eq('user_id', userId),
+
       supabase.from('user_ratings').select('movie_id, rating').eq('user_id', userId),
-      supabase.from('recommendation_impressions').select('movie_id, skipped, placement, shown_at')
-        .eq('user_id', userId).eq('skipped', true).order('shown_at', { ascending: false }).limit(50)
+
+      supabase
+        .from('recommendation_impressions')
+        .select('movie_id, skipped, placement, shown_at')
+        .eq('user_id', userId)
+        .eq('skipped', true)
+        .order('shown_at', { ascending: false })
+        .limit(50)
     ])
 
-    // Empty history = new user
     if (!watchHistory || watchHistory.length === 0) {
       const emptyProfile = buildEmptyProfile(userId, userPrefs)
       await cacheUserProfile(userId, emptyProfile, [])
       return emptyProfile
     }
 
-    const onboardingMovies = watchHistory.filter(h => h.source === 'onboarding')
-    const regularHistory = watchHistory.filter(h => h.source !== 'onboarding')
+    const onboardingMovies = watchHistory.filter((h) => h.source === 'onboarding')
+    const regularHistory = watchHistory.filter((h) => h.source !== 'onboarding')
     const totalWatched = regularHistory.length
 
-    // Decaying onboarding weight
     let onboardingWeight = 3.0
     if (totalWatched > 50) onboardingWeight = 1.5
     else if (totalWatched > 20) onboardingWeight = 2.0
 
-    // Build weighted movies
     const weightedMovies = []
-    onboardingMovies.forEach(h => {
-      if (h.movies) {
-        weightedMovies.push({ ...h.movies, weight: onboardingWeight, isOnboarding: true })
-      }
+
+    onboardingMovies.forEach((h) => {
+      if (h.movies) weightedMovies.push({ ...h.movies, weight: onboardingWeight, isOnboarding: true })
     })
 
     const now = new Date()
-    regularHistory.forEach(h => {
-      if (h.movies) {
-        const daysSince = (now - new Date(h.watched_at)) / (1000 * 60 * 60 * 24)
-        
-        // FLATTENED recency weights
-        let weight = 1.0
-        if (daysSince <= 30) weight = 1.3
-        else if (daysSince <= 90) weight = 1.15
+    regularHistory.forEach((h) => {
+      if (!h.movies) return
+      const daysSince = (now - new Date(h.watched_at)) / (1000 * 60 * 60 * 24)
 
-        // Watch duration adjustment
-        if (h.watch_duration_minutes && h.movies.runtime) {
-          const pct = h.watch_duration_minutes / h.movies.runtime
-          if (pct < 0.3) weight *= 0.3
-          else if (pct < 0.7) weight *= 0.7
-        }
+      let weight = 1.0
+      if (daysSince <= 30) weight = 1.3
+      else if (daysSince <= 90) weight = 1.15
 
-        weightedMovies.push({ ...h.movies, weight, isOnboarding: false })
+      if (h.watch_duration_minutes && h.movies.runtime) {
+        const pct = h.watch_duration_minutes / h.movies.runtime
+        if (pct < 0.3) weight *= 0.3
+        else if (pct < 0.7) weight *= 0.7
       }
+
+      weightedMovies.push({ ...h.movies, weight, isOnboarding: false })
     })
 
-    // Compute negative signals FIRST
     const negativeSignals = computeNegativeSignals(skipFeedback, watchHistory)
 
-    // Compute all profile components
-    const languages = computeLanguageProfile(weightedMovies)
+    // ✅ language is computed from real watched movies
+    // ✅ and EXCLUDES onboarding by default (onboarding can leak English)
+    const languages = computeLanguageProfile(weightedMovies, { excludeOnboarding: true })
+
     const genres = computeGenreProfile(weightedMovies, userPrefs, negativeSignals)
     const contentProfile = computeContentProfile(weightedMovies)
     const preferences = computePracticalPreferences(weightedMovies)
@@ -191,27 +264,33 @@ export async function computeUserProfile(userId, forceRefresh = false) {
     const themes = computeThemeAffinities(weightedMovies)
     const qualityProfile = computeQualityProfile(weightedMovies, userRatings)
 
-    const profile = {
-      userId, languages, genres, contentProfile, preferences,
-      affinities, themes, qualityProfile, negativeSignals,
+    const profile = ensureLanguageProfileShape({
+      userId,
+      languages,
+      genres,
+      contentProfile,
+      preferences,
+      affinities,
+      themes,
+      qualityProfile,
+      negativeSignals,
       meta: {
-        profileVersion: '2.2',
+        profileVersion: ENGINE_VERSION,
         computedAt: new Date().toISOString(),
         dataPoints: weightedMovies.length,
-        confidence: weightedMovies.length >= 30 ? 'high' :
-                    weightedMovies.length >= 10 ? 'medium' : 'low',
-        onboardingWeight, totalSkips: negativeSignals.totalSkips
+        confidence:
+          weightedMovies.length >= 30 ? 'high' : weightedMovies.length >= 10 ? 'medium' : 'low',
+        onboardingWeight,
+        totalSkips: negativeSignals.totalSkips
       }
-    }
+    })
 
-    // Compute and cache seed films
     const seedFilms = await getSeedFilms(userId, profile)
-    cacheUserProfile(userId, profile, seedFilms).catch(err =>
+    cacheUserProfile(userId, profile, seedFilms).catch((err) =>
       console.warn('[computeUserProfile] Cache save failed:', err.message)
     )
 
     return profile
-
   } catch (error) {
     console.error('[computeUserProfile] Error:', error)
     return buildEmptyProfile(userId, null)
@@ -219,83 +298,141 @@ export async function computeUserProfile(userId, forceRefresh = false) {
 }
 
 function buildEmptyProfile(userId, userPrefs) {
-  return {
+  return ensureLanguageProfileShape({
     userId,
     languages: {
-      primary: null, secondary: null, distribution: {}, openness: 'unknown',
-      regionAffinity: null, distinctCount: 0, isBilingual: false,
-      primaryDominance: 0, regionsExplored: 0, regionDistribution: {}
+      primary: null,
+      secondary: null,
+      distribution: {},
+      openness: 'unknown',
+      regionAffinity: null,
+      distinctCount: 0,
+      isBilingual: false,
+      primaryDominance: 0,
+      regionsExplored: 0,
+      regionDistribution: {},
+      distributionSorted: []
     },
     genres: {
-      preferred: userPrefs?.map(p => p.genre_id) || [],
-      secondary: [], avoided: [], fatigued: [], preferredPairs: []
+      preferred: userPrefs?.map((p) => p.genre_id) || [],
+      secondary: [],
+      avoided: [],
+      fatigued: [],
+      preferredPairs: [],
+      explicitPreferences: userPrefs?.map((p) => p.genre_id) || []
     },
     contentProfile: {
-      avgPacing: 5, avgIntensity: 5, avgEmotionalDepth: 5,
-      avgDialogueDensity: 50, avgAttentionDemand: 50, avgVFX: 50
+      avgPacing: 5,
+      avgIntensity: 5,
+      avgEmotionalDepth: 5,
+      avgDialogueDensity: 50,
+      avgAttentionDemand: 50,
+      avgVFX: 50
     },
     preferences: {
-      avgRuntime: 120, runtimeRange: [80, 180],
-      preferredDecades: ['2020s', '2010s'], toleratesClassics: true
+      avgRuntime: 120,
+      runtimeRange: [80, 180],
+      preferredDecades: ['2020s', '2010s'],
+      toleratesClassics: true
     },
     affinities: { directors: [], actors: [] },
     themes: { preferred: [] },
     qualityProfile: { avgFFRating: 7.0, watchesHiddenGems: false, totalMoviesWatched: 0 },
     negativeSignals: {
-      skippedGenres: [], skippedDirectors: [],
-      skippedLanguages: [], skippedActors: [], totalSkips: 0
+      skippedGenres: [],
+      skippedDirectors: [],
+      skippedLanguages: [],
+      skippedActors: [],
+      totalSkips: 0
     },
     meta: {
-      profileVersion: '2.2', computedAt: new Date().toISOString(),
-      dataPoints: 0, confidence: 'none', onboardingWeight: 3.0, totalSkips: 0
+      profileVersion: ENGINE_VERSION,
+      computedAt: new Date().toISOString(),
+      dataPoints: 0,
+      confidence: 'none',
+      onboardingWeight: 3.0,
+      totalSkips: 0
     }
-  }
+  })
 }
 
 async function cacheUserProfile(userId, profile, seedFilms) {
   try {
-    const { error } = await supabase.from('user_profiles_computed').upsert({
-      user_id: userId, profile, seed_films: seedFilms,
-      computed_at: new Date().toISOString(),
-      data_points: profile.meta.dataPoints,
-      confidence: profile.meta.confidence
-    }, { onConflict: 'user_id' })
-
-    if (!error) console.log('[cacheUserProfile] Cached:', userId)
+    await supabase.from('user_profiles_computed').upsert(
+      {
+        user_id: userId,
+        profile,
+        seed_films: seedFilms,
+        computed_at: new Date().toISOString(),
+        data_points: profile.meta.dataPoints,
+        confidence: profile.meta.confidence
+      },
+      { onConflict: 'user_id' }
+    )
   } catch (err) {
     console.error('[cacheUserProfile] Error:', err)
   }
 }
 
+// Ensure distributionSorted exists even if older profiles were cached
+function ensureLanguageProfileShape(profile) {
+  if (!profile?.languages) return profile
+  const l = profile.languages
+
+  if (!Array.isArray(l.distributionSorted) || l.distributionSorted.length === 0) {
+    const dist = l.distribution || {}
+    const sorted = Object.entries(dist)
+      .map(([lang, percentage]) => ({ lang, count: percentage, percentage }))
+      .sort((a, b) => b.percentage - a.percentage)
+
+    profile.languages = {
+      ...l,
+      distributionSorted: sorted
+    }
+  }
+  return profile
+}
+
+// ============================================================================
+// NEGATIVE SIGNALS
+// ============================================================================
+
 function computeNegativeSignals(skipFeedback, watchHistory) {
   if (!skipFeedback || skipFeedback.length === 0) {
     return {
-      skippedGenres: [], skippedDirectors: [],
-      skippedLanguages: [], skippedActors: [], totalSkips: 0
+      skippedGenres: [],
+      skippedDirectors: [],
+      skippedLanguages: [],
+      skippedActors: [],
+      totalSkips: 0
     }
   }
 
-  const skippedMovieIds = skipFeedback.map(s => s.movie_id)
+  const skippedMovieIds = skipFeedback.map((s) => s.movie_id)
   const skippedMovies = []
 
-  watchHistory.forEach(h => {
-    if (h.movies && skippedMovieIds.includes(h.movie_id)) {
-      skippedMovies.push(h.movies)
-    }
+  watchHistory.forEach((h) => {
+    if (h.movies && skippedMovieIds.includes(h.movie_id)) skippedMovies.push(h.movies)
   })
 
   if (skippedMovies.length === 0) {
     return {
-      skippedGenres: [], skippedDirectors: [],
-      skippedLanguages: [], skippedActors: [], totalSkips: skipFeedback.length
+      skippedGenres: [],
+      skippedDirectors: [],
+      skippedLanguages: [],
+      skippedActors: [],
+      totalSkips: skipFeedback.length
     }
   }
 
-  const genreSkips = {}, directorSkips = {}, langSkips = {}, actorSkips = {}
+  const genreSkips = {},
+    directorSkips = {},
+    langSkips = {},
+    actorSkips = {}
 
-  skippedMovies.forEach(movie => {
+  skippedMovies.forEach((movie) => {
     if (Array.isArray(movie.genres)) {
-      movie.genres.forEach(genre => {
+      movie.genres.forEach((genre) => {
         const gid = extractGenreId(genre)
         if (gid) genreSkips[gid] = (genreSkips[gid] || 0) + 1
       })
@@ -314,16 +451,20 @@ function computeNegativeSignals(skipFeedback, watchHistory) {
   })
 
   return {
-    skippedGenres: Object.entries(genreSkips).filter(([_, c]) => c >= 3)
+    skippedGenres: Object.entries(genreSkips)
+      .filter(([_, c]) => c >= 3)
       .map(([gid, count]) => ({ id: Number(gid), skipCount: count }))
       .sort((a, b) => b.skipCount - a.skipCount),
-    skippedDirectors: Object.entries(directorSkips).filter(([_, c]) => c >= 2)
+    skippedDirectors: Object.entries(directorSkips)
+      .filter(([_, c]) => c >= 2)
       .map(([name, count]) => ({ name, skipCount: count }))
       .sort((a, b) => b.skipCount - a.skipCount),
-    skippedLanguages: Object.entries(langSkips).filter(([_, c]) => c >= 3)
+    skippedLanguages: Object.entries(langSkips)
+      .filter(([_, c]) => c >= 3)
       .map(([lang, count]) => ({ language: lang, skipCount: count }))
       .sort((a, b) => b.skipCount - a.skipCount),
-    skippedActors: Object.entries(actorSkips).filter(([_, c]) => c >= 2)
+    skippedActors: Object.entries(actorSkips)
+      .filter(([_, c]) => c >= 2)
       .map(([name, count]) => ({ name, skipCount: count }))
       .sort((a, b) => b.skipCount - a.skipCount),
     totalSkips: skipFeedback.length
@@ -334,22 +475,37 @@ function computeNegativeSignals(skipFeedback, watchHistory) {
 // PROFILE HELPERS
 // ============================================================================
 
-function computeLanguageProfile(weightedMovies) {
+function computeLanguageProfile(weightedMovies, options = {}) {
+  const { excludeOnboarding = false } = options
+
+  const source = excludeOnboarding ? weightedMovies.filter((m) => !m.isOnboarding) : weightedMovies
   const langCounts = {}
   let totalWeight = 0
 
-  weightedMovies.forEach(m => {
-    if (m.original_language) {
-      langCounts[m.original_language] = (langCounts[m.original_language] || 0) + m.weight
-      totalWeight += m.weight
-    }
+  source.forEach((m) => {
+    if (!m.original_language) return
+    langCounts[m.original_language] = (langCounts[m.original_language] || 0) + (m.weight || 1)
+    totalWeight += m.weight || 1
   })
+
+  // fallback if user has only onboarding (or no usable language)
+  if (totalWeight === 0 && excludeOnboarding) {
+    return computeLanguageProfile(weightedMovies, { excludeOnboarding: false })
+  }
 
   if (totalWeight === 0) {
     return {
-      primary: null, secondary: null, distribution: {}, openness: 'unknown',
-      regionAffinity: null, distinctCount: 0, isBilingual: false,
-      primaryDominance: 0, regionsExplored: 0, regionDistribution: {}
+      primary: null,
+      secondary: null,
+      distribution: {},
+      distributionSorted: [],
+      openness: 'unknown',
+      regionAffinity: null,
+      distinctCount: 0,
+      isBilingual: false,
+      primaryDominance: 0,
+      regionsExplored: 0,
+      regionDistribution: {}
     }
   }
 
@@ -362,9 +518,8 @@ function computeLanguageProfile(weightedMovies) {
   const primaryPct = sorted[0]?.percentage || 0
   const secondaryPct = sorted[1]?.percentage || 0
 
-  // Shannon entropy
   let diversity = 0
-  sorted.forEach(s => {
+  sorted.forEach((s) => {
     const p = s.percentage / 100
     if (p > 0) diversity -= p * Math.log2(p)
   })
@@ -381,18 +536,23 @@ function computeLanguageProfile(weightedMovies) {
   const isBilingual = secondaryPct >= 30 && primaryPct < 60
 
   const regionCounts = {}
-  sorted.forEach(s => {
+  sorted.forEach((s) => {
     const region = LANGUAGE_REGIONS[s.lang]
     if (region) regionCounts[region] = (regionCounts[region] || 0) + s.percentage
   })
 
   return {
-    primary, secondary,
-    distribution: Object.fromEntries(sorted.map(s => [s.lang, s.percentage])),
-    distributionSorted: sorted,  // NEW: Keep sorted array
-    openness, regionAffinity: primary ? LANGUAGE_REGIONS[primary] : null,
-    distinctCount: sorted.length, isBilingual, primaryDominance: primaryPct,
-    regionsExplored: Object.keys(regionCounts).length, regionDistribution: regionCounts
+    primary,
+    secondary,
+    distribution: Object.fromEntries(sorted.map((s) => [s.lang, s.percentage])),
+    distributionSorted: sorted,
+    openness,
+    regionAffinity: primary ? LANGUAGE_REGIONS[primary] : null,
+    distinctCount: sorted.length,
+    isBilingual,
+    primaryDominance: primaryPct,
+    regionsExplored: Object.keys(regionCounts).length,
+    regionDistribution: regionCounts
   }
 }
 
@@ -413,68 +573,64 @@ function extractGenreId(g) {
 function computeGenreProfile(weightedMovies, userPrefs, negativeSignals = null) {
   const genreCounts = {}
   const totalWatched = weightedMovies.length
-  
-  // CRITICAL: User preferences are PRIMARY
+
+  // ✅ explicit user_preferences are PRIMARY
   const explicitPreferences = new Set()
-  userPrefs?.forEach(p => {
-    if (p.genre_id) {
-      const id = typeof p.genre_id === 'number' ? p.genre_id : parseInt(p.genre_id, 10)
-      if (!isNaN(id)) {
-        explicitPreferences.add(id)
-        genreCounts[id] = 100  // HIGH base weight for explicit preferences
-      }
+  userPrefs?.forEach((p) => {
+    if (!p.genre_id) return
+    const id = typeof p.genre_id === 'number' ? p.genre_id : parseInt(p.genre_id, 10)
+    if (!isNaN(id)) {
+      explicitPreferences.add(id)
+      genreCounts[id] = 100 // strong base weight
     }
   })
 
-  // If user has explicit preferences, heavily penalize other genres
   const hasExplicitPreferences = explicitPreferences.size > 0
-  
-  // Decaying onboarding weight
+
+  // (onboarding decay kept for other signals; genre scoring still uses weights)
   let onboardingGenreWeight = 2.0
   if (totalWatched > 50) onboardingGenreWeight = 0.8
   else if (totalWatched > 20) onboardingGenreWeight = 1.2
 
-  weightedMovies.forEach(m => {
-    (m.genres || []).forEach(g => {
+  weightedMovies.forEach((m) => {
+    ;(m.genres || []).forEach((g) => {
       const genreId = extractGenreId(g)
-      if (genreId) {
-        // If explicit preferences exist and this genre is NOT in them, apply penalty
-        if (hasExplicitPreferences && !explicitPreferences.has(genreId)) {
-          genreCounts[genreId] = (genreCounts[genreId] || 0) + (m.weight * 0.3)  // 70% penalty
-        } else {
-          genreCounts[genreId] = (genreCounts[genreId] || 0) + m.weight
-        }
-      }
+      if (!genreId) return
+
+      const baseWeight = m.weight || 1
+      const penalty = hasExplicitPreferences && !explicitPreferences.has(genreId) ? 0.3 : 1.0
+      const onboardingAdj = m.isOnboarding ? onboardingGenreWeight : 1.0
+
+      genreCounts[genreId] = (genreCounts[genreId] || 0) + baseWeight * penalty * onboardingAdj
     })
   })
 
-  // Primary genre bonus (only for explicit preferences or if no preferences set)
-  weightedMovies.forEach(m => {
+  // primary genre bonus
+  weightedMovies.forEach((m) => {
     const genres = m.genres || []
-    if (genres.length > 0) {
-      const primaryGenreId = extractGenreId(genres[0])
-      if (primaryGenreId) {
-        if (!hasExplicitPreferences || explicitPreferences.has(primaryGenreId)) {
-          genreCounts[primaryGenreId] = (genreCounts[primaryGenreId] || 0) + (m.weight * 0.3)
-        }
-      }
+    if (genres.length === 0) return
+    const primaryGenreId = extractGenreId(genres[0])
+    if (!primaryGenreId) return
+    if (!hasExplicitPreferences || explicitPreferences.has(primaryGenreId)) {
+      genreCounts[primaryGenreId] = (genreCounts[primaryGenreId] || 0) + (m.weight || 1) * 0.3
     }
   })
 
-  // Genre pairs
+  // pairs
   const genrePairs = {}
-  weightedMovies.forEach(m => {
+  weightedMovies.forEach((m) => {
     const genres = (m.genres || []).map(extractGenreId).filter(Boolean)
     for (let i = 0; i < genres.length; i++) {
       for (let j = i + 1; j < genres.length; j++) {
         const pair = [genres[i], genres[j]].sort().join('-')
-        genrePairs[pair] = (genrePairs[pair] || 0) + m.weight
+        genrePairs[pair] = (genrePairs[pair] || 0) + (m.weight || 1)
       }
     }
   })
 
   const topPairs = Object.entries(genrePairs)
-    .sort((a, b) => b[1] - a[1]).slice(0, 5)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
     .map(([pair, count]) => ({ genres: pair.split('-').map(Number), count }))
 
   const sorted = Object.entries(genreCounts)
@@ -483,19 +639,20 @@ function computeGenreProfile(weightedMovies, userPrefs, negativeSignals = null) 
     .sort((a, b) => b[1] - a[1])
     .map(([id]) => id)
 
-  const avoided = negativeSignals?.skippedGenres?.filter(g => g.skipCount >= 3).map(g => g.id) || []
+  const avoided = negativeSignals?.skippedGenres?.filter((g) => g.skipCount >= 3).map((g) => g.id) || []
 
-  // Fatigue detection
-  const recentMovies = weightedMovies.filter(m => !m.isOnboarding).slice(0, 10)
+  // fatigue: last 10 non-onboarding
+  const recentMovies = weightedMovies.filter((m) => !m.isOnboarding).slice(0, 10)
   const recentGenreCounts = {}
-  recentMovies.forEach(m => {
-    (m.genres || []).forEach(g => {
+  recentMovies.forEach((m) => {
+    ;(m.genres || []).forEach((g) => {
       const id = extractGenreId(g)
       if (id) recentGenreCounts[id] = (recentGenreCounts[id] || 0) + 1
     })
   })
   const fatigued = Object.entries(recentGenreCounts)
-    .filter(([_, count]) => count >= 6).map(([id]) => parseInt(id, 10))
+    .filter(([_, count]) => count >= 6)
+    .map(([id]) => parseInt(id, 10))
 
   return {
     preferred: sorted.slice(0, 3),
@@ -503,7 +660,7 @@ function computeGenreProfile(weightedMovies, userPrefs, negativeSignals = null) 
     avoided,
     fatigued,
     preferredPairs: topPairs,
-    explicitPreferences: Array.from(explicitPreferences)  // NEW: Track explicit prefs
+    explicitPreferences: Array.from(explicitPreferences)
   }
 }
 
@@ -511,20 +668,25 @@ function computeContentProfile(weightedMovies) {
   const sums = { pacing: 0, intensity: 0, depth: 0, dialogue: 0, attention: 0, vfx: 0 }
   let totalWeight = 0
 
-  weightedMovies.forEach(m => {
-    if (m.pacing_score != null) sums.pacing += m.pacing_score * m.weight
-    if (m.intensity_score != null) sums.intensity += m.intensity_score * m.weight
-    if (m.emotional_depth_score != null) sums.depth += m.emotional_depth_score * m.weight
-    if (m.dialogue_density != null) sums.dialogue += m.dialogue_density * m.weight
-    if (m.attention_demand != null) sums.attention += m.attention_demand * m.weight
-    if (m.vfx_level_score != null) sums.vfx += m.vfx_level_score * m.weight
-    totalWeight += m.weight
+  weightedMovies.forEach((m) => {
+    const w = m.weight || 1
+    if (m.pacing_score != null) sums.pacing += m.pacing_score * w
+    if (m.intensity_score != null) sums.intensity += m.intensity_score * w
+    if (m.emotional_depth_score != null) sums.depth += m.emotional_depth_score * w
+    if (m.dialogue_density != null) sums.dialogue += m.dialogue_density * w
+    if (m.attention_demand != null) sums.attention += m.attention_demand * w
+    if (m.vfx_level_score != null) sums.vfx += m.vfx_level_score * w
+    totalWeight += w
   })
 
   if (totalWeight === 0) {
     return {
-      avgPacing: 5, avgIntensity: 5, avgEmotionalDepth: 5,
-      avgDialogueDensity: 50, avgAttentionDemand: 50, avgVFX: 50
+      avgPacing: 5,
+      avgIntensity: 5,
+      avgEmotionalDepth: 5,
+      avgDialogueDensity: 50,
+      avgAttentionDemand: 50,
+      avgVFX: 50
     }
   }
 
@@ -542,31 +704,33 @@ function computePracticalPreferences(weightedMovies) {
   const runtimes = []
   const decades = {}
 
-  weightedMovies.forEach(m => {
+  weightedMovies.forEach((m) => {
     if (m.runtime) runtimes.push(m.runtime)
     if (m.release_year) {
       const decade = Math.floor(m.release_year / 10) * 10 + 's'
-      decades[decade] = (decades[decade] || 0) + m.weight
+      decades[decade] = (decades[decade] || 0) + (m.weight || 1)
     }
   })
 
-  const avgRuntime = runtimes.length > 0
-    ? Math.round(runtimes.reduce((a, b) => a + b, 0) / runtimes.length) : 120
-
+  const avgRuntime = runtimes.length > 0 ? Math.round(runtimes.reduce((a, b) => a + b, 0) / runtimes.length) : 120
   const sortedDecades = Object.entries(decades)
-    .sort((a, b) => b[1] - a[1]).slice(0, 3).map(([d]) => d)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([d]) => d)
 
   return {
-    avgRuntime, runtimeRange: [Math.min(...runtimes, 80), Math.max(...runtimes, 180)],
+    avgRuntime,
+    runtimeRange: [Math.min(...runtimes, 80), Math.max(...runtimes, 180)],
     preferredDecades: sortedDecades.length > 0 ? sortedDecades : ['2020s', '2010s'],
-    toleratesClassics: weightedMovies.some(m => m.release_year && m.release_year < 1990)
+    toleratesClassics: weightedMovies.some((m) => m.release_year && m.release_year < 1990)
   }
 }
 
 function computePeopleAffinities(weightedMovies) {
-  const directors = {}, actors = {}
+  const directors = {},
+    actors = {}
 
-  weightedMovies.forEach(m => {
+  weightedMovies.forEach((m) => {
     if (m.director_name) {
       if (!directors[m.director_name]) directors[m.director_name] = { count: 0, fromFavorites: false }
       directors[m.director_name].count++
@@ -580,11 +744,15 @@ function computePeopleAffinities(weightedMovies) {
   })
 
   return {
-    directors: Object.entries(directors).filter(([_, d]) => d.count >= 2)
-      .sort((a, b) => b[1].count - a[1].count).slice(0, 5)
+    directors: Object.entries(directors)
+      .filter(([_, d]) => d.count >= 2)
+      .sort((a, b) => b[1].count - a[1].count)
+      .slice(0, 5)
       .map(([name, data]) => ({ name, ...data })),
-    actors: Object.entries(actors).filter(([_, a]) => a.count >= 2)
-      .sort((a, b) => b[1].count - a[1].count).slice(0, 5)
+    actors: Object.entries(actors)
+      .filter(([_, a]) => a.count >= 2)
+      .sort((a, b) => b[1].count - a[1].count)
+      .slice(0, 5)
       .map(([name, data]) => ({ name, ...data }))
   }
 }
@@ -592,27 +760,35 @@ function computePeopleAffinities(weightedMovies) {
 function computeThemeAffinities(weightedMovies) {
   const keywordCounts = {}
 
-  weightedMovies.forEach(m => {
-    (m.keywords || []).forEach(kw => {
+  weightedMovies.forEach((m) => {
+    ;(m.keywords || []).forEach((kw) => {
       const name = typeof kw === 'object' ? kw.name : kw
       if (name && typeof name === 'string') {
         const normalized = name.toLowerCase()
-        keywordCounts[normalized] = (keywordCounts[normalized] || 0) + m.weight
+        keywordCounts[normalized] = (keywordCounts[normalized] || 0) + (m.weight || 1)
       }
     })
   })
 
   return {
-    preferred: Object.entries(keywordCounts).filter(([_, count]) => count >= 3)
-      .sort((a, b) => b[1] - a[1]).slice(0, 10).map(([keyword]) => keyword)
+    preferred: Object.entries(keywordCounts)
+      .filter(([_, count]) => count >= 3)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([keyword]) => keyword)
   }
 }
 
-function computeQualityProfile(weightedMovies, userRatings) {
-  let ratingSum = 0, ratingCount = 0, hiddenGemCount = 0
+function computeQualityProfile(weightedMovies) {
+  let ratingSum = 0,
+    ratingCount = 0,
+    hiddenGemCount = 0
 
-  weightedMovies.forEach(m => {
-    if (m.ff_rating) { ratingSum += m.ff_rating; ratingCount++ }
+  weightedMovies.forEach((m) => {
+    if (m.ff_rating) {
+      ratingSum += Number(m.ff_rating)
+      ratingCount++
+    }
     if (m.popularity && m.popularity < 20) hiddenGemCount++
   })
 
@@ -623,23 +799,37 @@ function computeQualityProfile(weightedMovies, userRatings) {
   }
 }
 
-/**
- * Get seed films with BALANCED time diversity
- */
+// ============================================================================
+// SEED FILMS (Because you watched / similar to mapping anchor)
+// ============================================================================
+
 async function getSeedFilms(userId, profile) {
   if (!userId) return []
 
   try {
-    const { data: history } = await supabase.from('user_history').select(`
+    const { data: history } = await supabase
+      .from('user_history')
+      .select(
+        `
       movie_id, source, watched_at,
-      movies!inner (id, title, director_name, lead_actor_name, genres, keywords,
-                    primary_genre, original_language, release_year,
-                    pacing_score, intensity_score, emotional_depth_score, ff_rating)
-    `).eq('user_id', userId).order('watched_at', { ascending: false }).limit(100)
+      movies!inner (
+        id, tmdb_id, title, director_name, lead_actor_name, genres, keywords,
+        primary_genre, original_language, release_year,
+        pacing_score, intensity_score, emotional_depth_score, ff_rating
+      )
+    `
+      )
+      .eq('user_id', userId)
+      .order('watched_at', { ascending: false })
+      .limit(100)
 
-    const { data: ratings } = await supabase.from('user_ratings')
-      .select('movie_id, rating').eq('user_id', userId).gte('rating', 4)
-      .order('rated_at', { ascending: false }).limit(20)
+    const { data: ratings } = await supabase
+      .from('user_ratings')
+      .select('movie_id, rating')
+      .eq('user_id', userId)
+      .gte('rating', 4)
+      .order('rated_at', { ascending: false })
+      .limit(20)
 
     if (!history || history.length === 0) return []
 
@@ -648,63 +838,51 @@ async function getSeedFilms(userId, profile) {
     const thirtyDaysAgo = new Date(now - 30 * 24 * 60 * 60 * 1000)
     const ninetyDaysAgo = new Date(now - 90 * 24 * 60 * 60 * 1000)
 
-    let onboardingWeight = totalWatched >= 50 ? 1.0 : 
-                          totalWatched >= 30 ? 1.5 : 
-                          totalWatched >= 10 ? 2.0 : 3.0
+    const onboardingWeight =
+      totalWatched >= 50 ? 1.0 : totalWatched >= 30 ? 1.5 : totalWatched >= 10 ? 2.0 : 3.0
 
+    const ratedMovieIds = new Set((ratings || []).map((r) => r.movie_id))
     const seedCandidates = []
-    const ratedMovieIds = new Set((ratings || []).map(r => r.movie_id))
 
-    history.forEach(h => {
+    history.forEach((h) => {
       if (!h.movies) return
       const movie = h.movies
       const watchedAt = new Date(h.watched_at)
       const isRecent = watchedAt >= thirtyDaysAgo
       const isModeratelyRecent = watchedAt >= ninetyDaysAgo
-      const isQuality = movie.ff_rating >= 7.0
+      const isQuality = Number(movie.ff_rating || 0) >= 7.0
 
       let weight = 0
-
-      if (ratedMovieIds.has(movie.id)) {
-        weight = 5.0
-      } else if (h.source === 'onboarding') {
-        weight = onboardingWeight
-      } else if (isQuality) {
+      if (ratedMovieIds.has(movie.id)) weight = 5.0
+      else if (h.source === 'onboarding') weight = onboardingWeight
+      else if (isQuality) {
         if (isRecent) weight = 2.5
         else if (isModeratelyRecent) weight = 2.0
         else weight = 1.5
       }
 
-      if (weight > 0) {
-        seedCandidates.push({ movie, weight, watchedAt })
-      }
+      if (weight > 0) seedCandidates.push({ movie, weight, watchedAt })
     })
 
     seedCandidates.sort((a, b) => b.weight - a.weight)
-    
-    // BALANCED SELECTION
+
     const seeds = []
-    const recentSeeds = seedCandidates.filter(s => s.watchedAt >= thirtyDaysAgo)
-    const olderSeeds = seedCandidates.filter(s => s.watchedAt < thirtyDaysAgo)
-    
+    const recentSeeds = seedCandidates.filter((s) => s.watchedAt >= thirtyDaysAgo)
+    const olderSeeds = seedCandidates.filter((s) => s.watchedAt < thirtyDaysAgo)
+
     const recentCount = Math.min(3, recentSeeds.length)
     const olderCount = Math.min(5 - recentCount, olderSeeds.length)
-    
-    seeds.push(...recentSeeds.slice(0, recentCount).map(c => c.movie))
-    seeds.push(...olderSeeds.slice(0, olderCount).map(c => c.movie))
-    
+
+    seeds.push(...recentSeeds.slice(0, recentCount).map((c) => c.movie))
+    seeds.push(...olderSeeds.slice(0, olderCount).map((c) => c.movie))
+
     if (seeds.length < 5) {
       const remaining = seedCandidates
-        .filter(c => !seeds.find(s => s.id === c.movie.id))
+        .filter((c) => !seeds.find((s) => s.id === c.movie.id))
         .slice(0, 5 - seeds.length)
-        .map(c => c.movie)
+        .map((c) => c.movie)
       seeds.push(...remaining)
     }
-
-    console.log('[getSeedFilms] Balanced:', {
-      totalWatched, recentSeeds: recentCount, olderSeeds: olderCount,
-      seeds: seeds.map(s => ({ title: s.title, year: s.release_year }))
-    })
 
     return seeds
   } catch (error) {
@@ -714,13 +892,112 @@ async function getSeedFilms(userId, profile) {
 }
 
 // ============================================================================
-// HERO TOP PICK SELECTION
+// LANGUAGE GUARD (derived from *user_history*, not from stale profile)
 // ============================================================================
 
+function deriveLanguageFromWatchedRows(watchedRows = []) {
+  const counts = {}
+  let total = 0
+
+  watchedRows.forEach((row) => {
+    const lang = row?.movies?.original_language
+    if (!lang) return
+    counts[lang] = (counts[lang] || 0) + 1
+    total += 1
+  })
+
+  if (total === 0) {
+    return {
+      primary: null,
+      primaryDominance: 0,
+      distributionSorted: [],
+      distinctCount: 0
+    }
+  }
+
+  const sorted = Object.entries(counts)
+    .map(([lang, c]) => ({ lang, count: c, percentage: (c / total) * 100 }))
+    .sort((a, b) => b.count - a.count)
+
+  const primary = sorted[0]?.lang || null
+  const primaryDominance = sorted[0]?.percentage || 0
+
+  return {
+    primary,
+    primaryDominance,
+    distributionSorted: sorted,
+    distinctCount: sorted.length
+  }
+}
+
 /**
- * Get personalized top pick for Hero section
- * v2.2: Uses all database fields optimally
+ * Decide how strict to be:
+ * - If primary >= 85% and distinctCount <= 2: STRICT (Hindi-only stays Hindi-only)
+ * - If primary >= 60%: STRONG (top 2 langs only for Hero)
+ * - else: LOOSE (score-based, no hard filter)
  */
+function buildLanguageGuardFromHistory(languageFromHistory) {
+  const primary = languageFromHistory.primary
+  const dominance = languageFromHistory.primaryDominance || 0
+  const sorted = languageFromHistory.distributionSorted || []
+  const distinctCount = languageFromHistory.distinctCount || 0
+
+  const top2 = sorted.slice(0, 2).map((s) => s.lang).filter(Boolean)
+  const strict = primary && dominance >= 85 && distinctCount <= 2
+  const strong = primary && dominance >= 60
+
+  let allowed = []
+  if (strict) allowed = [primary]
+  else if (strong) allowed = top2.length > 0 ? top2 : primary ? [primary] : []
+  else allowed = [] // no hard filter
+
+  return {
+    mode: strict ? 'strict' : strong ? 'strong' : 'loose',
+    primary,
+    dominance,
+    allowedLanguages: allowed
+  }
+}
+
+// ============================================================================
+// EMBEDDING NEIGHBORS (precomputed table: movie_recommendations)
+// ============================================================================
+
+async function fetchEmbeddingNeighborsForSeeds(seedFilms, opts = {}) {
+  const { limitPerSeed = 60 } = opts
+  const seedIds = normalizeNumericIdArray((seedFilms || []).map((s) => s?.id).filter(Boolean))
+  if (seedIds.length === 0) return { neighborIds: [], bestByNeighborId: new Map() }
+
+  // Pull neighbors for multiple seeds
+  const { data, error } = await supabase
+    .from('movie_recommendations')
+    .select('movie_id, recommended_movie_id, similarity, reason, rank')
+    .in('movie_id', seedIds)
+    .order('similarity', { ascending: false })
+    .limit(seedIds.length * limitPerSeed)
+
+  if (error || !data) return { neighborIds: [], bestByNeighborId: new Map() }
+
+  // bestByNeighborId: recommended_movie_id -> { similarity, seedMovieId }
+  const bestByNeighborId = new Map()
+  data.forEach((r) => {
+    const rid = Number(r.recommended_movie_id)
+    const sim = Number(r.similarity || 0)
+    if (!Number.isFinite(rid) || rid <= 0) return
+    const cur = bestByNeighborId.get(rid)
+    if (!cur || sim > cur.similarity) {
+      bestByNeighborId.set(rid, { similarity: sim, seedMovieId: Number(r.movie_id) })
+    }
+  })
+
+  const neighborIds = Array.from(bestByNeighborId.keys()).slice(0, 500)
+  return { neighborIds, bestByNeighborId }
+}
+
+// ============================================================================
+// HERO TOP PICK (HeroTopPick) — UPDATED
+// ============================================================================
+
 export async function getTopPickForUser(userId, options = {}) {
   const { excludeIds = [], excludeTmdbIds = [], forceRefresh = false } = options
 
@@ -732,78 +1009,56 @@ export async function getTopPickForUser(userId, options = {}) {
     excludeTmdbIds: stableExcludeTmdbIds
   })
 
-  if (forceRefresh) {
-    recommendationCache.invalidate(cacheKey)
-  }
+  if (forceRefresh) recommendationCache.invalidate(cacheKey)
 
   return recommendationCache.getOrFetch(cacheKey, async () => {
-    console.log('[getTopPickForUser] v2.2 - Fetching hero pick for:', userId)
-
     try {
-      if (!userId) {
-        return await getFallbackPick(null)
-      }
+      if (!userId) return await getFallbackPick(null)
 
-      // 1. Get profile and seeds
-      const profile = await computeUserProfile(userId)
+      // profile (for scoring)
+      const profile = ensureLanguageProfileShape(await computeUserProfile(userId))
+
+      // seeds (for "because you watched" / similarity)
       const seedFilms = await getSeedFilms(userId, profile)
 
-      // 2. Get watched movies and detect interests
-      const { data: watchedData } = await supabase
+      // watched rows (CRITICAL): used for language guard + watchexclusion
+      const { data: watchedRows } = await supabase
         .from('user_history')
-        .select('movie_id, movies!inner(genres)')
+        .select('movie_id, movies!inner(id, tmdb_id, original_language, genres)')
         .eq('user_id', userId)
 
-      const watchedIds = watchedData?.map(w => w.movie_id) || []
-      const allExcludeIds = normalizeNumericIdArray([...watchedIds, ...stableExcludeIds])
-      const excludeTmdbSet = new Set(stableExcludeTmdbIds)
+      const watchedInternalIds = normalizeNumericIdArray((watchedRows || []).map((w) => w.movie_id))
+      const watchedTmdbIds = normalizeNumericIdArray((watchedRows || []).map((w) => w.movies?.tmdb_id).filter(Boolean))
 
-      const hasAnimationInterest = 
-        profile.genres.preferred.includes(16) ||
-        profile.genres.secondary?.includes(16) ||
-        watchedData?.some(w => {
-          const genres = (w.movies?.genres || []).map(extractGenreId)
-          return genres.includes(16)
-        })
+      // ✅ never show watched, even if candidates are low
+      const allExcludeInternal = normalizeNumericIdArray([...watchedInternalIds, ...stableExcludeIds])
+      const allExcludeTmdb = new Set(normalizeNumericIdArray([...watchedTmdbIds, ...stableExcludeTmdbIds]))
 
-      const hasFamilyInterest =
-        profile.genres.preferred.includes(10751) ||
-        profile.genres.secondary?.includes(10751) ||
-        watchedData?.some(w => {
-          const genres = (w.movies?.genres || []).map(extractGenreId)
-          return genres.includes(10751)
-        })
+      // ✅ language guard derived from ACTUAL watched languages
+      const historyLang = deriveLanguageFromWatchedRows(watchedRows || [])
+      const langGuard = buildLanguageGuardFromHistory(historyLang)
 
-      // 3. Recent hero picks (7-day cooldown)
+      // recent hero cooldown
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
       const { data: recentHeroPicks } = await supabase
         .from('recommendation_impressions')
-        .select('movie_id')
+        .select('movie_id, seed_movie_id')
         .eq('user_id', userId)
         .eq('placement', 'hero')
         .gte('shown_at', sevenDaysAgo)
 
-      const recentHeroIds = new Set(recentHeroPicks?.map(r => r.movie_id) || [])
+      const recentHeroIds = new Set((recentHeroPicks || []).map((r) => r.movie_id).filter(Boolean))
 
-      // 4. Language preferences
-      const isMonolingual = 
-        profile.languages.primaryDominance >= 90 ||
-        profile.languages.distinctCount === 1 ||
-        profile.languages.openness === 'monolingual'
+      // Interest gating
+      const hasAnimationInterest =
+        profile.genres.preferred.includes(16) ||
+        profile.genres.secondary?.includes(16) ||
+        (watchedRows || []).some((w) => (w.movies?.genres || []).map(extractGenreId).includes(16))
 
-      const isBilingual = profile.languages.isBilingual
-      const primaryLanguage = profile.languages.primary
-      const secondaryLanguage = profile.languages.secondary
-
-      console.log('[getTopPickForUser] Filters:', {
-        language: { primary: primaryLanguage, monolingual: isMonolingual },
-        animation: hasAnimationInterest,
-        confidence: profile.meta.confidence
-      })
-
-      // 5. OPTIMIZED QUERY - Uses database indexes
-      const currentYear = new Date().getFullYear()
-      const minYear = 2023
+      const hasFamilyInterest =
+        profile.genres.preferred.includes(10751) ||
+        profile.genres.secondary?.includes(10751) ||
+        (watchedRows || []).some((w) => (w.movies?.genres || []).map(extractGenreId).includes(10751))
 
       const selectFields = `
         id, tmdb_id, title, overview, tagline,
@@ -820,134 +1075,148 @@ export async function getTopPickForUser(userId, options = {}) {
         polarization_score, starpower_score
       `
 
-      // Use release_date for index optimization
-      let { data: rawCandidates, error: candidatesError } = await supabase
+      // 1) embedding neighbors pool (strong "similar to / because you watched")
+      const { neighborIds, bestByNeighborId } = await fetchEmbeddingNeighborsForSeeds(seedFilms, {
+        limitPerSeed: 80
+      })
+
+      // 2) base quality pool (recent, high normalized rating)
+      const minYear = 2023
+      const baseMinNorm = 7.5
+      const baseMinConf = 60
+
+      // Fetch base candidates (apply language filter at DB level for strict/strong)
+      let baseQuery = supabase
         .from('movies')
         .select(selectFields)
         .eq('is_valid', true)
         .not('backdrop_path', 'is', null)
         .not('tmdb_id', 'is', null)
-        .gte('ff_rating_genre_normalized', 7.5)  // ✅ USE NORMALIZED
-        .gte('ff_confidence', 60)
+        .gte('ff_rating_genre_normalized', baseMinNorm)
+        .gte('ff_confidence', baseMinConf)
         .gte('release_date', `${minYear}-01-01`)
-        .order('ff_rating_genre_normalized', { ascending: false })  // ✅ SORT BY NORMALIZED
+        .order('ff_rating_genre_normalized', { ascending: false })
         .limit(400)
 
-      if (candidatesError || !rawCandidates || rawCandidates.length === 0) {
-        return await getFallbackPick(profile)
+      if (langGuard.mode === 'strict' && langGuard.allowedLanguages.length === 1) {
+        baseQuery = baseQuery.eq('original_language', langGuard.allowedLanguages[0])
+      } else if (langGuard.mode === 'strong' && langGuard.allowedLanguages.length > 0) {
+        baseQuery = baseQuery.in('original_language', langGuard.allowedLanguages)
       }
 
-      console.log('[getTopPickForUser] Raw candidates:', rawCandidates.length)
+      let { data: baseCandidates } = await baseQuery
+      baseCandidates = baseCandidates || []
 
-      // 6. LANGUAGE FILTER
-      if (isMonolingual && primaryLanguage) {
-        console.log('[getTopPickForUser] MONOLINGUAL - Filter:', primaryLanguage)
-        
-        const beforeFilter = rawCandidates.length
-        rawCandidates = rawCandidates.filter(m => m.original_language === primaryLanguage)
-        
-        console.log('[getTopPickForUser] After language:', {
-          before: beforeFilter, after: rawCandidates.length
-        })
-        
-        if (rawCandidates.length === 0) {
-          const userRegion = LANGUAGE_REGIONS[primaryLanguage]
-          const { data: regionCandidates } = await supabase
-            .from('movies')
-            .select(selectFields)
-            .eq('is_valid', true)
-            .not('backdrop_path', 'is', null)
-            .gte('ff_rating_genre_normalized', 7.5)
-            .gte('release_date', `${minYear}-01-01`)
-            .limit(400)
-          
-          if (regionCandidates) {
-            rawCandidates = regionCandidates.filter(m => {
-              const movieRegion = LANGUAGE_REGIONS[m.original_language]
-              return movieRegion === userRegion
-            })
-            console.log('[getTopPickForUser] Region fallback:', rawCandidates.length)
-          }
+      // Fetch embedding candidates (if any), and apply same hard language policy
+      let embeddingCandidates = []
+      if (neighborIds.length > 0) {
+        let embQuery = supabase
+          .from('movies')
+          .select(selectFields)
+          .in('id', neighborIds)
+          .eq('is_valid', true)
+          .not('backdrop_path', 'is', null)
+          .not('tmdb_id', 'is', null)
+          .gte('ff_confidence', 50)
+          .limit(300)
+
+        if (langGuard.mode === 'strict' && langGuard.allowedLanguages.length === 1) {
+          embQuery = embQuery.eq('original_language', langGuard.allowedLanguages[0])
+        } else if (langGuard.mode === 'strong' && langGuard.allowedLanguages.length > 0) {
+          embQuery = embQuery.in('original_language', langGuard.allowedLanguages)
         }
-      } else if (isBilingual && primaryLanguage && secondaryLanguage) {
-        rawCandidates = rawCandidates.filter(m => 
-          m.original_language === primaryLanguage || 
-          m.original_language === secondaryLanguage
-        )
+
+        const { data } = await embQuery
+        embeddingCandidates = data || []
       }
 
-      if (rawCandidates.length === 0) {
-  return await getFallbackPick(profile)
-}
+      // Combine pools (dedupe by id)
+      const byId = new Map()
+      ;[...embeddingCandidates, ...baseCandidates].forEach((m) => {
+        if (m?.id) byId.set(m.id, m)
+      })
+      let candidates = Array.from(byId.values())
 
-// 6.5. EXPLICIT GENRE FILTER (if user has preferences)
-if (profile.genres.explicitPreferences && profile.genres.explicitPreferences.length > 0) {
-  console.log('[getTopPickForUser] Filtering to explicit preferences:', profile.genres.explicitPreferences)
-  
-  const beforeGenreFilter = rawCandidates.length
-  rawCandidates = rawCandidates.filter(m => {
-    const movieGenres = (m.genres || []).map(extractGenreId).filter(Boolean)
-    // Movie must have at least ONE genre from explicit preferences
-    return movieGenres.some(gid => profile.genres.explicitPreferences.includes(gid))
-  })
-  
-  console.log('[getTopPickForUser] After explicit genre filter:', {
-    before: beforeGenreFilter,
-    after: rawCandidates.length,
-    allowedGenres: profile.genres.explicitPreferences
-  })
-  
-  if (rawCandidates.length === 0) {
-    console.log('[getTopPickForUser] No movies in preferred genres')
-    return await getFallbackPick(profile)
-  }
-}
-
-      // 7. ANIMATION/FAMILY GATING
-      let candidates = rawCandidates.filter(m => {
+      // Genre gating
+      candidates = candidates.filter((m) => {
         const genres = (m.genres || []).map(extractGenreId).filter(Boolean)
         if (genres.includes(16) && !hasAnimationInterest) return false
         if (genres.includes(10751) && !hasFamilyInterest && !hasAnimationInterest) return false
         return true
       })
 
-      console.log('[getTopPickForUser] After genre gating:', candidates.length)
-
-      // 8. EXCLUSION FILTER
-      const eligibleCandidates = candidates.filter(m => {
-        if (!m || !m.tmdb_id) return false
-        if (allExcludeIds.includes(m.id)) return false
-        if (excludeTmdbSet.has(m.tmdb_id)) return false
+      // Exclusion gating (INTERNAL + TMDB + recentHero)
+      candidates = candidates.filter((m) => {
+        if (!m || !m.id || !m.tmdb_id) return false
+        if (allExcludeInternal.includes(m.id)) return false
+        if (allExcludeTmdb.has(m.tmdb_id)) return false
         if (recentHeroIds.has(m.id)) return false
         return true
       })
 
-      if (eligibleCandidates.length === 0) {
-        return await getFallbackPick(profile)
+      // If strict language left us too few, we RELAX QUALITY/YEAR but NEVER relax "watched" exclusion
+      if (candidates.length < 15 && langGuard.mode !== 'loose' && langGuard.primary) {
+        let relaxQuery = supabase
+          .from('movies')
+          .select(selectFields)
+          .eq('is_valid', true)
+          .not('backdrop_path', 'is', null)
+          .not('tmdb_id', 'is', null)
+          .gte('ff_confidence', 50)
+          .gte('release_date', `2020-01-01`)
+          .order('ff_rating_genre_normalized', { ascending: false })
+          .limit(400)
+
+        // keep language restriction for user intent
+        if (langGuard.allowedLanguages.length === 1) relaxQuery = relaxQuery.eq('original_language', langGuard.allowedLanguages[0])
+        else relaxQuery = relaxQuery.in('original_language', langGuard.allowedLanguages)
+
+        const { data: relaxed } = await relaxQuery
+        const relaxedCandidates = (relaxed || [])
+          .filter((m) => m?.id && !allExcludeInternal.includes(m.id) && !allExcludeTmdb.has(m.tmdb_id) && !recentHeroIds.has(m.id))
+
+        // merge
+        relaxedCandidates.forEach((m) => {
+          if (m?.id && !byId.has(m.id)) byId.set(m.id, m)
+        })
+        candidates = Array.from(byId.values()).filter((m) => {
+          const genres = (m.genres || []).map(extractGenreId).filter(Boolean)
+          if (genres.includes(16) && !hasAnimationInterest) return false
+          if (genres.includes(10751) && !hasFamilyInterest && !hasAnimationInterest) return false
+          if (allExcludeInternal.includes(m.id)) return false
+          if (allExcludeTmdb.has(m.tmdb_id)) return false
+          if (recentHeroIds.has(m.id)) return false
+          return true
+        })
       }
 
-      console.log('[getTopPickForUser] Eligible:', eligibleCandidates.length)
+      if (candidates.length === 0) return await getFallbackPick(profile)
 
-      // 9. SCORE ALL CANDIDATES
-      const scoredCandidates = eligibleCandidates.map(movie => {
-        const result = scoreMovieForUser(movie, profile, 'hero', seedFilms)
-        
+      // Score (embedding-aware)
+      const currentYear = new Date().getFullYear()
+      const scored = candidates.map((movie) => {
+        const result = scoreMovieForUser(movie, profile, 'hero', seedFilms, {
+          seedEmbeddingBestByMovieId: bestByNeighborId
+        })
+
+        // hero freshness + normalized rating bonus (controlled)
         let heroBonus = 0
         const age = currentYear - (movie.release_year || currentYear)
         if (age === 0) heroBonus += 20
         else if (age === 1) heroBonus += 12
         else if (age === 2) heroBonus += 5
-        
-        const normalizedRating = movie.ff_rating_genre_normalized || movie.ff_rating
+
+        const normalizedRating = Number(movie.ff_rating_genre_normalized || movie.ff_rating || 0)
         if (normalizedRating >= 8.5) heroBonus += 15
         else if (normalizedRating >= 8.0) heroBonus += 10
-        
-        if (!recentHeroIds.has(movie.id)) heroBonus += 10
-        
+
         const finalScore = result.score + heroBonus
-        
+
         return {
-          movie, ...result, heroBonus, finalScore,
+          movie,
+          ...result,
+          heroBonus,
+          finalScore,
           normalizedRating,
           breakdown: {
             ...result.breakdown,
@@ -957,144 +1226,42 @@ if (profile.genres.explicitPreferences && profile.genres.explicitPreferences.len
         }
       })
 
-      // 10. QUALITY FLOOR (7.0+ after normalization)
-      const qualityCandidates = scoredCandidates.filter(c => {
-        const normalized = c.normalizedRating || c.movie.ff_rating
-        return normalized >= 7.0
-      })
+      // Quality floor (normalized)
+      const qualityCandidates = scored.filter((c) => Number(c.normalizedRating || 0) >= 7.0)
+      if (qualityCandidates.length === 0) return await getFallbackPick(profile)
 
-      console.log('[getTopPickForUser] After 7.0+ filter:', {
-        before: scoredCandidates.length,
-        after: qualityCandidates.length,
-        filtered: scoredCandidates.length - qualityCandidates.length
-      })
-
-      if (qualityCandidates.length === 0) {
-        console.log('[getTopPickForUser] No 7.5+ candidates, using fallback')
-        return await getFallbackPick(profile)  // Use fallback instead
-      }
-
-      // 11. TASTE THRESHOLD
-      const minTasteScore = profile.meta.confidence === 'high' ? 80 :
-                           profile.meta.confidence === 'medium' ? 60 : 40
-
-      let finalCandidates = qualityCandidates.filter(c => {
-        const tasteScore = c.finalScore - c.breakdown.baseQuality
+      // Taste threshold (confidence-based)
+      const minTasteScore = profile.meta.confidence === 'high' ? 60 : profile.meta.confidence === 'medium' ? 45 : 30
+      let finalCandidates = qualityCandidates.filter((c) => {
+        const tasteScore = c.finalScore - (c.breakdown.baseQuality || 0)
         return tasteScore >= minTasteScore
       })
+      if (finalCandidates.length === 0) finalCandidates = qualityCandidates.slice(0, 30)
 
-      console.log('[getTopPickForUser] After taste threshold:', {
-        total: qualityCandidates.length,
-        qualified: finalCandidates.length,
-        threshold: minTasteScore
-      })
-
-      if (finalCandidates.length === 0) {
-        finalCandidates = qualityCandidates.slice(0, 20)
-      }
-
-
-      // 12. SORT & DIVERSITY
+      // Sort & diversity
       finalCandidates.sort((a, b) => b.finalScore - a.finalScore)
-
       const top30 = finalCandidates.slice(0, 30)
       const diverseTop10 = applyDiversityFilter(top30, seedFilms, 10)
 
-      if (diverseTop10.length === 0) {
-        return await getFallbackPick(profile)
-      }
+      if (diverseTop10.length === 0) return await getFallbackPick(profile)
 
-      // 12.5 APPLY LANGUAGE QUOTAS TO FINAL TOP 10
-      const languageDistribution = profile.languages.distributionSorted || []
-      if (languageDistribution.length > 0 && profile.languages.primaryDominance >= 50) {
-        console.log('[getTopPickForUser] Enforcing language quotas in top 10')
-        
-        // Calculate quotas for 10 picks
-        const targetCount = 10
-        const languageQuotas = {}
-        
-        languageDistribution.forEach(({ lang, percentage }) => {
-          const quota = Math.round((percentage / 100) * targetCount)
-          if (quota > 0) languageQuotas[lang] = quota
-        })
-        
-        // Adjust to ensure we have exactly 10
-        const totalQuota = Object.values(languageQuotas).reduce((a, b) => a + b, 0)
-        if (totalQuota < targetCount && profile.languages.primary) {
-          languageQuotas[profile.languages.primary] = 
-            (languageQuotas[profile.languages.primary] || 0) + (targetCount - totalQuota)
-        } else if (totalQuota > targetCount) {
-          // Reduce primary language quota
-          languageQuotas[profile.languages.primary] = 
-            Math.max(1, (languageQuotas[profile.languages.primary] || 0) - (totalQuota - targetCount))
-        }
-        
-        // Group diverseTop10 by language
-        const byLanguage = {}
-        diverseTop10.forEach(c => {
-          const lang = c.movie.original_language
-          if (!byLanguage[lang]) byLanguage[lang] = []
-          byLanguage[lang].push(c)
-        })
-        
-        // Select according to quotas
-        const quotaFiltered = []
-        Object.entries(languageQuotas).forEach(([lang, quota]) => {
-          const available = byLanguage[lang] || []
-          quotaFiltered.push(...available.slice(0, quota))
-        })
-        
-        // If we don't have enough, fill with highest scoring
-        if (quotaFiltered.length < 10) {
-          const remaining = diverseTop10.filter(c => !quotaFiltered.includes(c))
-          quotaFiltered.push(...remaining.slice(0, 10 - quotaFiltered.length))
-        }
-        
-        // Update diverseTop10
-        diverseTop10.length = 0
-        diverseTop10.push(...quotaFiltered.slice(0, 10))
-        
-        console.log('[getTopPickForUser] After quota enforcement:', {
-          quotas: languageQuotas,
-          actual: Object.entries(
-            diverseTop10.reduce((acc, c) => {
-              const lang = c.movie.original_language
-              acc[lang] = (acc[lang] || 0) + 1
-              return acc
-            }, {})
-          ).map(([lang, count]) => `${lang}: ${count}`).join(', ')
-        })
-      }
-
-      // 13. WEIGHTED RANDOM
-
-      // 13. WEIGHTED RANDOM
-      const weights = [0.40, 0.25, 0.15, 0.10, 0.05, 0.03, 0.01, 0.005, 0.003, 0.002]
+      // Weighted random (still leans to top, but not always #1)
+      const weights = [0.4, 0.25, 0.15, 0.1, 0.05, 0.03, 0.01, 0.005, 0.003, 0.002]
       const totalWeight = weights.slice(0, diverseTop10.length).reduce((a, b) => a + b, 0)
-      let random = Math.random() * totalWeight
-      
+      let rnd = Math.random() * totalWeight
       let selectedIndex = 0
       for (let i = 0; i < diverseTop10.length; i++) {
-        random -= weights[i] || 0.001
-        if (random <= 0) { selectedIndex = i; break }
+        rnd -= weights[i] || 0.001
+        if (rnd <= 0) {
+          selectedIndex = i
+          break
+        }
       }
 
       const selected = diverseTop10[selectedIndex]
 
-      console.log('[getTopPickForUser] ✅ Selected:', {
-        title: selected.movie.title,
-        language: selected.movie.original_language,
-        year: selected.movie.release_year,
-        rating: selected.movie.ff_rating,
-        normalized: selected.normalizedRating?.toFixed(2),
-        discovery: selected.movie.discovery_potential,
-        polarization: selected.movie.polarization_score,
-        score: selected.finalScore.toFixed(1),
-        rank: selectedIndex + 1
-      })
-
-      // 14. LOG IMPRESSION
-      logImpression(userId, selected, 'hero').catch(err => 
+      // Log impression
+      logImpression(userId, selected, 'hero').catch((err) =>
         console.warn('[getTopPickForUser] Impression log failed:', err.message)
       )
 
@@ -1103,27 +1270,21 @@ if (profile.genres.explicitPreferences && profile.genres.explicitPreferences.len
         pickReason: selected.pickReason,
         score: selected.finalScore,
         debug: {
-          profileConfidence: profile.meta.confidence,
-          languageMode: isMonolingual ? 'monolingual' : isBilingual ? 'bilingual' : 'multilingual',
-          totalCandidates: rawCandidates.length,
-          afterGating: candidates.length,
-          eligible: eligibleCandidates.length,
-          afterQuality: qualityCandidates.length,
-          afterTaste: finalCandidates.length,
+          engineVersion: ENGINE_VERSION,
+          langGuard,
+          historyLang: historyLang.distributionSorted?.map((l) => `${l.lang}:${l.percentage.toFixed(1)}%`) || [],
+          totalCandidates: candidates.length,
           top10: diverseTop10.slice(0, 10).map((c, idx) => ({
             rank: idx + 1,
             title: c.movie.title,
             language: c.movie.original_language,
             year: c.movie.release_year,
-            rating: c.movie.ff_rating,
-            normalized: (c.normalizedRating || c.movie.ff_rating)?.toFixed(2),
-            discovery: c.movie.discovery_potential,
+            normalized: Number(c.normalizedRating || 0).toFixed(2),
             score: c.finalScore.toFixed(1),
-            tasteMatch: (c.finalScore - c.breakdown.baseQuality).toFixed(1)
+            reason: c.pickReason?.type
           }))
         }
       }
-
     } catch (error) {
       console.error('[getTopPickForUser] Error:', error)
       return await getFallbackPick(null)
@@ -1132,221 +1293,175 @@ if (profile.genres.explicitPreferences && profile.genres.explicitPreferences.len
 }
 
 // ============================================================================
-// SCORING v2.2
+// SCORING (v2.3) — NO "likely seen" penalty, embedding-aware seed similarity
 // ============================================================================
 
-export function scoreMovieForUser(movie, profile, rowType = 'default', seedFilms = []) {
+export function scoreMovieForUser(movie, profile, rowType = 'default', seedFilms = [], opts = {}) {
   const breakdown = {}
   let score = 0
 
-  // 1. BASE QUALITY - Use pre-computed genre-normalized rating
-  const normalizedRating = movie.ff_rating_genre_normalized || movie.ff_rating || 7.0
-  score += breakdown.baseQuality = normalizedRating * 10
+  // 1) BASE QUALITY (normalized when available)
+  const normalizedRating = Number(movie.ff_rating_genre_normalized || movie.ff_rating || 7.0)
+  score += (breakdown.baseQuality = normalizedRating * 10)
   breakdown.originalRating = movie.ff_rating
 
-  // 2. DISCOVERY POTENTIAL (FeelFlick differentiator)
-  if (movie.discovery_potential >= 60 && profile.qualityProfile.watchesHiddenGems) {
-    const discoveryBonus = Math.min(movie.discovery_potential / 5, 20)
-    score += breakdown.discoveryBonus = discoveryBonus
-  } else if (movie.discovery_potential >= 50) {
-    score += breakdown.discoveryBonus = 5  // Mild boost
+  // 2) DISCOVERY
+  if (Number(movie.discovery_potential || 0) >= 60 && profile.qualityProfile.watchesHiddenGems) {
+    const discoveryBonus = Math.min(Number(movie.discovery_potential) / 5, 20)
+    score += (breakdown.discoveryBonus = discoveryBonus)
+  } else if (Number(movie.discovery_potential || 0) >= 50) {
+    score += (breakdown.discoveryBonus = 5)
   } else {
     breakdown.discoveryBonus = 0
   }
 
-  // 3. POLARIZATION RISK (hero picks avoid divisive films)
-  if (rowType === 'hero' && movie.polarization_score >= 70) {
-    score += breakdown.polarizationPenalty = -20
-  } else {
-    breakdown.polarizationPenalty = 0
-  }
+  // 3) POLARIZATION (hero avoids divisive)
+  if (rowType === 'hero' && Number(movie.polarization_score || 0) >= 70) {
+    score += (breakdown.polarizationPenalty = -20)
+  } else breakdown.polarizationPenalty = 0
 
-  // 4. ACCESSIBILITY BONUS (completion likelihood)
+  // 4) ACCESSIBILITY
   const accessibilityScore = scoreAccessibility(movie, profile)
-  score += breakdown.accessibility = accessibilityScore
+  score += (breakdown.accessibility = accessibilityScore)
 
-  // 5. STARPOWER for NEW USERS (safety)
-  if (profile.meta.confidence === 'low' && movie.starpower_score >= 70) {
-    score += breakdown.starpower = 15
-  } else {
-    breakdown.starpower = 0
-  }
+  // 5) STARPOWER for low-confidence users
+  if (profile.meta.confidence === 'low' && Number(movie.starpower_score || 0) >= 70) {
+    score += (breakdown.starpower = 15)
+  } else breakdown.starpower = 0
 
-  // 6. CULT STATUS (personality match)
+  // 6) CULT
   const cultScore = scoreCultStatus(movie, profile)
-  score += breakdown.cultStatus = cultScore
+  score += (breakdown.cultStatus = cultScore)
 
-  // 7. LANGUAGE MATCH
-  score += breakdown.language = scoreLangaugeMatch(movie, profile)
+  // 7) LANGUAGE
+  score += (breakdown.language = scoreLanguageMatch(movie, profile))
 
-  // 8. GENRE MATCH (REBALANCED - higher weight)
-  score += breakdown.genre = scoreGenreMatch(movie, profile)
-  
-  // 9. CONTENT STYLE MATCH
+  // 8) GENRE (user_preferences influences profile.genres.preferred)
+  score += (breakdown.genre = scoreGenreMatch(movie, profile))
+
+  // 9) CONTENT
   const contentScore = scoreContentMatch(movie, profile)
-  score += breakdown.content = contentScore.total
+  score += (breakdown.content = contentScore.total)
   breakdown.contentDetail = contentScore.detail
-  
-  // 10. KEYWORDS
-  score += breakdown.keywords = scoreKeywordMatch(movie, profile)
-  
-  // 11. PEOPLE AFFINITY
+
+  // 10) THEMES
+  score += (breakdown.keywords = scoreKeywordMatch(movie, profile))
+
+  // 11) PEOPLE
   const peopleScore = scorePeopleMatch(movie, profile)
-  score += breakdown.people = peopleScore.total
+  score += (breakdown.people = peopleScore.total)
   breakdown.peopleDetail = peopleScore.detail
-  
-  // 12. ERA & RUNTIME
-  score += breakdown.era = scoreEraMatch(movie, profile)
-  score += breakdown.runtime = scoreRuntimeMatch(movie, profile)
-  
-  // 13. RECENCY & QUALITY
-  score += breakdown.recency = scoreRecency(movie)
-  score += breakdown.qualityBonus = scoreQualityBonuses(movie)
-  
-  // 14. SEED SIMILARITY (CAPPED to 40)
-  const seedSimilarity = calculateSeedSimilarity(movie, seedFilms)
-  const cappedSeedScore = Math.min(seedSimilarity.score * 0.4, 40)
-  score += breakdown.seedSimilarity = cappedSeedScore
-  breakdown.seedSimilarityRaw = seedSimilarity.score
+
+  // 12) ERA & RUNTIME
+  score += (breakdown.era = scoreEraMatch(movie, profile))
+  score += (breakdown.runtime = scoreRuntimeMatch(movie, profile))
+
+  // 13) RECENCY & QUALITY BONUS
+  score += (breakdown.recency = scoreRecency(movie))
+  score += (breakdown.qualityBonus = scoreQualityBonuses(movie))
+
+  // 14) SEED SIMILARITY (metadata + embedding)
+  const seedSimilarity = calculateSeedSimilarity(movie, seedFilms, opts.seedEmbeddingBestByMovieId)
+  score += (breakdown.seedSimilarity = seedSimilarity.cappedScore)
+  breakdown.seedSimilarityRaw = seedSimilarity.rawScore
   breakdown.seedMatch = seedSimilarity.bestSeed?.title || null
-  
-  // 15. NEGATIVE SIGNALS & DIVERSITY
-  score += breakdown.negativeSignals = scoreNegativeSignals(movie, profile)
-  score += breakdown.diversity = scoreDiversityPenalty(movie, profile, seedFilms)
+  breakdown.seedEmbeddingSim = seedSimilarity.embeddingSim || 0
 
-  // 16. LIKELY-SEEN PENALTY
-  const likelySeen = calculateLikelySeenScore(movie, profile)
-  const likelySeenPenalty = likelySeen * (LIKELY_SEEN_WEIGHTS[rowType] || LIKELY_SEEN_WEIGHTS.default)
-  breakdown.likelySeen = likelySeen
-  breakdown.likelySeenPenalty = -likelySeenPenalty
+  // 15) NEGATIVE SIGNALS & DIVERSITY
+  score += (breakdown.negativeSignals = scoreNegativeSignals(movie, profile))
+  score += (breakdown.diversity = scoreDiversityPenalty(movie, profile, seedFilms))
 
-  const finalScore = Math.max(0, score - likelySeenPenalty)
+  // ✅ "likely seen" removed completely
+  breakdown.likelySeenPenalty = 0
+
+  const finalScore = Math.max(0, Math.round(score * 10) / 10)
   const pickReason = determinePickReason(movie, profile, breakdown, seedSimilarity)
 
-  return { 
-    score: Math.round(finalScore * 10) / 10, 
-    positiveScore: Math.round(score * 10) / 10, 
-    breakdown, 
-    pickReason 
-  }
+  return { score: finalScore, positiveScore: finalScore, breakdown, pickReason }
 }
 
 function scoreAccessibility(movie, profile) {
-  if (!movie.accessibility_score) return 0
-  
-  const baseAccessibility = movie.accessibility_score
-  
-  // Check if user has abandonment issues (from watch duration data)
-  const hasAbandonmentIssues = profile.qualityProfile?.totalMoviesWatched >= 10 &&
-    profile.negativeSignals?.totalSkips >= 5
-  
-  if (hasAbandonmentIssues && baseAccessibility >= 70) {
-    return 15  // Boost accessible films for users with abandonment history
-  } else if (baseAccessibility >= 80) {
-    return 10  // Very accessible
-  } else if (baseAccessibility >= 60) {
-    return 5   // Moderately accessible
-  }
-  
+  const base = Number(movie.accessibility_score || 0)
+  if (!base) return 0
+
+  const hasAbandonmentIssues =
+    (profile.qualityProfile?.totalMoviesWatched || 0) >= 10 && (profile.negativeSignals?.totalSkips || 0) >= 5
+
+  if (hasAbandonmentIssues && base >= 70) return 15
+  if (base >= 80) return 10
+  if (base >= 60) return 5
   return 0
 }
 
 function scoreCultStatus(movie, profile) {
-  if (!movie.cult_status_score || movie.cult_status_score < 50) return 0
-  
-  if (profile.qualityProfile.watchesHiddenGems) {
-    return Math.min(movie.cult_status_score / 5, 20)  // Up to +20 for gem hunters
-  }
-  
-  if (profile.qualityProfile.totalMoviesWatched >= 20 && 
-      !profile.qualityProfile.watchesHiddenGems) {
-    return -15  // Penalty for mainstream-only users
-  }
-  
+  const cult = Number(movie.cult_status_score || 0)
+  if (!cult || cult < 50) return 0
+
+  if (profile.qualityProfile.watchesHiddenGems) return Math.min(cult / 5, 20)
+
+  if ((profile.qualityProfile.totalMoviesWatched || 0) >= 20 && !profile.qualityProfile.watchesHiddenGems) return -15
+
   return 0
 }
 
-function scoreLangaugeMatch(movie, profile) {
+// NOTE: language scoring uses profile, but Hero filtering uses *history-derived* language guard.
+// This scoring is still useful when you are "strong/loose".
+function scoreLanguageMatch(movie, profile) {
   const movieLang = movie.original_language
-  if (!movieLang || !profile.languages.primary) return 5
+  if (!movieLang || !profile.languages?.primary) return 5
 
-  // Get language percentage from distribution
-  const langDistribution = profile.languages.distributionSorted || []
-  const movieLangData = langDistribution.find(l => l.lang === movieLang)
-  const movieLangPercentage = movieLangData?.percentage || 0
+  const langDist = profile.languages.distributionSorted || []
+  const movieLangData = langDist.find((l) => l.lang === movieLang)
+  const movieLangPct = movieLangData?.percentage || 0
 
-  // PRIMARY LANGUAGE (highest percentage)
   if (movieLang === profile.languages.primary) {
-    // Scale bonus by dominance
-    // 100% dominance → +50 points
-    // 60% dominance → +30 points
-    // 30% dominance → +15 points
-    const dominanceBonus = Math.round(profile.languages.primaryDominance / 2)
+    const dominanceBonus = Math.round((profile.languages.primaryDominance || 0) / 2)
     return Math.min(dominanceBonus, 50)
   }
 
-  // SECONDARY LANGUAGE (2nd highest)
   if (movieLang === profile.languages.secondary) {
-    // Scale bonus by percentage
-    const secondaryBonus = Math.round(movieLangPercentage * 0.8)
+    const secondaryBonus = Math.round(movieLangPct * 0.8)
     return Math.min(secondaryBonus, 30)
   }
 
-  // OTHER WATCHED LANGUAGES (in distribution)
-  if (movieLangPercentage >= 5) {
-    // User has watched this language (5%+ of history)
-    const minorBonus = Math.round(movieLangPercentage * 0.5)
+  if (movieLangPct >= 5) {
+    const minorBonus = Math.round(movieLangPct * 0.5)
     return Math.min(minorBonus, 15)
   }
 
-  // SAME REGION
   const movieRegion = LANGUAGE_REGIONS[movieLang]
   const userRegion = LANGUAGE_REGIONS[profile.languages.primary]
-  if (movieRegion && movieRegion === userRegion) return 10
+  if (movieRegion && userRegion && movieRegion === userRegion) return 10
 
-  // ADVENTUROUS USERS (diverse watch history)
-  if (profile.languages.regionsExplored >= 3) return 5
-  if (profile.languages.openness === 'adventurous') return 3
-  if (profile.languages.openness === 'curious') return 0
+  if ((profile.languages.primaryDominance || 0) >= 80) return -50
+  if ((profile.languages.primaryDominance || 0) >= 50) return -30
 
-  // PENALTY for unwatched languages (when user has strong preferences)
-  if (profile.languages.primaryDominance >= 80) {
-    return -50  // Strong penalty
-  } else if (profile.languages.primaryDominance >= 50) {
-    return -30  // Moderate penalty
-  }
-
-  return -10  // Mild penalty
+  return -10
 }
 
 function scoreGenreMatch(movie, profile) {
-  const movieGenres = (movie.genres || []).map(g => extractGenreId(g)).filter(Boolean)
+  const movieGenres = (movie.genres || []).map((g) => extractGenreId(g)).filter(Boolean)
   if (movieGenres.length === 0) return 0
 
   let score = 0
 
-  const avoidedMatches = movieGenres.filter(g => profile.genres.avoided.includes(g))
+  const avoidedMatches = movieGenres.filter((g) => profile.genres.avoided.includes(g))
   if (avoidedMatches.length > 0) score -= 30 * avoidedMatches.length
 
-  const fatiguedMatches = movieGenres.filter(g => profile.genres.fatigued?.includes(g))
+  const fatiguedMatches = movieGenres.filter((g) => profile.genres.fatigued?.includes(g))
   if (fatiguedMatches.length > 0) score -= 10 * fatiguedMatches.length
 
-  // INCREASED weights
-  const preferredMatches = movieGenres.filter(g => profile.genres.preferred.includes(g))
+  const preferredMatches = movieGenres.filter((g) => profile.genres.preferred.includes(g))
   score += Math.min(preferredMatches.length * 13, 40)
 
-  if (profile.genres.preferred[0] && movieGenres.includes(profile.genres.preferred[0])) {
-    score += 10
-  }
+  if (profile.genres.preferred[0] && movieGenres.includes(profile.genres.preferred[0])) score += 10
 
-  const secondaryMatches = movieGenres.filter(g => profile.genres.secondary?.includes(g))
+  const secondaryMatches = movieGenres.filter((g) => profile.genres.secondary?.includes(g))
   score += Math.min(secondaryMatches.length * 4, 12)
 
   if (profile.genres.preferredPairs && movieGenres.length >= 2) {
-    profile.genres.preferredPairs.forEach(pair => {
-      if (movieGenres.includes(pair.genres[0]) && movieGenres.includes(pair.genres[1])) {
-        score += 15
-      }
+    profile.genres.preferredPairs.forEach((pair) => {
+      if (movieGenres.includes(pair.genres[0]) && movieGenres.includes(pair.genres[1])) score += 15
     })
   }
 
@@ -1354,54 +1469,44 @@ function scoreGenreMatch(movie, profile) {
 }
 
 function scoreContentMatch(movie, profile) {
-  const detail = {}, p = profile.contentProfile
+  const detail = {}
+  const p = profile.contentProfile
   let total = 0
 
   if (movie.pacing_score != null) {
     const diff = Math.abs(movie.pacing_score - p.avgPacing)
-    if (diff <= 1) { detail.pacing = 10; total += 10 }
-    else if (diff <= 2) { detail.pacing = 6; total += 6 }
-    else if (diff <= 3) { detail.pacing = 3; total += 3 }
-    else detail.pacing = 0
+    detail.pacing = diff <= 1 ? 10 : diff <= 2 ? 6 : diff <= 3 ? 3 : 0
+    total += detail.pacing
   }
 
   if (movie.intensity_score != null) {
     const diff = Math.abs(movie.intensity_score - p.avgIntensity)
-    if (diff <= 1) { detail.intensity = 8; total += 8 }
-    else if (diff <= 2) { detail.intensity = 5; total += 5 }
-    else if (diff <= 3) { detail.intensity = 2; total += 2 }
-    else detail.intensity = 0
+    detail.intensity = diff <= 1 ? 8 : diff <= 2 ? 5 : diff <= 3 ? 2 : 0
+    total += detail.intensity
   }
 
   if (movie.emotional_depth_score != null) {
     const diff = Math.abs(movie.emotional_depth_score - p.avgEmotionalDepth)
-    if (diff <= 1) { detail.depth = 7; total += 7 }
-    else if (diff <= 2) { detail.depth = 4; total += 4 }
-    else if (diff <= 3) { detail.depth = 2; total += 2 }
-    else detail.depth = 0
+    detail.depth = diff <= 1 ? 7 : diff <= 2 ? 4 : diff <= 3 ? 2 : 0
+    total += detail.depth
   }
 
   if (movie.dialogue_density != null) {
     const diff = Math.abs(movie.dialogue_density - p.avgDialogueDensity)
-    if (diff <= 10) { detail.dialogue = 8; total += 8 }
-    else if (diff <= 20) { detail.dialogue = 5; total += 5 }
-    else if (diff <= 30) { detail.dialogue = 2; total += 2 }
-    else detail.dialogue = 0
+    detail.dialogue = diff <= 10 ? 8 : diff <= 20 ? 5 : diff <= 30 ? 2 : 0
+    total += detail.dialogue
   }
 
   if (movie.attention_demand != null) {
     const diff = Math.abs(movie.attention_demand - p.avgAttentionDemand)
-    if (diff <= 10) { detail.attention = 8; total += 8 }
-    else if (diff <= 20) { detail.attention = 5; total += 5 }
-    else if (diff <= 30) { detail.attention = 2; total += 2 }
-    else detail.attention = 0
+    detail.attention = diff <= 10 ? 8 : diff <= 20 ? 5 : diff <= 30 ? 2 : 0
+    total += detail.attention
   }
 
   if (movie.vfx_level_score != null) {
     const diff = Math.abs(movie.vfx_level_score - p.avgVFX)
-    if (diff <= 15) { detail.vfx = 6; total += 6 }
-    else if (diff <= 30) { detail.vfx = 3; total += 3 }
-    else detail.vfx = 0
+    detail.vfx = diff <= 15 ? 6 : diff <= 30 ? 3 : 0
+    total += detail.vfx
   }
 
   return { total, detail }
@@ -1409,13 +1514,16 @@ function scoreContentMatch(movie, profile) {
 
 function scoreKeywordMatch(movie, profile) {
   const movieKeywords = (movie.keywords || [])
-    .map(kw => (typeof kw === 'object' ? kw.name : kw)?.toLowerCase()).filter(Boolean)
-  if (movieKeywords.length === 0 || profile.themes.preferred.length === 0) return 0
+    .map((kw) => (typeof kw === 'object' ? kw.name : kw)?.toLowerCase())
+    .filter(Boolean)
+
+  if (movieKeywords.length === 0 || (profile.themes?.preferred || []).length === 0) return 0
 
   let matches = 0
-  profile.themes.preferred.forEach(theme => {
-    if (movieKeywords.some(kw => kw.includes(theme) || theme.includes(kw))) matches++
+  profile.themes.preferred.forEach((theme) => {
+    if (movieKeywords.some((kw) => kw.includes(theme) || theme.includes(kw))) matches++
   })
+
   return Math.min(matches * 3, 15)
 }
 
@@ -1423,68 +1531,64 @@ function scorePeopleMatch(movie, profile) {
   const detail = { director: 0, actor: 0 }
 
   if (movie.director_name) {
-    const directorLower = movie.director_name.toLowerCase()
-    const isSkipped = profile.negativeSignals?.skippedDirectors?.some(
-      d => d.name.toLowerCase() === directorLower
-    )
+    const directorLower = safeLower(movie.director_name)
+    const isSkipped = profile.negativeSignals?.skippedDirectors?.some((d) => safeLower(d.name) === directorLower)
     if (!isSkipped) {
-      const dirMatch = profile.affinities.directors.find(
-        d => d.name.toLowerCase() === directorLower
-      )
-      if (dirMatch) detail.director = Math.min(20 + (dirMatch.count * 7), 50)
+      const match = profile.affinities.directors.find((d) => safeLower(d.name) === directorLower)
+      if (match) detail.director = Math.min(20 + match.count * 7, 50)
     }
   }
 
   if (movie.lead_actor_name) {
-    const actorLower = movie.lead_actor_name.toLowerCase()
-    const isSkipped = profile.negativeSignals?.skippedActors?.some(
-      a => a.name.toLowerCase() === actorLower
-    )
+    const actorLower = safeLower(movie.lead_actor_name)
+    const isSkipped = profile.negativeSignals?.skippedActors?.some((a) => safeLower(a.name) === actorLower)
     if (!isSkipped) {
-      const actorMatch = profile.affinities.actors.find(
-        a => a.name.toLowerCase() === actorLower
-      )
-      if (actorMatch) detail.actor = Math.min(5 + (actorMatch.count * 5), 20)
+      const match = profile.affinities.actors.find((a) => safeLower(a.name) === actorLower)
+      if (match) detail.actor = Math.min(5 + match.count * 5, 20)
     }
   }
 
   return { total: detail.director + detail.actor, detail }
 }
 
-function calculateSeedSimilarity(movie, seedFilms) {
-  if (!seedFilms || seedFilms.length === 0) return { score: 0, bestSeed: null, matchReasons: [] }
+// Combines metadata similarity + embedding similarity (from movie_recommendations)
+function calculateSeedSimilarity(movie, seedFilms, seedEmbeddingBestByMovieId) {
+  if (!seedFilms || seedFilms.length === 0) {
+    return { rawScore: 0, cappedScore: 0, bestSeed: null, matchReasons: [], embeddingSim: 0 }
+  }
 
-  let bestScore = 0, bestSeed = null, bestReasons = []
+  let bestScore = 0
+  let bestSeed = null
+  let bestReasons = []
+  let bestEmbeddingSim = 0
 
   for (const seed of seedFilms) {
-    let score = 0, reasons = []
+    let score = 0
+    const reasons = []
 
-    if (movie.director_name && seed.director_name &&
-        movie.director_name.toLowerCase() === seed.director_name.toLowerCase()) {
+    if (movie.director_name && seed.director_name && safeLower(movie.director_name) === safeLower(seed.director_name)) {
       score += 35
       reasons.push('same director')
     }
 
-    const movieGenres = (movie.genres || []).map(g => extractGenreId(g)).filter(Boolean)
-    const seedGenres = (seed.genres || []).map(g => extractGenreId(g)).filter(Boolean)
-    const genreOverlap = movieGenres.filter(g => seedGenres.includes(g)).length
-    if (genreOverlap > 0) {
-      score += Math.min(genreOverlap * 8, 24)
-      if (genreOverlap >= 2) reasons.push('similar genres')
+    const movieGenres = (movie.genres || []).map(extractGenreId).filter(Boolean)
+    const seedGenres = (seed.genres || []).map(extractGenreId).filter(Boolean)
+    const overlap = movieGenres.filter((g) => seedGenres.includes(g)).length
+    if (overlap > 0) {
+      score += Math.min(overlap * 8, 24)
+      if (overlap >= 2) reasons.push('similar genres')
     }
 
-    if (movie.primary_genre && seed.primary_genre &&
-        movie.primary_genre.toLowerCase() === seed.primary_genre.toLowerCase()) score += 10
-
-    const movieKeywords = (movie.keywords || [])
-      .map(k => (typeof k === 'object' ? k.name : k)?.toLowerCase()).filter(Boolean)
-    const seedKeywords = (seed.keywords || [])
-      .map(k => (typeof k === 'object' ? k.name : k)?.toLowerCase()).filter(Boolean)
+    const movieKeywords = (movie.keywords || []).map((k) => (typeof k === 'object' ? k.name : k)?.toLowerCase()).filter(Boolean)
+    const seedKeywords = (seed.keywords || []).map((k) => (typeof k === 'object' ? k.name : k)?.toLowerCase()).filter(Boolean)
 
     let keywordMatches = 0
     for (const mk of movieKeywords) {
       for (const sk of seedKeywords) {
-        if (mk.includes(sk) || sk.includes(mk)) { keywordMatches++; break }
+        if (mk.includes(sk) || sk.includes(mk)) {
+          keywordMatches++
+          break
+        }
       }
     }
     if (keywordMatches > 0) {
@@ -1492,36 +1596,44 @@ function calculateSeedSimilarity(movie, seedFilms) {
       if (keywordMatches >= 2) reasons.push('similar themes')
     }
 
-    if (movie.pacing_score != null && seed.pacing_score != null) {
-      const diff = Math.abs(movie.pacing_score - seed.pacing_score)
-      if (diff <= 1) score += 8
-      else if (diff <= 2) score += 4
-    }
-
-    if (movie.intensity_score != null && seed.intensity_score != null) {
-      const diff = Math.abs(movie.intensity_score - seed.intensity_score)
-      if (diff <= 1) score += 8
-      else if (diff <= 2) score += 4
-    }
-
-    if (movie.emotional_depth_score != null && seed.emotional_depth_score != null) {
-      const diff = Math.abs(movie.emotional_depth_score - seed.emotional_depth_score)
-      if (diff <= 1) score += 6
-      else if (diff <= 2) score += 3
-    }
-
-    if (movie.original_language === seed.original_language) score += 5
+    if (movie.original_language && seed.original_language && movie.original_language === seed.original_language) score += 5
 
     if (movie.release_year && seed.release_year) {
-      const yearDiff = Math.abs(movie.release_year - seed.release_year)
-      if (yearDiff <= 5) score += 6
-      else if (yearDiff <= 10) score += 3
+      const yd = Math.abs(movie.release_year - seed.release_year)
+      if (yd <= 5) score += 6
+      else if (yd <= 10) score += 3
     }
 
-    if (score > bestScore) { bestScore = score; bestSeed = seed; bestReasons = reasons }
+    // Embedding similarity (if available) — BIG win for “Similar to”
+    let embeddingSim = 0
+    if (seedEmbeddingBestByMovieId && seedEmbeddingBestByMovieId instanceof Map) {
+      const best = seedEmbeddingBestByMovieId.get(Number(movie.id))
+      if (best && Number(best.seedMovieId) === Number(seed.id)) {
+        embeddingSim = Number(best.similarity || 0)
+      }
+    }
+
+    // Convert sim (0..1) to bonus (0..60)
+    const embeddingBonus = embeddingSim > 0 ? clamp(embeddingSim * 60, 0, 60) : 0
+    if (embeddingBonus >= 35) reasons.push('embedding match')
+    score += embeddingBonus
+
+    if (score > bestScore) {
+      bestScore = score
+      bestSeed = seed
+      bestReasons = reasons
+      bestEmbeddingSim = embeddingSim
+    }
   }
 
-  return { score: bestScore, bestSeed, matchReasons: bestReasons }
+  const cappedScore = Math.min(bestScore * 0.4, 40) // cap to prevent domination
+  return {
+    rawScore: bestScore,
+    cappedScore,
+    bestSeed,
+    matchReasons: bestReasons,
+    embeddingSim: bestEmbeddingSim
+  }
 }
 
 function scoreEraMatch(movie, profile) {
@@ -1530,10 +1642,7 @@ function scoreEraMatch(movie, profile) {
   if (profile.preferences.preferredDecades.includes(movieDecade)) return 8
 
   const movieDecadeNum = parseInt(movieDecade)
-  const hasAdjacent = profile.preferences.preferredDecades.some(d => {
-    const prefNum = parseInt(d)
-    return Math.abs(prefNum - movieDecadeNum) === 10
-  })
+  const hasAdjacent = profile.preferences.preferredDecades.some((d) => Math.abs(parseInt(d) - movieDecadeNum) === 10)
   if (hasAdjacent) return 4
   if (movie.release_year < 1990 && profile.preferences.toleratesClassics) return 2
   return 0
@@ -1563,11 +1672,13 @@ function scoreRecency(movie) {
 
 function scoreQualityBonuses(movie) {
   let bonus = 0
-  if (movie.quality_score >= 85) bonus += 8
-  else if (movie.quality_score >= 75) bonus += 4
-  if (movie.cult_status_score >= 50) bonus += 7
-  else if (movie.cult_status_score >= 30) bonus += 3
-  if (movie.ff_confidence >= 80) bonus += 2
+  if (Number(movie.quality_score || 0) >= 85) bonus += 8
+  else if (Number(movie.quality_score || 0) >= 75) bonus += 4
+
+  if (Number(movie.cult_status_score || 0) >= 50) bonus += 7
+  else if (Number(movie.cult_status_score || 0) >= 30) bonus += 3
+
+  if (Number(movie.ff_confidence || 0) >= 80) bonus += 2
   return bonus
 }
 
@@ -1576,30 +1687,22 @@ function scoreNegativeSignals(movie, profile) {
   let penalty = 0
   const movieGenres = (movie.genres || []).map(extractGenreId).filter(Boolean)
 
-  profile.negativeSignals.skippedGenres?.forEach(skipped => {
-    if (movieGenres.includes(skipped.id)) {
-      penalty += Math.min(-15 - (skipped.skipCount * 5), -40)
-    }
+  profile.negativeSignals.skippedGenres?.forEach((skipped) => {
+    if (movieGenres.includes(skipped.id)) penalty += Math.min(-15 - skipped.skipCount * 5, -40)
   })
 
   if (movie.director_name) {
-    const skippedDirector = profile.negativeSignals.skippedDirectors?.find(
-      d => d.name.toLowerCase() === movie.director_name.toLowerCase()
-    )
+    const skippedDirector = profile.negativeSignals.skippedDirectors?.find((d) => safeLower(d.name) === safeLower(movie.director_name))
     if (skippedDirector) penalty += skippedDirector.skipCount >= 3 ? -50 : -30
   }
 
   if (movie.lead_actor_name) {
-    const skippedActor = profile.negativeSignals.skippedActors?.find(
-      a => a.name.toLowerCase() === movie.lead_actor_name.toLowerCase()
-    )
+    const skippedActor = profile.negativeSignals.skippedActors?.find((a) => safeLower(a.name) === safeLower(movie.lead_actor_name))
     if (skippedActor) penalty += skippedActor.skipCount >= 3 ? -40 : -25
   }
 
   if (movie.original_language) {
-    const skippedLang = profile.negativeSignals.skippedLanguages?.find(
-      l => l.language === movie.original_language
-    )
+    const skippedLang = profile.negativeSignals.skippedLanguages?.find((l) => l.language === movie.original_language)
     if (skippedLang) penalty += -20
   }
 
@@ -1610,10 +1713,8 @@ function scoreDiversityPenalty(movie, profile, seedFilms) {
   let penalty = 0
 
   if (movie.director_name && seedFilms.length > 0) {
-    const movieDirector = movie.director_name.toLowerCase()
-    const directorAppearances = seedFilms.filter(
-      s => s.director_name?.toLowerCase() === movieDirector
-    ).length
+    const movieDirector = safeLower(movie.director_name)
+    const directorAppearances = seedFilms.filter((s) => safeLower(s.director_name) === movieDirector).length
     if (directorAppearances >= 2) penalty -= 15
   }
 
@@ -1622,7 +1723,7 @@ function scoreDiversityPenalty(movie, profile, seedFilms) {
 
   if (primaryGenre && seedFilms.length > 0) {
     let genreMatchCount = 0
-    seedFilms.forEach(seed => {
+    seedFilms.forEach((seed) => {
       const seedGenres = (seed.genres || []).map(extractGenreId).filter(Boolean)
       if (seedGenres.includes(primaryGenre)) genreMatchCount++
     })
@@ -1632,163 +1733,103 @@ function scoreDiversityPenalty(movie, profile, seedFilms) {
   return penalty
 }
 
-export function calculateLikelySeenScore(movie, profile) {
-  let score = 0
-  const pop = movie.popularity || 0
-  if (pop >= 100) score += 40
-  else if (pop >= 60) score += 30
-  else if (pop >= 30) score += 15
-  else if (pop >= 10) score += 5
-
-  const votes = movie.vote_count || 0
-  if (votes >= 10000) score += 25
-  else if (votes >= 5000) score += 15
-  else if (votes >= 2000) score += 10
-  else if (votes >= 500) score += 5
-
-  const age = movie.release_year ? new Date().getFullYear() - movie.release_year : 0
-  if (age > 10 && pop > 40) score += 15
-  else if (age > 20 && votes > 5000) score += 10
-
-  if (age === 0) score -= 25
-  else if (age === 1) score -= 15
-  else if (age <= 3) score -= 5
-
-  const isEnglish = movie.original_language === 'en'
-  const isUserLanguage = movie.original_language === profile.languages?.primary
-
-  if (isEnglish && pop > 40) score += 10
-  if (!isEnglish && !isUserLanguage) score -= 10
-
-  const revenue = movie.revenue || 0
-  if (revenue >= 1000000000) score += 20
-  else if (revenue >= 500000000) score += 12
-  else if (revenue >= 200000000) score += 6
-
-  const watched = profile.qualityProfile?.totalMoviesWatched || 0
-  if (watched >= 100) score *= 1.3
-  else if (watched >= 50) score *= 1.15
-
-  const hasDirectorAffinity = profile.affinities?.directors?.some(
-    d => d.name.toLowerCase() === movie.director_name?.toLowerCase()
-  )
-  const hasActorAffinity = profile.affinities?.actors?.some(
-    a => a.name.toLowerCase() === movie.lead_actor_name?.toLowerCase()
-  )
-
-  if (hasDirectorAffinity) score *= 0.4
-  else if (hasActorAffinity) score *= 0.6
-
-  return Math.max(0, Math.min(100, Math.round(score)))
+export function calculateLikelySeenScore() {
+  // Disabled by design in v2.3
+  return 0
 }
 
 function determinePickReason(movie, profile, breakdown, seedSimilarity = {}) {
-  if (seedSimilarity.score >= 40 && seedSimilarity.bestSeed) {
+  // Strong embedding/seed similarity wins
+  if ((seedSimilarity.embeddingSim || 0) >= 0.75 && seedSimilarity.bestSeed) {
     return {
       label: `Because you loved ${seedSimilarity.bestSeed.title}`,
-      type: 'seed_similarity', seedTitle: seedSimilarity.bestSeed.title
+      type: 'seed_embedding',
+      seedTitle: seedSimilarity.bestSeed.title
+    }
+  }
+
+  if ((seedSimilarity.rawScore || 0) >= 60 && seedSimilarity.bestSeed) {
+    return {
+      label: `Because you loved ${seedSimilarity.bestSeed.title}`,
+      type: 'seed_similarity',
+      seedTitle: seedSimilarity.bestSeed.title
     }
   }
 
   if (breakdown.peopleDetail?.director >= 25) {
-    return {
-      label: `Because you love ${movie.director_name}`,
-      type: 'director_affinity'
-    }
+    return { label: `Because you love ${movie.director_name}`, type: 'director_affinity' }
   }
 
   if (breakdown.peopleDetail?.actor >= 15) {
-    return {
-      label: `Starring ${movie.lead_actor_name}`,
-      type: 'actor_affinity'
-    }
+    return { label: `Starring ${movie.lead_actor_name}`, type: 'actor_affinity' }
   }
 
-  if (seedSimilarity.score >= 25 && seedSimilarity.bestSeed) {
-    return {
-      label: `Similar to ${seedSimilarity.bestSeed.title}`,
-      type: 'seed_similar', seedTitle: seedSimilarity.bestSeed.title
-    }
+  if ((seedSimilarity.rawScore || 0) >= 35 && seedSimilarity.bestSeed) {
+    return { label: `Similar to ${seedSimilarity.bestSeed.title}`, type: 'seed_similar', seedTitle: seedSimilarity.bestSeed.title }
   }
 
-  if (breakdown.language >= 20 && breakdown.genre >= 15) {
-    return { label: 'Perfect for you', type: 'perfect_match' }
-  }
-
-  if (breakdown.genre >= 20) {
-    return { label: 'Right up your alley', type: 'genre_match' }
-  }
-
-  if (movie.discovery_potential >= 60) {
-    return { label: 'Hidden gem', type: 'hidden_gem' }
-  }
-
-  if (movie.quality_score >= 85 || movie.ff_rating >= 7.5) {
-    return { label: 'Critically acclaimed', type: 'quality' }
-  }
-
-  if (movie.release_year === new Date().getFullYear()) {
-    return { label: 'Fresh pick', type: 'recency' }
-  }
-
-  if (breakdown.content >= 35) {
-    return { label: 'Matches your vibe', type: 'content_match' }
-  }
+  if ((breakdown.language || 0) >= 20 && (breakdown.genre || 0) >= 15) return { label: 'Perfect for you', type: 'perfect_match' }
+  if ((breakdown.genre || 0) >= 20) return { label: 'Right up your alley', type: 'genre_match' }
+  if (Number(movie.discovery_potential || 0) >= 60) return { label: 'Hidden gem', type: 'hidden_gem' }
+  if (Number(movie.quality_score || 0) >= 85 || Number(movie.ff_rating || 0) >= 7.5) return { label: 'Critically acclaimed', type: 'quality' }
+  if (movie.release_year === new Date().getFullYear()) return { label: 'Fresh pick', type: 'recency' }
+  if ((breakdown.content || 0) >= 35) return { label: 'Matches your vibe', type: 'content_match' }
 
   return { label: 'Recommended for you', type: 'default' }
 }
 
-function applyDiversityFilter(candidates, seedFilms = [], limit = 5) {
-  if (candidates.length === 0) return []
-  
+function applyDiversityFilter(candidates, seedFilms = [], limit = 10) {
+  if (!candidates || candidates.length === 0) return []
+
   const diverse = []
   const usedDirectors = new Set()
   const usedPrimaryGenres = new Set()
-  let discoveryCount = 0
 
-  const seedDirectors = new Set(seedFilms.map(s => s.director_name?.toLowerCase()).filter(Boolean))
+  const seedDirectors = new Set(seedFilms.map((s) => safeLower(s.director_name)).filter(Boolean))
   const seedGenres = new Set()
-  seedFilms.forEach(s => {
-    const genres = (s.genres || []).map(g => extractGenreId(g)).filter(Boolean)
+  seedFilms.forEach((s) => {
+    const genres = (s.genres || []).map((g) => extractGenreId(g)).filter(Boolean)
     if (genres[0]) seedGenres.add(genres[0])
   })
 
   for (const candidate of candidates) {
     if (diverse.length >= limit) break
 
-    const movie = candidate.movie
-    const director = movie.director_name?.toLowerCase()
-    const movieGenres = (movie.genres || []).map(g => extractGenreId(g)).filter(Boolean)
+    const m = candidate.movie
+    const director = safeLower(m.director_name)
+    const movieGenres = (m.genres || []).map(extractGenreId).filter(Boolean)
     const primaryGenre = movieGenres[0]
 
     if (director && usedDirectors.has(director)) {
-      const directorCount = diverse.filter(
-        d => d.movie.director_name?.toLowerCase() === director
-      ).length
-      if (directorCount >= 2) continue
+      const count = diverse.filter((d) => safeLower(d.movie.director_name) === director).length
+      if (count >= 2) continue
     }
 
     if (primaryGenre && usedPrimaryGenres.has(primaryGenre)) {
-      const genreCount = diverse.filter(d => {
-        const genres = (d.movie.genres || []).map(g => extractGenreId(g)).filter(Boolean)
-        return genres[0] === primaryGenre
+      const count = diverse.filter((d) => {
+        const g = (d.movie.genres || []).map(extractGenreId).filter(Boolean)
+        return g[0] === primaryGenre
       }).length
-      if (genreCount >= 2) continue
+      if (count >= 2) continue
     }
 
-    const isDifferentFromSeeds = 
-      (!director || !seedDirectors.has(director)) &&
-      (!primaryGenre || !seedGenres.has(primaryGenre))
-
-    if (isDifferentFromSeeds) discoveryCount++
+    // Prefer a bit of “newness” vs seeds, but don’t over-filter
+    const isDifferentFromSeeds = (!director || !seedDirectors.has(director)) && (!primaryGenre || !seedGenres.has(primaryGenre))
 
     diverse.push(candidate)
     if (director) usedDirectors.add(director)
     if (primaryGenre) usedPrimaryGenres.add(primaryGenre)
+
+    // (Optional) could track discoveryCount; removed for simplicity
+    void isDifferentFromSeeds
   }
 
   return diverse
 }
+
+// ============================================================================
+// LOGGING & FALLBACK
+// ============================================================================
 
 async function logImpression(userId, selectedCandidate, placement) {
   try {
@@ -1800,9 +1841,8 @@ async function logImpression(userId, selectedCandidate, placement) {
       pick_reason_type: selectedCandidate.pickReason.type,
       pick_reason_label: selectedCandidate.pickReason.label,
       score: selectedCandidate.score,
-      algorithm_version: 'v2.2',
-      seed_movie_id: selectedCandidate.breakdown.seedMatch ? 
-        selectedCandidate.breakdown.seedMatch : null
+      algorithm_version: `v${ENGINE_VERSION}`,
+      seed_movie_id: selectedCandidate.breakdown.seedMatch ? selectedCandidate.breakdown.seedMatch : null
     })
   } catch (err) {
     console.error('[logImpression] Error:', err)
@@ -1818,16 +1858,16 @@ async function getFallbackPick(profile) {
       .not('backdrop_path', 'is', null)
       .not('tmdb_id', 'is', null)
       .gte('ff_rating', 8.0)
-      .gte('release_date', '2023-01-01')
+      .gte('release_date', '2020-01-01')
       .order('ff_rating', { ascending: false })
-      .limit(10)
+      .limit(20)
 
     if (fallback && fallback.length > 0) {
-      const randomPick = fallback[Math.floor(Math.random() * fallback.length)]
+      const pick = fallback[Math.floor(Math.random() * fallback.length)]
       return {
-        movie: randomPick,
+        movie: pick,
         pickReason: { label: 'Critically acclaimed', type: 'quality' },
-        score: randomPick.ff_rating * 10,
+        score: Number(pick.ff_rating || 0) * 10,
         debug: { fallback: true }
       }
     }
@@ -1843,6 +1883,10 @@ async function getFallbackPick(profile) {
   }
 }
 
+// ============================================================================
+// UPDATE IMPRESSION
+// ============================================================================
+
 export async function updateImpression(userId, movieId, action, metadata = {}) {
   try {
     const { data: impression } = await supabase
@@ -1854,10 +1898,7 @@ export async function updateImpression(userId, movieId, action, metadata = {}) {
       .limit(1)
       .maybeSingle()
 
-    if (!impression) {
-      console.warn('[updateImpression] No impression found')
-      return
-    }
+    if (!impression) return
 
     const updates = {
       clicked: action === 'clicked',
@@ -1867,12 +1908,9 @@ export async function updateImpression(userId, movieId, action, metadata = {}) {
 
     if (action === 'clicked') updates.clicked_at = new Date().toISOString()
 
-    const { error } = await supabase
-      .from('recommendation_impressions')
-      .update(updates)
-      .eq('id', impression.id)
+    await supabase.from('recommendation_impressions').update(updates).eq('id', impression.id)
 
-    if (!error) console.log('[updateImpression] Updated:', action)
+    void metadata
   } catch (err) {
     console.error('[updateImpression] Error:', err)
   }
@@ -1880,7 +1918,7 @@ export async function updateImpression(userId, movieId, action, metadata = {}) {
 
 export const RECOMMENDATION_CONSTANTS = {
   LANGUAGE_REGIONS,
-  LIKELY_SEEN_WEIGHTS,
+  LIKELY_SEEN_WEIGHTS, // all zero now
   THRESHOLDS,
   GENRE_NAME_TO_ID
 }

@@ -156,6 +156,34 @@ function OnboardingShell() {
   )
 }
 
+/* ------------------------------ Admin guard ------------------------------ */
+const ADMIN_EMAILS = (import.meta.env.VITE_ADMIN_EMAILS || '')
+  .split(',')
+  .map(e => e.trim().toLowerCase())
+  .filter(Boolean)
+
+function AdminOnly() {
+  const [status, setStatus] = useState('loading')
+  const loc = useLocation()
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) { setStatus('anon'); return }
+      const email = session.user?.email?.toLowerCase() || ''
+      setStatus(ADMIN_EMAILS.length === 0 || ADMIN_EMAILS.includes(email) ? 'ok' : 'forbidden')
+    })
+  }, [])
+
+  if (status === 'loading') return <FullScreenSpinner />
+  if (status === 'anon') return <Navigate to="/" replace state={{ from: loc }} />
+  if (status === 'forbidden') return (
+    <div className="grid min-h-[60vh] place-items-center text-white/60 text-sm">
+      You don't have permission to view this page.
+    </div>
+  )
+  return <Outlet />
+}
+
 /* ------------------------------- Utilities -------------------------------- */
 function AppPrefixAlias() {
   const loc = useLocation()
@@ -202,12 +230,6 @@ export const router = createBrowserRouter([
       { path: 'register', element: <Navigate to="/" replace /> },
 
       { path: 'logout', element: <SignOutRoute /> },
-
-      // cache monitoring
-      {
-        path: '/admin/cache-monitoring',
-        element: <CacheMonitoring />,
-      }
     ],
   },
 
@@ -241,6 +263,15 @@ export const router = createBrowserRouter([
       { path: 'browse', element: <MoviesTab />, errorElement: <ErrorBoundary /> },
       { path: 'trending', element: <MoviesTab />, errorElement: <ErrorBoundary /> },
       { path: 'discover', element: <DiscoverPage />, errorElement: <ErrorBoundary /> },
+
+      // Admin-only routes (auth + email allowlist)
+      {
+        element: <AdminOnly />,
+        errorElement: <ErrorBoundary />,
+        children: [
+          { path: 'admin/cache-monitoring', element: <CacheMonitoring />, errorElement: <ErrorBoundary /> },
+        ],
+      },
 
       // Auth-required + onboarding gate
       {

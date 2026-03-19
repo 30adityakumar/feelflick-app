@@ -28,7 +28,7 @@ const ENGINE_VERSION = '2.3'
 // HELPERS
 // ============================================================================
 
-function normalizeNumericIdArray(arr = []) {
+export function normalizeNumericIdArray(arr = []) {
   return Array.from(
     new Set(
       (arr || [])
@@ -39,11 +39,11 @@ function normalizeNumericIdArray(arr = []) {
   ).sort((a, b) => a - b)
 }
 
-function clamp(n, lo, hi) {
+export function clamp(n, lo, hi) {
   return Math.max(lo, Math.min(hi, n))
 }
 
-function safeLower(s) {
+export function safeLower(s) {
   return typeof s === 'string' ? s.toLowerCase() : ''
 }
 

@@ -278,3 +278,51 @@ export function ErrorBoundaryWrapper({ children, fallback }) {
     </ErrorBoundary>
   )
 }
+
+/**
+ * Lightweight inline error boundary for homepage sections / carousels.
+ * Shows a subtle "couldn't load" card instead of a full-screen takeover,
+ * so one broken section never crashes the rest of the page.
+ *
+ * Usage:
+ *   <SectionErrorBoundary label="Quick Picks">
+ *     <QuickPicksRow />
+ *   </SectionErrorBoundary>
+ */
+export class SectionErrorBoundary extends Component {
+  constructor(props) {
+    super(props)
+    this.state = { error: null }
+  }
+
+  static getDerivedStateFromError(error) {
+    return { error }
+  }
+
+  componentDidCatch(error, info) {
+    console.error(`[SectionErrorBoundary] "${this.props.label}" failed:`, error, info?.componentStack)
+  }
+
+  handleRetry = () => {
+    this.setState({ error: null })
+  }
+
+  render() {
+    if (this.state.error) {
+      const label = this.props.label || 'This section'
+      return (
+        <div className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-sm text-white/50">
+          <span>{label} couldn't load right now.</span>
+          <button
+            onClick={this.handleRetry}
+            className="flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-1.5 text-xs font-medium text-white/60 transition hover:bg-white/10 hover:text-white"
+          >
+            <RefreshCw className="h-3.5 w-3.5" />
+            Retry
+          </button>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}

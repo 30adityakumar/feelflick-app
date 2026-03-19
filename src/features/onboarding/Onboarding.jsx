@@ -614,7 +614,7 @@ function StepMovies({
 }) {
   const getSmartFeedback = () => {
     const count = favoriteMovies.length
-    if (count === 0) return { text: 'Add 5+ movies for personalized recommendations', color: 'text-white/50' }
+    if (count === 0) return { text: 'Add 5+ movies for personalized recommendations (or skip)', color: 'text-white/50' }
     if (count < 5) return { text: `${5 - count} more for great recommendations`, color: 'text-[#667eea]' }
     if (count >= 5 && count < 10) return { text: 'Excellent — ready to continue', color: 'text-emerald-400' }
     return { text: `${count} movies — amazing taste!`, color: 'text-[#f093fb]' }
@@ -790,37 +790,51 @@ function StepMovies({
       </div>
 
       {/* Footer Actions */}
-      <div className="flex-none pt-6 border-t border-white/5 flex items-center justify-between bg-[#0B1120]">
-        <button
-          onClick={onBack}
-          disabled={loading}
-          className="flex items-center gap-2 text-sm font-medium text-white/50 hover:text-white/80 transition-colors disabled:opacity-30"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          Back
-        </button>
-        
-        <button
-          onClick={onFinish}
-          disabled={loading || !canProceed}
-          className={`flex items-center gap-3 px-10 py-3.5 rounded-full font-semibold text-sm transition-all duration-300 ${
-            canProceed
-              ? 'bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white shadow-lg hover:shadow-xl hover:scale-105 active:scale-95'
-              : 'bg-white/5 text-white/30 cursor-not-allowed'
-          }`}
-        >
-          {loading ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Saving
-            </>
-          ) : (
-            <>
-              Complete Setup
-              <Check className="h-4 w-4" />
-            </>
-          )}
-        </button>
+      <div className="flex-none pt-6 border-t border-white/5 bg-[#0B1120]">
+        <div className="flex items-center justify-between">
+          <button
+            onClick={onBack}
+            disabled={loading}
+            className="flex items-center gap-2 text-sm font-medium text-white/50 hover:text-white/80 transition-colors disabled:opacity-30"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Back
+          </button>
+
+          <div className="flex items-center gap-4">
+            {!canProceed && (
+              <button
+                onClick={() => onFinish({ skipMovies: true })}
+                disabled={loading}
+                className="text-sm font-medium text-white/40 hover:text-white/70 transition-colors disabled:opacity-30"
+              >
+                Skip for now
+              </button>
+            )}
+
+            <button
+              onClick={onFinish}
+              disabled={loading || !canProceed}
+              className={`flex items-center gap-3 px-10 py-3.5 rounded-full font-semibold text-sm transition-all duration-300 ${
+                canProceed
+                  ? 'bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white shadow-lg hover:shadow-xl hover:scale-105 active:scale-95'
+                  : 'bg-white/5 text-white/30 cursor-not-allowed'
+              }`}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Saving
+                </>
+              ) : (
+                <>
+                  Complete Setup
+                  <Check className="h-4 w-4" />
+                </>
+              )}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   )

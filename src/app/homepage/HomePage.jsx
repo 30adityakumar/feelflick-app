@@ -15,6 +15,7 @@ import TrendingForYouRow from './components/TrendingForYouRow'
 import LazyRow from '@/shared/components/LazyRow'
 import { useGenreRecommendations } from '@/shared/hooks/useRecommendations'
 import { useStaggeredEnabled } from '@/shared/hooks/useStaggeredEnabled'
+import { SectionErrorBoundary } from '@/app/ErrorBoundary'
 
 function pickFirstDefined(...values) {
   for (const v of values) {
@@ -113,20 +114,24 @@ export default function HomePage() {
           <div className="pt-6 sm:pt-8 space-y-10 sm:space-y-12">
             {/* Quick picks near top (exclude current hero) */}
             <section aria-label="Quick picks">
-              <QuickPicksRow userId={userId} excludeIds={heroExcludeIds} />
+              <SectionErrorBoundary label="Quick Picks">
+                <QuickPicksRow userId={userId} excludeIds={heroExcludeIds} />
+              </SectionErrorBoundary>
             </section>
 
             {/* Genre row */}
             <section aria-label="Genre recommendations">
-              <PersonalizedCarouselRow
-                title={genreTitle}
-                movies={genre.data || []}
-                loading={genre.loading}
-                error={genre.error}
-                icon={Layers}
-                rowId="genre-recs"
-                placement="genre"
-              />
+              <SectionErrorBoundary label="Genre Recommendations">
+                <PersonalizedCarouselRow
+                  title={genreTitle}
+                  movies={genre.data || []}
+                  loading={genre.loading}
+                  error={genre.error}
+                  icon={Layers}
+                  rowId="genre-recs"
+                  placement="genre"
+                />
+              </SectionErrorBoundary>
             </section>
 
             {/* Lazy rows (below fold) */}
@@ -138,15 +143,21 @@ export default function HomePage() {
               }}
             >
               <LazyRow>
-                <BecauseYouWatchedSection userId={userId} />
+                <SectionErrorBoundary label="Because You Watched">
+                  <BecauseYouWatchedSection userId={userId} />
+                </SectionErrorBoundary>
               </LazyRow>
 
               <LazyRow>
-                <HiddenGemsRow userId={userId} />
+                <SectionErrorBoundary label="Hidden Gems">
+                  <HiddenGemsRow userId={userId} />
+                </SectionErrorBoundary>
               </LazyRow>
 
               <LazyRow>
-                <TrendingForYouRow userId={userId} />
+                <SectionErrorBoundary label="Trending For You">
+                  <TrendingForYouRow userId={userId} />
+                </SectionErrorBoundary>
               </LazyRow>
             </div>
 

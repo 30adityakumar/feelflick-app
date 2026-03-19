@@ -3,6 +3,21 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 
 export default defineConfig({
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: ['./src/test/setup.js'],
+    // Exclude legacy manual browser test scripts (not proper test suites)
+    exclude: [
+      '**/node_modules/**',
+      'src/shared/services/recommendations.test.js',
+      'src/shared/services/__tests__/services.test.js',
+    ],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json-summary'],
+    },
+  },
   plugins: [react()],
   resolve: {
     alias: {

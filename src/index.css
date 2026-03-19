@@ -21,7 +21,7 @@
   --surface: #1e293b;      /* Slate surface */
   --panel: #334155;        /* Elevated panel */
   --text: #f8fafc;         /* Warm white text */
-  --muted: #94a3b8;        /* Muted text */
+  --muted: #b0bec5;        /* Muted text — WCAG AA ≥4.5:1 on all app surfaces */
   
   /* === FeelFlick Signature Gradient Palette === */
   /* Purple → Pink → Amber brand identity */

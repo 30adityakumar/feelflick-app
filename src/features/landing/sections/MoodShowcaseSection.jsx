@@ -38,8 +38,8 @@ const MOODS = [
     textColor: 'text-indigo-300',
     posters: [
       '/6oom5QYQ2yQTMJIbnvbkBL9cHo6.jpg',
-      '/sM33SANp9z6rXW8Itn7NnG1CXEs.jpg',
-      '/uDO8zWDhfWwoFdKS4fzkUJt0Bs0.jpg',
+      '/hlK0e0wAQ3VLuJcsfIYPvb4JVud.jpg',
+      '/uDO8zWDhfWwoFdKS4fzkUJt0Rf0.jpg',
     ],
     films: ['Spirited Away', 'Zootopia', 'La La Land'],
   },
@@ -50,11 +50,11 @@ const MOODS = [
     borderColor: 'border-blue-500/40',
     textColor: 'text-blue-300',
     posters: [
-      '/5MwkWH9tYHv3mV9OdYTMR5qreIz.jpg',
+      '/eCOtqtfvn7mxGl6nfmq4b1exJRc.jpg',
       '/rCzpDGLbOoPwLjy3OAm5NUPOTrC.jpg',
-      '/kwB7d51AIcyzPOB0Mq5aJEGM4q0.jpg',
+      '/9OkCLM73MIU2CrKZbqiT8Ln1wY2.jpg',
     ],
-    films: ['Eternal Sunshine', 'The Lord of the Rings', 'Goodfellas'],
+    films: ['Her', 'The Lord of the Rings', 'Goodfellas'],
   },
   {
     id: 'euphoric',
@@ -63,9 +63,9 @@ const MOODS = [
     borderColor: 'border-pink-400/40',
     textColor: 'text-pink-300',
     posters: [
-      '/gEU2QniL6E77NI6lCU6MxlNBvIx.jpg',
+      '/yQvGrMoipbRoddT0ZR8tPoR7NfX.jpg',
       '/7fn624j5lj3xTme2SgiLCeuedmO.jpg',
-      '/q6y0Go1rZgVoTFZYpK391L0imU.jpg',
+      '/vQWk5YBFWF4bZaofAbv0tShwBvQ.jpg',
     ],
     films: ['Interstellar', 'Whiplash', 'Pulp Fiction'],
   },
@@ -76,11 +76,11 @@ const MOODS = [
     borderColor: 'border-teal-400/40',
     textColor: 'text-teal-300',
     posters: [
-      '/w3LxiVYdWWRvEVdn5RYq6jIqkb1.jpg',
+      '/u68AjlvlutfEIcpmbYpKcdi09ut.jpg',
       '/3bhkrj58Vtu7enYsRolD1fZdja1.jpg',
-      '/8kSerJrhr6s0CnjLk8QXX397003.jpg',
+      '/pEzNVQfdzYDzVK0XqxERIw2x2se.jpg',
     ],
-    films: ['Everything Everywhere', 'The Godfather', 'Fight Club'],
+    films: ['Everything Everywhere', 'The Godfather', 'Arrival'],
   },
 ]
 
@@ -121,15 +121,13 @@ function PosterStrip({ mood }) {
   )
 }
 
-function MoodPill({ mood, isOpen, isVisible, index, onEnter, onLeave, onClick }) {
+function MoodPill({ mood, isOpen, isVisible, index, onClick }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
       transition={{ duration: 0.5, delay: index * 0.08, ease: [0.22, 1, 0.36, 1] }}
       className="relative"
-      onMouseEnter={onEnter}
-      onMouseLeave={onLeave}
     >
       <button
         onClick={onClick}
@@ -169,7 +167,6 @@ export default function MoodShowcaseSection() {
       id="mood-demo"
       className="relative pt-20 pb-24 sm:pt-24 sm:pb-28 bg-black overflow-hidden"
       aria-labelledby="mood-demo-heading"
-      onMouseLeave={() => setActiveMood(null)}
     >
       {/* Subtle top border */}
       <div className="absolute top-0 inset-x-0 h-px bg-white/8" aria-hidden="true" />
@@ -185,9 +182,7 @@ export default function MoodShowcaseSection() {
             <span className="text-white/60">We'll find your film.</span>
           </h2>
           <p className="text-base sm:text-lg text-white/40 max-w-xl mx-auto">
-            <span className="hidden sm:inline">Hover</span>
-            <span className="sm:hidden">Tap</span>
-            {' '}any mood to see what FeelFlick would serve you right now.
+            Tap any mood to see what FeelFlick would serve you right now.
           </p>
         </div>
 
@@ -205,8 +200,6 @@ export default function MoodShowcaseSection() {
                 isOpen={activeMood === mood.id}
                 isVisible={itemsVisible.includes(index)}
                 index={index}
-                onEnter={() => setActiveMood(mood.id)}
-                onLeave={() => {}}
                 onClick={() => setActiveMood(prev => prev === mood.id ? null : mood.id)}
               />
             </div>

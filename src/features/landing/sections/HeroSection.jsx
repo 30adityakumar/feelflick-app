@@ -56,7 +56,7 @@ function MoodRotator() {
 
   return (
     <span
-      className={`inline-block bg-gradient-to-r from-amber-300 via-amber-400 to-orange-400 bg-clip-text text-transparent transition-opacity duration-[400ms] ${
+      className={`inline-block bg-gradient-to-r from-purple-400 via-pink-500 to-amber-500 bg-clip-text text-transparent transition-opacity duration-[400ms] ${
         visible ? 'opacity-100' : 'opacity-0'
       }`}
     >
@@ -168,6 +168,11 @@ export default function HeroSection() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
       >
+        {/* Product label */}
+        <p className="mb-6 text-sm font-semibold text-white/35 tracking-widest uppercase">
+          Mood-based film discovery
+        </p>
+
         {/* Headline */}
         <h1
           id="hero-heading"

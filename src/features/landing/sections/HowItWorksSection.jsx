@@ -42,15 +42,34 @@ export default function HowItWorksSection() {
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center mb-12 sm:mb-16 md:mb-20">
+        <div className="text-center mb-12 sm:mb-16 md:mb-20 max-w-3xl mx-auto">
           <h2
             id="how-it-works-heading"
-            className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight mb-4 sm:mb-6 leading-tight text-white"
+            className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight mb-6 leading-tight text-white"
           >
             Built around your taste.
           </h2>
-          <p className="text-base sm:text-lg md:text-xl text-white/50 max-w-2xl mx-auto leading-relaxed px-4">
-            Not your streaming history. Not the algorithm. You.
+
+          {/* Problem → Solution → How */}
+          <div className="space-y-4 text-left sm:text-center px-2">
+            <p className="text-base sm:text-lg text-white/65 leading-relaxed">
+              You open Netflix. You scroll for 20 minutes. You close Netflix and watch nothing.
+            </p>
+            <p className="text-base sm:text-lg text-white/65 leading-relaxed">
+              That's not a you problem — it's a recommendation problem. Every streaming service
+              shows you what's popular right now, not what's right for{' '}
+              <em className="not-italic text-white">you</em> right now.
+            </p>
+            <p className="text-base sm:text-lg text-white/65 leading-relaxed">
+              FeelFlick is different. You tell us your mood — restless, nostalgic, cozy, whatever —
+              and we find a film that matches how you actually feel. Then we show you every
+              streaming service where you can watch it tonight.
+            </p>
+          </div>
+
+          <div className="mt-8 w-12 h-px bg-white/15 mx-auto" aria-hidden="true" />
+          <p className="mt-8 text-sm font-semibold text-white/35 tracking-widest uppercase">
+            Here's how it works
           </p>
         </div>
 

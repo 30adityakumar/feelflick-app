@@ -5,25 +5,25 @@ import { motion } from 'framer-motion'
 import googleSvg from '@/assets/icons/google.svg'
 import { useGoogleAuth } from '@/features/landing/utils/useGoogleAuth'
 
-// 🎬 Curated high-quality posters (TMDB paths)
+// 🎬 Curated high-quality posters — all paths verified live against TMDB CDN
 const POSTER_ROWS = [
   [
-    '/q6y0Go1rZgVoTFZYpK391L0imU.jpg', // Pulp Fiction
-    '/gEU2QniL6E77NI6lCU6MxlNBvIx.jpg', // Interstellar
+    '/vQWk5YBFWF4bZaofAbv0tShwBvQ.jpg', // Pulp Fiction
+    '/yQvGrMoipbRoddT0ZR8tPoR7NfX.jpg', // Interstellar
     '/rCzpDGLbOoPwLjy3OAm5NUPOTrC.jpg', // LOTR
-    '/kwB7d51AIcyzPOB0Mq5aJEGM4q0.jpg', // Goodfellas
-    '/3bhkrj58Vtu7enYsRolD1fZdja1.jpg', // Godfather
-    '/qJ2tW6WMUDux911r6m7haRef0WH.jpg', // Dark Knight
-    '/8kSerJrhr6s0CnjLk8QXX397003.jpg', // Fight Club
+    '/9OkCLM73MIU2CrKZbqiT8Ln1wY2.jpg', // Goodfellas
+    '/3bhkrj58Vtu7enYsRolD1fZdja1.jpg', // The Godfather
+    '/qJ2tW6WMUDux911r6m7haRef0WH.jpg', // The Dark Knight
+    '/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg', // Fight Club
   ],
   [
     '/saHP97rTPS5eLmrLQEcANmKrsFl.jpg', // Forrest Gump
-    '/sM33SANp9z6rXW8Itn7NnG1CXEs.jpg', // Zootopia
-    '/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg', // Fight Club (Alt)
-    '/arw2vcBveWOVZr6pxd9XTd1TdQa.jpg', // Amelie
+    '/arw2vcBveWOVZr6pxd9XTd1TdQa.jpg', // Amélie
     '/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg', // Parasite
     '/6oom5QYQ2yQTMJIbnvbkBL9cHo6.jpg', // Spirited Away
     '/q719jXXEzOoYaps6babgKnONONX.jpg', // Your Name
+    '/7fn624j5lj3xTme2SgiLCeuedmO.jpg', // Whiplash
+    '/uDO8zWDhfWwoFdKS4fzkUJt0Rf0.jpg', // La La Land
   ],
 ]
 
@@ -178,8 +178,8 @@ export default function HeroSection() {
           id="hero-heading"
           className="mb-8 leading-none"
         >
-          <span className="block text-white/60 text-xl sm:text-2xl font-medium tracking-wide mb-4">
-            Find films for when you're feeling
+          <span className="block text-white/55 text-xl sm:text-2xl font-medium tracking-wide mb-4">
+            The right film for when you're feeling
           </span>
           <span className="block text-display font-black tracking-tight leading-none">
             <MoodRotator />
@@ -192,7 +192,7 @@ export default function HeroSection() {
         </p>
 
         {/* Primary CTA */}
-        <div className="flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
           <button
             onClick={signInWithGoogle}
             disabled={isAuthenticating}
@@ -215,6 +215,13 @@ export default function HeroSection() {
                 </>
               )}
             </span>
+          </button>
+          <button
+            onClick={scrollToMoodDemo}
+            className="text-white/35 text-sm hover:text-white/65 transition-colors duration-200"
+            aria-label="See how FeelFlick works"
+          >
+            See how it works ↓
           </button>
         </div>
       </motion.div>

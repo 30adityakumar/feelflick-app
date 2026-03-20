@@ -17,7 +17,7 @@ export default function FinalCTASection() {
       {/* Single centered radial glow — depth without noise */}
       <div
         className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse 80% 50% at 50% 100%, rgba(245,158,11,0.07) 0%, transparent 70%)' }}
+        style={{ background: 'radial-gradient(ellipse 80% 50% at 50% 100%, rgba(168,85,247,0.08) 0%, transparent 70%)' }}
         aria-hidden="true"
       />
 
@@ -46,7 +46,7 @@ export default function FinalCTASection() {
           <button
             onClick={signInWithGoogle}
             disabled={isAuthenticating}
-            className="group relative w-full max-w-xs sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold text-base sm:text-lg shadow-xl hover:shadow-amber-500/30 transition-all duration-300 hover:scale-[1.03] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed touch-target"
+            className="group relative w-full max-w-xs sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold text-base sm:text-lg shadow-xl hover:shadow-purple-500/25 transition-all duration-300 hover:scale-[1.03] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed touch-target"
             aria-label={isAuthenticating ? 'Signing you in with Google' : 'Get started free with Google'}
           >
             <span className="relative z-10 flex items-center justify-center gap-3">

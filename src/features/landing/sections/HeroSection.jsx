@@ -1,24 +1,12 @@
 // src/features/landing/sections/HeroSection.jsx
 import { useState, useMemo, useEffect, useRef } from 'react'
-import { supabase } from '@/shared/lib/supabase/client'
-import { Sparkles, PlayCircle, ArrowRight } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
+import { motion } from 'framer-motion'
 import googleSvg from '@/assets/icons/google.svg'
-
-/**
- * Hero Section - First impression is everything
- * 
- * Features:
- * - Cinematic animated poster wall background
- * - Smooth parallax effects
- * - Performance optimized (memoized arrays, lazy loading)
- * - Accessibility focused (proper ARIA labels, keyboard nav)
- * - Mobile-first responsive design
- */
+import { useGoogleAuth } from '@/features/landing/utils/useGoogleAuth'
 
 // 🎬 Curated high-quality posters (TMDB paths)
-// Chosen for visual diversity and iconic recognition
 const POSTER_ROWS = [
-  // Row 1: Iconic / Modern Classics
   [
     '/q6y0Go1rZgVoTFZYpK391L0imU.jpg', // Pulp Fiction
     '/gEU2QniL6E77NI6lCU6MxlNBvIx.jpg', // Interstellar
@@ -28,7 +16,6 @@ const POSTER_ROWS = [
     '/qJ2tW6WMUDux911r6m7haRef0WH.jpg', // Dark Knight
     '/8kSerJrhr6s0CnjLk8QXX397003.jpg', // Fight Club
   ],
-  // Row 2: Diverse / Visual Stunners
   [
     '/saHP97rTPS5eLmrLQEcANmKrsFl.jpg', // Forrest Gump
     '/sM33SANp9z6rXW8Itn7NnG1CXEs.jpg', // Zootopia
@@ -40,10 +27,8 @@ const POSTER_ROWS = [
   ],
 ]
 
-/**
- * Memoized poster rows to prevent recreation on every render
- * Triples each row for seamless infinite scroll effect
- */
+const MOOD_WORDS = ['nostalgic', 'tense', 'cozy', 'euphoric', 'curious', 'melancholy']
+
 function usePosterRows() {
   return useMemo(
     () => [
@@ -54,27 +39,48 @@ function usePosterRows() {
   )
 }
 
-/**
- * Single poster tile with robust error handling and loading states
- */
-function PosterTile({ path, index }) {
+function MoodRotator() {
+  const [index, setIndex] = useState(0)
+  const [visible, setVisible] = useState(true)
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setVisible(false)
+      setTimeout(() => {
+        setIndex(i => (i + 1) % MOOD_WORDS.length)
+        setVisible(true)
+      }, 400)
+    }, 2200)
+    return () => clearInterval(interval)
+  }, [])
+
+  return (
+    <span
+      className={`inline-block bg-gradient-to-r from-purple-400 via-pink-500 to-amber-500 bg-clip-text text-transparent transition-opacity duration-[400ms] ${
+        visible ? 'opacity-100' : 'opacity-0'
+      }`}
+    >
+      {MOOD_WORDS[index]}.
+    </span>
+  )
+}
+
+function PosterTile({ path }) {
   const [loadState, setLoadState] = useState('loading')
   const imgRef = useRef(null)
 
   useEffect(() => {
     if (!path || !imgRef.current) return
 
-    // Intersection Observer for lazy loading
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting && loadState === 'loading') {
-            const img = entry.target
-            img.src = img.dataset.src
+            entry.target.src = entry.target.dataset.src
           }
         })
       },
-      { rootMargin: '50px' }
+      { rootMargin: '50px' },
     )
 
     observer.observe(imgRef.current)
@@ -116,226 +122,109 @@ function PosterTile({ path, index }) {
 }
 
 export default function HeroSection() {
-  const [isAuthenticating, setIsAuthenticating] = useState(false)
-  const [scrollY, setScrollY] = useState(0)
-  const contentRef = useRef(null)
+  const { signInWithGoogle, isAuthenticating } = useGoogleAuth()
   const [row1, row2] = usePosterRows()
 
-  // 🎬 Smooth parallax effect on scroll
-  useEffect(() => {
-    let ticking = false
-    const handleScroll = () => {
-      if (ticking) return
-      ticking = true
-      requestAnimationFrame(() => {
-        setScrollY(window.scrollY)
-        ticking = false
-      })
-    }
-
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
-
-  /**
-   * Google OAuth sign-in handler
-   */
-  async function handleGoogleSignIn() {
-    if (isAuthenticating) return
-    setIsAuthenticating(true)
-
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/onboarding`,
-        },
-      })
-      if (error) throw error
-    } catch (error) {
-      console.error('Auth error:', error)
-      alert('Sign in failed. Please try again.')
-    } finally {
-      setIsAuthenticating(false)
-    }
-  }
-
-  /**
-   * Smooth scroll to How It Works section
-   */
-  const scrollToHowItWorks = () => {
-    const element = document.getElementById('how-it-works')
+  const scrollToMoodDemo = () => {
+    const element = document.getElementById('mood-demo')
     if (!element) return
-
-    const headerOffset = 80
-    const elementPosition = element.getBoundingClientRect().top
-    const offsetPosition = elementPosition + window.pageYOffset - headerOffset
-
-    window.scrollTo({
-      top: offsetPosition,
-      behavior: 'smooth',
-    })
+    const offsetPosition = element.getBoundingClientRect().top + window.pageYOffset - 80
+    window.scrollTo({ top: offsetPosition, behavior: 'smooth' })
   }
-
-  // Subtle parallax transform (less aggressive for smoothness)
-  const parallaxY = scrollY * 0.3
 
   return (
-    <section 
+    <section
       className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black pt-20"
       aria-labelledby="hero-heading"
     >
-      {/* 🎬 Animated poster wall background */}
-      <div 
-        className="absolute inset-0 z-0 opacity-30 select-none pointer-events-none"
+      {/* Animated poster wall background */}
+      <div
+        className="absolute inset-0 z-0 select-none pointer-events-none"
+        style={{ opacity: 0.35 }}
         aria-hidden="true"
       >
-        {/* Multi-layer gradients for depth */}
         <div className="absolute inset-0 z-10 bg-gradient-to-b from-black via-black/40 to-black" />
         <div className="absolute inset-0 z-10 bg-gradient-to-tr from-purple-900/40 via-transparent to-amber-700/20" />
         <div className="absolute inset-0 z-10 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.5)_100%)]" />
 
         <div className="flex flex-col justify-center h-full gap-6 scale-[1.08] rotate-[-2deg] origin-center">
-          {/* Row 1 - Scrolls left */}
           <div className="flex gap-4 sm:gap-5 md:gap-6 animate-scroll-left w-[220%]">
             {row1.map((path, i) => (
-              <PosterTile key={`r1-${i}`} path={path} index={i} />
+              <PosterTile key={`r1-${i}`} path={path} />
             ))}
           </div>
-
-          {/* Row 2 - Scrolls right */}
           <div className="flex gap-4 sm:gap-5 md:gap-6 animate-scroll-right w-[220%]">
             {row2.map((path, i) => (
-              <PosterTile key={`r2-${i}`} path={path} index={i} />
+              <PosterTile key={`r2-${i}`} path={path} />
             ))}
           </div>
         </div>
       </div>
 
-      {/* 📝 Hero content with subtle parallax */}
-      <div
-        ref={contentRef}
+      {/* Hero content */}
+      <motion.div
         className="relative z-20 max-w-5xl mx-auto px-4 text-center"
-        style={{ transform: `translateY(${parallaxY}px)` }}
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
       >
-        {/* Badge */}
-        <div 
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md mb-8 hover:bg-white/10 hover:border-white/20 transition-all duration-300 cursor-default touch-target"
-          role="status"
-          aria-live="polite"
-        >
-          <Sparkles className="w-4 h-4 text-amber-400" aria-hidden="true" />
-          <span className="text-sm font-medium text-amber-100/90">
-            Find movies that match your mood
-          </span>
-        </div>
-
         {/* Headline */}
-        <h1 
+        <h1
           id="hero-heading"
-          className="text-5xl sm:text-7xl md:text-8xl font-black tracking-tight mb-8 leading-[1.1]"
+          className="mb-8 leading-none"
         >
-          <span className="block text-white drop-shadow-2xl">
-            Stop Scrolling.
+          <span className="block text-white/75 text-2xl sm:text-3xl font-semibold tracking-wide mb-3">
+            Find films for when you're feeling
           </span>
-          <span className="block bg-gradient-to-r from-purple-400 via-pink-500 to-amber-500 bg-clip-text text-transparent drop-shadow-2xl pb-2">
-            Start Watching.
+          <span className="block text-hero font-black tracking-tight leading-none">
+            <MoodRotator />
           </span>
         </h1>
 
         {/* Subheadline */}
-        <p className="text-lg sm:text-2xl text-white/70 max-w-2xl mx-auto mb-10 leading-relaxed font-medium">
-          Discover films based on your{' '}
-          <span className="text-white font-bold">vibe, emotion, and taste</span>
-          —not just what's trending.
+        <p className="text-lg sm:text-xl text-white/60 max-w-xl mx-auto mb-10 leading-relaxed">
+          Not what's trending. Not the algorithm.{' '}
+          <span className="text-white/90 font-semibold">The right film for right now.</span>
         </p>
 
-        {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
-          {/* Primary CTA */}
+        {/* Primary CTA */}
+        <div className="flex items-center justify-center">
           <button
-            onClick={handleGoogleSignIn}
+            onClick={signInWithGoogle}
             disabled={isAuthenticating}
-            className="group relative w-full max-w-xs sm:max-w-none sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 rounded-2xl bg-white text-black font-bold text-base sm:text-lg shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] hover:shadow-[0_0_60px_-10px_rgba(255,255,255,0.5)] transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden touch-target"
+            className="group relative w-full max-w-xs sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 rounded-2xl bg-white text-black font-bold text-base sm:text-lg shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] hover:shadow-[0_0_60px_-10px_rgba(255,255,255,0.5)] transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden touch-target"
             aria-label={isAuthenticating ? 'Signing in with Google' : 'Get started with Google sign in'}
           >
-            {/* Shimmer effect on hover */}
-            <span 
+            <span
               className="absolute inset-0 bg-gradient-to-r from-purple-400/0 via-purple-400/20 to-purple-400/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-              style={{
-                animation: 'shimmer 2s ease-in-out infinite',
-                backgroundSize: '200% 100%',
-              }}
+              style={{ animation: 'shimmer 2s ease-in-out infinite', backgroundSize: '200% 100%' }}
               aria-hidden="true"
             />
-            
             <span className="relative flex items-center justify-center gap-3">
               {isAuthenticating ? (
                 <>
-                  <svg 
-                    className="animate-spin h-5 w-5" 
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <circle 
-                      className="opacity-25" 
-                      cx="12" 
-                      cy="12" 
-                      r="10" 
-                      stroke="currentColor" 
-                      strokeWidth="4"
-                      fill="none"
-                    />
-                    <path 
-                      className="opacity-75" 
-                      fill="currentColor" 
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    />
+                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
                   <span>Signing in...</span>
                 </>
               ) : (
                 <>
-                  <img 
-                    src={googleSvg} 
-                    alt="" 
-                    className="w-5 h-5"
-                    aria-hidden="true"
-                  />
+                  <img src={googleSvg} alt="" className="w-5 h-5" aria-hidden="true" />
                   <span>Get Started — It's Free</span>
                 </>
               )}
             </span>
           </button>
-
-          {/* Secondary CTA */}
-          <button
-            onClick={scrollToHowItWorks}
-            className="w-full max-w-xs sm:max-w-none sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-white font-bold text-base sm:text-lg hover:bg-white/20 hover:border-white/20 transition-all duration-300 hover:scale-105 active:scale-95 flex items-center justify-center gap-2 touch-target"
-            aria-label="Learn how FeelFlick works"
-          >
-            <PlayCircle className="w-5 h-5" aria-hidden="true" />
-            <span>How It Works</span>
-          </button>
         </div>
+      </motion.div>
 
-        {/* Trust signals */}
-        <div 
-          className="mt-12 flex flex-wrap items-center justify-center gap-x-8 gap-y-4 text-sm text-white/40 font-medium"
-          role="list"
-          aria-label="Trust badges"
-        >
-          <span className="hover:text-white/60 transition-colors" role="listitem">✓ Always Free</span>
-          <span className="hover:text-white/60 transition-colors" role="listitem">✓ No Ads</span>
-          <span className="hover:text-white/60 transition-colors" role="listitem">✓ Privacy First</span>
-        </div>
-      </div>
-
-      {/* Scroll indicator (optional, shows on desktop) */}
+      {/* Scroll indicator */}
       <button
-        onClick={scrollToHowItWorks}
-        className="hidden lg:block absolute bottom-8 left-1/2 -translate-x-1/2 z-20 text-white/40 hover:text-white/60 transition-colors animate-bounce touch-target"
-        aria-label="Scroll to learn more"
+        onClick={scrollToMoodDemo}
+        className="hidden lg:block absolute bottom-8 left-1/2 -translate-x-1/2 z-20 text-white/30 hover:text-white/60 transition-colors animate-bounce touch-target"
+        aria-label="Scroll to explore moods"
       >
         <ArrowRight className="w-6 h-6 rotate-90" />
       </button>

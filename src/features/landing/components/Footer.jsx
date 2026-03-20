@@ -131,18 +131,8 @@ export default function Footer() {
               </h3>
               <ul className="space-y-3" role="list">
                 <li>
-                  <FooterLink onClick={() => scrollToSection('features')}>
-                    Features
-                  </FooterLink>
-                </li>
-                <li>
                   <FooterLink onClick={() => scrollToSection('how-it-works')}>
                     How it Works
-                  </FooterLink>
-                </li>
-                <li>
-                  <FooterLink onClick={() => scrollToSection('testimonials')}>
-                    Stories
                   </FooterLink>
                 </li>
                 <li>

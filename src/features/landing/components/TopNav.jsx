@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { LogIn, Menu, X } from 'lucide-react'
-import { supabase } from '@/shared/lib/supabase/client'
+import { useGoogleAuth } from '@/features/landing/utils/useGoogleAuth'
 
 /**
  * Top Navigation - Premium glassmorphism nav with smooth scroll
@@ -18,7 +18,7 @@ import { supabase } from '@/shared/lib/supabase/client'
 export default function TopNav({ hideAuthCta = false }) {
   const [scrolled, setScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [isAuthenticating, setIsAuthenticating] = useState(false)
+  const { signInWithGoogle, isAuthenticating } = useGoogleAuth()
   const barRef = useRef(null)
   const mobileMenuRef = useRef(null)
   const navigate = useNavigate()
@@ -141,26 +141,9 @@ export default function TopNav({ hideAuthCta = false }) {
     }
   }
 
-  // Google OAuth sign in handler
-  const handleSignIn = async () => {
-    if (isAuthenticating) return
-    setIsAuthenticating(true)
+  const handleSignIn = () => {
     setMobileMenuOpen(false)
-
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/onboarding`,
-        },
-      })
-      if (error) throw error
-    } catch (error) {
-      console.error('Auth error:', error)
-      alert('Sign in failed. Please try again.')
-    } finally {
-      setIsAuthenticating(false)
-    }
+    signInWithGoogle()
   }
 
   return (
@@ -199,14 +182,11 @@ export default function TopNav({ hideAuthCta = false }) {
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-8">
+              <NavLink onClick={() => scrollToSection('mood-demo')}>
+                Mood Demo
+              </NavLink>
               <NavLink onClick={() => scrollToSection('how-it-works')}>
                 How It Works
-              </NavLink>
-              <NavLink onClick={() => scrollToSection('features')}>
-                Features
-              </NavLink>
-              <NavLink onClick={() => scrollToSection('testimonials')}>
-                Reviews
               </NavLink>
             </div>
 
@@ -296,14 +276,11 @@ export default function TopNav({ hideAuthCta = false }) {
         {/* Menu Content */}
         <div className="relative h-full flex flex-col pt-24 pb-8 px-6">
           <nav className="flex flex-col gap-2" role="list">
+            <MobileNavLink onClick={() => scrollToSection('mood-demo')}>
+              Mood Demo
+            </MobileNavLink>
             <MobileNavLink onClick={() => scrollToSection('how-it-works')}>
               How It Works
-            </MobileNavLink>
-            <MobileNavLink onClick={() => scrollToSection('features')}>
-              Features
-            </MobileNavLink>
-            <MobileNavLink onClick={() => scrollToSection('testimonials')}>
-              Reviews
             </MobileNavLink>
           </nav>
 

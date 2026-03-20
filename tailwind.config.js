@@ -118,6 +118,7 @@ module.exports = {
       },
       
       fontSize: {
+        'display': ['clamp(4rem, 12vw, 9rem)', { lineHeight: '1.0', letterSpacing: '-0.04em' }],
         'hero': ['clamp(2.5rem, 8vw, 6rem)', { lineHeight: '1.1', letterSpacing: '-0.02em' }],
         'section': ['clamp(1.75rem, 4vw, 3rem)', { lineHeight: '1.2', letterSpacing: '-0.01em' }],
         'title': ['clamp(1.5rem, 3vw, 2.25rem)', { lineHeight: '1.3', letterSpacing: '-0.01em' }],

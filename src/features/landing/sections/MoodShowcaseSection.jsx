@@ -8,120 +8,112 @@ const MOODS = [
     id: 'nostalgic',
     emoji: '🌅',
     label: 'Nostalgic',
-    gradient: 'from-amber-500/15 to-orange-600/15',
-    hoverGradient: 'from-amber-500/25 to-orange-600/25',
-    borderColor: 'border-amber-500/30',
+    borderColor: 'border-amber-500/40',
     textColor: 'text-amber-300',
     posters: [
-      '/rHbEu9QQKFQFM7u8RKSVmrXKBfq.jpg',
-      '/obE7o9Ah9SBFBNlFoPx7F2nI5nW.jpg',
       '/saHP97rTPS5eLmrLQEcANmKrsFl.jpg',
+      '/arw2vcBveWOVZr6pxd9XTd1TdQa.jpg',
+      '/q719jXXEzOoYaps6babgKnONONX.jpg',
     ],
-    films: ['Stand By Me', 'Cinema Paradiso', 'Forrest Gump'],
+    films: ['Forrest Gump', 'Amélie', 'Your Name'],
   },
   {
     id: 'tense',
     emoji: '⚡',
     label: 'Tense',
-    gradient: 'from-red-600/15 to-rose-700/15',
-    hoverGradient: 'from-red-600/25 to-rose-700/25',
-    borderColor: 'border-red-500/30',
+    borderColor: 'border-red-500/40',
     textColor: 'text-red-300',
     posters: [
       '/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg',
-      '/6d5XkE9LMD5NOXmWwAvlGMoiPbE.jpg',
-      '/bqoHnVaN0bH4K4PdthxhU0u7Gm4.jpg',
+      '/qJ2tW6WMUDux911r6m7haRef0WH.jpg',
+      '/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg',
     ],
-    films: ['Parasite', 'No Country for Old Men', 'Zodiac'],
+    films: ['Parasite', 'The Dark Knight', 'Fight Club'],
   },
   {
     id: 'cozy',
-    emoji: '☁️',
+    emoji: '☕',
     label: 'Cozy',
-    gradient: 'from-indigo-500/15 to-purple-600/15',
-    hoverGradient: 'from-indigo-500/25 to-purple-600/25',
-    borderColor: 'border-indigo-400/30',
+    borderColor: 'border-indigo-400/40',
     textColor: 'text-indigo-300',
     posters: [
-      '/eWdyYQreja6JKmallmiTigVg404.jpg',
-      '/qSm2aeBsF5SJObPB8ELgRCFXRzN.jpg',
-      '/2fBJbkMWqpv2j3MIpfk5I9gAaVp.jpg',
+      '/6oom5QYQ2yQTMJIbnvbkBL9cHo6.jpg',
+      '/sM33SANp9z6rXW8Itn7NnG1CXEs.jpg',
+      '/uDO8zWDhfWwoFdKS4fzkUJt0Bs0.jpg',
     ],
-    films: ['The Grand Budapest Hotel', 'Paddington 2', 'Chef'],
+    films: ['Spirited Away', 'Zootopia', 'La La Land'],
   },
   {
     id: 'melancholy',
     emoji: '🌧',
     label: 'Melancholy',
-    gradient: 'from-blue-600/15 to-indigo-700/15',
-    hoverGradient: 'from-blue-600/25 to-indigo-700/25',
-    borderColor: 'border-blue-500/30',
+    borderColor: 'border-blue-500/40',
     textColor: 'text-blue-300',
     posters: [
-      '/ssCNSZOrB3Z7FLMmCWNnHGKQ5XH.jpg',
-      '/lEIaL12hSkqqe83kgADkbUkHqHs.jpg',
       '/5MwkWH9tYHv3mV9OdYTMR5qreIz.jpg',
+      '/rCzpDGLbOoPwLjy3OAm5NUPOTrC.jpg',
+      '/kwB7d51AIcyzPOB0Mq5aJEGM4q0.jpg',
     ],
-    films: ['Lost in Translation', 'Her', 'Eternal Sunshine'],
+    films: ['Eternal Sunshine', 'The Lord of the Rings', 'Goodfellas'],
   },
   {
     id: 'euphoric',
     emoji: '✨',
     label: 'Euphoric',
-    gradient: 'from-pink-500/15 to-fuchsia-600/15',
-    hoverGradient: 'from-pink-500/25 to-fuchsia-600/25',
-    borderColor: 'border-pink-400/30',
+    borderColor: 'border-pink-400/40',
     textColor: 'text-pink-300',
     posters: [
-      '/uDO8zWDhfWwoFdKS4fzkUJt0Bs0.jpg',
+      '/gEU2QniL6E77NI6lCU6MxlNBvIx.jpg',
       '/7fn624j5lj3xTme2SgiLCeuedmO.jpg',
-      '/ddMDzejGrslEMDFJHRFBpQjPGe3.jpg',
+      '/q6y0Go1rZgVoTFZYpK391L0imU.jpg',
     ],
-    films: ['La La Land', 'Whiplash', 'Baby Driver'],
+    films: ['Interstellar', 'Whiplash', 'Pulp Fiction'],
   },
   {
     id: 'curious',
     emoji: '🔭',
     label: 'Curious',
-    gradient: 'from-teal-500/15 to-cyan-600/15',
-    hoverGradient: 'from-teal-500/25 to-cyan-600/25',
-    borderColor: 'border-teal-400/30',
+    borderColor: 'border-teal-400/40',
     textColor: 'text-teal-300',
     posters: [
-      '/x2FJsf1ElAgr63Y3PNPtJrcmpoe.jpg',
       '/w3LxiVYdWWRvEVdn5RYq6jIqkb1.jpg',
-      '/gEU2QniL6E77NI6lCU6MxlNBvIx.jpg',
+      '/3bhkrj58Vtu7enYsRolD1fZdja1.jpg',
+      '/8kSerJrhr6s0CnjLk8QXX397003.jpg',
     ],
-    films: ['Arrival', 'Everything Everywhere', 'Interstellar'],
+    films: ['Everything Everywhere', 'The Godfather', 'Fight Club'],
   },
 ]
 
 function PosterStrip({ mood }) {
   return (
     <motion.div
-      initial={{ opacity: 0, height: 0 }}
-      animate={{ opacity: 1, height: 'auto' }}
-      exit={{ opacity: 0, height: 0 }}
-      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-      className="overflow-hidden"
+      initial={{ clipPath: 'inset(0 0 100% 0)', opacity: 0 }}
+      animate={{ clipPath: 'inset(0 0 0% 0)', opacity: 1 }}
+      exit={{ clipPath: 'inset(0 0 100% 0)', opacity: 0 }}
+      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+      className="mt-3 px-1 pb-1"
       role="region"
       aria-label={`${mood.label} film picks`}
     >
-      <div className="mt-2.5 flex gap-2.5 px-1 pb-1">
+      <div className="flex gap-3">
         {mood.posters.map((path, i) => (
           <motion.div
             key={path}
-            initial={{ opacity: 0, scale: 0.88 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: i * 0.07, duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            className="flex-1 rounded-xl overflow-hidden aspect-[2/3] bg-neutral-800 border border-white/10"
+            initial={{ opacity: 0, scale: 0.80, y: 12 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ delay: i * 0.09, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            className="flex-1 flex flex-col gap-2"
           >
-            <img
-              src={`https://image.tmdb.org/t/p/w185${path}`}
-              alt={mood.films[i]}
-              className="w-full h-full object-cover"
-              loading="lazy"
-            />
+            <div className="rounded-xl overflow-hidden aspect-[2/3] bg-neutral-900 border border-white/8">
+              <img
+                src={`https://image.tmdb.org/t/p/w342${path}`}
+                alt={mood.films[i]}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <p className="text-xs text-white/40 text-center font-medium truncate px-1">
+              {mood.films[i]}
+            </p>
           </motion.div>
         ))}
       </div>
@@ -129,35 +121,34 @@ function PosterStrip({ mood }) {
   )
 }
 
-function MoodPill({ mood, isVisible, index }) {
-  const [isOpen, setIsOpen] = useState(false)
-
+function MoodPill({ mood, isOpen, isVisible, index, onEnter, onLeave, onClick }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
       transition={{ duration: 0.5, delay: index * 0.08, ease: [0.22, 1, 0.36, 1] }}
       className="relative"
-      onMouseEnter={() => setIsOpen(true)}
-      onMouseLeave={() => setIsOpen(false)}
+      onMouseEnter={onEnter}
+      onMouseLeave={onLeave}
     >
       <button
-        onClick={() => setIsOpen(prev => !prev)}
+        onClick={onClick}
         aria-expanded={isOpen}
         aria-label={`Show ${mood.label} film picks`}
         className={`
           relative w-full flex items-center gap-3 px-5 py-4 rounded-2xl
-          bg-gradient-to-br ${isOpen ? mood.hoverGradient : mood.gradient}
-          border ${mood.borderColor}
-          backdrop-blur-sm
-          transition-all duration-300
-          hover:scale-[1.02] active:scale-[0.98]
-          cursor-pointer touch-target
+          border transition-all duration-300 cursor-pointer touch-target
+          ${isOpen
+            ? `bg-white/[0.07] ${mood.borderColor}`
+            : 'bg-white/[0.04] border-white/10 hover:bg-white/[0.06] hover:border-white/18'
+          }
         `}
       >
         <span className="text-2xl leading-none" aria-hidden="true">{mood.emoji}</span>
-        <span className={`text-lg font-bold tracking-tight ${mood.textColor}`}>{mood.label}</span>
-        <span className="ml-auto text-white/30 text-xs font-medium shrink-0">
+        <span className={`text-lg font-bold tracking-tight transition-colors duration-300 ${isOpen ? mood.textColor : 'text-white/80'}`}>
+          {mood.label}
+        </span>
+        <span className="ml-auto text-white/25 text-xs font-medium shrink-0">
           {isOpen ? '↑ close' : '3 picks →'}
         </span>
       </button>
@@ -171,18 +162,17 @@ function MoodPill({ mood, isVisible, index }) {
 
 export default function MoodShowcaseSection() {
   const { containerRef, itemsVisible } = useStaggeredAnimation(6, 80)
+  const [activeMood, setActiveMood] = useState(null)
 
   return (
     <section
       id="mood-demo"
       className="relative pt-20 pb-24 sm:pt-24 sm:pb-28 bg-black overflow-hidden"
       aria-labelledby="mood-demo-heading"
+      onMouseLeave={() => setActiveMood(null)}
     >
-      {/* Ambient gradient */}
-      <div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] bg-gradient-to-r from-purple-500/8 via-pink-500/8 to-amber-500/8 rounded-full blur-3xl pointer-events-none"
-        aria-hidden="true"
-      />
+      {/* Subtle top border */}
+      <div className="absolute top-0 inset-x-0 h-px bg-white/8" aria-hidden="true" />
 
       <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section header */}
@@ -192,11 +182,9 @@ export default function MoodShowcaseSection() {
             className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight mb-4 leading-tight"
           >
             <span className="text-white">Pick a mood. </span>
-            <span className="bg-gradient-to-r from-purple-400 via-pink-500 to-amber-500 bg-clip-text text-transparent">
-              We'll find your movie.
-            </span>
+            <span className="text-white/60">We'll find your film.</span>
           </h2>
-          <p className="text-base sm:text-lg text-white/50 max-w-xl mx-auto">
+          <p className="text-base sm:text-lg text-white/40 max-w-xl mx-auto">
             <span className="hidden sm:inline">Hover</span>
             <span className="sm:hidden">Tap</span>
             {' '}any mood to see what FeelFlick would serve you right now.
@@ -214,15 +202,19 @@ export default function MoodShowcaseSection() {
             <div key={mood.id} role="listitem">
               <MoodPill
                 mood={mood}
+                isOpen={activeMood === mood.id}
                 isVisible={itemsVisible.includes(index)}
                 index={index}
+                onEnter={() => setActiveMood(mood.id)}
+                onLeave={() => {}}
+                onClick={() => setActiveMood(prev => prev === mood.id ? null : mood.id)}
               />
             </div>
           ))}
         </div>
 
         {/* Footnote */}
-        <p className="text-center text-sm text-white/30 mt-8 font-medium">
+        <p className="text-center text-sm text-white/25 mt-10 font-medium">
           Sign in to get picks tailored to your exact taste.
         </p>
       </div>

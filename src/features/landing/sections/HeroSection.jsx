@@ -56,7 +56,7 @@ function MoodRotator() {
 
   return (
     <span
-      className={`inline-block bg-gradient-to-r from-purple-400 via-pink-500 to-amber-500 bg-clip-text text-transparent transition-opacity duration-[400ms] ${
+      className={`inline-block bg-gradient-to-r from-amber-300 via-amber-400 to-orange-400 bg-clip-text text-transparent transition-opacity duration-[400ms] ${
         visible ? 'opacity-100' : 'opacity-0'
       }`}
     >
@@ -140,11 +140,11 @@ export default function HeroSection() {
       {/* Animated poster wall background */}
       <div
         className="absolute inset-0 z-0 select-none pointer-events-none"
-        style={{ opacity: 0.35 }}
+        style={{ opacity: 0.55 }}
         aria-hidden="true"
       >
-        <div className="absolute inset-0 z-10 bg-gradient-to-b from-black via-black/40 to-black" />
-        <div className="absolute inset-0 z-10 bg-gradient-to-tr from-purple-900/40 via-transparent to-amber-700/20" />
+        <div className="absolute inset-0 z-10 bg-gradient-to-b from-black via-black/20 to-black/80" />
+        <div className="absolute inset-0 z-10 bg-gradient-to-tr from-black/60 via-transparent to-black/40" />
         <div className="absolute inset-0 z-10 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.5)_100%)]" />
 
         <div className="flex flex-col justify-center h-full gap-6 scale-[1.08] rotate-[-2deg] origin-center">
@@ -163,7 +163,7 @@ export default function HeroSection() {
 
       {/* Hero content */}
       <motion.div
-        className="relative z-20 max-w-5xl mx-auto px-4 text-center"
+        className="relative z-20 max-w-2xl mx-auto px-4 text-center"
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
@@ -173,18 +173,17 @@ export default function HeroSection() {
           id="hero-heading"
           className="mb-8 leading-none"
         >
-          <span className="block text-white/75 text-2xl sm:text-3xl font-semibold tracking-wide mb-3">
+          <span className="block text-white/60 text-xl sm:text-2xl font-medium tracking-wide mb-4">
             Find films for when you're feeling
           </span>
-          <span className="block text-hero font-black tracking-tight leading-none">
+          <span className="block text-display font-black tracking-tight leading-none">
             <MoodRotator />
           </span>
         </h1>
 
         {/* Subheadline */}
-        <p className="text-lg sm:text-xl text-white/60 max-w-xl mx-auto mb-10 leading-relaxed">
-          Not what's trending. Not the algorithm.{' '}
-          <span className="text-white/90 font-semibold">The right film for right now.</span>
+        <p className="text-base sm:text-lg text-white/50 max-w-md mx-auto mb-10 leading-relaxed">
+          Not what's trending. Not the algorithm. The right film for right now.
         </p>
 
         {/* Primary CTA */}
@@ -192,15 +191,10 @@ export default function HeroSection() {
           <button
             onClick={signInWithGoogle}
             disabled={isAuthenticating}
-            className="group relative w-full max-w-xs sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 rounded-2xl bg-white text-black font-bold text-base sm:text-lg shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] hover:shadow-[0_0_60px_-10px_rgba(255,255,255,0.5)] transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden touch-target"
+            className="group relative w-full max-w-xs sm:w-auto px-7 sm:px-9 py-3.5 sm:py-4 rounded-2xl border-2 border-white/25 bg-white/8 backdrop-blur-sm text-white font-semibold text-base sm:text-lg transition-all duration-300 hover:bg-white/15 hover:border-white/40 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed touch-target"
             aria-label={isAuthenticating ? 'Signing in with Google' : 'Get started with Google sign in'}
           >
-            <span
-              className="absolute inset-0 bg-gradient-to-r from-purple-400/0 via-purple-400/20 to-purple-400/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-              style={{ animation: 'shimmer 2s ease-in-out infinite', backgroundSize: '200% 100%' }}
-              aria-hidden="true"
-            />
-            <span className="relative flex items-center justify-center gap-3">
+            <span className="flex items-center justify-center gap-3">
               {isAuthenticating ? (
                 <>
                   <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
@@ -223,10 +217,15 @@ export default function HeroSection() {
       {/* Scroll indicator */}
       <button
         onClick={scrollToMoodDemo}
-        className="hidden lg:block absolute bottom-8 left-1/2 -translate-x-1/2 z-20 text-white/30 hover:text-white/60 transition-colors animate-bounce touch-target"
+        className="hidden lg:block absolute bottom-8 left-1/2 -translate-x-1/2 z-20 text-white/30 hover:text-white/60 transition-colors touch-target"
         aria-label="Scroll to explore moods"
       >
-        <ArrowRight className="w-6 h-6 rotate-90" />
+        <motion.div
+          animate={{ y: [0, 6, 0] }}
+          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+        >
+          <ArrowRight className="w-5 h-5 rotate-90" />
+        </motion.div>
       </button>
     </section>
   )

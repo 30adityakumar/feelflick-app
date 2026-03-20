@@ -167,17 +167,12 @@ export default function TopNav({ hideAuthCta = false }) {
             <Link
               to="/"
               onClick={onBrandClick}
-              className="group relative transition-transform hover:scale-105 active:scale-95 touch-target"
+              className="transition-opacity hover:opacity-80 active:scale-95 touch-target"
               aria-label="FeelFlick home"
             >
               <span className="text-2xl sm:text-3xl font-black tracking-tight bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
                 FEELFLICK
               </span>
-              {/* Shimmer effect on hover */}
-              <span 
-                className="absolute inset-0 bg-gradient-to-r from-purple-400/0 via-pink-400/30 to-purple-400/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl -z-10"
-                aria-hidden="true"
-              />
             </Link>
 
             {/* Desktop Navigation */}
@@ -196,28 +191,28 @@ export default function TopNav({ hideAuthCta = false }) {
                 <button
                   onClick={handleSignIn}
                   disabled={isAuthenticating}
-                  className="group inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold hover:shadow-lg hover:shadow-purple-500/50 transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed touch-target"
+                  className="inline-flex items-center gap-2 px-5 py-2 rounded-xl border border-white/20 bg-transparent text-white/80 font-medium hover:bg-white/8 hover:border-white/35 hover:text-white backdrop-blur-sm transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed touch-target"
                   aria-label={isAuthenticating ? 'Signing in' : 'Sign in to FeelFlick'}
                 >
                   {isAuthenticating ? (
                     <>
-                      <svg 
-                        className="animate-spin h-4 w-4" 
+                      <svg
+                        className="animate-spin h-4 w-4"
                         viewBox="0 0 24 24"
                         fill="none"
                         aria-hidden="true"
                       >
-                        <circle 
-                          className="opacity-25" 
-                          cx="12" 
-                          cy="12" 
-                          r="10" 
-                          stroke="currentColor" 
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
                           strokeWidth="4"
                         />
-                        <path 
-                          className="opacity-75" 
-                          fill="currentColor" 
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                         />
                       </svg>

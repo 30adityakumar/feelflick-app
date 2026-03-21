@@ -38,10 +38,10 @@ export const Card = memo(
         {...props}
       >
         <article
+          style={{ willChange: 'transform' }}
           className={`
-            relative w-full h-full rounded-xl overflow-hidden bg-black/40
+            relative w-full h-full rounded-xl overflow-hidden bg-neutral-900
             transition-transform transition-shadow duration-150 ease-out
-            will-change: transform
             ${
               isExpanded
                 ? 'scale-[1.05] -translate-y-[3px] shadow-2xl shadow-black/75 z-20'

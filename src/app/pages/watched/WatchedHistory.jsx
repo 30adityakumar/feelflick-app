@@ -302,7 +302,7 @@ function MovieCard({ movie, onRemove, onClick, removing }) {
     <div className="group relative">
       <button
         onClick={onClick}
-        className="relative block w-full aspect-[2/3] rounded-lg overflow-hidden bg-white/5 transition-all duration-200 hover:scale-105 hover:shadow-2xl focus:outline-none focus:ring-2 focus:ring-purple-500/50 active:scale-[1.02]"
+        className="relative block w-full aspect-[2/3] rounded-xl overflow-hidden bg-neutral-900 transition-all duration-200 hover:scale-105 hover:shadow-2xl focus:outline-none focus:ring-2 focus:ring-purple-500/50 active:scale-[1.02]"
       >
         {movie.poster_path ? (
           <img
@@ -352,7 +352,7 @@ function MovieCard({ movie, onRemove, onClick, removing }) {
           onRemove();
         }}
         disabled={removing}
-        className="absolute top-2 right-2 z-10 h-7 w-7 rounded-full bg-black/80 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white/80 hover:text-red-400 hover:bg-black/95 hover:border-red-500/30 transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100 active:scale-90 disabled:opacity-50"
+        className="absolute top-2 right-2 z-10 h-8 w-8 rounded-full bg-black/80 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white/80 hover:text-red-400 hover:bg-black/95 hover:border-red-500/30 transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100 active:scale-90 disabled:opacity-50"
         title="Remove from history"
       >
         {removing ? (

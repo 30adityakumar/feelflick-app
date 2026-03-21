@@ -102,16 +102,14 @@ export default function Header({ onOpenSearch }) {
 
           style={{ paddingTop: 'env(safe-area-inset-top)' }}
         >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10">
           <div className="flex items-center justify-between h-14 sm:h-16">
 
-
             {/* Logo */}
-            <Link to="/home" className="flex items-center gap-2 group relative">
+            <Link to="/home" className="flex items-center gap-2 group relative shrink-0">
               <div className="text-xl sm:text-2xl font-black bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent group-hover:scale-105 transition-transform duration-300">
                 FEELFLICK
               </div>
-              {/* Subtle glow effect behind logo */}
               <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-pink-500/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10" />
             </Link>
 
@@ -125,13 +123,14 @@ export default function Header({ onOpenSearch }) {
 
             {/* Right Side Actions */}
             <div className="flex items-center gap-2 sm:gap-3">
-              {/* Search Button */}
-              <button 
+              {/* Search — pill on desktop, icon on mobile */}
+              <button
                 onClick={onOpenSearch}
-                className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-all active:scale-95"
+                className="flex items-center gap-2 px-3 py-2 rounded-full bg-white/8 border border-white/10 text-white/50 hover:text-white/80 hover:bg-white/12 hover:border-white/18 transition-all duration-200 active:scale-95"
                 aria-label="Search"
               >
-                <SearchIcon className="h-5 w-5" />
+                <SearchIcon className="h-4 w-4 shrink-0" />
+                <span className="hidden lg:block text-sm pr-1">Search films…</span>
               </button>
 
               {/* User Dropdown (Desktop only) */}
@@ -186,10 +185,7 @@ export default function Header({ onOpenSearch }) {
             </div>
           </div>
         </div>
-        {/* Smooth fade into content */}
-        <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-b from-transparent to-black/20 pointer-events-none" />
-
-      </header>
+        </header>
 
        {/* MOBILE BOTTOM NAV: See src/app/AppShell.jsx (not defined here) */}
        {/* This Header component only renders the desktop/tablet top navigation. */}
@@ -227,7 +223,7 @@ function DropdownLink({ to, icon: Icon, children, onClick }) {
     <Link 
       to={to} 
       onClick={onClick}
-      className="flex items-center gap-3 px-5 py-2.5 text-sm text-white/70 hover:bg-white/10 hover:text-white transition-all hover:translate-x-1"
+      className="flex items-center gap-3 px-5 py-2.5 text-sm text-white/70 hover:bg-white/10 hover:text-white transition-all"
     >
       <Icon className="h-4 w-4" />
       {children}

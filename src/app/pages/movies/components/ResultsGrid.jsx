@@ -2,9 +2,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
-import { Plus, Check, Eye, EyeOff, Info } from 'lucide-react'
+import { Plus, Check, Eye, EyeOff, Star } from 'lucide-react'
 
-const tmdbImg = (p) => p ? `https://image.tmdb.org/t/p/w500${p}` : ''
+const tmdbImg = (p) => p ? `https://image.tmdb.org/t/p/w342${p}` : ''
 
 export default function ResultsGrid({ movies, user }) {
   const [watchlistTmdbIds, setWatchlistTmdbIds] = useState(new Set())
@@ -240,7 +240,7 @@ useEffect(() => {
             onMouseLeave={() => setHoveredMovie(null)}
           >
             <div
-              className={`relative bg-neutral-900 rounded-lg overflow-hidden shadow-lg cursor-pointer transition-all duration-300 ${
+              className={`relative bg-neutral-900 rounded-xl overflow-hidden shadow-lg cursor-pointer transition-all duration-300 ${
                 isHovered ? 'scale-105 shadow-2xl z-30' : 'scale-100'
               }`}
               onClick={() => navigate(`/movie/${movie.id}`)}
@@ -255,35 +255,32 @@ useEffect(() => {
 
                 {/* Rating Badge */}
                 {movie.vote_average > 0 && (
-                  <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-md bg-gradient-to-br from-purple-500/90 to-pink-500/90 backdrop-blur-sm shadow-lg">
-                    <span className="text-white text-xs font-bold">★</span>
-                    <span className="text-white text-xs font-bold">{movie.vote_average.toFixed(1)}</span>
+                  <div className="absolute top-2 right-2 flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-black/75 backdrop-blur-sm">
+                    <Star className="h-2.5 w-2.5 text-yellow-400 fill-yellow-400" />
+                    <span className="text-white text-[10px] font-bold">{movie.vote_average.toFixed(1)}</span>
                   </div>
                 )}
               </div>
 
               {/* Hover Overlay */}
               {isHovered && (
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/95 to-transparent flex flex-col justify-end p-3">
+                <div className="absolute inset-x-0 bottom-0 pt-10 pb-3 px-3 bg-gradient-to-t from-black via-black/85 to-transparent">
                   {/* Title */}
-                  <h3 className="text-white text-sm font-bold line-clamp-2 mb-2">{movie.title}</h3>
+                  <h3 className="text-[0.9rem] font-bold text-white mb-1.5 line-clamp-1 leading-tight">{movie.title}</h3>
 
                   {/* Meta */}
-                  <div className="flex items-center gap-2 mb-2 text-xs text-white/80">
-                    {movie.release_date && <span>{new Date(movie.release_date).getFullYear()}</span>}
+                  <div className="flex items-center gap-1.5 text-[0.68rem] mb-1.5">
+                    {movie.release_date && <span className="text-white/60">{new Date(movie.release_date).getFullYear()}</span>}
                     {movie.vote_average > 0 && (
-                      <>
-                        <span>•</span>
-                        <span className="text-purple-300 font-semibold">★ {movie.vote_average.toFixed(1)}</span>
-                      </>
+                      <span className="text-emerald-400 font-bold">{Math.round(movie.vote_average * 10)}%</span>
                     )}
                   </div>
 
                   {/* Genres */}
                   {movieGenres.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mb-3">
+                    <div className="flex flex-wrap gap-1 mb-2">
                       {movieGenres.map(genre => (
-                        <span key={genre} className="px-2 py-0.5 rounded-full bg-white/10 text-white/70 text-[10px] font-medium backdrop-blur-sm">
+                        <span key={genre} className="text-[0.62rem] text-white/55 bg-white/8 px-1.5 py-0.5 rounded-full">
                           {genre}
                         </span>
                       ))}
@@ -291,41 +288,38 @@ useEffect(() => {
                   )}
 
                   {/* Actions */}
-                  <div className="flex items-center gap-2">
-                    {/* View Details */}
-                    <button
-                      onClick={(e) => { e.stopPropagation(); navigate(`/movie/${movie.id}`) }}
-                      className="flex-1 flex items-center justify-center gap-1 h-8 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white text-xs font-bold transition-all hover:scale-105"
-                    >
-                      <Info className="h-3 w-3" />
-                      <span>Details</span>
-                    </button>
-
+                  <div className="flex items-center gap-1.5">
                     {user && (
                       <>
                         {/* Watchlist */}
                         <button
                           onClick={(e) => toggleWatchlist(e, movie)}
-                          className={`flex items-center justify-center h-8 w-8 rounded-lg transition-all hover:scale-110 backdrop-blur-md border shadow-lg ${
-                            isInWatchlist ? 'bg-purple-500/30 border-purple-400 text-purple-300' : 'bg-white/10 hover:bg-white/20 border-white/20 text-white'
+                          className={`h-8 w-8 rounded-full border text-xs flex items-center justify-center transition-all duration-150 hover:scale-110 active:scale-95 ${
+                            isInWatchlist ? 'bg-purple-500/90 border-purple-400 text-white' : 'bg-black/60 border-white/25 text-white hover:bg-black/85 hover:border-white/40'
                           }`}
                           title={isInWatchlist ? 'In Watchlist' : 'Add to Watchlist'}
                         >
-                          {isInWatchlist ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                          {isInWatchlist ? <Check className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
                         </button>
 
                         {/* Watched */}
                         <button
                           onClick={(e) => toggleWatched(e, movie)}
-                          className={`flex items-center justify-center h-8 w-8 rounded-lg transition-all hover:scale-110 backdrop-blur-md border shadow-lg ${
-                            isWatched ? 'bg-emerald-500/30 border-emerald-400 text-emerald-300' : 'bg-white/10 hover:bg-white/20 border-white/20 text-white'
+                          className={`h-8 w-8 rounded-full border text-xs flex items-center justify-center transition-all duration-150 hover:scale-110 active:scale-95 ${
+                            isWatched ? 'bg-emerald-500/90 border-emerald-400 text-white' : 'bg-black/60 border-white/25 text-white hover:bg-black/85 hover:border-white/40'
                           }`}
                           title={isWatched ? 'Mark as Unwatched' : 'Mark as Watched'}
                         >
-                          {isWatched ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                          {isWatched ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
                         </button>
                       </>
                     )}
+                    <button
+                      onClick={(e) => { e.stopPropagation(); navigate(`/movie/${movie.id}`) }}
+                      className="ml-auto flex items-center gap-0.5 h-7 px-2 rounded-full border border-white/20 bg-black/50 text-white/70 hover:text-white hover:bg-black/75 hover:border-white/35 transition-all text-[0.65rem] font-semibold"
+                    >
+                      More
+                    </button>
                   </div>
                 </div>
               )}

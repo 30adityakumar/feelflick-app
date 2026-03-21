@@ -6,11 +6,14 @@ import { Layers } from 'lucide-react'
 import { supabase } from '@/shared/lib/supabase/client'
 
 import HeroTopPick from './components/HeroTopPick'
+import MoodQuickSelect from './components/MoodQuickSelect'
 import QuickPicksRow from './components/QuickPicksRow'
 import PersonalizedCarouselRow from './components/PersonalizedCarouselRow'
 import BecauseYouWatchedSection from './components/BecauseYouWatchedSection'
 import HiddenGemsRow from './components/HiddenGemsRow'
 import TrendingForYouRow from './components/TrendingForYouRow'
+import SlowContemplativeRow from './components/SlowContemplativeRow'
+import QuickWatchesRow from './components/QuickWatchesRow'
 
 import LazyRow from '@/shared/components/LazyRow'
 import { useGenreRecommendations } from '@/shared/hooks/useRecommendations'
@@ -92,7 +95,7 @@ export default function HomePage() {
     userId,
   })
 
-  const genreTitle = useMemo(() => 'Because your taste has range', [])
+  const genreTitle = useMemo(() => 'Handpicked from your favorite genres', [])
 
   return (
     <div className="min-h-screen">
@@ -112,7 +115,15 @@ export default function HomePage() {
 
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10">
           <div className="pt-6 sm:pt-8 space-y-10 sm:space-y-12">
-            {/* Quick picks near top (exclude current hero) */}
+
+            {/* MOOD QUICK-SELECT — FeelFlick's core interaction, first thing on scroll */}
+            <section aria-label="Mood picks">
+              <SectionErrorBoundary label="Mood Picks">
+                <MoodQuickSelect userId={userId} />
+              </SectionErrorBoundary>
+            </section>
+
+            {/* Quick picks (exclude current hero) */}
             <section aria-label="Quick picks">
               <SectionErrorBoundary label="Quick Picks">
                 <QuickPicksRow userId={userId} excludeIds={heroExcludeIds} />
@@ -139,7 +150,7 @@ export default function HomePage() {
               className="space-y-10 sm:space-y-12"
               style={{
                 contentVisibility: 'auto',
-                containIntrinsicSize: '1px 1200px',
+                containIntrinsicSize: '1px 1800px',
               }}
             >
               <LazyRow>
@@ -157,6 +168,18 @@ export default function HomePage() {
               <LazyRow>
                 <SectionErrorBoundary label="Trending For You">
                   <TrendingForYouRow userId={userId} />
+                </SectionErrorBoundary>
+              </LazyRow>
+
+              <LazyRow>
+                <SectionErrorBoundary label="Slow & Contemplative">
+                  <SlowContemplativeRow userId={userId} />
+                </SectionErrorBoundary>
+              </LazyRow>
+
+              <LazyRow>
+                <SectionErrorBoundary label="Quick Watches">
+                  <QuickWatchesRow userId={userId} />
                 </SectionErrorBoundary>
               </LazyRow>
             </div>

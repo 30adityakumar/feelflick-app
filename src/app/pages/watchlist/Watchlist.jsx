@@ -355,7 +355,7 @@ function MovieCard({ movie, onRemove, onMarkWatched, onClick, removing, markingW
       <button 
         onClick={onClick}
         className={`
-          relative block w-full aspect-[2/3] rounded-xl overflow-hidden bg-white/5 
+          relative block w-full aspect-[2/3] rounded-xl overflow-hidden bg-neutral-900
           transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-purple-900/20
           focus:outline-none focus:ring-4 focus:ring-purple-500/20 active:scale-[0.98] z-10
           ${swipeDirection ? 'translate-x-0' : ''}

@@ -16,21 +16,25 @@ const ITEM_WIDTHS = {
 function ScrollButton({ direction, onClick, visible }) {
   if (!visible) return null
   const Icon = direction === 'left' ? ChevronLeft : ChevronRight
-  const side = direction === 'left' ? 'left-2 sm:left-4' : 'right-2 sm:right-4'
+  const side = direction === 'left' ? 'left-3 sm:left-5' : 'right-3 sm:right-5'
 
   return (
     <button
       type="button"
       onClick={onClick}
       className={`
-        absolute ${side} top-1/2 -translate-y-1/2 z-40 p-2
-        rounded-full bg-black/80 hover:bg-black/95 border border-white/30 hover:border-white/50
-        backdrop-blur-sm shadow-2xl hover:shadow-white/10
-        transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-white/60
+        absolute ${side} top-1/2 -translate-y-1/2 z-40
+        h-10 w-10 rounded-full
+        bg-black/70 hover:bg-black/95
+        border border-white/20 hover:border-white/45
+        backdrop-blur-sm shadow-xl
+        transition-all duration-200 hover:scale-110
+        focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60
+        flex items-center justify-center
       `}
       aria-label={`Scroll ${direction}`}
     >
-      <Icon className="h-5 w-5 text-white" />
+      <Icon className="h-4 w-4 text-white" strokeWidth={2.5} />
     </button>
   )
 }
@@ -83,34 +87,34 @@ export const CarouselRow = memo(function CarouselRow({
     if (!el) return
     setExpandedId(null)
     const amount = el.clientWidth * SCROLL_AMOUNT
-    el.scrollBy({
-      left: direction === 'left' ? -amount : amount,
-      behavior: 'smooth',
-    })
+    el.scrollBy({ left: direction === 'left' ? -amount : amount, behavior: 'smooth' })
   }, [])
 
   const handleHover = useCallback((id) => setExpandedId(id), [])
   const handleLeave = useCallback(() => setExpandedId(null), [])
 
-  const { ref: rowRef, hasBeenInView } = useInViewOnce({
-    threshold: 0.15,
-    rootMargin: '60px',
-  })
-
+  const { ref: rowRef, hasBeenInView } = useInViewOnce({ threshold: 0.15, rootMargin: '60px' })
 
   if (loading) {
     return (
-      <section className={`py-6 sm:py-8 ${className}`} aria-label={`${title} loading`}>
-        <div className="px-4 sm:px-6 lg:px-8 mb-5">
+      <section className={`py-5 sm:py-6 ${className}`} aria-label={`${title} loading`}>
+        <div className="px-4 sm:px-6 lg:px-8 mb-4">
           <div className="flex items-center gap-3 h-8">
-            <div className="h-5 w-5 bg-white/10 rounded-full animate-pulse" />
-            <div className="h-6 w-32 bg-white/10 rounded-md animate-pulse" />
+            <div className="h-5 w-5 bg-white/8 rounded-full animate-pulse" />
+            <div className="h-5 w-36 bg-white/8 rounded-lg animate-pulse" />
           </div>
         </div>
-        <div className="flex gap-4 sm:gap-5 px-4 sm:px-6 lg:px-8 overflow-hidden">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="flex-none" style={{ width: itemWidth, height: itemHeight }}>
-              <div className="w-full h-full rounded-xl bg-white/5 animate-pulse" />
+        <div className="flex gap-3 sm:gap-4 px-4 sm:px-6 lg:px-8 overflow-hidden">
+          {[...Array(7)].map((_, i) => (
+            <div
+              key={i}
+              className="flex-none rounded-xl overflow-hidden"
+              style={{ width: itemWidth, height: itemHeight }}
+            >
+              <div
+                className="w-full h-full bg-white/[0.04] animate-pulse"
+                style={{ animationDelay: `${i * 60}ms` }}
+              />
             </div>
           ))}
         </div>
@@ -118,95 +122,87 @@ export const CarouselRow = memo(function CarouselRow({
     )
   }
 
-  if (error || items.length === 0) {
-    return (
-      <section className={`py-6 sm:py-8 ${className}`} aria-label={`${title} unavailable`}>
-        <div className="px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3 h-8 mb-8">
-            <div className="h-5 w-5 bg-white/20 rounded-full" />
-            <div className="h-6 w-40 bg-white/10 rounded-md" />
-          </div>
-          <div className="flex items-center gap-2 py-8 text-white/40 text-sm">
-            <div className="h-5 w-5 bg-white/20 rounded-full" />
-            <span>Couldn&apos;t load {title.toLowerCase()}</span>
-          </div>
-        </div>
-      </section>
-    )
-  }
+  if (error || items.length === 0) return null
 
-  // inside CarouselRow component
-
-return (
-  <section
-    className={`
-      relative
-      py-6 sm:py-8
-      ${className}
-    `}
-    role="region"
-    aria-label={title}
-  >
-    <div className="px-4 sm:px-6 lg:px-8 mb-4 flex items-center gap-2">
-      <h2 className="text-[1.1rem] sm:text-[1.3rem] font-semibold text-white tracking-tight">
-        {title}
-      </h2>
-      <div className="h-[1px] flex-1 bg-gradient-to-r from-white/40 via-white/10 to-transparent opacity-60" />
-    </div>
-
-
-    <ScrollButton
-      direction="left"
-      onClick={() => scroll('left')}
-      visible={scrollState.canScrollLeft}
-    />
-    <ScrollButton
-      direction="right"
-      onClick={() => scroll('right')}
-      visible={scrollState.canScrollRight}
-    />
-
-    <div
-    ref={scrollRef}
-    className="flex gap-4 sm:gap-5 overflow-x-auto overflow-visible px-4 sm:px-6 lg:px-8 pb-4
-        snap-x snap-mandatory scrollbar-hide scroll-smooth select-none
-        [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [ms-overflow-style:none]"
-    style={{
-        scrollPaddingLeft: '1.5rem',
-        scrollPaddingRight: '1.5rem',
-        '--gap': '1.25rem',
-        minHeight: itemHeight * 1.15, // slightly more than 1.08, gives room
-    }}
-    onScroll={updateScrollState}
+  return (
+    <section
+      className={`relative py-5 sm:py-6 ${className}`}
+      role="region"
+      aria-label={title}
     >
+      {/* Row header */}
+      <div className="px-4 sm:px-6 lg:px-8 mb-3 sm:mb-4 flex items-center gap-3">
+        <h2 className="text-[1.05rem] sm:text-[1.2rem] font-bold text-white tracking-tight whitespace-nowrap">
+          {title}
+        </h2>
+        <div className="h-px flex-1 bg-gradient-to-r from-white/15 via-white/5 to-transparent" />
+      </div>
 
-      <div style={{ width: virtualization.leftSpacerWidth, flexShrink: 0 }} />
+      {/* Scroll area with edge fades + nav buttons */}
+      <div className="relative">
+        {/* Left edge fade */}
+        {scrollState.canScrollLeft && (
+          <div
+            className="absolute left-0 top-0 bottom-4 w-20 sm:w-28 pointer-events-none z-30"
+            style={{ background: 'linear-gradient(to right, #000 0%, transparent 100%)' }}
+          />
+        )}
+        {/* Right edge fade — always show to hint at more content */}
+        <div
+          className="absolute right-0 top-0 bottom-4 w-20 sm:w-28 pointer-events-none z-30"
+          style={{ background: 'linear-gradient(to left, #000 0%, transparent 100%)' }}
+        />
 
-      {virtualization.visibleItems.map((item, localIndex) => {
-        const globalIndex = virtualization.viewport.start + localIndex
-        const isExpanded = expandedId === item.id
+        <ScrollButton direction="left" onClick={() => scroll('left')} visible={scrollState.canScrollLeft} />
+        <ScrollButton direction="right" onClick={() => scroll('right')} visible={scrollState.canScrollRight} />
 
-        return (
-            <CardComponent
-              key={`${item.id}-${globalIndex}`}
-              item={item}
-              index={globalIndex}
-              isExpanded={isExpanded}
-              onHover={handleHover}
-              onLeave={handleLeave}
-              width={itemWidth}
-              height={itemHeight}
-              priority={priority && globalIndex < 5}
-              {...props}
-            />
-          )
-      })}
+        <div
+          ref={scrollRef}
+          className="
+            flex gap-3 sm:gap-4
+            overflow-x-auto overflow-y-visible
+            px-4 sm:px-6 lg:px-8 pb-4
+            snap-x snap-mandatory
+            scrollbar-hide scroll-smooth select-none
+            [-webkit-overflow-scrolling:touch]
+            [scrollbar-width:none]
+            [ms-overflow-style:none]
+          "
+          style={{
+            scrollPaddingLeft: '1.5rem',
+            scrollPaddingRight: '1.5rem',
+            '--gap': '1rem',
+            minHeight: itemHeight * 1.15,
+          }}
+          onScroll={updateScrollState}
+        >
+          <div style={{ width: virtualization.leftSpacerWidth, flexShrink: 0 }} />
 
-      <div style={{ width: virtualization.rightSpacerWidth, flexShrink: 0 }} />
-    </div>
-  </section>
-)
+          {virtualization.visibleItems.map((item, localIndex) => {
+            const globalIndex = virtualization.viewport.start + localIndex
+            const isExpanded = expandedId === item.id
 
+            return (
+              <CardComponent
+                key={`${item.id}-${globalIndex}`}
+                item={item}
+                index={globalIndex}
+                isExpanded={isExpanded}
+                onHover={handleHover}
+                onLeave={handleLeave}
+                width={itemWidth}
+                height={itemHeight}
+                priority={priority && globalIndex < 5}
+                {...props}
+              />
+            )
+          })}
+
+          <div style={{ width: virtualization.rightSpacerWidth, flexShrink: 0 }} />
+        </div>
+      </div>
+    </section>
+  )
 })
 
 CarouselRow.displayName = 'CarouselRow'

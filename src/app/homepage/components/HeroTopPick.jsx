@@ -156,13 +156,6 @@ export default function HeroTopPick({
     }
   }, [loading, movie, isRefreshing])
 
-  // Preload next movie's backdrop for instant display
-  useEffect(() => {
-    if (!movie?.backdrop_path) return
-    const img = new Image()
-    img.src = tmdbImg(movie.backdrop_path, 'w1280')
-  }, [movie?.backdrop_path])
-
   // PROGRESSIVE REVEAL: show content quickly, images can lag
   useEffect(() => {
     if (!movie) return
@@ -175,13 +168,13 @@ export default function HeroTopPick({
       revealTimeout = setTimeout(() => setRevealed(true), 100)
     }
 
-    // Force reveal after 500ms even if images haven't loaded
+    // Force reveal after 250ms even if images haven't loaded
     forceRevealTimeout = setTimeout(() => {
       setRevealed(true)
       // Mark as "loaded" to prevent flicker if images come in late
       if (!posterLoaded) setPosterLoaded(true)
       if (!backdropLoaded) setBackdropLoaded(true)
-    }, 500)
+    }, 250)
 
     return () => {
       clearTimeout(revealTimeout)
@@ -410,7 +403,7 @@ export default function HeroTopPick({
             backdropLoaded ? 'opacity-0' : 'opacity-100'
           }`}
           style={{
-            backgroundImage: movie.backdrop_path ? `url(${tmdbImg(movie.backdrop_path, 'w300')})` : undefined,
+            backgroundImage: movie.backdrop_path ? `url(${tmdbImg(movie.backdrop_path, 'w92')})` : undefined,
             backgroundSize: 'cover',
             backgroundPosition: 'center 45%',
             filter: 'blur(30px) saturate(1.2)',
@@ -421,7 +414,7 @@ export default function HeroTopPick({
 
         {movie.backdrop_path && (
           <img
-            src={tmdbImg(movie.backdrop_path, 'w1280')}
+            src={tmdbImg(movie.backdrop_path, 'w780')}
             alt=""
             aria-hidden="true"
             className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
@@ -430,6 +423,7 @@ export default function HeroTopPick({
             style={{ objectPosition: 'center 45%' }}
             onLoad={() => setBackdropLoaded(true)}
             loading="eager"
+            fetchpriority="high"
           />
         )}
 
@@ -474,13 +468,14 @@ export default function HeroTopPick({
                   />
                 )}
                 <img
-                  src={tmdbImg(movie.poster_path || movie.backdrop_path, 'w500')}
+                  src={tmdbImg(movie.poster_path || movie.backdrop_path, 'w342')}
                   alt={movie.title}
                   className={`w-full h-full object-cover transition-all duration-500 ${
                     posterLoaded ? 'opacity-100' : 'opacity-0'
                   } group-hover:scale-105`}
                   onLoad={() => setPosterLoaded(true)}
                   loading="eager"
+                  fetchpriority="high"
                 />
 
                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">

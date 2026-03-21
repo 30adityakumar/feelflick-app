@@ -1,18 +1,29 @@
 // src/shared/services/recommendations.js
 /**
- * FeelFlick Recommendation Engine v2.3 (HeroTopPick-focused)
+ * FeelFlick Recommendation Engine v2.4
  *
- * FIXES in v2.3:
- * ✅ Language mismatch fix:
- *   - Hero language is derived from *actual user_history → movies.original_language* (not stale cached profile)
- *   - Strong language dominance triggers a HARD language filter (Hindi-only users won’t see English unless you explicitly relax)
- * ✅ Watched-on-Hero fix:
- *   - Excludes by BOTH internal movie.id AND movies.tmdb_id (prevents duplicates / re-ingested movie rows from reappearing)
- * ✅ Removes "likely seen" penalty from scoring (disabled completely)
- * ✅ Embedding-aware "Similar to / Because you watched":
- *   - Uses `movie_recommendations` (precomputed neighbors) when available for stronger “similar to” mapping
- * ✅ Profile cache safety:
- *   - Auto-bypasses cached profiles from older versions (prevents missing fields like distributionSorted)
+ * NEW in v2.4:
+ * ✅ Feedback loop closed: user_movie_feedback (thumbs up/down) now feeds into profile
+ *   - +1 feedback amplifies genre/director/actor affinity
+ *   - -1 feedback creates suppressions stronger than a skip
+ * ✅ Sentiment loop closed: user_movie_sentiment (loved/liked/disliked/hated) now feeds into profile
+ *   - ‘loved’/’liked’ movies amplify genre/director/actor signals
+ *   - ‘disliked’/’hated’ movies create strong suppressions
+ *   - ‘what_stood_out’ tags (cinematography, acting, etc.) tracked as content style preferences
+ * ✅ Skip signal time-decay: old skips no longer permanently suppress genres/directors
+ *   - Skip from >180 days ago: 20% strength; >90 days: 50%; >30 days: 75%; <30 days: 100%
+ * ✅ Ratings-amplified profile: explicit user ratings now boost/reduce all affinity signals
+ *   - 5-star: 2× weight on genre/director/actor/content signals
+ *   - 4-star: 1.5× weight; 3-star: 0.6×; 1-2 star: 0.3×
+ * ✅ computePeopleAffinities: weighted count (not raw count) — completion + ratings flow through
+ * ✅ computeQualityProfile: actually uses userRatings (was silently ignored in v2.3 — bug fixed)
+ *
+ * CARRIED FROM v2.3:
+ * ✅ Language mismatch fix (hero language derived from actual user_history)
+ * ✅ Watched-on-Hero fix (excludes by both internal id and tmdb_id)
+ * ✅ Removes “likely seen” penalty
+ * ✅ Embedding-aware seed similarity
+ * ✅ Profile cache safety
  */
 
 import { supabase } from '@/shared/lib/supabase/client'
@@ -22,7 +33,7 @@ import { recommendationCache } from '@/shared/lib/cache'
 // ============================================================================
 // VERSION
 // ============================================================================
-const ENGINE_VERSION = '2.3'
+const ENGINE_VERSION = '2.4'
 
 // ============================================================================
 // HELPERS
@@ -180,7 +191,9 @@ export async function computeUserProfile(userId, forceRefresh = false) {
       { data: watchHistory },
       { data: userPrefs },
       { data: userRatings },
-      { data: skipFeedback }
+      { data: skipFeedback },
+      { data: userFeedback },
+      { data: userSentiment }
     ] = await Promise.all([
       supabase
         .from('user_history')
@@ -210,7 +223,29 @@ export async function computeUserProfile(userId, forceRefresh = false) {
         .eq('user_id', userId)
         .eq('skipped', true)
         .order('shown_at', { ascending: false })
-        .limit(50)
+        .limit(50),
+
+      // ✅ v2.4: thumbs up/down feedback with movie metadata for genre/director signals
+      supabase
+        .from('user_movie_feedback')
+        .select(`
+          movie_id, feedback_value,
+          movies!inner ( id, genres, director_name, lead_actor_name )
+        `)
+        .eq('user_id', userId)
+        .neq('feedback_value', 0)
+        .limit(100),
+
+      // ✅ v2.4: post-watch sentiment with movie metadata
+      supabase
+        .from('user_movie_sentiment')
+        .select(`
+          movie_id, sentiment, what_stood_out,
+          movies!inner ( id, genres, director_name, lead_actor_name )
+        `)
+        .eq('user_id', userId)
+        .in('sentiment', ['loved', 'liked', 'disliked', 'hated'])
+        .limit(100)
     ])
 
     if (!watchHistory || watchHistory.length === 0) {
@@ -233,6 +268,9 @@ export async function computeUserProfile(userId, forceRefresh = false) {
       if (h.movies) weightedMovies.push({ ...h.movies, weight: onboardingWeight, isOnboarding: true })
     })
 
+    // ✅ v2.4: build rating lookup for amplification
+    const ratedMovieMap = new Map((userRatings || []).map((r) => [r.movie_id, r.rating]))
+
     const now = new Date()
     regularHistory.forEach((h) => {
       if (!h.movies) return
@@ -246,6 +284,15 @@ export async function computeUserProfile(userId, forceRefresh = false) {
         const pct = h.watch_duration_minutes / h.movies.runtime
         if (pct < 0.3) weight *= 0.3
         else if (pct < 0.7) weight *= 0.7
+      }
+
+      // ✅ v2.4: explicit ratings are the strongest taste signal — amplify all profile signals
+      const userRating = ratedMovieMap.get(h.movies.id)
+      if (userRating) {
+        if (userRating >= 5) weight *= 2.0       // 5-star: double signal strength
+        else if (userRating >= 4) weight *= 1.5  // 4-star: 50% boost
+        else if (userRating <= 2) weight *= 0.3  // 1-2 star: strongly reduce
+        else if (userRating <= 3) weight *= 0.6  // 3-star: moderate reduce
       }
 
       weightedMovies.push({ ...h.movies, weight, isOnboarding: false })
@@ -264,6 +311,9 @@ export async function computeUserProfile(userId, forceRefresh = false) {
     const themes = computeThemeAffinities(weightedMovies)
     const qualityProfile = computeQualityProfile(weightedMovies, userRatings)
 
+    // ✅ v2.4: feedback signals from thumbs up/down + post-watch sentiment
+    const feedbackSignals = computeFeedbackSignals(userFeedback, userSentiment)
+
     const profile = ensureLanguageProfileShape({
       userId,
       languages,
@@ -274,6 +324,7 @@ export async function computeUserProfile(userId, forceRefresh = false) {
       themes,
       qualityProfile,
       negativeSignals,
+      feedbackSignals,
       meta: {
         profileVersion: ENGINE_VERSION,
         computedAt: new Date().toISOString(),
@@ -337,13 +388,22 @@ function buildEmptyProfile(userId, userPrefs) {
     },
     affinities: { directors: [], actors: [] },
     themes: { preferred: [] },
-    qualityProfile: { avgFFRating: 7.0, watchesHiddenGems: false, totalMoviesWatched: 0 },
+    qualityProfile: { avgFFRating: 7.0, watchesHiddenGems: false, totalMoviesWatched: 0, avgUserRating: null, highRatedCount: 0 },
     negativeSignals: {
       skippedGenres: [],
       skippedDirectors: [],
       skippedLanguages: [],
       skippedActors: [],
       totalSkips: 0
+    },
+    feedbackSignals: {
+      genreBoosts: [],
+      genreSuppressions: [],
+      directorBoosts: [],
+      directorSuppressions: [],
+      actorBoosts: [],
+      actorSuppressions: [],
+      contentStyleBoosts: {}
     },
     meta: {
       profileVersion: ENGINE_VERSION,
@@ -397,6 +457,10 @@ function ensureLanguageProfileShape(profile) {
 // NEGATIVE SIGNALS
 // ============================================================================
 
+// ✅ v2.4: skip signals decay over time — old skips no longer permanently suppress
+// Decay: >180 days → 20%, >90 days → 50%, >30 days → 75%, <30 days → 100%
+// Thresholds unchanged (genres: 3, directors/actors: 2) — fresh skips behave identically
+// to v2.3, but a skip from 8 months ago contributes only 0.2 to the weighted sum.
 function computeNegativeSignals(skipFeedback, watchHistory) {
   if (!skipFeedback || skipFeedback.length === 0) {
     return {
@@ -408,66 +472,180 @@ function computeNegativeSignals(skipFeedback, watchHistory) {
     }
   }
 
-  const skippedMovieIds = skipFeedback.map((s) => s.movie_id)
-  const skippedMovies = []
+  const now = new Date()
 
-  watchHistory.forEach((h) => {
-    if (h.movies && skippedMovieIds.includes(h.movie_id)) skippedMovies.push(h.movies)
+  // Group skip events by movie_id; each skip event has its own shown_at + decay
+  const skipWeightByMovieId = {}
+  skipFeedback.forEach((s) => {
+    const shownAt = s.shown_at ? new Date(s.shown_at) : now
+    const daysSince = (now - shownAt) / (1000 * 60 * 60 * 24)
+
+    let decayFactor = 1.0
+    if (daysSince > 180) decayFactor = 0.2
+    else if (daysSince > 90) decayFactor = 0.5
+    else if (daysSince > 30) decayFactor = 0.75
+
+    skipWeightByMovieId[s.movie_id] = (skipWeightByMovieId[s.movie_id] || 0) + decayFactor
   })
-
-  if (skippedMovies.length === 0) {
-    return {
-      skippedGenres: [],
-      skippedDirectors: [],
-      skippedLanguages: [],
-      skippedActors: [],
-      totalSkips: skipFeedback.length
-    }
-  }
 
   const genreSkips = {},
     directorSkips = {},
     langSkips = {},
     actorSkips = {}
 
-  skippedMovies.forEach((movie) => {
+  watchHistory.forEach((h) => {
+    const skipWeight = skipWeightByMovieId[h.movie_id]
+    if (!h.movies || !skipWeight) return
+
+    const movie = h.movies
     if (Array.isArray(movie.genres)) {
       movie.genres.forEach((genre) => {
         const gid = extractGenreId(genre)
-        if (gid) genreSkips[gid] = (genreSkips[gid] || 0) + 1
+        if (gid) genreSkips[gid] = (genreSkips[gid] || 0) + skipWeight
       })
     }
     if (movie.director_name) {
       const name = movie.director_name.toLowerCase()
-      directorSkips[name] = (directorSkips[name] || 0) + 1
+      directorSkips[name] = (directorSkips[name] || 0) + skipWeight
     }
     if (movie.original_language) {
-      langSkips[movie.original_language] = (langSkips[movie.original_language] || 0) + 1
+      langSkips[movie.original_language] = (langSkips[movie.original_language] || 0) + skipWeight
     }
     if (movie.lead_actor_name) {
       const name = movie.lead_actor_name.toLowerCase()
-      actorSkips[name] = (actorSkips[name] || 0) + 1
+      actorSkips[name] = (actorSkips[name] || 0) + skipWeight
     }
   })
 
   return {
     skippedGenres: Object.entries(genreSkips)
       .filter(([_, c]) => c >= 3)
-      .map(([gid, count]) => ({ id: Number(gid), skipCount: count }))
+      .map(([gid, score]) => ({ id: Number(gid), skipCount: score }))
       .sort((a, b) => b.skipCount - a.skipCount),
     skippedDirectors: Object.entries(directorSkips)
       .filter(([_, c]) => c >= 2)
-      .map(([name, count]) => ({ name, skipCount: count }))
+      .map(([name, score]) => ({ name, skipCount: score }))
       .sort((a, b) => b.skipCount - a.skipCount),
     skippedLanguages: Object.entries(langSkips)
       .filter(([_, c]) => c >= 3)
-      .map(([lang, count]) => ({ language: lang, skipCount: count }))
+      .map(([lang, score]) => ({ language: lang, skipCount: score }))
       .sort((a, b) => b.skipCount - a.skipCount),
     skippedActors: Object.entries(actorSkips)
       .filter(([_, c]) => c >= 2)
-      .map(([name, count]) => ({ name, skipCount: count }))
+      .map(([name, score]) => ({ name, skipCount: score }))
       .sort((a, b) => b.skipCount - a.skipCount),
     totalSkips: skipFeedback.length
+  }
+}
+
+// ============================================================================
+// FEEDBACK SIGNALS (thumbs up/down + post-watch sentiment) — v2.4
+// ============================================================================
+
+// Converts user_movie_feedback and user_movie_sentiment into genre/director/actor
+// boost and suppression signals. These are consumed in scoreMovieForUser step 16.
+//
+// Strength scale:
+//   thumbs down (-1)  → 2.5 suppression
+//   thumbs up (+1)    → 2.0 boost
+//   'liked' sentiment → 2.5 boost
+//   'disliked'        → 3.0 suppression
+//   'loved'           → 3.5 boost  (strongest positive)
+//   'hated'           → 3.5 suppression (strongest negative)
+function computeFeedbackSignals(userFeedback, userSentiment) {
+  const genreBoosts = {},
+    genreSuppressions = {}
+  const directorBoosts = {},
+    directorSuppressions = {}
+  const actorBoosts = {},
+    actorSuppressions = {}
+  const contentStyleBoosts = {}
+
+  // Process thumbs up/down feedback
+  ;(userFeedback || []).forEach(({ feedback_value, movies: movie }) => {
+    if (!movie) return
+    const isPositive = feedback_value > 0
+    const strength = isPositive ? 2.0 : 2.5
+
+    ;(movie.genres || []).forEach((g) => {
+      const gid = extractGenreId(g)
+      if (!gid) return
+      if (isPositive) genreBoosts[gid] = (genreBoosts[gid] || 0) + strength
+      else genreSuppressions[gid] = (genreSuppressions[gid] || 0) + strength
+    })
+
+    if (movie.director_name) {
+      const name = safeLower(movie.director_name)
+      if (isPositive) directorBoosts[name] = (directorBoosts[name] || 0) + strength
+      else directorSuppressions[name] = (directorSuppressions[name] || 0) + strength
+    }
+
+    if (movie.lead_actor_name) {
+      const name = safeLower(movie.lead_actor_name)
+      if (isPositive) actorBoosts[name] = (actorBoosts[name] || 0) + strength
+      else actorSuppressions[name] = (actorSuppressions[name] || 0) + strength
+    }
+  })
+
+  // Process post-watch sentiment (strongest signal — user invested enough to rate)
+  ;(userSentiment || []).forEach(({ sentiment, what_stood_out, movies: movie }) => {
+    if (!movie) return
+    const isPositive = sentiment === 'loved' || sentiment === 'liked'
+    const isNegative = sentiment === 'disliked' || sentiment === 'hated'
+    if (!isPositive && !isNegative) return
+
+    const strength =
+      sentiment === 'loved' || sentiment === 'hated' ? 3.5 : 2.5 // loved/hated > liked/disliked
+
+    ;(movie.genres || []).forEach((g) => {
+      const gid = extractGenreId(g)
+      if (!gid) return
+      if (isPositive) genreBoosts[gid] = (genreBoosts[gid] || 0) + strength
+      else genreSuppressions[gid] = (genreSuppressions[gid] || 0) + strength
+    })
+
+    if (movie.director_name) {
+      const name = safeLower(movie.director_name)
+      if (isPositive) directorBoosts[name] = (directorBoosts[name] || 0) + strength
+      else directorSuppressions[name] = (directorSuppressions[name] || 0) + strength
+    }
+
+    if (movie.lead_actor_name) {
+      const name = safeLower(movie.lead_actor_name)
+      if (isPositive) actorBoosts[name] = (actorBoosts[name] || 0) + strength
+      else actorSuppressions[name] = (actorSuppressions[name] || 0) + strength
+    }
+
+    // what_stood_out: ['cinematography', 'acting', 'story', 'direction', 'score', ...]
+    // Tracks content style preferences — used for future content-attribute scoring
+    if (isPositive && Array.isArray(what_stood_out)) {
+      what_stood_out.forEach((tag) => {
+        const normalized = (typeof tag === 'string' ? tag : tag?.name || '').toLowerCase().trim()
+        if (normalized) contentStyleBoosts[normalized] = (contentStyleBoosts[normalized] || 0) + 1
+      })
+    }
+  })
+
+  return {
+    genreBoosts: Object.entries(genreBoosts)
+      .map(([gid, score]) => ({ id: Number(gid), score }))
+      .sort((a, b) => b.score - a.score),
+    genreSuppressions: Object.entries(genreSuppressions)
+      .map(([gid, score]) => ({ id: Number(gid), score }))
+      .sort((a, b) => b.score - a.score),
+    directorBoosts: Object.entries(directorBoosts)
+      .map(([name, score]) => ({ name, score }))
+      .sort((a, b) => b.score - a.score),
+    directorSuppressions: Object.entries(directorSuppressions)
+      .map(([name, score]) => ({ name, score }))
+      .sort((a, b) => b.score - a.score),
+    actorBoosts: Object.entries(actorBoosts)
+      .map(([name, score]) => ({ name, score }))
+      .sort((a, b) => b.score - a.score),
+    actorSuppressions: Object.entries(actorSuppressions)
+      .map(([name, score]) => ({ name, score }))
+      .sort((a, b) => b.score - a.score),
+    contentStyleBoosts
   }
 }
 
@@ -726,34 +904,44 @@ function computePracticalPreferences(weightedMovies) {
   }
 }
 
+// ✅ v2.4: use weighted count (not raw count) so that completion rate + explicit ratings
+// flow through to affinity strength. rawCount still gates the threshold (need 2 actual
+// watches) but count (weighted sum) determines the affinity score used in scoring.
 function computePeopleAffinities(weightedMovies) {
   const directors = {},
     actors = {}
 
   weightedMovies.forEach((m) => {
+    const w = m.weight || 1
+
     if (m.director_name) {
-      if (!directors[m.director_name]) directors[m.director_name] = { count: 0, fromFavorites: false }
-      directors[m.director_name].count++
+      if (!directors[m.director_name])
+        directors[m.director_name] = { count: 0, rawCount: 0, fromFavorites: false }
+      directors[m.director_name].count += w        // weighted — reflects completion + rating
+      directors[m.director_name].rawCount++        // raw — used to gate the ≥2 threshold
       if (m.isOnboarding) directors[m.director_name].fromFavorites = true
     }
+
     if (m.lead_actor_name) {
-      if (!actors[m.lead_actor_name]) actors[m.lead_actor_name] = { count: 0, fromFavorites: false }
-      actors[m.lead_actor_name].count++
+      if (!actors[m.lead_actor_name])
+        actors[m.lead_actor_name] = { count: 0, rawCount: 0, fromFavorites: false }
+      actors[m.lead_actor_name].count += w
+      actors[m.lead_actor_name].rawCount++
       if (m.isOnboarding) actors[m.lead_actor_name].fromFavorites = true
     }
   })
 
   return {
     directors: Object.entries(directors)
-      .filter(([_, d]) => d.count >= 2)
-      .sort((a, b) => b[1].count - a[1].count)
+      .filter(([_, d]) => d.rawCount >= 2)         // still require 2 actual watches
+      .sort((a, b) => b[1].count - a[1].count)     // sort by weighted affinity
       .slice(0, 5)
-      .map(([name, data]) => ({ name, ...data })),
+      .map(([name, data]) => ({ name, count: data.count, rawCount: data.rawCount, fromFavorites: data.fromFavorites })),
     actors: Object.entries(actors)
-      .filter(([_, a]) => a.count >= 2)
+      .filter(([_, a]) => a.rawCount >= 2)
       .sort((a, b) => b[1].count - a[1].count)
       .slice(0, 5)
-      .map(([name, data]) => ({ name, ...data }))
+      .map(([name, data]) => ({ name, count: data.count, rawCount: data.rawCount, fromFavorites: data.fromFavorites }))
   }
 }
 
@@ -779,7 +967,8 @@ function computeThemeAffinities(weightedMovies) {
   }
 }
 
-function computeQualityProfile(weightedMovies) {
+// ✅ v2.4: fixed — userRatings parameter was silently ignored in v2.3
+function computeQualityProfile(weightedMovies, userRatings) {
   let ratingSum = 0,
     ratingCount = 0,
     hiddenGemCount = 0
@@ -792,10 +981,20 @@ function computeQualityProfile(weightedMovies) {
     if (m.popularity && m.popularity < 20) hiddenGemCount++
   })
 
+  // Incorporate explicit user ratings
+  const validRatings = (userRatings || []).filter((r) => r.rating > 0)
+  const avgUserRating =
+    validRatings.length >= 3
+      ? Math.round((validRatings.reduce((s, r) => s + r.rating, 0) / validRatings.length) * 10) / 10
+      : null
+  const highRatedCount = validRatings.filter((r) => r.rating >= 4).length
+
   return {
     avgFFRating: ratingCount > 0 ? Math.round((ratingSum / ratingCount) * 10) / 10 : 7.0,
     watchesHiddenGems: hiddenGemCount >= 3,
-    totalMoviesWatched: weightedMovies.length
+    totalMoviesWatched: weightedMovies.length,
+    avgUserRating,
+    highRatedCount
   }
 }
 
@@ -1374,6 +1573,10 @@ export function scoreMovieForUser(movie, profile, rowType = 'default', seedFilms
   // ✅ "likely seen" removed completely
   breakdown.likelySeenPenalty = 0
 
+  // 16) EXPLICIT FEEDBACK (thumbs up/down + post-watch sentiment) — v2.4
+  // Applied last so it can override or reinforce all other signals cleanly.
+  score += (breakdown.feedbackSignals = scoreFeedbackSignals(movie, profile))
+
   const finalScore = Math.max(0, Math.round(score * 10) / 10)
   const pickReason = determinePickReason(movie, profile, breakdown, seedSimilarity)
 
@@ -1549,6 +1752,68 @@ function scorePeopleMatch(movie, profile) {
   }
 
   return { total: detail.director + detail.actor, detail }
+}
+
+// ============================================================================
+// FEEDBACK SCORING — v2.4
+// ============================================================================
+// Scores a candidate movie against the user's explicit feedback signals.
+// Genre suppressions are weighted slightly heavier than boosts (asymmetric aversion).
+//
+// Boost caps:   genre +30, director +40, actor +20
+// Suppress caps: genre -50, director -60, actor -40
+function scoreFeedbackSignals(movie, profile) {
+  const fs = profile.feedbackSignals
+  if (!fs) return 0
+
+  let score = 0
+  const movieGenres = (movie.genres || []).map((g) => extractGenreId(g)).filter(Boolean)
+  const directorLower = safeLower(movie.director_name || '')
+  const actorLower = safeLower(movie.lead_actor_name || '')
+
+  // Genre boosts — multiply by 4 per unit of boost score
+  if (fs.genreBoosts?.length > 0) {
+    let boost = 0
+    fs.genreBoosts.forEach(({ id, score: s }) => {
+      if (movieGenres.includes(id)) boost += s * 4
+    })
+    score += Math.min(boost, 30)
+  }
+
+  // Genre suppressions — multiply by 5 per unit (slightly heavier than boost)
+  if (fs.genreSuppressions?.length > 0) {
+    let suppress = 0
+    fs.genreSuppressions.forEach(({ id, score: s }) => {
+      if (movieGenres.includes(id)) suppress += s * 5
+    })
+    score -= Math.min(suppress, 50)
+  }
+
+  // Director boost
+  if (directorLower && fs.directorBoosts?.length > 0) {
+    const match = fs.directorBoosts.find((d) => safeLower(d.name) === directorLower)
+    if (match) score += Math.min(match.score * 8, 40)
+  }
+
+  // Director suppression
+  if (directorLower && fs.directorSuppressions?.length > 0) {
+    const match = fs.directorSuppressions.find((d) => safeLower(d.name) === directorLower)
+    if (match) score -= Math.min(match.score * 10, 60)
+  }
+
+  // Actor boost
+  if (actorLower && fs.actorBoosts?.length > 0) {
+    const match = fs.actorBoosts.find((a) => safeLower(a.name) === actorLower)
+    if (match) score += Math.min(match.score * 5, 20)
+  }
+
+  // Actor suppression
+  if (actorLower && fs.actorSuppressions?.length > 0) {
+    const match = fs.actorSuppressions.find((a) => safeLower(a.name) === actorLower)
+    if (match) score -= Math.min(match.score * 6, 40)
+  }
+
+  return score
 }
 
 // Combines metadata similarity + embedding similarity (from movie_recommendations)

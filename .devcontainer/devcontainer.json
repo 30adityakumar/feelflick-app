@@ -1,0 +1,37 @@
+{
+  "name": "FeelFlick Dev Container",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-20-bullseye",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "20",
+      "nodeGypDependencies": true
+    }
+  },
+  "postCreateCommand": "npm install && npm install -g @anthropic-ai/claude-code",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "bradlc.vscode-tailwindcss",
+        "vitest.explorer",
+        "github.copilot"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "tailwindCSS.experimental.classRegex": [
+          ["clsx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
+        ]
+      }
+    }
+  },
+  "forwardPorts": [5173],
+  "portsAttributes": {
+    "5173": {
+      "label": "Vite Dev Server",
+      "onAutoForward": "openBrowser"
+    }
+  },
+  "remoteUser": "node"
+}

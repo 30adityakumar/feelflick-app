@@ -1,0 +1,43 @@
+{
+  "allowedTools": [
+    "Read",
+    "Write",
+    "Edit",
+    "Bash",
+    "Grep",
+    "Glob",
+    "TodoWrite",
+    "Agent"
+  ],
+  "blockedCommands": [
+    "rm -rf",
+    "git push --force",
+    "git push -f",
+    "git push --force-with-lease",
+    "git reset --hard",
+    "drop table",
+    "truncate table"
+  ],
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[FeelFlick guardrail] Running bash command. Confirm no .env access, no force-push, no rm -rf on src.'"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreCompact\",\"additionalContext\":\"FEELFLICK PRODUCT DIRECTION (restore after compact):\\n- FeelFlick is an emotionally intelligent movie recommendation system. Mood is the entry point. Personalization is the engine.\\n- Tone: premium, cinematic, modern, human, concise. No AI jargon. No fluffy marketing. No fake stats or social proof.\\n- Key messages: stop endless scrolling; movies that match your mood; personalized picks for the moment; less scrolling, better choices; built around mood, context, and taste.\\n- Stack: React 18, Vite, Tailwind, Framer Motion, Supabase (PostgreSQL + pgvector), TMDB, OpenAI embeddings, Vitest.\\n- Auth: Google OAuth via Supabase. Initialized in main.jsx before React mounts.\\n- Hard rules: never edit .env, never force-push to main, never delete migrations, never add fake social proof.\\n- Workflow: lint -> test -> build before every PR.\"}}'"}
+          ]
+      }
+    ]
+  }
+}

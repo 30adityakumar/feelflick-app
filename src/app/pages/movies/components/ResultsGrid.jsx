@@ -3,8 +3,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
 import { Plus, Check, Eye, EyeOff, Star } from 'lucide-react'
-
-const tmdbImg = (p) => p ? `https://image.tmdb.org/t/p/w342${p}` : ''
+import { getGenres, tmdbImg } from '@/shared/api/tmdb'
 
 export default function ResultsGrid({ movies, user }) {
   const [watchlistTmdbIds, setWatchlistTmdbIds] = useState(new Set())
@@ -15,8 +14,7 @@ export default function ResultsGrid({ movies, user }) {
 
   // Fetch Genres
   useEffect(() => {
-    fetch(`https://api.themoviedb.org/3/genre/movie/list?api_key=${import.meta.env.VITE_TMDB_API_KEY}`)
-      .then(r => r.json())
+    getGenres()
       .then(data => {
         const genreMap = {}
         data.genres?.forEach(g => { genreMap[g.id] = g.name })
@@ -244,6 +242,14 @@ useEffect(() => {
                 isHovered ? 'scale-105 shadow-2xl z-30' : 'scale-100'
               }`}
               onClick={() => navigate(`/movie/${movie.id}`)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  navigate(`/movie/${movie.id}`)
+                }
+              }}
             >
               {/* Poster */}
               <div className="relative aspect-[2/3] overflow-hidden">

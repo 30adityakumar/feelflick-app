@@ -86,7 +86,7 @@ export default function AboutPage() {
             </div>
             <h3 className="text-xl font-bold mb-3">Share Your Mood</h3>
             <p className="text-white/60 text-sm leading-relaxed">
-              Tell us how you're feeling — happy, stressed, nostalgic, or anything in between. No complicated forms or endless questions.
+              Tell us how you&apos;re feeling — happy, stressed, nostalgic, or anything in between. No complicated forms or endless questions.
             </p>
           </div>
 
@@ -128,15 +128,15 @@ export default function AboutPage() {
           
           <div className="space-y-4 text-white/70 leading-relaxed">
             <p>
-              FeelFlick started as a simple idea: <span className="text-white font-semibold">what if finding a movie was as easy as telling someone how you feel?</span> We noticed that platforms focused on what you've watched, but rarely asked how you're feeling right now.
+              FeelFlick started as a simple idea: <span className="text-white font-semibold">what if finding a movie was as easy as telling someone how you feel?</span> We noticed that platforms focused on what you&apos;ve watched, but rarely asked how you&apos;re feeling right now.
             </p>
             
             <p>
-              We're building FeelFlick to be more than a recommendation engine — it's a companion for your movie journey, understanding that the perfect film changes with your mood, your day, and your company.
+              We&apos;re building FeelFlick to be more than a recommendation engine — it&apos;s a companion for your movie journey, understanding that the perfect film changes with your mood, your day, and your company.
             </p>
             
             <p>
-              Today, FeelFlick is in active development, powered by the TMDB API and shaped by feedback from early users like you. We're committed to keeping it <span className="text-purple-400 font-semibold">fast, private, and free forever</span>.
+              Today, FeelFlick is in active development, powered by the TMDB API and shaped by feedback from early users like you. We&apos;re committed to keeping it <span className="text-purple-400 font-semibold">fast, private, and free forever</span>.
             </p>
           </div>
         </div>
@@ -149,7 +149,7 @@ export default function AboutPage() {
             Built on principles that matter
           </h2>
           <p className="text-white/60 max-w-2xl mx-auto">
-            We're not just building an app — we're creating an experience that respects you and your time.
+            We&apos;re not just building an app — we&apos;re creating an experience that respects you and your time.
           </p>
         </div>
 
@@ -199,7 +199,7 @@ export default function AboutPage() {
               Get in Touch
             </h2>
             <p className="text-white/70 mb-8 max-w-xl mx-auto">
-              Have questions, feedback, or just want to say hi? We'd love to hear from you.
+              Have questions, feedback, or just want to say hi? We&apos;d love to hear from you.
             </p>
 
             <div className="flex flex-wrap items-center justify-center gap-4">

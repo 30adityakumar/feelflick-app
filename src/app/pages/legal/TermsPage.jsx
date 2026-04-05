@@ -1,5 +1,4 @@
 // src/app/pages/TermsPage.jsx
-import { Link } from 'react-router-dom'
 import { Scale, ShieldCheck, AlertTriangle, FileText, Mail, Gavel } from 'lucide-react'
 
 export default function TermsPage() {
@@ -107,7 +106,7 @@ export default function TermsPage() {
               <strong>FeelFlick Content:</strong> Our brand, logo, design, code, and recommendation algorithms are the exclusive property of FeelFlick and are protected by copyright laws.
             </p>
             <p>
-              <strong>Movie Data:</strong> Movie metadata, posters, and backdrops are provided by <a href="https://www.themoviedb.org/" target="_blank" rel="noreferrer" className="text-purple-400 hover:underline">The Movie Database (TMDB)</a>. This data is subject to TMDB's terms of use. FeelFlick uses the TMDB API but is not endorsed or certified by TMDB.
+              <strong>Movie Data:</strong> Movie metadata, posters, and backdrops are provided by <a href="https://www.themoviedb.org/" target="_blank" rel="noreferrer" className="text-purple-400 hover:underline">The Movie Database (TMDB)</a>. This data is subject to TMDB&apos;s terms of use. FeelFlick uses the TMDB API but is not endorsed or certified by TMDB.
             </p>
             <p>
               You may not copy, modify, distribute, or sell any part of our platform without our prior written permission.

@@ -87,9 +87,10 @@ export function usePageTracking({
   // Track time on page (on unmount)
   useEffect(() => {
     if (!trackTimeOnPage) return
+    const startedAt = mountTime.current
 
     return () => {
-      const timeSpent = Math.round((Date.now() - mountTime.current) / 1000) // seconds
+      const timeSpent = Math.round((Date.now() - startedAt) / 1000) // seconds
       
       trackEvent(
         null,

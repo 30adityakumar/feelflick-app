@@ -13,7 +13,6 @@ export function useVirtualization({
   const updateViewport = useCallback(() => {
     if (!containerRef?.current || items.length === 0) return
 
-    const rect = containerRef.current.getBoundingClientRect()
     const scrollLeft = containerRef.current.scrollLeft
     const containerWidth = containerRef.current.clientWidth
 
@@ -48,7 +47,7 @@ export function useVirtualization({
       container.removeEventListener('scroll', handleScroll)
       window.removeEventListener('resize', handleScroll)
     }
-  }, [updateViewport])
+  }, [updateViewport, containerRef])
 
   const visibleItems = items.slice(viewport.start, viewport.end)
   const totalWidth = items.length * itemWidth

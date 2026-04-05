@@ -3,6 +3,25 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 
 export default defineConfig({
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return null
+
+          if (id.includes('react-router')) return 'router'
+          if (id.includes('@supabase')) return 'supabase'
+          if (id.includes('framer-motion') || id.includes('motion-dom') || id.includes('motion-utils')) {
+            return 'motion'
+          }
+          if (id.includes('lucide-react')) return 'icons'
+          if (id.includes('react') || id.includes('scheduler')) return 'react'
+
+          return 'vendor'
+        },
+      },
+    },
+  },
   test: {
     globals: true,
     environment: 'jsdom',

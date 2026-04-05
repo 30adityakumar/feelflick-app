@@ -1,7 +1,6 @@
 // src/contexts/WatchlistContext.jsx
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/shared/lib/supabase/client'
-import { useUserMovieStatus } from '@/shared/hooks/useUserMovieStatus'
 
 const WatchlistContext = createContext(null)
 
@@ -29,25 +28,12 @@ export function WatchlistProvider({ children }) {
     }
   }, [])
 
-  // Optional: expose a thin wrapper around your existing hook,
-  // so cards don’t need to know about supabase/user at all.
-  const makeStatusHelpers = useCallback(
-    (movie) =>
-      useUserMovieStatus({
-        user,
-        movie,
-        source: 'quick_picks',
-      }),
-    [user]
-  )
-
   const value = useMemo(
     () => ({
       user,
       ready,
-      makeStatusHelpers,
     }),
-    [user, ready, makeStatusHelpers]
+    [user, ready]
   )
 
   return (

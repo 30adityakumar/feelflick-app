@@ -169,11 +169,14 @@ export default function MovieSentimentWidget({
   if (!user) return null
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/75 backdrop-blur-sm"
-      onClick={e => e.target === e.currentTarget && onClose?.()}
-    >
-      <div className="w-full sm:max-w-lg bg-black border border-white/8 sm:rounded-2xl shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/75 backdrop-blur-sm">
+      <button
+        type="button"
+        className="absolute inset-0"
+        onClick={() => onClose?.()}
+        aria-label="Close sentiment modal"
+      />
+      <div className="relative z-10 w-full sm:max-w-lg bg-black border border-white/8 sm:rounded-2xl shadow-2xl overflow-hidden">
 
         {/* Header */}
         <div className="relative h-28 overflow-hidden flex-shrink-0">

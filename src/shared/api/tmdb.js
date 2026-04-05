@@ -144,6 +144,7 @@ export async function fetchJson(path, {
         }
         
         // No more retries, throw error
+        // eslint-disable-next-line no-use-before-define
         const err = new TMDBError(
           `TMDb ${res.status} ${res.statusText}`,
           res.status,
@@ -164,6 +165,7 @@ export async function fetchJson(path, {
         throw error
       }
       
+      // eslint-disable-next-line no-use-before-define
       if (error instanceof TMDBError) {
         throw error
       }

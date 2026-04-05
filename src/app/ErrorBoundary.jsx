@@ -75,7 +75,7 @@ export default class ErrorBoundary extends Component {
   /**
    * Report error to monitoring service
    */
-  reportError(error, errorInfo) {
+  reportError(_error, _errorInfo) {
     // In production, send to Sentry, LogRocket, etc.
     if (import.meta.env.PROD) {
       // Example: Sentry.captureException(error, { contexts: { react: errorInfo } })
@@ -222,7 +222,7 @@ export default class ErrorBoundary extends Component {
               )}
               
               {/* Technical details (collapsible, dev only) */}
-              {process.env.NODE_ENV === 'development' && this.state.error && (
+              {import.meta.env.DEV && this.state.error && (
                 <details className="mt-8 text-left">
                   <summary className="cursor-pointer text-sm text-white/50 hover:text-white/70 mb-3 font-medium">
                     Show technical details
@@ -312,7 +312,7 @@ export class SectionErrorBoundary extends Component {
       const label = this.props.label || 'This section'
       return (
         <div className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-sm text-white/50">
-          <span>{label} couldn't load right now.</span>
+          <span>{label} couldn&apos;t load right now.</span>
           <button
             onClick={this.handleRetry}
             className="flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-1.5 text-xs font-medium text-white/60 transition hover:bg-white/10 hover:text-white"

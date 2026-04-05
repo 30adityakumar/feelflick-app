@@ -84,8 +84,8 @@ export default [
         varsIgnorePattern: '^_',
         ignoreRestSiblings: true,
       }],
-      // Allow console.warn / console.error in production paths; warn on .log
-      'no-console': ['warn', { allow: ['warn', 'error', 'group', 'groupEnd', 'groupCollapsed'] }],
+      // Keep warnings for uncommon console usage while allowing expected debug flows.
+      'no-console': ['warn', { allow: ['warn', 'error', 'group', 'groupEnd', 'groupCollapsed', 'log', 'clear'] }],
       // Catch typos in conditions
       'no-constant-condition': 'warn',
       // Prevent accidentally double-declared vars

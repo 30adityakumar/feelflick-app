@@ -41,7 +41,7 @@ const logger = new Logger('06-fetch-external-ratings.log');
 const CONFIG = {
   DEFAULT_LIMIT: 100,
   OMDB_API_KEY: process.env.OMDB_API_KEY,
-  OMDB_API_URL: 'http://www.omdbapi.com/',
+  OMDB_API_URL: 'https://www.omdbapi.com/',
   RATE_LIMIT_DELAY_MS: 1000,  // 1 request per second
   REQUEST_TIMEOUT_MS: 10000,  // 10 second timeout
   MAX_RETRIES: 2
@@ -389,7 +389,7 @@ EXAMPLES:
 
 NOTE:
   Requires OMDB_API_KEY in .env file
-  Get your key at: http://www.omdbapi.com/apikey.aspx
+  Get your key at: https://www.omdbapi.com/apikey.aspx
 `);
     process.exit(0);
   }

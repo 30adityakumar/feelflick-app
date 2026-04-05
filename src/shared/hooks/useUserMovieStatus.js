@@ -113,7 +113,7 @@ export function useUserMovieStatus(params = {}) {
     return () => {
       mounted = false
     }
-  }, [user?.id, movieKey, explicitInternalId])
+  }, [user?.id, movieKey, explicitInternalId, movie])
 
   const toggleWatchlist = useCallback(async () => {
     if (!user?.id || !resolvedInternalId || loading.watchlist) return
@@ -176,7 +176,7 @@ export function useUserMovieStatus(params = {}) {
     } finally {
       setLoading(prev => ({ ...prev, watchlist: false }))
     }
-  }, [user?.id, user, resolvedInternalId, loading.watchlist, isInWatchlist])
+  }, [user, resolvedInternalId, loading.watchlist, isInWatchlist])
 
   const toggleWatched = useCallback(async () => {
     if (!user?.id || !resolvedInternalId || loading.watched) return
@@ -257,7 +257,7 @@ export function useUserMovieStatus(params = {}) {
     } finally {
       setLoading(prev => ({ ...prev, watched: false }))
     }
-  }, [user?.id, user, resolvedInternalId, loading.watched, isWatched, source, movie])
+  }, [user, resolvedInternalId, loading.watched, isWatched, source, movie])
 
   return {
     isInWatchlist,

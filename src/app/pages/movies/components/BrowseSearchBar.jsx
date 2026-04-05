@@ -1,8 +1,7 @@
 // src/app/pages/browse/BrowseSearchBar.jsx
 import { useState, useEffect } from 'react'
 import { Search, Filter } from 'lucide-react'
-
-const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY
+import { getGenres } from '@/shared/api/tmdb'
 
 export default function BrowseSearchBar({ onSearch }) {
   const [query, setQuery] = useState('')
@@ -13,9 +12,8 @@ export default function BrowseSearchBar({ onSearch }) {
 
   // Fetch Genres
   useEffect(() => {
-    fetch(`https://api.themoviedb.org/3/genre/movie/list?api_key=${TMDB_KEY}`)
-      .then(r => r.json())
-      .then(data => setGenres(data.genres || []))
+    getGenres()
+      .then((data) => setGenres(data.genres || []))
       .catch(console.error)
   }, [])
 
@@ -64,8 +62,9 @@ export default function BrowseSearchBar({ onSearch }) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-lg bg-white/5 border border-white/10">
           {/* Genre */}
           <div>
-            <label className="block text-sm font-semibold text-white/80 mb-2">Genre</label>
+            <label htmlFor="browse-genre-select" className="block text-sm font-semibold text-white/80 mb-2">Genre</label>
             <select
+              id="browse-genre-select"
               value={genre}
               onChange={(e) => handleFilterChange(e.target.value, sortBy)}
               className="w-full h-10 px-4 rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -79,8 +78,9 @@ export default function BrowseSearchBar({ onSearch }) {
 
           {/* Sort */}
           <div>
-            <label className="block text-sm font-semibold text-white/80 mb-2">Sort By</label>
+            <label htmlFor="browse-sort-select" className="block text-sm font-semibold text-white/80 mb-2">Sort By</label>
             <select
+              id="browse-sort-select"
               value={sortBy}
               onChange={(e) => handleFilterChange(genre, e.target.value)}
               className="w-full h-10 px-4 rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"

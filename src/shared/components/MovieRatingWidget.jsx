@@ -4,7 +4,7 @@
  */
 
 import { useState } from 'react'
-import { Star, Loader2, Check, X } from 'lucide-react'
+import { Loader2, Check, X } from 'lucide-react'
 import { useMovieRating } from '@/shared/hooks/useMovieRating'
 import StarRating from '@/shared/components/StarRating'
 
@@ -16,7 +16,7 @@ export default function MovieRatingWidget({
   className = ''
 }) {
   // ✅ CORRECT PARAMETER ORDER: (movieId, userId)
-  const { rating, loading, saving, error, saveRating, hasRated } = useMovieRating(
+  const { rating, loading, saving, error, saveRating } = useMovieRating(
     movieInternalId,  // ← First: movie ID (integer)
     user?.id          // ← Second: user ID (UUID string)
   )

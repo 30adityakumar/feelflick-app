@@ -1,12 +1,10 @@
 // src/app/pages/browse/MoviesTab.jsx
 import { useEffect, useState } from 'react'
 import { supabase } from '@/shared/lib/supabase/client'
+import { discoverMovies, searchMovies } from '@/shared/api/tmdb'
 import BrowseSearchBar from './components/BrowseSearchBar'
 import ResultsGrid from './components/ResultsGrid'
 import Pagination from './components/Pagination'
-
-const TMDB_BASE = 'https://api.themoviedb.org/3'
-const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY
 
 export default function MoviesTab() {
   const [movies, setMovies] = useState([])
@@ -31,18 +29,18 @@ export default function MoviesTab() {
     async function fetchMovies() {
       setLoading(true)
       try {
-        let url
+        let data
         if (query.trim()) {
           // Search mode
-          url = `${TMDB_BASE}/search/movie?api_key=${TMDB_KEY}&language=en-US&query=${encodeURIComponent(query)}&page=${page}`
+          data = await searchMovies(query, { page })
         } else {
           // Discover mode
-          url = `${TMDB_BASE}/discover/movie?api_key=${TMDB_KEY}&language=en-US&page=${page}&sort_by=${sortBy}`
-          if (genre) url += `&with_genres=${genre}`
+          data = await discoverMovies({
+            page,
+            sortBy,
+            genreIds: genre || undefined,
+          })
         }
-
-        const res = await fetch(url)
-        const data = await res.json()
         
         if (!active) return
         

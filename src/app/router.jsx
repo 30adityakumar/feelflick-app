@@ -6,29 +6,29 @@ import {
   useLocation,
   useNavigate,
 } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import { Suspense, lazy, useEffect, useState } from 'react'
 import { supabase } from '@/shared/lib/supabase/client'
 
 // Root shells
 import AppShell from '@/app/AppShell'
 
 // Public pages (no app chrome)
-import Landing from '@/features/landing/Landing'
+const Landing = lazy(() => import('@/features/landing/Landing'))
 
 // App pages (with header/sidebar)
-import HomePage from '@/app/homepage/HomePage'
-import MoviesTab from '@/app/pages/movies/MoviesTab'
-import MovieDetail from '@/app/pages/MovieDetail'
+const HomePage = lazy(() => import('@/app/homepage/HomePage'))
+const MoviesTab = lazy(() => import('@/app/pages/movies/MoviesTab'))
+const MovieDetail = lazy(() => import('@/app/pages/MovieDetail'))
 import ErrorBoundary from './ErrorBoundary'
-import Onboarding from '@/features/onboarding/Onboarding'
-import Account from '@/app/header/components/Account'
-import Preferences from '@/app/header/components/Preferences'
-import Watchlist from '@/app/pages/watchlist/Watchlist'
-import HistoryPage from '@/app/pages/watched/WatchedHistory'
-import MobileAccount from '@/app/header/components/MobileAccount'
+const Onboarding = lazy(() => import('@/features/onboarding/Onboarding'))
+const Account = lazy(() => import('@/app/header/components/Account'))
+const Preferences = lazy(() => import('@/app/header/components/Preferences'))
+const Watchlist = lazy(() => import('@/app/pages/watchlist/Watchlist'))
+const HistoryPage = lazy(() => import('@/app/pages/watched/WatchedHistory'))
+const MobileAccount = lazy(() => import('@/app/header/components/MobileAccount'))
 
 // 404
-import NotFound from '@/app/pages/NotFound'
+const NotFound = lazy(() => import('@/app/pages/NotFound'))
 
 // Shared top/bottom
 import TopNav from '@/features/landing/components/TopNav'
@@ -36,20 +36,21 @@ import Footer from '@/features/landing/components/Footer'
 
 // Auth/onboarding gate
 import PostAuthGate from '@/features/auth/PostAuthGate'
-import OAuthCallback from '@/features/auth/OAuthCallback'
+const OAuthCallback = lazy(() => import('@/features/auth/OAuthCallback'))
 
 // Import the new pages
-import AboutPage from '@/app/pages/legal/AboutPage'
-import PrivacyPage from '@/app/pages/legal/PrivacyPage'
-import TermsPage from '@/app/pages/legal/TermsPage'
+const AboutPage = lazy(() => import('@/app/pages/legal/AboutPage'))
+const PrivacyPage = lazy(() => import('@/app/pages/legal/PrivacyPage'))
+const TermsPage = lazy(() => import('@/app/pages/legal/TermsPage'))
 
 // Test recommendations page
-import TestRecommendations from '@/app/pages/TestRecommendations'
+const TestRecommendations = lazy(() => import('@/app/pages/TestRecommendations'))
 
-import DiscoverPage from '@/app/pages/discover/DiscoverPage'
+const DiscoverPage = lazy(() => import('@/app/pages/discover/DiscoverPage'))
 
 // cache monitoring page
-import CacheMonitoring from './admin/CacheMonitoring'
+const CacheMonitoring = lazy(() => import('./admin/CacheMonitoring'))
+import { normalizeAdminEmails, resolveAdminAccess } from './admin/access'
 
 
 /* ----------------------------- Public layout ----------------------------- */
@@ -78,6 +79,14 @@ function FullScreenSpinner() {
   )
 }
 
+function LazyRoute({ Component }) {
+  return (
+    <Suspense fallback={<FullScreenSpinner />}>
+      <Component />
+    </Suspense>
+  )
+}
+
 /** Root entry: if authed → /home, otherwise show Landing */
 function RootEntry() {
   const [status, setStatus] = useState('loading')
@@ -96,7 +105,7 @@ function RootEntry() {
 
   if (status === 'loading') return <FullScreenSpinner />
   if (status === 'authed') return <Navigate to="/home" replace />
-  return <Landing />
+  return <LazyRoute Component={Landing} />
 }
 
 /* ------------------------------ Auth guards ------------------------------ */
@@ -157,10 +166,7 @@ function OnboardingShell() {
 }
 
 /* ------------------------------ Admin guard ------------------------------ */
-const ADMIN_EMAILS = (import.meta.env.VITE_ADMIN_EMAILS || '')
-  .split(',')
-  .map(e => e.trim().toLowerCase())
-  .filter(Boolean)
+const ADMIN_EMAILS = normalizeAdminEmails(import.meta.env.VITE_ADMIN_EMAILS || '')
 
 function AdminOnly() {
   const [status, setStatus] = useState('loading')
@@ -168,17 +174,20 @@ function AdminOnly() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) { setStatus('anon'); return }
-      const email = session.user?.email?.toLowerCase() || ''
-      setStatus(ADMIN_EMAILS.length === 0 || ADMIN_EMAILS.includes(email) ? 'ok' : 'forbidden')
+      setStatus(resolveAdminAccess(session, ADMIN_EMAILS))
     })
   }, [])
 
   if (status === 'loading') return <FullScreenSpinner />
   if (status === 'anon') return <Navigate to="/" replace state={{ from: loc }} />
+  if (status === 'unconfigured') return (
+    <div className="grid min-h-[60vh] place-items-center text-white/60 text-sm px-4 text-center">
+      Admin access is not configured for this environment. Please contact the team administrator.
+    </div>
+  )
   if (status === 'forbidden') return (
     <div className="grid min-h-[60vh] place-items-center text-white/60 text-sm">
-      You don't have permission to view this page.
+      You do not have permission to view this page.
     </div>
   )
   return <Outlet />
@@ -212,12 +221,12 @@ export const router = createBrowserRouter([
       { index: true, element: <RootEntry /> },
 
       // OAuth callback route - MUST come before legacy auth redirects
-      { path: 'auth/callback', element: <OAuthCallback /> },
+      { path: 'auth/callback', element: <LazyRoute Component={OAuthCallback} /> },
 
       // Legal pages (publicly accessible)
-      { path: 'about', element: <AboutPage /> },
-      { path: 'privacy', element: <PrivacyPage /> },
-      { path: 'terms', element: <TermsPage /> },
+      { path: 'about', element: <LazyRoute Component={AboutPage} /> },
+      { path: 'privacy', element: <LazyRoute Component={PrivacyPage} /> },
+      { path: 'terms', element: <LazyRoute Component={TermsPage} /> },
 
       // Legacy auth aliases → just go to root
       { path: 'auth', element: <Navigate to="/" replace /> },
@@ -244,7 +253,7 @@ export const router = createBrowserRouter([
         children: [
           { 
             path: 'onboarding', 
-            element: <Onboarding />,
+            element: <LazyRoute Component={Onboarding} />,
             errorElement: <ErrorBoundary />
           }
         ],
@@ -258,18 +267,18 @@ export const router = createBrowserRouter([
     errorElement: <ErrorBoundary />,
     children: [
       // Publicly viewable
-      { path: 'movies', element: <MoviesTab />, errorElement: <ErrorBoundary /> },
-      { path: 'movie/:id', element: <MovieDetail />, errorElement: <ErrorBoundary /> },
-      { path: 'browse', element: <MoviesTab />, errorElement: <ErrorBoundary /> },
-      { path: 'trending', element: <MoviesTab />, errorElement: <ErrorBoundary /> },
-      { path: 'discover', element: <DiscoverPage />, errorElement: <ErrorBoundary /> },
+      { path: 'movies', element: <LazyRoute Component={MoviesTab} />, errorElement: <ErrorBoundary /> },
+      { path: 'movie/:id', element: <LazyRoute Component={MovieDetail} />, errorElement: <ErrorBoundary /> },
+      { path: 'browse', element: <LazyRoute Component={MoviesTab} />, errorElement: <ErrorBoundary /> },
+      { path: 'trending', element: <LazyRoute Component={MoviesTab} />, errorElement: <ErrorBoundary /> },
+      { path: 'discover', element: <LazyRoute Component={DiscoverPage} />, errorElement: <ErrorBoundary /> },
 
       // Admin-only routes (auth + email allowlist)
       {
         element: <AdminOnly />,
         errorElement: <ErrorBoundary />,
         children: [
-          { path: 'admin/cache-monitoring', element: <CacheMonitoring />, errorElement: <ErrorBoundary /> },
+          { path: 'admin/cache-monitoring', element: <LazyRoute Component={CacheMonitoring} />, errorElement: <ErrorBoundary /> },
         ],
       },
 
@@ -282,14 +291,14 @@ export const router = createBrowserRouter([
             element: <PostAuthGate />,
             errorElement: <ErrorBoundary />,
             children: [
-              { path: 'home', element: <HomePage />, errorElement: <ErrorBoundary /> },
-              { path: 'account', element: <Account />, errorElement: <ErrorBoundary /> },
-              { path: 'preferences', element: <Preferences />, errorElement: <ErrorBoundary /> },
-              { path: 'watchlist', element: <Watchlist />, errorElement: <ErrorBoundary /> },
-              { path: 'watched', element: <HistoryPage />, errorElement: <ErrorBoundary /> },
-              { path: 'history', element: <HistoryPage />, errorElement: <ErrorBoundary /> },
-              { path: 'mobile-account', element: <MobileAccount />, errorElement: <ErrorBoundary /> },
-              { path: 'test-recommendations', element: <TestRecommendations />, errorElement: <ErrorBoundary /> },
+              { path: 'home', element: <LazyRoute Component={HomePage} />, errorElement: <ErrorBoundary /> },
+              { path: 'account', element: <LazyRoute Component={Account} />, errorElement: <ErrorBoundary /> },
+              { path: 'preferences', element: <LazyRoute Component={Preferences} />, errorElement: <ErrorBoundary /> },
+              { path: 'watchlist', element: <LazyRoute Component={Watchlist} />, errorElement: <ErrorBoundary /> },
+              { path: 'watched', element: <LazyRoute Component={HistoryPage} />, errorElement: <ErrorBoundary /> },
+              { path: 'history', element: <LazyRoute Component={HistoryPage} />, errorElement: <ErrorBoundary /> },
+              { path: 'mobile-account', element: <LazyRoute Component={MobileAccount} />, errorElement: <ErrorBoundary /> },
+              { path: 'test-recommendations', element: <LazyRoute Component={TestRecommendations} />, errorElement: <ErrorBoundary /> },
             
               
             ],
@@ -304,5 +313,5 @@ export const router = createBrowserRouter([
   { path: 'app/*', element: <AppPrefixAlias />, errorElement: <ErrorBoundary /> },
 
   // 404
-  { path: '*', element: <NotFound />, errorElement: <ErrorBoundary /> },
+  { path: '*', element: <LazyRoute Component={NotFound} />, errorElement: <ErrorBoundary /> },
 ])

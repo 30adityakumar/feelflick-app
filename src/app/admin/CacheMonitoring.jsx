@@ -285,7 +285,7 @@ export default function CacheMonitoring() {
               <p className="flex items-start gap-2">
                 <span className="text-yellow-400">⚠️</span>
                 <span>
-                  {stats.byAge.expired} caches are expired (&gt;7 days old). Click "Warm Cache" to refresh them.
+                  {stats.byAge.expired} caches are expired (&gt;7 days old). Click &quot;Warm Cache&quot; to refresh them.
                 </span>
               </p>
             )}
@@ -293,7 +293,7 @@ export default function CacheMonitoring() {
               <p className="flex items-start gap-2">
                 <span className="text-blue-400">ℹ️</span>
                 <span>
-                  Cache hit rate is {stats.cacheHitRate}%. Click "Warm Cache" to pre-populate profiles.
+                  Cache hit rate is {stats.cacheHitRate}%. Click &quot;Warm Cache&quot; to pre-populate profiles.
                 </span>
               </p>
             )}

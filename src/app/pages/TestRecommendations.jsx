@@ -29,7 +29,7 @@ export default function TestRecommendations() {
 
         {/* Mood Selector */}
         <div className="mb-8">
-          <label className="block text-sm font-medium mb-2">Select Mood:</label>
+          <p className="block text-sm font-medium mb-2">Select Mood:</p>
           <div className="flex gap-4 flex-wrap">
             {moods.map(mood => (
               <button
@@ -68,32 +68,33 @@ export default function TestRecommendations() {
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {recommendations.map((movie, idx) => (
-                <div
-                key={movie.movie_id}
-                onClick={() => window.location.href = `/movie/${movie.tmdb_id}`}
-                className="bg-white/5 rounded-lg overflow-hidden hover:bg-white/10 transition-all cursor-pointer"
+                <button
+                  key={movie.movie_id}
+                  type="button"
+                  onClick={() => { window.location.href = `/movie/${movie.tmdb_id}` }}
+                  className="bg-white/5 rounded-lg overflow-hidden hover:bg-white/10 transition-all cursor-pointer text-left w-full"
                 >
-                {movie.poster_path ? (
+                  {movie.poster_path ? (
                     <img
-                    src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                    alt={movie.title}
-                    className="w-full aspect-[2/3] object-cover"
+                      src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                      alt={movie.title}
+                      className="w-full aspect-[2/3] object-cover"
                     />
-                ) : (
+                  ) : (
                     <div className="w-full aspect-[2/3] bg-gray-800 flex items-center justify-center">
-                    <span className="text-4xl">🎬</span>
+                      <span className="text-4xl">🎬</span>
                     </div>
-                )}
-                <div className="p-3">
+                  )}
+                  <div className="p-3">
                     <div className="text-xs text-purple-400 font-bold mb-1">
-                    #{idx + 1} • Score: {Math.round(movie.final_score)}
+                      #{idx + 1} • Score: {Math.round(movie.final_score)}
                     </div>
                     <h3 className="font-medium text-sm line-clamp-2">{movie.title}</h3>
                     <div className="text-xs text-white/50 mt-1">
-                    ⭐ {movie.vote_average?.toFixed(1)}
+                      ⭐ {movie.vote_average?.toFixed(1)}
                     </div>
-                </div>
-                </div>
+                  </div>
+                </button>
               ))}
             </div>
           </div>

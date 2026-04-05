@@ -2,8 +2,8 @@
 // Follows the project pattern: isolated re-implementations of the specific
 // behavior under test, no complex mounts with real deps (Supabase, Router, etc.)
 
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { describe, it, expect } from 'vitest'
+import { render, screen } from '@testing-library/react'
 
 // ---------------------------------------------------------------------------
 // Minimal HeroSection re-implementation — tests headline copy only.
@@ -11,7 +11,7 @@ import { render, screen, fireEvent } from '@testing-library/react'
 function HeroHeadline() {
   return (
     <h1 id="hero-heading">
-      <span>Find films for when you're feeling</span>
+      <span>Find films for when you&apos;re feeling</span>
       <span>nostalgic.</span>
     </h1>
   )
@@ -35,10 +35,10 @@ function FinalCTAHeadline() {
 function MoodShowcaseStub() {
   return (
     <section id="mood-demo" aria-labelledby="mood-demo-heading">
-      <h2 id="mood-demo-heading">Pick a mood. We'll find your movie.</h2>
-      <ul role="list" aria-label="Browse films by mood">
+      <h2 id="mood-demo-heading">Pick a mood. We&apos;ll find your movie.</h2>
+      <ul aria-label="Browse films by mood">
         {['Nostalgic', 'Tense', 'Cozy', 'Melancholy', 'Euphoric', 'Curious'].map(mood => (
-          <li key={mood} role="listitem">
+          <li key={mood}>
             <button aria-expanded="false" aria-label={`Show ${mood} film picks`}>
               {mood}
             </button>
@@ -56,11 +56,11 @@ function LandingStructure() {
   return (
     <div>
       <section aria-labelledby="hero-heading">
-        <h1 id="hero-heading">Find films for when you're feeling nostalgic.</h1>
-        <button>Get Started — It's Free</button>
+        <h1 id="hero-heading">Find films for when you&apos;re feeling nostalgic.</h1>
+        <button>Get Started - It&apos;s Free</button>
       </section>
       <section id="mood-demo" aria-labelledby="mood-demo-heading">
-        <h2 id="mood-demo-heading">Pick a mood. We'll find your movie.</h2>
+        <h2 id="mood-demo-heading">Pick a mood. We&apos;ll find your movie.</h2>
       </section>
       <section id="how-it-works" aria-labelledby="how-it-works-heading">
         <h2 id="how-it-works-heading">Built around your taste.</h2>

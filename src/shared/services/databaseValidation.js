@@ -18,7 +18,7 @@ async function testDuplicateFeedbackPrevention(userId, movieId) {
   
   try {
     // AGGRESSIVE cleanup - delete ALL feedback for this movie+user combo
-    const { error: cleanupError } = await supabase
+    const { error: _cleanupError } = await supabase
       .from('user_movie_feedback')
       .delete()
       .eq('user_id', userId)
@@ -116,7 +116,7 @@ async function testDuplicateRatingPrevention(userId, movieId) {
     }
 
     // Try to insert duplicate - should update via unique constraint
-    const { data, error: error2 } = await supabase
+    const { data: _data, error: error2 } = await supabase
       .from('user_ratings')
       .upsert({
         user_id: userId,

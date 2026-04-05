@@ -17,7 +17,6 @@ export default function MovieCard({
 
   return (
     <article
-      tabIndex={0}
       className="relative group cursor-pointer overflow-hidden rounded-xl border border-white/10 bg-neutral-900/70 shadow-lg transition-shadow duration-300 focus-within:shadow-2xl hover:shadow-2xl outline-none"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}

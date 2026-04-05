@@ -1,11 +1,11 @@
 // src/shared/hooks/useMoodSession.js
-import { useState, useEffect } from 'react';
+import { useCallback, useState } from 'react';
 import { supabase } from '@/shared/lib/supabase/client';
 
 export function useMoodSession() {
   const [sessionId, setSessionId] = useState(null);
 
-  const createMoodSession = async (moodId, viewingContextId, experienceTypeId, energyLevel = 5, intensityOpenness = 5) => {
+  const createMoodSession = useCallback(async (moodId, viewingContextId, experienceTypeId, energyLevel = 5, intensityOpenness = 5) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -35,9 +35,9 @@ export function useMoodSession() {
       console.error('Error creating mood session:', error);
       return null;
     }
-  };
+  }, []);
 
-  const endMoodSession = async () => {
+  const endMoodSession = useCallback(async () => {
     if (!sessionId) return;
 
     try {
@@ -50,7 +50,7 @@ export function useMoodSession() {
     } catch (error) {
       console.error('Error ending mood session:', error);
     }
-  };
+  }, [sessionId]);
 
   return { sessionId, createMoodSession, endMoodSession };
 }

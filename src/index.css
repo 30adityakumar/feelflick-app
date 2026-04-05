@@ -1066,8 +1066,11 @@ body {
   inset: 0;
   width: 100vw;
   height: 100vh;
-  background: linear-gradient(135deg, #1e293b 0%, #7e22ce 100%),
-    url('/collage.jpg') center/cover no-repeat;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(236, 72, 153, 0.2), transparent 35%),
+    radial-gradient(circle at 80% 25%, rgba(168, 85, 247, 0.25), transparent 30%),
+    radial-gradient(circle at 50% 80%, rgba(59, 130, 246, 0.14), transparent 38%),
+    linear-gradient(135deg, #1e293b 0%, #7e22ce 100%);
   filter: brightness(0.4) blur(8px);
   z-index: 0;
   transition: filter var(--transition-base);

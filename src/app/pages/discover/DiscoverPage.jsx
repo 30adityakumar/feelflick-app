@@ -32,7 +32,7 @@ useEffect(() => {
       endMoodSession();
     }
   };
-}, [selectedMood, viewingContext, experienceType]);
+}, [selectedMood, viewingContext, experienceType, createMoodSession, endMoodSession, sessionId]);
 
 // Track recommendations shown
 useEffect(() => {
@@ -41,7 +41,7 @@ useEffect(() => {
       trackRecommendationShown(sessionId, movie.movie_id, idx + 1, movie.final_score);
     });
   }
-}, [sessionId, recommendations]);
+}, [sessionId, recommendations, trackRecommendationShown]);
 
   const moods = [
     { id: 1, name: 'Cozy', emoji: '☕', description: 'Warm and comforting', color: 'from-orange-500 to-amber-600' },
@@ -94,7 +94,7 @@ useEffect(() => {
             How do you feel?
           </h1>
           <p className="text-white/60 text-lg">
-            Tell us your mood and we'll find the perfect movie
+            Tell us your mood and we&apos;ll find the perfect movie
           </p>
         </div>
 
@@ -124,7 +124,7 @@ useEffect(() => {
         {selectedMood && (
           <div className="mb-12 space-y-8">
             <div>
-              <h2 className="text-xl font-bold mb-4">Who's watching?</h2>
+              <h2 className="text-xl font-bold mb-4">Who&apos;s watching?</h2>
               <div className="flex gap-3 flex-wrap">
                 {viewingContexts.map(ctx => (
                   <button
@@ -186,8 +186,9 @@ useEffect(() => {
                 </h2>
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
                   {recommendations.map((movie, idx) => (
-                    <div
+                    <button
                       key={movie.movie_id}
+                      type="button"
                       onClick={() => {
                         if (sessionId) {
                           trackRecommendationClicked(sessionId, movie.movie_id);
@@ -196,7 +197,7 @@ useEffect(() => {
                           state: { sessionId, movieId: movie.movie_id }
                         });
                       }}
-                      className="bg-white/5 rounded-lg overflow-hidden hover:bg-white/10 hover:scale-105 transition-all cursor-pointer"
+                      className="bg-white/5 rounded-lg overflow-hidden hover:bg-white/10 hover:scale-105 transition-all cursor-pointer text-left w-full"
                     >
                       {movie.poster_path ? (
                         <img
@@ -221,7 +222,7 @@ useEffect(() => {
                         <h3 className="font-medium text-sm line-clamp-2">{movie.title}</h3>
                           <MovieExplanation movie={movie} moodName={moods.find(m => m.id === selectedMood)?.name} />
                       </div>
-                    </div>
+                    </button>
                   ))}
                 </div>
               </div>

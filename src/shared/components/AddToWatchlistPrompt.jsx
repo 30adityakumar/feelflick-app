@@ -191,9 +191,11 @@ export default function AddToWatchlistPrompt({
   return (
     <>
       {/* Backdrop */}
-      <div 
+      <button
+        type="button"
         className="add-watchlist-prompt__backdrop"
         onClick={onClose}
+        aria-label="Close add-to-watchlist prompt"
       />
 
       {/* Modal */}
@@ -310,7 +312,7 @@ export default function AddToWatchlistPrompt({
                   How urgent is it?
                 </h3>
                 <p className="add-watchlist-prompt__step-description">
-                  We'll prioritize it in your watchlist
+                  We&apos;ll prioritize it in your watchlist
                 </p>
               </div>
 
@@ -396,7 +398,7 @@ export default function AddToWatchlistPrompt({
                 Added to Watchlist!
               </h3>
               <p className="add-watchlist-prompt__success-description">
-                We'll use this to personalize your recommendations
+                We&apos;ll use this to personalize your recommendations
               </p>
             </div>
           )}

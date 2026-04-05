@@ -54,7 +54,7 @@ export default function DatabaseValidationPanel({ movieId, internalMovieId }) {
     }
 
     setIsRunning(true)
-    const success = await quickHealthCheck(user.id)
+    await quickHealthCheck(user.id)
     setIsRunning(false)
   }
 

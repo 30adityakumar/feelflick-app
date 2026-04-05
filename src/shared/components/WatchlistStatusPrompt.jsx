@@ -87,8 +87,6 @@ export default function WatchlistStatusPrompt({
     setLoading(true)
 
     try {
-      // Lower priority by 2 (minimum 1)
-      const newPriority = Math.max(1, (entry.priority || 5) - 2)
       await setStatus('want_to_watch') // Ensure it stays as want_to_watch
       
       // Note: Priority update would need a separate call if you want to change it
@@ -138,9 +136,11 @@ export default function WatchlistStatusPrompt({
   return (
     <>
       {/* Backdrop */}
-      <div 
+      <button
+        type="button"
         className="watchlist-status-prompt__backdrop"
         onClick={onClose}
+        aria-label="Close watchlist status prompt"
       />
 
       {/* Modal */}
@@ -191,7 +191,7 @@ export default function WatchlistStatusPrompt({
                 Did you watch this movie?
               </h3>
               <p className="watchlist-status-prompt__question-description">
-                It's been in your watchlist for {daysInWatchlist} days. 
+                It&apos;s been in your watchlist for {daysInWatchlist} days.
                 Let us know so we can improve your recommendations!
               </p>
 
@@ -294,7 +294,7 @@ export default function WatchlistStatusPrompt({
                   </div>
                   <div className="watchlist-status-prompt__option-content">
                     <strong>Keep it as is</strong>
-                    <span>I'll watch it soon</span>
+                    <span>I&apos;ll watch it soon</span>
                   </div>
                 </button>
 
@@ -308,7 +308,7 @@ export default function WatchlistStatusPrompt({
                   </div>
                   <div className="watchlist-status-prompt__option-content">
                     <strong>Remove it</strong>
-                    <span>I'm not interested anymore</span>
+                    <span>I&apos;m not interested anymore</span>
                   </div>
                 </button>
               </div>
@@ -333,7 +333,7 @@ export default function WatchlistStatusPrompt({
                 Thanks for the update!
               </h3>
               <p className="watchlist-status-prompt__success-description">
-                We'll use this to improve your recommendations
+                We&apos;ll use this to improve your recommendations
               </p>
             </div>
           )}

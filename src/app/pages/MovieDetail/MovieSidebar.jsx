@@ -1,4 +1,4 @@
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight, Tag } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { IMG } from './utils'
 

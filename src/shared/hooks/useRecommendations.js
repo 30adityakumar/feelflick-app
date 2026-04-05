@@ -107,17 +107,9 @@ function useAuthState() {
     return () => {
       store.listeners.delete(listener)
     }
-  }, [])
+  }, [store])
 
   return state
-}
-
-/**
- * Backwards-compatible helper: get current user ID from Supabase session.
- */
-function useUserId() {
-  const { userId } = useAuthState()
-  return userId
 }
 
 /**
@@ -173,7 +165,7 @@ export function useGenreRecommendations(options = {}) {
     return () => {
       isCancelled = true
     }
-  }, [userId, authReady, enabled, limit, excludeKey])
+  }, [userId, authReady, enabled, limit, excludeKey, stableExcludeIds])
 
   return { data, loading, error }
 }
@@ -376,7 +368,7 @@ export function useTopPick(options = {}) {
     return () => {
       isCancelled = true
     }
-  }, [userId, enabled, authReady, excludeKey, refreshKey])
+  }, [userId, enabled, authReady, excludeKey, refreshKey, stableExcludeTmdbIds])
 
   const refetch = useCallback(() => {
     forceRefreshNextRef.current = true
@@ -447,7 +439,7 @@ export function useQuickPicks(options = {}) {
     return () => {
       isCancelled = true
     }
-  }, [userId, authReady, enabled, limit, excludeKey, refreshKey])
+  }, [userId, authReady, enabled, limit, excludeKey, refreshKey, stableExcludeIds])
 
   const refetch = useCallback(() => {
     forceRefreshNextRef.current = true
@@ -512,7 +504,7 @@ export function useBecauseYouWatchedRows(options = {}) {
     return () => {
       isCancelled = true
     }
-  }, [userId, authReady, enabled, maxSeeds, limitPerSeed, excludeKey])
+  }, [userId, authReady, enabled, maxSeeds, limitPerSeed, excludeKey, stableExcludeIds])
 
   return { data, loading, error }
 }
@@ -571,7 +563,7 @@ export function useHiddenGems(options = {}) {
     return () => {
       isCancelled = true
     }
-  }, [userId, authReady, enabled, limit, excludeKey])
+  }, [userId, authReady, enabled, limit, excludeKey, stableExcludeIds])
 
   return { data, loading, error }
 }
@@ -630,7 +622,7 @@ export function useTrendingForYou(options = {}) {
     return () => {
       isCancelled = true
     }
-  }, [userId, authReady, enabled, limit, excludeKey])
+  }, [userId, authReady, enabled, limit, excludeKey, stableExcludeIds])
 
   return { data, loading, error }
 }
@@ -698,7 +690,7 @@ export function useSlowContemplative(options = {}) {
       isCancelled = true
       controller.abort()
     }
-  }, [userId, authReady, enabled, limit, excludeKey])
+  }, [userId, authReady, enabled, limit, excludeKey, stableExcludeIds])
 
   return { data, loading, error }
 }
@@ -761,7 +753,7 @@ export function useQuickWatches(options = {}) {
       isCancelled = true
       controller.abort()
     }
-  }, [userId, authReady, enabled, limit, excludeKey])
+  }, [userId, authReady, enabled, limit, excludeKey, stableExcludeIds])
 
   return { data, loading, error }
 }

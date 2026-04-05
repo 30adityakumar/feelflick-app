@@ -14,8 +14,9 @@ import MovieSentimentWidget from '@/shared/components/MovieSentimentWidget'
 import { useMovieRating } from '@/shared/hooks/useMovieRating'
 import { usePageView } from '@/shared/hooks/useInteractionTracking'
 import { trackTrailerPlay, trackShare } from '@/shared/services/interactions'
+import { fetchJson, getMovieDetails } from '@/shared/api/tmdb'
 
-import { IMG, TMDB, formatRuntime, yearOf } from './utils'
+import { IMG, formatRuntime, yearOf } from './utils'
 import MovieCast from './MovieCast'
 import MovieVideos from './MovieVideos'
 import MovieImages from './MovieImages'
@@ -68,23 +69,19 @@ export default function MovieDetail() {
       setLoading(true)
       setError('')
       try {
-        if (!TMDB.key) throw new Error('TMDB key missing')
-        const [d, c, v, r, i, k, rel] = await Promise.all([
-          fetch(`${TMDB.base}/movie/${id}?api_key=${TMDB.key}&language=en-US`).then(r => r.json()),
-          fetch(`${TMDB.base}/movie/${id}/credits?api_key=${TMDB.key}&language=en-US`).then(r => r.json()),
-          fetch(`${TMDB.base}/movie/${id}/videos?api_key=${TMDB.key}&language=en-US`).then(r => r.json()),
-          fetch(`${TMDB.base}/movie/${id}/recommendations?api_key=${TMDB.key}&language=en-US&page=1`).then(r => r.json()),
-          fetch(`${TMDB.base}/movie/${id}/images?api_key=${TMDB.key}`).then(r => r.json()),
-          fetch(`${TMDB.base}/movie/${id}/keywords?api_key=${TMDB.key}`).then(r => r.json()),
-          fetch(`${TMDB.base}/movie/${id}/release_dates?api_key=${TMDB.key}`).then(r => r.json()),
+        const [d, rel] = await Promise.all([
+          getMovieDetails(id, {
+            append: 'videos,images,recommendations,credits,keywords',
+          }),
+          fetchJson(`/movie/${id}/release_dates`),
         ])
         if (abort) return
         if (d?.success === false || d?.status_code) throw new Error(d?.status_message || 'Failed to load')
         setMovie(d)
-        setCredits({ cast: c?.cast?.slice(0, 10) || [], crew: c?.crew || [] })
-        setVideos(v?.results || [])
-        setRecs(r?.results?.slice(0, 12) || [])
-        setImages({ backdrops: i?.backdrops?.slice(0, 6) || [] })
+        setCredits({ cast: d?.credits?.cast?.slice(0, 10) || [], crew: d?.credits?.crew || [] })
+        setVideos(d?.videos?.results || [])
+        setRecs(d?.recommendations?.results?.slice(0, 12) || [])
+        setImages({ backdrops: d?.images?.backdrops?.slice(0, 6) || [] })
         const usCert = rel?.results?.find(r => r.iso_3166_1 === 'US')?.release_dates?.[0]?.certification || ''
         setCertification(usCert)
       } catch (e) {
@@ -102,9 +99,7 @@ export default function MovieDetail() {
     let active = true
     async function loadProviders() {
       try {
-        if (!TMDB.key) return
-        const res = await fetch(`${TMDB.base}/movie/${id}/watch/providers?api_key=${TMDB.key}`)
-        const json = await res.json()
+        const json = await fetchJson(`/movie/${id}/watch/providers`)
         const area = json?.results?.['US'] || null
         if (!active) return
         if (area) {
@@ -185,11 +180,11 @@ export default function MovieDetail() {
   const director = useMemo(() => credits.crew?.find(c => c.job === 'Director'), [credits])
   const writer   = useMemo(() => credits.crew?.find(c => c.job === 'Screenplay' || c.job === 'Writer' || c.job === 'Story'), [credits])
 
-  async function ensureAuthed() {
+  const ensureAuthed = useCallback(async () => {
     if (user?.id) return true
     navigate('/auth', { replace: true, state: { from: `/movie/${id}` } })
     return false
-  }
+  }, [user?.id, navigate, id])
 
   const handleToggleWatchlist = useCallback(async () => {
     if (!await ensureAuthed()) return
@@ -208,7 +203,11 @@ export default function MovieDetail() {
   const handleShare = useCallback(async () => {
     if (internalMovieId) trackShare(internalMovieId, 'movie_detail')
     if (navigator.share) {
-      try { await navigator.share({ title: movie?.title, text: movie?.overview, url: window.location.href }) } catch {}
+      try {
+        await navigator.share({ title: movie?.title, text: movie?.overview, url: window.location.href })
+      } catch {
+        return
+      }
     }
   }, [internalMovieId, movie])
 
@@ -635,7 +634,7 @@ export default function MovieDetail() {
         />
       )}
 
-      {process.env.NODE_ENV === 'development' && movie?.id && (
+      {import.meta.env.DEV && movie?.id && (
         <DatabaseValidationPanel movieId={movie.id} internalMovieId={internalMovieId} />
       )}
     </div>

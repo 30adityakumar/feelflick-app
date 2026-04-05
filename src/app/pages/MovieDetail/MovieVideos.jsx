@@ -5,7 +5,7 @@ export default function MovieVideos({ videos, internalMovieId }) {
   const filtered = (videos || []).filter((v) => v.site === 'YouTube').slice(0, 6)
   if (!filtered.length) return null
 
-  const handleVideoClick = (video) => {
+  const handleVideoClick = () => {
     if (internalMovieId) {
       trackTrailerPlay(internalMovieId, 'videos_section')
     }

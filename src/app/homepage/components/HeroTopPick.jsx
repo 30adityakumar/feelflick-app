@@ -13,13 +13,11 @@ import {
   RefreshCw,
 } from 'lucide-react'
 
-import { tmdbImg } from '@/shared/api/tmdb'
+import { fetchJson, tmdbImg } from '@/shared/api/tmdb'
 import { useTopPick } from '@/shared/hooks/useRecommendations'
 import { supabase } from '@/shared/lib/supabase/client'
 import { useUserMovieStatus } from '@/shared/hooks/useUserMovieStatus'
 import { updateImpression } from '@/shared/services/recommendations'
-
-const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY
 
 function Tooltip({ children, label }) {
   const [visible, setVisible] = useState(false)
@@ -185,7 +183,7 @@ export default function HeroTopPick({
   // Fetch watch providers (abortable)
   useEffect(() => {
     const tmdbId = movie?.tmdb_id
-    if (!tmdbId || !TMDB_API_KEY) {
+    if (!tmdbId) {
       setProviders(null)
       return
     }
@@ -194,17 +192,9 @@ export default function HeroTopPick({
 
     async function loadProviders() {
       try {
-        const res = await fetch(
-          `https://api.themoviedb.org/3/movie/${tmdbId}/watch/providers?api_key=${TMDB_API_KEY}`,
-          { signal: controller.signal }
-        )
-
-        if (!res.ok) {
-          setProviders(null)
-          return
-        }
-
-        const data = await res.json()
+        const data = await fetchJson(`/movie/${tmdbId}/watch/providers`, {
+          signal: controller.signal,
+        })
         const regionData = data?.results?.CA || data?.results?.US || null
         setProviders(regionData)
       } catch (err) {
@@ -427,7 +417,7 @@ export default function HeroTopPick({
             style={{ objectPosition: 'center 45%' }}
             onLoad={() => setBackdropLoaded(true)}
             loading="eager"
-            fetchpriority="high"
+            fetchPriority="high"
           />
         )}
 
@@ -486,7 +476,7 @@ export default function HeroTopPick({
                   } group-hover:scale-105`}
                   onLoad={() => setPosterLoaded(true)}
                   loading="eager"
-                  fetchpriority="high"
+                  fetchPriority="high"
                 />
 
                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">

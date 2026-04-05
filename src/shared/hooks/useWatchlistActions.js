@@ -21,8 +21,7 @@ import {
   updateWatchlistStatus,
   updateWatchlistPriority,
   updateWatchlistEntry,
-  getWatchlistEntry,
-  isInWatchlist
+  getWatchlistEntry
 } from '@/shared/services/watchlist'
 
 /**
@@ -144,10 +143,11 @@ export function useWatchlistActions(movieId, options = {}) {
     setSubmitting(true)
     setError(null)
 
+    const previousEntry = entry
+
     try {
       // Optimistic update
       setIsInList(false)
-      const previousEntry = entry
       setEntry(null)
 
       // Remove from database

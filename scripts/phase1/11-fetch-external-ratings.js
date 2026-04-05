@@ -17,7 +17,7 @@ async function fetchOMDBRatings(imdbId) {
   
   try {
     const response = await axios.get(
-      `http://www.omdbapi.com/?i=${imdbId}&apikey=${OMDB_API_KEY}`
+      `https://www.omdbapi.com/?i=${imdbId}&apikey=${OMDB_API_KEY}`
     );
     
     if (response.data.Response === 'True') {
@@ -51,7 +51,7 @@ async function fetchOMDBRatings(imdbId) {
 
 async function fetchExternalRatings() {
   console.log('🎯 Fetching external ratings from OMDB...\n');
-  console.log('NOTE: You need an OMDB API key. Get free key at: http://www.omdbapi.com/apikey.aspx\n');
+  console.log('NOTE: You need an OMDB API key. Get free key at: https://www.omdbapi.com/apikey.aspx\n');
 
   // Get movies with IMDb IDs
   const { data: movies, error } = await supabase

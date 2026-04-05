@@ -21,21 +21,17 @@ export default function MoodQuickSelect({ userId }) {
     <section aria-label="Mood picks">
       {/* Header — matches CarouselRow visual weight */}
       <div className="px-4 sm:px-6 lg:px-8 mb-3 sm:mb-4">
-        <div className="flex items-center gap-3">
-          <h2 className="text-[1.05rem] sm:text-[1.2rem] font-bold text-white tracking-tight whitespace-nowrap">
-            How are you feeling tonight?
-          </h2>
-          <div className="h-px flex-1 bg-gradient-to-r from-white/15 via-white/5 to-transparent" />
+        <div className="flex items-center justify-end mb-2">
           <button
             onClick={() => navigate('/discover')}
-            className="shrink-0 text-xs font-semibold text-white/35 hover:text-white/65 transition-colors duration-200"
+            className="text-xs font-semibold text-white/30 hover:text-white/60 transition-colors duration-200"
           >
             All moods →
           </button>
         </div>
 
         {/* Mood pills */}
-        <div className="flex gap-2 overflow-x-auto scrollbar-none pt-3 pb-0.5">
+        <div className="flex gap-2 overflow-x-auto scrollbar-none pb-0.5">
           {FEATURED_MOODS.map(mood => (
             <button
               key={mood.id}

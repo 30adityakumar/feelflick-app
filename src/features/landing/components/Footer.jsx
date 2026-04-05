@@ -123,7 +123,7 @@ export default function Footer() {
               <h3 className="text-white/80 font-bold text-xs tracking-[0.16em] uppercase mb-5">
                 Product
               </h3>
-              <ul className="space-y-3.5" role="list">
+              <ul className="space-y-3.5">
                 <li><FooterLink onClick={() => scrollToSection('how-it-works')}>How it Works</FooterLink></li>
                 <li><FooterLink to="/browse">Browse Movies</FooterLink></li>
               </ul>
@@ -133,7 +133,7 @@ export default function Footer() {
               <h3 className="text-white/80 font-bold text-xs tracking-[0.16em] uppercase mb-5">
                 Company
               </h3>
-              <ul className="space-y-3.5" role="list">
+              <ul className="space-y-3.5">
                 <li><FooterLink to="/about">About Us</FooterLink></li>
               </ul>
             </div>
@@ -142,7 +142,7 @@ export default function Footer() {
               <h3 className="text-white/80 font-bold text-xs tracking-[0.16em] uppercase mb-5">
                 Legal
               </h3>
-              <ul className="space-y-3.5" role="list">
+              <ul className="space-y-3.5">
                 <li><FooterLink to="/privacy">Privacy Policy</FooterLink></li>
                 <li><FooterLink to="/terms">Terms of Service</FooterLink></li>
               </ul>

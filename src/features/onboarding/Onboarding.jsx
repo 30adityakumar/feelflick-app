@@ -7,8 +7,7 @@ import {
   ChevronLeft, ChevronRight
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-
-const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY
+import { fetchJson, getTrending, searchMovies } from '@/shared/api/tmdb'
 
 export default function Onboarding() {
   const navigate = useNavigate()
@@ -38,10 +37,21 @@ export default function Onboarding() {
   // Fetch trending movies when entering movie step
   useEffect(() => {
     if (step !== 1) return
-    fetch(`https://api.themoviedb.org/3/trending/movie/week?api_key=${TMDB_KEY}`)
-      .then(r => r.json())
-      .then(data => setTrendingMovies((data.results || []).filter(m => m.poster_path).slice(0, 12)))
-      .catch(() => {})
+
+    let active = true
+    ;(async () => {
+      try {
+        const data = await getTrending('movie', 'week')
+        if (!active) return
+        setTrendingMovies((data.results || []).filter(m => m.poster_path).slice(0, 12))
+      } catch {
+        if (active) setTrendingMovies([])
+      }
+    })()
+
+    return () => {
+      active = false
+    }
   }, [step])
 
   // Session management
@@ -84,10 +94,7 @@ export default function Onboarding() {
     timeout = setTimeout(() => {
       (async () => {
         try {
-          const r = await fetch(
-            `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${encodeURIComponent(query)}`
-          )
-          const data = await r.json()
+          const data = await searchMovies(query)
           if (!active) return
           const all = (data.results || [])
             .filter(m => m.poster_path)
@@ -144,8 +151,7 @@ export default function Onboarding() {
 
       let fullMovie = tmdbMovie
       try {
-        const detailsRes = await fetch(`https://api.themoviedb.org/3/movie/${tmdbMovie.id}?api_key=${TMDB_KEY}`)
-        if (detailsRes.ok) fullMovie = await detailsRes.json()
+        fullMovie = await fetchJson(`/movie/${tmdbMovie.id}`)
       } catch (err) {
         console.warn('Could not fetch full movie details, using search data:', err)
       }
@@ -365,7 +371,7 @@ export default function Onboarding() {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes float-slow { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(-20px, -20px); } }
         @keyframes float-slow-delayed { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(20px, 20px); } }
         @keyframes bounce-gentle { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-10px) scale(1.05); } }
@@ -459,7 +465,7 @@ function WelcomeStep({ onNext, name }) {
             onClick={onNext}
             className="group inline-flex items-center gap-3 px-10 py-4 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-base shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
           >
-            Let's start
+            Let&apos;s start
             <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
           </button>
         </div>

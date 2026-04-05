@@ -230,9 +230,11 @@ export function SentimentPickerPopup({
       {isOpen && (
         <>
           {/* Backdrop */}
-          <div 
+          <button
+            type="button"
             className="sentiment-picker-popup__backdrop"
             onClick={() => setIsOpen(false)}
+            aria-label="Close sentiment picker"
           />
 
           {/* Picker */}

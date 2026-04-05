@@ -17,7 +17,7 @@
  *   />
  */
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { Star, X } from 'lucide-react'
 
 export default function StarRating({ 

@@ -93,67 +93,6 @@ export async function setUserRating(userId, movieId, rating) {
   }
 }
 
-
-/**
- * Set or update user's rating
- * @param {string} userId 
- * @param {number} movieId - Internal movie ID (NOT TMDB ID!)
- * @param {number} rating - Integer 1-10
- * @param {string} source - Where rating came from
- * @returns {Promise<boolean>}
- */
-export async function setUserRating(userId, movieId, rating, source = 'movie_detail') {
-  // Validate
-  if (!userId || !movieId) {
-    console.error('[setUserRating] Missing userId or movieId')
-    return false
-  }
-
-  if (!Number.isInteger(rating) || rating < 1 || rating > 10) {
-    console.error('[setUserRating] Rating must be integer 1-10, got:', rating)
-    return false
-  }
-
-  try {
-    // First verify movie exists in database
-    const { data: movieExists, error: checkError } = await supabase
-      .from('movies')
-      .select('id')
-      .eq('id', movieId)
-      .maybeSingle()
-
-    if (checkError || !movieExists) {
-      console.error('[setUserRating] Movie not in database:', movieId)
-      return false
-    }
-
-    // Now safe to insert/update rating
-    const { error } = await supabase
-      .from('user_ratings')
-      .upsert({
-        user_id: userId,
-        movie_id: movieId,
-        rating: rating,
-        rated_at: new Date().toISOString(),
-        source: source
-      }, {
-        onConflict: 'user_id,movie_id',
-        ignoreDuplicates: false
-      })
-
-    if (error) {
-      console.error('[setUserRating] Upsert error:', error)
-      return false
-    }
-
-    console.log(`[setUserRating] ✅ Saved: ${rating}/10 for movie ${movieId}`)
-    return true
-  } catch (err) {
-    console.error('[setUserRating] Exception:', err)
-    return false
-  }
-}
-
 /**
  * Delete user's rating
  * @param {string} userId 

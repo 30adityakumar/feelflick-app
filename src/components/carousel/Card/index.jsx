@@ -24,10 +24,10 @@ export const Card = memo(
         className={`flex-none snap-start px-[2px] ${className}`}
         style={{
           width,
-          height: isExpanded ? height * 1.08 : height,
+          height: isExpanded ? Math.round(height * 1.55) : height,
           scrollSnapAlign: 'start',
           marginRight: 'var(--gap, 1.25rem)',
-          transition: 'height 160ms ease-out',
+          transition: 'height 280ms cubic-bezier(0.4, 0, 0.2, 1)',
         }}
         onMouseEnter={() => onHover?.(item.id)}
         onMouseLeave={() => onLeave?.()}
@@ -38,14 +38,13 @@ export const Card = memo(
         {...props}
       >
         <article
-          style={{ willChange: 'transform' }}
           className={`
-            relative w-full h-full rounded-xl overflow-hidden bg-neutral-900
-            transition-transform transition-shadow duration-150 ease-out
+            relative w-full h-full rounded-xl overflow-hidden bg-neutral-950
+            transition-all duration-300 ease-out
             ${
               isExpanded
-                ? 'scale-[1.05] -translate-y-[3px] shadow-2xl shadow-black/75 z-20'
-                : 'hover:scale-[1.02] hover:-translate-y-[2px] shadow-xl shadow-black/60 z-10'
+                ? 'shadow-2xl shadow-purple-950/60 z-20 ring-1 ring-purple-500/40'
+                : 'bg-neutral-900 hover:scale-[1.02] hover:-translate-y-[2px] hover:shadow-xl hover:shadow-black/60 hover:ring-1 hover:ring-purple-500/25'
             }
           `}
         >

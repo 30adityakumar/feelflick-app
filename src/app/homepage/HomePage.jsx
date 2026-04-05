@@ -1,23 +1,15 @@
 // src/app/homepage/HomePage.jsx
-import { useEffect, useMemo, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
-import { Layers } from 'lucide-react'
 
 import { supabase } from '@/shared/lib/supabase/client'
 
 import HeroTopPick from './components/HeroTopPick'
-import MoodQuickSelect from './components/MoodQuickSelect'
-import QuickPicksRow from './components/QuickPicksRow'
-import PersonalizedCarouselRow from './components/PersonalizedCarouselRow'
 import BecauseYouWatchedSection from './components/BecauseYouWatchedSection'
 import HiddenGemsRow from './components/HiddenGemsRow'
 import TrendingForYouRow from './components/TrendingForYouRow'
-import SlowContemplativeRow from './components/SlowContemplativeRow'
-import QuickWatchesRow from './components/QuickWatchesRow'
 
 import LazyRow from '@/shared/components/LazyRow'
-import { useGenreRecommendations } from '@/shared/hooks/useRecommendations'
-import { useStaggeredEnabled } from '@/shared/hooks/useStaggeredEnabled'
 import { SectionErrorBoundary } from '@/app/ErrorBoundary'
 
 function pickFirstDefined(...values) {
@@ -67,91 +59,35 @@ export default function HomePage() {
     }
   }, [userId])
 
-  // Track the current hero movie so other rows can exclude it without re-fetching hero
-  const [heroMovie, setHeroMovie] = useState(null)
-
-  // If user changes (login/logout), clear hero state to avoid stale exclusions
-  useEffect(() => {
-    setHeroMovie(null)
-  }, [userId])
-
-  const handleHeroMovie = useCallback((payload) => {
-    // payload: { internalId, tmdbId, movie }
-    setHeroMovie(payload || null)
-  }, [])
-
-  const heroExcludeIds = useMemo(() => {
-    const id = heroMovie?.internalId
-    return typeof id === 'number' ? [id] : []
-  }, [heroMovie?.internalId])
-
-  // Staggered enables for above/below the fold work
-  const enabledGenre = useStaggeredEnabled(50)
-
-  // Genre row (optional). With your updated hooks, passing userId avoids extra auth waiting.
-  const genre = useGenreRecommendations({
-    limit: 20,
-    enabled: enabledGenre,
-    userId,
-  })
-
-  const genreTitle = useMemo(() => 'Handpicked from your favorite genres', [])
-
   return (
     <div className="min-h-screen">
       {/* HERO (above the fold) */}
       <HeroTopPick
         userId={userId}
         preloadedUser={preloadedUser}
-        onHeroMovie={handleHeroMovie}
       />
 
       {/* CONTENT */}
       <div className="relative">
+        {/* Hero → content seam */}
         <div
           aria-hidden
           className="pointer-events-none absolute -top-8 left-0 right-0 h-12 bg-gradient-to-b from-purple-500/10 via-black/0 to-black/0"
         />
+        {/* Ambient purple glow — FeelFlick signature */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute top-0 left-0 w-[800px] h-[600px] -translate-y-1/3 opacity-30"
+          style={{ background: 'radial-gradient(ellipse at 5% 10%, rgba(88,28,135,0.55) 0%, transparent 65%)' }}
+        />
 
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10">
-          <div className="pt-6 sm:pt-8 space-y-10 sm:space-y-12">
+          <div className="pt-4 sm:pt-6 space-y-4 sm:space-y-6">
 
-            {/* MOOD QUICK-SELECT — FeelFlick's core interaction, first thing on scroll */}
-            <section aria-label="Mood picks">
-              <SectionErrorBoundary label="Mood Picks">
-                <MoodQuickSelect userId={userId} />
-              </SectionErrorBoundary>
-            </section>
-
-            {/* Quick picks (exclude current hero) */}
-            <section aria-label="Quick picks">
-              <SectionErrorBoundary label="Quick Picks">
-                <QuickPicksRow userId={userId} excludeIds={heroExcludeIds} />
-              </SectionErrorBoundary>
-            </section>
-
-            {/* Genre row */}
-            <section aria-label="Genre recommendations">
-              <SectionErrorBoundary label="Genre Recommendations">
-                <PersonalizedCarouselRow
-                  title={genreTitle}
-                  movies={genre.data || []}
-                  loading={genre.loading}
-                  error={genre.error}
-                  icon={Layers}
-                  rowId="genre-recs"
-                  placement="genre"
-                />
-              </SectionErrorBoundary>
-            </section>
-
-            {/* Lazy rows (below fold) */}
+            {/* Three curated rows */}
             <div
-              className="space-y-10 sm:space-y-12"
-              style={{
-                contentVisibility: 'auto',
-                containIntrinsicSize: '1px 1800px',
-              }}
+              className="space-y-4 sm:space-y-6"
+              style={{ contentVisibility: 'auto', containIntrinsicSize: '1px 1200px' }}
             >
               <LazyRow>
                 <SectionErrorBoundary label="Because You Watched">
@@ -170,21 +106,9 @@ export default function HomePage() {
                   <TrendingForYouRow userId={userId} />
                 </SectionErrorBoundary>
               </LazyRow>
-
-              <LazyRow>
-                <SectionErrorBoundary label="Slow & Contemplative">
-                  <SlowContemplativeRow userId={userId} />
-                </SectionErrorBoundary>
-              </LazyRow>
-
-              <LazyRow>
-                <SectionErrorBoundary label="Quick Watches">
-                  <QuickWatchesRow userId={userId} />
-                </SectionErrorBoundary>
-              </LazyRow>
             </div>
 
-            <div className="h-16 sm:h-24" />
+            <div className="h-10 sm:h-16" />
           </div>
         </div>
       </div>

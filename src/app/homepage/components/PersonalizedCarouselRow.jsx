@@ -79,7 +79,7 @@ export default function PersonalizedCarouselRow({
   const titleNode =
     typeof safeTitle === 'string' ? (
       <span className="inline-flex items-center gap-2">
-        {Icon ? <Icon className="h-4 w-4 text-white/70" /> : null}
+        {Icon ? <Icon className="h-4 w-4 text-purple-400" /> : null}
         <span>{safeTitle}</span>
       </span>
     ) : (

@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { X, Search as SearchIcon, Clock } from 'lucide-react'
+import { searchMovies } from '@/shared/api/tmdb'
 
 export default function SearchBar({ open, onClose }) {
   const nav = useNavigate()
@@ -60,12 +61,7 @@ export default function SearchBar({ open, onClose }) {
       }
       setLoading(true)
       try {
-        const r = await fetch(
-          `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${encodeURIComponent(
-            debouncedQ
-          )}`
-        )
-        const j = await r.json()
+        const j = await searchMovies(debouncedQ)
         if (!abort) {
           const list = (j?.results || [])
             .filter((m) => m.poster_path)
@@ -122,21 +118,16 @@ export default function SearchBar({ open, onClose }) {
 
   return (
     <>
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
-        onClick={onClose}
-        aria-hidden="true"
-      />
-
       {/* Search Modal */}
-      <div
-        className="fixed inset-0 z-[61] flex items-start justify-center pt-4 md:pt-20 px-4 pb-20 overflow-y-auto"
-        onClick={(e) => e.target === e.currentTarget && onClose?.()}
-      >
+      <div className="fixed inset-0 z-[61] flex items-start justify-center pt-4 md:pt-20 px-4 pb-20 overflow-y-auto">
+        <button
+          type="button"
+          className="fixed inset-0 z-0 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={onClose}
+          aria-label="Close search modal"
+        />
         <div
-          className="w-full max-w-3xl bg-[#0d0d0d]/98 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/10 overflow-hidden animate-in slide-in-from-top-4 duration-300"
-          onClick={(e) => e.stopPropagation()}
+          className="relative z-10 w-full max-w-3xl bg-[#0d0d0d]/98 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/10 overflow-hidden animate-in slide-in-from-top-4 duration-300"
           role="dialog"
           aria-modal="true"
           aria-label="Search movies"
@@ -183,7 +174,7 @@ export default function SearchBar({ open, onClose }) {
                   Search for your favorite movies
                 </p>
                 <p className="text-white/40 text-xs md:text-sm mt-2">
-                  Start typing to find what you're looking for
+                  Start typing to find what you&apos;re looking for
                 </p>
               </div>
             )}
@@ -228,7 +219,7 @@ export default function SearchBar({ open, onClose }) {
             {q && !loading && results.length === 0 && (
               <div className="px-6 py-12 text-center">
                 <p className="text-white/60 text-sm md:text-base">
-                  No movies found for "{q}"
+                  No movies found for &quot;{q}&quot;
                 </p>
                 <p className="text-white/40 text-xs md:text-sm mt-2">
                   Try searching with different keywords
@@ -241,7 +232,7 @@ export default function SearchBar({ open, onClose }) {
               <div className="py-3">
                 <div className="px-4 md:px-6 py-2">
                   <h3 className="text-sm font-semibold text-white/70">
-                    {results.length} {results.length === 1 ? 'result' : 'results'} for "{q}"
+                    {results.length} {results.length === 1 ? 'result' : 'results'} for &quot;{q}&quot;
                   </h3>
                 </div>
                 <div className="space-y-1 px-2 md:px-3">

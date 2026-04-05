@@ -4,7 +4,7 @@ require('dotenv').config();
 const axios = require('axios');
 
 const OMDB_API_KEY = process.env.OMDB_API_KEY;
-const OMDB_BASE_URL = 'http://www.omdbapi.com/';
+const OMDB_BASE_URL = 'https://www.omdbapi.com/';
 const DAILY_QUOTA = 1000; // Free tier limit
 const RATE_LIMIT_DELAY = 1000; // 1 request per second
 

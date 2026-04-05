@@ -200,11 +200,15 @@ export default function Account() {
 
           {/* Name form */}
           <form onSubmit={handleSave}>
-            <label className="block text-xs font-semibold text-white/40 uppercase tracking-widest mb-2">
+            <label
+              htmlFor="account-display-name"
+              className="block text-xs font-semibold text-white/40 uppercase tracking-widest mb-2"
+            >
               Display name
             </label>
             <div className="flex gap-2.5">
               <input
+                id="account-display-name"
                 value={name}
                 onChange={e => setName(e.target.value)}
                 placeholder="Your name"

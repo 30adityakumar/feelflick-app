@@ -2114,7 +2114,7 @@ async function logImpression(userId, selectedCandidate, placement) {
   }
 }
 
-async function getFallbackPick(profile) {
+async function getFallbackPick(_profile) {
   try {
     const { data: fallback } = await supabase
       .from('movies')
@@ -2908,6 +2908,7 @@ export async function getMoodRecommendations(userId, moodId, options = {}) {
 
   try {
     // 1. Get mood-genre mapping
+    // eslint-disable-next-line no-use-before-define
     const moodGenres = MOOD_GENRE_MAP[moodId]
     if (!moodGenres) {
       console.warn(`[Recommendations] No genre mapping for mood ${moodId}`)
@@ -3041,8 +3042,7 @@ export async function getBecauseYouWatchedRows(userId, options = {}) {
     maxSeeds = 2,
     limitPerSeed = 20,
     excludeIds = [],
-    forceRefresh = false,
-    signal
+    forceRefresh = false
   } = options
 
   if (!userId) {
@@ -3866,15 +3866,7 @@ async function getHiddenGemsFallback(limit = 20) {
  * Uses quality_score, star_power, content dimensions
  */
 export async function getThemedRow(userId, rowType, options = {}) {
-  const { limit = 20, signal } = options
-
-  // Get user's preferred genres
-  const { data: userPrefs } = await supabase
-    .from('user_preferences')
-    .select('genre_id')
-    .eq('user_id', userId)
-
-  const userGenres = userPrefs?.map(p => p.genre_id) || []
+  const { limit = 20 } = options
 
   let query = supabase
     .from('movies')

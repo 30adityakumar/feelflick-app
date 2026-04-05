@@ -2,7 +2,7 @@
 // Uses an isolated re-implementation that mirrors the hook's exact logic,
 // following the project test pattern (see OnboardingSkip.test.jsx).
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 
 // ---------------------------------------------------------------------------

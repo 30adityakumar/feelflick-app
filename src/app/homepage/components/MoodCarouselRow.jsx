@@ -52,11 +52,9 @@ export default function MoodCarouselRow({
 
   if (!moodId) return null
 
-  const Icon = useMemo(() => {
-    return function MoodEmojiIcon(props) {
-      return <EmojiIcon emoji={moodEmoji} {...props} />
-    }
-  }, [moodEmoji])
+  function Icon(props) {
+    return <EmojiIcon emoji={moodEmoji} {...props} />
+  }
 
   return (
     <PersonalizedCarouselRow

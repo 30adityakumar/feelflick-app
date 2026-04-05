@@ -1,39 +1,41 @@
 // src/app/header/components/Preferences.jsx
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/shared/lib/supabase/client'
-import { CheckCircle2, Sparkles, Zap, Heart, Check } from 'lucide-react'
+import { Check, Loader2, AlertCircle } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 
 const GENRES = [
-  { id: 28, label: 'Action' },
-  { id: 12, label: 'Adventure' },
-  { id: 16, label: 'Animation' },
-  { id: 35, label: 'Comedy' },
-  { id: 80, label: 'Crime' },
-  { id: 99, label: 'Documentary' },
-  { id: 18, label: 'Drama' },
-  { id: 10751, label: 'Family' },
-  { id: 14, label: 'Fantasy' },
-  { id: 36, label: 'History' },
-  { id: 27, label: 'Horror' },
-  { id: 10402, label: 'Music' },
-  { id: 9648, label: 'Mystery' },
-  { id: 10749, label: 'Romance' },
-  { id: 878, label: 'Sci-Fi' },
-  { id: 53, label: 'Thriller' },
+  { id: 28,    label: 'Action'      },
+  { id: 12,    label: 'Adventure'   },
+  { id: 16,    label: 'Animation'   },
+  { id: 35,    label: 'Comedy'      },
+  { id: 80,    label: 'Crime'       },
+  { id: 99,    label: 'Documentary' },
+  { id: 18,    label: 'Drama'       },
+  { id: 10751, label: 'Family'      },
+  { id: 14,    label: 'Fantasy'     },
+  { id: 36,    label: 'History'     },
+  { id: 27,    label: 'Horror'      },
+  { id: 10402, label: 'Music'       },
+  { id: 9648,  label: 'Mystery'     },
+  { id: 10749, label: 'Romance'     },
+  { id: 878,   label: 'Sci-Fi'      },
+  { id: 53,    label: 'Thriller'    },
 ]
 
 const PRESETS = [
-  { name: 'Action Pack', icon: <Zap className="h-3.5 w-3.5" />, genres: [28, 12, 53, 878] },
-  { name: 'Cozy Night', icon: <Heart className="h-3.5 w-3.5" />, genres: [10751, 35, 10402, 16] },
-  { name: 'Mind Bending', icon: <Sparkles className="h-3.5 w-3.5" />, genres: [9648, 53, 878, 14] },
+  { name: 'Action Pack',  genres: [28, 12, 53, 878]           },
+  { name: 'Cozy Night',   genres: [10751, 35, 10402, 16]      },
+  { name: 'Mind Bending', genres: [9648, 53, 878, 14]         },
+  { name: 'World Cinema', genres: [18, 99, 36, 10749]         },
 ]
 
 export default function Preferences() {
-  const [userId, setUserId] = useState(null)
+  const [userId,   setUserId]   = useState(null)
   const [selected, setSelected] = useState([])
-  const [initial, setInitial] = useState([])
-  const [saving, setSaving] = useState(false)
-  const [msg, setMsg] = useState('')
+  const [initial,  setInitial]  = useState([])
+  const [saving,   setSaving]   = useState(false)
+  const [msg,      setMsg]      = useState(null) // { text, ok }
 
   useEffect(() => {
     let mounted = true
@@ -41,188 +43,215 @@ export default function Preferences() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!mounted || !user) return
       setUserId(user.id)
-
       const { data, error } = await supabase
         .from('user_preferences')
         .select('genre_id')
         .eq('user_id', user.id)
-
       if (!error && Array.isArray(data)) {
-        const values = data.map(r => r.genre_id)
-        setSelected(values)
-        setInitial(values)
+        const ids = data.map(r => r.genre_id)
+        setSelected(ids)
+        setInitial(ids)
       }
     })()
     return () => { mounted = false }
   }, [])
 
-  const toggle = (id) => setSelected(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id])
+  const toggle = (id) =>
+    setSelected(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id])
 
   const dirty = useMemo(() => {
     if (initial.length !== selected.length) return true
-    const setInit = new Set(initial)
-    for (const g of selected) if (!setInit.has(g)) return true
-    return false
+    const s = new Set(initial)
+    return selected.some(g => !s.has(g))
   }, [initial, selected])
 
+  function flash(text, ok = true) {
+    setMsg({ text, ok })
+    setTimeout(() => setMsg(null), 2500)
+  }
+
   async function save() {
-    if (!userId || !dirty) return
+    if (!userId || !dirty || saving) return
     setSaving(true)
-    setMsg('')
     try {
       await supabase.from('user_preferences').delete().eq('user_id', userId)
-      
       if (selected.length) {
-        const rows = selected.map(genre_id => ({ user_id: userId, genre_id }))
-        await supabase
-          .from('user_preferences')
-          .upsert(rows, { onConflict: 'user_id,genre_id' })
+        await supabase.from('user_preferences').upsert(
+          selected.map(genre_id => ({ user_id: userId, genre_id })),
+          { onConflict: 'user_id,genre_id' }
+        )
       }
-      
       setInitial(selected)
-      setMsg('Saved!')
-    } catch (e) {
-      console.warn('prefs save error', e)
-      setMsg('Error saving')
+      flash('Preferences saved')
+    } catch {
+      flash('Could not save. Please try again.', false)
     } finally {
       setSaving(false)
-      setTimeout(() => setMsg(''), 2000)
     }
   }
 
-  const applyPreset = (ids) => setSelected(ids)
-
   return (
-    <div className="bg-black text-white w-full pb-20 md:pb-6" style={{ paddingTop: 'var(--hdr-h, 64px)', minHeight: '100vh' }}>
-      <div className="mx-auto max-w-5xl px-4 py-4 md:py-6">
-        
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-xl md:text-3xl font-black tracking-tight mb-1 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-            Genre Preferences
-          </h1>
-          <p className="text-xs md:text-sm text-white/60">Choose genres to personalize your recommendations</p>
+    <div
+      className="min-h-screen bg-black text-white pb-36 md:pb-24"
+      style={{ paddingTop: 'var(--hdr-h, 64px)' }}
+    >
+      {/* Ambient glow */}
+      <div className="pointer-events-none fixed inset-0 -z-10" aria-hidden>
+        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 70% 40% at 50% 0%, rgba(88,28,135,0.12) 0%, transparent 65%)' }} />
+      </div>
+
+      <div className="mx-auto max-w-2xl px-4 sm:px-6 py-10">
+
+        {/* Page title */}
+        <div className="mb-8">
+          <h1 className="text-2xl font-black text-white tracking-tight">Genre preferences</h1>
+          <p className="text-sm text-white/35 mt-0.5">Shape what FeelFlick recommends to you</p>
         </div>
 
-        {/* Stats Bar */}
-        <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md p-3 mb-6">
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-white/70">Selected</span>
-              <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-purple-500/20 text-xs font-bold text-purple-400">
-                {selected.length}
-              </span>
-            </div>
-            <div className="h-3 w-px bg-white/20" />
-            <button 
-              type="button"
-              className="text-xs font-semibold text-white/70 hover:text-white transition-colors active:scale-95"
-              onClick={() => setSelected([])}
-            >
-              Clear All
-            </button>
+        {/* ── Quick presets ─────────────────────────────────── */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-[11px] font-semibold text-white/30 uppercase tracking-widest">Quick presets</span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            {PRESETS.map(preset => {
+              const isActive = preset.genres.every(id => selected.includes(id))
+              return (
+                <button
+                  key={preset.name}
+                  type="button"
+                  onClick={() => {
+                    if (isActive) {
+                      setSelected(s => s.filter(id => !preset.genres.includes(id)))
+                    } else {
+                      setSelected(s => [...new Set([...s, ...preset.genres])])
+                    }
+                  }}
+                  className={`rounded-xl px-4 py-3 text-left text-sm font-semibold transition-all duration-200 active:scale-95 border ${
+                    isActive
+                      ? 'bg-gradient-to-br from-purple-500/20 to-pink-500/10 border-purple-500/40 text-white'
+                      : 'border-white/8 bg-white/4 text-white/55 hover:bg-white/8 hover:border-white/15 hover:text-white/80'
+                  }`}
+                >
+                  {preset.name}
+                </button>
+              )
+            })}
           </div>
         </div>
 
-        {/* Quick Presets */}
-        <div className="mb-6">
-          <h2 className="text-[10px] font-bold text-white/70 uppercase tracking-wider mb-3">Quick Presets</h2>
-          <div className="grid gap-3 grid-cols-3">
-            {PRESETS.map(preset => (
+        {/* ── Genre tag cloud ───────────────────────────────── */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-[11px] font-semibold text-white/30 uppercase tracking-widest">
+              All genres
+            </span>
+            {selected.length > 0 && (
               <button
-                key={preset.name}
-                onClick={() => applyPreset(preset.genres)}
-                className="group rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 p-3 text-left transition-all active:scale-95 active:border-purple-500/30"
+                type="button"
+                onClick={() => setSelected([])}
+                className="text-xs text-white/30 hover:text-white/55 transition-colors"
               >
-                <div className="flex items-center gap-2.5">
-                  <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center text-white flex-shrink-0 shadow-lg shadow-purple-900/20 group-hover:scale-110 transition-transform">
-                    {preset.icon}
-                  </div>
-                  <h3 className="text-xs font-bold text-white leading-tight">{preset.name}</h3>
-                </div>
+                Clear all
               </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Genre Grid */}
-        <div className="mb-6">
-          <h2 className="text-[10px] font-bold text-white/70 uppercase tracking-wider mb-3">All Genres</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
-            {GENRES.map(g => (
-              <GenreChip 
-                key={g.id} 
-                active={selected.includes(g.id)} 
-                onClick={() => toggle(g.id)} 
-                label={g.label} 
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Save Section */}
-        <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md p-4 sticky bottom-4 md:relative md:bottom-auto shadow-2xl md:shadow-none z-30">
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            <button 
-              onClick={save} 
-              disabled={saving || !dirty}
-              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 rounded-xl px-6 py-2.5 text-sm font-bold text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-[1.02] active:scale-95 disabled:hover:scale-100 shadow-lg shadow-purple-900/20 bg-gradient-to-r from-purple-600 to-pink-600"
-            >
-              {saving ? (
-                <>
-                  <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                  <span>Saving...</span>
-                </>
-              ) : dirty ? (
-                <>
-                  <span>Save Changes</span>
-                  <CheckCircle2 className="h-3.5 w-3.5" />
-                </>
-              ) : (
-                <span>Saved</span>
-              )}
-            </button>
-            
-            {msg && (
-              <div className="inline-flex items-center gap-1.5 text-xs font-medium text-white/90 bg-emerald-500/10 border border-emerald-500/20 rounded-lg px-3 py-2 animate-in fade-in slide-in-from-left-2">
-                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
-                {msg}
-              </div>
             )}
           </div>
-          <p className="text-[10px] text-white/50 mt-2.5 text-center sm:text-left">
-            Preferences help us recommend movies you'll actually love
+
+          <div className="flex flex-wrap gap-2.5">
+            {GENRES.map((g, idx) => {
+              const isSelected = selected.includes(g.id)
+              return (
+                <motion.button
+                  key={g.id}
+                  type="button"
+                  onClick={() => toggle(g.id)}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2, delay: idx * 0.02 }}
+                  whileTap={{ scale: 0.93 }}
+                  aria-pressed={isSelected}
+                  className={`px-5 py-[11px] rounded-full text-sm font-semibold select-none transition-all duration-200 ${
+                    isSelected
+                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/25 scale-[1.05]'
+                      : 'bg-white/5 border border-white/10 text-white/50 hover:bg-white/9 hover:border-white/20 hover:text-white/80'
+                  }`}
+                >
+                  {g.label}
+                </motion.button>
+              )
+            })}
+          </div>
+
+          {/* Selection count hint */}
+          <p className="mt-4 text-xs text-white/25">
+            {selected.length === 0
+              ? 'Pick at least 3 genres for best results'
+              : selected.length < 3
+              ? `${3 - selected.length} more for best recommendations`
+              : `${selected.length} selected`}
           </p>
         </div>
 
       </div>
-    </div>
-  )
-}
 
-// Genre Chip Component
-function GenreChip({ active, onClick, label }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      className={`group relative rounded-xl p-3 text-center transition-all duration-200 ${
-        active
-          ? 'bg-gradient-to-br from-purple-500/20 to-pink-500/20 border-2 border-purple-500/50 scale-[1.02] shadow-lg shadow-purple-500/10 z-10'
-          : 'bg-white/5 border-2 border-transparent hover:border-white/10 hover:bg-white/10 active:scale-95'
-      }`}
-    >
-      <div className="flex items-center justify-center gap-1.5">
-        <div className={`text-xs font-bold transition-colors ${active ? 'text-white' : 'text-white/70 group-hover:text-white'}`}>
-          {label}
-        </div>
-        {active && (
-          <div className="h-4 w-4 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0 shadow-sm animate-in zoom-in duration-200">
-            <Check className="h-2.5 w-2.5 text-white stroke-[3]" />
+      {/* ── Sticky footer ─────────────────────────────────────── */}
+      {/* On mobile: sit above the 64px bottom nav. On md+: sit at bottom-0 */}
+      <div className="fixed bottom-16 md:bottom-0 left-0 right-0 z-40">
+        <div className="bg-black/95 backdrop-blur-xl border-t border-white/6 px-4 sm:px-6 py-3"
+          style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 12px)' }}
+        >
+          <div className="max-w-2xl mx-auto flex items-center justify-between gap-4">
+            {/* Status */}
+            <AnimatePresence mode="wait">
+              {msg ? (
+                <motion.div
+                  key="msg"
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className={`flex items-center gap-2 text-xs font-medium px-3 py-2 rounded-lg ${
+                    msg.ok
+                      ? 'bg-purple-500/10 border border-purple-500/20 text-purple-300'
+                      : 'bg-red-500/10 border border-red-500/20 text-red-300'
+                  }`}
+                >
+                  {msg.ok
+                    ? <Check className="h-3.5 w-3.5 flex-shrink-0" />
+                    : <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />}
+                  {msg.text}
+                </motion.div>
+              ) : (
+                <motion.p
+                  key="hint"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="text-xs text-white/25"
+                >
+                  {dirty ? 'Unsaved changes' : 'Up to date'}
+                </motion.p>
+              )}
+            </AnimatePresence>
+
+            {/* Save button */}
+            <button
+              onClick={save}
+              disabled={saving || !dirty}
+              className={`flex items-center gap-2 px-7 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 ${
+                dirty && !saving
+                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md shadow-purple-500/25 hover:scale-[1.02] active:scale-[0.98]'
+                  : 'bg-white/6 text-white/25 cursor-not-allowed'
+              }`}
+            >
+              {saving
+                ? <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>
+                : <><Check className="h-4 w-4 stroke-[2.5]" /> Save</>}
+            </button>
           </div>
-        )}
+        </div>
       </div>
-    </button>
+
+    </div>
   )
 }

@@ -48,6 +48,15 @@ VITE_SUPABASE_ANON_KEY=
 
 Populate this file with your URL and Key.
 
+### 4.5. Local Supabase CLI
+
+The project includes the Supabase CLI as a local dev dependency. From the repo root, you can run:
+
+- `npm run supabase:init` to initialize local Supabase config
+- `npm run supabase:start` to start local Supabase services
+- `npm run supabase:login` to sign in to Supabase
+- `npm run supabase:link -- --project-ref <project-id>` to connect to your remote project
+
 ### 5. Run the application
 
 Run the application: `npm run dev`. Open your browser to the url indicated in the CLI (eg `https://localhost:5173/`) and you are ready to go 🚀.

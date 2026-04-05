@@ -31,7 +31,8 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     hmr: {
-      clientPort: 443 // Use HTTPS port for Codespaces
+      protocol: 'wss', // Required for VS Code Remote Tunnels (devtunnels.ms)
+      clientPort: 443
     }
   },
 })

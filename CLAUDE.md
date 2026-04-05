@@ -187,9 +187,57 @@ npm run build            # Production build
 
 ---
 
+## Environment Setup (VS Code Remote Tunnels / Codespaces)
+
+### Confirmed Working (as of 2026-03-30)
+
+| Tool | Version | Location |
+|---|---|---|
+| Node.js | v20.20.2 | via nvm (`~/.nvm`) |
+| npm | v10.8.2 | via nvm |
+| gh CLI | v2.71.0 | `~/.nvm/versions/node/v20.20.2/bin/gh` |
+| Claude Code | v2.1.87 | `~/.nvm/versions/node/v20.20.2/bin/claude` |
+| Homebrew | not installed | needs `sudo` — install manually if needed |
+
+nvm is sourced in `~/.zshrc` — all tools are available in every new terminal session.
+
+### First-Time Setup
+
+```bash
+# 1. Copy env template and fill in your keys
+cp env.example .env   # then edit .env with real values
+
+# 2. Install dependencies
+npm install
+
+# 3. Start dev server (port 5173, all interfaces — works with Remote Tunnels)
+npm run dev
+```
+
+The Vite dev server binds to all interfaces (`host: true`) on port 5173 with `hmr.clientPort: 443`, which is already configured correctly for VS Code Remote Tunnels and GitHub Codespaces in `vite.config.js`.
+
+### Known State (2026-03-30)
+
+**ESLint:** 292 problems — 78 errors, 214 warnings. Top offenders:
+- `react/no-unescaped-entities` — 47 errors (curly-quote characters in JSX strings)
+- `react-hooks/rules-of-hooks` — 8 errors (hooks called conditionally or in non-component functions)
+- `jsx-a11y/no-static-element-interactions` — 8 errors (divs with onClick missing keyboard handlers)
+- `react/no-unknown-property` — 4 errors
+- `no-undef` — 4 errors (`process` used without guard in a few files)
+- 3 errors are auto-fixable with `npm run lint:fix`
+
+**Tests:** 5/6 suites pass — 53 tests pass. 1 suite fails:
+- `src/shared/services/__tests__/recommendations.helpers.test.js` — crashes on import because `VITE_SUPABASE_URL` env var is not set. Fix: add a real (or stub) `VITE_SUPABASE_URL` to `.env` before running tests.
+- `Error: always broken` / `deliberate test error` output is expected — it's from the SectionErrorBoundary test exercising React error boundaries.
+
+**npm audit:** 8 vulnerabilities (3 moderate, 5 high) in dependencies — not blocking dev.
+
+---
+
 ## TODO: Fill In
 
 - [ ] Document Supabase project ref / region (non-secret — safe to commit)
 - [ ] Add links to Supabase dashboard and TMDB developer portal
 - [ ] Add runbook links once `docs/runbooks/` is populated
 - [ ] Work down the 78 ESLint errors (top offenders: `react/no-unescaped-entities` ×47, `react-hooks/rules-of-hooks` ×8, `no-undef` ×4)
+- [ ] Fix `recommendations.helpers.test.js` import crash — mock Supabase client in test setup or provide stub env vars via vitest config

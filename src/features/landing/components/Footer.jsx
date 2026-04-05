@@ -1,11 +1,9 @@
 // src/features/landing/components/Footer.jsx
 import { useEffect, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Instagram, Heart } from 'lucide-react'
+import { Instagram, Heart, Film } from 'lucide-react'
+import { motion } from 'framer-motion'
 
-/**
- * Custom TikTok Icon (lucide-react doesn't have it yet)
- */
 const TikTokIcon = ({ className }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -21,26 +19,10 @@ const TikTokIcon = ({ className }) => (
   </svg>
 )
 
-/**
- * Premium Footer Component
- * 
- * Features:
- * - Responsive grid layout
- * - Smooth scroll to sections
- * - Social media links with hover effects
- * - Auto-updating copyright year
- * - Accessible link navigation
- * - CSS variable for height
- */
 export default function Footer() {
   const location = useLocation()
   const navigate = useNavigate()
   const barRef = useRef(null)
-
-  // Don't show footer on onboarding pages
-  if (location.pathname.startsWith('/onboarding')) {
-    return null
-  }
 
   // Set CSS variable for footer height
   useEffect(() => {
@@ -54,21 +36,21 @@ export default function Footer() {
     return () => ro.disconnect()
   }, [])
 
+  // All hooks above — safe to return early now
+  if (location.pathname.startsWith('/onboarding')) {
+    return null
+  }
+
   const year = new Date().getFullYear()
 
   const scrollToSection = (sectionId) => {
     const doScroll = () => {
       const element = document.getElementById(sectionId)
       if (element) {
-        const offset = 80
         const elementPosition = element.getBoundingClientRect().top + window.scrollY
-        window.scrollTo({
-          top: elementPosition - offset,
-          behavior: 'smooth',
-        })
+        window.scrollTo({ top: elementPosition - 80, behavior: 'smooth' })
       }
     }
-
     if (location.pathname !== '/') {
       navigate('/')
       setTimeout(doScroll, 100)
@@ -78,173 +60,165 @@ export default function Footer() {
   }
 
   return (
-    <footer 
-      ref={barRef} 
-      className="relative bg-black pt-20 pb-10 overflow-hidden border-t border-white/10"
+    <footer
+      ref={barRef}
+      className="relative bg-black overflow-hidden"
       role="contentinfo"
     >
-      {/* Glow effect at top */}
-      <div 
-        className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-px bg-gradient-to-r from-transparent via-purple-500/50 to-transparent blur-sm"
+      {/* Top glow line — FeelFlick gradient */}
+      <div
+        className="absolute top-0 inset-x-0 h-px pointer-events-none"
+        style={{ background: 'linear-gradient(to right, transparent, rgba(168,85,247,0.6), rgba(236,72,153,0.5), transparent)' }}
         aria-hidden="true"
       />
 
-      <div className="mx-auto max-w-7xl px-6 lg:px-8 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 lg:gap-16 mb-16">
-          
-          {/* Brand Column */}
-          <div className="md:col-span-5 space-y-6">
-            <Link 
-              to="/" 
-              className="inline-block group" 
+      {/* Ambient purple bloom — very subtle */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{ background: 'radial-gradient(ellipse 70% 40% at 50% 0%, rgba(88,28,135,0.08) 0%, transparent 70%)' }}
+        aria-hidden="true"
+      />
+
+      <div className="relative mx-auto max-w-6xl px-6 lg:px-8 pt-16 pb-10">
+
+        {/* Main grid */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-10 lg:gap-16 mb-14">
+
+          {/* Brand column */}
+          <div className="md:col-span-5 space-y-5">
+            <Link
+              to="/"
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="inline-block"
               aria-label="FeelFlick home"
             >
-              <span className="font-black text-2xl tracking-tighter bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 bg-clip-text text-transparent bg-[length:200%_auto] group-hover:animate-gradient">
+              <span className="font-black text-2xl tracking-tight bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
                 FEELFLICK
               </span>
             </Link>
-            <p className="text-white/60 text-sm leading-relaxed max-w-sm">
-              Your mood, your movie. Discover the perfect film for every moment with our emotion-based recommendation engine.
+
+            <p className="text-white/45 text-sm leading-relaxed max-w-xs">
+              Mood first. Always. The film that fits how you feel — not what everyone else is watching.
             </p>
-            <div className="flex gap-4" role="list" aria-label="Social media links">
-              <SocialLink 
-                href="https://instagram.com/feelflick" 
-                icon={Instagram} 
+
+            {/* Social icons */}
+            <div className="flex gap-3" role="list" aria-label="Social media links">
+              <SocialLink
+                href="https://instagram.com/feelflick"
+                icon={Instagram}
                 label="Instagram"
               />
-              <SocialLink 
-                href="https://tiktok.com/@feelflick" 
-                icon={TikTokIcon} 
+              <SocialLink
+                href="https://tiktok.com/@feelflick"
+                icon={TikTokIcon}
                 label="TikTok"
               />
             </div>
           </div>
 
-          {/* Links Grid */}
+          {/* Links */}
           <div className="md:col-span-7 grid grid-cols-2 sm:grid-cols-3 gap-8">
-            
-            {/* Product */}
+
             <div>
-              <h3 className="text-white font-bold text-sm tracking-wide mb-4">
+              <h3 className="text-white/80 font-bold text-xs tracking-[0.16em] uppercase mb-5">
                 Product
               </h3>
-              <ul className="space-y-3" role="list">
-                <li>
-                  <FooterLink onClick={() => scrollToSection('how-it-works')}>
-                    How it Works
-                  </FooterLink>
-                </li>
-                <li>
-                  <FooterLink to="/browse">
-                    Browse Movies
-                  </FooterLink>
-                </li>
+              <ul className="space-y-3.5" role="list">
+                <li><FooterLink onClick={() => scrollToSection('how-it-works')}>How it Works</FooterLink></li>
+                <li><FooterLink to="/browse">Browse Movies</FooterLink></li>
               </ul>
             </div>
 
-            {/* Company */}
             <div>
-              <h3 className="text-white font-bold text-sm tracking-wide mb-4">
+              <h3 className="text-white/80 font-bold text-xs tracking-[0.16em] uppercase mb-5">
                 Company
               </h3>
-              <ul className="space-y-3" role="list">
-                <li>
-                  <FooterLink to="/about">
-                    About Us
-                  </FooterLink>
-                </li>
+              <ul className="space-y-3.5" role="list">
+                <li><FooterLink to="/about">About Us</FooterLink></li>
               </ul>
             </div>
 
-            {/* Legal */}
             <div>
-              <h3 className="text-white font-bold text-sm tracking-wide mb-4">
+              <h3 className="text-white/80 font-bold text-xs tracking-[0.16em] uppercase mb-5">
                 Legal
               </h3>
-              <ul className="space-y-3" role="list">
-                <li>
-                  <FooterLink to="/privacy">
-                    Privacy Policy
-                  </FooterLink>
-                </li>
-                <li>
-                  <FooterLink to="/terms">
-                    Terms of Service
-                  </FooterLink>
-                </li>
+              <ul className="space-y-3.5" role="list">
+                <li><FooterLink to="/privacy">Privacy Policy</FooterLink></li>
+                <li><FooterLink to="/terms">Terms of Service</FooterLink></li>
               </ul>
             </div>
+
           </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <p className="text-white/40 text-xs">
+        {/* Divider */}
+        <div
+          className="h-px mb-8"
+          style={{ background: 'linear-gradient(to right, transparent, rgba(255,255,255,0.08), transparent)' }}
+          aria-hidden="true"
+        />
+
+        {/* Bottom bar */}
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
+          <p className="text-white/30 text-xs">
             &copy; {year} FeelFlick. All rights reserved.
           </p>
-          <p className="text-white/30 text-[10px] flex items-center gap-1">
+          <p className="text-white/25 text-xs flex items-center gap-1.5">
+            <Film className="w-3 h-3 text-purple-500/60" aria-hidden="true" />
             <span>Made with</span>
-            <Heart className="w-3 h-3 text-pink-500 fill-pink-500" aria-label="love" />
+            <Heart className="w-3 h-3 text-pink-500/80 fill-pink-500/80" aria-label="love" />
             <span>for movie lovers</span>
           </p>
         </div>
+
       </div>
     </footer>
   )
 }
 
-/**
- * Footer link component with hover animation
- */
 function FooterLink({ to, onClick, children }) {
+  const base = 'group relative text-white/45 hover:text-white/90 text-sm transition-colors duration-200 inline-block'
+  const underline = (
+    <span
+      className="absolute -bottom-0.5 left-0 w-0 h-px group-hover:w-full transition-all duration-300"
+      style={{ background: 'linear-gradient(to right, rgb(168,85,247), rgb(236,72,153))' }}
+      aria-hidden="true"
+    />
+  )
+
   if (onClick) {
     return (
-      <button 
-        onClick={onClick}
-        className="group relative text-white/60 hover:text-white text-sm transition-colors duration-200 text-left inline-block"
-      >
+      <button onClick={onClick} className={base}>
         {children}
-        <span 
-          className="absolute bottom-0 left-0 w-0 h-px bg-gradient-to-r from-purple-500 to-pink-500 group-hover:w-full transition-all duration-300"
-          aria-hidden="true"
-        />
+        {underline}
       </button>
     )
   }
-  
+
   return (
-    <Link 
-      to={to} 
-      className="group relative text-white/60 hover:text-white text-sm transition-colors duration-200 inline-block"
-      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-    >
+    <Link to={to} className={base} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
       {children}
-      <span 
-        className="absolute bottom-0 left-0 w-0 h-px bg-gradient-to-r from-purple-500 to-pink-500 group-hover:w-full transition-all duration-300"
-        aria-hidden="true"
-      />
+      {underline}
     </Link>
   )
 }
 
-/**
- * Social media link with icon
- */
 function SocialLink({ href, icon: Icon, label }) {
   return (
-    <a
+    <motion.a
       href={href}
       target="_blank"
       rel="noopener noreferrer"
       aria-label={`Follow FeelFlick on ${label}`}
-      className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-white/60 hover:text-white transition-all hover:scale-110 group touch-target"
       role="listitem"
+      whileHover={{ scale: 1.1 }}
+      whileTap={{ scale: 0.95 }}
+      className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-white/45 hover:text-white transition-colors duration-200 touch-target"
+      style={{ background: 'rgba(255,255,255,0.04)' }}
+      onMouseEnter={e => e.currentTarget.style.background = 'linear-gradient(135deg, rgba(168,85,247,0.2), rgba(236,72,153,0.15))'}
+      onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
     >
-      <Icon 
-        className="h-5 w-5 transition-transform group-hover:-rotate-12" 
-        aria-hidden="true"
-      />
-    </a>
+      <Icon className="h-4 w-4" aria-hidden="true" />
+    </motion.a>
   )
 }

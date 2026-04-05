@@ -6,7 +6,7 @@ export default function MovieSimilar({ title, items }) {
 
   return (
     <div>
-      <h2 className="text-base font-bold mb-3">{title}</h2>
+      <p className="text-[11px] font-semibold text-white/30 uppercase tracking-widest mb-4">{title}</p>
       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-5 gap-3">
         {items.map((m) => (
           <button
@@ -15,7 +15,7 @@ export default function MovieSimilar({ title, items }) {
             className="group text-left"
             title={m.title}
           >
-            <div className="aspect-[2/3] overflow-hidden rounded-md bg-white/5 border border-white/10 mb-2 shadow-md group-hover:scale-105 group-hover:shadow-xl transition-all duration-300">
+            <div className="aspect-[2/3] overflow-hidden rounded-xl bg-white/5 border border-white/8 mb-2 shadow-md group-hover:-translate-y-0.5 group-hover:shadow-xl group-hover:border-purple-500/20 transition-all duration-200">
               {m.poster_path ? (
                 <img
                   src={`https://image.tmdb.org/t/p/w342${m.poster_path}`}

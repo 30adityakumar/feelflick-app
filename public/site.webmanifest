@@ -1,0 +1,10 @@
+{
+  "name": "FeelFlick",
+  "short_name": "FeelFlick",
+  "description": "Mood-based movie and TV show discovery",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0f",
+  "theme_color": "#0a0a0f",
+  "icons": []
+}

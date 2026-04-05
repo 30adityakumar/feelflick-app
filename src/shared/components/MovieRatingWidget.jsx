@@ -63,7 +63,7 @@ export default function MovieRatingWidget({
           Your Rating
         </h3>
         {justSaved && (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/20 text-green-300 text-xs font-medium animate-in fade-in">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs font-medium">
             <Check className="h-3 w-3" />
             Saved
           </span>

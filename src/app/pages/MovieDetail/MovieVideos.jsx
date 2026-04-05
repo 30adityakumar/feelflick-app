@@ -1,4 +1,4 @@
-import { Film, Play } from 'lucide-react'
+import { Play } from 'lucide-react'
 import { trackTrailerPlay } from '@/shared/services/interactions'
 
 export default function MovieVideos({ videos, internalMovieId }) {
@@ -13,10 +13,7 @@ export default function MovieVideos({ videos, internalMovieId }) {
 
   return (
     <div>
-      <h2 className="text-base font-bold mb-3 flex items-center gap-2">
-        <Film className="h-4 w-4" />
-        Videos &amp; Trailers
-      </h2>
+      <p className="text-[11px] font-semibold text-white/30 uppercase tracking-widest mb-4">Videos &amp; Trailers</p>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
         {filtered.map((v) => (
           <a
@@ -25,7 +22,7 @@ export default function MovieVideos({ videos, internalMovieId }) {
             target="_blank"
             rel="noreferrer"
             onClick={() => handleVideoClick(v)}
-            className="group relative aspect-video rounded-md overflow-hidden bg-white/5 border border-white/10"
+            className="group relative aspect-video rounded-xl overflow-hidden bg-white/5 border border-white/8"
           >
             <img
               src={`https://img.youtube.com/vi/${v.key}/mqdefault.jpg`}

@@ -1,7 +1,7 @@
 // src/app/AppShell.jsx
 import { useEffect, useState, useRef } from 'react'
 import { Outlet, useLocation, NavLink } from 'react-router-dom'
-import { Home, Sparkles, Bookmark, User, Compass } from 'lucide-react'
+import { Home, Sparkles, User, Compass } from 'lucide-react'
 import { supabase } from '@/shared/lib/supabase/client'
 import Header from '@/app/header/Header'
 import SearchBar from '@/app/header/components/SearchBar'
@@ -90,23 +90,11 @@ export default function AppShell() {
 
   return (
     <div className="relative min-h-screen bg-black text-white">
-      {/* Enhanced background with animated gradients */}
-      <div aria-hidden className="fixed inset-0 -z-10 overflow-hidden">
-        {/* Base gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-black to-slate-950" />
-        
-        {/* Animated orbs for depth */}
-        <div className="absolute -top-40 -left-40 h-[500px] w-[500px] rounded-full bg-purple-500/10 blur-3xl animate-pulse-slow" />
-        <div className="absolute -bottom-40 -right-40 h-[600px] w-[600px] rounded-full bg-pink-500/10 blur-3xl animate-pulse-slow delay-1000" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[700px] w-[700px] rounded-full bg-indigo-500/5 blur-3xl animate-pulse-slow delay-2000" />
-        
-        {/* Subtle noise texture for film grain effect */}
-        <div 
-          className="absolute inset-0 opacity-[0.015] mix-blend-overlay"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-          }}
-        />
+      {/* Page background */}
+      <div aria-hidden className="fixed inset-0 -z-10">
+        <div className="absolute inset-0 bg-black" />
+        <div className="absolute -top-60 left-1/2 -translate-x-1/2 h-[600px] w-[600px] rounded-full bg-purple-500/8 blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-0 right-0 h-[400px] w-[400px] rounded-full bg-pink-500/6 blur-[100px] pointer-events-none" />
       </div>
 
       {/* Header - Fixed at top with smart hide */}
@@ -125,15 +113,16 @@ export default function AppShell() {
 
       {/* Mobile Bottom Navigation - Only shown when authenticated */}
       {isAuthenticated && (
-        <nav 
-          className="fixed bottom-0 left-0 right-0 z-40 md:hidden border-t border-white/10 bg-black/95 backdrop-blur-xl"
+        <nav
+          className="fixed bottom-0 left-0 right-0 z-40 md:hidden border-t border-white/8 bg-black/95 backdrop-blur-xl"
+          style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
           aria-label="Mobile navigation"
         >
-          <div className="flex items-center justify-around h-16 px-2">
-            <MobileNavLink to="/home" icon={Home} label="Home" />
-            <MobileNavLink to="/discover" icon={Sparkles} label="Discover" />
-            <MobileNavLink to="/browse" icon={Compass} label="Browse" />
-            <MobileNavLink to="/mobile-account" icon={User} label="Account" />
+          <div className="flex items-center justify-around h-16 px-1">
+            <MobileNavLink to="/home"           icon={Home}     label="Home"     />
+            <MobileNavLink to="/discover"       icon={Sparkles} label="Discover" />
+            <MobileNavLink to="/browse"         icon={Compass}  label="Browse"   />
+            <MobileNavLink to="/mobile-account" icon={User}     label="Account"  />
           </div>
         </nav>
       )}
@@ -154,23 +143,29 @@ export default function AppShell() {
 function MobileNavLink({ to, icon: Icon, label, onClick }) {
   const location = useLocation()
   const isActive = location.pathname === to
-
   const Component = onClick ? 'button' : NavLink
 
   return (
     <Component
       to={onClick ? undefined : to}
       onClick={onClick}
-      className={`flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-colors min-w-[64px] ${
-        isActive 
-          ? 'text-brand-100' 
-          : 'text-white/60 hover:text-white/90 active:text-white'
+      className={`flex flex-col items-center justify-center gap-1 min-w-[56px] px-3 py-1.5 rounded-xl transition-all duration-200 ${
+        isActive ? 'text-white' : 'text-white/40 hover:text-white/70'
       }`}
       aria-label={label}
       aria-current={isActive ? 'page' : undefined}
     >
-      <Icon className="h-5 w-5" strokeWidth={isActive ? 2.5 : 2} />
-      <span className={`text-xs font-medium ${isActive ? 'font-semibold' : ''}`}>
+      <div className={`relative flex items-center justify-center transition-all duration-200 ${isActive ? 'scale-110' : ''}`}>
+        <Icon
+          className={`h-5 w-5 transition-all duration-200 ${
+            isActive ? 'stroke-[2.5] drop-shadow-[0_0_8px_rgba(168,85,247,0.6)]' : 'stroke-[1.8]'
+          }`}
+          style={isActive ? { color: 'rgb(192,132,252)' } : {}}
+        />
+      </div>
+      <span className={`text-[10px] leading-none font-medium transition-colors duration-200 ${
+        isActive ? 'text-purple-300' : ''
+      }`}>
         {label}
       </span>
     </Component>

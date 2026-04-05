@@ -24,11 +24,6 @@ export default function TopNav({ hideAuthCta = false }) {
   const navigate = useNavigate()
   const location = useLocation()
 
-  // Don't show nav on onboarding pages
-  if (location.pathname.startsWith('/onboarding')) {
-    return null
-  }
-
   // Set CSS variable for nav height (for other components to use)
   useEffect(() => {
     const setVar = () => {
@@ -118,32 +113,14 @@ export default function TopNav({ hideAuthCta = false }) {
     }
   }
 
-  const scrollToSection = (sectionId) => {
-    setMobileMenuOpen(false)
-
-    const doScroll = () => {
-      const element = document.getElementById(sectionId)
-      if (element) {
-        const offset = 80
-        const elementPosition = element.getBoundingClientRect().top + window.scrollY
-        window.scrollTo({
-          top: elementPosition - offset,
-          behavior: 'smooth',
-        })
-      }
-    }
-
-    if (location.pathname !== '/') {
-      navigate('/')
-      setTimeout(doScroll, 100)
-    } else {
-      doScroll()
-    }
-  }
-
   const handleSignIn = () => {
     setMobileMenuOpen(false)
     signInWithGoogle()
+  }
+
+  // Don't show nav on onboarding pages — checked after all hooks
+  if (location.pathname.startsWith('/onboarding')) {
+    return null
   }
 
   return (
@@ -176,14 +153,6 @@ export default function TopNav({ hideAuthCta = false }) {
             </Link>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center gap-8">
-              <NavLink onClick={() => scrollToSection('mood-demo')}>
-                Mood Demo
-              </NavLink>
-              <NavLink onClick={() => scrollToSection('how-it-works')}>
-                How It Works
-              </NavLink>
-            </div>
 
             {/* Desktop Auth CTA */}
             {!hideAuthCta && (
@@ -270,15 +239,6 @@ export default function TopNav({ hideAuthCta = false }) {
         
         {/* Menu Content */}
         <div className="relative h-full flex flex-col pt-24 pb-8 px-6">
-          <nav className="flex flex-col gap-2" role="list">
-            <MobileNavLink onClick={() => scrollToSection('mood-demo')}>
-              Mood Demo
-            </MobileNavLink>
-            <MobileNavLink onClick={() => scrollToSection('how-it-works')}>
-              How It Works
-            </MobileNavLink>
-          </nav>
-
           {/* Mobile Auth CTA */}
           {!hideAuthCta && (
             <button
@@ -325,35 +285,3 @@ export default function TopNav({ hideAuthCta = false }) {
   )
 }
 
-/**
- * Desktop navigation link with underline animation
- */
-function NavLink({ onClick, children }) {
-  return (
-    <button
-      onClick={onClick}
-      className="relative text-sm font-medium text-white/70 hover:text-white transition-colors group touch-target"
-    >
-      {children}
-      <span 
-        className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500 group-hover:w-full transition-all duration-300"
-        aria-hidden="true"
-      />
-    </button>
-  )
-}
-
-/**
- * Mobile navigation link with background highlight
- */
-function MobileNavLink({ onClick, children }) {
-  return (
-    <button
-      onClick={onClick}
-      className="px-4 py-3 rounded-xl text-lg font-semibold text-white/80 hover:text-white hover:bg-white/10 transition-all text-left touch-target"
-      role="listitem"
-    >
-      {children}
-    </button>
-  )
-}

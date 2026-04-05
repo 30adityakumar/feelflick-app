@@ -1,4 +1,4 @@
-import { ChevronRight, Tag, Tv2 } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { IMG } from './utils'
 
@@ -6,18 +6,13 @@ export function WhereToWatch({ providers }) {
   if (!providers?.flatrate?.length) return null
 
   return (
-    <div className="rounded-lg bg-white/5 backdrop-blur border border-white/10 p-4">
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-sm font-bold flex items-center gap-2">
-          <Tv2 className="h-4 w-4" />
-          Where to Watch
-        </h2>
-      </div>
+    <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-5">
+      <p className="text-[11px] font-semibold text-white/30 uppercase tracking-widest mb-3">Where to Watch</p>
       <div className="flex flex-wrap gap-2">
         {providers.flatrate.map((p) => (
           <div
             key={p.provider_id}
-            className="w-12 h-12 rounded-md bg-white/10 border border-white/10 p-1.5 flex items-center justify-center hover:scale-110 transition-transform"
+            className="w-12 h-12 rounded-xl bg-white/5 border border-white/8 p-1.5 flex items-center justify-center hover:scale-105 hover:border-white/15 transition-all"
             title={p.provider_name}
           >
             {p.logo_path ? (
@@ -61,8 +56,8 @@ export function MovieDetails({ movie }) {
   if (!details.length) return null
 
   return (
-    <div className="rounded-lg bg-white/5 backdrop-blur border border-white/10 p-4">
-      <h2 className="text-sm font-bold mb-3">Details</h2>
+    <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-5">
+      <p className="text-[11px] font-semibold text-white/30 uppercase tracking-widest mb-3">Details</p>
       <div className="space-y-2">
         {details.map((d, i) => (
           <div key={i} className="flex justify-between text-xs">
@@ -79,13 +74,13 @@ export function ProductionCompanies({ companies }) {
   const top = (companies || []).slice(0, 3)
   if (!top.length) return null
   return (
-    <div className="rounded-lg bg-white/5 backdrop-blur border border-white/10 p-4">
-      <h2 className="text-sm font-bold mb-3">Production</h2>
+    <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-5">
+      <p className="text-[11px] font-semibold text-white/30 uppercase tracking-widest mb-3">Production</p>
       <div className="flex flex-wrap gap-3">
         {top.map((c) => (
           <div
             key={c.id}
-            className="flex items-center justify-center h-12 px-3 rounded bg-white/10 border border-white/10"
+            className="flex items-center justify-center h-12 px-3 rounded-xl bg-white/5 border border-white/8"
             title={c.name}
           >
             {c.logo_path ? (
@@ -107,7 +102,7 @@ export function ProductionCompanies({ companies }) {
 export function KeywordsSection({ keywords }) {
   if (!keywords?.length) return null
   return (
-    <div className="rounded-lg bg-white/5 backdrop-blur border border-white/10 p-4">
+    <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-5">
       <h2 className="text-sm font-bold mb-3 flex items-center gap-2">
         <Tag className="h-4 w-4" />
         Keywords
@@ -116,7 +111,7 @@ export function KeywordsSection({ keywords }) {
         {keywords.map((k) => (
           <span
             key={k.id}
-            className="px-2 py-1 rounded bg-white/10 text-white/70 text-[11px] font-medium hover:bg-white/20 transition-colors cursor-pointer"
+            className="px-3 py-1 rounded-full bg-white/5 border border-white/8 text-white/55 text-[11px] font-medium hover:bg-white/10 hover:border-white/15 hover:text-white/80 transition-colors cursor-default"
           >
             {k.name}
           </span>
@@ -129,8 +124,8 @@ export function KeywordsSection({ keywords }) {
 export function CollectionCard({ collection }) {
   const navigate = useNavigate()
   return (
-    <div className="rounded-lg bg-white/5 backdrop-blur border border-white/10 p-4 overflow-hidden">
-      <h2 className="text-sm font-bold mb-2">Part of a Collection</h2>
+    <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-5 overflow-hidden">
+      <p className="text-[11px] font-semibold text-white/30 uppercase tracking-widest mb-3">Part of a Collection</p>
       <div className="relative aspect-16/9 rounded overflow-hidden mb-2">
         {collection.backdrop_path ? (
           <img

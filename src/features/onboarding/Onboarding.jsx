@@ -6,32 +6,16 @@ import {
   Check, Search, X, Sparkles, ArrowRight, Loader2,
   ChevronLeft, ChevronRight
 } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 
 const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY
-
-// Mood definitions — IDs match DiscoverPage (1–12) for cross-feature consistency
-const MOODS = [
-  { id: 1,  name: 'Cozy',        emoji: '☕', desc: 'Warm and comforting',   color: 'border-orange-400/60 bg-orange-500/10' },
-  { id: 2,  name: 'Adventurous', emoji: '🗺️', desc: 'Bold and exciting',     color: 'border-blue-400/60 bg-blue-500/10' },
-  { id: 3,  name: 'Heartbroken', emoji: '💔', desc: 'Emotionally raw',       color: 'border-pink-400/60 bg-pink-500/10' },
-  { id: 4,  name: 'Curious',     emoji: '🔍', desc: 'Mind-expanding',        color: 'border-purple-400/60 bg-purple-500/10' },
-  { id: 5,  name: 'Nostalgic',   emoji: '🎞️', desc: 'Classic favorites',     color: 'border-yellow-400/60 bg-yellow-500/10' },
-  { id: 6,  name: 'Energized',   emoji: '⚡', desc: 'High-energy fun',       color: 'border-green-400/60 bg-green-500/10' },
-  { id: 7,  name: 'Anxious',     emoji: '😰', desc: 'Need to decompress',    color: 'border-indigo-400/60 bg-indigo-500/10' },
-  { id: 8,  name: 'Romantic',    emoji: '💕', desc: 'Love and connection',   color: 'border-red-400/60 bg-red-500/10' },
-  { id: 9,  name: 'Inspired',    emoji: '✨', desc: 'Uplifting stories',     color: 'border-amber-400/60 bg-amber-500/10' },
-  { id: 10, name: 'Silly',       emoji: '🤪', desc: 'Light and funny',       color: 'border-lime-400/60 bg-lime-500/10' },
-  { id: 11, name: 'Dark',        emoji: '🌑', desc: 'Gritty and intense',    color: 'border-gray-400/60 bg-gray-500/10' },
-  { id: 12, name: 'Overwhelmed', emoji: '😵', desc: 'Complete escape',       color: 'border-teal-400/60 bg-teal-500/10' },
-]
 
 export default function Onboarding() {
   const navigate = useNavigate()
   const [session, setSession] = useState(null)
   const [checking, setChecking] = useState(true)
-  // Steps: -1=welcome, 0=moods, 1=genres, 2=movies
+  // Steps: -1=welcome, 0=genres, 1=movies
   const [step, setStep] = useState(-1)
-  const [selectedMoods, setSelectedMoods] = useState([])
   const [selectedGenres, setSelectedGenres] = useState([])
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
@@ -46,14 +30,14 @@ export default function Onboarding() {
 
   // Auto-focus search input on movie step
   useEffect(() => {
-    if (step === 2 && searchInputRef.current) {
+    if (step === 1 && searchInputRef.current) {
       setTimeout(() => searchInputRef.current?.focus(), 150)
     }
   }, [step])
 
   // Fetch trending movies when entering movie step
   useEffect(() => {
-    if (step !== 2) return
+    if (step !== 1) return
     fetch(`https://api.themoviedb.org/3/trending/movie/week?api_key=${TMDB_KEY}`)
       .then(r => r.json())
       .then(data => setTrendingMovies((data.results || []).filter(m => m.poster_path).slice(0, 12)))
@@ -138,13 +122,6 @@ export default function Onboarding() {
     { id: 53,    label: 'Thriller',    emoji: '⚡' },
   ], [])
 
-  const toggleMood = (id) => {
-    setSelectedMoods(m => {
-      if (m.includes(id)) return m.filter(x => x !== id)
-      if (m.length >= 4) return m // max 4
-      return [...m, id]
-    })
-  }
   const toggleGenre = (id) => setSelectedGenres(g => g.includes(id) ? g.filter(x => x !== id) : [...g, id])
   const isMovieSelected = (id) => favoriteMovies.some(x => x.id === id)
   const addMovie = (m) => { if (!isMovieSelected(m.id) && favoriteMovies.length < 50) setFavoriteMovies(prev => [...prev, m]) }
@@ -246,7 +223,6 @@ export default function Onboarding() {
         data: {
           onboarding_complete: true,
           has_onboarded: true,
-          ...(selectedMoods.length > 0 && { preferred_moods: selectedMoods }),
         }
       })
 
@@ -273,12 +249,20 @@ export default function Onboarding() {
   // Loading screen
   if (checking) {
     return (
-      <div className="h-screen grid place-items-center bg-[#0B1120]">
-        <div className="flex flex-col items-center gap-5">
-          <span className="text-3xl font-black bg-gradient-to-r from-[#667eea] via-[#764ba2] to-[#f093fb] bg-clip-text text-transparent">
+      <div className="h-screen grid place-items-center bg-black">
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{ background: 'radial-gradient(ellipse 70% 45% at 50% 0%, rgba(88,28,135,0.3) 0%, transparent 65%)' }}
+          aria-hidden="true"
+        />
+        <div className="relative flex flex-col items-center gap-6">
+          <span className="text-3xl font-black tracking-tight bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
             FEELFLICK
           </span>
-          <Loader2 className="h-7 w-7 text-[#667eea] animate-spin" />
+          <svg className="h-8 w-8 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="10" stroke="rgba(168,85,247,0.2)" strokeWidth="3" />
+            <path d="M21 12a9 9 0 0 0-9-9v9z" fill="rgb(168,85,247)" />
+          </svg>
         </div>
       </div>
     )
@@ -287,75 +271,97 @@ export default function Onboarding() {
   // Celebration screen
   if (celebrate) {
     return (
-      <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-gradient-to-br from-[#667eea] via-[#764ba2] to-[#f093fb]">
-        <div className="text-center px-6 animate-fade-in">
-          <Sparkles className="h-20 w-20 text-white mx-auto mb-8 animate-bounce-gentle" />
-          <h1 className="text-4xl sm:text-5xl font-black text-white mb-4 animate-slide-up">
-            Your taste profile is ready
+      <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black overflow-hidden">
+        {/* Cinematic atmosphere */}
+        <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 100% 60% at 50% 0%, rgba(88,28,135,0.6) 0%, transparent 65%)' }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 80% 50% at 50% 110%, rgba(168,85,247,0.25) 0%, transparent 65%)' }} />
+        </div>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.92, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
+          className="relative text-center px-6"
+        >
+          <motion.div
+            animate={{ y: [0, -8, 0] }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+            className="mb-8"
+          >
+            <Sparkles className="h-16 w-16 mx-auto" style={{ color: 'rgb(168,85,247)' }} />
+          </motion.div>
+          <span className="block text-sm font-bold uppercase tracking-[0.22em] text-purple-400/70 mb-5">
+            All set
+          </span>
+          <h1 className="text-4xl sm:text-5xl font-black text-white mb-4 leading-tight">
+            Your taste profile<br />
+            <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">is ready.</span>
           </h1>
-          <p className="text-lg text-white/90 animate-slide-up" style={{ animationDelay: '0.1s' }}>
+          <p className="text-base text-white/45 leading-relaxed">
             Heading to your first recommendations…
           </p>
-        </div>
+        </motion.div>
       </div>
     )
   }
 
   return (
-    <div className="fixed inset-0 bg-[#0B1120] flex flex-col">
+    <div className="fixed inset-0 bg-black flex flex-col">
       {/* Ambient background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#667eea]/10 rounded-full blur-3xl animate-float-slow" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#764ba2]/10 rounded-full blur-3xl animate-float-slow-delayed" />
+      <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 80% 45% at 50% 0%, rgba(88,28,135,0.18) 0%, transparent 65%)' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 60% 40% at 80% 80%, rgba(168,85,247,0.08) 0%, transparent 60%)' }} />
       </div>
 
       <div className="relative z-10 flex flex-col h-full max-w-6xl mx-auto w-full">
-        {/* Progress bar — only shown during steps 0–2 */}
-        {step >= 0 && <ProgressIndicator step={step} totalSteps={3} />}
+        {/* Progress bar — only shown during steps 0–1 */}
+        {step >= 0 && <ProgressIndicator step={step} totalSteps={2} />}
 
-        {/* Step content */}
+        {/* Step content — animated transitions */}
         <div className="flex-1 min-h-0 overflow-hidden">
-          {step === -1 && (
-            <WelcomeStep onNext={() => setStep(0)} name={session?.user?.user_metadata?.name} />
-          )}
-          {step === 0 && (
-            <StepMoods
-              moods={MOODS}
-              selectedMoods={selectedMoods}
-              toggleMood={toggleMood}
-              onBack={() => setStep(-1)}
-              onNext={() => setStep(1)}
-            />
-          )}
-          {step === 1 && (
-            <StepGenres
-              GENRES={GENRES}
-              selectedGenres={selectedGenres}
-              toggleGenre={toggleGenre}
-              error={error}
-              loading={loading}
-              onNext={() => setStep(2)}
-              onBack={() => setStep(0)}
-            />
-          )}
-          {step === 2 && (
-            <StepMovies
-              query={query}
-              setQuery={setQuery}
-              results={results}
-              searching={searching}
-              isMovieSelected={isMovieSelected}
-              addMovie={addMovie}
-              removeMovie={removeMovie}
-              favoriteMovies={favoriteMovies}
-              trendingMovies={trendingMovies}
-              error={error}
-              loading={loading}
-              searchInputRef={searchInputRef}
-              onBack={() => setStep(1)}
-              onFinish={saveAndGo}
-            />
-          )}
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={step}
+              initial={{ opacity: 0, x: 24 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -24 }}
+              transition={{ duration: 0.22, ease: 'easeOut' }}
+              className="h-full"
+            >
+              {step === -1 && (
+                <WelcomeStep onNext={() => setStep(0)} name={session?.user?.user_metadata?.name} />
+              )}
+              {step === 0 && (
+                <StepGenres
+                  GENRES={GENRES}
+                  selectedGenres={selectedGenres}
+                  toggleGenre={toggleGenre}
+                  error={error}
+                  loading={loading}
+                  onNext={() => setStep(1)}
+                  onBack={() => setStep(-1)}
+                />
+              )}
+              {step === 1 && (
+                <StepMovies
+                  query={query}
+                  setQuery={setQuery}
+                  results={results}
+                  searching={searching}
+                  isMovieSelected={isMovieSelected}
+                  addMovie={addMovie}
+                  removeMovie={removeMovie}
+                  favoriteMovies={favoriteMovies}
+                  trendingMovies={trendingMovies}
+                  error={error}
+                  loading={loading}
+                  searchInputRef={searchInputRef}
+                  onBack={() => setStep(0)}
+                  onFinish={saveAndGo}
+                />
+              )}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
 
@@ -372,8 +378,8 @@ export default function Onboarding() {
         .animate-fade-in { animation: fade-in 0.8s ease-out; }
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(102,126,234,0.4); border-radius: 3px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(102,126,234,0.6); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(168,85,247,0.35); border-radius: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(168,85,247,0.55); }
       `}</style>
     </div>
   )
@@ -382,7 +388,7 @@ export default function Onboarding() {
 // ─── Progress Indicator ────────────────────────────────────────────────────────
 
 function ProgressIndicator({ step, totalSteps }) {
-  const labels = ['Your Moods', 'Your Genres', 'Your Films']
+  const labels = ['Your Genres', 'Your Films']
   const progressPercent = ((step + 1) / totalSteps) * 100
 
   return (
@@ -397,7 +403,7 @@ function ProgressIndicator({ step, totalSteps }) {
       </div>
       <div className="h-0.5 w-full bg-white/10 rounded-full overflow-hidden">
         <div
-          className="h-full bg-gradient-to-r from-[#667eea] to-[#764ba2] rounded-full transition-all duration-700 ease-out"
+          className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-700 ease-out"
           style={{ width: `${progressPercent}%` }}
         />
       </div>
@@ -414,8 +420,8 @@ function WelcomeStep({ onNext, name }) {
     <div className="h-full flex flex-col items-center justify-center text-center px-6 py-12 overflow-y-auto custom-scrollbar">
       <div className="max-w-lg mx-auto space-y-10 animate-fade-in">
         {/* Brand */}
-        <span className="block text-sm font-bold tracking-[0.2em] uppercase bg-gradient-to-r from-[#667eea] via-[#764ba2] to-[#f093fb] bg-clip-text text-transparent">
-          FeelFlick
+        <span className="block text-sm font-bold tracking-[0.2em] uppercase bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
+          FEELFLICK
         </span>
 
         {/* Headline */}
@@ -428,120 +434,35 @@ function WelcomeStep({ onNext, name }) {
             )}
           </h1>
           <p className="text-base text-white/55 leading-relaxed max-w-sm mx-auto">
-            Tell us your moods, genres, and favorite films —<br />
-            we'll find exactly what to watch tonight.
+            Tell us what you love to watch — we&apos;ll build a taste profile and find exactly the right film tonight.
           </p>
         </div>
 
-        {/* 3-step preview */}
+        {/* 2-step preview */}
         <div className="flex flex-col gap-3 text-left max-w-xs mx-auto">
           {[
-            { symbol: '✦', label: 'Your moods',  sub: 'we match the vibe' },
             { symbol: '✦', label: 'Your genres', sub: 'we sharpen the focus' },
             { symbol: '✦', label: 'Your films',  sub: 'we learn your taste' },
           ].map(({ symbol, label, sub }) => (
             <div key={label} className="flex items-center gap-3">
-              <span className="text-[#667eea] text-xs">{symbol}</span>
+              <span className="text-purple-400 text-xs">{symbol}</span>
               <span className="text-sm font-semibold text-white">{label}</span>
               <span className="text-sm text-white/35">→ {sub}</span>
             </div>
           ))}
         </div>
+        <p className="text-xs text-white/25 -mt-3">Takes about 60 seconds</p>
 
         {/* CTA */}
         <div className="space-y-3">
           <button
             onClick={onNext}
-            className="group inline-flex items-center gap-3 px-10 py-4 rounded-full bg-gradient-to-r from-[#667eea] via-[#764ba2] to-[#f093fb] text-white font-semibold text-base shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95"
+            className="group inline-flex items-center gap-3 px-10 py-4 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-base shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
           >
             Let's start
             <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
           </button>
-          <p className="text-xs text-white/30">Takes about 90 seconds</p>
         </div>
-      </div>
-    </div>
-  )
-}
-
-// ─── Mood Step (NEW) ───────────────────────────────────────────────────────────
-
-function StepMoods({ moods, selectedMoods, toggleMood, onBack, onNext }) {
-  const atMax = selectedMoods.length >= 4
-
-  return (
-    <div className="h-full flex flex-col px-6 py-6">
-      {/* Header */}
-      <div className="flex-none text-center mb-6">
-        <h2 className="text-3xl sm:text-4xl font-black text-white mb-2">
-          What moods bring you to a film?
-        </h2>
-        <p className="text-sm text-white/45">
-          {selectedMoods.length === 0
-            ? 'Pick up to 4 that feel like you'
-            : atMax
-            ? `${selectedMoods.length} selected — looking good`
-            : `${selectedMoods.length} selected — pick up to ${4 - selectedMoods.length} more`}
-        </p>
-      </div>
-
-      {/* Mood grid */}
-      <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar -mx-2 px-2">
-        <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 max-w-3xl mx-auto pb-6">
-          {moods.map((mood, idx) => {
-            const isSelected = selectedMoods.includes(mood.id)
-            const isDisabled = atMax && !isSelected
-            return (
-              <button
-                key={mood.id}
-                type="button"
-                onClick={() => toggleMood(mood.id)}
-                disabled={isDisabled}
-                style={{ animationDelay: `${idx * 25}ms`, animation: 'slide-up 0.4s ease-out backwards' }}
-                className={`relative flex flex-col items-center gap-1.5 p-4 rounded-2xl border-2 transition-all duration-200 text-center
-                  ${isSelected
-                    ? `${mood.color} shadow-lg scale-[1.02]`
-                    : isDisabled
-                    ? 'border-white/5 bg-white/3 opacity-40 cursor-not-allowed'
-                    : 'border-white/10 bg-white/5 hover:bg-white/8 hover:border-white/20'
-                  }`}
-              >
-                <span className="text-3xl leading-none">{mood.emoji}</span>
-                <span className="text-sm font-semibold text-white leading-tight">{mood.name}</span>
-                <span className="text-[10px] text-white/45 leading-tight">{mood.desc}</span>
-                {isSelected && (
-                  <div className="absolute top-2 right-2 bg-[#0B1120] rounded-full p-0.5">
-                    <div className="bg-gradient-to-r from-emerald-400 to-green-500 rounded-full p-1">
-                      <Check className="h-2.5 w-2.5 text-white stroke-[3]" />
-                    </div>
-                  </div>
-                )}
-              </button>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* Footer */}
-      <div className="flex-none pt-5 border-t border-white/5 flex items-center justify-between">
-        <button
-          onClick={onBack}
-          className="flex items-center gap-2 text-sm font-medium text-white/40 hover:text-white/70 transition-colors"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          Back
-        </button>
-        <button
-          onClick={onNext}
-          className={`flex items-center gap-2 px-8 py-3 rounded-full font-semibold text-sm transition-all duration-300 ${
-            selectedMoods.length > 0
-              ? 'bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white shadow-lg hover:shadow-xl hover:scale-105 active:scale-95'
-              : 'bg-white/8 text-white/40 hover:text-white/60 hover:bg-white/12 border border-white/10'
-          }`}
-        >
-          {selectedMoods.length > 0 ? 'Continue' : 'Skip for now'}
-          <ChevronRight className="h-4 w-4" />
-        </button>
       </div>
     </div>
   )
@@ -551,86 +472,82 @@ function StepMoods({ moods, selectedMoods, toggleMood, onBack, onNext }) {
 
 function StepGenres({ GENRES, selectedGenres, toggleGenre, error, loading, onNext, onBack }) {
   const count = selectedGenres.length
-  const feedback = count === 0
-    ? { text: 'Select 3–5 genres to get started', color: 'text-white/45' }
-    : count < 3
-    ? { text: `${3 - count} more needed for quality recommendations`, color: 'text-[#667eea]' }
-    : count <= 5
-    ? { text: 'Perfect selection', color: 'text-emerald-400' }
-    : { text: `${count} selected — you love variety!`, color: 'text-[#f093fb]' }
-
   const canProceed = count >= 3
 
+  const statusText = count === 0
+    ? 'Pick at least 3 — the more you choose, the better we know you'
+    : count < 3
+    ? `${3 - count} more to go`
+    : count <= 5
+    ? 'Great — add more or continue'
+    : `${count} selected — nice range`
+
   return (
-    <div className="h-full flex flex-col px-6 py-6">
+    <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="flex-none text-center mb-6">
-        <h2 className="text-3xl sm:text-4xl font-black text-white mb-2">
-          What do you love to watch?
+      <div className="flex-none text-center px-6 pt-7 pb-5">
+        <h2 className="text-3xl sm:text-4xl font-black text-white leading-tight mb-2">
+          What do you love<br className="sm:hidden" /> to watch?
         </h2>
-        <p className={`text-sm font-medium ${feedback.color} transition-colors duration-300`}>
-          {feedback.text}
-        </p>
+        <p className="text-sm text-white/40 transition-all duration-300">{statusText}</p>
       </div>
 
       {error && (
-        <div className="flex-none max-w-md mx-auto mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-sm text-center">
+        <div className="flex-none mx-6 mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-sm text-center">
           {error}
         </div>
       )}
 
-      {/* Grid */}
-      <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar -mx-2 px-2">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 max-w-4xl mx-auto pb-6">
+      {/* Tag cloud */}
+      <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar px-5 pb-4">
+        <div className="flex flex-wrap gap-2.5 justify-center max-w-xl mx-auto">
           {GENRES.map((g, idx) => {
             const isSelected = selectedGenres.includes(g.id)
             return (
-              <button
+              <motion.button
                 key={g.id}
                 type="button"
                 onClick={() => toggleGenre(g.id)}
-                style={{ animationDelay: `${idx * 20}ms`, animation: 'slide-up 0.4s ease-out backwards' }}
-                className={`relative h-24 overflow-visible rounded-2xl border-2 transition-all duration-300 active:scale-95 ${
-                  isSelected
-                    ? 'border-[#667eea] bg-gradient-to-br from-[#667eea]/20 to-[#764ba2]/20 text-white shadow-lg shadow-[#667eea]/20'
-                    : 'border-white/10 bg-white/5 text-white/80 hover:bg-white/10 hover:border-white/20'
-                }`}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25, delay: idx * 0.025 }}
+                whileTap={{ scale: 0.93 }}
+                className={`px-5 py-[11px] rounded-full text-sm font-semibold transition-all duration-200 select-none
+                  ${isSelected
+                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/30 scale-[1.06]'
+                    : 'bg-white/5 border border-white/10 text-white/50 hover:bg-white/9 hover:border-white/20 hover:text-white/80'
+                  }`}
               >
-                <span className="flex flex-col items-center justify-center h-full gap-1.5 px-3">
-                  <span className="text-2xl leading-none">{g.emoji}</span>
-                  <span className="text-sm font-semibold leading-tight">{g.label}</span>
-                </span>
-                {isSelected && (
-                  <div className="absolute top-2 right-2 bg-[#0B1120] rounded-full p-0.5 shadow-lg z-10">
-                    <div className="bg-gradient-to-r from-emerald-400 to-green-500 rounded-full p-1.5">
-                      <Check className="h-3 w-3 text-white stroke-[3]" />
-                    </div>
-                  </div>
-                )}
-              </button>
+                {g.label}
+              </motion.button>
             )
           })}
         </div>
       </div>
 
       {/* Footer */}
-      <div className="flex-none pt-5 border-t border-white/5 flex items-center justify-between">
-        <button onClick={onBack} className="flex items-center gap-2 text-sm font-medium text-white/40 hover:text-white/70 transition-colors">
-          <ChevronLeft className="h-4 w-4" />
-          Back
-        </button>
-        <button
-          onClick={onNext}
-          disabled={loading || !canProceed}
-          className={`flex items-center gap-2 px-8 py-3 rounded-full font-semibold text-sm transition-all duration-300 ${
-            canProceed
-              ? 'bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white shadow-lg hover:shadow-xl hover:scale-105 active:scale-95'
-              : 'bg-white/5 text-white/30 cursor-not-allowed'
-          }`}
-        >
-          Continue
-          <ChevronRight className="h-4 w-4" />
-        </button>
+      <div className="flex-none px-6 py-4 border-t border-white/5">
+        <div className="flex items-center justify-between max-w-xl mx-auto">
+          <button
+            onClick={onBack}
+            className="flex items-center gap-1.5 text-sm font-medium text-white/35 hover:text-white/65 transition-colors"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Back
+          </button>
+          <button
+            onClick={onNext}
+            disabled={loading || !canProceed}
+            className={`flex items-center gap-2 px-8 py-3 rounded-full font-semibold text-sm transition-all duration-300 ${
+              canProceed
+                ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/25 hover:scale-[1.02] active:scale-[0.98]'
+                : 'bg-white/5 text-white/25 cursor-not-allowed'
+            }`}
+          >
+            Continue
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -643,70 +560,134 @@ function StepMovies({
   favoriteMovies, trendingMovies, error, loading, searchInputRef, onBack, onFinish
 }) {
   const count = favoriteMovies.length
-  const feedback = count === 0
-    ? { text: 'Add 5+ movies for personalized recommendations — or skip', color: 'text-white/45' }
-    : count < 5
-    ? { text: `${5 - count} more for great recommendations`, color: 'text-[#667eea]' }
-    : count < 10
-    ? { text: 'Excellent — ready to continue', color: 'text-emerald-400' }
-    : { text: `${count} movies — amazing taste!`, color: 'text-[#f093fb]' }
-
   const canProceed = count >= 5
-  // Collapse trending row once search is active or 5+ movies added
-  const showTrending = trendingMovies.length > 0 && !query && count < 5
+  const showTrending = trendingMovies.length > 0 && !query
+
+  const statusText = count === 0
+    ? 'Pick 5+ films you\'ve enjoyed — the more, the better'
+    : count < 5
+    ? `${5 - count} more to unlock recommendations`
+    : count < 10
+    ? 'Solid — keep adding or continue'
+    : `${count} films — great taste profile`
 
   return (
-    <div className="h-full flex flex-col px-6 py-6">
-      {/* Header */}
-      <div className="flex-none text-center mb-5">
-        <h2 className="text-3xl sm:text-4xl font-black text-white mb-2">
-          Add your favorite movies
-        </h2>
-        <p className={`text-sm font-medium ${feedback.color} transition-colors duration-300`}>
-          {feedback.text}
-        </p>
+    <div className="h-full flex flex-col min-h-0">
+
+      {/* ── Search header ───────────────────────────────────────── */}
+      <div className="flex-none px-4 sm:px-6 pt-5 pb-3">
+        <div className="max-w-xl mx-auto">
+          <div className="text-center mb-3">
+            <h2 className="text-2xl sm:text-3xl font-black text-white mb-1">Films you love</h2>
+            <p className="text-sm text-white/40">{statusText}</p>
+          </div>
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/35 z-10" style={{ width: 17, height: 17 }} />
+            <input
+              ref={searchInputRef}
+              type="text"
+              placeholder="Search any film…"
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              className="w-full pl-11 pr-11 py-3.5 rounded-2xl border border-white/10 bg-white/5 text-sm text-white placeholder-white/30 focus:outline-none focus:border-purple-500/50 focus:bg-white/8 focus:ring-2 focus:ring-purple-500/12 transition-all"
+            />
+            {searching && (
+              <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                <Loader2 className="h-4 w-4 text-purple-400 animate-spin" />
+              </div>
+            )}
+            {query && !searching && (
+              <button
+                onClick={() => setQuery('')}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        </div>
       </div>
 
       {error && (
-        <div className="flex-none max-w-md mx-auto mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-sm text-center">
+        <div className="flex-none mx-4 sm:mx-6 mb-2 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-xs text-center">
           {error}
         </div>
       )}
 
-      {/* Search Bar */}
-      <div className="flex-none relative max-w-2xl mx-auto mb-5 w-full">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/40 z-10" />
-        <input
-          ref={searchInputRef}
-          type="text"
-          placeholder="Search for movies (e.g., Inception, The Matrix)"
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          className="w-full pl-12 pr-12 py-3.5 rounded-xl border-2 border-[#667eea]/30 bg-white/5 text-sm text-white placeholder-white/40 focus:outline-none focus:border-[#667eea] focus:ring-4 focus:ring-[#667eea]/20 transition-all"
-        />
-        {searching && (
-          <div className="absolute right-4 top-1/2 -translate-y-1/2">
-            <Loader2 className="h-5 w-5 text-[#667eea] animate-spin" />
+      {/* ── Scrollable body ──────────────────────────────────── */}
+      <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar px-4 sm:px-6 pb-3">
+
+        {/* Search results */}
+        {query && (
+          <div className="max-w-xl mx-auto">
+            {results.length > 0 ? (
+              <div className="rounded-2xl border border-white/8 overflow-hidden bg-white/3 divide-y divide-white/5">
+                {results.map((r) => {
+                  const selected = isMovieSelected(r.id)
+                  const canAdd = !selected && favoriteMovies.length < 50
+                  const year = r.release_date?.slice(0, 4)
+                  const rating = r.vote_average >= 1 ? r.vote_average.toFixed(1) : null
+                  return (
+                    <button
+                      key={r.id}
+                      type="button"
+                      onClick={() => {
+                        if (selected) removeMovie(r.id)
+                        else if (canAdd) { addMovie(r); setQuery('') }
+                      }}
+                      disabled={!canAdd && !selected}
+                      className={`flex w-full items-center gap-3.5 px-4 py-3 transition-all text-left group
+                        ${selected ? 'bg-purple-500/8' : 'hover:bg-white/4'}
+                        ${!canAdd && !selected ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'}`}
+                    >
+                      {/* Poster */}
+                      <div className="flex-none w-11 rounded-lg overflow-hidden bg-white/5 shadow-md" style={{ aspectRatio: '2/3' }}>
+                        <img
+                          src={`https://image.tmdb.org/t/p/w92${r.poster_path}`}
+                          alt={r.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      {/* Info */}
+                      <div className="flex-1 min-w-0">
+                        <div className={`font-semibold text-sm leading-snug truncate transition-colors ${selected ? 'text-purple-300' : 'text-white/90 group-hover:text-purple-300'}`}>
+                          {r.title}
+                        </div>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          {year && <span className="text-xs text-white/30">{year}</span>}
+                          {rating && <><span className="text-white/15 text-xs">·</span><span className="text-xs text-white/30">★ {rating}</span></>}
+                        </div>
+                      </div>
+                      {/* Action */}
+                      {selected ? (
+                        <div className="flex-none w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-md flex-shrink-0">
+                          <Check className="h-3.5 w-3.5 text-white stroke-[2.5]" />
+                        </div>
+                      ) : canAdd ? (
+                        <div className="flex-none w-7 h-7 rounded-full border border-white/12 flex items-center justify-center opacity-0 group-hover:opacity-100 group-hover:border-purple-500/35 transition-all flex-shrink-0">
+                          <span className="text-white/50 text-lg leading-none" style={{ marginTop: -2 }}>+</span>
+                        </div>
+                      ) : null}
+                    </button>
+                  )
+                })}
+              </div>
+            ) : !searching ? (
+              <div className="text-center py-10 text-white/30 text-sm">
+                No results for &ldquo;{query}&rdquo;
+              </div>
+            ) : null}
           </div>
         )}
-        {query && !searching && (
-          <button onClick={() => setQuery('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition-colors">
-            <X className="h-5 w-5" />
-          </button>
-        )}
-      </div>
 
-      {/* Scrollable content */}
-      <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar -mx-2 px-2">
-
-        {/* Trending row — shown when no search query and fewer than 5 movies added */}
+        {/* Trending poster grid */}
         {showTrending && (
-          <div className="max-w-3xl mx-auto mb-6">
-            <p className="text-xs font-semibold text-white/35 uppercase tracking-wider mb-3">
+          <div className="max-w-xl mx-auto">
+            <p className="text-[11px] font-semibold text-white/25 uppercase tracking-widest mb-3">
               Trending this week — tap to add
             </p>
-            <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-none">
-              {trendingMovies.map(m => {
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+              {trendingMovies.map((m, idx) => {
                 const selected = isMovieSelected(m.id)
                 return (
                   <button
@@ -714,21 +695,38 @@ function StepMovies({
                     type="button"
                     onClick={() => { if (!selected) addMovie(m) }}
                     disabled={selected}
-                    title={m.title}
-                    className={`flex-none relative w-16 aspect-[2/3] rounded-lg overflow-hidden ring-2 transition-all duration-200 ${
-                      selected ? 'ring-emerald-400 opacity-60' : 'ring-white/10 hover:ring-[#667eea]/60 hover:scale-105'
+                    style={{ animationDelay: `${idx * 40}ms`, animation: 'slide-up 0.4s ease-out backwards' }}
+                    className={`group relative rounded-xl overflow-hidden transition-all duration-200 ${
+                      selected
+                        ? 'ring-2 ring-purple-500/60 opacity-75'
+                        : 'ring-1 ring-white/8 hover:ring-purple-500/40 hover:shadow-lg hover:shadow-purple-500/15 hover:-translate-y-0.5'
                     }`}
                   >
-                    <img
-                      src={`https://image.tmdb.org/t/p/w92${m.poster_path}`}
-                      alt={m.title}
-                      className="w-full h-full object-cover"
-                    />
-                    {selected && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-                        <Check className="h-5 w-5 text-emerald-400 stroke-[3]" />
+                    <div className="aspect-[2/3]">
+                      <img
+                        src={`https://image.tmdb.org/t/p/w185${m.poster_path}`}
+                        alt={m.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    {/* Hover overlay */}
+                    {!selected && (
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/0 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end p-2">
+                        <span className="text-[10px] font-semibold text-white leading-tight line-clamp-2">{m.title}</span>
                       </div>
                     )}
+                    {/* Selected */}
+                    {selected && (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50">
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
+                          <Check className="h-4 w-4 text-white stroke-[2.5]" />
+                        </div>
+                      </div>
+                    )}
+                    {/* Title always below */}
+                    <div className="absolute inset-x-0 bottom-0 h-10 flex items-end pb-1.5 px-1.5 bg-gradient-to-t from-black/80 to-transparent pointer-events-none">
+                      <span className="text-[10px] font-medium text-white/70 line-clamp-1 leading-tight">{m.title}</span>
+                    </div>
                   </button>
                 )
               })}
@@ -736,113 +734,93 @@ function StepMovies({
           </div>
         )}
 
-        {/* Empty state — only when no trending, no query, no favorites */}
-        {!query && favoriteMovies.length === 0 && !showTrending && (
-          <div className="flex flex-col items-center justify-center h-full text-center py-12 opacity-60">
-            <Search className="h-14 w-14 mb-4 text-white/30" />
-            <p className="text-sm text-white/60 max-w-xs">
-              Start typing to discover and add movies you love
+        {/* Fallback empty state */}
+        {!query && trendingMovies.length === 0 && count === 0 && (
+          <div className="flex flex-col items-center justify-center py-14 text-center">
+            <div className="w-12 h-12 rounded-2xl border border-white/8 bg-white/3 flex items-center justify-center mb-4">
+              <Search className="h-5 w-5 text-white/20" />
+            </div>
+            <p className="text-sm text-white/30 max-w-xs leading-relaxed">
+              Search for films you love and we&apos;ll learn your taste from them
             </p>
           </div>
         )}
 
-        {/* Search results dropdown */}
-        {query && results.length > 0 && (
-          <div className="max-w-3xl mx-auto rounded-2xl bg-[#0f172a]/80 border border-white/10 overflow-hidden shadow-2xl mb-6 backdrop-blur-md">
-            <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
-              {results.map((r) => {
-                const selected = isMovieSelected(r.id)
-                const canAdd = !selected && favoriteMovies.length < 50
-                return (
-                  <button
-                    key={r.id}
-                    type="button"
-                    onClick={() => {
-                      if (selected) removeMovie(r.id)
-                      else if (canAdd) { addMovie(r); setQuery('') }
-                    }}
-                    disabled={!canAdd && !selected}
-                    className={`flex w-full items-center gap-4 px-5 py-4 hover:bg-white/5 transition-all border-b border-white/5 last:border-0 text-left group ${selected ? 'bg-[#667eea]/10' : ''} ${!canAdd && !selected ? 'opacity-40 cursor-not-allowed' : ''}`}
-                  >
-                    <img
-                      src={`https://image.tmdb.org/t/p/w92${r.poster_path}`}
-                      alt={r.title}
-                      className="w-12 rounded-lg object-cover flex-shrink-0 shadow-md ring-1 ring-white/10"
-                      style={{ aspectRatio: '2/3' }}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-white text-base truncate group-hover:text-[#667eea] transition-colors">{r.title}</div>
-                      <div className="text-sm text-white/45">{r.release_date?.slice(0, 4) || 'Unknown'}</div>
-                    </div>
-                    {selected ? (
-                      <div className="bg-emerald-500 rounded-full p-2">
-                        <Check className="h-4 w-4 text-white stroke-[3]" />
-                      </div>
-                    ) : canAdd ? (
-                      <span className="text-sm font-bold text-[#667eea] uppercase tracking-wide opacity-0 group-hover:opacity-100 transition-opacity">Add</span>
-                    ) : null}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        )}
+      </div>
 
-        {/* No results */}
-        {query && !searching && results.length === 0 && (
-          <div className="text-center py-12 text-white/45 text-sm">
-            No movies found. Try a different search term.
-          </div>
-        )}
-
-        {/* Selected collection */}
-        {favoriteMovies.length > 0 && (
-          <div className="max-w-5xl mx-auto pb-6">
-            <div className="flex items-center justify-between mb-4 sticky top-0 z-10 bg-[#0B1120]/95 backdrop-blur-sm py-2 border-b border-white/5">
-              <h3 className="text-base font-bold text-white flex items-center gap-3">
-                Your Collection
-                <span className="text-sm font-semibold text-white/45 bg-white/10 px-3 py-1 rounded-full">
-                  {favoriteMovies.length}
-                </span>
-              </h3>
+      {/* ── Filmstrip — always-visible selected collection ──────── */}
+      <AnimatePresence>
+        {count > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 12 }}
+            transition={{ duration: 0.25 }}
+            className="flex-none border-t border-white/5 bg-black/95 backdrop-blur-sm px-4 sm:px-6 pt-3 pb-2"
+          >
+            {/* Progress row */}
+            <div className="flex items-center gap-2 mb-2.5 max-w-xl mx-auto">
+              <span className="text-[11px] font-semibold text-white/35 uppercase tracking-widest flex-shrink-0">Your picks</span>
+              <div className="flex items-center gap-1 ml-1">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <motion.div
+                    key={i}
+                    animate={{ scale: i < count ? 1 : 0.75, opacity: i < count ? 1 : 0.3 }}
+                    transition={{ duration: 0.2 }}
+                    className={`rounded-full transition-all duration-300 ${
+                      i < count
+                        ? 'w-2 h-2 bg-gradient-to-r from-purple-500 to-pink-500'
+                        : 'w-1.5 h-1.5 bg-white/20'
+                    }`}
+                  />
+                ))}
+                {count > 5 && (
+                  <span className="text-[11px] font-bold text-purple-400 ml-1">+{count - 5}</span>
+                )}
+              </div>
+              {count >= 5 && (
+                <span className="ml-auto text-[11px] text-purple-400/70 font-medium">Ready to continue</span>
+              )}
             </div>
-            <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-3">
+            {/* Horizontal filmstrip */}
+            <div className="flex gap-2 overflow-x-auto scrollbar-none max-w-xl mx-auto pb-0.5">
               {favoriteMovies.map((m, idx) => (
-                <div
+                <motion.div
                   key={m.id}
-                  className="relative aspect-[2/3] rounded-xl overflow-hidden shadow-lg ring-1 ring-white/10 hover:ring-[#667eea]/50 transition-all duration-300 hover:scale-105"
-                  style={{ animationDelay: `${idx * 30}ms`, animation: 'slide-up 0.4s ease-out backwards' }}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  transition={{ duration: 0.2, delay: idx === count - 1 ? 0 : 0 }}
+                  className="group flex-none relative rounded-lg overflow-hidden ring-1 ring-white/10 hover:ring-purple-500/35 transition-all duration-200"
+                  style={{ width: 44, aspectRatio: '2/3' }}
                 >
                   <img
-                    src={`https://image.tmdb.org/t/p/w185${m.poster_path}`}
+                    src={`https://image.tmdb.org/t/p/w92${m.poster_path}`}
                     alt={m.title}
                     className="w-full h-full object-cover"
                   />
                   <button
                     type="button"
-                    onClick={(e) => { e.stopPropagation(); removeMovie(m.id) }}
-                    className="absolute top-2 right-2 h-7 w-7 rounded-full bg-red-500/90 hover:bg-red-600 flex items-center justify-center shadow-md z-20 transition-all hover:scale-110"
-                    title="Remove"
+                    onClick={() => removeMovie(m.id)}
+                    className="absolute inset-0 bg-black/65 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-150"
+                    aria-label={`Remove ${m.title}`}
                   >
-                    <X className="h-4 w-4 text-white stroke-[3]" />
+                    <X className="h-3.5 w-3.5 text-white/90" />
                   </button>
-                  <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/90 to-transparent">
-                    <span className="text-[11px] font-medium text-white/90 line-clamp-2 leading-tight">{m.title}</span>
-                  </div>
-                </div>
+                </motion.div>
               ))}
             </div>
-          </div>
+          </motion.div>
         )}
-      </div>
+      </AnimatePresence>
 
-      {/* Footer */}
-      <div className="flex-none pt-5 border-t border-white/5 bg-[#0B1120]">
-        <div className="flex items-center justify-between">
+      {/* ── Footer buttons ───────────────────────────────────────── */}
+      <div className="flex-none px-4 sm:px-6 py-4 border-t border-white/5 bg-black">
+        <div className="flex items-center justify-between max-w-xl mx-auto">
           <button
             onClick={onBack}
             disabled={loading}
-            className="flex items-center gap-2 text-sm font-medium text-white/40 hover:text-white/70 transition-colors disabled:opacity-30"
+            className="flex items-center gap-1.5 text-sm font-medium text-white/35 hover:text-white/65 transition-colors disabled:opacity-30"
           >
             <ChevronLeft className="h-4 w-4" />
             Back
@@ -852,24 +830,24 @@ function StepMovies({
               <button
                 onClick={() => onFinish({ skipMovies: true })}
                 disabled={loading}
-                className="text-sm font-medium text-white/35 hover:text-white/60 transition-colors disabled:opacity-30"
+                className="text-sm text-white/30 hover:text-white/55 transition-colors disabled:opacity-30"
               >
-                Skip for now
+                Skip
               </button>
             )}
             <button
               onClick={onFinish}
               disabled={loading || !canProceed}
-              className={`flex items-center gap-3 px-10 py-3.5 rounded-full font-semibold text-sm transition-all duration-300 ${
+              className={`flex items-center gap-2 px-7 py-3 rounded-full font-semibold text-sm transition-all duration-300 ${
                 canProceed
-                  ? 'bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white shadow-lg hover:shadow-xl hover:scale-105 active:scale-95'
-                  : 'bg-white/5 text-white/30 cursor-not-allowed'
+                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/25 hover:scale-[1.02] active:scale-[0.98]'
+                  : 'bg-white/5 text-white/20 cursor-not-allowed'
               }`}
             >
               {loading ? (
-                <><Loader2 className="h-4 w-4 animate-spin" /> Saving</>
+                <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>
               ) : (
-                <><Check className="h-4 w-4" /> Complete Setup</>
+                <><Check className="h-4 w-4 stroke-[2.5]" /> Finish Setup</>
               )}
             </button>
           </div>

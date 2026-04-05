@@ -350,21 +350,25 @@ export default function HeroTopPick({
     return (
       <section className="relative w-full h-[75vh] min-h-[500px] max-h-[800px] overflow-hidden bg-black">
         <div className="absolute inset-0 bg-gradient-to-br from-purple-950/30 via-black to-black" />
+        <div className="absolute bottom-0 left-0 right-0 h-2/3 pointer-events-none" style={{ background: 'radial-gradient(ellipse 65% 55% at 15% 100%, rgba(88,28,135,0.18) 0%, transparent 70%)' }} />
         <div className="relative z-10 h-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 flex items-end pb-12 lg:pb-16">
           <div className="flex flex-col lg:flex-row gap-6 lg:gap-10 w-full">
             <div className="hidden sm:block w-[200px] lg:w-[260px] flex-shrink-0">
-              <div className="aspect-[2/3] rounded-lg bg-white/5 animate-pulse" />
+              <div className="aspect-[2/3] rounded-xl bg-purple-500/5 animate-pulse" />
             </div>
             <div className="flex-1 space-y-4 pb-2">
               <div className="flex items-center gap-2">
-                <Loader2 className="h-4 w-4 text-purple-400 animate-spin" />
-                <span className="text-white/40 text-xs font-medium tracking-wide">
-                  Finding something you&apos;ll love...
+                <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" stroke="rgba(168,85,247,0.2)" strokeWidth="3" />
+                  <path d="M21 12a9 9 0 0 0-9-9v9z" fill="rgb(168,85,247)" />
+                </svg>
+                <span className="text-white/35 text-xs font-medium tracking-wide">
+                  Finding something you&apos;ll love…
                 </span>
               </div>
-              <div className="h-10 lg:h-14 w-2/3 bg-white/5 rounded animate-pulse" />
-              <div className="h-4 w-1/3 bg-white/5 rounded animate-pulse" />
-              <div className="h-16 w-full max-w-xl bg-white/5 rounded animate-pulse" />
+              <div className="h-10 lg:h-14 w-2/3 bg-purple-500/5 rounded-xl animate-pulse" />
+              <div className="h-4 w-1/3 bg-white/5 rounded-lg animate-pulse" />
+              <div className="h-16 w-full max-w-xl bg-white/5 rounded-xl animate-pulse" />
             </div>
           </div>
         </div>
@@ -414,7 +418,7 @@ export default function HeroTopPick({
 
         {movie.backdrop_path && (
           <img
-            src={tmdbImg(movie.backdrop_path, 'w780')}
+            src={tmdbImg(movie.backdrop_path, 'original')}
             alt=""
             aria-hidden="true"
             className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
@@ -427,10 +431,17 @@ export default function HeroTopPick({
           />
         )}
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/40 sm:from-black via-black/25 sm:via-black/30 to-transparent" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_20%_80%,rgba(0,0,0,0.6),transparent)] sm:bg-[radial-gradient(ellipse_80%_50%_at_20%_80%,rgba(0,0,0,0.9),transparent)]" />
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-950/10 via-transparent to-rose-950/10 mix-blend-overlay" />
+        {/* Subtle overall dark veil — keeps image moody without killing it */}
+        <div className="absolute inset-0 bg-black/30" />
+        {/* Bottom fade — text lives here */}
+        <div className="absolute bottom-0 inset-x-0 h-[65%] bg-gradient-to-t from-black via-black/70 to-transparent" />
+        {/* Left fade — readability */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/15 to-transparent" />
+        {/* FeelFlick purple glow — bottom left */}
+        <div
+          className="absolute bottom-0 left-0 right-0 h-2/3 pointer-events-none"
+          style={{ background: 'radial-gradient(ellipse 65% 55% at 15% 100%, rgba(88,28,135,0.22) 0%, transparent 70%)' }}
+        />
 
         <div
           className="absolute inset-0 opacity-[0.015]"
@@ -453,7 +464,7 @@ export default function HeroTopPick({
           >
             <button
               onClick={goToDetails}
-              className="group relative w-[180px] lg:w-[240px] xl:w-[260px] rounded-lg overflow-hidden shadow-2xl shadow-black/50 ring-1 ring-white/15 hover:ring-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-4 focus-visible:ring-offset-black transition-transform duration-500 hover:scale-[1.02]"
+              className="group relative w-[180px] lg:w-[240px] xl:w-[260px] rounded-xl overflow-hidden shadow-2xl shadow-black/50 ring-1 ring-white/12 hover:ring-purple-500/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400/50 focus-visible:ring-offset-4 focus-visible:ring-offset-black transition-all duration-500 hover:scale-[1.02]"
               aria-label={`View ${movie.title}`}
             >
               <div className="aspect-[2/3] bg-neutral-900">
@@ -581,7 +592,7 @@ export default function HeroTopPick({
               <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
                 <button
                   onClick={goToDetails}
-                  className="group inline-flex items-center gap-1.5 px-4 sm:px-6 py-2.5 sm:py-3 rounded-full bg-white text-black font-semibold text-sm transition-all duration-300 hover:bg-white/90 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                  className="group inline-flex items-center gap-1.5 px-4 sm:px-6 py-2.5 sm:py-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 text-white font-semibold text-sm shadow-lg shadow-purple-500/25 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
                 >
                   <span>View details</span>
                   <ChevronRight className="h-4 w-3 transition-transform duration-300 group-hover:translate-x-0.5" />
@@ -625,7 +636,7 @@ export default function HeroTopPick({
                         disabled={actionLoading.watched}
                         className={`h-10 w-10 sm:h-11 sm:w-11 rounded-full border backdrop-blur-sm transition-all duration-300 flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95 ${
                           isWatched
-                            ? 'bg-emerald-500/30 border-emerald-400/50 text-emerald-300 focus-visible:ring-emerald-400'
+                            ? 'bg-purple-500/30 border-purple-400/50 text-purple-300 focus-visible:ring-purple-400'
                             : 'bg-white/5 hover:bg-white/10 border-white/10 hover:border-white/20 text-white focus-visible:ring-white/50'
                         }`}
                       >
@@ -656,8 +667,6 @@ export default function HeroTopPick({
         </div>
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 h-32 sm:h-36 bg-gradient-to-t from-black/90 to-transparent md:from-transparent pointer-events-none" />
-      <div className="absolute bottom-0 left-0 right-0 h-40 sm:h-48 bg-gradient-to-t from-black via-black/95 to-transparent pointer-events-none" />
     </section>
   )
 }

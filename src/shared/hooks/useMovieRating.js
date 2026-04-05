@@ -8,6 +8,7 @@ import { supabase } from '@/shared/lib/supabase/client'
 
 export function useMovieRating(internalMovieId, userId) {
   const [rating, setRating] = useState(0)
+  const [reviewText, setReviewText] = useState('')
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
@@ -24,7 +25,7 @@ export function useMovieRating(internalMovieId, userId) {
       try {
         const { data, error } = await supabase
           .from('user_ratings')
-          .select('rating')
+          .select('rating, review_text')
           .eq('user_id', userId)
           .eq('movie_id', internalMovieId)
           .maybeSingle()
@@ -35,6 +36,7 @@ export function useMovieRating(internalMovieId, userId) {
         }
 
         setRating(data?.rating || 0)
+        setReviewText(data?.review_text || '')
         console.log('[useMovieRating] ✅ Loaded rating:', data?.rating || 0)
       } catch (err) {
         console.error('[useMovieRating] Load exception:', err)
@@ -80,6 +82,7 @@ export function useMovieRating(internalMovieId, userId) {
         if (error) throw error
 
         setRating(0)
+        setReviewText('')
         console.log('[useMovieRating] ✅ Rating cleared')
         return true
       }
@@ -115,11 +118,12 @@ export function useMovieRating(internalMovieId, userId) {
     }
   }
 
-  return { 
-    rating, 
-    loading, 
-    saving, 
-    error, 
+  return {
+    rating,
+    reviewText,
+    loading,
+    saving,
+    error,
     saveRating,
     hasRated: rating > 0
   }

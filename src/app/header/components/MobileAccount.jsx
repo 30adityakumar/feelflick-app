@@ -9,100 +9,116 @@ export default function MobileAccount() {
   const [user, setUser] = useState(null)
 
   useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      setUser(user ?? null)
-    }
-    getUser()
+    supabase.auth.getUser().then(({ data: { user } }) => setUser(user ?? null))
   }, [])
 
-  const name = user?.user_metadata?.name || user?.email?.split('@')[0] || 'User'
-  const email = user?.email
-  const initials = name
-    .split(' ')
-    .map(s => s[0]?.toUpperCase())
-    .slice(0, 2)
-    .join('')
+  const name     = user?.user_metadata?.name || user?.email?.split('@')[0] || 'User'
+  const email    = user?.email
+  const avatar   = user?.user_metadata?.avatar_url || null
+  const initials = name.trim().split(' ').map(s => s[0]?.toUpperCase()).slice(0, 2).join('')
 
   async function handleSignOut() {
     await supabase.auth.signOut()
     nav('/', { replace: true })
   }
 
-  // Main menu and library
-  const menuSections = [
+  const sections = [
     {
       items: [
-        { icon: User, label: 'Profile', path: '/account' },
-        { icon: Settings, label: 'Settings', path: '/preferences' },
-      ]
+        { icon: User,     label: 'Profile',   sub: 'Name and photo',  path: '/account'     },
+        { icon: Settings, label: 'Settings',  sub: 'Preferences',     path: '/preferences' },
+      ],
     },
     {
       title: 'Library',
       items: [
-        { icon: Bookmark, label: 'Watchlist', path: '/watchlist' },
-        { icon: Clock, label: 'History', path: '/history' },
-      ]
+        { icon: Bookmark, label: 'Watchlist', sub: 'Saved films',     path: '/watchlist'   },
+        { icon: Clock,    label: 'History',   sub: 'What you\'ve watched', path: '/history' },
+      ],
     },
   ]
 
   return (
-    <div className="min-h-screen bg-black text-white pb-20" style={{ paddingTop: 'var(--hdr-h, 64px)' }}>
-      {/* User Info Card */}
-      <div className="px-4 py-6 border-b border-white/10">
-        <div className="flex items-center gap-4">
-          <div className="h-20 w-20 rounded-full bg-gradient-to-br from-purple-600 via-pink-500 to-pink-400 flex items-center justify-center text-3xl font-black text-white flex-shrink-0 ring-4 ring-white/10">
-            {initials}
+    <div
+      className="min-h-screen bg-black text-white"
+      style={{ paddingTop: 'var(--hdr-h, 64px)', paddingBottom: 'calc(env(safe-area-inset-bottom) + 80px)' }}
+    >
+
+      {/* ── Hero card ─────────────────────────────────────────── */}
+      <div className="px-4 pt-6 pb-5">
+        <div className="rounded-2xl border border-white/8 bg-white/[0.03] px-5 py-5 flex items-center gap-4">
+          {/* Avatar */}
+          <div
+            className="h-16 w-16 rounded-full flex-shrink-0 flex items-center justify-center text-xl font-black text-white shadow-lg overflow-hidden"
+            style={{
+              background: avatar
+                ? undefined
+                : 'linear-gradient(135deg, rgb(168,85,247), rgb(236,72,153))',
+            }}
+          >
+            {avatar
+              ? <img src={avatar} alt={name} className="w-full h-full object-cover" />
+              : initials}
           </div>
+
+          {/* Name + email */}
           <div className="flex-1 min-w-0">
-            <h1 className="text-2xl font-black bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent truncate">{name}</h1>
-            <p className="text-sm text-white/60 truncate mt-1">{email}</p>
+            <div className="text-lg font-bold text-white truncate leading-tight">{name}</div>
+            <div className="text-sm text-white/40 truncate mt-0.5">{email}</div>
           </div>
         </div>
       </div>
 
-      {/* Menu Sections */}
-      <div className="py-4">
-        {menuSections.map((section, idx) => (
-          <div key={idx} className="mb-6">
-            {section.title &&
-              <h2 className="px-6 py-2 text-xs font-bold text-white/50 uppercase tracking-wider">{section.title}</h2>
-            }
-            <div className="divide-y divide-white/5">
+      {/* ── Menu sections ─────────────────────────────────────── */}
+      <div className="px-4 space-y-3">
+        {sections.map((section, i) => (
+          <div key={i}>
+            {section.title && (
+              <p className="text-[11px] font-semibold text-white/30 uppercase tracking-widest px-1 mb-2">
+                {section.title}
+              </p>
+            )}
+            <div className="rounded-2xl border border-white/8 bg-white/[0.03] overflow-hidden divide-y divide-white/5">
               {section.items.map(item => (
                 <button
                   key={item.label}
                   onClick={() => nav(item.path)}
-                  className="flex w-full items-center gap-4 px-6 py-4 text-white/90 hover:bg-white/5 active:bg-purple-600/10 transition-all group"
+                  className="flex w-full items-center gap-4 px-5 py-4 text-left hover:bg-white/4 active:bg-white/6 transition-colors group"
                 >
-                  <div className="text-purple-400 group-hover:text-pink-400 group-active:scale-110 transition-all">
-                    <item.icon className="h-5 w-5" />
+                  <div className="h-9 w-9 rounded-xl bg-white/6 flex items-center justify-center flex-shrink-0 group-hover:bg-purple-500/15 transition-colors">
+                    <item.icon className="h-4.5 w-4.5 text-white/50 group-hover:text-purple-400 transition-colors" style={{ width: 18, height: 18 }} />
                   </div>
-                  <span className="text-base font-semibold flex-1 text-left">{item.label}</span>
-                  <ChevronRight className="h-5 w-5 text-white/40 group-hover:text-pink-400 transition-all" />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-semibold text-white/85">{item.label}</div>
+                    <div className="text-xs text-white/35 mt-0.5">{item.sub}</div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-white/20 group-hover:text-white/45 flex-shrink-0 transition-colors" />
                 </button>
               ))}
             </div>
           </div>
         ))}
+
+        {/* ── Sign out row ─────────────────────────────────────── */}
+        <div className="rounded-2xl border border-white/8 bg-white/[0.03] overflow-hidden">
+          <button
+            onClick={handleSignOut}
+            className="flex w-full items-center gap-4 px-5 py-4 text-left hover:bg-red-500/5 active:bg-red-500/8 transition-colors group"
+          >
+            <div className="h-9 w-9 rounded-xl bg-white/6 flex items-center justify-center flex-shrink-0 group-hover:bg-red-500/12 transition-colors">
+              <LogOut className="h-4.5 w-4.5 text-white/40 group-hover:text-red-400 transition-colors" style={{ width: 18, height: 18 }} />
+            </div>
+            <span className="flex-1 text-sm font-semibold text-white/70 group-hover:text-red-400 transition-colors">Sign out</span>
+            <ChevronRight className="h-4 w-4 text-white/15 group-hover:text-red-400/40 flex-shrink-0 transition-colors" />
+          </button>
+        </div>
       </div>
 
-      {/* Sign Out Button */}
-      <div className="px-6 pt-4">
-        <button
-          onClick={handleSignOut}
-          className="flex w-full items-center justify-center gap-3 px-6 py-4 rounded-2xl bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold hover:brightness-110 active:scale-97 transition-all group"
-        >
-          <LogOut className="h-5 w-5 group-active:scale-110 transition-transform" />
-          <span>Sign Out</span>
-        </button>
+      {/* ── Footer ────────────────────────────────────────────── */}
+      <div className="text-center pt-8 pb-4 px-6">
+        <div className="text-xs text-white/15">FeelFlick · mood-first cinema</div>
       </div>
 
-      {/* App Info */}
-      <div className="px-6 py-8 text-center">
-        <p className="text-xs text-white/40">FeelFlick v1.0.0</p>
-        <p className="text-xs text-white/30 mt-1">© 2025 FeelFlick. All rights reserved.</p>
-      </div>
     </div>
   )
 }

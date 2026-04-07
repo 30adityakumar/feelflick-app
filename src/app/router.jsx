@@ -6,7 +6,7 @@ import {
   useLocation,
   useNavigate,
 } from 'react-router-dom'
-import { Suspense, lazy, useEffect, useState } from 'react'
+import { Suspense, lazy, useEffect } from 'react'
 import { supabase } from '@/shared/lib/supabase/client'
 
 // Root shells
@@ -51,6 +51,7 @@ const DiscoverPage = lazy(() => import('@/app/pages/discover/DiscoverPage'))
 // cache monitoring page
 const CacheMonitoring = lazy(() => import('./admin/CacheMonitoring'))
 import { normalizeAdminEmails, resolveAdminAccess } from './admin/access'
+import { useAuthSession } from '@/shared/hooks/useAuthSession'
 
 
 /* ----------------------------- Public layout ----------------------------- */
@@ -89,44 +90,20 @@ function LazyRoute({ Component }) {
 
 /** Root entry: if authed → /home, otherwise show Landing */
 function RootEntry() {
-  const [status, setStatus] = useState('loading')
+  const { ready, isAuthenticated } = useAuthSession()
 
-  useEffect(() => {
-    let unsub
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setStatus(session ? 'authed' : 'anon')
-    })
-    const { data } = supabase.auth.onAuthStateChange((_evt, session) => {
-      setStatus(session ? 'authed' : 'anon')
-    })
-    unsub = data?.subscription?.unsubscribe
-    return () => { if (typeof unsub === 'function') unsub() }
-  }, [])
-
-  if (status === 'loading') return <FullScreenSpinner />
-  if (status === 'authed') return <Navigate to="/home" replace />
+  if (!ready) return <FullScreenSpinner />
+  if (isAuthenticated) return <Navigate to="/home" replace />
   return <LazyRoute Component={Landing} />
 }
 
 /* ------------------------------ Auth guards ------------------------------ */
 function RequireAuth() {
-  const [status, setStatus] = useState('loading')
+  const { ready, isAuthenticated } = useAuthSession()
   const loc = useLocation()
 
-  useEffect(() => {
-    let unsub
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setStatus(session ? 'authed' : 'anon')
-    })
-    const { data } = supabase.auth.onAuthStateChange((_evt, session) => {
-      setStatus(session ? 'authed' : 'anon')
-    })
-    unsub = data?.subscription?.unsubscribe
-    return () => { if (typeof unsub === 'function') unsub() }
-  }, [])
-
-  if (status === 'loading') return <FullScreenSpinner />
-  if (status === 'anon') return <Navigate to="/" replace state={{ from: loc }} />
+  if (!ready) return <FullScreenSpinner />
+  if (!isAuthenticated) return <Navigate to="/" replace state={{ from: loc }} />
   return <Outlet />
 }
 
@@ -169,14 +146,10 @@ function OnboardingShell() {
 const ADMIN_EMAILS = normalizeAdminEmails(import.meta.env.VITE_ADMIN_EMAILS || '')
 
 function AdminOnly() {
-  const [status, setStatus] = useState('loading')
+  const { ready, session } = useAuthSession()
   const loc = useLocation()
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setStatus(resolveAdminAccess(session, ADMIN_EMAILS))
-    })
-  }, [])
+  const status = ready ? resolveAdminAccess(session, ADMIN_EMAILS) : 'loading'
 
   if (status === 'loading') return <FullScreenSpinner />
   if (status === 'anon') return <Navigate to="/" replace state={{ from: loc }} />

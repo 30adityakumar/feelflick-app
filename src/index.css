@@ -4,7 +4,7 @@
    ========================================================================== */
 
 /* Brand fonts - Apple-inspired system font stack */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@600;700&display=swap');
 
 /* Tailwind layers */
 @tailwind base;
@@ -22,6 +22,19 @@
   --panel: #334155;        /* Elevated panel */
   --text: #f8fafc;         /* Warm white text */
   --muted: #b0bec5;        /* Muted text — WCAG AA ≥4.5:1 on all app surfaces */
+  --color-bg: #08060d;
+  --color-surface: #120d1c;
+  --color-primary: var(--amber-400);
+  --color-text: var(--text);
+  --color-text-muted: rgba(248, 250, 252, 0.76);
+  --color-text-faint: rgba(248, 250, 252, 0.52);
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
   
   /* === FeelFlick Signature Gradient Palette === */
   /* Purple → Pink → Amber brand identity */
@@ -115,7 +128,7 @@
   --cyan-900: #164e63;
   
   /* === Brand Gradients === */
-  --gradient-primary: linear-gradient(135deg, var(--purple-500) 0%, var(--pink-500) 50%, var(--amber-500) 100%);
+  --gradient-primary: linear-gradient(135deg, var(--purple-500) 0%, var(--pink-500) 100%);
   --gradient-secondary: linear-gradient(135deg, var(--purple-600) 0%, var(--rose-500) 100%);
   --gradient-accent: linear-gradient(135deg, var(--pink-500) 0%, var(--orange-500) 100%);
   --gradient-warm: linear-gradient(135deg, var(--amber-500) 0%, var(--orange-500) 100%);
@@ -199,7 +212,7 @@ body {
 body {
   color: var(--text);
   /* Apple-inspired system font stack */
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -244,6 +257,48 @@ body {
   transition: outline var(--transition-fast);
 }
 
+@keyframes loading-bar {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  50% {
+    transform: translateX(0%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.5;
+    transform: scale(1.1);
+  }
+}
+
+.feelflick-route-progress {
+  animation: loading-bar 1s ease-in-out;
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 8s ease-in-out infinite;
+}
+
+.delay-1000 {
+  animation-delay: 1s;
+}
+
+.delay-2000 {
+  animation-delay: 2s;
+}
+
 /* === Reduced Motion === */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -253,6 +308,13 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+
+  .feelflick-route-progress,
+  .animate-pulse-slow,
+  .delay-1000,
+  .delay-2000 {
+    animation: none !important;
   }
 }
 

@@ -1,35 +1,23 @@
-// src/shared/hooks/useMovieExplanation.js
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react'
 
 export function useMovieExplanation(movie, moodName, matchPercentage) {
-  const [explanation, setExplanation] = useState('Great match for your mood');
-  const [loading, setLoading] = useState(true);
+  const explanation = useMemo(() => {
+    const parts = []
 
-  useEffect(() => {
-    // For now, generate rule-based explanations
-    // Later we'll add GPT via Supabase Edge Function
-    const generateRuleBasedExplanation = () => {
-    const parts = [];
+    if (matchPercentage >= 85) parts.push('Perfect match')
+    else if (matchPercentage >= 70) parts.push('Great fit')
+    else if (matchPercentage >= 60) parts.push('Good match')
 
-    // Match quality
-    if (matchPercentage >= 85) parts.push('Perfect match');
-    else if (matchPercentage >= 70) parts.push('Great fit');
-    else if (matchPercentage >= 60) parts.push('Good match');
+    if (movie?.vote_average >= 8.5) parts.push('exceptional ratings')
+    else if (movie?.vote_average >= 8.0) parts.push('highly rated')
+    else if (movie?.vote_average >= 7.5) parts.push('well-reviewed')
 
-    // Quality signals
-    if (movie.vote_average >= 8.5) parts.push('exceptional ratings');
-    else if (movie.vote_average >= 8.0) parts.push('highly rated');
-    else if (movie.vote_average >= 7.5) parts.push('well-reviewed');
+    if (moodName) {
+      parts.push(`for ${moodName.toLowerCase()} mood`)
+    }
 
-    // Mood specific
-    parts.push(`for ${moodName.toLowerCase()} mood`);
+    return parts.join(' • ') || 'Great match for your mood'
+  }, [matchPercentage, moodName, movie?.vote_average])
 
-    return parts.join(' • ');
-    };
-
-    setExplanation(generateRuleBasedExplanation());
-    setLoading(false);
-  }, [movie, moodName, matchPercentage]);
-
-  return { explanation, loading };
+  return { explanation, loading: false }
 }

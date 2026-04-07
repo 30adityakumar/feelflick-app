@@ -310,10 +310,13 @@ export function discoverMovies({
   withKeywords,
   voteAverageGte,
   voteAverageLte,
+  language,
+  releaseDateGte,
+  releaseDateLte,
   signal,
 } = {}) {
   const with_genres = Array.isArray(genreIds) ? genreIds.join(',') : genreIds
-  
+
   return fetchJson('/discover/movie', {
     params: {
       page,
@@ -326,6 +329,10 @@ export function discoverMovies({
       with_keywords: withKeywords,
       'vote_average.gte': voteAverageGte,
       'vote_average.lte': voteAverageLte,
+      'vote_count.gte': voteAverageGte ? 50 : undefined,
+      with_original_language: language || undefined,
+      'primary_release_date.gte': releaseDateGte || undefined,
+      'primary_release_date.lte': releaseDateLte || undefined,
     },
     ttl: TTL.NORMAL,
     signal,
@@ -438,6 +445,58 @@ export function getUpcomingMovies({ page = 1, signal } = {}) {
     ttl: TTL.FAST,
     signal,
   })
+}
+
+/**
+ * Get the highest-priority watch provider for a movie.
+ * Priority: flatrate -> rent -> buy, with CA primary and US fallback.
+ */
+export async function getMovieWatchProviders(id, {
+  region = 'CA',
+  fallbackRegion = 'US',
+  signal,
+} = {}) {
+  const data = await fetchJson(`/movie/${id}/watch/providers`, {
+    ttl: TTL.SLOW,
+    signal,
+    language: 'en-US',
+  })
+
+  const results = data?.results || {}
+  const regionData = results[region] || results[fallbackRegion] || null
+
+  if (!regionData) {
+    return {
+      regionCode: results[region] ? region : fallbackRegion,
+      link: '',
+      providers: [],
+    }
+  }
+
+  const topProvider =
+    regionData.flatrate?.[0] ||
+    regionData.rent?.[0] ||
+    regionData.buy?.[0] ||
+    null
+
+  return {
+    regionCode: results[region] ? region : fallbackRegion,
+    link: regionData.link || '',
+    providers: topProvider
+      ? [
+          {
+            id: topProvider.provider_id,
+            name: topProvider.provider_name,
+            logoPath: topProvider.logo_path,
+            type: regionData.flatrate?.[0]
+              ? 'flatrate'
+              : regionData.rent?.[0]
+                ? 'rent'
+                : 'buy',
+          },
+        ]
+      : [],
+  }
 }
 
 /**

@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
+import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import {
   Check, Search, X, Sparkles, ArrowRight, Loader2,
   ChevronLeft, ChevronRight
@@ -11,7 +12,7 @@ import { fetchJson, getTrending, searchMovies } from '@/shared/api/tmdb'
 
 export default function Onboarding() {
   const navigate = useNavigate()
-  const [session, setSession] = useState(null)
+  const { ready, session } = useAuthSession()
   const [checking, setChecking] = useState(true)
   // Steps: -1=welcome, 0=genres, 1=movies
   const [step, setStep] = useState(-1)
@@ -54,18 +55,13 @@ export default function Onboarding() {
     }
   }, [step])
 
-  // Session management
-  useEffect(() => {
-    let unsub
-    supabase.auth.getSession().then(({ data }) => setSession(data.session))
-    const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s))
-    unsub = data?.subscription?.unsubscribe
-    return () => { if (typeof unsub === 'function') unsub() }
-  }, [])
-
   // Check completion status
   useEffect(() => {
-    if (!session?.user) return
+    if (!ready) return
+    if (!session?.user) {
+      setChecking(false)
+      return
+    }
     ;(async () => {
       try {
         const meta = session.user.user_metadata || {}
@@ -83,7 +79,7 @@ export default function Onboarding() {
         else setChecking(false)
       } catch { setChecking(false) }
     })()
-  }, [session, navigate])
+  }, [ready, session, navigate])
 
   // Debounced TMDB movie search
   useEffect(() => {

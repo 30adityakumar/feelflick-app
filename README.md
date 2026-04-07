@@ -61,6 +61,22 @@ The project includes the Supabase CLI as a local dev dependency. From the repo r
 
 Run the application: `npm run dev`. Open your browser to the url indicated in the CLI (eg `https://localhost:5173/`) and you are ready to go 🚀.
 
+## Deploying to Vercel
+
+This app is a client-rendered Vite build, so Vercel can deploy it without extra server setup.
+
+1. Build locally first with `npm run build`.
+2. In Vercel, set these environment variables for the project:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
+   - `VITE_TMDB_API_KEY`
+   - `VITE_ADMIN_EMAILS` if you want `/admin/cache-monitoring` enabled
+3. Deploy a preview first, then promote after confirming Supabase auth and TMDB-powered pages are working.
+
+## Supabase Migrations
+
+The repo now includes a first-class Supabase migration in `supabase/migrations/20260405162000_add_app_query_indexes.sql` for watchlist, recommendation, and feedback query paths. Apply it with your usual Supabase migration workflow before or alongside deployment.
+
 ## Supabase details
 
 ### Postgres Row level security

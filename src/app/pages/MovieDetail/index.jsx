@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState, useCallback } from 'react'
 import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
+import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import {
   Play, Bookmark, Check, Star, Clock, Share2,
   Eye, EyeOff, Heart, ChevronLeft,
@@ -38,11 +39,11 @@ export default function MovieDetail() {
   const [providers, setProviders]     = useState({ flatrate: [], rent: [], buy: [], link: '' })
   const [images, setImages]           = useState({ backdrops: [] })
   const [certification, setCertification] = useState('')
-  const [user, setUser]               = useState(null)
   const [internalMovieId, setInternalMovieId] = useState(null)
   const [showFeedbackModal, setShowFeedbackModal] = useState(false)
   const [userFeedback, setUserFeedback] = useState(null)
   const [movieMoods, setMovieMoods]   = useState([])
+  const { user } = useAuthSession()
 
   usePageView(internalMovieId, 'movie_detail')
 
@@ -52,15 +53,6 @@ export default function MovieDetail() {
       console.log(`[MovieDetail] User spent ${Math.round((Date.now() - startTime) / 1000)}s on page`)
     }
   }, [internalMovieId])
-
-  // Auth
-  useEffect(() => {
-    let unsub
-    supabase.auth.getUser().then(({ data }) => setUser(data?.user ?? null))
-    const { data } = supabase.auth.onAuthStateChange((_e, session) => setUser(session?.user ?? null))
-    unsub = data?.subscription?.unsubscribe
-    return () => { if (typeof unsub === 'function') unsub() }
-  }, [])
 
   // TMDB data
   useEffect(() => {

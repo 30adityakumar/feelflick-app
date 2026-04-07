@@ -1,33 +1,18 @@
 // src/app/AppShell.jsx
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Outlet, useLocation, NavLink } from 'react-router-dom'
 import { Home, Sparkles, User, Compass } from 'lucide-react'
-import { supabase } from '@/shared/lib/supabase/client'
 import Header from '@/app/header/Header'
 import SearchBar from '@/app/header/components/SearchBar'
+import { useAuthSession } from '@/shared/hooks/useAuthSession'
 
 export default function AppShell() {
   const [searchOpen, setSearchOpen] = useState(false)
   const [headerVisible, setHeaderVisible] = useState(true)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const lastScrollY = useRef(0)
   const ticking = useRef(false)
   const location = useLocation()
-
-  // Check authentication status
-  useEffect(() => {
-    // Initial check
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setIsAuthenticated(!!session)
-    })
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsAuthenticated(!!session)
-    })
-
-    return () => subscription?.unsubscribe()
-  }, [])
+  const { isAuthenticated } = useAuthSession()
 
   // Keyboard shortcut for search (/)
   useEffect(() => {
@@ -85,7 +70,14 @@ export default function AppShell() {
   // Reset header visibility on route change
   useEffect(() => {
     setHeaderVisible(true)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+
+    const prefersReducedMotion =
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
+
+    window.scrollTo({
+      top: 0,
+      behavior: prefersReducedMotion ? 'auto' : 'smooth',
+    })
   }, [location.pathname])
 
   return (
@@ -107,7 +99,11 @@ export default function AppShell() {
       </div>
 
       {/* Page content - Full width, with bottom padding for mobile nav */}
-      <main className={`relative z-10 w-full pt-16 ${isAuthenticated ? 'pb-20 md:pb-0' : ''}`}>
+      <main
+        className={`relative z-10 w-full ${isAuthenticated ? 'pb-20 md:pb-0' : ''}`}
+        // Match top offset to the measured header height so hero/backdrops never sit under the header gradient.
+        style={{ paddingTop: 'var(--hdr-h, 64px)' }}
+      >
         <Outlet />
       </main>
 
@@ -149,15 +145,15 @@ function MobileNavLink({ to, icon: Icon, label, onClick }) {
     <Component
       to={onClick ? undefined : to}
       onClick={onClick}
-      className={`flex flex-col items-center justify-center gap-1 min-w-[56px] px-3 py-1.5 rounded-xl transition-all duration-200 ${
+      className={`flex min-w-[56px] flex-col items-center justify-center gap-1 rounded-xl px-3 py-1.5 transition-colors duration-200 ${
         isActive ? 'text-white' : 'text-white/40 hover:text-white/70'
       }`}
       aria-label={label}
       aria-current={isActive ? 'page' : undefined}
     >
-      <div className={`relative flex items-center justify-center transition-all duration-200 ${isActive ? 'scale-110' : ''}`}>
+      <div className={`relative flex items-center justify-center transition-transform duration-200 ${isActive ? 'scale-110' : ''}`}>
         <Icon
-          className={`h-5 w-5 transition-all duration-200 ${
+          className={`h-5 w-5 transition duration-200 ${
             isActive ? 'stroke-[2.5] drop-shadow-[0_0_8px_rgba(168,85,247,0.6)]' : 'stroke-[1.8]'
           }`}
           style={isActive ? { color: 'rgb(192,132,252)' } : {}}
@@ -209,57 +205,12 @@ function RouteLoadingIndicator() {
   if (!loading) return null
 
   return (
-    <div 
+    <div
       className="fixed top-0 left-0 right-0 h-1 z-[100] overflow-hidden"
       role="progressbar"
       aria-label="Loading page"
     >
-      <div 
-        className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-amber-500"
-        style={{
-          animation: 'loading-bar 1s ease-in-out',
-        }}
-      />
+      <div className="feelflick-route-progress h-full bg-gradient-to-r from-purple-500 via-pink-500 to-amber-500" />
     </div>
   )
 }
-
-// Add this to your global CSS or create an inline style
-const style = document.createElement('style')
-style.textContent = `
-  @keyframes loading-bar {
-    0% {
-      transform: translateX(-100%);
-    }
-    50% {
-      transform: translateX(0%);
-    }
-    100% {
-      transform: translateX(100%);
-    }
-  }
-  
-  @keyframes pulse-slow {
-    0%, 100% {
-      opacity: 0.3;
-      transform: scale(1);
-    }
-    50% {
-      opacity: 0.5;
-      transform: scale(1.1);
-    }
-  }
-  
-  .animate-pulse-slow {
-    animation: pulse-slow 8s ease-in-out infinite;
-  }
-  
-  .delay-1000 {
-    animation-delay: 1s;
-  }
-  
-  .delay-2000 {
-    animation-delay: 2s;
-  }
-`
-document.head.appendChild(style)

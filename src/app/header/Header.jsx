@@ -1,24 +1,18 @@
 // src/app/header/Header.jsx
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { supabase } from '@/shared/lib/supabase/client'
 import { Search as SearchIcon, ChevronDown, LogOut, User as UserIcon, Settings, Bookmark, Clock } from 'lucide-react'
+import { supabase } from '@/shared/lib/supabase/client'
+import { useAuthSession } from '@/shared/hooks/useAuthSession'
 
 export default function Header({ onOpenSearch }) {
   const navigate = useNavigate()
-  const [user, setUser] = useState(null)
   const [scrolled, setScrolled] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const { user } = useAuthSession()
 
   const hdrRef = useRef(null)
   const dropdownRef = useRef(null)
-
-  // User session
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUser(data?.user ?? null))
-    const { data } = supabase.auth.onAuthStateChange((_e, s) => setUser(s?.user ?? null))
-    return () => data?.subscription?.unsubscribe?.()
-  }, [])
 
   // Scrolled state (for backdrop)
   useEffect(() => {
@@ -35,8 +29,20 @@ export default function Header({ onOpenSearch }) {
         setDropdownOpen(false)
       }
     }
+
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        setDropdownOpen(false)
+      }
+    }
+
     document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
+    document.addEventListener('keydown', handleEscape)
+
+    return () => {
+      document.removeEventListener('mousedown', handler)
+      document.removeEventListener('keydown', handleEscape)
+    }
   }, [dropdownOpen])
 
   // Expose header height as CSS var
@@ -68,7 +74,7 @@ export default function Header({ onOpenSearch }) {
     <header
       ref={hdrRef}
       style={{ paddingTop: 'env(safe-area-inset-top)' }}
-      className={`w-full transition-all duration-300 ${
+      className={`w-full transition-colors duration-300 ${
         scrolled
           ? 'bg-black/88 backdrop-blur-xl border-b border-white/[0.06] shadow-lg shadow-black/30'
           : 'bg-gradient-to-b from-black/70 to-transparent'
@@ -97,7 +103,7 @@ export default function Header({ onOpenSearch }) {
                 key={to}
                 to={to}
                 className={({ isActive }) =>
-                  `relative px-3.5 py-2 text-sm font-semibold rounded-lg transition-all duration-200 group
+                  `group relative rounded-lg px-3.5 py-2 text-sm font-semibold transition-colors duration-200
                   ${isActive
                     ? 'text-white'
                     : 'text-white/50 hover:text-white/85 hover:bg-white/5'
@@ -121,9 +127,10 @@ export default function Header({ onOpenSearch }) {
 
             {/* Search */}
             <button
+              type="button"
               onClick={onOpenSearch}
               aria-label="Search films"
-              className="flex items-center gap-2.5 pl-3.5 pr-3 py-2 rounded-full border border-white/10 bg-white/5 text-white/45 hover:text-white/80 hover:bg-white/9 hover:border-white/18 transition-all duration-200 active:scale-95"
+              className="flex items-center gap-2.5 rounded-full border border-white/10 bg-white/5 py-2 pl-3.5 pr-3 text-white/45 transition-colors duration-200 hover:border-white/18 hover:bg-white/9 hover:text-white/80 active:scale-95"
             >
               <SearchIcon className="h-4 w-4 shrink-0" />
               <span className="hidden lg:flex items-center gap-2 text-sm pr-0.5">
@@ -136,16 +143,19 @@ export default function Header({ onOpenSearch }) {
             {user && (
               <div className="hidden md:block relative" ref={dropdownRef}>
                 <button
+                  type="button"
                   onClick={() => setDropdownOpen(v => !v)}
                   aria-label="Account menu"
                   aria-expanded={dropdownOpen}
-                  className="flex items-center gap-1.5 p-1 rounded-full hover:bg-white/8 transition-all duration-200 group"
+                  className="group flex items-center gap-1.5 rounded-full p-1 transition-colors duration-200 hover:bg-white/8"
                 >
                   {userAvatar ? (
                     <img
                       src={userAvatar}
                       alt={userName}
-                      className="h-8 w-8 rounded-full object-cover ring-2 ring-white/10 group-hover:ring-purple-500/40 transition-all"
+                      width="32"
+                      height="32"
+                      className="h-8 w-8 rounded-full object-cover ring-2 ring-white/10 transition group-hover:ring-purple-500/40"
                     />
                   ) : (
                     <div className="h-8 w-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-sm font-bold shadow-lg shadow-purple-500/20">
@@ -193,8 +203,9 @@ export default function Header({ onOpenSearch }) {
                     {/* Sign out */}
                     <div className="border-t border-white/5 py-1.5">
                       <button
+                        type="button"
                         onClick={handleSignOut}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-white/50 hover:text-red-400 hover:bg-red-500/8 transition-all duration-150 rounded-lg mx-0"
+                        className="mx-0 flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-sm text-white/50 transition-colors duration-150 hover:bg-red-500/8 hover:text-red-400"
                       >
                         <LogOut className="h-4 w-4 shrink-0" />
                         Sign out
@@ -224,7 +235,7 @@ function DropdownLink({ to, icon: Icon, children, onClick }) {
     <Link
       to={to}
       onClick={onClick}
-      className="flex items-center gap-3 px-4 py-2.5 text-sm text-white/55 hover:text-white/90 hover:bg-white/5 transition-all duration-150 rounded-lg mx-1.5"
+      className="mx-1.5 flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm text-white/55 transition-colors duration-150 hover:bg-white/5 hover:text-white/90"
     >
       <Icon className="h-4 w-4 shrink-0 text-white/30" />
       {children}

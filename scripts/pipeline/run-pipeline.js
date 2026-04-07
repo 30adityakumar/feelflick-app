@@ -5,6 +5,7 @@ const Logger = require('../utils/logger');
 const { logUpdateRun, completeUpdateRun } = require('../utils/supabase');
 const tmdbClient = require('../utils/tmdb-client');
 const omdbClient = require('../utils/omdb-client');
+const traktClient = require('../utils/trakt-client');
 const openaiClient = require('../utils/openai-client');
 const { spawn } = require('child_process');
 const path = require('path');
@@ -24,6 +25,7 @@ const RUN_MODES = {
       { name: '04-fetch-cast-crew', enabled: true },
       { name: '05-calculate-cast-metadata', enabled: true },
       { name: '06-fetch-external-ratings', enabled: true, options: { limit: 100 } },
+      { name: '06b-fetch-trakt-ratings',   enabled: true, options: { limit: 100 } },
       { name: '07-calculate-movie-scores', enabled: true },
       { name: '08-generate-embeddings', enabled: true },
       { name: '09-calculate-mood-scores', enabled: true }
@@ -38,6 +40,7 @@ const RUN_MODES = {
       { name: '04-fetch-cast-crew', enabled: false },
       { name: '05-calculate-cast-metadata', enabled: false },
       { name: '06-fetch-external-ratings', enabled: true, options: { limit: 200 } },
+      { name: '06b-fetch-trakt-ratings',   enabled: true, options: { limit: 200 } },
       { name: '07-calculate-movie-scores', enabled: true },
       { name: '08-generate-embeddings', enabled: true, options: { limit: 200 } },
       { name: '09-calculate-mood-scores', enabled: true }
@@ -52,6 +55,7 @@ const RUN_MODES = {
       { name: '04-fetch-cast-crew', enabled: false },
       { name: '05-calculate-cast-metadata', enabled: false },
       { name: '06-fetch-external-ratings', enabled: true, options: { limit: 1000 } },
+      { name: '06b-fetch-trakt-ratings',   enabled: true, options: { limit: 1000 } },
       { name: '07-calculate-movie-scores', enabled: true },
       { name: '08-generate-embeddings', enabled: false },
       { name: '09-calculate-mood-scores', enabled: false }
@@ -66,6 +70,7 @@ const RUN_MODES = {
       { name: '04-fetch-cast-crew', enabled: true },
       { name: '05-calculate-cast-metadata', enabled: true },
       { name: '06-fetch-external-ratings', enabled: true, options: { limit: 500 } },
+      { name: '06b-fetch-trakt-ratings',   enabled: true, options: { limit: 500 } },
       { name: '07-calculate-movie-scores', enabled: true },
       { name: '08-generate-embeddings', enabled: true },
       { name: '09-calculate-mood-scores', enabled: true }
@@ -211,6 +216,7 @@ async function runPipeline(mode = 'discover', options = {}) {
   logger.info(`\nAPI Usage:`);
   logger.info(`  - TMDB: ${tmdbClient.getRequestCount()} calls`);
   logger.info(`  - OMDb: ${omdbClient.getRequestCount()} / 1000 calls (${omdbClient.getQuotaRemaining()} remaining)`);
+  logger.info(`  - Trakt: ${traktClient.getRequestCount()} calls`);
   logger.info(`  - OpenAI: ${openaiClient.getRequestCount()} requests ($${openaiClient.getTotalCost()})`);
   
   logger.info(`\nTotal duration: ${totalDuration}s (${(totalDuration / 60).toFixed(1)} minutes)`);

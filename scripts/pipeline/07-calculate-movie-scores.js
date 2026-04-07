@@ -45,14 +45,34 @@ const supabase = createClient(
 const CONFIG = {
   BATCH_SIZE: 100,
   LOG_INTERVAL: 500,
-  
-  // ff_rating weights (V2: PURE QUALITY ONLY)
+
+  // ff_rating weights (V3: includes Trakt, reduced IMDb dominance)
+  // Missing sources are handled by the weighted-average normalization —
+  // weights for absent sources simply don't contribute to totalWeight.
   FF_WEIGHTS: {
-    IMDB: 0.40,
-    RT: 0.25,
+    IMDB:       0.28,
+    RT:         0.22,
     METACRITIC: 0.20,
-    TMDB: 0.15
-  }
+    TMDB:       0.10,
+    TRAKT:      0.07,
+  },
+
+  // Bayesian prior constants — pull low-vote films toward the global mean.
+  // With N votes the rating is: (N*rating + PRIOR*mean) / (N + PRIOR)
+  // So at N=0 you get the mean; at N=PRIOR you're halfway; at N>>PRIOR you
+  // get the real rating. This replaces the old blunt confidence penalties.
+  BAYESIAN: {
+    IMDB_PRIOR:        5000,   // ~5k votes to halve the prior pull
+    IMDB_MEAN:         6.5,    // global IMDb average across all films
+    TMDB_PRIOR:        500,
+    TMDB_MEAN:         6.5,
+    TRAKT_PRIOR:       1000,
+    TRAKT_MEAN:        7.0,    // Trakt community skews cinephile (rates higher)
+  },
+
+  // Language bias: non-English IMDb scores are systematically deflated
+  // because the English-speaking majority rates foreign films lower.
+  LANGUAGE_BIAS_CORRECTION: 0.25,  // added to IMDb score for non-en films
 };
 
 // ============================================================================
@@ -294,112 +314,257 @@ function scoreToStarpowerEnum(score) {
 }
 
 // ============================================================================
-// FF_RATING V2: PURE QUALITY SCORE (0-10)
-// Only measures how "good" the film is - no starpower, freshness, engagement
+// FF_RATING V3: PURE QUALITY SCORE (0-10)
+//
+// Improvements over V2:
+//   - Trakt.tv added as a 5th source (cinephile-skewed signal)
+//   - Bayesian averaging replaces blunt confidence penalty:
+//       bayesian = (votes * rating + PRIOR * mean) / (votes + PRIOR)
+//     Low-vote films are pulled toward the global average instead of
+//     multiplied by an arbitrary factor.
+//   - Language bias correction: non-English IMDb scores receive a small
+//     upward correction to offset the English-speaking majority effect.
+//   - Recency discount: films < 6 months old have inflated/noisy scores
+//     and receive a small uncertainty discount.
 // ============================================================================
 
 function calculateFFRating(movie, externalRatings) {
+  const { FF_WEIGHTS: W, BAYESIAN: B, LANGUAGE_BIAS_CORRECTION } = CONFIG;
   let totalScore = 0;
   let totalWeight = 0;
+  let sourceCount = 0;
 
-  // 1. IMDB (40% weight)
+  // 1. IMDb — Bayesian averaging + language bias correction
   if (externalRatings?.imdb_rating) {
-    const imdbScore = externalRatings.imdb_rating;
-    const voteCount = externalRatings.imdb_votes || 0;
-    
-    // Confidence based on vote count (logarithmic scale)
-    const confidence = Math.min(1.0, Math.log10(voteCount + 1) / 5);
-    const actualWeight = CONFIG.FF_WEIGHTS.IMDB * (0.5 + 0.5 * confidence);
-    
-    totalScore += imdbScore * actualWeight;
-    totalWeight += actualWeight;
+    const rawRating = externalRatings.imdb_rating;
+    const votes     = externalRatings.imdb_votes || 0;
+
+    // Bayesian: pull toward prior mean for low-vote films
+    let imdbScore = (votes * rawRating + B.IMDB_PRIOR * B.IMDB_MEAN)
+                  / (votes + B.IMDB_PRIOR);
+
+    // Language bias correction: non-English films are systematically
+    // underrated on IMDb by English-speaking majority voters
+    if (movie.original_language && movie.original_language !== 'en') {
+      imdbScore = Math.min(10, imdbScore + LANGUAGE_BIAS_CORRECTION);
+    }
+
+    totalScore  += imdbScore * W.IMDB;
+    totalWeight += W.IMDB;
+    sourceCount++;
   }
 
-  // 2. Rotten Tomatoes (25% weight)
+  // 2. Rotten Tomatoes critics score — already an aggregated % (no Bayesian needed)
   if (externalRatings?.rt_rating) {
     const rtPercent = parseInt(externalRatings.rt_rating);
     if (!isNaN(rtPercent)) {
-      const rtScore = rtPercent / 10; // Convert 0-100 to 0-10
-      totalScore += rtScore * CONFIG.FF_WEIGHTS.RT;
-      totalWeight += CONFIG.FF_WEIGHTS.RT;
+      const rtScore = rtPercent / 10; // 0-100 → 0-10
+      totalScore  += rtScore * W.RT;
+      totalWeight += W.RT;
+      sourceCount++;
     }
   }
 
-  // 3. Metacritic (20% weight)
+  // 3. Metacritic — already an aggregated critics score (no Bayesian needed)
   if (externalRatings?.metacritic_score) {
-    const metaScore = externalRatings.metacritic_score / 10; // Convert 0-100 to 0-10
-    totalScore += metaScore * CONFIG.FF_WEIGHTS.METACRITIC;
-    totalWeight += CONFIG.FF_WEIGHTS.METACRITIC;
+    const metaScore = externalRatings.metacritic_score / 10; // 0-100 → 0-10
+    totalScore  += metaScore * W.METACRITIC;
+    totalWeight += W.METACRITIC;
+    sourceCount++;
   }
 
-  // 4. TMDB Community (15% weight)
+  // 4. TMDB community — Bayesian averaging
   if (movie.vote_average) {
-    const tmdbScore = movie.vote_average;
-    const voteCount = movie.vote_count || 0;
-    
-    // Confidence based on vote count
-    const confidence = Math.min(1.0, Math.log10(voteCount + 1) / 4);
-    const actualWeight = CONFIG.FF_WEIGHTS.TMDB * (0.4 + 0.6 * confidence);
-    
-    totalScore += tmdbScore * actualWeight;
-    totalWeight += actualWeight;
+    const votes = movie.vote_count || 0;
+    const tmdbScore = (votes * movie.vote_average + B.TMDB_PRIOR * B.TMDB_MEAN)
+                    / (votes + B.TMDB_PRIOR);
+    totalScore  += tmdbScore * W.TMDB;
+    totalWeight += W.TMDB;
+    // TMDB alone doesn't count as an "external" source for confidence
   }
 
-  // Calculate weighted average
-  let ffRating = totalWeight > 0 ? totalScore / totalWeight : 5.0;
-
-  // Confidence penalty for films with no external ratings
-  let confidence = 100;
-  const hasExternalRatings = externalRatings && 
-    (externalRatings.imdb_rating || externalRatings.rt_rating || externalRatings.metacritic_score);
-  
-  if (!hasExternalRatings) {
-    const voteCount = movie.vote_count || 0;
-    if (voteCount < 20) {
-      confidence = 40;
-      ffRating *= 0.7;
-    } else if (voteCount < 100) {
-      confidence = 60;
-      ffRating *= 0.8;
-    } else if (voteCount < 500) {
-      confidence = 75;
-      ffRating *= 0.9;
-    } else {
-      confidence = 85;
-      ffRating *= 0.95;
-    }
+  // 5. Trakt.tv — Bayesian averaging (cinephile community)
+  if (externalRatings?.trakt_rating) {
+    const votes = externalRatings.trakt_votes || 0;
+    const traktScore = (votes * externalRatings.trakt_rating + B.TRAKT_PRIOR * B.TRAKT_MEAN)
+                     / (votes + B.TRAKT_PRIOR);
+    totalScore  += traktScore * W.TRAKT;
+    totalWeight += W.TRAKT;
+    sourceCount++;
   }
 
-  // Clamp to valid range
-  ffRating = Math.max(1.0, Math.min(10.0, ffRating));
-  ffRating = Math.round(ffRating * 10) / 10;
+  // Weighted average (falls back to prior mean if no data at all)
+  let ffRating = totalWeight > 0 ? totalScore / totalWeight : B.IMDB_MEAN;
+
+  // Recency discount: very new films have noisy, vote-sparse scores
+  if (movie.release_date) {
+    const monthsOld = (Date.now() - new Date(movie.release_date).getTime())
+                    / (1000 * 60 * 60 * 24 * 30);
+    if (monthsOld < 3)      ffRating *= 0.96;
+    else if (monthsOld < 6) ffRating *= 0.98;
+  }
+
+  // Confidence: how many real external critic/community sources do we have?
+  // (Bayesian handles the vote-count uncertainty; this is just for reporting)
+  let confidence;
+  if (sourceCount >= 3)       confidence = 100;
+  else if (sourceCount === 2) confidence = 85;
+  else if (sourceCount === 1) confidence = 65;
+  else                        confidence = 40; // TMDB only or nothing
+
+  // Cap confidence when vote signals are suspiciously thin:
+  //   - No TMDB votes at all (vote_count is null or 0): likely a data stub
+  //   - Very few IMDb votes (<500): score may be driven by a small audience
+  // These caps prevent obscure titles with sparse data from floating to the
+  // top of recommendation pools despite technically having 3 source signals.
+  const tmdbVotes = movie.vote_count || 0;
+  const imdbVotes = externalRatings?.imdb_votes || 0;
+
+  if (tmdbVotes === 0 && imdbVotes === 0) {
+    confidence = Math.min(confidence, 40); // pure data stub
+  } else if (tmdbVotes < 50 && imdbVotes < 500) {
+    confidence = Math.min(confidence, 55); // very sparse
+  } else if (tmdbVotes < 200 || imdbVotes < 1000) {
+    confidence = Math.min(confidence, 70); // moderately sparse
+  }
+
+  ffRating = Math.round(Math.max(1.0, Math.min(10.0, ffRating)) * 10) / 10;
 
   return { rating: ffRating, confidence };
 }
 
 // ============================================================================
-// GENRE-NORMALIZED RATING (0-10)
-// How good is this film RELATIVE TO ITS GENRE?
-// A 7.0 horror film is exceptional, a 7.0 drama is average
+// BUILD LIVE GENRE STATS FROM ALREADY-SCORED MOVIES
+//
+// Called once at the start of each scoring run. Uses real ff_rating values
+// from movies already in the DB (has_scores=true) to derive each genre's
+// actual mean and standard deviation — far more accurate than the hardcoded
+// GENRE_STATS fallback above, which is just a starting estimate.
+//
+// Falls back to GENRE_STATS when:
+//   - The DB has no scored movies yet (first ever run)
+//   - A genre has fewer than MIN_SAMPLES scored movies
 // ============================================================================
 
-function calculateGenreNormalizedRating(ffRating, primaryGenreId) {
-  const stats = GENRE_STATS[primaryGenreId];
-  
-  if (!stats) {
-    // No stats for this genre, return raw rating
+const MIN_GENRE_SAMPLES = 30;
+
+async function buildGenreStats() {
+  console.log('\n📊 Building genre statistics from scored movies...');
+
+  const { data: movies, error } = await supabase
+    .from('movies')
+    .select('id, ff_rating')
+    .eq('has_scores', true)
+    .not('ff_rating', 'is', null)
+    .limit(50000);
+
+  if (error || !movies?.length) {
+    console.log('  ⚠️  No scored movies found — using hardcoded fallback stats');
+    return null;
+  }
+
+  const ratingMap = new Map(movies.map(m => [m.id, m.ff_rating]));
+  const movieIds  = [...ratingMap.keys()];
+
+  // Fetch genres in batches
+  const genresByMovie = new Map();
+  const BATCH = 2000;
+  for (let i = 0; i < movieIds.length; i += BATCH) {
+    const { data: rows } = await supabase
+      .from('movie_genres')
+      .select('movie_id, genre_id')
+      .in('movie_id', movieIds.slice(i, i + BATCH));
+
+    for (const row of (rows || [])) {
+      if (!genresByMovie.has(row.movie_id)) genresByMovie.set(row.movie_id, []);
+      genresByMovie.get(row.movie_id).push(row.genre_id);
+    }
+  }
+
+  // Accumulate ff_rating values per genre
+  const genreRatings = new Map();
+  for (const [movieId, rating] of ratingMap) {
+    for (const genreId of (genresByMovie.get(movieId) || [])) {
+      if (!genreRatings.has(genreId)) genreRatings.set(genreId, []);
+      genreRatings.get(genreId).push(rating);
+    }
+  }
+
+  // Compute mean + stdDev; require MIN_GENRE_SAMPLES before trusting the data
+  const liveStats = {};
+  for (const [genreId, ratings] of genreRatings) {
+    if (ratings.length < MIN_GENRE_SAMPLES) continue;
+
+    const mean     = ratings.reduce((s, r) => s + r, 0) / ratings.length;
+    const variance = ratings.reduce((s, r) => s + (r - mean) ** 2, 0) / ratings.length;
+    const stdDev   = Math.max(0.5, Math.sqrt(variance)); // floor at 0.5 to avoid division chaos
+
+    liveStats[genreId] = {
+      name:    GENRE_STATS[genreId]?.name || `Genre ${genreId}`,
+      mean:    Math.round(mean   * 100) / 100,
+      stdDev:  Math.round(stdDev * 100) / 100,
+      samples: ratings.length,
+    };
+  }
+
+  const genreCount = Object.keys(liveStats).length;
+  console.log(`  ✓ Stats computed for ${genreCount} genres from ${movies.length} scored movies`);
+
+  if (genreCount > 0) {
+    const top = Object.entries(liveStats)
+      .sort(([, a], [, b]) => b.mean - a.mean)
+      .slice(0, 4);
+    for (const [, s] of top) {
+      console.log(`    ${s.name.padEnd(20)} mean=${s.mean} ± ${s.stdDev}  (n=${s.samples})`);
+    }
+  }
+
+  // Need at least 5 genres with real data to prefer live stats over hardcoded
+  return genreCount >= 5 ? liveStats : null;
+}
+
+// ============================================================================
+// GENRE-NORMALIZED RATING (0-10)
+//
+// How good is this film RELATIVE TO ITS GENRE PEERS?
+//   A 7.0 horror film is exceptional. A 7.0 drama is average.
+//
+// V3 improvements:
+//   - Uses live stats from the DB (falls back to hardcoded GENRE_STATS)
+//   - Blends primary (70%) + secondary (30%) genre when both are available
+//   - Rescaled to center at 5.0 (genre-average film = 5.0, not 6.5)
+//
+// Scale guide:
+//   z=0  (genre average)   → 5.0
+//   z=+2 (exceptional)     → 8.0
+//   z=-2 (poor)            → 2.0
+// ============================================================================
+
+const GENRE_NORM_CENTER = 5.0;
+const GENRE_NORM_SCALE  = 1.5;
+
+function calculateGenreNormalizedRating(ffRating, primaryGenreId, secondaryGenreId, liveStats) {
+  function normalizeForGenre(rating, genreId) {
+    const stats = (liveStats && liveStats[genreId]) || GENRE_STATS[genreId];
+    if (!stats) return null;
+
+    const zScore = (rating - stats.mean) / (stats.stdDev || 1.0);
+    return GENRE_NORM_CENTER + (zScore * GENRE_NORM_SCALE);
+  }
+
+  const primary   = primaryGenreId   ? normalizeForGenre(ffRating, primaryGenreId)   : null;
+  const secondary = secondaryGenreId ? normalizeForGenre(ffRating, secondaryGenreId) : null;
+
+  let normalized;
+  if (primary !== null && secondary !== null) {
+    normalized = primary * 0.70 + secondary * 0.30;
+  } else if (primary !== null) {
+    normalized = primary;
+  } else {
+    // No genre match in any stats source — pass ff_rating through unchanged
     return ffRating;
   }
-  
-  // Calculate z-score: how many standard deviations from genre mean?
-  const zScore = (ffRating - stats.mean) / stats.stdDev;
-  
-  // Rescale to 0-10 scale centered at 6.5
-  // z-score of 0 = genre average = 6.5
-  // z-score of +2 = exceptional = ~9.5
-  // z-score of -2 = poor = ~3.5
-  const normalized = 6.5 + (zScore * 1.5);
-  
+
   return Math.round(Math.max(1, Math.min(10, normalized)) * 10) / 10;
 }
 
@@ -412,23 +577,23 @@ function calculateQualityScore(movie, externalRatings) {
   let score = 0;
   let weight = 0;
 
-  // IMDB rating (40% weight)
+  // IMDB rating (28% weight)
   if (externalRatings?.imdb_rating) {
     const imdbNorm = (externalRatings.imdb_rating / 10) * 100;
     const voteCount = externalRatings.imdb_votes || 0;
     const confidence = Math.min(1, voteCount / 50000);
-    const actualWeight = 0.4 * (0.5 + 0.5 * confidence);
-    
+    const actualWeight = 0.28 * (0.5 + 0.5 * confidence);
+
     score += imdbNorm * actualWeight;
     weight += actualWeight;
   }
 
-  // Rotten Tomatoes (25%)
+  // Rotten Tomatoes (22%)
   if (externalRatings?.rt_rating) {
     const rtScore = parseInt(externalRatings.rt_rating);
     if (!isNaN(rtScore)) {
-      score += rtScore * 0.25;
-      weight += 0.25;
+      score += rtScore * 0.22;
+      weight += 0.22;
     }
   }
 
@@ -438,15 +603,22 @@ function calculateQualityScore(movie, externalRatings) {
     weight += 0.20;
   }
 
-  // TMDB vote_average (15%)
+  // TMDB vote_average (10%)
   if (movie.vote_average) {
     const tmdbNorm = (movie.vote_average / 10) * 100;
     const voteCount = movie.vote_count || 0;
     const confidence = Math.min(1, voteCount / 1000);
-    const actualWeight = 0.15 * (0.3 + 0.7 * confidence);
-    
+    const actualWeight = 0.10 * (0.3 + 0.7 * confidence);
+
     score += tmdbNorm * actualWeight;
     weight += actualWeight;
+  }
+
+  // Trakt (7%)
+  if (externalRatings?.trakt_rating) {
+    const traktNorm = (externalRatings.trakt_rating / 10) * 100;
+    score += traktNorm * 0.07;
+    weight += 0.07;
   }
 
   const qualityScore = weight > 0 ? score / weight : 50;
@@ -928,12 +1100,16 @@ async function fetchAllMovieData() {
 
 async function calculateMovieScores() {
   console.log('='.repeat(70));
-  console.log('🎬 FeelFlick Movie Scoring Engine V2');
+  console.log('🎬 FeelFlick Movie Scoring Engine V3');
   console.log('='.repeat(70));
   console.log('');
   
   const startTime = Date.now();
-  
+
+  // Build live genre statistics from already-scored movies in the DB.
+  // Falls back to hardcoded GENRE_STATS when there isn't enough data yet.
+  const liveGenreStats = await buildGenreStats();
+
   try {
     // ✅ UPDATED QUERY: Only fetch movies with status='fetching' or 'scoring'
     const { data: movies, error: moviesError } = await supabase
@@ -982,7 +1158,7 @@ async function calculateMovieScores() {
       const batch = movieIds.slice(i, i + GENRE_BATCH);
       const { data: ratingsData } = await supabase
         .from('ratings_external')
-        .select('movie_id, imdb_rating, imdb_votes, rt_rating, metacritic_score')
+        .select('movie_id, imdb_rating, imdb_votes, rt_rating, metacritic_score, trakt_rating, trakt_votes')
         .in('movie_id', batch);
       
       ratingsData?.forEach(r => {
@@ -1018,8 +1194,9 @@ async function calculateMovieScores() {
           }
         }
         
-        // Get primary genre ID
-        let primaryGenreId = null;
+        // Get primary + secondary genre IDs
+        let primaryGenreId   = null;
+        let secondaryGenreId = null;
         if (movie.primary_genre) {
           for (const [id, stats] of Object.entries(GENRE_STATS)) {
             if (stats.name.toLowerCase() === movie.primary_genre.toLowerCase()) {
@@ -1028,13 +1205,14 @@ async function calculateMovieScores() {
             }
           }
         }
-        if (!primaryGenreId && genres.length > 0) {
-          primaryGenreId = genres[0];
-        }
-        
+        if (!primaryGenreId && genres.length > 0) primaryGenreId   = genres[0];
+        if (genres.length > 1)                     secondaryGenreId = genres[1];
+
         // ✅ CALCULATE ALL SCORES (using your existing functions)
         const ffResult = calculateFFRating(movie, externalRatings);
-        const genreNormalizedRating = calculateGenreNormalizedRating(ffResult.rating, primaryGenreId);
+        const genreNormalizedRating = calculateGenreNormalizedRating(
+          ffResult.rating, primaryGenreId, secondaryGenreId, liveGenreStats
+        );
         const qualityScore = calculateQualityScore(movie, externalRatings);
         const moodScores = calculateMoodScores(movie, genres, keywords);
         const vfxLevel = calculateVFXLevel(movie, genres, keywords);
@@ -1062,9 +1240,9 @@ async function calculateMovieScores() {
           // Mood dimensions
           pacing_score: moodScores.pacing,
           intensity_score: moodScores.intensity,
-          emotional_depth_score: moodScores.emotionaldepth,
-          dialogue_density: moodScores.dialoguedensity,
-          attention_demand: moodScores.attentiondemand,
+          emotional_depth_score: moodScores.emotional_depth,
+          dialogue_density: moodScores.dialogue_density,
+          attention_demand: moodScores.attention_demand,
           
           // Quality metrics
           quality_score: qualityScore,
@@ -1149,16 +1327,16 @@ async function calculateMovieScores() {
     console.log(`\n⏱️  Performance:`);
     console.log(`  Total time: ${totalTime}s`);
     console.log(`  Average rate: ${avgRate} movies/second`);
-    console.log(`\n🎯 V2 Scores calculated:`);
-    console.log(`  ✓ ff_rating (0-10) - PURE quality (no starpower/freshness)`);
-    console.log(`  ✓ ff_rating_genre_normalized (0-10) - NEW: relative to genre peers`);
-    console.log(`  ✓ discovery_potential (0-100) - NEW: hidden gem detection`);
-    console.log(`  ✓ accessibility_score (0-100) - NEW: ease of watching`);
-    console.log(`  ✓ polarization_score (0-100) - NEW: divisiveness`);
-    console.log(`  ✓ dialogue_density (0-100) - ENHANCED: keyword-based`);
-    console.log(`  ✓ attention_demand (0-100) - ENHANCED: keyword-based`);
-    console.log(`  ✓ pacing/intensity/depth - ENHANCED: keyword + director styles`);
-    console.log(`  ✓ status updated to 'scoring' - Ready for embeddings!`);  // ← NEW
+    console.log(`\n🎯 V3 Scores calculated:`);
+    console.log(`  ✓ ff_rating (0-10) — V3: Bayesian, Trakt source, language bias fix`);
+    console.log(`  ✓ ff_rating_genre_normalized (0-10) — relative to genre peers`);
+    console.log(`  ✓ discovery_potential (0-100) — hidden gem detection`);
+    console.log(`  ✓ accessibility_score (0-100) — ease of watching`);
+    console.log(`  ✓ polarization_score (0-100) — divisiveness`);
+    console.log(`  ✓ dialogue_density (0-100) — keyword-based`);
+    console.log(`  ✓ attention_demand (0-100) — keyword-based`);
+    console.log(`  ✓ pacing/intensity/depth — keyword + director styles`);
+    console.log(`  ✓ status updated to 'scoring' — ready for embeddings`);
     console.log('\n' + '='.repeat(70) + '\n');
     
     // Sample results

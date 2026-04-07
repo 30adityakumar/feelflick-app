@@ -4,11 +4,13 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 export function useVirtualization({ 
   items = [], 
   itemWidth = 240, 
+  gap = 0,
   overscan = 3, // Render 3 extra items on each side
   containerRef 
 }) {
   const [viewport, setViewport] = useState({ start: 0, end: 0 })
   const rafRef = useRef(null)
+  const step = itemWidth + gap
 
   const updateViewport = useCallback(() => {
     if (!containerRef?.current || items.length === 0) return
@@ -17,14 +19,14 @@ export function useVirtualization({
     const containerWidth = containerRef.current.clientWidth
 
     // Calculate visible range + overscan buffer
-    const startIndex = Math.max(0, Math.floor(scrollLeft / itemWidth) - overscan)
+    const startIndex = Math.max(0, Math.floor(scrollLeft / step) - overscan)
     const endIndex = Math.min(
       items.length,
-      Math.ceil((scrollLeft + containerWidth) / itemWidth) + overscan
+      Math.ceil((scrollLeft + containerWidth) / step) + overscan
     )
 
     setViewport({ start: startIndex, end: endIndex })
-  }, [items.length, itemWidth, overscan, containerRef])
+  }, [containerRef, items.length, overscan, step])
 
   // RAF-powered scroll listener (60fps smooth)
   useEffect(() => {
@@ -50,14 +52,14 @@ export function useVirtualization({
   }, [updateViewport, containerRef])
 
   const visibleItems = items.slice(viewport.start, viewport.end)
-  const totalWidth = items.length * itemWidth
+  const totalWidth = items.length * step
 
   return {
     viewport,
     visibleItems,
     totalWidth,
     // Spacer widths for virtual scrolling
-    leftSpacerWidth: viewport.start * itemWidth,
-    rightSpacerWidth: (items.length - viewport.end) * itemWidth
+    leftSpacerWidth: viewport.start * step,
+    rightSpacerWidth: (items.length - viewport.end) * step
   }
 }

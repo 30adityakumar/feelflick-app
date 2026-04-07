@@ -1,39 +1,50 @@
-// src/components/carousel/Row/index.jsx
-import { memo, useRef, useState, useCallback, useMemo, useEffect } from 'react'
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useVirtualization } from '../hooks/useVirtualization'
+import { useMovieCardHover, CARD_EXPAND_DELAY_MS } from '../hooks/useMovieCardHover'
 import { MovieCard } from '../CardContent/MovieCard'
 
-const SCROLL_AMOUNT = 0.8
+export { CARD_EXPAND_DELAY_MS } from '../hooks/useMovieCardHover'
+
+const SCROLL_AMOUNT = 0.82
+const ITEM_GAP_PX = 16
+// A4: consistent card widths at each breakpoint (height = width × 1.5)
 const ITEM_WIDTHS = {
-  sm: 160,
-  md: 200,
-  lg: 220,
-  xl: 240,
+  xs: 140,  // < 640px  → height 210
+  sm: 170,  // ≥ 640px  → height 255
+  lg: 200,  // ≥ 1024px → height 300
+  xl: 220,  // ≥ 1280px → height 330
 }
 
+function getItemWidth(viewportWidth) {
+  if (viewportWidth >= 1280) return ITEM_WIDTHS.xl
+  if (viewportWidth >= 1024) return ITEM_WIDTHS.lg
+  if (viewportWidth >= 640) return ITEM_WIDTHS.sm
+  return ITEM_WIDTHS.xs
+}
+
+// A3: scroll buttons — only render when visible (row hover gates this externally)
 function ScrollButton({ direction, onClick, visible }) {
   if (!visible) return null
+
   const Icon = direction === 'left' ? ChevronLeft : ChevronRight
-  const side = direction === 'left' ? 'left-3 sm:left-5' : 'right-3 sm:right-5'
+  const side = direction === 'left' ? 'left-3' : 'right-3'
 
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`
-        hidden sm:flex absolute ${side} top-1/2 -translate-y-1/2 z-40
-        h-10 w-10 rounded-full
-        bg-black/75 hover:bg-black/95
-        border border-white/15 hover:border-purple-400/40
-        backdrop-blur-sm shadow-xl hover:shadow-purple-500/20
-        transition-all duration-200 hover:scale-110
-        focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400/60
-        items-center justify-center
-      `}
+      className={`absolute ${side} top-[calc(50%-1.5rem)] z-30 hidden h-9 w-9 items-center justify-center rounded-full border sm:flex`}
+      style={{
+        background: 'rgba(2, 6, 23, 0.85)',
+        borderColor: 'rgba(168, 85, 247, 0.35)',
+        boxShadow: '0 0 0 1px rgba(168,85,247,0.12), 0 4px 16px rgba(0,0,0,0.6)',
+        transition: 'opacity 200ms ease, transform 200ms ease, background 200ms ease',
+        backdropFilter: 'blur(8px)',
+      }}
       aria-label={`Scroll ${direction}`}
     >
-      <Icon className="h-4 w-4 text-white" strokeWidth={2.5} />
+      <Icon className="h-4 w-4" style={{ color: 'var(--color-text)' }} strokeWidth={2.5} />
     </button>
   )
 }
@@ -44,32 +55,53 @@ export const CarouselRow = memo(function CarouselRow({
   CardComponent = MovieCard,
   loading = false,
   error = null,
-  itemHeight = 330,
   priority = false,
   className = '',
   ...props
 }) {
   const scrollRef = useRef(null)
+  const hover = useMovieCardHover()
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
+  const [isRowHovered, setIsRowHovered] = useState(false) // A3: gate scroll button visibility
+  const [viewportWidth, setViewportWidth] = useState(() =>
+    typeof window === 'undefined' ? 1024 : window.innerWidth
+  )
   const [scrollState, setScrollState] = useState({
     canScrollLeft: false,
     canScrollRight: true,
   })
-  const [expandedId, setExpandedId] = useState(null)
-  const hoverTimerRef = useRef(null)
 
-  useEffect(() => () => { if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current) }, [])
+  useEffect(() => {
+    const mediaQuery = window.matchMedia?.('(prefers-reduced-motion: reduce)')
+    if (!mediaQuery) return undefined
 
-  const itemWidth = useMemo(() => {
-    if (typeof window === 'undefined') return ITEM_WIDTHS.md
-    if (window.innerWidth >= 1280) return ITEM_WIDTHS.xl
-    if (window.innerWidth >= 1024) return ITEM_WIDTHS.lg
-    if (window.innerWidth >= 640) return ITEM_WIDTHS.md
-    return ITEM_WIDTHS.sm
+    const sync = () => setPrefersReducedMotion(mediaQuery.matches)
+    sync()
+    mediaQuery.addEventListener?.('change', sync)
+    return () => mediaQuery.removeEventListener?.('change', sync)
   }, [])
+
+  useEffect(() => {
+    const syncViewport = () => setViewportWidth(window.innerWidth)
+    window.addEventListener('resize', syncViewport, { passive: true })
+    return () => window.removeEventListener('resize', syncViewport)
+  }, [])
+
+  const itemWidth = useMemo(() => getItemWidth(viewportWidth), [viewportWidth])
+  const posterHeight = useMemo(() => Math.round(itemWidth * 1.5), [itemWidth])
+  const expandedWidth = useMemo(
+    () => Math.max(Math.round(itemWidth * 2.02), itemWidth + 220),
+    [itemWidth]
+  )
+  const expandedHeight = useMemo(
+    () => Math.round(posterHeight * 1.55),
+    [posterHeight]
+  )
 
   const virtualization = useVirtualization({
     items,
     itemWidth,
+    gap: ITEM_GAP_PX,
     overscan: priority ? 5 : 3,
     containerRef: scrollRef,
   })
@@ -77,6 +109,7 @@ export const CarouselRow = memo(function CarouselRow({
   const updateScrollState = useCallback(() => {
     const el = scrollRef.current
     if (!el) return
+
     const { scrollLeft, scrollWidth, clientWidth } = el
     setScrollState({
       canScrollLeft: scrollLeft > 10,
@@ -84,46 +117,69 @@ export const CarouselRow = memo(function CarouselRow({
     })
   }, [])
 
-  const scroll = useCallback((direction) => {
-    const el = scrollRef.current
-    if (!el) return
-    setExpandedId(null)
-    const amount = el.clientWidth * SCROLL_AMOUNT
-    el.scrollBy({ left: direction === 'left' ? -amount : amount, behavior: 'smooth' })
-  }, [])
+  useEffect(() => {
+    updateScrollState()
+  }, [items.length, itemWidth, updateScrollState])
 
-  // Delay matches Netflix's ~450ms before expanding — prevents accidental pops while scrolling
-  const handleHover = useCallback((id) => {
-    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current)
-    hoverTimerRef.current = setTimeout(() => setExpandedId(id), 450)
-  }, [])
+  useEffect(() => {
+    if (!scrollRef.current || typeof ResizeObserver === 'undefined') return undefined
+    const observer = new ResizeObserver(() => updateScrollState())
+    observer.observe(scrollRef.current)
+    return () => observer.disconnect()
+  }, [updateScrollState])
 
-  const handleLeave = useCallback(() => {
-    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current)
-    setExpandedId(null)
-  }, [])
+  const scroll = useCallback(
+    (direction) => {
+      const el = scrollRef.current
+      if (!el) return
+
+      hover.closeNow()
+      const amount = el.clientWidth * SCROLL_AMOUNT
+      el.scrollBy({ left: direction === 'left' ? -amount : amount, behavior: 'smooth' })
+    },
+    [hover]
+  )
+
+  const handleScrollArea = useCallback(() => {
+    updateScrollState()
+    hover.closeNow()
+  }, [hover, updateScrollState])
+
+  const activeId = hover.openId ?? hover.intentId
+  const activeExpandedIndex = useMemo(
+    () => (hover.openId ? items.findIndex((item) => item.id === hover.openId) : -1),
+    [items, hover.openId]
+  )
 
   if (loading) {
     return (
-      <section className={`py-5 sm:py-6 ${className}`} aria-label={`${title} loading`}>
-        <div className="px-4 sm:px-6 lg:px-8 mb-4">
-          <div className="flex items-center gap-3 h-8">
-            <div className="w-[3px] h-5 rounded-full bg-purple-500/30 flex-shrink-0" />
-            <div className="h-4 w-44 bg-white/8 rounded-lg animate-pulse" />
-          </div>
+      <section
+        className={`relative overflow-visible pt-2 pb-6 sm:pt-3 sm:pb-8 ${className}`}
+        aria-label={`${title} loading`}
+      >
+        <div
+          className="mb-3 flex items-center gap-3"
+          style={{ paddingInline: 'clamp(1rem, 4vw, 3rem)' }}
+        >
+          <div
+            className="h-5 w-[3px] rounded-full"
+            style={{ background: 'var(--gradient-primary)' }}
+          />
+          <div className="skeleton h-5 w-48" />
         </div>
-        <div className="flex gap-3 sm:gap-4 px-4 sm:px-6 lg:px-8 overflow-hidden">
-          {[...Array(7)].map((_, i) => (
+        <div
+          className="flex overflow-hidden"
+          style={{
+            gap: ITEM_GAP_PX,
+            paddingInline: 'clamp(1rem, 4vw, 3rem)',
+          }}
+        >
+          {[...Array(6)].map((_, index) => (
             <div
-              key={i}
-              className="flex-none rounded-xl overflow-hidden"
-              style={{ width: itemWidth, height: itemHeight }}
-            >
-              <div
-                className="w-full h-full bg-purple-500/[0.04] animate-pulse"
-                style={{ animationDelay: `${i * 60}ms` }}
-              />
-            </div>
+              key={index}
+              className="skeleton animate-pulse flex-none rounded-xl bg-purple-950/20"
+              style={{ width: itemWidth, height: posterHeight, animationDelay: `${index * 60}ms` }}
+            />
           ))}
         </div>
       </section>
@@ -134,73 +190,130 @@ export const CarouselRow = memo(function CarouselRow({
 
   return (
     <section
-      className={`relative py-5 sm:py-6 ${className}`}
-      aria-label={title}
+      className={`relative overflow-visible pt-2 pb-6 sm:pt-3 sm:pb-8 ${className}`}
+      aria-label={typeof title === 'string' ? title : 'Recommendation row'}
+      onMouseEnter={() => setIsRowHovered(true)}
+      onMouseLeave={() => setIsRowHovered(false)}
     >
-      {/* Row header */}
-      <div className="px-4 sm:px-6 lg:px-8 mb-3 sm:mb-4 flex items-center gap-3">
-        <div className="w-[3px] h-5 rounded-full bg-gradient-to-b from-purple-400 to-pink-500 flex-shrink-0" />
-        <h2 className="text-[1.05rem] sm:text-[1.15rem] font-bold text-white tracking-tight whitespace-nowrap">
+      <div
+        className="mb-3 flex items-center gap-3"
+        style={{ paddingInline: 'clamp(1rem, 4vw, 3rem)' }}
+      >
+        <div
+          className="h-5 w-[3px] flex-shrink-0 rounded-full"
+          style={{ background: 'var(--gradient-primary)' }}
+        />
+        <h2
+          className="min-w-0 truncate text-[clamp(1rem,1.4vw,1.2rem)] font-semibold leading-tight"
+          style={{
+            color: 'rgba(248, 250, 252, 0.92)',
+            fontFamily: 'var(--font-body)',
+          }}
+        >
           {title}
         </h2>
-        <div className="h-px flex-1 bg-gradient-to-r from-purple-400/20 via-white/5 to-transparent" />
       </div>
 
-      {/* Scroll area with edge fades + nav buttons */}
-      <div className="relative">
-        {/* Left edge fade */}
-        {scrollState.canScrollLeft && (
+      <div className="relative overflow-visible">
+        {/* A2: edge fades — w-12 sm:w-16, left only when scrolled */}
+        {scrollState.canScrollLeft ? (
           <div
-            className="absolute left-0 top-0 bottom-4 w-20 sm:w-28 pointer-events-none z-30"
-            style={{ background: 'linear-gradient(to right, #000 0%, transparent 100%)' }}
+            className="pointer-events-none absolute bottom-0 left-0 top-0 z-20 hidden w-12 sm:block sm:w-16"
+            style={{ background: 'linear-gradient(to right, rgba(8, 6, 13, 0.96) 0%, rgba(8, 6, 13, 0) 100%)' }}
           />
-        )}
-        {/* Right edge fade — always show to hint at more content */}
+        ) : null}
         <div
-          className="absolute right-0 top-0 bottom-4 w-20 sm:w-28 pointer-events-none z-30"
-          style={{ background: 'linear-gradient(to left, #000 0%, transparent 100%)' }}
+          className="pointer-events-none absolute bottom-0 right-0 top-0 z-20 hidden w-12 sm:block sm:w-16"
+          style={{ background: 'linear-gradient(to left, rgba(8, 6, 13, 0.96) 0%, rgba(8, 6, 13, 0) 100%)' }}
         />
 
-        <ScrollButton direction="left" onClick={() => scroll('left')} visible={scrollState.canScrollLeft} />
-        <ScrollButton direction="right" onClick={() => scroll('right')} visible={scrollState.canScrollRight} />
+        {/* A3: buttons only show when row is hovered and no card is expanded */}
+        <ScrollButton
+          direction="left"
+          onClick={() => scroll('left')}
+          visible={scrollState.canScrollLeft && isRowHovered && !activeId}
+        />
+        <ScrollButton
+          direction="right"
+          onClick={() => scroll('right')}
+          visible={scrollState.canScrollRight && isRowHovered && !activeId}
+        />
 
         <div
           ref={scrollRef}
-          className="
-            flex gap-3 sm:gap-4
-            overflow-x-auto overflow-y-visible
-            px-4 sm:px-6 lg:px-8 pb-4
-            snap-x snap-mandatory
-            scrollbar-hide scroll-smooth select-none
-            [-webkit-overflow-scrolling:touch]
-            [scrollbar-width:none]
-            [ms-overflow-style:none]
-          "
+          data-testid="carousel-scroll-region"
+          className="flex snap-x snap-mandatory overflow-x-auto overflow-y-visible scroll-smooth select-none [-ms-overflow-style:none] [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           style={{
-            scrollPaddingLeft: '1.5rem',
-            scrollPaddingRight: '1.5rem',
-            '--gap': '1rem',
-            minHeight: itemHeight * 1.6,
+            gap: ITEM_GAP_PX,
+            alignItems: 'flex-start',  // cards take their natural height, no stretch
+            // minHeight reserves space for title below cards; expansion causes smooth animated shift
+            minHeight: posterHeight + 64,
+            paddingTop: '0.25rem',
+            paddingBottom: '2rem',     // room for expanded card overflow below
+            paddingInline: 'clamp(1rem, 4vw, 3rem)',
+            scrollPaddingLeft: 'clamp(1rem, 4vw, 3rem)',
+            scrollPaddingRight: 'clamp(1rem, 4vw, 3rem)',
+            overflowY: 'visible',
           }}
-          onScroll={updateScrollState}
+          onScroll={handleScrollArea}
         >
           <div style={{ width: virtualization.leftSpacerWidth, flexShrink: 0 }} />
 
           {virtualization.visibleItems.map((item, localIndex) => {
             const globalIndex = virtualization.viewport.start + localIndex
-            const isExpanded = expandedId === item.id
+            const hoverPhase =
+              hover.openId === item.id ? 'expanded' : hover.intentId === item.id ? 'peek' : 'rest'
+            const dimmed = Boolean(activeId) && activeId !== item.id
+            const distanceFromExpanded =
+              activeExpandedIndex === -1 ? null : globalIndex - activeExpandedIndex
+            const siblingOffset =
+              prefersReducedMotion || activeExpandedIndex === -1 || hover.openId === item.id
+                ? 0
+                : distanceFromExpanded === -1
+                  ? -18
+                  : distanceFromExpanded === 1
+                    ? 18
+                    : distanceFromExpanded === -2
+                      ? -8
+                      : distanceFromExpanded === 2
+                        ? 8
+                        : 0
+
+            let expandAlign = 'center'
+            if (
+              globalIndex <= 1 ||
+              (!scrollState.canScrollLeft && localIndex <= 1)
+            ) {
+              expandAlign = 'left'
+            } else if (
+              globalIndex >= items.length - 2 ||
+              (!scrollState.canScrollRight &&
+                localIndex >= virtualization.visibleItems.length - 2)
+            ) {
+              expandAlign = 'right'
+            }
 
             return (
               <CardComponent
                 key={`${item.id}-${globalIndex}`}
                 item={item}
                 index={globalIndex}
-                isExpanded={isExpanded}
-                onHover={handleHover}
-                onLeave={handleLeave}
+                hoverPhase={hoverPhase}
+                isExpanded={hover.openId === item.id}
                 width={itemWidth}
-                height={itemHeight}
+                height={posterHeight}
+                expandedWidth={expandedWidth}
+                expandedHeight={expandedHeight}
                 priority={priority && globalIndex < 5}
+                reducedMotion={prefersReducedMotion}
+                dimmed={dimmed}
+                canHover={hover.canHover}
+                expandAlign={expandAlign}
+                siblingOffset={siblingOffset}
+                onCardEnter={hover.handleCardEnter}
+                onCardLeave={hover.handleCardLeave}
+                onCardFocus={hover.handleCardFocus}
+                onCardBlur={hover.handleCardBlur}
                 {...props}
               />
             )

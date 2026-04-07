@@ -4,23 +4,21 @@ import { Heart } from 'lucide-react'
 
 import PersonalizedCarouselRow from './PersonalizedCarouselRow'
 import { useBecauseYouWatchedRows } from '@/shared/hooks/useRecommendations'
-import { useStaggeredEnabled } from '@/shared/hooks/useStaggeredEnabled'
 
 /**
  * BecauseYouWatchedSection
  *
  * - Accepts `userId` from HomePage so the hook can fetch immediately (no redundant auth wait)
- * - Adds a gentle stagger for smoother above-the-fold performance
+ * - Starts immediately once auth/user resolution is available
  * - Removes the broken "..." placeholder and makes rendering resilient to empty states
  */
 export default function BecauseYouWatchedSection({
   userId = undefined,
-  maxSeeds = 2,
+  maxSeeds = 1,
   limitPerSeed = 20,
   enabled: enabledProp = undefined,
 } = {}) {
-  const enabledStaggered = useStaggeredEnabled(300)
-  const enabled = typeof enabledProp === 'boolean' ? enabledProp : enabledStaggered
+  const enabled = typeof enabledProp === 'boolean' ? enabledProp : true
 
   const userIdOverride =
     typeof userId === 'string' && userId.trim().length > 0 ? userId.trim() : undefined
@@ -59,7 +57,7 @@ export default function BecauseYouWatchedSection({
   if (safeRows.length === 0) return null
 
   return (
-    <section className="space-y-10 sm:space-y-12" aria-label="Because you watched">
+    <section className="space-y-0" aria-label="Because you watched">
       {safeRows.map((row, idx) => {
         const seedTitle = row.seedTitle || 'this'
         const seedId = row.seedId ?? `seed-${idx}`

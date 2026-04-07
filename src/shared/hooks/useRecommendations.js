@@ -529,12 +529,6 @@ export function useHiddenGems(options = {}) {
   useEffect(() => {
     if (!enabled || !authReady) return
 
-    if (!userId) {
-      setData([])
-      setLoading(false)
-      return
-    }
-
     let isCancelled = false
 
     async function fetchHiddenGems() {
@@ -587,12 +581,6 @@ export function useTrendingForYou(options = {}) {
 
   useEffect(() => {
     if (!enabled || !authReady) return
-
-    if (!userId) {
-      setData([])
-      setLoading(false)
-      return
-    }
 
     let isCancelled = false
 
@@ -774,6 +762,8 @@ export function useRecommendations(moodId, viewingContext, experienceType, limit
     if (!authReady) return
 
     if (!moodId || !userId) {
+      setData([])
+      setError(null)
       setLoading(false)
       return
     }

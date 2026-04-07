@@ -3,13 +3,13 @@ import { useEffect, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 
 import { supabase } from '@/shared/lib/supabase/client'
+import { useStaggeredEnabled } from '@/shared/hooks/useStaggeredEnabled'
 
 import HeroTopPick from './components/HeroTopPick'
 import BecauseYouWatchedSection from './components/BecauseYouWatchedSection'
 import HiddenGemsRow from './components/HiddenGemsRow'
 import TrendingForYouRow from './components/TrendingForYouRow'
 
-import LazyRow from '@/shared/components/LazyRow'
 import { SectionErrorBoundary } from '@/app/ErrorBoundary'
 
 function pickFirstDefined(...values) {
@@ -38,6 +38,9 @@ export default function HomePage() {
 
   // Resolve userId without blocking first paint
   const [userId, setUserId] = useState(initialUserId)
+  const showBecauseYouWatched = useStaggeredEnabled(80)
+  const showHiddenGems = useStaggeredEnabled(220)
+  const showTrendingForYou = useStaggeredEnabled(360)
 
   useEffect(() => {
     if (userId) return
@@ -60,7 +63,7 @@ export default function HomePage() {
   }, [userId])
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen overflow-x-hidden">
       {/* HERO (above the fold) */}
       <HeroTopPick
         userId={userId}
@@ -68,7 +71,7 @@ export default function HomePage() {
       />
 
       {/* CONTENT */}
-      <div className="relative">
+      <div className="relative pb-[320px]">
         {/* Hero → content seam */}
         <div
           aria-hidden
@@ -81,34 +84,29 @@ export default function HomePage() {
           style={{ background: 'radial-gradient(ellipse at 5% 10%, rgba(88,28,135,0.55) 0%, transparent 65%)' }}
         />
 
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10">
-          <div className="pt-4 sm:pt-6 space-y-4 sm:space-y-6">
+        <div className="mx-auto max-w-[1600px]">
+          <div>
 
             {/* Three curated rows */}
-            <div
-              className="space-y-4 sm:space-y-6"
-              style={{ contentVisibility: 'auto', containIntrinsicSize: '1px 1200px' }}
-            >
-              <LazyRow>
+            <div className="space-y-0">
+              {showBecauseYouWatched ? (
                 <SectionErrorBoundary label="Because You Watched">
                   <BecauseYouWatchedSection userId={userId} />
                 </SectionErrorBoundary>
-              </LazyRow>
+              ) : null}
 
-              <LazyRow>
+              {showHiddenGems ? (
                 <SectionErrorBoundary label="Hidden Gems">
                   <HiddenGemsRow userId={userId} />
                 </SectionErrorBoundary>
-              </LazyRow>
+              ) : null}
 
-              <LazyRow>
+              {showTrendingForYou ? (
                 <SectionErrorBoundary label="Trending For You">
                   <TrendingForYouRow userId={userId} />
                 </SectionErrorBoundary>
-              </LazyRow>
+              ) : null}
             </div>
-
-            <div className="h-10 sm:h-16" />
           </div>
         </div>
       </div>

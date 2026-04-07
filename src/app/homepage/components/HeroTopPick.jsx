@@ -183,12 +183,14 @@ export default function HeroTopPick({
   // Fetch watch providers (abortable)
   useEffect(() => {
     const tmdbId = movie?.tmdb_id
-    if (!tmdbId) {
+    if (!tmdbId || !revealed) {
       setProviders(null)
       return
     }
 
     const controller = new AbortController()
+    let idleId = null
+    let timeoutId = null
 
     async function loadProviders() {
       try {
@@ -204,9 +206,24 @@ export default function HeroTopPick({
       }
     }
 
-    loadProviders()
-    return () => controller.abort()
-  }, [movie?.tmdb_id])
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      idleId = window.requestIdleCallback(() => {
+        loadProviders()
+      }, { timeout: 1200 })
+    } else {
+      timeoutId = setTimeout(() => {
+        loadProviders()
+      }, 320)
+    }
+
+    return () => {
+      controller.abort()
+      if (idleId && typeof window !== 'undefined' && 'cancelIdleCallback' in window) {
+        window.cancelIdleCallback(idleId)
+      }
+      if (timeoutId) clearTimeout(timeoutId)
+    }
+  }, [movie?.tmdb_id, revealed])
 
   // User movie status
   const {
@@ -374,6 +391,8 @@ export default function HeroTopPick({
   const hours = movie.runtime ? Math.floor(movie.runtime / 60) : 0
   const mins = movie.runtime ? movie.runtime % 60 : 0
   const rating = typeof movie.vote_average === 'number' ? movie.vote_average.toFixed(1) : null
+  const desktopBackdropStart = '25%'
+  const desktopBackdropFocus = '65% 35%'
 
   return (
     <section className="relative w-full h-[75vh] min-h-[500px] max-h-[800px] overflow-hidden bg-black">
@@ -392,41 +411,85 @@ export default function HeroTopPick({
 
       {/* === BACKDROP === */}
       <div className="absolute inset-0">
+        <div className="absolute inset-y-0 left-0 hidden md:block md:w-[25%] bg-black" />
         <div
-          className={`absolute inset-0 scale-110 transition-opacity duration-700 ${
-            backdropLoaded ? 'opacity-0' : 'opacity-100'
-          }`}
+          className="pointer-events-none absolute inset-y-0 left-0 hidden md:block"
           style={{
-            backgroundImage: movie.backdrop_path ? `url(${tmdbImg(movie.backdrop_path, 'w92')})` : undefined,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center 45%',
-            filter: 'blur(30px) saturate(1.2)',
+            width: '38%',
+            background:
+              'radial-gradient(120% 100% at 82% 50%, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 22%, rgba(0,0,0,0) 62%)',
           }}
         />
 
-        <div className="absolute top-0 left-0 right-0 h-16 sm:h-20 bg-gradient-to-b from-black/95 via-black/20 to-transparent z-10" />
-
-        {movie.backdrop_path && (
-          <img
-            src={tmdbImg(movie.backdrop_path, 'original')}
-            alt=""
-            aria-hidden="true"
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
-              backdropLoaded ? 'opacity-100' : 'opacity-0'
+        <div className="absolute inset-y-0 left-0 right-0 overflow-hidden md:left-[25%]">
+          <div
+            className={`absolute inset-0 transition-opacity duration-700 ${
+              backdropLoaded ? 'opacity-0' : 'opacity-100'
             }`}
-            style={{ objectPosition: 'center 45%' }}
-            onLoad={() => setBackdropLoaded(true)}
-            loading="eager"
-            fetchPriority="high"
+            style={{
+              backgroundImage: movie.backdrop_path ? `url(${tmdbImg(movie.backdrop_path, 'w92')})` : undefined,
+              backgroundSize: 'cover',
+              backgroundPosition: desktopBackdropFocus,
+              filter: 'blur(30px) saturate(1.2)',
+            }}
           />
-        )}
 
-        {/* Subtle overall dark veil — keeps image moody without killing it */}
-        <div className="absolute inset-0 bg-black/30" />
+          {movie.backdrop_path && (
+            <img
+              src={tmdbImg(movie.backdrop_path, 'original')}
+              alt=""
+              aria-hidden="true"
+              className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${
+                backdropLoaded ? 'opacity-100' : 'opacity-0'
+              }`}
+              style={{ objectPosition: desktopBackdropFocus }}
+              onLoad={() => setBackdropLoaded(true)}
+              loading="eager"
+              fetchPriority="high"
+            />
+          )}
+
+          {/* Keep the image moody without crushing detail. */}
+          <div className="absolute inset-0 bg-black/18" />
+          <div
+            className="pointer-events-none absolute inset-y-0 left-0 w-[22%]"
+            style={{
+              background:
+                'linear-gradient(90deg, rgba(0,0,0,0.98) 0%, rgba(0,0,0,0.88) 28%, rgba(0,0,0,0.58) 56%, rgba(0,0,0,0.18) 82%, rgba(0,0,0,0) 100%)',
+            }}
+          />
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background:
+                'radial-gradient(110% 84% at 70% 36%, rgba(0,0,0,0) 32%, rgba(0,0,0,0.18) 68%, rgba(0,0,0,0.36) 100%)',
+            }}
+          />
+        </div>
+
         {/* Bottom fade — text lives here */}
-        <div className="absolute bottom-0 inset-x-0 h-[65%] bg-gradient-to-t from-black via-black/70 to-transparent" />
-        {/* Left fade — readability */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/15 to-transparent" />
+        <div className="absolute bottom-0 inset-x-0 h-[52%] bg-gradient-to-t from-black via-black/60 to-transparent" />
+        {/* Global readability falloff plus a hard desktop seam where the backdrop begins. */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/44 via-black/10 to-transparent" />
+        <div
+          className="pointer-events-none absolute inset-y-0 left-0 hidden md:block"
+          style={{
+            width: '36%',
+            background:
+              'linear-gradient(90deg, rgba(0,0,0,1) 0%, rgba(0,0,0,0.98) 42%, rgba(0,0,0,0.82) 64%, rgba(0,0,0,0.38) 84%, rgba(0,0,0,0) 100%)',
+          }}
+        />
+        <div
+          className="pointer-events-none absolute inset-y-0 hidden md:block"
+          style={{
+            left: `calc(${desktopBackdropStart} - 2px)`,
+            width: '14vw',
+            maxWidth: '220px',
+            background:
+              'linear-gradient(90deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.58) 38%, rgba(0,0,0,0.18) 72%, rgba(0,0,0,0) 100%)',
+            filter: 'blur(12px)',
+          }}
+        />
         {/* FeelFlick purple glow — bottom left */}
         <div
           className="absolute bottom-0 left-0 right-0 h-2/3 pointer-events-none"
@@ -442,7 +505,11 @@ export default function HeroTopPick({
       </div>
 
       {/* === CONTENT === */}
-      <div className="relative z-10 h-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 flex items-end pb-4 sm:pb-6 lg:pb-10">
+      <div
+        className="relative z-10 h-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 flex items-end pb-4 sm:pb-6 lg:pb-10"
+        // Keep hero content clear of the fixed header/gradient; header writes --hdr-h on <html>.
+        style={{ paddingTop: 'calc(var(--hdr-h, 64px) + 8px)' }}
+      >
         <div className="flex flex-col sm:flex-row gap-5 sm:gap-6 lg:gap-10 w-full items-end">
           <div className="absolute inset-0 bg-gradient-radial from-white/5 via-transparent to-transparent blur-2xl" />
 

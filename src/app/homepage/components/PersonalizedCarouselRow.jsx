@@ -79,7 +79,7 @@ export default function PersonalizedCarouselRow({
   const titleNode =
     typeof safeTitle === 'string' ? (
       <span className="inline-flex items-center gap-2">
-        {Icon ? <Icon className="h-4 w-4 text-purple-400" /> : null}
+        {Icon ? <Icon className="h-4 w-4" style={{ color: 'rgba(248, 250, 252, 0.7)' }} /> : null}
         <span>{safeTitle}</span>
       </span>
     ) : (
@@ -91,7 +91,7 @@ export default function PersonalizedCarouselRow({
       id={rowId}
       aria-label={typeof title === 'string' ? title : undefined}
       data-placement={placement}
-      className="w-full"
+      className="w-full overflow-visible"
     >
       <CarouselRow
         title={titleNode}

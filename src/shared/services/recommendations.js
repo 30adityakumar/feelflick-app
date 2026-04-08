@@ -1,6 +1,36 @@
 // src/shared/services/recommendations.js
 /**
- * FeelFlick Recommendation Engine v2.5
+ * FeelFlick Recommendation Engine v2.7
+ *
+ * NEW in v2.7:
+ * ✅ ff_final_rating >= 7.2 absolute floor added to hero candidate pool alongside genre-norm
+ *    gate — prevents genre-norm-exceptional but objectively mediocre films from reaching hero.
+ * ✅ Seed count raised 5 → 8 (recent window 3→4, total 5→8) for richer embedding neighbors.
+ * ✅ 48-hour skip hard exclusion: movies skipped via hero are excluded for 48h (DB-persisted,
+ *    survives navigation). Exceptional films (ff_final_rating >= 8.5) allowed through at -15pts.
+ * ✅ 7-day skip de-rating: films skipped 48h–7d ago score -40 pts (exceptional: -15 pts).
+ *    Only high-quality films resurface; mediocre ones stay buried until 7 days clears.
+ * ✅ Base quality capped at 72 for hero (was uncapped, up to 90+). Taste signals now have
+ *    room to differentiate — hero is "best film for you" not "best film you haven't seen."
+ * ✅ Session genre penalty: skipping a movie penalises all same-genre candidates -10 pts
+ *    per genre for the current session ("not in the mood for X tonight"). Resets on nav.
+ * ✅ Permanent skip learning: movies skipped 3+ times historically get a permanent -30.
+ *    Heavy repeated skippers signal a permanent mismatch, not a mood issue.
+ *
+ * NEW in v2.6:
+ * ✅ HeroTopPick refinement — more confident, smarter pool, better diversity.
+ *   - Candidate pool: year widened 2023→2019, genre-norm threshold raised 7.5→8.0,
+ *     vote_count floor raised 150→500 for hero (universally-vouched films only).
+ *   - Recency bonus: smoother 6-tier decay (max +15, down from +20) so 2022 masterpieces
+ *     aren't penalised vs. mediocre 2024 films.
+ *   - Quality bonus: more differentiated ff_final_rating steps (+25/+18/+10/+4) + audience
+ *     size bonus (vote_count ≥10k: +8, ≥5k: +4).
+ *   - Confidence bonus added to hero scoring: confidence-100 films get +12; <70 get −10.
+ *   - Weighted random: #1 wins 65% of the time (up from 40%) — much more decisive.
+ *   - Language guard: STRICT threshold lowered 85%→80% (more users get 2-language STRONG);
+ *     STRONG mode now allows top 3 languages instead of top 2.
+ *   - STRICT mode: injects 1 discovery slot (non-primary language, ≥8.5 norm, ≥1000 votes)
+ *     at position 10 if none already present — prevents permanent language bubbles.
  *
  * NEW in v2.5:
  * ✅ ff_final_rating: all DB queries now filter/order by ff_final_rating (community-blended).
@@ -42,7 +72,7 @@ import { recommendationCache } from '@/shared/lib/cache'
 // ============================================================================
 // VERSION
 // ============================================================================
-const ENGINE_VERSION = '2.5'
+const ENGINE_VERSION = '2.8'
 const PROFILE_MEMORY_TTL_MS = 60 * 1000
 const SEED_MEMORY_TTL_MS = 60 * 1000
 const profileMemoryCache = new Map()
@@ -1138,16 +1168,18 @@ async function getSeedFilms(userId, profile) {
     const recentSeeds = seedCandidates.filter((s) => s.watchedAt >= thirtyDaysAgo)
     const olderSeeds = seedCandidates.filter((s) => s.watchedAt < thirtyDaysAgo)
 
-    const recentCount = Math.min(3, recentSeeds.length)
-    const olderCount = Math.min(5 - recentCount, olderSeeds.length)
+    // Up to 4 recent + 4 older = 8 seeds total.
+    // More seeds → richer embedding neighbor pool without collapsing signal quality.
+    const recentCount = Math.min(4, recentSeeds.length)
+    const olderCount = Math.min(8 - recentCount, olderSeeds.length)
 
     seeds.push(...recentSeeds.slice(0, recentCount).map((c) => c.movie))
     seeds.push(...olderSeeds.slice(0, olderCount).map((c) => c.movie))
 
-    if (seeds.length < 5) {
+    if (seeds.length < 8) {
       const remaining = seedCandidates
         .filter((c) => !seeds.find((s) => s.id === c.movie.id))
-        .slice(0, 5 - seeds.length)
+        .slice(0, 8 - seeds.length)
         .map((c) => c.movie)
       seeds.push(...remaining)
     }
@@ -1207,9 +1239,12 @@ function deriveLanguageFromWatchedRows(watchedRows = []) {
 
 /**
  * Decide how strict to be:
- * - If primary >= 85% and distinctCount <= 2: STRICT (Hindi-only stays Hindi-only)
- * - If primary >= 60%: STRONG (top 2 langs only for Hero)
+ * - If primary >= 80% and distinctCount <= 2: STRICT (strong mono-lingual signal)
+ * - If primary >= 60%: STRONG (top 3 langs, down from top 2 — more diverse)
  * - else: LOOSE (score-based, no hard filter)
+ *
+ * STRICT threshold is 80% (down from 85%) so more users reach STRONG mode.
+ * STRONG now allows top 3 languages (up from 2) to reduce language bubbles.
  */
 function buildLanguageGuardFromHistory(languageFromHistory) {
   const primary = languageFromHistory.primary
@@ -1217,13 +1252,13 @@ function buildLanguageGuardFromHistory(languageFromHistory) {
   const sorted = languageFromHistory.distributionSorted || []
   const distinctCount = languageFromHistory.distinctCount || 0
 
-  const top2 = sorted.slice(0, 2).map((s) => s.lang).filter(Boolean)
-  const strict = primary && dominance >= 85 && distinctCount <= 2
+  const top3 = sorted.slice(0, 3).map((s) => s.lang).filter(Boolean)
+  const strict = primary && dominance >= 80 && distinctCount <= 2
   const strong = primary && dominance >= 60
 
   let allowed = []
   if (strict) allowed = [primary]
-  else if (strong) allowed = top2.length > 0 ? top2 : primary ? [primary] : []
+  else if (strong) allowed = top3.length > 0 ? top3 : primary ? [primary] : []
   else allowed = [] // no hard filter
 
   return {
@@ -1274,7 +1309,7 @@ async function fetchEmbeddingNeighborsForSeeds(seedFilms, opts = {}) {
 // ============================================================================
 
 export async function getTopPickForUser(userId, options = {}) {
-  const { excludeIds = [], excludeTmdbIds = [], forceRefresh = false } = options
+  const { excludeIds = [], excludeTmdbIds = [], forceRefresh = false, penalizedGenreIds = [] } = options
 
   const stableExcludeIds = normalizeNumericIdArray(excludeIds)
   const stableExcludeTmdbIds = normalizeNumericIdArray(excludeTmdbIds)
@@ -1313,27 +1348,85 @@ export async function getTopPickForUser(userId, options = {}) {
       const historyLang = deriveLanguageFromWatchedRows(watchedRows || [])
       const langGuard = buildLanguageGuardFromHistory(historyLang)
 
-      // recent hero cooldown
+      // Hero cooldown — one query, two tiers bucketed in JS:
+      //   Tier A (all impressions, 48h):  prevent re-showing a film the very next day.
+      //   Tier B (skipped only, 7 days):  respect the explicit "not today" signal.
+      //
+      // Previously ALL impressions had a 7-day block. With only ~16 Indian films in the pool
+      // that wiped the entire catalog in ~2 weeks and forced fallback to English animated/docs.
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-      const { data: recentHeroPicks } = await supabase
+      const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000)
+
+      const { data: recentHeroData } = await supabase
         .from('recommendation_impressions')
-        .select('movie_id, seed_movie_id')
+        .select('movie_id, shown_at, skipped')
         .eq('user_id', userId)
         .eq('placement', 'hero')
         .gte('shown_at', sevenDaysAgo)
 
-      const recentHeroIds = new Set((recentHeroPicks || []).map((r) => r.movie_id).filter(Boolean))
+      // movie_id → most-recent impression Date (for 48h any-impression block)
+      const lastShownAt = new Map()
+      // movie_id → most-recent SKIP Date (for 48h hard-skip block + 7d score penalty)
+      const skipHistory = new Map()
+      const hardSkipIds = new Set() // skipped within 48h
 
-      // Interest gating
+      ;(recentHeroData || []).forEach((r) => {
+        if (!r.movie_id) return
+        const shownAt = new Date(r.shown_at)
+
+        // Track most-recent impression regardless of skip status
+        if (!lastShownAt.has(r.movie_id) || shownAt > lastShownAt.get(r.movie_id)) {
+          lastShownAt.set(r.movie_id, shownAt)
+        }
+
+        // Track skips separately
+        if (r.skipped) {
+          if (!skipHistory.has(r.movie_id) || shownAt > skipHistory.get(r.movie_id)) {
+            skipHistory.set(r.movie_id, shownAt)
+          }
+          if (shownAt >= fortyEightHoursAgo) hardSkipIds.add(r.movie_id)
+        }
+      })
+
+      // Tier A: any film shown as hero in last 48h → exclude (prevents same-day repeat)
+      // Tier B: any film skipped in last 7 days → exclude via hardSkipIds / skipHistory
+      const recentHeroIds = new Set(
+        [...lastShownAt.entries()]
+          .filter(([, shownAt]) => shownAt >= fortyEightHoursAgo)
+          .map(([id]) => id)
+      )
+
+      // Permanent skip learning: movies skipped 3+ times ever get a lasting -30 penalty.
+      // Fetches all-time hero skips for this user (lightweight: just movie_id).
+      const { data: allTimeSkipData } = await supabase
+        .from('recommendation_impressions')
+        .select('movie_id')
+        .eq('user_id', userId)
+        .eq('placement', 'hero')
+        .eq('skipped', true)
+
+      const allTimeSkipCount = new Map()
+      ;(allTimeSkipData || []).forEach((r) => {
+        if (r.movie_id) allTimeSkipCount.set(r.movie_id, (allTimeSkipCount.get(r.movie_id) || 0) + 1)
+      })
+      const permanentSkipIds = new Set(
+        [...allTimeSkipCount.entries()].filter(([, count]) => count >= 3).map(([id]) => id)
+      )
+
+      // Interest gating — explicit genre preferences ONLY.
+      // Previously included watch-history check, which caused noise: any Indian film
+      // tagged Family or Animation on TMDB would unlock those genres globally.
       const hasAnimationInterest =
         profile.genres.preferred.includes(16) ||
-        profile.genres.secondary?.includes(16) ||
-        (watchedRows || []).some((w) => (w.movies?.genres || []).map(extractGenreId).includes(16))
+        profile.genres.secondary?.includes(16)
+
+      const hasDocumentaryInterest =
+        profile.genres.preferred.includes(99) ||
+        profile.genres.secondary?.includes(99)
 
       const hasFamilyInterest =
         profile.genres.preferred.includes(10751) ||
-        profile.genres.secondary?.includes(10751) ||
-        (watchedRows || []).some((w) => (w.movies?.genres || []).map(extractGenreId).includes(10751))
+        profile.genres.secondary?.includes(10751)
 
       const selectFields = `
         id, tmdb_id, title, overview, tagline,
@@ -1357,9 +1450,19 @@ export async function getTopPickForUser(userId, options = {}) {
       })
 
       // 2) base quality pool (recent, high normalized rating)
-      const minYear = 2023
-      const baseMinNorm = 7.5
-      const baseMinConf = 60
+      // Hero-specific floors: 5-year window, stronger quality bar, higher vote floor.
+      // For non-English language pools (STRICT/STRONG), genre normalization is calibrated
+      // against global genre baselines dominated by English films — so great Hindi/Korean/etc
+      // films score lower than equivalent English films on the z-score. Lower threshold to 7.5
+      // when restricting to a specific language; keep 8.0 for the unrestricted (LOOSE) pool.
+      const isLanguageRestricted = langGuard.mode === 'strict' || langGuard.mode === 'strong'
+      // For non-English pools: looser thresholds because (a) genre-norm is calibrated globally
+      // so great Indian/Korean films score lower, and (b) these pools are small — only 54 Hindi
+      // films in DB, very few pass strict English-calibrated bars.
+      const minYear = isLanguageRestricted ? 2010 : 2019
+      const baseMinNorm = isLanguageRestricted ? 7.0 : 8.0
+      const baseMinConf = isLanguageRestricted ? 40 : 60
+      const HERO_MIN_VOTE_COUNT = isLanguageRestricted ? 100 : 500
 
       // Fetch base candidates (apply language filter at DB level for strict/strong)
       let baseQuery = supabase
@@ -1369,8 +1472,9 @@ export async function getTopPickForUser(userId, options = {}) {
         .not('backdrop_path', 'is', null)
         .not('tmdb_id', 'is', null)
         .gte('ff_rating_genre_normalized', baseMinNorm)
+        .gte('ff_final_rating', 7.2)  // absolute quality floor — exceptional-for-genre but objectively mediocre films blocked
         .gte('ff_confidence', baseMinConf)
-        .gte('vote_count', THRESHOLDS.MIN_VOTE_COUNT)
+        .gte('vote_count', HERO_MIN_VOTE_COUNT)
         .gte('release_date', `${minYear}-01-01`)
         .order('ff_rating_genre_normalized', { ascending: false })
         .limit(400)
@@ -1395,7 +1499,7 @@ export async function getTopPickForUser(userId, options = {}) {
           .not('backdrop_path', 'is', null)
           .not('tmdb_id', 'is', null)
           .gte('ff_confidence', 50)
-          .gte('vote_count', THRESHOLDS.MIN_VOTE_COUNT)
+          .gte('vote_count', HERO_MIN_VOTE_COUNT)
           .limit(300)
 
         if (langGuard.mode === 'strict' && langGuard.allowedLanguages.length === 1) {
@@ -1408,9 +1512,36 @@ export async function getTopPickForUser(userId, options = {}) {
         embeddingCandidates = data || []
       }
 
-      // Combine pools (dedupe by id)
+      // Classics pool — no year filter, compensated by a much higher quality bar.
+      // Allows landmark films (Shawshank, Oldboy, Shutter Island, The Thing) to
+      // be hero picks even if they predate the standard recency window.
+      // Thresholds: top-decile genre-norm (9.0+), strong absolute rating (7.8+),
+      // and at least 25k votes so the film is genuinely well-tested by audiences.
+      let classicsQuery = supabase
+        .from('movies')
+        .select(selectFields)
+        .eq('is_valid', true)
+        .not('backdrop_path', 'is', null)
+        .not('tmdb_id', 'is', null)
+        .gte('ff_rating_genre_normalized', 9.0)
+        .gte('ff_final_rating', 7.8)
+        .gte('ff_confidence', baseMinConf)
+        .gte('vote_count', 25000)
+        .order('ff_rating_genre_normalized', { ascending: false })
+        .limit(100)
+
+      if (langGuard.mode === 'strict' && langGuard.allowedLanguages.length === 1) {
+        classicsQuery = classicsQuery.eq('original_language', langGuard.allowedLanguages[0])
+      } else if (langGuard.mode === 'strong' && langGuard.allowedLanguages.length > 0) {
+        classicsQuery = classicsQuery.in('original_language', langGuard.allowedLanguages)
+      }
+
+      const { data: classicsCandidates } = await classicsQuery
+
+      // Combine pools (dedupe by id) — embedding first (nearest neighbours), then
+      // recency pool, then classics so deduplication keeps the earliest entry per id.
       const byId = new Map()
-      ;[...embeddingCandidates, ...baseCandidates].forEach((m) => {
+      ;[...embeddingCandidates, ...baseCandidates, ...(classicsCandidates || [])].forEach((m) => {
         if (m?.id) byId.set(m.id, m)
       })
       let candidates = Array.from(byId.values())
@@ -1420,15 +1551,22 @@ export async function getTopPickForUser(userId, options = {}) {
         const genres = (m.genres || []).map(extractGenreId).filter(Boolean)
         if (genres.includes(16) && !hasAnimationInterest) return false
         if (genres.includes(10751) && !hasFamilyInterest && !hasAnimationInterest) return false
+        if (genres.includes(99) && !hasDocumentaryInterest) return false
         return true
       })
 
-      // Exclusion gating (INTERNAL + TMDB + recentHero)
+      // Exclusion gating (INTERNAL + TMDB + recentHero + 48h skip)
       candidates = candidates.filter((m) => {
         if (!m || !m.id || !m.tmdb_id) return false
         if (allExcludeInternal.includes(m.id)) return false
         if (allExcludeTmdb.has(m.tmdb_id)) return false
         if (recentHeroIds.has(m.id)) return false
+        // 48h skip: hard-exclude unless the film is genuinely exceptional (ff_final_rating >= 8.5)
+        // Exceptional films are allowed through but will be penalised in heroBonus scoring.
+        if (hardSkipIds.has(m.id)) {
+          const ffRating = Number(m.ff_final_rating || m.ff_rating || 0)
+          if (ffRating < 8.5) return false
+        }
         return true
       })
 
@@ -1451,7 +1589,14 @@ export async function getTopPickForUser(userId, options = {}) {
 
         const { data: relaxed } = await relaxQuery
         const relaxedCandidates = (relaxed || [])
-          .filter((m) => m?.id && !allExcludeInternal.includes(m.id) && !allExcludeTmdb.has(m.tmdb_id) && !recentHeroIds.has(m.id))
+          .filter((m) => {
+            if (!m?.id || !m.tmdb_id) return false
+            if (allExcludeInternal.includes(m.id)) return false
+            if (allExcludeTmdb.has(m.tmdb_id)) return false
+            if (recentHeroIds.has(m.id)) return false
+            if (hardSkipIds.has(m.id) && Number(m.ff_final_rating || m.ff_rating || 0) < 8.5) return false
+            return true
+          })
 
         // merge
         relaxedCandidates.forEach((m) => {
@@ -1468,7 +1613,7 @@ export async function getTopPickForUser(userId, options = {}) {
         })
       }
 
-      if (candidates.length === 0) return await getFallbackPick(profile)
+      if (candidates.length === 0) return await getFallbackPick(langGuard, allExcludeInternal, allExcludeTmdb)
 
       // Score (embedding-aware)
       const currentYear = new Date().getFullYear()
@@ -1477,17 +1622,61 @@ export async function getTopPickForUser(userId, options = {}) {
           seedEmbeddingBestByMovieId: bestByNeighborId
         })
 
-        // hero freshness + normalized rating bonus (controlled)
+        // hero freshness bonus — smoother 6-tier decay (max +15, was +20)
         let heroBonus = 0
         const age = currentYear - (movie.release_year || currentYear)
-        if (age === 0) heroBonus += 20
-        else if (age === 1) heroBonus += 12
-        else if (age === 2) heroBonus += 5
+        if (age === 0) heroBonus += 15
+        else if (age === 1) heroBonus += 10
+        else if (age === 2) heroBonus += 6
+        else if (age === 3) heroBonus += 3
+        else if (age <= 5) heroBonus += 1
+
+        // quality bonus — differentiated ff_final_rating steps + audience size
+        const ffRating = Number(movie.ff_final_rating || movie.ff_rating || 0)
+        if (ffRating >= 9.0) heroBonus += 25
+        else if (ffRating >= 8.5) heroBonus += 18
+        else if (ffRating >= 8.0) heroBonus += 10
+        else if (ffRating >= 7.5) heroBonus += 4
+
+        const voteCount = Number(movie.vote_count || 0)
+        if (voteCount >= 10000) heroBonus += 8
+        else if (voteCount >= 5000) heroBonus += 4
+
+        // confidence bonus — prefer well-evidenced films for hero slot
+        const heroConf = Number(movie.ff_confidence || 0)
+        if (heroConf === 100) heroBonus += 12
+        else if (heroConf >= 85) heroBonus += 6
+        else if (heroConf < 70) heroBonus -= 10
+
+        // skip de-rating — penalise films the user has recently skipped.
+        // 48h hard-excluded films only reach here if ff_final_rating >= 8.5 (exceptional).
+        // 48h–7d: soft penalty — exceptional films -15, everything else -40.
+        if (skipHistory.has(movie.id)) {
+          const hoursSinceSkip = (Date.now() - skipHistory.get(movie.id).getTime()) / (1000 * 60 * 60)
+          const isExceptional = ffRating >= 8.5
+          if (hoursSinceSkip < 48) {
+            // Passed the gate only because it's exceptional — apply heavy penalty so it
+            // only wins if nothing else in the pool is competitive.
+            heroBonus -= 35
+          } else {
+            // 48h–7d: proportionally de-rate. Exceptional films can still resurface;
+            // mediocre ones will almost never beat fresh candidates at -40.
+            heroBonus -= isExceptional ? 15 : 40
+          }
+        }
+
+        // permanent skip penalty — skipped 3+ times ever means a lasting mismatch
+        if (permanentSkipIds.has(movie.id)) heroBonus -= 30
+
+        // session genre penalty — "not in the mood for X tonight"
+        // -10 per genre the user has already skipped in this session
+        if (penalizedGenreIds.length > 0) {
+          const movieGenreIds = (movie.genres || []).map(extractGenreId).filter(Boolean)
+          const overlap = movieGenreIds.filter((g) => penalizedGenreIds.includes(g)).length
+          if (overlap > 0) heroBonus -= overlap * 10
+        }
 
         const normalizedRating = Number(movie.ff_rating_genre_normalized || movie.ff_rating || 0)
-        if (normalizedRating >= 8.5) heroBonus += 15
-        else if (normalizedRating >= 8.0) heroBonus += 10
-
         const finalScore = result.score + heroBonus
 
         return {
@@ -1506,7 +1695,7 @@ export async function getTopPickForUser(userId, options = {}) {
 
       // Quality floor (normalized)
       const qualityCandidates = scored.filter((c) => Number(c.normalizedRating || 0) >= 7.0)
-      if (qualityCandidates.length === 0) return await getFallbackPick(profile)
+      if (qualityCandidates.length === 0) return await getFallbackPick(langGuard, allExcludeInternal, allExcludeTmdb)
 
       // Taste threshold (confidence-based)
       const minTasteScore = profile.meta.confidence === 'high' ? 60 : profile.meta.confidence === 'medium' ? 45 : 30
@@ -1521,10 +1710,69 @@ export async function getTopPickForUser(userId, options = {}) {
       const top30 = finalCandidates.slice(0, 30)
       const diverseTop10 = applyDiversityFilter(top30, seedFilms, 10)
 
-      if (diverseTop10.length === 0) return await getFallbackPick(profile)
+      if (diverseTop10.length === 0) return await getFallbackPick(langGuard, allExcludeInternal, allExcludeTmdb)
 
-      // Weighted random (still leans to top, but not always #1)
-      const weights = [0.4, 0.25, 0.15, 0.1, 0.05, 0.03, 0.01, 0.005, 0.003, 0.002]
+      // STRICT mode: inject 1 discovery slot from a non-primary language.
+      // Prevents permanent language bubbles by ensuring at least one world-cinema
+      // pick (≥8.5 norm, ≥80 conf, ≥1000 votes) always appears at position 10.
+      if (langGuard.mode === 'strict' && langGuard.primary && diverseTop10.length >= 5) {
+        const hasDiscovery = diverseTop10.some((c) => c.movie.original_language !== langGuard.primary)
+        if (!hasDiscovery) {
+          const { data: discoveryPool } = await supabase
+            .from('movies')
+            .select(selectFields)
+            .eq('is_valid', true)
+            .not('backdrop_path', 'is', null)
+            .neq('original_language', langGuard.primary)
+            .gte('ff_rating_genre_normalized', 8.5)
+            .gte('ff_confidence', 80)
+            .gte('vote_count', 1000)
+            .order('ff_rating_genre_normalized', { ascending: false })
+            .limit(20)
+          const excludeSet = new Set([...allExcludeInternal, ...diverseTop10.map((c) => c.movie.id)])
+          const discCandidate = (discoveryPool || []).find(
+            (m) => m?.id && !excludeSet.has(m.id) && !allExcludeTmdb.has(m.tmdb_id) && !recentHeroIds.has(m.id)
+              && !(hardSkipIds.has(m.id) && Number(m.ff_final_rating || m.ff_rating || 0) < 8.5)
+          )
+          if (discCandidate) {
+            const discResult = scoreMovieForUser(discCandidate, profile, 'hero', seedFilms, {
+              seedEmbeddingBestByMovieId: bestByNeighborId
+            })
+            const discAge = currentYear - (discCandidate.release_year || currentYear)
+            let discBonus = 0
+            if (discAge === 0) discBonus += 15
+            else if (discAge === 1) discBonus += 10
+            else if (discAge === 2) discBonus += 6
+            else if (discAge === 3) discBonus += 3
+            else if (discAge <= 5) discBonus += 1
+            const discRating = Number(discCandidate.ff_final_rating || discCandidate.ff_rating || 0)
+            if (discRating >= 9.0) discBonus += 25
+            else if (discRating >= 8.5) discBonus += 18
+            else if (discRating >= 8.0) discBonus += 10
+            else if (discRating >= 7.5) discBonus += 4
+            if (Number(discCandidate.vote_count || 0) >= 10000) discBonus += 8
+            else if (Number(discCandidate.vote_count || 0) >= 5000) discBonus += 4
+            const discConf = Number(discCandidate.ff_confidence || 0)
+            if (discConf === 100) discBonus += 12
+            else if (discConf >= 85) discBonus += 6
+            else if (discConf < 70) discBonus -= 10
+            const discNorm = Number(discCandidate.ff_rating_genre_normalized || 0)
+            const discEntry = {
+              movie: discCandidate,
+              ...discResult,
+              heroBonus: discBonus,
+              finalScore: discResult.score + discBonus,
+              normalizedRating: discNorm,
+              breakdown: { ...discResult.breakdown, heroBonus: discBonus, normalizedRating: discNorm, discovery: true }
+            }
+            if (diverseTop10.length >= 10) diverseTop10[9] = discEntry
+            else diverseTop10.push(discEntry)
+          }
+        }
+      }
+
+      // Weighted random — #1 wins 65% of the time (was 40%); decisive but not robotic
+      const weights = [0.65, 0.20, 0.08, 0.04, 0.02, 0.01, 0.005, 0.002, 0.002, 0.001]
       const totalWeight = weights.slice(0, diverseTop10.length).reduce((a, b) => a + b, 0)
       let rnd = Math.random() * totalWeight
       let selectedIndex = 0
@@ -1581,7 +1829,11 @@ export function scoreMovieForUser(movie, profile, rowType = 'default', seedFilms
   // 1) BASE QUALITY (normalized when available, community-blended ff_final_rating as fallback)
   const effectiveRating = movie.ff_final_rating ?? movie.ff_rating
   const normalizedRating = Number(movie.ff_rating_genre_normalized || effectiveRating || 7.0)
-  score += (breakdown.baseQuality = normalizedRating * 10)
+  // Cap hero base quality at 72 so taste signals meaningfully differentiate picks.
+  // Without cap: a norm-9.0 film gets 90 base pts and taste signals barely matter.
+  // With cap: any film above ~7.2 norm competes on taste, not just objective quality.
+  const baseQualityRaw = normalizedRating * 10
+  score += (breakdown.baseQuality = rowType === 'hero' ? Math.min(baseQualityRaw, 72) : baseQualityRaw)
   breakdown.originalRating = movie.ff_rating        // external-only, kept for debugging
   breakdown.finalRating    = movie.ff_final_rating  // community-blended
 
@@ -2088,7 +2340,7 @@ function determinePickReason(movie, profile, breakdown, seedSimilarity = {}) {
   // Strong embedding/seed similarity wins
   if ((seedSimilarity.embeddingSim || 0) >= 0.75 && seedSimilarity.bestSeed) {
     return {
-      label: `Because you loved ${seedSimilarity.bestSeed.title}`,
+      label: `Because you watched ${seedSimilarity.bestSeed.title}`,
       type: 'seed_embedding',
       seedTitle: seedSimilarity.bestSeed.title
     }
@@ -2096,7 +2348,7 @@ function determinePickReason(movie, profile, breakdown, seedSimilarity = {}) {
 
   if ((seedSimilarity.rawScore || 0) >= 60 && seedSimilarity.bestSeed) {
     return {
-      label: `Because you loved ${seedSimilarity.bestSeed.title}`,
+      label: `Because you watched ${seedSimilarity.bestSeed.title}`,
       type: 'seed_similarity',
       seedTitle: seedSimilarity.bestSeed.title
     }
@@ -2114,12 +2366,12 @@ function determinePickReason(movie, profile, breakdown, seedSimilarity = {}) {
     return { label: `Similar to ${seedSimilarity.bestSeed.title}`, type: 'seed_similar', seedTitle: seedSimilarity.bestSeed.title }
   }
 
-  if ((breakdown.language || 0) >= 20 && (breakdown.genre || 0) >= 15) return { label: 'Perfect for you', type: 'perfect_match' }
-  if ((breakdown.genre || 0) >= 20) return { label: 'Right up your alley', type: 'genre_match' }
+  if ((breakdown.language || 0) >= 20 && (breakdown.genre || 0) >= 15) return { label: 'Built for your taste', type: 'perfect_match' }
+  if ((breakdown.genre || 0) >= 20) return { label: 'Matches your taste', type: 'genre_match' }
   if (Number(movie.discovery_potential || 0) >= 60) return { label: 'Hidden gem', type: 'hidden_gem' }
   if (Number(movie.quality_score || 0) >= 85 || Number(movie.ff_final_rating ?? movie.ff_rating ?? 0) >= 7.5) return { label: 'Critically acclaimed', type: 'quality' }
-  if (movie.release_year === new Date().getFullYear()) return { label: 'Fresh pick', type: 'recency' }
-  if ((breakdown.content || 0) >= 35) return { label: 'Matches your vibe', type: 'content_match' }
+  if (movie.release_year === new Date().getFullYear()) return { label: 'New this year', type: 'recency' }
+  if ((breakdown.content || 0) >= 35) return { label: 'Fits your style', type: 'content_match' }
 
   return { label: 'Recommended for you', type: 'default' }
 }
@@ -2195,8 +2447,44 @@ async function logImpression(userId, selectedCandidate, placement) {
   }
 }
 
-async function getFallbackPick(_profile) {
+async function getFallbackPick(langGuard, excludeInternalIds = [], excludeTmdbIds = new Set()) {
+  const primaryLang = langGuard?.primary || null
+
+  const notWatched = (m) =>
+    m?.id && m?.tmdb_id &&
+    !excludeInternalIds.includes(m.id) &&
+    !excludeTmdbIds.has(m.tmdb_id)
+
   try {
+    // Tier 1: same-language fallback — strongly preferred when user has a language history.
+    // Looser quality bar (ff_final_rating >= 6.5, vote_count >= 50) because the language
+    // pool is small; better a good Hindi film than a great English animated short.
+    if (primaryLang && primaryLang !== 'en') {
+      const { data: langFallback } = await supabase
+        .from('movies')
+        .select('*')
+        .eq('is_valid', true)
+        .eq('original_language', primaryLang)
+        .not('backdrop_path', 'is', null)
+        .not('tmdb_id', 'is', null)
+        .gte('ff_final_rating', 6.5)
+        .gte('vote_count', 50)
+        .order('ff_final_rating', { ascending: false })
+        .limit(60)
+
+      const eligible = (langFallback || []).filter(notWatched)
+      if (eligible.length >= 1) {
+        const pick = eligible[Math.floor(Math.random() * Math.min(eligible.length, 10))]
+        return {
+          movie: pick,
+          pickReason: { label: 'Top pick for you', type: 'quality' },
+          score: Number(pick.ff_final_rating ?? pick.ff_rating ?? 0) * 10,
+          debug: { fallback: true, fallbackType: 'language-aware', lang: primaryLang }
+        }
+      }
+    }
+
+    // Tier 2: global fallback — no language restriction. Last resort.
     const { data: fallback } = await supabase
       .from('movies')
       .select('*')
@@ -2207,15 +2495,16 @@ async function getFallbackPick(_profile) {
       .gte('vote_count', THRESHOLDS.MIN_VOTE_COUNT)
       .gte('release_date', '2020-01-01')
       .order('ff_final_rating', { ascending: false })
-      .limit(20)
+      .limit(40)
 
-    if (fallback && fallback.length > 0) {
-      const pick = fallback[Math.floor(Math.random() * fallback.length)]
+    const globalEligible = (fallback || []).filter(notWatched)
+    if (globalEligible.length > 0) {
+      const pick = globalEligible[Math.floor(Math.random() * Math.min(globalEligible.length, 10))]
       return {
         movie: pick,
         pickReason: { label: 'Critically acclaimed', type: 'quality' },
         score: Number(pick.ff_final_rating ?? pick.ff_rating ?? 0) * 10,
-        debug: { fallback: true }
+        debug: { fallback: true, fallbackType: 'global' }
       }
     }
   } catch (err) {
@@ -3150,27 +3439,38 @@ export async function getBecauseYouWatchedRows(userId, options = {}) {
 
   return recommendationCache.getOrFetch(cacheKey, async () => {
     try {
-      // 1. Get user's watch history with movie details
-      const { data: history, error: histError } = await supabase
-        .from('user_history')
-        .select(`
-          movie_id,
-          watched_at,
-          source,
-          movies!inner (
-            id, tmdb_id, title, ff_rating,
-            director_name, primary_genre
-          )
-        `)
-        .eq('user_id', userId)
-        .order('watched_at', { ascending: false })
-        .limit(50)
+      // 1. Get user's watch history with movie details + user ratings in parallel
+      const [{ data: history, error: histError }, { data: userRatings }] = await Promise.all([
+        supabase
+          .from('user_history')
+          .select(`
+            movie_id,
+            watched_at,
+            source,
+            movies!inner (
+              id, tmdb_id, title, ff_final_rating, ff_rating,
+              director_name, primary_genre
+            )
+          `)
+          .eq('user_id', userId)
+          .order('watched_at', { ascending: false })
+          .limit(50),
+        supabase
+          .from('user_ratings')
+          .select('movie_id, rating')
+          .eq('user_id', userId)
+      ])
 
       if (histError) throw histError
       if (!history || history.length === 0) {
         console.log('[getBecauseYouWatchedRows] No watch history')
         return []
       }
+
+      // Build a quick lookup: movie_id → user's personal rating
+      const ratingByMovieId = new Map(
+        (userRatings || []).map(r => [r.movie_id, r.rating])
+      )
 
       // 2. Get all watched IDs for exclusion
       const { data: allWatched } = await supabase
@@ -3181,7 +3481,7 @@ export async function getBecauseYouWatchedRows(userId, options = {}) {
       const watchedIds = allWatched?.map(w => w.movie_id) || []
       const allExcludeIds = [...new Set([...watchedIds, ...excludeIds])]
 
-      // 3. Select seed films - prefer high-quality recent watches
+      // 3. Select seed films — prioritise by user's own rating, fall back to ff_final_rating
       const seenMovies = new Set()
       const potentialSeeds = []
 
@@ -3190,11 +3490,13 @@ export async function getBecauseYouWatchedRows(userId, options = {}) {
         if (seenMovies.has(item.movies.id)) continue
 
         seenMovies.add(item.movies.id)
+        const userRating = ratingByMovieId.get(item.movies.id) ?? null
         potentialSeeds.push({
           id: item.movies.id,
           tmdbId: item.movies.tmdb_id,
           title: item.movies.title,
-          ffRating: item.movies.ff_rating || 0,
+          userRating,
+          ffFinalRating: item.movies.ff_final_rating ?? item.movies.ff_rating ?? 0,
           director: item.movies.director_name,
           genre: item.movies.primary_genre,
           source: item.source,
@@ -3202,11 +3504,17 @@ export async function getBecauseYouWatchedRows(userId, options = {}) {
         })
       }
 
-      // Sort by quality (prefer higher rated films as seeds)
+      // Seed priority: user rated ≥8 > user rated ≥7 > onboarding > ff_final_rating
       potentialSeeds.sort((a, b) => {
-        if (a.source === 'onboarding' && b.source !== 'onboarding') return -1
-        if (b.source === 'onboarding' && a.source !== 'onboarding') return 1
-        return b.ffRating - a.ffRating
+        const tierOf = (s) => {
+          if (s.userRating >= 8) return 3
+          if (s.userRating >= 7) return 2
+          if (s.source === 'onboarding') return 1
+          return 0
+        }
+        const tierDiff = tierOf(b) - tierOf(a)
+        if (tierDiff !== 0) return tierDiff
+        return b.ffFinalRating - a.ffFinalRating
       })
 
       const seeds = potentialSeeds.slice(0, maxSeeds)
@@ -3233,7 +3541,7 @@ export async function getBecauseYouWatchedRows(userId, options = {}) {
               seed_ids: [seed.id],
               exclude_ids: allExcludeIds,
               match_count: limitPerSeed + 10, // Fetch extra for filtering
-              min_ff_rating: 5.5
+              min_ff_rating: 7.0
             })
 
           if (embError) {
@@ -3315,6 +3623,7 @@ export async function getBecauseYouWatchedRows(userId, options = {}) {
               seedTitle: seed.title,
               seedId: seed.id,
               seedTmdbId: seed.tmdbId,
+              seedUserRating: seed.userRating,
               movies
             })
 
@@ -3408,7 +3717,7 @@ export async function getTrendingForUser(userId, options = {}) {
   const stableExcludeIds = Array.isArray(excludeIds) ? [...excludeIds].sort((a, b) => a - b) : []
 
   const cacheKey = recommendationCache.key('trending', userId || 'guest', {
-    version: 'fallback-v2',
+    version: 'hidden-gems-v3',
     limit,
     excludeIds: stableExcludeIds
   })
@@ -3709,7 +4018,7 @@ export async function getHiddenGemsForUser(userId, options = {}) {
   const stableExcludeIds = Array.isArray(excludeIds) ? [...excludeIds].sort((a, b) => a - b) : []
 
   const cacheKey = recommendationCache.key('hidden_gems', userId || 'guest', {
-    version: 'fallback-v2',
+    version: 'hidden-gems-v3',
     limit,
     excludeIds: stableExcludeIds
   })
@@ -3760,48 +4069,72 @@ export async function getHiddenGemsForUser(userId, options = {}) {
         genres, keywords, primary_genre
       `
 
-      // Pool 1: High quality, low popularity (classic hidden gems)
-      const { data: classicGems } = await supabase
-        .from('movies')
-        .select(selectFields)
-        .eq('is_valid', true)
-        .not('poster_path', 'is', null)
-        .gte('ff_final_rating', 7.0)
-        .lt('popularity', 30)
-        .gte('vote_count', 50) // Enough votes to trust rating
-        .order('ff_final_rating', { ascending: false })
-        .limit(100)
+      // Preferred genres from profile (for taste-aware Pool 1)
+      const preferredGenres = profile.genres?.preferred || []
 
-      // Pool 2: Cult classics (high cult_status_score)
-      const { data: cultGems } = await supabase
-        .from('movies')
-        .select(selectFields)
-        .eq('is_valid', true)
-        .not('poster_path', 'is', null)
-        .gte('ff_final_rating', 7.5)
-        .gte('cult_status_score', 60)
-        .lt('popularity', 50)
-        .order('cult_status_score', { ascending: false })
-        .limit(50)
+      // All 3 pools fire in parallel
+      const [
+        { data: classicGems },
+        { data: cultGems },
+        embeddingResult
+      ] = await Promise.all([
+        // Pool 1: Quality gems, genre-aware — genuinely under the radar
+        // "Hidden" = good film, not yet discovered by the mainstream
+        (() => {
+          let q = supabase
+            .from('movies')
+            .select(selectFields)
+            .eq('is_valid', true)
+            .not('poster_path', 'is', null)
+            .gte('ff_final_rating', 7.2)
+            .gte('ff_confidence', 60)
+            .lt('popularity', 20)       // not mainstream
+            .gte('vote_count', 1000)    // enough votes to trust the score
+            .lte('vote_count', 40000)   // above this it's no longer "hidden"
+            .order('ff_final_rating', { ascending: false })
+            .limit(100)
+          if (preferredGenres.length > 0) {
+            q = q.in('primary_genre', preferredGenres.slice(0, 5))
+          }
+          return q
+        })(),
 
-      // Pool 3: Embedding neighbors that are hidden gems
+        // Pool 2: Cult gems — any genre, same hidden criteria
+        // Spirited Away / Sixth Sense won't pass popularity < 20; Man from Earth will
+        supabase
+          .from('movies')
+          .select(selectFields)
+          .eq('is_valid', true)
+          .not('poster_path', 'is', null)
+          .gte('ff_final_rating', 7.2)
+          .gte('ff_confidence', 60)
+          .gte('cult_status_score', 60)
+          .lt('popularity', 20)
+          .gte('vote_count', 1000)
+          .lte('vote_count', 40000)
+          .order('cult_status_score', { ascending: false })
+          .limit(50),
+
+        // Pool 3: Embedding neighbors — taste-matched hidden gems
+        seedIds.length > 0
+          ? supabase.rpc('match_movies_by_seeds', {
+              seed_ids: seedIds,
+              exclude_ids: allExcludeIds,
+              match_count: 50,
+              min_ff_rating: 7.0
+            })
+          : Promise.resolve({ data: null, error: null })
+      ])
+
+      // Extract embedding gems — apply the same hidden definition
       let embeddingGems = []
-      if (seedIds.length > 0) {
-        const { data: embeddingMatches, error: embError } = await supabase
-          .rpc('match_movies_by_seeds', {
-            seed_ids: seedIds,
-            exclude_ids: allExcludeIds,
-            match_count: 50,
-            min_ff_rating: 6.5
-          })
-
-        if (embError) {
-          console.warn('[getHiddenGemsForUser] Embedding search error:', embError.message)
-        } else {
-          // Filter to hidden gems only (low popularity)
-          embeddingGems = (embeddingMatches || []).filter(m => m.popularity < 40 && m.vote_count >= 30)
-          console.log('[getHiddenGemsForUser] Embedding gems found:', embeddingGems.length)
-        }
+      if (embeddingResult.error) {
+        console.warn('[getHiddenGemsForUser] Embedding search error:', embeddingResult.error.message)
+      } else {
+        embeddingGems = (embeddingResult.data || []).filter(
+          m => m.popularity < 20 && m.vote_count >= 1000 && m.vote_count <= 40000
+        )
+        console.log('[getHiddenGemsForUser] Embedding gems found:', embeddingGems.length)
       }
 
       // Combine and deduplicate
@@ -3870,8 +4203,9 @@ export async function getHiddenGemsForUser(userId, options = {}) {
         else if (movie.cult_status_score >= 50) gemBoost += 12
 
         // Quality floor bonus (hidden gems should be good)
-        if (movie.ff_rating >= 7.5) gemBoost += 15
-        else if (movie.ff_rating >= 7.0) gemBoost += 8
+        const _gemRating = movie.ff_final_rating ?? movie.ff_rating ?? 0
+        if (_gemRating >= 7.5) gemBoost += 15
+        else if (_gemRating >= 7.0) gemBoost += 8
 
         // Update pick reason
         let pickReason = result.pickReason
@@ -3957,14 +4291,17 @@ async function getHiddenGemsFallback(limit = 20) {
       genres, keywords, primary_genre
     `
 
+  // Same hidden definition as the main pools: quality, under the radar, not mainstream
   const { data } = await supabase
     .from('movies')
     .select(selectFields)
     .eq('is_valid', true)
     .not('poster_path', 'is', null)
-    .gte('ff_final_rating', 7.0)
-    .lt('popularity', 30)
-    .gte('vote_count', 50)
+    .gte('ff_final_rating', 7.2)
+    .gte('ff_confidence', 60)
+    .lt('popularity', 20)
+    .gte('vote_count', 1000)
+    .lte('vote_count', 40000)
     .order('ff_final_rating', { ascending: false })
     .limit(limit)
 
@@ -3976,20 +4313,23 @@ async function getHiddenGemsFallback(limit = 20) {
     }))
   }
 
+  // Slightly relaxed fallback — still enforces the "not mainstream" ceiling
   const { data: relaxedData } = await supabase
     .from('movies')
     .select(selectFields)
     .eq('is_valid', true)
     .not('poster_path', 'is', null)
-    .gte('vote_average', 6.7)
-    .lt('popularity', 60)
-    .order('vote_average', { ascending: false })
+    .gte('ff_final_rating', 7.0)
+    .lt('popularity', 25)
+    .gte('vote_count', 500)
+    .lte('vote_count', 60000)
+    .order('ff_final_rating', { ascending: false })
     .limit(limit)
 
   return (relaxedData || []).map(movie => ({
     ...movie,
-    _score: (movie.ff_final_rating ?? movie.ff_rating ?? movie.vote_average ?? 0) * 10,
-    _pickReason: { label: 'Underrated pick', type: 'fallback_gem_relaxed' }
+    _score: (movie.ff_final_rating ?? movie.ff_rating ?? 0) * 10,
+    _pickReason: { label: 'Hidden gem', type: 'fallback_gem_relaxed' }
   }))
 }
 

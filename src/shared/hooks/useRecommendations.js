@@ -298,7 +298,7 @@ export function useAllRecommendations(options = {}) {
  * Homepage hero hook - top pick for the user
  */
 export function useTopPick(options = {}) {
-  const { enabled = true, excludeTmdbIds = [], userId: userIdOverride } = options
+  const { enabled = true, excludeTmdbIds = [], penalizedGenreIds = [], userId: userIdOverride } = options
 
   const auth = useAuthState()
   const userId = userIdOverride !== undefined ? userIdOverride : auth.userId
@@ -313,7 +313,12 @@ export function useTopPick(options = {}) {
     () => normalizeNumericIdArray(excludeTmdbIds),
     [excludeTmdbIds]
   )
+  const stablePenalizedGenreIds = useMemo(
+    () => normalizeNumericIdArray(penalizedGenreIds),
+    [penalizedGenreIds]
+  )
   const excludeKey = stableExcludeTmdbIds.join(',')
+  const penalizedKey = stablePenalizedGenreIds.join(',')
 
   // Ensure refetch bypasses recommendation-cache once (without disabling caching permanently)
   const forceRefreshNextRef = useRef(false)
@@ -333,6 +338,7 @@ export function useTopPick(options = {}) {
 
         const result = await recommendationService.getTopPickForUser(userId, {
           excludeTmdbIds: stableExcludeTmdbIds,
+          penalizedGenreIds: stablePenalizedGenreIds,
           forceRefresh,
         })
 
@@ -368,7 +374,7 @@ export function useTopPick(options = {}) {
     return () => {
       isCancelled = true
     }
-  }, [userId, enabled, authReady, excludeKey, refreshKey, stableExcludeTmdbIds])
+  }, [userId, enabled, authReady, excludeKey, penalizedKey, refreshKey, stableExcludeTmdbIds, stablePenalizedGenreIds])
 
   const refetch = useCallback(() => {
     forceRefreshNextRef.current = true

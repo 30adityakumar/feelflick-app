@@ -61,10 +61,13 @@ export default function BecauseYouWatchedSection({
       {safeRows.map((row, idx) => {
         const seedTitle = row.seedTitle || 'this'
         const seedId = row.seedId ?? `seed-${idx}`
+        const rowLabel = row.seedUserRating >= 8
+          ? `Because you loved ${seedTitle}`
+          : `Because you watched ${seedTitle}`
         return (
           <PersonalizedCarouselRow
             key={`${seedId}-${idx}`}
-            title={`Because you loved ${seedTitle}`}
+            title={rowLabel}
             movies={row.movies}
             loading={false}
             error={null}

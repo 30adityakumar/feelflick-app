@@ -224,7 +224,7 @@ export default function MovieDetail() {
     ? `${movie.overview.slice(0, 150).trim()}… Discover ${movieTitle} and more on FeelFlick.`
     : null
   const pageImage = movie?.poster_path
-    ? `https://image.tmdb.org/t/p/w1280${movie.poster_path}`
+    ? `https://image.tmdb.org/t/p/w780${movie.poster_path}`
     : null
   const pageUrl = movie?.id
     ? `https://app.feelflick.com/movie/${movie.id}`
@@ -324,6 +324,8 @@ export default function MovieDetail() {
                         alt={movie?.title}
                         className="h-[120px] w-[80px] sm:h-[160px] sm:w-[107px] md:h-[230px] md:w-[153px] lg:h-[270px] lg:w-[180px] object-cover"
                         loading="eager"
+                        fetchpriority="high"
+                        decoding="async"
                       />
                     ) : (
                       <div className="h-[120px] w-[80px] sm:h-[160px] sm:w-[107px] md:h-[230px] md:w-[153px] lg:h-[270px] lg:w-[180px] grid place-items-center bg-white/5 text-white/25 text-xs">
@@ -412,6 +414,7 @@ export default function MovieDetail() {
                             href={ytTrailer}
                             target="_blank"
                             rel="noreferrer"
+                            aria-label={`Watch ${movie?.title} trailer on YouTube`}
                             onClick={handleTrailerClick}
                             className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-purple-500/20 transition-all active:scale-95"
                           >
@@ -423,6 +426,7 @@ export default function MovieDetail() {
                         <button
                           disabled={mutating}
                           onClick={handleToggleWatchlist}
+                          aria-label={isInWatchlist ? 'Remove from watchlist' : 'Save to watchlist'}
                           className={`inline-flex items-center gap-1.5 rounded-lg px-3 sm:px-4 py-2 text-sm font-bold transition-all active:scale-95 disabled:opacity-50 backdrop-blur-sm border ${
                             isInWatchlist
                               ? 'bg-purple-500/20 border-purple-500/55 text-purple-300'
@@ -438,6 +442,7 @@ export default function MovieDetail() {
                         <button
                           disabled={mutating}
                           onClick={handleToggleWatched}
+                          aria-label={isWatched ? 'Mark as unwatched' : 'Mark as watched'}
                           className={`inline-flex items-center gap-1.5 rounded-lg px-3 sm:px-4 py-2 text-sm font-bold transition-all active:scale-95 disabled:opacity-50 backdrop-blur-sm border ${
                             isWatched
                               ? 'bg-purple-500/20 border-purple-500/45 text-purple-300'

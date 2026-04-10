@@ -2,7 +2,7 @@
 
 export const IMG = {
   backdrop: (p) => (p ? `https://image.tmdb.org/t/p/original${p}` : ''),
-  poster:   (p) => (p ? `https://image.tmdb.org/t/p/w500${p}` : ''),
+  poster:   (p) => (p ? `https://image.tmdb.org/t/p/w780${p}` : ''),
   profile:  (p) => (p ? `https://image.tmdb.org/t/p/w185${p}` : ''),
   logo:     (p) => (p ? `https://image.tmdb.org/t/p/w92${p}` : ''),
   still:    (p) => (p ? `https://image.tmdb.org/t/p/w500${p}` : ''),

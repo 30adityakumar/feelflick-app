@@ -4,13 +4,36 @@ require('dotenv').config();
 const Logger = require('../utils/logger');
 const { logUpdateRun, completeUpdateRun } = require('../utils/supabase');
 const tmdbClient = require('../utils/tmdb-client');
-const omdbClient = require('../utils/omdb-client');
-const traktClient = require('../utils/trakt-client');
-const openaiClient = require('../utils/openai-client');
 const { spawn } = require('child_process');
 const path = require('path');
 
 const logger = new Logger('run-pipeline.log');
+
+/**
+ * Steps that depend on optional provider credentials.
+ * Missing keys should skip those steps instead of failing the whole run.
+ */
+const STEP_REQUIRED_ENV = {
+  '06-fetch-external-ratings': 'OMDB_API_KEY',
+  '06b-fetch-trakt-ratings': 'TRAKT_CLIENT_ID',
+  '08-generate-embeddings': 'OPENAI_API_KEY'
+};
+
+/**
+ * Load optional clients safely so missing provider keys don't crash startup.
+ */
+function loadOptionalClient(label, loader) {
+  try {
+    return loader();
+  } catch (error) {
+    logger.warn(`[INIT] ${label} client unavailable: ${error.message}`);
+    return null;
+  }
+}
+
+const omdbClient = loadOptionalClient('OMDb', () => require('../utils/omdb-client'));
+const traktClient = loadOptionalClient('Trakt', () => require('../utils/trakt-client'));
+const openaiClient = loadOptionalClient('OpenAI', () => require('../utils/openai-client'));
 
 /**
  * Run modes configuration
@@ -27,15 +50,15 @@ const RUN_MODES = {
       { name: '06-fetch-external-ratings', enabled: true, options: { limit: 100 } },
       { name: '06b-fetch-trakt-ratings',   enabled: true, options: { limit: 100 } },
       { name: '07-calculate-movie-scores', enabled: true },
-      { name: '08-generate-embeddings', enabled: true },
-      { name: '09-calculate-mood-scores', enabled: true }
+      { name: '08-generate-embeddings', enabled: true, options: { limit: 250 } },
+      { name: '09-calculate-mood-scores', enabled: true, options: { limit: 250 } }
     ]
   },
   refresh: {
     description: 'Refresh stale movie data (weekly)',
     steps: [
       { name: '01-discover-new-movies', enabled: false },
-      { name: '02-fetch-movie-metadata', enabled: true, options: { updateType: 'stale_metadata', limit: 500 } },
+      { name: '02-fetch-movie-metadata', enabled: true, options: { updateType: 'stale-metadata', limit: 500 } },
       { name: '03-fetch-genres-keywords', enabled: false },
       { name: '04-fetch-cast-crew', enabled: false },
       { name: '05-calculate-cast-metadata', enabled: false },
@@ -101,7 +124,7 @@ function executeStep(stepName, options = {}, dryRun = false) {
     
     // Build arguments for the script
     const args = [];
-    if (options.limit) args.push('--limit', options.limit.toString());
+    if (options.limit) args.push(`--limit=${options.limit}`);
     if (options.updateType) args.push('--' + options.updateType);
     
     // Spawn the script as a child process
@@ -128,6 +151,21 @@ function executeStep(stepName, options = {}, dryRun = false) {
       resolve({ success: false, error: error.message, duration: parseFloat(duration) });
     });
   });
+}
+
+function getMissingProviderEnvForStep(stepName) {
+  const requiredEnv = STEP_REQUIRED_ENV[stepName];
+  if (!requiredEnv) return null;
+  return process.env[requiredEnv] ? null : requiredEnv;
+}
+
+function formatOptionalUsage(client, formatter, unavailableLabel) {
+  if (!client) return unavailableLabel;
+  try {
+    return formatter(client);
+  } catch (error) {
+    return `N/A (${error.message})`;
+  }
 }
 
 /**
@@ -179,6 +217,13 @@ async function runPipeline(mode = 'discover', options = {}) {
       continue;
     }
 
+    const missingEnv = getMissingProviderEnvForStep(step.name);
+    if (missingEnv) {
+      logger.warn(`\n⊘ Skipping step: ${step.name} (missing ${missingEnv})`);
+      pipelineStats.stepsSkipped++;
+      continue;
+    }
+
     const stepOptions = { ...step.options, ...options.stepOptions };
     const result = await executeStep(step.name, stepOptions, options.dryRun);
 
@@ -215,9 +260,27 @@ async function runPipeline(mode = 'discover', options = {}) {
   
   logger.info(`\nAPI Usage:`);
   logger.info(`  - TMDB: ${tmdbClient.getRequestCount()} calls`);
-  logger.info(`  - OMDb: ${omdbClient.getRequestCount()} / 1000 calls (${omdbClient.getQuotaRemaining()} remaining)`);
-  logger.info(`  - Trakt: ${traktClient.getRequestCount()} calls`);
-  logger.info(`  - OpenAI: ${openaiClient.getRequestCount()} requests ($${openaiClient.getTotalCost()})`);
+  logger.info(
+    `  - OMDb: ${formatOptionalUsage(
+      omdbClient,
+      (client) => `${client.getRequestCount()} / 1000 calls (${client.getQuotaRemaining()} remaining)`,
+      'N/A (client not initialized)'
+    )}`
+  );
+  logger.info(
+    `  - Trakt: ${formatOptionalUsage(
+      traktClient,
+      (client) => `${client.getRequestCount()} calls`,
+      'N/A (client not initialized)'
+    )}`
+  );
+  logger.info(
+    `  - OpenAI: ${formatOptionalUsage(
+      openaiClient,
+      (client) => `${client.getRequestCount()} requests ($${client.getTotalCost()})`,
+      'N/A (client not initialized)'
+    )}`
+  );
   
   logger.info(`\nTotal duration: ${totalDuration}s (${(totalDuration / 60).toFixed(1)} minutes)`);
 

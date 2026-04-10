@@ -225,6 +225,7 @@ export default function MovieDetail() {
     : null
   const pageImage = movie?.poster_path
     ? `https://image.tmdb.org/t/p/w780${movie.poster_path}`
+    ? `https://image.tmdb.org/t/p/w1280${movie.poster_path}`
     : null
   const pageUrl = movie?.id
     ? `https://app.feelflick.com/movie/${movie.id}`

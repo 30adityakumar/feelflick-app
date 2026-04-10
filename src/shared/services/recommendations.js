@@ -2568,6 +2568,7 @@ export const RECOMMENDATION_CONSTANTS = {
   GENRE_NAME_TO_ID
 }
 
+// Test-only exports for internal scoring helpers.
 export const RECOMMENDATION_TEST_HELPERS = {
   computeNegativeSignals,
   scoreEraMatch,

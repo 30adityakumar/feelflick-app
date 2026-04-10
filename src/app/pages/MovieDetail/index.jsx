@@ -14,6 +14,7 @@ import DatabaseValidationPanel from '@/shared/components/DatabaseValidationPanel
 import MovieSentimentWidget from '@/shared/components/MovieSentimentWidget'
 import { useMovieRating } from '@/shared/hooks/useMovieRating'
 import { usePageView } from '@/shared/hooks/useInteractionTracking'
+import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { trackTrailerPlay, trackShare } from '@/shared/services/interactions'
 import { fetchJson, getMovieDetails } from '@/shared/api/tmdb'
 
@@ -211,6 +212,30 @@ export default function MovieDetail() {
   const tmdbRating = movie?.vote_average ? Math.round(movie.vote_average * 10) / 10 : null
   const year       = yearOf(movie?.release_date)
   const runtime    = formatRuntime(movie?.runtime)
+
+  const movieTitle = movie?.title
+  const movieYear = movie?.release_date
+    ? new Date(movie.release_date).getFullYear()
+    : null
+  const pageTitle = movieTitle
+    ? `${movieTitle}${movieYear ? ` (${movieYear})` : ''} — FeelFlick`
+    : null
+  const pageDesc = movie?.overview
+    ? `${movie.overview.slice(0, 150).trim()}… Discover ${movieTitle} and more on FeelFlick.`
+    : null
+  const pageImage = movie?.poster_path
+    ? `https://image.tmdb.org/t/p/w1280${movie.poster_path}`
+    : null
+  const pageUrl = movie?.id
+    ? `https://app.feelflick.com/movie/${movie.id}`
+    : null
+
+  usePageMeta({
+    title: pageTitle,
+    description: pageDesc,
+    image: pageImage,
+    url: pageUrl,
+  })
 
   // ── Mood pills (reused in hero + mobile content) ─────────────
   const MoodPills = () => movieMoods.length > 0 ? (

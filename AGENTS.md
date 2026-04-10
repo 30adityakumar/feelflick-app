@@ -10,10 +10,10 @@ Mood-first movie/TV discovery app. Users express how they feel → get curated r
 
 ## Mandatory Workflow — Run Before Every PR
 ```bash
-npm install          # ensure deps are in sync
+npm ci               # ensure deps are in sync
 npm run lint         # ESLint (flat config, eslint.config.js)
 npm run lint:fix     # auto-fix safe issues first, then check remaining
-npm run test         # Vitest — known crash: recommendations.helpers.test.js needs VITE_SUPABASE_URL mock
+npm run test
 npm run build        # must pass with zero errors
 ```
 **Never open a PR if `npm run build` fails.**
@@ -101,10 +101,15 @@ VITE_ADMIN_EMAILS      # Comma-separated admin emails
 **OpenAI key is server-side only. Never add `VITE_OPENAI_*`.**
 **Never edit `.env`. Never commit secrets.**
 
+## Runtime Target
+- Node.js: 22 LTS
+- CI runners: ubuntu-latest with node-version: '22'
+- Never use Node.js 20 in workflow files.
+
 ## Known Test Issues
-- `recommendations.helpers.test.js` crashes on import — requires `VITE_SUPABASE_URL` mock. Fix: use `vi.stubEnv('VITE_SUPABASE_URL', 'https://test.supabase.co')` in beforeAll.
-- `Error: always broken` in test output is expected (SectionErrorBoundary test).
-- `npm audit` reports 8 vulnerabilities (3 moderate, 5 high) — not blocking dev but should be fixed.
+- `Error: always broken` in test output is expected (SectionErrorBoundary test — intentional).
+- All VITE_* env stubs are handled globally in src/test/setup.js. No per-file stubbing needed.
+- npm audit: 0 vulnerabilities (clean as of 2026-04-10).
 
 ## PR Rules
 - **No force pushes to `main`.** Always open a PR.

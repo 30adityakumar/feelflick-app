@@ -96,6 +96,7 @@ Three files own card hover. Read all three before touching any:
 VITE_SUPABASE_URL      # Supabase project URL (non-secret)
 VITE_SUPABASE_ANON_KEY # Supabase anon key (RLS enforces access)
 VITE_TMDB_API_KEY      # TMDB read-only key (rate-limited 40 req/10s)
+VITE_SENTRY_DSN        # Sentry DSN — only fires in PROD (enabled: import.meta.env.PROD)
 VITE_ADMIN_EMAILS      # Comma-separated admin emails
 ```
 **OpenAI key is server-side only. Never add `VITE_OPENAI_*`.**

@@ -1,4 +1,5 @@
 // src/app/router.jsx
+import * as Sentry from '@sentry/react'
 import {
   createBrowserRouter,
   Navigate,
@@ -184,7 +185,9 @@ function SignOutRoute() {
 }
 
 /* -------------------------------- Router --------------------------------- */
-export const router = createBrowserRouter([
+const sentryCreateBrowserRouter = Sentry.wrapCreateBrowserRouterV7(createBrowserRouter)
+
+export const router = sentryCreateBrowserRouter([
   // Public branch (no app chrome)
   {
     element: <PublicShell />,

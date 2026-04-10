@@ -1,9 +1,10 @@
 /** @type {import('tailwindcss').Config} */
 
-const { fontFamily } = require('tailwindcss/defaultTheme');
-const plugin = require('tailwindcss/plugin');
+import defaultTheme from 'tailwindcss/defaultTheme'
+import plugin from 'tailwindcss/plugin'
+import containerQueries from '@tailwindcss/container-queries'
 
-module.exports = {
+export default {
   content: [
     './index.html',
     './src/**/*.{js,jsx,ts,tsx}',
@@ -113,8 +114,8 @@ module.exports = {
       },
       
       fontFamily: {
-        sans: ['Inter', ...fontFamily.sans],
-        display: ['Inter', ...fontFamily.sans],
+        sans: ['Inter', ...defaultTheme.fontFamily.sans],
+        display: ['Inter', ...defaultTheme.fontFamily.sans],
       },
       
       fontSize: {
@@ -244,10 +245,10 @@ module.exports = {
   
   plugins: [
     // Container queries
-    require('@tailwindcss/container-queries'),
+    containerQueries,
     
     // Custom plugin for additional utilities
-    plugin(function({ addUtilities, addComponents, theme }) {
+    plugin(function({ addUtilities }) {
       // Glassmorphism utilities
       addUtilities({
         '.glass': {
@@ -297,4 +298,4 @@ module.exports = {
   future: {
     hoverOnlyWhenSupported: true,
   },
-};
+}

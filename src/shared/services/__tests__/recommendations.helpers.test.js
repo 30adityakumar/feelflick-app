@@ -1,8 +1,37 @@
 // Unit tests for pure helper functions in the recommendation engine.
 // These tests run entirely offline — no Supabase, no network required.
 
-import { describe, it, expect } from 'vitest'
-import { normalizeNumericIdArray, clamp, safeLower } from '../recommendations'
+import { beforeAll, afterAll, afterEach, describe, it, expect, vi } from 'vitest'
+
+let normalizeNumericIdArray
+let clamp
+let safeLower
+let RECOMMENDATION_CONSTANTS
+let RECOMMENDATION_TEST_HELPERS
+
+beforeAll(async () => {
+  vi.stubEnv('VITE_SUPABASE_URL', 'https://test.supabase.co')
+  vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'test-anon-key')
+  vi.stubEnv('VITE_TMDB_API_KEY', 'test-tmdb-key')
+
+  const recommendationsModule = await import('../recommendations')
+
+  ;({
+    normalizeNumericIdArray,
+    clamp,
+    safeLower,
+    RECOMMENDATION_CONSTANTS,
+    RECOMMENDATION_TEST_HELPERS,
+  } = recommendationsModule)
+})
+
+afterEach(() => {
+  vi.useRealTimers()
+})
+
+afterAll(() => {
+  vi.unstubAllEnvs()
+})
 
 // ---------------------------------------------------------------------------
 // normalizeNumericIdArray
@@ -120,5 +149,86 @@ describe('safeLower', () => {
 
   it('handles empty string', () => {
     expect(safeLower('')).toBe('')
+  })
+})
+
+// ---------------------------------------------------------------------------
+// recommendation constants + helper scoring internals
+// ---------------------------------------------------------------------------
+describe('recommendation internals', () => {
+  it('keeps THRESHOLDS constants stable', () => {
+    expect(RECOMMENDATION_CONSTANTS.THRESHOLDS.MIN_FF_RATING).toBe(6.5)
+    expect(RECOMMENDATION_CONSTANTS.THRESHOLDS.MIN_FF_CONFIDENCE).toBe(50)
+    expect(RECOMMENDATION_CONSTANTS.THRESHOLDS.MIN_FILMS_FOR_LANGUAGE_PREF).toBe(3)
+    expect(RECOMMENDATION_CONSTANTS.THRESHOLDS.MIN_FILMS_FOR_AFFINITY).toBe(2)
+    expect(RECOMMENDATION_CONSTANTS.THRESHOLDS.MIN_VOTE_COUNT).toBe(150)
+  })
+
+  it('applies recency decay buckets in computeNegativeSignals', () => {
+    vi.setSystemTime(new Date('2026-04-10T00:00:00.000Z'))
+
+    const skipFeedback = [
+      { movie_id: 1, shown_at: '2026-04-05T00:00:00.000Z' }, // <30d => 1.0
+      { movie_id: 1, shown_at: '2026-01-20T00:00:00.000Z' }, // >30d => 0.75
+      { movie_id: 1, shown_at: '2025-12-10T00:00:00.000Z' }, // >90d => 0.5
+      { movie_id: 1, shown_at: '2025-09-01T00:00:00.000Z' }, // >180d => 0.2
+      { movie_id: 2, shown_at: '2026-04-08T00:00:00.000Z' }, // <30d => 1.0
+    ]
+
+    const watchHistory = [
+      {
+        movie_id: 1,
+        movies: {
+          genres: [18],
+          director_name: 'Dir A',
+          original_language: 'en',
+          lead_actor_name: 'Actor A',
+        },
+      },
+      {
+        movie_id: 2,
+        movies: {
+          genres: [18],
+          director_name: 'Dir A',
+          original_language: 'en',
+          lead_actor_name: 'Actor A',
+        },
+      },
+    ]
+
+    const negativeSignals = RECOMMENDATION_TEST_HELPERS.computeNegativeSignals(skipFeedback, watchHistory)
+
+    expect(negativeSignals.totalSkips).toBe(5)
+    expect(negativeSignals.skippedGenres).toEqual([{ id: 18, skipCount: 3.45 }])
+    expect(negativeSignals.skippedDirectors).toEqual([{ name: 'dir a', skipCount: 3.45 }])
+    expect(negativeSignals.skippedLanguages).toEqual([{ language: 'en', skipCount: 3.45 }])
+    expect(negativeSignals.skippedActors).toEqual([{ name: 'actor a', skipCount: 3.45 }])
+  })
+
+  it('keeps anti-recency bias helpers bounded', () => {
+    vi.setSystemTime(new Date('2026-04-10T00:00:00.000Z'))
+
+    const profile = {
+      preferences: {
+        preferredDecades: ['1990s', '2000s'],
+        toleratesClassics: true,
+      },
+    }
+    const classicsProfile = {
+      preferences: {
+        preferredDecades: ['2000s'],
+        toleratesClassics: true,
+      },
+    }
+
+    expect(RECOMMENDATION_TEST_HELPERS.scoreEraMatch({ release_year: 1997 }, profile)).toBe(8)
+    expect(RECOMMENDATION_TEST_HELPERS.scoreEraMatch({ release_year: 2012 }, profile)).toBe(4)
+    expect(RECOMMENDATION_TEST_HELPERS.scoreEraMatch({ release_year: 1988 }, classicsProfile)).toBe(2)
+    expect(RECOMMENDATION_TEST_HELPERS.scoreEraMatch({ release_year: 2024 }, profile)).toBe(0)
+
+    expect(RECOMMENDATION_TEST_HELPERS.scoreRecency({ release_year: 2026 })).toBe(15)
+    expect(RECOMMENDATION_TEST_HELPERS.scoreRecency({ release_year: 2025 })).toBe(10)
+    expect(RECOMMENDATION_TEST_HELPERS.scoreRecency({ release_year: 2023 })).toBe(5)
+    expect(RECOMMENDATION_TEST_HELPERS.scoreRecency({ release_year: 2010 })).toBe(0)
   })
 })

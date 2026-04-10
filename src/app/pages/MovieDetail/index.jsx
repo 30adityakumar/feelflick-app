@@ -325,7 +325,7 @@ export default function MovieDetail() {
                         alt={movie?.title}
                         className="h-[120px] w-[80px] sm:h-[160px] sm:w-[107px] md:h-[230px] md:w-[153px] lg:h-[270px] lg:w-[180px] object-cover"
                         loading="eager"
-                        fetchpriority="high"
+                        fetchPriority="high"
                         decoding="async"
                       />
                     ) : (

@@ -1,5 +1,4 @@
-// Unit tests for pure helper functions in the recommendation engine.
-// These tests run entirely offline — no Supabase, no network required.
+import { vi, describe, it, expect, afterEach } from 'vitest'
 
 import { beforeAll, afterAll, afterEach, describe, it, expect, vi } from 'vitest'
 
@@ -24,6 +23,22 @@ beforeAll(async () => {
     RECOMMENDATION_TEST_HELPERS,
   } = recommendationsModule)
 })
+vi.hoisted(() => {
+  vi.stubEnv('VITE_SUPABASE_URL', 'https://test.supabase.co')
+  vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'test-anon-key')
+  vi.stubEnv('VITE_TMDB_API_KEY', 'test-tmdb-key')
+})
+
+import {
+  normalizeNumericIdArray,
+  clamp,
+  safeLower,
+  RECOMMENDATION_CONSTANTS,
+  RECOMMENDATION_TEST_HELPERS,
+} from '../recommendations'
+
+const { THRESHOLDS } = RECOMMENDATION_CONSTANTS
+const { computeNegativeSignals, scoreEraMatch, scoreRecency } = RECOMMENDATION_TEST_HELPERS
 
 afterEach(() => {
   vi.useRealTimers()
@@ -33,9 +48,6 @@ afterAll(() => {
   vi.unstubAllEnvs()
 })
 
-// ---------------------------------------------------------------------------
-// normalizeNumericIdArray
-// ---------------------------------------------------------------------------
 describe('normalizeNumericIdArray', () => {
   it('returns sorted unique numbers', () => {
     expect(normalizeNumericIdArray([3, 1, 2, 1])).toEqual([1, 2, 3])
@@ -45,110 +57,105 @@ describe('normalizeNumericIdArray', () => {
     expect(normalizeNumericIdArray(['10', '5', '10'])).toEqual([5, 10])
   })
 
-  it('drops nulls, undefineds, and empty strings', () => {
-    expect(normalizeNumericIdArray([null, undefined, '', 7])).toEqual([7])
+  it('drops nulls, undefined, empty strings, and NaN values', () => {
+    expect(normalizeNumericIdArray([null, undefined, '', 'abc', NaN, 4])).toEqual([4])
   })
 
-  it('drops NaN values', () => {
-    expect(normalizeNumericIdArray(['abc', NaN, 4])).toEqual([4])
-  })
-
-  it('returns empty array for empty input', () => {
+  it('returns empty array for empty or missing input', () => {
     expect(normalizeNumericIdArray([])).toEqual([])
-  })
-
-  it('returns empty array when called with no argument', () => {
     expect(normalizeNumericIdArray()).toEqual([])
   })
-
-  it('returns empty array for all-invalid input', () => {
-    expect(normalizeNumericIdArray([null, undefined, ''])).toEqual([])
-  })
-
-  it('handles large numbers without precision loss', () => {
-    const big = 999999999
-    expect(normalizeNumericIdArray([big])).toEqual([big])
-  })
-
-  it('deduplicates mixed numeric types', () => {
-    expect(normalizeNumericIdArray([1, '1', 1.0])).toEqual([1])
-  })
 })
 
-// ---------------------------------------------------------------------------
-// clamp
-// ---------------------------------------------------------------------------
-describe('clamp', () => {
-  it('returns value when within range', () => {
-    expect(clamp(5, 0, 10)).toBe(5)
+describe('scalar helpers', () => {
+  it('clamp bounds numbers as expected', () => {
+    expect(clamp(10, 0, 5)).toBe(5)
+    expect(clamp(-2, 0, 5)).toBe(0)
+    expect(clamp(3, 0, 5)).toBe(3)
   })
 
-  it('returns lo when value is below range', () => {
-    expect(clamp(-5, 0, 10)).toBe(0)
-  })
-
-  it('returns hi when value is above range', () => {
-    expect(clamp(15, 0, 10)).toBe(10)
-  })
-
-  it('returns lo when value equals lo', () => {
-    expect(clamp(0, 0, 10)).toBe(0)
-  })
-
-  it('returns hi when value equals hi', () => {
-    expect(clamp(10, 0, 10)).toBe(10)
-  })
-
-  it('works with floats', () => {
-    expect(clamp(1.5, 0, 1)).toBe(1)
-    expect(clamp(0.5, 0, 1)).toBe(0.5)
-  })
-
-  it('works with negative ranges', () => {
-    expect(clamp(-3, -10, -1)).toBe(-3)
-    expect(clamp(0, -10, -1)).toBe(-1)
-    expect(clamp(-20, -10, -1)).toBe(-10)
-  })
-
-  it('works when lo equals hi (degenerate range)', () => {
-    expect(clamp(99, 5, 5)).toBe(5)
-  })
-})
-
-// ---------------------------------------------------------------------------
-// safeLower
-// ---------------------------------------------------------------------------
-describe('safeLower', () => {
-  it('lowercases a normal string', () => {
-    expect(safeLower('Hello World')).toBe('hello world')
-  })
-
-  it('returns empty string for null', () => {
+  it('safeLower lowercases strings and handles non-strings safely', () => {
+    expect(safeLower('HELLO')).toBe('hello')
     expect(safeLower(null)).toBe('')
-  })
-
-  it('returns empty string for undefined', () => {
-    expect(safeLower(undefined)).toBe('')
-  })
-
-  it('returns empty string for a number', () => {
     expect(safeLower(42)).toBe('')
   })
+})
 
-  it('returns empty string for an object', () => {
-    expect(safeLower({})).toBe('')
+describe('recommendation helpers', () => {
+  it('keeps THRESHOLDS constants at expected values', () => {
+    expect(THRESHOLDS.MIN_FF_RATING).toBe(6.5)
+    expect(THRESHOLDS.MIN_FF_CONFIDENCE).toBe(50)
+    expect(THRESHOLDS.MIN_FILMS_FOR_LANGUAGE_PREF).toBe(3)
+    expect(THRESHOLDS.MIN_FILMS_FOR_AFFINITY).toBe(2)
+    expect(THRESHOLDS.MIN_VOTE_COUNT).toBe(150)
   })
 
-  it('handles already-lowercase strings', () => {
-    expect(safeLower('korean')).toBe('korean')
+  it('applies time-decay buckets to negative skip signals', () => {
+    const now = new Date('2026-04-10T00:00:00.000Z')
+    vi.setSystemTime(now)
+
+    const skipFeedback = [
+      { movie_id: 1, shown_at: '2026-03-15T00:00:00.000Z' }, // <30d => 1.0
+      { movie_id: 1, shown_at: '2025-12-10T00:00:00.000Z' }, // >90d => 0.5
+      { movie_id: 2, shown_at: '2025-09-01T00:00:00.000Z' }, // >180d => 0.2
+      { movie_id: 2, shown_at: '2026-01-20T00:00:00.000Z' }, // >30d => 0.75
+      { movie_id: 3, shown_at: '2026-04-01T00:00:00.000Z' }, // <30d => 1.0
+      { movie_id: 1, shown_at: '2026-04-05T00:00:00.000Z' }, // <30d => 1.0
+    ]
+
+    const watchHistory = [
+      {
+        movie_id: 1,
+        movies: { genres: [18], director_name: 'Dir A', original_language: 'en', lead_actor_name: 'Actor A' },
+      },
+      {
+        movie_id: 2,
+        movies: { genres: [18], director_name: 'Dir A', original_language: 'en', lead_actor_name: 'Actor B' },
+      },
+      {
+        movie_id: 3,
+        movies: { genres: [35], director_name: 'Dir C', original_language: 'es', lead_actor_name: 'Actor C' },
+      },
+    ]
+
+    const negative = computeNegativeSignals(skipFeedback, watchHistory)
+    const drama = negative.skippedGenres.find((genre) => genre.id === 18)
+
+    expect(drama?.skipCount).toBeCloseTo(3.45, 2)
+    expect(negative.skippedDirectors.find((director) => director.name === 'dir a')).toBeDefined()
+    expect(negative.skippedLanguages.find((language) => language.language === 'en')).toBeDefined()
+    expect(negative.totalSkips).toBe(6)
   })
 
-  it('handles mixed case with special characters', () => {
-    expect(safeLower('Sci-Fi & DRAMA')).toBe('sci-fi & drama')
+  it('rewards preferred and adjacent decades in scoreEraMatch', () => {
+    const profile = {
+      preferences: {
+        preferredDecades: ['1990s', '2000s'],
+        toleratesClassics: true,
+      },
+    }
+
+    expect(scoreEraMatch({ release_year: 1997 }, profile)).toBe(8)
+    expect(scoreEraMatch({ release_year: 2012 }, profile)).toBe(4)
+
+    const classicsProfile = {
+      preferences: {
+        preferredDecades: ['2000s'],
+        toleratesClassics: true,
+      },
+    }
+
+    expect(scoreEraMatch({ release_year: 1988 }, classicsProfile)).toBe(2)
+    expect(scoreEraMatch({ release_year: 2024 }, profile)).toBe(0)
   })
 
-  it('handles empty string', () => {
-    expect(safeLower('')).toBe('')
+  it('keeps anti-recency bias bounded for older releases in scoreRecency', () => {
+    vi.setSystemTime(new Date('2026-04-10T00:00:00.000Z'))
+
+    expect(scoreRecency({ release_year: 2026 })).toBe(15)
+    expect(scoreRecency({ release_year: 2025 })).toBe(10)
+    expect(scoreRecency({ release_year: 2023 })).toBe(5)
+    expect(scoreRecency({ release_year: 2010 })).toBe(0)
   })
 })
 

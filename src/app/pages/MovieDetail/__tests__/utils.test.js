@@ -78,7 +78,7 @@ describe('IMG', () => {
   })
 
   it('builds a correct poster URL', () => {
-    expect(IMG.poster('/xyz.jpg')).toBe('https://image.tmdb.org/t/p/w500/xyz.jpg')
+    expect(IMG.poster('/xyz.jpg')).toBe('https://image.tmdb.org/t/p/w780/xyz.jpg')
   })
 
   it('returns empty string when poster path is falsy', () => {

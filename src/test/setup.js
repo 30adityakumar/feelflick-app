@@ -1,1 +1,7 @@
+import { vi } from 'vitest'
+
+vi.stubEnv('VITE_SUPABASE_URL', 'https://test.supabase.co')
+vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'test-anon-key')
+vi.stubEnv('VITE_TMDB_API_KEY', 'test-key')
+
 import '@testing-library/jest-dom'

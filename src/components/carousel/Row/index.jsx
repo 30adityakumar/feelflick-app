@@ -1,7 +1,7 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useVirtualization } from '../hooks/useVirtualization'
-import { useMovieCardHover, CARD_EXPAND_DELAY_MS } from '../hooks/useMovieCardHover'
+import { useMovieCardHover } from '../hooks/useMovieCardHover'
 import { MovieCard } from '../CardContent/MovieCard'
 
 export { CARD_EXPAND_DELAY_MS } from '../hooks/useMovieCardHover'

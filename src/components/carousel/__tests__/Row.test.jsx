@@ -8,6 +8,13 @@ vi.hoisted(() => {
 
 import { act, useRef } from 'react'
 import { fireEvent, render, screen } from '@testing-library/react'
+
+vi.hoisted(() => {
+  vi.stubEnv('VITE_SUPABASE_URL', 'https://test.supabase.co')
+  vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'test-anon-key')
+  vi.stubEnv('VITE_TMDB_API_KEY', 'test-tmdb-key')
+})
+
 import CarouselRow from '../Row'
 
 function TestCardComponent({ item, isExpanded, hoverPhase, expandAlign, siblingOffset, onCardEnter, onCardLeave, onCardFocus, onCardBlur }) {

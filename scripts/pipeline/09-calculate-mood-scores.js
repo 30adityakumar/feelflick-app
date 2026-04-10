@@ -113,6 +113,9 @@ async function calculateMovieMoodScores(movie, moods) {
  */
 async function main() {
   const startTime = Date.now();
+  const args = process.argv.slice(2);
+  const limitArg = args.find(arg => arg.startsWith('--limit='));
+  const movieLimit = limitArg ? parseInt(limitArg.split('=')[1], 10) : 10000;
   
   logger.section('🎭 CALCULATE MOOD SCORES');
   logger.info('Started at: ' + new Date().toISOString());
@@ -162,7 +165,7 @@ async function main() {
       .eq('has_scores', true)
       .not('pacing_score', 'is', null)
       .order('vote_count', { ascending: false })
-      .limit(10000);
+      .limit(movieLimit);
 
     if (moviesError) {
       throw new Error(`Failed to fetch movies: ${moviesError.message}`);

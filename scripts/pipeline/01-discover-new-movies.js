@@ -2,7 +2,7 @@
 
 const Logger = require('../utils/logger');
 const tmdbClient = require('../utils/tmdb-client');
-const { supabase, getMovieByTmdbId, createMovie } = require('../utils/supabase');
+const { supabase } = require('../utils/supabase');
 
 const logger = new Logger('01-discover-new-movies.log');
 
@@ -75,6 +75,300 @@ const DISCOVERY_STRATEGIES = [
         sort_by: 'vote_average.desc'
       });
       results.push(...data.results);
+      return results;
+    }
+  },
+
+  // ── Korean cinema ────────────────────────────────────────────────────────────
+  {
+    name: 'Korean Cinema — By Rating',
+    description: 'Top-rated Korean films (all eras)',
+    fetch: async () => {
+      const results = [];
+      for (let page = 1; page <= 10; page++) {
+        const data = await tmdbClient.discoverMovies({
+          with_original_language: 'ko',
+          'vote_average.gte': 6.5,
+          'vote_count.gte': 100,
+          sort_by: 'vote_average.desc',
+          page
+        });
+        results.push(...data.results);
+      }
+      return results;
+    }
+  },
+  {
+    name: 'Korean Cinema — By Popularity',
+    description: 'Popular Korean films sorted by popularity',
+    fetch: async () => {
+      const results = [];
+      for (let page = 1; page <= 8; page++) {
+        const data = await tmdbClient.discoverMovies({
+          with_original_language: 'ko',
+          'vote_average.gte': 6.0,
+          'vote_count.gte': 50,
+          sort_by: 'popularity.desc',
+          page
+        });
+        results.push(...data.results);
+      }
+      return results;
+    }
+  },
+
+  // ── Genre gap fills ──────────────────────────────────────────────────────────
+  {
+    name: 'Thriller — By Rating',
+    description: 'Top-rated thrillers (TMDB genre 53), all eras',
+    fetch: async () => {
+      const results = [];
+      for (let page = 1; page <= 10; page++) {
+        const data = await tmdbClient.discoverMovies({
+          with_genres: '53',
+          'vote_average.gte': 6.5,
+          'vote_count.gte': 100,
+          sort_by: 'vote_average.desc',
+          page
+        });
+        results.push(...data.results);
+      }
+      return results;
+    }
+  },
+  {
+    name: 'Thriller — By Popularity',
+    description: 'Popular thrillers sorted by popularity (finds different films than rating sort)',
+    fetch: async () => {
+      const results = [];
+      for (let page = 1; page <= 10; page++) {
+        const data = await tmdbClient.discoverMovies({
+          with_genres: '53',
+          'vote_average.gte': 6.0,
+          'vote_count.gte': 100,
+          sort_by: 'popularity.desc',
+          page
+        });
+        results.push(...data.results);
+      }
+      return results;
+    }
+  },
+  {
+    name: 'Mystery — By Rating',
+    description: 'Top-rated mystery films (TMDB genre 9648), all eras',
+    fetch: async () => {
+      const results = [];
+      for (let page = 1; page <= 10; page++) {
+        const data = await tmdbClient.discoverMovies({
+          with_genres: '9648',
+          'vote_average.gte': 6.5,
+          'vote_count.gte': 100,
+          sort_by: 'vote_average.desc',
+          page
+        });
+        results.push(...data.results);
+      }
+      return results;
+    }
+  },
+  {
+    name: 'Mystery — By Popularity',
+    description: 'Popular mystery films sorted by popularity',
+    fetch: async () => {
+      const results = [];
+      for (let page = 1; page <= 10; page++) {
+        const data = await tmdbClient.discoverMovies({
+          with_genres: '9648',
+          'vote_average.gte': 6.0,
+          'vote_count.gte': 100,
+          sort_by: 'popularity.desc',
+          page
+        });
+        results.push(...data.results);
+      }
+      return results;
+    }
+  },
+  {
+    name: 'Science Fiction — By Rating',
+    description: 'Top-rated sci-fi films (TMDB genre 878), all eras',
+    fetch: async () => {
+      const results = [];
+      for (let page = 1; page <= 10; page++) {
+        const data = await tmdbClient.discoverMovies({
+          with_genres: '878',
+          'vote_average.gte': 6.5,
+          'vote_count.gte': 100,
+          sort_by: 'vote_average.desc',
+          page
+        });
+        results.push(...data.results);
+      }
+      return results;
+    }
+  },
+  {
+    name: 'Science Fiction — By Popularity',
+    description: 'Popular sci-fi films sorted by popularity',
+    fetch: async () => {
+      const results = [];
+      for (let page = 1; page <= 10; page++) {
+        const data = await tmdbClient.discoverMovies({
+          with_genres: '878',
+          'vote_average.gte': 6.0,
+          'vote_count.gte': 100,
+          sort_by: 'popularity.desc',
+          page
+        });
+        results.push(...data.results);
+      }
+      return results;
+    }
+  },
+
+  // ── South Asian language fills ───────────────────────────────────────────────
+  {
+    name: 'Hindi Cinema — By Rating',
+    description: 'Top-rated Hindi films, all eras (Bollywood + arthouse)',
+    fetch: async () => {
+      const results = [];
+      for (let page = 1; page <= 15; page++) {
+        const data = await tmdbClient.discoverMovies({
+          with_original_language: 'hi',
+          'vote_average.gte': 6.0,
+          'vote_count.gte': 50,
+          sort_by: 'vote_average.desc',
+          page
+        });
+        results.push(...data.results);
+      }
+      return results;
+    }
+  },
+  {
+    name: 'Hindi Cinema — By Popularity',
+    description: 'Popular Hindi films sorted by popularity',
+    fetch: async () => {
+      const results = [];
+      for (let page = 1; page <= 10; page++) {
+        const data = await tmdbClient.discoverMovies({
+          with_original_language: 'hi',
+          'vote_average.gte': 5.5,
+          'vote_count.gte': 50,
+          sort_by: 'popularity.desc',
+          page
+        });
+        results.push(...data.results);
+      }
+      return results;
+    }
+  },
+  {
+    name: 'Tamil Cinema — By Rating',
+    description: 'Top-rated Tamil films (Kollywood + arthouse)',
+    fetch: async () => {
+      const results = [];
+      for (let page = 1; page <= 10; page++) {
+        const data = await tmdbClient.discoverMovies({
+          with_original_language: 'ta',
+          'vote_average.gte': 6.0,
+          'vote_count.gte': 50,
+          sort_by: 'vote_average.desc',
+          page
+        });
+        results.push(...data.results);
+      }
+      return results;
+    }
+  },
+  {
+    name: 'Tamil Cinema — By Popularity',
+    description: 'Popular Tamil films sorted by popularity',
+    fetch: async () => {
+      const results = [];
+      for (let page = 1; page <= 8; page++) {
+        const data = await tmdbClient.discoverMovies({
+          with_original_language: 'ta',
+          'vote_average.gte': 5.5,
+          'vote_count.gte': 50,
+          sort_by: 'popularity.desc',
+          page
+        });
+        results.push(...data.results);
+      }
+      return results;
+    }
+  },
+  {
+    name: 'Telugu Cinema — By Rating',
+    description: 'Top-rated Telugu films (Tollywood)',
+    fetch: async () => {
+      const results = [];
+      for (let page = 1; page <= 8; page++) {
+        const data = await tmdbClient.discoverMovies({
+          with_original_language: 'te',
+          'vote_average.gte': 6.0,
+          'vote_count.gte': 50,
+          sort_by: 'vote_average.desc',
+          page
+        });
+        results.push(...data.results);
+      }
+      return results;
+    }
+  },
+  {
+    name: 'Telugu Cinema — By Popularity',
+    description: 'Popular Telugu films sorted by popularity',
+    fetch: async () => {
+      const results = [];
+      for (let page = 1; page <= 8; page++) {
+        const data = await tmdbClient.discoverMovies({
+          with_original_language: 'te',
+          'vote_average.gte': 5.5,
+          'vote_count.gte': 50,
+          sort_by: 'popularity.desc',
+          page
+        });
+        results.push(...data.results);
+      }
+      return results;
+    }
+  },
+  {
+    name: 'Malayalam Cinema — By Rating',
+    description: 'Top-rated Malayalam films (Mollywood)',
+    fetch: async () => {
+      const results = [];
+      for (let page = 1; page <= 8; page++) {
+        const data = await tmdbClient.discoverMovies({
+          with_original_language: 'ml',
+          'vote_average.gte': 6.0,
+          'vote_count.gte': 50,
+          sort_by: 'vote_average.desc',
+          page
+        });
+        results.push(...data.results);
+      }
+      return results;
+    }
+  },
+  {
+    name: 'Malayalam Cinema — By Popularity',
+    description: 'Popular Malayalam films sorted by popularity',
+    fetch: async () => {
+      const results = [];
+      for (let page = 1; page <= 8; page++) {
+        const data = await tmdbClient.discoverMovies({
+          with_original_language: 'ml',
+          'vote_average.gte': 5.5,
+          'vote_count.gte': 50,
+          sort_by: 'popularity.desc',
+          page
+        });
+        results.push(...data.results);
+      }
       return results;
     }
   }
@@ -201,6 +495,49 @@ async function discoverNewMovies(options = {}) {
   } else if (dryRun) {
     logger.warn('🚫 DRY RUN: Skipping database insert');
     logger.info(`Would have added ${newMoviesToAdd.length} movies`);
+  }
+
+  // Coverage audit — log catalog distribution so gaps are visible in daily logs
+  logger.section('🗺️  CATALOG COVERAGE AUDIT');
+  try {
+    const { data: genreRows } = await supabase
+      .from('movies')
+      .select('primary_genre')
+      .eq('is_valid', true)
+      .not('primary_genre', 'is', null);
+
+    const { data: langRows } = await supabase
+      .from('movies')
+      .select('original_language')
+      .eq('is_valid', true)
+      .not('original_language', 'is', null);
+
+    const genreCounts = {};
+    for (const r of genreRows || []) {
+      genreCounts[r.primary_genre] = (genreCounts[r.primary_genre] || 0) + 1;
+    }
+    const langCounts = {};
+    for (const r of langRows || []) {
+      langCounts[r.original_language] = (langCounts[r.original_language] || 0) + 1;
+    }
+
+    const GENRE_TARGETS = { Thriller: 400, Mystery: 200, 'Science Fiction': 350, Horror: 400 };
+    const LANG_TARGETS  = { hi: 200, ta: 150, te: 150, ml: 150, ko: 300 };
+
+    logger.info('Genre coverage:');
+    for (const [genre, target] of Object.entries(GENRE_TARGETS)) {
+      const count = genreCounts[genre] || 0;
+      const flag = count < target ? '⚠️ ' : '✅';
+      logger.info(`  ${flag} ${genre}: ${count} / ${target} target`);
+    }
+    logger.info('Language coverage:');
+    for (const [lang, target] of Object.entries(LANG_TARGETS)) {
+      const count = langCounts[lang] || 0;
+      const flag = count < target ? '⚠️ ' : '✅';
+      logger.info(`  ${flag} ${lang}: ${count} / ${target} target`);
+    }
+  } catch (auditErr) {
+    logger.warn(`Coverage audit failed: ${auditErr.message}`);
   }
 
   // Final summary

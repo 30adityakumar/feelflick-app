@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 
 import { supabase } from '@/shared/lib/supabase/client'
-import { useStaggeredEnabled } from '@/shared/hooks/useStaggeredEnabled'
 
 import HeroTopPick from './components/HeroTopPick'
 import BecauseYouWatchedSection from './components/BecauseYouWatchedSection'
@@ -38,9 +37,6 @@ export default function HomePage() {
 
   // Resolve userId without blocking first paint
   const [userId, setUserId] = useState(initialUserId)
-  const showBecauseYouWatched = useStaggeredEnabled(80)
-  const showHiddenGems = useStaggeredEnabled(220)
-  const showTrendingForYou = useStaggeredEnabled(360)
 
   useEffect(() => {
     if (userId) return
@@ -63,7 +59,7 @@ export default function HomePage() {
   }, [userId])
 
   return (
-    <div className="min-h-screen overflow-x-hidden">
+    <div className="min-h-screen overflow-x-hidden" style={{ background: 'var(--color-bg)' }}>
       {/* HERO (above the fold) */}
       <HeroTopPick
         userId={userId}
@@ -71,7 +67,7 @@ export default function HomePage() {
       />
 
       {/* CONTENT */}
-      <div className="relative pb-[320px]">
+      <div className="relative pb-24 sm:pb-32">
         {/* Hero → content seam */}
         <div
           aria-hidden
@@ -87,25 +83,19 @@ export default function HomePage() {
         <div className="mx-auto max-w-[1600px]">
           <div>
 
-            {/* Three curated rows */}
+            {/* Three curated rows — all mount immediately, skeletons show while loading */}
             <div className="space-y-0">
-              {showBecauseYouWatched ? (
-                <SectionErrorBoundary label="Because You Watched">
-                  <BecauseYouWatchedSection userId={userId} />
-                </SectionErrorBoundary>
-              ) : null}
+              <SectionErrorBoundary label="Because You Watched">
+                <BecauseYouWatchedSection userId={userId} />
+              </SectionErrorBoundary>
 
-              {showHiddenGems ? (
-                <SectionErrorBoundary label="Hidden Gems">
-                  <HiddenGemsRow userId={userId} />
-                </SectionErrorBoundary>
-              ) : null}
+              <SectionErrorBoundary label="Hidden Gems">
+                <HiddenGemsRow userId={userId} />
+              </SectionErrorBoundary>
 
-              {showTrendingForYou ? (
-                <SectionErrorBoundary label="Trending For You">
-                  <TrendingForYouRow userId={userId} />
-                </SectionErrorBoundary>
-              ) : null}
+              <SectionErrorBoundary label="Trending For You">
+                <TrendingForYouRow userId={userId} />
+              </SectionErrorBoundary>
             </div>
           </div>
         </div>

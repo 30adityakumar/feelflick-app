@@ -1,16 +1,22 @@
 // src/components/carousel/hooks/useVirtualization.js
 import { useState, useEffect, useRef, useCallback } from 'react'
 
-export function useVirtualization({ 
-  items = [], 
-  itemWidth = 240, 
+export function useVirtualization({
+  items = [],
+  itemWidth = 240,
   gap = 0,
   overscan = 3, // Render 3 extra items on each side
-  containerRef 
+  containerRef
 }) {
-  const [viewport, setViewport] = useState({ start: 0, end: 0 })
-  const rafRef = useRef(null)
   const step = itemWidth + gap
+
+  // Initialize with enough cards to fill the viewport — prevents the "0 cards → pop in" flash
+  const [viewport, setViewport] = useState(() => {
+    const vw = typeof window !== 'undefined' ? window.innerWidth : 1024
+    const initialEnd = Math.min(items.length, Math.ceil(vw / step) + overscan)
+    return { start: 0, end: Math.max(initialEnd, overscan * 2) }
+  })
+  const rafRef = useRef(null)
 
   const updateViewport = useCallback(() => {
     if (!containerRef?.current || items.length === 0) return

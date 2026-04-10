@@ -583,6 +583,7 @@ export default function HeroTopPick({
               className={`text-3xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-[3.5rem] font-black text-white leading-[1.1] mb-3 sm:mb-4 transition-all duration-500 delay-75 ${
                 revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
               }`}
+              style={{ fontFamily: 'var(--font-display)' }}
             >
               {movie.title}
             </h1>

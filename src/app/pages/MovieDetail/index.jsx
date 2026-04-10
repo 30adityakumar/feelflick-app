@@ -224,7 +224,7 @@ export default function MovieDetail() {
     ? `${movie.overview.slice(0, 150).trim()}… Discover ${movieTitle} and more on FeelFlick.`
     : null
   const pageImage = movie?.poster_path
-    ? `https://image.tmdb.org/t/p/w780${movie.poster_path}`
+    ? `https://image.tmdb.org/t/p/w1280${movie.poster_path}`
     : null
   const pageUrl = movie?.id
     ? `https://app.feelflick.com/movie/${movie.id}`

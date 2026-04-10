@@ -5,7 +5,7 @@
 ## Project
 Mood-first movie/TV discovery app. Users express how they feel → get curated recommendations.
 **Quality bar:** Netflix / Apple TV+ polish. Every surface is production-facing.
-**Stack:** React 18 · React Router v7 · Framer Motion · Tailwind CSS · Vite · Supabase (PostgreSQL + pgvector) · TMDB API · OpenAI (text-embedding-3-small) · Resend · Google OAuth · Vitest
+**Stack:** React 18 · React Router v7 · Framer Motion · Tailwind CSS · Vite · Supabase (PostgreSQL + pgvector) · TMDB API · OpenAI (text-embedding-3-small) · Resend · Google OAuth · Vitest · web-vitals (LCP/CLS/INP/TTFB → Sentry)
 **Language:** JavaScript (JSX). No TypeScript — never convert `.jsx` to `.tsx`.
 
 ## Mandatory Workflow — Run Before Every PR

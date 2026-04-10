@@ -1,0 +1,450 @@
+[2026-04-10T03:30:43.205Z] [INFO] 
+================================================================================
+[2026-04-10T03:30:43.206Z] [INFO] 🎭 FETCH CAST & CREW FROM TMDB
+[2026-04-10T03:30:43.206Z] [INFO] ================================================================================
+
+[2026-04-10T03:30:43.206Z] [INFO] Limit: 200 movies
+[2026-04-10T03:30:43.206Z] [INFO] Dry run: NO
+
+[2026-04-10T03:30:43.344Z] [INFO] Found 122 movies needing cast/crew
+
+[2026-04-10T03:30:43.344Z] [DEBUG] 1/122 Michael
+[2026-04-10T03:30:43.345Z] [DEBUG]   Processing: Michael (TMDB 936075)
+[2026-04-10T03:30:43.739Z] [SUCCESS]   ✓ Michael: 15 cast, 45 crew, 24 people
+[2026-04-10T03:30:43.992Z] [DEBUG] 2/122 Stepdaddy
+[2026-04-10T03:30:43.994Z] [DEBUG]   Processing: Stepdaddy (TMDB 1658216)
+[2026-04-10T03:30:44.259Z] [SUCCESS]   ✓ Stepdaddy: 4 cast, 1 crew, 5 people
+[2026-04-10T03:30:44.512Z] [DEBUG] 3/122 A Great Awakening
+[2026-04-10T03:30:44.513Z] [DEBUG]   Processing: A Great Awakening (TMDB 1341137)
+[2026-04-10T03:30:44.849Z] [SUCCESS]   ✓ A Great Awakening: 15 cast, 18 crew, 20 people
+[2026-04-10T03:30:45.100Z] [DEBUG] 4/122 Lee Cronin's The Mummy
+[2026-04-10T03:30:45.101Z] [DEBUG]   Processing: Lee Cronin's The Mummy (TMDB 1304313)
+[2026-04-10T03:30:45.431Z] [SUCCESS]   ✓ Lee Cronin's The Mummy: 11 cast, 32 crew, 18 people
+[2026-04-10T03:30:45.682Z] [DEBUG] 5/122 The Devil Wears Prada 2
+[2026-04-10T03:30:45.682Z] [DEBUG]   Processing: The Devil Wears Prada 2 (TMDB 1314481)
+[2026-04-10T03:30:46.010Z] [SUCCESS]   ✓ The Devil Wears Prada 2: 15 cast, 25 crew, 22 people
+[2026-04-10T03:30:46.262Z] [DEBUG] 6/122 Mortal Kombat II
+[2026-04-10T03:30:46.262Z] [DEBUG]   Processing: Mortal Kombat II (TMDB 931285)
+[2026-04-10T03:30:46.554Z] [SUCCESS]   ✓ Mortal Kombat II: 15 cast, 54 crew, 24 people
+[2026-04-10T03:30:46.806Z] [DEBUG] 7/122 The Punisher: One Last Kill
+[2026-04-10T03:30:46.807Z] [DEBUG]   Processing: The Punisher: One Last Kill (TMDB 1439930)
+[2026-04-10T03:30:47.108Z] [SUCCESS]   ✓ The Punisher: One Last Kill: 4 cast, 29 crew, 8 people
+[2026-04-10T03:30:47.360Z] [DEBUG] 8/122 The Twilight Saga: Breaking Dawn - Part 1
+[2026-04-10T03:30:47.362Z] [DEBUG]   Processing: The Twilight Saga: Breaking Dawn - Part 1 (TMDB 50619)
+[2026-04-10T03:30:47.672Z] [SUCCESS]   ✓ The Twilight Saga: Breaking Dawn - Part 1: 15 cast, 239 crew, 23 people
+[2026-04-10T03:30:47.924Z] [DEBUG] 9/122 War Machine
+[2026-04-10T03:30:47.925Z] [DEBUG]   Processing: War Machine (TMDB 1265609)
+[2026-04-10T03:30:48.235Z] [SUCCESS]   ✓ War Machine: 15 cast, 34 crew, 24 people
+[2026-04-10T03:30:48.487Z] [DEBUG] 10/122 Peaky Blinders: The Immortal Man
+[2026-04-10T03:30:48.488Z] [DEBUG]   Processing: Peaky Blinders: The Immortal Man (TMDB 875828)
+[2026-04-10T03:30:48.783Z] [SUCCESS]   ✓ Peaky Blinders: The Immortal Man: 15 cast, 41 crew, 23 people
+[2026-04-10T03:30:49.034Z] [DEBUG] 11/122 Om Shanti Om
+[2026-04-10T03:30:49.034Z] [DEBUG]   Processing: Om Shanti Om (TMDB 8079)
+[2026-04-10T03:30:49.301Z] [SUCCESS]   ✓ Om Shanti Om: 15 cast, 72 crew, 22 people
+[2026-04-10T03:30:49.553Z] [DEBUG] 12/122 The Super Mario Galaxy Movie
+[2026-04-10T03:30:49.553Z] [DEBUG]   Processing: The Super Mario Galaxy Movie (TMDB 1226863)
+[2026-04-10T03:30:49.819Z] [SUCCESS]   ✓ The Super Mario Galaxy Movie: 15 cast, 30 crew, 22 people
+[2026-04-10T03:30:50.071Z] [DEBUG] 13/122 The Bride!
+[2026-04-10T03:30:50.071Z] [DEBUG]   Processing: The Bride! (TMDB 1159831)
+[2026-04-10T03:30:50.369Z] [SUCCESS]   ✓ The Bride!: 15 cast, 55 crew, 22 people
+[2026-04-10T03:30:50.621Z] [DEBUG] 14/122 Enthiran
+[2026-04-10T03:30:50.622Z] [DEBUG]   Processing: Enthiran (TMDB 148284)
+[2026-04-10T03:30:50.898Z] [SUCCESS]   ✓ Enthiran: 15 cast, 49 crew, 20 people
+[2026-04-10T03:30:51.150Z] [DEBUG] 15/122 Eega
+[2026-04-10T03:30:51.151Z] [DEBUG]   Processing: Eega (TMDB 148265)
+[2026-04-10T03:30:51.453Z] [SUCCESS]   ✓ Eega: 15 cast, 26 crew, 21 people
+[2026-04-10T03:30:51.705Z] [DEBUG] 16/122 Pretty Lethal
+[2026-04-10T03:30:51.706Z] [DEBUG]   Processing: Pretty Lethal (TMDB 1084187)
+[2026-04-10T03:30:52.022Z] [SUCCESS]   ✓ Pretty Lethal: 15 cast, 427 crew, 25 people
+[2026-04-10T03:30:52.274Z] [DEBUG] 17/122 How to Make a Killing
+[2026-04-10T03:30:52.274Z] [DEBUG]   Processing: How to Make a Killing (TMDB 467905)
+[2026-04-10T03:30:52.536Z] [SUCCESS]   ✓ How to Make a Killing: 15 cast, 206 crew, 21 people
+[2026-04-10T03:30:52.788Z] [DEBUG] 18/122 Jai Bhim
+[2026-04-10T03:30:52.788Z] [DEBUG]   Processing: Jai Bhim (TMDB 855400)
+[2026-04-10T03:30:53.056Z] [SUCCESS]   ✓ Jai Bhim: 15 cast, 36 crew, 20 people
+[2026-04-10T03:30:53.307Z] [DEBUG] 19/122 All We Imagine as Light
+[2026-04-10T03:30:53.308Z] [DEBUG]   Processing: All We Imagine as Light (TMDB 927547)
+[2026-04-10T03:30:53.561Z] [SUCCESS]   ✓ All We Imagine as Light: 15 cast, 47 crew, 21 people
+[2026-04-10T03:30:53.811Z] [DEBUG] 20/122 The Drama
+[2026-04-10T03:30:53.812Z] [DEBUG]   Processing: The Drama (TMDB 1325734)
+[2026-04-10T03:30:54.077Z] [SUCCESS]   ✓ The Drama: 15 cast, 31 crew, 22 people
+[2026-04-10T03:30:54.328Z] [DEBUG] 21/122 Mike & Nick & Nick & Alice
+[2026-04-10T03:30:54.330Z] [DEBUG]   Processing: Mike & Nick & Nick & Alice (TMDB 1115544)
+[2026-04-10T03:30:54.603Z] [SUCCESS]   ✓ Mike & Nick & Nick & Alice: 15 cast, 27 crew, 20 people
+[2026-04-10T03:30:54.856Z] [DEBUG] 22/122 Aashiqui 2
+[2026-04-10T03:30:54.857Z] [DEBUG]   Processing: Aashiqui 2 (TMDB 192558)
+[2026-04-10T03:30:55.103Z] [SUCCESS]   ✓ Aashiqui 2: 8 cast, 28 crew, 16 people
+[2026-04-10T03:30:55.355Z] [DEBUG] 23/122 Animal
+[2026-04-10T03:30:55.357Z] [DEBUG]   Processing: Animal (TMDB 781732)
+[2026-04-10T03:30:55.651Z] [SUCCESS]   ✓ Animal: 15 cast, 115 crew, 31 people
+[2026-04-10T03:30:55.902Z] [DEBUG] 24/122 Pushpa: The Rise
+[2026-04-10T03:30:55.902Z] [DEBUG]   Processing: Pushpa: The Rise (TMDB 690957)
+[2026-04-10T03:30:56.183Z] [SUCCESS]   ✓ Pushpa: The Rise: 15 cast, 30 crew, 22 people
+[2026-04-10T03:30:56.435Z] [DEBUG] 25/122 2.0
+[2026-04-10T03:30:56.435Z] [DEBUG]   Processing: 2.0 (TMDB 373449)
+[2026-04-10T03:30:56.728Z] [SUCCESS]   ✓ 2.0: 15 cast, 37 crew, 22 people
+[2026-04-10T03:30:56.979Z] [INFO] 
+Progress: 25/122 (25 success, 0 failed)
+[2026-04-10T03:30:56.979Z] [DEBUG] 26/122 Kalki 2898-AD
+[2026-04-10T03:30:56.980Z] [DEBUG]   Processing: Kalki 2898-AD (TMDB 801688)
+[2026-04-10T03:30:57.231Z] [SUCCESS]   ✓ Kalki 2898-AD: 15 cast, 63 crew, 22 people
+[2026-04-10T03:30:57.483Z] [DEBUG] 27/122 I Swear
+[2026-04-10T03:30:57.483Z] [DEBUG]   Processing: I Swear (TMDB 1317149)
+[2026-04-10T03:30:57.744Z] [SUCCESS]   ✓ I Swear: 15 cast, 178 crew, 21 people
+[2026-04-10T03:30:57.996Z] [DEBUG] 28/122 Magadheera
+[2026-04-10T03:30:57.997Z] [DEBUG]   Processing: Magadheera (TMDB 23790)
+[2026-04-10T03:30:58.244Z] [SUCCESS]   ✓ Magadheera: 15 cast, 12 crew, 18 people
+[2026-04-10T03:30:58.496Z] [DEBUG] 29/122 Sivaji: The Boss
+[2026-04-10T03:30:58.498Z] [DEBUG]   Processing: Sivaji: The Boss (TMDB 24049)
+[2026-04-10T03:30:58.770Z] [SUCCESS]   ✓ Sivaji: The Boss: 15 cast, 39 crew, 22 people
+[2026-04-10T03:30:59.023Z] [DEBUG] 30/122 Rustom
+[2026-04-10T03:30:59.024Z] [DEBUG]   Processing: Rustom (TMDB 392572)
+[2026-04-10T03:30:59.309Z] [SUCCESS]   ✓ Rustom: 14 cast, 16 crew, 28 people
+[2026-04-10T03:30:59.561Z] [DEBUG] 31/122 Saiyaara
+[2026-04-10T03:30:59.562Z] [DEBUG]   Processing: Saiyaara (TMDB 1241634)
+[2026-04-10T03:30:59.820Z] [SUCCESS]   ✓ Saiyaara: 15 cast, 42 crew, 24 people
+[2026-04-10T03:31:00.072Z] [DEBUG] 32/122 Pushpa 2 - The Rule
+[2026-04-10T03:31:00.073Z] [DEBUG]   Processing: Pushpa 2 - The Rule (TMDB 857598)
+[2026-04-10T03:31:00.322Z] [SUCCESS]   ✓ Pushpa 2 - The Rule: 15 cast, 43 crew, 23 people
+[2026-04-10T03:31:00.574Z] [DEBUG] 33/122 24
+[2026-04-10T03:31:00.576Z] [DEBUG]   Processing: 24 (TMDB 368006)
+[2026-04-10T03:31:00.868Z] [SUCCESS]   ✓ 24: 12 cast, 56 crew, 16 people
+[2026-04-10T03:31:01.120Z] [DEBUG] 34/122 I
+[2026-04-10T03:31:01.120Z] [DEBUG]   Processing: I (TMDB 263471)
+[2026-04-10T03:31:01.385Z] [SUCCESS]   ✓ I: 15 cast, 55 crew, 20 people
+[2026-04-10T03:31:01.637Z] [DEBUG] 35/122 Leo
+[2026-04-10T03:31:01.638Z] [DEBUG]   Processing: Leo (TMDB 949229)
+[2026-04-10T03:31:01.920Z] [SUCCESS]   ✓ Leo: 15 cast, 39 crew, 22 people
+[2026-04-10T03:31:02.172Z] [DEBUG] 36/122 They Will Kill You
+[2026-04-10T03:31:02.173Z] [DEBUG]   Processing: They Will Kill You (TMDB 1292695)
+[2026-04-10T03:31:02.479Z] [SUCCESS]   ✓ They Will Kill You: 15 cast, 156 crew, 23 people
+[2026-04-10T03:31:02.731Z] [DEBUG] 37/122 Ready or Not: Here I Come
+[2026-04-10T03:31:02.732Z] [DEBUG]   Processing: Ready or Not: Here I Come (TMDB 1266127)
+[2026-04-10T03:31:03.017Z] [SUCCESS]   ✓ Ready or Not: Here I Come: 15 cast, 55 crew, 26 people
+[2026-04-10T03:31:03.269Z] [DEBUG] 38/122 Agent Zeta
+[2026-04-10T03:31:03.270Z] [DEBUG]   Processing: Agent Zeta (TMDB 1314786)
+[2026-04-10T03:31:03.543Z] [SUCCESS]   ✓ Agent Zeta: 15 cast, 164 crew, 23 people
+[2026-04-10T03:31:03.795Z] [DEBUG] 39/122 Saaho
+[2026-04-10T03:31:03.797Z] [DEBUG]   Processing: Saaho (TMDB 454292)
+[2026-04-10T03:31:04.077Z] [SUCCESS]   ✓ Saaho: 15 cast, 115 crew, 27 people
+[2026-04-10T03:31:04.329Z] [DEBUG] 40/122 Marco
+[2026-04-10T03:31:04.330Z] [DEBUG]   Processing: Marco (TMDB 1186350)
+[2026-04-10T03:31:04.710Z] [SUCCESS]   ✓ Marco: 15 cast, 27 crew, 21 people
+[2026-04-10T03:31:04.962Z] [DEBUG] 41/122 Jailer
+[2026-04-10T03:31:04.962Z] [DEBUG]   Processing: Jailer (TMDB 937020)
+[2026-04-10T03:31:05.280Z] [SUCCESS]   ✓ Jailer: 15 cast, 32 crew, 20 people
+[2026-04-10T03:31:05.533Z] [DEBUG] 42/122 Salaar: Part 1 - Ceasefire
+[2026-04-10T03:31:05.534Z] [DEBUG]   Processing: Salaar: Part 1 - Ceasefire (TMDB 770906)
+[2026-04-10T03:31:05.778Z] [SUCCESS]   ✓ Salaar: Part 1 - Ceasefire: 15 cast, 16 crew, 19 people
+[2026-04-10T03:31:06.028Z] [DEBUG] 43/122 Ala Vaikunthapurramuloo
+[2026-04-10T03:31:06.029Z] [DEBUG]   Processing: Ala Vaikunthapurramuloo (TMDB 628241)
+[2026-04-10T03:31:06.286Z] [SUCCESS]   ✓ Ala Vaikunthapurramuloo: 15 cast, 38 crew, 21 people
+[2026-04-10T03:31:06.537Z] [DEBUG] 44/122 Theri
+[2026-04-10T03:31:06.538Z] [DEBUG]   Processing: Theri (TMDB 370076)
+[2026-04-10T03:31:06.767Z] [SUCCESS]   ✓ Theri: 15 cast, 39 crew, 20 people
+[2026-04-10T03:31:07.018Z] [DEBUG] 45/122 The Ghazi Attack
+[2026-04-10T03:31:07.019Z] [DEBUG]   Processing: The Ghazi Attack (TMDB 442405)
+[2026-04-10T03:31:07.268Z] [SUCCESS]   ✓ The Ghazi Attack: 12 cast, 14 crew, 21 people
+[2026-04-10T03:31:07.519Z] [DEBUG] 46/122 Ponniyin Selvan: Part I
+[2026-04-10T03:31:07.520Z] [DEBUG]   Processing: Ponniyin Selvan: Part I (TMDB 660046)
+[2026-04-10T03:31:07.794Z] [SUCCESS]   ✓ Ponniyin Selvan: Part I: 15 cast, 57 crew, 22 people
+[2026-04-10T03:31:08.047Z] [DEBUG] 47/122 Bhool Bhulaiyaa 2
+[2026-04-10T03:31:08.049Z] [DEBUG]   Processing: Bhool Bhulaiyaa 2 (TMDB 695962)
+[2026-04-10T03:31:08.300Z] [SUCCESS]   ✓ Bhool Bhulaiyaa 2: 15 cast, 46 crew, 25 people
+[2026-04-10T03:31:08.552Z] [DEBUG] 48/122 Manichitrathazhu
+[2026-04-10T03:31:08.553Z] [DEBUG]   Processing: Manichitrathazhu (TMDB 84368)
+[2026-04-10T03:31:08.818Z] [SUCCESS]   ✓ Manichitrathazhu: 14 cast, 21 crew, 21 people
+[2026-04-10T03:31:09.070Z] [DEBUG] 49/122 Charlie
+[2026-04-10T03:31:09.072Z] [DEBUG]   Processing: Charlie (TMDB 372297)
+[2026-04-10T03:31:09.323Z] [SUCCESS]   ✓ Charlie: 15 cast, 35 crew, 22 people
+[2026-04-10T03:31:09.575Z] [DEBUG] 50/122 Aavesham
+[2026-04-10T03:31:09.575Z] [DEBUG]   Processing: Aavesham (TMDB 1084812)
+[2026-04-10T03:31:09.828Z] [SUCCESS]   ✓ Aavesham: 15 cast, 31 crew, 21 people
+[2026-04-10T03:31:10.079Z] [INFO] 
+Progress: 50/122 (50 success, 0 failed)
+[2026-04-10T03:31:10.080Z] [DEBUG] 51/122 Anbe Sivam
+[2026-04-10T03:31:10.080Z] [DEBUG]   Processing: Anbe Sivam (TMDB 26910)
+[2026-04-10T03:31:10.332Z] [SUCCESS]   ✓ Anbe Sivam: 15 cast, 25 crew, 22 people
+[2026-04-10T03:31:10.584Z] [DEBUG] 52/122 Rocky Aur Rani Kii Prem Kahaani
+[2026-04-10T03:31:10.584Z] [DEBUG]   Processing: Rocky Aur Rani Kii Prem Kahaani (TMDB 848116)
+[2026-04-10T03:31:10.856Z] [SUCCESS]   ✓ Rocky Aur Rani Kii Prem Kahaani: 15 cast, 61 crew, 25 people
+[2026-04-10T03:31:11.108Z] [DEBUG] 53/122 Yavarum Nalam
+[2026-04-10T03:31:11.109Z] [DEBUG]   Processing: Yavarum Nalam (TMDB 19950)
+[2026-04-10T03:31:11.358Z] [SUCCESS]   ✓ Yavarum Nalam: 15 cast, 12 crew, 24 people
+[2026-04-10T03:31:11.611Z] [DEBUG] 54/122 Coolie
+[2026-04-10T03:31:11.613Z] [DEBUG]   Processing: Coolie (TMDB 1153399)
+[2026-04-10T03:31:11.864Z] [SUCCESS]   ✓ Coolie: 15 cast, 104 crew, 21 people
+[2026-04-10T03:31:12.117Z] [DEBUG] 55/122 Geetha Govindam
+[2026-04-10T03:31:12.118Z] [DEBUG]   Processing: Geetha Govindam (TMDB 540468)
+[2026-04-10T03:31:12.414Z] [SUCCESS]   ✓ Geetha Govindam: 15 cast, 18 crew, 20 people
+[2026-04-10T03:31:12.667Z] [DEBUG] 56/122 Rangasthalam
+[2026-04-10T03:31:12.668Z] [DEBUG]   Processing: Rangasthalam (TMDB 461126)
+[2026-04-10T03:31:12.907Z] [SUCCESS]   ✓ Rangasthalam: 15 cast, 40 crew, 23 people
+[2026-04-10T03:31:13.159Z] [DEBUG] 57/122 Lucky Baskhar
+[2026-04-10T03:31:13.159Z] [DEBUG]   Processing: Lucky Baskhar (TMDB 1239511)
+[2026-04-10T03:31:13.420Z] [SUCCESS]   ✓ Lucky Baskhar: 15 cast, 15 crew, 21 people
+[2026-04-10T03:31:13.671Z] [DEBUG] 58/122 Lucifer
+[2026-04-10T03:31:13.671Z] [DEBUG]   Processing: Lucifer (TMDB 564701)
+[2026-04-10T03:31:13.900Z] [SUCCESS]   ✓ Lucifer: 15 cast, 31 crew, 20 people
+[2026-04-10T03:31:14.150Z] [DEBUG] 59/122 Crew
+[2026-04-10T03:31:14.151Z] [DEBUG]   Processing: Crew (TMDB 1045931)
+[2026-04-10T03:31:14.398Z] [SUCCESS]   ✓ Crew: 15 cast, 40 crew, 25 people
+[2026-04-10T03:31:14.651Z] [DEBUG] 60/122 Athadu
+[2026-04-10T03:31:14.652Z] [DEBUG]   Processing: Athadu (TMDB 37172)
+[2026-04-10T03:31:14.897Z] [SUCCESS]   ✓ Athadu: 15 cast, 38 crew, 21 people
+[2026-04-10T03:31:15.149Z] [DEBUG] 61/122 Pokiri
+[2026-04-10T03:31:15.150Z] [DEBUG]   Processing: Pokiri (TMDB 23381)
+[2026-04-10T03:31:15.409Z] [SUCCESS]   ✓ Pokiri: 15 cast, 20 crew, 19 people
+[2026-04-10T03:31:15.661Z] [DEBUG] 62/122 Jana Gana Mana
+[2026-04-10T03:31:15.662Z] [DEBUG]   Processing: Jana Gana Mana (TMDB 792358)
+[2026-04-10T03:31:15.921Z] [SUCCESS]   ✓ Jana Gana Mana: 15 cast, 24 crew, 22 people
+[2026-04-10T03:31:16.174Z] [DEBUG] 63/122 Lola's Secret
+[2026-04-10T03:31:16.175Z] [DEBUG]   Processing: Lola's Secret (TMDB 329505)
+[2026-04-10T03:31:16.418Z] [SUCCESS]   ✓ Lola's Secret: 7 cast, 5 crew, 11 people
+[2026-04-10T03:31:16.669Z] [DEBUG] 64/122 Hellfire
+[2026-04-10T03:31:16.669Z] [DEBUG]   Processing: Hellfire (TMDB 1088434)
+[2026-04-10T03:31:16.917Z] [SUCCESS]   ✓ Hellfire: 15 cast, 7 crew, 22 people
+[2026-04-10T03:31:17.169Z] [DEBUG] 65/122 Humint
+[2026-04-10T03:31:17.169Z] [DEBUG]   Processing: Humint (TMDB 1268127)
+[2026-04-10T03:31:17.434Z] [SUCCESS]   ✓ Humint: 15 cast, 27 crew, 22 people
+[2026-04-10T03:31:17.686Z] [DEBUG] 66/122 Nanban
+[2026-04-10T03:31:17.686Z] [DEBUG]   Processing: Nanban (TMDB 69537)
+[2026-04-10T03:31:17.941Z] [SUCCESS]   ✓ Nanban: 15 cast, 33 crew, 20 people
+[2026-04-10T03:31:18.194Z] [DEBUG] 67/122 Yevadu
+[2026-04-10T03:31:18.194Z] [DEBUG]   Processing: Yevadu (TMDB 215248)
+[2026-04-10T03:31:18.446Z] [SUCCESS]   ✓ Yevadu: 15 cast, 21 crew, 21 people
+[2026-04-10T03:31:18.698Z] [DEBUG] 68/122 Joji
+[2026-04-10T03:31:18.700Z] [DEBUG]   Processing: Joji (TMDB 791779)
+[2026-04-10T03:31:18.949Z] [SUCCESS]   ✓ Joji: 13 cast, 24 crew, 18 people
+[2026-04-10T03:31:19.201Z] [DEBUG] 69/122 RDX: Robert Dony Xavier
+[2026-04-10T03:31:19.202Z] [DEBUG]   Processing: RDX: Robert Dony Xavier (TMDB 997391)
+[2026-04-10T03:31:19.506Z] [SUCCESS]   ✓ RDX: Robert Dony Xavier: 15 cast, 30 crew, 21 people
+[2026-04-10T03:31:19.757Z] [DEBUG] 70/122 Khaleja
+[2026-04-10T03:31:19.757Z] [DEBUG]   Processing: Khaleja (TMDB 56986)
+[2026-04-10T03:31:19.994Z] [SUCCESS]   ✓ Khaleja: 15 cast, 22 crew, 19 people
+[2026-04-10T03:31:20.245Z] [DEBUG] 71/122 War 2
+[2026-04-10T03:31:20.245Z] [DEBUG]   Processing: War 2 (TMDB 1109086)
+[2026-04-10T03:31:20.502Z] [SUCCESS]   ✓ War 2: 15 cast, 39 crew, 22 people
+[2026-04-10T03:31:20.753Z] [DEBUG] 72/122 Deva
+[2026-04-10T03:31:20.753Z] [DEBUG]   Processing: Deva (TMDB 1195430)
+[2026-04-10T03:31:21.046Z] [SUCCESS]   ✓ Deva: 15 cast, 41 crew, 27 people
+[2026-04-10T03:31:21.298Z] [DEBUG] 73/122 DJ: Duvvada Jagannadham
+[2026-04-10T03:31:21.299Z] [DEBUG]   Processing: DJ: Duvvada Jagannadham (TMDB 443635)
+[2026-04-10T03:31:21.566Z] [SUCCESS]   ✓ DJ: Duvvada Jagannadham: 15 cast, 23 crew, 22 people
+[2026-04-10T03:31:21.819Z] [DEBUG] 74/122 Son of Satyamurthy
+[2026-04-10T03:31:21.821Z] [DEBUG]   Processing: Son of Satyamurthy (TMDB 333876)
+[2026-04-10T03:31:22.073Z] [SUCCESS]   ✓ Son of Satyamurthy: 15 cast, 22 crew, 20 people
+[2026-04-10T03:31:22.326Z] [DEBUG] 75/122 Virus
+[2026-04-10T03:31:22.328Z] [DEBUG]   Processing: Virus (TMDB 585261)
+[2026-04-10T03:31:22.593Z] [SUCCESS]   ✓ Virus: 15 cast, 26 crew, 22 people
+[2026-04-10T03:31:22.845Z] [INFO] 
+Progress: 75/122 (75 success, 0 failed)
+[2026-04-10T03:31:22.845Z] [DEBUG] 76/122 The Goat Life
+[2026-04-10T03:31:22.846Z] [DEBUG]   Processing: The Goat Life (TMDB 472221)
+[2026-04-10T03:31:23.116Z] [SUCCESS]   ✓ The Goat Life: 15 cast, 29 crew, 21 people
+[2026-04-10T03:31:23.368Z] [DEBUG] 77/122 Businessman
+[2026-04-10T03:31:23.368Z] [DEBUG]   Processing: Businessman (TMDB 83889)
+[2026-04-10T03:31:23.610Z] [SUCCESS]   ✓ Businessman: 15 cast, 18 crew, 17 people
+[2026-04-10T03:31:23.861Z] [DEBUG] 78/122 Manam
+[2026-04-10T03:31:23.862Z] [DEBUG]   Processing: Manam (TMDB 253533)
+[2026-04-10T03:31:24.093Z] [SUCCESS]   ✓ Manam: 15 cast, 19 crew, 20 people
+[2026-04-10T03:31:24.345Z] [DEBUG] 79/122 Angamaly Diaries
+[2026-04-10T03:31:24.345Z] [DEBUG]   Processing: Angamaly Diaries (TMDB 442000)
+[2026-04-10T03:31:24.581Z] [SUCCESS]   ✓ Angamaly Diaries: 15 cast, 18 crew, 21 people
+[2026-04-10T03:31:24.833Z] [DEBUG] 80/122 Eat Pray Bark
+[2026-04-10T03:31:24.834Z] [DEBUG]   Processing: Eat Pray Bark (TMDB 1635276)
+[2026-04-10T03:31:25.099Z] [SUCCESS]   ✓ Eat Pray Bark: 15 cast, 5 crew, 19 people
+[2026-04-10T03:31:25.351Z] [DEBUG] 81/122 Race Gurram
+[2026-04-10T03:31:25.352Z] [DEBUG]   Processing: Race Gurram (TMDB 262227)
+[2026-04-10T03:31:25.601Z] [SUCCESS]   ✓ Race Gurram: 15 cast, 26 crew, 21 people
+[2026-04-10T03:31:25.853Z] [DEBUG] 82/122 Vinnaithaandi Varuvaayaa
+[2026-04-10T03:31:25.853Z] [DEBUG]   Processing: Vinnaithaandi Varuvaayaa (TMDB 37941)
+[2026-04-10T03:31:26.124Z] [SUCCESS]   ✓ Vinnaithaandi Varuvaayaa: 15 cast, 36 crew, 22 people
+[2026-04-10T03:31:26.376Z] [DEBUG] 83/122 Mahanati
+[2026-04-10T03:31:26.378Z] [DEBUG]   Processing: Mahanati (TMDB 459713)
+[2026-04-10T03:31:26.738Z] [SUCCESS]   ✓ Mahanati: 15 cast, 24 crew, 21 people
+[2026-04-10T03:31:26.990Z] [DEBUG] 84/122 Agent Sai Srinivasa Athreya
+[2026-04-10T03:31:26.991Z] [DEBUG]   Processing: Agent Sai Srinivasa Athreya (TMDB 610482)
+[2026-04-10T03:31:27.270Z] [SUCCESS]   ✓ Agent Sai Srinivasa Athreya: 15 cast, 13 crew, 18 people
+[2026-04-10T03:31:27.521Z] [DEBUG] 85/122 Hridayam
+[2026-04-10T03:31:27.522Z] [DEBUG]   Processing: Hridayam (TMDB 653221)
+[2026-04-10T03:31:27.756Z] [SUCCESS]   ✓ Hridayam: 15 cast, 37 crew, 20 people
+[2026-04-10T03:31:28.008Z] [DEBUG] 86/122 Jigarthanda DoubleX
+[2026-04-10T03:31:28.009Z] [DEBUG]   Processing: Jigarthanda DoubleX (TMDB 1007074)
+[2026-04-10T03:31:28.251Z] [SUCCESS]   ✓ Jigarthanda DoubleX: 15 cast, 58 crew, 21 people
+[2026-04-10T03:31:28.503Z] [DEBUG] 87/122 Dhurandhar: The Revenge
+[2026-04-10T03:31:28.504Z] [DEBUG]   Processing: Dhurandhar: The Revenge (TMDB 1582770)
+[2026-04-10T03:31:28.779Z] [SUCCESS]   ✓ Dhurandhar: The Revenge: 15 cast, 57 crew, 21 people
+[2026-04-10T03:31:29.032Z] [DEBUG] 88/122 Do Not Enter
+[2026-04-10T03:31:29.033Z] [DEBUG]   Processing: Do Not Enter (TMDB 999136)
+[2026-04-10T03:31:29.292Z] [SUCCESS]   ✓ Do Not Enter: 11 cast, 19 crew, 19 people
+[2026-04-10T03:31:29.544Z] [DEBUG] 89/122 Doctor
+[2026-04-10T03:31:29.544Z] [DEBUG]   Processing: Doctor (TMDB 673692)
+[2026-04-10T03:31:29.789Z] [SUCCESS]   ✓ Doctor: 15 cast, 22 crew, 19 people
+[2026-04-10T03:31:30.039Z] [DEBUG] 90/122 Helen
+[2026-04-10T03:31:30.040Z] [DEBUG]   Processing: Helen (TMDB 640052)
+[2026-04-10T03:31:30.278Z] [SUCCESS]   ✓ Helen: 15 cast, 30 crew, 20 people
+[2026-04-10T03:31:30.530Z] [DEBUG] 91/122 Pizza Movie
+[2026-04-10T03:31:30.531Z] [DEBUG]   Processing: Pizza Movie (TMDB 1493859)
+[2026-04-10T03:31:30.817Z] [SUCCESS]   ✓ Pizza Movie: 15 cast, 76 crew, 28 people
+[2026-04-10T03:31:31.070Z] [DEBUG] 92/122 Night Nurse
+[2026-04-10T03:31:31.072Z] [DEBUG]   Processing: Night Nurse (TMDB 58008)
+[2026-04-10T03:31:31.338Z] [SUCCESS]   ✓ Night Nurse: 15 cast, 25 crew, 21 people
+[2026-04-10T03:31:31.590Z] [DEBUG] 93/122 Iruvar
+[2026-04-10T03:31:31.591Z] [DEBUG]   Processing: Iruvar (TMDB 49032)
+[2026-04-10T03:31:31.848Z] [SUCCESS]   ✓ Iruvar: 15 cast, 31 crew, 21 people
+[2026-04-10T03:31:32.100Z] [DEBUG] 94/122 Neelakasham Pachakadal Chuvanna Bhoomi
+[2026-04-10T03:31:32.102Z] [DEBUG]   Processing: Neelakasham Pachakadal Chuvanna Bhoomi (TMDB 209419)
+[2026-04-10T03:31:32.365Z] [SUCCESS]   ✓ Neelakasham Pachakadal Chuvanna Bhoomi: 15 cast, 24 crew, 19 people
+[2026-04-10T03:31:32.617Z] [DEBUG] 95/122 Oopiri
+[2026-04-10T03:31:32.618Z] [DEBUG]   Processing: Oopiri (TMDB 369925)
+[2026-04-10T03:31:32.929Z] [SUCCESS]   ✓ Oopiri: 15 cast, 20 crew, 22 people
+[2026-04-10T03:31:33.181Z] [DEBUG] 96/122 Kishkindha Kaandam
+[2026-04-10T03:31:33.181Z] [DEBUG]   Processing: Kishkindha Kaandam (TMDB 1025125)
+[2026-04-10T03:31:33.458Z] [SUCCESS]   ✓ Kishkindha Kaandam: 15 cast, 11 crew, 20 people
+[2026-04-10T03:31:33.709Z] [DEBUG] 97/122 The Red Line
+[2026-04-10T03:31:33.710Z] [DEBUG]   Processing: The Red Line (TMDB 1630433)
+[2026-04-10T03:31:33.948Z] [SUCCESS]   ✓ The Red Line: 15 cast, 36 crew, 22 people
+[2026-04-10T03:31:34.200Z] [DEBUG] 98/122 The Mortuary Assistant
+[2026-04-10T03:31:34.200Z] [DEBUG]   Processing: The Mortuary Assistant (TMDB 1470130)
+[2026-04-10T03:31:34.463Z] [SUCCESS]   ✓ The Mortuary Assistant: 7 cast, 11 crew, 15 people
+[2026-04-10T03:31:34.715Z] [DEBUG] 99/122 Lake Jesup: Bonecrusher's Revenge
+[2026-04-10T03:31:34.716Z] [DEBUG]   Processing: Lake Jesup: Bonecrusher's Revenge (TMDB 1381216)
+[2026-04-10T03:31:34.997Z] [SUCCESS]   ✓ Lake Jesup: Bonecrusher's Revenge: 6 cast, 7 crew, 7 people
+[2026-04-10T03:31:35.249Z] [DEBUG] 100/122 Feel My Voice
+[2026-04-10T03:31:35.250Z] [DEBUG]   Processing: Feel My Voice (TMDB 1620551)
+[2026-04-10T03:31:35.495Z] [SUCCESS]   ✓ Feel My Voice: 14 cast, 26 crew, 24 people
+[2026-04-10T03:31:35.747Z] [INFO] 
+Progress: 100/122 (100 success, 0 failed)
+[2026-04-10T03:31:35.748Z] [DEBUG] 101/122 Blades of the Guardians: Wind Rises in the Desert
+[2026-04-10T03:31:35.749Z] [DEBUG]   Processing: Blades of the Guardians: Wind Rises in the Desert (TMDB 1305781)
+[2026-04-10T03:31:36.124Z] [SUCCESS]   ✓ Blades of the Guardians: Wind Rises in the Desert: 15 cast, 19 crew, 22 people
+[2026-04-10T03:31:36.374Z] [DEBUG] 102/122 Door
+[2026-04-10T03:31:36.375Z] [DEBUG]   Processing: Door (TMDB 405746)
+[2026-04-10T03:31:36.593Z] [SUCCESS]   ✓ Door: 7 cast, 15 crew, 13 people
+[2026-04-10T03:31:36.845Z] [DEBUG] 103/122 The Deadly Little Mermaid
+[2026-04-10T03:31:36.845Z] [DEBUG]   Processing: The Deadly Little Mermaid (TMDB 1572073)
+[2026-04-10T03:31:37.092Z] [SUCCESS]   ✓ The Deadly Little Mermaid: 10 cast, 13 crew, 14 people
+[2026-04-10T03:31:37.343Z] [DEBUG] 104/122 A Desert
+[2026-04-10T03:31:37.343Z] [DEBUG]   Processing: A Desert (TMDB 1276038)
+[2026-04-10T03:31:37.625Z] [SUCCESS]   ✓ A Desert: 10 cast, 11 crew, 16 people
+[2026-04-10T03:31:37.877Z] [DEBUG] 105/122 Mardaani 3
+[2026-04-10T03:31:37.878Z] [DEBUG]   Processing: Mardaani 3 (TMDB 1339876)
+[2026-04-10T03:31:38.139Z] [SUCCESS]   ✓ Mardaani 3: 15 cast, 27 crew, 21 people
+[2026-04-10T03:31:38.390Z] [DEBUG] 106/122 Finding Harry: The Craft Behind the Magic
+[2026-04-10T03:31:38.390Z] [DEBUG]   Processing: Finding Harry: The Craft Behind the Magic (TMDB 1662432)
+[2026-04-10T03:31:38.652Z] [SUCCESS]   ✓ Finding Harry: The Craft Behind the Magic: 15 cast, 13 crew, 21 people
+[2026-04-10T03:31:38.904Z] [DEBUG] 107/122 The Death That Awaits
+[2026-04-10T03:31:38.905Z] [DEBUG]   Processing: The Death That Awaits (TMDB 1297454)
+[2026-04-10T03:31:39.132Z] [SUCCESS]   ✓ The Death That Awaits: 8 cast, 3 crew, 10 people
+[2026-04-10T03:31:39.385Z] [DEBUG] 108/122 Psycho Killer
+[2026-04-10T03:31:39.385Z] [DEBUG]   Processing: Psycho Killer (TMDB 1107166)
+[2026-04-10T03:31:39.650Z] [SUCCESS]   ✓ Psycho Killer: 15 cast, 31 crew, 23 people
+[2026-04-10T03:31:39.901Z] [DEBUG] 109/122 The Giant Falls
+[2026-04-10T03:31:39.901Z] [DEBUG]   Processing: The Giant Falls (TMDB 1487320)
+[2026-04-10T03:31:40.185Z] [SUCCESS]   ✓ The Giant Falls: 7 cast, 4 crew, 10 people
+[2026-04-10T03:31:40.436Z] [DEBUG] 110/122 Starbright
+[2026-04-10T03:31:40.436Z] [DEBUG]   Processing: Starbright (TMDB 662707)
+[2026-04-10T03:31:40.695Z] [SUCCESS]   ✓ Starbright: 15 cast, 42 crew, 20 people
+[2026-04-10T03:31:40.946Z] [DEBUG] 111/122 Sniper: No Nation
+[2026-04-10T03:31:40.946Z] [DEBUG]   Processing: Sniper: No Nation (TMDB 1641319)
+[2026-04-10T03:31:41.209Z] [SUCCESS]   ✓ Sniper: No Nation: 15 cast, 183 crew, 23 people
+[2026-04-10T03:31:41.460Z] [DEBUG] 112/122 S4: The Bob Lazar Story
+[2026-04-10T03:31:41.461Z] [DEBUG]   Processing: S4: The Bob Lazar Story (TMDB 1462146)
+[2026-04-10T03:31:41.716Z] [SUCCESS]   ✓ S4: The Bob Lazar Story: 3 cast, 2 crew, 4 people
+[2026-04-10T03:31:41.967Z] [DEBUG] 113/122 It Takes a Village
+[2026-04-10T03:31:41.968Z] [DEBUG]   Processing: It Takes a Village (TMDB 1561758)
+[2026-04-10T03:31:42.262Z] [SUCCESS]   ✓ It Takes a Village: 15 cast, 128 crew, 23 people
+[2026-04-10T03:31:42.514Z] [DEBUG] 114/122 Vanaveera
+[2026-04-10T03:31:42.515Z] [DEBUG]   Processing: Vanaveera (TMDB 1634301)
+[2026-04-10T03:31:42.771Z] [SUCCESS]   ✓ Vanaveera: 3 cast, 0 crew, 3 people
+[2026-04-10T03:31:43.023Z] [DEBUG] 115/122 The Draft!
+[2026-04-10T03:31:43.024Z] [DEBUG]   Processing: The Draft! (TMDB 1066313)
+[2026-04-10T03:31:43.279Z] [SUCCESS]   ✓ The Draft!: 12 cast, 65 crew, 18 people
+[2026-04-10T03:31:43.529Z] [DEBUG] 116/122 The Unknown Man
+[2026-04-10T03:31:43.530Z] [DEBUG]   Processing: The Unknown Man (TMDB 879945)
+[2026-04-10T03:31:43.782Z] [SUCCESS]   ✓ The Unknown Man: 4 cast, 7 crew, 8 people
+[2026-04-10T03:31:44.034Z] [DEBUG] 117/122 Mudborn
+[2026-04-10T03:31:44.034Z] [DEBUG]   Processing: Mudborn (TMDB 1526650)
+[2026-04-10T03:31:44.281Z] [SUCCESS]   ✓ Mudborn: 9 cast, 10 crew, 13 people
+[2026-04-10T03:31:44.531Z] [DEBUG] 118/122 Shrounding the Heavens Movie：Fighting Against Wang Teng with Copper Coffin
+[2026-04-10T03:31:44.532Z] [DEBUG]   Processing: Shrounding the Heavens Movie：Fighting Against Wang Teng with Copper Coffin (TMDB 1653994)
+[2026-04-10T03:31:44.770Z] [SUCCESS]   ✓ Shrounding the Heavens Movie：Fighting Against Wang Teng with Copper Coffin: 3 cast, 0 crew, 3 people
+[2026-04-10T03:31:45.022Z] [DEBUG] 119/122 18th Rose
+[2026-04-10T03:31:45.024Z] [DEBUG]   Processing: 18th Rose (TMDB 1631917)
+[2026-04-10T03:31:45.296Z] [SUCCESS]   ✓ 18th Rose: 5 cast, 4 crew, 8 people
+[2026-04-10T03:31:45.549Z] [DEBUG] 120/122 Sundutan
+[2026-04-10T03:31:45.549Z] [DEBUG]   Processing: Sundutan (TMDB 1646787)
+[2026-04-10T03:31:45.794Z] [SUCCESS]   ✓ Sundutan: 5 cast, 1 crew, 6 people
+[2026-04-10T03:31:46.047Z] [DEBUG] 121/122 Abot Langit
+[2026-04-10T03:31:46.048Z] [DEBUG]   Processing: Abot Langit (TMDB 1650558)
+[2026-04-10T03:31:46.313Z] [SUCCESS]   ✓ Abot Langit: 13 cast, 14 crew, 18 people
+[2026-04-10T03:31:46.566Z] [DEBUG] 122/122 Outcome
+[2026-04-10T03:31:46.567Z] [DEBUG]   Processing: Outcome (TMDB 1049471)
+[2026-04-10T03:31:46.828Z] [SUCCESS]   ✓ Outcome: 15 cast, 26 crew, 22 people
+[2026-04-10T03:31:47.078Z] [INFO] 
+================================================================================
+[2026-04-10T03:31:47.079Z] [INFO] 📊 SUMMARY
+[2026-04-10T03:31:47.079Z] [INFO] ================================================================================
+
+[2026-04-10T03:31:47.079Z] [INFO] Total movies: 122
+[2026-04-10T03:31:47.079Z] [SUCCESS] ✓ Successfully processed: 122
+[2026-04-10T03:31:47.079Z] [INFO] 
+Cast & Crew Stats:
+[2026-04-10T03:31:47.079Z] [INFO]   Total cast members: 1646
+[2026-04-10T03:31:47.079Z] [INFO]   Total crew members: 5167
+[2026-04-10T03:31:47.079Z] [INFO]   Unique people added: 2414
+[2026-04-10T03:31:47.080Z] [INFO]   Avg cast per movie: 13.5
+[2026-04-10T03:31:47.080Z] [INFO]   Avg crew per movie: 42.4
+[2026-04-10T03:31:47.080Z] [INFO] 
+TMDB API calls: 122
+[2026-04-10T03:31:47.080Z] [INFO] Duration: 63.87s
+[2026-04-10T03:31:47.080Z] [INFO] Average: 114.6 movies/minute
+[2026-04-10T03:31:47.080Z] [SUCCESS] 
+✅ Cast/crew fetch complete! Run step 05 to calculate cast metadata.
+[2026-04-10T03:31:47.080Z] [INFO] 
+Log file: /Users/wish/feelflick-app/logs/04-fetch-cast-crew.log
+[2026-04-10T03:43:54.454Z] [INFO] 
+================================================================================
+[2026-04-10T03:43:54.455Z] [INFO] 🎭 FETCH CAST & CREW FROM TMDB
+[2026-04-10T03:43:54.455Z] [INFO] ================================================================================
+
+[2026-04-10T03:43:54.455Z] [INFO] Limit: 200 movies
+[2026-04-10T03:43:54.455Z] [INFO] Dry run: NO
+
+[2026-04-10T03:43:54.594Z] [INFO] Found 4 movies needing cast/crew
+
+[2026-04-10T03:43:54.594Z] [DEBUG] 1/4 Mantis
+[2026-04-10T03:43:54.594Z] [DEBUG]   Processing: Mantis (TMDB 1267319)
+[2026-04-10T03:43:55.345Z] [SUCCESS]   ✓ Mantis: 15 cast, 34 crew, 24 people
+[2026-04-10T03:43:55.597Z] [DEBUG] 2/4 The Treacherous
+[2026-04-10T03:43:55.597Z] [DEBUG]   Processing: The Treacherous (TMDB 338803)
+[2026-04-10T03:43:55.989Z] [SUCCESS]   ✓ The Treacherous: 15 cast, 22 crew, 21 people
+[2026-04-10T03:43:56.241Z] [DEBUG] 3/4 Obsessed
+[2026-04-10T03:43:56.241Z] [DEBUG]   Processing: Obsessed (TMDB 269955)
+[2026-04-10T03:43:56.613Z] [SUCCESS]   ✓ Obsessed: 15 cast, 20 crew, 21 people
+[2026-04-10T03:43:56.865Z] [DEBUG] 4/4 You Are the Apple of My Eye
+[2026-04-10T03:43:56.867Z] [DEBUG]   Processing: You Are the Apple of My Eye (TMDB 1290182)
+[2026-04-10T03:43:57.375Z] [SUCCESS]   ✓ You Are the Apple of My Eye: 15 cast, 23 crew, 21 people
+[2026-04-10T03:43:57.627Z] [INFO] 
+================================================================================
+[2026-04-10T03:43:57.628Z] [INFO] 📊 SUMMARY
+[2026-04-10T03:43:57.628Z] [INFO] ================================================================================
+
+[2026-04-10T03:43:57.629Z] [INFO] Total movies: 4
+[2026-04-10T03:43:57.629Z] [SUCCESS] ✓ Successfully processed: 4
+[2026-04-10T03:43:57.629Z] [INFO] 
+Cast & Crew Stats:
+[2026-04-10T03:43:57.630Z] [INFO]   Total cast members: 60
+[2026-04-10T03:43:57.630Z] [INFO]   Total crew members: 99
+[2026-04-10T03:43:57.630Z] [INFO]   Unique people added: 87
+[2026-04-10T03:43:57.630Z] [INFO]   Avg cast per movie: 15.0
+[2026-04-10T03:43:57.630Z] [INFO]   Avg crew per movie: 24.8
+[2026-04-10T03:43:57.630Z] [INFO] 
+TMDB API calls: 4
+[2026-04-10T03:43:57.631Z] [INFO] Duration: 3.17s
+[2026-04-10T03:43:57.631Z] [INFO] Average: 75.7 movies/minute
+[2026-04-10T03:43:57.631Z] [SUCCESS] 
+✅ Cast/crew fetch complete! Run step 05 to calculate cast metadata.
+[2026-04-10T03:43:57.631Z] [INFO] 
+Log file: /Users/wish/feelflick-app/logs/04-fetch-cast-crew.log

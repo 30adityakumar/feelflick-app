@@ -68,7 +68,7 @@ export const CarouselRow = memo(function CarouselRow({
   )
   const [scrollState, setScrollState] = useState({
     canScrollLeft: false,
-    canScrollRight: true,
+    canScrollRight: false, // false until measured — prevents right-edge fade flash on mount
   })
 
   useEffect(() => {
@@ -106,14 +106,18 @@ export const CarouselRow = memo(function CarouselRow({
     containerRef: scrollRef,
   })
 
+  const rafScrollRef = useRef(null)
   const updateScrollState = useCallback(() => {
-    const el = scrollRef.current
-    if (!el) return
-
-    const { scrollLeft, scrollWidth, clientWidth } = el
-    setScrollState({
-      canScrollLeft: scrollLeft > 10,
-      canScrollRight: scrollLeft < scrollWidth - clientWidth - 10,
+    // Always defer to after paint — measuring during layout gives stale/zero dimensions
+    if (rafScrollRef.current) cancelAnimationFrame(rafScrollRef.current)
+    rafScrollRef.current = requestAnimationFrame(() => {
+      const el = scrollRef.current
+      if (!el) return
+      const { scrollLeft, scrollWidth, clientWidth } = el
+      setScrollState({
+        canScrollLeft: scrollLeft > 10,
+        canScrollRight: scrollLeft < scrollWidth - clientWidth - 10,
+      })
     })
   }, [])
 
@@ -123,9 +127,12 @@ export const CarouselRow = memo(function CarouselRow({
 
   useEffect(() => {
     if (!scrollRef.current || typeof ResizeObserver === 'undefined') return undefined
-    const observer = new ResizeObserver(() => updateScrollState())
+    const observer = new ResizeObserver(updateScrollState)
     observer.observe(scrollRef.current)
-    return () => observer.disconnect()
+    return () => {
+      observer.disconnect()
+      if (rafScrollRef.current) cancelAnimationFrame(rafScrollRef.current)
+    }
   }, [updateScrollState])
 
   const scroll = useCallback(
@@ -141,7 +148,7 @@ export const CarouselRow = memo(function CarouselRow({
   )
 
   const handleScrollArea = useCallback(() => {
-    updateScrollState()
+    updateScrollState()  // already RAF-deferred inside
     hover.closeNow()
   }, [hover, updateScrollState])
 
@@ -154,18 +161,18 @@ export const CarouselRow = memo(function CarouselRow({
   if (loading) {
     return (
       <section
-        className={`relative overflow-visible pt-2 pb-6 sm:pt-3 sm:pb-8 ${className}`}
+        className={`relative overflow-visible pt-3 pb-6 sm:pt-4 sm:pb-8 ${className}`}
         aria-label={`${title} loading`}
       >
         <div
-          className="mb-3 flex items-center gap-3"
+          className="mb-4 flex items-center gap-3"
           style={{ paddingInline: 'clamp(1rem, 4vw, 3rem)' }}
         >
           <div
-            className="h-5 w-[3px] rounded-full"
-            style={{ background: 'var(--gradient-primary)' }}
+            className="h-5 w-[3px] flex-shrink-0 rounded-full"
+            style={{ background: 'linear-gradient(180deg, #c084fc 0%, #ec4899 100%)' }}
           />
-          <div className="skeleton h-5 w-48" />
+          <div className="skeleton h-4 w-44 rounded-full" />
         </div>
         <div
           className="flex overflow-hidden"
@@ -190,28 +197,34 @@ export const CarouselRow = memo(function CarouselRow({
 
   return (
     <section
-      className={`relative overflow-visible pt-2 pb-6 sm:pt-3 sm:pb-8 ${className}`}
+      className={`relative overflow-visible pt-3 pb-6 sm:pt-4 sm:pb-8 ${className}`}
       aria-label={typeof title === 'string' ? title : 'Recommendation row'}
       onMouseEnter={() => setIsRowHovered(true)}
       onMouseLeave={() => setIsRowHovered(false)}
     >
       <div
-        className="mb-3 flex items-center gap-3"
+        className="mb-4 flex items-center gap-3"
         style={{ paddingInline: 'clamp(1rem, 4vw, 3rem)' }}
       >
         <div
           className="h-5 w-[3px] flex-shrink-0 rounded-full"
-          style={{ background: 'var(--gradient-primary)' }}
+          style={{ background: 'linear-gradient(180deg, #c084fc 0%, #ec4899 100%)' }}
         />
         <h2
-          className="min-w-0 truncate text-[clamp(1rem,1.4vw,1.2rem)] font-semibold leading-tight"
+          className="shrink-0 whitespace-nowrap text-[1.05rem] font-bold leading-tight tracking-tight"
           style={{
-            color: 'rgba(248, 250, 252, 0.92)',
+            color: 'rgba(248, 250, 252, 0.95)',
             fontFamily: 'var(--font-body)',
           }}
         >
           {title}
         </h2>
+        <div
+          className="h-px flex-1"
+          style={{
+            background: 'linear-gradient(90deg, rgba(192, 132, 252, 0.18) 0%, rgba(248, 250, 252, 0.04) 45%, transparent 100%)',
+          }}
+        />
       </div>
 
       <div className="relative overflow-visible">

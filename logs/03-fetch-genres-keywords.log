@@ -1,0 +1,74 @@
+[2026-04-10T03:30:26.335Z] [INFO] 
+================================================================================
+[2026-04-10T03:30:26.336Z] [INFO] 🎭 PROCESS GENRES & KEYWORDS
+[2026-04-10T03:30:26.336Z] [INFO] ================================================================================
+
+[2026-04-10T03:30:26.336Z] [INFO] Limit: 1000 movies
+[2026-04-10T03:30:26.336Z] [INFO] Dry run: NO
+
+[2026-04-10T03:30:26.336Z] [INFO] 📚 Syncing genres from TMDB...
+[2026-04-10T03:30:29.649Z] [INFO]   Found 19 genres from TMDB
+[2026-04-10T03:30:29.793Z] [SUCCESS]   ✓ Synced 19 genres
+[2026-04-10T03:30:29.911Z] [INFO] 📊 Found 122 movies to process
+[2026-04-10T03:30:29.911Z] [INFO] 
+🎭 Processing genres for 122 movies...
+[2026-04-10T03:30:38.442Z] [INFO]   Inserting 309 genre links...
+[2026-04-10T03:30:38.553Z] [SUCCESS]   ✓ Processed 122 movies, inserted 309 genre links
+[2026-04-10T03:30:38.555Z] [INFO] 
+🏷️  Processing keywords for 122 movies...
+[2026-04-10T03:30:38.555Z] [INFO]   Found 0 unique keywords
+[2026-04-10T03:30:38.555Z] [SUCCESS]   ✓ Processed 0 movies
+[2026-04-10T03:30:38.555Z] [SUCCESS]   ✓ Inserted 0 keywords, 0 links
+[2026-04-10T03:30:38.556Z] [INFO] 
+📝 Updating status for 122 movies...
+[2026-04-10T03:30:38.629Z] [SUCCESS]   ✓ Updated 122 movies
+[2026-04-10T03:30:38.630Z] [INFO] 
+================================================================================
+[2026-04-10T03:30:38.631Z] [INFO] 📊 SUMMARY
+[2026-04-10T03:30:38.631Z] [INFO] ================================================================================
+
+[2026-04-10T03:30:38.631Z] [INFO] Total movies: 122
+[2026-04-10T03:30:38.631Z] [INFO] Genres: 309 links created
+[2026-04-10T03:30:38.631Z] [INFO] Keywords: 0 unique, 0 links created
+[2026-04-10T03:30:38.631Z] [INFO] Duration: 12.29s
+[2026-04-10T03:30:38.631Z] [SUCCESS] 
+✅ Genre/keyword processing complete! Run step 04 to fetch cast/crew.
+[2026-04-10T03:30:38.631Z] [INFO] 
+Log file: /Users/wish/feelflick-app/logs/03-fetch-genres-keywords.log
+[2026-04-10T03:43:52.453Z] [INFO] 
+================================================================================
+[2026-04-10T03:43:52.455Z] [INFO] 🎭 PROCESS GENRES & KEYWORDS
+[2026-04-10T03:43:52.455Z] [INFO] ================================================================================
+
+[2026-04-10T03:43:52.455Z] [INFO] Limit: 1000 movies
+[2026-04-10T03:43:52.455Z] [INFO] Dry run: NO
+
+[2026-04-10T03:43:52.455Z] [INFO] 📚 Syncing genres from TMDB...
+[2026-04-10T03:43:52.580Z] [INFO]   Found 19 genres from TMDB
+[2026-04-10T03:43:52.782Z] [SUCCESS]   ✓ Synced 19 genres
+[2026-04-10T03:43:52.920Z] [INFO] 📊 Found 4 movies to process
+[2026-04-10T03:43:52.921Z] [INFO] 
+🎭 Processing genres for 4 movies...
+[2026-04-10T03:43:53.959Z] [INFO]   Inserting 10 genre links...
+[2026-04-10T03:43:54.185Z] [SUCCESS]   ✓ Processed 4 movies, inserted 10 genre links
+[2026-04-10T03:43:54.187Z] [INFO] 
+🏷️  Processing keywords for 4 movies...
+[2026-04-10T03:43:54.187Z] [INFO]   Found 0 unique keywords
+[2026-04-10T03:43:54.187Z] [SUCCESS]   ✓ Processed 0 movies
+[2026-04-10T03:43:54.187Z] [SUCCESS]   ✓ Inserted 0 keywords, 0 links
+[2026-04-10T03:43:54.187Z] [INFO] 
+📝 Updating status for 4 movies...
+[2026-04-10T03:43:54.364Z] [SUCCESS]   ✓ Updated 4 movies
+[2026-04-10T03:43:54.364Z] [INFO] 
+================================================================================
+[2026-04-10T03:43:54.364Z] [INFO] 📊 SUMMARY
+[2026-04-10T03:43:54.365Z] [INFO] ================================================================================
+
+[2026-04-10T03:43:54.365Z] [INFO] Total movies: 4
+[2026-04-10T03:43:54.365Z] [INFO] Genres: 10 links created
+[2026-04-10T03:43:54.365Z] [INFO] Keywords: 0 unique, 0 links created
+[2026-04-10T03:43:54.365Z] [INFO] Duration: 1.91s
+[2026-04-10T03:43:54.365Z] [SUCCESS] 
+✅ Genre/keyword processing complete! Run step 04 to fetch cast/crew.
+[2026-04-10T03:43:54.365Z] [INFO] 
+Log file: /Users/wish/feelflick-app/logs/03-fetch-genres-keywords.log

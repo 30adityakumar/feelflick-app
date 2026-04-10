@@ -108,7 +108,8 @@ export const MovieCard = memo(function MovieCard({
   })
 
   const meta = useMemo(() => {
-    const rating = movie.vote_average > 0 ? movie.vote_average.toFixed(1) : null
+    const rawRating = movie.ff_final_rating ?? movie.ff_rating ?? (movie.vote_average > 0 ? movie.vote_average : null)
+    const rating = rawRating != null ? Number(rawRating).toFixed(1) : null
     const year = movie.release_date ? new Date(movie.release_date).getFullYear() : null
     const runtime =
       movie.runtime > 0

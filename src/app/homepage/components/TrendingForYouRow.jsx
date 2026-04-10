@@ -27,7 +27,7 @@ export default function TrendingForYouRow({
 
   return (
     <PersonalizedCarouselRow
-      title="Trending this week (for you)"
+      title="New & noteworthy"
       movies={data || []}
       loading={loading}
       error={error}

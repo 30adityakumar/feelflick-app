@@ -298,6 +298,7 @@ export function searchMovies(query, { page = 1, includeAdult = false, signal } =
 
 /**
  * Discover movies (filters: genres, sort_by, year, etc.)
+ * Pass `withTextQuery` to combine text search with discover filters.
  */
 export function discoverMovies({
   page = 1,
@@ -308,8 +309,12 @@ export function discoverMovies({
   withCast,
   withCrew,
   withKeywords,
+  withTextQuery,
   voteAverageGte,
   voteAverageLte,
+  voteCountGte,
+  runtimeGte,
+  runtimeLte,
   language,
   releaseDateGte,
   releaseDateLte,
@@ -327,9 +332,12 @@ export function discoverMovies({
       with_cast: withCast,
       with_crew: withCrew,
       with_keywords: withKeywords,
+      with_text_query: withTextQuery || undefined,
       'vote_average.gte': voteAverageGte,
       'vote_average.lte': voteAverageLte,
-      'vote_count.gte': voteAverageGte ? 50 : undefined,
+      'vote_count.gte': voteCountGte !== undefined ? voteCountGte : (voteAverageGte ? 50 : undefined),
+      'with_runtime.gte': runtimeGte || undefined,
+      'with_runtime.lte': runtimeLte || undefined,
       with_original_language: language || undefined,
       'primary_release_date.gte': releaseDateGte || undefined,
       'primary_release_date.lte': releaseDateLte || undefined,

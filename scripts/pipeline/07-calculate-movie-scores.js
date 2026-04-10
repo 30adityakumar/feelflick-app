@@ -926,21 +926,24 @@ function calculateDiscoveryPotential(movie, ffRating, genreNormalizedRating, cul
   const obscurityFactor = Math.max(0, 1 - (movie.popularity / maxPop));
   score += obscurityFactor * 20;
 
-  // World cinema boost (non-English often overlooked)
+  // World cinema boost — gated by TMDB vote count.
+  // The flat language bonus was causing famous regional films (Dangal, Parasite,
+  // Spirited Away) to be mislabeled as "hidden gems". A film with 15k+ TMDB votes
+  // has clear global recognition regardless of language.
   if (movie.original_language && movie.original_language !== 'en') {
-    score += 15;
-    
-    // Extra boost for non-western languages
-    const westernLanguages = ['en', 'es', 'fr', 'de', 'it', 'pt'];
-    if (!westernLanguages.includes(movie.original_language)) {
-      score += 5;
+    if (movie.vote_count < 1000) {
+      score += 12; // Genuinely unknown outside home market
+    } else if (movie.vote_count < 3000) {
+      score += 6;  // Slightly known globally
     }
+    // 3000+ TMDB votes → enough global recognition, no language advantage
   }
 
   // Low vote count + high rating = underseen gem
-  if (movie.vote_count < 5000 && ffRating >= 7) {
+  // Tighter thresholds: 5000 was too generous (DDLJ, 3 Idiots had 2.5k–4.5k votes)
+  if (movie.vote_count < 2000 && ffRating >= 7) {
     score += 15;
-  } else if (movie.vote_count < 10000 && ffRating >= 7.5) {
+  } else if (movie.vote_count < 5000 && ffRating >= 7.5) {
     score += 10;
   }
 

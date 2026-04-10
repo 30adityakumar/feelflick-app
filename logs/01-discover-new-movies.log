@@ -1,0 +1,234 @@
+[2026-04-10T03:29:00.933Z] [INFO] 
+================================================================================
+[2026-04-10T03:29:00.934Z] [INFO] 🎬 DISCOVER NEW MOVIES
+[2026-04-10T03:29:00.934Z] [INFO] ================================================================================
+
+[2026-04-10T03:29:00.934Z] [INFO] Mode: LIVE
+[2026-04-10T03:29:00.934Z] [INFO] Target limit: 2000 new movies
+[2026-04-10T03:29:00.934Z] [INFO] 
+🔍 Strategy: Now Playing
+[2026-04-10T03:29:00.934Z] [INFO]    Description: Currently in theaters
+[2026-04-10T03:29:01.268Z] [SUCCESS]    Found 60 movies from TMDB
+[2026-04-10T03:29:01.269Z] [INFO] 
+🔍 Strategy: Popular
+[2026-04-10T03:29:01.269Z] [INFO]    Description: Popular movies this week
+[2026-04-10T03:29:01.423Z] [SUCCESS]    Found 60 movies from TMDB
+[2026-04-10T03:29:01.423Z] [INFO] 
+🔍 Strategy: Trending
+[2026-04-10T03:29:01.423Z] [INFO]    Description: Trending movies this week
+[2026-04-10T03:29:01.502Z] [SUCCESS]    Found 40 movies from TMDB
+[2026-04-10T03:29:01.502Z] [INFO] 
+🔍 Strategy: Recent High Quality
+[2026-04-10T03:29:01.502Z] [INFO]    Description: Recent releases with high ratings (2024-2025)
+[2026-04-10T03:29:01.573Z] [SUCCESS]    Found 20 movies from TMDB
+[2026-04-10T03:29:01.573Z] [INFO] 
+🔍 Strategy: Hidden Gems 2023
+[2026-04-10T03:29:01.573Z] [INFO]    Description: Quality 2023 films with low popularity
+[2026-04-10T03:29:01.634Z] [SUCCESS]    Found 20 movies from TMDB
+[2026-04-10T03:29:01.635Z] [INFO] 
+🔍 Strategy: Thriller — By Rating
+[2026-04-10T03:29:01.635Z] [INFO]    Description: Top-rated thrillers (TMDB genre 53), all eras
+[2026-04-10T03:29:01.986Z] [SUCCESS]    Found 200 movies from TMDB
+[2026-04-10T03:29:01.987Z] [INFO] 
+🔍 Strategy: Thriller — By Popularity
+[2026-04-10T03:29:01.987Z] [INFO]    Description: Popular thrillers sorted by popularity (finds different films than rating sort)
+[2026-04-10T03:29:02.301Z] [SUCCESS]    Found 200 movies from TMDB
+[2026-04-10T03:29:02.302Z] [INFO] 
+🔍 Strategy: Mystery — By Rating
+[2026-04-10T03:29:02.302Z] [INFO]    Description: Top-rated mystery films (TMDB genre 9648), all eras
+[2026-04-10T03:29:02.661Z] [SUCCESS]    Found 200 movies from TMDB
+[2026-04-10T03:29:02.662Z] [INFO] 
+🔍 Strategy: Mystery — By Popularity
+[2026-04-10T03:29:02.662Z] [INFO]    Description: Popular mystery films sorted by popularity
+[2026-04-10T03:29:02.969Z] [SUCCESS]    Found 200 movies from TMDB
+[2026-04-10T03:29:02.969Z] [INFO] 
+🔍 Strategy: Science Fiction — By Rating
+[2026-04-10T03:29:02.970Z] [INFO]    Description: Top-rated sci-fi films (TMDB genre 878), all eras
+[2026-04-10T03:29:03.275Z] [SUCCESS]    Found 200 movies from TMDB
+[2026-04-10T03:29:03.275Z] [INFO] 
+🔍 Strategy: Science Fiction — By Popularity
+[2026-04-10T03:29:03.276Z] [INFO]    Description: Popular sci-fi films sorted by popularity
+[2026-04-10T03:29:03.610Z] [SUCCESS]    Found 200 movies from TMDB
+[2026-04-10T03:29:03.611Z] [INFO] 
+🔍 Strategy: Hindi Cinema — By Rating
+[2026-04-10T03:29:03.612Z] [INFO]    Description: Top-rated Hindi films, all eras (Bollywood + arthouse)
+[2026-04-10T03:29:04.093Z] [SUCCESS]    Found 300 movies from TMDB
+[2026-04-10T03:29:04.094Z] [INFO] 
+🔍 Strategy: Hindi Cinema — By Popularity
+[2026-04-10T03:29:04.095Z] [INFO]    Description: Popular Hindi films sorted by popularity
+[2026-04-10T03:29:04.423Z] [SUCCESS]    Found 200 movies from TMDB
+[2026-04-10T03:29:04.424Z] [INFO] 
+🔍 Strategy: Tamil Cinema — By Rating
+[2026-04-10T03:29:04.425Z] [INFO]    Description: Top-rated Tamil films (Kollywood + arthouse)
+[2026-04-10T03:29:04.724Z] [SUCCESS]    Found 200 movies from TMDB
+[2026-04-10T03:29:04.724Z] [INFO] 
+🔍 Strategy: Tamil Cinema — By Popularity
+[2026-04-10T03:29:04.725Z] [INFO]    Description: Popular Tamil films sorted by popularity
+[2026-04-10T03:29:04.988Z] [SUCCESS]    Found 160 movies from TMDB
+[2026-04-10T03:29:04.990Z] [INFO] 
+🔍 Strategy: Telugu Cinema — By Rating
+[2026-04-10T03:29:04.990Z] [INFO]    Description: Top-rated Telugu films (Tollywood)
+[2026-04-10T03:29:05.245Z] [SUCCESS]    Found 160 movies from TMDB
+[2026-04-10T03:29:05.245Z] [INFO] 
+🔍 Strategy: Telugu Cinema — By Popularity
+[2026-04-10T03:29:05.246Z] [INFO]    Description: Popular Telugu films sorted by popularity
+[2026-04-10T03:29:05.493Z] [SUCCESS]    Found 160 movies from TMDB
+[2026-04-10T03:29:05.494Z] [INFO] 
+🔍 Strategy: Malayalam Cinema — By Rating
+[2026-04-10T03:29:05.494Z] [INFO]    Description: Top-rated Malayalam films (Mollywood)
+[2026-04-10T03:29:05.731Z] [SUCCESS]    Found 160 movies from TMDB
+[2026-04-10T03:29:05.732Z] [INFO] 
+🔍 Strategy: Malayalam Cinema — By Popularity
+[2026-04-10T03:29:05.732Z] [INFO]    Description: Popular Malayalam films sorted by popularity
+[2026-04-10T03:29:05.973Z] [SUCCESS]    Found 160 movies from TMDB
+[2026-04-10T03:29:05.974Z] [INFO] 
+📊 Total unique TMDB IDs found: 335
+[2026-04-10T03:29:05.974Z] [INFO] 🔎 Checking database for existing movies...
+[2026-04-10T03:29:06.723Z] [INFO] ✅ Already in database: 213
+[2026-04-10T03:29:06.724Z] [INFO] 🆕 New movies to add: 122
+[2026-04-10T03:29:06.724Z] [INFO] 
+💾 Adding new movies to database...
+[2026-04-10T03:29:07.110Z] [SUCCESS]    Inserted 122 movies (batch 1)
+[2026-04-10T03:29:07.111Z] [INFO] 
+================================================================================
+[2026-04-10T03:29:07.112Z] [INFO] 📊 DISCOVERY SUMMARY
+[2026-04-10T03:29:07.112Z] [INFO] ================================================================================
+
+[2026-04-10T03:29:07.112Z] [INFO] Strategies executed: 19/19
+[2026-04-10T03:29:07.112Z] [INFO] TMDB movies found: 2900
+[2026-04-10T03:29:07.112Z] [INFO] Unique TMDB IDs: 335
+[2026-04-10T03:29:07.112Z] [INFO] Already in database: 213
+[2026-04-10T03:29:07.112Z] [INFO] New movies added: 122
+[2026-04-10T03:29:07.112Z] [INFO] Errors: 0
+[2026-04-10T03:29:07.113Z] [INFO] TMDB API calls: 145
+[2026-04-10T03:29:07.113Z] [SUCCESS] 
+✅ Discovery complete! Run step 02 to fetch metadata.
+[2026-04-10T03:43:23.268Z] [INFO] 
+================================================================================
+[2026-04-10T03:43:23.269Z] [INFO] 🎬 DISCOVER NEW MOVIES
+[2026-04-10T03:43:23.269Z] [INFO] ================================================================================
+
+[2026-04-10T03:43:23.270Z] [INFO] Mode: LIVE
+[2026-04-10T03:43:23.270Z] [INFO] Target limit: 500 new movies
+[2026-04-10T03:43:23.270Z] [INFO] 
+🔍 Strategy: Now Playing
+[2026-04-10T03:43:23.270Z] [INFO]    Description: Currently in theaters
+[2026-04-10T03:43:23.521Z] [SUCCESS]    Found 60 movies from TMDB
+[2026-04-10T03:43:23.521Z] [INFO] 
+🔍 Strategy: Popular
+[2026-04-10T03:43:23.521Z] [INFO]    Description: Popular movies this week
+[2026-04-10T03:43:23.616Z] [SUCCESS]    Found 60 movies from TMDB
+[2026-04-10T03:43:23.616Z] [INFO] 
+🔍 Strategy: Trending
+[2026-04-10T03:43:23.616Z] [INFO]    Description: Trending movies this week
+[2026-04-10T03:43:23.722Z] [SUCCESS]    Found 40 movies from TMDB
+[2026-04-10T03:43:23.723Z] [INFO] 
+🔍 Strategy: Recent High Quality
+[2026-04-10T03:43:23.723Z] [INFO]    Description: Recent releases with high ratings (2024-2025)
+[2026-04-10T03:43:23.759Z] [SUCCESS]    Found 20 movies from TMDB
+[2026-04-10T03:43:23.759Z] [INFO] 
+🔍 Strategy: Hidden Gems 2023
+[2026-04-10T03:43:23.759Z] [INFO]    Description: Quality 2023 films with low popularity
+[2026-04-10T03:43:23.793Z] [SUCCESS]    Found 20 movies from TMDB
+[2026-04-10T03:43:23.793Z] [INFO] 
+🔍 Strategy: Korean Cinema — By Rating
+[2026-04-10T03:43:23.793Z] [INFO]    Description: Top-rated Korean films (all eras)
+[2026-04-10T03:43:24.102Z] [SUCCESS]    Found 200 movies from TMDB
+[2026-04-10T03:43:24.103Z] [INFO] 
+🔍 Strategy: Korean Cinema — By Popularity
+[2026-04-10T03:43:24.103Z] [INFO]    Description: Popular Korean films sorted by popularity
+[2026-04-10T03:43:24.370Z] [SUCCESS]    Found 160 movies from TMDB
+[2026-04-10T03:43:24.370Z] [INFO] 
+🔍 Strategy: Thriller — By Rating
+[2026-04-10T03:43:24.371Z] [INFO]    Description: Top-rated thrillers (TMDB genre 53), all eras
+[2026-04-10T03:43:24.683Z] [SUCCESS]    Found 200 movies from TMDB
+[2026-04-10T03:43:24.683Z] [INFO] 
+🔍 Strategy: Thriller — By Popularity
+[2026-04-10T03:43:24.683Z] [INFO]    Description: Popular thrillers sorted by popularity (finds different films than rating sort)
+[2026-04-10T03:43:24.989Z] [SUCCESS]    Found 200 movies from TMDB
+[2026-04-10T03:43:24.989Z] [INFO] 
+🔍 Strategy: Mystery — By Rating
+[2026-04-10T03:43:24.989Z] [INFO]    Description: Top-rated mystery films (TMDB genre 9648), all eras
+[2026-04-10T03:43:25.289Z] [SUCCESS]    Found 200 movies from TMDB
+[2026-04-10T03:43:25.289Z] [INFO] 
+🔍 Strategy: Mystery — By Popularity
+[2026-04-10T03:43:25.289Z] [INFO]    Description: Popular mystery films sorted by popularity
+[2026-04-10T03:43:25.593Z] [SUCCESS]    Found 200 movies from TMDB
+[2026-04-10T03:43:25.593Z] [INFO] 
+🔍 Strategy: Science Fiction — By Rating
+[2026-04-10T03:43:25.594Z] [INFO]    Description: Top-rated sci-fi films (TMDB genre 878), all eras
+[2026-04-10T03:43:25.915Z] [SUCCESS]    Found 200 movies from TMDB
+[2026-04-10T03:43:25.916Z] [INFO] 
+🔍 Strategy: Science Fiction — By Popularity
+[2026-04-10T03:43:25.916Z] [INFO]    Description: Popular sci-fi films sorted by popularity
+[2026-04-10T03:43:26.197Z] [SUCCESS]    Found 200 movies from TMDB
+[2026-04-10T03:43:26.197Z] [INFO] 
+🔍 Strategy: Hindi Cinema — By Rating
+[2026-04-10T03:43:26.197Z] [INFO]    Description: Top-rated Hindi films, all eras (Bollywood + arthouse)
+[2026-04-10T03:43:26.618Z] [SUCCESS]    Found 300 movies from TMDB
+[2026-04-10T03:43:26.618Z] [INFO] 
+🔍 Strategy: Hindi Cinema — By Popularity
+[2026-04-10T03:43:26.619Z] [INFO]    Description: Popular Hindi films sorted by popularity
+[2026-04-10T03:43:26.919Z] [SUCCESS]    Found 200 movies from TMDB
+[2026-04-10T03:43:26.920Z] [INFO] 
+🔍 Strategy: Tamil Cinema — By Rating
+[2026-04-10T03:43:26.920Z] [INFO]    Description: Top-rated Tamil films (Kollywood + arthouse)
+[2026-04-10T03:43:27.223Z] [SUCCESS]    Found 200 movies from TMDB
+[2026-04-10T03:43:27.223Z] [INFO] 
+🔍 Strategy: Tamil Cinema — By Popularity
+[2026-04-10T03:43:27.223Z] [INFO]    Description: Popular Tamil films sorted by popularity
+[2026-04-10T03:43:27.460Z] [SUCCESS]    Found 160 movies from TMDB
+[2026-04-10T03:43:27.461Z] [INFO] 
+🔍 Strategy: Telugu Cinema — By Rating
+[2026-04-10T03:43:27.462Z] [INFO]    Description: Top-rated Telugu films (Tollywood)
+[2026-04-10T03:43:27.704Z] [SUCCESS]    Found 160 movies from TMDB
+[2026-04-10T03:43:27.705Z] [INFO] 
+🔍 Strategy: Telugu Cinema — By Popularity
+[2026-04-10T03:43:27.705Z] [INFO]    Description: Popular Telugu films sorted by popularity
+[2026-04-10T03:43:28.065Z] [SUCCESS]    Found 160 movies from TMDB
+[2026-04-10T03:43:28.066Z] [INFO] 
+🔍 Strategy: Malayalam Cinema — By Rating
+[2026-04-10T03:43:28.067Z] [INFO]    Description: Top-rated Malayalam films (Mollywood)
+[2026-04-10T03:43:28.299Z] [SUCCESS]    Found 160 movies from TMDB
+[2026-04-10T03:43:28.300Z] [INFO] 
+🔍 Strategy: Malayalam Cinema — By Popularity
+[2026-04-10T03:43:28.300Z] [INFO]    Description: Popular Malayalam films sorted by popularity
+[2026-04-10T03:43:28.536Z] [SUCCESS]    Found 160 movies from TMDB
+[2026-04-10T03:43:28.536Z] [INFO] 
+📊 Total unique TMDB IDs found: 362
+[2026-04-10T03:43:28.536Z] [INFO] 🔎 Checking database for existing movies...
+[2026-04-10T03:43:28.745Z] [INFO] ✅ Already in database: 358
+[2026-04-10T03:43:28.746Z] [INFO] 🆕 New movies to add: 4
+[2026-04-10T03:43:28.746Z] [INFO] 
+💾 Adding new movies to database...
+[2026-04-10T03:43:28.918Z] [SUCCESS]    Inserted 4 movies (batch 1)
+[2026-04-10T03:43:28.918Z] [INFO] 
+================================================================================
+[2026-04-10T03:43:28.918Z] [INFO] 🗺️  CATALOG COVERAGE AUDIT
+[2026-04-10T03:43:28.918Z] [INFO] ================================================================================
+
+[2026-04-10T03:43:29.726Z] [INFO] Genre coverage:
+[2026-04-10T03:43:29.727Z] [INFO]   ⚠️  Thriller: 243 / 400 target
+[2026-04-10T03:43:29.727Z] [INFO]   ⚠️  Mystery: 69 / 200 target
+[2026-04-10T03:43:29.727Z] [INFO]   ⚠️  Science Fiction: 188 / 350 target
+[2026-04-10T03:43:29.728Z] [INFO]   ⚠️  Horror: 326 / 400 target
+[2026-04-10T03:43:29.728Z] [INFO] Language coverage:
+[2026-04-10T03:43:29.728Z] [INFO]   ⚠️  hi: 59 / 200 target
+[2026-04-10T03:43:29.728Z] [INFO]   ⚠️  ta: 26 / 150 target
+[2026-04-10T03:43:29.728Z] [INFO]   ⚠️  te: 29 / 150 target
+[2026-04-10T03:43:29.728Z] [INFO]   ⚠️  ml: 23 / 150 target
+[2026-04-10T03:43:29.728Z] [INFO]   ⚠️  ko: 203 / 300 target
+[2026-04-10T03:43:29.728Z] [INFO] 
+================================================================================
+[2026-04-10T03:43:29.728Z] [INFO] 📊 DISCOVERY SUMMARY
+[2026-04-10T03:43:29.728Z] [INFO] ================================================================================
+
+[2026-04-10T03:43:29.729Z] [INFO] Strategies executed: 21/21
+[2026-04-10T03:43:29.729Z] [INFO] TMDB movies found: 3260
+[2026-04-10T03:43:29.729Z] [INFO] Unique TMDB IDs: 362
+[2026-04-10T03:43:29.729Z] [INFO] Already in database: 358
+[2026-04-10T03:43:29.729Z] [INFO] New movies added: 4
+[2026-04-10T03:43:29.729Z] [INFO] Errors: 0
+[2026-04-10T03:43:29.729Z] [INFO] TMDB API calls: 163
+[2026-04-10T03:43:29.729Z] [SUCCESS] 
+✅ Discovery complete! Run step 02 to fetch metadata.

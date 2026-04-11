@@ -754,8 +754,23 @@ export function useQuickWatches(options = {}) {
 
 /**
  * Hook: Mood-specific recommendations (used outside HomePage)
+ * @param {number|null} moodId
+ * @param {number} viewingContext - 1=Solo, 2=Partner, 3=Friends, 4=Family, 5=Group
+ * @param {number} experienceType - 1=Discover, 2=Rewatch, 3=Nostalgia, 4=Learn, 5=Challenge
+ * @param {number} intensity - user dial value 1–5
+ * @param {number} pacing - user dial value 1–5
+ * @param {string} timeOfDay - 'morning'|'afternoon'|'evening'|'night'
+ * @param {number} limit
  */
-export function useRecommendations(moodId, viewingContext, experienceType, limit = 20) {
+export function useRecommendations(
+  moodId,
+  viewingContext,
+  experienceType,
+  intensity,
+  pacing,
+  timeOfDay,
+  limit = 20,
+) {
   const auth = useAuthState()
   const userId = auth.userId
   const authReady = auth.ready
@@ -784,17 +799,26 @@ export function useRecommendations(moodId, viewingContext, experienceType, limit
         const recommendations = await recommendationService.getMoodRecommendations(userId, moodId, {
           limit,
           signal: controller.signal,
+          intensity,
+          pacing,
+          viewingContext,
+          experienceType,
+          timeOfDay,
         })
 
-        // Transform TMDB format to match existing Discover expectations
+        // Movies now come from internal movies table — map to the Discover result shape.
+        // final_score and match_percentage are computed by the scoring pipeline.
         const transformedData = (recommendations || []).map((movie) => ({
-          movie_id: movie.id,
-          tmdb_id: movie.id,
+          movie_id: movie.id ?? movie.movie_id,
+          tmdb_id: movie.tmdb_id,
           title: movie.title,
           poster_path: movie.poster_path,
-          vote_average: movie.vote_average,
-          final_score: movie.popularity || 0,
-          match_percentage: Math.min(99, Math.round(70 + (movie.vote_average || 0) * 3)),
+          vote_average: movie.ff_final_rating ?? movie.ff_rating ?? movie.vote_average,
+          release_date: movie.release_date,
+          overview: movie.overview,
+          final_score: movie.final_score ?? 0,
+          match_percentage: movie.match_percentage ?? 70,
+          _recommendationMeta: movie._recommendationMeta,
         }))
 
         setData(transformedData)
@@ -811,7 +835,7 @@ export function useRecommendations(moodId, viewingContext, experienceType, limit
     fetchRecommendations()
 
     return () => controller.abort()
-  }, [userId, authReady, moodId, viewingContext, experienceType, limit])
+  }, [userId, authReady, moodId, viewingContext, experienceType, intensity, pacing, timeOfDay, limit])
 
   return {
     recommendations: data,

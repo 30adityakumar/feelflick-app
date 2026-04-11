@@ -3291,98 +3291,297 @@ export async function getHistoryBasedRecommendations(userId, options = {}) {
   }
 }
 
+// ============================================================================
+// DISCOVER MOOD ENGINE — scoring pipeline
+// ============================================================================
+
+// Module-level cache for mood genre weights (session-scoped, cleared on module reload)
+const moodWeightsCache = new Map()
+
 /**
- * Get mood-personalized recommendations
- * Combines mood genre mapping with user preferences
+ * Load genre weights for a given discover mood ID from the DB.
+ * Uses a module-level Map so the DB is hit at most once per mood per tab session.
+ * @param {number} moodId
+ * @returns {Promise<Array<{genre_id: number, weight: number, pacing_min: number|null, pacing_max: number|null, intensity_min: number|null, intensity_max: number|null}>>}
  */
-export async function getMoodRecommendations(userId, moodId, options = {}) {
-  const { limit = 20, signal } = options
+async function loadMoodGenreWeights(moodId) {
+  if (moodWeightsCache.has(moodId)) return moodWeightsCache.get(moodId)
+  const { data, error } = await supabase
+    .from('discover_mood_genre_weights')
+    .select('genre_id, weight, pacing_min, pacing_max, intensity_min, intensity_max')
+    .eq('mood_id', moodId)
+  if (error || !data || data.length === 0) return []
+  moodWeightsCache.set(moodId, data)
+  return data
+}
+
+/**
+ * Per-mood bonuses for each viewing context (viewingContextId → moodId → points).
+ * Context IDs: 1=Solo, 2=Partner, 3=Friends, 4=Family, 5=Group
+ * Mood IDs (discover): 1=Cozy, 2=Adventurous, 3=Futuristic, 4=Thoughtful, 5=Whimsical,
+ *   6=Enlightened, 7=Musical, 8=Romantic, 9=Suspenseful, 10=Silly, 11=Dark, 12=Nostalgic
+ */
+const CONTEXT_MODIFIERS = {
+  1: { 1: 8, 2: 5, 3: 5, 4: 12, 5: 5, 6: 15, 7: 5, 8: 5, 9: 12, 10: 5, 11: 15, 12: 10 }, // Solo
+  2: { 1: 10, 2: 5, 3: 8, 4: 8, 5: 10, 6: 5, 7: 12, 8: 15, 9: 10, 10: 10, 11: 5, 12: 10 }, // Partner
+  3: { 1: 5, 2: 12, 3: 10, 4: 5, 5: 8, 6: 5, 7: 15, 8: 5, 9: 8, 10: 15, 11: 8, 12: 8 },   // Friends
+  4: { 1: 15, 2: 8, 3: 5, 4: 5, 5: 15, 6: 8, 7: 10, 8: 5, 9: 5, 10: 12, 11: -10, 12: 12 }, // Family
+  5: { 1: 8, 2: 15, 3: 10, 4: 5, 5: 10, 6: 5, 7: 15, 8: 5, 9: 5, 10: 15, 11: 5, 12: 8 },  // Group
+}
+
+/**
+ * Per-experience-type bonus functions (experienceTypeId → (movie) => points).
+ * Experience IDs: 1=Discover, 2=Rewatch, 3=Nostalgia, 4=Learn, 5=Challenge
+ */
+const EXPERIENCE_MODIFIERS = {
+  1: (movie) => (Number(movie.discovery_potential || 0) >= 60 ? 15 : 0),
+  2: (movie) => (Number(movie.ff_final_rating || movie.ff_rating || 0) >= 8.0 ? 10 : 0),
+  3: (movie) => ((movie.release_year || 9999) < 2000 ? 15 : 0),
+  4: (movie) => {
+    const genres = (movie.genres || []).map(extractGenreId)
+    return genres.includes(99) || genres.includes(36) ? 15 : 0
+  },
+  5: (movie) => (
+    Number(movie.attention_demand || 0) >= 70 || Number(movie.emotional_depth_score || 0) >= 70 ? 10 : 0
+  ),
+}
+
+/**
+ * Small time-of-day bonus for contextually matched mood/time pairs.
+ * @param {number} moodId
+ * @param {string} timeOfDay - 'morning' | 'afternoon' | 'evening' | 'night'
+ * @returns {number}
+ */
+function getTimeOfDayBonus(moodId, timeOfDay) {
+  const pairs = {
+    morning: [1, 5, 10],    // Cozy, Whimsical, Silly
+    afternoon: [2, 3, 6],   // Adventurous, Futuristic, Enlightened
+    evening: [4, 7, 8, 12], // Thoughtful, Musical, Romantic, Nostalgic
+    night: [9, 11],         // Suspenseful, Dark & Intense
+  }
+  return (pairs[timeOfDay] || []).includes(moodId) ? 5 : 0
+}
+
+/**
+ * Score how well a movie matches the current mood session parameters.
+ * Returns a score 0–100, additive on top of the user profile score.
+ *
+ * @param {Object} movie - Internal movies table row
+ * @param {number} moodId - Discover mood ID (1–12)
+ * @param {Array} moodWeights - Rows from discover_mood_genre_weights for this moodId
+ * @param {{intensity: number, pacing: number, viewingContext: number, experienceType: number, timeOfDay: string}} params
+ * @returns {number}
+ */
+export function scoreMoodAffinity(movie, moodId, moodWeights, params) {
+  const { intensity, pacing, viewingContext, experienceType, timeOfDay } = params
+  let score = 0
+
+  // 1. GENRE AFFINITY via mood_genre_weights (max 40 pts)
+  const movieGenres = (movie.genres || []).map(extractGenreId).filter(Boolean)
+  let genreScore = 0
+  for (const w of moodWeights) {
+    if (movieGenres.includes(w.genre_id)) {
+      genreScore += w.weight * 15
+    }
+  }
+  score += Math.min(40, genreScore)
+
+  // 2. PACING ALIGNMENT — dial 1–5 maps to 0–100, penalty up to -20
+  if (movie.pacing_score != null && pacing != null) {
+    const targetPacing = (pacing / 5) * 100
+    const diff = Math.abs(Number(movie.pacing_score) - targetPacing)
+    score += Math.max(-20, -(diff / 5))
+  }
+
+  // 3. INTENSITY ALIGNMENT — dial 1–5 maps to 0–100, penalty up to -20
+  if (movie.intensity_score != null && intensity != null) {
+    const targetIntensity = (intensity / 5) * 100
+    const diff = Math.abs(Number(movie.intensity_score) - targetIntensity)
+    score += Math.max(-20, -(diff / 5))
+  }
+
+  // 4. VIEWING CONTEXT modifier (up to +15)
+  score += CONTEXT_MODIFIERS[viewingContext]?.[moodId] ?? 0
+
+  // 5. EXPERIENCE TYPE modifier (up to +15)
+  score += EXPERIENCE_MODIFIERS[experienceType]?.(movie) ?? 0
+
+  // 6. TIME OF DAY small boost (+5)
+  score += getTimeOfDayBonus(moodId, timeOfDay)
+
+  return Math.max(0, Math.min(100, score))
+}
+
+// Select fields mirroring the homepage engine candidate query
+const MOOD_SELECT_FIELDS = `
+  id, tmdb_id, title, overview, tagline,
+  original_language, runtime, release_year, release_date,
+  poster_path, backdrop_path,
+  ff_rating, ff_final_rating, ff_rating_genre_normalized, ff_confidence,
+  vote_average, popularity,
+  pacing_score, intensity_score, emotional_depth_score,
+  dialogue_density, attention_demand, vfx_level_score,
+  discovery_potential, accessibility_score, polarization_score, starpower_score,
+  genres, keywords, director_name, lead_actor_name
+`
+
+/**
+ * Fetch candidate movies from the internal movies table for a given mood.
+ * Candidates are scored by the caller — this function only retrieves a pool.
+ * Falls back to TMDB discoverMovies if the internal pool is too small.
+ *
+ * @param {number} moodId
+ * @param {Array} moodWeights - rows from discover_mood_genre_weights
+ * @param {Object} profile - computeUserProfile result (for language guard)
+ * @param {{intensity: number|null, pacing: number|null, signal: AbortSignal|null}} params
+ * @returns {Promise<Array>} - array of movies table rows
+ */
+async function fetchMoodCandidates(moodId, moodWeights, profile, params = {}) {
+  const { signal } = params
+
+  // Quality and recency floors (looser than hero to ensure variety across moods)
+  const minNorm = 6.5
+  const minConf = 40
+
+  // Language guard from user profile (reuse homepage engine's language detection)
+  const langGuard = profile?.language || null
+  const allowedLanguages = langGuard?.allowedLanguages || []
 
   try {
-    // 1. Get mood-genre mapping
-    // eslint-disable-next-line no-use-before-define
-    const moodGenres = MOOD_GENRE_MAP[moodId]
-    if (!moodGenres) {
-      console.warn(`[Recommendations] No genre mapping for mood ${moodId}`)
-      return []
+    let query = supabase
+      .from('movies')
+      .select(MOOD_SELECT_FIELDS)
+      .eq('is_valid', true)
+      .not('poster_path', 'is', null)
+      .not('tmdb_id', 'is', null)
+      .gte('ff_rating_genre_normalized', minNorm)
+      .gte('ff_confidence', minConf)
+      .order('ff_rating_genre_normalized', { ascending: false })
+      .limit(300)
+
+    // Apply language guard when profile has a strong language preference
+    if (allowedLanguages.length === 1) {
+      query = query.eq('original_language', allowedLanguages[0])
+    } else if (allowedLanguages.length > 1 && allowedLanguages.length <= 4) {
+      query = query.in('original_language', allowedLanguages)
     }
 
-    // 2. Get user preferences to personalize within mood
-    const { data: preferences } = await supabase
-      .from('user_preferences')
-      .select('genre_id')
-      .eq('user_id', userId)
-
-    const userGenres = preferences ? preferences.map(p => p.genre_id) : []
-
-    // 3. Find intersection of mood genres and user preferences
-    const personalizedGenres = moodGenres.filter(g => userGenres.includes(g))
-    const genresToUse = personalizedGenres.length > 0 ? personalizedGenres : moodGenres
-
-    console.log(`[Recommendations] Mood ${moodId} using genres:`, genresToUse)
-
-    // 4. Get watched movies for exclusion
-    const { data: watchedMovies } = await supabase
-      .from('user_history')
-      .select('movie_id')
-      .eq('user_id', userId)
-
-    const watchedTmdbIds = new Set()
-    if (watchedMovies && watchedMovies.length > 0) {
-      const { data: movies } = await supabase
-        .from('movies')
-        .select('tmdb_id')
-        .in('id', watchedMovies.map(m => m.movie_id))
-      
-      if (movies) {
-        movies.forEach(m => watchedTmdbIds.add(m.tmdb_id))
-      }
+    // Mood 12 (Nostalgic): restrict to pre-2000 releases
+    if (moodId === 12) {
+      query = query.lte('release_year', 2000)
     }
 
-    // 5. Fetch from TMDB
+    const { data, error } = await query
+    if (error) throw error
+
+    const pool = data || []
+
+    // Filter client-side: keep movies that match at least one mood genre
+    const moodGenreIds = new Set(moodWeights.map(w => w.genre_id))
+    const matched = pool.filter(movie => {
+      const genreIds = (movie.genres || []).map(extractGenreId).filter(Boolean)
+      return genreIds.some(id => moodGenreIds.has(id))
+    })
+
+    if (matched.length >= 15) return matched
+
+    // Fallback: if internal pool too small, use TMDB (old behaviour)
+    console.warn(`[Discover] Internal pool too small (${matched.length}) for mood ${moodId}, falling back to TMDB`)
+    const fallbackGenres = [...moodGenreIds].join(',')
     const response = await tmdb.discoverMovies({
-      genreIds: genresToUse.join(','),
+      genreIds: fallbackGenres,
       sortBy: 'popularity.desc',
       voteAverageGte: 6.0,
       page: 1,
       signal,
     })
-
-    if (!response.results || response.results.length === 0) {
-      return []
-    }
-
-    // 6. Filter and return
-    const recommendations = response.results
-      .filter(movie => !watchedTmdbIds.has(movie.id) && movie.poster_path)
-      .slice(0, limit)
-
-    console.log(`[Recommendations] Generated ${recommendations.length} mood-based recommendations`)
-    
-    return recommendations
+    return response?.results || []
   } catch (error) {
-    console.error('[Recommendations] Mood recommendations failed:', error)
+    if (error.name === 'AbortError') throw error
+    console.error('[Discover] fetchMoodCandidates failed:', error)
     return []
   }
 }
 
 /**
- * Mood to Genre mapping
- * Maps mood IDs to TMDB genre IDs for personalized filtering
+ * Get mood-personalized recommendations using the homepage scoring engine.
+ * Combines 16-dimension user profile score with mood affinity scoring.
+ * Results are cached for 5 minutes per (userId, moodId, context, experience) combination.
+ *
+ * @param {string} userId
+ * @param {number} moodId - Discover mood ID (1–12)
+ * @param {{limit?: number, signal?: AbortSignal, intensity?: number, pacing?: number,
+ *          viewingContext?: number, experienceType?: number, timeOfDay?: string}} options
+ * @returns {Promise<Array<{movie_id, tmdb_id, title, poster_path, vote_average, release_date,
+ *           overview, final_score, match_percentage, _recommendationMeta}>>}
  */
-export const MOOD_GENRE_MAP = {
-  1: [35, 10751, 10749], // Cozy Tonight = Comedy + Family + Romance
-  2: [12, 28, 14], // Adventurous = Adventure + Action + Fantasy
-  8: [10749, 18], // Romantic = Romance + Drama
-  10: [35, 16, 10751], // Silly & Fun = Comedy + Animation + Family
-  11: [27, 53, 80, 9648], // Dark & Intense = Horror + Thriller + Crime + Mystery
-  3: [878, 14, 12], // Futuristic = Sci-Fi + Fantasy + Adventure
-  4: [18, 36, 10752], // Thoughtful = Drama + History + War
-  5: [16, 10751, 14], // Whimsical = Animation + Family + Fantasy
-  6: [99, 36], // Documentary + History
-  7: [10402, 18], // Musical + Drama
-  9: [53, 9648, 80], // Suspenseful = Thriller + Mystery + Crime
+export async function getMoodRecommendations(userId, moodId, options = {}) {
+  const {
+    limit = 20,
+    signal,
+    intensity = 3,
+    pacing = 3,
+    viewingContext = 1,
+    experienceType = 1,
+    timeOfDay = 'evening',
+  } = options
+
+  const cacheKey = recommendationCache.key('mood', userId, { moodId, viewingContext, experienceType })
+
+  return recommendationCache.getOrFetch(cacheKey, async () => {
+    try {
+      // 1. Load genre weights from DB (cached in memory after first load)
+      const weights = await loadMoodGenreWeights(moodId)
+      if (weights.length === 0) {
+        console.warn(`[Discover] No genre weights for mood ${moodId}`)
+        return []
+      }
+
+      // 2. Compute user profile (reuses 60s memory cache from homepage engine)
+      const profile = await computeUserProfile(userId)
+
+      // 3. Fetch candidates from internal movies table (or TMDB fallback)
+      const candidates = await fetchMoodCandidates(moodId, weights, profile, { signal })
+      if (candidates.length === 0) return []
+
+      // 4. Get watched movie IDs for exclusion
+      const { data: watchedRows } = await supabase
+        .from('user_history')
+        .select('movie_id')
+        .eq('user_id', userId)
+      const watchedIds = new Set((watchedRows || []).map(r => r.movie_id))
+
+      // 5. Score each candidate
+      const moodParams = { intensity, pacing, viewingContext, experienceType, timeOfDay }
+      const scored = candidates
+        .filter(movie => movie?.id && movie.tmdb_id && !watchedIds.has(movie.id))
+        .map(movie => {
+          const userResult = scoreMovieForUser(movie, profile, 'mood')
+          const moodScore = scoreMoodAffinity(movie, moodId, weights, moodParams)
+          const combined = (0.55 * userResult.score) + (0.45 * moodScore)
+          return { movie, combined, userScore: userResult.score, moodScore }
+        })
+        .sort((a, b) => b.combined - a.combined)
+        .slice(0, limit)
+
+      if (scored.length === 0) return []
+
+      // 6. Normalize match_percentage against the top score in this result set
+      const maxCombined = scored[0].combined || 1
+      return scored.map(({ movie, combined, userScore, moodScore }, i) => ({
+        ...movie,
+        final_score: Math.round(combined),
+        match_percentage: Math.min(99, Math.round(65 + (combined / maxCombined) * 34)),
+        _recommendationMeta: { rank: i + 1, userScore, moodScore },
+      }))
+    } catch (error) {
+      if (error.name === 'AbortError') throw error
+      console.error('[Discover] getMoodRecommendations failed:', error)
+      return []
+    }
+  }, { ttl: 5 * 60 * 1000 })
 }
+
 
 /**
  * Get fallback recommendations when user has no data

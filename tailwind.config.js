@@ -186,6 +186,9 @@ export default {
         'shimmer': 'shimmer 2s ease-in-out infinite',
         'bounce-slow': 'bounce 2s ease-in-out infinite',
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'float-orb': 'float-orb 8s ease-in-out infinite',
+        'float-orb-2': 'float-orb 8s ease-in-out 2.7s infinite',
+        'float-orb-3': 'float-orb 8s ease-in-out 5.1s infinite',
         'scroll-left': 'scroll-left 60s linear infinite',
         'scroll-right': 'scroll-right 60s linear infinite',
       },
@@ -222,6 +225,10 @@ export default {
         'scroll-right': {
           '0%': { transform: 'translateX(-33.33%)' },
           '100%': { transform: 'translateX(0)' },
+        },
+        'float-orb': {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-30px)' },
         },
       },
       

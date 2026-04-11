@@ -5,6 +5,7 @@ import { Heart, ThumbsUp, Meh, ThumbsDown, X, AlertCircle, Check } from 'lucide-
 import { supabase } from '@/shared/lib/supabase/client'
 import { ensureMovieInDb } from '@/shared/lib/movies/ensureMovieInDb'
 import StarRating from '@/shared/components/StarRating'
+import { useReflectionPrompt } from '@/shared/hooks/useReflectionPrompt'
 
 const SENTIMENTS = [
   {
@@ -102,9 +103,12 @@ export default function MovieSentimentWidget({
   const [sentiment, setSentiment]         = useState(initialSentiment)
   const [viewingContext, setViewingContext] = useState(initialViewingContext)
   const [whatStoodOut, setWhatStoodOut]   = useState(initialWhatStoodOut)
+  const [reflectionText, setReflectionText] = useState('')
   const [submitting, setSubmitting]       = useState(false)
   const [submitted, setSubmitted]         = useState(false)
   const [error, setError]                 = useState(null)
+
+  const { prompt: aiPrompt, loading: promptLoading } = useReflectionPrompt(movie?.id ?? null)
 
   const toggleTag = (tag, list, setter) =>
     setter(list.includes(tag) ? list.filter(t => t !== tag) : [...list, tag])
@@ -146,6 +150,18 @@ export default function MovieSentimentWidget({
             what_stood_out:       whatStoodOut.length > 0 ? whatStoodOut : null,
           }, { onConflict: 'user_id,movie_id', ignoreDuplicates: false })
         if (feedbackErr) throw feedbackErr
+      }
+
+      // 3. Save reflection response → user_movie_sentiment (best-effort)
+      if (reflectionText.trim()) {
+        await supabase
+          .from('user_movie_sentiment')
+          .upsert({
+            user_id:       user.id,
+            movie_id:      internalId,
+            sentiment:     sentiment ?? 'meh',
+            text_feedback: reflectionText.trim(),
+          }, { onConflict: 'user_id,movie_id' })
       }
 
       setSubmitted(true)
@@ -243,6 +259,25 @@ export default function MovieSentimentWidget({
                   placeholder="What did you think? Any thoughts worth remembering…"
                   rows={3}
                   className="w-full bg-white/[0.03] border border-white/8 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 resize-none focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/10 transition-all"
+                />
+              </div>
+
+              {/* ── AI Reflection ── */}
+              <div className="space-y-2">
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-white/35">
+                  Reflect <span className="normal-case font-normal">(optional)</span>
+                </p>
+                <p className="min-h-[1.4em] text-sm text-white/55">
+                  {promptLoading
+                    ? <span className="animate-pulse text-white/25">Reflecting on this one…</span>
+                    : (aiPrompt ?? 'What stayed with you after the credits?')}
+                </p>
+                <textarea
+                  value={reflectionText}
+                  onChange={e => setReflectionText(e.target.value.slice(0, 300))}
+                  placeholder="Your thoughts…"
+                  rows={2}
+                  className="w-full resize-none rounded-xl border border-white/8 bg-white/[0.03] px-4 py-3 text-sm text-white placeholder-white/20 focus:border-purple-500/40 focus:outline-none focus:ring-2 focus:ring-purple-500/10 transition-all"
                 />
               </div>
 

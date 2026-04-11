@@ -173,3 +173,4 @@ export function useAIMoodContext({
 
   return { narration, narrationDone, explanations, rerankedOrder, loading, error }
 }
+}

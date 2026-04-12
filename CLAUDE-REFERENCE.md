@@ -30,7 +30,6 @@ Node.js v20.20.2 via nvm · npm v10.8.2 · gh CLI v2.71.0 · Claude Code v2.1.87
 nvm sourced in `~/.zshrc` — available in every terminal.
 
 ```bash
-cp env.example .env   # fill in keys
 npm install
 npm run dev           # binds to all interfaces, port 5173
 ```

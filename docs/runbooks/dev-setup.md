@@ -20,7 +20,6 @@ git clone https://github.com/30adityakumar/feelflick-app
 cd feelflick-app
 
 # 2. Environment variables
-cp env.example .env
 # Fill in: VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, VITE_TMDB_API_KEY, VITE_ADMIN_EMAILS
 # OpenAI key is server-side only — NEVER add VITE_OPENAI_*
 

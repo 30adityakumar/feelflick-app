@@ -32,7 +32,6 @@ const SYSTEM_PROMPT = `You are FeelFlick's emotional film curator.
 You match movies to human emotions with precision and poetry.
 Never be generic. Every explanation should feel personal and specific.
 When scoring: 95-100 = transcendent match, 80-94 = strong match,
-<<<<<<< HEAD
 65-79 = good match, below 65 = passable but included.
 
 CRITICAL OUTPUT ORDER — you must strictly follow this sequence:
@@ -49,9 +48,6 @@ const PARSE_SYSTEM_PROMPT = `You are FeelFlick's mood signal parser.
 Extract numerical dial values from a user's freeform mood description.
 Respond ONLY with valid JSON — no markdown, no explanation, no preamble.
 All values must be integers in the range 1–5.`
-=======
-65-79 = good match, below 65 = passable but included.`
->>>>>>> origin/main
 
 interface MovieInput {
   tmdbId: number
@@ -60,10 +56,7 @@ interface MovieInput {
 }
 
 interface RequestBody {
-<<<<<<< HEAD
   action?: 'parse'
-=======
->>>>>>> origin/main
   mood: string
   context: string
   experience: string
@@ -72,11 +65,8 @@ interface RequestBody {
   timeOfDay: string
   movies: MovieInput[]
   moodId?: number
-<<<<<<< HEAD
   freeText?: string
   top3Genres?: string[]
-=======
->>>>>>> origin/main
 }
 
 Deno.serve(async (req: Request) => {
@@ -108,7 +98,6 @@ Deno.serve(async (req: Request) => {
     return new Response('Bad Request', { status: 400, headers })
   }
 
-<<<<<<< HEAD
   // ── action: 'parse' — synchronous dial extraction ────────────────────────
   if (body.action === 'parse') {
     const moodName = body.mood ?? ''
@@ -159,19 +148,13 @@ Respond ONLY with this JSON (no other text):
   // ─────────────────────────────────────────────────────────────────────────
 
   const { mood, context, experience, intensity, pacing, timeOfDay, movies, moodId: _moodId, top3Genres } = body
-=======
-  const { mood, context, experience, intensity, pacing, timeOfDay, movies, moodId: _moodId } = body
->>>>>>> origin/main
 
   const movieList = movies
     .map((m, i) => `${i + 1}. "${m.title}" (rating: ${m.vote_average}/10, tmdbId: ${m.tmdbId})`)
     .join('\n')
 
-<<<<<<< HEAD
   const top3GenresStr = Array.isArray(top3Genres) ? top3Genres.join(', ') : ''
 
-=======
->>>>>>> origin/main
   const userMessage = `Mood: ${mood}
 Watching with: ${context}
 Wants to: ${experience}
@@ -183,7 +166,6 @@ ${movieList}
 First, write a 1-2 sentence loading narration (max 40 words, second-person, poetic, cinematic — do NOT mention any movie titles).
 Then write exactly this on its own line: ---EXPLANATIONS---
 Then write a JSON array, in the exact same order as the movies above:
-<<<<<<< HEAD
 [{"movieId":<tmdbId>,"explanation":"<12 words or fewer, must mention the mood by name>","score":<0-100>}]
 Then write exactly this on its own line: ---RERANKED---
 Then write a JSON array of ONLY the tmdbIds, re-ordered from best to worst match for this exact mood + context combination. Consider: genre alignment with mood, pacing match to dial (${pacing}/5), intensity match to dial (${intensity}/5), thematic resonance with time of day (${timeOfDay}), and viewing context (${context}). User's top genres: ${top3GenresStr}
@@ -191,22 +173,12 @@ Example: [12345,67890,11111]`
 
   const stream = await openai.chat.completions.create({
     model: 'gpt-4.1-mini',
-=======
-[{"movieId":<tmdbId>,"explanation":"<12 words or fewer, must mention the mood by name>","score":<0-100>}]`
-
-  const stream = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
->>>>>>> origin/main
     messages: [
       { role: 'system', content: SYSTEM_PROMPT },
       { role: 'user', content: userMessage },
     ],
     stream: true,
-<<<<<<< HEAD
     max_tokens: 900,
-=======
-    max_tokens: 600,
->>>>>>> origin/main
     temperature: 0.8,
   })
 

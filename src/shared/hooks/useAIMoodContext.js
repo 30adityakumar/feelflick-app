@@ -4,34 +4,21 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
 const EDGE_FN_URL = SUPABASE_URL ? `${SUPABASE_URL}/functions/v1/ai-mood-context` : null
 
-<<<<<<< HEAD
 const DELIMITER_EXPL   = '---EXPLANATIONS---'
 const DELIMITER_RERANK = '---RERANKED---'
 
 /**
  * Streams AI mood narration + per-movie explanations + re-ranked order from the Edge Function.
-=======
-const DELIMITER = '---EXPLANATIONS---'
-
-/**
- * Streams AI mood narration + per-movie explanations from the Edge Function.
->>>>>>> origin/main
  * Silently falls back on any failure — never breaks the main recommendations flow.
  *
  * @param {{ mood: string|null, context: string|null, experience: string|null,
  *           intensity: number, pacing: number, timeOfDay: string,
  *           movies: Array<{tmdbId: number, title: string, vote_average: number}>,
-<<<<<<< HEAD
  *           top3Genres?: string[],
  *           enabled: boolean }} params
  * @returns {{ narration: string, narrationDone: boolean,
  *             explanations: Map<number, {explanation: string, score: number}>,
  *             rerankedOrder: number[]|null,
-=======
- *           enabled: boolean }} params
- * @returns {{ narration: string, narrationDone: boolean,
- *             explanations: Map<number, {explanation: string, score: number}>,
->>>>>>> origin/main
  *             loading: boolean, error: string|null }}
  */
 export function useAIMoodContext({
@@ -42,25 +29,15 @@ export function useAIMoodContext({
   pacing,
   timeOfDay,
   movies,
-<<<<<<< HEAD
   top3Genres,
   enabled,
 }) {
-  const [narration, setNarration]       = useState('')
-  const [narrationDone, setNarrationDone] = useState(false)
-  const [explanations, setExplanations] = useState(() => new Map())
-  const [rerankedOrder, setRerankedOrder] = useState(null)
-  const [loading, setLoading]           = useState(false)
-  const [error, setError]               = useState(null)
-=======
-  enabled,
-}) {
-  const [narration, setNarration] = useState('')
-  const [narrationDone, setNarrationDone] = useState(false)
-  const [explanations, setExplanations] = useState(() => new Map())
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
->>>>>>> origin/main
+  const [narration, setNarration]           = useState('')
+  const [narrationDone, setNarrationDone]   = useState(false)
+  const [explanations, setExplanations]     = useState(() => new Map())
+  const [rerankedOrder, setRerankedOrder]   = useState(null)
+  const [loading, setLoading]               = useState(false)
+  const [error, setError]                   = useState(null)
 
   const abortRef = useRef(null)
 
@@ -74,10 +51,7 @@ export function useAIMoodContext({
     setNarration('')
     setNarrationDone(false)
     setExplanations(new Map())
-<<<<<<< HEAD
     setRerankedOrder(null)
-=======
->>>>>>> origin/main
     setLoading(true)
     setError(null)
 
@@ -89,14 +63,10 @@ export function useAIMoodContext({
             'Content-Type': 'application/json',
             Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
           },
-<<<<<<< HEAD
           body: JSON.stringify({
             mood, context, experience, intensity, pacing, timeOfDay, movies,
             top3Genres: top3Genres ?? [],
           }),
-=======
-          body: JSON.stringify({ mood, context, experience, intensity, pacing, timeOfDay, movies }),
->>>>>>> origin/main
           signal: controller.signal,
         })
 
@@ -104,18 +74,12 @@ export function useAIMoodContext({
 
         const reader = res.body.getReader()
         const decoder = new TextDecoder()
-<<<<<<< HEAD
 
         // Parser state: NARRATION → EXPLANATIONS → RERANKED
         let state = 'NARRATION'
         let narrationBuffer = ''
         let expBuffer = ''
         let rerankBuffer = ''
-=======
-        let buffer = ''
-        let delimiterFound = false
-        let expBuffer = ''
->>>>>>> origin/main
 
         while (true) {
           const { done, value } = await reader.read()
@@ -123,7 +87,6 @@ export function useAIMoodContext({
 
           const chunk = decoder.decode(value, { stream: true })
 
-<<<<<<< HEAD
           if (state === 'NARRATION') {
             narrationBuffer += chunk
             const idx = narrationBuffer.indexOf(DELIMITER_EXPL)
@@ -176,36 +139,6 @@ export function useAIMoodContext({
             if (Array.isArray(arr)) setRerankedOrder(arr.map(Number))
           } catch {
             // Silent — re-ranking is optional
-=======
-          if (!delimiterFound) {
-            buffer += chunk
-            const delimIdx = buffer.indexOf(DELIMITER)
-            if (delimIdx !== -1) {
-              setNarration(buffer.slice(0, delimIdx).trim())
-              setNarrationDone(true)
-              delimiterFound = true
-              expBuffer = buffer.slice(delimIdx + DELIMITER.length)
-            } else {
-              setNarration(buffer)
-            }
-          } else {
-            expBuffer += chunk
-          }
-        }
-
-        if (delimiterFound && expBuffer.trim()) {
-          try {
-            const parsed = JSON.parse(expBuffer.trim())
-            if (Array.isArray(parsed)) {
-              const map = new Map()
-              for (const { movieId, explanation, score } of parsed) {
-                map.set(Number(movieId), { explanation, score })
-              }
-              setExplanations(map)
-            }
-          } catch {
-            // JSON parse failed — silently continue with empty explanations
->>>>>>> origin/main
           }
         }
       } catch (err) {
@@ -217,7 +150,6 @@ export function useAIMoodContext({
       }
     }
 
-<<<<<<< HEAD
     function parseAndSetExplanations(raw) {
       if (!raw.trim()) return
       try {
@@ -240,12 +172,4 @@ export function useAIMoodContext({
   }, [enabled, mood, context, experience, intensity, pacing, timeOfDay, movies, top3Genres])
 
   return { narration, narrationDone, explanations, rerankedOrder, loading, error }
-=======
-    run()
-
-    return () => controller.abort()
-  }, [enabled, mood, context, experience, intensity, pacing, timeOfDay, movies])
-
-  return { narration, narrationDone, explanations, loading, error }
->>>>>>> origin/main
 }

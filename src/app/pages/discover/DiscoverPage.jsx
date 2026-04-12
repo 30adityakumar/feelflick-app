@@ -15,6 +15,7 @@ import {
   useTransform,
 } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
+import { supabase } from '@/shared/lib/supabase/client'
 import { useAIMoodContext } from '@/shared/hooks/useAIMoodContext'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { useMovieExplanation } from '@/shared/hooks/useMovieExplanation'
@@ -562,7 +563,10 @@ export default function DiscoverPage() {
   // Narration fallback: show static text after 2s if AI narration hasn't arrived
   const [showNarrationFallback, setShowNarrationFallback] = useState(false)
 
-  const trackedResultsKeyRef = useRef('')
+  const trackedResultsKeyRef  = useRef('')
+  const autoAdvanceTimerRef  = useRef(null)
+  // Refs for abandonment tracking — always reflect latest state values
+  const abandonmentStateRef  = useRef({ stage: 0, moodId: null, hasFreeText: false })
 
   const { userId } = useAuthSession()
   const { suggestedMoodIds } = useSuggestedMoods(userId, timeOfDay, new Date().getDay())
@@ -637,6 +641,33 @@ export default function DiscoverPage() {
     return () => { endMoodSession() }
   }, [endMoodSession])
 
+  // Clean up auto-advance timer on unmount
+  useEffect(() => () => clearTimeout(autoAdvanceTimerRef.current), [])
+
+  // Keep abandonment ref in sync with latest state values
+  useEffect(() => {
+    abandonmentStateRef.current = {
+      stage:       currentStage,
+      moodId:      selectedMood,
+      hasFreeText: freeText.trim().length > 0,
+    }
+  }, [currentStage, selectedMood, freeText])
+
+  // Wizard abandonment signal — fires on unmount if user leaves before Stage 3
+  useEffect(() => {
+    return () => {
+      const { stage, moodId, hasFreeText } = abandonmentStateRef.current
+      if (stage >= 3) return // reached results — not an abandonment
+      supabase.from('mood_session_abandoned').insert({
+        user_id:         userId ?? null,
+        selected_mood_id: moodId ?? null,
+        reached_stage:   stage,
+        had_free_text:   hasFreeText,
+      }).then()
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // intentionally empty — reads from ref at unmount time
+
   useEffect(() => {
     if (!sessionId || recommendations.length === 0) return
     const trackingKey = `${sessionId}:${recommendations.map((m) => `${m.movie_id}:${m.final_score}`).join('|')}`
@@ -661,13 +692,23 @@ export default function DiscoverPage() {
   function handleMoodSelect(moodId, clientX, clientY) {
     const vis = MOOD_VISUAL_MAP[moodId]
     fireParticleBurst(clientX, clientY, vis.orbColor)
-    startTransition(() => {
-      setSelectedMood(moodId)
-      // Stage advances via "Next →" button (handleNext), not here
-    })
+    clearTimeout(autoAdvanceTimerRef.current)
+    startTransition(() => setSelectedMood(moodId))
+
+    // Auto-advance to Stage 1 after 400ms ONLY if the user hasn't typed anything.
+    // Re-checks freeText at execution time so typing during the window cancels it.
+    autoAdvanceTimerRef.current = setTimeout(() => {
+      setFreeText(prev => {
+        if (!prev.trim()) setCurrentStage(1)
+        return prev
+      })
+    }, 400)
   }
 
   async function handleNext() {
+    // Cancel any pending auto-advance
+    clearTimeout(autoAdvanceTimerRef.current)
+
     if (!freeText.trim()) {
       startTransition(() => setCurrentStage(1))
       return
@@ -693,6 +734,7 @@ export default function DiscoverPage() {
   }
 
   function handleReset() {
+    clearTimeout(autoAdvanceTimerRef.current)
     startTransition(() => {
       setSelectedMood(null)
       setTriggerMood(null)

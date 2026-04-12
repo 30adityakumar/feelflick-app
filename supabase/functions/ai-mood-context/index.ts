@@ -32,7 +32,17 @@ const SYSTEM_PROMPT = `You are FeelFlick's emotional film curator.
 You match movies to human emotions with precision and poetry.
 Never be generic. Every explanation should feel personal and specific.
 When scoring: 95-100 = transcendent match, 80-94 = strong match,
-65-79 = good match, below 65 = passable but included.`
+65-79 = good match, below 65 = passable but included.
+
+CRITICAL OUTPUT ORDER — you must strictly follow this sequence:
+Write the narration text first (1–2 sentences). Stream it token by token.
+On a new line, write exactly: ---EXPLANATIONS---
+Write the explanations JSON array. Output the complete array before proceeding.
+On a new line, write exactly: ---RERANKED---
+Write the re-ranked tmdbId array. Output the complete array.
+Do NOT interleave these sections. Do NOT write ---RERANKED--- before the
+explanations array is fully closed with ]. The three sections must appear
+in strict order with no overlap.`
 
 const PARSE_SYSTEM_PROMPT = `You are FeelFlick's mood signal parser.
 Extract numerical dial values from a user's freeform mood description.
@@ -113,7 +123,7 @@ Respond ONLY with this JSON (no other text):
 
     try {
       const completion = await openai.chat.completions.create({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4.1-mini',
         messages: [
           { role: 'system', content: PARSE_SYSTEM_PROMPT },
           { role: 'user', content: userMessage },
@@ -162,7 +172,7 @@ Then write a JSON array of ONLY the tmdbIds, re-ordered from best to worst match
 Example: [12345,67890,11111]`
 
   const stream = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
+    model: 'gpt-4.1-mini',
     messages: [
       { role: 'system', content: SYSTEM_PROMPT },
       { role: 'user', content: userMessage },

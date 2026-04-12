@@ -102,9 +102,14 @@ export function useAIMoodContext({
             expBuffer += chunk
             const ridx = expBuffer.indexOf(DELIMITER_RERANK)
             if (ridx !== -1) {
-              parseAndSetExplanations(expBuffer.slice(0, ridx))
-              rerankBuffer = expBuffer.slice(ridx + DELIMITER_RERANK.length)
-              state = 'RERANKED'
+              const expCandidate = expBuffer.slice(0, ridx).trim()
+              const isClosedArray = expCandidate.endsWith(']')
+              if (isClosedArray) {
+                parseAndSetExplanations(expCandidate)
+                rerankBuffer = expBuffer.slice(ridx + DELIMITER_RERANK.length)
+                state = 'RERANKED'
+              }
+              // If not closed, the model emitted ---RERANKED--- mid-JSON — ignore and keep accumulating
             }
           } else {
             rerankBuffer += chunk

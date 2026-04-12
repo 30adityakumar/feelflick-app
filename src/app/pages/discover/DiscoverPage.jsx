@@ -7,7 +7,10 @@ import {
 } from 'react'
 import {
   AnimatePresence,
+<<<<<<< HEAD
   LayoutGroup,
+=======
+>>>>>>> origin/main
   animate,
   motion,
   useMotionValue,
@@ -15,15 +18,21 @@ import {
   useTransform,
 } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
+<<<<<<< HEAD
 import { supabase } from '@/shared/lib/supabase/client'
 import { useAIMoodContext } from '@/shared/hooks/useAIMoodContext'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
+=======
+import { useAIMoodContext } from '@/shared/hooks/useAIMoodContext'
+>>>>>>> origin/main
 import { useMovieExplanation } from '@/shared/hooks/useMovieExplanation'
 import { useMoodSession } from '@/shared/hooks/useMoodSession'
 import { useRecommendationTracking } from '@/shared/hooks/useRecommendationTracking'
 import { useRecommendations } from '@/shared/hooks/useRecommendations'
 import { useSuggestedMoods } from '@/shared/hooks/useSuggestedMoods'
 import { useNLMoodParse } from '@/shared/hooks/useNLMoodParse'
+
+// ─── Data constants ───────────────────────────────────────────────────────────
 
 // ─── Data constants ───────────────────────────────────────────────────────────
 
@@ -423,7 +432,11 @@ function AnimatedScore({ score, color1, color2 }) {
 
 // ─── Recommendation Card ──────────────────────────────────────────────────────
 
+<<<<<<< HEAD
 function RecommendationCard({ movie, index, originalRank, moodName, moodId, onOpenMovie, aiExplanation, aiScore, aiLoading }) {
+=======
+function RecommendationCard({ movie, index, moodName, moodId, onOpenMovie, aiExplanation, aiScore, aiLoading }) {
+>>>>>>> origin/main
   const [isHovered, setIsHovered] = useState(false)
   const vis        = moodId ? MOOD_VISUAL_MAP[moodId] : MOOD_VISUAL_MAP.DEFAULT
   const finalScore = aiScore ?? movie.match_percentage
@@ -433,7 +446,10 @@ function RecommendationCard({ movie, index, originalRank, moodName, moodId, onOp
   return (
     <motion.div
       variants={cardVariant}
+<<<<<<< HEAD
       layout
+=======
+>>>>>>> origin/main
       layoutId={`movie-card-${movie.movie_id}`}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
@@ -481,6 +497,7 @@ function RecommendationCard({ movie, index, originalRank, moodName, moodId, onOp
             #{index + 1}
           </div>
 
+<<<<<<< HEAD
           {/* AI pick badge — shown when card moved ≥3 positions up */}
           {originalRank != null && originalRank - index >= 3 && (
             <div className="absolute left-2 bottom-2 rounded-full px-2 py-0.5 text-[10px] font-semibold bg-purple-500/80 text-white">
@@ -488,6 +505,8 @@ function RecommendationCard({ movie, index, originalRank, moodName, moodId, onOp
             </div>
           )}
 
+=======
+>>>>>>> origin/main
           {/* Match % badge — skeleton while AI loads, animated counter once ready */}
           <div className="absolute right-2 top-2">
             {showScoreSkeleton
@@ -556,6 +575,7 @@ export default function DiscoverPage() {
   // Separate trigger so recommendations only fire when user clicks "Find my movies"
   const [triggerMood, setTriggerMood] = useState(null)
 
+<<<<<<< HEAD
   // NL mood input
   const [freeText, setFreeText]       = useState('')
   const [dialsParsing, setDialsParsing] = useState(false)
@@ -571,6 +591,12 @@ export default function DiscoverPage() {
   const { userId } = useAuthSession()
   const { suggestedMoodIds } = useSuggestedMoods(userId, timeOfDay, new Date().getDay())
   const { parse: parseMoodText } = useNLMoodParse()
+=======
+  // Narration fallback: show static text after 2s if AI narration hasn't arrived
+  const [showNarrationFallback, setShowNarrationFallback] = useState(false)
+
+  const trackedResultsKeyRef = useRef('')
+>>>>>>> origin/main
 
   const { sessionId, createMoodSession, endMoodSession } = useMoodSession()
   const { trackRecommendationShown, trackRecommendationClicked } = useRecommendationTracking()
@@ -596,6 +622,7 @@ export default function DiscoverPage() {
     () => recommendations.map((m) => ({ tmdbId: m.tmdb_id, title: m.title, vote_average: m.vote_average })),
     [recommendations],
   )
+<<<<<<< HEAD
 
   const {
     narration,
@@ -613,8 +640,98 @@ export default function DiscoverPage() {
     top3Genres: [],
     enabled:    recommendations.length > 0,
   })
+=======
+
+  const {
+    narration,
+    narrationDone,
+    explanations,
+  } = useAIMoodContext({
+    mood:       selectedMoodOption?.name ?? null,
+    context:    VIEWING_CONTEXTS.find((c) => c.id === viewingContext)?.name ?? null,
+    experience: EXPERIENCE_TYPES.find((e) => e.id === experienceType)?.name ?? null,
+    intensity,
+    pacing,
+    timeOfDay,
+    movies:     aiMovies,
+    enabled:    recommendations.length > 0,
+  })
 
   const isLoading = loading || isPending
+
+  // createMoodSession fires when mood + context + experience all confirmed (stage 3 entry)
+  useEffect(() => {
+    if (!triggerMood) return
+    createMoodSession(triggerMood, viewingContext, experienceType, pacing, intensity)
+  }, [createMoodSession, experienceType, intensity, pacing, triggerMood, viewingContext])
+
+  useEffect(() => {
+    return () => { endMoodSession() }
+  }, [endMoodSession])
+
+  useEffect(() => {
+    if (!sessionId || recommendations.length === 0) return
+    const trackingKey = `${sessionId}:${recommendations.map((m) => `${m.movie_id}:${m.final_score}`).join('|')}`
+    if (trackedResultsKeyRef.current === trackingKey) return
+    trackedResultsKeyRef.current = trackingKey
+    recommendations.forEach((movie, i) => {
+      trackRecommendationShown(sessionId, movie.movie_id, i + 1, movie.final_score)
+    })
+  }, [recommendations, sessionId, trackRecommendationShown])
+>>>>>>> origin/main
+
+  // Narration fallback timer
+  useEffect(() => {
+    if (!isLoading) { setShowNarrationFallback(false); return }
+    const t = setTimeout(() => { if (!narration) setShowNarrationFallback(true) }, 3000)
+    return () => clearTimeout(t)
+  }, [isLoading, narration])
+
+  const narrationDisplay = narration
+    || (showNarrationFallback ? `Finding the perfect ${selectedMoodOption?.name?.toLowerCase() ?? ''} films for your night…` : '')
+
+  // Handlers
+  function handleMoodSelect(moodId, clientX, clientY) {
+    const vis = MOOD_VISUAL_MAP[moodId]
+    fireParticleBurst(clientX, clientY, vis.orbColor)
+    startTransition(() => {
+      setSelectedMood(moodId)
+      setCurrentStage(1)
+    })
+  }
+
+  function handleFindMovies() {
+    startTransition(() => {
+      setTriggerMood(selectedMood)
+      setCurrentStage(3)
+    })
+  }
+
+  function handleReset() {
+    startTransition(() => {
+      setSelectedMood(null)
+      setTriggerMood(null)
+      setCurrentStage(0)
+      setIntensity(3)
+      setPacing(3)
+      setTimeOfDay(getDefaultTimeOfDay())
+      setViewingContext(1)
+      setExperienceType(1)
+      trackedResultsKeyRef.current = ''
+      setShowNarrationFallback(false)
+    })
+  }
+
+  // Derived labels for results header
+  const contextLabel = VIEWING_CONTEXTS.find((c) => c.id === viewingContext)?.name?.toLowerCase() ?? ''
+  const expLabel     = EXPERIENCE_LABELS[experienceType]?.label?.toLowerCase() ?? ''
+  const todLabel     = TIME_OF_DAY.find((t) => t.id === timeOfDay)?.label?.toLowerCase() ?? ''
+  const resultsHeader = selectedMoodOption
+    ? `${selectedMoodOption.name} for a ${contextLabel} — ${expLabel}, ${todLabel}`
+    : ''
+
+  // Shared back-button style
+  const backBtnStyle = { color: '#94a3b8', fontSize: '0.875rem' }
 
   // Original rank map for AI pick badge (pre-reranking position)
   const originalRankMap = useMemo(
@@ -793,6 +910,7 @@ export default function DiscoverPage() {
                   </p>
                 </div>
 
+<<<<<<< HEAD
                 {suggestedMoodIds.length > 0 && (
                   <motion.div
                     initial={{ opacity: 0, y: -8 }}
@@ -823,6 +941,8 @@ export default function DiscoverPage() {
                   </motion.div>
                 )}
 
+=======
+>>>>>>> origin/main
                 <motion.div
                   variants={staggerContainer}
                   initial="hidden"
@@ -871,6 +991,7 @@ export default function DiscoverPage() {
                     )
                   })}
                 </motion.div>
+<<<<<<< HEAD
 
                 {selectedMood && (
                   <motion.div
@@ -897,6 +1018,8 @@ export default function DiscoverPage() {
                     </button>
                   </motion.div>
                 )}
+=======
+>>>>>>> origin/main
               </motion.div>
             )}
 
@@ -1138,6 +1261,7 @@ export default function DiscoverPage() {
                 )}
 
                 {!isLoading && !error && recommendations.length > 0 && (
+<<<<<<< HEAD
                   <LayoutGroup>
                     <motion.div
                       variants={staggerContainer}
@@ -1168,6 +1292,35 @@ export default function DiscoverPage() {
                       ))}
                     </motion.div>
                   </LayoutGroup>
+=======
+                  <motion.div
+                    variants={staggerContainer}
+                    initial="hidden"
+                    animate="show"
+                    className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5"
+                  >
+                    {recommendations.map((movie, index) => (
+                      <RecommendationCard
+                        key={movie.movie_id}
+                        movie={movie}
+                        index={index}
+                        moodName={selectedMoodOption?.name}
+                        moodId={selectedMood}
+                        aiExplanation={explanations.get(movie.tmdb_id)?.explanation ?? null}
+                        aiScore={explanations.get(movie.tmdb_id)?.score ?? null}
+                        aiLoading={!narrationDone}
+                        onOpenMovie={() => {
+                          if (sessionId) {
+                            trackRecommendationClicked(sessionId, movie.movie_id)
+                          }
+                          navigate(`/movie/${movie.tmdb_id}`, {
+                            state: { sessionId, movieId: movie.movie_id },
+                          })
+                        }}
+                      />
+                    ))}
+                  </motion.div>
+>>>>>>> origin/main
                 )}
 
                 <div className="mt-8 flex justify-center">

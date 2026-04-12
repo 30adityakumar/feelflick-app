@@ -3,14 +3,6 @@ name: App Quality Gate
 on:
   pull_request:
     branches: [main]
-    paths:
-      - 'src/**'
-      - 'public/**'
-      - 'index.html'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'vite.config.*'
-      - '.github/workflows/app-quality.yml'
   push:
     branches: [main]
     paths:
@@ -31,23 +23,47 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Detect changed files
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            code:
+              - 'src/**'
+              - 'public/**'
+              - 'index.html'
+              - 'package.json'
+              - 'package-lock.json'
+              - 'vite.config.*'
+              - '.github/workflows/app-quality.yml'
+
+      - name: Skip (docs-only change)
+        if: steps.changes.outputs.code == 'false'
+        run: echo "No code files changed — quality-gate skipped."
+
       - name: Setup Node
+        if: steps.changes.outputs.code == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
 
       - name: Install Dependencies
+        if: steps.changes.outputs.code == 'true'
         run: npm ci
 
       - name: Lint
+        if: steps.changes.outputs.code == 'true'
         run: npm run lint --silent
 
       - name: Test
+        if: steps.changes.outputs.code == 'true'
         run: npm run test --silent
 
       - name: Build
+        if: steps.changes.outputs.code == 'true'
         run: npm run build --silent
 
       - name: Audit (prod high+)
+        if: steps.changes.outputs.code == 'true'
         run: npm audit --omit=dev --audit-level=high

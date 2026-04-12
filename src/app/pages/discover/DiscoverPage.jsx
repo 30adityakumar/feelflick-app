@@ -7,6 +7,7 @@ import {
 } from 'react'
 import {
   AnimatePresence,
+  LayoutGroup,
   animate,
   motion,
   useMotionValue,
@@ -14,11 +15,15 @@ import {
   useTransform,
 } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
+import { supabase } from '@/shared/lib/supabase/client'
 import { useAIMoodContext } from '@/shared/hooks/useAIMoodContext'
+import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { useMovieExplanation } from '@/shared/hooks/useMovieExplanation'
 import { useMoodSession } from '@/shared/hooks/useMoodSession'
 import { useRecommendationTracking } from '@/shared/hooks/useRecommendationTracking'
 import { useRecommendations } from '@/shared/hooks/useRecommendations'
+import { useSuggestedMoods } from '@/shared/hooks/useSuggestedMoods'
+import { useNLMoodParse } from '@/shared/hooks/useNLMoodParse'
 
 // ─── Data constants ───────────────────────────────────────────────────────────
 
@@ -418,7 +423,7 @@ function AnimatedScore({ score, color1, color2 }) {
 
 // ─── Recommendation Card ──────────────────────────────────────────────────────
 
-function RecommendationCard({ movie, index, moodName, moodId, onOpenMovie, aiExplanation, aiScore, aiLoading }) {
+function RecommendationCard({ movie, index, originalRank, moodName, moodId, onOpenMovie, aiExplanation, aiScore, aiLoading }) {
   const [isHovered, setIsHovered] = useState(false)
   const vis        = moodId ? MOOD_VISUAL_MAP[moodId] : MOOD_VISUAL_MAP.DEFAULT
   const finalScore = aiScore ?? movie.match_percentage
@@ -428,6 +433,7 @@ function RecommendationCard({ movie, index, moodName, moodId, onOpenMovie, aiExp
   return (
     <motion.div
       variants={cardVariant}
+      layout
       layoutId={`movie-card-${movie.movie_id}`}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
@@ -474,6 +480,13 @@ function RecommendationCard({ movie, index, moodName, moodId, onOpenMovie, aiExp
           >
             #{index + 1}
           </div>
+
+          {/* AI pick badge — shown when card moved ≥3 positions up */}
+          {originalRank != null && originalRank - index >= 3 && (
+            <div className="absolute left-2 bottom-2 rounded-full px-2 py-0.5 text-[10px] font-semibold bg-purple-500/80 text-white">
+              ↑ AI pick
+            </div>
+          )}
 
           {/* Match % badge — skeleton while AI loads, animated counter once ready */}
           <div className="absolute right-2 top-2">
@@ -543,10 +556,21 @@ export default function DiscoverPage() {
   // Separate trigger so recommendations only fire when user clicks "Find my movies"
   const [triggerMood, setTriggerMood] = useState(null)
 
+  // NL mood input
+  const [freeText, setFreeText]       = useState('')
+  const [dialsParsing, setDialsParsing] = useState(false)
+
   // Narration fallback: show static text after 2s if AI narration hasn't arrived
   const [showNarrationFallback, setShowNarrationFallback] = useState(false)
 
-  const trackedResultsKeyRef = useRef('')
+  const trackedResultsKeyRef  = useRef('')
+  const autoAdvanceTimerRef  = useRef(null)
+  // Refs for abandonment tracking — always reflect latest state values
+  const abandonmentStateRef  = useRef({ stage: 0, moodId: null, hasFreeText: false })
+
+  const { userId } = useAuthSession()
+  const { suggestedMoodIds } = useSuggestedMoods(userId, timeOfDay, new Date().getDay())
+  const { parse: parseMoodText } = useNLMoodParse()
 
   const { sessionId, createMoodSession, endMoodSession } = useMoodSession()
   const { trackRecommendationShown, trackRecommendationClicked } = useRecommendationTracking()
@@ -577,6 +601,7 @@ export default function DiscoverPage() {
     narration,
     narrationDone,
     explanations,
+    rerankedOrder,
   } = useAIMoodContext({
     mood:       selectedMoodOption?.name ?? null,
     context:    VIEWING_CONTEXTS.find((c) => c.id === viewingContext)?.name ?? null,
@@ -585,10 +610,48 @@ export default function DiscoverPage() {
     pacing,
     timeOfDay,
     movies:     aiMovies,
+    top3Genres: [],
     enabled:    recommendations.length > 0,
   })
 
   const isLoading = loading || isPending
+
+  // Narration fallback timer
+  useEffect(() => {
+    if (!isLoading) { setShowNarrationFallback(false); return }
+    const t = setTimeout(() => { if (!narration) setShowNarrationFallback(true) }, 3000)
+    return () => clearTimeout(t)
+  }, [isLoading, narration])
+
+  const narrationDisplay = narration
+    || (showNarrationFallback ? `Finding the perfect ${selectedMoodOption?.name?.toLowerCase() ?? ''} films for your night…` : '')
+
+  // Clean up auto-advance timer on unmount
+  useEffect(() => () => clearTimeout(autoAdvanceTimerRef.current), [])
+
+  // Keep abandonment ref in sync with latest state values
+  useEffect(() => {
+    abandonmentStateRef.current = {
+      stage:       currentStage,
+      moodId:      selectedMood,
+      hasFreeText: freeText.trim().length > 0,
+    }
+  }, [currentStage, selectedMood, freeText])
+
+  // Wizard abandonment signal — fires on unmount if user leaves before Stage 3
+  useEffect(() => {
+    return () => {
+      const { stage, moodId, hasFreeText } = abandonmentStateRef.current
+      if (stage >= 3) return // reached results — not an abandonment
+      supabase.from('mood_session_abandoned').insert({
+        user_id:         userId ?? null,
+        selected_mood_id: moodId ?? null,
+        reached_stage:   stage,
+        had_free_text:   hasFreeText,
+      }).then()
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // intentionally empty — reads from ref at unmount time
 
   // createMoodSession fires when mood + context + experience all confirmed (stage 3 entry)
   useEffect(() => {
@@ -610,24 +673,57 @@ export default function DiscoverPage() {
     })
   }, [recommendations, sessionId, trackRecommendationShown])
 
-  // Narration fallback timer
-  useEffect(() => {
-    if (!isLoading) { setShowNarrationFallback(false); return }
-    const t = setTimeout(() => { if (!narration) setShowNarrationFallback(true) }, 3000)
-    return () => clearTimeout(t)
-  }, [isLoading, narration])
+  // Original rank map for AI pick badge (pre-reranking position)
+  const originalRankMap = useMemo(
+    () => new Map(recommendations.map((m, i) => [m.tmdb_id, i])),
+    [recommendations],
+  )
 
-  const narrationDisplay = narration
-    || (showNarrationFallback ? `Finding the perfect ${selectedMoodOption?.name?.toLowerCase() ?? ''} films for your night…` : '')
+  // Re-ordered list when AI re-ranking arrives; falls back to original order
+  const displayedRecommendations = useMemo(() => {
+    if (!rerankedOrder || rerankedOrder.length === 0) return recommendations
+    const orderMap = new Map(rerankedOrder.map((id, i) => [id, i]))
+    return [...recommendations].sort(
+      (a, b) => (orderMap.get(a.tmdb_id) ?? 999) - (orderMap.get(b.tmdb_id) ?? 999)
+    )
+  }, [recommendations, rerankedOrder])
 
   // Handlers
   function handleMoodSelect(moodId, clientX, clientY) {
     const vis = MOOD_VISUAL_MAP[moodId]
     fireParticleBurst(clientX, clientY, vis.orbColor)
-    startTransition(() => {
-      setSelectedMood(moodId)
-      setCurrentStage(1)
-    })
+    clearTimeout(autoAdvanceTimerRef.current)
+    startTransition(() => setSelectedMood(moodId))
+
+    // Auto-advance to Stage 1 after 400ms ONLY if the user hasn't typed anything.
+    // Re-checks freeText at execution time so typing during the window cancels it.
+    autoAdvanceTimerRef.current = setTimeout(() => {
+      setFreeText(prev => {
+        if (!prev.trim()) setCurrentStage(1)
+        return prev
+      })
+    }, 400)
+  }
+
+  async function handleNext() {
+    // Cancel any pending auto-advance
+    clearTimeout(autoAdvanceTimerRef.current)
+
+    if (!freeText.trim()) {
+      startTransition(() => setCurrentStage(1))
+      return
+    }
+    setDialsParsing(true)
+    const moodName = MOODS.find((m) => m.id === selectedMood)?.name ?? ''
+    const result = await parseMoodText(moodName, freeText)
+    if (result) {
+      if (result.intensity)      setIntensity(result.intensity)
+      if (result.pacing)         setPacing(result.pacing)
+      if (result.viewingContext) setViewingContext(result.viewingContext)
+      if (result.experienceType) setExperienceType(result.experienceType)
+    }
+    setDialsParsing(false)
+    startTransition(() => setCurrentStage(1))
   }
 
   function handleFindMovies() {
@@ -638,6 +734,7 @@ export default function DiscoverPage() {
   }
 
   function handleReset() {
+    clearTimeout(autoAdvanceTimerRef.current)
     startTransition(() => {
       setSelectedMood(null)
       setTriggerMood(null)
@@ -647,6 +744,8 @@ export default function DiscoverPage() {
       setTimeOfDay(getDefaultTimeOfDay())
       setViewingContext(1)
       setExperienceType(1)
+      setFreeText('')
+      setDialsParsing(false)
       trackedResultsKeyRef.current = ''
       setShowNarrationFallback(false)
     })
@@ -693,6 +792,36 @@ export default function DiscoverPage() {
                     FeelFlick reads the room.
                   </p>
                 </div>
+
+                {suggestedMoodIds.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-4 flex flex-wrap items-center gap-2"
+                  >
+                    <span className="text-xs text-white/40 tracking-wide uppercase">Suggested for you</span>
+                    {suggestedMoodIds.map((id) => {
+                      const mood = MOODS.find((m) => m.id === id)
+                      const vis  = MOOD_VISUAL_MAP[id]
+                      if (!mood || !vis) return null
+                      return (
+                        <button
+                          key={id}
+                          type="button"
+                          onClick={(e) => handleMoodSelect(id, e.clientX, e.clientY)}
+                          aria-label={`Suggested mood: ${mood.name}`}
+                          className="rounded-full border px-3 py-1 text-xs font-semibold text-white transition-all duration-200 hover:opacity-80 active:scale-95"
+                          style={{
+                            backgroundColor: `rgba(${vis.rgb}, 0.12)`,
+                            borderColor: `${vis.orbColor}66`,
+                          }}
+                        >
+                          {mood.emoji} {mood.name}
+                        </button>
+                      )
+                    })}
+                  </motion.div>
+                )}
 
                 <motion.div
                   variants={staggerContainer}
@@ -742,6 +871,32 @@ export default function DiscoverPage() {
                     )
                   })}
                 </motion.div>
+
+                {selectedMood && (
+                  <motion.div
+                    key="nl-input"
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-6 space-y-4"
+                  >
+                    <textarea
+                      value={freeText}
+                      onChange={(e) => setFreeText(e.target.value.slice(0, 200))}
+                      placeholder="Describe your vibe — e.g. 'something cozy, not too intense, just want to zone out' (optional)"
+                      rows={2}
+                      aria-label="Describe your mood in your own words"
+                      className="w-full bg-white/[0.03] border border-white/8 rounded-xl px-4 py-3 text-sm text-white placeholder-white/25 resize-none focus:outline-none focus:border-purple-500/40 focus:ring-2 focus:ring-purple-500/10 transition-all"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleNext}
+                      disabled={dialsParsing}
+                      className="w-full rounded-2xl py-3 text-sm font-semibold text-white bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90 active:scale-[0.98] disabled:opacity-60 transition-all"
+                    >
+                      {dialsParsing ? 'Reading your vibe…' : 'Next →'}
+                    </button>
+                  </motion.div>
+                )}
               </motion.div>
             )}
 
@@ -983,33 +1138,36 @@ export default function DiscoverPage() {
                 )}
 
                 {!isLoading && !error && recommendations.length > 0 && (
-                  <motion.div
-                    variants={staggerContainer}
-                    initial="hidden"
-                    animate="show"
-                    className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5"
-                  >
-                    {recommendations.map((movie, index) => (
-                      <RecommendationCard
-                        key={movie.movie_id}
-                        movie={movie}
-                        index={index}
-                        moodName={selectedMoodOption?.name}
-                        moodId={selectedMood}
-                        aiExplanation={explanations.get(movie.tmdb_id)?.explanation ?? null}
-                        aiScore={explanations.get(movie.tmdb_id)?.score ?? null}
-                        aiLoading={!narrationDone}
-                        onOpenMovie={() => {
-                          if (sessionId) {
-                            trackRecommendationClicked(sessionId, movie.movie_id)
-                          }
-                          navigate(`/movie/${movie.tmdb_id}`, {
-                            state: { sessionId, movieId: movie.movie_id },
-                          })
-                        }}
-                      />
-                    ))}
-                  </motion.div>
+                  <LayoutGroup>
+                    <motion.div
+                      variants={staggerContainer}
+                      initial="hidden"
+                      animate="show"
+                      className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5"
+                    >
+                      {displayedRecommendations.map((movie, index) => (
+                        <RecommendationCard
+                          key={movie.movie_id}
+                          movie={movie}
+                          index={index}
+                          originalRank={originalRankMap.get(movie.tmdb_id) ?? index}
+                          moodName={selectedMoodOption?.name}
+                          moodId={selectedMood}
+                          aiExplanation={explanations.get(movie.tmdb_id)?.explanation ?? null}
+                          aiScore={explanations.get(movie.tmdb_id)?.score ?? null}
+                          aiLoading={!narrationDone}
+                          onOpenMovie={() => {
+                            if (sessionId) {
+                              trackRecommendationClicked(sessionId, movie.movie_id)
+                            }
+                            navigate(`/movie/${movie.tmdb_id}`, {
+                              state: { sessionId, movieId: movie.movie_id },
+                            })
+                          }}
+                        />
+                      ))}
+                    </motion.div>
+                  </LayoutGroup>
                 )}
 
                 <div className="mt-8 flex justify-center">

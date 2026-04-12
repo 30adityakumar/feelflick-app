@@ -663,6 +663,33 @@ export default function DiscoverPage() {
     return () => { endMoodSession() }
   }, [endMoodSession])
 
+  // Clean up auto-advance timer on unmount
+  useEffect(() => () => clearTimeout(autoAdvanceTimerRef.current), [])
+
+  // Keep abandonment ref in sync with latest state values
+  useEffect(() => {
+    abandonmentStateRef.current = {
+      stage:       currentStage,
+      moodId:      selectedMood,
+      hasFreeText: freeText.trim().length > 0,
+    }
+  }, [currentStage, selectedMood, freeText])
+
+  // Wizard abandonment signal — fires on unmount if user leaves before Stage 3
+  useEffect(() => {
+    return () => {
+      const { stage, moodId, hasFreeText } = abandonmentStateRef.current
+      if (stage >= 3) return // reached results — not an abandonment
+      supabase.from('mood_session_abandoned').insert({
+        user_id:         userId ?? null,
+        selected_mood_id: moodId ?? null,
+        reached_stage:   stage,
+        had_free_text:   hasFreeText,
+      }).then()
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // intentionally empty — reads from ref at unmount time
+
   useEffect(() => {
     if (!sessionId || recommendations.length === 0) return
     const trackingKey = `${sessionId}:${recommendations.map((m) => `${m.movie_id}:${m.final_score}`).join('|')}`

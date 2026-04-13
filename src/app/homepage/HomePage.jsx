@@ -59,7 +59,7 @@ export default function HomePage() {
   }, [userId])
 
   return (
-    <div className="min-h-screen overflow-x-hidden" style={{ background: 'var(--color-bg)' }}>
+    <div className="overflow-x-hidden" style={{ background: 'var(--color-bg)' }}>
       {/* HERO (above the fold) */}
       <HeroTopPick
         userId={userId}

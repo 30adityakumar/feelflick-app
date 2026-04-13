@@ -48,6 +48,12 @@ const TermsPage = lazy(() => import('@/app/pages/legal/TermsPage'))
 const TestRecommendations = lazy(() => import('@/app/pages/TestRecommendations'))
 
 const DiscoverPage = lazy(() => import('@/app/pages/discover/DiscoverPage'))
+const TasteProfile = lazy(() => import('@/app/pages/profile/TasteProfile'))
+const PublicProfile = lazy(() => import('@/app/pages/profile/PublicProfile'))
+const UserSearchPage = lazy(() => import('@/app/pages/people/UserSearchPage'))
+const FeedPage = lazy(() => import('@/app/pages/feed/FeedPage'))
+const ListsPage = lazy(() => import('@/app/pages/lists/ListsPage'))
+const ListDetailPage = lazy(() => import('@/app/pages/lists/ListDetailPage'))
 
 // cache monitoring page
 const CacheMonitoring = lazy(() => import('./admin/CacheMonitoring'))
@@ -268,15 +274,20 @@ export const router = sentryCreateBrowserRouter([
             errorElement: <ErrorBoundary />,
             children: [
               { path: 'home', element: <LazyRoute Component={HomePage} />, errorElement: <ErrorBoundary /> },
+              { path: 'feed', element: <LazyRoute Component={FeedPage} />, errorElement: <ErrorBoundary /> },
               { path: 'account', element: <LazyRoute Component={Account} />, errorElement: <ErrorBoundary /> },
               { path: 'preferences', element: <LazyRoute Component={Preferences} />, errorElement: <ErrorBoundary /> },
               { path: 'watchlist', element: <LazyRoute Component={Watchlist} />, errorElement: <ErrorBoundary /> },
               { path: 'watched', element: <LazyRoute Component={HistoryPage} />, errorElement: <ErrorBoundary /> },
               { path: 'history', element: <LazyRoute Component={HistoryPage} />, errorElement: <ErrorBoundary /> },
+              { path: 'profile', element: <LazyRoute Component={TasteProfile} />, errorElement: <ErrorBoundary /> },
+              { path: 'profile/:userId', element: <LazyRoute Component={PublicProfile} />, errorElement: <ErrorBoundary /> },
               { path: 'mobile-account', element: <LazyRoute Component={MobileAccount} />, errorElement: <ErrorBoundary /> },
               { path: 'test-recommendations', element: <LazyRoute Component={TestRecommendations} />, errorElement: <ErrorBoundary /> },
-            
-              
+              { path: 'people', element: <LazyRoute Component={UserSearchPage} />, errorElement: <ErrorBoundary /> },
+              { path: 'lists', element: <LazyRoute Component={ListsPage} />, errorElement: <ErrorBoundary /> },
+              { path: 'lists/:listId', element: <LazyRoute Component={ListDetailPage} />, errorElement: <ErrorBoundary /> },
+
             ],
           },
         ],

@@ -149,7 +149,8 @@ export function useUserMovieStatus(params = {}) {
               user_id: user.id,
               movie_id: resolvedInternalId,
               added_at: new Date().toISOString(),
-              status: 'want_to_watch'
+              status: 'want_to_watch',
+              source: source || 'unknown'
             },
             { onConflict: 'user_id,movie_id' }
           )
@@ -176,7 +177,7 @@ export function useUserMovieStatus(params = {}) {
     } finally {
       setLoading(prev => ({ ...prev, watchlist: false }))
     }
-  }, [user, resolvedInternalId, loading.watchlist, isInWatchlist])
+  }, [user, resolvedInternalId, loading.watchlist, isInWatchlist, source])
 
   const toggleWatched = useCallback(async () => {
     if (!user?.id || !resolvedInternalId || loading.watched) return

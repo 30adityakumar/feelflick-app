@@ -53,9 +53,19 @@ function initStore() {
 
   store.initialized = true
 
+  // Safety timeout: if Supabase is unreachable, resolve as unauthenticated
+  // after 5 seconds so the landing page can render instead of spinning forever.
+  const timeoutId = setTimeout(() => {
+    if (!getStore().snapshot.ready) {
+      console.warn('[useAuthSession] auth timed out after 5s — treating as unauthenticated')
+      applySession(null)
+    }
+  }, 5000)
+
   supabase.auth
     .getSession()
     .then(({ data: { session }, error }) => {
+      clearTimeout(timeoutId)
       if (error) {
         console.warn('[useAuthSession] getSession error:', error)
       }
@@ -63,6 +73,7 @@ function initStore() {
       applySession(session)
     })
     .catch((error) => {
+      clearTimeout(timeoutId)
       console.warn('[useAuthSession] unexpected getSession error:', error)
       applySession(null)
     })

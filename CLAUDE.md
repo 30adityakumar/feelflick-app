@@ -68,6 +68,10 @@ npm run build        # Production build
 - All interactive elements need `aria-label` / keyboard handlers. No a11y regressions.
 - JSDoc types on public-facing functions.
 - Tests in `__tests__/` adjacent to the feature, or `src/test/` for helpers.
+- Run `lint → test → build` before declaring any task done. Never mark done if build fails.
+
+<!-- WHY: The workflow gate prevents shipping broken code. Claude must own the
+     verification step, not leave it to you. -->
 
 ## UI & Design System
 Dark-first. Cinema palette. Surfaces: `bg-neutral-950` (deep) · `bg-neutral-900` (card).
@@ -97,6 +101,95 @@ Overflow fix: scroll container needs `overflow-x: auto; overflow-y: visible` —
 <h2 className="text-[1.05rem] sm:text-[1.15rem] font-bold text-white tracking-tight whitespace-nowrap">{title}</h2>
 <div className="h-px flex-1 bg-gradient-to-r from-purple-400/20 via-white/5 to-transparent" />
 ```
+
+## Planning Behaviour (never skip)
+Before writing any code for a task touching 3+ files:
+1. List every file you plan to read, edit, or create — and why
+2. Flag any irreversible or destructive steps
+3. Wait for explicit go-ahead before proceeding
+
+For single-file or clearly scoped tasks: state your approach in one sentence, then proceed.
+
+<!-- WHY: Claude's worst habit is diving straight into implementation. A short
+     plan catches misunderstandings before code is written, not after. -->
+
+## Ambiguity Protocol
+- For low-risk unknowns: make the most reasonable assumption, add a `// ASSUMPTION:`
+  comment inline, and surface it in your closing summary.
+- For irreversible/destructive unknowns (schema changes, file deletes, config edits):
+  stop and ask. Do not proceed on a guess.
+
+<!-- WHY: Interrupting for every minor uncertainty wastes time. But guessing on
+     destructive operations is how data gets lost. This split matches FeelFlick's
+     stage — fast iteration, but with guard rails on the things that hurt. -->
+
+## Blocker Communication
+End every task with a one-line status:
+- ✅ Done — what changed, what to verify
+- ⚠️ Blocked — what you hit, what you need from me
+- 🔺 Assumption made — what you assumed and where it's documented
+
+<!-- WHY: Forces a clear handoff. Prevents silent failures where Claude finishes
+     but leaves the codebase in a broken intermediate state. -->
+
+## Coding Conventions
+
+### Import Order (match existing codebase pattern)
+```js
+// 1. React core
+import { useState, useEffect } from 'react'
+// 2. Third-party (router, motion, libraries)
+import { useNavigate } from 'react-router-dom'
+// 3. Icons (lucide-react)
+import { Play, Check } from 'lucide-react'
+// 4. Internal aliases (@/shared → @/app → @/features)
+import { supabase } from '@/shared/lib/supabase/client'
+// 5. Relative imports
+import MovieCast from './MovieCast'
+```
+No blank lines within a group. One blank line between groups.
+
+<!-- WHY: Mirrors the pattern already in HeroTopPick.jsx and MovieDetail/index.jsx.
+     Consistent import order makes diffs cleaner and grep easier. -->
+
+### Naming
+- Components: `PascalCase` — file name must match export name exactly
+- Hooks: `camelCase` with `use` prefix — e.g. `useMovieStatus`, never `movieStatusHook`
+- Booleans: `is/has/should` prefix — `isLoading`, `hasError`, `shouldRefetch`
+- Constants: `SCREAMING_SNAKE_CASE` for module-level — e.g. `LANGUAGE_LABELS`
+- Event handlers: `handle` prefix — `handleClick`, `handleSubmit`; never name an internal function `onClick`
+- Vague names are a hard no: `data`, `item`, `temp`, `thing` must always be domain-specific
+
+<!-- WHY: FeelFlick already follows these patterns. Codifying them prevents drift
+     as the codebase grows. -->
+
+### Comments
+- Section dividers for long files: `// === SECTION NAME ===` (match existing style)
+- JSDoc on every exported hook and service function — `@param`, `@returns` minimum
+- Inline `// WHY:` comments for non-obvious decisions — not for obvious code
+- No commented-out dead code — delete it
+
+<!-- WHY: JSDoc enables future IDE autocomplete and TS migration. WHY comments
+     explain intent, not mechanics — the only comments worth writing. -->
+
+## Hard Stops — Ask Before Doing
+These require explicit confirmation before any action:
+- Installing or removing npm packages
+- Any Supabase change: schema, migrations, RLS policies, Edge Functions
+- Renaming or moving existing files
+- Modifying `vite.config.js`, `eslint.config.js`, `tailwind.config.js`
+- Any `git commit` or `git push`
+- Deleting any file
+
+<!-- WHY: At FeelFlick's current stage (solo, learning, live at app.feelflick.com),
+     these are the operations most likely to cause irreversible damage. Everything
+     else can be iterated on quickly. -->
+
+## File Scope
+Only touch files directly required by the task. If you spot an unrelated issue in a file you're already in, call it out in your closing summary — do not fix it silently.
+
+<!-- WHY: Scope creep makes diffs unreviewable and introduces unintended regressions.
+     "While I was in there" changes are how working code breaks. -->
 
 ## Never Do
 1. **No `.env` edits.** Environment variables are managed outside this repo.

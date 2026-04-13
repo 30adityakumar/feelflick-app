@@ -108,7 +108,7 @@ export default function MovieSentimentWidget({
   const [submitted, setSubmitted]         = useState(false)
   const [error, setError]                 = useState(null)
 
-  const { prompt: aiPrompt, loading: promptLoading } = useReflectionPrompt(movie?.id ?? null)
+  const { prompt: aiPrompt, loading: promptLoading } = useReflectionPrompt(movie?.tmdb_id ?? movie?.id ?? null)
 
   const toggleTag = (tag, list, setter) =>
     setter(list.includes(tag) ? list.filter(t => t !== tag) : [...list, tag])
@@ -122,16 +122,15 @@ export default function MovieSentimentWidget({
       const internalId = propInternalId ?? (await ensureMovieInDb(movie))
 
       // 1. Save rating + review → user_ratings
-      if (rating > 0) {
+      if (rating > 0 || reviewText.trim()) {
         const { error: ratingErr } = await supabase
           .from('user_ratings')
           .upsert({
             user_id:     user.id,
             movie_id:    internalId,
-            rating,
+            rating:      rating > 0 ? rating / 2 : null,
             review_text: reviewText.trim() || null,
             rated_at:    new Date().toISOString(),
-            source:      'movie_detail',
           }, { onConflict: 'user_id,movie_id' })
         if (ratingErr) throw ratingErr
       }
@@ -180,7 +179,7 @@ export default function MovieSentimentWidget({
     }
   }
 
-  const canSubmit = (rating > 0 || sentiment) && !submitting
+  const canSubmit = (rating > 0 || reviewText.trim().length > 0) && !submitting
 
   if (!user) return null
 

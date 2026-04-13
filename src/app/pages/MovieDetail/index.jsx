@@ -1,11 +1,11 @@
 // src/app/pages/MovieDetail/index.jsx
-import { useEffect, useMemo, useState, useCallback } from 'react'
+import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import {
   Play, Bookmark, Check, Star, Clock, Share2,
-  Eye, EyeOff, Heart, ChevronLeft, ListPlus,
+  Eye, EyeOff, Heart, ChevronLeft, ListPlus, X,
 } from 'lucide-react'
 
 import RecommendationFeedback from '@/shared/components/RecommendationFeedback'
@@ -24,7 +24,64 @@ import MovieVideos from './MovieVideos'
 import MovieImages from './MovieImages'
 import MovieSimilar from './MovieSimilar'
 import { WhereToWatch, MovieDetails, ProductionCompanies, CollectionCard } from './MovieSidebar'
+import { motion, AnimatePresence } from 'framer-motion'
 import AddToListModal from '@/app/pages/lists/AddToListModal'
+import ToastNotification from '@/components/ToastNotification'
+
+// === QUICK-RATE PROMPT ===
+
+// Purely presentational — no hooks, no timers. All state lives in MovieDetail.
+// Stars use flex-row-reverse + CSS sibling selector so hovering star N fills stars 1…N
+// without any JS state: [5,4,3,2,1] in DOM + [&:hover~button] highlights lower siblings.
+function QuickRatePrompt({ onRate, onDismiss, saved }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.92 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.2 }}
+      onClick={(e) => e.stopPropagation()}
+      className="relative overflow-hidden inline-flex flex-col items-center gap-1 rounded-lg bg-white/8 backdrop-blur-sm border border-white/14 px-3 py-1.5"
+    >
+      {saved ? (
+        <span className="text-xs text-white/50 py-0.5">Saved ✓</span>
+      ) : (
+        <>
+          <span className="text-xs text-white/50">How was it?</span>
+          <div className="flex flex-row-reverse items-center gap-0.5">
+            {[5, 4, 3, 2, 1].map((i) => (
+              <button
+                key={i}
+                type="button"
+                aria-label={`Rate ${i} star${i > 1 ? 's' : ''}`}
+                onClick={() => onRate(i)}
+                className="text-xl leading-none text-white/30 hover:text-yellow-400 [&:hover~button]:text-yellow-400 transition-colors"
+              >
+                ★
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+      <button
+        type="button"
+        aria-label="Dismiss"
+        onClick={onDismiss}
+        className="absolute top-1 right-1 text-white/25 hover:text-white/60 transition-colors"
+      >
+        <X className="h-3 w-3" />
+      </button>
+      {/* Progress bar depletes over 4s via Framer Motion — declarative, no JS timer */}
+      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/20">
+        <motion.div
+          className="h-full bg-white/60"
+          initial={{ width: '100%' }}
+          animate={{ width: '0%' }}
+          transition={{ duration: 4, ease: 'linear' }}
+        />
+      </div>
+    </motion.div>
+  )
+}
 
 export default function MovieDetail() {
   const { id } = useParams()
@@ -46,6 +103,11 @@ export default function MovieDetail() {
   const [userFeedback, setUserFeedback] = useState(null)
   const [movieMoods, setMovieMoods]   = useState([])
   const [showAddToList, setShowAddToList] = useState(false)
+  const [showQuickRate, setShowQuickRate] = useState(false)
+  const [quickRateSaved, setQuickRateSaved] = useState(false)
+  const [showProfileToast, setShowProfileToast] = useState(false)
+  const showQuickRateRef = useRef(false)
+  showQuickRateRef.current = showQuickRate  // latest-value ref — always in sync with current render
   const { user } = useAuthSession()
 
   usePageView(internalMovieId, 'movie_detail')
@@ -123,6 +185,7 @@ export default function MovieDetail() {
 
   useEffect(() => {
     const handleFeedbackPrompt = e => {
+      if (showQuickRateRef.current) return
       const { internalMovieId: eid, tmdbId } = e.detail
       if ((tmdbId && String(tmdbId) === String(id)) || (eid && eid === internalMovieId))
         setShowFeedbackModal(true)
@@ -130,6 +193,20 @@ export default function MovieDetail() {
     window.addEventListener('prompt-movie-feedback', handleFeedbackPrompt)
     return () => window.removeEventListener('prompt-movie-feedback', handleFeedbackPrompt)
   }, [id, internalMovieId])
+
+  // Authoritative 4s auto-dismiss timer for QuickRatePrompt — lives in parent so
+  // component remounts can never reset it. Also resets quickRateSaved on any dismiss.
+  useEffect(() => {
+    if (!showQuickRate) {
+      setQuickRateSaved(false)
+      return
+    }
+    const id = setTimeout(() => {
+      showQuickRateRef.current = false
+      setShowQuickRate(false)
+    }, 4000)
+    return () => clearTimeout(id)
+  }, [showQuickRate])
 
   const { rating: userRating, reviewText: userReview, loading: ratingLoading } = useMovieRating(internalMovieId, user?.id)
 
@@ -188,8 +265,45 @@ export default function MovieDetail() {
 
   const handleToggleWatched = useCallback(async () => {
     if (!await ensureAuthed()) return
+    const wasWatched = isWatched
     await rawToggleWatched()
-  }, [ensureAuthed, rawToggleWatched])
+
+    if (!wasWatched) {
+      // Build 1: quick-rate prompt (only if movie not already rated)
+      if (!userRating) {
+        showQuickRateRef.current = true
+        setShowQuickRate(true)
+      }
+
+      // Build 2: activation toast after 5th watch
+      if (user?.id) {
+        const { count } = await supabase
+          .from('user_history')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+        if (count === 5 && !localStorage.getItem('ff_profile_toast_shown')) {
+          localStorage.setItem('ff_profile_toast_shown', '1')
+          setShowProfileToast(true)
+        }
+      }
+    }
+  }, [ensureAuthed, rawToggleWatched, isWatched, userRating, user?.id])
+
+  const handleQuickRate = useCallback(async (starValue) => {
+    setQuickRateSaved(true)
+    try {
+      await supabase.from('user_ratings').upsert(
+        { user_id: user?.id, movie_id: internalMovieId, rating: starValue * 2, review_text: null },
+        { onConflict: 'user_id,movie_id' }
+      )
+    } catch (err) {
+      console.error('[MovieDetail] quick rate error:', err)
+    }
+    setTimeout(() => {
+      setShowQuickRate(false)
+      setQuickRateSaved(false)
+    }, 1000)
+  }, [user?.id, internalMovieId])
 
   const handleTrailerClick = useCallback(() => {
     if (internalMovieId) trackTrailerPlay(internalMovieId, 'movie_detail')
@@ -441,21 +555,34 @@ export default function MovieDetail() {
                           }
                         </button>
 
-                        <button
-                          disabled={mutating}
-                          onClick={handleToggleWatched}
-                          aria-label={isWatched ? 'Mark as unwatched' : 'Mark as watched'}
-                          className={`inline-flex items-center gap-1.5 rounded-lg px-3 sm:px-4 py-2 text-sm font-bold transition-all active:scale-95 disabled:opacity-50 backdrop-blur-sm border ${
-                            isWatched
-                              ? 'bg-purple-500/20 border-purple-500/45 text-purple-300'
-                              : 'bg-white/8 hover:bg-white/14 border-white/14 text-white'
-                          }`}
-                        >
-                          {isWatched
-                            ? <><Eye className="h-4 w-4" /><span className="hidden sm:inline">Watched</span></>
-                            : <><EyeOff className="h-4 w-4" /><span className="hidden sm:inline">Mark Watched</span></>
-                          }
-                        </button>
+                        <>
+                          {showQuickRate && (
+                            <QuickRatePrompt
+                              onRate={handleQuickRate}
+                              onDismiss={() => {
+                                showQuickRateRef.current = false
+                                setShowQuickRate(false)
+                              }}
+                              saved={quickRateSaved}
+                            />
+                          )}
+                          <button
+                            style={showQuickRate ? { display: 'none', pointerEvents: 'none' } : undefined}
+                            disabled={mutating}
+                            onClick={handleToggleWatched}
+                            aria-label={isWatched ? 'Mark as unwatched' : 'Mark as watched'}
+                            className={`inline-flex items-center gap-1.5 rounded-lg px-3 sm:px-4 py-2 text-sm font-bold transition-all active:scale-95 disabled:opacity-50 backdrop-blur-sm border ${
+                              isWatched
+                                ? 'bg-purple-500/20 border-purple-500/45 text-purple-300'
+                                : 'bg-white/8 hover:bg-white/14 border-white/14 text-white'
+                            }`}
+                          >
+                            {isWatched
+                              ? <><Eye className="h-4 w-4" /><span className="hidden sm:inline">Watched</span></>
+                              : <><EyeOff className="h-4 w-4" /><span className="hidden sm:inline">Mark Watched</span></>
+                            }
+                          </button>
+                        </>
 
                         {user && internalMovieId && (
                           <button
@@ -678,6 +805,19 @@ export default function MovieDetail() {
           }}
         />
       )}
+
+      <AnimatePresence>
+        {showProfileToast && (
+          <ToastNotification
+            message="Your cinematic DNA is taking shape"
+            subtext="You've watched 5 films — see what FeelFlick has learned about you."
+            ctaLabel="See my taste profile →"
+            ctaHref="/profile"
+            onDismiss={() => setShowProfileToast(false)}
+            duration={8000}
+          />
+        )}
+      </AnimatePresence>
 
       {import.meta.env.DEV && movie?.id && (
         <DatabaseValidationPanel movieId={movie.id} internalMovieId={internalMovieId} />

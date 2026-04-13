@@ -254,6 +254,7 @@ export const router = sentryCreateBrowserRouter([
       { path: 'browse', element: <LazyRoute Component={MoviesTab} />, errorElement: <ErrorBoundary /> },
       { path: 'trending', element: <LazyRoute Component={MoviesTab} />, errorElement: <ErrorBoundary /> },
       { path: 'discover', element: <LazyRoute Component={DiscoverPage} />, errorElement: <ErrorBoundary /> },
+      { path: 'lists/:listId', element: <LazyRoute Component={ListDetailPage} />, errorElement: <ErrorBoundary /> },
 
       // Admin-only routes (auth + email allowlist)
       {
@@ -286,7 +287,6 @@ export const router = sentryCreateBrowserRouter([
               { path: 'test-recommendations', element: <LazyRoute Component={TestRecommendations} />, errorElement: <ErrorBoundary /> },
               { path: 'people', element: <LazyRoute Component={UserSearchPage} />, errorElement: <ErrorBoundary /> },
               { path: 'lists', element: <LazyRoute Component={ListsPage} />, errorElement: <ErrorBoundary /> },
-              { path: 'lists/:listId', element: <LazyRoute Component={ListDetailPage} />, errorElement: <ErrorBoundary /> },
 
             ],
           },

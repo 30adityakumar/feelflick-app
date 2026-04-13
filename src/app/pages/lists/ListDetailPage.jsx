@@ -4,11 +4,12 @@ import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 
-import { ChevronLeft, Pencil, Trash2, X as XIcon, Film, Globe, Lock } from 'lucide-react'
+import { ChevronLeft, Pencil, Trash2, X as XIcon, Film, Globe, Lock, Share2, Check } from 'lucide-react'
 
 import { supabase } from '@/shared/lib/supabase/client'
 import { tmdbImg } from '@/shared/api/tmdb'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
+import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import CreateListModal from './CreateListModal'
 
 // ============================================================================
@@ -49,7 +50,7 @@ function DetailSkeleton() {
 // NOT FOUND
 // ============================================================================
 
-function ListNotFound() {
+function ListNotFound({ isAuthenticated }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -65,10 +66,10 @@ function ListNotFound() {
         This list doesn&apos;t exist, was deleted, or is private.
       </p>
       <Link
-        to="/lists"
+        to={isAuthenticated ? '/lists' : '/'}
         className="inline-flex items-center gap-2 rounded-xl bg-white/8 border border-white/10 px-6 py-3 text-sm font-semibold text-white/80 transition-colors hover:bg-white/12 hover:text-white"
       >
-        Go to lists
+        {isAuthenticated ? 'Go to lists' : 'Explore FeelFlick'}
       </Link>
     </motion.div>
   )
@@ -81,7 +82,7 @@ function ListNotFound() {
 export default function ListDetailPage() {
   const { listId } = useParams()
   const navigate = useNavigate()
-  const { userId: currentUserId } = useAuthSession()
+  const { userId: currentUserId, isAuthenticated } = useAuthSession()
 
   const [list, setList] = useState(null)
   const [owner, setOwner] = useState(null)
@@ -90,8 +91,27 @@ export default function ListDetailPage() {
   const [notFound, setNotFound] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [linkCopied, setLinkCopied] = useState(false)
 
   const isOwner = currentUserId && list?.user_id === currentUserId
+
+  const handleShare = async () => {
+    const url = `https://app.feelflick.com/lists/${listId}`
+    try {
+      await navigator.clipboard.writeText(url)
+    } catch {
+      // Fallback for older browsers / insecure contexts
+      const ta = document.createElement('textarea')
+      ta.value = url
+      ta.style.cssText = 'position:fixed;opacity:0'
+      document.body.appendChild(ta)
+      ta.select()
+      document.execCommand('copy')
+      document.body.removeChild(ta)
+    }
+    setLinkCopied(true)
+    setTimeout(() => setLinkCopied(false), 2000)
+  }
 
   useEffect(() => {
     if (!listId) return
@@ -189,6 +209,35 @@ export default function ListDetailPage() {
   const ownerName = owner?.name || 'Someone'
   const ownerInitial = (ownerName || '?')[0].toUpperCase()
 
+  const firstPoster = movies[0]?.posterPath
+    ? `https://image.tmdb.org/t/p/w1280${movies[0].posterPath}`
+    : null
+
+  usePageMeta({
+    title: list ? `${list.title} — FeelFlick` : null,
+    description: list
+      ? (list.description || `${movies.length} film${movies.length !== 1 ? 's' : ''} curated by ${ownerName} on FeelFlick.`)
+      : null,
+    image: firstPoster,
+    url: list ? `https://app.feelflick.com/lists/${listId}` : null,
+  })
+
+  const ownerBadge = (
+    <>
+      {owner?.avatar_url ? (
+        <img src={owner.avatar_url} alt={ownerName} className="h-5 w-5 rounded-full object-cover" />
+      ) : (
+        <div
+          className="h-5 w-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white"
+          style={{ background: 'linear-gradient(135deg, rgb(168,85,247), rgb(236,72,153))' }}
+        >
+          {ownerInitial}
+        </div>
+      )}
+      <span className="text-white/50 font-medium">{ownerName}</span>
+    </>
+  )
+
   return (
     <div className="min-h-screen text-white pb-24 md:pb-12" style={{ background: 'var(--color-bg)', paddingTop: 'var(--hdr-h, 64px)' }}>
       {/* Ambient glow */}
@@ -202,17 +251,17 @@ export default function ListDetailPage() {
       <div className="mx-auto max-w-3xl px-4 sm:px-6 py-8">
         {/* Back link */}
         <Link
-          to="/lists"
+          to={isAuthenticated ? '/lists' : '/'}
           className="inline-flex items-center gap-1.5 text-sm text-white/40 hover:text-white/70 transition-colors mb-6"
         >
           <ChevronLeft className="h-4 w-4" />
-          Back to lists
+          {isAuthenticated ? 'Back to lists' : 'Discover FeelFlick'}
         </Link>
 
         {isLoading ? (
           <DetailSkeleton />
         ) : notFound ? (
-          <ListNotFound />
+          <ListNotFound isAuthenticated={isAuthenticated} />
         ) : (
           <motion.div
             initial={{ opacity: 0 }}
@@ -237,66 +286,81 @@ export default function ListDetailPage() {
                   )}
                 </div>
 
-                {/* Owner actions */}
-                {isOwner && (
+                {/* Actions */}
+                {(list.is_public || isOwner) && (
                   <div className="flex items-center gap-1.5 flex-shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => setShowEditModal(true)}
-                      aria-label="Edit list"
-                      className="h-8 w-8 rounded-lg flex items-center justify-center text-white/30 hover:text-white/70 hover:bg-white/8 transition-colors"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (confirmDelete) {
-                          handleDeleteList()
-                        } else {
-                          setConfirmDelete(true)
-                          setTimeout(() => setConfirmDelete(false), 3000)
-                        }
-                      }}
-                      aria-label={confirmDelete ? 'Confirm delete' : 'Delete list'}
-                      className={`h-8 rounded-lg flex items-center justify-center transition-colors ${
-                        confirmDelete
-                          ? 'px-3 bg-red-500/15 text-red-400 hover:bg-red-500/25'
-                          : 'w-8 text-white/30 hover:text-red-400 hover:bg-red-500/8'
-                      }`}
-                    >
-                      {confirmDelete ? (
-                        <span className="text-xs font-semibold">Delete?</span>
-                      ) : (
-                        <Trash2 className="h-4 w-4" />
-                      )}
-                    </button>
+                    {list.is_public && (
+                      <button
+                        type="button"
+                        onClick={handleShare}
+                        aria-label={linkCopied ? 'Link copied' : 'Share list'}
+                        className={`h-8 rounded-lg flex items-center justify-center transition-colors ${
+                          linkCopied
+                            ? 'px-3 bg-green-500/15 text-green-400'
+                            : 'w-8 text-white/30 hover:text-white/70 hover:bg-white/8'
+                        }`}
+                      >
+                        {linkCopied ? (
+                          <span className="inline-flex items-center gap-1.5 text-xs font-semibold">
+                            <Check className="h-3.5 w-3.5" />
+                            Copied!
+                          </span>
+                        ) : (
+                          <Share2 className="h-4 w-4" />
+                        )}
+                      </button>
+                    )}
+                    {isOwner && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => setShowEditModal(true)}
+                          aria-label="Edit list"
+                          className="h-8 w-8 rounded-lg flex items-center justify-center text-white/30 hover:text-white/70 hover:bg-white/8 transition-colors"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (confirmDelete) {
+                              handleDeleteList()
+                            } else {
+                              setConfirmDelete(true)
+                              setTimeout(() => setConfirmDelete(false), 3000)
+                            }
+                          }}
+                          aria-label={confirmDelete ? 'Confirm delete' : 'Delete list'}
+                          className={`h-8 rounded-lg flex items-center justify-center transition-colors ${
+                            confirmDelete
+                              ? 'px-3 bg-red-500/15 text-red-400 hover:bg-red-500/25'
+                              : 'w-8 text-white/30 hover:text-red-400 hover:bg-red-500/8'
+                          }`}
+                        >
+                          {confirmDelete ? (
+                            <span className="text-xs font-semibold">Delete?</span>
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
+                        </button>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
 
               {/* Owner + meta */}
               <div className="flex items-center gap-3 text-xs text-white/30">
-                <Link
-                  to={isOwner ? '/profile' : `/profile/${list.user_id}`}
-                  className="inline-flex items-center gap-2 hover:opacity-75 transition-opacity"
-                >
-                  {owner?.avatar_url ? (
-                    <img
-                      src={owner.avatar_url}
-                      alt={ownerName}
-                      className="h-5 w-5 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div
-                      className="h-5 w-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white"
-                      style={{ background: 'linear-gradient(135deg, rgb(168,85,247), rgb(236,72,153))' }}
-                    >
-                      {ownerInitial}
-                    </div>
-                  )}
-                  <span className="text-white/50 font-medium">{ownerName}</span>
-                </Link>
+                {isAuthenticated ? (
+                  <Link
+                    to={isOwner ? '/profile' : `/profile/${list.user_id}`}
+                    className="inline-flex items-center gap-2 hover:opacity-75 transition-opacity"
+                  >
+                    {ownerBadge}
+                  </Link>
+                ) : (
+                  <span className="inline-flex items-center gap-2">{ownerBadge}</span>
+                )}
                 <span>&middot;</span>
                 <span>{movies.length} {movies.length === 1 ? 'film' : 'films'}</span>
                 {formatDate(list.created_at) && (
@@ -312,7 +376,7 @@ export default function ListDetailPage() {
             {movies.length === 0 ? (
               <div className="flex flex-col items-center justify-center text-center py-16">
                 <p className="text-white/30 text-sm mb-4">
-                  {isOwner ? 'No films in this list yet' : 'This list is empty'}
+                  {isOwner ? 'No films yet — add some from any movie page' : 'No films yet'}
                 </p>
                 {isOwner && (
                   <Link
@@ -385,6 +449,21 @@ export default function ListDetailPage() {
                     )}
                   </motion.div>
                 ))}
+              </div>
+            )}
+
+            {/* Signup CTA for anonymous visitors */}
+            {!isAuthenticated && movies.length > 0 && (
+              <div className="text-center py-10 border-t border-white/5 mt-4">
+                <p className="text-white/40 text-sm mb-4">
+                  Love this list? Create your own on FeelFlick.
+                </p>
+                <Link
+                  to="/"
+                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                >
+                  Get Started Free →
+                </Link>
               </div>
             )}
           </motion.div>

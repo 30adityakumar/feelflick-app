@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
-import { ChevronRight, User, Settings, Bookmark, Clock, LogOut } from 'lucide-react'
+import { ChevronRight, User, Settings, Bookmark, Clock, LogOut, Fingerprint, Users, ListVideo } from 'lucide-react'
 
 export default function MobileAccount() {
   const nav = useNavigate()
@@ -25,15 +25,18 @@ export default function MobileAccount() {
   const sections = [
     {
       items: [
-        { icon: User,     label: 'Profile',   sub: 'Name and photo',  path: '/account'     },
-        { icon: Settings, label: 'Settings',  sub: 'Preferences',     path: '/preferences' },
+        { icon: User,        label: 'Profile',       sub: 'Name and photo',     path: '/account'     },
+        { icon: Fingerprint, label: 'Taste Profile', sub: 'Your cinematic DNA', path: '/profile'     },
+        { icon: Users,       label: 'People',        sub: 'Find & follow cinephiles', path: '/people' },
+        { icon: Settings,    label: 'Settings',      sub: 'Preferences',        path: '/preferences' },
       ],
     },
     {
       title: 'Library',
       items: [
-        { icon: Bookmark, label: 'Watchlist', sub: 'Saved films',     path: '/watchlist'   },
-        { icon: Clock,    label: 'History',   sub: 'What you\'ve watched', path: '/history' },
+        { icon: Bookmark,  label: 'Watchlist', sub: 'Saved films',           path: '/watchlist' },
+        { icon: Clock,     label: 'History',   sub: 'What you\'ve watched',  path: '/history'   },
+        { icon: ListVideo, label: 'Lists',     sub: 'Your film collections', path: '/lists'     },
       ],
     },
   ]

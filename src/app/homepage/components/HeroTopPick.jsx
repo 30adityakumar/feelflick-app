@@ -290,7 +290,7 @@ export default function HeroTopPick({
 
   // User movie status
   const { isInWatchlist, isWatched, loading: actionLoading, toggleWatchlist, toggleWatched } =
-    useUserMovieStatus({ user, movie, internalMovieId: movie?.id, source: 'hero_top_pick' })
+    useUserMovieStatus({ user, movie, internalMovieId: movie?.id, source: 'hero_slider' })
 
   // Track watchlist / watched transitions
   const prevWatchlistRef = useRef(isInWatchlist)

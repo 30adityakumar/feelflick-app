@@ -104,7 +104,7 @@ export const MovieCard = memo(function MovieCard({
   } = useUserMovieStatus({
     user: ready ? user : null,
     movie: ready ? movie : null,
-    source: placement || 'homepage_carousel',
+    source: placement === 'mood' ? 'mood_recommendation' : 'carousel_row',
   })
 
   const meta = useMemo(() => {

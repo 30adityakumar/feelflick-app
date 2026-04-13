@@ -5,7 +5,7 @@ import { supabase } from '@/shared/lib/supabase/client'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import {
   Play, Bookmark, Check, Star, Clock, Share2,
-  Eye, EyeOff, Heart, ChevronLeft,
+  Eye, EyeOff, Heart, ChevronLeft, ListPlus,
 } from 'lucide-react'
 
 import RecommendationFeedback from '@/shared/components/RecommendationFeedback'
@@ -24,6 +24,7 @@ import MovieVideos from './MovieVideos'
 import MovieImages from './MovieImages'
 import MovieSimilar from './MovieSimilar'
 import { WhereToWatch, MovieDetails, ProductionCompanies, CollectionCard } from './MovieSidebar'
+import AddToListModal from '@/app/pages/lists/AddToListModal'
 
 export default function MovieDetail() {
   const { id } = useParams()
@@ -44,6 +45,7 @@ export default function MovieDetail() {
   const [showFeedbackModal, setShowFeedbackModal] = useState(false)
   const [userFeedback, setUserFeedback] = useState(null)
   const [movieMoods, setMovieMoods]   = useState([])
+  const [showAddToList, setShowAddToList] = useState(false)
   const { user } = useAuthSession()
 
   usePageView(internalMovieId, 'movie_detail')
@@ -455,6 +457,18 @@ export default function MovieDetail() {
                           }
                         </button>
 
+                        {user && internalMovieId && (
+                          <button
+                            type="button"
+                            onClick={() => setShowAddToList(true)}
+                            aria-label="Add to list"
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-white/8 hover:bg-white/14 backdrop-blur-sm px-3 sm:px-4 py-2 text-sm font-bold transition-all active:scale-95 border border-white/14 text-white"
+                          >
+                            <ListPlus className="h-4 w-4" />
+                            <span className="hidden sm:inline">List</span>
+                          </button>
+                        )}
+
                         <button
                           onClick={handleShare}
                           aria-label="Share"
@@ -633,6 +647,15 @@ export default function MovieDetail() {
           </div>
         </div>
       </div>
+
+      {showAddToList && user && internalMovieId && (
+        <AddToListModal
+          movieId={internalMovieId}
+          movieTitle={movie?.title || 'Untitled'}
+          userId={user.id}
+          onClose={() => setShowAddToList(false)}
+        />
+      )}
 
       {showFeedbackModal && movie && (
         <MovieSentimentWidget

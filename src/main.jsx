@@ -74,15 +74,25 @@ async function handleOAuthHash() {
 }
 
 // Handle OAuth before mounting React
-handleOAuthHash().then((handled) => {
-  if (!handled) {
-    // Only mount app if OAuth wasn't handled
+handleOAuthHash()
+  .then((handled) => {
+    if (!handled) {
+      // Only mount app if OAuth wasn't handled
+      createRoot(document.getElementById('root')).render(
+        <StrictMode>
+          <App />
+        </StrictMode>
+      )
+    }
+  })
+  .catch(() => {
+    // Always mount the app even if OAuth handling fails —
+    // prevents a blank white screen when Supabase is unreachable.
     createRoot(document.getElementById('root')).render(
       <StrictMode>
         <App />
       </StrictMode>
     )
-  }
-})
+  })
 
 reportWebVitals()

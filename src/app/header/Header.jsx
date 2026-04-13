@@ -1,7 +1,7 @@
 // src/app/header/Header.jsx
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { Search as SearchIcon, ChevronDown, LogOut, User as UserIcon, Settings, Bookmark, Clock } from 'lucide-react'
+import { Search as SearchIcon, ChevronDown, LogOut, User as UserIcon, Settings, Bookmark, Clock, Fingerprint, Users, ListVideo } from 'lucide-react'
 import { supabase } from '@/shared/lib/supabase/client'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 
@@ -95,6 +95,7 @@ export default function Header({ onOpenSearch }) {
           <nav className="hidden md:flex items-center gap-1" aria-label="Main navigation">
             {[
               { to: '/home',      label: 'Home'      },
+              { to: '/feed',      label: 'Feed'      },
               { to: '/discover',  label: 'Discover'  },
               { to: '/browse',    label: 'Browse'    },
               { to: '/watchlist', label: 'Watchlist' },
@@ -194,9 +195,12 @@ export default function Header({ onOpenSearch }) {
 
                     {/* Menu items */}
                     <div className="py-1.5">
-                      <DropdownLink to="/account"     icon={UserIcon} onClick={() => setDropdownOpen(false)}>Profile</DropdownLink>
-                      <DropdownLink to="/watchlist"   icon={Bookmark} onClick={() => setDropdownOpen(false)}>Watchlist</DropdownLink>
+                      <DropdownLink to="/account"     icon={UserIcon}    onClick={() => setDropdownOpen(false)}>Profile</DropdownLink>
+                      <DropdownLink to="/profile"     icon={Fingerprint} onClick={() => setDropdownOpen(false)}>Taste Profile</DropdownLink>
+                      <DropdownLink to="/watchlist"   icon={Bookmark}    onClick={() => setDropdownOpen(false)}>Watchlist</DropdownLink>
                       <DropdownLink to="/history"     icon={Clock}    onClick={() => setDropdownOpen(false)}>Watch history</DropdownLink>
+                      <DropdownLink to="/people"      icon={Users}    onClick={() => setDropdownOpen(false)}>People</DropdownLink>
+                      <DropdownLink to="/lists"       icon={ListVideo} onClick={() => setDropdownOpen(false)}>Lists</DropdownLink>
                       <DropdownLink to="/preferences" icon={Settings} onClick={() => setDropdownOpen(false)}>Settings</DropdownLink>
                     </div>
 

@@ -1,31 +1,48 @@
 // src/features/landing/sections/HeroSection.jsx
 import { useState, useMemo, useEffect, useRef } from 'react'
-import { ArrowRight } from 'lucide-react'
-import googleSvg from '@/assets/icons/google.svg'
+import { motion } from 'framer-motion'
+import { LogIn, ArrowDown } from 'lucide-react'
 import { useGoogleAuth } from '@/features/landing/utils/useGoogleAuth'
 
 const POSTER_ROWS = [
   [
-    '/yQvGrMoipbRoddT0ZR8tPoR7NfX.jpg', // Interstellar
-    '/u68AjlvlutfEIcpmbYpKcdi09ut.jpg', // Everything Everywhere All at Once
-    '/mE24wUCfjK8AoBBjaMjho7Rczr7.jpg', // Get Out
-    '/uxzzxijgPIY7slzFvMotPv8wjKA.jpg', // Black Panther
-    '/gDzOcq0pfeCeqMBwKIJlSmQpjkZ.jpg', // Dune
-    '/pThyQovXQrw2m0s9x82twj48Jq4.jpg', // Knives Out
-    '/hjlZSXM86wJrfCv5VKfR5DI2VeU.jpg', // Hereditary
+    { path: '/yQvGrMoipbRoddT0ZR8tPoR7NfX.jpg', tag: 'Curious'     }, // Interstellar
+    { path: '/pEzNVQfdzYDzVK0XqxERIw2x2se.jpg', tag: 'Reflective'  }, // Arrival
+    { path: '/u68AjlvlutfEIcpmbYpKcdi09ut.jpg', tag: 'Inventive'   }, // Everything Everywhere All at Once
+    { path: '/5UwdhrjXhUgsiDhe1dpS9z4yj7q.jpg', tag: 'Cerebral'    }, // Synecdoche, New York
+    { path: '/mE24wUCfjK8AoBBjaMjho7Rczr7.jpg', tag: 'Tense'       }, // Get Out
+    { path: '/hjlZSXM86wJrfCv5VKfR5DI2VeU.jpg', tag: 'Unsettling'  }, // Hereditary
+    { path: '/pThyQovXQrw2m0s9x82twj48Jq4.jpg', tag: 'Clever'      }, // Knives Out
+    { path: '/vz3Vd6nfq9YZrVvyYx5RHFaYKV3.jpg', tag: 'Witty'       }, // In Bruges
+    { path: '/nSxDa3M9aMvGVLoItzWTepQ5h5d.jpg', tag: 'Whimsical'   }, // Amélie
+    { path: '/1OJ9vkD5xPt3skC6KguyXAgagRZ.jpg', tag: 'Feel-good'   }, // Paddington 2
+    { path: '/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg', tag: 'Sharp'       }, // Parasite
   ],
   [
-    '/nSxDa3M9aMvGVLoItzWTepQ5h5d.jpg', // Amélie
-    '/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg', // Parasite
-    '/39wmItIWsg5sZMyRUHLkWBcuVCM.jpg', // Spirited Away
-    '/q719jXXEzOoYaps6babgKnONONX.jpg', // Your Name
-    '/uDO8zWDhfWwoFdKS4fzkUJt0Rf0.jpg', // La La Land
-    '/6Ryitt95xrO8KXuqRGm1fUuNwqF.jpg', // Coco
-    '/qLnfEmPrDjJfPyyddLJPkXmshkp.jpg', // Moonlight
+    { path: '/fa0RDkAlCec0STeMNAhPaF89q6U.jpg', tag: 'Mastery'     }, // There Will Be Blood
+    { path: '/39wmItIWsg5sZMyRUHLkWBcuVCM.jpg', tag: 'Soulful'     }, // Spirited Away
+    { path: '/z7xXihu5wHuSMWymq5VAulPVuvg.jpg', tag: 'Mythic'      }, // Pan's Labyrinth
+    { path: '/6Ryitt95xrO8KXuqRGm1fUuNwqF.jpg', tag: 'Nostalgic'   }, // Coco
+    { path: '/gl66K7zRdtNYGrxyS2YDUP5ASZd.jpg', tag: 'Coming-of-age' }, // Lady Bird
+    { path: '/eCOtqtfvn7mxGl6nfmq4b1exJRc.jpg', tag: 'Intimate'    }, // Her
+    { path: '/iYypPT4bhqXfq1b6EnmxvRt6b2Y.jpg', tag: 'Longing'     }, // In the Mood for Love
+    { path: '/eWdyYQreja6JGCzqHWXpWHDrrPo.jpg', tag: 'Editorial'   }, // The Grand Budapest Hotel
+    { path: '/7Y9ILV1unpW9mLpGcqyGQU72LUy.jpg', tag: 'Offbeat'     }, // The Lobster
+    { path: '/hA2ple9q4qnwxp3hKVNhroipsir.jpg', tag: 'Kinetic'     }, // Mad Max: Fury Road
+    { path: '/602vevIURmpDfzbnv5Ubi6wIkQm.jpg', tag: 'Intense'     }, // Drive
   ],
 ]
 
 const MOOD_WORDS = ['nostalgic', 'tense', 'cozy', 'euphoric', 'curious', 'melancholy']
+
+const MOOD_COLORS = {
+  nostalgic:  { primary: '222,184,135', secondary: '193,154,107' },
+  tense:      { primary: '108,123,179', secondary: '100,130,180' },
+  cozy:       { primary: '168,198,134', secondary: '126,200,200' },
+  euphoric:   { primary: '255,217,61',  secondary: '255,140,66'  },
+  curious:    { primary: '78,205,196',  secondary: '69,183,170'  },
+  melancholy: { primary: '155,142,196', secondary: '108,123,179' },
+}
 
 function usePosterRows() {
   return useMemo(
@@ -37,33 +54,8 @@ function usePosterRows() {
   )
 }
 
-function MoodRotator() {
-  const [index, setIndex] = useState(0)
-  const [visible, setVisible] = useState(true)
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setVisible(false)
-      setTimeout(() => {
-        setIndex(i => (i + 1) % MOOD_WORDS.length)
-        setVisible(true)
-      }, 400)
-    }, 3000)
-    return () => clearInterval(interval)
-  }, [])
-
-  return (
-    <span
-      className={`inline-block pb-[0.15em] bg-gradient-to-r from-purple-400 via-pink-400 to-amber-400 bg-clip-text text-transparent transition-opacity duration-[400ms] ${
-        visible ? 'opacity-100' : 'opacity-0'
-      }`}
-    >
-      {MOOD_WORDS[index]}
-    </span>
-  )
-}
-
-function PosterTile({ path }) {
+function PosterTile({ path, tag }) {
   const [loadState, setLoadState] = useState('loading')
   const imgRef = useRef(null)
 
@@ -101,67 +93,83 @@ function PosterTile({ path }) {
         alt=""
         loading="lazy"
         onLoad={() => setLoadState('loaded')}
-        onError={() => setLoadState('error')}
+        onError={(e) => { e.currentTarget.style.opacity = '0'; setLoadState('error') }}
       />
+      {/* Top gradient fade for tag legibility */}
+      <div
+        className="absolute inset-x-0 top-0 h-12 pointer-events-none"
+        style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.60) 0%, transparent 100%)' }}
+      />
+      {/* Mood tag */}
+      {tag && (
+        <span className="absolute top-2.5 right-2.5 text-[9px] font-medium tracking-[0.12em] uppercase text-white/55 select-none">
+          {tag}
+        </span>
+      )}
     </div>
   )
 }
 
-function CTAButtons({ signInWithGoogle, isAuthenticating, scrollToMoodDemo, centered = false }) {
-  return (
-    <div className={`flex flex-col gap-4 ${centered ? 'items-center' : 'items-start'}`}>
-      <div className={`flex flex-col sm:flex-row gap-3 ${centered ? 'items-center sm:items-center' : 'items-stretch sm:items-center'}`}>
-        <button
-          onClick={signInWithGoogle}
-          disabled={isAuthenticating}
-          className="group inline-flex items-center justify-center gap-3 px-8 py-4 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-base shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed touch-target"
-          aria-label={isAuthenticating ? 'Signing in' : 'Get started free with Google'}
-        >
-          {isAuthenticating ? (
-            <>
-              <svg className="animate-spin h-4 w-4 flex-shrink-0" viewBox="0 0 24 24" aria-hidden="true">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-              </svg>
-              <span>Signing in...</span>
-            </>
-          ) : (
-            <>
-              <img src={googleSvg} alt="" className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
-              <span>Get Started Free</span>
-              <ArrowRight className="w-4 h-4 flex-shrink-0 group-hover:translate-x-0.5 transition-transform" aria-hidden="true" />
-            </>
-          )}
-        </button>
-        <button
-          onClick={scrollToMoodDemo}
-          className="inline-flex items-center justify-center gap-2 px-6 py-4 rounded-xl border border-white/12 text-white/50 text-sm font-medium hover:border-white/25 hover:text-white/80 hover:bg-white/4 transition-all duration-200 touch-target"
-          aria-label="See how FeelFlick works"
-        >
-          See how it works ↓
-        </button>
-      </div>
-      <p className="text-xs text-white/25">Free forever · No credit card required</p>
-    </div>
-  )
-}
 
 export default function HeroSection() {
   const { signInWithGoogle, isAuthenticating } = useGoogleAuth()
   const [row1, row2] = usePosterRows()
+  const prefersReducedMotion = typeof window !== 'undefined'
+    ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    : false
+
+  const [moodIndex, setMoodIndex] = useState(0)
+  const [tintOpacity, setTintOpacity] = useState(0)
+
+  useEffect(() => {
+    // Fade in tint after mount
+    const fadeIn = setTimeout(() => setTintOpacity(1), 400)
+    const interval = setInterval(() => {
+      setMoodIndex(i => (i + 1) % MOOD_WORDS.length)
+    }, 3000)
+    return () => {
+      clearTimeout(fadeIn)
+      clearInterval(interval)
+    }
+  }, [])
+
+  const activeMoodColors = MOOD_COLORS[MOOD_WORDS[moodIndex]]
 
   const scrollToMoodDemo = () => {
-    const element = document.getElementById('how-it-works')
+    const element = document.getElementById('mood-demo')
     if (!element) return
     const offsetPosition = element.getBoundingClientRect().top + window.pageYOffset - 80
     window.scrollTo({ top: offsetPosition, behavior: 'smooth' })
   }
 
   return (
-    <section
-      className="relative min-h-screen bg-black overflow-hidden"
-      aria-labelledby="hero-heading"
-    >
+    <>
+      <style>{`
+        .hero-headline {
+          font-size: clamp(2.75rem, 9vw, 3.75rem);
+        }
+        @media (min-width: 1024px) {
+          .hero-headline {
+            font-size: clamp(4.5rem, 6vw, 7rem);
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .animate-scroll-left,
+          .animate-scroll-right {
+            animation: none !important;
+          }
+          .animate-fade-in-up {
+            animation: none !important;
+            opacity: 1 !important;
+            transform: none !important;
+          }
+        }
+      `}</style>
+      <section
+        id="hero"
+        className="relative min-h-screen bg-black overflow-hidden"
+        aria-labelledby="hero-heading"
+      >
 
       {/* ── LAYER 1: Full-bleed poster wall ──────────────────────────────
           Sits behind everything. Covers the whole section on both
@@ -177,26 +185,40 @@ export default function HeroSection() {
           style={{ opacity: 0.92 }}
         >
           <div className="flex gap-4 animate-scroll-left w-[220%]">
-            {row1.map((path, i) => <PosterTile key={`r1-${i}`} path={path} />)}
+            {row1.map((item, i) => <PosterTile key={`r1-${i}`} path={item.path} tag={item.tag} />)}
           </div>
           <div className="flex gap-4 animate-scroll-right w-[220%]">
-            {row2.map((path, i) => <PosterTile key={`r2-${i}`} path={path} />)}
+            {row2.map((item, i) => <PosterTile key={`r2-${i}`} path={item.path} tag={item.tag} />)}
           </div>
         </div>
       </div>
 
-      {/* ── LAYER 2: FeelFlick cinematic colour tint ─────────────────────
-          Purple-to-transparent overlay gives the poster grid a cinematic
-          FeelFlick feel — like a cinema screen with a colour wash.
-          Covers the whole section so the tint is consistent.
+      {/* ── LAYER 2: Dynamic mood-colour tint ────────────────────────────
+          Shifts hue with the rotating mood word for a cinema wash effect.
+          Base purple layer underneath; mood overlay cross-fades on top.
       ─────────────────────────────────────────────────────────────── */}
+      {/* Base: static purple-pink cinematic tint — always present */}
       <div
         className="absolute inset-0 z-[1] pointer-events-none"
         style={{
-          background: 'linear-gradient(135deg, rgba(88,28,135,0.18) 0%, rgba(168,85,247,0.08) 40%, rgba(236,72,153,0.10) 70%, rgba(0,0,0,0.25) 100%)',
+          background: 'linear-gradient(135deg, rgba(88,28,135,0.14) 0%, rgba(168,85,247,0.06) 40%, rgba(236,72,153,0.08) 70%, rgba(0,0,0,0.20) 100%)',
         }}
         aria-hidden="true"
       />
+      {/* Mood overlay — cross-fades when mood word changes */}
+      {!prefersReducedMotion && (
+        <motion.div
+          key={moodIndex}
+          className="absolute inset-0 z-[1] pointer-events-none"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: tintOpacity * 0.55 }}
+          transition={{ duration: 0.8, ease: 'easeInOut' }}
+          style={{
+            background: `linear-gradient(135deg, rgba(${activeMoodColors.primary},0.18) 0%, rgba(${activeMoodColors.secondary},0.10) 50%, transparent 80%)`,
+          }}
+          aria-hidden="true"
+        />
+      )}
 
       {/* ── LAYER 3a: Desktop merge gradient ─────────────────────────────
           Left 60% = content. Transition zone = 30%–65%.
@@ -206,7 +228,7 @@ export default function HeroSection() {
       <div
         className="absolute inset-0 z-[2] pointer-events-none hidden lg:block"
         style={{
-          background: 'linear-gradient(to right, #000 0%, #000 48%, rgba(0,0,0,0.92) 58%, rgba(0,0,0,0.5) 68%, rgba(0,0,0,0.1) 80%, transparent 90%)',
+          background: 'linear-gradient(to right, #06060A 0%, #06060A 40%, rgba(0,0,0,0.88) 52%, rgba(0,0,0,0.4) 63%, rgba(0,0,0,0.08) 76%, transparent 88%)',
         }}
         aria-hidden="true"
       />
@@ -219,7 +241,7 @@ export default function HeroSection() {
       <div
         className="absolute inset-0 z-[2] pointer-events-none lg:hidden"
         style={{
-          background: 'linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.15) 22vh, rgba(0,0,0,0.6) 28vh, rgba(0,0,0,0.92) 34vh, #000 40vh)',
+          background: 'linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.15) 26vh, rgba(0,0,0,0.6) 32vh, rgba(0,0,0,0.92) 37vh, #06060A 40vh)',
         }}
         aria-hidden="true"
       />
@@ -234,69 +256,94 @@ export default function HeroSection() {
       {/* ── LAYER 5: Content — sits above all gradients ───────────────── */}
       <div className="relative z-10 min-h-screen flex flex-col lg:flex-row">
 
-        {/* Desktop: 70% content column, vertically centred */}
-        <div className="hidden lg:flex w-[70%] items-center px-16 xl:px-28 animate-fade-in-up">
-          <div className="max-w-2xl">
+        {/* Mobile: top spacer — posters show through here */}
+        <div className="lg:hidden flex-shrink-0" style={{ height: '32vh' }} aria-hidden="true" />
+
+        {/* Unified content block — responsive alignment and sizing */}
+        <div
+          className="flex items-center justify-center text-center lg:text-left lg:justify-start lg:w-[70%] lg:px-16 xl:px-28 px-6 pb-10 lg:pb-0 animate-fade-in-up"
+          style={{ minHeight: '68vh' }}
+        >
+          <div className="max-w-sm lg:max-w-2xl">
+            {/* Eyebrow — sits above the h1, low-contrast label */}
+            <p className="text-xs font-semibold uppercase tracking-widest text-purple-400/60 mb-3 lg:mb-4">
+              FILMS THAT KNOW YOU
+            </p>
+            {/* Single h1 — id appears once, no duplicate */}
             <h1
               id="hero-heading"
-              className="font-black tracking-tight leading-[1.05] mb-8"
-              style={{ fontSize: 'clamp(3.5rem, 5vw, 6rem)' }}
+              className="hero-headline font-black tracking-tight leading-[1.05] mb-5 lg:mb-8"
             >
-              <span className="text-white">Movies that match</span>
-              <br />
-              <span className="gradient-text">your mood.</span>
+              <span className="block text-white">The right film.</span>
+              <span
+                className="block"
+                style={{
+                  background: 'linear-gradient(90deg, #a855f7 0%, #ec4899 45%, #fbbf24 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                  display: 'inline-block',
+                  paddingBottom: '0.1em',
+                }}
+              >Right now.</span>
             </h1>
-            <p className="text-xl text-white/60 leading-relaxed mb-6 max-w-xl">
-              FeelFlick helps you discover the right movie for how you feel right now — based on your mood, context, and taste, so you spend less time scrolling and more time watching.
+            <p className="text-sm lg:text-lg text-white/60 leading-relaxed mb-5 lg:mb-6 max-w-[560px]">
+              FeelFlick recommends movies based on your mood, your taste, and the moment you&apos;re in — so you spend less time scrolling and more time watching.
             </p>
-            <p className="text-lg text-white/40 mb-8">
-              Feeling <MoodRotator />? There&apos;s a film for that.
-            </p>
-            <CTAButtons
-              signInWithGoogle={signInWithGoogle}
-              isAuthenticating={isAuthenticating}
-              scrollToMoodDemo={scrollToMoodDemo}
-            />
+
+            {/* CTA + trust line — trust text is constrained to pill width */}
+            <div className="flex flex-col items-center lg:items-start">
+              <div className="inline-flex flex-col items-center gap-3">
+
+                {/* Primary CTA */}
+                <button
+                  onClick={signInWithGoogle}
+                  disabled={isAuthenticating}
+                  className="inline-flex items-center justify-center gap-2.5 px-10 py-[0.875rem] rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-[0.9375rem] shadow-lg shadow-purple-500/20 hover:brightness-110 hover:scale-[1.02] active:scale-[0.97] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed touch-target"
+                  aria-label={isAuthenticating ? 'Signing in' : 'Get my recommendations'}
+                >
+                  {isAuthenticating ? (
+                    <span className="inline-flex items-center gap-2">
+                      <svg className="animate-spin h-4 w-4 flex-shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Signing in...
+                    </span>
+                  ) : (
+                    <>
+                      Get My Recommendations
+                      <LogIn className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+                    </>
+                  )}
+                </button>
+
+                {/* Trust line — centered under pill, width bounded by it */}
+                <p className="text-xs text-white/40 text-center w-full">
+                  Sign in with Google to discover your Cinematic DNA
+                </p>
+
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Desktop: 30% right spacer — posters show through */}
         <div className="hidden lg:block w-[30%]" aria-hidden="true" />
 
-        {/* Mobile: top spacer — posters show through here */}
-        <div className="lg:hidden flex-shrink-0" style={{ height: '32vh' }} aria-hidden="true" />
-
-        {/* Mobile: content, centred */}
-        <div
-          className="lg:hidden flex items-center justify-center text-center px-6 pb-10 animate-fade-in-up"
-          style={{ minHeight: '68vh' }}
-        >
-          <div className="max-w-sm">
-            <h1
-              id="hero-heading"
-              className="font-black tracking-tight leading-[1.05] mb-5"
-              style={{ fontSize: 'clamp(2.5rem, 9vw, 3.25rem)' }}
-            >
-              <span className="text-white">Movies that match</span>
-              <br />
-              <span className="gradient-text">your mood.</span>
-            </h1>
-            <p className="text-base text-white/60 leading-relaxed mb-5">
-              FeelFlick helps you discover the right movie for how you feel right now — based on your mood, context, and taste.
-            </p>
-            <p className="text-base text-white/40 mb-7">
-              Feeling <MoodRotator />? There&apos;s a film for that.
-            </p>
-            <CTAButtons
-              signInWithGoogle={signInWithGoogle}
-              isAuthenticating={isAuthenticating}
-              scrollToMoodDemo={scrollToMoodDemo}
-              centered
-            />
-          </div>
-        </div>
-
       </div>
+
+      {/* See how it works — bottom-center anchor */}
+      <button
+        onClick={scrollToMoodDemo}
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 inline-flex items-center gap-1.5 text-sm text-white/40 hover:text-white/70 transition-colors duration-200 touch-target"
+        aria-label="See how FeelFlick works"
+      >
+        See how it works
+        <ArrowDown className="w-3.5 h-3.5 flex-shrink-0" aria-hidden="true" />
+      </button>
+
     </section>
+    </>
   )
 }

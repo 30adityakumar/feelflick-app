@@ -1,8 +1,9 @@
 // src/app/pages/movies/MoviesTab.jsx
 import { useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 import { discoverMovies } from '@/shared/api/tmdb'
 import { browseMovies, PAGE_SIZE, TMDB_GENRE_IDS } from '@/shared/api/browse'
+import { supabase } from '@/shared/lib/supabase/client'
 import BrowseSearchBar, { DEFAULT_SORT } from './components/BrowseSearchBar'
 import ResultsGrid from './components/ResultsGrid'
 import Pagination from './components/Pagination'
@@ -18,26 +19,43 @@ export default function MoviesTab() {
   const [loading, setLoading] = useState(true)
   const [totalPages, setTotalPages] = useState(1)
   const [totalResults, setTotalResults] = useState(0)
+  const [watchedIds, setWatchedIds] = useState([])
+  const [surpriseLoading, setSurpriseLoading] = useState(false)
   const [searchParams, setSearchParams] = useSearchParams()
   const { user } = useAuthSession()
+  const navigate = useNavigate()
 
   // ── Read all URL params ────────────────────────────────────────────────────
-  const page      = getPage(searchParams)
-  const query     = searchParams.get('q')         || ''
-  const genre     = searchParams.get('genre')     || ''
-  const sortBy    = searchParams.get('sort')      || DEFAULT_SORT
-  const decade    = searchParams.get('decade')    || ''
-  const minRating = searchParams.get('rating')    || ''
-  const language  = searchParams.get('lang')      || ''
+  const page        = getPage(searchParams)
+  const query       = searchParams.get('q')            || ''
+  const genre       = searchParams.get('genre')        || ''
+  const sortBy      = searchParams.get('sort')         || DEFAULT_SORT
+  const decade      = searchParams.get('decade')       || ''
+  const minRating   = searchParams.get('rating')       || ''
+  const language    = searchParams.get('lang')         || ''
   // Advanced filters
-  const runtime   = searchParams.get('runtime')   || ''
-  const pacing    = searchParams.get('pacing')    || ''
-  const intensity = searchParams.get('intensity') || ''
-  const depth     = searchParams.get('depth')     || ''
-  const vibeRaw   = searchParams.get('vibe')      || ''
-  const vibe      = vibeRaw ? vibeRaw.split(',').filter(Boolean) : []
+  const runtime     = searchParams.get('runtime')      || ''
+  const pacing      = searchParams.get('pacing')       || ''
+  const intensity   = searchParams.get('intensity')    || ''
+  const depth       = searchParams.get('depth')        || ''
+  const vibeRaw     = searchParams.get('vibe')         || ''
+  const vibe        = vibeRaw ? vibeRaw.split(',').filter(Boolean) : []
+  const director    = searchParams.get('director')     || ''
+  const hideWatched = searchParams.get('hideWatched')  || ''
+  const dialogue    = searchParams.get('dialogue')     || ''
+  const attention   = searchParams.get('attention')    || ''
 
   const isSearchMode = query.trim().length > 0
+
+  // ── Fetch watched IDs for hide-watched filter ──────────────────────────────
+  useEffect(() => {
+    if (!user) return
+    supabase
+      .from('user_history')
+      .select('movie_id')
+      .eq('user_id', user.id)
+      .then(({ data }) => setWatchedIds(data?.map(d => d.movie_id) ?? []))
+  }, [user])
 
   // ── Write URL params ───────────────────────────────────────────────────────
   const updateSearchParams = (updates) => {
@@ -50,17 +68,21 @@ export default function MoviesTab() {
       else next.set(key, String(v))
     }
 
-    set('q',         updates.q)
-    set('genre',     updates.genre)
-    set('sort',      updates.sortBy,    DEFAULT_SORT)
-    set('decade',    updates.decade)
-    set('rating',    updates.minRating)
-    set('lang',      updates.language)
-    set('runtime',   updates.runtime)
-    set('pacing',    updates.pacing)
-    set('intensity', updates.intensity)
-    set('depth',     updates.depth)
-    set('page',      updates.page, 1)
+    set('q',           updates.q)
+    set('genre',       updates.genre)
+    set('sort',        updates.sortBy,    DEFAULT_SORT)
+    set('decade',      updates.decade)
+    set('rating',      updates.minRating)
+    set('lang',        updates.language)
+    set('runtime',     updates.runtime)
+    set('pacing',      updates.pacing)
+    set('intensity',   updates.intensity)
+    set('depth',       updates.depth)
+    set('page',        updates.page, 1)
+    set('director',    updates.director)
+    set('hideWatched', updates.hideWatched)
+    set('dialogue',    updates.dialogue)
+    set('attention',   updates.attention)
 
     // vibe is a comma-joined list
     if (updates.vibe !== undefined) {
@@ -70,6 +92,40 @@ export default function MoviesTab() {
     }
 
     setSearchParams(next, { replace: false })
+  }
+
+  const handleSearch = (filters) => updateSearchParams({ ...filters, page: 1 })
+
+  async function handleSurpriseMe() {
+    setSurpriseLoading(true)
+    try {
+      const maxPage = Math.min(totalPages, 10)
+      const randomPage = Math.floor(Math.random() * maxPage) + 1
+      const data = await browseMovies({
+        page: randomPage,
+        genre, sortBy, decade, lang: language,
+        rating: minRating, runtime, pacing,
+        intensity, depth, vibe, director,
+        hideWatched: hideWatched === '1', watchedIds,
+        dialogue, attention,
+      })
+      const candidates = data.movies
+      if (!candidates.length) return
+      const pick = candidates[Math.floor(Math.random() * candidates.length)]
+      if (pick?.tmdb_id) navigate(`/movie/${pick.tmdb_id}`)
+    } catch (err) {
+      console.error('[SurpriseMe] error:', err)
+    } finally {
+      setSurpriseLoading(false)
+    }
+  }
+
+  const handleClearAll = () => {
+    updateSearchParams({
+      q: '', genre: '', sortBy: DEFAULT_SORT, decade: '', minRating: '', language: '',
+      runtime: '', pacing: '', intensity: '', depth: '', vibe: [],
+      director: '', hideWatched: '', dialogue: '', attention: '', page: 1,
+    })
   }
 
   // ── Fetch ──────────────────────────────────────────────────────────────────
@@ -125,6 +181,7 @@ export default function MoviesTab() {
           const data = await browseMovies({
             page, genre, sortBy, decade, lang: language,
             rating: minRating, runtime, pacing, intensity, depth, vibe,
+            director, hideWatched: hideWatched === '1', watchedIds, dialogue, attention,
           })
           if (!active) return
           setMovies(data.movies)
@@ -140,9 +197,7 @@ export default function MoviesTab() {
     }
     fetchMovies()
     return () => { active = false }
-  }, [page, query, genre, sortBy, decade, minRating, language, runtime, pacing, intensity, depth, vibeRaw]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handleSearch = (filters) => updateSearchParams({ ...filters, page: 1 })
+  }, [page, query, genre, sortBy, decade, minRating, language, runtime, pacing, intensity, depth, vibeRaw, director, hideWatched, dialogue, attention, watchedIds]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handlePageChange = (newPage) => {
     updateSearchParams({ page: newPage })
@@ -156,8 +211,8 @@ export default function MoviesTab() {
     <div className="min-h-screen text-white" style={{ background: 'var(--color-bg)' }}>
       {/* Sticky filter bar */}
       <div
-        className="sticky top-0 z-40 border-b border-white/[0.06] pt-20 pb-0 backdrop-blur-xl md:pt-24"
-        style={{ background: 'rgba(8, 6, 13, 0.92)' }}
+        className="sticky top-0 z-40 border-b border-white/[0.06] backdrop-blur-xl"
+        style={{ background: 'rgba(8, 6, 13, 0.92)', paddingTop: 'var(--hdr-h, 64px)' }}
       >
         <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-12">
           <BrowseSearchBar
@@ -172,6 +227,11 @@ export default function MoviesTab() {
             intensity={intensity}
             depth={depth}
             vibe={vibe}
+            director={director}
+            hideWatched={hideWatched}
+            dialogue={dialogue}
+            attention={attention}
+            user={user}
             onSearch={handleSearch}
           />
         </div>
@@ -179,13 +239,25 @@ export default function MoviesTab() {
 
       {/* Results */}
       <div className="mx-auto max-w-7xl px-4 pb-24 pt-6 md:px-8 lg:px-12">
-        {/* Result count */}
+        {/* Result count + Surprise me */}
         {!loading && totalResults > 0 && (
-          <p className="mb-5 text-[0.8rem]" style={{ color: 'rgba(248,250,252,0.35)' }}>
-            {isSearchMode
-              ? `${totalResults.toLocaleString()} results for "${query}"`
-              : `${totalResults.toLocaleString()} movies`}
-          </p>
+          <div className="mb-5 flex items-center justify-between">
+            <p className="text-[0.8rem]" style={{ color: 'rgba(248,250,252,0.35)' }}>
+              {isSearchMode
+                ? `${totalResults.toLocaleString()} results for "${query}"`
+                : `${totalResults.toLocaleString()} movies`}
+            </p>
+            {!isSearchMode && (
+              <button
+                onClick={handleSurpriseMe}
+                disabled={surpriseLoading || totalResults === 0}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border border-white/[0.08] bg-white/[0.04] text-white/50 hover:text-white/80 hover:border-white/15 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150"
+              >
+                {surpriseLoading ? <span className="animate-spin inline-block">⟳</span> : '🎲'}
+                Surprise me
+              </button>
+            )}
+          </div>
         )}
 
         {loading ? (
@@ -207,19 +279,20 @@ export default function MoviesTab() {
             <Pagination currentPage={page} totalPages={totalPages} onPageChange={handlePageChange} />
           </>
         ) : (
-          <div className="flex flex-col items-center justify-center py-32 text-center">
-            <div
-              className="mb-4 flex h-16 w-16 items-center justify-center rounded-full"
-              style={{ background: 'rgba(88,28,135,0.15)', border: '1px solid rgba(168,85,247,0.2)' }}
+          <div className="py-20 text-center">
+            <p className="text-white/40 text-base mb-2">
+              No films match these filters
+            </p>
+            <p className="text-white/25 text-sm mb-6">
+              Try loosening some criteria
+            </p>
+            <button
+              type="button"
+              onClick={handleClearAll}
+              className="text-sm text-purple-400 border border-purple-500/30 px-4 py-2 rounded-full hover:border-purple-400/50 transition-colors"
             >
-              <span className="text-2xl">🎬</span>
-            </div>
-            <p className="text-[1.05rem] font-semibold" style={{ color: 'rgba(248,250,252,0.6)' }}>
-              No movies found
-            </p>
-            <p className="mt-2 text-[0.85rem]" style={{ color: 'rgba(248,250,252,0.3)' }}>
-              Try adjusting your filters or search term
-            </p>
+              Clear all filters
+            </button>
           </div>
         )}
       </div>

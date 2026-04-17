@@ -1,10 +1,11 @@
 // src/app/AppShell.jsx
 import { useEffect, useRef, useState } from 'react'
 import { Outlet, useLocation, NavLink } from 'react-router-dom'
-import { Home, Sparkles, User, Compass } from 'lucide-react'
+import { Home, Sparkles, User, Compass, LogIn } from 'lucide-react'
 import Header from '@/app/header/Header'
 import SearchBar from '@/app/header/components/SearchBar'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
+import { useGoogleAuth } from '@/features/landing/utils/useGoogleAuth'
 
 export default function AppShell() {
   const [searchOpen, setSearchOpen] = useState(false)
@@ -81,7 +82,7 @@ export default function AppShell() {
   }, [location.pathname])
 
   return (
-    <div className="relative min-h-screen bg-black text-white">
+    <div className="relative min-h-screen text-white">
       {/* Page background */}
       <div aria-hidden className="fixed inset-0 -z-10">
         <div className="absolute inset-0 bg-black" />
@@ -101,14 +102,13 @@ export default function AppShell() {
       {/* Page content - Full width, with bottom padding for mobile nav */}
       <main
         className={`relative z-10 w-full ${isAuthenticated ? 'pb-20 md:pb-0' : ''}`}
-        // Match top offset to the measured header height so hero/backdrops never sit under the header gradient.
         style={{ paddingTop: 'var(--hdr-h, 64px)' }}
       >
         <Outlet />
       </main>
 
-      {/* Mobile Bottom Navigation - Only shown when authenticated */}
-      {isAuthenticated && (
+      {/* Mobile Bottom Navigation */}
+      {isAuthenticated ? (
         <nav
           className="fixed bottom-0 left-0 right-0 z-40 md:hidden border-t border-white/8 bg-black/95 backdrop-blur-xl"
           style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
@@ -116,11 +116,13 @@ export default function AppShell() {
         >
           <div className="flex items-center justify-around h-16 px-1">
             <MobileNavLink to="/home"           icon={Home}     label="Home"     />
-            <MobileNavLink to="/discover"       icon={Sparkles} label="Discover" />
             <MobileNavLink to="/browse"         icon={Compass}  label="Browse"   />
+            <MobileNavLink to="/discover"       icon={Sparkles} label="Discover" />
             <MobileNavLink to="/mobile-account" icon={User}     label="Account"  />
           </div>
         </nav>
+      ) : (
+        <UnauthMobileNav />
       )}
 
 
@@ -130,6 +132,31 @@ export default function AppShell() {
       {/* Loading indicator for route transitions */}
       <RouteLoadingIndicator />
     </div>
+  )
+}
+
+/**
+ * Minimal mobile bottom nav for unauthenticated users on public app routes.
+ */
+function UnauthMobileNav() {
+  const { signInWithGoogle, isAuthenticating } = useGoogleAuth()
+
+  return (
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-40 md:hidden border-t border-white/8 bg-black/95 backdrop-blur-xl"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      aria-label="Mobile navigation"
+    >
+      <div className="flex items-center justify-around h-16 px-1">
+        <MobileNavLink to="/discover" icon={Sparkles} label="Discover" />
+        <MobileNavLink to="/browse"   icon={Compass}  label="Browse"   />
+        <MobileNavLink
+          icon={LogIn}
+          label={isAuthenticating ? 'Signing in…' : 'Sign In'}
+          onClick={isAuthenticating ? undefined : signInWithGoogle}
+        />
+      </div>
+    </nav>
   )
 }
 

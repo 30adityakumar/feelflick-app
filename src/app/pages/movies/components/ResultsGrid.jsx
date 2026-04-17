@@ -272,6 +272,11 @@ export default function ResultsGrid({ movies, user, isSearchMode = false }) {
                 style={{ color: isHovered ? 'rgba(248,250,252,1)' : 'rgba(248,250,252,0.72)' }}>
                 {movie.title}
               </p>
+              {movie.director_name && (
+                <p className="text-xs text-white/35 truncate mt-0.5 leading-tight">
+                  {movie.director_name}
+                </p>
+              )}
               {year && (
                 <p className="mt-0.5 text-[0.68rem]" style={{ color: 'rgba(248,250,252,0.32)' }}>
                   {year}

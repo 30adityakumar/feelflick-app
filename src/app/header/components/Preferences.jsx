@@ -170,7 +170,7 @@ export default function Preferences() {
                   transition={{ duration: 0.2, delay: idx * 0.02 }}
                   whileTap={{ scale: 0.93 }}
                   aria-pressed={isSelected}
-                  className={`px-5 py-[11px] rounded-full text-sm font-semibold select-none transition-all duration-200 ${
+                  className={`inline-flex items-center justify-center min-w-[110px] px-5 py-[11px] rounded-full text-sm font-semibold select-none transition-all duration-200 ${
                     isSelected
                       ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/25 scale-[1.05]'
                       : 'bg-white/5 border border-white/10 text-white/50 hover:bg-white/9 hover:border-white/20 hover:text-white/80'

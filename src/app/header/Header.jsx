@@ -1,22 +1,28 @@
 // src/app/header/Header.jsx
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { Search as SearchIcon, ChevronDown, LogOut, User as UserIcon, Settings, Bookmark, Clock, Fingerprint, Users, ListVideo } from 'lucide-react'
+import { Search as SearchIcon, ChevronDown, LogOut, User as UserIcon, Settings, Bookmark, Clock, Fingerprint, Users, ListVideo, LogIn, Bell } from 'lucide-react'
 import { supabase } from '@/shared/lib/supabase/client'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
+import { useGoogleAuth } from '@/features/landing/utils/useGoogleAuth'
+import { useUnreadFeed } from '@/shared/hooks/useUnreadFeed'
 
 export default function Header({ onOpenSearch }) {
   const navigate = useNavigate()
   const [scrolled, setScrolled] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
-  const { user } = useAuthSession()
+  const { user, isAuthenticated } = useAuthSession()
+  const { signInWithGoogle, isAuthenticating } = useGoogleAuth()
+  const userId = user?.id ?? null
+  const { hasUnread } = useUnreadFeed(userId)
 
   const hdrRef = useRef(null)
   const dropdownRef = useRef(null)
 
   // Scrolled state (for backdrop)
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8)
+    const onScroll = () => setScrolled(window.scrollY > 60)
+    onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
@@ -74,10 +80,10 @@ export default function Header({ onOpenSearch }) {
     <header
       ref={hdrRef}
       style={{ paddingTop: 'env(safe-area-inset-top)' }}
-      className={`w-full transition-colors duration-300 ${
+      className={`w-full transition-all duration-500 ease-in-out ${
         scrolled
-          ? 'bg-black/88 backdrop-blur-xl border-b border-white/[0.06] shadow-lg shadow-black/30'
-          : 'bg-gradient-to-b from-black/70 to-transparent'
+          ? 'bg-black/75 backdrop-blur-xl border-b border-white/[0.08] shadow-lg shadow-black/20'
+          : 'bg-black/30 backdrop-blur-md border-b border-white/[0.06]'
       }`}
     >
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10">
@@ -85,7 +91,7 @@ export default function Header({ onOpenSearch }) {
 
           {/* ── Logo ─────────────────────────────────────────────── */}
           <Link
-            to="/home"
+            to={isAuthenticated ? '/home' : '/'}
             className="shrink-0 text-xl sm:text-2xl font-black bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent hover:opacity-85 transition-opacity duration-200"
           >
             FEELFLICK
@@ -93,32 +99,30 @@ export default function Header({ onOpenSearch }) {
 
           {/* ── Desktop nav ──────────────────────────────────────── */}
           <nav className="hidden md:flex items-center gap-1" aria-label="Main navigation">
-            {[
-              { to: '/home',      label: 'Home'      },
-              { to: '/feed',      label: 'Feed'      },
-              { to: '/discover',  label: 'Discover'  },
-              { to: '/browse',    label: 'Browse'    },
-              { to: '/watchlist', label: 'Watchlist' },
-            ].map(({ to, label }) => (
+            {(isAuthenticated
+              ? [
+                  { to: '/home',      label: 'Home'      },
+                  { to: '/browse',    label: 'Browse'    },
+                  { to: '/discover',  label: 'Discover'  },
+                  { to: '/watchlist', label: 'Watchlist' },
+                ]
+              : [
+                  { to: '/discover',  label: 'Discover'  },
+                  { to: '/browse',    label: 'Browse'    },
+                ]
+            ).map(({ to, label }) => (
               <NavLink
                 key={to}
                 to={to}
                 className={({ isActive }) =>
-                  `group relative rounded-lg px-3.5 py-2 text-sm font-semibold transition-colors duration-200
+                  `relative rounded-lg px-3.5 py-2 text-sm font-semibold transition-colors duration-200
                   ${isActive
-                    ? 'text-white'
+                    ? 'text-white/90 border-b-2 border-white/40'
                     : 'text-white/50 hover:text-white/85 hover:bg-white/5'
                   }`
                 }
               >
-                {({ isActive }) => (
-                  <>
-                    {label}
-                    {isActive && (
-                      <span className="absolute bottom-0.5 left-3.5 right-3.5 h-[2px] rounded-full bg-gradient-to-r from-purple-500 to-pink-500" />
-                    )}
-                  </>
-                )}
+                {label}
               </NavLink>
             ))}
           </nav>
@@ -139,6 +143,37 @@ export default function Header({ onOpenSearch }) {
                 <kbd className="hidden xl:inline-block text-[10px] px-1.5 py-0.5 rounded border border-white/10 bg-white/5 text-white/30 font-mono leading-none">/</kbd>
               </span>
             </button>
+
+            {user && (
+              <button
+                type="button"
+                onClick={() => navigate('/feed')}
+                aria-label="Activity feed"
+                className="relative w-9 h-9 rounded-full flex items-center justify-center text-white/50 hover:text-white hover:bg-white/8 transition-all duration-200"
+              >
+                <Bell className="w-[18px] h-[18px]" />
+                {hasUnread && (
+                  <span
+                    aria-hidden="true"
+                    className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 ring-2 ring-black"
+                  />
+                )}
+              </button>
+            )}
+
+            {/* Sign In — unauthenticated users only */}
+            {!user && (
+              <button
+                type="button"
+                onClick={signInWithGoogle}
+                disabled={isAuthenticating}
+                className="hidden md:flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold text-white/80 transition-all duration-200 hover:border-purple-500/40 hover:bg-white/10 hover:text-white active:scale-95 disabled:opacity-50"
+                aria-label="Sign in with Google"
+              >
+                <LogIn className="h-4 w-4" />
+                {isAuthenticating ? 'Signing in…' : 'Sign In'}
+              </button>
+            )}
 
             {/* Avatar + dropdown */}
             {user && (

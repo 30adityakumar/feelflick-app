@@ -1,69 +1,40 @@
-// Tests for the onboarding movie-step skip behaviour.
+// Tests for the onboarding movie-step behaviour (no minimums, no skip button).
 // The StepMovies component is not exported from Onboarding.jsx so we test
-// the relevant logic through isolated unit tests and UI snapshots.
+// the relevant logic through an isolated stub that mirrors the real footer.
 
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 
 // ---------------------------------------------------------------------------
-// Minimal StepMovies re-implementation for testing only the Skip UX change.
-// This mirrors the exact conditional rendering added in the real component.
+// Minimal StepMovies footer stub — mirrors the real component's footer.
+// No canProceed gate, no Skip button. Main CTA is always enabled.
 // ---------------------------------------------------------------------------
-function StepMoviesFooter({ favoriteMovies = [], onBack, onFinish, loading = false }) {
-  const canProceed = favoriteMovies.length >= 5
-
+function StepMoviesFooter({ favoriteMovies: _favoriteMovies = [], onBack, onFinish, loading = false }) {
   return (
     <div>
       <button onClick={onBack} disabled={loading}>Back</button>
 
-      <div>
-        {!canProceed && (
-          <button onClick={() => onFinish({ skipMovies: true })} disabled={loading}>
-            Skip for now
-          </button>
-        )}
-
-        <button onClick={onFinish} disabled={loading || !canProceed}>
-          {loading ? 'Saving' : 'Complete Setup'}
-        </button>
-      </div>
+      <button onClick={onFinish} disabled={loading}>
+        {loading ? 'Saving' : 'See my recommendations'}
+      </button>
     </div>
   )
 }
 
-describe('Onboarding movie step – skip behaviour', () => {
-  it('shows "Skip for now" when fewer than 5 movies are selected', () => {
+describe('Onboarding movie step – no minimum', () => {
+  it('"See my recommendations" is always enabled regardless of selection count', () => {
     render(<StepMoviesFooter favoriteMovies={[]} onBack={vi.fn()} onFinish={vi.fn()} />)
-    expect(screen.getByRole('button', { name: /skip for now/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /see my recommendations/i })).not.toBeDisabled()
   })
 
-  it('hides "Skip for now" once 5 or more movies are selected', () => {
-    const movies = [{}, {}, {}, {}, {}]
-    render(<StepMoviesFooter favoriteMovies={movies} onBack={vi.fn()} onFinish={vi.fn()} />)
+  it('"See my recommendations" is enabled with films selected', () => {
+    render(<StepMoviesFooter favoriteMovies={[{}, {}, {}]} onBack={vi.fn()} onFinish={vi.fn()} />)
+    expect(screen.getByRole('button', { name: /see my recommendations/i })).not.toBeDisabled()
+  })
+
+  it('"Skip for now" button no longer exists', () => {
+    render(<StepMoviesFooter favoriteMovies={[]} onBack={vi.fn()} onFinish={vi.fn()} />)
     expect(screen.queryByRole('button', { name: /skip for now/i })).not.toBeInTheDocument()
-  })
-
-  it('calls onFinish with { skipMovies: true } when Skip is clicked', () => {
-    const onFinish = vi.fn()
-    render(<StepMoviesFooter favoriteMovies={[]} onBack={vi.fn()} onFinish={onFinish} />)
-    fireEvent.click(screen.getByRole('button', { name: /skip for now/i }))
-    expect(onFinish).toHaveBeenCalledWith({ skipMovies: true })
-  })
-
-  it('"Complete Setup" is disabled when fewer than 5 movies are selected', () => {
-    render(<StepMoviesFooter favoriteMovies={[]} onBack={vi.fn()} onFinish={vi.fn()} />)
-    expect(screen.getByRole('button', { name: /complete setup/i })).toBeDisabled()
-  })
-
-  it('"Complete Setup" is enabled when 5 or more movies are selected', () => {
-    const movies = [{}, {}, {}, {}, {}]
-    render(<StepMoviesFooter favoriteMovies={movies} onBack={vi.fn()} onFinish={vi.fn()} />)
-    expect(screen.getByRole('button', { name: /complete setup/i })).not.toBeDisabled()
-  })
-
-  it('"Skip for now" is disabled while loading', () => {
-    render(<StepMoviesFooter favoriteMovies={[]} onBack={vi.fn()} onFinish={vi.fn()} loading />)
-    expect(screen.getByRole('button', { name: /skip for now/i })).toBeDisabled()
   })
 
   it('"Back" button calls onBack', () => {
@@ -71,5 +42,12 @@ describe('Onboarding movie step – skip behaviour', () => {
     render(<StepMoviesFooter favoriteMovies={[]} onBack={onBack} onFinish={vi.fn()} />)
     fireEvent.click(screen.getByRole('button', { name: /back/i }))
     expect(onBack).toHaveBeenCalled()
+  })
+
+  it('"See my recommendations" calls onFinish when clicked', () => {
+    const onFinish = vi.fn()
+    render(<StepMoviesFooter favoriteMovies={[]} onBack={vi.fn()} onFinish={onFinish} />)
+    fireEvent.click(screen.getByRole('button', { name: /see my recommendations/i }))
+    expect(onFinish).toHaveBeenCalled()
   })
 })

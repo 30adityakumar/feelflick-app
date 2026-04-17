@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { Link, useOutletContext } from 'react-router-dom'
 import { motion } from 'framer-motion'
 
-import { Plus, Pencil, Trash2, Clock, Film } from 'lucide-react'
+import { Plus, Pencil, Trash2, Film } from 'lucide-react'
 
 import { supabase } from '@/shared/lib/supabase/client'
 import { tmdbImg } from '@/shared/api/tmdb'
@@ -16,9 +16,9 @@ import CreateListModal from './CreateListModal'
 
 function ListsSkeleton() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-pulse">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-pulse">
       {[0, 1, 2, 3].map((i) => (
-        <div key={i} className="rounded-2xl border border-white/8 bg-white/[0.03] p-5 h-40" />
+        <div key={i} className="rounded-2xl border border-white/8 bg-white/[0.03] h-32" />
       ))}
     </div>
   )
@@ -55,7 +55,6 @@ function ListCard({ list, posters, onEdit, onDelete }) {
       onDelete(list.id)
     } else {
       setConfirmDelete(true)
-      // Auto-reset after 3 seconds
       setTimeout(() => setConfirmDelete(false), 3000)
     }
   }
@@ -69,80 +68,59 @@ function ListCard({ list, posters, onEdit, onDelete }) {
   return (
     <Link
       to={`/lists/${list.id}`}
-      className="group block rounded-2xl border border-white/8 bg-white/[0.03] p-5 hover:bg-white/[0.06] transition-colors"
+      className="group flex h-32 rounded-2xl bg-white/[0.04] border border-white/[0.07] overflow-hidden hover:bg-white/[0.07] hover:border-white/[0.12] hover:shadow-lg hover:shadow-black/30 transition-all duration-200"
     >
-      <div className="flex gap-4">
-        {/* Stacked posters */}
-        <div className="relative w-16 h-24 flex-shrink-0">
-          {posters.length > 0 ? (
-            posters.slice(0, 3).map((posterPath, idx) => (
-              <img
-                key={idx}
-                src={tmdbImg(posterPath, 'w92')}
-                alt=""
-                className="absolute rounded-lg object-cover w-12 h-[4.5rem] ring-1 ring-black/50"
-                style={{
-                  top: idx * 4,
-                  left: idx * 6,
-                  zIndex: 3 - idx,
-                }}
-                loading="lazy"
-              />
-            ))
-          ) : (
-            [0, 1, 2].map((idx) => (
-              <div
-                key={idx}
-                className="absolute rounded-lg w-12 h-[4.5rem] bg-white/5 ring-1 ring-white/8"
-                style={{
-                  top: idx * 4,
-                  left: idx * 6,
-                  zIndex: 3 - idx,
-                }}
-              />
-            ))
+      {/* Poster strip — horizontal, up to 4 posters */}
+      <div className="flex overflow-hidden rounded-l-2xl flex-shrink-0 w-28">
+        {posters.slice(0, 4).map((poster, i) => (
+          <div key={i} className="flex-1 min-w-0 h-full">
+            <img
+              src={tmdbImg(poster, 'w185')}
+              alt=""
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+          </div>
+        ))}
+        {Array.from({ length: Math.max(0, 4 - posters.length) }).map((_, i) => (
+          <div key={`empty-${i}`} className="flex-1 bg-white/[0.04]" />
+        ))}
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 min-w-0 flex flex-col justify-between p-4">
+        <div>
+          <h3 className="text-sm font-bold text-white line-clamp-2 mb-1">{list.title}</h3>
+          {list.description && (
+            <p className="text-xs text-white/35 line-clamp-2 leading-relaxed">{list.description}</p>
           )}
         </div>
-
-        {/* Content */}
-        <div className="flex-1 min-w-0 flex flex-col justify-between">
-          <div>
-            <h3 className="text-sm font-bold text-white truncate mb-1">{list.title}</h3>
-            {list.description && (
-              <p className="text-xs text-white/35 line-clamp-2 leading-relaxed">{list.description}</p>
-            )}
-          </div>
-          <div className="flex items-center justify-between mt-2">
-            <span className="text-xs text-white/25">
-              {list.film_count ?? 0} {(list.film_count ?? 0) === 1 ? 'film' : 'films'}
-            </span>
-            {/* Edit/Delete — visible on hover */}
-            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button
-                type="button"
-                onClick={handleEdit}
-                aria-label="Edit list"
-                className="h-7 w-7 rounded-lg flex items-center justify-center text-white/30 hover:text-white/70 hover:bg-white/8 transition-colors"
-              >
-                <Pencil className="h-3.5 w-3.5" />
-              </button>
-              <button
-                type="button"
-                onClick={handleDelete}
-                aria-label={confirmDelete ? 'Confirm delete' : 'Delete list'}
-                className={`h-7 rounded-lg flex items-center justify-center transition-colors ${
-                  confirmDelete
-                    ? 'px-2 bg-red-500/15 text-red-400 hover:bg-red-500/25'
-                    : 'w-7 text-white/30 hover:text-red-400 hover:bg-red-500/8'
-                }`}
-              >
-                {confirmDelete ? (
-                  <span className="text-[11px] font-semibold">Delete?</span>
-                ) : (
-                  <Trash2 className="h-3.5 w-3.5" />
-                )}
-              </button>
-            </div>
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-white/25">
+            {list.film_count ?? 0} {(list.film_count ?? 0) === 1 ? 'film' : 'films'}
+          </span>
+          {/* Edit/Delete — visible on hover */}
+          <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button
+              type="button"
+              onClick={handleEdit}
+              aria-label="Edit list"
+              className="p-1.5 rounded-lg text-white/25 hover:text-white/70 hover:bg-white/[0.06] transition-colors duration-150"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={handleDelete}
+              aria-label={confirmDelete ? 'Confirm delete' : 'Delete list'}
+              className="p-1.5 rounded-lg text-white/25 hover:text-red-400/70 hover:bg-red-500/[0.08] transition-colors duration-150"
+            >
+              {confirmDelete ? (
+                <span className="text-[11px] font-semibold text-red-400">Delete?</span>
+              ) : (
+                <Trash2 className="w-3.5 h-3.5" />
+              )}
+            </button>
           </div>
         </div>
       </div>
@@ -230,7 +208,7 @@ export default function ListsPage() {
             filmCountMap.set(row.list_id, (filmCountMap.get(row.list_id) || 0) + 1)
             // Posters (max 3)
             const existing = postersMap.get(row.list_id) || []
-            if (existing.length < 3 && row.movies?.poster_path) {
+            if (existing.length < 4 && row.movies?.poster_path) {
               existing.push(row.movies.poster_path)
               postersMap.set(row.list_id, existing)
             }
@@ -289,26 +267,23 @@ export default function ListsPage() {
   }
 
   return (
-    <div className="min-h-screen text-white pb-24 md:pb-12" style={{ background: 'var(--color-bg)', paddingTop: 'var(--hdr-h, 64px)' }}>
+    <div className="min-h-screen bg-black text-white pb-24 md:pb-10 relative" style={{ paddingTop: 'var(--hdr-h, 64px)' }}>
       {/* Ambient glow */}
-      <div className="pointer-events-none fixed inset-0 -z-10" aria-hidden>
+      <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden>
         <div
-          className="absolute inset-0"
-          style={{ background: 'radial-gradient(ellipse 70% 40% at 50% 0%, rgba(88,28,135,0.12) 0%, transparent 65%)' }}
+          style={{
+            position: 'absolute', inset: 0,
+            background: 'radial-gradient(ellipse 80% 40% at 50% 0%, rgba(88,28,135,0.15) 0%, transparent 60%)',
+          }}
         />
       </div>
 
-      <div className="mx-auto max-w-3xl px-4 sm:px-6 py-8">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 py-6 sm:py-8">
         {/* Page title */}
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="mb-8"
-        >
-          <h1 className="text-2xl sm:text-3xl font-bold text-white">Lists</h1>
-          <p className="text-sm text-white/35 mt-1">Your curated film collections</p>
-        </motion.div>
+        <div className="mb-6">
+          <h1 className="text-2xl font-black text-white tracking-tight mb-1">Lists</h1>
+          <p className="text-sm text-white/35">Your curated film collections</p>
+        </div>
 
         {isLoading ? (
           <ListsSkeleton />
@@ -322,7 +297,7 @@ export default function ListsPage() {
                 <button
                   type="button"
                   onClick={() => setShowModal(true)}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-white/8 hover:bg-white/14 border border-white/14 px-3 py-1.5 text-xs font-semibold text-white/70 hover:text-white transition-colors"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.05] border border-white/[0.10] hover:bg-white/[0.09] hover:border-white/[0.18] px-3.5 py-1.5 text-sm font-semibold text-white/70 hover:text-white transition-all duration-200"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   New list
@@ -334,7 +309,7 @@ export default function ListsPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3 }}
-              className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10"
+              className="grid grid-cols-1 sm:grid-cols-2 gap-4"
             >
               {lists.map((list, idx) => (
                 <motion.div
@@ -352,15 +327,6 @@ export default function ListsPage() {
                 </motion.div>
               ))}
             </motion.div>
-
-            {/* Placeholder for future "Lists I Follow" */}
-            <SectionHeader title="Lists I Follow" />
-            <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-8 flex items-center justify-center">
-              <div className="flex items-center gap-2.5">
-                <Clock className="h-4 w-4 text-white/20" />
-                <p className="text-sm text-white/25">Coming soon</p>
-              </div>
-            </div>
           </>
         )}
       </div>

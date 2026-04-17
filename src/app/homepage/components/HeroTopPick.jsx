@@ -401,7 +401,9 @@ export default function HeroTopPick({
 
   if (loading && !movie) {
     return (
-      <section className="relative w-full h-[75vh] min-h-[500px] max-h-[800px] overflow-hidden bg-black">
+      <section
+        className="relative w-full h-[75vh] min-h-[500px] max-h-[800px] overflow-hidden bg-black"
+      >
         <div className="absolute inset-0 bg-gradient-to-br from-purple-950/30 via-black to-black" />
         <div className="absolute bottom-0 left-0 right-0 h-2/3 pointer-events-none" style={{ background: 'radial-gradient(ellipse 65% 55% at 15% 100%, rgba(88,28,135,0.18) 0%, transparent 70%)' }} />
         <div className="relative z-10 h-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 flex items-end pb-12 lg:pb-16">
@@ -441,7 +443,9 @@ export default function HeroTopPick({
   const displayRating = ffRating != null ? Number(ffRating).toFixed(1) : null
 
   return (
-    <section className="relative w-full h-[75vh] min-h-[500px] max-h-[800px] overflow-hidden bg-black">
+    <section
+      className="relative w-full h-[75vh] min-h-[500px] max-h-[800px] overflow-hidden bg-black"
+    >
 
       {/* Refreshing overlay */}
       {isRefreshing && (
@@ -470,7 +474,7 @@ export default function HeroTopPick({
             style={{
               backgroundImage: movie.backdrop_path ? `url(${tmdbImg(movie.backdrop_path, 'w92')})` : undefined,
               backgroundSize: 'cover',
-              backgroundPosition: '50% 35%',
+              backgroundPosition: '50% 55%',
               filter: 'blur(30px) saturate(1.2)',
             }}
           />
@@ -479,13 +483,13 @@ export default function HeroTopPick({
               src={tmdbImg(movie.backdrop_path, 'original')}
               alt=""
               aria-hidden="true"
-              className={`absolute inset-0 h-full w-full object-cover object-[50%_35%] sm:object-[65%_35%] transition-opacity duration-700 ${backdropLoaded ? 'opacity-100' : 'opacity-0'}`}
+              className={`absolute inset-0 h-full w-full object-cover object-[50%_58%] sm:object-[65%_55%] transition-opacity duration-700 ${backdropLoaded ? 'opacity-100' : 'opacity-0'}`}
               onLoad={() => setBackdropLoaded(true)}
               loading="eager"
               fetchPriority="high"
             />
           )}
-          <div className="absolute inset-0 bg-black/35" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-black/30 to-black/40" />
           <div
             className="pointer-events-none absolute inset-y-0 left-0 w-[22%] hidden sm:block"
             style={{ background: 'linear-gradient(90deg, rgba(0,0,0,0.98) 0%, rgba(0,0,0,0.88) 28%, rgba(0,0,0,0.58) 56%, rgba(0,0,0,0.18) 82%, rgba(0,0,0,0) 100%)' }}

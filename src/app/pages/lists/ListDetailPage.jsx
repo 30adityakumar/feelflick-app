@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 
-import { ChevronLeft, Pencil, Trash2, X as XIcon, Film, Globe, Lock, Share2, Check } from 'lucide-react'
+import { ChevronLeft, Pencil, Trash2, X as XIcon, Film, Globe, Share2, Check } from 'lucide-react'
 
 import { supabase } from '@/shared/lib/supabase/client'
 import { tmdbImg } from '@/shared/api/tmdb'
@@ -92,6 +92,7 @@ export default function ListDetailPage() {
   const [showEditModal, setShowEditModal] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [linkCopied, setLinkCopied] = useState(false)
+  const [editMode, setEditMode] = useState(false)
 
   const isOwner = currentUserId && list?.user_id === currentUserId
 
@@ -128,7 +129,7 @@ export default function ListDetailPage() {
             .maybeSingle(),
           supabase
             .from('list_movies')
-            .select('movie_id, added_at, note, position, movies ( id, title, poster_path, release_date, tmdb_id )')
+            .select('movie_id, added_at, note, position, movies ( id, title, poster_path, backdrop_path, release_date, tmdb_id )')
             .eq('list_id', listId)
             .order('position', { ascending: true, nullsFirst: false }),
         ])
@@ -159,6 +160,7 @@ export default function ListDetailPage() {
             movieId: r.movie_id,
             title: r.movies.title,
             posterPath: r.movies.poster_path,
+            backdropPath: r.movies.backdrop_path,
             year: r.movies.release_date ? new Date(r.movies.release_date).getFullYear() : null,
             tmdbId: r.movies.tmdb_id,
             addedAt: r.added_at,
@@ -222,33 +224,19 @@ export default function ListDetailPage() {
     url: list ? `https://app.feelflick.com/lists/${listId}` : null,
   })
 
-  const ownerBadge = (
-    <>
-      {owner?.avatar_url ? (
-        <img src={owner.avatar_url} alt={ownerName} className="h-5 w-5 rounded-full object-cover" />
-      ) : (
-        <div
-          className="h-5 w-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white"
-          style={{ background: 'linear-gradient(135deg, rgb(168,85,247), rgb(236,72,153))' }}
-        >
-          {ownerInitial}
-        </div>
-      )}
-      <span className="text-white/50 font-medium">{ownerName}</span>
-    </>
-  )
-
   return (
-    <div className="min-h-screen text-white pb-24 md:pb-12" style={{ background: 'var(--color-bg)', paddingTop: 'var(--hdr-h, 64px)' }}>
+    <div className="min-h-screen bg-black text-white pb-24 md:pb-10 relative" style={{ paddingTop: 'var(--hdr-h, 64px)' }}>
       {/* Ambient glow */}
-      <div className="pointer-events-none fixed inset-0 -z-10" aria-hidden>
+      <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden>
         <div
-          className="absolute inset-0"
-          style={{ background: 'radial-gradient(ellipse 70% 40% at 50% 0%, rgba(88,28,135,0.12) 0%, transparent 65%)' }}
+          style={{
+            position: 'absolute', inset: 0,
+            background: 'radial-gradient(ellipse 80% 40% at 50% 0%, rgba(88,28,135,0.15) 0%, transparent 60%)',
+          }}
         />
       </div>
 
-      <div className="mx-auto max-w-3xl px-4 sm:px-6 py-8">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 py-6 sm:py-8">
         {/* Back link */}
         <Link
           to={isAuthenticated ? '/lists' : '/'}
@@ -269,107 +257,146 @@ export default function ListDetailPage() {
             transition={{ duration: 0.3 }}
             className="space-y-8"
           >
-            {/* === HEADER === */}
-            <div>
-              <div className="flex items-start justify-between gap-4 mb-3">
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h1 className="text-2xl sm:text-3xl font-bold text-white truncate">{list.title}</h1>
-                    {list.is_public ? (
-                      <Globe className="h-4 w-4 text-white/20 flex-shrink-0" aria-label="Public list" />
-                    ) : (
-                      <Lock className="h-4 w-4 text-white/20 flex-shrink-0" aria-label="Private list" />
-                    )}
-                  </div>
-                  {list.description && (
-                    <p className="text-sm text-white/45 leading-relaxed">{list.description}</p>
+            {/* === CINEMATIC HERO === */}
+            <div className="relative w-full h-48 sm:h-56 rounded-2xl overflow-hidden mb-6">
+              {/* Backdrop image — blurred, darkened */}
+              <img
+                src={tmdbImg(
+                  movies[0]?.backdropPath || movies[0]?.posterPath,
+                  movies[0]?.backdropPath ? 'w1280' : 'w500'
+                )}
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover scale-105"
+                style={{ filter: 'blur(8px)' }}
+              />
+
+              {/* Dark overlay */}
+              <div
+                className="absolute inset-0"
+                style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.3) 100%)' }}
+              />
+
+              {/* Purple accent */}
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={{ background: 'radial-gradient(ellipse 60% 50% at 30% 100%, rgba(88,28,135,0.25) 0%, transparent 70%)' }}
+              />
+
+              {/* Content anchored to bottom-left */}
+              <div className="absolute bottom-0 left-0 p-5 pr-28">
+                {list.is_public && (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-white/40 mb-2">
+                    <Globe className="w-3 h-3" /> Public
+                  </span>
+                )}
+                <h1 className="text-2xl sm:text-3xl font-black text-white leading-tight">{list.title}</h1>
+                {list.description && (
+                  <p className="text-sm text-white/55 mt-1 line-clamp-2">{list.description}</p>
+                )}
+                <div className="flex items-center gap-2 mt-2 text-xs text-white/35">
+                  {owner?.avatar_url ? (
+                    <img src={owner.avatar_url} alt={ownerName} className="w-4 h-4 rounded-full object-cover flex-shrink-0" />
+                  ) : (
+                    <div
+                      className="w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold text-white flex-shrink-0"
+                      style={{ background: 'linear-gradient(135deg, rgb(168,85,247), rgb(236,72,153))' }}
+                    >
+                      {ownerInitial}
+                    </div>
+                  )}
+                  {isAuthenticated ? (
+                    <Link
+                      to={isOwner ? '/profile' : `/profile/${list.user_id}`}
+                      className="hover:text-white/60 transition-colors"
+                    >
+                      {ownerName}
+                    </Link>
+                  ) : (
+                    <span>{ownerName}</span>
+                  )}
+                  <span>·</span>
+                  <span>{movies.length} {movies.length === 1 ? 'film' : 'films'}</span>
+                  {formatDate(list.created_at) && (
+                    <>
+                      <span>·</span>
+                      <span>Created {formatDate(list.created_at)}</span>
+                    </>
                   )}
                 </div>
+              </div>
 
-                {/* Actions */}
-                {(list.is_public || isOwner) && (
-                  <div className="flex items-center gap-1.5 flex-shrink-0">
-                    {list.is_public && (
-                      <button
-                        type="button"
-                        onClick={handleShare}
-                        aria-label={linkCopied ? 'Link copied' : 'Share list'}
-                        className={`h-8 rounded-lg flex items-center justify-center transition-colors ${
-                          linkCopied
-                            ? 'px-3 bg-green-500/15 text-green-400'
-                            : 'w-8 text-white/30 hover:text-white/70 hover:bg-white/8'
-                        }`}
-                      >
-                        {linkCopied ? (
-                          <span className="inline-flex items-center gap-1.5 text-xs font-semibold">
-                            <Check className="h-3.5 w-3.5" />
-                            Copied!
-                          </span>
-                        ) : (
-                          <Share2 className="h-4 w-4" />
-                        )}
-                      </button>
-                    )}
-                    {isOwner && (
-                      <>
+              {/* Action buttons — top-right, with backdrop for legibility */}
+              {(list.is_public || isOwner) && (
+                <div className="absolute top-3 right-3 flex gap-1.5 bg-black/40 backdrop-blur-sm rounded-lg p-1.5">
+                  {list.is_public && (
+                    <button
+                      type="button"
+                      onClick={handleShare}
+                      aria-label={linkCopied ? 'Link copied' : 'Share list'}
+                      className={`h-8 rounded-lg flex items-center justify-center transition-colors ${
+                        linkCopied
+                          ? 'px-3 bg-green-500/15 text-green-400'
+                          : 'w-8 text-white/60 hover:text-white hover:bg-white/10'
+                      }`}
+                    >
+                      {linkCopied ? (
+                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold">
+                          <Check className="h-3.5 w-3.5" />
+                          Copied!
+                        </span>
+                      ) : (
+                        <Share2 className="h-4 w-4" />
+                      )}
+                    </button>
+                  )}
+                  {isOwner && (
+                    <>
+                      {editMode ? (
                         <button
                           type="button"
-                          onClick={() => setShowEditModal(true)}
+                          onClick={() => setEditMode(false)}
+                          aria-label="Exit edit mode"
+                          className="text-xs text-purple-400 border border-purple-500/30 px-3 py-1 rounded-full"
+                        >
+                          Done
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setEditMode(true)}
                           aria-label="Edit list"
-                          className="h-8 w-8 rounded-lg flex items-center justify-center text-white/30 hover:text-white/70 hover:bg-white/8 transition-colors"
+                          className="h-8 w-8 rounded-lg flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-colors"
                         >
                           <Pencil className="h-4 w-4" />
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (confirmDelete) {
-                              handleDeleteList()
-                            } else {
-                              setConfirmDelete(true)
-                              setTimeout(() => setConfirmDelete(false), 3000)
-                            }
-                          }}
-                          aria-label={confirmDelete ? 'Confirm delete' : 'Delete list'}
-                          className={`h-8 rounded-lg flex items-center justify-center transition-colors ${
-                            confirmDelete
-                              ? 'px-3 bg-red-500/15 text-red-400 hover:bg-red-500/25'
-                              : 'w-8 text-white/30 hover:text-red-400 hover:bg-red-500/8'
-                          }`}
-                        >
-                          {confirmDelete ? (
-                            <span className="text-xs font-semibold">Delete?</span>
-                          ) : (
-                            <Trash2 className="h-4 w-4" />
-                          )}
-                        </button>
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Owner + meta */}
-              <div className="flex items-center gap-3 text-xs text-white/30">
-                {isAuthenticated ? (
-                  <Link
-                    to={isOwner ? '/profile' : `/profile/${list.user_id}`}
-                    className="inline-flex items-center gap-2 hover:opacity-75 transition-opacity"
-                  >
-                    {ownerBadge}
-                  </Link>
-                ) : (
-                  <span className="inline-flex items-center gap-2">{ownerBadge}</span>
-                )}
-                <span>&middot;</span>
-                <span>{movies.length} {movies.length === 1 ? 'film' : 'films'}</span>
-                {formatDate(list.created_at) && (
-                  <>
-                    <span>&middot;</span>
-                    <span>Created {formatDate(list.created_at)}</span>
-                  </>
-                )}
-              </div>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (confirmDelete) {
+                            handleDeleteList()
+                          } else {
+                            setConfirmDelete(true)
+                            setTimeout(() => setConfirmDelete(false), 3000)
+                          }
+                        }}
+                        aria-label={confirmDelete ? 'Confirm delete' : 'Delete list'}
+                        className={`h-8 rounded-lg flex items-center justify-center transition-colors ${
+                          confirmDelete
+                            ? 'px-3 bg-red-500/20 text-red-400 hover:bg-red-500/30'
+                            : 'w-8 text-white/60 hover:text-red-400 hover:bg-white/10'
+                        }`}
+                      >
+                        {confirmDelete ? (
+                          <span className="text-xs font-semibold">Delete?</span>
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* === FILM GRID === */}
@@ -388,7 +415,7 @@ export default function ListDetailPage() {
                 )}
               </div>
             ) : (
-              <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 mt-6">
                 {movies.map((movie, idx) => (
                   <motion.div
                     key={movie.movieId}
@@ -431,8 +458,8 @@ export default function ListDetailPage() {
                       </div>
                     )}
 
-                    {/* Remove button — owner only */}
-                    {isOwner && (
+                    {/* Remove button — only in edit mode */}
+                    {editMode && (
                       <button
                         type="button"
                         onClick={() => handleRemoveMovie(movie.movieId)}

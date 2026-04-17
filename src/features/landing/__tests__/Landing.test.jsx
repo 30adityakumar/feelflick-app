@@ -19,12 +19,12 @@ function HeroHeadline() {
 
 // ---------------------------------------------------------------------------
 // Minimal FinalCTA re-implementation — tests headline copy only.
+// Updated to match the approved "Tonight." copy (Blueprint §Approved Copy).
 // ---------------------------------------------------------------------------
 function FinalCTAHeadline() {
   return (
     <h2 id="final-cta-heading">
-      <span>Your Next Favorite Film</span>
-      <span>Is Already Out There.</span>
+      Somewhere in 6,700 films is one that&apos;s exactly right for tonight. Tonight.
     </h2>
   )
 }
@@ -35,38 +35,50 @@ function FinalCTAHeadline() {
 function MoodShowcaseStub() {
   return (
     <section id="mood-demo" aria-labelledby="mood-demo-heading">
-      <h2 id="mood-demo-heading">Pick a mood. We&apos;ll find your movie.</h2>
-      <ul aria-label="Browse films by mood">
-        {['Nostalgic', 'Tense', 'Cozy', 'Melancholy', 'Euphoric', 'Curious'].map(mood => (
-          <li key={mood}>
-            <button aria-expanded="false" aria-label={`Show ${mood} film picks`}>
-              {mood}
-            </button>
-          </li>
-        ))}
-      </ul>
+      <h2 id="mood-demo-heading">Start with the moment.</h2>
+      <div>Tired after a long week, but want something hopeful.</div>
     </section>
   )
 }
 
 // ---------------------------------------------------------------------------
-// Minimal landing structure — tests that sections are present in order.
+// Minimal landing structure — tests that all key sections are present in order.
+// Section order matches Landing.jsx: Hero → MoodShowcase → CinematicDNA →
+// ItLearnsYou → FindYourPeople → Lists → Privacy → FAQ → TrustBlock → FinalCTA
 // ---------------------------------------------------------------------------
 function LandingStructure() {
   return (
     <div>
       <section aria-labelledby="hero-heading">
         <h1 id="hero-heading">Find films for when you&apos;re feeling nostalgic.</h1>
-        <button>Get Started - It&apos;s Free</button>
+        <button>Get my recommendations</button>
       </section>
       <section id="mood-demo" aria-labelledby="mood-demo-heading">
-        <h2 id="mood-demo-heading">Pick a mood. We&apos;ll find your movie.</h2>
+        <h2 id="mood-demo-heading">Start with the moment.</h2>
       </section>
-      <section id="how-it-works" aria-labelledby="how-it-works-heading">
-        <h2 id="how-it-works-heading">Built around your taste.</h2>
+      <section id="cinematic-dna" aria-labelledby="dna-heading">
+        <h2 id="dna-heading">Your taste, made visible.</h2>
+      </section>
+      <section id="it-learns" aria-labelledby="learns-heading">
+        <h2 id="learns-heading">It gets better at getting you.</h2>
+      </section>
+      <section id="find-people" aria-labelledby="people-heading">
+        <h2 id="people-heading">Find people who actually get your taste.</h2>
+      </section>
+      <section id="lists" aria-labelledby="lists-heading">
+        <h2 id="lists-heading">A beautiful home for your film collections.</h2>
+      </section>
+      <section id="privacy" aria-labelledby="privacy-heading">
+        <h2 id="privacy-heading">Built for your taste. Not your data.</h2>
+      </section>
+      <section id="faq" aria-labelledby="faq-heading">
+        <h2 id="faq-heading">Questions.</h2>
+      </section>
+      <section id="trust" aria-labelledby="trust-heading">
+        <h2 id="trust-heading">Why trust FeelFlick</h2>
       </section>
       <section aria-labelledby="final-cta-heading">
-        <h2 id="final-cta-heading">Your Next Favorite Film Is Already Out There.</h2>
+        <h2 id="final-cta-heading">Somewhere in 6,700 films is one that&apos;s exactly right for tonight. Tonight.</h2>
         <button>Get Started Free</button>
       </section>
     </div>
@@ -92,43 +104,32 @@ describe('Landing page – hero headline', () => {
 })
 
 describe('Landing page – final CTA headline', () => {
-  it('renders a distinct headline from the hero', () => {
+  it('uses the approved "Tonight." headline from the Blueprint', () => {
     render(<FinalCTAHeadline />)
-    expect(screen.getByText(/Your Next Favorite Film/i)).toBeInTheDocument()
-    expect(screen.getByText(/Is Already Out There/i)).toBeInTheDocument()
+    expect(screen.getByText(/Somewhere in 6,700 films/i)).toBeInTheDocument()
+    expect(screen.getByText(/Tonight\./i)).toBeInTheDocument()
   })
 
   it('does not duplicate the hero headline', () => {
     render(<FinalCTAHeadline />)
     expect(screen.queryByText(/Find films for when/i)).not.toBeInTheDocument()
   })
+
+  it('does not use the old "Your Next Favorite Film" copy', () => {
+    render(<FinalCTAHeadline />)
+    expect(screen.queryByText(/Your Next Favorite Film/i)).not.toBeInTheDocument()
+  })
 })
 
 describe('MoodShowcaseSection', () => {
   it('renders the section heading', () => {
     render(<MoodShowcaseStub />)
-    expect(screen.getByRole('heading', { name: /Pick a mood/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Start with the moment/i })).toBeInTheDocument()
   })
 
-  it('renders all 6 mood pills', () => {
+  it('renders the NL input placeholder', () => {
     render(<MoodShowcaseStub />)
-    const pills = screen.getAllByRole('button')
-    expect(pills).toHaveLength(6)
-  })
-
-  it('all mood pills start collapsed', () => {
-    render(<MoodShowcaseStub />)
-    const pills = screen.getAllByRole('button')
-    pills.forEach(pill => {
-      expect(pill).toHaveAttribute('aria-expanded', 'false')
-    })
-  })
-
-  it('covers all six moods', () => {
-    render(<MoodShowcaseStub />)
-    for (const mood of ['Nostalgic', 'Tense', 'Cozy', 'Melancholy', 'Euphoric', 'Curious']) {
-      expect(screen.getByRole('button', { name: new RegExp(mood, 'i') })).toBeInTheDocument()
-    }
+    expect(screen.getByText(/Tired after a long week/i)).toBeInTheDocument()
   })
 
   it('does not show fake user counts or stats', () => {
@@ -144,12 +145,18 @@ describe('MoodShowcaseSection', () => {
 })
 
 describe('Landing page – structure', () => {
-  it('renders all four key sections', () => {
+  it('renders all key sections', () => {
     render(<LandingStructure />)
     expect(screen.getByRole('heading', { name: /Find films for when you're feeling/i })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: /Pick a mood/i })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: /Built around your taste/i })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: /Your Next Favorite Film Is Already Out There/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Start with the moment/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Your taste, made visible/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /It gets better at getting you/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Find people who actually get your taste/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /A beautiful home for your film collections/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Built for your taste\. Not your data/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Questions\./i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Why trust FeelFlick/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Somewhere in 6,700 films/i })).toBeInTheDocument()
   })
 
   it('does not render a FeaturesGrid section', () => {
@@ -157,9 +164,38 @@ describe('Landing page – structure', () => {
     expect(screen.queryByRole('heading', { name: /The FeelFlick Difference/i })).not.toBeInTheDocument()
   })
 
+  it('does not render the old HowItWorks section', () => {
+    render(<LandingStructure />)
+    expect(screen.queryByRole('heading', { name: /Built around your taste/i })).not.toBeInTheDocument()
+  })
+
   it('has exactly two sign-in CTAs (hero + final)', () => {
     render(<LandingStructure />)
-    const ctaButtons = screen.getAllByRole('button', { name: /get started/i })
-    expect(ctaButtons).toHaveLength(2)
+    expect(screen.getByRole('button', { name: /get my recommendations/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /get started free/i })).toBeInTheDocument()
+  })
+})
+
+describe('HighlightsRail', () => {
+  function HighlightsRailStub() {
+    return (
+      <section id="highlights">
+        <div>Mood-first discovery</div>
+        <div>Your Cinematic DNA</div>
+        <div>Taste Match</div>
+        <div>No ads. Ever.</div>
+      </section>
+    )
+  }
+  it('renders all four highlight tiles', () => {
+    render(<HighlightsRailStub />)
+    expect(screen.getByText('Mood-first discovery')).toBeInTheDocument()
+    expect(screen.getByText('Your Cinematic DNA')).toBeInTheDocument()
+    expect(screen.getByText('Taste Match')).toBeInTheDocument()
+    expect(screen.getByText('No ads. Ever.')).toBeInTheDocument()
+  })
+  it('has accessible section id', () => {
+    render(<HighlightsRailStub />)
+    expect(document.getElementById('highlights')).toBeInTheDocument()
   })
 })

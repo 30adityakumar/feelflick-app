@@ -1,6 +1,6 @@
 // src/app/header/components/Account.jsx
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
 import {
   Camera, Loader2, Check, LogOut, Shield,
@@ -142,14 +142,14 @@ export default function Account() {
   const provider = authUser?.app_metadata?.provider || 'email'
 
   return (
-    <div className="min-h-screen bg-black text-white pb-24 md:pb-12" style={{ paddingTop: 'var(--hdr-h, 64px)' }}>
+    <div className="min-h-screen bg-black text-white pb-24 md:pb-10 relative" style={{ paddingTop: 'var(--hdr-h, 64px)' }}>
 
       {/* Ambient glow */}
-      <div className="pointer-events-none fixed inset-0 -z-10" aria-hidden>
-        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 70% 40% at 50% 0%, rgba(88,28,135,0.12) 0%, transparent 65%)' }} />
+      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 70% 35% at 50% 0%, rgba(88,28,135,0.1) 0%, transparent 65%)' }} />
       </div>
 
-      <div className="mx-auto max-w-2xl px-4 sm:px-6 py-10 space-y-5">
+      <div className="relative mx-auto max-w-2xl px-4 sm:px-6 py-6 sm:py-8 space-y-4">
 
         {/* Page title */}
         <div className="mb-2">
@@ -162,18 +162,17 @@ export default function Account() {
           <div className="flex items-center gap-5 mb-6">
             {/* Avatar */}
             <div className="relative flex-shrink-0">
-              <div
-                className="h-18 w-18 rounded-full flex items-center justify-center text-xl font-black text-white shadow-lg overflow-hidden"
-                style={{
-                  width: 72, height: 72,
-                  background: avatarUrl
-                    ? undefined
-                    : 'linear-gradient(135deg, rgb(168,85,247), rgb(236,72,153))',
-                }}
-              >
-                {avatarUrl
-                  ? <img src={avatarUrl} alt={name} className="w-full h-full object-cover" />
-                  : initials}
+              <div className="relative w-16 h-16 rounded-full overflow-hidden shrink-0 bg-white/10">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt={name} className="w-full h-full object-cover block" />
+                ) : (
+                  <div
+                    className="flex h-full w-full items-center justify-center text-xl font-black text-white"
+                    style={{ background: 'linear-gradient(135deg, rgb(168,85,247), rgb(236,72,153))' }}
+                  >
+                    {initials}
+                  </div>
+                )}
               </div>
               <button
                 type="button"
@@ -197,6 +196,15 @@ export default function Account() {
               {joinedDate && <div className="text-xs text-white/25 mt-0.5">Member since {joinedDate}</div>}
             </div>
           </div>
+
+          {/* View profile shortcut */}
+          <button
+            type="button"
+            onClick={() => nav('/profile')}
+            className="inline-flex items-center gap-1.5 text-xs text-white/40 hover:text-white/70 border border-white/8 hover:border-white/20 px-3 py-1.5 rounded-full transition-all duration-150 mt-1 mb-5"
+          >
+            View my profile →
+          </button>
 
           {/* Name form */}
           <form onSubmit={handleSave}>
@@ -243,11 +251,10 @@ export default function Account() {
             <DetailRow label="Signed in with">
               <span className="capitalize">{provider}</span>
             </DetailRow>
-            {joinedDate && <DetailRow label="Member since">{joinedDate}</DetailRow>}
             <DetailRow label="Taste profile">
               {profile?.onboarding_complete
-                ? <span className="text-purple-400">Set up</span>
-                : <span className="text-white/35">Not set up</span>}
+                ? <Link to="/profile" className="text-sm text-purple-400 hover:text-purple-300 transition-colors">View profile →</Link>
+                : <Link to="/onboarding" className="text-sm text-purple-400 hover:text-purple-300 transition-colors">Set up</Link>}
             </DetailRow>
           </div>
 

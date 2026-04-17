@@ -6,6 +6,9 @@
 /* Brand fonts - Apple-inspired system font stack */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@600;700&display=swap');
 
+/* FeelFlick design tokens + global defaults */
+@import './styles/globals.css';
+
 /* Tailwind layers */
 @tailwind base;
 @tailwind components;
@@ -134,7 +137,13 @@
   --gradient-warm: linear-gradient(135deg, var(--amber-500) 0%, var(--orange-500) 100%);
   --gradient-cool: linear-gradient(135deg, var(--indigo-500) 0%, var(--cyan-500) 100%);
   --gradient-vibrant: linear-gradient(135deg, var(--teal-500) 0%, var(--purple-500) 50%, var(--pink-500) 100%);
-  
+  --gradient-hero-text: linear-gradient(
+    135deg,
+    var(--purple-500) 0%,
+    var(--pink-500) 50%,
+    var(--orange-500) 100%
+  );
+
   /* === Glassmorphism === */
   --glass-bg: rgba(30, 41, 59, 0.6);
   --glass-border: rgba(248, 250, 252, 0.1);
@@ -404,6 +413,23 @@ body {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   background-size: 200% 200%;
+}
+
+.gradient-text-hero {
+  background: var(--gradient-hero-text);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  background-size: 200% 200%;
+}
+
+.gradient-text-hero-animated {
+  background: var(--gradient-hero-text);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  background-size: 200% 200%;
+  animation: gradient-shift 8s ease infinite;
 }
 
 /* ==========================================================================

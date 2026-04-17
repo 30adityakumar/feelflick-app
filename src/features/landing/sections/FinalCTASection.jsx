@@ -1,195 +1,118 @@
 // src/features/landing/sections/FinalCTASection.jsx
-import { ArrowRight, Sparkles, Shield, Zap } from 'lucide-react'
 import { motion } from 'framer-motion'
-import googleSvg from '@/assets/icons/google.svg'
+import { LogIn } from 'lucide-react'
 import { useGoogleAuth } from '@/features/landing/utils/useGoogleAuth'
-
-const TRUST = [
-  { icon: Sparkles, text: 'Free forever' },
-  { icon: Shield,   text: 'Privacy-first' },
-  { icon: Zap,      text: 'Ready in seconds' },
-]
-
-// Blurred poster silhouettes — barely visible, just enough for depth
-const BG_POSTERS = [
-  { src: '/yQvGrMoipbRoddT0ZR8tPoR7NfX.jpg', style: { top: '8%',  left: '-4%',  rotate: '-12deg', opacity: 0.07 } },
-  { src: '/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg', style: { top: '5%',  right: '-2%', rotate: '10deg',  opacity: 0.07 } },
-  { src: '/uDO8zWDhfWwoFdKS4fzkUJt0Rf0.jpg', style: { bottom: '6%', left: '2%',  rotate: '8deg',   opacity: 0.06 } },
-  { src: '/gDzOcq0pfeCeqMBwKIJlSmQpjkZ.jpg', style: { bottom: '4%', right: '-3%', rotate: '-9deg', opacity: 0.06 } },
-]
 
 const vp = { once: true, margin: '-60px' }
 
+// Checked once at module load — stable for the session.
+const prefersReducedMotion =
+  typeof window !== 'undefined'
+    ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    : false
+
+/**
+ * FinalCTASection — emotional closer for the FeelFlick landing page.
+ *
+ * Uses the approved "Tonight." headline (Blueprint §Approved Copy).
+ * The white-pill CTA matches the hero for visual bookending.
+ * Generous padding (py-20→py-32) gives the section breathing room as a finale.
+ */
 export default function FinalCTASection() {
   const { signInWithGoogle, isAuthenticating } = useGoogleAuth()
 
   return (
     <section
-      className="relative bg-black overflow-hidden pt-24 pb-28 sm:pt-28 sm:pb-32"
+      className="relative bg-black overflow-hidden min-h-[100svh] flex flex-col justify-center"
       aria-labelledby="final-cta-heading"
     >
       {/* Top border */}
-      <div className="absolute top-0 inset-x-0 h-px bg-white/8" aria-hidden="true" />
-
-      {/* ── Cinematic atmosphere ─────────────────────────────────────── */}
-
-      {/* Purple bloom from top */}
       <div
-        className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse 100% 55% at 50% -5%, rgba(88,28,135,0.55) 0%, transparent 70%)' }}
+        className="absolute top-0 inset-x-0 h-px"
+        style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(168,85,247,0.2) 50%, transparent 100%)' }}
         aria-hidden="true"
       />
 
-      {/* Pink bloom from bottom */}
+      {/* Strong purple bloom from top — cinematic atmosphere */}
       <div
         className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse 80% 45% at 50% 110%, rgba(168,85,247,0.2) 0%, transparent 65%)' }}
+        style={{ background: 'radial-gradient(ellipse 100% 55% at 50% -5%, rgba(88,28,135,0.50) 0%, transparent 70%)' }}
         aria-hidden="true"
       />
 
-      {/* Centre vignette — keeps focus on the text */}
+      {/* Warm centre glow — the subtle "warmth" feeling for the emotional closer */}
       <div
         className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse 60% 50% at 50% 50%, transparent 40%, rgba(0,0,0,0.45) 100%)' }}
+        style={{ background: 'radial-gradient(ellipse 80% 60% at 50% 50%, rgba(168,85,247,0.06) 0%, transparent 70%)' }}
         aria-hidden="true"
       />
 
-      {/* Blurred poster silhouettes */}
-      {BG_POSTERS.map((p, i) => (
-        <div
-          key={i}
-          className="absolute w-32 sm:w-40 aspect-[2/3] rounded-xl overflow-hidden pointer-events-none select-none"
-          style={{
-            ...p.style,
-            filter: 'blur(12px) saturate(0.4)',
-            transform: `rotate(${p.style.rotate}) scale(1.1)`,
-          }}
-          aria-hidden="true"
-        >
-          <img
-            src={`https://image.tmdb.org/t/p/w300${p.src}`}
-            alt=""
-            className="w-full h-full object-cover"
-            style={{ opacity: p.style.opacity }}
-          />
-        </div>
-      ))}
+      {/* Bottom fade — keeps it grounded against the footer */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{ background: 'radial-gradient(ellipse 80% 45% at 50% 110%, rgba(168,85,247,0.15) 0%, transparent 65%)' }}
+        aria-hidden="true"
+      />
 
-      {/* ── Content ─────────────────────────────────────────────────── */}
-      <div className="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      {/* ── Content ────────────────────────────────────────────────────── */}
+      <div className="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 text-center">
 
-        {/* Eyebrow */}
-        <motion.p
-          initial={{ opacity: 0, y: 12 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={vp}
-          transition={{ duration: 0.4 }}
-          className="text-xs font-bold uppercase tracking-[0.22em] text-purple-400/70 mb-6"
-        >
-          Your next film awaits
-        </motion.p>
-
-        {/* Headline */}
+        {/* Headline — "Tonight." on its own line in gradient for the Apple punch */}
         <motion.h2
           id="final-cta-heading"
-          initial={{ opacity: 0, y: 18 }}
+          className="font-black tracking-tight leading-[1.05] mb-10"
+          style={{ fontSize: 'clamp(2.25rem, 6vw, 3.75rem)' }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 18 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={vp}
-          transition={{ duration: 0.5, delay: 0.08 }}
-          className="font-black tracking-tight leading-[1.02] mb-6"
-          style={{ fontSize: 'clamp(2.75rem, 7vw, 6rem)' }}
+          transition={{ duration: prefersReducedMotion ? 0 : 0.5, delay: prefersReducedMotion ? 0 : 0.08 }}
         >
-          <span className="text-white">Stop scrolling.</span>
+          <span className="text-white">Stop Scrolling.</span>
           <br />
-          <span className="gradient-text">Start feeling.</span>
+          <span className="gradient-text">Start Watching.</span>
         </motion.h2>
 
-        {/* Subheadline */}
-        <motion.p
-          initial={{ opacity: 0, y: 14 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={vp}
-          transition={{ duration: 0.45, delay: 0.16 }}
-          className="text-base sm:text-lg text-white/45 leading-relaxed max-w-md mx-auto mb-12"
-        >
-          Tell FeelFlick how you feel. Get the right film in seconds — not after an hour of browsing.
-        </motion.p>
-
-        {/* CTA button */}
+        {/* CTA button — white pill, dark text, mirrors Hero for visual bookending */}
         <motion.div
-          initial={{ opacity: 0, y: 14, scale: 0.97 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 14, scale: 0.97 }}
           whileInView={{ opacity: 1, y: 0, scale: 1 }}
           viewport={vp}
-          transition={{ duration: 0.45, delay: 0.24 }}
-          className="flex justify-center mb-5"
+          transition={{ duration: prefersReducedMotion ? 0 : 0.45, delay: prefersReducedMotion ? 0 : 0.2 }}
+          className="flex justify-center mb-6"
         >
-          <motion.button
+          <button
             onClick={signInWithGoogle}
             disabled={isAuthenticating}
-            animate={isAuthenticating ? {} : {
-              boxShadow: [
-                '0 0 24px rgba(168,85,247,0.35)',
-                '0 0 42px rgba(168,85,247,0.55)',
-                '0 0 24px rgba(168,85,247,0.35)',
-              ],
-            }}
-            transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
-            whileHover={{ scale: 1.03, transition: { duration: 0.18 } }}
-            whileTap={{ scale: 0.97, transition: { duration: 0.1 } }}
-            className="group inline-flex items-center gap-3 px-10 py-4 rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed touch-target"
-            aria-label={isAuthenticating ? 'Signing in' : 'Get started free with Google'}
+            className="inline-flex items-center justify-center gap-2.5 px-10 py-[0.875rem] rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-[0.9375rem] shadow-lg shadow-purple-500/20 hover:brightness-110 hover:scale-[1.02] active:scale-[0.97] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed touch-target"
+            aria-label={isAuthenticating ? 'Signing in' : 'Find tonight\'s film on FeelFlick'}
           >
             {isAuthenticating ? (
-              <>
-                <svg className="animate-spin h-5 w-5 flex-shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+              <span className="inline-flex items-center gap-2">
+                <svg className="animate-spin h-4 w-4 flex-shrink-0" viewBox="0 0 24 24" aria-hidden="true">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
-                <span>Signing in...</span>
-              </>
+                Signing in...
+              </span>
             ) : (
               <>
-                <img src={googleSvg} alt="" className="h-5 w-5 flex-shrink-0" aria-hidden="true" />
-                <span>Get Started Free</span>
-                <ArrowRight className="h-5 w-5 flex-shrink-0 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
+                Find Tonight&apos;s Film
+                <LogIn className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
               </>
             )}
-          </motion.button>
+          </button>
         </motion.div>
 
         {/* Micro copy */}
         <motion.p
-          initial={{ opacity: 0 }}
+          className="text-xs text-white/20"
+          initial={prefersReducedMotion ? false : { opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={vp}
-          transition={{ duration: 0.4, delay: 0.32 }}
-          className="text-sm text-white/25 mb-12"
+          transition={{ duration: prefersReducedMotion ? 0 : 0.4, delay: prefersReducedMotion ? 0 : 0.38 }}
         >
-          No credit card · Free forever · Takes 10 seconds
+          Free forever · No credit card · No ads
         </motion.p>
-
-        {/* Trust badges */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={vp}
-          transition={{ duration: 0.4, delay: 0.38 }}
-          className="flex flex-wrap items-center justify-center gap-3 sm:gap-4"
-          role="list"
-          aria-label="Why FeelFlick"
-        >
-          {TRUST.map(({ icon: Icon, text }) => (
-            <div
-              key={text}
-              role="listitem"
-              className="flex items-center gap-2 px-4 py-2 rounded-full border border-white/8 text-sm text-white/45 font-medium"
-              style={{ background: 'rgba(255,255,255,0.03)' }}
-            >
-              <Icon className="w-3.5 h-3.5 text-purple-400/80 flex-shrink-0" aria-hidden="true" />
-              <span>{text}</span>
-            </div>
-          ))}
-        </motion.div>
 
       </div>
     </section>

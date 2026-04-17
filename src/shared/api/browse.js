@@ -23,7 +23,7 @@ const SELECT_FIELDS = [
   'primary_genre', 'genres', 'overview',
   'pacing_score', 'intensity_score', 'emotional_depth_score',
   'cult_status_score', 'discovery_potential', 'accessibility_score', 'vfx_level_score',
-  'director_name',
+  'director_name', 'dialogue_density', 'attention_demand',
 ].join(', ')
 
 /**
@@ -83,6 +83,11 @@ function sortToOrder(sortBy) {
  * @param {string}  opts.intensity   "chill"|"intense"
  * @param {string}  opts.depth       "surface"|"deep"
  * @param {string[]} opts.vibe       array: ["cult","hidden","accessible","spectacle"]
+ * @param {string}  opts.director    partial director name (case-insensitive)
+ * @param {boolean} opts.hideWatched exclude movies the user has watched
+ * @param {number[]} opts.watchedIds movie IDs to exclude when hideWatched is true
+ * @param {string}  opts.dialogue    "heavy"|"light"
+ * @param {string}  opts.attention   "low"|"high"
  * @returns {{ movies: object[], totalCount: number, totalPages: number }}
  */
 export async function browseMovies({
@@ -97,6 +102,11 @@ export async function browseMovies({
   intensity = '',
   depth = '',
   vibe = [],
+  director = '',
+  hideWatched = false,
+  watchedIds = [],
+  dialogue = '',
+  attention = '',
 } = {}) {
   const from = (page - 1) * PAGE_SIZE
   const to = from + PAGE_SIZE - 1
@@ -167,6 +177,30 @@ export async function browseMovies({
   if (vibeArr.includes('hidden'))     q = q.gte('discovery_potential', 70)
   if (vibeArr.includes('accessible')) q = q.gte('accessibility_score', 65)
   if (vibeArr.includes('spectacle'))  q = q.gte('vfx_level_score', 65)
+
+  // ── Director ───────────────────────────────────────────────────────────────
+  if (director) {
+    q = q.ilike('director_name', `%${director}%`)
+  }
+
+  // ── Hide Watched ────────────────────────────────────────────────────────────
+  if (hideWatched && watchedIds?.length > 0) {
+    q = q.not('id', 'in', `(${watchedIds.join(',')})`)
+  }
+
+  // ── Dialogue ────────────────────────────────────────────────────────────────
+  if (dialogue === 'heavy') {
+    q = q.gte('dialogue_density', 65).not('dialogue_density', 'is', null)
+  } else if (dialogue === 'light') {
+    q = q.lte('dialogue_density', 35).not('dialogue_density', 'is', null)
+  }
+
+  // ── Attention ───────────────────────────────────────────────────────────────
+  if (attention === 'low') {
+    q = q.lte('attention_demand', 35).not('attention_demand', 'is', null)
+  } else if (attention === 'high') {
+    q = q.gte('attention_demand', 65).not('attention_demand', 'is', null)
+  }
 
   // ── Sort & Pagination ──────────────────────────────────────────────────────
   const { column, ascending } = sortToOrder(sortBy)

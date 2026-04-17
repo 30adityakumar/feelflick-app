@@ -1,103 +1,28 @@
 // src/app/pages/profile/TasteProfile.jsx
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { useOutletContext, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 
-import { Film, Star, Bookmark, Sparkles, Compass, Users, UserPlus, X } from 'lucide-react'
+import { Film, Star, Bookmark, Compass, Users, UserPlus, X } from 'lucide-react'
 
 import { supabase } from '@/shared/lib/supabase/client'
 import { tmdbImg } from '@/shared/api/tmdb'
 import FollowButton from '@/shared/components/FollowButton'
 
-// ============================================================================
-// CONSTANTS
-// ============================================================================
-
-const GENRE_ID_TO_NAME = {
-  28: 'Action', 12: 'Adventure', 16: 'Animation', 35: 'Comedy',
-  80: 'Crime', 99: 'Documentary', 18: 'Drama', 10751: 'Family',
-  14: 'Fantasy', 36: 'History', 27: 'Horror', 10402: 'Music',
-  9648: 'Mystery', 10749: 'Romance', 878: 'Science Fiction',
-  10770: 'TV Movie', 53: 'Thriller', 10752: 'War', 37: 'Western',
-}
-
-/** @type {Array<[number, string]>} [minRating (on /5 scale), label] */
-const RATING_PERSONALITY = [
-  [4.5, 'You\'re a generous rater — you find the good in everything.'],
-  [3.5, 'You\'re a balanced critic — fair but discerning.'],
-  [0, 'You\'re a tough critic — only the best earns your praise.'],
-]
-
-const TASTE_SUMMARIES = {
-  'Drama-Cozy': 'You gravitate toward heartfelt dramas that feel like a warm blanket on a cold night.',
-  'Drama-Heartbroken': 'You seek out raw emotional stories that let you feel everything deeply.',
-  'Drama-Dark': 'You gravitate toward emotionally intense films that don\'t let you off easy.',
-  'Comedy-Silly': 'You love a good laugh and never apologize for wanting pure, joyful entertainment.',
-  'Comedy-Cozy': 'You reach for feel-good comedies that leave you smiling long after the credits.',
-  'Thriller-Dark': 'You crave tension and the thrill of stories that push into shadowy territory.',
-  'Thriller-Energized': 'You live for edge-of-your-seat cinema that keeps your heart pounding.',
-  'Action-Adventurous': 'You watch films to feel alive — the bigger the stakes, the better.',
-  'Action-Energized': 'You live for high-octane cinema that keeps your pulse racing start to finish.',
-  'Horror-Dark': 'You\'re drawn to the edge of fear, finding beauty in cinema\'s darkest corners.',
-  'Science Fiction-Curious': 'You\'re a cinematic explorer, drawn to big ideas and unknown frontiers.',
-  'Romance-Romantic': 'You believe in the power of love stories and never tire of a great romance.',
-  'Romance-Cozy': 'You\'re a romantic at heart, drawn to tender stories that warm the soul.',
-  'Documentary-Curious': 'You have an insatiable appetite for truth and real stories that expand your world.',
-  'Animation-Cozy': 'You appreciate the artistry of animation and the comfort of beautifully told stories.',
-  'Crime-Dark': 'You\'re fascinated by the criminal mind and stories that probe moral grey zones.',
-}
-
-const TASTE_FALLBACK = 'You have eclectic taste — a true cinematic omnivore who refuses to be boxed in.'
-
-// ============================================================================
-// HELPERS
-// ============================================================================
-
-/**
- * Resolve a genre value (TMDB JSONB is polymorphic) to a human-readable name.
- * Handles: integer IDs, {id, name} objects, and plain strings.
- * @param {number|string|{id?:number, name?:string}} g
- * @returns {string|null}
- */
-function resolveGenreName(g) {
-  if (!g && g !== 0) return null
-  if (typeof g === 'object' && g.name) return g.name
-  if (typeof g === 'object' && g.id) return GENRE_ID_TO_NAME[g.id] || null
-  if (typeof g === 'number') return GENRE_ID_TO_NAME[g] || null
-  if (typeof g === 'string') {
-    const parsed = parseInt(g, 10)
-    if (!isNaN(parsed)) return GENRE_ID_TO_NAME[parsed] || null
-    return g
-  }
-  return null
-}
-
-/**
- * Count occurrences in an array of strings, return sorted desc.
- * @param {string[]} items
- * @returns {Array<{name: string, count: number}>}
- */
-function countAndSort(items) {
-  const map = new Map()
-  for (const item of items) {
-    if (!item) continue
-    map.set(item, (map.get(item) || 0) + 1)
-  }
-  return [...map.entries()]
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count)
-}
-
-function formatMemberSince(dateStr) {
-  if (!dateStr) return null
-  try {
-    const d = new Date(dateStr)
-    return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
-  } catch {
-    return null
-  }
-}
+import {
+  RATING_PERSONALITY_SELF,
+  TASTE_SUMMARIES,
+  TASTE_FALLBACK,
+  resolveGenreName,
+  countAndSort,
+  formatMemberSince,
+  SectionHeader,
+  StatCard,
+  ProfileAvatar,
+  StatPill,
+  SidebarListCard,
+} from './profileUtils'
 
 // ============================================================================
 // SKELETON (loading state)
@@ -167,40 +92,6 @@ function EmptyProfile() {
 }
 
 // ============================================================================
-// SECTION HEADER (matches CLAUDE.md pattern)
-// ============================================================================
-
-function SectionHeader({ title }) {
-  return (
-    <div className="flex items-center gap-3 mb-4">
-      <div className="w-[3px] h-5 rounded-full bg-gradient-to-b from-purple-400 to-pink-500" />
-      <h2 className="text-[1.05rem] sm:text-[1.15rem] font-bold text-white tracking-tight whitespace-nowrap">
-        {title}
-      </h2>
-      <div className="h-px flex-1 bg-gradient-to-r from-purple-400/20 via-white/5 to-transparent" />
-    </div>
-  )
-}
-
-// ============================================================================
-// STAT CARD
-// ============================================================================
-
-function StatCard({ children, index = 0 }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-40px' }}
-      transition={{ duration: 0.35, delay: index * 0.08 }}
-      className="rounded-2xl border border-white/8 bg-white/[0.03] p-5"
-    >
-      {children}
-    </motion.div>
-  )
-}
-
-// ============================================================================
 // MAIN COMPONENT
 // ============================================================================
 
@@ -219,6 +110,10 @@ export default function TasteProfile() {
   const [followingCount, setFollowingCount] = useState(0)
   const [followModal, setFollowModal] = useState(null) // 'followers' | 'following' | null
   const [userLists, setUserLists] = useState([])
+  const [posterMap, setPosterMap] = useState(new Map())
+  const [aiSummary, setAiSummary] = useState(null)
+  const [summaryLoading, setSummaryLoading] = useState(false)
+  const summaryCalledRef = useRef(false)
 
   // === DATA FETCHING ===
 
@@ -236,7 +131,7 @@ export default function TasteProfile() {
             .maybeSingle(),
           supabase
             .from('user_history')
-            .select('movie_id, watched_at, movies ( id, title, poster_path, genres, director_name, primary_genre, release_date )')
+            .select('movie_id, watched_at, movies ( id, tmdb_id, title, poster_path, genres, director_name, primary_genre, release_date )')
             .eq('user_id', userId)
             .order('watched_at', { ascending: false }),
           supabase
@@ -276,7 +171,31 @@ export default function TasteProfile() {
         setMoodSessions(moodRes.data ?? [])
         setFollowersCount(followersRes.count ?? 0)
         setFollowingCount(followingRes.count ?? 0)
-        setUserLists(listsRes.data ?? [])
+
+        const lists = listsRes.data ?? []
+        setUserLists(lists)
+
+        // Fetch poster thumbnails for lists
+        const listIds = lists.map((l) => l.id)
+        if (listIds.length > 0) {
+          const { data: movieRows } = await supabase
+            .from('list_movies')
+            .select('list_id, movie_id, position, movies ( poster_path )')
+            .in('list_id', listIds)
+            .order('position', { ascending: true, nullsFirst: false })
+
+          const pMap = new Map()
+          for (const row of (movieRows || [])) {
+            // Count
+            const existing = pMap.get(row.list_id) || { count: 0, posters: [] }
+            existing.count += 1
+            if (existing.posters.length < 3 && row.movies?.poster_path) {
+              existing.posters.push(row.movies.poster_path)
+            }
+            pMap.set(row.list_id, existing)
+          }
+          if (active) setPosterMap(pMap)
+        }
       } catch (err) {
         console.error('[TasteProfile] fetch error:', err)
       } finally {
@@ -339,7 +258,7 @@ export default function TasteProfile() {
     if (ratedCount > 0) {
       const sum = ratings.reduce((acc, r) => acc + (r.rating || 0), 0)
       avgRating = sum / ratedCount
-      for (const [threshold, label] of RATING_PERSONALITY) {
+      for (const [threshold, label] of RATING_PERSONALITY_SELF) {
         if (avgRating >= threshold) {
           ratingPersonality = label
           break
@@ -362,6 +281,7 @@ export default function TasteProfile() {
       .filter((e) => e.movies?.poster_path)
       .map((e) => ({
         id: e.movies.id,
+        tmdbId: e.movies.tmdb_id,
         title: e.movies.title,
         posterPath: e.movies.poster_path,
         year: e.movies.release_date
@@ -392,14 +312,108 @@ export default function TasteProfile() {
 
   const avatarUrl = profile?.avatar_url || authUser?.user_metadata?.avatar_url || null
 
-  const initials = displayName
-    .trim()
-    .split(' ')
-    .map((s) => s[0]?.toUpperCase())
-    .slice(0, 2)
-    .join('')
-
   const memberSince = formatMemberSince(profile?.joined_at)
+
+  // === AI TASTE SUMMARY ===
+
+  useEffect(() => {
+    const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
+    const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
+    const CACHE_TTL = 24 * 60 * 60 * 1000 // 24 hours
+
+    console.log('[TasteSummary] effect fired', {
+      topGenres: stats.topGenres?.length,
+      hasCalledRef: summaryCalledRef.current,
+      userId,
+    })
+
+    // Wait for data to be ready
+    if (!stats.topGenres?.length) return
+    // Only call once
+    if (summaryCalledRef.current) return
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !userId) return
+    summaryCalledRef.current = true
+
+    // Check localStorage cache
+    const cacheKey = `ff_taste_summary_v3_${userId}`
+    try {
+      const cached = localStorage.getItem(cacheKey)
+      if (cached) {
+        const { summary, generatedAt } = JSON.parse(cached)
+        if (summary && Date.now() - generatedAt < CACHE_TTL) {
+          console.log('[TasteSummary] using cached summary')
+          setAiSummary(summary)
+          return
+        }
+      }
+    } catch {
+      // Corrupted cache — ignore and refetch
+    }
+
+    console.log('[TasteSummary] invoking edge function')
+    setSummaryLoading(true)
+
+    ;(async () => {
+      try {
+        // Fetch recent watch history for richer prompt context
+        const { data: historyData } = await supabase
+          .from('user_history')
+          .select('movies(title)')
+          .eq('user_id', userId)
+          .order('watched_at', { ascending: false })
+          .limit(20)
+
+        const watchedFilms = (historyData ?? [])
+          .map((h) => h.movies)
+          .filter(Boolean)
+          .map((m) => m.title)
+
+        const res = await fetch(`${SUPABASE_URL}/functions/v1/generate-taste-summary`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({
+            genres: stats.topGenres.slice(0, 3).map((g) => ({
+              name: g.name,
+              pct: g.pct ?? 0,
+            })),
+            directors: stats.topDirectors.slice(0, 3).map((d) => ({
+              name: d.name,
+              count: d.count ?? 0,
+            })),
+            moods: stats.topMoods.slice(0, 3).map((m) => ({
+              name: m.name,
+              sessions: m.count ?? 0,
+            })),
+            totalWatched: stats.watchedCount ?? 0,
+            avgRating: stats.avgRating ?? 0,
+            ratingLabel: stats.ratingPersonality ?? '',
+            watchedFilms,
+          }),
+        })
+
+        const data = await res.json()
+        if (data?.summary) {
+          setAiSummary(data.summary)
+          try {
+            localStorage.setItem(
+              cacheKey,
+              JSON.stringify({ summary: data.summary, generatedAt: Date.now() })
+            )
+            console.log('[TasteSummary] cached for', userId)
+          } catch {
+            // storage quota exceeded — ignore
+          }
+        }
+      } catch (err) {
+        console.error('[TasteSummary] fetch failed:', err)
+      } finally {
+        setSummaryLoading(false)
+      }
+    })()
+  }, [userId, stats.topGenres, stats.topDirectors, stats.topMoods, stats.watchedCount, stats.avgRating, stats.ratingPersonality])
 
   // === RENDER ===
 
@@ -409,11 +423,11 @@ export default function TasteProfile() {
       <div className="pointer-events-none fixed inset-0 -z-10" aria-hidden>
         <div
           className="absolute inset-0"
-          style={{ background: 'radial-gradient(ellipse 70% 40% at 50% 0%, rgba(88,28,135,0.12) 0%, transparent 65%)' }}
+          style={{ background: 'radial-gradient(ellipse 70% 35% at 50% 0%, rgba(88,28,135,0.1) 0%, transparent 65%)' }}
         />
       </div>
 
-      <div className="mx-auto max-w-3xl px-4 sm:px-6 py-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {loading ? (
           <ProfileSkeleton />
         ) : stats.watchedCount === 0 ? (
@@ -423,30 +437,16 @@ export default function TasteProfile() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
-            className="space-y-10"
           >
             {/* === PROFILE HEADER === */}
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
+              className="mb-8"
             >
               <div className="flex items-center gap-5 mb-5">
-                {/* Avatar */}
-                {avatarUrl ? (
-                  <img
-                    src={avatarUrl}
-                    alt={displayName}
-                    className="h-16 w-16 rounded-full object-cover ring-2 ring-purple-500/20 flex-shrink-0"
-                  />
-                ) : (
-                  <div
-                    className="h-16 w-16 rounded-full flex-shrink-0 flex items-center justify-center text-xl font-black text-white shadow-lg"
-                    style={{ background: 'linear-gradient(135deg, rgb(168,85,247), rgb(236,72,153))' }}
-                  >
-                    {initials}
-                  </div>
-                )}
+                <ProfileAvatar name={displayName} avatarUrl={avatarUrl} size={64} />
                 <div className="min-w-0">
                   <h1 className="text-xl sm:text-2xl font-bold text-white truncate">{displayName}</h1>
                   {memberSince && (
@@ -455,100 +455,175 @@ export default function TasteProfile() {
                 </div>
               </div>
 
-              {/* Stat pills */}
+              {/* Stat pills — clickable */}
               <div className="flex flex-wrap gap-2.5">
-                <StatPill icon={Film} value={stats.watchedCount} label="watched" />
-                <StatPill icon={Star} value={stats.ratedCount} label="rated" />
-                <StatPill icon={Bookmark} value={stats.watchlistCount} label="saved" />
-                <StatPill icon={Users} value={followersCount} label="followers" onClick={() => setFollowModal('followers')} className="cursor-pointer hover:bg-white/8" />
-                <StatPill icon={UserPlus} value={followingCount} label="following" onClick={() => setFollowModal('following')} className="cursor-pointer hover:bg-white/8" />
+                <StatPill icon={Film} value={stats.watchedCount} label="watched" to="/history" />
+                <StatPill icon={Star} value={stats.ratedCount} label="rated" to="/history" />
+                <StatPill icon={Bookmark} value={stats.watchlistCount} label="saved" to="/watchlist" />
+                <StatPill icon={Users} value={followersCount} label="followers" onClick={() => setFollowModal('followers')} />
+                <StatPill icon={UserPlus} value={followingCount} label="following" onClick={() => setFollowModal('following')} />
               </div>
             </motion.div>
 
-            {/* === CINEMATIC DNA === */}
-            <div>
-              <SectionHeader title="Your Cinematic DNA" />
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Top Genres */}
-                <StatCard index={0}>
-                  <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-3">Top Genres</h3>
-                  {stats.topGenres.length > 0 ? (
-                    <div className="space-y-2.5">
-                      {stats.topGenres.map((g) => (
-                        <div key={g.name}>
-                          <div className="flex items-center justify-between text-sm mb-1">
-                            <span className="text-white/80 font-medium">{g.name}</span>
-                            <span className="text-white/35 text-xs">{g.pct}%</span>
-                          </div>
-                          <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
-                            <motion.div
-                              className="h-full rounded-full bg-gradient-to-r from-purple-500 to-pink-500"
-                              initial={{ width: 0 }}
-                              whileInView={{ width: `${g.pct}%` }}
-                              viewport={{ once: true }}
-                              transition={{ duration: 0.8, delay: 0.2, ease: 'easeOut' }}
-                            />
-                          </div>
-                        </div>
-                      ))}
+            {/* === TASTE SUMMARY — above the fold === */}
+            {stats.watchedCount >= 3 && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.97 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true, margin: '-40px' }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                className="relative rounded-2xl overflow-hidden border border-purple-500/25 bg-gradient-to-br from-purple-500/[0.08] via-transparent to-pink-500/[0.04] p-5 mb-10"
+              >
+                <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full blur-3xl pointer-events-none" style={{ background: 'rgba(168,85,247,0.12)' }} aria-hidden />
+                <div className="relative flex items-start gap-3">
+                  <span className="text-purple-400/70 mt-0.5 shrink-0" aria-hidden>&#10022;</span>
+                  {summaryLoading ? (
+                    <div className="flex-1 space-y-2 animate-pulse">
+                      <div className="h-4 w-3/4 rounded bg-purple-500/[0.08]" />
+                      <div className="h-4 w-1/2 rounded bg-purple-500/[0.08]" />
                     </div>
                   ) : (
-                    <p className="text-white/25 text-sm">Not enough data yet</p>
+                    <p className="text-sm sm:text-base text-white/75 leading-relaxed italic">
+                      &ldquo;{aiSummary || stats.tasteSummary}&rdquo;
+                    </p>
                   )}
-                </StatCard>
+                  {!summaryLoading && aiSummary && (
+                    <span className="shrink-0 self-start rounded-full bg-purple-500/15 border border-purple-500/25 px-2 py-0.5 text-[10px] font-semibold text-purple-300 uppercase tracking-wider">
+                      AI
+                    </span>
+                  )}
+                </div>
+              </motion.div>
+            )}
 
-                {/* Top Directors */}
-                <StatCard index={1}>
-                  <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-3">Top Directors</h3>
-                  {stats.topDirectors.length > 0 ? (
-                    <div className="space-y-2">
-                      {stats.topDirectors.map((d, i) => (
-                        <div key={d.name} className="flex items-center justify-between">
-                          <span className="text-white/80 text-sm font-medium">
-                            <span className="text-white/25 text-xs mr-2">{i + 1}.</span>
-                            {d.name}
-                          </span>
-                          <span className="text-white/30 text-xs">
-                            {d.count} {d.count === 1 ? 'film' : 'films'}
-                          </span>
+            {/* === TWO-COLUMN LAYOUT === */}
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8 items-start">
+
+              {/* LEFT: Main content */}
+              <div className="min-w-0 space-y-10">
+
+                {/* === CINEMATIC DNA === */}
+                <div>
+                  <SectionHeader title="Your Cinematic DNA" />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* Top Genres */}
+                    <StatCard index={0}>
+                      <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-3">Top Genres</h3>
+                      {stats.topGenres.length > 0 ? (
+                        <div className="space-y-2.5">
+                          {stats.topGenres.map((g) => (
+                            <div key={g.name}>
+                              <div className="flex items-center justify-between text-sm mb-1">
+                                <span className="text-white/80 font-medium">{g.name}</span>
+                                <span className="text-white/35 text-xs">{g.pct}%</span>
+                              </div>
+                              <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
+                                <motion.div
+                                  className="h-full rounded-full bg-gradient-to-r from-purple-500 to-pink-500"
+                                  initial={{ width: 0 }}
+                                  whileInView={{ width: `${g.pct}%` }}
+                                  viewport={{ once: true }}
+                                  transition={{ duration: 0.8, delay: 0.2, ease: 'easeOut' }}
+                                />
+                              </div>
+                            </div>
+                          ))}
                         </div>
+                      ) : (
+                        <p className="text-white/25 text-sm">Not enough data yet</p>
+                      )}
+                    </StatCard>
+
+                    {/* Top Directors */}
+                    <StatCard index={1}>
+                      <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-3">Top Directors</h3>
+                      {stats.topDirectors.length > 0 ? (
+                        <div className="space-y-2">
+                          {stats.topDirectors.map((d, i) => (
+                            <div key={d.name} className="flex items-center justify-between">
+                              <span className="text-white/80 text-sm font-medium">
+                                <span className="text-white/25 text-xs mr-2">{i + 1}.</span>
+                                {d.name}
+                              </span>
+                              <span className="text-white/30 text-xs">
+                                {d.count} {d.count === 1 ? 'film' : 'films'}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-white/25 text-sm">Director data isn&apos;t available yet</p>
+                      )}
+                    </StatCard>
+
+                    {/* Mood Patterns */}
+                    <StatCard index={2} className="sm:col-span-2">
+                      <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-3">Mood Patterns</h3>
+                      {stats.topMoods.length > 0 ? (
+                        <div className="space-y-2">
+                          {stats.topMoods.map((m) => (
+                            <div key={m.name} className="flex items-center justify-between">
+                              <span className="text-white/80 text-sm font-medium">
+                                {m.emoji && <span className="mr-1.5">{m.emoji}</span>}
+                                {m.name}
+                              </span>
+                              <span className="text-white/30 text-xs">
+                                {m.count} {m.count === 1 ? 'session' : 'sessions'}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-white/25 text-sm">Try discovering films by mood to see your patterns</p>
+                      )}
+                    </StatCard>
+                  </div>
+                </div>
+
+                {/* === RECENTLY WATCHED === */}
+                {stats.recentlyWatched.length > 0 && (
+                  <div>
+                    <SectionHeader title="Recently Watched" />
+                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+                      {stats.recentlyWatched.map((movie, idx) => (
+                        <motion.div
+                          key={movie.id}
+                          initial={{ opacity: 0, y: 12 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.3, delay: Math.min(idx * 0.05, 0.3) }}
+                        >
+                          <Link to={movie.tmdbId ? `/movie/${movie.tmdbId}` : '#'} className="block group">
+                            <div className="aspect-[2/3] rounded-xl overflow-hidden bg-white/5 ring-1 ring-white/8 transition-transform duration-200 group-hover:scale-[1.03]">
+                              <img
+                                src={tmdbImg(movie.posterPath, 'w185')}
+                                alt={movie.title}
+                                className="w-full h-full object-cover"
+                                loading="lazy"
+                              />
+                            </div>
+                            <p className="text-white/50 text-[11px] mt-1.5 line-clamp-2 leading-tight group-hover:text-white/70 transition-colors">{movie.title}</p>
+                            {movie.year && (
+                              <p className="text-white/25 text-[10px]">{movie.year}</p>
+                            )}
+                          </Link>
+                        </motion.div>
                       ))}
                     </div>
-                  ) : (
-                    <p className="text-white/25 text-sm">Director data isn&apos;t available yet</p>
-                  )}
-                </StatCard>
+                  </div>
+                )}
+              </div>
 
-                {/* Mood Patterns */}
-                <StatCard index={2}>
-                  <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-3">Mood Patterns</h3>
-                  {stats.topMoods.length > 0 ? (
-                    <div className="space-y-2">
-                      {stats.topMoods.map((m) => (
-                        <div key={m.name} className="flex items-center justify-between">
-                          <span className="text-white/80 text-sm font-medium">
-                            {m.emoji && <span className="mr-1.5">{m.emoji}</span>}
-                            {m.name}
-                          </span>
-                          <span className="text-white/30 text-xs">
-                            {m.count} {m.count === 1 ? 'session' : 'sessions'}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-white/25 text-sm">Try discovering films by mood to see your patterns</p>
-                  )}
-                </StatCard>
+              {/* RIGHT: Sidebar — hidden on mobile, sticky on desktop */}
+              <aside className="hidden lg:block sticky top-[calc(var(--hdr-h,64px)+24px)] space-y-4">
 
-                {/* Average Rating */}
-                <StatCard index={3}>
+                {/* Rating Style card */}
+                <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-5">
                   <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-3">Your Rating Style</h3>
                   {stats.avgRating != null ? (
                     <div>
                       <div className="flex items-baseline gap-1.5 mb-2">
                         <span className="text-3xl font-black text-white">{stats.avgRating.toFixed(1)}</span>
-                        <span className="text-white/25 text-sm font-medium">/ 5</span>
+                        <span className="text-white/25 text-sm font-medium">/ 10</span>
                         <span className="text-white/30 text-xs ml-1">avg</span>
                       </div>
                       {stats.ratingPersonality && (
@@ -558,89 +633,37 @@ export default function TasteProfile() {
                   ) : (
                     <p className="text-white/25 text-sm">Rate films to discover your critic personality</p>
                   )}
-                </StatCard>
-              </div>
-            </div>
-
-            {/* === TASTE SUMMARY === */}
-            {stats.watchedCount >= 3 && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.97 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true, margin: '-40px' }}
-                transition={{ duration: 0.5, delay: 0.1 }}
-                className="rounded-2xl border border-purple-500/15 bg-gradient-to-br from-purple-500/[0.06] to-pink-500/[0.03] p-6"
-              >
-                <div className="flex items-start gap-3">
-                  <Sparkles className="h-5 w-5 text-purple-400/60 flex-shrink-0 mt-0.5" />
-                  <p className="text-white/70 text-sm sm:text-base leading-relaxed italic">
-                    &ldquo;{stats.tasteSummary}&rdquo;
-                  </p>
                 </div>
-              </motion.div>
-            )}
 
-            {/* === RECENTLY WATCHED === */}
-            {stats.recentlyWatched.length > 0 && (
-              <div>
-                <SectionHeader title="Recently Watched" />
-                <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
-                  {stats.recentlyWatched.map((movie, idx) => (
-                    <motion.div
-                      key={movie.id}
-                      initial={{ opacity: 0, y: 12 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3, delay: Math.min(idx * 0.05, 0.3) }}
-                    >
-                      <div className="aspect-[2/3] rounded-xl overflow-hidden bg-white/5 ring-1 ring-white/8">
-                        <img
-                          src={tmdbImg(movie.posterPath, 'w185')}
-                          alt={movie.title}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                        />
-                      </div>
-                      <p className="text-white/50 text-[11px] mt-1.5 truncate leading-tight">{movie.title}</p>
-                      {movie.year && (
-                        <p className="text-white/25 text-[10px]">{movie.year}</p>
-                      )}
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* === LISTS === */}
-            {userLists.length > 0 && (
-              <div>
-                <SectionHeader title="Lists" />
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {userLists.map((list, idx) => (
-                    <motion.div
-                      key={list.id}
-                      initial={{ opacity: 0, y: 12 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3, delay: Math.min(idx * 0.05, 0.3) }}
-                    >
-                      <Link
-                        to={`/lists/${list.id}`}
-                        className="block rounded-xl border border-white/8 bg-white/[0.03] p-4 hover:bg-white/[0.06] transition-colors"
-                      >
-                        <h3 className="text-sm font-bold text-white truncate mb-1">{list.title}</h3>
-                        {list.description && (
-                          <p className="text-xs text-white/30 line-clamp-2 leading-relaxed">{list.description}</p>
-                        )}
+                {/* Lists widget */}
+                {userLists.length > 0 && (
+                  <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-[3px] h-4 rounded-full bg-gradient-to-b from-purple-400 to-pink-500 shrink-0" />
+                      <span className="text-xs font-bold text-white/70 uppercase tracking-wider">Lists</span>
+                    </div>
+                    <div className="space-y-2">
+                      {userLists.map((list) => {
+                        const data = posterMap.get(list.id)
+                        return (
+                          <SidebarListCard
+                            key={list.id}
+                            list={{ ...list, film_count: data?.count ?? 0 }}
+                            posters={data?.posters ?? []}
+                          />
+                        )
+                      })}
+                    </div>
+                    <div className="mt-3 text-right">
+                      <Link to="/lists" className="text-xs text-purple-400/70 hover:text-purple-300 transition-colors font-medium">
+                        See all lists &rarr;
                       </Link>
-                    </motion.div>
-                  ))}
-                </div>
-                <div className="mt-3 text-right">
-                  <Link to="/lists" className="text-xs text-purple-400/70 hover:text-purple-300 transition-colors font-medium">
-                    See all lists &rarr;
-                  </Link>
-                </div>
-              </div>
-            )}
+                    </div>
+                  </div>
+                )}
+              </aside>
+
+            </div>
           </motion.div>
         )}
       </div>
@@ -796,26 +819,5 @@ function FollowListModal({ type, userId, onClose }) {
         </div>
       </motion.div>
     </div>
-  )
-}
-
-// ============================================================================
-// SMALL UI PIECES
-// ============================================================================
-
-function StatPill({ icon: Icon, value, label, onClick, className }) {
-  const Tag = onClick ? 'button' : 'div'
-  return (
-    <Tag
-      type={onClick ? 'button' : undefined}
-      onClick={onClick}
-      aria-label={onClick ? `View ${label}` : undefined}
-      className={`inline-flex items-center gap-2 rounded-full bg-white/5 border border-white/8 px-3.5 py-1.5 transition-colors duration-200 ${className || ''}`}
-    >
-      <Icon className="h-3.5 w-3.5 text-purple-400/60" />
-      <span className="text-xs text-white/70 font-medium">
-        <span className="text-white font-semibold">{value}</span> {label}
-      </span>
-    </Tag>
   )
 }

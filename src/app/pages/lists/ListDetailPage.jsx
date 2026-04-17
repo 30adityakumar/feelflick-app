@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 
-import { ChevronLeft, Pencil, Trash2, X as XIcon, Film, Globe, Share2, Check } from 'lucide-react'
+import { ChevronLeft, Pencil, Trash2, X as XIcon, Film, Globe, Lock, Share2, Check } from 'lucide-react'
 
 import { supabase } from '@/shared/lib/supabase/client'
 import { tmdbImg } from '@/shared/api/tmdb'
@@ -92,7 +92,6 @@ export default function ListDetailPage() {
   const [showEditModal, setShowEditModal] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [linkCopied, setLinkCopied] = useState(false)
-  const [editMode, setEditMode] = useState(false)
 
   const isOwner = currentUserId && list?.user_id === currentUserId
 
@@ -224,6 +223,22 @@ export default function ListDetailPage() {
     url: list ? `https://app.feelflick.com/lists/${listId}` : null,
   })
 
+  const ownerBadge = (
+    <>
+      {owner?.avatar_url ? (
+        <img src={owner.avatar_url} alt={ownerName} className="h-5 w-5 rounded-full object-cover" />
+      ) : (
+        <div
+          className="h-5 w-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white"
+          style={{ background: 'linear-gradient(135deg, rgb(168,85,247), rgb(236,72,153))' }}
+        >
+          {ownerInitial}
+        </div>
+      )}
+      <span className="text-white/50 font-medium">{ownerName}</span>
+    </>
+  )
+
   return (
     <div className="min-h-screen bg-black text-white pb-24 md:pb-10 relative" style={{ paddingTop: 'var(--hdr-h, 64px)' }}>
       {/* Ambient glow */}
@@ -325,78 +340,90 @@ export default function ListDetailPage() {
                 </div>
               </div>
 
-              {/* Action buttons — top-right, with backdrop for legibility */}
-              {(list.is_public || isOwner) && (
-                <div className="absolute top-3 right-3 flex gap-1.5 bg-black/40 backdrop-blur-sm rounded-lg p-1.5">
-                  {list.is_public && (
-                    <button
-                      type="button"
-                      onClick={handleShare}
-                      aria-label={linkCopied ? 'Link copied' : 'Share list'}
-                      className={`h-8 rounded-lg flex items-center justify-center transition-colors ${
-                        linkCopied
-                          ? 'px-3 bg-green-500/15 text-green-400'
-                          : 'w-8 text-white/60 hover:text-white hover:bg-white/10'
-                      }`}
-                    >
-                      {linkCopied ? (
-                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold">
-                          <Check className="h-3.5 w-3.5" />
-                          Copied!
-                        </span>
-                      ) : (
-                        <Share2 className="h-4 w-4" />
-                      )}
-                    </button>
-                  )}
-                  {isOwner && (
-                    <>
-                      {editMode ? (
+                {/* Actions */}
+                {(list.is_public || isOwner) && (
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    {list.is_public && (
+                      <button
+                        type="button"
+                        onClick={handleShare}
+                        aria-label={linkCopied ? 'Link copied' : 'Share list'}
+                        className={`h-8 rounded-lg flex items-center justify-center transition-colors ${
+                          linkCopied
+                            ? 'px-3 bg-green-500/15 text-green-400'
+                            : 'w-8 text-white/30 hover:text-white/70 hover:bg-white/8'
+                        }`}
+                      >
+                        {linkCopied ? (
+                          <span className="inline-flex items-center gap-1.5 text-xs font-semibold">
+                            <Check className="h-3.5 w-3.5" />
+                            Copied!
+                          </span>
+                        ) : (
+                          <Share2 className="h-4 w-4" />
+                        )}
+                      </button>
+                    )}
+                    {isOwner && (
+                      <>
                         <button
                           type="button"
-                          onClick={() => setEditMode(false)}
-                          aria-label="Exit edit mode"
-                          className="text-xs text-purple-400 border border-purple-500/30 px-3 py-1 rounded-full"
-                        >
-                          Done
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => setEditMode(true)}
+                          onClick={() => setShowEditModal(true)}
                           aria-label="Edit list"
-                          className="h-8 w-8 rounded-lg flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+                          className="h-8 w-8 rounded-lg flex items-center justify-center text-white/30 hover:text-white/70 hover:bg-white/8 transition-colors"
                         >
                           <Pencil className="h-4 w-4" />
                         </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (confirmDelete) {
-                            handleDeleteList()
-                          } else {
-                            setConfirmDelete(true)
-                            setTimeout(() => setConfirmDelete(false), 3000)
-                          }
-                        }}
-                        aria-label={confirmDelete ? 'Confirm delete' : 'Delete list'}
-                        className={`h-8 rounded-lg flex items-center justify-center transition-colors ${
-                          confirmDelete
-                            ? 'px-3 bg-red-500/20 text-red-400 hover:bg-red-500/30'
-                            : 'w-8 text-white/60 hover:text-red-400 hover:bg-white/10'
-                        }`}
-                      >
-                        {confirmDelete ? (
-                          <span className="text-xs font-semibold">Delete?</span>
-                        ) : (
-                          <Trash2 className="h-4 w-4" />
-                        )}
-                      </button>
-                    </>
-                  )}
-                </div>
-              )}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (confirmDelete) {
+                              handleDeleteList()
+                            } else {
+                              setConfirmDelete(true)
+                              setTimeout(() => setConfirmDelete(false), 3000)
+                            }
+                          }}
+                          aria-label={confirmDelete ? 'Confirm delete' : 'Delete list'}
+                          className={`h-8 rounded-lg flex items-center justify-center transition-colors ${
+                            confirmDelete
+                              ? 'px-3 bg-red-500/15 text-red-400 hover:bg-red-500/25'
+                              : 'w-8 text-white/30 hover:text-red-400 hover:bg-red-500/8'
+                          }`}
+                        >
+                          {confirmDelete ? (
+                            <span className="text-xs font-semibold">Delete?</span>
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Owner + meta */}
+              <div className="flex items-center gap-3 text-xs text-white/30">
+                {isAuthenticated ? (
+                  <Link
+                    to={isOwner ? '/profile' : `/profile/${list.user_id}`}
+                    className="inline-flex items-center gap-2 hover:opacity-75 transition-opacity"
+                  >
+                    {ownerBadge}
+                  </Link>
+                ) : (
+                  <span className="inline-flex items-center gap-2">{ownerBadge}</span>
+                )}
+                <span>&middot;</span>
+                <span>{movies.length} {movies.length === 1 ? 'film' : 'films'}</span>
+                {formatDate(list.created_at) && (
+                  <>
+                    <span>&middot;</span>
+                    <span>Created {formatDate(list.created_at)}</span>
+                  </>
+                )}
+              </div>
             </div>
 
             {/* === FILM GRID === */}

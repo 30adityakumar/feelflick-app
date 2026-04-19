@@ -10,6 +10,7 @@ import { supabase } from '@/shared/lib/supabase/client'
 import { tmdbImg } from '@/shared/api/tmdb'
 import FollowButton from '@/shared/components/FollowButton'
 import TasteFingerprint from './TasteFingerprint'
+import { useTasteFingerprint } from '@/shared/hooks/useTasteFingerprint'
 
 import {
   RATING_PERSONALITY_SELF,
@@ -101,6 +102,7 @@ export default function TasteProfile() {
   const userId = outlet.userId
   const authUser = outlet.user
 
+  const { fingerprint } = useTasteFingerprint(userId)
   const [loading, setLoading] = useState(true)
   const [profile, setProfile] = useState(null)
   const [history, setHistory] = useState([])
@@ -600,7 +602,7 @@ export default function TasteProfile() {
                 </div>
 
                 {/* === TASTE FINGERPRINT === */}
-                <TasteFingerprint history={history} />
+                <TasteFingerprint fingerprint={fingerprint} history={history} />
                 {history.length >= 10 && (
                   <Link
                     to="/challenges"

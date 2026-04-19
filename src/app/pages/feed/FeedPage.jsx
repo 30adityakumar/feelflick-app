@@ -141,7 +141,7 @@ function FilterPills({ followedUsers, activeFilter, onFilter }) {
           className={`px-3.5 py-1 rounded-full text-xs font-medium shrink-0 cursor-pointer border transition-all duration-150 ${
             isAllActive
               ? 'bg-purple-500/20 border-purple-500/40 text-white'
-              : 'bg-white/[0.04] border-white/[0.08] text-white/50 hover:bg-white/[0.07] hover:text-white/70'
+              : 'bg-white/[0.04] border-white/[0.08] text-white/60 hover:bg-white/[0.07] hover:text-white/70'
           }`}
         >
           All
@@ -159,7 +159,7 @@ function FilterPills({ followedUsers, activeFilter, onFilter }) {
               className={`flex items-center gap-1.5 px-2.5 pr-3.5 py-1 rounded-full text-xs font-medium shrink-0 cursor-pointer border transition-all duration-150 ${
                 isActive
                   ? 'bg-purple-500/20 border-purple-500/40 text-white'
-                  : 'bg-white/[0.04] border-white/[0.08] text-white/50 hover:bg-white/[0.07] hover:text-white/70'
+                  : 'bg-white/[0.04] border-white/[0.08] text-white/60 hover:bg-white/[0.07] hover:text-white/70'
               }`}
             >
               <UserAvatar name={u.name} avatarUrl={u.avatar_url} size={18} />
@@ -179,7 +179,7 @@ function FilterPills({ followedUsers, activeFilter, onFilter }) {
 function DateGroupHeader({ label }) {
   return (
     <div className="flex items-center gap-3 pt-1 pb-1">
-      <span className="text-[11px] font-semibold uppercase tracking-wider text-white/25 shrink-0">
+      <span className="text-[11px] font-semibold uppercase tracking-wider text-white/20 shrink-0">
         {label}
       </span>
       <div className="h-px flex-1 bg-white/[0.06]" />
@@ -274,7 +274,7 @@ function FeedCard({ event, user, isLatest, currentUserId, onNavigate }) {
 
           {/* Meta line — always show year/genre/director for context */}
           {metaParts.length > 0 && (
-            <p className="text-[11px] text-white/30 mt-1">
+            <p className="text-[11px] text-white/40 mt-1">
               {metaParts.join(' · ')}
             </p>
           )}
@@ -285,13 +285,13 @@ function FeedCard({ event, user, isLatest, currentUserId, onNavigate }) {
               <span className="text-xs text-amber-400/90" aria-label={`Rating: ${event.rating} out of 5`}>
                 {'★'.repeat(Math.round(Math.max(0, Math.min(5, event.rating))))}{'☆'.repeat(5 - Math.round(Math.max(0, Math.min(5, event.rating))))}
               </span>
-              <span className="text-[10px] text-white/25">{event.rating}/5</span>
+              <span className="text-[10px] text-white/20">{event.rating}/5</span>
             </div>
           )}
 
           {/* Review text (rated events only) */}
           {isRated && event.reviewText && (
-            <p className="text-[11px] text-white/35 italic line-clamp-2 mt-1">
+            <p className="text-[11px] text-white/40 italic line-clamp-2 mt-1">
               &ldquo;{event.reviewText}&rdquo;
             </p>
           )}
@@ -344,7 +344,7 @@ function EmptyFeed({ variant }) {
       <p className="text-white/40 text-sm mb-1">
         {isNoFollows ? 'Nothing here yet' : 'No activity yet'}
       </p>
-      <p className="text-white/25 text-xs mb-6">
+      <p className="text-white/20 text-xs mb-6">
         {isNoFollows
           ? 'Follow people to see what they\u2019re watching'
           : 'The people you follow haven\u2019t watched anything recently'
@@ -380,7 +380,7 @@ function FollowingSidebar({ followedUsers, activeFilter, navigate }) {
 
       {followedUsers.length === 0 ? (
         <>
-          <p className="text-xs text-white/30 text-center py-2">
+          <p className="text-xs text-white/40 text-center py-2">
             Follow people to see them here
           </p>
           <button
@@ -401,7 +401,7 @@ function FollowingSidebar({ followedUsers, activeFilter, navigate }) {
               className="flex items-center gap-2.5 py-1.5 w-full rounded-lg px-1 -mx-1 hover:bg-white/[0.04] transition-colors cursor-pointer"
             >
               <UserAvatar name={u.name} avatarUrl={u.avatar_url} size={28} />
-              <span className="text-sm text-white/75 truncate flex-1 text-left">
+              <span className="text-sm text-white/70 truncate flex-1 text-left">
                 {u.name || 'User'}
               </span>
               {activeFilter === u.id && (
@@ -463,7 +463,7 @@ function TrendingSidebar({ trendingItems, navigate }) {
             <p className="text-sm text-white/80 truncate font-medium">
               {item.movie.title || 'Untitled'}
             </p>
-            <p className="text-xs text-white/30">
+            <p className="text-xs text-white/40">
               {item.watchCount} people watched this
             </p>
           </div>
@@ -635,7 +635,7 @@ export default function FeedPage() {
             {/* Page header */}
             <div className="mb-3">
               <h1 className="text-2xl font-black text-white tracking-tight mb-0.5">Activity</h1>
-              <p className="text-sm text-white/35">What people you follow are watching</p>
+              <p className="text-sm text-white/40">What people you follow are watching</p>
             </div>
 
             {/* Content */}
@@ -656,7 +656,7 @@ export default function FeedPage() {
 
                 {visibleItems.length === 0 ? (
                   <div className="text-center py-12">
-                    <p className="text-white/30 text-sm">No activity from this person yet</p>
+                    <p className="text-white/40 text-sm">No activity from this person yet</p>
                   </div>
                 ) : (
                   <div className="space-y-1">

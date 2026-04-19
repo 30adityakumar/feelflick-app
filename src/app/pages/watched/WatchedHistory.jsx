@@ -97,7 +97,7 @@ export default function WatchedHistory() {
         {/* ── Page header ─────────────────────────────────────── */}
         <div className="mb-8">
           <h1 className="text-2xl font-black text-white tracking-tight mb-1">Watch history</h1>
-          <div className="flex items-center gap-3 text-sm text-white/35">
+          <div className="flex items-center gap-3 text-sm text-white/40">
             {loading ? (
               <span>Loading…</span>
             ) : (
@@ -105,7 +105,7 @@ export default function WatchedHistory() {
                 <span>{totalMovies} {totalMovies === 1 ? 'film' : 'films'}</span>
                 {avgRating && (
                   <>
-                    <span className="text-white/15">·</span>
+                    <span className="text-white/20">·</span>
                     <span>★ {avgRating} avg</span>
                   </>
                 )}
@@ -119,7 +119,7 @@ export default function WatchedHistory() {
           <div className="flex gap-2.5 mb-6">
             {/* Search */}
             <div className="flex-1 relative">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/25 pointer-events-none" style={{ width: 16, height: 16 }} />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/20 pointer-events-none" style={{ width: 16, height: 16 }} />
               <input
                 type="text"
                 placeholder="Search your history…"
@@ -130,7 +130,7 @@ export default function WatchedHistory() {
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60 transition-colors"
                   aria-label="Clear search"
                 >
                   <X className="h-4 w-4" />
@@ -149,7 +149,7 @@ export default function WatchedHistory() {
                 <option value="title">A–Z</option>
                 <option value="rating">Rating</option>
               </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/30 pointer-events-none" />
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/40 pointer-events-none" />
             </div>
           </div>
         )}
@@ -162,7 +162,7 @@ export default function WatchedHistory() {
                 <circle cx="12" cy="12" r="10" stroke="rgba(168,85,247,0.2)" strokeWidth="3" />
                 <path d="M21 12a9 9 0 0 0-9-9v9z" fill="rgb(168,85,247)" />
               </svg>
-              <p className="text-sm text-white/30">Loading your history…</p>
+              <p className="text-sm text-white/40">Loading your history…</p>
             </div>
           </div>
 
@@ -186,7 +186,7 @@ export default function WatchedHistory() {
         ) : (
           <>
             {searchQuery && (
-              <p className="text-xs text-white/25 mb-4">{filteredMovies.length} of {movies.length} films</p>
+              <p className="text-xs text-white/20 mb-4">{filteredMovies.length} of {movies.length} films</p>
             )}
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 sm:gap-4">
               <AnimatePresence>
@@ -246,7 +246,7 @@ function MovieCard({ entry, removing, onRemove, onClick }) {
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <span className="text-white/15 text-xs">No image</span>
+            <span className="text-white/20 text-xs">No image</span>
           </div>
         )}
 
@@ -256,7 +256,7 @@ function MovieCard({ entry, removing, onRemove, onClick }) {
             <p className="text-[11px] font-semibold text-white leading-tight line-clamp-2 mb-1">
               {movie?.title}
             </p>
-            <div className="flex items-center gap-1.5 text-[10px] text-white/55">
+            <div className="flex items-center gap-1.5 text-[10px] text-white/60">
               {year && <span>{year}</span>}
               {rating && (
                 <>
@@ -271,7 +271,7 @@ function MovieCard({ entry, removing, onRemove, onClick }) {
 
       {/* Watched date — shown below card */}
       {watchedDate && (
-        <p className="mt-1.5 px-0.5 text-[10px] text-white/25 truncate hidden md:block">{watchedDate}</p>
+        <p className="mt-1.5 px-0.5 text-[10px] text-white/20 truncate hidden md:block">{watchedDate}</p>
       )}
 
       {/* Remove button — top right, appears on hover */}
@@ -279,7 +279,7 @@ function MovieCard({ entry, removing, onRemove, onClick }) {
         onClick={e => { e.stopPropagation(); onRemove() }}
         disabled={removing}
         aria-label={`Remove ${movie?.title} from history`}
-        className="absolute top-1.5 right-1.5 z-10 h-6 w-6 rounded-full bg-black/70 border border-white/12 flex items-center justify-center text-white/50 hover:text-red-400 hover:bg-black/90 hover:border-red-500/25 transition-all duration-150 opacity-100 md:opacity-0 md:group-hover:opacity-100 disabled:opacity-40"
+        className="absolute top-1.5 right-1.5 z-10 h-6 w-6 rounded-full bg-black/70 border border-white/12 flex items-center justify-center text-white/60 hover:text-red-400 hover:bg-black/90 hover:border-red-500/25 transition-all duration-150 opacity-100 md:opacity-0 md:group-hover:opacity-100 disabled:opacity-40"
       >
         {removing
           ? <Loader2 className="h-3 w-3 animate-spin" />
@@ -295,10 +295,10 @@ function EmptyState() {
   return (
     <div className="flex flex-col items-center justify-center py-24 text-center">
       <div className="w-16 h-16 rounded-2xl border border-white/8 bg-white/3 flex items-center justify-center mb-5">
-        <Clock className="h-7 w-7 text-white/15" />
+        <Clock className="h-7 w-7 text-white/20" />
       </div>
       <h2 className="text-lg font-bold text-white mb-2">No history yet</h2>
-      <p className="text-sm text-white/35 max-w-xs leading-relaxed mb-6">
+      <p className="text-sm text-white/40 max-w-xs leading-relaxed mb-6">
         Films you watch will appear here. Start discovering something to watch.
       </p>
       <a

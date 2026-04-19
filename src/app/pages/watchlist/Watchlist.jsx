@@ -126,7 +126,7 @@ export default function Watchlist() {
         {/* ── Page header ──────────────────────────────────────── */}
         <div className="mb-8">
           <h1 className="text-2xl font-black text-white tracking-tight mb-1">Watchlist</h1>
-          <div className="flex items-center gap-3 text-sm text-white/35">
+          <div className="flex items-center gap-3 text-sm text-white/40">
             {loading ? (
               <span>Loading…</span>
             ) : (
@@ -134,7 +134,7 @@ export default function Watchlist() {
                 <span>{totalMovies} {totalMovies === 1 ? 'film' : 'films'}</span>
                 {avgRating && (
                   <>
-                    <span className="text-white/15">·</span>
+                    <span className="text-white/20">·</span>
                     <span>★ {avgRating} avg</span>
                   </>
                 )}
@@ -147,7 +147,7 @@ export default function Watchlist() {
         {!loading && movies.length > 0 && (
           <div className="flex gap-2.5 mb-6">
             <div className="flex-1 relative">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/25 pointer-events-none" style={{ width: 16, height: 16 }} />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/20 pointer-events-none" style={{ width: 16, height: 16 }} />
               <input
                 type="text"
                 placeholder="Search watchlist…"
@@ -158,7 +158,7 @@ export default function Watchlist() {
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60 transition-colors"
                   aria-label="Clear search"
                 >
                   <X className="h-4 w-4" />
@@ -175,7 +175,7 @@ export default function Watchlist() {
                 <option value="title">A–Z</option>
                 <option value="rating">Rating</option>
               </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/30 pointer-events-none" />
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/40 pointer-events-none" />
             </div>
           </div>
         )}
@@ -188,7 +188,7 @@ export default function Watchlist() {
                 <circle cx="12" cy="12" r="10" stroke="rgba(168,85,247,0.2)" strokeWidth="3" />
                 <path d="M21 12a9 9 0 0 0-9-9v9z" fill="rgb(168,85,247)" />
               </svg>
-              <p className="text-sm text-white/30">Loading your watchlist…</p>
+              <p className="text-sm text-white/40">Loading your watchlist…</p>
             </div>
           </div>
 
@@ -212,7 +212,7 @@ export default function Watchlist() {
         ) : (
           <>
             {searchQuery && (
-              <p className="text-xs text-white/25 mb-4">{filteredMovies.length} of {movies.length} films</p>
+              <p className="text-xs text-white/20 mb-4">{filteredMovies.length} of {movies.length} films</p>
             )}
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 sm:gap-4">
               <AnimatePresence>
@@ -304,7 +304,7 @@ function MovieCard({ movie, removing, marking, onRemove, onMarkWatched, onClick 
           <img src={poster} alt={movie.title} className="w-full h-full object-cover" loading="lazy" />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <span className="text-white/15 text-xs">No image</span>
+            <span className="text-white/20 text-xs">No image</span>
           </div>
         )}
 
@@ -314,7 +314,7 @@ function MovieCard({ movie, removing, marking, onRemove, onMarkWatched, onClick 
             <p className="text-[11px] font-semibold text-white leading-tight line-clamp-2 mb-1">
               {movie.title}
             </p>
-            <div className="flex items-center gap-1.5 text-[10px] text-white/55">
+            <div className="flex items-center gap-1.5 text-[10px] text-white/60">
               {year && <span>{year}</span>}
               {rating && <><span className="text-white/20">·</span><span>{rating}</span></>}
             </div>
@@ -328,7 +328,7 @@ function MovieCard({ movie, removing, marking, onRemove, onMarkWatched, onClick 
         onClick={e => { e.stopPropagation(); onMarkWatched() }}
         disabled={marking || removing}
         aria-label={`Mark ${movie.title} as watched`}
-        className="absolute top-1.5 left-1.5 z-20 h-6 w-6 rounded-full bg-black/70 border border-white/12 flex items-center justify-center text-white/45 hover:text-purple-400 hover:bg-black/90 hover:border-purple-500/30 transition-all duration-150 opacity-100 md:opacity-0 md:group-hover:opacity-100 disabled:opacity-30"
+        className="absolute top-1.5 left-1.5 z-20 h-6 w-6 rounded-full bg-black/70 border border-white/12 flex items-center justify-center text-white/40 hover:text-purple-400 hover:bg-black/90 hover:border-purple-500/30 transition-all duration-150 opacity-100 md:opacity-0 md:group-hover:opacity-100 disabled:opacity-30"
       >
         {marking
           ? <Loader2 className="h-3 w-3 animate-spin" />
@@ -340,7 +340,7 @@ function MovieCard({ movie, removing, marking, onRemove, onMarkWatched, onClick 
         onClick={e => { e.stopPropagation(); onRemove() }}
         disabled={removing || marking}
         aria-label={`Remove ${movie.title} from watchlist`}
-        className="absolute top-1.5 right-1.5 z-20 h-6 w-6 rounded-full bg-black/70 border border-white/12 flex items-center justify-center text-white/45 hover:text-red-400 hover:bg-black/90 hover:border-red-500/25 transition-all duration-150 opacity-100 md:opacity-0 md:group-hover:opacity-100 disabled:opacity-30"
+        className="absolute top-1.5 right-1.5 z-20 h-6 w-6 rounded-full bg-black/70 border border-white/12 flex items-center justify-center text-white/40 hover:text-red-400 hover:bg-black/90 hover:border-red-500/25 transition-all duration-150 opacity-100 md:opacity-0 md:group-hover:opacity-100 disabled:opacity-30"
       >
         {removing
           ? <Loader2 className="h-3 w-3 animate-spin" />
@@ -356,10 +356,10 @@ function EmptyState() {
   return (
     <div className="flex flex-col items-center justify-center py-24 text-center">
       <div className="w-16 h-16 rounded-2xl border border-white/8 bg-white/3 flex items-center justify-center mb-5">
-        <Bookmark className="h-7 w-7 text-white/15" />
+        <Bookmark className="h-7 w-7 text-white/20" />
       </div>
       <h2 className="text-lg font-bold text-white mb-2">Nothing saved yet</h2>
-      <p className="text-sm text-white/35 max-w-xs leading-relaxed mb-6">
+      <p className="text-sm text-white/40 max-w-xs leading-relaxed mb-6">
         Save films you want to watch and they&apos;ll appear here.
       </p>
       <a

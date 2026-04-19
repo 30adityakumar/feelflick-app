@@ -299,7 +299,7 @@ export default function Onboarding() {
             Your taste profile<br />
             <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">is ready.</span>
           </h1>
-          <p className="text-base text-white/45 leading-relaxed">
+          <p className="text-base text-white/40 leading-relaxed">
             Heading to your first recommendations…
           </p>
         </motion.div>
@@ -467,7 +467,7 @@ function StepGenres({ GENRES, selectedGenres, toggleGenre, error, loading, onNex
       <div className="flex-none px-6 pb-8 pt-4">
         <div className="max-w-xl mx-auto text-center">
           {count > 0 && (
-            <p className="text-xs text-white/30 mb-3">{count} selected</p>
+            <p className="text-xs text-white/40 mb-3">{count} selected</p>
           )}
           <button
             onClick={onNext}
@@ -504,7 +504,7 @@ function StepMovies({
       {/* ── Search bar ──────────────────────────────────────────── */}
       <div className="flex-none px-6 pb-4">
         <div className="max-w-xl mx-auto relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/35 z-10" style={{ width: 17, height: 17 }} />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 z-10" style={{ width: 17, height: 17 }} />
           <input
             ref={searchInputRef}
             type="text"
@@ -521,7 +521,7 @@ function StepMovies({
           {query && !searching && (
             <button
               onClick={() => setQuery('')}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60 transition-colors"
             >
               <X className="h-4 w-4" />
             </button>
@@ -571,8 +571,8 @@ function StepMovies({
                           {r.title}
                         </div>
                         <div className="flex items-center gap-1.5 mt-0.5">
-                          {year && <span className="text-xs text-white/30">{year}</span>}
-                          {rating && <><span className="text-white/15 text-xs">·</span><span className="text-xs text-white/30">★ {rating}</span></>}
+                          {year && <span className="text-xs text-white/40">{year}</span>}
+                          {rating && <><span className="text-white/20 text-xs">·</span><span className="text-xs text-white/40">★ {rating}</span></>}
                         </div>
                       </div>
                       {selected ? (
@@ -581,7 +581,7 @@ function StepMovies({
                         </div>
                       ) : canAdd ? (
                         <div className="flex-none w-7 h-7 rounded-full border border-white/12 flex items-center justify-center opacity-0 group-hover:opacity-100 group-hover:border-purple-500/35 transition-all flex-shrink-0">
-                          <span className="text-white/50 text-lg leading-none" style={{ marginTop: -2 }}>+</span>
+                          <span className="text-white/60 text-lg leading-none" style={{ marginTop: -2 }}>+</span>
                         </div>
                       ) : null}
                     </button>
@@ -589,7 +589,7 @@ function StepMovies({
                 })}
               </div>
             ) : !searching ? (
-              <div className="text-center py-10 text-white/30 text-sm">
+              <div className="text-center py-10 text-white/40 text-sm">
                 No results for &ldquo;{query}&rdquo;
               </div>
             ) : null}
@@ -601,7 +601,7 @@ function StepMovies({
       {showTrending && (
         <div className="flex-none px-6 pb-4">
           <div className="max-w-xl mx-auto">
-            <p className="text-xs uppercase tracking-widest text-white/25 mb-2">Trending this week</p>
+            <p className="text-xs uppercase tracking-widest text-white/20 mb-2">Trending this week</p>
             <div
               className="flex flex-row gap-3 overflow-x-auto pb-2"
               style={{ msOverflowStyle: 'none', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}
@@ -652,7 +652,7 @@ function StepMovies({
       {count > 0 && (
         <div className="flex-none px-6 pb-4">
           <div className="max-w-xl mx-auto">
-            <p className="text-xs uppercase tracking-widest text-white/25 mb-2">
+            <p className="text-xs uppercase tracking-widest text-white/20 mb-2">
               {count} film{count !== 1 ? 's' : ''} selected
             </p>
             <div
@@ -697,7 +697,7 @@ function StepMovies({
           <div className="w-12 h-12 rounded-2xl border border-white/8 bg-white/3 flex items-center justify-center mb-4">
             <Search className="h-5 w-5 text-white/20" />
           </div>
-          <p className="text-sm text-white/30 max-w-xs leading-relaxed">
+          <p className="text-sm text-white/40 max-w-xs leading-relaxed">
             Search for films you love and we&apos;ll learn your taste from them
           </p>
         </div>
@@ -712,7 +712,7 @@ function StepMovies({
           <button
             onClick={onBack}
             disabled={loading}
-            className="flex items-center gap-1.5 text-sm font-medium text-white/35 hover:text-white/65 transition-colors disabled:opacity-30"
+            className="flex items-center gap-1.5 text-sm font-medium text-white/40 hover:text-white/65 transition-colors disabled:opacity-30"
           >
             <ChevronLeft className="h-4 w-4" />
             Back

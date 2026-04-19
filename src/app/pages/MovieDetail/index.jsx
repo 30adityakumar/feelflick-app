@@ -47,10 +47,10 @@ function QuickRatePrompt({ onRate, onDismiss, saved }) {
       className="relative overflow-hidden inline-flex flex-col items-center gap-1 rounded-lg bg-white/8 backdrop-blur-sm border border-white/14 px-3 py-1.5"
     >
       {saved ? (
-        <span className="text-xs text-white/50 py-0.5">Saved ✓</span>
+        <span className="text-xs text-white/60 py-0.5">Saved ✓</span>
       ) : (
         <>
-          <span className="text-xs text-white/50">How was it?</span>
+          <span className="text-xs text-white/60">How was it?</span>
           <StarRating
             value={0}
             onChange={onRate}
@@ -64,7 +64,7 @@ function QuickRatePrompt({ onRate, onDismiss, saved }) {
         type="button"
         aria-label="Dismiss"
         onClick={onDismiss}
-        className="absolute top-1 right-1 text-white/25 hover:text-white/60 transition-colors"
+        className="absolute top-1 right-1 text-white/20 hover:text-white/60 transition-colors"
       >
         <X className="h-3 w-3" />
       </button>
@@ -371,7 +371,7 @@ export default function MovieDetail() {
   // ── Mood pills (reused in hero + mobile content) ─────────────
   const MoodPills = () => movieMoods.length > 0 ? (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="text-[10px] font-semibold text-white/25 uppercase tracking-widest">Perfect for</span>
+      <span className="text-[10px] font-semibold text-white/20 uppercase tracking-widest">Perfect for</span>
       {movieMoods.map(({ moods: mood }) => (
         <span
           key={mood.name}
@@ -388,7 +388,7 @@ export default function MovieDetail() {
   const SENTIMENT_MAP = {
     loved:    { label: 'Loved it',    cls: 'bg-gradient-to-r from-purple-500/15 to-pink-500/10 border-purple-500/30 text-purple-300' },
     liked:    { label: 'Liked it',    cls: 'bg-purple-500/10 border-purple-500/20 text-purple-300' },
-    meh:      { label: 'It was ok',   cls: 'bg-white/5 border-white/10 text-white/50' },
+    meh:      { label: 'It was ok',   cls: 'bg-white/5 border-white/10 text-white/60' },
     disliked: { label: "Didn't like", cls: 'bg-white/5 border-white/8 text-white/40' },
     hated:    { label: 'Hated it',    cls: 'bg-red-500/10 border-red-500/20 text-red-400' },
   }
@@ -431,7 +431,7 @@ export default function MovieDetail() {
           <button
             onClick={() => navigate(-1)}
             aria-label="Go back"
-            className="absolute z-20 flex items-center gap-1 text-xs font-semibold text-white/45 hover:text-white/90 transition-colors bg-black/35 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/8 hover:border-white/20"
+            className="absolute z-20 flex items-center gap-1 text-xs font-semibold text-white/40 hover:text-white/90 transition-colors bg-black/35 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/8 hover:border-white/20"
             style={{ top: 'calc(var(--hdr-h, 64px) + 12px)', left: '1rem' }}
           >
             <ChevronLeft className="h-3.5 w-3.5" />
@@ -459,7 +459,7 @@ export default function MovieDetail() {
                         decoding="async"
                       />
                     ) : (
-                      <div className="h-[120px] w-[80px] sm:h-[160px] sm:w-[107px] md:h-[230px] md:w-[153px] lg:h-[270px] lg:w-[180px] grid place-items-center bg-white/5 text-white/25 text-xs">
+                      <div className="h-[120px] w-[80px] sm:h-[160px] sm:w-[107px] md:h-[230px] md:w-[153px] lg:h-[270px] lg:w-[180px] grid place-items-center bg-white/5 text-white/20 text-xs">
                         No poster
                       </div>
                     )}
@@ -471,7 +471,7 @@ export default function MovieDetail() {
                   {loading ? (
                     <div className="animate-pulse space-y-2">
                       <div className="h-7 w-3/4 rounded bg-white/20" />
-                      <div className="h-4 w-1/2 rounded bg-white/15" />
+                      <div className="h-4 w-1/2 rounded bg-white/20" />
                     </div>
                   ) : error ? (
                     <div className="rounded-lg bg-red-500/10 p-3 text-red-300 text-sm">{error}</div>
@@ -484,15 +484,15 @@ export default function MovieDetail() {
 
                       {/* Tagline */}
                       {movie?.tagline && (
-                        <p className="hidden sm:block text-xs sm:text-sm text-white/50 italic leading-tight">{movie.tagline}</p>
+                        <p className="hidden sm:block text-xs sm:text-sm text-white/60 italic leading-tight">{movie.tagline}</p>
                       )}
 
                       {/* Credits */}
                       {(director || writer) && (
-                        <p className="hidden sm:block text-xs text-white/55">
-                          {director && <>Directed by <span className="text-white/85 font-semibold">{director.name}</span></>}
+                        <p className="hidden sm:block text-xs text-white/60">
+                          {director && <>Directed by <span className="text-white/80 font-semibold">{director.name}</span></>}
                           {director && writer && <span className="text-white/20 mx-1">·</span>}
-                          {writer && <>Written by <span className="text-white/85 font-semibold">{writer.name}</span></>}
+                          {writer && <>Written by <span className="text-white/80 font-semibold">{writer.name}</span></>}
                         </p>
                       )}
 
@@ -506,9 +506,9 @@ export default function MovieDetail() {
                             {certification}
                           </span>
                         )}
-                        {year && <span className="text-white/55">{year}</span>}
+                        {year && <span className="text-white/60">{year}</span>}
                         {runtime && (
-                          <span className="inline-flex items-center gap-1 text-white/55">
+                          <span className="inline-flex items-center gap-1 text-white/60">
                             <Clock className="h-3 w-3" />{runtime}
                           </span>
                         )}
@@ -518,7 +518,7 @@ export default function MovieDetail() {
                       {movie?.genres?.length > 0 && (
                         <div className="hidden sm:flex flex-wrap gap-1.5">
                           {movie.genres.slice(0, 4).map(g => (
-                            <span key={g.id} className="px-2 py-0.5 rounded-full bg-white/[0.07] border border-white/10 text-white/55 text-[11px] font-medium">
+                            <span key={g.id} className="px-2 py-0.5 rounded-full bg-white/[0.07] border border-white/10 text-white/60 text-[11px] font-medium">
                               {g.name}
                             </span>
                           ))}
@@ -639,11 +639,11 @@ export default function MovieDetail() {
               {/* Mobile: overview */}
               {!loading && movie?.overview && (
                 <div className="md:hidden rounded-2xl border border-white/8 bg-white/[0.03] p-5">
-                  <p className="text-[11px] font-semibold text-white/30 uppercase tracking-widest mb-2">Overview</p>
+                  <p className="text-[11px] font-semibold text-white/40 uppercase tracking-widest mb-2">Overview</p>
                   {movie.genres?.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mb-3">
                       {movie.genres.slice(0, 4).map(g => (
-                        <span key={g.id} className="px-2 py-0.5 rounded-full bg-white/[0.06] border border-white/8 text-white/50 text-[11px]">
+                        <span key={g.id} className="px-2 py-0.5 rounded-full bg-white/[0.06] border border-white/8 text-white/60 text-[11px]">
                           {g.name}
                         </span>
                       ))}
@@ -686,7 +686,7 @@ export default function MovieDetail() {
                 isWatched ? (
                   <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-5">
                     <div className="flex items-center justify-between mb-4">
-                      <p className="text-[11px] font-semibold text-white/30 uppercase tracking-widest">Your Take</p>
+                      <p className="text-[11px] font-semibold text-white/40 uppercase tracking-widest">Your Take</p>
                       <button
                         onClick={handleOpenFeedback}
                         className="text-xs text-purple-400/65 hover:text-purple-300 transition-colors"
@@ -701,7 +701,7 @@ export default function MovieDetail() {
                           <circle cx="12" cy="12" r="10" stroke="rgba(168,85,247,0.2)" strokeWidth="3" />
                           <path d="M21 12a9 9 0 0 0-9-9v9z" fill="rgb(168,85,247)" />
                         </svg>
-                        <span className="text-sm text-white/25">Loading…</span>
+                        <span className="text-sm text-white/20">Loading…</span>
                       </div>
                     ) : (userRating > 0 || userFeedback?.sentiment || userReview) ? (
                       <div className="space-y-3">
@@ -726,7 +726,7 @@ export default function MovieDetail() {
                         {(userFeedback?.what_stood_out?.length > 0 || userFeedback?.viewing_context_tags?.length > 0) && (
                           <div className="flex flex-wrap gap-1.5 pt-0.5">
                             {[...(userFeedback.viewing_context_tags || []), ...(userFeedback.what_stood_out || [])].map(tag => (
-                              <span key={tag} className="px-2 py-0.5 rounded-full bg-white/[0.04] border border-white/8 text-[11px] text-white/35">
+                              <span key={tag} className="px-2 py-0.5 rounded-full bg-white/[0.04] border border-white/8 text-[11px] text-white/40">
                                 {tag.replace(/_/g, ' ')}
                               </span>
                             ))}
@@ -736,7 +736,7 @@ export default function MovieDetail() {
                     ) : (
                       <button
                         onClick={handleOpenFeedback}
-                        className="flex items-center gap-2 text-sm text-white/25 hover:text-purple-400 transition-colors"
+                        className="flex items-center gap-2 text-sm text-white/20 hover:text-purple-400 transition-colors"
                       >
                         <Heart className="h-4 w-4" />
                         Rate this film + share your thoughts

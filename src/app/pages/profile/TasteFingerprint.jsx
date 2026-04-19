@@ -58,18 +58,18 @@ export default function TasteFingerprint({ fingerprint, history }) {
     <div className="rounded-2xl border border-white/8 bg-white/[0.02] overflow-hidden">
       <div className="px-6 py-5 border-b border-white/5">
         <p className="text-[11px] font-semibold uppercase tracking-widest text-white/40 mb-1">Taste Fingerprint</p>
-        <p className="text-xs text-white/55">Based on {total} watched films</p>
+        <p className="text-xs text-white/60">Based on {total} watched films</p>
       </div>
 
       <div className="p-6 space-y-6">
         {/* Mood cloud — sized by share */}
         {topMoods.length > 0 && (
           <div>
-            <p className="text-xs font-semibold text-white/55 mb-3">You gravitate toward</p>
+            <p className="text-xs font-semibold text-white/60 mb-3">You gravitate toward</p>
             <div className="flex flex-wrap gap-2 items-baseline">
               {topMoods.map(({ key, share }) => {
                 const size = share > 0.4 ? 'text-2xl' : share > 0.25 ? 'text-lg' : share > 0.15 ? 'text-sm' : 'text-xs'
-                const opacity = share > 0.25 ? 'text-white' : share > 0.15 ? 'text-white/75' : 'text-white/45'
+                const opacity = share > 0.25 ? 'text-white' : share > 0.15 ? 'text-white/70' : 'text-white/40'
                 return (
                   <Link
                     key={key}
@@ -87,15 +87,15 @@ export default function TasteFingerprint({ fingerprint, history }) {
         {/* Tone cloud */}
         {topTones.length > 0 && (
           <div>
-            <p className="text-xs font-semibold text-white/55 mb-3">Your tonal range</p>
+            <p className="text-xs font-semibold text-white/60 mb-3">Your tonal range</p>
             <div className="flex flex-wrap gap-2">
               {topTones.map(({ key, share }) => (
                 <Link
                   key={key}
                   to={`/tone/${encodeURIComponent(key)}`}
-                  className="px-3 py-1 rounded-full text-xs font-medium bg-white/[0.04] border border-white/10 text-white/70 hover:text-white hover:border-white/25 transition-colors"
+                  className="px-3 py-1 rounded-full text-xs font-medium bg-white/[0.04] border border-white/10 text-white/70 hover:text-white hover:border-white/20 transition-colors"
                 >
-                  {key} <span className="text-white/30">{Math.round(share * 100)}%</span>
+                  {key} <span className="text-white/40">{Math.round(share * 100)}%</span>
                 </Link>
               ))}
             </div>
@@ -105,7 +105,7 @@ export default function TasteFingerprint({ fingerprint, history }) {
         {/* Fit profile bars */}
         {topFits.length > 0 && (
           <div>
-            <p className="text-xs font-semibold text-white/55 mb-3">What you watch</p>
+            <p className="text-xs font-semibold text-white/60 mb-3">What you watch</p>
             <div className="space-y-2">
               {topFits.map(({ key, share }) => (
                 <Link
@@ -114,7 +114,7 @@ export default function TasteFingerprint({ fingerprint, history }) {
                   className="block group"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="text-sm text-white/75 group-hover:text-white w-40 flex-shrink-0 capitalize">
+                    <span className="text-sm text-white/70 group-hover:text-white w-40 flex-shrink-0 capitalize">
                       {key.replace(/_/g, ' ')}
                     </span>
                     <div className="flex-1 h-2 bg-white/5 rounded-full overflow-hidden">

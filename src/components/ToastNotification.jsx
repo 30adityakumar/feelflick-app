@@ -26,7 +26,7 @@ export default function ToastNotification({ message, subtext, ctaLabel, ctaHref,
         <Sparkles className="h-5 w-5 text-purple-400 flex-shrink-0 mt-0.5" />
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-white">{message}</p>
-          {subtext && <p className="text-xs text-white/50 mt-0.5">{subtext}</p>}
+          {subtext && <p className="text-xs text-white/60 mt-0.5">{subtext}</p>}
           {ctaLabel && ctaHref && (
             <Link
               to={ctaHref}
@@ -41,7 +41,7 @@ export default function ToastNotification({ message, subtext, ctaLabel, ctaHref,
           type="button"
           onClick={onDismiss}
           aria-label="Dismiss"
-          className="absolute top-3 right-3 text-white/30 hover:text-white/60 transition-colors"
+          className="absolute top-3 right-3 text-white/40 hover:text-white/60 transition-colors"
         >
           <X className="h-4 w-4" />
         </button>

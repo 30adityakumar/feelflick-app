@@ -138,7 +138,7 @@ function FilterPill({ label, value, defaultValue = '', options, onChange, disabl
           ? 'cursor-not-allowed opacity-30'
           : isActive
             ? 'border-purple-400/60 bg-purple-500/18 text-purple-200'
-            : 'border-white/10 bg-white/[0.05] text-white/60 hover:border-white/20 hover:bg-white/[0.08] hover:text-white/85'
+            : 'border-white/10 bg-white/[0.05] text-white/60 hover:border-white/20 hover:bg-white/[0.08] hover:text-white/80'
       }`}
     >
       <span className="text-[0.78rem] font-medium leading-none">{activeLabel}</span>
@@ -186,7 +186,7 @@ function SegmentGroup({ label, labelSuffix, options, value, onChange, disabled }
                 disabled ? 'cursor-not-allowed opacity-30' :
                 active
                   ? 'border-purple-400/60 bg-purple-500/20 text-purple-200'
-                  : 'border-white/10 bg-white/[0.04] text-white/55 hover:border-white/18 hover:text-white/80'
+                  : 'border-white/10 bg-white/[0.04] text-white/60 hover:border-white/18 hover:text-white/80'
               }`}
             >
               {opt.label}
@@ -208,7 +208,7 @@ function VibeChip({ option, active, onClick, disabled }) {
         disabled ? 'cursor-not-allowed opacity-30' :
         active
           ? 'border-purple-400/60 bg-purple-500/20 text-purple-200'
-          : 'border-white/10 bg-white/[0.04] text-white/55 hover:border-white/18 hover:text-white/80'
+          : 'border-white/10 bg-white/[0.04] text-white/60 hover:border-white/18 hover:text-white/80'
       }`}
     >
       <span>{option.emoji}</span>
@@ -398,7 +398,7 @@ export default function BrowseSearchBar({
             value={draftQuery}
             onChange={(e) => setDraftQuery(e.target.value)}
             placeholder="Search by title…"
-            className="h-11 w-full rounded-full border border-white/10 bg-white/[0.06] pl-11 pr-10 text-[0.92rem] text-white placeholder:text-white/30 transition-colors focus:border-purple-400/40 focus:bg-white/[0.09] focus:outline-none"
+            className="h-11 w-full rounded-full border border-white/10 bg-white/[0.06] pl-11 pr-10 text-[0.92rem] text-white placeholder:text-white/40 transition-colors focus:border-purple-400/40 focus:bg-white/[0.09] focus:outline-none"
           />
           {draftQuery && (
             <button
@@ -431,7 +431,7 @@ export default function BrowseSearchBar({
             className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap border transition-all duration-150 ${
               activePreset === preset.id
                 ? 'bg-purple-500/20 border-purple-500/40 text-purple-300'
-                : 'bg-white/[0.04] border-white/[0.08] text-white/55 hover:text-white/80 hover:border-white/15'
+                : 'bg-white/[0.04] border-white/[0.08] text-white/60 hover:text-white/80 hover:border-white/20'
             }`}
           >
             {preset.label}
@@ -485,7 +485,7 @@ export default function BrowseSearchBar({
           className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-[0.78rem] font-medium transition-all duration-150 ${
             panelOpen || advancedCount > 0
               ? 'border-purple-400/60 bg-purple-500/18 text-purple-200'
-              : 'border-white/10 bg-white/[0.05] text-white/60 hover:border-white/20 hover:text-white/85'
+              : 'border-white/10 bg-white/[0.05] text-white/60 hover:border-white/20 hover:text-white/80'
           }`}
         >
           {panelOpen ? <ChevronUp className="h-3 w-3" /> : <SlidersHorizontal className="h-3 w-3" />}
@@ -508,7 +508,7 @@ export default function BrowseSearchBar({
             className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
               hideWatched
                 ? 'bg-purple-500/20 border-purple-500/40 text-purple-300'
-                : 'bg-white/[0.04] border-white/10 text-white/50 hover:text-white/80'
+                : 'bg-white/[0.04] border-white/10 text-white/60 hover:text-white/80'
             }`}
           >
             {hideWatched ? '✓ ' : ''}Hide watched
@@ -519,7 +519,7 @@ export default function BrowseSearchBar({
           <button
             type="button"
             onClick={handleClearAll}
-            className="ml-1 inline-flex h-9 shrink-0 items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] px-3 text-[0.76rem] font-medium text-white/45 transition-colors hover:text-white/75"
+            className="ml-1 inline-flex h-9 shrink-0 items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] px-3 text-[0.76rem] font-medium text-white/40 transition-colors hover:text-white/70"
           >
             <X className="h-3 w-3" />
             Clear all
@@ -544,7 +544,7 @@ export default function BrowseSearchBar({
           <button
             type="button"
             onClick={handleClearAll}
-            className="px-2.5 py-1 rounded-full text-xs text-white/30 hover:text-white/60 transition-colors"
+            className="px-2.5 py-1 rounded-full text-xs text-white/40 hover:text-white/60 transition-colors"
           >
             Clear all
           </button>
@@ -679,7 +679,7 @@ export default function BrowseSearchBar({
                   isSearchMode ? 'cursor-not-allowed opacity-30' :
                   exceptionalGenre
                     ? 'border-purple-400/60 bg-purple-500/20 text-purple-200'
-                    : 'border-white/10 bg-white/[0.04] text-white/55 hover:border-white/18 hover:text-white/80'
+                    : 'border-white/10 bg-white/[0.04] text-white/60 hover:border-white/18 hover:text-white/80'
                 }`}
               >
                 <Award className="h-3.5 w-3.5" />
@@ -706,7 +706,7 @@ export default function BrowseSearchBar({
                 onBlur={() => applyFilter({ director: draftDirector })}
                 onKeyDown={e => e.key === 'Enter' && applyFilter({ director: draftDirector })}
                 disabled={isSearchMode}
-                className="h-9 w-full rounded-lg border border-white/10 bg-white/[0.06] px-3 text-sm text-white placeholder:text-white/25 focus:border-purple-400/40 focus:outline-none disabled:cursor-not-allowed"
+                className="h-9 w-full rounded-lg border border-white/10 bg-white/[0.06] px-3 text-sm text-white placeholder:text-white/20 focus:border-purple-400/40 focus:outline-none disabled:cursor-not-allowed"
               />
             </div>
 

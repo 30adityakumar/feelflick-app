@@ -6,7 +6,7 @@ export default function MovieSimilar({ title, items }) {
 
   return (
     <div>
-      <p className="text-[11px] font-semibold text-white/30 uppercase tracking-widest mb-4">{title}</p>
+      <p className="text-[11px] font-semibold text-white/40 uppercase tracking-widest mb-4">{title}</p>
       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-5 gap-3">
         {items.map((m) => (
           <button
@@ -23,7 +23,7 @@ export default function MovieSimilar({ title, items }) {
                   className="w-full h-full object-cover loading-lazy"
                 />
               ) : (
-                <div className="w-full h-full grid place-items-center text-white/30 text-xs">
+                <div className="w-full h-full grid place-items-center text-white/40 text-xs">
                   No poster
                 </div>
               )}

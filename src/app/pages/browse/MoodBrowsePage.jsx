@@ -136,7 +136,7 @@ export default function MoodBrowsePage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
         <button
           onClick={() => navigate(-1)}
-          className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white mb-6"
+          className="inline-flex items-center gap-1.5 text-sm text-white/60 hover:text-white mb-6"
           aria-label="Go back"
         >
           <ChevronLeft className="h-4 w-4" /> Back
@@ -146,8 +146,8 @@ export default function MoodBrowsePage() {
           <p className="text-[11px] font-semibold uppercase tracking-widest text-white/40 mb-2">
             {spec.kind === 'fit' ? 'Fit Profile' : spec.kind === 'tone' ? 'Tone' : 'Mood'}
           </p>
-          <h1 className="text-4xl sm:text-5xl font-black text-white mb-3 capitalize">{spec.value.replace(/_/g, ' ')}</h1>
-          <p className="text-white/55 max-w-2xl">{describe(spec)}</p>
+          <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tight mb-3 capitalize">{spec.value.replace(/_/g, ' ')}</h1>
+          <p className="text-white/60 max-w-2xl">{describe(spec)}</p>
         </div>
 
         <div className="flex flex-wrap gap-2 mb-6">
@@ -186,7 +186,7 @@ export default function MoodBrowsePage() {
                 <button
                   onClick={() => setPage(p => p + 1)}
                   disabled={loading}
-                  className="px-5 py-2.5 rounded-full bg-white/[0.06] border border-white/15 text-sm font-semibold hover:bg-white/[0.1] disabled:opacity-50"
+                  className="px-5 py-2.5 rounded-full bg-white/[0.06] border border-white/20 text-sm font-semibold hover:bg-white/[0.1] disabled:opacity-50"
                 >
                   {loading ? 'Loading...' : 'Load more'}
                 </button>

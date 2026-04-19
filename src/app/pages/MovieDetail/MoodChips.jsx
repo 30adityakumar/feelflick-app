@@ -71,7 +71,7 @@ export default function MoodChips({ movie }) {
         <Link
           to={`/browse/fit/${fitProfile}`}
           onClick={() => trackInteraction('mood_chip_click', { metadata: { tag: fitProfile, type: 'fit' } })}
-          className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-white/[0.06] border border-white/15 text-white/85 hover:bg-white/[0.1] hover:border-white/25 transition-colors"
+          className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-white/[0.06] border border-white/20 text-white/80 hover:bg-white/[0.1] hover:border-white/20 transition-colors"
         >
           {FIT_PROFILE_LABELS[fitProfile] || fitProfile.replace(/_/g, ' ')}
         </Link>
@@ -95,7 +95,7 @@ export default function MoodChips({ movie }) {
           key={`t-${tag}`}
           to={`/tone/${encodeURIComponent(tag)}`}
           onClick={() => trackInteraction('mood_chip_click', { metadata: { tag, type: 'tone' } })}
-          className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium bg-transparent border border-white/12 text-white/55 hover:text-white/80 hover:border-white/25 transition-colors"
+          className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium bg-transparent border border-white/12 text-white/60 hover:text-white/80 hover:border-white/20 transition-colors"
         >
           {tag}
         </Link>

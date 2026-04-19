@@ -207,7 +207,7 @@ export default class ErrorBoundary extends Component {
                 
                 <button
                   onClick={() => window.location.href = '/'}
-                  className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white font-bold hover:bg-white/15 active:scale-95 transition-all duration-300 touch-target"
+                  className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white font-bold hover:bg-white/20 active:scale-95 transition-all duration-300 touch-target"
                 >
                   <Home className="w-5 h-5" />
                   Go Home
@@ -224,7 +224,7 @@ export default class ErrorBoundary extends Component {
               {/* Technical details (collapsible, dev only) */}
               {import.meta.env.DEV && this.state.error && (
                 <details className="mt-8 text-left">
-                  <summary className="cursor-pointer text-sm text-white/50 hover:text-white/70 mb-3 font-medium">
+                  <summary className="cursor-pointer text-sm text-white/60 hover:text-white/70 mb-3 font-medium">
                     Show technical details
                   </summary>
                   <div className="rounded-xl bg-black/40 p-4 border border-white/10">
@@ -247,7 +247,7 @@ export default class ErrorBoundary extends Component {
             
             {/* Support link */}
             <div className="mt-8 animate-fade-in-up delay-200">
-              <p className="text-sm text-white/50 mb-3">
+              <p className="text-sm text-white/60 mb-3">
                 Still having issues?
               </p>
               <a 
@@ -311,7 +311,7 @@ export class SectionErrorBoundary extends Component {
     if (this.state.error) {
       const label = this.props.label || 'This section'
       return (
-        <div className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-sm text-white/50">
+        <div className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-sm text-white/60">
           <span>{label} couldn&apos;t load right now.</span>
           <button
             onClick={this.handleRetry}

@@ -27,7 +27,7 @@ const SENTIMENTS = [
     value: 'meh',
     label: 'It was ok',
     icon: Meh,
-    activeClass: 'bg-white/10 border-white/30',
+    activeClass: 'bg-white/10 border-white/40',
     iconClass: 'text-white/70',
   },
   {
@@ -35,7 +35,7 @@ const SENTIMENTS = [
     label: "Didn't like",
     icon: ThumbsDown,
     activeClass: 'bg-white/6 border-white/20',
-    iconClass: 'text-white/50',
+    iconClass: 'text-white/60',
   },
   {
     value: 'hated',
@@ -213,7 +213,7 @@ export default function MovieSentimentWidget({
             <X className="h-4 w-4 text-white/60" />
           </button>
           <div className="absolute bottom-3 left-4 right-12">
-            <p className="text-[11px] font-semibold text-white/35 uppercase tracking-widest mb-0.5">
+            <p className="text-[11px] font-semibold text-white/40 uppercase tracking-widest mb-0.5">
               {(initialRating > 0 || initialSentiment) ? 'Edit your take' : 'Your take'}
             </p>
             <h2 className="text-lg font-black text-white leading-tight line-clamp-1">{movie?.title}</h2>
@@ -234,7 +234,7 @@ export default function MovieSentimentWidget({
             <>
               {/* ── Star rating ── */}
               <div>
-                <p className="text-[11px] font-semibold text-white/35 uppercase tracking-widest mb-3">Rating</p>
+                <p className="text-[11px] font-semibold text-white/40 uppercase tracking-widest mb-3">Rating</p>
                 <StarRating
                   value={rating}
                   onChange={setRating}
@@ -247,7 +247,7 @@ export default function MovieSentimentWidget({
               {/* ── Written review ── */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-[11px] font-semibold text-white/35 uppercase tracking-widest">
+                  <p className="text-[11px] font-semibold text-white/40 uppercase tracking-widest">
                     Review <span className="normal-case font-normal">(optional)</span>
                   </p>
                   <span className="text-[11px] text-white/20 tabular-nums">
@@ -265,12 +265,12 @@ export default function MovieSentimentWidget({
 
               {/* ── AI Reflection ── */}
               <div className="space-y-2">
-                <p className="text-[11px] font-semibold uppercase tracking-widest text-white/35">
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-white/40">
                   Reflect <span className="normal-case font-normal">(optional)</span>
                 </p>
-                <p className="min-h-[1.4em] text-sm text-white/55">
+                <p className="min-h-[1.4em] text-sm text-white/60">
                   {promptLoading
-                    ? <span className="animate-pulse text-white/25">Reflecting on this one…</span>
+                    ? <span className="animate-pulse text-white/20">Reflecting on this one…</span>
                     : (aiPrompt ?? 'What stayed with you after the credits?')}
                 </p>
                 <textarea
@@ -284,7 +284,7 @@ export default function MovieSentimentWidget({
 
               {/* ── Overall feeling ── */}
               <div>
-                <p className="text-[11px] font-semibold text-white/35 uppercase tracking-widest mb-3">
+                <p className="text-[11px] font-semibold text-white/40 uppercase tracking-widest mb-3">
                   Overall feeling <span className="normal-case font-normal">(optional)</span>
                 </p>
                 <div className="grid grid-cols-5 gap-1.5">
@@ -298,11 +298,11 @@ export default function MovieSentimentWidget({
                         className={`flex flex-col items-center gap-1.5 py-3 rounded-xl border-2 transition-all active:scale-95 ${
                           isSelected
                             ? `${s.activeClass} scale-[1.04]`
-                            : 'bg-white/[0.03] border-white/8 hover:bg-white/6 hover:border-white/15'
+                            : 'bg-white/[0.03] border-white/8 hover:bg-white/6 hover:border-white/20'
                         }`}
                       >
-                        <Icon className={`h-5 w-5 ${isSelected ? s.iconClass : 'text-white/30'}`} />
-                        <span className={`text-[10px] font-semibold leading-tight text-center ${isSelected ? 'text-white' : 'text-white/30'}`}>
+                        <Icon className={`h-5 w-5 ${isSelected ? s.iconClass : 'text-white/40'}`} />
+                        <span className={`text-[10px] font-semibold leading-tight text-center ${isSelected ? 'text-white' : 'text-white/40'}`}>
                           {s.label}
                         </span>
                       </button>
@@ -313,7 +313,7 @@ export default function MovieSentimentWidget({
 
               {/* ── Why you watched ── */}
               <div>
-                <p className="text-[11px] font-semibold text-white/35 uppercase tracking-widest mb-2.5">
+                <p className="text-[11px] font-semibold text-white/40 uppercase tracking-widest mb-2.5">
                   Why did you watch? <span className="normal-case font-normal">(optional)</span>
                 </p>
                 <div className="flex flex-wrap gap-2">
@@ -326,7 +326,7 @@ export default function MovieSentimentWidget({
                         className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all active:scale-95 ${
                           isSelected
                             ? 'bg-purple-500/20 border-purple-500/50 text-purple-300'
-                            : 'bg-white/[0.03] border-white/8 text-white/40 hover:bg-white/6 hover:border-white/15 hover:text-white/65'
+                            : 'bg-white/[0.03] border-white/8 text-white/40 hover:bg-white/6 hover:border-white/20 hover:text-white/65'
                         }`}
                       >
                         {tag.label}
@@ -338,7 +338,7 @@ export default function MovieSentimentWidget({
 
               {/* ── What stood out ── */}
               <div>
-                <p className="text-[11px] font-semibold text-white/35 uppercase tracking-widest mb-2.5">
+                <p className="text-[11px] font-semibold text-white/40 uppercase tracking-widest mb-2.5">
                   What stood out? <span className="normal-case font-normal">(optional)</span>
                 </p>
                 <div className="flex flex-wrap gap-2">
@@ -351,7 +351,7 @@ export default function MovieSentimentWidget({
                         className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all active:scale-95 ${
                           isSelected
                             ? 'bg-pink-500/20 border-pink-500/40 text-pink-300'
-                            : 'bg-white/[0.03] border-white/8 text-white/40 hover:bg-white/6 hover:border-white/15 hover:text-white/65'
+                            : 'bg-white/[0.03] border-white/8 text-white/40 hover:bg-white/6 hover:border-white/20 hover:text-white/65'
                         }`}
                       >
                         {tag.label}
@@ -378,7 +378,7 @@ export default function MovieSentimentWidget({
                 {submitting ? 'Saving…' : (initialRating > 0 || initialSentiment) ? 'Update your take' : 'Save your take'}
               </button>
 
-              <p className="text-center text-[11px] text-white/15 pb-1">
+              <p className="text-center text-[11px] text-white/20 pb-1">
                 Rate or write a review — at least one is needed to save
               </p>
             </>

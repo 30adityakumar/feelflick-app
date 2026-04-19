@@ -289,11 +289,11 @@ export default function ListDetailPage() {
                     <Globe className="w-3 h-3" /> Public
                   </span>
                 )}
-                <h1 className="text-2xl sm:text-3xl font-black text-white leading-tight">{list.title}</h1>
+                <h1 className="text-2xl font-black text-white tracking-tight">{list.title}</h1>
                 {list.description && (
-                  <p className="text-sm text-white/55 mt-1 line-clamp-2">{list.description}</p>
+                  <p className="text-sm text-white/60 mt-1 line-clamp-2">{list.description}</p>
                 )}
-                <div className="flex items-center gap-2 mt-2 text-xs text-white/35">
+                <div className="flex items-center gap-2 mt-2 text-xs text-white/40">
                   {owner?.avatar_url ? (
                     <img src={owner.avatar_url} alt={ownerName} className="w-4 h-4 rounded-full object-cover flex-shrink-0" />
                   ) : (
@@ -402,7 +402,7 @@ export default function ListDetailPage() {
             {/* === FILM GRID === */}
             {movies.length === 0 ? (
               <div className="flex flex-col items-center justify-center text-center py-16">
-                <p className="text-white/30 text-sm mb-4">
+                <p className="text-white/40 text-sm mb-4">
                   {isOwner ? 'No films yet — add some from any movie page' : 'No films yet'}
                 </p>
                 {isOwner && (
@@ -464,15 +464,15 @@ export default function ListDetailPage() {
                         type="button"
                         onClick={() => handleRemoveMovie(movie.movieId)}
                         aria-label={`Remove ${movie.title} from list`}
-                        className="absolute top-1 right-1 h-6 w-6 rounded-full bg-black/70 border border-white/10 flex items-center justify-center text-white/50 hover:text-white hover:bg-red-500/50 opacity-0 group-hover:opacity-100 transition-all"
+                        className="absolute top-1 right-1 h-6 w-6 rounded-full bg-black/70 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-red-500/50 opacity-0 group-hover:opacity-100 transition-all"
                       >
                         <XIcon className="h-3 w-3" />
                       </button>
                     )}
 
-                    <p className="text-white/50 text-[11px] mt-1.5 truncate leading-tight">{movie.title}</p>
+                    <p className="text-white/60 text-[11px] mt-1.5 truncate leading-tight">{movie.title}</p>
                     {movie.year && (
-                      <p className="text-white/25 text-[10px]">{movie.year}</p>
+                      <p className="text-white/20 text-[10px]">{movie.year}</p>
                     )}
                   </motion.div>
                 ))}

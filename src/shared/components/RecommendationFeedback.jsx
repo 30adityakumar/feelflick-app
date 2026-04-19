@@ -48,7 +48,7 @@ export default function RecommendationFeedback({ movieId, sessionId }) {
 
         <button
           onClick={() => setVisible(false)}
-          className="p-1 text-white/50 hover:text-white transition-colors"
+          className="p-1 text-white/60 hover:text-white transition-colors"
           aria-label="Close"
         >
           <X className="h-4 w-4" />

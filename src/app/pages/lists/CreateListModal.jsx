@@ -122,9 +122,9 @@ export default function CreateListModal({ onClose, onSave, existingList = null, 
               value={title}
               onChange={(e) => setTitle(e.target.value.slice(0, 100))}
               placeholder="e.g. Comfort Movies"
-              className="w-full rounded-lg bg-white/5 border border-white/10 px-3.5 py-2.5 text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/30 transition-colors"
+              className="w-full rounded-lg bg-white/5 border border-white/10 px-3.5 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/30 transition-colors"
             />
-            <p className="text-[11px] text-white/25 mt-1 text-right">{title.length}/100</p>
+            <p className="text-[11px] text-white/20 mt-1 text-right">{title.length}/100</p>
           </div>
 
           {/* Description */}
@@ -138,9 +138,9 @@ export default function CreateListModal({ onClose, onSave, existingList = null, 
               onChange={(e) => setDescription(e.target.value.slice(0, 500))}
               placeholder="What is this list about?"
               rows={3}
-              className="w-full rounded-lg bg-white/5 border border-white/10 px-3.5 py-2.5 text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/30 transition-colors resize-none"
+              className="w-full rounded-lg bg-white/5 border border-white/10 px-3.5 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/30 transition-colors resize-none"
             />
-            <p className="text-[11px] text-white/25 mt-1 text-right">{description.length}/500</p>
+            <p className="text-[11px] text-white/20 mt-1 text-right">{description.length}/500</p>
           </div>
 
           {/* Public toggle */}
@@ -166,7 +166,7 @@ export default function CreateListModal({ onClose, onSave, existingList = null, 
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg px-4 py-2 text-sm font-semibold text-white/50 hover:text-white/80 hover:bg-white/5 transition-colors"
+              className="rounded-lg px-4 py-2 text-sm font-semibold text-white/60 hover:text-white/80 hover:bg-white/5 transition-colors"
             >
               Cancel
             </button>

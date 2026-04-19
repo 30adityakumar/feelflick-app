@@ -334,7 +334,7 @@ export default function TopNav({ hideAuthCta = false }) {
 
           {/* Value prop */}
           <div className="px-6 pb-8">
-            <p className="text-xs text-white/30 text-center">
+            <p className="text-xs text-white/40 text-center">
               6,700+ curated films · Mood-matched · Free forever
             </p>
           </div>

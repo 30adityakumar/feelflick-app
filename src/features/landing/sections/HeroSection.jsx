@@ -102,7 +102,7 @@ function PosterTile({ path, tag }) {
       />
       {/* Mood tag */}
       {tag && (
-        <span className="absolute top-2.5 right-2.5 text-[9px] font-medium tracking-[0.12em] uppercase text-white/55 select-none">
+        <span className="absolute top-2.5 right-2.5 text-[9px] font-medium tracking-[0.12em] uppercase text-white/60 select-none">
           {tag}
         </span>
       )}

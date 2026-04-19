@@ -77,7 +77,7 @@ export default function MobileAccount() {
         {sections.map((section, i) => (
           <div key={i}>
             {section.title && (
-              <p className="text-[11px] font-semibold text-white/30 uppercase tracking-widest px-1 mb-2">
+              <p className="text-[11px] font-semibold text-white/40 uppercase tracking-widest px-1 mb-2">
                 {section.title}
               </p>
             )}
@@ -89,13 +89,13 @@ export default function MobileAccount() {
                   className="flex w-full items-center gap-4 px-5 py-4 text-left hover:bg-white/4 active:bg-white/6 transition-colors group"
                 >
                   <div className="h-9 w-9 rounded-xl bg-white/6 flex items-center justify-center flex-shrink-0 group-hover:bg-purple-500/15 transition-colors">
-                    <item.icon className="h-4.5 w-4.5 text-white/50 group-hover:text-purple-400 transition-colors" style={{ width: 18, height: 18 }} />
+                    <item.icon className="h-4.5 w-4.5 text-white/60 group-hover:text-purple-400 transition-colors" style={{ width: 18, height: 18 }} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-semibold text-white/85">{item.label}</div>
-                    <div className="text-xs text-white/35 mt-0.5">{item.sub}</div>
+                    <div className="text-sm font-semibold text-white/80">{item.label}</div>
+                    <div className="text-xs text-white/40 mt-0.5">{item.sub}</div>
                   </div>
-                  <ChevronRight className="h-4 w-4 text-white/20 group-hover:text-white/45 flex-shrink-0 transition-colors" />
+                  <ChevronRight className="h-4 w-4 text-white/20 group-hover:text-white/40 flex-shrink-0 transition-colors" />
                 </button>
               ))}
             </div>
@@ -112,14 +112,14 @@ export default function MobileAccount() {
               <LogOut className="h-4.5 w-4.5 text-white/40 group-hover:text-red-400 transition-colors" style={{ width: 18, height: 18 }} />
             </div>
             <span className="flex-1 text-sm font-semibold text-white/70 group-hover:text-red-400 transition-colors">Sign out</span>
-            <ChevronRight className="h-4 w-4 text-white/15 group-hover:text-red-400/40 flex-shrink-0 transition-colors" />
+            <ChevronRight className="h-4 w-4 text-white/20 group-hover:text-red-400/40 flex-shrink-0 transition-colors" />
           </button>
         </div>
       </div>
 
       {/* ── Footer ────────────────────────────────────────────── */}
       <div className="text-center pt-8 pb-4 px-6">
-        <div className="text-xs text-white/15">FeelFlick · mood-first cinema</div>
+        <div className="text-xs text-white/20">FeelFlick · mood-first cinema</div>
       </div>
 
     </div>

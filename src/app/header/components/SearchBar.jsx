@@ -274,7 +274,7 @@ export default function SearchBar({ open, onClose }) {
                 <button
                   type="button"
                   onClick={clearRecentSearches}
-                  className="rounded px-2 py-1 text-xs text-white/50 transition-colors hover:bg-white/5 hover:text-white/80"
+                  className="rounded px-2 py-1 text-xs text-white/60 transition-colors hover:bg-white/5 hover:text-white/80"
                 >
                   Clear All
                 </button>
@@ -351,8 +351,8 @@ function MovieResultCard({ id, movie, onClick, onMouseEnter, isSelected }) {
       onMouseEnter={onMouseEnter}
       className={`group flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left transition-colors md:gap-4 md:px-3 md:py-3 ${
         isSelected
-          ? 'bg-white/15 shadow-lg'
-          : 'hover:bg-white/10 active:bg-white/15'
+          ? 'bg-white/20 shadow-lg'
+          : 'hover:bg-white/10 active:bg-white/20'
       }`}
     >
       <div className="relative flex-shrink-0 overflow-hidden rounded-lg shadow-md">
@@ -366,7 +366,7 @@ function MovieResultCard({ id, movie, onClick, onMouseEnter, isSelected }) {
             loading="lazy"
           />
         ) : (
-          <div className="flex h-20 w-14 items-center justify-center bg-white/5 text-xl text-white/35 md:h-24 md:w-16">
+          <div className="flex h-20 w-14 items-center justify-center bg-white/5 text-xl text-white/40 md:h-24 md:w-16">
             <span aria-hidden="true">🎬</span>
           </div>
         )}
@@ -382,7 +382,7 @@ function MovieResultCard({ id, movie, onClick, onMouseEnter, isSelected }) {
           {movie.vote_average > 0 && (
             <>
               <span aria-hidden="true">•</span>
-              <span className="text-white/50">{movie.vote_average.toFixed(1)}</span>
+              <span className="text-white/60">{movie.vote_average.toFixed(1)}</span>
             </>
           )}
         </div>

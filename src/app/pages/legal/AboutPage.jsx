@@ -110,7 +110,7 @@ export default function AboutPage() {
               <span className="gradient-text">Know You</span>
             </motion.h1>
             <motion.p
-              className="text-sm sm:text-base text-white/50 leading-relaxed max-w-2xl mx-auto"
+              className="text-sm sm:text-base text-white/60 leading-relaxed max-w-2xl mx-auto"
               initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.45, delay: 0.2 }}
@@ -161,7 +161,7 @@ export default function AboutPage() {
                 You spend more time scrolling than watching.
               </motion.h2>
               <motion.div
-                className="space-y-4 text-sm sm:text-base text-white/50 leading-relaxed"
+                className="space-y-4 text-sm sm:text-base text-white/60 leading-relaxed"
                 initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={vp}

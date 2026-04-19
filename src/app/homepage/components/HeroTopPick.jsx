@@ -89,7 +89,7 @@ function PickReasonBadge({ reason }) {
   return (
     <div className="flex items-center gap-1.5 mb-3">
       <div className="h-1 w-1 rounded-full bg-purple-400 flex-shrink-0" />
-      <span className="text-xs font-medium text-white/50">{reason.label}</span>
+      <span className="text-xs font-medium text-white/60">{reason.label}</span>
     </div>
   )
 }
@@ -142,7 +142,7 @@ function StreamingBadge({ providers, revealed }) {
         className="h-8 w-8 rounded object-cover"
       />
       <div className="min-w-0">
-        <p className="text-[9px] uppercase tracking-widest text-white/30 font-medium leading-none mb-0.5">{label}</p>
+        <p className="text-[9px] uppercase tracking-widest text-white/40 font-medium leading-none mb-0.5">{label}</p>
         <p className="text-xs text-white/80 font-semibold truncate leading-none">{provider.provider_name}</p>
       </div>
     </div>
@@ -417,7 +417,7 @@ export default function HeroTopPick({
                   <circle cx="12" cy="12" r="10" stroke="rgba(168,85,247,0.2)" strokeWidth="3" />
                   <path d="M21 12a9 9 0 0 0-9-9v9z" fill="rgb(168,85,247)" />
                 </svg>
-                <span className="text-white/35 text-xs font-medium tracking-wide">Finding something you&apos;ll love…</span>
+                <span className="text-white/40 text-xs font-medium tracking-wide">Finding something you&apos;ll love…</span>
               </div>
               <div className="h-3 w-32 bg-purple-500/10 rounded animate-pulse" />
               <div className="h-10 lg:h-14 w-2/3 bg-purple-500/5 rounded-xl animate-pulse" />
@@ -603,18 +603,18 @@ export default function HeroTopPick({
             >
               {/* Row 1: year · rating · runtime · language */}
               <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                {year && <span className="text-xs text-white/50 font-medium">{year}</span>}
+                {year && <span className="text-xs text-white/60 font-medium">{year}</span>}
 
                 {displayRating != null && (
                   <span className="inline-flex items-center gap-1 text-xs font-semibold text-purple-300/90">
                     {year && <span className="text-white/20">·</span>}
                     <span>{displayRating}</span>
-                    <span className="text-white/30 font-normal text-[10px]">/100</span>
+                    <span className="text-white/40 font-normal text-[10px]">/100</span>
                   </span>
                 )}
 
                 {movie.runtime > 0 && (
-                  <span className="text-xs text-white/50 font-medium">
+                  <span className="text-xs text-white/60 font-medium">
                     <span className="mr-1.5 text-white/20">·</span>
                     {hours > 0 && `${hours}h `}{mins}m
                   </span>
@@ -627,8 +627,8 @@ export default function HeroTopPick({
               {Array.isArray(movie.genres) && movie.genres.length > 0 && (
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                   {movie.genres.slice(0, 3).map((g, idx) => (
-                    <span key={g.id || g.name || idx} className="inline-flex items-center text-xs text-white/35 font-medium">
-                      {idx > 0 && <span className="mr-1.5 text-white/15">·</span>}
+                    <span key={g.id || g.name || idx} className="inline-flex items-center text-xs text-white/40 font-medium">
+                      {idx > 0 && <span className="mr-1.5 text-white/20">·</span>}
                       {g.name || g}
                     </span>
                   ))}
@@ -638,7 +638,7 @@ export default function HeroTopPick({
               {/* Row 3: director */}
               {movie.director_name && (
                 <div>
-                  <span className="text-xs text-white/30 font-medium">Directed by {movie.director_name}</span>
+                  <span className="text-xs text-white/40 font-medium">Directed by {movie.director_name}</span>
                 </div>
               )}
             </div>
@@ -646,7 +646,7 @@ export default function HeroTopPick({
             {/* Overview */}
             {movie.overview && (
               <p
-                className={`text-sm sm:text-[15px] text-white/55 leading-relaxed max-w-xl line-clamp-2 sm:line-clamp-3 mb-5 sm:mb-6 transition-all duration-500 delay-150 ${
+                className={`text-sm sm:text-[15px] text-white/60 leading-relaxed max-w-xl line-clamp-2 sm:line-clamp-3 mb-5 sm:mb-6 transition-all duration-500 delay-150 ${
                   revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
                 }`}
               >
@@ -673,7 +673,7 @@ export default function HeroTopPick({
               {movie.trailer_url && (
                 <button
                   onClick={playTrailer}
-                  className="group inline-flex items-center gap-1.5 px-4 sm:px-6 py-2.5 sm:py-3 rounded-full bg-white/10 hover:bg-white/15 backdrop-blur-sm border border-white/10 hover:border-white/20 text-white font-semibold text-sm transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                  className="group inline-flex items-center gap-1.5 px-4 sm:px-6 py-2.5 sm:py-3 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/10 hover:border-white/20 text-white font-semibold text-sm transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
                 >
                   <Play className="h-4 w-3 fill-current" />
                   <span>Trailer</span>

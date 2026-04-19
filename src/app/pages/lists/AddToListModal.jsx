@@ -167,7 +167,7 @@ export default function AddToListModal({ movieId, movieTitle, userId, onClose })
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/8">
           <div className="min-w-0 flex-1 mr-3">
             <h2 className="text-base font-bold text-white truncate">Add to list</h2>
-            <p className="text-xs text-white/35 truncate mt-0.5">{movieTitle}</p>
+            <p className="text-xs text-white/40 truncate mt-0.5">{movieTitle}</p>
           </div>
           <button
             type="button"
@@ -192,7 +192,7 @@ export default function AddToListModal({ movieId, movieTitle, userId, onClose })
             </div>
           ) : lists.length === 0 ? (
             <div className="flex items-center justify-center py-10">
-              <p className="text-white/30 text-sm">No lists yet. Create one below.</p>
+              <p className="text-white/40 text-sm">No lists yet. Create one below.</p>
             </div>
           ) : (
             <div className="divide-y divide-white/5">

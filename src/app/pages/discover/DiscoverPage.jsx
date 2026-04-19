@@ -499,7 +499,7 @@ function RecommendationCard({ movie, index, moodName, moodId, onOpenMovie, aiExp
               >
                 <h3 className="line-clamp-2 text-sm font-bold text-white">{movie.title}</h3>
                 {movie.release_date && (
-                  <p className="mt-0.5 text-xs text-white/50">{String(movie.release_date).slice(0, 4)}</p>
+                  <p className="mt-0.5 text-xs text-white/60">{String(movie.release_date).slice(0, 4)}</p>
                 )}
                 {aiExplanation && (
                   <p className="mt-1 line-clamp-2 text-xs text-purple-300/90">{aiExplanation}</p>
@@ -975,7 +975,7 @@ export default function DiscoverPage() {
 
                         {/* Time of day */}
                         <div className="space-y-2">
-                          <span className="text-xs font-semibold text-white/50 uppercase tracking-wide">When</span>
+                          <span className="text-xs font-semibold text-white/60 uppercase tracking-wide">When</span>
                           <div className="flex flex-wrap gap-2">
                             {TIME_OF_DAY.map((t) => {
                               const isActive = timeOfDay === t.id
@@ -1000,7 +1000,7 @@ export default function DiscoverPage() {
 
                         {/* Who's watching */}
                         <div className="space-y-2">
-                          <span className="text-xs font-semibold text-white/50 uppercase tracking-wide">Who&apos;s watching</span>
+                          <span className="text-xs font-semibold text-white/60 uppercase tracking-wide">Who&apos;s watching</span>
                           <div className="flex flex-wrap gap-2">
                             {VIEWING_CONTEXTS.map((ctx) => {
                               const isActive = viewingContext === ctx.id
@@ -1026,7 +1026,7 @@ export default function DiscoverPage() {
 
                         {/* Experience type */}
                         <div className="space-y-2">
-                          <span className="text-xs font-semibold text-white/50 uppercase tracking-wide">What you want</span>
+                          <span className="text-xs font-semibold text-white/60 uppercase tracking-wide">What you want</span>
                           <div className="flex flex-wrap gap-2">
                             {EXPERIENCE_TYPES.map((exp) => {
                               const isActive = experienceType === exp.id

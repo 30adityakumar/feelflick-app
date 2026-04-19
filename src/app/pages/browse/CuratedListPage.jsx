@@ -67,15 +67,15 @@ export default function CuratedListPage() {
         <button
           onClick={() => navigate(-1)}
           aria-label="Go back"
-          className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white mb-6"
+          className="inline-flex items-center gap-1.5 text-sm text-white/60 hover:text-white mb-6"
         >
           <ChevronLeft className="h-4 w-4" /> Back
         </button>
 
         <div className="mb-8">
           <p className="text-[11px] font-semibold uppercase tracking-widest text-purple-300/80 mb-2">Curated List</p>
-          <h1 className="text-4xl sm:text-5xl font-black text-white mb-3">{list.title}</h1>
-          <p className="text-white/55 max-w-2xl">{list.description}</p>
+          <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tight mb-3">{list.title}</h1>
+          <p className="text-white/60 max-w-2xl">{list.description}</p>
         </div>
 
         {loading ? (

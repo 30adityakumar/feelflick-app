@@ -469,9 +469,9 @@ export default function TasteProfile() {
               <div className="flex items-center gap-5 mb-5">
                 <ProfileAvatar name={displayName} avatarUrl={avatarUrl} size={64} />
                 <div className="min-w-0">
-                  <h1 className="text-xl sm:text-2xl font-bold text-white truncate">{displayName}</h1>
+                  <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight truncate">{displayName}</h1>
                   {memberSince && (
-                    <p className="text-sm text-white/35 mt-0.5">Member since {memberSince}</p>
+                    <p className="text-sm text-white/40 mt-0.5">Member since {memberSince}</p>
                   )}
                 </div>
               </div>
@@ -504,7 +504,7 @@ export default function TasteProfile() {
                       <div className="h-4 w-1/2 rounded bg-purple-500/[0.08]" />
                     </div>
                   ) : (
-                    <p className="text-sm sm:text-base text-white/75 leading-relaxed italic">
+                    <p className="text-sm sm:text-base text-white/70 leading-relaxed italic">
                       &ldquo;{aiSummary || stats.tasteSummary}&rdquo;
                     </p>
                   )}
@@ -536,7 +536,7 @@ export default function TasteProfile() {
                             <div key={g.name}>
                               <div className="flex items-center justify-between text-sm mb-1">
                                 <span className="text-white/80 font-medium">{g.name}</span>
-                                <span className="text-white/35 text-xs">{g.pct}%</span>
+                                <span className="text-white/40 text-xs">{g.pct}%</span>
                               </div>
                               <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
                                 <motion.div
@@ -551,7 +551,7 @@ export default function TasteProfile() {
                           ))}
                         </div>
                       ) : (
-                        <p className="text-white/25 text-sm">Not enough data yet</p>
+                        <p className="text-white/20 text-sm">Not enough data yet</p>
                       )}
                     </StatCard>
 
@@ -563,17 +563,17 @@ export default function TasteProfile() {
                           {stats.topDirectors.map((d, i) => (
                             <div key={d.name} className="flex items-center justify-between">
                               <span className="text-white/80 text-sm font-medium">
-                                <span className="text-white/25 text-xs mr-2">{i + 1}.</span>
+                                <span className="text-white/20 text-xs mr-2">{i + 1}.</span>
                                 {d.name}
                               </span>
-                              <span className="text-white/30 text-xs">
+                              <span className="text-white/40 text-xs">
                                 {d.count} {d.count === 1 ? 'film' : 'films'}
                               </span>
                             </div>
                           ))}
                         </div>
                       ) : (
-                        <p className="text-white/25 text-sm">Director data isn&apos;t available yet</p>
+                        <p className="text-white/20 text-sm">Director data isn&apos;t available yet</p>
                       )}
                     </StatCard>
 
@@ -588,14 +588,14 @@ export default function TasteProfile() {
                                 {m.emoji && <span className="mr-1.5">{m.emoji}</span>}
                                 {m.name}
                               </span>
-                              <span className="text-white/30 text-xs">
+                              <span className="text-white/40 text-xs">
                                 {m.count} {m.count === 1 ? 'session' : 'sessions'}
                               </span>
                             </div>
                           ))}
                         </div>
                       ) : (
-                        <p className="text-white/25 text-sm">Try discovering films by mood to see your patterns</p>
+                        <p className="text-white/20 text-sm">Try discovering films by mood to see your patterns</p>
                       )}
                     </StatCard>
                   </div>
@@ -633,9 +633,9 @@ export default function TasteProfile() {
                                 loading="lazy"
                               />
                             </div>
-                            <p className="text-white/50 text-[11px] mt-1.5 line-clamp-2 leading-tight group-hover:text-white/70 transition-colors">{movie.title}</p>
+                            <p className="text-white/60 text-[11px] mt-1.5 line-clamp-2 leading-tight group-hover:text-white/70 transition-colors">{movie.title}</p>
                             {movie.year && (
-                              <p className="text-white/25 text-[10px]">{movie.year}</p>
+                              <p className="text-white/20 text-[10px]">{movie.year}</p>
                             )}
                           </Link>
                         </motion.div>
@@ -655,15 +655,15 @@ export default function TasteProfile() {
                     <div>
                       <div className="flex items-baseline gap-1.5 mb-2">
                         <span className="text-3xl font-black text-white">{stats.avgRating.toFixed(1)}</span>
-                        <span className="text-white/25 text-sm font-medium">/ 10</span>
-                        <span className="text-white/30 text-xs ml-1">avg</span>
+                        <span className="text-white/20 text-sm font-medium">/ 10</span>
+                        <span className="text-white/40 text-xs ml-1">avg</span>
                       </div>
                       {stats.ratingPersonality && (
                         <p className="text-white/40 text-xs leading-relaxed">{stats.ratingPersonality}</p>
                       )}
                     </div>
                   ) : (
-                    <p className="text-white/25 text-sm">Rate films to discover your critic personality</p>
+                    <p className="text-white/20 text-sm">Rate films to discover your critic personality</p>
                   )}
                 </div>
 
@@ -818,7 +818,7 @@ function FollowListModal({ type, userId, onClose }) {
             </div>
           ) : users.length === 0 ? (
             <div className="flex items-center justify-center py-12">
-              <p className="text-white/30 text-sm">
+              <p className="text-white/40 text-sm">
                 {isFollowers ? 'No followers yet' : 'Not following anyone yet'}
               </p>
             </div>

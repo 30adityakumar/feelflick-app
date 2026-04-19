@@ -111,7 +111,7 @@ function AccordionItem({ item, isOpen, onToggle }) {
                 style={{ background: 'linear-gradient(180deg, rgba(168,85,247,0.50) 0%, rgba(168,85,247,0.05) 100%)' }}
                 aria-hidden="true"
               />
-              <p className="text-sm lg:text-[15px] text-white/55 leading-relaxed">
+              <p className="text-sm lg:text-[15px] text-white/60 leading-relaxed">
                 {item.answer}
               </p>
             </div>

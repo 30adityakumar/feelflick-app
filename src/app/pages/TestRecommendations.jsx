@@ -90,7 +90,7 @@ export default function TestRecommendations() {
                       #{idx + 1} • Score: {Math.round(movie.final_score)}
                     </div>
                     <h3 className="font-medium text-sm line-clamp-2">{movie.title}</h3>
-                    <div className="text-xs text-white/50 mt-1">
+                    <div className="text-xs text-white/60 mt-1">
                       {movie.ff_audience_rating ?? movie.vote_average?.toFixed(1) ?? '–'}
                     </div>
                   </div>

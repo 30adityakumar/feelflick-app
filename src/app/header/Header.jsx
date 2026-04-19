@@ -118,7 +118,7 @@ export default function Header({ onOpenSearch }) {
                   `relative rounded-lg px-3.5 py-2 text-sm font-semibold transition-colors duration-200
                   ${isActive
                     ? 'text-white/90 border-b-2 border-white/40'
-                    : 'text-white/50 hover:text-white/85 hover:bg-white/5'
+                    : 'text-white/60 hover:text-white/80 hover:bg-white/5'
                   }`
                 }
               >
@@ -135,12 +135,12 @@ export default function Header({ onOpenSearch }) {
               type="button"
               onClick={onOpenSearch}
               aria-label="Search films"
-              className="flex items-center gap-2.5 rounded-full border border-white/10 bg-white/5 py-2 pl-3.5 pr-3 text-white/45 transition-colors duration-200 hover:border-white/18 hover:bg-white/9 hover:text-white/80 active:scale-95"
+              className="flex items-center gap-2.5 rounded-full border border-white/10 bg-white/5 py-2 pl-3.5 pr-3 text-white/40 transition-colors duration-200 hover:border-white/18 hover:bg-white/9 hover:text-white/80 active:scale-95"
             >
               <SearchIcon className="h-4 w-4 shrink-0" />
               <span className="hidden lg:flex items-center gap-2 text-sm pr-0.5">
                 Search films…
-                <kbd className="hidden xl:inline-block text-[10px] px-1.5 py-0.5 rounded border border-white/10 bg-white/5 text-white/30 font-mono leading-none">/</kbd>
+                <kbd className="hidden xl:inline-block text-[10px] px-1.5 py-0.5 rounded border border-white/10 bg-white/5 text-white/40 font-mono leading-none">/</kbd>
               </span>
             </button>
 
@@ -149,7 +149,7 @@ export default function Header({ onOpenSearch }) {
                 type="button"
                 onClick={() => navigate('/feed')}
                 aria-label="Activity feed"
-                className="relative w-9 h-9 rounded-full flex items-center justify-center text-white/50 hover:text-white hover:bg-white/8 transition-all duration-200"
+                className="relative w-9 h-9 rounded-full flex items-center justify-center text-white/60 hover:text-white hover:bg-white/8 transition-all duration-200"
               >
                 <Bell className="w-[18px] h-[18px]" />
                 {hasUnread && (
@@ -167,7 +167,7 @@ export default function Header({ onOpenSearch }) {
                 type="button"
                 onClick={signInWithGoogle}
                 disabled={isAuthenticating}
-                className="hidden md:flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm font-semibold text-white/80 transition-all duration-200 hover:border-purple-500/40 hover:bg-white/10 hover:text-white active:scale-95 disabled:opacity-50"
+                className="hidden md:flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-4 py-2 text-sm font-semibold text-white/80 transition-all duration-200 hover:border-purple-500/40 hover:bg-white/10 hover:text-white active:scale-95 disabled:opacity-50"
                 aria-label="Sign in with Google"
               >
                 <LogIn className="h-4 w-4" />
@@ -244,7 +244,7 @@ export default function Header({ onOpenSearch }) {
                       <button
                         type="button"
                         onClick={handleSignOut}
-                        className="mx-0 flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-sm text-white/50 transition-colors duration-150 hover:bg-red-500/8 hover:text-red-400"
+                        className="mx-0 flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-sm text-white/60 transition-colors duration-150 hover:bg-red-500/8 hover:text-red-400"
                       >
                         <LogOut className="h-4 w-4 shrink-0" />
                         Sign out
@@ -274,9 +274,9 @@ function DropdownLink({ to, icon: Icon, children, onClick }) {
     <Link
       to={to}
       onClick={onClick}
-      className="mx-1.5 flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm text-white/55 transition-colors duration-150 hover:bg-white/5 hover:text-white/90"
+      className="mx-1.5 flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm text-white/60 transition-colors duration-150 hover:bg-white/5 hover:text-white/90"
     >
-      <Icon className="h-4 w-4 shrink-0 text-white/30" />
+      <Icon className="h-4 w-4 shrink-0 text-white/40" />
       {children}
     </Link>
   )

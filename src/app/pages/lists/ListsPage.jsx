@@ -92,11 +92,11 @@ function ListCard({ list, posters, onEdit, onDelete }) {
         <div>
           <h3 className="text-sm font-bold text-white line-clamp-2 mb-1">{list.title}</h3>
           {list.description && (
-            <p className="text-xs text-white/35 line-clamp-2 leading-relaxed">{list.description}</p>
+            <p className="text-xs text-white/40 line-clamp-2 leading-relaxed">{list.description}</p>
           )}
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-xs text-white/25">
+          <span className="text-xs text-white/20">
             {list.film_count ?? 0} {(list.film_count ?? 0) === 1 ? 'film' : 'films'}
           </span>
           {/* Edit/Delete — visible on hover */}
@@ -105,7 +105,7 @@ function ListCard({ list, posters, onEdit, onDelete }) {
               type="button"
               onClick={handleEdit}
               aria-label="Edit list"
-              className="p-1.5 rounded-lg text-white/25 hover:text-white/70 hover:bg-white/[0.06] transition-colors duration-150"
+              className="p-1.5 rounded-lg text-white/20 hover:text-white/70 hover:bg-white/[0.06] transition-colors duration-150"
             >
               <Pencil className="w-3.5 h-3.5" />
             </button>
@@ -113,7 +113,7 @@ function ListCard({ list, posters, onEdit, onDelete }) {
               type="button"
               onClick={handleDelete}
               aria-label={confirmDelete ? 'Confirm delete' : 'Delete list'}
-              className="p-1.5 rounded-lg text-white/25 hover:text-red-400/70 hover:bg-red-500/[0.08] transition-colors duration-150"
+              className="p-1.5 rounded-lg text-white/20 hover:text-red-400/70 hover:bg-red-500/[0.08] transition-colors duration-150"
             >
               {confirmDelete ? (
                 <span className="text-[11px] font-semibold text-red-400">Delete?</span>
@@ -282,7 +282,7 @@ export default function ListsPage() {
         {/* Page title */}
         <div className="mb-6">
           <h1 className="text-2xl font-black text-white tracking-tight mb-1">Lists</h1>
-          <p className="text-sm text-white/35">Your curated film collections</p>
+          <p className="text-sm text-white/40">Your curated film collections</p>
         </div>
 
         {isLoading ? (

@@ -21,7 +21,7 @@ export default function PrivacyPage() {
             <span className="text-sm font-semibold text-white/80">Privacy Policy</span>
           </div>
 
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black leading-tight mb-4 bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
+          <h1 className="text-4xl sm:text-5xl font-black tracking-tight mb-4 bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
             Your privacy comes first
           </h1>
 

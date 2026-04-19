@@ -285,8 +285,8 @@ export function ErrorBoundaryWrapper({ children, fallback }) {
  * so one broken section never crashes the rest of the page.
  *
  * Usage:
- *   <SectionErrorBoundary label="Quick Picks">
- *     <QuickPicksRow />
+ *   <SectionErrorBoundary label="Hidden Gems">
+ *     <HiddenGemsRow />
  *   </SectionErrorBoundary>
  */
 export class SectionErrorBoundary extends Component {

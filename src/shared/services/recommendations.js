@@ -72,7 +72,7 @@ import { recommendationCache } from '@/shared/lib/cache'
 // ============================================================================
 // VERSION
 // ============================================================================
-const ENGINE_VERSION = '2.13' // Tiered homepage with mood coherence + cold-start seeding.
+const ENGINE_VERSION = '2.14' // Embedding search + filter dials + collapsed wizard.
 const PROFILE_MEMORY_TTL_MS = 60 * 1000
 const SEED_MEMORY_TTL_MS = 60 * 1000
 const profileMemoryCache = new Map()
@@ -3411,7 +3411,7 @@ function mergeTags(baseTags, userTags) {
  * @returns {number}
  */
 export function scoreMoodAffinity(movie, moodId, moodData, params) {
-  const { intensity, pacing, viewingContext, experienceType, timeOfDay, parsedTags } = params
+  const { viewingContext, experienceType, timeOfDay, parsedTags } = params
   let score = 0
 
   // Merge mood-defined tags with user-parsed free-text tags (user tags take priority via union)
@@ -3445,19 +3445,8 @@ export function scoreMoodAffinity(movie, moodId, moodData, params) {
   }
   score += Math.min(25, genreScore)
 
-  // 4. PACING/INTENSITY ALIGNMENT — max penalty −15 each
-  const moviePacing100 = movie.pacing_score_100 ?? (movie.pacing_score != null ? movie.pacing_score * 10 : null)
-  if (moviePacing100 != null && pacing != null) {
-    const targetPacing = (pacing / 5) * 100
-    const diff = Math.abs(moviePacing100 - targetPacing)
-    score += Math.max(-15, -(diff / 8))
-  }
-  const movieIntensity100 = movie.intensity_score_100 ?? (movie.intensity_score != null ? movie.intensity_score * 10 : null)
-  if (movieIntensity100 != null && intensity != null) {
-    const targetIntensity = (intensity / 5) * 100
-    const diff = Math.abs(movieIntensity100 - targetIntensity)
-    score += Math.max(-15, -(diff / 8))
-  }
+  // 4. PACING/INTENSITY — now enforced as hard filters in fetchMoodCandidates (R1b)
+  // No penalty math here; candidates already pass the pacing/intensity band filter.
 
   // 5. VIEWING CONTEXT modifier (up to +15)
   score += CONTEXT_MODIFIERS[viewingContext]?.[moodId] ?? 0
@@ -3487,6 +3476,46 @@ const MOOD_SELECT_FIELDS = `
   user_satisfaction_score, user_satisfaction_confidence
 `
 
+// Mood anchor cache — stable per mood, refreshed daily
+const moodAnchorCache = new Map()
+const MOOD_ANCHOR_TTL = 24 * 60 * 60 * 1000
+
+/**
+ * Find "mood anchor" films: movies tagged with ≥3 of the mood's preferred_tags,
+ * high confidence, ff_audience_rating >= 78. Used as embedding seeds.
+ */
+async function getMoodAnchors(moodId, preferredTags) {
+  const cached = moodAnchorCache.get(moodId)
+  if (cached && Date.now() - cached.ts < MOOD_ANCHOR_TTL) return cached.anchors
+
+  if (!preferredTags || preferredTags.length < 3) {
+    moodAnchorCache.set(moodId, { anchors: [], ts: Date.now() })
+    return []
+  }
+
+  const { data } = await supabase
+    .from('movies')
+    .select('id, mood_tags')
+    .eq('is_valid', true)
+    .gte('ff_audience_rating', 78)
+    .gte('ff_confidence', 60)
+    .not('poster_path', 'is', null)
+    .order('ff_confidence', { ascending: false })
+    .limit(200)
+
+  const anchors = (data || [])
+    .filter(m => {
+      const tags = Array.isArray(m.mood_tags) ? m.mood_tags : []
+      const overlap = tags.filter(t => preferredTags.includes(t)).length
+      return overlap >= 3
+    })
+    .slice(0, 3)
+    .map(m => m.id)
+
+  moodAnchorCache.set(moodId, { anchors, ts: Date.now() })
+  return anchors
+}
+
 /**
  * Fetch candidate movies from the internal movies table for a given mood.
  * Candidates are scored by the caller — this function only retrieves a pool.
@@ -3495,24 +3524,29 @@ const MOOD_SELECT_FIELDS = `
  * @param {number} moodId
  * @param {Array} moodWeights - rows from discover_mood_genre_weights
  * @param {Object} profile - computeUserProfile result (for language guard)
- * @param {{intensity: number|null, pacing: number|null, signal: AbortSignal|null}} params
- * @returns {Promise<Array>} - array of movies table rows
+ * @param {Object} moodData - loadMoodData result (for anchor tag lookup)
+ * @param {{intensity?: number, pacing?: number, signal?: AbortSignal}} params
+ * @returns {Promise<{candidates: Array, qualityFloorUsed: number|string|null}>}
  */
-async function fetchMoodCandidates(moodId, moodWeights, profile, params = {}) {
-  const { signal } = params
+async function fetchMoodCandidates(moodId, moodWeights, profile, moodData, params = {}) {
+  const { signal, intensity = 3, pacing = 3 } = params
 
   // Language guard from user profile (reuse homepage engine's language detection)
   const langGuard = profile?.language || null
   const allowedLanguages = langGuard?.allowedLanguages || []
 
-  // Change 1: larger pool for strict/strong language modes where catalog is thinner
-  const poolLimit = langGuard?.mode === 'strict' || langGuard?.mode === 'strong' ? 500 : 300
+  // Larger pool for strict/strong language modes where catalog is thinner
+  const poolLimit = langGuard?.mode === 'strict' || langGuard?.mode === 'strong' ? 500 : 400
 
   const minConf = 40
   const moodGenreIds = new Set(moodWeights.map(w => w.genre_id))
 
+  // === Pacing/Intensity as hard filters (R1b) ===
+  const targetPacing = (pacing / 5) * 100
+  const targetIntensity = (intensity / 5) * 100
+
   // Reusable query builder — same filters except quality floor
-  function buildQuery(minNorm) {
+  function buildQuery(minNorm, pacingBand, intensityBand) {
     let query = supabase
       .from('movies')
       .select(MOOD_SELECT_FIELDS)
@@ -3535,6 +3569,20 @@ async function fetchMoodCandidates(moodId, moodWeights, profile, params = {}) {
       query = query.lte('release_year', 2000)
     }
 
+    // Pacing filter
+    if (pacingBand != null) {
+      query = query
+        .gte('pacing_score_100', Math.max(0, targetPacing - pacingBand))
+        .lte('pacing_score_100', Math.min(100, targetPacing + pacingBand))
+    }
+
+    // Intensity filter
+    if (intensityBand != null) {
+      query = query
+        .gte('intensity_score_100', Math.max(0, targetIntensity - intensityBand))
+        .lte('intensity_score_100', Math.min(100, targetIntensity + intensityBand))
+    }
+
     return query
   }
 
@@ -3546,27 +3594,84 @@ async function fetchMoodCandidates(moodId, moodWeights, profile, params = {}) {
   }
 
   try {
-    // Tier 1: standard quality floor (6.5)
-    const { data: t1Data, error: t1Err } = await buildQuery(6.5)
-    if (t1Err) throw t1Err
-    let matched = filterByGenre(t1Data || [])
+    // Try progressively wider filter bands: 35 → 50 → drop intensity → drop both
+    let matched = []
     let qualityFloorUsed = 6.5
 
-    // Change 2: progressive relaxation for non-English STRICT users
+    // Attempt 1: tight band (±35)
+    const { data: t1Data, error: t1Err } = await buildQuery(6.5, 35, 35)
+    if (t1Err) throw t1Err
+    matched = filterByGenre(t1Data || [])
+
+    // Attempt 2: widen band (±50)
+    if (matched.length < 50) {
+      const { data: t2Data, error: t2Err } = await buildQuery(6.5, 50, 50)
+      if (t2Err) throw t2Err
+      matched = filterByGenre(t2Data || [])
+    }
+
+    // Attempt 3: drop intensity filter, keep pacing
+    if (matched.length < 20) {
+      const { data: t3Data, error: t3Err } = await buildQuery(6.5, 50, null)
+      if (t3Err) throw t3Err
+      matched = filterByGenre(t3Data || [])
+    }
+
+    // Attempt 4: drop both filters
+    if (matched.length < 20) {
+      const { data: t4Data, error: t4Err } = await buildQuery(6.5, null, null)
+      if (t4Err) throw t4Err
+      matched = filterByGenre(t4Data || [])
+    }
+
+    // Progressive quality relaxation for non-English STRICT users
     const isNonEnglishStrict = langGuard?.mode === 'strict' && langGuard?.primaryLanguage !== 'en'
 
     if (isNonEnglishStrict && matched.length < 30) {
-      const { data: t2Data, error: t2Err } = await buildQuery(6.0)
-      if (t2Err) throw t2Err
-      matched = filterByGenre(t2Data || [])
+      const { data: t5Data, error: t5Err } = await buildQuery(6.0, null, null)
+      if (t5Err) throw t5Err
+      matched = filterByGenre(t5Data || [])
       qualityFloorUsed = 6.0
     }
 
     if (isNonEnglishStrict && matched.length < 30) {
-      const { data: t3Data, error: t3Err } = await buildQuery(5.5)
-      if (t3Err) throw t3Err
-      matched = filterByGenre(t3Data || [])
+      const { data: t6Data, error: t6Err } = await buildQuery(5.5, null, null)
+      if (t6Err) throw t6Err
+      matched = filterByGenre(t6Data || [])
       qualityFloorUsed = 5.5
+    }
+
+    // === Embedding search: mood anchors (R4) ===
+    const anchorIds = await getMoodAnchors(moodId, moodData?.preferred_tags)
+    if (anchorIds.length > 0) {
+      const existingIds = new Set(matched.map(m => m.id))
+      const { data: embMatches, error: embErr } = await supabase
+        .rpc('match_movies_by_seeds', {
+          seed_ids: anchorIds,
+          exclude_ids: [...existingIds],
+          match_count: 80,
+          min_ff_rating: 60,
+        })
+
+      if (!embErr && embMatches?.length > 0) {
+        // Fetch full rows for embedding matches (RPC returns limited fields)
+        const embIds = embMatches.map(m => m.id).filter(Boolean)
+        if (embIds.length > 0) {
+          const { data: fullRows } = await supabase
+            .from('movies')
+            .select(MOOD_SELECT_FIELDS)
+            .in('id', embIds)
+            .eq('is_valid', true)
+            .not('poster_path', 'is', null)
+
+          for (const row of (fullRows || [])) {
+            if (row?.id && !existingIds.has(row.id)) {
+              matched.push(row)
+              existingIds.add(row.id)
+            }
+          }
+        }
+      }
     }
 
     if (matched.length >= 15) return { candidates: matched, qualityFloorUsed }
@@ -3628,7 +3733,7 @@ export async function getMoodRecommendations(userId, moodId, options = {}) {
       const profile = await computeUserProfile(userId)
 
       // 3. Fetch candidates from internal movies table (or TMDB fallback)
-      const { candidates, qualityFloorUsed } = await fetchMoodCandidates(moodId, moodData.weights, profile, { signal })
+      const { candidates, qualityFloorUsed } = await fetchMoodCandidates(moodId, moodData.weights, profile, moodData, { signal, intensity, pacing })
       if (candidates.length === 0) return []
 
       // 4. Get watched movie IDs for exclusion (from profile — single fetch)
@@ -3649,14 +3754,18 @@ export async function getMoodRecommendations(userId, moodId, options = {}) {
 
       if (scored.length === 0) return []
 
-      // 6. Normalize match_percentage against the top score in this result set
-      const maxCombined = scored[0].combined || 1
-      return scored.map(({ movie, combined, userScore, moodScore }, i) => ({
-        ...movie,
-        final_score: Math.round(combined),
-        match_percentage: Math.min(99, Math.round(65 + (combined / maxCombined) * 34)),
-        _recommendationMeta: { rank: i + 1, userScore, moodScore, qualityFloorUsed },
-      }))
+      // 6. Percentile-based match_percentage (R7)
+      // Maps rank within candidate pool to 40-99 display range for more spread
+      const totalScored = scored.length
+      return scored.map(({ movie, combined, userScore, moodScore }, i) => {
+        const percentile = 1 - (i / totalScored)
+        return {
+          ...movie,
+          final_score: Math.round(combined),
+          match_percentage: Math.round(40 + percentile * 59),
+          _recommendationMeta: { rank: i + 1, userScore, moodScore, qualityFloorUsed },
+        }
+      })
     } catch (error) {
       if (error.name === 'AbortError') throw error
       console.error('[Discover] getMoodRecommendations failed:', error)

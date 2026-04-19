@@ -99,11 +99,6 @@ const MOOD_VISUAL_MAP = {
 
 // ─── Framer Motion variants ───────────────────────────────────────────────────
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
-  show:   { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } },
-}
-
 const staggerContainer = {
   hidden: { opacity: 0 },
   show:   { opacity: 1, transition: { staggerChildren: 0.08 } },
@@ -237,7 +232,7 @@ function AuroraBackground({ moodId }) {
 
 // ─── Stage Progress ───────────────────────────────────────────────────────────
 
-const STAGE_LABELS = ['Mood', 'Vibe', 'Scene', 'Matches']
+const STAGE_LABELS = ['Mood', 'Results']
 
 function StageProgress({ currentStage, moodId }) {
   const vis = moodId ? MOOD_VISUAL_MAP[moodId] : MOOD_VISUAL_MAP.DEFAULT
@@ -539,8 +534,9 @@ export default function DiscoverPage() {
   const [experienceType, setExperienceType] = useState(1)
   const [isPending, startTransition] = useTransition()
 
-  // 0=mood, 1=dials, 2=context, 3=results
+  // 0=mood, 1=results (with inline Refine drawer)
   const [currentStage, setCurrentStage] = useState(0)
+  const [refineOpen, setRefineOpen] = useState(false)
 
   const [intensity,  setIntensity]  = useState(3)
   const [pacing,     setPacing]     = useState(3)
@@ -633,11 +629,11 @@ export default function DiscoverPage() {
     }
   }, [currentStage, selectedMood, freeText])
 
-  // Wizard abandonment signal — fires on unmount if user leaves before Stage 3
+  // Wizard abandonment signal — fires on unmount if user leaves before results
   useEffect(() => {
     return () => {
       const { stage, moodId, hasFreeText } = abandonmentStateRef.current
-      if (stage >= 3) return // reached results — not an abandonment
+      if (stage >= 1) return // reached results — not an abandonment
       supabase.from('mood_session_abandoned').insert({
         user_id:         userId ?? null,
         selected_mood_id: moodId ?? null,
@@ -648,7 +644,7 @@ export default function DiscoverPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []) // intentionally empty — reads from ref at unmount time
 
-  // createMoodSession fires when mood + context + experience all confirmed (stage 3 entry)
+  // createMoodSession fires when mood is confirmed and results trigger
   useEffect(() => {
     if (!triggerMood) return
     createMoodSession(triggerMood, viewingContext, experienceType, pacing, intensity)
@@ -670,21 +666,6 @@ export default function DiscoverPage() {
     }
   }, [currentStage, selectedMood, freeText])
 
-  // Wizard abandonment signal — fires on unmount if user leaves before Stage 3
-  useEffect(() => {
-    return () => {
-      const { stage, moodId, hasFreeText } = abandonmentStateRef.current
-      if (stage >= 3) return // reached results — not an abandonment
-      supabase.from('mood_session_abandoned').insert({
-        user_id:         userId ?? null,
-        selected_mood_id: moodId ?? null,
-        reached_stage:   stage,
-        had_free_text:   hasFreeText,
-      }).then()
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []) // intentionally empty — reads from ref at unmount time
-
   useEffect(() => {
     if (!sessionId || recommendations.length === 0) return
     const trackingKey = `${sessionId}:${recommendations.map((m) => `${m.movie_id}:${m.final_score}`).join('|')}`
@@ -705,11 +686,14 @@ export default function DiscoverPage() {
     clearTimeout(autoAdvanceTimerRef.current)
     startTransition(() => setSelectedMood(moodId))
 
-    // Auto-advance to Stage 1 after 400ms ONLY if the user hasn't typed anything.
+    // Auto-advance to results after 400ms ONLY if the user hasn't typed anything.
     // Re-checks freeText at execution time so typing during the window cancels it.
     autoAdvanceTimerRef.current = setTimeout(() => {
       setFreeText(prev => {
-        if (!prev.trim()) setCurrentStage(1)
+        if (!prev.trim()) {
+          setTriggerMood(moodId)
+          setCurrentStage(1)
+        }
         return prev
       })
     }, 400)
@@ -720,7 +704,10 @@ export default function DiscoverPage() {
     clearTimeout(autoAdvanceTimerRef.current)
 
     if (!freeText.trim()) {
-      startTransition(() => setCurrentStage(1))
+      startTransition(() => {
+        setTriggerMood(selectedMood)
+        setCurrentStage(1)
+      })
       return
     }
     setDialsParsing(true)
@@ -741,13 +728,9 @@ export default function DiscoverPage() {
       }
     }
     setDialsParsing(false)
-    startTransition(() => setCurrentStage(1))
-  }
-
-  function handleFindMovies() {
     startTransition(() => {
       setTriggerMood(selectedMood)
-      setCurrentStage(3)
+      setCurrentStage(1)
     })
   }
 
@@ -765,6 +748,7 @@ export default function DiscoverPage() {
       setFreeText('')
       setDialsParsing(false)
       setParsedTags(null)
+      setRefineOpen(false)
       trackedResultsKeyRef.current = ''
       setShowNarrationFallback(false)
     })
@@ -777,9 +761,6 @@ export default function DiscoverPage() {
   const resultsHeader = selectedMoodOption
     ? `${selectedMoodOption.name} for a ${contextLabel} — ${expLabel}, ${todLabel}`
     : ''
-
-  // Shared back-button style
-  const backBtnStyle = { color: '#94a3b8', fontSize: '0.875rem' }
 
   return (
     <>
@@ -919,208 +900,160 @@ export default function DiscoverPage() {
               </motion.div>
             )}
 
-            {/* ── Stage 1: Depth Dials ──────────────────────────────────────── */}
+            {/* ── Stage 1: Results + Refine Drawer ────────────────────────── */}
             {currentStage === 1 && (
               <motion.div key="stage-1" {...stageTransition}>
-                <div className="mx-auto max-w-2xl">
-                  <div className="mb-3 flex items-center gap-3">
-                    <button type="button" onClick={() => setCurrentStage(0)} style={backBtnStyle} aria-label="Back to mood selection">
-                      ← Back
-                    </button>
-                    {selectedMoodOption && (
-                      <span className="text-sm" style={{ color: moodVis.orbColor }}>
-                        {selectedMoodOption.emoji} {selectedMoodOption.name}
-                      </span>
-                    )}
+                <div className="mb-8 flex items-start justify-between gap-4">
+                  <div>
+                    <h2
+                      className="mb-1 text-2xl font-bold capitalize"
+                      style={{
+                        background:          `linear-gradient(135deg,${moodVis.color1},${moodVis.color2})`,
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        backgroundClip:      'text',
+                      }}
+                    >
+                      {resultsHeader}
+                    </h2>
+                    <p className="text-sm" style={{ color: '#94a3b8' }}>
+                      5 picks curated for this exact feeling
+                    </p>
                   </div>
-
-                  <motion.h2 variants={fadeUp} initial="hidden" animate="show" className="mb-8 text-xl font-bold text-white">
-                    Tune your vibe
-                  </motion.h2>
-
-                  <motion.div
-                    variants={fadeUp}
-                    initial="hidden"
-                    animate="show"
-                    className="space-y-8 rounded-2xl p-6 sm:p-8"
-                    style={{ backdropFilter: 'blur(20px)', backgroundColor: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
-                  >
-                    <PipDial
-                      label="Intensity"
-                      icon="🔥"
-                      leftAnchor="Gentle"
-                      rightAnchor="Intense"
-                      value={intensity}
-                      onChange={setIntensity}
-                      orbColor={moodVis.orbColor}
-                    />
-                    <PipDial
-                      label="Pacing"
-                      icon="⏱️"
-                      leftAnchor="Slow burn"
-                      rightAnchor="Fast & punchy"
-                      value={pacing}
-                      onChange={setPacing}
-                      orbColor={moodVis.orbColor}
-                    />
-
-                    {/* Time of day */}
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg" aria-hidden="true">🕐</span>
-                        <span className="text-sm font-semibold text-white/90">When are you watching?</span>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {TIME_OF_DAY.map((t) => {
-                          const isActive = timeOfDay === t.id
-                          return (
-                            <button
-                              key={t.id}
-                              type="button"
-                              aria-pressed={isActive}
-                              onClick={() => setTimeOfDay(t.id)}
-                              className="rounded-full px-4 py-2 text-sm font-medium transition-all duration-200"
-                              style={{
-                                backgroundColor: isActive ? moodVis.orbColor : 'rgba(255,255,255,0.08)',
-                                color:           isActive ? '#fff' : 'rgba(255,255,255,0.55)',
-                                border:          '1px solid transparent',
-                              }}
-                            >
-                              {t.icon} {t.label}
-                            </button>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  </motion.div>
-
                   <button
                     type="button"
-                    onClick={() => setCurrentStage(2)}
-                    className="mt-6 w-full rounded-full py-4 text-base font-bold text-white transition-all duration-200 hover:scale-[1.02]"
+                    onClick={() => setRefineOpen(prev => !prev)}
+                    className="flex-shrink-0 rounded-full px-4 py-2 text-xs font-semibold transition-all duration-200 hover:bg-white/10"
                     style={{
-                      background:  `linear-gradient(135deg,${moodVis.color1},${moodVis.color2})`,
-                      boxShadow:   `0 0 32px ${moodVis.color1}66`,
+                      border: `1px solid ${refineOpen ? moodVis.orbColor + '80' : 'rgba(255,255,255,0.15)'}`,
+                      color: refineOpen ? moodVis.orbColor : 'rgba(255,255,255,0.60)',
+                      backgroundColor: refineOpen ? `${moodVis.orbColor}15` : 'transparent',
                     }}
+                    aria-expanded={refineOpen}
+                    aria-controls="refine-drawer"
                   >
-                    Set the scene →
+                    {refineOpen ? '✕ Close' : '⚙ Refine'}
                   </button>
                 </div>
-              </motion.div>
-            )}
 
-            {/* ── Stage 2: Context Selector ──────────────────────────────────── */}
-            {currentStage === 2 && (
-              <motion.div key="stage-2" {...stageTransition}>
-                <div className="mx-auto max-w-2xl">
-                  <div className="mb-3 flex items-center gap-3">
-                    <button type="button" onClick={() => setCurrentStage(1)} style={backBtnStyle} aria-label="Back to vibe dials">
-                      ← Back
-                    </button>
-                    {selectedMoodOption && (
-                      <span className="text-sm" style={{ color: moodVis.orbColor }}>
-                        {selectedMoodOption.emoji} {selectedMoodOption.name}
-                      </span>
-                    )}
-                  </div>
+                {/* Refine drawer */}
+                <AnimatePresence>
+                  {refineOpen && (
+                    <motion.div
+                      id="refine-drawer"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                      className="overflow-hidden"
+                    >
+                      <div
+                        className="mb-8 space-y-6 rounded-2xl p-5 sm:p-6"
+                        style={{ backdropFilter: 'blur(20px)', backgroundColor: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+                      >
+                        {/* Dials */}
+                        <div className="grid gap-6 sm:grid-cols-2">
+                          <PipDial
+                            label="Intensity"
+                            icon="🔥"
+                            leftAnchor="Gentle"
+                            rightAnchor="Intense"
+                            value={intensity}
+                            onChange={setIntensity}
+                            orbColor={moodVis.orbColor}
+                          />
+                          <PipDial
+                            label="Pacing"
+                            icon="⏱️"
+                            leftAnchor="Slow burn"
+                            rightAnchor="Fast & punchy"
+                            value={pacing}
+                            onChange={setPacing}
+                            orbColor={moodVis.orbColor}
+                          />
+                        </div>
 
-                  <h2 className="mb-8 text-xl font-bold text-white">Set the scene</h2>
+                        {/* Time of day */}
+                        <div className="space-y-2">
+                          <span className="text-xs font-semibold text-white/50 uppercase tracking-wide">When</span>
+                          <div className="flex flex-wrap gap-2">
+                            {TIME_OF_DAY.map((t) => {
+                              const isActive = timeOfDay === t.id
+                              return (
+                                <button
+                                  key={t.id}
+                                  type="button"
+                                  aria-pressed={isActive}
+                                  onClick={() => setTimeOfDay(t.id)}
+                                  className="rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-200"
+                                  style={{
+                                    backgroundColor: isActive ? moodVis.orbColor : 'rgba(255,255,255,0.08)',
+                                    color:           isActive ? '#fff' : 'rgba(255,255,255,0.55)',
+                                  }}
+                                >
+                                  {t.icon} {t.label}
+                                </button>
+                              )
+                            })}
+                          </div>
+                        </div>
 
-                  <div className="space-y-8">
-                    {/* Who's watching */}
-                    <div>
-                      <p className="mb-3 text-sm font-semibold text-white/60">WHO&apos;S WATCHING</p>
-                      <div className="flex flex-wrap gap-2">
-                        {VIEWING_CONTEXTS.map((ctx) => {
-                          const isActive = viewingContext === ctx.id
-                          return (
-                            <button
-                              key={ctx.id}
-                              type="button"
-                              aria-pressed={isActive}
-                              onClick={() => startTransition(() => setViewingContext(ctx.id))}
-                              className="rounded-full px-4 py-2 text-sm font-medium transition-all duration-200"
-                              style={{
-                                backdropFilter:  'blur(12px)',
-                                backgroundColor: isActive ? moodVis.orbColor : 'rgba(255,255,255,0.07)',
-                                border:          isActive ? `1px solid ${moodVis.orbColor}` : '1px solid rgba(255,255,255,0.10)',
-                                color:           isActive ? '#fff' : 'rgba(255,255,255,0.60)',
-                              }}
-                            >
-                              {ctx.icon} {ctx.name}
-                            </button>
-                          )
-                        })}
+                        {/* Who's watching */}
+                        <div className="space-y-2">
+                          <span className="text-xs font-semibold text-white/50 uppercase tracking-wide">Who&apos;s watching</span>
+                          <div className="flex flex-wrap gap-2">
+                            {VIEWING_CONTEXTS.map((ctx) => {
+                              const isActive = viewingContext === ctx.id
+                              return (
+                                <button
+                                  key={ctx.id}
+                                  type="button"
+                                  aria-pressed={isActive}
+                                  onClick={() => startTransition(() => setViewingContext(ctx.id))}
+                                  className="rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-200"
+                                  style={{
+                                    backgroundColor: isActive ? moodVis.orbColor : 'rgba(255,255,255,0.07)',
+                                    border:          isActive ? `1px solid ${moodVis.orbColor}` : '1px solid rgba(255,255,255,0.10)',
+                                    color:           isActive ? '#fff' : 'rgba(255,255,255,0.60)',
+                                  }}
+                                >
+                                  {ctx.icon} {ctx.name}
+                                </button>
+                              )
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Experience type */}
+                        <div className="space-y-2">
+                          <span className="text-xs font-semibold text-white/50 uppercase tracking-wide">What you want</span>
+                          <div className="flex flex-wrap gap-2">
+                            {EXPERIENCE_TYPES.map((exp) => {
+                              const isActive = experienceType === exp.id
+                              const { label, emoji } = EXPERIENCE_LABELS[exp.id]
+                              return (
+                                <button
+                                  key={exp.id}
+                                  type="button"
+                                  aria-pressed={isActive}
+                                  onClick={() => startTransition(() => setExperienceType(exp.id))}
+                                  className="rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-200"
+                                  style={{
+                                    backgroundColor: isActive ? `rgba(${moodVis.rgb},0.18)` : 'rgba(255,255,255,0.04)',
+                                    border:          isActive ? `1px solid ${moodVis.orbColor}80` : '1px solid rgba(255,255,255,0.08)',
+                                    color:           isActive ? '#fff' : 'rgba(255,255,255,0.60)',
+                                  }}
+                                >
+                                  {emoji} {label}
+                                </button>
+                              )
+                            })}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-
-                    {/* What you want */}
-                    <div>
-                      <p className="mb-3 text-sm font-semibold text-white/60">WHAT YOU WANT FROM IT</p>
-                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                        {EXPERIENCE_TYPES.map((exp) => {
-                          const isActive            = experienceType === exp.id
-                          const { label, emoji, preview } = EXPERIENCE_LABELS[exp.id]
-                          return (
-                            <button
-                              key={exp.id}
-                              type="button"
-                              aria-pressed={isActive}
-                              onClick={() => startTransition(() => setExperienceType(exp.id))}
-                              className="flex items-start gap-3 rounded-2xl p-4 text-left transition-all duration-200"
-                              style={{
-                                backdropFilter:  'blur(16px)',
-                                backgroundColor: isActive ? `rgba(${moodVis.rgb},0.18)` : 'rgba(255,255,255,0.04)',
-                                border:          isActive ? `1px solid ${moodVis.orbColor}80` : '1px solid rgba(255,255,255,0.08)',
-                                boxShadow:       isActive ? `0 0 20px ${moodVis.orbColor}33` : 'none',
-                              }}
-                            >
-                              <span className="text-2xl leading-none" aria-hidden="true">{emoji}</span>
-                              <div>
-                                <div className="text-sm font-semibold text-white/90">{label}</div>
-                                <div className="mt-0.5 text-xs text-white/40">{preview}</div>
-                              </div>
-                            </button>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={handleFindMovies}
-                    className="mt-8 w-full rounded-full py-4 text-[1.1rem] font-bold text-white transition-all duration-200 hover:scale-[1.02]"
-                    style={{
-                      background: `linear-gradient(135deg,${moodVis.color1},${moodVis.color2})`,
-                      boxShadow:  `0 0 32px ${moodVis.color1}66`,
-                    }}
-                  >
-                    Find my movies →
-                  </button>
-                </div>
-              </motion.div>
-            )}
-
-            {/* ── Stage 3: Results ──────────────────────────────────────────── */}
-            {currentStage === 3 && (
-              <motion.div key="stage-3" {...stageTransition}>
-                <div className="mb-8">
-                  <h2
-                    className="mb-1 text-2xl font-bold capitalize"
-                    style={{
-                      background:          `linear-gradient(135deg,${moodVis.color1},${moodVis.color2})`,
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                      backgroundClip:      'text',
-                    }}
-                  >
-                    {resultsHeader}
-                  </h2>
-                  <p className="text-sm" style={{ color: '#94a3b8' }}>
-                    5 picks curated for this exact feeling
-                  </p>
-                </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
                 {isLoading && (
                   <div aria-live="polite">

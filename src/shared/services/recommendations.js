@@ -72,7 +72,7 @@ import { recommendationCache } from '@/shared/lib/cache'
 // ============================================================================
 // VERSION
 // ============================================================================
-const ENGINE_VERSION = '2.9' // Fixed mood ID remap (4.9) — context/experience/time-of-day modifiers now match UI moods.
+const ENGINE_VERSION = '2.10' // Added mood coherence signal to homepage scoring (R3).
 const PROFILE_MEMORY_TTL_MS = 60 * 1000
 const SEED_MEMORY_TTL_MS = 60 * 1000
 const profileMemoryCache = new Map()
@@ -297,7 +297,7 @@ export async function computeUserProfile(userId, forceRefresh = false) {
           pacing_score_100, intensity_score_100, emotional_depth_score_100,
           dialogue_density, attention_demand, vfx_level_score,
           ff_rating, director_name, lead_actor_name, genres, keywords,
-          fit_profile
+          fit_profile, mood_tags, tone_tags
         )
       `
         )
@@ -424,6 +424,9 @@ export async function computeUserProfile(userId, forceRefresh = false) {
     // ✅ v2.4: feedback signals from thumbs up/down + post-watch sentiment
     const feedbackSignals = computeFeedbackSignals(userFeedback, userSentiment)
 
+    // ✅ v2.10: mood signature from recent watches (mood_tags/tone_tags/fit_profile)
+    const moodSignature = computeMoodSignature(weightedMovies)
+
     const profile = ensureLanguageProfileShape({
       userId,
       languages,
@@ -436,6 +439,7 @@ export async function computeUserProfile(userId, forceRefresh = false) {
       qualityProfile,
       negativeSignals,
       feedbackSignals,
+      moodSignature,
       watchedMovieIds,
       meta: {
         profileVersion: ENGINE_VERSION,
@@ -509,6 +513,7 @@ function buildEmptyProfile(userId, userPrefs) {
     themes: { preferred: [] },
     fitProfileAffinity: { distribution: {}, preferred: [], topShare: 0, franchiseFatigue: false },
     qualityProfile: { avgFFRating: 7.0, watchesHiddenGems: false, totalMoviesWatched: 0, avgUserRating: null, highRatedCount: 0 },
+    moodSignature: { recentMoodTags: [], recentToneTags: [], recentFitProfiles: [] },
     negativeSignals: {
       skippedGenres: [],
       skippedDirectors: [],
@@ -657,6 +662,73 @@ function computeNegativeSignals(skipFeedback, watchHistory) {
       .sort((a, b) => b.skipCount - a.skipCount),
     totalSkips: skipFeedback.length
   }
+}
+
+// ============================================================================
+// MOOD SIGNATURE — v2.10
+// ============================================================================
+
+/**
+ * Aggregate mood_tags, tone_tags, and fit_profile from the user's recent watches
+ * into a compact signature used by scoreMovieForUser dimension 19 (mood coherence).
+ *
+ * Recency weight: last 5 watches × 1.0, next 10 × 0.6, next 5 × 0.3.
+ * Only considers the 20 most recent non-onboarding watches.
+ *
+ * @param {Object[]} weightedMovies - Movies with weight, isOnboarding flag
+ * @returns {{ recentMoodTags: {tag,weight}[], recentToneTags: {tag,weight}[], recentFitProfiles: {profile,weight}[] }}
+ */
+function computeMoodSignature(weightedMovies) {
+  // Take the 20 most recent non-onboarding movies (they're already sorted by
+  // recency from the watchHistory query, with onboarding pushed first into
+  // weightedMovies — so filter onboarding and take first 20 of the rest).
+  const recent = weightedMovies.filter(m => !m.isOnboarding).slice(0, 20)
+
+  if (recent.length === 0) {
+    return { recentMoodTags: [], recentToneTags: [], recentFitProfiles: [] }
+  }
+
+  const moodTagWeights = new Map()
+  const toneTagWeights = new Map()
+  const fitProfileWeights = new Map()
+
+  recent.forEach((movie, idx) => {
+    // Recency tiers: first 5 → 1.0, next 10 → 0.6, last 5 → 0.3
+    let recencyWeight
+    if (idx < 5) recencyWeight = 1.0
+    else if (idx < 15) recencyWeight = 0.6
+    else recencyWeight = 0.3
+
+    const tags = Array.isArray(movie.mood_tags) ? movie.mood_tags : []
+    tags.forEach(tag => {
+      moodTagWeights.set(tag, (moodTagWeights.get(tag) || 0) + recencyWeight)
+    })
+
+    const tones = Array.isArray(movie.tone_tags) ? movie.tone_tags : []
+    tones.forEach(tag => {
+      toneTagWeights.set(tag, (toneTagWeights.get(tag) || 0) + recencyWeight)
+    })
+
+    if (movie.fit_profile) {
+      fitProfileWeights.set(movie.fit_profile, (fitProfileWeights.get(movie.fit_profile) || 0) + recencyWeight)
+    }
+  })
+
+  const sortDesc = (a, b) => b.weight - a.weight
+  const recentMoodTags = [...moodTagWeights.entries()]
+    .map(([tag, weight]) => ({ tag, weight: Math.round(weight * 10) / 10 }))
+    .sort(sortDesc)
+    .slice(0, 8)
+  const recentToneTags = [...toneTagWeights.entries()]
+    .map(([tag, weight]) => ({ tag, weight: Math.round(weight * 10) / 10 }))
+    .sort(sortDesc)
+    .slice(0, 5)
+  const recentFitProfiles = [...fitProfileWeights.entries()]
+    .map(([profile, weight]) => ({ profile, weight: Math.round(weight * 10) / 10 }))
+    .sort(sortDesc)
+    .slice(0, 3)
+
+  return { recentMoodTags, recentToneTags, recentFitProfiles }
 }
 
 // ============================================================================
@@ -1514,7 +1586,7 @@ export async function getTopPickForUser(userId, options = {}) {
         genres, keywords, primary_genre,
         discovery_potential, accessibility_score,
         polarization_score, starpower_score,
-        fit_profile,
+        fit_profile, mood_tags, tone_tags,
         user_satisfaction_score, user_satisfaction_confidence
       `
 
@@ -2013,6 +2085,28 @@ export function scoreMovieForUser(movie, profile, rowType = 'default', seedFilms
     else breakdown.userSatisfaction = 0
   } else {
     breakdown.userSatisfaction = 0
+  }
+
+  // 19) MOOD COHERENCE — rewards films whose mood/tone tags align with user's recent watches — v2.10
+  if (profile.moodSignature?.recentMoodTags?.length > 0) {
+    const movieMoodTags = Array.isArray(movie.mood_tags) ? movie.mood_tags : []
+    const movieToneTags = Array.isArray(movie.tone_tags) ? movie.tone_tags : []
+
+    let moodScore = 0
+    const userTopTags = new Map(profile.moodSignature.recentMoodTags.map(t => [t.tag, t.weight]))
+    movieMoodTags.forEach(t => {
+      if (userTopTags.has(t)) moodScore += userTopTags.get(t) * 2
+    })
+
+    const userTopTones = new Map(profile.moodSignature.recentToneTags.map(t => [t.tag, t.weight]))
+    movieToneTags.forEach(t => {
+      if (userTopTones.has(t)) moodScore += userTopTones.get(t) * 1
+    })
+
+    breakdown.moodCoherence = Math.min(20, Math.round(moodScore))
+    score += breakdown.moodCoherence
+  } else {
+    breakdown.moodCoherence = 0
   }
 
   const finalScore = Math.max(0, Math.round(score * 10) / 10)
@@ -2844,7 +2938,7 @@ export async function getGenreBasedRecommendations(userId, options = {}) {
         cult_status_score, popularity, vote_count, revenue,
         director_name, lead_actor_name,
         genres, keywords, primary_genre,
-        fit_profile,
+        fit_profile, mood_tags, tone_tags,
         user_satisfaction_score, user_satisfaction_confidence
       `
 
@@ -3043,7 +3137,7 @@ async function getGenreFallback(limit = 20) {
       cult_status_score, popularity, vote_count, revenue,
       director_name, lead_actor_name,
       genres, keywords, primary_genre,
-      fit_profile,
+      fit_profile, mood_tags, tone_tags,
       user_satisfaction_score, user_satisfaction_confidence
     `)
     .eq('is_valid', true)
@@ -3878,7 +3972,7 @@ export async function getTrendingForUser(userId, options = {}) {
         cult_status_score, popularity, vote_count, revenue,
         director_name, lead_actor_name,
         genres, keywords, primary_genre,
-        fit_profile,
+        fit_profile, mood_tags, tone_tags,
         user_satisfaction_score, user_satisfaction_confidence
       `
 
@@ -4082,7 +4176,7 @@ async function getTrendingFallback(limit = 20) {
       cult_status_score, popularity, vote_count, revenue,
       director_name, lead_actor_name,
       genres, keywords, primary_genre,
-      fit_profile,
+      fit_profile, mood_tags, tone_tags,
       user_satisfaction_score, user_satisfaction_confidence
     `
 
@@ -4191,7 +4285,7 @@ export async function getHiddenGemsForUser(userId, options = {}) {
         cult_status_score, popularity, vote_count, revenue,
         director_name, lead_actor_name,
         genres, keywords, primary_genre,
-        fit_profile,
+        fit_profile, mood_tags, tone_tags,
         user_satisfaction_score, user_satisfaction_confidence
       `
 
@@ -4410,7 +4504,7 @@ async function getHiddenGemsFallback(limit = 20) {
       cult_status_score, popularity, vote_count, revenue,
       director_name, lead_actor_name,
       genres, keywords, primary_genre,
-      fit_profile,
+      fit_profile, mood_tags, tone_tags,
       user_satisfaction_score, user_satisfaction_confidence
     `
 

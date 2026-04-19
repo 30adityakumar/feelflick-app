@@ -233,6 +233,7 @@ function AuroraBackground({ moodId }) {
 // ─── Stage Progress ───────────────────────────────────────────────────────────
 
 const STAGE_LABELS = ['Mood', 'Results']
+const EMPTY_GENRES = []
 
 function StageProgress({ currentStage, moodId }) {
   const vis = moodId ? MOOD_VISUAL_MAP[moodId] : MOOD_VISUAL_MAP.DEFAULT
@@ -601,7 +602,7 @@ export default function DiscoverPage() {
     pacing,
     timeOfDay,
     movies:     aiMovies,
-    top3Genres: [],
+    top3Genres: EMPTY_GENRES,
     enabled:    recommendations.length > 0,
   })
 

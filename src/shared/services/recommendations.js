@@ -72,7 +72,7 @@ import { recommendationCache } from '@/shared/lib/cache'
 // ============================================================================
 // VERSION
 // ============================================================================
-const ENGINE_VERSION = '2.12' // Non-English pool resilience before TMDB fallback (R6).
+const ENGINE_VERSION = '2.13' // Tiered homepage with mood coherence + cold-start seeding.
 const PROFILE_MEMORY_TTL_MS = 60 * 1000
 const SEED_MEMORY_TTL_MS = 60 * 1000
 const profileMemoryCache = new Map()
@@ -232,6 +232,14 @@ const GENRE_NAME_TO_ID = {
   thriller: 53,
   war: 10752,
   western: 37
+}
+
+const GENRE_ID_TO_NAME = {
+  28: 'Action', 12: 'Adventure', 16: 'Animation', 35: 'Comedy',
+  80: 'Crime', 99: 'Documentary', 18: 'Drama', 10751: 'Family',
+  14: 'Fantasy', 36: 'History', 27: 'Horror', 10402: 'Music',
+  9648: 'Mystery', 10749: 'Romance', 878: 'Science Fiction',
+  10770: 'TV Movie', 53: 'Thriller', 10752: 'War', 37: 'Western',
 }
 
 // ============================================================================
@@ -1629,6 +1637,17 @@ export async function getTopPickForUser(userId, options = {}) {
         baseQuery = baseQuery.eq('original_language', langGuard.allowedLanguages[0])
       } else if (langGuard.mode === 'strong' && langGuard.allowedLanguages.length > 0) {
         baseQuery = baseQuery.in('original_language', langGuard.allowedLanguages)
+      }
+
+      // Cold-start: restrict hero pool to onboarding genre preferences
+      const isColdStart = (profile.qualityProfile?.totalMoviesWatched || 0) === 0
+      if (isColdStart && profile.genres.preferred.length > 0) {
+        const onboardingGenreNames = profile.genres.preferred
+          .map(id => GENRE_ID_TO_NAME[id])
+          .filter(Boolean)
+        if (onboardingGenreNames.length > 0) {
+          baseQuery = baseQuery.in('primary_genre', onboardingGenreNames)
+        }
       }
 
       let { data: baseCandidates } = await baseQuery
@@ -4593,5 +4612,277 @@ async function getHiddenGemsFallback(limit = 20) {
 
 
 
+
+// ============================================================================
+// TIERED HOMEPAGE — NEW ROW GENERATORS (v2.13)
+// ============================================================================
+
+const TIERED_SELECT_FIELDS = `
+  id, tmdb_id, title, overview, tagline,
+  original_language, runtime, release_year, release_date,
+  poster_path, backdrop_path, trailer_youtube_key,
+  ff_rating, ff_final_rating, ff_confidence, quality_score, vote_average,
+  ff_critic_rating, ff_critic_confidence, ff_audience_rating, ff_audience_confidence,
+  ff_community_rating, ff_community_confidence, ff_community_votes,
+  ff_rating_genre_normalized,
+  pacing_score, intensity_score, emotional_depth_score,
+  pacing_score_100, intensity_score_100, emotional_depth_score_100,
+  dialogue_density, attention_demand, vfx_level_score,
+  cult_status_score, popularity, vote_count, revenue,
+  director_name, lead_actor_name,
+  genres, keywords, primary_genre,
+  discovery_potential, accessibility_score, polarization_score, starpower_score,
+  fit_profile, mood_tags, tone_tags,
+  user_satisfaction_score, user_satisfaction_confidence
+`
+
+/**
+ * Mood coherence row — films whose mood_tags intersect with user's recent mood tags.
+ * Requires profile.moodSignature.recentMoodTags.length >= 3.
+ *
+ * @param {string} userId
+ * @param {Object} profile - computeUserProfile result
+ * @param {number} [limit=20]
+ * @returns {Promise<Object[]>}
+ */
+export async function getMoodCoherenceRow(userId, profile, limit = 20) {
+  const cacheKey = recommendationCache.key('mood_coherence', userId, { limit })
+
+  return recommendationCache.getOrFetch(cacheKey, async () => {
+    try {
+      const recentTags = profile?.moodSignature?.recentMoodTags || []
+      if (recentTags.length < 3) return []
+
+      const topTags = recentTags.slice(0, 3).map(t => t.tag)
+
+      const watchedIds = new Set(profile.watchedMovieIds || [])
+
+      // Recent skips (7d)
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+      const { data: skipData } = await supabase
+        .from('recommendation_impressions')
+        .select('movie_id')
+        .eq('user_id', userId)
+        .eq('skipped', true)
+        .gte('shown_at', sevenDaysAgo)
+      const skipIds = new Set((skipData || []).map(r => r.movie_id).filter(Boolean))
+
+      // Fetch candidates with mood_tags overlap
+      // Supabase doesn't support array-overlap filter natively, so fetch a broad pool
+      // and filter client-side by tag intersection
+      const { data, error } = await supabase
+        .from('movies')
+        .select(TIERED_SELECT_FIELDS)
+        .eq('is_valid', true)
+        .not('poster_path', 'is', null)
+        .gte('ff_audience_rating', 65)
+        .gte('ff_confidence', 40)
+        .order('ff_audience_rating', { ascending: false })
+        .limit(500)
+
+      if (error) throw error
+
+      const candidates = (data || []).filter(movie => {
+        if (!movie?.id || !movie.tmdb_id) return false
+        if (watchedIds.has(movie.id)) return false
+        if (skipIds.has(movie.id)) return false
+        const movieTags = Array.isArray(movie.mood_tags) ? movie.mood_tags : []
+        return movieTags.some(t => topTags.includes(t))
+      })
+
+      if (candidates.length === 0) return []
+
+      const scored = candidates
+        .map(movie => {
+          const result = scoreMovieForUser(movie, profile, 'home')
+          return { movie, score: result.score }
+        })
+        .sort((a, b) => b.score - a.score)
+        .slice(0, limit)
+
+      return scored.map(({ movie, score }) => ({
+        ...movie,
+        _score: score,
+        _pickReason: { label: 'Matches your vibe', type: 'mood_coherence' },
+      }))
+    } catch (error) {
+      console.error('[getMoodCoherenceRow] failed:', error)
+      return []
+    }
+  }, { ttl: 5 * 60 * 1000 })
+}
+
+/**
+ * Your Genres row — top preferred genre films scored by user profile.
+ *
+ * @param {string} userId
+ * @param {Object} profile - computeUserProfile result
+ * @param {number} [limit=20]
+ * @returns {Promise<{label: string, movies: Object[]}>}
+ */
+export async function getYourGenresRow(userId, profile, limit = 20) {
+  const preferred = profile?.genres?.preferred || []
+  if (preferred.length === 0) return { label: null, movies: [] }
+
+  const topGenreId = preferred[0]
+  const genreName = GENRE_ID_TO_NAME[topGenreId]
+  if (!genreName) return { label: null, movies: [] }
+
+  const label = `More ${genreName}`
+  const cacheKey = recommendationCache.key('your_genres', userId, { genreId: topGenreId, limit })
+
+  const movies = await recommendationCache.getOrFetch(cacheKey, async () => {
+    try {
+      const watchedIds = new Set(profile.watchedMovieIds || [])
+
+      const { data, error } = await supabase
+        .from('movies')
+        .select(TIERED_SELECT_FIELDS)
+        .eq('is_valid', true)
+        .not('poster_path', 'is', null)
+        .eq('primary_genre', genreName)
+        .gte('ff_audience_rating', 70)
+        .gte('ff_confidence', 40)
+        .order('ff_audience_rating', { ascending: false })
+        .limit(200)
+
+      if (error) throw error
+
+      const candidates = (data || []).filter(m => m?.id && m.tmdb_id && !watchedIds.has(m.id))
+      if (candidates.length === 0) return []
+
+      return candidates
+        .map(movie => {
+          const result = scoreMovieForUser(movie, profile, 'home')
+          return {
+            ...movie,
+            _score: result.score,
+            _pickReason: { label: `${genreName} pick`, type: 'your_genre' },
+          }
+        })
+        .sort((a, b) => b._score - a._score)
+        .slice(0, limit)
+    } catch (error) {
+      console.error('[getYourGenresRow] failed:', error)
+      return []
+    }
+  }, { ttl: 5 * 60 * 1000 })
+
+  return { label, movies }
+}
+
+/**
+ * Popular on FeelFlick — unpersonalized cold-start row.
+ * Recent high-audience-rating films with strong vote counts.
+ *
+ * @param {number} [limit=20]
+ * @returns {Promise<Object[]>}
+ */
+export async function getPopularForColdStartRow(limit = 20) {
+  const cacheKey = recommendationCache.key('popular_cold_start', 'global', { limit })
+
+  return recommendationCache.getOrFetch(cacheKey, async () => {
+    try {
+      const currentYear = new Date().getFullYear()
+      const { data, error } = await supabase
+        .from('movies')
+        .select(TIERED_SELECT_FIELDS)
+        .eq('is_valid', true)
+        .not('poster_path', 'is', null)
+        .gte('ff_audience_rating', 78)
+        .gte('vote_count', 10000)
+        .gte('release_year', currentYear - 3)
+        .order('popularity', { ascending: false })
+        .limit(limit)
+
+      if (error) throw error
+      return (data || []).map(movie => ({
+        ...movie,
+        _score: movie.ff_audience_rating || 0,
+        _pickReason: { label: 'Popular on FeelFlick', type: 'popular_cold_start' },
+      }))
+    } catch (error) {
+      console.error('[getPopularForColdStartRow] failed:', error)
+      return []
+    }
+  }, { ttl: 10 * 60 * 1000 })
+}
+
+/**
+ * Onboarding-seeded row — uses the user's onboarding film selections
+ * as embedding seeds via match_movies_by_seeds.
+ *
+ * @param {string} userId
+ * @param {number} [limit=20]
+ * @returns {Promise<Object[]>}
+ */
+export async function getOnboardingSeededRow(userId, limit = 20) {
+  const cacheKey = recommendationCache.key('onboarding_seeded', userId, { limit })
+
+  return recommendationCache.getOrFetch(cacheKey, async () => {
+    try {
+      // Get onboarding film IDs from user_history where source = 'onboarding'
+      const { data: onboardingHistory, error: histErr } = await supabase
+        .from('user_history')
+        .select('movie_id')
+        .eq('user_id', userId)
+        .eq('source', 'onboarding')
+
+      if (histErr) throw histErr
+
+      const seedIds = (onboardingHistory || []).map(h => h.movie_id).filter(Boolean)
+      if (seedIds.length === 0) return []
+
+      // Use embedding similarity to find similar films
+      const { data: matches, error: rpcErr } = await supabase
+        .rpc('match_movies_by_seeds', {
+          seed_ids: seedIds,
+          exclude_ids: seedIds,
+          match_count: limit * 2,
+          min_ff_rating: 70,
+        })
+
+      if (rpcErr) {
+        console.warn('[getOnboardingSeededRow] RPC error:', rpcErr.message)
+        return []
+      }
+
+      return (matches || [])
+        .filter(m => m?.poster_path)
+        .slice(0, limit)
+        .map(movie => ({
+          ...movie,
+          _score: movie.similarity || 0,
+          _pickReason: { label: 'Based on your picks', type: 'onboarding_seeded' },
+        }))
+    } catch (error) {
+      console.error('[getOnboardingSeededRow] failed:', error)
+      return []
+    }
+  }, { ttl: 10 * 60 * 1000 })
+}
+
+/**
+ * Get the user's watch count for tier detection.
+ * Lightweight — just a count query, no full row fetch.
+ *
+ * @param {string} userId
+ * @returns {Promise<number>}
+ */
+export async function getUserWatchCount(userId) {
+  if (!userId) return 0
+  try {
+    const { count, error } = await supabase
+      .from('user_history')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+
+    if (error) throw error
+    return count || 0
+  } catch (error) {
+    console.error('[getUserWatchCount] failed:', error)
+    return 0
+  }
+}
 
 export const __TEST_ONLY__ = { THRESHOLDS, computeNegativeSignals, scoreEraMatch, scoreRecency }

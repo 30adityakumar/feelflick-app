@@ -3,11 +3,16 @@ import { useEffect, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 
 import { supabase } from '@/shared/lib/supabase/client'
+import { useUserTier } from '@/shared/hooks/useRecommendations'
 
 import HeroTopPick from './components/HeroTopPick'
 import BecauseYouWatchedSection from './components/BecauseYouWatchedSection'
 import HiddenGemsRow from './components/HiddenGemsRow'
 import TrendingForYouRow from './components/TrendingForYouRow'
+import MoodCoherenceRow from './components/MoodCoherenceRow'
+import YourGenresRow from './components/YourGenresRow'
+import PopularRow from './components/PopularRow'
+import OnboardingSeededRow from './components/OnboardingSeededRow'
 
 import { SectionErrorBoundary } from '@/app/ErrorBoundary'
 
@@ -58,6 +63,8 @@ export default function HomePage() {
     }
   }, [userId])
 
+  const { tier } = useUserTier({ userId })
+
   return (
     <div className="overflow-x-hidden" style={{ background: 'var(--color-bg)' }}>
       {/* HERO (above the fold) */}
@@ -82,20 +89,80 @@ export default function HomePage() {
 
         <div className="mx-auto max-w-[1600px]">
           <div>
-
-            {/* Three curated rows — all mount immediately, skeletons show while loading */}
             <div className="space-y-0">
-              <SectionErrorBoundary label="Because You Watched">
-                <BecauseYouWatchedSection userId={userId} />
-              </SectionErrorBoundary>
 
-              <SectionErrorBoundary label="Hidden Gems">
-                <HiddenGemsRow userId={userId} />
-              </SectionErrorBoundary>
+              {/* === COLD (0 watches) === */}
+              {tier === 'cold' && (
+                <>
+                  <SectionErrorBoundary label="Based on Your Picks">
+                    <OnboardingSeededRow userId={userId} />
+                  </SectionErrorBoundary>
 
-              <SectionErrorBoundary label="Trending For You">
-                <TrendingForYouRow userId={userId} />
-              </SectionErrorBoundary>
+                  <SectionErrorBoundary label="Popular on FeelFlick">
+                    <PopularRow />
+                  </SectionErrorBoundary>
+                </>
+              )}
+
+              {/* === WARMING (1-9 watches) === */}
+              {tier === 'warming' && (
+                <>
+                  <SectionErrorBoundary label="Because You Watched">
+                    <BecauseYouWatchedSection userId={userId} maxSeeds={1} />
+                  </SectionErrorBoundary>
+
+                  <SectionErrorBoundary label="Hidden Gems">
+                    <HiddenGemsRow userId={userId} />
+                  </SectionErrorBoundary>
+
+                  <SectionErrorBoundary label="Trending For You">
+                    <TrendingForYouRow userId={userId} />
+                  </SectionErrorBoundary>
+                </>
+              )}
+
+              {/* === ENGAGED (10+ watches) === */}
+              {tier === 'engaged' && (
+                <>
+                  <SectionErrorBoundary label="Because You Watched">
+                    <BecauseYouWatchedSection userId={userId} maxSeeds={2} />
+                  </SectionErrorBoundary>
+
+                  <SectionErrorBoundary label="More Like Your Vibe">
+                    <MoodCoherenceRow userId={userId} />
+                  </SectionErrorBoundary>
+
+                  <SectionErrorBoundary label="Hidden Gems">
+                    <HiddenGemsRow userId={userId} />
+                  </SectionErrorBoundary>
+
+                  <SectionErrorBoundary label="Your Genres">
+                    <YourGenresRow userId={userId} />
+                  </SectionErrorBoundary>
+
+                  <SectionErrorBoundary label="Trending For You">
+                    <TrendingForYouRow userId={userId} />
+                  </SectionErrorBoundary>
+                </>
+              )}
+
+              {/* While tier is loading (null), show skeleton rows */}
+              {tier === null && (
+                <>
+                  <SectionErrorBoundary label="Because You Watched">
+                    <BecauseYouWatchedSection userId={userId} />
+                  </SectionErrorBoundary>
+
+                  <SectionErrorBoundary label="Hidden Gems">
+                    <HiddenGemsRow userId={userId} />
+                  </SectionErrorBoundary>
+
+                  <SectionErrorBoundary label="Trending For You">
+                    <TrendingForYouRow userId={userId} />
+                  </SectionErrorBoundary>
+                </>
+              )}
+
             </div>
           </div>
         </div>

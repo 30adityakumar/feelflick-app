@@ -556,7 +556,251 @@ export function useTrending(options = {}) {
   return useTrendingForYou(options)
 }
 
+// ============================================================================
+// TIERED HOMEPAGE HOOKS
+// ============================================================================
 
+/**
+ * Hook: User watch count for tier detection (cold/warming/engaged).
+ * Returns { watchCount, tier, loading }.
+ */
+export function useUserTier(options = {}) {
+  const { userId: userIdOverride } = options
+
+  const auth = useAuthState()
+  const userId = userIdOverride !== undefined ? userIdOverride : auth.userId
+  const authReady = userIdOverride !== undefined ? true : auth.ready
+
+  const [watchCount, setWatchCount] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (!authReady) return
+
+    if (!userId) {
+      setWatchCount(0)
+      setLoading(false)
+      return
+    }
+
+    let isCancelled = false
+
+    async function fetch() {
+      try {
+        const count = await recommendationService.getUserWatchCount(userId)
+        if (!isCancelled) setWatchCount(count)
+      } catch {
+        if (!isCancelled) setWatchCount(0)
+      } finally {
+        if (!isCancelled) setLoading(false)
+      }
+    }
+
+    fetch()
+    return () => { isCancelled = true }
+  }, [userId, authReady])
+
+  const tier = watchCount === null ? null
+    : watchCount === 0 ? 'cold'
+    : watchCount < 10 ? 'warming'
+    : 'engaged'
+
+  return { watchCount, tier, loading }
+}
+
+/**
+ * Hook: Mood coherence row — films matching user's recent mood vibe.
+ */
+export function useMoodCoherenceRow(options = {}) {
+  const { limit = 20, enabled = true, userId: userIdOverride } = options
+
+  const auth = useAuthState()
+  const userId = userIdOverride !== undefined ? userIdOverride : auth.userId
+  const authReady = userIdOverride !== undefined ? true : auth.ready
+
+  const [data, setData] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    if (!enabled || !authReady) return
+
+    if (!userId) {
+      setData([])
+      setLoading(false)
+      return
+    }
+
+    let isCancelled = false
+
+    async function fetchRow() {
+      try {
+        setLoading(true)
+        setError(null)
+
+        const profile = await recommendationService.computeUserProfile(userId)
+        const items = await recommendationService.getMoodCoherenceRow(userId, profile, limit)
+
+        if (!isCancelled) setData(items || [])
+      } catch (err) {
+        if (err.name !== 'AbortError' && !isCancelled) {
+          console.error('[useMoodCoherenceRow] Error:', err)
+          setError(err)
+        }
+      } finally {
+        if (!isCancelled) setLoading(false)
+      }
+    }
+
+    fetchRow()
+    return () => { isCancelled = true }
+  }, [userId, authReady, enabled, limit])
+
+  return { data, loading, error }
+}
+
+/**
+ * Hook: Your Genres row — top preferred genre films.
+ */
+export function useYourGenresRow(options = {}) {
+  const { limit = 20, enabled = true, userId: userIdOverride } = options
+
+  const auth = useAuthState()
+  const userId = userIdOverride !== undefined ? userIdOverride : auth.userId
+  const authReady = userIdOverride !== undefined ? true : auth.ready
+
+  const [data, setData] = useState([])
+  const [label, setLabel] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    if (!enabled || !authReady) return
+
+    if (!userId) {
+      setData([])
+      setLoading(false)
+      return
+    }
+
+    let isCancelled = false
+
+    async function fetchRow() {
+      try {
+        setLoading(true)
+        setError(null)
+
+        const profile = await recommendationService.computeUserProfile(userId)
+        const result = await recommendationService.getYourGenresRow(userId, profile, limit)
+
+        if (!isCancelled) {
+          setData(result.movies || [])
+          setLabel(result.label)
+        }
+      } catch (err) {
+        if (err.name !== 'AbortError' && !isCancelled) {
+          console.error('[useYourGenresRow] Error:', err)
+          setError(err)
+        }
+      } finally {
+        if (!isCancelled) setLoading(false)
+      }
+    }
+
+    fetchRow()
+    return () => { isCancelled = true }
+  }, [userId, authReady, enabled, limit])
+
+  return { data, label, loading, error }
+}
+
+/**
+ * Hook: Popular on FeelFlick — unpersonalized cold-start row.
+ */
+export function usePopularForColdStart(options = {}) {
+  const { limit = 20, enabled = true } = options
+
+  const [data, setData] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    if (!enabled) return
+
+    let isCancelled = false
+
+    async function fetchRow() {
+      try {
+        setLoading(true)
+        setError(null)
+
+        const items = await recommendationService.getPopularForColdStartRow(limit)
+        if (!isCancelled) setData(items || [])
+      } catch (err) {
+        if (!isCancelled) {
+          console.error('[usePopularForColdStart] Error:', err)
+          setError(err)
+        }
+      } finally {
+        if (!isCancelled) setLoading(false)
+      }
+    }
+
+    fetchRow()
+    return () => { isCancelled = true }
+  }, [enabled, limit])
+
+  return { data, loading, error }
+}
+
+/**
+ * Hook: Onboarding-seeded row — "Based on your picks" using embedding similarity.
+ */
+export function useOnboardingSeededRow(options = {}) {
+  const { limit = 20, enabled = true, userId: userIdOverride } = options
+
+  const auth = useAuthState()
+  const userId = userIdOverride !== undefined ? userIdOverride : auth.userId
+  const authReady = userIdOverride !== undefined ? true : auth.ready
+
+  const [data, setData] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    if (!enabled || !authReady) return
+
+    if (!userId) {
+      setData([])
+      setLoading(false)
+      return
+    }
+
+    let isCancelled = false
+
+    async function fetchRow() {
+      try {
+        setLoading(true)
+        setError(null)
+
+        const items = await recommendationService.getOnboardingSeededRow(userId, limit)
+        if (!isCancelled) setData(items || [])
+      } catch (err) {
+        if (err.name !== 'AbortError' && !isCancelled) {
+          console.error('[useOnboardingSeededRow] Error:', err)
+          setError(err)
+        }
+      } finally {
+        if (!isCancelled) setLoading(false)
+      }
+    }
+
+    fetchRow()
+    return () => { isCancelled = true }
+  }, [userId, authReady, enabled, limit])
+
+  return { data, loading, error }
+}
 
 /**
  * Hook: Mood-specific recommendations (used outside HomePage)

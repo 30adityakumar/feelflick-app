@@ -72,7 +72,7 @@ import { recommendationCache } from '@/shared/lib/cache'
 // ============================================================================
 // VERSION
 // ============================================================================
-const ENGINE_VERSION = '2.10' // Added mood coherence signal to homepage scoring (R3).
+const ENGINE_VERSION = '2.11' // Semantic free-text parse extracts mood/tone tags (R1c).
 const PROFILE_MEMORY_TTL_MS = 60 * 1000
 const SEED_MEMORY_TTL_MS = 60 * 1000
 const profileMemoryCache = new Map()
@@ -3372,31 +3372,49 @@ function getTimeOfDayBonus(moodId, timeOfDay) {
  * Primary signal: mood_tags / tone_tags intersection with discover_moods tag sets.
  * Returns a score 0–100, additive on top of the user profile score.
  *
+ * Merge mood-defined tags with user-parsed free-text tags (deduped union).
+ * @param {string[]|undefined} baseTags
+ * @param {string[]|undefined} userTags
+ * @returns {string[]}
+ */
+function mergeTags(baseTags, userTags) {
+  const base = Array.isArray(baseTags) ? baseTags : []
+  const user = Array.isArray(userTags) ? userTags : []
+  if (user.length === 0) return base
+  return [...new Set([...base, ...user])]
+}
+
+/**
  * @param {Object} movie - Internal movies table row (must include mood_tags, tone_tags)
  * @param {number} moodId - Discover mood ID (1–12)
  * @param {{weights: Array, preferred_tags: string[], avoided_tags: string[], preferred_tones: string[]}} moodData
- * @param {{intensity: number, pacing: number, viewingContext: number, experienceType: number, timeOfDay: string}} params
+ * @param {{intensity: number, pacing: number, viewingContext: number, experienceType: number, timeOfDay: string, parsedTags?: Object}} params
  * @returns {number}
  */
 export function scoreMoodAffinity(movie, moodId, moodData, params) {
-  const { intensity, pacing, viewingContext, experienceType, timeOfDay } = params
+  const { intensity, pacing, viewingContext, experienceType, timeOfDay, parsedTags } = params
   let score = 0
+
+  // Merge mood-defined tags with user-parsed free-text tags (user tags take priority via union)
+  const preferredMoodTags = mergeTags(moodData.preferred_tags, parsedTags?.preferredMoodTags)
+  const preferredToneTags = mergeTags(moodData.preferred_tones, parsedTags?.preferredToneTags)
+  const avoidedMoodTags   = mergeTags(moodData.avoided_tags, parsedTags?.avoidedMoodTags)
 
   // 1. TAG INTERSECTION — PRIMARY SIGNAL (max +55)
   const movieMoodTags = Array.isArray(movie.mood_tags) ? movie.mood_tags : []
   const movieToneTags = Array.isArray(movie.tone_tags) ? movie.tone_tags : []
-  if (moodData.preferred_tags?.length > 0 && movieMoodTags.length > 0) {
-    const matches = movieMoodTags.filter(t => moodData.preferred_tags.includes(t)).length
+  if (preferredMoodTags.length > 0 && movieMoodTags.length > 0) {
+    const matches = movieMoodTags.filter(t => preferredMoodTags.includes(t)).length
     score += Math.min(matches * 15, 45)
   }
-  if (moodData.preferred_tones?.length > 0 && movieToneTags.length > 0) {
-    const toneMatches = movieToneTags.filter(t => moodData.preferred_tones.includes(t)).length
+  if (preferredToneTags.length > 0 && movieToneTags.length > 0) {
+    const toneMatches = movieToneTags.filter(t => preferredToneTags.includes(t)).length
     score += Math.min(toneMatches * 5, 10)
   }
 
   // 2. AVOIDED TAG PENALTY — strong signal
-  if (moodData.avoided_tags?.length > 0 && movieMoodTags.length > 0) {
-    const avoidedMatches = movieMoodTags.filter(t => moodData.avoided_tags.includes(t)).length
+  if (avoidedMoodTags.length > 0 && movieMoodTags.length > 0) {
+    const avoidedMatches = movieMoodTags.filter(t => avoidedMoodTags.includes(t)).length
     score -= avoidedMatches * 20
   }
 
@@ -3549,6 +3567,7 @@ export async function getMoodRecommendations(userId, moodId, options = {}) {
     viewingContext = 1,
     experienceType = 1,
     timeOfDay = 'evening',
+    parsedTags = null,
   } = options
 
   const cacheKey = recommendationCache.key('mood', userId, { moodId, viewingContext, experienceType })
@@ -3573,7 +3592,7 @@ export async function getMoodRecommendations(userId, moodId, options = {}) {
       const watchedIds = new Set(profile.watchedMovieIds || [])
 
       // 5. Score each candidate
-      const moodParams = { intensity, pacing, viewingContext, experienceType, timeOfDay }
+      const moodParams = { intensity, pacing, viewingContext, experienceType, timeOfDay, parsedTags }
       const scored = candidates
         .filter(movie => movie?.id && movie.tmdb_id && !watchedIds.has(movie.id))
         .map(movie => {

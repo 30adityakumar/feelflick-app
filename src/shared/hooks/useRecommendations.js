@@ -576,6 +576,7 @@ export function useRecommendations(
   pacing,
   timeOfDay,
   limit = 20,
+  parsedTags = null,
 ) {
   const auth = useAuthState()
   const userId = auth.userId
@@ -610,6 +611,7 @@ export function useRecommendations(
           viewingContext,
           experienceType,
           timeOfDay,
+          parsedTags,
         })
 
         // Movies now come from internal movies table — map to the Discover result shape.
@@ -641,7 +643,7 @@ export function useRecommendations(
     fetchRecommendations()
 
     return () => controller.abort()
-  }, [userId, authReady, moodId, viewingContext, experienceType, intensity, pacing, timeOfDay, limit])
+  }, [userId, authReady, moodId, viewingContext, experienceType, intensity, pacing, timeOfDay, limit, parsedTags])
 
   return {
     recommendations: data,

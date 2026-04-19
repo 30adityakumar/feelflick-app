@@ -552,6 +552,7 @@ export default function DiscoverPage() {
   // NL mood input
   const [freeText, setFreeText]       = useState('')
   const [dialsParsing, setDialsParsing] = useState(false)
+  const [parsedTags, setParsedTags]   = useState(null)
 
   // Narration fallback: show static text after 2s if AI narration hasn't arrived
   const [showNarrationFallback, setShowNarrationFallback] = useState(false)
@@ -575,6 +576,8 @@ export default function DiscoverPage() {
     intensity,
     pacing,
     timeOfDay,
+    20,
+    parsedTags,
   )
 
   const selectedMoodOption = useMemo(
@@ -728,6 +731,14 @@ export default function DiscoverPage() {
       if (result.pacing)         setPacing(result.pacing)
       if (result.viewingContext) setViewingContext(result.viewingContext)
       if (result.experienceType) setExperienceType(result.experienceType)
+      // Store parsed tag preferences for recommendation scoring
+      if (result.preferredMoodTags?.length || result.avoidedMoodTags?.length || result.preferredToneTags?.length) {
+        setParsedTags({
+          preferredMoodTags: result.preferredMoodTags,
+          avoidedMoodTags:   result.avoidedMoodTags,
+          preferredToneTags: result.preferredToneTags,
+        })
+      }
     }
     setDialsParsing(false)
     startTransition(() => setCurrentStage(1))
@@ -753,6 +764,7 @@ export default function DiscoverPage() {
       setExperienceType(1)
       setFreeText('')
       setDialsParsing(false)
+      setParsedTags(null)
       trackedResultsKeyRef.current = ''
       setShowNarrationFallback(false)
     })

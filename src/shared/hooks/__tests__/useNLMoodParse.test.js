@@ -34,7 +34,7 @@ describe('useNLMoodParse', () => {
       returned = await result.current.parse('Cozy', 'something heavy and slow')
     })
 
-    expect(returned).toEqual({ intensity: 4, pacing: 2, viewingContext: 1, experienceType: 3 })
+    expect(returned).toEqual({ intensity: 4, pacing: 2, viewingContext: 1, experienceType: 3, preferredMoodTags: [], avoidedMoodTags: [], preferredToneTags: [] })
     expect(result.current.loading).toBe(false)
   })
 
@@ -53,7 +53,7 @@ describe('useNLMoodParse', () => {
       returned = await result.current.parse('Energized', 'loud and chaotic vibes')
     })
 
-    expect(returned).toEqual({ intensity: 5, pacing: 1, viewingContext: 3, experienceType: 3 })
+    expect(returned).toEqual({ intensity: 5, pacing: 1, viewingContext: 3, experienceType: 3, preferredMoodTags: [], avoidedMoodTags: [], preferredToneTags: [] })
   })
 
   it('returns null on network error', async () => {

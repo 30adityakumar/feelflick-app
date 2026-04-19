@@ -83,6 +83,31 @@ describe('useNLMoodParse', () => {
     expect(returned).toBeNull()
   })
 
+  it('returns validated tag arrays from model response', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          intensity: 4, pacing: 2, viewingContext: 1, experienceType: 1,
+          preferredMoodTags: ['whimsical', 'melancholic', 'INVALID_TAG'],
+          avoidedMoodTags: ['gritty'],
+          preferredToneTags: ['poetic', 'intimate', 'NOT_A_TONE'],
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      )
+    )
+
+    const { result } = renderHook(() => useNLMoodParse())
+    let returned
+    await act(async () => {
+      returned = await result.current.parse('Cozy', 'something like Wes Anderson but darker')
+    })
+
+    // Invalid tags are filtered out by filterVocab
+    expect(returned.preferredMoodTags).toEqual(['whimsical', 'melancholic'])
+    expect(returned.avoidedMoodTags).toEqual(['gritty'])
+    expect(returned.preferredToneTags).toEqual(['poetic', 'intimate'])
+  })
+
   it('returns null after 3s timeout', async () => {
     vi.useFakeTimers()
     try {

@@ -64,7 +64,7 @@ interface RequestBody {
   pacing: number
   timeOfDay: string
   movies: MovieInput[]
-  moodId?: number
+  top3Genres?: string[]
   freeText?: string
 }
 
@@ -147,7 +147,11 @@ Respond ONLY with this JSON (no other text):
   }
   // ─────────────────────────────────────────────────────────────────────────
 
-  const { mood, context, experience, intensity, pacing, timeOfDay, movies, moodId: _moodId } = body
+  const { mood, context, experience, intensity, pacing, timeOfDay, movies, top3Genres } = body
+
+  if (!mood || !Array.isArray(movies) || movies.length === 0) {
+    return new Response('Bad Request: mood and movies are required', { status: 400, headers })
+  }
 
   const movieList = movies
     .map((m, i) => {
@@ -160,10 +164,14 @@ Respond ONLY with this JSON (no other text):
     })
     .join('\n')
 
+  const genreHint = top3Genres?.length
+    ? `\nUser's top genres: ${top3Genres.join(', ')}`
+    : ''
+
   const userMessage = `Mood: ${mood}
 Watching with: ${context}
 Wants to: ${experience}
-Intensity: ${intensity}/5 | Pacing: ${pacing}/5 | Time of day: ${timeOfDay}
+Intensity: ${intensity}/5 | Pacing: ${pacing}/5 | Time of day: ${timeOfDay}${genreHint}
 
 Movies to evaluate:
 ${movieList}
@@ -173,25 +181,34 @@ Then write exactly this on its own line: ---EXPLANATIONS---
 Then write a JSON array, in the exact same order as the movies above:
 [{"movieId":<tmdbId>,"explanation":"<12 words or fewer, must mention the mood by name>","score":<0-100>}]`
 
-  const stream = await openai.chat.completions.create({
-    model: 'gpt-4.1-mini',
-    messages: [
-      { role: 'system', content: SYSTEM_PROMPT },
-      { role: 'user', content: userMessage },
-    ],
-    stream: true,
-    max_tokens: 600,
-    temperature: 0.8,
-  })
+  let stream
+  try {
+    stream = await openai.chat.completions.create({
+      model: 'gpt-4.1-mini',
+      messages: [
+        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'user', content: userMessage },
+      ],
+      stream: true,
+      max_tokens: 600,
+      temperature: 0.8,
+    })
+  } catch {
+    return new Response('AI service unavailable', { status: 502, headers })
+  }
 
   const encoder = new TextEncoder()
   const responseStream = new ReadableStream({
     async start(controller) {
-      for await (const chunk of stream) {
-        const text = chunk.choices[0]?.delta?.content ?? ''
-        if (text) controller.enqueue(encoder.encode(text))
+      try {
+        for await (const chunk of stream) {
+          const text = chunk.choices[0]?.delta?.content ?? ''
+          if (text) controller.enqueue(encoder.encode(text))
+        }
+        controller.close()
+      } catch (err) {
+        controller.error(err)
       }
-      controller.close()
     },
   })
 

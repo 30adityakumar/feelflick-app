@@ -72,7 +72,7 @@ import { recommendationCache } from '@/shared/lib/cache'
 // ============================================================================
 // VERSION
 // ============================================================================
-const ENGINE_VERSION = '2.11' // Semantic free-text parse extracts mood/tone tags (R1c).
+const ENGINE_VERSION = '2.12' // Non-English pool resilience before TMDB fallback (R6).
 const PROFILE_MEMORY_TTL_MS = 60 * 1000
 const SEED_MEMORY_TTL_MS = 60 * 1000
 const profileMemoryCache = new Map()
@@ -3482,15 +3482,18 @@ const MOOD_SELECT_FIELDS = `
 async function fetchMoodCandidates(moodId, moodWeights, profile, params = {}) {
   const { signal } = params
 
-  // Quality and recency floors (looser than hero to ensure variety across moods)
-  const minNorm = 6.5
-  const minConf = 40
-
   // Language guard from user profile (reuse homepage engine's language detection)
   const langGuard = profile?.language || null
   const allowedLanguages = langGuard?.allowedLanguages || []
 
-  try {
+  // Change 1: larger pool for strict/strong language modes where catalog is thinner
+  const poolLimit = langGuard?.mode === 'strict' || langGuard?.mode === 'strong' ? 500 : 300
+
+  const minConf = 40
+  const moodGenreIds = new Set(moodWeights.map(w => w.genre_id))
+
+  // Reusable query builder — same filters except quality floor
+  function buildQuery(minNorm) {
     let query = supabase
       .from('movies')
       .select(MOOD_SELECT_FIELDS)
@@ -3500,9 +3503,8 @@ async function fetchMoodCandidates(moodId, moodWeights, profile, params = {}) {
       .gte('ff_rating_genre_normalized', minNorm)
       .gte('ff_confidence', minConf)
       .order('ff_rating_genre_normalized', { ascending: false })
-      .limit(300)
+      .limit(poolLimit)
 
-    // Apply language guard when profile has a strong language preference
     if (allowedLanguages.length === 1) {
       query = query.eq('original_language', allowedLanguages[0])
     } else if (allowedLanguages.length > 1 && allowedLanguages.length <= 4) {
@@ -3514,22 +3516,44 @@ async function fetchMoodCandidates(moodId, moodWeights, profile, params = {}) {
       query = query.lte('release_year', 2000)
     }
 
-    const { data, error } = await query
-    if (error) throw error
+    return query
+  }
 
-    const pool = data || []
-
-    // Filter client-side: keep movies that match at least one mood genre
-    const moodGenreIds = new Set(moodWeights.map(w => w.genre_id))
-    const matched = pool.filter(movie => {
+  function filterByGenre(pool) {
+    return pool.filter(movie => {
       const genreIds = (movie.genres || []).map(extractGenreId).filter(Boolean)
       return genreIds.some(id => moodGenreIds.has(id))
     })
+  }
 
-    if (matched.length >= 15) return matched
+  try {
+    // Tier 1: standard quality floor (6.5)
+    const { data: t1Data, error: t1Err } = await buildQuery(6.5)
+    if (t1Err) throw t1Err
+    let matched = filterByGenre(t1Data || [])
+    let qualityFloorUsed = 6.5
 
-    // Fallback: if internal pool too small, use TMDB (old behaviour)
-    console.warn(`[Discover] Internal pool too small (${matched.length}) for mood ${moodId}, falling back to TMDB`)
+    // Change 2: progressive relaxation for non-English STRICT users
+    const isNonEnglishStrict = langGuard?.mode === 'strict' && langGuard?.primaryLanguage !== 'en'
+
+    if (isNonEnglishStrict && matched.length < 30) {
+      const { data: t2Data, error: t2Err } = await buildQuery(6.0)
+      if (t2Err) throw t2Err
+      matched = filterByGenre(t2Data || [])
+      qualityFloorUsed = 6.0
+    }
+
+    if (isNonEnglishStrict && matched.length < 30) {
+      const { data: t3Data, error: t3Err } = await buildQuery(5.5)
+      if (t3Err) throw t3Err
+      matched = filterByGenre(t3Data || [])
+      qualityFloorUsed = 5.5
+    }
+
+    if (matched.length >= 15) return { candidates: matched, qualityFloorUsed }
+
+    // Fallback: if internal pool still too small, use TMDB (unenriched)
+    console.warn(`[Discover] Internal pool too small (${matched.length}) for mood ${moodId}, lang=${langGuard?.primaryLanguage ?? '?'}, falling back to TMDB`)
     const fallbackGenres = [...moodGenreIds].join(',')
     const response = await tmdb.discoverMovies({
       genreIds: fallbackGenres,
@@ -3538,11 +3562,11 @@ async function fetchMoodCandidates(moodId, moodWeights, profile, params = {}) {
       page: 1,
       signal,
     })
-    return response?.results || []
+    return { candidates: response?.results || [], qualityFloorUsed: 'tmdb' }
   } catch (error) {
     if (error.name === 'AbortError') throw error
     console.error('[Discover] fetchMoodCandidates failed:', error)
-    return []
+    return { candidates: [], qualityFloorUsed: null }
   }
 }
 
@@ -3585,7 +3609,7 @@ export async function getMoodRecommendations(userId, moodId, options = {}) {
       const profile = await computeUserProfile(userId)
 
       // 3. Fetch candidates from internal movies table (or TMDB fallback)
-      const candidates = await fetchMoodCandidates(moodId, moodData.weights, profile, { signal })
+      const { candidates, qualityFloorUsed } = await fetchMoodCandidates(moodId, moodData.weights, profile, { signal })
       if (candidates.length === 0) return []
 
       // 4. Get watched movie IDs for exclusion (from profile — single fetch)
@@ -3612,7 +3636,7 @@ export async function getMoodRecommendations(userId, moodId, options = {}) {
         ...movie,
         final_score: Math.round(combined),
         match_percentage: Math.min(99, Math.round(65 + (combined / maxCombined) * 34)),
-        _recommendationMeta: { rank: i + 1, userScore, moodScore },
+        _recommendationMeta: { rank: i + 1, userScore, moodScore, qualityFloorUsed },
       }))
     } catch (error) {
       if (error.name === 'AbortError') throw error

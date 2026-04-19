@@ -1,7 +1,9 @@
 // src/features/landing/sections/FinalCTASection.jsx
 import { motion } from 'framer-motion'
-import { LogIn } from 'lucide-react'
+import { LogIn, Loader2 } from 'lucide-react'
+
 import { useGoogleAuth } from '@/features/landing/utils/useGoogleAuth'
+import Button from '@/shared/ui/Button'
 
 const vp = { once: true, margin: '-60px' }
 
@@ -80,27 +82,23 @@ export default function FinalCTASection() {
           transition={{ duration: prefersReducedMotion ? 0 : 0.45, delay: prefersReducedMotion ? 0 : 0.2 }}
           className="flex justify-center mb-6"
         >
-          <button
+          <Button
+            variant="primary"
+            size="lg"
             onClick={signInWithGoogle}
             disabled={isAuthenticating}
-            className="inline-flex items-center justify-center gap-2.5 px-10 py-[0.875rem] rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-[0.9375rem] shadow-lg shadow-purple-500/20 hover:brightness-110 hover:scale-[1.02] active:scale-[0.97] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed touch-target"
+            className="touch-target"
             aria-label={isAuthenticating ? 'Signing in' : 'Find tonight\'s film on FeelFlick'}
           >
             {isAuthenticating ? (
-              <span className="inline-flex items-center gap-2">
-                <svg className="animate-spin h-4 w-4 flex-shrink-0" viewBox="0 0 24 24" aria-hidden="true">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-                Signing in...
-              </span>
+              <><Loader2 className="h-4 w-4 animate-spin flex-shrink-0" aria-hidden="true" /> Signing in...</>
             ) : (
               <>
                 Find Tonight&apos;s Film
                 <LogIn className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
               </>
             )}
-          </button>
+          </Button>
         </motion.div>
 
         {/* Micro copy */}

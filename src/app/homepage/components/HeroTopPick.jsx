@@ -18,6 +18,7 @@ import { useTopPick } from '@/shared/hooks/useRecommendations'
 import { supabase } from '@/shared/lib/supabase/client'
 import { useUserMovieStatus } from '@/shared/hooks/useUserMovieStatus'
 import { updateImpression } from '@/shared/services/recommendations'
+import Button from '@/shared/ui/Button'
 
 // ============================================================================
 // LANGUAGE DISPLAY
@@ -661,13 +662,15 @@ export default function HeroTopPick({
               }`}
             >
               {/* Primary CTA */}
-              <button
+              <Button
+                variant="primary"
+                size="md"
                 onClick={goToDetails}
-                className="group inline-flex items-center gap-1.5 px-4 sm:px-6 py-2.5 sm:py-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 text-white font-semibold text-sm shadow-lg shadow-purple-500/25 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                className="group"
               >
                 <span>View details</span>
                 <ChevronRight className="h-4 w-3 transition-transform duration-300 group-hover:translate-x-0.5" />
-              </button>
+              </Button>
 
               {/* Trailer */}
               {movie.trailer_url && (

@@ -4,7 +4,7 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import {
-  Play, Bookmark, Check, Star, Clock, Share2,
+  Play, Bookmark, Check, Clock, Share2,
   Eye, EyeOff, Heart, ChevronLeft, ListPlus, X,
 } from 'lucide-react'
 
@@ -16,6 +16,7 @@ import { useMovieRating } from '@/shared/hooks/useMovieRating'
 import { usePageView } from '@/shared/hooks/useInteractionTracking'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { trackTrailerPlay, trackShare } from '@/shared/services/interactions'
+import { invalidatePersonalCache } from '@/shared/services/personalRating'
 import { fetchJson, getMovieDetails } from '@/shared/api/tmdb'
 
 import { IMG, formatRuntime, yearOf } from './utils'
@@ -25,14 +26,17 @@ import MovieImages from './MovieImages'
 import MovieSimilar from './MovieSimilar'
 import { WhereToWatch, MovieDetails, ProductionCompanies, CollectionCard } from './MovieSidebar'
 import { motion, AnimatePresence } from 'framer-motion'
+import StarRating from '@/shared/components/StarRating'
+import FFRatingHero from './FFRatingHero'
+import RatingBreakdown from './RatingBreakdown'
+import MoodChips from './MoodChips'
 import AddToListModal from '@/app/pages/lists/AddToListModal'
 import ToastNotification from '@/components/ToastNotification'
 
 // === QUICK-RATE PROMPT ===
 
 // Purely presentational — no hooks, no timers. All state lives in MovieDetail.
-// Stars use flex-row-reverse + CSS sibling selector so hovering star N fills stars 1…N
-// without any JS state: [5,4,3,2,1] in DOM + [&:hover~button] highlights lower siblings.
+// Uses StarRating in compact mode (5 half-step stars, no label).
 function QuickRatePrompt({ onRate, onDismiss, saved }) {
   return (
     <motion.div
@@ -47,19 +51,13 @@ function QuickRatePrompt({ onRate, onDismiss, saved }) {
       ) : (
         <>
           <span className="text-xs text-white/50">How was it?</span>
-          <div className="flex flex-row-reverse items-center gap-0.5">
-            {[5, 4, 3, 2, 1].map((i) => (
-              <button
-                key={i}
-                type="button"
-                aria-label={`Rate ${i} star${i > 1 ? 's' : ''}`}
-                onClick={() => onRate(i)}
-                className="text-xl leading-none text-white/30 hover:text-yellow-400 [&:hover~button]:text-yellow-400 transition-colors"
-              >
-                ★
-              </button>
-            ))}
-          </div>
+          <StarRating
+            value={0}
+            onChange={onRate}
+            size="sm"
+            showLabel={false}
+            showClearButton={false}
+          />
         </>
       )}
       <button
@@ -102,6 +100,7 @@ export default function MovieDetail() {
   const [showFeedbackModal, setShowFeedbackModal] = useState(false)
   const [userFeedback, setUserFeedback] = useState(null)
   const [movieMoods, setMovieMoods]   = useState([])
+  const [internalMovieData, setInternalMovieData] = useState(null)
   const [showAddToList, setShowAddToList] = useState(false)
   const [showQuickRate, setShowQuickRate] = useState(false)
   const [quickRateSaved, setQuickRateSaved] = useState(false)
@@ -242,6 +241,21 @@ export default function MovieDetail() {
     return () => { active = false }
   }, [internalMovieId])
 
+  // DB movie row for ff_* rating columns (used by FFRatingHero + RatingBreakdown)
+  useEffect(() => {
+    if (!internalMovieId) return
+    let active = true
+    ;(async () => {
+      const { data } = await supabase
+        .from('movies')
+        .select('id, tmdb_id, ff_critic_rating, ff_critic_confidence, ff_audience_rating, ff_audience_confidence, ff_community_rating, ff_community_confidence, ff_community_votes, ff_rating_genre_normalized, primary_genre, ff_rating, ff_final_rating, mood_tags, tone_tags, fit_profile')
+        .eq('id', internalMovieId)
+        .maybeSingle()
+      if (active && data) setInternalMovieData(data)
+    })()
+    return () => { active = false }
+  }, [internalMovieId])
+
   const mutating = actionLoading.watchlist || actionLoading.watched
 
   const ytTrailer = useMemo(() => {
@@ -267,6 +281,7 @@ export default function MovieDetail() {
     if (!await ensureAuthed()) return
     const wasWatched = isWatched
     await rawToggleWatched()
+    if (user?.id) invalidatePersonalCache(user.id).catch(() => {})
 
     if (!wasWatched) {
       // Build 1: quick-rate prompt (only if movie not already rated)
@@ -293,9 +308,10 @@ export default function MovieDetail() {
     setQuickRateSaved(true)
     try {
       await supabase.from('user_ratings').upsert(
-        { user_id: user?.id, movie_id: internalMovieId, rating: starValue * 2, review_text: null },
+        { user_id: user?.id, movie_id: internalMovieId, rating: starValue, review_text: null },
         { onConflict: 'user_id,movie_id' }
       )
+      if (user?.id) invalidatePersonalCache(user.id).catch(() => {})
     } catch (err) {
       console.error('[MovieDetail] quick rate error:', err)
     }
@@ -325,7 +341,6 @@ export default function MovieDetail() {
     setShowFeedbackModal(true)
   }, [user, navigate, id])
 
-  const tmdbRating = movie?.vote_average ? Math.round(movie.vote_average * 10) / 10 : null
   const year       = yearOf(movie?.release_date)
   const runtime    = formatRuntime(movie?.runtime)
 
@@ -481,14 +496,11 @@ export default function MovieDetail() {
                         </p>
                       )}
 
+                      {/* FF Rating — hero-level */}
+                      <FFRatingHero internalMovie={internalMovieData} />
+
                       {/* Meta chips */}
                       <div className="flex flex-wrap items-center gap-1.5 text-xs">
-                        {tmdbRating && (
-                          <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/10 border border-white/12">
-                            <Star className="h-3 w-3 fill-current text-yellow-400" />
-                            <span className="text-white/80 font-bold">{tmdbRating}</span>
-                          </div>
-                        )}
                         {certification && (
                           <span className="px-2 py-0.5 rounded-md border border-white/20 text-white/60 font-semibold text-[11px]">
                             {certification}
@@ -512,6 +524,9 @@ export default function MovieDetail() {
                           ))}
                         </div>
                       )}
+
+                      {/* Mood / tone / fit-profile chips */}
+                      <MoodChips movie={internalMovieData} />
 
                       {/* Overview — md+, 3 lines */}
                       {movie?.overview && (
@@ -692,16 +707,7 @@ export default function MovieDetail() {
                       <div className="space-y-3">
                         {userRating > 0 && (
                           <div className="flex items-center gap-3">
-                            <div className="flex gap-0.5">
-                              {Array.from({ length: 10 }, (_, i) => (
-                                <svg key={i} className={`h-4 w-4 ${i < userRating ? 'text-yellow-400' : 'text-white/10'}`} fill="currentColor" viewBox="0 0 24 24">
-                                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                                </svg>
-                              ))}
-                            </div>
-                            <span className="text-sm font-bold text-white tabular-nums">
-                              {userRating}<span className="text-white/30 font-normal">/10</span>
-                            </span>
+                            <StarRating value={userRating} readonly size="sm" showLabel showClearButton={false} />
                           </div>
                         )}
                         {userFeedback?.sentiment && (() => {
@@ -753,6 +759,8 @@ export default function MovieDetail() {
                   </div>
                 )
               )}
+
+              <RatingBreakdown movie={internalMovieData} />
 
               <MovieCast cast={credits.cast} />
               <MovieVideos videos={videos} internalMovieId={internalMovieId} />

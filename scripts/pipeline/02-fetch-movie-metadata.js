@@ -52,10 +52,10 @@ const CONFIG = {
 function classifyError(error) {
   const message = error.message?.toLowerCase() || '';
   
-  if (message.includes('404') || message.includes('not found')) {
+  if (message.includes('tmdb_not_found') || message.includes('not found') || message.includes('404')) {
     return 'tmdb_not_found';
   }
-  if (message.includes('429') || message.includes('rate limit')) {
+  if (message.includes('tmdb_rate_limit') || message.includes('rate limit') || message.includes('429')) {
     return 'tmdb_rate_limit';
   }
   if (message.includes('timeout')) {
@@ -124,7 +124,7 @@ async function fetchMovieWithRetry(tmdbId, retryCount = 0) {
 // ============================================================================
 
 function transformMovieData(tmdbData) {
-  return {
+  const updateData = {
     // Basic info
     title: tmdbData.title || null,
     original_title: tmdbData.original_title || null,
@@ -157,12 +157,32 @@ function transformMovieData(tmdbData) {
     imdb_id: tmdbData.imdb_id || null,
     homepage: tmdbData.homepage || null,
     
-    // Store genres and keywords as JSONB arrays (strings only)
-    genres: tmdbData.genres?.length > 0 
-      ? tmdbData.genres.map(g => g.name) 
+    // Store genres as string array, keywords as {id, name} objects
+    genres: tmdbData.genres?.length > 0
+      ? tmdbData.genres.map(g => g.name)
       : null,
-    keywords: null, // Will be fetched in step 03
-    
+    keywords: tmdbData.keywords?.keywords?.length > 0
+      ? tmdbData.keywords.keywords.map(k => ({ id: k.id, name: k.name.toLowerCase().trim() }))
+      : null,
+    trailer_youtube_key: (tmdbData.videos?.results || [])
+      .find(v => v.site === 'YouTube' && v.type === 'Trailer' && v.official === true)?.key
+      || (tmdbData.videos?.results || [])
+      .find(v => v.site === 'YouTube' && v.type === 'Trailer')?.key
+      || null,
+    spoken_languages: tmdbData.spoken_languages?.map(l => l.iso_639_1) || null,
+    production_countries: tmdbData.production_countries?.map(c => c.iso_3166_1) || null,
+    production_companies: tmdbData.production_companies?.slice(0, 5).map(c => c.name) || null,
+    collection_id: tmdbData.belongs_to_collection?.id || null,
+    collection_name: tmdbData.belongs_to_collection?.name || null,
+    certification: (() => {
+      const us = tmdbData.release_dates?.results?.find(r => r.iso_3166_1 === 'US');
+      const cert = us?.release_dates?.find(d => d.certification)?.certification;
+      return cert || null;
+    })(),
+
+    // Raw credits for step 04 to process (nulled after use)
+    credits_raw: tmdbData.credits || null,
+
     // Timestamps
     fetched_at: new Date().toISOString(),
     last_tmdb_sync: new Date().toISOString(),
@@ -176,6 +196,12 @@ function transformMovieData(tmdbData) {
     error_type: null,
     last_error_at: null
   };
+
+  if (!updateData.title || !updateData.overview || !updateData.runtime || updateData.runtime < 40) {
+    updateData.status = 'incomplete';
+  }
+
+  return updateData;
 }
 
 // ============================================================================
@@ -183,6 +209,12 @@ function transformMovieData(tmdbData) {
 // ============================================================================
 
 async function updateMovieError(movieId, errorData) {
+  const { data } = await supabase
+    .from('movies')
+    .select('retry_count')
+    .eq('id', movieId)
+    .single();
+
   const { error } = await supabase
     .from('movies')
     .update({
@@ -190,11 +222,11 @@ async function updateMovieError(movieId, errorData) {
       error_type: errorData.errorType,
       last_error: errorData.error,
       last_error_at: new Date().toISOString(),
-      retry_count: supabase.raw('COALESCE(retry_count, 0) + 1'),
+      retry_count: (data?.retry_count || 0) + 1,
       updated_at: new Date().toISOString()
     })
     .eq('id', movieId);
-  
+
   if (error) {
     logger.error(`  Failed to update error for movie ${movieId}: ${error.message}`);
   }
@@ -231,7 +263,7 @@ async function batchUpdateMovies(updates) {
 async function getMoviesToFetch(options) {
   let query = supabase
     .from('movies')
-    .select('id, tmdb_id, title, retry_count, last_tmdb_sync')
+    .select('id, tmdb_id, title, status, retry_count, last_tmdb_sync')
     .order('vote_count', { ascending: false, nullsFirst: false })
     .order('popularity', { ascending: false, nullsFirst: false })
     .limit(options.limit);
@@ -247,10 +279,19 @@ async function getMoviesToFetch(options) {
     
     logger.info('Mode: Refresh stale metadata (30+ days old)');
     
+  } else if (options.refreshEnrichment) {
+    // Target scored/complete films missing enrichment fields
+    query = query
+      .in('status', ['scoring', 'complete'])
+      .not('tmdb_id', 'is', null)
+      .or('writer_name.is.null,collection_id.is.null,certification.is.null,credits_raw.is.null');
+
+    logger.info('Mode: Refresh enrichment (writer, cinematographer, collection, certification)');
+
   } else if (options.force) {
     // Force update any movie
     logger.info('Mode: Force update (all movies)');
-    
+
   } else {
     // Default: Only fetch pending movies
     query = query.eq('status', 'pending');
@@ -282,6 +323,7 @@ async function fetchMovieMetadata(options = {}) {
   const config = {
     limit: options.limit || CONFIG.DEFAULT_LIMIT,
     staleMetadata: options.staleMetadata || false,
+    refreshEnrichment: options.refreshEnrichment || false,
     force: options.force || false,
     dryRun: options.dryRun || false
   };
@@ -345,7 +387,12 @@ async function fetchMovieMetadata(options = {}) {
           // Transform and prepare update
           const updateData = transformMovieData(result.data);
           updateData.id = movie.id;
-          
+
+          // Preserve existing status for enrichment refreshes
+          if (config.refreshEnrichment && movie.status) {
+            updateData.status = movie.status;
+          }
+
           batchUpdates.push(updateData);
           stats.success++;
           
@@ -438,6 +485,7 @@ if (require.main === module) {
   const options = {
     dryRun: args.includes('--dry-run'),
     staleMetadata: args.includes('--stale-metadata'),
+    refreshEnrichment: args.includes('--refresh-enrichment'),
     force: args.includes('--force'),
     limit: CONFIG.DEFAULT_LIMIT
   };
@@ -459,11 +507,12 @@ USAGE:
   node scripts/pipeline/02-fetch-movie-metadata.js [options]
 
 OPTIONS:
-  --limit=N          Process max N movies (default: ${CONFIG.DEFAULT_LIMIT})
-  --stale-metadata   Update movies with old metadata (30+ days)
-  --force            Force update even if metadata exists
-  --dry-run          Simulate without making changes
-  --help, -h         Show this help message
+  --limit=N               Process max N movies (default: ${CONFIG.DEFAULT_LIMIT})
+  --stale-metadata        Update movies with old metadata (30+ days)
+  --refresh-enrichment    Refresh enrichment fields (writer, cinematographer, collection, certification) for already-scored films missing them
+  --force                 Force update even if metadata exists
+  --dry-run               Simulate without making changes
+  --help, -h              Show this help message
 
 EXAMPLES:
   # Fetch metadata for 500 new movies

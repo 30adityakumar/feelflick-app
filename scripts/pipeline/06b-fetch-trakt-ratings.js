@@ -21,9 +21,10 @@
  *     Register a free app at: https://trakt.tv/oauth/applications/new
  *
  * Options:
- *   --limit=N     Max movies to process (default: 200)
- *   --dry-run     Simulate without writing to database
- *   --force       Re-fetch even if trakt_rating already exists
+ *   --limit=N         Max movies to process (default: 200)
+ *   --dry-run         Simulate without writing to database
+ *   --force           Re-fetch even if trakt_rating already exists
+ *   --refresh-stale   Only re-fetch rows older than 90 days
  *
  * Rate limits:
  *   Trakt free tier: 1,000 req / 5 min. This script uses 350ms between
@@ -53,40 +54,64 @@ const CONFIG = {
 // FETCH MOVIES THAT NEED TRAKT RATINGS
 // ============================================================================
 
-async function fetchMoviesNeedingTrakt(limit, force) {
-  // Join movies → ratings_external (LEFT JOIN so we catch movies with no row yet)
-  // Filter: has imdb_id AND (no ratings_external row OR trakt_rating IS NULL)
-  // unless --force, in which case fetch everything with an imdb_id
-
-  let query = supabase
-    .from('movies')
-    .select(`
-      id,
-      title,
-      imdb_id,
-      popularity,
-      ratings_external ( id, trakt_rating )
-    `)
-    .not('imdb_id', 'is', null)
-    .order('popularity', { ascending: false })
-    .limit(limit);
-
+/**
+ * Build a Set of movie IDs that should be skipped (already have trakt data).
+ * Paginates through ratings_external in 1000-row chunks.
+ * @param {boolean} staleOnly - When true, only skip rows that are fresh (<90 days)
+ * @returns {Promise<Set<number>>}
+ */
+async function fetchMoviesNeedingTrakt(limit, force, staleOnly = false) {
+  // Get all trakt-processed movie_ids first (paginated like step 06)
+  const processedIds = new Set();
   if (!force) {
-    // Only fetch movies where trakt_rating is missing
-    // Supabase doesn't support NOT EXISTS natively in client; use a workaround:
-    // Fetch all and filter client-side (limit is small enough)
+    let from = 0;
+    const page = 1000;
+    const staleThreshold = new Date(Date.now() - 90 * 24 * 3600 * 1000).toISOString();
+    while (true) {
+      const { data, error } = await supabase
+        .from('ratings_external')
+        .select('movie_id, trakt_rating, trakt_fetched_at')
+        .range(from, from + page - 1);
+      if (error) throw new Error(`Failed to fetch existing ratings: ${error.message}`);
+      if (!data || data.length === 0) break;
+      for (const r of data) {
+        if (staleOnly) {
+          // Only skip rows that are NOT stale (i.e. already fresh)
+          if (r.trakt_rating != null && r.trakt_fetched_at > staleThreshold) {
+            processedIds.add(r.movie_id);
+          }
+        } else {
+          if (r.trakt_rating != null) processedIds.add(r.movie_id);
+        }
+      }
+      if (data.length < page) break;
+      from += page;
+    }
   }
 
-  const { data, error } = await query;
-  if (error) throw new Error(`Failed to fetch movies: ${error.message}`);
-
-  if (force) return data || [];
-
-  // Client-side filter: no ratings_external row OR trakt_rating is null
-  return (data || []).filter(m => {
-    const re = Array.isArray(m.ratings_external) ? m.ratings_external[0] : m.ratings_external;
-    return !re || re.trakt_rating === null || re.trakt_rating === undefined;
-  });
+  // Fetch candidates from movies, paginate if needed
+  const out = [];
+  let from = 0;
+  const page = 1000;
+  while (out.length < limit) {
+    const { data, error } = await supabase
+      .from('movies')
+      .select('id, title, imdb_id, popularity')
+      .not('imdb_id', 'is', null)
+      .order('popularity', { ascending: false })
+      .range(from, from + page - 1);
+    if (error) throw new Error(`Failed to fetch movies: ${error.message}`);
+    if (!data || data.length === 0) break;
+    for (const m of data) {
+      if (!processedIds.has(m.id)) {
+        out.push(m);
+        if (out.length >= limit) break;
+      }
+    }
+    if (data.length < page) break;
+    from += page;
+  }
+  return out;
 }
 
 // ============================================================================
@@ -94,57 +119,25 @@ async function fetchMoviesNeedingTrakt(limit, force) {
 // ============================================================================
 
 async function saveTrakt(movie, traktData) {
-  const re = Array.isArray(movie.ratings_external)
-    ? movie.ratings_external[0]
-    : movie.ratings_external;
-
-  const now = new Date().toISOString();
-
-  if (re?.id) {
-    // Row already exists — update the trakt columns only
-    const { error } = await supabase
-      .from('ratings_external')
-      .update({
-        trakt_rating:     Math.round(traktData.rating * 100) / 100,
-        trakt_votes:      traktData.votes,
-        trakt_fetched_at: now,
-      })
-      .eq('id', re.id);
-
-    if (error) throw new Error(`Update failed: ${error.message}`);
-  } else {
-    // No ratings_external row yet — insert a minimal one with trakt data
-    const { error } = await supabase
-      .from('ratings_external')
-      .insert({
-        movie_id:         movie.id,
-        trakt_rating:     Math.round(traktData.rating * 100) / 100,
-        trakt_votes:      traktData.votes,
-        trakt_fetched_at: now,
-        fetched_at:       now,
-      });
-
-    if (error) throw new Error(`Insert failed: ${error.message}`);
-  }
+  const { error } = await supabase
+    .from('ratings_external')
+    .upsert({
+      movie_id: movie.id,
+      trakt_rating: Math.round(traktData.rating * 100) / 100,
+      trakt_votes: traktData.votes,
+      trakt_fetched_at: new Date().toISOString(),
+    }, { onConflict: 'movie_id' });
+  if (error) throw new Error(`Upsert failed: ${error.message}`);
 }
 
 async function markTraktAttempted(movie) {
-  const re = Array.isArray(movie.ratings_external)
-    ? movie.ratings_external[0]
-    : movie.ratings_external;
-
-  const now = new Date().toISOString();
-
-  if (re?.id) {
-    await supabase
-      .from('ratings_external')
-      .update({ trakt_fetched_at: now })
-      .eq('id', re.id);
-  } else {
-    await supabase
-      .from('ratings_external')
-      .insert({ movie_id: movie.id, fetched_at: now, trakt_fetched_at: now });
-  }
+  const { error } = await supabase
+    .from('ratings_external')
+    .upsert({
+      movie_id: movie.id,
+      trakt_fetched_at: new Date().toISOString(),
+    }, { onConflict: 'movie_id' });
+  if (error) logger.warn(`markTraktAttempted failed: ${error.message}`);
 }
 
 // ============================================================================
@@ -162,8 +155,16 @@ async function processMovie(movie, dryRun) {
 
     const traktData = await traktClient.getMovieRatings(movie.imdb_id);
 
-    if (!traktData || !traktData.rating) {
+    if (!traktData) {
+      // 404 from Trakt
       logger.debug(`  ⊘ ${movie.title}: not found on Trakt`);
+      await markTraktAttempted(movie);
+      return { success: true, skipped: true };
+    }
+
+    if (!traktData.rating || traktData.votes === 0) {
+      // Movie exists but has no community rating yet
+      logger.debug(`  ⊘ ${movie.title}: no Trakt rating yet (0 votes)`);
       await markTraktAttempted(movie);
       return { success: true, skipped: true };
     }
@@ -188,14 +189,16 @@ async function processMovie(movie, dryRun) {
 
 async function fetchTraktRatings(options = {}) {
   const startTime = Date.now();
-  const limit     = options.limit   ?? CONFIG.DEFAULT_LIMIT;
-  const dryRun    = options.dryRun  ?? false;
-  const force     = options.force   ?? false;
+  const limit        = options.limit        ?? CONFIG.DEFAULT_LIMIT;
+  const dryRun       = options.dryRun       ?? false;
+  const force        = options.force        ?? false;
+  const refreshStale = options.refreshStale ?? false;
 
   logger.section('🎬 STEP 06b: FETCH TRAKT.TV RATINGS');
-  logger.info(`Limit:   ${limit}`);
-  logger.info(`Dry run: ${dryRun}`);
-  logger.info(`Force:   ${force}`);
+  logger.info(`Limit:         ${limit}`);
+  logger.info(`Dry run:       ${dryRun}`);
+  logger.info(`Force:         ${force}`);
+  logger.info(`Refresh stale: ${refreshStale}`);
 
   if (!traktClient.isConfigured) {
     logger.warn('⚠️  TRAKT_CLIENT_ID is not set in environment.');
@@ -208,8 +211,7 @@ async function fetchTraktRatings(options = {}) {
   logger.info('\nLoading movies without Trakt ratings...');
   let movies;
   try {
-    movies = await fetchMoviesNeedingTrakt(limit * 3, force); // over-fetch then slice
-    movies = movies.slice(0, limit);
+    movies = await fetchMoviesNeedingTrakt(limit, force, refreshStale);
   } catch (err) {
     logger.error(`Failed to load movies: ${err.message}`);
     return { success: false, error: err.message };
@@ -252,6 +254,23 @@ async function fetchTraktRatings(options = {}) {
   logger.info(`Trakt API calls  : ${traktClient.getRequestCount()}`);
   logger.info(`Duration         : ${duration}s`);
 
+  // Coverage logging
+  try {
+    const { count: totalEligible } = await supabase
+      .from('movies')
+      .select('id', { count: 'exact', head: true })
+      .not('imdb_id', 'is', null);
+    const { count: withTrakt } = await supabase
+      .from('ratings_external')
+      .select('movie_id', { count: 'exact', head: true })
+      .not('trakt_rating', 'is', null);
+    if (totalEligible != null && withTrakt != null && totalEligible > 0) {
+      logger.info(`\nTrakt coverage: ${withTrakt}/${totalEligible} movies have Trakt ratings (${((withTrakt / totalEligible) * 100).toFixed(1)}%)`);
+    }
+  } catch (coverageErr) {
+    logger.warn(`Coverage query failed: ${coverageErr.message}`);
+  }
+
   if (stats.failed === 0) {
     logger.success('\n✅ Step 06b completed successfully');
   } else {
@@ -269,15 +288,17 @@ async function main() {
   const args = process.argv.slice(2);
 
   const options = {
-    limit:  CONFIG.DEFAULT_LIMIT,
-    dryRun: false,
-    force:  false,
+    limit:        CONFIG.DEFAULT_LIMIT,
+    dryRun:       false,
+    force:        false,
+    refreshStale: false,
   };
 
   for (const arg of args) {
     if (arg.startsWith('--limit='))  options.limit  = parseInt(arg.split('=')[1]);
     if (arg === '--dry-run')         options.dryRun = true;
     if (arg === '--force')           options.force  = true;
+    if (arg === '--refresh-stale')   options.refreshStale = true;
   }
 
   const result = await fetchTraktRatings(options);

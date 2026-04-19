@@ -73,6 +73,11 @@ interface RequestBody {
   avgRating: number
   ratingLabel: string
   watchedFilms: string[]
+  taggedTasteSignature?: {
+    topMoodTags?: Array<{ tag: string; count: number }>
+    topToneTags?: Array<{ tag: string; count: number }>
+    topFitProfiles?: Array<{ profile: string; count: number }>
+  }
 }
 
 Deno.serve(async (req: Request) => {
@@ -109,7 +114,7 @@ Deno.serve(async (req: Request) => {
     })
   }
 
-  const { genres = [], directors = [], moods = [], totalWatched = 0, avgRating = 0, ratingLabel = '', watchedFilms = [] } = body
+  const { genres = [], directors = [], moods = [], totalWatched = 0, avgRating = 0, ratingLabel = '', watchedFilms = [], taggedTasteSignature } = body
 
   // Not enough data to generate anything meaningful
   if (!genres.length) {
@@ -126,18 +131,29 @@ Deno.serve(async (req: Request) => {
 
   const filmList = watchedFilms.slice(0, 20).join(', ')
 
+  const moodTagLine = taggedTasteSignature?.topMoodTags?.length
+    ? `Mood signature: ${taggedTasteSignature.topMoodTags.slice(0, 6).map(t => t.tag).join(', ')}`
+    : ''
+  const toneTagLine = taggedTasteSignature?.topToneTags?.length
+    ? `Tone signature: ${taggedTasteSignature.topToneTags.slice(0, 4).map(t => t.tag).join(', ')}`
+    : ''
+  const fitLine = taggedTasteSignature?.topFitProfiles?.length
+    ? `Prefers: ${taggedTasteSignature.topFitProfiles.slice(0, 3).map(t => t.profile.replace(/_/g, ' ')).join(' + ')}`
+    : ''
+  const signatureBlock = [moodTagLine, toneTagLine, fitLine].filter(Boolean).join('\n')
+
   const userMessage = filmList
     ? `Here is this person's watch history (most recent first):
 ${filmList}
-
+${signatureBlock ? `\nTaste signature (aggregated across their watches):\n${signatureBlock}\n` : ''}
 Supporting context (use lightly):
 - Top genres: ${g1} (${p1}%), ${g2} (${p2}%), ${g3} (${p3}%)
 - Top directors: ${d1}, ${d2}, ${d3}
 - Top moods: ${m1}, ${m2}
 
-Look at the actual films they watched. What do those specific films tell you about their taste — the themes, the tone, the emotional register, what they keep returning to?
+Look at the actual films they watched and their mood signature. What cinematic identity emerges — what themes they return to, what emotional register they prefer, what kind of stories speak to them?
 
-Write one sharp line that captures this person's cinematic identity. Root it in the films, not the tags.`
+Write one sharp line that captures this person's cinematic identity. Root it in the films and their mood patterns.`
     : `Top genres: ${g1} (${p1}%), ${g2} (${p2}%), ${g3} (${p3}%).
 Top directors: ${d1}, ${d2}, ${d3}.
 Top moods: ${m1}, ${m2}.
@@ -153,7 +169,7 @@ Write one sharp line that captures this person's taste.`
       ],
       stream: false,
       max_tokens: 50,
-      temperature: 1.0,
+      temperature: 0.8,
     })
 
     const summary = completion.choices[0]?.message?.content?.trim() ?? FALLBACK_SUMMARY

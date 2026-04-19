@@ -55,13 +55,14 @@ function getDayBonus(moodId, dayOfWeek) {
   return 0
 }
 
-// Content profile bonuses — avgIntensity and avgPacing are on a 0–100 scale
+// Content profile bonuses — avgIntensity and avgPacing are on a 1–10 scale
+// (computed from movie.intensity_score / pacing_score in computeContentProfile)
 function getContentBonus(moodId, avgIntensity, avgPacing) {
   let bonus = 0
-  if (avgIntensity >= 65 && [11, 2, 6].includes(moodId))  bonus += 8
-  if (avgIntensity <= 35 && [1, 12, 7].includes(moodId))  bonus += 8
-  if (avgPacing    >= 65 && [2, 6].includes(moodId))       bonus += 5
-  if (avgPacing    <= 35 && [4, 11].includes(moodId))      bonus += 5
+  if (avgIntensity >= 6.5 && [11, 2, 6].includes(moodId))  bonus += 8
+  if (avgIntensity <= 3.5 && [1, 12, 7].includes(moodId))  bonus += 8
+  if (avgPacing    >= 6.5 && [2, 6].includes(moodId))       bonus += 5
+  if (avgPacing    <= 3.5 && [4, 11].includes(moodId))      bonus += 5
   return bonus
 }
 
@@ -100,8 +101,8 @@ export function useSuggestedMoods(userId, timeOfDay, dayOfWeek) {
         }
 
         const preferredGenres = new Set(profile.genres?.preferred || [])
-        const avgIntensity    = profile.contentProfile?.avgIntensity ?? 50
-        const avgPacing       = profile.contentProfile?.avgPacing    ?? 50
+        const avgIntensity    = profile.contentProfile?.avgIntensity ?? 5
+        const avgPacing       = profile.contentProfile?.avgPacing    ?? 5
 
         const scores = []
 

@@ -1,6 +1,6 @@
 // src/app/pages/movies/components/BrowseSearchBar.jsx
 import { useState, useEffect, useRef } from 'react'
-import { Search, X, ChevronDown, SlidersHorizontal, ChevronUp } from 'lucide-react'
+import { Search, X, ChevronDown, SlidersHorizontal, ChevronUp, Award } from 'lucide-react'
 import { getDbGenres } from '@/shared/api/browse'
 
 export const DEFAULT_SORT = 'ff_rating.desc'
@@ -217,6 +217,49 @@ function VibeChip({ option, active, onClick, disabled }) {
   )
 }
 
+const GAP_OPTIONS = [
+  { value: '',               label: 'Off' },
+  { value: 'critic_picks',   label: "Critics' picks" },
+  { value: 'crowd_pleasers', label: 'Crowd-pleasers' },
+]
+
+function RatingSlider({ label, labelSuffix, value, onChange, disabled }) {
+  const numValue = Number(value) || 0
+  return (
+    <div className={disabled ? 'opacity-40' : ''}>
+      <p className="mb-2 flex items-center gap-2 text-[0.68rem] font-semibold uppercase tracking-widest"
+        style={{ color: 'rgba(248,250,252,0.35)' }}>
+        {label}
+        {numValue > 0 && (
+          <span className="normal-case tracking-normal font-semibold text-purple-300">
+            {'\u2265'} {numValue}
+          </span>
+        )}
+        {labelSuffix && (
+          <span className="normal-case tracking-normal font-normal" style={{ color: 'rgba(248,250,252,0.3)' }}>
+            {labelSuffix}
+          </span>
+        )}
+      </p>
+      <input
+        type="range"
+        min={0}
+        max={90}
+        step={5}
+        value={numValue}
+        onChange={(e) => onChange(e.target.value === '0' ? '' : e.target.value)}
+        disabled={disabled}
+        aria-label={`${label} minimum`}
+        className="w-full h-1.5 rounded-full appearance-none cursor-pointer bg-white/10 accent-purple-500 disabled:cursor-not-allowed [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-purple-400 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-purple-300/50 [&::-webkit-slider-thumb]:shadow-md"
+      />
+      <div className="flex justify-between mt-1 text-[0.58rem]" style={{ color: 'rgba(248,250,252,0.2)' }}>
+        <span>Off</span>
+        <span>90</span>
+      </div>
+    </div>
+  )
+}
+
 // ── Main component ─────────────────────────────────────────────────────────────
 
 export default function BrowseSearchBar({
@@ -235,6 +278,10 @@ export default function BrowseSearchBar({
   hideWatched = '',
   dialogue = '',
   attention = '',
+  minCritic = '',
+  minAudience = '',
+  criticAudienceGap = '',
+  exceptionalGenre = '',
   user = null,
   onSearch,
 }) {
@@ -259,18 +306,18 @@ export default function BrowseSearchBar({
   // Count active advanced filters for the badge (TMDB mode only counts compatible filters)
   const advancedCount = isSearchMode
     ? [minRating, runtime].filter(Boolean).length
-    : [minRating, runtime, pacing, intensity, depth, director, dialogue, attention, ...vibe].filter(Boolean).length
+    : [minRating, runtime, pacing, intensity, depth, director, dialogue, attention, minCritic, minAudience, criticAudienceGap, exceptionalGenre, ...vibe].filter(Boolean).length
 
   const hasAnyFilter = genre || decade || language || sortBy !== DEFAULT_SORT || advancedCount > 0 || draftQuery || hideWatched
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    onSearch({ q: draftQuery, genre, sortBy, decade, minRating, language, runtime, pacing, intensity, depth, vibe, director: draftDirector, hideWatched, dialogue, attention })
+    onSearch({ q: draftQuery, genre, sortBy, decade, minRating, language, runtime, pacing, intensity, depth, vibe, director: draftDirector, hideWatched, dialogue, attention, minCritic, minAudience, criticAudienceGap, exceptionalGenre })
   }
 
   const handleClearSearch = () => {
     setDraftQuery('')
-    onSearch({ q: '', genre, sortBy, decade, minRating, language, runtime, pacing, intensity, depth, vibe, director, hideWatched, dialogue, attention })
+    onSearch({ q: '', genre, sortBy, decade, minRating, language, runtime, pacing, intensity, depth, vibe, director, hideWatched, dialogue, attention, minCritic, minAudience, criticAudienceGap, exceptionalGenre })
     inputRef.current?.focus()
   }
 
@@ -279,18 +326,18 @@ export default function BrowseSearchBar({
     setDraftDirector('')
     setActivePreset(null)
     setPanelOpen(false)
-    onSearch({ q: '', genre: '', sortBy: DEFAULT_SORT, decade: '', minRating: '', language: '', runtime: '', pacing: '', intensity: '', depth: '', vibe: [], director: '', hideWatched: '', dialogue: '', attention: '' })
+    onSearch({ q: '', genre: '', sortBy: DEFAULT_SORT, decade: '', minRating: '', language: '', runtime: '', pacing: '', intensity: '', depth: '', vibe: [], director: '', hideWatched: '', dialogue: '', attention: '', minCritic: '', minAudience: '', criticAudienceGap: '', exceptionalGenre: '' })
   }
 
   const applyFilter = (patch) => {
     setActivePreset(null)
-    onSearch({ q: draftQuery, genre, sortBy, decade, minRating, language, runtime, pacing, intensity, depth, vibe, director, hideWatched, dialogue, attention, ...patch })
+    onSearch({ q: draftQuery, genre, sortBy, decade, minRating, language, runtime, pacing, intensity, depth, vibe, director, hideWatched, dialogue, attention, minCritic, minAudience, criticAudienceGap, exceptionalGenre, ...patch })
   }
 
   const handlePreset = (preset) => {
     if (activePreset === preset.id) {
       setActivePreset(null)
-      onSearch({ q: draftQuery, genre: '', sortBy: DEFAULT_SORT, decade: '', minRating: '', language: '', runtime: '', pacing: '', intensity: '', depth: '', vibe: [], director: '', hideWatched, dialogue: '', attention: '' })
+      onSearch({ q: draftQuery, genre: '', sortBy: DEFAULT_SORT, decade: '', minRating: '', language: '', runtime: '', pacing: '', intensity: '', depth: '', vibe: [], director: '', hideWatched, dialogue: '', attention: '', minCritic: '', minAudience: '', criticAudienceGap: '', exceptionalGenre: '' })
     } else {
       setActivePreset(preset.id)
       onSearch({
@@ -298,6 +345,7 @@ export default function BrowseSearchBar({
         genre: '', sortBy: DEFAULT_SORT, decade: '', minRating: '', language: '',
         runtime: '', pacing: '', intensity: '', depth: '', vibe: [],
         director: '', hideWatched, dialogue: '', attention: '',
+        minCritic: '', minAudience: '', criticAudienceGap: '', exceptionalGenre: '',
         ...preset.filters,
       })
     }
@@ -325,6 +373,10 @@ export default function BrowseSearchBar({
     dialogue && { key: 'dialogue', label: DIALOGUE_OPTIONS.find(d => d.value === dialogue)?.label, clear: () => applyFilter({ dialogue: '' }) },
     attention && { key: 'attention', label: ATTENTION_OPTIONS.find(a => a.value === attention)?.label, clear: () => applyFilter({ attention: '' }) },
     hideWatched && { key: 'hideWatched', label: 'Hide watched', clear: () => applyFilter({ hideWatched: '' }) },
+    minCritic && { key: 'minCritic', label: `Critics \u2265 ${minCritic}`, clear: () => applyFilter({ minCritic: '' }) },
+    minAudience && { key: 'minAudience', label: `Audience \u2265 ${minAudience}`, clear: () => applyFilter({ minAudience: '' }) },
+    criticAudienceGap && { key: 'gap', label: GAP_OPTIONS.find(g => g.value === criticAudienceGap)?.label ?? criticAudienceGap, clear: () => applyFilter({ criticAudienceGap: '' }) },
+    exceptionalGenre && { key: 'genreTop', label: 'Exceptional for genre', clear: () => applyFilter({ exceptionalGenre: '' }) },
     ...vibe.map(v => ({ key: `vibe-${v}`, label: VIBE_OPTIONS.find(o => o.value === v)?.label ?? v, clear: () => toggleVibe(v) })),
   ].filter(Boolean)
 
@@ -580,6 +632,61 @@ export default function BrowseSearchBar({
               disabled={isSearchMode}
             />
 
+            {/* Critics floor — Supabase browse only */}
+            <RatingSlider
+              label="Critics love it"
+              labelSuffix={isSearchMode ? 'browse only' : null}
+              value={minCritic}
+              onChange={(v) => applyFilter({ minCritic: v })}
+              disabled={isSearchMode}
+            />
+
+            {/* Audience floor — Supabase browse only */}
+            <RatingSlider
+              label="Audiences love it"
+              labelSuffix={isSearchMode ? 'browse only' : null}
+              value={minAudience}
+              onChange={(v) => applyFilter({ minAudience: v })}
+              disabled={isSearchMode}
+            />
+
+            {/* Critic/audience gap — Supabase browse only */}
+            <SegmentGroup
+              label="Critic / audience gap"
+              labelSuffix={isSearchMode ? 'browse only' : null}
+              options={GAP_OPTIONS}
+              value={criticAudienceGap}
+              onChange={(v) => applyFilter({ criticAudienceGap: v })}
+              disabled={isSearchMode}
+            />
+
+            {/* Exceptional for genre — Supabase browse only */}
+            <div className={isSearchMode ? 'opacity-40' : ''}>
+              <p className="mb-2 flex items-center gap-2 text-[0.68rem] font-semibold uppercase tracking-widest"
+                style={{ color: 'rgba(248,250,252,0.35)' }}>
+                Genre excellence
+                {isSearchMode && (
+                  <span className="normal-case tracking-normal font-normal" style={{ color: 'rgba(248,250,252,0.3)' }}>
+                    browse only
+                  </span>
+                )}
+              </p>
+              <button
+                type="button"
+                disabled={isSearchMode}
+                onClick={() => applyFilter({ exceptionalGenre: exceptionalGenre ? '' : '1' })}
+                className={`inline-flex h-8 items-center gap-1.5 rounded-full border px-3.5 text-[0.76rem] font-medium transition-all duration-150 ${
+                  isSearchMode ? 'cursor-not-allowed opacity-30' :
+                  exceptionalGenre
+                    ? 'border-purple-400/60 bg-purple-500/20 text-purple-200'
+                    : 'border-white/10 bg-white/[0.04] text-white/55 hover:border-white/18 hover:text-white/80'
+                }`}
+              >
+                <Award className="h-3.5 w-3.5" />
+                Exceptional for genre
+              </button>
+            </div>
+
             {/* Director — Supabase browse only */}
             <div className={isSearchMode ? 'opacity-40' : ''}>
               <p className="mb-2 flex items-center gap-2 text-[0.68rem] font-semibold uppercase tracking-widest"
@@ -644,7 +751,7 @@ export default function BrowseSearchBar({
                     applyFilter({ minRating: '', runtime: '' })
                   } else {
                     setDraftDirector('')
-                    applyFilter({ minRating: '', runtime: '', pacing: '', intensity: '', depth: '', vibe: [], director: '', dialogue: '', attention: '' })
+                    applyFilter({ minRating: '', runtime: '', pacing: '', intensity: '', depth: '', vibe: [], director: '', dialogue: '', attention: '', minCritic: '', minAudience: '', criticAudienceGap: '', exceptionalGenre: '' })
                   }
                 }}
                 className="text-[0.76rem] font-medium transition-colors"

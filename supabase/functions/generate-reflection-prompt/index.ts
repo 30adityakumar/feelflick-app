@@ -31,25 +31,14 @@ function isAllowed(ip: string): boolean {
   return true
 }
 
-function pacingLabel(score: number | null): string {
-  if (score == null) return 'measured'
-  if (score < 40) return 'slow and meditative'
-  if (score < 70) return 'measured'
-  return 'fast-paced'
-}
-
-function intensityLabel(score: number | null): string {
-  if (score == null) return 'moderate'
-  if (score < 40) return 'gentle'
-  if (score < 70) return 'moderate'
-  return 'intense'
-}
-
 const SYSTEM_PROMPT = `You are FeelFlick's post-watch reflection writer.
-Write a single reflection question for someone who just watched a film.
-The question must be SPECIFIC to that film's themes, not generic.
-Bad example: "What did you think?"
-Good example: "Did the ending of The Truman Show feel like escape or resignation to you?"
+Write a single specific reflection question for someone who just watched a film.
+Use the film's mood, tone, and overview to ground the question in its emotional territory.
+Never generic. Never just "what did you think".
+Examples of good questions:
+- "Did the Truman Show's ending feel like escape or resignation to you?"
+- "Which of Chihiro's choices felt earned by what she'd been through?"
+- "Whose silence in Manchester by the Sea stayed with you longest?"
 Respond ONLY with the question — no preamble, no quotes, no explanation.
 Maximum 20 words. Must end with a question mark.`
 
@@ -94,7 +83,7 @@ Deno.serve(async (req: Request) => {
   try {
     const { data: movie } = await supabase
       .from('movies')
-      .select('title, overview, genres, pacing_score, intensity_score, release_year')
+      .select('title, overview, tagline, genres, mood_tags, tone_tags, fit_profile, release_year')
       .eq('tmdb_id', tmdbId)
       .maybeSingle()
 
@@ -105,15 +94,29 @@ Deno.serve(async (req: Request) => {
       })
     }
 
-    const genreNames = Array.isArray(movie.genres) ? movie.genres.slice(0, 3).join(', ') : (movie.genres ?? '')
+    const genreNames = Array.isArray(movie.genres)
+      ? movie.genres.slice(0, 3).map((g: unknown) => typeof g === 'object' ? ((g as Record<string, string>)?.name ?? '') : g).filter(Boolean).join(', ')
+      : (typeof movie.genres === 'string' ? movie.genres : '')
+
+    const moodTagStr = Array.isArray(movie.mood_tags) && movie.mood_tags.length > 0
+      ? movie.mood_tags.slice(0, 5).join(', ')
+      : ''
+
+    const toneTagStr = Array.isArray(movie.tone_tags) && movie.tone_tags.length > 0
+      ? movie.tone_tags.slice(0, 3).join(', ')
+      : ''
+
     const releaseYear = movie.release_year ?? ''
+    const overview = String(movie.overview ?? '').slice(0, 400)
+    const tagline = movie.tagline ? `\nTagline: "${movie.tagline}"` : ''
+    const moodLine = moodTagStr ? `\nMood: ${moodTagStr}` : ''
+    const toneLine = toneTagStr ? `\nTone: ${toneTagStr}` : ''
 
     const userMessage = `Movie: "${movie.title}" (${releaseYear})
-Genres: ${genreNames}
-Tone: ${pacingLabel(movie.pacing_score)} pacing, ${intensityLabel(movie.intensity_score)} intensity
-Overview: "${String(movie.overview ?? '').slice(0, 120)}"
+Genres: ${genreNames}${moodLine}${toneLine}${tagline}
+Overview: "${overview}"
 
-Write one specific reflection question about this film.`
+Write one specific reflection question about this film. Root it in the film's themes, mood, or a key moment implied by the overview — not its genre or pacing.`
 
     const completion = await openai.chat.completions.create({
       model: 'gpt-4.1-mini',

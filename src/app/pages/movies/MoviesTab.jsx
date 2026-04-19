@@ -44,6 +44,10 @@ export default function MoviesTab() {
   const hideWatched = searchParams.get('hideWatched')  || ''
   const dialogue    = searchParams.get('dialogue')     || ''
   const attention   = searchParams.get('attention')    || ''
+  const minCritic   = searchParams.get('minCritic')    || ''
+  const minAudience = searchParams.get('minAudience')  || ''
+  const criticAudienceGap = searchParams.get('gap')    || ''
+  const exceptionalGenre  = searchParams.get('genreTop') || ''
 
   const isSearchMode = query.trim().length > 0
 
@@ -83,6 +87,10 @@ export default function MoviesTab() {
     set('hideWatched', updates.hideWatched)
     set('dialogue',    updates.dialogue)
     set('attention',   updates.attention)
+    set('minCritic',   updates.minCritic)
+    set('minAudience', updates.minAudience)
+    set('gap',         updates.criticAudienceGap)
+    set('genreTop',    updates.exceptionalGenre)
 
     // vibe is a comma-joined list
     if (updates.vibe !== undefined) {
@@ -108,6 +116,10 @@ export default function MoviesTab() {
         intensity, depth, vibe, director,
         hideWatched: hideWatched === '1', watchedIds,
         dialogue, attention,
+        minCritic: minCritic ? Number(minCritic) : 0,
+        minAudience: minAudience ? Number(minAudience) : 0,
+        criticAudienceGap,
+        exceptionalGenre: exceptionalGenre === '1',
       })
       const candidates = data.movies
       if (!candidates.length) return
@@ -124,7 +136,8 @@ export default function MoviesTab() {
     updateSearchParams({
       q: '', genre: '', sortBy: DEFAULT_SORT, decade: '', minRating: '', language: '',
       runtime: '', pacing: '', intensity: '', depth: '', vibe: [],
-      director: '', hideWatched: '', dialogue: '', attention: '', page: 1,
+      director: '', hideWatched: '', dialogue: '', attention: '',
+      minCritic: '', minAudience: '', criticAudienceGap: '', exceptionalGenre: '', page: 1,
     })
   }
 
@@ -182,6 +195,10 @@ export default function MoviesTab() {
             page, genre, sortBy, decade, lang: language,
             rating: minRating, runtime, pacing, intensity, depth, vibe,
             director, hideWatched: hideWatched === '1', watchedIds, dialogue, attention,
+            minCritic: minCritic ? Number(minCritic) : 0,
+            minAudience: minAudience ? Number(minAudience) : 0,
+            criticAudienceGap,
+            exceptionalGenre: exceptionalGenre === '1',
           })
           if (!active) return
           setMovies(data.movies)
@@ -197,7 +214,7 @@ export default function MoviesTab() {
     }
     fetchMovies()
     return () => { active = false }
-  }, [page, query, genre, sortBy, decade, minRating, language, runtime, pacing, intensity, depth, vibeRaw, director, hideWatched, dialogue, attention, watchedIds]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [page, query, genre, sortBy, decade, minRating, language, runtime, pacing, intensity, depth, vibeRaw, director, hideWatched, dialogue, attention, watchedIds, minCritic, minAudience, criticAudienceGap, exceptionalGenre]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handlePageChange = (newPage) => {
     updateSearchParams({ page: newPage })
@@ -231,6 +248,10 @@ export default function MoviesTab() {
             hideWatched={hideWatched}
             dialogue={dialogue}
             attention={attention}
+            minCritic={minCritic}
+            minAudience={minAudience}
+            criticAudienceGap={criticAudienceGap}
+            exceptionalGenre={exceptionalGenre}
             user={user}
             onSearch={handleSearch}
           />

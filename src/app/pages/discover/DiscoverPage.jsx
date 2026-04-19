@@ -423,7 +423,7 @@ function AnimatedScore({ score, color1, color2 }) {
 
 // ─── Recommendation Card ──────────────────────────────────────────────────────
 
-function RecommendationCard({ movie, index, originalRank, moodName, moodId, onOpenMovie, aiExplanation, aiScore, aiLoading }) {
+function RecommendationCard({ movie, index, moodName, moodId, onOpenMovie, aiExplanation, aiScore, aiLoading }) {
   const [isHovered, setIsHovered] = useState(false)
   const vis        = moodId ? MOOD_VISUAL_MAP[moodId] : MOOD_VISUAL_MAP.DEFAULT
   const finalScore = aiScore ?? movie.match_percentage
@@ -480,13 +480,6 @@ function RecommendationCard({ movie, index, originalRank, moodName, moodId, onOp
           >
             #{index + 1}
           </div>
-
-          {/* AI pick badge — shown when card moved ≥3 positions up */}
-          {originalRank != null && originalRank - index >= 3 && (
-            <div className="absolute left-2 bottom-2 rounded-full px-2 py-0.5 text-[10px] font-semibold bg-purple-500/80 text-white">
-              ↑ AI pick
-            </div>
-          )}
 
           {/* Match % badge — skeleton while AI loads, animated counter once ready */}
           <div className="absolute right-2 top-2">
@@ -593,7 +586,7 @@ export default function DiscoverPage() {
 
   // Memoize movies array passed to AI hook to avoid spurious re-triggers
   const aiMovies = useMemo(
-    () => recommendations.map((m) => ({ tmdbId: m.tmdb_id, title: m.title, vote_average: m.vote_average })),
+    () => recommendations.map((m) => ({ tmdbId: m.tmdb_id, title: m.title, vote_average: m.vote_average, mood_tags: m.mood_tags, tone_tags: m.tone_tags, fit_profile: m.fit_profile })),
     [recommendations],
   )
 
@@ -601,7 +594,6 @@ export default function DiscoverPage() {
     narration,
     narrationDone,
     explanations,
-    rerankedOrder,
   } = useAIMoodContext({
     mood:       selectedMoodOption?.name ?? null,
     context:    VIEWING_CONTEXTS.find((c) => c.id === viewingContext)?.name ?? null,
@@ -700,20 +692,8 @@ export default function DiscoverPage() {
     })
   }, [recommendations, sessionId, trackRecommendationShown])
 
-  // Original rank map for AI pick badge (pre-reranking position)
-  const originalRankMap = useMemo(
-    () => new Map(recommendations.map((m, i) => [m.tmdb_id, i])),
-    [recommendations],
-  )
-
-  // Re-ordered list when AI re-ranking arrives; falls back to original order
-  const displayedRecommendations = useMemo(() => {
-    if (!rerankedOrder || rerankedOrder.length === 0) return recommendations
-    const orderMap = new Map(rerankedOrder.map((id, i) => [id, i]))
-    return [...recommendations].sort(
-      (a, b) => (orderMap.get(a.tmdb_id) ?? 999) - (orderMap.get(b.tmdb_id) ?? 999)
-    )
-  }, [recommendations, rerankedOrder])
+  // Runtime scoreMoodAffinity is the single source of ranking truth
+  const displayedRecommendations = recommendations
 
   // Handlers
   function handleMoodSelect(moodId, clientX, clientY) {
@@ -1177,7 +1157,6 @@ export default function DiscoverPage() {
                           key={movie.movie_id}
                           movie={movie}
                           index={index}
-                          originalRank={originalRankMap.get(movie.tmdb_id) ?? index}
                           moodName={selectedMoodOption?.name}
                           moodId={selectedMood}
                           aiExplanation={explanations.get(movie.tmdb_id)?.explanation ?? null}

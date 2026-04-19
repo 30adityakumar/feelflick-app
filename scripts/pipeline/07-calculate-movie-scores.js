@@ -62,7 +62,7 @@ const CONFIG = {
   // So at N=0 you get the mean; at N=PRIOR you're halfway; at N>>PRIOR you
   // get the real rating. This replaces the old blunt confidence penalties.
   BAYESIAN: {
-    IMDB_PRIOR:        5000,   // ~5k votes to halve the prior pull
+    IMDB_PRIOR:        1500,   // ~1.5k votes to halve the prior pull
     IMDB_MEAN:         6.5,    // global IMDb average across all films
     TMDB_PRIOR:        500,
     TMDB_MEAN:         6.5,
@@ -72,7 +72,23 @@ const CONFIG = {
 
   // Language bias: non-English IMDb scores are systematically deflated
   // because the English-speaking majority rates foreign films lower.
-  LANGUAGE_BIAS_CORRECTION: 0.25,  // added to IMDb score for non-en films
+  LANGUAGE_BIAS_CORRECTION: {
+    hi: 0.40,  // Hindi — historically heavily underrated on IMDb
+    ta: 0.40,
+    te: 0.40,
+    ml: 0.35,
+    bn: 0.35,
+    pa: 0.35,
+    ur: 0.35,
+    ko: 0.20,
+    ja: 0.15,
+    zh: 0.25,
+    yue: 0.25,
+    fa: 0.25,
+    th: 0.20,
+    vi: 0.20,
+    _default: 0.15,  // any other non-English
+  },
 };
 
 // ============================================================================
@@ -206,6 +222,15 @@ const KEYWORD_MOOD_MODIFIERS = {
   'talky': { dialogue: 20, pacing: -1 }
 };
 
+// Pre-compiled word-boundary regex for keyword matching.
+// Prevents substring false positives (e.g. "brisk" matching "brisket").
+const KEYWORD_PATTERN_REGEX = Object.fromEntries(
+  Object.entries(KEYWORD_MOOD_MODIFIERS).map(([pattern, mods]) => [
+    pattern,
+    { regex: new RegExp(`\\b${pattern.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, 'i'), mods }
+  ])
+);
+
 // ============================================================================
 // DIRECTOR STYLE SIGNATURES
 // Known auteurs with distinct styles that override/blend with calculated scores
@@ -293,6 +318,21 @@ const CULT_KEYWORDS = new Set([
   'surreal', 'psychedelic', 'subversive', 'unconventional'
 ]);
 
+// Pre-compiled word-boundary regex for VFX and cult keyword Sets
+const VFX_KEYWORD_REGEX = new Map(
+  Array.from(VFX_KEYWORDS).map(kw => [
+    kw,
+    new RegExp(`\\b${kw.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, 'i')
+  ])
+);
+
+const CULT_KEYWORD_REGEX = new Map(
+  Array.from(CULT_KEYWORDS).map(kw => [
+    kw,
+    new RegExp(`\\b${kw.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, 'i')
+  ])
+);
+
 // ============================================================================
 // HELPER: ENUM MAPPERS (for legacy fields)
 // ============================================================================
@@ -314,6 +354,116 @@ function scoreToStarpowerEnum(score) {
 }
 
 // ============================================================================
+// CRITIC RATING (0-100)
+//
+// Blends RT critics + Metacritic + IMDb (only if 50k+ votes, where IMDb
+// functions more like an aggregate critics signal than a casual poll).
+// Requires at least 1 source with enough reviews to produce a score.
+// ============================================================================
+
+function calculateCriticRating(externalRatings) {
+  let score = 0, weight = 0, sources = 0;
+
+  // RT critics (vouched: 20+ critic reviews)
+  const rtCount = externalRatings?.rt_critics_count || 0;
+  if (externalRatings?.rt_rating != null && rtCount >= 20) {
+    const rt = parseInt(externalRatings.rt_rating);
+    if (!isNaN(rt)) {
+      score += rt * 0.45;
+      weight += 0.45;
+      sources++;
+    }
+  }
+
+  // Metacritic (curated panel — always vouched)
+  if (externalRatings?.metacritic_score != null) {
+    score += externalRatings.metacritic_score * 0.35;
+    weight += 0.35;
+    sources++;
+  }
+
+  // IMDb as critic signal only if widely vetted
+  const imdbVotes = externalRatings?.imdb_votes || 0;
+  if (externalRatings?.imdb_rating != null && imdbVotes >= 50000) {
+    const bayesian = (imdbVotes * externalRatings.imdb_rating + 20000 * 6.5) / (imdbVotes + 20000);
+    score += bayesian * 10 * 0.20;
+    weight += 0.20;
+    sources++;
+  }
+
+  if (weight === 0 || sources < 1) return { rating: null, confidence: 0 };
+
+  const rating = Math.round(score / weight);
+
+  // Confidence: require 2+ sources OR MC alone for trust
+  let confidence = 0;
+  if (externalRatings?.rt_rating != null && rtCount >= 20) confidence += 30;
+  if (externalRatings?.metacritic_score != null) confidence += 30;
+  if (imdbVotes >= 50000) confidence += 20;
+  if (rtCount >= 100) confidence += 10;
+  if (imdbVotes >= 200000) confidence += 10;
+  confidence = Math.min(100, confidence);
+  if (sources === 1 && !externalRatings?.metacritic_score) confidence = Math.min(confidence, 55);
+
+  return { rating: Math.max(0, Math.min(100, rating)), confidence };
+}
+
+// ============================================================================
+// AUDIENCE RATING (0-100)
+//
+// Broad audience consensus from IMDb + TMDB + Trakt. All sources get Bayesian
+// averaging to dampen low-vote noise. Non-English language bias correction
+// applied to IMDb scores (same rationale as ff_rating).
+// ============================================================================
+
+function calculateAudienceRating(movie, externalRatings) {
+  let score = 0, weight = 0, sources = 0, totalVotes = 0;
+
+  // IMDb audience (always included if present, Bayesian)
+  if (externalRatings?.imdb_rating != null) {
+    const votes = externalRatings.imdb_votes || 0;
+    const bayesian = (votes * externalRatings.imdb_rating + 2500 * 6.5) / (votes + 2500);
+    const langBias = (movie.original_language && movie.original_language !== 'en') ? 0.3 : 0;
+    const adjusted = Math.min(10, bayesian + langBias);
+    score += adjusted * 10 * 0.50;
+    weight += 0.50;
+    sources++;
+    totalVotes += votes;
+  }
+
+  // TMDB (light weight, Bayesian)
+  if (movie.vote_average && (movie.vote_count || 0) >= 50) {
+    const votes = movie.vote_count;
+    const bayesian = (votes * movie.vote_average + 300 * 6.5) / (votes + 300);
+    score += bayesian * 10 * 0.25;
+    weight += 0.25;
+    sources++;
+    totalVotes += votes;
+  }
+
+  // Trakt (cinephile audience)
+  if (externalRatings?.trakt_rating != null && (externalRatings.trakt_votes || 0) >= 100) {
+    const votes = externalRatings.trakt_votes;
+    const bayesian = (votes * externalRatings.trakt_rating + 500 * 7.0) / (votes + 500);
+    score += bayesian * 10 * 0.25;
+    weight += 0.25;
+    sources++;
+    totalVotes += votes;
+  }
+
+  if (weight === 0) return { rating: null, confidence: 0 };
+
+  const rating = Math.round(score / weight);
+
+  // Confidence: logarithmic in vote count + source diversity
+  let confidence = Math.min(80, Math.log10(totalVotes + 1) * 20);
+  confidence += (sources / 3) * 20;
+  confidence = Math.min(100, Math.round(confidence));
+
+  return { rating: Math.max(0, Math.min(100, rating)), confidence };
+}
+
+// ============================================================================
 // FF_RATING V3: PURE QUALITY SCORE (0-10)
 //
 // Improvements over V2:
@@ -329,7 +479,7 @@ function scoreToStarpowerEnum(score) {
 // ============================================================================
 
 function calculateFFRating(movie, externalRatings) {
-  const { FF_WEIGHTS: W, BAYESIAN: B, LANGUAGE_BIAS_CORRECTION } = CONFIG;
+  const { FF_WEIGHTS: W, BAYESIAN: B } = CONFIG;
   let totalScore = 0;
   let totalWeight = 0;
   let sourceCount = 0;
@@ -346,7 +496,9 @@ function calculateFFRating(movie, externalRatings) {
     // Language bias correction: non-English films are systematically
     // underrated on IMDb by English-speaking majority voters
     if (movie.original_language && movie.original_language !== 'en') {
-      imdbScore = Math.min(10, imdbScore + LANGUAGE_BIAS_CORRECTION);
+      const biasMap = CONFIG.LANGUAGE_BIAS_CORRECTION;
+      const correction = biasMap[movie.original_language] ?? biasMap._default;
+      imdbScore = Math.min(10, imdbScore + correction);
     }
 
     totalScore  += imdbScore * W.IMDB;
@@ -569,71 +721,30 @@ function calculateGenreNormalizedRating(ffRating, primaryGenreId, secondaryGenre
 }
 
 // ============================================================================
-// QUALITY SCORE (0-100)
-// Simplified version without double-penalty
-// ============================================================================
-
-function calculateQualityScore(movie, externalRatings) {
-  let score = 0;
-  let weight = 0;
-
-  // IMDB rating (28% weight)
-  if (externalRatings?.imdb_rating) {
-    const imdbNorm = (externalRatings.imdb_rating / 10) * 100;
-    const voteCount = externalRatings.imdb_votes || 0;
-    const confidence = Math.min(1, voteCount / 50000);
-    const actualWeight = 0.28 * (0.5 + 0.5 * confidence);
-
-    score += imdbNorm * actualWeight;
-    weight += actualWeight;
-  }
-
-  // Rotten Tomatoes (22%)
-  if (externalRatings?.rt_rating) {
-    const rtScore = parseInt(externalRatings.rt_rating);
-    if (!isNaN(rtScore)) {
-      score += rtScore * 0.22;
-      weight += 0.22;
-    }
-  }
-
-  // Metacritic (20%)
-  if (externalRatings?.metacritic_score) {
-    score += externalRatings.metacritic_score * 0.20;
-    weight += 0.20;
-  }
-
-  // TMDB vote_average (10%)
-  if (movie.vote_average) {
-    const tmdbNorm = (movie.vote_average / 10) * 100;
-    const voteCount = movie.vote_count || 0;
-    const confidence = Math.min(1, voteCount / 1000);
-    const actualWeight = 0.10 * (0.3 + 0.7 * confidence);
-
-    score += tmdbNorm * actualWeight;
-    weight += actualWeight;
-  }
-
-  // Trakt (7%)
-  if (externalRatings?.trakt_rating) {
-    const traktNorm = (externalRatings.trakt_rating / 10) * 100;
-    score += traktNorm * 0.07;
-    weight += 0.07;
-  }
-
-  const qualityScore = weight > 0 ? score / weight : 50;
-  return Math.round(qualityScore);
-}
-
 // ============================================================================
 // MOOD SCORES V2: KEYWORD-ENHANCED (pacing, intensity, depth 1-10)
 // ============================================================================
 
 function calculateMoodScores(movie, genres, keywords) {
+  // Prefer LLM-derived mood signals when available; fall back to heuristic calculation.
+  if (movie.llm_pacing != null && movie.llm_intensity != null && movie.llm_emotional_depth != null) {
+    return {
+      pacing: Math.round(movie.llm_pacing / 10),            // normalize back to 1-10 for legacy field compat
+      intensity: Math.round(movie.llm_intensity / 10),
+      emotional_depth: Math.round(movie.llm_emotional_depth / 10),
+      dialogue_density: movie.llm_dialogue_density ?? 50,
+      attention_demand: movie.llm_attention_demand ?? 50,
+      pacing_score_100: movie.llm_pacing,
+      intensity_score_100: movie.llm_intensity,
+      emotional_depth_score_100: movie.llm_emotional_depth,
+      _source: 'llm',
+    };
+  }
+
   // Start with genre base scores
   let pacing = 0, intensity = 0, depth = 0;
   let dialogueDensity = 50, attentionDemand = 50;
-  
+
   if (!genres || genres.length === 0) {
     return {
       pacing: 5,
@@ -661,8 +772,8 @@ function calculateMoodScores(movie, genres, keywords) {
   );
   
   for (const kw of keywordNames) {
-    for (const [pattern, mods] of Object.entries(KEYWORD_MOOD_MODIFIERS)) {
-      if (kw.includes(pattern)) {
+    for (const { regex, mods } of Object.values(KEYWORD_PATTERN_REGEX)) {
+      if (regex.test(kw)) {
         if (mods.pacing) pacing += mods.pacing;
         if (mods.intensity) intensity += mods.intensity;
         if (mods.depth) depth += mods.depth;
@@ -713,7 +824,10 @@ function calculateMoodScores(movie, genres, keywords) {
     intensity: Math.round(Math.max(1, Math.min(10, intensity))),
     emotional_depth: Math.round(Math.max(1, Math.min(10, depth))),
     dialogue_density: Math.round(Math.max(0, Math.min(100, dialogueDensity))),
-    attention_demand: Math.round(Math.max(0, Math.min(100, attentionDemand)))
+    attention_demand: Math.round(Math.max(0, Math.min(100, attentionDemand))),
+    pacing_score_100: Math.round(Math.max(0, Math.min(100, pacing * 10))),
+    intensity_score_100: Math.round(Math.max(0, Math.min(100, intensity * 10))),
+    emotional_depth_score_100: Math.round(Math.max(0, Math.min(100, depth * 10))),
   };
 }
 
@@ -744,8 +858,8 @@ function calculateVFXLevel(movie, genres, keywords) {
     typeof k === 'string' ? k.toLowerCase() : (k.name || '').toLowerCase()
   );
   
-  const vfxMatches = keywordNames.filter(k => 
-    Array.from(VFX_KEYWORDS).some(vfxKw => k.includes(vfxKw))
+  const vfxMatches = keywordNames.filter(k =>
+    Array.from(VFX_KEYWORD_REGEX.values()).some(regex => regex.test(k))
   ).length;
 
   if (vfxMatches > 0) {
@@ -781,7 +895,7 @@ function calculateCultStatus(movie, keywords, externalRatings, qualityScore) {
   );
   
   const cultMatches = keywordNames.filter(k =>
-    Array.from(CULT_KEYWORDS).some(cultKw => k.includes(cultKw))
+    Array.from(CULT_KEYWORD_REGEX.values()).some(regex => regex.test(k))
   ).length;
 
   if (cultMatches > 0) {
@@ -830,9 +944,10 @@ function calculateCultStatus(movie, keywords, externalRatings, qualityScore) {
 function calculateStarpower(movie) {
   let score = 0;
 
-  // Top 3 cast average (most important)
-  if (movie.top3_cast_avg) {
-    score += Math.min(45, movie.top3_cast_avg * 1.8);
+  // Prefer popularity-sorted top 3 (stronger signal than billing-based)
+  const top3 = movie.top3_popularity_rank_cast_avg || movie.top3_cast_avg || 0;
+  if (top3) {
+    score += Math.min(45, top3 * 1.8);
   }
 
   // Max cast popularity (star ceiling)
@@ -962,6 +1077,11 @@ function calculateDiscoveryPotential(movie, ffRating, genreNormalizedRating, cul
     }
   }
 
+  // Franchise films (Marvel, Fast & Furious, Star Wars, etc.) should not score as hidden gems
+  if (movie.collection_id) {
+    score = Math.max(0, score - 25);
+  }
+
   return Math.round(Math.min(100, score));
 }
 
@@ -1072,7 +1192,7 @@ async function fetchAllMovieData() {
     // Fetch related data in parallel
     const [movieGenres, ratingsExternal] = await Promise.all([
       fetchAllRows('movie_genres', 'movie_id, genre_id'),
-      fetchAllRows('ratings_external', 'movie_id, imdb_rating, imdb_votes, rt_rating, metacritic_score')
+      fetchAllRows('ratings_external', 'movie_id, imdb_rating, imdb_votes, rt_rating, rt_critics_count, metacritic_score')
     ]);
 
     // Build lookup maps
@@ -1101,12 +1221,20 @@ async function fetchAllMovieData() {
 // MAIN SCORING PIPELINE (MODIFIED)
 // ============================================================================
 
-async function calculateMovieScores() {
+async function calculateMovieScores(options = {}) {
   console.log('='.repeat(70));
   console.log('🎬 FeelFlick Movie Scoring Engine V3');
   console.log('='.repeat(70));
   console.log('');
-  
+
+  if (options.rescore) {
+    console.log('🔄 Mode: RESCORE ALL eligible movies');
+  } else if (options.rescoreOlderThanDays) {
+    const threshold = new Date(Date.now() - options.rescoreOlderThanDays * 86400000);
+    console.log(`🔄 Mode: RESCORE movies scored before ${threshold.toISOString().split('T')[0]}`);
+  }
+  console.log('');
+
   const startTime = Date.now();
 
   // Build live genre statistics from already-scored movies in the DB.
@@ -1114,14 +1242,31 @@ async function calculateMovieScores() {
   const liveGenreStats = await buildGenreStats();
 
   try {
-    // ✅ UPDATED QUERY: Only fetch movies with status='fetching' or 'scoring'
-    const { data: movies, error: moviesError } = await supabase
+    // Exclude credits_raw (large JSON) — not used by scoring and causes query timeouts
+    const SCORE_SELECT = 'id, title, original_title, release_date, overview, poster_path, backdrop_path, runtime, vote_average, vote_count, popularity, original_language, adult, budget, revenue, status, tagline, homepage, imdb_id, inserted_at, updated_at, tmdb_id, pacing_score, intensity_score, emotional_depth_score, last_scored_at, quality_score, star_power, vfx_level, cult_status, dialogue_density, attention_demand, release_year, genres, genre_count, primary_genre, keywords, keyword_count, cast_count, crew_count, avg_cast_popularity, max_cast_popularity, top3_cast_avg, lead_actor_name, lead_actor_popularity, lead_actor_character, director_name, director_popularity, director_count, co_directors, trailer_youtube_key, fetched_at, last_tmdb_sync, last_embedding_at, retry_count, last_error, last_error_at, error_type, has_embeddings, has_scores, has_credits, has_keywords, is_valid, starpower_score, ff_rating, ff_confidence, vfx_level_score, cult_status_score, ff_rating_genre_normalized, discovery_potential, accessibility_score, polarization_score, has_cast_metadata, ff_community_rating, ff_community_votes, ff_final_rating, spoken_languages, production_countries, production_companies, collection_id, collection_name, certification, writer_name, writer_popularity, cinematographer_name, top3_popularity_rank_cast_avg, cast_metadata_recomputed_at, pacing_score_100, intensity_score_100, emotional_depth_score_100, mood_tags, tone_tags, fit_profile, llm_pacing, llm_intensity, llm_emotional_depth, llm_dialogue_density, llm_attention_demand, llm_confidence, llm_enriched_at, llm_model_version, user_satisfaction_score, user_satisfaction_confidence, user_satisfaction_sample_size, user_satisfaction_computed_at, ff_critic_rating, ff_critic_confidence, ff_audience_rating, ff_audience_confidence, ff_community_confidence';
+
+    let query = supabase
       .from('movies')
-      .select('*')
-      .in('status', ['fetching', 'scoring'])  // ← NEW: Status filter
-      .eq('has_scores', false)
+      .select(SCORE_SELECT)
       .eq('is_valid', true)
-      .limit(10000);
+      .limit(options.limit || 10000);
+
+    if (options.rescore) {
+      // Rescore all eligible movies regardless of has_scores
+      query = query.in('status', ['fetching', 'scoring', 'complete']);
+    } else if (options.rescoreOlderThanDays) {
+      const threshold = new Date(Date.now() - options.rescoreOlderThanDays * 86400000).toISOString();
+      query = query
+        .in('status', ['fetching', 'scoring', 'complete'])
+        .or(`has_scores.eq.false,last_scored_at.lt.${threshold}`);
+    } else {
+      // Default: only unscored movies
+      query = query
+        .in('status', ['fetching', 'scoring'])
+        .eq('has_scores', false);
+    }
+
+    const { data: movies, error: moviesError } = await query;
     
     if (moviesError) throw moviesError;
     
@@ -1161,7 +1306,7 @@ async function calculateMovieScores() {
       const batch = movieIds.slice(i, i + GENRE_BATCH);
       const { data: ratingsData } = await supabase
         .from('ratings_external')
-        .select('movie_id, imdb_rating, imdb_votes, rt_rating, metacritic_score, trakt_rating, trakt_votes')
+        .select('movie_id, imdb_rating, imdb_votes, rt_rating, rt_critics_count, metacritic_score, trakt_rating, trakt_votes')
         .in('movie_id', batch);
       
       ratingsData?.forEach(r => {
@@ -1212,14 +1357,15 @@ async function calculateMovieScores() {
         if (genres.length > 1)                     secondaryGenreId = genres[1];
 
         // ✅ CALCULATE ALL SCORES (using your existing functions)
+        const criticResult   = calculateCriticRating(externalRatings);
+        const audienceResult = calculateAudienceRating(movie, externalRatings);
         const ffResult = calculateFFRating(movie, externalRatings);
         const genreNormalizedRating = calculateGenreNormalizedRating(
           ffResult.rating, primaryGenreId, secondaryGenreId, liveGenreStats
         );
-        const qualityScore = calculateQualityScore(movie, externalRatings);
         const moodScores = calculateMoodScores(movie, genres, keywords);
         const vfxLevel = calculateVFXLevel(movie, genres, keywords);
-        const cultStatus = calculateCultStatus(movie, keywords, externalRatings, qualityScore);
+        const cultStatus = calculateCultStatus(movie, keywords, externalRatings, Math.round(ffResult.rating * 10));
         const starpower = calculateStarpower(movie);
         const polarization = calculatePolarization(movie, externalRatings);
         const discoveryPotential = calculateDiscoveryPotential(
@@ -1234,9 +1380,14 @@ async function calculateMovieScores() {
         // Build update object
         updates.push({
           id: movie.id,
-          
-          // Core ratings
-          ff_rating: ffResult.rating,
+
+          // Split ratings — coerce to integer for smallint columns
+          ff_critic_rating:       criticResult.rating != null ? Math.round(criticResult.rating) : null,
+          ff_critic_confidence:   criticResult.confidence != null ? Math.round(criticResult.confidence) : null,
+          ff_audience_rating:     audienceResult.rating != null ? Math.round(audienceResult.rating) : null,
+          ff_audience_confidence: audienceResult.confidence != null ? Math.round(audienceResult.confidence) : null,
+
+          // ff_rating: DEPRECATED 2026-04-18 — no longer written. Use ff_audience_rating (0-100).
           ff_confidence: ffResult.confidence,
           ff_rating_genre_normalized: genreNormalizedRating,
           
@@ -1247,8 +1398,13 @@ async function calculateMovieScores() {
           dialogue_density: moodScores.dialogue_density,
           attention_demand: moodScores.attention_demand,
           
+          // Mood dimensions (0-100 scale)
+          pacing_score_100: moodScores.pacing_score_100,
+          intensity_score_100: moodScores.intensity_score_100,
+          emotional_depth_score_100: moodScores.emotional_depth_score_100,
+
           // Quality metrics
-          quality_score: qualityScore,
+          quality_score: Math.round(ffResult.rating * 10),
           vfx_level_score: vfxLevel,
           cult_status_score: cultStatus,
           starpower_score: starpower,
@@ -1331,7 +1487,9 @@ async function calculateMovieScores() {
     console.log(`  Total time: ${totalTime}s`);
     console.log(`  Average rate: ${avgRate} movies/second`);
     console.log(`\n🎯 V3 Scores calculated:`);
-    console.log(`  ✓ ff_rating (0-10) — V3: Bayesian, Trakt source, language bias fix`);
+    console.log(`  ✓ ff_critic_rating (0-100) — RT + Metacritic + IMDb (50k+)`);
+    console.log(`  ✓ ff_audience_rating (0-100) — IMDb + TMDB + Trakt Bayesian`);
+    console.log(`  ✓ ff_audience_rating (0-100) — primary audience signal`);
     console.log(`  ✓ ff_rating_genre_normalized (0-10) — relative to genre peers`);
     console.log(`  ✓ discovery_potential (0-100) — hidden gem detection`);
     console.log(`  ✓ accessibility_score (0-100) — ease of watching`);
@@ -1365,7 +1523,28 @@ async function calculateMovieScores() {
 // ============================================================================
 
 if (require.main === module) {
-  calculateMovieScores()
+  const args = process.argv.slice(2);
+
+  if (args.includes('--help')) {
+    console.log('Usage: node 07-calculate-movie-scores.js [options]');
+    console.log('');
+    console.log('Options:');
+    console.log('  --rescore                       Re-score all movies including already-scored');
+    console.log('  --rescore-older-than=<days>      Re-score movies whose scores are older than N days');
+    console.log('  --dry-run                       Log what would be scored without writing');
+    console.log('  --limit=N                       Max movies to process');
+    process.exit(0);
+  }
+
+  const options = {};
+  if (args.includes('--rescore')) options.rescore = true;
+  const rescoreAgeArg = args.find(a => a.startsWith('--rescore-older-than='));
+  if (rescoreAgeArg) options.rescoreOlderThanDays = parseInt(rescoreAgeArg.split('=')[1], 10);
+  if (args.includes('--dry-run')) options.dryRun = true;
+  const limitArg = args.find(a => a.startsWith('--limit='));
+  if (limitArg) options.limit = parseInt(limitArg.split('=')[1], 10);
+
+  calculateMovieScores(options)
     .then(() => {
       console.log('✅ Process complete');
       process.exit(0);
@@ -1493,21 +1672,3 @@ async function printSampleResults() {
 
   console.log('\n');
 }
-
-// ============================================================================
-// ENTRY POINT
-// ============================================================================
-
-if (require.main === module) {
-  calculateMovieScores()
-    .then(() => {
-      console.log('✅ Process complete');
-      process.exit(0);
-    })
-    .catch((error) => {
-      console.error('❌ Process failed:', error);
-      process.exit(1);
-    });
-}
-
-module.exports = { calculateMovieScores };

@@ -316,7 +316,7 @@ function MovieCard({ movie, removing, marking, onRemove, onMarkWatched, onClick 
             </p>
             <div className="flex items-center gap-1.5 text-[10px] text-white/55">
               {year && <span>{year}</span>}
-              {rating && <><span className="text-white/20">·</span><span>★ {rating}</span></>}
+              {rating && <><span className="text-white/20">·</span><span>{rating}</span></>}
             </div>
           </div>
         </div>

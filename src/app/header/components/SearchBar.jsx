@@ -382,10 +382,7 @@ function MovieResultCard({ id, movie, onClick, onMouseEnter, isSelected }) {
           {movie.vote_average > 0 && (
             <>
               <span aria-hidden="true">•</span>
-              <span className="flex items-center gap-1">
-                <span className="text-yellow-400" aria-hidden="true">★</span>
-                {movie.vote_average.toFixed(1)}
-              </span>
+              <span className="text-white/50">{movie.vote_average.toFixed(1)}</span>
             </>
           )}
         </div>

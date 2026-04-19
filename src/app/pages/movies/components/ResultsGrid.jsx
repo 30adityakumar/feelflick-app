@@ -2,8 +2,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
-import { Plus, Check, Eye, EyeOff, Star, ChevronRight } from 'lucide-react'
+import { Plus, Check, Eye, EyeOff, ChevronRight } from 'lucide-react'
 import { tmdbImg } from '@/shared/api/tmdb'
+import MovieCardRating from '@/shared/components/MovieCardRating'
 
 // Mood tag derived from pacing + intensity scores (Supabase movies only)
 function getMoodTag(movie) {
@@ -116,11 +117,6 @@ export default function ResultsGrid({ movies, user, isSearchMode = false }) {
         const isHovered     = hoveredId === tmdbId
         const year          = movie.release_year ?? (movie.release_date ? new Date(movie.release_date).getFullYear() : null)
 
-        // Rating: prefer ff_final_rating (Supabase), fall back to vote_average (TMDB)
-        const rating = movie.ff_final_rating != null
-          ? Number(movie.ff_final_rating).toFixed(1)
-          : movie.vote_average > 0 ? movie.vote_average.toFixed(1) : null
-
         // Mood tag: only available on Supabase results
         const moodTag = !isSearchMode ? getMoodTag(movie) : null
 
@@ -171,21 +167,9 @@ export default function ResultsGrid({ movies, user, isSearchMode = false }) {
                 )}
 
                 {/* Rating badge */}
-                {rating && (
-                  <div
-                    className="absolute right-2 top-2 flex items-center gap-1 rounded-full px-1.5 py-0.5 backdrop-blur-sm"
-                    style={{
-                      background: 'rgba(0,0,0,0.72)',
-                      border: '1px solid rgba(248,250,252,0.12)',
-                    }}
-                  >
-                    <Star className="h-2.5 w-2.5 fill-yellow-400 text-yellow-400" />
-                    <span className="text-[0.68rem] font-bold text-white">{rating}</span>
-                    {movie.ff_final_rating != null && (
-                      <span className="text-[0.58rem] font-normal" style={{ color: 'rgba(192,132,252,0.8)' }}>FF</span>
-                    )}
-                  </div>
-                )}
+                <div className="absolute right-2 top-2">
+                  <MovieCardRating movie={movie} showGenreBadge size="sm" />
+                </div>
 
                 {/* Mood tag — top-left, only in browse mode */}
                 {moodTag && !isHovered && (

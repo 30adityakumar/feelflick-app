@@ -125,7 +125,7 @@ export default function WatchedHistory() {
                 placeholder="Search your history…"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full bg-white/5 border border-white/8 rounded-xl pl-10 pr-10 py-2.5 text-sm text-white placeholder-white/25 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/12 transition-all"
+                className="w-full bg-white/5 border border-white/8 rounded-xl pl-10 pr-10 py-2.5 text-sm text-white placeholder-white/20 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/12 transition-all"
               />
               {searchQuery && (
                 <button

@@ -221,7 +221,7 @@ export default function Account() {
                 value={name}
                 onChange={e => setName(e.target.value)}
                 placeholder="Your name"
-                className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder-white/25 focus:outline-none focus:border-purple-500/60 focus:ring-2 focus:ring-purple-500/15 transition-all"
+                className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder-white/20 focus:outline-none focus:border-purple-500/60 focus:ring-2 focus:ring-purple-500/15 transition-all"
               />
               <button
                 type="submit"

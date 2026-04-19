@@ -348,7 +348,7 @@ export default function UserSearchPage() {
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Find people by name..."
             aria-label="Search for users by name"
-            className="w-full rounded-full bg-white/[0.05] border border-white/10 text-white text-sm pl-11 pr-4 py-3 placeholder-white/25 focus:outline-none focus:border-purple-500/40 focus:ring-2 focus:ring-purple-500/10 focus:shadow-[0_0_12px_rgba(168,85,247,0.1)] transition-all duration-200"
+            className="w-full rounded-full bg-white/[0.05] border border-white/10 text-white text-sm pl-11 pr-4 py-3 placeholder-white/20 focus:outline-none focus:border-purple-500/40 focus:ring-2 focus:ring-purple-500/10 focus:shadow-[0_0_12px_rgba(168,85,247,0.1)] transition-all duration-200"
           />
         </div>
 

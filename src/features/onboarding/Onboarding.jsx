@@ -511,7 +511,7 @@ function StepMovies({
             placeholder="Search any film…"
             value={query}
             onChange={e => setQuery(e.target.value)}
-            className="w-full pl-11 pr-11 py-3.5 rounded-2xl border border-white/10 bg-white/5 text-sm text-white placeholder-white/30 focus:outline-none focus:border-purple-500/50 focus:bg-white/8 focus:ring-2 focus:ring-purple-500/12 transition-all"
+            className="w-full pl-11 pr-11 py-3.5 rounded-2xl border border-white/10 bg-white/5 text-sm text-white placeholder-white/40 focus:outline-none focus:border-purple-500/50 focus:bg-white/8 focus:ring-2 focus:ring-purple-500/12 transition-all"
           />
           {searching && (
             <div className="absolute right-4 top-1/2 -translate-y-1/2">

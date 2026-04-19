@@ -673,7 +673,7 @@ export default function HeroTopPick({
               {movie.trailer_url && (
                 <button
                   onClick={playTrailer}
-                  className="group inline-flex items-center gap-1.5 px-4 sm:px-6 py-2.5 sm:py-3 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/10 hover:border-white/20 text-white font-semibold text-sm transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                  className="group inline-flex items-center gap-1.5 px-4 sm:px-6 py-2.5 sm:py-3 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/10 hover:border-white/20 text-white font-semibold text-sm transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
                 >
                   <Play className="h-4 w-3 fill-current" />
                   <span>Trailer</span>
@@ -690,7 +690,7 @@ export default function HeroTopPick({
                       className={`h-10 w-10 sm:h-11 sm:w-11 rounded-full border backdrop-blur-sm transition-all duration-300 flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95 ${
                         isInWatchlist
                           ? 'bg-purple-500/30 border-purple-400/50 text-purple-300 focus-visible:ring-purple-400'
-                          : 'bg-white/5 hover:bg-white/10 border-white/10 hover:border-white/20 text-white focus-visible:ring-white/50'
+                          : 'bg-white/5 hover:bg-white/10 border-white/10 hover:border-white/20 text-white focus-visible:ring-white/60'
                       }`}
                     >
                       {actionLoading.watchlist ? <Loader2 className="h-4 w-4 animate-spin" /> : isInWatchlist ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
@@ -704,7 +704,7 @@ export default function HeroTopPick({
                       className={`h-10 w-10 sm:h-11 sm:w-11 rounded-full border backdrop-blur-sm transition-all duration-300 flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95 ${
                         isWatched
                           ? 'bg-purple-500/30 border-purple-400/50 text-purple-300 focus-visible:ring-purple-400'
-                          : 'bg-white/5 hover:bg-white/10 border-white/10 hover:border-white/20 text-white focus-visible:ring-white/50'
+                          : 'bg-white/5 hover:bg-white/10 border-white/10 hover:border-white/20 text-white focus-visible:ring-white/60'
                       }`}
                     >
                       {actionLoading.watched ? <Loader2 className="h-4 w-4 animate-spin" /> : isWatched ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
@@ -718,7 +718,7 @@ export default function HeroTopPick({
                 onClick={handleShowAnother}
                 disabled={isRefreshing || (loading && !movie)}
                 aria-label="Skip — not today"
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-white/[0.08] hover:border-white/20 bg-white/[0.03] hover:bg-white/[0.08] text-white/40 hover:text-white/70 text-xs font-medium transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-white/[0.08] hover:border-white/20 bg-white/[0.03] hover:bg-white/[0.08] text-white/40 hover:text-white/70 text-xs font-medium transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
               >
                 {isRefreshing
                   ? <Loader2 className="h-3.5 w-3.5 animate-spin" />

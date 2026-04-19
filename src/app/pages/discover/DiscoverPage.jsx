@@ -330,7 +330,7 @@ function PipDial({ label, icon, leftAnchor, rightAnchor, value, onChange, orbCol
               aria-pressed={value >= pip}
               aria-label={`${label} ${pip} of 5`}
               onClick={() => handlePipClick(pip)}
-              className="relative z-10 h-3.5 w-3.5 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+              className="relative z-10 h-3.5 w-3.5 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
               style={{
                 backgroundColor: value >= pip ? orbColor : 'rgba(255,255,255,0.15)',
                 boxShadow:        value >= pip ? `0 0 8px ${orbColor}80` : 'none',
@@ -885,7 +885,7 @@ export default function DiscoverPage() {
                       placeholder="Describe your vibe — e.g. 'something cozy, not too intense, just want to zone out' (optional)"
                       rows={2}
                       aria-label="Describe your mood in your own words"
-                      className="w-full bg-white/[0.03] border border-white/8 rounded-xl px-4 py-3 text-sm text-white placeholder-white/25 resize-none focus:outline-none focus:border-purple-500/40 focus:ring-2 focus:ring-purple-500/10 transition-all"
+                      className="w-full bg-white/[0.03] border border-white/8 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 resize-none focus:outline-none focus:border-purple-500/40 focus:ring-2 focus:ring-purple-500/10 transition-all"
                     />
                     <button
                       type="button"

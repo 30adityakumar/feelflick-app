@@ -19,6 +19,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
 import { useAIMoodContext } from '@/shared/hooks/useAIMoodContext'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
+import { useBriefCandidateCount } from '@/shared/hooks/useBriefCandidateCount'
 import { useMovieExplanation } from '@/shared/hooks/useMovieExplanation'
 import { useMoodBrief } from '@/shared/hooks/useMoodBrief'
 import { useMoodSession } from '@/shared/hooks/useMoodSession'
@@ -30,6 +31,8 @@ import Button from '@/shared/ui/Button'
 import { QUESTION_SET } from './questions'
 import AIBar from './components/AIBar'
 import AnchorSearch from './components/AnchorSearch'
+import CandidateCounter from './components/CandidateCounter'
+import NarratedLoader from './components/NarratedLoader'
 import PinnedBrief from './components/PinnedBrief'
 import QuestionSlot from './components/QuestionSlot'
 
@@ -192,35 +195,6 @@ function AuroraBackground({ moodId }) {
   )
 }
 
-// ─── Skeleton Card ────────────────────────────────────────────────────────────
-
-function SkeletonCard() {
-  return (
-    <div
-      className="overflow-hidden rounded-2xl"
-      style={{
-        backdropFilter:  'blur(20px)',
-        backgroundColor: 'rgba(255,255,255,0.05)',
-        border:          '1px solid rgba(255,255,255,0.08)',
-        animation:       'pulse 2s cubic-bezier(0.4,0,0.6,1) infinite',
-      }}
-    >
-      <div
-        className="aspect-[2/3] w-full"
-        style={{
-          background:     'linear-gradient(90deg,rgba(255,255,255,0.04) 0%,rgba(255,255,255,0.10) 50%,rgba(255,255,255,0.04) 100%)',
-          backgroundSize: '200% 100%',
-          animation:      'shimmer 1.8s ease-in-out infinite',
-        }}
-      />
-      <div className="space-y-2 p-3">
-        <div className="h-2 w-3/4 rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.08)' }} />
-        <div className="h-2 w-1/2 rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.05)' }} />
-      </div>
-    </div>
-  )
-}
-
 // ─── Fallback explanation ─────────────────────────────────────────────────────
 
 function RecommendationExplanation({ movie, moodName }) {
@@ -359,7 +333,7 @@ function RecommendationCard({ movie, index, moodName, moodId, onOpenMovie, aiExp
 
 export default function DiscoverPage() {
   const navigate = useNavigate()
-  const [isPending, startTransition] = useTransition()
+  const [, startTransition] = useTransition()
 
   // === BRIEF STATE ===
   const {
@@ -380,13 +354,15 @@ export default function DiscoverPage() {
     reset,
   } = useMoodBrief()
 
+  // === LIVE CANDIDATE COUNT ===
+  const { count: candidateCount, previousCount: prevCandidateCount, loading: countLoading } = useBriefCandidateCount(brief)
+
   // === PHASE: briefing → loading → results ===
   const [phase, setPhase] = useState('briefing')
 
   // === ENGINE PARAMS (derived from brief answers) ===
   const [triggerMood, setTriggerMood] = useState(null)
   const [parsedTags, setParsedTags] = useState(null)
-  const [showNarrationFallback, setShowNarrationFallback] = useState(false)
 
   const trackedResultsKeyRef = useRef('')
   const abandonmentStateRef = useRef({ phase: 'briefing', moodId: null })
@@ -428,7 +404,6 @@ export default function DiscoverPage() {
   )
 
   const {
-    narration,
     narrationDone,
     explanations,
   } = useAIMoodContext({
@@ -442,18 +417,6 @@ export default function DiscoverPage() {
     top3Genres: EMPTY_GENRES,
     enabled:    recommendations.length > 0,
   })
-
-  const isLoading = loading || isPending
-
-  // Narration fallback timer
-  useEffect(() => {
-    if (!isLoading) { setShowNarrationFallback(false); return }
-    const t = setTimeout(() => { if (!narration) setShowNarrationFallback(true) }, 3000)
-    return () => clearTimeout(t)
-  }, [isLoading, narration])
-
-  const narrationDisplay = narration
-    || (showNarrationFallback ? `Finding the perfect ${selectedMoodOption?.name?.toLowerCase() ?? ''} films for your night…` : '')
 
   // Keep abandonment ref in sync
   useEffect(() => {
@@ -496,12 +459,8 @@ export default function DiscoverPage() {
     })
   }, [recommendations, sessionId, trackRecommendationShown])
 
-  // Transition to results when recommendations arrive
-  useEffect(() => {
-    if (phase === 'loading' && !loading && recommendations.length > 0) {
-      setPhase('results')
-    }
-  }, [phase, loading, recommendations.length])
+  // WHY: NarratedLoader's onComplete handles the loading→results transition.
+  // It waits for both (a) all narration lines shown AND (b) results ready.
 
   // === HANDLERS ===
 
@@ -538,7 +497,6 @@ export default function DiscoverPage() {
       setTriggerMood(null)
       setPhase('briefing')
       setParsedTags(null)
-      setShowNarrationFallback(false)
       trackedResultsKeyRef.current = ''
     })
   }
@@ -586,6 +544,15 @@ export default function DiscoverPage() {
                 />
               )}
 
+              {/* Live candidate counter */}
+              {progress.answered >= 1 && (
+                <CandidateCounter
+                  count={candidateCount}
+                  previousCount={prevCandidateCount}
+                  loading={countLoading}
+                />
+              )}
+
               {/* Active question */}
               {activeQuestion && (
                 <QuestionSlot
@@ -630,36 +597,13 @@ export default function DiscoverPage() {
 
         {/* === LOADING PHASE === */}
         {phase === 'loading' && (
-          <div className="mx-auto max-w-5xl px-4 py-10 md:py-16">
-            <div className="mb-8 text-center">
-              <h2
-                className="mb-2 text-2xl font-bold"
-                style={{
-                  background:          `linear-gradient(135deg,${moodVis.color1},${moodVis.color2})`,
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip:      'text',
-                }}
-              >
-                {selectedMoodOption?.name ?? 'Your'} picks incoming
-              </h2>
-              {narrationDisplay && (
-                <p className="mx-auto max-w-md text-sm text-white/70">
-                  {narrationDisplay}
-                  {!narrationDone && narration && (
-                    <span
-                      className="ml-0.5 inline-block animate-pulse"
-                      style={{ width: '2px', height: '14px', backgroundColor: moodVis.orbColor, verticalAlign: 'text-bottom' }}
-                      aria-hidden="true"
-                    />
-                  )}
-                </p>
-              )}
-            </div>
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
-              {Array.from({ length: 5 }).map((_, i) => <SkeletonCard key={i} />)}
-            </div>
-          </div>
+          <NarratedLoader
+            totalCount={candidateCount}
+            tagDim={45}
+            hasTasteProfile={!!userId}
+            resultsReady={!loading && recommendations.length > 0}
+            onComplete={() => setPhase('results')}
+          />
         )}
 
         {/* === RESULTS PHASE === */}

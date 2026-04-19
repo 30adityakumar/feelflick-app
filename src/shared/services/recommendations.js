@@ -72,7 +72,7 @@ import { recommendationCache } from '@/shared/lib/cache'
 // ============================================================================
 // VERSION
 // ============================================================================
-const ENGINE_VERSION = '2.14' // Embedding search + filter dials + collapsed wizard.
+const ENGINE_VERSION = '2.15' // Parallelize hero, tier-from-profile, new homepage rows.
 const PROFILE_MEMORY_TTL_MS = 60 * 1000
 const SEED_MEMORY_TTL_MS = 60 * 1000
 const profileMemoryCache = new Map()
@@ -1475,17 +1475,30 @@ export async function getTopPickForUser(userId, options = {}) {
     try {
       if (!userId) return await getFallbackPick(null)
 
-      // profile (for scoring)
+      // profile (for scoring) — must complete first, needed by seeds + langGuard
       const profile = ensureLanguageProfileShape(await computeUserProfile(userId))
 
-      // seeds (for "because you watched" / similarity)
-      const seedFilms = await getSeedFilms(userId, profile)
+      // === PARALLEL GROUP 1: seeds, watched rows, hero impressions ===
+      // These are independent of each other (all depend only on userId + profile).
+      // Merged the two recommendation_impressions queries (7d hero + all-time skips)
+      // into a single query to save a round-trip.
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+      const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000)
 
-      // watched rows (CRITICAL): used for language guard + watchexclusion
-      const { data: watchedRows } = await supabase
-        .from('user_history')
-        .select('movie_id, movies!inner(id, tmdb_id, original_language, genres)')
-        .eq('user_id', userId)
+      const [seedFilms, { data: watchedRows }, { data: heroImpressionData }] = await Promise.all([
+        getSeedFilms(userId, profile),
+        supabase
+          .from('user_history')
+          .select('movie_id, movies!inner(id, tmdb_id, original_language, genres)')
+          .eq('user_id', userId),
+        // Single merged query: hero impressions from last 7d + ALL skipped hero impressions
+        supabase
+          .from('recommendation_impressions')
+          .select('movie_id, shown_at, skipped, placement')
+          .eq('user_id', userId)
+          .eq('placement', 'hero')
+          .or(`shown_at.gte.${sevenDaysAgo},skipped.eq.true`),
+      ])
 
       const watchedInternalIds = normalizeNumericIdArray((watchedRows || []).map((w) => w.movie_id))
       const watchedTmdbIds = normalizeNumericIdArray((watchedRows || []).map((w) => w.movies?.tmdb_id).filter(Boolean))
@@ -1498,43 +1511,35 @@ export async function getTopPickForUser(userId, options = {}) {
       const historyLang = deriveLanguageFromWatchedRows(watchedRows || [])
       const langGuard = buildLanguageGuardFromHistory(historyLang)
 
-      // Hero cooldown — one query, two tiers bucketed in JS:
-      //   Tier A (all impressions, 48h):  prevent re-showing a film the very next day.
-      //   Tier B (skipped only, 7 days):  respect the explicit "not today" signal.
-      //
-      // Previously ALL impressions had a 7-day block. With only ~16 Indian films in the pool
-      // that wiped the entire catalog in ~2 weeks and forced fallback to English animated/docs.
-      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-      const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000)
-
-      const { data: recentHeroData } = await supabase
-        .from('recommendation_impressions')
-        .select('movie_id, shown_at, skipped')
-        .eq('user_id', userId)
-        .eq('placement', 'hero')
-        .gte('shown_at', sevenDaysAgo)
-
+      // Partition merged impressions into hero cooldown + all-time skip count
       // movie_id → most-recent impression Date (for 48h any-impression block)
       const lastShownAt = new Map()
       // movie_id → most-recent SKIP Date (for 48h hard-skip block + 7d score penalty)
       const skipHistory = new Map()
       const hardSkipIds = new Set() // skipped within 48h
+      const allTimeSkipCount = new Map()
 
-      ;(recentHeroData || []).forEach((r) => {
+      ;(heroImpressionData || []).forEach((r) => {
         if (!r.movie_id) return
         const shownAt = new Date(r.shown_at)
+        const isRecent = shownAt >= new Date(sevenDaysAgo)
 
-        // Track most-recent impression regardless of skip status
-        if (!lastShownAt.has(r.movie_id) || shownAt > lastShownAt.get(r.movie_id)) {
-          lastShownAt.set(r.movie_id, shownAt)
+        // Recent impressions (last 7d): track for cooldown
+        if (isRecent) {
+          if (!lastShownAt.has(r.movie_id) || shownAt > lastShownAt.get(r.movie_id)) {
+            lastShownAt.set(r.movie_id, shownAt)
+          }
         }
 
-        // Track skips separately
+        // All skips (recent + all-time): track for penalties
         if (r.skipped) {
-          if (!skipHistory.has(r.movie_id) || shownAt > skipHistory.get(r.movie_id)) {
-            skipHistory.set(r.movie_id, shownAt)
+          allTimeSkipCount.set(r.movie_id, (allTimeSkipCount.get(r.movie_id) || 0) + 1)
+          if (isRecent) {
+            if (!skipHistory.has(r.movie_id) || shownAt > skipHistory.get(r.movie_id)) {
+              skipHistory.set(r.movie_id, shownAt)
+            }
+            if (shownAt >= fortyEightHoursAgo) hardSkipIds.add(r.movie_id)
           }
-          if (shownAt >= fortyEightHoursAgo) hardSkipIds.add(r.movie_id)
         }
       })
 
@@ -1547,18 +1552,6 @@ export async function getTopPickForUser(userId, options = {}) {
       )
 
       // Permanent skip learning: movies skipped 3+ times ever get a lasting -30 penalty.
-      // Fetches all-time hero skips for this user (lightweight: just movie_id).
-      const { data: allTimeSkipData } = await supabase
-        .from('recommendation_impressions')
-        .select('movie_id')
-        .eq('user_id', userId)
-        .eq('placement', 'hero')
-        .eq('skipped', true)
-
-      const allTimeSkipCount = new Map()
-      ;(allTimeSkipData || []).forEach((r) => {
-        if (r.movie_id) allTimeSkipCount.set(r.movie_id, (allTimeSkipCount.get(r.movie_id) || 0) + 1)
-      })
       const permanentSkipIds = new Set(
         [...allTimeSkipCount.entries()].filter(([, count]) => count >= 3).map(([id]) => id)
       )
@@ -1598,27 +1591,18 @@ export async function getTopPickForUser(userId, options = {}) {
         user_satisfaction_score, user_satisfaction_confidence
       `
 
-      // 1) embedding neighbors pool (strong "similar to / because you watched")
-      const { neighborIds, bestByNeighborId } = await fetchEmbeddingNeighborsForSeeds(seedFilms, {
-        limitPerSeed: 80
-      })
+      // === PARALLEL GROUP 2: embedding neighbors + base pool + classics pool ===
+      // Embedding neighbors depend on seedFilms (resolved above).
+      // Base pool + classics pool depend only on langGuard (resolved above).
+      // embQuery depends on neighborIds, so it runs after this group.
 
-      // 2) base quality pool (recent, high normalized rating)
-      // Hero-specific floors: 5-year window, stronger quality bar, higher vote floor.
-      // For non-English language pools (STRICT/STRONG), genre normalization is calibrated
-      // against global genre baselines dominated by English films — so great Hindi/Korean/etc
-      // films score lower than equivalent English films on the z-score. Lower threshold to 7.5
-      // when restricting to a specific language; keep 8.0 for the unrestricted (LOOSE) pool.
       const isLanguageRestricted = langGuard.mode === 'strict' || langGuard.mode === 'strong'
-      // For non-English pools: looser thresholds because (a) genre-norm is calibrated globally
-      // so great Indian/Korean films score lower, and (b) these pools are small — only 54 Hindi
-      // films in DB, very few pass strict English-calibrated bars.
       const minYear = isLanguageRestricted ? 2010 : 2019
       const baseMinNorm = isLanguageRestricted ? 7.0 : 8.0
       const baseMinConf = isLanguageRestricted ? 40 : 60
       const HERO_MIN_VOTE_COUNT = isLanguageRestricted ? 100 : 500
 
-      // Fetch base candidates (apply language filter at DB level for strict/strong)
+      // Build base query
       let baseQuery = supabase
         .from('movies')
         .select(selectFields)
@@ -1626,7 +1610,7 @@ export async function getTopPickForUser(userId, options = {}) {
         .not('backdrop_path', 'is', null)
         .not('tmdb_id', 'is', null)
         .gte('ff_rating_genre_normalized', baseMinNorm)
-        .gte('ff_audience_rating', 72)  // absolute quality floor — exceptional-for-genre but objectively mediocre films blocked
+        .gte('ff_audience_rating', 72)
         .gte('ff_confidence', baseMinConf)
         .gte('vote_count', HERO_MIN_VOTE_COUNT)
         .gte('release_date', `${minYear}-01-01`)
@@ -1639,7 +1623,6 @@ export async function getTopPickForUser(userId, options = {}) {
         baseQuery = baseQuery.in('original_language', langGuard.allowedLanguages)
       }
 
-      // Cold-start: restrict hero pool to onboarding genre preferences
       const isColdStart = (profile.qualityProfile?.totalMoviesWatched || 0) === 0
       if (isColdStart && profile.genres.preferred.length > 0) {
         const onboardingGenreNames = profile.genres.preferred
@@ -1650,10 +1633,39 @@ export async function getTopPickForUser(userId, options = {}) {
         }
       }
 
-      let { data: baseCandidates } = await baseQuery
-      baseCandidates = baseCandidates || []
+      // Build classics query
+      let classicsQuery = supabase
+        .from('movies')
+        .select(selectFields)
+        .eq('is_valid', true)
+        .not('backdrop_path', 'is', null)
+        .not('tmdb_id', 'is', null)
+        .gte('ff_rating_genre_normalized', 9.0)
+        .gte('ff_audience_rating', 78)
+        .gte('ff_confidence', baseMinConf)
+        .gte('vote_count', 25000)
+        .order('ff_rating_genre_normalized', { ascending: false })
+        .limit(100)
 
-      // Fetch embedding candidates (if any), and apply same hard language policy
+      if (langGuard.mode === 'strict' && langGuard.allowedLanguages.length === 1) {
+        classicsQuery = classicsQuery.eq('original_language', langGuard.allowedLanguages[0])
+      } else if (langGuard.mode === 'strong' && langGuard.allowedLanguages.length > 0) {
+        classicsQuery = classicsQuery.in('original_language', langGuard.allowedLanguages)
+      }
+
+      // Fire neighbors + base + classics in parallel
+      const [
+        { neighborIds, bestByNeighborId },
+        { data: baseCandidatesRaw },
+        { data: classicsCandidates },
+      ] = await Promise.all([
+        fetchEmbeddingNeighborsForSeeds(seedFilms, { limitPerSeed: 80 }),
+        baseQuery,
+        classicsQuery,
+      ])
+      let baseCandidates = baseCandidatesRaw || []
+
+      // Fetch embedding candidates (depends on neighborIds from above)
       let embeddingCandidates = []
       if (neighborIds.length > 0) {
         let embQuery = supabase
@@ -1676,32 +1688,6 @@ export async function getTopPickForUser(userId, options = {}) {
         const { data } = await embQuery
         embeddingCandidates = data || []
       }
-
-      // Classics pool — no year filter, compensated by a much higher quality bar.
-      // Allows landmark films (Shawshank, Oldboy, Shutter Island, The Thing) to
-      // be hero picks even if they predate the standard recency window.
-      // Thresholds: top-decile genre-norm (9.0+), strong absolute rating (7.8+),
-      // and at least 25k votes so the film is genuinely well-tested by audiences.
-      let classicsQuery = supabase
-        .from('movies')
-        .select(selectFields)
-        .eq('is_valid', true)
-        .not('backdrop_path', 'is', null)
-        .not('tmdb_id', 'is', null)
-        .gte('ff_rating_genre_normalized', 9.0)
-        .gte('ff_audience_rating', 78)
-        .gte('ff_confidence', baseMinConf)
-        .gte('vote_count', 25000)
-        .order('ff_rating_genre_normalized', { ascending: false })
-        .limit(100)
-
-      if (langGuard.mode === 'strict' && langGuard.allowedLanguages.length === 1) {
-        classicsQuery = classicsQuery.eq('original_language', langGuard.allowedLanguages[0])
-      } else if (langGuard.mode === 'strong' && langGuard.allowedLanguages.length > 0) {
-        classicsQuery = classicsQuery.in('original_language', langGuard.allowedLanguages)
-      }
-
-      const { data: classicsCandidates } = await classicsQuery
 
       // Combine pools (dedupe by id) — embedding first (nearest neighbours), then
       // recency pool, then classics so deduplication keeps the earliest entry per id.
@@ -4992,6 +4978,111 @@ export async function getUserWatchCount(userId) {
     console.error('[getUserWatchCount] failed:', error)
     return 0
   }
+}
+
+// ============================================================================
+// SLOW CONTEMPLATIVE ROW ("A Moment of Quiet")
+// ============================================================================
+
+/**
+ * Films with contemplative/meditative mood tags and slow pacing.
+ * Scored via scoreMovieForUser for personalization.
+ *
+ * @param {string} userId
+ * @param {number} [limit=20]
+ * @returns {Promise<Object[]>}
+ */
+export async function getSlowContemplativeRow(userId, limit = 20) {
+  const cacheKey = recommendationCache.key('slow_contemplative', userId || 'guest', { limit })
+
+  return recommendationCache.getOrFetch(cacheKey, async () => {
+    try {
+      const profile = await computeUserProfile(userId)
+      const seedFilms = userId ? await getSeedFilms(userId, profile) : []
+      const watchedIds = profile.watchedMovieIds || []
+
+      const { data, error } = await supabase
+        .from('movies')
+        .select(TIERED_SELECT_FIELDS)
+        .eq('is_valid', true)
+        .not('poster_path', 'is', null)
+        .lte('pacing_score_100', 40)
+        .gte('ff_audience_rating', 70)
+        .overlaps('mood_tags', ['contemplative', 'meditative', 'melancholic', 'serene'])
+        .order('ff_audience_rating', { ascending: false })
+        .limit(limit * 3)
+
+      if (error) throw error
+
+      const candidates = (data || []).filter(m => m?.id && !watchedIds.includes(m.id))
+      const scored = candidates.map(movie => {
+        const result = scoreMovieForUser(movie, profile, 'default', seedFilms)
+        return { ...movie, _score: result.score, _pickReason: { label: 'A moment of quiet', type: 'slow_contemplative' } }
+      })
+      scored.sort((a, b) => b._score - a._score)
+      return scored.slice(0, limit)
+    } catch (error) {
+      console.error('[getSlowContemplativeRow] failed:', error)
+      return []
+    }
+  })
+}
+
+// ============================================================================
+// QUICK WATCHES ROW ("Under 90 Minutes")
+// ============================================================================
+
+/**
+ * Quality films under 90 minutes. Useful utility row for all tiers.
+ *
+ * @param {string|null} userId
+ * @param {number} [limit=20]
+ * @returns {Promise<Object[]>}
+ */
+export async function getQuickWatchesRow(userId, limit = 20) {
+  const cacheKey = recommendationCache.key('quick_watches', userId || 'guest', { limit })
+
+  return recommendationCache.getOrFetch(cacheKey, async () => {
+    try {
+      const profile = userId ? await computeUserProfile(userId) : null
+      const seedFilms = userId && profile ? await getSeedFilms(userId, profile) : []
+      const watchedIds = profile?.watchedMovieIds || []
+
+      const { data, error } = await supabase
+        .from('movies')
+        .select(TIERED_SELECT_FIELDS)
+        .eq('is_valid', true)
+        .not('poster_path', 'is', null)
+        .lte('runtime', 90)
+        .gte('runtime', 60)
+        .gte('ff_audience_rating', 70)
+        .gte('ff_confidence', 60)
+        .order('ff_audience_rating', { ascending: false })
+        .limit(limit * 3)
+
+      if (error) throw error
+
+      const candidates = (data || []).filter(m => m?.id && !watchedIds.includes(m.id))
+
+      if (!profile) {
+        return candidates.slice(0, limit).map(movie => ({
+          ...movie,
+          _score: movie.ff_audience_rating || 0,
+          _pickReason: { label: 'Under 90 minutes', type: 'quick_watch' },
+        }))
+      }
+
+      const scored = candidates.map(movie => {
+        const result = scoreMovieForUser(movie, profile, 'default', seedFilms)
+        return { ...movie, _score: result.score, _pickReason: { label: 'Under 90 minutes', type: 'quick_watch' } }
+      })
+      scored.sort((a, b) => b._score - a._score)
+      return scored.slice(0, limit)
+    } catch (error) {
+      console.error('[getQuickWatchesRow] failed:', error)
+      return []
+    }
+  })
 }
 
 export const __TEST_ONLY__ = { THRESHOLDS, computeNegativeSignals, scoreEraMatch, scoreRecency }

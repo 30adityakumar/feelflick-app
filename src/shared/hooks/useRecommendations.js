@@ -561,8 +561,24 @@ export function useTrending(options = {}) {
 // ============================================================================
 
 /**
- * Hook: User watch count for tier detection (cold/warming/engaged).
- * Returns { watchCount, tier, loading }.
+ * Derive homepage tier from watch count.
+ * @param {number} watchCount
+ * @returns {'cold'|'warming'|'engaged'}
+ */
+function deriveTier(watchCount) {
+  if (watchCount <= 4) return 'cold'
+  if (watchCount <= 19) return 'warming'
+  return 'engaged'
+}
+
+/**
+ * Hook: User tier detection (cold/warming/engaged).
+ *
+ * Derives tier from computeUserProfile's cached totalMoviesWatched instead of
+ * a separate DB query. Returns synchronously when the profile is cached (60s TTL),
+ * eliminating the null→skeleton→remount cascade on /home.
+ *
+ * @returns {{ watchCount: number|null, tier: 'cold'|'warming'|'engaged'|null, loading: boolean }}
  */
 export function useUserTier(options = {}) {
   const { userId: userIdOverride } = options
@@ -585,9 +601,12 @@ export function useUserTier(options = {}) {
 
     let isCancelled = false
 
-    async function fetch() {
+    async function fetchTier() {
       try {
-        const count = await recommendationService.getUserWatchCount(userId)
+        // Uses the same 60s memory cache as the hero + row hooks.
+        // If profile is already cached, this returns synchronously (no DB round-trip).
+        const profile = await recommendationService.computeUserProfile(userId)
+        const count = profile?.qualityProfile?.totalMoviesWatched ?? 0
         if (!isCancelled) setWatchCount(count)
       } catch {
         if (!isCancelled) setWatchCount(0)
@@ -596,14 +615,11 @@ export function useUserTier(options = {}) {
       }
     }
 
-    fetch()
+    fetchTier()
     return () => { isCancelled = true }
   }, [userId, authReady])
 
-  const tier = watchCount === null ? null
-    : watchCount === 0 ? 'cold'
-    : watchCount < 10 ? 'warming'
-    : 'engaged'
+  const tier = watchCount === null ? null : deriveTier(watchCount)
 
   return { watchCount, tier, loading }
 }
@@ -788,6 +804,100 @@ export function useOnboardingSeededRow(options = {}) {
       } catch (err) {
         if (err.name !== 'AbortError' && !isCancelled) {
           console.error('[useOnboardingSeededRow] Error:', err)
+          setError(err)
+        }
+      } finally {
+        if (!isCancelled) setLoading(false)
+      }
+    }
+
+    fetchRow()
+    return () => { isCancelled = true }
+  }, [userId, authReady, enabled, limit])
+
+  return { data, loading, error }
+}
+
+/**
+ * Hook: Slow contemplative row — "A Moment of Quiet".
+ * Films with contemplative/meditative mood tags and slow pacing.
+ */
+export function useSlowContemplativeRow(options = {}) {
+  const { limit = 20, enabled = true, userId: userIdOverride } = options
+
+  const auth = useAuthState()
+  const userId = userIdOverride !== undefined ? userIdOverride : auth.userId
+  const authReady = userIdOverride !== undefined ? true : auth.ready
+
+  const [data, setData] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    if (!enabled || !authReady) return
+
+    if (!userId) {
+      setData([])
+      setLoading(false)
+      return
+    }
+
+    let isCancelled = false
+
+    async function fetchRow() {
+      try {
+        setLoading(true)
+        setError(null)
+
+        const items = await recommendationService.getSlowContemplativeRow(userId, limit)
+        if (!isCancelled) setData(items || [])
+      } catch (err) {
+        if (err.name !== 'AbortError' && !isCancelled) {
+          console.error('[useSlowContemplativeRow] Error:', err)
+          setError(err)
+        }
+      } finally {
+        if (!isCancelled) setLoading(false)
+      }
+    }
+
+    fetchRow()
+    return () => { isCancelled = true }
+  }, [userId, authReady, enabled, limit])
+
+  return { data, loading, error }
+}
+
+/**
+ * Hook: Quick watches row — "Under 90 Minutes".
+ * Quality films under 90 minutes runtime.
+ */
+export function useQuickWatchesRow(options = {}) {
+  const { limit = 20, enabled = true, userId: userIdOverride } = options
+
+  const auth = useAuthState()
+  const userId = userIdOverride !== undefined ? userIdOverride : auth.userId
+  const authReady = userIdOverride !== undefined ? true : auth.ready
+
+  const [data, setData] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    if (!enabled || !authReady) return
+
+    let isCancelled = false
+
+    async function fetchRow() {
+      try {
+        setLoading(true)
+        setError(null)
+
+        const items = await recommendationService.getQuickWatchesRow(userId || null, limit)
+        if (!isCancelled) setData(items || [])
+      } catch (err) {
+        if (err.name !== 'AbortError' && !isCancelled) {
+          console.error('[useQuickWatchesRow] Error:', err)
           setError(err)
         }
       } finally {

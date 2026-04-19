@@ -7,10 +7,10 @@ import { useUserTier } from '@/shared/hooks/useRecommendations'
 
 import HeroTopPick from './components/HeroTopPick'
 import BecauseYouWatchedSection from './components/BecauseYouWatchedSection'
+import QuickWatchesRow from './components/QuickWatchesRow'
+import SlowContemplativeRow from './components/SlowContemplativeRow'
 import HiddenGemsRow from './components/HiddenGemsRow'
 import TrendingForYouRow from './components/TrendingForYouRow'
-import MoodCoherenceRow from './components/MoodCoherenceRow'
-import YourGenresRow from './components/YourGenresRow'
 import PopularRow from './components/PopularRow'
 import OnboardingSeededRow from './components/OnboardingSeededRow'
 
@@ -91,11 +91,15 @@ export default function HomePage() {
           <div>
             <div className="space-y-0">
 
-              {/* === COLD (0 watches) === */}
+              {/* === COLD (0-4 watches) === */}
               {tier === 'cold' && (
                 <>
                   <SectionErrorBoundary label="Based on Your Picks">
                     <OnboardingSeededRow userId={userId} />
+                  </SectionErrorBoundary>
+
+                  <SectionErrorBoundary label="Under 90 Minutes">
+                    <QuickWatchesRow userId={userId} />
                   </SectionErrorBoundary>
 
                   <SectionErrorBoundary label="Popular on FeelFlick">
@@ -104,11 +108,19 @@ export default function HomePage() {
                 </>
               )}
 
-              {/* === WARMING (1-9 watches) === */}
+              {/* === WARMING (5-19 watches) === */}
               {tier === 'warming' && (
                 <>
                   <SectionErrorBoundary label="Because You Watched">
                     <BecauseYouWatchedSection userId={userId} maxSeeds={1} />
+                  </SectionErrorBoundary>
+
+                  <SectionErrorBoundary label="Under 90 Minutes">
+                    <QuickWatchesRow userId={userId} />
+                  </SectionErrorBoundary>
+
+                  <SectionErrorBoundary label="A Moment of Quiet">
+                    <SlowContemplativeRow userId={userId} />
                   </SectionErrorBoundary>
 
                   <SectionErrorBoundary label="Hidden Gems">
@@ -121,23 +133,23 @@ export default function HomePage() {
                 </>
               )}
 
-              {/* === ENGAGED (10+ watches) === */}
+              {/* === ENGAGED (20+ watches) === */}
               {tier === 'engaged' && (
                 <>
                   <SectionErrorBoundary label="Because You Watched">
                     <BecauseYouWatchedSection userId={userId} maxSeeds={2} />
                   </SectionErrorBoundary>
 
-                  <SectionErrorBoundary label="More Like Your Vibe">
-                    <MoodCoherenceRow userId={userId} />
+                  <SectionErrorBoundary label="Under 90 Minutes">
+                    <QuickWatchesRow userId={userId} />
+                  </SectionErrorBoundary>
+
+                  <SectionErrorBoundary label="A Moment of Quiet">
+                    <SlowContemplativeRow userId={userId} />
                   </SectionErrorBoundary>
 
                   <SectionErrorBoundary label="Hidden Gems">
                     <HiddenGemsRow userId={userId} />
-                  </SectionErrorBoundary>
-
-                  <SectionErrorBoundary label="Your Genres">
-                    <YourGenresRow userId={userId} />
                   </SectionErrorBoundary>
 
                   <SectionErrorBoundary label="Trending For You">
@@ -149,8 +161,8 @@ export default function HomePage() {
               {/* While tier is loading (null), show skeleton rows */}
               {tier === null && (
                 <>
-                  <SectionErrorBoundary label="Because You Watched">
-                    <BecauseYouWatchedSection userId={userId} />
+                  <SectionErrorBoundary label="Under 90 Minutes">
+                    <QuickWatchesRow userId={userId} />
                   </SectionErrorBoundary>
 
                   <SectionErrorBoundary label="Hidden Gems">

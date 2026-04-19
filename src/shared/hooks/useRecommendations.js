@@ -384,76 +384,6 @@ export function useTopPick(options = {}) {
   return { data, loading, error, refetch }
 }
 
-/**
- * Homepage row: quick picks for tonight
- */
-export function useQuickPicks(options = {}) {
-  const { limit = 20, excludeIds = [], enabled = true, userId: userIdOverride } = options
-
-  const auth = useAuthState()
-  const userId = userIdOverride !== undefined ? userIdOverride : auth.userId
-  const authReady = userIdOverride !== undefined ? true : auth.ready
-
-  const [data, setData] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [refreshKey, setRefreshKey] = useState(0)
-
-  const stableExcludeIds = useMemo(() => normalizeNumericIdArray(excludeIds), [excludeIds])
-  const excludeKey = stableExcludeIds.join(',')
-
-  const forceRefreshNextRef = useRef(false)
-
-  useEffect(() => {
-    if (!enabled || !authReady) return
-
-    if (!userId) {
-      setData([])
-      setLoading(false)
-      return
-    }
-
-    let isCancelled = false
-
-    async function fetchQuickPicks() {
-      try {
-        setLoading(true)
-        setError(null)
-
-        const forceRefresh = forceRefreshNextRef.current
-        forceRefreshNextRef.current = false
-
-        const items = await recommendationService.getQuickPicksForUser(userId, {
-          limit,
-          excludeIds: stableExcludeIds,
-          forceRefresh,
-        })
-
-        if (isCancelled) return
-        setData(items || [])
-      } catch (err) {
-        if (err.name !== 'AbortError' && !isCancelled) {
-          console.error('[useQuickPicks] Error:', err)
-          setError(err)
-        }
-      } finally {
-        if (!isCancelled) setLoading(false)
-      }
-    }
-
-    fetchQuickPicks()
-    return () => {
-      isCancelled = true
-    }
-  }, [userId, authReady, enabled, limit, excludeKey, refreshKey, stableExcludeIds])
-
-  const refetch = useCallback(() => {
-    forceRefreshNextRef.current = true
-    setRefreshKey((k) => k + 1)
-  }, [])
-
-  return { data, loading, error, refetch }
-}
 
 /**
  * Hook: "Because you watched" seeded rows
@@ -626,11 +556,63 @@ export function useTrending(options = {}) {
   return useTrendingForYou(options)
 }
 
+// ============================================================================
+// TIERED HOMEPAGE HOOKS
+// ============================================================================
+
 /**
- * Hook: Slow + contemplative picks
+ * Hook: User watch count for tier detection (cold/warming/engaged).
+ * Returns { watchCount, tier, loading }.
  */
-export function useSlowContemplative(options = {}) {
-  const { limit = 20, excludeIds = [], enabled = true, userId: userIdOverride } = options
+export function useUserTier(options = {}) {
+  const { userId: userIdOverride } = options
+
+  const auth = useAuthState()
+  const userId = userIdOverride !== undefined ? userIdOverride : auth.userId
+  const authReady = userIdOverride !== undefined ? true : auth.ready
+
+  const [watchCount, setWatchCount] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (!authReady) return
+
+    if (!userId) {
+      setWatchCount(0)
+      setLoading(false)
+      return
+    }
+
+    let isCancelled = false
+
+    async function fetch() {
+      try {
+        const count = await recommendationService.getUserWatchCount(userId)
+        if (!isCancelled) setWatchCount(count)
+      } catch {
+        if (!isCancelled) setWatchCount(0)
+      } finally {
+        if (!isCancelled) setLoading(false)
+      }
+    }
+
+    fetch()
+    return () => { isCancelled = true }
+  }, [userId, authReady])
+
+  const tier = watchCount === null ? null
+    : watchCount === 0 ? 'cold'
+    : watchCount < 10 ? 'warming'
+    : 'engaged'
+
+  return { watchCount, tier, loading }
+}
+
+/**
+ * Hook: Mood coherence row — films matching user's recent mood vibe.
+ */
+export function useMoodCoherenceRow(options = {}) {
+  const { limit = 20, enabled = true, userId: userIdOverride } = options
 
   const auth = useAuthState()
   const userId = userIdOverride !== undefined ? userIdOverride : auth.userId
@@ -639,9 +621,6 @@ export function useSlowContemplative(options = {}) {
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-
-  const stableExcludeIds = useMemo(() => normalizeNumericIdArray(excludeIds), [excludeIds])
-  const excludeKey = stableExcludeIds.join(',')
 
   useEffect(() => {
     if (!enabled || !authReady) return
@@ -652,25 +631,20 @@ export function useSlowContemplative(options = {}) {
       return
     }
 
-    const controller = new AbortController()
     let isCancelled = false
 
-    async function fetch() {
+    async function fetchRow() {
       try {
         setLoading(true)
         setError(null)
 
-        const items = await recommendationService.getSlowContemplative(userId, {
-          limit,
-          excludeIds: stableExcludeIds,
-          signal: controller.signal,
-        })
+        const profile = await recommendationService.computeUserProfile(userId)
+        const items = await recommendationService.getMoodCoherenceRow(userId, profile, limit)
 
-        if (isCancelled) return
-        setData(items || [])
+        if (!isCancelled) setData(items || [])
       } catch (err) {
         if (err.name !== 'AbortError' && !isCancelled) {
-          console.error('[useSlowContemplative] Error:', err)
+          console.error('[useMoodCoherenceRow] Error:', err)
           setError(err)
         }
       } finally {
@@ -678,33 +652,27 @@ export function useSlowContemplative(options = {}) {
       }
     }
 
-    fetch()
-
-    return () => {
-      isCancelled = true
-      controller.abort()
-    }
-  }, [userId, authReady, enabled, limit, excludeKey, stableExcludeIds])
+    fetchRow()
+    return () => { isCancelled = true }
+  }, [userId, authReady, enabled, limit])
 
   return { data, loading, error }
 }
 
 /**
- * Hook: Quick watches (short runtime)
+ * Hook: Your Genres row — top preferred genre films.
  */
-export function useQuickWatches(options = {}) {
-  const { limit = 20, excludeIds = [], enabled = true, userId: userIdOverride } = options
+export function useYourGenresRow(options = {}) {
+  const { limit = 20, enabled = true, userId: userIdOverride } = options
 
   const auth = useAuthState()
   const userId = userIdOverride !== undefined ? userIdOverride : auth.userId
   const authReady = userIdOverride !== undefined ? true : auth.ready
 
   const [data, setData] = useState([])
+  const [label, setLabel] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-
-  const stableExcludeIds = useMemo(() => normalizeNumericIdArray(excludeIds), [excludeIds])
-  const excludeKey = stableExcludeIds.join(',')
 
   useEffect(() => {
     if (!enabled || !authReady) return
@@ -715,25 +683,23 @@ export function useQuickWatches(options = {}) {
       return
     }
 
-    const controller = new AbortController()
     let isCancelled = false
 
-    async function fetch() {
+    async function fetchRow() {
       try {
         setLoading(true)
         setError(null)
 
-        const items = await recommendationService.getQuickWatches(userId, {
-          limit,
-          excludeIds: stableExcludeIds,
-          signal: controller.signal,
-        })
+        const profile = await recommendationService.computeUserProfile(userId)
+        const result = await recommendationService.getYourGenresRow(userId, profile, limit)
 
-        if (isCancelled) return
-        setData(items || [])
+        if (!isCancelled) {
+          setData(result.movies || [])
+          setLabel(result.label)
+        }
       } catch (err) {
         if (err.name !== 'AbortError' && !isCancelled) {
-          console.error('[useQuickWatches] Error:', err)
+          console.error('[useYourGenresRow] Error:', err)
           setError(err)
         }
       } finally {
@@ -741,13 +707,97 @@ export function useQuickWatches(options = {}) {
       }
     }
 
-    fetch()
+    fetchRow()
+    return () => { isCancelled = true }
+  }, [userId, authReady, enabled, limit])
 
-    return () => {
-      isCancelled = true
-      controller.abort()
+  return { data, label, loading, error }
+}
+
+/**
+ * Hook: Popular on FeelFlick — unpersonalized cold-start row.
+ */
+export function usePopularForColdStart(options = {}) {
+  const { limit = 20, enabled = true } = options
+
+  const [data, setData] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    if (!enabled) return
+
+    let isCancelled = false
+
+    async function fetchRow() {
+      try {
+        setLoading(true)
+        setError(null)
+
+        const items = await recommendationService.getPopularForColdStartRow(limit)
+        if (!isCancelled) setData(items || [])
+      } catch (err) {
+        if (!isCancelled) {
+          console.error('[usePopularForColdStart] Error:', err)
+          setError(err)
+        }
+      } finally {
+        if (!isCancelled) setLoading(false)
+      }
     }
-  }, [userId, authReady, enabled, limit, excludeKey, stableExcludeIds])
+
+    fetchRow()
+    return () => { isCancelled = true }
+  }, [enabled, limit])
+
+  return { data, loading, error }
+}
+
+/**
+ * Hook: Onboarding-seeded row — "Based on your picks" using embedding similarity.
+ */
+export function useOnboardingSeededRow(options = {}) {
+  const { limit = 20, enabled = true, userId: userIdOverride } = options
+
+  const auth = useAuthState()
+  const userId = userIdOverride !== undefined ? userIdOverride : auth.userId
+  const authReady = userIdOverride !== undefined ? true : auth.ready
+
+  const [data, setData] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    if (!enabled || !authReady) return
+
+    if (!userId) {
+      setData([])
+      setLoading(false)
+      return
+    }
+
+    let isCancelled = false
+
+    async function fetchRow() {
+      try {
+        setLoading(true)
+        setError(null)
+
+        const items = await recommendationService.getOnboardingSeededRow(userId, limit)
+        if (!isCancelled) setData(items || [])
+      } catch (err) {
+        if (err.name !== 'AbortError' && !isCancelled) {
+          console.error('[useOnboardingSeededRow] Error:', err)
+          setError(err)
+        }
+      } finally {
+        if (!isCancelled) setLoading(false)
+      }
+    }
+
+    fetchRow()
+    return () => { isCancelled = true }
+  }, [userId, authReady, enabled, limit])
 
   return { data, loading, error }
 }
@@ -770,6 +820,7 @@ export function useRecommendations(
   pacing,
   timeOfDay,
   limit = 20,
+  parsedTags = null,
 ) {
   const auth = useAuthState()
   const userId = auth.userId
@@ -804,6 +855,7 @@ export function useRecommendations(
           viewingContext,
           experienceType,
           timeOfDay,
+          parsedTags,
         })
 
         // Movies now come from internal movies table — map to the Discover result shape.
@@ -835,7 +887,7 @@ export function useRecommendations(
     fetchRecommendations()
 
     return () => controller.abort()
-  }, [userId, authReady, moodId, viewingContext, experienceType, intensity, pacing, timeOfDay, limit])
+  }, [userId, authReady, moodId, viewingContext, experienceType, intensity, pacing, timeOfDay, limit, parsedTags])
 
   return {
     recommendations: data,

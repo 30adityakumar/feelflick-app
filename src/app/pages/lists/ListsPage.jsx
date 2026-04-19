@@ -7,6 +7,7 @@ import { motion } from 'framer-motion'
 import { Plus, Pencil, Trash2, Film } from 'lucide-react'
 
 import { supabase } from '@/shared/lib/supabase/client'
+import Button from '@/shared/ui/Button'
 import { tmdbImg } from '@/shared/api/tmdb'
 import CreateListModal from './CreateListModal'
 
@@ -92,11 +93,11 @@ function ListCard({ list, posters, onEdit, onDelete }) {
         <div>
           <h3 className="text-sm font-bold text-white line-clamp-2 mb-1">{list.title}</h3>
           {list.description && (
-            <p className="text-xs text-white/35 line-clamp-2 leading-relaxed">{list.description}</p>
+            <p className="text-xs text-white/40 line-clamp-2 leading-relaxed">{list.description}</p>
           )}
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-xs text-white/25">
+          <span className="text-xs text-white/20">
             {list.film_count ?? 0} {(list.film_count ?? 0) === 1 ? 'film' : 'films'}
           </span>
           {/* Edit/Delete — visible on hover */}
@@ -105,7 +106,7 @@ function ListCard({ list, posters, onEdit, onDelete }) {
               type="button"
               onClick={handleEdit}
               aria-label="Edit list"
-              className="p-1.5 rounded-lg text-white/25 hover:text-white/70 hover:bg-white/[0.06] transition-colors duration-150"
+              className="p-1.5 rounded-lg text-white/20 hover:text-white/70 hover:bg-white/[0.06] transition-colors duration-150"
             >
               <Pencil className="w-3.5 h-3.5" />
             </button>
@@ -113,7 +114,7 @@ function ListCard({ list, posters, onEdit, onDelete }) {
               type="button"
               onClick={handleDelete}
               aria-label={confirmDelete ? 'Confirm delete' : 'Delete list'}
-              className="p-1.5 rounded-lg text-white/25 hover:text-red-400/70 hover:bg-red-500/[0.08] transition-colors duration-150"
+              className="p-1.5 rounded-lg text-white/20 hover:text-red-400/70 hover:bg-red-500/[0.08] transition-colors duration-150"
             >
               {confirmDelete ? (
                 <span className="text-[11px] font-semibold text-red-400">Delete?</span>
@@ -147,14 +148,10 @@ function EmptyLists({ onCreate }) {
       <p className="text-white/40 text-sm max-w-sm mb-6">
         Create curated film collections to organize and share your favorites.
       </p>
-      <button
-        type="button"
-        onClick={onCreate}
-        className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-purple-500/20 transition-transform duration-200 hover:scale-[1.03] active:scale-[0.97]"
-      >
+      <Button variant="primary" onClick={onCreate}>
         <Plus className="h-4 w-4" />
         Create your first list
-      </button>
+      </Button>
     </motion.div>
   )
 }
@@ -282,7 +279,7 @@ export default function ListsPage() {
         {/* Page title */}
         <div className="mb-6">
           <h1 className="text-2xl font-black text-white tracking-tight mb-1">Lists</h1>
-          <p className="text-sm text-white/35">Your curated film collections</p>
+          <p className="text-sm text-white/40">Your curated film collections</p>
         </div>
 
         {isLoading ? (
@@ -294,14 +291,10 @@ export default function ListsPage() {
             <SectionHeader
               title="My Lists"
               action={
-                <button
-                  type="button"
-                  onClick={() => setShowModal(true)}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.05] border border-white/[0.10] hover:bg-white/[0.09] hover:border-white/[0.18] px-3.5 py-1.5 text-sm font-semibold text-white/70 hover:text-white transition-all duration-200"
-                >
+                <Button variant="secondary" size="sm" onClick={() => setShowModal(true)}>
                   <Plus className="h-3.5 w-3.5" />
                   New list
-                </button>
+                </Button>
               }
             />
 

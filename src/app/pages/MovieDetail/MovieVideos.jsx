@@ -13,7 +13,7 @@ export default function MovieVideos({ videos, internalMovieId }) {
 
   return (
     <div>
-      <p className="text-[11px] font-semibold text-white/30 uppercase tracking-widest mb-4">Videos &amp; Trailers</p>
+      <p className="text-[11px] font-semibold text-white/40 uppercase tracking-widest mb-4">Videos &amp; Trailers</p>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
         {filtered.map((v) => (
           <a

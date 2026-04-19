@@ -99,7 +99,7 @@ export default function ItLearnsYouSection() {
             </motion.h2>
 
             <motion.p
-              className="text-sm sm:text-base text-white/50 leading-relaxed max-w-md"
+              className="text-sm sm:text-base text-white/60 leading-relaxed max-w-md"
               initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={vp}
@@ -155,9 +155,9 @@ export default function ItLearnsYouSection() {
                     loading="lazy"
                   />
                 </div>
-                <p className="text-xs text-white/30">
+                <p className="text-xs text-white/40">
                   Because you loved{' '}
-                  <span className="text-white/55 font-medium">{SOURCE_FILM.title}</span>
+                  <span className="text-white/60 font-medium">{SOURCE_FILM.title}</span>
                 </p>
               </div>
 
@@ -196,10 +196,10 @@ export default function ItLearnsYouSection() {
                       {RECOMMENDED_FILM.match}%
                     </span>
                   </div>
-                  <p className="text-xs text-white/30 mb-3">
+                  <p className="text-xs text-white/40 mb-3">
                     {RECOMMENDED_FILM.year} · {RECOMMENDED_FILM.genres}
                   </p>
-                  <p className="text-xs text-white/25 italic">{RECOMMENDED_FILM.reason}</p>
+                  <p className="text-xs text-white/20 italic">{RECOMMENDED_FILM.reason}</p>
                 </div>
               </div>
 

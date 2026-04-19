@@ -272,7 +272,7 @@ export default function MoviesTab() {
               <button
                 onClick={handleSurpriseMe}
                 disabled={surpriseLoading || totalResults === 0}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border border-white/[0.08] bg-white/[0.04] text-white/50 hover:text-white/80 hover:border-white/15 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border border-white/[0.08] bg-white/[0.04] text-white/60 hover:text-white/80 hover:border-white/20 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150"
               >
                 {surpriseLoading ? <span className="animate-spin inline-block">⟳</span> : '🎲'}
                 Surprise me
@@ -304,7 +304,7 @@ export default function MoviesTab() {
             <p className="text-white/40 text-base mb-2">
               No films match these filters
             </p>
-            <p className="text-white/25 text-sm mb-6">
+            <p className="text-white/20 text-sm mb-6">
               Try loosening some criteria
             </p>
             <button

@@ -150,7 +150,7 @@ function FilmCard({ film, accentColor, isPrimary }) {
           transition={{ duration: 0.25, ease: [0.22, 0.61, 0.36, 1] }}
         >
           <span style={{ color: accentColor }}>{film.match}%</span>
-          <span className="text-white/35 font-normal">you</span>
+          <span className="text-white/40 font-normal">you</span>
         </motion.div>
         <img
           src={`https://image.tmdb.org/t/p/w500${film.poster}`}
@@ -162,7 +162,7 @@ function FilmCard({ film, accentColor, isPrimary }) {
       {/* Film info */}
       <div className="mt-2 px-0.5">
         <p className="text-[13px] font-semibold text-white truncate leading-tight">{film.title}</p>
-        <p className="text-[11px] text-white/35 mt-0.5 font-mono">{film.year}</p>
+        <p className="text-[11px] text-white/40 mt-0.5 font-mono">{film.year}</p>
       </div>
     </div>
   )
@@ -280,7 +280,7 @@ export default function MoodShowcaseSection() {
               >
                 The right film in under a minute.
               </h2>
-              <p className="text-sm sm:text-base text-white/50 leading-relaxed">
+              <p className="text-sm sm:text-base text-white/60 leading-relaxed">
                 Tell it how you feel. It finds the right film — matched to your mood, taste, and personal history. Not what&apos;s trending.
               </p>
             </div>
@@ -331,8 +331,8 @@ export default function MoodShowcaseSection() {
                   >
                     {activeMood.label}
                   </span>
-                  <span className="text-white/25 text-base">—</span>
-                  <span className="text-sm text-white/55 leading-none">{activeMood.description}</span>
+                  <span className="text-white/20 text-base">—</span>
+                  <span className="text-sm text-white/60 leading-none">{activeMood.description}</span>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -382,7 +382,7 @@ export default function MoodShowcaseSection() {
         <div className="lg:hidden mt-10">
           <Link
             to="/discover"
-            className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white/80 transition-colors duration-200"
+            className="inline-flex items-center gap-1.5 text-sm text-white/60 hover:text-white/80 transition-colors duration-200"
             aria-label="See all moods and film picks"
           >
             See all moods →

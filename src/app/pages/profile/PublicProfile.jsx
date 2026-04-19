@@ -204,7 +204,7 @@ function TasteMatchCard({ tasteMatch, displayName }) {
           <Sparkles className="h-4 w-4 text-purple-400/40 flex-shrink-0" />
           <h2 className="text-sm font-semibold text-white/60">Taste Match</h2>
         </div>
-        <p className="text-white/30 text-sm">
+        <p className="text-white/40 text-sm">
           Watch at least 5 films each to unlock your taste compatibility with {displayName}.
         </p>
       </motion.div>
@@ -232,7 +232,7 @@ function TasteMatchCard({ tasteMatch, displayName }) {
         {/* Overall score */}
         <div className="text-center flex-shrink-0">
           <span className={`text-5xl font-black leading-none ${scoreColor}`}>{pct}%</span>
-          <p className="text-white/30 text-xs mt-1">match</p>
+          <p className="text-white/40 text-xs mt-1">match</p>
         </div>
 
         {/* Sub-scores */}
@@ -260,7 +260,7 @@ function TasteMatchCard({ tasteMatch, displayName }) {
       {/* First shared film */}
       {firstSharedFilm && (
         <div className="flex items-center gap-3 mt-4 pt-4 border-t border-white/5">
-          <span className="text-xs text-white/25 flex-shrink-0">Both watched</span>
+          <span className="text-xs text-white/20 flex-shrink-0">Both watched</span>
           {firstSharedFilm.posterPath && (
             firstSharedFilm.tmdbId ? (
               <Link to={`/movie/${firstSharedFilm.tmdbId}`} className="flex-shrink-0 hover:opacity-80 transition-opacity">
@@ -281,7 +281,7 @@ function TasteMatchCard({ tasteMatch, displayName }) {
           <div className="min-w-0">
             <p className="text-sm text-white/70 font-medium truncate">{firstSharedFilm.title}</p>
             {firstSharedFilm.year && (
-              <p className="text-xs text-white/30">{firstSharedFilm.year}</p>
+              <p className="text-xs text-white/40">{firstSharedFilm.year}</p>
             )}
           </div>
         </div>
@@ -722,11 +722,11 @@ export default function PublicProfile() {
                 <ProfileAvatar name={displayName} avatarUrl={avatarUrl} size={64} />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-3 flex-wrap">
-                    <h1 className="text-xl sm:text-2xl font-bold text-white truncate">{displayName}</h1>
+                    <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight truncate">{displayName}</h1>
                     <FollowButton userId={userId} />
                   </div>
                   {memberSince && (
-                    <p className="text-sm text-white/35 mt-0.5">Member since {memberSince}</p>
+                    <p className="text-sm text-white/40 mt-0.5">Member since {memberSince}</p>
                   )}
                 </div>
               </div>
@@ -764,7 +764,7 @@ export default function PublicProfile() {
                       <div className="h-4 w-1/2 rounded bg-purple-500/[0.08]" />
                     </div>
                   ) : (
-                    <p className="text-sm sm:text-base text-white/75 leading-relaxed italic">
+                    <p className="text-sm sm:text-base text-white/70 leading-relaxed italic">
                       &ldquo;{aiSummary || stats.tasteSummary}&rdquo;
                     </p>
                   )}
@@ -796,7 +796,7 @@ export default function PublicProfile() {
                             <div key={g.name}>
                               <div className="flex items-center justify-between text-sm mb-1">
                                 <span className="text-white/80 font-medium">{g.name}</span>
-                                <span className="text-white/35 text-xs">{g.pct}%</span>
+                                <span className="text-white/40 text-xs">{g.pct}%</span>
                               </div>
                               <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
                                 <motion.div
@@ -811,7 +811,7 @@ export default function PublicProfile() {
                           ))}
                         </div>
                       ) : (
-                        <p className="text-white/25 text-sm">Not enough data yet</p>
+                        <p className="text-white/20 text-sm">Not enough data yet</p>
                       )}
                     </StatCard>
 
@@ -823,17 +823,17 @@ export default function PublicProfile() {
                           {stats.topDirectors.map((d, i) => (
                             <div key={d.name} className="flex items-center justify-between">
                               <span className="text-white/80 text-sm font-medium">
-                                <span className="text-white/25 text-xs mr-2">{i + 1}.</span>
+                                <span className="text-white/20 text-xs mr-2">{i + 1}.</span>
                                 {d.name}
                               </span>
-                              <span className="text-white/30 text-xs">
+                              <span className="text-white/40 text-xs">
                                 {d.count} {d.count === 1 ? 'film' : 'films'}
                               </span>
                             </div>
                           ))}
                         </div>
                       ) : (
-                        <p className="text-white/25 text-sm">Director data isn&apos;t available yet</p>
+                        <p className="text-white/20 text-sm">Director data isn&apos;t available yet</p>
                       )}
                     </StatCard>
 
@@ -848,14 +848,14 @@ export default function PublicProfile() {
                                 {m.emoji && <span className="mr-1.5">{m.emoji}</span>}
                                 {m.name}
                               </span>
-                              <span className="text-white/30 text-xs">
+                              <span className="text-white/40 text-xs">
                                 {m.count} {m.count === 1 ? 'session' : 'sessions'}
                               </span>
                             </div>
                           ))}
                         </div>
                       ) : (
-                        <p className="text-white/25 text-sm">No mood data yet</p>
+                        <p className="text-white/20 text-sm">No mood data yet</p>
                       )}
                     </StatCard>
                   </div>
@@ -884,9 +884,9 @@ export default function PublicProfile() {
                               loading="lazy"
                             />
                           </div>
-                          <p className="text-white/50 text-[11px] mt-1.5 line-clamp-2 leading-tight">{movie.title}</p>
+                          <p className="text-white/60 text-[11px] mt-1.5 line-clamp-2 leading-tight">{movie.title}</p>
                           {movie.year && (
-                            <p className="text-white/25 text-[10px]">{movie.year}</p>
+                            <p className="text-white/20 text-[10px]">{movie.year}</p>
                           )}
                         </motion.div>
                       ))}
@@ -905,15 +905,15 @@ export default function PublicProfile() {
                     <div>
                       <div className="flex items-baseline gap-1.5 mb-2">
                         <span className="text-3xl font-black text-white">{stats.avgRating.toFixed(1)}</span>
-                        <span className="text-white/25 text-sm font-medium">/ 10</span>
-                        <span className="text-white/30 text-xs ml-1">avg</span>
+                        <span className="text-white/20 text-sm font-medium">/ 10</span>
+                        <span className="text-white/40 text-xs ml-1">avg</span>
                       </div>
                       {stats.ratingPersonality && (
                         <p className="text-white/40 text-xs leading-relaxed">{stats.ratingPersonality}</p>
                       )}
                     </div>
                   ) : (
-                    <p className="text-white/25 text-sm">No ratings yet</p>
+                    <p className="text-white/20 text-sm">No ratings yet</p>
                   )}
                 </div>
 

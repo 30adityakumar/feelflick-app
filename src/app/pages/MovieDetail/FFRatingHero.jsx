@@ -44,7 +44,7 @@ export default function FFRatingHero({ internalMovie }) {
         <span className="text-sm text-white/40">/100</span>
       </div>
       <div className="flex flex-col">
-        <span className="text-[11px] font-semibold uppercase tracking-wider text-white/50">{primaryLabel}</span>
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-white/60">{primaryLabel}</span>
         <span className="text-xs text-white/70">{secondaryLine}</span>
       </div>
     </div>

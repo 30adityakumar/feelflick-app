@@ -38,7 +38,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
       <div className="flex items-center gap-1">
         {pages.map((p, i) =>
           p === '...' ? (
-            <span key={`ellipsis-${i}`} className="flex h-9 w-9 items-center justify-center text-[0.8rem] text-white/30">
+            <span key={`ellipsis-${i}`} className="flex h-9 w-9 items-center justify-center text-[0.8rem] text-white/40">
               …
             </span>
           ) : (

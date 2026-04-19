@@ -1,10 +1,9 @@
 // src/shared/services/recommendations.test.js
 // src/shared/services/recommendations.test.js
 
-import { 
-  computeUserProfile, 
-  getTopPickForUser, 
-  getQuickPicksForUser 
+import {
+  computeUserProfile,
+  getTopPickForUser,
 } from './recommendations'
 
 // Your test user from Query 3
@@ -26,14 +25,9 @@ export async function testRecommendationEngine() {
   console.log('Score:', heroPick.score)
   console.log('Debug:', heroPick.debug)
 
-  // Test 3: Quick Picks
-  console.log('3. Getting quick picks...')
-  const quickPicks = await getQuickPicksForUser(TEST_USER_ID, { limit: 5 })
-  console.log('Quick Picks:', quickPicks.map(m => `${m.title} (${m._score})`))
-
   console.log('=== TEST COMPLETE ===')
-  
-  return { profile, heroPick, quickPicks }
+
+  return { profile, heroPick }
 }
 
 // Auto-run if in browser dev mode

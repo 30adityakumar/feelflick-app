@@ -114,8 +114,8 @@ export default function ChallengesPage() {
             <Compass className="h-5 w-5 text-purple-400" />
             <p className="text-[11px] font-semibold uppercase tracking-widest text-purple-300/80">Taste Challenges</p>
           </div>
-          <h1 className="text-4xl sm:text-5xl font-black text-white mb-3">Expand your cinema</h1>
-          <p className="text-white/55 max-w-2xl">
+          <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tight mb-3">Expand your cinema</h1>
+          <p className="text-white/60 max-w-2xl">
             Gaps we&apos;ve noticed in what you&apos;ve watched. Each challenge suggests accessible entry points — films critics and audiences both love.
           </p>
         </div>
@@ -130,7 +130,7 @@ export default function ChallengesPage() {
           <div className="rounded-2xl border border-white/8 bg-white/[0.02] p-10 text-center">
             <Sparkles className="h-8 w-8 text-purple-400 mx-auto mb-3" />
             <p className="text-lg font-semibold text-white mb-2">You&apos;re well-rounded</p>
-            <p className="text-sm text-white/55">
+            <p className="text-sm text-white/60">
               Your watch history spans moods and film types. Keep exploring.
             </p>
           </div>

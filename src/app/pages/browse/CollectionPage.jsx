@@ -79,15 +79,15 @@ export default function CollectionPage() {
         <button
           onClick={() => navigate(-1)}
           aria-label="Go back"
-          className="inline-flex items-center gap-1.5 text-sm text-white/50 hover:text-white mb-6"
+          className="inline-flex items-center gap-1.5 text-sm text-white/60 hover:text-white mb-6"
         >
           <ChevronLeft className="h-4 w-4" /> Back
         </button>
 
         <div className="mb-8">
           <p className="text-[11px] font-semibold uppercase tracking-widest text-white/40 mb-2">Collection</p>
-          <h1 className="text-4xl sm:text-5xl font-black text-white mb-3">{collectionName}</h1>
-          <p className="text-white/55">
+          <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tight mb-3">{collectionName}</h1>
+          <p className="text-white/60">
             {movies.length} {movies.length === 1 ? 'film' : 'films'}
             {avgRating != null && <> · Avg audience rating {avgRating}/100</>}
           </p>

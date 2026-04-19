@@ -53,7 +53,7 @@ function MiniProfile({ profile }) {
       </div>
       <div>
         <p className="text-sm font-semibold text-white leading-none mb-1">{profile.name}</p>
-        <p className="text-[11px] text-white/30">{profile.subtitle}</p>
+        <p className="text-[11px] text-white/40">{profile.subtitle}</p>
       </div>
     </div>
   )
@@ -110,7 +110,7 @@ function TasteMatchScore() {
       >
         {count}%
       </span>
-      <span className="text-[10px] uppercase tracking-widest text-white/30">Taste Match</span>
+      <span className="text-[10px] uppercase tracking-widest text-white/40">Taste Match</span>
     </div>
   )
 }
@@ -194,7 +194,7 @@ export default function FindYourPeopleSection() {
             </motion.h2>
 
             <motion.p
-              className="text-sm sm:text-base text-white/50 leading-relaxed max-w-md"
+              className="text-sm sm:text-base text-white/60 leading-relaxed max-w-md"
               initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={vp}
@@ -249,7 +249,7 @@ export default function FindYourPeopleSection() {
                 className="pt-4"
                 style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
               >
-                <p className="text-xs text-white/25 italic text-center">{EXPLANATION}</p>
+                <p className="text-xs text-white/20 italic text-center">{EXPLANATION}</p>
               </div>
 
             </motion.div>

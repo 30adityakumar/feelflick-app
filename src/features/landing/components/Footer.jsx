@@ -115,8 +115,8 @@ export default function Footer() {
 
           {/* Right — human signal + copyright */}
           <div className="text-center sm:text-right">
-            <p className="text-xs text-white/15">Built with love for cinema in Toronto.</p>
-            <p className="text-xs text-white/15">&copy; 2026 FeelFlick</p>
+            <p className="text-xs text-white/20">Built with love for cinema in Toronto.</p>
+            <p className="text-xs text-white/20">&copy; 2026 FeelFlick</p>
           </div>
 
         </div>

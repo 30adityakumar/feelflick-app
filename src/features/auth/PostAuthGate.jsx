@@ -19,7 +19,7 @@ function SplashSpinner({ label = 'Loading your profile…' }) {
           <circle cx="12" cy="12" r="10" stroke="rgba(168,85,247,0.2)" strokeWidth="3" />
           <path d="M21 12a9 9 0 0 0-9-9v9z" fill="rgb(168,85,247)" />
         </svg>
-        <p className="text-sm text-white/35">{label}</p>
+        <p className="text-sm text-white/40">{label}</p>
       </div>
     </div>
   )

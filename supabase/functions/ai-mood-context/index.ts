@@ -41,10 +41,34 @@ Write the explanations JSON array. Output the complete array.
 Do NOT interleave these two sections. The narration must finish before
 the delimiter appears, and the JSON array must be complete and valid.`
 
+const MOOD_VOCAB = [
+  'exhilarating','tense','cozy','melancholic','uplifting','whimsical','haunting',
+  'meditative','romantic','gritty','heartwarming','suspenseful','nostalgic',
+  'empowering','bittersweet','devastating','playful','contemplative','thrilling',
+  'serene','unsettling','inspiring','dreamy','intense','tender','dark',
+  'lighthearted','provocative','euphoric','somber','mysterious','enigmatic','mind-bending',
+]
+const TONE_VOCAB = [
+  'satirical','earnest','ironic','deadpan','poetic','raw','polished','absurdist',
+  'sentimental','cynical','whimsical','urgent','detached','intimate','grandiose',
+  'minimalist','operatic','dry','warm','cold',
+]
+
 const PARSE_SYSTEM_PROMPT = `You are FeelFlick's mood signal parser.
-Extract numerical dial values from a user's freeform mood description.
+Extract dial values AND tag preferences from a user's freeform mood description.
 Respond ONLY with valid JSON — no markdown, no explanation, no preamble.
-All values must be integers in the range 1–5.`
+Dial values must be integers 1–5.
+Tag values must come from the allowed vocabularies below — never invent tags.
+
+Allowed mood tags: ${MOOD_VOCAB.join(', ')}
+Allowed tone tags: ${TONE_VOCAB.join(', ')}
+
+Return this shape:
+{"intensity":<1-5>,"pacing":<1-5>,"viewingContext":<1-5>,"experienceType":<1-5>,"preferredMoodTags":[...],"avoidedMoodTags":[...],"preferredToneTags":[...]}
+- preferredMoodTags: 0-4 mood tags the user wants (from allowed list only)
+- avoidedMoodTags: 0-3 mood tags the user wants to avoid (from allowed list only)
+- preferredToneTags: 0-3 tone tags the user wants (from allowed list only)
+- Omit arrays or leave empty if the user's text doesn't imply any preference.`
 
 interface MovieInput {
   tmdbId: number
@@ -111,14 +135,16 @@ Deno.serve(async (req: Request) => {
     const userMessage = `The user selected the mood category: "${moodName}"
 They described their feeling: "${freeText}"
 
-Extract four dial values:
+Extract dial values and tag preferences:
 - intensity: 1 (gentle/soft/soothing) to 5 (heavy/intense/overwhelming). Default 3.
 - pacing: 1 (slow/contemplative/quiet) to 5 (fast/action-packed/kinetic). Default 3.
 - viewingContext: 1=Watching alone, 2=With partner, 3=Friend group, 4=Family, 5=Large group. Default 1.
 - experienceType: 1=Discover something new, 2=Comfortable rewatch, 3=Nostalgia trip, 4=Learn something, 5=Be challenged. Default 1.
+- preferredMoodTags: mood tags the user seems to want (from allowed list only, max 4). Empty if unclear.
+- avoidedMoodTags: mood tags the user wants to avoid (from allowed list only, max 3). Empty if unclear.
+- preferredToneTags: tone tags the user seems to want (from allowed list only, max 3). Empty if unclear.
 
-Respond ONLY with this JSON (no other text):
-{"intensity":<1-5>,"pacing":<1-5>,"viewingContext":<1-5>,"experienceType":<1-5>}`
+Respond ONLY with valid JSON.`
 
     try {
       const completion = await openai.chat.completions.create({
@@ -128,7 +154,7 @@ Respond ONLY with this JSON (no other text):
           { role: 'user', content: userMessage },
         ],
         stream: false,
-        max_tokens: 60,
+        max_tokens: 200,
         temperature: 0.1,
         response_format: { type: 'json_object' },
       })

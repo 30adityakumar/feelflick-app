@@ -7,12 +7,12 @@ export function WhereToWatch({ providers }) {
 
   return (
     <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-5">
-      <p className="text-[11px] font-semibold text-white/30 uppercase tracking-widest mb-3">Where to Watch</p>
+      <p className="text-[11px] font-semibold text-white/40 uppercase tracking-widest mb-3">Where to Watch</p>
       <div className="flex flex-wrap gap-2">
         {providers.flatrate.map((p) => (
           <div
             key={p.provider_id}
-            className="w-12 h-12 rounded-xl bg-white/5 border border-white/8 p-1.5 flex items-center justify-center hover:scale-105 hover:border-white/15 transition-all"
+            className="w-12 h-12 rounded-xl bg-white/5 border border-white/8 p-1.5 flex items-center justify-center hover:scale-105 hover:border-white/20 transition-all"
             title={p.provider_name}
           >
             {p.logo_path ? (
@@ -57,7 +57,7 @@ export function MovieDetails({ movie }) {
 
   return (
     <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-5">
-      <p className="text-[11px] font-semibold text-white/30 uppercase tracking-widest mb-3">Details</p>
+      <p className="text-[11px] font-semibold text-white/40 uppercase tracking-widest mb-3">Details</p>
       <div className="space-y-2">
         {details.map((d, i) => (
           <div key={i} className="flex justify-between text-xs">
@@ -75,7 +75,7 @@ export function ProductionCompanies({ companies }) {
   if (!top.length) return null
   return (
     <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-5">
-      <p className="text-[11px] font-semibold text-white/30 uppercase tracking-widest mb-3">Production</p>
+      <p className="text-[11px] font-semibold text-white/40 uppercase tracking-widest mb-3">Production</p>
       <div className="flex flex-wrap gap-3">
         {top.map((c) => (
           <div
@@ -111,7 +111,7 @@ export function KeywordsSection({ keywords }) {
         {keywords.map((k) => (
           <span
             key={k.id}
-            className="px-3 py-1 rounded-full bg-white/5 border border-white/8 text-white/55 text-[11px] font-medium hover:bg-white/10 hover:border-white/15 hover:text-white/80 transition-colors cursor-default"
+            className="px-3 py-1 rounded-full bg-white/5 border border-white/8 text-white/60 text-[11px] font-medium hover:bg-white/10 hover:border-white/20 hover:text-white/80 transition-colors cursor-default"
           >
             {k.name}
           </span>
@@ -125,7 +125,7 @@ export function CollectionCard({ collection }) {
   const navigate = useNavigate()
   return (
     <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-5 overflow-hidden">
-      <p className="text-[11px] font-semibold text-white/30 uppercase tracking-widest mb-3">Part of a Collection</p>
+      <p className="text-[11px] font-semibold text-white/40 uppercase tracking-widest mb-3">Part of a Collection</p>
       <div className="relative aspect-16/9 rounded overflow-hidden mb-2">
         {collection.backdrop_path ? (
           <img

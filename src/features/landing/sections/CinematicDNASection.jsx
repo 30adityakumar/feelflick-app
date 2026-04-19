@@ -169,7 +169,7 @@ export default function CinematicDNASection() {
             </motion.h2>
 
             <motion.p
-              className="text-sm sm:text-base text-white/50 leading-relaxed mb-3 max-w-md"
+              className="text-sm sm:text-base text-white/60 leading-relaxed mb-3 max-w-md"
               initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={vp}
@@ -179,7 +179,7 @@ export default function CinematicDNASection() {
             </motion.p>
 
             <motion.p
-              className="text-sm sm:text-base text-white/50 leading-relaxed max-w-md"
+              className="text-sm sm:text-base text-white/60 leading-relaxed max-w-md"
               initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={vp}
@@ -239,7 +239,7 @@ export default function CinematicDNASection() {
 
               {/* === B: TOP GENRES === */}
               <div className="mb-4 sm:mb-5">
-                <p className="text-[10px] uppercase tracking-widest text-white/35 mb-2 sm:mb-3">Top genres</p>
+                <p className="text-[10px] uppercase tracking-widest text-white/40 mb-2 sm:mb-3">Top genres</p>
                 <div className="space-y-2 sm:space-y-3">
                   {GENRES.map((genre, i) => (
                     <GenreBar
@@ -253,13 +253,13 @@ export default function CinematicDNASection() {
 
               {/* === C: TOP DIRECTORS === */}
               <div className="mb-4 sm:mb-5">
-                <p className="text-[10px] uppercase tracking-widest text-white/35 mb-2">Top directors</p>
+                <p className="text-[10px] uppercase tracking-widest text-white/40 mb-2">Top directors</p>
                 <div className="flex flex-wrap gap-2" role="list" aria-label="Top directors">
                   {DIRECTORS.map((name) => (
                     <span
                       key={name}
                       role="listitem"
-                      className="text-[11px] font-medium text-white/50 bg-white/[0.06] rounded-full px-3 py-1"
+                      className="text-[11px] font-medium text-white/60 bg-white/[0.06] rounded-full px-3 py-1"
                     >
                       {name}
                     </span>
@@ -269,7 +269,7 @@ export default function CinematicDNASection() {
 
               {/* === H: TASTE SUMMARY === */}
               <div className="mb-4 sm:mb-5">
-                <p className="text-[10px] uppercase tracking-widest text-white/35 mb-2">Taste summary</p>
+                <p className="text-[10px] uppercase tracking-widest text-white/40 mb-2">Taste summary</p>
                 <p className="text-[11px] leading-relaxed text-white/40 italic">
                   &ldquo;{TASTE_SUMMARY}&rdquo;
                 </p>
@@ -277,7 +277,7 @@ export default function CinematicDNASection() {
 
               {/* === E: RECENTLY WATCHED === */}
               <div className="mb-4 sm:mb-5">
-                <p className="text-[10px] uppercase tracking-widest text-white/35 mb-2.5">Recently watched</p>
+                <p className="text-[10px] uppercase tracking-widest text-white/40 mb-2.5">Recently watched</p>
                 {/* grid-cols-4 fills available card width at every viewport — no fixed poster widths */}
                 <div className="grid grid-cols-4 gap-2 sm:gap-3" role="list" aria-label="Recently watched films">
                   {RECENTLY_WATCHED.slice(0, 4).map((film) => (

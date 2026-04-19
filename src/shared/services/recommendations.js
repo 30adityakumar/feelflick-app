@@ -72,7 +72,7 @@ import { recommendationCache } from '@/shared/lib/cache'
 // ============================================================================
 // VERSION
 // ============================================================================
-const ENGINE_VERSION = '2.8'
+const ENGINE_VERSION = '2.14' // Embedding search + filter dials + collapsed wizard.
 const PROFILE_MEMORY_TTL_MS = 60 * 1000
 const SEED_MEMORY_TTL_MS = 60 * 1000
 const profileMemoryCache = new Map()
@@ -190,14 +190,10 @@ const LANGUAGE_REGIONS = {
 // "Likely seen" is DISABLED per your request (kept for backward compatibility)
 const LIKELY_SEEN_WEIGHTS = {
   hero: 0,
-  quick_picks: 0,
   hidden_gems: 0,
   trending: 0,
   because_you_watched: 0,
   world_cinema: 0,
-  favorite_genres: 0,
-  slow_contemplative: 0,
-  quick_watches: 0,
   visual_spectacles: 0,
   default: 0
 }
@@ -236,6 +232,14 @@ const GENRE_NAME_TO_ID = {
   thriller: 53,
   war: 10752,
   western: 37
+}
+
+const GENRE_ID_TO_NAME = {
+  28: 'Action', 12: 'Adventure', 16: 'Animation', 35: 'Comedy',
+  80: 'Crime', 99: 'Documentary', 18: 'Drama', 10751: 'Family',
+  14: 'Fantasy', 36: 'History', 27: 'Horror', 10402: 'Music',
+  9648: 'Mystery', 10749: 'Romance', 878: 'Science Fiction',
+  10770: 'TV Movie', 53: 'Thriller', 10752: 'War', 37: 'Western',
 }
 
 // ============================================================================
@@ -301,7 +305,7 @@ export async function computeUserProfile(userId, forceRefresh = false) {
           pacing_score_100, intensity_score_100, emotional_depth_score_100,
           dialogue_density, attention_demand, vfx_level_score,
           ff_rating, director_name, lead_actor_name, genres, keywords,
-          fit_profile
+          fit_profile, mood_tags, tone_tags
         )
       `
         )
@@ -428,6 +432,9 @@ export async function computeUserProfile(userId, forceRefresh = false) {
     // ✅ v2.4: feedback signals from thumbs up/down + post-watch sentiment
     const feedbackSignals = computeFeedbackSignals(userFeedback, userSentiment)
 
+    // ✅ v2.10: mood signature from recent watches (mood_tags/tone_tags/fit_profile)
+    const moodSignature = computeMoodSignature(weightedMovies)
+
     const profile = ensureLanguageProfileShape({
       userId,
       languages,
@@ -440,6 +447,7 @@ export async function computeUserProfile(userId, forceRefresh = false) {
       qualityProfile,
       negativeSignals,
       feedbackSignals,
+      moodSignature,
       watchedMovieIds,
       meta: {
         profileVersion: ENGINE_VERSION,
@@ -513,6 +521,7 @@ function buildEmptyProfile(userId, userPrefs) {
     themes: { preferred: [] },
     fitProfileAffinity: { distribution: {}, preferred: [], topShare: 0, franchiseFatigue: false },
     qualityProfile: { avgFFRating: 7.0, watchesHiddenGems: false, totalMoviesWatched: 0, avgUserRating: null, highRatedCount: 0 },
+    moodSignature: { recentMoodTags: [], recentToneTags: [], recentFitProfiles: [] },
     negativeSignals: {
       skippedGenres: [],
       skippedDirectors: [],
@@ -661,6 +670,73 @@ function computeNegativeSignals(skipFeedback, watchHistory) {
       .sort((a, b) => b.skipCount - a.skipCount),
     totalSkips: skipFeedback.length
   }
+}
+
+// ============================================================================
+// MOOD SIGNATURE — v2.10
+// ============================================================================
+
+/**
+ * Aggregate mood_tags, tone_tags, and fit_profile from the user's recent watches
+ * into a compact signature used by scoreMovieForUser dimension 19 (mood coherence).
+ *
+ * Recency weight: last 5 watches × 1.0, next 10 × 0.6, next 5 × 0.3.
+ * Only considers the 20 most recent non-onboarding watches.
+ *
+ * @param {Object[]} weightedMovies - Movies with weight, isOnboarding flag
+ * @returns {{ recentMoodTags: {tag,weight}[], recentToneTags: {tag,weight}[], recentFitProfiles: {profile,weight}[] }}
+ */
+function computeMoodSignature(weightedMovies) {
+  // Take the 20 most recent non-onboarding movies (they're already sorted by
+  // recency from the watchHistory query, with onboarding pushed first into
+  // weightedMovies — so filter onboarding and take first 20 of the rest).
+  const recent = weightedMovies.filter(m => !m.isOnboarding).slice(0, 20)
+
+  if (recent.length === 0) {
+    return { recentMoodTags: [], recentToneTags: [], recentFitProfiles: [] }
+  }
+
+  const moodTagWeights = new Map()
+  const toneTagWeights = new Map()
+  const fitProfileWeights = new Map()
+
+  recent.forEach((movie, idx) => {
+    // Recency tiers: first 5 → 1.0, next 10 → 0.6, last 5 → 0.3
+    let recencyWeight
+    if (idx < 5) recencyWeight = 1.0
+    else if (idx < 15) recencyWeight = 0.6
+    else recencyWeight = 0.3
+
+    const tags = Array.isArray(movie.mood_tags) ? movie.mood_tags : []
+    tags.forEach(tag => {
+      moodTagWeights.set(tag, (moodTagWeights.get(tag) || 0) + recencyWeight)
+    })
+
+    const tones = Array.isArray(movie.tone_tags) ? movie.tone_tags : []
+    tones.forEach(tag => {
+      toneTagWeights.set(tag, (toneTagWeights.get(tag) || 0) + recencyWeight)
+    })
+
+    if (movie.fit_profile) {
+      fitProfileWeights.set(movie.fit_profile, (fitProfileWeights.get(movie.fit_profile) || 0) + recencyWeight)
+    }
+  })
+
+  const sortDesc = (a, b) => b.weight - a.weight
+  const recentMoodTags = [...moodTagWeights.entries()]
+    .map(([tag, weight]) => ({ tag, weight: Math.round(weight * 10) / 10 }))
+    .sort(sortDesc)
+    .slice(0, 8)
+  const recentToneTags = [...toneTagWeights.entries()]
+    .map(([tag, weight]) => ({ tag, weight: Math.round(weight * 10) / 10 }))
+    .sort(sortDesc)
+    .slice(0, 5)
+  const recentFitProfiles = [...fitProfileWeights.entries()]
+    .map(([profile, weight]) => ({ profile, weight: Math.round(weight * 10) / 10 }))
+    .sort(sortDesc)
+    .slice(0, 3)
+
+  return { recentMoodTags, recentToneTags, recentFitProfiles }
 }
 
 // ============================================================================
@@ -1518,7 +1594,7 @@ export async function getTopPickForUser(userId, options = {}) {
         genres, keywords, primary_genre,
         discovery_potential, accessibility_score,
         polarization_score, starpower_score,
-        fit_profile,
+        fit_profile, mood_tags, tone_tags,
         user_satisfaction_score, user_satisfaction_confidence
       `
 
@@ -1561,6 +1637,17 @@ export async function getTopPickForUser(userId, options = {}) {
         baseQuery = baseQuery.eq('original_language', langGuard.allowedLanguages[0])
       } else if (langGuard.mode === 'strong' && langGuard.allowedLanguages.length > 0) {
         baseQuery = baseQuery.in('original_language', langGuard.allowedLanguages)
+      }
+
+      // Cold-start: restrict hero pool to onboarding genre preferences
+      const isColdStart = (profile.qualityProfile?.totalMoviesWatched || 0) === 0
+      if (isColdStart && profile.genres.preferred.length > 0) {
+        const onboardingGenreNames = profile.genres.preferred
+          .map(id => GENRE_ID_TO_NAME[id])
+          .filter(Boolean)
+        if (onboardingGenreNames.length > 0) {
+          baseQuery = baseQuery.in('primary_genre', onboardingGenreNames)
+        }
       }
 
       let { data: baseCandidates } = await baseQuery
@@ -2017,6 +2104,28 @@ export function scoreMovieForUser(movie, profile, rowType = 'default', seedFilms
     else breakdown.userSatisfaction = 0
   } else {
     breakdown.userSatisfaction = 0
+  }
+
+  // 19) MOOD COHERENCE — rewards films whose mood/tone tags align with user's recent watches — v2.10
+  if (profile.moodSignature?.recentMoodTags?.length > 0) {
+    const movieMoodTags = Array.isArray(movie.mood_tags) ? movie.mood_tags : []
+    const movieToneTags = Array.isArray(movie.tone_tags) ? movie.tone_tags : []
+
+    let moodScore = 0
+    const userTopTags = new Map(profile.moodSignature.recentMoodTags.map(t => [t.tag, t.weight]))
+    movieMoodTags.forEach(t => {
+      if (userTopTags.has(t)) moodScore += userTopTags.get(t) * 2
+    })
+
+    const userTopTones = new Map(profile.moodSignature.recentToneTags.map(t => [t.tag, t.weight]))
+    movieToneTags.forEach(t => {
+      if (userTopTones.has(t)) moodScore += userTopTones.get(t) * 1
+    })
+
+    breakdown.moodCoherence = Math.min(20, Math.round(moodScore))
+    score += breakdown.moodCoherence
+  } else {
+    breakdown.moodCoherence = 0
   }
 
   const finalScore = Math.max(0, Math.round(score * 10) / 10)
@@ -2676,215 +2785,6 @@ export const RECOMMENDATION_TEST_HELPERS = {
 }
 
 
-// ============================================================================
-// QUICK PICKS ROW
-// ============================================================================
-
-/**
- * Get personalized quick picks for homepage row
- * NOW WITH: Embedding similarity, diversity, impression tracking, CACHING, DEDUPLICATION
- * 
- * @param {string} userId - User UUID
- * @param {Object} options - Optional overrides
- * @returns {Promise<Object[]>} Array of scored movies
- */
-export async function getQuickPicksForUser(userId, options = {}) {
-  const { limit = 20, excludeIds = [], forceRefresh = false } = options
-
-  if (!userId) {
-    console.log('[getQuickPicksForUser] No userId, returning empty')
-    return []
-  }
-
-  const cacheKey = recommendationCache.key('quick_picks', userId, { limit, excludeIds })
-
-  if (forceRefresh) {
-    recommendationCache.invalidate(cacheKey)
-  }
-
-  return recommendationCache.getOrFetch(cacheKey, async () => {
-    try {
-      // 1. Compute user profile
-      const profile = await computeUserProfile(userId)
-      
-      console.log('[getQuickPicksForUser] User profile:', {
-        primaryLang: profile.languages.primary,
-        preferredGenres: profile.genres.preferred,
-        directors: profile.affinities.directors.map(d => d.name).slice(0, 3),
-        totalWatched: profile.qualityProfile.totalMoviesWatched
-      })
-
-      // 2. Get seed films for embedding search
-      const seedFilms = await getSeedFilms(userId, profile)
-      const seedIds = seedFilms.map(s => s.id).filter(Boolean)
-      
-      console.log('[getQuickPicksForUser] Seed films:', seedFilms.map(s => s.title))
-
-      // 3. Get user's watched movie IDs (from profile — single fetch)
-      const watchedIds = profile.watchedMovieIds || []
-      const allExcludeIds = [...new Set([...watchedIds, ...excludeIds])]
-
-      // 4. Fetch candidates - MULTIPLE POOLS
-      const selectFields = `
-        id, tmdb_id, title, overview, tagline,
-        original_language, runtime, release_year, release_date,
-        poster_path, backdrop_path, trailer_youtube_key,
-        ff_rating, ff_final_rating, ff_community_rating, ff_community_confidence, ff_community_votes,
-        ff_critic_rating, ff_critic_confidence, ff_audience_rating, ff_audience_confidence,
-        ff_rating_genre_normalized, ff_confidence, quality_score, vote_average,
-        pacing_score, intensity_score, emotional_depth_score,
-        pacing_score_100, intensity_score_100, emotional_depth_score_100,
-        dialogue_density, attention_demand, vfx_level_score,
-        cult_status_score, popularity, vote_count, revenue,
-        director_name, lead_actor_name,
-        genres, keywords, primary_genre,
-        fit_profile,
-        user_satisfaction_score, user_satisfaction_confidence
-      `
-
-      // Pool 1: Quality films
-      const { data: qualityFilms } = await supabase
-        .from('movies')
-        .select(selectFields)
-        .eq('is_valid', true)
-        .not('poster_path', 'is', null)
-        .gte('ff_audience_rating', 60)
-        .gte('vote_count', THRESHOLDS.MIN_VOTE_COUNT)
-        .order('ff_audience_rating', { ascending: false })
-        .limit(150)
-
-      // Pool 2: Embedding neighbors (semantic similarity)
-      let embeddingNeighbors = []
-      if (seedIds.length > 0) {
-        const { data: embeddingMatches, error: embError } = await supabase
-          .rpc('match_movies_by_seeds', {
-            seed_ids: seedIds,
-            exclude_ids: allExcludeIds,
-            match_count: 50,
-            min_ff_rating: 55  // Lower threshold for variety (0-100 scale)
-          })
-        
-        if (embError) {
-          console.warn('[getQuickPicksForUser] Embedding search error:', embError.message)
-        } else {
-          embeddingNeighbors = embeddingMatches || []
-          console.log('[getQuickPicksForUser] Embedding neighbors found:', embeddingNeighbors.length)
-        }
-      }
-
-      // Combine and deduplicate
-      const allCandidates = [
-        ...(qualityFilms || []),
-        ...(embeddingNeighbors || [])
-      ]
-      
-      const candidateMap = new Map()
-      allCandidates.forEach(m => {
-        if (!candidateMap.has(m.id)) {
-          candidateMap.set(m.id, {
-            ...m,
-            _embeddingSimilarity: m.similarity || null,
-            _matchedSeedId: m.matched_seed_id || null,
-            _matchedSeedTitle: m.matched_seed_title || null
-          })
-        } else if (m.similarity && !candidateMap.get(m.id)._embeddingSimilarity) {
-          const existing = candidateMap.get(m.id)
-          existing._embeddingSimilarity = m.similarity
-          existing._matchedSeedId = m.matched_seed_id
-          existing._matchedSeedTitle = m.matched_seed_title
-        }
-      })
-      const candidates = Array.from(candidateMap.values())
-
-      console.log('[getQuickPicksForUser] Candidate pools:', {
-        qualityFilms: qualityFilms?.length || 0,
-        embeddingNeighbors: embeddingNeighbors?.length || 0,
-        totalUnique: candidates.length
-      })
-
-      // 5. Filter out watched/excluded
-      const eligible = candidates.filter(m => !allExcludeIds.includes(m.id))
-
-      console.log('[getQuickPicksForUser] After exclusion:', {
-        eligible: eligible.length,
-        excluded: candidates.length - eligible.length
-      })
-
-      if (eligible.length === 0) return []
-
-      // 6. Score with embedding boost
-      const scored = eligible.map(movie => {
-        const result = scoreMovieForUser(movie, profile, 'quick_picks', seedFilms)
-        
-        // Embedding similarity boost
-        let embeddingBoost = 0
-        let embeddingReason = null
-        
-        if (movie._embeddingSimilarity) {
-          const simNormalized = Math.max(0, movie._embeddingSimilarity - 0.5) / 0.4
-          embeddingBoost = Math.round(simNormalized * 60)  // Max 60 for rows (vs 80 for hero)
-          embeddingReason = {
-            seedTitle: movie._matchedSeedTitle,
-            seedId: movie._matchedSeedId,
-            similarity: movie._embeddingSimilarity
-          }
-        }
-        
-        // Update pick reason if embedding match is strong
-        let pickReason = result.pickReason
-        if (embeddingReason && embeddingBoost >= 25) {
-          pickReason = {
-            label: `Because you loved ${embeddingReason.seedTitle}`,
-            type: 'embedding_similarity',
-            seedTitle: embeddingReason.seedTitle,
-            similarity: embeddingReason.similarity
-          }
-        }
-        
-        return { 
-          movie, 
-          ...result,
-          score: result.score + embeddingBoost,
-          embeddingBoost,
-          embeddingReason,
-          pickReason
-        }
-      })
-
-      // 7. Sort by score
-      scored.sort((a, b) => b.score - a.score)
-
-      // 8. Apply diversity filter for final selection
-      const diverse = applyRowDiversityFilter(scored, limit)
-
-      console.log('[getQuickPicksForUser] Final selection:', diverse.slice(0, 5).map(d => ({
-        title: d.movie.title,
-        score: d.score,
-        embeddingBoost: d.embeddingBoost,
-        reason: d.pickReason?.type
-      })))
-
-      // 9. Log impressions (async, don't await)
-      logRowImpressions(userId, diverse, 'quick_picks').catch(err =>
-        console.warn('[getQuickPicksForUser] Failed to log impressions:', err.message)
-      )
-
-      // 10. Return formatted results
-      return diverse.map(item => ({
-        ...item.movie,
-        _score: item.score,
-        _pickReason: item.pickReason,
-        _embeddingSimilarity: item.embeddingReason?.similarity || null
-      }))
-
-    } catch (error) {
-      console.error('[getQuickPicksForUser] Error:', error)
-      return []
-    }
-  })
-}
-
-
 /**
  * Apply diversity filter for carousel rows
  * Lighter than hero filter - just prevents too much repetition
@@ -3057,7 +2957,7 @@ export async function getGenreBasedRecommendations(userId, options = {}) {
         cult_status_score, popularity, vote_count, revenue,
         director_name, lead_actor_name,
         genres, keywords, primary_genre,
-        fit_profile,
+        fit_profile, mood_tags, tone_tags,
         user_satisfaction_score, user_satisfaction_confidence
       `
 
@@ -3256,7 +3156,7 @@ async function getGenreFallback(limit = 20) {
       cult_status_score, popularity, vote_count, revenue,
       director_name, lead_actor_name,
       genres, keywords, primary_genre,
-      fit_profile,
+      fit_profile, mood_tags, tone_tags,
       user_satisfaction_score, user_satisfaction_confidence
     `)
     .eq('is_valid', true)
@@ -3437,18 +3337,20 @@ async function loadMoodData(moodId) {
   return moodData
 }
 
+// Mood IDs — KEEP IN SYNC WITH src/app/pages/discover/DiscoverPage.jsx MOODS array.
+// 1 Cozy  2 Adventurous  3 Heartbroken  4 Curious  5 Nostalgic  6 Energized
+// 7 Anxious  8 Romantic  9 Inspired  10 Silly  11 Dark  12 Overwhelmed
+
 /**
  * Per-mood bonuses for each viewing context (viewingContextId → moodId → points).
  * Context IDs: 1=Solo, 2=Partner, 3=Friends, 4=Family, 5=Group
- * Mood IDs (discover): 1=Cozy, 2=Adventurous, 3=Futuristic, 4=Thoughtful, 5=Whimsical,
- *   6=Enlightened, 7=Musical, 8=Romantic, 9=Suspenseful, 10=Silly, 11=Dark, 12=Nostalgic
  */
 const CONTEXT_MODIFIERS = {
-  1: { 1: 8, 2: 5, 3: 5, 4: 12, 5: 5, 6: 15, 7: 5, 8: 5, 9: 12, 10: 5, 11: 15, 12: 10 }, // Solo
-  2: { 1: 10, 2: 5, 3: 8, 4: 8, 5: 10, 6: 5, 7: 12, 8: 15, 9: 10, 10: 10, 11: 5, 12: 10 }, // Partner
-  3: { 1: 5, 2: 12, 3: 10, 4: 5, 5: 8, 6: 5, 7: 15, 8: 5, 9: 8, 10: 15, 11: 8, 12: 8 },   // Friends
-  4: { 1: 15, 2: 8, 3: 5, 4: 5, 5: 15, 6: 8, 7: 10, 8: 5, 9: 5, 10: 12, 11: -10, 12: 12 }, // Family
-  5: { 1: 8, 2: 15, 3: 10, 4: 5, 5: 10, 6: 5, 7: 15, 8: 5, 9: 5, 10: 15, 11: 5, 12: 8 },  // Group
+  1: { 1: 8, 2: 5, 3: 15, 4: 12, 5: 10, 6: 5, 7: 12, 8: 5, 9: 10, 10: 5, 11: 15, 12: 10 },  // Solo
+  2: { 1: 10, 2: 5, 3: 12, 4: 8, 5: 10, 6: 5, 7: 5, 8: 15, 9: 8, 10: 10, 11: 5, 12: 8 },    // Partner
+  3: { 1: 5, 2: 12, 3: 5, 4: 5, 5: 8, 6: 12, 7: 5, 8: 5, 9: 8, 10: 15, 11: 8, 12: 5 },      // Friends
+  4: { 1: 15, 2: 8, 3: 5, 4: 5, 5: 12, 6: 8, 7: -5, 8: 5, 9: 10, 10: 12, 11: -10, 12: 10 },  // Family
+  5: { 1: 8, 2: 15, 3: 5, 4: 5, 5: 8, 6: 15, 7: 5, 8: 5, 9: 8, 10: 15, 11: 5, 12: 5 },      // Group
 }
 
 /**
@@ -3476,10 +3378,10 @@ const EXPERIENCE_MODIFIERS = {
  */
 function getTimeOfDayBonus(moodId, timeOfDay) {
   const pairs = {
-    morning: [1, 5, 10],    // Cozy, Whimsical, Silly
-    afternoon: [2, 3, 6],   // Adventurous, Futuristic, Enlightened
-    evening: [4, 7, 8, 12], // Thoughtful, Musical, Romantic, Nostalgic
-    night: [9, 11],         // Suspenseful, Dark & Intense
+    morning: [1, 9, 10],     // Cozy, Inspired, Silly
+    afternoon: [2, 4, 6],    // Adventurous, Curious, Energized
+    evening: [3, 5, 8, 12],  // Heartbroken, Nostalgic, Romantic, Overwhelmed
+    night: [7, 11],          // Anxious, Dark
   }
   return (pairs[timeOfDay] || []).includes(moodId) ? 5 : 0
 }
@@ -3489,31 +3391,49 @@ function getTimeOfDayBonus(moodId, timeOfDay) {
  * Primary signal: mood_tags / tone_tags intersection with discover_moods tag sets.
  * Returns a score 0–100, additive on top of the user profile score.
  *
+ * Merge mood-defined tags with user-parsed free-text tags (deduped union).
+ * @param {string[]|undefined} baseTags
+ * @param {string[]|undefined} userTags
+ * @returns {string[]}
+ */
+function mergeTags(baseTags, userTags) {
+  const base = Array.isArray(baseTags) ? baseTags : []
+  const user = Array.isArray(userTags) ? userTags : []
+  if (user.length === 0) return base
+  return [...new Set([...base, ...user])]
+}
+
+/**
  * @param {Object} movie - Internal movies table row (must include mood_tags, tone_tags)
  * @param {number} moodId - Discover mood ID (1–12)
  * @param {{weights: Array, preferred_tags: string[], avoided_tags: string[], preferred_tones: string[]}} moodData
- * @param {{intensity: number, pacing: number, viewingContext: number, experienceType: number, timeOfDay: string}} params
+ * @param {{intensity: number, pacing: number, viewingContext: number, experienceType: number, timeOfDay: string, parsedTags?: Object}} params
  * @returns {number}
  */
 export function scoreMoodAffinity(movie, moodId, moodData, params) {
-  const { intensity, pacing, viewingContext, experienceType, timeOfDay } = params
+  const { viewingContext, experienceType, timeOfDay, parsedTags } = params
   let score = 0
+
+  // Merge mood-defined tags with user-parsed free-text tags (user tags take priority via union)
+  const preferredMoodTags = mergeTags(moodData.preferred_tags, parsedTags?.preferredMoodTags)
+  const preferredToneTags = mergeTags(moodData.preferred_tones, parsedTags?.preferredToneTags)
+  const avoidedMoodTags   = mergeTags(moodData.avoided_tags, parsedTags?.avoidedMoodTags)
 
   // 1. TAG INTERSECTION — PRIMARY SIGNAL (max +55)
   const movieMoodTags = Array.isArray(movie.mood_tags) ? movie.mood_tags : []
   const movieToneTags = Array.isArray(movie.tone_tags) ? movie.tone_tags : []
-  if (moodData.preferred_tags?.length > 0 && movieMoodTags.length > 0) {
-    const matches = movieMoodTags.filter(t => moodData.preferred_tags.includes(t)).length
+  if (preferredMoodTags.length > 0 && movieMoodTags.length > 0) {
+    const matches = movieMoodTags.filter(t => preferredMoodTags.includes(t)).length
     score += Math.min(matches * 15, 45)
   }
-  if (moodData.preferred_tones?.length > 0 && movieToneTags.length > 0) {
-    const toneMatches = movieToneTags.filter(t => moodData.preferred_tones.includes(t)).length
+  if (preferredToneTags.length > 0 && movieToneTags.length > 0) {
+    const toneMatches = movieToneTags.filter(t => preferredToneTags.includes(t)).length
     score += Math.min(toneMatches * 5, 10)
   }
 
   // 2. AVOIDED TAG PENALTY — strong signal
-  if (moodData.avoided_tags?.length > 0 && movieMoodTags.length > 0) {
-    const avoidedMatches = movieMoodTags.filter(t => moodData.avoided_tags.includes(t)).length
+  if (avoidedMoodTags.length > 0 && movieMoodTags.length > 0) {
+    const avoidedMatches = movieMoodTags.filter(t => avoidedMoodTags.includes(t)).length
     score -= avoidedMatches * 20
   }
 
@@ -3525,19 +3445,8 @@ export function scoreMoodAffinity(movie, moodId, moodData, params) {
   }
   score += Math.min(25, genreScore)
 
-  // 4. PACING/INTENSITY ALIGNMENT — max penalty −15 each
-  const moviePacing100 = movie.pacing_score_100 ?? (movie.pacing_score != null ? movie.pacing_score * 10 : null)
-  if (moviePacing100 != null && pacing != null) {
-    const targetPacing = (pacing / 5) * 100
-    const diff = Math.abs(moviePacing100 - targetPacing)
-    score += Math.max(-15, -(diff / 8))
-  }
-  const movieIntensity100 = movie.intensity_score_100 ?? (movie.intensity_score != null ? movie.intensity_score * 10 : null)
-  if (movieIntensity100 != null && intensity != null) {
-    const targetIntensity = (intensity / 5) * 100
-    const diff = Math.abs(movieIntensity100 - targetIntensity)
-    score += Math.max(-15, -(diff / 8))
-  }
+  // 4. PACING/INTENSITY — now enforced as hard filters in fetchMoodCandidates (R1b)
+  // No penalty math here; candidates already pass the pacing/intensity band filter.
 
   // 5. VIEWING CONTEXT modifier (up to +15)
   score += CONTEXT_MODIFIERS[viewingContext]?.[moodId] ?? 0
@@ -3567,6 +3476,46 @@ const MOOD_SELECT_FIELDS = `
   user_satisfaction_score, user_satisfaction_confidence
 `
 
+// Mood anchor cache — stable per mood, refreshed daily
+const moodAnchorCache = new Map()
+const MOOD_ANCHOR_TTL = 24 * 60 * 60 * 1000
+
+/**
+ * Find "mood anchor" films: movies tagged with ≥3 of the mood's preferred_tags,
+ * high confidence, ff_audience_rating >= 78. Used as embedding seeds.
+ */
+async function getMoodAnchors(moodId, preferredTags) {
+  const cached = moodAnchorCache.get(moodId)
+  if (cached && Date.now() - cached.ts < MOOD_ANCHOR_TTL) return cached.anchors
+
+  if (!preferredTags || preferredTags.length < 3) {
+    moodAnchorCache.set(moodId, { anchors: [], ts: Date.now() })
+    return []
+  }
+
+  const { data } = await supabase
+    .from('movies')
+    .select('id, mood_tags')
+    .eq('is_valid', true)
+    .gte('ff_audience_rating', 78)
+    .gte('ff_confidence', 60)
+    .not('poster_path', 'is', null)
+    .order('ff_confidence', { ascending: false })
+    .limit(200)
+
+  const anchors = (data || [])
+    .filter(m => {
+      const tags = Array.isArray(m.mood_tags) ? m.mood_tags : []
+      const overlap = tags.filter(t => preferredTags.includes(t)).length
+      return overlap >= 3
+    })
+    .slice(0, 3)
+    .map(m => m.id)
+
+  moodAnchorCache.set(moodId, { anchors, ts: Date.now() })
+  return anchors
+}
+
 /**
  * Fetch candidate movies from the internal movies table for a given mood.
  * Candidates are scored by the caller — this function only retrieves a pool.
@@ -3575,21 +3524,29 @@ const MOOD_SELECT_FIELDS = `
  * @param {number} moodId
  * @param {Array} moodWeights - rows from discover_mood_genre_weights
  * @param {Object} profile - computeUserProfile result (for language guard)
- * @param {{intensity: number|null, pacing: number|null, signal: AbortSignal|null}} params
- * @returns {Promise<Array>} - array of movies table rows
+ * @param {Object} moodData - loadMoodData result (for anchor tag lookup)
+ * @param {{intensity?: number, pacing?: number, signal?: AbortSignal}} params
+ * @returns {Promise<{candidates: Array, qualityFloorUsed: number|string|null}>}
  */
-async function fetchMoodCandidates(moodId, moodWeights, profile, params = {}) {
-  const { signal } = params
-
-  // Quality and recency floors (looser than hero to ensure variety across moods)
-  const minNorm = 6.5
-  const minConf = 40
+async function fetchMoodCandidates(moodId, moodWeights, profile, moodData, params = {}) {
+  const { signal, intensity = 3, pacing = 3 } = params
 
   // Language guard from user profile (reuse homepage engine's language detection)
   const langGuard = profile?.language || null
   const allowedLanguages = langGuard?.allowedLanguages || []
 
-  try {
+  // Larger pool for strict/strong language modes where catalog is thinner
+  const poolLimit = langGuard?.mode === 'strict' || langGuard?.mode === 'strong' ? 500 : 400
+
+  const minConf = 40
+  const moodGenreIds = new Set(moodWeights.map(w => w.genre_id))
+
+  // === Pacing/Intensity as hard filters (R1b) ===
+  const targetPacing = (pacing / 5) * 100
+  const targetIntensity = (intensity / 5) * 100
+
+  // Reusable query builder — same filters except quality floor
+  function buildQuery(minNorm, pacingBand, intensityBand) {
     let query = supabase
       .from('movies')
       .select(MOOD_SELECT_FIELDS)
@@ -3599,36 +3556,128 @@ async function fetchMoodCandidates(moodId, moodWeights, profile, params = {}) {
       .gte('ff_rating_genre_normalized', minNorm)
       .gte('ff_confidence', minConf)
       .order('ff_rating_genre_normalized', { ascending: false })
-      .limit(300)
+      .limit(poolLimit)
 
-    // Apply language guard when profile has a strong language preference
     if (allowedLanguages.length === 1) {
       query = query.eq('original_language', allowedLanguages[0])
     } else if (allowedLanguages.length > 1 && allowedLanguages.length <= 4) {
       query = query.in('original_language', allowedLanguages)
     }
 
-    // Mood 12 (Nostalgic): restrict to pre-2000 releases
-    if (moodId === 12) {
+    // Mood 5 (Nostalgic): restrict to pre-2000 releases
+    if (moodId === 5) {
       query = query.lte('release_year', 2000)
     }
 
-    const { data, error } = await query
-    if (error) throw error
+    // Pacing filter
+    if (pacingBand != null) {
+      query = query
+        .gte('pacing_score_100', Math.max(0, targetPacing - pacingBand))
+        .lte('pacing_score_100', Math.min(100, targetPacing + pacingBand))
+    }
 
-    const pool = data || []
+    // Intensity filter
+    if (intensityBand != null) {
+      query = query
+        .gte('intensity_score_100', Math.max(0, targetIntensity - intensityBand))
+        .lte('intensity_score_100', Math.min(100, targetIntensity + intensityBand))
+    }
 
-    // Filter client-side: keep movies that match at least one mood genre
-    const moodGenreIds = new Set(moodWeights.map(w => w.genre_id))
-    const matched = pool.filter(movie => {
+    return query
+  }
+
+  function filterByGenre(pool) {
+    return pool.filter(movie => {
       const genreIds = (movie.genres || []).map(extractGenreId).filter(Boolean)
       return genreIds.some(id => moodGenreIds.has(id))
     })
+  }
 
-    if (matched.length >= 15) return matched
+  try {
+    // Try progressively wider filter bands: 35 → 50 → drop intensity → drop both
+    let matched = []
+    let qualityFloorUsed = 6.5
 
-    // Fallback: if internal pool too small, use TMDB (old behaviour)
-    console.warn(`[Discover] Internal pool too small (${matched.length}) for mood ${moodId}, falling back to TMDB`)
+    // Attempt 1: tight band (±35)
+    const { data: t1Data, error: t1Err } = await buildQuery(6.5, 35, 35)
+    if (t1Err) throw t1Err
+    matched = filterByGenre(t1Data || [])
+
+    // Attempt 2: widen band (±50)
+    if (matched.length < 50) {
+      const { data: t2Data, error: t2Err } = await buildQuery(6.5, 50, 50)
+      if (t2Err) throw t2Err
+      matched = filterByGenre(t2Data || [])
+    }
+
+    // Attempt 3: drop intensity filter, keep pacing
+    if (matched.length < 20) {
+      const { data: t3Data, error: t3Err } = await buildQuery(6.5, 50, null)
+      if (t3Err) throw t3Err
+      matched = filterByGenre(t3Data || [])
+    }
+
+    // Attempt 4: drop both filters
+    if (matched.length < 20) {
+      const { data: t4Data, error: t4Err } = await buildQuery(6.5, null, null)
+      if (t4Err) throw t4Err
+      matched = filterByGenre(t4Data || [])
+    }
+
+    // Progressive quality relaxation for non-English STRICT users
+    const isNonEnglishStrict = langGuard?.mode === 'strict' && langGuard?.primaryLanguage !== 'en'
+
+    if (isNonEnglishStrict && matched.length < 30) {
+      const { data: t5Data, error: t5Err } = await buildQuery(6.0, null, null)
+      if (t5Err) throw t5Err
+      matched = filterByGenre(t5Data || [])
+      qualityFloorUsed = 6.0
+    }
+
+    if (isNonEnglishStrict && matched.length < 30) {
+      const { data: t6Data, error: t6Err } = await buildQuery(5.5, null, null)
+      if (t6Err) throw t6Err
+      matched = filterByGenre(t6Data || [])
+      qualityFloorUsed = 5.5
+    }
+
+    // === Embedding search: mood anchors (R4) ===
+    const anchorIds = await getMoodAnchors(moodId, moodData?.preferred_tags)
+    if (anchorIds.length > 0) {
+      const existingIds = new Set(matched.map(m => m.id))
+      const { data: embMatches, error: embErr } = await supabase
+        .rpc('match_movies_by_seeds', {
+          seed_ids: anchorIds,
+          exclude_ids: [...existingIds],
+          match_count: 80,
+          min_ff_rating: 60,
+        })
+
+      if (!embErr && embMatches?.length > 0) {
+        // Fetch full rows for embedding matches (RPC returns limited fields)
+        const embIds = embMatches.map(m => m.id).filter(Boolean)
+        if (embIds.length > 0) {
+          const { data: fullRows } = await supabase
+            .from('movies')
+            .select(MOOD_SELECT_FIELDS)
+            .in('id', embIds)
+            .eq('is_valid', true)
+            .not('poster_path', 'is', null)
+
+          for (const row of (fullRows || [])) {
+            if (row?.id && !existingIds.has(row.id)) {
+              matched.push(row)
+              existingIds.add(row.id)
+            }
+          }
+        }
+      }
+    }
+
+    if (matched.length >= 15) return { candidates: matched, qualityFloorUsed }
+
+    // Fallback: if internal pool still too small, use TMDB (unenriched)
+    console.warn(`[Discover] Internal pool too small (${matched.length}) for mood ${moodId}, lang=${langGuard?.primaryLanguage ?? '?'}, falling back to TMDB`)
     const fallbackGenres = [...moodGenreIds].join(',')
     const response = await tmdb.discoverMovies({
       genreIds: fallbackGenres,
@@ -3637,11 +3686,11 @@ async function fetchMoodCandidates(moodId, moodWeights, profile, params = {}) {
       page: 1,
       signal,
     })
-    return response?.results || []
+    return { candidates: response?.results || [], qualityFloorUsed: 'tmdb' }
   } catch (error) {
     if (error.name === 'AbortError') throw error
     console.error('[Discover] fetchMoodCandidates failed:', error)
-    return []
+    return { candidates: [], qualityFloorUsed: null }
   }
 }
 
@@ -3666,6 +3715,7 @@ export async function getMoodRecommendations(userId, moodId, options = {}) {
     viewingContext = 1,
     experienceType = 1,
     timeOfDay = 'evening',
+    parsedTags = null,
   } = options
 
   const cacheKey = recommendationCache.key('mood', userId, { moodId, viewingContext, experienceType })
@@ -3683,14 +3733,14 @@ export async function getMoodRecommendations(userId, moodId, options = {}) {
       const profile = await computeUserProfile(userId)
 
       // 3. Fetch candidates from internal movies table (or TMDB fallback)
-      const candidates = await fetchMoodCandidates(moodId, moodData.weights, profile, { signal })
+      const { candidates, qualityFloorUsed } = await fetchMoodCandidates(moodId, moodData.weights, profile, moodData, { signal, intensity, pacing })
       if (candidates.length === 0) return []
 
       // 4. Get watched movie IDs for exclusion (from profile — single fetch)
       const watchedIds = new Set(profile.watchedMovieIds || [])
 
       // 5. Score each candidate
-      const moodParams = { intensity, pacing, viewingContext, experienceType, timeOfDay }
+      const moodParams = { intensity, pacing, viewingContext, experienceType, timeOfDay, parsedTags }
       const scored = candidates
         .filter(movie => movie?.id && movie.tmdb_id && !watchedIds.has(movie.id))
         .map(movie => {
@@ -3704,14 +3754,18 @@ export async function getMoodRecommendations(userId, moodId, options = {}) {
 
       if (scored.length === 0) return []
 
-      // 6. Normalize match_percentage against the top score in this result set
-      const maxCombined = scored[0].combined || 1
-      return scored.map(({ movie, combined, userScore, moodScore }, i) => ({
-        ...movie,
-        final_score: Math.round(combined),
-        match_percentage: Math.min(99, Math.round(65 + (combined / maxCombined) * 34)),
-        _recommendationMeta: { rank: i + 1, userScore, moodScore },
-      }))
+      // 6. Percentile-based match_percentage (R7)
+      // Maps rank within candidate pool to 40-99 display range for more spread
+      const totalScored = scored.length
+      return scored.map(({ movie, combined, userScore, moodScore }, i) => {
+        const percentile = 1 - (i / totalScored)
+        return {
+          ...movie,
+          final_score: Math.round(combined),
+          match_percentage: Math.round(40 + percentile * 59),
+          _recommendationMeta: { rank: i + 1, userScore, moodScore, qualityFloorUsed },
+        }
+      })
     } catch (error) {
       if (error.name === 'AbortError') throw error
       console.error('[Discover] getMoodRecommendations failed:', error)
@@ -4089,7 +4143,7 @@ export async function getTrendingForUser(userId, options = {}) {
         cult_status_score, popularity, vote_count, revenue,
         director_name, lead_actor_name,
         genres, keywords, primary_genre,
-        fit_profile,
+        fit_profile, mood_tags, tone_tags,
         user_satisfaction_score, user_satisfaction_confidence
       `
 
@@ -4293,7 +4347,7 @@ async function getTrendingFallback(limit = 20) {
       cult_status_score, popularity, vote_count, revenue,
       director_name, lead_actor_name,
       genres, keywords, primary_genre,
-      fit_profile,
+      fit_profile, mood_tags, tone_tags,
       user_satisfaction_score, user_satisfaction_confidence
     `
 
@@ -4402,7 +4456,7 @@ export async function getHiddenGemsForUser(userId, options = {}) {
         cult_status_score, popularity, vote_count, revenue,
         director_name, lead_actor_name,
         genres, keywords, primary_genre,
-        fit_profile,
+        fit_profile, mood_tags, tone_tags,
         user_satisfaction_score, user_satisfaction_confidence
       `
 
@@ -4621,7 +4675,7 @@ async function getHiddenGemsFallback(limit = 20) {
       cult_status_score, popularity, vote_count, revenue,
       director_name, lead_actor_name,
       genres, keywords, primary_genre,
-      fit_profile,
+      fit_profile, mood_tags, tone_tags,
       user_satisfaction_score, user_satisfaction_confidence
     `
 
@@ -4665,638 +4719,279 @@ async function getHiddenGemsFallback(limit = 20) {
   }))
 }
 
-/**
- * Get themed row using new enhanced scoring (Phase 1-2)
- * Uses quality_score, star_power, content dimensions
- */
-export async function getThemedRow(userId, rowType, options = {}) {
-  const { limit = 20 } = options
 
-  let query = supabase
-    .from('movies')
-    .select('id, tmdb_id, title, poster_path, vote_average, popularity, runtime, star_power, quality_score, pacing_score, intensity_score, emotional_depth_score, pacing_score_100, intensity_score_100, emotional_depth_score_100, dialogue_density')
-    .not('vote_average', 'is', null)
 
-  // Apply row-specific filters
-  if (rowType === 'hidden_gems') {
-    query = query
-      .gte('vote_average', 7.0)
-      .lt('popularity', 60)
-      .gte('vote_count', 100)
-  } else if (rowType === 'slow_contemplative') {
-    query = query
-      .lt('pacing_score', 40)
-      .gt('emotional_depth_score', 70)
-      .gte('vote_average', 7.0)
-  } else if (rowType === 'high_energy') {
-    query = query
-      .gt('pacing_score', 70)
-      .gt('intensity_score', 70)
-      .gte('vote_average', 6.5)
-  } else if (rowType === 'quick_watches') {
-    query = query
-      .lt('runtime', 90)
-      .gte('vote_average', 7.0)
-      .not('runtime', 'is', null)
-  }
-
-  const { data: movies, error } = await query.limit(limit * 2)
-
-  if (error) throw error
-
-  // Calculate enhanced scores
-  const scored = movies.map(movie => {
-    const score = 
-      (movie.popularity * 0.005) +
-      (movie.vote_average * 10) +
-      (movie.quality_score || 0) * 0.3 +
-      (movie.star_power === 'no_stars' && rowType === 'hidden_gems' ? 15 : 0)
-
-    return { ...movie, score }
-  })
-
-  // Sort and return
-  return scored.sort((a, b) => b.score - a.score).slice(0, limit)
-}
 
 // ============================================================================
-// SLOW & CONTEMPLATIVE ROW
+// TIERED HOMEPAGE — NEW ROW GENERATORS (v2.13)
 // ============================================================================
 
+const TIERED_SELECT_FIELDS = `
+  id, tmdb_id, title, overview, tagline,
+  original_language, runtime, release_year, release_date,
+  poster_path, backdrop_path, trailer_youtube_key,
+  ff_rating, ff_final_rating, ff_confidence, quality_score, vote_average,
+  ff_critic_rating, ff_critic_confidence, ff_audience_rating, ff_audience_confidence,
+  ff_community_rating, ff_community_confidence, ff_community_votes,
+  ff_rating_genre_normalized,
+  pacing_score, intensity_score, emotional_depth_score,
+  pacing_score_100, intensity_score_100, emotional_depth_score_100,
+  dialogue_density, attention_demand, vfx_level_score,
+  cult_status_score, popularity, vote_count, revenue,
+  director_name, lead_actor_name,
+  genres, keywords, primary_genre,
+  discovery_potential, accessibility_score, polarization_score, starpower_score,
+  fit_profile, mood_tags, tone_tags,
+  user_satisfaction_score, user_satisfaction_confidence
+`
+
 /**
- * Get slow & contemplative films personalized for user
- * Criteria: Low pacing + High emotional depth + User taste
+ * Mood coherence row — films whose mood_tags intersect with user's recent mood tags.
+ * Requires profile.moodSignature.recentMoodTags.length >= 3.
  *
- * NOW WITH: CACHING, DEDUPLICATION (getOrFetch)
- *
- * @param {string} userId - User UUID
- * @param {Object} options - Optional overrides
- * @returns {Promise<Object[]>} Array of scored movies
+ * @param {string} userId
+ * @param {Object} profile - computeUserProfile result
+ * @param {number} [limit=20]
+ * @returns {Promise<Object[]>}
  */
-export async function getSlowContemplative(userId, options = {}) {
-  const { limit = 20, excludeIds = [], forceRefresh = false } = options
-
-  // Stabilize excludeIds so [1,2] and [2,1] share the same cache key
-  const stableExcludeIds = Array.isArray(excludeIds) ? [...excludeIds].sort((a, b) => a - b) : []
-
-  const cacheKey = recommendationCache.key('slow_contemplative', userId || 'guest', {
-    limit,
-    excludeIds: stableExcludeIds
-  })
-
-  if (forceRefresh) {
-    recommendationCache.invalidate(cacheKey)
-  }
+export async function getMoodCoherenceRow(userId, profile, limit = 20) {
+  const cacheKey = recommendationCache.key('mood_coherence', userId, { limit })
 
   return recommendationCache.getOrFetch(cacheKey, async () => {
     try {
-      if (!userId) {
-        console.log('[getSlowContemplative] No userId, returning fallback')
-        return await getSlowContemplativeFallback(limit)
-      }
+      const recentTags = profile?.moodSignature?.recentMoodTags || []
+      if (recentTags.length < 3) return []
 
-      // 1. Compute user profile
-      const profile = await computeUserProfile(userId)
+      const topTags = recentTags.slice(0, 3).map(t => t.tag)
 
-      console.log('[getSlowContemplative] User profile:', {
-        avgPacing: profile.contentProfile.avgPacing,
-        avgDepth: profile.contentProfile.avgDepth
+      const watchedIds = new Set(profile.watchedMovieIds || [])
+
+      // Recent skips (7d)
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+      const { data: skipData } = await supabase
+        .from('recommendation_impressions')
+        .select('movie_id')
+        .eq('user_id', userId)
+        .eq('skipped', true)
+        .gte('shown_at', sevenDaysAgo)
+      const skipIds = new Set((skipData || []).map(r => r.movie_id).filter(Boolean))
+
+      // Fetch candidates with mood_tags overlap
+      // Supabase doesn't support array-overlap filter natively, so fetch a broad pool
+      // and filter client-side by tag intersection
+      const { data, error } = await supabase
+        .from('movies')
+        .select(TIERED_SELECT_FIELDS)
+        .eq('is_valid', true)
+        .not('poster_path', 'is', null)
+        .gte('ff_audience_rating', 65)
+        .gte('ff_confidence', 40)
+        .order('ff_audience_rating', { ascending: false })
+        .limit(500)
+
+      if (error) throw error
+
+      const candidates = (data || []).filter(movie => {
+        if (!movie?.id || !movie.tmdb_id) return false
+        if (watchedIds.has(movie.id)) return false
+        if (skipIds.has(movie.id)) return false
+        const movieTags = Array.isArray(movie.mood_tags) ? movie.mood_tags : []
+        return movieTags.some(t => topTags.includes(t))
       })
 
-      // 2. Get seed films for embedding search
-      const seedFilms = await getSeedFilms(userId, profile)
-      const seedIds = seedFilms.map(s => s.id).filter(Boolean)
+      if (candidates.length === 0) return []
 
-      // 3. Get user's watched movie IDs (from profile — single fetch)
-      const watchedIds = profile.watchedMovieIds || []
-      const allExcludeIds = [...new Set([...watchedIds, ...stableExcludeIds])]
+      const scored = candidates
+        .map(movie => {
+          const result = scoreMovieForUser(movie, profile, 'home')
+          return { movie, score: result.score }
+        })
+        .sort((a, b) => b.score - a.score)
+        .slice(0, limit)
 
-      // 4. Fetch candidates - SLOW & CONTEMPLATIVE CRITERIA
-      const selectFields = `
-        id, tmdb_id, title, overview, tagline,
-        original_language, runtime, release_year, release_date,
-        poster_path, backdrop_path, trailer_youtube_key,
-        ff_rating, ff_final_rating, ff_community_rating, ff_community_confidence, ff_community_votes,
-        ff_critic_rating, ff_critic_confidence, ff_audience_rating, ff_audience_confidence,
-        ff_rating_genre_normalized, ff_confidence, quality_score, vote_average,
-        pacing_score, intensity_score, emotional_depth_score,
-        pacing_score_100, intensity_score_100, emotional_depth_score_100,
-        dialogue_density, attention_demand, vfx_level_score,
-        cult_status_score, popularity, vote_count, revenue,
-        director_name, lead_actor_name,
-        genres, keywords, primary_genre,
-        fit_profile,
-        user_satisfaction_score, user_satisfaction_confidence
-      `
+      return scored.map(({ movie, score }) => ({
+        ...movie,
+        _score: score,
+        _pickReason: { label: 'Matches your vibe', type: 'mood_coherence' },
+      }))
+    } catch (error) {
+      console.error('[getMoodCoherenceRow] failed:', error)
+      return []
+    }
+  }, { ttl: 5 * 60 * 1000 })
+}
 
-      // Pool 1: Classic slow contemplative (low pacing, high depth)
-      const { data: slowDeep } = await supabase
+/**
+ * Your Genres row — top preferred genre films scored by user profile.
+ *
+ * @param {string} userId
+ * @param {Object} profile - computeUserProfile result
+ * @param {number} [limit=20]
+ * @returns {Promise<{label: string, movies: Object[]}>}
+ */
+export async function getYourGenresRow(userId, profile, limit = 20) {
+  const preferred = profile?.genres?.preferred || []
+  if (preferred.length === 0) return { label: null, movies: [] }
+
+  const topGenreId = preferred[0]
+  const genreName = GENRE_ID_TO_NAME[topGenreId]
+  if (!genreName) return { label: null, movies: [] }
+
+  const label = `More ${genreName}`
+  const cacheKey = recommendationCache.key('your_genres', userId, { genreId: topGenreId, limit })
+
+  const movies = await recommendationCache.getOrFetch(cacheKey, async () => {
+    try {
+      const watchedIds = new Set(profile.watchedMovieIds || [])
+
+      const { data, error } = await supabase
         .from('movies')
-        .select(selectFields)
+        .select(TIERED_SELECT_FIELDS)
         .eq('is_valid', true)
         .not('poster_path', 'is', null)
-        .lt('pacing_score', 45)
-        .gt('emotional_depth_score', 65)
-        .gte('ff_audience_rating', 75)
-        .gte('vote_count', THRESHOLDS.MIN_VOTE_COUNT)
-        .order('emotional_depth_score', { ascending: false })
-        .limit(100)
+        .eq('primary_genre', genreName)
+        .gte('ff_audience_rating', 70)
+        .gte('ff_confidence', 40)
+        .order('ff_audience_rating', { ascending: false })
+        .limit(200)
 
-      // Pool 2: High attention demand (requires focus = contemplative)
-      const { data: highAttention } = await supabase
+      if (error) throw error
+
+      const candidates = (data || []).filter(m => m?.id && m.tmdb_id && !watchedIds.has(m.id))
+      if (candidates.length === 0) return []
+
+      return candidates
+        .map(movie => {
+          const result = scoreMovieForUser(movie, profile, 'home')
+          return {
+            ...movie,
+            _score: result.score,
+            _pickReason: { label: `${genreName} pick`, type: 'your_genre' },
+          }
+        })
+        .sort((a, b) => b._score - a._score)
+        .slice(0, limit)
+    } catch (error) {
+      console.error('[getYourGenresRow] failed:', error)
+      return []
+    }
+  }, { ttl: 5 * 60 * 1000 })
+
+  return { label, movies }
+}
+
+/**
+ * Popular on FeelFlick — unpersonalized cold-start row.
+ * Recent high-audience-rating films with strong vote counts.
+ *
+ * @param {number} [limit=20]
+ * @returns {Promise<Object[]>}
+ */
+export async function getPopularForColdStartRow(limit = 20) {
+  const cacheKey = recommendationCache.key('popular_cold_start', 'global', { limit })
+
+  return recommendationCache.getOrFetch(cacheKey, async () => {
+    try {
+      const currentYear = new Date().getFullYear()
+      const { data, error } = await supabase
         .from('movies')
-        .select(selectFields)
+        .select(TIERED_SELECT_FIELDS)
         .eq('is_valid', true)
         .not('poster_path', 'is', null)
-        .gte('attention_demand', 70)
-        .lt('pacing_score', 50)
-        .gte('ff_audience_rating', 75)
-        .gte('vote_count', THRESHOLDS.MIN_VOTE_COUNT)
-        .order('attention_demand', { ascending: false })
-        .limit(50)
+        .gte('ff_audience_rating', 78)
+        .gte('vote_count', 10000)
+        .gte('release_year', currentYear - 3)
+        .order('popularity', { ascending: false })
+        .limit(limit)
 
-      // Pool 3: Embedding neighbors filtered to slow/contemplative
-      let embeddingNeighbors = []
-      if (seedIds.length > 0) {
-        const { data: embeddingMatches, error: embError } = await supabase.rpc('match_movies_by_seeds', {
+      if (error) throw error
+      return (data || []).map(movie => ({
+        ...movie,
+        _score: movie.ff_audience_rating || 0,
+        _pickReason: { label: 'Popular on FeelFlick', type: 'popular_cold_start' },
+      }))
+    } catch (error) {
+      console.error('[getPopularForColdStartRow] failed:', error)
+      return []
+    }
+  }, { ttl: 10 * 60 * 1000 })
+}
+
+/**
+ * Onboarding-seeded row — uses the user's onboarding film selections
+ * as embedding seeds via match_movies_by_seeds.
+ *
+ * @param {string} userId
+ * @param {number} [limit=20]
+ * @returns {Promise<Object[]>}
+ */
+export async function getOnboardingSeededRow(userId, limit = 20) {
+  const cacheKey = recommendationCache.key('onboarding_seeded', userId, { limit })
+
+  return recommendationCache.getOrFetch(cacheKey, async () => {
+    try {
+      // Get onboarding film IDs from user_history where source = 'onboarding'
+      const { data: onboardingHistory, error: histErr } = await supabase
+        .from('user_history')
+        .select('movie_id')
+        .eq('user_id', userId)
+        .eq('source', 'onboarding')
+
+      if (histErr) throw histErr
+
+      const seedIds = (onboardingHistory || []).map(h => h.movie_id).filter(Boolean)
+      if (seedIds.length === 0) return []
+
+      // Use embedding similarity to find similar films
+      const { data: matches, error: rpcErr } = await supabase
+        .rpc('match_movies_by_seeds', {
           seed_ids: seedIds,
-          exclude_ids: allExcludeIds,
-          match_count: 50,
-          min_ff_rating: 60
+          exclude_ids: seedIds,
+          match_count: limit * 2,
+          min_ff_rating: 70,
         })
 
-        if (embError) {
-          console.warn('[getSlowContemplative] Embedding search error:', embError.message)
-        } else {
-          embeddingNeighbors = (embeddingMatches || []).filter(
-            m => m.pacing_score < 50 && m.emotional_depth_score > 60
-          )
-          console.log('[getSlowContemplative] Embedding neighbors (filtered):', embeddingNeighbors.length)
-        }
+      if (rpcErr) {
+        console.warn('[getOnboardingSeededRow] RPC error:', rpcErr.message)
+        return []
       }
 
-      // Combine and deduplicate
-      const allCandidates = [...(slowDeep || []), ...(highAttention || []), ...(embeddingNeighbors || [])]
-
-      const candidateMap = new Map()
-      allCandidates.forEach(m => {
-        if (!candidateMap.has(m.id)) {
-          candidateMap.set(m.id, {
-            ...m,
-            _embeddingSimilarity: m.similarity || null,
-            _matchedSeedId: m.matched_seed_id || null,
-            _matchedSeedTitle: m.matched_seed_title || null
-          })
-        } else if (m.similarity && !candidateMap.get(m.id)._embeddingSimilarity) {
-          const existing = candidateMap.get(m.id)
-          existing._embeddingSimilarity = m.similarity
-          existing._matchedSeedId = m.matched_seed_id
-          existing._matchedSeedTitle = m.matched_seed_title
-        }
-      })
-      const candidates = Array.from(candidateMap.values())
-
-      console.log('[getSlowContemplative] Candidate pools:', {
-        slowDeep: slowDeep?.length || 0,
-        highAttention: highAttention?.length || 0,
-        embeddingNeighbors: embeddingNeighbors?.length || 0,
-        totalUnique: candidates.length
-      })
-
-      // 5. Filter out watched/excluded
-      const eligible = candidates.filter(m => !allExcludeIds.includes(m.id))
-
-      if (eligible.length === 0) {
-        return await getSlowContemplativeFallback(limit)
-      }
-
-      // 6. Score with MOOD-SPECIFIC weights
-      const scored = eligible.map(movie => {
-        const result = scoreMovieForUser(movie, profile, 'slow_contemplative', seedFilms)
-
-        // Embedding similarity boost
-        let embeddingBoost = 0
-        let embeddingReason = null
-
-        if (movie._embeddingSimilarity) {
-          const simNormalized = Math.max(0, movie._embeddingSimilarity - 0.5) / 0.4
-          embeddingBoost = Math.round(simNormalized * 50)
-          embeddingReason = {
-            seedTitle: movie._matchedSeedTitle,
-            seedId: movie._matchedSeedId,
-            similarity: movie._embeddingSimilarity
-          }
-        }
-
-        // MOOD-SPECIFIC: Reward slow pacing + emotional depth
-        let moodBoost = 0
-
-        if (movie.pacing_score <= 30) moodBoost += 25
-        else if (movie.pacing_score <= 40) moodBoost += 15
-        else if (movie.pacing_score <= 50) moodBoost += 5
-
-        if (movie.emotional_depth_score >= 80) moodBoost += 25
-        else if (movie.emotional_depth_score >= 70) moodBoost += 15
-        else if (movie.emotional_depth_score >= 60) moodBoost += 8
-
-        if (movie.attention_demand >= 75) moodBoost += 10
-        if (movie.dialogue_density >= 70) moodBoost += 8
-
-        // Update pick reason
-        let pickReason = result.pickReason
-        if (embeddingReason && embeddingBoost >= 20) {
-          pickReason = {
-            label: `Contemplative • Similar to ${embeddingReason.seedTitle}`,
-            type: 'mood_embedding',
-            seedTitle: embeddingReason.seedTitle,
-            similarity: embeddingReason.similarity
-          }
-        } else if (movie.emotional_depth_score >= 80) {
-          pickReason = { label: 'Deeply moving', type: 'mood_deep' }
-        } else if (movie.pacing_score <= 30) {
-          pickReason = { label: 'Slow burn', type: 'mood_slow' }
-        } else if (movie.attention_demand >= 75) {
-          pickReason = { label: 'Thought-provoking', type: 'mood_thoughtful' }
-        } else {
-          pickReason = { label: 'Contemplative cinema', type: 'mood_contemplative' }
-        }
-
-        return {
-          movie,
-          ...result,
-          score: result.score + embeddingBoost + moodBoost,
-          embeddingBoost,
-          moodBoost,
-          embeddingReason,
-          pickReason
-        }
-      })
-
-      // 7. Sort by score
-      scored.sort((a, b) => b.score - a.score)
-
-      // 8. Apply diversity filter
-      const diverse = applyRowDiversityFilter(scored, limit)
-
-      console.log(
-        '[getSlowContemplative] Final selection:',
-        diverse.slice(0, 5).map(d => ({
-          title: d.movie.title,
-          score: d.score,
-          moodBoost: d.moodBoost,
-          embeddingBoost: d.embeddingBoost,
-          pacing: d.movie.pacing_score,
-          depth: d.movie.emotional_depth_score
+      return (matches || [])
+        .filter(m => m?.poster_path)
+        .slice(0, limit)
+        .map(movie => ({
+          ...movie,
+          _score: movie.similarity || 0,
+          _pickReason: { label: 'Based on your picks', type: 'onboarding_seeded' },
         }))
-      )
-
-      // 9. Log impressions (async, don't await)
-      logRowImpressions(userId, diverse, 'slow_contemplative').catch(err =>
-        console.warn('[getSlowContemplative] Failed to log impressions:', err.message)
-      )
-
-      // 10. Return formatted results (no manual cache set; getOrFetch handles it)
-      return diverse.map(item => ({
-        ...item.movie,
-        _score: item.score,
-        _pickReason: item.pickReason,
-        _embeddingSimilarity: item.embeddingReason?.similarity || null
-      }))
     } catch (error) {
-      console.error('[getSlowContemplative] Error:', error)
-      return await getSlowContemplativeFallback(limit)
+      console.error('[getOnboardingSeededRow] failed:', error)
+      return []
     }
-  })
+  }, { ttl: 10 * 60 * 1000 })
 }
 
-
-
 /**
- * Fallback for slow contemplative when no user or error
- */
-async function getSlowContemplativeFallback(limit = 20) {
-  const { data } = await supabase
-    .from('movies')
-    .select(`
-      id, tmdb_id, title, overview, tagline,
-      original_language, runtime, release_year, release_date,
-      poster_path, backdrop_path, trailer_youtube_key,
-      ff_rating, ff_final_rating, ff_confidence, quality_score, vote_average,
-      ff_critic_rating, ff_critic_confidence, ff_audience_rating, ff_audience_confidence,
-      ff_community_rating, ff_community_confidence, ff_community_votes,
-      pacing_score, intensity_score, emotional_depth_score,
-      pacing_score_100, intensity_score_100, emotional_depth_score_100,
-      dialogue_density, attention_demand, vfx_level_score,
-      cult_status_score, popularity, vote_count, revenue,
-      director_name, lead_actor_name,
-      genres, keywords, primary_genre,
-      fit_profile,
-      user_satisfaction_score, user_satisfaction_confidence
-    `)
-    .eq('is_valid', true)
-    .not('poster_path', 'is', null)
-    .lt('pacing_score', 45)
-    .gt('emotional_depth_score', 65)
-    .gte('ff_audience_rating', 75)
-    .gte('vote_count', THRESHOLDS.MIN_VOTE_COUNT)
-    .order('emotional_depth_score', { ascending: false })
-    .limit(limit)
-
-  return (data || []).map(movie => ({
-    ...movie,
-    _score: movie.emotional_depth_score,
-    _pickReason: { label: 'Contemplative cinema', type: 'fallback_mood' }
-  }))
-}
-
-// ============================================================================
-// QUICK WATCHES ROW
-// ============================================================================
-
-/**
- * Get quick watches (under 90 min) personalized for user
- * Criteria: Short runtime + Quality + User taste
+ * Get the user's watch count for tier detection.
+ * Lightweight — just a count query, no full row fetch.
  *
- * NOW WITH: CACHING, DEDUPLICATION (getOrFetch)
- *
- * @param {string} userId - User UUID
- * @param {Object} options - Optional overrides
- * @returns {Promise<Object[]>} Array of scored movies
+ * @param {string} userId
+ * @returns {Promise<number>}
  */
-export async function getQuickWatches(userId, options = {}) {
-  const { limit = 20, excludeIds = [], forceRefresh = false } = options
+export async function getUserWatchCount(userId) {
+  if (!userId) return 0
+  try {
+    const { count, error } = await supabase
+      .from('user_history')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
 
-  // Stabilize excludeIds so [1,2] and [2,1] share the same cache key
-  const stableExcludeIds = Array.isArray(excludeIds) ? [...excludeIds].sort((a, b) => a - b) : []
-
-  const cacheKey = recommendationCache.key('quick_watches', userId || 'guest', {
-    limit,
-    excludeIds: stableExcludeIds
-  })
-
-  if (forceRefresh) {
-    recommendationCache.invalidate(cacheKey)
+    if (error) throw error
+    return count || 0
+  } catch (error) {
+    console.error('[getUserWatchCount] failed:', error)
+    return 0
   }
-
-  return recommendationCache.getOrFetch(cacheKey, async () => {
-    try {
-      if (!userId) {
-        console.log('[getQuickWatches] No userId, returning fallback')
-        return await getQuickWatchesFallback(limit)
-      }
-
-      // 1. Compute user profile
-      const profile = await computeUserProfile(userId)
-
-      console.log('[getQuickWatches] User profile:', {
-        preferredGenres: profile.genres.preferred,
-        avgRuntime: profile.practicalPreferences?.avgRuntime
-      })
-
-      // 2. Get seed films for embedding search
-      const seedFilms = await getSeedFilms(userId, profile)
-      const seedIds = seedFilms.map(s => s.id).filter(Boolean)
-
-      // 3. Get user's watched movie IDs (from profile — single fetch)
-      const watchedIds = profile.watchedMovieIds || []
-      const allExcludeIds = [...new Set([...watchedIds, ...stableExcludeIds])]
-
-      // 4. Fetch candidates - SHORT RUNTIME CRITERIA
-      const selectFields = `
-        id, tmdb_id, title, overview, tagline,
-        original_language, runtime, release_year, release_date,
-        poster_path, backdrop_path, trailer_youtube_key,
-        ff_rating, ff_final_rating, ff_community_rating, ff_community_confidence, ff_community_votes,
-        ff_critic_rating, ff_critic_confidence, ff_audience_rating, ff_audience_confidence,
-        ff_rating_genre_normalized, ff_confidence, quality_score, vote_average,
-        pacing_score, intensity_score, emotional_depth_score,
-        pacing_score_100, intensity_score_100, emotional_depth_score_100,
-        dialogue_density, attention_demand, vfx_level_score,
-        cult_status_score, popularity, vote_count, revenue,
-        director_name, lead_actor_name,
-        genres, keywords, primary_genre,
-        fit_profile,
-        user_satisfaction_score, user_satisfaction_confidence
-      `
-
-      // Pool 1: Quality short films (under 90 min)
-      const { data: shortQuality } = await supabase
-        .from('movies')
-        .select(selectFields)
-        .eq('is_valid', true)
-        .not('poster_path', 'is', null)
-        .not('runtime', 'is', null)
-        .lt('runtime', 90)
-        .gte('ff_audience_rating', 75)
-        .gte('vote_count', THRESHOLDS.MIN_VOTE_COUNT)
-        .order('ff_audience_rating', { ascending: false })
-        .limit(100)
-
-      // Pool 2: Very short films (under 75 min) with lower rating threshold
-      const { data: veryShort } = await supabase
-        .from('movies')
-        .select(selectFields)
-        .eq('is_valid', true)
-        .not('poster_path', 'is', null)
-        .not('runtime', 'is', null)
-        .lt('runtime', 75)
-        .gte('ff_audience_rating', 60)
-        .gte('vote_count', THRESHOLDS.MIN_VOTE_COUNT)
-        .order('ff_audience_rating', { ascending: false })
-        .limit(50)
-
-      // Pool 3: Embedding neighbors filtered to short runtime
-      let embeddingNeighbors = []
-      if (seedIds.length > 0) {
-        const { data: embeddingMatches, error: embError } = await supabase.rpc('match_movies_by_seeds', {
-          seed_ids: seedIds,
-          exclude_ids: allExcludeIds,
-          match_count: 50,
-          min_ff_rating: 60
-        })
-
-        if (embError) {
-          console.warn('[getQuickWatches] Embedding search error:', embError.message)
-        } else {
-          // Filter to short runtime only
-          embeddingNeighbors = (embeddingMatches || []).filter(m => m.runtime && m.runtime < 90)
-          console.log('[getQuickWatches] Embedding neighbors (filtered):', embeddingNeighbors.length)
-        }
-      }
-
-      // Combine and deduplicate
-      const allCandidates = [...(shortQuality || []), ...(veryShort || []), ...(embeddingNeighbors || [])]
-
-      const candidateMap = new Map()
-      allCandidates.forEach(m => {
-        if (!candidateMap.has(m.id)) {
-          candidateMap.set(m.id, {
-            ...m,
-            _embeddingSimilarity: m.similarity || null,
-            _matchedSeedId: m.matched_seed_id || null,
-            _matchedSeedTitle: m.matched_seed_title || null
-          })
-        } else if (m.similarity && !candidateMap.get(m.id)._embeddingSimilarity) {
-          const existing = candidateMap.get(m.id)
-          existing._embeddingSimilarity = m.similarity
-          existing._matchedSeedId = m.matched_seed_id
-          existing._matchedSeedTitle = m.matched_seed_title
-        }
-      })
-      const candidates = Array.from(candidateMap.values())
-
-      console.log('[getQuickWatches] Candidate pools:', {
-        shortQuality: shortQuality?.length || 0,
-        veryShort: veryShort?.length || 0,
-        embeddingNeighbors: embeddingNeighbors?.length || 0,
-        totalUnique: candidates.length
-      })
-
-      // 5. Filter out watched/excluded
-      const eligible = candidates.filter(m => !allExcludeIds.includes(m.id))
-
-      if (eligible.length === 0) {
-        return await getQuickWatchesFallback(limit)
-      }
-
-      // 6. Score with RUNTIME-SPECIFIC weights
-      const scored = eligible.map(movie => {
-        const result = scoreMovieForUser(movie, profile, 'quick_watches', seedFilms)
-
-        // Embedding similarity boost
-        let embeddingBoost = 0
-        let embeddingReason = null
-
-        if (movie._embeddingSimilarity) {
-          const simNormalized = Math.max(0, movie._embeddingSimilarity - 0.5) / 0.4
-          embeddingBoost = Math.round(simNormalized * 50)
-          embeddingReason = {
-            seedTitle: movie._matchedSeedTitle,
-            seedId: movie._matchedSeedId,
-            similarity: movie._embeddingSimilarity
-          }
-        }
-
-        // RUNTIME-SPECIFIC: Reward shorter films
-        let runtimeBoost = 0
-        const runtime = movie.runtime || 90
-
-        if (runtime <= 60) runtimeBoost += 25
-        else if (runtime <= 75) runtimeBoost += 18
-        else if (runtime <= 85) runtimeBoost += 10
-        else if (runtime < 90) runtimeBoost += 5
-
-        // Quality bonus (short doesn't mean bad)
-        const _rtRating = movie.ff_audience_rating != null ? movie.ff_audience_rating / 10 : (movie.ff_final_rating ?? movie.ff_rating ?? 0)
-        if (_rtRating >= 7.5) runtimeBoost += 15
-        else if (_rtRating >= 7.0) runtimeBoost += 8
-
-        // Format runtime for display
-        const hours = Math.floor(runtime / 60)
-        const mins = runtime % 60
-        const runtimeStr = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`
-
-        // Update pick reason
-        let pickReason = result.pickReason
-        if (embeddingReason && embeddingBoost >= 20) {
-          pickReason = {
-            label: `${runtimeStr} • Similar to ${embeddingReason.seedTitle}`,
-            type: 'quick_embedding',
-            seedTitle: embeddingReason.seedTitle,
-            similarity: embeddingReason.similarity
-          }
-        } else if (runtime <= 60) {
-          pickReason = { label: `Just ${runtimeStr}`, type: 'quick_very_short' }
-        } else if (movie.ff_rating >= 7.5) {
-          pickReason = { label: `${runtimeStr} • Highly rated`, type: 'quick_quality' }
-        } else {
-          pickReason = { label: `${runtimeStr}`, type: 'quick_watch' }
-        }
-
-        return {
-          movie,
-          ...result,
-          score: result.score + embeddingBoost + runtimeBoost,
-          embeddingBoost,
-          runtimeBoost,
-          embeddingReason,
-          pickReason
-        }
-      })
-
-      // 7. Sort by score
-      scored.sort((a, b) => b.score - a.score)
-
-      // 8. Apply diversity filter
-      const diverse = applyRowDiversityFilter(scored, limit)
-
-      console.log('[getQuickWatches] Final selection:', diverse.slice(0, 5).map(d => ({
-        title: d.movie.title,
-        score: d.score,
-        runtimeBoost: d.runtimeBoost,
-        embeddingBoost: d.embeddingBoost,
-        runtime: d.movie.runtime,
-        ff_rating: d.movie.ff_rating
-      })))
-
-      // 9. Log impressions
-      logRowImpressions(userId, diverse, 'quick_watches').catch(err =>
-        console.warn('[getQuickWatches] Failed to log impressions:', err.message)
-      )
-
-      // 10. Return formatted results (no manual cache set; getOrFetch handles it)
-      return diverse.map(item => ({
-        ...item.movie,
-        _score: item.score,
-        _pickReason: item.pickReason,
-        _embeddingSimilarity: item.embeddingReason?.similarity || null
-      }))
-    } catch (error) {
-      console.error('[getQuickWatches] Error:', error)
-      return await getQuickWatchesFallback(limit)
-    }
-  })
-}
-
-
-
-
-/**
- * Fallback for quick watches when no user or error
- */
-async function getQuickWatchesFallback(limit = 20) {
-  const { data } = await supabase
-    .from('movies')
-    .select(`
-      id, tmdb_id, title, overview, tagline,
-      original_language, runtime, release_year, release_date,
-      poster_path, backdrop_path, trailer_youtube_key,
-      ff_rating, ff_final_rating, ff_confidence, quality_score, vote_average,
-      ff_critic_rating, ff_critic_confidence, ff_audience_rating, ff_audience_confidence,
-      ff_community_rating, ff_community_confidence, ff_community_votes,
-      pacing_score, intensity_score, emotional_depth_score,
-      pacing_score_100, intensity_score_100, emotional_depth_score_100,
-      dialogue_density, attention_demand, vfx_level_score,
-      cult_status_score, popularity, vote_count, revenue,
-      director_name, lead_actor_name,
-      genres, keywords, primary_genre,
-      fit_profile,
-      user_satisfaction_score, user_satisfaction_confidence
-    `)
-    .eq('is_valid', true)
-    .not('poster_path', 'is', null)
-    .not('runtime', 'is', null)
-    .lt('runtime', 90)
-    .gte('ff_audience_rating', 75)
-    .gte('vote_count', THRESHOLDS.MIN_VOTE_COUNT)
-    .order('ff_audience_rating', { ascending: false })
-    .limit(limit)
-
-  return (data || []).map(movie => ({
-    ...movie,
-    _score: Number(movie.ff_audience_rating ?? (movie.ff_final_rating ?? movie.ff_rating ?? 0) * 10),
-    _pickReason: { label: `${movie.runtime}m`, type: 'fallback_quick' }
-  }))
 }
 
 export const __TEST_ONLY__ = { THRESHOLDS, computeNegativeSignals, scoreEraMatch, scoreRecency }

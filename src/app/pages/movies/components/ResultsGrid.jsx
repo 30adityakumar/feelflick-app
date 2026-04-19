@@ -257,7 +257,7 @@ export default function ResultsGrid({ movies, user, isSearchMode = false }) {
                 {movie.title}
               </p>
               {movie.director_name && (
-                <p className="text-xs text-white/35 truncate mt-0.5 leading-tight">
+                <p className="text-xs text-white/40 truncate mt-0.5 leading-tight">
                   {movie.director_name}
                 </p>
               )}

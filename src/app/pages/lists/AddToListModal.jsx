@@ -6,6 +6,7 @@ import { motion } from 'framer-motion'
 import { X, Plus, Check } from 'lucide-react'
 
 import { supabase } from '@/shared/lib/supabase/client'
+import Button from '@/shared/ui/Button'
 import CreateListModal from './CreateListModal'
 
 // ============================================================================
@@ -167,16 +168,11 @@ export default function AddToListModal({ movieId, movieTitle, userId, onClose })
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/8">
           <div className="min-w-0 flex-1 mr-3">
             <h2 className="text-base font-bold text-white truncate">Add to list</h2>
-            <p className="text-xs text-white/35 truncate mt-0.5">{movieTitle}</p>
+            <p className="text-xs text-white/40 truncate mt-0.5">{movieTitle}</p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            className="h-8 w-8 rounded-full flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-colors flex-shrink-0"
-          >
+          <Button variant="icon" size="sm" onClick={onClose} aria-label="Close" className="flex-shrink-0 text-white/40">
             <X className="h-4 w-4" />
-          </button>
+          </Button>
         </div>
 
         {/* List rows */}
@@ -192,7 +188,7 @@ export default function AddToListModal({ movieId, movieTitle, userId, onClose })
             </div>
           ) : lists.length === 0 ? (
             <div className="flex items-center justify-center py-10">
-              <p className="text-white/30 text-sm">No lists yet. Create one below.</p>
+              <p className="text-white/40 text-sm">No lists yet. Create one below.</p>
             </div>
           ) : (
             <div className="divide-y divide-white/5">
@@ -234,13 +230,9 @@ export default function AddToListModal({ movieId, movieTitle, userId, onClose })
             <Plus className="h-4 w-4" />
             New list
           </button>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg bg-white/8 hover:bg-white/14 border border-white/14 px-4 py-2 text-sm font-semibold text-white transition-colors"
-          >
+          <Button variant="secondary" onClick={onClose}>
             Done
-          </button>
+          </Button>
         </div>
       </motion.div>
     </div>

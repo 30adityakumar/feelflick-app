@@ -119,6 +119,8 @@ export default {
       },
       
       fontSize: {
+        'micro': ['0.625rem', { lineHeight: '0.875rem' }],
+        'md': ['1.0625rem', { lineHeight: '1.5rem' }],
         'display': ['clamp(4rem, 12vw, 9rem)', { lineHeight: '1.0', letterSpacing: '-0.04em' }],
         'hero': ['clamp(2.5rem, 8vw, 6rem)', { lineHeight: '1.1', letterSpacing: '-0.02em' }],
         'section': ['clamp(1.75rem, 4vw, 3rem)', { lineHeight: '1.2', letterSpacing: '-0.01em' }],

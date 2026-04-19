@@ -106,19 +106,19 @@ export default function RatingBreakdown({ movie }) {
                     <span className={`text-lg font-bold tabular-nums ${r.primary ? 'text-purple-300' : 'text-white'}`}>
                       {r.value}
                     </span>
-                    <span className="text-[11px] text-white/30">/100</span>
+                    <span className="text-[11px] text-white/40">/100</span>
                     <div className="flex-1 h-1 bg-white/5 rounded-full overflow-hidden ml-2">
                       <div
-                        className={`h-full rounded-full ${r.primary ? 'bg-purple-400' : 'bg-white/30'}`}
+                        className={`h-full rounded-full ${r.primary ? 'bg-purple-400' : 'bg-white/40'}`}
                         style={{ width: `${r.value}%` }}
                       />
                     </div>
                   </>
                 ) : (
-                  <span className="text-xs text-white/30 italic">&mdash;</span>
+                  <span className="text-xs text-white/40 italic">&mdash;</span>
                 )}
               </div>
-              <span className="text-[11px] text-white/35 w-28 text-right flex-shrink-0">{r.note}</span>
+              <span className="text-[11px] text-white/40 w-28 text-right flex-shrink-0">{r.note}</span>
             </div>
           ))}
         </div>

@@ -2,11 +2,39 @@ import { useState } from 'react'
 
 const TIMEOUT_MS = 3000
 
+// Canonical vocabularies — must match edge function + llm-enrichment-client.js
+const MOOD_VOCAB = new Set([
+  'exhilarating','tense','cozy','melancholic','uplifting','whimsical','haunting',
+  'meditative','romantic','gritty','heartwarming','suspenseful','nostalgic',
+  'empowering','bittersweet','devastating','playful','contemplative','thrilling',
+  'serene','unsettling','inspiring','dreamy','intense','tender','dark',
+  'lighthearted','provocative','euphoric','somber','mysterious','enigmatic','mind-bending',
+])
+const TONE_VOCAB = new Set([
+  'satirical','earnest','ironic','deadpan','poetic','raw','polished','absurdist',
+  'sentimental','cynical','whimsical','urgent','detached','intimate','grandiose',
+  'minimalist','operatic','dry','warm','cold',
+])
+
 /**
- * One-shot imperative hook for parsing a freetext mood description into dial values.
+ * Filter an array to only valid vocabulary entries.
+ * @param {Array} arr
+ * @param {Set} vocabSet
+ * @param {number} max
+ * @returns {string[]}
+ */
+function filterVocab(arr, vocabSet, max) {
+  if (!Array.isArray(arr)) return []
+  return arr.filter(t => typeof t === 'string' && vocabSet.has(t)).slice(0, max)
+}
+
+/**
+ * One-shot imperative hook for parsing a freetext mood description into dial values
+ * and tag preferences.
  *
  * Returns a `parse(moodName, freeText)` function.
- * On success: returns `{ intensity, pacing, viewingContext, experienceType }` with values clamped 1–5.
+ * On success: returns `{ intensity, pacing, viewingContext, experienceType,
+ *   preferredMoodTags, avoidedMoodTags, preferredToneTags }`.
  * On failure / timeout: returns `null` (caller should keep current dial values).
  *
  * @returns {{ parse: function, loading: boolean }}
@@ -57,10 +85,13 @@ export function useNLMoodParse() {
       }
 
       return {
-        intensity:      clamp(data.intensity),
-        pacing:         clamp(data.pacing),
-        viewingContext: clamp(data.viewingContext),
-        experienceType: clamp(data.experienceType),
+        intensity:         clamp(data.intensity),
+        pacing:            clamp(data.pacing),
+        viewingContext:    clamp(data.viewingContext),
+        experienceType:    clamp(data.experienceType),
+        preferredMoodTags: filterVocab(data.preferredMoodTags, MOOD_VOCAB, 4),
+        avoidedMoodTags:   filterVocab(data.avoidedMoodTags, MOOD_VOCAB, 3),
+        preferredToneTags: filterVocab(data.preferredToneTags, TONE_VOCAB, 3),
       }
     } catch {
       return null

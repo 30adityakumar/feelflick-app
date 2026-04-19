@@ -3,10 +3,22 @@ import { Link } from 'react-router-dom'
 
 /**
  * Visual taste signature from watched film aggregates.
- * @param {Array} history - user_history rows with nested movies(mood_tags, tone_tags, fit_profile)
+ * @param {object} props
+ * @param {object} [props.fingerprint] - Cached fingerprint from useTasteFingerprint
+ * @param {Array}  [props.history] - Fallback: raw user_history rows for client-side compute
  */
-export default function TasteFingerprint({ history }) {
+export default function TasteFingerprint({ fingerprint, history }) {
+  // Use cached fingerprint if available, otherwise compute client-side from history
   const { topMoods, topTones, topFits, total } = useMemo(() => {
+    if (fingerprint) {
+      return {
+        topMoods: fingerprint.topMoodTags || [],
+        topTones: fingerprint.topToneTags || [],
+        topFits: fingerprint.topFitProfiles || [],
+        total: fingerprint.total || 0,
+      }
+    }
+
     const moods = {}, tones = {}, fits = {}
     let count = 0
 
@@ -30,7 +42,7 @@ export default function TasteFingerprint({ history }) {
       topFits: top(fits, 5),
       total: count,
     }
-  }, [history])
+  }, [fingerprint, history])
 
   if (total < 5) {
     return (

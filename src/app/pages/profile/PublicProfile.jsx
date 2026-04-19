@@ -11,6 +11,7 @@ import { tmdbImg } from '@/shared/api/tmdb'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import FollowButton from '@/shared/components/FollowButton'
 import TasteFingerprint from './TasteFingerprint'
+import { useTasteFingerprint } from '@/shared/hooks/useTasteFingerprint'
 
 import {
   RATING_PERSONALITY,
@@ -298,6 +299,7 @@ export default function PublicProfile() {
   const navigate = useNavigate()
   const { userId: currentUserId } = useAuthSession()
 
+  const { fingerprint } = useTasteFingerprint(userId)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
   const [profile, setProfile] = useState(null)
@@ -860,7 +862,7 @@ export default function PublicProfile() {
                 </div>
 
                 {/* === TASTE FINGERPRINT === */}
-                <TasteFingerprint history={history} />
+                <TasteFingerprint fingerprint={fingerprint} history={history} />
 
                 {/* === RECENTLY WATCHED === */}
                 {stats.recentlyWatched.length > 0 && (

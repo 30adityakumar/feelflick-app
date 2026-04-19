@@ -72,7 +72,7 @@ import { recommendationCache } from '@/shared/lib/cache'
 // ============================================================================
 // VERSION
 // ============================================================================
-const ENGINE_VERSION = '2.8'
+const ENGINE_VERSION = '2.9' // Fixed mood ID remap (4.9) — context/experience/time-of-day modifiers now match UI moods.
 const PROFILE_MEMORY_TTL_MS = 60 * 1000
 const SEED_MEMORY_TTL_MS = 60 * 1000
 const profileMemoryCache = new Map()
@@ -3437,18 +3437,20 @@ async function loadMoodData(moodId) {
   return moodData
 }
 
+// Mood IDs — KEEP IN SYNC WITH src/app/pages/discover/DiscoverPage.jsx MOODS array.
+// 1 Cozy  2 Adventurous  3 Heartbroken  4 Curious  5 Nostalgic  6 Energized
+// 7 Anxious  8 Romantic  9 Inspired  10 Silly  11 Dark  12 Overwhelmed
+
 /**
  * Per-mood bonuses for each viewing context (viewingContextId → moodId → points).
  * Context IDs: 1=Solo, 2=Partner, 3=Friends, 4=Family, 5=Group
- * Mood IDs (discover): 1=Cozy, 2=Adventurous, 3=Futuristic, 4=Thoughtful, 5=Whimsical,
- *   6=Enlightened, 7=Musical, 8=Romantic, 9=Suspenseful, 10=Silly, 11=Dark, 12=Nostalgic
  */
 const CONTEXT_MODIFIERS = {
-  1: { 1: 8, 2: 5, 3: 5, 4: 12, 5: 5, 6: 15, 7: 5, 8: 5, 9: 12, 10: 5, 11: 15, 12: 10 }, // Solo
-  2: { 1: 10, 2: 5, 3: 8, 4: 8, 5: 10, 6: 5, 7: 12, 8: 15, 9: 10, 10: 10, 11: 5, 12: 10 }, // Partner
-  3: { 1: 5, 2: 12, 3: 10, 4: 5, 5: 8, 6: 5, 7: 15, 8: 5, 9: 8, 10: 15, 11: 8, 12: 8 },   // Friends
-  4: { 1: 15, 2: 8, 3: 5, 4: 5, 5: 15, 6: 8, 7: 10, 8: 5, 9: 5, 10: 12, 11: -10, 12: 12 }, // Family
-  5: { 1: 8, 2: 15, 3: 10, 4: 5, 5: 10, 6: 5, 7: 15, 8: 5, 9: 5, 10: 15, 11: 5, 12: 8 },  // Group
+  1: { 1: 8, 2: 5, 3: 15, 4: 12, 5: 10, 6: 5, 7: 12, 8: 5, 9: 10, 10: 5, 11: 15, 12: 10 },  // Solo
+  2: { 1: 10, 2: 5, 3: 12, 4: 8, 5: 10, 6: 5, 7: 5, 8: 15, 9: 8, 10: 10, 11: 5, 12: 8 },    // Partner
+  3: { 1: 5, 2: 12, 3: 5, 4: 5, 5: 8, 6: 12, 7: 5, 8: 5, 9: 8, 10: 15, 11: 8, 12: 5 },      // Friends
+  4: { 1: 15, 2: 8, 3: 5, 4: 5, 5: 12, 6: 8, 7: -5, 8: 5, 9: 10, 10: 12, 11: -10, 12: 10 },  // Family
+  5: { 1: 8, 2: 15, 3: 5, 4: 5, 5: 8, 6: 15, 7: 5, 8: 5, 9: 8, 10: 15, 11: 5, 12: 5 },      // Group
 }
 
 /**
@@ -3476,10 +3478,10 @@ const EXPERIENCE_MODIFIERS = {
  */
 function getTimeOfDayBonus(moodId, timeOfDay) {
   const pairs = {
-    morning: [1, 5, 10],    // Cozy, Whimsical, Silly
-    afternoon: [2, 3, 6],   // Adventurous, Futuristic, Enlightened
-    evening: [4, 7, 8, 12], // Thoughtful, Musical, Romantic, Nostalgic
-    night: [9, 11],         // Suspenseful, Dark & Intense
+    morning: [1, 9, 10],     // Cozy, Inspired, Silly
+    afternoon: [2, 4, 6],    // Adventurous, Curious, Energized
+    evening: [3, 5, 8, 12],  // Heartbroken, Nostalgic, Romantic, Overwhelmed
+    night: [7, 11],          // Anxious, Dark
   }
   return (pairs[timeOfDay] || []).includes(moodId) ? 5 : 0
 }
@@ -3608,8 +3610,8 @@ async function fetchMoodCandidates(moodId, moodWeights, profile, params = {}) {
       query = query.in('original_language', allowedLanguages)
     }
 
-    // Mood 12 (Nostalgic): restrict to pre-2000 releases
-    if (moodId === 12) {
+    // Mood 5 (Nostalgic): restrict to pre-2000 releases
+    if (moodId === 5) {
       query = query.lte('release_year', 2000)
     }
 

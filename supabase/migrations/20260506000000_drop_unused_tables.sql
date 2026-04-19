@@ -1,6 +1,9 @@
 -- MIGRATION: Drop confirmed-unused tables
 -- Audited 2026-04-19: zero rows AND zero code references in src/ and scripts/
 
+-- Drop FK constraint referencing recommendation_experiments
+ALTER TABLE public.mood_sessions DROP CONSTRAINT IF EXISTS mood_sessions_experiment_fkey;
+
 DROP TABLE IF EXISTS public.user_movie_interactions;
 DROP TABLE IF EXISTS public.mood_transitions;
 DROP TABLE IF EXISTS public.movie_content_features;
@@ -14,7 +17,9 @@ DROP TABLE IF EXISTS public.movie_update_queue;
 DROP TABLE IF EXISTS public.homepage_recommendation_cache;
 DROP TABLE IF EXISTS public.user_movie_notes;
 DROP TABLE IF EXISTS public.user_preferences_audit;
-DROP TABLE IF EXISTS public.user_engagement_stats;
+
+-- user_engagement_stats is a materialized view, not a table
+DROP MATERIALIZED VIEW IF EXISTS public.user_engagement_stats;
 
 -- Dead column: codebase uses user_movie_feedback.movie_id exclusively
 ALTER TABLE public.user_movie_feedback DROP COLUMN IF EXISTS tmdb_id;

@@ -17,10 +17,11 @@
  *   - Status updated to 'complete'
  *
  * Options:
- *   --limit=N       Process max N movies (default: 10000)
- *   --dry-run       Simulate without making changes
- *   --rebuild       Re-embed already-embedded movies (ignores has_embeddings)
- *   --model=NAME    Override embedding model
+ *   --limit=N              Process max N movies (default: 10000)
+ *   --dry-run              Simulate without making changes
+ *   --rebuild              Re-embed already-embedded movies (ignores has_embeddings)
+ *   --stale-enrichment     Re-embed movies where llm_enriched_at > last_embedding_at
+ *   --model=NAME           Override embedding model
  *
  * ============================================================================
  */
@@ -239,6 +240,7 @@ async function main(options = {}) {
     maxMovies: options.maxMovies || CONFIG.MAX_MOVIES,
     dryRun: options.dryRun || false,
     rebuild: options.rebuild || false,
+    staleEnrichment: options.staleEnrichment || false,
     model: options.model || CONFIG.MODEL,
   };
 
@@ -247,6 +249,7 @@ async function main(options = {}) {
   logger.info(`Max movies: ${config.maxMovies.toLocaleString()}`);
   logger.info(`Dry run: ${config.dryRun ? 'YES' : 'NO'}`);
   logger.info(`Rebuild: ${config.rebuild ? 'YES' : 'NO'}`);
+  logger.info(`Stale enrichment: ${config.staleEnrichment ? 'YES' : 'NO'}`);
 
   // Check API key
   if (!process.env.OPENAI_API_KEY) {
@@ -258,13 +261,23 @@ async function main(options = {}) {
 
   try {
     // Build query — rebuild mode ignores has_embeddings filter
+    const selectCols = 'id, title, overview, tagline, genres, keywords, director_name, writer_name, cinematographer_name, collection_name, production_countries, release_date, original_language, mood_tags, tone_tags, fit_profile'
+      + (config.staleEnrichment ? ', llm_enriched_at, last_embedding_at' : '');
+
     let query = supabase
       .from('movies')
-      .select('id, title, overview, tagline, genres, keywords, director_name, writer_name, cinematographer_name, collection_name, production_countries, release_date, original_language, mood_tags, tone_tags, fit_profile')
+      .select(selectCols)
       .limit(config.maxMovies);
 
     if (config.rebuild) {
       query = query.in('status', ['scoring', 'complete']);
+    } else if (config.staleEnrichment) {
+      // Fetch enriched films with existing embeddings; filter client-side
+      // because PostgREST can't compare two columns directly
+      query = query
+        .in('status', ['scoring', 'complete'])
+        .not('embedding', 'is', null)
+        .not('llm_enriched_at', 'is', null);
     } else {
       query = query
         .eq('status', 'scoring')
@@ -272,9 +285,19 @@ async function main(options = {}) {
         .is('embedding', null);
     }
 
-    const { data: movies, error } = await query;
+    let { data: movies, error } = await query;
 
     if (error) throw error;
+
+    // Client-side staleness filter: keep films where enrichment is newer than embedding
+    if (config.staleEnrichment && movies?.length) {
+      const before = movies.length;
+      movies = movies.filter(m => {
+        if (!m.last_embedding_at) return true;
+        return new Date(m.llm_enriched_at) > new Date(m.last_embedding_at);
+      });
+      logger.info(`Staleness filter: ${before} candidates → ${movies.length} stale embeddings`);
+    }
 
     if (!movies || movies.length === 0) {
       logger.info('✓ All movies have embeddings');
@@ -459,6 +482,7 @@ if (require.main === module) {
   const options = {
     dryRun: args.includes('--dry-run'),
     rebuild: args.includes('--rebuild'),
+    staleEnrichment: args.includes('--stale-enrichment'),
     maxMovies: CONFIG.MAX_MOVIES
   };
 
@@ -485,9 +509,10 @@ USAGE:
 OPTIONS:
   --limit=N          Process max N movies (default: ${CONFIG.MAX_MOVIES.toLocaleString()})
   --max-movies=N     Alias for --limit
-  --dry-run          Simulate without making changes
-  --rebuild          Re-embed already-embedded movies
-  --model=NAME       Override embedding model (default: ${EMBEDDING_MODEL})
+  --dry-run              Simulate without making changes
+  --rebuild              Re-embed already-embedded movies
+  --stale-enrichment     Re-embed where llm_enriched_at > last_embedding_at
+  --model=NAME           Override embedding model (default: ${EMBEDDING_MODEL})
   --help, -h         Show this help message
 
 MODEL:

@@ -90,7 +90,7 @@ const RUN_MODES = {
       { name: '06b-fetch-trakt-ratings',   enabled: true, options: { limit: 1000 } },
       { name: '07-calculate-movie-scores', enabled: true },
       { name: '07b-enrich-mood-llm', enabled: true, options: { limit: 2000, mode: 'stale' } },
-      { name: '08-generate-embeddings', enabled: false },
+      { name: '08-generate-embeddings', enabled: true, options: { limit: 2000, staleEnrichment: true } },
       { name: '09-calculate-mood-scores', enabled: false },
       { name: '10-aggregate-user-satisfaction', enabled: true, options: { limit: 10000 } }
     ]
@@ -141,6 +141,10 @@ function executeStep(stepName, options = {}, dryRun = false) {
     const args = [];
     if (options.limit) args.push(`--limit=${options.limit}`);
     if (options.updateType) args.push('--' + options.updateType);
+    if (options.mode) args.push(`--mode=${options.mode}`);
+    if (options.rebuild) args.push('--rebuild');
+    if (options.batch) args.push('--batch');
+    if (options.staleEnrichment) args.push('--stale-enrichment');
     
     // Spawn the script as a child process
     const child = spawn('node', [scriptPath, ...args], {

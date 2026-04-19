@@ -1,26 +1,15 @@
 import {
   useEffect,
-  useMemo,
   useRef,
   useState,
   useTransition,
 } from 'react'
-import {
-  AnimatePresence,
-  LayoutGroup,
-  animate,
-  motion,
-  useMotionValue,
-  useMotionValueEvent,
-  useTransform,
-} from 'framer-motion'
+import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 
 import { supabase } from '@/shared/lib/supabase/client'
-import { useAIMoodContext } from '@/shared/hooks/useAIMoodContext'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { useBriefCandidateCount } from '@/shared/hooks/useBriefCandidateCount'
-import { useMovieExplanation } from '@/shared/hooks/useMovieExplanation'
 import { useMoodBrief } from '@/shared/hooks/useMoodBrief'
 import { useMoodSession } from '@/shared/hooks/useMoodSession'
 import { useRecommendationTracking } from '@/shared/hooks/useRecommendationTracking'
@@ -31,10 +20,13 @@ import Button from '@/shared/ui/Button'
 import { QUESTION_SET } from './questions'
 import AIBar from './components/AIBar'
 import AnchorSearch from './components/AnchorSearch'
+import BriefSynthesis from './components/BriefSynthesis'
 import CandidateCounter from './components/CandidateCounter'
 import NarratedLoader from './components/NarratedLoader'
 import PinnedBrief from './components/PinnedBrief'
+import PinnedBriefCollapsible from './components/PinnedBriefCollapsible'
 import QuestionSlot from './components/QuestionSlot'
+import ResultsList from './components/ResultsList'
 
 // ─── Data constants ───────────────────────────────────────────────────────────
 
@@ -53,22 +45,6 @@ const MOODS = [
   { id: 12, name: 'Overwhelmed' },
 ]
 
-const VIEWING_CONTEXTS = [
-  { id: 1, name: 'Alone' },
-  { id: 2, name: 'With a partner' },
-  { id: 3, name: 'Friend group' },
-  { id: 4, name: 'Family' },
-  { id: 5, name: 'Kids night' },
-]
-
-const EXPERIENCE_TYPES = [
-  { id: 1, name: 'Escape' },
-  { id: 2, name: 'Laugh' },
-  { id: 3, name: 'Cry' },
-  { id: 4, name: 'Think' },
-  { id: 5, name: 'Zone Out' },
-]
-
 const MOOD_VISUAL_MAP = {
   1:  { orbColor: '#ff6b35', color1: '#ff6b35', color2: '#f59e0b', rgb: '255,107,53' },
   2:  { orbColor: '#0ea5e9', color1: '#0ea5e9', color2: '#06b6d4', rgb: '14,165,233' },
@@ -84,8 +60,6 @@ const MOOD_VISUAL_MAP = {
   12: { orbColor: '#0d9488', color1: '#0d9488', color2: '#0891b2', rgb: '13,148,136' },
   DEFAULT: { orbColor: '#4f46e5', color1: '#4f46e5', color2: '#7c3aed', rgb: '79,70,229' },
 }
-
-const EMPTY_GENRES = []
 
 // ─── Company → viewingContext ID mapping ──────────────────────────────────────
 
@@ -111,18 +85,6 @@ function getDefaultTimeOfDay() {
   if (h >= 12 && h < 17) return 'afternoon'
   if (h >= 17 && h < 22) return 'evening'
   return 'latenight'
-}
-
-// ─── Framer Motion variants ───────────────────────────────────────────────────
-
-const staggerContainer = {
-  hidden: { opacity: 0 },
-  show:   { opacity: 1, transition: { staggerChildren: 0.08 } },
-}
-
-const cardVariant = {
-  hidden: { opacity: 0, y: 24, scale: 0.96 },
-  show:   { opacity: 1, y: 0, scale: 1, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } },
 }
 
 // ─── Aurora Background ────────────────────────────────────────────────────────
@@ -195,140 +157,6 @@ function AuroraBackground({ moodId }) {
   )
 }
 
-// ─── Fallback explanation ─────────────────────────────────────────────────────
-
-function RecommendationExplanation({ movie, moodName }) {
-  const { explanation } = useMovieExplanation(movie, moodName, movie.match_percentage)
-  return <p className="mt-1 line-clamp-1 text-xs text-purple-300/80">{explanation}</p>
-}
-
-// ─── Animated score badge ─────────────────────────────────────────────────────
-
-function AnimatedScore({ score, color1, color2 }) {
-  const count   = useMotionValue(0)
-  const rounded = useTransform(count, Math.round)
-  const [display, setDisplay] = useState(0)
-
-  useMotionValueEvent(rounded, 'change', (v) => setDisplay(v))
-
-  useEffect(() => {
-    const controls = animate(count, score, { duration: 1.2, ease: 'easeOut' })
-    return () => controls.stop()
-  }, [count, score])
-
-  return (
-    <span
-      className="rounded-full px-2 py-0.5 text-xs font-bold text-white"
-      style={{ background: `linear-gradient(135deg,${color1},${color2})` }}
-    >
-      {display}%
-    </span>
-  )
-}
-
-// ─── Recommendation Card ──────────────────────────────────────────────────────
-
-function RecommendationCard({ movie, index, moodName, moodId, onOpenMovie, aiExplanation, aiScore, aiLoading }) {
-  const [isHovered, setIsHovered] = useState(false)
-  const vis        = moodId ? MOOD_VISUAL_MAP[moodId] : MOOD_VISUAL_MAP.DEFAULT
-  const finalScore = aiScore ?? movie.match_percentage
-  const showScoreSkeleton = aiLoading && aiScore == null
-
-  return (
-    <motion.div
-      variants={cardVariant}
-      layout
-      layoutId={`movie-card-${movie.movie_id}`}
-      onHoverStart={() => setIsHovered(true)}
-      onHoverEnd={() => setIsHovered(false)}
-      className="overflow-hidden rounded-2xl"
-      style={{
-        backdropFilter:  'blur(20px)',
-        backgroundColor: 'rgba(255,255,255,0.05)',
-        border:          `1px solid ${isHovered ? `${vis.orbColor}55` : 'rgba(255,255,255,0.08)'}`,
-        boxShadow:        isHovered ? `0 0 40px ${vis.orbColor}22` : 'none',
-        transition:      'border-color 300ms ease, box-shadow 300ms ease',
-      }}
-    >
-      <button
-        type="button"
-        onClick={onOpenMovie}
-        aria-label={`Open ${movie.title}`}
-        className="w-full text-left"
-      >
-        <div className="relative overflow-hidden">
-          {movie.poster_path ? (
-            <img
-              src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-              alt={movie.title}
-              width="300"
-              height="450"
-              loading="lazy"
-              className="aspect-[2/3] w-full object-cover"
-              style={{
-                transform:  isHovered ? 'scale(1.08)' : 'scale(1)',
-                transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1)',
-              }}
-            />
-          ) : (
-            <div className="flex aspect-[2/3] w-full items-center justify-center bg-neutral-900">
-              <span className="text-4xl" aria-hidden="true">🎬</span>
-            </div>
-          )}
-
-          <div
-            className="absolute left-2 top-2 rounded-full px-2 py-0.5 text-xs font-bold text-white"
-            style={{ backgroundColor: 'rgba(255,255,255,0.20)' }}
-          >
-            #{index + 1}
-          </div>
-
-          <div className="absolute right-2 top-2">
-            {showScoreSkeleton
-              ? <span className="block h-5 w-9 animate-pulse rounded-full bg-purple-500/20" aria-hidden="true" />
-              : <AnimatedScore score={finalScore} color1={vis.color1} color2={vis.color2} />
-            }
-          </div>
-
-          <AnimatePresence>
-            {isHovered && (
-              <motion.div
-                initial={{ y: '100%', opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: '100%', opacity: 0 }}
-                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                className="absolute inset-0 flex flex-col justify-end p-3"
-                style={{
-                  background: 'linear-gradient(0deg,rgba(0,0,0,0.95) 0%,rgba(0,0,0,0.7) 60%,transparent 100%)',
-                }}
-              >
-                <h3 className="line-clamp-2 text-sm font-bold text-white">{movie.title}</h3>
-                {movie.release_date && (
-                  <p className="mt-0.5 text-xs text-white/60">{String(movie.release_date).slice(0, 4)}</p>
-                )}
-                {aiExplanation && (
-                  <p className="mt-1 line-clamp-2 text-xs text-purple-300/90">{aiExplanation}</p>
-                )}
-                <span className="mt-2 self-start rounded-full border border-white/20 px-3 py-1 text-xs text-white/80">
-                  Watch tonight →
-                </span>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
-        <div className="p-3">
-          <h3 className="line-clamp-2 text-sm font-medium text-white/90">{movie.title}</h3>
-          {aiExplanation
-            ? <p className="mt-1 line-clamp-1 text-xs text-purple-300/80">{aiExplanation}</p>
-            : <RecommendationExplanation movie={movie} moodName={moodName} />
-          }
-        </div>
-      </button>
-    </motion.div>
-  )
-}
-
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 
 export default function DiscoverPage() {
@@ -359,6 +187,7 @@ export default function DiscoverPage() {
 
   // === PHASE: briefing → loading → results ===
   const [phase, setPhase] = useState('briefing')
+  const [refineOpen, setRefineOpen] = useState(false)
 
   // === ENGINE PARAMS (derived from brief answers) ===
   const [triggerMood, setTriggerMood] = useState(null)
@@ -389,34 +218,6 @@ export default function DiscoverPage() {
     20,
     parsedTags,
   )
-
-  const selectedMoodOption = useMemo(
-    () => MOODS.find((m) => m.id === moodId) ?? null,
-    [moodId],
-  )
-
-  const moodVis = moodId ? MOOD_VISUAL_MAP[moodId] : MOOD_VISUAL_MAP.DEFAULT
-
-  // Memoize movies array for AI hook stability
-  const aiMovies = useMemo(
-    () => recommendations.map((m) => ({ tmdbId: m.tmdb_id, title: m.title, vote_average: m.vote_average, mood_tags: m.mood_tags, tone_tags: m.tone_tags, fit_profile: m.fit_profile })),
-    [recommendations],
-  )
-
-  const {
-    narrationDone,
-    explanations,
-  } = useAIMoodContext({
-    mood:       selectedMoodOption?.name ?? null,
-    context:    VIEWING_CONTEXTS.find((c) => c.id === viewingContextId)?.name ?? null,
-    experience: EXPERIENCE_TYPES.find((e) => e.id === experienceTypeId)?.name ?? null,
-    intensity:  energyLevel,
-    pacing:     energyLevel,
-    timeOfDay,
-    movies:     aiMovies,
-    top3Genres: EMPTY_GENRES,
-    enabled:    recommendations.length > 0,
-  })
 
   // Keep abandonment ref in sync
   useEffect(() => {
@@ -608,77 +409,69 @@ export default function DiscoverPage() {
 
         {/* === RESULTS PHASE === */}
         {phase === 'results' && (
-          <div className="mx-auto max-w-5xl px-4 py-10 md:py-16">
-            <div className="mb-8">
-              <h2
-                className="mb-1 text-2xl font-bold capitalize"
-                style={{
-                  background:          `linear-gradient(135deg,${moodVis.color1},${moodVis.color2})`,
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip:      'text',
+          <div className="min-h-screen pb-16">
+            {/* Collapsible brief */}
+            <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-8">
+              <PinnedBriefCollapsible
+                answers={answers}
+                notes={notes}
+                anchor={anchor}
+                expanded={refineOpen}
+                onToggle={() => setRefineOpen((v) => !v)}
+                onEdit={(id) => {
+                  editAnswer(id)
+                  setRefineOpen(false)
+                  setPhase('briefing')
                 }}
-              >
-                {selectedMoodOption?.name ?? 'Your'} picks
-              </h2>
-              <p className="text-sm" style={{ color: '#94a3b8' }}>
-                {recommendations.length} films curated for this exact feeling
-              </p>
+                onRemoveNote={removeNote}
+                onClearAnchor={clearAnchor}
+              />
             </div>
 
+            {/* Brief synthesis sentence */}
+            <BriefSynthesis answers={answers} notes={notes} />
+
+            {/* Error state */}
             {error && (
-              <div
-                className="rounded-xl p-4 mb-6"
-                style={{ border: '1px solid rgba(239,68,68,0.4)', backgroundColor: 'rgba(239,68,68,0.08)' }}
-              >
-                <p className="font-medium text-red-300">We couldn&apos;t load recommendations right now.</p>
-                <p className="mt-1 text-sm text-red-200/80">
-                  Try switching mood filters or refreshing the page. Details: {error}
-                </p>
+              <div className="max-w-3xl mx-auto px-4 sm:px-6">
+                <div
+                  className="rounded-xl p-4 mb-6"
+                  style={{ border: '1px solid rgba(239,68,68,0.4)', backgroundColor: 'rgba(239,68,68,0.08)' }}
+                >
+                  <p className="font-medium text-red-300">We couldn&apos;t load recommendations right now.</p>
+                  <p className="mt-1 text-sm text-red-200/80">
+                    Try switching mood filters or refreshing the page. Details: {error}
+                  </p>
+                </div>
               </div>
             )}
 
+            {/* Film results list */}
             {!error && recommendations.length > 0 && (
-              <LayoutGroup>
-                <motion.div
-                  variants={staggerContainer}
-                  initial="hidden"
-                  animate="show"
-                  className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5"
-                >
-                  {recommendations.map((movie, index) => (
-                    <RecommendationCard
-                      key={movie.movie_id}
-                      movie={movie}
-                      index={index}
-                      moodName={selectedMoodOption?.name}
-                      moodId={moodId}
-                      aiExplanation={explanations.get(movie.tmdb_id)?.explanation ?? null}
-                      aiScore={explanations.get(movie.tmdb_id)?.score ?? null}
-                      aiLoading={!narrationDone}
-                      onOpenMovie={() => {
-                        if (sessionId) {
-                          trackRecommendationClicked(sessionId, movie.movie_id)
-                        }
-                        navigate(`/movie/${movie.tmdb_id}`, {
-                          state: { sessionId, movieId: movie.movie_id },
-                        })
-                      }}
-                    />
-                  ))}
-                </motion.div>
-              </LayoutGroup>
+              <div className="max-w-3xl mx-auto px-4 sm:px-6">
+                <ResultsList
+                  films={recommendations}
+                  brief={{ answers, anchor }}
+                  onOpenDetail={(film) => {
+                    if (sessionId) {
+                      trackRecommendationClicked(sessionId, film.movie_id)
+                    }
+                    navigate(`/movie/${film.tmdb_id}`, {
+                      state: { sessionId, movieId: film.movie_id },
+                    })
+                  }}
+                />
+              </div>
             )}
 
-            <div className="mt-8 flex justify-center">
-              <button
-                type="button"
-                onClick={handleReset}
-                className="rounded-full px-6 py-2 text-sm transition-all duration-200 hover:bg-white/10"
-                style={{ border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.60)' }}
-              >
-                Try a different mood
-              </button>
+            {/* Post-results CTA */}
+            <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10 text-center">
+              <p className="text-sm text-white/50 mb-4">
+                None of these hit the spot?
+              </p>
+              <Button variant="secondary" onClick={handleReset}>
+                Start a new brief
+              </Button>
             </div>
           </div>
         )}

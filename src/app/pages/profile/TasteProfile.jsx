@@ -9,6 +9,7 @@ import { Film, Star, Bookmark, Compass, Users, UserPlus, X } from 'lucide-react'
 import { supabase } from '@/shared/lib/supabase/client'
 import { tmdbImg } from '@/shared/api/tmdb'
 import FollowButton from '@/shared/components/FollowButton'
+import TasteFingerprint from './TasteFingerprint'
 
 import {
   RATING_PERSONALITY_SELF,
@@ -131,7 +132,7 @@ export default function TasteProfile() {
             .maybeSingle(),
           supabase
             .from('user_history')
-            .select('movie_id, watched_at, movies ( id, tmdb_id, title, poster_path, genres, director_name, primary_genre, release_date )')
+            .select('movie_id, watched_at, movies ( id, tmdb_id, title, poster_path, genres, director_name, primary_genre, release_date, mood_tags, tone_tags, fit_profile )')
             .eq('user_id', userId)
             .order('watched_at', { ascending: false }),
           supabase
@@ -335,7 +336,7 @@ export default function TasteProfile() {
     summaryCalledRef.current = true
 
     // Check localStorage cache
-    const cacheKey = `ff_taste_summary_v3_${userId}`
+    const cacheKey = `ff_taste_summary_v4_${userId}`
     try {
       const cached = localStorage.getItem(cacheKey)
       if (cached) {
@@ -358,7 +359,7 @@ export default function TasteProfile() {
         // Fetch recent watch history for richer prompt context
         const { data: historyData } = await supabase
           .from('user_history')
-          .select('movies(title)')
+          .select('movies(title, mood_tags, tone_tags, fit_profile)')
           .eq('user_id', userId)
           .order('watched_at', { ascending: false })
           .limit(20)
@@ -367,6 +368,23 @@ export default function TasteProfile() {
           .map((h) => h.movies)
           .filter(Boolean)
           .map((m) => m.title)
+
+        // Aggregate mood/tone/fit signals from watch history
+        const tagCounts = { mood: {}, tone: {}, fit: {} }
+        for (const h of historyData ?? []) {
+          const m = h.movies
+          if (!m) continue
+          ;(m.mood_tags ?? []).forEach((t) => { tagCounts.mood[t] = (tagCounts.mood[t] || 0) + 1 })
+          ;(m.tone_tags ?? []).forEach((t) => { tagCounts.tone[t] = (tagCounts.tone[t] || 0) + 1 })
+          if (m.fit_profile) tagCounts.fit[m.fit_profile] = (tagCounts.fit[m.fit_profile] || 0) + 1
+        }
+        const topN = (obj, n) =>
+          Object.entries(obj).sort(([, a], [, b]) => b - a).slice(0, n)
+        const taggedTasteSignature = {
+          topMoodTags: topN(tagCounts.mood, 6).map(([tag, count]) => ({ tag, count })),
+          topToneTags: topN(tagCounts.tone, 4).map(([tag, count]) => ({ tag, count })),
+          topFitProfiles: topN(tagCounts.fit, 3).map(([profile, count]) => ({ profile, count })),
+        }
 
         const res = await fetch(`${SUPABASE_URL}/functions/v1/generate-taste-summary`, {
           method: 'POST',
@@ -391,6 +409,7 @@ export default function TasteProfile() {
             avgRating: stats.avgRating ?? 0,
             ratingLabel: stats.ratingPersonality ?? '',
             watchedFilms,
+            taggedTasteSignature,
           }),
         })
 
@@ -579,6 +598,17 @@ export default function TasteProfile() {
                     </StatCard>
                   </div>
                 </div>
+
+                {/* === TASTE FINGERPRINT === */}
+                <TasteFingerprint history={history} />
+                {history.length >= 10 && (
+                  <Link
+                    to="/challenges"
+                    className="inline-flex items-center gap-2 text-sm text-purple-300 hover:text-purple-200 transition-colors"
+                  >
+                    <Compass className="h-4 w-4" /> Expand your taste &rarr;
+                  </Link>
+                )}
 
                 {/* === RECENTLY WATCHED === */}
                 {stats.recentlyWatched.length > 0 && (

@@ -19,7 +19,7 @@ class OpenAIClient {
   constructor() {
     this.lastRequestTime = 0;
     this.requestCount = 0;
-    this.totalCost = 0; // $0.00001 per 1k tokens for text-embedding-3-large
+    this.totalCost = 0; // $0.00013 per 1k tokens for text-embedding-3-large
   }
 
   async rateLimit() {
@@ -136,7 +136,7 @@ class OpenAIClient {
       
       // Estimate cost (rough)
       const tokens = Math.ceil(text.length / 4); // Rough estimate
-      this.totalCost += (tokens / 1000) * 0.00001;
+      this.totalCost += (tokens / 1000) * 0.00013;
 
       return response.data[0].embedding;
     } catch (error) {
@@ -166,7 +166,7 @@ class OpenAIClient {
 
       // Estimate cost
       const totalTokens = texts.reduce((sum, text) => sum + Math.ceil(text.length / 4), 0);
-      this.totalCost += (totalTokens / 1000) * 0.00001;
+      this.totalCost += (totalTokens / 1000) * 0.00013;
 
       return response.data.map(item => item.embedding);
     } catch (error) {

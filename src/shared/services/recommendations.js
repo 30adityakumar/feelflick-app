@@ -72,7 +72,7 @@ import { recommendationCache } from '@/shared/lib/cache'
 // ============================================================================
 // VERSION
 // ============================================================================
-const ENGINE_VERSION = '2.9'
+const ENGINE_VERSION = '2.8'
 const PROFILE_MEMORY_TTL_MS = 60 * 1000
 const SEED_MEMORY_TTL_MS = 60 * 1000
 const profileMemoryCache = new Map()
@@ -118,6 +118,18 @@ export function clamp(n, lo, hi) {
 
 export function safeLower(s) {
   return typeof s === 'string' ? s.toLowerCase() : ''
+}
+
+/**
+ * Whole-token or token-level prefix matching.
+ * Catches "time travel" vs "time traveler" without false positives
+ * like "new york" matching "new orleans". Prefix requires >= 4 chars.
+ */
+function tokensMatch(a, b) {
+  if (a === b) return true
+  const aTokens = a.split(/\s+/).filter(Boolean)
+  const bTokens = b.split(/\s+/).filter(Boolean)
+  return aTokens.some(at => bTokens.some(bt => at === bt || (at.length >= 4 && bt.startsWith(at)) || (bt.length >= 4 && at.startsWith(bt))))
 }
 
 // ============================================================================
@@ -286,8 +298,10 @@ export async function computeUserProfile(userId, forceRefresh = false) {
         movies!inner (
           id, tmdb_id, original_language, runtime, release_year,
           pacing_score, intensity_score, emotional_depth_score,
+          pacing_score_100, intensity_score_100, emotional_depth_score_100,
           dialogue_density, attention_demand, vfx_level_score,
-          ff_rating, director_name, lead_actor_name, genres, keywords
+          ff_rating, director_name, lead_actor_name, genres, keywords,
+          fit_profile
         )
       `
         )
@@ -389,6 +403,14 @@ export async function computeUserProfile(userId, forceRefresh = false) {
       weightedMovies.push({ ...h.movies, weight, isOnboarding: false })
     })
 
+    // Single fetch of all watched movie IDs — attached to profile so row generators
+    // can reuse it instead of each one making a separate DB call
+    const { data: watchedData } = await supabase
+      .from('user_history')
+      .select('movie_id')
+      .eq('user_id', userId)
+    const watchedMovieIds = (watchedData || []).map(r => r.movie_id)
+
     const negativeSignals = computeNegativeSignals(skipFeedback, watchHistory)
 
     // ✅ language is computed from real watched movies
@@ -400,6 +422,7 @@ export async function computeUserProfile(userId, forceRefresh = false) {
     const preferences = computePracticalPreferences(weightedMovies)
     const affinities = computePeopleAffinities(weightedMovies)
     const themes = computeThemeAffinities(weightedMovies)
+    const fitProfileAffinity = computeFitProfileAffinity(weightedMovies, skipFeedback)
     const qualityProfile = computeQualityProfile(weightedMovies, userRatings)
 
     // ✅ v2.4: feedback signals from thumbs up/down + post-watch sentiment
@@ -413,9 +436,11 @@ export async function computeUserProfile(userId, forceRefresh = false) {
       preferences,
       affinities,
       themes,
+      fitProfileAffinity,
       qualityProfile,
       negativeSignals,
       feedbackSignals,
+      watchedMovieIds,
       meta: {
         profileVersion: ENGINE_VERSION,
         computedAt: new Date().toISOString(),
@@ -486,6 +511,7 @@ function buildEmptyProfile(userId, userPrefs) {
     },
     affinities: { directors: [], actors: [] },
     themes: { preferred: [] },
+    fitProfileAffinity: { distribution: {}, preferred: [], topShare: 0, franchiseFatigue: false },
     qualityProfile: { avgFFRating: 7.0, watchesHiddenGems: false, totalMoviesWatched: 0, avgUserRating: null, highRatedCount: 0 },
     negativeSignals: {
       skippedGenres: [],
@@ -503,6 +529,7 @@ function buildEmptyProfile(userId, userPrefs) {
       actorSuppressions: [],
       contentStyleBoosts: {}
     },
+    watchedMovieIds: [],
     meta: {
       profileVersion: ENGINE_VERSION,
       computedAt: new Date().toISOString(),
@@ -1065,6 +1092,42 @@ function computeThemeAffinities(weightedMovies) {
   }
 }
 
+/**
+ * Compute fit_profile distribution from weighted watch history.
+ * Powers signal 17 (fit profile match) in scoreMovieForUser.
+ * @param {Array} weightedMovies - Movies with weight from watch history
+ * @returns {{distribution: Object, preferred: string[], topShare: number, franchiseFatigue: boolean}}
+ */
+function computeFitProfileAffinity(weightedMovies, skipFeedback = []) {
+  const counts = {}
+  let totalWeighted = 0
+
+  weightedMovies.forEach(m => {
+    if (!m.fit_profile) return
+    counts[m.fit_profile] = (counts[m.fit_profile] || 0) + (m.weight || 1)
+    totalWeighted += (m.weight || 1)
+  })
+
+  const sorted = Object.entries(counts)
+    .map(([profile, count]) => ({ profile, count, share: totalWeighted > 0 ? count / totalWeighted : 0 }))
+    .sort((a, b) => b.count - a.count)
+
+  // Franchise fatigue: cross-reference skip movie_ids against watched franchise films
+  const franchiseMovieIds = new Set(
+    weightedMovies.filter(m => m.fit_profile === 'franchise_entry').map(m => m.id)
+  )
+  const franchiseSkips = (skipFeedback || []).filter(s => franchiseMovieIds.has(s.movie_id)).length
+  const franchiseWatched = counts.franchise_entry || 0
+  const franchiseFatigue = franchiseWatched >= 3 && franchiseSkips >= 2
+
+  return {
+    distribution: counts,
+    preferred: sorted.slice(0, 3).map(s => s.profile),
+    topShare: sorted[0]?.share || 0,
+    franchiseFatigue,
+  }
+}
+
 // ✅ v2.4: fixed — userRatings parameter was silently ignored in v2.3
 function computeQualityProfile(weightedMovies, userRatings) {
   let ratingSum = 0,
@@ -1119,7 +1182,9 @@ async function getSeedFilms(userId, profile) {
         movies!inner (
           id, tmdb_id, title, director_name, lead_actor_name, genres, keywords,
           primary_genre, original_language, release_year,
-          pacing_score, intensity_score, emotional_depth_score, ff_rating
+          pacing_score, intensity_score, emotional_depth_score,
+          pacing_score_100, intensity_score_100, emotional_depth_score_100, ff_rating,
+          fit_profile
         )
       `
         )
@@ -1441,16 +1506,20 @@ export async function getTopPickForUser(userId, options = {}) {
         id, tmdb_id, title, overview, tagline,
         original_language, runtime, release_year, release_date,
         poster_path, backdrop_path, trailer_youtube_key,
-        ff_rating, ff_final_rating, ff_community_rating, ff_community_votes,
+        ff_rating, ff_final_rating, ff_community_rating, ff_community_confidence, ff_community_votes,
+        ff_critic_rating, ff_critic_confidence, ff_audience_rating, ff_audience_confidence,
         ff_rating_genre_normalized, ff_confidence,
         quality_score, vote_average,
         pacing_score, intensity_score, emotional_depth_score,
+        pacing_score_100, intensity_score_100, emotional_depth_score_100,
         dialogue_density, attention_demand, vfx_level_score,
         cult_status_score, popularity, vote_count, revenue,
         director_name, lead_actor_name,
         genres, keywords, primary_genre,
         discovery_potential, accessibility_score,
-        polarization_score, starpower_score
+        polarization_score, starpower_score,
+        fit_profile,
+        user_satisfaction_score, user_satisfaction_confidence
       `
 
       // 1) embedding neighbors pool (strong "similar to / because you watched")
@@ -1481,7 +1550,7 @@ export async function getTopPickForUser(userId, options = {}) {
         .not('backdrop_path', 'is', null)
         .not('tmdb_id', 'is', null)
         .gte('ff_rating_genre_normalized', baseMinNorm)
-        .gte('ff_final_rating', 7.2)  // absolute quality floor — exceptional-for-genre but objectively mediocre films blocked
+        .gte('ff_audience_rating', 72)  // absolute quality floor — exceptional-for-genre but objectively mediocre films blocked
         .gte('ff_confidence', baseMinConf)
         .gte('vote_count', HERO_MIN_VOTE_COUNT)
         .gte('release_date', `${minYear}-01-01`)
@@ -1533,7 +1602,7 @@ export async function getTopPickForUser(userId, options = {}) {
         .not('backdrop_path', 'is', null)
         .not('tmdb_id', 'is', null)
         .gte('ff_rating_genre_normalized', 9.0)
-        .gte('ff_final_rating', 7.8)
+        .gte('ff_audience_rating', 78)
         .gte('ff_confidence', baseMinConf)
         .gte('vote_count', 25000)
         .order('ff_rating_genre_normalized', { ascending: false })
@@ -1573,7 +1642,7 @@ export async function getTopPickForUser(userId, options = {}) {
         // 48h skip: hard-exclude unless the film is genuinely exceptional (ff_final_rating >= 8.5)
         // Exceptional films are allowed through but will be penalised in heroBonus scoring.
         if (hardSkipIds.has(m.id)) {
-          const ffRating = Number(m.ff_final_rating || m.ff_rating || 0)
+          const ffRating = Number(m.ff_audience_rating != null ? m.ff_audience_rating / 10 : m.ff_final_rating || m.ff_rating || 0)
           if (ffRating < 8.5) return false
         }
         return true
@@ -1603,7 +1672,7 @@ export async function getTopPickForUser(userId, options = {}) {
             if (allExcludeInternal.includes(m.id)) return false
             if (allExcludeTmdb.has(m.tmdb_id)) return false
             if (recentHeroIds.has(m.id)) return false
-            if (hardSkipIds.has(m.id) && Number(m.ff_final_rating || m.ff_rating || 0) < 8.5) return false
+            if (hardSkipIds.has(m.id) && Number(m.ff_audience_rating != null ? m.ff_audience_rating / 10 : m.ff_final_rating || m.ff_rating || 0) < 8.5) return false
             return true
           })
 
@@ -1641,7 +1710,7 @@ export async function getTopPickForUser(userId, options = {}) {
         else if (age <= 5) heroBonus += 1
 
         // quality bonus — differentiated ff_final_rating steps + audience size
-        const ffRating = Number(movie.ff_final_rating || movie.ff_rating || 0)
+        const ffRating = Number(movie.ff_audience_rating != null ? movie.ff_audience_rating / 10 : movie.ff_final_rating || movie.ff_rating || 0)
         if (ffRating >= 9.0) heroBonus += 25
         else if (ffRating >= 8.5) heroBonus += 18
         else if (ffRating >= 8.0) heroBonus += 10
@@ -1741,7 +1810,7 @@ export async function getTopPickForUser(userId, options = {}) {
           const excludeSet = new Set([...allExcludeInternal, ...diverseTop10.map((c) => c.movie.id)])
           const discCandidate = (discoveryPool || []).find(
             (m) => m?.id && !excludeSet.has(m.id) && !allExcludeTmdb.has(m.tmdb_id) && !recentHeroIds.has(m.id)
-              && !(hardSkipIds.has(m.id) && Number(m.ff_final_rating || m.ff_rating || 0) < 8.5)
+              && !(hardSkipIds.has(m.id) && Number(m.ff_audience_rating != null ? m.ff_audience_rating / 10 : m.ff_final_rating || m.ff_rating || 0) < 8.5)
           )
           if (discCandidate) {
             const discResult = scoreMovieForUser(discCandidate, profile, 'hero', seedFilms, {
@@ -1754,7 +1823,7 @@ export async function getTopPickForUser(userId, options = {}) {
             else if (discAge === 2) discBonus += 6
             else if (discAge === 3) discBonus += 3
             else if (discAge <= 5) discBonus += 1
-            const discRating = Number(discCandidate.ff_final_rating || discCandidate.ff_rating || 0)
+            const discRating = Number(discCandidate.ff_audience_rating != null ? discCandidate.ff_audience_rating / 10 : discCandidate.ff_final_rating || discCandidate.ff_rating || 0)
             if (discRating >= 9.0) discBonus += 25
             else if (discRating >= 8.5) discBonus += 18
             else if (discRating >= 8.0) discBonus += 10
@@ -1835,16 +1904,19 @@ export function scoreMovieForUser(movie, profile, rowType = 'default', seedFilms
   const breakdown = {}
   let score = 0
 
-  // 1) BASE QUALITY (normalized when available, community-blended ff_final_rating as fallback)
-  const effectiveRating = movie.ff_final_rating ?? movie.ff_rating
+  // 1) BASE QUALITY (normalized when available, ff_audience_rating as fallback)
+  const effectiveRating = movie.ff_audience_rating != null
+    ? movie.ff_audience_rating / 10
+    : (movie.ff_final_rating ?? movie.ff_rating ?? 7.0)
   const normalizedRating = Number(movie.ff_rating_genre_normalized || effectiveRating || 7.0)
   // Cap hero base quality at 72 so taste signals meaningfully differentiate picks.
   // Without cap: a norm-9.0 film gets 90 base pts and taste signals barely matter.
   // With cap: any film above ~7.2 norm competes on taste, not just objective quality.
   const baseQualityRaw = normalizedRating * 10
   score += (breakdown.baseQuality = rowType === 'hero' ? Math.min(baseQualityRaw, 72) : baseQualityRaw)
-  breakdown.originalRating = movie.ff_rating        // external-only, kept for debugging
-  breakdown.finalRating    = movie.ff_final_rating  // community-blended
+  breakdown.audienceRating  = movie.ff_audience_rating   // 0-100 primary signal
+  breakdown.originalRating  = movie.ff_rating             // DEPRECATED — kept for debugging
+  breakdown.finalRating     = movie.ff_final_rating       // DEPRECATED — kept for debugging
 
   // 2) DISCOVERY
   if (Number(movie.discovery_potential || 0) >= 60 && profile.qualityProfile.watchesHiddenGems) {
@@ -1918,6 +1990,34 @@ export function scoreMovieForUser(movie, profile, rowType = 'default', seedFilms
   // 16) EXPLICIT FEEDBACK (thumbs up/down + post-watch sentiment) — v2.4
   // Applied last so it can override or reinforce all other signals cleanly.
   score += (breakdown.feedbackSignals = scoreFeedbackSignals(movie, profile))
+
+  // 17) FIT PROFILE MATCH — v2.6
+  if (movie.fit_profile && profile.fitProfileAffinity?.preferred?.length > 0) {
+    const fp = profile.fitProfileAffinity
+    if (fp.preferred.includes(movie.fit_profile)) {
+      score += (breakdown.fitProfile = 12)
+    } else if (movie.fit_profile === 'franchise_entry' && fp.franchiseFatigue) {
+      score += (breakdown.fitProfile = -25)
+    } else if (movie.fit_profile === 'challenging_art' && fp.distribution?.challenging_art === undefined && fp.topShare >= 0.5 && !fp.preferred.includes('arthouse')) {
+      score += (breakdown.fitProfile = -8)
+    } else {
+      breakdown.fitProfile = 0
+    }
+  } else {
+    breakdown.fitProfile = 0
+  }
+
+  // 18) USER SATISFACTION (from aggregated feedback loop) — v2.7
+  if (movie.user_satisfaction_score != null && (movie.user_satisfaction_confidence ?? 0) >= 60) {
+    const s = movie.user_satisfaction_score
+    if (s >= 75) score += (breakdown.userSatisfaction = 15)
+    else if (s >= 60) score += (breakdown.userSatisfaction = 6)
+    else if (s <= 30) score += (breakdown.userSatisfaction = -20)
+    else if (s <= 45) score += (breakdown.userSatisfaction = -8)
+    else breakdown.userSatisfaction = 0
+  } else {
+    breakdown.userSatisfaction = 0
+  }
 
   const finalScore = Math.max(0, Math.round(score * 10) / 10)
   const pickReason = determinePickReason(movie, profile, breakdown, seedSimilarity)
@@ -2066,7 +2166,7 @@ function scoreKeywordMatch(movie, profile) {
 
   let matches = 0
   profile.themes.preferred.forEach((theme) => {
-    if (movieKeywords.some((kw) => kw.includes(theme) || theme.includes(kw))) matches++
+    if (movieKeywords.some(kw => tokensMatch(kw, theme))) matches++
   })
 
   return Math.min(matches * 3, 15)
@@ -2192,7 +2292,7 @@ function calculateSeedSimilarity(movie, seedFilms, seedEmbeddingBestByMovieId) {
     let keywordMatches = 0
     for (const mk of movieKeywords) {
       for (const sk of seedKeywords) {
-        if (mk.includes(sk) || sk.includes(mk)) {
+        if (tokensMatch(mk, sk)) {
           keywordMatches++
           break
         }
@@ -2378,7 +2478,7 @@ function determinePickReason(movie, profile, breakdown, seedSimilarity = {}) {
   if ((breakdown.language || 0) >= 20 && (breakdown.genre || 0) >= 15) return { label: 'Built for your taste', type: 'perfect_match' }
   if ((breakdown.genre || 0) >= 20) return { label: 'Matches your taste', type: 'genre_match' }
   if (Number(movie.discovery_potential || 0) >= 60) return { label: 'Hidden gem', type: 'hidden_gem' }
-  if (Number(movie.quality_score || 0) >= 85 || Number(movie.ff_final_rating ?? movie.ff_rating ?? 0) >= 7.5) return { label: 'Critically acclaimed', type: 'quality' }
+  if (Number(movie.quality_score || 0) >= 85 || Number(movie.ff_audience_rating ?? (movie.ff_final_rating ?? movie.ff_rating ?? 0) * 10) >= 75) return { label: 'Critically acclaimed', type: 'quality' }
   if (movie.release_year === new Date().getFullYear()) return { label: 'New this year', type: 'recency' }
   if ((breakdown.content || 0) >= 35) return { label: 'Fits your style', type: 'content_match' }
 
@@ -2476,9 +2576,9 @@ async function getFallbackPick(langGuard, excludeInternalIds = [], excludeTmdbId
         .eq('original_language', primaryLang)
         .not('backdrop_path', 'is', null)
         .not('tmdb_id', 'is', null)
-        .gte('ff_final_rating', 6.5)
+        .gte('ff_audience_rating', 65)
         .gte('vote_count', 50)
-        .order('ff_final_rating', { ascending: false })
+        .order('ff_audience_rating', { ascending: false })
         .limit(60)
 
       const eligible = (langFallback || []).filter(notWatched)
@@ -2487,7 +2587,7 @@ async function getFallbackPick(langGuard, excludeInternalIds = [], excludeTmdbId
         return {
           movie: pick,
           pickReason: { label: 'Top pick for you', type: 'quality' },
-          score: Number(pick.ff_final_rating ?? pick.ff_rating ?? 0) * 10,
+          score: Number(pick.ff_audience_rating ?? (pick.ff_final_rating ?? pick.ff_rating ?? 0) * 10),
           debug: { fallback: true, fallbackType: 'language-aware', lang: primaryLang }
         }
       }
@@ -2500,10 +2600,10 @@ async function getFallbackPick(langGuard, excludeInternalIds = [], excludeTmdbId
       .eq('is_valid', true)
       .not('backdrop_path', 'is', null)
       .not('tmdb_id', 'is', null)
-      .gte('ff_final_rating', 8.0)
+      .gte('ff_audience_rating', 80)
       .gte('vote_count', THRESHOLDS.MIN_VOTE_COUNT)
       .gte('release_date', '2020-01-01')
-      .order('ff_final_rating', { ascending: false })
+      .order('ff_audience_rating', { ascending: false })
       .limit(40)
 
     const globalEligible = (fallback || []).filter(notWatched)
@@ -2512,7 +2612,7 @@ async function getFallbackPick(langGuard, excludeInternalIds = [], excludeTmdbId
       return {
         movie: pick,
         pickReason: { label: 'Critically acclaimed', type: 'quality' },
-        score: Number(pick.ff_final_rating ?? pick.ff_rating ?? 0) * 10,
+        score: Number(pick.ff_audience_rating ?? (pick.ff_final_rating ?? pick.ff_rating ?? 0) * 10),
         debug: { fallback: true, fallbackType: 'global' }
       }
     }
@@ -2620,13 +2720,8 @@ export async function getQuickPicksForUser(userId, options = {}) {
       
       console.log('[getQuickPicksForUser] Seed films:', seedFilms.map(s => s.title))
 
-      // 3. Get user's watched movie IDs
-      const { data: watchedData } = await supabase
-        .from('user_history')
-        .select('movie_id')
-        .eq('user_id', userId)
-
-      const watchedIds = watchedData?.map(w => w.movie_id) || []
+      // 3. Get user's watched movie IDs (from profile — single fetch)
+      const watchedIds = profile.watchedMovieIds || []
       const allExcludeIds = [...new Set([...watchedIds, ...excludeIds])]
 
       // 4. Fetch candidates - MULTIPLE POOLS
@@ -2634,13 +2729,17 @@ export async function getQuickPicksForUser(userId, options = {}) {
         id, tmdb_id, title, overview, tagline,
         original_language, runtime, release_year, release_date,
         poster_path, backdrop_path, trailer_youtube_key,
-        ff_rating, ff_final_rating, ff_community_rating, ff_community_votes,
-        ff_confidence, quality_score, vote_average,
+        ff_rating, ff_final_rating, ff_community_rating, ff_community_confidence, ff_community_votes,
+        ff_critic_rating, ff_critic_confidence, ff_audience_rating, ff_audience_confidence,
+        ff_rating_genre_normalized, ff_confidence, quality_score, vote_average,
         pacing_score, intensity_score, emotional_depth_score,
+        pacing_score_100, intensity_score_100, emotional_depth_score_100,
         dialogue_density, attention_demand, vfx_level_score,
         cult_status_score, popularity, vote_count, revenue,
         director_name, lead_actor_name,
-        genres, keywords, primary_genre
+        genres, keywords, primary_genre,
+        fit_profile,
+        user_satisfaction_score, user_satisfaction_confidence
       `
 
       // Pool 1: Quality films
@@ -2649,9 +2748,9 @@ export async function getQuickPicksForUser(userId, options = {}) {
         .select(selectFields)
         .eq('is_valid', true)
         .not('poster_path', 'is', null)
-        .gte('ff_final_rating', 6.0)
+        .gte('ff_audience_rating', 60)
         .gte('vote_count', THRESHOLDS.MIN_VOTE_COUNT)
-        .order('ff_final_rating', { ascending: false })
+        .order('ff_audience_rating', { ascending: false })
         .limit(150)
 
       // Pool 2: Embedding neighbors (semantic similarity)
@@ -2662,7 +2761,7 @@ export async function getQuickPicksForUser(userId, options = {}) {
             seed_ids: seedIds,
             exclude_ids: allExcludeIds,
             match_count: 50,
-            min_ff_rating: 5.5  // Lower threshold for variety
+            min_ff_rating: 55  // Lower threshold for variety (0-100 scale)
           })
         
         if (embError) {
@@ -2940,13 +3039,8 @@ export async function getGenreBasedRecommendations(userId, options = {}) {
       const seedFilms = await getSeedFilms(userId, profile)
       const seedIds = seedFilms.map(s => s.id).filter(Boolean)
 
-      // 3. Get user's watched movie IDs
-      const { data: watchedData } = await supabase
-        .from('user_history')
-        .select('movie_id')
-        .eq('user_id', userId)
-
-      const watchedIds = watchedData?.map(w => w.movie_id) || []
+      // 3. Get user's watched movie IDs (from profile — single fetch)
+      const watchedIds = profile.watchedMovieIds || []
       const allExcludeIds = [...new Set([...watchedIds, ...stableExcludeIds])]
 
       // 4. Fetch candidates from preferred genres
@@ -2954,13 +3048,17 @@ export async function getGenreBasedRecommendations(userId, options = {}) {
         id, tmdb_id, title, overview, tagline,
         original_language, runtime, release_year, release_date,
         poster_path, backdrop_path, trailer_youtube_key,
-        ff_rating, ff_final_rating, ff_community_rating, ff_community_votes,
-        ff_confidence, quality_score, vote_average,
+        ff_rating, ff_final_rating, ff_community_rating, ff_community_confidence, ff_community_votes,
+        ff_critic_rating, ff_critic_confidence, ff_audience_rating, ff_audience_confidence,
+        ff_rating_genre_normalized, ff_confidence, quality_score, vote_average,
         pacing_score, intensity_score, emotional_depth_score,
+        pacing_score_100, intensity_score_100, emotional_depth_score_100,
         dialogue_density, attention_demand, vfx_level_score,
         cult_status_score, popularity, vote_count, revenue,
         director_name, lead_actor_name,
-        genres, keywords, primary_genre
+        genres, keywords, primary_genre,
+        fit_profile,
+        user_satisfaction_score, user_satisfaction_confidence
       `
 
       // Pool 1: Movies with primary genre in user's preferred genres
@@ -2985,9 +3083,9 @@ export async function getGenreBasedRecommendations(userId, options = {}) {
           .eq('is_valid', true)
           .not('poster_path', 'is', null)
           .in('primary_genre', preferredGenreNames)
-          .gte('ff_final_rating', 6.0)
+          .gte('ff_audience_rating', 60)
           .gte('vote_count', THRESHOLDS.MIN_VOTE_COUNT)
-          .order('ff_final_rating', { ascending: false })
+          .order('ff_audience_rating', { ascending: false })
           .limit(150)
 
         genreFilms = data || []
@@ -3001,7 +3099,7 @@ export async function getGenreBasedRecommendations(userId, options = {}) {
             seed_ids: seedIds,
             exclude_ids: allExcludeIds,
             match_count: 50,
-            min_ff_rating: 6.0
+            min_ff_rating: 60
           })
 
         if (embError) {
@@ -3149,12 +3247,17 @@ async function getGenreFallback(limit = 20) {
       id, tmdb_id, title, overview, tagline,
       original_language, runtime, release_year, release_date,
       poster_path, backdrop_path, trailer_youtube_key,
-      ff_rating, ff_confidence, quality_score, vote_average,
+      ff_rating, ff_final_rating, ff_confidence, quality_score, vote_average,
+      ff_critic_rating, ff_critic_confidence, ff_audience_rating, ff_audience_confidence,
+      ff_community_rating, ff_community_confidence, ff_community_votes,
       pacing_score, intensity_score, emotional_depth_score,
+      pacing_score_100, intensity_score_100, emotional_depth_score_100,
       dialogue_density, attention_demand, vfx_level_score,
       cult_status_score, popularity, vote_count, revenue,
       director_name, lead_actor_name,
-      genres, keywords, primary_genre
+      genres, keywords, primary_genre,
+      fit_profile,
+      user_satisfaction_score, user_satisfaction_confidence
     `)
     .eq('is_valid', true)
     .not('poster_path', 'is', null)
@@ -3165,7 +3268,7 @@ async function getGenreFallback(limit = 20) {
 
   return (data || []).map(movie => ({
     ...movie,
-    _score: (movie.ff_final_rating ?? movie.ff_rating ?? 0) * 10,
+    _score: Number(movie.ff_audience_rating ?? (movie.ff_final_rating ?? movie.ff_rating ?? 0) * 10),
     _pickReason: { label: 'Recommended', type: 'fallback_genre' }
   }))
 }
@@ -3299,20 +3402,39 @@ export async function getHistoryBasedRecommendations(userId, options = {}) {
 const moodWeightsCache = new Map()
 
 /**
- * Load genre weights for a given discover mood ID from the DB.
+ * Load genre weights and tag sets for a given discover mood ID from the DB.
  * Uses a module-level Map so the DB is hit at most once per mood per tab session.
  * @param {number} moodId
- * @returns {Promise<Array<{genre_id: number, weight: number, pacing_min: number|null, pacing_max: number|null, intensity_min: number|null, intensity_max: number|null}>>}
+ * @returns {Promise<{weights: Array<{genre_id: number, weight: number}>, preferred_tags: string[], avoided_tags: string[], preferred_tones: string[]}>}
  */
-async function loadMoodGenreWeights(moodId) {
+async function loadMoodData(moodId) {
   if (moodWeightsCache.has(moodId)) return moodWeightsCache.get(moodId)
-  const { data, error } = await supabase
-    .from('discover_mood_genre_weights')
-    .select('genre_id, weight, pacing_min, pacing_max, intensity_min, intensity_max')
-    .eq('mood_id', moodId)
-  if (error || !data || data.length === 0) return []
-  moodWeightsCache.set(moodId, data)
-  return data
+
+  // Fetch genre weights and tag sets in parallel
+  const [weightsResult, moodResult] = await Promise.all([
+    supabase
+      .from('discover_mood_genre_weights')
+      .select('genre_id, weight, pacing_min, pacing_max, intensity_min, intensity_max')
+      .eq('mood_id', moodId),
+    supabase
+      .from('discover_moods')
+      .select('preferred_tags, avoided_tags, preferred_tones')
+      .eq('id', moodId)
+      .single(),
+  ])
+
+  const weights = weightsResult.data || []
+  const moodRow = moodResult.data || {}
+
+  const moodData = {
+    weights,
+    preferred_tags: moodRow.preferred_tags || [],
+    avoided_tags: moodRow.avoided_tags || [],
+    preferred_tones: moodRow.preferred_tones || [],
+  }
+
+  moodWeightsCache.set(moodId, moodData)
+  return moodData
 }
 
 /**
@@ -3335,7 +3457,7 @@ const CONTEXT_MODIFIERS = {
  */
 const EXPERIENCE_MODIFIERS = {
   1: (movie) => (Number(movie.discovery_potential || 0) >= 60 ? 15 : 0),
-  2: (movie) => (Number(movie.ff_final_rating || movie.ff_rating || 0) >= 8.0 ? 10 : 0),
+  2: (movie) => (Number(movie.ff_audience_rating != null ? movie.ff_audience_rating / 10 : movie.ff_final_rating || movie.ff_rating || 0) >= 8.0 ? 10 : 0),
   3: (movie) => ((movie.release_year || 9999) < 2000 ? 15 : 0),
   4: (movie) => {
     const genres = (movie.genres || []).map(extractGenreId)
@@ -3364,52 +3486,69 @@ function getTimeOfDayBonus(moodId, timeOfDay) {
 
 /**
  * Score how well a movie matches the current mood session parameters.
+ * Primary signal: mood_tags / tone_tags intersection with discover_moods tag sets.
  * Returns a score 0–100, additive on top of the user profile score.
  *
- * @param {Object} movie - Internal movies table row
+ * @param {Object} movie - Internal movies table row (must include mood_tags, tone_tags)
  * @param {number} moodId - Discover mood ID (1–12)
- * @param {Array} moodWeights - Rows from discover_mood_genre_weights for this moodId
+ * @param {{weights: Array, preferred_tags: string[], avoided_tags: string[], preferred_tones: string[]}} moodData
  * @param {{intensity: number, pacing: number, viewingContext: number, experienceType: number, timeOfDay: string}} params
  * @returns {number}
  */
-export function scoreMoodAffinity(movie, moodId, moodWeights, params) {
+export function scoreMoodAffinity(movie, moodId, moodData, params) {
   const { intensity, pacing, viewingContext, experienceType, timeOfDay } = params
   let score = 0
 
-  // 1. GENRE AFFINITY via mood_genre_weights (max 40 pts)
+  // 1. TAG INTERSECTION — PRIMARY SIGNAL (max +55)
+  const movieMoodTags = Array.isArray(movie.mood_tags) ? movie.mood_tags : []
+  const movieToneTags = Array.isArray(movie.tone_tags) ? movie.tone_tags : []
+  if (moodData.preferred_tags?.length > 0 && movieMoodTags.length > 0) {
+    const matches = movieMoodTags.filter(t => moodData.preferred_tags.includes(t)).length
+    score += Math.min(matches * 15, 45)
+  }
+  if (moodData.preferred_tones?.length > 0 && movieToneTags.length > 0) {
+    const toneMatches = movieToneTags.filter(t => moodData.preferred_tones.includes(t)).length
+    score += Math.min(toneMatches * 5, 10)
+  }
+
+  // 2. AVOIDED TAG PENALTY — strong signal
+  if (moodData.avoided_tags?.length > 0 && movieMoodTags.length > 0) {
+    const avoidedMatches = movieMoodTags.filter(t => moodData.avoided_tags.includes(t)).length
+    score -= avoidedMatches * 20
+  }
+
+  // 3. GENRE AFFINITY via mood_genre_weights (max +25, reduced from +40)
   const movieGenres = (movie.genres || []).map(extractGenreId).filter(Boolean)
   let genreScore = 0
-  for (const w of moodWeights) {
-    if (movieGenres.includes(w.genre_id)) {
-      genreScore += w.weight * 15
-    }
+  for (const w of moodData.weights || []) {
+    if (movieGenres.includes(w.genre_id)) genreScore += w.weight * 10
   }
-  score += Math.min(40, genreScore)
+  score += Math.min(25, genreScore)
 
-  // 2. PACING ALIGNMENT — dial 1–5 maps to 0–100, penalty up to -20
-  if (movie.pacing_score != null && pacing != null) {
+  // 4. PACING/INTENSITY ALIGNMENT — max penalty −15 each
+  const moviePacing100 = movie.pacing_score_100 ?? (movie.pacing_score != null ? movie.pacing_score * 10 : null)
+  if (moviePacing100 != null && pacing != null) {
     const targetPacing = (pacing / 5) * 100
-    const diff = Math.abs(Number(movie.pacing_score) - targetPacing)
-    score += Math.max(-20, -(diff / 5))
+    const diff = Math.abs(moviePacing100 - targetPacing)
+    score += Math.max(-15, -(diff / 8))
   }
-
-  // 3. INTENSITY ALIGNMENT — dial 1–5 maps to 0–100, penalty up to -20
-  if (movie.intensity_score != null && intensity != null) {
+  const movieIntensity100 = movie.intensity_score_100 ?? (movie.intensity_score != null ? movie.intensity_score * 10 : null)
+  if (movieIntensity100 != null && intensity != null) {
     const targetIntensity = (intensity / 5) * 100
-    const diff = Math.abs(Number(movie.intensity_score) - targetIntensity)
-    score += Math.max(-20, -(diff / 5))
+    const diff = Math.abs(movieIntensity100 - targetIntensity)
+    score += Math.max(-15, -(diff / 8))
   }
 
-  // 4. VIEWING CONTEXT modifier (up to +15)
+  // 5. VIEWING CONTEXT modifier (up to +15)
   score += CONTEXT_MODIFIERS[viewingContext]?.[moodId] ?? 0
 
-  // 5. EXPERIENCE TYPE modifier (up to +15)
+  // 6. EXPERIENCE TYPE modifier (up to +15)
   score += EXPERIENCE_MODIFIERS[experienceType]?.(movie) ?? 0
 
-  // 6. TIME OF DAY small boost (+5)
+  // 7. TIME OF DAY bonus (+5)
   score += getTimeOfDayBonus(moodId, timeOfDay)
 
-  return Math.max(0, Math.min(100, score))
+  return Math.max(0, score)
 }
 
 // Select fields mirroring the homepage engine candidate query
@@ -3420,9 +3559,12 @@ const MOOD_SELECT_FIELDS = `
   ff_rating, ff_final_rating, ff_rating_genre_normalized, ff_confidence,
   vote_average, popularity,
   pacing_score, intensity_score, emotional_depth_score,
+  pacing_score_100, intensity_score_100, emotional_depth_score_100,
   dialogue_density, attention_demand, vfx_level_score,
   discovery_potential, accessibility_score, polarization_score, starpower_score,
-  genres, keywords, director_name, lead_actor_name
+  genres, keywords, director_name, lead_actor_name,
+  mood_tags, tone_tags, fit_profile,
+  user_satisfaction_score, user_satisfaction_confidence
 `
 
 /**
@@ -3530,9 +3672,9 @@ export async function getMoodRecommendations(userId, moodId, options = {}) {
 
   return recommendationCache.getOrFetch(cacheKey, async () => {
     try {
-      // 1. Load genre weights from DB (cached in memory after first load)
-      const weights = await loadMoodGenreWeights(moodId)
-      if (weights.length === 0) {
+      // 1. Load genre weights + tag sets from DB (cached in memory after first load)
+      const moodData = await loadMoodData(moodId)
+      if (moodData.weights.length === 0) {
         console.warn(`[Discover] No genre weights for mood ${moodId}`)
         return []
       }
@@ -3541,15 +3683,11 @@ export async function getMoodRecommendations(userId, moodId, options = {}) {
       const profile = await computeUserProfile(userId)
 
       // 3. Fetch candidates from internal movies table (or TMDB fallback)
-      const candidates = await fetchMoodCandidates(moodId, weights, profile, { signal })
+      const candidates = await fetchMoodCandidates(moodId, moodData.weights, profile, { signal })
       if (candidates.length === 0) return []
 
-      // 4. Get watched movie IDs for exclusion
-      const { data: watchedRows } = await supabase
-        .from('user_history')
-        .select('movie_id')
-        .eq('user_id', userId)
-      const watchedIds = new Set((watchedRows || []).map(r => r.movie_id))
+      // 4. Get watched movie IDs for exclusion (from profile — single fetch)
+      const watchedIds = new Set(profile.watchedMovieIds || [])
 
       // 5. Score each candidate
       const moodParams = { intensity, pacing, viewingContext, experienceType, timeOfDay }
@@ -3557,7 +3695,7 @@ export async function getMoodRecommendations(userId, moodId, options = {}) {
         .filter(movie => movie?.id && movie.tmdb_id && !watchedIds.has(movie.id))
         .map(movie => {
           const userResult = scoreMovieForUser(movie, profile, 'mood')
-          const moodScore = scoreMoodAffinity(movie, moodId, weights, moodParams)
+          const moodScore = scoreMoodAffinity(movie, moodId, moodData, moodParams)
           const combined = (0.55 * userResult.score) + (0.45 * moodScore)
           return { movie, combined, userScore: userResult.score, moodScore }
         })
@@ -3706,7 +3844,7 @@ export async function getBecauseYouWatchedRows(userId, options = {}) {
           tmdbId: item.movies.tmdb_id,
           title: item.movies.title,
           userRating,
-          ffFinalRating: item.movies.ff_final_rating ?? item.movies.ff_rating ?? 0,
+          ffFinalRating: item.movies.ff_audience_rating != null ? item.movies.ff_audience_rating / 10 : (item.movies.ff_final_rating ?? item.movies.ff_rating ?? 0),
           director: item.movies.director_name,
           genre: item.movies.primary_genre,
           source: item.source,
@@ -3748,7 +3886,7 @@ export async function getBecauseYouWatchedRows(userId, options = {}) {
               seed_ids: [seed.id],
               exclude_ids: allExcludeIds,
               match_count: limitPerSeed + 10,
-              min_ff_rating: 7.0
+              min_ff_rating: 70
             })
             .then(res => ({ seed, ...res }))
             .catch(err => {
@@ -3781,7 +3919,7 @@ export async function getBecauseYouWatchedRows(userId, options = {}) {
             score += 10
           }
 
-          const _qRating = movie.ff_final_rating ?? movie.ff_rating ?? 0
+          const _qRating = movie.ff_audience_rating != null ? movie.ff_audience_rating / 10 : (movie.ff_final_rating ?? movie.ff_rating ?? 0)
           if (_qRating >= 7.0) score += 10
           else if (_qRating >= 6.5) score += 5
 
@@ -3932,13 +4070,8 @@ export async function getTrendingForUser(userId, options = {}) {
       const seedFilms = await getSeedFilms(userId, profile)
       const seedIds = seedFilms.map(s => s.id).filter(Boolean)
 
-      // 3. Get user's watched movie IDs
-      const { data: watchedData } = await supabase
-        .from('user_history')
-        .select('movie_id')
-        .eq('user_id', userId)
-
-      const watchedIds = watchedData?.map(w => w.movie_id) || []
+      // 3. Get user's watched movie IDs (from profile — single fetch)
+      const watchedIds = profile.watchedMovieIds || []
       const allExcludeIds = [...new Set([...watchedIds, ...stableExcludeIds])]
 
       // 4. Fetch candidates - Focus on RECENT + POPULAR
@@ -3947,13 +4080,17 @@ export async function getTrendingForUser(userId, options = {}) {
         id, tmdb_id, title, overview, tagline,
         original_language, runtime, release_year, release_date,
         poster_path, backdrop_path, trailer_youtube_key,
-        ff_rating, ff_final_rating, ff_community_rating, ff_community_votes,
-        ff_confidence, quality_score, vote_average,
+        ff_rating, ff_final_rating, ff_community_rating, ff_community_confidence, ff_community_votes,
+        ff_critic_rating, ff_critic_confidence, ff_audience_rating, ff_audience_confidence,
+        ff_rating_genre_normalized, ff_confidence, quality_score, vote_average,
         pacing_score, intensity_score, emotional_depth_score,
+        pacing_score_100, intensity_score_100, emotional_depth_score_100,
         dialogue_density, attention_demand, vfx_level_score,
         cult_status_score, popularity, vote_count, revenue,
         director_name, lead_actor_name,
-        genres, keywords, primary_genre
+        genres, keywords, primary_genre,
+        fit_profile,
+        user_satisfaction_score, user_satisfaction_confidence
       `
 
       // Pool 1: Recent quality films (last 2 years) — validated by audience
@@ -3964,7 +4101,7 @@ export async function getTrendingForUser(userId, options = {}) {
         .eq('is_valid', true)
         .not('poster_path', 'is', null)
         .gte('release_year', currentYear - 2)
-        .gte('ff_final_rating', 7.0)
+        .gte('ff_audience_rating', 70)
         .gte('ff_confidence', 60)
         .gte('vote_count', 300)
         .order('popularity', { ascending: false })
@@ -3977,7 +4114,7 @@ export async function getTrendingForUser(userId, options = {}) {
         .eq('is_valid', true)
         .not('poster_path', 'is', null)
         .eq('release_year', currentYear)
-        .gte('ff_final_rating', 7.0)
+        .gte('ff_audience_rating', 70)
         .gte('ff_confidence', 60)
         .gte('vote_count', 300)
         .order('popularity', { ascending: false })
@@ -3991,7 +4128,7 @@ export async function getTrendingForUser(userId, options = {}) {
             seed_ids: seedIds,
             exclude_ids: allExcludeIds,
             match_count: 30,
-            min_ff_rating: 7.0
+            min_ff_rating: 70
           })
 
         if (embError) {
@@ -4147,12 +4284,17 @@ async function getTrendingFallback(limit = 20) {
       id, tmdb_id, title, overview, tagline,
       original_language, runtime, release_year, release_date,
       poster_path, backdrop_path, trailer_youtube_key,
-      ff_rating, ff_confidence, quality_score, vote_average,
+      ff_rating, ff_final_rating, ff_confidence, quality_score, vote_average,
+      ff_critic_rating, ff_critic_confidence, ff_audience_rating, ff_audience_confidence,
+      ff_community_rating, ff_community_confidence, ff_community_votes,
       pacing_score, intensity_score, emotional_depth_score,
+      pacing_score_100, intensity_score_100, emotional_depth_score_100,
       dialogue_density, attention_demand, vfx_level_score,
       cult_status_score, popularity, vote_count, revenue,
       director_name, lead_actor_name,
-      genres, keywords, primary_genre
+      genres, keywords, primary_genre,
+      fit_profile,
+      user_satisfaction_score, user_satisfaction_confidence
     `
 
   const { data } = await supabase
@@ -4161,7 +4303,7 @@ async function getTrendingFallback(limit = 20) {
     .eq('is_valid', true)
     .not('poster_path', 'is', null)
     .gte('release_year', currentYear - 2)
-    .gte('ff_final_rating', 7.0)
+    .gte('ff_audience_rating', 70)
     .gte('ff_confidence', 60)
     .gte('vote_count', 300)
     .order('popularity', { ascending: false })
@@ -4182,7 +4324,7 @@ async function getTrendingFallback(limit = 20) {
     .eq('is_valid', true)
     .not('poster_path', 'is', null)
     .gte('release_year', currentYear - 3)
-    .gte('ff_final_rating', 7.0)
+    .gte('ff_audience_rating', 70)
     .gte('vote_count', 150)
     .order('popularity', { ascending: false })
     .limit(limit)
@@ -4242,13 +4384,8 @@ export async function getHiddenGemsForUser(userId, options = {}) {
       const seedFilms = await getSeedFilms(userId, profile)
       const seedIds = seedFilms.map(s => s.id).filter(Boolean)
 
-      // 3. Get user's watched movie IDs
-      const { data: watchedData } = await supabase
-        .from('user_history')
-        .select('movie_id')
-        .eq('user_id', userId)
-
-      const watchedIds = watchedData?.map(w => w.movie_id) || []
+      // 3. Get user's watched movie IDs (from profile — single fetch)
+      const watchedIds = profile.watchedMovieIds || []
       const allExcludeIds = [...new Set([...watchedIds, ...stableExcludeIds])]
 
       // 4. Fetch candidates - HIDDEN GEM CRITERIA
@@ -4256,13 +4393,17 @@ export async function getHiddenGemsForUser(userId, options = {}) {
         id, tmdb_id, title, overview, tagline,
         original_language, runtime, release_year, release_date,
         poster_path, backdrop_path, trailer_youtube_key,
-        ff_rating, ff_final_rating, ff_community_rating, ff_community_votes,
-        ff_confidence, quality_score, vote_average,
+        ff_rating, ff_final_rating, ff_community_rating, ff_community_confidence, ff_community_votes,
+        ff_critic_rating, ff_critic_confidence, ff_audience_rating, ff_audience_confidence,
+        ff_rating_genre_normalized, ff_confidence, quality_score, vote_average,
         pacing_score, intensity_score, emotional_depth_score,
+        pacing_score_100, intensity_score_100, emotional_depth_score_100,
         dialogue_density, attention_demand, vfx_level_score,
         cult_status_score, popularity, vote_count, revenue,
         director_name, lead_actor_name,
-        genres, keywords, primary_genre
+        genres, keywords, primary_genre,
+        fit_profile,
+        user_satisfaction_score, user_satisfaction_confidence
       `
 
       // All 3 pools fire in parallel
@@ -4282,11 +4423,11 @@ export async function getHiddenGemsForUser(userId, options = {}) {
           .select(selectFields)
           .eq('is_valid', true)
           .not('poster_path', 'is', null)
-          .gte('ff_final_rating', 7.2)
+          .gte('ff_audience_rating', 72)
           .gte('ff_confidence', 60)
           .gte('vote_count', 1000)
           .lte('vote_count', 5000)
-          .order('ff_final_rating', { ascending: false })
+          .order('ff_audience_rating', { ascending: false })
           .limit(100),
 
         // Pool 2: Cult gems — any genre, same vote ceiling
@@ -4295,7 +4436,7 @@ export async function getHiddenGemsForUser(userId, options = {}) {
           .select(selectFields)
           .eq('is_valid', true)
           .not('poster_path', 'is', null)
-          .gte('ff_final_rating', 7.2)
+          .gte('ff_audience_rating', 72)
           .gte('ff_confidence', 60)
           .gte('cult_status_score', 60)
           .gte('vote_count', 1000)
@@ -4309,7 +4450,7 @@ export async function getHiddenGemsForUser(userId, options = {}) {
               seed_ids: seedIds,
               exclude_ids: allExcludeIds,
               match_count: 50,
-              min_ff_rating: 7.0
+              min_ff_rating: 70
             })
           : Promise.resolve({ data: null, error: null })
       ])
@@ -4391,7 +4532,7 @@ export async function getHiddenGemsForUser(userId, options = {}) {
         else if (movie.cult_status_score >= 50) gemBoost += 12
 
         // Quality floor bonus (hidden gems should be good)
-        const _gemRating = movie.ff_final_rating ?? movie.ff_rating ?? 0
+        const _gemRating = movie.ff_audience_rating != null ? movie.ff_audience_rating / 10 : (movie.ff_final_rating ?? movie.ff_rating ?? 0)
         if (_gemRating >= 7.5) gemBoost += 15
         else if (_gemRating >= 7.0) gemBoost += 8
 
@@ -4471,12 +4612,17 @@ async function getHiddenGemsFallback(limit = 20) {
       id, tmdb_id, title, overview, tagline,
       original_language, runtime, release_year, release_date,
       poster_path, backdrop_path, trailer_youtube_key,
-      ff_rating, ff_confidence, quality_score, vote_average,
+      ff_rating, ff_final_rating, ff_confidence, quality_score, vote_average,
+      ff_critic_rating, ff_critic_confidence, ff_audience_rating, ff_audience_confidence,
+      ff_community_rating, ff_community_confidence, ff_community_votes,
       pacing_score, intensity_score, emotional_depth_score,
+      pacing_score_100, intensity_score_100, emotional_depth_score_100,
       dialogue_density, attention_demand, vfx_level_score,
       cult_status_score, popularity, vote_count, revenue,
       director_name, lead_actor_name,
-      genres, keywords, primary_genre
+      genres, keywords, primary_genre,
+      fit_profile,
+      user_satisfaction_score, user_satisfaction_confidence
     `
 
   // vote_count 1K–5K is the true "hidden" range in this DB (see data analysis)
@@ -4485,17 +4631,17 @@ async function getHiddenGemsFallback(limit = 20) {
     .select(selectFields)
     .eq('is_valid', true)
     .not('poster_path', 'is', null)
-    .gte('ff_final_rating', 7.2)
+    .gte('ff_audience_rating', 72)
     .gte('ff_confidence', 60)
     .gte('vote_count', 1000)
     .lte('vote_count', 5000)
-    .order('ff_final_rating', { ascending: false })
+    .order('ff_audience_rating', { ascending: false })
     .limit(limit)
 
   if (data?.length) {
     return data.map(movie => ({
       ...movie,
-      _score: (movie.ff_final_rating ?? movie.ff_rating ?? 0) * 10,
+      _score: Number(movie.ff_audience_rating ?? (movie.ff_final_rating ?? movie.ff_rating ?? 0) * 10),
       _pickReason: { label: 'Hidden gem', type: 'fallback_gem' }
     }))
   }
@@ -4506,15 +4652,15 @@ async function getHiddenGemsFallback(limit = 20) {
     .select(selectFields)
     .eq('is_valid', true)
     .not('poster_path', 'is', null)
-    .gte('ff_final_rating', 7.0)
+    .gte('ff_audience_rating', 70)
     .gte('vote_count', 500)
     .lte('vote_count', 8000)
-    .order('ff_final_rating', { ascending: false })
+    .order('ff_audience_rating', { ascending: false })
     .limit(limit)
 
   return (relaxedData || []).map(movie => ({
     ...movie,
-    _score: (movie.ff_final_rating ?? movie.ff_rating ?? 0) * 10,
+    _score: Number(movie.ff_audience_rating ?? (movie.ff_final_rating ?? movie.ff_rating ?? 0) * 10),
     _pickReason: { label: 'Hidden gem', type: 'fallback_gem_relaxed' }
   }))
 }
@@ -4528,7 +4674,7 @@ export async function getThemedRow(userId, rowType, options = {}) {
 
   let query = supabase
     .from('movies')
-    .select('id, tmdb_id, title, poster_path, vote_average, popularity, runtime, star_power, quality_score, pacing_score, intensity_score, emotional_depth_score, dialogue_density')
+    .select('id, tmdb_id, title, poster_path, vote_average, popularity, runtime, star_power, quality_score, pacing_score, intensity_score, emotional_depth_score, pacing_score_100, intensity_score_100, emotional_depth_score_100, dialogue_density')
     .not('vote_average', 'is', null)
 
   // Apply row-specific filters
@@ -4621,13 +4767,8 @@ export async function getSlowContemplative(userId, options = {}) {
       const seedFilms = await getSeedFilms(userId, profile)
       const seedIds = seedFilms.map(s => s.id).filter(Boolean)
 
-      // 3. Get user's watched movie IDs
-      const { data: watchedData } = await supabase
-        .from('user_history')
-        .select('movie_id')
-        .eq('user_id', userId)
-
-      const watchedIds = watchedData?.map(w => w.movie_id) || []
+      // 3. Get user's watched movie IDs (from profile — single fetch)
+      const watchedIds = profile.watchedMovieIds || []
       const allExcludeIds = [...new Set([...watchedIds, ...stableExcludeIds])]
 
       // 4. Fetch candidates - SLOW & CONTEMPLATIVE CRITERIA
@@ -4635,13 +4776,17 @@ export async function getSlowContemplative(userId, options = {}) {
         id, tmdb_id, title, overview, tagline,
         original_language, runtime, release_year, release_date,
         poster_path, backdrop_path, trailer_youtube_key,
-        ff_rating, ff_final_rating, ff_community_rating, ff_community_votes,
-        ff_confidence, quality_score, vote_average,
+        ff_rating, ff_final_rating, ff_community_rating, ff_community_confidence, ff_community_votes,
+        ff_critic_rating, ff_critic_confidence, ff_audience_rating, ff_audience_confidence,
+        ff_rating_genre_normalized, ff_confidence, quality_score, vote_average,
         pacing_score, intensity_score, emotional_depth_score,
+        pacing_score_100, intensity_score_100, emotional_depth_score_100,
         dialogue_density, attention_demand, vfx_level_score,
         cult_status_score, popularity, vote_count, revenue,
         director_name, lead_actor_name,
-        genres, keywords, primary_genre
+        genres, keywords, primary_genre,
+        fit_profile,
+        user_satisfaction_score, user_satisfaction_confidence
       `
 
       // Pool 1: Classic slow contemplative (low pacing, high depth)
@@ -4652,7 +4797,7 @@ export async function getSlowContemplative(userId, options = {}) {
         .not('poster_path', 'is', null)
         .lt('pacing_score', 45)
         .gt('emotional_depth_score', 65)
-        .gte('ff_final_rating', 7.5)
+        .gte('ff_audience_rating', 75)
         .gte('vote_count', THRESHOLDS.MIN_VOTE_COUNT)
         .order('emotional_depth_score', { ascending: false })
         .limit(100)
@@ -4665,7 +4810,7 @@ export async function getSlowContemplative(userId, options = {}) {
         .not('poster_path', 'is', null)
         .gte('attention_demand', 70)
         .lt('pacing_score', 50)
-        .gte('ff_final_rating', 7.5)
+        .gte('ff_audience_rating', 75)
         .gte('vote_count', THRESHOLDS.MIN_VOTE_COUNT)
         .order('attention_demand', { ascending: false })
         .limit(50)
@@ -4677,7 +4822,7 @@ export async function getSlowContemplative(userId, options = {}) {
           seed_ids: seedIds,
           exclude_ids: allExcludeIds,
           match_count: 50,
-          min_ff_rating: 6.0
+          min_ff_rating: 60
         })
 
         if (embError) {
@@ -4836,18 +4981,23 @@ async function getSlowContemplativeFallback(limit = 20) {
       id, tmdb_id, title, overview, tagline,
       original_language, runtime, release_year, release_date,
       poster_path, backdrop_path, trailer_youtube_key,
-      ff_rating, ff_confidence, quality_score, vote_average,
+      ff_rating, ff_final_rating, ff_confidence, quality_score, vote_average,
+      ff_critic_rating, ff_critic_confidence, ff_audience_rating, ff_audience_confidence,
+      ff_community_rating, ff_community_confidence, ff_community_votes,
       pacing_score, intensity_score, emotional_depth_score,
+      pacing_score_100, intensity_score_100, emotional_depth_score_100,
       dialogue_density, attention_demand, vfx_level_score,
       cult_status_score, popularity, vote_count, revenue,
       director_name, lead_actor_name,
-      genres, keywords, primary_genre
+      genres, keywords, primary_genre,
+      fit_profile,
+      user_satisfaction_score, user_satisfaction_confidence
     `)
     .eq('is_valid', true)
     .not('poster_path', 'is', null)
     .lt('pacing_score', 45)
     .gt('emotional_depth_score', 65)
-    .gte('ff_final_rating', 7.5)
+    .gte('ff_audience_rating', 75)
     .gte('vote_count', THRESHOLDS.MIN_VOTE_COUNT)
     .order('emotional_depth_score', { ascending: false })
     .limit(limit)
@@ -4907,13 +5057,8 @@ export async function getQuickWatches(userId, options = {}) {
       const seedFilms = await getSeedFilms(userId, profile)
       const seedIds = seedFilms.map(s => s.id).filter(Boolean)
 
-      // 3. Get user's watched movie IDs
-      const { data: watchedData } = await supabase
-        .from('user_history')
-        .select('movie_id')
-        .eq('user_id', userId)
-
-      const watchedIds = watchedData?.map(w => w.movie_id) || []
+      // 3. Get user's watched movie IDs (from profile — single fetch)
+      const watchedIds = profile.watchedMovieIds || []
       const allExcludeIds = [...new Set([...watchedIds, ...stableExcludeIds])]
 
       // 4. Fetch candidates - SHORT RUNTIME CRITERIA
@@ -4921,13 +5066,17 @@ export async function getQuickWatches(userId, options = {}) {
         id, tmdb_id, title, overview, tagline,
         original_language, runtime, release_year, release_date,
         poster_path, backdrop_path, trailer_youtube_key,
-        ff_rating, ff_final_rating, ff_community_rating, ff_community_votes,
-        ff_confidence, quality_score, vote_average,
+        ff_rating, ff_final_rating, ff_community_rating, ff_community_confidence, ff_community_votes,
+        ff_critic_rating, ff_critic_confidence, ff_audience_rating, ff_audience_confidence,
+        ff_rating_genre_normalized, ff_confidence, quality_score, vote_average,
         pacing_score, intensity_score, emotional_depth_score,
+        pacing_score_100, intensity_score_100, emotional_depth_score_100,
         dialogue_density, attention_demand, vfx_level_score,
         cult_status_score, popularity, vote_count, revenue,
         director_name, lead_actor_name,
-        genres, keywords, primary_genre
+        genres, keywords, primary_genre,
+        fit_profile,
+        user_satisfaction_score, user_satisfaction_confidence
       `
 
       // Pool 1: Quality short films (under 90 min)
@@ -4938,9 +5087,9 @@ export async function getQuickWatches(userId, options = {}) {
         .not('poster_path', 'is', null)
         .not('runtime', 'is', null)
         .lt('runtime', 90)
-        .gte('ff_final_rating', 7.5)
+        .gte('ff_audience_rating', 75)
         .gte('vote_count', THRESHOLDS.MIN_VOTE_COUNT)
-        .order('ff_final_rating', { ascending: false })
+        .order('ff_audience_rating', { ascending: false })
         .limit(100)
 
       // Pool 2: Very short films (under 75 min) with lower rating threshold
@@ -4951,9 +5100,9 @@ export async function getQuickWatches(userId, options = {}) {
         .not('poster_path', 'is', null)
         .not('runtime', 'is', null)
         .lt('runtime', 75)
-        .gte('ff_final_rating', 6.0)
+        .gte('ff_audience_rating', 60)
         .gte('vote_count', THRESHOLDS.MIN_VOTE_COUNT)
-        .order('ff_final_rating', { ascending: false })
+        .order('ff_audience_rating', { ascending: false })
         .limit(50)
 
       // Pool 3: Embedding neighbors filtered to short runtime
@@ -4963,7 +5112,7 @@ export async function getQuickWatches(userId, options = {}) {
           seed_ids: seedIds,
           exclude_ids: allExcludeIds,
           match_count: 50,
-          min_ff_rating: 6.0
+          min_ff_rating: 60
         })
 
         if (embError) {
@@ -5038,7 +5187,7 @@ export async function getQuickWatches(userId, options = {}) {
         else if (runtime < 90) runtimeBoost += 5
 
         // Quality bonus (short doesn't mean bad)
-        const _rtRating = movie.ff_final_rating ?? movie.ff_rating ?? 0
+        const _rtRating = movie.ff_audience_rating != null ? movie.ff_audience_rating / 10 : (movie.ff_final_rating ?? movie.ff_rating ?? 0)
         if (_rtRating >= 7.5) runtimeBoost += 15
         else if (_rtRating >= 7.0) runtimeBoost += 8
 
@@ -5122,25 +5271,30 @@ async function getQuickWatchesFallback(limit = 20) {
       id, tmdb_id, title, overview, tagline,
       original_language, runtime, release_year, release_date,
       poster_path, backdrop_path, trailer_youtube_key,
-      ff_rating, ff_confidence, quality_score, vote_average,
+      ff_rating, ff_final_rating, ff_confidence, quality_score, vote_average,
+      ff_critic_rating, ff_critic_confidence, ff_audience_rating, ff_audience_confidence,
+      ff_community_rating, ff_community_confidence, ff_community_votes,
       pacing_score, intensity_score, emotional_depth_score,
+      pacing_score_100, intensity_score_100, emotional_depth_score_100,
       dialogue_density, attention_demand, vfx_level_score,
       cult_status_score, popularity, vote_count, revenue,
       director_name, lead_actor_name,
-      genres, keywords, primary_genre
+      genres, keywords, primary_genre,
+      fit_profile,
+      user_satisfaction_score, user_satisfaction_confidence
     `)
     .eq('is_valid', true)
     .not('poster_path', 'is', null)
     .not('runtime', 'is', null)
     .lt('runtime', 90)
-    .gte('ff_final_rating', 7.5)
+    .gte('ff_audience_rating', 75)
     .gte('vote_count', THRESHOLDS.MIN_VOTE_COUNT)
-    .order('ff_final_rating', { ascending: false })
+    .order('ff_audience_rating', { ascending: false })
     .limit(limit)
 
   return (data || []).map(movie => ({
     ...movie,
-    _score: (movie.ff_final_rating ?? movie.ff_rating ?? 0) * 10,
+    _score: Number(movie.ff_audience_rating ?? (movie.ff_final_rating ?? movie.ff_rating ?? 0) * 10),
     _pickReason: { label: `${movie.runtime}m`, type: 'fallback_quick' }
   }))
 }

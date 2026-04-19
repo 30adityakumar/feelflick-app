@@ -54,6 +54,11 @@ const UserSearchPage = lazy(() => import('@/app/pages/people/UserSearchPage'))
 const FeedPage = lazy(() => import('@/app/pages/feed/FeedPage'))
 const ListsPage = lazy(() => import('@/app/pages/lists/ListsPage'))
 const ListDetailPage = lazy(() => import('@/app/pages/lists/ListDetailPage'))
+const MoodBrowsePage = lazy(() => import('@/app/pages/browse/MoodBrowsePage'))
+const CollectionPage = lazy(() => import('@/app/pages/browse/CollectionPage'))
+const CuratedListPage = lazy(() => import('@/app/pages/browse/CuratedListPage'))
+const CuratedListsIndex = lazy(() => import('@/app/pages/browse/CuratedListsIndex'))
+const ChallengesPage = lazy(() => import('@/app/pages/challenges/ChallengesPage'))
 
 // cache monitoring page
 const CacheMonitoring = lazy(() => import('./admin/CacheMonitoring'))
@@ -255,6 +260,12 @@ export const router = sentryCreateBrowserRouter([
       { path: 'trending', element: <LazyRoute Component={MoviesTab} />, errorElement: <ErrorBoundary /> },
       { path: 'discover', element: <LazyRoute Component={DiscoverPage} />, errorElement: <ErrorBoundary /> },
       { path: 'lists/:listId', element: <LazyRoute Component={ListDetailPage} />, errorElement: <ErrorBoundary /> },
+      { path: 'mood/:tag', element: <LazyRoute Component={MoodBrowsePage} />, errorElement: <ErrorBoundary /> },
+      { path: 'tone/:tag', element: <LazyRoute Component={MoodBrowsePage} />, errorElement: <ErrorBoundary /> },
+      { path: 'browse/fit/:profile', element: <LazyRoute Component={MoodBrowsePage} />, errorElement: <ErrorBoundary /> },
+      { path: 'collection/:id', element: <LazyRoute Component={CollectionPage} />, errorElement: <ErrorBoundary /> },
+      { path: 'lists/curated', element: <LazyRoute Component={CuratedListsIndex} />, errorElement: <ErrorBoundary /> },
+      { path: 'lists/curated/:slug', element: <LazyRoute Component={CuratedListPage} />, errorElement: <ErrorBoundary /> },
 
       // Admin-only routes (auth + email allowlist)
       {
@@ -287,6 +298,7 @@ export const router = sentryCreateBrowserRouter([
               { path: 'test-recommendations', element: <LazyRoute Component={TestRecommendations} />, errorElement: <ErrorBoundary /> },
               { path: 'people', element: <LazyRoute Component={UserSearchPage} />, errorElement: <ErrorBoundary /> },
               { path: 'lists', element: <LazyRoute Component={ListsPage} />, errorElement: <ErrorBoundary /> },
+              { path: 'challenges', element: <LazyRoute Component={ChallengesPage} />, errorElement: <ErrorBoundary /> },
 
             ],
           },

@@ -39,19 +39,12 @@ const CONFIG = {
   BATCH_SIZE: 1000
 };
 
-// ============================================================================
-// SIMPLE HASH FOR KEYWORD IDS
-// ============================================================================
-
-function simpleHash(str) {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32bit integer
-  }
-  return Math.abs(hash);
-}
+const GENRE_PRIORITY_ORDER = [
+  'Horror', 'Thriller', 'Mystery', 'Crime', 'War',
+  'Science Fiction', 'Fantasy', 'Documentary', 'Animation', 'Western',
+  'History', 'Music', 'Drama', 'Action', 'Adventure',
+  'Romance', 'Comedy', 'Family', 'TV Movie'
+];
 
 // ============================================================================
 // SYNC GENRES FROM TMDB
@@ -118,13 +111,13 @@ async function processGenres(movies) {
       
       if (!Array.isArray(genres) || genres.length === 0) continue;
       
-      // Set primary_genre (first genre)
-      const primaryGenre = genres[0];
+      // Set primary_genre using priority order
+      const primaryGenre = GENRE_PRIORITY_ORDER.find(g => genres.includes(g)) || genres[0];
       await supabase
         .from('movies')
         .update({ primary_genre: primaryGenre })
         .eq('id', movie.id);
-      
+
       for (const genreName of genres) {
         const genreId = genreMap[genreName.toLowerCase()];
         if (genreId) {
@@ -132,6 +125,8 @@ async function processGenres(movies) {
             movie_id: movie.id,
             genre_id: genreId
           });
+        } else {
+          logger.warn(`  ⚠️ Unmapped genre: '${genreName}' for movie ${movie.id}`);
         }
       }
       
@@ -185,85 +180,69 @@ async function processKeywords(movies) {
     errors: 0
   };
   
-  const allKeywords = new Map(); // name -> { id, name }
+  const allKeywords = new Map(); // id -> { id, name }
   const keywordLinks = [];
-  
-  // Collect all unique keywords first
+
+  // Collect all unique keywords and build movie links
   for (const movie of movies) {
     try {
       if (!movie.keywords) continue;
-      
+
       const keywords = typeof movie.keywords === 'string'
         ? JSON.parse(movie.keywords)
         : movie.keywords;
-      
+
       if (!Array.isArray(keywords) || keywords.length === 0) continue;
-      
-      for (const keyword of keywords) {
-        const keywordLower = keyword.toLowerCase();
-        if (!allKeywords.has(keywordLower)) {
-          allKeywords.set(keywordLower, keyword);
+
+      let movieHasKeywords = false;
+
+      for (const kw of keywords) {
+        // New format: { id, name } objects with TMDB IDs
+        if (typeof kw === 'object' && kw.id) {
+          if (kw.name.length < 2) continue;
+          allKeywords.set(kw.id, { id: kw.id, name: kw.name });
+          keywordLinks.push({ movie_id: movie.id, keyword_id: kw.id });
+          movieHasKeywords = true;
+
+        // Old format: bare strings — skip, will be reprocessed on metadata refresh
+        } else if (typeof kw === 'string') {
+          logger.debug(`  Skipping old-format keyword "${kw}" for movie ${movie.id}`);
         }
       }
-      
-      stats.movies_processed++;
-      
+
+      if (movieHasKeywords) {
+        stats.movies_processed++;
+      }
+
     } catch (error) {
       logger.warn(`  ⚠️  Failed to parse keywords for movie ${movie.id}: ${error.message}`);
       stats.errors++;
     }
   }
-  
+
   stats.unique_keywords = allKeywords.size;
   logger.info(`  Found ${stats.unique_keywords} unique keywords`);
-  
-  // Generate consistent IDs from keyword names
-  const keywordsToUpsert = Array.from(allKeywords.values()).map(name => ({
-    id: simpleHash(name),
-    name: name
-  }));
-  
-  // Upsert keywords
+
+  // Upsert keywords using TMDB IDs
+  const keywordsToUpsert = Array.from(allKeywords.values());
+
   if (keywordsToUpsert.length > 0) {
     for (let i = 0; i < keywordsToUpsert.length; i += CONFIG.BATCH_SIZE) {
       const batch = keywordsToUpsert.slice(i, i + CONFIG.BATCH_SIZE);
-      
+
       const { error } = await supabase
         .from('keywords')
-        .upsert(batch, { 
-          onConflict: 'id', 
-          ignoreDuplicates: true 
+        .upsert(batch, {
+          onConflict: 'id',
+          ignoreDuplicates: true
         });
-      
+
       if (error) {
         logger.error(`  ✗ Failed to insert keyword batch: ${error.message}`);
         stats.errors++;
       } else {
         stats.keywords_inserted += batch.length;
       }
-    }
-  }
-  
-  // Now create keyword-movie links
-  for (const movie of movies) {
-    try {
-      if (!movie.keywords) continue;
-      
-      const keywords = typeof movie.keywords === 'string'
-        ? JSON.parse(movie.keywords)
-        : movie.keywords;
-      
-      if (!Array.isArray(keywords)) continue;
-      
-      for (const keyword of keywords) {
-        keywordLinks.push({
-          movie_id: movie.id,
-          keyword_id: simpleHash(keyword)
-        });
-      }
-      
-    } catch (error) {
-      // Already logged above
     }
   }
   
@@ -333,7 +312,8 @@ async function fetchGenresKeywords(options = {}) {
   
   const config = {
     limit: options.limit || CONFIG.DEFAULT_LIMIT,
-    dryRun: options.dryRun || false
+    dryRun: options.dryRun || false,
+    force: options.force || false
   };
   
   logger.section('🎭 PROCESS GENRES & KEYWORDS');
@@ -347,9 +327,14 @@ async function fetchGenresKeywords(options = {}) {
   };
   
   try {
-    // Sync genre master list
+    // Sync genre master list (skip if already populated)
     if (!config.dryRun) {
-      await syncGenres();
+      const { count } = await supabase.from('genres').select('*', { count: 'exact', head: true });
+      if (count >= 19 && !config.force) {
+        logger.info('📚 Skipping genres sync (already synced, use --force to re-sync)');
+      } else {
+        await syncGenres();
+      }
     }
     
     // Get movies with status='fetching' that have metadata but no keywords
@@ -430,6 +415,7 @@ if (require.main === module) {
   
   const options = {
     dryRun: args.includes('--dry-run'),
+    force: args.includes('--force'),
     limit: CONFIG.DEFAULT_LIMIT
   };
   

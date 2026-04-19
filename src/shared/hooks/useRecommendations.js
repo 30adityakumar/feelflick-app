@@ -813,7 +813,7 @@ export function useRecommendations(
           tmdb_id: movie.tmdb_id,
           title: movie.title,
           poster_path: movie.poster_path,
-          vote_average: movie.ff_final_rating ?? movie.ff_rating ?? movie.vote_average,
+          vote_average: movie.ff_audience_rating != null ? movie.ff_audience_rating / 10 : (movie.ff_final_rating ?? movie.ff_rating ?? movie.vote_average),
           release_date: movie.release_date,
           overview: movie.overview,
           final_score: movie.final_score ?? 0,

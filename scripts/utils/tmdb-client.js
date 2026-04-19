@@ -40,7 +40,7 @@ const tmdbClient = {
   /**
    * Get movie details
    */
-  async getMovie(movieId, appendToResponse = '') {
+  async getMovie(movieId, appendToResponse = 'keywords,videos,external_ids,release_dates,credits') {
     const params = appendToResponse ? { append_to_response: appendToResponse } : {};
     return this.request(`/movie/${movieId}`, params);
   },

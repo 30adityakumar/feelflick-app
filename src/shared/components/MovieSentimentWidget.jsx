@@ -6,6 +6,7 @@ import { supabase } from '@/shared/lib/supabase/client'
 import { ensureMovieInDb } from '@/shared/lib/movies/ensureMovieInDb'
 import StarRating from '@/shared/components/StarRating'
 import { useReflectionPrompt } from '@/shared/hooks/useReflectionPrompt'
+import { invalidatePersonalCache } from '@/shared/services/personalRating'
 
 const SENTIMENTS = [
   {
@@ -128,7 +129,7 @@ export default function MovieSentimentWidget({
           .upsert({
             user_id:     user.id,
             movie_id:    internalId,
-            rating:      rating > 0 ? rating / 2 : null,
+            rating:      rating > 0 ? rating : null,
             review_text: reviewText.trim() || null,
             rated_at:    new Date().toISOString(),
           }, { onConflict: 'user_id,movie_id' })
@@ -164,6 +165,7 @@ export default function MovieSentimentWidget({
       }
 
       setSubmitted(true)
+      if (user?.id) invalidatePersonalCache(user.id).catch(() => {})
       onSaved?.({
         rating,
         sentiment: sentiment ?? null,

@@ -438,9 +438,12 @@ export default function HeroTopPick({
   const year = movie.release_date ? new Date(movie.release_date).getFullYear() : null
   const hours = movie.runtime ? Math.floor(movie.runtime / 60) : 0
   const mins = movie.runtime ? movie.runtime % 60 : 0
-  // FeelFlick rating takes priority over raw TMDB vote_average
-  const ffRating = movie.ff_final_rating ?? movie.ff_rating
-  const displayRating = ffRating != null ? Number(ffRating).toFixed(1) : null
+  // Audience-first score for display
+  const hasAudience = movie.ff_audience_rating != null && (movie.ff_audience_confidence ?? 0) >= 50
+  const hasCritic = movie.ff_critic_rating != null && (movie.ff_critic_confidence ?? 0) >= 50
+  const displayRating = hasAudience ? movie.ff_audience_rating
+    : hasCritic ? movie.ff_critic_rating
+    : null
 
   return (
     <section
@@ -602,11 +605,11 @@ export default function HeroTopPick({
               <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                 {year && <span className="text-xs text-white/50 font-medium">{year}</span>}
 
-                {displayRating && (
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-yellow-300/90">
+                {displayRating != null && (
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-purple-300/90">
                     {year && <span className="text-white/20">·</span>}
-                    <span>★ {displayRating}</span>
-                    <span className="text-white/25 font-normal text-[10px]">FF</span>
+                    <span>{displayRating}</span>
+                    <span className="text-white/30 font-normal text-[10px]">/100</span>
                   </span>
                 )}
 

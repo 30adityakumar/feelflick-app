@@ -97,8 +97,8 @@ export default function MovieCard({
           </h3>
           <p className="mt-1 flex items-center justify-between text-xs text-white/70 font-medium">
             <span>{(movie.release_date || "").slice(0, 4)}</span>
-            <span className="ml-2 rounded-full bg-white/10 px-2 py-0.5 text-xs font-semibold leading-none">
-              ★ {movie.vote_average?.toFixed(1) ?? "–"}
+            <span className="ml-2 rounded-full bg-white/10 px-2 py-0.5 text-xs font-semibold leading-none text-white/60">
+              {movie.vote_average?.toFixed(1) ?? "–"}
             </span>
           </p>
           {movie.status === "onboarding" && (

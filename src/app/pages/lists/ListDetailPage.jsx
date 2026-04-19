@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 
-import { ChevronLeft, Pencil, Trash2, X as XIcon, Film, Globe, Lock, Share2, Check } from 'lucide-react'
+import { ChevronLeft, Pencil, Trash2, X as XIcon, Film, Globe, Share2, Check } from 'lucide-react'
 
 import { supabase } from '@/shared/lib/supabase/client'
 import { tmdbImg } from '@/shared/api/tmdb'

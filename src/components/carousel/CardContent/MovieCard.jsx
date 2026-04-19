@@ -1,6 +1,8 @@
 import { memo, useCallback, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Check, ChevronRight, Eye, EyeOff, Plus, Star } from 'lucide-react'
+import { Check, ChevronRight, Eye, EyeOff, Plus } from 'lucide-react'
+
+import MovieCardRating from '@/shared/components/MovieCardRating'
 import { useNavigate } from 'react-router-dom'
 import { tmdbImg } from '@/shared/api/tmdb'
 import { useWatchlistContext } from '@/contexts/WatchlistContext'
@@ -108,8 +110,12 @@ export const MovieCard = memo(function MovieCard({
   })
 
   const meta = useMemo(() => {
-    const rawRating = movie.ff_final_rating ?? movie.ff_rating ?? (movie.vote_average > 0 ? movie.vote_average : null)
-    const rating = rawRating != null ? Number(rawRating).toFixed(1) : null
+    // Audience-first score for text display (expanded card + below-card meta)
+    const hasAudience = movie.ff_audience_rating != null && (movie.ff_audience_confidence ?? 0) >= 50
+    const hasCritic = movie.ff_critic_rating != null && (movie.ff_critic_confidence ?? 0) >= 50
+    const rating = hasAudience ? movie.ff_audience_rating
+      : hasCritic ? movie.ff_critic_rating
+      : null
     const year = movie.release_date ? new Date(movie.release_date).getFullYear() : null
     const runtime =
       movie.runtime > 0
@@ -287,27 +293,14 @@ export const MovieCard = memo(function MovieCard({
                   ) : (
                     <span />
                   )}
-                  {meta.rating ? (
-                    <motion.span
+                  {meta.rating != null ? (
+                    <motion.div
                       initial={reducedMotion ? false : { opacity: 0, y: -6 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ ...contentTransition, delay: reducedMotion ? 0 : 0.06 }}
-                      className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[0.72rem] font-semibold"
-                      style={{
-                        color: 'var(--color-text)',
-                        background: 'rgba(107, 114, 128, 0.78)',
-                        border: '1px solid rgba(248, 250, 252, 0.22)',
-                        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06)',
-                        backdropFilter: 'var(--blur-md)',
-                        fontFamily: 'var(--font-body)',
-                      }}
                     >
-                      <Star
-                        className="h-3.5 w-3.5"
-                        style={{ fill: 'var(--amber-400)', color: 'var(--amber-400)' }}
-                      />
-                      {meta.rating}
-                    </motion.span>
+                      <MovieCardRating movie={movie} showGenreBadge size="sm" />
+                    </motion.div>
                   ) : null}
                 </div>
 
@@ -486,22 +479,10 @@ export const MovieCard = memo(function MovieCard({
                   opacity: hoverPhase === 'peek' ? 1 : 0.25,
                 }}
               />
-              {meta.rating ? (
-                <span
-                  className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[0.78rem] font-semibold"
-                  style={{
-                        color: 'var(--color-text)',
-                    background: hoverPhase === 'peek' ? 'rgba(49, 27, 73, 0.74)' : 'rgba(15, 23, 42, 0.72)',
-                    border: hoverPhase === 'peek' ? '1px solid rgba(216, 180, 254, 0.22)' : '1px solid rgba(248, 250, 252, 0.12)',
-                    backdropFilter: 'var(--blur-md)',
-                  }}
-                >
-                  <Star
-                    className="h-3.5 w-3.5"
-                    style={{ fill: 'var(--amber-400)', color: 'var(--amber-400)' }}
-                  />
-                  {meta.rating}
-                </span>
+              {meta.rating != null ? (
+                <div className="absolute right-3 top-3">
+                  <MovieCardRating movie={movie} showGenreBadge size="sm" />
+                </div>
               ) : null}
             </motion.div>
           )}
@@ -529,13 +510,9 @@ export const MovieCard = memo(function MovieCard({
           style={{ color: 'var(--color-text-muted)' }}
         >
           {meta.year ? <span>{meta.year}</span> : null}
-          {meta.year && meta.rating ? <span>•</span> : null}
-          {meta.rating ? (
-            <span className="inline-flex items-center gap-1">
-              <Star
-                className="h-3 w-3"
-                style={{ fill: 'var(--amber-400)', color: 'var(--amber-400)' }}
-              />
+          {meta.year && meta.rating != null ? <span>•</span> : null}
+          {meta.rating != null ? (
+            <span className="inline-flex items-center gap-1 font-semibold text-purple-300/80">
               {meta.rating}
             </span>
           ) : null}

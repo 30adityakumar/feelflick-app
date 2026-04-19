@@ -1,157 +1,120 @@
-**FEELFLICK**
+# **FeelFlick — A Mood-First Movie Discovery Platform**
 
-_Films That Know You_
+FeelFlick is a discovery-first movie platform that learns your cinematic identity. It combines a sophisticated multi-signal recommendation engine, a personal taste identity layer, and a structured mood taxonomy no other platform has.
 
-Product Overview & Platform Guide
+The live site is **app.feelflick.com**.
 
-# **What is FeelFlick?**
+---
 
-_FeelFlick is a mood-first movie discovery platform that learns your cinematic identity. The more you watch and rate, the more precisely it knows you._
+# **How Discovery Works**
 
-Most movie platforms answer one question: what's popular right now? FeelFlick answers a different question entirely: what's right for you, right now, based on everything you've watched, how you've felt, and who you are as a film watcher.
+FeelFlick answers a different question than most platforms. Instead of "what's popular right now," it answers "what's right for you, right now."
 
-It sits at the intersection of three things no other platform combines: a sophisticated recommendation engine, a personal taste identity layer, and a social graph built around genuine cinematic affinity.
+## **Mood-Based Sessions**
 
-**The Core Difference**
+Choose from 12 moods — Melancholic, Cozy, Anxious, Overwhelmed, Nostalgic, Silly, Curious, Romantic, Tense, Inspired, Dark, and Adventurous — and FeelFlick builds a personalised film selection in real time.
 
-_FeelFlick is the only platform where your taste profile directly shapes what gets recommended to you - not what's trending, not what advertisers paid to promote, but what genuinely fits who you are._
+| **AI Narration**             | GPT-4.1-mini generates a contextual intro for your mood session, setting the tone before films appear |
+| **Natural Language Input**   | Describe how you feel in your own words — 'tired after a long week but want something hopeful' — and FeelFlick parses it into mood, pacing, intensity, and context signals |
+| **Tag-Aware Matching**       | Each film carries controlled-vocabulary mood_tags, tone_tags, and fit_profile from LLM enrichment. Mood session results match on semantic tag intersection, not just genre |
+| **18-Dimension Scoring**     | Every film is scored across genre affinity, mood signature, tone, fit profile, pacing, intensity, emotional depth, viewing context, time of day, your personal history, feedback signals, and user satisfaction |
+| **Negative Signal Tracking** | Films you skip, genres you avoid, directors whose work doesn't resonate, and fatigued franchises are all tracked and downweighted |
 
-## **The Problem FeelFlick Solves**
+## **Browse by Mood, Tone, or Fit Profile**
 
-Streaming platforms have a discovery problem. With thousands of films available, users spend more time scrolling than watching. Generic recommendations based on viewing history produce safe, predictable suggestions that rarely lead to genuinely memorable films.
+Every film's mood_tags, tone_tags, and fit_profile are clickable chips on the detail page. Tap one to browse the full catalog of films matching that specific emotional signature — 44 auto-generated landing pages spanning moods like haunting, contemplative, whimsical; tones like earnest, urgent, absurdist; and fit profiles from arthouse to comfort_watch.
 
-More fundamentally: no platform treats your relationship with cinema as something worth tracking, understanding, and reflecting back to you. You watch, the algorithm updates silently, and nothing changes. Your taste has no visible shape.
+## **Curated Lists**
 
-FeelFlick treats this differently. Every watch, every rating, every mood session contributes to a living portrait of your cinematic identity - one that you can see, share, and that directly improves what gets recommended to you.
+Ten editorial lists generated from the data layer: Prestige Drama of the 2020s, Challenging Art Cinema, Festival Discoveries, Cult Classics, Comfort Watches, Crowd-Pleasers Critics Didn't Love, Critics' Picks Audiences Missed, Exceptional for Their Kind, Tense & Haunting, World Cinema.
 
-## **The Solution**
+## **Taste Challenges**
 
-FeelFlick connects mood, taste, and social context into a single loop:
+Personalized challenges identify gaps in your watch profile — fit profiles you've never explored, moods absent from your history — and suggest 6 high-quality entry points for each. Surfaced at **/challenges** when you have 10+ watched films.
 
-- You tell FeelFlick how you feel - melancholic, cozy, anxious, silly, overwhelmed, and more
-- The recommendation engine surfaces films matched to your mood, pacing preference, intensity level, and personal taste profile - not popularity
-- You watch, rate, and reflect - building a Cinematic DNA that captures your real preferences
-- Your profile, lists, and activity become visible to the people you follow, creating a social layer built around genuine taste rather than algorithms
+## **Collections**
 
-# **Platform Features**
+Franchise and connected-film collections render on their own pages. Click the collection link on any franchise film's detail page to see the full set in release order with average audience rating.
 
-## **Mood-First Discovery**
+---
 
-The core of FeelFlick. Choose from 12 moods - Melancholic, Cozy, Anxious, Overwhelmed, Nostalgic, Silly, Curious, Romantic, Tense, Inspired, Dark, and Adventurous - and FeelFlick builds a personalised film selection in real time.
+# **The Rating System**
 
-| **AI Narration**             | GPT-4.1-mini generates a contextual intro for your mood session, setting the tone before films appear                                                             |
-| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Natural Language Input**   | Describe how you feel in your own words - 'tired after a long week but want something hopeful' - and FeelFlick parses it into mood, pacing, and intensity signals |
-| **AI Re-ranking**            | After initial results load, AI re-ranks films based on semantic understanding of your mood. Cards marked '↑ AI pick' have been elevated by the model              |
-| **16-Dimension Scoring**     | Every film is scored across genre affinity, pacing, intensity, emotional depth, dialogue density, viewing context, time of day, and your personal history         |
-| **Negative Signal Tracking** | Films you skip, genres you avoid, and directors whose work doesn't resonate are tracked and downweighted - so bad recommendations get rarer over time             |
+Most platforms collapse a film's quality into one number. FeelFlick surfaces five distinct scores, each with explicit confidence:
 
-## **Cinematic DNA - Your Taste Profile**
+| **ff_critic_rating**    | 0-100 critic consensus from Rotten Tomatoes, Metacritic, and IMDb (for widely-vetted films). Bayesian-weighted |
+| **ff_audience_rating**  | 0-100 broad audience consensus from IMDb, TMDB, and Trakt, with language bias correction |
+| **ff_community_rating** | 0-100 satisfaction score from FeelFlick users — blends ratings, completion, sentiment, and feedback |
+| **ff_personal_rating**  | 0-100 predicted score for you specifically, blending objective quality + taste match + your rating scale + trust network. Activates at 10+ rated films |
+| **ff_rating_genre_normalized** | Quality relative to genre. A 7.3 horror is often more notable than a 7.5 drama — this surfaces that |
 
-Every film you mark as watched contributes to your Cinematic DNA - a living portrait of your taste that becomes visible on your profile page.
+Each score has a paired confidence (0-100). Ratings with confidence below 50 are hidden rather than misleading. Detail pages show the full breakdown — critics, audience, community — so every number is traceable to its source.
 
-| **Top Genres**       | Your most-watched genres with percentage breakdowns, shown as visual bars                                                   |
-| -------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| **Top Directors**    | The directors whose work appears most in your history - a strong signal of actual taste                                     |
-| **Mood Patterns**    | Which emotional states you most often watch in, surfaced from your mood sessions                                            |
-| **Rating Style**     | Your average rating and a personality label - 'generous rater', 'tough critic', 'balanced' - based on your scoring patterns |
-| **Taste Summary**    | A single sentence that captures your cinematic identity, computed from your history                                         |
-| **Recently Watched** | The last 6 films you've logged, shown as poster thumbnails                                                                  |
+**Critic/audience split is surfaced as a filter**: "Critics' Picks" shows films critics loved but audiences missed; "Crowd-Pleasers" shows the inverse. This split is the single most useful quality signal because it describes *what kind* of film something is, not just how good.
+
+## **Exceptional for Genre**
+
+A film with ff_rating_genre_normalized ≥ 8.0 earns a "TOP" badge on cards and a full-width badge on detail pages. This surfaces genre-defining work that pure star ratings hide.
+
+---
+
+# **Your Taste Identity**
+
+Every watch contributes to a visible taste profile — the opposite of Netflix's silent algorithm.
+
+## **Taste Fingerprint**
+
+A word cloud of your most-watched mood_tags sized by frequency, your tonal range as percentage chips, and your fit profile distribution as horizontal bars. Every element is a link to browse that slice of the catalog. Lives on the profile page after 5+ watched films.
+
+## **Cinematic DNA**
+
+| **Top Genres**       | Most-watched genres with percentage breakdowns |
+| **Top Directors**    | Directors whose work appears most in your history |
+| **Mood Patterns**    | Emotional states you most often watch in |
+| **Rating Style**     | Your average rating and personality label — 'generous rater', 'tough critic', 'balanced' |
+| **Taste Summary**    | Single sentence capturing your cinematic identity, LLM-generated from your history and taste signature |
+| **Recently Watched** | Last 6 films logged, shown as poster thumbnails |
 
 ## **Quick-Rate Prompt**
 
-Immediately after marking a film as watched, a lightweight 5-star prompt appears inline - no modal, no navigation. Tap a star and the rating saves. If you don't rate within 4 seconds, it auto-dismisses. This is how FeelFlick builds the data that makes recommendations personal.
+Immediately after marking a film as watched, a 5-star half-step rating prompt appears inline — no modal, no navigation. Tap a star and it saves. Auto-dismisses after 4 seconds.
 
-## **AI Reflection Prompts**
+## **Your Take**
 
-When you open the rating modal for a film, FeelFlick generates a film-specific reflection question using GPT-4.1-mini - for example, 'Did the ending of The Truman Show feel like escape or resignation to you?' These aren't generic prompts. They're tailored to the specific film and its themes, encouraging genuine reflection rather than a numeric score.
+Deeper feedback modal below Quick-Rate: 5-star rating (half-steps), written review, sentiment (loved/liked/ok/disliked/hated), viewing context tags, what-stood-out tags, and an AI-generated reflection prompt rooted in the film's specific themes.
 
-## **Social Features**
-
-FeelFlick's social layer is built around taste compatibility, not follower counts.
-
-| **Follow System**   | Follow other users to see their watch activity and ratings in your feed                                                                                                                      |
-| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Activity Feed**   | A chronological feed of films watched and ratings left by people you follow - a real-time window into the taste of your network                                                              |
-| **Public Profiles** | Every user has a shareable profile at /profile/:id showing their Cinematic DNA, top directors, mood patterns, and recently watched films                                                     |
-| **Taste Match**     | When you view someone's profile, FeelFlick computes a compatibility score based on films in common, genre overlap, and mood similarity - with a human-readable sentence explaining the match |
-| **Find People**     | Search for users by name, or discover suggested matches based on taste similarity scores computed from your watch histories                                                                  |
-
-## **Lists - Curated Collections**
-
-Create named, themed collections of films - 'Films that wrecked me', 'Perfect Sunday afternoons', 'Nolan ranked' - and share them publicly.
-
-| **Create & Edit**      | Name your list, add a description, set it as public or private                                                                                                                     |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Add Films Anywhere** | The List button on every film detail page lets you add to any of your lists in two taps                                                                                            |
-| **Shareable URLs**     | Every public list has a canonical URL at app.feelflick.com/lists/:id that works without login                                                                                      |
-| **OG Preview Cards**   | Shared list URLs generate rich preview cards on Twitter, iMessage, Slack, and other platforms - with the list title, description, and the first film's poster as the preview image |
-| **Visitor CTA**        | Unauthenticated visitors see the full list and a 'Create your own on FeelFlick' prompt - the primary growth mechanic                                                               |
-
-# **Why Join FeelFlick?**
-
-## **For the casual viewer**
-
-You know the feeling: you have two hours, you want to watch something, and you spend 45 minutes scrolling through Netflix before giving up and rewatching The Office. FeelFlick solves this. Tell it how you feel and it gives you the right film in under a minute - matched to your mood, your taste, and your history.
-
-## **For the serious film watcher**
-
-Your relationship with cinema deserves to be more than a viewing history hidden in a streaming app's database. FeelFlick surfaces your taste visually - your top directors, your mood patterns, how you rate compared to others. Your Cinematic DNA is yours. It grows with every watch. It's a record of who you are as a film watcher, not just what you've consumed.
-
-## **For the social viewer**
-
-Film is meant to be shared. FeelFlick's social layer isn't built around follower counts and engagement metrics - it's built around genuine taste compatibility. The people you follow are people whose recommendations you'll actually trust, because you can see the Taste Match score and understand why. When someone you follow watches something, you see it. When they rate it highly, that means something.
-
-## **For the list maker**
-
-Some people think in lists. The best films for a breakup. Films that changed how you see architecture. Everything Paul Thomas Anderson has made. FeelFlick gives you a clean, shareable place to build and publish these collections - and when someone clicks your list link, they see the full films, can follow you, and can discover FeelFlick through your curation.
+---
 
 # **How FeelFlick Gets Smarter Over Time**
 
 FeelFlick is designed as a compounding system. Every interaction adds signal:
 
-- Watching a film teaches FeelFlick your genre preferences and director affinities
-- Rating a film teaches it how discriminating you are and what quality means to you
-- Choosing a mood teaches it your emotional patterns - when you want what kind of experience
-- Skipping a recommendation teaches it what to downweight
+- Watching a film teaches FeelFlick your genre preferences, director affinities, and fit profile patterns
+- Rating teaches it how discriminating you are and what quality means to you
+- Completion ratio teaches it what you actually finish, not just what you start
+- Sentiment teaches it the difference between films you respected and films you loved
+- Choosing a mood teaches it your emotional patterns — when you want what kind of experience
+- Skipping teaches it what to downweight; franchise fatigue is detected from skip patterns
 - Following someone with an 87% Taste Match means their ratings become a stronger signal for you
 
-**The Compounding Effect**
+**The Compounding Effect:** A user with 5 watches gets decent recommendations. A user with 50 watches gets recommendations that feel made specifically for them, including a personalized ff_personal_rating that reflects both objective quality and your individual taste.
 
-_A user with 5 watches gets decent recommendations. A user with 50 watches gets recommendations that feel like they were made specifically for them. The recommendation engine uses 6,700+ films with pre-computed semantic embeddings to match at a depth no human curator can reach._
+---
 
 # **Under the Hood**
 
 For those who care about how things work:
 
-| **Film Database**         | 6,700+ films with full metadata, genre tagging, director/cast data, mood scores, and pre-computed semantic embeddings                                                               |
-| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Recommendation Engine** | 16-dimensional scoring pipeline combining base quality, genre matching, language preferences, content style similarity, people affinities, and semantic embedding cosine similarity |
-| **Semantic Search**       | OpenAI text-embedding-3-large (3072 dimensions) via pgvector in PostgreSQL - enables 'Because you loved X' explanations                                                             |
-| **AI Features**           | GPT-4.1-mini powers mood narration, natural language input parsing, film re-ranking, and reflection prompt generation                                                               |
-| **Infrastructure**        | React 18 + Vite frontend, Supabase (PostgreSQL + pgvector), Vercel edge deployment, Cloudflare DNS                                                                                  |
-| **Privacy**               | No advertising. No data selling. No third-party tracking. Your taste data is used only to improve your own recommendations                                                          |
+| **Film Catalog**          | 6,482 films with full TMDB metadata, LLM mood enrichment (mood_tags, tone_tags, fit_profile via GPT-5.4-mini Batch API), external ratings from IMDb/RT/Metacritic/Trakt, and pre-computed semantic embeddings |
+| **Recommendation Engine** | 18-dimensional scoring combining base quality (5-score architecture), genre matching, mood tag intersection, tone matching, fit profile affinity, language preferences, content style (pacing/intensity/emotional depth/dialogue density/attention demand), people affinities (director/writer/cinematographer/lead actor), theme keywords, era and runtime match, feedback loop, and user satisfaction aggregates |
+| **Semantic Search**       | OpenAI text-embedding-3-large (3072 dimensions) via pgvector in PostgreSQL. Embeddings include mood_tags and tone_tags, so "Because you loved X" surfaces films with shared emotional DNA, not just shared plot points |
+| **Mood Taxonomy**         | 30 mood tags, 20 tone tags, 10 fit profiles — controlled vocabulary, semantically consistent across the catalog. No other platform has this |
+| **AI Features**           | GPT-4.1-mini powers mood session narration, natural language mood parsing, post-watch reflection prompts, and taste summary generation. GPT-5.4-mini enriches the catalog with mood/tone/fit tags |
+| **Infrastructure**        | React 18 + Vite frontend, Supabase (PostgreSQL + pgvector + Edge Functions), Vercel deployment, Cloudflare DNS |
+| **Privacy**               | No advertising. No data selling. No third-party tracking. Your taste data is used only to improve your own recommendations |
+
+---
 
 # **What's Coming**
 
-FeelFlick is actively developed. The features below are planned or in progress:
-
-- **Import:** Letterboxd import - bring your existing watch history across in one step, so your profile starts populated from day one
-- **Streaming links:** JustWatch integration - see where every film is streaming in your country, with affiliate links for supported platforms
-- **Social lists:** List following - follow other users' lists and get notified when they add films
-- **People discovery:** Taste Match pre-computation - store pairwise similarity scores so /people suggested section shows real matches at scale
-- **AI profiles:** GPT-generated taste summaries - replace rule-based personality labels with AI-written descriptions of your cinematic identity
-
-# **Get Started**
-
-FeelFlick is free, forever. No credit card required.
-
-**app.feelflick.com**
-
-Sign in with Google. Mark your first five films as watched. See your Cinematic DNA take shape. Then tell FeelFlick how you feel tonight.
-
-_The more you watch, the better it gets._
-
-_FeelFlick - Films That Know You_
-
-app.feelflick.com · April 2026
+FeelFlick is actively developed. Planned: social graph (friends, taste-match scores, trust-weighted ratings), mood journeys (curated multi-film paths), year-in-review, post-credits recommendations, and continued expansion of the mood taxonomy.

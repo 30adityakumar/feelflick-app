@@ -32,8 +32,7 @@ export default function MovieSimilar({ title, items }) {
               {m.title}
             </h3>
             {m.vote_average > 0 && (
-              <p className="text-[10px] text-white/60 flex items-center gap-0.5">
-                <span className="text-purple-400">★</span>{' '}
+              <p className="text-[10px] text-white/40">
                 {Math.round(m.vote_average * 10) / 10}
               </p>
             )}

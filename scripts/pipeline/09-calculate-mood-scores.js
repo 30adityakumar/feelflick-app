@@ -1,5 +1,22 @@
 // scripts/pipeline/09-calculate-mood-scores.js
 
+/**
+ * STATUS: DISABLED (as of 2026-04-17)
+ *
+ * This step populates movie_mood_scores but the recommendation engine
+ * bypasses this table, computing mood affinity inline via
+ * scoreMoodAffinity() in src/shared/services/recommendations.js.
+ *
+ * Known bugs held for redesign:
+ *   - pacing_score / intensity_score scale mismatch with mood preferences
+ *   - user_feedback_score / times_recommended / success_rate never written
+ *   - category → experience_type fuzzy matching is unreliable
+ *
+ * Revival plan: consume mood_tags TEXT[] from step 07 LLM enrichment,
+ * fix scales using pacing_score_100 / intensity_score_100 / emotional_depth_score_100,
+ * migrate frontend getMoodRecommendations to read this table.
+ */
+
 const Logger = require('../utils/logger');
 const { supabase } = require('../utils/supabase');
 

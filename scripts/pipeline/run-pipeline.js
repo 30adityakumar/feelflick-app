@@ -16,6 +16,7 @@ const logger = new Logger('run-pipeline.log');
 const STEP_REQUIRED_ENV = {
   '06-fetch-external-ratings': 'OMDB_API_KEY',
   '06b-fetch-trakt-ratings': 'TRAKT_CLIENT_ID',
+  '07b-enrich-mood-llm': 'OPENAI_API_KEY',
   '08-generate-embeddings': 'OPENAI_API_KEY'
 };
 
@@ -50,8 +51,12 @@ const RUN_MODES = {
       { name: '06-fetch-external-ratings', enabled: true, options: { limit: 100 } },
       { name: '06b-fetch-trakt-ratings',   enabled: true, options: { limit: 100 } },
       { name: '07-calculate-movie-scores', enabled: true },
+      { name: '07b-enrich-mood-llm', enabled: true, options: { limit: 250, mode: 'new' } },
       { name: '08-generate-embeddings', enabled: true, options: { limit: 250 } },
-      { name: '09-calculate-mood-scores', enabled: true, options: { limit: 250 } }
+      // Disabled: movie_mood_scores table is not read by recommendation engine.
+      // Will be revived after step 07 LLM mood_tags enrichment + frontend migration.
+      { name: '09-calculate-mood-scores', enabled: false, options: { limit: 250 } },
+      { name: '10-aggregate-user-satisfaction', enabled: true, options: { limit: 10000 } }
     ]
   },
   refresh: {
@@ -65,8 +70,12 @@ const RUN_MODES = {
       { name: '06-fetch-external-ratings', enabled: true, options: { limit: 200 } },
       { name: '06b-fetch-trakt-ratings',   enabled: true, options: { limit: 200 } },
       { name: '07-calculate-movie-scores', enabled: true },
+      { name: '07b-enrich-mood-llm', enabled: true, options: { limit: 500, mode: 'stale' } },
       { name: '08-generate-embeddings', enabled: true, options: { limit: 200 } },
-      { name: '09-calculate-mood-scores', enabled: true }
+      // Disabled: movie_mood_scores table is not read by recommendation engine.
+      // Will be revived after step 07 LLM mood_tags enrichment + frontend migration.
+      { name: '09-calculate-mood-scores', enabled: false },
+      { name: '10-aggregate-user-satisfaction', enabled: true, options: { limit: 10000 } }
     ]
   },
   'deep-refresh': {
@@ -80,8 +89,10 @@ const RUN_MODES = {
       { name: '06-fetch-external-ratings', enabled: true, options: { limit: 1000 } },
       { name: '06b-fetch-trakt-ratings',   enabled: true, options: { limit: 1000 } },
       { name: '07-calculate-movie-scores', enabled: true },
+      { name: '07b-enrich-mood-llm', enabled: true, options: { limit: 2000, mode: 'stale' } },
       { name: '08-generate-embeddings', enabled: false },
-      { name: '09-calculate-mood-scores', enabled: false }
+      { name: '09-calculate-mood-scores', enabled: false },
+      { name: '10-aggregate-user-satisfaction', enabled: true, options: { limit: 10000 } }
     ]
   },
   full: {
@@ -95,8 +106,12 @@ const RUN_MODES = {
       { name: '06-fetch-external-ratings', enabled: true, options: { limit: 500 } },
       { name: '06b-fetch-trakt-ratings',   enabled: true, options: { limit: 500 } },
       { name: '07-calculate-movie-scores', enabled: true },
+      { name: '07b-enrich-mood-llm', enabled: true, options: { limit: 250, mode: 'new' } },
       { name: '08-generate-embeddings', enabled: true },
-      { name: '09-calculate-mood-scores', enabled: true }
+      // Disabled: movie_mood_scores table is not read by recommendation engine.
+      // Will be revived after step 07 LLM mood_tags enrichment + frontend migration.
+      { name: '09-calculate-mood-scores', enabled: false },
+      { name: '10-aggregate-user-satisfaction', enabled: true, options: { limit: 10000 } }
     ]
   }
 };

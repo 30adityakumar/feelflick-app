@@ -91,7 +91,7 @@ export default function TestRecommendations() {
                     </div>
                     <h3 className="font-medium text-sm line-clamp-2">{movie.title}</h3>
                     <div className="text-xs text-white/50 mt-1">
-                      ⭐ {movie.vote_average?.toFixed(1)}
+                      {movie.ff_audience_rating ?? movie.vote_average?.toFixed(1) ?? '–'}
                     </div>
                   </div>
                 </button>

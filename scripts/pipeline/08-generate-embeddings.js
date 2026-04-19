@@ -4,25 +4,24 @@
  * ============================================================================
  * STEP 08: GENERATE EMBEDDINGS (OpenAI)
  * ============================================================================
- * 
+ *
  * Purpose:
  *   Generate text embeddings for movie semantic search
- *   
+ *
  * Input:
  *   - Movies with status='scoring' and has_embeddings=false
- *   
+ *
  * Output:
- *   - Embeddings generated using OpenAI text-embedding-3-small
+ *   - Embeddings generated using OpenAI text-embedding-3-large (3072 dims)
  *   - has_embeddings=true
- *   - Status updated to 'complete' ✅ FULLY PROCESSED
- *   
- * Model:
- *   text-embedding-3-small (1536 dimensions, $0.02/1M tokens)
- *   
- * Rate Limits:
- *   OpenAI: 3,000 RPM (requests per minute)
- *   Script enforces: ~400/minute with 150ms delay
- * 
+ *   - Status updated to 'complete'
+ *
+ * Options:
+ *   --limit=N       Process max N movies (default: 10000)
+ *   --dry-run       Simulate without making changes
+ *   --rebuild       Re-embed already-embedded movies (ignores has_embeddings)
+ *   --model=NAME    Override embedding model
+ *
  * ============================================================================
  */
 
@@ -35,52 +34,129 @@ const OpenAI = require('openai');
 const logger = new Logger('08-generate-embeddings.log');
 
 // ============================================================================
+// SINGLE SOURCE OF TRUTH — model & cost constants
+// ============================================================================
+
+const EMBEDDING_MODEL = 'text-embedding-3-large';
+const EMBEDDING_DIMENSIONS = 3072;
+const EMBEDDING_COST_PER_1K = 0.00013; // OpenAI public pricing
+
+// ============================================================================
 // CONFIGURATION
 // ============================================================================
 
 const CONFIG = {
-  MAX_MOVIES: 10000,           // Process up to 10k movies per run
-  BATCH_UPDATE_SIZE: 50,       // Update DB every 50 embeddings
-  RATE_LIMIT_DELAY_MS: 150,    // 150ms = ~400 requests/minute
-  MAX_TEXT_LENGTH: 8000,       // OpenAI limit
+  MODEL: EMBEDDING_MODEL,
+  DIMENSIONS: EMBEDDING_DIMENSIONS,
+  MAX_TEXT_LENGTH: 16000,
+  BATCH_API_SIZE: 100,         // OpenAI inputs per request
+  MAX_MOVIES: 10000,
+  BATCH_UPDATE_SIZE: 50,
+  RATE_LIMIT_DELAY_MS: 500,    // between batched API calls, not per movie
   MAX_RETRIES: 3,
-  RETRY_DELAY_MS: 2000
+  RETRY_DELAY_MS: 2000,
 };
 
-const openai = new OpenAI({ 
-  apiKey: process.env.OPENAI_API_KEY 
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
 });
 
 // ============================================================================
-// GENERATE EMBEDDING WITH RETRY
+// BUILD EMBEDDING TEXT
 // ============================================================================
 
-async function generateEmbeddingWithRetry(text, movieTitle, retryCount = 0) {
+function buildEmbeddingText(movie) {
+  const parts = [];
+
+  // Title with year disambiguates remakes
+  if (movie.title) {
+    const year = movie.release_date ? new Date(movie.release_date).getFullYear() : null;
+    parts.push(year ? `${movie.title} (${year})` : movie.title);
+  }
+
+  // Overview
+  if (movie.overview) parts.push(movie.overview);
+
+  // Tagline
+  if (movie.tagline && movie.tagline !== movie.overview) parts.push(movie.tagline);
+
+  // Genres (JSONB array of strings)
+  if (movie.genres) {
+    try {
+      const genres = Array.isArray(movie.genres) ? movie.genres : JSON.parse(movie.genres);
+      if (genres.length > 0) parts.push(`Genres: ${genres.join(', ')}`);
+    } catch (_) {}
+  }
+
+  // Keywords — extract .name from {id, name} objects (REGRESSION FIX)
+  if (movie.keywords) {
+    try {
+      const raw = Array.isArray(movie.keywords) ? movie.keywords : JSON.parse(movie.keywords);
+      const names = raw
+        .map(k => typeof k === 'string' ? k : (k?.name || ''))
+        .filter(Boolean)
+        .slice(0, 10);
+      if (names.length > 0) parts.push(`Keywords: ${names.join(', ')}`);
+    } catch (_) {}
+  }
+
+  // Collection / franchise
+  if (movie.collection_name) parts.push(`Part of: ${movie.collection_name}`);
+
+  // Production countries
+  if (movie.production_countries?.length > 0) {
+    parts.push(`Country: ${movie.production_countries.slice(0, 3).join(', ')}`);
+  }
+
+  // Crew
+  if (movie.director_name) parts.push(`Directed by ${movie.director_name}`);
+  if (movie.writer_name && movie.writer_name !== movie.director_name) {
+    parts.push(`Written by ${movie.writer_name}`);
+  }
+  if (movie.cinematographer_name) parts.push(`Cinematography: ${movie.cinematographer_name}`);
+
+  // Mood signals from LLM enrichment (step 07b) — improves semantic clustering
+  if (Array.isArray(movie.mood_tags) && movie.mood_tags.length > 0) {
+    parts.push(`Mood: ${movie.mood_tags.join(', ')}`);
+  }
+  if (Array.isArray(movie.tone_tags) && movie.tone_tags.length > 0) {
+    parts.push(`Tone: ${movie.tone_tags.join(', ')}`);
+  }
+  if (movie.fit_profile) {
+    parts.push(`Type: ${movie.fit_profile.replace(/_/g, ' ')}`);
+  }
+
+  return parts.join('. ');
+}
+
+// ============================================================================
+// GENERATE EMBEDDINGS IN BATCH WITH RETRY
+// ============================================================================
+
+async function generateEmbeddingsBatchWithRetry(texts, model, retryCount = 0) {
   try {
     const response = await openai.embeddings.create({
-      model: 'text-embedding-3-large',  // ✅ Generates 3072 dimensions
-    input: text.substring(0, CONFIG.MAX_TEXT_LENGTH)
-  });
-    
+      model,
+      input: texts.map(t => t.substring(0, CONFIG.MAX_TEXT_LENGTH)),
+    });
+
     return {
       success: true,
-      embedding: response.data[0].embedding
+      embeddings: response.data.map(d => d.embedding),
+      usage: response.usage,
     };
-    
+
   } catch (error) {
-    // Handle rate limits
     if (error.status === 429 && retryCount < CONFIG.MAX_RETRIES) {
       const delay = CONFIG.RETRY_DELAY_MS * Math.pow(2, retryCount);
-      logger.warn(`  Rate limited for "${movieTitle}", waiting ${delay}ms... (retry ${retryCount + 1}/${CONFIG.MAX_RETRIES})`);
-      
+      logger.warn(`  Rate limited, waiting ${delay}ms... (retry ${retryCount + 1}/${CONFIG.MAX_RETRIES})`);
       await new Promise(resolve => setTimeout(resolve, delay));
-      return generateEmbeddingWithRetry(text, movieTitle, retryCount + 1);
+      return generateEmbeddingsBatchWithRetry(texts, model, retryCount + 1);
     }
-    
-    // Handle other errors
+
     return {
       success: false,
-      error: error.message
+      error: error.message,
     };
   }
 }
@@ -91,19 +167,19 @@ async function generateEmbeddingWithRetry(text, movieTitle, retryCount = 0) {
 
 async function batchUpdateMovies(updates) {
   if (updates.length === 0) return { success: true, count: 0 };
-  
+
   try {
     const { error } = await supabase
       .from('movies')
-      .upsert(updates, { 
+      .upsert(updates, {
         onConflict: 'id',
-        ignoreDuplicates: false 
+        ignoreDuplicates: false
       });
-    
+
     if (error) throw error;
-    
+
     return { success: true, count: updates.length };
-    
+
   } catch (error) {
     logger.error(`Batch update failed: ${error.message}`);
     return { success: false, error: error.message };
@@ -111,64 +187,45 @@ async function batchUpdateMovies(updates) {
 }
 
 // ============================================================================
-// BUILD EMBEDDING TEXT
+// QUALITY SAMPLING — spot-check nearest neighbors after embedding
 // ============================================================================
 
-function buildEmbeddingText(movie) {
-  const parts = [];
-  
-  // Title (most important)
-  if (movie.title) {
-    parts.push(movie.title);
-  }
-  
-  // Overview/description
-  if (movie.overview) {
-    parts.push(movie.overview);
-  }
-  
-  // Tagline
-  if (movie.tagline && movie.tagline !== movie.overview) {
-    parts.push(movie.tagline);
-  }
-  
-  // Genres
-  if (movie.genres) {
+async function sampleNeighborQuality(processedIds) {
+  const sampleSize = Math.min(5, processedIds.length);
+  const sampleIds = processedIds.slice(0, sampleSize);
+
+  logger.info('\n🔍 Quality sampling — nearest neighbors for first embeddings:');
+
+  for (const id of sampleIds) {
     try {
-      const genres = Array.isArray(movie.genres) 
-        ? movie.genres 
-        : JSON.parse(movie.genres);
-      
-      if (genres.length > 0) {
-        parts.push(`Genres: ${genres.join(', ')}`);
+      const { data: neighbors } = await supabase.rpc('match_movies_by_seeds', {
+        seed_ids: [id],
+        exclude_ids: [],
+        match_count: 5,
+        min_ff_rating: 0,
+      });
+      const { data: seed } = await supabase.from('movies').select('title, mood_tags').eq('id', id).single();
+
+      if (seed && neighbors) {
+        // Fetch mood_tags for neighbors
+        const neighborIds = neighbors.slice(0, 5).map(n => n.id);
+        const { data: neighborMoods } = await supabase
+          .from('movies')
+          .select('id, mood_tags')
+          .in('id', neighborIds);
+        const moodMap = new Map((neighborMoods || []).map(n => [n.id, n.mood_tags]));
+
+        const seedTags = (seed.mood_tags || []).slice(0, 3).join(',');
+        const neighborStr = neighbors.slice(0, 5).map(n => {
+          const tags = (moodMap.get(n.id) || []).slice(0, 2).join(',');
+          return `${n.title}[${tags}]`;
+        }).join(' | ');
+        logger.info(`  🔍 "${seed.title}" [${seedTags}] → ${neighborStr}`);
       }
-    } catch (e) {
-      // Ignore parse errors
+    } catch (err) {
+      logger.warn(`  Neighbor query failed for movie ${id}: ${err.message}`);
     }
   }
-  
-  // Keywords (top 10 for relevance)
-  if (movie.keywords) {
-    try {
-      const keywords = Array.isArray(movie.keywords)
-        ? movie.keywords
-        : JSON.parse(movie.keywords);
-      
-      if (keywords.length > 0) {
-        const topKeywords = keywords.slice(0, 10);
-        parts.push(`Keywords: ${topKeywords.join(', ')}`);
-      }
-    } catch (e) {
-      // Ignore parse errors
-    }
-  }
-  
-  // Director
-  if (movie.director_name) {
-    parts.push(`Directed by ${movie.director_name}`);
-  }
-  
-  return parts.join('. ');
 }
 
 // ============================================================================
@@ -177,129 +234,160 @@ function buildEmbeddingText(movie) {
 
 async function main(options = {}) {
   const startTime = Date.now();
-  
+
   const config = {
     maxMovies: options.maxMovies || CONFIG.MAX_MOVIES,
-    dryRun: options.dryRun || false
+    dryRun: options.dryRun || false,
+    rebuild: options.rebuild || false,
+    model: options.model || CONFIG.MODEL,
   };
-  
+
   logger.section('🤖 GENERATE EMBEDDINGS (OpenAI)');
-  logger.info(`Model: text-embedding-3-small (1536 dimensions)`);
+  logger.info(`Model: ${config.model} (${EMBEDDING_DIMENSIONS} dimensions)`);
   logger.info(`Max movies: ${config.maxMovies.toLocaleString()}`);
   logger.info(`Dry run: ${config.dryRun ? 'YES' : 'NO'}`);
-  
+  logger.info(`Rebuild: ${config.rebuild ? 'YES' : 'NO'}`);
+
   // Check API key
   if (!process.env.OPENAI_API_KEY) {
     logger.error('OPENAI_API_KEY not set in environment');
     return { success: false, error: 'Missing API key' };
   }
-  
+
   logger.info('API Key: ✓\n');
-  
+
   try {
-    // ✅ UPDATED QUERY: Get movies with status='scoring'
-    const { data: movies, error } = await supabase
+    // Build query — rebuild mode ignores has_embeddings filter
+    let query = supabase
       .from('movies')
-      .select('id, title, overview, tagline, genres, keywords, director_name')
-      .eq('status', 'scoring')           // ← NEW: Only movies ready for embeddings
-      .eq('has_embeddings', false)
-      .is('embedding', null)
+      .select('id, title, overview, tagline, genres, keywords, director_name, writer_name, cinematographer_name, collection_name, production_countries, release_date, original_language, mood_tags, tone_tags, fit_profile')
       .limit(config.maxMovies);
-    
+
+    if (config.rebuild) {
+      query = query.in('status', ['scoring', 'complete']);
+    } else {
+      query = query
+        .eq('status', 'scoring')
+        .eq('has_embeddings', false)
+        .is('embedding', null);
+    }
+
+    const { data: movies, error } = await query;
+
     if (error) throw error;
-    
+
     if (!movies || movies.length === 0) {
       logger.info('✓ All movies have embeddings');
       return { success: true, stats: { processed: 0, success: 0, failed: 0 } };
     }
-    
+
     logger.info(`Found ${movies.length} movies needing embeddings\n`);
-    
+
+    // Log sample embedding text for verification
+    if (movies.length > 0) {
+      const sampleText = buildEmbeddingText(movies[0]);
+      logger.info(`Sample embedding text (${movies[0].title}):`);
+      logger.info(`  "${sampleText.substring(0, 300)}${sampleText.length > 300 ? '...' : ''}"\n`);
+    }
+
     // Stats
     const stats = {
       total: movies.length,
       success: 0,
       failed: 0,
       totalTokens: 0,
-      estimatedCost: 0
+      estimatedCost: 0,
+      apiBatches: 0,
     };
-    
-    // Batch updates buffer
+
+    // Batch updates buffer + processed ID tracker
     const batchUpdates = [];
-    
-    // Process each movie
-    for (let i = 0; i < movies.length; i++) {
-      const movie = movies[i];
-      
-      try {
-        // Build embedding text
-        const text = buildEmbeddingText(movie);
-        
-        // Estimate tokens (rough: ~4 chars per token)
-        const estimatedTokens = Math.ceil(text.length / 4);
-        stats.totalTokens += estimatedTokens;
-        
-        logger.debug(`${i + 1}/${movies.length} Generating embedding: ${movie.title} (~${estimatedTokens} tokens)`);
-        
-        if (config.dryRun) {
-          stats.success++;
+    const processedIds = [];
+
+    // Process movies in API batches
+    for (let batchStart = 0; batchStart < movies.length; batchStart += CONFIG.BATCH_API_SIZE) {
+      const batch = movies.slice(batchStart, batchStart + CONFIG.BATCH_API_SIZE);
+      const texts = batch.map(m => buildEmbeddingText(m));
+
+      // Estimate tokens for this batch
+      const batchTokens = texts.reduce((sum, t) => sum + Math.ceil(t.length / 4), 0);
+      stats.totalTokens += batchTokens;
+
+      const batchNum = Math.floor(batchStart / CONFIG.BATCH_API_SIZE) + 1;
+      const totalBatches = Math.ceil(movies.length / CONFIG.BATCH_API_SIZE);
+      logger.debug(`Batch ${batchNum}/${totalBatches}: ${batch.length} movies (~${batchTokens} tokens)`);
+
+      if (config.dryRun) {
+        stats.success += batch.length;
+        continue;
+      }
+
+      // Call OpenAI
+      const result = await generateEmbeddingsBatchWithRetry(texts, config.model);
+      stats.apiBatches++;
+
+      if (!result.success) {
+        logger.error(`  ✗ Batch ${batchNum} failed: ${result.error}`);
+        stats.failed += batch.length;
+        continue;
+      }
+
+      // Use actual token count from API response when available
+      if (result.usage?.total_tokens) {
+        // Replace estimate with real count for this batch
+        stats.totalTokens = stats.totalTokens - batchTokens + result.usage.total_tokens;
+      }
+
+      // Map embeddings back to movies
+      for (let j = 0; j < batch.length; j++) {
+        const movie = batch[j];
+        const embedding = result.embeddings[j];
+
+        if (!embedding) {
+          logger.error(`  ✗ No embedding returned for ${movie.title}`);
+          stats.failed++;
           continue;
         }
-        
-        // Generate embedding with retry
-        const result = await generateEmbeddingWithRetry(text, movie.title);
-        
-        if (result.success) {
-          // Prepare update
-          batchUpdates.push({
-            id: movie.id,
-            embedding: `[${result.embedding.join(',')}]`,
-            has_embeddings: true,
-            last_embedding_at: new Date().toISOString(),
-            
-            // ✅ CRITICAL: Update status to 'complete'
-            status: 'complete',  // ← Movie is now FULLY PROCESSED!
-            
-            updated_at: new Date().toISOString()
-          });
-          
-          stats.success++;
-          
-          logger.success(`  ✓ ${movie.title}`);
-          
-          // Batch flush
-          if (batchUpdates.length >= CONFIG.BATCH_UPDATE_SIZE) {
-            const updateResult = await batchUpdateMovies(batchUpdates);
-            if (updateResult.success) {
-              logger.info(`  💾 Batch updated: ${updateResult.count} movies`);
-            }
-            batchUpdates.length = 0;
-          }
-          
-        } else {
-          logger.error(`  ✗ Failed: ${movie.title} - ${result.error}`);
-          stats.failed++;
+
+        batchUpdates.push({
+          id: movie.id,
+          embedding: `[${embedding.join(',')}]`,
+          has_embeddings: true,
+          last_embedding_at: new Date().toISOString(),
+          status: 'complete',
+          updated_at: new Date().toISOString()
+        });
+
+        processedIds.push(movie.id);
+        stats.success++;
+
+        logger.debug(`  ✓ ${movie.title}`);
+      }
+
+      // Flush DB updates when buffer is full
+      if (batchUpdates.length >= CONFIG.BATCH_UPDATE_SIZE) {
+        const updateResult = await batchUpdateMovies(batchUpdates);
+        if (updateResult.success) {
+          logger.info(`  💾 Batch updated: ${updateResult.count} movies`);
         }
-        
-        // Rate limiting
-        if (i < movies.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, CONFIG.RATE_LIMIT_DELAY_MS));
-        }
-        
-        // Progress logging
-        if ((i + 1) % 50 === 0) {
-          const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-          const rate = (stats.success / (elapsed / 60)).toFixed(1);
-          const pct = ((i + 1) / movies.length * 100).toFixed(1);
-          logger.info(`\nProgress: ${i + 1}/${movies.length} (${pct}%) | ${rate} embeddings/min | ${elapsed}s`);
-        }
-        
-      } catch (error) {
-        logger.error(`  ✗ Unexpected error for ${movie.title}: ${error.message}`);
-        stats.failed++;
+        batchUpdates.length = 0;
+      }
+
+      // Progress logging
+      const processed = batchStart + batch.length;
+      if (processed % 200 === 0 || processed === movies.length) {
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+        const rate = (stats.success / (elapsed / 60)).toFixed(1);
+        const pct = (processed / movies.length * 100).toFixed(1);
+        logger.info(`Progress: ${processed}/${movies.length} (${pct}%) | ${rate} embeddings/min | ${elapsed}s`);
+      }
+
+      // Rate limiting between API batches
+      if (batchStart + CONFIG.BATCH_API_SIZE < movies.length) {
+        await new Promise(resolve => setTimeout(resolve, CONFIG.RATE_LIMIT_DELAY_MS));
       }
     }
-    
+
     // Flush remaining updates
     if (batchUpdates.length > 0 && !config.dryRun) {
       logger.info('\nFlushing final batch...');
@@ -308,41 +396,53 @@ async function main(options = {}) {
         logger.success(`✓ Final batch updated: ${result.count} movies`);
       }
     }
-    
-    // Calculate cost (text-embedding-3-small: $0.02/1M tokens)
-    stats.estimatedCost = (stats.totalTokens / 1000000) * 0.02;
-    
+
+    // Calculate cost
+    stats.estimatedCost = (stats.totalTokens / 1000) * EMBEDDING_COST_PER_1K;
+
     // Summary
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
-    
+
     logger.section('📊 SUMMARY');
     logger.info(`Total movies: ${stats.total}`);
     logger.success(`✓ Successfully generated: ${stats.success}`);
-    
+
     if (stats.failed > 0) {
       logger.error(`✗ Failed: ${stats.failed}`);
     }
-    
+
+    logger.info(`\nAPI Calls:`);
+    logger.info(`  Batches: ${stats.apiBatches} (up to ${CONFIG.BATCH_API_SIZE} inputs each)`);
+
     logger.info(`\nTokens & Cost:`);
     logger.info(`  Total tokens: ${stats.totalTokens.toLocaleString()}`);
-    logger.info(`  Estimated cost: $${stats.estimatedCost.toFixed(4)}`);
-    
+    logger.info(`  Estimated cost: $${stats.estimatedCost.toFixed(4)} (${EMBEDDING_MODEL} @ $${EMBEDDING_COST_PER_1K}/1k tokens)`);
+
     logger.info(`\nPerformance:`);
     logger.info(`  Duration: ${duration}s`);
-    logger.info(`  Average: ${(stats.success / (duration / 60)).toFixed(1)} embeddings/minute`);
-    
+    logger.info(`  Average: ${stats.success > 0 ? (stats.success / (duration / 60)).toFixed(1) : 0} embeddings/minute`);
+
     if (stats.success > 0) {
       logger.success('\n✅ Embedding generation complete!');
-      logger.success('   Movies are now status=\'complete\' and ready for recommendations! 🎉');
+      logger.success('   Movies are now status=\'complete\' and ready for recommendations!');
     }
-    
+
+    // Quality sampling — spot-check nearest neighbors
+    if (stats.success > 0 && !config.dryRun && processedIds.length > 0) {
+      try {
+        await sampleNeighborQuality(processedIds);
+      } catch (err) {
+        logger.warn(`Quality sampling failed: ${err.message}`);
+      }
+    }
+
     logger.info(`\nLog file: ${logger.getLogFilePath()}`);
-    
+
     return {
       success: stats.failed === 0 || stats.success > 0,
       stats
     };
-    
+
   } catch (error) {
     logger.error('Fatal error:', { error: error.message, stack: error.stack });
     return { success: false, error: error.message };
@@ -355,18 +455,23 @@ async function main(options = {}) {
 
 if (require.main === module) {
   const args = process.argv.slice(2);
-  
+
   const options = {
     dryRun: args.includes('--dry-run'),
+    rebuild: args.includes('--rebuild'),
     maxMovies: CONFIG.MAX_MOVIES
   };
-  
-  // Parse --limit=N (legacy) or --max-movies=N
+
+  // Parse --limit=N or --max-movies=N
   const limitArg = args.find(arg => arg.startsWith('--limit=') || arg.startsWith('--max-movies='));
   if (limitArg) {
     options.maxMovies = parseInt(limitArg.split('=')[1]) || CONFIG.MAX_MOVIES;
   }
-  
+
+  // Parse --model=NAME
+  const modelArg = args.find(a => a.startsWith('--model='));
+  if (modelArg) options.model = modelArg.split('=')[1];
+
   // Help
   if (args.includes('--help') || args.includes('-h')) {
     console.log(`
@@ -381,21 +486,26 @@ OPTIONS:
   --limit=N          Process max N movies (default: ${CONFIG.MAX_MOVIES.toLocaleString()})
   --max-movies=N     Alias for --limit
   --dry-run          Simulate without making changes
+  --rebuild          Re-embed already-embedded movies
+  --model=NAME       Override embedding model (default: ${EMBEDDING_MODEL})
   --help, -h         Show this help message
 
 MODEL:
-  text-embedding-3-small
-  - 1536 dimensions
-  - $0.02 per 1M tokens
-  - ~400 requests/minute rate limit
+  ${EMBEDDING_MODEL}
+  - ${EMBEDDING_DIMENSIONS} dimensions
+  - $${EMBEDDING_COST_PER_1K} per 1k tokens
+  - Batched: ${CONFIG.BATCH_API_SIZE} inputs per API call
 
 EXAMPLES:
   # Generate embeddings for up to 10k movies
   node scripts/pipeline/08-generate-embeddings.js
-  
+
   # Generate for 1000 movies
   node scripts/pipeline/08-generate-embeddings.js --limit=1000
-  
+
+  # Re-embed existing movies
+  node scripts/pipeline/08-generate-embeddings.js --rebuild --limit=100
+
   # Dry run to estimate cost
   node scripts/pipeline/08-generate-embeddings.js --dry-run --limit=100
 
@@ -405,7 +515,7 @@ NOTE:
 `);
     process.exit(0);
   }
-  
+
   // Execute
   main(options)
     .then(result => {

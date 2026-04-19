@@ -24,6 +24,9 @@ const SELECT_FIELDS = [
   'pacing_score', 'intensity_score', 'emotional_depth_score',
   'cult_status_score', 'discovery_potential', 'accessibility_score', 'vfx_level_score',
   'director_name', 'dialogue_density', 'attention_demand',
+  'ff_critic_rating', 'ff_critic_confidence',
+  'ff_audience_rating', 'ff_audience_confidence',
+  'ff_rating_genre_normalized', 'ff_critic_audience_gap',
 ].join(', ')
 
 /**
@@ -55,7 +58,7 @@ function decadeToYearRange(decade) {
  */
 function sortToOrder(sortBy) {
   switch (sortBy) {
-    case 'ff_rating.desc':            return { column: 'ff_final_rating', ascending: false }
+    case 'ff_rating.desc':            return { column: 'ff_audience_rating', ascending: false }
     case 'vote_average.desc':         return { column: 'vote_average', ascending: false }
     case 'vote_count.desc':           return { column: 'vote_count', ascending: false }
     case 'release_date.desc':         return { column: 'release_year', ascending: false }
@@ -88,6 +91,10 @@ function sortToOrder(sortBy) {
  * @param {number[]} opts.watchedIds movie IDs to exclude when hideWatched is true
  * @param {string}  opts.dialogue    "heavy"|"light"
  * @param {string}  opts.attention   "low"|"high"
+ * @param {number}  opts.minCritic   minimum ff_critic_rating (0 = off)
+ * @param {number}  opts.minAudience minimum ff_audience_rating (0 = off)
+ * @param {string}  opts.criticAudienceGap ""|"critic_picks"|"crowd_pleasers"
+ * @param {boolean} opts.exceptionalGenre  filter to ff_rating_genre_normalized >= 8.5
  * @returns {{ movies: object[], totalCount: number, totalPages: number }}
  */
 export async function browseMovies({
@@ -107,6 +114,10 @@ export async function browseMovies({
   watchedIds = [],
   dialogue = '',
   attention = '',
+  minCritic = 0,
+  minAudience = 0,
+  criticAudienceGap = '',
+  exceptionalGenre = false,
 } = {}) {
   const from = (page - 1) * PAGE_SIZE
   const to = from + PAGE_SIZE - 1
@@ -136,7 +147,8 @@ export async function browseMovies({
 
   // ── Quality / Rating ───────────────────────────────────────────────────────
   if (rating) {
-    q = q.gte('ff_final_rating', Number(rating))
+    // rating param is on 0-10 scale from URL; convert to 0-100 for ff_audience_rating
+    q = q.gte('ff_audience_rating', Math.round(Number(rating) * 10))
   }
 
   // ── Runtime ────────────────────────────────────────────────────────────────
@@ -200,6 +212,35 @@ export async function browseMovies({
     q = q.lte('attention_demand', 35).not('attention_demand', 'is', null)
   } else if (attention === 'high') {
     q = q.gte('attention_demand', 65).not('attention_demand', 'is', null)
+  }
+
+  // ── Critic floor ────────────────────────────────────────────────────────────
+  if (minCritic > 0) {
+    q = q.gte('ff_critic_rating', minCritic).gte('ff_critic_confidence', 60)
+  }
+
+  // ── Audience floor ─────────────────────────────────────────────────────────
+  if (minAudience > 0) {
+    q = q.gte('ff_audience_rating', minAudience).gte('ff_audience_confidence', 60)
+  }
+
+  // ── Critic/audience gap ────────────────────────────────────────────────────
+  if (criticAudienceGap === 'critic_picks') {
+    q = q
+      .gte('ff_critic_audience_gap', 15)
+      .gte('ff_critic_confidence', 60)
+      .gte('ff_audience_confidence', 60)
+  } else if (criticAudienceGap === 'crowd_pleasers') {
+    q = q
+      .lte('ff_critic_audience_gap', -15)
+      .gte('ff_critic_confidence', 60)
+      .gte('ff_audience_confidence', 60)
+  }
+
+  // ── Exceptional for genre ──────────────────────────────────────────────────
+  // ASSUMPTION: threshold 8.0 instead of 8.5 — current data tops out at 8.4
+  if (exceptionalGenre) {
+    q = q.gte('ff_rating_genre_normalized', 8.0)
   }
 
   // ── Sort & Pagination ──────────────────────────────────────────────────────

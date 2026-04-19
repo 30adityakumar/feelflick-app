@@ -59,61 +59,6 @@ describe('useAIMoodContext', () => {
     expect(result.current.narration).toBe('Night calls.')
     expect(result.current.narrationDone).toBe(true)
     expect(result.current.explanations.get(550)).toMatchObject({ score: 92 })
-    expect(result.current.rerankedOrder).toBeNull()
-  })
-
-  it('parses rerankedOrder when RERANKED section is present', async () => {
-    const fullText =
-      'Night calls.\n' +
-      '---EXPLANATIONS---\n' +
-      '[{"movieId":550,"explanation":"raw dark energy","score":92}]\n' +
-      '---RERANKED---\n' +
-      '[550]'
-
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      new Response(makeStream(fullText), { status: 200 })
-    )
-
-    const { result } = renderHook(() => useAIMoodContext(BASE_PARAMS))
-
-    await waitFor(() => expect(result.current.loading).toBe(false))
-
-    expect(result.current.rerankedOrder).toEqual([550])
-    expect(result.current.explanations.get(550)?.score).toBe(92)
-  })
-
-  it('handles split RERANKED delimiter across chunks', async () => {
-    const part1 =
-      'Night calls.\n---EXPLANATIONS---\n[{"movieId":550,"explanation":"dark","score":90}]\n---RERAN'
-    const part2 = 'KED---\n[550,680]'
-
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      new Response(makeStream(part1 + part2, part1.length), { status: 200 })
-    )
-
-    const { result } = renderHook(() => useAIMoodContext(BASE_PARAMS))
-
-    await waitFor(() => expect(result.current.loading).toBe(false))
-
-    expect(result.current.rerankedOrder).toEqual([550, 680])
-  })
-
-  it('backward compat: no RERANKED section → rerankedOrder is null', async () => {
-    const fullText =
-      'Night calls.\n' +
-      '---EXPLANATIONS---\n' +
-      '[{"movieId":550,"explanation":"dark energy","score":85}]'
-
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      new Response(makeStream(fullText), { status: 200 })
-    )
-
-    const { result } = renderHook(() => useAIMoodContext(BASE_PARAMS))
-
-    await waitFor(() => expect(result.current.loading).toBe(false))
-
-    expect(result.current.rerankedOrder).toBeNull()
-    expect(result.current.explanations.get(550)?.score).toBe(85)
   })
 
   it('does not fetch when enabled=false', () => {

@@ -56,7 +56,7 @@ async function calculateCastMetadata(movie) {
         )
       `)
       .eq('movie_id', movie.id)
-      .or('job.eq.Acting,job.eq.Actor')
+      .eq('job', 'Acting')
       .order('billing_order', { ascending: true });
     
     if (castError) {
@@ -73,60 +73,68 @@ async function calculateCastMetadata(movie) {
         updateData: {
           avg_cast_popularity: 0,
           max_cast_popularity: 0,
-          min_cast_popularity: 0,
           top3_cast_avg: 0,
-          cast_count: 0
+          top3_popularity_rank_cast_avg: 0,
+          cast_count: 0,
+          cast_metadata_recomputed_at: new Date().toISOString()
         }
       };
     }
-    
+
     // Extract popularity values
     const popularities = castMembers
       .map(c => c.people?.popularity)
       .filter(p => p != null && p > 0);
-    
+
     // ✅ STILL UPDATE if no popularity data
     if (popularities.length === 0) {
       logger.debug(`  ⚠️  No popularity data for cast of: ${movie.title}`);
-      
+
       return {
         success: true,
         movieId: movie.id,
         updateData: {
           avg_cast_popularity: 0,
           max_cast_popularity: 0,
-          min_cast_popularity: 0,
           top3_cast_avg: 0,
-          cast_count: castMembers.length
+          top3_popularity_rank_cast_avg: 0,
+          cast_count: castMembers.length,
+          cast_metadata_recomputed_at: new Date().toISOString()
         }
       };
     }
-    
+
     // Calculate statistics
     const avg_cast_popularity = popularities.reduce((sum, p) => sum + p, 0) / popularities.length;
     const max_cast_popularity = Math.max(...popularities);
-    const min_cast_popularity = Math.min(...popularities);
-    
-    // Top 3 cast average
+
+    // Top 3 cast average (billing order)
     const top3 = popularities.slice(0, Math.min(3, popularities.length));
     const top3_cast_avg = top3.reduce((sum, p) => sum + p, 0) / top3.length;
-    
+
+    // Top 3 cast average (by popularity rank)
+    const popSorted = [...popularities].sort((a, b) => b - a);
+    const top3Pop = popSorted.slice(0, Math.min(3, popSorted.length));
+    const top3_popularity_rank_cast_avg = top3Pop.reduce((s, p) => s + p, 0) / top3Pop.length;
+
     logger.debug(`  ✓ Cast metadata calculated for: ${movie.title}`, {
       count: castMembers.length,
       avg: avg_cast_popularity.toFixed(2),
       max: max_cast_popularity.toFixed(2),
-      top3: top3_cast_avg.toFixed(2)
+      top3: top3_cast_avg.toFixed(2),
+      top3pop: top3_popularity_rank_cast_avg.toFixed(2)
     });
-    
+
     return {
       success: true,
       movieId: movie.id,
       updateData: {
         avg_cast_popularity,
         max_cast_popularity,
-        min_cast_popularity,
         top3_cast_avg,
-        cast_count: castMembers.length
+        top3_popularity_rank_cast_avg,
+        cast_count: castMembers.length,
+        cast_metadata_recomputed_at: new Date().toISOString()
       }
     };
     
@@ -182,7 +190,8 @@ async function main(options = {}) {
   
   const config = {
     limit: options.limit || CONFIG.DEFAULT_LIMIT,
-    dryRun: options.dryRun || false
+    dryRun: options.dryRun || false,
+    forceRecompute: options.forceRecompute || false
   };
   
   logger.section('📊 CALCULATE CAST METADATA');
@@ -190,13 +199,24 @@ async function main(options = {}) {
   logger.info(`Dry run: ${config.dryRun ? 'YES' : 'NO'}\n`);
   
   try {
-    // Get movies that have credits but no cast metadata
-    const { data: movies, error } = await supabase
+    // Get movies that have credits but need cast metadata (new or stale)
+    const staleDate = new Date();
+    staleDate.setDate(staleDate.getDate() - 60);
+    const staleDateISO = staleDate.toISOString();
+
+    let query = supabase
       .from('movies')
       .select('id, tmdb_id, title')
       .eq('has_credits', true)
-      .is('avg_cast_popularity', null)
       .limit(config.limit);
+
+    if (config.forceRecompute) {
+      logger.info('Mode: Force recompute (all has_credits=true movies)');
+    } else {
+      query = query.or(`avg_cast_popularity.is.null,cast_metadata_recomputed_at.lt.${staleDateISO}`);
+    }
+
+    const { data: movies, error } = await query;
     
     if (error) {
       throw new Error(`Failed to fetch movies: ${error.message}`);
@@ -316,6 +336,7 @@ if (require.main === module) {
   
   const options = {
     dryRun: args.includes('--dry-run'),
+    forceRecompute: args.includes('--force-recompute'),
     limit: CONFIG.DEFAULT_LIMIT
   };
   

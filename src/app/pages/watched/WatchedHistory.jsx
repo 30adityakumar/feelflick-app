@@ -261,7 +261,7 @@ function MovieCard({ entry, removing, onRemove, onClick }) {
               {rating && (
                 <>
                   <span className="text-white/20">·</span>
-                  <span>★ {rating}</span>
+                  <span>{rating}</span>
                 </>
               )}
             </div>

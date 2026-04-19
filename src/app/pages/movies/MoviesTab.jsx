@@ -228,8 +228,8 @@ export default function MoviesTab() {
     <div className="min-h-screen text-white" style={{ background: 'var(--color-bg)' }}>
       {/* Sticky filter bar */}
       <div
-        className="sticky top-0 z-40 border-b border-white/[0.06] backdrop-blur-xl"
-        style={{ background: 'rgba(8, 6, 13, 0.92)', paddingTop: 'var(--hdr-h, 64px)' }}
+        className="sticky z-40 border-b border-white/[0.06] backdrop-blur-xl"
+        style={{ background: 'rgba(8, 6, 13, 0.92)', top: 'var(--hdr-h, 64px)' }}
       >
         <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-12">
           <BrowseSearchBar

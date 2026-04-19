@@ -4,6 +4,7 @@ import { supabase } from '@/shared/lib/supabase/client'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import MovieCardRating from '@/shared/components/MovieCardRating'
 import { ChevronLeft } from 'lucide-react'
+import Button from '@/shared/ui/Button'
 
 const SORT_OPTIONS = [
   { value: 'audience', label: 'Highest rated', orderCol: 'ff_audience_rating', orderDir: 'desc' },
@@ -183,13 +184,9 @@ export default function MoodBrowsePage() {
             </div>
             {hasMore && (
               <div className="mt-8 flex justify-center">
-                <button
-                  onClick={() => setPage(p => p + 1)}
-                  disabled={loading}
-                  className="px-5 py-2.5 rounded-full bg-white/[0.06] border border-white/20 text-sm font-semibold hover:bg-white/[0.1] disabled:opacity-50"
-                >
+                <Button variant="secondary" onClick={() => setPage(p => p + 1)} disabled={loading}>
                   {loading ? 'Loading...' : 'Load more'}
-                </button>
+                </Button>
               </div>
             )}
           </>

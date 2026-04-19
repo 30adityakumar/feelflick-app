@@ -7,6 +7,7 @@ import { motion } from 'framer-motion'
 import { Search, Users } from 'lucide-react'
 
 import { supabase } from '@/shared/lib/supabase/client'
+import Button from '@/shared/ui/Button'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import FollowButton from '@/shared/components/FollowButton'
 
@@ -394,15 +395,16 @@ export default function UserSearchPage() {
                     <Users className="w-5 h-5 text-purple-400/60" />
                   </div>
                   <p className="text-sm text-white/40">People you follow will appear here</p>
-                  <button
-                    type="button"
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    className="mt-1"
                     onClick={() => {
                       document.getElementById('suggestions-section')?.scrollIntoView({ behavior: 'smooth' })
                     }}
-                    className="mt-1 text-xs font-medium px-4 py-1.5 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-400 hover:to-pink-400 transition-all duration-200"
                   >
                     Browse suggestions
-                  </button>
+                  </Button>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

@@ -7,6 +7,7 @@ import { motion } from 'framer-motion'
 import { Bookmark } from 'lucide-react'
 
 import { supabase } from '@/shared/lib/supabase/client'
+import Button from '@/shared/ui/Button'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { useUnreadFeed } from '@/shared/hooks/useUnreadFeed'
 import { tmdbImg } from '@/shared/api/tmdb'
@@ -692,13 +693,9 @@ export default function FeedPage() {
 
                 {/* Load more */}
                 {hasMore && !activeFilter && (
-                  <button
-                    type="button"
-                    onClick={() => setLimit((l) => l + 20)}
-                    className="w-full mt-4 py-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/[0.12] text-xs text-white/40 hover:text-white/70 transition-all duration-200"
-                  >
+                  <Button variant="secondary" size="sm" fullWidth onClick={() => setLimit((l) => l + 20)} className="mt-4">
                     Load more
-                  </button>
+                  </Button>
                 )}
               </>
             )}

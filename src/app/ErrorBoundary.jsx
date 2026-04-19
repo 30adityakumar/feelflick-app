@@ -1,6 +1,7 @@
 // src/app/ErrorBoundary.jsx
 import { Component } from 'react'
 import { AlertTriangle, RefreshCw, Home, Mail } from 'lucide-react'
+import Button from '@/shared/ui/Button'
 
 /**
  * Production-grade Error Boundary with:
@@ -196,22 +197,16 @@ export default class ErrorBoundary extends Component {
               {/* Action buttons */}
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 {errorMsg.canRetry && !this.state.isRetrying && (
-                  <button
-                    onClick={this.handleRetry}
-                    className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold shadow-lg hover:scale-105 active:scale-95 transition-all duration-300 touch-target"
-                  >
+                  <Button variant="primary" size="lg" onClick={this.handleRetry} className="touch-target">
                     <RefreshCw className="w-5 h-5" />
                     Try Again
-                  </button>
+                  </Button>
                 )}
                 
-                <button
-                  onClick={() => window.location.href = '/'}
-                  className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white font-bold hover:bg-white/20 active:scale-95 transition-all duration-300 touch-target"
-                >
+                <Button variant="secondary" size="lg" onClick={() => window.location.href = '/'} className="touch-target">
                   <Home className="w-5 h-5" />
                   Go Home
-                </button>
+                </Button>
               </div>
               
               {/* Retry count indicator */}
@@ -313,13 +308,10 @@ export class SectionErrorBoundary extends Component {
       return (
         <div className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-sm text-white/60">
           <span>{label} couldn&apos;t load right now.</span>
-          <button
-            onClick={this.handleRetry}
-            className="flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-1.5 text-xs font-medium text-white/60 transition hover:bg-white/10 hover:text-white"
-          >
+          <Button variant="secondary" size="sm" onClick={this.handleRetry}>
             <RefreshCw className="h-3.5 w-3.5" />
             Retry
-          </button>
+          </Button>
         </div>
       )
     }

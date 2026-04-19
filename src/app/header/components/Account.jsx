@@ -6,6 +6,7 @@ import {
   Camera, Loader2, Check, LogOut, Shield,
   RefreshCcw, Trash2, User as UserIcon, AlertCircle
 } from 'lucide-react'
+import Button from '@/shared/ui/Button'
 
 export default function Account() {
   const nav = useNavigate()
@@ -264,15 +265,10 @@ export default function Account() {
               <div className="text-sm font-medium text-white">Reset taste profile</div>
               <div className="text-xs text-white/40 mt-0.5">Re-run genre and film setup</div>
             </div>
-            <button
-              type="button"
-              onClick={rerunOnboarding}
-              disabled={busy}
-              className="flex items-center gap-1.5 rounded-lg border border-white/8 bg-white/5 hover:bg-white/10 hover:border-purple-500/30 hover:text-purple-400 px-3 py-1.5 text-xs font-semibold text-white/60 transition-all active:scale-95 disabled:opacity-40"
-            >
+            <Button variant="ghost" size="sm" onClick={rerunOnboarding} disabled={busy}>
               <RefreshCcw className="h-3.5 w-3.5" />
               Reset
-            </button>
+            </Button>
           </div>
         </Card>
 
@@ -291,14 +287,10 @@ export default function Account() {
               <h3 className="text-sm font-semibold text-red-400">Delete account</h3>
               <p className="text-xs text-white/40 mt-0.5">Permanently removes your account and all data. This cannot be undone.</p>
             </div>
-            <button
-              type="button"
-              onClick={requestDelete}
-              className="inline-flex items-center gap-2 rounded-lg border border-red-500/25 bg-red-500/8 hover:bg-red-500/15 px-4 py-2 text-xs font-semibold text-red-400 transition-all active:scale-95 whitespace-nowrap"
-            >
+            <Button variant="destructive" size="sm" onClick={requestDelete} className="whitespace-nowrap">
               <Trash2 className="h-3.5 w-3.5" />
               Delete my account
-            </button>
+            </Button>
           </div>
         </div>
 

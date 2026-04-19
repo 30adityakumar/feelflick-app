@@ -6,6 +6,7 @@ import { motion } from 'framer-motion'
 import { X } from 'lucide-react'
 
 import { supabase } from '@/shared/lib/supabase/client'
+import Button from '@/shared/ui/Button'
 
 // ============================================================================
 // CREATE / EDIT LIST MODAL
@@ -99,14 +100,9 @@ export default function CreateListModal({ onClose, onSave, existingList = null, 
           <h2 className="text-base font-bold text-white">
             {isEdit ? 'Edit list' : 'Create a new list'}
           </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            className="h-8 w-8 rounded-full flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-colors"
-          >
+          <Button variant="icon" size="sm" onClick={onClose} aria-label="Close" className="text-white/40">
             <X className="h-4 w-4" />
-          </button>
+          </Button>
         </div>
 
         {/* Form */}
@@ -163,20 +159,12 @@ export default function CreateListModal({ onClose, onSave, existingList = null, 
 
           {/* Actions */}
           <div className="flex items-center justify-end gap-3 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-lg px-4 py-2 text-sm font-semibold text-white/60 hover:text-white/80 hover:bg-white/5 transition-colors"
-            >
+            <Button variant="secondary" onClick={onClose}>
               Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={!canSubmit}
-              className="rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 px-5 py-2 text-sm font-bold text-white shadow-lg shadow-purple-500/20 transition-all hover:shadow-purple-500/30 active:scale-95 disabled:opacity-40 disabled:pointer-events-none"
-            >
+            </Button>
+            <Button variant="primary" type="submit" disabled={!canSubmit}>
               {saving ? 'Saving\u2026' : isEdit ? 'Save changes' : 'Create list'}
-            </button>
+            </Button>
           </div>
         </form>
       </motion.div>

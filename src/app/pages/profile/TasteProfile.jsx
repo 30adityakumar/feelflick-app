@@ -7,6 +7,7 @@ import { motion } from 'framer-motion'
 import { Film, Star, Bookmark, Compass, Users, UserPlus, X } from 'lucide-react'
 
 import { supabase } from '@/shared/lib/supabase/client'
+import Button from '@/shared/ui/Button'
 import { tmdbImg } from '@/shared/api/tmdb'
 import FollowButton from '@/shared/components/FollowButton'
 import TasteFingerprint from './TasteFingerprint'
@@ -795,14 +796,9 @@ function FollowListModal({ type, userId, onClose }) {
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/8">
           <h2 className="text-base font-bold text-white">{title}</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            className="h-8 w-8 rounded-full flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-colors"
-          >
+          <Button variant="icon" size="sm" onClick={onClose} aria-label="Close" className="text-white/40">
             <X className="h-4 w-4" />
-          </button>
+          </Button>
         </div>
 
         {/* List */}

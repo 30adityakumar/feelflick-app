@@ -7,6 +7,7 @@ import { motion } from 'framer-motion'
 import { Plus, Pencil, Trash2, Film } from 'lucide-react'
 
 import { supabase } from '@/shared/lib/supabase/client'
+import Button from '@/shared/ui/Button'
 import { tmdbImg } from '@/shared/api/tmdb'
 import CreateListModal from './CreateListModal'
 
@@ -147,14 +148,10 @@ function EmptyLists({ onCreate }) {
       <p className="text-white/40 text-sm max-w-sm mb-6">
         Create curated film collections to organize and share your favorites.
       </p>
-      <button
-        type="button"
-        onClick={onCreate}
-        className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-purple-500/20 transition-transform duration-200 hover:scale-[1.03] active:scale-[0.97]"
-      >
+      <Button variant="primary" onClick={onCreate}>
         <Plus className="h-4 w-4" />
         Create your first list
-      </button>
+      </Button>
     </motion.div>
   )
 }
@@ -294,14 +291,10 @@ export default function ListsPage() {
             <SectionHeader
               title="My Lists"
               action={
-                <button
-                  type="button"
-                  onClick={() => setShowModal(true)}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.05] border border-white/[0.10] hover:bg-white/[0.09] hover:border-white/[0.18] px-3.5 py-1.5 text-sm font-semibold text-white/70 hover:text-white transition-all duration-200"
-                >
+                <Button variant="secondary" size="sm" onClick={() => setShowModal(true)}>
                   <Plus className="h-3.5 w-3.5" />
                   New list
-                </button>
+                </Button>
               }
             />
 

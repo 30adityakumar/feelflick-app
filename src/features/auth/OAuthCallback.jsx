@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
+import Button from '@/shared/ui/Button'
 import {
   consumeOAuthCallbackNonce,
   readOAuthNonceFromUrl,
@@ -49,12 +50,9 @@ function SplashSpinner({ error = null }) {
               <h2 className="text-xl font-bold text-white mb-2">Sign In Failed</h2>
               <p className="text-sm text-white/60 max-w-sm leading-relaxed">{error}</p>
             </div>
-            <button
-              onClick={() => window.location.href = '/'}
-              className="px-6 py-3 rounded-xl border border-white/20 text-white/80 text-sm font-medium hover:bg-white/6 hover:border-white/20 transition-all duration-200"
-            >
+            <Button variant="secondary" onClick={() => window.location.href = '/'}>
               Return to Home
-            </button>
+            </Button>
           </>
         ) : (
           <>

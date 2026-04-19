@@ -7,6 +7,7 @@ import { motion } from 'framer-motion'
 import { ChevronLeft, Pencil, Trash2, X as XIcon, Film, Globe, Share2, Check } from 'lucide-react'
 
 import { supabase } from '@/shared/lib/supabase/client'
+import Button from '@/shared/ui/Button'
 import { tmdbImg } from '@/shared/api/tmdb'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
@@ -352,14 +353,9 @@ export default function ListDetailPage() {
                   {isOwner && (
                     <>
                       {editMode ? (
-                        <button
-                          type="button"
-                          onClick={() => setEditMode(false)}
-                          aria-label="Exit edit mode"
-                          className="text-xs text-purple-400 border border-purple-500/30 px-3 py-1 rounded-full"
-                        >
+                        <Button variant="ghost" size="sm" onClick={() => setEditMode(false)} aria-label="Exit edit mode">
                           Done
-                        </button>
+                        </Button>
                       ) : (
                         <button
                           type="button"

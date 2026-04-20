@@ -410,20 +410,13 @@ export default function HeroTopPick({
         <div className="relative z-10 h-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 flex items-end pb-12 lg:pb-16">
           <div className="flex flex-col lg:flex-row gap-6 lg:gap-10 w-full">
             <div className="hidden sm:block w-[200px] lg:w-[260px] flex-shrink-0">
-              <div className="aspect-[2/3] rounded-xl bg-purple-500/5 animate-pulse" />
+              <div className="aspect-[2/3] rounded-xl bg-white/[0.04] animate-pulse" />
             </div>
             <div className="flex-1 space-y-4 pb-2">
-              <div className="flex items-center gap-2">
-                <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="10" stroke="rgba(168,85,247,0.2)" strokeWidth="3" />
-                  <path d="M21 12a9 9 0 0 0-9-9v9z" fill="rgb(168,85,247)" />
-                </svg>
-                <span className="text-white/40 text-xs font-medium tracking-wide">Finding something you&apos;ll love…</span>
-              </div>
-              <div className="h-3 w-32 bg-purple-500/10 rounded animate-pulse" />
-              <div className="h-10 lg:h-14 w-2/3 bg-purple-500/5 rounded-xl animate-pulse" />
-              <div className="h-4 w-1/3 bg-white/5 rounded-lg animate-pulse" />
-              <div className="h-16 w-full max-w-xl bg-white/5 rounded-xl animate-pulse" />
+              <div className="h-3 w-24 bg-white/[0.04] rounded animate-pulse" />
+              <div className="h-10 lg:h-14 w-2/3 bg-white/[0.04] rounded-xl animate-pulse" />
+              <div className="h-4 w-1/3 bg-white/[0.04] rounded-lg animate-pulse" />
+              <div className="h-16 w-full max-w-xl bg-white/[0.04] rounded-xl animate-pulse" />
             </div>
           </div>
         </div>

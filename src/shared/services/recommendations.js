@@ -435,6 +435,10 @@ export async function computeUserProfile(userId, forceRefresh = false) {
     // ✅ v2.10: mood signature from recent watches (mood_tags/tone_tags/fit_profile)
     const moodSignature = computeMoodSignature(weightedMovies)
 
+    // ✅ v2.11: hard genre exclusion gates + dominant fit_profiles for adjacency scoring
+    const exclusions = computeExclusions(weightedMovies, genres)
+    const topFitProfiles = computeTopFitProfiles(weightedMovies)
+
     const profile = ensureLanguageProfileShape({
       userId,
       languages,
@@ -448,6 +452,8 @@ export async function computeUserProfile(userId, forceRefresh = false) {
       negativeSignals,
       feedbackSignals,
       moodSignature,
+      exclusions,
+      topFitProfiles,
       watchedMovieIds,
       meta: {
         profileVersion: ENGINE_VERSION,
@@ -522,6 +528,8 @@ function buildEmptyProfile(userId, userPrefs) {
     fitProfileAffinity: { distribution: {}, preferred: [], topShare: 0, franchiseFatigue: false },
     qualityProfile: { avgFFRating: 7.0, watchesHiddenGems: false, totalMoviesWatched: 0, avgUserRating: null, highRatedCount: 0 },
     moodSignature: { recentMoodTags: [], recentToneTags: [], recentFitProfiles: [] },
+    exclusions: { genreIds: new Set(), genreNames: [] },
+    topFitProfiles: [],
     negativeSignals: {
       skippedGenres: [],
       skippedDirectors: [],
@@ -670,6 +678,124 @@ function computeNegativeSignals(skipFeedback, watchHistory) {
       .sort((a, b) => b.skipCount - a.skipCount),
     totalSkips: skipFeedback.length
   }
+}
+
+// ============================================================================
+// MOOD SIGNATURE — v2.10
+// ============================================================================
+
+// ============================================================================
+// DB-LEVEL GENRE EXCLUSION HELPER — v2.11
+// ============================================================================
+
+/**
+ * Apply genre exclusion filters directly on a Supabase query builder.
+ * Uses `.not('genres', 'cs', '["GenreName"]')` for each excluded genre.
+ * The `genres` column is jsonb (JSON array of strings) in the DB.
+ *
+ * @param {Object} query - Supabase query builder (chainable)
+ * @param {Object|null} profile - user profile with exclusions
+ * @returns {Object} the (possibly modified) query builder
+ */
+export function applyDbGenreExclusions(query, profile) {
+  const names = profile?.exclusions?.genreNames
+  if (!names || names.length === 0) return query
+  for (const name of names) {
+    query = query.not('genres', 'cs', JSON.stringify([name]))
+  }
+  return query
+}
+
+// ============================================================================
+// FIT PROFILE ADJACENCY — v2.11
+// ============================================================================
+
+// Adjacent profiles share audience intent; clashing profiles are opposite poles.
+// Used in both hero scoring and homepage row scoring.
+export const FIT_ADJACENCY = {
+  crowd_pleaser:    { adjacent: ['comfort_rewatch', 'date_night', 'franchise_entry'], clashing: ['challenging_art', 'arthouse'] },
+  comfort_rewatch:  { adjacent: ['crowd_pleaser', 'date_night'], clashing: ['challenging_art'] },
+  date_night:       { adjacent: ['crowd_pleaser', 'comfort_rewatch'], clashing: ['challenging_art', 'cult_classic'] },
+  franchise_entry:  { adjacent: ['crowd_pleaser', 'event_spectacle'], clashing: ['arthouse', 'challenging_art'] },
+  event_spectacle:  { adjacent: ['franchise_entry', 'crowd_pleaser'], clashing: ['arthouse', 'challenging_art'] },
+  cult_classic:     { adjacent: ['arthouse', 'challenging_art', 'hidden_gem'], clashing: ['crowd_pleaser'] },
+  arthouse:         { adjacent: ['challenging_art', 'cult_classic', 'hidden_gem'], clashing: ['crowd_pleaser', 'franchise_entry'] },
+  challenging_art:  { adjacent: ['arthouse', 'cult_classic'], clashing: ['crowd_pleaser', 'comfort_rewatch', 'franchise_entry'] },
+  hidden_gem:       { adjacent: ['cult_classic', 'arthouse'], clashing: ['franchise_entry', 'event_spectacle'] },
+  prestige_drama:   { adjacent: ['arthouse', 'challenging_art', 'hidden_gem'], clashing: ['crowd_pleaser', 'franchise_entry', 'comfort_rewatch'] },
+  genre_popcorn:    { adjacent: ['crowd_pleaser', 'event_spectacle', 'franchise_entry'], clashing: ['challenging_art', 'arthouse'] },
+}
+
+// ============================================================================
+// EXCLUSION GATES — v2.11
+// ============================================================================
+
+// Genre IDs that require explicit watch evidence before recommendations are shown.
+// Without >=MIN_WATCHES watches in the genre, the genre is excluded from all rows.
+// `dbName` matches the text value stored in movies.genres (text[] column).
+const GATED_GENRES = [
+  { id: 16, dbName: 'Animation', minWatches: 2 },
+  { id: 10751, dbName: 'Family', minWatches: 2 },
+  { id: 99, dbName: 'Documentary', minWatches: 2 },
+  { id: 27, dbName: 'Horror', minWatches: 2 },
+]
+
+/**
+ * Compute hard genre exclusion set based on watch evidence.
+ * Genres in GATED_GENRES are excluded unless the user has watched
+ * enough films in that genre to demonstrate genuine interest.
+ *
+ * Returns both numeric IDs (for client-side filtering) and DB names
+ * (for Supabase query-level jsonb `.not('genres', 'cs', ...)` filters).
+ *
+ * @param {Object[]} weightedMovies
+ * @param {Object} genreProfile - from computeGenreProfile
+ * @returns {{ genreIds: Set<number>, genreNames: string[] }}
+ */
+function computeExclusions(weightedMovies, genreProfile) {
+  // Count actual watches per genre (not weighted — raw count)
+  const genreWatchCounts = new Map()
+  weightedMovies.forEach(m => {
+    const genres = (m.genres || []).map(extractGenreId).filter(Boolean)
+    genres.forEach(gid => {
+      genreWatchCounts.set(gid, (genreWatchCounts.get(gid) || 0) + 1)
+    })
+  })
+
+  const excludedIds = new Set()
+  const excludedNames = []
+  for (const gate of GATED_GENRES) {
+    const watchCount = genreWatchCounts.get(gate.id) || 0
+    // Also check explicit genre preferences (from onboarding)
+    const isExplicitPreference = genreProfile.preferred.includes(gate.id) ||
+      genreProfile.explicitPreferences?.includes(gate.id)
+    if (watchCount < gate.minWatches && !isExplicitPreference) {
+      excludedIds.add(gate.id)
+      excludedNames.push(gate.dbName)
+    }
+  }
+
+  return { genreIds: excludedIds, genreNames: excludedNames }
+}
+
+/**
+ * Compute dominant fit_profiles for adjacency scoring in row generators.
+ * Returns top 3 fit_profiles by weighted count.
+ *
+ * @param {Object[]} weightedMovies
+ * @returns {string[]}
+ */
+function computeTopFitProfiles(weightedMovies) {
+  const counts = new Map()
+  weightedMovies.forEach(m => {
+    if (!m.fit_profile) return
+    counts.set(m.fit_profile, (counts.get(m.fit_profile) || 0) + (m.weight || 1))
+  })
+
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([profile]) => profile)
 }
 
 // ============================================================================
@@ -1556,21 +1682,6 @@ export async function getTopPickForUser(userId, options = {}) {
         [...allTimeSkipCount.entries()].filter(([, count]) => count >= 3).map(([id]) => id)
       )
 
-      // Interest gating — explicit genre preferences ONLY.
-      // Previously included watch-history check, which caused noise: any Indian film
-      // tagged Family or Animation on TMDB would unlock those genres globally.
-      const hasAnimationInterest =
-        profile.genres.preferred.includes(16) ||
-        profile.genres.secondary?.includes(16)
-
-      const hasDocumentaryInterest =
-        profile.genres.preferred.includes(99) ||
-        profile.genres.secondary?.includes(99)
-
-      const hasFamilyInterest =
-        profile.genres.preferred.includes(10751) ||
-        profile.genres.secondary?.includes(10751)
-
       const selectFields = `
         id, tmdb_id, title, overview, tagline,
         original_language, runtime, release_year, release_date,
@@ -1623,6 +1734,9 @@ export async function getTopPickForUser(userId, options = {}) {
         baseQuery = baseQuery.in('original_language', langGuard.allowedLanguages)
       }
 
+      // DB-level genre exclusion (Animation, Family, etc. unless user watches them)
+      baseQuery = applyDbGenreExclusions(baseQuery, profile)
+
       const isColdStart = (profile.qualityProfile?.totalMoviesWatched || 0) === 0
       if (isColdStart && profile.genres.preferred.length > 0) {
         const onboardingGenreNames = profile.genres.preferred
@@ -1652,6 +1766,7 @@ export async function getTopPickForUser(userId, options = {}) {
       } else if (langGuard.mode === 'strong' && langGuard.allowedLanguages.length > 0) {
         classicsQuery = classicsQuery.in('original_language', langGuard.allowedLanguages)
       }
+      classicsQuery = applyDbGenreExclusions(classicsQuery, profile)
 
       // Fire neighbors + base + classics in parallel
       const [
@@ -1684,6 +1799,7 @@ export async function getTopPickForUser(userId, options = {}) {
         } else if (langGuard.mode === 'strong' && langGuard.allowedLanguages.length > 0) {
           embQuery = embQuery.in('original_language', langGuard.allowedLanguages)
         }
+        embQuery = applyDbGenreExclusions(embQuery, profile)
 
         const { data } = await embQuery
         embeddingCandidates = data || []
@@ -1697,13 +1813,13 @@ export async function getTopPickForUser(userId, options = {}) {
       })
       let candidates = Array.from(byId.values())
 
-      // Genre gating
+      // Genre gating — client-side fallback for embedding candidates that bypass DB exclusion
+      const excludedGenreIds = profile.exclusions?.genreIds || new Set()
       candidates = candidates.filter((m) => {
+        if (excludedGenreIds.size === 0) return true
         const genres = (m.genres || []).map(extractGenreId).filter(Boolean)
-        if (genres.includes(16) && !hasAnimationInterest) return false
-        if (genres.includes(10751) && !hasFamilyInterest && !hasAnimationInterest) return false
-        if (genres.includes(99) && !hasDocumentaryInterest) return false
-        return true
+        if (genres.length === 0) return true
+        return !genres.some(gid => excludedGenreIds.has(gid))
       })
 
       // Exclusion gating (INTERNAL + TMDB + recentHero + 48h skip)
@@ -1721,6 +1837,21 @@ export async function getTopPickForUser(userId, options = {}) {
         return true
       })
 
+      // Fit-profile hard gate — only keep films whose fit_profile is in user's
+      // top profiles or adjacent. Skip gate on cold start (no topFitProfiles).
+      const heroTopFit = profile.topFitProfiles || []
+      const heroAllowedFits = new Set(heroTopFit)
+      if (heroTopFit.length > 0) {
+        for (const fp of heroTopFit) {
+          for (const adj of (FIT_ADJACENCY[fp]?.adjacent || [])) {
+            heroAllowedFits.add(adj)
+          }
+        }
+        candidates = candidates.filter(m =>
+          !m.fit_profile || heroAllowedFits.has(m.fit_profile),
+        )
+      }
+
       // If strict language left us too few, we RELAX QUALITY/YEAR but NEVER relax "watched" exclusion
       if (candidates.length < 15 && langGuard.mode !== 'loose' && langGuard.primary) {
         let relaxQuery = supabase
@@ -1737,6 +1868,7 @@ export async function getTopPickForUser(userId, options = {}) {
         // keep language restriction for user intent
         if (langGuard.allowedLanguages.length === 1) relaxQuery = relaxQuery.eq('original_language', langGuard.allowedLanguages[0])
         else relaxQuery = relaxQuery.in('original_language', langGuard.allowedLanguages)
+        relaxQuery = applyDbGenreExclusions(relaxQuery, profile)
 
         const { data: relaxed } = await relaxQuery
         const relaxedCandidates = (relaxed || [])
@@ -1754,9 +1886,12 @@ export async function getTopPickForUser(userId, options = {}) {
           if (m?.id && !byId.has(m.id)) byId.set(m.id, m)
         })
         candidates = Array.from(byId.values()).filter((m) => {
-          const genres = (m.genres || []).map(extractGenreId).filter(Boolean)
-          if (genres.includes(16) && !hasAnimationInterest) return false
-          if (genres.includes(10751) && !hasFamilyInterest && !hasAnimationInterest) return false
+          if (excludedGenreIds.size > 0) {
+            const genres = (m.genres || []).map(extractGenreId).filter(Boolean)
+            if (genres.length > 0 && genres.some(gid => excludedGenreIds.has(gid))) return false
+          }
+          // Fit-profile gate on merged candidates (matches pre-relax gate)
+          if (heroTopFit.length > 0 && m.fit_profile && !heroAllowedFits.has(m.fit_profile)) return false
           if (allExcludeInternal.includes(m.id)) return false
           if (allExcludeTmdb.has(m.tmdb_id)) return false
           if (recentHeroIds.has(m.id)) return false
@@ -1827,6 +1962,20 @@ export async function getTopPickForUser(userId, options = {}) {
           if (overlap > 0) heroBonus -= overlap * 10
         }
 
+        // fit_profile adjacency — reward aligned profiles, penalize clashing ones
+        const topFit = profile.topFitProfiles || []
+        const dominantFit = topFit[0] || null
+        if (movie.fit_profile && dominantFit) {
+          const adj = FIT_ADJACENCY[dominantFit]
+          if (movie.fit_profile === dominantFit || topFit.includes(movie.fit_profile)) {
+            heroBonus += 10
+          } else if (adj?.adjacent?.includes(movie.fit_profile)) {
+            heroBonus += 5
+          } else if (adj?.clashing?.includes(movie.fit_profile)) {
+            heroBonus -= 15
+          }
+        }
+
         const normalizedRating = Number(movie.ff_rating_genre_normalized || movie.ff_rating || 0)
         const finalScore = result.score + heroBonus
 
@@ -1848,13 +1997,18 @@ export async function getTopPickForUser(userId, options = {}) {
       const qualityCandidates = scored.filter((c) => Number(c.normalizedRating || 0) >= 7.0)
       if (qualityCandidates.length === 0) return await getFallbackPick(langGuard, allExcludeInternal, allExcludeTmdb)
 
+      // Personal match floor — hero is the signature pick, must be a strong match
+      const HERO_MIN_SCORE = 70
+      const matchCandidates = qualityCandidates.filter((c) => c.finalScore >= HERO_MIN_SCORE)
+      if (matchCandidates.length === 0) return await getFallbackPick(langGuard, allExcludeInternal, allExcludeTmdb)
+
       // Taste threshold (confidence-based)
       const minTasteScore = profile.meta.confidence === 'high' ? 60 : profile.meta.confidence === 'medium' ? 45 : 30
-      let finalCandidates = qualityCandidates.filter((c) => {
+      let finalCandidates = matchCandidates.filter((c) => {
         const tasteScore = c.finalScore - (c.breakdown.baseQuality || 0)
         return tasteScore >= minTasteScore
       })
-      if (finalCandidates.length === 0) finalCandidates = qualityCandidates.slice(0, 30)
+      if (finalCandidates.length === 0) finalCandidates = matchCandidates.slice(0, 30)
 
       // Sort & diversity
       finalCandidates.sort((a, b) => b.finalScore - a.finalScore)
@@ -1869,7 +2023,7 @@ export async function getTopPickForUser(userId, options = {}) {
       if (langGuard.mode === 'strict' && langGuard.primary && diverseTop10.length >= 5) {
         const hasDiscovery = diverseTop10.some((c) => c.movie.original_language !== langGuard.primary)
         if (!hasDiscovery) {
-          const { data: discoveryPool } = await supabase
+          let discoveryQuery = supabase
             .from('movies')
             .select(selectFields)
             .eq('is_valid', true)
@@ -1880,6 +2034,8 @@ export async function getTopPickForUser(userId, options = {}) {
             .gte('vote_count', 1000)
             .order('ff_rating_genre_normalized', { ascending: false })
             .limit(20)
+          discoveryQuery = applyDbGenreExclusions(discoveryQuery, profile)
+          const { data: discoveryPool } = await discoveryQuery
           const excludeSet = new Set([...allExcludeInternal, ...diverseTop10.map((c) => c.movie.id)])
           const discCandidate = (discoveryPool || []).find(
             (m) => m?.id && !excludeSet.has(m.id) && !allExcludeTmdb.has(m.tmdb_id) && !recentHeroIds.has(m.id)
@@ -2541,8 +2697,10 @@ export function calculateLikelySeenScore() {
 }
 
 function determinePickReason(movie, profile, breakdown, seedSimilarity = {}) {
-  // Strong embedding/seed similarity wins
-  if ((seedSimilarity.embeddingSim || 0) >= 0.75 && seedSimilarity.bestSeed) {
+  const embSim = seedSimilarity.embeddingSim || 0
+
+  // Strong embedding/seed similarity wins — requires actual embedding confirmation
+  if (embSim >= 0.75 && seedSimilarity.bestSeed) {
     return {
       label: `Because you watched ${seedSimilarity.bestSeed.title}`,
       type: 'seed_embedding',
@@ -2550,7 +2708,8 @@ function determinePickReason(movie, profile, breakdown, seedSimilarity = {}) {
     }
   }
 
-  if ((seedSimilarity.rawScore || 0) >= 60 && seedSimilarity.bestSeed) {
+  // Metadata similarity — only trust if embedding also confirms (>= 0.70)
+  if ((seedSimilarity.rawScore || 0) >= 60 && embSim >= 0.70 && seedSimilarity.bestSeed) {
     return {
       label: `Because you watched ${seedSimilarity.bestSeed.title}`,
       type: 'seed_similarity',
@@ -2566,7 +2725,10 @@ function determinePickReason(movie, profile, breakdown, seedSimilarity = {}) {
     return { label: `Starring ${movie.lead_actor_name}`, type: 'actor_affinity' }
   }
 
-  if ((seedSimilarity.rawScore || 0) >= 35 && seedSimilarity.bestSeed) {
+  // "Similar to X" — require embedding verification (>= 0.70).
+  // WHY: metadata-only similarity (shared genres/keywords) produces false positives
+  // (e.g. Shrek → Arrival). Drop caption entirely if embedding doesn't confirm.
+  if ((seedSimilarity.rawScore || 0) >= 35 && embSim >= 0.70 && seedSimilarity.bestSeed) {
     return { label: `Similar to ${seedSimilarity.bestSeed.title}`, type: 'seed_similar', seedTitle: seedSimilarity.bestSeed.title }
   }
 
@@ -3568,6 +3730,9 @@ async function fetchMoodCandidates(moodId, moodWeights, profile, moodData, param
         .gte('intensity_score_100', Math.max(0, targetIntensity - intensityBand))
         .lte('intensity_score_100', Math.min(100, targetIntensity + intensityBand))
     }
+
+    // Genre exclusion (Animation, Horror, etc. unless user watches them)
+    query = applyDbGenreExclusions(query, profile)
 
     return query
   }

@@ -2201,6 +2201,10 @@ export async function getTopPickForUser(userId, options = {}) {
 
   if (forceRefresh) recommendationCache.invalidate(cacheKey)
 
+  // Invalidate stale cache entries from pre-hero-rebuild (missing alternates)
+  const cached = recommendationCache.get?.(cacheKey)
+  if (cached && !cached.alternates) recommendationCache.invalidate(cacheKey)
+
   return recommendationCache.getOrFetch(cacheKey, async () => {
     try {
       if (!userId) return await getFallbackPick(null)
@@ -3421,6 +3425,8 @@ async function getFallbackPick(langGuard, excludeInternalIds = [], excludeTmdbId
           movie: pick,
           pickReason: { label: 'Top pick for you', type: 'quality' },
           score: Number(pick.ff_audience_rating ?? (pick.ff_final_rating ?? pick.ff_rating ?? 0) * 10),
+          alternates: [pick],
+          reasons: {},
           debug: { fallback: true, fallbackType: 'language-aware', lang: primaryLang }
         }
       }
@@ -3466,6 +3472,8 @@ async function getFallbackPick(langGuard, excludeInternalIds = [], excludeTmdbId
           movie: pick.movie,
           pickReason: { label: 'Critically acclaimed', type: 'quality' },
           score: pick.finalScore,
+          alternates: [pick.movie],
+          reasons: {},
           debug: { fallback: true, fallbackType: 'global' }
         }
       }
@@ -3476,6 +3484,8 @@ async function getFallbackPick(langGuard, excludeInternalIds = [], excludeTmdbId
         movie: pick,
         pickReason: { label: 'Critically acclaimed', type: 'quality' },
         score: Number(pick.ff_audience_rating ?? (pick.ff_final_rating ?? pick.ff_rating ?? 0) * 10),
+        alternates: [pick],
+        reasons: {},
         debug: { fallback: true, fallbackType: 'global' }
       }
     }
@@ -3488,6 +3498,8 @@ async function getFallbackPick(langGuard, excludeInternalIds = [], excludeTmdbId
     movie: null,
     pickReason: { label: 'No recommendations available', type: 'error' },
     score: 0,
+    alternates: [],
+    reasons: {},
     debug: { error: true }
   }
 }

@@ -37,7 +37,6 @@ export function useMovieRating(internalMovieId, userId) {
 
         setRating(data?.rating || 0)
         setReviewText(data?.review_text || '')
-        console.log('[useMovieRating] ✅ Loaded rating:', data?.rating || 0)
       } catch (err) {
         console.error('[useMovieRating] Load exception:', err)
         setError(err.message)
@@ -83,7 +82,6 @@ export function useMovieRating(internalMovieId, userId) {
 
         setRating(0)
         setReviewText('')
-        console.log('[useMovieRating] ✅ Rating cleared')
         return true
       }
 
@@ -107,7 +105,6 @@ export function useMovieRating(internalMovieId, userId) {
       }
 
       setRating(newRating)
-      console.log(`[useMovieRating] ✅ Rating saved: ${newRating}/10 for movie ${internalMovieId}`)
       return true
     } catch (err) {
       console.error('[useMovieRating] Exception:', err)

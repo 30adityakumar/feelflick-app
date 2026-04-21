@@ -210,7 +210,7 @@ export default function SearchBar({ open, onClose }) {
               onChange={(e) => setQ(e.target.value)}
               onKeyDown={onListKey}
               placeholder="Search for movies…"
-              className="w-full bg-transparent text-base text-white placeholder-white/50 focus:outline-none md:text-lg"
+              className="w-full bg-transparent text-base text-white placeholder-white/60 focus:outline-none md:text-lg"
               aria-label="Search movies"
               aria-controls="global-search-results"
               aria-activedescendant={sel >= 0 ? `global-search-result-${results[sel]?.id}` : undefined}

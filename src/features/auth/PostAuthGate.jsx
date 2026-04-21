@@ -3,26 +3,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
 
-function SplashSpinner({ label = 'Loading your profile…' }) {
-  return (
-    <div className="fixed inset-0 z-[9999] grid place-items-center bg-black">
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse 70% 45% at 50% 0%, rgba(88,28,135,0.3) 0%, transparent 65%)' }}
-        aria-hidden="true"
-      />
-      <div className="relative flex flex-col items-center gap-6">
-        <span className="text-2xl font-black tracking-tight bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
-          FEELFLICK
-        </span>
-        <svg className="h-8 w-8 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <circle cx="12" cy="12" r="10" stroke="rgba(168,85,247,0.2)" strokeWidth="3" />
-          <path d="M21 12a9 9 0 0 0-9-9v9z" fill="rgb(168,85,247)" />
-        </svg>
-        <p className="text-sm text-white/40">{label}</p>
-      </div>
-    </div>
-  )
+function AuthGatePlaceholder() {
+  return <div className="fixed inset-0 z-[9999] bg-black" />
 }
 
 function isTruthyFlag(v) {
@@ -183,7 +165,7 @@ export default function PostAuthGate() {
 
   // While determining session/onboarding (rarely more than 1–2 round-trips), block route render
   if (phase !== 'ready' || hasUser === null || isOnboarded === null) {
-    return <SplashSpinner label="Loading your profile…" />
+    return <AuthGatePlaceholder />
   }
 
   // Not authenticated → redirect to landing

@@ -37,9 +37,15 @@ export function useAIMoodContext({
   const [error, setError]                   = useState(null)
 
   const abortRef = useRef(null)
+  const lastKeyRef = useRef(null)
 
   useEffect(() => {
     if (!enabled || !mood || !movies || movies.length === 0 || !EDGE_FN_URL) return
+
+    // Dedup: skip if inputs haven't actually changed (guards against unstable array/object refs)
+    const key = `${mood}|${intensity}|${pacing}|${context}|${experience}|${timeOfDay}|${movies.map(m => m.tmdbId).join(',')}`
+    if (lastKeyRef.current === key) return
+    lastKeyRef.current = key
 
     if (abortRef.current) abortRef.current.abort()
     const controller = new AbortController()

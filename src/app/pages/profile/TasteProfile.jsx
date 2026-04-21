@@ -325,12 +325,6 @@ export default function TasteProfile() {
     const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
     const CACHE_TTL = 24 * 60 * 60 * 1000 // 24 hours
 
-    console.log('[TasteSummary] effect fired', {
-      topGenres: stats.topGenres?.length,
-      hasCalledRef: summaryCalledRef.current,
-      userId,
-    })
-
     // Wait for data to be ready
     if (!stats.topGenres?.length) return
     // Only call once
@@ -345,7 +339,6 @@ export default function TasteProfile() {
       if (cached) {
         const { summary, generatedAt } = JSON.parse(cached)
         if (summary && Date.now() - generatedAt < CACHE_TTL) {
-          console.log('[TasteSummary] using cached summary')
           setAiSummary(summary)
           return
         }
@@ -354,7 +347,6 @@ export default function TasteProfile() {
       // Corrupted cache — ignore and refetch
     }
 
-    console.log('[TasteSummary] invoking edge function')
     setSummaryLoading(true)
 
     ;(async () => {
@@ -424,7 +416,6 @@ export default function TasteProfile() {
               cacheKey,
               JSON.stringify({ summary: data.summary, generatedAt: Date.now() })
             )
-            console.log('[TasteSummary] cached for', userId)
           } catch {
             // storage quota exceeded — ignore
           }

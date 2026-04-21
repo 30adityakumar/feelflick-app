@@ -29,7 +29,6 @@ export async function initSession() {
 
     if (activeSessions && activeSessions.length > 0) {
       currentSessionId = activeSessions[0].id
-      console.log('[Session] Resumed:', currentSessionId)
       return currentSessionId
     }
 
@@ -49,7 +48,6 @@ export async function initSession() {
     if (error) throw error
 
     currentSessionId = data.id
-    console.log('[Session] Created:', currentSessionId)
     return currentSessionId
   } catch (err) {
     console.error('[Session] Init error:', err)
@@ -73,7 +71,6 @@ export async function endSession() {
 
     if (error) throw error
 
-    console.log('[Session] Ended:', currentSessionId)
     currentSessionId = null
   } catch (err) {
     console.error('[Session] End error:', err)
@@ -121,7 +118,6 @@ export async function trackInteraction(type, options = {}) {
       })
     }
 
-    console.log(`[Interaction] Tracked: ${type}`, options)
     return true
   } catch (err) {
     console.error('[Interaction] Track error:', err)

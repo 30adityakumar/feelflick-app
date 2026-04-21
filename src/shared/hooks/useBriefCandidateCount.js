@@ -1,0 +1,146 @@
+// src/shared/hooks/useBriefCandidateCount.js
+import { useEffect, useRef, useState } from 'react'
+
+import { supabase } from '@/shared/lib/supabase/client'
+import { unpackVibe } from '@/shared/services/brief-scoring'
+
+/** Module-level cache for the baseline total (no filters). Fetched once. */
+let cachedBaseline = null
+let baselinePromise = null
+
+/**
+ * Fetch the total catalog size (is_valid + poster). Cached module-level.
+ * @returns {Promise<number>}
+ */
+function fetchBaseline() {
+  if (cachedBaseline !== null) return Promise.resolve(cachedBaseline)
+  if (baselinePromise) return baselinePromise
+
+  baselinePromise = supabase
+    .rpc('count_brief_candidates', {})
+    .then(({ data, error }) => {
+      if (error) throw error
+      cachedBaseline = data ?? 0
+      return cachedBaseline
+    })
+    .catch(() => {
+      baselinePromise = null
+      return 0
+    })
+
+  return baselinePromise
+}
+
+/** Attention value mapping: new → RPC expected values. */
+const ATTENTION_RPC_MAP = { lean_in: 'lean-in', lean_back: 'lean-back' }
+
+/** Time value mapping: new → RPC expected values. */
+const TIME_RPC_MAP = { short: 'short', medium: 'standard', long: 'long', any: 'any' }
+
+/**
+ * Maps brief answers to RPC params. Unpacks vibe into tone and maps
+ * attention/time values to match the DB function's expected format.
+ *
+ * @param {Record<string, any>} answers
+ * @returns {Record<string, any>}
+ */
+function answersToParams(answers) {
+  const params = {}
+
+  // Unpack vibe → tone for the RPC (feeling is scoring-only, not a hard filter)
+  const { tone } = unpackVibe(answers)
+  if (tone && tone !== 'any') params.p_tone = tone
+
+  // Attention: map lean_in → 'lean-in', lean_back → 'lean-back'
+  if (answers.attention !== undefined) {
+    params.p_attention = ATTENTION_RPC_MAP[answers.attention] || answers.attention
+  }
+
+  // Time: map 'medium' → 'standard' for the RPC
+  if (answers.time !== undefined) {
+    params.p_time = TIME_RPC_MAP[answers.time] || answers.time
+  }
+
+  // Company: family gate is handled client-side, not in RPC
+  return params
+}
+
+/**
+ * Live candidate pool size that updates as the brief narrows.
+ * Debounced 250ms after answer commits.
+ *
+ * @param {{ answers: Record<string, any> }} brief
+ * @returns {{ count: number, previousCount: number, loading: boolean }}
+ */
+export function useBriefCandidateCount(brief) {
+  const [count, setCount] = useState(0)
+  const [previousCount, setPreviousCount] = useState(0)
+  const [loading, setLoading] = useState(true)
+  const debounceRef = useRef(null)
+  const abortRef = useRef(null)
+
+  // Fetch baseline on mount
+  useEffect(() => {
+    let cancelled = false
+    fetchBaseline().then((total) => {
+      if (!cancelled) {
+        setCount(total)
+        setPreviousCount(total)
+        setLoading(false)
+      }
+    })
+    return () => { cancelled = true }
+  }, [])
+
+  // Debounced count on answer changes
+  useEffect(() => {
+    const answers = brief?.answers
+    if (!answers) return
+
+    // Only count if we have filter-relevant answers
+    const hasFilters = answers.vibe !== undefined
+      || answers.attention !== undefined
+      || answers.time !== undefined
+
+    if (!hasFilters) return
+
+    clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(async () => {
+      if (abortRef.current) abortRef.current.abort()
+      const controller = new AbortController()
+      abortRef.current = controller
+
+      setLoading(true)
+      const params = answersToParams(answers)
+
+      try {
+        const { data, error } = await supabase.rpc('count_brief_candidates', params)
+        if (controller.signal.aborted) return
+        if (error) throw error
+
+        setPreviousCount((prev) => prev)
+        setCount((prev) => {
+          setPreviousCount(prev)
+          return data ?? 0
+        })
+      } catch {
+        // Silently continue with previous count
+      } finally {
+        if (!controller.signal.aborted) setLoading(false)
+      }
+    }, 250)
+
+    return () => {
+      clearTimeout(debounceRef.current)
+      abortRef.current?.abort()
+    }
+  }, [brief?.answers])
+
+  return { count, previousCount, loading }
+}
+
+// WHY: Export for testing — allows tests to reset module-level cache
+export function _resetBaselineCache() {
+  cachedBaseline = null
+  baselinePromise = null
+}

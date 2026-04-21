@@ -28,8 +28,6 @@ import { supabase } from '@/shared/lib/supabase/client'
  */
 export async function addToWatchlist(userId, movieId, options = {}) {
   try {
-    console.log('[addToWatchlist] Adding:', { userId, movieId, options })
-
     // Validate required fields
     if (!userId) throw new Error('User ID is required')
     if (!movieId) throw new Error('Movie ID is required')
@@ -75,7 +73,6 @@ export async function addToWatchlist(userId, movieId, options = {}) {
       throw error
     }
 
-    console.log('[addToWatchlist] Success:', data)
     return data
 
   } catch (error) {
@@ -93,8 +90,6 @@ export async function addToWatchlist(userId, movieId, options = {}) {
  */
 export async function removeFromWatchlist(userId, movieId) {
   try {
-    console.log('[removeFromWatchlist] Removing:', { userId, movieId })
-
     const { error } = await supabase
       .from('user_watchlist')
       .delete()
@@ -106,7 +101,6 @@ export async function removeFromWatchlist(userId, movieId) {
       throw error
     }
 
-    console.log('[removeFromWatchlist] Success')
     return true
 
   } catch (error) {
@@ -129,8 +123,6 @@ export async function removeFromWatchlist(userId, movieId) {
  */
 export async function updateWatchlistEntry(userId, movieId, updates) {
   try {
-    console.log('[updateWatchlistEntry] Updating:', { userId, movieId, updates })
-
     // Build update payload
     const payload = {
       ...updates,
@@ -162,7 +154,6 @@ export async function updateWatchlistEntry(userId, movieId, updates) {
       throw error
     }
 
-    console.log('[updateWatchlistEntry] Success:', data)
     return data
 
   } catch (error) {
@@ -181,8 +172,6 @@ export async function updateWatchlistEntry(userId, movieId, updates) {
  */
 export async function updateWatchlistStatus(userId, movieId, status) {
   try {
-    console.log('[updateWatchlistStatus] Updating status:', { userId, movieId, status })
-
     // Validate status
     const validStatuses = ['want_to_watch', 'watching', 'watched', 'abandoned']
     if (!validStatuses.includes(status)) {
@@ -214,8 +203,6 @@ export async function updateWatchlistStatus(userId, movieId, status) {
  */
 export async function updateWatchlistPriority(userId, movieId, priority) {
   try {
-    console.log('[updateWatchlistPriority] Updating priority:', { userId, movieId, priority })
-
     // Validate priority
     if (priority < 1 || priority > 10) {
       throw new Error('Priority must be between 1 and 10')
@@ -288,8 +275,6 @@ export async function getWatchlistEntry(userId, movieId) {
  */
 export async function getWatchlist(userId, options = {}) {
   try {
-    console.log('[getWatchlist] Fetching for user:', userId, options)
-
     let query = supabase
       .from('user_watchlist')
       .select(`
@@ -358,7 +343,6 @@ export async function getWatchlist(userId, options = {}) {
       })
     }
 
-    console.log('[getWatchlist] Found:', data?.length || 0, 'entries')
     return data || []
 
   } catch (error) {
@@ -377,8 +361,6 @@ export async function getWatchlist(userId, options = {}) {
  */
 export async function getWatchlistWithStatus(userId, status = null) {
   try {
-    console.log('[getWatchlistWithStatus] Fetching:', { userId, status })
-
     const { data, error } = await supabase
       .rpc('get_watchlist_with_status', {
         p_user_id: userId,
@@ -390,7 +372,6 @@ export async function getWatchlistWithStatus(userId, status = null) {
       throw error
     }
 
-    console.log('[getWatchlistWithStatus] Found:', data?.length || 0, 'entries')
     return data || []
 
   } catch (error) {
@@ -495,8 +476,6 @@ export async function getWatchlistStats(userId) {
  */
 export async function bulkUpdateStatuses(userId, updates) {
   try {
-    console.log('[bulkUpdateStatuses] Updating:', updates.length, 'entries')
-
     let successCount = 0
 
     // Process each update
@@ -509,7 +488,6 @@ export async function bulkUpdateStatuses(userId, updates) {
       }
     }
 
-    console.log('[bulkUpdateStatuses] Success:', successCount, '/', updates.length)
     return successCount
 
   } catch (error) {

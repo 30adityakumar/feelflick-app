@@ -97,7 +97,7 @@ function MoodSelector({ moods, activeId, onSelect }) {
               onClick={() => onSelect(mood.id)}
               animate={{ scale: isActive ? 1.06 : 1 }}
               transition={{ type: 'spring', stiffness: 380, damping: 22 }}
-              className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30${moods.indexOf(mood) === 3 ? ' hidden sm:inline-flex' : ''}`}
+              className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40${moods.indexOf(mood) === 3 ? ' hidden sm:inline-flex' : ''}`}
               style={isActive ? {
                 border: `1px solid ${hexToRgba(mood.color, 0.65)}`,
                 backgroundColor: hexToRgba(mood.color, 0.16),

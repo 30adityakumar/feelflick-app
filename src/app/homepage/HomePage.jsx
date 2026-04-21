@@ -3,16 +3,17 @@ import { useEffect, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 
 import { supabase } from '@/shared/lib/supabase/client'
-import { useUserTier } from '@/shared/hooks/useRecommendations'
+import { useHomepageRows } from '@/shared/hooks/useHomepageRows'
 
 import HeroTopPick from './components/HeroTopPick'
-import BecauseYouWatchedSection from './components/BecauseYouWatchedSection'
-import HiddenGemsRow from './components/HiddenGemsRow'
-import TrendingForYouRow from './components/TrendingForYouRow'
-import MoodCoherenceRow from './components/MoodCoherenceRow'
-import YourGenresRow from './components/YourGenresRow'
-import PopularRow from './components/PopularRow'
-import OnboardingSeededRow from './components/OnboardingSeededRow'
+import TopOfYourTasteRow from './components/TopOfYourTasteRow'
+import CriticsSwoonedRow from './components/CriticsSwoonedRow'
+import PeoplesChampionsRow from './components/PeoplesChampionsRow'
+import Under90MinutesRow from './components/Under90MinutesRow'
+import StillInOrbitRow from './components/StillInOrbitRow'
+import MoodRow from './components/MoodRow'
+import WatchlistRow from './components/WatchlistRow'
+import SignatureDirectorRow from './components/SignatureDirectorRow'
 
 import { SectionErrorBoundary } from '@/app/ErrorBoundary'
 
@@ -63,7 +64,7 @@ export default function HomePage() {
     }
   }, [userId])
 
-  const { tier } = useUserTier({ userId })
+  const rows = useHomepageRows(userId)
 
   return (
     <div className="overflow-x-hidden" style={{ background: 'var(--color-bg)' }}>
@@ -88,82 +89,80 @@ export default function HomePage() {
         />
 
         <div className="mx-auto max-w-[1600px]">
-          <div>
-            <div className="space-y-0">
+          <div className="space-y-0">
 
-              {/* === COLD (0 watches) === */}
-              {tier === 'cold' && (
-                <>
-                  <SectionErrorBoundary label="Based on Your Picks">
-                    <OnboardingSeededRow userId={userId} />
-                  </SectionErrorBoundary>
+            {/* Row 2: Top of your taste (all tiers) */}
+            <SectionErrorBoundary label="Top of Your Taste">
+              <TopOfYourTasteRow
+                data={rows.topOfTaste.data?.films}
+                subtitle={rows.topOfTaste.data?.subtitle}
+                loading={rows.topOfTaste.loading}
+              />
+            </SectionErrorBoundary>
 
-                  <SectionErrorBoundary label="Popular on FeelFlick">
-                    <PopularRow />
-                  </SectionErrorBoundary>
-                </>
+            {/* Row 2b: More from {Director} (warming+) */}
+            {rows.tier !== 'cold' && rows.tier !== null && (
+              <SectionErrorBoundary label="Signature Director">
+                <SignatureDirectorRow
+                  data={rows.director.data}
+                  loading={rows.director.loading}
+                />
+              </SectionErrorBoundary>
+            )}
+
+            {/* Row 3: Rotating — Critics swooned / People's champions */}
+            <SectionErrorBoundary label="Critic Split">
+              {rows.rotationVariant === 'B' && rows.tier === 'engaged' ? (
+                <PeoplesChampionsRow
+                  data={rows.criticSplit.data}
+                  loading={rows.criticSplit.loading}
+                />
+              ) : (
+                <CriticsSwoonedRow
+                  data={rows.criticSplit.data}
+                  loading={rows.criticSplit.loading}
+                />
               )}
+            </SectionErrorBoundary>
 
-              {/* === WARMING (1-9 watches) === */}
-              {tier === 'warming' && (
-                <>
-                  <SectionErrorBoundary label="Because You Watched">
-                    <BecauseYouWatchedSection userId={userId} maxSeeds={1} />
-                  </SectionErrorBoundary>
+            {/* Row 4: Under 90 minutes (all tiers) */}
+            <SectionErrorBoundary label="Under 90 Minutes">
+              <Under90MinutesRow
+                data={rows.under90.data}
+                loading={rows.under90.loading}
+              />
+            </SectionErrorBoundary>
 
-                  <SectionErrorBoundary label="Hidden Gems">
-                    <HiddenGemsRow userId={userId} />
-                  </SectionErrorBoundary>
+            {/* Row 5: Still in {seed}'s orbit (warming+) */}
+            {rows.tier !== 'cold' && rows.tier !== null && (
+              <SectionErrorBoundary label="Still in Orbit">
+                <StillInOrbitRow
+                  data={rows.orbit.data}
+                  loading={rows.orbit.loading}
+                />
+              </SectionErrorBoundary>
+            )}
 
-                  <SectionErrorBoundary label="Trending For You">
-                    <TrendingForYouRow userId={userId} />
-                  </SectionErrorBoundary>
-                </>
-              )}
+            {/* Row 6: You've been in a {mood} mood (warming+) */}
+            {rows.tier !== 'cold' && rows.tier !== null && (
+              <SectionErrorBoundary label="Mood Row">
+                <MoodRow
+                  data={rows.mood.data}
+                  loading={rows.mood.loading}
+                />
+              </SectionErrorBoundary>
+            )}
 
-              {/* === ENGAGED (10+ watches) === */}
-              {tier === 'engaged' && (
-                <>
-                  <SectionErrorBoundary label="Because You Watched">
-                    <BecauseYouWatchedSection userId={userId} maxSeeds={2} />
-                  </SectionErrorBoundary>
+            {/* Row 7: Still on your watchlist (engaged only) */}
+            {rows.tier === 'engaged' && (
+              <SectionErrorBoundary label="Watchlist">
+                <WatchlistRow
+                  data={rows.watchlist.data}
+                  loading={rows.watchlist.loading}
+                />
+              </SectionErrorBoundary>
+            )}
 
-                  <SectionErrorBoundary label="More Like Your Vibe">
-                    <MoodCoherenceRow userId={userId} />
-                  </SectionErrorBoundary>
-
-                  <SectionErrorBoundary label="Hidden Gems">
-                    <HiddenGemsRow userId={userId} />
-                  </SectionErrorBoundary>
-
-                  <SectionErrorBoundary label="Your Genres">
-                    <YourGenresRow userId={userId} />
-                  </SectionErrorBoundary>
-
-                  <SectionErrorBoundary label="Trending For You">
-                    <TrendingForYouRow userId={userId} />
-                  </SectionErrorBoundary>
-                </>
-              )}
-
-              {/* While tier is loading (null), show skeleton rows */}
-              {tier === null && (
-                <>
-                  <SectionErrorBoundary label="Because You Watched">
-                    <BecauseYouWatchedSection userId={userId} />
-                  </SectionErrorBoundary>
-
-                  <SectionErrorBoundary label="Hidden Gems">
-                    <HiddenGemsRow userId={userId} />
-                  </SectionErrorBoundary>
-
-                  <SectionErrorBoundary label="Trending For You">
-                    <TrendingForYouRow userId={userId} />
-                  </SectionErrorBoundary>
-                </>
-              )}
-
-            </div>
           </div>
         </div>
       </div>

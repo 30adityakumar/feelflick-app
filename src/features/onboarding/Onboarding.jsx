@@ -8,7 +8,9 @@ import {
   ChevronLeft, ChevronRight
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+
 import { fetchJson, getTrending, searchMovies } from '@/shared/api/tmdb'
+import Button from '@/shared/ui/Button'
 
 export default function Onboarding() {
   const navigate = useNavigate()
@@ -469,14 +471,17 @@ function StepGenres({ GENRES, selectedGenres, toggleGenre, error, loading, onNex
           {count > 0 && (
             <p className="text-xs text-white/40 mb-3">{count} selected</p>
           )}
-          <button
+          <Button
+            variant="primary"
+            size="lg"
             onClick={onNext}
             disabled={loading}
-            className="w-full sm:w-auto sm:mx-auto flex items-center justify-center gap-2 px-10 py-4 sm:py-3.5 rounded-full font-semibold text-base transition-all duration-300 bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/25 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+            className="sm:w-auto sm:mx-auto"
+            fullWidth
           >
             Continue
             <ChevronRight className="h-4 w-4" />
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -511,7 +516,7 @@ function StepMovies({
             placeholder="Search any film…"
             value={query}
             onChange={e => setQuery(e.target.value)}
-            className="w-full pl-11 pr-11 py-3.5 rounded-2xl border border-white/10 bg-white/5 text-sm text-white placeholder-white/30 focus:outline-none focus:border-purple-500/50 focus:bg-white/8 focus:ring-2 focus:ring-purple-500/12 transition-all"
+            className="w-full pl-11 pr-11 py-3.5 rounded-2xl border border-white/10 bg-white/5 text-sm text-white placeholder-white/40 focus:outline-none focus:border-purple-500/50 focus:bg-white/8 focus:ring-2 focus:ring-purple-500/12 transition-all"
           />
           {searching && (
             <div className="absolute right-4 top-1/2 -translate-y-1/2">
@@ -717,17 +722,18 @@ function StepMovies({
             <ChevronLeft className="h-4 w-4" />
             Back
           </button>
-          <button
+          <Button
+            variant="primary"
+            size="md"
             onClick={onFinish}
             disabled={loading}
-            className="flex items-center gap-2 px-7 py-3 rounded-full font-semibold text-sm transition-all duration-300 bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/25 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
           >
             {loading ? (
               <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</>
             ) : (
               <>See my recommendations <Sparkles className="h-4 w-4" /></>
             )}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

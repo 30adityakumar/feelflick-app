@@ -56,18 +56,14 @@ export function useUserMovieStatus(params = {}) {
         // Priority 1: Use explicitly passed internal ID (even if 0, though unlikely)
         if (explicitInternalId !== null && explicitInternalId !== undefined) {
           internalId = explicitInternalId
-          console.log('[useUserMovieStatus] Using explicit internalId:', internalId)
         }
         // Priority 2: Movie has tmdb_id field => it's from our DB; movie.id is internal
         else if (movie?.tmdb_id && movie?.id) {
           internalId = movie.id
-          console.log('[useUserMovieStatus] Movie from DB, using movie.id:', internalId)
         }
         // Priority 3: Movie from TMDB API, need to look up/create in our DB
         else if (movie?.id) {
-          console.log('[useUserMovieStatus] Movie from TMDB API, calling ensureMovieInDb')
           internalId = await ensureMovieInDb(movie)
-          console.log('[useUserMovieStatus] ensureMovieInDb returned:', internalId)
         }
 
         if (!mounted) return
@@ -99,12 +95,6 @@ export function useUserMovieStatus(params = {}) {
 
         setIsInWatchlist(Boolean(wlRes.data))
         setIsWatched(Boolean(whRes.data))
-
-        console.log('[useUserMovieStatus] Status synced:', {
-          internalId,
-          isInWatchlist: Boolean(wlRes.data),
-          isWatched: Boolean(whRes.data)
-        })
       } catch (err) {
         console.error('[useUserMovieStatus] sync error:', err)
       }
@@ -122,8 +112,6 @@ export function useUserMovieStatus(params = {}) {
     const wasInWatchlist = isInWatchlist
 
     try {
-      console.log('[toggleWatchlist] Using movie_id:', resolvedInternalId)
-
       if (wasInWatchlist) {
         // REMOVE from watchlist
         setIsInWatchlist(false)
@@ -135,8 +123,6 @@ export function useUserMovieStatus(params = {}) {
           .eq('movie_id', resolvedInternalId)
 
         if (error) throw error
-
-        console.log('[toggleWatchlist] ✅ Removed from watchlist')
       } else {
         // ADD to watchlist
         setIsInWatchlist(true)
@@ -163,13 +149,10 @@ export function useUserMovieStatus(params = {}) {
           .delete()
           .eq('user_id', user.id)
           .eq('movie_id', resolvedInternalId)
-
-        console.log('[toggleWatchlist] ✅ Added to watchlist')
       }
 
       // Invalidate cache after successful action
       recommendationCache.invalidateUser(user.id)
-      console.log('[Cache] Invalidated after watchlist toggle')
     } catch (err) {
       console.error('[toggleWatchlist] error:', err)
       // Revert optimistic update
@@ -186,8 +169,6 @@ export function useUserMovieStatus(params = {}) {
     const wasWatched = isWatched
 
     try {
-      console.log('[toggleWatched] Using movie_id:', resolvedInternalId)
-
       if (wasWatched) {
         // UNMARK as watched
         setIsWatched(false)
@@ -199,8 +180,6 @@ export function useUserMovieStatus(params = {}) {
           .eq('movie_id', resolvedInternalId)
 
         if (error) throw error
-
-        console.log('[toggleWatched] ✅ Unmarked as watched')
       } else {
         // MARK as watched
         setIsWatched(true)
@@ -224,17 +203,9 @@ export function useUserMovieStatus(params = {}) {
           .eq('user_id', user.id)
           .eq('movie_id', resolvedInternalId)
 
-        console.log('[toggleWatched] ✅ Marked as watched')
-
-        // 🆕 EMIT FEEDBACK PROMPT EVENT
+        // Emit feedback prompt event
         setTimeout(() => {
           const tmdbId = movie?.tmdb_id || movie?.id
-          console.log('[toggleWatched] 💬 Prompting for feedback...', {
-            internalMovieId: resolvedInternalId,
-            tmdbId: tmdbId,
-            movieTitle: movie?.title
-          })
-          
           window.dispatchEvent(
             new CustomEvent('prompt-movie-feedback', {
               detail: {
@@ -250,7 +221,6 @@ export function useUserMovieStatus(params = {}) {
 
       // Invalidate cache after successful action
       recommendationCache.invalidateUser(user.id)
-      console.log('[Cache] Invalidated after watched toggle')
     } catch (err) {
       console.error('[toggleWatched] error:', err)
       // Revert optimistic update

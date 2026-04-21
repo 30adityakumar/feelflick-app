@@ -6,6 +6,7 @@ import Header from '@/app/header/Header'
 import SearchBar from '@/app/header/components/SearchBar'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { useGoogleAuth } from '@/features/landing/utils/useGoogleAuth'
+import { identify, resetAnalytics, track } from '@/shared/services/analytics'
 
 export default function AppShell() {
   const [searchOpen, setSearchOpen] = useState(false)
@@ -13,7 +14,7 @@ export default function AppShell() {
   const lastScrollY = useRef(0)
   const ticking = useRef(false)
   const location = useLocation()
-  const { isAuthenticated } = useAuthSession()
+  const { user, isAuthenticated } = useAuthSession()
 
   // Keyboard shortcut for search (/)
   useEffect(() => {
@@ -68,9 +69,10 @@ export default function AppShell() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // Reset header visibility on route change
+  // Reset header visibility on route change + track page view
   useEffect(() => {
     setHeaderVisible(true)
+    track('page_viewed', { path: location.pathname })
 
     const prefersReducedMotion =
       window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
@@ -80,6 +82,21 @@ export default function AppShell() {
       behavior: prefersReducedMotion ? 'auto' : 'smooth',
     })
   }, [location.pathname])
+
+  // Identify / reset on auth state change
+  const prevUserIdRef = useRef(null)
+  useEffect(() => {
+    const uid = user?.id ?? null
+    if (uid && uid !== prevUserIdRef.current) {
+      identify(uid, {
+        email: user.email,
+        name: user.user_metadata?.name,
+      })
+    } else if (!uid && prevUserIdRef.current) {
+      resetAnalytics()
+    }
+    prevUserIdRef.current = uid
+  }, [user])
 
   return (
     <div className="relative min-h-screen text-white">

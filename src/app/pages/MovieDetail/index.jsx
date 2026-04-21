@@ -16,6 +16,7 @@ import { useMovieRating } from '@/shared/hooks/useMovieRating'
 import { usePageView } from '@/shared/hooks/useInteractionTracking'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { trackTrailerPlay, trackShare } from '@/shared/services/interactions'
+import { track } from '@/shared/services/analytics'
 import { invalidatePersonalCache } from '@/shared/services/personalRating'
 import { fetchJson, getMovieDetails } from '@/shared/api/tmdb'
 
@@ -110,6 +111,15 @@ export default function MovieDetail() {
   const { user } = useAuthSession()
 
   usePageView(internalMovieId, 'movie_detail')
+
+  // Track PostHog event once per movie load
+  useEffect(() => {
+    if (!movie) return
+    track('movie_detail_viewed', {
+      movie_id: movie.id,
+      movie_title: movie.title,
+    })
+  }, [movie?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const startTime = Date.now()

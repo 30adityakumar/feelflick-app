@@ -1,6 +1,7 @@
 // src/main.jsx
 import * as Sentry from '@sentry/react'
 import { reportWebVitals } from '@/shared/lib/vitals'
+import { initAnalytics } from '@/shared/services/analytics'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
@@ -11,6 +12,8 @@ import {
   consumeOAuthCallbackNonce,
   readOAuthNonceFromUrl,
 } from './shared/lib/auth/oauthNonce'
+
+initAnalytics()
 
 Sentry.init({
   dsn: import.meta.env.VITE_SENTRY_DSN,

@@ -2,6 +2,7 @@ import { useDeferredValue, useEffect, useId, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Clock, Search as SearchIcon, X } from 'lucide-react'
 import { searchMovies } from '@/shared/api/tmdb'
+import { track } from '@/shared/services/analytics'
 
 const RECENT_SEARCHES_KEY = 'recentSearches'
 const MAX_RECENT_SEARCHES = 5
@@ -142,6 +143,12 @@ export default function SearchBar({ open, onClose }) {
 
   function goToMovie(movie) {
     saveRecentSearch(movie)
+    track('search_performed', {
+      query: q.trim(),
+      result_count: results.length,
+      movie_id: movie.id,
+      movie_title: movie.title,
+    })
     onClose?.()
     nav(`/movie/${movie.id}`)
   }

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
 import Button from '@/shared/ui/Button'
+import { track } from '@/shared/services/analytics'
 import {
   consumeOAuthCallbackNonce,
   readOAuthNonceFromUrl,
@@ -179,6 +180,10 @@ export default function OAuthCallback() {
 
         // Route to appropriate page
         const destination = isOnboarded ? '/home' : '/onboarding'
+
+        if (!isOnboarded) {
+          track('signup', { method: 'google' })
+        }
 
         if (mounted) {
           navigate(destination, { replace: true })

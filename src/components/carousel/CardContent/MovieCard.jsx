@@ -8,6 +8,7 @@ import { tmdbImg } from '@/shared/api/tmdb'
 import { useWatchlistContext } from '@/contexts/WatchlistContext'
 import { useUserMovieStatus } from '@/shared/hooks/useUserMovieStatus'
 import { updateImpression } from '@/shared/services/recommendations'
+import { track } from '@/shared/services/analytics'
 import { WatchProviders } from '../WatchProviders'
 import { Card } from '../Card'
 
@@ -96,6 +97,7 @@ export const MovieCard = memo(function MovieCard({
   priority = false,
   onClick,
   placement = null,
+  rowTitle = null,
   reducedMotion = false,
   dimmed = false,
   siblingOffset = 0,
@@ -171,10 +173,27 @@ export const MovieCard = memo(function MovieCard({
         clicked_at: new Date().toISOString(),
       })
     }
+    track('card_clicked', {
+      movie_id: tmdbId,
+      movie_title: movie?.title,
+      row_title: rowTitle,
+      index,
+    })
 
     if (onClick) onClick(movie)
     else navigate(`/movie/${tmdbId}`)
-  }, [movie, navigate, onClick, placement, tmdbId, user?.id])
+  }, [index, movie, navigate, onClick, placement, rowTitle, tmdbId, user?.id])
+
+  const handleToggleWatchlist = useCallback(() => {
+    if (!isInWatchlist) {
+      track('card_watchlisted', {
+        movie_id: tmdbId,
+        movie_title: movie?.title,
+        row_title: rowTitle,
+      })
+    }
+    toggleWatchlist()
+  }, [isInWatchlist, movie?.title, rowTitle, tmdbId, toggleWatchlist])
 
   const handleRootBlur = useCallback(
     (event) => {
@@ -405,7 +424,7 @@ export const MovieCard = memo(function MovieCard({
                       <>
                         <ActionButton
                           label={isInWatchlist ? 'Remove from watchlist' : 'Add to watchlist'}
-                          onClick={toggleWatchlist}
+                          onClick={handleToggleWatchlist}
                           icon={Plus}
                           activeIcon={Check}
                           active={isInWatchlist}

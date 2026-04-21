@@ -74,6 +74,7 @@ import { scoreMovieV3, precomputeScoringContext } from './scoring-v3'
 import { FIT_ADJACENCY, promoteRatedFitProfiles } from './fit-adjacency'
 import { buildSkipWeightMap, buildCooldownSet } from './skip-signals'
 import { selectHeroCandidates, dayHashIndex } from './diversity'
+import { heroEraFloor, generateHeroReason, tieBreakSort } from './hero-reason'
 
 // ============================================================================
 // VERSION
@@ -2312,7 +2313,9 @@ export async function getTopPickForUser(userId, options = {}) {
       // Base pool + classics pool depend only on langGuard (resolved above).
 
       const isLanguageRestricted = langGuard.mode === 'strict' || langGuard.mode === 'strong'
-      const minYear = isLanguageRestricted ? 2010 : 2019
+      const langMinYear = isLanguageRestricted ? 2010 : 2019
+      const eraFloor = heroEraFloor(profileV3)
+      const minYear = Math.min(langMinYear, eraFloor)
 
       // Build base query — quality floor owned by HERO tier
       let baseQuery = supabase
@@ -2461,7 +2464,7 @@ export async function getTopPickForUser(userId, options = {}) {
           .eq('is_valid', true)
           .not('backdrop_path', 'is', null)
           .not('tmdb_id', 'is', null)
-          .gte('release_date', `2020-01-01`)
+          .gte('release_date', `${Math.min(2020, eraFloor)}-01-01`)
         relaxQuery = applyQualityFloor(relaxQuery, 'SIGNATURE')
 
         // keep language restriction for user intent
@@ -2556,10 +2559,21 @@ export async function getTopPickForUser(userId, options = {}) {
 
       let finalCandidates = matchCandidates
 
-      // Sort & diversity
-      finalCandidates.sort((a, b) => (b.finalScore - a.finalScore) || (b.embeddingTiebreak - a.embeddingTiebreak))
-      const top30 = finalCandidates.slice(0, 30)
-      const diverseTop10 = applyDiversityFilter(top30, [], 10)
+      // Sort via multi-factor tie-break then diversity
+      const tieBreakReady = finalCandidates.map(c => ({
+        ...c,
+        ...c.movie,
+        _score: c.finalScore,
+        _breakdown: c.breakdown,
+      }))
+      tieBreakReady.sort(tieBreakSort)
+      const top30 = tieBreakReady.slice(0, 30)
+      // Re-map back to scored entry shape for diversity filter
+      const top30Entries = top30.map(c => {
+        const entry = finalCandidates.find(e => e.movie.id === c.id)
+        return entry || c
+      })
+      const diverseTop10 = applyDiversityFilter(top30Entries, [], 10)
 
       if (diverseTop10.length === 0) return await getFallbackPick(langGuard, allExcludeInternal, allExcludeTmdb, profile, profileV3, scoringContext)
 
@@ -2607,17 +2621,30 @@ export async function getTopPickForUser(userId, options = {}) {
         ...c,
         ...c.movie,
         _score: c.finalScore,
+        _breakdown: c.breakdown,
       }))
       const heroCandidates = selectHeroCandidates(heroRotationPool, 3)
       const heroIdx = dayHashIndex(userId, heroCandidates.length)
       const selected = heroCandidates[heroIdx]
+
+      // Generate grounded reasons for each candidate
+      const reasons = {}
+      for (const hc of heroCandidates) {
+        const movieObj = hc.movie || hc
+        reasons[movieObj.id] = generateHeroReason(
+          movieObj,
+          hc.breakdown || hc._breakdown,
+          profileV3,
+          scoringContext?.seedNeighborMap,
+        )
+      }
 
       // Discovery slot injection may override position 10
       if (selected.breakdown?.discovery) branchName = 'discovery'
       console.log('[hero] selected branch:', branchName, 'pool size:', candidates.length)
 
       if (import.meta.env.DEV) {
-        console.log('[hero] rotation candidates:', heroCandidates.map(c => ({ title: c.movie?.title || c.title, score: c._score })), 'picked idx:', heroIdx)
+        console.log('[hero] rotation candidates:', heroCandidates.map(c => ({ title: c.movie?.title || c.title, score: c._score, reason: reasons[(c.movie || c).id]?.text })), 'picked idx:', heroIdx)
         console.log('[score] Hero top3:', JSON.stringify(diverseTop10.slice(0, 3).map(c => ({
           title: c.movie.title,
           final: c.finalScore,
@@ -2627,15 +2654,27 @@ export async function getTopPickForUser(userId, options = {}) {
         })), null, 0))
       }
 
-      // Log impression
+      // Log impression for the day-hash selected candidate only
       logImpression(userId, selected, 'hero').catch((err) =>
         console.warn('[getTopPickForUser] Impression log failed:', err.message)
       )
 
+      // Build alternates array (all 3 candidates with enriched movie data)
+      const alternates = heroCandidates.map(hc => {
+        const movieObj = hc.movie || hc
+        return {
+          ...movieObj,
+          _score: hc.finalScore || hc._score,
+          _breakdown: hc.breakdown || hc._breakdown,
+        }
+      })
+
       return {
-        movie: selected.movie,
-        pickReason: selected.pickReason,
-        score: selected.finalScore,
+        movie: selected.movie || selected,
+        pickReason: selected.pickReason || reasons[(selected.movie || selected).id],
+        score: selected.finalScore || selected._score,
+        alternates,
+        reasons,
         debug: {
           engineVersion: ENGINE_VERSION,
           langGuard,

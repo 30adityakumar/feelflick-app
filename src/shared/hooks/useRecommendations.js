@@ -345,15 +345,20 @@ export function useTopPick(options = {}) {
         if (isCancelled) return
 
         if (result?.movie) {
+          const enrichMovie = (m) => ({
+            ...m,
+            trailer_url: m.trailer_youtube_key
+              ? `https://www.youtube.com/watch?v=${m.trailer_youtube_key}`
+              : null,
+            director: m.director_name ? { name: m.director_name } : null,
+          })
           const enrichedMovie = {
-            ...result.movie,
+            ...enrichMovie(result.movie),
             _pickReason: result.pickReason,
             _score: result.score,
             _debug: result.debug,
-            trailer_url: result.movie.trailer_youtube_key
-              ? `https://www.youtube.com/watch?v=${result.movie.trailer_youtube_key}`
-              : null,
-            director: result.movie.director_name ? { name: result.movie.director_name } : null,
+            _alternates: (result.alternates || []).map(enrichMovie),
+            _reasons: result.reasons || {},
           }
           setData(enrichedMovie)
         } else {

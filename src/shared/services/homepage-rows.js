@@ -13,6 +13,7 @@ import { FIT_ADJACENCY } from './fit-adjacency'
 import { applyAllExclusions } from './exclusions'
 import { applyQualityFloor, QUALITY_TIERS } from './quality-tiers'
 import { scoreMovieV3, precomputeScoringContext } from './scoring-v3'
+import { diversifyRow, dayHashIndex } from './diversity'
 
 // === Shared field selection (mirrors TIERED_SELECT_FIELDS in recommendations.js) ===
 
@@ -68,7 +69,7 @@ const GENRE_ID_TO_NAME = {
  * @param {string} [rowType] - key from ROW_WEIGHTS (e.g. 'TOP_OF_TASTE', 'MOOD_ROW')
  * @returns {Object[]}
  */
-function scoreAndSlice(candidates, profile, scoringContext, rowName, limit, pickReason, rowType) {
+function scoreAndSlice(candidates, profile, scoringContext, rowName, limit, pickReason, rowType, { skipDiversity = false } = {}) {
   if (!profile || !scoringContext) {
     return candidates.slice(0, limit).map(movie => ({
       ...movie,
@@ -93,7 +94,10 @@ function scoreAndSlice(candidates, profile, scoringContext, rowName, limit, pick
   const qualified = scored.filter(m => m._score >= MIN_PERSONAL_SCORE)
   if (qualified.length < MIN_ROW_FILMS) return []
 
-  const result = qualified.slice(0, limit)
+  // Within-row diversity (exempted for director/watchlist rows)
+  const result = skipDiversity
+    ? qualified.slice(0, limit)
+    : diversifyRow(qualified, limit)
 
   // Dev-only observability
   if (import.meta.env.DEV && result.length >= 3) {
@@ -591,7 +595,7 @@ export async function getWatchlistRow(userId, profile, limit = 20, opts = {}) {
       const films = scoreAndSlice(candidates, resolvedProfile, scoringContext, 'Watchlist', limit, {
         label: 'Still on your watchlist',
         type: 'watchlist_row',
-      }, 'TOP_OF_TASTE')
+      }, 'TOP_OF_TASTE', { skipDiversity: true })
 
       return { films }
     } catch (err) {
@@ -663,7 +667,7 @@ export async function getSignatureDirectorRow(userId, profile, limit = 20, opts 
         label: `More from ${topDirector.name}`,
         type: 'signature_director',
         directorName: topDirector.name,
-      }, 'DIRECTOR')
+      }, 'DIRECTOR', { skipDiversity: true })
 
       return { films, director: topDirector.name }
     } catch (err) {
@@ -671,4 +675,22 @@ export async function getSignatureDirectorRow(userId, profile, limit = 20, opts 
       return { films: [], director: null }
     }
   })
+}
+
+// ============================================================================
+// DAILY SLOT ROTATION
+// ============================================================================
+
+/**
+ * Get homepage row order with daily slot rotation.
+ * Slot 3 rotates between critics_swooned / peoples_champions.
+ * Slot 7 rotates between under_90 / signature_director.
+ *
+ * @param {string} userId
+ * @returns {string[]}
+ */
+export function getHomepageRowOrder(userId) {
+  const slot3 = dayHashIndex(userId, 2) === 0 ? 'critics_swooned' : 'peoples_champions'
+  const slot7 = dayHashIndex(userId + 'slot7', 2) === 0 ? 'under_90' : 'signature_director'
+  return ['top_of_taste', 'signature_director', slot3, 'mood_row', 'orbit', slot7, 'watchlist']
 }

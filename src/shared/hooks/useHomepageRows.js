@@ -9,7 +9,9 @@
 import { useEffect, useMemo, useState } from 'react'
 
 import { useUserTier } from '@/shared/hooks/useRecommendations'
-import { computeUserProfile } from '@/shared/services/recommendations'
+import { computeUserProfileV3 } from '@/shared/services/recommendations'
+import { precomputeScoringContext } from '@/shared/services/scoring-v3'
+import { softDedupe } from '@/shared/services/diversity'
 import {
   getTopOfYourTasteRow,
   getCriticsSwoonedRow,
@@ -119,83 +121,122 @@ export function useHomepageRows(userId) {
     return (simpleHash(userId) + dayOfYear()) % 2 === 0 ? 'A' : 'B'
   }, [userId])
 
-  // Shared profile — resolved once, passed to all service functions
+  // Shared profile + scoring context — resolved once, passed to all service functions
   const [profile, setProfile] = useState(null)
+  const [scoringContext, setScoringContext] = useState(null)
 
   useEffect(() => {
     if (!userId) {
       setProfile(null)
+      setScoringContext(null)
       return
     }
 
     let cancelled = false
-    computeUserProfile(userId).then(p => {
-      if (!cancelled) setProfile(p)
+    computeUserProfileV3(userId).then(async (p) => {
+      if (cancelled) return
+      setProfile(p)
+      const ctx = await precomputeScoringContext(p)
+      if (!cancelled) setScoringContext(ctx)
     })
     return () => { cancelled = true }
   }, [userId])
 
   const hasProfile = profile !== null
-  const profileKey = userId ? `${userId}-${hasProfile}` : 'guest'
+  const hasContext = scoringContext !== null
+  const profileKey = userId ? `${userId}-${hasProfile}-${hasContext}` : 'guest'
+  const rowOpts = hasContext ? { scoringContext } : {}
 
   // === Row queries ===
 
   const topOfTaste = useRowQuery(
     `top-of-taste-${profileKey}`,
-    () => getTopOfYourTasteRow(userId, profile),
-    hasProfile || !userId,
+    () => getTopOfYourTasteRow(userId, profile, 20, rowOpts),
+    (hasProfile && hasContext) || !userId,
   )
 
   const criticSplit = useRowQuery(
     `critic-split-${profileKey}-${rotationVariant}-${tier}`,
     () => {
       if (tier === 'engaged' && rotationVariant === 'B') {
-        return getPeoplesChampionsRow(userId, profile)
+        return getPeoplesChampionsRow(userId, profile, 20, rowOpts)
       }
-      return getCriticsSwoonedRow(userId, profile)
+      return getCriticsSwoonedRow(userId, profile, 20, rowOpts)
     },
-    (hasProfile || !userId) && tier !== null,
+    (hasProfile && hasContext || !userId) && tier !== null,
   )
 
   const under90 = useRowQuery(
     `under-90-${profileKey}`,
-    () => getUnder90MinutesRow(userId, profile),
-    hasProfile || !userId,
+    () => getUnder90MinutesRow(userId, profile, 20, rowOpts),
+    (hasProfile && hasContext) || !userId,
   )
 
   const orbit = useRowQuery(
     `orbit-${profileKey}`,
-    () => getStillInOrbitRow(userId, profile),
-    hasProfile && tier !== 'cold',
+    () => getStillInOrbitRow(userId, profile, 20, rowOpts),
+    hasProfile && hasContext && tier !== 'cold',
   )
 
   const mood = useRowQuery(
     `mood-${profileKey}`,
-    () => getMoodRow(userId, profile),
-    hasProfile && tier !== 'cold',
+    () => getMoodRow(userId, profile, 20, rowOpts),
+    hasProfile && hasContext && tier !== 'cold',
   )
 
   const watchlist = useRowQuery(
     `watchlist-${profileKey}`,
-    () => getWatchlistRow(userId, profile),
-    hasProfile && tier === 'engaged',
+    () => getWatchlistRow(userId, profile, 20, rowOpts),
+    hasProfile && hasContext && tier === 'engaged',
   )
 
   const director = useRowQuery(
     `director-${profileKey}`,
-    () => getSignatureDirectorRow(userId, profile),
-    hasProfile && tier !== 'cold',
+    () => getSignatureDirectorRow(userId, profile, 20, rowOpts),
+    hasProfile && hasContext && tier !== 'cold',
   )
+
+  // === Cross-row soft dedup ===
+  // Apply in row priority order. Hero films are exempt from contributing.
+  // Watchlist is exempt from dedup (user-chosen).
+  const deduped = useMemo(() => {
+    const shownIds = new Set()
+
+    function dedupFilms(films) {
+      if (!films || films.length === 0) return films
+      const result = softDedupe(films, shownIds)
+      result.forEach(f => { if (f?.id) shownIds.add(f.id) })
+      return result
+    }
+
+    // Row order: TopOfTaste → Director → CriticSplit → Mood → Orbit → Under90 → Watchlist
+    const dTopOfTaste = dedupFilms(topOfTaste.data)
+    const dDirector = director.data
+      ? { ...director.data, films: dedupFilms(director.data.films) }
+      : director.data
+    const dCriticSplit = dedupFilms(criticSplit.data)
+    const dMood = mood.data
+      ? { ...mood.data, films: dedupFilms(mood.data.films) }
+      : mood.data
+    const dOrbit = orbit.data
+      ? { ...orbit.data, films: dedupFilms(orbit.data.films) }
+      : orbit.data
+    const dUnder90 = dedupFilms(under90.data)
+    // Watchlist exempt — no dedup
+    const dWatchlist = watchlist.data
+
+    return { dTopOfTaste, dDirector, dCriticSplit, dMood, dOrbit, dUnder90, dWatchlist }
+  }, [topOfTaste.data, director.data, criticSplit.data, mood.data, orbit.data, under90.data, watchlist.data])
 
   return {
     tier,
     rotationVariant,
-    topOfTaste,
-    criticSplit,
-    under90,
-    orbit,
-    mood,
-    watchlist,
-    director,
+    topOfTaste: { ...topOfTaste, data: deduped.dTopOfTaste },
+    criticSplit: { ...criticSplit, data: deduped.dCriticSplit },
+    under90: { ...under90, data: deduped.dUnder90 },
+    orbit: { ...orbit, data: deduped.dOrbit },
+    mood: { ...mood, data: deduped.dMood },
+    watchlist: { ...watchlist, data: deduped.dWatchlist },
+    director: { ...director, data: deduped.dDirector },
   }
 }

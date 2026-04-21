@@ -73,6 +73,7 @@ import { applyQualityFloor, QUALITY_TIERS } from './quality-tiers'
 import { scoreMovieV3, precomputeScoringContext } from './scoring-v3'
 import { FIT_ADJACENCY, promoteRatedFitProfiles } from './fit-adjacency'
 import { buildSkipWeightMap, buildCooldownSet } from './skip-signals'
+import { selectHeroCandidates, dayHashIndex } from './diversity'
 
 // ============================================================================
 // VERSION
@@ -2434,7 +2435,6 @@ export async function getTopPickForUser(userId, options = {}) {
       if (profileHeroCooldown instanceof Set && profileHeroCooldown.size > 0) {
         candidates = candidates.filter(m => !profileHeroCooldown.has(m.id))
       }
-
       // Fit-profile hard gate — only keep films whose fit_profile is in user's
       // top profiles or adjacent. Skip gate on cold start (no topFitProfiles).
       const heroTopFit = profile.topFitProfiles || []
@@ -2452,7 +2452,6 @@ export async function getTopPickForUser(userId, options = {}) {
           !m.fit_profile || heroAllowedFits.has(m.fit_profile),
         )
       }
-
       // If strict language left us too few, we RELAX QUALITY/YEAR but NEVER relax "watched" exclusion
       if (candidates.length < 15 && langGuard.mode !== 'loose' && langGuard.primary) {
         branchName = 'relax'
@@ -2603,26 +2602,22 @@ export async function getTopPickForUser(userId, options = {}) {
         }
       }
 
-      // Weighted random — #1 wins 65% of the time (was 40%); decisive but not robotic
-      const weights = [0.65, 0.20, 0.08, 0.04, 0.02, 0.01, 0.005, 0.002, 0.002, 0.001]
-      const totalWeight = weights.slice(0, diverseTop10.length).reduce((a, b) => a + b, 0)
-      let rnd = Math.random() * totalWeight
-      let selectedIndex = 0
-      for (let i = 0; i < diverseTop10.length; i++) {
-        rnd -= weights[i] || 0.001
-        if (rnd <= 0) {
-          selectedIndex = i
-          break
-        }
-      }
-
-      const selected = diverseTop10[selectedIndex]
+      // Hero rotation: select diverse top candidates, pick via day-hash for stability
+      const heroRotationPool = diverseTop10.map(c => ({
+        ...c,
+        ...c.movie,
+        _score: c.finalScore,
+      }))
+      const heroCandidates = selectHeroCandidates(heroRotationPool, 3)
+      const heroIdx = dayHashIndex(userId, heroCandidates.length)
+      const selected = heroCandidates[heroIdx]
 
       // Discovery slot injection may override position 10
       if (selected.breakdown?.discovery) branchName = 'discovery'
       console.log('[hero] selected branch:', branchName, 'pool size:', candidates.length)
 
       if (import.meta.env.DEV) {
+        console.log('[hero] rotation candidates:', heroCandidates.map(c => ({ title: c.movie?.title || c.title, score: c._score })), 'picked idx:', heroIdx)
         console.log('[score] Hero top3:', JSON.stringify(diverseTop10.slice(0, 3).map(c => ({
           title: c.movie.title,
           final: c.finalScore,

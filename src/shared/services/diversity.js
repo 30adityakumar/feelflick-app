@@ -73,14 +73,16 @@ export function diversifyRow(scoredCandidates, targetCount = 8) {
  * @returns {Object[]}
  */
 export function selectHeroCandidates(scoredCandidates, count = 3) {
-  const filtered = scoredCandidates.filter(c => c._score >= 65)
+  if (!scoredCandidates?.length) return []
+
+  const threshold = 65
+  const filtered = scoredCandidates.filter(c => c._score >= threshold)
   const diverse = diversifyRow(filtered, count)
 
-  // Backfill from full pool if diversity didn't reach target count
-  if (diverse.length < count && diverse.length > 0) {
+  // Backfill from full pool if still short (regardless of diverse count)
+  if (diverse.length < count) {
     const pickedIds = new Set(diverse.map(c => c.id))
-    const sorted = [...scoredCandidates].sort((a, b) => b._score - a._score)
-    for (const c of sorted) {
+    for (const c of scoredCandidates) {
       if (diverse.length >= count) break
       if (!pickedIds.has(c.id)) {
         diverse.push(c)
@@ -89,7 +91,7 @@ export function selectHeroCandidates(scoredCandidates, count = 3) {
     }
   }
 
-  return diverse.length > 0 ? diverse : scoredCandidates.slice(0, count)
+  return diverse.slice(0, count)
 }
 
 /**

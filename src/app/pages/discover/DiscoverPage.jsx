@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useMemo,
   useRef,
   useState,
   useTransition,
@@ -15,8 +16,10 @@ import { useMoodSession } from '@/shared/hooks/useMoodSession'
 import { useRecommendationTracking } from '@/shared/hooks/useRecommendationTracking'
 import { useRecommendations } from '@/shared/hooks/useRecommendations'
 import { useNLMoodParse } from '@/shared/hooks/useNLMoodParse'
+import { unpackVibe } from '@/shared/services/brief-scoring'
 import Button from '@/shared/ui/Button'
 
+import { useDiscoverTracking } from './hooks/useDiscoverTracking'
 import { QUESTION_SET } from './questions'
 import AIBar from './components/AIBar'
 import AnchorSearch from './components/AnchorSearch'
@@ -28,55 +31,22 @@ import PinnedBriefCollapsible from './components/PinnedBriefCollapsible'
 import QuestionSlot from './components/QuestionSlot'
 import ResultsList from './components/ResultsList'
 
-// ─── Data constants ───────────────────────────────────────────────────────────
+// ─── Vibe → moodId mapping (for loadMoodData compatibility) ──────────────────
 
-const MOODS = [
-  { id: 1,  name: 'Cozy' },
-  { id: 2,  name: 'Adventurous' },
-  { id: 3,  name: 'Heartbroken' },
-  { id: 4,  name: 'Curious' },
-  { id: 5,  name: 'Nostalgic' },
-  { id: 6,  name: 'Energized' },
-  { id: 7,  name: 'Anxious' },
-  { id: 8,  name: 'Romantic' },
-  { id: 9,  name: 'Inspired' },
-  { id: 10, name: 'Silly' },
-  { id: 11, name: 'Dark' },
-  { id: 12, name: 'Overwhelmed' },
-]
-
-const MOOD_VISUAL_MAP = {
-  1:  { orbColor: '#ff6b35', color1: '#ff6b35', color2: '#f59e0b', rgb: '255,107,53' },
-  2:  { orbColor: '#0ea5e9', color1: '#0ea5e9', color2: '#06b6d4', rgb: '14,165,233' },
-  3:  { orbColor: '#ec4899', color1: '#ec4899', color2: '#f43f5e', rgb: '236,72,153' },
-  4:  { orbColor: '#a855f7', color1: '#a855f7', color2: '#8b5cf6', rgb: '168,85,247' },
-  5:  { orbColor: '#f59e0b', color1: '#f59e0b', color2: '#d97706', rgb: '245,158,11' },
-  6:  { orbColor: '#10b981', color1: '#10b981', color2: '#22c55e', rgb: '16,185,129' },
-  7:  { orbColor: '#6366f1', color1: '#6366f1', color2: '#4338ca', rgb: '99,102,241' },
-  8:  { orbColor: '#ef4444', color1: '#ef4444', color2: '#ec4899', rgb: '239,68,68' },
-  9:  { orbColor: '#f59e0b', color1: '#f59e0b', color2: '#fbbf24', rgb: '245,158,11' },
-  10: { orbColor: '#84cc16', color1: '#84cc16', color2: '#22c55e', rgb: '132,204,22' },
-  11: { orbColor: '#4338ca', color1: '#1e1b4b', color2: '#0f172a', rgb: '67,56,202' },
-  12: { orbColor: '#0d9488', color1: '#0d9488', color2: '#0891b2', rgb: '13,148,136' },
-  DEFAULT: { orbColor: '#4f46e5', color1: '#4f46e5', color2: '#7c3aed', rgb: '79,70,229' },
+const FEELING_TO_MOOD_ID = {
+  cozy: 1, adventurous: 2, heartbroken: 3, curious: 4,
+  dark: 11, silly: 10, inspired: 9,
 }
 
 // ─── Company → viewingContext ID mapping ──────────────────────────────────────
 
 const COMPANY_TO_CONTEXT = { alone: 1, partner: 2, friends: 3, family: 4 }
 
-// ─── Attention + Familiarity → experienceType lookup ─────────────────────────
+// ─── Attention → experienceType mapping ──────────────────────────────────────
 
-const EXPERIENCE_LOOKUP = {
-  'lean-back|comfort':  5, // Zone Out
-  'lean-back|new':      1, // Escape
-  'lean-back|surprise': 1, // Escape
-  'lean-in|comfort':    4, // Think
-  'lean-in|new':        4, // Think
-  'lean-in|surprise':   4, // Think
-  'either|comfort':     5, // Zone Out
-  'either|new':         1, // Escape
-  'either|surprise':    1, // Escape
+const ATTENTION_TO_EXPERIENCE = {
+  lean_in: 4,   // Think
+  lean_back: 1, // Escape
 }
 
 function getDefaultTimeOfDay() {
@@ -85,6 +55,19 @@ function getDefaultTimeOfDay() {
   if (h >= 12 && h < 17) return 'afternoon'
   if (h >= 17 && h < 22) return 'evening'
   return 'latenight'
+}
+
+// ─── Mood visual map (for aurora background) ─────────────────────────────────
+
+const MOOD_VISUAL_MAP = {
+  1:  { orbColor: '#ff6b35', color1: '#ff6b35', color2: '#f59e0b', rgb: '255,107,53' },
+  2:  { orbColor: '#0ea5e9', color1: '#0ea5e9', color2: '#06b6d4', rgb: '14,165,233' },
+  3:  { orbColor: '#ec4899', color1: '#ec4899', color2: '#f43f5e', rgb: '236,72,153' },
+  4:  { orbColor: '#a855f7', color1: '#a855f7', color2: '#8b5cf6', rgb: '168,85,247' },
+  9:  { orbColor: '#f59e0b', color1: '#f59e0b', color2: '#fbbf24', rgb: '245,158,11' },
+  10: { orbColor: '#84cc16', color1: '#84cc16', color2: '#22c55e', rgb: '132,204,22' },
+  11: { orbColor: '#4338ca', color1: '#1e1b4b', color2: '#0f172a', rgb: '67,56,202' },
+  DEFAULT: { orbColor: '#4f46e5', color1: '#4f46e5', color2: '#7c3aed', rgb: '79,70,229' },
 }
 
 // ─── Aurora Background ────────────────────────────────────────────────────────
@@ -111,7 +94,7 @@ function AuroraBackground({ moodId }) {
   }, [])
 
   useEffect(() => {
-    const vis = moodId ? MOOD_VISUAL_MAP[moodId] : MOOD_VISUAL_MAP.DEFAULT
+    const vis = moodId ? (MOOD_VISUAL_MAP[moodId] || MOOD_VISUAL_MAP.DEFAULT) : MOOD_VISUAL_MAP.DEFAULT
     orb1Ref.current?.style.setProperty('--orb1-color', vis.color1)
     orb2Ref.current?.style.setProperty('--orb2-color', vis.color2)
     orb3Ref.current?.style.setProperty('--orb3-color', vis.orbColor)
@@ -192,6 +175,7 @@ export default function DiscoverPage() {
   // === ENGINE PARAMS (derived from brief answers) ===
   const [triggerMood, setTriggerMood] = useState(null)
   const [parsedTags, setParsedTags] = useState(null)
+  const [isSurpriseMe, setIsSurpriseMe] = useState(false)
 
   const trackedResultsKeyRef = useRef('')
   const abandonmentStateRef = useRef({ phase: 'briefing', moodId: null })
@@ -200,23 +184,33 @@ export default function DiscoverPage() {
   const { parse: parseMoodText } = useNLMoodParse()
   const { sessionId, createMoodSession, endMoodSession } = useMoodSession()
   const { trackRecommendationShown, trackRecommendationClicked } = useRecommendationTracking()
+  const { trackShown: trackDiscoverShown, trackWatchlist, trackSeen, trackDismiss } = useDiscoverTracking()
 
-  // Map brief answers → engine params
-  const moodId = answers.feeling ?? null
-  const energyLevel = answers.energy ?? 3
+  // Unpack vibe → feeling + tone for engine params
+  const { feeling } = unpackVibe(answers)
+  const moodId = feeling ? (FEELING_TO_MOOD_ID[feeling] ?? 4) : null
   const viewingContextId = COMPANY_TO_CONTEXT[answers.company] ?? 1
-  const experienceTypeId = EXPERIENCE_LOOKUP[`${answers.attention ?? 'either'}|${answers.familiarity ?? 'new'}`] ?? 1
+  const experienceTypeId = ATTENTION_TO_EXPERIENCE[answers.attention] ?? 1
+  const energyLevel = 3 // Default medium — inferred from vibe in scoring
   const timeOfDay = getDefaultTimeOfDay()
+
+  // Build brief object for v3 scoring engine (answers + anchor + surprise flag)
+  const briefForEngine = useMemo(() => ({
+    ...answers,
+    anchor: anchor || null,
+    ...(isSurpriseMe ? { surpriseMe: true } : {}),
+  }), [answers, anchor, isSurpriseMe])
 
   const { recommendations, loading, error } = useRecommendations(
     triggerMood,
     viewingContextId,
     experienceTypeId,
-    energyLevel,  // intensity
-    energyLevel,  // pacing (energy maps to both)
+    energyLevel,
+    energyLevel,
     timeOfDay,
     20,
     parsedTags,
+    briefForEngine,
   )
 
   // Keep abandonment ref in sync
@@ -260,8 +254,11 @@ export default function DiscoverPage() {
     })
   }, [recommendations, sessionId, trackRecommendationShown])
 
-  // WHY: NarratedLoader's onComplete handles the loading→results transition.
-  // It waits for both (a) all narration lines shown AND (b) results ready.
+  // Track discover-specific impressions (placement='discover')
+  useEffect(() => {
+    if (phase !== 'results' || recommendations.length === 0) return
+    trackDiscoverShown(recommendations)
+  }, [phase, recommendations, trackDiscoverShown])
 
   // === HANDLERS ===
 
@@ -269,15 +266,12 @@ export default function DiscoverPage() {
   async function handleSubmitBrief() {
     if (!moodId) return
 
-    console.log('[Discover] brief submitted', answers)
-
     setPhase('loading')
 
     // Parse notes into tags if present
     if (notes.length > 0) {
-      const moodName = MOODS.find((m) => m.id === moodId)?.name ?? ''
       const freeText = notes.join(' | ')
-      const result = await parseMoodText(moodName, freeText)
+      const result = await parseMoodText(feeling ?? 'curious', freeText)
       if (result?.preferredMoodTags?.length || result?.avoidedMoodTags?.length || result?.preferredToneTags?.length) {
         setParsedTags({
           preferredMoodTags: result.preferredMoodTags,
@@ -292,12 +286,22 @@ export default function DiscoverPage() {
     })
   }
 
+  /** "Surprise me" — bypass brief, day-rotated profile-driven picks. */
+  function handleSurpriseMe() {
+    setPhase('loading')
+    setIsSurpriseMe(true)
+    startTransition(() => {
+      setTriggerMood(4)
+    })
+  }
+
   function handleReset() {
     startTransition(() => {
       reset()
       setTriggerMood(null)
       setPhase('briefing')
       setParsedTags(null)
+      setIsSurpriseMe(false)
       trackedResultsKeyRef.current = ''
     })
   }
@@ -309,7 +313,7 @@ export default function DiscoverPage() {
     ? QUESTION_SET.find((q) => q.id === brief.activeQuestionId)
     : null
 
-  // Show anchor step when all 8 questions are answered but anchor hasn't been handled
+  // Show anchor step when all questions are answered but anchor hasn't been handled
   const showAnchorStep = isComplete && !anchor && !anchorSkipped && phase === 'briefing'
 
   // Show ready CTA when complete + anchor handled
@@ -326,11 +330,21 @@ export default function DiscoverPage() {
           <div className="min-h-screen bg-transparent pb-24">
             <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-10">
 
-              {/* Eyebrow */}
-              <div className="mb-6">
+              {/* Progress dots */}
+              <div className="mb-6 flex items-center gap-3">
                 <p className="text-[10px] font-semibold uppercase tracking-widest text-purple-400/60">
-                  Your brief — {progress.answered} of {progress.total}
+                  Your brief
                 </p>
+                <div className="flex gap-1.5">
+                  {Array.from({ length: progress.total }, (_, i) => (
+                    <div
+                      key={i}
+                      className={`w-1.5 h-1.5 rounded-full transition-colors duration-300 ${
+                        i < progress.answered ? 'bg-purple-400' : 'bg-white/15'
+                      }`}
+                    />
+                  ))}
+                </div>
               </div>
 
               {/* Pinned brief */}
@@ -363,6 +377,34 @@ export default function DiscoverPage() {
                 />
               )}
 
+              {/* AI bar inline above question 1 + "Surprise me" */}
+              {progress.answered === 0 && activeQuestion && (
+                <>
+                  <AIBar
+                    addNote={addNote}
+                    onSubmitDirect={(text) => {
+                      addNote(text)
+                      handleSubmitBrief()
+                    }}
+                    inline
+                  />
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.6, duration: 0.4 }}
+                    className="mt-4 text-center"
+                  >
+                    <button
+                      onClick={handleSurpriseMe}
+                      className="text-sm text-purple-400/70 hover:text-purple-300 transition-colors underline underline-offset-4 decoration-purple-400/30"
+                      aria-label="Surprise me — skip the brief"
+                    >
+                      Surprise me
+                    </button>
+                  </motion.div>
+                </>
+              )}
+
               {/* Anchor step */}
               {showAnchorStep && (
                 <AnchorSearch
@@ -377,31 +419,41 @@ export default function DiscoverPage() {
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-                  className="py-16 flex flex-col items-center"
+                  className="py-16 flex flex-col items-center gap-3"
                 >
-                  <Button
-                    variant="primary"
-                    size="lg"
+                  <motion.button
                     onClick={handleSubmitBrief}
-                    aria-label="Find my 10 films"
+                    aria-label="Find my films"
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    className="relative px-8 py-3.5 rounded-full text-base font-semibold text-white bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/30 transition-shadow"
                   >
-                    Find my 10 films
-                  </Button>
+                    <span className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 animate-pulse opacity-30 blur-md" />
+                    <span className="relative">Find my films</span>
+                  </motion.button>
+
+                  {candidateCount === 0 && !countLoading && progress.answered > 0 && (
+                    <motion.p
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="text-xs text-white/40 italic"
+                    >
+                      No exact matches — try loosening your vibe or time.
+                    </motion.p>
+                  )}
                 </motion.div>
               )}
 
             </div>
 
-            <AIBar addNote={addNote} />
+            {/* Compact AI bar after engagement */}
+            {progress.answered > 0 && <AIBar addNote={addNote} />}
           </div>
         )}
 
         {/* === LOADING PHASE === */}
         {phase === 'loading' && (
           <NarratedLoader
-            totalCount={candidateCount}
-            tagDim={45}
-            hasTasteProfile={!!userId}
             resultsReady={!loading && recommendations.length > 0}
             onComplete={() => setPhase('results')}
           />
@@ -451,7 +503,6 @@ export default function DiscoverPage() {
               <div className="max-w-3xl mx-auto px-4 sm:px-6">
                 <ResultsList
                   films={recommendations}
-                  brief={{ answers, anchor }}
                   onOpenDetail={(film) => {
                     if (sessionId) {
                       trackRecommendationClicked(sessionId, film.movie_id)
@@ -460,6 +511,9 @@ export default function DiscoverPage() {
                       state: { sessionId, movieId: film.movie_id },
                     })
                   }}
+                  onTrackWatchlist={trackWatchlist}
+                  onTrackSeen={trackSeen}
+                  onTrackDismiss={trackDismiss}
                 />
               </div>
             )}

@@ -152,18 +152,6 @@ export default function MovieSentimentWidget({
         if (feedbackErr) throw feedbackErr
       }
 
-      // 3. Save reflection response → user_movie_sentiment (best-effort)
-      if (reflectionText.trim()) {
-        await supabase
-          .from('user_movie_sentiment')
-          .upsert({
-            user_id:       user.id,
-            movie_id:      internalId,
-            sentiment:     sentiment ?? 'meh',
-            text_feedback: reflectionText.trim(),
-          }, { onConflict: 'user_id,movie_id' })
-      }
-
       setSubmitted(true)
       if (user?.id) invalidatePersonalCache(user.id).catch(() => {})
       onSaved?.({

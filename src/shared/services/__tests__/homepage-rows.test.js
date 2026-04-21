@@ -19,24 +19,42 @@ vi.mock('@/shared/lib/cache', () => ({
   },
 }))
 
+// Mock exclusions module (homepage-rows imports applyAllExclusions from ./exclusions)
+vi.mock('@/shared/services/exclusions', () => ({
+  applyAllExclusions: vi.fn().mockImplementation((query) => query),
+}))
+
 // Mock recommendations
 vi.mock('@/shared/services/recommendations', () => ({
-  computeUserProfile: vi.fn().mockResolvedValue({
-    watchedMovieIds: [100, 200],
-    moodSignature: {
-      recentMoodTags: [{ tag: 'contemplative', weight: 3.5 }, { tag: 'warm', weight: 2.0 }],
-      recentToneTags: [],
-      recentFitProfiles: [],
+  computeUserProfileV3: vi.fn().mockResolvedValue({
+    rated: { positive_seeds: [], negative_seeds: [] },
+    affinity: { fit_profiles: [], directors: [], mood_tags: [], tone_tags: [], genre_combos: [] },
+    content_shape: { pacing: null, intensity: null, depth: null },
+    negative: { skipped_fit_profiles: new Map(), anti_seeds: [], personal_skipped_ids: new Set() },
+    community: { high_skip_rate_ids: new Set() },
+    meta: { total_watches: 25, confidence: 'engaged' },
+    _legacy: {
+      watchedMovieIds: [100, 200],
+      moodSignature: {
+        recentMoodTags: [{ tag: 'contemplative', weight: 3.5 }, { tag: 'warm', weight: 2.0 }],
+        recentToneTags: [],
+        recentFitProfiles: [],
+      },
+      qualityProfile: { totalMoviesWatched: 25 },
+      exclusions: { genreIds: new Set(), genreNames: [] },
+      topFitProfiles: [],
     },
-    qualityProfile: { totalMoviesWatched: 25 },
-    exclusions: { genreIds: new Set(), genreNames: [] },
-    topFitProfiles: [],
   }),
-  scoreMovieForUser: vi.fn().mockReturnValue({ score: 75, positiveScore: 75 }),
-  applyDbGenreExclusions: vi.fn().mockImplementation((query) => query),
-  FIT_ADJACENCY: {
-    crowd_pleaser: { adjacent: ['comfort_rewatch', 'date_night', 'franchise_entry'], clashing: ['challenging_art', 'arthouse'] },
-  },
+}))
+
+// Mock scoring-v3
+vi.mock('@/shared/services/scoring-v3', () => ({
+  scoreMovieV3: vi.fn().mockReturnValue({ final: 75, breakdown: { quality: 75 }, weights_used: {} }),
+  precomputeScoringContext: vi.fn().mockResolvedValue({
+    seedNeighborMap: new Map(),
+    antiSeedNeighborMap: new Map(),
+    isColdStart: false,
+  }),
 }))
 
 import {
@@ -55,6 +73,7 @@ function mockChainedQuery(result) {
     lte: vi.fn().mockReturnThis(),
     not: vi.fn().mockReturnThis(),
     contains: vi.fn().mockReturnThis(),
+    overlaps: vi.fn().mockReturnThis(),
     order: vi.fn().mockReturnThis(),
     limit: vi.fn().mockResolvedValue(result),
   }
@@ -89,19 +108,28 @@ describe('homepage-rows service', () => {
   describe('getMoodRow', () => {
     it('returns empty when mood signature is empty', async () => {
       const emptyProfile = {
-        watchedMovieIds: [],
-        moodSignature: { recentMoodTags: [], recentToneTags: [] },
+        _legacy: {
+          watchedMovieIds: [],
+          moodSignature: { recentMoodTags: [], recentToneTags: [] },
+        },
       }
       const result = await getMoodRow('user-1', emptyProfile)
-      expect(result).toEqual({ films: [], dominantMood: null })
+      expect(result.films).toEqual([])
+      expect(result.title).toBe('Films for your mood')
     })
 
-    it('returns dominantMood from profile signature', async () => {
+    it('returns title and films from profile mood tags', async () => {
       const profile = {
-        watchedMovieIds: [100],
-        moodSignature: {
-          recentMoodTags: [{ tag: 'melancholic', weight: 4.0 }],
-          recentToneTags: [],
+        affinity: {
+          mood_tags: [{ tag: 'melancholic', count: 4 }],
+          tone_tags: [],
+        },
+        _legacy: {
+          watchedMovieIds: [100],
+          moodSignature: {
+            recentMoodTags: [{ tag: 'melancholic', weight: 4.0 }],
+            recentToneTags: [],
+          },
         },
       }
 
@@ -116,8 +144,11 @@ describe('homepage-rows service', () => {
       mockFrom.mockReturnValue(chain)
 
       const result = await getMoodRow('user-1', profile)
-      expect(result.dominantMood).toBe('melancholic')
+      expect(result.title).toBe('Films that feel melancholic')
       expect(result.films.length).toBeGreaterThanOrEqual(6)
+      expect(result).toHaveProperty('subtitle')
+      expect(result).toHaveProperty('lead')
+      expect(result).toHaveProperty('kind')
     })
   })
 

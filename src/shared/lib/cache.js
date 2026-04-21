@@ -26,7 +26,6 @@ class RecommendationCache {
       .join('|')
     
     const cacheKey = `${type}:${userId}:${sortedParams}`
-    console.log('[Cache] Generated key:', cacheKey)
     return cacheKey
   }
 
@@ -40,12 +39,10 @@ class RecommendationCache {
 
     // Check if request already in-flight
     if (this.inflight.has(cacheKey)) {
-      console.log('[Cache] DEDUP - returning in-flight promise:', cacheKey)
       return this.inflight.get(cacheKey)
     }
 
     // Start new request
-    console.log('[Cache] FETCH - starting new request:', cacheKey)
     const promise = fetchFn().then(result => {
       this.set(cacheKey, result)
       this.inflight.delete(cacheKey)
@@ -62,18 +59,15 @@ class RecommendationCache {
   get(cacheKey) {
     const entry = this.cache.get(cacheKey)
     if (!entry) {
-      console.log('[Cache] MISS:', cacheKey)
       return null
     }
 
     const now = Date.now()
     if (now > entry.expiresAt) {
       this.cache.delete(cacheKey)
-      console.log('[Cache] EXPIRED:', cacheKey)
       return null
     }
 
-    console.log('[Cache] HIT:', cacheKey)
     return entry.data
   }
 
@@ -82,7 +76,6 @@ class RecommendationCache {
       data,
       expiresAt: Date.now() + ttl,
     })
-    console.log('[Cache] SET:', cacheKey, '| expires in', Math.round(ttl / 1000), 's')
   }
 
   invalidate(cacheKey) {

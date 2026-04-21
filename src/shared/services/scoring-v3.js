@@ -34,6 +34,7 @@ export const ROW_WEIGHTS = {
   CRITICS:      { embedding: 0.15, fit: 0.15, mood: 0.10, director_genre: 0.10, content: 0.05, quality: 0.40, negative: 0.05 },
   UNDER90:      { embedding: 0.20, fit: 0.20, mood: 0.15, director_genre: 0.15, content: 0.10, quality: 0.15, negative: 0.05 },
   COLD:         { embedding: 0.00, fit: 0.20, mood: 0.10, director_genre: 0.25, content: 0.15, quality: 0.30, negative: 0.00 },
+  BRIEF:        { embedding: 0.20, fit: 0.15, mood: 0.25, director_genre: 0.10, content: 0.15, quality: 0.15, negative: 0.00 },
 }
 
 /** Default engaged weights (used when rowType is unknown) */
@@ -302,7 +303,7 @@ export function scoreNegativeSignals(movie, profile, antiSeedNeighborMap) {
  * @param {string} [rowType] - key from ROW_WEIGHTS (e.g. 'HERO', 'MOOD_ROW')
  * @returns {{ final: number, breakdown: Object, weights_used: Object }}
  */
-export function scoreMovieV3(movie, profile, context, rowType) {
+export function scoreMovieV3(movie, profile, context, rowType, opts = {}) {
   const { seedNeighborMap, antiSeedNeighborMap, isColdStart } = context
 
   const scores = {
@@ -315,9 +316,8 @@ export function scoreMovieV3(movie, profile, context, rowType) {
     negative: scoreNegativeSignals(movie, profile, antiSeedNeighborMap),
   }
 
-  const weights = isColdStart
-    ? WEIGHTS_COLD
-    : (ROW_WEIGHTS[rowType] || WEIGHTS_ENGAGED)
+  const weights = opts.weightsOverride
+    || (isColdStart ? WEIGHTS_COLD : (ROW_WEIGHTS[rowType] || WEIGHTS_ENGAGED))
 
   const raw =
     scores.embedding * weights.embedding +

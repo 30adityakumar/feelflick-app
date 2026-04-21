@@ -68,6 +68,22 @@ function MetaDot() {
   return <span style={{ color: 'rgba(248, 250, 252, 0.16)' }}>•</span>
 }
 
+/**
+ * Quality chip for exceptional films on hover-expanded cards.
+ * Returns { label, bg, border } or null.
+ */
+function getQualityChip(movie) {
+  // Critic's Pick: high critic rating with good confidence
+  if ((movie.ff_critic_rating ?? 0) >= 85 && (movie.ff_critic_confidence ?? 0) >= 60) {
+    return { label: "Critic's Pick", bg: 'rgba(250, 204, 21, 0.12)', border: 'rgba(250, 204, 21, 0.3)' }
+  }
+  // Exceptional for genre: normalized genre rating is standout
+  if ((movie.ff_rating_genre_normalized ?? 0) >= 8.0 && movie.primary_genre) {
+    return { label: `Top ${movie.primary_genre}`, bg: 'rgba(192, 132, 252, 0.12)', border: 'rgba(192, 132, 252, 0.3)' }
+  }
+  return null
+}
+
 export const MovieCard = memo(function MovieCard({
   item: movie,
   hoverPhase = 'rest',
@@ -272,27 +288,7 @@ export const MovieCard = memo(function MovieCard({
                   }}
                 />
 
-                <div className="absolute inset-x-0 top-0 flex items-start justify-between gap-2 p-3">
-                  {meta.eyebrow ? (
-                    <motion.span
-                      initial={reducedMotion ? false : { opacity: 0, y: -6 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ ...contentTransition, delay: reducedMotion ? 0 : 0.04 }}
-                      className="inline-flex max-w-[68%] truncate rounded-full px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.14em]"
-                      style={{
-                        color: 'rgba(248, 250, 252, 0.96)',
-                        background: 'linear-gradient(180deg, rgba(102, 55, 153, 0.96) 0%, rgba(83, 44, 126, 0.98) 100%)',
-                        border: '1px solid rgba(248, 250, 252, 0.14)',
-                        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.1)',
-                        backdropFilter: 'var(--blur-md)',
-                        fontFamily: 'var(--font-body)',
-                      }}
-                    >
-                      <span className="truncate">{meta.eyebrow}</span>
-                    </motion.span>
-                  ) : (
-                    <span />
-                  )}
+                <div className="absolute inset-x-0 top-0 flex items-start justify-end gap-2 p-3">
                   {meta.rating != null ? (
                     <motion.div
                       initial={reducedMotion ? false : { opacity: 0, y: -6 }}
@@ -346,6 +342,39 @@ export const MovieCard = memo(function MovieCard({
                       'radial-gradient(circle at 0% 100%, rgba(168, 85, 247, 0.16) 0%, transparent 38%), radial-gradient(circle at 92% 100%, rgba(236, 72, 153, 0.1) 0%, transparent 28%)',
                   }}
                 />
+                {(movie._reason?.text || getQualityChip(movie)) ? (
+                  <motion.div
+                    initial={reducedMotion ? false : { opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ ...contentTransition, delay: reducedMotion ? 0 : 0.11 }}
+                    className="mb-2 flex flex-wrap items-center gap-2"
+                  >
+                    {movie._reason?.text ? (
+                      <span
+                        className="text-[0.68rem] italic leading-snug"
+                        style={{ color: 'rgba(192, 132, 252, 0.72)', fontFamily: 'var(--font-body)' }}
+                      >
+                        {movie._reason.text}
+                      </span>
+                    ) : null}
+                    {(() => {
+                      const chip = getQualityChip(movie)
+                      if (!chip) return null
+                      return (
+                        <span
+                          className="rounded-full px-1.5 py-0.5 text-[0.55rem] font-bold uppercase tracking-wider backdrop-blur-sm"
+                          style={{
+                            background: chip.bg,
+                            border: `1px solid ${chip.border}`,
+                            color: 'rgba(248, 250, 252, 0.85)',
+                          }}
+                        >
+                          {chip.label}
+                        </span>
+                      )
+                    })()}
+                  </motion.div>
+                ) : null}
                 <motion.div
                   initial={reducedMotion ? false : { opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -471,6 +500,19 @@ export const MovieCard = memo(function MovieCard({
                       : 'linear-gradient(to bottom, rgba(15, 23, 42, 0) 0%, rgba(15, 23, 42, 0.22) 100%)',
                 }}
               />
+              {movie._seen ? (
+                <div
+                  className="absolute left-2 top-2 z-10 rounded px-2 py-0.5 text-[0.65rem] font-semibold backdrop-blur-sm"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    color: 'rgba(248, 250, 252, 0.85)',
+                    border: '1px solid rgba(248, 250, 252, 0.12)',
+                    fontFamily: 'var(--font-body)',
+                  }}
+                >
+                  ✓ Seen
+                </div>
+              ) : null}
               <div
                 className="pointer-events-none absolute inset-x-0 bottom-0 h-24 transition-opacity duration-300"
                 style={{

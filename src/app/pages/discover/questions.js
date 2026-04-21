@@ -1,72 +1,57 @@
 // src/app/pages/discover/questions.js
 /**
- * Mood Brief question definitions.
+ * Mood Brief question definitions — 4-question streamlined flow.
  * Each question collects one dimension of the user's viewing intent.
  *
- * @typedef {{ value: number|string, label: string, hint?: string }} QuestionOption
- * @typedef {{ id: string, label: string, prompt: string, type: string, options: QuestionOption[] }} Question
+ * The 'vibe' question merges the old feeling + tone into a single card pick.
+ * Energy is inferred from the vibe card. Era and familiarity are removed —
+ * era uses the user's profile era_floor, familiarity defaults to exclude watched.
+ *
+ * @typedef {{ value: string, label: string, hint?: string, feeling?: string, tone?: string }} VibeOption
+ * @typedef {{ value: string, label: string, hint?: string }} QuestionOption
+ * @typedef {{ id: string, prompt: string, options: (VibeOption|QuestionOption)[] }} Question
  */
 
 export const QUESTION_SET = [
   {
-    id: 'feeling',
-    label: 'FEELING',
-    prompt: 'How do you want to feel?',
-    type: 'single-select',
+    id: 'vibe',
+    label: 'Vibe',
+    prompt: "What's the vibe?",
     options: [
-      { value: 1,  label: 'Cozy',        hint: 'Warm and comforting' },
-      { value: 2,  label: 'Adventurous', hint: 'Bold and exciting' },
-      { value: 3,  label: 'Heartbroken', hint: 'Emotionally raw' },
-      { value: 4,  label: 'Curious',     hint: 'Mind-expanding' },
-      { value: 5,  label: 'Nostalgic',   hint: 'Classic favorites' },
-      { value: 6,  label: 'Energized',   hint: 'High-energy fun' },
-      { value: 7,  label: 'Anxious',     hint: 'Need something calming' },
-      { value: 8,  label: 'Romantic',    hint: 'Love and connection' },
-      { value: 9,  label: 'Inspired',    hint: 'Uplifting stories' },
-      { value: 10, label: 'Silly',       hint: 'Light and funny' },
-      { value: 11, label: 'Dark',        hint: 'Gritty and intense' },
-      { value: 12, label: 'Overwhelmed', hint: 'Complete escape' },
-    ],
-  },
-  {
-    id: 'energy',
-    label: 'ENERGY',
-    prompt: 'What energy level are you after?',
-    type: 'single-select',
-    options: [
-      { value: 1, label: 'Low',    hint: 'Gentle, slow pace' },
-      { value: 3, label: 'Medium', hint: 'Balanced rhythm' },
-      { value: 5, label: 'High',   hint: 'Fast, intense' },
+      { value: 'curious_sharp',   feeling: 'curious',     tone: 'sharp',       label: 'Curious & Sharp',   hint: 'thinkers, mysteries' },
+      { value: 'curious_warm',    feeling: 'curious',     tone: 'warm',        label: 'Curious & Warm',    hint: 'wonder, discovery' },
+      { value: 'cozy_warm',       feeling: 'cozy',        tone: 'warm',        label: 'Cozy',              hint: 'comfort, gentle' },
+      { value: 'adventurous_any', feeling: 'adventurous', tone: 'any',         label: 'Adventurous',       hint: 'big, bold, epic' },
+      { value: 'dark_sharp',      feeling: 'dark',        tone: 'sharp',       label: 'Dark & Sharp',      hint: 'crime, noir, tense' },
+      { value: 'heartbroken_bs',  feeling: 'heartbroken', tone: 'bittersweet', label: 'Melancholy',        hint: 'tearjerkers, drama' },
+      { value: 'silly_warm',      feeling: 'silly',       tone: 'warm',        label: 'Silly & Fun',       hint: 'comedy, levity' },
+      { value: 'inspired_warm',   feeling: 'inspired',    tone: 'warm',        label: 'Inspired',          hint: 'uplift, true stories' },
     ],
   },
   {
     id: 'attention',
-    label: 'ATTENTION',
-    prompt: 'How much attention do you want to give?',
-    type: 'single-select',
+    label: 'Attention',
+    prompt: 'Lean in or lean back?',
     options: [
-      { value: 'lean-in',  label: 'Lean in',  hint: 'Dense, demanding' },
-      { value: 'lean-back', label: 'Lean back', hint: 'Effortless' },
-      { value: 'either',   label: 'Either' },
+      { value: 'lean_in',   label: 'Lean in',   hint: 'full attention' },
+      { value: 'lean_back', label: 'Lean back', hint: 'easy to follow' },
     ],
   },
   {
-    id: 'tone',
-    label: 'TONE',
-    prompt: 'What tone fits right now?',
-    type: 'single-select',
+    id: 'time',
+    label: 'Time',
+    prompt: 'How long do you have?',
     options: [
-      { value: 'warm',       label: 'Warm' },
-      { value: 'sharp',      label: 'Sharp' },
-      { value: 'bittersweet', label: 'Bittersweet' },
-      { value: 'any',        label: 'Any' },
+      { value: 'short',  label: '~90 min' },
+      { value: 'medium', label: '~2 hours' },
+      { value: 'long',   label: '2.5+ hours' },
+      { value: 'any',    label: 'Whatever' },
     ],
   },
   {
     id: 'company',
-    label: 'COMPANY',
-    prompt: 'Who are you watching with?',
-    type: 'single-select',
+    label: 'Company',
+    prompt: 'Watching with?',
     options: [
       { value: 'alone',   label: 'Alone' },
       { value: 'partner', label: 'Partner' },
@@ -74,44 +59,9 @@ export const QUESTION_SET = [
       { value: 'family',  label: 'Family' },
     ],
   },
-  {
-    id: 'time',
-    label: 'TIME',
-    prompt: 'How much time do you have?',
-    type: 'single-select',
-    options: [
-      { value: 'short',    label: 'Under 90 min' },
-      { value: 'standard', label: '90 \u2013 150 min' },
-      { value: 'long',     label: '150+ min welcome' },
-      { value: 'any',      label: 'Any' },
-    ],
-  },
-  {
-    id: 'familiarity',
-    label: 'FAMILIARITY',
-    prompt: 'What kind of discovery?',
-    type: 'single-select',
-    options: [
-      { value: 'comfort',  label: 'Comfort',    hint: 'Known-feeling films' },
-      { value: 'new',      label: 'New to me' },
-      { value: 'surprise', label: 'Surprise me' },
-    ],
-  },
-  {
-    id: 'era',
-    label: 'ERA',
-    prompt: 'Any era preference?',
-    type: 'single-select',
-    options: [
-      { value: 'modern',  label: 'Modern',  hint: '2015+' },
-      { value: 'recent',  label: 'Recent',  hint: '2000+' },
-      { value: 'classic', label: 'Classic', hint: 'Pre-2000' },
-      { value: 'any',     label: 'Any' },
-    ],
-  },
 ]
 
-/** Optional film-anchor step shown after all 8 questions. */
+/** Optional film-anchor step shown after all questions. */
 export const OPTIONAL_ANCHOR = {
   id: 'anchor',
   prompt: 'Name a film that matches your mood right now',

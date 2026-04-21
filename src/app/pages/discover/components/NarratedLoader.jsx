@@ -2,86 +2,67 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 
-const LINE_MIN_MS = 400
-const TOTAL_ESTIMATED_MS = 3000
+const LINES = [
+  'Matching your taste\u2026',
+  'Scoring 6,000 films\u2026',
+  'Finding your top picks\u2026',
+]
+
+const LINE_INTERVAL_MS = 1200
+const MIN_LAST_LINE_MS = 600
 
 /**
- * Builds the 5-line narration script from the brief context.
+ * Narrated loading screen. Shows 3 rotating messages while results
+ * fetch in the background. No spinners — animated progress bar only.
  *
- * @param {{ totalCount: number, tagDim: number, hasTasteProfile: boolean }} ctx
- * @returns {string[]}
+ * @param {{ resultsReady: boolean, onComplete: () => void }} props
  */
-function buildLines({ totalCount, tagDim, hasTasteProfile }) {
-  const lines = [
-    `Opening the vault of ${totalCount.toLocaleString()} films...`,
-    'Matching against your brief...',
-    `Weighing ${tagDim} tag dimensions...`,
-  ]
-  if (hasTasteProfile) {
-    lines.push('Cross-referencing your taste fingerprint...')
-  }
-  lines.push('Surfacing 10 picks tuned for tonight.')
-  return lines
-}
-
-/**
- * Narrated loading screen. Shows milestone lines one at a time while
- * results fetch in the background. No spinners.
- *
- * @param {{ totalCount: number, tagDim: number, hasTasteProfile: boolean,
- *           resultsReady: boolean, onComplete: () => void }} props
- */
-export default function NarratedLoader({ totalCount, tagDim, hasTasteProfile, resultsReady, onComplete }) {
-  const lines = useRef(
-    buildLines({
-      totalCount: totalCount || 4200,
-      tagDim: tagDim || 45,
-      hasTasteProfile: hasTasteProfile ?? false,
-    }),
-  ).current
-
+export default function NarratedLoader({ resultsReady, onComplete }) {
   const [currentIndex, setCurrentIndex] = useState(0)
-  const timerRef = useRef(null)
   const completedRef = useRef(false)
 
-  const totalLines = lines.length
-
-  // Advance lines on a timer
-  const advanceLine = useCallback(() => {
-    setCurrentIndex((prev) => {
-      const next = prev + 1
-      if (next >= totalLines) return prev // Stay on last line
-      return next
-    })
-  }, [totalLines])
-
+  // Rotate through messages
   useEffect(() => {
-    if (currentIndex >= totalLines - 1) return // On last line, stop timer
+    if (currentIndex >= LINES.length - 1) return
 
-    timerRef.current = setTimeout(advanceLine, LINE_MIN_MS)
-    return () => clearTimeout(timerRef.current)
-  }, [currentIndex, advanceLine, totalLines])
+    const timer = setTimeout(() => {
+      setCurrentIndex((prev) => Math.min(prev + 1, LINES.length - 1))
+    }, LINE_INTERVAL_MS)
+    return () => clearTimeout(timer)
+  }, [currentIndex])
 
-  // Complete when results ready AND we've shown the last line for at least LINE_MIN_MS
+  // Complete when results ready AND we've shown the last line briefly
+  const handleComplete = useCallback(() => {
+    if (completedRef.current) return
+    completedRef.current = true
+    onComplete()
+  }, [onComplete])
+
   useEffect(() => {
     if (!resultsReady || completedRef.current) return
 
-    if (currentIndex >= totalLines - 1) {
-      // On last line — wait LINE_MIN_MS then complete
-      const t = setTimeout(() => {
-        completedRef.current = true
-        onComplete()
-      }, LINE_MIN_MS)
+    if (currentIndex >= LINES.length - 1) {
+      const t = setTimeout(handleComplete, MIN_LAST_LINE_MS)
       return () => clearTimeout(t)
     }
-    // Not on last line yet — fast-forward remaining lines
-    // The timer-based advance will eventually reach the last line
-  }, [resultsReady, currentIndex, totalLines, onComplete])
+  }, [resultsReady, currentIndex, handleComplete])
 
-  const progressDuration = TOTAL_ESTIMATED_MS / 1000
+  // Force-complete after reaching last line + timeout (fallback)
+  useEffect(() => {
+    const maxWait = LINE_INTERVAL_MS * LINES.length + 4000
+    const t = setTimeout(() => {
+      if (!completedRef.current && resultsReady) {
+        completedRef.current = true
+        onComplete()
+      }
+    }, maxWait)
+    return () => clearTimeout(t)
+  }, [resultsReady, onComplete])
+
+  const progressDuration = (LINE_INTERVAL_MS * LINES.length) / 1000
 
   return (
-    <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
+    <div className="min-h-[60vh] flex flex-col items-center justify-center gap-6">
       <AnimatePresence mode="wait">
         <motion.p
           key={currentIndex}
@@ -90,13 +71,14 @@ export default function NarratedLoader({ totalCount, tagDim, hasTasteProfile, re
           exit={{ opacity: 0, y: -12 }}
           transition={{ duration: 0.4 }}
           className="text-lg sm:text-xl font-light text-white/80 text-center max-w-xl px-6"
+          style={{ fontFamily: 'var(--font-display, serif)' }}
         >
-          {lines[currentIndex]}
+          {LINES[currentIndex]}
         </motion.p>
       </AnimatePresence>
 
       {/* Progress bar */}
-      <div className="mt-4 h-[2px] w-32 bg-white/10 overflow-hidden rounded-full">
+      <div className="h-[2px] w-40 bg-white/10 overflow-hidden rounded-full">
         <motion.div
           initial={{ x: '-100%' }}
           animate={{ x: '0%' }}

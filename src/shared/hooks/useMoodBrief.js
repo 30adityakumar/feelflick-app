@@ -4,7 +4,7 @@ import { useCallback, useMemo, useState } from 'react'
 import { QUESTION_SET } from '@/app/pages/discover/questions'
 
 /**
- * State management for the 8-question Mood Brief flow.
+ * State management for the 4-question Mood Brief flow (vibe, attention, time, company).
  *
  * @returns {{
  *   brief: { answers: Record<string, any>, activeQuestionId: string|null, editingFromPin: boolean },

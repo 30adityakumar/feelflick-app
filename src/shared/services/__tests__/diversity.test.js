@@ -123,6 +123,11 @@ describe('selectHeroCandidates', () => {
     expect(result).toHaveLength(2)
     expect(result[0]._score).toBe(60)
   })
+
+  it('returns empty for null/empty input', () => {
+    expect(selectHeroCandidates(null, 3)).toEqual([])
+    expect(selectHeroCandidates([], 3)).toEqual([])
+  })
 })
 
 // ============================================================================

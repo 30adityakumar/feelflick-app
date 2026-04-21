@@ -344,20 +344,16 @@ export function useTopPick(options = {}) {
 
         if (isCancelled) return
 
-        if (result?.movie) {
-          const enrichMovie = (m) => ({
+        if (result?.primary) {
+          const enrich = (m) => ({
             ...m,
             trailer_url: m.trailer_youtube_key
               ? `https://www.youtube.com/watch?v=${m.trailer_youtube_key}`
               : null,
-            director: m.director_name ? { name: m.director_name } : null,
           })
           const enrichedMovie = {
-            ...enrichMovie(result.movie),
-            _pickReason: result.pickReason,
-            _score: result.score,
-            _debug: result.debug,
-            _alternates: (result.alternates || []).map(enrichMovie),
+            ...enrich(result.primary),
+            _alternates: (result.alternates || []).map(enrich),
             _reasons: result.reasons || {},
           }
           setData(enrichedMovie)
@@ -572,6 +568,8 @@ export function useYourGenresRow(options = {}) {
  * @param {number} pacing - user dial value 1–5
  * @param {string} timeOfDay - 'morning'|'afternoon'|'evening'|'night'
  * @param {number} limit
+ * @param {string[]|null} parsedTags - NL-parsed mood tags
+ * @param {Object|null} brief - brief answers + anchor for v3 scoring
  */
 export function useRecommendations(
   moodId,
@@ -582,6 +580,7 @@ export function useRecommendations(
   timeOfDay,
   limit = 20,
   parsedTags = null,
+  brief = null,
 ) {
   const auth = useAuthState()
   const userId = auth.userId
@@ -617,6 +616,7 @@ export function useRecommendations(
           experienceType,
           timeOfDay,
           parsedTags,
+          brief,
         })
 
         // Movies now come from internal movies table — map to the Discover result shape.
@@ -628,9 +628,17 @@ export function useRecommendations(
           poster_path: movie.poster_path,
           vote_average: movie.ff_audience_rating != null ? movie.ff_audience_rating / 10 : (movie.ff_final_rating ?? movie.ff_rating ?? movie.vote_average),
           release_date: movie.release_date,
+          release_year: movie.release_year,
           overview: movie.overview,
+          runtime: movie.runtime,
+          mood_tags: movie.mood_tags,
+          tone_tags: movie.tone_tags,
+          fit_profile: movie.fit_profile,
+          primary_genre: movie.primary_genre,
+          genres: movie.genres,
           final_score: movie.final_score ?? 0,
           match_percentage: movie.match_percentage ?? 70,
+          _briefReason: movie._briefReason,
           _recommendationMeta: movie._recommendationMeta,
         }))
 
@@ -648,7 +656,7 @@ export function useRecommendations(
     fetchRecommendations()
 
     return () => controller.abort()
-  }, [userId, authReady, moodId, viewingContext, experienceType, intensity, pacing, timeOfDay, limit, parsedTags])
+  }, [userId, authReady, moodId, viewingContext, experienceType, intensity, pacing, timeOfDay, limit, parsedTags, brief])
 
   return {
     recommendations: data,

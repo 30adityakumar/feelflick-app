@@ -152,81 +152,6 @@ function StreamingBadge({ providers, revealed }) {
 }
 
 // ============================================================================
-// TRAILER PREVIEW — inline YouTube embed
-// ============================================================================
-
-function TrailerPreview({ youtubeKey, onPlay }) {
-  const [showEmbed, setShowEmbed] = useState(false)
-  const hoverTimerRef = useRef(null)
-
-  const handleMouseEnter = useCallback(() => {
-    hoverTimerRef.current = setTimeout(() => setShowEmbed(true), 500)
-  }, [])
-
-  const handleMouseLeave = useCallback(() => {
-    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current)
-    setShowEmbed(false)
-  }, [])
-
-  useEffect(() => {
-    return () => {
-      if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current)
-    }
-  }, [])
-
-  // Reset when key changes
-  useEffect(() => {
-    setShowEmbed(false)
-  }, [youtubeKey])
-
-  if (!youtubeKey) return null
-
-  return (
-    <>
-      {/* Desktop: hover zone on backdrop area only (right 75%, above content z-10 but pointer-events
-          limited to the backdrop region so content buttons remain clickable) */}
-      <div
-        className="hidden md:block absolute inset-y-0 right-0 w-[75%] z-[15] pointer-events-none"
-      >
-        {/* Inner hover target — top portion of backdrop, avoids bottom content area */}
-        <div
-          className="absolute inset-x-0 top-0 h-[55%] pointer-events-auto"
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
-        />
-      </div>
-
-      {/* Mobile: tap-to-play button centred on backdrop */}
-      <button
-        onClick={onPlay}
-        className="absolute inset-0 z-[8] sm:hidden flex items-center justify-center bg-transparent"
-        aria-label="Play trailer"
-      >
-        <div className="h-14 w-14 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center">
-          <Play className="h-6 w-6 text-white fill-current ml-0.5" />
-        </div>
-      </button>
-
-      {/* Desktop: iframe overlay when hover triggers */}
-      {showEmbed && (
-        <div className="hidden sm:block absolute inset-y-0 right-0 md:w-[75%] w-full z-[6] transition-opacity duration-300 opacity-100">
-          <iframe
-            src={`https://www.youtube.com/embed/${youtubeKey}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&modestbranding=1&loop=1&playlist=${youtubeKey}`}
-            className="absolute inset-0 w-full h-full object-cover"
-            allow="autoplay; encrypted-media"
-            allowFullScreen
-            title="Trailer preview"
-            style={{ border: 'none', pointerEvents: 'none' }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent pointer-events-none" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/30 to-transparent pointer-events-none" />
-        </div>
-      )}
-    </>
-  )
-}
-
-// ============================================================================
 // MAIN COMPONENT
 // ============================================================================
 
@@ -253,7 +178,6 @@ export default function HeroTopPick({
   const loadingRef = useRef(false)
   const refetchTimerRef = useRef(null)
   const lastEmittedHeroIdRef = useRef(null)
-  const touchStartXRef = useRef(null)
 
   const { data: hookMovie, loading, error, refetch } = useTopPick({
     enabled: true,
@@ -264,42 +188,23 @@ export default function HeroTopPick({
 
   const movie = hookMovie ?? preloadedData
 
-  // Hero carousel: alternates + reasons from engine
-  const alternates = movie?._alternates?.length > 1 ? movie._alternates : null
-  const reasons = movie?._reasons || {}
-  const candidateCount = alternates?.length || 1
-
-  // heroIdx defaults to whichever alternate matches the day-hash pick
+  // Hero carousel state
   const [heroIdx, setHeroIdx] = useState(0)
+  const touchStartXRef = useRef(null)
 
-  if (import.meta.env.DEV && movie) {
-    console.log('[hero:render] alternates:', movie?._alternates?.length, 'candidateCount:', candidateCount, 'idx:', heroIdx)
-  }
+  // Reset index when primary movie changes
+  useEffect(() => setHeroIdx(0), [movie?.id])
+
+  // Reset image loaded state when carousel index changes
   useEffect(() => {
-    if (!alternates || !movie?.id) return
-    const matchIdx = alternates.findIndex(a => a.id === movie.id)
-    setHeroIdx(matchIdx >= 0 ? matchIdx : 0)
-  }, [movie?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+    setPosterLoaded(false)
+    setBackdropLoaded(false)
+    setRevealed(false)
+  }, [heroIdx])
 
-  const activeMovie = alternates?.[heroIdx] ?? movie
-  const activeReason = reasons[activeMovie?.id]
-
-  const cycleHero = useCallback((dir) => {
-    if (candidateCount <= 1) return
-    setHeroIdx(prev => (prev + dir + candidateCount) % candidateCount)
-  }, [candidateCount])
-
-  // Touch swipe for mobile
-  const handleTouchStart = useCallback((e) => {
-    touchStartXRef.current = e.touches[0].clientX
-  }, [])
-
-  const handleTouchEnd = useCallback((e) => {
-    if (touchStartXRef.current == null) return
-    const deltaX = e.changedTouches[0].clientX - touchStartXRef.current
-    touchStartXRef.current = null
-    if (Math.abs(deltaX) > 50) cycleHero(deltaX < 0 ? 1 : -1)
-  }, [cycleHero])
+  const candidates = [movie, ...(movie?._alternates || [])].filter(Boolean)
+  const activeMovie = candidates[heroIdx] || movie
+  const activeReason = movie?._reasons?.[activeMovie?.id]
 
   useEffect(() => { loadingRef.current = loading }, [loading])
 
@@ -327,22 +232,22 @@ export default function HeroTopPick({
     setIsRefreshing(false)
   }, [locationKey])
 
-  // Reset visual state when displayed movie changes (including carousel cycling)
+  // Reset visual state when movie changes
   useEffect(() => {
-    if (!activeMovie?.id) return
+    if (!movie?.id) return
     setPosterLoaded(false)
     setBackdropLoaded(false)
     setRevealed(false)
     setProviders(null)
-  }, [activeMovie?.id])
+  }, [movie?.id])
 
-  // Inform parent whenever hero changes (including carousel cycling)
+  // Inform parent whenever hero changes
   useEffect(() => {
-    if (!activeMovie?.id) return
-    if (lastEmittedHeroIdRef.current === activeMovie.id) return
-    lastEmittedHeroIdRef.current = activeMovie.id
-    onHeroMovie?.({ internalId: activeMovie.id, tmdbId: activeMovie.tmdb_id ?? null, movie: activeMovie })
-  }, [activeMovie?.id, activeMovie?.tmdb_id, onHeroMovie]) // eslint-disable-line react-hooks/exhaustive-deps
+    if (!movie?.id) return
+    if (lastEmittedHeroIdRef.current === movie.id) return
+    lastEmittedHeroIdRef.current = movie.id
+    onHeroMovie?.({ internalId: movie.id, tmdbId: movie.tmdb_id ?? null, movie })
+  }, [movie?.id, movie?.tmdb_id, onHeroMovie]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Clear refreshing state when new data arrives
   useEffect(() => {
@@ -403,7 +308,7 @@ export default function HeroTopPick({
     }
   }, [activeMovie?.tmdb_id, revealed])
 
-  // User movie status (for the currently displayed candidate)
+  // User movie status — tracks the currently displayed candidate
   const { isInWatchlist, isWatched, loading: actionLoading, toggleWatchlist, toggleWatched } =
     useUserMovieStatus({ user, movie: activeMovie, internalMovieId: activeMovie?.id, source: 'hero_slider' })
 
@@ -438,12 +343,11 @@ export default function HeroTopPick({
   }, [activeMovie, navigate, userId])
 
   const playTrailer = useCallback(() => {
-    const trailerUrl = activeMovie?.trailer_url || (activeMovie?.trailer_youtube_key ? `https://www.youtube.com/watch?v=${activeMovie.trailer_youtube_key}` : null)
-    if (!trailerUrl) return
+    if (!activeMovie?.trailer_url) return
     if (userId && activeMovie?.id) {
       updateImpression(userId, activeMovie.id, 'hero', { trailer_played: true })
     }
-    window.open(trailerUrl, '_blank', 'noopener')
+    window.open(activeMovie.trailer_url, '_blank', 'noopener')
   }, [activeMovie, userId])
 
   const logFeedback = useCallback(
@@ -459,11 +363,11 @@ export default function HeroTopPick({
         feedback_value: feedbackValue,
         page: 'home',
         placement: 'hero_top_pick',
-        position: heroIdx,
+        position: 0,
         mood_id: null,
         viewing_context: null,
         experience_type: null,
-        algo_version: 'hero_v2',
+        algo_version: 'hero_v1',
         recommendation_score: activeMovie.recommendation_score ?? null,
         reason_seed_tmdb_id: activeMovie.reason_seed_tmdb_id ?? null,
         session_id: null,
@@ -474,8 +378,7 @@ export default function HeroTopPick({
           vote_average: activeMovie.vote_average ?? null,
           runtime: activeMovie.runtime ?? null,
           skipped_tmdb_ids: skippedTmdbIds,
-          pick_reason_type: activeReason?.type ?? activeMovie._pickReason?.type ?? null,
-          hero_reason_text: activeReason?.text ?? null,
+          pick_reason_type: activeReason?.type ?? null,
         },
       }
 
@@ -487,7 +390,7 @@ export default function HeroTopPick({
 
       if (insertError) console.error('[HeroTopPick] feedback insert error', insertError)
     },
-    [userId, activeMovie, activeReason, heroIdx, skippedTmdbIds]
+    [userId, activeMovie, activeReason, skippedTmdbIds]
   )
 
   const handleShowAnother = useCallback(() => {
@@ -512,6 +415,21 @@ export default function HeroTopPick({
 
     scheduleRefetchIfIdle(120)
   }, [activeMovie, isRefreshing, userId, logFeedback, scheduleRefetchIfIdle])
+
+  // ── Touch swipe handlers ────────────────────────────────────────────────────
+
+  const handleTouchStart = useCallback((e) => {
+    touchStartXRef.current = e.touches[0].clientX
+  }, [])
+
+  const handleTouchEnd = useCallback((e) => {
+    if (touchStartXRef.current == null || candidates.length <= 1) return
+    const delta = e.changedTouches[0].clientX - touchStartXRef.current
+    if (Math.abs(delta) > 50) {
+      setHeroIdx((prev) => (prev + (delta < 0 ? 1 : -1) + candidates.length) % candidates.length)
+    }
+    touchStartXRef.current = null
+  }, [candidates.length])
 
   // ── Loading skeleton ────────────────────────────────────────────────────────
 
@@ -542,29 +460,22 @@ export default function HeroTopPick({
   if (!movie) return null
   if (error && !hookMovie && !preloadedData) return null
 
-  // ── Derived display values (from activeMovie) ──────────────────────────────
+  // ── Derived display values ──────────────────────────────────────────────────
 
-  const displayMovie = activeMovie || movie
-  const year = displayMovie.release_date ? new Date(displayMovie.release_date).getFullYear() : null
-  const hours = displayMovie.runtime ? Math.floor(displayMovie.runtime / 60) : 0
-  const mins = displayMovie.runtime ? displayMovie.runtime % 60 : 0
-  // Audience-first score for display
-  const hasAudience = displayMovie.ff_audience_rating != null && (displayMovie.ff_audience_confidence ?? 0) >= 50
-  const hasCritic = displayMovie.ff_critic_rating != null && (displayMovie.ff_critic_confidence ?? 0) >= 50
-  const displayRating = hasAudience ? displayMovie.ff_audience_rating
-    : hasCritic ? displayMovie.ff_critic_rating
+  const year = activeMovie.release_date ? new Date(activeMovie.release_date).getFullYear() : null
+  const hours = activeMovie.runtime ? Math.floor(activeMovie.runtime / 60) : 0
+  const mins = activeMovie.runtime ? activeMovie.runtime % 60 : 0
+  const hasAudience = activeMovie.ff_audience_rating != null && (activeMovie.ff_audience_confidence ?? 0) >= 50
+  const hasCritic = activeMovie.ff_critic_rating != null && (activeMovie.ff_critic_confidence ?? 0) >= 50
+  const displayRating = hasAudience ? activeMovie.ff_audience_rating
+    : hasCritic ? activeMovie.ff_critic_rating
     : null
-  // Critic/audience gap — show when ≥15
-  const criticAudienceGap = (hasAudience && hasCritic)
-    ? Math.abs(displayMovie.ff_critic_rating - displayMovie.ff_audience_rating)
-    : 0
-  const trailerUrl = displayMovie.trailer_url || (displayMovie.trailer_youtube_key ? `https://www.youtube.com/watch?v=${displayMovie.trailer_youtube_key}` : null)
 
   return (
     <section
       className="relative w-full h-[75vh] min-h-[500px] max-h-[800px] overflow-hidden bg-black"
-      onTouchStart={candidateCount > 1 ? handleTouchStart : undefined}
-      onTouchEnd={candidateCount > 1 ? handleTouchEnd : undefined}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
     >
 
       {/* Refreshing overlay */}
@@ -592,15 +503,15 @@ export default function HeroTopPick({
           <div
             className={`absolute inset-0 transition-opacity duration-700 ${backdropLoaded ? 'opacity-0' : 'opacity-100'}`}
             style={{
-              backgroundImage: displayMovie.backdrop_path ? `url(${tmdbImg(displayMovie.backdrop_path, 'w92')})` : undefined,
+              backgroundImage: activeMovie.backdrop_path ? `url(${tmdbImg(activeMovie.backdrop_path, 'w92')})` : undefined,
               backgroundSize: 'cover',
               backgroundPosition: '50% 55%',
               filter: 'blur(30px) saturate(1.2)',
             }}
           />
-          {displayMovie.backdrop_path && (
+          {activeMovie.backdrop_path && (
             <img
-              src={tmdbImg(displayMovie.backdrop_path, 'original')}
+              src={tmdbImg(activeMovie.backdrop_path, 'original')}
               alt=""
               aria-hidden="true"
               className={`absolute inset-0 h-full w-full object-cover object-[50%_58%] sm:object-[65%_55%] transition-opacity duration-700 ${backdropLoaded ? 'opacity-100' : 'opacity-0'}`}
@@ -644,14 +555,6 @@ export default function HeroTopPick({
         />
       </div>
 
-      {/* Trailer preview overlay — on backdrop right side */}
-      {displayMovie.trailer_youtube_key && revealed && (
-        <TrailerPreview
-          youtubeKey={displayMovie.trailer_youtube_key}
-          onPlay={playTrailer}
-        />
-      )}
-
       {/* ── Content ── */}
       <div
         className="relative z-10 h-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 flex items-end pb-4 sm:pb-6 lg:pb-10"
@@ -669,22 +572,22 @@ export default function HeroTopPick({
             <button
               onClick={goToDetails}
               className="group relative w-[180px] lg:w-[240px] xl:w-[260px] rounded-xl overflow-hidden shadow-2xl shadow-black/50 ring-1 ring-white/12 hover:ring-purple-500/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400/50 focus-visible:ring-offset-4 focus-visible:ring-offset-black transition-all duration-500 hover:scale-[1.02]"
-              aria-label={`View ${displayMovie.title}`}
+              aria-label={`View ${activeMovie.title}`}
             >
               <div className="aspect-[2/3] bg-neutral-900">
                 {!posterLoaded && (
                   <div
                     className="absolute inset-0 scale-105"
                     style={{
-                      backgroundImage: displayMovie.poster_path ? `url(${tmdbImg(displayMovie.poster_path, 'w92')})` : undefined,
+                      backgroundImage: activeMovie.poster_path ? `url(${tmdbImg(activeMovie.poster_path, 'w92')})` : undefined,
                       backgroundSize: 'cover',
                       filter: 'blur(8px)',
                     }}
                   />
                 )}
                 <img
-                  src={tmdbImg(displayMovie.poster_path || displayMovie.backdrop_path, 'w342')}
-                  alt={displayMovie.title}
+                  src={tmdbImg(activeMovie.poster_path || activeMovie.backdrop_path, 'w342')}
+                  alt={activeMovie.title}
                   className={`w-full h-full object-cover transition-all duration-500 ${posterLoaded ? 'opacity-100' : 'opacity-0'} group-hover:scale-105`}
                   onLoad={() => setPosterLoaded(true)}
                   loading="eager"
@@ -705,15 +608,12 @@ export default function HeroTopPick({
           {/* ── Main content ── */}
           <div className="flex-1 min-w-0 flex flex-col justify-end">
 
-            {/* Grounded reason — prominent, above title */}
+            {/* Pick reason — grounded text or fallback badge */}
             <div className={`transition-all duration-500 delay-50 ${revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
               {activeReason?.text ? (
-                <div className="flex items-center gap-1.5 mb-3">
-                  <Sparkles className="h-3 w-3 text-purple-400 flex-shrink-0" />
-                  <span className="text-xs font-medium text-purple-300">{activeReason.text}</span>
-                </div>
+                <p className="text-sm text-purple-300/80 italic mb-1">{activeReason.text}</p>
               ) : (
-                <PickReasonBadge reason={displayMovie._pickReason} />
+                <PickReasonBadge reason={activeMovie._pickReason} />
               )}
             </div>
 
@@ -724,7 +624,7 @@ export default function HeroTopPick({
               }`}
               style={{ fontFamily: 'var(--font-display)' }}
             >
-              {displayMovie.title}
+              {activeMovie.title}
             </h1>
 
             {/* Meta rows */}
@@ -745,27 +645,20 @@ export default function HeroTopPick({
                   </span>
                 )}
 
-                {displayMovie.runtime > 0 && (
+                {activeMovie.runtime > 0 && (
                   <span className="text-xs text-white/60 font-medium">
                     <span className="mr-1.5 text-white/20">·</span>
                     {hours > 0 && `${hours}h `}{mins}m
                   </span>
                 )}
 
-                {/* Critic/audience gap badge */}
-                {criticAudienceGap >= 15 && (
-                  <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold tracking-wide bg-yellow-400/10 text-yellow-400/80 border border-yellow-400/20">
-                    {displayMovie.ff_critic_rating > displayMovie.ff_audience_rating ? 'Critics love it' : 'Audience favourite'}
-                  </span>
-                )}
-
-                <LanguageBadge lang={displayMovie.original_language} />
+                <LanguageBadge lang={activeMovie.original_language} />
               </div>
 
               {/* Row 2: genres */}
-              {Array.isArray(displayMovie.genres) && displayMovie.genres.length > 0 && (
+              {Array.isArray(activeMovie.genres) && activeMovie.genres.length > 0 && (
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                  {displayMovie.genres.slice(0, 3).map((g, idx) => (
+                  {activeMovie.genres.slice(0, 3).map((g, idx) => (
                     <span key={g.id || g.name || idx} className="inline-flex items-center text-xs text-white/40 font-medium">
                       {idx > 0 && <span className="mr-1.5 text-white/20">·</span>}
                       {g.name || g}
@@ -775,21 +668,21 @@ export default function HeroTopPick({
               )}
 
               {/* Row 3: director */}
-              {displayMovie.director_name && (
+              {activeMovie.director_name && (
                 <div>
-                  <span className="text-xs text-white/40 font-medium">Directed by {displayMovie.director_name}</span>
+                  <span className="text-xs text-white/40 font-medium">Directed by {activeMovie.director_name}</span>
                 </div>
               )}
             </div>
 
             {/* Overview */}
-            {displayMovie.overview && (
+            {activeMovie.overview && (
               <p
                 className={`text-sm sm:text-[15px] text-white/60 leading-relaxed max-w-xl line-clamp-2 sm:line-clamp-3 mb-5 sm:mb-6 transition-all duration-500 delay-150 ${
                   revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
                 }`}
               >
-                {displayMovie.overview}
+                {activeMovie.overview}
               </p>
             )}
 
@@ -811,7 +704,7 @@ export default function HeroTopPick({
               </Button>
 
               {/* Trailer */}
-              {trailerUrl && (
+              {activeMovie.trailer_url && (
                 <button
                   onClick={playTrailer}
                   className="group inline-flex items-center gap-1.5 px-4 sm:px-6 py-2.5 sm:py-3 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/10 hover:border-white/20 text-white font-semibold text-sm transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
@@ -868,19 +761,15 @@ export default function HeroTopPick({
               </button>
             </div>
 
-            {/* Dot indicators for carousel */}
-            {candidateCount > 1 && (
-              <div className={`flex items-center gap-2 mt-4 transition-all duration-500 delay-250 ${revealed ? 'opacity-100' : 'opacity-0'}`}>
-                {Array.from({ length: candidateCount }, (_, i) => (
+            {/* Dot indicators */}
+            {candidates.length > 1 && (
+              <div className="flex gap-1.5 mt-3">
+                {candidates.map((_, i) => (
                   <button
                     key={i}
                     onClick={() => setHeroIdx(i)}
                     aria-label={`Show pick ${i + 1}`}
-                    className={`h-1.5 rounded-full transition-all duration-300 ${
-                      i === heroIdx
-                        ? 'w-6 bg-purple-400'
-                        : 'w-1.5 bg-white/20 hover:bg-white/40'
-                    }`}
+                    className={`w-1.5 h-1.5 rounded-full transition-colors duration-200 ${i === heroIdx ? 'bg-white' : 'bg-white/30 hover:bg-white/50'}`}
                   />
                 ))}
               </div>
@@ -890,20 +779,20 @@ export default function HeroTopPick({
         </div>
       </div>
 
-      {/* Chevron navigation for carousel */}
-      {candidateCount > 1 && revealed && (
+      {/* Chevron navigation */}
+      {candidates.length > 1 && (
         <>
           <button
-            onClick={() => cycleHero(-1)}
+            onClick={() => setHeroIdx((prev) => (prev - 1 + candidates.length) % candidates.length)}
             aria-label="Previous pick"
-            className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-20 h-10 w-10 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm border border-white/10 hover:border-white/20 text-white/60 hover:text-white flex items-center justify-center transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+            className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-20 h-10 w-10 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm border border-white/10 hover:border-white/20 text-white/60 hover:text-white flex items-center justify-center transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
           <button
-            onClick={() => cycleHero(1)}
+            onClick={() => setHeroIdx((prev) => (prev + 1) % candidates.length)}
             aria-label="Next pick"
-            className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 h-10 w-10 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm border border-white/10 hover:border-white/20 text-white/60 hover:text-white flex items-center justify-center transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+            className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 h-10 w-10 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm border border-white/10 hover:border-white/20 text-white/60 hover:text-white flex items-center justify-center transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
           >
             <ChevronRight className="h-5 w-5" />
           </button>

@@ -1,172 +1,130 @@
 // src/app/pages/discover/components/ResultsList.jsx
 import { useCallback, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
+import { ChevronDown } from 'lucide-react'
 
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { addToWatchlist } from '@/shared/services/watchlist'
 import { submitRecommendationFeedback } from '@/shared/services/feedback'
-import { buildWhyThis } from '@/shared/services/whyThis'
 import Button from '@/shared/ui/Button'
 
-/**
- * Format runtime in hours + minutes.
- * @param {number|null} runtime
- * @returns {string}
- */
-function formatRuntime(runtime) {
-  if (!runtime) return ''
-  const h = Math.floor(runtime / 60)
-  const m = runtime % 60
-  if (h === 0) return `${m}m`
-  return m > 0 ? `${h}h ${m}m` : `${h}h`
-}
+import TopPickCard from './TopPickCard'
+import AlternateCard from './AlternateCard'
+
+/** Initial number of alternates shown (films[1] through films[4]). */
+const INITIAL_ALTERNATES = 4
+
+/** Number of additional films revealed per "More like this" click. */
+const MORE_BATCH = 5
 
 /**
- * Vertical magazine-style list of 10 film results.
+ * Discover results layout: TopPickCard hero for films[0],
+ * 2-column grid of AlternateCards for films[1-4],
+ * "More like this" expands next 5, repeat.
  *
- * @param {{ films: Array, brief: { answers: Record<string, any>, anchor?: object },
- *           onOpenDetail: (film: object) => void }} props
+ * @param {{ films: Array, onOpenDetail: (film: object) => void,
+ *           onTrackWatchlist?: Function, onTrackSeen?: Function, onTrackDismiss?: Function }} props
  */
-export default function ResultsList({ films, brief, onOpenDetail }) {
+export default function ResultsList({ films, onOpenDetail, onTrackWatchlist, onTrackSeen, onTrackDismiss }) {
   const { userId } = useAuthSession()
   const [dismissedIds, setDismissedIds] = useState(new Set())
+  const [watchlistedIds, setWatchlistedIds] = useState(new Set())
+  const [seenIds, setSeenIds] = useState(new Set())
+  const [revealedCount, setRevealedCount] = useState(INITIAL_ALTERNATES)
 
   const handleAddWatchlist = useCallback(async (film) => {
     if (!userId) return
+    setWatchlistedIds((prev) => new Set([...prev, film.movie_id]))
     await addToWatchlist(userId, film.movie_id || film.tmdb_id)
-  }, [userId])
+    onTrackWatchlist?.(film.movie_id)
+  }, [userId, onTrackWatchlist])
 
   const handleMarkSeen = useCallback(async (film) => {
     if (!userId) return
-    // Mark as watched via watchlist with watched status
+    setSeenIds((prev) => new Set([...prev, film.movie_id]))
     await addToWatchlist(userId, film.movie_id || film.tmdb_id, { status: 'watched' })
-  }, [userId])
+    onTrackSeen?.(film.movie_id)
+  }, [userId, onTrackSeen])
 
   const handleDismiss = useCallback(async (film) => {
     if (!userId) return
-    await submitRecommendationFeedback(userId, film.movie_id || film.tmdb_id, -1, 'discover_brief')
     setDismissedIds((prev) => new Set([...prev, film.movie_id]))
-  }, [userId])
+    await submitRecommendationFeedback(userId, film.movie_id || film.tmdb_id, -1, 'discover_brief')
+    onTrackDismiss?.(film.movie_id)
+  }, [userId, onTrackDismiss])
 
-  // Sort by match_percentage DESC
+  // Sort by match_percentage DESC, filter dismissed
   const sorted = [...films]
     .filter((f) => !dismissedIds.has(f.movie_id))
     .sort((a, b) => (b.match_percentage ?? 0) - (a.match_percentage ?? 0))
 
+  if (sorted.length === 0) return null
+
+  const topPick = sorted[0]
+  const alternates = sorted.slice(1, 1 + revealedCount)
+  const hasMore = sorted.length > 1 + revealedCount
+
   return (
     <div>
+      {/* Hero top pick */}
+      <TopPickCard
+        film={topPick}
+        isWatchlisted={watchlistedIds.has(topPick.movie_id)}
+        isSeen={seenIds.has(topPick.movie_id)}
+        onOpenDetail={onOpenDetail}
+        onAddWatchlist={handleAddWatchlist}
+        onMarkSeen={handleMarkSeen}
+      />
+
+      {/* Alternates section header */}
+      {alternates.length > 0 && (
+        <div className="flex items-center gap-3 mb-4 mt-2">
+          <div className="w-[3px] h-5 rounded-full bg-gradient-to-b from-purple-400 to-pink-500" />
+          <h2 className="text-[1.05rem] sm:text-[1.15rem] font-bold text-white tracking-tight whitespace-nowrap">
+            Also great for this brief
+          </h2>
+          <div className="h-px flex-1 bg-gradient-to-r from-purple-400/20 via-white/5 to-transparent" />
+        </div>
+      )}
+
+      {/* Alternates grid */}
       <AnimatePresence>
-        {sorted.map((film, index) => (
-          <motion.div
-            key={film.movie_id}
-            layout
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, x: -40, transition: { duration: 0.3 } }}
-            transition={{ duration: 0.4, delay: index * 0.05 }}
-          >
-            {/* Top Pick eyebrow for position 0 */}
-            {index === 0 && (
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-purple-400/70 mb-1 -mt-2">
-                Top Pick
-              </p>
-            )}
-
-            <div className="grid grid-cols-[5rem_1fr_auto] sm:grid-cols-[6rem_1fr_auto] gap-5 py-6 border-b border-white/10 items-start group">
-              {/* Poster */}
-              <button
-                type="button"
-                onClick={() => onOpenDetail(film)}
-                className="block"
-                aria-label={`View details for ${film.title}`}
-              >
-                {film.poster_path ? (
-                  <img
-                    src={`https://image.tmdb.org/t/p/w185${film.poster_path}`}
-                    alt={film.title}
-                    className="w-full aspect-[2/3] rounded-lg object-cover ring-1 ring-white/10 group-hover:ring-purple-400/40 transition-all"
-                    loading="lazy"
-                  />
-                ) : (
-                  <div className="w-full aspect-[2/3] rounded-lg bg-neutral-900 ring-1 ring-white/10 flex items-center justify-center">
-                    <span className="text-2xl" aria-hidden="true">🎬</span>
-                  </div>
-                )}
-              </button>
-
-              {/* Content */}
-              <div className="min-w-0">
-                <div className="flex items-baseline gap-2 flex-wrap mb-1">
-                  <button
-                    type="button"
-                    onClick={() => onOpenDetail(film)}
-                    className="text-left"
-                  >
-                    <h3 className="text-lg font-bold text-white hover:text-purple-200 transition-colors">
-                      {film.title}
-                    </h3>
-                  </button>
-                  {film.release_year && (
-                    <span className="text-xs text-white/40 tabular-nums">
-                      {film.release_year}
-                    </span>
-                  )}
-                  {film.runtime && (
-                    <>
-                      <span className="text-xs text-white/40" aria-hidden="true">·</span>
-                      <span className="text-xs text-white/40 tabular-nums">
-                        {formatRuntime(film.runtime)}
-                      </span>
-                    </>
-                  )}
-                </div>
-
-                <p className="text-sm text-white/70 mb-3 leading-relaxed max-w-prose">
-                  {buildWhyThis(film, brief)}
-                </p>
-
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleAddWatchlist(film)}
-                    aria-label={`Add ${film.title} to watchlist`}
-                  >
-                    Watchlist
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleMarkSeen(film)}
-                    aria-label={`Mark ${film.title} as seen`}
-                  >
-                    Seen it
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDismiss(film)}
-                    aria-label={`Dismiss ${film.title}`}
-                  >
-                    Not tonight
-                  </Button>
-                </div>
-              </div>
-
-              {/* Match % */}
-              <div className="text-right">
-                <p className="text-2xl font-light tabular-nums text-white">
-                  {film.match_percentage ?? 0}
-                  <span className="text-xs text-white/40 ml-0.5">%</span>
-                </p>
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-white/40">
-                  match
-                </p>
-              </div>
-            </div>
-          </motion.div>
-        ))}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {alternates.map((film, i) => (
+            <AlternateCard
+              key={film.movie_id}
+              film={film}
+              index={i}
+              isWatchlisted={watchlistedIds.has(film.movie_id)}
+              isSeen={seenIds.has(film.movie_id)}
+              onOpenDetail={onOpenDetail}
+              onAddWatchlist={handleAddWatchlist}
+              onMarkSeen={handleMarkSeen}
+              onDismiss={handleDismiss}
+            />
+          ))}
+        </div>
       </AnimatePresence>
+
+      {/* More like this */}
+      {hasMore && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="flex justify-center mt-6"
+        >
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => setRevealedCount((c) => c + MORE_BATCH)}
+            aria-label="Show more recommendations"
+          >
+            <ChevronDown className="h-4 w-4" />
+            More like this
+          </Button>
+        </motion.div>
+      )}
     </div>
   )
 }

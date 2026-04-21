@@ -210,7 +210,9 @@ export function useHomepageRows(userId) {
     }
 
     // Row order: TopOfTaste → Director → CriticSplit → Mood → Orbit → Under90 → Watchlist
-    const dTopOfTaste = dedupFilms(topOfTaste.data)
+    const dTopOfTaste = topOfTaste.data
+      ? { ...topOfTaste.data, films: dedupFilms(topOfTaste.data.films) }
+      : topOfTaste.data
     const dDirector = director.data
       ? { ...director.data, films: dedupFilms(director.data.films) }
       : director.data

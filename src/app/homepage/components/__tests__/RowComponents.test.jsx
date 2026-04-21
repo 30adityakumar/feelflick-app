@@ -54,7 +54,7 @@ describe('Row auto-hide (< 6 films)', () => {
 
   it('MoodRow hides with 5 films', () => {
     const { container } = render(
-      <MoodRow data={{ films: mockFilms(5), dominantMood: 'tense' }} loading={false} />,
+      <MoodRow data={{ films: mockFilms(5), title: 'Films that feel tense', subtitle: null }} loading={false} />,
     )
     expect(container.innerHTML).toBe('')
   })
@@ -68,7 +68,7 @@ describe('Row auto-hide (< 6 films)', () => {
 
   it('SignatureDirectorRow hides with 5 films', () => {
     const { container } = render(
-      <SignatureDirectorRow data={{ films: mockFilms(5), director: 'Nolan' }} loading={false} />,
+      <SignatureDirectorRow data={{ films: mockFilms(5), director: { name: 'Nolan', profile_path: null, id: null } }} loading={false} />,
     )
     expect(container.innerHTML).toBe('')
   })
@@ -96,17 +96,17 @@ describe('StillInOrbitRow', () => {
 })
 
 describe('MoodRow', () => {
-  it('hides when no dominant mood and not loading', () => {
+  it('hides when no title and not loading', () => {
     const { container } = render(
-      <MoodRow data={{ films: [], dominantMood: null }} loading={false} />,
+      <MoodRow data={{ films: [], title: null, subtitle: null }} loading={false} />,
     )
     expect(container.innerHTML).toBe('')
   })
 
-  it('renders with dominant mood in title when >= 6 films', () => {
+  it('renders with mood title when >= 6 films', () => {
     render(
       <MoodRow
-        data={{ films: mockFilms(8), dominantMood: 'contemplative' }}
+        data={{ films: mockFilms(8), title: 'Films that feel contemplative', subtitle: null }}
         loading={false}
       />,
     )
@@ -144,7 +144,7 @@ describe('SignatureDirectorRow', () => {
   it('renders with director name when >= 6 films', () => {
     render(
       <SignatureDirectorRow
-        data={{ films: mockFilms(8), director: 'Denis Villeneuve' }}
+        data={{ films: mockFilms(8), director: { name: 'Denis Villeneuve', profile_path: null, id: null } }}
         loading={false}
       />,
     )

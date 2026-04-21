@@ -76,7 +76,6 @@ export async function trackEvent(userId, eventType, movieId = null, metadata = {
       return false
     }
 
-    console.log('[trackEvent] Tracked:', { eventType, movieId, metadata })
     return true
 
   } catch (error) {

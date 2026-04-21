@@ -94,7 +94,8 @@ export default function HomePage() {
             {/* Row 2: Top of your taste (all tiers) */}
             <SectionErrorBoundary label="Top of Your Taste">
               <TopOfYourTasteRow
-                data={rows.topOfTaste.data}
+                data={rows.topOfTaste.data?.films}
+                subtitle={rows.topOfTaste.data?.subtitle}
                 loading={rows.topOfTaste.loading}
               />
             </SectionErrorBoundary>

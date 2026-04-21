@@ -56,7 +56,8 @@ const RUN_MODES = {
       // Disabled: movie_mood_scores table is not read by recommendation engine.
       // Will be revived after step 07 LLM mood_tags enrichment + frontend migration.
       { name: '09-calculate-mood-scores', enabled: false, options: { limit: 250 } },
-      { name: '10-aggregate-user-satisfaction', enabled: true, options: { limit: 10000 } }
+      { name: '10-aggregate-user-satisfaction', enabled: true, options: { limit: 10000 } },
+      { name: '11-build-similarity', enabled: true }
     ]
   },
   refresh: {
@@ -75,7 +76,8 @@ const RUN_MODES = {
       // Disabled: movie_mood_scores table is not read by recommendation engine.
       // Will be revived after step 07 LLM mood_tags enrichment + frontend migration.
       { name: '09-calculate-mood-scores', enabled: false },
-      { name: '10-aggregate-user-satisfaction', enabled: true, options: { limit: 10000 } }
+      { name: '10-aggregate-user-satisfaction', enabled: true, options: { limit: 10000 } },
+      { name: '11-build-similarity', enabled: true }
     ]
   },
   'deep-refresh': {
@@ -92,7 +94,8 @@ const RUN_MODES = {
       { name: '07b-enrich-mood-llm', enabled: true, options: { limit: 2000, mode: 'stale' } },
       { name: '08-generate-embeddings', enabled: true, options: { limit: 2000, staleEnrichment: true } },
       { name: '09-calculate-mood-scores', enabled: false },
-      { name: '10-aggregate-user-satisfaction', enabled: true, options: { limit: 10000 } }
+      { name: '10-aggregate-user-satisfaction', enabled: true, options: { limit: 10000 } },
+      { name: '11-build-similarity', enabled: true }
     ]
   },
   full: {
@@ -111,7 +114,8 @@ const RUN_MODES = {
       // Disabled: movie_mood_scores table is not read by recommendation engine.
       // Will be revived after step 07 LLM mood_tags enrichment + frontend migration.
       { name: '09-calculate-mood-scores', enabled: false },
-      { name: '10-aggregate-user-satisfaction', enabled: true, options: { limit: 10000 } }
+      { name: '10-aggregate-user-satisfaction', enabled: true, options: { limit: 10000 } },
+      { name: '11-build-similarity', enabled: true, options: { rebuild: true } }
     ]
   }
 };

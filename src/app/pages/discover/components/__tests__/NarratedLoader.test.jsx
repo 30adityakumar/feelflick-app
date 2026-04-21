@@ -7,23 +7,17 @@ describe('NarratedLoader', () => {
   it('shows the first narration line on mount', () => {
     render(
       <NarratedLoader
-        totalCount={4200}
-        tagDim={45}
-        hasTasteProfile={false}
         resultsReady={false}
         onComplete={vi.fn()}
       />,
     )
 
-    expect(screen.getByText(/Opening the vault of 4,200 films/)).toBeTruthy()
+    expect(screen.getByText(/Matching your taste/)).toBeTruthy()
   })
 
   it('renders progress bar', () => {
     const { container } = render(
       <NarratedLoader
-        totalCount={4200}
-        tagDim={45}
-        hasTasteProfile={false}
         resultsReady={false}
         onComplete={vi.fn()}
       />,
@@ -39,9 +33,6 @@ describe('NarratedLoader', () => {
 
     const { rerender } = render(
       <NarratedLoader
-        totalCount={4200}
-        tagDim={45}
-        hasTasteProfile={false}
         resultsReady={false}
         onComplete={onComplete}
       />,
@@ -50,34 +41,15 @@ describe('NarratedLoader', () => {
     // Results ready from the start
     rerender(
       <NarratedLoader
-        totalCount={4200}
-        tagDim={45}
-        hasTasteProfile={false}
         resultsReady={true}
         onComplete={onComplete}
       />,
     )
 
-    // Wait for all lines to cycle + final delay
-    // 4 lines (no taste profile) × 400ms + 400ms final = ~2000ms
+    // Wait for all 3 lines to cycle (1200ms each) + final delay
     await waitFor(
       () => expect(onComplete).toHaveBeenCalledTimes(1),
-      { timeout: 4000 },
+      { timeout: 6000 },
     )
-  })
-
-  it('renders first line differently based on totalCount', () => {
-    render(
-      <NarratedLoader
-        totalCount={9999}
-        tagDim={45}
-        hasTasteProfile={true}
-        resultsReady={false}
-        onComplete={vi.fn()}
-      />,
-    )
-
-    // First line should include the formatted totalCount
-    expect(screen.getByText(/Opening the vault of 9,999 films/)).toBeTruthy()
   })
 })

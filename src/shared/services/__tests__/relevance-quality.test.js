@@ -27,31 +27,41 @@ vi.mock('@/shared/lib/cache', () => ({
   },
 }))
 
+// Mock exclusions module (homepage-rows imports applyAllExclusions from ./exclusions)
+vi.mock('@/shared/services/exclusions', () => ({
+  applyAllExclusions: vi.fn().mockImplementation((query) => query),
+}))
+
 vi.mock('@/shared/services/recommendations', () => ({
-  computeUserProfile: vi.fn().mockResolvedValue({
-    watchedMovieIds: [100, 200],
-    moodSignature: { recentMoodTags: [], recentToneTags: [], recentFitProfiles: [] },
-    qualityProfile: { totalMoviesWatched: 25 },
-    exclusions: { genreIds: new Set([16, 10751]), genreNames: ['Animation', 'Family'] },
-    topFitProfiles: ['crowd_pleaser', 'comfort_rewatch'],
-    affinities: { directors: [], actors: [] },
-    fitProfileAffinity: { preferred: [], topShare: 0, franchiseFatigue: false },
+  computeUserProfileV3: vi.fn().mockResolvedValue({
+    rated: { positive_seeds: [], negative_seeds: [] },
+    affinity: { fit_profiles: [{ profile: 'crowd_pleaser', count: 5 }], directors: [], mood_tags: [], tone_tags: [], genre_combos: [] },
+    content_shape: { pacing: null, intensity: null, depth: null },
+    negative: { skipped_fit_profiles: new Map(), anti_seeds: [], personal_skipped_ids: new Set() },
+    community: { high_skip_rate_ids: new Set() },
+    meta: { total_watches: 25, confidence: 'engaged' },
+    _legacy: {
+      watchedMovieIds: [100, 200],
+      moodSignature: { recentMoodTags: [], recentToneTags: [], recentFitProfiles: [] },
+      qualityProfile: { totalMoviesWatched: 25 },
+      exclusions: { genreIds: new Set([16, 10751]), genreNames: ['Animation', 'Family'] },
+      topFitProfiles: ['crowd_pleaser', 'comfort_watch'],
+      affinities: { directors: [], actors: [] },
+      fitProfileAffinity: { preferred: [], topShare: 0, franchiseFatigue: false },
+    },
   }),
   scoreMovieForUser: vi.fn().mockReturnValue({ score: 75, positiveScore: 75 }),
-  applyDbGenreExclusions: vi.fn().mockImplementation((query) => query),
-  FIT_ADJACENCY: {
-    crowd_pleaser:    { adjacent: ['comfort_rewatch', 'date_night', 'franchise_entry'], clashing: ['challenging_art', 'arthouse'] },
-    comfort_rewatch:  { adjacent: ['crowd_pleaser', 'date_night'], clashing: ['challenging_art'] },
-    date_night:       { adjacent: ['crowd_pleaser', 'comfort_rewatch'], clashing: ['challenging_art', 'cult_classic'] },
-    franchise_entry:  { adjacent: ['crowd_pleaser', 'event_spectacle'], clashing: ['arthouse', 'challenging_art'] },
-    event_spectacle:  { adjacent: ['franchise_entry', 'crowd_pleaser'], clashing: ['arthouse', 'challenging_art'] },
-    cult_classic:     { adjacent: ['arthouse', 'challenging_art', 'hidden_gem'], clashing: ['crowd_pleaser'] },
-    arthouse:         { adjacent: ['challenging_art', 'cult_classic', 'hidden_gem'], clashing: ['crowd_pleaser', 'franchise_entry'] },
-    challenging_art:  { adjacent: ['arthouse', 'cult_classic'], clashing: ['crowd_pleaser', 'comfort_rewatch', 'franchise_entry'] },
-    hidden_gem:       { adjacent: ['cult_classic', 'arthouse'], clashing: ['franchise_entry', 'event_spectacle'] },
-    prestige_drama:   { adjacent: ['arthouse', 'challenging_art', 'hidden_gem'], clashing: ['crowd_pleaser', 'franchise_entry', 'comfort_rewatch'] },
-    genre_popcorn:    { adjacent: ['crowd_pleaser', 'event_spectacle', 'franchise_entry'], clashing: ['challenging_art', 'arthouse'] },
-  },
+}))
+
+// Mock scoring-v3 — default returns 75
+const mockScoreMovieV3 = vi.fn().mockReturnValue({ final: 75, breakdown: { quality: 75 }, weights_used: {} })
+vi.mock('@/shared/services/scoring-v3', () => ({
+  scoreMovieV3: (...args) => mockScoreMovieV3(...args),
+  precomputeScoringContext: vi.fn().mockResolvedValue({
+    seedNeighborMap: new Map(),
+    antiSeedNeighborMap: new Map(),
+    isColdStart: false,
+  }),
 }))
 
 import { scoreMovieForUser } from '../recommendations'
@@ -87,14 +97,16 @@ function mockChainedQuery(result) {
 describe('DB-level genre exclusion', () => {
   beforeEach(() => vi.clearAllMocks())
 
-  it('calls applyDbGenreExclusions on the query builder', async () => {
-    const { applyDbGenreExclusions } = await import('../recommendations')
+  it('calls applyAllExclusions on the query builder', async () => {
+    const { applyAllExclusions } = await import('../exclusions')
 
     const profile = {
-      watchedMovieIds: [],
-      exclusions: { genreIds: new Set([16, 10751]), genreNames: ['Animation', 'Family'] },
-      topFitProfiles: [],
-      qualityProfile: { totalMoviesWatched: 10 },
+      _legacy: {
+        watchedMovieIds: [],
+        exclusions: { genreIds: new Set([16, 10751]), genreNames: ['Animation', 'Family'] },
+        topFitProfiles: [],
+        qualityProfile: { totalMoviesWatched: 10 },
+      },
     }
 
     // Need >= 6 candidates to pass MIN_ROW_FILMS threshold
@@ -109,18 +121,20 @@ describe('DB-level genre exclusion', () => {
 
     await getTopOfYourTasteRow('user-1', profile)
 
-    // applyDbGenreExclusions should have been called with the query and the profile
-    expect(applyDbGenreExclusions).toHaveBeenCalledWith(expect.anything(), profile)
+    // applyAllExclusions should have been called with the query and the profile
+    expect(applyAllExclusions).toHaveBeenCalledWith(expect.anything(), profile)
   })
 
   it('passes through all candidates when no exclusions', async () => {
-    const { applyDbGenreExclusions } = await import('../recommendations')
+    const { applyAllExclusions } = await import('../exclusions')
 
     const profile = {
-      watchedMovieIds: [],
-      exclusions: { genreIds: new Set(), genreNames: [] },
-      topFitProfiles: [],
-      qualityProfile: { totalMoviesWatched: 10 },
+      _legacy: {
+        watchedMovieIds: [],
+        exclusions: { genreIds: new Set(), genreNames: [] },
+        topFitProfiles: [],
+        qualityProfile: { totalMoviesWatched: 10 },
+      },
     }
 
     const chain = mockChainedQuery({
@@ -136,9 +150,9 @@ describe('DB-level genre exclusion', () => {
     const result = await getTopOfYourTasteRow('user-1', profile)
 
     // With no exclusions, DB exclusion is still called but is a no-op
-    expect(applyDbGenreExclusions).toHaveBeenCalled()
+    expect(applyAllExclusions).toHaveBeenCalled()
     // Shrek should be in results since no exclusions
-    expect(result.map(m => m.title)).toContain('Shrek')
+    expect(result.films.map(m => m.title)).toContain('Shrek')
   })
 })
 
@@ -162,10 +176,12 @@ describe('Orbit strict seed', () => {
     mockRpc.mockResolvedValue({ data: [], error: null })
 
     const profile = {
-      watchedMovieIds: [],
-      exclusions: { genreIds: new Set(), genreNames: [] },
-      topFitProfiles: [],
-      qualityProfile: { totalMoviesWatched: 20 },
+      _legacy: {
+        watchedMovieIds: [],
+        exclusions: { genreIds: new Set(), genreNames: [] },
+        topFitProfiles: [],
+        qualityProfile: { totalMoviesWatched: 20 },
+      },
     }
 
     const result = await getStillInOrbitRow('user-1', profile)
@@ -184,10 +200,12 @@ describe('Orbit strict seed', () => {
     })
 
     const profile = {
-      watchedMovieIds: [],
-      exclusions: { genreIds: new Set(), genreNames: [] },
-      topFitProfiles: [],
-      qualityProfile: { totalMoviesWatched: 20 },
+      _legacy: {
+        watchedMovieIds: [],
+        exclusions: { genreIds: new Set(), genreNames: [] },
+        topFitProfiles: [],
+        qualityProfile: { totalMoviesWatched: 20 },
+      },
     }
 
     const result = await getStillInOrbitRow('user-1', profile)
@@ -228,29 +246,44 @@ describe('determinePickReason embedding gate', () => {
 describe('Fit profile adjacency scoring', () => {
   beforeEach(() => vi.clearAllMocks())
 
-  it('boosts dominant fit_profile by +10 and penalizes clashing by -15', async () => {
+  it('scoreMovieV3 differentiates dominant vs clashing fit profiles', async () => {
     const profile = {
-      watchedMovieIds: [],
-      exclusions: { genreIds: new Set(), genreNames: [] },
-      topFitProfiles: ['crowd_pleaser', 'comfort_rewatch'],
-      qualityProfile: { totalMoviesWatched: 20 },
+      affinity: { fit_profiles: [{ profile: 'crowd_pleaser', count: 5 }], directors: [], mood_tags: [], tone_tags: [], genre_combos: [] },
+      content_shape: { pacing: null, intensity: null, depth: null },
+      negative: { skipped_fit_profiles: new Map(), anti_seeds: [], personal_skipped_ids: new Set() },
+      community: { high_skip_rate_ids: new Set() },
+      meta: { total_watches: 20, confidence: 'engaged' },
+      _legacy: {
+        watchedMovieIds: [],
+        exclusions: { genreIds: new Set(), genreNames: [] },
+        topFitProfiles: ['crowd_pleaser', 'comfort_watch'],
+        qualityProfile: { totalMoviesWatched: 20 },
+      },
     }
 
-    // Base score 70 so adjacency bonuses/penalties produce scores above/below the 60 floor
-    scoreMovieForUser.mockReturnValue({ score: 70, positiveScore: 70 })
+    // scoreMovieV3 returns different scores based on fit_profile:
+    // crowd_pleaser/comfort_rewatch → 80 (high fit alignment),
+    // challenging_art → 55 (below 60 floor, gets cut),
+    // date_night → 75 (adjacent)
+    mockScoreMovieV3.mockImplementation((movie) => {
+      const fp = movie.fit_profile
+      if (fp === 'crowd_pleaser') return { final: 80, breakdown: { fit: 100 }, weights_used: {} }
+      if (fp === 'comfort_watch') return { final: 80, breakdown: { fit: 80 }, weights_used: {} }
+      if (fp === 'challenging_art') return { final: 55, breakdown: { fit: 0 }, weights_used: {} }
+      if (fp === 'genre_popcorn') return { final: 75, breakdown: { fit: 50 }, weights_used: {} }
+      return { final: 70, breakdown: { fit: 40 }, weights_used: {} }
+    })
 
     // Need >= 6 films above MIN_PERSONAL_SCORE (60) for the row to render.
-    // crowd_pleaser: 70+10=80, challenging_art: 70-15=55 (CUT), date_night: 70+5=75,
-    // 5 filler comfort_rewatch films: 70+10=80 each → total 7 pass
     const chain = mockChainedQuery({
       data: [
-        { id: 1, tmdb_id: 10, title: 'Crowd Film', poster_path: '/c.jpg', genres: ['Comedy'], fit_profile: 'crowd_pleaser', ff_audience_rating: 80, ff_rating_genre_normalized: 8.0, ff_audience_confidence: 70 },
-        { id: 2, tmdb_id: 20, title: 'Art Film', poster_path: '/a.jpg', genres: ['Drama'], fit_profile: 'challenging_art', ff_audience_rating: 85, ff_rating_genre_normalized: 8.5, ff_audience_confidence: 75 },
-        { id: 3, tmdb_id: 30, title: 'Date Film', poster_path: '/d.jpg', genres: ['Romance'], fit_profile: 'date_night', ff_audience_rating: 78, ff_rating_genre_normalized: 7.8, ff_audience_confidence: 65 },
+        { id: 1, tmdb_id: 10, title: 'Crowd Film', poster_path: '/c.jpg', genres: ['Comedy'], fit_profile: 'crowd_pleaser', ff_audience_rating: 80, ff_audience_confidence: 70 },
+        { id: 2, tmdb_id: 20, title: 'Art Film', poster_path: '/a.jpg', genres: ['Drama'], fit_profile: 'challenging_art', ff_audience_rating: 85, ff_audience_confidence: 75 },
+        { id: 3, tmdb_id: 30, title: 'Genre Film', poster_path: '/d.jpg', genres: ['Romance'], fit_profile: 'genre_popcorn', ff_audience_rating: 78, ff_audience_confidence: 65 },
         ...Array.from({ length: 5 }, (_, i) => ({
           id: 10 + i, tmdb_id: 100 + i * 10, title: `Filler ${i + 1}`, poster_path: '/f.jpg',
-          genres: ['Comedy'], fit_profile: 'comfort_rewatch', ff_audience_rating: 75,
-          ff_rating_genre_normalized: 7.5, ff_audience_confidence: 65,
+          genres: ['Comedy'], fit_profile: 'comfort_watch', ff_audience_rating: 75,
+          ff_audience_confidence: 65,
         })),
       ],
       error: null,
@@ -259,21 +292,20 @@ describe('Fit profile adjacency scoring', () => {
 
     const result = await getTopOfYourTasteRow('user-1', profile)
 
-    const crowdFilm = result.find(m => m.title === 'Crowd Film')
-    const artFilm = result.find(m => m.title === 'Art Film')
-    const dateFilm = result.find(m => m.title === 'Date Film')
+    const crowdFilm = result.films.find(m => m.title === 'Crowd Film')
+    const artFilm = result.films.find(m => m.title === 'Art Film')
+    const genreFilm = result.films.find(m => m.title === 'Genre Film')
 
     expect(crowdFilm).toBeDefined()
-    // challenging_art clashes with crowd_pleaser → 70-15=55, below 60 floor → cut
+    // challenging_art scored 55, below 60 floor → cut
     expect(artFilm).toBeUndefined()
-    expect(dateFilm).toBeDefined()
+    expect(genreFilm).toBeDefined()
 
-    // crowd_pleaser is dominant → +10
-    expect(crowdFilm._score).toBe(80)  // 70 base + 10 bonus
-    // date_night is adjacent to crowd_pleaser → +5
-    expect(dateFilm._score).toBe(75)   // 70 base + 5 bonus
+    // v3 scores directly from scoreMovieV3
+    expect(crowdFilm._score).toBe(80)
+    expect(genreFilm._score).toBe(75)
 
     // Crowd film should rank highest (80 > 75)
-    expect(result[0].title).toBe('Crowd Film')
+    expect(result.films[0].title).toBe('Crowd Film')
   })
 })

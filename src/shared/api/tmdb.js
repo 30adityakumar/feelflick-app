@@ -593,7 +593,6 @@ export function profileImg(path, size = 'w185') {
  */
 export function clearCache() {
   cache.clear()
-  console.log('[TMDb] Cache cleared')
 }
 
 /**

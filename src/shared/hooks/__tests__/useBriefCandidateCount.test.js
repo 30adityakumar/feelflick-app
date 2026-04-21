@@ -10,6 +10,20 @@ vi.mock('@/shared/lib/supabase/client', () => ({
   },
 }))
 
+// Mock unpackVibe — returns tone from the vibe's QUESTION_SET option
+vi.mock('@/shared/services/brief-scoring', () => ({
+  unpackVibe: (answers) => {
+    const VIBE_MAP = {
+      curious_sharp: { feeling: 'curious', tone: 'sharp' },
+      curious_warm: { feeling: 'curious', tone: 'warm' },
+      cozy_warm: { feeling: 'cozy', tone: 'warm' },
+      dark_sharp: { feeling: 'dark', tone: 'sharp' },
+      adventurous_any: { feeling: 'adventurous', tone: 'any' },
+    }
+    return VIBE_MAP[answers.vibe] || { feeling: null, tone: null }
+  },
+}))
+
 import { supabase } from '@/shared/lib/supabase/client'
 
 afterEach(() => {
@@ -54,8 +68,8 @@ describe('useBriefCandidateCount', () => {
 
     await waitFor(() => expect(result.current.count).toBe(4200))
 
-    // Set energy answer
-    rerender({ brief: { answers: { energy: 1 } } })
+    // Set vibe answer (a filter-relevant field)
+    rerender({ brief: { answers: { vibe: 'dark_sharp' } } })
 
     // Wait for debounce + async
     await act(() => waitForDebounce())
@@ -65,7 +79,8 @@ describe('useBriefCandidateCount', () => {
       expect(result.current.previousCount).toBe(4200)
     })
 
-    expect(supabase.rpc).toHaveBeenCalledWith('count_brief_candidates', { p_energy: 1 })
+    // Vibe dark_sharp unpacks to tone: 'sharp'
+    expect(supabase.rpc).toHaveBeenCalledWith('count_brief_candidates', { p_tone: 'sharp' })
   })
 
   it('maps all filter-relevant answers to RPC params', async () => {
@@ -74,12 +89,10 @@ describe('useBriefCandidateCount', () => {
       .mockResolvedValueOnce({ data: 150, error: null })
 
     const answers = {
-      feeling: 3,           // excluded — scoring-only
-      energy: 5,
-      attention: 'lean-in',
-      tone: 'sharp',
-      time: 'short',
-      era: 'modern',
+      vibe: 'curious_sharp',      // unpacks to tone: 'sharp'
+      attention: 'lean_in',       // maps to 'lean-in'
+      time: 'medium',             // maps to 'standard'
+      company: 'friends',         // not sent to RPC
     }
 
     const { result } = renderHook(() =>
@@ -91,16 +104,15 @@ describe('useBriefCandidateCount', () => {
 
     await waitFor(() => expect(result.current.count).toBe(150))
 
-    // Last call should have all filter params but NOT p_mood_id
+    // Last call should have mapped params
     const lastCall = supabase.rpc.mock.calls[supabase.rpc.mock.calls.length - 1]
     expect(lastCall[0]).toBe('count_brief_candidates')
     expect(lastCall[1]).toEqual({
-      p_energy: 5,
-      p_attention: 'lean-in',
       p_tone: 'sharp',
-      p_time: 'short',
-      p_era: 'modern',
+      p_attention: 'lean-in',
+      p_time: 'standard',
     })
-    expect(lastCall[1].p_mood_id).toBeUndefined()
+    // Company should NOT be in RPC params
+    expect(lastCall[1].p_company).toBeUndefined()
   })
 })

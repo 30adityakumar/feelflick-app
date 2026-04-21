@@ -75,6 +75,7 @@ import { FIT_ADJACENCY, promoteRatedFitProfiles } from './fit-adjacency'
 import { buildSkipWeightMap, buildCooldownSet } from './skip-signals'
 import { selectHeroCandidates, dayHashIndex } from './diversity'
 import { heroEraFloor, generateHeroReason, tieBreakSort } from './hero-reason'
+import { briefHardFilters, scoreMovieForBrief, buildBriefSeeds, generateBriefReason } from './brief-scoring'
 
 // ============================================================================
 // VERSION
@@ -1008,6 +1009,8 @@ export async function computeUserProfileV3(userId, options = {}) {
       high_skip_rate_ids: communityHighSkips,
     },
 
+    watched_ids: watchedMovieIdSet,
+
     meta: {
       total_watches: totalWatches,
       confidence,
@@ -1035,33 +1038,12 @@ function buildEmptyProfileV3(userId) {
     content_shape: { pacing: null, intensity: null, depth: null },
     negative: { skipped_fit_profiles: new Map(), skipped_mood_tags: new Map(), anti_seeds: [], personal_skipped_ids: new Set(), skip_weight_map: new Map(), hero_cooldown: new Set(), row_cooldown: new Set() },
     community: { high_skip_rate_ids: new Set() },
+    watched_ids: new Set(),
     meta: { total_watches: 0, confidence: 'cold', onboarding_weight: 3.0, engine_version: '3.0' },
     _legacy: buildEmptyProfile(userId, null),
   }
 }
 
-// Debug helpers (dev-only)
-if (typeof window !== 'undefined') {
-  window.__ffProfile = async (userId) => {
-    console.log('[__ffProfile] Computing v3 profile for:', userId)
-    const profile = await computeUserProfileV3(userId, { forceRefresh: true })
-    console.log('[__ffProfile] Result:', profile)
-    return profile
-  }
-
-  window.__ffResetCooldown = async (userId) => {
-    if (!userId) { console.error('[__ffResetCooldown] userId required'); return }
-    const cutoff = new Date(Date.now() - 7 * 86400000).toISOString()
-    const { data, error } = await supabase
-      .from('recommendation_impressions')
-      .delete()
-      .eq('user_id', userId)
-      .gte('shown_at', cutoff)
-    if (error) console.error('[__ffResetCooldown] Error:', error.message)
-    else console.log('[__ffResetCooldown] Deleted recent impressions for', userId, data)
-    return { data, error }
-  }
-}
 
 function buildEmptyProfile(userId, userPrefs) {
   return ensureLanguageProfileShape({
@@ -2201,24 +2183,16 @@ export async function getTopPickForUser(userId, options = {}) {
 
   if (forceRefresh) recommendationCache.invalidate(cacheKey)
 
-  // Invalidate stale cache entries from pre-hero-rebuild (missing alternates)
-  const cached = recommendationCache.get?.(cacheKey)
-  if (cached && !cached.alternates) recommendationCache.invalidate(cacheKey)
-
   return recommendationCache.getOrFetch(cacheKey, async () => {
     try {
       if (!userId) return await getFallbackPick(null)
 
-      // profile (for scoring) — must complete first, needed by seeds + langGuard
+      // === PROFILES + SCORING CONTEXT ===
       const profile = ensureLanguageProfileShape(await computeUserProfile(userId))
-      // v3 profile for 7-dim scoring (reuses cached legacy profile internally)
       const profileV3 = await computeUserProfileV3(userId)
       const scoringContext = await precomputeScoringContext(profileV3)
 
       // === PARALLEL GROUP 1: watched rows + hero impressions ===
-      // These are independent of each other (all depend only on userId).
-      // Merged the two recommendation_impressions queries (7d hero + all-time skips)
-      // into a single query to save a round-trip.
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
       const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000)
 
@@ -2227,7 +2201,6 @@ export async function getTopPickForUser(userId, options = {}) {
           .from('user_history')
           .select('movie_id, movies!inner(id, tmdb_id, original_language, genres)')
           .eq('user_id', userId),
-        // Single merged query: hero impressions from last 7d + ALL skipped hero impressions
         supabase
           .from('recommendation_impressions')
           .select('movie_id, shown_at, skipped, placement')
@@ -2238,36 +2211,27 @@ export async function getTopPickForUser(userId, options = {}) {
 
       const watchedInternalIds = normalizeNumericIdArray((watchedRows || []).map((w) => w.movie_id))
       const watchedTmdbIds = normalizeNumericIdArray((watchedRows || []).map((w) => w.movies?.tmdb_id).filter(Boolean))
-
-      // ✅ never show watched, even if candidates are low
       const allExcludeInternal = normalizeNumericIdArray([...watchedInternalIds, ...stableExcludeIds])
       const allExcludeTmdb = new Set(normalizeNumericIdArray([...watchedTmdbIds, ...stableExcludeTmdbIds]))
 
-      // ✅ language guard derived from ACTUAL watched languages
       const historyLang = deriveLanguageFromWatchedRows(watchedRows || [])
       const langGuard = buildLanguageGuardFromHistory(historyLang)
 
-      // Partition merged impressions into hero cooldown + all-time skip count
-      // movie_id → most-recent impression Date (for 48h any-impression block)
+      // === IMPRESSION PARTITIONING ===
       const lastShownAt = new Map()
-      // movie_id → most-recent SKIP Date (for 48h hard-skip block + 7d score penalty)
       const skipHistory = new Map()
-      const hardSkipIds = new Set() // skipped within 48h
+      const hardSkipIds = new Set()
       const allTimeSkipCount = new Map()
 
       ;(heroImpressionData || []).forEach((r) => {
         if (!r.movie_id) return
         const shownAt = new Date(r.shown_at)
         const isRecent = shownAt >= new Date(sevenDaysAgo)
-
-        // Recent impressions (last 7d): track for cooldown
         if (isRecent) {
           if (!lastShownAt.has(r.movie_id) || shownAt > lastShownAt.get(r.movie_id)) {
             lastShownAt.set(r.movie_id, shownAt)
           }
         }
-
-        // All skips (recent + all-time): track for penalties
         if (r.skipped) {
           allTimeSkipCount.set(r.movie_id, (allTimeSkipCount.get(r.movie_id) || 0) + 1)
           if (isRecent) {
@@ -2279,19 +2243,16 @@ export async function getTopPickForUser(userId, options = {}) {
         }
       })
 
-      // Tier A: any film shown as hero in last 48h → exclude (prevents same-day repeat)
-      // Tier B: any film skipped in last 7 days → exclude via hardSkipIds / skipHistory
       const recentHeroIds = new Set(
         [...lastShownAt.entries()]
           .filter(([, shownAt]) => shownAt >= fortyEightHoursAgo)
           .map(([id]) => id)
       )
-
-      // Permanent skip learning: movies skipped 3+ times ever get a lasting -30 penalty.
       const permanentSkipIds = new Set(
         [...allTimeSkipCount.entries()].filter(([, count]) => count >= 3).map(([id]) => id)
       )
 
+      // === SELECT FIELDS ===
       const selectFields = `
         id, tmdb_id, title, overview, tagline,
         original_language, runtime, release_year, release_date,
@@ -2312,16 +2273,29 @@ export async function getTopPickForUser(userId, options = {}) {
         user_satisfaction_score, user_satisfaction_confidence
       `
 
-      // === PARALLEL GROUP 2: embedding pool + base pool + classics pool ===
-      // Embedding pool derived from scoringContext.seedNeighborMap (same v3 seeds).
-      // Base pool + classics pool depend only on langGuard (resolved above).
+      // === PARALLEL GROUP 2: embPool + basePool ===
+      // embPool: from seedNeighborMap keys — SIGNATURE floor, NO language filter.
+      // Embedding neighbors are cross-language by nature; language penalty handled in scoring.
+      const embNeighborIds = [...(scoringContext?.seedNeighborMap?.keys() || [])]
 
+      let embQueryPromise = Promise.resolve({ data: [] })
+      if (embNeighborIds.length > 0) {
+        let embQuery = supabase
+          .from('movies')
+          .select(selectFields)
+          .in('id', embNeighborIds)
+          .eq('is_valid', true)
+          .not('backdrop_path', 'is', null)
+          .not('tmdb_id', 'is', null)
+        embQuery = applyQualityFloor(embQuery, 'SIGNATURE')
+        embQuery = applyAllExclusions(embQuery, profile)
+        embQueryPromise = embQuery.limit(300)
+      }
+
+      // basePool: HERO floor + language filter + exclusions, limit 80
       const isLanguageRestricted = langGuard.mode === 'strict' || langGuard.mode === 'strong'
-      const langMinYear = isLanguageRestricted ? 2010 : 2019
-      const eraFloor = heroEraFloor(profileV3)
-      const minYear = Math.min(langMinYear, eraFloor)
+      const minYear = isLanguageRestricted ? 2010 : 2019
 
-      // Build base query — quality floor owned by HERO tier
       let baseQuery = supabase
         .from('movies')
         .select(selectFields)
@@ -2336,8 +2310,6 @@ export async function getTopPickForUser(userId, options = {}) {
       } else if (langGuard.mode === 'strong' && langGuard.allowedLanguages.length > 0) {
         baseQuery = baseQuery.in('original_language', langGuard.allowedLanguages)
       }
-
-      // Unified exclusion pipeline (genre, language, content gates, community skip)
       baseQuery = applyAllExclusions(baseQuery, profile)
 
       const isColdStart = (profile.qualityProfile?.totalMoviesWatched || 0) === 0
@@ -2349,87 +2321,28 @@ export async function getTopPickForUser(userId, options = {}) {
           baseQuery = baseQuery.in('primary_genre', onboardingGenreNames)
         }
       }
+      baseQuery = baseQuery.order('ff_audience_rating', { ascending: false }).limit(80)
 
-      baseQuery = baseQuery
-        .order('ff_audience_rating', { ascending: false })
-        .limit(400)
-
-      // Build classics query — same HERO tier but higher vote_count for proven classics
-      let classicsQuery = supabase
-        .from('movies')
-        .select(selectFields)
-        .eq('is_valid', true)
-        .not('backdrop_path', 'is', null)
-        .not('tmdb_id', 'is', null)
-        .gte('vote_count', 25000)
-      classicsQuery = applyQualityFloor(classicsQuery, 'HERO')
-
-      if (langGuard.mode === 'strict' && langGuard.allowedLanguages.length === 1) {
-        classicsQuery = classicsQuery.eq('original_language', langGuard.allowedLanguages[0])
-      } else if (langGuard.mode === 'strong' && langGuard.allowedLanguages.length > 0) {
-        classicsQuery = classicsQuery.in('original_language', langGuard.allowedLanguages)
-      }
-      classicsQuery = applyAllExclusions(classicsQuery, profile)
-      classicsQuery = classicsQuery
-        .order('ff_audience_rating', { ascending: false })
-        .limit(100)
-
-      // Embedding pool: derive from scoringContext.seedNeighborMap (same RPC, same seeds)
-      // This guarantees emb candidates have embedding scores > 0.
-      const embNeighborIds = Array.from(scoringContext?.seedNeighborMap?.keys() || [])
-
-      // Fire emb pool fetch + base + classics in parallel
-      let embQueryPromise = Promise.resolve({ data: [] })
-      if (embNeighborIds.length > 0) {
-        let embQuery = supabase
-          .from('movies')
-          .select(selectFields)
-          .in('id', embNeighborIds)
-          .eq('is_valid', true)
-          .not('backdrop_path', 'is', null)
-          .not('tmdb_id', 'is', null)
-        embQuery = applyQualityFloor(embQuery, 'HERO')
-
-        if (langGuard.mode === 'strict' && langGuard.allowedLanguages.length === 1) {
-          embQuery = embQuery.eq('original_language', langGuard.allowedLanguages[0])
-        } else if (langGuard.mode === 'strong' && langGuard.allowedLanguages.length > 0) {
-          embQuery = embQuery.in('original_language', langGuard.allowedLanguages)
-        }
-        embQuery = applyAllExclusions(embQuery, profile)
-        embQueryPromise = embQuery.limit(300)
-      }
-
-      const [
-        { data: embData },
-        { data: baseCandidatesRaw },
-        { data: classicsCandidates },
-      ] = await Promise.all([
+      const [{ data: embData }, { data: baseData }] = await Promise.all([
         embQueryPromise,
         baseQuery,
-        classicsQuery,
       ])
-      let baseCandidates = baseCandidatesRaw || []
-      let embeddingCandidates = embData || []
 
-      // Combine pools (dedupe by id) — embedding first (nearest neighbours), then
-      // recency pool, then classics so deduplication keeps the earliest entry per id.
+      // Merge + dedupe (emb first so emb entry wins on collision)
       const byId = new Map()
-      ;[...embeddingCandidates, ...baseCandidates, ...(classicsCandidates || [])].forEach((m) => {
+      ;[...(embData || []), ...(baseData || [])].forEach((m) => {
         if (m?.id) byId.set(m.id, m)
       })
-      let candidates = Array.from(byId.values())
-      let branchName = 'primary'
-      // Client-side exclusion fallback for embedding candidates that bypass DB query
-      candidates = filterExclusionsClientSide(candidates, profile)
 
-      // Exclusion gating (INTERNAL + TMDB + recentHero + 48h skip)
+      // === CLIENT-SIDE FILTERING ===
+      let candidates = filterExclusionsClientSide(Array.from(byId.values()), profile)
+
+      // Watched, cooldown, skip, TMDB exclusions
       candidates = candidates.filter((m) => {
         if (!m || !m.id || !m.tmdb_id) return false
         if (allExcludeInternal.includes(m.id)) return false
         if (allExcludeTmdb.has(m.tmdb_id)) return false
         if (recentHeroIds.has(m.id)) return false
-        // 48h skip: hard-exclude unless the film is genuinely exceptional (ff_final_rating >= 8.5)
-        // Exceptional films are allowed through but will be penalised in heroBonus scoring.
         if (hardSkipIds.has(m.id)) {
           const ffRating = Number(m.ff_audience_rating != null ? m.ff_audience_rating / 10 : m.ff_final_rating || m.ff_rating || 0)
           if (ffRating < 8.5) return false
@@ -2437,98 +2350,51 @@ export async function getTopPickForUser(userId, options = {}) {
         return true
       })
 
-      // Profile-based hero cooldown (7d from skip-signals)
+      // Profile-based hero cooldown
       const profileHeroCooldown = profileV3?.negative?.hero_cooldown
       if (profileHeroCooldown instanceof Set && profileHeroCooldown.size > 0) {
         candidates = candidates.filter(m => !profileHeroCooldown.has(m.id))
       }
-      // Fit-profile hard gate — only keep films whose fit_profile is in user's
-      // top profiles or adjacent. Skip gate on cold start (no topFitProfiles).
+
+      // Era floor (per-fit)
+      const eraFloor = heroEraFloor(profileV3)
+      candidates = candidates.filter(m => !m.release_year || m.release_year >= eraFloor)
+
+      // Fit-profile hard gate (skip on cold start)
       const heroTopFit = profile.topFitProfiles || []
       const heroAllowedFits = new Set(heroTopFit)
       if (heroTopFit.length > 0) {
         for (const fp of heroTopFit) {
-          for (const adj of (FIT_ADJACENCY[fp]?.close || [])) {
-            heroAllowedFits.add(adj)
-          }
-          for (const adj of (FIT_ADJACENCY[fp]?.far || [])) {
-            heroAllowedFits.add(adj)
-          }
+          for (const adj of (FIT_ADJACENCY[fp]?.close || [])) heroAllowedFits.add(adj)
+          for (const adj of (FIT_ADJACENCY[fp]?.far || [])) heroAllowedFits.add(adj)
         }
-        candidates = candidates.filter(m =>
-          !m.fit_profile || heroAllowedFits.has(m.fit_profile),
-        )
-      }
-      // If strict language left us too few, we RELAX QUALITY/YEAR but NEVER relax "watched" exclusion
-      if (candidates.length < 15 && langGuard.mode !== 'loose' && langGuard.primary) {
-        branchName = 'relax'
-        let relaxQuery = supabase
-          .from('movies')
-          .select(selectFields)
-          .eq('is_valid', true)
-          .not('backdrop_path', 'is', null)
-          .not('tmdb_id', 'is', null)
-          .gte('release_date', `${Math.min(2020, eraFloor)}-01-01`)
-        relaxQuery = applyQualityFloor(relaxQuery, 'SIGNATURE')
-
-        // keep language restriction for user intent
-        if (langGuard.allowedLanguages.length === 1) relaxQuery = relaxQuery.eq('original_language', langGuard.allowedLanguages[0])
-        else relaxQuery = relaxQuery.in('original_language', langGuard.allowedLanguages)
-        relaxQuery = applyAllExclusions(relaxQuery, profile)
-
-        const { data: relaxed } = await relaxQuery
-          .order('ff_audience_rating', { ascending: false })
-          .limit(400)
-        const relaxedCandidates = (relaxed || [])
-          .filter((m) => {
-            if (!m?.id || !m.tmdb_id) return false
-            if (allExcludeInternal.includes(m.id)) return false
-            if (allExcludeTmdb.has(m.tmdb_id)) return false
-            if (recentHeroIds.has(m.id)) return false
-            if (hardSkipIds.has(m.id) && Number(m.ff_audience_rating != null ? m.ff_audience_rating / 10 : m.ff_final_rating || m.ff_rating || 0) < 8.5) return false
-            return true
-          })
-
-        // merge
-        relaxedCandidates.forEach((m) => {
-          if (m?.id && !byId.has(m.id)) byId.set(m.id, m)
-        })
-        candidates = filterExclusionsClientSide(Array.from(byId.values()), profile)
-          .filter((m) => {
-            // Fit-profile gate on merged candidates (matches pre-relax gate)
-            if (heroTopFit.length > 0 && m.fit_profile && !heroAllowedFits.has(m.fit_profile)) return false
-            if (allExcludeInternal.includes(m.id)) return false
-            if (allExcludeTmdb.has(m.tmdb_id)) return false
-            if (recentHeroIds.has(m.id)) return false
-            return true
-          })
+        candidates = candidates.filter(m => !m.fit_profile || heroAllowedFits.has(m.fit_profile))
       }
 
-      if (candidates.length === 0) {
-        return await getFallbackPick(langGuard, allExcludeInternal, allExcludeTmdb, profile, profileV3, scoringContext)
+      // Personal skipped IDs
+      const personalSkipped = profileV3?.negative?.personal_skipped_ids
+      if (personalSkipped instanceof Set && personalSkipped.size > 0) {
+        candidates = candidates.filter(m => !personalSkipped.has(m.id))
       }
 
-      // Score (7-dim v3, no additive hero bonuses — v3 already normalizes 0-100)
+      // === SCORING ===
+      const HERO_MIN_SCORE = 50
+      let branchName = 'primary'
+
       const scored = candidates.map((movie) => {
         const { final: v3Score, breakdown: v3Breakdown } = scoreMovieV3(movie, profileV3, scoringContext, 'HERO')
 
-        // Hero-specific skip penalties (session signals not captured in v3 scoring)
         let skipPenalty = 0
         const ffRating = Number(movie.ff_audience_rating != null ? movie.ff_audience_rating / 10 : movie.ff_final_rating || movie.ff_rating || 0)
 
         if (skipHistory.has(movie.id)) {
           const hoursSinceSkip = (Date.now() - skipHistory.get(movie.id).getTime()) / (1000 * 60 * 60)
           const isExceptional = ffRating >= 8.5
-          if (hoursSinceSkip < 48) {
-            skipPenalty += 35
-          } else {
-            skipPenalty += isExceptional ? 15 : 40
-          }
+          if (hoursSinceSkip < 48) skipPenalty += 35
+          else skipPenalty += isExceptional ? 15 : 40
         }
-
         if (permanentSkipIds.has(movie.id)) skipPenalty += 30
 
-        // session genre penalty — "not in the mood for X tonight"
         if (penalizedGenreIds.length > 0) {
           const movieGenreIds = (movie.genres || []).map(extractGenreId).filter(Boolean)
           const overlap = movieGenreIds.filter((g) => penalizedGenreIds.includes(g)).length
@@ -2536,168 +2402,62 @@ export async function getTopPickForUser(userId, options = {}) {
         }
 
         const finalScore = Math.max(0, v3Score - skipPenalty)
-        // Embedding similarity as tiebreak (0-1 range, won't change integer ranking
-        // unless two films have identical v3 scores)
-        const embeddingTiebreak = (v3Breakdown.embedding || 0) / 1000
-
         return {
-          movie,
-          score: v3Score,
-          finalScore,
-          embeddingTiebreak,
-          skipPenalty,
-          pickReason: { type: 'hero' },
-          breakdown: {
-            ...v3Breakdown,
-            skipPenalty,
-          }
+          ...movie,
+          _score: finalScore,
+          _v3Score: v3Score,
+          _breakdown: v3Breakdown,
+          _skipPenalty: skipPenalty,
         }
       })
 
-      // Personal match floor — hero is the signature pick, must be a strong match.
-      // 60 is achievable without embedding (fit+mood+director+content+quality carry),
-      // but filters out weak non-personalized matches.
-      const HERO_MIN_SCORE = 50
-      let matchCandidates = scored.filter((c) => c.finalScore >= HERO_MIN_SCORE)
-      if (matchCandidates.length === 0) return await getFallbackPick(langGuard, allExcludeInternal, allExcludeTmdb, profile, profileV3, scoringContext)
+      // Sort with tieBreakSort, filter by gate
+      scored.sort(tieBreakSort)
+      const passed = scored.filter(c => c._score >= HERO_MIN_SCORE)
 
-      let finalCandidates = matchCandidates
+      // === SELECTION + REASONS ===
+      const heroCandidates = selectHeroCandidates(passed, 3)
 
-      // Sort via multi-factor tie-break then diversity
-      const tieBreakReady = finalCandidates.map(c => ({
-        ...c,
-        ...c.movie,
-        _score: c.finalScore,
-        _breakdown: c.breakdown,
-      }))
-      tieBreakReady.sort(tieBreakSort)
-      const top30 = tieBreakReady.slice(0, 30)
-      // Re-map back to scored entry shape for diversity filter
-      const top30Entries = top30.map(c => {
-        const entry = finalCandidates.find(e => e.movie.id === c.id)
-        return entry || c
-      })
-      const diverseTop10 = applyDiversityFilter(top30Entries, [], 10)
-
-      if (diverseTop10.length === 0) return await getFallbackPick(langGuard, allExcludeInternal, allExcludeTmdb, profile, profileV3, scoringContext)
-
-      // STRICT mode: inject 1 discovery slot from a non-primary language.
-      // Prevents permanent language bubbles by ensuring at least one world-cinema
-      // pick (≥8.5 norm, ≥80 conf, ≥1000 votes) always appears at position 10.
-      if (langGuard.mode === 'strict' && langGuard.primary && diverseTop10.length >= 5) {
-        const hasDiscovery = diverseTop10.some((c) => c.movie.original_language !== langGuard.primary)
-        if (!hasDiscovery) {
-          let discoveryQuery = supabase
-            .from('movies')
-            .select(selectFields)
-            .eq('is_valid', true)
-            .not('backdrop_path', 'is', null)
-            .neq('original_language', langGuard.primary)
-          discoveryQuery = applyQualityFloor(discoveryQuery, 'SIGNATURE')
-          discoveryQuery = applyAllExclusions(discoveryQuery, profile)
-          const { data: discoveryPool } = await discoveryQuery
-            .order('ff_audience_rating', { ascending: false })
-            .limit(20)
-          const excludeSet = new Set([...allExcludeInternal, ...diverseTop10.map((c) => c.movie.id)])
-          const discCandidate = (discoveryPool || []).find(
-            (m) => m?.id && !excludeSet.has(m.id) && !allExcludeTmdb.has(m.tmdb_id) && !recentHeroIds.has(m.id)
-              && !(hardSkipIds.has(m.id) && Number(m.ff_audience_rating != null ? m.ff_audience_rating / 10 : m.ff_final_rating || m.ff_rating || 0) < 8.5)
-          )
-          if (discCandidate) {
-            const { final: discV3, breakdown: discV3Breakdown } = scoreMovieV3(discCandidate, profileV3, scoringContext, 'HERO')
-            const discEntry = {
-              movie: discCandidate,
-              score: discV3,
-              finalScore: discV3,
-              embeddingTiebreak: (discV3Breakdown.embedding || 0) / 1000,
-              skipPenalty: 0,
-              pickReason: { type: 'hero' },
-              breakdown: { ...discV3Breakdown, skipPenalty: 0, discovery: true }
-            }
-            if (diverseTop10.length >= 10) diverseTop10[9] = discEntry
-            else diverseTop10.push(discEntry)
-          }
+      if (heroCandidates.length === 0) {
+        branchName = 'fallback'
+        const fallbackResult = await getFallbackPick(langGuard, allExcludeInternal, allExcludeTmdb, profile, profileV3, scoringContext)
+        if (!fallbackResult?.primary && fallbackResult?.movie) {
+          // Legacy fallback shape → convert to new shape
+          const fb = fallbackResult.movie
+          console.log('[hero]', { branch: 'fallback', primary: fb?.title, altCount: 0, reasonKeys: [] })
+          return { primary: fb, alternates: [], reasons: {} }
         }
+        console.log('[hero]', { branch: 'fallback', primary: fallbackResult?.primary?.title, altCount: 0, reasonKeys: [] })
+        return fallbackResult
       }
 
-      // Hero rotation: select diverse top candidates, pick via day-hash for stability
-      const heroRotationPool = diverseTop10.map(c => ({
-        ...c,
-        ...c.movie,
-        _score: c.finalScore,
-        _breakdown: c.breakdown,
-      }))
-      const heroCandidates = selectHeroCandidates(heroRotationPool, 3)
-      const heroIdx = dayHashIndex(userId, heroCandidates.length)
-      const selected = heroCandidates[heroIdx]
+      const idx = dayHashIndex(userId, heroCandidates.length)
+      const primary = heroCandidates[idx]
+      const alternates = heroCandidates.filter(c => c.id !== primary.id)
+      const reasons = Object.fromEntries(
+        heroCandidates.map(c => [c.id, generateHeroReason(c, c._breakdown, profileV3, scoringContext.seedNeighborMap)])
+      )
 
-      // Generate grounded reasons for each candidate
-      const reasons = {}
-      for (const hc of heroCandidates) {
-        const movieObj = hc.movie || hc
-        reasons[movieObj.id] = generateHeroReason(
-          movieObj,
-          hc.breakdown || hc._breakdown,
-          profileV3,
-          scoringContext?.seedNeighborMap,
-        )
-      }
-
-      // Discovery slot injection may override position 10
-      if (selected.breakdown?.discovery) branchName = 'discovery'
-      console.log('[hero] selected branch:', branchName, 'pool size:', candidates.length)
-
-      if (import.meta.env.DEV) {
-        console.log('[hero] rotation candidates:', heroCandidates.map(c => ({ title: c.movie?.title || c.title, score: c._score, reason: reasons[(c.movie || c).id]?.text })), 'picked idx:', heroIdx)
-        console.log('[score] Hero top3:', JSON.stringify(diverseTop10.slice(0, 3).map(c => ({
-          title: c.movie.title,
-          final: c.finalScore,
-          v3Score: c.score,
-          skipPenalty: c.skipPenalty,
-          ...c.breakdown,
-        })), null, 0))
-      }
-
-      // Log impression for the day-hash selected candidate only
-      logImpression(userId, selected, 'hero').catch((err) =>
+      // Log impression for primary pick
+      logImpression(userId, {
+        movie: primary,
+        pickReason: { type: 'hero', label: reasons[primary.id]?.text || 'Picked for you' },
+        score: primary._score,
+        breakdown: primary._breakdown || {},
+      }, 'hero').catch((err) =>
         console.warn('[getTopPickForUser] Impression log failed:', err.message)
       )
 
-      // Build alternates array (all 3 candidates with enriched movie data)
-      const alternates = heroCandidates.map(hc => {
-        const movieObj = hc.movie || hc
-        return {
-          ...movieObj,
-          _score: hc.finalScore || hc._score,
-          _breakdown: hc.breakdown || hc._breakdown,
-        }
-      })
+      console.log('[hero]', { branch: branchName, primary: primary.title, altCount: alternates.length, reasonKeys: Object.keys(reasons) })
 
-      return {
-        movie: selected.movie || selected,
-        pickReason: selected.pickReason || reasons[(selected.movie || selected).id],
-        score: selected.finalScore || selected._score,
-        alternates,
-        reasons,
-        debug: {
-          engineVersion: ENGINE_VERSION,
-          langGuard,
-          historyLang: historyLang.distributionSorted?.map((l) => `${l.lang}:${l.percentage.toFixed(1)}%`) || [],
-          totalCandidates: candidates.length,
-          top10: diverseTop10.slice(0, 10).map((c, idx) => ({
-            rank: idx + 1,
-            title: c.movie.title,
-            language: c.movie.original_language,
-            year: c.movie.release_year,
-            normalized: Number(c.normalizedRating || 0).toFixed(2),
-            score: c.finalScore.toFixed(1),
-            reason: c.pickReason?.type
-          }))
-        }
-      }
+      return { primary, alternates, reasons }
     } catch (error) {
       console.error('[getTopPickForUser] Error:', error)
-      return await getFallbackPick(null)
+      const fallbackResult = await getFallbackPick(null)
+      if (fallbackResult?.movie) {
+        return { primary: fallbackResult.movie, alternates: [], reasons: {} }
+      }
+      return { primary: null, alternates: [], reasons: {} }
     }
   })
 }
@@ -2706,6 +2466,10 @@ export async function getTopPickForUser(userId, options = {}) {
 // SCORING (v2.3) — NO "likely seen" penalty, embedding-aware seed similarity
 // ============================================================================
 
+/**
+ * @deprecated Use scoreMovieV3 (from scoring-v3.js) or scoreMovieForBrief (from brief-scoring.js).
+ * Retained for legacy code paths that have not yet migrated to the 7-dimension v3 engine.
+ */
 export function scoreMovieForUser(movie, profile, rowType = 'default', seedFilms = [], opts = {}) {
   const breakdown = {}
   let score = 0
@@ -3319,7 +3083,7 @@ function determinePickReason(movie, profile, breakdown, seedSimilarity = {}) {
   return { label: 'Recommended for you', type: 'default' }
 }
 
-function applyDiversityFilter(candidates, seedFilms = [], limit = 10) {
+function _applyDiversityFilter(candidates, seedFilms = [], limit = 10) {
   if (!candidates || candidates.length === 0) return []
 
   const diverse = []
@@ -3425,8 +3189,6 @@ async function getFallbackPick(langGuard, excludeInternalIds = [], excludeTmdbId
           movie: pick,
           pickReason: { label: 'Top pick for you', type: 'quality' },
           score: Number(pick.ff_audience_rating ?? (pick.ff_final_rating ?? pick.ff_rating ?? 0) * 10),
-          alternates: [pick],
-          reasons: {},
           debug: { fallback: true, fallbackType: 'language-aware', lang: primaryLang }
         }
       }
@@ -3472,8 +3234,6 @@ async function getFallbackPick(langGuard, excludeInternalIds = [], excludeTmdbId
           movie: pick.movie,
           pickReason: { label: 'Critically acclaimed', type: 'quality' },
           score: pick.finalScore,
-          alternates: [pick.movie],
-          reasons: {},
           debug: { fallback: true, fallbackType: 'global' }
         }
       }
@@ -3484,8 +3244,6 @@ async function getFallbackPick(langGuard, excludeInternalIds = [], excludeTmdbId
         movie: pick,
         pickReason: { label: 'Critically acclaimed', type: 'quality' },
         score: Number(pick.ff_audience_rating ?? (pick.ff_final_rating ?? pick.ff_rating ?? 0) * 10),
-        alternates: [pick],
-        reasons: {},
         debug: { fallback: true, fallbackType: 'global' }
       }
     }
@@ -3498,8 +3256,6 @@ async function getFallbackPick(langGuard, excludeInternalIds = [], excludeTmdbId
     movie: null,
     pickReason: { label: 'No recommendations available', type: 'error' },
     score: 0,
-    alternates: [],
-    reasons: {},
     debug: { error: true }
   }
 }
@@ -3618,7 +3374,6 @@ async function logRowImpressions(userId, items, placement) {
     
     if (error) throw error
     
-    console.log('[logRowImpressions] Logged:', { placement, count: impressions.length })
   } catch (error) {
     console.warn('[logRowImpressions] Error:', error.message)
   }
@@ -3691,7 +3446,6 @@ export async function getGenreBasedRecommendations(userId, options = {}) {
   return recommendationCache.getOrFetch(cacheKey, async () => {
     try {
       if (!userId) {
-        console.log('[getGenreBasedRecommendations] No userId, returning fallback')
         return await getGenreFallback(limit)
       }
 
@@ -3699,7 +3453,6 @@ export async function getGenreBasedRecommendations(userId, options = {}) {
       const profile = await computeUserProfile(userId)
 
       const preferredGenres = profile.genres.preferred || []
-      console.log('[getGenreBasedRecommendations] User preferred genres:', preferredGenres)
 
       if (preferredGenres.length === 0) {
         console.warn('[getGenreBasedRecommendations] No genre preferences found')
@@ -3777,7 +3530,6 @@ export async function getGenreBasedRecommendations(userId, options = {}) {
           console.warn('[getGenreBasedRecommendations] Embedding search error:', embError.message)
         } else {
           embeddingNeighbors = embeddingMatches || []
-          console.log('[getGenreBasedRecommendations] Embedding neighbors found:', embeddingNeighbors.length)
         }
       }
 
@@ -3804,12 +3556,6 @@ export async function getGenreBasedRecommendations(userId, options = {}) {
         }
       })
       const candidates = filterExclusionsClientSide(Array.from(candidateMap.values()), profile)
-
-      console.log('[getGenreBasedRecommendations] Candidate pools:', {
-        genreFilms: genreFilms?.length || 0,
-        embeddingNeighbors: embeddingNeighbors?.length || 0,
-        totalUnique: candidates.length
-      })
 
       // 5. Filter out watched/excluded
       const eligible = candidates.filter(m => !allExcludeIds.includes(m.id))
@@ -3877,14 +3623,6 @@ export async function getGenreBasedRecommendations(userId, options = {}) {
 
       // 8. Apply diversity filter
       const diverse = applyRowDiversityFilter(scored, limit)
-
-      console.log('[getGenreBasedRecommendations] Final selection:', diverse.slice(0, 5).map(d => ({
-        title: d.movie.title,
-        score: d.score,
-        genreBoost: d.genreBoost,
-        embeddingBoost: d.embeddingBoost,
-        primaryGenre: d.movie.primary_genre
-      })))
 
       // 9. Log impressions (async, don't await)
       logRowImpressions(userId, diverse, 'favorite_genres').catch(err =>
@@ -4300,7 +4038,7 @@ async function getMoodAnchors(moodId, preferredTags) {
  * @returns {Promise<{candidates: Array, qualityFloorUsed: number|string|null}>}
  */
 async function fetchMoodCandidates(moodId, moodWeights, profile, moodData, params = {}) {
-  const { signal, intensity = 3, pacing = 3 } = params
+  const { signal, intensity = 3, pacing = 3, hardFilters = {} } = params
 
   // Language guard from user profile (reuse homepage engine's language detection)
   const langGuard = profile?.language || null
@@ -4339,6 +4077,13 @@ async function fetchMoodCandidates(moodId, moodWeights, profile, moodData, param
     if (moodId === 5) {
       query = query.lte('release_year', 2000)
     }
+
+    // Brief hard filters (runtime, release_year, familyFriendly)
+    if (hardFilters.runtime?.min) query = query.gte('runtime', hardFilters.runtime.min)
+    if (hardFilters.runtime?.max) query = query.lte('runtime', hardFilters.runtime.max)
+    if (hardFilters.release_year?.min) query = query.gte('release_year', hardFilters.release_year.min)
+    if (hardFilters.release_year?.max) query = query.lte('release_year', hardFilters.release_year.max)
+    if (hardFilters.familyFriendly) query = query.eq('is_family_friendly', true)
 
     // Pacing filter
     if (pacingBand != null) {
@@ -4478,7 +4223,8 @@ async function fetchMoodCandidates(moodId, moodWeights, profile, moodData, param
  * @param {string} userId
  * @param {number} moodId - Discover mood ID (1–12)
  * @param {{limit?: number, signal?: AbortSignal, intensity?: number, pacing?: number,
- *          viewingContext?: number, experienceType?: number, timeOfDay?: string}} options
+ *          viewingContext?: number, experienceType?: number, timeOfDay?: string,
+ *          parsedTags?: Object, brief?: Object}} options
  * @returns {Promise<Array<{movie_id, tmdb_id, title, poster_path, vote_average, release_date,
  *           overview, final_score, match_percentage, _recommendationMeta}>>}
  */
@@ -4492,6 +4238,7 @@ export async function getMoodRecommendations(userId, moodId, options = {}) {
     experienceType = 1,
     timeOfDay = 'evening',
     parsedTags = null,
+    brief = null,
   } = options
 
   const cacheKey = recommendationCache.key('mood', userId, { moodId, viewingContext, experienceType })
@@ -4505,41 +4252,95 @@ export async function getMoodRecommendations(userId, moodId, options = {}) {
         return []
       }
 
-      // 2. Compute user profile (reuses 60s memory cache from homepage engine)
-      const profile = await computeUserProfile(userId)
+      // 2. Compute v3 profile + scoring context
+      const profileV3 = await computeUserProfileV3(userId)
 
-      // 3. Fetch candidates from internal movies table (or TMDB fallback)
-      const { candidates, qualityFloorUsed } = await fetchMoodCandidates(moodId, moodData.weights, profile, moodData, { signal, intensity, pacing })
+      // Inject anchor seed if brief has one
+      const briefSeeds = buildBriefSeeds(profileV3, brief || {})
+      const profileForScoring = brief?.anchor
+        ? { ...profileV3, rated: { ...profileV3.rated, positive_seeds: briefSeeds } }
+        : profileV3
+      const scoringContext = precomputeScoringContext(profileForScoring)
+
+      // 3. Derive hard filters from brief answers
+      const hardFilters = brief ? briefHardFilters(brief) : {}
+
+      // Exclude watched if brief says "new" (or always exclude — Discover = discovery)
+      const excludeWatched = hardFilters.excludeWatched !== false
+
+      // Legacy profile still needed for fetchMoodCandidates (language guard, exclusions)
+      const legacyProfile = await computeUserProfile(userId)
+
+      // 4. Fetch candidates with brief hard filters applied
+      const { candidates, qualityFloorUsed } = await fetchMoodCandidates(
+        moodId, moodData.weights, legacyProfile, moodData,
+        { signal, intensity, pacing, hardFilters },
+      )
       if (candidates.length === 0) return []
 
-      // 4. Get watched movie IDs for exclusion (from profile — single fetch)
-      const watchedIds = new Set(profile.watchedMovieIds || [])
+      // 5. Get watched movie IDs for exclusion
+      const watchedIds = profileV3.watched_ids || new Set()
 
-      // 5. Score each candidate
+      // 6. Score each candidate with v3 7-dimension engine + tone boost
+      const briefObj = brief || {}
       const moodParams = { intensity, pacing, viewingContext, experienceType, timeOfDay, parsedTags }
-      const scored = candidates
-        .filter(movie => movie?.id && movie.tmdb_id && !watchedIds.has(movie.id))
+      let scored = candidates
+        .filter(movie => {
+          if (!movie?.id || !movie.tmdb_id) return false
+          if (excludeWatched && watchedIds.has(movie.id)) return false
+          if (hardFilters.onlyWatched && !watchedIds.has(movie.id)) return false
+          return true
+        })
         .map(movie => {
-          const userResult = scoreMovieForUser(movie, profile, 'mood')
+          // v3 brief scoring (7-dim weighted blend + tone boost)
+          const { final: v3Score, breakdown, toneBoost } = scoreMovieForBrief(movie, profileForScoring, scoringContext, briefObj)
+
+          // Mood affinity score (tag + genre overlap) — retained as secondary signal
           const moodScore = scoreMoodAffinity(movie, moodId, moodData, moodParams)
-          const combined = (0.55 * userResult.score) + (0.45 * moodScore)
-          return { movie, combined, userScore: userResult.score, moodScore }
+
+          // Blend: 70% v3 engine, 30% mood affinity
+          const combined = (0.70 * v3Score) + (0.30 * moodScore)
+
+          return { movie, combined, v3Score, moodScore, breakdown, toneBoost }
         })
         .sort((a, b) => b.combined - a.combined)
-        .slice(0, limit)
+
+      // 6b. Surprise me: day-seeded shuffle of top candidates for daily rotation
+      if (briefObj.surpriseMe && scored.length > 1) {
+        const pool = scored.slice(0, Math.min(scored.length, limit * 2))
+        const dayStr = new Date().toISOString().slice(0, 10)
+        let hash = 0
+        for (let i = 0; i < dayStr.length; i++) hash = ((hash << 5) - hash + dayStr.charCodeAt(i)) | 0
+        for (let i = pool.length - 1; i > 0; i--) {
+          hash = (hash * 16807 + 1) & 0x7fffffff
+          const j = hash % (i + 1);
+          [pool[i], pool[j]] = [pool[j], pool[i]]
+        }
+        scored = pool
+      }
+
+      scored = scored.slice(0, limit)
 
       if (scored.length === 0) return []
 
-      // 6. Percentile-based match_percentage (R7)
-      // Maps rank within candidate pool to 40-99 display range for more spread
-      const totalScored = scored.length
-      return scored.map(({ movie, combined, userScore, moodScore }, i) => {
-        const percentile = 1 - (i / totalScored)
+      // 7. Match % = finalScore clamped to 35-95 range (no inflation)
+      return scored.map(({ movie, combined, v3Score, moodScore, breakdown, toneBoost }, i) => {
+        const matchPct = Math.max(35, Math.min(95, Math.round(combined)))
+        const reason = generateBriefReason(movie, breakdown, briefObj)
         return {
           ...movie,
           final_score: Math.round(combined),
-          match_percentage: Math.round(40 + percentile * 59),
-          _recommendationMeta: { rank: i + 1, userScore, moodScore, qualityFloorUsed },
+          match_percentage: matchPct,
+          _briefReason: reason,
+          _recommendationMeta: {
+            rank: i + 1,
+            v3Score: Math.round(v3Score),
+            moodScore: Math.round(moodScore),
+            toneBoost,
+            qualityFloorUsed,
+            breakdown,
+            engine: 'v3-brief',
+          },
         }
       })
     } catch (error) {
@@ -4605,7 +4406,6 @@ export async function getBecauseYouWatchedRows(userId, options = {}) {
   } = options
 
   if (!userId) {
-    console.log('[getBecauseYouWatchedRows] No userId, returning empty')
     return []
   }
 
@@ -4646,7 +4446,6 @@ export async function getBecauseYouWatchedRows(userId, options = {}) {
 
       if (histError) throw histError
       if (!history || history.length === 0) {
-        console.log('[getBecauseYouWatchedRows] No watch history')
         return []
       }
 
@@ -4701,15 +4500,8 @@ export async function getBecauseYouWatchedRows(userId, options = {}) {
       const seeds = potentialSeeds.slice(0, maxSeeds)
 
       if (seeds.length === 0) {
-        console.log('[getBecauseYouWatchedRows] No valid seeds')
         return []
       }
-
-      console.log('[getBecauseYouWatchedRows] Selected seeds:', seeds.map(s => ({
-        title: s.title,
-        ffRating: s.ffRating,
-        source: s.source
-      })))
 
       // 4. Fire all seed embedding lookups in parallel — previously sequential (N × ~500ms)
       const seedResults = await Promise.all(
@@ -4734,7 +4526,6 @@ export async function getBecauseYouWatchedRows(userId, options = {}) {
 
       for (const { seed, data: rawSimilarMovies, error: embError } of seedResults) {
         if (embError || !rawSimilarMovies || rawSimilarMovies.length === 0) {
-          console.log('[getBecauseYouWatchedRows] No similar movies for:', seed.title)
           continue
         }
 
@@ -4808,15 +4599,9 @@ export async function getBecauseYouWatchedRows(userId, options = {}) {
             console.warn('[getBecauseYouWatchedRows] Failed to log impressions:', err.message)
           )
 
-          console.log(`[getBecauseYouWatchedRows] Row for "${seed.title}":`, {
-            moviesFound: movies.length,
-            topMatch: movies[0]?.title,
-            topSimilarity: movies[0]?._embeddingSimilarity?.toFixed(3)
-          })
         }
       }
 
-      console.log('[getBecauseYouWatchedRows] Total rows:', rows.length)
       return rows
 
     } catch (error) {
@@ -4889,17 +4674,11 @@ export async function getTrendingForUser(userId, options = {}) {
   return recommendationCache.getOrFetch(cacheKey, async () => {
     try {
       if (!userId) {
-        console.log('[getTrendingForUser] No userId, returning popular fallback')
         return await getTrendingFallback(limit)
       }
 
       // 1. Compute user profile
       const profile = await computeUserProfile(userId)
-
-      console.log('[getTrendingForUser] User profile:', {
-        preferredGenres: profile.genres.preferred,
-        directors: profile.affinities.directors.map(d => d.name).slice(0, 3)
-      })
 
       // 2. Get seed films for embedding search
       const seedFilms = await getSeedFilms(userId, profile)
@@ -4977,7 +4756,6 @@ export async function getTrendingForUser(userId, options = {}) {
           embeddingNeighbors = (embeddingMatches || []).filter(m =>
             m.release_year && m.release_year >= currentYear - 1
           )
-          console.log('[getTrendingForUser] Embedding neighbors (recent):', embeddingNeighbors.length)
         }
       }
 
@@ -5005,13 +4783,6 @@ export async function getTrendingForUser(userId, options = {}) {
         }
       })
       const candidates = Array.from(candidateMap.values())
-
-      console.log('[getTrendingForUser] Candidate pools:', {
-        recentPopular: recentPopular?.length || 0,
-        thisYear: thisYear?.length || 0,
-        embeddingNeighbors: embeddingNeighbors?.length || 0,
-        totalUnique: candidates.length
-      })
 
       // 5. Filter out watched/excluded + unified exclusion pipeline
       const afterExclusions = filterExclusionsClientSide(candidates, profile)
@@ -5084,15 +4855,6 @@ export async function getTrendingForUser(userId, options = {}) {
 
       // 8. Apply diversity filter
       const diverse = applyRowDiversityFilter(scored, limit)
-
-      console.log('[getTrendingForUser] Final selection:', diverse.slice(0, 5).map(d => ({
-        title: d.movie.title,
-        score: d.score,
-        trendingBoost: d.trendingBoost,
-        embeddingBoost: d.embeddingBoost,
-        popularity: d.movie.popularity,
-        year: d.movie.release_year
-      })))
 
       // 9. Log impressions
       logRowImpressions(userId, diverse, 'trending').catch(err =>
@@ -5208,17 +4970,13 @@ export async function getHiddenGemsForUser(userId, options = {}) {
   return recommendationCache.getOrFetch(cacheKey, async () => {
     try {
       if (!userId) {
-        console.log('[getHiddenGemsForUser] No userId, returning fallback')
         return await getHiddenGemsFallback(limit)
       }
 
       // 1. Compute user profile
       const profile = await computeUserProfile(userId)
 
-      console.log('[getHiddenGemsForUser] User profile:', {
-        preferredGenres: profile.genres.preferred,
-        directors: profile.affinities.directors.map(d => d.name).slice(0, 3)
-      })
+
 
       // 2. Get seed films for embedding search
       const seedFilms = await getSeedFilms(userId, profile)
@@ -5309,7 +5067,6 @@ export async function getHiddenGemsForUser(userId, options = {}) {
         embeddingGems = (embeddingResult.data || []).filter(
           m => m.vote_count >= 1000 && m.vote_count <= 5000
         )
-        console.log('[getHiddenGemsForUser] Embedding gems found:', embeddingGems.length)
       }
 
       // Combine and deduplicate
@@ -5332,13 +5089,6 @@ export async function getHiddenGemsForUser(userId, options = {}) {
         }
       })
       const candidates = Array.from(candidateMap.values())
-
-      console.log('[getHiddenGemsForUser] Candidate pools:', {
-        classicGems: classicGems?.length || 0,
-        cultGems: cultGems?.length || 0,
-        embeddingGems: embeddingGems?.length || 0,
-        totalUnique: candidates.length
-      })
 
       // 5. Filter out watched/excluded + unified exclusion pipeline
       const afterExclusions = filterExclusionsClientSide(candidates, profile)

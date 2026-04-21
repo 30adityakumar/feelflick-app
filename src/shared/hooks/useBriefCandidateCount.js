@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react'
 
 import { supabase } from '@/shared/lib/supabase/client'
+import { unpackVibe } from '@/shared/services/brief-scoring'
 
 /** Module-level cache for the baseline total (no filters). Fetched once. */
 let cachedBaseline = null
@@ -30,20 +31,37 @@ function fetchBaseline() {
   return baselinePromise
 }
 
+/** Attention value mapping: new → RPC expected values. */
+const ATTENTION_RPC_MAP = { lean_in: 'lean-in', lean_back: 'lean-back' }
+
+/** Time value mapping: new → RPC expected values. */
+const TIME_RPC_MAP = { short: 'short', medium: 'standard', long: 'long', any: 'any' }
+
 /**
- * Maps brief answers to RPC params. Only includes set answers.
- * Feeling is excluded (mood_id is scoring-only, not a hard filter).
+ * Maps brief answers to RPC params. Unpacks vibe into tone and maps
+ * attention/time values to match the DB function's expected format.
  *
  * @param {Record<string, any>} answers
  * @returns {Record<string, any>}
  */
 function answersToParams(answers) {
   const params = {}
-  if (answers.energy !== undefined) params.p_energy = answers.energy
-  if (answers.attention !== undefined) params.p_attention = answers.attention
-  if (answers.tone !== undefined) params.p_tone = answers.tone
-  if (answers.time !== undefined) params.p_time = answers.time
-  if (answers.era !== undefined) params.p_era = answers.era
+
+  // Unpack vibe → tone for the RPC (feeling is scoring-only, not a hard filter)
+  const { tone } = unpackVibe(answers)
+  if (tone && tone !== 'any') params.p_tone = tone
+
+  // Attention: map lean_in → 'lean-in', lean_back → 'lean-back'
+  if (answers.attention !== undefined) {
+    params.p_attention = ATTENTION_RPC_MAP[answers.attention] || answers.attention
+  }
+
+  // Time: map 'medium' → 'standard' for the RPC
+  if (answers.time !== undefined) {
+    params.p_time = TIME_RPC_MAP[answers.time] || answers.time
+  }
+
+  // Company: family gate is handled client-side, not in RPC
   return params
 }
 
@@ -79,12 +97,10 @@ export function useBriefCandidateCount(brief) {
     const answers = brief?.answers
     if (!answers) return
 
-    // Only count if we have filter-relevant answers (not just feeling)
-    const hasFilters = answers.energy !== undefined
+    // Only count if we have filter-relevant answers
+    const hasFilters = answers.vibe !== undefined
       || answers.attention !== undefined
-      || answers.tone !== undefined
       || answers.time !== undefined
-      || answers.era !== undefined
 
     if (!hasFilters) return
 

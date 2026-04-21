@@ -4,50 +4,52 @@ import { render, screen } from '@testing-library/react'
 import BriefSynthesis, { buildSynthesis } from '../BriefSynthesis'
 
 describe('buildSynthesis', () => {
-  it('includes energy, tone, time, company, and era', () => {
+  it('includes vibe, attention, time, and company', () => {
     const result = buildSynthesis({
-      energy: 5,
-      tone: 'sharp',
+      vibe: 'dark_sharp',
+      attention: 'lean_in',
       time: 'short',
       company: 'friends',
-      era: 'classic',
     })
 
-    expect(result).toContain('high-energy')
-    expect(result).toContain('sharp')
+    expect(result).toContain('dark & sharp')
+    expect(result).toContain('lean-in')
     expect(result).toContain('under 90 minutes')
     expect(result).toContain('friends')
-    expect(result).toContain('pre-2000 cinema')
   })
 
-  it('defaults to medium-energy and solo viewing when missing', () => {
+  it('defaults to open-minded and solo viewing when no answers', () => {
     const result = buildSynthesis({})
 
-    expect(result).toContain('medium-energy')
+    expect(result).toContain('open-minded')
     expect(result).toContain('solo viewing')
   })
 
-  it('omits tone and time when not set', () => {
-    const result = buildSynthesis({ energy: 1, company: 'alone' })
+  it('omits attention and time when not set', () => {
+    const result = buildSynthesis({ vibe: 'cozy_warm', company: 'alone' })
 
-    expect(result).toContain('low-energy')
-    expect(result).not.toContain('sharp')
+    expect(result).toContain('cozy')
+    expect(result).not.toContain('lean-in')
     expect(result).not.toContain('under 90 minutes')
   })
 
   it('appends first note in quotes', () => {
     const result = buildSynthesis(
-      { energy: 3, company: 'partner' },
+      { vibe: 'curious_warm', company: 'partner' },
       ['something light'],
     )
 
     expect(result).toContain('\u201Csomething light\u201D')
   })
 
-  it('handles era "any" by including no era preference', () => {
-    const result = buildSynthesis({ energy: 3, company: 'alone', era: 'any' })
+  it('handles all vibe options', () => {
+    const result = buildSynthesis({ vibe: 'silly_warm' })
+    expect(result).toContain('silly & fun')
+  })
 
-    expect(result).toContain('no era preference')
+  it('maps time=medium correctly', () => {
+    const result = buildSynthesis({ time: 'medium' })
+    expect(result).toContain('150 minute')
   })
 })
 
@@ -55,11 +57,11 @@ describe('BriefSynthesis component', () => {
   it('renders the synthesis sentence', () => {
     render(
       <BriefSynthesis
-        answers={{ energy: 5, tone: 'warm', company: 'family', era: 'modern' }}
+        answers={{ vibe: 'cozy_warm', company: 'family' }}
       />,
     )
 
-    expect(screen.getByText(/high-energy/)).toBeTruthy()
+    expect(screen.getByText(/cozy/)).toBeTruthy()
     expect(screen.getByText(/Your brief/i)).toBeTruthy()
   })
 })

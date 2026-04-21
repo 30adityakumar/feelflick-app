@@ -14,6 +14,8 @@ import { applyAllExclusions } from './exclusions'
 import { applyQualityFloor, QUALITY_TIERS } from './quality-tiers'
 import { scoreMovieV3, precomputeScoringContext } from './scoring-v3'
 import { diversifyRow, dayHashIndex } from './diversity'
+import { generateHeroReason } from './hero-reason'
+import { topOfTasteSubtitle, moodRowTitle, moodRowSubtitle } from './row-subtitles'
 
 // === Shared field selection (mirrors TIERED_SELECT_FIELDS in recommendations.js) ===
 
@@ -155,13 +157,23 @@ export async function getTopOfYourTasteRow(userId, profile, limit = 20, opts = {
 
       const scoringContext = opts.scoringContext || await precomputeScoringContext(resolvedProfile)
 
-      return scoreAndSlice(candidates, resolvedProfile, scoringContext, 'TopOfTaste', limit, {
+      const films = scoreAndSlice(candidates, resolvedProfile, scoringContext, 'TopOfTaste', limit, {
         label: 'Top of your taste',
         type: 'top_of_taste',
       }, 'TOP_OF_TASTE')
+
+      // Attach per-film reason from dominant scoring dimension
+      for (const film of films) {
+        film._reason = generateHeroReason(
+          film, film._breakdown, resolvedProfile, scoringContext.seedNeighborMap,
+        )
+      }
+
+      const subtitle = topOfTasteSubtitle(resolvedProfile)
+      return { films, subtitle }
     } catch (err) {
       console.error('[getTopOfYourTasteRow] failed:', err)
-      return []
+      return { films: [], subtitle: null }
     }
   })
 }
@@ -475,48 +487,46 @@ export async function getStillInOrbitRow(userId, profile, limit = 20, opts = {})
 // ============================================================================
 
 /**
- * Films matching user's dominant recent mood tag.
- * Returns { films, dominantMood } — null mood if signature is empty.
+ * Films matching user's top mood/tone tags (top-3 overlap).
+ * Returns { films, title, subtitle, lead, kind }.
  *
  * @param {string|null} userId
  * @param {Object|null} profile
  * @param {number} [limit=20]
- * @returns {Promise<{ films: Object[], dominantMood: string|null }>}
+ * @returns {Promise<{ films: Object[], title: string, subtitle: string|null, lead: string|null, kind: string }>}
  */
 export async function getMoodRow(userId, profile, limit = 20, opts = {}) {
+  const empty = { films: [], title: 'Films for your mood', subtitle: null, lead: null, kind: 'mood' }
   const cacheKey = recommendationCache.key('mood_row', userId || 'guest', { limit })
 
   return recommendationCache.getOrFetch(cacheKey, async () => {
     try {
-      if (!userId) return { films: [], dominantMood: null }
+      if (!userId) return empty
 
       const resolvedProfile = profile || await computeUserProfileV3(userId)
 
       // V3 mood_tags are rating-weighted; legacy recentMoodTags are recency-weighted.
-      // Prefer v3 as primary source, fall back to legacy.
       const v3MoodTags = resolvedProfile?.affinity?.mood_tags || []
       const legacyMoodTags = resolvedProfile?._legacy?.moodSignature?.recentMoodTags || []
       const recentTags = v3MoodTags.length > 0 ? v3MoodTags : legacyMoodTags
 
-      if (recentTags.length === 0) return { films: [], dominantMood: null }
+      if (recentTags.length === 0) return empty
 
-      const dominantMood = recentTags[0].tag
+      const topMoodTags = recentTags.slice(0, 3).map(m => m.tag)
       const watchedIds = new Set(resolvedProfile?._legacy?.watchedMovieIds || [])
 
       if (import.meta.env.DEV) {
-        console.log('[diag] MoodRow: v3MoodTags=%d, legacyMoodTags=%d, dominantMood=%s, source=%s',
-          v3MoodTags.length, legacyMoodTags.length, dominantMood,
-          v3MoodTags.length > 0 ? 'v3' : 'legacy')
-        console.log('[diag] MoodRow: all v3 tags=%s', v3MoodTags.map(t => `${t.tag}(${t.count})`).join(', '))
+        console.log('[diag] MoodRow: topMoodTags=%s, source=%s',
+          topMoodTags.join(','), v3MoodTags.length > 0 ? 'v3' : 'legacy')
       }
 
-      // Fetch films with mood_tags overlapping dominantMood
+      // Fetch films with mood_tags overlapping any of top-3 tags
       let query = supabase
         .from('movies')
         .select(ROW_SELECT_FIELDS)
         .eq('is_valid', true)
         .not('poster_path', 'is', null)
-        .contains('mood_tags', [dominantMood])
+        .overlaps('mood_tags', topMoodTags)
       query = applyQualityFloor(query, 'CONTEXT')
       query = applyAllExclusions(query, resolvedProfile)
 
@@ -528,21 +538,35 @@ export async function getMoodRow(userId, profile, limit = 20, opts = {}) {
 
       const candidates = (data || []).filter(m => m?.id && !watchedIds.has(m.id))
 
-      if (import.meta.env.DEV) {
-        console.log('[diag] MoodRow: candidates=%d, tier=CONTEXT, filter=contains(mood_tags,[%s]), ids=%s',
-          candidates.length, dominantMood, candidates.slice(0, 10).map(m => m.id).join(','))
-      }
-
       const scoringContext = opts.scoringContext || await precomputeScoringContext(resolvedProfile)
       const films = scoreAndSlice(candidates, resolvedProfile, scoringContext, 'MoodRow', limit, {
-        label: `You've been in a ${dominantMood} mood`,
+        label: topMoodTags[0] ? `Films that feel ${topMoodTags[0]}` : 'Films for your mood',
         type: 'mood_row',
       }, 'MOOD_ROW')
 
-      return { films, dominantMood }
+      // Boost multi-tag matches
+      for (const f of films) {
+        const overlap = (f.mood_tags || []).filter(t => topMoodTags.includes(t)).length
+        if (overlap >= 2) f._score = Math.min(100, f._score + 5)
+      }
+      films.sort((a, b) => b._score - a._score)
+
+      // Attach per-film reasons
+      for (const f of films) {
+        f._reason = generateHeroReason(f, f._breakdown, resolvedProfile, scoringContext.seedNeighborMap)
+      }
+
+      const { title, lead, kind } = moodRowTitle(resolvedProfile)
+      return {
+        films,
+        title,
+        subtitle: moodRowSubtitle(resolvedProfile),
+        lead,
+        kind,
+      }
     } catch (err) {
       console.error('[getMoodRow] failed:', err)
-      return { films: [], dominantMood: null }
+      return empty
     }
   })
 }
@@ -610,45 +634,54 @@ export async function getWatchlistRow(userId, profile, limit = 20, opts = {}) {
 // ============================================================================
 
 /**
- * Signature director row — shown when a director accounts for >= 15% of watch
- * history AND the user has watched >= 3 of their films.
+ * Signature director row — shown when user has qualified directors
+ * (count >= 3 OR count >= 2 with a rating >= 8).
  *
- * Returns { films, director } — null director if threshold not met.
+ * Day-hash rotates across qualified directors so different days surface
+ * different filmographies.
+ *
+ * Returns { films, director: { name, profile_path, id }, subtitle }.
  *
  * @param {string|null} userId
  * @param {Object|null} profile
  * @param {number} [limit=20]
- * @returns {Promise<{ films: Object[], director: string|null }>}
+ * @returns {Promise<{ films: Object[], director: { name: string, profile_path: string|null, id: number|null }|null, subtitle: string|null }>}
  */
 export async function getSignatureDirectorRow(userId, profile, limit = 20, opts = {}) {
   const cacheKey = recommendationCache.key('signature_director', userId || 'guest', { limit })
 
   return recommendationCache.getOrFetch(cacheKey, async () => {
     try {
-      if (!userId) return { films: [], director: null }
+      if (!userId) return { films: [], director: null, subtitle: null }
 
       const resolvedProfile = profile || await computeUserProfileV3(userId)
-      const directors = resolvedProfile?._legacy?.affinities?.directors || []
-      const totalWatched = resolvedProfile?._legacy?.qualityProfile?.totalMoviesWatched || 0
+      const directors = resolvedProfile?.affinity?.directors || []
 
-      if (directors.length === 0 || totalWatched === 0) return { films: [], director: null }
+      if (directors.length === 0) return { films: [], director: null, subtitle: null }
 
-      // Find director with >= 3 watches AND >= 15% of history
-      const topDirector = directors.find(d => {
-        const rawCount = d.rawCount || d.count || 0
-        return rawCount >= 3 && (rawCount / totalWatched) >= 0.15
-      })
+      // Day-hash rotation across all qualified directors
+      const idx = dayHashIndex(userId + 'director', directors.length)
+      const chosenDirector = directors[idx]
+      const directorName = chosenDirector.name
 
-      if (!topDirector) return { films: [], director: null }
+      // Fetch person record for photo
+      const { data: person } = await supabase
+        .from('people')
+        .select('id, name, profile_path')
+        .ilike('name', directorName)
+        .limit(1)
+        .single()
 
-      const watchedIds = new Set(resolvedProfile?._legacy?.watchedMovieIds || [])
+      // Fetch director's films — tag watched, filter after scoring
+      const watchedIds = resolvedProfile?.watched_ids
+        || new Set(resolvedProfile?._legacy?.watchedMovieIds || [])
 
       let query = supabase
         .from('movies')
         .select(ROW_SELECT_FIELDS)
         .eq('is_valid', true)
         .not('poster_path', 'is', null)
-        .ilike('director_name', topDirector.name)
+        .ilike('director_name', directorName)
       query = applyQualityFloor(query, 'CONTEXT')
       query = applyAllExclusions(query, resolvedProfile)
 
@@ -658,21 +691,44 @@ export async function getSignatureDirectorRow(userId, profile, limit = 20, opts 
 
       if (error) throw error
 
-      const candidates = (data || []).filter(m => m?.id && !watchedIds.has(m.id))
+      const candidates = (data || []).filter(m => m?.id)
 
-      if (candidates.length === 0) return { films: [], director: null }
+      if (candidates.length === 0) return { films: [], director: null, subtitle: null }
+
+      // Tag watched films with _seen
+      candidates.forEach(c => {
+        c._seen = watchedIds.has(c.id)
+      })
 
       const scoringContext = opts.scoringContext || await precomputeScoringContext(resolvedProfile)
-      const films = scoreAndSlice(candidates, resolvedProfile, scoringContext, 'Director', limit, {
-        label: `More from ${topDirector.name}`,
+      const scored = scoreAndSlice(candidates, resolvedProfile, scoringContext, 'Director', limit, {
+        label: `More from ${directorName}`,
         type: 'signature_director',
-        directorName: topDirector.name,
+        directorName,
       }, 'DIRECTOR', { skipDiversity: true })
 
-      return { films, director: topDirector.name }
+      // Filter out seen films — a director row with <4 unwatched looks broken
+      const films = scored.filter(f => !f._seen)
+      if (films.length < 4) return { films: [], director: null, subtitle: null }
+
+      // Build "why this director" subtitle
+      let subtitle = `You've watched ${chosenDirector.count} of their films`
+      if (chosenDirector.avg_rating != null && chosenDirector.avg_rating >= 8) {
+        subtitle = `${subtitle} — averaging ${chosenDirector.avg_rating.toFixed(1)}/10`
+      }
+
+      return {
+        films,
+        director: {
+          name: directorName,
+          profile_path: person?.profile_path || null,
+          id: person?.id || null,
+        },
+        subtitle,
+      }
     } catch (err) {
       console.error('[getSignatureDirectorRow] failed:', err)
-      return { films: [], director: null }
+      return { films: [], director: null, subtitle: null }
     }
   })
 }

@@ -87,26 +87,41 @@ describe('diversifyRow', () => {
 // ============================================================================
 
 describe('selectHeroCandidates', () => {
-  it('filters to score >= 70 then diversifies', () => {
+  it('filters to score >= 65 then diversifies', () => {
     const candidates = [
       makeCandidate({ id: 1, _score: 85, director_name: 'A' }),
       makeCandidate({ id: 2, _score: 80, director_name: 'A' }),
-      makeCandidate({ id: 3, _score: 75, director_name: 'B' }),
-      makeCandidate({ id: 4, _score: 60, director_name: 'C' }), // below 70, excluded
+      makeCandidate({ id: 3, _score: 67, director_name: 'B' }),
+      makeCandidate({ id: 4, _score: 60, director_name: 'C' }), // below 65, excluded from filtered
     ]
     const result = selectHeroCandidates(candidates, 3)
     expect(result).toHaveLength(3)
-    expect(result.every(c => c._score >= 70)).toBe(true)
+    // All 3 from filtered (>=65), id 4 not needed
+    expect(result.map(c => c.id)).toEqual(expect.arrayContaining([1, 2, 3]))
   })
 
-  it('falls back to top N when no candidates >= 70', () => {
+  it('backfills from full pool when filtered pool is too small', () => {
     const candidates = [
-      makeCandidate({ id: 1, _score: 65 }),
-      makeCandidate({ id: 2, _score: 60 }),
+      makeCandidate({ id: 1, _score: 80, director_name: 'A' }),
+      makeCandidate({ id: 2, _score: 60, director_name: 'B' }), // below 65
+      makeCandidate({ id: 3, _score: 55, director_name: 'C' }), // below 65
+    ]
+    const result = selectHeroCandidates(candidates, 3)
+    expect(result).toHaveLength(3)
+    expect(result[0].id).toBe(1) // from filtered
+    // ids 2+3 backfilled from full pool
+    expect(result.map(c => c.id)).toContain(2)
+    expect(result.map(c => c.id)).toContain(3)
+  })
+
+  it('falls back to top N when no candidates >= 65', () => {
+    const candidates = [
+      makeCandidate({ id: 1, _score: 60 }),
+      makeCandidate({ id: 2, _score: 55 }),
     ]
     const result = selectHeroCandidates(candidates, 3)
     expect(result).toHaveLength(2)
-    expect(result[0]._score).toBe(65)
+    expect(result[0]._score).toBe(60)
   })
 })
 

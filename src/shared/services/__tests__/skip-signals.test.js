@@ -101,17 +101,17 @@ describe('buildSkipWeightMap', () => {
 // ============================================================================
 
 describe('buildCooldownSet', () => {
-  it('hero skipped < 7d ago → in heroCooldown', () => {
+  it('hero skipped < 3d ago → in heroCooldown', () => {
     const rows = [
-      { movie_id: 1, placement: 'hero', shown_at: new Date(Date.now() - 3 * 86400000).toISOString(), skipped: true },
+      { movie_id: 1, placement: 'hero', shown_at: new Date(Date.now() - 2 * 86400000).toISOString(), skipped: true },
     ]
     const { heroCooldown } = buildCooldownSet(rows)
     expect(heroCooldown.has(1)).toBe(true)
   })
 
-  it('hero skipped > 7d ago → not in heroCooldown', () => {
+  it('hero skipped > 3d ago → not in heroCooldown', () => {
     const rows = [
-      { movie_id: 1, placement: 'hero', shown_at: new Date(Date.now() - 10 * 86400000).toISOString(), skipped: true },
+      { movie_id: 1, placement: 'hero', shown_at: new Date(Date.now() - 5 * 86400000).toISOString(), skipped: true },
     ]
     const { heroCooldown } = buildCooldownSet(rows)
     expect(heroCooldown.has(1)).toBe(false)
@@ -126,7 +126,7 @@ describe('buildCooldownSet', () => {
     expect(rowCooldown.has(1)).toBe(false)
   })
 
-  it('any surface skipped < 3d ago → in rowCooldown', () => {
+  it('any surface skipped < 2d ago → in rowCooldown', () => {
     const rows = [
       { movie_id: 2, placement: 'quick_picks', shown_at: new Date(Date.now() - 1 * 86400000).toISOString(), skipped: true },
     ]
@@ -134,9 +134,9 @@ describe('buildCooldownSet', () => {
     expect(rowCooldown.has(2)).toBe(true)
   })
 
-  it('any surface skipped > 3d ago → not in rowCooldown', () => {
+  it('any surface skipped > 2d ago → not in rowCooldown', () => {
     const rows = [
-      { movie_id: 2, placement: 'quick_picks', shown_at: new Date(Date.now() - 5 * 86400000).toISOString(), skipped: true },
+      { movie_id: 2, placement: 'quick_picks', shown_at: new Date(Date.now() - 3 * 86400000).toISOString(), skipped: true },
     ]
     const { rowCooldown } = buildCooldownSet(rows)
     expect(rowCooldown.has(2)).toBe(false)
@@ -144,11 +144,11 @@ describe('buildCooldownSet', () => {
 
   it('separates hero and row cooldowns correctly', () => {
     const rows = [
-      { movie_id: 1, placement: 'hero', shown_at: new Date(Date.now() - 5 * 86400000).toISOString(), skipped: true },
+      { movie_id: 1, placement: 'hero', shown_at: new Date(Date.now() - 2.5 * 86400000).toISOString(), skipped: true },
       { movie_id: 2, placement: 'quick_picks', shown_at: new Date(Date.now() - 1 * 86400000).toISOString(), skipped: true },
     ]
     const { heroCooldown, rowCooldown } = buildCooldownSet(rows)
-    // Movie 1: hero skipped 5d ago → heroCooldown yes, rowCooldown no (>3d)
+    // Movie 1: hero skipped 2.5d ago → heroCooldown yes (<3d), rowCooldown no (>2d)
     expect(heroCooldown.has(1)).toBe(true)
     expect(rowCooldown.has(1)).toBe(false)
     // Movie 2: row skipped 1d ago → heroCooldown no (not hero), rowCooldown yes

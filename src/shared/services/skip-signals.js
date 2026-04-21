@@ -95,10 +95,13 @@ export function buildSkipWeightMap(impressionRows) {
 // COOLDOWN SETS
 // ============================================================================
 
+/** Cooldown windows in days. */
+export const COOLDOWN_DAYS = { hero: 3, row: 2 }
+
 /**
  * Build cooldown sets from impression rows.
- * - heroCooldown: films shown as hero in last 7 days
- * - rowCooldown: films shown in any surface in last 3 days
+ * - heroCooldown: films skipped as hero in last 3 days
+ * - rowCooldown: films skipped in any surface in last 2 days
  *
  * @param {Array<{ movie_id: number, placement: string, shown_at: string }>} impressionRows
  * @returns {{ heroCooldown: Set<number>, rowCooldown: Set<number> }}
@@ -110,8 +113,8 @@ export function buildCooldownSet(impressionRows) {
   for (const r of impressionRows) {
     if (!r.skipped) continue
     const days = (now - new Date(r.shown_at).getTime()) / 86400000
-    if (r.placement === 'hero' && days < 7) heroCooldown.add(r.movie_id)
-    if (days < 3) rowCooldown.add(r.movie_id)
+    if (r.placement === 'hero' && days < COOLDOWN_DAYS.hero) heroCooldown.add(r.movie_id)
+    if (days < COOLDOWN_DAYS.row) rowCooldown.add(r.movie_id)
   }
   return { heroCooldown, rowCooldown }
 }

@@ -265,12 +265,16 @@ export default function HeroTopPick({
   const movie = hookMovie ?? preloadedData
 
   // Hero carousel: alternates + reasons from engine
-  const alternates = movie?._alternates?.length > 0 ? movie._alternates : null
+  const alternates = movie?._alternates?.length > 1 ? movie._alternates : null
   const reasons = movie?._reasons || {}
   const candidateCount = alternates?.length || 1
 
   // heroIdx defaults to whichever alternate matches the day-hash pick
   const [heroIdx, setHeroIdx] = useState(0)
+
+  if (import.meta.env.DEV && movie) {
+    console.log('[hero:render] alternates:', movie?._alternates?.length, 'candidateCount:', candidateCount, 'idx:', heroIdx)
+  }
   useEffect(() => {
     if (!alternates || !movie?.id) return
     const matchIdx = alternates.findIndex(a => a.id === movie.id)

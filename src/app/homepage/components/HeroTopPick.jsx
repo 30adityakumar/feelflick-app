@@ -62,7 +62,7 @@ function LanguageBadge({ lang }) {
   if (!lang || lang === 'en') return null
   const label = LANGUAGE_LABELS[lang] || lang.toUpperCase()
   return (
-    <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold tracking-wide uppercase bg-white/10 text-white/60 border border-white/10">
+    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold tracking-wide uppercase bg-white/10 text-white/60 border border-white/10">
       {label}
     </span>
   )
@@ -144,7 +144,7 @@ function StreamingBadge({ providers, revealed }) {
         className="h-8 w-8 rounded object-cover"
       />
       <div className="min-w-0">
-        <p className="text-[9px] uppercase tracking-widest text-white/40 font-medium leading-none mb-0.5">{label}</p>
+        <p className="text-xs uppercase tracking-widest text-white/40 font-medium leading-none mb-0.5">{label}</p>
         <p className="text-xs text-white/80 font-semibold truncate leading-none">{provider.provider_name}</p>
       </div>
     </div>
@@ -785,14 +785,16 @@ export default function HeroTopPick({
           <button
             onClick={() => setHeroIdx((prev) => (prev - 1 + candidates.length) % candidates.length)}
             aria-label="Previous pick"
-            className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-20 h-10 w-10 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm border border-white/10 hover:border-white/20 text-white/60 hover:text-white flex items-center justify-center transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+            className="absolute top-1/2 -translate-y-1/2 z-20 h-11 w-11 sm:h-12 sm:w-12 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm border border-white/10 hover:border-white/20 text-white/60 hover:text-white flex items-center justify-center transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+            style={{ left: 'max(0.75rem, env(safe-area-inset-left))' }}
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
           <button
             onClick={() => setHeroIdx((prev) => (prev + 1) % candidates.length)}
             aria-label="Next pick"
-            className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 h-10 w-10 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm border border-white/10 hover:border-white/20 text-white/60 hover:text-white flex items-center justify-center transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+            className="absolute top-1/2 -translate-y-1/2 z-20 h-11 w-11 sm:h-12 sm:w-12 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm border border-white/10 hover:border-white/20 text-white/60 hover:text-white flex items-center justify-center transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+            style={{ right: 'max(0.75rem, env(safe-area-inset-right))' }}
           >
             <ChevronRight className="h-5 w-5" />
           </button>

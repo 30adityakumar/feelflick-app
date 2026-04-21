@@ -19,6 +19,7 @@ import { useTopPick } from '@/shared/hooks/useRecommendations'
 import { supabase } from '@/shared/lib/supabase/client'
 import { useUserMovieStatus } from '@/shared/hooks/useUserMovieStatus'
 import { updateImpression } from '@/shared/services/recommendations'
+import { track } from '@/shared/services/analytics'
 import Button from '@/shared/ui/Button'
 
 // ============================================================================
@@ -178,6 +179,7 @@ export default function HeroTopPick({
   const loadingRef = useRef(false)
   const refetchTimerRef = useRef(null)
   const lastEmittedHeroIdRef = useRef(null)
+  const lastTrackedViewIdRef = useRef(null)
 
   const { data: hookMovie, loading, error, refetch } = useTopPick({
     enabled: true,
@@ -254,6 +256,20 @@ export default function HeroTopPick({
     if (!loading && movie && isRefreshing) setIsRefreshing(false)
   }, [loading, movie, isRefreshing])
 
+  // Track hero_viewed once per unique activeMovie
+  useEffect(() => {
+    if (!revealed || !activeMovie?.id) return
+    if (lastTrackedViewIdRef.current === activeMovie.id) return
+    lastTrackedViewIdRef.current = activeMovie.id
+    track('hero_viewed', {
+      movie_id: activeMovie.tmdb_id ?? activeMovie.id,
+      movie_title: activeMovie.title,
+      candidate_index: heroIdx,
+      candidate_count: candidates.length,
+      reason_type: activeReason?.type ?? null,
+    })
+  }, [revealed, activeMovie?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
   // Progressive reveal
   useEffect(() => {
     if (!movie) return
@@ -321,6 +337,10 @@ export default function HeroTopPick({
 
     if (isInWatchlist && !prevWatchlistRef.current) {
       updateImpression(userId, activeMovie.id, 'hero', { added_to_watchlist: true })
+      track('hero_watchlisted', {
+        movie_id: activeMovie.tmdb_id ?? activeMovie.id,
+        movie_title: activeMovie.title,
+      })
     }
 
     if (isWatched && !prevWatchedRef.current) {
@@ -333,12 +353,16 @@ export default function HeroTopPick({
 
     prevWatchlistRef.current = isInWatchlist
     prevWatchedRef.current = isWatched
-  }, [isInWatchlist, isWatched, userId, activeMovie?.id, activeMovie?.tmdb_id, scheduleRefetchIfIdle])
+  }, [isInWatchlist, isWatched, userId, activeMovie?.id, activeMovie?.tmdb_id, activeMovie?.title, scheduleRefetchIfIdle])
 
   const goToDetails = useCallback(() => {
     const tmdbId = activeMovie?.tmdb_id
     if (!tmdbId) return
     if (userId && activeMovie?.id) updateImpression(userId, activeMovie.id, 'hero', { clicked: true })
+    track('hero_clicked', {
+      movie_id: tmdbId,
+      movie_title: activeMovie?.title,
+    })
     navigate(`/movie/${tmdbId}`)
   }, [activeMovie, navigate, userId])
 
@@ -402,6 +426,11 @@ export default function HeroTopPick({
     if (userId && activeMovie.id) updateImpression(userId, activeMovie.id, 'hero', { skipped: true })
 
     logFeedback({ feedbackType: 'hero_skip_not_today' })
+    track('hero_skipped', {
+      movie_id: activeMovie.tmdb_id ?? activeMovie.id,
+      movie_title: activeMovie.title,
+      skip_count: skippedTmdbIds.length + 1,
+    })
 
     if (tmdbId) setSkippedTmdbIds((prev) => (prev.includes(tmdbId) ? prev : [...prev, tmdbId]))
 
@@ -414,7 +443,25 @@ export default function HeroTopPick({
     }
 
     scheduleRefetchIfIdle(120)
-  }, [activeMovie, isRefreshing, userId, logFeedback, scheduleRefetchIfIdle])
+  }, [activeMovie, isRefreshing, skippedTmdbIds.length, userId, logFeedback, scheduleRefetchIfIdle])
+
+  // ── Carousel navigation ─────────────────────────────────────────────────────
+
+  const handlePrevPick = useCallback(() => {
+    setHeroIdx((prev) => {
+      const next = (prev - 1 + candidates.length) % candidates.length
+      track('hero_cycled', { direction: 'prev', from_idx: prev, to_idx: next })
+      return next
+    })
+  }, [candidates.length])
+
+  const handleNextPick = useCallback(() => {
+    setHeroIdx((prev) => {
+      const next = (prev + 1) % candidates.length
+      track('hero_cycled', { direction: 'next', from_idx: prev, to_idx: next })
+      return next
+    })
+  }, [candidates.length])
 
   // ── Touch swipe handlers ────────────────────────────────────────────────────
 
@@ -783,14 +830,14 @@ export default function HeroTopPick({
       {candidates.length > 1 && (
         <>
           <button
-            onClick={() => setHeroIdx((prev) => (prev - 1 + candidates.length) % candidates.length)}
+            onClick={handlePrevPick}
             aria-label="Previous pick"
             className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-20 h-10 w-10 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm border border-white/10 hover:border-white/20 text-white/60 hover:text-white flex items-center justify-center transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
           <button
-            onClick={() => setHeroIdx((prev) => (prev + 1) % candidates.length)}
+            onClick={handleNextPick}
             aria-label="Next pick"
             className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 h-10 w-10 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm border border-white/10 hover:border-white/20 text-white/60 hover:text-white flex items-center justify-center transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
           >

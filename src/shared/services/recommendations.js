@@ -1283,6 +1283,28 @@ function computeNegativeSignals(skipFeedback, watchHistory) {
 // ============================================================================
 
 // ============================================================================
+// DB-LEVEL GENRE EXCLUSION HELPER — v2.11
+// ============================================================================
+
+/**
+ * Apply genre exclusion filters directly on a Supabase query builder.
+ * Uses `.not('genres', 'cs', '["GenreName"]')` for each excluded genre.
+ * The `genres` column is jsonb (JSON array of strings) in the DB.
+ *
+ * @param {Object} query - Supabase query builder (chainable)
+ * @param {Object|null} profile - user profile with exclusions
+ * @returns {Object} the (possibly modified) query builder
+ */
+export function applyDbGenreExclusions(query, profile) {
+  const names = profile?.exclusions?.genreNames
+  if (!names || names.length === 0) return query
+  for (const name of names) {
+    query = query.not('genres', 'cs', JSON.stringify([name]))
+  }
+  return query
+}
+
+// ============================================================================
 // FIT PROFILE ADJACENCY — v2.11
 // ============================================================================
 
@@ -2402,10 +2424,10 @@ export async function getTopPickForUser(userId, options = {}) {
         if (!fallbackResult?.primary && fallbackResult?.movie) {
           // Legacy fallback shape → convert to new shape
           const fb = fallbackResult.movie
-          if (import.meta.env.DEV) console.log('[hero]', { branch: 'fallback', primary: fb?.title, altCount: 0, reasonKeys: [] })
+          console.log('[hero]', { branch: 'fallback', primary: fb?.title, altCount: 0, reasonKeys: [] })
           return { primary: fb, alternates: [], reasons: {} }
         }
-        if (import.meta.env.DEV) console.log('[hero]', { branch: 'fallback', primary: fallbackResult?.primary?.title, altCount: 0, reasonKeys: [] })
+        console.log('[hero]', { branch: 'fallback', primary: fallbackResult?.primary?.title, altCount: 0, reasonKeys: [] })
         return fallbackResult
       }
 
@@ -2427,6 +2449,7 @@ export async function getTopPickForUser(userId, options = {}) {
       )
 
       if (import.meta.env.DEV) console.log('[hero]', { branch: branchName, primary: primary.title, altCount: alternates.length, reasonKeys: Object.keys(reasons) })
+      console.log('[hero]', { branch: branchName, primary: primary.title, altCount: alternates.length, reasonKeys: Object.keys(reasons) })
 
       return { primary, alternates, reasons }
     } catch (error) {
@@ -3158,6 +3181,7 @@ async function getFallbackPick(langGuard, excludeInternalIds = [], excludeTmdbId
       if (eligible.length >= 1) {
         const pick = eligible[Math.floor(Math.random() * Math.min(eligible.length, 10))]
         if (import.meta.env.DEV) console.log('[hero] selected branch: fallback-language, pool size:', eligible.length)
+        console.log('[hero] selected branch: fallback-language, pool size:', eligible.length)
         return {
           movie: pick,
           pickReason: { label: 'Top pick for you', type: 'quality' },
@@ -3203,6 +3227,7 @@ async function getFallbackPick(langGuard, excludeInternalIds = [], excludeTmdbId
 
         const pick = scored[0]
         if (import.meta.env.DEV) console.log('[hero] selected branch: fallback-global, pool size:', globalEligible.length)
+        console.log('[hero] selected branch: fallback-global, pool size:', globalEligible.length)
         return {
           movie: pick.movie,
           pickReason: { label: 'Critically acclaimed', type: 'quality' },
@@ -3213,6 +3238,7 @@ async function getFallbackPick(langGuard, excludeInternalIds = [], excludeTmdbId
 
       const pick = globalEligible[Math.floor(Math.random() * Math.min(globalEligible.length, 10))]
       if (import.meta.env.DEV) console.log('[hero] selected branch: fallback-global, pool size:', globalEligible.length)
+      console.log('[hero] selected branch: fallback-global, pool size:', globalEligible.length)
       return {
         movie: pick,
         pickReason: { label: 'Critically acclaimed', type: 'quality' },
@@ -3225,6 +3251,7 @@ async function getFallbackPick(langGuard, excludeInternalIds = [], excludeTmdbId
   }
 
   if (import.meta.env.DEV) console.log('[hero] selected branch: fallback-empty, pool size: 0')
+  console.log('[hero] selected branch: fallback-empty, pool size: 0')
   return {
     movie: null,
     pickReason: { label: 'No recommendations available', type: 'error' },
@@ -4227,6 +4254,14 @@ export async function getMoodRecommendations(userId, moodId, options = {}) {
 
       // 2. Compute v3 profile + scoring context
       const profileV3 = await computeUserProfileV3(userId)
+
+      // Inject anchor seed if brief has one
+      const briefSeeds = buildBriefSeeds(profileV3, brief || {})
+      const profileForScoring = brief?.anchor
+        ? { ...profileV3, rated: { ...profileV3.rated, positive_seeds: briefSeeds } }
+        : profileV3
+      const scoringContext = precomputeScoringContext(profileForScoring)
+
 
       // Inject anchor seed if brief has one
       const briefSeeds = buildBriefSeeds(profileV3, brief || {})

@@ -59,12 +59,8 @@ src/
 - Tests in `__tests__/` adjacent to the feature, or `src/test/` for helpers.
 - **No new files when an existing file should be edited.** Check the folder map first.
 
-## Design System (Dark Cinema)
-- Dark-first. Surfaces: `bg-neutral-950` (deep) · `bg-neutral-900` (card).
-- Accent: `purple-500` / `purple-400` gradients into `pink-500`. Ratings: `yellow-400`.
-- Fonts: `Playfair Display` (display, 24px+) · `Satoshi` (body) · `JetBrains Mono` (meta).
-- Transitions: `280ms cubic-bezier(0.4,0,0.2,1)` standard · `450ms` spring for dramatic.
-- Skeletons: `animate-pulse bg-purple-500/[0.04]`. **Never spinners.**
+## Design System
+See `CLAUDE.md` **Brand Surface — The Law** for the authoritative token spec (fonts, gradients, CTAs, text hierarchy, surfaces, motion).
 
 ### Section Header Pattern — all rows must match exactly
 ```jsx

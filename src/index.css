@@ -25,9 +25,8 @@
   --panel: #334155;        /* Elevated panel */
   --text: #f8fafc;         /* Warm white text */
   --muted: #b0bec5;        /* Muted text — WCAG AA ≥4.5:1 on all app surfaces */
-  --color-bg: #08060d;
+  --color-bg: #000000;
   --color-surface: #120d1c;
-  --color-primary: var(--amber-400);
   --color-text: var(--text);
   --color-text-muted: rgba(248, 250, 252, 0.76);
   --color-text-faint: rgba(248, 250, 252, 0.52);
@@ -63,86 +62,8 @@
   --pink-800: #9f1239;
   --pink-900: #831843;
   
-  --rose-50: #fff1f2;
-  --rose-100: #ffe4e6;
-  --rose-200: #fecdd3;
-  --rose-300: #fda4af;
-  --rose-400: #fb7185;
-  --rose-500: #f43f5e;     /* Accent rose */
-  --rose-600: #e11d48;
-  --rose-700: #be123c;
-  --rose-800: #9f1239;
-  --rose-900: #881337;
-  
-  --amber-50: #fffbeb;
-  --amber-100: #fef3c7;
-  --amber-200: #fde68a;
-  --amber-300: #fcd34d;
-  --amber-400: #fbbf24;
-  --amber-500: #f59e0b;    /* Primary amber */
-  --amber-600: #d97706;
-  --amber-700: #b45309;
-  --amber-800: #92400e;
-  --amber-900: #78350f;
-  
-  --orange-50: #fff7ed;
-  --orange-100: #ffedd5;
-  --orange-200: #fed7aa;
-  --orange-300: #fdba74;
-  --orange-400: #fb923c;
-  --orange-500: #f97316;   /* Accent orange */
-  --orange-600: #ea580c;
-  --orange-700: #c2410c;
-  --orange-800: #9a3412;
-  --orange-900: #7c2d12;
-  
-  /* === Complementary Colors (Expanded Palette) === */
-  --teal-50: #f0fdfa;
-  --teal-100: #ccfbf1;
-  --teal-200: #99f6e4;
-  --teal-300: #5eead4;
-  --teal-400: #2dd4bf;
-  --teal-500: #14b8a6;     /* Primary teal */
-  --teal-600: #0d9488;
-  --teal-700: #0f766e;
-  --teal-800: #115e59;
-  --teal-900: #134e4a;
-  
-  --indigo-50: #eef2ff;
-  --indigo-100: #e0e7ff;
-  --indigo-200: #c7d2fe;
-  --indigo-300: #a5b4fc;
-  --indigo-400: #818cf8;
-  --indigo-500: #6366f1;   /* Primary indigo */
-  --indigo-600: #4f46e5;
-  --indigo-700: #4338ca;
-  --indigo-800: #3730a3;
-  --indigo-900: #312e81;
-  
-  --cyan-50: #ecfeff;
-  --cyan-100: #cffafe;
-  --cyan-200: #a5f3fc;
-  --cyan-300: #67e8f9;
-  --cyan-400: #22d3ee;
-  --cyan-500: #06b6d4;     /* Primary cyan */
-  --cyan-600: #0891b2;
-  --cyan-700: #0e7490;
-  --cyan-800: #155e75;
-  --cyan-900: #164e63;
-  
-  /* === Brand Gradients === */
+  /* === Brand Gradient (purple → pink — single source of truth) === */
   --gradient-primary: linear-gradient(135deg, var(--purple-500) 0%, var(--pink-500) 100%);
-  --gradient-secondary: linear-gradient(135deg, var(--purple-600) 0%, var(--rose-500) 100%);
-  --gradient-accent: linear-gradient(135deg, var(--pink-500) 0%, var(--orange-500) 100%);
-  --gradient-warm: linear-gradient(135deg, var(--amber-500) 0%, var(--orange-500) 100%);
-  --gradient-cool: linear-gradient(135deg, var(--indigo-500) 0%, var(--cyan-500) 100%);
-  --gradient-vibrant: linear-gradient(135deg, var(--teal-500) 0%, var(--purple-500) 50%, var(--pink-500) 100%);
-  --gradient-hero-text: linear-gradient(
-    135deg,
-    var(--purple-500) 0%,
-    var(--pink-500) 50%,
-    var(--orange-500) 100%
-  );
 
   /* === Glassmorphism === */
   --glass-bg: rgba(30, 41, 59, 0.6);
@@ -155,8 +76,6 @@
   --shadow-hover: 0 20px 40px rgba(0, 0, 0, 0.4);
   --shadow-glow-purple: 0 0 40px rgba(168, 85, 247, 0.4);
   --shadow-glow-pink: 0 0 40px rgba(236, 72, 153, 0.4);
-  --shadow-glow-amber: 0 0 40px rgba(245, 158, 11, 0.4);
-  --shadow-glow-teal: 0 0 40px rgba(20, 184, 166, 0.4);
   
   /* === Focus & Interaction === */
   --ring: var(--purple-500);
@@ -325,60 +244,6 @@ body {
   .delay-2000 {
     animation: none !important;
   }
-}
-
-/* ==========================================================================
-   TYPOGRAPHY SCALE
-   ========================================================================== */
-
-.text-hero {
-  font-size: clamp(2.5rem, 8vw, 6rem);
-  font-weight: 800;
-  line-height: 1.05;
-  letter-spacing: -0.03em;
-}
-
-.text-section {
-  font-size: clamp(1.75rem, 4vw, 3rem);
-  font-weight: 700;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
-}
-
-.text-title {
-  font-size: clamp(1.5rem, 3vw, 2.25rem);
-  font-weight: 700;
-  line-height: 1.25;
-  letter-spacing: -0.015em;
-}
-
-.text-subtitle {
-  font-size: clamp(1.25rem, 2.5vw, 1.75rem);
-  font-weight: 600;
-  line-height: 1.3;
-  letter-spacing: -0.01em;
-}
-
-.text-body-lg {
-  font-size: clamp(1.125rem, 2vw, 1.25rem);
-  line-height: 1.6;
-  letter-spacing: 0;
-}
-
-.text-body {
-  font-size: clamp(1rem, 1.5vw, 1.125rem);
-  line-height: 1.6;
-  letter-spacing: 0;
-}
-
-.text-sm {
-  font-size: 0.875rem;
-  line-height: 1.5;
-}
-
-.text-xs {
-  font-size: 0.75rem;
-  line-height: 1.4;
 }
 
 /* === Gradient Text Effects === */

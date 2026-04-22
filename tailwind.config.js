@@ -43,14 +43,9 @@ export default {
     
     extend: {
       colors: {
-        // Base colors driven by CSS variables
-        bg: 'var(--bg)',
-        surface: 'var(--surface)',
-        panel: 'var(--panel)',
-        text: 'var(--text)',
-        muted: 'var(--muted)',
-        
-        // FeelFlick signature gradient palette
+        // FeelFlick brand palette — purple + pink only.
+        // CSS vars defined in src/index.css :root.
+        // Tailwind defaults (gray, slate, white, etc.) are untouched.
         purple: {
           50: 'var(--purple-50)',
           100: 'var(--purple-100)',
@@ -74,42 +69,6 @@ export default {
           700: 'var(--pink-700)',
           800: 'var(--pink-800)',
           900: 'var(--pink-900)',
-        },
-        rose: {
-          50: 'var(--rose-50)',
-          100: 'var(--rose-100)',
-          200: 'var(--rose-200)',
-          300: 'var(--rose-300)',
-          400: 'var(--rose-400)',
-          500: 'var(--rose-500)',
-          600: 'var(--rose-600)',
-          700: 'var(--rose-700)',
-          800: 'var(--rose-800)',
-          900: 'var(--rose-900)',
-        },
-        amber: {
-          50: 'var(--amber-50)',
-          100: 'var(--amber-100)',
-          200: 'var(--amber-200)',
-          300: 'var(--amber-300)',
-          400: 'var(--amber-400)',
-          500: 'var(--amber-500)',
-          600: 'var(--amber-600)',
-          700: 'var(--amber-700)',
-          800: 'var(--amber-800)',
-          900: 'var(--amber-900)',
-        },
-        orange: {
-          50: 'var(--orange-50)',
-          100: 'var(--orange-100)',
-          200: 'var(--orange-200)',
-          300: 'var(--orange-300)',
-          400: 'var(--orange-400)',
-          500: 'var(--orange-500)',
-          600: 'var(--orange-600)',
-          700: 'var(--orange-700)',
-          800: 'var(--orange-800)',
-          900: 'var(--orange-900)',
         },
       },
       
@@ -143,7 +102,6 @@ export default {
         'hover': '0 20px 40px rgba(0, 0, 0, 0.4)',
         'glow-purple': '0 0 40px rgba(168, 85, 247, 0.4)',
         'glow-pink': '0 0 40px rgba(236, 72, 153, 0.4)',
-        'glow-amber': '0 0 40px rgba(245, 158, 11, 0.4)',
         'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
       },
       
@@ -158,10 +116,7 @@ export default {
       },
       
       backgroundImage: {
-        'gradient-primary': 'linear-gradient(135deg, var(--purple-500) 0%, var(--pink-500) 50%, var(--amber-500) 100%)',
-        'gradient-secondary': 'linear-gradient(135deg, var(--purple-600) 0%, var(--rose-500) 100%)',
-        'gradient-accent': 'linear-gradient(135deg, var(--pink-500) 0%, var(--orange-500) 100%)',
-        'gradient-warm': 'linear-gradient(135deg, var(--amber-500) 0%, var(--orange-500) 100%)',
+        // Radial gradient helpers — used in HeroTopPick.jsx
         'gradient-radial': 'radial-gradient(ellipse at center, var(--tw-gradient-stops))',
         'gradient-radial-at-t': 'radial-gradient(ellipse at top, var(--tw-gradient-stops))',
         'gradient-radial-at-b': 'radial-gradient(ellipse at bottom, var(--tw-gradient-stops))',
@@ -282,14 +237,13 @@ export default {
         },
       });
       
-      // Gradient text
+      // Gradient text — brand purple→pink only (no amber)
       addUtilities({
         '.gradient-text': {
-          background: 'linear-gradient(135deg, var(--purple-500) 0%, var(--pink-500) 50%, var(--amber-500) 100%)',
+          background: 'linear-gradient(135deg, var(--purple-500) 0%, var(--pink-500) 100%)',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
           backgroundClip: 'text',
-          backgroundSize: '200% 200%',
         },
       });
       

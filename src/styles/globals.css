@@ -1,16 +1,69 @@
 /* ==========================================================================
    FeelFlick Global Styles
-   Imports motion tokens, sets body font defaults.
-   Typography: use Tailwind utilities (font-black, tracking-tight, etc.).
+   Motion tokens, base resets, accessibility. Typography via Tailwind.
    See CLAUDE.md "Brand Surface — The Law" for the full design spec.
    ========================================================================== */
 
 @import './tokens.css';
+@import './animations.css';
 
-/* === BODY DEFAULTS === */
+/* === Base resets === */
+
+html {
+  color-scheme: dark;
+  background: #000;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  overflow-x: hidden;
+}
+
+* {
+  box-sizing: border-box;
+}
 
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-family: Inter, 'SF Pro Display', -apple-system, system-ui, sans-serif;
 }
+
+/* === Scrollbar === */
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: #000; }
+::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; border: 2px solid #000; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* === Selection & focus === */
+
+::selection {
+  background: linear-gradient(135deg, var(--purple-500), var(--pink-500));
+  color: white;
+}
+
+:focus-visible {
+  outline: 2px solid var(--purple-500);
+  outline-offset: 3px;
+  border-radius: 0.5rem;
+}
+
+/* === Star rating interaction === */
+
+.star-container { contain: layout style paint; }
+
+button:has(> svg.lucide-star) {
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+button:has(svg.lucide-star) {
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+[role="slider"] { transform: translateZ(0); }

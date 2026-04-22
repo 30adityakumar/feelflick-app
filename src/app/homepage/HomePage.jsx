@@ -1,6 +1,8 @@
 // src/app/homepage/HomePage.jsx
-import { useEffect, useState } from 'react'
-import { useOutletContext } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { useLocation, useNavigate, useOutletContext } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Sparkles } from 'lucide-react'
 
 import { supabase } from '@/shared/lib/supabase/client'
 import { useHomepageRows } from '@/shared/hooks/useHomepageRows'
@@ -24,9 +26,62 @@ function pickFirstDefined(...values) {
   return null
 }
 
+// === WELCOME BANNER ===
+
+function WelcomeBanner({ onDismiss }) {
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0, y: -12 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -12 }}
+        transition={{ duration: 0.4, ease: 'easeOut' }}
+        className="relative mx-4 sm:mx-6 mt-4 rounded-2xl overflow-hidden"
+      >
+        <div
+          className="absolute inset-0"
+          style={{ background: 'linear-gradient(135deg, rgba(88,28,135,0.55) 0%, rgba(168,85,247,0.35) 50%, rgba(219,39,119,0.25) 100%)' }}
+          aria-hidden="true"
+        />
+        <div className="absolute inset-0 border border-purple-400/25 rounded-2xl" aria-hidden="true" />
+        <div className="relative flex items-center gap-4 px-5 py-4">
+          <Sparkles className="h-5 w-5 flex-none text-purple-300" aria-hidden="true" />
+          <p className="flex-1 text-sm font-medium text-white/90 leading-snug">
+            Your taste profile is ready — here&apos;s what we picked for you.
+          </p>
+          <button
+            type="button"
+            onClick={onDismiss}
+            aria-label="Dismiss welcome message"
+            className="flex-none text-white/40 hover:text-white/70 transition-colors text-lg leading-none font-light"
+          >
+            ×
+          </button>
+        </div>
+      </motion.div>
+    </AnimatePresence>
+  )
+}
+
+// === MAIN COMPONENT ===
+
 export default function HomePage() {
   // Outlet context (PostAuthGate / AppShell may provide these)
   const outlet = useOutletContext() || {}
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  // First-run welcome banner — shown once when navigating from onboarding
+  const clearedStateRef = useRef(false)
+  const [showWelcome, setShowWelcome] = useState(() => Boolean(location.state?.fromOnboarding))
+
+  useEffect(() => {
+    if (location.state?.fromOnboarding && !clearedStateRef.current) {
+      clearedStateRef.current = true
+      // Clear state so a refresh doesn't re-show the banner
+      navigate(location.pathname, { replace: true, state: {} })
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const preloadedUser =
     outlet.preloadedUser ||
@@ -68,6 +123,9 @@ export default function HomePage() {
 
   return (
     <div className="overflow-x-hidden" style={{ background: 'var(--color-bg)' }}>
+      {/* First-run welcome banner */}
+      {showWelcome && <WelcomeBanner onDismiss={() => setShowWelcome(false)} />}
+
       {/* HERO (above the fold) */}
       <HeroTopPick
         userId={userId}

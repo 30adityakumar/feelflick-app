@@ -65,10 +65,7 @@ export default function BriefSynthesis({ answers, notes }) {
       <p className="text-[10px] font-semibold uppercase tracking-widest text-purple-400/60 mb-3">
         Your brief
       </p>
-      <h1
-        className="text-xl sm:text-2xl font-light tracking-tight leading-snug bg-gradient-to-r from-white via-white/90 to-purple-200 bg-clip-text text-transparent"
-        style={{ fontFamily: 'var(--font-display, serif)' }}
-      >
+      <h1 className="text-xl sm:text-2xl font-semibold tracking-tight leading-snug text-white/90">
         {synthesis}
       </h1>
     </motion.div>

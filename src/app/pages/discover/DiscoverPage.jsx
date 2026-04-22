@@ -366,7 +366,7 @@ export default function DiscoverPage() {
                     <div
                       key={i}
                       className={`w-1.5 h-1.5 rounded-full transition-colors duration-300 ${
-                        i < progress.answered ? 'bg-purple-400' : 'bg-white/15'
+                        i < progress.answered ? 'bg-purple-400' : 'bg-white/20'
                       }`}
                     />
                   ))}
@@ -450,11 +450,11 @@ export default function DiscoverPage() {
                   <motion.button
                     onClick={handleSubmitBrief}
                     aria-label="Find my films"
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
-                    className="relative px-8 py-3.5 rounded-full text-base font-semibold text-white bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/30 transition-shadow"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="relative px-8 py-3 rounded-full text-base font-bold text-white bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg shadow-purple-500/20 hover:from-purple-400 hover:to-pink-400 transition-all duration-200"
                   >
-                    <span className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 animate-pulse opacity-30 blur-md" />
+                    <span className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 animate-pulse opacity-30 blur-md" aria-hidden="true" />
                     <span className="relative">Find my films</span>
                   </motion.button>
 

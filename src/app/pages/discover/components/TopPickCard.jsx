@@ -150,10 +150,7 @@ export default function TopPickCard({ film, isWatchlisted, isSeen, onOpenDetail,
 
           {/* Title */}
           <button type="button" onClick={handleClick} className="text-left mb-2">
-            <h2
-              className="text-3xl sm:text-4xl font-bold text-white leading-tight tracking-tight hover:text-purple-200 transition-colors"
-              style={{ fontFamily: 'var(--font-display, serif)' }}
-            >
+            <h2 className="text-3xl sm:text-4xl font-black text-white leading-tight tracking-tight hover:text-purple-200 transition-colors">
               {film.title}
             </h2>
           </button>

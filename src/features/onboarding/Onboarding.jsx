@@ -9,33 +9,30 @@ import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { completeOnboarding } from '@/shared/services/onboarding'
 import { SENTIMENT_RATINGS } from '@/app/pages/onboarding/RatingStep'
 
+import CinematicBackdrop from '@/app/pages/onboarding/CinematicBackdrop'
 import GenresStep from '@/app/pages/onboarding/GenresStep'
 import MoviesStep from '@/app/pages/onboarding/MoviesStep'
 import RatingStep from '@/app/pages/onboarding/RatingStep'
 
-const STEP_LABELS = ['Your Genres', 'Your Films', 'Rate One']
 const TOTAL_STEPS = 3
 
-// === PROGRESS INDICATOR ===
+// === PROGRESS BAR ===
+// Three spring-filled segments — no redundant step labels.
 
-function ProgressIndicator({ step }) {
-  const progressPercent = ((step + 1) / TOTAL_STEPS) * 100
-
+function ProgressBar({ step }) {
   return (
-    <div className="flex-none px-6 py-4 border-b border-white/5">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-xs font-semibold text-white/40 uppercase tracking-wider">
-          Step {step + 1} of {TOTAL_STEPS}
-        </span>
-        <span className="text-xs font-semibold text-white/60">
-          {STEP_LABELS[step]}
-        </span>
-      </div>
-      <div className="h-0.5 w-full bg-white/10 rounded-full overflow-hidden">
-        <div
-          className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-700 ease-out"
-          style={{ width: `${progressPercent}%` }}
-        />
+    <div className="flex-none px-6 py-5">
+      <div className="flex items-center gap-2">
+        {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
+          <div key={i} className="h-[3px] flex-1 rounded-full bg-white/10 overflow-hidden">
+            <motion.div
+              className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"
+              initial={{ scaleX: 0, originX: 0 }}
+              animate={{ scaleX: i <= step ? 1 : 0 }}
+              transition={{ type: 'spring', stiffness: 100, damping: 20 }}
+            />
+          </div>
+        ))}
       </div>
     </div>
   )
@@ -53,14 +50,12 @@ export default function Onboarding() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  // Step 0: genre selection
+  // Step 0: genres
   const [selectedGenres, setSelectedGenres] = useState([])
-
-  // Step 1: movie selection
+  // Step 1: films
   const [favoriteMovies, setFavoriteMovies] = useState([])
-
-  // Step 2: rating anchor
-  const [pick, setPick] = useState(null)
+  // Step 2: ratings — { [tmdbId: number]: 9 | 7 | 5 }
+  const [ratings, setRatings] = useState({})
 
   // === AUTH CHECK ===
   useEffect(() => {
@@ -103,9 +98,21 @@ export default function Onboarding() {
   function removeMovie(id) { setFavoriteMovies(prev => prev.filter(m => m.id !== id)) }
 
   // === RATING HELPER ===
+  // Toggling: clicking the same sentiment again clears the rating for that film
   function handleRate(movie, sentiment) {
     const rating = SENTIMENT_RATINGS[sentiment]
-    setPick({ tmdbId: movie.id, sentiment, rating })
+    setRatings(prev => {
+      // Resolve current sentiment key for this film (if any)
+      const current = prev[movie.id]
+      const currentSentiment = current === 9 ? 'loved' : current === 7 ? 'liked' : current === 5 ? 'okay' : null
+      if (currentSentiment === sentiment) {
+        // Same button tapped → clear rating
+        const next = { ...prev }
+        delete next[movie.id]
+        return next
+      }
+      return { ...prev, [movie.id]: rating }
+    })
   }
 
   // === FINISH ===
@@ -114,14 +121,9 @@ export default function Onboarding() {
     setLoading(true)
 
     try {
-      await completeOnboarding({
-        session,
-        selectedGenres,
-        favoriteMovies,
-        ratingPick: pick,
-      })
+      await completeOnboarding({ session, selectedGenres, favoriteMovies, ratings })
 
-      // Check if auth metadata update propagated; force reload if not
+      // Wait for auth metadata to propagate
       await new Promise(resolve => setTimeout(resolve, 500))
       const { data: { session: updatedSession } } = await supabase.auth.getSession()
       if (!updatedSession?.user?.user_metadata?.onboarding_complete) {
@@ -131,7 +133,10 @@ export default function Onboarding() {
 
       setLoading(false)
       setCelebrate(true)
-      setTimeout(() => navigate('/home', { replace: true, state: { fromOnboarding: true } }), 2000)
+      setTimeout(() => navigate('/home', {
+        replace: true,
+        state: { fromOnboarding: true, movieCount: favoriteMovies.length },
+      }), 2000)
     } catch (e) {
       console.error('Onboarding save failed:', e)
       setError(e.message || 'Could not save your preferences. Please try again.')
@@ -172,7 +177,7 @@ export default function Onboarding() {
         <motion.div
           initial={{ opacity: 0, scale: 0.92, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           className="relative text-center px-6"
         >
           <motion.div
@@ -185,7 +190,7 @@ export default function Onboarding() {
           <span className="block text-sm font-bold uppercase tracking-[0.22em] text-purple-400/70 mb-5">
             All set
           </span>
-          <h1 className="text-4xl sm:text-5xl font-black text-white mb-4 leading-tight">
+          <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4 leading-tight tracking-tight">
             Your taste profile<br />
             <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">is ready.</span>
           </h1>
@@ -199,24 +204,21 @@ export default function Onboarding() {
 
   // === MAIN LAYOUT ===
   return (
-    <div className="fixed inset-0 bg-black flex flex-col">
-      {/* Ambient background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 80% 45% at 50% 0%, rgba(88,28,135,0.18) 0%, transparent 65%)' }} />
-        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 60% 40% at 80% 80%, rgba(168,85,247,0.08) 0%, transparent 60%)' }} />
-      </div>
+    <div className="fixed inset-0 flex flex-col">
+      {/* Cinematic backdrop — behind everything */}
+      <CinematicBackdrop />
 
       <div className="relative z-10 flex flex-col h-full max-w-6xl mx-auto w-full">
-        <ProgressIndicator step={step} />
+        <ProgressBar step={step} />
 
         <div className="flex-1 min-h-0 overflow-hidden">
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={step}
-              initial={{ opacity: 0, x: 24 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -24 }}
-              transition={{ duration: 0.22, ease: 'easeOut' }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
               className="h-full"
             >
               {step === 0 && (
@@ -243,9 +245,9 @@ export default function Onboarding() {
               {step === 2 && (
                 <RatingStep
                   favoriteMovies={favoriteMovies}
-                  pick={pick}
+                  ratings={ratings}
                   onRate={handleRate}
-                  onBack={() => { setError(''); setPick(null); setStep(1) }}
+                  onBack={() => { setError(''); setRatings({}); setStep(1) }}
                   onFinish={handleFinish}
                   loading={loading}
                   error={error}

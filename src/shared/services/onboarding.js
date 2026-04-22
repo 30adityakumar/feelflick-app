@@ -91,20 +91,21 @@ async function ensureMovieExists(tmdbMovie) {
  * Write order:
  *   1. user_preferences (genre IDs)
  *   2. user_history (one row per favoriteMovie, source: 'onboarding')
- *   3. user_ratings (one row for the rated film, source: 'onboarding')
+ *   3. user_ratings (one row per rated film, source: 'onboarding')
  *   4. users.onboarding_complete = true
  *   5. auth metadata update
- *   6. computeUserProfileV3 (synchronous — ensures /home has profile on first load)
+ *   6. computeUserProfileV3 (sync — ensures /home has profile on first load)
+ *   7. Verify profile row exists, retry once if missing
  *
  * @param {{
  *   session: import('@supabase/supabase-js').Session,
  *   selectedGenres: number[],
  *   favoriteMovies: object[],
- *   ratingPick: { tmdbId: number, sentiment: string, rating: number } | null,
+ *   ratings: Record<number, number>,
  * }} params
  * @returns {Promise<void>}
  */
-export async function completeOnboarding({ session, selectedGenres, favoriteMovies, ratingPick }) {
+export async function completeOnboarding({ session, selectedGenres, favoriteMovies, ratings }) {
   const user = session?.user
   if (!user?.id) throw new Error('No authenticated user.')
 
@@ -124,12 +125,14 @@ export async function completeOnboarding({ session, selectedGenres, favoriteMovi
     if (prefError) throw new Error('Could not save your genre preferences')
   }
 
-  // 3. Watch history for all favorite films
+  // 3. Watch history for all favorite films (resolve internal IDs in parallel)
+  const internalIdMap = {}
   if (favoriteMovies.length > 0) {
     const movieIdResults = await Promise.all(
       favoriteMovies.map(async (tmdbMovie) => {
         try {
           const internalId = await ensureMovieExists(tmdbMovie)
+          internalIdMap[tmdbMovie.id] = internalId
           return { user_id, movie_id: internalId, watched_at: now, source: 'onboarding', watch_duration_minutes: null, mood_session_id: null }
         } catch (err) {
           console.error(`Failed to process movie ${tmdbMovie.title}:`, err)
@@ -145,21 +148,24 @@ export async function completeOnboarding({ session, selectedGenres, favoriteMovi
     }
   }
 
-  // 4. Rating anchor — one row for the film the user rated
-  if (ratingPick) {
-    const ratedMovie = favoriteMovies.find(m => m.id === ratingPick.tmdbId)
-    if (ratedMovie) {
+  // 4. Ratings — one row per rated film (all films the user assigned a sentiment to)
+  const ratingEntries = Object.entries(ratings || {})
+  if (ratingEntries.length > 0) {
+    for (const [tmdbIdStr, rating] of ratingEntries) {
+      const tmdbId = Number(tmdbIdStr)
+      const movie = favoriteMovies.find(m => m.id === tmdbId)
+      if (!movie) continue
       try {
-        const internalId = ratedMovie.internalId ?? (await ensureMovieExists(ratedMovie))
+        const internalId = internalIdMap[tmdbId] ?? (movie.internalId || await ensureMovieExists(movie))
         await supabase.from('user_ratings').insert({
           user_id,
           movie_id: internalId,
-          rating: ratingPick.rating,
+          rating,
           source: 'onboarding',
         })
       } catch (err) {
-        // Non-fatal — profile will still compute without this row
-        console.warn('Could not save rating anchor:', err)
+        // Non-fatal — profile computes fine without individual rating rows
+        console.warn(`Could not save rating for tmdbId ${tmdbId}:`, err)
       }
     }
   }
@@ -178,8 +184,19 @@ export async function completeOnboarding({ session, selectedGenres, favoriteMovi
   // 7. Compute profile synchronously — /home needs it on first load
   try {
     await computeUserProfileV3(user_id, { forceRefresh: true })
+
+    // Verify the profile row was written; retry once if missing
+    const { data: profile } = await supabase
+      .from('user_profiles_computed')
+      .select('user_id')
+      .eq('user_id', user_id)
+      .maybeSingle()
+
+    if (!profile) {
+      console.warn('Profile row missing after compute — retrying once')
+      await computeUserProfileV3(user_id, { forceRefresh: true })
+    }
   } catch (err) {
-    // Non-fatal — hero will fall back to global pool on first load
     console.warn('Profile computation failed during onboarding:', err)
   }
 
@@ -187,7 +204,6 @@ export async function completeOnboarding({ session, selectedGenres, favoriteMovi
   track('onboarding_completed', {
     genre_count: selectedGenres.length,
     movie_count: favoriteMovies.length,
-    has_rating_anchor: ratingPick !== null,
-    rating_sentiment: ratingPick?.sentiment ?? null,
+    rating_count: ratingEntries.length,
   })
 }

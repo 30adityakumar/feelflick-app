@@ -1,16 +1,11 @@
 // src/app/pages/onboarding/GenresStep.jsx
-import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { ChevronRight } from 'lucide-react'
 
-import { supabase } from '@/shared/lib/supabase/client'
-import { tmdbImg } from '@/shared/api/tmdb'
 import Button from '@/shared/ui/Button'
 
 // === GENRE DEFINITIONS ===
 
-// Maps TMDB genre IDs to display name + DB primary_genre name.
-// "Sci-Fi" displays as "Sci-Fi" but is stored as "Science Fiction" in movies.primary_genre.
 export const GENRES = [
   { id: 28,    name: 'Action',      dbName: 'Action'           },
   { id: 12,    name: 'Adventure',   dbName: 'Adventure'        },
@@ -32,113 +27,39 @@ export const GENRES = [
 
 const MIN_GENRES = 3
 
-// === MODULE-LEVEL POSTER CACHE ===
-// Key: dbName, Value: string[] (poster_path)
-const _posterCache = new Map()
-let _posterFetchPromise = null
+// === ANIMATION VARIANTS ===
 
-async function fetchAllGenrePosters() {
-  if (_posterFetchPromise) return _posterFetchPromise
-  if (_posterCache.size > 0) return
-
-  _posterFetchPromise = (async () => {
-    const dbNames = GENRES.map(g => g.dbName)
-    const { data } = await supabase
-      .from('movies')
-      .select('poster_path, primary_genre')
-      .in('primary_genre', dbNames)
-      .not('ff_audience_rating', 'is', null)
-      .not('poster_path', 'is', null)
-      .order('ff_audience_rating', { ascending: false })
-      .limit(200)
-
-    if (!data) return
-
-    // Group into cache: top 3 per genre
-    for (const genre of GENRES) {
-      const posters = data
-        .filter(m => m.primary_genre === genre.dbName && m.poster_path)
-        .map(m => m.poster_path)
-        .slice(0, 3)
-      _posterCache.set(genre.dbName, posters)
-    }
-  })()
-
-  return _posterFetchPromise
+const containerVariants = {
+  visible: { transition: { staggerChildren: 0.03 } },
 }
 
-// === GENRE CARD ===
+const pillVariants = {
+  hidden: { opacity: 0, scale: 0.88 },
+  visible: { opacity: 1, scale: 1, transition: { duration: 0.22, ease: [0.22, 1, 0.36, 1] } },
+}
 
-function GenreCard({ genre, isSelected, onClick, posters, animDelay }) {
+// === GENRE PILL ===
+
+function GenrePill({ genre, isSelected, onClick }) {
+  const prefersReducedMotion = useReducedMotion()
+
   return (
     <motion.button
       type="button"
       onClick={onClick}
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.22, delay: animDelay }}
+      variants={prefersReducedMotion ? undefined : pillVariants}
       whileTap={{ scale: 0.95 }}
+      animate={isSelected ? { scale: 1.05 } : { scale: 1 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 22 }}
       aria-pressed={isSelected}
       aria-label={genre.name}
-      className={`relative overflow-hidden rounded-2xl aspect-[3/2] w-full cursor-pointer select-none transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
+      className={`w-full rounded-full px-6 py-3 text-sm font-semibold transition-all duration-150 border focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
         isSelected
-          ? 'ring-2 ring-purple-400 scale-[1.03] shadow-lg shadow-purple-500/25'
-          : 'ring-1 ring-white/10 hover:ring-white/25 hover:scale-[1.01]'
+          ? 'bg-gradient-to-r from-purple-500 to-pink-500 border-transparent text-white shadow-lg shadow-purple-500/20'
+          : 'bg-white/5 border-white/10 text-white/80 hover:bg-white/10 hover:border-white/20'
       }`}
     >
-      {/* Poster stack background */}
-      <div className="absolute inset-0 bg-neutral-900">
-        {posters.length > 0 && (
-          <>
-            {posters[2] && (
-              <img
-                src={tmdbImg(posters[2], 'w154')}
-                alt=""
-                aria-hidden="true"
-                className="absolute top-0 right-[-18%] h-full w-[48%] object-cover opacity-40 rotate-6 scale-110"
-              />
-            )}
-            {posters[1] && (
-              <img
-                src={tmdbImg(posters[1], 'w154')}
-                alt=""
-                aria-hidden="true"
-                className="absolute top-0 right-[14%] h-full w-[48%] object-cover opacity-60 rotate-2 scale-105"
-              />
-            )}
-            {posters[0] && (
-              <img
-                src={tmdbImg(posters[0], 'w154')}
-                alt=""
-                aria-hidden="true"
-                className="absolute top-0 left-0 h-full w-[55%] object-cover"
-              />
-            )}
-          </>
-        )}
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/65 to-black/30" />
-        {/* Selected overlay */}
-        {isSelected && (
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-600/30 to-pink-600/20" />
-        )}
-      </div>
-
-      {/* Genre label */}
-      <div className="relative z-10 flex h-full flex-col justify-end p-3">
-        <span className="text-sm font-bold text-white leading-tight tracking-tight">
-          {genre.name}
-        </span>
-      </div>
-
-      {/* Selected checkmark */}
-      {isSelected && (
-        <div className="absolute top-2 right-2 z-20 h-5 w-5 rounded-full bg-purple-500 flex items-center justify-center shadow">
-          <svg viewBox="0 0 10 8" className="h-2.5 w-2.5 fill-none stroke-white stroke-2 stroke-linecap-round stroke-linejoin-round">
-            <path d="M1 4l2.5 2.5L9 1" />
-          </svg>
-        </div>
-      )}
+      {genre.name}
     </motion.button>
   )
 }
@@ -147,60 +68,47 @@ function GenreCard({ genre, isSelected, onClick, posters, animDelay }) {
 
 /**
  * Onboarding step 1: genre selection.
- * Minimum 3 genres required before Continue is enabled.
- *
- * @param {{
- *   selectedGenres: number[],
- *   toggleGenre: (id: number) => void,
- *   onNext: () => void,
- *   firstName: string | null,
- * }} props
+ * @param {{ selectedGenres: number[], toggleGenre: (id: number) => void, onNext: () => void, firstName: string | null }} props
  */
 export default function GenresStep({ selectedGenres, toggleGenre, onNext, firstName }) {
-  const [posters, setPosters] = useState({})
-
-  useEffect(() => {
-    fetchAllGenrePosters().then(() => {
-      const snapshot = {}
-      for (const g of GENRES) {
-        snapshot[g.dbName] = _posterCache.get(g.dbName) || []
-      }
-      setPosters(snapshot)
-    })
-  }, [])
-
+  const prefersReducedMotion = useReducedMotion()
   const count = selectedGenres.length
   const canContinue = count >= MIN_GENRES
 
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="flex-none text-center px-6 pt-8 pb-5">
+      <div className="flex-none px-6 pt-8 pb-5">
         {firstName && (
-          <p className="text-sm font-medium text-white/40 mb-1">Hey {firstName} —</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-purple-400/60 mb-3">
+            Hey {firstName} —
+          </p>
         )}
-        <h2 className="text-2xl sm:text-3xl font-black text-white leading-tight">
-          What kind of films draw you in?
+        <h2 className="text-5xl font-black tracking-tight text-white leading-[1.05]">
+          What draws you in?
         </h2>
-        <p className="text-sm text-white/40 mt-2">
-          Pick at least 3 — we use these to seed your first recommendations.
+        <p className="text-base text-white/60 mt-2 leading-relaxed">
+          Pick 3 or more genres you actually watch.
         </p>
       </div>
 
-      {/* Genre grid */}
-      <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 py-2">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-3xl mx-auto pb-4">
-          {GENRES.map((g, idx) => (
-            <GenreCard
+      {/* Genre pills */}
+      <div className="flex-1 min-h-0 overflow-y-auto px-6 py-2">
+        <motion.div
+          className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-2xl mx-auto pb-4"
+          variants={prefersReducedMotion ? undefined : containerVariants}
+          initial={prefersReducedMotion ? false : 'hidden'}
+          animate="visible"
+        >
+          {GENRES.map((g) => (
+            <GenrePill
               key={g.id}
               genre={g}
               isSelected={selectedGenres.includes(g.id)}
               onClick={() => toggleGenre(g.id)}
-              posters={posters[g.dbName] || []}
-              animDelay={idx * 0.03}
             />
           ))}
-        </div>
+        </motion.div>
       </div>
 
       {/* Footer */}
@@ -215,13 +123,7 @@ export default function GenresStep({ selectedGenres, toggleGenre, onNext, firstN
               ? `${count} selected — pick ${MIN_GENRES - count} more`
               : `${count} selected ✓`}
           </p>
-          <Button
-            variant="primary"
-            size="lg"
-            onClick={onNext}
-            disabled={!canContinue}
-            fullWidth
-          >
+          <Button variant="primary" size="lg" onClick={onNext} disabled={!canContinue} fullWidth>
             Continue
             <ChevronRight className="h-4 w-4" />
           </Button>

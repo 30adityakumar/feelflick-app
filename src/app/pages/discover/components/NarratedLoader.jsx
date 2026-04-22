@@ -70,8 +70,7 @@ export default function NarratedLoader({ resultsReady, onComplete }) {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -12 }}
           transition={{ duration: 0.4 }}
-          className="text-lg sm:text-xl font-light text-white/80 text-center max-w-xl px-6"
-          style={{ fontFamily: 'var(--font-display, serif)' }}
+          className="text-lg sm:text-xl text-white/60 text-center max-w-xl px-6"
         >
           {LINES[currentIndex]}
         </motion.p>

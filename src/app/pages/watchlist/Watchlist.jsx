@@ -214,7 +214,7 @@ export default function Watchlist() {
             {searchQuery && (
               <p className="text-xs text-white/20 mb-4">{filteredMovies.length} of {movies.length} films</p>
             )}
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 sm:gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
               <AnimatePresence>
                 {filteredMovies.map((movie, idx) => (
                   <motion.div
@@ -328,11 +328,11 @@ function MovieCard({ movie, removing, marking, onRemove, onMarkWatched, onClick 
         onClick={e => { e.stopPropagation(); onMarkWatched() }}
         disabled={marking || removing}
         aria-label={`Mark ${movie.title} as watched`}
-        className="absolute top-1.5 left-1.5 z-20 h-6 w-6 rounded-full bg-black/70 border border-white/12 flex items-center justify-center text-white/40 hover:text-purple-400 hover:bg-black/90 hover:border-purple-500/30 transition-all duration-150 opacity-100 md:opacity-0 md:group-hover:opacity-100 disabled:opacity-30"
+        className="absolute top-2 left-2 z-20 h-11 w-11 sm:h-8 sm:w-8 rounded-full bg-black/70 border border-white/12 flex items-center justify-center text-white/40 hover:text-purple-400 hover:bg-black/90 hover:border-purple-500/30 active:scale-90 transition-all duration-150 opacity-100 md:opacity-0 md:group-hover:opacity-100 disabled:opacity-30"
       >
         {marking
-          ? <Loader2 className="h-3 w-3 animate-spin" />
-          : <Check className="h-3 w-3" />}
+          ? <Loader2 className="h-4 w-4 sm:h-3 sm:w-3 animate-spin" />
+          : <Check className="h-4 w-4 sm:h-3 sm:w-3" />}
       </button>
 
       {/* Remove — top right */}
@@ -340,11 +340,11 @@ function MovieCard({ movie, removing, marking, onRemove, onMarkWatched, onClick 
         onClick={e => { e.stopPropagation(); onRemove() }}
         disabled={removing || marking}
         aria-label={`Remove ${movie.title} from watchlist`}
-        className="absolute top-1.5 right-1.5 z-20 h-6 w-6 rounded-full bg-black/70 border border-white/12 flex items-center justify-center text-white/40 hover:text-red-400 hover:bg-black/90 hover:border-red-500/25 transition-all duration-150 opacity-100 md:opacity-0 md:group-hover:opacity-100 disabled:opacity-30"
+        className="absolute top-2 right-2 z-20 h-11 w-11 sm:h-8 sm:w-8 rounded-full bg-black/70 border border-white/12 flex items-center justify-center text-white/40 hover:text-red-400 hover:bg-black/90 hover:border-red-500/25 active:scale-90 transition-all duration-150 opacity-100 md:opacity-0 md:group-hover:opacity-100 disabled:opacity-30"
       >
         {removing
-          ? <Loader2 className="h-3 w-3 animate-spin" />
-          : <Trash2 className="h-3 w-3" />}
+          ? <Loader2 className="h-4 w-4 sm:h-3 sm:w-3 animate-spin" />
+          : <Trash2 className="h-4 w-4 sm:h-3 sm:w-3" />}
       </button>
     </div>
   )

@@ -150,10 +150,7 @@ export default function TopPickCard({ film, isWatchlisted, isSeen, onOpenDetail,
 
           {/* Title */}
           <button type="button" onClick={handleClick} className="text-left mb-2">
-            <h2
-              className="text-3xl sm:text-4xl font-bold text-white leading-tight tracking-tight hover:text-purple-200 transition-colors"
-              style={{ fontFamily: 'var(--font-display, serif)' }}
-            >
+            <h2 className="text-3xl sm:text-4xl font-black text-white leading-tight tracking-tight hover:text-purple-200 transition-colors">
               {film.title}
             </h2>
           </button>
@@ -189,6 +186,7 @@ export default function TopPickCard({ film, isWatchlisted, isSeen, onOpenDetail,
               size="sm"
               onClick={handleClick}
               aria-label={`View details for ${film.title}`}
+              className="min-h-[44px] sm:min-h-0"
             >
               <Play className="h-3.5 w-3.5" />
               Details
@@ -199,6 +197,7 @@ export default function TopPickCard({ film, isWatchlisted, isSeen, onOpenDetail,
               onClick={() => onAddWatchlist(film)}
               disabled={isWatchlisted}
               aria-label={isWatchlisted ? `${film.title} added to watchlist` : `Add ${film.title} to watchlist`}
+              className="min-h-[44px] sm:min-h-0"
             >
               {isWatchlisted ? <BookmarkCheck className="h-3.5 w-3.5" /> : <Bookmark className="h-3.5 w-3.5" />}
               {isWatchlisted ? 'Added' : 'Watchlist'}
@@ -209,6 +208,7 @@ export default function TopPickCard({ film, isWatchlisted, isSeen, onOpenDetail,
               onClick={() => onMarkSeen(film)}
               disabled={isSeen}
               aria-label={isSeen ? `${film.title} marked as seen` : `Mark ${film.title} as seen`}
+              className="min-h-[44px] sm:min-h-0"
             >
               {isSeen ? <Eye className="h-3.5 w-3.5" /> : <Check className="h-3.5 w-3.5" />}
               {isSeen ? 'Seen' : 'Seen it'}

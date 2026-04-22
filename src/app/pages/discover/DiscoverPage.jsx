@@ -17,6 +17,7 @@ import { useRecommendationTracking } from '@/shared/hooks/useRecommendationTrack
 import { useRecommendations } from '@/shared/hooks/useRecommendations'
 import { useNLMoodParse } from '@/shared/hooks/useNLMoodParse'
 import { unpackVibe } from '@/shared/services/brief-scoring'
+import { track } from '@/shared/services/analytics'
 import Button from '@/shared/ui/Button'
 
 import { useDiscoverTracking } from './hooks/useDiscoverTracking'
@@ -213,6 +214,29 @@ export default function DiscoverPage() {
     briefForEngine,
   )
 
+  // Track discover_started when the user first picks a feeling
+  const prevFeelingRef = useRef(null)
+  useEffect(() => {
+    if (feeling && !prevFeelingRef.current) {
+      track('discover_started', { feeling, mood_id: moodId })
+    }
+    prevFeelingRef.current = feeling
+  }, [feeling, moodId])
+
+  // Track discover_completed when results phase begins
+  const prevPhaseRef = useRef('briefing')
+  useEffect(() => {
+    if (phase === 'results' && prevPhaseRef.current !== 'results') {
+      track('discover_completed', {
+        feeling,
+        mood_id: moodId,
+        is_surprise_me: isSurpriseMe,
+        result_count: recommendations.length,
+      })
+    }
+    prevPhaseRef.current = phase
+  }, [phase]) // eslint-disable-line react-hooks/exhaustive-deps
+
   // Keep abandonment ref in sync
   useEffect(() => {
     abandonmentStateRef.current = { phase, moodId }
@@ -223,6 +247,7 @@ export default function DiscoverPage() {
     return () => {
       const { phase: p, moodId: m } = abandonmentStateRef.current
       if (p === 'results') return
+      track('discover_abandoned', { mood_id: m, reached_stage: p })
       supabase.from('mood_session_abandoned').insert({
         user_id:          userId ?? null,
         selected_mood_id: m ?? null,
@@ -288,6 +313,7 @@ export default function DiscoverPage() {
 
   /** "Surprise me" — bypass brief, day-rotated profile-driven picks. */
   function handleSurpriseMe() {
+    track('surprise_me_clicked')
     setPhase('loading')
     setIsSurpriseMe(true)
     startTransition(() => {
@@ -340,7 +366,7 @@ export default function DiscoverPage() {
                     <div
                       key={i}
                       className={`w-1.5 h-1.5 rounded-full transition-colors duration-300 ${
-                        i < progress.answered ? 'bg-purple-400' : 'bg-white/15'
+                        i < progress.answered ? 'bg-purple-400' : 'bg-white/20'
                       }`}
                     />
                   ))}
@@ -424,11 +450,11 @@ export default function DiscoverPage() {
                   <motion.button
                     onClick={handleSubmitBrief}
                     aria-label="Find my films"
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
-                    className="relative px-8 py-3.5 rounded-full text-base font-semibold text-white bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/30 transition-shadow"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="relative px-8 py-3 rounded-full text-base font-bold text-white bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg shadow-purple-500/20 hover:from-purple-400 hover:to-pink-400 transition-all duration-200"
                   >
-                    <span className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 animate-pulse opacity-30 blur-md" />
+                    <span className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 animate-pulse opacity-30 blur-md" aria-hidden="true" />
                     <span className="relative">Find my films</span>
                   </motion.button>
 

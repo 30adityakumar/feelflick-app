@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useVirtualization } from '../hooks/useVirtualization'
 import { useMovieCardHover } from '../hooks/useMovieCardHover'
 import { MovieCard } from '../CardContent/MovieCard'
+import { track } from '@/shared/services/analytics'
 
 export { CARD_EXPAND_DELAY_MS } from '../hooks/useMovieCardHover'
 
@@ -107,6 +108,8 @@ export const CarouselRow = memo(function CarouselRow({
   })
 
   const rafScrollRef = useRef(null)
+  const scrollTrackTimerRef = useRef(null)
+
   const updateScrollState = useCallback(() => {
     // Always defer to after paint — measuring during layout gives stale/zero dimensions
     if (rafScrollRef.current) cancelAnimationFrame(rafScrollRef.current)
@@ -150,7 +153,12 @@ export const CarouselRow = memo(function CarouselRow({
   const handleScrollArea = useCallback(() => {
     updateScrollState()  // already RAF-deferred inside
     hover.closeNow()
-  }, [hover, updateScrollState])
+    // Debounced row_scrolled — fires once per scroll gesture, 500ms after last event
+    if (scrollTrackTimerRef.current) clearTimeout(scrollTrackTimerRef.current)
+    scrollTrackTimerRef.current = setTimeout(() => {
+      track('row_scrolled', { row_title: typeof title === 'string' ? title : undefined })
+    }, 500)
+  }, [hover, title, updateScrollState])
 
   const activeId = hover.openId ?? hover.intentId
   const activeExpandedIndex = useMemo(
@@ -327,6 +335,7 @@ export const CarouselRow = memo(function CarouselRow({
                 onCardLeave={hover.handleCardLeave}
                 onCardFocus={hover.handleCardFocus}
                 onCardBlur={hover.handleCardBlur}
+                rowTitle={typeof title === 'string' ? title : undefined}
                 {...props}
               />
             )

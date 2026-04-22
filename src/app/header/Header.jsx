@@ -205,7 +205,7 @@ export default function Header({ onOpenSearch }) {
 
                 {/* Dropdown panel */}
                 {dropdownOpen && (
-                  <div className="absolute right-0 mt-2.5 w-56 rounded-2xl bg-black/95 border border-white/10 shadow-2xl shadow-black/60 backdrop-blur-xl overflow-hidden z-50"
+                  <div className="absolute right-0 mt-2.5 w-[min(14rem,calc(100vw-1rem))] rounded-2xl bg-black/95 border border-white/10 shadow-2xl shadow-black/60 backdrop-blur-xl overflow-hidden z-50"
                     style={{ animation: 'dropdownIn 0.15s ease-out' }}
                   >
                     {/* Top accent line */}

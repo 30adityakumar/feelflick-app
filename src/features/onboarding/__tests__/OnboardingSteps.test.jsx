@@ -114,8 +114,8 @@ function MoviesFooter({ count, onFinish }) {
   return (
     <div>
       <p>{count === 0 ? 'Select at least 5 films to continue' : count < 5 ? `${count} selected — pick ${5 - count} more` : `${count} selected ✓`}</p>
-      <button onClick={onFinish} disabled={!canFinish} aria-label="See my recommendations">
-        See my recommendations
+      <button onClick={onFinish} disabled={!canFinish} aria-label="Continue">
+        Continue
       </button>
     </div>
   )
@@ -124,28 +124,28 @@ function MoviesFooter({ count, onFinish }) {
 describe('MoviesStep — 5-film minimum', () => {
   it('CTA is disabled with 0 films selected', () => {
     render(<MoviesFooter count={0} onFinish={vi.fn()} />)
-    expect(screen.getByRole('button', { name: /see my recommendations/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /continue/i })).toBeDisabled()
   })
 
   it('CTA is disabled with 4 films selected', () => {
     render(<MoviesFooter count={4} onFinish={vi.fn()} />)
-    expect(screen.getByRole('button', { name: /see my recommendations/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /continue/i })).toBeDisabled()
   })
 
   it('CTA is enabled with exactly 5 films selected', () => {
     render(<MoviesFooter count={5} onFinish={vi.fn()} />)
-    expect(screen.getByRole('button', { name: /see my recommendations/i })).not.toBeDisabled()
+    expect(screen.getByRole('button', { name: /continue/i })).not.toBeDisabled()
   })
 
   it('CTA is enabled with more than 5 films selected', () => {
     render(<MoviesFooter count={8} onFinish={vi.fn()} />)
-    expect(screen.getByRole('button', { name: /see my recommendations/i })).not.toBeDisabled()
+    expect(screen.getByRole('button', { name: /continue/i })).not.toBeDisabled()
   })
 
   it('calls onFinish when CTA clicked with enough films', () => {
     const onFinish = vi.fn()
     render(<MoviesFooter count={5} onFinish={onFinish} />)
-    fireEvent.click(screen.getByRole('button', { name: /see my recommendations/i }))
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }))
     expect(onFinish).toHaveBeenCalled()
   })
 })
@@ -170,8 +170,8 @@ describe('RatingStep — SENTIMENT_RATINGS mapping', () => {
   })
 })
 
-function RatingFooter({ pick, onFinish, loading = false }) {
-  const canFinish = pick !== null
+function RatingFooter({ ratings, onFinish, loading = false }) {
+  const canFinish = Object.keys(ratings).length >= 1
   return (
     <div>
       <button onClick={onFinish} disabled={!canFinish || loading} aria-label="See my recommendations">
@@ -182,27 +182,29 @@ function RatingFooter({ pick, onFinish, loading = false }) {
 }
 
 describe('RatingStep — finish gate', () => {
-  it('CTA is disabled when no pick is made', () => {
-    render(<RatingFooter pick={null} onFinish={vi.fn()} />)
+  it('CTA is disabled when no films are rated', () => {
+    render(<RatingFooter ratings={{}} onFinish={vi.fn()} />)
     expect(screen.getByRole('button', { name: /see my recommendations/i })).toBeDisabled()
   })
 
-  it('CTA is enabled once a sentiment is picked', () => {
-    const pick = { tmdbId: 123, sentiment: 'loved', rating: 9 }
-    render(<RatingFooter pick={pick} onFinish={vi.fn()} />)
+  it('CTA is enabled once one film is rated', () => {
+    render(<RatingFooter ratings={{ 123: 9 }} onFinish={vi.fn()} />)
     expect(screen.getByRole('button', { name: /see my recommendations/i })).not.toBeDisabled()
   })
 
-  it('CTA is disabled while loading even if pick is set', () => {
-    const pick = { tmdbId: 123, sentiment: 'liked', rating: 7 }
-    render(<RatingFooter pick={pick} onFinish={vi.fn()} loading={true} />)
+  it('CTA is enabled with multiple films rated', () => {
+    render(<RatingFooter ratings={{ 123: 9, 456: 7, 789: 5 }} onFinish={vi.fn()} />)
+    expect(screen.getByRole('button', { name: /see my recommendations/i })).not.toBeDisabled()
+  })
+
+  it('CTA is disabled while loading even if films are rated', () => {
+    render(<RatingFooter ratings={{ 123: 7 }} onFinish={vi.fn()} loading={true} />)
     expect(screen.getByRole('button', { name: /see my recommendations/i })).toBeDisabled()
   })
 
-  it('calls onFinish when CTA clicked', () => {
+  it('calls onFinish when CTA clicked with a rating', () => {
     const onFinish = vi.fn()
-    const pick = { tmdbId: 456, sentiment: 'okay', rating: 5 }
-    render(<RatingFooter pick={pick} onFinish={onFinish} />)
+    render(<RatingFooter ratings={{ 456: 5 }} onFinish={onFinish} />)
     fireEvent.click(screen.getByRole('button', { name: /see my recommendations/i }))
     expect(onFinish).toHaveBeenCalled()
   })
@@ -260,7 +262,7 @@ describe('completeOnboarding — service writes', () => {
       session: MOCK_SESSION,
       selectedGenres: [28, 18, 53],
       favoriteMovies: MOCK_MOVIES,
-      ratingPick: { tmdbId: 1, sentiment: 'loved', rating: 9 },
+      ratings: { 1: 9 },
     })
 
     expect(computeUserProfileV3).toHaveBeenCalledWith('user-123', { forceRefresh: true })
@@ -271,7 +273,7 @@ describe('completeOnboarding — service writes', () => {
       session: MOCK_SESSION,
       selectedGenres: [28],
       favoriteMovies: MOCK_MOVIES,
-      ratingPick: null,
+      ratings: {},
     })
 
     expect(supabase.auth.updateUser).toHaveBeenCalledWith({
@@ -279,33 +281,31 @@ describe('completeOnboarding — service writes', () => {
     })
   })
 
-  it('tracks onboarding_completed with correct properties', async () => {
+  it('tracks onboarding_completed with correct properties when films are rated', async () => {
     await completeOnboarding({
       session: MOCK_SESSION,
       selectedGenres: [28, 18, 53],
       favoriteMovies: MOCK_MOVIES,
-      ratingPick: { tmdbId: 1, sentiment: 'liked', rating: 7 },
+      ratings: { 1: 9, 2: 7 },
     })
 
     expect(track).toHaveBeenCalledWith('onboarding_completed', expect.objectContaining({
       genre_count: 3,
       movie_count: 5,
-      has_rating_anchor: true,
-      rating_sentiment: 'liked',
+      rating_count: 2,
     }))
   })
 
-  it('tracks has_rating_anchor: false when no pick given', async () => {
+  it('tracks rating_count: 0 when no films are rated', async () => {
     await completeOnboarding({
       session: MOCK_SESSION,
       selectedGenres: [28],
       favoriteMovies: MOCK_MOVIES,
-      ratingPick: null,
+      ratings: {},
     })
 
     expect(track).toHaveBeenCalledWith('onboarding_completed', expect.objectContaining({
-      has_rating_anchor: false,
-      rating_sentiment: null,
+      rating_count: 0,
     }))
   })
 
@@ -315,7 +315,7 @@ describe('completeOnboarding — service writes', () => {
         session: { user: null },
         selectedGenres: [],
         favoriteMovies: [],
-        ratingPick: null,
+        ratings: {},
       })
     ).rejects.toThrow('No authenticated user')
   })

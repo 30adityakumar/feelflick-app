@@ -1,6 +1,6 @@
 // src/app/pages/onboarding/RatingStep.jsx
 import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { ChevronLeft } from 'lucide-react'
 
 import { tmdbImg } from '@/shared/api/tmdb'
@@ -14,26 +14,25 @@ export const SENTIMENT_RATINGS = {
 }
 
 const SENTIMENTS = [
-  { key: 'loved', label: '❤️ Loved it',   rating: 9, color: 'from-purple-500 to-pink-500'    },
-  { key: 'liked', label: '👍 Liked it',   rating: 7, color: 'from-purple-400/60 to-blue-400/60' },
-  { key: 'okay',  label: '😐 It was okay', rating: 5, color: 'from-white/10 to-white/5'        },
+  { key: 'loved', label: '❤️ Loved it',    gradient: 'from-purple-500 to-pink-500'       },
+  { key: 'liked', label: '👍 Liked it',    gradient: 'from-purple-400/70 to-blue-400/70'  },
+  { key: 'okay',  label: '😐 It was okay', gradient: 'from-white/15 to-white/5'           },
 ]
 
-/**
- * A film card with three sentiment buttons.
- * Only one film + one sentiment can be active at a time.
- */
-function FilmRatingCard({ movie, pick, onRate, isSelected }) {
+// === FILM CARD ===
+
+function FilmRatingCard({ movie, activeSentiment, onRate }) {
   const [posterLoaded, setPosterLoaded] = useState(false)
+  const prefersReducedMotion = useReducedMotion()
   const year = movie.release_date ? new Date(movie.release_date).getFullYear() : null
+  const isRated = activeSentiment != null
 
   return (
-    <motion.div
-      layout
-      className={`flex-none w-36 sm:w-40 rounded-2xl overflow-hidden transition-all duration-200 ${
-        isSelected ? 'ring-2 ring-purple-400 shadow-lg shadow-purple-500/20' : 'ring-1 ring-white/10'
-      }`}
-    >
+    <div className={`flex-none w-44 sm:w-48 rounded-2xl overflow-hidden transition-shadow duration-200 ${
+      isRated
+        ? 'ring-2 ring-purple-400 shadow-[0_0_24px_rgba(168,85,247,0.4)]'
+        : 'ring-1 ring-white/10'
+    }`}>
       {/* Poster */}
       <div className="relative aspect-[2/3]">
         {!posterLoaded && <div className="absolute inset-0 bg-white/[0.04] animate-pulse" />}
@@ -41,48 +40,53 @@ function FilmRatingCard({ movie, pick, onRate, isSelected }) {
           src={tmdbImg(movie.poster_path, 'w342')}
           alt={movie.title}
           loading="eager"
-          className={`w-full h-full object-cover transition-opacity duration-300 ${posterLoaded ? 'opacity-100' : 'opacity-0'}`}
+          className={`w-full h-full object-cover transition-all duration-300 ${posterLoaded ? 'opacity-100' : 'opacity-0'} ${isRated ? 'brightness-75' : ''}`}
           onLoad={() => setPosterLoaded(true)}
         />
-        <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent px-2 pt-6 pb-2">
-          <p className="text-[11px] font-bold text-white leading-tight line-clamp-2">{movie.title}</p>
+        {isRated && <div className="absolute inset-0 bg-purple-600/15" />}
+        <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/95 via-black/50 to-transparent px-2.5 pt-8 pb-2.5">
+          <p className="text-[11px] font-semibold text-white leading-tight line-clamp-2">{movie.title}</p>
           {year && <p className="text-[10px] text-white/40 mt-0.5">{year}</p>}
         </div>
       </div>
 
       {/* Sentiment buttons */}
-      <div className="bg-neutral-900 p-2 flex flex-col gap-1.5">
-        {SENTIMENTS.map(({ key, label, color }) => {
-          const isActive = pick?.tmdbId === movie.id && pick?.sentiment === key
+      <div className="bg-neutral-900/80 p-2 flex flex-col gap-1.5">
+        {SENTIMENTS.map(({ key, label, gradient }) => {
+          const isActive = activeSentiment === key
           return (
-            <button
+            <motion.button
               key={key}
               type="button"
               onClick={() => onRate(movie, key)}
               aria-pressed={isActive}
-              className={`w-full rounded-lg px-2 py-1.5 text-[10px] sm:text-[11px] font-semibold text-white text-left transition-all duration-150 active:scale-95 ${
+              whileTap={prefersReducedMotion ? undefined : { scale: 0.94 }}
+              animate={isActive ? { scale: [1, 1.04, 1] } : { scale: 1 }}
+              transition={isActive ? { duration: 0.2 } : {}}
+              className={`w-full rounded-lg px-2.5 py-1.5 text-[11px] sm:text-[12px] font-semibold text-white text-left transition-all duration-150 ${
                 isActive
-                  ? `bg-gradient-to-r ${color} shadow`
-                  : 'bg-white/[0.06] hover:bg-white/[0.12]'
+                  ? `bg-gradient-to-r ${gradient} shadow`
+                  : 'bg-white/[0.07] hover:bg-white/[0.13]'
               }`}
             >
               {label}
-            </button>
+            </motion.button>
           )
         })}
       </div>
-    </motion.div>
+    </div>
   )
 }
 
+// === MAIN COMPONENT ===
+
 /**
  * Onboarding step 3: rating anchor.
- * User picks ONE of their 5 films and rates it with a sentiment.
- * This single rating becomes the strongest signal for first-run recommendations.
+ * User can rate any or all of their 5 films. Min 1 required to continue.
  *
  * @param {{
  *   favoriteMovies: object[],
- *   pick: { tmdbId: number, sentiment: string, rating: number } | null,
+ *   ratings: Record<number, number>,
  *   onRate: (movie: object, sentiment: string) => void,
  *   onBack: () => void,
  *   onFinish: () => void,
@@ -90,8 +94,9 @@ function FilmRatingCard({ movie, pick, onRate, isSelected }) {
  *   error: string,
  * }} props
  */
-export default function RatingStep({ favoriteMovies, pick, onRate, onBack, onFinish, loading, error }) {
-  const canFinish = pick !== null
+export default function RatingStep({ favoriteMovies, ratings, onRate, onBack, onFinish, loading, error }) {
+  const ratedCount = Object.keys(ratings).length
+  const canFinish = ratedCount >= 1
 
   return (
     <div className="h-full flex flex-col">
@@ -105,11 +110,11 @@ export default function RatingStep({ favoriteMovies, pick, onRate, onBack, onFin
           <ChevronLeft className="h-4 w-4" />
           Back
         </button>
-        <h2 className="text-2xl sm:text-3xl font-black text-white leading-tight">
-          Rate the one you loved most.
+        <h2 className="text-5xl font-black tracking-tight text-white leading-[1.05]">
+          Which ones hit?
         </h2>
-        <p className="text-sm text-white/40 mt-2 leading-relaxed">
-          One rating is all it takes — we&apos;ll use it to tune your first recommendations.
+        <p className="text-base text-white/60 mt-2 leading-relaxed">
+          Rate at least one — the more you rate, the sharper we tune.
         </p>
       </div>
 
@@ -127,25 +132,28 @@ export default function RatingStep({ favoriteMovies, pick, onRate, onBack, onFin
               <FilmRatingCard
                 key={movie.id}
                 movie={movie}
-                pick={pick}
+                activeSentiment={(() => {
+                  const r = ratings[movie.id]
+                  if (r == null) return null
+                  return r === 9 ? 'loved' : r === 7 ? 'liked' : 'okay'
+                })()}
                 onRate={onRate}
-                isSelected={pick?.tmdbId === movie.id}
               />
             ))}
           </AnimatePresence>
         </div>
 
-        {/* Selected state summary */}
+        {/* Status line */}
         <AnimatePresence>
-          {pick && (
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
+          {ratedCount > 0 && (
+            <motion.p
+              initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 8 }}
+              exit={{ opacity: 0, y: 6 }}
               className="mt-2 mb-4 text-center text-sm text-purple-300/80"
             >
-              Using <strong className="text-white">{favoriteMovies.find(m => m.id === pick.tmdbId)?.title}</strong> as your taste anchor ✓
-            </motion.div>
+              {ratedCount} rated ✓ — rate as many as you like
+            </motion.p>
           )}
         </AnimatePresence>
       </div>
@@ -155,7 +163,7 @@ export default function RatingStep({ favoriteMovies, pick, onRate, onBack, onFin
         <div className="max-w-sm mx-auto flex flex-col items-center gap-3">
           {!canFinish && (
             <p className="text-xs font-medium text-white/30">
-              Tap a sentiment on any film to continue
+              Rate at least one film to continue
             </p>
           )}
           <Button

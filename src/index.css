@@ -27,6 +27,7 @@
   --muted: #b0bec5;        /* Muted text — WCAG AA ≥4.5:1 on all app surfaces */
   --color-bg: #000000;
   --color-surface: #120d1c;
+  --color-primary: var(--purple-500); /* brand primary — purple, not amber */
   --color-text: var(--text);
   --color-text-muted: rgba(248, 250, 252, 0.76);
   --color-text-faint: rgba(248, 250, 252, 0.52);

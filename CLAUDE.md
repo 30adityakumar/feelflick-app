@@ -1,5 +1,14 @@
 # FeelFlick — Claude Code Guide
 
+## What is FeelFlick
+
+Mood-first movie discovery. Users say how they feel. We return films —
+not what's trending, what's right for them right now.
+
+Every surface, every doc, every feature serves this one sentence. If a
+change doesn't make mood-to-film clearer, faster, or more personal —
+it's not the priority.
+
 ## Project
 Mood-first movie/TV discovery. Users express how they feel → get curated recommendations.
 **Quality bar:** Netflix / Apple TV+ polish. Every surface is production-facing.

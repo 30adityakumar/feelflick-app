@@ -1,5 +1,14 @@
 # FeelFlick — Claude Code Guide
 
+## What is FeelFlick
+
+Mood-first movie discovery. Users say how they feel. We return films —
+not what's trending, what's right for them right now.
+
+Every surface, every doc, every feature serves this one sentence. If a
+change doesn't make mood-to-film clearer, faster, or more personal —
+it's not the priority.
+
 ## Project
 Mood-first movie/TV discovery. Users express how they feel → get curated recommendations.
 **Quality bar:** Netflix / Apple TV+ polish. Every surface is production-facing.
@@ -74,12 +83,12 @@ npm run build        # Production build
      verification step, not leave it to you. -->
 
 ## UI & Design System
-Dark-first. Cinema palette. Surfaces: `bg-neutral-950` (deep) · `bg-neutral-900` (card).
-Accent: `purple-500` / `purple-400` gradients into `pink-500`. Ratings: `yellow-400`.
-Glass tint: `bg-purple-500/10 border-purple-400/25`. Ambient glow: `radial-gradient(ellipse, rgba(88,28,135,0.35), transparent)`.
-Skeletons: `animate-pulse bg-purple-500/[0.04]`. **Never spinners.**
-Fonts: `Playfair Display` (display, 24px+) · `Satoshi` (body) · `JetBrains Mono` (meta).
+Dark-first. Cinema palette. Surfaces: `bg-black` (page base) · `bg-white/5` (card) · `bg-neutral-900` (legacy, avoid on new surfaces).
+Accent: `from-purple-500 to-pink-500` (brand gradient — 500→500, not 400→500). Ratings: `yellow-400`.
+Glass tint: `bg-purple-500/10 border-purple-400/25`. Skeletons: `animate-pulse bg-purple-500/[0.04]`. **Never spinners.**
+Fonts: `Playfair Display` (display, 24px+, sparingly) · `Inter` (body/UI) · `JetBrains Mono` (meta). `Satoshi` is NOT installed — do not reference it.
 Transitions: 280ms cubic-bezier(0.4,0,0.2,1) standard · 450ms spring for dramatic.
+See **Brand Surface — The Law** below for the authoritative token spec.
 
 ### MovieCard Hover — THE LAW
 Three files own card hover. Read all three before touching any:
@@ -101,6 +110,97 @@ Overflow fix: scroll container needs `overflow-x: auto; overflow-y: visible` —
 <h2 className="text-[1.05rem] sm:text-[1.15rem] font-bold text-white tracking-tight whitespace-nowrap">{title}</h2>
 <div className="h-px flex-1 bg-gradient-to-r from-purple-400/20 via-white/5 to-transparent" />
 ```
+
+## Brand Surface — The Law
+
+Every user-facing surface must match the landing page. When in doubt,
+open `src/features/landing/sections/HeroSection.jsx` and match it exactly.
+
+### Fonts (actual, not aspirational)
+- Body/UI: `Inter` (system fallback chain defined in index.css)
+- Display (headlines ≥24px): `Playfair Display` — SPARINGLY, only when the landing page uses it
+- Monospace: `JetBrains Mono` — meta labels only
+- **Removed from spec**: `Satoshi` is NOT installed. Do not reference it.
+
+### Headlines (copy the landing exactly)
+- Weight: `font-black`
+- Tracking: `tracking-tight`
+- Leading: `leading-[1.05]` for hero-scale, `leading-tight` for section
+- Size scale (clamp-based, landing-proven):
+  - Hero: `clamp(2.75rem, 7vw, 5rem)`
+  - Section: `clamp(2.25rem, 6vw, 3.75rem)`
+  - Sub-section: `clamp(1.5rem, 3.5vw, 2.25rem)`
+
+### Brand gradient (the single source of truth)
+- Tailwind: `bg-gradient-to-r from-purple-500 to-pink-500`
+- For text: add `bg-clip-text text-transparent`
+- For shadow: `shadow-lg shadow-purple-500/20`
+- Hover: `hover:brightness-110 hover:scale-[1.02]`
+- Active: `active:scale-[0.97]`
+- Transition: `transition-all duration-200`
+- **Never** invent per-vibe or per-genre gradients. One brand gradient, always.
+
+### Primary CTA (copy from HeroSection.jsx verbatim)
+- Shape: `rounded-full`
+- Padding: `px-10 py-[0.875rem]`
+- Gradient: brand gradient above
+- Type: `text-white font-semibold text-[0.9375rem]`
+- Shadow: `shadow-lg shadow-purple-500/20`
+- Motion: hover brightness/scale, active scale, 200ms
+
+### Secondary CTA (ghost)
+- Shape: `rounded-full`
+- Background: transparent
+- Border: `border border-white/15`
+- Hover: `hover:border-white/30 hover:bg-white/5`
+- Type: `text-white/80 font-medium`
+
+### Text color hierarchy (landing uses this exact ladder)
+- Primary: `text-white`
+- Secondary: `text-white/60`
+- Tertiary/micro: `text-white/40`
+- Quaternary: `text-white/20`
+- **Do not** use `text-neutral-400`, `text-gray-500`, etc.
+
+### Surface backgrounds
+- Page base: `bg-black` (not `bg-neutral-950` — landing uses pure black)
+- Ambient glow (when content feels flat):
+  `radial-gradient(ellipse 100% 55% at 50% -5%, rgba(88,28,135,0.50) 0%, transparent 70%)`
+- Card surface: `bg-white/5` with `border border-white/10`
+- Hover card: `bg-white/10`
+
+### Motion (match landing's Framer Motion defaults)
+- Entrance: `initial={{ opacity: 0, y: 18 }}` → `whileInView={{ opacity: 1, y: 0 }}`
+- Duration: 0.45–0.5s
+- Stagger: 0.08s delay between siblings
+- Always respect `prefers-reduced-motion`
+- Viewport: `{ once: true, margin: '-60px' }`
+
+### Approved copy (do not drift)
+- Hero headline: "Tell us how you feel. We'll find the film."
+- Hero sub: "Not what's trending. Not what's popular. The film that's right for you, right now."
+- Hero CTA: "Get My Recommendations"
+- Final CTA headline: "Somewhere in 6,700 films is one made for you. Tonight."
+- Final CTA button: "Find Tonight's Film"
+- **Flag discrepancy**: `FinalCTASection.jsx` still renders "Stop Scrolling. Start Watching." — this is stale. Fix when touching the file.
+
+### What NOT to do (bugs caught in past PRs)
+- ❌ Do not use `font-serif` / Fraunces anywhere (Onboarding polish attempt introduced this — removed)
+- ❌ Do not invent per-category gradients (Discover vibe cards introduced this — removed)
+- ❌ Do not hardcode hex colors — use Tailwind tokens or CSS vars
+- ❌ Do not use `text-neutral-*` or `text-gray-*` — use `text-white/*`
+- ❌ Do not use spinners — use `animate-pulse` skeletons
+- ❌ Do not add new font imports without updating this section
+
+### When building a new surface
+1. Open `HeroSection.jsx` and `FinalCTASection.jsx` side by side
+2. Copy the gradient, CTA, and type patterns verbatim
+3. Run `grep -r "from-purple-500 to-pink-500" src/features/landing` to find all brand-gradient usages — reuse, don't reinvent
+4. Before PR: screenshot your surface next to landing hero. If they look like different products, fix yours.
+
+<!-- DECISION: src/index.css and src/styles/tokens.css define two competing palettes.
+     Neither is currently authoritative. Future task: keep tokens.css (cleaner),
+     migrate index.css to import from it, delete the duplicate palette. -->
 
 ## Planning Behaviour (never skip)
 Before writing any code for a task touching 3+ files:

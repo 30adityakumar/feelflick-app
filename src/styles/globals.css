@@ -1,92 +1,69 @@
 /* ==========================================================================
    FeelFlick Global Styles
-   Imports design tokens, sets body defaults, and defines typography classes.
-   Does NOT override any component-level styles — components migrate one at a time.
+   Motion tokens, base resets, accessibility. Typography via Tailwind.
+   See CLAUDE.md "Brand Surface — The Law" for the full design spec.
    ========================================================================== */
 
 @import './tokens.css';
+@import './animations.css';
 
-/* === BODY DEFAULTS === */
+/* === Base resets === */
+
+html {
+  color-scheme: dark;
+  background: #000;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  overflow-x: hidden;
+}
+
+* {
+  box-sizing: border-box;
+}
 
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: var(--bg-base);
-  color: var(--text-primary);
   font-family: Inter, 'SF Pro Display', -apple-system, system-ui, sans-serif;
 }
 
-/* === TYPOGRAPHY CLASSES ===
-   Source: docs/DESIGN_SYSTEM.md § 6 — Typography Scale
-   Applied with .text-{level} utility classes — additive, never override component styles.
+/* === Scrollbar === */
 
-   Cinematic conventions applied:
-   - Tighter letter-spacing on large display sizes (-0.02em)
-   - Generous line-height on body text (1.5)
-   - Optical weight correction: body text at font-weight 400 reads bolder on dark
-     backgrounds (Überstrahlung), so weights stay one step lighter than on light themes
-*/
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: #000; }
+::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; border: 2px solid #000; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-.text-display {
-  font-size: 72px;
-  line-height: 1.0;
-  letter-spacing: -0.02em;
-  font-weight: 700;
+/* === Selection & focus === */
+
+::selection {
+  background: linear-gradient(135deg, var(--purple-500), var(--pink-500));
+  color: white;
 }
 
-.text-hero {
-  font-size: 48px;
-  line-height: 1.1;
-  letter-spacing: -0.015em;
-  font-weight: 700;
+:focus-visible {
+  outline: 2px solid var(--purple-500);
+  outline-offset: 3px;
+  border-radius: 0.5rem;
 }
 
-.text-h1 {
-  font-size: 36px;
-  line-height: 1.15;
-  letter-spacing: -0.01em;
-  font-weight: 600;
+/* === Star rating interaction === */
+
+.star-container { contain: layout style paint; }
+
+button:has(> svg.lucide-star) {
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.text-h2 {
-  font-size: 30px;
-  line-height: 1.2;
-  letter-spacing: -0.005em;
-  font-weight: 600;
+button:has(svg.lucide-star) {
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  will-change: transform;
 }
 
-.text-h3 {
-  font-size: 24px;
-  line-height: 1.25;
-  letter-spacing: 0em;
-  font-weight: 600;
-}
-
-.text-body {
-  font-size: 16px;
-  line-height: 1.5;
-  letter-spacing: 0em;
-  font-weight: 400;
-}
-
-.text-body-sm {
-  font-size: 14px;
-  line-height: 1.5;
-  letter-spacing: 0.01em;
-  font-weight: 400;
-}
-
-.text-caption {
-  font-size: 12px;
-  line-height: 1.4;
-  letter-spacing: 0.02em;
-  font-weight: 400;
-}
-
-.text-overline {
-  font-size: 11px;
-  line-height: 1.3;
-  letter-spacing: 0.08em;
-  font-weight: 500;
-  text-transform: uppercase;
-}
+[role="slider"] { transform: translateZ(0); }

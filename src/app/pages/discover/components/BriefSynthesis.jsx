@@ -65,7 +65,7 @@ export default function BriefSynthesis({ answers, notes }) {
       <p className="text-[10px] font-semibold uppercase tracking-widest text-purple-400/60 mb-3">
         Your brief
       </p>
-      <h1 className="text-xl sm:text-2xl font-semibold tracking-tight leading-snug text-white/90">
+      <h1 className="text-xl sm:text-2xl font-black tracking-tight leading-snug text-white">
         {synthesis}
       </h1>
     </motion.div>

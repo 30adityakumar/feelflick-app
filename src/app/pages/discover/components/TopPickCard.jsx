@@ -111,8 +111,8 @@ export default function TopPickCard({ film, isWatchlisted, isSeen, onOpenDetail,
         ) : (
           <div className="w-full h-full bg-neutral-900" />
         )}
-        <div className="absolute inset-0 bg-gradient-to-r from-neutral-950 via-neutral-950/85 to-neutral-950/40" />
-        <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-transparent to-neutral-950/50" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/85 to-black/40" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/50" />
       </div>
 
       {/* Content */}
@@ -142,7 +142,7 @@ export default function TopPickCard({ film, isWatchlisted, isSeen, onOpenDetail,
         <div className="flex flex-col justify-center min-w-0 py-1">
           {/* Top Pick + Match ring row */}
           <div className="flex items-center justify-between mb-3">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-purple-400/70">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-purple-400/60">
               Top Pick
             </p>
             <MatchRing percent={matchPct} />
@@ -156,7 +156,7 @@ export default function TopPickCard({ film, isWatchlisted, isSeen, onOpenDetail,
           </button>
 
           {/* Meta row */}
-          <div className="flex items-center gap-2 text-sm text-white/50 mb-3 flex-wrap">
+          <div className="flex items-center gap-2 text-sm text-white/40 mb-3 flex-wrap">
             {film.release_year && <span className="tabular-nums">{film.release_year}</span>}
             {genre && (
               <>

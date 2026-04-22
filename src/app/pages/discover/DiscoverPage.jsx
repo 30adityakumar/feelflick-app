@@ -452,7 +452,7 @@ export default function DiscoverPage() {
                     aria-label="Find my films"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="relative px-8 py-3 rounded-full text-base font-bold text-white bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg shadow-purple-500/20 hover:from-purple-400 hover:to-pink-400 transition-all duration-200"
+                    className="relative px-10 py-[0.875rem] rounded-full font-semibold text-[0.9375rem] text-white bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg shadow-purple-500/20 hover:brightness-110 transition-all duration-200"
                   >
                     <span className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 animate-pulse opacity-30 blur-md" aria-hidden="true" />
                     <span className="relative">Find my films</span>
@@ -546,7 +546,7 @@ export default function DiscoverPage() {
 
             {/* Post-results CTA */}
             <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10 text-center">
-              <p className="text-sm text-white/50 mb-4">
+              <p className="text-sm text-white/60 mb-4">
                 None of these hit the spot?
               </p>
               <Button variant="secondary" onClick={handleReset}>

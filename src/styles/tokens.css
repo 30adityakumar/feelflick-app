@@ -1,53 +1,25 @@
 /* ==========================================================================
-   FeelFlick Design Tokens
-   Source: docs/DESIGN_SYSTEM.md § 6 — Design tokens for a cinematic dark-mode system
+   FeelFlick Design Tokens — Motion only
+   Surface / text / spacing tokens removed. Use Tailwind utilities instead.
+   Page base: bg-black (Tailwind). Cards: bg-white/5 border border-white/10.
+   See CLAUDE.md "Brand Surface — The Law" for the full authoritative spec.
    ========================================================================== */
 
 :root {
-
-  /* === SURFACES ===
-     Luminance-based elevation: each level is ~5–8% lighter than the one below.
-     Blue tint on base evokes cinema/theater darkness. */
-  --bg-base:     #0A0A0F; /* deep near-black with blue tint — deepest layer */
-  --bg-raised:   #141419; /* cards                                          */
-  --bg-elevated: #1E1E25; /* hover states, nested cards                     */
-  --bg-overlay:  #282830; /* modals, dropdowns                              */
-
-  /* === TEXT ===
-     Off-white primary avoids pure-white Überstrahlung on dark backgrounds. */
-  --text-primary:   #EDEDED; /* headings — off-white, not pure white */
-  --text-secondary: #9CA3AF; /* body, descriptions                   */
-  --text-tertiary:  #6B7280; /* captions, metadata                   */
-
-  /* === SPACING (base-4 scale) === */
-  --space-1:  4px;
-  --space-2:  8px;
-  --space-3:  12px;
-  --space-4:  16px;
-  --space-5:  24px;
-  --space-6:  32px;
-  --space-7:  48px;
-  --space-8:  64px;
-  --space-9:  96px;
-  /* Extended steps for layout use */
-  --space-10: 128px;
-  --space-11: 160px;
-  --space-12: 192px;
-
   /* === MOTION — DURATION ===
      Named by perceptual weight, not raw milliseconds. */
-  --duration-micro:  100ms; /* button press, toggle                   */
-  --duration-fast:   150ms; /* hover states                           */
-  --duration-normal: 200ms; /* dropdowns, small transitions           */
-  --duration-medium: 300ms; /* modals, mood card tap                  */
-  --duration-slow:   500ms; /* card expand, complex choreography      */
-  --duration-mood:   800ms; /* background mood color transition       */
+  --duration-micro:  100ms; /* button press, toggle              */
+  --duration-fast:   150ms; /* hover states                      */
+  --duration-normal: 200ms; /* dropdowns, small transitions      */
+  --duration-medium: 300ms; /* modals, mood card tap             */
+  --duration-slow:   500ms; /* card expand, complex choreography */
+  --duration-mood:   800ms; /* background mood color transition  */
 
   /* === MOTION — EASING ===
      Each curve encodes emotional intent — choose by feel, not by default. */
-  --ease-out:       cubic-bezier(0, 0, 0.58, 1);       /* entrances                  */
-  --ease-in-out:    cubic-bezier(0.42, 0, 0.58, 1);    /* on-screen morphing         */
-  --ease-spring:    cubic-bezier(0.34, 1.56, 0.64, 1); /* playful / joy states       */
-  --ease-breathing: cubic-bezier(0.5, 0, 0.5, 1);      /* calming mood transitions   */
-  --ease-smooth:    cubic-bezier(0.22, 0.61, 0.36, 1); /* cinematic card animations  */
+  --ease-out:       cubic-bezier(0, 0, 0.58, 1);       /* entrances                 */
+  --ease-in-out:    cubic-bezier(0.42, 0, 0.58, 1);    /* on-screen morphing        */
+  --ease-spring:    cubic-bezier(0.34, 1.56, 0.64, 1); /* playful / joy states      */
+  --ease-breathing: cubic-bezier(0.5, 0, 0.5, 1);      /* calming mood transitions  */
+  --ease-smooth:    cubic-bezier(0.22, 0.61, 0.36, 1); /* cinematic card animations */
 }

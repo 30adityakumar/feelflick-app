@@ -69,9 +69,9 @@ export default function FinalCTASection() {
           viewport={vp}
           transition={{ duration: prefersReducedMotion ? 0 : 0.5, delay: prefersReducedMotion ? 0 : 0.08 }}
         >
-          <span className="text-white">Stop Scrolling.</span>
+          <span className="text-white">Somewhere in 6,700 films is one made for you.</span>
           <br />
-          <span className="gradient-text">Start Watching.</span>
+          <span className="gradient-text">Tonight.</span>
         </motion.h2>
 
         {/* CTA button — white pill, dark text, mirrors Hero for visual bookending */}

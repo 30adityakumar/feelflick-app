@@ -142,7 +142,7 @@ export default function Footer() {
 
           {/* Right — human signal + copyright */}
           <div className="text-center sm:text-right">
-            <p className="text-xs text-white/20">Built with love for cinema in Toronto.</p>
+            <p className="text-xs text-white/20">Built by Aditya Kumar in Toronto. One developer, 6,700 films, and a belief that recommendations should feel personal.</p>
             <p className="text-xs text-white/20">&copy; 2026 FeelFlick</p>
           </div>
 

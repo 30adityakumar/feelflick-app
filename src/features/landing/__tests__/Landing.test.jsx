@@ -67,6 +67,9 @@ function LandingStructure() {
       <section id="find-people" aria-labelledby="people-heading">
         <h2 id="people-heading">Find people who actually get your taste.</h2>
       </section>
+      <section id="moat-proof">
+        <p>Every film is hand-scored on 15 dimensions.</p>
+      </section>
       <section id="lists" aria-labelledby="lists-heading">
         <h2 id="lists-heading">A beautiful home for your film collections.</h2>
       </section>
@@ -185,6 +188,41 @@ describe('Landing page – structure', () => {
     // Both CTAs now say "Get Started Free" — consistent with TopNav copy
     const ctaButtons = screen.getAllByRole('button', { name: /get started free/i })
     expect(ctaButtons).toHaveLength(2)
+  })
+})
+
+describe('MoatProofSection', () => {
+  function MoatProofStub() {
+    return (
+      <section id="moat-proof" aria-labelledby="moat-proof-heading">
+        <h2 id="moat-proof-heading" className="sr-only">What makes FeelFlick different</h2>
+        <ul>
+          <li>Every film is hand-scored on 15 dimensions.</li>
+          <li>No autoplay queue. No filler.</li>
+          <li>Mood-matched, not popularity-ranked.</li>
+        </ul>
+      </section>
+    )
+  }
+
+  it('renders the section with correct id', () => {
+    render(<MoatProofStub />)
+    expect(document.getElementById('moat-proof')).toBeInTheDocument()
+  })
+
+  it('renders the hand-scored claim', () => {
+    render(<MoatProofStub />)
+    expect(screen.getByText(/hand-scored on 15 dimensions/i)).toBeInTheDocument()
+  })
+
+  it('renders the no autoplay claim', () => {
+    render(<MoatProofStub />)
+    expect(screen.getByText(/No autoplay queue\. No filler\./i)).toBeInTheDocument()
+  })
+
+  it('renders the mood-matched claim', () => {
+    render(<MoatProofStub />)
+    expect(screen.getByText(/Mood-matched, not popularity-ranked/i)).toBeInTheDocument()
   })
 })
 

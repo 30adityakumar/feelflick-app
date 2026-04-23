@@ -16,6 +16,7 @@ import StillInOrbitRow from './components/StillInOrbitRow'
 import MoodRow from './components/MoodRow'
 import WatchlistRow from './components/WatchlistRow'
 import SignatureDirectorRow from './components/SignatureDirectorRow'
+import StarterRows from './components/StarterRows'
 
 import { SectionErrorBoundary } from '@/app/ErrorBoundary'
 
@@ -147,6 +148,10 @@ export default function HomePage() {
 
   const rows = useHomepageRows(userId)
 
+  // Show starter rows for cold-start users (≤4 watches, no taste DNA yet).
+  // Once they cross the cold threshold the standard rows take over automatically.
+  const showStarter = rows.tier === 'cold'
+
   return (
     <div className="overflow-x-hidden" style={{ background: 'var(--color-bg)' }}>
       {/* First-run welcome banner */}
@@ -189,61 +194,69 @@ export default function HomePage() {
               />
             </SectionErrorBoundary>
 
-            {rows.tier !== 'cold' && rows.tier !== null && (
-              <SectionErrorBoundary label="Signature Director">
-                <SignatureDirectorRow
-                  data={rows.director.data}
-                  loading={rows.director.loading}
-                />
-              </SectionErrorBoundary>
-            )}
+            {showStarter ? (
+              // Cold-start: show genre/language/crowd-pleaser starter rows
+              // instead of the taste-DNA rows that require watch history.
+              <StarterRows userId={userId} />
+            ) : (
+              <>
+                {rows.tier !== null && (
+                  <SectionErrorBoundary label="Signature Director">
+                    <SignatureDirectorRow
+                      data={rows.director.data}
+                      loading={rows.director.loading}
+                    />
+                  </SectionErrorBoundary>
+                )}
 
-            <SectionErrorBoundary label="Critic Split">
-              {rows.rotationVariant === 'B' && rows.tier === 'engaged' ? (
-                <PeoplesChampionsRow
-                  data={rows.criticSplit.data}
-                  loading={rows.criticSplit.loading}
-                />
-              ) : (
-                <CriticsSwoonedRow
-                  data={rows.criticSplit.data}
-                  loading={rows.criticSplit.loading}
-                />
-              )}
-            </SectionErrorBoundary>
+                <SectionErrorBoundary label="Critic Split">
+                  {rows.rotationVariant === 'B' && rows.tier === 'engaged' ? (
+                    <PeoplesChampionsRow
+                      data={rows.criticSplit.data}
+                      loading={rows.criticSplit.loading}
+                    />
+                  ) : (
+                    <CriticsSwoonedRow
+                      data={rows.criticSplit.data}
+                      loading={rows.criticSplit.loading}
+                    />
+                  )}
+                </SectionErrorBoundary>
 
-            <SectionErrorBoundary label="Under 90 Minutes">
-              <Under90MinutesRow
-                data={rows.under90.data}
-                loading={rows.under90.loading}
-              />
-            </SectionErrorBoundary>
+                <SectionErrorBoundary label="Under 90 Minutes">
+                  <Under90MinutesRow
+                    data={rows.under90.data}
+                    loading={rows.under90.loading}
+                  />
+                </SectionErrorBoundary>
 
-            {rows.tier !== 'cold' && rows.tier !== null && (
-              <SectionErrorBoundary label="Still in Orbit">
-                <StillInOrbitRow
-                  data={rows.orbit.data}
-                  loading={rows.orbit.loading}
-                />
-              </SectionErrorBoundary>
-            )}
+                {rows.tier !== null && (
+                  <SectionErrorBoundary label="Still in Orbit">
+                    <StillInOrbitRow
+                      data={rows.orbit.data}
+                      loading={rows.orbit.loading}
+                    />
+                  </SectionErrorBoundary>
+                )}
 
-            {rows.tier !== 'cold' && rows.tier !== null && (
-              <SectionErrorBoundary label="Mood Row">
-                <MoodRow
-                  data={rows.mood.data}
-                  loading={rows.mood.loading}
-                />
-              </SectionErrorBoundary>
-            )}
+                {rows.tier !== null && (
+                  <SectionErrorBoundary label="Mood Row">
+                    <MoodRow
+                      data={rows.mood.data}
+                      loading={rows.mood.loading}
+                    />
+                  </SectionErrorBoundary>
+                )}
 
-            {rows.tier === 'engaged' && (
-              <SectionErrorBoundary label="Watchlist">
-                <WatchlistRow
-                  data={rows.watchlist.data}
-                  loading={rows.watchlist.loading}
-                />
-              </SectionErrorBoundary>
+                {rows.tier === 'engaged' && (
+                  <SectionErrorBoundary label="Watchlist">
+                    <WatchlistRow
+                      data={rows.watchlist.data}
+                      loading={rows.watchlist.loading}
+                    />
+                  </SectionErrorBoundary>
+                )}
+              </>
             )}
 
           </div>

@@ -1,16 +1,18 @@
 // src/app/homepage/components/StarterRows.jsx
 /**
- * StarterRows — shown to low-confidence profiles (< 10 data points / tier='cold').
+ * StarterRows — shown to low-confidence profiles (tier='cold').
  *
- * Three unconditional rows that work without embedding seeds or taste DNA:
+ * Three rows for users with too little watch history for taste-DNA rows:
  *   1. "Top rated in your genres"    — from user_preferences, language-aware
  *   2. "Popular in {language}"       — primary language + neighbor fallback
- *   3. "Great starting points"       — global crowd_pleaser films, ff_audience_rating ≥ 80
+ *   3. "Great starting points"       — global crowd_pleaser films, ≥80 audience rating
  *
- * Each row fetches independently so one failure doesn't blank the page.
+ * Rows are fetched in parallel, then globally deduped so no film appears twice.
+ * Rows with fewer than 8 films after dedup are hidden.
+ * Accepts excludeIds from parent (hero + topOfTaste) to prevent cross-surface repeats.
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Film, Globe, Star } from 'lucide-react'
 
 import {
@@ -37,73 +39,83 @@ function langLabel(code) {
   return LANG_DISPLAY[code] || code?.toUpperCase() || 'Your language'
 }
 
+const MIN_ROW_SIZE = 8
+
 /**
- * Minimal fetch hook for a single starter row.
- * @param {() => Promise<any>} fetchFn
- * @param {string} key - stable key; re-fetches when it changes
+ * @param {{ userId: string, excludeIds?: number[] }} props
+ *   excludeIds — internal movie IDs already shown in hero / TopOfTaste
  */
-function useStarterRow(fetchFn, key) {
-  const [data, setData] = useState(null)
+export default function StarterRows({ userId, excludeIds = [] }) {
+  const [genresRaw, setGenresRaw] = useState(null)
+  const [langRaw, setLangRaw] = useState(null)
+  const [startingRaw, setStartingRaw] = useState(null)
   const [loading, setLoading] = useState(true)
 
+  const rowKey = userId || ''
+  const excludeKey = excludeIds.join(',')
+
   useEffect(() => {
-    if (!key) { setLoading(false); return }
+    if (!rowKey) { setLoading(false); return }
+
     let cancelled = false
     setLoading(true)
-    fetchFn()
-      .then(result => { if (!cancelled) setData(result) })
-      .catch(err => { console.error('[StarterRows]', err) })
-      .finally(() => { if (!cancelled) setLoading(false) })
+
+    // Fetch all 3 rows in parallel
+    Promise.allSettled([
+      getTopRatedInGenres(userId, { limit: 24 }),
+      getPopularInLanguage(userId, { limit: 24 }),
+      getGreatStartingPoints(userId, { limit: 24 }),
+    ]).then(([genresRes, langRes, startingRes]) => {
+      if (cancelled) return
+      setGenresRaw(genresRes.status === 'fulfilled' ? genresRes.value : null)
+      setLangRaw(langRes.status === 'fulfilled' ? langRes.value : null)
+      setStartingRaw(startingRes.status === 'fulfilled' ? startingRes.value : null)
+      setLoading(false)
+    })
+
     return () => { cancelled = true }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key])
+  }, [rowKey, excludeKey])
 
-  return { data, loading }
-}
+  // Global dedup across all 3 rows (+ excludeIds from hero/topOfTaste)
+  const deduped = useMemo(() => {
+    const seen = new Set(excludeIds.filter(Boolean))
 
-/**
- * @param {{ userId: string }} props
- */
-export default function StarterRows({ userId }) {
-  const rowKey = userId || ''
+    function take(arr) {
+      if (!arr) return []
+      return arr.filter(m => {
+        if (!m?.id || seen.has(m.id)) return false
+        seen.add(m.id)
+        return true
+      })
+    }
 
-  const genres = useStarterRow(
-    () => getTopRatedInGenres(userId, { limit: 20 }),
-    rowKey,
-  )
+    const genres = take(Array.isArray(genresRaw) ? genresRaw : null)
+    const langFilms = take(Array.isArray(langRaw?.films) ? langRaw.films : null)
+    const starting = take(Array.isArray(startingRaw) ? startingRaw : null)
 
-  const langRow = useStarterRow(
-    () => getPopularInLanguage(userId, { limit: 20 }),
-    rowKey,
-  )
-
-  const starters = useStarterRow(
-    () => getGreatStartingPoints(userId, { limit: 20 }),
-    rowKey,
-  )
-
-  const langCode = langRow.data?.language || null
-  const langFilms = langRow.data?.films || []
+    return { genres, langFilms, langCode: langRaw?.language || null, starting }
+  }, [genresRaw, langRaw, startingRaw, excludeIds])
 
   return (
     <>
       <SectionErrorBoundary label="Top rated in your genres">
         <PersonalizedCarouselRow
           title="Top rated in your genres"
-          movies={genres.data || []}
-          loading={genres.loading}
+          movies={deduped.genres}
+          loading={loading}
           icon={Star}
           rowId="starter-genres"
           placement="home"
         />
       </SectionErrorBoundary>
 
-      {(langRow.loading || langFilms.length > 0) && (
+      {(loading || deduped.langFilms.length >= MIN_ROW_SIZE) && (
         <SectionErrorBoundary label="Popular in your language">
           <PersonalizedCarouselRow
-            title={langCode ? `Popular in ${langLabel(langCode)}` : 'Popular in your language'}
-            movies={langFilms}
-            loading={langRow.loading}
+            title={deduped.langCode ? `Popular in ${langLabel(deduped.langCode)}` : 'Popular in your language'}
+            movies={deduped.langFilms}
+            loading={loading}
             icon={Globe}
             rowId="starter-language"
             placement="home"
@@ -111,16 +123,18 @@ export default function StarterRows({ userId }) {
         </SectionErrorBoundary>
       )}
 
-      <SectionErrorBoundary label="Great starting points">
-        <PersonalizedCarouselRow
-          title="Great starting points"
-          movies={starters.data || []}
-          loading={starters.loading}
-          icon={Film}
-          rowId="starter-global"
-          placement="home"
-        />
-      </SectionErrorBoundary>
+      {(loading || deduped.starting.length >= MIN_ROW_SIZE) && (
+        <SectionErrorBoundary label="Great starting points">
+          <PersonalizedCarouselRow
+            title="Great starting points"
+            movies={deduped.starting}
+            loading={loading}
+            icon={Film}
+            rowId="starter-global"
+            placement="home"
+          />
+        </SectionErrorBoundary>
+      )}
     </>
   )
 }

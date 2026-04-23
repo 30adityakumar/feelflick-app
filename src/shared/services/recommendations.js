@@ -2139,21 +2139,25 @@ function deriveLanguageFromWatchedRows(watchedRows = []) {
 
 /**
  * Decide how strict to be:
- * - If primary >= 80% and distinctCount <= 2: STRICT (strong mono-lingual signal)
- * - If primary >= 60%: STRONG (top 3 langs, down from top 2 — more diverse)
+ * - If primary >= 90% AND distinctCount <= 1 AND totalWeight >= 10: STRICT
+ *   (previously 80%/distinctCount<=2 — too aggressive, was locking South Asian users
+ *   with only onboarding picks into single-language bubbles)
+ * - If primary >= 60%: STRONG (top 3 langs, neighbour languages added at fetch time)
  * - else: LOOSE (score-based, no hard filter)
  *
- * STRICT threshold is 80% (down from 85%) so more users reach STRONG mode.
- * STRONG now allows top 3 languages (up from 2) to reduce language bubbles.
+ * The totalWeight >= 10 guard prevents 3-pick onboarding users (9 weighted units)
+ * from being STRICT-locked before they've confirmed preferences through real watching.
  */
 function buildLanguageGuardFromHistory(languageFromHistory) {
   const primary = languageFromHistory.primary
   const dominance = languageFromHistory.primaryDominance || 0
   const sorted = languageFromHistory.distributionSorted || []
   const distinctCount = languageFromHistory.distinctCount || 0
+  // Sum of weighted language signal — proxy for watch history depth
+  const totalWeight = sorted.reduce((sum, s) => sum + (s.count || 0), 0)
 
   const top3 = sorted.slice(0, 3).map((s) => s.lang).filter(Boolean)
-  const strict = primary && dominance >= 80 && distinctCount <= 2
+  const strict = primary && dominance >= 90 && distinctCount <= 1 && totalWeight >= 10
   const strong = primary && dominance >= 60
 
   let allowed = []
@@ -2487,6 +2491,44 @@ export async function getTopPickForUser(userId, options = {}) {
       const personalSkipped = profileV3?.negative?.personal_skipped_ids
       if (personalSkipped instanceof Set && personalSkipped.size > 0) {
         candidates = candidates.filter(m => !personalSkipped.has(m.id))
+      }
+
+      // === LANGUAGE LADDER EXPANSION ===
+      // If the candidate pool is still thin after all filters, expand to neighbor
+      // languages before scoring. This prevents a Bollywood-heavy user getting a
+      // blank hero just because the Hindi catalog is small relative to their exclusion list.
+      if (candidates.length < 30 && langGuard.primary && langGuard.primary !== 'en') {
+        const neighborLangs = getNeighborLanguages(langGuard.primary)
+        if (neighborLangs.length > 0) {
+          const existingCandidateIds = new Set(candidates.map(m => m.id))
+          let expandQuery = supabase
+            .from('movies')
+            .select(selectFields)
+            .eq('is_valid', true)
+            .not('backdrop_path', 'is', null)
+            .not('tmdb_id', 'is', null)
+            .gte('release_date', `${minYear}-01-01`)
+            .in('original_language', neighborLangs)
+          expandQuery = applyQualityFloor(expandQuery, 'HERO')
+          expandQuery = applyAllExclusions(expandQuery, profile)
+          const { data: neighborData } = await expandQuery
+            .order('ff_audience_rating', { ascending: false })
+            .limit(60)
+          const neighborFresh = filterExclusionsClientSide(neighborData || [], profile)
+            .filter(m =>
+              m?.id && m?.tmdb_id &&
+              !existingCandidateIds.has(m.id) &&
+              !allExcludeInternal.includes(m.id) &&
+              !allExcludeTmdb.has(m.tmdb_id) &&
+              !recentHeroIds.has(m.id) &&
+              !(hardSkipIds.has(m.id) && Number(m.ff_audience_rating != null ? m.ff_audience_rating / 10 : m.ff_final_rating || m.ff_rating || 0) < 8.5)
+            )
+          neighborFresh.forEach(m => { m._languageTier = 'neighbors' })
+          candidates.push(...neighborFresh)
+          if (import.meta.env.DEV && neighborFresh.length > 0) {
+            console.log(`[hero] neighbor expansion: +${neighborFresh.length} films from ${neighborLangs.join(',')}`)
+          }
+        }
       }
 
       // === SCORING ===
@@ -4275,6 +4317,37 @@ async function fetchMoodCandidates(moodId, moodWeights, profile, moodData, param
       if (t6Err) throw t6Err
       matched = filterByGenre(t6Data || [])
       qualityFloorUsed = 55
+    }
+
+    // Language ladder: if pool still thin, expand to neighbor languages before TMDB fallback.
+    // Covers the case where a Hindi/Tamil/etc user has a mood with few native-language films.
+    if (matched.length < 25 && langGuard?.primary && langGuard.primary !== 'en') {
+      const neighborLangs = getNeighborLanguages(langGuard.primary)
+      if (neighborLangs.length > 0) {
+        const existingIds = new Set(matched.map(m => m.id))
+        let neighborQuery = supabase
+          .from('movies')
+          .select(MOOD_SELECT_FIELDS)
+          .eq('is_valid', true)
+          .not('poster_path', 'is', null)
+          .not('tmdb_id', 'is', null)
+          .gte('ff_audience_rating', qualityFloorUsed)
+          .gte('ff_confidence', minConf)
+          .in('original_language', neighborLangs)
+        neighborQuery = applyAllExclusions(neighborQuery, profile)
+        if (moodId === 5) neighborQuery = neighborQuery.lte('release_year', 2000)
+        if (hardFilters.runtime?.min) neighborQuery = neighborQuery.gte('runtime', hardFilters.runtime.min)
+        if (hardFilters.runtime?.max) neighborQuery = neighborQuery.lte('runtime', hardFilters.runtime.max)
+        if (hardFilters.release_year?.min) neighborQuery = neighborQuery.gte('release_year', hardFilters.release_year.min)
+        if (hardFilters.release_year?.max) neighborQuery = neighborQuery.lte('release_year', hardFilters.release_year.max)
+        if (hardFilters.familyFriendly) neighborQuery = neighborQuery.eq('is_family_friendly', true)
+        const { data: neighborData } = await neighborQuery
+          .order('ff_audience_rating', { ascending: false })
+          .limit(poolLimit)
+        const neighborFresh = filterByGenre(neighborData || []).filter(m => m?.id && !existingIds.has(m.id))
+        neighborFresh.forEach(m => { m._languageTier = 'neighbors' })
+        matched.push(...neighborFresh)
+      }
     }
 
     // === Embedding search: mood anchors (R4) ===

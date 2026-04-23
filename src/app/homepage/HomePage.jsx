@@ -1,5 +1,5 @@
 // src/app/homepage/HomePage.jsx
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useOutletContext } from 'react-router-dom'
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion'
 import { Sparkles } from 'lucide-react'
@@ -149,8 +149,17 @@ export default function HomePage() {
   const rows = useHomepageRows(userId)
 
   // Show starter rows for cold-start users (≤4 watches, no taste DNA yet).
-  // Once they cross the cold threshold the standard rows take over automatically.
-  const showStarter = rows.tier === 'cold'
+  // Also trigger for warming users whose TopOfTaste row comes up empty —
+  // that signals a very thin profile that beat the cold threshold but still
+  // has no usable taste signal (e.g. high confidence + exhausted language pool).
+  const topOfTasteEmpty = !rows.topOfTaste.loading && !(rows.topOfTaste.data?.films?.length >= 6)
+  const showStarter = rows.tier === 'cold' || (rows.tier === 'warming' && topOfTasteEmpty)
+
+  // IDs already shown in TopOfTaste — forward to StarterRows to avoid repeats
+  const topOfTasteIds = useMemo(
+    () => (rows.topOfTaste.data?.films || []).map(f => f.id).filter(Boolean),
+    [rows.topOfTaste.data]
+  )
 
   return (
     <div className="overflow-x-hidden" style={{ background: 'var(--color-bg)' }}>
@@ -197,7 +206,7 @@ export default function HomePage() {
             {showStarter ? (
               // Cold-start: show genre/language/crowd-pleaser starter rows
               // instead of the taste-DNA rows that require watch history.
-              <StarterRows userId={userId} />
+              <StarterRows userId={userId} excludeIds={topOfTasteIds} />
             ) : (
               <>
                 {rows.tier !== null && (

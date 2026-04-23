@@ -88,6 +88,10 @@ const profileInflight = new Map()
 const seedMemoryCache = new Map()
 const seedInflight = new Map()
 
+// Catalog language counts — session-scoped (no user key; catalog doesn't change during a session)
+let _catalogCountsCache = null
+let _catalogCountsInflight = null
+
 function getTimedCache(map, key) {
   const entry = map.get(key)
   if (!entry) return null
@@ -2148,7 +2152,7 @@ function deriveLanguageFromWatchedRows(watchedRows = []) {
  * The totalWeight >= 10 guard prevents 3-pick onboarding users (9 weighted units)
  * from being STRICT-locked before they've confirmed preferences through real watching.
  */
-function buildLanguageGuardFromHistory(languageFromHistory) {
+function buildLanguageGuardFromHistory(languageFromHistory, catalogCounts = null) {
   const primary = languageFromHistory.primary
   const dominance = languageFromHistory.primaryDominance || 0
   const sorted = languageFromHistory.distributionSorted || []
@@ -2157,7 +2161,23 @@ function buildLanguageGuardFromHistory(languageFromHistory) {
   const totalWeight = sorted.reduce((sum, s) => sum + (s.count || 0), 0)
 
   const top3 = sorted.slice(0, 3).map((s) => s.lang).filter(Boolean)
-  const strict = primary && dominance >= 90 && distinctCount <= 1 && totalWeight >= 10
+  let strict = primary && dominance >= 90 && distinctCount <= 1 && totalWeight >= 10
+
+  // Catalog exhaustion: if the user has seen >= 50% of their primary-language catalog,
+  // unlock neighbors by dropping to STRONG even if dominance otherwise qualifies for STRICT.
+  // Prevents users who've genuinely exhausted a small-catalog language (e.g. Hindi, Tamil)
+  // from getting an empty hero instead of excellent neighbor-language suggestions.
+  if (strict && catalogCounts && primary) {
+    const watchedWeight = sorted.find(s => s.lang === primary)?.count || 0
+    const catalogCount = catalogCounts[primary] || 0
+    if (catalogCount > 0 && watchedWeight / catalogCount >= 0.5) {
+      strict = false
+      if (import.meta.env.DEV) {
+        console.log(`[langGuard] catalog exhaustion detected for '${primary}': watched≈${watchedWeight}, catalog=${catalogCount} — forcing STRONG`)
+      }
+    }
+  }
+
   const strong = primary && dominance >= 60
 
   let allowed = []
@@ -2246,6 +2266,46 @@ async function fetchWithLanguageLadder({ baseQuery, langGuard, minResults = 15, 
 }
 
 // ============================================================================
+// CATALOG EXHAUSTION — per-language film counts, session-cached
+// ============================================================================
+
+/**
+ * Returns a map of { [iso639Lang]: count } for all valid movies in the catalog.
+ * Cached for the entire browser session — catalog composition doesn't change mid-session.
+ * Used by buildLanguageGuardFromHistory to detect when a user has seen >= 50% of
+ * their primary language catalog (triggers STRONG unlock so neighbors are included).
+ *
+ * @returns {Promise<Record<string, number>>}
+ */
+async function getCatalogLanguageCounts() {
+  if (_catalogCountsCache) return _catalogCountsCache
+  if (_catalogCountsInflight) return _catalogCountsInflight
+
+  _catalogCountsInflight = (async () => {
+    try {
+      const { data } = await supabase
+        .from('movies')
+        .select('original_language')
+        .eq('is_valid', true)
+        .not('original_language', 'is', null)
+      const counts = {}
+      for (const row of data || []) {
+        const lang = row.original_language
+        if (lang) counts[lang] = (counts[lang] || 0) + 1
+      }
+      _catalogCountsCache = counts
+      return counts
+    } catch {
+      return {}
+    } finally {
+      _catalogCountsInflight = null
+    }
+  })()
+
+  return _catalogCountsInflight
+}
+
+// ============================================================================
 // EMBEDDING NEIGHBORS (via get_seed_neighbors RPC — pre-computed similarity table)
 // ============================================================================
 
@@ -2312,7 +2372,7 @@ export async function getTopPickForUser(userId, options = {}) {
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
       const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000)
 
-      const [{ data: watchedRows }, { data: heroImpressionData }] = await Promise.all([
+      const [{ data: watchedRows }, { data: heroImpressionData }, catalogCounts] = await Promise.all([
         supabase
           .from('user_history')
           .select('movie_id, movies!inner(id, tmdb_id, original_language, genres)')
@@ -2323,6 +2383,7 @@ export async function getTopPickForUser(userId, options = {}) {
           .eq('user_id', userId)
           .eq('placement', 'hero')
           .or(`shown_at.gte.${sevenDaysAgo},skipped.eq.true`),
+        getCatalogLanguageCounts(),
       ])
 
       const watchedInternalIds = normalizeNumericIdArray((watchedRows || []).map((w) => w.movie_id))
@@ -2331,7 +2392,7 @@ export async function getTopPickForUser(userId, options = {}) {
       const allExcludeTmdb = new Set(normalizeNumericIdArray([...watchedTmdbIds, ...stableExcludeTmdbIds]))
 
       const historyLang = deriveLanguageFromWatchedRows(watchedRows || [])
-      const langGuard = buildLanguageGuardFromHistory(historyLang)
+      const langGuard = buildLanguageGuardFromHistory(historyLang, catalogCounts)
 
       // === IMPRESSION PARTITIONING ===
       const lastShownAt = new Map()
@@ -2523,7 +2584,7 @@ export async function getTopPickForUser(userId, options = {}) {
               !recentHeroIds.has(m.id) &&
               !(hardSkipIds.has(m.id) && Number(m.ff_audience_rating != null ? m.ff_audience_rating / 10 : m.ff_final_rating || m.ff_rating || 0) < 8.5)
             )
-          neighborFresh.forEach(m => { m._languageTier = 'neighbors' })
+          neighborFresh.forEach(m => { m._languageTier = 'neighbors'; m._viaNeighborLadder = true })
           candidates.push(...neighborFresh)
           if (import.meta.env.DEV && neighborFresh.length > 0) {
             console.log(`[hero] neighbor expansion: +${neighborFresh.length} films from ${neighborLangs.join(',')}`)

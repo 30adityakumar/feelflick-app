@@ -161,6 +161,7 @@ export default function HeroTopPick({
   preloadedData = null,
   preloadedUser = null,
   onHeroMovie = null,
+  onHeroExhausted = null,
 } = {}) {
   const navigate = useNavigate()
   const location = useLocation()
@@ -250,6 +251,13 @@ export default function HeroTopPick({
     lastEmittedHeroIdRef.current = movie.id
     onHeroMovie?.({ internalId: movie.id, tmdbId: movie.tmdb_id ?? null, movie })
   }, [movie?.id, movie?.tmdb_id, onHeroMovie]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Notify parent when hero fetch completes with no film (catalog exhausted / empty pool)
+  useEffect(() => {
+    if (!loading && !hookMovie && !preloadedData && userId) {
+      onHeroExhausted?.()
+    }
+  }, [loading, hookMovie, preloadedData, userId, onHeroExhausted])
 
   // Clear refreshing state when new data arrives
   useEffect(() => {

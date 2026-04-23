@@ -382,7 +382,11 @@ export function useTopPick(options = {}) {
     setRefreshKey((k) => k + 1)
   }, [])
 
-  return { data, loading, error, refetch }
+  // True when the fetch completed with no primary pick and no error.
+  // Consumers (HeroTopPick → HomePage) use this to activate StarterRows fallback.
+  const heroExhausted = !loading && !error && data === null && !!userId
+
+  return { data, loading, error, refetch, heroExhausted }
 }
 
 // ============================================================================

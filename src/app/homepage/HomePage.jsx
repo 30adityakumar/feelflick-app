@@ -148,17 +148,28 @@ export default function HomePage() {
 
   const rows = useHomepageRows(userId)
 
-  // Show starter rows for cold-start users (≤4 watches, no taste DNA yet).
-  // Also trigger for warming users whose TopOfTaste row comes up empty —
-  // that signals a very thin profile that beat the cold threshold but still
-  // has no usable taste signal (e.g. high confidence + exhausted language pool).
-  const topOfTasteEmpty = !rows.topOfTaste.loading && !(rows.topOfTaste.data?.films?.length >= 6)
-  const showStarter = rows.tier === 'cold' || (rows.tier === 'warming' && topOfTasteEmpty)
+  // Hero movie + exhaustion signals forwarded from HeroTopPick via callbacks
+  const [heroPrimary, setHeroPrimary] = useState(null)
+  const [heroExhausted, setHeroExhausted] = useState(false)
 
-  // IDs already shown in TopOfTaste — forward to StarterRows to avoid repeats
+  // Show starter rows for cold-start users (≤4 watches, no taste DNA yet).
+  // Also trigger for:
+  //   - warming users whose TopOfTaste row comes up empty (very thin taste signal)
+  //   - any tier where the hero returns no film (catalog exhaustion / empty pool)
+  const topOfTasteEmpty = !rows.topOfTaste.loading && !(rows.topOfTaste.data?.films?.length >= 6)
+  const showStarter =
+    rows.tier === 'cold' ||
+    (rows.tier === 'warming' && topOfTasteEmpty) ||
+    heroExhausted
+
+  // IDs already shown in hero + TopOfTaste — forward to StarterRows to avoid repeats
   const topOfTasteIds = useMemo(
     () => (rows.topOfTaste.data?.films || []).map(f => f.id).filter(Boolean),
     [rows.topOfTaste.data]
+  )
+  const starterExcludeIds = useMemo(
+    () => [heroPrimary?.id, ...topOfTasteIds].filter(Boolean),
+    [heroPrimary, topOfTasteIds]
   )
 
   return (
@@ -178,6 +189,8 @@ export default function HomePage() {
         userId={userId}
         preloadedUser={preloadedUser}
         isFirstRun={fromOnboarding}
+        onHeroMovie={({ movie }) => setHeroPrimary(movie)}
+        onHeroExhausted={() => setHeroExhausted(true)}
       />
 
       {/* CONTENT */}
@@ -206,7 +219,7 @@ export default function HomePage() {
             {showStarter ? (
               // Cold-start: show genre/language/crowd-pleaser starter rows
               // instead of the taste-DNA rows that require watch history.
-              <StarterRows userId={userId} excludeIds={topOfTasteIds} />
+              <StarterRows userId={userId} excludeIds={starterExcludeIds} />
             ) : (
               <>
                 {rows.tier !== null && (

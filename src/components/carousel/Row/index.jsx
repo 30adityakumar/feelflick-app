@@ -1,5 +1,5 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react'
 import { useVirtualization } from '../hooks/useVirtualization'
 import { useMovieCardHover } from '../hooks/useMovieCardHover'
 import { MovieCard } from '../CardContent/MovieCard'
@@ -58,11 +58,20 @@ export const CarouselRow = memo(function CarouselRow({
   error = null,
   priority = false,
   className = '',
+  onShuffle = null,
   ...props
 }) {
   const scrollRef = useRef(null)
   const hover = useMovieCardHover()
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
+  const shuffleCooldownRef = useRef(false)
+
+  const handleShuffle = useCallback(() => {
+    if (!onShuffle || shuffleCooldownRef.current) return
+    shuffleCooldownRef.current = true
+    setTimeout(() => { shuffleCooldownRef.current = false }, 2000)
+    onShuffle()
+  }, [onShuffle])
   const [isRowHovered, setIsRowHovered] = useState(false) // A3: gate scroll button visibility
   const [viewportWidth, setViewportWidth] = useState(() =>
     typeof window === 'undefined' ? 1024 : window.innerWidth
@@ -233,6 +242,17 @@ export const CarouselRow = memo(function CarouselRow({
             background: 'linear-gradient(90deg, rgba(192, 132, 252, 0.18) 0%, rgba(248, 250, 252, 0.04) 45%, transparent 100%)',
           }}
         />
+        {onShuffle && (
+          <button
+            type="button"
+            onClick={handleShuffle}
+            aria-label="Shuffle this row"
+            className="flex-none flex items-center gap-1 px-2.5 py-1 rounded-full border border-white/[0.08] hover:border-white/20 bg-transparent hover:bg-white/[0.06] text-white/35 hover:text-white/60 text-[0.7rem] font-medium transition-all duration-200 focus:outline-none focus-visible:ring-1 focus-visible:ring-white/30"
+          >
+            <RefreshCw className="h-3 w-3" />
+            <span className="hidden sm:inline">Shuffle</span>
+          </button>
+        )}
       </div>
 
       <div className="relative overflow-visible">

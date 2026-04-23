@@ -2347,14 +2347,15 @@ async function _fetchEmbeddingNeighborsForSeeds(seedFilms, opts = {}) {
 // ============================================================================
 
 export async function getTopPickForUser(userId, options = {}) {
-  const { excludeIds = [], excludeTmdbIds = [], forceRefresh = false, penalizedGenreIds = [] } = options
+  const { excludeIds = [], excludeTmdbIds = [], forceRefresh = false, penalizedGenreIds = [], shuffleNonce = 0 } = options
 
   const stableExcludeIds = normalizeNumericIdArray(excludeIds)
   const stableExcludeTmdbIds = normalizeNumericIdArray(excludeTmdbIds)
 
   const cacheKey = recommendationCache.key('top_pick', userId || 'guest', {
     excludeIds: stableExcludeIds,
-    excludeTmdbIds: stableExcludeTmdbIds
+    excludeTmdbIds: stableExcludeTmdbIds,
+    nonce: shuffleNonce,
   })
 
   if (forceRefresh) recommendationCache.invalidate(cacheKey)
@@ -2708,7 +2709,7 @@ export async function getTopPickForUser(userId, options = {}) {
 
       if (heroCandidates.length === 0) {
         branchName = 'fallback'
-        const fallbackResult = await getFallbackPick(langGuard, allExcludeInternal, allExcludeTmdb, profile, profileV3, scoringContext, userId)
+        const fallbackResult = await getFallbackPick(langGuard, allExcludeInternal, allExcludeTmdb, profile, profileV3, scoringContext, userId, shuffleNonce)
         if (import.meta.env.DEV) console.log('[hero]', {
           branch: 'fallback',
           primary: fallbackResult?.primary?.title,
@@ -2718,7 +2719,10 @@ export async function getTopPickForUser(userId, options = {}) {
         return fallbackResult ?? { primary: null, alternates: [], reasons: {} }
       }
 
-      const idx = dayHashIndex(userId, heroCandidates.length)
+      const _rawIdx = dayHashIndex(userId, heroCandidates.length)
+      const idx = shuffleNonce > 0
+        ? (_rawIdx + shuffleNonce * 7901) % heroCandidates.length
+        : _rawIdx
       const primary = heroCandidates[idx]
       const alternates = heroCandidates.filter(c => c.id !== primary.id)
       const reasons = Object.fromEntries(
@@ -2740,7 +2744,7 @@ export async function getTopPickForUser(userId, options = {}) {
       return { primary, alternates, reasons }
     } catch (error) {
       console.error('[getTopPickForUser] Error:', error)
-      const fallbackResult = await getFallbackPick(null)
+      const fallbackResult = await getFallbackPick(null, [], new Set(), null, null, null, userId, shuffleNonce)
       if (fallbackResult?.movie) {
         return { primary: fallbackResult.movie, alternates: [], reasons: {} }
       }
@@ -3480,7 +3484,7 @@ function generateFallbackLanguageReason(movie, primaryLang) {
   return { type: 'generic', text: 'Picked for you' }
 }
 
-async function getFallbackPick(langGuard, excludeInternalIds = [], excludeTmdbIds = new Set(), profile = null, profileV3 = null, scoringContext = null, userId = null) {
+async function getFallbackPick(langGuard, excludeInternalIds = [], excludeTmdbIds = new Set(), profile = null, profileV3 = null, scoringContext = null, userId = null, shuffleNonce = 0) {
   const primaryLang = langGuard?.primary || null
 
   const notWatched = (m) =>
@@ -3541,7 +3545,10 @@ async function getFallbackPick(langGuard, excludeInternalIds = [], excludeTmdbId
 
         // Pick primary + up to 2 alternates using genre/director diversity.
         const ladderCandidates = selectHeroCandidates(scoredLadder, 3)
-        const idx = userId ? dayHashIndex(userId, ladderCandidates.length) : 0
+        const _ladderRawIdx = userId ? dayHashIndex(userId, ladderCandidates.length) : 0
+        const idx = shuffleNonce > 0 && ladderCandidates.length > 1
+          ? (_ladderRawIdx + shuffleNonce * 7901) % ladderCandidates.length
+          : _ladderRawIdx
         const primary = ladderCandidates[idx] || ladderCandidates[0]
         const alternates = ladderCandidates.filter(c => c.id !== primary.id)
         const reasons = Object.fromEntries(

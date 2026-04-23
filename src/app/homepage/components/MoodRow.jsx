@@ -9,7 +9,7 @@ import PersonalizedCarouselRow from './PersonalizedCarouselRow'
  *
  * @param {{ data: { films: Object[], title: string, subtitle: string|null }|null, loading: boolean }} props
  */
-export default function MoodRow({ data, loading }) {
+export default function MoodRow({ data, loading, onShuffle }) {
   const films = data?.films || []
   const rowTitle = data?.title
 
@@ -44,6 +44,7 @@ export default function MoodRow({ data, loading }) {
       loading={loading}
       rowId="mood-row"
       placement="mood_row"
+      onShuffle={onShuffle}
     />
   )
 }

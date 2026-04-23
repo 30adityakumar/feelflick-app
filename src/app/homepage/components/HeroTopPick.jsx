@@ -10,6 +10,7 @@ import {
   Plus,
   ChevronLeft,
   ChevronRight,
+  RefreshCw,
   SkipForward,
   Sparkles,
 } from 'lucide-react'
@@ -160,6 +161,8 @@ export default function HeroTopPick({
   userId: userIdProp = null,
   preloadedData = null,
   preloadedUser = null,
+  shuffleNonce = 0,
+  onShuffle = null,
   onHeroMovie = null,
   onHeroExhausted = null,
 } = {}) {
@@ -181,13 +184,23 @@ export default function HeroTopPick({
   const refetchTimerRef = useRef(null)
   const lastEmittedHeroIdRef = useRef(null)
   const lastTrackedViewIdRef = useRef(null)
+  const shuffleCooldownRef = useRef(false)
 
   const { data: hookMovie, loading, error, refetch } = useTopPick({
     enabled: true,
     userId,
     excludeTmdbIds: skippedTmdbIds,
     penalizedGenreIds: skippedGenreIds,
+    shuffleNonce,
   })
+
+  const handleShuffle = useCallback(() => {
+    if (!onShuffle || shuffleCooldownRef.current || loading) return
+    shuffleCooldownRef.current = true
+    setTimeout(() => { shuffleCooldownRef.current = false }, 2000)
+    track('shuffle_clicked', { surface: 'hero' })
+    onShuffle()
+  }, [onShuffle, loading])
 
   const movie = hookMovie ?? preloadedData
 
@@ -532,6 +545,22 @@ export default function HeroTopPick({
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
+
+      {/* Shuffle button — top-right overlay, only when onShuffle provided */}
+      {onShuffle && (
+        <div className="absolute top-4 right-4 z-30" style={{ top: 'calc(var(--hdr-h, 64px) + 0.75rem)' }}>
+          <button
+            type="button"
+            onClick={handleShuffle}
+            disabled={loading}
+            aria-label="Show me different picks"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm border border-white/10 hover:border-white/25 text-white/50 hover:text-white/80 text-xs font-medium transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+          >
+            <RefreshCw className="h-3 w-3" />
+            <span className="hidden sm:inline">Different picks</span>
+          </button>
+        </div>
+      )}
 
       {/* Refreshing overlay */}
       {isRefreshing && (

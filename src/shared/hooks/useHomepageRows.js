@@ -112,7 +112,7 @@ function useRowQuery(key, fetchFn, enabled) {
  *   director: { data: { films: Object[], director: string|null }|null, loading: boolean, error: Error|null },
  * }}
  */
-export function useHomepageRows(userId) {
+export function useHomepageRows(userId, shuffleNonces = {}) {
   const { tier } = useUserTier({ userId })
 
   // Rotation: hash userId + day-of-year → A or B
@@ -145,54 +145,62 @@ export function useHomepageRows(userId) {
   const hasProfile = profile !== null
   const hasContext = scoringContext !== null
   const profileKey = userId ? `${userId}-${hasProfile}-${hasContext}` : 'guest'
-  const rowOpts = hasContext ? { scoringContext } : {}
+
+  // Per-surface nonces (default 0) — incrementing busts cache + rotates pool
+  const nTopOfTaste = shuffleNonces.topOfTaste ?? 0
+  const nMood = shuffleNonces.mood ?? 0
+  const nDirector = shuffleNonces.signatureDirector ?? 0
+  const nCriticSplit = shuffleNonces.criticSplit ?? 0
+  const nUnder90 = shuffleNonces.under90 ?? 0
+  const nOrbit = shuffleNonces.orbit ?? 0
 
   // === Row queries ===
 
   const topOfTaste = useRowQuery(
-    `top-of-taste-${profileKey}`,
-    () => getTopOfYourTasteRow(userId, profile, 20, rowOpts),
+    `top-of-taste-${profileKey}-${nTopOfTaste}`,
+    () => getTopOfYourTasteRow(userId, profile, 20, { ...(hasContext ? { scoringContext } : {}), nonce: nTopOfTaste }),
     (hasProfile && hasContext) || !userId,
   )
 
   const criticSplit = useRowQuery(
-    `critic-split-${profileKey}-${rotationVariant}-${tier}`,
+    `critic-split-${profileKey}-${rotationVariant}-${tier}-${nCriticSplit}`,
     () => {
+      const opts = { ...(hasContext ? { scoringContext } : {}), nonce: nCriticSplit }
       if (tier === 'engaged' && rotationVariant === 'B') {
-        return getPeoplesChampionsRow(userId, profile, 20, rowOpts)
+        return getPeoplesChampionsRow(userId, profile, 20, opts)
       }
-      return getCriticsSwoonedRow(userId, profile, 20, rowOpts)
+      return getCriticsSwoonedRow(userId, profile, 20, opts)
     },
     (hasProfile && hasContext || !userId) && tier !== null,
   )
 
   const under90 = useRowQuery(
-    `under-90-${profileKey}`,
-    () => getUnder90MinutesRow(userId, profile, 20, rowOpts),
+    `under-90-${profileKey}-${nUnder90}`,
+    () => getUnder90MinutesRow(userId, profile, 20, { ...(hasContext ? { scoringContext } : {}), nonce: nUnder90 }),
     (hasProfile && hasContext) || !userId,
   )
 
   const orbit = useRowQuery(
-    `orbit-${profileKey}`,
-    () => getStillInOrbitRow(userId, profile, 20, rowOpts),
+    `orbit-${profileKey}-${nOrbit}`,
+    () => getStillInOrbitRow(userId, profile, 20, { ...(hasContext ? { scoringContext } : {}), nonce: nOrbit }),
     hasProfile && hasContext && tier !== 'cold',
   )
 
   const mood = useRowQuery(
-    `mood-${profileKey}`,
-    () => getMoodRow(userId, profile, 20, rowOpts),
+    `mood-${profileKey}-${nMood}`,
+    () => getMoodRow(userId, profile, 20, { ...(hasContext ? { scoringContext } : {}), nonce: nMood }),
     hasProfile && hasContext && tier !== 'cold',
   )
 
   const watchlist = useRowQuery(
     `watchlist-${profileKey}`,
-    () => getWatchlistRow(userId, profile, 20, rowOpts),
+    () => getWatchlistRow(userId, profile, 20, hasContext ? { scoringContext } : {}),
     hasProfile && hasContext && tier === 'engaged',
   )
 
   const director = useRowQuery(
-    `director-${profileKey}`,
-    () => getSignatureDirectorRow(userId, profile, 20, rowOpts),
+    `director-${profileKey}-${nDirector}`,
+    () => getSignatureDirectorRow(userId, profile, 20, { ...(hasContext ? { scoringContext } : {}), nonce: nDirector }),
     hasProfile && hasContext && tier !== 'cold',
   )
 

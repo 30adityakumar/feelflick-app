@@ -71,7 +71,7 @@ const GENRE_ID_TO_NAME = {
  * @param {string} [rowType] - key from ROW_WEIGHTS (e.g. 'TOP_OF_TASTE', 'MOOD_ROW')
  * @returns {Object[]}
  */
-function scoreAndSlice(candidates, profile, scoringContext, rowName, limit, pickReason, rowType, { skipDiversity = false } = {}) {
+function scoreAndSlice(candidates, profile, scoringContext, rowName, limit, pickReason, rowType, { skipDiversity = false, minFilms = MIN_ROW_FILMS, nonce = 0 } = {}) {
   if (!profile || !scoringContext) {
     return candidates.slice(0, limit).map(movie => ({
       ...movie,
@@ -93,8 +93,16 @@ function scoreAndSlice(candidates, profile, scoringContext, rowName, limit, pick
   scored.sort((a, b) => b._score - a._score)
 
   // Personal match floor — cut low-scoring filler
-  const qualified = scored.filter(m => m._score >= MIN_PERSONAL_SCORE)
-  if (qualified.length < MIN_ROW_FILMS) return []
+  let qualified = scored.filter(m => m._score >= MIN_PERSONAL_SCORE)
+  if (qualified.length < minFilms) return []
+
+  // Nonce-based pool rotation for shuffle: shift the starting point in the scored
+  // pool so diversifyRow picks a different set of films on each shuffle.
+  // WHY: without rotation, cache-bust alone returns identical top-scored films.
+  if (nonce > 0 && qualified.length > limit) {
+    const skip = (nonce * Math.ceil(limit / 2)) % Math.max(1, Math.floor(qualified.length / 2))
+    qualified = [...qualified.slice(skip), ...qualified.slice(0, skip)]
+  }
 
   // Within-row diversity (exempted for director/watchlist rows)
   const result = skipDiversity
@@ -127,7 +135,8 @@ function scoreAndSlice(candidates, profile, scoringContext, rowName, limit, pick
  * @returns {Promise<Object[]>}
  */
 export async function getTopOfYourTasteRow(userId, profile, limit = 20, opts = {}) {
-  const cacheKey = recommendationCache.key('top_of_taste', userId || 'guest', { limit })
+  const { nonce = 0 } = opts
+  const cacheKey = recommendationCache.key('top_of_taste', userId || 'guest', { limit, nonce })
 
   return recommendationCache.getOrFetch(cacheKey, async () => {
     try {
@@ -191,6 +200,32 @@ export async function getTopOfYourTasteRow(userId, profile, limit = 20, opts = {
         }
       }
 
+      // === GLOBAL FALLBACK TIER ===
+      // If neighbor expansion still left us short (< 4 candidates), cast a wider
+      // net: all languages, SIGNATURE quality, genre/community exclusions only.
+      // This rescues users who have exhausted both primary AND neighbour catalogs.
+      if (candidates.length < 4 && primaryLang) {
+        const existingIds = new Set(candidates.map(m => m.id))
+        let globalQuery = supabase
+          .from('movies')
+          .select(ROW_SELECT_FIELDS)
+          .eq('is_valid', true)
+          .not('poster_path', 'is', null)
+        globalQuery = applyQualityFloor(globalQuery, 'SIGNATURE')
+        globalQuery = applyExclusionsNoLanguage(globalQuery, resolvedProfile)
+        const { data: globalData } = await globalQuery
+          .order('ff_audience_rating', { ascending: false })
+          .limit(limit * 4)
+        const globalFresh = (globalData || []).filter(m =>
+          m?.id && !watchedIds.has(m.id) && !existingIds.has(m.id)
+        )
+        globalFresh.forEach(m => { m._viaNeighborLadder = true; m._languageTier = 'global' })
+        candidates.push(...globalFresh)
+        if (import.meta.env.DEV) {
+          console.log('[top-of-taste-diag] global fallback: +', globalFresh.length, 'total:', candidates.length)
+        }
+      }
+
       if (import.meta.env.DEV) {
         console.log('[diag] TopOfTaste: candidates=%d, tier=SIGNATURE, no mood filter, ids=%s',
           candidates.length, candidates.slice(0, 10).map(m => m.id).join(','))
@@ -201,7 +236,7 @@ export async function getTopOfYourTasteRow(userId, profile, limit = 20, opts = {
       const films = scoreAndSlice(candidates, resolvedProfile, scoringContext, 'TopOfTaste', limit, {
         label: 'Top of your taste',
         type: 'top_of_taste',
-      }, 'TOP_OF_TASTE')
+      }, 'TOP_OF_TASTE', { minFilms: 4, nonce })
 
       // Attach per-film reason from dominant scoring dimension
       for (const film of films) {
@@ -233,7 +268,8 @@ export async function getTopOfYourTasteRow(userId, profile, limit = 20, opts = {
  * @returns {Promise<Object[]>}
  */
 export async function getCriticsSwoonedRow(userId, profile, limit = 20, opts = {}) {
-  const cacheKey = recommendationCache.key('critics_swooned', userId || 'guest', { limit })
+  const { nonce = 0 } = opts
+  const cacheKey = recommendationCache.key('critics_swooned', userId || 'guest', { limit, nonce })
 
   return recommendationCache.getOrFetch(cacheKey, async () => {
     try {
@@ -280,7 +316,7 @@ export async function getCriticsSwoonedRow(userId, profile, limit = 20, opts = {
       return scoreAndSlice(candidates, resolvedProfile, scoringContext, 'CriticsSwooned', limit, {
         label: 'Critics swooned. Audiences shrugged.',
         type: 'critics_swooned',
-      }, 'CRITICS')
+      }, 'CRITICS', { nonce })
     } catch (err) {
       console.error('[getCriticsSwoonedRow] failed:', err)
       return []
@@ -302,7 +338,8 @@ export async function getCriticsSwoonedRow(userId, profile, limit = 20, opts = {
  * @returns {Promise<Object[]>}
  */
 export async function getPeoplesChampionsRow(userId, profile, limit = 20, opts = {}) {
-  const cacheKey = recommendationCache.key('peoples_champions', userId || 'guest', { limit })
+  const { nonce = 0 } = opts
+  const cacheKey = recommendationCache.key('peoples_champions', userId || 'guest', { limit, nonce })
 
   return recommendationCache.getOrFetch(cacheKey, async () => {
     try {
@@ -336,7 +373,7 @@ export async function getPeoplesChampionsRow(userId, profile, limit = 20, opts =
       return scoreAndSlice(candidates, resolvedProfile, scoringContext, 'PeoplesChampions', limit, {
         label: "The people's champions",
         type: 'peoples_champions',
-      }, 'CRITICS')
+      }, 'CRITICS', { nonce })
     } catch (err) {
       console.error('[getPeoplesChampionsRow] failed:', err)
       return []
@@ -358,7 +395,8 @@ export async function getPeoplesChampionsRow(userId, profile, limit = 20, opts =
  * @returns {Promise<Object[]>}
  */
 export async function getUnder90MinutesRow(userId, profile, limit = 20, opts = {}) {
-  const cacheKey = recommendationCache.key('under_90', userId || 'guest', { limit })
+  const { nonce = 0 } = opts
+  const cacheKey = recommendationCache.key('under_90', userId || 'guest', { limit, nonce })
 
   return recommendationCache.getOrFetch(cacheKey, async () => {
     try {
@@ -400,7 +438,7 @@ export async function getUnder90MinutesRow(userId, profile, limit = 20, opts = {
       return scoreAndSlice(candidates, resolvedProfile, scoringContext, 'Under90', limit, {
         label: 'Under 90 minutes',
         type: 'under_90',
-      }, 'UNDER90')
+      }, 'UNDER90', { nonce })
     } catch (err) {
       console.error('[getUnder90MinutesRow] failed:', err)
       return []
@@ -422,7 +460,8 @@ export async function getUnder90MinutesRow(userId, profile, limit = 20, opts = {
  * @returns {Promise<{ films: Object[], seed: { id: number, title: string }|null }>}
  */
 export async function getStillInOrbitRow(userId, profile, limit = 20, opts = {}) {
-  const cacheKey = recommendationCache.key('still_in_orbit', userId || 'guest', { limit })
+  const { nonce = 0 } = opts
+  const cacheKey = recommendationCache.key('still_in_orbit', userId || 'guest', { limit, nonce })
 
   return recommendationCache.getOrFetch(cacheKey, async () => {
     try {
@@ -506,7 +545,11 @@ export async function getStillInOrbitRow(userId, profile, limit = 20, opts = {})
 
       scored.sort((a, b) => b._score - a._score)
 
-      const result = scored.slice(0, limit)
+      // Nonce-based pool rotation: shift starting point so shuffle returns different films.
+      const orbitPool = nonce > 0 && scored.length > limit
+        ? (() => { const skip = (nonce * Math.ceil(limit / 2)) % Math.max(1, Math.floor(scored.length / 2)); return [...scored.slice(skip), ...scored.slice(0, skip)] })()
+        : scored
+      const result = orbitPool.slice(0, limit)
       if (import.meta.env.DEV && result.length >= 3) {
         console.log('[score] Orbit top3:', JSON.stringify(result.slice(0, 3).map(m => ({
           title: m.title,
@@ -537,8 +580,9 @@ export async function getStillInOrbitRow(userId, profile, limit = 20, opts = {})
  * @returns {Promise<{ films: Object[], title: string, subtitle: string|null, lead: string|null, kind: string }>}
  */
 export async function getMoodRow(userId, profile, limit = 20, opts = {}) {
+  const { nonce = 0 } = opts
   const empty = { films: [], title: 'Films for your mood', subtitle: null, lead: null, kind: 'mood' }
-  const cacheKey = recommendationCache.key('mood_row', userId || 'guest', { limit })
+  const cacheKey = recommendationCache.key('mood_row', userId || 'guest', { limit, nonce })
 
   return recommendationCache.getOrFetch(cacheKey, async () => {
     try {
@@ -583,7 +627,7 @@ export async function getMoodRow(userId, profile, limit = 20, opts = {}) {
       const films = scoreAndSlice(candidates, resolvedProfile, scoringContext, 'MoodRow', limit, {
         label: topMoodTags[0] ? `Films that feel ${topMoodTags[0]}` : 'Films for your mood',
         type: 'mood_row',
-      }, 'MOOD_ROW')
+      }, 'MOOD_ROW', { nonce })
 
       // Boost multi-tag matches
       for (const f of films) {
@@ -626,7 +670,8 @@ export async function getMoodRow(userId, profile, limit = 20, opts = {}) {
  * @returns {Promise<{ films: Object[] }>}
  */
 export async function getWatchlistRow(userId, profile, limit = 20, opts = {}) {
-  const cacheKey = recommendationCache.key('watchlist_row', userId || 'guest', { limit })
+  const { nonce = 0 } = opts
+  const cacheKey = recommendationCache.key('watchlist_row', userId || 'guest', { limit, nonce })
 
   return recommendationCache.getOrFetch(cacheKey, async () => {
     try {
@@ -689,7 +734,8 @@ export async function getWatchlistRow(userId, profile, limit = 20, opts = {}) {
  * @returns {Promise<{ films: Object[], director: { name: string, profile_path: string|null, id: number|null }|null, subtitle: string|null }>}
  */
 export async function getSignatureDirectorRow(userId, profile, limit = 20, opts = {}) {
-  const cacheKey = recommendationCache.key('signature_director', userId || 'guest', { limit })
+  const { nonce = 0 } = opts
+  const cacheKey = recommendationCache.key('signature_director', userId || 'guest', { limit, nonce })
 
   return recommendationCache.getOrFetch(cacheKey, async () => {
     try {
@@ -700,8 +746,11 @@ export async function getSignatureDirectorRow(userId, profile, limit = 20, opts 
 
       if (directors.length === 0) return { films: [], director: null, subtitle: null }
 
-      // Day-hash rotation across all qualified directors
-      const idx = dayHashIndex(userId + 'director', directors.length)
+      // Day-hash rotation across all qualified directors; perturbed by nonce for shuffle.
+      const _dirRawIdx = dayHashIndex(userId + 'director', directors.length)
+      const idx = nonce > 0 && directors.length > 1
+        ? (_dirRawIdx + nonce * 7901) % directors.length
+        : _dirRawIdx
       const chosenDirector = directors[idx]
       const directorName = chosenDirector.name
 
@@ -746,7 +795,7 @@ export async function getSignatureDirectorRow(userId, profile, limit = 20, opts 
         label: `More from ${directorName}`,
         type: 'signature_director',
         directorName,
-      }, 'DIRECTOR', { skipDiversity: true })
+      }, 'DIRECTOR', { skipDiversity: true, nonce })
 
       // Filter out seen films — a director row with <4 unwatched looks broken
       const films = scored.filter(f => !f._seen)

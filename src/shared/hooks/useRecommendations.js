@@ -298,7 +298,7 @@ export function useAllRecommendations(options = {}) {
  * Homepage hero hook - top pick for the user
  */
 export function useTopPick(options = {}) {
-  const { enabled = true, excludeTmdbIds = [], penalizedGenreIds = [], userId: userIdOverride } = options
+  const { enabled = true, excludeTmdbIds = [], penalizedGenreIds = [], userId: userIdOverride, shuffleNonce = 0 } = options
 
   const auth = useAuthState()
   const userId = userIdOverride !== undefined ? userIdOverride : auth.userId
@@ -340,6 +340,7 @@ export function useTopPick(options = {}) {
           excludeTmdbIds: stableExcludeTmdbIds,
           penalizedGenreIds: stablePenalizedGenreIds,
           forceRefresh,
+          shuffleNonce,
         })
 
         if (isCancelled) return
@@ -375,7 +376,7 @@ export function useTopPick(options = {}) {
     return () => {
       isCancelled = true
     }
-  }, [userId, enabled, authReady, excludeKey, penalizedKey, refreshKey, stableExcludeTmdbIds, stablePenalizedGenreIds])
+  }, [userId, enabled, authReady, excludeKey, penalizedKey, refreshKey, shuffleNonce, stableExcludeTmdbIds, stablePenalizedGenreIds])
 
   const refetch = useCallback(() => {
     forceRefreshNextRef.current = true

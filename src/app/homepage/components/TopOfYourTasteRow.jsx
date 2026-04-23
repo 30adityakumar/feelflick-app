@@ -8,7 +8,7 @@ import PersonalizedCarouselRow from './PersonalizedCarouselRow'
  *
  * @param {{ data: Object[]|null, subtitle: string|null, loading: boolean }} props
  */
-export default function TopOfYourTasteRow({ data, subtitle, loading }) {
+export default function TopOfYourTasteRow({ data, subtitle, loading, onShuffle }) {
   const films = data || []
   if (!loading && films.length < 6) return null
 
@@ -40,6 +40,7 @@ export default function TopOfYourTasteRow({ data, subtitle, loading }) {
       loading={loading}
       rowId="top-of-taste"
       placement="top_of_taste"
+      onShuffle={onShuffle}
     />
   )
 }

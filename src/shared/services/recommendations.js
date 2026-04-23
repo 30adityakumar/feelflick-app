@@ -2708,15 +2708,14 @@ export async function getTopPickForUser(userId, options = {}) {
 
       if (heroCandidates.length === 0) {
         branchName = 'fallback'
-        const fallbackResult = await getFallbackPick(langGuard, allExcludeInternal, allExcludeTmdb, profile, profileV3, scoringContext)
-        if (!fallbackResult?.primary && fallbackResult?.movie) {
-          // Legacy fallback shape → convert to new shape
-          const fb = fallbackResult.movie
-          if (import.meta.env.DEV) console.log('[hero]', { branch: 'fallback', primary: fb?.title, altCount: 0, reasonKeys: [] })
-          return { primary: fb, alternates: [], reasons: {} }
-        }
-        if (import.meta.env.DEV) console.log('[hero]', { branch: 'fallback', primary: fallbackResult?.primary?.title, altCount: 0, reasonKeys: [] })
-        return fallbackResult
+        const fallbackResult = await getFallbackPick(langGuard, allExcludeInternal, allExcludeTmdb, profile, profileV3, scoringContext, userId)
+        if (import.meta.env.DEV) console.log('[hero]', {
+          branch: 'fallback',
+          primary: fallbackResult?.primary?.title,
+          altCount: fallbackResult?.alternates?.length ?? 0,
+          reasonKeys: Object.keys(fallbackResult?.reasons ?? {}).length,
+        })
+        return fallbackResult ?? { primary: null, alternates: [], reasons: {} }
       }
 
       const idx = dayHashIndex(userId, heroCandidates.length)
@@ -3437,7 +3436,51 @@ async function logImpression(userId, selectedCandidate, placement) {
   }
 }
 
-async function getFallbackPick(langGuard, excludeInternalIds = [], excludeTmdbIds = new Set(), profile = null, profileV3 = null, scoringContext = null) {
+// Human-readable cinema labels for fallback reason chips, keyed by LANGUAGE_REGIONS value.
+const REGION_CINEMA_LABELS = {
+  hindi_bollywood: 'Hindi cinema',
+  south_indian: 'South Indian cinema',
+  bengali: 'Bengali cinema',
+  punjabi: 'Punjabi cinema',
+  marathi: 'Marathi cinema',
+  korean: 'Korean cinema',
+  japanese: 'Japanese cinema',
+  chinese: 'Chinese cinema',
+  cantonese: 'Cantonese cinema',
+  thai: 'Thai cinema',
+  french: 'French cinema',
+  german: 'German cinema',
+  spanish_european: 'Spanish cinema',
+  italian: 'Italian cinema',
+  nordic: 'Nordic cinema',
+  arabic: 'Arab cinema',
+  persian: 'Persian cinema',
+  turkish: 'Turkish cinema',
+}
+
+/**
+ * Lightweight reason chip for fallback-language-ladder films.
+ * Uses the film's region vs the user's primary region to avoid tautology.
+ *
+ * @param {Object} movie
+ * @param {string|null} primaryLang - user's primary language code
+ * @returns {{ type: string, text: string }}
+ */
+function generateFallbackLanguageReason(movie, primaryLang) {
+  const movieRegion = LANGUAGE_REGIONS[movie.original_language]
+  const primaryRegion = LANGUAGE_REGIONS[primaryLang]
+  // Avoid "Hindi cinema you'll love" for a Hindi film recommended to a Hindi user
+  if (movieRegion && movieRegion !== primaryRegion) {
+    const label = REGION_CINEMA_LABELS[movieRegion] || 'world cinema'
+    return { type: 'language', text: `${label} you'll love` }
+  }
+  if (movie.primary_genre) {
+    return { type: 'quality', text: `${movie.primary_genre} at its best` }
+  }
+  return { type: 'generic', text: 'Picked for you' }
+}
+
+async function getFallbackPick(langGuard, excludeInternalIds = [], excludeTmdbIds = new Set(), profile = null, profileV3 = null, scoringContext = null, userId = null) {
   const primaryLang = langGuard?.primary || null
 
   const notWatched = (m) =>
@@ -3482,14 +3525,36 @@ async function getFallbackPick(langGuard, excludeInternalIds = [], excludeTmdbId
       })
 
       if (ladderResults.length >= 1) {
-        const pick = ladderResults[Math.floor(Math.random() * Math.min(ladderResults.length, 10))]
-        if (import.meta.env.DEV) console.log('[hero] selected branch: fallback-language-ladder, tier:', pick._languageTier, 'pool size:', ladderResults.length)
-        return {
-          movie: pick,
-          pickReason: { label: 'Top pick for you', type: 'quality' },
-          score: Number(pick.ff_audience_rating ?? (pick.ff_final_rating ?? pick.ff_rating ?? 0) * 10),
-          debug: { fallback: true, fallbackType: 'language-ladder', lang: primaryLang, tier: pick._languageTier }
+        // Score with v3 if available so diversity selection uses real personalization signal.
+        // Fall back to ff_audience_rating for cold/anonymous users.
+        let scoredLadder
+        if (profileV3 && scoringContext) {
+          scoredLadder = ladderResults.map(m => {
+            const { final, breakdown } = scoreMovieV3(m, profileV3, scoringContext, 'HERO')
+            return { ...m, _score: final, _breakdown: breakdown }
+          })
+          scoredLadder.sort(tieBreakSort)
+        } else {
+          scoredLadder = ladderResults.map(m => ({ ...m, _score: m.ff_audience_rating ?? 0 }))
+          scoredLadder.sort((a, b) => b._score - a._score)
         }
+
+        // Pick primary + up to 2 alternates using genre/director diversity.
+        const ladderCandidates = selectHeroCandidates(scoredLadder, 3)
+        const idx = userId ? dayHashIndex(userId, ladderCandidates.length) : 0
+        const primary = ladderCandidates[idx] || ladderCandidates[0]
+        const alternates = ladderCandidates.filter(c => c.id !== primary.id)
+        const reasons = Object.fromEntries(
+          ladderCandidates.map(c => [
+            c.id,
+            c._breakdown
+              ? generateHeroReason(c, c._breakdown, profileV3, scoringContext?.seedNeighborMap)
+              : generateFallbackLanguageReason(c, primaryLang),
+          ])
+        )
+
+        if (import.meta.env.DEV) console.log('[hero] selected branch: fallback-language-ladder, tier:', primary._languageTier, 'pool size:', ladderResults.length)
+        return { primary, alternates, reasons }
       }
     }
 
@@ -3511,7 +3576,6 @@ async function getFallbackPick(langGuard, excludeInternalIds = [], excludeTmdbId
     if (profile) globalEligible = filterExclusionsClientSide(globalEligible, profile)
 
     if (globalEligible.length > 0) {
-      // Score with v3 if context available, otherwise fall back to ff_audience_rating
       if (profileV3 && scoringContext) {
         const scored = globalEligible.map(movie => {
           const { final, breakdown } = scoreMovieV3(movie, profileV3, scoringContext, 'HERO')
@@ -3521,29 +3585,26 @@ async function getFallbackPick(langGuard, excludeInternalIds = [], excludeTmdbId
 
         if (import.meta.env.DEV) {
           console.log('[score] Hero top3 (fallback):', JSON.stringify(scored.slice(0, 3).map(c => ({
-            title: c.movie.title,
-            final: c.finalScore,
-            ...c.breakdown,
+            title: c.movie.title, final: c.finalScore, ...c.breakdown,
           })), null, 0))
         }
 
         const pick = scored[0]
+        const primaryReason = generateHeroReason(pick.movie, pick.breakdown, profileV3, scoringContext?.seedNeighborMap)
         if (import.meta.env.DEV) console.log('[hero] selected branch: fallback-global, pool size:', globalEligible.length)
         return {
-          movie: pick.movie,
-          pickReason: { label: 'Critically acclaimed', type: 'quality' },
-          score: pick.finalScore,
-          debug: { fallback: true, fallbackType: 'global' }
+          primary: pick.movie,
+          alternates: [],
+          reasons: { [pick.movie.id]: primaryReason },
         }
       }
 
       const pick = globalEligible[Math.floor(Math.random() * Math.min(globalEligible.length, 10))]
       if (import.meta.env.DEV) console.log('[hero] selected branch: fallback-global, pool size:', globalEligible.length)
       return {
-        movie: pick,
-        pickReason: { label: 'Critically acclaimed', type: 'quality' },
-        score: Number(pick.ff_audience_rating ?? (pick.ff_final_rating ?? pick.ff_rating ?? 0) * 10),
-        debug: { fallback: true, fallbackType: 'global' }
+        primary: pick,
+        alternates: [],
+        reasons: { [pick.id]: generateFallbackLanguageReason(pick, primaryLang) },
       }
     }
   } catch (err) {
@@ -3551,12 +3612,7 @@ async function getFallbackPick(langGuard, excludeInternalIds = [], excludeTmdbId
   }
 
   if (import.meta.env.DEV) console.log('[hero] selected branch: fallback-empty, pool size: 0')
-  return {
-    movie: null,
-    pickReason: { label: 'No recommendations available', type: 'error' },
-    score: 0,
-    debug: { error: true }
-  }
+  return { primary: null, alternates: [], reasons: {} }
 }
 
 // ============================================================================

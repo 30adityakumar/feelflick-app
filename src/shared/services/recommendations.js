@@ -2686,6 +2686,19 @@ export async function getTopPickForUser(userId, options = {}) {
         return c._score >= HERO_MIN_SCORE
       })
 
+      if (import.meta.env.DEV) {
+        const neighborPassed = passed.filter(c => c._viaNeighborLadder)
+        const primaryPassed = passed.filter(c => !c._viaNeighborLadder)
+        console.log('[hero-pool]', {
+          candidatesTotal: candidates.length,
+          scoredTotal: scored.length,
+          passedTotal: passed.length,
+          primaryPassed: primaryPassed.length,
+          neighborPassed: neighborPassed.length,
+          topScores: scored.slice(0, 5).map(c => ({ title: c.title, score: c._score, neighbor: !!c._viaNeighborLadder })),
+        })
+      }
+
       // === SELECTION + REASONS ===
       const heroCandidates = selectHeroCandidates(passed, 3)
 
@@ -3446,7 +3459,12 @@ async function getFallbackPick(langGuard, excludeInternalIds = [], excludeTmdbId
             .not('backdrop_path', 'is', null)
             .not('tmdb_id', 'is', null)
           q = applyQualityFloor(q, 'CONTEXT')
-          if (profile) q = applyAllExclusions(q, profile)
+          // WHY: applyExclusionsNoLanguage instead of applyAllExclusions — the language
+          // filter is baked into each tier by fetchWithLanguageLadder. Using
+          // applyAllExclusions here would add `.in('original_language', ['hi'])` to the
+          // base query, then the neighbor tier adds `.in('original_language', ['ta','te',…])`,
+          // producing a contradictory WHERE clause that always returns 0 rows.
+          if (profile) q = applyExclusionsNoLanguage(q, profile)
           return q.order('ff_audience_rating', { ascending: false }).limit(60)
         },
         langGuard: langGuardForLadder,

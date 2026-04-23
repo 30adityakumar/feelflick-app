@@ -194,13 +194,9 @@ describe('Landing page – structure', () => {
 describe('MoatProofSection', () => {
   function MoatProofStub() {
     return (
-      <section id="moat-proof" aria-labelledby="moat-proof-heading">
-        <h2 id="moat-proof-heading" className="sr-only">What makes FeelFlick different</h2>
-        <ul>
-          <li>Every film is hand-scored on 15 dimensions.</li>
-          <li>No autoplay queue. No filler.</li>
-          <li>Mood-matched, not popularity-ranked.</li>
-        </ul>
+      <section id="moat-proof" aria-label="What makes FeelFlick different">
+        <p>Every film is hand-scored on 15 dimensions.</p>
+        <p>No autoplay queue. No filler.</p>
       </section>
     )
   }
@@ -218,11 +214,6 @@ describe('MoatProofSection', () => {
   it('renders the no autoplay claim', () => {
     render(<MoatProofStub />)
     expect(screen.getByText(/No autoplay queue\. No filler\./i)).toBeInTheDocument()
-  })
-
-  it('renders the mood-matched claim', () => {
-    render(<MoatProofStub />)
-    expect(screen.getByText(/Mood-matched, not popularity-ranked/i)).toBeInTheDocument()
   })
 })
 

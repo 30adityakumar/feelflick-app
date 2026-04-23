@@ -31,10 +31,10 @@ const DIRECTORS = ['Christopher Nolan', 'Ridley Scott', 'Steven Spielberg']
 const TASTE_SUMMARY = 'Gravitates toward time-bending puzzles — memory, alternate timelines, and the films that stay with you long after the credits.'
 
 const RECENTLY_WATCHED = [
-  { title: 'Inception',              poster: '/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg' },
-  { title: 'The Martian',            poster: '/5BHuvQ6p9kfc091Z8RiFNhCwL4b.jpg' },
-  { title: 'The Butterfly Effect',   poster: '/6dfAAgNOhqNFpDSP5fMkpzjbBGa.jpg' },
-  { title: 'A.I. Artificial Intelligence', poster: '/9LahBOtfLGYFhfiqZJWsMbxEgEK.jpg' },
+  { title: 'Inception',              poster: '/xlaY2zyzMfkhk0HSC5VUwzoZPU1.jpg' },
+  { title: 'The Martian',            poster: '/fASz8A0yFE3QB6LgGoOfwvFSseV.jpg' },
+  { title: 'The Butterfly Effect',   poster: '/ea5iv7TWMh18fOKoRGgmtcg85Gx.jpg' },
+  { title: 'A.I. Artificial Intelligence', poster: '/8MZSGX5JORoO72EfuAEcejH5yHn.jpg' },
 ]
 
 const vp = { once: true, margin: '-60px' }

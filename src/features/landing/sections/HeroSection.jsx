@@ -1,5 +1,5 @@
 // src/features/landing/sections/HeroSection.jsx
-import { useState, useMemo, useEffect, useRef } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { LogIn, Loader2, ArrowDown } from 'lucide-react'
 
@@ -58,44 +58,18 @@ function usePosterRows() {
 
 
 function PosterTile({ path, tag }) {
-  const [loadState, setLoadState] = useState('loading')
-  const imgRef = useRef(null)
-
-  useEffect(() => {
-    if (!path || !imgRef.current) return
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && loadState === 'loading') {
-            entry.target.src = entry.target.dataset.src
-          }
-        })
-      },
-      { rootMargin: '50px' },
-    )
-    observer.observe(imgRef.current)
-    return () => observer.disconnect()
-  }, [path, loadState])
-
   return (
     <div
       className="relative w-36 sm:w-40 h-52 sm:h-60 shrink-0 rounded-xl overflow-hidden border border-white/8 bg-neutral-900"
       role="presentation"
       aria-hidden="true"
     >
-      {loadState === 'loading' && (
-        <div className="absolute inset-0 bg-neutral-800 animate-pulse" />
-      )}
       <img
-        ref={imgRef}
-        data-src={`https://image.tmdb.org/t/p/w500${path}`}
-        className={`w-full h-full object-cover transition-opacity duration-700 ${
-          loadState === 'loaded' ? 'opacity-100' : 'opacity-0'
-        }`}
+        src={`https://image.tmdb.org/t/p/w342${path}`}
+        className="w-full h-full object-cover"
         alt=""
-        loading="lazy"
-        onLoad={() => setLoadState('loaded')}
-        onError={(e) => { e.currentTarget.style.opacity = '0'; setLoadState('error') }}
+        loading="eager"
+        decoding="async"
       />
       {/* Top gradient fade for tag legibility */}
       <div

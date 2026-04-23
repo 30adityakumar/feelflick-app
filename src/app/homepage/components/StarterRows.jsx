@@ -94,6 +94,15 @@ export default function StarterRows({ userId, excludeIds = [] }) {
     const langFilms = take(Array.isArray(langRaw?.films) ? langRaw.films : null)
     const starting = take(Array.isArray(startingRaw) ? startingRaw : null)
 
+    if (import.meta.env.DEV) {
+      console.log('[starter-rows]', {
+        excludeIds,
+        topGenresIds: genres.slice(0, 5).map(m => m.id),
+        popLangIds: langFilms.slice(0, 5).map(m => m.id),
+        startingIds: starting.slice(0, 5).map(m => m.id),
+      })
+    }
+
     return { genres, langFilms, langCode: langRaw?.language || null, starting }
   }, [genresRaw, langRaw, startingRaw, excludeIds])
 

@@ -353,7 +353,13 @@ export function scoreMovieV3(movie, profile, context, rowType, opts = {}) {
 export async function precomputeScoringContext(profile) {
   const positiveSeeds = profile?.rated?.positive_seeds || []
   const antiSeedRaw = profile?.negative?.anti_seeds || []
-  const isColdStart = profile?.meta?.confidence === 'cold' || positiveSeeds.length === 0
+
+  // A user qualifies for personalized scoring if they have ≥3 rated films OR ≥5 total watches.
+  // Previously gated on confidence==='cold' (< 5 watches), which locked out users who rated
+  // films during onboarding (3 ratings, 0 real watches) from any embedding-based personalization.
+  // With this change, 3+ ratings → HERO weights (embedding 0.30 active); otherwise COLD weights.
+  const hasMinPersonalization = positiveSeeds.length >= 3 || (profile?.meta?.total_watches || 0) >= 5
+  const isColdStart = !hasMinPersonalization
 
   // Select top-10 weighted seeds (rating ≥ 7, sorted by seedWeight)
   const seeds = selectSeeds(positiveSeeds)

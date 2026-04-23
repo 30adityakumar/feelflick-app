@@ -68,7 +68,7 @@
 import { supabase } from '@/shared/lib/supabase/client'
 import * as tmdb from '@/shared/api/tmdb' // kept for compatibility; not required in this file
 import { recommendationCache } from '@/shared/lib/cache'
-import { applyAllExclusions, filterExclusionsClientSide } from './exclusions'
+import { applyAllExclusions, applyExclusionsNoLanguage, filterExclusionsClientSide } from './exclusions'
 import { applyQualityFloor, QUALITY_TIERS } from './quality-tiers'
 import { scoreMovieV3, precomputeScoringContext } from './scoring-v3'
 import { FIT_ADJACENCY, promoteRatedFitProfiles } from './fit-adjacency'
@@ -2368,6 +2368,25 @@ export async function getTopPickForUser(userId, options = {}) {
       const profileV3 = await computeUserProfileV3(userId)
       const scoringContext = await precomputeScoringContext(profileV3)
 
+      if (import.meta.env.DEV) {
+        // WHY: helps diagnose why a user with ratings still hits the cold-start/fallback branch.
+        const _ratedCount = (profileV3?.rated?.positive_seeds || []).length
+        const _historyCount = profileV3?.meta?.total_watches || 0
+        const _tier = profile?.meta?.confidence ?? 'unknown'
+        const _isCold = scoringContext?.isColdStart ?? true
+        console.log('[hero-branch-select]', {
+          historyCount: _historyCount,
+          ratedCount: _ratedCount,
+          tier: _tier,
+          hasEmbedding: _ratedCount > 0,
+          hasGenrePrefs: (profile?.genres?.preferred || []).length > 0,
+          chosenBranch: _isCold ? 'cold-fallback' : 'personalized',
+          reason: _isCold
+            ? `ratedCount=${_ratedCount} < 3 AND historyCount=${_historyCount} < 5`
+            : `ratedCount=${_ratedCount} >= 3 OR historyCount=${_historyCount} >= 5`,
+        })
+      }
+
       // === PARALLEL GROUP 1: watched rows + hero impressions ===
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
       const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000)
@@ -2558,6 +2577,12 @@ export async function getTopPickForUser(userId, options = {}) {
       // If the candidate pool is still thin after all filters, expand to neighbor
       // languages before scoring. This prevents a Bollywood-heavy user getting a
       // blank hero just because the Hindi catalog is small relative to their exclusion list.
+      //
+      // KEY: we intentionally bypass the language filter here (applyExclusionsNoLanguage
+      // instead of applyAllExclusions) — applying the Hindi-only language guard to a
+      // Tamil/Telugu query would silently eliminate every result. Genre + community skip
+      // exclusions still apply. filterExclusionsClientSide is also skipped for the same
+      // reason; the DB query already handled safe exclusions.
       if (candidates.length < 30 && langGuard.primary && langGuard.primary !== 'en') {
         const neighborLangs = getNeighborLanguages(langGuard.primary)
         if (neighborLangs.length > 0) {
@@ -2570,24 +2595,40 @@ export async function getTopPickForUser(userId, options = {}) {
             .not('tmdb_id', 'is', null)
             .gte('release_date', `${minYear}-01-01`)
             .in('original_language', neighborLangs)
-          expandQuery = applyQualityFloor(expandQuery, 'HERO')
-          expandQuery = applyAllExclusions(expandQuery, profile)
+          // NEIGHBOR tier: same audience floor (75) but relaxed confidence (30)
+          // so thinner-catalog languages (Tamil, Telugu) aren't over-penalised.
+          expandQuery = applyQualityFloor(expandQuery, 'NEIGHBOR')
+          // Skip language filter — we're deliberately fetching non-primary languages.
+          expandQuery = applyExclusionsNoLanguage(expandQuery, profile)
           const { data: neighborData } = await expandQuery
             .order('ff_audience_rating', { ascending: false })
             .limit(60)
-          const neighborFresh = filterExclusionsClientSide(neighborData || [], profile)
-            .filter(m =>
-              m?.id && m?.tmdb_id &&
-              !existingCandidateIds.has(m.id) &&
-              !allExcludeInternal.includes(m.id) &&
-              !allExcludeTmdb.has(m.tmdb_id) &&
-              !recentHeroIds.has(m.id) &&
-              !(hardSkipIds.has(m.id) && Number(m.ff_audience_rating != null ? m.ff_audience_rating / 10 : m.ff_final_rating || m.ff_rating || 0) < 8.5)
-            )
+
+          // Safety filters: watched/cooldown/skip exclusions only.
+          // Language filter is intentionally omitted here.
+          const neighborFresh = (neighborData || []).filter(m =>
+            m?.id && m?.tmdb_id &&
+            !existingCandidateIds.has(m.id) &&
+            !allExcludeInternal.includes(m.id) &&
+            !allExcludeTmdb.has(m.tmdb_id) &&
+            !recentHeroIds.has(m.id) &&
+            !(hardSkipIds.has(m.id) && Number(m.ff_audience_rating != null ? m.ff_audience_rating / 10 : m.ff_final_rating || m.ff_rating || 0) < 8.5)
+          )
           neighborFresh.forEach(m => { m._languageTier = 'neighbors'; m._viaNeighborLadder = true })
           candidates.push(...neighborFresh)
-          if (import.meta.env.DEV && neighborFresh.length > 0) {
-            console.log(`[hero] neighbor expansion: +${neighborFresh.length} films from ${neighborLangs.join(',')}`)
+
+          if (import.meta.env.DEV) {
+            console.log('[hero-diag]', {
+              primaryLang: langGuard.primary,
+              guardMode: langGuard.mode,
+              allowedLanguages: langGuard.allowedLanguages,
+              candidatesBeforeExpansion: existingCandidateIds.size,
+              neighborLangsFetched: neighborLangs,
+              neighborFilmsRaw: neighborData?.length ?? 0,
+              neighborFilmsAfterFilter: neighborFresh.length,
+              exclusionCount: allExcludeInternal.length,
+              totalCandidatesAfterExpansion: candidates.length,
+            })
           }
         }
       }
@@ -2626,9 +2667,14 @@ export async function getTopPickForUser(userId, options = {}) {
         }
       })
 
-      // Sort with tieBreakSort, filter by gate
+      // Sort with tieBreakSort, filter by gate.
+      // Neighbor-ladder rescue films use a relaxed floor (30) — they scored on a thin
+      // taste signal because the user's profile was built on a different language.
+      const NEIGHBOR_MIN_SCORE = 30
       scored.sort(tieBreakSort)
-      const passed = scored.filter(c => c._score >= HERO_MIN_SCORE)
+      const passed = scored.filter(c =>
+        c._viaNeighborLadder ? c._score >= NEIGHBOR_MIN_SCORE : c._score >= HERO_MIN_SCORE
+      )
 
       // === SELECTION + REASONS ===
       const heroCandidates = selectHeroCandidates(passed, 3)

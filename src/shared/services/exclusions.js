@@ -163,6 +163,23 @@ export function applyCommunitySkipExclusion(query, profile) {
 }
 
 /**
+ * Apply all DB-level exclusion layers EXCEPT language.
+ * Use for neighbor-language expansion queries where the language filter
+ * would defeat the purpose (we're intentionally fetching non-primary languages).
+ *
+ * @param {Object} query - Supabase query builder (chainable)
+ * @param {Object|null} profile - user profile (v2 or v3)
+ * @returns {Object} the (possibly modified) query builder
+ */
+export function applyExclusionsNoLanguage(query, profile) {
+  if (!profile) return query
+  query = applyGenreExclusions(query, profile)
+  query = applyContentGates(query, profile)
+  query = applyCommunitySkipExclusion(query, profile)
+  return query
+}
+
+/**
  * Apply all DB-level exclusion layers in order.
  * Single entry point for most Supabase `.from('movies')` queries.
  *

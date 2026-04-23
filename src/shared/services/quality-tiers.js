@@ -15,6 +15,14 @@ export const QUALITY_TIERS = {
     ff_audience_confidence_min: 65,
     vote_count_min: 200,
   },
+  // Relaxed floor for neighbor-language rescue candidates.
+  // Keeps audience rating high (≥75) but allows lower confidence (≥30)
+  // so culturally adjacent languages with thinner vote pools still qualify.
+  NEIGHBOR: {
+    ff_audience_rating_min: 75,
+    ff_audience_confidence_min: 30,
+    vote_count_min: 200,
+  },
   SIGNATURE: {
     ff_audience_rating_min: 75,
     ff_audience_confidence_min: 60,

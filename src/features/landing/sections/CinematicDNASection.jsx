@@ -2,42 +2,39 @@
 import { motion } from 'framer-motion'
 
 // === CONSTANTS ===
-// All data is hardcoded — NO API calls. This is a simulated profile
-// for a fictional user (Sarah K.) chosen to represent eclectic,
-// quality-focused taste that FeelFlick is built for.
+// All data is hardcoded — NO API calls. This is the founder's real taste profile
+// (Aditya K.) to show what a genuine Cinematic DNA looks like.
 
 const GENRES = [
   {
-    label: 'Psychological Thriller',
+    label: 'Sci-Fi',
     pct: 84,
     colorFrom: 'from-purple-500',
     colorTo: 'to-pink-500',
   },
   {
-    label: 'Sci-Fi Drama',
+    label: 'Thriller',
     pct: 71,
     colorFrom: 'from-blue-500',
     colorTo: 'to-purple-500',
   },
   {
-    label: 'Character Study',
+    label: 'Mystery',
     pct: 63,
     colorFrom: 'from-teal-400',
     colorTo: 'to-cyan-500',
   },
 ]
 
-const DIRECTORS = ['Denis Villeneuve', 'Bong Joon-ho', 'Greta Gerwig']
+const DIRECTORS = ['Christopher Nolan', 'Ridley Scott', 'Steven Spielberg']
 
-const TASTE_SUMMARY = 'Gravitates toward films that unsettle — psychological tension, moral complexity, directors who trust the audience.'
+const TASTE_SUMMARY = 'Gravitates toward time-bending puzzles — memory, alternate timelines, and the films that stay with you long after the credits.'
 
 const RECENTLY_WATCHED = [
-  { title: 'Dune',                              poster: '/gDzOcq0pfeCeqMBwKIJlSmQpjkZ.jpg' },
-  { title: 'Parasite',                          poster: '/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg' },
-  { title: 'Spirited Away',                     poster: '/39wmItIWsg5sZMyRUHLkWBcuVCM.jpg' },
-  { title: 'Everything Everywhere All at Once', poster: '/u68AjlvlutfEIcpmbYpKcdi09ut.jpg' },
-  { title: 'Moonlight',                         poster: '/qLnfEmPrDjJfPyyddLJPkXmshkp.jpg' },
-  { title: 'Amélie',                            poster: '/nSxDa3M9aMvGVLoItzWTepQ5h5d.jpg' },
+  { title: 'Inception',              poster: '/xlaY2zyzMfkhk0HSC5VUwzoZPU1.jpg' },
+  { title: 'The Martian',            poster: '/fASz8A0yFE3QB6LgGoOfwvFSseV.jpg' },
+  { title: 'The Butterfly Effect',   poster: '/ea5iv7TWMh18fOKoRGgmtcg85Gx.jpg' },
+  { title: 'A.I. Artificial Intelligence', poster: '/8MZSGX5JORoO72EfuAEcejH5yHn.jpg' },
 ]
 
 const vp = { once: true, margin: '-60px' }
@@ -93,9 +90,8 @@ function GenreBar({ genre, delay }) {
 /**
  * CinematicDNASection — identity layer of the FeelFlick landing page.
  *
- * Simulates a real user taste profile so visitors think "I want to see mine."
- * NOTE: "47 films watched" and "Member since March 2026" belong to the
- * fictional profile of Sarah K. — they are NOT claims about real FeelFlick users.
+ * Shows the founder's real taste profile (Aditya K.) so visitors think
+ * "I want to see mine." All data is real — not fabricated.
  */
 export default function CinematicDNASection() {
   return (
@@ -229,11 +225,11 @@ export default function CinematicDNASection() {
                   style={{ background: 'linear-gradient(135deg, rgba(168,85,247,0.85), rgba(236,72,153,0.85))' }}
                   aria-hidden="true"
                 >
-                  SK
+                  AK
                 </div>
                 <div>
-                  <p className="text-base font-semibold text-white leading-none mb-1">Sarah K.</p>
-                  <p className="text-xs text-white/40 italic">Cries at Pixar. Won&apos;t admit it.</p>
+                  <p className="text-base font-semibold text-white leading-none mb-1">Aditya K.</p>
+                  <p className="text-xs text-white/40 italic">Obsessed with films that mess with time.</p>
                 </div>
               </div>
 

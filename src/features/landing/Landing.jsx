@@ -6,6 +6,7 @@ import MoodShowcaseSection from '@/features/landing/sections/MoodShowcaseSection
 import CinematicDNASection from '@/features/landing/sections/CinematicDNASection'
 import ItLearnsYouSection from '@/features/landing/sections/ItLearnsYouSection'
 import FindYourPeopleSection from '@/features/landing/sections/FindYourPeopleSection'
+import MoatProofSection from '@/features/landing/sections/MoatProofSection'
 import FAQSection from '@/features/landing/sections/FAQSection'
 import FinalCTASection from '@/features/landing/sections/FinalCTASection'
 
@@ -19,6 +20,7 @@ export default function Landing() {
         <CinematicDNASection />
         <ItLearnsYouSection />
         <FindYourPeopleSection />
+        <MoatProofSection />
         <FAQSection />
         <FinalCTASection />
       </main>

@@ -65,6 +65,7 @@ export default function PersonalizedCarouselRow({
   priority = false,
   hideWhenEmpty = true,
   onRetry = undefined,
+  onShuffle = undefined,
 } = {}) {
   const safeTitle = typeof title === 'string' ? title.trim() : title
 
@@ -107,6 +108,7 @@ export default function PersonalizedCarouselRow({
         priority={Boolean(priority)}
         placement={placement}
         onRetry={typeof onRetry === 'function' ? onRetry : undefined}
+        onShuffle={typeof onShuffle === 'function' ? onShuffle : undefined}
       />
     </section>
   )

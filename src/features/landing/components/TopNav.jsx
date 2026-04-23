@@ -13,12 +13,10 @@ import { useGoogleAuth } from '@/features/landing/utils/useGoogleAuth'
  */
 const NAV_HEIGHT = { mobile: 64, desktop: 80 }
 
-/** Route-based page links rendered in the center of the nav bar. */
-const PAGE_LINKS = [
-  { label: 'About',   to: '/about'    },
-  { label: 'Browse',  to: '/browse'   },
-  { label: 'Moods',   to: '/discover' },
-]
+/** Anchor link rendered in the center of the nav bar.
+ * Points to the MoodShowcaseSection id — avoids linking unauth visitors
+ * to authenticated-only routes (/browse, /discover, /about). */
+const NAV_ANCHOR = { label: 'How it works', href: '#mood-demo' }
 
 /**
  * Top Navigation — cinematic glassmorphism nav, always visible.
@@ -109,6 +107,16 @@ export default function TopNav({ hideAuthCta = false }) {
 
   // === HANDLERS ===
 
+  const handleNavAnchorClick = (e) => {
+    e.preventDefault()
+    setMobileMenuOpen(false)
+    const el = document.getElementById('mood-demo')
+    if (!el) return
+    const navH = barRef.current?.offsetHeight || NAV_HEIGHT.mobile
+    const offsetPosition = el.getBoundingClientRect().top + window.pageYOffset - navH
+    window.scrollTo({ top: offsetPosition, behavior: 'smooth' })
+  }
+
   const onBrandClick = (e) => {
     e.preventDefault()
     setMobileMenuOpen(false)
@@ -165,30 +173,17 @@ export default function TopNav({ hideAuthCta = false }) {
               className="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2"
               aria-label="Site navigation"
             >
-              {PAGE_LINKS.map((link) => {
-                const isActive = location.pathname === link.to
-                return (
-                  <Link
-                    key={link.to}
-                    to={link.to}
-                    className={[
-                      'group relative text-sm font-medium transition-colors duration-200',
-                      isActive ? 'text-white' : 'text-white/60 hover:text-white',
-                    ].join(' ')}
-                    aria-current={isActive ? 'page' : undefined}
-                  >
-                    {link.label}
-                    {/* Gradient underline — always rendered, scales in on hover or active */}
-                    <span
-                      className={[
-                        'absolute -bottom-1 left-0 right-0 h-[2px] rounded-full bg-gradient-to-r from-purple-500 to-pink-500 transition-transform duration-200 origin-left',
-                        isActive ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100',
-                      ].join(' ')}
-                      aria-hidden="true"
-                    />
-                  </Link>
-                )
-              })}
+              <a
+                href={NAV_ANCHOR.href}
+                onClick={handleNavAnchorClick}
+                className="group relative text-sm font-medium text-white/60 hover:text-white transition-colors duration-200"
+              >
+                {NAV_ANCHOR.label}
+                <span
+                  className="absolute -bottom-1 left-0 right-0 h-[2px] rounded-full bg-gradient-to-r from-purple-500 to-pink-500 transition-transform duration-200 origin-left scale-x-0 group-hover:scale-x-100"
+                  aria-hidden="true"
+                />
+              </a>
             </nav>
 
             {/* === RIGHT SIDE: Sign in button + mobile toggle === */}
@@ -271,23 +266,13 @@ export default function TopNav({ hideAuthCta = false }) {
 
           {/* Nav links */}
           <div className="px-6 pt-2 pb-4 flex flex-col gap-1">
-            {PAGE_LINKS.map((link) => {
-              const isActive = location.pathname === link.to
-              return (
-                <Link
-                  key={link.to}
-                  to={link.to}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={[
-                    'w-full text-left text-sm font-medium py-3 min-h-[44px] transition-colors duration-200',
-                    isActive ? 'text-white' : 'text-white/60 hover:text-white',
-                  ].join(' ')}
-                  aria-current={isActive ? 'page' : undefined}
-                >
-                  {link.label}
-                </Link>
-              )
-            })}
+            <a
+              href={NAV_ANCHOR.href}
+              onClick={handleNavAnchorClick}
+              className="w-full text-left text-sm font-medium py-3 min-h-[44px] text-white/60 hover:text-white transition-colors duration-200"
+            >
+              {NAV_ANCHOR.label}
+            </a>
           </div>
 
           {/* Divider */}

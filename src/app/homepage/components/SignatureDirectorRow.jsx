@@ -9,7 +9,7 @@ import PersonalizedCarouselRow from './PersonalizedCarouselRow'
  *
  * @param {{ data: { films: Object[], director: { name: string, profile_path: string|null }|null, subtitle: string|null }|null, loading: boolean }} props
  */
-export default function SignatureDirectorRow({ data, loading }) {
+export default function SignatureDirectorRow({ data, loading, onShuffle }) {
   const director = data?.director
   const films = data?.films || []
   const subtitle = data?.subtitle
@@ -55,6 +55,7 @@ export default function SignatureDirectorRow({ data, loading }) {
       loading={loading}
       rowId="signature-director"
       placement="signature_director"
+      onShuffle={onShuffle}
     />
   )
 }

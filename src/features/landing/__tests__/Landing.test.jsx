@@ -20,11 +20,13 @@ function HeroHeadline() {
 // ---------------------------------------------------------------------------
 // Minimal FinalCTA re-implementation — tests headline copy only.
 // Updated to match the approved "Tonight." copy (Blueprint §Approved Copy).
+// "Tonight." is a block span so it always sits on its own visual line.
 // ---------------------------------------------------------------------------
 function FinalCTAHeadline() {
   return (
     <h2 id="final-cta-heading">
-      Somewhere in 6,700 films is one that&apos;s exactly right for tonight. Tonight.
+      <span>Somewhere in 6,700 films is one made for you.</span>
+      <span>Tonight.</span>
     </h2>
   )
 }
@@ -51,7 +53,7 @@ function LandingStructure() {
     <div>
       <section aria-labelledby="hero-heading">
         <h1 id="hero-heading">Find films for when you&apos;re feeling nostalgic.</h1>
-        <button>Get my recommendations</button>
+        <button>Get Started Free</button>
       </section>
       <section id="mood-demo" aria-labelledby="mood-demo-heading">
         <h2 id="mood-demo-heading">Start with the moment.</h2>
@@ -64,6 +66,9 @@ function LandingStructure() {
       </section>
       <section id="find-people" aria-labelledby="people-heading">
         <h2 id="people-heading">Find people who actually get your taste.</h2>
+      </section>
+      <section id="moat-proof">
+        <p>Every film is hand-scored on 15 dimensions.</p>
       </section>
       <section id="lists" aria-labelledby="lists-heading">
         <h2 id="lists-heading">A beautiful home for your film collections.</h2>
@@ -78,7 +83,10 @@ function LandingStructure() {
         <h2 id="trust-heading">Why trust FeelFlick</h2>
       </section>
       <section aria-labelledby="final-cta-heading">
-        <h2 id="final-cta-heading">Somewhere in 6,700 films is one that&apos;s exactly right for tonight. Tonight.</h2>
+        <h2 id="final-cta-heading">
+          <span>Somewhere in 6,700 films is one made for you.</span>
+          <span>Tonight.</span>
+        </h2>
         <button>Get Started Free</button>
       </section>
     </div>
@@ -118,6 +126,12 @@ describe('Landing page – final CTA headline', () => {
   it('does not use the old "Your Next Favorite Film" copy', () => {
     render(<FinalCTAHeadline />)
     expect(screen.queryByText(/Your Next Favorite Film/i)).not.toBeInTheDocument()
+  })
+
+  it('does not use the stale "Stop Scrolling / Start Watching" copy', () => {
+    render(<FinalCTAHeadline />)
+    expect(screen.queryByText(/Stop Scrolling/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Start Watching/i)).not.toBeInTheDocument()
   })
 })
 
@@ -171,8 +185,35 @@ describe('Landing page – structure', () => {
 
   it('has exactly two sign-in CTAs (hero + final)', () => {
     render(<LandingStructure />)
-    expect(screen.getByRole('button', { name: /get my recommendations/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /get started free/i })).toBeInTheDocument()
+    // Both CTAs now say "Get Started Free" — consistent with TopNav copy
+    const ctaButtons = screen.getAllByRole('button', { name: /get started free/i })
+    expect(ctaButtons).toHaveLength(2)
+  })
+})
+
+describe('MoatProofSection', () => {
+  function MoatProofStub() {
+    return (
+      <section id="moat-proof" aria-label="What makes FeelFlick different">
+        <p>Every film is hand-scored on 15 dimensions.</p>
+        <p>No autoplay queue. No filler.</p>
+      </section>
+    )
+  }
+
+  it('renders the section with correct id', () => {
+    render(<MoatProofStub />)
+    expect(document.getElementById('moat-proof')).toBeInTheDocument()
+  })
+
+  it('renders the hand-scored claim', () => {
+    render(<MoatProofStub />)
+    expect(screen.getByText(/hand-scored on 15 dimensions/i)).toBeInTheDocument()
+  })
+
+  it('renders the no autoplay claim', () => {
+    render(<MoatProofStub />)
+    expect(screen.getByText(/No autoplay queue\. No filler\./i)).toBeInTheDocument()
   })
 })
 

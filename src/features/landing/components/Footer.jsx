@@ -19,6 +19,12 @@ const COMPANY_LINKS = [
   { label: 'Terms',   to: '/terms'   },
 ]
 
+const CONNECT_LINKS = [
+  { label: 'Twitter / X', href: 'https://twitter.com/feelflick' },
+  { label: 'GitHub',      href: 'https://github.com/30adityakumar/feelflick-app' },
+  { label: 'Contact',     href: 'mailto:hello@feelflick.com' },
+]
+
 // === MAIN COMPONENT ===
 
 /**
@@ -62,7 +68,7 @@ export default function Footer() {
 
         {/* === THREE-COLUMN LINK GRID === */}
         <nav aria-label="Footer navigation" className="pt-12 sm:pt-16 pb-8">
-          <div className="grid grid-cols-2 gap-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-8">
 
             {/* Column 1 — Product */}
             <div>
@@ -96,6 +102,27 @@ export default function Footer() {
               </ul>
             </div>
 
+            {/* Column 3 — Connect */}
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-white/40 mb-4">
+                Connect
+              </p>
+              <ul className="space-y-3">
+                {CONNECT_LINKS.map(({ label, href }) => (
+                  <li key={label}>
+                    <a
+                      href={href}
+                      className={LINK_CLS}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
           </div>
         </nav>
 
@@ -115,7 +142,7 @@ export default function Footer() {
 
           {/* Right — human signal + copyright */}
           <div className="text-center sm:text-right">
-            <p className="text-xs text-white/20">Built with love for cinema in Toronto.</p>
+            <p className="text-xs text-white/20">Built by Aditya Kumar in Toronto. One developer, 6,700 films, and a belief that recommendations should feel personal.</p>
             <p className="text-xs text-white/20">&copy; 2026 FeelFlick</p>
           </div>
 

@@ -68,7 +68,7 @@
 import { supabase } from '@/shared/lib/supabase/client'
 import * as tmdb from '@/shared/api/tmdb' // kept for compatibility; not required in this file
 import { recommendationCache } from '@/shared/lib/cache'
-import { applyAllExclusions, filterExclusionsClientSide } from './exclusions'
+import { applyAllExclusions, applyExclusionsNoLanguage, filterExclusionsClientSide } from './exclusions'
 import { applyQualityFloor, QUALITY_TIERS } from './quality-tiers'
 import { scoreMovieV3, precomputeScoringContext } from './scoring-v3'
 import { FIT_ADJACENCY, promoteRatedFitProfiles } from './fit-adjacency'
@@ -87,6 +87,10 @@ const profileMemoryCache = new Map()
 const profileInflight = new Map()
 const seedMemoryCache = new Map()
 const seedInflight = new Map()
+
+// Catalog language counts — session-scoped (no user key; catalog doesn't change during a session)
+let _catalogCountsCache = null
+let _catalogCountsInflight = null
 
 function getTimedCache(map, key) {
   const entry = map.get(key)
@@ -193,6 +197,68 @@ const LANGUAGE_REGIONS = {
   he: 'hebrew',
   // Anglophone
   en: 'english'
+}
+
+// ============================================================================
+// LANGUAGE NEIGHBORS — culturally adjacent languages for fallback expansion
+// ============================================================================
+
+const LANGUAGE_NEIGHBORS = {
+  // South Asian
+  hi: ['ur', 'pa', 'bn', 'mr', 'gu', 'ta', 'te', 'ml', 'kn'],
+  ur: ['hi', 'pa'],
+  pa: ['hi', 'ur'],
+  bn: ['hi', 'as'],
+  mr: ['hi', 'gu'],
+  gu: ['hi', 'mr'],
+  ta: ['ml', 'te', 'kn', 'hi'],
+  te: ['ta', 'ml', 'kn', 'hi'],
+  ml: ['ta', 'te', 'kn', 'hi'],
+  kn: ['ta', 'te', 'ml', 'hi'],
+  // East Asian
+  ko: ['ja', 'zh', 'cn'],
+  ja: ['ko', 'zh', 'cn'],
+  zh: ['cn', 'ja', 'ko'],
+  cn: ['zh', 'ja', 'ko'],
+  // Romance
+  es: ['pt', 'it', 'fr', 'ca'],
+  pt: ['es', 'it', 'fr'],
+  it: ['es', 'pt', 'fr'],
+  fr: ['it', 'es', 'pt'],
+  ca: ['es', 'pt'],
+  // Germanic/Nordic
+  de: ['nl', 'da', 'sv', 'no'],
+  nl: ['de', 'da', 'sv'],
+  da: ['sv', 'no', 'de', 'nl'],
+  sv: ['no', 'da', 'de'],
+  no: ['sv', 'da'],
+  // Slavic
+  ru: ['uk', 'pl', 'cs'],
+  uk: ['ru', 'pl'],
+  pl: ['cs', 'ru'],
+  cs: ['sk', 'pl'],
+  // Middle East
+  ar: ['fa', 'tr', 'he'],
+  fa: ['ar', 'ur'],
+  tr: ['ar', 'fa'],
+  he: ['ar'],
+  // Southeast Asian
+  th: ['vi', 'id', 'ms'],
+  vi: ['th', 'zh'],
+  id: ['ms', 'th'],
+  ms: ['id', 'th'],
+}
+
+/**
+ * Returns the culturally adjacent languages for a given primary language.
+ * Used in the fallback candidate ladder to expand pools before going global.
+ *
+ * @param {string|null} primaryLang - ISO 639-1 language code
+ * @returns {string[]}
+ */
+export function getNeighborLanguages(primaryLang) {
+  if (!primaryLang) return []
+  return LANGUAGE_NEIGHBORS[primaryLang] || []
 }
 
 // "Likely seen" is DISABLED per your request (kept for backward compatibility)
@@ -2077,21 +2143,41 @@ function deriveLanguageFromWatchedRows(watchedRows = []) {
 
 /**
  * Decide how strict to be:
- * - If primary >= 80% and distinctCount <= 2: STRICT (strong mono-lingual signal)
- * - If primary >= 60%: STRONG (top 3 langs, down from top 2 — more diverse)
+ * - If primary >= 90% AND distinctCount <= 1 AND totalWeight >= 10: STRICT
+ *   (previously 80%/distinctCount<=2 — too aggressive, was locking South Asian users
+ *   with only onboarding picks into single-language bubbles)
+ * - If primary >= 60%: STRONG (top 3 langs, neighbour languages added at fetch time)
  * - else: LOOSE (score-based, no hard filter)
  *
- * STRICT threshold is 80% (down from 85%) so more users reach STRONG mode.
- * STRONG now allows top 3 languages (up from 2) to reduce language bubbles.
+ * The totalWeight >= 10 guard prevents 3-pick onboarding users (9 weighted units)
+ * from being STRICT-locked before they've confirmed preferences through real watching.
  */
-function buildLanguageGuardFromHistory(languageFromHistory) {
+function buildLanguageGuardFromHistory(languageFromHistory, catalogCounts = null) {
   const primary = languageFromHistory.primary
   const dominance = languageFromHistory.primaryDominance || 0
   const sorted = languageFromHistory.distributionSorted || []
   const distinctCount = languageFromHistory.distinctCount || 0
+  // Sum of weighted language signal — proxy for watch history depth
+  const totalWeight = sorted.reduce((sum, s) => sum + (s.count || 0), 0)
 
   const top3 = sorted.slice(0, 3).map((s) => s.lang).filter(Boolean)
-  const strict = primary && dominance >= 80 && distinctCount <= 2
+  let strict = primary && dominance >= 90 && distinctCount <= 1 && totalWeight >= 10
+
+  // Catalog exhaustion: if the user has seen >= 50% of their primary-language catalog,
+  // unlock neighbors by dropping to STRONG even if dominance otherwise qualifies for STRICT.
+  // Prevents users who've genuinely exhausted a small-catalog language (e.g. Hindi, Tamil)
+  // from getting an empty hero instead of excellent neighbor-language suggestions.
+  if (strict && catalogCounts && primary) {
+    const watchedWeight = sorted.find(s => s.lang === primary)?.count || 0
+    const catalogCount = catalogCounts[primary] || 0
+    if (catalogCount > 0 && watchedWeight / catalogCount >= 0.5) {
+      strict = false
+      if (import.meta.env.DEV) {
+        console.log(`[langGuard] catalog exhaustion detected for '${primary}': watched≈${watchedWeight}, catalog=${catalogCount} — forcing STRONG`)
+      }
+    }
+  }
+
   const strong = primary && dominance >= 60
 
   let allowed = []
@@ -2105,6 +2191,118 @@ function buildLanguageGuardFromHistory(languageFromHistory) {
     dominance,
     allowedLanguages: allowed
   }
+}
+
+// ============================================================================
+// LANGUAGE LADDER — progressive language expansion for thin candidate pools
+// ============================================================================
+
+/**
+ * Fetch candidates by expanding language scope in tiers until minResults is met.
+ *
+ * Tier 1 — primary allowed list (strict/strong guard)
+ * Tier 2 — culturally adjacent neighbors (LANGUAGE_NEIGHBORS)
+ * Tier 3 — region peers (LANGUAGE_REGIONS inverse)
+ * Tier 4 — global (no language restriction)
+ *
+ * Each tier queries independently; results accumulate without duplicates.
+ * The tier label is stamped on each movie as `_languageTier` for debugging.
+ *
+ * @param {{
+ *   baseQuery: () => import('@supabase/supabase-js').PostgrestFilterBuilder,
+ *   langGuard: { primary: string|null, allowedLanguages: string[] },
+ *   minResults?: number,
+ *   filters?: (movie: Object) => boolean,
+ * }} opts
+ * @returns {Promise<Object[]>}
+ */
+async function fetchWithLanguageLadder({ baseQuery, langGuard, minResults = 15, filters }) {
+  const primary = langGuard?.primary || null
+  const tiers = []
+
+  // Tier 1: strict/strong allowed list (user's top languages)
+  if (langGuard?.allowedLanguages?.length) {
+    tiers.push({ label: 'primary', langs: langGuard.allowedLanguages })
+  }
+
+  // Tier 2: neighbors of primary
+  const neighbors = getNeighborLanguages(primary)
+  if (neighbors.length) {
+    tiers.push({ label: 'neighbors', langs: neighbors })
+  }
+
+  // Tier 3: region peers (LANGUAGE_REGIONS inverse lookup)
+  const region = primary ? LANGUAGE_REGIONS[primary] : null
+  if (region) {
+    const regionPeers = Object.entries(LANGUAGE_REGIONS)
+      .filter(([lang, r]) => r === region && lang !== primary)
+      .map(([lang]) => lang)
+    if (regionPeers.length) {
+      tiers.push({ label: 'region', langs: regionPeers })
+    }
+  }
+
+  // Tier 4: open — no language restriction
+  tiers.push({ label: 'global', langs: null })
+
+  const seen = new Set()
+  const accumulated = []
+
+  for (const tier of tiers) {
+    let q = baseQuery()
+    if (tier.langs?.length === 1) q = q.eq('original_language', tier.langs[0])
+    else if (tier.langs?.length > 1) q = q.in('original_language', tier.langs)
+    const { data } = await q
+    const fresh = (data || []).filter(m => m?.id && !seen.has(m.id) && (!filters || filters(m)))
+    fresh.forEach(m => {
+      seen.add(m.id)
+      m._languageTier = tier.label
+    })
+    accumulated.push(...fresh)
+    if (accumulated.length >= minResults) break
+  }
+
+  return accumulated
+}
+
+// ============================================================================
+// CATALOG EXHAUSTION — per-language film counts, session-cached
+// ============================================================================
+
+/**
+ * Returns a map of { [iso639Lang]: count } for all valid movies in the catalog.
+ * Cached for the entire browser session — catalog composition doesn't change mid-session.
+ * Used by buildLanguageGuardFromHistory to detect when a user has seen >= 50% of
+ * their primary language catalog (triggers STRONG unlock so neighbors are included).
+ *
+ * @returns {Promise<Record<string, number>>}
+ */
+async function getCatalogLanguageCounts() {
+  if (_catalogCountsCache) return _catalogCountsCache
+  if (_catalogCountsInflight) return _catalogCountsInflight
+
+  _catalogCountsInflight = (async () => {
+    try {
+      const { data } = await supabase
+        .from('movies')
+        .select('original_language')
+        .eq('is_valid', true)
+        .not('original_language', 'is', null)
+      const counts = {}
+      for (const row of data || []) {
+        const lang = row.original_language
+        if (lang) counts[lang] = (counts[lang] || 0) + 1
+      }
+      _catalogCountsCache = counts
+      return counts
+    } catch {
+      return {}
+    } finally {
+      _catalogCountsInflight = null
+    }
+  })()
+
+  return _catalogCountsInflight
 }
 
 // ============================================================================
@@ -2149,14 +2347,15 @@ async function _fetchEmbeddingNeighborsForSeeds(seedFilms, opts = {}) {
 // ============================================================================
 
 export async function getTopPickForUser(userId, options = {}) {
-  const { excludeIds = [], excludeTmdbIds = [], forceRefresh = false, penalizedGenreIds = [] } = options
+  const { excludeIds = [], excludeTmdbIds = [], forceRefresh = false, penalizedGenreIds = [], shuffleNonce = 0 } = options
 
   const stableExcludeIds = normalizeNumericIdArray(excludeIds)
   const stableExcludeTmdbIds = normalizeNumericIdArray(excludeTmdbIds)
 
   const cacheKey = recommendationCache.key('top_pick', userId || 'guest', {
     excludeIds: stableExcludeIds,
-    excludeTmdbIds: stableExcludeTmdbIds
+    excludeTmdbIds: stableExcludeTmdbIds,
+    nonce: shuffleNonce,
   })
 
   if (forceRefresh) recommendationCache.invalidate(cacheKey)
@@ -2170,11 +2369,30 @@ export async function getTopPickForUser(userId, options = {}) {
       const profileV3 = await computeUserProfileV3(userId)
       const scoringContext = await precomputeScoringContext(profileV3)
 
+      if (import.meta.env.DEV) {
+        // WHY: helps diagnose why a user with ratings still hits the cold-start/fallback branch.
+        const _ratedCount = (profileV3?.rated?.positive_seeds || []).length
+        const _historyCount = profileV3?.meta?.total_watches || 0
+        const _tier = profile?.meta?.confidence ?? 'unknown'
+        const _isCold = scoringContext?.isColdStart ?? true
+        console.log('[hero-branch-select]', {
+          historyCount: _historyCount,
+          ratedCount: _ratedCount,
+          tier: _tier,
+          hasEmbedding: _ratedCount > 0,
+          hasGenrePrefs: (profile?.genres?.preferred || []).length > 0,
+          chosenBranch: _isCold ? 'cold-fallback' : 'personalized',
+          reason: _isCold
+            ? `ratedCount=${_ratedCount} < 3 AND historyCount=${_historyCount} < 5`
+            : `ratedCount=${_ratedCount} >= 3 OR historyCount=${_historyCount} >= 5`,
+        })
+      }
+
       // === PARALLEL GROUP 1: watched rows + hero impressions ===
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
       const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000)
 
-      const [{ data: watchedRows }, { data: heroImpressionData }] = await Promise.all([
+      const [{ data: watchedRows }, { data: heroImpressionData }, catalogCounts] = await Promise.all([
         supabase
           .from('user_history')
           .select('movie_id, movies!inner(id, tmdb_id, original_language, genres)')
@@ -2185,6 +2403,7 @@ export async function getTopPickForUser(userId, options = {}) {
           .eq('user_id', userId)
           .eq('placement', 'hero')
           .or(`shown_at.gte.${sevenDaysAgo},skipped.eq.true`),
+        getCatalogLanguageCounts(),
       ])
 
       const watchedInternalIds = normalizeNumericIdArray((watchedRows || []).map((w) => w.movie_id))
@@ -2193,7 +2412,7 @@ export async function getTopPickForUser(userId, options = {}) {
       const allExcludeTmdb = new Set(normalizeNumericIdArray([...watchedTmdbIds, ...stableExcludeTmdbIds]))
 
       const historyLang = deriveLanguageFromWatchedRows(watchedRows || [])
-      const langGuard = buildLanguageGuardFromHistory(historyLang)
+      const langGuard = buildLanguageGuardFromHistory(historyLang, catalogCounts)
 
       // === IMPRESSION PARTITIONING ===
       const lastShownAt = new Map()
@@ -2355,6 +2574,70 @@ export async function getTopPickForUser(userId, options = {}) {
         candidates = candidates.filter(m => !personalSkipped.has(m.id))
       }
 
+      // === LANGUAGE LADDER EXPANSION ===
+      // If the candidate pool is still thin after all filters, expand to neighbor
+      // languages before scoring. This prevents a Bollywood-heavy user getting a
+      // blank hero just because the Hindi catalog is small relative to their exclusion list.
+      //
+      // KEY: we intentionally bypass the language filter here (applyExclusionsNoLanguage
+      // instead of applyAllExclusions) — applying the Hindi-only language guard to a
+      // Tamil/Telugu query would silently eliminate every result. Genre + community skip
+      // exclusions still apply. filterExclusionsClientSide is also skipped for the same
+      // reason; the DB query already handled safe exclusions.
+      if (candidates.length < 30 && langGuard.primary && langGuard.primary !== 'en') {
+        const neighborLangs = getNeighborLanguages(langGuard.primary)
+        if (neighborLangs.length > 0) {
+          const existingCandidateIds = new Set(candidates.map(m => m.id))
+          let expandQuery = supabase
+            .from('movies')
+            .select(selectFields)
+            .eq('is_valid', true)
+            // WHY: poster_path not backdrop_path — regional films (Tamil, Telugu, etc.) often
+            // have TMDB poster images but lack wide-format backdrops. backdrop_path filter
+            // silently kills every neighbor candidate while TopOfTaste (which uses poster_path)
+            // finds the same films without issue. HeroTopPick handles missing backdrop gracefully.
+            .not('poster_path', 'is', null)
+            .not('tmdb_id', 'is', null)
+            .gte('release_date', `${minYear}-01-01`)
+            .in('original_language', neighborLangs)
+          // NEIGHBOR tier: same audience floor (75) but relaxed confidence (30)
+          // so thinner-catalog languages (Tamil, Telugu) aren't over-penalised.
+          expandQuery = applyQualityFloor(expandQuery, 'NEIGHBOR')
+          // Skip language filter — we're deliberately fetching non-primary languages.
+          expandQuery = applyExclusionsNoLanguage(expandQuery, profile)
+          const { data: neighborData } = await expandQuery
+            .order('ff_audience_rating', { ascending: false })
+            .limit(60)
+
+          // Safety filters: watched/cooldown/skip exclusions only.
+          // Language filter is intentionally omitted here.
+          const neighborFresh = (neighborData || []).filter(m =>
+            m?.id && m?.tmdb_id &&
+            !existingCandidateIds.has(m.id) &&
+            !allExcludeInternal.includes(m.id) &&
+            !allExcludeTmdb.has(m.tmdb_id) &&
+            !recentHeroIds.has(m.id) &&
+            !(hardSkipIds.has(m.id) && Number(m.ff_audience_rating != null ? m.ff_audience_rating / 10 : m.ff_final_rating || m.ff_rating || 0) < 8.5)
+          )
+          neighborFresh.forEach(m => { m._languageTier = 'neighbors'; m._viaNeighborLadder = true })
+          candidates.push(...neighborFresh)
+
+          if (import.meta.env.DEV) {
+            console.log('[hero-diag]', {
+              primaryLang: langGuard.primary,
+              guardMode: langGuard.mode,
+              allowedLanguages: langGuard.allowedLanguages,
+              candidatesBeforeExpansion: existingCandidateIds.size,
+              neighborLangsFetched: neighborLangs,
+              neighborFilmsRaw: neighborData?.length ?? 0,
+              neighborFilmsAfterFilter: neighborFresh.length,
+              exclusionCount: allExcludeInternal.length,
+              totalCandidatesAfterExpansion: candidates.length,
+            })
+          }
+        }
+      }
+
       // === SCORING ===
       const HERO_MIN_SCORE = 50
       let branchName = 'primary'
@@ -2389,27 +2672,57 @@ export async function getTopPickForUser(userId, options = {}) {
         }
       })
 
-      // Sort with tieBreakSort, filter by gate
+      // Score gate thresholds:
+      //   HERO_MIN_SCORE (50)   — well-personalized users (≥5 seeds or ≥5 real watches)
+      //   WEAK_HERO_MIN (30)    — users with 3-4 seeds and < 5 real watches;
+      //                           HERO weights + thin embeddings → genuine scores ~30-45,
+      //                           so 50 would route them all to the global fallback
+      //   NEIGHBOR_MIN_SCORE(30)— neighbor-language rescue films (different language bias)
+      const NEIGHBOR_MIN_SCORE = 30
+      const WEAK_HERO_MIN = 30
+      const isWeakPersonalization = !scoringContext.isColdStart
+        && (profileV3?.rated?.positive_seeds?.length || 0) < 5
+        && (profileV3?.meta?.total_watches || 0) < 5
+
       scored.sort(tieBreakSort)
-      const passed = scored.filter(c => c._score >= HERO_MIN_SCORE)
+      const passed = scored.filter(c => {
+        if (c._viaNeighborLadder) return c._score >= NEIGHBOR_MIN_SCORE
+        if (isWeakPersonalization) return c._score >= WEAK_HERO_MIN
+        return c._score >= HERO_MIN_SCORE
+      })
+
+      if (import.meta.env.DEV) {
+        const neighborPassed = passed.filter(c => c._viaNeighborLadder)
+        const primaryPassed = passed.filter(c => !c._viaNeighborLadder)
+        console.log('[hero-pool]', {
+          candidatesTotal: candidates.length,
+          scoredTotal: scored.length,
+          passedTotal: passed.length,
+          primaryPassed: primaryPassed.length,
+          neighborPassed: neighborPassed.length,
+          topScores: scored.slice(0, 5).map(c => ({ title: c.title, score: c._score, neighbor: !!c._viaNeighborLadder })),
+        })
+      }
 
       // === SELECTION + REASONS ===
       const heroCandidates = selectHeroCandidates(passed, 3)
 
       if (heroCandidates.length === 0) {
         branchName = 'fallback'
-        const fallbackResult = await getFallbackPick(langGuard, allExcludeInternal, allExcludeTmdb, profile, profileV3, scoringContext)
-        if (!fallbackResult?.primary && fallbackResult?.movie) {
-          // Legacy fallback shape → convert to new shape
-          const fb = fallbackResult.movie
-          if (import.meta.env.DEV) console.log('[hero]', { branch: 'fallback', primary: fb?.title, altCount: 0, reasonKeys: [] })
-          return { primary: fb, alternates: [], reasons: {} }
-        }
-        if (import.meta.env.DEV) console.log('[hero]', { branch: 'fallback', primary: fallbackResult?.primary?.title, altCount: 0, reasonKeys: [] })
-        return fallbackResult
+        const fallbackResult = await getFallbackPick(langGuard, allExcludeInternal, allExcludeTmdb, profile, profileV3, scoringContext, userId, shuffleNonce)
+        if (import.meta.env.DEV) console.log('[hero]', {
+          branch: 'fallback',
+          primary: fallbackResult?.primary?.title,
+          altCount: fallbackResult?.alternates?.length ?? 0,
+          reasonKeys: Object.keys(fallbackResult?.reasons ?? {}).length,
+        })
+        return fallbackResult ?? { primary: null, alternates: [], reasons: {} }
       }
 
-      const idx = dayHashIndex(userId, heroCandidates.length)
+      const _rawIdx = dayHashIndex(userId, heroCandidates.length)
+      const idx = shuffleNonce > 0
+        ? (_rawIdx + shuffleNonce * 7901) % heroCandidates.length
+        : _rawIdx
       const primary = heroCandidates[idx]
       const alternates = heroCandidates.filter(c => c.id !== primary.id)
       const reasons = Object.fromEntries(
@@ -2431,7 +2744,7 @@ export async function getTopPickForUser(userId, options = {}) {
       return { primary, alternates, reasons }
     } catch (error) {
       console.error('[getTopPickForUser] Error:', error)
-      const fallbackResult = await getFallbackPick(null)
+      const fallbackResult = await getFallbackPick(null, [], new Set(), null, null, null, userId, shuffleNonce)
       if (fallbackResult?.movie) {
         return { primary: fallbackResult.movie, alternates: [], reasons: {} }
       }
@@ -3127,7 +3440,51 @@ async function logImpression(userId, selectedCandidate, placement) {
   }
 }
 
-async function getFallbackPick(langGuard, excludeInternalIds = [], excludeTmdbIds = new Set(), profile = null, profileV3 = null, scoringContext = null) {
+// Human-readable cinema labels for fallback reason chips, keyed by LANGUAGE_REGIONS value.
+const REGION_CINEMA_LABELS = {
+  hindi_bollywood: 'Hindi cinema',
+  south_indian: 'South Indian cinema',
+  bengali: 'Bengali cinema',
+  punjabi: 'Punjabi cinema',
+  marathi: 'Marathi cinema',
+  korean: 'Korean cinema',
+  japanese: 'Japanese cinema',
+  chinese: 'Chinese cinema',
+  cantonese: 'Cantonese cinema',
+  thai: 'Thai cinema',
+  french: 'French cinema',
+  german: 'German cinema',
+  spanish_european: 'Spanish cinema',
+  italian: 'Italian cinema',
+  nordic: 'Nordic cinema',
+  arabic: 'Arab cinema',
+  persian: 'Persian cinema',
+  turkish: 'Turkish cinema',
+}
+
+/**
+ * Lightweight reason chip for fallback-language-ladder films.
+ * Uses the film's region vs the user's primary region to avoid tautology.
+ *
+ * @param {Object} movie
+ * @param {string|null} primaryLang - user's primary language code
+ * @returns {{ type: string, text: string }}
+ */
+function generateFallbackLanguageReason(movie, primaryLang) {
+  const movieRegion = LANGUAGE_REGIONS[movie.original_language]
+  const primaryRegion = LANGUAGE_REGIONS[primaryLang]
+  // Avoid "Hindi cinema you'll love" for a Hindi film recommended to a Hindi user
+  if (movieRegion && movieRegion !== primaryRegion) {
+    const label = REGION_CINEMA_LABELS[movieRegion] || 'world cinema'
+    return { type: 'language', text: `${label} you'll love` }
+  }
+  if (movie.primary_genre) {
+    return { type: 'quality', text: `${movie.primary_genre} at its best` }
+  }
+  return { type: 'generic', text: 'Picked for you' }
+}
+
+async function getFallbackPick(langGuard, excludeInternalIds = [], excludeTmdbIds = new Set(), profile = null, profileV3 = null, scoringContext = null, userId = null, shuffleNonce = 0) {
   const primaryLang = langGuard?.primary || null
 
   const notWatched = (m) =>
@@ -3136,34 +3493,75 @@ async function getFallbackPick(langGuard, excludeInternalIds = [], excludeTmdbId
     !excludeTmdbIds.has(m.tmdb_id)
 
   try {
-    // Tier 1: same-language fallback — strongly preferred when user has a language history.
-    // Looser quality bar (ff_final_rating >= 6.5, vote_count >= 50) because the language
-    // pool is small; better a good Hindi film than a great English animated short.
+    // Tier 1 + 1.5: language ladder — primary lang → neighbors → region peers, then global.
+    // Looser quality bar because non-English pools are small; better a good Hindi film
+    // than a great English animated short.
     if (primaryLang && primaryLang !== 'en') {
-      let langQuery = supabase
-        .from('movies')
-        .select('*')
-        .eq('is_valid', true)
-        .eq('original_language', primaryLang)
-        .not('backdrop_path', 'is', null)
-        .not('tmdb_id', 'is', null)
-      langQuery = applyQualityFloor(langQuery, 'CONTEXT')
-      langQuery = applyAllExclusions(langQuery, profile)
-      const { data: langFallback } = await langQuery
-        .order('ff_audience_rating', { ascending: false })
-        .limit(60)
+      const langGuardForLadder = {
+        primary: primaryLang,
+        allowedLanguages: [primaryLang],
+      }
+      const ladderResults = await fetchWithLanguageLadder({
+        baseQuery: () => {
+          let q = supabase
+            .from('movies')
+            .select('*')
+            .eq('is_valid', true)
+            // WHY: poster_path not backdrop_path — regional films often have poster but no
+            // backdrop (see hero neighbor expansion comment). fetchWithLanguageLadder runs this
+            // base query for every tier including neighbors, so backdrop_path would block them
+            // all. HeroTopPick handles null backdrop_path gracefully with a gradient fallback.
+            .not('poster_path', 'is', null)
+            .not('tmdb_id', 'is', null)
+          q = applyQualityFloor(q, 'CONTEXT')
+          // WHY: applyExclusionsNoLanguage not applyAllExclusions — see hero neighbor expansion.
+          if (profile) q = applyExclusionsNoLanguage(q, profile)
+          return q.order('ff_audience_rating', { ascending: false }).limit(60)
+        },
+        langGuard: langGuardForLadder,
+        minResults: 5,
+        // WHY: notWatched only — do NOT call filterExclusionsClientSide here. That function
+        // applies a JS-level language filter (allowedLangSet.has(m.original_language)), which
+        // would discard every Tamil/Telugu film returned by the neighbor tier even after the
+        // SQL language filter is correctly removed from the base query above. DB-level genre
+        // and quality filters are already applied; client-side language check defeats the rescue.
+        filters: notWatched,
+      })
 
-      let eligible = (langFallback || []).filter(notWatched)
-      if (profile) eligible = filterExclusionsClientSide(eligible, profile)
-      if (eligible.length >= 1) {
-        const pick = eligible[Math.floor(Math.random() * Math.min(eligible.length, 10))]
-        if (import.meta.env.DEV) console.log('[hero] selected branch: fallback-language, pool size:', eligible.length)
-        return {
-          movie: pick,
-          pickReason: { label: 'Top pick for you', type: 'quality' },
-          score: Number(pick.ff_audience_rating ?? (pick.ff_final_rating ?? pick.ff_rating ?? 0) * 10),
-          debug: { fallback: true, fallbackType: 'language-aware', lang: primaryLang }
+      if (ladderResults.length >= 1) {
+        // Score with v3 if available so diversity selection uses real personalization signal.
+        // Fall back to ff_audience_rating for cold/anonymous users.
+        let scoredLadder
+        if (profileV3 && scoringContext) {
+          scoredLadder = ladderResults.map(m => {
+            const { final, breakdown } = scoreMovieV3(m, profileV3, scoringContext, 'HERO')
+            return { ...m, _score: final, _breakdown: breakdown }
+          })
+          scoredLadder.sort(tieBreakSort)
+        } else {
+          scoredLadder = ladderResults.map(m => ({ ...m, _score: m.ff_audience_rating ?? 0 }))
+          scoredLadder.sort((a, b) => b._score - a._score)
         }
+
+        // Pick primary + up to 2 alternates using genre/director diversity.
+        const ladderCandidates = selectHeroCandidates(scoredLadder, 3)
+        const _ladderRawIdx = userId ? dayHashIndex(userId, ladderCandidates.length) : 0
+        const idx = shuffleNonce > 0 && ladderCandidates.length > 1
+          ? (_ladderRawIdx + shuffleNonce * 7901) % ladderCandidates.length
+          : _ladderRawIdx
+        const primary = ladderCandidates[idx] || ladderCandidates[0]
+        const alternates = ladderCandidates.filter(c => c.id !== primary.id)
+        const reasons = Object.fromEntries(
+          ladderCandidates.map(c => [
+            c.id,
+            c._breakdown
+              ? generateHeroReason(c, c._breakdown, profileV3, scoringContext?.seedNeighborMap)
+              : generateFallbackLanguageReason(c, primaryLang),
+          ])
+        )
+
+        if (import.meta.env.DEV) console.log('[hero] selected branch: fallback-language-ladder, tier:', primary._languageTier, 'pool size:', ladderResults.length)
+        return { primary, alternates, reasons }
       }
     }
 
@@ -3185,7 +3583,6 @@ async function getFallbackPick(langGuard, excludeInternalIds = [], excludeTmdbId
     if (profile) globalEligible = filterExclusionsClientSide(globalEligible, profile)
 
     if (globalEligible.length > 0) {
-      // Score with v3 if context available, otherwise fall back to ff_audience_rating
       if (profileV3 && scoringContext) {
         const scored = globalEligible.map(movie => {
           const { final, breakdown } = scoreMovieV3(movie, profileV3, scoringContext, 'HERO')
@@ -3195,29 +3592,26 @@ async function getFallbackPick(langGuard, excludeInternalIds = [], excludeTmdbId
 
         if (import.meta.env.DEV) {
           console.log('[score] Hero top3 (fallback):', JSON.stringify(scored.slice(0, 3).map(c => ({
-            title: c.movie.title,
-            final: c.finalScore,
-            ...c.breakdown,
+            title: c.movie.title, final: c.finalScore, ...c.breakdown,
           })), null, 0))
         }
 
         const pick = scored[0]
+        const primaryReason = generateHeroReason(pick.movie, pick.breakdown, profileV3, scoringContext?.seedNeighborMap)
         if (import.meta.env.DEV) console.log('[hero] selected branch: fallback-global, pool size:', globalEligible.length)
         return {
-          movie: pick.movie,
-          pickReason: { label: 'Critically acclaimed', type: 'quality' },
-          score: pick.finalScore,
-          debug: { fallback: true, fallbackType: 'global' }
+          primary: pick.movie,
+          alternates: [],
+          reasons: { [pick.movie.id]: primaryReason },
         }
       }
 
       const pick = globalEligible[Math.floor(Math.random() * Math.min(globalEligible.length, 10))]
       if (import.meta.env.DEV) console.log('[hero] selected branch: fallback-global, pool size:', globalEligible.length)
       return {
-        movie: pick,
-        pickReason: { label: 'Critically acclaimed', type: 'quality' },
-        score: Number(pick.ff_audience_rating ?? (pick.ff_final_rating ?? pick.ff_rating ?? 0) * 10),
-        debug: { fallback: true, fallbackType: 'global' }
+        primary: pick,
+        alternates: [],
+        reasons: { [pick.id]: generateFallbackLanguageReason(pick, primaryLang) },
       }
     }
   } catch (err) {
@@ -3225,12 +3619,7 @@ async function getFallbackPick(langGuard, excludeInternalIds = [], excludeTmdbId
   }
 
   if (import.meta.env.DEV) console.log('[hero] selected branch: fallback-empty, pool size: 0')
-  return {
-    movie: null,
-    pickReason: { label: 'No recommendations available', type: 'error' },
-    score: 0,
-    debug: { error: true }
-  }
+  return { primary: null, alternates: [], reasons: {} }
 }
 
 // ============================================================================
@@ -4131,6 +4520,37 @@ async function fetchMoodCandidates(moodId, moodWeights, profile, moodData, param
       if (t6Err) throw t6Err
       matched = filterByGenre(t6Data || [])
       qualityFloorUsed = 55
+    }
+
+    // Language ladder: if pool still thin, expand to neighbor languages before TMDB fallback.
+    // Covers the case where a Hindi/Tamil/etc user has a mood with few native-language films.
+    if (matched.length < 25 && langGuard?.primary && langGuard.primary !== 'en') {
+      const neighborLangs = getNeighborLanguages(langGuard.primary)
+      if (neighborLangs.length > 0) {
+        const existingIds = new Set(matched.map(m => m.id))
+        let neighborQuery = supabase
+          .from('movies')
+          .select(MOOD_SELECT_FIELDS)
+          .eq('is_valid', true)
+          .not('poster_path', 'is', null)
+          .not('tmdb_id', 'is', null)
+          .gte('ff_audience_rating', qualityFloorUsed)
+          .gte('ff_confidence', minConf)
+          .in('original_language', neighborLangs)
+        neighborQuery = applyAllExclusions(neighborQuery, profile)
+        if (moodId === 5) neighborQuery = neighborQuery.lte('release_year', 2000)
+        if (hardFilters.runtime?.min) neighborQuery = neighborQuery.gte('runtime', hardFilters.runtime.min)
+        if (hardFilters.runtime?.max) neighborQuery = neighborQuery.lte('runtime', hardFilters.runtime.max)
+        if (hardFilters.release_year?.min) neighborQuery = neighborQuery.gte('release_year', hardFilters.release_year.min)
+        if (hardFilters.release_year?.max) neighborQuery = neighborQuery.lte('release_year', hardFilters.release_year.max)
+        if (hardFilters.familyFriendly) neighborQuery = neighborQuery.eq('is_family_friendly', true)
+        const { data: neighborData } = await neighborQuery
+          .order('ff_audience_rating', { ascending: false })
+          .limit(poolLimit)
+        const neighborFresh = filterByGenre(neighborData || []).filter(m => m?.id && !existingIds.has(m.id))
+        neighborFresh.forEach(m => { m._languageTier = 'neighbors' })
+        matched.push(...neighborFresh)
+      }
     }
 
     // === Embedding search: mood anchors (R4) ===
@@ -5616,3 +6036,192 @@ export async function getQuickWatchesRow(userId, limit = 20) {
 }
 
 export const __TEST_ONLY__ = { THRESHOLDS, computeNegativeSignals, scoreEraMatch, scoreRecency }
+
+// ============================================================================
+// STARTER ROWS — for low-confidence profiles (< 10 data points)
+// ============================================================================
+
+/**
+ * Top-rated films matching any of the user's preferred genres.
+ * Uses fetchWithLanguageLadder so a Hindi-preference user gets Hindi/South-Indian
+ * films first, not English blockbusters.
+ *
+ * @param {string} userId
+ * @param {{ limit?: number }} [opts]
+ * @returns {Promise<Object[]>}
+ */
+export async function getTopRatedInGenres(userId, { limit = 20 } = {}) {
+  const cacheKey = recommendationCache.key('top_rated_in_genres', userId, { limit })
+  return recommendationCache.getOrFetch(cacheKey, async () => {
+    try {
+      const profile = await computeUserProfile(userId)
+      const preferredGenreIds = profile?.genres?.preferred || []
+      if (preferredGenreIds.length === 0) return []
+
+      const watchedIds = new Set(profile?.watchedMovieIds || [])
+      const langGuard = buildLanguageGuardFromHistory(profile?.languages || {})
+
+      const genreNames = preferredGenreIds
+        .slice(0, 5)
+        .map(id => GENRE_ID_TO_NAME[id])
+        .filter(Boolean)
+      if (genreNames.length === 0) return []
+
+      const results = await fetchWithLanguageLadder({
+        baseQuery: () => supabase
+          .from('movies')
+          .select(TIERED_SELECT_FIELDS)
+          .eq('is_valid', true)
+          .not('poster_path', 'is', null)
+          .in('primary_genre', genreNames)
+          .gte('ff_audience_rating', 70)
+          .gte('vote_count', 200)
+          .order('ff_audience_rating', { ascending: false })
+          .limit(limit * 4),
+        langGuard,
+        minResults: 15,
+        filters: m => m?.id && m?.tmdb_id && !watchedIds.has(m.id),
+      })
+
+      return results.slice(0, limit).map(m => ({
+        ...m,
+        _score: m.ff_audience_rating || 0,
+        _pickReason: { label: 'Top in your genres', type: 'top_rated_genres' },
+      }))
+    } catch (err) {
+      console.error('[getTopRatedInGenres]', err)
+      return []
+    }
+  })
+}
+
+/**
+ * Most-loved films in the user's primary language.
+ * Falls back to neighbor languages if the primary pool is thin.
+ *
+ * @param {string} userId
+ * @param {{ limit?: number }} [opts]
+ * @returns {Promise<{ language: string|null, films: Object[] }>}
+ */
+export async function getPopularInLanguage(userId, { limit = 20 } = {}) {
+  const cacheKey = recommendationCache.key('popular_in_language', userId, { limit })
+  return recommendationCache.getOrFetch(cacheKey, async () => {
+    try {
+      const profile = await computeUserProfile(userId)
+      const primaryLang = profile?.languages?.primary || null
+      const watchedIds = new Set(profile?.watchedMovieIds || [])
+
+      // English users: serve globally popular films as a "Trending Now" discovery row.
+      // StarterRows detects language === 'en' and relabels the row title accordingly.
+      if (!primaryLang || primaryLang === 'en') {
+        const { data: enData } = await supabase
+          .from('movies')
+          .select(TIERED_SELECT_FIELDS)
+          .eq('is_valid', true)
+          .not('poster_path', 'is', null)
+          .gte('ff_audience_rating', 70)
+          .gte('vote_count', 1000)
+          .order('popularity', { ascending: false })
+          .limit(limit * 3)
+        const enFilms = (enData || [])
+          .filter(m => m?.id && !watchedIds.has(m.id))
+          .slice(0, limit)
+          .map(m => ({
+            ...m,
+            _score: m.ff_audience_rating || 0,
+            _pickReason: { label: 'Trending Now', type: 'trending' },
+          }))
+        return { language: 'en', films: enFilms }
+      }
+      const langGuard = { primary: primaryLang, allowedLanguages: [primaryLang] }
+
+      const results = await fetchWithLanguageLadder({
+        baseQuery: () => supabase
+          .from('movies')
+          .select(TIERED_SELECT_FIELDS)
+          .eq('is_valid', true)
+          .not('poster_path', 'is', null)
+          .gte('ff_audience_rating', 65)
+          .gte('vote_count', 100)
+          .order('ff_audience_rating', { ascending: false })
+          .limit(limit * 3),
+        langGuard,
+        minResults: 15,
+        filters: m => m?.id && m?.tmdb_id && !watchedIds.has(m.id),
+      })
+
+      const sliced = results.slice(0, limit)
+
+      // When the ladder expanded beyond primary (catalog exhaustion), detect
+      // the dominant language in the actual results so StarterRows can show
+      // "Popular in Tamil" instead of "Popular in Hindi".
+      const nonPrimaryFilms = sliced.filter(m => m._languageTier && m._languageTier !== 'primary')
+      let resolvedLang = primaryLang
+      if (nonPrimaryFilms.length > sliced.length / 2) {
+        // Majority of results came from neighbor/region/global tiers — find dominant language
+        const langFreq = {}
+        for (const m of sliced) {
+          const l = m.original_language
+          if (l) langFreq[l] = (langFreq[l] || 0) + 1
+        }
+        const dominant = Object.entries(langFreq).sort((a, b) => b[1] - a[1])[0]
+        if (dominant && dominant[0] !== primaryLang) {
+          resolvedLang = dominant[0]
+        }
+      }
+
+      return {
+        language: resolvedLang,
+        films: sliced.map(m => ({
+          ...m,
+          _score: m.ff_audience_rating || 0,
+          _pickReason: { label: 'Popular in your language', type: 'popular_language' },
+        })),
+      }
+    } catch (err) {
+      console.error('[getPopularInLanguage]', err)
+      return { language: null, films: [] }
+    }
+  })
+}
+
+/**
+ * Globally beloved crowd-pleaser films — ideal entry points for new users.
+ * High audience rating + crowd_pleaser fit profile. Language-agnostic.
+ *
+ * @param {string} userId
+ * @param {{ limit?: number }} [opts]
+ * @returns {Promise<Object[]>}
+ */
+export async function getGreatStartingPoints(userId, { limit = 20 } = {}) {
+  const cacheKey = recommendationCache.key('great_starting_points', userId, { limit })
+  return recommendationCache.getOrFetch(cacheKey, async () => {
+    try {
+      const profile = userId ? await computeUserProfile(userId) : null
+      const watchedIds = new Set(profile?.watchedMovieIds || [])
+
+      const { data, error } = await supabase
+        .from('movies')
+        .select(TIERED_SELECT_FIELDS)
+        .eq('is_valid', true)
+        .not('poster_path', 'is', null)
+        .gte('ff_audience_rating', 80)
+        .eq('fit_profile', 'crowd_pleaser')
+        .gte('vote_count', 5000)
+        .order('ff_audience_rating', { ascending: false })
+        .limit(limit * 3)
+
+      if (error) throw error
+
+      const candidates = (data || []).filter(m => m?.id && m?.tmdb_id && !watchedIds.has(m.id))
+      return candidates.slice(0, limit).map(m => ({
+        ...m,
+        _score: m.ff_audience_rating || 0,
+        _pickReason: { label: 'Great starting point', type: 'great_starting_points' },
+      }))
+    } catch (err) {
+      console.error('[getGreatStartingPoints]', err)
+      return []
+    }
+  })
+}

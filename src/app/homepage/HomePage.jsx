@@ -1,5 +1,5 @@
 // src/app/homepage/HomePage.jsx
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useOutletContext } from 'react-router-dom'
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion'
 import { Sparkles } from 'lucide-react'
@@ -16,6 +16,7 @@ import StillInOrbitRow from './components/StillInOrbitRow'
 import MoodRow from './components/MoodRow'
 import WatchlistRow from './components/WatchlistRow'
 import SignatureDirectorRow from './components/SignatureDirectorRow'
+import StarterRows from './components/StarterRows'
 
 import { SectionErrorBoundary } from '@/app/ErrorBoundary'
 
@@ -145,7 +146,63 @@ export default function HomePage() {
     return () => { mounted = false }
   }, [userId])
 
-  const rows = useHomepageRows(userId)
+  // Per-surface shuffle nonces — increment to bust cache + rotate pool
+  const [shuffleNonces, setShuffleNonces] = useState({
+    hero: 0, topOfTaste: 0, mood: 0, signatureDirector: 0,
+  })
+  const shuffleSurface = useCallback(
+    (key) => setShuffleNonces(prev => ({ ...prev, [key]: prev[key] + 1 })),
+    []
+  )
+
+  const rows = useHomepageRows(userId, shuffleNonces)
+
+  // Hero movie + exhaustion signals forwarded from HeroTopPick via callbacks
+  const [heroPrimary, setHeroPrimary] = useState(null)
+  const [heroExhausted, setHeroExhausted] = useState(false)
+
+  // Show starter rows for cold-start users (≤4 watches, no taste DNA yet).
+  // Also trigger for:
+  //   - warming users whose TopOfTaste row comes up empty (very thin taste signal)
+  //   - any tier where the hero returns no film (catalog exhaustion / empty pool)
+  //   - any tier where fewer than 2 personal rows rendered (exhausted-catalog engaged users)
+  // Threshold of 4 matches the minFilms floor in scoreAndSlice for TopOfTaste.
+  const topOfTasteEmpty = !rows.topOfTaste.loading && !(rows.topOfTaste.data?.films?.length >= 4)
+
+  // Count of non-empty rows after ALL rows have finished loading.
+  // Null while any row is still loading (prevents premature StarterRows flash).
+  const allRowsLoaded =
+    rows.tier !== null &&
+    !rows.topOfTaste.loading &&
+    !rows.criticSplit.loading &&
+    !rows.under90.loading &&
+    (rows.tier === 'cold' || (
+      !rows.orbit.loading && !rows.mood.loading && !rows.director.loading
+    ))
+  const nonEmptyRowCount = !allRowsLoaded ? null : [
+    (rows.topOfTaste.data?.films?.length ?? 0) >= 4,
+    rows.tier !== 'cold' && (rows.director.data?.films?.length ?? 0) > 0,
+    (rows.criticSplit.data?.length ?? 0) > 0,
+    (rows.under90.data?.length ?? 0) > 0,
+    rows.tier !== 'cold' && (rows.orbit.data?.films?.length ?? 0) > 0,
+    rows.tier !== 'cold' && (rows.mood.data?.films?.length ?? 0) > 0,
+  ].filter(Boolean).length
+
+  const showStarter =
+    rows.tier === 'cold' ||
+    (rows.tier === 'warming' && topOfTasteEmpty) ||
+    heroExhausted ||
+    (nonEmptyRowCount !== null && nonEmptyRowCount < 2)
+
+  // IDs already shown in hero + TopOfTaste — forward to StarterRows to avoid repeats
+  const topOfTasteIds = useMemo(
+    () => (rows.topOfTaste.data?.films || []).map(f => f.id).filter(Boolean),
+    [rows.topOfTaste.data]
+  )
+  const starterExcludeIds = useMemo(
+    () => [heroPrimary?.id, ...topOfTasteIds].filter(Boolean),
+    [heroPrimary, topOfTasteIds]
+  )
 
   return (
     <div className="overflow-x-hidden" style={{ background: 'var(--color-bg)' }}>
@@ -164,6 +221,10 @@ export default function HomePage() {
         userId={userId}
         preloadedUser={preloadedUser}
         isFirstRun={fromOnboarding}
+        shuffleNonce={shuffleNonces.hero}
+        onShuffle={() => shuffleSurface('hero')}
+        onHeroMovie={({ movie }) => setHeroPrimary(movie)}
+        onHeroExhausted={() => setHeroExhausted(true)}
       />
 
       {/* CONTENT */}
@@ -186,64 +247,75 @@ export default function HomePage() {
                 data={rows.topOfTaste.data?.films}
                 subtitle={rows.topOfTaste.data?.subtitle}
                 loading={rows.topOfTaste.loading}
+                onShuffle={() => shuffleSurface('topOfTaste')}
               />
             </SectionErrorBoundary>
 
-            {rows.tier !== 'cold' && rows.tier !== null && (
-              <SectionErrorBoundary label="Signature Director">
-                <SignatureDirectorRow
-                  data={rows.director.data}
-                  loading={rows.director.loading}
-                />
-              </SectionErrorBoundary>
-            )}
+            {showStarter ? (
+              // Cold-start: show genre/language/crowd-pleaser starter rows
+              // instead of the taste-DNA rows that require watch history.
+              <StarterRows userId={userId} excludeIds={starterExcludeIds} />
+            ) : (
+              <>
+                {rows.tier !== null && (
+                  <SectionErrorBoundary label="Signature Director">
+                    <SignatureDirectorRow
+                      data={rows.director.data}
+                      loading={rows.director.loading}
+                      onShuffle={() => shuffleSurface('signatureDirector')}
+                    />
+                  </SectionErrorBoundary>
+                )}
 
-            <SectionErrorBoundary label="Critic Split">
-              {rows.rotationVariant === 'B' && rows.tier === 'engaged' ? (
-                <PeoplesChampionsRow
-                  data={rows.criticSplit.data}
-                  loading={rows.criticSplit.loading}
-                />
-              ) : (
-                <CriticsSwoonedRow
-                  data={rows.criticSplit.data}
-                  loading={rows.criticSplit.loading}
-                />
-              )}
-            </SectionErrorBoundary>
+                <SectionErrorBoundary label="Critic Split">
+                  {rows.rotationVariant === 'B' && rows.tier === 'engaged' ? (
+                    <PeoplesChampionsRow
+                      data={rows.criticSplit.data}
+                      loading={rows.criticSplit.loading}
+                    />
+                  ) : (
+                    <CriticsSwoonedRow
+                      data={rows.criticSplit.data}
+                      loading={rows.criticSplit.loading}
+                    />
+                  )}
+                </SectionErrorBoundary>
 
-            <SectionErrorBoundary label="Under 90 Minutes">
-              <Under90MinutesRow
-                data={rows.under90.data}
-                loading={rows.under90.loading}
-              />
-            </SectionErrorBoundary>
+                <SectionErrorBoundary label="Under 90 Minutes">
+                  <Under90MinutesRow
+                    data={rows.under90.data}
+                    loading={rows.under90.loading}
+                  />
+                </SectionErrorBoundary>
 
-            {rows.tier !== 'cold' && rows.tier !== null && (
-              <SectionErrorBoundary label="Still in Orbit">
-                <StillInOrbitRow
-                  data={rows.orbit.data}
-                  loading={rows.orbit.loading}
-                />
-              </SectionErrorBoundary>
-            )}
+                {rows.tier !== null && (
+                  <SectionErrorBoundary label="Still in Orbit">
+                    <StillInOrbitRow
+                      data={rows.orbit.data}
+                      loading={rows.orbit.loading}
+                    />
+                  </SectionErrorBoundary>
+                )}
 
-            {rows.tier !== 'cold' && rows.tier !== null && (
-              <SectionErrorBoundary label="Mood Row">
-                <MoodRow
-                  data={rows.mood.data}
-                  loading={rows.mood.loading}
-                />
-              </SectionErrorBoundary>
-            )}
+                {rows.tier !== null && (
+                  <SectionErrorBoundary label="Mood Row">
+                    <MoodRow
+                      data={rows.mood.data}
+                      loading={rows.mood.loading}
+                      onShuffle={() => shuffleSurface('mood')}
+                    />
+                  </SectionErrorBoundary>
+                )}
 
-            {rows.tier === 'engaged' && (
-              <SectionErrorBoundary label="Watchlist">
-                <WatchlistRow
-                  data={rows.watchlist.data}
-                  loading={rows.watchlist.loading}
-                />
-              </SectionErrorBoundary>
+                {rows.tier === 'engaged' && (
+                  <SectionErrorBoundary label="Watchlist">
+                    <WatchlistRow
+                      data={rows.watchlist.data}
+                      loading={rows.watchlist.loading}
+                    />
+                  </SectionErrorBoundary>
+                )}
+              </>
             )}
 
           </div>

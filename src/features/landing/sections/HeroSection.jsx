@@ -1,5 +1,5 @@
 // src/features/landing/sections/HeroSection.jsx
-import { useState, useMemo, useEffect, useRef } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { LogIn, Loader2, ArrowDown } from 'lucide-react'
 
@@ -58,44 +58,18 @@ function usePosterRows() {
 
 
 function PosterTile({ path, tag }) {
-  const [loadState, setLoadState] = useState('loading')
-  const imgRef = useRef(null)
-
-  useEffect(() => {
-    if (!path || !imgRef.current) return
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && loadState === 'loading') {
-            entry.target.src = entry.target.dataset.src
-          }
-        })
-      },
-      { rootMargin: '50px' },
-    )
-    observer.observe(imgRef.current)
-    return () => observer.disconnect()
-  }, [path, loadState])
-
   return (
     <div
       className="relative w-36 sm:w-40 h-52 sm:h-60 shrink-0 rounded-xl overflow-hidden border border-white/8 bg-neutral-900"
       role="presentation"
       aria-hidden="true"
     >
-      {loadState === 'loading' && (
-        <div className="absolute inset-0 bg-neutral-800 animate-pulse" />
-      )}
       <img
-        ref={imgRef}
-        data-src={`https://image.tmdb.org/t/p/w500${path}`}
-        className={`w-full h-full object-cover transition-opacity duration-700 ${
-          loadState === 'loaded' ? 'opacity-100' : 'opacity-0'
-        }`}
+        src={`https://image.tmdb.org/t/p/w342${path}`}
+        className="w-full h-full object-cover"
         alt=""
-        loading="lazy"
-        onLoad={() => setLoadState('loaded')}
-        onError={(e) => { e.currentTarget.style.opacity = '0'; setLoadState('error') }}
+        loading="eager"
+        decoding="async"
       />
       {/* Top gradient fade for tag legibility */}
       <div
@@ -289,8 +263,11 @@ export default function HeroSection() {
                 }}
               >Right now.</span>
             </h1>
-            <p className="text-sm lg:text-lg text-white/60 leading-relaxed mb-5 lg:mb-6 max-w-[560px]">
+            <p className="text-sm lg:text-lg text-white/60 leading-relaxed mb-2 max-w-[560px]">
               FeelFlick recommends movies based on your mood, your taste, and the moment you&apos;re in — so you spend less time scrolling and more time watching.
+            </p>
+            <p className="text-sm text-white/35 mt-2 mb-5 lg:mb-6 max-w-[560px]">
+              Not a streaming service — a smarter way to choose what to watch.
             </p>
 
             {/* CTA + trust line — trust text is constrained to pill width */}
@@ -304,13 +281,13 @@ export default function HeroSection() {
                   onClick={signInWithGoogle}
                   disabled={isAuthenticating}
                   className="touch-target"
-                  aria-label={isAuthenticating ? 'Signing in' : 'Get my recommendations'}
+                  aria-label={isAuthenticating ? 'Signing in' : 'Get started free with FeelFlick'}
                 >
                   {isAuthenticating ? (
                     <><Loader2 className="h-4 w-4 animate-spin flex-shrink-0" aria-hidden="true" /> Signing in...</>
                   ) : (
                     <>
-                      Get My Recommendations
+                      Get Started Free
                       <LogIn className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
                     </>
                   )}
@@ -318,7 +295,7 @@ export default function HeroSection() {
 
                 {/* Trust line — centered under pill, width bounded by it */}
                 <p className="text-xs text-white/40 text-center w-full">
-                  Sign in with Google to discover your Cinematic DNA
+                  Free forever · No credit card · No ads
                 </p>
 
               </div>

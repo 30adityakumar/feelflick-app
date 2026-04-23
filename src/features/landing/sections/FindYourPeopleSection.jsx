@@ -7,11 +7,11 @@ import { motion } from 'framer-motion'
 const MATCH_SCORE = 87
 const COUNT_DURATION_MS = 1200
 
-// Sarah K. — same persona as CinematicDNASection for narrative continuity
+// Aditya K. — founder profile, matches CinematicDNASection for narrative continuity
 const PROFILE_LEFT = {
-  initials: 'SK',
-  name: 'Sarah K.',
-  subtitle: '47 films · Cozy thriller fan',
+  initials: 'AK',
+  name: 'Aditya K.',
+  subtitle: '6 films · Sci-fi thriller obsessed',
   // Matches the avatar gradient from CinematicDNASection exactly
   avatarGradient: 'linear-gradient(135deg, rgba(168,85,247,0.85), rgba(236,72,153,0.85))',
 }
@@ -25,7 +25,7 @@ const PROFILE_RIGHT = {
 }
 
 const EXPLANATION =
-  "You both love Villeneuve, watch Korean thrillers, and cry at the same Pixar scenes."
+  "You both love Nolan, gravitate toward slow-burn sci-fi, and rewatch the same ambiguous endings."
 
 const vp = { once: true, margin: '-60px' }
 
@@ -120,10 +120,9 @@ function TasteMatchScore() {
 /**
  * FindYourPeopleSection — social hook for the FeelFlick landing page.
  *
- * Shows two simulated user profiles with a taste compatibility score to
+ * Shows two user profiles with a taste compatibility score to
  * communicate that FeelFlick surfaces genuine taste alignment, not social follows.
- * NOTE: Profile stats (47 films, 83 films) belong to fictional users Sarah K.
- * and Marco R. — they are NOT claims about real FeelFlick platform metrics.
+ * PROFILE_LEFT is the founder's real profile (Aditya K.); Marco R. is illustrative.
  *
  * Layout is REVERSED from ItLearnsYouSection (visual left, copy right on desktop)
  * for visual rhythm across the page.

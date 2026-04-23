@@ -8,9 +8,9 @@
 
 import { supabase } from '@/shared/lib/supabase/client'
 import { recommendationCache } from '@/shared/lib/cache'
-import { computeUserProfileV3 } from './recommendations'
+import { computeUserProfileV3, getNeighborLanguages } from './recommendations'
 import { FIT_ADJACENCY } from './fit-adjacency'
-import { applyAllExclusions } from './exclusions'
+import { applyAllExclusions, applyExclusionsNoLanguage } from './exclusions'
 import { applyQualityFloor, QUALITY_TIERS } from './quality-tiers'
 import { scoreMovieV3, precomputeScoringContext } from './scoring-v3'
 import { diversifyRow, dayHashIndex } from './diversity'
@@ -148,7 +148,48 @@ export async function getTopOfYourTasteRow(userId, profile, limit = 20, opts = {
 
       if (error) throw error
 
-      const candidates = (data || []).filter(m => m?.id && !watchedIds.has(m.id))
+      let candidates = (data || []).filter(m => m?.id && !watchedIds.has(m.id))
+
+      // === LANGUAGE LADDER EXPANSION ===
+      // If primary candidates are thin (exhausted catalog), expand to neighbour
+      // languages. Uses applyExclusionsNoLanguage intentionally — applying the
+      // user's language guard here would defeat the purpose.
+      const primaryLang =
+        resolvedProfile?.filters?.language_primary ||
+        resolvedProfile?._legacy?.languages?.primary ||
+        null
+      if (candidates.length < 15 && primaryLang && primaryLang !== 'en') {
+        const neighborLangs = getNeighborLanguages(primaryLang)
+        if (neighborLangs.length > 0) {
+          const existingIds = new Set(candidates.map(m => m.id))
+          let expandQuery = supabase
+            .from('movies')
+            .select(ROW_SELECT_FIELDS)
+            .eq('is_valid', true)
+            .not('poster_path', 'is', null)
+            .in('original_language', neighborLangs)
+          expandQuery = applyQualityFloor(expandQuery, 'NEIGHBOR')
+          expandQuery = applyExclusionsNoLanguage(expandQuery, resolvedProfile)
+          const { data: neighborData } = await expandQuery
+            .order('ff_audience_rating', { ascending: false })
+            .limit(limit * 4)
+          const neighborFresh = (neighborData || []).filter(m =>
+            m?.id && !watchedIds.has(m.id) && !existingIds.has(m.id)
+          )
+          neighborFresh.forEach(m => { m._viaNeighborLadder = true })
+          candidates.push(...neighborFresh)
+
+          if (import.meta.env.DEV) {
+            console.log('[top-of-taste-diag] neighbor expansion:', {
+              primaryLang, neighborLangs,
+              primaryCount: existingIds.size,
+              neighborRaw: neighborData?.length ?? 0,
+              neighborFresh: neighborFresh.length,
+              totalAfter: candidates.length,
+            })
+          }
+        }
+      }
 
       if (import.meta.env.DEV) {
         console.log('[diag] TopOfTaste: candidates=%d, tier=SIGNATURE, no mood filter, ids=%s',

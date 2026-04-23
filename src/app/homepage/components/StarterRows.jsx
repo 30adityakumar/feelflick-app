@@ -122,7 +122,13 @@ export default function StarterRows({ userId, excludeIds = [] }) {
       {(loading || deduped.langFilms.length >= MIN_ROW_SIZE) && (
         <SectionErrorBoundary label="Popular in your language">
           <PersonalizedCarouselRow
-            title={deduped.langCode ? `Popular in ${langLabel(deduped.langCode)}` : 'Popular in your language'}
+            title={
+              deduped.langCode === 'en'
+                ? 'Trending Now'
+                : deduped.langCode
+                  ? `Popular in ${langLabel(deduped.langCode)}`
+                  : 'Popular in your language'
+            }
             movies={deduped.langFilms}
             loading={loading}
             icon={Globe}

@@ -2667,14 +2667,24 @@ export async function getTopPickForUser(userId, options = {}) {
         }
       })
 
-      // Sort with tieBreakSort, filter by gate.
-      // Neighbor-ladder rescue films use a relaxed floor (30) — they scored on a thin
-      // taste signal because the user's profile was built on a different language.
+      // Score gate thresholds:
+      //   HERO_MIN_SCORE (50)   — well-personalized users (≥5 seeds or ≥5 real watches)
+      //   WEAK_HERO_MIN (30)    — users with 3-4 seeds and < 5 real watches;
+      //                           HERO weights + thin embeddings → genuine scores ~30-45,
+      //                           so 50 would route them all to the global fallback
+      //   NEIGHBOR_MIN_SCORE(30)— neighbor-language rescue films (different language bias)
       const NEIGHBOR_MIN_SCORE = 30
+      const WEAK_HERO_MIN = 30
+      const isWeakPersonalization = !scoringContext.isColdStart
+        && (profileV3?.rated?.positive_seeds?.length || 0) < 5
+        && (profileV3?.meta?.total_watches || 0) < 5
+
       scored.sort(tieBreakSort)
-      const passed = scored.filter(c =>
-        c._viaNeighborLadder ? c._score >= NEIGHBOR_MIN_SCORE : c._score >= HERO_MIN_SCORE
-      )
+      const passed = scored.filter(c => {
+        if (c._viaNeighborLadder) return c._score >= NEIGHBOR_MIN_SCORE
+        if (isWeakPersonalization) return c._score >= WEAK_HERO_MIN
+        return c._score >= HERO_MIN_SCORE
+      })
 
       // === SELECTION + REASONS ===
       const heroCandidates = selectHeroCandidates(passed, 3)
@@ -6013,10 +6023,30 @@ export async function getPopularInLanguage(userId, { limit = 20 } = {}) {
     try {
       const profile = await computeUserProfile(userId)
       const primaryLang = profile?.languages?.primary || null
-      // Pointless for English — every other row already covers it
-      if (!primaryLang || primaryLang === 'en') return { language: null, films: [] }
-
       const watchedIds = new Set(profile?.watchedMovieIds || [])
+
+      // English users: serve globally popular films as a "Trending Now" discovery row.
+      // StarterRows detects language === 'en' and relabels the row title accordingly.
+      if (!primaryLang || primaryLang === 'en') {
+        const { data: enData } = await supabase
+          .from('movies')
+          .select(TIERED_SELECT_FIELDS)
+          .eq('is_valid', true)
+          .not('poster_path', 'is', null)
+          .gte('ff_audience_rating', 70)
+          .gte('vote_count', 1000)
+          .order('popularity', { ascending: false })
+          .limit(limit * 3)
+        const enFilms = (enData || [])
+          .filter(m => m?.id && !watchedIds.has(m.id))
+          .slice(0, limit)
+          .map(m => ({
+            ...m,
+            _score: m.ff_audience_rating || 0,
+            _pickReason: { label: 'Trending Now', type: 'trending' },
+          }))
+        return { language: 'en', films: enFilms }
+      }
       const langGuard = { primary: primaryLang, allowedLanguages: [primaryLang] }
 
       const results = await fetchWithLanguageLadder({

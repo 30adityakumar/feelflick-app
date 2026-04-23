@@ -2591,7 +2591,11 @@ export async function getTopPickForUser(userId, options = {}) {
             .from('movies')
             .select(selectFields)
             .eq('is_valid', true)
-            .not('backdrop_path', 'is', null)
+            // WHY: poster_path not backdrop_path — regional films (Tamil, Telugu, etc.) often
+            // have TMDB poster images but lack wide-format backdrops. backdrop_path filter
+            // silently kills every neighbor candidate while TopOfTaste (which uses poster_path)
+            // finds the same films without issue. HeroTopPick handles missing backdrop gracefully.
+            .not('poster_path', 'is', null)
             .not('tmdb_id', 'is', null)
             .gte('release_date', `${minYear}-01-01`)
             .in('original_language', neighborLangs)
@@ -3456,24 +3460,25 @@ async function getFallbackPick(langGuard, excludeInternalIds = [], excludeTmdbId
             .from('movies')
             .select('*')
             .eq('is_valid', true)
-            .not('backdrop_path', 'is', null)
+            // WHY: poster_path not backdrop_path — regional films often have poster but no
+            // backdrop (see hero neighbor expansion comment). fetchWithLanguageLadder runs this
+            // base query for every tier including neighbors, so backdrop_path would block them
+            // all. HeroTopPick handles null backdrop_path gracefully with a gradient fallback.
+            .not('poster_path', 'is', null)
             .not('tmdb_id', 'is', null)
           q = applyQualityFloor(q, 'CONTEXT')
-          // WHY: applyExclusionsNoLanguage instead of applyAllExclusions — the language
-          // filter is baked into each tier by fetchWithLanguageLadder. Using
-          // applyAllExclusions here would add `.in('original_language', ['hi'])` to the
-          // base query, then the neighbor tier adds `.in('original_language', ['ta','te',…])`,
-          // producing a contradictory WHERE clause that always returns 0 rows.
+          // WHY: applyExclusionsNoLanguage not applyAllExclusions — see hero neighbor expansion.
           if (profile) q = applyExclusionsNoLanguage(q, profile)
           return q.order('ff_audience_rating', { ascending: false }).limit(60)
         },
         langGuard: langGuardForLadder,
         minResults: 5,
-        filters: (m) => {
-          if (!notWatched(m)) return false
-          if (profile && filterExclusionsClientSide([m], profile).length === 0) return false
-          return true
-        },
+        // WHY: notWatched only — do NOT call filterExclusionsClientSide here. That function
+        // applies a JS-level language filter (allowedLangSet.has(m.original_language)), which
+        // would discard every Tamil/Telugu film returned by the neighbor tier even after the
+        // SQL language filter is correctly removed from the base query above. DB-level genre
+        // and quality filters are already applied; client-side language check defeats the rescue.
+        filters: notWatched,
       })
 
       if (ladderResults.length >= 1) {

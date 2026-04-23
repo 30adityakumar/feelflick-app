@@ -289,8 +289,11 @@ export default function HeroSection() {
                 }}
               >Right now.</span>
             </h1>
-            <p className="text-sm lg:text-lg text-white/60 leading-relaxed mb-5 lg:mb-6 max-w-[560px]">
+            <p className="text-sm lg:text-lg text-white/60 leading-relaxed mb-2 max-w-[560px]">
               FeelFlick recommends movies based on your mood, your taste, and the moment you&apos;re in — so you spend less time scrolling and more time watching.
+            </p>
+            <p className="text-sm text-white/35 mt-2 mb-5 lg:mb-6 max-w-[560px]">
+              Not a streaming service — a smarter way to choose what to watch.
             </p>
 
             {/* CTA + trust line — trust text is constrained to pill width */}
@@ -304,13 +307,13 @@ export default function HeroSection() {
                   onClick={signInWithGoogle}
                   disabled={isAuthenticating}
                   className="touch-target"
-                  aria-label={isAuthenticating ? 'Signing in' : 'Get my recommendations'}
+                  aria-label={isAuthenticating ? 'Signing in' : 'Get started free with FeelFlick'}
                 >
                   {isAuthenticating ? (
                     <><Loader2 className="h-4 w-4 animate-spin flex-shrink-0" aria-hidden="true" /> Signing in...</>
                   ) : (
                     <>
-                      Get My Recommendations
+                      Get Started Free
                       <LogIn className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
                     </>
                   )}
@@ -318,7 +321,7 @@ export default function HeroSection() {
 
                 {/* Trust line — centered under pill, width bounded by it */}
                 <p className="text-xs text-white/40 text-center w-full">
-                  Sign in with Google to discover your Cinematic DNA
+                  Free forever · No credit card · No ads
                 </p>
 
               </div>

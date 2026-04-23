@@ -20,11 +20,13 @@ function HeroHeadline() {
 // ---------------------------------------------------------------------------
 // Minimal FinalCTA re-implementation — tests headline copy only.
 // Updated to match the approved "Tonight." copy (Blueprint §Approved Copy).
+// "Tonight." is a block span so it always sits on its own visual line.
 // ---------------------------------------------------------------------------
 function FinalCTAHeadline() {
   return (
     <h2 id="final-cta-heading">
-      Somewhere in 6,700 films is one that&apos;s exactly right for tonight. Tonight.
+      <span>Somewhere in 6,700 films is one made for you.</span>
+      <span>Tonight.</span>
     </h2>
   )
 }
@@ -51,7 +53,7 @@ function LandingStructure() {
     <div>
       <section aria-labelledby="hero-heading">
         <h1 id="hero-heading">Find films for when you&apos;re feeling nostalgic.</h1>
-        <button>Get my recommendations</button>
+        <button>Get Started Free</button>
       </section>
       <section id="mood-demo" aria-labelledby="mood-demo-heading">
         <h2 id="mood-demo-heading">Start with the moment.</h2>
@@ -78,7 +80,10 @@ function LandingStructure() {
         <h2 id="trust-heading">Why trust FeelFlick</h2>
       </section>
       <section aria-labelledby="final-cta-heading">
-        <h2 id="final-cta-heading">Somewhere in 6,700 films is one that&apos;s exactly right for tonight. Tonight.</h2>
+        <h2 id="final-cta-heading">
+          <span>Somewhere in 6,700 films is one made for you.</span>
+          <span>Tonight.</span>
+        </h2>
         <button>Get Started Free</button>
       </section>
     </div>
@@ -118,6 +123,12 @@ describe('Landing page – final CTA headline', () => {
   it('does not use the old "Your Next Favorite Film" copy', () => {
     render(<FinalCTAHeadline />)
     expect(screen.queryByText(/Your Next Favorite Film/i)).not.toBeInTheDocument()
+  })
+
+  it('does not use the stale "Stop Scrolling / Start Watching" copy', () => {
+    render(<FinalCTAHeadline />)
+    expect(screen.queryByText(/Stop Scrolling/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Start Watching/i)).not.toBeInTheDocument()
   })
 })
 
@@ -171,8 +182,9 @@ describe('Landing page – structure', () => {
 
   it('has exactly two sign-in CTAs (hero + final)', () => {
     render(<LandingStructure />)
-    expect(screen.getByRole('button', { name: /get my recommendations/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /get started free/i })).toBeInTheDocument()
+    // Both CTAs now say "Get Started Free" — consistent with TopNav copy
+    const ctaButtons = screen.getAllByRole('button', { name: /get started free/i })
+    expect(ctaButtons).toHaveLength(2)
   })
 })
 

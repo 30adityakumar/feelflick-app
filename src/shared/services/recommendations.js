@@ -6064,9 +6064,29 @@ export async function getPopularInLanguage(userId, { limit = 20 } = {}) {
         filters: m => m?.id && m?.tmdb_id && !watchedIds.has(m.id),
       })
 
+      const sliced = results.slice(0, limit)
+
+      // When the ladder expanded beyond primary (catalog exhaustion), detect
+      // the dominant language in the actual results so StarterRows can show
+      // "Popular in Tamil" instead of "Popular in Hindi".
+      const nonPrimaryFilms = sliced.filter(m => m._languageTier && m._languageTier !== 'primary')
+      let resolvedLang = primaryLang
+      if (nonPrimaryFilms.length > sliced.length / 2) {
+        // Majority of results came from neighbor/region/global tiers — find dominant language
+        const langFreq = {}
+        for (const m of sliced) {
+          const l = m.original_language
+          if (l) langFreq[l] = (langFreq[l] || 0) + 1
+        }
+        const dominant = Object.entries(langFreq).sort((a, b) => b[1] - a[1])[0]
+        if (dominant && dominant[0] !== primaryLang) {
+          resolvedLang = dominant[0]
+        }
+      }
+
       return {
-        language: primaryLang,
-        films: results.slice(0, limit).map(m => ({
+        language: resolvedLang,
+        films: sliced.map(m => ({
           ...m,
           _score: m.ff_audience_rating || 0,
           _pickReason: { label: 'Popular in your language', type: 'popular_language' },

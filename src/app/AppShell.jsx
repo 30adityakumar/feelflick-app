@@ -119,7 +119,7 @@ export default function AppShell() {
       {/* Page content - Full width, with bottom padding for mobile nav */}
       <main
         className={`relative z-10 w-full ${isAuthenticated ? 'pb-20 md:pb-0' : ''}`}
-        style={{ paddingTop: 'var(--hdr-h, 64px)' }}
+        style={{ paddingTop: 'var(--hdr-h, 56px)' }}
       >
         <Outlet />
       </main>

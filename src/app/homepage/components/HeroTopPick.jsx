@@ -15,7 +15,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 
-import { fetchJson, tmdbImg } from '@/shared/api/tmdb'
+import { fetchJson, tmdbImg, posterSrcSet, backdropSrcSet } from '@/shared/api/tmdb'
 import { useTopPick } from '@/shared/hooks/useRecommendations'
 import { supabase } from '@/shared/lib/supabase/client'
 import { useUserMovieStatus } from '@/shared/hooks/useUserMovieStatus'
@@ -256,6 +256,29 @@ export default function HeroTopPick({
     setRevealed(false)
     setProviders(null)
   }, [movie?.id])
+
+  // Inject <link rel="preload"> for the LCP poster as soon as the film resolves.
+  // Uses matchMedia to pick the right TMDB bucket — w342 on mobile, w500 on desktop.
+  // WHY: the poster is not in initial HTML so the browser discovers it late (after JS
+  // hydration + fetch). The preload link moves it onto the critical path the moment
+  // the data lands, cutting LCP by the full round-trip on subsequent loads.
+  useEffect(() => {
+    const path = activeMovie?.poster_path
+    if (!path) return
+    const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 640px)').matches
+    const size = isMobile ? 'w342' : 'w500'
+    const href = `https://image.tmdb.org/t/p/${size}${path}`
+    // Remove any stale preload from a previous pick
+    document.querySelectorAll('link[data-ff-preload="hero-poster"]').forEach(el => el.remove())
+    const link = document.createElement('link')
+    link.rel = 'preload'
+    link.as = 'image'
+    link.href = href
+    link.fetchPriority = 'high'
+    link.dataset.ffPreload = 'hero-poster'
+    document.head.appendChild(link)
+    return () => link.remove()
+  }, [activeMovie?.poster_path])
 
   // Inform parent whenever hero changes
   useEffect(() => {
@@ -595,13 +618,16 @@ export default function HeroTopPick({
           />
           {activeMovie.backdrop_path && (
             <img
-              src={tmdbImg(activeMovie.backdrop_path, 'original')}
+              src={tmdbImg(activeMovie.backdrop_path, 'w1280')}
+              srcSet={backdropSrcSet(activeMovie.backdrop_path, ['w780', 'w1280'])}
+              sizes="(max-width: 768px) 780px, 1280px"
               alt=""
               aria-hidden="true"
               className={`absolute inset-0 h-full w-full object-cover object-[50%_58%] sm:object-[65%_55%] transition-opacity duration-700 ${backdropLoaded ? 'opacity-100' : 'opacity-0'}`}
               onLoad={() => setBackdropLoaded(true)}
               loading="eager"
               fetchPriority="high"
+              decoding="sync"
             />
           )}
           <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-black/30 to-black/40" />
@@ -671,11 +697,14 @@ export default function HeroTopPick({
                 )}
                 <img
                   src={tmdbImg(activeMovie.poster_path || activeMovie.backdrop_path, 'w342')}
+                  srcSet={posterSrcSet(activeMovie.poster_path || activeMovie.backdrop_path, ['w342', 'w500'])}
+                  sizes="(max-width: 1024px) 180px, 260px"
                   alt={activeMovie.title}
                   className={`w-full h-full object-cover transition-all duration-500 ${posterLoaded ? 'opacity-100' : 'opacity-0'} group-hover:scale-105`}
                   onLoad={() => setPosterLoaded(true)}
                   loading="eager"
                   fetchPriority="high"
+                  decoding="sync"
                 />
                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                   <span className="text-white text-sm font-semibold">View details</span>

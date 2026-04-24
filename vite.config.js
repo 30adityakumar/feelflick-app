@@ -4,6 +4,7 @@ import { fileURLToPath, URL } from 'node:url'
 
 export default defineConfig({
   build: {
+    cssCodeSplit: true,
     rollupOptions: {
       output: {
         manualChunks(id) {

@@ -548,54 +548,40 @@ export default function HeroTopPick({
     touchStartXRef.current = null
   }, [candidates.length])
 
-  // ── Loading skeleton ────────────────────────────────────────────────────────
+  // ── Loading state + null guards ──────────────────────────────────────────────
+  // WHY isHeroLoading flag instead of early-return skeleton: the early-return
+  // produced a different <section> subtree so React unmounted/remounted the node
+  // on data arrival, causing a layout recomputation the browser recorded as CLS.
+  // Single unified return keeps the same <section> DOM node alive throughout.
 
-  if (loading && !movie) {
-    return (
-      <section
-        className="relative w-full h-[75vh] min-h-[500px] max-h-[800px] overflow-hidden bg-black"
-      >
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-950/30 via-black to-black" />
-        <div className="absolute bottom-0 left-0 right-0 h-2/3 pointer-events-none" style={{ background: 'radial-gradient(ellipse 65% 55% at 15% 100%, rgba(88,28,135,0.18) 0%, transparent 70%)' }} />
-        <div className="relative z-10 h-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 flex items-end pb-12 lg:pb-16">
-          <div className="flex flex-col lg:flex-row gap-6 lg:gap-10 w-full">
-            <div className="hidden sm:block w-[200px] lg:w-[260px] flex-shrink-0">
-              <div className="aspect-[2/3] rounded-xl bg-white/[0.04] animate-pulse" />
-            </div>
-            <div className="flex-1 space-y-4 pb-2">
-              <div className="h-3 w-24 bg-white/[0.04] rounded animate-pulse" />
-              <div className="h-10 lg:h-14 w-2/3 bg-white/[0.04] rounded-xl animate-pulse" />
-              <div className="h-4 w-1/3 bg-white/[0.04] rounded-lg animate-pulse" />
-              <div className="h-16 w-full max-w-xl bg-white/[0.04] rounded-xl animate-pulse" />
-            </div>
-          </div>
-        </div>
-      </section>
-    )
-  }
-
-  if (!movie) return null
+  const isHeroLoading = loading && !movie
+  if (!isHeroLoading && !movie) return null          // empty recommendations
   if (error && !hookMovie && !preloadedData) return null
 
   // ── Derived display values ──────────────────────────────────────────────────
+  // Optional-chained: activeMovie is null while isHeroLoading; values are only
+  // consumed in the non-loading branch of the return below, so nulls are harmless.
 
-  const year = activeMovie.release_date ? new Date(activeMovie.release_date).getFullYear() : null
-  const hours = activeMovie.runtime ? Math.floor(activeMovie.runtime / 60) : 0
-  const mins = activeMovie.runtime ? activeMovie.runtime % 60 : 0
-  const hasAudience = activeMovie.ff_audience_rating != null && (activeMovie.ff_audience_confidence ?? 0) >= 50
-  const hasCritic = activeMovie.ff_critic_rating != null && (activeMovie.ff_critic_confidence ?? 0) >= 50
-  const displayRating = hasAudience ? activeMovie.ff_audience_rating
-    : hasCritic ? activeMovie.ff_critic_rating
+  const year = activeMovie?.release_date ? new Date(activeMovie.release_date).getFullYear() : null
+  const hours = activeMovie?.runtime ? Math.floor(activeMovie.runtime / 60) : 0
+  const mins = activeMovie?.runtime ? activeMovie.runtime % 60 : 0
+  const hasAudience = activeMovie?.ff_audience_rating != null && (activeMovie?.ff_audience_confidence ?? 0) >= 50
+  const hasCritic = activeMovie?.ff_critic_rating != null && (activeMovie?.ff_critic_confidence ?? 0) >= 50
+  const displayRating = hasAudience ? activeMovie?.ff_audience_rating
+    : hasCritic ? activeMovie?.ff_critic_rating
     : null
 
   return (
     <section
       className="relative w-full h-[75vh] min-h-[500px] max-h-[800px] overflow-hidden bg-black"
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
+      onTouchStart={isHeroLoading ? undefined : handleTouchStart}
+      onTouchEnd={isHeroLoading ? undefined : handleTouchEnd}
     >
 
-      {/* Shuffle button — top-right overlay, only when onShuffle provided */}
+      {/* Shuffle button — always in DOM from first mount when onShuffle is set.
+          WHY: the button sits at top:76px inside the viewport. If it only renders
+          after movie data arrives, its first paint counts as a CLS entry.
+          Disabled + faded (opacity-30) while loading; active when movie arrives. */}
       {onShuffle && (
         <div className="absolute right-4 z-30" style={{ top: '76px' }}>
           <button
@@ -610,6 +596,30 @@ export default function HeroTopPick({
           </button>
         </div>
       )}
+
+      {isHeroLoading ? (
+        /* ── Inline loading skeleton ───────────────────────────────────────────
+           Rendered inside the same <section> so the DOM node stays alive.      */
+        <>
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-950/30 via-black to-black" />
+          <div className="absolute bottom-0 left-0 right-0 h-2/3 pointer-events-none" style={{ background: 'radial-gradient(ellipse 65% 55% at 15% 100%, rgba(88,28,135,0.18) 0%, transparent 70%)' }} />
+          <div className="relative z-10 h-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 flex items-end pb-12 lg:pb-16">
+            <div className="flex flex-col lg:flex-row gap-6 lg:gap-10 w-full">
+              <div className="hidden sm:block w-[200px] lg:w-[260px] flex-shrink-0">
+                <div className="aspect-[2/3] rounded-xl bg-white/[0.04] animate-pulse" />
+              </div>
+              <div className="flex-1 space-y-4 pb-2">
+                <div className="h-3 w-24 bg-white/[0.04] rounded animate-pulse" />
+                <div className="h-10 lg:h-14 w-2/3 bg-white/[0.04] rounded-xl animate-pulse" />
+                <div className="h-4 w-1/3 bg-white/[0.04] rounded-lg animate-pulse" />
+                <div className="h-16 w-full max-w-xl bg-white/[0.04] rounded-xl animate-pulse" />
+              </div>
+            </div>
+          </div>
+        </>
+      ) : (
+        /* ── Real hero content ─────────────────────────────────────────────── */
+        <>
 
       {/* Refreshing overlay */}
       {isRefreshing && (
@@ -940,6 +950,9 @@ export default function HeroTopPick({
           >
             <ChevronRight className="h-5 w-5" />
           </button>
+        </>
+      )}
+
         </>
       )}
 

@@ -87,10 +87,46 @@ function FullScreenSpinner() {
   )
 }
 
+// Hero-shaped skeleton for /home — matches HeroTopPick dimensions exactly so the
+// Suspense swap produces zero layout shift. Uses animate-pulse, no spinner.
+function HomeSkeleton() {
+  return (
+    <div
+      className="relative w-full bg-black overflow-hidden"
+      style={{ height: '75vh', minHeight: 500, maxHeight: 800 }}
+      aria-hidden="true"
+    >
+      {/* Backdrop placeholder */}
+      <div className="absolute inset-0 animate-pulse bg-purple-500/[0.04]" />
+      {/* Gradient overlays matching the real hero */}
+      <div className="absolute bottom-0 inset-x-0 h-[65%] bg-gradient-to-t from-black via-black/75 to-transparent" />
+      {/* Content area skeleton — bottom-anchored like the real hero */}
+      <div className="absolute bottom-6 left-4 sm:left-6 lg:left-10 right-4 sm:right-6 lg:right-10 flex flex-col gap-3">
+        <div className="h-3 w-28 rounded-full animate-pulse bg-purple-500/[0.08]" />
+        <div className="h-8 w-2/3 sm:w-1/2 rounded-lg animate-pulse bg-white/[0.06]" />
+        <div className="h-4 w-1/3 rounded-full animate-pulse bg-white/[0.04]" />
+        <div className="flex gap-2 mt-1">
+          <div className="h-9 w-28 rounded-full animate-pulse bg-purple-500/[0.12]" />
+          <div className="h-9 w-9 rounded-full animate-pulse bg-white/[0.06]" />
+          <div className="h-9 w-9 rounded-full animate-pulse bg-white/[0.06]" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function LazyRoute({ Component }) {
   return (
     <Suspense fallback={<FullScreenSpinner />}>
       <Component />
+    </Suspense>
+  )
+}
+
+function HomeRoute() {
+  return (
+    <Suspense fallback={<HomeSkeleton />}>
+      <HomePage />
     </Suspense>
   )
 }
@@ -280,7 +316,7 @@ export const router = sentryCreateBrowserRouter([
             element: <PostAuthGate />,
             errorElement: <ErrorBoundary />,
             children: [
-              { path: 'home', element: <LazyRoute Component={HomePage} />, errorElement: <ErrorBoundary /> },
+              { path: 'home', element: <HomeRoute />, errorElement: <ErrorBoundary /> },
               { path: 'account', element: <LazyRoute Component={Account} />, errorElement: <ErrorBoundary /> },
               { path: 'preferences', element: <LazyRoute Component={Preferences} />, errorElement: <ErrorBoundary /> },
               { path: 'watchlist', element: <LazyRoute Component={Watchlist} />, errorElement: <ErrorBoundary /> },

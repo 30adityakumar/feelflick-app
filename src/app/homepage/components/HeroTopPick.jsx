@@ -15,7 +15,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 
-import { fetchJson, tmdbImg, posterSrcSet, backdropSrcSet } from '@/shared/api/tmdb'
+import { fetchJson, tmdbImg, posterSrcSet } from '@/shared/api/tmdb'
 import { useTopPick } from '@/shared/hooks/useRecommendations'
 import { supabase } from '@/shared/lib/supabase/client'
 import { useUserMovieStatus } from '@/shared/hooks/useUserMovieStatus'
@@ -258,27 +258,39 @@ export default function HeroTopPick({
   }, [movie?.id])
 
   // Inject <link rel="preload"> for the LCP poster as soon as the film resolves.
-  // Uses matchMedia to pick the right TMDB bucket — w342 on mobile, w500 on desktop.
   // WHY: the poster is not in initial HTML so the browser discovers it late (after JS
   // hydration + fetch). The preload link moves it onto the critical path the moment
   // the data lands, cutting LCP by the full round-trip on subsequent loads.
+  // Backdrop also gets a preload — w780 is sufficient since the gradient covers detail.
   useEffect(() => {
-    const path = activeMovie?.poster_path
-    if (!path) return
-    const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 640px)').matches
-    const size = isMobile ? 'w342' : 'w500'
-    const href = `https://image.tmdb.org/t/p/${size}${path}`
-    // Remove any stale preload from a previous pick
-    document.querySelectorAll('link[data-ff-preload="hero-poster"]').forEach(el => el.remove())
-    const link = document.createElement('link')
-    link.rel = 'preload'
-    link.as = 'image'
-    link.href = href
-    link.fetchPriority = 'high'
-    link.dataset.ffPreload = 'hero-poster'
-    document.head.appendChild(link)
-    return () => link.remove()
-  }, [activeMovie?.poster_path])
+    const posterPath = activeMovie?.poster_path
+    const backdropPath = activeMovie?.backdrop_path
+    const links = []
+
+    if (posterPath) {
+      const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 640px)').matches
+      const size = isMobile ? 'w342' : 'w500'
+      document.querySelectorAll('link[data-ff-preload="hero-poster"]').forEach(el => el.remove())
+      const link = document.createElement('link')
+      link.rel = 'preload'; link.as = 'image'
+      link.href = `https://image.tmdb.org/t/p/${size}${posterPath}`
+      link.fetchPriority = 'high'; link.dataset.ffPreload = 'hero-poster'
+      document.head.appendChild(link)
+      links.push(link)
+    }
+
+    if (backdropPath) {
+      document.querySelectorAll('link[data-ff-preload="hero-backdrop"]').forEach(el => el.remove())
+      const link = document.createElement('link')
+      link.rel = 'preload'; link.as = 'image'
+      link.href = `https://image.tmdb.org/t/p/w780${backdropPath}`
+      link.fetchPriority = 'high'; link.dataset.ffPreload = 'hero-backdrop'
+      document.head.appendChild(link)
+      links.push(link)
+    }
+
+    return () => links.forEach(l => l.remove())
+  }, [activeMovie?.poster_path, activeMovie?.backdrop_path])
 
   // Inform parent whenever hero changes
   useEffect(() => {
@@ -571,7 +583,7 @@ export default function HeroTopPick({
 
       {/* Shuffle button — top-right overlay, only when onShuffle provided */}
       {onShuffle && (
-        <div className="absolute top-4 right-4 z-30" style={{ top: 'calc(var(--hdr-h, 64px) + 0.75rem)' }}>
+        <div className="absolute right-4 z-30" style={{ top: '76px' }}>
           <button
             type="button"
             onClick={handleShuffle}
@@ -618,11 +630,12 @@ export default function HeroTopPick({
           />
           {activeMovie.backdrop_path && (
             <img
-              src={tmdbImg(activeMovie.backdrop_path, 'w1280')}
-              srcSet={backdropSrcSet(activeMovie.backdrop_path, ['w780', 'w1280'])}
-              sizes="(max-width: 768px) 780px, 1280px"
+              src={tmdbImg(activeMovie.backdrop_path, 'w780')}
+              sizes="780px"
               alt=""
               aria-hidden="true"
+              width={780}
+              height={439}
               className={`absolute inset-0 h-full w-full object-cover object-[50%_58%] sm:object-[65%_55%] transition-opacity duration-700 ${backdropLoaded ? 'opacity-100' : 'opacity-0'}`}
               onLoad={() => setBackdropLoaded(true)}
               loading="eager"
@@ -668,7 +681,7 @@ export default function HeroTopPick({
       {/* ── Content ── */}
       <div
         className="relative z-10 h-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 flex items-end pb-4 sm:pb-6 lg:pb-10"
-        style={{ paddingTop: 'calc(var(--hdr-h, 64px) + 8px)' }}
+        style={{ paddingTop: '72px' }}
       >
         <div className="flex flex-col sm:flex-row gap-5 sm:gap-6 lg:gap-10 w-full items-end">
           <div className="absolute inset-0 bg-gradient-radial from-white/5 via-transparent to-transparent blur-2xl" />
@@ -700,6 +713,8 @@ export default function HeroTopPick({
                   srcSet={posterSrcSet(activeMovie.poster_path || activeMovie.backdrop_path, ['w342', 'w500'])}
                   sizes="(max-width: 1024px) 180px, 260px"
                   alt={activeMovie.title}
+                  width={342}
+                  height={513}
                   className={`w-full h-full object-cover transition-all duration-500 ${posterLoaded ? 'opacity-100' : 'opacity-0'} group-hover:scale-105`}
                   onLoad={() => setPosterLoaded(true)}
                   loading="eager"

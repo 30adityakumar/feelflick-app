@@ -8,6 +8,9 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
+          // Src — force recommendations into its own chunk so it only loads with /home
+          if (id.includes('src/shared/services/recommendations')) return 'recommendations'
+
           if (!id.includes('node_modules')) return null
 
           if (id.includes('react-router')) return 'router'

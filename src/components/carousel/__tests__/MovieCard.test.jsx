@@ -17,6 +17,7 @@ vi.mock('react-router-dom', () => ({
 
 vi.mock('@/shared/api/tmdb', () => ({
   tmdbImg: (path, size) => `https://image.tmdb.org/t/p/${size}${path}`,
+  posterSrcSet: (path, sizes) => sizes.map(s => `https://image.tmdb.org/t/p/${s}${path} ${s.replace('w','')}w`).join(', '),
 }))
 
 vi.mock('@/contexts/WatchlistContext', () => ({

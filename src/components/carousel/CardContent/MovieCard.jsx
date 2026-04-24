@@ -4,7 +4,7 @@ import { Check, ChevronRight, Eye, EyeOff, Plus } from 'lucide-react'
 
 import MovieCardRating from '@/shared/components/MovieCardRating'
 import { useNavigate } from 'react-router-dom'
-import { tmdbImg } from '@/shared/api/tmdb'
+import { tmdbImg, posterSrcSet } from '@/shared/api/tmdb'
 import { useWatchlistContext } from '@/contexts/WatchlistContext'
 import { useUserMovieStatus } from '@/shared/hooks/useUserMovieStatus'
 import { updateImpression } from '@/shared/services/recommendations'
@@ -495,7 +495,9 @@ export const MovieCard = memo(function MovieCard({
             >
               {!posterLoaded ? <div className="skeleton absolute inset-0" aria-hidden="true" /> : null}
               <img
-                src={tmdbImg(movie.poster_path, 'w500')}
+                src={tmdbImg(movie.poster_path, 'w342')}
+                srcSet={posterSrcSet(movie.poster_path, ['w342', 'w500'])}
+                sizes="(max-width: 640px) 144px, 200px"
                 alt={movie.title}
                 loading={priority ? 'eager' : 'lazy'}
                 fetchPriority={priority && index < 3 ? 'high' : undefined}

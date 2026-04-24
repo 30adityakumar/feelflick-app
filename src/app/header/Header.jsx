@@ -51,15 +51,21 @@ export default function Header({ onOpenSearch }) {
     }
   }, [dropdownOpen])
 
-  // Expose header height as CSS var
+  // Keep --hdr-h in sync when the header resizes (breakpoint changes, orientation flip).
+  // WHY: initial value is set statically in index.html (:root{--hdr-h:56px}) so we skip
+  // the synchronous mount write that caused a post-paint paddingTop shift (CLS).
+  // Guard: only write when the measured value differs by >2px to avoid sub-pixel noise.
   useEffect(() => {
     const update = () => {
-      document.documentElement.style.setProperty(
-        '--hdr-h',
-        `${hdrRef.current?.offsetHeight || 56}px`
+      const measured = hdrRef.current?.offsetHeight
+      if (!measured) return
+      const current = parseFloat(
+        getComputedStyle(document.documentElement).getPropertyValue('--hdr-h')
       )
+      if (Math.abs(measured - current) > 2) {
+        document.documentElement.style.setProperty('--hdr-h', `${measured}px`)
+      }
     }
-    update()
     const ro = new ResizeObserver(update)
     if (hdrRef.current) ro.observe(hdrRef.current)
     return () => ro.disconnect()

@@ -2,6 +2,9 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <!-- Static header-height var: prevents post-paint paddingTop shift (CLS fix).
+         56px = h-14, the mobile-first value. ResizeObserver corrects to 64px on sm+. -->
+    <style>:root{--hdr-h:56px}</style>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     
     <!-- Favicon -->

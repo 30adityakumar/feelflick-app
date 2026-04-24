@@ -292,6 +292,20 @@ export default function HeroTopPick({
     return () => links.forEach(l => l.remove())
   }, [activeMovie?.poster_path, activeMovie?.backdrop_path])
 
+  // Cache the resolved backdrop URL so index.html's inline bootstrap script can
+  // inject a <link rel=preload> on the NEXT visit before React even loads.
+  // WHY: returning visitors get the image fetching ~1.3s earlier (before JS eval).
+  // Stale cache is fine — worst case one wasted ~60 KiB fetch; no visual breakage.
+  useEffect(() => {
+    if (!activeMovie?.backdrop_path) return
+    try {
+      const url = `https://image.tmdb.org/t/p/w780${activeMovie.backdrop_path}`
+      localStorage.setItem('ff:lastHero', JSON.stringify({ url, ts: Date.now() }))
+    } catch {
+      // Storage quota exceeded or private-browsing restriction — silently skip.
+    }
+  }, [activeMovie?.backdrop_path])
+
   // Inform parent whenever hero changes
   useEffect(() => {
     if (!movie?.id) return

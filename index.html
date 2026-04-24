@@ -2,6 +2,12 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <!-- Static header-height var: prevents post-paint paddingTop shift (CLS fix).
+         56px = h-14, the mobile-first value. ResizeObserver corrects to 64px on sm+. -->
+    <style>:root{--hdr-h:56px}</style>
+    <!-- Returning-visitor LCP: preload last hero backdrop from localStorage cache.
+         Runs at HTML parse time, races the JS bundle. First-visit users skip this. -->
+    <script>!function(){try{var c=localStorage.getItem('ff:lastHero');if(!c)return;var h=JSON.parse(c);if(!h.url||!h.ts||Date.now()-h.ts>604800000)return;var l=document.createElement('link');l.rel='preload';l.as='image';l.href=h.url;l.fetchPriority='high';document.head.appendChild(l)}catch(e){}}()</script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     
     <!-- Favicon -->

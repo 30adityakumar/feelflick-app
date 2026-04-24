@@ -55,7 +55,8 @@
     <link rel="preconnect" href="https://image.tmdb.org" crossorigin />
     <link rel="preconnect" href="https://api.themoviedb.org" crossorigin />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- crossorigin="anonymous" is mandatory: woff2 fetches are CORS and must reuse this connection -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
     <!-- Google Fonts — loaded via <link> (faster than CSS @import) -->
     <link rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" />

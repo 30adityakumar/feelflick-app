@@ -2818,6 +2818,11 @@ export function scoreMovieForUser(movie, profile, rowType = 'default', seedFilms
   score += (breakdown.content = contentScore.total)
   breakdown.contentDetail = contentScore.detail
 
+  // 9b) CONTENT STYLE — what_stood_out attribute alignment (+8 max) — v2.11
+  const contentStyleScore = scoreContentStyleMatch(movie, profile)
+  score += (breakdown.contentStyle = contentStyleScore.total)
+  breakdown.contentStyleDetail = contentStyleScore.detail
+
   // 10) THEMES
   score += (breakdown.keywords = scoreKeywordMatch(movie, profile))
 
@@ -3038,6 +3043,111 @@ function scoreContentMatch(movie, profile) {
   }
 
   return { total, detail }
+}
+
+// ============================================================================
+// CONTENT STYLE SCORING — v2.11
+// ============================================================================
+// Small bonus (max +8) when the movie's known attributes align with content
+// styles the user has praised in post-watch reflections (what_stood_out).
+// Only fires when the user has accumulated enough style signal (≥ 3 total
+// boost points) to avoid rewarding noise from a single reflection.
+//
+// Pairings (attribute → movie field heuristic):
+//   cinematography → vfx_level_score ≥ 70 OR visual_style_tags overlap
+//   acting         → quality_score ≥ 75 OR lead_actor has actorBoost
+//   story          → emotional_depth_score ≥ 7 OR story-related keywords
+//   direction      → director has directorBoost
+//   dialogue       → dialogue_density ≥ 60
+//   visuals        → alias for cinematography
+//   pacing / score → already covered elsewhere or no direct field; skip
+//
+// Per-match bonus: min(2, boostValue * 0.4) — capped at 8 total.
+// Returns { total, detail } matching scoreContentMatch shape.
+/**
+ * @param {object} movie
+ * @param {object} profile
+ * @returns {{ total: number, detail: object }}
+ */
+function scoreContentStyleMatch(movie, profile) {
+  const detail = {}
+  const boosts = profile.feedbackSignals?.contentStyleBoosts
+
+  if (!boosts || typeof boosts !== 'object') return { total: 0, detail }
+
+  const totalBoostPoints = Object.values(boosts).reduce((s, v) => s + v, 0)
+  if (totalBoostPoints < 3) return { total: 0, detail }
+
+  const fs = profile.feedbackSignals
+  const movieKeywords = (movie.keywords || [])
+    .map((kw) => (typeof kw === 'object' ? kw.name : kw)?.toLowerCase())
+    .filter(Boolean)
+  const visualStyleTags = (movie.visual_style_tags || []).map((t) => safeLower(t))
+  const VISUAL_TAGS = ['visually stunning', 'cinematic', 'beautiful']
+
+  let total = 0
+
+  // cinematography / visuals
+  const cinemaBoost = (boosts.cinematography || 0) + (boosts.visuals || 0)
+  if (cinemaBoost > 0) {
+    const hasCinema =
+      (movie.vfx_level_score != null && movie.vfx_level_score >= 70) ||
+      VISUAL_TAGS.some((t) => visualStyleTags.includes(t))
+    if (hasCinema) {
+      detail.cinematography = Math.min(2, cinemaBoost * 0.4)
+      total += detail.cinematography
+    }
+  }
+
+  // acting
+  const actingBoost = boosts.acting || 0
+  if (actingBoost > 0) {
+    const actorLower = safeLower(movie.lead_actor_name || '')
+    const hasActorBoost = actorLower && fs.actorBoosts?.some((a) => safeLower(a.name) === actorLower)
+    const hasQuality = (movie.quality_score != null && movie.quality_score >= 75)
+    if (hasActorBoost || hasQuality) {
+      detail.acting = Math.min(2, actingBoost * 0.4)
+      total += detail.acting
+    }
+  }
+
+  // score (musical) — no direct movie field yet
+  // TODO: wire when movie.soundtrack_score or similar is available
+
+  // story
+  const storyBoost = boosts.story || 0
+  if (storyBoost > 0) {
+    const STORY_KEYWORDS = ['character study', 'plot twist', 'complex narrative']
+    const hasStory =
+      (movie.emotional_depth_score != null && movie.emotional_depth_score >= 7) ||
+      STORY_KEYWORDS.some((kw) => movieKeywords.includes(kw))
+    if (hasStory) {
+      detail.story = Math.min(2, storyBoost * 0.4)
+      total += detail.story
+    }
+  }
+
+  // direction
+  const directionBoost = boosts.direction || 0
+  if (directionBoost > 0) {
+    const dirLower = safeLower(movie.director_name || '')
+    const hasDirBoost = dirLower && fs.directorBoosts?.some((d) => safeLower(d.name) === dirLower)
+    if (hasDirBoost) {
+      detail.direction = Math.min(2, directionBoost * 0.4)
+      total += detail.direction
+    }
+  }
+
+  // dialogue
+  const dialogueBoost = boosts.dialogue || 0
+  if (dialogueBoost > 0) {
+    if (movie.dialogue_density != null && movie.dialogue_density >= 60) {
+      detail.dialogue = Math.min(2, dialogueBoost * 0.4)
+      total += detail.dialogue
+    }
+  }
+
+  return { total: Math.min(8, Math.round(total * 10) / 10), detail }
 }
 
 function scoreKeywordMatch(movie, profile) {

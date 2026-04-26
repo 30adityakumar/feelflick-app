@@ -3,6 +3,7 @@ import { useCallback, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronDown } from 'lucide-react'
 
+import { supabase } from '@/shared/lib/supabase/client'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { addToWatchlist } from '@/shared/services/watchlist'
 import { submitRecommendationFeedback } from '@/shared/services/feedback'
@@ -42,7 +43,23 @@ export default function ResultsList({ films, onOpenDetail, onTrackWatchlist, onT
   const handleMarkSeen = useCallback(async (film) => {
     if (!userId) return
     setSeenIds((prev) => new Set([...prev, film.movie_id]))
-    await addToWatchlist(userId, film.movie_id || film.tmdb_id, { status: 'watched' })
+
+    try {
+      await supabase.from('user_history').insert({
+        user_id: userId,
+        movie_id: film.movie_id,
+        source: 'discover',
+      })
+    } catch (err) {
+      console.error('[ResultsList] user_history insert failed:', err)
+    }
+
+    try {
+      await addToWatchlist(userId, film.movie_id || film.tmdb_id, { status: 'watched', source: 'discover' })
+    } catch (err) {
+      console.error('[ResultsList] addToWatchlist failed:', err)
+    }
+
     onTrackSeen?.(film.movie_id)
   }, [userId, onTrackSeen])
 

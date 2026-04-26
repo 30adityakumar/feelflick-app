@@ -159,7 +159,7 @@ export default function TopNav({ hideAuthCta = false }) {
             <Link
               to="/"
               onClick={onBrandClick}
-              className="transition-opacity hover:opacity-80 active:scale-95 touch-target"
+              className="transition-opacity hover:opacity-80 active:scale-95 touch-target focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:rounded-md"
               aria-label="FeelFlick home"
             >
               {/* TODO: move gradient to design tokens — from-purple-500 to-pink-500 */}
@@ -176,7 +176,7 @@ export default function TopNav({ hideAuthCta = false }) {
               <a
                 href={NAV_ANCHOR.href}
                 onClick={handleNavAnchorClick}
-                className="group relative text-sm font-medium text-white/60 hover:text-white transition-colors duration-200"
+                className="group relative text-sm font-medium text-white/60 hover:text-white transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:rounded-sm"
               >
                 {NAV_ANCHOR.label}
                 <span
@@ -184,6 +184,16 @@ export default function TopNav({ hideAuthCta = false }) {
                   aria-hidden="true"
                 />
               </a>
+              <Link
+                to="/privacy"
+                className="group relative text-sm font-medium text-white/60 hover:text-white transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:rounded-sm"
+              >
+                Privacy
+                <span
+                  className="absolute -bottom-1 left-0 right-0 h-[2px] rounded-full bg-gradient-to-r from-purple-500 to-pink-500 transition-transform duration-200 origin-left scale-x-0 group-hover:scale-x-100"
+                  aria-hidden="true"
+                />
+              </Link>
             </nav>
 
             {/* === RIGHT SIDE: Sign in button + mobile toggle === */}
@@ -194,7 +204,7 @@ export default function TopNav({ hideAuthCta = false }) {
                 <button
                   onClick={handleSignIn}
                   disabled={isAuthenticating}
-                  className="hidden md:inline-flex items-center gap-2 text-sm font-semibold px-5 py-2 rounded-full border border-white/20 text-white/70 hover:text-white hover:border-white/40 hover:bg-white/5 active:scale-[0.97] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="hidden md:inline-flex items-center gap-2 text-sm font-semibold px-5 py-2 rounded-full border border-white/20 text-white/70 hover:text-white hover:border-white/40 hover:bg-white/5 active:scale-[0.97] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
                   aria-label={isAuthenticating ? 'Signing in' : 'Sign in to FeelFlick'}
                 >
                   {isAuthenticating ? (
@@ -211,7 +221,7 @@ export default function TopNav({ hideAuthCta = false }) {
               {/* Mobile Menu Toggle */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors touch-target"
+                className="md:hidden p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors touch-target focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
                 aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
                 aria-expanded={mobileMenuOpen}
                 aria-controls="mobile-menu"
@@ -269,10 +279,17 @@ export default function TopNav({ hideAuthCta = false }) {
             <a
               href={NAV_ANCHOR.href}
               onClick={handleNavAnchorClick}
-              className="w-full text-left text-sm font-medium py-3 min-h-[44px] text-white/60 hover:text-white transition-colors duration-200"
+              className="w-full text-left text-sm font-medium py-3 min-h-[44px] text-white/60 hover:text-white transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:rounded-sm"
             >
               {NAV_ANCHOR.label}
             </a>
+            <Link
+              to="/privacy"
+              onClick={() => setMobileMenuOpen(false)}
+              className="w-full text-left text-sm font-medium py-3 min-h-[44px] text-white/60 hover:text-white transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:rounded-sm"
+            >
+              Privacy
+            </Link>
           </div>
 
           {/* Divider */}
@@ -287,7 +304,7 @@ export default function TopNav({ hideAuthCta = false }) {
               <button
                 onClick={handleSignIn}
                 disabled={isAuthenticating}
-                className="w-full inline-flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold shadow-lg shadow-purple-500/30 transition-all duration-300 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed touch-target"
+                className="w-full inline-flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold shadow-lg shadow-purple-500/30 transition-all duration-300 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed touch-target focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
                 aria-label={isAuthenticating ? 'Signing in' : 'Get started free with FeelFlick'}
               >
                 {isAuthenticating ? (
@@ -309,7 +326,7 @@ export default function TopNav({ hideAuthCta = false }) {
                 <button
                   onClick={handleSignIn}
                   disabled={isAuthenticating}
-                  className="text-white/70 hover:text-white transition-colors font-medium underline underline-offset-2 disabled:opacity-50"
+                  className="text-white/70 hover:text-white transition-colors font-medium underline underline-offset-2 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:rounded-sm"
                 >
                   Sign In
                 </button>

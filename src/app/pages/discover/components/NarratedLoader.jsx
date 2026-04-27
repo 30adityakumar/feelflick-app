@@ -3,9 +3,9 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 
 const LINES = [
-  'Matching your taste\u2026',
-  'Scoring 6,000 films\u2026',
-  'Finding your top picks\u2026',
+  'Matching your taste…',
+  'Scoring 6,000 films…',
+  'Finding your top picks…',
 ]
 
 const LINE_INTERVAL_MS = 1200
@@ -15,11 +15,21 @@ const MIN_LAST_LINE_MS = 600
  * Narrated loading screen. Shows 3 rotating messages while results
  * fetch in the background. No spinners — animated progress bar only.
  *
- * @param {{ resultsReady: boolean, onComplete: () => void }} props
+ * Completes when any terminal condition becomes true: results arrived,
+ * an error occurred, or the pool returned zero results (exhausted).
+ *
+ * @param {{
+ *   resultsReady: boolean,
+ *   errorReady: boolean,
+ *   exhausted: boolean,
+ *   onComplete: () => void
+ * }} props
  */
-export default function NarratedLoader({ resultsReady, onComplete }) {
+export default function NarratedLoader({ resultsReady, errorReady, exhausted, onComplete }) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const completedRef = useRef(false)
+
+  const isTerminal = resultsReady || errorReady || exhausted
 
   // Rotate through messages
   useEffect(() => {
@@ -31,7 +41,7 @@ export default function NarratedLoader({ resultsReady, onComplete }) {
     return () => clearTimeout(timer)
   }, [currentIndex])
 
-  // Complete when results ready AND we've shown the last line briefly
+  // Complete when any terminal condition is true AND we've shown the last line briefly
   const handleComplete = useCallback(() => {
     if (completedRef.current) return
     completedRef.current = true
@@ -39,25 +49,25 @@ export default function NarratedLoader({ resultsReady, onComplete }) {
   }, [onComplete])
 
   useEffect(() => {
-    if (!resultsReady || completedRef.current) return
+    if (!isTerminal || completedRef.current) return
 
     if (currentIndex >= LINES.length - 1) {
       const t = setTimeout(handleComplete, MIN_LAST_LINE_MS)
       return () => clearTimeout(t)
     }
-  }, [resultsReady, currentIndex, handleComplete])
+  }, [isTerminal, currentIndex, handleComplete])
 
-  // Force-complete after reaching last line + timeout (fallback)
+  // Force-complete fallback: fires after all lines + 4s buffer
   useEffect(() => {
     const maxWait = LINE_INTERVAL_MS * LINES.length + 4000
     const t = setTimeout(() => {
-      if (!completedRef.current && resultsReady) {
+      if (!completedRef.current && isTerminal) {
         completedRef.current = true
         onComplete()
       }
     }, maxWait)
     return () => clearTimeout(t)
-  }, [resultsReady, onComplete])
+  }, [isTerminal, onComplete])
 
   const progressDuration = (LINE_INTERVAL_MS * LINES.length) / 1000
 

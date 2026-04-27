@@ -315,6 +315,21 @@ export default function CacheMonitoring() {
             )}
           </div>
         </div>
+
+        {/* Sentry smoke test */}
+        <div className="mt-8 p-6 bg-gray-800 rounded-lg border border-gray-700">
+          <h3 className="text-lg font-semibold mb-2">Sentry smoke test</h3>
+          <button
+            type="button"
+            onClick={() => { throw new Error('soft-launch sentry smoke test ' + Date.now()) }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-red-500/40 text-red-300 font-semibold hover:bg-red-500/10 transition-colors"
+          >
+            Throw Sentry test error
+          </button>
+          <p className="mt-3 text-xs text-gray-500">
+            Click to verify Sentry is capturing production errors. The error will surface to the user as a crash boundary.
+          </p>
+        </div>
       </div>
     </div>
   )

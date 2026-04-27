@@ -16,7 +16,7 @@ import {
 initAnalytics()
 
 Sentry.init({
-  dsn: import.meta.env.VITE_SENTRY_DSN,
+  dsn: import.meta.env.VITE_SENTRY_DSN || 'https://769b544f824e0c2cf23509c830c8b9b5@o4511197071736832.ingest.us.sentry.io/4511197073768448',
   enabled: import.meta.env.PROD,
   environment: import.meta.env.MODE,
   integrations: [

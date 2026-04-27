@@ -23,7 +23,6 @@ import { fetchJson, getMovieDetails } from '@/shared/api/tmdb'
 import { IMG, formatRuntime, yearOf } from './utils'
 import MovieCast from './MovieCast'
 import MovieVideos from './MovieVideos'
-import MovieImages from './MovieImages'
 import MovieSimilar from './MovieSimilar'
 import { WhereToWatch, MovieDetails, ProductionCompanies, CollectionCard } from './MovieSidebar'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -95,7 +94,6 @@ export default function MovieDetail() {
   const [videos, setVideos]           = useState([])
   const [recs, setRecs]               = useState([])
   const [providers, setProviders]     = useState({ flatrate: [], rent: [], buy: [], link: '' })
-  const [images, setImages]           = useState({ backdrops: [] })
   const [certification, setCertification] = useState('')
   const [internalMovieId, setInternalMovieId] = useState(null)
   const [showFeedbackModal, setShowFeedbackModal] = useState(false)
@@ -137,7 +135,7 @@ export default function MovieDetail() {
       try {
         const [d, rel] = await Promise.all([
           getMovieDetails(id, {
-            append: 'videos,images,recommendations,credits,keywords',
+            append: 'videos,recommendations,credits,keywords',
           }),
           fetchJson(`/movie/${id}/release_dates`),
         ])
@@ -147,7 +145,6 @@ export default function MovieDetail() {
         setCredits({ cast: d?.credits?.cast?.slice(0, 10) || [], crew: d?.credits?.crew || [] })
         setVideos(d?.videos?.results || [])
         setRecs(d?.recommendations?.results?.slice(0, 12) || [])
-        setImages({ backdrops: d?.images?.backdrops?.slice(0, 6) || [] })
         const usCert = rel?.results?.find(r => r.iso_3166_1 === 'US')?.release_dates?.[0]?.certification || ''
         setCertification(usCert)
       } catch (e) {
@@ -748,7 +745,6 @@ export default function MovieDetail() {
 
               <MovieCast cast={credits.cast} />
               <MovieVideos videos={videos} internalMovieId={internalMovieId} />
-              <MovieImages images={images.backdrops} />
               <MovieSimilar title="More like this" items={recs} />
             </div>
 

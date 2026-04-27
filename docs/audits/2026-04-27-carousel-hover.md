@@ -191,3 +191,44 @@ Friction 5 (two animation systems) is not targeted in this shape — the coordin
 - **CLAUDE.md doc drift.** CLAUDE.md describes `expandedId` state and a `450ms intent timer` in Row — the actual code uses `openId`/`intentId` in `useMovieCardHover.js` and `CARD_EXPAND_DELAY_MS = 0`. The doc should be updated to match the current implementation, but this is a documentation task, not a code task.
 - **Virtualization mid-hover unmount.** With the current aggressive `closeNow()` on any scroll, a hovered card is always closed before it could scroll far enough to leave the virtualization window. If Friction 1 is fixed, a user who scrolled the carousel very aggressively could theoretically leave the overscan buffer while a card is open — but this is a corner case requiring the user to scroll 3+ card-widths (708px at xl) faster than the 90ms close grace timer. Not a priority for Phase 2.
 - **Framer Motion + CSS dual-timeline coordination** (Friction 5). Not worth the refactor risk for the Phase 2 budget.
+
+---
+
+## Update: Shape B shipped (2026-04-27)
+
+### What happened after Shape A landed
+
+Shape A (scroll filter, peek delay, paddingTop fix) was implemented and committed. Smoke testing on device revealed two bugs that Shape A could not paper over:
+
+1. **Card transparency mid-hover** — the `AnimatePresence` crossfade (Friction 5) created a visible gap frame where the expanded article had finished its CSS dimension transition but the Framer Motion `motion.div` was still at `opacity: 0`. On a fast machine this was a flash; on a mid-range laptop it was a sustained 80–120ms black rectangle inside the card boundary.
+
+2. **Sibling overlap** — the expanded card's `position: absolute` article overflowed its flex slot and covered the adjacent card's hit area. A user hovering from the expanded card toward a neighbor would trigger `mouseleave` on the expanded card and `mouseenter` on the neighbor's article simultaneously, causing a rapid open/close swap even with CLOSE_DELAY_MS = 90ms. The 90ms grace helped but did not eliminate the problem.
+
+Both bugs share a root cause: the hovered card's rendered surface extends beyond its flex slot boundary. Any layout-based expansion (absolute positioning, width growth, height growth) inherits this flaw.
+
+### Decision: strip the popup entirely
+
+Rather than add more guards to a pattern that leaks layout, the popup was removed. The new pattern:
+
+- `Card/index.jsx` is a fixed-size rounded slot. No height transition, no absolute overlay.
+- `MovieCard.jsx` holds only the poster image (scale 1.04 on hover, 220ms cubic-bezier(0.22,1,0.36,1)), the always-visible glow gradient, the `_seen` badge, the rating badge, and a static below-card title div.
+- `useMovieCardHover.js` collapses `intentId` + `openId` → single `hoveredId`; `CARD_EXPAND_DELAY_MS = 0` (appropriate again — no expensive panel to gate).
+- `Row/index.jsx` computes `hovered = hover.hoveredId === item.id` per card; no sibling offset or expand-align logic.
+
+### What this resolves
+
+| Friction | Status after Shape B |
+|---|---|
+| 1 — Scroll capture kills hover | **Fixed** (scroll filter from Shape A retained) |
+| 2 — Redundant close on carousel scroll | **Moot** (no expanded state) |
+| 3 — overflow-y: visible overridden | **Moot** (no translateY lift; paddingTop retained as breathing room) |
+| 4 — peek hoverPhase dead code | **Moot** (no phase concept; scale activates immediately) |
+| 5 — Dual animation systems | **Fixed** (Framer Motion removed from carousel cards entirely) |
+
+### What was removed
+
+`AnimatePresence`, all `motion.*` in `MovieCard.jsx`, `WatchProviders`, `useUserMovieStatus`, `ActionButton`, `getGenres`, `buildFallbackDescription`, `MetaDot`, `getQualityChip`, `isExpanded`, `hoverPhase`, `expandedWidth`, `expandedHeight`, `dimmed`, `siblingOffset`, `expandAlign` props, backdrop image fetch, overview/runtime/genres display, watchlist and watched action buttons, "View details" CTA button within the card (navigation is the card click itself).
+
+### What was kept
+
+Poster image with scale-up, bottom glow gradient, `_seen` badge, `MovieCardRating` badge, static below-card title with year + rating, `updateImpression` tracking on navigate, `track('card_clicked')`, keyboard navigation (`Enter`/`Space`), focus/blur handlers, `canHover` guard in `handleCardEnter`, scroll listener filter, CLOSE_DELAY_MS 90ms grace.

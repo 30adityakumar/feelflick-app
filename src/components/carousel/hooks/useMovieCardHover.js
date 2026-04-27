@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 export const CARD_EXPAND_DELAY_MS = 0
 const CLOSE_DELAY_MS = 90
 
-export function useMovieCardHover() {
+export function useMovieCardHover({ scrollContainerRef } = {}) {
   const [intentId, setIntentId] = useState(null)
   const [openId, setOpenId] = useState(null)
   const [canHover, setCanHover] = useState(true)
@@ -44,14 +44,23 @@ export function useMovieCardHover() {
   }, [])
 
   useEffect(() => {
-    const handleViewportChange = () => closeNow()
+    const handleViewportChange = (event) => {
+      const node = scrollContainerRef?.current
+      // WHY: intra-carousel horizontal scroll should not collapse the open card;
+      // only page-level scroll past the row should. contains() covers all descendants
+      // (trackpad inertia, snap-scroll settle, etc.).
+      if (node && event.target instanceof Node && node.contains(event.target)) {
+        return
+      }
+      closeNow()
+    }
     window.addEventListener('resize', handleViewportChange)
     window.addEventListener('scroll', handleViewportChange, true)
     return () => {
       window.removeEventListener('resize', handleViewportChange)
       window.removeEventListener('scroll', handleViewportChange, true)
     }
-  }, [closeNow])
+  }, [closeNow, scrollContainerRef])
 
   const scheduleOpen = useCallback((item) => {
     if (!item) return

@@ -62,7 +62,7 @@ export const CarouselRow = memo(function CarouselRow({
   ...props
 }) {
   const scrollRef = useRef(null)
-  const hover = useMovieCardHover()
+  const hover = useMovieCardHover({ scrollContainerRef: scrollRef })
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
   const shuffleCooldownRef = useRef(false)
 

@@ -156,14 +156,13 @@ export default function WatchedHistory() {
 
         {/* ── Content ─────────────────────────────────────────── */}
         {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="flex flex-col items-center gap-3">
-              <svg className="h-7 w-7 animate-spin" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="10" stroke="rgba(168,85,247,0.2)" strokeWidth="3" />
-                <path d="M21 12a9 9 0 0 0-9-9v9z" fill="rgb(168,85,247)" />
-              </svg>
-              <p className="text-sm text-white/40">Loading your history…</p>
-            </div>
+          <div aria-hidden="true" className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 sm:gap-4">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <div key={i}>
+                <div className="aspect-[2/3] rounded-xl animate-pulse bg-white/[0.04]" />
+                <div className="hidden md:block h-2 w-14 rounded mt-1.5 animate-pulse bg-white/[0.04]" />
+              </div>
+            ))}
           </div>
 
         ) : movies.length === 0 ? (

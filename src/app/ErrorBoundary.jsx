@@ -1,5 +1,6 @@
 // src/app/ErrorBoundary.jsx
 import { Component } from 'react'
+import * as Sentry from '@sentry/react'
 import { AlertTriangle, RefreshCw, Home, Mail } from 'lucide-react'
 import Button from '@/shared/ui/Button'
 
@@ -76,12 +77,10 @@ export default class ErrorBoundary extends Component {
   /**
    * Report error to monitoring service
    */
-  reportError(_error, _errorInfo) {
-    // In production, send to Sentry, LogRocket, etc.
-    if (import.meta.env.PROD) {
-      // Example: Sentry.captureException(error, { contexts: { react: errorInfo } })
-      console.log('Error reported to monitoring service')
-    }
+  reportError(error, errorInfo) {
+    Sentry.captureException(error, {
+      contexts: { react: { componentStack: errorInfo?.componentStack } },
+    })
   }
   
   /**

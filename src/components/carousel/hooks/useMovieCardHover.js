@@ -3,19 +3,20 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 export const CARD_EXPAND_DELAY_MS = 0
 const CLOSE_DELAY_MS = 90
 
-export function useMovieCardHover() {
-  const [intentId, setIntentId] = useState(null)
-  const [openId, setOpenId] = useState(null)
+/**
+ * Manages hover state for a carousel row.
+ * Single `hoveredId` replaces the old intentId/openId two-state machine;
+ * there is no longer an expanded panel to gate behind a delay.
+ *
+ * @param {{ scrollContainerRef?: import('react').RefObject<HTMLElement> }} [options]
+ * @returns {{ hoveredId: string|null, canHover: boolean, closeNow: Function,
+ *             handleCardEnter: Function, handleCardLeave: Function,
+ *             handleCardFocus: Function, handleCardBlur: Function }}
+ */
+export function useMovieCardHover({ scrollContainerRef } = {}) {
+  const [hoveredId, setHoveredId] = useState(null)
   const [canHover, setCanHover] = useState(true)
-  const intentTimerRef = useRef(null)
   const closeTimerRef = useRef(null)
-
-  const clearIntentTimer = useCallback(() => {
-    if (intentTimerRef.current) {
-      clearTimeout(intentTimerRef.current)
-      intentTimerRef.current = null
-    }
-  }, [])
 
   const clearCloseTimer = useCallback(() => {
     if (closeTimerRef.current) {
@@ -25,11 +26,9 @@ export function useMovieCardHover() {
   }, [])
 
   const closeNow = useCallback(() => {
-    clearIntentTimer()
     clearCloseTimer()
-    setIntentId(null)
-    setOpenId(null)
-  }, [clearCloseTimer, clearIntentTimer])
+    setHoveredId(null)
+  }, [clearCloseTimer])
 
   useEffect(() => () => closeNow(), [closeNow])
 
@@ -44,39 +43,36 @@ export function useMovieCardHover() {
   }, [])
 
   useEffect(() => {
-    const handleViewportChange = () => closeNow()
+    const handleViewportChange = (event) => {
+      const node = scrollContainerRef?.current
+      // WHY: intra-carousel horizontal scroll should not collapse the hovered card;
+      // only page-level scroll past the row should. contains() covers all descendants
+      // (trackpad inertia, snap-scroll settle, etc.).
+      if (node && event.target instanceof Node && node.contains(event.target)) {
+        return
+      }
+      closeNow()
+    }
     window.addEventListener('resize', handleViewportChange)
     window.addEventListener('scroll', handleViewportChange, true)
     return () => {
       window.removeEventListener('resize', handleViewportChange)
       window.removeEventListener('scroll', handleViewportChange, true)
     }
-  }, [closeNow])
+  }, [closeNow, scrollContainerRef])
 
   const scheduleOpen = useCallback((item) => {
     if (!item) return
-
     clearCloseTimer()
-    clearIntentTimer()
-    setIntentId(item.id)
-    if (CARD_EXPAND_DELAY_MS <= 0) {
-      setOpenId(item.id)
-      return
-    }
-
-    intentTimerRef.current = setTimeout(() => {
-      setOpenId(item.id)
-    }, CARD_EXPAND_DELAY_MS)
-  }, [clearCloseTimer, clearIntentTimer])
+    setHoveredId(item.id)
+  }, [clearCloseTimer])
 
   const scheduleClose = useCallback(() => {
-    clearIntentTimer()
     clearCloseTimer()
     closeTimerRef.current = setTimeout(() => {
-      setIntentId(null)
-      setOpenId(null)
+      setHoveredId(null)
     }, CLOSE_DELAY_MS)
-  }, [clearCloseTimer, clearIntentTimer])
+  }, [clearCloseTimer])
 
   const handleCardEnter = useCallback((item) => {
     if (!canHover) return
@@ -96,9 +92,8 @@ export function useMovieCardHover() {
   }, [scheduleClose])
 
   return {
+    hoveredId,
     canHover,
-    intentId,
-    openId,
     closeNow,
     handleCardEnter,
     handleCardLeave,

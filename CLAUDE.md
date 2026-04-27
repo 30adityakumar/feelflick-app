@@ -92,17 +92,14 @@ See **Brand Surface — The Law** below for the authoritative token spec.
 
 ### MovieCard Hover — THE LAW
 Three files own card hover. Read all three before touching any:
-- `Row/index.jsx` — owns `expandedId` state + 450ms intent timer. **Do not change the 450ms.**
-- `Card/index.jsx` — owns height transition: `isExpanded ? height * 1.55 : height`. Scroll container `minHeight: itemHeight * 1.56`.
-- `MovieCard.jsx` — owns content: poster (always visible) → gradient fade → info panel below.
+- `hooks/useMovieCardHover.js` — owns `hoveredId` state + timers (`CARD_EXPAND_DELAY_MS = 0`, `CLOSE_DELAY_MS = 90ms`). Scroll listener filters out intra-carousel scroll; page-level scroll still closes. Full audit history in `docs/audits/2026-04-27-carousel-hover.md`.
+- `Row/index.jsx` — derives `hovered = hover.hoveredId === item.id` per card; passes `scrollRef` to the hook.
+- `Card/index.jsx` — fixed-size slot (no height expansion). `MovieCard.jsx` owns poster scale-up on `hovered`.
 
-**No portal. No floating overlay. One card, expands in place.**
-Expanded card (top → bottom): poster · bottom gradient fade · similarity tag (bottom-left, `absolute bottom-2 left-2`) · title (`text-[1.05rem] font-bold`) · meta row · genre pills · description (`line-clamp-3` + bottom fade overlay) · action buttons + 1 streaming logo + "More →" CTA.
+**No portal. No floating overlay. No expanding panel. Pure poster scale-up (Apple TV+ style).**
+On hover: poster `scale(1.04)` (220ms cubic-bezier(0.22,1,0.36,1)), border/shadow ramp up, bottom glow intensifies. No sibling dim or shift. Below-card title is always visible as a static div — never hidden or animated.
 
-Description source priority: `movie.overview → movie.tagline → genre string`.
-Streaming: `flatrate[0] → rent[0] → buy[0]` (region CA → US). One logo only. Fetch on hover only (`enabled: isHovered`). Cache 24h.
-Sibling cards when one is expanded: `opacity-60 scale-[0.97] transition-all duration-200`.
-Overflow fix: scroll container needs `overflow-x: auto; overflow-y: visible` — no ancestor `overflow:hidden`.
+Overflow: scroll container `overflow-x: auto` with `paddingTop: 0.75rem`.
 
 ### Section Header Pattern (all rows must match)
 ```jsx

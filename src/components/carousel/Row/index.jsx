@@ -62,7 +62,7 @@ export const CarouselRow = memo(function CarouselRow({
   ...props
 }) {
   const scrollRef = useRef(null)
-  const hover = useMovieCardHover()
+  const hover = useMovieCardHover({ scrollContainerRef: scrollRef })
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
   const shuffleCooldownRef = useRef(false)
 
@@ -99,14 +99,6 @@ export const CarouselRow = memo(function CarouselRow({
 
   const itemWidth = useMemo(() => getItemWidth(viewportWidth), [viewportWidth])
   const posterHeight = useMemo(() => Math.round(itemWidth * 1.5), [itemWidth])
-  const expandedWidth = useMemo(
-    () => Math.max(Math.round(itemWidth * 2.02), itemWidth + 220),
-    [itemWidth]
-  )
-  const expandedHeight = useMemo(
-    () => Math.round(posterHeight * 1.55),
-    [posterHeight]
-  )
 
   const virtualization = useVirtualization({
     items,
@@ -168,12 +160,6 @@ export const CarouselRow = memo(function CarouselRow({
       track('row_scrolled', { row_title: typeof title === 'string' ? title : undefined })
     }, 500)
   }, [hover, title, updateScrollState])
-
-  const activeId = hover.openId ?? hover.intentId
-  const activeExpandedIndex = useMemo(
-    () => (hover.openId ? items.findIndex((item) => item.id === hover.openId) : -1),
-    [items, hover.openId]
-  )
 
   if (loading) {
     return (
@@ -268,16 +254,16 @@ export const CarouselRow = memo(function CarouselRow({
           style={{ background: 'linear-gradient(to left, rgba(8, 6, 13, 0.96) 0%, rgba(8, 6, 13, 0) 100%)' }}
         />
 
-        {/* A3: buttons only show when row is hovered and no card is expanded */}
+        {/* A3: buttons only show when row is hovered and no card is active */}
         <ScrollButton
           direction="left"
           onClick={() => scroll('left')}
-          visible={scrollState.canScrollLeft && isRowHovered && !activeId}
+          visible={scrollState.canScrollLeft && isRowHovered && !hover.hoveredId}
         />
         <ScrollButton
           direction="right"
           onClick={() => scroll('right')}
-          visible={scrollState.canScrollRight && isRowHovered && !activeId}
+          visible={scrollState.canScrollRight && isRowHovered && !hover.hoveredId}
         />
 
         <div
@@ -287,10 +273,9 @@ export const CarouselRow = memo(function CarouselRow({
           style={{
             gap: ITEM_GAP_PX,
             alignItems: 'flex-start',  // cards take their natural height, no stretch
-            // minHeight reserves space for title below cards; expansion causes smooth animated shift
             minHeight: posterHeight + 64,
-            paddingTop: '0.25rem',
-            paddingBottom: '2rem',     // room for expanded card overflow below
+            paddingTop: '0.75rem',
+            paddingBottom: '2rem',
             paddingInline: 'clamp(1rem, 4vw, 3rem)',
             scrollPaddingLeft: 'clamp(1rem, 4vw, 3rem)',
             scrollPaddingRight: 'clamp(1rem, 4vw, 3rem)',
@@ -302,55 +287,18 @@ export const CarouselRow = memo(function CarouselRow({
 
           {virtualization.visibleItems.map((item, localIndex) => {
             const globalIndex = virtualization.viewport.start + localIndex
-            const hoverPhase =
-              hover.openId === item.id ? 'expanded' : hover.intentId === item.id ? 'peek' : 'rest'
-            const dimmed = Boolean(activeId) && activeId !== item.id
-            const distanceFromExpanded =
-              activeExpandedIndex === -1 ? null : globalIndex - activeExpandedIndex
-            const siblingOffset =
-              prefersReducedMotion || activeExpandedIndex === -1 || hover.openId === item.id
-                ? 0
-                : distanceFromExpanded === -1
-                  ? -18
-                  : distanceFromExpanded === 1
-                    ? 18
-                    : distanceFromExpanded === -2
-                      ? -8
-                      : distanceFromExpanded === 2
-                        ? 8
-                        : 0
-
-            let expandAlign = 'center'
-            if (
-              globalIndex <= 1 ||
-              (!scrollState.canScrollLeft && localIndex <= 1)
-            ) {
-              expandAlign = 'left'
-            } else if (
-              globalIndex >= items.length - 2 ||
-              (!scrollState.canScrollRight &&
-                localIndex >= virtualization.visibleItems.length - 2)
-            ) {
-              expandAlign = 'right'
-            }
+            const hovered = hover.hoveredId === item.id
 
             return (
               <CardComponent
                 key={`${item.id}-${globalIndex}`}
                 item={item}
                 index={globalIndex}
-                hoverPhase={hoverPhase}
-                isExpanded={hover.openId === item.id}
+                hovered={hovered}
                 width={itemWidth}
                 height={posterHeight}
-                expandedWidth={expandedWidth}
-                expandedHeight={expandedHeight}
                 priority={priority && globalIndex < 5}
                 reducedMotion={prefersReducedMotion}
-                dimmed={dimmed}
-                canHover={hover.canHover}
-                expandAlign={expandAlign}
-                siblingOffset={siblingOffset}
                 onCardEnter={hover.handleCardEnter}
                 onCardLeave={hover.handleCardLeave}
                 onCardFocus={hover.handleCardFocus}

@@ -41,10 +41,6 @@ vi.mock('@/shared/services/recommendations', () => ({
   updateImpression: vi.fn(),
 }))
 
-vi.mock('../WatchProviders', () => ({
-  WatchProviders: () => <div>Netflix</div>,
-}))
-
 const movie = {
   id: 101,
   tmdb_id: 999,
@@ -72,7 +68,7 @@ describe('Homepage carousel cards', () => {
   })
 
   it('navigates on click', () => {
-    render(<MovieCard item={movie} width={220} height={330} expandedHeight={500} />)
+    render(<MovieCard item={movie} width={220} height={330} />)
 
     fireEvent.click(screen.getByRole('button', { name: /open furiosa/i }))
 
@@ -85,7 +81,6 @@ describe('Homepage carousel cards', () => {
         item={movie}
         width={220}
         height={330}
-        expandedHeight={500}
         onCardEnter={mockCardEnter}
         onCardLeave={mockCardLeave}
         onCardFocus={mockCardFocus}
@@ -106,41 +101,15 @@ describe('Homepage carousel cards', () => {
     expect(mockCardBlur).toHaveBeenCalled()
   })
 
-  it('keeps collapsed cards teaser-only and renders details only when expanded', () => {
-    const { rerender } = render(
-      <MovieCard item={movie} width={220} height={330} expandedHeight={500} hoverPhase="rest" />
-    )
+  it('renders watchlist and watched action buttons for logged-in users', () => {
+    render(<MovieCard item={movie} width={220} height={330} hovered={true} />)
 
-    expect(screen.queryByText('A road war erupts in the wasteland.')).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /view details for furiosa/i })).not.toBeInTheDocument()
-
-    rerender(
-      <MovieCard
-        item={movie}
-        width={220}
-        height={330}
-        expandedHeight={500}
-        hoverPhase="expanded"
-        isExpanded={true}
-      />
-    )
-
-    expect(screen.getByText('A road war erupts in the wasteland.')).toBeInTheDocument()
-    expect(screen.getByText('Netflix')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /view details for furiosa/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /add to watchlist/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /mark watched/i })).toBeInTheDocument()
   })
 
-  it('watchlist and watched actions do not trigger navigation', () => {
-    render(
-      <MovieCard
-        item={movie}
-        width={220}
-        height={330}
-        expandedHeight={500}
-        hoverPhase="expanded"
-        isExpanded={true}
-      />
-    )
+  it('watchlist and watched actions fire without triggering navigation', () => {
+    render(<MovieCard item={movie} width={220} height={330} hovered={true} />)
 
     fireEvent.click(screen.getByRole('button', { name: /add to watchlist/i }))
     fireEvent.click(screen.getByRole('button', { name: /mark watched/i }))
@@ -148,24 +117,5 @@ describe('Homepage carousel cards', () => {
     expect(mockToggleWatchlist).toHaveBeenCalledTimes(1)
     expect(mockToggleWatched).toHaveBeenCalledTimes(1)
     expect(mockNavigate).not.toHaveBeenCalled()
-  })
-
-  it('keeps resting cards anchored in their own slot even when an expanded width is configured', () => {
-    const { container } = render(
-      <MovieCard
-        item={movie}
-        width={220}
-        expandedWidth={440}
-        height={330}
-        expandedHeight={500}
-        hoverPhase="rest"
-      />
-    )
-
-    const shell = container.querySelector('article')
-
-    expect(shell).not.toBeNull()
-    expect(shell.style.left).toBe('0px')
-    expect(shell.style.width).toBe('220px')
   })
 })

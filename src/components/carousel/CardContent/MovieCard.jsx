@@ -1,7 +1,9 @@
 import { memo, useCallback, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Check, Eye, EyeOff, Plus } from 'lucide-react'
 import { tmdbImg, posterSrcSet } from '@/shared/api/tmdb'
 import { useWatchlistContext } from '@/contexts/WatchlistContext'
+import { useUserMovieStatus } from '@/shared/hooks/useUserMovieStatus'
 import { updateImpression } from '@/shared/services/recommendations'
 import { track } from '@/shared/services/analytics'
 import MovieCardRating from '@/shared/components/MovieCardRating'
@@ -26,8 +28,20 @@ export const MovieCard = memo(function MovieCard({
   const navigate = useNavigate()
   const triggerRef = useRef(null)
   const [posterLoaded, setPosterLoaded] = useState(false)
-  const { user } = useWatchlistContext()
+  const { user, ready } = useWatchlistContext()
   const tmdbId = movie.tmdb_id ?? movie.id
+
+  const {
+    isInWatchlist,
+    isWatched,
+    loading: actionLoading,
+    toggleWatchlist,
+    toggleWatched,
+  } = useUserMovieStatus({
+    user: ready ? user : null,
+    movie: ready ? movie : null,
+    source: placement === 'mood' ? 'mood_recommendation' : 'carousel_row',
+  })
 
   const meta = useMemo(() => {
     const hasAudience = movie.ff_audience_rating != null && (movie.ff_audience_confidence ?? 0) >= 50
@@ -56,6 +70,17 @@ export const MovieCard = memo(function MovieCard({
     if (onClick) onClick(movie)
     else navigate(`/movie/${tmdbId}`)
   }, [index, movie, navigate, onClick, placement, rowTitle, tmdbId, user?.id])
+
+  const handleToggleWatchlist = useCallback(() => {
+    if (!isInWatchlist) {
+      track('card_watchlisted', {
+        movie_id: tmdbId,
+        movie_title: movie?.title,
+        row_title: rowTitle,
+      })
+    }
+    toggleWatchlist()
+  }, [isInWatchlist, movie?.title, rowTitle, tmdbId, toggleWatchlist])
 
   const handleRootBlur = useCallback(
     (event) => {
@@ -143,9 +168,59 @@ export const MovieCard = memo(function MovieCard({
             transition: reducedMotion ? undefined : 'opacity 220ms ease',
           }}
         />
+        {/* Dark scrim behind action buttons — same pattern as browse card's from-black/90 gradient */}
+        <div
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-20"
+          style={{
+            background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%)',
+            opacity: hovered ? 1 : 0,
+            transition: reducedMotion ? undefined : 'opacity 200ms ease',
+          }}
+        />
         {meta.rating != null ? (
           <div className="absolute right-3 top-3">
             <MovieCardRating movie={movie} showGenreBadge size="sm" />
+          </div>
+        ) : null}
+        {/* Hover action buttons — watchlist + watched, bottom-centre over scrim */}
+        {user ? (
+          <div
+            className={`absolute inset-x-0 bottom-0 z-10 flex items-center justify-center gap-2 pb-3 ${hovered ? '' : 'pointer-events-none'}`}
+            style={{
+              opacity: hovered ? 1 : 0,
+              transition: reducedMotion ? undefined : 'opacity 200ms ease',
+            }}
+          >
+            <button
+              type="button"
+              aria-label={isInWatchlist ? 'Remove from watchlist' : 'Add to watchlist'}
+              onClick={(e) => { e.stopPropagation(); handleToggleWatchlist() }}
+              disabled={actionLoading.watchlist}
+              className="rounded-full bg-black/60 p-2 text-white transition-colors hover:bg-black/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+            >
+              {actionLoading.watchlist ? (
+                <span className="skeleton h-4 w-4 rounded-full" aria-hidden="true" />
+              ) : isInWatchlist ? (
+                <Check className="h-4 w-4" />
+              ) : (
+                <Plus className="h-4 w-4" />
+              )}
+            </button>
+            <button
+              type="button"
+              aria-label={isWatched ? 'Mark unwatched' : 'Mark watched'}
+              onClick={(e) => { e.stopPropagation(); toggleWatched() }}
+              disabled={actionLoading.watched}
+              className="rounded-full bg-black/60 p-2 text-white transition-colors hover:bg-black/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+            >
+              {actionLoading.watched ? (
+                <span className="skeleton h-4 w-4 rounded-full" aria-hidden="true" />
+              ) : isWatched ? (
+                <Eye className="h-4 w-4" />
+              ) : (
+                <EyeOff className="h-4 w-4" />
+              )}
+            </button>
           </div>
         ) : null}
       </Card>

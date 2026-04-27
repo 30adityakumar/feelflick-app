@@ -8,6 +8,8 @@ const mockCardEnter = vi.fn()
 const mockCardLeave = vi.fn()
 const mockCardFocus = vi.fn()
 const mockCardBlur = vi.fn()
+const mockToggleWatchlist = vi.fn()
+const mockToggleWatched = vi.fn()
 
 vi.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
@@ -22,6 +24,16 @@ vi.mock('@/contexts/WatchlistContext', () => ({
   useWatchlistContext: () => ({
     user: { id: 'user-1' },
     ready: true,
+  }),
+}))
+
+vi.mock('@/shared/hooks/useUserMovieStatus', () => ({
+  useUserMovieStatus: () => ({
+    isInWatchlist: false,
+    isWatched: false,
+    loading: { watchlist: false, watched: false },
+    toggleWatchlist: mockToggleWatchlist,
+    toggleWatched: mockToggleWatched,
   }),
 }))
 
@@ -51,6 +63,8 @@ describe('Homepage carousel cards', () => {
     mockCardLeave.mockReset()
     mockCardFocus.mockReset()
     mockCardBlur.mockReset()
+    mockToggleWatchlist.mockReset()
+    mockToggleWatched.mockReset()
   })
 
   it('navigates on click', () => {
@@ -85,5 +99,23 @@ describe('Homepage carousel cards', () => {
     expect(mockCardLeave).toHaveBeenCalled()
     expect(mockCardFocus).toHaveBeenCalledWith(movie, trigger)
     expect(mockCardBlur).toHaveBeenCalled()
+  })
+
+  it('renders watchlist and watched action buttons for logged-in users', () => {
+    render(<MovieCard item={movie} width={220} height={330} hovered={true} />)
+
+    expect(screen.getByRole('button', { name: /add to watchlist/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /mark watched/i })).toBeInTheDocument()
+  })
+
+  it('watchlist and watched actions fire without triggering navigation', () => {
+    render(<MovieCard item={movie} width={220} height={330} hovered={true} />)
+
+    fireEvent.click(screen.getByRole('button', { name: /add to watchlist/i }))
+    fireEvent.click(screen.getByRole('button', { name: /mark watched/i }))
+
+    expect(mockToggleWatchlist).toHaveBeenCalledTimes(1)
+    expect(mockToggleWatched).toHaveBeenCalledTimes(1)
+    expect(mockNavigate).not.toHaveBeenCalled()
   })
 })

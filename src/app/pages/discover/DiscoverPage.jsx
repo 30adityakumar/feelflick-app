@@ -26,6 +26,7 @@ import AIBar from './components/AIBar'
 import AnchorSearch from './components/AnchorSearch'
 import BriefSynthesis from './components/BriefSynthesis'
 import CandidateCounter from './components/CandidateCounter'
+import DiscoverEmptyState from './components/DiscoverEmptyState'
 import NarratedLoader from './components/NarratedLoader'
 import PinnedBrief from './components/PinnedBrief'
 import PinnedBriefCollapsible from './components/PinnedBriefCollapsible'
@@ -213,6 +214,11 @@ export default function DiscoverPage() {
     parsedTags,
     briefForEngine,
   )
+
+  // Terminal conditions for NarratedLoader — mutually exclusive once loading settles
+  const resultsReady = !loading && recommendations.length > 0
+  const errorReady = !loading && Boolean(error)
+  const exhausted = !loading && !error && recommendations.length === 0
 
   // Track discover_started when the user first picks a feeling
   const prevFeelingRef = useRef(null)
@@ -480,8 +486,36 @@ export default function DiscoverPage() {
         {/* === LOADING PHASE === */}
         {phase === 'loading' && (
           <NarratedLoader
-            resultsReady={!loading && recommendations.length > 0}
-            onComplete={() => setPhase('results')}
+            resultsReady={resultsReady}
+            errorReady={errorReady}
+            exhausted={exhausted}
+            onComplete={() => {
+              if (exhausted) setPhase('empty')
+              else setPhase('results')
+            }}
+          />
+        )}
+
+        {/* Error — outside phase switch, reachable from any phase where a fetch error fires */}
+        {error && (
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-8">
+            <div
+              className="rounded-xl p-4 mb-6"
+              style={{ border: '1px solid rgba(239,68,68,0.4)', backgroundColor: 'rgba(239,68,68,0.08)' }}
+            >
+              <p className="font-medium text-red-300">We couldn&apos;t load recommendations right now.</p>
+              <p className="mt-1 text-sm text-red-200/80">
+                Try switching mood filters or refreshing the page. Details: {error}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* === EMPTY PHASE — pool exhausted, zero results === */}
+        {phase === 'empty' && (
+          <DiscoverEmptyState
+            onTryAnotherMood={handleReset}
+            onBrowseAll={() => navigate('/movies')}
           />
         )}
 
@@ -508,21 +542,6 @@ export default function DiscoverPage() {
 
             {/* Brief synthesis sentence */}
             <BriefSynthesis answers={answers} notes={notes} />
-
-            {/* Error state */}
-            {error && (
-              <div className="max-w-3xl mx-auto px-4 sm:px-6">
-                <div
-                  className="rounded-xl p-4 mb-6"
-                  style={{ border: '1px solid rgba(239,68,68,0.4)', backgroundColor: 'rgba(239,68,68,0.08)' }}
-                >
-                  <p className="font-medium text-red-300">We couldn&apos;t load recommendations right now.</p>
-                  <p className="mt-1 text-sm text-red-200/80">
-                    Try switching mood filters or refreshing the page. Details: {error}
-                  </p>
-                </div>
-              </div>
-            )}
 
             {/* Film results list */}
             {!error && recommendations.length > 0 && (

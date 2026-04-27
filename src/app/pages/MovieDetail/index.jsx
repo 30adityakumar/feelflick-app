@@ -624,12 +624,11 @@ export default function MovieDetail() {
             {/* ── Main column ───────────────────────────────── */}
             <div className="space-y-5 min-w-0">
 
-              {/* Mobile: overview */}
-              {!loading && movie?.overview && (
-                <div className="md:hidden rounded-2xl border border-white/8 bg-white/[0.03] p-5">
-                  <p className="text-[11px] font-semibold text-white/40 uppercase tracking-widest mb-2">Overview</p>
-                  {movie.genres?.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mb-3">
+              {/* Mobile: overview + credits */}
+              {!loading && (movie?.overview || director || writer) && (
+                <div className="md:hidden rounded-2xl border border-white/8 bg-white/[0.03] p-5 space-y-3">
+                  {movie?.genres?.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
                       {movie.genres.slice(0, 4).map(g => (
                         <span key={g.id} className="px-2 py-0.5 rounded-full bg-white/[0.06] border border-white/8 text-white/60 text-[11px]">
                           {g.name}
@@ -637,22 +636,22 @@ export default function MovieDetail() {
                       ))}
                     </div>
                   )}
-                  <p className="text-sm text-white/78 leading-relaxed">{movie.overview}</p>
-                </div>
-              )}
-
-              {/* Mobile: credits */}
-              {(director || writer) && (
-                <div className="sm:hidden rounded-2xl border border-white/8 bg-white/[0.03] px-5 py-4">
-                  {director && (
-                    <p className="text-xs text-white/40">
-                      Directed by <span className="text-white/80 font-semibold">{director.name}</span>
-                    </p>
+                  {(director || writer) && (
+                    <div>
+                      {director && (
+                        <p className="text-xs text-white/40">
+                          Directed by <span className="text-white/80 font-semibold">{director.name}</span>
+                        </p>
+                      )}
+                      {writer && (
+                        <p className="text-xs text-white/40 mt-1">
+                          Written by <span className="text-white/80 font-semibold">{writer.name}</span>
+                        </p>
+                      )}
+                    </div>
                   )}
-                  {writer && (
-                    <p className="text-xs text-white/40 mt-1">
-                      Written by <span className="text-white/80 font-semibold">{writer.name}</span>
-                    </p>
+                  {movie?.overview && (
+                    <p className="text-sm text-white/78 leading-relaxed">{movie.overview}</p>
                   )}
                 </div>
               )}

@@ -21,8 +21,8 @@ const FIT_PROFILE_LABELS = {
 export default function MoodChips({ movie }) {
   if (!movie) return null
 
-  const moodTags = Array.isArray(movie.mood_tags) ? movie.mood_tags.slice(0, 5) : []
-  const toneTags = Array.isArray(movie.tone_tags) ? movie.tone_tags.slice(0, 3) : []
+  const moodTags = Array.isArray(movie.mood_tags) ? movie.mood_tags.slice(0, 3) : []
+  const toneTags = Array.isArray(movie.tone_tags) ? movie.tone_tags.slice(0, 2) : []
   const fitProfile = movie.fit_profile
 
   if (moodTags.length === 0 && toneTags.length === 0 && !fitProfile) return null

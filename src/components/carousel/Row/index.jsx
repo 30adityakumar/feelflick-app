@@ -289,7 +289,7 @@ export const CarouselRow = memo(function CarouselRow({
             alignItems: 'flex-start',  // cards take their natural height, no stretch
             // minHeight reserves space for title below cards; expansion causes smooth animated shift
             minHeight: posterHeight + 64,
-            paddingTop: '0.25rem',
+            paddingTop: '0.75rem',     // clears translateY(-8px) lift + shadow (8px + 4px headroom)
             paddingBottom: '2rem',     // room for expanded card overflow below
             paddingInline: 'clamp(1rem, 4vw, 3rem)',
             scrollPaddingLeft: 'clamp(1rem, 4vw, 3rem)',

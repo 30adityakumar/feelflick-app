@@ -255,7 +255,7 @@ export default function MovieDetail() {
     ;(async () => {
       const { data } = await supabase
         .from('movies')
-        .select('id, tmdb_id, ff_critic_rating, ff_critic_confidence, ff_audience_rating, ff_audience_confidence, ff_community_rating, ff_community_confidence, ff_community_votes, ff_rating_genre_normalized, primary_genre, ff_rating, ff_final_rating, mood_tags, tone_tags, fit_profile')
+        .select('id, tmdb_id, ff_critic_rating, ff_critic_confidence, ff_audience_rating, ff_audience_confidence, ff_community_rating, ff_community_confidence, ff_community_votes, ff_rating_genre_normalized, primary_genre, mood_tags, tone_tags, fit_profile')
         .eq('id', internalMovieId)
         .maybeSingle()
       if (active && data) setInternalMovieData(data)

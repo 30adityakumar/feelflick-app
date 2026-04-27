@@ -98,7 +98,6 @@ export default function MovieDetail() {
   const [internalMovieId, setInternalMovieId] = useState(null)
   const [showFeedbackModal, setShowFeedbackModal] = useState(false)
   const [userFeedback, setUserFeedback] = useState(null)
-  const [movieMoods, setMovieMoods]   = useState([])
   const [internalMovieData, setInternalMovieData] = useState(null)
   const [showAddToList, setShowAddToList] = useState(false)
   const [showQuickRate, setShowQuickRate] = useState(false)
@@ -232,21 +231,6 @@ export default function MovieDetail() {
     return () => { active = false }
   }, [user?.id, internalMovieId])
 
-  // Mood scores — FeelFlick DNA
-  useEffect(() => {
-    if (!internalMovieId) return
-    let active = true
-    ;(async () => {
-      const { data } = await supabase
-        .from('movie_mood_scores')
-        .select('score, moods(name, emoji)')
-        .eq('movie_id', internalMovieId)
-        .order('score', { ascending: false })
-        .limit(4)
-      if (active && data) setMovieMoods(data.filter(d => d.moods && d.score > 0.4))
-    })()
-    return () => { active = false }
-  }, [internalMovieId])
 
   // DB movie row for ff_* rating columns (used by FFRatingHero + RatingBreakdown)
   useEffect(() => {
@@ -516,8 +500,8 @@ export default function MovieDetail() {
                         </div>
                       )}
 
-                      {/* Mood / tone / fit-profile chips + perfect-for moods */}
-                      <MoodChips movie={internalMovieData} perfectForMoods={movieMoods} />
+                      {/* Mood / tone / fit-profile chips */}
+                      <MoodChips movie={internalMovieData} />
 
                       {/* Overview — md+, 3 lines */}
                       {movie?.overview && (

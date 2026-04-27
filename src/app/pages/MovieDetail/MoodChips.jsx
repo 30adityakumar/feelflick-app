@@ -57,17 +57,16 @@ const FIT_PROFILE_LABELS = {
 }
 
 /**
- * @param {{ movie: object|null, perfectForMoods: Array<{moods: {name: string}}> }} props
+ * @param {{ movie: object|null }} props
  */
-export default function MoodChips({ movie, perfectForMoods = [] }) {
+export default function MoodChips({ movie }) {
   if (!movie) return null
 
   const moodTags = Array.isArray(movie.mood_tags) ? movie.mood_tags.slice(0, 5) : []
   const toneTags = Array.isArray(movie.tone_tags) ? movie.tone_tags.slice(0, 3) : []
   const fitProfile = movie.fit_profile
-  const perfectFor = perfectForMoods.map((m) => m.moods?.name).filter(Boolean)
 
-  if (moodTags.length === 0 && toneTags.length === 0 && !fitProfile && perfectFor.length === 0) return null
+  if (moodTags.length === 0 && toneTags.length === 0 && !fitProfile) return null
 
   return (
     <div className="flex flex-wrap gap-1.5 items-center">
@@ -103,14 +102,6 @@ export default function MoodChips({ movie, perfectForMoods = [] }) {
         >
           {tag}
         </Link>
-      ))}
-      {perfectFor.map((name) => (
-        <span
-          key={`pf-${name}`}
-          className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium bg-purple-500/10 border border-purple-400/20 text-purple-200/80"
-        >
-          {name}
-        </span>
       ))}
     </div>
   )

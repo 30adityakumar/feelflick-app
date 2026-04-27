@@ -91,9 +91,10 @@ Transitions: 280ms cubic-bezier(0.4,0,0.2,1) standard · 450ms spring for dramat
 See **Brand Surface — The Law** below for the authoritative token spec.
 
 ### MovieCard Hover — THE LAW
-Three files own card hover. Read all three before touching any:
-- `Row/index.jsx` — owns `expandedId` state + 450ms intent timer. **Do not change the 450ms.**
-- `Card/index.jsx` — owns height transition: `isExpanded ? height * 1.55 : height`. Scroll container `minHeight: itemHeight * 1.56`.
+Four files own card hover. Read all four before touching any:
+- `hooks/useMovieCardHover.js` — owns state (`intentId`, `openId`) + timers (`CARD_EXPAND_DELAY_MS = 180ms`, `CLOSE_DELAY_MS = 90ms`). Scroll listener filters out intra-carousel scroll; page-level scroll still closes. Full state machine in `docs/audits/2026-04-27-carousel-hover.md`.
+- `Row/index.jsx` — derives `hoverPhase` (`'rest' | 'peek' | 'expanded'`) from `intentId`/`openId`; computes sibling offsets; passes `scrollRef` to the hook.
+- `Card/index.jsx` — owns height transition: `isExpanded ? height * 1.55 : height`. Scroll container `paddingTop: 0.75rem` clears the `translateY(-8px)` card lift.
 - `MovieCard.jsx` — owns content: poster (always visible) → gradient fade → info panel below.
 
 **No portal. No floating overlay. One card, expands in place.**
@@ -102,7 +103,7 @@ Expanded card (top → bottom): poster · bottom gradient fade · similarity tag
 Description source priority: `movie.overview → movie.tagline → genre string`.
 Streaming: `flatrate[0] → rent[0] → buy[0]` (region CA → US). One logo only. Fetch on hover only (`enabled: isHovered`). Cache 24h.
 Sibling cards when one is expanded: `opacity-60 scale-[0.97] transition-all duration-200`.
-Overflow fix: scroll container needs `overflow-x: auto; overflow-y: visible` — no ancestor `overflow:hidden`.
+Overflow fix: ancestor `overflow-visible` prevents row clipping; scroll container `paddingTop: 0.75rem` clears the expanded card lift.
 
 ### Section Header Pattern (all rows must match)
 ```jsx

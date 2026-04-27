@@ -378,22 +378,6 @@ export default function MovieDetail() {
     url: pageUrl,
   })
 
-  // ── Mood pills (reused in hero + mobile content) ─────────────
-  const MoodPills = () => movieMoods.length > 0 ? (
-    <div className="flex flex-wrap items-center gap-2">
-      <span className="text-[10px] font-semibold text-white/20 uppercase tracking-widest">Perfect for</span>
-      {movieMoods.map(({ moods: mood }) => (
-        <span
-          key={mood.name}
-          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gradient-to-r from-purple-500/15 to-pink-500/10 border border-purple-500/25 text-xs font-medium text-purple-200"
-        >
-          {mood.emoji && <span aria-hidden>{mood.emoji}</span>}
-          {mood.name}
-        </span>
-      ))}
-    </div>
-  ) : null
-
   // ── Sentiment map (reused in Your Take card) ─────────────────
   const SENTIMENT_MAP = {
     loved:    { label: 'Loved it',    cls: 'bg-gradient-to-r from-purple-500/15 to-pink-500/10 border-purple-500/30 text-purple-300' },
@@ -535,8 +519,8 @@ export default function MovieDetail() {
                         </div>
                       )}
 
-                      {/* Mood / tone / fit-profile chips */}
-                      <MoodChips movie={internalMovieData} />
+                      {/* Mood / tone / fit-profile chips + perfect-for moods */}
+                      <MoodChips movie={internalMovieData} perfectForMoods={movieMoods} />
 
                       {/* Overview — md+, 3 lines */}
                       {movie?.overview && (
@@ -544,9 +528,6 @@ export default function MovieDetail() {
                           {movie.overview}
                         </p>
                       )}
-
-                      {/* Mood tags — FeelFlick DNA — sm+ */}
-                      <div className="hidden sm:block"><MoodPills /></div>
 
                       {/* Action buttons */}
                       <div className="flex flex-wrap items-center gap-2 pt-0.5">
@@ -676,13 +657,6 @@ export default function MovieDetail() {
                       Written by <span className="text-white/80 font-semibold">{writer.name}</span>
                     </p>
                   )}
-                </div>
-              )}
-
-              {/* Mobile: mood tags */}
-              {movieMoods.length > 0 && (
-                <div className="sm:hidden">
-                  <MoodPills />
                 </div>
               )}
 

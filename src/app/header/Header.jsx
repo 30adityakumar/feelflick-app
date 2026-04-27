@@ -1,7 +1,7 @@
 // src/app/header/Header.jsx
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { Search as SearchIcon, ChevronDown, LogOut, User as UserIcon, Settings, Bookmark, Clock, Fingerprint, Users, ListVideo, LogIn, Bell } from 'lucide-react'
+import { Search as SearchIcon, ChevronDown, LogOut, User as UserIcon, Settings, Bookmark, Clock, Fingerprint, Users, ListVideo, LogIn, Bell, Mail } from 'lucide-react'
 import { supabase } from '@/shared/lib/supabase/client'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { useGoogleAuth } from '@/features/landing/utils/useGoogleAuth'
@@ -243,6 +243,16 @@ export default function Header({ onOpenSearch }) {
                       <DropdownLink to="/people"      icon={Users}    onClick={() => setDropdownOpen(false)}>People</DropdownLink>
                       <DropdownLink to="/lists"       icon={ListVideo} onClick={() => setDropdownOpen(false)}>Lists</DropdownLink>
                       <DropdownLink to="/preferences" icon={Settings} onClick={() => setDropdownOpen(false)}>Settings</DropdownLink>
+                      <a
+                        href="mailto:hello@feelflick.com?subject=Feelflick%20feedback"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => setDropdownOpen(false)}
+                        className="mx-1.5 flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm text-white/60 transition-colors duration-150 hover:bg-white/5 hover:text-white/90"
+                      >
+                        <Mail className="h-4 w-4 shrink-0 text-white/40" />
+                        Send feedback
+                      </a>
                     </div>
 
                     {/* Sign out */}

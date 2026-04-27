@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
-import { ChevronRight, User, Settings, Bookmark, Clock, LogOut, Fingerprint, Users, ListVideo } from 'lucide-react'
+import { ChevronRight, User, Settings, Bookmark, Clock, LogOut, Fingerprint, Users, ListVideo, Mail } from 'lucide-react'
 
 export default function MobileAccount() {
   const nav = useNavigate()
@@ -29,6 +29,7 @@ export default function MobileAccount() {
         { icon: Fingerprint, label: 'Taste Profile', sub: 'Your cinematic DNA', path: '/profile'     },
         { icon: Users,       label: 'People',        sub: 'Find & follow cinephiles', path: '/people' },
         { icon: Settings,    label: 'Settings',      sub: 'Preferences',        path: '/preferences' },
+        { icon: Mail,        label: 'Send feedback', sub: 'hello@feelflick.com', href: 'mailto:hello@feelflick.com?subject=Feelflick%20feedback' },
       ],
     },
     {
@@ -82,22 +83,41 @@ export default function MobileAccount() {
               </p>
             )}
             <div className="rounded-2xl border border-white/8 bg-white/[0.03] overflow-hidden divide-y divide-white/5">
-              {section.items.map(item => (
-                <button
-                  key={item.label}
-                  onClick={() => nav(item.path)}
-                  className="flex w-full items-center gap-4 px-5 py-4 text-left hover:bg-white/4 active:bg-white/6 transition-colors group"
-                >
-                  <div className="h-9 w-9 rounded-xl bg-white/6 flex items-center justify-center flex-shrink-0 group-hover:bg-purple-500/15 transition-colors">
-                    <item.icon className="h-4.5 w-4.5 text-white/60 group-hover:text-purple-400 transition-colors" style={{ width: 18, height: 18 }} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-semibold text-white/80">{item.label}</div>
-                    <div className="text-xs text-white/40 mt-0.5">{item.sub}</div>
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-white/20 group-hover:text-white/40 flex-shrink-0 transition-colors" />
-                </button>
-              ))}
+              {section.items.map(item =>
+                item.href?.startsWith('mailto:') ? (
+                  <a
+                    key={item.label}
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex w-full items-center gap-4 px-5 py-4 text-left hover:bg-white/4 active:bg-white/6 transition-colors group"
+                  >
+                    <div className="h-9 w-9 rounded-xl bg-white/6 flex items-center justify-center flex-shrink-0 group-hover:bg-purple-500/15 transition-colors">
+                      <item.icon className="h-4.5 w-4.5 text-white/60 group-hover:text-purple-400 transition-colors" style={{ width: 18, height: 18 }} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold text-white/80">{item.label}</div>
+                      <div className="text-xs text-white/40 mt-0.5">{item.sub}</div>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-white/20 group-hover:text-white/40 flex-shrink-0 transition-colors" />
+                  </a>
+                ) : (
+                  <button
+                    key={item.label}
+                    onClick={() => nav(item.path)}
+                    className="flex w-full items-center gap-4 px-5 py-4 text-left hover:bg-white/4 active:bg-white/6 transition-colors group"
+                  >
+                    <div className="h-9 w-9 rounded-xl bg-white/6 flex items-center justify-center flex-shrink-0 group-hover:bg-purple-500/15 transition-colors">
+                      <item.icon className="h-4.5 w-4.5 text-white/60 group-hover:text-purple-400 transition-colors" style={{ width: 18, height: 18 }} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold text-white/80">{item.label}</div>
+                      <div className="text-xs text-white/40 mt-0.5">{item.sub}</div>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-white/20 group-hover:text-white/40 flex-shrink-0 transition-colors" />
+                  </button>
+                )
+              )}
             </div>
           </div>
         ))}

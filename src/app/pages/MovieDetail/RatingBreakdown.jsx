@@ -30,7 +30,7 @@ export default function RatingBreakdown({ movie }) {
     })
   }
 
-  if (movie.ff_critic_rating != null) {
+  if (movie.ff_critic_rating != null && (movie.ff_critic_confidence ?? 0) >= 50) {
     rows.push({
       key: 'critic',
       label: 'Critics',
@@ -40,7 +40,7 @@ export default function RatingBreakdown({ movie }) {
     })
   }
 
-  if (movie.ff_audience_rating != null) {
+  if (movie.ff_audience_rating != null && (movie.ff_audience_confidence ?? 0) >= 50) {
     rows.push({
       key: 'audience',
       label: 'Audience',
@@ -50,20 +50,13 @@ export default function RatingBreakdown({ movie }) {
     })
   }
 
-  if (movie.ff_community_rating != null && (movie.ff_community_confidence ?? 0) >= 60) {
+  if (movie.ff_community_rating != null && (movie.ff_community_confidence ?? 0) >= 50) {
     rows.push({
       key: 'community',
       label: 'FeelFlick Users',
       value: movie.ff_community_rating,
       confidence: movie.ff_community_confidence,
       note: `${movie.ff_community_votes ?? 0} ratings`,
-    })
-  } else if (movie.ff_community_confidence != null) {
-    rows.push({
-      key: 'community',
-      label: 'FeelFlick Users',
-      value: null,
-      note: `Gathering ratings\u2026 ${movie.ff_community_votes ?? 0} so far`,
     })
   }
 

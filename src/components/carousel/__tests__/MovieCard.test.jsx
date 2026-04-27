@@ -8,8 +8,6 @@ const mockCardEnter = vi.fn()
 const mockCardLeave = vi.fn()
 const mockCardFocus = vi.fn()
 const mockCardBlur = vi.fn()
-const mockToggleWatchlist = vi.fn()
-const mockToggleWatched = vi.fn()
 
 vi.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
@@ -27,22 +25,8 @@ vi.mock('@/contexts/WatchlistContext', () => ({
   }),
 }))
 
-vi.mock('@/shared/hooks/useUserMovieStatus', () => ({
-  useUserMovieStatus: () => ({
-    isInWatchlist: false,
-    isWatched: false,
-    loading: { watchlist: false, watched: false },
-    toggleWatchlist: mockToggleWatchlist,
-    toggleWatched: mockToggleWatched,
-  }),
-}))
-
 vi.mock('@/shared/services/recommendations', () => ({
   updateImpression: vi.fn(),
-}))
-
-vi.mock('../WatchProviders', () => ({
-  WatchProviders: () => <div>Netflix</div>,
 }))
 
 const movie = {
@@ -67,12 +51,10 @@ describe('Homepage carousel cards', () => {
     mockCardLeave.mockReset()
     mockCardFocus.mockReset()
     mockCardBlur.mockReset()
-    mockToggleWatchlist.mockReset()
-    mockToggleWatched.mockReset()
   })
 
   it('navigates on click', () => {
-    render(<MovieCard item={movie} width={220} height={330} expandedHeight={500} />)
+    render(<MovieCard item={movie} width={220} height={330} />)
 
     fireEvent.click(screen.getByRole('button', { name: /open furiosa/i }))
 
@@ -85,7 +67,6 @@ describe('Homepage carousel cards', () => {
         item={movie}
         width={220}
         height={330}
-        expandedHeight={500}
         onCardEnter={mockCardEnter}
         onCardLeave={mockCardLeave}
         onCardFocus={mockCardFocus}
@@ -104,68 +85,5 @@ describe('Homepage carousel cards', () => {
     expect(mockCardLeave).toHaveBeenCalled()
     expect(mockCardFocus).toHaveBeenCalledWith(movie, trigger)
     expect(mockCardBlur).toHaveBeenCalled()
-  })
-
-  it('keeps collapsed cards teaser-only and renders details only when expanded', () => {
-    const { rerender } = render(
-      <MovieCard item={movie} width={220} height={330} expandedHeight={500} hoverPhase="rest" />
-    )
-
-    expect(screen.queryByText('A road war erupts in the wasteland.')).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /view details for furiosa/i })).not.toBeInTheDocument()
-
-    rerender(
-      <MovieCard
-        item={movie}
-        width={220}
-        height={330}
-        expandedHeight={500}
-        hoverPhase="expanded"
-        isExpanded={true}
-      />
-    )
-
-    expect(screen.getByText('A road war erupts in the wasteland.')).toBeInTheDocument()
-    expect(screen.getByText('Netflix')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /view details for furiosa/i })).toBeInTheDocument()
-  })
-
-  it('watchlist and watched actions do not trigger navigation', () => {
-    render(
-      <MovieCard
-        item={movie}
-        width={220}
-        height={330}
-        expandedHeight={500}
-        hoverPhase="expanded"
-        isExpanded={true}
-      />
-    )
-
-    fireEvent.click(screen.getByRole('button', { name: /add to watchlist/i }))
-    fireEvent.click(screen.getByRole('button', { name: /mark watched/i }))
-
-    expect(mockToggleWatchlist).toHaveBeenCalledTimes(1)
-    expect(mockToggleWatched).toHaveBeenCalledTimes(1)
-    expect(mockNavigate).not.toHaveBeenCalled()
-  })
-
-  it('keeps resting cards anchored in their own slot even when an expanded width is configured', () => {
-    const { container } = render(
-      <MovieCard
-        item={movie}
-        width={220}
-        expandedWidth={440}
-        height={330}
-        expandedHeight={500}
-        hoverPhase="rest"
-      />
-    )
-
-    const shell = container.querySelector('article')
-
-    expect(shell).not.toBeNull()
-    expect(shell.style.left).toBe('0px')
-    expect(shell.style.width).toBe('220px')
   })
 })

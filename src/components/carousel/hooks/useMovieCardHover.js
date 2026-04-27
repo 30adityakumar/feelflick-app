@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-export const CARD_EXPAND_DELAY_MS = 0
+export const CARD_EXPAND_DELAY_MS = 180
 const CLOSE_DELAY_MS = 90
 
 export function useMovieCardHover({ scrollContainerRef } = {}) {

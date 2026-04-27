@@ -2,47 +2,6 @@ import { Link } from 'react-router-dom'
 
 import { trackInteraction } from '@/shared/services/interactions'
 
-const MOOD_COLORS = {
-  // warm
-  cozy: { bg: 'rgba(251,191,36,0.12)', border: 'rgba(251,191,36,0.3)', text: '#fcd34d' },
-  heartwarming: { bg: 'rgba(251,191,36,0.12)', border: 'rgba(251,191,36,0.3)', text: '#fcd34d' },
-  tender: { bg: 'rgba(251,191,36,0.12)', border: 'rgba(251,191,36,0.3)', text: '#fcd34d' },
-  uplifting: { bg: 'rgba(251,191,36,0.12)', border: 'rgba(251,191,36,0.3)', text: '#fcd34d' },
-  nostalgic: { bg: 'rgba(251,191,36,0.12)', border: 'rgba(251,191,36,0.3)', text: '#fcd34d' },
-  inspiring: { bg: 'rgba(251,191,36,0.12)', border: 'rgba(251,191,36,0.3)', text: '#fcd34d' },
-  empowering: { bg: 'rgba(251,191,36,0.12)', border: 'rgba(251,191,36,0.3)', text: '#fcd34d' },
-  // dark
-  dark: { bg: 'rgba(139,92,246,0.12)', border: 'rgba(139,92,246,0.35)', text: '#c4b5fd' },
-  haunting: { bg: 'rgba(139,92,246,0.12)', border: 'rgba(139,92,246,0.35)', text: '#c4b5fd' },
-  unsettling: { bg: 'rgba(139,92,246,0.12)', border: 'rgba(139,92,246,0.35)', text: '#c4b5fd' },
-  gritty: { bg: 'rgba(139,92,246,0.12)', border: 'rgba(139,92,246,0.35)', text: '#c4b5fd' },
-  devastating: { bg: 'rgba(139,92,246,0.12)', border: 'rgba(139,92,246,0.35)', text: '#c4b5fd' },
-  melancholic: { bg: 'rgba(139,92,246,0.12)', border: 'rgba(139,92,246,0.35)', text: '#c4b5fd' },
-  somber: { bg: 'rgba(139,92,246,0.12)', border: 'rgba(139,92,246,0.35)', text: '#c4b5fd' },
-  bittersweet: { bg: 'rgba(139,92,246,0.12)', border: 'rgba(139,92,246,0.35)', text: '#c4b5fd' },
-  // tense
-  tense: { bg: 'rgba(239,68,68,0.12)', border: 'rgba(239,68,68,0.3)', text: '#fca5a5' },
-  suspenseful: { bg: 'rgba(239,68,68,0.12)', border: 'rgba(239,68,68,0.3)', text: '#fca5a5' },
-  intense: { bg: 'rgba(239,68,68,0.12)', border: 'rgba(239,68,68,0.3)', text: '#fca5a5' },
-  thrilling: { bg: 'rgba(239,68,68,0.12)', border: 'rgba(239,68,68,0.3)', text: '#fca5a5' },
-  exhilarating: { bg: 'rgba(239,68,68,0.12)', border: 'rgba(239,68,68,0.3)', text: '#fca5a5' },
-  // playful
-  playful: { bg: 'rgba(34,197,94,0.12)', border: 'rgba(34,197,94,0.3)', text: '#86efac' },
-  whimsical: { bg: 'rgba(34,197,94,0.12)', border: 'rgba(34,197,94,0.3)', text: '#86efac' },
-  lighthearted: { bg: 'rgba(34,197,94,0.12)', border: 'rgba(34,197,94,0.3)', text: '#86efac' },
-  // cerebral
-  mysterious: { bg: 'rgba(59,130,246,0.12)', border: 'rgba(59,130,246,0.3)', text: '#93c5fd' },
-  'mind-bending': { bg: 'rgba(59,130,246,0.12)', border: 'rgba(59,130,246,0.3)', text: '#93c5fd' },
-  contemplative: { bg: 'rgba(59,130,246,0.12)', border: 'rgba(59,130,246,0.3)', text: '#93c5fd' },
-  meditative: { bg: 'rgba(59,130,246,0.12)', border: 'rgba(59,130,246,0.3)', text: '#93c5fd' },
-  dreamy: { bg: 'rgba(59,130,246,0.12)', border: 'rgba(59,130,246,0.3)', text: '#93c5fd' },
-  provocative: { bg: 'rgba(59,130,246,0.12)', border: 'rgba(59,130,246,0.3)', text: '#93c5fd' },
-  // romance
-  romantic: { bg: 'rgba(236,72,153,0.12)', border: 'rgba(236,72,153,0.3)', text: '#f9a8d4' },
-}
-
-const DEFAULT_COLOR = { bg: 'rgba(255,255,255,0.05)', border: 'rgba(255,255,255,0.12)', text: 'rgba(255,255,255,0.75)' }
-
 const FIT_PROFILE_LABELS = {
   prestige_drama: 'Prestige Drama',
   arthouse: 'Arthouse',
@@ -79,26 +38,22 @@ export default function MoodChips({ movie }) {
           {FIT_PROFILE_LABELS[fitProfile] || fitProfile.replace(/_/g, ' ')}
         </Link>
       )}
-      {moodTags.map((tag) => {
-        const c = MOOD_COLORS[tag] || DEFAULT_COLOR
-        return (
-          <Link
-            key={`m-${tag}`}
-            to={`/mood/${encodeURIComponent(tag)}`}
-            onClick={() => trackInteraction('mood_chip_click', { metadata: { tag, type: 'mood' } })}
-            className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all hover:scale-105"
-            style={{ background: c.bg, border: `1px solid ${c.border}`, color: c.text }}
-          >
-            {tag}
-          </Link>
-        )
-      })}
+      {moodTags.map((tag) => (
+        <Link
+          key={`m-${tag}`}
+          to={`/mood/${encodeURIComponent(tag)}`}
+          onClick={() => trackInteraction('mood_chip_click', { metadata: { tag, type: 'mood' } })}
+          className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-purple-500/10 border border-purple-500/20 text-purple-200 transition-all hover:bg-purple-500/15 hover:scale-105"
+        >
+          {tag}
+        </Link>
+      ))}
       {toneTags.map((tag) => (
         <Link
           key={`t-${tag}`}
           to={`/tone/${encodeURIComponent(tag)}`}
           onClick={() => trackInteraction('mood_chip_click', { metadata: { tag, type: 'tone' } })}
-          className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium bg-transparent border border-white/12 text-white/60 hover:text-white/80 hover:border-white/20 transition-colors"
+          className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium bg-transparent border border-white/10 text-white/50 hover:text-white/70 hover:border-white/20 transition-colors"
         >
           {tag}
         </Link>

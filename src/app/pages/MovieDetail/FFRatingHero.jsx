@@ -40,7 +40,7 @@ export default function FFRatingHero({ internalMovie }) {
     <div className="inline-flex items-center gap-3">
       <div className="flex items-baseline gap-1.5">
         <Sparkles className="h-4 w-4 text-purple-400" />
-        <span className="text-3xl font-black text-white tabular-nums">{primary}</span>
+        <span className="text-3xl md:text-4xl lg:text-5xl font-black text-white tabular-nums">{primary}</span>
         <span className="text-sm text-white/40">/100</span>
       </div>
       <div className="flex flex-col">

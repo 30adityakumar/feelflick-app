@@ -23,7 +23,6 @@ import { fetchJson, getMovieDetails } from '@/shared/api/tmdb'
 import { IMG, formatRuntime, yearOf } from './utils'
 import MovieCast from './MovieCast'
 import MovieVideos from './MovieVideos'
-import MovieImages from './MovieImages'
 import MovieSimilar from './MovieSimilar'
 import { WhereToWatch, MovieDetails, ProductionCompanies, CollectionCard } from './MovieSidebar'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -95,12 +94,10 @@ export default function MovieDetail() {
   const [videos, setVideos]           = useState([])
   const [recs, setRecs]               = useState([])
   const [providers, setProviders]     = useState({ flatrate: [], rent: [], buy: [], link: '' })
-  const [images, setImages]           = useState({ backdrops: [] })
   const [certification, setCertification] = useState('')
   const [internalMovieId, setInternalMovieId] = useState(null)
   const [showFeedbackModal, setShowFeedbackModal] = useState(false)
   const [userFeedback, setUserFeedback] = useState(null)
-  const [movieMoods, setMovieMoods]   = useState([])
   const [internalMovieData, setInternalMovieData] = useState(null)
   const [showAddToList, setShowAddToList] = useState(false)
   const [showQuickRate, setShowQuickRate] = useState(false)
@@ -137,7 +134,7 @@ export default function MovieDetail() {
       try {
         const [d, rel] = await Promise.all([
           getMovieDetails(id, {
-            append: 'videos,images,recommendations,credits,keywords',
+            append: 'videos,recommendations,credits,keywords',
           }),
           fetchJson(`/movie/${id}/release_dates`),
         ])
@@ -147,7 +144,6 @@ export default function MovieDetail() {
         setCredits({ cast: d?.credits?.cast?.slice(0, 10) || [], crew: d?.credits?.crew || [] })
         setVideos(d?.videos?.results || [])
         setRecs(d?.recommendations?.results?.slice(0, 12) || [])
-        setImages({ backdrops: d?.images?.backdrops?.slice(0, 6) || [] })
         const usCert = rel?.results?.find(r => r.iso_3166_1 === 'US')?.release_dates?.[0]?.certification || ''
         setCertification(usCert)
       } catch (e) {
@@ -235,21 +231,6 @@ export default function MovieDetail() {
     return () => { active = false }
   }, [user?.id, internalMovieId])
 
-  // Mood scores — FeelFlick DNA
-  useEffect(() => {
-    if (!internalMovieId) return
-    let active = true
-    ;(async () => {
-      const { data } = await supabase
-        .from('movie_mood_scores')
-        .select('score, moods(name, emoji)')
-        .eq('movie_id', internalMovieId)
-        .order('score', { ascending: false })
-        .limit(4)
-      if (active && data) setMovieMoods(data.filter(d => d.moods && d.score > 0.4))
-    })()
-    return () => { active = false }
-  }, [internalMovieId])
 
   // DB movie row for ff_* rating columns (used by FFRatingHero + RatingBreakdown)
   useEffect(() => {
@@ -258,7 +239,7 @@ export default function MovieDetail() {
     ;(async () => {
       const { data } = await supabase
         .from('movies')
-        .select('id, tmdb_id, ff_critic_rating, ff_critic_confidence, ff_audience_rating, ff_audience_confidence, ff_community_rating, ff_community_confidence, ff_community_votes, ff_rating_genre_normalized, primary_genre, ff_rating, ff_final_rating, mood_tags, tone_tags, fit_profile')
+        .select('id, tmdb_id, ff_critic_rating, ff_critic_confidence, ff_audience_rating, ff_audience_confidence, ff_community_rating, ff_community_confidence, ff_community_votes, ff_rating_genre_normalized, primary_genre, mood_tags, tone_tags, fit_profile')
         .eq('id', internalMovieId)
         .maybeSingle()
       if (active && data) setInternalMovieData(data)
@@ -377,22 +358,6 @@ export default function MovieDetail() {
     image: pageImage,
     url: pageUrl,
   })
-
-  // ── Mood pills (reused in hero + mobile content) ─────────────
-  const MoodPills = () => movieMoods.length > 0 ? (
-    <div className="flex flex-wrap items-center gap-2">
-      <span className="text-[10px] font-semibold text-white/20 uppercase tracking-widest">Perfect for</span>
-      {movieMoods.map(({ moods: mood }) => (
-        <span
-          key={mood.name}
-          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gradient-to-r from-purple-500/15 to-pink-500/10 border border-purple-500/25 text-xs font-medium text-purple-200"
-        >
-          {mood.emoji && <span aria-hidden>{mood.emoji}</span>}
-          {mood.name}
-        </span>
-      ))}
-    </div>
-  ) : null
 
   // ── Sentiment map (reused in Your Take card) ─────────────────
   const SENTIMENT_MAP = {
@@ -545,9 +510,6 @@ export default function MovieDetail() {
                         </p>
                       )}
 
-                      {/* Mood tags — FeelFlick DNA — sm+ */}
-                      <div className="hidden sm:block"><MoodPills /></div>
-
                       {/* Action buttons */}
                       <div className="flex flex-wrap items-center gap-2 pt-0.5">
                         {ytTrailer && (
@@ -646,12 +608,11 @@ export default function MovieDetail() {
             {/* ── Main column ───────────────────────────────── */}
             <div className="space-y-5 min-w-0">
 
-              {/* Mobile: overview */}
-              {!loading && movie?.overview && (
-                <div className="md:hidden rounded-2xl border border-white/8 bg-white/[0.03] p-5">
-                  <p className="text-[11px] font-semibold text-white/40 uppercase tracking-widest mb-2">Overview</p>
-                  {movie.genres?.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mb-3">
+              {/* Mobile: overview + credits */}
+              {!loading && (movie?.overview || director || writer) && (
+                <div className="md:hidden rounded-2xl border border-white/8 bg-white/[0.03] p-5 space-y-3">
+                  {movie?.genres?.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
                       {movie.genres.slice(0, 4).map(g => (
                         <span key={g.id} className="px-2 py-0.5 rounded-full bg-white/[0.06] border border-white/8 text-white/60 text-[11px]">
                           {g.name}
@@ -659,30 +620,23 @@ export default function MovieDetail() {
                       ))}
                     </div>
                   )}
-                  <p className="text-sm text-white/78 leading-relaxed">{movie.overview}</p>
-                </div>
-              )}
-
-              {/* Mobile: credits */}
-              {(director || writer) && (
-                <div className="sm:hidden rounded-2xl border border-white/8 bg-white/[0.03] px-5 py-4">
-                  {director && (
-                    <p className="text-xs text-white/40">
-                      Directed by <span className="text-white/80 font-semibold">{director.name}</span>
-                    </p>
+                  {(director || writer) && (
+                    <div>
+                      {director && (
+                        <p className="text-xs text-white/40">
+                          Directed by <span className="text-white/80 font-semibold">{director.name}</span>
+                        </p>
+                      )}
+                      {writer && (
+                        <p className="text-xs text-white/40 mt-1">
+                          Written by <span className="text-white/80 font-semibold">{writer.name}</span>
+                        </p>
+                      )}
+                    </div>
                   )}
-                  {writer && (
-                    <p className="text-xs text-white/40 mt-1">
-                      Written by <span className="text-white/80 font-semibold">{writer.name}</span>
-                    </p>
+                  {movie?.overview && (
+                    <p className="text-sm text-white/78 leading-relaxed">{movie.overview}</p>
                   )}
-                </div>
-              )}
-
-              {/* Mobile: mood tags */}
-              {movieMoods.length > 0 && (
-                <div className="sm:hidden">
-                  <MoodPills />
                 </div>
               )}
 
@@ -774,7 +728,6 @@ export default function MovieDetail() {
 
               <MovieCast cast={credits.cast} />
               <MovieVideos videos={videos} internalMovieId={internalMovieId} />
-              <MovieImages images={images.backdrops} />
               <MovieSimilar title="More like this" items={recs} />
             </div>
 

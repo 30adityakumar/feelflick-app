@@ -1,4 +1,4 @@
-import { ChevronRight, Tag } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { IMG } from './utils'
 
@@ -99,27 +99,6 @@ export function ProductionCompanies({ companies }) {
   )
 }
 
-export function KeywordsSection({ keywords }) {
-  if (!keywords?.length) return null
-  return (
-    <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-5">
-      <h2 className="text-sm font-bold mb-3 flex items-center gap-2">
-        <Tag className="h-4 w-4" />
-        Keywords
-      </h2>
-      <div className="flex flex-wrap gap-1.5">
-        {keywords.map((k) => (
-          <span
-            key={k.id}
-            className="px-3 py-1 rounded-full bg-white/5 border border-white/8 text-white/60 text-[11px] font-medium hover:bg-white/10 hover:border-white/20 hover:text-white/80 transition-colors cursor-default"
-          >
-            {k.name}
-          </span>
-        ))}
-      </div>
-    </div>
-  )
-}
 
 export function CollectionCard({ collection }) {
   const navigate = useNavigate()

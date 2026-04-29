@@ -663,7 +663,7 @@ export default function TasteProfile() {
                 {userLists.length > 0 && (
                   <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
                     <div className="flex items-center gap-2 mb-3">
-                      <div className="w-[3px] h-4 rounded-full bg-gradient-to-b from-purple-400 to-pink-500 shrink-0" />
+                      <div className="w-[3px] h-5 rounded-full bg-gradient-to-b from-purple-400 to-pink-500 shrink-0" />
                       <span className="text-xs font-bold text-white/70 uppercase tracking-wider">Lists</span>
                     </div>
                     <div className="space-y-2">

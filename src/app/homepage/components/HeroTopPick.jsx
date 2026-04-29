@@ -623,15 +623,7 @@ export default function HeroTopPick({
 
       {/* Refreshing overlay */}
       {isRefreshing && (
-        <div
-          className="absolute inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center animate-fadeIn"
-          style={{ animationDuration: '0.15s' }}
-        >
-          <div className="flex items-center gap-3 px-6 py-4 rounded-2xl bg-black/80 border border-white/10">
-            <Loader2 className="h-5 w-5 text-purple-400 animate-spin" />
-            <span className="text-white/90 text-sm font-medium">Finding your next pick…</span>
-          </div>
-        </div>
+        <div className="absolute inset-0 z-50 animate-pulse bg-purple-500/[0.04]" />
       )}
 
       {/* ── Backdrop ── */}

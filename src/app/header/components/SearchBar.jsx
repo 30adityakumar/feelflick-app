@@ -301,9 +301,16 @@ export default function SearchBar({ open, onClose }) {
           )}
 
           {q && loading && (
-            <div className="px-6 py-12 text-center" aria-live="polite">
-              <div className="mb-4 inline-block h-8 w-8 animate-spin rounded-full border-4 border-white/20 border-t-white" />
-              <p className="text-sm text-white/60">Searching…</p>
+            <div className="px-6 py-4 space-y-1" aria-live="polite">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="flex items-center gap-3 px-2 py-2">
+                  <div className="h-20 w-14 shrink-0 rounded-lg animate-pulse bg-purple-500/[0.04]" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-3 rounded-full animate-pulse bg-purple-500/[0.04]" />
+                    <div className="h-3 w-2/3 rounded-full animate-pulse bg-purple-500/[0.04]" />
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 

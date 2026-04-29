@@ -1,4 +1,4 @@
-// src/app/pages/onboarding/MoviesStep.jsx
+// src/features/onboarding/steps/MoviesStep.jsx
 import { useEffect, useRef, useState } from 'react'
 import { Search, X, ChevronLeft, Check } from 'lucide-react'
 

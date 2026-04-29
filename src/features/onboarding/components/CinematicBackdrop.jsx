@@ -1,4 +1,4 @@
-// src/app/pages/onboarding/CinematicBackdrop.jsx
+// src/features/onboarding/components/CinematicBackdrop.jsx
 // Full-viewport blurred film still behind all onboarding steps.
 // Ken Burns: scale 1.0 → 1.08 over 20s, infinite alternate.
 // One backdrop per session, picked randomly from top-rated films.

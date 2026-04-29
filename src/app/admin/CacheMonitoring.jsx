@@ -283,7 +283,7 @@ export default function CacheMonitoring() {
           <div className="space-y-2 text-sm text-gray-300">
             {stats.byAge.expired > 0 && (
               <p className="flex items-start gap-2">
-                <span className="text-yellow-400">⚠️</span>
+                <span className="text-amber-400">⚠️</span>
                 <span>
                   {stats.byAge.expired} caches are expired (&gt;7 days old). Click &quot;Warm Cache&quot; to refresh them.
                 </span>

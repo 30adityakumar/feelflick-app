@@ -98,7 +98,7 @@ export default function DatabaseValidationPanel({ movieId, internalMovieId }) {
               <div className="text-green-400">✓ Test ID: {internalMovieId || movieId || 242}</div>
             </>
           ) : (
-            <div className="text-yellow-400">⚠️ Not logged in</div>
+            <div className="text-amber-400">⚠️ Not logged in</div>
           )}
         </div>
 

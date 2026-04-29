@@ -78,7 +78,7 @@ function computeTasteMatch({ viewedGenres, currentGenres, viewedMoods, currentMo
 /** @param {number} score - 0–1 */
 function getScoreColor(score) {
   if (score >= 0.7) return 'text-emerald-400'
-  if (score >= 0.4) return 'text-yellow-400'
+  if (score >= 0.4) return 'text-amber-400'
   return 'text-pink-400'
 }
 

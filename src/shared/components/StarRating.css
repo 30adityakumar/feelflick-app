@@ -47,7 +47,7 @@
 }
 
 .star-rating__star:hover:not(:disabled) {
-  color: #fbbf24; /* yellow-400 */
+  color: #fbbf24; /* amber-400 */
   transform: scale(1.1);
 }
 

@@ -143,8 +143,8 @@ export default function StarRating({
         {!isEmpty && (
           <Star
             className={`
-              ${config.star} absolute inset-0 text-yellow-400 transition-all duration-150
-              ${hoverValue > 0 && !readonly ? 'drop-shadow-[0_0_8px_rgba(250,204,21,0.5)]' : ''}
+              ${config.star} absolute inset-0 text-amber-400 transition-all duration-150
+              ${hoverValue > 0 && !readonly ? 'drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]' : ''}
             `}
             fill="currentColor"
             strokeWidth={2}

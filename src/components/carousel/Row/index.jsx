@@ -171,10 +171,7 @@ export const CarouselRow = memo(function CarouselRow({
           className="mb-4 flex items-center gap-3"
           style={{ paddingInline: 'clamp(1rem, 4vw, 3rem)' }}
         >
-          <div
-            className="h-5 w-[3px] flex-shrink-0 rounded-full"
-            style={{ background: 'linear-gradient(180deg, #c084fc 0%, #ec4899 100%)' }}
-          />
+          <div className="w-[3px] h-5 rounded-full bg-gradient-to-b from-purple-400 to-pink-500" />
           <div className="skeleton h-4 w-44 rounded-full" />
         </div>
         <div
@@ -209,25 +206,11 @@ export const CarouselRow = memo(function CarouselRow({
         className="mb-4 flex items-center gap-3"
         style={{ paddingInline: 'clamp(1rem, 4vw, 3rem)' }}
       >
-        <div
-          className="h-5 w-[3px] flex-shrink-0 rounded-full"
-          style={{ background: 'linear-gradient(180deg, #c084fc 0%, #ec4899 100%)' }}
-        />
-        <h2
-          className="shrink-0 whitespace-nowrap text-[1.05rem] font-bold leading-tight tracking-tight"
-          style={{
-            color: 'rgba(248, 250, 252, 0.95)',
-            fontFamily: 'var(--font-body)',
-          }}
-        >
+        <div className="w-[3px] h-5 rounded-full bg-gradient-to-b from-purple-400 to-pink-500" />
+        <h2 className="text-[1.05rem] sm:text-[1.15rem] font-bold text-white tracking-tight whitespace-nowrap">
           {title}
         </h2>
-        <div
-          className="h-px flex-1"
-          style={{
-            background: 'linear-gradient(90deg, rgba(192, 132, 252, 0.18) 0%, rgba(248, 250, 252, 0.04) 45%, transparent 100%)',
-          }}
-        />
+        <div className="h-px flex-1 bg-gradient-to-r from-purple-400/20 via-white/5 to-transparent" />
         {onShuffle && (
           <button
             type="button"

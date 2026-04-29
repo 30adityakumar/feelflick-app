@@ -781,7 +781,7 @@ function FollowListModal({ type, userId, onClose }) {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.2 }}
-        className="w-full max-w-md max-h-[70vh] flex flex-col rounded-2xl border border-white/8 bg-neutral-950 overflow-hidden"
+        className="w-full max-w-md max-h-[70vh] flex flex-col rounded-2xl border border-white/8 bg-black overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

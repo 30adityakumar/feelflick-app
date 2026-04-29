@@ -721,7 +721,7 @@ export default function HeroTopPick({
               className="group relative w-[180px] lg:w-[240px] xl:w-[260px] rounded-xl overflow-hidden shadow-2xl shadow-black/50 ring-1 ring-white/12 hover:ring-purple-500/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400/50 focus-visible:ring-offset-4 focus-visible:ring-offset-black transition-all duration-500 hover:scale-[1.02]"
               aria-label={`View ${activeMovie.title}`}
             >
-              <div className="aspect-[2/3] bg-neutral-900">
+              <div className="aspect-[2/3] bg-white/5">
                 {!posterLoaded && (
                   <div
                     className="absolute inset-0 scale-105"

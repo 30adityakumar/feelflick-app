@@ -386,7 +386,7 @@ export default function MovieDetail() {
           <div className="absolute inset-0">
             {movie?.backdrop_path
               ? <img src={IMG.backdrop(movie.backdrop_path)} alt="" className="w-full h-full object-cover object-[50%_55%]" loading="eager" />
-              : <div className="w-full h-full bg-neutral-900" />
+              : <div className="w-full h-full bg-white/5" />
             }
             {/* Top vignette: subtle, header area only */}
             <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-black/55 to-transparent" />

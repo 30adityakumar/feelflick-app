@@ -60,7 +60,7 @@ function usePosterRows() {
 function PosterTile({ path, tag }) {
   return (
     <div
-      className="relative w-36 sm:w-40 h-52 sm:h-60 shrink-0 rounded-xl overflow-hidden border border-white/8 bg-neutral-900"
+      className="relative w-36 sm:w-40 h-52 sm:h-60 shrink-0 rounded-xl overflow-hidden border border-white/8 bg-white/5"
       role="presentation"
       aria-hidden="true"
     >

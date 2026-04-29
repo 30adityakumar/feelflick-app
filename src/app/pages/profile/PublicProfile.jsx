@@ -146,7 +146,7 @@ function UserNotFound() {
       <div className="h-20 w-20 rounded-full bg-white/5 border border-white/8 flex items-center justify-center mb-6">
         <Film className="h-9 w-9 text-white/20" />
       </div>
-      <h2 className="text-xl font-bold text-white mb-2">User not found</h2>
+      <h2 className="text-xl font-bold tracking-tight text-white mb-2">User not found</h2>
       <p className="text-white/40 text-sm max-w-sm mb-6">
         This profile doesn&apos;t exist or may have been removed.
       </p>
@@ -175,7 +175,7 @@ function EmptyPublicProfile({ displayName }) {
       <div className="h-20 w-20 rounded-full bg-purple-500/10 border border-purple-500/20 flex items-center justify-center mb-6">
         <Film className="h-9 w-9 text-purple-400/60" />
       </div>
-      <h2 className="text-xl font-bold text-white mb-2">
+      <h2 className="text-xl font-bold tracking-tight text-white mb-2">
         {displayName} hasn&apos;t watched anything yet
       </h2>
       <p className="text-white/40 text-sm max-w-sm">

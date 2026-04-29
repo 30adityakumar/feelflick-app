@@ -79,7 +79,7 @@ function EmptyProfile() {
       <div className="h-20 w-20 rounded-full bg-purple-500/10 border border-purple-500/20 flex items-center justify-center mb-6">
         <Film className="h-9 w-9 text-purple-400/60" />
       </div>
-      <h2 className="text-xl font-bold text-white mb-2">Your taste profile is waiting</h2>
+      <h2 className="text-xl font-bold tracking-tight text-white mb-2">Your taste profile is waiting</h2>
       <p className="text-white/40 text-sm max-w-sm mb-6">
         Start watching and rating films to build your cinematic identity. The more you watch, the more we learn about your taste.
       </p>

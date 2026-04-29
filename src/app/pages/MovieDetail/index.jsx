@@ -453,7 +453,7 @@ export default function MovieDetail() {
                   ) : (
                     <>
                       {/* Title */}
-                      <h1 className="text-lg sm:text-2xl md:text-3xl lg:text-4xl font-black leading-tight tracking-tight drop-shadow-2xl">
+                      <h1 className="text-[clamp(2.75rem,7vw,5rem)] leading-[1.05] font-black tracking-tight drop-shadow-2xl">
                         {movie?.title}
                       </h1>
 

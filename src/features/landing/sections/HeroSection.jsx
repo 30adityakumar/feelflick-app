@@ -254,7 +254,7 @@ export default function HeroSection() {
               <span
                 className="block"
                 style={{
-                  background: 'linear-gradient(90deg, #a855f7 0%, #ec4899 45%, #fbbf24 100%)',
+                  background: 'linear-gradient(90deg, #a855f7 0%, #ec4899 100%)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                   backgroundClip: 'text',
@@ -263,11 +263,8 @@ export default function HeroSection() {
                 }}
               >Right now.</span>
             </h1>
-            <p className="text-sm lg:text-lg text-white/60 leading-relaxed mb-2 max-w-[560px]">
-              FeelFlick recommends movies based on your mood, your taste, and the moment you&apos;re in — so you spend less time scrolling and more time watching.
-            </p>
-            <p className="text-sm text-white/35 mt-2 mb-5 lg:mb-6 max-w-[560px]">
-              Not a streaming service — a smarter way to choose what to watch.
+            <p className="text-sm lg:text-lg text-white/60 leading-relaxed mb-5 lg:mb-6 max-w-[560px]">
+              Tell it how you feel. It finds tonight&apos;s film — matched to your taste, not what&apos;s trending.
             </p>
 
             {/* CTA + trust line — trust text is constrained to pill width */}

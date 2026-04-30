@@ -28,7 +28,7 @@ export default function MoatProofSection() {
         aria-hidden="true"
       />
 
-      <div className="max-w-4xl mx-auto px-6 py-24 sm:py-32 text-center">
+      <div className="max-w-4xl mx-auto px-6 py-16 sm:py-20 text-center">
 
         <motion.p
           className="text-2xl sm:text-3xl md:text-4xl font-bold text-white tracking-tight"
@@ -37,7 +37,7 @@ export default function MoatProofSection() {
           viewport={vp}
           transition={{ duration: prefersReducedMotion ? 0 : 0.45 }}
         >
-          Every film is hand-scored on 15 dimensions.
+          Every film is hand-scored on 20 dimensions.
         </motion.p>
 
         <motion.p

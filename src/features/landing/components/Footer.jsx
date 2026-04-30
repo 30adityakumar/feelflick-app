@@ -20,9 +20,8 @@ const COMPANY_LINKS = [
 ]
 
 const CONNECT_LINKS = [
-  { label: 'Twitter / X', href: 'https://twitter.com/feelflick' },
-  { label: 'GitHub',      href: 'https://github.com/30adityakumar/feelflick-app' },
-  { label: 'Contact',     href: 'mailto:hello@feelflick.com' },
+  { label: 'X',       href: 'https://twitter.com/feelflick' },
+  { label: 'Contact', href: 'mailto:hello@feelflick.com' },
 ]
 
 // === MAIN COMPONENT ===

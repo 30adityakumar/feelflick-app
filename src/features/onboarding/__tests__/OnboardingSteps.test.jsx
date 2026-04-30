@@ -154,7 +154,7 @@ describe('MoviesStep — 5-film minimum', () => {
 // RatingStep — sentiment → rating mapping + gate logic
 // ---------------------------------------------------------------------------
 
-import { SENTIMENT_RATINGS } from '@/app/pages/onboarding/RatingStep'
+import { SENTIMENT_RATINGS } from '../steps/RatingStep'
 
 describe('RatingStep — SENTIMENT_RATINGS mapping', () => {
   it('loved maps to 9', () => {

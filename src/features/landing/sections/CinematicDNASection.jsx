@@ -15,14 +15,14 @@ const GENRES = [
   {
     label: 'Thriller',
     pct: 71,
-    colorFrom: 'from-blue-500',
-    colorTo: 'to-purple-500',
+    colorFrom: 'from-purple-500',
+    colorTo: 'to-pink-500',
   },
   {
     label: 'Mystery',
     pct: 63,
-    colorFrom: 'from-teal-400',
-    colorTo: 'to-cyan-500',
+    colorFrom: 'from-purple-500',
+    colorTo: 'to-pink-500',
   },
 ]
 

@@ -11,7 +11,7 @@ const COUNT_DURATION_MS = 1200
 const PROFILE_LEFT = {
   initials: 'AK',
   name: 'Aditya K.',
-  subtitle: '6 films · Sci-fi thriller obsessed',
+  subtitle: '42 films · Sci-fi thriller obsessed',
   // Matches the avatar gradient from CinematicDNASection exactly
   avatarGradient: 'linear-gradient(135deg, rgba(168,85,247,0.85), rgba(236,72,153,0.85))',
 }

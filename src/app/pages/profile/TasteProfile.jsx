@@ -79,7 +79,7 @@ function EmptyProfile() {
       <div className="h-20 w-20 rounded-full bg-purple-500/10 border border-purple-500/20 flex items-center justify-center mb-6">
         <Film className="h-9 w-9 text-purple-400/60" />
       </div>
-      <h2 className="text-xl font-bold text-white mb-2">Your taste profile is waiting</h2>
+      <h2 className="text-xl font-bold tracking-tight text-white mb-2">Your taste profile is waiting</h2>
       <p className="text-white/40 text-sm max-w-sm mb-6">
         Start watching and rating films to build your cinematic identity. The more you watch, the more we learn about your taste.
       </p>
@@ -663,7 +663,7 @@ export default function TasteProfile() {
                 {userLists.length > 0 && (
                   <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
                     <div className="flex items-center gap-2 mb-3">
-                      <div className="w-[3px] h-4 rounded-full bg-gradient-to-b from-purple-400 to-pink-500 shrink-0" />
+                      <div className="w-[3px] h-5 rounded-full bg-gradient-to-b from-purple-400 to-pink-500 shrink-0" />
                       <span className="text-xs font-bold text-white/70 uppercase tracking-wider">Lists</span>
                     </div>
                     <div className="space-y-2">
@@ -781,7 +781,7 @@ function FollowListModal({ type, userId, onClose }) {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.2 }}
-        className="w-full max-w-md max-h-[70vh] flex flex-col rounded-2xl border border-white/8 bg-neutral-950 overflow-hidden"
+        className="w-full max-w-md max-h-[70vh] flex flex-col rounded-2xl border border-white/8 bg-black overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

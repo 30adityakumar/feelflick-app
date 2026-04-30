@@ -1,4 +1,4 @@
-// src/app/pages/onboarding/RatingStep.jsx
+// src/features/onboarding/steps/RatingStep.jsx
 import { useState } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { ChevronLeft } from 'lucide-react'

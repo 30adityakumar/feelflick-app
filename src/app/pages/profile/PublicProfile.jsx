@@ -78,7 +78,7 @@ function computeTasteMatch({ viewedGenres, currentGenres, viewedMoods, currentMo
 /** @param {number} score - 0–1 */
 function getScoreColor(score) {
   if (score >= 0.7) return 'text-emerald-400'
-  if (score >= 0.4) return 'text-yellow-400'
+  if (score >= 0.4) return 'text-amber-400'
   return 'text-pink-400'
 }
 
@@ -146,7 +146,7 @@ function UserNotFound() {
       <div className="h-20 w-20 rounded-full bg-white/5 border border-white/8 flex items-center justify-center mb-6">
         <Film className="h-9 w-9 text-white/20" />
       </div>
-      <h2 className="text-xl font-bold text-white mb-2">User not found</h2>
+      <h2 className="text-xl font-bold tracking-tight text-white mb-2">User not found</h2>
       <p className="text-white/40 text-sm max-w-sm mb-6">
         This profile doesn&apos;t exist or may have been removed.
       </p>
@@ -175,7 +175,7 @@ function EmptyPublicProfile({ displayName }) {
       <div className="h-20 w-20 rounded-full bg-purple-500/10 border border-purple-500/20 flex items-center justify-center mb-6">
         <Film className="h-9 w-9 text-purple-400/60" />
       </div>
-      <h2 className="text-xl font-bold text-white mb-2">
+      <h2 className="text-xl font-bold tracking-tight text-white mb-2">
         {displayName} hasn&apos;t watched anything yet
       </h2>
       <p className="text-white/40 text-sm max-w-sm">
@@ -912,7 +912,7 @@ export default function PublicProfile() {
                 {userLists.length > 0 && (
                   <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
                     <div className="flex items-center gap-2 mb-3">
-                      <div className="w-[3px] h-4 rounded-full bg-gradient-to-b from-purple-400 to-pink-500 shrink-0" />
+                      <div className="w-[3px] h-5 rounded-full bg-gradient-to-b from-purple-400 to-pink-500 shrink-0" />
                       <span className="text-xs font-bold text-white/70 uppercase tracking-wider">
                         {displayName}&rsquo;s Lists
                       </span>

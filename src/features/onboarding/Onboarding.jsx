@@ -7,12 +7,12 @@ import { Sparkles } from 'lucide-react'
 import { supabase } from '@/shared/lib/supabase/client'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { completeOnboarding } from '@/shared/services/onboarding'
-import { SENTIMENT_RATINGS } from '@/app/pages/onboarding/RatingStep'
+import { SENTIMENT_RATINGS } from './steps/RatingStep'
 
-import CinematicBackdrop from '@/app/pages/onboarding/CinematicBackdrop'
-import GenresStep from '@/app/pages/onboarding/GenresStep'
-import MoviesStep from '@/app/pages/onboarding/MoviesStep'
-import RatingStep from '@/app/pages/onboarding/RatingStep'
+import CinematicBackdrop from './components/CinematicBackdrop'
+import GenresStep from './steps/GenresStep'
+import MoviesStep from './steps/MoviesStep'
+import RatingStep from './steps/RatingStep'
 
 const TOTAL_STEPS = 3
 

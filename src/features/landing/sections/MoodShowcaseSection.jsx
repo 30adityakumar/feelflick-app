@@ -130,7 +130,7 @@ function FilmCard({ film, accentColor, isPrimary }) {
     <div className="group">
       {/* Poster */}
       <div
-        className="relative rounded-xl overflow-hidden aspect-[2/3] bg-neutral-900 transition-all duration-200 ease-out group-hover:scale-[1.03] group-hover:shadow-[0_12px_40px_rgba(0,0,0,0.65)]"
+        className="relative rounded-xl overflow-hidden aspect-[2/3] bg-white/5 transition-all duration-200 ease-out group-hover:scale-[1.03] group-hover:shadow-[0_12px_40px_rgba(0,0,0,0.65)]"
         style={{
           boxShadow: isPrimary
             ? `0 0 0 1px ${hexToRgba(accentColor, 0.40)}, 0 8px 32px ${hexToRgba(accentColor, 0.18)}`

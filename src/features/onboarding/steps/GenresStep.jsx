@@ -1,4 +1,4 @@
-// src/app/pages/onboarding/GenresStep.jsx
+// src/features/onboarding/steps/GenresStep.jsx
 import { motion, useReducedMotion } from 'framer-motion'
 import { ChevronRight } from 'lucide-react'
 

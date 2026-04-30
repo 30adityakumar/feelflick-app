@@ -1,0 +1,37 @@
+/* src/features/landing-v2/landing-v2.css
+   Scoped styles for the v2 landing only.
+   Imported once by LandingV2.jsx — do not import elsewhere.
+   ============================================================ */
+
+/* Outfit — display font for v2 headings.
+   Body still inherits Inter from the global stylesheet. */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+.landing-v2 {
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.landing-v2 h1,
+.landing-v2 h2,
+.landing-v2 h3 {
+  font-family: 'Outfit', 'Inter', system-ui, sans-serif;
+  letter-spacing: -0.02em;
+}
+
+/* Hero animations */
+@keyframes lv2-blink {
+  0%, 50%   { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+@keyframes lv2-pulse {
+  0%, 100% { transform: scale(0.7); opacity: 0.4; }
+  50%      { transform: scale(1.2); opacity: 1; }
+}
+@keyframes lv2-slide {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes lv2-fadein {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}

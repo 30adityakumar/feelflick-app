@@ -18,6 +18,7 @@ const Landing = lazy(() => import('@/features/landing/Landing'))
 
 // App pages (with header/sidebar)
 const HomePage = lazy(() => import('@/app/homepage/HomePage'))
+const HomeV2 = lazy(() => import('@/app/home-v2/HomeV2'))
 const MoviesTab = lazy(() => import('@/app/pages/movies/MoviesTab'))
 const MovieDetail = lazy(() => import('@/app/pages/MovieDetail'))
 import ErrorBoundary from './ErrorBoundary'
@@ -350,6 +351,7 @@ export const router = sentryCreateBrowserRouter([
             errorElement: <ErrorBoundary />,
             children: [
               { path: 'home', element: <HomeRoute />, errorElement: <ErrorBoundary /> },
+              { path: 'home-v2', element: <LazyRoute Component={HomeV2} />, errorElement: <ErrorBoundary /> },
               { path: 'account', element: <LazyRoute Component={Account} />, errorElement: <ErrorBoundary /> },
               { path: 'preferences', element: <LazyRoute Component={Preferences} />, errorElement: <ErrorBoundary /> },
               { path: 'watchlist', element: <LazyRoute Component={Watchlist} />, errorElement: <ErrorBoundary /> },

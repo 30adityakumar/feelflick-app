@@ -1,4 +1,4 @@
-// src/features/onboarding-v2/steps/RatingStepV2.jsx
+// src/features/onboarding/steps/RatingStep.jsx
 // One card at a time, auto-advance after rating, "all done" celebration.
 // Apple Music × Tinder × Letterboxd feel — single film in focus, three big
 // sentiment buttons, swipe-y card entrance.
@@ -9,7 +9,7 @@ import { ChevronLeft, Sparkles } from 'lucide-react'
 
 import { tmdbImg } from '@/shared/api/tmdb'
 import Button from '@/shared/ui/Button'
-import { SENTIMENT_RATINGS } from '@/features/onboarding-v2/data'
+import { SENTIMENT_RATINGS } from '@/features/onboarding/data'
 
 // Order matches the prototype: Meh → Liked → Loved (left to right, ramping up).
 // Keys must match SENTIMENT_RATINGS in the legacy module.
@@ -28,7 +28,7 @@ const ratingToSentiment = (rating) => {
 
 const ADVANCE_DELAY_MS = 280
 
-export default function RatingStepV2({ favoriteMovies, ratings, onRate, onBack, onFinish, loading, error }) {
+export default function RatingStep({ favoriteMovies, ratings, onRate, onBack, onFinish, loading, error }) {
   const reduced = useReducedMotion()
   const films = useMemo(() => favoriteMovies ?? [], [favoriteMovies])
   const [idx, setIdx] = useState(0)

@@ -1,4 +1,4 @@
-// src/features/onboarding-v2/steps/MoodStep.jsx
+// src/features/onboarding/steps/MoodStep.jsx
 // NEW step 1 (mood baseline). Tile picker, 2-3 selections, with a pulsing orb in each tile.
 
 import { motion } from 'framer-motion'

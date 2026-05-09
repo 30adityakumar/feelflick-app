@@ -1,11 +1,11 @@
-// src/features/onboarding-v2/components/ProgressV2.jsx
+// src/features/onboarding/components/Progress.jsx
 // 4-segment progress bar with FEELFLICK wordmark + step counter.
 
 import { motion } from 'framer-motion'
 
 const TOTAL = 4
 
-export default function ProgressV2({ step }) {
+export default function Progress({ step }) {
   return (
     <div className="flex-none px-6 pt-6 pb-1 flex items-center gap-4">
       <span className="ob-display text-[15px] font-extrabold tracking-[0.02em] bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">

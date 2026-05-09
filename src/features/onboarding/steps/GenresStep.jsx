@@ -1,11 +1,11 @@
-// src/features/onboarding-v2/steps/GenresStepV2.jsx
+// src/features/onboarding/steps/GenresStep.jsx
 // Restyled genre picker — gradient outline tiles.
 
 import { motion, useReducedMotion } from 'framer-motion'
 import { ChevronRight, ChevronLeft } from 'lucide-react'
 
 import Button from '@/shared/ui/Button'
-import { GENRES } from '@/features/onboarding-v2/data'
+import { GENRES } from '@/features/onboarding/data'
 
 const MIN_GENRES = 3
 
@@ -35,7 +35,7 @@ function GenreTile({ genre, isSelected, onClick }) {
   )
 }
 
-export default function GenresStepV2({ selectedGenres, toggleGenre, onBack, onNext }) {
+export default function GenresStep({ selectedGenres, toggleGenre, onBack, onNext }) {
   const reduced = useReducedMotion()
   const count = selectedGenres.length
   const canContinue = count >= MIN_GENRES

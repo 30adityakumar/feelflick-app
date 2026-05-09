@@ -92,7 +92,7 @@ async function ensureMovieExists(tmdbMovie) {
  *   1. user_preferences (genre IDs)
  *   2. user_history (one row per favoriteMovie, source: 'onboarding')
  *   3. user_ratings (one row per rated film, source: 'onboarding')
- *   4. users.onboarding_complete = true
+ *   4. users.onboarding_complete = true (+ taste_baseline_moods if provided)
  *   5. auth metadata update
  *   6. computeUserProfileV3 (sync — ensures /home has profile on first load)
  *   7. Verify profile row exists, retry once if missing
@@ -102,10 +102,11 @@ async function ensureMovieExists(tmdbMovie) {
  *   selectedGenres: number[],
  *   favoriteMovies: object[],
  *   ratings: Record<number, number>,
+ *   moods?: string[],  // OnboardingV2 mood baseline keys (e.g. 'cozy', 'wired'). Optional for legacy flow.
  * }} params
  * @returns {Promise<void>}
  */
-export async function completeOnboarding({ session, selectedGenres, favoriteMovies, ratings }) {
+export async function completeOnboarding({ session, selectedGenres, favoriteMovies, ratings, moods = [] }) {
   const user = session?.user
   if (!user?.id) throw new Error('No authenticated user.')
 
@@ -170,11 +171,17 @@ export async function completeOnboarding({ session, selectedGenres, favoriteMovi
     }
   }
 
-  // 5. Mark onboarding complete in users table
-  await supabase.from('users').update({
+  // 5. Mark onboarding complete in users table.
+  //    taste_baseline_moods is the cold-start mood signal from OnboardingV2 Step 1.
+  //    Skipped for the legacy flow (moods omitted/empty) so we don't clobber existing values.
+  const userUpdate = {
     onboarding_complete: true,
     onboarding_completed_at: now,
-  }).eq('id', user_id)
+  }
+  if (Array.isArray(moods) && moods.length > 0) {
+    userUpdate.taste_baseline_moods = moods
+  }
+  await supabase.from('users').update(userUpdate).eq('id', user_id)
 
   // 6. Update auth metadata so PostAuthGate stops redirecting to /onboarding
   await supabase.auth.updateUser({
@@ -205,5 +212,6 @@ export async function completeOnboarding({ session, selectedGenres, favoriteMovi
     genre_count: selectedGenres.length,
     movie_count: favoriteMovies.length,
     rating_count: ratingEntries.length,
+    mood_count: Array.isArray(moods) ? moods.length : 0,
   })
 }

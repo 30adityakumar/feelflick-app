@@ -9,7 +9,7 @@ import { ChevronLeft, Sparkles } from 'lucide-react'
 
 import { tmdbImg } from '@/shared/api/tmdb'
 import Button from '@/shared/ui/Button'
-import { SENTIMENT_RATINGS } from '@/features/onboarding/steps/RatingStep'
+import { SENTIMENT_RATINGS } from '@/features/onboarding-v2/data'
 
 // Order matches the prototype: Meh → Liked → Loved (left to right, ramping up).
 // Keys must match SENTIMENT_RATINGS in the legacy module.

@@ -18,7 +18,6 @@ import { Sparkles } from 'lucide-react'
 import { supabase } from '@/shared/lib/supabase/client'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { completeOnboarding } from '@/shared/services/onboarding'
-import { SENTIMENT_RATINGS } from '@/features/onboarding/steps/RatingStep'
 
 import AmbientGlow from './components/AmbientGlow'
 import ProgressV2 from './components/ProgressV2'
@@ -28,7 +27,7 @@ import GenresStepV2 from './steps/GenresStepV2'
 import MoviesStepV2 from './steps/MoviesStepV2'
 import RatingStepV2 from './steps/RatingStepV2'
 
-import { MOODS_LS_KEY } from './data'
+import { MOODS_LS_KEY, SENTIMENT_RATINGS } from './data'
 import './onboarding-v2.css'
 
 export default function OnboardingV2() {

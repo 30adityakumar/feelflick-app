@@ -303,9 +303,7 @@ export const router = sentryCreateBrowserRouter([
         errorElement: <ErrorBoundary />,
         children: [
           // /onboarding is the canonical flow (OnboardingV2). /onboarding-v2 is
-          // kept as a permanent alias for QA + bookmark stability. Legacy
-          // src/features/onboarding/ is no longer imported but kept for rollback;
-          // delete it once V2 is proven.
+          // kept as a permanent alias for QA + bookmark stability.
           {
             path: 'onboarding',
             element: <LazyRoute Component={OnboardingV2} />,

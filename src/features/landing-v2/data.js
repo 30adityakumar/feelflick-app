@@ -74,9 +74,9 @@ export const MOODS = [
 
 // Want options for the madlib hero — descriptors that pair with each feeling.
 export const WANTS_BY_MOOD = {
-  nostalgic:  ['warm and slow', 'gentle', 'a little sad'],
+  nostalgic:  ['gentle', 'a little sad', 'warm and slow'],
   tense:      ['gripping', 'twisty', 'unrelenting'],
-  euphoric:   ['joyful', 'inventive', 'electric'],
+  euphoric:   ['inventive', 'electric', 'joyful'],
   curious:    ['mind-bending', 'cerebral', 'unexpected'],
   cozy:       ['low-stakes', 'sweet', 'comforting'],
   melancholy: ['quiet', 'beautifully sad', 'haunting'],

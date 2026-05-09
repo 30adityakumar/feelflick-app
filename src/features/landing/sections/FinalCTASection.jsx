@@ -1,85 +1,73 @@
 // src/features/landing/sections/FinalCTASection.jsx
+// Emotional closer for the landing page. Centered, single radial bloom.
+// Copy sourced from landing-v2/data.js TONE_COPY.confident.
+
 import { motion } from 'framer-motion'
-import { LogIn, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 
 import { useGoogleAuth } from '@/features/landing/utils/useGoogleAuth'
+import { TONE_COPY } from '@/features/landing-v2/data'
 import Button from '@/shared/ui/Button'
 
-const vp = { once: true, margin: '-60px' }
+const TONE = TONE_COPY.confident
+const VIEWPORT = { once: true, margin: '-60px' }
 
-// Checked once at module load — stable for the session.
 const prefersReducedMotion =
   typeof window !== 'undefined'
     ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
     : false
 
-/**
- * FinalCTASection — emotional closer for the FeelFlick landing page.
- *
- * Uses the approved "Tonight." headline (Blueprint §Approved Copy).
- * The white-pill CTA matches the hero for visual bookending.
- * Generous padding (py-20→py-32) gives the section breathing room as a finale.
- */
 export default function FinalCTASection() {
   const { signInWithGoogle, isAuthenticating } = useGoogleAuth()
 
   return (
     <section
-      className="relative bg-black overflow-hidden min-h-[100svh] flex flex-col justify-center"
+      className="relative overflow-hidden border-t border-white/[0.08] bg-black px-6 py-20 text-center sm:px-20 sm:py-40"
       aria-labelledby="final-cta-heading"
     >
-      {/* Top border */}
+      {/* Centered radial bloom — purple → pink fade */}
       <div
-        className="absolute top-0 inset-x-0 h-px"
-        style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(168,85,247,0.2) 50%, transparent 100%)' }}
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            'radial-gradient(ellipse 70% 60% at 50% 50%, rgba(168,85,247,0.18), rgba(236,72,153,0.10) 40%, transparent 70%)',
+        }}
         aria-hidden="true"
       />
 
-      {/* Strong purple bloom from top — cinematic atmosphere */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse 100% 55% at 50% -5%, rgba(88,28,135,0.50) 0%, transparent 70%)' }}
-        aria-hidden="true"
-      />
-
-      {/* Warm centre glow — the subtle "warmth" feeling for the emotional closer */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse 80% 60% at 50% 50%, rgba(168,85,247,0.06) 0%, transparent 70%)' }}
-        aria-hidden="true"
-      />
-
-      {/* Bottom fade — keeps it grounded against the footer */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse 80% 45% at 50% 110%, rgba(168,85,247,0.15) 0%, transparent 65%)' }}
-        aria-hidden="true"
-      />
-
-      {/* ── Content ────────────────────────────────────────────────────── */}
-      <div className="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 text-center">
-
-        {/* Headline — "Tonight." on its own line in gradient for the Apple punch */}
+      <div className="relative mx-auto max-w-[800px]">
         <motion.h2
           id="final-cta-heading"
-          className="font-black tracking-tight leading-[1.05] mb-10"
-          style={{ fontSize: 'clamp(2.25rem, 6vw, 3.75rem)' }}
+          className="m-0 mb-5 whitespace-pre-line text-balance font-black text-white"
+          style={{
+            fontSize: 'clamp(2.375rem, 7vw, 4.75rem)',
+            letterSpacing: '-0.035em',
+            lineHeight: 1.02,
+          }}
           initial={prefersReducedMotion ? false : { opacity: 0, y: 18 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={vp}
+          viewport={VIEWPORT}
           transition={{ duration: prefersReducedMotion ? 0 : 0.5, delay: prefersReducedMotion ? 0 : 0.08 }}
         >
-          <span className="text-white">Somewhere in 6,700 films is one made for you.</span>
-          <span className="block gradient-text">Tonight.</span>
+          {TONE.finalH}
         </motion.h2>
 
-        {/* CTA button — white pill, dark text, mirrors Hero for visual bookending */}
+        <motion.p
+          className="mx-auto mb-9 max-w-[520px] text-sm leading-relaxed text-white/60 sm:text-[17px]"
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={VIEWPORT}
+          transition={{ duration: prefersReducedMotion ? 0 : 0.45, delay: prefersReducedMotion ? 0 : 0.16 }}
+        >
+          {TONE.finalSub}
+        </motion.p>
+
         <motion.div
+          className="flex justify-center"
           initial={prefersReducedMotion ? false : { opacity: 0, y: 14, scale: 0.97 }}
           whileInView={{ opacity: 1, y: 0, scale: 1 }}
-          viewport={vp}
-          transition={{ duration: prefersReducedMotion ? 0 : 0.45, delay: prefersReducedMotion ? 0 : 0.2 }}
-          className="flex justify-center mb-6"
+          viewport={VIEWPORT}
+          transition={{ duration: prefersReducedMotion ? 0 : 0.45, delay: prefersReducedMotion ? 0 : 0.24 }}
         >
           <Button
             variant="primary"
@@ -87,30 +75,28 @@ export default function FinalCTASection() {
             onClick={signInWithGoogle}
             disabled={isAuthenticating}
             className="touch-target"
-            aria-label={isAuthenticating ? 'Signing in' : 'Find tonight\'s film on FeelFlick'}
+            aria-label={isAuthenticating ? 'Signing in' : 'Get started free with FeelFlick'}
           >
             {isAuthenticating ? (
-              <><Loader2 className="h-4 w-4 animate-spin flex-shrink-0" aria-hidden="true" /> Signing in...</>
+              <><Loader2 className="h-4 w-4 flex-shrink-0 animate-spin" aria-hidden="true" /> Signing in...</>
             ) : (
               <>
-                Find Tonight&apos;s Film
-                <LogIn className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+                Get Started Free
+                <span aria-hidden="true">→</span>
               </>
             )}
           </Button>
         </motion.div>
 
-        {/* Micro copy */}
         <motion.p
-          className="text-xs text-white/20"
+          className="m-0 mt-4 text-xs text-white/40"
           initial={prefersReducedMotion ? false : { opacity: 0 }}
           whileInView={{ opacity: 1 }}
-          viewport={vp}
-          transition={{ duration: prefersReducedMotion ? 0 : 0.4, delay: prefersReducedMotion ? 0 : 0.38 }}
+          viewport={VIEWPORT}
+          transition={{ duration: prefersReducedMotion ? 0 : 0.4, delay: prefersReducedMotion ? 0 : 0.36 }}
         >
-          Free forever · No credit card · No ads
+          47 seconds to your first pick. Free forever.
         </motion.p>
-
       </div>
     </section>
   )

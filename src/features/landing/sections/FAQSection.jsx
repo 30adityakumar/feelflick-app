@@ -17,8 +17,8 @@ const FAQ_ITEMS = [
   },
   {
     id: 'faq-3',
-    question: 'How does the recommendation engine work?',
-    answer: "It combines what you watch, rate, and skip with semantic similarity between films. The more you use it, the more accurate it gets. Five films in, it's decent. Fifty films in, it starts to feel uncanny.",
+    question: 'Is FeelFlick a streaming service?',
+    answer: "No. We don't stream films — we help you choose them. Once you pick, watch wherever you already do (Netflix, Max, Criterion, your hard drive).",
   },
   {
     id: 'faq-4',
@@ -32,8 +32,8 @@ const FAQ_ITEMS = [
   },
   {
     id: 'faq-6',
-    question: 'How many films are in the catalogue?',
-    answer: '6,700+ curated and scored films, each with pre-computed semantic embeddings so recommendations match at a depth no human curator can reach.',
+    question: 'Do I need to rate everything I watch?',
+    answer: "No. A skip is a signal. A re-watch is a signal. We learn from how you actually use the app — not from a homework assignment.",
   },
 ]
 

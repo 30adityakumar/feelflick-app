@@ -19,33 +19,29 @@ function HeroHeadline() {
 
 // ---------------------------------------------------------------------------
 // Minimal FinalCTA re-implementation — tests headline copy only.
-// Updated to match the approved "Tonight." copy (Blueprint §Approved Copy).
-// "Tonight." is a block span so it always sits on its own visual line.
+// Sourced from landing-v2/data.js TONE_COPY.confident.finalH ("Stop scrolling.\nStart watching.").
 // ---------------------------------------------------------------------------
 function FinalCTAHeadline() {
   return (
-    <h2 id="final-cta-heading">
-      <span>Somewhere in 6,700 films is one made for you.</span>
-      <span>Tonight.</span>
-    </h2>
+    <h2 id="final-cta-heading">{'Stop scrolling.\nStart watching.'}</h2>
   )
 }
 
 // ---------------------------------------------------------------------------
-// Minimal MoodShowcase re-implementation — tests structure and interaction.
+// Minimal HowItWorks re-implementation — tests structure and copy.
 // ---------------------------------------------------------------------------
-function MoodShowcaseStub() {
+function HowItWorksStub() {
   return (
-    <section id="mood-demo" aria-labelledby="mood-demo-heading">
-      <h2 id="mood-demo-heading">Start with the moment.</h2>
-      <div>Tired after a long week, but want something hopeful.</div>
+    <section id="how" aria-labelledby="how-heading">
+      <h2 id="how-heading">Three steps. Forty-seven seconds.</h2>
+      <p>Faster than picking a meal at a restaurant. Sharper than asking a friend.</p>
     </section>
   )
 }
 
 // ---------------------------------------------------------------------------
 // Minimal landing structure — tests that all key sections are present in order.
-// Section order matches Landing.jsx: Hero → MoodShowcase → CinematicDNA →
+// Section order matches Landing.jsx: Hero → HowItWorks → CinematicDNA →
 // ItLearnsYou → FindYourPeople → Lists → Privacy → FAQ → TrustBlock → FinalCTA
 // ---------------------------------------------------------------------------
 function LandingStructure() {
@@ -55,8 +51,8 @@ function LandingStructure() {
         <h1 id="hero-heading">Find films for when you&apos;re feeling nostalgic.</h1>
         <button>Get Started Free</button>
       </section>
-      <section id="mood-demo" aria-labelledby="mood-demo-heading">
-        <h2 id="mood-demo-heading">Start with the moment.</h2>
+      <section id="how" aria-labelledby="how-heading">
+        <h2 id="how-heading">Three steps. Forty-seven seconds.</h2>
       </section>
       <section id="cinematic-dna" aria-labelledby="dna-heading">
         <h2 id="dna-heading">Your taste, made visible.</h2>
@@ -83,10 +79,7 @@ function LandingStructure() {
         <h2 id="trust-heading">Why trust FeelFlick</h2>
       </section>
       <section aria-labelledby="final-cta-heading">
-        <h2 id="final-cta-heading">
-          <span>Somewhere in 6,700 films is one made for you.</span>
-          <span>Tonight.</span>
-        </h2>
+        <h2 id="final-cta-heading">{'Stop scrolling.\nStart watching.'}</h2>
         <button>Get Started Free</button>
       </section>
     </div>
@@ -100,11 +93,6 @@ describe('Landing page – hero headline', () => {
     expect(screen.getByText(/Find films for when you're feeling/i)).toBeInTheDocument()
   })
 
-  it('does not use generic "Stop Scrolling" messaging', () => {
-    render(<HeroHeadline />)
-    expect(screen.queryByText(/stop scrolling/i)).not.toBeInTheDocument()
-  })
-
   it('does not use the old static headline', () => {
     render(<HeroHeadline />)
     expect(screen.queryByText(/Movies That Match/i)).not.toBeInTheDocument()
@@ -112,10 +100,10 @@ describe('Landing page – hero headline', () => {
 })
 
 describe('Landing page – final CTA headline', () => {
-  it('uses the approved "Tonight." headline from the Blueprint', () => {
+  it('uses the V2 confident-tone headline', () => {
     render(<FinalCTAHeadline />)
-    expect(screen.getByText(/Somewhere in 6,700 films/i)).toBeInTheDocument()
-    expect(screen.getByText(/Tonight\./i)).toBeInTheDocument()
+    expect(screen.getByText(/Stop scrolling\./i)).toBeInTheDocument()
+    expect(screen.getByText(/Start watching\./i)).toBeInTheDocument()
   })
 
   it('does not duplicate the hero headline', () => {
@@ -127,34 +115,28 @@ describe('Landing page – final CTA headline', () => {
     render(<FinalCTAHeadline />)
     expect(screen.queryByText(/Your Next Favorite Film/i)).not.toBeInTheDocument()
   })
-
-  it('does not use the stale "Stop Scrolling / Start Watching" copy', () => {
-    render(<FinalCTAHeadline />)
-    expect(screen.queryByText(/Stop Scrolling/i)).not.toBeInTheDocument()
-    expect(screen.queryByText(/Start Watching/i)).not.toBeInTheDocument()
-  })
 })
 
-describe('MoodShowcaseSection', () => {
+describe('HowItWorksSection', () => {
   it('renders the section heading', () => {
-    render(<MoodShowcaseStub />)
-    expect(screen.getByRole('heading', { name: /Start with the moment/i })).toBeInTheDocument()
+    render(<HowItWorksStub />)
+    expect(screen.getByRole('heading', { name: /Three steps\. Forty-seven seconds\./i })).toBeInTheDocument()
   })
 
-  it('renders the NL input placeholder', () => {
-    render(<MoodShowcaseStub />)
-    expect(screen.getByText(/Tired after a long week/i)).toBeInTheDocument()
+  it('renders the supporting copy', () => {
+    render(<HowItWorksStub />)
+    expect(screen.getByText(/Faster than picking a meal at a restaurant/i)).toBeInTheDocument()
   })
 
   it('does not show fake user counts or stats', () => {
-    render(<MoodShowcaseStub />)
+    render(<HowItWorksStub />)
     // No 4+ digit numbers (would indicate fake "10,000 users" style stats)
     expect(screen.queryByText(/\d{4,}/)).not.toBeInTheDocument()
   })
 
   it('has accessible section id for nav linking', () => {
-    render(<MoodShowcaseStub />)
-    expect(document.getElementById('mood-demo')).toBeInTheDocument()
+    render(<HowItWorksStub />)
+    expect(document.getElementById('how')).toBeInTheDocument()
   })
 })
 
@@ -162,7 +144,7 @@ describe('Landing page – structure', () => {
   it('renders all key sections', () => {
     render(<LandingStructure />)
     expect(screen.getByRole('heading', { name: /Find films for when you're feeling/i })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: /Start with the moment/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Three steps\. Forty-seven seconds\./i })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /Your taste, made visible/i })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /It gets better at getting you/i })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /Find people who actually get your taste/i })).toBeInTheDocument()
@@ -170,7 +152,7 @@ describe('Landing page – structure', () => {
     expect(screen.getByRole('heading', { name: /Built for your taste\. Not your data/i })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /Questions\./i })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /Why trust FeelFlick/i })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: /Somewhere in 6,700 films/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Stop scrolling/i })).toBeInTheDocument()
   })
 
   it('does not render a FeaturesGrid section', () => {

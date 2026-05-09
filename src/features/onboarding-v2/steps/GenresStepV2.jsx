@@ -1,11 +1,11 @@
 // src/features/onboarding-v2/steps/GenresStepV2.jsx
-// Restyled genre picker — gradient outline tiles. Reuses GENRES export from the legacy step.
+// Restyled genre picker — gradient outline tiles.
 
 import { motion, useReducedMotion } from 'framer-motion'
 import { ChevronRight, ChevronLeft } from 'lucide-react'
 
 import Button from '@/shared/ui/Button'
-import { GENRES } from '@/features/onboarding/steps/GenresStep'
+import { GENRES } from '@/features/onboarding-v2/data'
 
 const MIN_GENRES = 3
 

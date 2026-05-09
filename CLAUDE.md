@@ -182,7 +182,7 @@ open `src/features/landing/sections/HeroSection.jsx` and match it exactly.
 - Final CTA sub: "Free forever. No ads. No credit card. Just better picks."
 - Final CTA button: "Get Started Free"
 - Final CTA micro: "47 seconds to your first pick. Free forever."
-- Final CTA copy lives in [src/features/landing-v2/data.js](src/features/landing-v2/data.js) `TONE_COPY.confident` — single source of truth, shared with `/v2`.
+- Final CTA copy lives in [src/features/landing/data.js](src/features/landing/data.js) `TONE_COPY.confident` — single source of truth.
 
 ### What NOT to do (bugs caught in past PRs)
 - ❌ Do not use `font-serif` / Fraunces anywhere (Onboarding polish attempt introduced this — removed)

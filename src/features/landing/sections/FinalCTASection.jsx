@@ -1,12 +1,12 @@
 // src/features/landing/sections/FinalCTASection.jsx
 // Emotional closer for the landing page. Centered, single radial bloom.
-// Copy sourced from landing-v2/data.js TONE_COPY.confident.
+// Copy sourced from landing/data.js TONE_COPY.confident.
 
 import { motion } from 'framer-motion'
 import { Loader2 } from 'lucide-react'
 
 import { useGoogleAuth } from '@/features/landing/utils/useGoogleAuth'
-import { TONE_COPY } from '@/features/landing-v2/data'
+import { TONE_COPY } from '@/features/landing/data'
 import Button from '@/shared/ui/Button'
 
 const TONE = TONE_COPY.confident

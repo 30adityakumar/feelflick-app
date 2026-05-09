@@ -2,7 +2,7 @@
 import TopNav from '@/features/landing/components/TopNav'
 import Footer from '@/features/landing/components/Footer'
 import HeroSection from '@/features/landing/sections/HeroSection'
-import MoodShowcaseSection from '@/features/landing/sections/MoodShowcaseSection'
+import HowItWorksSection from '@/features/landing/sections/HowItWorksSection'
 import CinematicDNASection from '@/features/landing/sections/CinematicDNASection'
 import ItLearnsYouSection from '@/features/landing/sections/ItLearnsYouSection'
 import FindYourPeopleSection from '@/features/landing/sections/FindYourPeopleSection'
@@ -16,7 +16,7 @@ export default function Landing() {
       <TopNav />
       <main>
         <HeroSection />
-        <MoodShowcaseSection />
+        <HowItWorksSection />
         <CinematicDNASection />
         <ItLearnsYouSection />
         <FindYourPeopleSection />

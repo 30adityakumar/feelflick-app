@@ -174,12 +174,15 @@ open `src/features/landing/sections/HeroSection.jsx` and match it exactly.
 - Viewport: `{ once: true, margin: '-60px' }`
 
 ### Approved copy (do not drift)
-- Hero headline: "Tell us how you feel. We'll find the film."
-- Hero sub: "Not what's trending. Not what's popular. The film that's right for you, right now."
-- Hero CTA: "Get My Recommendations"
-- Final CTA headline: "Somewhere in 6,700 films is one made for you. Tonight."
-- Final CTA button: "Find Tonight's Film"
-- **Flag discrepancy**: `FinalCTASection.jsx` still renders "Stop Scrolling. Start Watching." — this is stale. Fix when touching the file.
+- Hero eyebrow: "FILMS THAT KNOW YOU"
+- Hero headline: "The right film. Right now." ("Right now." is the brand-gradient line)
+- Hero sub: "Picks shaped by your mood, taste, and cinematic history."
+- Hero CTA: "Get Started Free"
+- Final CTA headline: "Stop scrolling. Start watching." (rendered with `\n` between sentences via `whitespace-pre-line`)
+- Final CTA sub: "Free forever. No ads. No credit card. Just better picks."
+- Final CTA button: "Get Started Free"
+- Final CTA micro: "47 seconds to your first pick. Free forever."
+- Final CTA copy lives in [src/features/landing-v2/data.js](src/features/landing-v2/data.js) `TONE_COPY.confident` — single source of truth, shared with `/v2`.
 
 ### What NOT to do (bugs caught in past PRs)
 - ❌ Do not use `font-serif` / Fraunces anywhere (Onboarding polish attempt introduced this — removed)

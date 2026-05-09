@@ -14,9 +14,9 @@ import { useGoogleAuth } from '@/features/landing/utils/useGoogleAuth'
 const NAV_HEIGHT = { mobile: 64, desktop: 80 }
 
 /** Anchor link rendered in the center of the nav bar.
- * Points to the MoodShowcaseSection id — avoids linking unauth visitors
+ * Points to the HowItWorksSection — avoids linking unauth visitors
  * to authenticated-only routes (/browse, /discover, /about). */
-const NAV_ANCHOR = { label: 'How it works', href: '#mood-demo' }
+const NAV_ANCHOR = { label: 'How it works', href: '#how' }
 
 /**
  * Top Navigation — cinematic glassmorphism nav, always visible.
@@ -110,7 +110,7 @@ export default function TopNav({ hideAuthCta = false }) {
   const handleNavAnchorClick = (e) => {
     e.preventDefault()
     setMobileMenuOpen(false)
-    const el = document.getElementById('mood-demo')
+    const el = document.getElementById('how')
     if (!el) return
     const navH = barRef.current?.offsetHeight || NAV_HEIGHT.mobile
     const offsetPosition = el.getBoundingClientRect().top + window.pageYOffset - navH

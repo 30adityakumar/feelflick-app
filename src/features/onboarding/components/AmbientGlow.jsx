@@ -1,4 +1,4 @@
-// src/features/onboarding-v2/components/AmbientGlow.jsx
+// src/features/onboarding/components/AmbientGlow.jsx
 // Two-color radial-gradient backdrop driven by the user's mood selection.
 // Smoothly transitions between mood palettes as the user adds/removes selections.
 

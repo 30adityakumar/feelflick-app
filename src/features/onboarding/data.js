@@ -1,4 +1,4 @@
-// src/features/onboarding-v2/data.js
+// src/features/onboarding/data.js
 // Mood definitions used by Step 1 (Mood baseline) and the ambient-glow.
 // Keep RGB triplets — the glow composes them as `rgba(${rgb}, alpha)`.
 
@@ -15,11 +15,13 @@ export const MIN_MOODS = 2
 export const MAX_MOODS = 3
 
 // Local-storage key — consumed downstream by the home page if you wire it up.
+// Note: intentionally retains the legacy `_v2_` substring so users mid-flow
+// at the time of the folder rename don't lose their persisted mood baseline.
 export const MOODS_LS_KEY = 'ff_onboarding_v2_moods'
 
 // === GENRES (Step 2) =======================================================
 // TMDb genre IDs paired with the dbName that matches movies.primary_genre in
-// Supabase. Used by GenresStepV2 (selection UI) + MoviesStepV2 (genre filter
+// Supabase. Used by GenresStep (selection UI) + MoviesStep (genre filter
 // for the Supabase pool fetch).
 export const GENRES = [
   { id: 28,    name: 'Action',      dbName: 'Action'           },

@@ -1,4 +1,4 @@
-// src/features/onboarding-v2/steps/MoviesStepV2.jsx
+// src/features/onboarding/steps/MoviesStep.jsx
 // Step 3 — Films picker. Live TMDB search + Supabase suggestion pool filtered
 // by the user's selected genres. Visual chrome stays consistent with v2 (purple/
 // pink palette, Outfit display font via .ob-display).
@@ -8,7 +8,7 @@ import { Search, X, ChevronLeft, Check } from 'lucide-react'
 import { supabase } from '@/shared/lib/supabase/client'
 import { tmdbImg, searchMovies } from '@/shared/api/tmdb'
 import Button from '@/shared/ui/Button'
-import { GENRES } from '@/features/onboarding-v2/data'
+import { GENRES } from '@/features/onboarding/data'
 
 const MIN_MOVIES = 5
 const POOL_SIZE = 30
@@ -147,7 +147,7 @@ function CardSkeletonRow() {
  *   error: string,
  * }} props
  */
-export default function MoviesStepV2({
+export default function MoviesStep({
   selectedGenreIds,
   favoriteMovies,
   addMovie,

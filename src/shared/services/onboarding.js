@@ -102,7 +102,7 @@ async function ensureMovieExists(tmdbMovie) {
  *   selectedGenres: number[],
  *   favoriteMovies: object[],
  *   ratings: Record<number, number>,
- *   moods?: string[],  // OnboardingV2 mood baseline keys (e.g. 'cozy', 'wired'). Optional for legacy flow.
+ *   moods?: string[],  // Onboarding mood baseline keys (e.g. 'cozy', 'wired'). Optional for legacy flow.
  * }} params
  * @returns {Promise<void>}
  */
@@ -172,7 +172,7 @@ export async function completeOnboarding({ session, selectedGenres, favoriteMovi
   }
 
   // 5. Mark onboarding complete in users table.
-  //    taste_baseline_moods is the cold-start mood signal from OnboardingV2 Step 1.
+  //    taste_baseline_moods is the cold-start mood signal from Onboarding Step 1.
   //    Skipped for the legacy flow (moods omitted/empty) so we don't clobber existing values.
   const userUpdate = {
     onboarding_complete: true,

@@ -1,4 +1,4 @@
-// src/features/onboarding-v2/components/TasteStrip.jsx
+// src/features/onboarding/components/TasteStrip.jsx
 // Tiny "profile building" line that grows with each step's signal.
 
 export default function TasteStrip({ moods, genres, films, ratings }) {

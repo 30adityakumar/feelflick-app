@@ -1,5 +1,5 @@
-// src/features/onboarding-v2/OnboardingV2.jsx
-// FeelFlick — Onboarding V2 (mood-reactive). Mounted at /onboarding-v2.
+// src/features/onboarding/Onboarding.jsx
+// FeelFlick — Onboarding V2 (mood-reactive). Mounted at /onboarding.
 //
 // Flow (4 steps, NO step 5 — lands on /home directly):
 //   1. Mood baseline   (NEW)
@@ -20,17 +20,17 @@ import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { completeOnboarding } from '@/shared/services/onboarding'
 
 import AmbientGlow from './components/AmbientGlow'
-import ProgressV2 from './components/ProgressV2'
+import Progress from './components/Progress'
 import TasteStrip from './components/TasteStrip'
 import MoodStep from './steps/MoodStep'
-import GenresStepV2 from './steps/GenresStepV2'
-import MoviesStepV2 from './steps/MoviesStepV2'
-import RatingStepV2 from './steps/RatingStepV2'
+import GenresStep from './steps/GenresStep'
+import MoviesStep from './steps/MoviesStep'
+import RatingStep from './steps/RatingStep'
 
 import { MOODS_LS_KEY, SENTIMENT_RATINGS } from './data'
-import './onboarding-v2.css'
+import './onboarding.css'
 
-export default function OnboardingV2() {
+export default function Onboarding() {
   const navigate = useNavigate()
   const { ready, session } = useAuthSession()
 
@@ -125,7 +125,7 @@ export default function OnboardingV2() {
         state: { fromOnboarding: true, movieCount: favoriteMovies.length, moods },
       }), 1600)
     } catch (e) {
-      console.error('OnboardingV2 save failed:', e)
+      console.error('Onboarding save failed:', e)
       setError(e.message || 'Could not save your preferences. Please try again.')
       setLoading(false)
     }
@@ -134,7 +134,7 @@ export default function OnboardingV2() {
   // Loading
   if (checking) {
     return (
-      <div className="onboarding-v2 h-screen grid place-items-center bg-black relative overflow-hidden">
+      <div className="onboarding h-screen grid place-items-center bg-black relative overflow-hidden">
         <AmbientGlow moods={[]} />
         <div className="relative flex flex-col items-center gap-6">
           <span className="ob-display text-3xl font-extrabold tracking-tight bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
@@ -152,7 +152,7 @@ export default function OnboardingV2() {
   // Celebration → /home
   if (celebrate) {
     return (
-      <div className="onboarding-v2 fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black overflow-hidden">
+      <div className="onboarding fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black overflow-hidden">
         <AmbientGlow moods={moods} />
         <motion.div
           initial={{ opacity: 0, scale: 0.92, y: 20 }}
@@ -182,7 +182,7 @@ export default function OnboardingV2() {
 
   // Main layout
   return (
-    <div className="onboarding-v2 fixed inset-0 flex flex-col bg-black text-white overflow-hidden">
+    <div className="onboarding fixed inset-0 flex flex-col bg-black text-white overflow-hidden">
       <AmbientGlow moods={moods} />
       {/* subtle grain */}
       <div
@@ -195,7 +195,7 @@ export default function OnboardingV2() {
       />
 
       <div className="relative z-10 flex flex-col h-full max-w-6xl mx-auto w-full">
-        <ProgressV2 step={step} />
+        <Progress step={step} />
         <TasteStrip moods={moods} genres={selectedGenres} films={favoriteMovies} ratings={ratings} />
 
         <div className="flex-1 min-h-0 overflow-hidden">
@@ -217,7 +217,7 @@ export default function OnboardingV2() {
                 />
               )}
               {step === 1 && (
-                <GenresStepV2
+                <GenresStep
                   selectedGenres={selectedGenres}
                   toggleGenre={toggleGenre}
                   onBack={() => { setError(''); setStep(0) }}
@@ -225,7 +225,7 @@ export default function OnboardingV2() {
                 />
               )}
               {step === 2 && (
-                <MoviesStepV2
+                <MoviesStep
                   selectedGenreIds={selectedGenres}
                   favoriteMovies={favoriteMovies}
                   addMovie={addMovie}
@@ -238,7 +238,7 @@ export default function OnboardingV2() {
                 />
               )}
               {step === 3 && (
-                <RatingStepV2
+                <RatingStep
                   favoriteMovies={favoriteMovies}
                   ratings={ratings}
                   onRate={handleRate}

@@ -22,7 +22,7 @@ const HomePage = lazy(() => import('@/app/homepage/HomePage'))
 const MoviesTab = lazy(() => import('@/app/pages/movies/MoviesTab'))
 const MovieDetail = lazy(() => import('@/app/pages/MovieDetail'))
 import ErrorBoundary from './ErrorBoundary'
-const Onboarding = lazy(() => import('@/features/onboarding/Onboarding'))
+const OnboardingV2 = lazy(() => import('@/features/onboarding-v2/OnboardingV2'))
 const Account = lazy(() => import('@/app/header/components/Account'))
 const Preferences = lazy(() => import('@/app/header/components/Preferences'))
 const Watchlist = lazy(() => import('@/app/pages/watchlist/Watchlist'))
@@ -304,11 +304,20 @@ export const router = sentryCreateBrowserRouter([
         element: <RequireAuth />,
         errorElement: <ErrorBoundary />,
         children: [
-          { 
-            path: 'onboarding', 
-            element: <LazyRoute Component={Onboarding} />,
+          // /onboarding is the canonical flow (OnboardingV2). /onboarding-v2 is
+          // kept as a permanent alias for QA + bookmark stability. Legacy
+          // src/features/onboarding/ is no longer imported but kept for rollback;
+          // delete it once V2 is proven.
+          {
+            path: 'onboarding',
+            element: <LazyRoute Component={OnboardingV2} />,
             errorElement: <ErrorBoundary />
-          }
+          },
+          {
+            path: 'onboarding-v2',
+            element: <LazyRoute Component={OnboardingV2} />,
+            errorElement: <ErrorBoundary />
+          },
         ],
       },
     ],

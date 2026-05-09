@@ -1,0 +1,22 @@
+/* src/features/onboarding-v2/onboarding-v2.css
+ * Scoped to .onboarding-v2 — Outfit display font + a tidy custom scrollbar.
+ * Tailwind utilities still apply; this file only adds what Tailwind can't express tersely.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
+
+.onboarding-v2 .ob-display {
+  font-family: 'Outfit', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.onboarding-v2 .ob-scroll::-webkit-scrollbar { width: 6px; }
+.onboarding-v2 .ob-scroll::-webkit-scrollbar-thumb {
+  background: rgba(168, 85, 247, 0.25);
+  border-radius: 999px;
+}
+.onboarding-v2 .ob-scroll::-webkit-scrollbar-track { background: transparent; }
+.onboarding-v2 .ob-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(168,85,247,0.25) transparent;
+}

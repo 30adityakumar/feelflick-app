@@ -1,6 +1,8 @@
-// src/features/landing-v2/data.js
-// TMDB poster catalog + mood definitions for v2 landing.
-// All paths are real TMDB image paths used elsewhere in the app.
+// src/features/landing/data.js
+// TMDB poster catalog + mood definitions + tone-copy for the landing surface.
+// Consumed by HeroSection's MoodDemoPanel (MOODS, WANTS_BY_MOOD) and
+// FinalCTASection (TONE_COPY).
+// All poster paths are real TMDB image paths used elsewhere in the app.
 
 const P = (path, title, year, tag) => ({ path, title, year, tag })
 

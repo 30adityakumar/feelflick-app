@@ -19,7 +19,7 @@ function HeroHeadline() {
 
 // ---------------------------------------------------------------------------
 // Minimal FinalCTA re-implementation — tests headline copy only.
-// Sourced from landing-v2/data.js TONE_COPY.confident.finalH ("Stop scrolling.\nStart watching.").
+// Sourced from landing/data.js TONE_COPY.confident.finalH ("Stop scrolling.\nStart watching.").
 // ---------------------------------------------------------------------------
 function FinalCTAHeadline() {
   return (

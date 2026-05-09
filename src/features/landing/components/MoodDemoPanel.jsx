@@ -6,7 +6,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 
-import { MOODS, WANTS_BY_MOOD } from '@/features/landing-v2/data'
+import { MOODS, WANTS_BY_MOOD } from '@/features/landing/data'
 import { tmdbImg } from '@/shared/api/tmdb'
 
 const TYPING_TO_RESOLVED_MS = 1100

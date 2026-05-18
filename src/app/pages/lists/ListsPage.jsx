@@ -1,7 +1,7 @@
 // src/app/pages/lists/ListsPage.jsx
 import { useState, useEffect } from 'react'
 
-import { Link, useOutletContext } from 'react-router-dom'
+import { Link, useOutletContext, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 
 import { Plus, Pencil, Trash2, Film } from 'lucide-react'
@@ -163,12 +163,23 @@ function EmptyLists({ onCreate }) {
 export default function ListsPage() {
   const outlet = useOutletContext() || {}
   const userId = outlet.userId
+  const [searchParams, setSearchParams] = useSearchParams()
 
   const [lists, setLists] = useState([])
   const [posterMap, setPosterMap] = useState(new Map())
   const [isLoading, setIsLoading] = useState(true)
-  const [showModal, setShowModal] = useState(false)
+  const [showModal, setShowModal] = useState(searchParams.get('new') === '1')
   const [editingList, setEditingList] = useState(null)
+
+  // Clear the ?new=1 query string once the modal opens so refresh doesn't
+  // re-open it. Triggered when /lists-v2's "+ New list" CTA lands here.
+  useEffect(() => {
+    if (searchParams.get('new') === '1') {
+      const next = new URLSearchParams(searchParams)
+      next.delete('new')
+      setSearchParams(next, { replace: true })
+    }
+  }, [searchParams, setSearchParams])
 
   useEffect(() => {
     if (!userId) return

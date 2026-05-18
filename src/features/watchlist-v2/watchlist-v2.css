@@ -1,0 +1,8 @@
+/* watchlist-v2.css */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+.ff-watchlist-v2 { font-family:'Inter', system-ui, sans-serif; -webkit-font-smoothing:antialiased; }
+.ff-watchlist-v2 em { font-style: italic; }
+.ff-watchlist-v2 button { font-family: inherit; transition: filter 0.18s ease; }
+.ff-watchlist-v2 button:hover { filter: brightness(1.12); }
+.ff-watchlist-v2 select { font-family: inherit; }
+.ff-watchlist-v2 ::selection { background: rgba(167,139,250,0.4); color:#fff; }

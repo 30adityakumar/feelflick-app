@@ -12,6 +12,7 @@ import { tmdbImg } from '@/shared/api/tmdb'
 import FollowButton from '@/shared/components/FollowButton'
 import TasteFingerprint from './TasteFingerprint'
 import { useTasteFingerprint } from '@/shared/hooks/useTasteFingerprint'
+import { aggregateWatchHistorySignals, buildSummaryRequestBody } from '@/features/profile-v2/buildSummaryRequest'
 
 import {
   RATING_PERSONALITY_SELF,
@@ -359,27 +360,19 @@ export default function TasteProfile() {
           .order('watched_at', { ascending: false })
           .limit(20)
 
-        const watchedFilms = (historyData ?? [])
-          .map((h) => h.movies)
-          .filter(Boolean)
-          .map((m) => m.title)
-
-        // Aggregate mood/tone/fit signals from watch history
-        const tagCounts = { mood: {}, tone: {}, fit: {} }
-        for (const h of historyData ?? []) {
-          const m = h.movies
-          if (!m) continue
-          ;(m.mood_tags ?? []).forEach((t) => { tagCounts.mood[t] = (tagCounts.mood[t] || 0) + 1 })
-          ;(m.tone_tags ?? []).forEach((t) => { tagCounts.tone[t] = (tagCounts.tone[t] || 0) + 1 })
-          if (m.fit_profile) tagCounts.fit[m.fit_profile] = (tagCounts.fit[m.fit_profile] || 0) + 1
-        }
-        const topN = (obj, n) =>
-          Object.entries(obj).sort(([, a], [, b]) => b - a).slice(0, n)
-        const taggedTasteSignature = {
-          topMoodTags: topN(tagCounts.mood, 6).map(([tag, count]) => ({ tag, count })),
-          topToneTags: topN(tagCounts.tone, 4).map(([tag, count]) => ({ tag, count })),
-          topFitProfiles: topN(tagCounts.fit, 3).map(([profile, count]) => ({ profile, count })),
-        }
+        const { watchedFilms, taggedTasteSignature } = aggregateWatchHistorySignals(historyData ?? [])
+        const requestBody = buildSummaryRequestBody({
+          stats: {
+            topGenres: stats.topGenres,
+            topDirectors: stats.topDirectors,
+            topMoods: stats.topMoods.map((m) => ({ name: m.name, sessions: m.count ?? 0 })),
+            watchedCount: stats.watchedCount,
+            avgRating: stats.avgRating,
+            ratingPersonality: stats.ratingPersonality,
+          },
+          watchedFilms,
+          taggedTasteSignature,
+        })
 
         const res = await fetch(`${SUPABASE_URL}/functions/v1/generate-taste-summary`, {
           method: 'POST',
@@ -387,25 +380,7 @@ export default function TasteProfile() {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
           },
-          body: JSON.stringify({
-            genres: stats.topGenres.slice(0, 3).map((g) => ({
-              name: g.name,
-              pct: g.pct ?? 0,
-            })),
-            directors: stats.topDirectors.slice(0, 3).map((d) => ({
-              name: d.name,
-              count: d.count ?? 0,
-            })),
-            moods: stats.topMoods.slice(0, 3).map((m) => ({
-              name: m.name,
-              sessions: m.count ?? 0,
-            })),
-            totalWatched: stats.watchedCount ?? 0,
-            avgRating: stats.avgRating ?? 0,
-            ratingLabel: stats.ratingPersonality ?? '',
-            watchedFilms,
-            taggedTasteSignature,
-          }),
+          body: JSON.stringify(requestBody),
         })
 
         const data = await res.json()

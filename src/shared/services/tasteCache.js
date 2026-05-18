@@ -44,12 +44,41 @@ export async function getTasteFingerprint(userId) {
   const result = await computeFingerprint(userId)
   if (!result) return null
 
-  // Write to cache
-  await supabase.from('user_profiles_computed').upsert({
-    user_id: userId,
-    taste_fingerprint: result,
-    taste_fingerprint_computed_at: new Date().toISOString(),
-  }, { onConflict: 'user_id' })
+  // Only persist when computing the signed-in user's own fingerprint —
+  // RLS on user_profiles_computed (correctly) rejects writes for other
+  // users' rows, which would 403 every time someone visits a friend's
+  // /profile-v2/:userId page.
+  const { data: { user: authUser } = {} } = await supabase.auth.getUser()
+  if (authUser?.id === userId) {
+    // Preserve any existing `profile` row written by the recommendation
+    // engine; insert a stub `profile: {}` only when no row exists yet
+    // (the column is NOT NULL with no default, so a bare upsert 400s for
+    // users whose recommendation profile hasn't been built).
+    const { data: existing } = await supabase
+      .from('user_profiles_computed')
+      .select('user_id')
+      .eq('user_id', userId)
+      .maybeSingle()
+
+    if (existing) {
+      await supabase
+        .from('user_profiles_computed')
+        .update({
+          taste_fingerprint: result,
+          taste_fingerprint_computed_at: new Date().toISOString(),
+        })
+        .eq('user_id', userId)
+    } else {
+      await supabase
+        .from('user_profiles_computed')
+        .insert({
+          user_id: userId,
+          profile: {},
+          taste_fingerprint: result,
+          taste_fingerprint_computed_at: new Date().toISOString(),
+        })
+    }
+  }
 
   return result
 }
@@ -74,11 +103,14 @@ export function invalidateTasteFingerprint(userId) {
  * @returns {Promise<object|null>}
  */
 async function computeFingerprint(userId) {
+  // user_history has no `status` column — every row IS a watched film by
+  // construction (toggleWatched inserts here and toggleWatchlist deletes
+  // from here). The earlier `.eq('status','watched')` filter caused every
+  // call to 400 with `column user_history.status does not exist`.
   const { data: history, error } = await supabase
     .from('user_history')
     .select('movies(mood_tags, tone_tags, fit_profile)')
     .eq('user_id', userId)
-    .eq('status', 'watched')
 
   if (error || !history) return null
 

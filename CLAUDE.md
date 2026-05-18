@@ -86,9 +86,18 @@ npm run build        # Production build
 Dark-first. Cinema palette. Surfaces: `bg-black` (page base) · `bg-white/5` (card) · `bg-neutral-900` (legacy, avoid on new surfaces).
 Accent: `from-purple-500 to-pink-500` (brand gradient — 500→500, not 400→500). Ratings: `yellow-400`.
 Glass tint: `bg-purple-500/10 border-purple-400/25`. Skeletons: `animate-pulse bg-purple-500/[0.04]`. **Never spinners.**
-Fonts: `Playfair Display` (display, 24px+, sparingly) · `Inter` (body/UI) · `JetBrains Mono` (meta). `Satoshi` is NOT installed — do not reference it.
+
+**Fonts:**
+- **Inter** — body, UI, the entire landing/auth surface family. Loaded globally via [tailwind.config.js](tailwind.config.js#L76) (`sans` + `display` both map to Inter).
+- **Outfit** — display face for all authenticated `v2` surfaces (`/home-v2`, `/discover-v5`, `/profile-v2`, `/people-v2`, `/lists-v2`, `/preferences-v2`, `/account-v2`, `/watchlist-v2`, `/history-v2`, `/movie-v2`). Loaded per-page via Google Fonts `@import` in each surface's CSS file. Weights 200–700 + italic.
+- **JetBrains Mono** — meta labels only (rarely used today).
+- Do **not** reference `Playfair Display`, `Satoshi`, or `Fraunces` — they're not installed.
+
 Transitions: 280ms cubic-bezier(0.4,0,0.2,1) standard · 450ms spring for dramatic.
-See **Brand Surface — The Law** below for the authoritative token spec.
+
+Two surface families now coexist:
+- **Landing / auth surfaces** → see **Brand Surface — The Law (Landing)** below. Inter `font-black` headlines, Tailwind utility classes.
+- **App v2 surfaces** → see **App v2 Surface — Editorial Magazine** below. Outfit display + Inter body, magazine layout, inline styles. This is the direction new surfaces should follow.
 
 ### MovieCard Hover — THE LAW
 Three files own card hover. Read all three before touching any:
@@ -108,16 +117,18 @@ Overflow: scroll container `overflow-x: auto` with `paddingTop: 0.75rem`.
 <div className="h-px flex-1 bg-gradient-to-r from-purple-400/20 via-white/5 to-transparent" />
 ```
 
-## Brand Surface — The Law
+## Brand Surface — The Law (Landing)
 
-Every user-facing surface must match the landing page. When in doubt,
-open `src/features/landing/sections/HeroSection.jsx` and match it exactly.
+Applies to the **public** surfaces: landing page, auth, onboarding. For
+authenticated v2 surfaces, see **App v2 Surface — Editorial Magazine** below.
+
+When in doubt on a landing surface, open
+`src/features/landing/sections/HeroSection.jsx` and match it exactly.
 
 ### Fonts (actual, not aspirational)
-- Body/UI: `Inter` (system fallback chain defined in index.css)
-- Display (headlines ≥24px): `Playfair Display` — SPARINGLY, only when the landing page uses it
+- Body + display: `Inter` (loaded globally; both `sans` and `display` map to Inter in [tailwind.config.js](tailwind.config.js))
 - Monospace: `JetBrains Mono` — meta labels only
-- **Removed from spec**: `Satoshi` is NOT installed. Do not reference it.
+- **Not installed, do not reference**: `Playfair Display`, `Satoshi`, `Fraunces`
 
 ### Headlines (copy the landing exactly)
 - Weight: `font-black`
@@ -184,15 +195,19 @@ open `src/features/landing/sections/HeroSection.jsx` and match it exactly.
 - Final CTA micro: "47 seconds to your first pick. Free forever."
 - Final CTA copy lives in [src/features/landing/data.js](src/features/landing/data.js) `TONE_COPY.confident` — single source of truth.
 
-### What NOT to do (bugs caught in past PRs)
-- ❌ Do not use `font-serif` / Fraunces anywhere (Onboarding polish attempt introduced this — removed)
+### What NOT to do on landing/auth surfaces (bugs caught in past PRs)
+- ❌ Do not use `font-serif` / Fraunces (Onboarding polish attempt introduced this — removed)
 - ❌ Do not invent per-category gradients (Discover vibe cards introduced this — removed)
 - ❌ Do not hardcode hex colors — use Tailwind tokens or CSS vars
 - ❌ Do not use `text-neutral-*` or `text-gray-*` — use `text-white/*`
 - ❌ Do not use spinners — use `animate-pulse` skeletons
 - ❌ Do not add new font imports without updating this section
 
-### When building a new surface
+> Inline hex + per-page Google Fonts `@import` ARE allowed inside the
+> `App v2 Surface` family — see that section below for its conventions.
+> The two surface families have different typographic rules on purpose.
+
+### When building a new landing/auth surface
 1. Open `HeroSection.jsx` and `FinalCTASection.jsx` side by side
 2. Copy the gradient, CTA, and type patterns verbatim
 3. Run `grep -r "from-purple-500 to-pink-500" src/features/landing` to find all brand-gradient usages — reuse, don't reinvent
@@ -201,6 +216,145 @@ open `src/features/landing/sections/HeroSection.jsx` and match it exactly.
 <!-- DECISION: src/index.css and src/styles/tokens.css define two competing palettes.
      Neither is currently authoritative. Future task: keep tokens.css (cleaner),
      migrate index.css to import from it, delete the duplicate palette. -->
+
+## App v2 Surface — Editorial Magazine
+
+Applies to every authenticated surface that lives under `src/features/*-v2/`
+(plus `discover-v5`). When building a new app surface, this is the default;
+the landing rules above are only for the public-facing pages.
+
+The design language is **editorial print** — magazine masthead typography,
+ultra-thin display weights, italic accent words, kicker rules in tiny caps,
+mood-tuned ambient gradients, hairline borders between sections.
+
+Reference surfaces (best examples to imitate):
+- [src/features/home-v2/HomeV2.jsx](src/features/home-v2/HomeV2.jsx) — masthead + 3-up briefing
+- [src/features/profile-v2/top.jsx](src/features/profile-v2/top.jsx) — sticky-left meta + display headline
+- [src/features/lists-v2/ListDetailV2.jsx](src/features/lists-v2/ListDetailV2.jsx) — magazine spread layout
+
+### Fonts (this is the v2 law)
+Every v2 surface's CSS file must include this `@import` at the top:
+
+```css
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+```
+
+- **Outfit** → headlines, kickers, numbers, buttons, eyebrows. Use weights 200–300 for hero-scale (≥56px), 400–500 for section headers, 600 for buttons/strong UI.
+- **Inter** → paragraphs, body prose, italic blurbs, micro labels. Weights 400–600.
+- Italic Outfit is the brand's accent face — apply it to *single fragments* inside a headline, never to whole sentences.
+
+### Headline typography (the v2 fingerprint)
+
+This is what makes the page feel editorial rather than SaaS:
+
+```jsx
+<h1 style={{
+  fontFamily: 'Outfit, Inter, sans-serif',
+  fontSize: 88,                  // hero scale; range 56–104px
+  lineHeight: 0.92,
+  fontWeight: 300,               // 200–300 only at this size
+  letterSpacing: '-0.05em',      // tight tracking; -0.04 to -0.05em
+  color: HP.text,
+  margin: 0,
+  textWrap: 'balance',
+}}>
+  Your <em style={{ fontStyle:'italic', fontWeight: 400, color: HP.textSoft }}>taste twins.</em>
+</h1>
+```
+
+Rules:
+- **Weight 200–300 only for ≥56px display sizes.** Below that, jump to 400–500.
+- **Negative letter-spacing on display** (`-0.04em` to `-0.05em`). Tightens the type like print headlines do.
+- **Italic accent words** on a *single* emphasised fragment — softer color (`textSoft` / `textMuted`) and one weight heavier than the surrounding text.
+- `textWrap: 'balance'` on every headline, `textWrap: 'pretty'` on body paragraphs.
+- Never use `font-black` / weight 900 in v2 (that's the landing's signature, not v2's).
+
+### Kicker pattern (above every section header)
+```jsx
+<div style={{
+  fontSize: 10, fontWeight: 700,
+  letterSpacing: '0.28em', textTransform: 'uppercase',
+  color: HP.purple,
+  marginBottom: 12,
+  display: 'inline-flex', alignItems: 'center', gap: 10,
+}}>
+  <span style={{ height: 1, width: 22, background: HP.purple, opacity: 0.6 }} />
+  Mood weights
+</div>
+```
+
+A 22px purple horizontal rule + ALL-CAPS Outfit 700 at 10–11px with `0.22–0.32em` letter-spacing. This is the magazine-issue eyebrow. Used everywhere.
+
+### Color tokens (HP — shared across all v2 surfaces)
+Defined per-surface in `data.js` files; all use identical values:
+```js
+const HP = {
+  bg:'#000000', bgDeep:'#06060a',
+  border:'rgba(255,255,255,0.08)', borderStrong:'rgba(255,255,255,0.14)',
+  text:'#FAFAFA', textSoft:'rgba(250,250,250,0.72)',
+  textMuted:'rgba(250,250,250,0.45)', textFaint:'rgba(250,250,250,0.28)',
+  purple:'#A78BFA', purpleDeep:'#7C3AED', pink:'#EC4899',
+  amber:'#F59E0B', red:'#EF4444', green:'#34D399',
+}
+const HP_GRAD = 'linear-gradient(135deg, #A78BFA 0%, #EC4899 100%)'
+```
+
+These map to Tailwind's `purple-400/-500` and `pink-500` — same brand colors as the landing, just expressed as hex so inline styles can reference them.
+
+### Layout grid
+- Max-width container: **1440px** (page shell) with **1080px** editorial content where prose readability matters.
+- Horizontal padding: **88px** on desktop. Never 56px (that's a discover-v5-era leftover).
+- Vertical section rhythm: `padding: 56–72px 88px`, separated by `borderTop: 1px solid HP.border`.
+
+### Section-hide rule
+Sections must self-hide when their data source is empty (`return null`)
+rather than render a placeholder. ContinueWatching, Friends, Lists, Recent
+all do this. Never fabricate content to fill a slot.
+
+### Action button (matches the landing brand gradient)
+```jsx
+<button style={{
+  padding: '12px 22px', borderRadius: 8,
+  background: HP_GRAD, border: 'none', color: '#fff',
+  fontFamily: 'Outfit', fontSize: 13, fontWeight: 600,
+  letterSpacing: '0.02em', cursor: 'pointer',
+  boxShadow: '0 12px 28px -8px rgba(236,72,153,0.5)',
+}}>Save and retune</button>
+```
+
+Ghost variant:
+```jsx
+<button style={{
+  padding: '12px 22px', borderRadius: 8,
+  background: 'rgba(255,255,255,0.06)',
+  border: `1px solid ${HP.borderStrong}`,
+  color: HP.textSoft, fontFamily: 'Outfit',
+  fontSize: 13, fontWeight: 600, cursor: 'pointer',
+}}>Discard</button>
+```
+
+### Drop the AppShell-bleed footgun
+Every v2 surface must drop its internal `Nav` / `HPNav` / `Footer` if it
+has one in the prototype. AppShell already provides the global TopNav.
+Two nav bars = bug. The internal nav inside a prototype is *editorial copy*,
+not chrome — delete it.
+
+### What NOT to do on v2 surfaces
+- ❌ Don't use Tailwind utility classes for typography (`text-4xl font-black`). v2 uses inline styles for fonts + spacing because the editorial scale is more granular than Tailwind's defaults.
+- ❌ Don't use `font-black` / weight 900. The v2 signature is *thin* (200–300) display type, not heavy.
+- ❌ Don't import `FILMS` or `MOODS.pool` from `data.js` as hardcoded arrays — every v2 surface has a `useXData.jsx` provider that owns runtime data. `data.js` only owns static tokens (HP colors, MOOD_META, gradient pools).
+- ❌ Don't fabricate content to fill a section. Self-hide when empty.
+- ❌ Don't navigate to v1 routes from a v2 surface (`/movie/:id` → use `/movie-v2/:tmdbId`; `/profile/:id` → use `/profile-v2/:id`; `/lists/:id` → use `/lists-v2/:id`; `/discover` → use `/discover-v5`). Mixing v1/v2 nav creates visual cliffs.
+- ❌ Don't use Playfair / Fraunces / Satoshi — none are loaded and CLAUDE.md forbids them.
+
+### When building a new app surface
+1. Open the closest reference v2 page (Home, Profile, Lists) side by side
+2. Copy the masthead pattern: eyebrow rule + huge Outfit 200/300 headline with italic accent + body paragraph
+3. Build a `useXData.jsx` Context Provider for live data; sections consume via `useX()`
+4. Drop any internal Nav / Footer from the prototype
+5. All navigation targets must be v2 routes
+6. Sections self-hide when empty
+7. Before PR: screenshot next to `/home-v2` or `/profile-v2`. If the typography rhythm feels different, fix yours.
 
 ## Planning Behaviour (never skip)
 Before writing any code for a task touching 3+ files:

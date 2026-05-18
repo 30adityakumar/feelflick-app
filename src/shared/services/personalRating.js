@@ -52,13 +52,36 @@ export async function getPersonalRating(userId, movie, opts = {}) {
   const result = await computePersonalRating(userId, movie, opts)
   if (!result) return null
 
-  // Merge into cache (don't blow away other movies)
+  // Merge into cache (don't blow away other movies). Preserve any existing
+  // `profile` row written by the recommendation engine; insert a stub
+  // `profile: {}` only when no row exists yet (the column is NOT NULL with
+  // no default, so a bare upsert 400s for users whose recommendation
+  // profile hasn't been built).
   const updatedMap = { ...(cached?.personal_ratings || {}), [movie.id]: result }
-  await supabase.from('user_profiles_computed').upsert({
-    user_id: userId,
-    personal_ratings: updatedMap,
-    personal_ratings_computed_at: new Date().toISOString(),
-  }, { onConflict: 'user_id' })
+  const { data: existing } = await supabase
+    .from('user_profiles_computed')
+    .select('user_id')
+    .eq('user_id', userId)
+    .maybeSingle()
+
+  if (existing) {
+    await supabase
+      .from('user_profiles_computed')
+      .update({
+        personal_ratings: updatedMap,
+        personal_ratings_computed_at: new Date().toISOString(),
+      })
+      .eq('user_id', userId)
+  } else {
+    await supabase
+      .from('user_profiles_computed')
+      .insert({
+        user_id: userId,
+        profile: {},
+        personal_ratings: updatedMap,
+        personal_ratings_computed_at: new Date().toISOString(),
+      })
+  }
 
   return result
 }

@@ -29,8 +29,18 @@ function isAllowed(ip: string): boolean {
 }
 
 const FALLBACK_SUMMARY = ''
+const FALLBACK_SIGNATURE = ''
 
-const SYSTEM_PROMPT = `You write one-line taste summaries for a cinema app called FeelFlick.
+// Old shape callers (v1 TasteProfile, PublicProfile) only read .summary —
+// the additional .signature field is ignored gracefully. profile-v2 reads
+// both fields and persists them to user_profiles_computed.editorial_*.
+const SYSTEM_PROMPT = `You write taste profiles for a cinema app called FeelFlick.
+
+You produce TWO pieces of copy per user:
+  1. summary — one prose sentence, 18 words max, second person, the person's cinematic identity
+  2. signature — a single short caption, 5-8 words, no punctuation, that could live alone as a profile tagline (e.g. "Films that earn their silences.")
+
+Both pieces serve the same person; signature is the shorter distilled essence.
 
 Your job is to describe a person's film taste in a way that feels specific, observant, and lightly witty.
 
@@ -40,8 +50,8 @@ The genre percentages, directors, and moods are supporting context only — trea
 
 Write like a smart, culturally literate friend who has seen their watch history and instantly gets their taste. The humor should be dry, subtle, and tasteful — more knowing than punchline-driven.
 
-Rules:
-- Write in second person
+Rules for summary:
+- Second person
 - Exactly one sentence
 - Maximum 18 words
 - Reference specific films or directors from their history when it sharpens the line
@@ -59,11 +69,25 @@ Rules:
 - No emoji
 - End without a period if it flows better
 
-Examples of good outputs:
+Rules for signature:
+- 5–8 words, no punctuation, no quotation marks, no emoji
+- Reads as a profile tagline — a distilled essence of the summary
+- Third-person abstract or imperative tone is fine; don't repeat the summary's exact words
+- Avoid the same clichés banned for summary
+
+Output strictly as JSON: { "summary": "...", "signature": "..." }
+
+Examples of good summary outputs:
 - You like your films emotionally complicated, visually precise, and preferably directed by someone with trust issues
 - You lean toward longing, restraint, and directors who think subtle devastation is a valid personality
 - You like warmth, melancholy, and just enough whimsy to avoid admitting how sad your taste really is
-- You want your films sharp, controlled, and a little unwell, which explains the Fincher and Villeneuve overlap`
+- You want your films sharp, controlled, and a little unwell, which explains the Fincher and Villeneuve overlap
+
+Examples of good signature outputs:
+- Films that earn their silences
+- Cinema for the quietly devastated
+- Beautiful unease, carefully framed
+- Slow burns and softer endings`
 
 interface RequestBody {
   genres: Array<{ name: string; pct: number }>
@@ -99,7 +123,7 @@ Deno.serve(async (req: Request) => {
   // Rate limit by client IP
   const ip = req.headers.get('x-forwarded-for') ?? 'anon'
   if (!isAllowed(ip)) {
-    return new Response(JSON.stringify({ summary: FALLBACK_SUMMARY }), {
+    return new Response(JSON.stringify({ summary: FALLBACK_SUMMARY, signature: FALLBACK_SIGNATURE }), {
       headers: { ...headers, 'Content-Type': 'application/json' },
     })
   }
@@ -109,16 +133,17 @@ Deno.serve(async (req: Request) => {
     body = await req.json()
   } catch {
     // Bad JSON — return fallback, not 400
-    return new Response(JSON.stringify({ summary: FALLBACK_SUMMARY }), {
+    return new Response(JSON.stringify({ summary: FALLBACK_SUMMARY, signature: FALLBACK_SIGNATURE }), {
       headers: { ...headers, 'Content-Type': 'application/json' },
     })
   }
 
   const { genres = [], directors = [], moods = [], totalWatched = 0, avgRating = 0, ratingLabel = '', watchedFilms = [], taggedTasteSignature } = body
 
-  // Not enough data to generate anything meaningful
-  if (!genres.length) {
-    return new Response(JSON.stringify({ summary: FALLBACK_SUMMARY }), {
+  // Not enough data to generate anything meaningful.
+  // Either genre breakdown (v1 callers) or a watch list (profile-v2) suffices.
+  if (!genres.length && !watchedFilms.length) {
+    return new Response(JSON.stringify({ summary: FALLBACK_SUMMARY, signature: FALLBACK_SIGNATURE }), {
       headers: { ...headers, 'Content-Type': 'application/json' },
     })
   }
@@ -153,12 +178,16 @@ Supporting context (use lightly):
 
 Look at the actual films they watched and their mood signature. What cinematic identity emerges — what themes they return to, what emotional register they prefer, what kind of stories speak to them?
 
-Write one sharp line that captures this person's cinematic identity. Root it in the films and their mood patterns.`
+Return JSON with two fields:
+- "summary": one sharp sentence (≤18 words) rooting their identity in the films and mood patterns
+- "signature": a 5–8 word tagline that distills the summary's essence`
     : `Top genres: ${g1} (${p1}%), ${g2} (${p2}%), ${g3} (${p3}%).
 Top directors: ${d1}, ${d2}, ${d3}.
 Top moods: ${m1}, ${m2}.
 
-Write one sharp line that captures this person's taste.`
+Return JSON with two fields:
+- "summary": one sharp sentence (≤18 words) capturing this taste
+- "signature": a 5–8 word tagline that distills it`
 
   try {
     const completion = await openai.chat.completions.create({
@@ -168,19 +197,30 @@ Write one sharp line that captures this person's taste.`
         { role: 'user', content: userMessage },
       ],
       stream: false,
-      max_tokens: 50,
+      max_tokens: 160,
       temperature: 0.8,
+      response_format: { type: 'json_object' },
     })
 
-    const summary = completion.choices[0]?.message?.content?.trim() ?? FALLBACK_SUMMARY
+    const raw = completion.choices[0]?.message?.content?.trim() ?? ''
+    let summary = FALLBACK_SUMMARY
+    let signature = FALLBACK_SIGNATURE
+    try {
+      const parsed = JSON.parse(raw)
+      if (typeof parsed?.summary === 'string') summary = parsed.summary.trim()
+      if (typeof parsed?.signature === 'string') signature = parsed.signature.trim()
+    } catch {
+      // Model returned non-JSON despite response_format; treat whole string as summary.
+      summary = raw || FALLBACK_SUMMARY
+    }
 
-    return new Response(JSON.stringify({ summary }), {
+    return new Response(JSON.stringify({ summary, signature }), {
       headers: { ...headers, 'Content-Type': 'application/json' },
     })
   } catch (err) {
     console.error('[generate-taste-summary] OpenAI error:', err)
     // Return 200 with fallback — never break the profile page
-    return new Response(JSON.stringify({ summary: FALLBACK_SUMMARY }), {
+    return new Response(JSON.stringify({ summary: FALLBACK_SUMMARY, signature: FALLBACK_SIGNATURE }), {
       headers: { ...headers, 'Content-Type': 'application/json' },
     })
   }

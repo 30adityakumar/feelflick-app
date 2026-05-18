@@ -80,7 +80,7 @@ import { briefHardFilters, scoreMovieForBrief, buildBriefSeeds, generateBriefRea
 // ============================================================================
 // VERSION
 // ============================================================================
-const ENGINE_VERSION = '2.15' // Parallelize hero, tier-from-profile, new homepage rows.
+const ENGINE_VERSION = '2.16' // Engine reads user_settings.prefs: mood weights × moodCoherence, trusted/muted directors, runtime band.
 const PROFILE_MEMORY_TTL_MS = 60 * 1000
 const SEED_MEMORY_TTL_MS = 60 * 1000
 const profileMemoryCache = new Map()
@@ -107,6 +107,49 @@ function setTimedCache(map, key, value, ttlMs) {
     value,
     expiresAt: Date.now() + ttlMs,
   })
+}
+
+// ============================================================================
+// USER PREFS (v2.16)
+// ============================================================================
+
+// Reads user_settings.settings.prefs (written by /preferences) and shapes the
+// fields the engine cares about. Always returns the same shape so downstream
+// scoring code doesn't need to null-guard each subfield.
+async function fetchUserPrefs(userId) {
+  if (!userId) return emptyUserPrefs()
+  try {
+    const { data } = await supabase
+      .from('user_settings')
+      .select('settings')
+      .eq('user_id', userId)
+      .maybeSingle()
+    const p = data?.settings?.prefs || {}
+    return {
+      moodWeights:      p.moodWeights      && typeof p.moodWeights === 'object' ? p.moodWeights : {},
+      trustedDirectors: Array.isArray(p.trustedDirectors) ? p.trustedDirectors : [],
+      mutedDirectors:   Array.isArray(p.mutedDirectors)   ? p.mutedDirectors   : [],
+      runtimeFloor: typeof p.runtimeFloor === 'number' ? p.runtimeFloor : null,
+      runtimeCap:   typeof p.runtimeCap   === 'number' ? p.runtimeCap   : null,
+      subscriptions: p.subscriptions && typeof p.subscriptions === 'object' ? p.subscriptions : {},
+      boundaries:    p.boundaries    && typeof p.boundaries === 'object'    ? p.boundaries    : {},
+    }
+  } catch (err) {
+    console.warn('[fetchUserPrefs] failed:', err?.message || err)
+    return emptyUserPrefs()
+  }
+}
+
+function emptyUserPrefs() {
+  return {
+    moodWeights: {},
+    trustedDirectors: [],
+    mutedDirectors: [],
+    runtimeFloor: null,
+    runtimeCap: null,
+    subscriptions: {},
+    boundaries: {},
+  }
 }
 
 // ============================================================================
@@ -504,6 +547,14 @@ export async function computeUserProfile(userId, forceRefresh = false) {
     const exclusions = computeExclusions(weightedMovies, genres)
     const topFitProfiles = computeTopFitProfiles(weightedMovies)
 
+    // v2.16: explicit user preferences from /preferences (moodWeights,
+    // trusted/muted directors, runtime band). scoreMovieForUser uses these
+    // alongside behavioral signals. opts.userPrefs in scoreMovieForUser
+    // overrides this baseline for surfaces that want immediate effect.
+    // Named settingsPrefs locally to avoid shadowing the existing
+    // user_preferences row variable destructured earlier in this scope.
+    const settingsPrefs = await fetchUserPrefs(userId)
+
     const profile = ensureLanguageProfileShape({
       userId,
       languages,
@@ -520,6 +571,7 @@ export async function computeUserProfile(userId, forceRefresh = false) {
       exclusions,
       topFitProfiles,
       watchedMovieIds,
+      userPrefs: settingsPrefs,
       meta: {
         profileVersion: ENGINE_VERSION,
         computedAt: new Date().toISOString(),
@@ -2765,6 +2817,20 @@ export function scoreMovieForUser(movie, profile, rowType = 'default', seedFilms
   const breakdown = {}
   let score = 0
 
+  // v2.16: opts.userPrefs overrides the profile-cached prefs so surfaces can
+  // apply just-changed /preferences without waiting for the 24h cache.
+  const userPrefs = opts.userPrefs ?? profile?.userPrefs ?? null
+
+  // Hard-filter muted directors when opts.suppressMuted is set. Default OFF
+  // (existing soft penalty in dimension 21 applies otherwise). Callers that
+  // opt in must handle a null return.
+  if (opts.suppressMuted && userPrefs?.mutedDirectors?.length && movie?.director_name) {
+    const muted = userPrefs.mutedDirectors.map((n) => String(n).toLowerCase())
+    if (muted.includes(String(movie.director_name).trim().toLowerCase())) {
+      return null
+    }
+  }
+
   // 1) BASE QUALITY (normalized when available, ff_audience_rating as fallback)
   const effectiveRating = movie.ff_audience_rating != null
     ? movie.ff_audience_rating / 10
@@ -2886,14 +2952,26 @@ export function scoreMovieForUser(movie, profile, rowType = 'default', seedFilms
   }
 
   // 19) MOOD COHERENCE — rewards films whose mood/tone tags align with user's recent watches — v2.10
+  //     v2.16: per-tag bias from userPrefs.moodWeights. 0.5 (neutral slider)
+  //     stays 1.0×; sliders drag the per-tag contribution between 0 and 2×.
+  //     Absent userPrefs leaves the multiplier at 1.0 so behaviour is
+  //     unchanged for users who haven't visited /preferences yet.
   if (profile.moodSignature?.recentMoodTags?.length > 0) {
     const movieMoodTags = Array.isArray(movie.mood_tags) ? movie.mood_tags : []
     const movieToneTags = Array.isArray(movie.tone_tags) ? movie.tone_tags : []
 
+    const moodWeightFor = (tag) => {
+      if (!userPrefs?.moodWeights) return 1
+      // preferences-v2 stores mood IDs like 'slow-burn'; movie.mood_tags may use 'slow_burn'.
+      const mw = userPrefs.moodWeights
+      const w = mw[tag] ?? mw[tag?.replace(/_/g, '-')] ?? mw[tag?.replace(/-/g, '_')] ?? 0.5
+      return Math.max(0, Math.min(2, w * 2))
+    }
+
     let moodScore = 0
     const userTopTags = new Map(profile.moodSignature.recentMoodTags.map(t => [t.tag, t.weight]))
     movieMoodTags.forEach(t => {
-      if (userTopTags.has(t)) moodScore += userTopTags.get(t) * 2
+      if (userTopTags.has(t)) moodScore += userTopTags.get(t) * 2 * moodWeightFor(t)
     })
 
     const userTopTones = new Map(profile.moodSignature.recentToneTags.map(t => [t.tag, t.weight]))
@@ -2905,6 +2983,39 @@ export function scoreMovieForUser(movie, profile, rowType = 'default', seedFilms
     score += breakdown.moodCoherence
   } else {
     breakdown.moodCoherence = 0
+  }
+
+  // 20) DIRECTOR PREFERENCES (v2.16) — user's trusted / muted lists from /preferences.
+  //     Soft penalty / boost; hard filter is gated on opts.suppressMuted above.
+  {
+    let directorScore = 0
+    const directorName = movie?.director_name ? String(movie.director_name).trim().toLowerCase() : ''
+    if (userPrefs && directorName) {
+      const muted   = (userPrefs.mutedDirectors   || []).map((n) => String(n).toLowerCase())
+      const trusted = (userPrefs.trustedDirectors || []).map((n) => String(n).toLowerCase())
+      if (muted.includes(directorName))        directorScore = -50
+      else if (trusted.includes(directorName)) directorScore = 15
+    }
+    breakdown.directorPreference = directorScore
+    score += directorScore
+  }
+
+  // 21) RUNTIME BAND (v2.16) — explicit floor/cap from /preferences. Separate
+  //     from the existing fuzzy runtime preference score (dimension 12), which
+  //     scores against the user's *observed* runtime distribution. This adds a
+  //     hard-edged penalty when the film is outside the user's stated band.
+  {
+    let bandScore = 0
+    if (userPrefs && Number.isFinite(movie?.runtime)) {
+      const { runtimeFloor, runtimeCap } = userPrefs
+      if (Number.isFinite(runtimeFloor) && movie.runtime < runtimeFloor) {
+        bandScore = -Math.min(15, Math.round((runtimeFloor - movie.runtime) / 6))
+      } else if (Number.isFinite(runtimeCap) && movie.runtime > runtimeCap) {
+        bandScore = -Math.min(15, Math.round((movie.runtime - runtimeCap) / 6))
+      }
+    }
+    breakdown.runtimeBand = bandScore
+    score += bandScore
   }
 
   const finalScore = Math.max(0, Math.round(score * 10) / 10)

@@ -1,0 +1,38 @@
+/* src/features/movie-v2/movie-v2.css
+ * Scoped keyframes for the v2 Movie Detail page.
+ * Outfit display font, Inter for body.
+ * All animations are prefixed `mv-` to avoid colliding with your existing styles.
+ */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+.ff-movie-v2 {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+.ff-movie-v2 ::selection { background: rgba(167,139,250,0.4); color: #fff; }
+.ff-movie-v2 em { font-style: italic; }
+.ff-movie-v2 button { font-family: inherit; transition: filter 0.18s ease; }
+.ff-movie-v2 button:hover { filter: brightness(1.12); }
+.ff-movie-v2 textarea { font-family: inherit; }
+
+@keyframes mv-fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes mv-zoom-in { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: scale(1); } }
+@keyframes mv-curtain-l { from { transform: translateX(0); } to { transform: translateX(-100%); } }
+@keyframes mv-curtain-r { from { transform: translateX(0); } to { transform: translateX(100%); } }
+@keyframes mv-pair-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes mv-kenburns {
+  0%   { transform: scale(1.0) translate(0, 0); }
+  100% { transform: scale(1.06) translate(-1.5%, -1%); }
+}
+@keyframes mv-grain {
+  0%   { transform: translate(0,0); }
+  25%  { transform: translate(-1%,-1%); }
+  50%  { transform: translate(1%,-1%); }
+  75%  { transform: translate(-1%,1%); }
+  100% { transform: translate(0,0); }
+}
+@keyframes mv-confetti {
+  0%   { opacity: 1; transform: translateY(0) rotate(0deg) scale(1); }
+  100% { opacity: 0; transform: translateY(420px) rotate(720deg) scale(0.6); }
+}

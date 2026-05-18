@@ -273,23 +273,44 @@ export default function UserSearchPage() {
 
     ;(async () => {
       try {
-        // Build similarity query, excluding followed users
-        let simQuery = supabase
+        // user_similarity has CHECK (user_a_id < user_b_id) — each pair is
+        // stored exactly once with the smaller UUID as user_a. Querying only
+        // .eq('user_a_id', me) silently misses every pair where my UUID
+        // happens to sort higher. Fetch both directions and merge.
+        let simAsAQuery = supabase
           .from('user_similarity')
           .select(`user_b_id, overall_similarity, movies_in_common, users!user_similarity_user_b_fkey ( ${USER_SELECT} )`)
           .eq('user_a_id', currentUserId)
           .order('overall_similarity', { ascending: false })
           .limit(8)
+        let simAsBQuery = supabase
+          .from('user_similarity')
+          .select(`user_a_id, overall_similarity, movies_in_common, users!user_similarity_user_a_fkey ( ${USER_SELECT} )`)
+          .eq('user_b_id', currentUserId)
+          .order('overall_similarity', { ascending: false })
+          .limit(8)
 
         if (followingIds.length > 0) {
-          simQuery = simQuery.not('user_b_id', 'in', `(${followingIds.join(',')})`)
+          const inList = `(${followingIds.join(',')})`
+          simAsAQuery = simAsAQuery.not('user_b_id', 'in', inList)
+          simAsBQuery = simAsBQuery.not('user_a_id', 'in', inList)
         }
 
-        const { data, error } = await simQuery
-        if (error) throw error
+        const [{ data: aData, error: aErr }, { data: bData, error: bErr }] = await Promise.all([simAsAQuery, simAsBQuery])
+        if (aErr) throw aErr
+        if (bErr) throw bErr
 
-        if (mounted && data && data.length > 0) {
-          setSuggested(data)
+        // Normalize both directions: PersonCard reads from row.users + row.overall_similarity + row.movies_in_common
+        const merged = [
+          ...(aData || []),
+          ...(bData || []).map(r => ({ ...r, user_b_id: r.user_a_id })),
+        ]
+          .filter(r => r.users)
+          .sort((a, b) => (b.overall_similarity ?? 0) - (a.overall_similarity ?? 0))
+          .slice(0, 8)
+
+        if (mounted && merged.length > 0) {
+          setSuggested(merged)
           setIsFallback(false)
         } else if (mounted) {
           // Fallback: most active users, excluding self + followed
@@ -323,7 +344,7 @@ export default function UserSearchPage() {
   }, [currentUserId, following, isFollowingLoading])
 
   const hasQuery = debouncedQuery.length > 0
-  const goToProfile = (userId) => navigate(`/profile/${userId}`)
+  const goToProfile = (userId) => navigate(`/profile-v2/${userId}`)
 
   return (
     <div className="min-h-screen text-white pb-24 md:pb-10" style={{ background: 'var(--color-bg)', paddingTop: 'var(--hdr-h, 64px)' }}>

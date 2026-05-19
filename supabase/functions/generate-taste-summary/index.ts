@@ -3,8 +3,9 @@ import OpenAI from 'npm:openai@4'
 const openai = new OpenAI({ apiKey: Deno.env.get('OPENAI_API_KEY') })
 
 // Default CORS allowlist — overridden by the ALLOWED_ORIGINS env var if set.
-//   app.feelflick.com           — production app (Cloudflare Pages)
-//   feelflick.com / www.        — marketing apex
+//   app.feelflick.com           — production app (Cloudflare Pages, current)
+//   feelflick.com / www.        — apex (used today for marketing; will host the app
+//                                 once the planned subdomain → apex migration lands)
 //   feelflick-app.pages.dev     — canonical CF Pages preview
 //   localhost:5173              — Vite dev server
 const rawOrigins = Deno.env.get('ALLOWED_ORIGINS')

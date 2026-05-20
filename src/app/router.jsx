@@ -15,6 +15,7 @@ import AppShell from '@/app/AppShell'
 
 // Public pages (no app chrome)
 const Landing = lazy(() => import('@/features/landing/Landing'))
+const LandingV3 = lazy(() => import('@/features/landing-v3/LandingV3'))
 
 // App pages (with header/sidebar)
 const HomePage = lazy(() => import('@/app/homepage/HomePage'))
@@ -282,6 +283,11 @@ export const router = sentryCreateBrowserRouter([
     children: [
       // Root decides: Landing (anon) or /home (authed)
       { index: true, element: <RootEntry /> },
+
+      // Landing v3 — parallel mount for A/B + preview. Public; authed users
+      // can still load it (useful for previewing). Promote to root once
+      // confident in the new design.
+      { path: 'v3', element: <LazyRoute Component={LandingV3} /> },
 
       // OAuth callback route - MUST come before legacy auth redirects
       { path: 'auth/callback', element: <LazyRoute Component={OAuthCallback} /> },

@@ -61,6 +61,10 @@ VITE_ADMIN_EMAILS      # Comma-separated admin emails for AdminOnly guard
 `import.meta.env.DEV` / `.PROD` and `process.env.NODE_ENV` are automatic.
 **OpenAI key is server-side only. Never add `VITE_OPENAI_*`.**
 
+## Dev Environment
+
+MCP-driven dev test credentials live in `.claude/local-secrets.json` (gitignored). Read this on session start before running SIGN_IN.
+
 ## Code Standards
 **Workflow (never skip):** `lint → test → build`
 ```bash

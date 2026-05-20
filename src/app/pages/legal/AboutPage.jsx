@@ -2,9 +2,9 @@
 import { motion } from 'framer-motion'
 import { Film, Brain, Users, Shield, Zap, Heart, LogIn, Loader2 } from 'lucide-react'
 
-import { useGoogleAuth } from '@/features/landing/utils/useGoogleAuth'
-import TopNav from '@/features/landing/components/TopNav'
-import Footer from '@/features/landing/components/Footer'
+import { useGoogleAuth } from '@/features/landing-v2/utils/useGoogleAuth'
+import TopNav from '@/features/landing-v2/components/TopNav'
+import Footer from '@/features/landing-v2/components/Footer'
 import Button from '@/shared/ui/Button'
 
 // === CONSTANTS ===

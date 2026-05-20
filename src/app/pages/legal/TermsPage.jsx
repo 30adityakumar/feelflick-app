@@ -1,7 +1,7 @@
 // src/app/pages/TermsPage.jsx
 import { Scale, ShieldCheck, AlertTriangle, FileText, Mail, Gavel } from 'lucide-react'
-import TopNav from '@/features/landing/components/TopNav'
-import Footer from '@/features/landing/components/Footer'
+import TopNav from '@/features/landing-v2/components/TopNav'
+import Footer from '@/features/landing-v2/components/Footer'
 
 export default function TermsPage() {
   return (

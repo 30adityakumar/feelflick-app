@@ -13,3 +13,7 @@ export const supabase = createClient(
     }
   }
 )
+
+if (import.meta.env.DEV && typeof window !== 'undefined') {
+  window.supabase = supabase
+}

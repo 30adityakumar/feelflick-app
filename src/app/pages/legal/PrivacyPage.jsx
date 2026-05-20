@@ -1,8 +1,8 @@
 // src/app/pages/PrivacyPage.jsx
 import { Link } from 'react-router-dom'
 import { Shield, Lock, EyeOff, FileText, Mail, AlertTriangle, Globe } from 'lucide-react'
-import TopNav from '@/features/landing/components/TopNav'
-import Footer from '@/features/landing/components/Footer'
+import TopNav from '@/features/landing-v2/components/TopNav'
+import Footer from '@/features/landing-v2/components/Footer'
 
 export default function PrivacyPage() {
   return (

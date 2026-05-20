@@ -5,7 +5,7 @@ import { Home, Sparkles, User, Compass, LogIn } from 'lucide-react'
 import Header from '@/app/header/Header'
 import SearchBar from '@/app/header/components/SearchBar'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
-import { useGoogleAuth } from '@/features/landing/utils/useGoogleAuth'
+import { useGoogleAuth } from '@/features/landing-v2/utils/useGoogleAuth'
 import { identify, resetAnalytics, track } from '@/shared/services/analytics'
 
 export default function AppShell() {

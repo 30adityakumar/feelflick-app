@@ -15,7 +15,7 @@ import AppShell from '@/app/AppShell'
 
 // Public pages (no app chrome)
 const Landing = lazy(() => import('@/features/landing/Landing'))
-const LandingV3 = lazy(() => import('@/features/landing-v3/LandingV3'))
+const LandingV2 = lazy(() => import('@/features/landing-v2/Landing'))
 
 // App pages (with header/sidebar)
 const HomePage = lazy(() => import('@/app/homepage/HomePage'))
@@ -38,9 +38,9 @@ const MobileAccount = lazy(() => import('@/app/header/components/MobileAccount')
 // 404
 const NotFound = lazy(() => import('@/app/pages/NotFound'))
 
-// Shared top/bottom
-import TopNav from '@/features/landing/components/TopNav'
-import Footer from '@/features/landing/components/Footer'
+// Shared top/bottom (legacy v2 landing's nav + footer, used by legal pages)
+import TopNav from '@/features/landing-v2/components/TopNav'
+import Footer from '@/features/landing-v2/components/Footer'
 
 // Auth/onboarding gate
 import PostAuthGate from '@/features/auth/PostAuthGate'
@@ -284,10 +284,9 @@ export const router = sentryCreateBrowserRouter([
       // Root decides: Landing (anon) or /home (authed)
       { index: true, element: <RootEntry /> },
 
-      // Landing v3 — parallel mount for A/B + preview. Public; authed users
-      // can still load it (useful for previewing). Promote to root once
-      // confident in the new design.
-      { path: 'v3', element: <LazyRoute Component={LandingV3} /> },
+      // Landing v2 — legacy editorial landing, preserved for rollback / A/B.
+      // The current canonical landing at / is the v3 editorial spread.
+      { path: 'v2', element: <LazyRoute Component={LandingV2} /> },
 
       // OAuth callback route - MUST come before legacy auth redirects
       { path: 'auth/callback', element: <LazyRoute Component={OAuthCallback} /> },

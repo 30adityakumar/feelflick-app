@@ -3,8 +3,8 @@ import { useCallback, useState } from 'react'
 import { motion } from 'framer-motion'
 import { LogIn, Loader2 } from 'lucide-react'
 
-import { useGoogleAuth } from '@/features/landing/utils/useGoogleAuth'
-import MoodDemoPanel from '@/features/landing/components/MoodDemoPanel'
+import { useGoogleAuth } from '@/features/landing-v2/utils/useGoogleAuth'
+import MoodDemoPanel from '@/features/landing-v2/components/MoodDemoPanel'
 import Button from '@/shared/ui/Button'
 
 const MOOD_COLORS = {

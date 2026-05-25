@@ -9,20 +9,24 @@
 Located in `src/shared/services/recommendations.js` and `src/shared/api/tmdb.js`.
 Change deliberately — these affect recommendation quality and API budgets.
 
+> Line numbers reflect the codebase as of 2026-05-20. They drift; trust the
+> constant names and re-grep when in doubt.
+
 | Constant | File | Value | Meaning |
 |---|---|---|---|
-| `ENGINE_VERSION` | `recommendations.js:36` | `'2.4'` | Bump when algorithm changes |
-| `THRESHOLDS.MIN_FF_RATING` | `recommendations.js:132` | `6.5` | Min FeelFlick score to surface a title |
-| `THRESHOLDS.MIN_FF_CONFIDENCE` | `recommendations.js:133` | `50` | Min confidence before showing a recommendation |
-| `THRESHOLDS.MIN_FILMS_FOR_LANGUAGE_PREF` | `recommendations.js:134` | `3` | Films needed to infer language preference |
-| `THRESHOLDS.MIN_FILMS_FOR_AFFINITY` | `recommendations.js:135` | `2` | Films needed before genre/director affinity applies |
-| `LIKELY_SEEN_WEIGHTS` | `recommendations.js:117` | All `0` | Intentionally disabled — kept for backward compat |
-| `TTL.FAST` | `tmdb.js:41` | `60_000` (1m) | Dynamic endpoints (search, trending) |
-| `TTL.NORMAL` | `tmdb.js:42` | `5 * 60_000` (5m) | Discover & lists |
-| `TTL.SLOW` | `tmdb.js:43` | `12 * 60 * 60_000` (12h) | Stable data (movie details, credits) |
-| `rateLimiter.maxRequests` | `tmdb.js:35` | `40` | TMDB rate limit per 10s window |
-| `CACHE_TTL` | `recommendation-cache.js:10` | `5 * 60 * 1000` (5m) | In-memory recommendation cache TTL |
-| `defaultTTL` | `lib/cache.js:10` | `5 * 60 * 1000` (5m) | RecommendationCache default TTL |
+| `ENGINE_VERSION` | recommendations.js:83 | `'2.16'` | Bump when algorithm changes; invalidates cached profiles |
+| `THRESHOLDS.MIN_FF_RATING` | recommendations.js:319 | `6.5` | Min FeelFlick score to surface a title |
+| `THRESHOLDS.MIN_FF_CONFIDENCE` | recommendations.js:320 | `50` | Min confidence before showing a recommendation |
+| `THRESHOLDS.MIN_FILMS_FOR_LANGUAGE_PREF` | recommendations.js:321 | `3` | Films needed to infer language preference |
+| `THRESHOLDS.MIN_FILMS_FOR_AFFINITY` | recommendations.js:322 | `2` | Films needed before genre/director affinity applies |
+| `THRESHOLDS.MIN_VOTE_COUNT` | recommendations.js:328 | `150` | Min TMDB vote count for main pools (hidden-gems pool uses its own lower floor of 50) |
+| `LIKELY_SEEN_WEIGHTS` | recommendations.js:308 | All `0` | Intentionally disabled — kept for backward compat |
+| `TTL.FAST` | tmdb.js:41 | `60_000` (1m) | Dynamic endpoints (search, trending) |
+| `TTL.NORMAL` | tmdb.js:42 | `5 * 60_000` (5m) | Discover & lists |
+| `TTL.SLOW` | tmdb.js:43 | `12 * 60 * 60_000` (12h) | Stable data (movie details, credits) |
+| `rateLimiter.maxRequests` | tmdb.js:35 | `40` | TMDB rate limit per 10s window |
+| `CACHE_TTL` | recommendation-cache.js:10 | `5 * 60 * 1000` (5m) | In-memory recommendation cache TTL |
+| `defaultTTL` | lib/cache.js:10 | `5 * 60 * 1000` (5m) | RecommendationCache default TTL |
 
 ## Dev Environment (VS Code Remote Tunnels / Codespaces)
 
@@ -38,15 +42,14 @@ Vite configured with `host: true`, `hmr.clientPort: 443` for Codespaces compatib
 
 ## Known Codebase Issues
 
-> Run `npm run lint` for current state — do not treat the list below as current.
+> Run `npm run lint` and `npm audit` for current state — do not treat the
+> numbers below as durable.
 
-**ESLint (last checked 2026-03-30):** Top historical offenders:
-- `react/no-unescaped-entities` ×47
-- `react-hooks/rules-of-hooks` ×8
-- `jsx-a11y/no-static-element-interactions` ×8
-- `no-undef` ×4 (`process` without guard)
+**ESLint (verified 2026-05-20):** Clean. `npm run lint` returns 0 errors.
 
-**Tests:** `recommendations.helpers.test.js` crashes on import — requires `VITE_SUPABASE_URL` in env.
-`Error: always broken` output is expected (SectionErrorBoundary test exercising error boundaries).
+**npm audit (verified 2026-05-20):** Clean. 0 vulnerabilities.
 
-**npm audit:** 8 vulnerabilities (3 moderate, 5 high) — not blocking dev.
+**Tests:** `recommendations.helpers.test.js` historically crashed on import
+without `VITE_SUPABASE_URL` in env. Verify before relying on the suite in a
+fresh shell. `Error: always broken` output is expected (SectionErrorBoundary
+test exercising error boundaries).

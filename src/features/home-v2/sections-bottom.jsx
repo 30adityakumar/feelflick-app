@@ -1,17 +1,22 @@
 // Home v2 — bottom sections, wired to useHomeData.
 // All hardcoded RECENT / CONTINUE / DNA / FRIENDS / LISTS imports gone.
 
-import { useState } from 'react'
-import { HP } from './data'
-import { SmartImg, Stars } from './atoms'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Check, ChevronRight } from 'lucide-react'
+import { HP, HP_GRAD } from './data'
+import { SmartImg } from './atoms'
 import { useHomeData } from './useHomeData'
+import { tmdbImg } from '@/shared/api/tmdb'
+import { supabase } from '@/shared/lib/supabase/client'
+import { useAuthSession } from '@/shared/hooks/useAuthSession'
+import { logSurfaceImpressions } from '@/shared/services/recommendations'
 
 const Heading = ({ kicker, title, sub }) => (
   <header style={{ marginBottom: 36 }}>
     <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.24em', textTransform: 'uppercase', color: HP.purple, marginBottom: 14, display: 'inline-flex', alignItems: 'center', gap: 10 }}>
       <span style={{ height: 1, width: 22, background: HP.purple, opacity: 0.6 }} />{kicker}
     </div>
-    <h2 style={{ fontFamily: 'Outfit, Inter, sans-serif', fontSize: 44, lineHeight: 1.0, fontWeight: 500, letterSpacing: '-0.035em', color: HP.text, margin: 0, textWrap: 'balance' }}>{title}</h2>
+    <h2 style={{ fontFamily: 'Outfit, Inter, sans-serif', fontSize: 'clamp(28px, 4.5vw, 44px)', lineHeight: 1.0, fontWeight: 500, letterSpacing: '-0.035em', color: HP.text, margin: 0, textWrap: 'balance' }}>{title}</h2>
     {sub && <p style={{ marginTop: 14, fontSize: 14, color: HP.textMuted, maxWidth: 540, fontFamily: 'Outfit, Inter, sans-serif', textWrap: 'pretty' }}>{sub}</p>}
   </header>
 )
@@ -24,7 +29,7 @@ export function ContinueWatching({ onResume }) {
   if (!continueItem) return null
   const f = continueItem.film
   return (
-    <section style={{ padding: '56px 88px', borderTop: `1px solid ${HP.border}` }}>
+    <section className="border-t px-5 py-10 sm:px-8 sm:py-12 lg:px-[88px] lg:py-[56px]" style={{ borderColor: HP.border }}>
       <Heading kicker="In Progress" title="Pick up where you paused." />
       <button
         type="button"
@@ -37,7 +42,7 @@ export function ContinueWatching({ onResume }) {
           transition: 'border-color 0.3s ease', textAlign: 'left', width: '100%', fontFamily: 'inherit', color: 'inherit',
         }}
       >
-        <SmartImg film={f} style={{ width: 84, height: 126, objectFit: 'cover', borderRadius: 4, flex: 'none' }} />
+        <SmartImg film={f} sizes="84px" style={{ width: 84, height: 126, objectFit: 'cover', borderRadius: 4, flex: 'none' }} />
         <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', flex: 1, minWidth: 0 }}>
           <div>
             <div style={{ fontFamily: 'Outfit', fontSize: 19, fontWeight: 500, color: HP.text, letterSpacing: '-0.015em' }}>{f.title}</div>
@@ -56,91 +61,141 @@ export function ContinueWatching({ onResume }) {
   )
 }
 
-export function CinematicDNA() {
-  const { dna } = useHomeData()
-  if (!dna) return null
+// Cinematic DNA — editorial taste portrait (audit pass-17).
+//
+// Reframed from a 4-quadrant stats dashboard (Confidence / Motifs /
+// Moods / Runtime) into an editorial profile:
+//   • LEFT  — motifs (top tone tags) as display-type stacked words.
+//             "Earnest. / Warm. / Sentimental." like a magazine pull-quote.
+//   • RIGHT — mood weights as elegant horizontal bars (top 3 only).
+//   • FOOTER — small grace-note stats line (films · runtime · confidence).
+// Falls back to copy-only empty states when fingerprint hasn't computed yet
+// (< 5 logged films).
+function DNAKicker({ children }) {
   return (
-    <section style={{ padding: '72px 88px', borderTop: `1px solid ${HP.border}`, background: 'rgba(255,255,255,0.008)' }}>
-      <Heading
-        kicker="Cinematic DNA"
-        title="Your taste, taking shape."
-        sub={dna.filmsToNext > 0 ? `A portrait of what you’re drawn to. ${dna.filmsToNext} more films and your DNA tunes further.` : 'A portrait of what you’re drawn to.'}
-      />
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 64 }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 24 }}>
-            <div style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Confidence</div>
-            <div style={{ fontFamily: 'Outfit', fontSize: 56, fontWeight: 200, color: HP.text, letterSpacing: '-0.04em' }}>{Math.round(dna.progress * 100)}<span style={{ fontSize: 24, color: HP.textMuted }}>%</span></div>
-          </div>
-          <div style={{ height: 2, background: HP.border, borderRadius: 999, overflow: 'hidden', marginBottom: 28 }}>
-            <div style={{ height: '100%', width: `${dna.progress * 100}%`, background: `linear-gradient(90deg, ${HP.purple}, ${HP.pink})` }} />
-          </div>
-          <div style={{ fontSize: 12, color: HP.textSoft, fontFamily: 'Outfit', fontStyle: 'italic', marginBottom: 28 }}>{dna.filmsLogged} film{dna.filmsLogged === 1 ? '' : 's'} logged &middot; taking shape.</div>
-          <div style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 12 }}>Motifs forming</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            {dna.motifs.map(m => (
-              <span key={m} style={{ padding: '6px 12px', borderRadius: 4, background: 'rgba(167,139,250,0.06)', border: `1px solid ${HP.purple}33`, fontSize: 12, color: HP.textSoft, fontFamily: 'Outfit' }}>{m}</span>
-            ))}
-          </div>
-        </div>
-        <div>
-          <div style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 24 }}>Mood weights</div>
-          {dna.topMoods ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-              {dna.topMoods.map(m => (
-                <div key={m.label}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
-                    <div style={{ fontFamily: 'Outfit', fontSize: 14, fontWeight: 500, color: HP.text }}>{m.label}</div>
-                    <div style={{ fontFamily: 'Outfit', fontSize: 12, color: HP.textMuted, letterSpacing: '0.04em' }}>{Math.round(m.weight * 100)}%</div>
-                  </div>
-                  <div style={{ height: 2, background: HP.border, borderRadius: 999, overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${m.weight * 100}%`, background: HP.purple, opacity: 0.6 + m.weight * 0.4 }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div style={{ fontSize: 13, color: HP.textMuted, fontFamily: 'Outfit, Inter, sans-serif', fontStyle: 'italic' }}>
-              Rate a few more films to see your mood weights.
-            </div>
-          )}
-          <div style={{ marginTop: 32, fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 12 }}>Runtime preference</div>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-            <span style={{ fontFamily: 'Outfit', fontSize: 36, fontWeight: 200, color: HP.text, letterSpacing: '-0.03em' }}>{dna.runtime.value}</span>
-            <span style={{ fontSize: 12, color: HP.textMuted, fontFamily: 'Outfit' }}>{dna.runtime.unit}{dna.runtime.note && ` · ${dna.runtime.note}`}</span>
-          </div>
-        </div>
-      </div>
-    </section>
+    <div style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit', letterSpacing: '0.22em', textTransform: 'uppercase', marginBottom: 22, display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+      <span aria-hidden style={{ height: 1, width: 18, background: HP.purple, opacity: 0.6 }} />
+      {children}
+    </div>
   )
 }
 
-export function RecentlyLogged({ onCardClick }) {
-  const { recent } = useHomeData()
-  if (recent.length === 0) return null
+function MoodWeightRow({ label, weight }) {
+  const pct = Math.round(weight * 100)
   return (
-    <section style={{ padding: '72px 88px', borderTop: `1px solid ${HP.border}` }}>
-      <Heading kicker="Diary" title="Recently logged." />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 32 }}>
-        {recent.map(l => (
-          <button
-            key={l.key}
-            type="button"
-            onClick={() => onCardClick?.(l.film)}
-            style={{
-              background: 'transparent', border: 'none', padding: 0, cursor: 'pointer',
-              textAlign: 'left', fontFamily: 'inherit', color: 'inherit',
-            }}
-          >
-            <SmartImg film={l.film} style={{ width: '100%', aspectRatio: '2/3', objectFit: 'cover', borderRadius: 4, marginBottom: 14 }} />
-            <div style={{ fontFamily: 'Outfit', fontSize: 16, fontWeight: 500, color: HP.text, letterSpacing: '-0.015em' }}>{l.film.title}</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 6 }}>
-              <Stars value={l.rating} size={11} />
-              <div style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit' }}>{l.when}</div>
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 9 }}>
+        <span style={{ fontFamily: 'Outfit', fontSize: 15, fontWeight: 500, color: HP.text, letterSpacing: '-0.005em' }}>{label}</span>
+        <span style={{ fontFamily: 'Outfit', fontSize: 12, color: HP.textMuted, letterSpacing: '0.04em', fontVariantNumeric: 'tabular-nums' }}>{pct}%</span>
+      </div>
+      <div style={{ height: 4, background: 'rgba(255,255,255,0.05)', borderRadius: 999, overflow: 'hidden' }}>
+        <div
+          style={{
+            height: '100%',
+            width: `${pct}%`,
+            background: `linear-gradient(90deg, ${HP.purple}, ${HP.pink})`,
+            borderRadius: 999,
+            transition: 'width 0.9s cubic-bezier(0.2, 0.8, 0.2, 1)',
+          }}
+        />
+      </div>
+    </div>
+  )
+}
+
+function DNAStat({ value, label }) {
+  return (
+    <div style={{ display: 'inline-flex', alignItems: 'baseline', gap: 8 }}>
+      <span style={{ fontFamily: 'Outfit', fontSize: 22, fontWeight: 200, color: HP.text, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums' }}>{value}</span>
+      <span style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit', letterSpacing: '0.12em', textTransform: 'uppercase' }}>{label}</span>
+    </div>
+  )
+}
+
+export function CinematicDNA() {
+  const { dna } = useHomeData()
+  if (!dna) return null
+
+  const { motifs, topMoods, runtime, progress, filmsLogged, filmsToNext } = dna
+  const confidence = Math.round(progress * 100)
+  const hasRealMotifs = motifs.length > 0 && motifs[0] !== 'Patterns forming…'
+  const hasMoods = topMoods && topMoods.length > 0
+  // Top 3 moods — tighter than 4, balances the column visually with the
+  // motifs display type beside it. Fingerprint still stores up to 12; we
+  // surface only the strongest signals on /home.
+  const topMoodRows = hasMoods ? topMoods.slice(0, 3) : []
+
+  return (
+    <section className="border-t px-5 py-14 sm:px-8 sm:py-16 lg:px-[88px] lg:py-[80px]" style={{ borderColor: HP.border, background: 'rgba(255,255,255,0.008)' }}>
+      <Heading
+        kicker="Cinematic DNA"
+        title="Your taste, taking shape."
+        sub={filmsToNext > 0
+          ? `A portrait of what you’re drawn to. ${filmsToNext} more films and your DNA tunes further.`
+          : 'A portrait of what you’re drawn to.'}
+      />
+
+      <div className="grid grid-cols-1 gap-12 sm:gap-14 lg:grid-cols-[1fr_1.15fr] lg:gap-20">
+        {/* LEFT — Motifs as editorial display type */}
+        <div>
+          <DNAKicker>{hasRealMotifs ? 'Motifs' : 'Motifs forming'}</DNAKicker>
+          {hasRealMotifs ? (
+            <div className="flex flex-col gap-0.5">
+              {motifs.map((m, i) => (
+                <span
+                  key={m}
+                  style={{
+                    fontFamily: 'Outfit, Inter, sans-serif',
+                    fontSize: 'clamp(36px, 5vw, 56px)',
+                    lineHeight: 1.02,
+                    fontWeight: 200,
+                    fontStyle: 'italic',
+                    letterSpacing: '-0.035em',
+                    color: i === 0 ? HP.text : 'rgba(255,255,255,0.78)',
+                    opacity: i === 0 ? 1 : 0.92,
+                  }}
+                >
+                  {m}.
+                </span>
+              ))}
             </div>
-            {l.note && <p style={{ fontSize: 13, color: HP.textSoft, marginTop: 10, fontFamily: 'Outfit, Inter, sans-serif', fontStyle: 'italic', lineHeight: 1.55, textWrap: 'pretty' }}>&ldquo;{l.note}&rdquo;</p>}
-          </button>
-        ))}
+          ) : (
+            <p style={{ fontFamily: 'Outfit, Inter, sans-serif', fontSize: 15, lineHeight: 1.5, color: HP.textMuted, fontStyle: 'italic', margin: 0, maxWidth: 380 }}>
+              Rate a few more films and tone patterns will start to surface here.
+            </p>
+          )}
+        </div>
+
+        {/* RIGHT — Mood weights as horizontal bars */}
+        <div>
+          <DNAKicker>Moods you return to</DNAKicker>
+          {hasMoods ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              {topMoodRows.map(m => (
+                <MoodWeightRow key={m.label} label={m.label} weight={m.weight} />
+              ))}
+            </div>
+          ) : (
+            <p style={{ fontFamily: 'Outfit, Inter, sans-serif', fontSize: 15, lineHeight: 1.5, color: HP.textMuted, fontStyle: 'italic', margin: 0, maxWidth: 380 }}>
+              Log a few more films and your mood signature comes into focus.
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* FOOTER — grace-note stats line (films · runtime · confidence) */}
+      <div
+        className="mt-14 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 border-t pt-7 lg:mt-16 lg:justify-start lg:pt-8"
+        style={{ borderColor: HP.border }}
+      >
+        <DNAStat value={filmsLogged} label={`film${filmsLogged === 1 ? '' : 's'} logged`} />
+        <span aria-hidden style={{ width: 1, height: 14, background: HP.borderStrong, opacity: 0.6 }} />
+        <DNAStat
+          value={runtime.value}
+          label={`${runtime.unit}${runtime.note ? ` · ${runtime.note}` : ''}`}
+        />
+        <span aria-hidden style={{ width: 1, height: 14, background: HP.borderStrong, opacity: 0.6 }} />
+        <DNAStat value={`${confidence}%`} label="taste confidence" />
       </div>
     </section>
   )
@@ -150,9 +205,9 @@ export function TasteMatch({ onOpenFriend }) {
   const { friends } = useHomeData()
   if (friends.length === 0) return null
   return (
-    <section style={{ padding: '72px 88px', borderTop: `1px solid ${HP.border}`, background: 'rgba(255,255,255,0.008)' }}>
-      <Heading kicker="Taste match" title="People who see what you see." sub="Friends with overlapping taste fingerprints — not just shared genres." />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 24 }}>
+    <section className="border-t px-5 py-12 sm:px-8 sm:py-14 lg:px-[88px] lg:py-[72px]" style={{ borderColor: HP.border, background: 'rgba(255,255,255,0.008)' }}>
+      <Heading kicker="Your taste twins" title="People who see what you see." sub="Watchers whose taste fingerprint overlaps with yours — sorted by match. Tap any twin to open their profile." />
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
         {friends.map(fr => (
           <button
             key={fr.userId}
@@ -185,72 +240,544 @@ export function TasteMatch({ onOpenFriend }) {
   )
 }
 
-export function CuratedLists({ onOpenList }) {
-  const { lists } = useHomeData()
-  if (lists.length === 0) return null
+// Single list card — mirrors the /lists page card aesthetic so a list
+// looks the same whether you encounter it on the home rail or the lists
+// hub. Palette gradient base, 3 posters fanned edge-to-edge across the
+// top half, bottom gradient veil tinted to the palette's c2 so the
+// title block is legible without darkening the whole card to black.
+function ListCard({ list, onClick }) {
+  const [hover, setHover] = useState(false)
+  const [c1, c2] = list.palette
+  const posters = (list.posters || []).slice(0, 3)
+  const hasPosters = posters.length > 0
   return (
-    <section style={{ padding: '72px 88px', borderTop: `1px solid ${HP.border}` }}>
-      <Heading kicker="Lists" title="Curated edits." sub="Hand-built collections, not algorithmic dumps." />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 24 }}>
-        {lists.map(L => {
-          const [c1, c2] = L.palette
-          return (
+    <button
+      type="button"
+      onClick={onClick}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{
+        cursor: 'pointer', background: 'transparent', border: 'none', padding: 0,
+        textAlign: 'left', fontFamily: 'inherit', color: 'inherit', width: '100%',
+        transition: 'transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1)',
+        transform: hover ? 'translateY(-4px)' : 'translateY(0)',
+      }}
+    >
+      <div
+        style={{
+          position: 'relative',
+          aspectRatio: '4/5',
+          borderRadius: 8,
+          overflow: 'hidden',
+          background: `linear-gradient(155deg, ${c1}, ${c2})`,
+          boxShadow: hover
+            ? `0 24px 60px -16px rgba(0,0,0,0.7), 0 0 36px ${c1}33`
+            : `0 18px 40px -14px rgba(0,0,0,0.6), 0 0 32px ${c1}22`,
+          transition: 'box-shadow 0.35s ease',
+        }}
+      >
+        {/* Poster strip — three real posters fanned across the top 62%
+            of the card. Falls through to the gradient when posters are
+            empty (cold-start curated config / list with no items yet). */}
+        {hasPosters && (
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '62%', display: 'flex', gap: 0 }}>
+            {posters.map((path, i) => (
+              <img
+                key={i}
+                src={tmdbImg(path, 'w185')}
+                alt=""
+                loading="lazy"
+                style={{
+                  flex: 1,
+                  width: 0,
+                  height: '100%',
+                  objectFit: 'cover',
+                  filter: i === 0 ? 'none' : `brightness(${0.92 - i * 0.06}) saturate(0.9)`,
+                }}
+              />
+            ))}
+          </div>
+        )}
+        {/* Bottom gradient veil — tinted by c2 so the title sits on the
+            palette instead of a generic black slab. */}
+        <div aria-hidden style={{ position: 'absolute', inset: 0, background: hasPosters
+          ? `linear-gradient(180deg, transparent 28%, ${c2}aa 55%, ${c2}f5 75%, ${c2})`
+          : `linear-gradient(180deg, transparent 30%, ${c2}cc 75%, ${c2})`
+        }} />
+        {/* Title block — title + italic blurb live inside the card on the
+            bottom-left; chevron sits flush to the right edge and animates
+            on hover the same way the /lists card hint does. */}
+        <div style={{ position: 'absolute', bottom: 18, left: 18, right: 18, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12, zIndex: 5 }}>
+          <div style={{ flex: 1, transform: hover ? 'translateY(-2px)' : 'translateY(0)', transition: 'transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1)' }}>
+            <h3 style={{ fontFamily: 'Outfit', fontSize: 22, lineHeight: 1.1, fontWeight: 500, color: '#fff', letterSpacing: '-0.02em', margin: 0, textWrap: 'balance', textShadow: '0 2px 12px rgba(0,0,0,0.45)' }}>{list.title}</h3>
+            {list.blurb && (
+              <p style={{ margin: '8px 0 0 0', fontSize: 12, lineHeight: 1.5, color: 'rgba(255,255,255,0.88)', fontFamily: 'Outfit, Inter, sans-serif', fontStyle: 'italic', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{list.blurb}</p>
+            )}
+          </div>
+          <ChevronRight
+            className="h-4 w-4 flex-none"
+            style={{
+              color: hover ? '#fff' : 'rgba(255,255,255,0.75)',
+              transform: hover ? 'translate(3px, -2px)' : 'translate(0, 0)',
+              transition: 'transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.2s ease',
+              marginBottom: 4,
+            }}
+            aria-hidden
+          />
+        </div>
+      </div>
+    </button>
+  )
+}
+
+// TasteTwinPulse — what films your algorithmically-similar users (taste
+// twins) have logged in the past few weeks. Earns its space ONLY when
+// there's real twin signal; hides cleanly otherwise. Pure read of
+// `useHomeData.twinPulse`.
+export function TasteTwinPulse({ onWatch }) {
+  const { twinPulse } = useHomeData()
+  const { user } = useAuthSession()
+  // Log impressions once the row materializes — twins are a social surface,
+  // 'trending' is the closest existing placement enum value ("what's moving
+  // in your circle"). Per-day-deduped by the table's unique key, so a same-
+  // day reload doesn't double-count.
+  const twinIds = (twinPulse || []).map(f => f.id).join(',')
+  useEffect(() => {
+    if (!user?.id || !twinPulse || twinPulse.length === 0) return
+    logSurfaceImpressions({
+      userId: user.id,
+      films: twinPulse,
+      placement: 'trending',
+      pickReasonType: 'twin_pulse',
+      pickReasonLabel: 'Twins watched',
+    })
+  }, [user?.id, twinIds, twinPulse])
+  if (!twinPulse || twinPulse.length === 0) return null
+  return (
+    <section className="border-t px-5 py-12 sm:px-8 sm:py-14 lg:px-[88px] lg:py-[72px]" style={{ borderColor: HP.border, background: 'rgba(255,255,255,0.008)' }}>
+      <Heading
+        kicker="Taste-twin pulse"
+        title="What your twins are watching."
+        sub="Films logged in the past few weeks by the watchers above — engine-ranked for you."
+      />
+      {/* Horizontal scroll — same pattern as the Feed-the-Engine row. */}
+      <div
+        className="-mx-5 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:-mx-8 lg:-mx-[88px]"
+        style={{ WebkitOverflowScrolling: 'touch' }}
+      >
+        <div className="flex gap-4 px-5 sm:gap-5 sm:px-8 lg:gap-6 lg:px-[88px]">
+          {twinPulse.map(film => (
             <button
-              key={L.id}
+              key={film.id}
               type="button"
-              onClick={() => onOpenList?.(L.slug)}
-              style={{
-                cursor: 'pointer', background: 'transparent', border: 'none', padding: 0,
-                textAlign: 'left', fontFamily: 'inherit', color: 'inherit',
-              }}
+              onClick={() => onWatch?.({ tmdbId: film.tmdb_id, id: film.id, title: film.title })}
+              className="w-[140px] flex-none sm:w-[170px] lg:w-[200px]"
+              style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit', color: 'inherit' }}
             >
-              <div style={{ aspectRatio: '4/5', borderRadius: 6, background: `linear-gradient(135deg, ${c1}33, ${c2}11)`, border: `1px solid ${HP.border}`, position: 'relative', overflow: 'hidden', marginBottom: 14 }}>
-                <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(circle at 70% 30%, ${c1}55, transparent 60%)` }} />
-                <div style={{ position: 'absolute', bottom: 16, left: 16, right: 16 }}>
-                  <div style={{ fontSize: 9, color: HP.text, fontFamily: 'Outfit', letterSpacing: '0.18em', textTransform: 'uppercase', opacity: 0.7, marginBottom: 6 }}>{L.count} films</div>
-                  <div style={{ fontFamily: 'Outfit, Inter, sans-serif', fontSize: 19, fontWeight: 500, color: HP.text, lineHeight: 1.1, letterSpacing: '-0.02em', textWrap: 'balance' }}>{L.title}</div>
+              <div style={{
+                position: 'relative', aspectRatio: '2/3', borderRadius: 8, overflow: 'hidden',
+                background: 'rgba(255,255,255,0.04)', marginBottom: 10,
+                boxShadow: '0 12px 32px -16px rgba(0,0,0,0.6)',
+              }}>
+                {film.poster_path ? (
+                  <img
+                    src={tmdbImg(film.poster_path, 'w342')}
+                    alt={film.title}
+                    loading="lazy"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                  />
+                ) : (
+                  <SmartImg film={{ id: film.id, title: film.title, year: film.release_year, poster: null }} style={{ width: '100%', height: '100%' }} />
+                )}
+                {/* Twin-count badge — top-right corner. Reads "N watched". */}
+                <div style={{
+                  position: 'absolute', top: 8, right: 8,
+                  padding: '4px 8px', borderRadius: 999,
+                  background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(8px)',
+                  fontFamily: 'Outfit', fontSize: 10, fontWeight: 600, color: HP.text,
+                  letterSpacing: '0.06em',
+                }}>
+                  {film.twinCount} watched
                 </div>
               </div>
-              <div style={{ fontSize: 12, color: HP.textMuted, fontFamily: 'Outfit, Inter, sans-serif', textWrap: 'pretty', lineHeight: 1.5 }}>{L.blurb}</div>
+              <div style={{ fontFamily: 'Outfit, Inter, sans-serif', fontSize: 13, fontWeight: 500, color: HP.text, lineHeight: 1.25, letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{film.title}</div>
+              <div style={{ fontSize: 10, color: HP.textMuted, fontFamily: 'Outfit', marginTop: 3, letterSpacing: '0.06em' }}>
+                {film.release_year || ''}{film.primary_genre ? ` · ${film.primary_genre}` : ''}
+              </div>
             </button>
-          )
-        })}
+          ))}
+        </div>
       </div>
     </section>
   )
 }
 
-export function QuickLog({ onLog }) {
-  const examples = ['Past Lives', 'Whiplash', 'The Handmaiden', 'Drive']
-  const [query, setQuery] = useState('')
+export function CuratedLists({ onOpenList }) {
+  const { lists } = useHomeData()
+  // Mobile carousel: track which card is centered so we can light the
+  // matching dot indicator. sm+ uses a grid so this state is inert there.
+  const scrollerRef = useRef(null)
+  const [activeIdx, setActiveIdx] = useState(0)
+  const handleScroll = useCallback(() => {
+    const el = scrollerRef.current
+    if (!el || lists.length === 0) return
+    // Each card slot is the scroller width minus gap-padding, divided by
+    // visible-card-count. We approximate by using scrollWidth / count which
+    // is accurate enough for a 4-card row to map scrollLeft → active idx.
+    const slot = el.scrollWidth / lists.length
+    const idx = Math.round(el.scrollLeft / slot)
+    setActiveIdx(Math.max(0, Math.min(idx, lists.length - 1)))
+  }, [lists.length])
+  // Reset to first card when the lists themselves change (e.g. mood switch
+  // produced a fresh personal-lists set). Avoids the dots showing idx 3
+  // while the new row's been scrolled back to start.
+  useEffect(() => { setActiveIdx(0) }, [lists])
+  if (lists.length === 0) return null
+  // Personal lists set `kind` to director/similar/genre/decade.
+  // The cold-start fallback path marks every list with kind: 'curated'.
+  const isCurated = lists.every(L => L.kind === 'curated' || L.kind === undefined)
   return (
-    <section style={{ padding: '72px 88px 96px', borderTop: `1px solid ${HP.border}`, background: 'rgba(255,255,255,0.008)' }}>
-      <div style={{ maxWidth: 720 }}>
-        <Heading kicker="Feed the engine" title="Log a film you’ve seen." sub="Every film you log makes tomorrow’s briefing sharper." />
-        <form
-          onSubmit={(e) => { e.preventDefault(); onLog?.(query) }}
-          style={{ display: 'flex', gap: 0, border: `1px solid ${HP.border}`, borderRadius: 8, background: 'rgba(255,255,255,0.02)', padding: 4 }}
+    <section className="border-t px-5 py-12 sm:px-8 sm:py-14 lg:px-[88px] lg:py-[72px]" style={{ borderColor: HP.border }}>
+      {/* Custom header — Heading + "View all" CTA on the right edge.
+          Mobile stacks the CTA below the sub-copy, desktop pins it
+          baseline-aligned with the section title. Copy adapts depending on
+          whether the row is personal (default for engaged users) or the
+          static curated fallback (cold-start path). */}
+      <header
+        className="mb-9 flex flex-col gap-3 sm:mb-10 lg:mb-12 lg:flex-row lg:items-end lg:justify-between lg:gap-8"
+      >
+        <div>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.24em', textTransform: 'uppercase', color: HP.purple, marginBottom: 14, display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ height: 1, width: 22, background: HP.purple, opacity: 0.6 }} />{isCurated ? 'Lists' : 'For you'}
+          </div>
+          <h2 style={{ fontFamily: 'Outfit, Inter, sans-serif', fontSize: 'clamp(28px, 4.5vw, 44px)', lineHeight: 1.0, fontWeight: 500, letterSpacing: '-0.035em', color: HP.text, margin: 0, textWrap: 'balance' }}>
+            {isCurated ? 'Curated edits.' : 'Lists, hand-cut for you.'}
+          </h2>
+          <p style={{ marginTop: 14, fontSize: 14, color: HP.textMuted, maxWidth: 540, fontFamily: 'Outfit, Inter, sans-serif', textWrap: 'pretty' }}>
+            {isCurated
+              ? 'Hand-built collections, not algorithmic dumps.'
+              : 'Pulled from your watch history. Click any list to dig in.'}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => onOpenList?.()}
+          className="group inline-flex items-center gap-1.5 self-start rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-xs font-medium text-white/80 transition-all duration-200 hover:border-white/25 hover:bg-white/[0.08] hover:text-white active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 lg:self-end"
+          style={{ fontFamily: 'Outfit', letterSpacing: '0.04em' }}
         >
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search a film you watched recently…"
-            style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', padding: '14px 16px', color: HP.text, fontFamily: 'Outfit, Inter, sans-serif', fontSize: 15 }}
+          View all
+          <ChevronRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden />
+        </button>
+      </header>
+      {/* Below sm: horizontal snap carousel. Cards are ~78% viewport wide so
+          the next card peeks ~22% — a clear "swipe me" affordance without
+          relying on dots alone. The negative -mx-5 + matching px-5 lets the
+          first card sit flush with the section's content edge while the
+          scroll surface bleeds to the screen edge (so the peek isn't cut
+          off by the section padding). sm+ reverts to the original grid. */}
+      <div
+        ref={scrollerRef}
+        onScroll={handleScroll}
+        className="-mx-5 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-6 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4"
+      >
+        {lists.map(L => (
+          <div key={L.id} className="w-[78%] flex-none snap-start sm:w-auto">
+            <ListCard list={L} onClick={() => onOpenList?.(L.slug, L)} />
+          </div>
+        ))}
+      </div>
+      {/* Dots — mobile only. Active dot widens + tints purple; rest stay
+          small + white-faint. Decorative — keyboard users get native
+          horizontal-scroll affordance from the scroller itself. */}
+      <div className="mt-5 flex justify-center gap-1.5 sm:hidden" aria-hidden>
+        {lists.map((_, i) => (
+          <span
+            key={i}
+            style={{
+              height: 6,
+              width: i === activeIdx ? 20 : 6,
+              borderRadius: 999,
+              background: i === activeIdx ? HP.purple : 'rgba(255,255,255,0.18)',
+              transition: 'all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)',
+            }}
           />
-          <button type="submit" style={{ padding: '10px 20px', borderRadius: 6, background: HP.purple, border: 'none', color: '#0A0510', fontFamily: 'Outfit', fontWeight: 600, fontSize: 13, letterSpacing: '0.02em', cursor: 'pointer' }}>Log it &rarr;</button>
-        </form>
-        <div style={{ marginTop: 18, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit' }}>
-          <span style={{ letterSpacing: '0.08em', textTransform: 'uppercase' }}>Try</span>
-          {examples.map(e => (
-            <button
-              key={e}
-              type="button"
-              onClick={() => onLog?.(e)}
-              style={{ padding: '5px 11px', borderRadius: 999, background: 'transparent', border: `1px solid ${HP.border}`, color: HP.textSoft, fontFamily: 'Outfit', fontSize: 12, cursor: 'pointer' }}
-            >
-              {e}
-            </button>
-          ))}
+        ))}
+      </div>
+    </section>
+  )
+}
+
+// One tile in the quick-log grid. Click anywhere on the tile = mark
+// watched. After click, the tile shows a brief confirmation state then
+// the parent removes it from the row.
+function SeenTile({ film, onConfirm }) {
+  const [state, setState] = useState('idle') // idle | saving | saved | error
+  const handleClick = async () => {
+    if (state !== 'idle') return
+    setState('saving')
+    try {
+      await onConfirm(film)
+      setState('saved')
+      // Parent removes the tile via local state after a short beat.
+    } catch (err) {
+      console.error('[SeenTile] confirm error:', err)
+      setState('error')
+      setTimeout(() => setState('idle'), 1800)
+    }
+  }
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      disabled={state === 'saving' || state === 'saved'}
+      style={{
+        background: 'transparent', border: 'none', padding: 0, cursor: state === 'idle' ? 'pointer' : 'default',
+        textAlign: 'left', fontFamily: 'inherit', color: 'inherit', width: '100%',
+        opacity: state === 'saved' ? 0.45 : 1,
+        transition: 'opacity 0.4s ease',
+      }}
+    >
+      <div style={{
+        position: 'relative', aspectRatio: '2/3', borderRadius: 8, overflow: 'hidden',
+        background: 'rgba(255,255,255,0.04)', marginBottom: 10,
+        boxShadow: '0 12px 32px -16px rgba(0,0,0,0.6)',
+      }}>
+        {film.poster_path ? (
+          <img
+            src={tmdbImg(film.poster_path, 'w342')}
+            alt={film.title}
+            loading="lazy"
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          />
+        ) : (
+          <SmartImg film={{ id: film.id, title: film.title, year: film.release_year, poster: null }} style={{ width: '100%', height: '100%' }} />
+        )}
+        {/* Saved overlay — confirms the action visually before unmount */}
+        {(state === 'saved' || state === 'saving') && (
+          <div style={{
+            position: 'absolute', inset: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'rgba(8,6,14,0.72)', backdropFilter: 'blur(2px)',
+            transition: 'opacity 0.2s ease',
+          }}>
+            <div style={{
+              width: 44, height: 44, borderRadius: 999,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: state === 'saved' ? 'rgba(34,197,94,0.92)' : 'rgba(255,255,255,0.18)',
+              color: '#fff',
+            }}>
+              <Check className="h-5 w-5" />
+            </div>
+          </div>
+        )}
+        {state === 'error' && (
+          <div style={{
+            position: 'absolute', bottom: 0, left: 0, right: 0,
+            padding: '6px 8px', background: 'rgba(239,68,68,0.85)',
+            color: '#fff', fontSize: 10, fontFamily: 'Outfit', fontWeight: 600, textAlign: 'center',
+            letterSpacing: '0.04em', textTransform: 'uppercase',
+          }}>
+            Try again
+          </div>
+        )}
+      </div>
+      <div style={{ fontFamily: 'Outfit, Inter, sans-serif', fontSize: 13, fontWeight: 500, color: HP.text, lineHeight: 1.25, letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{film.title}</div>
+      <div style={{ fontSize: 10, color: HP.textMuted, fontFamily: 'Outfit', marginTop: 3, letterSpacing: '0.06em' }}>
+        {film.release_year || ''}{film.primary_genre ? ` · ${film.primary_genre}` : ''}
+      </div>
+    </button>
+  )
+}
+
+export function QuickLog({ onLog }) {
+  const { seenCandidates } = useHomeData()
+  const { user } = useAuthSession()
+  // Local "logged-this-session" state — tiles tapped during this visit get
+  // removed immediately. Next /home load picks up the change via the
+  // watched_ids query, so this state is just for in-session continuity.
+  const [confirmedIds, setConfirmedIds] = useState(() => new Set())
+
+  const handleConfirm = useCallback(async (film) => {
+    if (!user?.id) throw new Error('not signed in')
+    const { error } = await supabase.from('user_history').insert({
+      user_id: user.id,
+      movie_id: film.id,
+      watched_at: new Date().toISOString(),
+      source: 'home_quicklog',
+      watch_duration_minutes: null,
+      mood_session_id: null,
+    })
+    if (error) throw error
+    // Remove after a short beat so the user sees the saved checkmark.
+    setTimeout(() => {
+      setConfirmedIds(prev => {
+        const next = new Set(prev)
+        next.add(film.id)
+        return next
+      })
+    }, 650)
+  }, [user?.id])
+
+  const visible = useMemo(
+    () => (seenCandidates || []).filter(f => !confirmedIds.has(f.id)),
+    [seenCandidates, confirmedIds],
+  )
+
+  // Log impressions once when the candidate set materializes. These are
+  // engine-guessed "you probably saw this" films — the learning loop NEEDS
+  // to know which we surfaced (so a click→confirm vs no-click can be
+  // attributed). 'quick_picks' is the matching placement enum value.
+  const candidateIds = (seenCandidates || []).map(f => f.id).join(',')
+  useEffect(() => {
+    if (!user?.id || !seenCandidates || seenCandidates.length === 0) return
+    logSurfaceImpressions({
+      userId: user.id,
+      films: seenCandidates,
+      placement: 'quick_picks',
+      pickReasonType: 'seen_candidates',
+      pickReasonLabel: 'Engine guess: probably seen',
+    })
+  }, [user?.id, candidateIds, seenCandidates])
+
+  // Hidden entirely when there are no candidates AND no user (cold-start
+  // or signed-out). Engaged users will always have something to confirm.
+  if (!user?.id || (visible.length === 0 && confirmedIds.size === 0)) return null
+
+  // After the user has marked everything in the row, show a celebratory
+  // empty state with the typed-search fallback so the surface still
+  // earns its space.
+  const allConfirmed = visible.length === 0
+
+  return (
+    <section className="border-t px-5 py-12 pb-16 sm:px-8 sm:py-14 sm:pb-20 lg:px-[88px] lg:py-[72px] lg:pb-24" style={{ borderColor: HP.border, background: 'rgba(255,255,255,0.008)' }}>
+      <Heading
+        kicker="Feed the engine"
+        title={allConfirmed ? 'Nice — your taste profile just got sharper.' : 'Have you seen any of these?'}
+        sub={allConfirmed
+          ? 'These were our best guesses. Want to log something else?'
+          : 'One tap per film you’ve already watched. Each one sharpens tomorrow’s briefing.'}
+      />
+
+      {!allConfirmed && (
+        // Netflix-style horizontal scroll. The outer wrapper uses negative
+        // margins to bleed scroll all the way to the viewport edges, then
+        // the inner row re-pads to keep the first/last tile aligned with
+        // the section's content rhythm. Free-scrolling (no snap) — snap
+        // was clipping the first tile past the padding edge.
+        <div
+          className="-mx-5 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:-mx-8 lg:-mx-[88px]"
+          style={{ WebkitOverflowScrolling: 'touch' }}
+        >
+          <div className="flex gap-4 px-5 sm:gap-5 sm:px-8 lg:gap-6 lg:px-[88px]">
+            {visible.map(film => (
+              <div
+                key={film.id}
+                className="w-[140px] flex-none sm:w-[170px] lg:w-[200px]"
+              >
+                <SeenTile film={film} onConfirm={handleConfirm} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Catalog quick-jump — secondary to the row, kept because not
+          everyone wants the mood-driven Discover path. Routes to /browse
+          (the FeelFlick catalog). The page-end card below offers the
+          mood path; this pill offers the catalog path — two distinct
+          exits, not redundant. */}
+      <div style={{ marginTop: allConfirmed ? 8 : 32, paddingTop: allConfirmed ? 0 : 24, borderTop: allConfirmed ? 'none' : `1px solid ${HP.border}` }}>
+        <p style={{ fontSize: 12, color: HP.textMuted, fontFamily: 'Outfit', marginBottom: 10, letterSpacing: '0.04em' }}>
+          {allConfirmed ? 'Browse the catalog:' : 'Don’t see what you watched? Browse the catalog:'}
+        </p>
+        <button
+          type="button"
+          onClick={() => onLog?.()}
+          className="group inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-5 py-2.5 transition-all duration-200 hover:border-white/25 hover:bg-white/[0.08] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+          style={{ fontFamily: 'Outfit', fontSize: 13, fontWeight: 500, color: HP.textSoft, letterSpacing: '0.02em' }}
+        >
+          Open Browse
+          <ChevronRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden />
+        </button>
+      </div>
+    </section>
+  )
+}
+
+// PageEndCard — closing moment for /home. One focused CTA into Discover
+// (FeelFlick's mood-engine surface). The catalog/Browse remains available
+// from the top nav; here we make the strongest single offer instead of
+// asking the user to choose. Mood-tinted gradient adapts to the active
+// mood so the closer carries the user's current glow.
+export function PageEndCard({ currentMood, onDiscover }) {
+  const tint = currentMood?.hex || HP.purple
+  return (
+    <section className="border-t px-5 py-16 pb-24 sm:px-8 sm:py-20 sm:pb-28 lg:px-[88px] lg:py-[96px] lg:pb-[112px]" style={{ borderColor: HP.border }}>
+      <div
+        style={{
+          position: 'relative',
+          borderRadius: 14,
+          overflow: 'hidden',
+          padding: '60px 32px',
+          background: `
+            radial-gradient(ellipse 60% 80% at 20% 100%, ${tint}26, transparent 60%),
+            radial-gradient(ellipse 50% 70% at 100% 0%, rgba(167,139,250,0.14), transparent 55%),
+            linear-gradient(135deg, rgba(8,6,14,0.92) 0%, rgba(8,6,14,0.78) 100%)
+          `,
+          border: `1px solid ${HP.border}`,
+          textAlign: 'center',
+        }}
+        className="sm:px-12 lg:py-[88px]"
+      >
+        <div style={{
+          fontSize: 11, fontWeight: 700, letterSpacing: '0.32em', textTransform: 'uppercase',
+          color: HP.purple, marginBottom: 16, display: 'inline-flex', alignItems: 'center', gap: 12,
+        }}>
+          <span aria-hidden style={{ height: 1, width: 28, background: HP.purple, opacity: 0.6 }} />
+          Keep exploring
+          <span aria-hidden style={{ height: 1, width: 28, background: HP.purple, opacity: 0.6 }} />
+        </div>
+        <h2 style={{
+          fontFamily: 'Outfit, Inter, sans-serif',
+          fontSize: 'clamp(32px, 4.4vw, 56px)',
+          lineHeight: 1.02,
+          fontWeight: 300,
+          letterSpacing: '-0.04em',
+          color: HP.text,
+          margin: '0 auto 14px auto',
+          maxWidth: 720,
+          textWrap: 'balance',
+        }}>
+          Tonight has more than one <em style={{ fontStyle: 'italic', color: tint, fontWeight: 400 }}>glow.</em>
+        </h2>
+        <p style={{
+          fontFamily: 'Outfit, Inter, sans-serif',
+          fontSize: 'clamp(14px, 1.1vw, 16px)',
+          lineHeight: 1.55,
+          color: HP.textMuted,
+          margin: '0 auto 32px auto',
+          maxWidth: 560,
+          textWrap: 'pretty',
+        }}>
+          Let Discover translate your mood into a movie that actually fits tonight.
+        </p>
+        <div className="flex items-center justify-center">
+          <button
+            type="button"
+            onClick={() => onDiscover?.()}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 10,
+              padding: '14px 24px', borderRadius: 8,
+              background: HP_GRAD, border: 'none', color: '#fff',
+              fontFamily: 'Outfit', fontSize: 14, fontWeight: 600, letterSpacing: '0.02em',
+              cursor: 'pointer',
+              boxShadow: '0 14px 32px -10px rgba(236,72,153,0.5)',
+            }}
+            className="transition-transform duration-200 active:scale-[0.98]"
+          >
+            Discover by mood
+            <ChevronRight className="h-4 w-4" aria-hidden />
+          </button>
         </div>
       </div>
     </section>

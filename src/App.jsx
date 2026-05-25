@@ -12,12 +12,12 @@ export default function App() {
   return (
     <Sentry.ErrorBoundary
       fallback={({ error }) => (
-        <div className="min-h-screen bg-neutral-950 flex items-center justify-center text-white text-center p-8">
+        <div className="min-h-screen bg-black flex items-center justify-center text-white text-center p-8">
           <div>
             <h1 className="text-2xl font-bold mb-2">
               Something went wrong
             </h1>
-            <p className="text-neutral-400 text-sm">
+            <p className="text-white/60 text-sm">
               {error?.message || 'An unexpected error occurred'}
             </p>
           </div>

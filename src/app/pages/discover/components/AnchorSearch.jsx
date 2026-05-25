@@ -91,7 +91,7 @@ export default function AnchorSearch({ onSelect, onSkip }) {
 
         {/* Results dropdown */}
         {results.length > 0 && (
-          <div className="absolute top-full left-0 right-0 mt-2 rounded-xl border border-white/10 bg-neutral-950/95 backdrop-blur-md overflow-hidden z-10">
+          <div className="absolute top-full left-0 right-0 mt-2 rounded-xl border border-white/10 bg-black/95 backdrop-blur-md overflow-hidden z-10">
             {results.map((movie) => (
               <button
                 key={movie.id}

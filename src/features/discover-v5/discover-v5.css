@@ -53,3 +53,225 @@ blockquote { quotes: "\201C" "\201D"; }
   90%  { opacity:1; }
   100% { transform: translateY(-30vh); opacity:0; }
 }
+
+/* Trailer modal — hover/focus state for the X close button. Inline styles
+ * handle resting + transition; CSS handles hover state since inline doesn't
+ * support pseudo-classes. */
+.ff-trailer-close:hover {
+  background: rgba(0, 0, 0, 0.88) !important;
+  border-color: rgba(255, 255, 255, 0.45) !important;
+  transform: scale(1.05);
+}
+.ff-trailer-close:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.5);
+  outline-offset: 2px;
+}
+
+/* ============================================================================
+ * Responsive layout — /discover stages
+ *
+ * The file uses inline styles heavily for the cinematic visuals (mood orb
+ * positions, gradient halos, animated transforms). Layout that needs to
+ * adapt at breakpoints lives here as CSS classes so the inline styles can
+ * stay focused on visual identity.
+ *
+ * Breakpoint: 640px (matches Tailwind's `sm`). Mobile-first defaults below;
+ * larger screens get their richer layouts via min-width media queries.
+ * ========================================================================== */
+
+/* Section padding: tight on mobile, breathy on desktop. Used by Stage 1
+ * (Mood), Stage 2 (Night), and Stage 3 (Pick) so all three share the same
+ * gutter rhythm. Bottom pad clears the fixed mobile bottom-nav (64px nav +
+ * extra room for any sticky CTAs in the section). */
+.ff-discover-section {
+  padding: 24px 18px 96px;
+}
+@media (min-width: 640px) {
+  .ff-discover-section { padding: 24px 32px 80px; }
+}
+@media (min-width: 900px) {
+  .ff-discover-section { padding: 24px 88px 80px; }
+}
+
+/* Stage 1 — mood-orb canvas. The 16/9 aspect ratio works on desktop where
+ * width is generous, but on mobile that collapses height to ~180px and the
+ * 8 percent-positioned orbs collide. Swap to a portrait aspect on phones
+ * so the orbs have room to breathe and labels don't overlap. */
+.ff-mood-canvas {
+  aspect-ratio: 5 / 6;          /* portrait — gives ~580px height at 480px wide */
+  margin: 16px auto 0;
+}
+@media (min-width: 640px) {
+  .ff-mood-canvas { aspect-ratio: 16 / 10; margin-top: 20px; }
+}
+@media (min-width: 900px) {
+  .ff-mood-canvas { aspect-ratio: 16 / 9; margin-top: 24px; }
+}
+
+/* Mood orbs — smaller on mobile so 3 selected orbs (each growing on
+ * select) don't crowd into each other's text. Sizes meet Apple's 44px
+ * touch-target floor even at the smallest unselected state. */
+.ff-mood-orb { width: 42px; height: 42px; }
+.ff-mood-orb[data-on='true'] { width: 56px; height: 56px; }
+@media (min-width: 640px) {
+  .ff-mood-orb { width: 48px; height: 48px; }
+  .ff-mood-orb[data-on='true'] { width: 64px; height: 64px; }
+}
+@media (min-width: 900px) {
+  .ff-mood-orb { width: 54px; height: 54px; }
+  .ff-mood-orb[data-on='true'] { width: 72px; height: 72px; }
+}
+
+.ff-mood-badge { width: 18px; height: 18px; font-size: 10px; }
+@media (min-width: 640px) { .ff-mood-badge { width: 20px; height: 20px; font-size: 10px; } }
+@media (min-width: 900px) { .ff-mood-badge { width: 22px; height: 22px; font-size: 11px; } }
+
+.ff-mood-label { font-size: 12px; letter-spacing: -0.005em; }
+.ff-mood-button.is-on .ff-mood-label { font-size: 13px; }
+@media (min-width: 640px) {
+  .ff-mood-label { font-size: 13px; }
+  .ff-mood-button.is-on .ff-mood-label { font-size: 14px; }
+}
+@media (min-width: 900px) {
+  .ff-mood-label { font-size: 13px; }
+  .ff-mood-button.is-on .ff-mood-label { font-size: 15px; }
+}
+
+/* Hint text below selected orbs — desktop only. On mobile the canvas is
+ * too dense for 3 selected hints to render without overlapping neighbour
+ * orbs; the label + glow + numbered badge already communicate selection. */
+.ff-mood-hint { display: none; }
+@media (min-width: 900px) {
+  .ff-mood-hint { display: block; font-size: 10px; max-width: 140px; }
+}
+
+/* Stage 2 — option grids. Mobile gets 2-col so each option has enough room
+ * for its label + italic sub-line. Desktop expands. */
+.ff-night-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+}
+@media (min-width: 480px) {
+  .ff-night-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (min-width: 640px) {
+  .ff-night-grid--time { grid-template-columns: repeat(4, 1fr); }
+  .ff-night-grid--who  { grid-template-columns: repeat(3, 1fr); }
+  .ff-night-grid--energy { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* Stage 2 + Stage 1 action bars — stack on mobile so the primary CTA gets
+ * full-width touch target and never overlaps the back/meta. Desktop keeps
+ * the spread-out row layout. */
+.ff-stage-action-bar {
+  margin-top: 28px;
+  display: flex;
+  flex-direction: column-reverse;  /* primary CTA on top in flow → bottom of card */
+  align-items: stretch;
+  gap: 10px;
+  max-width: 1080px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.ff-stage-action-bar > * { width: 100%; }
+.ff-stage-action-bar__meta {
+  text-align: center;
+  order: 1;
+}
+@media (min-width: 640px) {
+  .ff-stage-action-bar {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .ff-stage-action-bar > * { width: auto; }
+  .ff-stage-action-bar__meta { order: 0; }
+}
+
+/* Stage 3 — magazine spread. Two-column (poster left, article right) on
+ * desktop; single-column linear flow on mobile. The spine gutter + film
+ * strip ribbon + IN THIS ISSUE sidebar are pure decoration and would crowd
+ * a phone screen, so they hide cleanly below the breakpoint. */
+.ff-stage3-spread {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+  position: relative;
+  max-width: 1080px;
+  margin: 0 auto;
+}
+.ff-stage3-spread__left,
+.ff-stage3-spread__right {
+  padding-left: 0;
+  padding-right: 0;
+}
+@media (min-width: 900px) {
+  .ff-stage3-spread { grid-template-columns: 360px 1fr; }
+  .ff-stage3-spread__left  { padding-right: 36px; }
+  .ff-stage3-spread__right { padding-left: 48px; }
+}
+
+/* Decorative elements that hide on mobile (the gutter spine between the
+ * two pages and the IN THIS ISSUE table-of-contents sidebar). Both purely
+ * visual — no information loss when hidden. */
+.ff-desktop-only { display: none; }
+@media (min-width: 900px) {
+  .ff-desktop-only { display: block; }
+}
+
+/* Film strip ribbon — desktop-only, needs flex layout when visible. */
+.ff-film-strip { display: none; }
+@media (min-width: 900px) {
+  .ff-film-strip {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+/* Stage 3 action buttons — let them wrap on narrow screens so the primary
+ * CTA doesn't get pushed off-screen. */
+.ff-stage3-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+.ff-stage3-actions > button { flex: 1 1 auto; min-width: 140px; }
+@media (min-width: 640px) {
+  .ff-stage3-actions > button { flex: 0 0 auto; min-width: 0; }
+}
+
+/* Stage 3 alternates row — 2 cards side-by-side on desktop, stacked on
+ * mobile. The cards themselves are buttons (full-card click target). */
+.ff-stage3-alternates {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+@media (max-width: 760px) {
+  .ff-stage3-alternates {
+    grid-template-columns: 1fr;
+  }
+}
+.ff-alt-card:hover {
+  background: rgba(255, 255, 255, 0.045);
+  border-color: rgba(255, 255, 255, 0.18);
+  transform: translateY(-1px);
+}
+.ff-alt-card:focus-visible {
+  outline: 2px solid rgba(167, 139, 250, 0.6);
+  outline-offset: 2px;
+}
+
+/* Stage 3 — "Almost got" + anti-rec block becomes a single column on
+ * mobile so each card has reading room. */
+.ff-stage3-aftercards {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 28px;
+}
+@media (min-width: 900px) {
+  .ff-stage3-aftercards { grid-template-columns: 1.4fr 1fr; gap: 32px; }
+}

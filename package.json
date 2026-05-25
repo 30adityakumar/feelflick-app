@@ -25,6 +25,7 @@
     "axios": "^1.16.0",
     "dotenv": "^17.2.3",
     "framer-motion": "^12.23.24",
+    "html-to-image": "^1.11.13",
     "lucide-react": "^0.525.0",
     "openai": "^6.10.0",
     "posthog-js": "^1.374.2",

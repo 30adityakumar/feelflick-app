@@ -2,6 +2,7 @@
 import { supabase } from '@/shared/lib/supabase/client'
 import { fetchJson } from '@/shared/api/tmdb'
 import { computeUserProfileV3 } from './recommendations'
+import { getTasteFingerprint } from './tasteCache'
 import { track } from './analytics'
 
 // === HELPERS ===
@@ -103,10 +104,21 @@ async function ensureMovieExists(tmdbMovie) {
  *   favoriteMovies: object[],
  *   ratings: Record<number, number>,
  *   moods?: string[],  // Onboarding mood baseline keys (e.g. 'cozy', 'wired'). Optional for legacy flow.
+ *   markAuthComplete?: boolean,  // Defaults true. Set false to defer the auth.updateUser
+ *                                 // flip — callers that want to play a celebration
+ *                                 // animation before PostAuthGate auto-navigates can
+ *                                 // skip it here and call markOnboardingAuthComplete()
+ *                                 // themselves when ready.
  * }} params
  * @returns {Promise<void>}
  */
-export async function completeOnboarding({ session, selectedGenres, favoriteMovies, ratings, moods = [] }) {
+export async function markOnboardingAuthComplete() {
+  await supabase.auth.updateUser({
+    data: { onboarding_complete: true, has_onboarded: true },
+  })
+}
+
+export async function completeOnboarding({ session, selectedGenres, favoriteMovies, ratings, moods = [], markAuthComplete = true }) {
   const user = session?.user
   if (!user?.id) throw new Error('No authenticated user.')
 
@@ -183,10 +195,13 @@ export async function completeOnboarding({ session, selectedGenres, favoriteMovi
   }
   await supabase.from('users').update(userUpdate).eq('id', user_id)
 
-  // 6. Update auth metadata so PostAuthGate stops redirecting to /onboarding
-  await supabase.auth.updateUser({
-    data: { onboarding_complete: true, has_onboarded: true },
-  })
+  // 6. Update auth metadata so PostAuthGate stops redirecting to /onboarding.
+  //    Skip when the caller wants to defer this flip until after a celebration
+  //    animation completes — otherwise PostAuthGate fires onAuthStateChange
+  //    and yanks the user to /home mid-animation.
+  if (markAuthComplete) {
+    await markOnboardingAuthComplete()
+  }
 
   // 7. Compute profile synchronously — /home needs it on first load
   try {
@@ -205,6 +220,18 @@ export async function completeOnboarding({ session, selectedGenres, favoriteMovi
     }
   } catch (err) {
     console.warn('Profile computation failed during onboarding:', err)
+  }
+
+  // 7b. Pre-warm the taste fingerprint cache (mood/tone/fit aggregates over the
+  //     user's onboarding picks). Without this, /home's Cinematic DNA section
+  //     renders placeholders on first visit and only populates when the user
+  //     later opens /profile or /watchlist (which both call getTasteFingerprint).
+  //     Onboarding gives us 5+ history rows so MIN_FILMS_FOR_FINGERPRINT passes.
+  //     Non-fatal — /home falls back to placeholders if this errors.
+  try {
+    await getTasteFingerprint(user_id)
+  } catch (err) {
+    console.warn('Taste fingerprint pre-warm failed (non-fatal):', err)
   }
 
   // 8. Analytics

@@ -3,7 +3,8 @@
 // from useHomeData. HPNav is removed — AppShell owns the global TopNav.
 
 import { useState } from 'react'
-import { POSTER, HP, HP_GRAD, gradForId } from './data'
+import { HP, HP_GRAD, gradForId } from './data'
+import { tmdbImg, posterSrcSet } from '@/shared/api/tmdb'
 
 export function FFMark({ size = 28 }) {
   return (
@@ -20,11 +21,24 @@ export function FFMark({ size = 28 }) {
 
 // `film` is now an object: { id, tmdbId, title, year, poster, ... } — the
 // shape useHomeData.shapeFilm returns. Pass that directly.
-export function SmartImg({ film, alt, style, big = false }) {
+//
+// Responsive serving: each <img> emits a srcSet with TMDB poster widths
+// (w154/w342/w500). The browser picks the right one based on the rendered
+// width × device pixel ratio. Pass `sizes` to tell the browser what width
+// the image renders at — defaults assume a poster-card-in-a-3-col-grid:
+// full width on mobile, half on tablet, ~260px on desktop. Callers
+// rendering smaller thumbnails should override `sizes`.
+export function SmartImg({
+  film,
+  alt,
+  style,
+  big = false,
+  sizes = '(min-width: 1024px) 260px, (min-width: 640px) 50vw, 100vw',
+}) {
   const [failed, setFailed] = useState(false)
   if (!film) return <div style={{ ...style, background: 'rgba(255,255,255,0.04)' }} />
-  const url = POSTER(film.poster)
-  if (failed || !url) {
+  const path = film.poster
+  if (failed || !path) {
     const [a, b] = gradForId(film.id)
     return (
       <div style={{ ...style, display: 'flex', alignItems: 'flex-end', padding: big ? 28 : 14, background: `linear-gradient(135deg, ${a} 0%, ${b} 100%)`, position: 'relative', overflow: 'hidden' }}>
@@ -36,7 +50,17 @@ export function SmartImg({ film, alt, style, big = false }) {
       </div>
     )
   }
-  return <img src={url} alt={alt || film.title} style={style} onError={() => setFailed(true)} loading="lazy" />
+  return (
+    <img
+      src={tmdbImg(path, 'w342')}
+      srcSet={posterSrcSet(path)}
+      sizes={sizes}
+      alt={alt || film.title}
+      style={style}
+      onError={() => setFailed(true)}
+      loading="lazy"
+    />
+  )
 }
 
 export function Stars({ value, size = 12 }) {

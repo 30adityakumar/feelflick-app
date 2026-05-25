@@ -34,7 +34,7 @@ export default function BrandSplash({ label, error = null }) {
 
       <div className="relative flex flex-col items-center gap-8 px-4 text-center">
         {/* Wordmark */}
-        <span className="text-3xl font-black tracking-tight bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
+        <span className="text-3xl font-black tracking-tight bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent">
           FEELFLICK
         </span>
 

@@ -80,7 +80,7 @@ export default function MoodBrowsePage() {
   const [hasMore, setHasMore] = useState(true)
 
   const title = spec ? formatTitle(spec) : 'Browse'
-  usePageMeta({ title: `${title} · FeelFlick` })
+  usePageMeta({ title: `${title} — FeelFlick` })
 
   useEffect(() => {
     setPage(0)

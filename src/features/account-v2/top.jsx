@@ -1,30 +1,22 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
+import { formatMonthYear } from '@/shared/lib/format/date'
 import { HP, HP_GRAD } from './data'
 import { useAccountData } from './useAccountData'
 
-// FeelFlick — /account-v2 top: Masthead, IdentityCard, Notifications, EnginePrefs.
-// The page is rendered inside AppShell which already provides the global TopNav —
-// the prototype's internal AccountNav was redundant and has been removed.
+// FeelFlick — /account-v2 top: Masthead, IdentityCard, Notifications.
+// Engine + display knobs live in /preferences ("The dials"). Account is for
+// identity / plan / privacy / sessions only.
 
-// ── Masthead ────────────────────────────────────────────────────
+// ── Masthead — single kicker bar; the URL/nav already say "Account" ──
 function Masthead() {
   return (
-    <section style={{ padding:'72px 88px 32px', position:'relative' }}>
-      <div style={{ position:'absolute', inset:0, pointerEvents:'none', background:'radial-gradient(ellipse 50% 30% at 10% 0%, rgba(167,139,250,0.12), transparent 60%)' }} />
-      <div style={{ position:'relative' }}>
-        <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:24 }}>
-          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.32em', textTransform:'uppercase', color:HP.purple }}>Account</div>
-          <div style={{ height:1, width:38, background:HP.purple, opacity:0.5 }} />
-          <div style={{ fontSize:10, fontWeight:500, letterSpacing:'0.18em', textTransform:'uppercase', color:HP.textMuted, fontFamily:'Outfit' }}>Last updated today</div>
-        </div>
-        <h1 style={{ fontFamily:'Outfit', fontSize:88, lineHeight:0.92, fontWeight:300, letterSpacing:'-0.05em', color:HP.text, margin:0, textWrap:'balance' }}>
-          The <em style={{ fontStyle:'italic', fontWeight:400, color:HP.textSoft }}>settings drawer.</em>
-        </h1>
-        <p style={{ marginTop:16, fontFamily:'Outfit, Inter, sans-serif', fontSize:17, color:HP.textSoft, fontStyle:'italic', maxWidth:680, lineHeight:1.55 }}>
-          Where the engine lives. Tune what it sees, what it shows you, and who else gets to look.
-        </p>
+    <section className="ff-acct-section ff-acct-section--masthead" style={{ padding:'40px 88px 12px' }}>
+      <div style={{ display:'flex', alignItems:'center', gap:14, flexWrap:'wrap' }}>
+        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.32em', textTransform:'uppercase', color:HP.purple }}>Account</div>
+        <div style={{ height:1, width:38, background:HP.purple, opacity:0.5 }} />
+        <div style={{ fontSize:10, fontWeight:500, letterSpacing:'0.18em', textTransform:'uppercase', color:HP.textMuted, fontFamily:'Outfit' }}>Identity, privacy, plan</div>
       </div>
     </section>
   );
@@ -103,16 +95,11 @@ function IdentityCard() {
     }
   }
 
-  const joinedDate = profile?.joined_at
-    ? new Date(profile.joined_at).toLocaleDateString('en-US', { month:'long', year:'numeric' })
-    : (authUser?.created_at
-        ? new Date(authUser.created_at).toLocaleDateString('en-US', { month:'long', year:'numeric' })
-        : '—');
-  const handle = `@${(profile?.name || authUser?.user_metadata?.name || authUser?.email?.split('@')[0] || 'you').toLowerCase().split(' ')[0].replace(/[^a-z0-9_]/g, '')}`;
+  const joinedDate = formatMonthYear(profile?.joined_at) || formatMonthYear(authUser?.created_at) || '—';
 
   return (
-    <section style={{ padding:'40px 88px', borderTop:`1px solid ${HP.border}` }}>
-      <div style={{ display:'grid', gridTemplateColumns:'auto 1fr auto', gap:36, alignItems:'center' }}>
+    <section className="ff-acct-section ff-acct-section--body" style={{ padding:'40px 88px', borderTop:`1px solid ${HP.border}` }}>
+      <div className="ff-acct-identity" style={{ display:'grid', gridTemplateColumns:'auto 1fr auto', gap:36, alignItems:'center' }}>
         <div style={{ position:'relative', width:96, height:96 }}>
           <div style={{ position:'absolute', inset:-4, borderRadius:999, background:HP_GRAD, opacity:0.5, filter:'blur(14px)' }} />
           <div style={{ position:'relative', width:'100%', height:'100%', borderRadius:999, background:HP_GRAD, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Outfit', fontWeight:300, fontSize:52, color:'#0a0510', letterSpacing:'-0.04em', overflow:'hidden' }}>
@@ -159,9 +146,7 @@ function IdentityCard() {
           )}
           {saving && <span style={{ marginLeft:14, fontSize:11, color:HP.textFaint, fontFamily:'Outfit', letterSpacing:'0.08em', textTransform:'uppercase' }}>Saving…</span>}
           <div style={{ marginTop:6, display:'flex', alignItems:'center', gap:14, fontSize:12, color:HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.04em', flexWrap:'wrap' }}>
-            <span>{authUser?.email}</span>
-            <span style={{ width:3, height:3, borderRadius:999, background:HP.textFaint }} />
-            <span>{handle}</span>
+            <span className="ff-acct-email">{authUser?.email}</span>
             <span style={{ width:3, height:3, borderRadius:999, background:HP.textFaint }} />
             <span>Member since {joinedDate}</span>
           </div>
@@ -174,9 +159,9 @@ function IdentityCard() {
             )}
           </div>
         </div>
-        <div style={{ display:'grid', gridTemplateColumns:'auto auto auto', gap:32, padding:'18px 24px', borderRadius:6, background:'rgba(255,255,255,0.025)', border:`1px solid ${HP.border}` }}>
-          <Stat n={stats?.filmsLogged ?? 0} label="Films" />
-          <Stat n={stats?.daysActive ?? 0}  label="Days active" />
+        <div className="ff-acct-identity__stats" style={{ display:'grid', gridTemplateColumns:'auto auto auto', gap:32, padding:'18px 24px', borderRadius:6, background:'rgba(255,255,255,0.025)', border:`1px solid ${HP.border}` }}>
+          <Stat n={stats?.filmsLogged ?? 0}        label="Films" />
+          <Stat n={stats?.hoursWatched ?? 0}       label="Hours" />
           <Stat n={(stats?.dnaConfidence ?? 0) + '%'} label="DNA" />
         </div>
       </div>
@@ -214,11 +199,11 @@ function Notifications() {
     updateNotifications(next);
   };
   return (
-    <section style={{ padding:'56px 88px', borderTop:`1px solid ${HP.border}` }}>
+    <section className="ff-acct-section ff-acct-section--body" style={{ padding:'56px 88px', borderTop:`1px solid ${HP.border}` }}>
       <SectionHead kicker="Notifications" title="What we ping you about." sub="The default is quiet on purpose. Turn things on as you grow into the app." />
       <div style={{ borderTop:`1px solid ${HP.border}` }}>
         {items.map(n => (
-          <div key={n.id} style={{ display:'grid', gridTemplateColumns:'1fr auto auto', gap:24, alignItems:'center', padding:'18px 0', borderBottom:`1px solid ${HP.border}` }}>
+          <div key={n.id} className="ff-acct-notif-row" style={{ display:'grid', gridTemplateColumns:'1fr auto auto', gap:24, alignItems:'center', padding:'18px 0', borderBottom:`1px solid ${HP.border}` }}>
             <div>
               <div style={{ fontFamily:'Outfit', fontSize:16, fontWeight:500, color:HP.text, letterSpacing:'-0.01em', display:'inline-flex', alignItems:'center', gap:10 }}>
                 {n.label}
@@ -226,7 +211,7 @@ function Notifications() {
               </div>
               <div style={{ marginTop:3, fontSize:12, color:HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', fontStyle:'italic' }}>{n.desc}</div>
             </div>
-            <div style={{ fontSize:11, color:HP.textFaint, fontFamily:'Outfit', letterSpacing:'0.08em', textTransform:'uppercase' }}>{n.enabled?'On':'Off'}</div>
+            <div className="ff-acct-notif-row__state" style={{ fontSize:11, color:HP.textFaint, fontFamily:'Outfit', letterSpacing:'0.08em', textTransform:'uppercase' }}>{n.enabled?'On':'Off'}</div>
             <Toggle on={n.enabled} onChange={() => toggle(n.id)} ariaLabel={`${n.enabled ? 'Disable' : 'Enable'} ${n.label}`} />
           </div>
         ))}
@@ -249,134 +234,4 @@ function Toggle({ on, onChange, ariaLabel }) {
   );
 }
 
-// ── Engine preferences (server-backed via user_settings.prefs) ──
-function EnginePrefs() {
-  const { serverSettings, updateEnginePrefs } = useAccountData();
-  const prefs = serverSettings?.prefs || {};
-  const floor       = prefs.runtimeFloor ?? 80;
-  const cap         = prefs.runtimeCap   ?? 170;
-  const subs        = prefs.subtitles    ?? 'always-welcome';
-  const tier        = prefs.spoilerTier  ?? 'brief';
-  const languages   = Array.isArray(prefs.languages)   ? prefs.languages   : [];
-  const avoidGenres = Array.isArray(prefs.avoidGenres) ? prefs.avoidGenres : [];
-
-  // Keep floor ≤ cap whenever either slider moves
-  const onFloor = (v) => updateEnginePrefs({ runtimeFloor: Math.min(v, cap) });
-  const onCap   = (v) => updateEnginePrefs({ runtimeCap:   Math.max(v, floor) });
-  const setSubs        = (v) => updateEnginePrefs({ subtitles: v });
-  const setTier        = (v) => updateEnginePrefs({ spoilerTier: v });
-  const setLanguages   = (next) => updateEnginePrefs({ languages:   typeof next === 'function' ? next(languages)   : next });
-  const setAvoidGenres = (next) => updateEnginePrefs({ avoidGenres: typeof next === 'function' ? next(avoidGenres) : next });
-
-  return (
-    <section style={{ padding:'56px 88px', borderTop:`1px solid ${HP.border}`, background:'rgba(255,255,255,0.012)' }}>
-      <SectionHead kicker="Engine preferences" title="What the engine sees." sub="Shape the recommendations directly. Hard rules — we&rsquo;ll respect them every time." />
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:48 }}>
-        <div>
-          <Field label="Runtime band" hint="Filter out films outside this range">
-            <div style={{ display:'flex', alignItems:'baseline', gap:12, marginBottom:14 }}>
-              <span style={{ fontFamily:'Outfit', fontSize:32, fontWeight:200, color:HP.text, letterSpacing:'-0.04em' }}>{floor}–{cap}</span>
-              <span style={{ fontSize:13, color:HP.textMuted, fontFamily:'Outfit' }}>minutes</span>
-            </div>
-            <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-              <input type="range" min="60" max="240" value={floor} onChange={e => onFloor(+e.target.value)} aria-label="Runtime floor" style={{ flex:1 }} />
-              <input type="range" min="60" max="240" value={cap}   onChange={e => onCap(+e.target.value)}   aria-label="Runtime cap" style={{ flex:1 }} />
-            </div>
-          </Field>
-          <Field label="Subtitles" hint="How you feel about reading them">
-            <Segmented value={subs} onChange={setSubs} options={[
-              { v:'never',          l:'Never' },
-              { v:'sometimes',      l:'Sometimes' },
-              { v:'always-welcome', l:'Always welcome' },
-            ]} />
-          </Field>
-        </div>
-        <div>
-          <Field label="Spoiler tier" hint="How much synopsis we show by default">
-            <Segmented value={tier} onChange={setTier} options={[
-              { v:'brief',    l:'Brief' },
-              { v:'standard', l:'Standard' },
-              { v:'detailed', l:'Detailed' },
-            ]} />
-          </Field>
-          <Field label="Languages you watch" hint="Higher up = recommended more">
-            <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
-              {languages.map(l => (
-                <button
-                  key={l}
-                  type="button"
-                  onClick={() => setLanguages(prev => prev.filter(x => x !== l))}
-                  aria-label={`Remove ${l}`}
-                  style={{ padding:'7px 12px', borderRadius:999, background:'rgba(167,139,250,0.1)', border:`1px solid ${HP.purple}44`, fontSize:12, color:HP.text, fontFamily:'Outfit', display:'inline-flex', alignItems:'center', gap:6, cursor:'pointer' }}
-                >
-                  {l} <span style={{ color:HP.textFaint, fontSize:10 }}>×</span>
-                </button>
-              ))}
-              <button
-                type="button"
-                disabled
-                aria-disabled="true"
-                title="Language picker coming soon"
-                style={{ padding:'7px 12px', borderRadius:999, background:'transparent', border:`1px dashed ${HP.borderStrong}`, fontSize:12, color:HP.textMuted, fontFamily:'Outfit', cursor:'not-allowed', opacity:0.65 }}
-              >+ Add</button>
-            </div>
-          </Field>
-          <Field label="Genres to avoid" hint="Hard exclude from picks">
-            <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
-              {avoidGenres.map(g => (
-                <button
-                  key={g}
-                  type="button"
-                  onClick={() => setAvoidGenres(prev => prev.filter(x => x !== g))}
-                  aria-label={`Remove ${g} from avoid list`}
-                  style={{ padding:'7px 12px', borderRadius:999, background:'rgba(239,68,68,0.1)', border:`1px solid ${HP.red}55`, fontSize:12, color:HP.red, fontFamily:'Outfit', display:'inline-flex', alignItems:'center', gap:6, cursor:'pointer' }}
-                >
-                  {g} <span style={{ color:HP.red, fontSize:10 }}>×</span>
-                </button>
-              ))}
-              <button
-                type="button"
-                disabled
-                aria-disabled="true"
-                title="Genre picker coming soon"
-                style={{ padding:'7px 12px', borderRadius:999, background:'transparent', border:`1px dashed ${HP.borderStrong}`, fontSize:12, color:HP.textMuted, fontFamily:'Outfit', cursor:'not-allowed', opacity:0.65 }}
-              >+ Add</button>
-            </div>
-          </Field>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function Field({ label, hint, children }) {
-  return (
-    <div style={{ marginBottom:28 }}>
-      <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color:HP.textMuted, fontFamily:'Outfit', marginBottom:6 }}>{label}</div>
-      {hint && <div style={{ fontSize:12, color:HP.textFaint, fontFamily:'Outfit, Inter, sans-serif', fontStyle:'italic', marginBottom:14 }}>{hint}</div>}
-      {children}
-    </div>
-  );
-}
-
-function Segmented({ value, onChange, options }) {
-  return (
-    <div role="radiogroup" style={{ display:'inline-flex', padding:3, borderRadius:999, background:'rgba(255,255,255,0.04)', border:`1px solid ${HP.border}` }}>
-      {options.map(o => {
-        const on = o.v === value;
-        return (
-          <button
-            key={o.v}
-            type="button"
-            role="radio"
-            aria-checked={on}
-            onClick={() => onChange(o.v)}
-            style={{ padding:'8px 16px', borderRadius:999, background: on ? HP_GRAD : 'transparent', color: on ? '#fff' : HP.textMuted, border:'none', cursor:'pointer', fontFamily:'Outfit', fontSize:12, fontWeight:600, letterSpacing:'0.04em' }}
-          >{o.l}</button>
-        );
-      })}
-    </div>
-  );
-}
-
-export { Masthead, IdentityCard, Notifications, EnginePrefs, SectionHead, Toggle }
+export { Masthead, IdentityCard, Notifications, SectionHead, Toggle }

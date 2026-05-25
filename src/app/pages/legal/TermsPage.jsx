@@ -1,9 +1,14 @@
 // src/app/pages/TermsPage.jsx
 import { Scale, ShieldCheck, AlertTriangle, FileText, Mail, Gavel } from 'lucide-react'
+import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import TopNav from '@/features/landing-v2/components/TopNav'
 import Footer from '@/features/landing-v2/components/Footer'
 
 export default function TermsPage() {
+  usePageMeta({
+    title: 'Terms — FeelFlick',
+    description: 'FeelFlick terms of service: your responsibilities, our rules of engagement, intellectual property, and TMDB attribution.',
+  })
   return (
     <>
       <TopNav />
@@ -110,7 +115,7 @@ export default function TermsPage() {
               <strong>FeelFlick Content:</strong> Our brand, logo, design, code, and recommendation algorithms are the exclusive property of FeelFlick and are protected by copyright laws.
             </p>
             <p>
-              <strong>Movie Data:</strong> Movie metadata, posters, and backdrops are provided by <a href="https://www.themoviedb.org/" target="_blank" rel="noreferrer" className="text-purple-400 hover:underline">The Movie Database (TMDB)</a>. This data is subject to TMDB&apos;s terms of use. FeelFlick uses the TMDB API but is not endorsed or certified by TMDB.
+              <strong>Movie Data:</strong> Movie metadata, posters, and backdrops are provided by <a href="https://www.themoviedb.org/" target="_blank" rel="noopener noreferrer" className="text-purple-400 hover:underline">The Movie Database (TMDB)</a>. This data is subject to TMDB&apos;s terms of use. FeelFlick uses the TMDB API but is not endorsed or certified by TMDB.
             </p>
             <p>
               You may not copy, modify, distribute, or sell any part of our platform without our prior written permission.

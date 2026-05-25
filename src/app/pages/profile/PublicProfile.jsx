@@ -333,21 +333,56 @@ export default function PublicProfile() {
 
     ;(async () => {
       try {
-        const [profileRes, historyRes, ratingsRes, watchlistRes, moodRes, followersRes, followingRes, currentHistoryRes, currentMoodRes, listsRes] = await Promise.all([
+        // Step 1 — gate check: load profile + privacy settings before fetching
+        // diary data. If the viewed user has profilePublic=false (and the
+        // viewer isn't them), short-circuit to UserNotFound without exposing
+        // any further data. diaryPublic gates the ratings/history fetches.
+        const [profileRes, privacyRes] = await Promise.all([
           supabase
             .from('users')
             .select('name, avatar_url, joined_at')
             .eq('id', userId)
             .maybeSingle(),
           supabase
-            .from('user_history')
-            .select('movie_id, watched_at, movies ( id, title, poster_path, genres, director_name, primary_genre, release_date, tmdb_id, mood_tags, tone_tags, fit_profile )')
+            .from('user_settings')
+            .select('settings')
             .eq('user_id', userId)
-            .order('watched_at', { ascending: false }),
-          supabase
-            .from('user_ratings')
-            .select('movie_id, rating')
-            .eq('user_id', userId),
+            .maybeSingle(),
+        ])
+
+        if (!active) return
+
+        if (!profileRes.data) {
+          setNotFound(true)
+          return
+        }
+
+        const privacy = privacyRes.data?.settings?.privacy || {}
+        // profilePublic defaults to true if the user has never touched it
+        // (matches the default in SETTINGS.privacy in account-v2/data.js)
+        const isProfilePublic = privacy.profilePublic !== false
+        if (!isProfilePublic && currentUserId !== userId) {
+          setNotFound(true)
+          return
+        }
+        // diaryPublic defaults to false (private). When private, we skip the
+        // diary fetches entirely so the data never leaves the server.
+        const showDiary = privacy.diaryPublic === true || currentUserId === userId
+
+        const [historyRes, ratingsRes, watchlistRes, moodRes, followersRes, followingRes, currentHistoryRes, currentMoodRes, listsRes] = await Promise.all([
+          showDiary
+            ? supabase
+                .from('user_history')
+                .select('movie_id, watched_at, movies ( id, title, poster_path, genres, director_name, primary_genre, release_date, tmdb_id, mood_tags, tone_tags, fit_profile )')
+                .eq('user_id', userId)
+                .order('watched_at', { ascending: false })
+            : Promise.resolve({ data: [], error: null }),
+          showDiary
+            ? supabase
+                .from('user_ratings')
+                .select('movie_id, rating')
+                .eq('user_id', userId)
+            : Promise.resolve({ data: [], error: null }),
           supabase
             .from('user_watchlist')
             .select('movie_id', { count: 'exact', head: true })
@@ -386,11 +421,6 @@ export default function PublicProfile() {
         ])
 
         if (!active) return
-
-        if (!profileRes.data) {
-          setNotFound(true)
-          return
-        }
 
         setProfile(profileRes.data)
         setHistory(historyRes.data ?? [])

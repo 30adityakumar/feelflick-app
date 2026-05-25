@@ -25,6 +25,22 @@ const FIT_PROFILE_LABELS = {
   challenging_art: 'Challenging art',
 }
 
+// Honest one-liner per fit profile — what the label actually MEANS for the
+// viewer. Replaces the old generic "How the FeelFlick engine reads this
+// film's audience fit." that said nothing.
+const FIT_PROFILE_DETAIL = {
+  crowd_pleaser:      'Built for broad audience appeal.',
+  prestige_drama:     'Angled at festival and awards rooms.',
+  arthouse:           'Smaller, formal, indie-leaning.',
+  genre_popcorn:      'Fast, popcorn-tier, leans entertainment over depth.',
+  festival_discovery: 'Found first on the festival circuit.',
+  cult_classic:       'Smaller release, loyal afterlife.',
+  niche_world_cinema: 'Outside the Hollywood lane — international register.',
+  franchise_entry:    'One chapter of a larger story.',
+  comfort_watch:      'Designed to soothe, not challenge.',
+  challenging_art:    'Asks something of the viewer.',
+}
+
 const capitalize = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s)
 
 const labelFor = (key) => FIT_PROFILE_LABELS[key] || capitalize((key || '').replace(/_/g, ' '))
@@ -49,17 +65,25 @@ export function deriveWhyReasons({ mv, filmDbRow, fingerprint, directorCount }) 
 
   const candidates = []
 
-  // 1. Mood overlap (personalized)
+  // 1. Mood overlap (personalized) — title already names the moods; detail
+  // tells the user where the signal came from + how strong it is.
   if (fingerprint?.topMoodTags?.length && filmDbRow?.mood_tags?.length) {
     const userMoodKeys = fingerprint.topMoodTags.map(t => t.key)
     const overlap = filmDbRow.mood_tags.filter(t => userMoodKeys.includes(t)).slice(0, 3)
     if (overlap.length > 0) {
+      // Rank of the strongest overlap inside the user's top mood list.
+      const firstRank = fingerprint.topMoodTags.findIndex(t => t.key === overlap[0]) + 1
+      const rankCopy = firstRank === 1
+        ? 'Your #1 mood'
+        : firstRank > 0
+          ? `Your #${firstRank} mood`
+          : 'In your top moods'
       candidates.push({
         id: 'mood-overlap',
         icon: 'mood',
         priority: 1,
         title: overlap.map(capitalize).join(' · '),
-        detail: `Matches ${overlap.length} of your top moods · drawn from ${fingerprint.total} watched films.`,
+        detail: `${rankCopy} · drawn from ${fingerprint.total} watched films.`,
         moodKey: overlap[0],
       })
     }
@@ -93,18 +117,23 @@ export function deriveWhyReasons({ mv, filmDbRow, fingerprint, directorCount }) 
     }
   }
 
-  // 5. Film fit profile (descriptive fallback)
+  // 5. Film fit profile (descriptive fallback). Detail is now profile-aware
+  // copy that says what the label actually MEANS, not boilerplate about the
+  // engine.
   if (filmDbRow?.fit_profile) {
     candidates.push({
       id: 'fit-film',
       icon: 'dna',
       priority: 5,
       title: labelFor(filmDbRow.fit_profile),
-      detail: `How the FeelFlick engine reads this film's audience fit.`,
+      detail: FIT_PROFILE_DETAIL[filmDbRow.fit_profile] || 'A distinct viewer fit.',
     })
   }
 
-  // 3. Director (personalized count when available; otherwise a clean intro)
+  // 3. Director: only ship a personalized version. A film by a director
+  // the user has watched 0 times isn't a "why this fits you" reason — it's
+  // a discovery angle. Frame it that way honestly instead of the old
+  // circular "Directed by them." text.
   if (mv.director && mv.director !== '—') {
     if (directorCount > 0) {
       candidates.push({
@@ -120,7 +149,7 @@ export function deriveWhyReasons({ mv, filmDbRow, fingerprint, directorCount }) 
         icon: 'director',
         priority: 5.5,
         title: `Director: ${mv.director}`,
-        detail: 'Directed by them.',
+        detail: 'First time their work has shown up for you.',
       })
     }
   }
@@ -176,6 +205,6 @@ export function deriveWhyHeader({ fingerprint, signedIn }) {
   return {
     eyebrow: 'Why this fits you',
     headline: `Signals from your last ${fingerprint.total} films.`,
-    rationale: `Mood overlap, director history, and your preferred film shape — distilled from what you've actually watched.`,
+    rationale: `Mood overlap, director history, and runtime patterns — pulled from what you've actually watched.`,
   }
 }

@@ -13,7 +13,9 @@ describe('Button', () => {
   it('applies variant class', () => {
     render(<Button variant="primary">Primary</Button>)
     const btn = screen.getByRole('button')
-    expect(btn.className).toContain('from-purple-500')
+    // Brand gradient canon = purple-600 → pink-500 (per CLAUDE.md "Editorial Language").
+    expect(btn.className).toContain('from-purple-600')
+    expect(btn.className).toContain('to-pink-500')
   })
 
   it('disabled prop works', () => {

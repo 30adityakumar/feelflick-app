@@ -151,17 +151,17 @@ export default class ErrorBoundary extends Component {
       const Icon = errorMsg.icon
       
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-black to-slate-950 p-4 relative overflow-hidden">
+        <div className="min-h-screen flex items-center justify-center bg-black p-4 relative overflow-hidden">
           {/* Background orbs */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
             <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse-slow" />
             <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl animate-pulse-slow delay-1000" />
           </div>
-          
+
           <div className="relative max-w-2xl w-full mx-auto text-center">
             {/* Brand logo */}
             <div className="mb-8 animate-fade-in-down">
-              <span className="inline-block text-4xl font-black bg-gradient-to-r from-purple-500 via-pink-500 to-amber-500 bg-clip-text text-transparent">
+              <span className="inline-block text-4xl font-black bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent">
                 FEELFLICK
               </span>
             </div>

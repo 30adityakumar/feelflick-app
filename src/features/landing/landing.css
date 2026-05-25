@@ -1,33 +1,106 @@
 *{box-sizing:border-box;}
 
+/* Hero min-height — 100vh fallback then 100dvh for iOS Safari.
+   100dvh (dynamic viewport height) respects the iOS URL bar's expand/collapse
+   so the hero doesn't get pushed below the chrome on first paint. Supported
+   in iOS Safari 15.4+ / Chrome 108+ / Firefox 101+. Pre-support browsers get
+   the 100vh fallback (cascade order: dvh overrides vh in supporting UAs). */
+.ff-hero{min-height:100vh;min-height:100dvh;}
+
+/* Anchor link offset clearing the 64px fixed header. We deliberately do NOT
+   set `scroll-behavior: smooth` on html — it has known interaction issues with
+   mouse-wheel scrolling, URL-hash position, and macOS trackpad momentum (the
+   browser tries to pin the page to the #hash target and fights subsequent
+   wheel events). Anchor links still jump correctly; they just don't animate.
+   If we want animated anchor scroll later, implement it per-click via JS so
+   wheel-scroll stays unaffected. */
+html{scroll-padding-top:80px;}
+
+/* World-class focus ring — branded purple-300, generous offset, respects radius. */
+:focus{outline:none;}
+:focus-visible{outline:2px solid #c084fc;outline-offset:3px;border-radius:4px;}
+/* Pill CTAs get a different shape — outline auto-wraps the border-radius in modern browsers. */
+.ff-link:focus-visible,button:focus-visible{outline:2px solid #c084fc;outline-offset:3px;}
+
+/* Skip-to-content — invisible until focused, jumps to the main landmark. */
+.ff-skip{position:absolute;top:0;left:0;transform:translateY(-200%);background:#06060a;color:#fff;padding:14px 22px;border:1px solid #c084fc;border-radius:8px;font-family:'Inter',sans-serif;font-size:14px;font-weight:500;text-decoration:none;z-index:100;transition:transform 0.2s ease;}
+.ff-skip:focus-visible{transform:translateY(12px);left:12px;}
 
 em{font-style:italic;}
 button,input{font-family:inherit;}
 ::selection{background:rgba(167,139,250,0.4);}
+
+/* Reduced-motion: kill the page's purely-decorative repeating animations.
+   Hero card 5.4s rotation is paused by JS (in Landing.jsx Hero). */
+@media (prefers-reduced-motion: reduce){
+  .ff-fade-swap{animation:none !important;}
+  [style*="animation"]{animation:none !important;}
+}
 @keyframes ff-tw{0%,100%{opacity:0.12;transform:scale(1);}50%{opacity:0.7;transform:scale(1.3);}}
 @keyframes ff-rot{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
-.ff-reveal{opacity:0;transform:translateY(32px);transition:opacity 1s cubic-bezier(.2,.7,.2,1),transform 1s cubic-bezier(.2,.7,.2,1);}
-.ff-reveal.in{opacity:1;transform:translateY(0);}
+/* Reveal default = visible. The animated hide-then-fade-in only kicks in for
+   motion-enabled clients (html.with-motion is added by Landing.jsx on mount
+   when the user does NOT prefer reduced motion). This keeps crawlers, OG
+   preview bots, screen readers reading the static DOM, and prefers-reduced-
+   motion users on a page that simply renders — no IntersectionObserver
+   required. */
+.ff-reveal{opacity:1;transform:none;}
+html.with-motion .ff-reveal{opacity:0;transform:translateY(32px);transition:opacity 1s cubic-bezier(.2,.7,.2,1),transform 1s cubic-bezier(.2,.7,.2,1);}
+html.with-motion .ff-reveal.in{opacity:1;transform:translateY(0);}
+@media (prefers-reduced-motion: reduce){
+  html.with-motion .ff-reveal{opacity:1;transform:none;transition:none;}
+}
 .ff-link{color:inherit;text-decoration:none;}
 .ff-eyebrow{font-family:'Outfit',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.28em;text-transform:uppercase;color:rgba(250,250,250,0.42);}
 .ff-italic{font-family:'Outfit',sans-serif;font-weight:300;font-style:italic;}
 .ff-d1{font-family:'Outfit',sans-serif;font-weight:200;letter-spacing:-0.055em;line-height:0.92;}
 .ff-d2{font-family:'Outfit',sans-serif;font-weight:200;letter-spacing:-0.045em;line-height:0.96;}
-.ff-
+.ff-body{font-family:'Inter',sans-serif;}
 .ff-fade-swap{animation:ff-fade-swap 0.5s cubic-bezier(.2,.7,.2,1);}
 @keyframes ff-fade-swap{from{opacity:0;transform:translateY(6px);filter:blur(4px);}to{opacity:1;transform:translateY(0);filter:blur(0);}}
+
+/* Mobile drawer enter animation — slides down + fades in. */
+.ff-drawer-in{animation:ff-drawer-in 200ms cubic-bezier(.2,.7,.2,1);transform-origin:top center;}
+@keyframes ff-drawer-in{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:translateY(0);}}
 .ff-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;}
 .ff-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;}
 .ff-grid-hero{display:grid;grid-template-columns:1fr 1.05fr;gap:96px;align-items:center;}
 .ff-grid-feature{display:grid;grid-template-columns:420px 1fr;gap:64px;}
 .ff-grid-card{display:grid;grid-template-columns:auto 1fr;gap:32px;align-items:flex-start;}
 .ff-grid-footer{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:64px;}
-@media (max-width: 900px){
+/* Mobile/desktop visibility helpers used by the Header (hamburger swap). */
+.ff-show-on-mobile{display:none;}
+.ff-hide-on-mobile{display:flex;}
+
+/* Tablet + mobile: collapse multi-column grids; trim section padding. */
+@media (max-width: 1023px){
   .ff-grid-2,.ff-grid-3,.ff-grid-hero,.ff-grid-feature,.ff-grid-card{grid-template-columns:1fr !important;gap:48px !important;}
   .ff-grid-footer{grid-template-columns:1fr 1fr !important;gap:36px !important;}
   .ff-grid-2 > *,.ff-grid-3 > *,.ff-grid-hero > *,.ff-grid-feature > *{max-width:none !important;}
+  /* 160 → 96, 200 → 112, Hero 140/80 → 96/72 */
+  section{padding-top:96px !important;padding-bottom:96px !important;}
+  section#file,section#start{padding-top:112px !important;padding-bottom:112px !important;}
+  section:first-of-type{padding-top:96px !important;padding-bottom:72px !important;} /* Hero entrance */
 }
-@media (max-width: 600px){
+
+/* Mobile: show hamburger, hide desktop nav, further trim section padding,
+   add safe-area-inset for notch / home indicator. */
+@media (max-width: 767px){
+  .ff-show-on-mobile{display:flex;}
+  .ff-hide-on-mobile{display:none !important;}
   .ff-grid-footer{grid-template-columns:1fr !important;}
-  section{padding-left:20px !important;padding-right:20px !important;}
+  section{padding-left:20px !important;padding-right:20px !important;padding-top:72px !important;padding-bottom:72px !important;}
+  section#file,section#start{padding-top:96px !important;padding-bottom:96px !important;}
+  section:first-of-type{padding-top:88px !important;padding-bottom:48px !important;}
+  /* Editorial display type — clamp ceilings hold; but tighten ultra-large headlines so
+     the FinalCTA "Tonight is yours." doesn't dwarf a 375 viewport. */
+  .ff-d1{letter-spacing:-0.04em;}
+  .ff-d2{letter-spacing:-0.035em;}
+}
+
+/* Safe-area insets for iOS notch + home indicator. Applies to fixed-position
+   chrome (the page header is fixed). The drawer also benefits. */
+@supports (padding: max(0px)){
+  header{padding-left:max(0px, env(safe-area-inset-left));padding-right:max(0px, env(safe-area-inset-right));}
+  footer{padding-bottom:max(72px, env(safe-area-inset-bottom));}
 }

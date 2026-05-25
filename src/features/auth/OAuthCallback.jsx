@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
-import Button from '@/shared/ui/Button'
+import BrandSplash from '@/shared/ui/BrandSplash'
 import { track } from '@/shared/services/analytics'
 import {
   consumeOAuthCallbackNonce,
@@ -11,71 +11,14 @@ import {
 
 /**
  * OAuth Callback Handler
- * 
+ *
  * Handles the OAuth redirect from Google sign-in:
  * - Extracts tokens from URL hash
  * - Sets Supabase session
  * - Routes based on onboarding status
- * - Shows loading state during processing
+ * - Shows BrandSplash during processing (200ms delayed visibility so fast
+ *   callbacks don't flash; errors are immediate).
  */
-
-function SplashSpinner({ error = null }) {
-  return (
-    <div className="fixed inset-0 z-[9999] grid place-items-center bg-black">
-      {/* Ambient glows */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-        <div
-          className="absolute inset-0"
-          style={{ background: 'radial-gradient(ellipse 80% 50% at 50% 0%, rgba(88,28,135,0.35) 0%, transparent 65%)' }}
-        />
-        <div
-          className="absolute inset-0"
-          style={{ background: 'radial-gradient(ellipse 60% 40% at 50% 100%, rgba(168,85,247,0.12) 0%, transparent 65%)' }}
-        />
-      </div>
-
-      <div className="relative flex flex-col items-center gap-8 px-4 text-center">
-        {/* Brand */}
-        <span className="text-3xl font-black tracking-tight bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
-          FEELFLICK
-        </span>
-
-        {error ? (
-          <>
-            <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
-              <svg className="w-7 h-7 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-white mb-2">Sign In Failed</h2>
-              <p className="text-sm text-white/60 max-w-sm leading-relaxed">{error}</p>
-            </div>
-            <Button variant="secondary" onClick={() => window.location.href = '/'}>
-              Return to Home
-            </Button>
-          </>
-        ) : (
-          <>
-            <svg
-              className="h-10 w-10 animate-spin"
-              viewBox="0 0 24 24"
-              fill="none"
-              aria-hidden="true"
-            >
-              <circle cx="12" cy="12" r="10" stroke="rgba(168,85,247,0.2)" strokeWidth="3" />
-              <path d="M21 12a9 9 0 0 0-9-9v9z" fill="rgb(168,85,247)" />
-            </svg>
-            <div>
-              <p className="text-base font-semibold text-white/80 mb-1">Signing you in…</p>
-              <p className="text-sm text-white/40">This should only take a moment</p>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
-  )
-}
 
 export default function OAuthCallback() {
   const navigate = useNavigate()
@@ -209,5 +152,5 @@ export default function OAuthCallback() {
     }
   }, [navigate, location])
 
-  return <SplashSpinner error={error} />
+  return <BrandSplash label="Signing you in…" error={error} />
 }

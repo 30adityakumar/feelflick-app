@@ -76,11 +76,12 @@ import { buildSkipWeightMap, buildCooldownSet } from './skip-signals'
 import { selectHeroCandidates, dayHashIndex } from './diversity'
 import { heroEraFloor, generateHeroReason, tieBreakSort } from './hero-reason'
 import { briefHardFilters, scoreMovieForBrief, buildBriefSeeds, generateBriefReason } from './brief-scoring'
+import { shouldFilterByBoundaries } from './boundaries'
 
 // ============================================================================
 // VERSION
 // ============================================================================
-const ENGINE_VERSION = '2.16' // Engine reads user_settings.prefs: mood weights × moodCoherence, trusted/muted directors, runtime band.
+const ENGINE_VERSION = '2.17' // GATED_GENRES expanded (+ War, Music, Western, TV Movie). Bumped so cached profiles re-derive exclusions with the wider gate set.
 const PROFILE_MEMORY_TTL_MS = 60 * 1000
 const SEED_MEMORY_TTL_MS = 60 * 1000
 const profileMemoryCache = new Map()
@@ -429,8 +430,10 @@ export async function computeUserProfile(userId, forceRefresh = false) {
         .order('watched_at', { ascending: false })
         .limit(100),
 
-      // ✅ user_preferences is included
-      supabase.from('user_preferences').select('genre_id').eq('user_id', userId),
+      // user_preferences row = "user is drawn to this genre". Legacy rows
+      // with excluded=true represent "avoid" and must NOT bleed into the
+      // preferred set — that data now lives in settings.prefs.avoidGenres.
+      supabase.from('user_preferences').select('genre_id').eq('user_id', userId).eq('excluded', false),
 
       supabase.from('user_ratings').select('movie_id, rating').eq('user_id', userId),
 
@@ -798,11 +801,13 @@ export async function computeUserProfileV3(userId, options = {}) {
       .order('watched_at', { ascending: false })
       .limit(100),
 
-    // Onboarding preferences
+    // Onboarding + /preferences drawn-to genres. Exclude legacy avoid rows
+    // (excluded=true); avoid lives in settings.prefs.avoidGenres now.
     supabase
       .from('user_preferences')
       .select('genre_id')
-      .eq('user_id', userId),
+      .eq('user_id', userId)
+      .eq('excluded', false),
 
     // Community skip data (module-cached)
     getCommunityHighSkipSet(),
@@ -1413,11 +1418,20 @@ function computeNegativeSignals(skipFeedback, watchHistory) {
 // Genre IDs that require explicit watch evidence before recommendations are shown.
 // Without >=MIN_WATCHES watches in the genre, the genre is excluded from all rows.
 // `dbName` matches the text value stored in movies.genres (text[] column).
+// Niche / polarizing genres that require explicit user signal (>= minWatches)
+// before they're allowed to surface unprompted. Kept in sync with
+// V3_EXCLUSION_CANDIDATES so the v2 profile path matches the v3 path.
+// minWatches: 2 means "user has watched at least 2 films of this genre" —
+// one watch is exploratory; two indicates real interest.
 const GATED_GENRES = [
   { id: 16, dbName: 'Animation', minWatches: 2 },
   { id: 10751, dbName: 'Family', minWatches: 2 },
   { id: 99, dbName: 'Documentary', minWatches: 2 },
   { id: 27, dbName: 'Horror', minWatches: 2 },
+  { id: 10752, dbName: 'War', minWatches: 2 },
+  { id: 10402, dbName: 'Music', minWatches: 2 },
+  { id: 37, dbName: 'Western', minWatches: 2 },
+  { id: 10770, dbName: 'TV Movie', minWatches: 2 },
 ]
 
 /**
@@ -2831,6 +2845,14 @@ export function scoreMovieForUser(movie, profile, rowType = 'default', seedFilms
     }
   }
 
+  // Hard-filter on content boundaries (graphic violence / sexual content)
+  // when the user has the corresponding toggle ON in /preferences. Callers
+  // already handle null returns elsewhere in this pipeline. Animals/noise
+  // are flag-only (surfaced on MovieDetail) and don't drop the film.
+  if (userPrefs?.boundaries && shouldFilterByBoundaries(movie, userPrefs.boundaries)) {
+    return null
+  }
+
   // 1) BASE QUALITY (normalized when available, ff_audience_rating as fallback)
   const effectiveRating = movie.ff_audience_rating != null
     ? movie.ff_audience_rating / 10
@@ -3860,13 +3882,24 @@ export async function updateImpression(userId, movieId, action, metadata = {}) {
 
     if (!impression) return
 
-    const updates = {
-      clicked: action === 'clicked',
-      skipped: action === 'skipped',
-      marked_watched: action === 'watched'
+    // Non-destructive: set ONLY the flag for the action being recorded.
+    // The previous shape (`{ clicked: action === 'clicked', skipped: ..., marked_watched: ... }`)
+    // overwrote prior flags every call — calling updateImpression('watched')
+    // after updateImpression('clicked') would reset clicked back to false,
+    // losing the click signal. A film can legitimately be BOTH clicked AND
+    // watched (user clicked through, then later marked watched).
+    const updates = {}
+    if (action === 'clicked') {
+      updates.clicked = true
+      updates.clicked_at = new Date().toISOString()
+    } else if (action === 'skipped') {
+      updates.skipped = true
+    } else if (action === 'watched') {
+      updates.marked_watched = true
+    } else if (action === 'saved') {
+      updates.added_to_watchlist = true
     }
-
-    if (action === 'clicked') updates.clicked_at = new Date().toISOString()
+    if (Object.keys(updates).length === 0) return
 
     await supabase.from('recommendation_impressions').update(updates).eq('id', impression.id)
 
@@ -3996,6 +4029,221 @@ export async function getPersonalizedRecommendations(userId, options = {}) {
     console.error('[Recommendations] Failed to get personalized recommendations:', error)
     throw error
   }
+}
+
+/**
+ * Thin public wrapper around the internal `logRowImpressions` helper.
+ *
+ * For surfaces that already have engine-derived films (briefing slide,
+ * twin-pulse row, quick-log candidates) but don't compose them through
+ * `rankSlotCandidates`. Fire-and-forget: writes one row per visible film
+ * into `recommendation_impressions`, gated by the existing
+ * (user, movie, placement, shown_date) unique-per-day constraint.
+ *
+ * @param {object} args
+ * @param {string} args.userId
+ * @param {Array}  args.films            - rows with at least `id`
+ * @param {string} args.placement        - must match the table's CHECK constraint
+ *   ('hero', 'quick_picks', 'hidden_gems', 'because_you_loved', 'trending',
+ *    'world_cinema', 'mood_based', 'slow_contemplative', 'quick_watches',
+ *    'favorite_genres', 'director_spotlight', 'polarizing_picks', 'discover')
+ * @param {string} [args.pickReasonType] - granular reason key for telemetry
+ * @param {string} [args.pickReasonLabel]
+ */
+export async function logSurfaceImpressions({ userId, films, placement, pickReasonType, pickReasonLabel }) {
+  if (!userId || !Array.isArray(films) || films.length === 0 || !placement) return
+  const items = films
+    .filter(f => f && (f.id != null || f.movieId != null))
+    .map(f => ({
+      movie: { id: f.id ?? f.movieId },
+      score: f._score ?? f.engineScore ?? f.score ?? 0,
+      pickReason: { type: pickReasonType || placement, label: pickReasonLabel || null },
+    }))
+  if (items.length === 0) return
+  return logRowImpressions(userId, items, placement)
+}
+
+// ============================================================================
+// SLOT-NARROWED RECOMMENDATIONS (personal-list builder for /home + /lists)
+// ============================================================================
+
+/**
+ * Rank a slot-narrowed candidate pool through the full engine pipeline.
+ *
+ * Each personal-list "slot" (director / genre / fit_profile / actor) is just
+ * the engine looking at a smaller universe: instead of scoring every film,
+ * the caller pre-narrows to e.g. "films by Frank Darabont" or "films with
+ * primary_genre = Drama", then hands the rows in here to run the same
+ * scoring stack `getGenreBasedRecommendations` runs internally — generalized
+ * so any slot can compose it.
+ *
+ * What this does that calling `scoreMovieForUser` directly does not:
+ *   1. Optional dual-pool: caller-provided embedding neighbors of seed films
+ *      get merged in for taste-expansion within the slot constraint.
+ *   2. Loads `getSeedFilms(userId, profile)` so the scorer's embedding-aware
+ *      breakdown components fire.
+ *   3. `scoreMovieForUser(..., rowType)` with the slot's row weights —
+ *      defaults to 'favorite_genres', the same row type the in-app genre row
+ *      uses (narrow + rank intent).
+ *   4. Embedding-similarity boost (up to +55) for films matching a seed.
+ *   5. Optional caller-supplied boosts (primary genre / director / fit
+ *      profile) — same pattern as the genre row's +20 primary-genre bonus.
+ *   6. `applyRowDiversityFilter` — caps the row at max 3 films per director
+ *      and 5 per genre so a slot never collapses into "everything by one
+ *      person." Slots that intentionally narrow on a dimension (e.g. the
+ *      director slot is by-design "everything by one director") should set
+ *      `diversity: false` so the filter doesn't decimate the row.
+ *   7. `logRowImpressions` — writes to `recommendation_impressions` so the
+ *      learning loop sees what the slot surfaced (with `_pickReason`).
+ *
+ * Caller is responsible for the SQL narrowing + watched/exclusion filters
+ * on the candidate pool itself (server-side exclusions are cheaper than
+ * shipping rows we'll throw away). This function applies
+ * `filterExclusionsClientSide` as a safety net for whatever the .in() pool
+ * style couldn't filter server-side.
+ *
+ * @param {object}   args
+ * @param {string}   args.userId
+ * @param {object}   args.profile             - computeUserProfile() result
+ * @param {Array}    args.candidates          - already-fetched movie rows
+ * @param {Array}    [args.embeddingNeighbors=[]] - optional embedding-pool rows
+ * @param {string}   [args.rowType='favorite_genres']
+ * @param {string}   args.placement           - impression label (e.g. 'personal_director')
+ * @param {number}   [args.limit=4]
+ * @param {object}   [args.boost={}]          - { primaryGenre?, primaryGenreAmount?, director?, fitProfile?, ... }
+ * @param {Function} [args.pickReasonFor]     - (movie) => { label, type } per-row
+ * @param {boolean}  [args.diversity=true]    - false skips applyRowDiversityFilter
+ *   (use for slots intentionally narrowed by director / genre / actor / fit
+ *   — the per-director / per-genre caps would otherwise truncate the row to
+ *   3 or 5 films, defeating the slot's purpose). Embedding-only slots like
+ *   "similar to X" should keep it on — neighbors naturally span dimensions.
+ * @returns {Promise<Array>} top `limit` rows annotated with _score / _pickReason / _embeddingSimilarity
+ */
+export async function rankSlotCandidates({
+  userId,
+  profile,
+  candidates = [],
+  embeddingNeighbors = [],
+  rowType = 'favorite_genres',
+  placement,
+  limit = 4,
+  boost = {},
+  pickReasonFor,
+  diversity = true,
+}) {
+  if (!profile || (candidates.length === 0 && embeddingNeighbors.length === 0)) return []
+
+  // 1. Seed films power the embedding-aware dimensions of scoreMovieForUser.
+  //    Cached + de-duped by `getSeedFilms` so calling this for 5 slots in
+  //    parallel hits the DB once.
+  const seedFilms = userId ? await getSeedFilms(userId, profile) : []
+
+  // 2. Merge slot pool + embedding-neighbor pool, dedupe by id. Embedding
+  //    rows carry { similarity, matched_seed_id, matched_seed_title } from
+  //    the get_seed_neighbors RPC; we hoist those onto the movie row for
+  //    the scorer + impression logger to read later.
+  const byId = new Map()
+  for (const m of candidates) {
+    if (m?.id && !byId.has(m.id)) byId.set(m.id, m)
+  }
+  for (const n of embeddingNeighbors) {
+    if (!n?.id) continue
+    if (!byId.has(n.id)) {
+      byId.set(n.id, {
+        ...n,
+        _embeddingSimilarity: n.similarity || null,
+        _matchedSeedId: n.matched_seed_id || null,
+        _matchedSeedTitle: n.matched_seed_title || null,
+      })
+    } else if (n.similarity) {
+      const ex = byId.get(n.id)
+      if (!ex._embeddingSimilarity) {
+        ex._embeddingSimilarity = n.similarity
+        ex._matchedSeedId = n.matched_seed_id
+        ex._matchedSeedTitle = n.matched_seed_title
+      }
+    }
+  }
+
+  // 3. Client-side exclusion safety net. Caller's server-side filter is
+  //    authoritative; this just catches array-overlap predicates (gated
+  //    genres) that PostgREST can't reliably apply on .in() pools.
+  const eligible = filterExclusionsClientSide([...byId.values()], profile)
+  if (eligible.length === 0) return []
+
+  // 4. Score with the slot's rowType weights, layer embedding + slot boosts.
+  const scored = []
+  for (const movie of eligible) {
+    const result = scoreMovieForUser(movie, profile, rowType, seedFilms)
+    if (!result) continue  // scoreMovieForUser returns null for hard-muted directors
+
+    let embeddingBoost = 0
+    let embeddingReason = null
+    if (movie._embeddingSimilarity) {
+      // Match the boost curve from getGenreBasedRecommendations (lines 4156-4163):
+      // similarity [0.5..0.9] → boost [0..55]. Below 0.5 contributes nothing.
+      const sn = Math.max(0, movie._embeddingSimilarity - 0.5) / 0.4
+      embeddingBoost = Math.round(sn * 55)
+      embeddingReason = {
+        seedId: movie._matchedSeedId,
+        seedTitle: movie._matchedSeedTitle,
+        similarity: movie._embeddingSimilarity,
+      }
+    }
+
+    let slotBoost = 0
+    if (boost.primaryGenre && movie.primary_genre?.toLowerCase() === String(boost.primaryGenre).toLowerCase()) {
+      slotBoost += boost.primaryGenreAmount ?? 20
+    }
+    if (boost.director && String(movie.director_name || '').toLowerCase() === String(boost.director).toLowerCase()) {
+      slotBoost += boost.directorAmount ?? 15
+    }
+    if (boost.fitProfile && movie.fit_profile === boost.fitProfile) {
+      slotBoost += boost.fitProfileAmount ?? 15
+    }
+
+    const pickReason = pickReasonFor
+      ? pickReasonFor(movie, { embeddingReason })
+      : (result.pickReason || { label: 'Matches your taste', type: placement || 'personal' })
+
+    scored.push({
+      movie,
+      score: (result.score || 0) + embeddingBoost + slotBoost,
+      embeddingBoost,
+      slotBoost,
+      embeddingReason,
+      pickReason,
+    })
+  }
+
+  if (scored.length === 0) return []
+  scored.sort((a, b) => b.score - a.score)
+
+  // 5. Diversity filter — same caps as carousel rows (3/director, 5/genre).
+  //    Skipped when `diversity: false` so single-dimension slots (director /
+  //    genre / actor / fit) aren't capped on the very dimension they're
+  //    intentionally narrowed on.
+  const diverse = diversity
+    ? applyRowDiversityFilter(scored, limit)
+    : scored.slice(0, limit)
+
+  // 6. Impression logging — fire-and-forget. Engine uses these to learn
+  //    "what surfaces well for this user" over time. Without this, the
+  //    feedback loop closes only on briefing/discover surfaces.
+  if (userId && placement) {
+    logRowImpressions(userId, diverse, placement).catch(err =>
+      console.warn(`[rankSlotCandidates] impression log failed (${placement}):`, err?.message)
+    )
+  }
+
+  return diverse.map(item => ({
+    ...item.movie,
+    _score: item.score,
+    _pickReason: item.pickReason,
+    _embeddingSimilarity: item.embeddingReason?.similarity || null,
+    _embeddingBoost: item.embeddingBoost,
+    _slotBoost: item.slotBoost,
+  }))
 }
 
 // ============================================================================
@@ -4147,6 +4395,7 @@ export async function getGenreBasedRecommendations(userId, options = {}) {
       // 6. Score with GENRE-SPECIFIC weights
       const scored = eligible.map(movie => {
         const result = scoreMovieForUser(movie, profile, 'favorite_genres', seedFilms)
+        if (!result) return null  // boundary filter dropped this film
 
         // Embedding similarity boost
         let embeddingBoost = 0
@@ -4201,11 +4450,12 @@ export async function getGenreBasedRecommendations(userId, options = {}) {
         }
       })
 
-      // 7. Sort by score
-      scored.sort((a, b) => b.score - a.score)
+      // 7. Drop boundary-filtered nulls, then sort by score
+      const scoredKept = scored.filter(Boolean)
+      scoredKept.sort((a, b) => b.score - a.score)
 
       // 8. Apply diversity filter
-      const diverse = applyRowDiversityFilter(scored, limit)
+      const diverse = applyRowDiversityFilter(scoredKept, limit)
 
       // 9. Log impressions (async, don't await)
       logRowImpressions(userId, diverse, 'favorite_genres').catch(err =>
@@ -5234,6 +5484,7 @@ export async function getTopGenresForUser(userId, options = {}) {
       .from('user_preferences')
       .select('genre_id')
       .eq('user_id', userId)
+      .eq('excluded', false)
 
     if (error) throw error
     if (!prefs || prefs.length === 0) return []
@@ -5409,6 +5660,7 @@ export async function getTrendingForUser(userId, options = {}) {
       // 6. Score with TRENDING-SPECIFIC weights
       const scored = eligible.map(movie => {
         const result = scoreMovieForUser(movie, profile, 'trending', seedFilms)
+        if (!result) return null  // boundary filter dropped this film
 
         // Embedding similarity boost
         let embeddingBoost = 0
@@ -5464,11 +5716,12 @@ export async function getTrendingForUser(userId, options = {}) {
         }
       })
 
-      // 7. Sort by score
-      scored.sort((a, b) => b.score - a.score)
+      // 7. Drop boundary-filtered nulls, then sort
+      const scoredKept = scored.filter(Boolean)
+      scoredKept.sort((a, b) => b.score - a.score)
 
       // 8. Apply diversity filter
-      const diverse = applyRowDiversityFilter(scored, limit)
+      const diverse = applyRowDiversityFilter(scoredKept, limit)
 
       // 9. Log impressions
       logRowImpressions(userId, diverse, 'trending').catch(err =>
@@ -5715,6 +5968,7 @@ export async function getHiddenGemsForUser(userId, options = {}) {
       // 6. Score with HIDDEN GEM-SPECIFIC weights
       const scored = eligible.map(movie => {
         const result = scoreMovieForUser(movie, profile, 'hidden_gems', seedFilms)
+        if (!result) return null  // boundary filter dropped this film
 
         // Embedding similarity boost
         let embeddingBoost = 0
@@ -5775,11 +6029,12 @@ export async function getHiddenGemsForUser(userId, options = {}) {
         }
       })
 
-      // 7. Sort by score
-      scored.sort((a, b) => b.score - a.score)
+      // 7. Drop boundary-filtered nulls, then sort
+      const scoredKept = scored.filter(Boolean)
+      scoredKept.sort((a, b) => b.score - a.score)
 
       // 8. Apply diversity filter
-      const diverse = applyRowDiversityFilter(scored, limit)
+      const diverse = applyRowDiversityFilter(scoredKept, limit)
 
       console.log(
         '[getHiddenGemsForUser] Final selection:',
@@ -5961,8 +6216,10 @@ export async function getMoodCoherenceRow(userId, profile, limit = 20) {
       const scored = candidates
         .map(movie => {
           const result = scoreMovieForUser(movie, profile, 'home')
+          if (!result) return null  // boundary filter dropped this film
           return { movie, score: result.score }
         })
+        .filter(Boolean)
         .sort((a, b) => b.score - a.score)
         .slice(0, limit)
 
@@ -6020,12 +6277,14 @@ export async function getYourGenresRow(userId, profile, limit = 20) {
       return candidates
         .map(movie => {
           const result = scoreMovieForUser(movie, profile, 'home')
+          if (!result) return null  // boundary filter dropped this film
           return {
             ...movie,
             _score: result.score,
             _pickReason: { label: `${genreName} pick`, type: 'your_genre' },
           }
         })
+        .filter(Boolean)
         .sort((a, b) => b._score - a._score)
         .slice(0, limit)
     } catch (error) {
@@ -6188,8 +6447,9 @@ export async function getSlowContemplativeRow(userId, limit = 20) {
       const candidates = (data || []).filter(m => m?.id && !watchedIds.includes(m.id))
       const scored = candidates.map(movie => {
         const result = scoreMovieForUser(movie, profile, 'default', seedFilms)
+        if (!result) return null  // boundary filter dropped this film
         return { ...movie, _score: result.score, _pickReason: { label: 'A moment of quiet', type: 'slow_contemplative' } }
-      })
+      }).filter(Boolean)
       scored.sort((a, b) => b._score - a._score)
       return scored.slice(0, limit)
     } catch (error) {
@@ -6245,8 +6505,9 @@ export async function getQuickWatchesRow(userId, limit = 20) {
 
       const scored = candidates.map(movie => {
         const result = scoreMovieForUser(movie, profile, 'default', seedFilms)
+        if (!result) return null  // boundary filter dropped this film
         return { ...movie, _score: result.score, _pickReason: { label: 'Under 90 minutes', type: 'quick_watch' } }
-      })
+      }).filter(Boolean)
       scored.sort((a, b) => b._score - a._score)
       return scored.slice(0, limit)
     } catch (error) {

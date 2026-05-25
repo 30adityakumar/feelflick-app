@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { Film, Brain, Users, Shield, Zap, Heart, LogIn, Loader2 } from 'lucide-react'
 
 import { useGoogleAuth } from '@/features/landing-v2/utils/useGoogleAuth'
+import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import TopNav from '@/features/landing-v2/components/TopNav'
 import Footer from '@/features/landing-v2/components/Footer'
 import Button from '@/shared/ui/Button'
@@ -65,6 +66,10 @@ const vp = { once: true, margin: '-60px' }
 // === MAIN COMPONENT ===
 
 export default function AboutPage() {
+  usePageMeta({
+    title: 'About — FeelFlick',
+    description: 'FeelFlick is a free mood-first movie discovery platform. Read about the engine, the principles, and the team.',
+  })
   const { signInWithGoogle, isAuthenticating } = useGoogleAuth()
 
   return (
@@ -445,7 +450,7 @@ export default function AboutPage() {
                 aria-label={isAuthenticating ? 'Signing in' : 'Get started with FeelFlick'}
               >
                 {isAuthenticating ? (
-                  <><Loader2 className="h-4 w-4 animate-spin flex-shrink-0" aria-hidden="true" /> Signing in...</>
+                  <><Loader2 className="h-4 w-4 animate-spin flex-shrink-0" aria-hidden="true" /> Signing in…</>
                 ) : (
                   <>
                     Get Started

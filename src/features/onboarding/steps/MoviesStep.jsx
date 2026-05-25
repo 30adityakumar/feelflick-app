@@ -12,54 +12,231 @@ import { GENRES } from '@/features/onboarding/data'
 
 const MIN_MOVIES = 5
 const POOL_SIZE = 30
+// How many candidates to pull per query branch (genre + mood). Higher = more
+// variety in the final scored pool. ~80 per branch lands in ~150 distinct
+// candidates after dedup, then we score and trim to POOL_SIZE.
+const CANDIDATE_LIMIT = 80
 
 const GENRE_DB_NAME = Object.fromEntries(GENRES.map(g => [g.id, g.dbName]))
+
+// Bridge from onboarding's 6-key mood vocabulary (cozy/wired/tender/fun/tense/
+// mythic — see [data.js](../data.js)) to the `mood_tags` strings the catalog
+// actually uses. Derived from observed tag frequencies in the live DB.
+// Distinct from useHomeData's ONBOARDING_MOOD_TO_BRIEFING → MOOD_BRIDGE chain
+// (which targets 6-key Briefing display categories); here we map directly to
+// the catalog vocabulary because we're scoring films, not picking display rows.
+// Bridge expansion (2026-05-21 audit): folded in unmapped high-frequency
+// catalog tags so onboarding moods cover ~5,000 more films without changing
+// the 6-mood UI:
+//   tender ← melancholic, somber, devastating  ("sad in a good way" register)
+//   tense  ← gritty                            (harsh realism)
+//   fun    ← empowering                        (uplift through triumph)
+//   wired  ← dreamy                            (mind-altering atmosphere)
+const ONBOARDING_MOOD_TO_TAGS = {
+  cozy:   ['cozy', 'heartwarming', 'lighthearted', 'whimsical'],
+  wired:  ['mind-bending', 'contemplative', 'provocative', 'mysterious', 'dreamy'],
+  tender: ['tender', 'romantic', 'bittersweet', 'melancholic', 'somber', 'devastating'],
+  fun:    ['playful', 'lighthearted', 'whimsical', 'uplifting', 'exhilarating', 'empowering'],
+  tense:  ['tense', 'suspenseful', 'intense', 'thrilling', 'unsettling', 'dark', 'gritty'],
+  mythic: ['exhilarating', 'haunting', 'inspiring', 'nostalgic'],
+}
+
+// Columns pulled from the `movies` table. Includes scoring inputs (mood_tags,
+// discovery_potential, collection_id, popularity) on top of the display fields.
+const POOL_SELECT = 'id, tmdb_id, title, poster_path, release_date, release_year, primary_genre, mood_tags, ff_audience_rating, discovery_potential, collection_id, popularity'
+
+// Recency: audience is millennial + Gen Z. Films before RECENCY_FLOOR_YEAR are
+// hard-filtered from the candidate queries (they're cultural artifacts the
+// audience is unlikely to have seen, and surfacing them as "what have you
+// loved?" choices misleads the engine). Films from RECENCY_FLOOR_YEAR onward
+// get a linear penalty that decays from RECENCY_MAX_PENALTY at the floor year
+// down to 0 at the current year — so a 1990 film sits well below a 2024 film
+// of equivalent rating, but quality still ultimately decides.
+const RECENCY_FLOOR_YEAR = 1990
+const RECENCY_MAX_PENALTY = 20
+
+// Niche genres that require explicit user selection before surfacing. Mirrors
+// recommendations.js GATED_GENRES (recommendations.js:1416). A film whose
+// primary_genre falls in this set is excluded from the suggestion pool unless
+// the user explicitly picked that genre in Step 2 — otherwise the pool would
+// surface animation/documentaries to users who didn't signal interest, biasing
+// their cold-start profile.
+const GATED_PRIMARY_GENRES = new Set(['Animation', 'Family', 'Documentary', 'Horror'])
+
+// Popularity boost — log-scale, capped. TMDB popularity is right-tailed
+// (p50≈2, p99≈32, max≈690 in our catalog) so a raw multiplier would let
+// spikes dominate. Log-scale gives a bounded, smooth lift that nudges
+// recognisable films up without drowning out the audience-rating signal.
+// pop=10 → +5.2, pop=100 → +10.0, pop=500+ → capped at 12.
+const POPULARITY_MAX_BOOST = 12
+const POPULARITY_COEFFICIENT = 5
 
 // === DATA FETCHING ===
 
 /**
- * Fetch top-rated films filtered by the user's selected genres.
- * @param {number[]} genreIds
- * @returns {Promise<object[]>}
+ * Build the suggestion pool from the user's onboarding picks.
+ *
+ * Two parallel candidate fetches (by genre + by mood overlap), merged client-
+ * side, then scored on quality + mood overlap + primary-genre match + a small
+ * discovery lift, with a collection-dedup penalty so The Godfather Pt I and
+ * Pt II don't sit back-to-back.
+ *
+ * @param {number[]} genreIds  — TMDB genre IDs selected in Step 2
+ * @param {string[]} moods     — onboarding mood keys selected in Step 1
+ * @returns {Promise<object[]>}  — POOL_SIZE shaped film objects
  */
-async function fetchGenrePool(genreIds) {
-  const dbNames = genreIds.map(id => GENRE_DB_NAME[id]).filter(Boolean)
-  if (!dbNames.length) return fetchGlobalPool()
+async function fetchSuggestionPool(genreIds, moods) {
+  const dbNames = (genreIds || []).map(id => GENRE_DB_NAME[id]).filter(Boolean)
+  const tagSet = (moods || []).flatMap(k => ONBOARDING_MOOD_TO_TAGS[k] || [])
 
-  const { data } = await supabase
-    .from('movies')
-    .select('id, tmdb_id, title, poster_path, release_date, primary_genre')
-    .in('primary_genre', dbNames)
-    .not('ff_audience_rating', 'is', null)
-    .not('poster_path', 'is', null)
-    .order('ff_audience_rating', { ascending: false })
-    .limit(POOL_SIZE)
+  // Defensive fallbacks — Step 1 enforces ≥1 mood and Step 2 enforces ≥1
+  // genre, but if either array is empty we still want a sane pool.
+  if (!dbNames.length && !tagSet.length) return fetchGlobalPool()
 
-  return (data || []).map(m => ({
-    id: m.tmdb_id,
-    internalId: m.id,
-    title: m.title,
-    poster_path: m.poster_path,
-    release_date: m.release_date,
-  }))
+  const queries = []
+  if (dbNames.length > 0) {
+    queries.push(
+      supabase
+        .from('movies')
+        .select(POOL_SELECT)
+        .in('primary_genre', dbNames)
+        .gte('release_year', RECENCY_FLOOR_YEAR)
+        .not('poster_path', 'is', null)
+        .eq('is_valid', true)
+        .gte('ff_audience_confidence', 50)
+        .order('ff_audience_rating', { ascending: false, nullsFirst: false })
+        .limit(CANDIDATE_LIMIT),
+    )
+  }
+  if (tagSet.length > 0) {
+    queries.push(
+      supabase
+        .from('movies')
+        .select(POOL_SELECT)
+        .overlaps('mood_tags', tagSet)
+        .gte('release_year', RECENCY_FLOOR_YEAR)
+        .not('poster_path', 'is', null)
+        .eq('is_valid', true)
+        .gte('ff_audience_confidence', 50)
+        .order('ff_audience_rating', { ascending: false, nullsFirst: false })
+        .limit(CANDIDATE_LIMIT),
+    )
+  }
+
+  const results = await Promise.all(queries)
+  const merged = mergeUnique(results.map(r => r.data || []))
+
+  // Apply gated-genre filter: drop films whose primary_genre is in the
+  // niche-genre set unless the user explicitly picked that genre. This is
+  // applied client-side because the by-genre branch is already naturally
+  // gated (`.in('primary_genre', dbNames)`), and we only need to scrub the
+  // by-mood branch's leaks here.
+  const userDbNameSet = new Set(dbNames)
+  const blockedGenres = new Set(
+    [...GATED_PRIMARY_GENRES].filter(g => !userDbNameSet.has(g))
+  )
+  const candidates = blockedGenres.size > 0
+    ? merged.filter(m => !m.primary_genre || !blockedGenres.has(m.primary_genre))
+    : merged
+
+  const scored = scoreCandidates(candidates, { dbNames, tagSet })
+  return dedupByCollection(scored).slice(0, POOL_SIZE).map(shapeFilm)
 }
 
+/**
+ * Fallback when neither moods nor genres are present (shouldn't happen via
+ * the UI, defensive).
+ */
 async function fetchGlobalPool() {
   const { data } = await supabase
     .from('movies')
-    .select('id, tmdb_id, title, poster_path, release_date')
+    .select(POOL_SELECT)
+    .gte('release_year', RECENCY_FLOOR_YEAR)
     .not('ff_audience_rating', 'is', null)
     .not('poster_path', 'is', null)
+    .eq('is_valid', true)
     .order('ff_audience_rating', { ascending: false })
     .limit(POOL_SIZE)
 
-  return (data || []).map(m => ({
+  return (data || []).map(shapeFilm)
+}
+
+/** Shape a DB row into the {id, internalId, ...} format the picker UI expects. */
+function shapeFilm(m) {
+  return {
     id: m.tmdb_id,
     internalId: m.id,
     title: m.title,
     poster_path: m.poster_path,
     release_date: m.release_date,
-  }))
+  }
+}
+
+/** Merge multiple candidate arrays, deduping by tmdb_id, preserving first occurrence. */
+function mergeUnique(arrays) {
+  const seen = new Set()
+  const out = []
+  for (const arr of arrays) {
+    for (const m of arr) {
+      if (!m?.tmdb_id || seen.has(m.tmdb_id)) continue
+      seen.add(m.tmdb_id)
+      out.push(m)
+    }
+  }
+  return out
+}
+
+/**
+ * Score each candidate film. Higher is better. See the suggestion-engine plan
+ * for the formula rationale.
+ */
+function scoreCandidates(candidates, { dbNames, tagSet }) {
+  const dbNameSet = new Set(dbNames)
+  const tagSetLower = new Set(tagSet)
+  // Linear recency ramp: max penalty at RECENCY_FLOOR_YEAR, decays to 0 by the
+  // current year. Films older than the floor are already hard-filtered out of
+  // the candidate queries; this only differentiates 1990s/2000s/2010s/2020s
+  // films within the surviving pool.
+  const currentYear = new Date().getFullYear()
+  const yearSpan = Math.max(1, currentYear - RECENCY_FLOOR_YEAR)
+  return candidates
+    .map(m => {
+      const base = m.ff_audience_rating ?? 50
+      const moodOverlap = Array.isArray(m.mood_tags)
+        ? m.mood_tags.reduce((n, t) => n + (tagSetLower.has(t) ? 1 : 0), 0)
+        : 0
+      const genreBonus = dbNameSet.has(m.primary_genre) ? 6 : 0
+      const discoveryBonus = (m.discovery_potential || 0) * 0.05
+      const recencyPenalty = m.release_year
+        ? -RECENCY_MAX_PENALTY * Math.max(0, Math.min(1, (currentYear - m.release_year) / yearSpan))
+        : 0
+      // Popularity boost — log-scale, capped. Surfaces recognisable films so
+      // users can decide early without scanning unfamiliar titles.
+      const popularityBoost = m.popularity
+        ? Math.min(POPULARITY_MAX_BOOST, Math.log10(m.popularity + 1) * POPULARITY_COEFFICIENT)
+        : 0
+      return {
+        ...m,
+        _score: base + moodOverlap * 4 + genreBonus + discoveryBonus + recencyPenalty + popularityBoost,
+      }
+    })
+    .sort((a, b) => b._score - a._score)
+}
+
+/**
+ * Apply a -20 score penalty to the second+ film from the same collection
+ * (e.g. The Godfather franchise) so they don't sit back-to-back. We just
+ * re-sort once after the penalty; films with no collection are unaffected.
+ */
+function dedupByCollection(scored) {
+  const seenCollection = new Set()
+  const adjusted = scored.map(m => {
+    if (!m.collection_id) return m
+    if (seenCollection.has(m.collection_id)) return { ...m, _score: m._score - 20 }
+    seenCollection.add(m.collection_id)
+    return m
+  })
+  return adjusted.sort((a, b) => b._score - a._score)
 }
 
 // === MOVIE CARD ===
@@ -75,7 +252,7 @@ function MovieCard({ movie, isSelected, onClick }) {
       onClick={onClick}
       aria-pressed={isSelected}
       aria-label={`${isSelected ? 'Remove' : 'Select'} ${movie.title}`}
-      className="flex-shrink-0 w-40 flex flex-col gap-1.5 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-lg group"
+      className="flex-shrink-0 w-28 sm:w-32 md:w-36 flex flex-col gap-1.5 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-lg group"
     >
       <div className={`relative aspect-[2/3] w-full rounded-lg overflow-hidden transition-shadow duration-200 ${
         isSelected
@@ -115,9 +292,9 @@ function MovieCard({ movie, isSelected, onClick }) {
 
 function CardSkeletonRow() {
   return (
-    <div className="flex gap-4 overflow-x-hidden">
+    <div className="flex gap-3 sm:gap-4 overflow-x-hidden">
       {Array.from({ length: 5 }).map((_, i) => (
-        <div key={i} className="flex-shrink-0 w-40 flex flex-col gap-1.5">
+        <div key={i} className="flex-shrink-0 w-28 sm:w-32 md:w-36 flex flex-col gap-1.5">
           <div
             className="aspect-[2/3] rounded-lg bg-white/[0.04] animate-pulse"
             style={{ animationDelay: `${i * 60}ms` }}
@@ -132,11 +309,12 @@ function CardSkeletonRow() {
 // === MAIN COMPONENT ===
 
 /**
- * Onboarding step 2: movie selection.
+ * Onboarding step 3: movie selection.
  * Layout: search bar with dropdown → Suggestions row → Your picks row.
  *
  * @param {{
  *   selectedGenreIds: number[],
+ *   moods: string[],
  *   favoriteMovies: object[],
  *   addMovie: function,
  *   removeMovie: function,
@@ -149,6 +327,7 @@ function CardSkeletonRow() {
  */
 export default function MoviesStep({
   selectedGenreIds,
+  moods,
   favoriteMovies,
   addMovie,
   removeMovie,
@@ -169,7 +348,7 @@ export default function MoviesStep({
 
   useEffect(() => {
     setPoolLoading(true)
-    fetchGenrePool(selectedGenreIds)
+    fetchSuggestionPool(selectedGenreIds, moods)
       .then(films => { setPool(films); setPoolLoading(false) })
       .catch(() => setPoolLoading(false))
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
@@ -222,25 +401,34 @@ export default function MoviesStep({
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="flex-none px-6 pt-6 pb-4">
+      <div className="flex-none px-5 pt-5 pb-4 sm:px-6 sm:pt-6">
         <button
           type="button"
           onClick={onBack}
-          className="flex items-center gap-1.5 text-sm text-white/40 hover:text-white/70 transition-colors mb-4"
+          className="flex items-center gap-1.5 text-sm text-white/40 hover:text-white/70 transition-colors mb-3 sm:mb-4"
         >
           <ChevronLeft className="h-4 w-4" />
           Back
         </button>
-        <h2 className="text-5xl font-black tracking-tight text-white leading-[1.05]">
-          What have you loved?
+        <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-purple-400/85 mb-2.5 sm:mb-3">
+          Films · 3 of 4
+        </p>
+        <h2
+          className="ob-display text-[32px] sm:text-4xl md:text-5xl font-extrabold leading-[1.05] text-white"
+          style={{ textWrap: 'balance' }}
+        >
+          What have you{' '}
+          <em className="bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text not-italic italic text-transparent">
+            loved?
+          </em>
         </h2>
-        <p className="text-base text-white/60 mt-2 leading-relaxed">
-          Pick five films that shaped your taste.
+        <p className="text-[13px] sm:text-sm md:text-[15px] text-white/60 mt-2 leading-relaxed">
+          Pick 5 films that shaped your taste.
         </p>
       </div>
 
       {/* Search bar + dropdown */}
-      <div className="flex-none px-6 pb-5 relative">
+      <div className="flex-none px-5 pb-4 sm:px-6 sm:pb-5 relative">
         <div className="relative">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30 pointer-events-none" />
           <input
@@ -266,7 +454,7 @@ export default function MoviesStep({
 
         {/* Search dropdown */}
         {showDropdown && (
-          <div className="absolute left-6 right-6 top-full mt-1 z-50 bg-neutral-900 border border-white/10 rounded-xl overflow-hidden shadow-2xl">
+          <div className="absolute left-5 right-5 sm:left-6 sm:right-6 top-full mt-1 z-50 bg-black/95 border border-white/10 rounded-xl overflow-hidden shadow-2xl backdrop-blur-xl">
             {searching ? (
               <p className="px-4 py-3 text-sm text-white/40">Searching…</p>
             ) : results.length === 0 ? (
@@ -324,7 +512,7 @@ export default function MoviesStep({
               All suggestions added — search for more above
             </p>
           ) : (
-            <div className="flex gap-4 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory">
+            <div className="flex gap-3 sm:gap-4 overflow-x-auto py-2 px-1 -mx-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory">
               {suggestions.map(m => (
                 <MovieCard
                   key={m.id}
@@ -343,7 +531,7 @@ export default function MoviesStep({
             <p className="text-xs font-semibold uppercase tracking-widest text-purple-400/60 mb-3">
               Your picks ({count}/{MIN_MOVIES})
             </p>
-            <div className="flex gap-4 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory">
+            <div className="flex gap-3 sm:gap-4 overflow-x-auto py-2 px-1 -mx-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory">
               {favoriteMovies.map(m => (
                 <MovieCard
                   key={m.id}
@@ -358,7 +546,7 @@ export default function MoviesStep({
       </div>
 
       {/* Footer */}
-      <div className="flex-none px-6 pb-8 pt-4 border-t border-white/[0.06]">
+      <div className="flex-none px-5 pb-6 pt-3 sm:px-6 sm:pb-8 sm:pt-4 border-t border-white/[0.06]">
         <div className="max-w-sm mx-auto flex flex-col items-center gap-3">
           <p className={`text-xs font-medium transition-colors duration-200 ${
             canFinish ? 'text-purple-400' : 'text-white/30'

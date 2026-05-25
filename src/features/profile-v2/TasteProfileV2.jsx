@@ -10,6 +10,7 @@
 
 import { useParams } from 'react-router-dom'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
+import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { HP } from './data'
 import { Masthead, QuickStats, MoodRadar } from './top'
 import {
@@ -22,6 +23,7 @@ import './profile-v2.css'
 export default function TasteProfileV2() {
   const { user } = useAuthSession()
   const { userId: paramUserId } = useParams()
+  usePageMeta({ title: paramUserId && paramUserId !== user?.id ? 'Taste profile — FeelFlick' : 'Your taste profile — FeelFlick' })
   // When viewing via /profile-v2/:userId we render someone else's DNA;
   // otherwise fall back to the signed-in user.
   const targetUserId = paramUserId || user?.id

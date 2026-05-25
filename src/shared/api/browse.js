@@ -3,7 +3,98 @@
 
 import { supabase } from '@/shared/lib/supabase/client'
 
+/**
+ * Fetch the calling user's "taste twins" — other users above an overall
+ * similarity threshold — and return the union of films they've rated highly.
+ * Used by /browse's "Twins loved" toggle to filter the catalog to films
+ * the user's taste-twins consistently scored well.
+ *
+ * Returns an array of internal movies.id integers (possibly empty).
+ *
+ * Performance: two round-trips. First gets ≤20 twins, second pulls all
+ * their high-rated films in one IN query. Could be cached client-side per
+ * session in a future pass — twin set changes slowly.
+ *
+ * @param {string} userId — calling user's auth UUID
+ * @param {object} [opts]
+ * @param {number} [opts.similarityFloor=0.5]  exclude twins below this
+ * @param {number} [opts.ratingFloor=8]        only count ratings ≥ this (1-10)
+ * @param {number} [opts.maxTwins=20]
+ * @returns {Promise<number[]>}
+ */
+export async function fetchTwinsLovedMovieIds(userId, {
+  similarityFloor = 0.5,
+  ratingFloor = 8,
+  maxTwins = 20,
+} = {}) {
+  if (!userId) return []
+  const { data: twins, error: twinErr } = await supabase
+    .from('user_similarity')
+    .select('user_b_id, overall_similarity')
+    .eq('user_a_id', userId)
+    .gte('overall_similarity', similarityFloor)
+    .order('overall_similarity', { ascending: false })
+    .limit(maxTwins)
+  if (twinErr || !twins?.length) return []
+
+  const twinIds = twins.map(t => t.user_b_id).filter(Boolean)
+  if (twinIds.length === 0) return []
+
+  const { data: ratings, error: rateErr } = await supabase
+    .from('user_ratings')
+    .select('movie_id')
+    .in('user_id', twinIds)
+    .gte('rating', ratingFloor)
+    .not('movie_id', 'is', null)
+  if (rateErr || !ratings?.length) return []
+
+  // Dedupe — many twins may have rated the same film.
+  const set = new Set()
+  for (const r of ratings) if (r.movie_id != null) set.add(r.movie_id)
+  return Array.from(set)
+}
+
+/**
+ * Read the user's chosen subscription/streaming-provider preferences from
+ * user_settings.settings.prefs.subscriptions. Returns the array of provider
+ * keys the user has marked as "I have this" (truthy values in the JSON).
+ * Returns [] when the user hasn't configured any.
+ *
+ * @param {string} userId
+ * @returns {Promise<string[]>}
+ */
+export async function fetchUserSubscriptions(userId) {
+  if (!userId) return []
+  const { data } = await supabase
+    .from('user_settings')
+    .select('settings')
+    .eq('user_id', userId)
+    .maybeSingle()
+  const subs = data?.settings?.prefs?.subscriptions
+  if (!subs || typeof subs !== 'object') return []
+  return Object.keys(subs).filter(k => subs[k])
+}
+
 export const PAGE_SIZE = 24
+
+// Mood-pill labels surfaced on /browse map to one or more underlying
+// `mood_tags` strings (Supabase ARRAY column). The mapping is opinionated —
+// "Slow-burn" and "Cerebral" aren't single mood tags, so we combine the
+// best mood-tag proxies. Returns null when nothing maps.
+// Keys here MUST match the `id` field in data.js MOODS so the URL param
+// value lines up — that's why "slow" (not "slow-burn") is the key.
+const MOOD_PILL_TO_TAGS = {
+  tense:      ['tense', 'suspenseful'],
+  slow:       ['meditative', 'somber'],
+  tender:     ['tender', 'heartwarming'],
+  cerebral:   ['mysterious', 'cerebral'],
+  cozy:       ['heartwarming', 'lighthearted', 'whimsical'],
+  melancholy: ['melancholic', 'bittersweet'],
+}
+export function moodPillToTags(pill) {
+  if (!pill || pill === 'all') return null
+  return MOOD_PILL_TO_TAGS[pill] || null
+}
 
 /**
  * TMDB genre name → TMDB genre ID mapping (stable, matches our imported data).
@@ -27,6 +118,7 @@ const SELECT_FIELDS = [
   'ff_critic_rating', 'ff_critic_confidence',
   'ff_audience_rating', 'ff_audience_confidence',
   'ff_rating_genre_normalized', 'ff_critic_audience_gap',
+  'mood_tags',
 ].join(', ')
 
 /**
@@ -95,6 +187,11 @@ function sortToOrder(sortBy) {
  * @param {number}  opts.minAudience minimum ff_audience_rating (0 = off)
  * @param {string}  opts.criticAudienceGap ""|"critic_picks"|"crowd_pleasers"
  * @param {boolean} opts.exceptionalGenre  filter to ff_rating_genre_normalized >= 8.5
+ * @param {string}  opts.mood        Browse mood pill id: 'tense' | 'slow' | 'tender' | 'cerebral' | 'cozy' | 'melancholy'
+ * @param {number[]|null} opts.restrictToIds  When non-null, hard-filter to
+ *   only this set of movies.id values. Used by /browse's "Twins loved"
+ *   toggle (caller resolves the twin set via fetchTwinsLovedMovieIds and
+ *   passes it through). Empty array means "no matches", null means "no filter".
  * @returns {{ movies: object[], totalCount: number, totalPages: number }}
  */
 export async function browseMovies({
@@ -118,7 +215,14 @@ export async function browseMovies({
   minAudience = 0,
   criticAudienceGap = '',
   exceptionalGenre = false,
+  mood = '',
+  restrictToIds = null,
 } = {}) {
+  // Shortcut: empty restrict list means "show nothing." Avoids building the
+  // query just to return zero rows.
+  if (Array.isArray(restrictToIds) && restrictToIds.length === 0) {
+    return { movies: [], totalCount: 0, totalPages: 1 }
+  }
   const from = (page - 1) * PAGE_SIZE
   const to = from + PAGE_SIZE - 1
 
@@ -241,6 +345,22 @@ export async function browseMovies({
   // ASSUMPTION: threshold 8.0 instead of 8.5 — current data tops out at 8.4
   if (exceptionalGenre) {
     q = q.gte('ff_rating_genre_normalized', 8.0)
+  }
+
+  // ── Mood pill → mood_tags array contains ──────────────────────────────────
+  // Browse mood pills are a curated front-end taxonomy; each maps to one or
+  // more raw mood_tags values. Use `overlaps` so the row matches if its
+  // mood_tags array intersects the requested tags (any-of, not all-of).
+  const moodTags = moodPillToTags(mood)
+  if (moodTags && moodTags.length > 0) {
+    q = q.overlaps('mood_tags', moodTags)
+  }
+
+  // ── Restrict to a specific movie id set (Twins loved filter) ──────────────
+  // Caller passes a deduped int[] of movie ids; we constrain the query so
+  // ranking + pagination operate on this subset only.
+  if (Array.isArray(restrictToIds) && restrictToIds.length > 0) {
+    q = q.in('id', restrictToIds)
   }
 
   // ── Sort & Pagination ──────────────────────────────────────────────────────

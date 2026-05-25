@@ -6,6 +6,7 @@
 // All functions are pure — no Supabase calls, no React. Test by hand if needed.
 
 import { HP } from './data'
+import { computeDnaConfidence } from '@/shared/services/dnaConfidence'
 
 // 6-color cycle for mood axes / radar / chart bars. Order is roughly
 // "intense → calm" so the radar reads pleasantly when sorted by weight.
@@ -45,15 +46,15 @@ export function deriveUser({ authUser, dbUser, history }) {
 
 // === Stats (quick-stats grid) ===
 
-export function deriveStats({ history, ratings }) {
+export function deriveStats({ history, ratings, fingerprint }) {
   const filmsLogged = history.length
   const hoursWatched = Math.round((history.reduce((s, h) => s + (h.movies?.runtime || 0), 0) / 60))
   const now = new Date()
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
   const filmsThisMonth = history.filter(h => h.watched_at && new Date(h.watched_at) >= startOfMonth).length
   const filmsRated = ratings.length
-  // DNA confidence: simple bucket from rated count; saturates at 50 ratings.
-  const conf = Math.min(100, Math.round((filmsRated / 50) * 100))
+  const distinctMoodTags = fingerprint?.topMoodTags?.length || 0
+  const conf = computeDnaConfidence({ filmsLogged, filmsRated, distinctMoodTags })
   return { filmsLogged, hoursWatched, filmsThisMonth, filmsRated, dnaConfidence: conf }
 }
 
@@ -71,18 +72,27 @@ export function deriveMoods(fingerprint) {
   }))
 }
 
-// === DIRECTORS (top 5 by watch count, with avg rating) ===
+// === DIRECTORS (top 5 by watch count, with avg rating + first-watched year) ===
 
 export function deriveDirectors({ history, ratingsByMovieId }) {
   const buckets = new Map()
   for (const h of history) {
     const dir = h.movies?.director_name
     if (!dir) continue
-    if (!buckets.has(dir)) buckets.set(dir, { films: 0, ratingSum: 0, ratingN: 0, signature: '' })
+    if (!buckets.has(dir)) buckets.set(dir, { films: 0, ratingSum: 0, ratingN: 0, firstWatchedT: null, signature: '' })
     const b = buckets.get(dir)
     b.films += 1
     const r = ratingsByMovieId.get(h.movie_id)?.rating
     if (r != null) { b.ratingSum += r; b.ratingN += 1 }
+    // Track the earliest watched_at timestamp per director so we can show
+    // "Since 2023" on the card when the user hasn't rated their films yet —
+    // a "first watched" year beats a bare "unrated" label.
+    if (h.watched_at) {
+      const t = new Date(h.watched_at).getTime()
+      if (Number.isFinite(t) && (b.firstWatchedT == null || t < b.firstWatchedT)) {
+        b.firstWatchedT = t
+      }
+    }
   }
   const list = [...buckets.entries()]
     .map(([name, b]) => ({
@@ -90,6 +100,7 @@ export function deriveDirectors({ history, ratingsByMovieId }) {
       films: b.films,
       // Convert 1-10 → 1-5 for "★ avg" display
       avg: b.ratingN > 0 ? Math.round((b.ratingSum / b.ratingN / 2) * 10) / 10 : null,
+      firstWatchedYear: b.firstWatchedT ? new Date(b.firstWatchedT).getFullYear() : null,
       signature: '',  // editorial — populated by overlay/LLM in a later PR
     }))
     .filter(d => d.films >= 2)  // need at least 2 films to call it "signature"
@@ -99,17 +110,29 @@ export function deriveDirectors({ history, ratingsByMovieId }) {
   return list.map((d, i) => ({ ...d, accent: MOOD_PALETTE[i % MOOD_PALETTE.length] }))
 }
 
-// === MOTIFS (chip cloud) — derived from mood_tags frequency ===
+// === MOTIFS (chip cloud) ===
+// We pull from movies.tone_tags first — they describe HOW films feel
+// stylistically (earnest, ornate, restrained, kinetic, brooding…), which
+// is a different signal than mood_tags (how films feel emotionally).
+// MoodRadar already covers mood; motifs cover tone so the two sections
+// say different things instead of restating the same fingerprint twice.
+// Falls back to mood_tags when a user has no tone coverage yet so the
+// cloud isn't empty in cold-start.
 
 export function deriveMotifs({ history }) {
-  const counts = new Map()
+  const tone = new Map()
+  const mood = new Map()
   for (const h of history) {
+    for (const tag of h.movies?.tone_tags || []) {
+      tone.set(tag, (tone.get(tag) || 0) + 1)
+    }
     for (const tag of h.movies?.mood_tags || []) {
-      counts.set(tag, (counts.get(tag) || 0) + 1)
+      mood.set(tag, (mood.get(tag) || 0) + 1)
     }
   }
-  if (counts.size === 0) return []
-  const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12)
+  const source = tone.size > 0 ? tone : mood
+  if (source.size === 0) return []
+  const sorted = [...source.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12)
   const max = sorted[0][1]
   return sorted.map(([tag, count]) => ({
     tag: capitalize(tag),
@@ -146,6 +169,14 @@ export function deriveMixtape({ history, ratingsByMovieId }) {
 
 // === TRAJECTORY (last 12 months, count + dominant mood per month) ===
 
+function pickDominantMood(moodCounts) {
+  if (moodCounts.size === 0) return { mood: null, hex: HP.purple }
+  const sorted = [...moodCounts.entries()].sort((a, b) => b[1] - a[1])
+  const mood = capitalize(sorted[0][0])
+  const idx = Math.abs(mood.charCodeAt(0) + mood.length) % MOOD_PALETTE.length
+  return { mood, hex: MOOD_PALETTE[idx] }
+}
+
 export function deriveTrajectory({ history }) {
   if (history.length === 0) return []
   const now = new Date()
@@ -155,7 +186,7 @@ export function deriveTrajectory({ history }) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
     buckets.push({
       key: `${d.getFullYear()}-${d.getMonth()}`,
-      month: MONTH_LABELS[d.getMonth()],
+      label: MONTH_LABELS[d.getMonth()],
       count: 0,
       moodCounts: new Map(),
     })
@@ -174,17 +205,34 @@ export function deriveTrajectory({ history }) {
     }
   }
   return buckets.map(b => {
-    let dominant = null
-    let dominantHex = HP.purple
-    if (b.moodCounts.size > 0) {
-      const sorted = [...b.moodCounts.entries()].sort((a, b2) => b2[1] - a[1])
-      dominant = capitalize(sorted[0][0])
-      // hash → palette index
-      const idx = Math.abs(dominant.charCodeAt(0) + dominant.length) % MOOD_PALETTE.length
-      dominantHex = MOOD_PALETTE[idx]
-    }
-    return { month: b.month, count: b.count, mood: dominant, hex: dominantHex }
+    const { mood, hex } = pickDominantMood(b.moodCounts)
+    return { label: b.label, count: b.count, mood, hex }
   })
+}
+
+// "All time" view — one bar per distinct calendar year with watch history.
+// Used by the Trajectory toggle's "All time" option.
+export function deriveTrajectoryAllTime({ history }) {
+  if (history.length === 0) return []
+  const byYear = new Map()  // year → { count, moodCounts }
+  for (const h of history) {
+    if (!h.watched_at) continue
+    const y = new Date(h.watched_at).getFullYear()
+    if (!Number.isFinite(y)) continue
+    if (!byYear.has(y)) byYear.set(y, { count: 0, moodCounts: new Map() })
+    const b = byYear.get(y)
+    b.count += 1
+    for (const tag of h.movies?.mood_tags || []) {
+      b.moodCounts.set(tag, (b.moodCounts.get(tag) || 0) + 1)
+    }
+  }
+  if (byYear.size === 0) return []
+  return [...byYear.entries()]
+    .sort(([a], [b]) => a - b)
+    .map(([year, b]) => {
+      const { mood, hex } = pickDominantMood(b.moodCounts)
+      return { label: String(year), count: b.count, mood, hex }
+    })
 }
 
 // === DECADES (% of watched films per decade) ===
@@ -229,7 +277,25 @@ export function deriveRuntime({ history }) {
 
 // === DAYPART (% of watches by time-of-day bin) ===
 
+const ONE_DAY_MS = 24 * 60 * 60 * 1000
+
+// Returns true if 10+ history rows have watched_at timestamps that all sit
+// within a 24h window — the signature of a bulk import or onboarding seed.
+// In that case the "time of day" bin is meaningless (every row shares the
+// import timestamp) and we'd surface a misleading "you're a morning person"
+// claim. Better to hide the section than lie.
+function looksLikeBulkImport(history) {
+  const ts = history
+    .map(h => h.watched_at ? new Date(h.watched_at).getTime() : null)
+    .filter(Number.isFinite)
+  if (ts.length < 10) return false
+  let min = ts[0], max = ts[0]
+  for (const t of ts) { if (t < min) min = t; if (t > max) max = t }
+  return (max - min) < ONE_DAY_MS
+}
+
 export function deriveDaypart({ history }) {
+  if (looksLikeBulkImport(history)) return []
   const buckets = { Morning: 0, Afternoon: 0, Evening: 0, Late: 0 }
   let total = 0
   for (const h of history) {
@@ -342,6 +408,25 @@ function buildSkewRow(label, you, them, band, unit) {
     youRaw: round1(you),
     themRaw: round1(them),
     unit,
+  }
+}
+
+// === COMMUNITY MOOD (from feelflick_stats.top_mood, refreshed nightly) ===
+// Exposes the mood the rest of FeelFlick has been leaning into this week.
+// Tiny editorial caption above /profile's Skew section so the section
+// contextualises the user's skew against a live community signal instead
+// of a frozen "FF median" abstraction.
+export function deriveCommunityMood(feelflickStats) {
+  if (!Array.isArray(feelflickStats)) return null
+  const row = feelflickStats.find(r => r.stat_key === 'top_mood')
+  if (!row) return null
+  const v = row.stat_value
+  if (!v || typeof v !== 'object') return null
+  const tag = v.tag || v.key || null
+  if (!tag) return null
+  return {
+    tag: capitalize(tag),
+    share: typeof v.share === 'number' ? v.share : null,
   }
 }
 

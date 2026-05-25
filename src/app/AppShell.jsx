@@ -1,10 +1,12 @@
 // src/app/AppShell.jsx
 import { useEffect, useRef, useState } from 'react'
 import { Outlet, useLocation, NavLink } from 'react-router-dom'
-import { Home, Sparkles, User, Compass, LogIn } from 'lucide-react'
+import { Sparkles, Compass, LogIn } from 'lucide-react'
 import Header from '@/app/header/Header'
 import SearchBar from '@/app/header/components/SearchBar'
+import BottomNav from '@/app/header/components/BottomNav'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
+import { usePendingDeletion } from '@/shared/hooks/usePendingDeletion'
 import { useGoogleAuth } from '@/features/landing-v2/utils/useGoogleAuth'
 import { identify, resetAnalytics, track } from '@/shared/services/analytics'
 
@@ -116,38 +118,84 @@ export default function AppShell() {
         <Header onOpenSearch={() => setSearchOpen(true)} />
       </div>
 
-      {/* Page content - Full width, with bottom padding for mobile nav */}
+      {/* Page content - Full width. Bottom padding clears the mobile nav:
+          BottomNav (authed) is ~85px tall + safe-area; UnauthMobileNav is
+          h-16 + safe-area. pb-28 (112px) clears both comfortably. */}
       <main
-        className={`relative z-10 w-full ${isAuthenticated ? 'pb-20 md:pb-0' : ''}`}
+        className={`relative z-10 w-full ${isAuthenticated ? 'pb-28 md:pb-0' : 'pb-20 md:pb-0'}`}
         style={{ paddingTop: 'var(--hdr-h, 56px)' }}
       >
         <Outlet />
       </main>
 
-      {/* Mobile Bottom Navigation */}
-      {isAuthenticated ? (
-        <nav
-          className="fixed bottom-0 left-0 right-0 z-40 md:hidden border-t border-white/8 bg-black/95 backdrop-blur-xl"
-          style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
-          aria-label="Mobile navigation"
-        >
-          <div className="flex items-center justify-around h-16 px-1">
-            <MobileNavLink to="/home"           icon={Home}     label="Home"     />
-            <MobileNavLink to="/browse"         icon={Compass}  label="Browse"   />
-            <MobileNavLink to="/discover"       icon={Sparkles} label="Discover" />
-            <MobileNavLink to="/mobile-account" icon={User}     label="Account"  />
-          </div>
-        </nav>
-      ) : (
-        <UnauthMobileNav />
-      )}
+      {/* Mobile Bottom Navigation — BottomNav handles authed users globally.
+          Unauth users keep the older 3-tab inline nav (Discover/Browse/Sign in)
+          since BottomNav assumes an authed session for DNA/Account targets. */}
+      {isAuthenticated ? <BottomNav /> : <UnauthMobileNav />}
 
+      {/* Pending-deletion banner — only when authed AND a request exists. */}
+      {isAuthenticated && <PendingDeletionBanner />}
 
       {/* Global search modal */}
       <SearchBar open={searchOpen} onClose={() => setSearchOpen(false)} />
-      
+
       {/* Loading indicator for route transitions */}
       <RouteLoadingIndicator />
+    </div>
+  )
+}
+
+/**
+ * Top banner shown on every authed page if the user has scheduled their
+ * account for deletion. Lets them cancel without navigating to /account.
+ */
+function PendingDeletionBanner() {
+  const { pendingDeletion, cancel } = usePendingDeletion()
+  const [busy, setBusy] = useState(false)
+  if (!pendingDeletion?.scheduled_for) return null
+  const scheduled = new Date(pendingDeletion.scheduled_for).toLocaleString('en-US', {
+    month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit',
+  })
+  return (
+    <div
+      role="alert"
+      className="fixed top-0 left-0 right-0 z-[60]"
+      style={{
+        background: 'rgba(239,68,68,0.92)',
+        color: '#fff',
+        padding: '10px 16px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 16,
+        fontFamily: 'Outfit, Inter, sans-serif',
+        fontSize: 13,
+        flexWrap: 'wrap',
+        backdropFilter: 'blur(8px)',
+      }}
+    >
+      <span>
+        Account scheduled for deletion on <strong style={{ fontWeight: 700 }}>{scheduled}</strong>.
+      </span>
+      <button
+        type="button"
+        onClick={async () => { try { setBusy(true); await cancel() } finally { setBusy(false) } }}
+        disabled={busy}
+        style={{
+          padding: '6px 14px',
+          borderRadius: 4,
+          background: '#fff',
+          color: '#b91c1c',
+          border: 'none',
+          fontFamily: 'Outfit, sans-serif',
+          fontSize: 12,
+          fontWeight: 700,
+          letterSpacing: '0.04em',
+          textTransform: 'uppercase',
+          cursor: busy ? 'wait' : 'pointer',
+          opacity: busy ? 0.7 : 1,
+        }}
+      >{busy ? 'Cancelling…' : 'Cancel deletion'}</button>
     </div>
   )
 }
@@ -169,7 +217,7 @@ function UnauthMobileNav() {
         <MobileNavLink to="/browse"   icon={Compass}  label="Browse"   />
         <MobileNavLink
           icon={LogIn}
-          label={isAuthenticating ? 'Signing in…' : 'Sign In'}
+          label={isAuthenticating ? 'Signing in…' : 'Sign in'}
           onClick={isAuthenticating ? undefined : signInWithGoogle}
         />
       </div>
@@ -200,7 +248,7 @@ function MobileNavLink({ to, icon: Icon, label, onClick }) {
           className={`h-5 w-5 transition duration-200 ${
             isActive ? 'stroke-[2.5] drop-shadow-[0_0_8px_rgba(168,85,247,0.6)]' : 'stroke-[1.8]'
           }`}
-          style={isActive ? { color: 'rgb(192,132,252)' } : {}}
+          style={isActive ? { color: 'var(--purple-400)' } : {}}
         />
       </div>
       <span className={`text-[10px] leading-none font-medium transition-colors duration-200 ${
@@ -254,7 +302,7 @@ function RouteLoadingIndicator() {
       role="progressbar"
       aria-label="Loading page"
     >
-      <div className="feelflick-route-progress h-full bg-gradient-to-r from-purple-500 via-pink-500 to-amber-500" />
+      <div className="feelflick-route-progress h-full bg-gradient-to-r from-purple-600 to-pink-500" />
     </div>
   )
 }

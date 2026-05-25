@@ -9,4 +9,169 @@
 .ff-profile-v2 ::selection { background: rgba(167,139,250,0.4); color: #fff; }
 .ff-profile-v2 em { font-style: italic; }
 .ff-profile-v2 button { font-family: inherit; transition: filter 0.18s ease; }
-.ff-profile-v2 button:hover { filter: brightness(1.12); }
+.ff-profile-v2 button:hover:not(:disabled) { filter: brightness(1.12); }
+
+/* === Responsive overrides ==================================================
+   Same pattern as lists-v2 / watchlist-v2 / history-v2 / people-v2: every
+   section's desktop padding + rigid grid template lives inline on the JSX,
+   and these class-hook + `!important` rules collapse them at narrow widths.
+   The class names are stable contracts — JSX adds them alongside the inline
+   styles; the CSS only kicks in below each breakpoint. */
+
+/* Tablet (≤ 1100px) — trim sidewalls, soften some grids. */
+@media (max-width: 1100px) {
+  .ff-profile-section {
+    padding-left: clamp(28px, 5vw, 60px) !important;
+    padding-right: clamp(28px, 5vw, 60px) !important;
+  }
+  .ff-profile-masthead {
+    padding-top: 56px !important;
+    padding-bottom: 24px !important;
+  }
+  .ff-profile-masthead-h1 {
+    font-size: clamp(56px, 8vw, 80px) !important;
+  }
+  .ff-profile-signature {
+    font-size: clamp(36px, 6vw, 52px) !important;
+  }
+  .ff-profile-directors-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+  .ff-profile-stats-grid {
+    gap: 24px !important;
+  }
+}
+
+/* Smaller tablet (≤ 880px) — stack the two-column section layouts. */
+@media (max-width: 880px) {
+  /* Masthead: avatar above, then name + summary, then archetype card. */
+  .ff-profile-masthead-grid {
+    grid-template-columns: 1fr !important;
+    gap: 28px !important;
+    align-items: flex-start !important;
+  }
+  .ff-profile-masthead-h1 {
+    font-size: clamp(48px, 10vw, 72px) !important;
+  }
+  .ff-profile-signature {
+    font-size: clamp(28px, 6vw, 44px) !important;
+    margin-top: 40px !important;
+    padding-top: 32px !important;
+  }
+  .ff-profile-stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    row-gap: 32px !important;
+  }
+  /* Reset the borderLeft trick — when grid wraps to 2-col it'd put a line
+     halfway across the second row. Drop and use a row gap instead. */
+  .ff-profile-stat-cell {
+    border-left: none !important;
+    padding-left: 0 !important;
+  }
+  .ff-profile-mood-grid,
+  .ff-profile-motifs-grid,
+  .ff-profile-skew-grid,
+  .ff-profile-share-grid {
+    grid-template-columns: 1fr !important;
+    gap: 32px !important;
+  }
+  .ff-profile-mood-radar {
+    width: 100% !important;
+    max-width: 360px !important;
+    height: auto !important;
+    aspect-ratio: 1 !important;
+    margin: 0 auto !important;
+  }
+  .ff-profile-directors-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 14px !important;
+  }
+  .ff-profile-mixtape-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 14px !important;
+  }
+  .ff-profile-friends-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 14px !important;
+  }
+  .ff-profile-pattern-grid {
+    grid-template-columns: 1fr !important;
+    gap: 32px !important;
+  }
+  .ff-profile-yir-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  .ff-profile-section {
+    padding-top: 56px !important;
+    padding-bottom: 56px !important;
+  }
+  /* Top-row actions wrap below the eyebrow on narrow widths. */
+  .ff-profile-masthead-actions-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 14px !important;
+  }
+}
+
+/* Phone (≤ 720px). */
+@media (max-width: 720px) {
+  .ff-profile-section {
+    padding-left: clamp(16px, 4vw, 24px) !important;
+    padding-right: clamp(16px, 4vw, 24px) !important;
+    padding-top: 44px !important;
+    padding-bottom: 44px !important;
+  }
+  .ff-profile-masthead {
+    padding-top: 36px !important;
+  }
+  .ff-profile-masthead-h1 {
+    font-size: clamp(42px, 13vw, 60px) !important;
+    letter-spacing: -0.04em !important;
+  }
+  .ff-profile-masthead-summary {
+    font-size: 16px !important;
+  }
+  .ff-profile-signature {
+    font-size: clamp(26px, 7vw, 40px) !important;
+    line-height: 1.1 !important;
+  }
+  .ff-profile-stats-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 24px !important;
+  }
+  .ff-profile-stat-value {
+    font-size: 44px !important;
+  }
+  .ff-profile-mixtape-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+  .ff-profile-friends-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .ff-profile-directors-grid {
+    grid-template-columns: 1fr !important;
+  }
+  /* Trajectory: keep 12 bars but tighten spacing + drop the per-bar count
+     label (the bar height already shows it; numbers stack overlap badly
+     at narrow widths). */
+  .ff-profile-trajectory-bars {
+    gap: 6px !important;
+  }
+  .ff-profile-trajectory-count {
+    display: none !important;
+  }
+  .ff-profile-trajectory-label {
+    font-size: 9px !important;
+    letter-spacing: 0.04em !important;
+  }
+  .ff-profile-share-preview {
+    width: 200px !important;
+    margin: 0 auto !important;
+  }
+  /* Section headers in panels — bring h2 down to a phone-readable size. */
+  .ff-profile-section-h2 {
+    font-size: 32px !important;
+  }
+}

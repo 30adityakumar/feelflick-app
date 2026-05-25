@@ -1,7 +1,11 @@
 // src/shared/services/analytics.js
 import posthog from 'posthog-js'
+import { supabase } from '@/shared/lib/supabase/client'
 
 let _initialized = false
+// Mirror of user_settings.privacy.analytics, fetched lazily on identify().
+// Defaults to true (opted-in) when never set — matches SETTINGS.privacy default.
+let _optedOut = false
 
 /**
  * Initialise PostHog. Call once before React mounts.
@@ -23,28 +27,64 @@ export function initAnalytics() {
 
 /**
  * Associate the current session with an authenticated user.
+ * Also reads their `user_settings.privacy.analytics` flag and honors opt-out.
  * @param {string} userId
  * @param {{ email?: string, name?: string }} [traits]
  */
-export function identify(userId, traits = {}) {
+export async function identify(userId, traits = {}) {
   if (!_initialized) return
   posthog.identify(userId, traits)
+  // Best-effort opt-out check; failure leaves us opted-in (the safe default
+  // for product analytics — explicit opt-out should be persisted by the time
+  // we identify).
+  try {
+    const { data } = await supabase
+      .from('user_settings')
+      .select('settings')
+      .eq('user_id', userId)
+      .maybeSingle()
+    const analyticsEnabled = data?.settings?.privacy?.analytics
+    // Treat missing as opted-in (true). Only explicit `false` opts out.
+    if (analyticsEnabled === false) {
+      _optedOut = true
+      posthog.opt_out_capturing()
+    } else {
+      _optedOut = false
+      posthog.opt_in_capturing()
+    }
+  } catch {
+    /* leave default opt-in state */
+  }
 }
 
 /**
- * Send a named analytics event.
+ * Send a named analytics event. No-op when the user has opted out.
  * @param {string} event
  * @param {Record<string, unknown>} [properties]
  */
 export function track(event, properties = {}) {
-  if (!_initialized) return
+  if (!_initialized || _optedOut) return
   posthog.capture(event, properties)
 }
 
 /**
- * Reset identity on sign-out.
+ * Reset identity on sign-out. Also clears opt-out state so the next signed-in
+ * session re-derives from its own user_settings.
  */
 export function resetAnalytics() {
   if (!_initialized) return
   posthog.reset()
+  _optedOut = false
+}
+
+/**
+ * Immediate opt-out from the UI side (e.g. when the user toggles the
+ * Privacy → Product analytics switch off without re-identifying). Keeps the
+ * mirror in sync with user_settings without needing a reload.
+ */
+export function setAnalyticsOptOut(optOut) {
+  if (!_initialized) return
+  _optedOut = !!optOut
+  if (optOut) posthog.opt_out_capturing()
+  else posthog.opt_in_capturing()
 }

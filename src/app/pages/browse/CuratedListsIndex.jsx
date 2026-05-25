@@ -4,7 +4,7 @@ import { CURATED_LISTS } from './curatedListsConfig'
 
 export default function CuratedListsIndex() {
   const navigate = useNavigate()
-  usePageMeta({ title: 'Curated Lists · FeelFlick' })
+  usePageMeta({ title: 'Curated lists — FeelFlick' })
 
   return (
     <div className="min-h-screen bg-black text-white">

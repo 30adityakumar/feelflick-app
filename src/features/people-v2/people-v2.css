@@ -3,6 +3,93 @@
 .ff-people-v2, body:has(> div > div.ff-people-v2) { font-family:'Inter', system-ui, sans-serif; }
 .ff-people-v2 em { font-style: italic; }
 .ff-people-v2 button { font-family: inherit; transition: filter 0.18s ease; }
-.ff-people-v2 button:hover { filter: brightness(1.12); }
+.ff-people-v2 button:hover:not(:disabled) { filter: brightness(1.12); }
 .ff-people-v2 input { font-family: inherit; }
 .ff-people-v2 ::selection { background: rgba(167,139,250,0.4); color:#fff; }
+
+/* === Responsive overrides ==================================================
+   Mirrors the pattern used in account-v2.css + watchlist-v2.css + history-v2.css:
+   inline `padding: ...88px` and fixed grid templates are kept for desktop;
+   class hooks override them at narrow widths. */
+
+/* Tablet (≤ 1100px): trim sidewalls; twin grid drops 4 → 3 cols. */
+@media (max-width: 1100px) {
+  .ff-people-section {
+    padding-left: clamp(28px, 5vw, 60px) !important;
+    padding-right: clamp(28px, 5vw, 60px) !important;
+  }
+  .ff-people-grid-4 {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 16px !important;
+  }
+}
+
+/* Smaller tablet (≤ 880px): twin grid 3 → 2 cols, "3-col rails" → 2 cols,
+   crew overlap stacks. */
+@media (max-width: 880px) {
+  .ff-people-grid-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .ff-people-grid-3 {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 14px !important;
+  }
+  .ff-people-crew-grid {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+}
+
+/* Phone (≤ 720px). */
+@media (max-width: 720px) {
+  .ff-people-section {
+    padding-left: clamp(16px, 4vw, 24px) !important;
+    padding-right: clamp(16px, 4vw, 24px) !important;
+  }
+  .ff-people-masthead {
+    padding-top: 48px !important;
+    padding-bottom: 24px !important;
+  }
+  /* Hero clamps so "Your taste twins." fits on two lines max instead of three. */
+  .ff-people-hero {
+    font-size: clamp(44px, 13vw, 72px) !important;
+    line-height: 1 !important;
+  }
+  .ff-people-h2 {
+    font-size: 26px !important;
+  }
+  .ff-people-h2-sm {
+    font-size: 22px !important;
+  }
+  /* Twin cards stack so each gets the full viewport width. */
+  .ff-people-grid-4 {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  .ff-people-grid-3 {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+  .ff-people-twin-card {
+    padding: 20px 18px !important;
+  }
+  /* Search form: input + button stack so button keeps full label visible. */
+  .ff-people-search-form {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .ff-people-search-form > button {
+    width: 100% !important;
+  }
+  /* Activity row: drop the trailing "X mins ago" column → put it inline
+     under the meta line. */
+  .ff-people-activity-row {
+    grid-template-columns: auto 1fr !important;
+    gap: 12px !important;
+  }
+  .ff-people-activity-row > div:last-child {
+    grid-column: 2 / -1 !important;
+    margin-top: 4px !important;
+    text-align: left !important;
+  }
+}

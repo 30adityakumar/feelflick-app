@@ -25,3 +25,11 @@ dist/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Session work products — screenshots, audit notes, scratch dirs. Kept
+# locally for in-progress reference, never shipped to production.
+.audit/
+.audit-shots/
+.tmp-screens/
+audits/
+consistency-audit.md

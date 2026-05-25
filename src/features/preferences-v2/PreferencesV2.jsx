@@ -5,7 +5,7 @@
 // draft via the provider; the Save panel persists in one transaction.
 
 import { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { PreferencesDataProvider, usePreferencesData, genreLabelOf } from './usePreferencesData'
 import './preferences-v2.css'
 
@@ -15,7 +15,7 @@ const HP = {
   text: '#FAFAFA', textSoft: 'rgba(250,250,250,0.72)', textMuted: 'rgba(250,250,250,0.45)', textFaint: 'rgba(250,250,250,0.28)',
   purple: '#A78BFA', purpleDeep: '#7C3AED', pink: '#EC4899', amber: '#F59E0B', red: '#EF4444', green: '#34D399',
 }
-const HP_GRAD = 'linear-gradient(135deg, #A78BFA 0%, #EC4899 100%)'
+const HP_GRAD = 'linear-gradient(135deg, #9333ea 0%, #ec4899 100%)'
 const RESET_BTN = { background: 'none', border: 'none', padding: 0, margin: 0, font: 'inherit', color: 'inherit', cursor: 'pointer', textAlign: 'left' }
 
 // === Atoms ===============================================================
@@ -394,6 +394,54 @@ function Boundaries() {
   )
 }
 
+function Display() {
+  const { draft, setSubtitles, setSpoilerTier, addLanguage, removeLanguage, catalogs } = usePreferencesData()
+  const languageItems = draft.languages.map(l => ({ key: l, label: l }))
+  const languageOptions = catalogs.LANGUAGES.map(l => ({ key: l, label: l }))
+  return (
+    <section style={{ padding: '56px 88px', borderTop: `1px solid ${HP.border}` }}>
+      <H kicker="Display" title="How films arrive." sub="Doesn't change what we pick &mdash; just how each film shows up when you open it." />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48 }}>
+        <div>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: HP.textMuted, fontFamily: 'Outfit', marginBottom: 6 }}>Subtitles</div>
+          <div style={{ fontSize: 12, color: HP.textFaint, fontFamily: 'Outfit, Inter, sans-serif', fontStyle: 'italic', marginBottom: 14 }}>How you feel about reading them.</div>
+          <Segmented value={draft.subtitles} onChange={setSubtitles} options={catalogs.SUBTITLE_MODES} />
+        </div>
+        <div>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: HP.textMuted, fontFamily: 'Outfit', marginBottom: 6 }}>Spoiler tier</div>
+          <div style={{ fontSize: 12, color: HP.textFaint, fontFamily: 'Outfit, Inter, sans-serif', fontStyle: 'italic', marginBottom: 14 }}>How much synopsis we show by default.</div>
+          <Segmented value={draft.spoilerTier} onChange={setSpoilerTier} options={catalogs.SPOILER_TIERS} />
+        </div>
+      </div>
+      <div style={{ marginTop: 36 }}>
+        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: HP.textMuted, fontFamily: 'Outfit', marginBottom: 6 }}>Languages you watch</div>
+        <div style={{ fontSize: 12, color: HP.textFaint, fontFamily: 'Outfit, Inter, sans-serif', fontStyle: 'italic', marginBottom: 14 }}>Films in these languages get a quiet boost.</div>
+        <ChipPicker items={languageItems} hex={HP.purple} onRemove={removeLanguage} onAdd={addLanguage} options={languageOptions} addLabel="+ Language" />
+      </div>
+    </section>
+  )
+}
+
+function Segmented({ value, onChange, options }) {
+  return (
+    <div role="radiogroup" style={{ display: 'inline-flex', padding: 3, borderRadius: 999, background: 'rgba(255,255,255,0.04)', border: `1px solid ${HP.border}`, flexWrap: 'wrap' }}>
+      {options.map(o => {
+        const on = o.v === value
+        return (
+          <button
+            key={o.v}
+            type="button"
+            role="radio"
+            aria-checked={on}
+            onClick={() => onChange(o.v)}
+            style={{ padding: '8px 16px', borderRadius: 999, background: on ? HP_GRAD : 'transparent', color: on ? '#fff' : HP.textMuted, border: 'none', cursor: 'pointer', fontFamily: 'Outfit', fontSize: 12, fontWeight: 600, letterSpacing: '0.04em' }}
+          >{o.l}</button>
+        )
+      })}
+    </div>
+  )
+}
+
 function PreviewPanel() {
   const { dirty, saving, savedAt, save, discard } = usePreferencesData()
   const justSaved = savedAt && Date.now() - savedAt < 3000
@@ -409,9 +457,6 @@ function PreviewPanel() {
                 ? <>Unsaved changes &mdash; <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>save to apply.</em></>
                 : <>Engine is up to date <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>with your dials.</em></>}
           </h2>
-          <p style={{ marginTop: 14, fontSize: 14, color: HP.textMuted, fontFamily: 'Outfit, Inter, sans-serif', lineHeight: 1.6, maxWidth: 560, fontStyle: 'italic', textWrap: 'pretty' }}>
-            Genre and runtime changes apply immediately to the recommendation engine. Mood, director, daypart, subscription, and boundary dials roll into your next briefing compute.
-          </p>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button
@@ -429,23 +474,6 @@ function PreviewPanel() {
         </div>
       </div>
     </section>
-  )
-}
-
-function Foot() {
-  const navigate = useNavigate()
-  const { resetDefaults } = usePreferencesData()
-  return (
-    <footer style={{ padding: '40px 88px 64px', borderTop: `1px solid ${HP.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontFamily: 'Outfit', flexWrap: 'wrap', gap: 20 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-        <div style={{ width: 28, height: 28, borderRadius: 6, background: HP_GRAD, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 13, color: '#fff' }}>FF</div>
-        <span style={{ fontSize: 13, color: HP.textMuted }}>FeelFlick · Preferences</span>
-      </div>
-      <div style={{ display: 'flex', gap: 24, fontSize: 12, color: HP.textMuted, letterSpacing: '0.04em' }}>
-        <button type="button" onClick={resetDefaults} style={{ ...RESET_BTN, fontSize: 12, color: HP.textMuted }}>Reset to defaults</button>
-        <button type="button" onClick={() => navigate('/account')} style={{ ...RESET_BTN, fontSize: 12, color: HP.textMuted }}>Back to Account</button>
-      </div>
-    </footer>
   )
 }
 
@@ -476,14 +504,15 @@ function PreferencesV2Body() {
         <Daypart />
         <Subscriptions />
         <Boundaries />
+        <Display />
         <PreviewPanel />
-        <Foot />
       </div>
     </div>
   )
 }
 
 export default function PreferencesV2() {
+  usePageMeta({ title: 'Preferences — FeelFlick' })
   return (
     <PreferencesDataProvider>
       <PreferencesV2Body />

@@ -24,7 +24,10 @@ import FollowButton from '@/shared/components/FollowButton'
 function getTopGenres(user, max = 3) {
   const prefs = user?.user_preferences
   if (!Array.isArray(prefs) || prefs.length === 0) return []
+  // Skip legacy avoid rows (excluded=true) so we don't show "likes Horror"
+  // when the user actually avoids Horror.
   return prefs
+    .filter((p) => p.excluded !== true)
     .map((p) => p.genres?.name)
     .filter(Boolean)
     .slice(0, max)
@@ -163,7 +166,7 @@ function SkeletonCard() {
 // SELECT FRAGMENTS
 // ============================================================================
 
-const USER_SELECT = 'id, name, avatar_url, user_history(count), user_preferences(genre_id, genres(name))'
+const USER_SELECT = 'id, name, avatar_url, user_history(count), user_preferences(genre_id, excluded, genres(name))'
 
 // ============================================================================
 // MAIN COMPONENT

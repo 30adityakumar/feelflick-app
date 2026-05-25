@@ -429,8 +429,10 @@ export async function computeUserProfile(userId, forceRefresh = false) {
         .order('watched_at', { ascending: false })
         .limit(100),
 
-      // ✅ user_preferences is included
-      supabase.from('user_preferences').select('genre_id').eq('user_id', userId),
+      // user_preferences row = "user is drawn to this genre". Legacy rows
+      // with excluded=true represent "avoid" and must NOT bleed into the
+      // preferred set — that data now lives in settings.prefs.avoidGenres.
+      supabase.from('user_preferences').select('genre_id').eq('user_id', userId).eq('excluded', false),
 
       supabase.from('user_ratings').select('movie_id, rating').eq('user_id', userId),
 
@@ -798,11 +800,13 @@ export async function computeUserProfileV3(userId, options = {}) {
       .order('watched_at', { ascending: false })
       .limit(100),
 
-    // Onboarding preferences
+    // Onboarding + /preferences drawn-to genres. Exclude legacy avoid rows
+    // (excluded=true); avoid lives in settings.prefs.avoidGenres now.
     supabase
       .from('user_preferences')
       .select('genre_id')
-      .eq('user_id', userId),
+      .eq('user_id', userId)
+      .eq('excluded', false),
 
     // Community skip data (module-cached)
     getCommunityHighSkipSet(),
@@ -5234,6 +5238,7 @@ export async function getTopGenresForUser(userId, options = {}) {
       .from('user_preferences')
       .select('genre_id')
       .eq('user_id', userId)
+      .eq('excluded', false)
 
     if (error) throw error
     if (!prefs || prefs.length === 0) return []

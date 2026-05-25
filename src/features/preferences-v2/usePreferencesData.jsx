@@ -2,13 +2,15 @@
 // FeelFlick — Preferences v2 ("The dials") data layer.
 //
 // Persistence model:
-//   • Genres (drawn-to / avoid) → user_preferences (user_id, genre_id, excluded)
-//     This is what the recommendation engine reads, and the v1 /preferences
-//     page already writes here. We mirror the truth.
+//   • Drawn-to genres → user_preferences (user_id, genre_id, excluded=false).
+//     Engine + /home gating read this table via .select('genre_id') — they
+//     ignore the `excluded` flag entirely, so we don't write avoid rows here
+//     (would cause the engine to treat avoided genres as PREFERRED).
+//   • Avoid genres → user_settings.settings.prefs.avoidGenres (label array).
+//     Discover engine reads this; this is the only place anything checks
+//     "did the user say avoid".
 //   • Everything else (mood weights, directors trusted/muted, runtime band,
-//     daypart, subscriptions, boundaries) → user_settings.settings.prefs JSONB.
-//     The /account-v2 page already uses settings.prefs for runtimeFloor/Cap
-//     and avoidGenres — we share those keys instead of forking storage.
+//     daypart, subscriptions, boundaries, display knobs) → settings.prefs.
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/shared/lib/supabase/client'
@@ -78,6 +80,29 @@ export const BOUNDARIES = [
   { id: 'noise',   label: 'Sensory-heavy films',      desc: 'Flicker, jump-cuts, strobe.' },
 ]
 
+// Display-side knobs (formerly under /account → "Engine preferences").
+// They steer how content is presented, not what gets recommended, but they
+// belong here so a single page owns every "how I want films delivered to me"
+// setting.
+export const LANGUAGES = [
+  'English', 'Korean', 'Japanese', 'French', 'Spanish', 'Italian',
+  'German', 'Mandarin', 'Cantonese', 'Hindi', 'Portuguese', 'Russian',
+  'Arabic', 'Turkish', 'Persian', 'Swedish', 'Danish', 'Norwegian',
+  'Polish', 'Dutch', 'Thai', 'Vietnamese',
+]
+
+export const SUBTITLE_MODES = [
+  { v: 'never',          l: 'Never' },
+  { v: 'sometimes',      l: 'Sometimes' },
+  { v: 'always-welcome', l: 'Always welcome' },
+]
+
+export const SPOILER_TIERS = [
+  { v: 'brief',    l: 'Brief' },
+  { v: 'standard', l: 'Standard' },
+  { v: 'detailed', l: 'Detailed' },
+]
+
 // === Default shape =====================================================
 
 const DEFAULT_DRAFT = {
@@ -91,19 +116,34 @@ const DEFAULT_DRAFT = {
   daypart: { morning: false, afternoon: false, evening: true, late: false },
   subscriptions: {},
   boundaries: { graphic: false, sexual: false, animals: false, noise: false },
+  // Display knobs (migrated from /account EnginePrefs)
+  subtitles: 'always-welcome',
+  spoilerTier: 'brief',
+  languages: ['English'],
 }
 
 function buildInitialDraft(settingsPrefs, prefRows) {
+  const p = settingsPrefs || {}
   const drawn = []
-  const avoid = []
+  const legacyAvoid = []
   for (const r of prefRows || []) {
-    if (r.excluded) avoid.push(r.genre_id)
+    if (r.excluded) legacyAvoid.push(r.genre_id)
     else drawn.push(r.genre_id)
   }
-  const p = settingsPrefs || {}
+  // Avoid is sourced from settings.prefs.avoidGenres (the canonical store the
+  // Discover engine reads). For pre-fix users we union in any legacy
+  // user_preferences.excluded=true rows so we don't lose their data — the
+  // next save normalises them out of user_preferences.
+  const avoidFromSettings = Array.isArray(p.avoidGenres)
+    ? p.avoidGenres.map(genreIdOf).filter(Boolean)
+    : []
+  const avoid = Array.from(new Set([...avoidFromSettings, ...legacyAvoid]))
+  // If a genre ended up in both drawn and avoid (data corruption), avoid wins.
+  const avoidSet = new Set(avoid)
+  const drawnDeduped = drawn.filter(id => !avoidSet.has(id))
   return {
     moodWeights: { ...DEFAULT_DRAFT.moodWeights, ...(p.moodWeights || {}) },
-    drawnGenreIds: drawn,
+    drawnGenreIds: drawnDeduped,
     avoidGenreIds: avoid,
     trustedDirectors: Array.isArray(p.trustedDirectors) ? p.trustedDirectors : [],
     mutedDirectors:   Array.isArray(p.mutedDirectors)   ? p.mutedDirectors   : [],
@@ -112,6 +152,9 @@ function buildInitialDraft(settingsPrefs, prefRows) {
     daypart: { ...DEFAULT_DRAFT.daypart, ...(p.daypart || {}) },
     subscriptions: { ...DEFAULT_DRAFT.subscriptions, ...(p.subscriptions || {}) },
     boundaries: { ...DEFAULT_DRAFT.boundaries, ...(p.boundaries || {}) },
+    subtitles:   typeof p.subtitles   === 'string' ? p.subtitles   : DEFAULT_DRAFT.subtitles,
+    spoilerTier: typeof p.spoilerTier === 'string' ? p.spoilerTier : DEFAULT_DRAFT.spoilerTier,
+    languages:   Array.isArray(p.languages) && p.languages.length ? p.languages : DEFAULT_DRAFT.languages,
   }
 }
 
@@ -211,9 +254,16 @@ export function PreferencesDataProvider({ children }) {
   const toggleDaypart = useCallback((id) => setDraft(d => ({ ...d, daypart: { ...d.daypart, [id]: !d.daypart[id] } })), [])
   const toggleSubscription = useCallback((id) => setDraft(d => ({ ...d, subscriptions: { ...d.subscriptions, [id]: !d.subscriptions[id] } })), [])
   const toggleBoundary = useCallback((id) => setDraft(d => ({ ...d, boundaries: { ...d.boundaries, [id]: !d.boundaries[id] } })), [])
+  const setSubtitles   = useCallback((v) => setDraft(d => ({ ...d, subtitles: v })), [])
+  const setSpoilerTier = useCallback((v) => setDraft(d => ({ ...d, spoilerTier: v })), [])
+  const addLanguage    = useCallback((name) => {
+    const n = (name || '').trim()
+    if (!n) return
+    setDraft(d => d.languages.includes(n) ? d : ({ ...d, languages: [...d.languages, n] }))
+  }, [])
+  const removeLanguage = useCallback((name) => setDraft(d => ({ ...d, languages: d.languages.filter(x => x !== name) })), [])
 
   const discard = useCallback(() => setDraft(baseline), [baseline])
-  const resetDefaults = useCallback(() => setDraft(DEFAULT_DRAFT), [])
 
   const dirty = useMemo(() => stableStringify(draft) !== stableStringify(baseline), [draft, baseline])
 
@@ -222,12 +272,13 @@ export function PreferencesDataProvider({ children }) {
     if (!userId || !dirty || saving) return
     setSaving(true)
     try {
-      // 1) Replace genre prefs (this is what the engine reads).
+      // 1) Replace drawn-to genre rows. We deliberately do NOT write avoid
+      //    rows here — the engine selects only `genre_id` from this table
+      //    and treats every row as PREFERRED. Avoid lives in
+      //    settings.prefs.avoidGenres (written below), which is what the
+      //    Discover engine actually reads.
       await supabase.from('user_preferences').delete().eq('user_id', userId)
-      const rows = [
-        ...draft.drawnGenreIds.map(id => ({ user_id: userId, genre_id: id, excluded: false })),
-        ...draft.avoidGenreIds.map(id => ({ user_id: userId, genre_id: id, excluded: true })),
-      ]
+      const rows = draft.drawnGenreIds.map(id => ({ user_id: userId, genre_id: id, excluded: false }))
       if (rows.length) {
         await supabase
           .from('user_preferences')
@@ -255,8 +306,13 @@ export function PreferencesDataProvider({ children }) {
           daypart: draft.daypart,
           subscriptions: draft.subscriptions,
           boundaries: draft.boundaries,
-          // Mirror genre lists into settings.prefs so account-v2's avoidGenres
-          // stays in sync (it expects string labels, not numeric IDs).
+          // Display knobs (migrated from /account EnginePrefs — same JSONB
+          // path so any pre-existing values survive the move).
+          subtitles: draft.subtitles,
+          spoilerTier: draft.spoilerTier,
+          languages: draft.languages,
+          // Genre labels — kept in JSONB as a denormalised mirror of
+          // user_preferences (which is what the engine actually reads).
           drawnGenres: draft.drawnGenreIds.map(genreLabelOf),
           avoidGenres: draft.avoidGenreIds.map(genreLabelOf),
         },
@@ -292,7 +348,7 @@ export function PreferencesDataProvider({ children }) {
     loading, saving, savedAt, dirty,
     draft, baseline,
     directorSuggestions,
-    catalogs: { MOODS, GENRES, STREAMERS, DAYPARTS, BOUNDARIES },
+    catalogs: { MOODS, GENRES, STREAMERS, DAYPARTS, BOUNDARIES, LANGUAGES, SUBTITLE_MODES, SPOILER_TIERS },
     // setters
     update, setMoodWeight,
     addDrawnGenre, removeDrawnGenre,
@@ -301,7 +357,8 @@ export function PreferencesDataProvider({ children }) {
     addMutedDirector, removeMutedDirector,
     setRuntimeFloor, setRuntimeCap,
     toggleDaypart, toggleSubscription, toggleBoundary,
-    discard, resetDefaults, save,
+    setSubtitles, setSpoilerTier, addLanguage, removeLanguage,
+    discard, save,
   }), [
     loading, saving, savedAt, dirty, draft, baseline, directorSuggestions,
     update, setMoodWeight,
@@ -310,7 +367,8 @@ export function PreferencesDataProvider({ children }) {
     addMutedDirector, removeMutedDirector,
     setRuntimeFloor, setRuntimeCap,
     toggleDaypart, toggleSubscription, toggleBoundary,
-    discard, resetDefaults, save,
+    setSubtitles, setSpoilerTier, addLanguage, removeLanguage,
+    discard, save,
   ])
 
   return <PrefsContext.Provider value={value}>{children}</PrefsContext.Provider>

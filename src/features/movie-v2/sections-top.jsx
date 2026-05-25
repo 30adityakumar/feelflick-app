@@ -137,7 +137,7 @@ function MovieHero({
   onPlayTrailer, onBack, onShare,
   isInWatchlist, isWatched, onToggleWatchlist, onToggleWatched, loading, canAct,
 }) {
-  const { mv } = useMovieData();
+  const { mv, boundaryWarnings } = useMovieData();
   const [scrollY, setScrollY] = useState(0);
   const [tilt, setTilt] = useState({ x:0, y:0 });
 
@@ -249,6 +249,15 @@ function MovieHero({
             <div style={{ display:'inline-flex', alignItems:'center', gap:10, marginTop:22, padding:'8px 14px', borderRadius:999, background:'rgba(167,139,250,0.08)', border:`1px solid ${HP.purple}33`, color: HP.purple }}>
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
               <span style={{ fontFamily:'Outfit', fontSize:11, fontWeight:600, letterSpacing:'0.06em', textTransform:'uppercase' }}>Best watched · {mv.daypartFit}</span>
+            </div>
+          )}
+
+          {boundaryWarnings?.length > 0 && (
+            <div style={{ display:'inline-flex', alignItems:'center', gap:10, marginTop:14, padding:'8px 14px', borderRadius:999, background:'rgba(245,158,11,0.10)', border:'1px solid rgba(245,158,11,0.33)', color:'#F59E0B' }} role="note">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+              <span style={{ fontFamily:'Outfit', fontSize:11, fontWeight:600, letterSpacing:'0.06em', textTransform:'uppercase' }}>
+                Heads up · {boundaryWarnings.map(w => w.label).join(' · ')}
+              </span>
             </div>
           )}
 

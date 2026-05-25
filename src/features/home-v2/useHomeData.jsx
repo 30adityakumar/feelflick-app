@@ -200,11 +200,13 @@ export function HomeDataProvider({ children }) {
           )
           const scored = profile
             ? moodPool.map(m => {
-                const { score, pickReason } = scoreMovieForUser(m, profile, 'default')
+                const result = scoreMovieForUser(m, profile, 'default')
+                if (!result) return null  // boundary filter dropped this film
+                const { score, pickReason } = result
                 // pickReason is { label, type, ... } — unwrap to the
                 // user-facing string the briefing card renders.
                 return { raw: m, score, reason: pickReason?.label || null }
-              })
+              }).filter(Boolean)
             // Cold-start: no user profile yet. Fall back to mood-tag overlap
             // count + ff_audience_rating tiebreak.
             : moodPool.map(m => {

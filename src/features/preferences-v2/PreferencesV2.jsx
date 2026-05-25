@@ -329,35 +329,42 @@ function Daypart() {
 }
 
 function Subscriptions() {
-  const { draft, toggleSubscription, catalogs } = usePreferencesData()
+  const { catalogs } = usePreferencesData()
+  // Section is disabled — we don't track streamer availability per film yet.
+  // Toggling can't move the engine until movies.watch_providers ships, so
+  // the section is presented read-only with a "Coming soon" badge.
   return (
     <section style={{ padding: '56px 88px', borderTop: `1px solid ${HP.border}`, background: 'rgba(255,255,255,0.012)' }}>
-      <H kicker="Subscriptions" title="What you have access to." sub="We bias recommendations toward what you can actually watch tonight." />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14 }}>
-        {catalogs.STREAMERS.map(s => {
-          const on = !!draft.subscriptions[s.id]
-          return (
-            <button
-              key={s.id}
-              type="button"
-              onClick={() => toggleSubscription(s.id)}
-              aria-pressed={on}
-              style={{
-                padding: '18px 20px', borderRadius: 8,
-                background: on ? 'rgba(167,139,250,0.06)' : 'rgba(255,255,255,0.025)',
-                border: `1px solid ${on ? HP.purple + '55' : HP.border}`,
-                cursor: 'pointer',
-                display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: 14, alignItems: 'center',
-              }}
-            >
-              <div style={{ width: 36, height: 36, borderRadius: 6, background: `linear-gradient(135deg, ${s.tint}33, ${s.tint}11)`, border: `1px solid ${s.tint}55`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Outfit', fontWeight: 700, fontSize: 15, color: s.tint }}>{s.logo}</div>
-              <div style={{ fontFamily: 'Outfit', fontSize: 14, fontWeight: 500, color: on ? HP.text : HP.textSoft, letterSpacing: '-0.01em' }}>{s.name}</div>
-              <div style={{ width: 38, height: 22, borderRadius: 999, background: on ? HP_GRAD : 'rgba(255,255,255,0.08)', position: 'relative' }}>
-                <span style={{ position: 'absolute', top: 2, left: on ? 18 : 2, width: 18, height: 18, borderRadius: 999, background: '#fff', transition: 'left 0.25s ease' }} />
-              </div>
-            </button>
-          )
-        })}
+      <header style={{ marginBottom: 24 }}>
+        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: HP.purple, marginBottom: 12, display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ height: 1, width: 22, background: HP.purple, opacity: 0.6 }} />Subscriptions
+        </div>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 14, flexWrap: 'wrap' }}>
+          <h2 style={{ fontFamily: 'Outfit', fontSize: 36, lineHeight: 1, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>What you have access to.</h2>
+          <span style={{ padding: '4px 10px', borderRadius: 999, border: `1px solid ${HP.borderStrong}`, background: 'rgba(255,255,255,0.04)', fontFamily: 'Outfit', fontSize: 10, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: HP.textMuted }}>Coming soon</span>
+        </div>
+        <p style={{ marginTop: 12, fontSize: 14, color: HP.textMuted, fontFamily: 'Outfit, Inter, sans-serif', lineHeight: 1.6, maxWidth: 560, fontStyle: 'italic' }}>
+          We&rsquo;ll bias recommendations toward what you can actually watch tonight &mdash; once we wire up streamer-availability data.
+        </p>
+      </header>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14, opacity: 0.45, pointerEvents: 'none' }} aria-disabled="true">
+        {catalogs.STREAMERS.map(s => (
+          <div
+            key={s.id}
+            style={{
+              padding: '18px 20px', borderRadius: 8,
+              background: 'rgba(255,255,255,0.025)',
+              border: `1px solid ${HP.border}`,
+              display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: 14, alignItems: 'center',
+            }}
+          >
+            <div style={{ width: 36, height: 36, borderRadius: 6, background: `linear-gradient(135deg, ${s.tint}33, ${s.tint}11)`, border: `1px solid ${s.tint}55`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Outfit', fontWeight: 700, fontSize: 15, color: s.tint }}>{s.logo}</div>
+            <div style={{ fontFamily: 'Outfit', fontSize: 14, fontWeight: 500, color: HP.textSoft, letterSpacing: '-0.01em' }}>{s.name}</div>
+            <div style={{ width: 38, height: 22, borderRadius: 999, background: 'rgba(255,255,255,0.08)', position: 'relative' }}>
+              <span style={{ position: 'absolute', top: 2, left: 2, width: 18, height: 18, borderRadius: 999, background: '#fff' }} />
+            </div>
+          </div>
+        ))}
       </div>
     </section>
   )

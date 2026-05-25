@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { toPng } from 'html-to-image'
 import { HP, HP_GRAD, USER as USER_DEFAULT, SKEWS, YIR } from './data'
 import { useProfileData } from './useProfileData'
 
@@ -390,6 +391,8 @@ function FriendsRanked() {
 function ShareCard() {
   const { user, editorial } = useProfileData();
   const [copied, setCopied] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const previewRef = useRef(null);
   const firstName = (user?.name || USER_DEFAULT.name).split(' ')[0];
   const lastName = (user?.name || USER_DEFAULT.name).split(' ').slice(1).join(' ');
   const filmsLogged = user?.filmsLogged ?? USER_DEFAULT.filmsLogged;
@@ -406,6 +409,29 @@ function ShareCard() {
       setTimeout(() => setCopied(false), 1800);
     } catch { /* silent */ }
   };
+  const handleDownload = async () => {
+    if (!previewRef.current || exporting) return;
+    setExporting(true);
+    try {
+      // Render the 240px-wide preview at 4.5× pixel density so the export
+      // lands at ~1080px wide — fine for IG story / X uploads. cacheBust
+      // avoids stale font/image fetches between sessions.
+      const dataUrl = await toPng(previewRef.current, {
+        pixelRatio: 4.5,
+        cacheBust: true,
+        backgroundColor: '#06060a',
+      });
+      const slug = (firstName || 'cinematic').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'cinematic';
+      const link = document.createElement('a');
+      link.download = `${slug}-dna.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (e) {
+      console.error('[ShareCard.export]', e);
+    } finally {
+      setExporting(false);
+    }
+  };
   return (
     <section className="ff-profile-section" style={{ padding:'80px 88px', borderTop:`1px solid ${HP.border}`, background:'rgba(255,255,255,0.012)' }}>
       <div className="ff-profile-share-grid" style={{ display:'grid', gridTemplateColumns:'1fr auto', gap:64, alignItems:'center' }}>
@@ -420,11 +446,11 @@ function ShareCard() {
           <div style={{ marginTop:24, display:'flex', gap:10 }}>
             <button
               type="button"
-              disabled
-              aria-disabled="true"
-              title="PNG export coming soon"
-              style={{ padding:'12px 22px', borderRadius:6, background:HP_GRAD, border:'none', color:'#fff', fontFamily:'Outfit', fontSize:13, fontWeight:600, letterSpacing:'0.02em', cursor:'not-allowed', opacity:0.55, boxShadow:'0 12px 28px -8px rgba(236,72,153,0.3)' }}
-            >Download PNG</button>
+              onClick={handleDownload}
+              disabled={exporting}
+              aria-live="polite"
+              style={{ padding:'12px 22px', borderRadius:6, background:HP_GRAD, border:'none', color:'#fff', fontFamily:'Outfit', fontSize:13, fontWeight:600, letterSpacing:'0.02em', cursor: exporting ? 'wait' : 'pointer', opacity: exporting ? 0.7 : 1, boxShadow:'0 12px 28px -8px rgba(236,72,153,0.45)' }}
+            >{exporting ? 'Exporting…' : 'Download PNG'}</button>
             <button
               type="button"
               onClick={handleCopy}
@@ -433,8 +459,10 @@ function ShareCard() {
             >{copied ? 'Copied ✓' : 'Copy link'}</button>
           </div>
         </div>
-        {/* Story-shape preview */}
-        <div className="ff-profile-share-preview" style={{ width:240, aspectRatio:'9/16', borderRadius:14, padding:'32px 26px', background:'linear-gradient(160deg, #1a0d3a 0%, #06060a 50%, #3a0d1f 100%)', position:'relative', overflow:'hidden', boxShadow:'0 32px 80px -16px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.06)', display:'flex', flexDirection:'column', justifyContent:'space-between' }}>
+        {/* Story-shape preview — this is the exact node toPng captures
+            (refs the wrapping div). Rendering at 4.5× pixelRatio gives
+            a ~1080×1920 export suitable for IG story / X / etc. */}
+        <div ref={previewRef} className="ff-profile-share-preview" style={{ width:240, aspectRatio:'9/16', borderRadius:14, padding:'32px 26px', background:'linear-gradient(160deg, #1a0d3a 0%, #06060a 50%, #3a0d1f 100%)', position:'relative', overflow:'hidden', boxShadow:'0 32px 80px -16px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.06)', display:'flex', flexDirection:'column', justifyContent:'space-between' }}>
           <div style={{ position:'absolute', top:'-20%', right:'-30%', width:'80%', aspectRatio:1, borderRadius:999, background:`radial-gradient(circle, ${HP.purple}66, transparent 65%)`, filter:'blur(20px)' }} />
           <div style={{ position:'absolute', bottom:'-20%', left:'-30%', width:'80%', aspectRatio:1, borderRadius:999, background:`radial-gradient(circle, ${HP.pink}55, transparent 65%)`, filter:'blur(20px)' }} />
           <div style={{ position:'relative' }}>

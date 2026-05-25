@@ -63,7 +63,8 @@ export async function getUserGenrePreferences(userId) {
     .from('user_preferences')
     .select('genre_id')
     .eq('user_id', userId)
-  
+    .eq('excluded', false)
+
   if (error || !data) {
     return []
   }

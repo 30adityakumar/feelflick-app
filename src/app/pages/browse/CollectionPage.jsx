@@ -41,7 +41,7 @@ export default function CollectionPage() {
   const [collectionName, setCollectionName] = useState('')
   const [loading, setLoading] = useState(true)
 
-  usePageMeta({ title: `${collectionName || 'Collection'} · FeelFlick` })
+  usePageMeta({ title: `${collectionName || 'Collection'} — FeelFlick` })
 
   useEffect(() => {
     let cancelled = false

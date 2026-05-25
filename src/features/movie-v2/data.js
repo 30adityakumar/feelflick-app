@@ -63,6 +63,6 @@ const HP = {
   pink:         '#EC4899',
   amber:        '#F59E0B',
 }
-const HP_GRAD = 'linear-gradient(135deg, #A78BFA 0%, #EC4899 100%)'
+const HP_GRAD = 'linear-gradient(135deg, #9333ea 0%, #ec4899 100%)'
 
 export { FILM_PALETTE, TIMELINE, DNA_DELTA, HP, HP_GRAD }

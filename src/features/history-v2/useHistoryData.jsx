@@ -1,27 +1,28 @@
 // src/features/history-v2/useHistoryData.jsx
 // FeelFlick — History v2 ("Diary") data layer. Fetches the signed-in user's
-// user_history (joined with movies) + user_ratings, then derives every panel:
-// entries[], heatmap (12w × 7d), timeline (12 months), moodShare (this year),
-// stats (totalLogged, totalHours, avgRating, thisMonthCount, streakDays).
+// user_history (joined with movies) + user_ratings, then derives:
+//   - entries[]: diary rows grouped by month → day in the UI
+//   - stats: totalLogged, totalHours, avgRating, thisMonthCount, streakDays
+// Trend/signature visuals (heatmap, monthly timeline, mood share) live on
+// /profile (DNA) — they're patterns, not diary content.
 
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '@/shared/lib/supabase/client'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
+import { formatShortDate, formatShortMonthYear } from '@/shared/lib/format/date'
 import { HP, MOOD_HEX, tmdbImg } from './data'
 
 const HistoryDataContext = createContext(null)
 
 const WEEKDAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 const INITIAL = {
   entries: [],
-  heatmap: Array.from({ length: 12 }, () => Array(7).fill(0)),
-  timeline: [],
-  moodShare: [],
   stats: { totalLogged: 0, totalHours: 0, avgRating: 0, thisMonthCount: 0, streakDays: 0 },
   loading: true,
   error: null,
+  removeEntry: async () => {},
+  refresh: () => {},
 }
 
 function capitalize(s) {
@@ -69,8 +70,8 @@ function deriveEntries(history, ratings) {
         year: m.release_date ? new Date(m.release_date).getFullYear() : '',
         runtime: m.runtime || 0,
         dir: m.director_name || '—',
-        date: d.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }),
-        month: d.toLocaleDateString('en-US', { month:'short', year:'numeric' }),
+        date: formatShortDate(d),
+        month: formatShortMonthYear(d),
         day: d.getDate(),
         // user_ratings.rating is on the 1-10 scale; map to 1-5 for star display.
         rating: r.rating ? Math.round(r.rating / 2) : 0,
@@ -81,74 +82,14 @@ function deriveEntries(history, ratings) {
         poster: m.poster_path ? tmdbImg(m.poster_path, 'w342') : null,
         // Rewatches aren't currently tracked in user_history (the app
         // dedupes by (user, movie)). Leaving rewatch=false until that
-        // changes. The "♥ fav" heart maps to a 5★ exact rating.
+        // changes. ♥ fav fires for any 5★-display rating (raw 9 or 10 on
+        // the 1-10 scale) — matches what the star row shows. Previously
+        // gated on rating===10, which left favorites permanently dead for
+        // users who rate at 9.
         rewatch: false,
-        fav: r.rating === 10,
+        fav: typeof r.rating === 'number' && r.rating >= 9,
       }
     })
-}
-
-function deriveHeatmap(history) {
-  const grid = Array.from({ length: 12 }, () => Array(7).fill(0))
-  const now = new Date()
-  const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  for (const h of history) {
-    if (!h.watched_at) continue
-    const d = new Date(h.watched_at)
-    const dMidnight = new Date(d.getFullYear(), d.getMonth(), d.getDate())
-    const daysAgo = Math.round((todayMidnight - dMidnight) / 86400000)
-    if (daysAgo < 0 || daysAgo >= 84) continue
-    const weekIdx = 11 - Math.floor(daysAgo / 7)
-    const dayIdx = d.getDay()
-    if (weekIdx >= 0 && weekIdx < 12) grid[weekIdx][dayIdx] += 1
-  }
-  // Bucket the counts into 0-3 intensity tiers
-  return grid.map(week => week.map(count => {
-    if (count === 0) return 0
-    if (count === 1) return 1
-    if (count === 2) return 2
-    return 3
-  }))
-}
-
-function deriveTimeline(history) {
-  const buckets = []
-  const now = new Date()
-  for (let i = 11; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-    buckets.push({ key: `${d.getFullYear()}-${d.getMonth()}`, m: MONTH_SHORT[d.getMonth()], n: 0 })
-  }
-  const idxByKey = new Map(buckets.map((b, i) => [b.key, i]))
-  for (const h of history) {
-    if (!h.watched_at) continue
-    const d = new Date(h.watched_at)
-    const key = `${d.getFullYear()}-${d.getMonth()}`
-    const idx = idxByKey.get(key)
-    if (idx != null) buckets[idx].n += 1
-  }
-  return buckets
-}
-
-function deriveMoodShare(history) {
-  const year = new Date().getFullYear()
-  const counts = new Map()
-  let total = 0
-  for (const h of history) {
-    if (!h.watched_at) continue
-    if (new Date(h.watched_at).getFullYear() !== year) continue
-    const tag = (h.movies?.mood_tags || [])[0]
-    if (!tag) continue
-    const cap = capitalize(tag)
-    counts.set(cap, (counts.get(cap) || 0) + 1)
-    total += 1
-  }
-  if (total === 0) return []
-  const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8)
-  return sorted.map(([name, count]) => ({
-    name,
-    pct: Math.max(1, Math.round((count / total) * 100)),
-    hex: moodHexFor(name),
-  }))
 }
 
 function deriveStats({ history, ratings }) {
@@ -197,6 +138,48 @@ function deriveStats({ history, ratings }) {
 export function HistoryDataProvider({ children }) {
   const { user } = useAuthSession()
   const [state, setState] = useState(INITIAL)
+  const [nonce, setNonce] = useState(0)
+  // Mirror of state.entries kept current so side-effecting callbacks (delete)
+  // can read the canonical list without piggybacking on setState callbacks —
+  // those get double-invoked in Strict Mode and the 2nd run sees already-
+  // filtered state, zeroing out the work. Same pattern as /watchlist.
+  const entriesRef = useRef(state.entries)
+  useEffect(() => { entriesRef.current = state.entries }, [state.entries])
+
+  const refresh = useCallback(() => setNonce(n => n + 1), [])
+
+  const removeEntry = useCallback(async (entryId) => {
+    if (!user?.id || !entryId) return
+    const current = entriesRef.current || []
+    const target = current.find(e => e.id === entryId)
+    if (!target) return
+    // Optimistic: drop from the visible entries list immediately so the row
+    // disappears under the user's cursor. The aggregates (heatmap / timeline
+    // / mood share / stats) will catch up after the post-delete refresh —
+    // re-deriving them from already-derived entries is lossy (we'd lose the
+    // raw watched_at timestamp, mood_tags etc.), so it's cleaner to just
+    // re-fetch the canonical rows.
+    setState(prev => ({
+      ...prev,
+      entries: prev.entries.filter(e => e.id !== entryId),
+    }))
+    try {
+      // The row's surfaced id is either user_history.id (uuid) or our fallback
+      // composite `${movie_id}-${watched_at}`. The delete keys off
+      // (user_id, movie_id): the app dedupes by (user, movie) so there's
+      // only ever one row to remove.
+      await supabase
+        .from('user_history')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('movie_id', target.movieId)
+    } catch (e) {
+      console.warn('[removeEntry]', e)
+    }
+    // Refresh re-fetches and re-derives all aggregates — cheap on the small
+    // user_history table and avoids drift between visible entries and stats.
+    refresh()
+  }, [user, refresh])
 
   useEffect(() => {
     if (!user?.id) {
@@ -230,12 +213,9 @@ export function HistoryDataProvider({ children }) {
         const history = historyRes.data || []
         const ratings = ratingsRes.data || []
         const entries = deriveEntries(history, ratings)
-        const heatmap = deriveHeatmap(history)
-        const timeline = deriveTimeline(history)
-        const moodShare = deriveMoodShare(history)
         const stats = deriveStats({ history, ratings })
 
-        setState({ entries, heatmap, timeline, moodShare, stats, loading: false, error: null })
+        setState({ entries, stats, loading: false, error: null, removeEntry, refresh })
       } catch (e) {
         if (abort) return
         console.error('[useHistoryData]', e)
@@ -244,7 +224,7 @@ export function HistoryDataProvider({ children }) {
     })()
 
     return () => { abort = true }
-  }, [user])
+  }, [user, nonce, removeEntry, refresh])
 
   const value = useMemo(() => state, [state])
   return <HistoryDataContext.Provider value={value}>{children}</HistoryDataContext.Provider>

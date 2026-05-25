@@ -66,6 +66,7 @@ const INITIAL = {
   user: { name: 'You', mineCount: 0, followedCount: 0 },
   mine: [],
   followed: [],
+  popularPublic: [], // cold-start fallback for the Followed tab
   editorial: [],
   featured: null,
   loading: true,
@@ -89,6 +90,12 @@ function indexListMovies(rows) {
   return { posters, counts }
 }
 
+// Map a listId's poster paths into ready-to-render tmdb URLs (max 3 for the
+// card's poster strip).
+function postersFor(map, listId) {
+  return (map.get(listId) || []).slice(0, 3).map(p => tmdbImg(p, 'w342')).filter(Boolean)
+}
+
 function shapeMine(list, posters, counts) {
   return {
     id: list.id,
@@ -96,6 +103,7 @@ function shapeMine(list, posters, counts) {
     count: counts.get(list.id) || 0,
     palette: paletteFor(list.id),
     cover: posters.get(list.id)?.[0] ? tmdbImg(posters.get(list.id)[0], 'w500') : null,
+    posters: postersFor(posters, list.id),
     blurb: list.description || null,
     updated: timeAgo(list.updated_at),
     public: !!list.is_public,
@@ -109,6 +117,7 @@ function shapeFollowed(list, posters, counts, author) {
     count: counts.get(list.id) || 0,
     palette: paletteFor(list.id),
     cover: posters.get(list.id)?.[0] ? tmdbImg(posters.get(list.id)[0], 'w500') : null,
+    posters: postersFor(posters, list.id),
     blurb: list.description || null,
     by: author?.name || 'Someone',
     byBg: avatarBg(list.user_id),
@@ -116,14 +125,25 @@ function shapeFollowed(list, posters, counts, author) {
   }
 }
 
-function shapeEditorial(curated) {
+// Cold-start fallback: public lists from anyone (not just follows), ranked
+// by item count so the rail leads with substantial shelves. Excludes my own
+// lists + lists by people I already follow (those would already be in the
+// Followed tab). Shape mirrors `shapeFollowed` so the same card renders.
+function shapePopular(list, posters, counts, author) {
+  return shapeFollowed(list, posters, counts, author)
+}
+
+function shapeEditorial(curated, count, posters) {
   return {
     id: curated.slug,
     slug: curated.slug,
     title: curated.title,
-    count: 40, // CURATED_LISTS queries cap at 40 — exact counts would require running each query
+    // Real count from the query. Falls back to a question mark when the
+    // pre-fetch failed — never lie with a hardcoded "40".
+    count: typeof count === 'number' ? count : '—',
     palette: paletteFor(curated.slug),
-    cover: null, // editorial lists are query-driven; the slug page renders covers at view time
+    cover: posters?.[0] || null,
+    posters: posters || [],
     blurb: curated.description,
   }
 }
@@ -144,8 +164,8 @@ export function ListsDataProvider({ children }) {
     setState(s => ({ ...s, loading: true, error: null }))
 
     try {
-      // === Phase 1: my lists + my follows graph (parallel) ===
-      const [myListsRes, followsRes] = await Promise.all([
+      // === Phase 1: my lists + my user-follows + my per-list follows ===
+      const [myListsRes, followsRes, listFollowsRes] = await Promise.all([
         supabase
           .from('lists')
           .select('id, title, description, is_public, updated_at')
@@ -155,13 +175,26 @@ export function ListsDataProvider({ children }) {
           .from('user_follows')
           .select('following_id')
           .eq('follower_id', userId),
+        // Per-list follows: a list ends up in the Followed tab if I either
+        // follow its OWNER (user_follows) or follow the LIST itself
+        // (user_list_follows). Two paths, union'd below.
+        supabase
+          .from('user_list_follows')
+          .select('list_id')
+          .eq('user_id', userId),
       ])
 
       const myLists = myListsRes.data || []
       const followingIds = (followsRes.data || []).map(r => r.following_id)
+      const followedListIds = (listFollowsRes.data || []).map(r => r.list_id)
 
-      // === Phase 2: lists by people I follow + list_movies enrichment ===
-      const [followedListsRes, followedAuthorsRes] = await Promise.all([
+      // === Phase 2: lists I'm subscribed to + popular fallback ===
+      // followedLists merges two sources:
+      //   (a) lists by people I user-follow (where is_public=true)
+      //   (b) lists I list-follow directly (any privacy — RLS will gate
+      //       private ones, but if I once had access to follow it, I see it)
+      // Both paths run in parallel; the deriver dedups by list.id.
+      const [followedByOwnerRes, followedDirectRes, followedAuthorsRes, popularPublicRes] = await Promise.all([
         followingIds.length
           ? supabase
               .from('lists')
@@ -171,18 +204,64 @@ export function ListsDataProvider({ children }) {
               .order('updated_at', { ascending: false })
               .limit(20)
           : Promise.resolve({ data: [] }),
+        followedListIds.length
+          ? supabase
+              .from('lists')
+              .select('id, user_id, title, description, is_public, updated_at')
+              .in('id', followedListIds)
+              .order('updated_at', { ascending: false })
+              .limit(20)
+          : Promise.resolve({ data: [] }),
         followingIds.length
           ? supabase
               .from('users')
               .select('id, name')
               .in('id', followingIds)
           : Promise.resolve({ data: [] }),
+        // Public lists from anyone (not my own, not someone I follow).
+        // Sort by `updated_at` desc as a proxy for "active"; the deriver
+        // re-sorts by real item count after the list_movies fetch.
+        supabase
+          .from('lists')
+          .select('id, user_id, title, description, is_public, updated_at')
+          .eq('is_public', true)
+          .neq('user_id', userId)
+          .order('updated_at', { ascending: false })
+          .limit(20),
       ])
 
-      const followedLists = followedListsRes.data || []
-      const authors = new Map((followedAuthorsRes.data || []).map(u => [u.id, u]))
+      // Merge user-follow and list-follow paths, dedup by list id.
+      const followedById = new Map()
+      for (const l of (followedByOwnerRes.data || [])) followedById.set(l.id, l)
+      for (const l of (followedDirectRes.data || [])) followedById.set(l.id, l)
+      const followedLists = [...followedById.values()]
+        .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))
+      // Author lookup needs to span owners from both follow paths now.
+      const allFollowAuthorIds = Array.from(new Set([
+        ...followingIds,
+        ...followedLists.map(l => l.user_id),
+      ]))
+      let authors = new Map((followedAuthorsRes.data || []).map(u => [u.id, u]))
+      const missingAuthorIds = allFollowAuthorIds.filter(id => !authors.has(id))
+      if (missingAuthorIds.length) {
+        const { data: extra } = await supabase
+          .from('users')
+          .select('id, name')
+          .in('id', missingAuthorIds)
+        for (const u of (extra || [])) authors.set(u.id, u)
+      }
+      // Filter popular pool: exclude lists by people I already follow
+      // (those show up in Followed proper) and items with zero content
+      // (we'll filter on count after enrichment).
+      const followingSet = new Set(followingIds)
+      const popularPublicRaw = (popularPublicRes.data || [])
+        .filter(l => !followingSet.has(l.user_id))
 
-      const allListIds = [...myLists.map(l => l.id), ...followedLists.map(l => l.id)]
+      const allListIds = [
+        ...myLists.map(l => l.id),
+        ...followedLists.map(l => l.id),
+        ...popularPublicRaw.map(l => l.id),
+      ]
       const moviesRes = allListIds.length
         ? await supabase
             .from('list_movies')
@@ -195,7 +274,52 @@ export function ListsDataProvider({ children }) {
 
       const mine = myLists.map(l => shapeMine(l, posters, counts))
       const followed = followedLists.map(l => shapeFollowed(l, posters, counts, authors.get(l.user_id)))
-      const editorial = CURATED_LISTS.map(shapeEditorial)
+
+      // Look up author names for popular-public lists in a single follow-up
+      // query. Then shape + rank by real item count (drop empties).
+      let popularPublic = []
+      if (popularPublicRaw.length) {
+        const popularAuthorIds = Array.from(new Set(popularPublicRaw.map(l => l.user_id)))
+        const { data: popularAuthors } = await supabase
+          .from('users')
+          .select('id, name')
+          .in('id', popularAuthorIds)
+        const popularAuthorMap = new Map((popularAuthors || []).map(u => [u.id, u]))
+        popularPublic = popularPublicRaw
+          .map(l => shapePopular(l, posters, counts, popularAuthorMap.get(l.user_id)))
+          .filter(l => l.count > 0)  // skip empty lists in the cold-start rail
+          .sort((a, b) => b.count - a.count)
+          .slice(0, 6)
+      }
+
+      // Editorial counts + posters — run each CURATED_LISTS query in parallel
+      // (they cap at 40 rows each, fully indexed) so we get real counts +
+      // first-3 poster URLs for the card strip. Drops the previous
+      // hardcoded "40 films" lie.
+      const editorialResults = await Promise.all(
+        CURATED_LISTS.map(async (cl) => {
+          try {
+            const { data, error } = await cl.query(supabase)
+            if (error) throw error
+            const rows = data || []
+            const ps = rows
+              .map(r => r.poster_path)
+              .filter(Boolean)
+              .slice(0, 3)
+              .map(p => tmdbImg(p, 'w342'))
+              .filter(Boolean)
+            return { slug: cl.slug, count: rows.length, posters: ps }
+          } catch (e) {
+            console.warn('[useListsData] editorial query failed', cl.slug, e)
+            return { slug: cl.slug, count: null, posters: [] }
+          }
+        })
+      )
+      const editorialMeta = new Map(editorialResults.map(r => [r.slug, r]))
+      const editorial = CURATED_LISTS.map(cl => {
+        const meta = editorialMeta.get(cl.slug) || {}
+        return shapeEditorial(cl, meta.count, meta.posters)
+      })
 
       // === Phase 3: featured-shelf detail (first owned list with films) ===
       const featuredSeed = myLists.find(l => (counts.get(l.id) || 0) > 0)
@@ -242,6 +366,7 @@ export function ListsDataProvider({ children }) {
         user: { name, mineCount: mine.length, followedCount: followed.length },
         mine,
         followed,
+        popularPublic,
         editorial,
         featured,
         loading: false,

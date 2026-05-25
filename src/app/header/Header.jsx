@@ -1,29 +1,37 @@
 // src/app/header/Header.jsx
 // FeelFlick — Header (v2 redesign).
-// Wordmark + morphing-pill nav · centered command-palette search · pulsing bell · conic-ring avatar.
-// Preserves all existing logic: useAuthSession, useGoogleAuth, useUnreadFeed, supabase signOut,
-// --hdr-h resize observer, onOpenSearch callback, NavLink active state.
+// Wordmark + morphing-pill nav · centered command-palette search · conic-ring avatar.
+// Bell removed 2026-05-24: linked to /feed which router.jsx redirects to /home
+// ("Confirmed unfinished — redirect until shipped"). The bell promised an
+// activity feed that doesn't exist; tapping it dead-ended. Restore alongside
+// the FeedPage route when /feed is ready — keep `useUnreadFeed` (still
+// consumed by src/app/pages/feed/FeedPage.jsx for markRead).
 
 import { useEffect, useRef, useState, useLayoutEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import {
   Search as SearchIcon, LogOut, User as UserIcon, Settings,
-  Bookmark, Clock, Fingerprint, Users, ListVideo, LogIn, Bell, Mail,
+  Bookmark, Clock, Users, ListVideo, LogIn, Mail,
 } from 'lucide-react'
 
 import { supabase } from '@/shared/lib/supabase/client'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { useGoogleAuth } from '@/features/landing-v2/utils/useGoogleAuth'
-import { useUnreadFeed } from '@/shared/hooks/useUnreadFeed'
 
 // Mood-tinted accent. Wire to a context later (see notes in README).
 const AMBIENT_HEX = '#A78BFA'
 
+// DNA promoted to top-level desktop nav (2026-05-24): the Taste Profile
+// is FeelFlick's signature "we know you" artifact — burying it in the
+// avatar dropdown hid the brand's core differentiator. Lives at /profile
+// (the user's own taste DNA page; /profile/:userId is another user's).
+// Mobile keeps Taste Profile in MobileAccount — bottom-nav stays at 4.
 const NAV_AUTHED = [
   { to: '/home',      label: 'Home'      },
   { to: '/browse',    label: 'Browse'    },
   { to: '/discover',  label: 'Discover'  },
   { to: '/watchlist', label: 'Watchlist' },
+  { to: '/profile',   label: 'DNA'       },
 ]
 const NAV_ANON = [
   { to: '/discover', label: 'Discover' },
@@ -36,38 +44,47 @@ function MorphNav({ items }) {
   const refs = useRef({})
   const [rect, setRect] = useState({ left: 0, width: 0 })
 
-  // Find the active item based on the current pathname (NavLink-equivalent matching)
-  const activeItem = items.find(i => location.pathname.startsWith(i.to)) || items[0]
+  // Find the active item based on the current pathname (NavLink-equivalent matching).
+  // null when on an off-nav route (e.g. /history, /people, /account, /movie/:id) —
+  // we don't fall back to items[0] because that misleads users into thinking
+  // they're on Home when they're not.
+  const activeItem = items.find(i => location.pathname.startsWith(i.to)) || null
 
   useLayoutEffect(() => {
+    if (!activeItem) {
+      setRect({ left: 0, width: 0 })
+      return
+    }
     const el = refs.current[activeItem.to]
     if (el) setRect({ left: el.offsetLeft, width: el.offsetWidth })
-  }, [activeItem?.to, items.length])
+  }, [activeItem, items.length])
 
   return (
     <nav
       aria-label="Main navigation"
       className="relative hidden md:flex items-center p-1 rounded-full border border-white/[0.08] bg-white/[0.025]"
     >
-      <span
-        aria-hidden="true"
-        className="absolute top-1 bottom-1 rounded-full border transition-all duration-[350ms]"
-        style={{
-          left: rect.left,
-          width: rect.width,
-          background: `${AMBIENT_HEX}1f`,
-          borderColor: `${AMBIENT_HEX}55`,
-          boxShadow: `0 0 16px ${AMBIENT_HEX}33`,
-          transitionTimingFunction: 'cubic-bezier(0.2, 0.7, 0.2, 1)',
-        }}
-      />
+      {activeItem && (
+        <span
+          aria-hidden="true"
+          className="absolute top-1 bottom-1 rounded-full border transition-all duration-[350ms]"
+          style={{
+            left: rect.left,
+            width: rect.width,
+            background: `${AMBIENT_HEX}1f`,
+            borderColor: `${AMBIENT_HEX}55`,
+            boxShadow: `0 0 16px ${AMBIENT_HEX}33`,
+            transitionTimingFunction: 'cubic-bezier(0.2, 0.7, 0.2, 1)',
+          }}
+        />
+      )}
       {items.map(n => (
         <Link
           key={n.to}
           to={n.to}
           ref={el => { refs.current[n.to] = el }}
           className={`relative px-4 py-1.5 rounded-full text-[13px] transition-colors duration-200 select-none ${
-            activeItem.to === n.to
+            activeItem?.to === n.to
               ? 'text-white font-semibold'
               : 'text-white/45 hover:text-white/80 font-medium'
           }`}
@@ -185,8 +202,7 @@ function AvatarMenu({ userName, userInitial, userEmail, userAvatar, onSignOut })
           </div>
 
           <div className="py-1.5">
-            <DropdownLink to="/account"     icon={UserIcon}    onClick={() => setOpen(false)}>Profile</DropdownLink>
-            <DropdownLink to="/profile"     icon={Fingerprint} onClick={() => setOpen(false)}>Taste Profile</DropdownLink>
+            <DropdownLink to="/account"     icon={UserIcon}    onClick={() => setOpen(false)}>Account</DropdownLink>
             <DropdownLink to="/watchlist"   icon={Bookmark}    onClick={() => setOpen(false)}>Watchlist</DropdownLink>
             <DropdownLink to="/history"     icon={Clock}       onClick={() => setOpen(false)}>Watch history</DropdownLink>
             <DropdownLink to="/people"      icon={Users}       onClick={() => setOpen(false)}>People</DropdownLink>
@@ -239,8 +255,6 @@ export default function Header({ onOpenSearch }) {
   const [scrolled, setScrolled] = useState(false)
   const { user, isAuthenticated } = useAuthSession()
   const { signInWithGoogle, isAuthenticating } = useGoogleAuth()
-  const userId = user?.id ?? null
-  const { hasUnread } = useUnreadFeed(userId)
 
   const hdrRef = useRef(null)
 
@@ -302,8 +316,12 @@ export default function Header({ onOpenSearch }) {
             <MorphNav items={navItems} />
           </div>
 
-          {/* Center: search */}
-          <div className="flex justify-center">
+          {/* Center column: search right-aligned within its 1fr track so
+             its right edge sits close to the avatar (separated only by
+             the grid's gap-6 / lg:gap-7). Visually it's no longer page-
+             centered, but the search ends near the user's profile —
+             tighter feel, less dead space between search and avatar. */}
+          <div className="flex justify-end">
             <CenterSearch onOpen={onOpenSearch} />
           </div>
 
@@ -319,23 +337,8 @@ export default function Header({ onOpenSearch }) {
               <SearchIcon className="h-[18px] w-[18px]" />
             </button>
 
-            {user && (
-              <button
-                type="button"
-                onClick={() => navigate('/feed')}
-                aria-label="Activity feed"
-                className="relative w-9 h-9 rounded-full flex items-center justify-center text-white/60 hover:text-white hover:bg-white/8 transition-all duration-200"
-              >
-                <Bell className="w-[18px] h-[18px]" />
-                {hasUnread && (
-                  <span
-                    aria-hidden="true"
-                    className="absolute top-[7px] right-[7px] w-2 h-2 rounded-full bg-red-500 ring-2 ring-black"
-                    style={{ animation: 'ffPulseDot 2s ease-in-out infinite' }}
-                  />
-                )}
-              </button>
-            )}
+            {/* Bell removed — see file-header comment. Restore alongside the
+                FeedPage route when /feed ships. */}
 
             {!user && (
               <button
@@ -346,13 +349,12 @@ export default function Header({ onOpenSearch }) {
                 aria-label="Sign in with Google"
               >
                 <LogIn className="h-4 w-4" />
-                {isAuthenticating ? 'Signing in…' : 'Sign In'}
+                {isAuthenticating ? 'Signing in…' : 'Sign in'}
               </button>
             )}
 
             {user && (
               <div className="hidden md:flex items-center gap-2">
-                <div className="w-px h-5 bg-white/8 mx-1" aria-hidden="true" />
                 <AvatarMenu
                   userName={userName}
                   userInitial={userInitial}
@@ -377,10 +379,6 @@ export default function Header({ onOpenSearch }) {
         @keyframes ffDropIn {
           from { opacity: 0; transform: translateY(-8px) scale(0.97); }
           to   { opacity: 1; transform: translateY(0) scale(1); }
-        }
-        @keyframes ffPulseDot {
-          0%, 100% { transform: scale(1); opacity: 1; }
-          50%      { transform: scale(1.4); opacity: 0.6; }
         }
       `}</style>
     </header>

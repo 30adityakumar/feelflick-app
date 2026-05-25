@@ -1,9 +1,15 @@
-import { useState, useMemo, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react'
+import { createPortal } from 'react-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { supabase } from '@/shared/lib/supabase/client'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
-import { scoreMovieForUser } from '@/shared/services/recommendations'
-import { currentEdition } from '@/features/home-v2/edition'
+import { usePageMeta } from '@/shared/hooks/usePageMeta'
+import { scoreMovieForUser, logSurfaceImpressions, updateImpression } from '@/shared/services/recommendations'
+import { computeMatchPercent } from '@/shared/services/matchScore'
+import { trackInteraction } from '@/shared/services/interactions'
+import { getMovieWatchProviders } from '@/shared/api/tmdb'
+import { Play, SkipForward, X, Check, Bookmark } from 'lucide-react'
 import { DiscoverDataProvider, useDiscoverData } from './useDiscoverData'
 import './discover-v5.css'
 
@@ -88,20 +94,41 @@ const HP = {
 const HP_GRAD = 'linear-gradient(135deg, #9333ea 0%, #ec4899 100%)';
 const TMDB = (p) => `https://image.tmdb.org/t/p/w500${p}`;
 
+// Hints harmonized to noun-phrase voice — the other 6 already use this
+// register; Tender ("For nights…") and Restless ("When you…") were the
+// two outliers that read like a different writer. Now all 8 line up.
 const MOODS = [
-  { id:'tender',     label:'Tender',      hex:'#F472B6', x:18, y:32, hint:'For nights that ache softly.' },
+  { id:'tender',     label:'Tender',      hex:'#F472B6', x:18, y:32, hint:'Nights that ache softly.' },
   { id:'tense',      label:'Tense',       hex:'#EF4444', x:78, y:24, hint:'Pulse up. Held breath.' },
   { id:'slow',       label:'Slow-burn',   hex:'#A78BFA', x:34, y:62, hint:'Long takes. Patient escalation.' },
   { id:'cerebral',   label:'Cerebral',    hex:'#7DD3FC', x:62, y:70, hint:'Big idea, quiet pace.' },
   { id:'cozy',       label:'Cozy',        hex:'#FBBF24', x:14, y:74, hint:'Low-stakes. Soft landing.' },
   { id:'bittersweet',label:'Bittersweet', hex:'#FB7185', x:48, y:18, hint:'Sad and beautiful in one breath.' },
   { id:'mythic',     label:'Mythic',      hex:'#0EA5E9', x:84, y:62, hint:'Epic. Otherworldly.' },
-  { id:'restless',   label:'Restless',    hex:'#34D399', x:52, y:44, hint:"When you can't sit still." },
+  { id:'restless',   label:'Restless',    hex:'#34D399', x:52, y:44, hint:'Can’t-sit-still energy.' },
 ];
+
+// Onboarding Step 1 uses a 6-mood vocabulary
+// (cozy/wired/tender/fun/tense/mythic — see src/features/onboarding/data.js).
+// /discover uses an 8-axis vocabulary above (the constellation map). This
+// bridge translates baseline-mood keys → Discover mood ids for the
+// first-visit pre-selection in DiscoverV5Body. Four are direct (cozy,
+// tender, tense, mythic); 'wired' ("cerebral, plot-y, reward focus") maps
+// to the closest Discover hint ("big idea, quiet pace") = cerebral;
+// 'fun' ("light, plot-driven, escapist") maps to restless (the energetic /
+// can't-sit-still axis is the closest entertainment-first register).
+const ONBOARDING_TO_DISCOVER = {
+  cozy:   'cozy',
+  wired:  'cerebral',
+  tender: 'tender',
+  fun:    'restless',
+  tense:  'tense',
+  mythic: 'mythic',
+};
 
 const TIME_OPTIONS = [
   { id:'short', label:'~ 90 min', sub:'A quick one',  v:[60,99] },
-  { id:'std',   label:'~ 2 hrs',  sub:'Standard',     v:[100,130] },
+  { id:'std',   label:'~ 2 hrs',  sub:'Just right',   v:[100,130] },
   { id:'long',  label:'~ 2.5 hrs',sub:'Settle in',    v:[131,160] },
   { id:'epic',  label:'3 hrs+',   sub:'Cinematic',    v:[161,300] },
 ];
@@ -112,7 +139,7 @@ const WHO_OPTIONS = [
 ];
 const ENERGY_OPTIONS = [
   { id:'wiped',  label:'Wiped',  sub:'Comfort, please' },
-  { id:'steady', label:'Steady', sub:'Whatever fits' },
+  { id:'steady', label:'Steady', sub:'Open to anything' },
   { id:'wired',  label:'Wired',  sub:'Give me edges' },
 ];
 const INTENTIONS = [
@@ -149,17 +176,6 @@ const constellationName = (selected) => {
   return `${labels[0]}, ${labels[1]} & ${labels[2]}`;
 };
 
-// Rotating Stage 0 epigraphs
-const EPIGRAPHS = [
-  { q:'You’re a hopeless romantic.',                                      src:'— Mia, La La Land' },
-  { q:'I am thinking it’s a sign that things are not totally hopeless.',  src:'— Charlie, Adaptation' },
-  { q:'The past is a foreign country. They do things differently there.',     src:'— L. P. Hartley, The Go-Between' },
-  { q:'We accept the love we think we deserve.',                              src:'— The Perks of Being a Wallflower' },
-  { q:'Cinema is the most beautiful fraud in the world.',                     src:'— Godard' },
-  { q:'A film is a ribbon of dreams.',                                        src:'— Orson Welles' },
-  { q:'Tomorrow is another day.',                                             src:'— Scarlett, Gone with the Wind' },
-];
-
 // M.'s diary lookbacks are sourced live from user_ratings via useDiscoverData
 // (which falls back to a curated default per mood). The hardcoded set below
 // is kept only as a reference snapshot of the editorial copy.
@@ -175,17 +191,9 @@ const DIARY_QUOTES = {
   restless:    { quote:'Couldn’t sit. Got up. Sat down again.', after:'Whiplash, 3 weeks ago' },
 };
 
-// Pairing concierge notes — by dominant mood
-const PAIRING = {
-  tense:      'A glass of something strong. The phone face-down. Lights low.',
-  slow:       'A glass of red. Ninety minutes of nothing else. No commentary.',
-  tender:     'A quiet chair. Tissues, just in case. Someone you trust nearby.',
-  cerebral:   'A clear head. The phone in another room. Time to sit afterwards.',
-  cozy:       'A blanket. Something warm to drink. The heat up.',
-  bittersweet:'A glass of red. Someone you trust nearby. Room to sit after.',
-  mythic:     'The biggest screen you have. Headphones on. Phone away.',
-  restless:   'Comfortable shoes. The option to pace. Don’t commit to a chair.',
-};
+// PAIRING + pickPairing removed: the "Pairs with — A glass of red. Tissues
+// just in case." ritual note was pure decoration that added cognitive load
+// to a decision page. The dyslexia/OCD cleanup pass cut the entire surface.
 
 // Fallback shape — only used when the live query returns nothing (offline,
 // RLS denied, fresh DB). The page never renders these in normal operation.
@@ -224,6 +232,13 @@ function Starfield({ tint }) {
 
 // ── Stage 0 — Hero with rotating epigraph ──
 function StageHero({ onBegin, onSurprise }) {
+  // Greeting is the only non-actionable piece kept above the headline —
+  // a small time-aware grounding cue ("It's Saturday evening.") that
+  // sets the right "tonight" framing for the question that follows. The
+  // older masthead (Edition Nº NNN + random literary epigraph) was
+  // magazine-flourish without payload — the edition number was the same
+  // for every user on every page-load (it's days-since-launch), and the
+  // epigraph was a random pull disconnected from the user.
   const greeting = useMemo(() => {
     const d = new Date();
     const h = d.getHours();
@@ -231,19 +246,11 @@ function StageHero({ onBegin, onSurprise }) {
     const part = h < 6 ? 'late' : h < 12 ? 'morning' : h < 17 ? 'afternoon' : h < 22 ? 'evening' : 'night';
     return { day, part };
   }, []);
-  const epi = useMemo(() => EPIGRAPHS[Math.floor(Math.random() * EPIGRAPHS.length)], []);
-  const { edition } = useMemo(() => currentEdition(), []);
   return (
     <section style={{ position:'relative', minHeight:'82vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'40px 24px', textAlign:'center', animation:'ff-fade 0.6s ease' }}>
-      <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.36em', textTransform:'uppercase', color:HP.purple, marginBottom:32 }}>· Discover · Edition Nº {edition} ·</div>
-      {/* Epigraph */}
-      <div style={{ maxWidth:540, marginBottom:36, opacity:0, animation:'ff-fade 0.7s ease 0.2s forwards' }}>
-        <p style={{ fontFamily:'Outfit, Inter, sans-serif', fontSize:18, color:HP.textSoft, fontStyle:'italic', lineHeight:1.5, margin:0, letterSpacing:'-0.005em' }}>&ldquo;{epi.q}&rdquo;</p>
-        <div style={{ marginTop:8, fontSize:11, color:HP.textFaint, fontFamily:'Outfit', letterSpacing:'0.08em', textTransform:'uppercase' }}>{epi.src}</div>
-      </div>
       <div style={{ fontFamily:'Outfit', fontSize:16, color:HP.textMuted, marginBottom:18 }}>It’s <span style={{ color:HP.textSoft }}>{greeting.day} {greeting.part}.</span></div>
       <h1 style={{ fontFamily:'Outfit', fontSize:'clamp(54px, 8vw, 104px)', lineHeight:0.94, fontWeight:200, letterSpacing:'-0.05em', color:HP.text, margin:0, maxWidth:1000, textWrap:'balance' }}>How do <em style={{ fontStyle:'italic', fontWeight:300, color:HP.textSoft }}>you</em> feel?</h1>
-      <p style={{ marginTop:24, fontFamily:'Outfit, Inter, sans-serif', fontSize:16, color:HP.textMuted, fontStyle:'italic', maxWidth:520, lineHeight:1.55 }}>Three short questions. One film for your night.</p>
+      <p style={{ marginTop:24, fontFamily:'Outfit, Inter, sans-serif', fontSize:16, color:HP.textMuted, fontStyle:'italic', maxWidth:520, lineHeight:1.55 }}>A few quick questions. One film for your night.</p>
       <div style={{ marginTop:40, display:'flex', gap:14 }}>
         <button onClick={onBegin} style={{ padding:'15px 32px', borderRadius:999, background:HP_GRAD, border:'none', color:'#fff', fontFamily:'Outfit', fontSize:14, fontWeight:600, letterSpacing:'0.04em', cursor:'pointer', boxShadow:'0 16px 36px -10px rgba(236,72,153,0.45)' }}>Begin →</button>
         <button onClick={onSurprise} style={{ padding:'15px 28px', borderRadius:999, background:'rgba(255,255,255,0.05)', border:`1px solid ${HP.border}`, color:HP.textSoft, fontFamily:'Outfit', fontSize:13, fontWeight:600, cursor:'pointer' }}>or, surprise me</button>
@@ -278,14 +285,14 @@ function StageMood({ selected, setSelected, onNext, onBack, blendHex, bursts, fi
   }
   const cName = constellationName(selected);
   return (
-    <section style={{ position:'relative', minHeight:'80vh', padding:'24px 88px 80px', animation:'ff-fade 0.5s ease' }}>
+    <section className="ff-discover-section" style={{ position:'relative', minHeight:'80vh', animation:'ff-fade 0.5s ease' }}>
       <AudioToggle />
       <div style={{ textAlign:'center', marginBottom:8 }}>
-        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.32em', textTransform:'uppercase', color:HP.purple, marginBottom:14 }}>Step 1 of 3</div>
-        <h2 style={{ fontFamily:'Outfit', fontSize:'clamp(36px, 5vw, 56px)', lineHeight:1, fontWeight:300, letterSpacing:'-0.04em', color:HP.text, margin:0 }}>What’s the <em style={{ fontStyle:'italic', fontWeight:400, color:blendHex, transition:'color 0.5s ease' }}>shape</em> of your mood?</h2>
-        <p style={{ marginTop:14, fontFamily:'Outfit, Inter, sans-serif', fontSize:14, color:HP.textMuted, fontStyle:'italic' }}>Tap 1–3 moods. Form your constellation.</p>
+        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.32em', textTransform:'uppercase', color:HP.purple, marginBottom:14 }}>Step 1 of 2</div>
+        <h2 style={{ fontFamily:'Outfit', fontSize:'clamp(28px, 5vw, 56px)', lineHeight:1.05, fontWeight:300, letterSpacing:'-0.04em', color:HP.text, margin:0 }}>What’s the <em style={{ fontStyle:'italic', fontWeight:400, color:blendHex, transition:'color 0.5s ease' }}>shape</em> of your mood?</h2>
+        <p style={{ marginTop:14, fontFamily:'Outfit, Inter, sans-serif', fontSize:14, color:HP.textMuted, fontStyle:'italic' }}>Pick 1–3 moods. Form your constellation.</p>
       </div>
-      <div style={{ position:'relative', width:'100%', maxWidth:1080, aspectRatio:'16/9', margin:'24px auto 0', borderRadius:18, background:'rgba(255,255,255,0.012)', border:`1px solid ${HP.border}`, overflow:'hidden' }}>
+      <div className="ff-mood-canvas" style={{ position:'relative', width:'100%', maxWidth:1080, borderRadius:18, background:'rgba(255,255,255,0.012)', border:`1px solid ${HP.border}`, overflow:'hidden' }}>
         <svg style={{ position:'absolute', inset:0, width:'100%', height:'100%', pointerEvents:'none' }}>
           <defs><linearGradient id="ff-grad" x1="0" x2="1" y1="0" y2="0"><stop offset="0%" stopColor="#A78BFA" stopOpacity="0.9" /><stop offset="100%" stopColor="#EC4899" stopOpacity="0.9" /></linearGradient></defs>
           {lines.map(({ a, b, key }) => (
@@ -299,12 +306,16 @@ function StageMood({ selected, setSelected, onNext, onBack, blendHex, bursts, fi
           return (
             <div key={m.id} style={{ position:'absolute', left:`${m.x}%`, top:`${m.y}%`, transform:'translate(-50%, -50%)' }}>
               {burst && <ParticleBurst hex={m.hex} key={burst.t} />}
-              <button onClick={()=>toggle(m.id, m.hex)} title={m.hint} style={{ position:'relative', border:'none', background:'transparent', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:10, padding:0 }}>
-                <div style={{ position:'relative', width: on?72:54, height: on?72:54, borderRadius:999, background:`radial-gradient(circle at 35% 30%, ${m.hex}, ${m.hex}66 60%, ${m.hex}11)`, boxShadow: on?`0 0 32px ${m.hex}aa, 0 0 64px ${m.hex}44`:`0 0 12px ${m.hex}33`, transition:'all 0.4s ease', animation: on?'none':'ff-pulse 4s ease-in-out infinite', border: on?`2px solid ${m.hex}`:'none' }}>
-                  {on && <span style={{ position:'absolute', top:-6, right:-6, width:22, height:22, borderRadius:999, background:'#06060a', border:`1px solid ${m.hex}`, color:m.hex, fontFamily:'Outfit', fontSize:11, fontWeight:700, display:'flex', alignItems:'center', justifyContent:'center' }}>{order}</span>}
+              <button onClick={()=>toggle(m.id, m.hex)} title={m.hint} className={`ff-mood-button ${on ? 'is-on' : ''}`} style={{ position:'relative', border:'none', background:'transparent', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:8, padding:0 }}>
+                <div className="ff-mood-orb" data-on={on ? 'true' : 'false'} style={{ position:'relative', borderRadius:999, background:`radial-gradient(circle at 35% 30%, ${m.hex}, ${m.hex}66 60%, ${m.hex}11)`, boxShadow: on?`0 0 32px ${m.hex}aa, 0 0 64px ${m.hex}44`:`0 0 12px ${m.hex}33`, transition:'all 0.4s ease', animation: on?'none':'ff-pulse 4s ease-in-out infinite', border: on?`2px solid ${m.hex}`:'none' }}>
+                  {on && <span className="ff-mood-badge" style={{ position:'absolute', top:-6, right:-6, borderRadius:999, background:'#06060a', border:`1px solid ${m.hex}`, color:m.hex, fontFamily:'Outfit', fontWeight:700, display:'flex', alignItems:'center', justifyContent:'center' }}>{order}</span>}
                 </div>
-                <div style={{ fontFamily:'Outfit', fontSize: on?15:13, fontWeight: on?600:500, color: on?HP.text:HP.textSoft, transition:'all 0.3s ease' }}>{m.label}</div>
-                {on && <div style={{ fontSize:10, color:m.hex, fontFamily:'Outfit', fontStyle:'italic', maxWidth:140, textAlign:'center' }}>{m.hint}</div>}
+                <div className="ff-mood-label" style={{ fontFamily:'Outfit', fontWeight: on?600:500, color: on?HP.text:HP.textSoft, transition:'all 0.3s ease' }}>{m.label}</div>
+                {/* Hint only on desktop — on mobile multiple selected hints
+                   collide with neighbour orbs in the tight canvas; touch
+                   users can't read it via `title` tooltip anyway, so dropping
+                   it on small viewports trades nothing for a clean layout. */}
+                {on && <div className="ff-mood-hint" style={{ color:m.hex, fontFamily:'Outfit', fontStyle:'italic', textAlign:'center' }}>{m.hint}</div>}
               </button>
             </div>
           );
@@ -316,50 +327,153 @@ function StageMood({ selected, setSelected, onNext, onBack, blendHex, bursts, fi
           <div style={{ fontFamily:'Outfit', fontSize:24, fontStyle:'italic', fontWeight:400, color:blendHex, transition:'color 0.5s ease' }}>&ldquo;{cName}&rdquo;</div>
         </div>
       )}
-      <div style={{ marginTop:24, display:'flex', alignItems:'center', justifyContent:'space-between', maxWidth:1080, margin:'24px auto 0' }}>
+      <div className="ff-stage-action-bar">
         <button onClick={onBack} style={{ padding:'10px 20px', borderRadius:999, background:'transparent', border:`1px solid ${HP.border}`, color:HP.textMuted, fontFamily:'Outfit', fontSize:12, fontWeight:500, cursor:'pointer' }}>← Back</button>
-        <div style={{ fontSize:11, color:HP.textFaint, fontFamily:'Outfit', letterSpacing:'0.06em' }}>{selected.length} of 3 selected</div>
-        <button onClick={()=>{ FFAudio.whoom(); onNext(); }} disabled={selected.length===0} style={{ padding:'12px 26px', borderRadius:999, background: selected.length>0?HP_GRAD:'rgba(255,255,255,0.04)', border: selected.length>0?'none':`1px solid ${HP.border}`, color: selected.length>0?'#fff':HP.textFaint, fontFamily:'Outfit', fontSize:13, fontWeight:600, letterSpacing:'0.04em', cursor: selected.length>0?'pointer':'not-allowed' }}>Continue →</button>
+        {/* Selection counter — warmer than the old "X of 3 selected" utility
+           string. Reads as a soft nudge when empty, a confirmation while
+           building, and a quiet sign-off when full. */}
+        <div className="ff-stage-action-bar__meta" style={{ fontSize:11, color:HP.textFaint, fontFamily:'Outfit', letterSpacing:'0.06em' }}>
+          {selected.length === 0 ? 'Pick at least one'
+            : selected.length === 3 ? 'Locked in'
+            : `${selected.length} chosen`}
+        </div>
+        <button onClick={()=>{ FFAudio.whoom(); onNext(); }} disabled={selected.length===0} style={{ padding:'14px 26px', borderRadius:999, background: selected.length>0?HP_GRAD:'rgba(255,255,255,0.04)', border: selected.length>0?'none':`1px solid ${HP.border}`, color: selected.length>0?'#fff':HP.textFaint, fontFamily:'Outfit', fontSize:13, fontWeight:600, letterSpacing:'0.04em', cursor: selected.length>0?'pointer':'not-allowed' }}>Continue →</button>
       </div>
     </section>
   );
 }
 
-function StageNight({ time, setTime, who, setWho, energy, setEnergy, intention, setIntention, onNext, onBack, blendHex }) {
-  const Tile = ({ on, hex, onClick, label, sub, icon, small }) => (
-    <button onClick={onClick} style={{ flex:1, padding: small?'14px 14px':'20px 18px', borderRadius:10, textAlign:'left', background: on ? `${hex||HP.purple}1f` : 'rgba(255,255,255,0.025)', border:`1px solid ${on ? (hex||HP.purple) + '88' : HP.border}`, color: on ? HP.text : HP.textSoft, cursor:'pointer', transition:'all 0.25s ease', boxShadow: on ? `0 0 24px ${(hex||HP.purple)}33` : 'none' }}>
-      {icon && <div style={{ fontSize:20, marginBottom:8, color: on?(hex||HP.purple):HP.textMuted, letterSpacing:'0.1em' }}>{icon}</div>}
-      <div style={{ fontFamily:'Outfit', fontSize: small?14:17, fontWeight:500, letterSpacing:'-0.015em' }}>{label}</div>
-      <div style={{ marginTop:3, fontSize: small?11:12, color: on?(hex||HP.purple):HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', fontStyle:'italic' }}>{sub}</div>
-    </button>
-  );
-  const Row = ({ label, children }) => (
-    <div>
-      <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color:HP.textMuted, fontFamily:'Outfit', marginBottom:10 }}>{label}</div>
-      <div style={{ display:'flex', gap:9, flexWrap:'wrap' }}>{children}</div>
-    </div>
-  );
+// Stage 2 — sequential wizard. Replaces the old 4-row form (which felt
+// like a wall of inputs) with one focused question at a time. Confirmed
+// answers stack as compact chips above the current question, building
+// the briefing as the user works through it. Picks auto-advance — taps
+// confirm + advance, no separate Next button. Pre-selected defaults
+// (from predictDiscoverDefaults) are pre-highlighted so users who agree
+// with the prediction just tap once per step.
+//
+// stepIndex is lifted to DiscoverV5Body so that "Tweak inputs" from
+// Stage 3 returns straight to the summary view (all 4 chips visible)
+// rather than re-asking from step 0.
+function StageNightStacked({ stepIndex, setStepIndex, time, setTime, who, setWho, energy, setEnergy, intention, setIntention, onNext, onBack, blendHex }) {
+  const STEPS = useMemo(() => [
+    { id: 'intention', kicker: 'Tonight’s intention',  question: 'What pulls you in?',  options: INTENTIONS,     gridClass: '',                       value: intention, setValue: setIntention },
+    { id: 'time',      kicker: 'How much time',         question: 'How long tonight?',   options: TIME_OPTIONS,   gridClass: 'ff-night-grid--time',    value: time,      setValue: setTime },
+    { id: 'who',       kicker: 'Who’s here',            question: 'Who’s watching?',     options: WHO_OPTIONS,    gridClass: 'ff-night-grid--who',     value: who,       setValue: setWho },
+    { id: 'energy',    kicker: 'Your energy',           question: 'How do you feel?',    options: ENERGY_OPTIONS, gridClass: 'ff-night-grid--energy',  value: energy,    setValue: setEnergy },
+  ], [intention, time, who, energy, setIntention, setTime, setWho, setEnergy]);
+
+  // editingFromSummaryRef — true while the user is re-picking a step
+  // from the summary view (clicked a chip). After they pick, jump back
+  // to summary instead of cascading through the next steps.
+  const editingFromSummaryRef = useRef(false);
+  const allAnswered = stepIndex >= STEPS.length;
+  const completed = STEPS.slice(0, Math.min(stepIndex, STEPS.length));
+  const current = STEPS[stepIndex];
+
+  const handlePick = (val) => {
+    if (!current) return;
+    current.setValue(val);
+    FFAudio.pluck('cozy');
+    if (editingFromSummaryRef.current) {
+      editingFromSummaryRef.current = false;
+      setStepIndex(STEPS.length);
+    } else {
+      setStepIndex(stepIndex + 1);
+    }
+  };
+
+  const handleEditChip = (idx) => {
+    editingFromSummaryRef.current = true;
+    setStepIndex(idx);
+  };
+
+  const handleBack = () => {
+    if (allAnswered) {
+      // From summary: drop back into the last step rather than leaving
+      // Stage 2 entirely (less jarring; user can re-pick or re-Back).
+      setStepIndex(STEPS.length - 1);
+    } else if (stepIndex > 0) {
+      setStepIndex(stepIndex - 1);
+    } else {
+      onBack();
+    }
+  };
+
   return (
-    <section style={{ position:'relative', minHeight:'82vh', padding:'24px 88px 80px', animation:'ff-fade 0.5s ease' }}>
-      <div style={{ textAlign:'center', marginBottom:30 }}>
-        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.32em', textTransform:'uppercase', color:HP.purple, marginBottom:14 }}>Step 2 of 3</div>
-        <h2 style={{ fontFamily:'Outfit', fontSize:'clamp(36px, 5vw, 56px)', lineHeight:1, fontWeight:300, letterSpacing:'-0.04em', color:HP.text, margin:0 }}>What do you <em style={{ fontStyle:'italic', fontWeight:400, color:blendHex }}>need</em> tonight?</h2>
-        <p style={{ marginTop:14, fontFamily:'Outfit, Inter, sans-serif', fontSize:14, color:HP.textMuted, fontStyle:'italic' }}>Atmosphere is the mood. Intention is what you want from the film.</p>
+    <section className="ff-discover-section" style={{ position:'relative', minHeight:'82vh', animation:'ff-fade 0.5s ease' }}>
+      <div style={{ textAlign:'center', marginBottom:28 }}>
+        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.32em', textTransform:'uppercase', color:HP.purple, marginBottom:14 }}>Step 2 of 2</div>
+        <h2 style={{ fontFamily:'Outfit', fontSize:'clamp(28px, 5vw, 56px)', lineHeight:1.05, fontWeight:300, letterSpacing:'-0.04em', color:HP.text, margin:0 }}>
+          What do you <em style={{ fontStyle:'italic', fontWeight:400, color:blendHex }}>need</em> tonight?
+        </h2>
       </div>
-      <div style={{ maxWidth:1080, margin:'0 auto', display:'flex', flexDirection:'column', gap:24 }}>
-        <Row label="Tonight’s intention">
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:9, width:'100%' }}>
-            {INTENTIONS.map(o => <Tile key={o.id} on={intention===o.id} onClick={()=>setIntention(o.id)} label={o.label} sub={o.sub} small />)}
+
+      <div style={{ maxWidth:760, margin:'0 auto', display:'flex', flexDirection:'column', gap:14 }}>
+        {/* Stacked confirmed chips — one per answered step. Click to re-pick. */}
+        {completed.map((step, i) => {
+          const opt = step.options.find(o => o.id === step.value);
+          return (
+            <button
+              key={step.id}
+              type="button"
+              onClick={() => handleEditChip(i)}
+              className="ff-night-chip"
+              style={{ display:'flex', alignItems:'center', justifyContent:'space-between', width:'100%', padding:'14px 18px', borderRadius:10, background:HP.surface, border:`1px solid ${HP.border}`, color:HP.text, fontFamily:'Outfit', cursor:'pointer', transition:'background 0.2s ease, border-color 0.2s ease' }}
+            >
+              <span style={{ display:'inline-flex', alignItems:'baseline', gap:12, minWidth:0 }}>
+                <span style={{ fontSize:9, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color:HP.textMuted, flex:'none' }}>{step.kicker}</span>
+                <span style={{ fontSize:14, fontWeight:500, color:HP.text, letterSpacing:'-0.01em' }}>{opt?.label || '—'}</span>
+              </span>
+              <span style={{ fontSize:11, color:HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.04em' }}>Edit</span>
+            </button>
+          );
+        })}
+
+        {/* Current question — focused step. Tiles use the same grid CSS as
+           the legacy 4-row layout so the option ergonomics carry over. */}
+        {!allAnswered && current && (
+          <div style={{ marginTop:18, animation:'ff-fade 0.35s ease' }}>
+            <div style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between', marginBottom:12 }}>
+              <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color:HP.purple, fontFamily:'Outfit' }}>
+                {stepIndex + 1} of {STEPS.length} &middot; {current.kicker}
+              </div>
+            </div>
+            <h3 style={{ fontFamily:'Outfit', fontSize:'clamp(22px, 3.4vw, 32px)', lineHeight:1.1, fontWeight:300, letterSpacing:'-0.03em', color:HP.text, margin:'0 0 16px 0' }}>
+              {current.question}
+            </h3>
+            <div className={`ff-night-grid ${current.gridClass || ''}`.trim()}>
+              {current.options.map(o => {
+                const on = current.value === o.id;
+                return (
+                  <button
+                    key={o.id}
+                    type="button"
+                    onClick={() => handlePick(o.id)}
+                    style={{ flex:1, padding:'14px 14px', borderRadius:10, textAlign:'left', background: on ? `${blendHex}1f` : 'rgba(255,255,255,0.025)', border:`1px solid ${on ? blendHex + '88' : HP.border}`, color: on ? HP.text : HP.textSoft, cursor:'pointer', transition:'all 0.25s ease', boxShadow: on ? `0 0 24px ${blendHex}33` : 'none' }}
+                  >
+                    {o.icon && <div style={{ fontSize:20, marginBottom:8, color: on?blendHex:HP.textMuted, letterSpacing:'0.1em' }}>{o.icon}</div>}
+                    <div style={{ fontFamily:'Outfit', fontSize:14, fontWeight:500, letterSpacing:'-0.015em' }}>{o.label}</div>
+                    <div style={{ marginTop:3, fontSize:11, color: on?blendHex:HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', fontStyle:'italic' }}>{o.sub}</div>
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </Row>
-        <Row label="How much time do you have?">{TIME_OPTIONS.map(o => <Tile key={o.id} on={time===o.id} onClick={()=>setTime(o.id)} label={o.label} sub={o.sub} small />)}</Row>
-        <Row label="Who’s here?">{WHO_OPTIONS.map(o => <Tile key={o.id} on={who===o.id} onClick={()=>setWho(o.id)} label={o.label} sub={o.sub} icon={o.icon} small />)}</Row>
-        <Row label="Your energy?">{ENERGY_OPTIONS.map(o => <Tile key={o.id} on={energy===o.id} onClick={()=>setEnergy(o.id)} label={o.label} sub={o.sub} small />)}</Row>
+        )}
       </div>
-      <div style={{ marginTop:36, display:'flex', alignItems:'center', justifyContent:'space-between', maxWidth:1080, margin:'36px auto 0' }}>
-        <button onClick={onBack} style={{ padding:'10px 20px', borderRadius:999, background:'transparent', border:`1px solid ${HP.border}`, color:HP.textMuted, fontFamily:'Outfit', fontSize:12, fontWeight:500, cursor:'pointer' }}>← Back</button>
-        <div style={{ fontSize:11, color:HP.textFaint, fontFamily:'Outfit' }}>Optional · skip what doesn’t apply</div>
-        <button onClick={()=>{ FFAudio.whoom(); onNext(); }} style={{ padding:'12px 28px', borderRadius:999, background:HP_GRAD, border:'none', color:'#fff', fontFamily:'Outfit', fontSize:13, fontWeight:600, letterSpacing:'0.04em', cursor:'pointer', boxShadow:'0 12px 30px -10px rgba(236,72,153,0.5)' }}>Compose my edition →</button>
+
+      <div className="ff-stage-action-bar">
+        <button onClick={handleBack} style={{ padding:'10px 20px', borderRadius:999, background:'transparent', border:`1px solid ${HP.border}`, color:HP.textMuted, fontFamily:'Outfit', fontSize:12, fontWeight:500, cursor:'pointer' }}>← Back</button>
+        <div className="ff-stage-action-bar__meta" style={{ fontSize:11, color:HP.textFaint, fontFamily:'Outfit' }}>
+          {allAnswered ? 'All set.' : 'Tap any option to confirm.'}
+        </div>
+        {allAnswered ? (
+          <button onClick={()=>{ FFAudio.whoom(); onNext(); }} style={{ padding:'14px 28px', borderRadius:999, background:HP_GRAD, border:'none', color:'#fff', fontFamily:'Outfit', fontSize:13, fontWeight:600, letterSpacing:'0.04em', cursor:'pointer', boxShadow:'0 12px 30px -10px rgba(236,72,153,0.5)' }}>Show me my edition →</button>
+        ) : (
+          // Reserve the slot so the action bar layout doesn't jump as
+          // the CTA appears at the end. Invisible placeholder.
+          <span style={{ visibility:'hidden', padding:'14px 28px' }}>placeholder</span>
+        )}
       </div>
     </section>
   );
@@ -420,7 +534,7 @@ function StageReveal({ selected, onDone }) {
           <span key={i} style={{ position:'absolute', top:'50%', left:'50%', width:d.s, height:d.s, borderRadius:999, background:blendHex, boxShadow:`0 0 ${d.s*3}px ${blendHex}`, opacity:0, animation:`ff-burst-late 1.4s cubic-bezier(.2,.7,.2,1) ${d.dly}ms forwards`, '--tx': `${Math.cos(d.a)*d.r}px`, '--ty': `${Math.sin(d.a)*d.r}px` }} />
         ))}
       </div>
-      <div style={{ marginTop:32, fontSize:11, fontWeight:600, letterSpacing:'0.28em', textTransform:'uppercase', color:blendHex, fontFamily:'Outfit', opacity:0, animation:'ff-fade-late 2.6s ease forwards' }}>M. is reading the room…</div>
+      <div style={{ marginTop:32, fontSize:11, fontWeight:600, letterSpacing:'0.28em', textTransform:'uppercase', color:blendHex, fontFamily:'Outfit', opacity:0, animation:'ff-fade-late 2.6s ease forwards' }}>Reading the room…</div>
     </section>
   );
 }
@@ -438,50 +552,219 @@ function useCountUp(target, duration=1400, delay=200) {
   return v;
 }
 
-function buildWhyNow(selected, time, energy, who, intention) {
-  const m = selected[0];
-  const moodLabel = MOODS.find(x=>x.id===m)?.label || 'this mood';
-  const h = new Date().getHours();
-  const part = h < 12 ? 'morning' : h < 17 ? 'afternoon' : h < 22 ? 'evening' : 'late night';
-  if (intention === 'move')     return `You asked to be moved — this is the emotional swing the engine bet on.`;
-  if (intention === 'think')    return `You wanted to think — a film built to leave a residue.`;
-  if (intention === 'distract') return `Distraction-mode + ${moodLabel.toLowerCase()} → this pulls you in fast.`;
-  if (intention === 'comfort')  return `Comfort-mode says no surprises — a known-good ${moodLabel.toLowerCase()}.`;
-  if (intention === 'surprise') return `You asked for novelty — we biased toward less-trafficked picks.`;
-  if (intention === 'laugh')    return `You wanted lift — a film that lands gentle, not sappy.`;
-  if (m === 'slow' || m === 'tender') return `You haven’t done a ${moodLabel.toLowerCase()} in 12 days. Time to come home.`;
-  return `It’s ${part} — your sweet spot for ${moodLabel.toLowerCase()} films.`;
+// buildWhyNow removed: the "Why now" box that explained the engine's
+// reasoning per intention/mood was one of 4 reason-boxes contributing to
+// the OCD/dyslexia clutter. The single "Why this one" proof line above the
+// action buttons now carries the reasoning, drawn from real engine signals.
+
+// buildPickProof removed: the multi-signal proof block (director hit, twin
+// rating, mood-axis fit, runtime fit, fallback) read as too much text
+// alongside the synopsis. Personalisation now lives in the visual signals
+// (match ring, mood chips, streaming chip, trailer button). If we bring
+// signal-language back later, the helper template is in git history.
+
+// MoodArc removed: the small SVG emotional-arc chart was one of 4 reason
+// surfaces contributing to the decision-page clutter. Lives on /movie/:id
+// (the Film File) for users who want the deep film-shape read.
+
+// ── Streaming provider chip (single best provider) ──────────────────────────
+// Borrowed from home-v2/sections-top.jsx — same compact chip with logo +
+// "Streaming on Netflix" / "Rent on Apple TV+" label. Returns null when TMDB
+// has no provider for the title; the chip then doesn't render.
+function useStreamingProvider(tmdbId) {
+  const [provider, setProvider] = useState(null);
+  useEffect(() => {
+    if (!tmdbId) { setProvider(null); return; }
+    const controller = new AbortController();
+    let cancelled = false;
+    setProvider(null);
+    getMovieWatchProviders(tmdbId, { region: 'CA', fallbackRegion: 'US', signal: controller.signal })
+      .then(data => {
+        if (cancelled) return;
+        const p = data?.providers?.[0];
+        if (p) setProvider(p);
+      })
+      .catch(() => { /* non-fatal */ });
+    return () => { cancelled = true; controller.abort(); };
+  }, [tmdbId]);
+  return provider;
 }
 
-function MoodArc({ points, hex, runtime }) {
-  if (!points || points.length === 0) return null;
-  const W = 280, H = 56, PAD = 4;
-  const stepX = (W - PAD*2) / (points.length - 1);
-  const ptStr = points.map((p, i) => `${PAD + i*stepX},${H - PAD - p * (H - PAD*2)}`).join(' ');
-  const path = `M ${ptStr}`.replace(/(\d+\.?\d*),(\d+\.?\d*) /g, '$1,$2 L ');
-  let peak = 0; for (let i=1; i<points.length; i++) if (points[i] > points[peak]) peak = i;
-  const peakX = PAD + peak*stepX, peakY = H - PAD - points[peak] * (H - PAD*2);
-  const startLbl = points[0] > 0.6 ? 'Tense' : points[0] > 0.45 ? 'Steady' : 'Quiet';
-  const endLbl   = points[points.length-1] > 0.7 ? 'Devastating' : points[points.length-1] > 0.55 ? 'Bittersweet' : points[points.length-1] > 0.4 ? 'Settled' : 'Quiet';
+function StreamingChip({ provider }) {
+  if (!provider) return null;
+  const label = provider.type === 'flatrate' ? 'Streaming on'
+    : provider.type === 'rent' ? 'Rent on'
+    : 'Buy on';
   return (
-    <div>
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8 }}>
-        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color:HP.textMuted, fontFamily:'Outfit' }}>Emotional arc</div>
-        <div style={{ fontSize:10, color:HP.textFaint, fontFamily:'Outfit', letterSpacing:'0.06em' }}>{runtime} min</div>
-      </div>
-      <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ display:'block' }}>
-        <defs>
-          <linearGradient id="ff-arc-grad" x1="0" x2="1"><stop offset="0%" stopColor={hex} stopOpacity="0.6" /><stop offset="100%" stopColor="#EC4899" stopOpacity="0.95" /></linearGradient>
-          <linearGradient id="ff-arc-fill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor={hex} stopOpacity="0.25" /><stop offset="100%" stopColor={hex} stopOpacity="0" /></linearGradient>
-        </defs>
-        <path d={`M ${PAD},${H-PAD} L ${path.slice(2)} L ${W-PAD},${H-PAD} Z`} fill="url(#ff-arc-fill)" />
-        <path d={path} fill="none" stroke="url(#ff-arc-grad)" strokeWidth="1.6" strokeLinecap="round" style={{ strokeDasharray:600, strokeDashoffset:600, animation:'ff-draw-arc 1.4s cubic-bezier(.2,.7,.2,1) 1.3s forwards' }} />
-        <circle cx={peakX} cy={peakY} r="2.5" fill="#EC4899" style={{ opacity:0, animation:'ff-fade 0.4s ease 2.6s forwards' }} />
-      </svg>
-      <div style={{ display:'flex', justifyContent:'space-between', marginTop:4, fontSize:9.5, color:HP.textFaint, fontFamily:'Outfit', letterSpacing:'0.08em', textTransform:'uppercase' }}>
-        <span>{startLbl}</span><span style={{ color:HP.pink }}>Peak</span><span>{endLbl}</span>
+    <div style={{ display:'inline-flex', alignItems:'center', gap:10, padding:'8px 12px 8px 8px', borderRadius:8, background:'rgba(255,255,255,0.04)', border:`1px solid ${HP.border}`, maxWidth:'100%' }}>
+      <img
+        src={`https://image.tmdb.org/t/p/w92${provider.logoPath}`}
+        alt={provider.name}
+        style={{ width:28, height:28, borderRadius:5, objectFit:'cover', flex:'none' }}
+        loading="lazy"
+      />
+      <div style={{ minWidth:0 }}>
+        <div style={{ fontSize:9, fontWeight:600, letterSpacing:'0.18em', textTransform:'uppercase', color:HP.textFaint, fontFamily:'Outfit', lineHeight:1 }}>{label}</div>
+        <div style={{ fontSize:12, fontWeight:600, color:HP.text, fontFamily:'Outfit', lineHeight:1.2, marginTop:3 }}>{provider.name}</div>
       </div>
     </div>
+  );
+}
+
+// ── YouTube IFrame Player API — singleton loader ────────────────────────────
+// Loads https://www.youtube.com/iframe_api once (idempotent). The API
+// requires a global `onYouTubeIframeAPIReady` callback that fires after the
+// script finishes; we wrap it in a memoized Promise so multiple TrailerModal
+// mounts share the same load. Returns a Promise that resolves to window.YT.
+let _ytApiPromise = null;
+function loadYouTubeApi() {
+  if (_ytApiPromise) return _ytApiPromise;
+  _ytApiPromise = new Promise((resolve) => {
+    if (typeof window === 'undefined') return resolve(null);
+    if (window.YT && window.YT.Player) return resolve(window.YT);
+    const existing = window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady = () => {
+      if (typeof existing === 'function') existing();
+      resolve(window.YT);
+    };
+    if (!document.querySelector('script[data-yt-iframe-api]')) {
+      const tag = document.createElement('script');
+      tag.src = 'https://www.youtube.com/iframe_api';
+      tag.async = true;
+      tag.dataset.ytIframeApi = '1';
+      document.head.appendChild(tag);
+    }
+  });
+  return _ytApiPromise;
+}
+
+// ── Inline trailer modal (YouTube IFrame Player) ────────────────────────────
+// Uses the official IFrame Player API (not a raw <iframe>) so we can listen
+// for the ENDED state and auto-close. That keeps the user on /discover after
+// the trailer instead of staring at YouTube's end-card with related-video
+// thumbnails (a brand leak). Click-on-overlay also closes — common modal
+// pattern users expect alongside Esc + the explicit X button.
+function TrailerModal({ open, youtubeKey, title, onClose }) {
+  const closeBtnRef = useRef(null);
+  const playerRef = useRef(null);
+  const playerSlotRef = useRef(null);
+  // Latest onClose held in a ref so the player effect's deps stay stable —
+  // otherwise the parent's inline `() => setTrailerOpen(false)` would
+  // re-create the player on every parent re-render.
+  const onCloseRef = useRef(onClose);
+  useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
+
+  // Body scroll lock + Escape + initial focus
+  useEffect(() => {
+    if (!open) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e) => { if (e.key === 'Escape') onCloseRef.current?.(); };
+    window.addEventListener('keydown', onKey);
+    const t = setTimeout(() => closeBtnRef.current?.focus(), 0);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prevOverflow;
+      clearTimeout(t);
+    };
+  }, [open]);
+
+  // Mount the YouTube player + listen for ENDED
+  useEffect(() => {
+    if (!open || !youtubeKey) return;
+    let cancelled = false;
+    loadYouTubeApi().then((YT) => {
+      if (cancelled || !YT || !playerSlotRef.current) return;
+      // new YT.Player replaces the slot div with an iframe sized to the
+      // parent (which is our 16/9 wrapper).
+      playerRef.current = new YT.Player(playerSlotRef.current, {
+        videoId: youtubeKey,
+        playerVars: {
+          autoplay: 1,
+          rel: 0,            // limit related videos to same channel
+          modestbranding: 1, // smaller YouTube logo
+          playsinline: 1,    // iOS inline play (no fullscreen takeover)
+        },
+        events: {
+          onStateChange: (e) => {
+            // YT.PlayerState.ENDED === 0. Hardcoded to avoid an extra
+            // import; the constant is stable in the YouTube API.
+            if (e.data === 0) onCloseRef.current?.();
+          },
+        },
+      });
+    });
+    return () => {
+      cancelled = true;
+      if (playerRef.current && typeof playerRef.current.destroy === 'function') {
+        try { playerRef.current.destroy(); } catch { /* ignore */ }
+      }
+      playerRef.current = null;
+    };
+  }, [open, youtubeKey]);
+
+  if (!open || !youtubeKey) return null;
+
+  // Overlay click → close (only when target is the overlay itself, not the
+  // inner iframe wrapper — stopPropagation on the wrapper prevents clicks
+  // inside the player from triggering close).
+  const onOverlayClick = (e) => { if (e.target === e.currentTarget) onClose(); };
+
+  // Portal to <body> so the modal escapes any parent stacking context.
+  // AppShell's main container creates a z:10 stacking context which would
+  // otherwise trap the modal beneath the z:50 fixed header — the close X
+  // was rendering but hidden behind the header bar. Portaling to body lifts
+  // the modal to the root stacking layer where z:300 actually means z:300.
+  return createPortal(
+    // Overlay click → close is a standard modal-dismiss pattern. Keyboard
+    // equivalent is the Escape key (handled in the effect above) + the
+    // explicit X close button (auto-focused on mount). The two a11y rules
+    // disabled here flag the click-on-overlay convention; suppress for
+    // this single modal — the dialog role + Escape handler cover the
+    // accessibility intent.
+    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/click-events-have-key-events
+    <div
+      role="dialog" aria-modal="true" aria-label={`${title} trailer`}
+      onClick={onOverlayClick}
+      style={{ position:'fixed', inset:0, zIndex:300, background:'rgba(0,0,0,0.92)', backdropFilter:'blur(20px)', display:'flex', alignItems:'center', justifyContent:'center', padding:'24px', cursor:'pointer' }}
+    >
+      {/* Close X — bumped to opaque dark-glass so it reads against any
+         video frame (the older near-transparent treatment vanished
+         against bright content). Solid black background + brighter
+         white outline + slightly larger touch target. */}
+      <button
+        ref={closeBtnRef}
+        type="button"
+        onClick={onClose}
+        aria-label="Close trailer"
+        className="ff-trailer-close"
+        style={{ position:'absolute', top:20, right:20, width:44, height:44, borderRadius:999, background:'rgba(0,0,0,0.75)', border:'1px solid rgba(255,255,255,0.28)', color:'#fff', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', backdropFilter:'blur(6px)', transition:'background 0.2s ease, border-color 0.2s ease, transform 0.2s ease' }}
+      >
+        <X size={22} strokeWidth={2.2} />
+      </button>
+      {/* Esc-to-close hint — fades in for ~3s then out. Surfaces the
+         keyboard shortcut once on open (common in fullscreen video
+         players like YouTube + Netflix) without lingering. Pure
+         decoration once dismissed; sub-100ms CPU cost. */}
+      <div
+        aria-hidden="true"
+        style={{ position:'absolute', bottom:24, left:'50%', transform:'translateX(-50%)', zIndex:2, fontSize:11, fontFamily:'Outfit', fontWeight:500, color:'rgba(255,255,255,0.6)', letterSpacing:'0.06em', opacity:0, animation:'ff-titlecard 3.6s ease forwards', pointerEvents:'none', whiteSpace:'nowrap' }}
+      >
+        Press <span style={{ padding:'1px 6px', borderRadius:4, background:'rgba(255,255,255,0.1)', border:'1px solid rgba(255,255,255,0.22)', fontFamily:'JetBrains Mono, Outfit, monospace', fontSize:10, marginLeft:4, marginRight:4, color:'#fff' }}>Esc</span> to close
+      </div>
+      {/* stopPropagation prevents overlay close when clicking inside the
+         iframe area. Pure click-intercept, no keyboard action expected. */}
+      {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions, jsx-a11y/click-events-have-key-events */}
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{ position:'relative', width:'100%', maxWidth:1080, aspectRatio:'16/9', borderRadius:8, overflow:'hidden', boxShadow:'0 24px 60px -16px rgba(0,0,0,0.8)', cursor:'default' }}
+      >
+        {/* Slot div — YT.Player replaces this with the actual iframe.
+           Sized to fill the 16/9 wrapper above. */}
+        <div ref={playerSlotRef} style={{ width:'100%', height:'100%' }} />
+      </div>
+    </div>,
+    document.body
   );
 }
 
@@ -496,138 +779,453 @@ function moodFilter(moodId) {
   return {};
 }
 
-// ── End-credits modal ──
-function CreditsScroll({ title, onClose }) {
-  useEffect(() => {
-    const t = setTimeout(onClose, 6000);
-    return () => clearTimeout(t);
-  }, [onClose]);
-  const now = new Date();
-  const time = now.toLocaleTimeString([], { hour:'numeric', minute:'2-digit' });
-  const day = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][now.getDay()];
-  const { edition } = currentEdition();
+// ── "Because…" line — one-line italic proof above the title that names
+// the strongest signal the engine fired for this user × film. Priority:
+// (1) director affinity from the user's rated history, (2) the
+// constellation the user named in Stage 1, (3) the strongest mood as
+// final fallback. Returns null if no signal can be honestly claimed —
+// caller hides the line entirely rather than printing filler. Single
+// line, italic, brand-soft voice. The point of this line is to make
+// "the engine knows you" visible without prose paragraphs.
+// `isAlt` routes alternate cards to FILM-SPECIFIC signals first so the
+// 3 cards on the spread don't all show the same constellation line.
+// Top card uses director-affinity → constellation → mood (the user-
+// connecting hierarchy). Alt cards prefer signals that DIFFER between
+// films — director name + year, or mood/tone tag highlight — making
+// each card carry its own personality. Director affinity still wins
+// for ALT if it fires (rare but valuable signal).
+function buildBecauseLine({ film, profile, selected, isAlt = false }) {
+  if (!film) return null;
+  // Director affinity — strongest signal, works for both slots.
+  const dirAffinity = profile?.affinities?.directors?.find(d =>
+    d?.name && film?.dir && d.name.toLowerCase() === film.dir.toLowerCase()
+  );
+  if (dirAffinity) {
+    return `Because ${film.dir} reads the room the way you do.`;
+  }
+
+  // ALT-only: prefer film-specific signals that vary per card.
+  if (isAlt) {
+    // Highlight the film's strongest mood/tone tag — varies per film,
+    // gives each alt a distinct hook. Skip generic tags ("dark", "tense")
+    // that sound dour; prefer evocative ones.
+    const rawTags = [...(film._raw?.mood_tags || []), ...(film._raw?.tone_tags || [])]
+    const evocative = rawTags.find(t => /heartwarming|whimsical|nostalgic|haunting|exhilarating|melancholic|playful|grandiose|poetic|intimate|gritty|dreamy|wistful|provocative|mysterious/i.test(t || ''))
+    if (evocative) {
+      const pretty = String(evocative).replace(/_/g, ' ').toLowerCase()
+      // "A exhilarating" → "An exhilarating". Cover the common vowel cases.
+      const article = /^[aeiou]/.test(pretty) ? 'An' : 'A'
+      return `${article} ${pretty} take on your night.`
+    }
+    // Director name + year — concrete, varies between films
+    if (film.dir && film.year) {
+      return `${film.dir}'s ${film.year} register.`
+    }
+  }
+
+  // Constellation fallback (for TOP and for ALT when no per-film signal fired).
+  // Skip multi-mood × names ("Bittersweet × Tender") — they read awkwardly
+  // mid-sentence. Strip leading "The " so "The Quiet Ache" doesn't render
+  // as "For your the quiet ache night."
+  const cName = constellationName(selected);
+  if (cName && cName !== 'Your night' && !cName.includes('×') && selected.length <= 2) {
+    const stripped = cName.replace(/^the\s+/i, '').toLowerCase();
+    return `For your ${stripped} night.`;
+  }
+  const topMood = MOODS.find(m => m.id === selected[0]);
+  if (topMood) {
+    return `For your ${topMood.label.toLowerCase()} night.`;
+  }
+  return null;
+}
+
+// ── Alternate card — compact preview of an alternate pick. Click promotes
+// it to the top slot (the page crossfades and this card swaps places with
+// whatever was currently top). Title + meta + because-line; no match %,
+// no action buttons — those belong only on the focused top pick. Keeping
+// the alternates lightweight matches the "pick between three" intent
+// without multiplying decision load.
+function AlternateCard({ film, profile, selected, onPick }) {
+  const because = buildBecauseLine({ film, profile, selected, isAlt: true });
   return (
-    <div style={{ position:'fixed', inset:0, background:'#000', zIndex:100, display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden', animation:'ff-fade 0.4s ease' }}>
-      <button onClick={onClose} style={{ position:'absolute', top:24, right:24, padding:'8px 14px', borderRadius:999, background:'transparent', border:'1px solid rgba(255,255,255,0.15)', color:'rgba(255,255,255,0.5)', fontFamily:'Outfit', fontSize:11, letterSpacing:'0.1em', cursor:'pointer', zIndex:101 }}>Skip</button>
-      <div style={{ width:'100%', textAlign:'center', animation:'ff-credits 6s ease forwards' }}>
-        <div style={{ fontSize:11, fontWeight:600, letterSpacing:'0.36em', textTransform:'uppercase', color:'rgba(255,255,255,0.45)', marginBottom:18, fontFamily:'Outfit' }}>FeelFlick presents</div>
-        <div style={{ fontFamily:'Outfit', fontSize:'clamp(36px, 6vw, 64px)', fontWeight:200, color:'#fafafa', letterSpacing:'-0.04em', marginBottom:48 }}>{title}</div>
-        <div style={{ fontSize:12, color:'rgba(255,255,255,0.4)', fontFamily:'Outfit', letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:14 }}>Curated for you</div>
-        <div style={{ fontFamily:'Outfit', fontStyle:'italic', fontSize:16, color:'rgba(255,255,255,0.7)', marginBottom:14 }}>Edition Nº {edition} · {day} · {time}</div>
-        <div style={{ fontSize:12, color:'rgba(255,255,255,0.4)', fontFamily:'Outfit', letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:8 }}>Read the room</div>
-        <div style={{ fontFamily:'Outfit', fontSize:14, color:'rgba(255,255,255,0.55)', fontStyle:'italic', marginBottom:48 }}>M., your curator</div>
-        <div style={{ fontSize:11, color:'rgba(255,255,255,0.32)', fontFamily:'Outfit', letterSpacing:'0.18em', textTransform:'uppercase' }}>Enjoy the film.</div>
-        <div style={{ marginTop:10, fontSize:11, color:'rgba(255,255,255,0.32)', fontFamily:'Outfit', letterSpacing:'0.18em', textTransform:'uppercase' }}>Come back tomorrow.</div>
+    <button
+      type="button"
+      onClick={onPick}
+      className="ff-alt-card"
+      style={{
+        display:'grid', gridTemplateColumns:'auto 1fr', gap:14,
+        padding:14, borderRadius:12,
+        background:HP.surface, border:`1px solid ${HP.border}`,
+        textAlign:'left', cursor:'pointer',
+        transition:'background 0.2s ease, border-color 0.2s ease, transform 0.2s ease',
+      }}
+    >
+      <img
+        src={film.poster}
+        alt={film.title}
+        loading="lazy"
+        style={{ width:84, height:126, objectFit:'cover', borderRadius:6, display:'block' }}
+      />
+      <div style={{ minWidth:0, display:'flex', flexDirection:'column', justifyContent:'space-between', padding:'2px 0' }}>
+        <div>
+          <h3 style={{ fontFamily:'Outfit', fontSize:16, fontWeight:500, color:HP.text, margin:0, letterSpacing:'-0.015em', lineHeight:1.2 }}>
+            {film.title}
+          </h3>
+          <div style={{ marginTop:6, fontFamily:'Outfit', fontSize:11, color:HP.textMuted, letterSpacing:'0.03em' }}>
+            {film.dir} &middot; {film.year} &middot; {film.runtime} min
+          </div>
+        </div>
+        {because && (
+          <p style={{ marginTop:8, marginBottom:0, fontFamily:'Outfit, Inter, sans-serif', fontSize:12, fontStyle:'italic', color:HP.textSoft, lineHeight:1.5, textWrap:'pretty' }}>
+            {because}
+          </p>
+        )}
       </div>
-    </div>
+    </button>
   );
 }
 
-// ── Stage 3 — MAGAZINE SPREAD ──
-function StagePick({ selected, time, who, energy, intention, results, allResults, onRestart, onBack, blendHex }) {
-  const top = results[0];
-  const alternates = results.slice(1, 3);
+// ── Stage 3 — Pick swiper (top pick + 2 alternates) ──
+function StagePick({ selected, who, energy, intention, results, profile, sessionShownIds, onRestart, onBack, blendHex }) {
+  // Session-only "hidden" set — when the user skips or marks watched, that
+  // film's id lands here and the visible picks filter it out. The next-best
+  // queued pick auto-advances into the top slot. Resets only when `results`
+  // changes (user tweaked inputs or started over). Pool depth is set by
+  // MAX_PICKS below — deep enough to feel like a real swipe deck without
+  // dropping into low-confidence territory.
+  const [hiddenTopIds, setHiddenTopIds] = useState(() => new Set());
+  // User can also manually pin one of the picks via the alternate cards
+  // ("pick from these" intent). null = use default (first non-hidden).
+  // Cleared on skip/watched so default takes over after dismissal.
+  const [selectedTopId, setSelectedTopId] = useState(null);
+  useEffect(() => { setHiddenTopIds(new Set()); setSelectedTopId(null); }, [results]);
+
+  // Pool of 15 picks — enough that the user can keep skipping without
+  // hitting exhausted prematurely, but capped before the engine starts
+  // returning weaker matches. 15 is a deep-enough swipe deck without
+  // becoming a feed.
+  const MAX_PICKS = 15;
+  // How many alternate cards to render below the focused top pick. The
+  // rest are "queued" — they auto-promote when the user skips/watches.
+  // 2 visible cards keeps the row scannable; deeper queue surfaces via
+  // the count in the section kicker.
+  const ALTERNATES_VISIBLE = 2;
+
+  const initialPicks = useMemo(() => results.slice(0, MAX_PICKS), [results]);
+  const visibleResults = useMemo(
+    () => initialPicks.filter(r => !hiddenTopIds.has(r.id)),
+    [initialPicks, hiddenTopIds]
+  );
+  const top = useMemo(() => {
+    if (selectedTopId) {
+      const pinned = visibleResults.find(r => r.id === selectedTopId);
+      if (pinned) return pinned;
+    }
+    return visibleResults[0];
+  }, [selectedTopId, visibleResults]);
+  // Visible alternates (rendered as cards) vs total remaining in the
+  // queue (rendered as a count in the kicker). When the user skips, the
+  // queue shrinks and the first queued film slides into the alternate
+  // slot. After all 15 are exhausted, falls through to the exhausted state.
+  const remainingAfterTop = useMemo(
+    () => visibleResults.filter(r => r.id !== top?.id),
+    [visibleResults, top]
+  );
+  const alternates = useMemo(
+    () => remainingAfterTop.slice(0, ALTERNATES_VISIBLE),
+    [remainingAfterTop]
+  );
+  const queuedCount = Math.max(0, remainingAfterTop.length - alternates.length);
+  const exhausted = !top;
+
   const cName = constellationName(selected);
-  const matchAnim = useCountUp(top?.match || 0, 1400, 250);
-  const [credits, setCredits] = useState(false);
+  // Mood fit % — answers "how well does this film match what I asked for
+  // tonight?". Mean of the user's selected mood-axis fits against the
+  // film's fit vector, clamped 0-99. This is the headline ring number
+  // because the user JUST answered the mood question — the result page
+  // should reflect that answer. The taste % (top.match — calibrated
+  // baseScore via computeMatchPercent) is demoted to a meta-row chip,
+  // honoring both signals: "tonight" (mood-fit) and "you" (taste).
+  const moodFit = useMemo(() => {
+    if (!top?.fit || !selected || selected.length === 0) return null;
+    const sum = selected.reduce((a, id) => a + (top.fit[id] || 0), 0);
+    return Math.max(0, Math.min(99, Math.round((sum / selected.length) * 100)));
+  }, [top, selected]);
+  const matchAnim = useCountUp(moodFit ?? top?.match ?? 0, 1400, 250);
   const [savedState, setSavedState] = useState('idle'); // idle | saving | saved | error
+  const [watchedState, setWatchedState] = useState('idle'); // idle | watched
+  const [trailerOpen, setTrailerOpen] = useState(false);
+  // Per-film Saved + Watched state — when the user clicks Save or Mark
+  // Watched, the button confirms success ("Saved", "Watched"). On
+  // auto-advance to a new film, both reset to idle so the new top can be
+  // saved/marked too.
+  useEffect(() => { setSavedState('idle'); setWatchedState('idle'); }, [top?.id]);
+  // Session-shown tracking — add every film that appears as top OR alt to
+  // the parent's sessionShownIds ref. diversifyTop3 reads this ref on
+  // each allResults recomputation (i.e., whenever user changes inputs)
+  // and demotes seen films so the next scenario surfaces fresh picks.
+  // Mutating a ref doesn't re-render — intentional; we only want the
+  // penalty applied on the NEXT input change, not within the current view.
+  useEffect(() => {
+    if (!sessionShownIds?.current) return;
+    if (top?.id) sessionShownIds.current.add(top.id);
+    for (const alt of (visibleResults || [])) {
+      if (alt?.id) sessionShownIds.current.add(alt.id);
+    }
+  }, [top?.id, visibleResults, sessionShownIds]);
   const [mx, setMx] = useState(0); const [my, setMy] = useState(0);
   const navigate = useNavigate();
   const { user } = useAuthSession();
-  const { diaryQuotes } = useDiscoverData();
-  const { edition } = currentEdition();
+  // Streaming provider (top 1 — flatrate first, then rent/buy). Hides cleanly
+  // when TMDB has nothing for this title.
+  const provider = useStreamingProvider(top?.tmdbId);
+  // "Because…" line — one signal that proves the engine knows the user.
+  // Recomputes whenever the top changes (manual pin or auto-advance).
+  const becauseLine = useMemo(
+    () => buildBecauseLine({ film: top, profile, selected }),
+    [top, profile, selected]
+  );
+  // Mood/tone chips: genre + the 2 strongest mood/tone tags. Tells the user
+  // what KIND of film this is at a glance, complementing the proof line
+  // (which says why it fits THEM). Capitalize + replace underscores so DB
+  // tags like "slow_burn" read as "Slow burn".
+  const chips = useMemo(() => {
+    if (!top) return [];
+    const out = [];
+    if (top.genre && top.genre !== 'Drama') out.push(top.genre); // skip plain "Drama" as too generic
+    else if (top.genre) out.push(top.genre);
+    const tags = [...(top._raw?.mood_tags || []), ...(top._raw?.tone_tags || [])]
+      .filter(Boolean)
+      .slice(0, 2)
+      .map(t => String(t).replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()));
+    return [...out, ...tags].slice(0, 3);
+  }, [top]);
   useEffect(() => {
     const fn = (e) => { const cx = window.innerWidth/2, cy = window.innerHeight/2; setMx((e.clientX - cx)/cx); setMy((e.clientY - cy)/cy); };
     window.addEventListener('mousemove', fn); return () => window.removeEventListener('mousemove', fn);
   }, []);
 
   // === Action handlers ===
-  const handleWatch = () => {
-    setCredits(true);
-    // After the credits-scroll finishes (~6s), the modal calls onClose. We
-    // also stash the tmdbId so the user can deep-link into the magazine
-    // detail surface when the modal closes.
-  };
-  const handleCreditsClose = () => {
-    setCredits(false);
-    if (top?.tmdbId) navigate(`/movie/${top.tmdbId}`);
+  // Stage 2 context shared across all interaction logs so the engine can
+  // learn from POSITIVE actions (save, watch, click), not just negative
+  // ones (skip). Previously Skip was the only handler writing
+  // user_interactions with mood/intention/energy/who — the engine had a
+  // negative bias because positive signals lost their full context.
+  const interactionContext = (action) => ({
+    movieId: top?.id,
+    source: 'discover',
+    metadata: { action, moods: selected, intention, energy, who },
+  });
+
+  // "See more" navigates to the deep film page (/movie/:tmdbId) where the
+  // user finds extended synopsis, providers, similar films, etc. Fires
+  // updateImpression('clicked') so the engine learns conversion AND
+  // trackInteraction('click', …) so the engine sees the full Stage 2
+  // context that drove the click — same metadata shape as Skip uses.
+  const handleSeeMore = () => {
+    if (!top?.tmdbId) return;
+    if (user?.id && top?.id) {
+      updateImpression(user.id, top.id, 'clicked').catch(() => {})
+      trackInteraction('click', interactionContext('see_more')).catch(() => {})
+    }
+    navigate(`/movie/${top.tmdbId}`);
   };
   const handleSaveForLater = async () => {
     if (!user?.id || !top?.id || savedState !== 'idle') return;
+    const filmId = top.id;
     setSavedState('saving');
     try {
       const { error } = await supabase
         .from('user_watchlist')
-        .insert({ user_id: user.id, movie_id: top.id });
+        .insert({ user_id: user.id, movie_id: filmId });
       if (error && error.code !== '23505') throw error; // 23505 = unique violation (already in list)
       setSavedState('saved');
+      // Engine learning: flip the impression's added_to_watchlist flag
+      // AND log the interaction with Stage 2 context. Both fire after
+      // the watchlist write succeeds so we don't credit a failed save.
+      updateImpression(user.id, filmId, 'saved').catch(() => {})
+      trackInteraction('save', interactionContext('save_for_later')).catch(() => {})
     } catch (e) {
       console.error('[DiscoverV5.saveForLater]', e);
       setSavedState('error');
     }
   };
-  const handleNotTonight = () => navigate('/home');
+  // Skip Tonight — auto-advances to the next pick instead of bouncing home.
+  // The page now behaves as a 3-pick swiper: skip the top → alternate #1
+  // becomes top → alternate #2 becomes top → exhausted state. Each skip
+  // still fires:
+  //   1. user_interactions ('dismiss', source 'discover') — analytics log
+  //   2. recommendation_impressions.skipped = true → engine's negative-
+  //      signal model penalises matching directors/genres next /discover run
+  // The skipped film also lands in hiddenTopIds for the rest of this
+  // session AND gets a 30-day hard exclusion via useDiscoverData's
+  // recent-skip query.
+  const handleNotTonight = () => {
+    if (!top?.id) return;
+    trackInteraction('dismiss', {
+      movieId: top.id,
+      source: 'discover',
+      metadata: {
+        action: 'not_tonight',
+        moods: selected,
+        intention,
+        energy,
+        who,
+      },
+    }).catch(() => {})
+    if (user?.id) {
+      updateImpression(user.id, top.id, 'skipped').catch(() => {})
+    }
+    setHiddenTopIds(prev => new Set([...prev, top.id]));
+    setSelectedTopId(null);
+  };
 
-  const confidence = useMemo(() => {
-    if (!top || !alternates.length) return 90;
-    const gap = top.match - alternates[0].match;
-    if (gap >= 15) return 94; if (gap >= 8) return 86; if (gap >= 4) return 76; return 67;
-  }, [top, alternates]);
-  const lowConf = confidence < 80;
-  const whyNow = useMemo(() => buildWhyNow(selected, time, energy, who, intention), [selected, time, energy, who, intention]);
-  const antiRec = useMemo(() => {
-    const sorted = allResults.slice().sort((a,b) => a.match - b.match);
-    const f = sorted[0]; if (!f) return null;
-    const reasons = [`Your ${energy} energy will hate this. Save it.`, `Wrong shape for the night you described.`, `Beautiful film. Not for this constellation.`, `Match was 23 points below. The engine pushed back.`];
-    return { ...f, why: reasons[f.id % reasons.length] };
-  }, [allResults, energy]);
+  // Click an alternate card to promote it to top. AnimatePresence
+  // crossfades the spread; the alternate that was promoted swaps places
+  // with whatever was currently top. No-op if clicked the current top.
+  const handlePickAlternate = (altId) => {
+    if (!altId || altId === top?.id) return;
+    setSelectedTopId(altId);
+  };
+
+  // Mark Watched — user has already seen this film. Closes the loop both
+  // for the recommendation engine (don't surface this again) and the
+  // user's own library. The button flips to "Watched" for a beat of
+  // confirmation, then auto-advances to the next pick. Capture top.id in
+  // a closure so the setTimeout still fires against the right film even
+  // after the state change starts swapping in the next pick.
+  const markWatchedTimeoutRef = useRef(null);
+  useEffect(() => () => {
+    if (markWatchedTimeoutRef.current) clearTimeout(markWatchedTimeoutRef.current);
+  }, []);
+  const handleMarkWatched = async () => {
+    if (!top?.id || !user?.id || watchedState !== 'idle') return;
+    const filmId = top.id;
+    setWatchedState('watched');
+    try {
+      // 23505 (unique violation) = already in history; treat as success
+      const { error } = await supabase
+        .from('user_history')
+        .insert({ user_id: user.id, movie_id: filmId, source: 'discover_marked' });
+      if (error && error.code !== '23505') throw error;
+    } catch (e) {
+      console.error('[DiscoverV5.markWatched]', e);
+      // Even on insert failure, hide locally so the user can move on
+    }
+    updateImpression(user.id, filmId, 'watched').catch(() => {});
+    trackInteraction('watch', interactionContext('mark_watched')).catch(() => {});
+    // 600ms holds "Watched ✓" long enough to register as confirmation
+    // before the crossfade swap (180ms) carries the next pick in. Cleared
+    // on unmount so a quick Tweak inputs / Start over click during the
+    // hold doesn't fire a setState on an unmounted component.
+    markWatchedTimeoutRef.current = setTimeout(() => {
+      setHiddenTopIds(prev => new Set([...prev, filmId]));
+      setSelectedTopId(null);
+      markWatchedTimeoutRef.current = null;
+    }, 600);
+  };
+
+  // Stage 3 impression log — fires per current top pick. The page now
+  // behaves as a 3-pick swiper (skip → alt #1 becomes top → alt #2 becomes
+  // top → exhausted), so each new top deserves its own impression row
+  // under placement='discover'. Alternates are not logged as separate
+  // impressions until they're promoted to top — they're queued, not yet
+  // seen as a "pick" by the user. Per-day-deduped by the table's unique
+  // key, so re-visits don't inflate counts.
+  const topId = top?.id
+  useEffect(() => {
+    if (!user?.id || !topId || !top) return
+    logSurfaceImpressions({
+      userId: user.id,
+      films: [{ id: top.id, engineScore: top.match, _pickReasonLabel: 'discover_top_pick' }],
+      placement: 'discover',
+      pickReasonType: 'discover_reveal',
+      pickReasonLabel: `Discover · ${cName}`,
+    })
+    // top.id pins the impression — when the swiper auto-advances we log
+    // the new top as its own row.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, topId])
 
   const filter = moodFilter(selected[0]);
-  if (!top) return null;
 
-  const now = new Date();
-  const timeStr = now.toLocaleTimeString([], { hour:'numeric', minute:'2-digit' });
-  const dayStr = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][now.getDay()];
+  // Exhausted state — user skipped/watched all 3 initial picks. Editorial
+  // dead-end with two doors: tweak inputs (revisit Stage 2 — same
+  // constellation, different night-shape answers) or start over (back to
+  // Stage 0 — fresh moods). Matches the design language with eyebrow +
+  // italic accent + brand-gradient primary action. No new picks magic-
+  // refilled here; that would feel like infinite scroll, which the OCD/
+  // dyslexia cleanup is explicitly against.
+  if (exhausted) {
+    return (
+      <section className="ff-discover-section" style={{ position:'relative', minHeight:'70vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'80px 24px', textAlign:'center', animation:'ff-fade 0.5s ease' }}>
+        <AudioToggle />
+        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.32em', textTransform:'uppercase', color:blendHex, marginBottom:18, fontFamily:'Outfit', display:'inline-flex', alignItems:'center', gap:10 }}>
+          <span style={{ height:1, width:22, background:blendHex, opacity:0.6 }} />
+          End of edition
+        </div>
+        <h2 style={{ fontFamily:'Outfit', fontSize:'clamp(36px, 5vw, 62px)', lineHeight:1.02, fontWeight:200, letterSpacing:'-0.04em', color:HP.text, margin:0, maxWidth:760, textWrap:'balance' }}>
+          That&rsquo;s <em style={{ fontStyle:'italic', fontWeight:300, color:HP.textSoft }}>everything</em> for tonight.
+        </h2>
+        <p style={{ marginTop:18, fontFamily:'Outfit, Inter, sans-serif', fontSize:14, color:HP.textMuted, fontStyle:'italic', maxWidth:480, lineHeight:1.6 }}>
+          Tweak what you told me &mdash; or start fresh. New picks are seconds away.
+        </p>
+        <div style={{ marginTop:32, display:'flex', gap:10, flexWrap:'wrap', justifyContent:'center' }}>
+          <button onClick={onBack} style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', padding:'12px 22px', borderRadius:10, background:HP_GRAD, border:'none', color:'#fff', fontFamily:'Outfit', fontSize:13, fontWeight:700, letterSpacing:'0.01em', cursor:'pointer', boxShadow:'0 10px 26px -10px rgba(236,72,153,0.55)' }}>&larr; Tweak inputs</button>
+          <button onClick={onRestart} style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', padding:'12px 18px', borderRadius:10, background:HP.surface, border:`1px solid ${HP.borderStrong}`, color:HP.text, fontFamily:'Outfit', fontSize:13, fontWeight:500, cursor:'pointer' }}>Start over</button>
+        </div>
+      </section>
+    );
+  }
 
-  // The engine's diary lookback — keyed by dominant mood. Live data
-  // (user_ratings.review_text) wins; falls back to the curated defaults.
-  const diary = diaryQuotes[selected[0]] || diaryQuotes.tender;
-  const pairing = PAIRING[selected[0]] || PAIRING.tender;
-
-  // FF Take — magazine prose
-  const ffTake = `For all its surface restraint, this is the kind of film that doesn’t ask for your attention; it earns it, frame by frame, until you can’t quite remember the moment you stopped checking the time. ${top.dir} works in the small registers — a held look, a stretched silence — and trusts you to follow.`;
+  // Synopsis — TMDB's real overview. Gracefully degrades: if the film row
+  // has no overview (rare; some films missing it, or fallback set), we hide
+  // the article paragraph entirely rather than fall back to the older
+  // templated ffTake prose, which was the same wording for every film with
+  // only the director swapped (read as curator voice but was a Mad Lib).
+  const synopsis = top.overview && top.overview.trim().length > 20 ? top.overview.trim() : null;
 
   // Title words for typesetting
   const titleWords = top.title.split(' ');
 
   return (
-    <section style={{ position:'relative', padding:'24px 88px 80px', animation:'ff-fade 0.7s ease' }}>
+    <section className="ff-discover-section" style={{ position:'relative', animation:'ff-fade 0.7s ease' }}>
       <AudioToggle />
       {/* Film grain + vignette overlays */}
       <div aria-hidden style={{ position:'fixed', inset:0, pointerEvents:'none', zIndex:2, opacity:0.045, mixBlendMode:'overlay', backgroundImage:'url("data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22220%22 height=%22220%22><filter id=%22n%22><feTurbulence type=%22fractalNoise%22 baseFrequency=%220.9%22 numOctaves=%222%22 stitchTiles=%22stitch%22/></filter><rect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23n)%22/></svg>")', animation:'ff-grain 1.6s steps(6) infinite' }} />
       <div aria-hidden style={{ position:'fixed', inset:0, pointerEvents:'none', zIndex:2, background:'radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.55) 100%)' }} />
-      {/* Mast banner */}
-      <div style={{ textAlign:'center', borderBottom:`1px solid ${HP.border}`, padding:'4px 0 18px', marginBottom:32 }}>
-        <div style={{ fontSize:9, fontWeight:700, letterSpacing:'0.36em', textTransform:'uppercase', color:HP.purple }}>FeelFlick · The Discover Edition</div>
-        <div style={{ marginTop:8, fontFamily:'Outfit', fontStyle:'italic', fontSize:14, color:HP.textMuted }}>Tonight&rsquo;s film, for your constellation <em style={{ color:blendHex, fontStyle:'italic' }}>&ldquo;{cName}&rdquo;</em></div>
-      </div>
+      {/* No mast banner — the user is already on /discover; the brand
+         chrome ("FeelFlick · The Discover Edition") + curator note
+         ("Tonight's film, for your constellation X") were two rows of
+         magazine theater that added cognitive load before the decision.
+         The constellation name still pays off in /movie/:tmdbId if the
+         user wants to read deep. */}
 
-      {/* Magazine spread */}
-      <div style={{ maxWidth:1080, margin:'0 auto', display:'grid', gridTemplateColumns:'360px 1fr', gap:0, position:'relative' }}>
-        {/* Vertical "gutter" spine */}
-        <div style={{ position:'absolute', left:'360px', top:0, bottom:0, width:1, background:`linear-gradient(180deg, transparent, ${HP.border}, transparent)`, marginLeft:-1 }} />
-
-        {/* LEFT PAGE */}
-        <div style={{ paddingRight:36, position:'relative', transform:`translate(${mx*-6}px, ${my*-4}px)`, transition:'transform 0.4s cubic-bezier(.2,.7,.2,1)' }}>
-          {/* Film strip ribbon along left edge */}
-          <div aria-hidden style={{ position:'absolute', top:0, left:-22, bottom:80, width:14, display:'flex', flexDirection:'column', gap:6, opacity:0.35 }}>
-            {Array.from({length:14}).map((_, i) => (
-              <div key={i} style={{ flex:1, background:`url(${top.poster})`, backgroundSize:'cover', backgroundPosition:`center ${i*7}%`, borderRadius:1 }} />
-            ))}
-          </div>
+      {/* Spread — two columns on desktop, single linear flow on mobile.
+         Wrapped in AnimatePresence keyed on top.id so that when the user
+         skips or marks Watched it, the current pick fades out and the
+         next pick fades in. Without this the swap was a jarring snap —
+         posters changed mid-page with no continuity. mode="wait" keeps
+         the layout stable (next pick doesn't mount until current finishes
+         exiting), and 180ms duration keeps total swap snappy (~360ms). */}
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={top.id}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.18, ease: 'easeOut' }}
+        >
+      <div className="ff-stage3-spread">
+        {/* LEFT PAGE — poster + match ring only. The film strip ribbon,
+           pairing notes, and IN THIS ISSUE TOC sidebar all gone — pure
+           magazine chrome with no decision payload. The spine gutter is
+           also gone (it framed a 2-page magazine; without the surrounding
+           chrome it now just marks an arbitrary divide). */}
+        <div className="ff-stage3-spread__left" style={{ position:'relative', transform:`translate(${mx*-6}px, ${my*-4}px)`, transition:'transform 0.4s cubic-bezier(.2,.7,.2,1)' }}>
           <div style={{ position:'relative' }}>
             <div style={{ position:'absolute', inset:-14, borderRadius:14, background:`radial-gradient(ellipse at center, ${blendHex}55, transparent 70%)`, filter:'blur(30px)', animation: filter.halo ? 'ff-bloom-pulse-strong 4s ease-in-out infinite' : 'ff-bloom-pulse 4s ease-in-out infinite' }} />
-            <div style={{ position:'relative', overflow:'hidden', borderRadius:6, boxShadow:`0 30px 60px -20px rgba(0,0,0,0.8), 0 0 0 1px ${blendHex}33` }}>
+            <div style={{ position:'relative', overflow:'hidden', borderRadius:8, boxShadow:`0 30px 60px -20px rgba(0,0,0,0.8), 0 0 0 1px ${blendHex}33` }}>
               <img src={top.poster} alt={top.title} style={{ width:'100%', aspectRatio:'2/3', objectFit:'cover', display:'block', filter: filter.cardFilter || 'none', animation: filter.kenBurns ? 'ff-kenburns 14s ease-in-out infinite alternate' : 'ff-poster-in 1s cubic-bezier(.2,.7,.2,1)' }} />
               {filter.overlay && <div style={{ position:'absolute', inset:0, background:filter.overlay, pointerEvents:'none', mixBlendMode:'overlay' }} />}
             </div>
@@ -635,185 +1233,416 @@ function StagePick({ selected, time, who, energy, intention, results, allResults
             <div style={{ position:'absolute', right:-22, bottom:-22, width:104, height:104, borderRadius:999, background:`conic-gradient(${blendHex} ${matchAnim*3.6}deg, rgba(255,255,255,0.07) 0)`, display:'flex', alignItems:'center', justifyContent:'center', padding:5, boxShadow:`0 0 32px ${blendHex}66` }}>
               <div style={{ width:'100%', height:'100%', borderRadius:999, background:HP.bgDeep, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}>
                 <div style={{ fontFamily:'Outfit', fontSize:26, fontWeight:300, color:HP.text, letterSpacing:'-0.04em', lineHeight:1, fontVariantNumeric:'tabular-nums' }}>{matchAnim}<span style={{ fontSize:11, color:HP.textMuted }}>%</span></div>
-                <div style={{ fontSize:7, color:HP.textMuted, letterSpacing:'0.2em', textTransform:'uppercase', fontFamily:'Outfit', marginTop:2 }}>Match</div>
+                <div style={{ fontSize:7, color:HP.textMuted, letterSpacing:'0.2em', textTransform:'uppercase', fontFamily:'Outfit', marginTop:2 }}>Mood fit</div>
               </div>
-            </div>
-          </div>
-
-          {/* Sidebar — pairing notes */}
-          <div style={{ marginTop:40, padding:'18px 18px 18px 20px', borderLeft:`2px solid ${blendHex}44`, opacity:0, animation:'ff-fade 0.7s ease 1.6s forwards' }}>
-            <div style={{ fontSize:9, fontWeight:700, letterSpacing:'0.24em', textTransform:'uppercase', color:blendHex, fontFamily:'Outfit', marginBottom:8 }}>Pairs with</div>
-            <p style={{ margin:0, fontFamily:'Outfit, Inter, sans-serif', fontSize:13, color:HP.textSoft, fontStyle:'italic', lineHeight:1.6, textWrap:'pretty' }}>{pairing}</p>
-          </div>
-
-          {/* Sidebar — In this issue */}
-          <div style={{ marginTop:24, padding:'14px 0 0 0', borderTop:`1px solid ${HP.border}`, opacity:0, animation:'ff-fade 0.7s ease 1.75s forwards' }}>
-            <div style={{ fontSize:9, fontWeight:700, letterSpacing:'0.24em', textTransform:'uppercase', color:HP.textMuted, fontFamily:'Outfit', marginBottom:10 }}>In this issue</div>
-            <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-              <div style={{ display:'flex', justifyContent:'space-between', fontSize:11.5, fontFamily:'Outfit', color:HP.textSoft }}><span>The Feature</span><span style={{ color:HP.textFaint }}>p. 01</span></div>
-              <div style={{ display:'flex', justifyContent:'space-between', fontSize:11.5, fontFamily:'Outfit', color:HP.textSoft }}><span>M. Remembers</span><span style={{ color:HP.textFaint }}>p. 02</span></div>
-              <div style={{ display:'flex', justifyContent:'space-between', fontSize:11.5, fontFamily:'Outfit', color:HP.textSoft }}><span>Emotional Arc</span><span style={{ color:HP.textFaint }}>p. 03</span></div>
-              <div style={{ display:'flex', justifyContent:'space-between', fontSize:11.5, fontFamily:'Outfit', color:HP.textSoft }}><span>From your circle</span><span style={{ color:HP.textFaint }}>p. 04</span></div>
-              <div style={{ display:'flex', justifyContent:'space-between', fontSize:11.5, fontFamily:'Outfit', color:HP.textSoft }}><span>Almost got</span><span style={{ color:HP.textFaint }}>p. 05</span></div>
             </div>
           </div>
         </div>
 
         {/* RIGHT PAGE */}
-        <div style={{ paddingLeft:48, transform:`translate(${mx*-3}px, ${my*-2}px)`, transition:'transform 0.4s cubic-bezier(.2,.7,.2,1)' }}>
-          {/* Byline */}
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', borderBottom:`1px solid ${HP.border}`, paddingBottom:12, marginBottom:22 }}>
-            <div style={{ fontSize:9, fontWeight:700, letterSpacing:'0.24em', textTransform:'uppercase', color:HP.textMuted, fontFamily:'Outfit' }}>The Feature · p. 01</div>
-            <div style={{ fontSize:11, fontFamily:'Outfit', fontStyle:'italic', color:HP.textMuted }}>Curated for you · {timeStr}, {dayStr}</div>
-          </div>
-
-          {/* Kicker + Title */}
-          <div style={{ fontSize:11, fontWeight:600, letterSpacing:'0.28em', textTransform:'uppercase', color:blendHex, fontFamily:'Outfit', marginBottom:14 }}>Tonight’s pick</div>
+        <div className="ff-stage3-spread__right" style={{ transform:`translate(${mx*-3}px, ${my*-2}px)`, transition:'transform 0.4s cubic-bezier(.2,.7,.2,1)' }}>
+          {/* Because-line — the one signal that proves the engine knows
+             the user. Tinted to the mood-blend hex so it reads as part
+             of the user's constellation, not engine chrome. Hides when
+             no honest signal exists (cold-start with no mood) rather
+             than printing filler. */}
+          {becauseLine && (
+            <div style={{ marginBottom:14, fontFamily:'Outfit, Inter, sans-serif', fontSize:13, fontStyle:'italic', fontWeight:400, color:blendHex, letterSpacing:'0.01em', textWrap:'balance', opacity:0, animation:'ff-fade 0.5s ease 0.15s forwards' }}>
+              {becauseLine}
+            </div>
+          )}
+          {/* Title (no kicker, no byline — the page IS the pick, no need to
+             pre-announce it). Word-by-word reveal animation kept; it's pure
+             motion, not content load. */}
           <h1 style={{ fontFamily:'Outfit', fontSize:'clamp(44px, 5.6vw, 76px)', lineHeight:0.96, fontWeight:300, letterSpacing:'-0.045em', color:HP.text, margin:0, textWrap:'balance' }}>
             {titleWords.map((w, i) => <span key={i} style={{ display:'inline-block', opacity:0, animation:`ff-word-in 0.55s cubic-bezier(.2,.7,.2,1) ${0.2 + i*0.08}s forwards`, marginRight:'0.2em' }}>{w}</span>)}
           </h1>
-          <div style={{ marginTop:12, display:'flex', alignItems:'center', gap:10, flexWrap:'wrap', fontFamily:'Outfit', fontSize:13, color:HP.textMuted, letterSpacing:'0.04em', opacity:0, animation:'ff-fade 0.6s ease 0.7s forwards' }}>
-            <span style={{ fontStyle:'italic' }}>directed by {top.dir}</span>
+
+          {/* Meta — director · year · runtime · taste %. The taste % was
+             demoted from the headline ring (which now shows mood-fit, the
+             number that actually answers what the user just asked) into
+             this quiet meta row. Both signals stay visible: "tonight"
+             (mood-fit, big) and "you" (taste, small). textFaint colour
+             keeps it from competing with the director name. */}
+          <div style={{ marginTop:14, display:'flex', alignItems:'center', gap:10, flexWrap:'wrap', fontFamily:'Outfit', fontSize:13, color:HP.textMuted, letterSpacing:'0.04em', opacity:0, animation:'ff-fade 0.6s ease 0.7s forwards' }}>
+            <span>{top.dir}</span>
             <span style={{ color:HP.textFaint }}>·</span>
-            <span>{top.year}, {top.runtime} min, {top.genre}</span>
+            <span>{top.year}</span>
             <span style={{ color:HP.textFaint }}>·</span>
-            <span>Critics {top.critic} / Audience {top.audience}</span>
+            <span>{top.runtime} min</span>
+            {Number.isFinite(top.match) && (
+              <>
+                <span style={{ color:HP.textFaint }}>·</span>
+                <span style={{ color:HP.textFaint }} title="How well this film fits your stable taste profile">{top.match}% taste</span>
+              </>
+            )}
           </div>
 
-          {/* The article — drop cap */}
-          <div style={{ marginTop:26, opacity:0, animation:'ff-fade 0.7s ease 0.9s forwards' }}>
-            <p style={{ margin:0, fontFamily:'Outfit, Inter, sans-serif', fontSize:15.5, color:HP.textSoft, lineHeight:1.65, textWrap:'pretty' }}>
-              <span style={{ float:'left', fontFamily:'Outfit', fontSize:78, lineHeight:0.78, fontWeight:300, color:blendHex, marginRight:10, marginTop:6, marginBottom:-4, letterSpacing:'-0.06em' }}>{ffTake.charAt(0)}</span>
-              {ffTake.slice(1)}
-            </p>
-          </div>
-
-          {/* Pull-quote — critic line. Hidden when no real critic data exists. */}
-          {top.criticLine && (
-            <blockquote style={{ margin:'30px 0 0 0', padding:'18px 24px', borderLeft:`3px solid ${blendHex}99`, borderRight:`1px solid ${HP.border}`, background:`${blendHex}08`, opacity:0, animation:'ff-fade 0.7s ease 1.05s forwards' }}>
-              <p style={{ margin:0, fontFamily:'Outfit', fontSize:22, lineHeight:1.3, fontWeight:300, fontStyle:'italic', color:HP.text, letterSpacing:'-0.015em', textWrap:'balance' }}>&ldquo;{top.criticLine.q}&rdquo;</p>
-              <div style={{ marginTop:8, fontSize:11, color:HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.08em', textTransform:'uppercase' }}>{top.criticLine.src}</div>
-            </blockquote>
-          )}
-
-          {/* M. Remembers — diary callback */}
-          <div style={{ marginTop:28, padding:'18px 20px', borderRadius:8, background:'rgba(255,255,255,0.03)', border:`1px solid ${HP.border}`, opacity:0, animation:'ff-fade 0.7s ease 1.2s forwards' }}>
-            <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
-              <div style={{ width:22, height:22, borderRadius:999, background:HP_GRAD, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Outfit', fontWeight:700, fontSize:11, color:'#fff' }}>M</div>
-              <div style={{ fontSize:9, fontWeight:700, letterSpacing:'0.24em', textTransform:'uppercase', color:HP.purple, fontFamily:'Outfit' }}>M. remembers</div>
-            </div>
-            <p style={{ margin:0, fontFamily:'Outfit, Inter, sans-serif', fontSize:14, color:HP.textSoft, lineHeight:1.6, textWrap:'pretty' }}>
-              You wrote <em style={{ color:HP.text, fontStyle:'italic' }}>&ldquo;{diary.quote}&rdquo;</em> after {diary.after}. This will land in that same place.
-            </p>
-          </div>
-
-          {/* Why now */}
-          <div style={{ marginTop:18, display:'flex', alignItems:'flex-start', gap:10, padding:'12px 16px', borderRadius:8, background:`${blendHex}10`, border:`1px solid ${blendHex}33`, opacity:0, animation:'ff-fade 0.7s ease 1.3s forwards' }}>
-            <div style={{ width:22, height:22, borderRadius:999, background:`${blendHex}22`, border:`1px solid ${blendHex}66`, color:blendHex, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:1 }}>
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-            </div>
-            <div>
-              <div style={{ fontSize:9, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color:blendHex, fontFamily:'Outfit', marginBottom:3 }}>Why now</div>
-              <div style={{ fontFamily:'Outfit, Inter, sans-serif', fontSize:13.5, color:HP.text, lineHeight:1.5 }}>{whyNow}</div>
-            </div>
-          </div>
-
-          {/* Mood arc */}
-          <div style={{ marginTop:24, opacity:0, animation:'ff-fade 0.7s ease 1.4s forwards' }}>
-            <MoodArc points={top.arcPoints} hex={blendHex} runtime={top.runtime} />
-            <div style={{ marginTop:8, fontSize:12, color:HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', fontStyle:'italic' }}>{top.arc}</div>
-          </div>
-
-          {/* Taste twin */}
-          {top.twin && (
-            <div style={{ marginTop:22, display:'flex', alignItems:'flex-start', gap:12, padding:'12px 16px', borderRadius:8, background:`${blendHex}10`, border:`1px solid ${blendHex}33`, opacity:0, animation:'ff-fade 0.7s ease 1.5s forwards' }}>
-              <div style={{ width:32, height:32, borderRadius:999, background:blendHex, color:HP.bgDeep, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Outfit', fontWeight:700, fontSize:13, flexShrink:0 }}>{top.twin.who.charAt(0)}</div>
-              <div>
-                <div style={{ fontFamily:'Outfit', fontSize:12, color:HP.text }}><span style={{ fontWeight:600 }}>{top.twin.who}</span> <span style={{ color:HP.textMuted }}>(87% taste match)</span> rated this <span style={{ color:blendHex, fontWeight:700 }}>{top.twin.rating}☆</span></div>
-                <div style={{ marginTop:4, fontSize:12.5, color:HP.textSoft, fontFamily:'Outfit, Inter, sans-serif', fontStyle:'italic', lineHeight:1.5 }}>&ldquo;{top.twin.note}&rdquo;</div>
-              </div>
+          {/* Mood/tone chips — what KIND of film this is at a glance.
+             3 chips max: primary genre + 2 strongest mood/tone tags.
+             Complements the italic proof line below (which says why it
+             fits the USER) by saying what it IS. No background — borders
+             only, so visually quieter than the action buttons. */}
+          {chips.length > 0 && (
+            <div style={{ marginTop:14, display:'flex', flexWrap:'wrap', gap:7, opacity:0, animation:'ff-fade 0.6s ease 0.8s forwards' }}>
+              {chips.map((c, i) => (
+                <span key={`${c}-${i}`} style={{ display:'inline-flex', alignItems:'center', padding:'4px 10px', borderRadius:999, border:`1px solid ${HP.border}`, fontFamily:'Outfit', fontSize:11, fontWeight:500, color:HP.textSoft, letterSpacing:'0.02em' }}>
+                  {c}
+                </span>
+              ))}
             </div>
           )}
 
-          {/* Confidence + actions */}
-          <div style={{ marginTop:22, display:'flex', alignItems:'center', gap:12, opacity:0, animation:'ff-fade 0.7s ease 1.6s forwards' }}>
-            <div style={{ display:'inline-flex', alignItems:'center', gap:7, padding:'5px 10px', borderRadius:999, background: lowConf?'rgba(245,158,11,0.12)':'rgba(52,211,153,0.10)', border:`1px solid ${lowConf?HP.amber+'44':HP.green+'44'}` }}>
-              <span style={{ width:6, height:6, borderRadius:999, background: lowConf?HP.amber:HP.green, boxShadow:`0 0 6px ${lowConf?HP.amber:HP.green}` }} />
-              <span style={{ fontSize:11, fontFamily:'Outfit', fontWeight:600, color: lowConf?HP.amber:HP.green }}>{confidence}% confident</span>
+          {/* No FOR YOU prose block — the proof lines (mood-axis hit,
+             runtime fit, fallback) read as "a lot to read" alongside the
+             synopsis. The match ring (calibrated %) + mood chips + trailer
+             button already convey personalisation visually. Deeper signal
+             readout lives on /movie/:tmdbId for users who want it. */}
+
+          {/* Synopsis — real TMDB overview, plain paragraph, no drop-cap.
+             Demoted below the FOR YOU block because it's generic info every
+             recommender has; the personal proof above is what makes this
+             feel like FeelFlick. Drop-cap was cut earlier (fragments
+             reading for dyslexic users). Max-width 580 caps line length
+             for readability. Hides when no overview exists. */}
+          {synopsis && (
+            <p style={{ marginTop:22, marginBottom:0, fontFamily:'Inter, sans-serif', fontSize:14.5, color:HP.textMuted, lineHeight:1.7, textWrap:'pretty', maxWidth:580, opacity:0, animation:'ff-fade 0.7s ease 1.2s forwards' }}>
+              {synopsis}
+            </p>
+          )}
+
+          {/* Streaming provider — one chip with logo + "Streaming on Netflix"
+             style label. Renders only when TMDB has a provider for this
+             title. Tells the user in one glance whether the recommendation
+             is even reachable tonight, removing a click of friction at the
+             most decision-critical moment. Detailed provider list (Stream
+             / Rent / Buy categories) lives on /movie/:tmdbId. */}
+          {provider && (
+            <div style={{ marginTop:18, opacity:0, animation:'ff-fade 0.7s ease 1.3s forwards' }}>
+              <StreamingChip provider={provider} />
             </div>
-          </div>
-          <div style={{ marginTop:18, display:'flex', gap:10, flexWrap:'wrap', opacity:0, animation:'ff-fade 0.7s ease 1.7s forwards' }}>
-            <button type="button" onClick={handleWatch} style={{ padding:'13px 28px', borderRadius:999, background:HP_GRAD, border:'none', color:'#fff', fontFamily:'Outfit', fontSize:13, fontWeight:600, letterSpacing:'0.04em', cursor:'pointer', boxShadow:'0 12px 28px -10px rgba(236,72,153,0.5)' }}>Watch now &rarr;</button>
+          )}
+
+          {/* Action buttons. Primary = gradient "See More" → /movie/:tmdbId
+             (deep film page; "Watch now" used to lie because the button
+             didn't play the film). Secondary row: Trailer (when YouTube
+             key exists), Save, Mark Watched, Skip for tonight. Save +
+             Mark Watched both flip to a confirmed state ("Saved" /
+             "Watched"); Mark Watched + Skip both auto-advance the swiper
+             (positive history write vs. negative dismiss signal). Style:
+             rounded-rectangle pills (12px radius) with icons on the left,
+             dark surface fill, bolder typography — same shape language as
+             the briefing action bar. */}
+          <div className="ff-stage3-actions" style={{ opacity:0, animation:'ff-fade 0.7s ease 1.4s forwards' }}>
+            <button
+              type="button"
+              onClick={handleSeeMore}
+              style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', padding:'12px 22px', borderRadius:10, background:HP_GRAD, border:'none', color:'#fff', fontFamily:'Outfit', fontSize:13, fontWeight:700, letterSpacing:'0.01em', cursor:'pointer', boxShadow:'0 10px 26px -10px rgba(236,72,153,0.55)' }}
+            >
+              See More &rarr;
+            </button>
+            {top.trailerKey && (
+              <button
+                type="button"
+                onClick={() => setTrailerOpen(true)}
+                title="Watch the trailer"
+                style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'12px 18px', borderRadius:10, background:HP.surface, border:`1px solid ${HP.borderStrong}`, color:HP.text, fontFamily:'Outfit', fontSize:13, fontWeight:500, cursor:'pointer' }}
+              >
+                <Play size={14} fill="currentColor" />
+                <span>Trailer</span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={handleMarkWatched}
+              disabled={watchedState === 'watched'}
+              title="I've already seen this one"
+              style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'12px 18px', borderRadius:10, background: watchedState === 'watched' ? `${HP.green}14` : HP.surface, border:`1px solid ${watchedState === 'watched' ? HP.green + '66' : HP.borderStrong}`, color: watchedState === 'watched' ? HP.green : HP.text, fontFamily:'Outfit', fontSize:13, fontWeight:500, cursor: watchedState === 'idle' ? 'pointer' : 'default' }}
+            >
+              <Check size={14} strokeWidth={2.5} />
+              <span>{watchedState === 'watched' ? 'Watched' : 'Mark Watched'}</span>
+            </button>
             <button
               type="button"
               onClick={handleSaveForLater}
               disabled={savedState === 'saving' || savedState === 'saved'}
-              style={{ padding:'13px 22px', borderRadius:999, background: savedState === 'saved' ? 'rgba(52,211,153,0.10)' : 'rgba(255,255,255,0.06)', border:`1px solid ${savedState === 'saved' ? HP.green + '66' : HP.borderStrong}`, color: savedState === 'saved' ? HP.green : HP.textSoft, fontFamily:'Outfit', fontSize:13, fontWeight:600, cursor: savedState === 'idle' ? 'pointer' : 'default' }}
+              style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'12px 18px', borderRadius:10, background: savedState === 'saved' ? `${HP.green}14` : HP.surface, border:`1px solid ${savedState === 'saved' ? HP.green + '66' : HP.borderStrong}`, color: savedState === 'saved' ? HP.green : HP.text, fontFamily:'Outfit', fontSize:13, fontWeight:500, cursor: savedState === 'idle' ? 'pointer' : 'default' }}
             >
-              {savedState === 'idle' && 'Save for later'}
-              {savedState === 'saving' && 'Saving…'}
-              {savedState === 'saved' && 'Saved ✓'}
-              {savedState === 'error' && 'Try again'}
+              <Bookmark size={14} fill={savedState === 'saved' ? 'currentColor' : 'none'} strokeWidth={2} />
+              <span>
+                {savedState === 'idle' && 'Save'}
+                {savedState === 'saving' && 'Saving…'}
+                {savedState === 'saved' && 'Saved'}
+                {savedState === 'error' && 'Try again'}
+              </span>
             </button>
-            <button type="button" onClick={handleNotTonight} style={{ padding:'13px 18px', borderRadius:999, background:'transparent', border:`1px solid ${HP.border}`, color:HP.textMuted, fontFamily:'Outfit', fontSize:13, fontWeight:500, cursor:'pointer' }}>Not tonight</button>
+            <button
+              type="button"
+              onClick={handleNotTonight}
+              title="Skip — not tonight"
+              style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'12px 18px', borderRadius:10, background:HP.surface, border:`1px solid ${HP.border}`, color:HP.textSoft, fontFamily:'Outfit', fontSize:13, fontWeight:500, cursor:'pointer' }}
+            >
+              <SkipForward size={14} />
+              <span>Skip for tonight</span>
+            </button>
           </div>
+          {/* No depth zone — the match ring + mood chips + streaming chip
+             carry the reasoning visually. The deeper magazine treatment
+             (diary callback, why-now, emotional arc, taste twin) was 4
+             boxes of competing chrome — OCD-hostile and dyslexia-hostile.
+             Users who want a deep read on the film have /movie/:tmdbId
+             waiting (linked from the See More button). */}
         </div>
       </div>
 
-      {/* Almost got + Anti-rec */}
-      <div style={{ marginTop:72, maxWidth:1080, margin:'72px auto 0', opacity:0, animation:'ff-fade 0.8s ease 1.9s forwards' }}>
-        <div style={{ borderTop:`1px solid ${HP.border}`, paddingTop:28 }}>
-          <div style={{ display:'grid', gridTemplateColumns:'1.4fr 1fr', gap:32 }}>
-            <div>
-              <div style={{ fontSize:9, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:HP.textMuted, marginBottom:14, fontFamily:'Outfit' }}>Almost got · p. 05</div>
-              <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-                {alternates.map(f => (
-                  <article key={f.id} style={{ display:'grid', gridTemplateColumns:'auto 1fr', gap:14, padding:'12px 14px', borderRadius:8, background:'rgba(255,255,255,0.025)', border:`1px solid ${HP.border}` }}>
-                    <img src={f.poster} alt="" style={{ width:52, height:78, objectFit:'cover', borderRadius:4 }} />
-                    <div>
-                      <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                        <span style={{ fontFamily:'Outfit', fontSize:14, fontWeight:500, color:HP.text }}>{f.title}</span>
-                        <span style={{ fontFamily:'Outfit', fontSize:11, color:HP.purple, fontWeight:600 }}>{f.match}%</span>
-                      </div>
-                      <p style={{ margin:'5px 0 0 0', fontSize:12, color:HP.textSoft, fontFamily:'Outfit, Inter, sans-serif', fontStyle:'italic', lineHeight:1.5 }}>{f.reason}</p>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </div>
-            {antiRec && (
-              <div>
-                <div style={{ fontSize:9, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:HP.amber, marginBottom:14, fontFamily:'Outfit', display:'inline-flex', alignItems:'center', gap:8 }}>
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
-                  Skip tonight
-                </div>
-                <article style={{ display:'grid', gridTemplateColumns:'auto 1fr', gap:14, padding:'14px 16px', borderRadius:8, background:`${HP.amber}0a`, border:`1px solid ${HP.amber}33` }}>
-                  <img src={antiRec.poster} alt="" style={{ width:52, height:78, objectFit:'cover', borderRadius:4, filter:'grayscale(0.7) opacity(0.8)' }} />
-                  <div>
-                    <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                      <span style={{ fontFamily:'Outfit', fontSize:14, fontWeight:500, color:HP.text, textDecoration:'line-through', textDecorationColor:`${HP.amber}88` }}>{antiRec.title}</span>
-                      <span style={{ fontFamily:'Outfit', fontSize:11, color:HP.amber, fontWeight:600 }}>{antiRec.match}%</span>
-                    </div>
-                    <p style={{ margin:'5px 0 0 0', fontSize:12, color:HP.textSoft, fontFamily:'Outfit, Inter, sans-serif', fontStyle:'italic', lineHeight:1.5 }}>{antiRec.why}</p>
-                  </div>
-                </article>
-              </div>
+      {/* Alternates row — two smaller cards for the other 2 picks from
+         this batch. Click to promote to top (crossfade swap). Each card
+         carries its own because-line so the user can see WHY each is
+         on the table. No match %, no action buttons — those belong only
+         to the focused top pick. Hides when no alternates are visible
+         (after skip/watched bring the count down to 1). */}
+      {alternates.length > 0 && (
+        <div style={{ marginTop:48, maxWidth:1080, marginLeft:'auto', marginRight:'auto', padding:'0 24px' }}>
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:HP.textMuted, marginBottom:16, fontFamily:'Outfit', display:'inline-flex', alignItems:'center', gap:10 }}>
+            <span style={{ height:1, width:22, background:HP.textMuted, opacity:0.5 }} />
+            <span>Or pick from these</span>
+            {queuedCount > 0 && (
+              <span style={{ color:HP.textFaint, letterSpacing:'0.18em' }} title={`${queuedCount} more films queued — skip or mark watched to see them`}>
+                &middot; {queuedCount} more queued
+              </span>
             )}
           </div>
+          <div className="ff-stage3-alternates">
+            {alternates.map(alt => (
+              <AlternateCard
+                key={alt.id}
+                film={alt}
+                profile={profile}
+                selected={selected}
+                onPick={() => handlePickAlternate(alt.id)}
+              />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
-      <div style={{ marginTop:56, paddingTop:24, borderTop:`1px solid ${HP.border}`, display:'flex', alignItems:'center', justifyContent:'space-between', maxWidth:1080, margin:'56px auto 0', paddingBottom:0 }}>
-        <div style={{ fontSize:10, color:HP.textFaint, fontFamily:'Outfit', letterSpacing:'0.18em', textTransform:'uppercase' }}>FeelFlick · Edition Nº {edition}</div>
-        <div style={{ display:'flex', gap:14 }}>
-          <button onClick={onBack}    style={{ padding:'9px 16px', borderRadius:999, background:'transparent', border:`1px solid ${HP.border}`, color:HP.textMuted, fontFamily:'Outfit', fontSize:11, fontWeight:500, cursor:'pointer' }}>← Tweak inputs</button>
-          <button onClick={onRestart} style={{ padding:'9px 16px', borderRadius:999, background:'transparent', border:`1px solid ${HP.border}`, color:HP.textMuted, fontFamily:'Outfit', fontSize:11, fontWeight:500, cursor:'pointer' }}>Start over</button>
-        </div>
+      {/* Footer — Tweak inputs / Start over, the two ways back into the
+         flow without committing to the current pick. Quiet pills, not
+         primary buttons — the action gravity belongs on the spread above. */}
+      <div style={{ marginTop:56, paddingTop:24, borderTop:`1px solid ${HP.border}`, display:'flex', alignItems:'center', justifyContent:'center', gap:10, maxWidth:1080, margin:'56px auto 0' }}>
+        <button onClick={onBack}    style={{ padding:'9px 14px', borderRadius:8, background:'transparent', border:`1px solid ${HP.border}`, color:HP.textMuted, fontFamily:'Outfit', fontSize:11, fontWeight:500, cursor:'pointer' }}>← Tweak inputs</button>
+        <button onClick={onRestart} style={{ padding:'9px 14px', borderRadius:8, background:'transparent', border:`1px solid ${HP.border}`, color:HP.textMuted, fontFamily:'Outfit', fontSize:11, fontWeight:500, cursor:'pointer' }}>Start over</button>
       </div>
+        </motion.div>
+      </AnimatePresence>
 
-      {credits && <CreditsScroll title={top.title} onClose={handleCreditsClose} />}
+      <TrailerModal open={trailerOpen} youtubeKey={top.trailerKey} title={top.title} onClose={() => setTrailerOpen(false)} />
     </section>
   );
+}
+
+// ── Diversity pass for the Stage 3 swiper.
+// Re-orders the top 3 visible picks so they span 3 distinct primary_genres
+// when the pool allows it. Films 4+ stay in pure rank order. Without this,
+// a mood combo that strongly favors one genre produces a clustered top-3
+// where the user's alternates feel like re-runs of the focused pick.
+//
+// Slot 1 enforces a HARD mood-fit floor (TOP_MOOD_FIT_FLOOR). The headline
+// pick must hit at least this much mood-fit on the user's selected moods.
+// Without it, a film with high taste affinity but poor mood match (e.g.,
+// Chocolat at 15% mood when user asked cerebral+mythic) could be the
+// headline despite not actually fitting what was asked.
+//
+// Slots 2 and 3 enforce a SOFTER floor (ALT_MOOD_FIT_FLOOR). They're
+// framed as alternates so a slightly lower mood threshold is fine, but
+// surfacing a 15% mood film as a "pick from these" alternative to
+// cerebral+mythic still felt wrong in audit. The soft floor protects
+// against that while still leaving room for genre diversity.
+//
+// Fallback chain for slots 2/3:
+//   1. Highest-ranked, NEW genre, above alt floor (best case)
+//   2. Highest-ranked above alt floor (any genre — sacrifice diversity for honesty)
+//   3. Break — surface fewer alts rather than a bad-mood pick. UI handles
+//      0-2 alts gracefully via the alternates row.
+const TOP_MOOD_FIT_FLOOR = 0.35
+const ALT_MOOD_FIT_FLOOR = 0.25
+// Session penalty — films already shown in this /discover session get
+// this many points deducted from their _rankScore before slotting. Soft
+// demotion (not exclusion) so a strongly-mood-matched film can still win
+// if no fresh alternative comes close, but in tight ranks fresh films
+// float to the top. 30 is large enough to flip "broad-mood" films
+// (Gladiator, Chocolat) off the top of every scenario while still
+// allowing them to surface if genuinely the best match.
+const SESSION_SHOWN_PENALTY = 30
+function diversifyTop3(scored, sessionShownIds = new Set()) {
+  if (!Array.isArray(scored) || scored.length < 1) return scored
+  // Re-sort with session penalty: previously-shown films pay 30 pts.
+  // The original _rankScore is preserved on the film; this just changes
+  // sort order. Films past the displayed top 3 still benefit from the
+  // penalty in the queue order so the next skip/watched advance also
+  // surfaces fresh films.
+  const reranked = scored.slice().sort((a, b) => {
+    const aScore = (a._rankScore || 0) - (sessionShownIds.has(a.id) ? SESSION_SHOWN_PENALTY : 0)
+    const bScore = (b._rankScore || 0) - (sessionShownIds.has(b.id) ? SESSION_SHOWN_PENALTY : 0)
+    return bScore - aScore
+  })
+  const used = new Set()
+  const remaining = reranked.slice()
+  const top = []
+
+  // First pick — highest-ranked film that meets the TOP mood-fit floor.
+  // Falls back to overall highest-ranked if nothing meets the floor
+  // (extreme cold-start: pool has zero mood-matching candidates).
+  let firstIdx = remaining.findIndex(f => (f?.moodFitRaw ?? 0) >= TOP_MOOD_FIT_FLOOR)
+  if (firstIdx === -1) firstIdx = 0
+  const first = remaining.splice(firstIdx, 1)[0]
+  if (first) {
+    top.push(first)
+    if (first.primary_genre) used.add(first.primary_genre)
+  }
+
+  // Picks 2 and 3 — apply ALT mood-fit floor with genre-diversity preference.
+  for (let i = 0; i < 2 && remaining.length > 0; i++) {
+    // 1. Try: new genre + above alt floor
+    let idx = remaining.findIndex(f => f?.primary_genre && !used.has(f.primary_genre) && (f?.moodFitRaw ?? 0) >= ALT_MOOD_FIT_FLOOR)
+    // 2. Fall back: above alt floor, any genre (sacrifice diversity over honesty)
+    if (idx === -1) idx = remaining.findIndex(f => (f?.moodFitRaw ?? 0) >= ALT_MOOD_FIT_FLOOR)
+    // 3. Last fallback: break — fewer alts is better than a bad-mood pick
+    if (idx === -1) break
+    const pick = remaining.splice(idx, 1)[0]
+    top.push(pick)
+    if (pick?.primary_genre) used.add(pick.primary_genre)
+  }
+
+  return [...top, ...remaining]
+}
+
+// ── Stage 2 pre-selection — predict the user's likely intention / time /
+// energy from signals we already have, so the page lands on smart
+// defaults instead of the static `move / std / steady / alone` set. The
+// user can always override; this just shifts the starting point so
+// less-engaged users hit Continue faster, and engaged users see the page
+// reflect what they actually tend to pick.
+//
+// Signals used:
+//   • intention ← primary mood from Stage 1 (cerebral → think, cozy →
+//     comfort, tense/restless → distract, tender/bittersweet → move,
+//     mythic → surprise, slow → think). When mood is empty, defaults
+//     to 'move' (broadest appeal).
+//   • time ← profile.preferences.avgRuntime, mapped to the closest
+//     TIME_OPTIONS band. Cold-start users have avgRuntime=120 (the
+//     placeholder default), which lands at 'std' — same as the old
+//     hardcoded default, so no regression.
+//   • energy ← current hour. 22:00-04:00 → 'wiped' (winding down);
+//     14:00-20:00 → 'wired' (active); else 'steady'. Time-of-day is
+//     a privacy-cheap signal that meaningfully shifts the right answer.
+//   • who ← 'alone' (default). Hard to infer honestly without explicit
+//     session signal. Phase 2 will add learned override.
+const INTENTION_FROM_MOOD = {
+  cerebral: 'think',
+  slow:     'think',
+  cozy:     'comfort',
+  tense:    'distract',
+  restless: 'distract',
+  tender:   'move',
+  bittersweet: 'move',
+  mythic:   'surprise',
+}
+
+// Mode-of-counts — returns the most-frequent key in a {key: count} JSONB
+// object, or null when the object is empty/invalid. Used by the hybrid
+// blend to read learned prefs from user_discover_preferences.
+function modeOf(counts) {
+  if (!counts || typeof counts !== 'object') return null
+  const entries = Object.entries(counts)
+  if (entries.length === 0) return null
+  entries.sort((a, b) => b[1] - a[1])
+  return entries[0][0]
+}
+
+// Trust threshold — how many commits the user needs before we prefer
+// their learned mode over the heuristic. 3 is a small-enough sample to
+// adapt quickly but large enough to avoid one-off swings.
+const MIN_COMMITS_TO_TRUST = 3
+
+function predictDiscoverDefaults({ selected, profile, hourOfDay, learnedPrefs }) {
+  // === Heuristic prediction (always computed) ===
+  const primaryMood = selected?.[0]
+  const heuristic = {
+    intention: INTENTION_FROM_MOOD[primaryMood] || 'move',
+    time: 'std',
+    energy: 'steady',
+    who: 'alone',
+  }
+  const avg = profile?.preferences?.avgRuntime
+  if (Number.isFinite(avg)) {
+    if (avg < 100)       heuristic.time = 'short'
+    else if (avg <= 130) heuristic.time = 'std'
+    else if (avg <= 160) heuristic.time = 'long'
+    else                 heuristic.time = 'epic'
+  }
+  if (Number.isFinite(hourOfDay)) {
+    if (hourOfDay >= 22 || hourOfDay < 4) heuristic.energy = 'wiped'
+    else if (hourOfDay >= 14 && hourOfDay < 20) heuristic.energy = 'wired'
+  }
+
+  // === Hybrid blend with learned data ===
+  // Only trust learned prefs after MIN_COMMITS_TO_TRUST. Below that, the
+  // heuristic carries the prediction. Per-dimension fallback: if the
+  // learned mode for a dimension is null (no signal yet for that field),
+  // fall back to heuristic for THAT field — even if total_commits >= 3.
+  if ((learnedPrefs?.total_commits || 0) >= MIN_COMMITS_TO_TRUST) {
+    return {
+      intention: modeOf(learnedPrefs.intention_counts) || heuristic.intention,
+      time:      modeOf(learnedPrefs.time_counts)      || heuristic.time,
+      energy:    modeOf(learnedPrefs.energy_counts)    || heuristic.energy,
+      who:       modeOf(learnedPrefs.who_counts)       || heuristic.who,
+    }
+  }
+  return heuristic
+}
+
+// Commit the user's Stage 2 selections to user_discover_preferences —
+// increments the count for each selected option in each dimension, plus
+// total_commits. Uses an upsert path: read current row (or default to
+// empty counts), increment in JS, write back. JSONB ops in Postgres
+// (jsonb_set with COALESCE) would be cleaner but require a function
+// rather than a raw client call; the read-modify-write here is fine
+// because writes are infrequent (once per Stage 2 commit, ~per session).
+// Fires fire-and-forget — never blocks the UI transition to Stage 3.
+async function commitDiscoverPreferences({ userId, intention, time, who, energy }) {
+  if (!userId) return
+  try {
+    const { data: existing } = await supabase
+      .from('user_discover_preferences')
+      .select('intention_counts, time_counts, who_counts, energy_counts, total_commits')
+      .eq('user_id', userId)
+      .maybeSingle()
+
+    const bump = (counts, key) => {
+      const next = { ...(counts || {}) }
+      next[key] = (next[key] || 0) + 1
+      return next
+    }
+
+    const row = {
+      user_id: userId,
+      intention_counts: bump(existing?.intention_counts, intention),
+      time_counts:      bump(existing?.time_counts,      time),
+      who_counts:       bump(existing?.who_counts,       who),
+      energy_counts:    bump(existing?.energy_counts,    energy),
+      total_commits:    (existing?.total_commits || 0) + 1,
+    }
+
+    const { error } = await supabase
+      .from('user_discover_preferences')
+      .upsert(row, { onConflict: 'user_id' })
+    if (error) throw error
+  } catch (e) {
+    // Non-fatal — pre-selection just doesn't improve this session.
+    // Don't show user-facing error; the Stage 2 → 3 flow continues.
+    console.error('[DiscoverV5.commitDiscoverPreferences]', e)
+  }
 }
 
 function DiscoverV5Body() {
@@ -824,7 +1653,94 @@ function DiscoverV5Body() {
   const [energy, setEnergy]     = useState('steady');
   const [intention, setIntention] = useState('move');
   const [bursts, setBursts]     = useState([]);
-  const { films: liveFilms, profile } = useDiscoverData();
+  // Stage 2 wizard step — lifted to parent so "Tweak inputs" from Stage 3
+  // returns to the summary view (stepIndex === 4) instead of restarting
+  // the wizard from question 1. Reset to 0 when the user restarts the
+  // whole flow from Stage 0 (Start over).
+  const [stage2StepIndex, setStage2StepIndex] = useState(0);
+  // Films that have appeared as top OR alternate in THIS /discover session
+  // (one mount lifetime). diversifyTop3 demotes these so users who tweak
+  // moods get genuinely fresh picks across scenarios instead of seeing
+  // the same broad-mood films (e.g., Gladiator) win every constellation.
+  // Resets naturally when the user leaves /discover and returns.
+  const sessionShownIds = useRef(new Set());
+  useEffect(() => { if (stage === 0) setStage2StepIndex(0); }, [stage]);
+  const { films: liveFilms, profile, baselineMoods, learnedPrefs, recentSaves } = useDiscoverData();
+  const { user } = useAuthSession();
+  const location = useLocation();
+  const fromOnboardingRef = useRef(location.state?.fromOnboarding === true);
+
+  // First-visit pre-select (audit #7). Onboarding asked the user for their
+  // baseline moods 30 seconds ago; not re-asking on the first /discover
+  // is the smaller of two awkwardnesses. We soft-pre-select the #1
+  // baseline mood mapped through the bridge; user can tap to deselect or
+  // add up to 2 more before continuing.
+  //
+  // Subsequent visits start empty — the user's right-now mood is a session
+  // signal, distinct from their stable taste baseline. Gated on
+  // location.state.fromOnboarding so manual /discover navigations don't
+  // get the nudge.
+  //
+  // The ref prevents the effect from re-firing if the user navigates
+  // away/back during this session — fromOnboarding stays true on that
+  // location.state until the user manually leaves /discover.
+  const didPreSelectRef = useRef(false);
+  useEffect(() => {
+    if (didPreSelectRef.current) return
+    if (!fromOnboardingRef.current) return
+    if (selected.length > 0) return
+    if (!baselineMoods || baselineMoods.length === 0) return
+    const mapped = baselineMoods.map(k => ONBOARDING_TO_DISCOVER[k]).filter(Boolean)
+    if (mapped.length === 0) return
+    setSelected([mapped[0]])
+    didPreSelectRef.current = true
+  }, [baselineMoods, selected.length])
+
+  // Stage 2 pre-selection — fires once per /discover mount, after profile
+  // loads AND user has at least one mood picked (Stage 1 done). Replaces
+  // the hardcoded `move / std / steady` defaults with predictions from
+  // signals we already have. User can override any field; the ref
+  // prevents the effect from re-applying and clobbering their choices.
+  const didPredictDefaultsRef = useRef(false)
+  // Reset the prediction gate when the user starts a fresh session
+  // (Stage 0 / Start over) so predictions re-apply for the next round.
+  useEffect(() => { if (stage === 0) didPredictDefaultsRef.current = false }, [stage])
+  useEffect(() => {
+    if (didPredictDefaultsRef.current) return
+    if (!profile) return
+    if (selected.length === 0) return
+    // Don't overwrite picks the user has already started making in the
+    // stacked wizard (rare race: profile loads while user is mid-flow).
+    if (stage2StepIndex > 0) return
+    const predicted = predictDiscoverDefaults({
+      selected,
+      profile,
+      hourOfDay: new Date().getHours(),
+      learnedPrefs,
+    })
+    setIntention(predicted.intention)
+    setTime(predicted.time)
+    setEnergy(predicted.energy)
+    setWho(predicted.who)
+    didPredictDefaultsRef.current = true
+  }, [profile, selected, learnedPrefs, stage2StepIndex])
+
+  // Commit the user's Stage 2 picks to user_discover_preferences when
+  // they advance to Stage 3 (treat reaching Stage 3 as "they committed
+  // to these filters"). Fire-and-forget — never blocks the transition.
+  // Wrapped as a memoised callback so the Stage 2 onNext closure stays
+  // stable across re-renders.
+  const handleCommitStage2 = useCallback(() => {
+    if (user?.id) {
+      commitDiscoverPreferences({
+        userId: user.id,
+        intention,
+        time,
+        who,
+        energy,
+      })
+    }
+  }, [user?.id, intention, time, who, energy])
 
   // Use live candidates from `movies`; fall back to the editorial seed set
   // only when the query hasn't returned anything (offline / empty DB).
@@ -843,12 +1759,40 @@ function DiscoverV5Body() {
 
   const allResults = useMemo(() => {
     const runtimeBand = TIME_OPTIONS.find(t => t.id === time)?.v || [0,300];
+    // Save-affinity lookup sets — directors and primary_genres the user
+    // has saved (user_watchlist) in the last 90 days. Built once per
+    // useMemo run, then probed inside the per-film loop for an O(1)
+    // saveBoost. The engine learns from positive signals via this layer.
+    const savedDirs = new Set((recentSaves || []).map(s => s.director).filter(Boolean));
+    const savedGenres = new Set((recentSaves || []).map(s => s.genre).filter(Boolean));
     const moodIds = selected.length > 0 ? selected : ['slow','tender'];
     const scored = films.map(f => {
       // === Base score: real engine when we have a profile, mood-tag overlap as cold-start fallback ===
-      const baseScore = (profile && f._raw)
-        ? scoreMovieForUser(f._raw, profile, 'default').score
+      // scoreMovieForUser can return null when a content-boundary hard
+      // filter hits. Discover already applied prefs.avoidGenres at fetch
+      // time; for boundary-filtered films we drop to the cold-start
+      // mood-overlap score so the film still ranks (its low score
+      // pushes it to the back).
+      const engineScored = (profile && f._raw) ? scoreMovieForUser(f._raw, profile, 'default') : null
+      const baseScore = engineScored
+        ? engineScored.score
         : (moodIds.reduce((a, id) => a + (f.fit[id] || 0), 0) / moodIds.length) * 100;
+
+      // === Mood selection boost ============================================
+      // The user's mood selection is the strongest RIGHT-NOW signal — they
+      // told us 30 seconds ago what shape they want tonight. Without an
+      // explicit boost, the engine's stable-taste signals (director
+      // affinity, genre preference, rating history) can outrank a film's
+      // actual mood fit — surfacing picks that match the user's PROFILE
+      // but not what they ASKED for. Result: low mood-fit % on Stage 3.
+      //
+      // 40pt swing: a perfect-mood-fit film (avg 1.0 across selected moods)
+      // gets +40, a poor-mood-fit (avg 0.2) gets only +8. Combined with the
+      // bumped intention/energy mods below, mood + Stage 2 selections become
+      // the dominant signal at the top of the deck while taste/runtime/etc
+      // still shape ranking beyond the displayed 3 picks.
+      const moodFitRaw = moodIds.reduce((a, id) => a + (f.fit[id] || 0), 0) / moodIds.length;
+      const moodBoost = moodFitRaw * 40;
 
       // === UI modifiers layered on top of the engine score ===
       // The engine already accounts for runtime band, but here we expose the
@@ -857,21 +1801,37 @@ function DiscoverV5Body() {
       const inBand = f.runtime >= runtimeBand[0] && f.runtime <= runtimeBand[1];
       const runtimePenalty = inBand ? 0 : Math.min(Math.abs(f.runtime - (runtimeBand[0]+runtimeBand[1])/2) / 4, 25);
 
-      // Intention/energy/who tilt — additive points on top of engine score
+      // Intention / energy / who tilt — additive points on top of engine
+      // score. Multipliers bumped ~50% (12 → 18, 10 → 15, 8 → 12) so the
+      // user's Stage 2 night-shape answers carry real weight in ranking,
+      // not just a tie-breaker. Pairs with the mood boost above to make
+      // the full Stage 1 + 2 input set the dominant ranking signal.
       let intMod = 0;
-      if (intention === 'move')     intMod = (Math.max(f.fit.tender, f.fit.bittersweet) - 0.3) * 12;
-      if (intention === 'think')    intMod = (f.fit.cerebral - 0.3) * 12;
-      if (intention === 'distract') intMod = (Math.max(f.fit.tense, f.fit.restless) - 0.3) * 10;
-      if (intention === 'comfort')  intMod = (f.fit.cozy - 0.3) * 12;
-      if (intention === 'laugh')    intMod = (f.fit.cozy - 0.3) * 10 - (f.fit.tense * 6);
-      if (intention === 'surprise') intMod = ((100 - f.ff) / 100) * 8;
+      if (intention === 'move')     intMod = (Math.max(f.fit.tender, f.fit.bittersweet) - 0.3) * 18;
+      if (intention === 'think')    intMod = (f.fit.cerebral - 0.3) * 18;
+      if (intention === 'distract') intMod = (Math.max(f.fit.tense, f.fit.restless) - 0.3) * 15;
+      if (intention === 'comfort')  intMod = (f.fit.cozy - 0.3) * 18;
+      if (intention === 'laugh')    intMod = (f.fit.cozy - 0.3) * 15 - (f.fit.tense * 10);
+      if (intention === 'surprise') intMod = ((100 - f.ff) / 100) * 14;
       let energyMod = 0;
-      if (energy === 'wiped') energyMod = (1 - (f.fit.cozy || 0.3)) * -8;
-      if (energy === 'wired') energyMod = (1 - (f.fit.restless || f.fit.tense || 0.3)) * -8;
+      if (energy === 'wiped') energyMod = (1 - (f.fit.cozy || 0.3)) * -12;
+      if (energy === 'wired') energyMod = (1 - (f.fit.restless || f.fit.tense || 0.3)) * -12;
       let audMod = 0;
       if (who === 'friends' && f.fit.tense > 0.8 && f.fit.cozy < 0.2) audMod = -10;
 
-      const finalScore = baseScore - runtimePenalty + energyMod + audMod + intMod;
+      // Save-affinity boost — films sharing a director or primary_genre
+      // with the user's recent saves get a small bonus, so the engine
+      // actually rewards positive signals (not just demotes negative
+      // ones via skips). +12 for director match (rare, high signal),
+      // +6 for genre match (more common). Capped at 18 total so a user
+      // who's saved many films of the same director+genre doesn't get a
+      // runaway boost that drowns mood/intention.
+      let saveBoost = 0;
+      if (f.dir && savedDirs.has(f.dir)) saveBoost += 12;
+      if (f.genre && savedGenres.has(f.genre)) saveBoost += 6;
+      if (saveBoost > 18) saveBoost = 18;
+
+      const finalScore = baseScore + moodBoost + saveBoost - runtimePenalty + energyMod + audMod + intMod;
 
       const topMood = moodIds.map(id => ({ id, v: f.fit[id] || 0 })).sort((a,b) => b.v - a.v)[0];
       const moodLabel = MOODS.find(m => m.id === topMood.id)?.label.toLowerCase();
@@ -884,12 +1844,38 @@ function DiscoverV5Body() {
       ];
       const reason = reasons[f.id % reasons.length];
 
-      // Clamp to 0–100 display range. Engine raw scores typically land 60–130.
-      return { ...f, match: Math.max(0, Math.min(100, Math.round(finalScore))), reason };
+      // === Display match % vs internal ranking score ===========================
+      // Two numbers, two purposes:
+      //   • _rankScore — full finalScore (base engine + UI mods). Used to
+      //     SORT picks. Includes intention/energy/who/time tilts so the
+      //     winning pick reflects the user's right-now context, not just
+      //     their stable taste.
+      //   • match — calibrated display % via the shared `computeMatchPercent`
+      //     helper. Fed from the BASE engine score (no UI mods) so it
+      //     matches what /home, /movie/:id, /watchlist show for the same
+      //     (film, user) pair. The helper has piecewise-linear curves
+      //     tuned per confidence tier so typical top picks land 82-90%
+      //     and 100% is reserved for genuine outliers. This replaces the
+      //     old `Math.min(100, finalScore)` which saturated at 100% for
+      //     every well-fitting pick (the "why does it always show 100%?"
+      //     bug).
+      // Fallback `null → clamped finalScore` covers films below the
+      // helper's floor (engineScore < 50) — rare on /discover since the
+      // candidate pool is already pre-filtered by ff_audience_rating ≥ 72.
+      const calibrated = computeMatchPercent({ engineScore: baseScore, profile })
+      const match = calibrated ?? Math.max(0, Math.min(99, Math.round(finalScore)))
+      // moodFitRaw — same 0-1 value used by the moodBoost above. Attached
+      // so diversifyTop3 can enforce a minimum mood-fit on the top pick
+      // (no headline film below the floor, even if taste rank-score is high).
+      return { ...f, match, _rankScore: finalScore, reason, moodFitRaw };
     });
-    scored.sort((a,b) => b.match - a.match);
-    return scored;
-  }, [selected, time, who, energy, intention, films, profile]);
+    scored.sort((a,b) => b._rankScore - a._rankScore);
+    // Diversity pass — guarantee the top 3 displayed picks span distinct
+    // primary_genres when possible. Also passes sessionShownIds so films
+    // already shown in this /discover session get demoted, giving the
+    // user fresh picks when they tweak moods/inputs across scenarios.
+    return diversifyTop3(scored, sessionShownIds.current);
+  }, [selected, time, who, energy, intention, films, profile, recentSaves]);
 
   return (
     <div style={{ minHeight:'100vh', background:HP.bgDeep, color:HP.text, fontFamily:'Inter, sans-serif', position:'relative', overflow:'hidden' }}>
@@ -897,20 +1883,62 @@ function DiscoverV5Body() {
       <div style={{ position:'relative', zIndex:1, maxWidth:1440, margin:'0 auto' }}>
         {stage === 0   && <StageHero onBegin={()=>setStage(1)} onSurprise={()=>{ setSelected(['slow','tender']); FFAudio.whoom(); setStage(2.3); }} />}
         {stage === 1   && <StageMood selected={selected} setSelected={setSelected} onNext={()=>setStage(2)} onBack={()=>setStage(0)} blendHex={blendHex} bursts={bursts} fireBurst={fireBurst} />}
-        {stage === 2   && <StageNight time={time} setTime={setTime} who={who} setWho={setWho} energy={energy} setEnergy={setEnergy} intention={intention} setIntention={setIntention} onNext={()=>setStage(2.3)} onBack={()=>setStage(1)} blendHex={blendHex} />}
+        {stage === 2   && <StageNightStacked stepIndex={stage2StepIndex} setStepIndex={setStage2StepIndex} time={time} setTime={setTime} who={who} setWho={setWho} energy={energy} setEnergy={setEnergy} intention={intention} setIntention={setIntention} onNext={()=>{ handleCommitStage2(); setStage(2.3); }} onBack={()=>setStage(1)} blendHex={blendHex} />}
         {stage === 2.3 && <StageBreath onDone={()=>setStage(2.5)} />}
         {stage === 2.5 && <StageReveal selected={selected.length>0?selected:['slow','tender']} onDone={()=>setStage(2.7)} />}
         {stage === 2.7 && <StageTitleCard title={(allResults[0]||{}).title || ''} onDone={()=>setStage(3)} />}
-        {stage === 3   && <StagePick selected={selected.length>0?selected:['slow','tender']} time={time} who={who} energy={energy} intention={intention} results={allResults} allResults={allResults} onRestart={()=>{ setStage(0); setSelected([]); }} onBack={()=>setStage(2)} blendHex={blendHex} />}
+        {stage === 3   && <StagePick selected={selected.length>0?selected:['slow','tender']} who={who} energy={energy} intention={intention} results={allResults} profile={profile} sessionShownIds={sessionShownIds} onRestart={()=>{ setStage(0); setSelected([]); }} onBack={()=>setStage(2)} blendHex={blendHex} />}
       </div>
     </div>
   );
 }
 
 export default function DiscoverV5() {
+  usePageMeta({ title: 'Discover — FeelFlick' })
+  const location = useLocation()
+  const reduced = useReducedMotion()
+  // Snapshot the fromOnboarding flag once on mount so navigating back to
+  // /discover later in the session doesn't replay the overlay.
+  //
+  // The overlay below bridges the celebration → /discover seam. Pairing:
+  //   • Onboarding fades celebration content over 900ms to a black backdrop
+  //   • Router commits + DiscoverV5 paints under this overlay
+  //   • Overlay holds for 350ms (head-start so React commits cleanly)
+  //   • Overlay fades opacity 1 → 0 over 2.0s with an ease-in-out curve
+  //     that holds the dark in the first half, then reveals through the
+  //     middle, settling near the end. Without this curve the reveal felt
+  //     "front-loaded" — /discover popped in early and just brightened,
+  //     which read as the color seam the user reported.
+  //
+  // Visual: not pure black. A very faint purple-pink radial bleed at center
+  // mirrors the celebration's mood-ambient so the eye doesn't notice the
+  // moment Onboarding's ambient ends and the overlay takes over.
+  //
+  // Skipped entirely for prefers-reduced-motion.
+  const fromOnboardingRef = useRef(location.state?.fromOnboarding === true)
+  const [handoffOverlayVisible, setHandoffOverlayVisible] = useState(
+    () => fromOnboardingRef.current && !reduced,
+  )
   return (
     <DiscoverDataProvider>
       <DiscoverV5Body />
+      {handoffOverlayVisible && (
+        <motion.div
+          aria-hidden="true"
+          className="pointer-events-none fixed inset-0 z-[9998]"
+          style={{
+            background: `
+              radial-gradient(ellipse 70% 50% at 50% 45%, rgba(167,139,250,0.08) 0%, transparent 65%),
+              radial-gradient(ellipse 60% 45% at 50% 55%, rgba(236,72,153,0.05) 0%, transparent 60%),
+              #000000
+            `,
+          }}
+          initial={{ opacity: 1 }}
+          animate={{ opacity: 0 }}
+          transition={{ duration: 2.0, ease: [0.65, 0, 0.35, 1], delay: 0.35 }}
+          onAnimationComplete={() => setHandoffOverlayVisible(false)}
+        />
+      )}
     </DiscoverDataProvider>
   );
 }

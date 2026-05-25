@@ -85,7 +85,7 @@ export default function ChallengesPage() {
   const [challenges, setChallenges] = useState([])
   const [loading, setLoading] = useState(true)
 
-  usePageMeta({ title: 'Taste Challenges · FeelFlick' })
+  usePageMeta({ title: 'Taste challenges — FeelFlick' })
 
   useEffect(() => {
     if (!user?.id) { setLoading(false); return }

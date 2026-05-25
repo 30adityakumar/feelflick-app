@@ -17,7 +17,7 @@ export default function MovieCard({
 
   return (
     <article
-      className="relative group cursor-pointer overflow-hidden rounded-xl border border-white/10 bg-neutral-900/70 shadow-lg transition-shadow duration-300 focus-within:shadow-2xl hover:shadow-2xl outline-none"
+      className="relative group cursor-pointer overflow-hidden rounded-xl border border-white/10 bg-white/5 shadow-lg transition-shadow duration-300 focus-within:shadow-2xl hover:shadow-2xl outline-none"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
@@ -31,7 +31,7 @@ export default function MovieCard({
           disabled={removing}
           aria-label={`Remove ${movie.title} from list`}
           className={`absolute top-2 right-2 z-20 rounded-full bg-black/60 p-2 text-white shadow-lg shadow-black/50 transition-colors 
-            focus:outline-none focus:ring-2 focus:ring-orange-400
+            focus:outline-none focus:ring-2 focus:ring-purple-400/50
             ${removing ? "opacity-100" : 
               (isTouchDevice || hovered ? "opacity-100" : "opacity-0")}
             ${removing ? "cursor-wait" : "cursor-pointer"}

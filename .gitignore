@@ -15,10 +15,21 @@ dist/
 .vscode/
 .idea/
 
-# Claude Code local context (screenshots, plans, working notes)
+# Claude Code local files (screenshots, plans, working notes, secrets)
+# .claude/settings.json is project-level config that SHOULD be tracked.
 .claude/
+!.claude/settings.json
+.claude/local-secrets.json
 
 # logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Session work products — screenshots, audit notes, scratch dirs. Kept
+# locally for in-progress reference, never shipped to production.
+.audit/
+.audit-shots/
+.tmp-screens/
+audits/
+consistency-audit.md

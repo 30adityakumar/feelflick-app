@@ -19,9 +19,9 @@ export default function SectionHeader({ title, subtitle, seeAllTo, eyebrow, clas
             {eyebrow}
           </p>
         )}
-        <div className="flex items-center gap-2">
-          <div className="h-5 w-1 rounded-full bg-gradient-to-b from-purple-400 to-pink-500 flex-shrink-0" />
-          <h2 className="text-md font-bold text-white tracking-tight truncate">{title}</h2>
+        <div className="flex items-center gap-2.5">
+          <div className="w-[3px] h-5 rounded-full bg-gradient-to-b from-purple-400 to-pink-500 flex-shrink-0" />
+          <h2 className="text-[1.05rem] sm:text-[1.15rem] font-bold text-white tracking-tight truncate">{title}</h2>
         </div>
         {subtitle && (
           <p className="text-xs text-white/60 mt-1 ml-3">{subtitle}</p>

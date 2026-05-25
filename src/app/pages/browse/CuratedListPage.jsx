@@ -43,7 +43,7 @@ export default function CuratedListPage() {
   const [loading, setLoading] = useState(true)
 
   const list = useMemo(() => CURATED_LISTS.find(l => l.slug === slug), [slug])
-  usePageMeta({ title: `${list?.title || 'List'} · FeelFlick` })
+  usePageMeta({ title: `${list?.title || 'List'} — FeelFlick` })
 
   useEffect(() => {
     if (!list) { setLoading(false); return }

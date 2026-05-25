@@ -109,7 +109,7 @@ export default function TopPickCard({ film, isWatchlisted, isSeen, onOpenDetail,
             onLoad={() => setBackdropLoaded(true)}
           />
         ) : (
-          <div className="w-full h-full bg-neutral-900" />
+          <div className="w-full h-full bg-white/5" />
         )}
         <div className="absolute inset-0 bg-gradient-to-r from-black via-black/85 to-black/40" />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/50" />

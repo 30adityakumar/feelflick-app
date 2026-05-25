@@ -5,6 +5,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
+import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { CURATED_LISTS } from '@/app/pages/browse/curatedListsConfig'
 import './lists-v2.css'
 
@@ -14,7 +15,7 @@ const HP = {
   text: '#FAFAFA', textSoft: 'rgba(250,250,250,0.72)', textMuted: 'rgba(250,250,250,0.45)', textFaint: 'rgba(250,250,250,0.28)',
   purple: '#A78BFA', pink: '#EC4899',
 }
-const HP_GRAD = 'linear-gradient(135deg, #A78BFA 0%, #EC4899 100%)'
+const HP_GRAD = 'linear-gradient(135deg, #9333ea 0%, #ec4899 100%)'
 const RESET_BTN = { background: 'none', border: 'none', padding: 0, margin: 0, font: 'inherit', color: 'inherit', cursor: 'pointer', textAlign: 'left' }
 
 const TMDB_IMG = (path, size = 'w342') => path ? `https://image.tmdb.org/t/p/${size}${path}` : null
@@ -23,6 +24,7 @@ export default function CuratedListV2() {
   const { slug } = useParams()
   const navigate = useNavigate()
   const list = useMemo(() => CURATED_LISTS.find(l => l.slug === slug), [slug])
+  usePageMeta({ title: list?.title ? `${list.title} — FeelFlick` : 'Curated list — FeelFlick' })
 
   const [movies, setMovies] = useState([])
   const [loading, setLoading] = useState(true)
@@ -43,9 +45,9 @@ export default function CuratedListV2() {
   if (!list) return <NotFound onBack={() => navigate('/lists')} />
 
   return (
-    <div style={{ minHeight: '100vh', background: HP.bgDeep, color: HP.text, fontFamily: 'Inter, sans-serif' }}>
+    <div className="ff-lists-v2" style={{ minHeight: '100vh', background: HP.bgDeep, color: HP.text, fontFamily: 'Inter, sans-serif' }}>
       <div style={{ maxWidth: 1440, margin: '0 auto' }}>
-        <section style={{ padding: '56px 88px 24px' }}>
+        <section className="ff-lists-section" style={{ padding: '56px 88px 24px' }}>
           <button
             type="button"
             onClick={() => navigate('/lists')}
@@ -55,15 +57,15 @@ export default function CuratedListV2() {
           </button>
         </section>
 
-        <section style={{ padding: '0 88px 80px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 3fr', gap: 64, alignItems: 'flex-start' }}>
+        <section className="ff-lists-section" style={{ padding: '0 88px 80px' }}>
+          <div className="ff-lists-detail-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 3fr', gap: 64, alignItems: 'flex-start' }}>
             {/* === LEFT: sticky meta === */}
-            <div style={{ position: 'sticky', top: 32 }}>
+            <div className="ff-lists-detail-meta" style={{ position: 'sticky', top: 32 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
                 <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: HP.purple }}>FeelFlick · Curated</div>
               </div>
 
-              <h1 style={{ fontFamily: 'Outfit', fontSize: 52, lineHeight: 1, fontWeight: 400, letterSpacing: '-0.04em', color: HP.text, margin: 0, textWrap: 'balance' }}>
+              <h1 className="ff-lists-detail-h1" style={{ fontFamily: 'Outfit', fontSize: 52, lineHeight: 1, fontWeight: 400, letterSpacing: '-0.04em', color: HP.text, margin: 0, textWrap: 'balance' }}>
                 {list.title}
               </h1>
 
@@ -83,7 +85,7 @@ export default function CuratedListV2() {
             {/* === RIGHT: poster grid === */}
             <div>
               {loading ? (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16 }}>
+                <div className="ff-lists-poster-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16 }}>
                   {Array.from({ length: 8 }).map((_, i) => (
                     <div key={i} className="animate-pulse" style={{ aspectRatio: '2/3', borderRadius: 6, background: 'rgba(255,255,255,0.04)' }} />
                   ))}
@@ -96,7 +98,7 @@ export default function CuratedListV2() {
                   </div>
                 </div>
               ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16 }}>
+                <div className="ff-lists-poster-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16 }}>
                   {movies.map(m => (
                     <button
                       key={m.id}

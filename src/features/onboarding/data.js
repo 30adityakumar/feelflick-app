@@ -11,7 +11,7 @@ export const MOODS = [
   { key: 'mythic', label: 'Mythic', desc: 'Epic, big-canvas, lyrical',      rgb: '251, 191, 36' },
 ]
 
-export const MIN_MOODS = 2
+export const MIN_MOODS = 1
 export const MAX_MOODS = 3
 
 // Local-storage key — consumed downstream by the home page if you wire it up.

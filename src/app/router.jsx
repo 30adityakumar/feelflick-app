@@ -21,6 +21,7 @@ const LandingV2 = lazy(() => import('@/features/landing-v2/Landing'))
 const HomePage = lazy(() => import('@/app/homepage/HomePage'))
 const HomeV2 = lazy(() => import('@/features/home-v2/HomeV2'))
 const MoviesTab = lazy(() => import('@/app/pages/movies/MoviesTab'))
+const Browse = lazy(() => import('@/features/browse/Browse'))
 const MovieDetail = lazy(() => import('@/app/pages/MovieDetail'))
 const MovieDetailV2 = lazy(() => import('@/features/movie-v2/MovieDetailV2'))
 import ErrorBoundary from './ErrorBoundary'
@@ -66,6 +67,7 @@ const ListsPage = lazy(() => import('@/app/pages/lists/ListsPage'))
 const ListsV2 = lazy(() => import('@/features/lists-v2/ListsV2'))
 const ListDetailV2 = lazy(() => import('@/features/lists-v2/ListDetailV2'))
 const CuratedListV2 = lazy(() => import('@/features/lists-v2/CuratedListV2'))
+const PersonalListPage = lazy(() => import('@/features/lists-v2/PersonalListPage'))
 const ListDetailPage = lazy(() => import('@/app/pages/lists/ListDetailPage'))
 
 // cache monitoring page
@@ -86,15 +88,26 @@ function PublicShell() {
 }
 
 /* ------------------------------ Small UI bits ---------------------------- */
-function FullScreenSpinner() {
+// Generic dark skeleton for Suspense / auth-gate fallbacks. Matches the
+// CLAUDE.md "Never spinners" rule — a content-shaped pulse, not an indicator.
+// Per-route surfaces should provide their own skeleton (e.g. HomeSkeleton).
+function RouteSkeleton() {
   return (
-    <div className="grid min-h-[60vh] place-items-center text-white/80">
-      <div className="inline-flex items-center gap-3">
-        <svg className="h-6 w-6 animate-spin text-brand-100" viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeOpacity=".25" strokeWidth="4" />
-          <path d="M4 12a8 8 0 018-8v8z" fill="currentColor" />
-        </svg>
-        <span>Loading…</span>
+    <div className="min-h-[60vh] px-4 sm:px-6 lg:px-10 py-10" aria-hidden="true">
+      <div className="mx-auto max-w-[1280px] flex flex-col gap-6">
+        {/* Eyebrow + title */}
+        <div className="flex items-center gap-2.5">
+          <div className="w-[3px] h-5 rounded-full animate-pulse bg-purple-500/[0.12]" />
+          <div className="h-4 w-44 rounded-full animate-pulse bg-white/[0.06]" />
+        </div>
+        <div className="h-12 w-2/3 rounded-lg animate-pulse bg-white/[0.06]" />
+        <div className="h-4 w-1/2 rounded-full animate-pulse bg-white/[0.04]" />
+        {/* Card row placeholder */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3 mt-6">
+          {[0, 1, 2, 3, 4].map(i => (
+            <div key={i} className="aspect-[2/3] rounded-lg animate-pulse bg-purple-500/[0.04]" />
+          ))}
+        </div>
       </div>
     </div>
   )
@@ -163,7 +176,7 @@ function HomeSkeleton() {
 
 function LazyRoute({ Component }) {
   return (
-    <Suspense fallback={<FullScreenSpinner />}>
+    <Suspense fallback={<RouteSkeleton />}>
       <Component />
     </Suspense>
   )
@@ -181,7 +194,7 @@ function HomeRoute() {
 function RootEntry() {
   const { ready, isAuthenticated } = useAuthSession()
 
-  if (!ready) return <FullScreenSpinner />
+  if (!ready) return <RouteSkeleton />
   if (isAuthenticated) return <Navigate to="/home" replace />
   return <LazyRoute Component={Landing} />
 }
@@ -191,7 +204,7 @@ function RequireAuth() {
   const { ready, isAuthenticated } = useAuthSession()
   const loc = useLocation()
 
-  if (!ready) return <FullScreenSpinner />
+  if (!ready) return <RouteSkeleton />
   if (!isAuthenticated) return <Navigate to="/" replace state={{ from: loc }} />
   return <Outlet />
 }
@@ -240,7 +253,7 @@ function AdminOnly() {
 
   const status = ready ? resolveAdminAccess(session, ADMIN_EMAILS) : 'loading'
 
-  if (status === 'loading') return <FullScreenSpinner />
+  if (status === 'loading') return <RouteSkeleton />
   if (status === 'anon') return <Navigate to="/" replace state={{ from: loc }} />
   if (status === 'unconfigured') return (
     <div className="grid min-h-[60vh] place-items-center text-white/60 text-sm px-4 text-center">
@@ -269,7 +282,7 @@ function SignOutRoute() {
   useEffect(() => {
     supabase.auth.signOut().finally(() => nav('/', { replace: true }))
   }, [nav])
-  return <FullScreenSpinner />
+  return <RouteSkeleton />
 }
 
 /* -------------------------------- Router --------------------------------- */
@@ -338,7 +351,8 @@ export const router = sentryCreateBrowserRouter([
       { path: 'movies', element: <LazyRoute Component={MoviesTab} />, errorElement: <ErrorBoundary /> },
       { path: 'movie/:id', element: <LazyRoute Component={MovieDetailV2} />, errorElement: <ErrorBoundary /> },
       { path: 'movie-legacy/:id', element: <LazyRoute Component={MovieDetail} />, errorElement: <ErrorBoundary /> },
-      { path: 'browse', element: <LazyRoute Component={MoviesTab} />, errorElement: <ErrorBoundary /> },
+      { path: 'browse', element: <LazyRoute Component={Browse} />, errorElement: <ErrorBoundary /> },
+      { path: 'browse-legacy', element: <LazyRoute Component={MoviesTab} />, errorElement: <ErrorBoundary /> },
       { path: 'trending', element: <LazyRoute Component={MoviesTab} />, errorElement: <ErrorBoundary /> },
       { path: 'discover', element: <LazyRoute Component={DiscoverV5} />, errorElement: <ErrorBoundary /> },
       { path: 'discover-legacy', element: <LazyRoute Component={DiscoverPage} />, errorElement: <ErrorBoundary /> },
@@ -349,6 +363,7 @@ export const router = sentryCreateBrowserRouter([
       { path: 'lists-legacy/curated', element: <LazyRoute Component={CuratedListsIndex} />, errorElement: <ErrorBoundary /> },
       { path: 'lists-legacy/curated/:slug', element: <LazyRoute Component={CuratedListPage} />, errorElement: <ErrorBoundary /> },
       { path: 'lists/curated/:slug', element: <LazyRoute Component={CuratedListV2} />, errorElement: <ErrorBoundary /> },
+      { path: 'lists/personal/:type', element: <LazyRoute Component={PersonalListPage} />, errorElement: <ErrorBoundary /> },
       { path: 'lists/:listId', element: <LazyRoute Component={ListDetailV2} />, errorElement: <ErrorBoundary /> },
       { path: 'lists-legacy/:listId', element: <LazyRoute Component={ListDetailPage} />, errorElement: <ErrorBoundary /> },
 

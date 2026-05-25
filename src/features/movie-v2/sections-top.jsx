@@ -47,7 +47,11 @@ function FilmGrain() {
 }
 
 // ── Trailer modal (with theatrical curtains) ─────────────────────
-function TrailerModal({ open, onClose }) {
+// Plays whichever YouTube video the caller passed in `videoKey`. When the
+// hero CTA fires it omits `videoKey` and we fall back to mv.trailerYouTubeId
+// (the canonical main trailer). When a featurette tile fires it passes the
+// thumb's specific key + title so the modal honestly plays that clip.
+function TrailerModal({ open, onClose, videoKey: explicitKey, videoTitle: explicitTitle }) {
   const { mv } = useMovieData();
   const closeBtnRef = useRef(null);
   const previouslyFocusedRef = useRef(null);
@@ -72,7 +76,11 @@ function TrailerModal({ open, onClose }) {
     };
   }, [open, onClose]);
 
-  if (!open || !mv?.trailerYouTubeId) return null;
+  const youtubeKey = explicitKey || mv?.trailerYouTubeId;
+  if (!open || !youtubeKey) return null;
+  const captionTitle = explicitTitle
+    ? `${mv?.title || 'Film'} · ${explicitTitle}`
+    : `${mv?.title || 'Film'} · Official Trailer`;
 
   return (
     <div role="dialog" aria-modal="true" aria-labelledby="mv-trailer-caption" style={{
@@ -114,8 +122,9 @@ function TrailerModal({ open, onClose }) {
           animation:'mv-zoom-in 0.5s cubic-bezier(0.2,0.8,0.2,1) both',
         }}>
           <iframe
-            src={`https://www.youtube.com/embed/${mv.trailerYouTubeId}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
-            title={`${mv.title} — Official Trailer`}
+            key={youtubeKey}
+            src={`https://www.youtube.com/embed/${youtubeKey}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
+            title={captionTitle}
             frameBorder="0"
             allow="autoplay; encrypted-media; picture-in-picture"
             allowFullScreen
@@ -125,7 +134,7 @@ function TrailerModal({ open, onClose }) {
 
         <div id="mv-trailer-caption" style={{ position:'absolute', bottom:32, left:'50%', transform:'translateX(-50%)', textAlign:'center', animation:'mv-fade-in 0.6s 0.2s ease both', pointerEvents:'none' }}>
           <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: HP.purple, marginBottom:6 }}>Now Playing</div>
-          <div style={{ fontFamily:'Outfit', fontSize:18, fontWeight:500, color: HP.text, letterSpacing:'-0.015em' }}>{mv.title} · Official Trailer</div>
+          <div style={{ fontFamily:'Outfit', fontSize:18, fontWeight:500, color: HP.text, letterSpacing:'-0.015em' }}>{captionTitle}</div>
         </div>
       </div>
     </div>
@@ -137,7 +146,7 @@ function MovieHero({
   onPlayTrailer, onBack, onShare,
   isInWatchlist, isWatched, onToggleWatchlist, onToggleWatched, loading, canAct,
 }) {
-  const { mv } = useMovieData();
+  const { mv, boundaryWarnings } = useMovieData();
   const [scrollY, setScrollY] = useState(0);
   const [tilt, setTilt] = useState({ x:0, y:0 });
 
@@ -155,11 +164,14 @@ function MovieHero({
   };
 
   const hasRuntime = mv.runtime > 0;
-  const hasRatings = mv.imdbRating != null;
+  // hasRatings is now driven by whether we have *any* of the three signals;
+  // each badge inside the widget renders independently so absent fields
+  // self-hide rather than ship a fake number.
+  const hasRatings = mv.tmdbRating != null || mv.ffCritic != null || mv.ffAudience != null;
   const hasTrailer = Boolean(mv.trailerYouTubeId);
 
   return (
-    <section style={{ position:'relative', minHeight: 760, overflow:'hidden' }}>
+    <section className="ff-movie-hero" style={{ position:'relative', minHeight: 640, overflow:'hidden' }}>
       {/* Parallax backdrop with ken-burns drift */}
       <div style={{ position:'absolute', inset:0, transform:`translateY(${scrollY * 0.4}px)`, willChange:'transform' }}>
         <div style={{ position:'absolute', inset:0, animation:'mv-kenburns 22s ease-in-out infinite alternate' }}>
@@ -174,7 +186,7 @@ function MovieHero({
       </div>
 
       {/* Top nav */}
-      <div style={{ position:'absolute', top:0, left:0, right:0, padding:'24px 56px', display:'flex', alignItems:'center', justifyContent:'space-between', zIndex:5 }}>
+      <div className="ff-movie-top-nav" style={{ position:'absolute', top:0, left:0, right:0, padding:'24px 56px', display:'flex', alignItems:'center', justifyContent:'space-between', zIndex:5 }}>
         <button onClick={onBack} aria-label="Go back" style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'8px 16px', borderRadius:999, background:'rgba(0,0,0,0.45)', backdropFilter:'blur(12px)', border:`1px solid ${HP.border}`, color: HP.textSoft, fontFamily:'Outfit', fontSize:12, fontWeight:600, letterSpacing:'0.04em', cursor:'pointer' }}>
           <span style={{ fontSize:14, lineHeight:1 }}>‹</span> Back
         </button>
@@ -185,9 +197,9 @@ function MovieHero({
         </div>
       </div>
 
-      <div style={{ position:'relative', zIndex:2, padding:'140px 88px 64px', display:'grid', gridTemplateColumns:'auto 1fr', gap:64, alignItems:'flex-end', minHeight:760 }}>
+      <div className="ff-movie-hero-grid" style={{ position:'relative', zIndex:2, padding:'128px 88px 56px', display:'grid', gridTemplateColumns:'auto 1fr', gap:56, alignItems:'flex-end', minHeight:640 }}>
         {/* Poster with 3D tilt */}
-        <div style={{ position:'relative', width:300, flex:'none', perspective:1200 }}
+        <div className="ff-movie-poster" style={{ position:'relative', width:300, flex:'none', perspective:1200 }}
              onMouseMove={onPosterMove} onMouseLeave={()=>setTilt({x:0,y:0})}>
           <div style={{
             position:'relative', borderRadius:8, overflow:'visible',
@@ -199,7 +211,7 @@ function MovieHero({
               ? <img src={mv.poster} alt={mv.title} style={{ width:'100%', display:'block', borderRadius:8, boxShadow:`0 36px 100px -20px rgba(0,0,0,0.95), 0 0 0 1px rgba(255,255,255,0.06), 0 0 60px ${FILM_PALETTE.primary}44` }} />
               : <div style={{ width:'100%', aspectRatio:'2/3', borderRadius:8, background:`linear-gradient(155deg, ${FILM_PALETTE.primary}55, ${FILM_PALETTE.glow}33)`, display:'flex', alignItems:'center', justifyContent:'center', color:HP.text, fontFamily:'Outfit', fontSize:24, padding:24, textAlign:'center', boxShadow:`0 36px 100px -20px rgba(0,0,0,0.95), 0 0 0 1px rgba(255,255,255,0.06)` }}>{mv.title}</div>
             }
-            <MatchRing pct={mv.ffMatch} />
+            {Number.isFinite(mv.ffMatch) && <MatchRing pct={mv.ffMatch} />}
           </div>
         </div>
 
@@ -210,7 +222,7 @@ function MovieHero({
             <div style={{ fontSize:10, fontWeight:500, letterSpacing:'0.18em', textTransform:'uppercase', color: HP.textMuted, fontFamily:'Outfit' }}>Nº {String(mv.id).padStart(4, '0')} · {mv.year || '—'} · {mv.language}</div>
           </div>
 
-          <h1 style={{ fontFamily:'Outfit, Inter, sans-serif', fontSize:108, lineHeight:0.92, fontWeight:600, letterSpacing:'-0.052em', color: HP.text, margin:0, textWrap:'balance' }}>
+          <h1 className="ff-movie-hero-h1" style={{ fontFamily:'Outfit, Inter, sans-serif', fontSize:92, lineHeight:0.94, fontWeight:600, letterSpacing:'-0.05em', color: HP.text, margin:0, textWrap:'balance' }}>
             {mv.title}
           </h1>
 
@@ -237,7 +249,7 @@ function MovieHero({
             </>}
             {mv.director && mv.director !== '—' && <>
               <span style={{ width:3, height:3, borderRadius:999, background: HP.textFaint }} />
-              <span>Dir. <span style={{ color: HP.text, fontWeight:600 }}>{mv.director}</span></span>
+              <span>Directed by <span style={{ color: HP.text, fontWeight:600 }}>{mv.director}</span></span>
             </>}
             {mv.genres.length > 0 && <>
               <span style={{ width:3, height:3, borderRadius:999, background: HP.textFaint }} />
@@ -252,13 +264,23 @@ function MovieHero({
             </div>
           )}
 
-          <div style={{ display:'flex', alignItems:'center', gap:12, marginTop:32, flexWrap:'wrap' }}>
+          {boundaryWarnings?.length > 0 && (
+            <div style={{ display:'inline-flex', alignItems:'center', gap:10, marginTop:14, padding:'8px 14px', borderRadius:999, background:'rgba(245,158,11,0.10)', border:`1px solid ${HP.amber || '#F59E0B'}33`, color:'#F59E0B' }} role="note">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+              <span style={{ fontFamily:'Outfit', fontSize:11, fontWeight:600, letterSpacing:'0.06em', textTransform:'uppercase' }}>
+                Heads up · {boundaryWarnings.map(w => w.label).join(' · ')}
+              </span>
+            </div>
+          )}
+
+          <div className="ff-movie-hero-actions" style={{ display:'flex', alignItems:'center', gap:12, marginTop:32, flexWrap:'wrap' }}>
             <button
+              className="ff-movie-hero-action-btn ff-movie-hero-action-btn--primary"
               onClick={onPlayTrailer}
               disabled={!hasTrailer}
               title={hasTrailer ? undefined : 'No trailer available'}
               style={{
-                display:'inline-flex', alignItems:'center', gap:10,
+                display:'inline-flex', alignItems:'center', justifyContent:'center', gap:10,
                 padding:'14px 22px', borderRadius:8,
                 background: HP_GRAD, border:'none', color:'#fff',
                 fontFamily:'Outfit', fontSize:14, fontWeight:600, letterSpacing:'0.02em',
@@ -280,21 +302,26 @@ function MovieHero({
               loading={loading?.watchlist}
               canAct={canAct}
             />
-            <div style={{ flex:1 }} />
+            <div className="ff-movie-hero-actions-spacer" style={{ flex:1 }} />
             {hasRatings && (
-              <div style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 14px', borderRadius:999, background:'rgba(0,0,0,0.5)', border:`1px solid ${HP.border}` }}>
-                <span style={{ display:'flex', alignItems:'center', gap:4 }}>
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill={HP.amber}><path d="M12 2l3 7 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/></svg>
-                  <span style={{ fontFamily:'Outfit', fontSize:13, fontWeight:600, color: HP.text }}>{mv.imdbRating}</span>
-                  <span style={{ fontSize:10, color: HP.textFaint, marginLeft:2 }}>TMDB</span>
-                </span>
-                {mv.rtCritic != null && <>
-                  <span style={{ width:1, height:12, background: HP.border }} />
-                  <span style={{ fontSize:11, color: HP.textSoft, fontFamily:'Outfit' }}><span style={{ color: HP.amber, fontWeight:700 }}>{mv.rtCritic}%</span> Critics</span>
+              <div className="ff-movie-hero-ratings" style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 14px', borderRadius:999, background:'rgba(0,0,0,0.5)', border:`1px solid ${HP.border}` }}>
+                {mv.tmdbRating != null && (
+                  <span style={{ display:'flex', alignItems:'center', gap:4 }}>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill={HP.amber}><path d="M12 2l3 7 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/></svg>
+                    <span style={{ fontFamily:'Outfit', fontSize:13, fontWeight:600, color: HP.text }}>{mv.tmdbRating}</span>
+                    <span style={{ fontSize:10, color: HP.textFaint, marginLeft:2 }}>TMDB</span>
+                  </span>
+                )}
+                {/* FF critic/audience scores are real aggregates from the
+                    movies row, not fabricated from vote_average. Self-hide
+                    when the film hasn't been scored yet. */}
+                {mv.ffCritic != null && <>
+                  {mv.tmdbRating != null && <span style={{ width:1, height:12, background: HP.border }} />}
+                  <span style={{ fontSize:11, color: HP.textSoft, fontFamily:'Outfit' }}><span style={{ color: HP.amber, fontWeight:700 }}>{mv.ffCritic}%</span> Critics</span>
                 </>}
-                {mv.rtAudience != null && <>
-                  <span style={{ width:1, height:12, background: HP.border }} />
-                  <span style={{ fontSize:11, color: HP.textSoft, fontFamily:'Outfit' }}><span style={{ color: HP.text, fontWeight:700 }}>{mv.rtAudience}%</span> Audience</span>
+                {mv.ffAudience != null && <>
+                  {(mv.tmdbRating != null || mv.ffCritic != null) && <span style={{ width:1, height:12, background: HP.border }} />}
+                  <span style={{ fontSize:11, color: HP.textSoft, fontFamily:'Outfit' }}><span style={{ color: HP.text, fontWeight:700 }}>{mv.ffAudience}%</span> Audience</span>
                 </>}
               </div>
             )}
@@ -313,15 +340,15 @@ function MatchRing({ pct }) {
   }, [pct]);
   const dash = v * 0.943;
   return (
-    <div style={{ position:'absolute', bottom:-22, right:-22, width:96, height:96, borderRadius:999, background:'rgba(0,0,0,0.85)', backdropFilter:'blur(12px)', boxShadow:'0 16px 40px -8px rgba(0,0,0,0.7)' }}>
+    <div className="ff-movie-match-ring" style={{ position:'absolute', bottom:-22, right:-22, width:96, height:96, borderRadius:999, background:'rgba(0,0,0,0.85)', backdropFilter:'blur(12px)', boxShadow:'0 16px 40px -8px rgba(0,0,0,0.7)' }}>
       <svg viewBox="0 0 36 36" style={{ width:'100%', height:'100%', transform:'rotate(-90deg)' }}>
         <circle cx="18" cy="18" r="15" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="2.5" />
         <circle cx="18" cy="18" r="15" fill="none" stroke="url(#ring)" strokeWidth="2.5" strokeDasharray={`${dash} 100`} strokeLinecap="round" style={{ transition:'stroke-dasharray 1.4s cubic-bezier(0.2,0.8,0.2,1)' }} />
         <defs><linearGradient id="ring" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor={HP.purple}/><stop offset="100%" stopColor={HP.pink}/></linearGradient></defs>
       </svg>
       <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}>
-        <span style={{ fontFamily:'Outfit', fontSize:30, fontWeight:300, color: HP.text, letterSpacing:'-0.04em', lineHeight:1 }}>{v}<span style={{ fontSize:13, color: HP.textMuted, marginLeft:1 }}>%</span></span>
-        <span style={{ fontSize:8, fontWeight:700, color: HP.purple, letterSpacing:'0.18em', textTransform:'uppercase', marginTop:2 }}>Match</span>
+        <span className="ff-movie-match-ring-num" style={{ fontFamily:'Outfit', fontSize:30, fontWeight:300, color: HP.text, letterSpacing:'-0.04em', lineHeight:1 }}>{v}<span className="ff-movie-match-ring-pct" style={{ fontSize:13, color: HP.textMuted, marginLeft:1 }}>%</span></span>
+        <span className="ff-movie-match-ring-label" style={{ fontSize:8, fontWeight:700, color: HP.purple, letterSpacing:'0.18em', textTransform:'uppercase', marginTop:2 }}>Match</span>
       </div>
     </div>
   );
@@ -346,13 +373,14 @@ function MarkWatchedButton({ isWatched, onToggleWatched, loading, canAct }) {
   return (
     <>
       <button
+        className="ff-movie-hero-action-btn"
         onClick={onToggleWatched}
         disabled={disabled}
         aria-pressed={Boolean(isWatched)}
         title={title}
         style={{
           position:'relative',
-          display:'inline-flex', alignItems:'center', gap:10,
+          display:'inline-flex', alignItems:'center', justifyContent:'center', gap:10,
           padding:'14px 22px', borderRadius:8,
           background: isWatched ? `${FILM_PALETTE.primary}22` : 'rgba(255,255,255,0.06)',
           border:`1px solid ${isWatched ? FILM_PALETTE.primary + '66' : HP.borderStrong}`,
@@ -373,12 +401,13 @@ function SaveButton({ isInWatchlist, onToggleWatchlist, loading, canAct }) {
   const title = !canAct ? 'Sign in to save films' : undefined;
   return (
     <button
+      className="ff-movie-hero-action-btn"
       onClick={onToggleWatchlist}
       disabled={disabled}
       aria-pressed={Boolean(isInWatchlist)}
       title={title}
       style={{
-        display:'inline-flex', alignItems:'center', gap:10,
+        display:'inline-flex', alignItems:'center', justifyContent:'center', gap:10,
         padding:'14px 22px', borderRadius:8,
         background: isInWatchlist ? 'rgba(167,139,250,0.12)' : 'rgba(255,255,255,0.06)',
         border:`1px solid ${isInWatchlist ? HP.purple + '66' : HP.border}`,
@@ -433,7 +462,7 @@ function StickyActionBar({ onPlayTrailer, onBack, onToggleWatchlist, isInWatchli
   const hasTrailer = Boolean(mv.trailerYouTubeId);
 
   return (
-    <div style={{
+    <div className="ff-movie-sticky-bar" style={{
       position:'fixed', top:0, left:0, right:0, zIndex:100,
       padding:'12px 56px',
       background:'rgba(6,6,10,0.94)', backdropFilter:'blur(20px)',
@@ -452,7 +481,7 @@ function StickyActionBar({ onPlayTrailer, onBack, onToggleWatchlist, isInWatchli
           <div style={{ fontSize:11, color: HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.04em' }}>
             {mv.year || '—'}
             {mv.director && mv.director !== '—' && <> · {mv.director}</>}
-            <> · <span style={{ color: HP.purple, fontWeight:600 }}>{mv.ffMatch}% match</span></>
+            {Number.isFinite(mv.ffMatch) && <> · <span style={{ color: HP.purple, fontWeight:600 }}>{mv.ffMatch}% match</span></>}
           </div>
         </div>
       </div>
@@ -469,6 +498,7 @@ function StickyActionBar({ onPlayTrailer, onBack, onToggleWatchlist, isInWatchli
         Play Trailer
       </button>
       <button
+        className="ff-movie-sticky-bar-save"
         onClick={onToggleWatchlist}
         disabled={wlDisabled}
         aria-pressed={Boolean(isInWatchlist)}
@@ -496,14 +526,18 @@ function WhyForYou({ eyebrow, headline, rationale, reasons, onHoverReason, highl
   };
   if (!reasons || reasons.length === 0) return null;
   return (
-    <section style={{ padding:'88px 88px 56px', borderTop:`1px solid ${HP.border}` }}>
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1.4fr', gap:80, alignItems:'flex-start' }}>
-        <div style={{ position:'sticky', top:80 }}>
+    <section className="ff-movie-section" style={{ padding:'72px 88px 48px', borderTop:`1px solid ${HP.border}` }}>
+      {/* Left column intentionally center-aligned to the right cards' total
+          height — short headline + rationale on the left, four cards on the
+          right. Sticky positioning used to pin the left during scroll, but
+          that left a tall void below it. Centering balances the visual mass. */}
+      <div className="ff-movie-why-grid" style={{ display:'grid', gridTemplateColumns:'1fr 1.4fr', gap:72, alignItems:'center' }}>
+        <div>
           <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: HP.purple, marginBottom:18, display:'inline-flex', alignItems:'center', gap:10 }}>
             <span style={{ height:1, width:22, background: HP.purple, opacity:0.6 }} />
             {eyebrow || 'Why this fits you'}
           </div>
-          <h2 style={{ fontFamily:'Outfit', fontSize:52, lineHeight:1, fontWeight:500, letterSpacing:'-0.04em', color: HP.text, margin:0, textWrap:'balance' }}>
+          <h2 className="ff-movie-section-h2" style={{ fontFamily:'Outfit', fontSize:44, lineHeight:1.02, fontWeight:500, letterSpacing:'-0.035em', color: HP.text, margin:0, textWrap:'balance' }}>
             {headline || 'A signal-driven fit.'}
           </h2>
           {rationale && (
@@ -513,11 +547,12 @@ function WhyForYou({ eyebrow, headline, rationale, reasons, onHoverReason, highl
           )}
         </div>
 
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:18 }}>
+        <div className="ff-movie-why-cards" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:18 }}>
           {reasons.map(r => {
             const active = highlightReasonId === r.id;
             return (
               <div key={r.id}
+                className="ff-movie-why-card"
                 onMouseEnter={() => onHoverReason?.(r.id)}
                 onMouseLeave={() => onHoverReason?.(null)}
                 style={{
@@ -528,10 +563,12 @@ function WhyForYou({ eyebrow, headline, rationale, reasons, onHoverReason, highl
                   transform: active ? 'translateY(-2px)' : 'translateY(0)',
                   cursor:'default',
                 }}>
-                <div style={{ width:36, height:36, borderRadius:8, background:'rgba(167,139,250,0.12)', border:`1px solid ${HP.purple}33`, display:'flex', alignItems:'center', justifyContent:'center', color: HP.purple, marginBottom:18 }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{iconMap[r.icon] || iconMap.dna}</svg>
+                <div className="ff-movie-why-card-header">
+                  <div className="ff-movie-why-card-icon" style={{ width:36, height:36, borderRadius:8, background:'rgba(167,139,250,0.12)', border:`1px solid ${HP.purple}33`, display:'flex', alignItems:'center', justifyContent:'center', color: HP.purple, marginBottom:18 }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{iconMap[r.icon] || iconMap.dna}</svg>
+                  </div>
+                  <div className="ff-movie-why-card-title" style={{ fontFamily:'Outfit', fontSize:16, fontWeight:500, color: HP.text, letterSpacing:'-0.015em', marginBottom:8 }}>{r.title}</div>
                 </div>
-                <div style={{ fontFamily:'Outfit', fontSize:16, fontWeight:500, color: HP.text, letterSpacing:'-0.015em', marginBottom:8 }}>{r.title}</div>
                 <p style={{ margin:0, fontSize:13, lineHeight:1.6, color: HP.textSoft, fontFamily:'Outfit, Inter, sans-serif', textWrap:'pretty' }}>{r.detail}</p>
               </div>
             );
@@ -550,15 +587,15 @@ function Synopsis() {
   const first = text.charAt(0);
   const rest = text.slice(1);
   return (
-    <section style={{ padding:'72px 88px', borderTop:`1px solid ${HP.border}` }}>
-      <div style={{ maxWidth:820 }}>
-        <div style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between', marginBottom:24 }}>
+    <section className="ff-movie-section" style={{ padding:'56px 88px', borderTop:`1px solid ${HP.border}` }}>
+      <div style={{ maxWidth:780 }}>
+        <div style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between', marginBottom:20 }}>
           <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: HP.purple, display:'inline-flex', alignItems:'center', gap:10 }}>
             <span style={{ height:1, width:22, background: HP.purple, opacity:0.6 }} />Synopsis
           </div>
         </div>
-        <p style={{ margin:0, fontFamily:'Outfit, Inter, sans-serif', fontSize:23, lineHeight:1.55, color: HP.text, letterSpacing:'-0.012em', textWrap:'pretty', animation:'mv-fade-in 0.5s ease both' }}>
-          <span style={{ fontFamily:'Outfit', fontSize:72, fontWeight:300, color: FILM_PALETTE.primary, float:'left', lineHeight:0.85, marginRight:12, marginTop:6, marginBottom:-6 }}>{first}</span>
+        <p className="ff-movie-synopsis-text" style={{ margin:0, fontFamily:'Outfit, Inter, sans-serif', fontSize:19, lineHeight:1.6, color: HP.text, letterSpacing:'-0.01em', textWrap:'pretty', animation:'mv-fade-in 0.5s ease both' }}>
+          <span style={{ fontFamily:'Outfit', fontSize:56, fontWeight:300, color: FILM_PALETTE.primary, float:'left', lineHeight:0.85, marginRight:10, marginTop:4, marginBottom:-6 }}>{first}</span>
           {rest}
         </p>
       </div>
@@ -595,19 +632,19 @@ function MoodRadar({ axes, highlightMood, onHoverAxis }) {
   const leave = () => onHoverAxis?.(null);
 
   return (
-    <section ref={ref} style={{ padding:'88px 88px', borderTop:`1px solid ${HP.border}`, background:'rgba(255,255,255,0.012)' }}>
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1.2fr', gap:64, alignItems:'center' }}>
+    <section ref={ref} className="ff-movie-section" style={{ padding:'72px 88px', borderTop:`1px solid ${HP.border}`, background:'rgba(255,255,255,0.012)' }}>
+      <div className="ff-movie-radar-grid" style={{ display:'grid', gridTemplateColumns:'1fr 1.2fr', gap:56, alignItems:'center' }}>
         <div>
           <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: HP.purple, marginBottom:18, display:'inline-flex', alignItems:'center', gap:10 }}>
             <span style={{ height:1, width:22, background: HP.purple, opacity:0.6 }} />Mood Fingerprint
           </div>
-          <h2 style={{ fontFamily:'Outfit', fontSize:48, lineHeight:1, fontWeight:500, letterSpacing:'-0.035em', color: HP.text, margin:0, textWrap:'balance' }}>
+          <h2 className="ff-movie-section-h2" style={{ fontFamily:'Outfit', fontSize:40, lineHeight:1.02, fontWeight:500, letterSpacing:'-0.03em', color: HP.text, margin:0, textWrap:'balance' }}>
             How it <em style={{ fontStyle:'italic', fontWeight:400, color: HP.textSoft }}>feels.</em>
           </h2>
           <p style={{ marginTop:20, fontSize:14, lineHeight:1.7, color: HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', maxWidth:380 }}>
-            Hand-coded by the FeelFlick taste engine from script, score, and reaction signal. Hover any axis to see what it means.
+            Six axes — pace, depth, dialogue, focus, range, intensity — scored 0-100 from the script, mood tags, and runtime.
           </p>
-          <div style={{ marginTop:24, display:'flex', flexDirection:'column', gap:8 }}>
+          <div className="ff-movie-radar-list" style={{ marginTop:24, display:'flex', flexDirection:'column', gap:8 }}>
             {moods.map(m => {
               const lit = highlightMood === m.name;
               return (
@@ -626,7 +663,7 @@ function MoodRadar({ axes, highlightMood, onHoverAxis }) {
           </div>
         </div>
 
-        <div style={{ position:'relative', width:400, height:400, margin:'0 auto' }}>
+        <div className="ff-movie-radar-svg" style={{ position:'relative', width:340, height:340, margin:'0 auto' }}>
           <svg viewBox="0 0 400 400" style={{ width:'100%', height:'100%' }}>
             {[0.25, 0.5, 0.75, 1].map((r, i) => {
               const pts = moods.map((_, j) => {
@@ -669,25 +706,30 @@ function MoodRadar({ axes, highlightMood, onHoverAxis }) {
 // ── FF Take (curated overlay only — PR 4 adds LLM fallback) ──────
 function TheTake({ take }) {
   if (!take?.body) return null;
+  // Compute the read-time from actual body length. LLM-supplied meta was a
+  // hardcoded fiction ("20 sec" regardless of body length) — derive it
+  // honestly instead. ~3 words/sec for a comfortable read; clamp to ≥5 sec
+  // so the 2-sentence default doesn't render "0 sec".
+  const wordCount = (take.body || '').trim().split(/\s+/).filter(Boolean).length;
+  const readSec = Math.max(5, Math.round(wordCount / 3));
+  const meta = `est. read · ${readSec} sec`;
   return (
-    <section style={{ padding:'88px 88px', borderTop:`1px solid ${HP.border}` }}>
-      <div style={{ maxWidth:880, position:'relative' }}>
-        <div style={{ position:'absolute', top:-24, left:-12, fontFamily:'Outfit', fontSize:160, lineHeight:0.8, fontWeight:200, color: HP.purple, opacity:0.18 }}>“</div>
+    <section className="ff-movie-section" style={{ padding:'64px 88px', borderTop:`1px solid ${HP.border}` }}>
+      <div style={{ maxWidth:780, position:'relative' }}>
+        <div className="ff-movie-take-quote" style={{ position:'absolute', top:-16, left:-8, fontFamily:'Outfit', fontSize:112, lineHeight:0.8, fontWeight:200, color: HP.purple, opacity:0.18 }}>“</div>
         <div style={{ position:'relative' }}>
           {take.byline && (
-            <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: HP.purple, marginBottom:24, display:'inline-flex', alignItems:'center', gap:10 }}>
+            <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: HP.purple, marginBottom:18, display:'inline-flex', alignItems:'center', gap:10 }}>
               <span style={{ height:1, width:22, background: HP.purple, opacity:0.6 }} />{take.byline}
             </div>
           )}
-          <p style={{ margin:0, fontFamily:'Outfit, Inter, sans-serif', fontSize:32, lineHeight:1.32, fontWeight:400, color: HP.text, letterSpacing:'-0.018em', fontStyle:'italic', textWrap:'balance' }}>
+          <p className="ff-movie-take-text" style={{ margin:0, fontFamily:'Outfit, Inter, sans-serif', fontSize:26, lineHeight:1.4, fontWeight:400, color: HP.text, letterSpacing:'-0.015em', fontStyle:'italic', textWrap:'balance' }}>
             {take.body}
           </p>
-          {take.meta && (
-            <div style={{ marginTop:28, display:'flex', alignItems:'center', gap:14, fontSize:11, color: HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.06em' }}>
-              <span style={{ width:24, height:1, background: HP.textMuted }} />
-              <span style={{ textTransform:'uppercase' }}>{take.meta}</span>
-            </div>
-          )}
+          <div style={{ marginTop:28, display:'flex', alignItems:'center', gap:14, fontSize:11, color: HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.06em' }}>
+            <span style={{ width:24, height:1, background: HP.textMuted }} />
+            <span style={{ textTransform:'uppercase' }}>{meta}</span>
+          </div>
         </div>
       </div>
     </section>
@@ -698,11 +740,14 @@ function TheTake({ take }) {
 function CriticQuotes({ quotes }) {
   if (!quotes || quotes.length === 0) return null;
   return (
-    <section style={{ padding:'56px 88px', borderTop:`1px solid ${HP.border}`, background:'rgba(255,255,255,0.012)' }}>
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:64 }}>
+    <section className="ff-movie-section" style={{ padding:'48px 88px', borderTop:`1px solid ${HP.border}`, background:'rgba(255,255,255,0.012)' }}>
+      <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: HP.purple, marginBottom:24, display:'inline-flex', alignItems:'center', gap:10 }}>
+        <span style={{ height:1, width:22, background: HP.purple, opacity:0.6 }} />Voices
+      </div>
+      <div className="ff-movie-critic-grid" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:56 }}>
         {quotes.map((q, i) => (
-          <blockquote key={i} style={{ margin:0, paddingLeft:24, borderLeft:`2px solid ${i===0 ? FILM_PALETTE.primary : HP.purple}` }}>
-            <p style={{ margin:0, fontFamily:'Outfit, Inter, sans-serif', fontSize:21, lineHeight:1.45, color: HP.text, fontStyle:'italic', letterSpacing:'-0.015em', textWrap:'pretty' }}>
+          <blockquote key={i} style={{ margin:0, paddingLeft:22, borderLeft:`2px solid ${i===0 ? FILM_PALETTE.primary : HP.purple}` }}>
+            <p style={{ margin:0, fontFamily:'Outfit, Inter, sans-serif', fontSize:18, lineHeight:1.5, color: HP.text, fontStyle:'italic', letterSpacing:'-0.012em', textWrap:'pretty' }}>
               “{q.quote}”
             </p>
             <footer style={{ marginTop:14, fontSize:11, color: HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.08em', textTransform:'uppercase' }}>

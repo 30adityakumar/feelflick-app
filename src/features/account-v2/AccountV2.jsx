@@ -7,9 +7,10 @@
 // Page is rendered inside AppShell which already provides the global TopNav;
 // the prototype's internal nav has been dropped.
 
+import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { HP } from './data'
 import {
-  Masthead, IdentityCard, Notifications, EnginePrefs,
+  Masthead, IdentityCard, Notifications,
 } from './top'
 import {
   Privacy, Connections, PlanCard, SessionsCard, DangerZone, AccountFooter,
@@ -18,6 +19,7 @@ import { AccountDataProvider, useAccountData } from './useAccountData'
 import './account-v2.css'
 
 export default function AccountV2() {
+  usePageMeta({ title: 'Account — FeelFlick' })
   return (
     <AccountDataProvider>
       <AccountV2Shell />
@@ -37,7 +39,6 @@ function AccountV2Shell() {
         <Masthead />
         <IdentityCard />
         <Notifications />
-        <EnginePrefs />
         <Privacy />
         <Connections />
         <PlanCard />
@@ -53,12 +54,12 @@ function PageSkeleton() {
   const pulse = { background: 'rgba(255,255,255,0.04)' }
   return (
     <div className="ff-account-v2" style={{ minHeight:'100vh', background: HP.bgDeep, color: HP.text, fontFamily:'Inter, sans-serif' }}>
-      <div style={{ maxWidth:1280, margin:'0 auto', padding:'80px 88px' }}>
+      <div className="ff-acct-section" style={{ maxWidth:1280, margin:'0 auto', padding:'80px 88px' }}>
         <div className="animate-pulse" style={{ ...pulse, height:14, width:280, borderRadius:999, marginBottom:30 }} />
         <div className="animate-pulse" style={{ background:'rgba(167,139,250,0.10)', height:80, width:'40%', borderRadius:8, marginBottom:48 }} />
-        <div style={{ display:'flex', gap:48, alignItems:'center' }}>
+        <div style={{ display:'flex', gap:48, alignItems:'center', flexWrap:'wrap' }}>
           <div className="animate-pulse" style={{ ...pulse, width:96, height:96, borderRadius:999 }} />
-          <div style={{ flex:1, display:'flex', flexDirection:'column', gap:14 }}>
+          <div style={{ flex:1, display:'flex', flexDirection:'column', gap:14, minWidth:200 }}>
             <div className="animate-pulse" style={{ ...pulse, height:28, width:'40%', borderRadius:6 }} />
             <div className="animate-pulse" style={{ ...pulse, height:14, width:'60%', borderRadius:999 }} />
           </div>

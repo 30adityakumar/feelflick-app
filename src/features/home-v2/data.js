@@ -1,7 +1,7 @@
 // FeelFlick — Home v2 static design tokens.
 // All runtime data (films, moods.pool, recent, DNA, friends, lists, user counts)
 // now lives in useHomeData.jsx. This file only owns visual tokens + the static
-// MOOD metadata (id/label/hex/tint) and SLOT_LABELS strings.
+// MOOD metadata (id/label/hex/tint).
 
 const TMDB_BASE = 'https://image.tmdb.org/t/p'
 export const TMDB = (path, size = 'w500') => path ? `${TMDB_BASE}/${size}${path}` : null
@@ -14,7 +14,7 @@ export const HP = {
   text: '#FAFAFA', textSoft: 'rgba(250,250,250,0.72)', textMuted: 'rgba(250,250,250,0.45)', textFaint: 'rgba(250,250,250,0.28)',
   purple: '#A78BFA', purpleDeep: '#7C3AED', pink: '#EC4899', amber: '#F59E0B',
 }
-export const HP_GRAD = 'linear-gradient(135deg, #A78BFA 0%, #EC4899 100%)'
+export const HP_GRAD = 'linear-gradient(135deg, #9333ea 0%, #ec4899 100%)'
 
 // Mood UI metadata only. Pool + rationale come from useHomeData.
 export const MOOD_META = [
@@ -26,19 +26,6 @@ export const MOOD_META = [
   { id: 'witty',      label: 'Witty',      hex: '#34D399', tint: 'purple' },
 ]
 
-export const SLOT_LABELS = {
-  tender:     ["Tonight's pick", 'Mood match',     'From your DNA'],
-  thrilled:   ["Tonight's pick", 'Highest signal', 'Director match'],
-  curious:    ["Tonight's pick", 'Slow-thinking',  'From your DNA'],
-  cozy:       ['A soft choice',  'Pure comfort',   'Quietly funny'],
-  melancholy: ["Tonight's pick", 'Earns its silence', 'Beautifully sad'],
-  witty:      ["Tonight's pick", 'Sharp & quick',  'From your DNA'],
-}
-
-// META is now computed daily — see ./edition.js. The constant stays as a
-// fallback shape for code that imports it before sections-top calls
-// currentEdition() (cold-start safety only).
-export const META = { issueNum: '001', volume: 'I' }
 
 // Deterministic poster fallback gradient (hashed off the film's internal id
 // so the same film always lands on the same gradient).

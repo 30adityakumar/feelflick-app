@@ -8,6 +8,7 @@ import BrowseSearchBar, { DEFAULT_SORT } from './components/BrowseSearchBar'
 import ResultsGrid from './components/ResultsGrid'
 import Pagination from './components/Pagination'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
+import { usePageMeta } from '@/shared/hooks/usePageMeta'
 
 function getPage(searchParams) {
   const value = Number(searchParams.get('page') || '1')
@@ -15,6 +16,7 @@ function getPage(searchParams) {
 }
 
 export default function MoviesTab() {
+  usePageMeta({ title: 'Browse — FeelFlick' })
   const [movies, setMovies] = useState([])
   const [loading, setLoading] = useState(true)
   const [totalPages, setTotalPages] = useState(1)

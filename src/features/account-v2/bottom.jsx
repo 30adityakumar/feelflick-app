@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
-import { HP, HP_GRAD, CONNECTIONS, PLAN } from './data'
+import { formatMonthYear } from '@/shared/lib/format/date'
+import { setAnalyticsOptOut } from '@/shared/services/analytics'
+import { HP, HP_GRAD, CONNECTIONS, FOUNDING_CUTOFF } from './data'
 import { SectionHead, Toggle } from './top'
 import { useAccountData } from './useAccountData'
 
@@ -11,16 +13,21 @@ import { useAccountData } from './useAccountData'
 function Privacy() {
   const { serverSettings, updatePrivacy } = useAccountData();
   const p = serverSettings?.privacy || {};
-  const toggle = (k) => updatePrivacy({ [k]: !p[k] });
+  const toggle = (k) => {
+    const next = !p[k];
+    updatePrivacy({ [k]: next });
+    // analytics toggle takes effect immediately for the current session;
+    // the other toggles take effect on next page load (they gate fetches).
+    if (k === 'analytics') setAnalyticsOptOut(!next);
+  };
   const rows = [
     { k:'profilePublic',      label:'Public profile',       desc:'Anyone with the link can view your DNA' },
-    { k:'diaryPublic',        label:'Public diary',         desc:'Your ratings and notes show on your profile' },
-    { k:'showOnLeaderboards', label:'Show on taste-match',  desc:'Surface in other users’ taste-twin lists' },
-    { k:'shareableCards',     label:'Shareable DNA cards',  desc:'Allow PNG export of your profile' },
+    { k:'diaryPublic',        label:'Public diary',         desc:'Your ratings show on your public profile' },
+    { k:'showOnLeaderboards', label:'Show on taste-match',  desc:"Surface in other users' taste-twin lists" },
     { k:'analytics',          label:'Product analytics',    desc:'Help us improve. Aggregated, no PII.' },
   ];
   return (
-    <section style={{ padding:'56px 88px', borderTop:`1px solid ${HP.border}` }}>
+    <section className="ff-acct-section ff-acct-section--body" style={{ padding:'56px 88px', borderTop:`1px solid ${HP.border}` }}>
       <SectionHead kicker="Privacy" title="Who else gets to look." sub="Everything&rsquo;s off-by-default for new accounts. You opt-in for each surface." />
       <div style={{ borderTop:`1px solid ${HP.border}` }}>
         {rows.map(r => (
@@ -34,22 +41,6 @@ function Privacy() {
             <Toggle on={!!p[r.k]} onChange={() => toggle(r.k)} ariaLabel={`${p[r.k] ? 'Disable' : 'Enable'} ${r.label}`} />
           </div>
         ))}
-      </div>
-      <div style={{ marginTop:24, display:'flex', gap:10, flexWrap:'wrap' }}>
-        <button
-          type="button"
-          disabled
-          aria-disabled="true"
-          title="Data export coming soon"
-          style={{ padding:'10px 16px', borderRadius:6, background:'rgba(255,255,255,0.06)', border:`1px solid ${HP.borderStrong}`, color:HP.textMuted, fontFamily:'Outfit', fontSize:12, fontWeight:600, letterSpacing:'0.04em', cursor:'not-allowed', opacity:0.65 }}
-        >Export my data</button>
-        <button
-          type="button"
-          disabled
-          aria-disabled="true"
-          title="Engine-transparency page coming soon"
-          style={{ padding:'10px 16px', borderRadius:6, background:'transparent', border:`1px solid ${HP.border}`, color:HP.textFaint, fontFamily:'Outfit', fontSize:12, fontWeight:600, letterSpacing:'0.04em', cursor:'not-allowed', opacity:0.65 }}
-        >What the engine sees</button>
       </div>
     </section>
   );
@@ -71,9 +62,9 @@ function Connections() {
   });
 
   return (
-    <section style={{ padding:'56px 88px', borderTop:`1px solid ${HP.border}`, background:'rgba(255,255,255,0.012)' }}>
+    <section className="ff-acct-section ff-acct-section--body" style={{ padding:'56px 88px', borderTop:`1px solid ${HP.border}`, background:'rgba(255,255,255,0.012)' }}>
       <SectionHead kicker="Connections" title="Other lives." sub="Pull in watch history and ratings from where you already keep them." />
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:16 }}>
+      <div className="ff-acct-grid-2" style={{ display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:16 }}>
         {live.map(c => {
           const on = c.status === 'Connected';
           const disabled = !on; // no third-party integrations shipped; only Google is live
@@ -110,42 +101,31 @@ function Connections() {
 }
 
 // ── Plan ────────────────────────────────────────────────────────
+// Tier is derived from users.joined_at — anyone who signed up before
+// FOUNDING_CUTOFF is grandfathered as "Founding Member" forever; later
+// signups read as "Free". No new schema needed until billing ships.
 function PlanCard() {
+  const { profile, authUser } = useAccountData();
+  const joinedAtRaw = profile?.joined_at || authUser?.created_at || null;
+  const joinedAt = joinedAtRaw ? new Date(joinedAtRaw) : null;
+  const isFounding = joinedAt && joinedAt < FOUNDING_CUTOFF;
+  const tier = isFounding ? 'Founding Member' : 'Free';
+  const memberSince = formatMonthYear(joinedAtRaw) || '—';
   return (
-    <section style={{ padding:'56px 88px', borderTop:`1px solid ${HP.border}` }}>
+    <section className="ff-acct-section ff-acct-section--body" style={{ padding:'56px 88px', borderTop:`1px solid ${HP.border}` }}>
       <SectionHead kicker="Plan" title="What you&rsquo;re on." />
-      <div style={{ padding:'32px 36px', borderRadius:8, background:`linear-gradient(135deg, ${HP.purple}11, ${HP.pink}08)`, border:`1px solid ${HP.purple}33`, position:'relative', overflow:'hidden' }}>
+      <div className="ff-acct-plan-card" style={{ padding:'32px 36px', borderRadius:8, background:`linear-gradient(135deg, ${HP.purple}11, ${HP.pink}08)`, border:`1px solid ${HP.purple}33`, position:'relative', overflow:'hidden' }}>
         <div style={{ position:'absolute', top:'-30%', right:'-10%', width:'40%', aspectRatio:1, borderRadius:999, background:`radial-gradient(circle, ${HP.purple}33, transparent 70%)`, filter:'blur(40px)' }} />
-        <div style={{ position:'relative', display:'grid', gridTemplateColumns:'1fr auto', gap:36, alignItems:'flex-start' }}>
-          <div>
-            <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color:HP.purple, marginBottom:10 }}>Current plan</div>
-            <div style={{ fontFamily:'Outfit', fontSize:32, fontWeight:300, color:HP.text, letterSpacing:'-0.03em', marginBottom:18 }}>
-              {PLAN.tier.split('·')[0]}<em style={{ fontStyle:'italic', fontWeight:400, color:HP.textSoft }}>· {PLAN.tier.split('·')[1].trim()}</em>
-            </div>
-            <ul style={{ margin:0, padding:0, listStyle:'none', display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
-              {PLAN.perks.map(p => (
-                <li key={p} style={{ display:'inline-flex', alignItems:'center', gap:8, fontFamily:'Outfit, Inter, sans-serif', fontSize:13, color:HP.textSoft }}>
-                  <span style={{ width:6, height:6, borderRadius:999, background:HP.green, boxShadow:`0 0 8px ${HP.green}` }} />{p}
-                </li>
-              ))}
-            </ul>
-            <p style={{ marginTop:20, fontSize:13, color:HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', fontStyle:'italic', maxWidth:480 }}>{PLAN.upgradeHint}</p>
+        <div style={{ position:'relative' }}>
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color:HP.purple, marginBottom:10 }}>Current plan</div>
+          <div className="ff-acct-plan-headline" style={{ fontFamily:'Outfit', fontSize:32, fontWeight:300, color:HP.text, letterSpacing:'-0.03em', marginBottom:14 }}>
+            {tier}
+            {isFounding && (
+              <em style={{ fontStyle:'italic', fontWeight:400, color:HP.textSoft, marginLeft:10 }}>· Free, locked in</em>
+            )}
           </div>
-          <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-            <button
-              type="button"
-              disabled
-              aria-disabled="true"
-              title="Billing not yet wired"
-              style={{ padding:'12px 22px', borderRadius:6, background:'rgba(255,255,255,0.06)', border:`1px solid ${HP.borderStrong}`, color:HP.textMuted, fontFamily:'Outfit', fontSize:12, fontWeight:600, cursor:'not-allowed', opacity:0.65 }}
-            >Billing history</button>
-            <button
-              type="button"
-              disabled
-              aria-disabled="true"
-              title="Pro waitlist opens later"
-              style={{ padding:'12px 22px', borderRadius:6, background:HP_GRAD, border:'none', color:'#fff', fontFamily:'Outfit', fontSize:12, fontWeight:600, cursor:'not-allowed', opacity:0.55 }}
-            >Join Pro waitlist</button>
+          <div style={{ fontSize:13, color:HP.textMuted, fontFamily:'Outfit, Inter, sans-serif' }}>
+            Member since {memberSince}
           </div>
         </div>
       </div>
@@ -197,10 +177,10 @@ function SessionsCard() {
   }
 
   return (
-    <section style={{ padding:'56px 88px', borderTop:`1px solid ${HP.border}`, background:'rgba(255,255,255,0.012)' }}>
+    <section className="ff-acct-section ff-acct-section--body" style={{ padding:'56px 88px', borderTop:`1px solid ${HP.border}`, background:'rgba(255,255,255,0.012)' }}>
       <SectionHead kicker="Sessions" title="Where you&rsquo;re signed in." sub="Supabase only exposes the current session to the client. Use sign-out-everywhere to invalidate the others." />
       <div style={{ borderTop:`1px solid ${HP.border}` }}>
-        <div style={{ display:'grid', gridTemplateColumns:'auto 1fr auto auto', gap:20, alignItems:'center', padding:'18px 0', borderBottom:`1px solid ${HP.border}` }}>
+        <div className="ff-acct-session" style={{ display:'grid', gridTemplateColumns:'auto 1fr auto auto', gap:20, alignItems:'center', padding:'18px 0', borderBottom:`1px solid ${HP.border}` }}>
           <div style={{ width:36, height:36, borderRadius:8, background:'rgba(255,255,255,0.05)', border:`1px solid ${HP.border}`, display:'flex', alignItems:'center', justifyContent:'center' }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={HP.textSoft} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
@@ -213,8 +193,8 @@ function SessionsCard() {
             </div>
             <div style={{ fontSize:11, color:HP.textMuted, fontFamily:'Outfit', marginTop:2 }}>{browser}{os ? ` · ${os}` : ''} · {provider}</div>
           </div>
-          <div style={{ fontSize:11, color:HP.textFaint, fontFamily:'Outfit', letterSpacing:'0.06em', textTransform:'uppercase' }}>{lastSeen}</div>
-          <div style={{ width:80 }} />
+          <div className="ff-acct-session__time" style={{ fontSize:11, color:HP.textFaint, fontFamily:'Outfit', letterSpacing:'0.06em', textTransform:'uppercase' }}>{lastSeen}</div>
+          <div className="ff-acct-session__spacer" style={{ width:80 }} />
         </div>
       </div>
       <button
@@ -227,17 +207,28 @@ function SessionsCard() {
   );
 }
 
-// ── Danger zone (reset DNA + delete via mailto) ─────────────────
+// ── Danger zone (reset DNA + 7-day scheduled delete) ────────────
 function DangerZone() {
-  const { authUser } = useAccountData();
+  const { authUser, pendingDeletion, requestDeletion, cancelDeletion } = useAccountData();
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   async function rerunOnboarding() {
     if (!authUser) return;
     try {
       setBusy(true);
-      await supabase.from('users').update({ onboarding_complete: false, onboarding_completed_at: null }).eq('id', authUser.id);
+      // WHY: clear prior onboarding's footprint so a re-run doesn't stack
+      // duplicate rows. Scoped to source='onboarding' so in-app watches/ratings
+      // the user logged AFTER onboarding stay intact (matches the button copy).
+      await supabase.from('user_ratings').delete().eq('user_id', authUser.id).eq('source', 'onboarding');
+      await supabase.from('user_history').delete().eq('user_id', authUser.id).eq('source', 'onboarding');
+      await supabase.from('user_preferences').delete().eq('user_id', authUser.id);
+      await supabase.from('users').update({
+        onboarding_complete: false,
+        onboarding_completed_at: null,
+        taste_baseline_moods: null,
+      }).eq('id', authUser.id);
       await supabase.auth.updateUser({ data: { onboarding_complete: false, has_onboarded: false } });
       navigate('/onboarding', { replace: true });
     } finally {
@@ -245,17 +236,26 @@ function DangerZone() {
     }
   }
 
-  function requestDelete() {
-    if (!authUser) return;
-    const subject = encodeURIComponent('FeelFlick Account Deletion Request');
-    const body = encodeURIComponent(`Please delete my account.\nID: ${authUser.id}\nEmail: ${authUser.email}\n\nI understand this is permanent.`);
-    window.location.href = `mailto:hello@feelflick.com?subject=${subject}&body=${body}`;
+  async function onCancelDeletion() {
+    try {
+      setBusy(true);
+      await cancelDeletion();
+    } finally {
+      setBusy(false);
+    }
   }
 
+  const isPending = !!pendingDeletion?.scheduled_for;
+  const scheduledLabel = isPending
+    ? new Date(pendingDeletion.scheduled_for).toLocaleString('en-US', {
+        month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit',
+      })
+    : null;
+
   return (
-    <section style={{ padding:'56px 88px 80px', borderTop:`1px solid ${HP.border}` }}>
+    <section className="ff-acct-section ff-acct-section--danger" style={{ padding:'56px 88px 80px', borderTop:`1px solid ${HP.border}` }}>
       <SectionHead kicker="Danger zone" title="The bridge you can burn." />
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:18 }}>
+      <div className="ff-acct-grid-2" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:18 }}>
         <Danger
           title="Reset taste profile"
           desc="Re-run onboarding. Your existing watches stay logged, but mood weights start from zero."
@@ -264,16 +264,110 @@ function DangerZone() {
           onClick={rerunOnboarding}
           disabled={busy}
         />
-        <Danger
-          title="Delete account"
-          desc="Permanently removes your profile, logs, and DNA. We email you a final export first."
-          cta="Delete forever"
-          color={HP.red}
-          onClick={requestDelete}
-          disabled={busy}
-        />
+        {isPending ? (
+          <DangerPending
+            scheduledLabel={scheduledLabel}
+            onCancel={onCancelDeletion}
+            disabled={busy}
+          />
+        ) : (
+          <Danger
+            title="Delete account"
+            desc="Schedule permanent deletion of your profile, logs, and DNA. You'll have 7 days to cancel."
+            cta="Delete account"
+            color={HP.red}
+            onClick={() => setShowDeleteModal(true)}
+            disabled={busy}
+          />
+        )}
       </div>
+      {showDeleteModal && (
+        <DeleteConfirmModal
+          email={authUser?.email}
+          onCancel={() => setShowDeleteModal(false)}
+          onConfirm={async (reason) => {
+            try {
+              setBusy(true);
+              await requestDeletion(reason || null);
+              setShowDeleteModal(false);
+            } finally {
+              setBusy(false);
+            }
+          }}
+        />
+      )}
     </section>
+  );
+}
+
+function DangerPending({ scheduledLabel, onCancel, disabled }) {
+  return (
+    <div style={{ padding:'24px 26px', borderRadius:6, background:`${HP.red}08`, border:`1px solid ${HP.red}33` }}>
+      <div style={{ fontFamily:'Outfit', fontSize:18, fontWeight:500, color:HP.text, letterSpacing:'-0.015em', marginBottom:6 }}>Deletion scheduled</div>
+      <p style={{ margin:'0 0 18px 0', fontSize:13, color:HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', lineHeight:1.55, fontStyle:'italic' }}>
+        Your account will be permanently deleted on <span style={{ color:HP.text, fontStyle:'normal', fontWeight:500 }}>{scheduledLabel}</span>. Cancel anytime before then.
+      </p>
+      <button
+        type="button"
+        onClick={onCancel}
+        disabled={disabled}
+        style={{ padding:'10px 16px', borderRadius:6, background:'transparent', border:`1px solid ${HP.green}77`, color:HP.green, fontFamily:'Outfit', fontSize:11, fontWeight:600, letterSpacing:'0.06em', textTransform:'uppercase', cursor: disabled ? 'wait' : 'pointer', opacity: disabled ? 0.6 : 1 }}
+      >Cancel deletion</button>
+    </div>
+  );
+}
+
+function DeleteConfirmModal({ email, onCancel, onConfirm }) {
+  const [typed, setTyped] = useState('');
+  const [reason, setReason] = useState('');
+  const enabled = typed.trim().toLowerCase() === (email || '').trim().toLowerCase();
+  return (
+    <div role="dialog" aria-modal="true" style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.7)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:100, padding:20 }}>
+      <div style={{ maxWidth:520, width:'100%', padding:32, borderRadius:10, background:HP.bgDeep, border:`1px solid ${HP.red}55` }}>
+        <div style={{ fontFamily:'Outfit', fontSize:24, fontWeight:500, color:HP.text, letterSpacing:'-0.02em', marginBottom:12 }}>
+          Delete your account?
+        </div>
+        <p style={{ margin:'0 0 18px 0', fontSize:14, color:HP.textSoft, fontFamily:'Outfit, Inter, sans-serif', lineHeight:1.55 }}>
+          We&rsquo;ll permanently delete your profile, watches, ratings, lists, and DNA <strong style={{ color:HP.text, fontWeight:600 }}>after 7 days</strong>. You can cancel anytime before then by signing back in.
+        </p>
+        <label htmlFor="del-confirm-email" style={{ display:'block', fontFamily:'Outfit', fontSize:11, fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', color:HP.textMuted, marginBottom:8 }}>
+          Type your email to confirm
+        </label>
+        <input
+          id="del-confirm-email"
+          type="email"
+          value={typed}
+          onChange={(e) => setTyped(e.target.value)}
+          placeholder={email || 'your@email.com'}
+          autoComplete="off"
+          style={{ width:'100%', padding:'10px 12px', borderRadius:6, background:'rgba(255,255,255,0.04)', border:`1px solid ${HP.border}`, color:HP.text, fontFamily:'Outfit, Inter, sans-serif', fontSize:14, outline:'none', marginBottom:16 }}
+        />
+        <label htmlFor="del-reason" style={{ display:'block', fontFamily:'Outfit', fontSize:11, fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase', color:HP.textMuted, marginBottom:8 }}>
+          Reason (optional)
+        </label>
+        <textarea
+          id="del-reason"
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          rows={3}
+          placeholder="What pushed you away?"
+          style={{ width:'100%', padding:'10px 12px', borderRadius:6, background:'rgba(255,255,255,0.04)', border:`1px solid ${HP.border}`, color:HP.text, fontFamily:'Outfit, Inter, sans-serif', fontSize:13, outline:'none', resize:'vertical', marginBottom:24 }}
+        />
+        <div style={{ display:'flex', gap:10, justifyContent:'flex-end' }}>
+          <button
+            type="button"
+            onClick={onCancel}
+            style={{ padding:'12px 22px', borderRadius:6, background:'transparent', border:`1px solid ${HP.borderStrong}`, color:HP.textSoft, fontFamily:'Outfit', fontSize:13, fontWeight:600, cursor:'pointer' }}
+          >Keep my account</button>
+          <button
+            type="button"
+            onClick={() => onConfirm(reason)}
+            disabled={!enabled}
+            style={{ padding:'12px 22px', borderRadius:6, background: enabled ? HP.red : 'rgba(255,255,255,0.06)', border:'none', color: enabled ? '#fff' : HP.textFaint, fontFamily:'Outfit', fontSize:13, fontWeight:600, cursor: enabled ? 'pointer' : 'not-allowed' }}
+          >Schedule deletion</button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -302,12 +396,12 @@ function AccountFooter() {
   const linkStyle = { fontSize:12, color:HP.textMuted, letterSpacing:'0.04em', textDecoration:'none', cursor:'pointer' };
   const btnStyle = { ...linkStyle, background:'none', border:'none', padding:0, font:'inherit' };
   return (
-    <footer style={{ padding:'40px 88px 64px', borderTop:`1px solid ${HP.border}`, display:'flex', alignItems:'center', justifyContent:'space-between', fontFamily:'Outfit', flexWrap:'wrap', gap:20 }}>
+    <footer className="ff-acct-section ff-acct-foot" style={{ padding:'40px 88px 64px', borderTop:`1px solid ${HP.border}`, display:'flex', alignItems:'center', justifyContent:'space-between', fontFamily:'Outfit', flexWrap:'wrap', gap:20 }}>
       <div style={{ display:'flex', alignItems:'center', gap:14 }}>
         <div style={{ width:28, height:28, borderRadius:6, background:HP_GRAD, display:'inline-flex', alignItems:'center', justifyContent:'center', fontWeight:700, fontSize:13, color:'#fff' }}>FF</div>
         <span style={{ fontSize:13, color:HP.textMuted }}>FeelFlick · Account</span>
       </div>
-      <div style={{ display:'flex', gap:24, alignItems:'center' }}>
+      <div className="ff-acct-foot__links" style={{ display:'flex', gap:24, alignItems:'center' }}>
         <a href="mailto:hello@feelflick.com?subject=Help" style={linkStyle}>Help</a>
         <a href="/privacy" style={linkStyle}>Privacy policy</a>
         <a href="/terms" style={linkStyle}>Terms</a>

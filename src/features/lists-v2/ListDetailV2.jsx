@@ -8,6 +8,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
+import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { tmdbImg } from '@/shared/api/tmdb'
 import CreateListModal from '@/app/pages/lists/CreateListModal'
 import './lists-v2.css'
@@ -18,7 +19,7 @@ const HP = {
   text: '#FAFAFA', textSoft: 'rgba(250,250,250,0.72)', textMuted: 'rgba(250,250,250,0.45)', textFaint: 'rgba(250,250,250,0.28)',
   purple: '#A78BFA', purpleDeep: '#7C3AED', pink: '#EC4899', amber: '#F59E0B', red: '#EF4444', green: '#34D399',
 }
-const HP_GRAD = 'linear-gradient(135deg, #A78BFA 0%, #EC4899 100%)'
+const HP_GRAD = 'linear-gradient(135deg, #9333ea 0%, #ec4899 100%)'
 const RESET_BTN = { background: 'none', border: 'none', padding: 0, margin: 0, font: 'inherit', color: 'inherit', cursor: 'pointer', textAlign: 'left' }
 
 function capitalize(s) {
@@ -43,9 +44,10 @@ function timeAgo(iso) {
 export default function ListDetailV2() {
   const { listId } = useParams()
   const navigate = useNavigate()
-  const { userId: currentUserId } = useAuthSession()
+  const { userId: currentUserId, user: authUser } = useAuthSession()
 
   const [list, setList] = useState(null)
+  usePageMeta({ title: list?.title ? `${list.title} — FeelFlick` : 'List — FeelFlick' })
   const [owner, setOwner] = useState(null)
   const [films, setFilms] = useState([])
   const [loading, setLoading] = useState(true)
@@ -54,6 +56,8 @@ export default function ListDetailV2() {
   const [editMode, setEditMode] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [linkCopied, setLinkCopied] = useState(false)
+  const [isFollowing, setIsFollowing] = useState(false)
+  const [followBusy, setFollowBusy] = useState(false)
 
   const isOwner = !!currentUserId && list?.user_id === currentUserId
 
@@ -109,6 +113,18 @@ export default function ListDetailV2() {
             note: r.note || null,
           }))
         setFilms(items)
+
+        // Resolve follow state once we know the viewer + list. Skip for the
+        // owner (you can't follow your own list).
+        if (currentUserId && listRes.data.user_id !== currentUserId) {
+          const { data: followRow } = await supabase
+            .from('user_list_follows')
+            .select('list_id')
+            .eq('user_id', currentUserId)
+            .eq('list_id', listId)
+            .maybeSingle()
+          if (!abort) setIsFollowing(!!followRow)
+        }
       } catch (e) {
         console.error('[ListDetailV2]', e)
       } finally {
@@ -116,9 +132,55 @@ export default function ListDetailV2() {
       }
     })()
     return () => { abort = true }
-  }, [listId])
+  }, [listId, currentUserId])
 
-  const ownerInitial = useMemo(() => (owner?.name || '?').charAt(0).toUpperCase(), [owner])
+  const handleToggleFollow = async () => {
+    if (!currentUserId || isOwner || followBusy) return
+    setFollowBusy(true)
+    const wasFollowing = isFollowing
+    setIsFollowing(!wasFollowing)  // optimistic
+    try {
+      if (wasFollowing) {
+        const { error } = await supabase
+          .from('user_list_follows')
+          .delete()
+          .eq('user_id', currentUserId)
+          .eq('list_id', listId)
+        if (error) throw error
+      } else {
+        const { error } = await supabase
+          .from('user_list_follows')
+          .insert({ user_id: currentUserId, list_id: listId })
+        if (error) throw error
+      }
+    } catch (e) {
+      console.error('[ListDetailV2.toggleFollow]', e)
+      setIsFollowing(wasFollowing)  // revert
+    } finally {
+      setFollowBusy(false)
+    }
+  }
+
+  // Owner display name: when this is the current user's own list and users.name
+  // is null, fall back to their auth metadata + email-prefix. Avoids the
+  // confusing "Someone" label users were seeing on their own lists.
+  const ownerDisplayName = useMemo(() => {
+    if (owner?.name) return owner.name
+    if (isOwner) {
+      return authUser?.user_metadata?.full_name
+        || authUser?.user_metadata?.name
+        || authUser?.email?.split('@')[0]
+        || 'You'
+    }
+    return 'Someone'
+  }, [owner, isOwner, authUser])
+  const ownerInitial = useMemo(() => (ownerDisplayName || '?').charAt(0).toUpperCase(), [ownerDisplayName])
+  // Also prefer the auth metadata avatar when owner row lacks one.
+  const ownerAvatarUrl = useMemo(() => {
+    if (owner?.avatar_url) return owner.avatar_url
+    if (isOwner) return authUser?.user_metadata?.avatar_url || authUser?.user_metadata?.picture || null
+    return null
+  }, [owner, isOwner, authUser])
 
   const handleShare = async () => {
     const url = `${window.location.origin}/lists/${listId}`
@@ -159,6 +221,34 @@ export default function ListDetailV2() {
     }
   }
 
+  // Move a film up/down by swapping its position with the neighbor and
+  // writing both rows. Optimistic UI: reorder locally first, then persist.
+  // Uses position-based ordering (already in list_movies schema).
+  const handleMove = async (index, direction) => {
+    const target = direction === 'up' ? index - 1 : index + 1
+    if (target < 0 || target >= films.length) return
+    const prev = films
+    const next = [...films]
+    ;[next[index], next[target]] = [next[target], next[index]]
+    setFilms(next)
+    // Position values: re-number all rows to (i+1) so sort order stays
+    // consistent even if the column had gaps from prior deletes.
+    try {
+      const updates = await Promise.all(
+        next.map((f, i) => supabase
+          .from('list_movies')
+          .update({ position: i + 1 })
+          .eq('list_id', listId)
+          .eq('movie_id', f.movieId))
+      )
+      const err = updates.find(r => r.error)?.error
+      if (err) throw err
+    } catch (e) {
+      console.error('[ListDetailV2.move]', e)
+      setFilms(prev)
+    }
+  }
+
   const handleListUpdated = (updated) => {
     setList(l => ({ ...l, ...updated }))
     setShowEdit(false)
@@ -168,9 +258,9 @@ export default function ListDetailV2() {
   if (notFound || !list) return <NotFound onBack={() => navigate('/lists')} />
 
   return (
-    <div style={{ minHeight: '100vh', background: HP.bgDeep, color: HP.text, fontFamily: 'Inter, sans-serif' }}>
+    <div className="ff-lists-v2" style={{ minHeight: '100vh', background: HP.bgDeep, color: HP.text, fontFamily: 'Inter, sans-serif' }}>
       <div style={{ maxWidth: 1440, margin: '0 auto' }}>
-        <section style={{ padding: '56px 88px 24px' }}>
+        <section className="ff-lists-section" style={{ padding: '56px 88px 24px' }}>
           <button
             type="button"
             onClick={() => navigate('/lists')}
@@ -180,10 +270,10 @@ export default function ListDetailV2() {
           </button>
         </section>
 
-        <section style={{ padding: '0 88px 80px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 64, alignItems: 'flex-start' }}>
+        <section className="ff-lists-section" style={{ padding: '0 88px 80px' }}>
+          <div className="ff-lists-detail-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 64, alignItems: 'flex-start' }}>
             {/* === LEFT: sticky meta + actions === */}
-            <div style={{ position: 'sticky', top: 32 }}>
+            <div className="ff-lists-detail-meta" style={{ position: 'sticky', top: 32 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
                 <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: HP.purple }}>Cinematic list</div>
                 {list.is_public ? (
@@ -193,7 +283,7 @@ export default function ListDetailV2() {
                 )}
               </div>
 
-              <h1 style={{ fontFamily: 'Outfit', fontSize: 56, lineHeight: 1, fontWeight: 400, letterSpacing: '-0.04em', color: HP.text, margin: 0, textWrap: 'balance' }}>
+              <h1 className="ff-lists-detail-h1" style={{ fontFamily: 'Outfit', fontSize: 56, lineHeight: 1, fontWeight: 400, letterSpacing: '-0.04em', color: HP.text, margin: 0, textWrap: 'balance' }}>
                 {list.title}
               </h1>
 
@@ -211,15 +301,15 @@ export default function ListDetailV2() {
                   aria-label={`View ${owner?.name || 'owner'} profile`}
                   style={{ ...RESET_BTN, display: 'flex', alignItems: 'center', gap: 12 }}
                 >
-                  {owner?.avatar_url ? (
-                    <img src={owner.avatar_url} alt="" style={{ width: 36, height: 36, borderRadius: 999, objectFit: 'cover' }} />
+                  {ownerAvatarUrl ? (
+                    <img src={ownerAvatarUrl} alt="" referrerPolicy="no-referrer" style={{ width: 36, height: 36, borderRadius: 999, objectFit: 'cover' }} />
                   ) : (
                     <div style={{ width: 36, height: 36, borderRadius: 999, background: HP_GRAD, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0a0510', fontFamily: 'Outfit', fontWeight: 700, fontSize: 14 }}>
                       {ownerInitial}
                     </div>
                   )}
                   <div>
-                    <div style={{ fontFamily: 'Outfit', fontSize: 14, fontWeight: 500, color: HP.text }}>{owner?.name || 'Someone'}</div>
+                    <div style={{ fontFamily: 'Outfit', fontSize: 14, fontWeight: 500, color: HP.text }}>{ownerDisplayName}</div>
                     <div style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit', letterSpacing: '0.04em', marginTop: 2 }}>
                       {films.length} film{films.length === 1 ? '' : 's'} · updated {timeAgo(list.updated_at)}
                     </div>
@@ -229,6 +319,28 @@ export default function ListDetailV2() {
 
               {/* Actions */}
               <div style={{ marginTop: 24, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                {/* Follow button — non-owner viewers only. Shows on public AND
+                    private lists they have access to (RLS already gates private
+                    access; if they can read the list, they can follow it). */}
+                {!isOwner && currentUserId && (
+                  <button
+                    type="button"
+                    onClick={handleToggleFollow}
+                    disabled={followBusy}
+                    aria-label={isFollowing ? 'Unfollow this list' : 'Follow this list'}
+                    style={{
+                      padding: '10px 18px', borderRadius: 6,
+                      background: isFollowing ? 'transparent' : HP_GRAD,
+                      border: isFollowing ? `1px solid ${HP.border}` : 'none',
+                      color: isFollowing ? HP.textSoft : '#fff',
+                      fontFamily: 'Outfit', fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase',
+                      cursor: followBusy ? 'wait' : 'pointer',
+                      opacity: followBusy ? 0.7 : 1,
+                    }}
+                  >
+                    {followBusy ? '…' : isFollowing ? 'Following' : 'Follow list'}
+                  </button>
+                )}
                 {list.is_public && (
                   <button
                     type="button"
@@ -317,14 +429,37 @@ export default function ListDetailV2() {
                       )}
                     </button>
                     {editMode && (
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveFilm(f.movieId)}
-                        aria-label={`Remove ${f.title}`}
-                        style={{ ...RESET_BTN, padding: '6px 10px', borderRadius: 6, background: 'rgba(239,68,68,0.10)', border: `1px solid ${HP.red}33`, color: HP.red, fontFamily: 'Outfit', fontSize: 10, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}
-                      >
-                        Remove
-                      </button>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <button
+                          type="button"
+                          onClick={() => handleMove(i, 'up')}
+                          disabled={i === 0}
+                          aria-label={`Move ${f.title} up`}
+                          title="Move up"
+                          style={{ ...RESET_BTN, padding: '6px 8px', borderRadius: 4, background: 'rgba(255,255,255,0.04)', border: `1px solid ${HP.border}`, color: i === 0 ? HP.textFaint : HP.textSoft, cursor: i === 0 ? 'not-allowed' : 'pointer', opacity: i === 0 ? 0.4 : 1 }}
+                        >
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="18 15 12 9 6 15" /></svg>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleMove(i, 'down')}
+                          disabled={i === films.length - 1}
+                          aria-label={`Move ${f.title} down`}
+                          title="Move down"
+                          style={{ ...RESET_BTN, padding: '6px 8px', borderRadius: 4, background: 'rgba(255,255,255,0.04)', border: `1px solid ${HP.border}`, color: i === films.length - 1 ? HP.textFaint : HP.textSoft, cursor: i === films.length - 1 ? 'not-allowed' : 'pointer', opacity: i === films.length - 1 ? 0.4 : 1 }}
+                        >
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="6 9 12 15 18 9" /></svg>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveFilm(f.movieId)}
+                          aria-label={`Remove ${f.title}`}
+                          title="Remove"
+                          style={{ ...RESET_BTN, padding: '6px 10px', borderRadius: 4, background: 'rgba(239,68,68,0.10)', border: `1px solid ${HP.red}33`, color: HP.red, fontFamily: 'Outfit', fontSize: 10, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', marginLeft: 4 }}
+                        >
+                          Remove
+                        </button>
+                      </div>
                     )}
                   </div>
                 ))

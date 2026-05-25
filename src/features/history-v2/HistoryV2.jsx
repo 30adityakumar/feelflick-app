@@ -5,6 +5,7 @@
 
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { HP, HP_GRAD } from './data'
 import { HistoryDataProvider, useHistoryData } from './useHistoryData'
 import './history-v2.css'
@@ -15,26 +16,17 @@ const RESET_BTN = {
   color:'inherit', textAlign:'left', cursor:'pointer', display:'block',
 };
 
-// ── Masthead ───────────────────────────────────────────────────
+// ── Masthead — kicker bar only; the URL/nav already say "Diary" ──
 function Masthead() {
   const { stats } = useHistoryData();
   return (
-    <section style={{ padding:'72px 88px 36px', position:'relative' }}>
-      <div style={{ position:'absolute', inset:0, pointerEvents:'none', background:'radial-gradient(ellipse 60% 35% at 10% 0%, rgba(236,72,153,0.10), transparent 60%)' }} />
-      <div style={{ position:'relative' }}>
-        <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:24 }}>
-          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.32em', textTransform:'uppercase', color:HP.purple }}>Diary</div>
-          <div style={{ height:1, width:38, background:HP.purple, opacity:0.5 }} />
-          <div style={{ fontSize:10, fontWeight:500, letterSpacing:'0.18em', textTransform:'uppercase', color:HP.textMuted, fontFamily:'Outfit' }}>
-            {stats.totalLogged} film{stats.totalLogged === 1 ? '' : 's'} · {stats.totalHours} hours · {stats.streakDays}-day streak
-          </div>
+    <section className="ff-hist-section ff-hist-section--masthead" style={{ padding:'40px 88px 12px' }}>
+      <div style={{ display:'flex', alignItems:'center', gap:14, flexWrap:'wrap' }}>
+        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.32em', textTransform:'uppercase', color:HP.purple }}>Diary</div>
+        <div style={{ height:1, width:38, background:HP.purple, opacity:0.5 }} />
+        <div style={{ fontSize:10, fontWeight:500, letterSpacing:'0.18em', textTransform:'uppercase', color:HP.textMuted, fontFamily:'Outfit' }}>
+          {stats.totalLogged} film{stats.totalLogged === 1 ? '' : 's'} · {stats.totalHours} hours · {stats.streakDays}-day streak
         </div>
-        <h1 style={{ fontFamily:'Outfit', fontSize:88, lineHeight:0.92, fontWeight:300, letterSpacing:'-0.05em', color:HP.text, margin:0, textWrap:'balance' }}>
-          The <em style={{ fontStyle:'italic', fontWeight:400, color:HP.textSoft }}>diary.</em>
-        </h1>
-        <p style={{ marginTop:18, fontFamily:'Outfit, Inter, sans-serif', fontSize:17, color:HP.textSoft, fontStyle:'italic', maxWidth:680, lineHeight:1.55 }}>
-          Everything you&rsquo;ve watched, what it felt like, and when. Read backward to find a pattern.
-        </p>
       </div>
     </section>
   );
@@ -49,8 +41,8 @@ function PulseStrip() {
     { label:'Streak',        value: `${stats.streakDays}d`,     hint:'consecutive days with a log' },
   ];
   return (
-    <section style={{ padding:'24px 88px 40px' }}>
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:20 }}>
+    <section className="ff-hist-section ff-hist-pulse" style={{ padding:'24px 88px 40px' }}>
+      <div className="ff-hist-pulse-grid" style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:20 }}>
         {items.map(s => (
           <div key={s.label} style={{ padding:'20px 22px', borderRadius:6, background:'rgba(255,255,255,0.025)', border:`1px solid ${HP.border}` }}>
             <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color:HP.textMuted, fontFamily:'Outfit', marginBottom:8 }}>{s.label}</div>
@@ -63,110 +55,24 @@ function PulseStrip() {
   );
 }
 
-function Heatmap() {
-  const { heatmap, stats } = useHistoryData();
-  const tint = (v) => {
-    if (v === 0) return 'rgba(255,255,255,0.04)';
-    if (v === 1) return 'rgba(167,139,250,0.32)';
-    if (v === 2) return 'rgba(167,139,250,0.62)';
-    return 'rgba(236,72,153,0.85)';
-  };
-  // Hide the heatmap section entirely when there's no history yet.
-  if (stats.totalLogged === 0) return null;
-  return (
-    <section style={{ padding:'40px 88px', borderTop:`1px solid ${HP.border}` }}>
-      <div style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between', marginBottom:24 }}>
-        <div>
-          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:HP.purple, marginBottom:10, display:'inline-flex', alignItems:'center', gap:10 }}>
-            <span style={{ height:1, width:22, background:HP.purple, opacity:0.6 }} />Streak heatmap
-          </div>
-          <h2 style={{ fontFamily:'Outfit', fontSize:32, lineHeight:1.05, fontWeight:500, letterSpacing:'-0.03em', color:HP.text, margin:0 }}>The <em style={{ fontStyle:'italic', fontWeight:400, color:HP.textSoft }}>last twelve weeks.</em></h2>
-        </div>
-        <div style={{ display:'flex', alignItems:'center', gap:8, fontSize:10, color:HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.08em', textTransform:'uppercase' }}>
-          <span>Less</span>
-          {[0,1,2,3].map(v => <span key={v} style={{ width:14, height:14, borderRadius:3, background:tint(v), border:`1px solid ${HP.border}` }} />)}
-          <span>More</span>
-        </div>
-      </div>
-      <div style={{ display:'flex', gap:4, padding:18, borderRadius:6, background:'rgba(255,255,255,0.018)', border:`1px solid ${HP.border}` }}>
-        {heatmap.map((col, i) => (
-          <div key={i} style={{ display:'flex', flexDirection:'column', gap:4, flex:1 }}>
-            {col.map((v, j) => (
-              <div key={j} style={{ aspectRatio:1, borderRadius:3, background:tint(v), transition:'background 0.3s ease' }} />
-            ))}
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function TimelineAndMood() {
-  const { timeline, moodShare, stats } = useHistoryData();
-  if (stats.totalLogged === 0) return null;
-  const max = Math.max(1, ...timeline.map(t => t.n));
-  return (
-    <section style={{ padding:'48px 88px', borderTop:`1px solid ${HP.border}`, background:'rgba(255,255,255,0.012)', display:'grid', gridTemplateColumns:'1.5fr 1fr', gap:56, alignItems:'flex-start' }}>
-      <div>
-        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:HP.purple, marginBottom:12, display:'inline-flex', alignItems:'center', gap:10 }}>
-          <span style={{ height:1, width:22, background:HP.purple, opacity:0.6 }} />Twelve months
-        </div>
-        <h2 style={{ fontFamily:'Outfit', fontSize:30, lineHeight:1, fontWeight:500, letterSpacing:'-0.03em', color:HP.text, margin:'0 0 24px 0' }}>Films per month.</h2>
-        <div style={{ display:'flex', alignItems:'flex-end', gap:10, height:140 }}>
-          {timeline.map(t => {
-            const h = (t.n / max) * 100;
-            return (
-              <div key={t.key || t.m} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:8 }}>
-                <div style={{ width:'100%', display:'flex', alignItems:'flex-end', justifyContent:'center', height:110 }}>
-                  <div style={{ width:'100%', maxWidth:36, height:`${h}%`, background:`linear-gradient(180deg, ${HP.purple}, ${HP.purple}55)`, borderRadius:'3px 3px 0 0' }} />
-                </div>
-                <div style={{ fontSize:9, color:HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.1em', textTransform:'uppercase' }}>{t.m}</div>
-                <div style={{ fontSize:9, color:HP.textFaint, fontFamily:'Outfit' }}>{t.n}</div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-      <div>
-        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:HP.purple, marginBottom:12, display:'inline-flex', alignItems:'center', gap:10 }}>
-          <span style={{ height:1, width:22, background:HP.purple, opacity:0.6 }} />This year by mood
-        </div>
-        <h2 style={{ fontFamily:'Outfit', fontSize:30, lineHeight:1, fontWeight:500, letterSpacing:'-0.03em', color:HP.text, margin:'0 0 24px 0' }}>Mood share.</h2>
-        {moodShare.length === 0 ? (
-          <div style={{ fontSize:13, color:HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', fontStyle:'italic' }}>No mood-tagged watches this year yet.</div>
-        ) : (
-          <>
-            <div style={{ display:'flex', height:32, borderRadius:4, overflow:'hidden', marginBottom:18 }}>
-              {moodShare.map(m => (
-                <div key={m.name} title={`${m.name} · ${m.pct}%`} style={{ width:`${m.pct}%`, background:m.hex }} />
-              ))}
-            </div>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'8px 16px' }}>
-              {moodShare.map(m => (
-                <div key={m.name} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', fontSize:12, fontFamily:'Outfit' }}>
-                  <span style={{ display:'inline-flex', alignItems:'center', gap:8 }}>
-                    <span style={{ width:8, height:8, borderRadius:999, background:m.hex }} />
-                    <span style={{ color:HP.text }}>{m.name}</span>
-                  </span>
-                  <span style={{ color:HP.textMuted }}>{m.pct}%</span>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-      </div>
-    </section>
-  );
-}
+// Streak heatmap, "Films per month", and "Mood share" used to live here.
+// They were trend/signature visuals, not diary content — moved out so this
+// page stays a chronological record. The DNA page (/profile) is the home
+// for taste patterns; deriveTrajectory + the mood radar there already cover
+// monthly volume + mood share. The streak heatmap is a follow-up port to
+// /profile-v2 (TODO).
 
 function FilterBar({ filter, setFilter, sort, setSort, query, setQuery }) {
+  // "Favorites" was redundant with "Loved (5★)" — both filtered on the same
+  // ≥9 rating bucket. Dropped until there's a real per-row favorite toggle
+  // separate from the rating scale. The ♥ heart in DiaryGroup is dropped
+  // for the same reason.
   const filters = [
-    { v:'all',     l:'All' },
-    { v:'5',       l:'Loved (5★)' },
-    { v:'fav',     l:'Favorites' },
+    { v:'all', l:'All' },
+    { v:'5',   l:'Loved (5★)' },
   ];
   return (
-    <section style={{ padding:'40px 88px 20px', borderTop:`1px solid ${HP.border}`, display:'flex', alignItems:'center', justifyContent:'space-between', gap:24, flexWrap:'wrap' }}>
+    <section className="ff-hist-section ff-hist-filterbar" style={{ padding:'40px 88px 20px', borderTop:`1px solid ${HP.border}`, display:'flex', alignItems:'center', justifyContent:'space-between', gap:24, flexWrap:'wrap' }}>
       <div role="radiogroup" aria-label="Filter" style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
         {filters.map(f => {
           const on = filter === f.v;
@@ -188,12 +94,13 @@ function FilterBar({ filter, setFilter, sort, setSort, query, setQuery }) {
           );
         })}
       </div>
-      <div style={{ display:'flex', alignItems:'center', gap:14 }}>
+      <div className="ff-hist-filterbar-controls" style={{ display:'flex', alignItems:'center', gap:14, flexWrap:'wrap' }}>
         <input
           value={query}
           onChange={e => setQuery(e.target.value)}
           placeholder="Search the diary…"
           aria-label="Search the diary"
+          className="ff-hist-search"
           style={{ padding:'9px 14px', borderRadius:999, background:'rgba(255,255,255,0.04)', border:`1px solid ${HP.border}`, color:HP.text, fontFamily:'Outfit, Inter, sans-serif', fontSize:12, outline:'none', minWidth:240 }}
         />
         <label style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'7px 12px', borderRadius:999, background:'rgba(255,255,255,0.04)', border:`1px solid ${HP.border}` }}>
@@ -227,10 +134,29 @@ function Stars({ n }) {
 
 function DiaryGroup({ month, entries }) {
   const navigate = useNavigate();
+  const { removeEntry } = useHistoryData();
   const open = (e) => e.tmdbId && navigate(`/movie/${e.tmdbId}`);
+  async function handleRemove(e) {
+    if (typeof window !== 'undefined' && !window.confirm(`Remove "${e.title}" from your diary?`)) return;
+    await removeEntry(e.id);
+  }
+
+  // Bucket entries within this month by day. Surfaces bingeing patterns
+  // (a Sat with 10 logs reads as one chunk rather than 10 repeated "24"
+  // numerals) and gives mobile rows a date they previously lacked (the
+  // per-row day numeral was hidden at narrow widths).
+  const byDay = useMemo(() => {
+    const map = new Map();
+    entries.forEach(e => {
+      if (!map.has(e.day)) map.set(e.day, []);
+      map.get(e.day).push(e);
+    });
+    return [...map.entries()];  // already in newest-first order from entries
+  }, [entries]);
+
   return (
-    <section style={{ padding:'56px 88px', borderTop:`1px solid ${HP.border}` }}>
-      <div style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between', marginBottom:24 }}>
+    <section className="ff-hist-section ff-hist-group" style={{ padding:'56px 88px', borderTop:`1px solid ${HP.border}` }}>
+      <div style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between', marginBottom:24, gap:16, flexWrap:'wrap' }}>
         <div style={{ display:'flex', alignItems:'baseline', gap:18 }}>
           <h2 style={{ fontFamily:'Outfit', fontSize:48, fontWeight:300, color:HP.text, letterSpacing:'-0.045em', margin:0 }}>{month.split(' ')[0]}</h2>
           <span style={{ fontFamily:'Outfit', fontSize:20, color:HP.textMuted, letterSpacing:'-0.02em' }}>{month.split(' ')[1]}</span>
@@ -238,70 +164,76 @@ function DiaryGroup({ month, entries }) {
         <div style={{ fontSize:11, color:HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.08em', textTransform:'uppercase' }}>{entries.length} {entries.length===1?'film':'films'}</div>
       </div>
       <div style={{ borderTop:`1px solid ${HP.border}` }}>
-        {entries.map(e => (
-          <div key={e.id} style={{ display:'grid', gridTemplateColumns:'56px 64px 1fr auto auto auto', gap:24, alignItems:'flex-start', padding:'24px 0', borderBottom:`1px solid ${HP.border}` }}>
-            {/* Day numeral */}
-            <div style={{ paddingTop:4 }}>
-              <div style={{ fontFamily:'Outfit', fontSize:38, fontWeight:200, color:HP.text, letterSpacing:'-0.045em', lineHeight:1 }}>{String(e.day).padStart(2,'0')}</div>
-              <div style={{ fontSize:9, color:HP.textFaint, fontFamily:'Outfit', letterSpacing:'0.12em', textTransform:'uppercase', marginTop:4 }}>{e.date.split(',')[0].split(' ')[0]}</div>
-            </div>
-            {/* Poster (clickable → movie detail) */}
-            <button
-              type="button"
-              onClick={() => open(e)}
-              aria-label={`Open ${e.title}`}
-              style={{ ...RESET_BTN, width:64, height:96 }}
-            >
-              {e.poster
-                ? <img src={e.poster} alt="" style={{ width:'100%', height:'100%', objectFit:'cover', borderRadius:4 }} />
-                : <div style={{ width:'100%', height:'100%', borderRadius:4, background:`linear-gradient(155deg, ${e.moodHex}55, ${e.moodHex}11)` }} />
-              }
-            </button>
-            {/* Title + meta + note */}
-            <div style={{ minWidth:0 }}>
-              <div style={{ display:'flex', alignItems:'center', gap:10, flexWrap:'wrap' }}>
-                <button
-                  type="button"
-                  onClick={() => open(e)}
-                  style={{ ...RESET_BTN, fontFamily:'Outfit', fontSize:20, fontWeight:500, color:HP.text, letterSpacing:'-0.02em', cursor:'pointer' }}
-                >{e.title}</button>
-                {e.year && <span style={{ fontSize:11, color:HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.04em' }}>{e.year}{e.dir && e.dir !== '—' ? ` · ${e.dir}` : ''}</span>}
-                {e.rewatch && <span style={{ padding:'2px 7px', borderRadius:3, background:'rgba(255,255,255,0.05)', border:`1px solid ${HP.border}`, fontSize:9, fontWeight:600, color:HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.1em', textTransform:'uppercase' }}>Re-watch</span>}
-                {e.fav && <span style={{ color:HP.pink, fontSize:13 }} aria-label="Favorite">♥</span>}
+        {byDay.map(([day, dayEntries]) => {
+          // Weekday lives in e.context as "<dayPart> · <Weekday>"
+          const weekday = dayEntries[0]?.context?.split(' · ')[1] || '';
+          const dayDate = dayEntries[0]?.date || '';
+          const dayHours = Math.round(dayEntries.reduce((s, e) => s + (e.runtime || 0), 0) / 60);
+          return (
+            <div key={day}>
+              <div className="ff-hist-day-header" style={{
+                display:'flex', alignItems:'baseline', gap:12, flexWrap:'wrap',
+                padding:'24px 0 12px', borderBottom:`1px solid ${HP.border}`,
+              }}>
+                <span style={{ fontFamily:'Outfit', fontSize:18, fontWeight:500, color:HP.text, letterSpacing:'-0.015em' }}>
+                  {dayDate}
+                </span>
+                {weekday && <span style={{ fontFamily:'Outfit', fontSize:13, color:HP.textMuted, letterSpacing:'0.02em' }}>· {weekday}</span>}
+                <span style={{ fontSize:10, color:HP.textFaint, fontFamily:'Outfit', letterSpacing:'0.12em', textTransform:'uppercase' }}>
+                  · {dayEntries.length} film{dayEntries.length === 1 ? '' : 's'}{dayHours > 0 ? ` · ${dayHours}h` : ''}
+                </span>
               </div>
-              <div style={{ marginTop:8, display:'flex', alignItems:'center', gap:12, flexWrap:'wrap' }}>
-                <Stars n={e.rating} />
-                {e.mood && e.mood !== 'Mixed' && (
-                  <span style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'3px 9px', borderRadius:999, background:`${e.moodHex}1a`, border:`1px solid ${e.moodHex}44`, fontFamily:'Outfit', fontSize:11, color:e.moodHex }}>
-                    <span style={{ width:6, height:6, borderRadius:999, background:e.moodHex }} />{e.mood}
-                  </span>
-                )}
-                <span style={{ fontSize:11, color:HP.textFaint, fontFamily:'Outfit', letterSpacing:'0.06em' }}>{e.context}</span>
-              </div>
-              {e.note && (
-                <p style={{ margin:'14px 0 0 0', fontSize:14, lineHeight:1.55, color:HP.textSoft, fontFamily:'Outfit, Inter, sans-serif', fontStyle:'italic', borderLeft:`2px solid ${e.moodHex}55`, paddingLeft:14, textWrap:'pretty' }}>
-                  &ldquo;{e.note}&rdquo;
-                </p>
-              )}
+              {dayEntries.map(e => (
+                <div key={e.id} className="ff-hist-row" style={{ display:'grid', gridTemplateColumns:'64px 1fr auto auto', gap:24, alignItems:'flex-start', padding:'20px 0', borderBottom:`1px solid ${HP.border}` }}>
+                  <button
+                    type="button"
+                    onClick={() => open(e)}
+                    aria-label={`Open ${e.title}`}
+                    style={{ ...RESET_BTN, width:64, height:96 }}
+                  >
+                    {e.poster
+                      ? <img src={e.poster} alt="" style={{ width:'100%', height:'100%', objectFit:'cover', borderRadius:4 }} />
+                      : <div style={{ width:'100%', height:'100%', borderRadius:4, background:`linear-gradient(155deg, ${e.moodHex}55, ${e.moodHex}11)` }} />
+                    }
+                  </button>
+                  <div style={{ minWidth:0 }}>
+                    <div style={{ display:'flex', alignItems:'center', gap:10, flexWrap:'wrap' }}>
+                      <button
+                        type="button"
+                        onClick={() => open(e)}
+                        style={{ ...RESET_BTN, fontFamily:'Outfit', fontSize:20, fontWeight:500, color:HP.text, letterSpacing:'-0.02em', cursor:'pointer' }}
+                      >{e.title}</button>
+                      {e.year && <span style={{ fontSize:11, color:HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.04em' }}>{e.year}{e.dir && e.dir !== '—' ? ` · ${e.dir}` : ''}</span>}
+                    </div>
+                    <div style={{ marginTop:8, display:'flex', alignItems:'center', gap:12, flexWrap:'wrap' }}>
+                      <Stars n={e.rating} />
+                      {e.mood && e.mood !== 'Mixed' && (
+                        <span style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'3px 9px', borderRadius:999, background:`${e.moodHex}1a`, border:`1px solid ${e.moodHex}44`, fontFamily:'Outfit', fontSize:11, color:e.moodHex }}>
+                          <span style={{ width:6, height:6, borderRadius:999, background:e.moodHex }} />{e.mood}
+                        </span>
+                      )}
+                    </div>
+                    {e.note && (
+                      <p style={{ margin:'14px 0 0 0', fontSize:14, lineHeight:1.55, color:HP.textSoft, fontFamily:'Outfit, Inter, sans-serif', fontStyle:'italic', borderLeft:`2px solid ${e.moodHex}55`, paddingLeft:14, textWrap:'pretty' }}>
+                        &ldquo;{e.note}&rdquo;
+                      </p>
+                    )}
+                  </div>
+                  <span className="ff-hist-row__runtime" style={{ fontSize:11, color:HP.textFaint, fontFamily:'Outfit', letterSpacing:'0.06em', textTransform:'uppercase', paddingTop:8 }}>{e.runtime ? `${e.runtime}m` : ''}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemove(e)}
+                    aria-label={`Remove ${e.title} from diary`}
+                    title="Remove from diary"
+                    style={{ padding:'7px 10px', borderRadius:6, background:'transparent', border:'none', color:HP.textFaint, cursor:'pointer' }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+                  </button>
+                </div>
+              ))}
             </div>
-            <span style={{ fontSize:11, color:HP.textFaint, fontFamily:'Outfit', letterSpacing:'0.06em', textTransform:'uppercase', paddingTop:8 }}>{e.runtime ? `${e.runtime}m` : ''}</span>
-            <button
-              type="button"
-              onClick={() => open(e)}
-              aria-label={`Open ${e.title} to edit rating`}
-              style={{ padding:'7px 12px', borderRadius:6, background:'rgba(255,255,255,0.04)', border:`1px solid ${HP.border}`, color:HP.textMuted, fontFamily:'Outfit', fontSize:10, fontWeight:600, letterSpacing:'0.08em', textTransform:'uppercase', cursor:'pointer' }}
-            >Edit</button>
-            <button
-              type="button"
-              onClick={() => open(e)}
-              aria-label={`Open ${e.title}`}
-              title="Open"
-              style={{ padding:'7px 10px', borderRadius:6, background:'transparent', border:'none', color:HP.textFaint, cursor:'pointer' }}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-            </button>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );
@@ -310,7 +242,7 @@ function DiaryGroup({ month, entries }) {
 function EmptyState() {
   const navigate = useNavigate();
   return (
-    <section style={{ padding:'72px 88px 96px', textAlign:'center', borderTop:`1px solid ${HP.border}` }}>
+    <section className="ff-hist-section" style={{ padding:'72px 88px 96px', textAlign:'center', borderTop:`1px solid ${HP.border}` }}>
       <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:HP.purple, marginBottom:18 }}>The diary is blank</div>
       <h2 style={{ fontFamily:'Outfit', fontSize:36, lineHeight:1, fontWeight:500, letterSpacing:'-0.03em', color:HP.text, margin:'0 0 14px 0' }}>Mark something watched.</h2>
       <p style={{ margin:'0 auto 28px', maxWidth:480, fontSize:14, color:HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', lineHeight:1.6 }}>
@@ -322,25 +254,6 @@ function EmptyState() {
         style={{ padding:'12px 22px', borderRadius:999, background:HP_GRAD, border:'none', color:'#fff', fontFamily:'Outfit', fontSize:13, fontWeight:600, cursor:'pointer', boxShadow:'0 12px 28px -8px rgba(236,72,153,0.5)' }}
       >Browse tonight&rsquo;s picks →</button>
     </section>
-  );
-}
-
-function Foot() {
-  const navigate = useNavigate();
-  const linkStyle = { fontSize:12, color:HP.textMuted, letterSpacing:'0.04em', textDecoration:'none', cursor:'pointer' };
-  const disabledStyle = { ...linkStyle, color:HP.textFaint, cursor:'not-allowed', background:'none', border:'none', padding:0, font:'inherit' };
-  return (
-    <footer style={{ padding:'40px 88px 64px', borderTop:`1px solid ${HP.border}`, display:'flex', alignItems:'center', justifyContent:'space-between', fontFamily:'Outfit', flexWrap:'wrap', gap:20 }}>
-      <div style={{ display:'flex', alignItems:'center', gap:14 }}>
-        <div style={{ width:28, height:28, borderRadius:6, background:HP_GRAD, display:'inline-flex', alignItems:'center', justifyContent:'center', fontWeight:700, fontSize:13, color:'#fff' }}>FF</div>
-        <span style={{ fontSize:13, color:HP.textMuted }}>FeelFlick · Diary</span>
-      </div>
-      <div style={{ display:'flex', gap:24, alignItems:'center' }}>
-        <button type="button" disabled aria-disabled="true" title="Export coming soon" style={disabledStyle}>Export diary</button>
-        <button type="button" disabled aria-disabled="true" title="Tagging coming soon" style={disabledStyle}>Manage tags</button>
-        <button type="button" onClick={() => navigate('/home')} style={{ ...linkStyle, background:'none', border:'none', padding:0, font:'inherit' }}>Back to Briefing</button>
-      </div>
-    </footer>
   );
 }
 
@@ -411,7 +324,6 @@ function HistoryShell() {
         <Masthead />
         <PulseStrip />
         <EmptyState />
-        <Foot />
       </>
     );
   }
@@ -420,21 +332,23 @@ function HistoryShell() {
     <>
       <Masthead />
       <PulseStrip />
-      <Heatmap />
-      <TimelineAndMood />
       <FilterBar filter={filter} setFilter={setFilter} sort={sort} setSort={setSort} query={query} setQuery={setQuery} />
       {grouped.length === 0 && (
-        <section style={{ padding:'72px 88px', textAlign:'center', borderTop:`1px solid ${HP.border}` }}>
-          <div style={{ fontFamily:'Outfit', fontSize:24, color:HP.textMuted, fontStyle:'italic' }}>No entries match.</div>
+        <section className="ff-hist-section" style={{ padding:'72px 88px', textAlign:'center', borderTop:`1px solid ${HP.border}` }}>
+          <div style={{ fontFamily:'Outfit', fontSize:24, color:HP.textMuted, fontStyle:'italic' }}>
+            {query.trim()
+              ? <>0 of {entries.length} match &ldquo;{query.trim()}&rdquo;</>
+              : <>0 of {entries.length} match this filter</>}
+          </div>
         </section>
       )}
       {grouped.map(([month, ents]) => <DiaryGroup key={month} month={month} entries={ents} />)}
-      <Foot />
     </>
   );
 }
 
 export default function HistoryV2() {
+  usePageMeta({ title: 'Diary — FeelFlick' })
   return (
     <HistoryDataProvider>
       <div className="ff-history-v2" style={{ minHeight:'100vh', background:HP.bgDeep, color:HP.text, fontFamily:'Inter, sans-serif' }}>

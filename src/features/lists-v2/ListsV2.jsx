@@ -6,6 +6,9 @@
 
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { usePageMeta } from '@/shared/hooks/usePageMeta'
+import { useAuthSession } from '@/shared/hooks/useAuthSession'
+import CreateListModal from '@/app/pages/lists/CreateListModal'
 import './lists-v2.css'
 import { ListsDataProvider, useListsData } from './useListsData'
 
@@ -15,25 +18,24 @@ const HP = {
   text: '#FAFAFA', textSoft: 'rgba(250,250,250,0.72)', textMuted: 'rgba(250,250,250,0.45)', textFaint: 'rgba(250,250,250,0.28)',
   purple: '#A78BFA', purpleDeep: '#7C3AED', pink: '#EC4899', amber: '#F59E0B', red: '#EF4444', green: '#34D399',
 }
-const HP_GRAD = 'linear-gradient(135deg, #A78BFA 0%, #EC4899 100%)'
+const HP_GRAD = 'linear-gradient(135deg, #9333ea 0%, #ec4899 100%)'
 
 const RESET_BTN = { background: 'none', border: 'none', padding: 0, margin: 0, font: 'inherit', color: 'inherit', cursor: 'pointer', textAlign: 'left' }
 
 // === Masthead ============================================================
 
-function Masthead() {
-  const navigate = useNavigate()
+function Masthead({ onNewList }) {
   const { user } = useListsData()
   return (
-    <section style={{ padding: '72px 88px 32px', position: 'relative' }}>
+    <section className="ff-lists-section ff-lists-masthead" style={{ padding: '72px 88px 32px', position: 'relative' }}>
       <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(ellipse 50% 30% at 10% 0%, rgba(167,139,250,0.12), transparent 60%)' }} />
       <div style={{ position: 'relative' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 22 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 22, flexWrap: 'wrap' }}>
           <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.32em', textTransform: 'uppercase', color: HP.purple }}>Lists</div>
           <div style={{ height: 1, width: 38, background: HP.purple, opacity: 0.5 }} />
           <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: HP.textMuted, fontFamily: 'Outfit' }}>{user.mineCount} yours · {user.followedCount} followed</div>
         </div>
-        <h1 style={{ fontFamily: 'Outfit', fontSize: 88, lineHeight: 0.92, fontWeight: 300, letterSpacing: '-0.05em', color: HP.text, margin: 0, textWrap: 'balance' }}>
+        <h1 className="ff-lists-hero" style={{ fontFamily: 'Outfit', fontSize: 88, lineHeight: 0.92, fontWeight: 300, letterSpacing: '-0.05em', color: HP.text, margin: 0, textWrap: 'balance' }}>
           The <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>shelves.</em>
         </h1>
         <p style={{ marginTop: 18, fontFamily: 'Outfit, Inter, sans-serif', fontSize: 17, color: HP.textSoft, fontStyle: 'italic', maxWidth: 680, lineHeight: 1.55 }}>
@@ -42,7 +44,7 @@ function Masthead() {
         <div style={{ marginTop: 24, display: 'flex', gap: 10 }}>
           <button
             type="button"
-            onClick={() => navigate('/lists-legacy?new=1')}
+            onClick={onNewList}
             style={{ padding: '12px 22px', borderRadius: 8, background: HP_GRAD, border: 'none', color: '#fff', fontFamily: 'Outfit', fontSize: 13, fontWeight: 600, letterSpacing: '0.02em', cursor: 'pointer', boxShadow: '0 12px 28px -8px rgba(236,72,153,0.5)' }}
           >+ New list</button>
         </div>
@@ -61,7 +63,7 @@ function Tabs({ tab, setTab }) {
     { v: 'editorial', l: 'Editorial', count: editorial.length },
   ]
   return (
-    <section style={{ padding: '24px 88px 24px' }}>
+    <section className="ff-lists-section ff-lists-tabs" style={{ padding: '24px 88px 24px' }}>
       <div style={{ display: 'inline-flex', gap: 6, padding: 4, borderRadius: 999, background: 'rgba(255,255,255,0.04)', border: `1px solid ${HP.border}` }}>
         {tabs.map(t => {
           const on = tab === t.v
@@ -92,8 +94,13 @@ function Tabs({ tab, setTab }) {
 
 function ListCard({ list, kind, onOpen }) {
   const [c1, c2] = list.palette
+  // Posters from the list's items (up to 3 — fetched in useListsData).
+  // Lists about CONTENT should show CONTENT; the gradient is the fallback
+  // when the list is empty or its films lack poster_path.
+  const posters = list.posters || []
+  const hasPosters = posters.length > 0
   return (
-    <article style={{ cursor: 'pointer' }}>
+    <article className="ff-lists-card" style={{ cursor: 'pointer' }}>
       <button
         type="button"
         onClick={onOpen}
@@ -101,16 +108,39 @@ function ListCard({ list, kind, onOpen }) {
         style={{ ...RESET_BTN, width: '100%' }}
       >
         <div style={{ position: 'relative', aspectRatio: '4/5', borderRadius: 8, overflow: 'hidden', background: `linear-gradient(155deg, ${c1}, ${c2})`, boxShadow: `0 18px 40px -14px rgba(0,0,0,0.6), 0 0 32px ${c1}22`, marginBottom: 14 }}>
-          {list.cover && (
-            <img src={list.cover} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.4, mixBlendMode: 'luminosity' }} />
+          {/* Poster strip — three real posters fanned across the top half of
+              the card. Falls through to the gradient when there are no
+              posters (empty list / editorial query-driven list). */}
+          {hasPosters && (
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '62%', display: 'flex', gap: 0 }}>
+              {posters.slice(0, 3).map((p, i) => (
+                <img
+                  key={i}
+                  src={p}
+                  alt=""
+                  loading="lazy"
+                  style={{
+                    flex: 1,
+                    width: 0,
+                    height: '100%',
+                    objectFit: 'cover',
+                    filter: i === 0 ? 'none' : `brightness(${0.92 - i * 0.06}) saturate(0.9)`,
+                  }}
+                />
+              ))}
+            </div>
           )}
-          <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(180deg, transparent 30%, ${c2}cc 75%, ${c2})` }} />
+          {/* Bottom gradient veil for legibility of title overlay */}
+          <div style={{ position: 'absolute', inset: 0, background: hasPosters
+            ? `linear-gradient(180deg, transparent 28%, ${c2}aa 55%, ${c2}f5 75%, ${c2})`
+            : `linear-gradient(180deg, transparent 30%, ${c2}cc 75%, ${c2})`
+          }} />
           <div style={{ position: 'absolute', top: 16, left: 16, right: 16, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-            <div style={{ padding: '4px 9px', borderRadius: 3, background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(8px)', fontSize: 9, fontWeight: 700, color: '#fff', fontFamily: 'Outfit', letterSpacing: '0.18em', textTransform: 'uppercase' }}>
-              {list.count} films
+            <div style={{ padding: '4px 9px', borderRadius: 3, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', fontSize: 9, fontWeight: 700, color: '#fff', fontFamily: 'Outfit', letterSpacing: '0.18em', textTransform: 'uppercase' }}>
+              {list.count} film{list.count === 1 ? '' : 's'}
             </div>
             {kind === 'mine' && (
-              <div style={{ padding: '4px 9px', borderRadius: 3, background: list.public ? 'rgba(52,211,153,0.18)' : 'rgba(0,0,0,0.65)', border: `1px solid ${list.public ? HP.green + '66' : HP.border}`, fontSize: 9, fontWeight: 700, color: list.public ? HP.green : HP.textMuted, fontFamily: 'Outfit', letterSpacing: '0.14em', textTransform: 'uppercase' }}>
+              <div style={{ padding: '4px 9px', borderRadius: 3, background: list.public ? 'rgba(52,211,153,0.20)' : 'rgba(0,0,0,0.7)', border: `1px solid ${list.public ? HP.green + '66' : HP.border}`, fontSize: 9, fontWeight: 700, color: list.public ? HP.green : HP.textMuted, fontFamily: 'Outfit', letterSpacing: '0.14em', textTransform: 'uppercase' }}>
                 {list.public ? 'Public' : 'Private'}
               </div>
             )}
@@ -122,7 +152,7 @@ function ListCard({ list, kind, onOpen }) {
           </div>
           <div style={{ position: 'absolute', bottom: 18, left: 18, right: 18 }}>
             <h3 style={{ fontFamily: 'Outfit', fontSize: 24, lineHeight: 1.05, fontWeight: 500, color: '#fff', letterSpacing: '-0.02em', margin: 0, textWrap: 'balance' }}>{list.title}</h3>
-            {list.blurb && <p style={{ margin: '8px 0 0 0', fontSize: 12, lineHeight: 1.5, color: 'rgba(255,255,255,0.78)', fontFamily: 'Outfit, Inter, sans-serif', fontStyle: 'italic' }}>{list.blurb}</p>}
+            {list.blurb && <p style={{ margin: '8px 0 0 0', fontSize: 12, lineHeight: 1.5, color: 'rgba(255,255,255,0.85)', fontFamily: 'Outfit, Inter, sans-serif', fontStyle: 'italic', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{list.blurb}</p>}
           </div>
         </div>
       </button>
@@ -138,7 +168,7 @@ function ListCard({ list, kind, onOpen }) {
 
 function ListsGrid({ items, kind, onOpen }) {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 22 }}>
+    <div className="ff-lists-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 22 }}>
       {items.map(l => <ListCard key={l.id} list={l} kind={kind} onOpen={() => onOpen(l)} />)}
     </div>
   )
@@ -160,17 +190,17 @@ function EmptyTab({ label, body, ctaLabel, onCta }) {
   )
 }
 
-function Body({ tab }) {
+function Body({ tab, onNewList }) {
   const navigate = useNavigate()
-  const { mine, followed, editorial, loading } = useListsData()
+  const { mine, followed, popularPublic, editorial, loading } = useListsData()
 
   const openMineOrFollowed = (l) => navigate(`/lists/${l.id}`)
   const openEditorial = (l) => navigate(`/lists/curated/${l.slug}`)
 
   if (loading) {
     return (
-      <section style={{ padding: '8px 88px 56px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 22 }}>
+      <section className="ff-lists-section" style={{ padding: '8px 88px 56px' }}>
+        <div className="ff-lists-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 22 }}>
           {[0, 1, 2, 3].map(i => (
             <div key={i} className="animate-pulse" style={{ aspectRatio: '4/5', borderRadius: 8, background: 'rgba(255,255,255,0.025)', border: `1px solid ${HP.border}` }} />
           ))}
@@ -181,17 +211,17 @@ function Body({ tab }) {
 
   if (tab === 'mine') {
     return (
-      <section style={{ padding: '8px 88px 56px' }}>
-        <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <section className="ff-lists-section" style={{ padding: '8px 88px 56px' }}>
+        <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
           <div>
             <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: HP.purple, marginBottom: 10, display: 'inline-flex', alignItems: 'center', gap: 10 }}>
               <span style={{ height: 1, width: 22, background: HP.purple, opacity: 0.6 }} />Your shelves
             </div>
-            <h2 style={{ fontFamily: 'Outfit', fontSize: 36, lineHeight: 1, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>Hand-built by <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>you.</em></h2>
+            <h2 className="ff-lists-h2" style={{ fontFamily: 'Outfit', fontSize: 36, lineHeight: 1, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>Hand-built by <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>you.</em></h2>
           </div>
           <button
             type="button"
-            onClick={() => navigate('/lists-legacy?new=1')}
+            onClick={onNewList}
             style={{ padding: '10px 18px', borderRadius: 999, background: 'rgba(255,255,255,0.06)', border: `1px solid ${HP.borderStrong}`, color: HP.text, fontFamily: 'Outfit', fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}
           >+ New list</button>
         </div>
@@ -200,7 +230,7 @@ function Body({ tab }) {
             label="No shelves yet"
             body="Start a list — a director's run, a mood for the week, the five films you'd hand someone new to your taste."
             ctaLabel="Create your first list"
-            onCta={() => navigate('/lists-legacy?new=1')}
+            onCta={onNewList}
           />
         ) : (
           <ListsGrid items={mine} kind="mine" onOpen={openMineOrFollowed} />
@@ -210,35 +240,51 @@ function Body({ tab }) {
   }
 
   if (tab === 'followed') {
+    // When the user follows nobody (or their follows haven't published lists),
+    // fall back to public lists from the wider community so the tab is
+    // always populated. Mirrors the /people cold-start fallback pattern.
+    const showPopularFallback = followed.length === 0 && popularPublic.length > 0
     return (
-      <section style={{ padding: '8px 88px 56px' }}>
+      <section className="ff-lists-section" style={{ padding: '8px 88px 56px' }}>
         <div style={{ marginBottom: 24 }}>
           <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: HP.purple, marginBottom: 10, display: 'inline-flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ height: 1, width: 22, background: HP.purple, opacity: 0.6 }} />From your circle
+            <span style={{ height: 1, width: 22, background: HP.purple, opacity: 0.6 }} />
+            {showPopularFallback ? 'Popular on FeelFlick' : 'From your circle'}
           </div>
-          <h2 style={{ fontFamily: 'Outfit', fontSize: 36, lineHeight: 1, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>Lists from your <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>taste twins.</em></h2>
+          <h2 className="ff-lists-h2" style={{ fontFamily: 'Outfit', fontSize: 36, lineHeight: 1, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>
+            {showPopularFallback
+              ? <>Public lists, <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>worth a look.</em></>
+              : <>Lists from your <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>taste twins.</em></>}
+          </h2>
+          {showPopularFallback && (
+            <p style={{ marginTop: 12, fontSize: 13, color: HP.textMuted, fontFamily: 'Outfit, Inter, sans-serif', fontStyle: 'italic', maxWidth: 540 }}>
+              Follow someone whose taste lines up and this rail switches to their shelves. Until then, here&rsquo;s what the community is building.
+            </p>
+          )}
         </div>
-        {followed.length === 0 ? (
+        {followed.length > 0 ? (
+          <ListsGrid items={followed} kind="followed" onOpen={openMineOrFollowed} />
+        ) : showPopularFallback ? (
+          <ListsGrid items={popularPublic} kind="followed" onOpen={openMineOrFollowed} />
+        ) : (
           <EmptyTab
             label="Nothing from your circle yet"
             body="Follow someone whose taste lines up with yours. When they publish a list, it lands here."
             ctaLabel="Find taste twins"
             onCta={() => navigate('/people')}
           />
-        ) : (
-          <ListsGrid items={followed} kind="followed" onOpen={openMineOrFollowed} />
         )}
       </section>
     )
   }
 
   return (
-    <section style={{ padding: '8px 88px 56px' }}>
+    <section className="ff-lists-section" style={{ padding: '8px 88px 56px' }}>
       <div style={{ marginBottom: 24 }}>
         <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: HP.purple, marginBottom: 10, display: 'inline-flex', alignItems: 'center', gap: 10 }}>
           <span style={{ height: 1, width: 22, background: HP.purple, opacity: 0.6 }} />FeelFlick editorial
         </div>
-        <h2 style={{ fontFamily: 'Outfit', fontSize: 36, lineHeight: 1, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>Hand-built by <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>the editors.</em></h2>
+        <h2 className="ff-lists-h2" style={{ fontFamily: 'Outfit', fontSize: 36, lineHeight: 1, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>Hand-built by <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>the editors.</em></h2>
       </div>
       <ListsGrid items={editorial} kind="editorial" onOpen={openEditorial} />
     </section>
@@ -253,11 +299,11 @@ function FeaturedOpen() {
   if (!featured) return null
 
   return (
-    <section style={{ padding: '72px 88px', borderTop: `1px solid ${HP.border}`, background: 'rgba(255,255,255,0.012)' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 64, alignItems: 'flex-start' }}>
-        <div style={{ position: 'sticky', top: 32 }}>
+    <section className="ff-lists-section ff-lists-featured" style={{ padding: '72px 88px', borderTop: `1px solid ${HP.border}`, background: 'rgba(255,255,255,0.012)' }}>
+      <div className="ff-lists-featured-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 64, alignItems: 'flex-start' }}>
+        <div className="ff-lists-featured-meta" style={{ position: 'sticky', top: 32 }}>
           <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: HP.purple, marginBottom: 14 }}>Featured shelf</div>
-          <h2 style={{ fontFamily: 'Outfit', fontSize: 44, lineHeight: 1, fontWeight: 500, letterSpacing: '-0.035em', color: HP.text, margin: 0, textWrap: 'balance' }}>
+          <h2 className="ff-lists-h2-lg" style={{ fontFamily: 'Outfit', fontSize: 44, lineHeight: 1, fontWeight: 500, letterSpacing: '-0.035em', color: HP.text, margin: 0, textWrap: 'balance' }}>
             {featured.title}
           </h2>
           {featured.blurb && (
@@ -312,33 +358,45 @@ function FeaturedOpen() {
   )
 }
 
-function Foot() {
-  return (
-    <footer style={{ padding: '40px 88px 64px', borderTop: `1px solid ${HP.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontFamily: 'Outfit', flexWrap: 'wrap', gap: 20 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-        <div style={{ width: 28, height: 28, borderRadius: 6, background: HP_GRAD, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 13, color: '#fff' }}>FF</div>
-        <span style={{ fontSize: 13, color: HP.textMuted }}>FeelFlick · Lists</span>
-      </div>
-    </footer>
-  )
-}
-
 function ListsV2Body() {
+  const navigate = useNavigate()
+  const { user: authUser } = useAuthSession()
+  const { reload } = useListsData()
   const [tab, setTab] = useState('mine')
+  const [showCreate, setShowCreate] = useState(false)
+
+  const handleSavedList = (created) => {
+    setShowCreate(false)
+    if (created?.id) {
+      // Refresh the hub data so a back-nav (or "Open in /lists" later) shows
+      // the new list. Push the user to the v2 detail page so they can keep
+      // adding films in one continuous flow.
+      reload?.()
+      navigate(`/lists/${created.id}`)
+    }
+  }
+
   return (
-    <div style={{ minHeight: '100vh', background: HP.bgDeep, color: HP.text, fontFamily: 'Inter, sans-serif' }}>
+    <div className="ff-lists-v2" style={{ minHeight: '100vh', background: HP.bgDeep, color: HP.text, fontFamily: 'Inter, sans-serif' }}>
       <div style={{ maxWidth: 1440, margin: '0 auto' }}>
-        <Masthead />
+        <Masthead onNewList={() => setShowCreate(true)} />
         <Tabs tab={tab} setTab={setTab} />
-        <Body tab={tab} />
+        <Body tab={tab} onNewList={() => setShowCreate(true)} />
         <FeaturedOpen />
-        <Foot />
       </div>
+      {showCreate && authUser?.id && (
+        <CreateListModal
+          userId={authUser.id}
+          onClose={() => setShowCreate(false)}
+          onSave={handleSavedList}
+        />
+      )}
     </div>
   )
 }
 
 export default function ListsV2() {
+  usePageMeta({ title: 'Lists — FeelFlick' })
   return (
     <ListsDataProvider>
       <ListsV2Body />

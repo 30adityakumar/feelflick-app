@@ -150,20 +150,33 @@ export default function CacheMonitoring() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-900">
-        <RefreshCw className="h-8 w-8 text-purple-400 animate-spin" />
+      <div className="min-h-screen bg-black p-8">
+        <div className="max-w-7xl mx-auto" aria-hidden="true">
+          <div className="h-8 w-72 rounded animate-pulse bg-white/5 mb-3" />
+          <div className="h-4 w-96 rounded animate-pulse bg-white/5 mb-8" />
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            {[0, 1, 2, 3].map(i => (
+              <div key={i} className="h-32 rounded-lg animate-pulse bg-white/5 border border-white/10" />
+            ))}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[0, 1, 2].map(i => (
+              <div key={i} className="h-48 rounded-lg animate-pulse bg-white/5 border border-white/10" />
+            ))}
+          </div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-8">
+    <div className="min-h-screen bg-black text-white p-8">
       <div className="max-w-7xl mx-auto">
         {/* ========== HEADER WITH BUTTONS ========== */}
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold mb-2">Profile Cache Monitoring</h1>
-            <p className="text-gray-400">Real-time statistics for user profile caching system</p>
+            <p className="text-white/60">Real-time statistics for user profile caching system</p>
           </div>
           
           {/* BUTTONS HERE */}
@@ -278,9 +291,9 @@ export default function CacheMonitoring() {
         </div>
 
         {/* Insights */}
-        <div className="mt-8 p-6 bg-gray-800 rounded-lg border border-gray-700">
+        <div className="mt-8 p-6 bg-white/5 rounded-lg border border-white/10">
           <h3 className="text-lg font-semibold mb-4">Insights & Recommendations</h3>
-          <div className="space-y-2 text-sm text-gray-300">
+          <div className="space-y-2 text-sm text-white/80">
             {stats.byAge.expired > 0 && (
               <p className="flex items-start gap-2">
                 <span className="text-amber-400">⚠️</span>
@@ -331,22 +344,22 @@ function MetricCard({ icon, label, value, subtext, color }) {
   }
 
   return (
-    <div className="p-6 bg-gray-800 rounded-lg border border-gray-700">
+    <div className="p-6 bg-white/5 rounded-lg border border-white/10">
       <div className={`inline-flex p-2 rounded-lg mb-3 ${colorClasses[color]}`}>
         {icon}
       </div>
       <div className="text-3xl font-bold mb-1">{value}</div>
-      <div className="text-sm text-gray-400">{label}</div>
-      <div className="text-xs text-gray-500 mt-1">{subtext}</div>
+      <div className="text-sm text-white/60">{label}</div>
+      <div className="text-xs text-white/40 mt-1">{subtext}</div>
     </div>
   )
 }
 
 function ChartCard({ title, icon, children }) {
   return (
-    <div className="p-6 bg-gray-800 rounded-lg border border-gray-700">
+    <div className="p-6 bg-white/5 rounded-lg border border-white/10">
       <div className="flex items-center gap-2 mb-4">
-        <div className="text-gray-400">{icon}</div>
+        <div className="text-white/60">{icon}</div>
         <h3 className="font-semibold">{title}</h3>
       </div>
       {children}
@@ -362,16 +375,16 @@ function BarGroup({ data, total }) {
         return (
           <div key={idx}>
             <div className="flex justify-between text-xs mb-1">
-              <span className="text-gray-400">{item.label}</span>
-              <span className="text-gray-300 font-medium">{item.value}</span>
+              <span className="text-white/60">{item.label}</span>
+              <span className="text-white/80 font-medium">{item.value}</span>
             </div>
-            <div className="w-full bg-gray-700 rounded-full h-2">
+            <div className="w-full bg-white/10 rounded-full h-2">
               <div
                 className={`${item.color} h-2 rounded-full transition-all duration-500`}
                 style={{ width: `${percentage}%` }}
               />
             </div>
-            <div className="text-xs text-gray-500 mt-0.5">{percentage.toFixed(1)}%</div>
+            <div className="text-xs text-white/40 mt-0.5">{percentage.toFixed(1)}%</div>
           </div>
         )
       })}

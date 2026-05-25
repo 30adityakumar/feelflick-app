@@ -1,0 +1,258 @@
+/* src/features/browse/browse.css
+ * Responsive overrides for the /browse v5 surface. Mirrors the class-hooks
+ * pattern used in src/features/movie-v2/movie-v2.css: components ship desktop
+ * sizing inline on the JSX; this stylesheet flips them at narrow widths via
+ * `!important` so we don't have to thread media queries through every prop.
+ */
+
+/* ── Refine modal: leave ~110px bottom on mobile for the fixed AppShell
+ * nav (Home / Browse / Discover / DNA / Account). On screens that don't
+ * ship the bottom nav (md+ per the AppShell `md:hidden` class), drop the
+ * extra bottom padding so the modal isn't floating high on the page. */
+@media (min-width: 768px) {
+  .ff-browse-refine-backdrop {
+    padding: 24px !important;
+  }
+  .ff-browse-refine-panel {
+    max-height: calc(100vh - 48px) !important;
+  }
+}
+
+/* ── Native filter pickers on touch devices ────────────────────────────────
+ * Each FilterPill / PresetsDropdown renders a hidden <select> overlay. On
+ * `pointer: fine` (mouse) it's display:none so the custom dropdown wins.
+ * On `pointer: coarse` (phones/tablets) the select covers the chip and
+ * intercepts taps — the OS picker handles selection with its built-in
+ * Done/Cancel buttons. This sidesteps the well-known bug where an
+ * absolutely-positioned dropdown gets clipped by the toolbar's
+ * `overflow-x: auto` (browsers force overflow-y: auto in tandem). */
+.ff-browse-filter-pill-native {
+  display: none;
+}
+@media (pointer: coarse) {
+  .ff-browse-filter-pill-native {
+    display: block;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    /* iOS Safari needs `appearance: none` to flatten the system styling. */
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    border: 0;
+    font: inherit;
+  }
+  /* And the custom dropdown stays hidden on touch — the native picker is
+     the source of truth. */
+  .ff-browse-filter-pill-menu {
+    display: none !important;
+  }
+}
+
+/* ── Base grid: minmax(0, 1fr) instead of 1fr ─────────────────────────────
+   The cards contain a `white-space: nowrap` title (for the ellipsis effect),
+   and CSS Grid resolves `1fr` against each column's min-content — which for
+   nowrap titles is the FULL unwrapped text width. Result: long titles push
+   their column wider than its sibling, breaking the "same-size cards"
+   guarantee. `minmax(0, 1fr)` clamps each column's lower bound to 0, so
+   columns are forced equal regardless of content. */
+.ff-browse-grid {
+  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+}
+.ff-browse-card { min-width: 0; }
+.ff-browse-card-title,
+.ff-browse-card-meta { min-width: 0; }
+
+/* Card text block: fixed height so every card lands at the same total
+   height regardless of whether the title fits in one line or two, or
+   whether the director is one word or four. Two-line title clamp +
+   one-line director + one-line year/runtime line. */
+.ff-browse-card-textblock {
+  min-height: 72px;
+}
+
+/* ── xl ≥ 1280 → 6 columns ──────────────────────────────────────────────── */
+@media (min-width: 1281px) {
+  .ff-browse-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  }
+}
+
+/* ── lg 1024-1280 → 5 columns ──────────────────────────────────────────── */
+@media (max-width: 1280px) {
+  .ff-browse-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 16px !important;
+  }
+}
+
+/* ── md 768-1024 → 4 columns ───────────────────────────────────────────── */
+@media (max-width: 1023px) {
+  .ff-browse-results {
+    padding-left: clamp(20px, 3.5vw, 40px) !important;
+    padding-right: clamp(20px, 3.5vw, 40px) !important;
+  }
+  .ff-browse-toolbar {
+    padding-left: clamp(20px, 3.5vw, 40px) !important;
+    padding-right: clamp(20px, 3.5vw, 40px) !important;
+  }
+  .ff-browse-mood-row {
+    padding-left: clamp(20px, 3.5vw, 40px) !important;
+    padding-right: clamp(20px, 3.5vw, 40px) !important;
+  }
+  .ff-browse-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+  }
+}
+
+/* ── sm 640-768 → 3 columns + toolbar form wraps ───────────────────────── */
+@media (max-width: 767px) {
+  .ff-browse-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+  }
+  /* Stack the search input row over the Search/Surprise buttons so the
+     input isn't crushed to ~40px between the two buttons. */
+  .ff-browse-toolbar-form {
+    flex-wrap: wrap !important;
+  }
+  .ff-browse-toolbar-form > div:first-child {
+    flex-basis: 100% !important;
+  }
+}
+
+/* ── xs <640 → 2 columns + horizontal mood scroll + tight padding ──────── */
+@media (max-width: 639px) {
+  .ff-browse-toolbar {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+  /* Mobile filter pattern (JustWatch / Letterboxd / TMDB):
+     - Search button stays but collapses to an icon-only tap target — Enter
+       on the input still submits; the icon button gives a thumb-reachable
+       fallback the user explicitly asked for.
+     - Drop "Surprise me" + toggles from the visible toolbar (they live in
+       the Filters panel).
+     - The remaining chips + Filters button + Clear-all become ONE
+       horizontally scrolling row. Discoverable, compact, native-feeling. */
+  .ff-browse-surprise-btn,
+  .ff-browse-quick-toggles {
+    display: none !important;
+  }
+  .ff-browse-search-btn {
+    padding: 0 14px !important;
+    flex: 0 0 auto !important;
+  }
+  .ff-browse-search-btn-icon {
+    display: inline-flex !important;
+  }
+  .ff-browse-search-btn-label {
+    display: none !important;
+  }
+  /* Keep input + Search icon on the same row at <640 — at 640-767 the form
+     wraps (Surprise me is too wide), but here it isn't shipping. */
+  .ff-browse-toolbar-form {
+    flex-wrap: nowrap !important;
+  }
+  .ff-browse-toolbar-form > div:first-child {
+    flex-basis: auto !important;
+    flex: 1 1 auto !important;
+  }
+  .ff-browse-toolbar-row2 {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    /* Bleed the row to the edges so chips look like they scroll under the
+       screen — the iOS pattern. Padding restored inside. */
+    margin: 11px -16px 0 !important;
+    padding: 0 16px 4px !important;
+    gap: 8px !important;
+  }
+  .ff-browse-toolbar-row2::-webkit-scrollbar { display: none; }
+  .ff-browse-toolbar-row2 { scrollbar-width: none; }
+  .ff-browse-quick-chips {
+    flex-wrap: nowrap !important;
+    flex-shrink: 0 !important;
+  }
+  /* The vertical divider between chips and toggles isn't useful when
+     everything's a horizontal scroll row — hide it. */
+  .ff-browse-quick-chips > div:last-child {
+    display: none !important;
+  }
+  .ff-browse-refine-btn,
+  .ff-browse-clear-all {
+    flex-shrink: 0 !important;
+  }
+  /* Refine panel laid out for phones — single-column grids, less padding,
+     reachable Surprise me. */
+  .ff-browse-refine-basics {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  .ff-browse-refine-toggles .ff-browse-refine-surprise {
+    margin-left: 0 !important;
+    width: 100% !important;
+    justify-content: center !important;
+  }
+  .ff-browse-mood-row {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+  /* Mood pills become a single-row horizontal scroller — was wrapping into
+     a 6-row vertical stack at this width. Explicit `width: 100%` clamps
+     the container to its parent (the alternative — relying on
+     align-items: stretch — fails because the pills' nowrap min-content
+     is wider than the parent, and flex stretch can't shrink BELOW
+     min-content). With width pinned, overflow-x: auto kicks in. */
+  .ff-browse-mood-pills {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    padding-bottom: 6px !important;
+    margin: 0 -4px !important;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+  }
+  /* Each pill keeps its own width (don't shrink them — they'd become
+     unreadable). The container scrolls instead. */
+  .ff-browse-mood-pills > button {
+    flex-shrink: 0 !important;
+  }
+  /* Hide the horizontal scrollbar visually on WebKit / Firefox. */
+  .ff-browse-mood-pills::-webkit-scrollbar { display: none; }
+  .ff-browse-mood-pills { scrollbar-width: none; }
+  .ff-browse-mood-controls {
+    align-self: flex-end !important;
+  }
+  .ff-browse-results {
+    padding: 14px 16px 96px !important; /* bottom padding clears the fixed nav */
+  }
+  .ff-browse-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+  }
+}
+
+/* ── List view: also benefit from min-width:0 to keep names from
+   pushing the row layout wider than the parent. */
+.ff-browse-list-row { min-width: 0; }
+@media (max-width: 639px) {
+  /* On phones the list-row template (poster · title · match · ratings ·
+     actions = 5 columns) is too crowded. Drop the ratings column and the
+     action buttons (the QuickLook still has them) to give the title room. */
+  .ff-browse-list-row {
+    grid-template-columns: auto 1fr auto !important;
+    padding: 12px 14px !important;
+    gap: 12px !important;
+  }
+  .ff-browse-list-row > .ff-browse-list-extras,
+  .ff-browse-list-row > .ff-browse-list-actions {
+    display: none !important;
+  }
+}

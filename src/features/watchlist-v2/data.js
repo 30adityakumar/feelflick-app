@@ -9,7 +9,7 @@ export const HP = {
   text:'#FAFAFA', textSoft:'rgba(250,250,250,0.72)', textMuted:'rgba(250,250,250,0.45)', textFaint:'rgba(250,250,250,0.28)',
   purple:'#A78BFA', purpleDeep:'#7C3AED', pink:'#EC4899', amber:'#F59E0B', red:'#EF4444', green:'#34D399',
 };
-export const HP_GRAD = 'linear-gradient(135deg, #A78BFA 0%, #EC4899 100%)';
+export const HP_GRAD = 'linear-gradient(135deg, #9333ea 0%, #ec4899 100%)';
 
 const TMDB_IMG = 'https://image.tmdb.org/t/p';
 export const tmdbImg = (path, size = 'w500') =>

@@ -11,8 +11,9 @@ import { getTasteFingerprint } from '@/shared/services/tasteCache'
 
 import {
   deriveUser, deriveStats, deriveMoods, deriveDirectors, deriveMotifs,
-  deriveMixtape, deriveTrajectory, deriveDecades, deriveRuntime, deriveDaypart,
-  deriveFriends, deriveSkews, deriveYIR,
+  deriveMixtape, deriveTrajectory, deriveTrajectoryAllTime,
+  deriveDecades, deriveRuntime, deriveDaypart,
+  deriveFriends, deriveSkews, deriveYIR, deriveCommunityMood,
 } from './derive'
 import { archetypeForFingerprint } from './archetype'
 import { aggregateWatchHistorySignals, buildSummaryRequestBody } from './buildSummaryRequest'
@@ -46,12 +47,14 @@ const INITIAL_STATE = {
   motifs: [],
   mixtape: [],
   trajectory: [],
+  trajectoryAllTime: [],
   decades: [],
   runtime: null,
   daypart: [],
   editorial: null,
   friends: [],
   skews: [],
+  communityMood: null,
   yir: null,
   loading: true,
   error: null,
@@ -144,7 +147,7 @@ export function useProfileDataFetch({ userId, authUser, isSelf = false }) {
           }
         }
 
-        const statsDerived = deriveStats({ history, ratings })
+        const statsDerived = deriveStats({ history, ratings, fingerprint })
         setState({
           user: deriveUser({ authUser, dbUser, history }),
           stats: statsDerived,
@@ -153,6 +156,7 @@ export function useProfileDataFetch({ userId, authUser, isSelf = false }) {
           motifs: deriveMotifs({ history }),
           mixtape: deriveMixtape({ history, ratingsByMovieId }),
           trajectory: deriveTrajectory({ history }),
+          trajectoryAllTime: deriveTrajectoryAllTime({ history }),
           decades: deriveDecades({ history }),
           runtime: deriveRuntime({ history }),
           daypart: deriveDaypart({ history }),
@@ -163,6 +167,7 @@ export function useProfileDataFetch({ userId, authUser, isSelf = false }) {
             filmsByFriendId,
           }),
           skews: deriveSkews({ stats: statsDerived, history, ratings, feelflickStats }),
+          communityMood: deriveCommunityMood(feelflickStats),
           yir: deriveYIR({ history }),
           loading: false,
           error: null,

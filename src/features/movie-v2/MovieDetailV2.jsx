@@ -6,11 +6,12 @@
 // Why-for-you, Friends Loved, Taste Twin dynamic for every film from existing
 // data. TheTake + CriticQuotes remain Parasite-only until PR 4 (LLM endpoint).
 
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { useUserMovieStatus } from '@/shared/hooks/useUserMovieStatus'
+import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { trackShare, trackTrailerPlay } from '@/shared/services/interactions'
 
 import { deriveWhyHeader, deriveWhyReasons } from './derive/whyForYou'
@@ -39,13 +40,24 @@ export default function MovieDetailV2() {
   const data = useMovieDataFetch(id)
   const { mv, filmDbRow, moodAxes, overlay, loading, error } = data
 
+  const movieTitle = mv?.title
+  const movieYear = mv?.year ? ` (${mv.year})` : ''
+  usePageMeta({
+    title: movieTitle ? `${movieTitle}${movieYear} — FeelFlick` : 'Movie — FeelFlick',
+    description: mv?.tagline || mv?.overview || undefined,
+    image: mv?.backdrop || undefined,
+  })
+
   const {
     isInWatchlist, isWatched, loading: actionLoading,
     toggleWatchlist, toggleWatched, internalId,
   } = useUserMovieStatus({
     user,
     movie: mv ? { id: mv.id, title: mv.title, poster_path: null, overview: mv.overview } : null,
-    source: 'movie_detail_v2',
+    // 'movie_detail' is the canonical source string the user_watchlist.source
+    // check constraint allows. The folder is named -v2 internally but the DB
+    // doesn't care which version of the UI surface logged the action.
+    source: 'movie_detail',
   })
 
   const { fingerprint } = useTasteFingerprint(user?.id)
@@ -73,9 +85,27 @@ export default function MovieDetailV2() {
   const ffTake = overlay?.ff_take ?? null
   const criticQuotes = overlay?.critic_quotes ?? null
 
+  // `selectedVideo` is null when the modal should play the canonical main
+  // trailer (hero CTA, sticky bar). Featurette tiles pass their own clip in
+  // so the modal honestly plays what was clicked.
   const [trailerOpen, setTrailerOpen] = useState(false)
+  const [selectedVideo, setSelectedVideo] = useState(null)
   const [hoveredReason, setHoveredReason] = useState(null)
   const [hoveredAxis, setHoveredAxis] = useState(null)
+
+  // When Mark Watched flips from false → true, gently scroll the YourTake
+  // card into view so the rating UI is the obvious next thing. We skip the
+  // scroll on initial mount (e.g. opening an already-watched film) so we
+  // only react to in-session transitions.
+  const yourTakeRef = useRef(null)
+  const prevWatchedRef = useRef(isWatched)
+  useEffect(() => {
+    const wasWatched = prevWatchedRef.current
+    if (!wasWatched && isWatched && yourTakeRef.current) {
+      yourTakeRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+    prevWatchedRef.current = isWatched
+  }, [isWatched])
 
   // Two-way mood ↔ Why card highlight, now keyed off dynamic whyReasons.
   const reasonMood = whyReasons.find(r => r.id === hoveredReason)?.moodKey ?? null
@@ -90,6 +120,17 @@ export default function MovieDetailV2() {
 
   const handlePlayTrailer = useCallback(() => {
     if (internalId) trackTrailerPlay(internalId, 'movie_detail_v2')
+    setSelectedVideo(null)
+    setTrailerOpen(true)
+  }, [internalId])
+
+  // Featurette tile click — open the modal with this specific clip rather
+  // than the main trailer. `video` is the shape mapped in useMovieData
+  // ({ id: youtubeKey, title, kind, thumb }).
+  const handlePlayVideo = useCallback((video) => {
+    if (!video?.id) return
+    if (internalId) trackTrailerPlay(internalId, 'movie_detail_v2')
+    setSelectedVideo({ key: video.id, title: video.title })
     setTrailerOpen(true)
   }, [internalId])
 
@@ -121,7 +162,12 @@ export default function MovieDetailV2() {
       }}>
         <ScrollProgress />
         <FilmGrain />
-        <TrailerModal open={trailerOpen} onClose={() => setTrailerOpen(false)} />
+        <TrailerModal
+          open={trailerOpen}
+          onClose={() => setTrailerOpen(false)}
+          videoKey={selectedVideo?.key}
+          videoTitle={selectedVideo?.title}
+        />
 
         <div style={{ maxWidth: 1440, margin: '0 auto' }}>
           <MovieHero
@@ -145,8 +191,15 @@ export default function MovieDetailV2() {
             highlightReasonId={highlightReasonId}
           />
 
-          <Synopsis />
+          {/* Decide → confirm → act → reflect.
+              YourTake sits high so a watched user can rate the moment they
+              land. When unwatched, the locked card stays small and nudges
+              them to mark watched — a quiet inline prompt, not a billboard. */}
+          <div ref={yourTakeRef}>
+            <YourTake isWatched={isWatched} userId={user?.id} internalId={internalId} />
+          </div>
 
+          <TheTake take={ffTake} />
           <CriticQuotes quotes={criticQuotes} />
 
           <MoodRadar
@@ -155,18 +208,18 @@ export default function MovieDetailV2() {
             onHoverAxis={setHoveredAxis}
           />
 
-          <TheTake take={ffTake} />
+          <Synopsis />
 
-          <CastSection />
-          <VideosSection onPlayTrailer={handlePlayTrailer} />
+          <ProvidersSection />
+          <VideosSection onPlayVideo={handlePlayVideo} />
 
           <FriendsLoved friends={friends} />
           <TasteTwinReview twin={twin} />
 
-          <ProvidersSection />
           <PairsWith goToMovie={goToMovie} />
-          <YourTake isWatched={isWatched} />
+          <CastSection />
           <DirectorShelf goToMovie={goToMovie} />
+
           <TimelineSection />
           <DetailsSection />
           <MovieFooter onBackToBriefing={() => navigate('/home')} />
@@ -233,7 +286,7 @@ function PageError({ error, onBack }) {
           onClick={onBack}
           style={{
             padding: '12px 22px', borderRadius: 999,
-            background: 'linear-gradient(135deg, #A78BFA 0%, #EC4899 100%)',
+            background: 'linear-gradient(135deg, #9333ea 0%, #ec4899 100%)',
             color: '#fff', border: 'none', cursor: 'pointer',
             fontFamily: 'Outfit', fontSize: 14, fontWeight: 600,
           }}

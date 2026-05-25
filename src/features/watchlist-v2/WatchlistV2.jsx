@@ -7,6 +7,7 @@
 
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { HP, HP_GRAD } from './data'
 import { WatchlistDataProvider, useWatchlistData } from './useWatchlistData'
 import './watchlist-v2.css'
@@ -21,21 +22,21 @@ const RESET_BTN = {
 function Masthead() {
   const { stats } = useWatchlistData();
   return (
-    <section style={{ padding:'72px 88px 36px', position:'relative' }}>
+    <section className="ff-wl-section ff-wl-section--masthead" style={{ padding:'72px 88px 36px', position:'relative' }}>
       <div style={{ position:'absolute', inset:0, pointerEvents:'none', background:'radial-gradient(ellipse 60% 35% at 10% 0%, rgba(167,139,250,0.14), transparent 60%)' }} />
       <div style={{ position:'relative' }}>
-        <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:24 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:24, flexWrap:'wrap' }}>
           <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.32em', textTransform:'uppercase', color:HP.purple }}>Watchlist</div>
           <div style={{ height:1, width:38, background:HP.purple, opacity:0.5 }} />
           <div style={{ fontSize:10, fontWeight:500, letterSpacing:'0.18em', textTransform:'uppercase', color:HP.textMuted, fontFamily:'Outfit' }}>
-            {stats.watchlistTotal} film{stats.watchlistTotal === 1 ? '' : 's'} saved · curated for tonight
+            {stats.watchlistTotal} film{stats.watchlistTotal === 1 ? '' : 's'} saved
           </div>
         </div>
-        <h1 style={{ fontFamily:'Outfit', fontSize:88, lineHeight:0.92, fontWeight:300, letterSpacing:'-0.05em', color:HP.text, margin:0, textWrap:'balance' }}>
+        <h1 className="ff-wl-hero" style={{ fontFamily:'Outfit', fontSize:88, lineHeight:0.92, fontWeight:300, letterSpacing:'-0.05em', color:HP.text, margin:0, textWrap:'balance' }}>
           The <em style={{ fontStyle:'italic', fontWeight:400, color:HP.textSoft }}>queue.</em>
         </h1>
         <p style={{ marginTop:18, fontFamily:'Outfit, Inter, sans-serif', fontSize:17, color:HP.textSoft, fontStyle:'italic', maxWidth:720, lineHeight:1.55 }}>
-          Re-sorted every evening by mood, match, and how long they&rsquo;ve been waiting.
+          Filter, sort, and clean. Stale ones get flagged so you can decide what to cut.
         </p>
       </div>
     </section>
@@ -43,16 +44,21 @@ function Masthead() {
 }
 
 // ── Pulse strip (3 stats) ──────────────────────────────────────
+// Cold-start (no fingerprint) → swap "Perfect for tonight" for "Top match %"
+// so the first stat is always meaningful. The other two are universal.
 function PulseStrip() {
-  const { stats } = useWatchlistData();
+  const { stats, hasFingerprint } = useWatchlistData();
+  const tonightStat = hasFingerprint
+    ? { label:'Perfect for tonight', value: stats.perfectForTonightCount, hex: HP.purple,   hint:'matches your current mood window' }
+    : { label:'Top match',           value: stats.topMatchPct ? `${stats.topMatchPct}%` : '—', hex: HP.purple, hint:'your queue’s highest match' };
   const items = [
-    { label:'Perfect for tonight', value: stats.perfectForTonightCount, hex: HP.purple,    hint:'matches your current mood window' },
+    tonightStat,
     { label:'Getting stale',       value: stats.gettingStaleCount,       hex: HP.amber,     hint:'saved over 60 days ago' },
     { label:'Total queue',         value: stats.watchlistTotal,          hex: HP.textSoft,  hint:'films across all moods' },
   ];
   return (
-    <section style={{ padding:'24px 88px 40px' }}>
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:24 }}>
+    <section className="ff-wl-section ff-wl-pulse" style={{ padding:'24px 88px 40px' }}>
+      <div className="ff-wl-pulse-grid" style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:24 }}>
         {items.map(s => (
           <div key={s.label} style={{ padding:'20px 22px', borderRadius:6, background:'rgba(255,255,255,0.025)', border:`1px solid ${HP.border}`, display:'grid', gridTemplateColumns:'auto 1fr', gap:18, alignItems:'center' }}>
             <span style={{ fontFamily:'Outfit', fontSize:44, fontWeight:200, color:s.hex, letterSpacing:'-0.045em', lineHeight:1 }}>{s.value}</span>
@@ -68,17 +74,24 @@ function PulseStrip() {
 }
 
 // ── Filter / sort bar ──────────────────────────────────────────
+// Filter pills are dynamic: "All" + ("Perfect tonight" when fingerprint
+// exists) + top-5 actual moods from the user's queue + ("Getting stale"
+// when there is at least one stale item). Each pill always points to ≥1
+// item so we never render dead controls.
 function FilterBar({ filter, setFilter, sort, setSort, view, setView }) {
-  const filters = [
-    { v:'all',     l:'All' },
-    { v:'perfect', l:'Perfect tonight' },
-    { v:'tender',  l:'Tender' },
-    { v:'tense',   l:'Tense' },
-    { v:'slow',    l:'Slow-burn' },
-    { v:'stale',   l:'Getting stale' },
-  ];
+  const { availableMoods, hasFingerprint, stats } = useWatchlistData();
+  const filters = [{ v:'all', l:'All' }];
+  if (hasFingerprint && stats.perfectForTonightCount > 0) {
+    filters.push({ v:'perfect', l:'Perfect tonight' });
+  }
+  for (const m of availableMoods.slice(0, 5)) {
+    filters.push({ v:`mood:${m.mood}`, l:m.mood });
+  }
+  if (stats.gettingStaleCount > 0) {
+    filters.push({ v:'stale', l:'Getting stale' });
+  }
   return (
-    <section style={{ padding:'12px 88px 40px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:24, flexWrap:'wrap' }}>
+    <section className="ff-wl-section ff-wl-filterbar" style={{ padding:'12px 88px 40px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:24, flexWrap:'wrap' }}>
       <div role="radiogroup" aria-label="Filter" style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
         {filters.map(f => {
           const on = filter === f.v;
@@ -137,16 +150,21 @@ function FilterBar({ filter, setFilter, sort, setSort, view, setView }) {
 
 // ── Tonight tier — featured cards ──────────────────────────────
 function TonightTier({ picks }) {
+  const { hasFingerprint } = useWatchlistData();
   if (!picks.length) return null;
+  const kicker = hasFingerprint ? 'Perfect for tonight' : 'Top of your queue';
+  const sub = hasFingerprint
+    ? 'matched to your current mood window'
+    : 'ranked by match score — your taste profile builds as you rate';
   return (
-    <section style={{ padding:'8px 88px 48px' }}>
-      <div style={{ marginBottom:24, display:'flex', alignItems:'baseline', gap:14 }}>
+    <section className="ff-wl-section ff-wl-tonight" style={{ padding:'8px 88px 48px' }}>
+      <div style={{ marginBottom:24, display:'flex', alignItems:'baseline', gap:14, flexWrap:'wrap' }}>
         <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:HP.purple, display:'inline-flex', alignItems:'center', gap:10 }}>
-          <span style={{ height:1, width:22, background:HP.purple, opacity:0.6 }} />Perfect for tonight
+          <span style={{ height:1, width:22, background:HP.purple, opacity:0.6 }} />{kicker}
         </div>
-        <span style={{ fontSize:12, color:HP.textMuted, fontFamily:'Outfit', fontStyle:'italic' }}>matched to your current mood window</span>
+        <span style={{ fontSize:12, color:HP.textMuted, fontFamily:'Outfit', fontStyle:'italic' }}>{sub}</span>
       </div>
-      <div style={{ display:'grid', gridTemplateColumns:`repeat(${Math.min(picks.length, 3)},1fr)`, gap:24 }}>
+      <div className="ff-wl-tonight-grid" style={{ display:'grid', gridTemplateColumns:`repeat(${Math.min(picks.length, 3)},1fr)`, gap:24 }}>
         {picks.slice(0, 3).map((f, i) => <FeaturedCard key={f.id} f={f} idx={i} />)}
       </div>
     </section>
@@ -157,7 +175,7 @@ function FeaturedCard({ f, idx }) {
   const { removeFromWatchlist } = useWatchlistData();
   const goToFilm = () => f.tmdbId && navigate(`/movie/${f.tmdbId}`);
   return (
-    <article style={{ display:'grid', gridTemplateColumns:'auto 1fr', gap:20 }}>
+    <article className="ff-wl-featured" style={{ display:'grid', gridTemplateColumns:'auto 1fr', gap:20 }}>
       <button
         type="button"
         onClick={goToFilm}
@@ -211,11 +229,11 @@ function Grid({ items }) {
   const navigate = useNavigate();
   if (items.length === 0) return <EmptyState />;
   return (
-    <section style={{ padding:'0 88px 56px' }}>
+    <section className="ff-wl-section ff-wl-grid-section" style={{ padding:'0 88px 56px' }}>
       <div style={{ marginBottom:20, fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:HP.purple, display:'inline-flex', alignItems:'center', gap:10 }}>
         <span style={{ height:1, width:22, background:HP.purple, opacity:0.6 }} />The full queue
       </div>
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:22 }}>
+      <div className="ff-wl-grid" style={{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:22 }}>
         {items.map(f => (
           <button
             key={f.id}
@@ -249,13 +267,13 @@ function List({ items }) {
   const { removeFromWatchlist } = useWatchlistData();
   if (items.length === 0) return <EmptyState />;
   return (
-    <section style={{ padding:'0 88px 56px' }}>
+    <section className="ff-wl-section ff-wl-list-section" style={{ padding:'0 88px 56px' }}>
       <div style={{ marginBottom:20, fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:HP.purple, display:'inline-flex', alignItems:'center', gap:10 }}>
         <span style={{ height:1, width:22, background:HP.purple, opacity:0.6 }} />The full queue
       </div>
       <div style={{ borderTop:`1px solid ${HP.border}` }}>
         {items.map(f => (
-          <div key={f.id} style={{ display:'grid', gridTemplateColumns:'48px 1fr auto auto auto auto', gap:24, alignItems:'center', padding:'18px 0', borderBottom:`1px solid ${HP.border}` }}>
+          <div key={f.id} className="ff-wl-list-row" style={{ display:'grid', gridTemplateColumns:'48px 1fr auto auto auto auto', gap:24, alignItems:'center', padding:'18px 0', borderBottom:`1px solid ${HP.border}` }}>
             <button
               type="button"
               onClick={() => f.tmdbId && navigate(`/movie/${f.tmdbId}`)}
@@ -310,7 +328,7 @@ function List({ items }) {
 function EmptyState() {
   const navigate = useNavigate();
   return (
-    <section style={{ padding:'72px 88px 96px', textAlign:'center' }}>
+    <section className="ff-wl-section" style={{ padding:'72px 88px 96px', textAlign:'center' }}>
       <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:HP.purple, marginBottom:18 }}>The queue is empty</div>
       <h2 style={{ fontFamily:'Outfit', fontSize:36, lineHeight:1, fontWeight:500, letterSpacing:'-0.03em', color:HP.text, margin:'0 0 14px 0' }}>Save a film to start.</h2>
       <p style={{ margin:'0 auto 28px', maxWidth:480, fontSize:14, color:HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', lineHeight:1.6 }}>
@@ -326,11 +344,22 @@ function EmptyState() {
 }
 
 // ── Cleanup nudge ──────────────────────────────────────────────
+// Action lives here (not in the footer): the user is being asked to act on
+// stale items in the same breath that we surface the count.
 function CleanupNudge({ count, onReview }) {
+  const { removeStale } = useWatchlistData();
+  const [busy, setBusy] = useState(false);
   if (count === 0) return null;
+  async function clearStale() {
+    if (busy) return;
+    if (typeof window !== 'undefined' && !window.confirm(`Remove ${count} stale film${count === 1 ? '' : 's'} from your watchlist?`)) return;
+    setBusy(true);
+    try { await removeStale(); }
+    finally { setBusy(false); }
+  }
   return (
-    <section style={{ padding:'48px 88px', borderTop:`1px solid ${HP.border}`, background:`linear-gradient(135deg, ${HP.amber}0a, transparent)` }}>
-      <div style={{ display:'grid', gridTemplateColumns:'auto 1fr auto', gap:32, alignItems:'center' }}>
+    <section className="ff-wl-section ff-wl-cleanup" style={{ padding:'48px 88px', borderTop:`1px solid ${HP.border}`, background:`linear-gradient(135deg, ${HP.amber}0a, transparent)` }}>
+      <div className="ff-wl-cleanup-grid" style={{ display:'grid', gridTemplateColumns:'auto 1fr auto', gap:32, alignItems:'center' }}>
         <div style={{ width:48, height:48, borderRadius:999, background:`${HP.amber}1a`, border:`1px solid ${HP.amber}44`, display:'flex', alignItems:'center', justifyContent:'center' }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={HP.amber} strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
         </div>
@@ -339,33 +368,22 @@ function CleanupNudge({ count, onReview }) {
           <div style={{ fontFamily:'Outfit', fontSize:22, fontWeight:500, color:HP.text, letterSpacing:'-0.02em' }}>{count} film{count === 1 ? '' : 's'} {count === 1 ? 'has' : 'have'} been waiting over 60 days.</div>
           <div style={{ marginTop:6, fontSize:13, color:HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', fontStyle:'italic' }}>Be honest. Cut what you won&rsquo;t watch &mdash; it sharpens tomorrow&rsquo;s picks.</div>
         </div>
-        <button
-          type="button"
-          onClick={onReview}
-          style={{ padding:'12px 22px', borderRadius:6, background:'rgba(255,255,255,0.06)', border:`1px solid ${HP.borderStrong}`, color:HP.text, fontFamily:'Outfit', fontSize:13, fontWeight:600, cursor:'pointer' }}
-        >Review stale picks →</button>
+        <div className="ff-wl-cleanup-actions" style={{ display:'flex', gap:10, flexWrap:'wrap', justifyContent:'flex-end' }}>
+          <button
+            type="button"
+            onClick={onReview}
+            style={{ padding:'12px 22px', borderRadius:6, background:'rgba(255,255,255,0.06)', border:`1px solid ${HP.borderStrong}`, color:HP.text, fontFamily:'Outfit', fontSize:13, fontWeight:600, cursor:'pointer' }}
+          >Review stale picks →</button>
+          <button
+            type="button"
+            onClick={clearStale}
+            disabled={busy}
+            title={`Remove ${count} stale film${count === 1 ? '' : 's'} from your watchlist`}
+            style={{ padding:'12px 22px', borderRadius:6, background:'transparent', border:`1px solid ${HP.amber}66`, color:HP.amber, fontFamily:'Outfit', fontSize:13, fontWeight:600, cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.6 : 1 }}
+          >{busy ? 'Clearing…' : 'Clear all'}</button>
+        </div>
       </div>
     </section>
-  );
-}
-
-// ── Footer ─────────────────────────────────────────────────────
-function Foot() {
-  const navigate = useNavigate();
-  const linkStyle = { fontSize:12, color:HP.textMuted, letterSpacing:'0.04em', textDecoration:'none', cursor:'pointer' };
-  const disabledStyle = { ...linkStyle, color:HP.textFaint, cursor:'not-allowed', background:'none', border:'none', padding:0, font:'inherit' };
-  return (
-    <footer style={{ padding:'40px 88px 64px', borderTop:`1px solid ${HP.border}`, display:'flex', alignItems:'center', justifyContent:'space-between', fontFamily:'Outfit', flexWrap:'wrap', gap:20 }}>
-      <div style={{ display:'flex', alignItems:'center', gap:14 }}>
-        <div style={{ width:28, height:28, borderRadius:6, background:HP_GRAD, display:'inline-flex', alignItems:'center', justifyContent:'center', fontWeight:700, fontSize:13, color:'#fff' }}>FF</div>
-        <span style={{ fontSize:13, color:HP.textMuted }}>FeelFlick · The Queue</span>
-      </div>
-      <div style={{ display:'flex', gap:24, alignItems:'center' }}>
-        <button type="button" disabled aria-disabled="true" title="Export coming soon" style={disabledStyle}>Export queue</button>
-        <button type="button" disabled aria-disabled="true" title="Bulk-clear coming soon" style={disabledStyle}>Clear all stale</button>
-        <button type="button" onClick={() => navigate('/home')} style={{ ...linkStyle, background:'none', border:'none', padding:0, font:'inherit' }}>Back to Briefing</button>
-      </div>
-    </footer>
   );
 }
 
@@ -378,11 +396,14 @@ function WatchlistShell() {
 
   const filtered = useMemo(() => {
     let arr = items.slice();
-    if (filter === 'perfect') arr = arr.filter(f => f.perfect);
-    else if (filter === 'tender') arr = arr.filter(f => f.mood === 'Tender');
-    else if (filter === 'tense')  arr = arr.filter(f => f.mood === 'Tense');
-    else if (filter === 'slow')   arr = arr.filter(f => f.mood === 'Slow-burn');
-    else if (filter === 'stale')  arr = arr.filter(f => f.stale);
+    if (filter === 'perfect') {
+      arr = arr.filter(f => f.perfect);
+    } else if (filter === 'stale') {
+      arr = arr.filter(f => f.stale);
+    } else if (filter.startsWith('mood:')) {
+      const mood = filter.slice('mood:'.length);
+      arr = arr.filter(f => f.mood === mood);
+    }
     if (sort === 'match')   arr.sort((a,b) => b.match - a.match);
     if (sort === 'added')   arr.sort((a,b) => a.addedDaysAgo - b.addedDaysAgo);
     if (sort === 'stale')   arr.sort((a,b) => b.addedDaysAgo - a.addedDaysAgo);
@@ -390,7 +411,13 @@ function WatchlistShell() {
     return arr;
   }, [items, filter, sort]);
 
-  const tonightPicks = useMemo(() => items.filter(f => f.perfect), [items]);
+  // TonightTier picks: with fingerprint use real "perfect" matches; cold-start
+  // falls back to top 3 by match% so the tier always says something honest.
+  const { hasFingerprint } = useWatchlistData();
+  const tonightPicks = useMemo(() => {
+    if (hasFingerprint) return items.filter(f => f.perfect);
+    return [...items].sort((a, b) => b.match - a.match).slice(0, 3);
+  }, [items, hasFingerprint]);
 
   if (loading) return <PageSkeleton />;
   if (error) return <PageError error={error} />;
@@ -403,7 +430,6 @@ function WatchlistShell() {
       {filter === 'all' && <TonightTier picks={tonightPicks} />}
       {view === 'grid' ? <Grid items={filtered} /> : <List items={filtered} />}
       <CleanupNudge count={stats.gettingStaleCount} onReview={() => setFilter('stale')} />
-      <Foot />
     </>
   );
 }
@@ -434,6 +460,7 @@ function PageError({ error }) {
 }
 
 export default function WatchlistV2() {
+  usePageMeta({ title: 'Watchlist — FeelFlick' })
   return (
     <WatchlistDataProvider>
       <div className="ff-watchlist-v2" style={{ minHeight:'100vh', background:HP.bgDeep, color:HP.text, fontFamily:'Inter, sans-serif' }}>

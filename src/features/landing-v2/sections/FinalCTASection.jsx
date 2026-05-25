@@ -78,7 +78,7 @@ export default function FinalCTASection() {
             aria-label={isAuthenticating ? 'Signing in' : 'Get started free with FeelFlick'}
           >
             {isAuthenticating ? (
-              <><Loader2 className="h-4 w-4 flex-shrink-0 animate-spin" aria-hidden="true" /> Signing in...</>
+              <><Loader2 className="h-4 w-4 flex-shrink-0 animate-spin" aria-hidden="true" /> Signing in…</>
             ) : (
               <>
                 Get Started Free

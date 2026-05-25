@@ -89,8 +89,12 @@ function deriveItems({ rows, fingerprint, profile }) {
     const m = r.movies || {}
     const mood = pickPrimaryMood(m.mood_tags)
     // Engine when we have a profile; cold-start fallback otherwise.
-    const match = profile
-      ? engineToPercent(scoreMovieForUser(m, profile, 'default').score)
+    // scoreMovieForUser returns null when a content-boundary hard filter
+    // hits (graphic/sexual + matching keywords/cert); fall back to
+    // approxMatch so the film still has a displayed percent.
+    const engineScored = profile ? scoreMovieForUser(m, profile, 'default') : null
+    const match = engineScored
+      ? engineToPercent(engineScored.score)
       : approxMatch({ movie: m, fingerprint })
     const addedDaysAgo = daysAgo(r.added_at)
     const stale = addedDaysAgo > STALE_DAYS

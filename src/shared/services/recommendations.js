@@ -76,6 +76,7 @@ import { buildSkipWeightMap, buildCooldownSet } from './skip-signals'
 import { selectHeroCandidates, dayHashIndex } from './diversity'
 import { heroEraFloor, generateHeroReason, tieBreakSort } from './hero-reason'
 import { briefHardFilters, scoreMovieForBrief, buildBriefSeeds, generateBriefReason } from './brief-scoring'
+import { shouldFilterByBoundaries } from './boundaries'
 
 // ============================================================================
 // VERSION
@@ -2835,6 +2836,14 @@ export function scoreMovieForUser(movie, profile, rowType = 'default', seedFilms
     }
   }
 
+  // Hard-filter on content boundaries (graphic violence / sexual content)
+  // when the user has the corresponding toggle ON in /preferences. Callers
+  // already handle null returns elsewhere in this pipeline. Animals/noise
+  // are flag-only (surfaced on MovieDetail) and don't drop the film.
+  if (userPrefs?.boundaries && shouldFilterByBoundaries(movie, userPrefs.boundaries)) {
+    return null
+  }
+
   // 1) BASE QUALITY (normalized when available, ff_audience_rating as fallback)
   const effectiveRating = movie.ff_audience_rating != null
     ? movie.ff_audience_rating / 10
@@ -4151,6 +4160,7 @@ export async function getGenreBasedRecommendations(userId, options = {}) {
       // 6. Score with GENRE-SPECIFIC weights
       const scored = eligible.map(movie => {
         const result = scoreMovieForUser(movie, profile, 'favorite_genres', seedFilms)
+        if (!result) return null  // boundary filter dropped this film
 
         // Embedding similarity boost
         let embeddingBoost = 0
@@ -4205,11 +4215,12 @@ export async function getGenreBasedRecommendations(userId, options = {}) {
         }
       })
 
-      // 7. Sort by score
-      scored.sort((a, b) => b.score - a.score)
+      // 7. Drop boundary-filtered nulls, then sort by score
+      const scoredKept = scored.filter(Boolean)
+      scoredKept.sort((a, b) => b.score - a.score)
 
       // 8. Apply diversity filter
-      const diverse = applyRowDiversityFilter(scored, limit)
+      const diverse = applyRowDiversityFilter(scoredKept, limit)
 
       // 9. Log impressions (async, don't await)
       logRowImpressions(userId, diverse, 'favorite_genres').catch(err =>
@@ -5414,6 +5425,7 @@ export async function getTrendingForUser(userId, options = {}) {
       // 6. Score with TRENDING-SPECIFIC weights
       const scored = eligible.map(movie => {
         const result = scoreMovieForUser(movie, profile, 'trending', seedFilms)
+        if (!result) return null  // boundary filter dropped this film
 
         // Embedding similarity boost
         let embeddingBoost = 0
@@ -5469,11 +5481,12 @@ export async function getTrendingForUser(userId, options = {}) {
         }
       })
 
-      // 7. Sort by score
-      scored.sort((a, b) => b.score - a.score)
+      // 7. Drop boundary-filtered nulls, then sort
+      const scoredKept = scored.filter(Boolean)
+      scoredKept.sort((a, b) => b.score - a.score)
 
       // 8. Apply diversity filter
-      const diverse = applyRowDiversityFilter(scored, limit)
+      const diverse = applyRowDiversityFilter(scoredKept, limit)
 
       // 9. Log impressions
       logRowImpressions(userId, diverse, 'trending').catch(err =>
@@ -5720,6 +5733,7 @@ export async function getHiddenGemsForUser(userId, options = {}) {
       // 6. Score with HIDDEN GEM-SPECIFIC weights
       const scored = eligible.map(movie => {
         const result = scoreMovieForUser(movie, profile, 'hidden_gems', seedFilms)
+        if (!result) return null  // boundary filter dropped this film
 
         // Embedding similarity boost
         let embeddingBoost = 0
@@ -5780,11 +5794,12 @@ export async function getHiddenGemsForUser(userId, options = {}) {
         }
       })
 
-      // 7. Sort by score
-      scored.sort((a, b) => b.score - a.score)
+      // 7. Drop boundary-filtered nulls, then sort
+      const scoredKept = scored.filter(Boolean)
+      scoredKept.sort((a, b) => b.score - a.score)
 
       // 8. Apply diversity filter
-      const diverse = applyRowDiversityFilter(scored, limit)
+      const diverse = applyRowDiversityFilter(scoredKept, limit)
 
       console.log(
         '[getHiddenGemsForUser] Final selection:',
@@ -5966,8 +5981,10 @@ export async function getMoodCoherenceRow(userId, profile, limit = 20) {
       const scored = candidates
         .map(movie => {
           const result = scoreMovieForUser(movie, profile, 'home')
+          if (!result) return null  // boundary filter dropped this film
           return { movie, score: result.score }
         })
+        .filter(Boolean)
         .sort((a, b) => b.score - a.score)
         .slice(0, limit)
 
@@ -6025,12 +6042,14 @@ export async function getYourGenresRow(userId, profile, limit = 20) {
       return candidates
         .map(movie => {
           const result = scoreMovieForUser(movie, profile, 'home')
+          if (!result) return null  // boundary filter dropped this film
           return {
             ...movie,
             _score: result.score,
             _pickReason: { label: `${genreName} pick`, type: 'your_genre' },
           }
         })
+        .filter(Boolean)
         .sort((a, b) => b._score - a._score)
         .slice(0, limit)
     } catch (error) {
@@ -6193,8 +6212,9 @@ export async function getSlowContemplativeRow(userId, limit = 20) {
       const candidates = (data || []).filter(m => m?.id && !watchedIds.includes(m.id))
       const scored = candidates.map(movie => {
         const result = scoreMovieForUser(movie, profile, 'default', seedFilms)
+        if (!result) return null  // boundary filter dropped this film
         return { ...movie, _score: result.score, _pickReason: { label: 'A moment of quiet', type: 'slow_contemplative' } }
-      })
+      }).filter(Boolean)
       scored.sort((a, b) => b._score - a._score)
       return scored.slice(0, limit)
     } catch (error) {
@@ -6250,8 +6270,9 @@ export async function getQuickWatchesRow(userId, limit = 20) {
 
       const scored = candidates.map(movie => {
         const result = scoreMovieForUser(movie, profile, 'default', seedFilms)
+        if (!result) return null  // boundary filter dropped this film
         return { ...movie, _score: result.score, _pickReason: { label: 'Under 90 minutes', type: 'quick_watch' } }
-      })
+      }).filter(Boolean)
       scored.sort((a, b) => b._score - a._score)
       return scored.slice(0, limit)
     } catch (error) {

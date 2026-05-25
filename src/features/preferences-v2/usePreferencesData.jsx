@@ -231,7 +231,6 @@ export function PreferencesDataProvider({ children }) {
   }, [userId])
 
   // === Draft mutations (don't persist) ===
-  const update = useCallback((patch) => setDraft(d => ({ ...d, ...patch })), [])
   const setMoodWeight   = useCallback((id, w) => setDraft(d => ({ ...d, moodWeights: { ...d.moodWeights, [id]: w } })), [])
   const addDrawnGenre   = useCallback((id) => setDraft(d => d.drawnGenreIds.includes(id) || d.avoidGenreIds.includes(id) ? d : ({ ...d, drawnGenreIds: [...d.drawnGenreIds, id] })), [])
   const removeDrawnGenre = useCallback((id) => setDraft(d => ({ ...d, drawnGenreIds: d.drawnGenreIds.filter(x => x !== id) })), [])
@@ -311,9 +310,8 @@ export function PreferencesDataProvider({ children }) {
           subtitles: draft.subtitles,
           spoilerTier: draft.spoilerTier,
           languages: draft.languages,
-          // Genre labels — kept in JSONB as a denormalised mirror of
-          // user_preferences (which is what the engine actually reads).
-          drawnGenres: draft.drawnGenreIds.map(genreLabelOf),
+          // Avoid genres — Discover engine reads names from here. Drawn-to
+          // lives in user_preferences (no need to mirror).
           avoidGenres: draft.avoidGenreIds.map(genreLabelOf),
         },
       }
@@ -350,7 +348,7 @@ export function PreferencesDataProvider({ children }) {
     directorSuggestions,
     catalogs: { MOODS, GENRES, STREAMERS, DAYPARTS, BOUNDARIES, LANGUAGES, SUBTITLE_MODES, SPOILER_TIERS },
     // setters
-    update, setMoodWeight,
+    setMoodWeight,
     addDrawnGenre, removeDrawnGenre,
     addAvoidGenre, removeAvoidGenre,
     addTrustedDirector, removeTrustedDirector,
@@ -361,7 +359,7 @@ export function PreferencesDataProvider({ children }) {
     discard, save,
   }), [
     loading, saving, savedAt, dirty, draft, baseline, directorSuggestions,
-    update, setMoodWeight,
+    setMoodWeight,
     addDrawnGenre, removeDrawnGenre, addAvoidGenre, removeAvoidGenre,
     addTrustedDirector, removeTrustedDirector,
     addMutedDirector, removeMutedDirector,

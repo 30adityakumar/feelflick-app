@@ -846,8 +846,13 @@ function DiscoverV5Body() {
     const moodIds = selected.length > 0 ? selected : ['slow','tender'];
     const scored = films.map(f => {
       // === Base score: real engine when we have a profile, mood-tag overlap as cold-start fallback ===
-      const baseScore = (profile && f._raw)
-        ? scoreMovieForUser(f._raw, profile, 'default').score
+      // scoreMovieForUser returns null when a content-boundary hard filter
+      // hits. Discover already applied prefs.avoidGenres at fetch time; for
+      // boundary-filtered films we drop to the mood-overlap score (low
+      // score → film sinks to the back).
+      const engineScored = (profile && f._raw) ? scoreMovieForUser(f._raw, profile, 'default') : null
+      const baseScore = engineScored
+        ? engineScored.score
         : (moodIds.reduce((a, id) => a + (f.fit[id] || 0), 0) / moodIds.length) * 100;
 
       // === UI modifiers layered on top of the engine score ===

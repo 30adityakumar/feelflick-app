@@ -10,13 +10,16 @@ import { backdropImg, fetchJson, getMovieDetails, tmdbImg } from '@/shared/api/t
 import { supabase } from '@/shared/lib/supabase/client'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { computeUserProfile, scoreMovieForUser } from '@/shared/services/recommendations'
+import { activeMovieBoundaries, BOUNDARY_LABEL } from '@/shared/services/boundaries'
 import { deriveMoodAxes } from './derive/moodRadar'
 
 // Columns from the internal movies row needed by the editorial sections AND
 // every dimension scoreMovieForUser reads (so the match ring isn't hardcoded).
+// keywords + certification feed the content-boundary detector used below.
 const MOVIE_DB_COLS = `
   id, tmdb_id, title, release_date, release_year, runtime,
   director_name, primary_genre, poster_path, original_language,
+  keywords, certification,
   mood_tags, tone_tags, fit_profile,
   ff_audience_rating, ff_audience_confidence, ff_critic_rating,
   ff_final_rating, ff_rating, ff_rating_genre_normalized,
@@ -208,6 +211,7 @@ const INITIAL_STATE = {
   moodAxes: null,      // derived 6-axis radar; null when no LLM signal
   overlay: null,       // curated editorial overlay (movies_editorial_overlay) when present
   hasOverlay: false,
+  boundaryWarnings: [], // [{ id, label }] for /preferences boundaries the user has on AND this film matches
   loading: true,
   error: null,
 }
@@ -223,11 +227,15 @@ export function useMovieDataFetch(id) {
 
     ;(async () => {
       try {
-        const [details, releaseDates, providers, filmDbResult] = await Promise.all([
+        const [details, releaseDates, providers, filmDbResult, userSettingsResult] = await Promise.all([
           getMovieDetails(id),
           fetchJson(`/movie/${id}/release_dates`).catch(() => null),
           fetchJson(`/movie/${id}/watch/providers`).catch(() => null),
           supabase.from('movies').select(MOVIE_DB_COLS).eq('tmdb_id', id).maybeSingle(),
+          // user's content-boundary toggles (anonymous viewers get [])
+          user?.id
+            ? supabase.from('user_settings').select('settings').eq('user_id', user.id).maybeSingle()
+            : Promise.resolve({ data: null }),
         ])
         if (abort) return
         if (!details || details?.success === false || details?.status_code) {
@@ -253,11 +261,27 @@ export function useMovieDataFetch(id) {
           const profile = await computeUserProfile(user.id).catch(() => null)
           if (abort) return
           if (profile) {
-            const { score } = scoreMovieForUser(filmDbRow, profile, 'default')
-            const pct = engineToPercent(score)
-            if (pct != null) mv.ffMatch = pct
+            // scoreMovieForUser returns null when a hard-filter triggers
+            // (muted director or active content boundary). In that case we
+            // intentionally skip the match % — the film still loads, the
+            // warning line below tells the user why we wouldn't have picked it.
+            const result = scoreMovieForUser(filmDbRow, profile, 'default')
+            if (result) {
+              const pct = engineToPercent(result.score)
+              if (pct != null) mv.ffMatch = pct
+            }
           }
         }
+
+        // Content boundary warnings — only the boundaries the user has on
+        // AND this film matches. Empty when anonymous or when no toggles are
+        // on. Computed off filmDbRow which has the engine-shaped keywords +
+        // certification columns; falls back to empty if film isn't in our
+        // catalog.
+        const userBoundaries = userSettingsResult?.data?.settings?.prefs?.boundaries
+        const boundaryWarnings = filmDbRow && userBoundaries
+          ? activeMovieBoundaries(filmDbRow, userBoundaries).map(b => ({ id: b, label: BOUNDARY_LABEL[b] }))
+          : []
 
         // Editorial overlay — admin-curated per-film fields. Keyed by internal
         // movies.id (filmDbRow.id), not tmdb_id. Skip the query if the film
@@ -284,6 +308,7 @@ export function useMovieDataFetch(id) {
           moodAxes,
           overlay,
           hasOverlay: Boolean(overlay),
+          boundaryWarnings,
           loading: false,
           error: null,
         })

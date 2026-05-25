@@ -124,6 +124,10 @@ async function computePersonalRating(userId, movie, { profile } = {}) {
   // 2. Taste match from scoreMovieForUser
   const userProfile = profile ?? await computeUserProfile(userId)
   const scoreResult = scoreMovieForUser(movie, userProfile, 'personal')
+  // scoreMovieForUser returns null when a content-boundary hard filter
+  // triggers — we have no taste signal for those films, so skip the
+  // personal rating entirely (caller treats null as "no rating").
+  if (!scoreResult) return null
   // scoreMovieForUser returns 0-~200 raw; normalize to 0-100
   const tasteMatch = Math.max(0, Math.min(100, scoreResult.score / 2))
 

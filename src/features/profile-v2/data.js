@@ -1,18 +1,16 @@
 // FeelFlick — /profile · data layer.
 //
 // What's left here:
-//   - USER editorial fallbacks (summary, archetype, signature) — these are
-//     still hardcoded until a per-user editorial overlay table lands (PR 4).
-//     name/handle/joined/filmsLogged/hoursWatched are all derived live now —
-//     USER_DEFAULT.name is only the placeholder if useAuthSession() has no
-//     user yet.
-//   - Brand tokens (HP, HP_GRAD)
-//   - FRIENDS / SKEWS / YIR — still static until PR 3 (FRIENDS needs real
-//     user_similarity; SKEWS needs an RPC; YIR composes both).
+//   - USER editorial fallbacks (summary, archetype, signature). The real
+//     values come from user_profiles_computed.editorial_* via
+//     useProfileData; USER_DEFAULT.* only renders pre-load or when the
+//     LLM regen hasn't run yet.
+//   - Brand tokens (HP, HP_GRAD).
+//   - SKEWS / YIR cold-start fallbacks — kept because they let the Skew /
+//     YIR sections always render something sensible while data thickens.
 //
-// MOODS, DIRECTORS, MOTIFS, TRAJECTORY, DECADES, RUNTIME, DAYPART, MIXTAPE
-// are now derived in real time from user_history × user_ratings × the taste
-// fingerprint — see ./derive.js and ./useProfileData.jsx.
+// FRIENDS is gone: the Taste Twins section now renders a real empty state
+// when user_similarity has no rows (no more Marco/Priya/Theo/Jules).
 
 export const USER = {
   name: 'You',
@@ -37,14 +35,9 @@ export const HP = {
 };
 export const HP_GRAD = 'linear-gradient(135deg, #A78BFA 0%, #EC4899 100%)';
 
-// Static fallbacks — PR 3 wires these to real Supabase data.
-export const FRIENDS = [
-  { name:'Marco', initial:'M', match:87, films:42, avatarBg:'#A78BFA' },
-  { name:'Priya', initial:'P', match:79, films:64, avatarBg:'#F472B6' },
-  { name:'Theo',  initial:'T', match:64, films:38, avatarBg:'#7DD3FC' },
-  { name:'Jules', initial:'J', match:58, films:91, avatarBg:'#FBBF24' },
-];
-
+// Cold-start fallbacks for sections that always render — Skew + YIR show
+// these neutral values when the user has too little data for a live
+// derivation.
 export const SKEWS = [
   { label:'Darker',         you:73, them:50, delta:+23 },
   { label:'Slower-paced',   you:68, them:50, delta:+18 },

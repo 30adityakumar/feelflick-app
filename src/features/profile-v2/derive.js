@@ -146,6 +146,14 @@ export function deriveMixtape({ history, ratingsByMovieId }) {
 
 // === TRAJECTORY (last 12 months, count + dominant mood per month) ===
 
+function pickDominantMood(moodCounts) {
+  if (moodCounts.size === 0) return { mood: null, hex: HP.purple }
+  const sorted = [...moodCounts.entries()].sort((a, b) => b[1] - a[1])
+  const mood = capitalize(sorted[0][0])
+  const idx = Math.abs(mood.charCodeAt(0) + mood.length) % MOOD_PALETTE.length
+  return { mood, hex: MOOD_PALETTE[idx] }
+}
+
 export function deriveTrajectory({ history }) {
   if (history.length === 0) return []
   const now = new Date()
@@ -155,7 +163,7 @@ export function deriveTrajectory({ history }) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
     buckets.push({
       key: `${d.getFullYear()}-${d.getMonth()}`,
-      month: MONTH_LABELS[d.getMonth()],
+      label: MONTH_LABELS[d.getMonth()],
       count: 0,
       moodCounts: new Map(),
     })
@@ -174,17 +182,34 @@ export function deriveTrajectory({ history }) {
     }
   }
   return buckets.map(b => {
-    let dominant = null
-    let dominantHex = HP.purple
-    if (b.moodCounts.size > 0) {
-      const sorted = [...b.moodCounts.entries()].sort((a, b2) => b2[1] - a[1])
-      dominant = capitalize(sorted[0][0])
-      // hash → palette index
-      const idx = Math.abs(dominant.charCodeAt(0) + dominant.length) % MOOD_PALETTE.length
-      dominantHex = MOOD_PALETTE[idx]
-    }
-    return { month: b.month, count: b.count, mood: dominant, hex: dominantHex }
+    const { mood, hex } = pickDominantMood(b.moodCounts)
+    return { label: b.label, count: b.count, mood, hex }
   })
+}
+
+// "All time" view — one bar per distinct calendar year with watch history.
+// Used by the Trajectory toggle's "All time" option.
+export function deriveTrajectoryAllTime({ history }) {
+  if (history.length === 0) return []
+  const byYear = new Map()  // year → { count, moodCounts }
+  for (const h of history) {
+    if (!h.watched_at) continue
+    const y = new Date(h.watched_at).getFullYear()
+    if (!Number.isFinite(y)) continue
+    if (!byYear.has(y)) byYear.set(y, { count: 0, moodCounts: new Map() })
+    const b = byYear.get(y)
+    b.count += 1
+    for (const tag of h.movies?.mood_tags || []) {
+      b.moodCounts.set(tag, (b.moodCounts.get(tag) || 0) + 1)
+    }
+  }
+  if (byYear.size === 0) return []
+  return [...byYear.entries()]
+    .sort(([a], [b]) => a - b)
+    .map(([year, b]) => {
+      const { mood, hex } = pickDominantMood(b.moodCounts)
+      return { label: String(year), count: b.count, mood, hex }
+    })
 }
 
 // === DECADES (% of watched films per decade) ===

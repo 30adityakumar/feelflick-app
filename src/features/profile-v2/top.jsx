@@ -8,6 +8,27 @@ import { useProfileData } from './useProfileData'
 // Edit profile + Share my DNA actions live in the masthead corner — the page
 // is rendered inside AppShell which already provides the global TopNav.
 
+// "Updated today" / "Updated 5 days ago" / "Updated May 2026" — relative
+// label for the masthead eyebrow, driven by editorial.generatedAt. Returns
+// null when we have no real timestamp so the secondary text just hides
+// instead of lying.
+function formatUpdated(isoString) {
+  if (!isoString) return null
+  const t = new Date(isoString).getTime()
+  if (!Number.isFinite(t)) return null
+  const diffMs = Date.now() - t
+  const day = 24 * 60 * 60 * 1000
+  const days = Math.floor(diffMs / day)
+  if (days <= 0) return 'Updated today'
+  if (days === 1) return 'Updated yesterday'
+  if (days < 7) return `Updated ${days} days ago`
+  if (days < 30) {
+    const weeks = Math.floor(days / 7)
+    return `Updated ${weeks} week${weeks === 1 ? '' : 's'} ago`
+  }
+  return `Updated ${new Date(isoString).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`
+}
+
 function Masthead() {
   const navigate = useNavigate();
   const { user, isSelf, viewingUserId, editorial } = useProfileData();
@@ -19,6 +40,9 @@ function Masthead() {
   const archetype  = Array.isArray(editorial?.archetype) && editorial.archetype.length === 3
     ? editorial.archetype
     : USER_DEFAULT.archetype;
+  // "Updated [N days] ago" — driven by the real editorial regen timestamp, not
+  // a hardcoded "Vol. I · Updated today" string.
+  const updatedLabel = formatUpdated(editorial?.generatedAt);
 
   const handleShareDNA = async () => {
     const url = window.location.href;
@@ -47,8 +71,12 @@ function Masthead() {
       <div style={{ position:'relative', display:'flex', alignItems:'center', justifyContent:'space-between', gap:14, marginBottom:30 }}>
         <div style={{ display:'flex', alignItems:'center', gap:14 }}>
           <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.32em', textTransform:'uppercase', color:HP.purple }}>Cinematic DNA</div>
-          <div style={{ height:1, width:38, background:HP.purple, opacity:0.5 }} />
-          <div style={{ fontSize:10, fontWeight:500, letterSpacing:'0.18em', textTransform:'uppercase', color:HP.textMuted, fontFamily:'Outfit' }}>Vol. I · Updated today</div>
+          {updatedLabel && (
+            <>
+              <div style={{ height:1, width:38, background:HP.purple, opacity:0.5 }} />
+              <div style={{ fontSize:10, fontWeight:500, letterSpacing:'0.18em', textTransform:'uppercase', color:HP.textMuted, fontFamily:'Outfit' }}>{updatedLabel}</div>
+            </>
+          )}
         </div>
         <div style={{ display:'flex', gap:10, alignItems:'center' }}>
           {isSelf ? (

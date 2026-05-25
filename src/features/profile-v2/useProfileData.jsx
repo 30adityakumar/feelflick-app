@@ -13,7 +13,7 @@ import {
   deriveUser, deriveStats, deriveMoods, deriveDirectors, deriveMotifs,
   deriveMixtape, deriveTrajectory, deriveTrajectoryAllTime,
   deriveDecades, deriveRuntime, deriveDaypart,
-  deriveFriends, deriveSkews, deriveYIR,
+  deriveFriends, deriveSkews, deriveYIR, deriveCommunityMood,
 } from './derive'
 import { archetypeForFingerprint } from './archetype'
 import { aggregateWatchHistorySignals, buildSummaryRequestBody } from './buildSummaryRequest'
@@ -54,6 +54,7 @@ const INITIAL_STATE = {
   editorial: null,
   friends: [],
   skews: [],
+  communityMood: null,
   yir: null,
   loading: true,
   error: null,
@@ -146,7 +147,7 @@ export function useProfileDataFetch({ userId, authUser, isSelf = false }) {
           }
         }
 
-        const statsDerived = deriveStats({ history, ratings })
+        const statsDerived = deriveStats({ history, ratings, fingerprint })
         setState({
           user: deriveUser({ authUser, dbUser, history }),
           stats: statsDerived,
@@ -166,6 +167,7 @@ export function useProfileDataFetch({ userId, authUser, isSelf = false }) {
             filmsByFriendId,
           }),
           skews: deriveSkews({ stats: statsDerived, history, ratings, feelflickStats }),
+          communityMood: deriveCommunityMood(feelflickStats),
           yir: deriveYIR({ history }),
           loading: false,
           error: null,

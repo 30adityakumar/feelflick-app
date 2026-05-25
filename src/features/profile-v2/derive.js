@@ -45,15 +45,30 @@ export function deriveUser({ authUser, dbUser, history }) {
 
 // === Stats (quick-stats grid) ===
 
-export function deriveStats({ history, ratings }) {
+// DNA confidence — blends three signals so the score reflects how much we
+// can actually trust the user's derived DNA, not just one metric:
+//   • watch history (breadth, caps at 100 films)         — 30%
+//   • ratings count (taste calibration, caps at 30)      — 50%
+//   • fingerprint richness (distinct mood tags, cap 12)  — 20%
+// At 100/30/12 the score saturates at 100. The old formula only looked at
+// ratings, so a 200-film viewer with no ratings showed up as 0% confident
+// even though we had a rich mood fingerprint for them.
+function computeDnaConfidence({ filmsLogged, filmsRated, distinctMoodTags }) {
+  const history     = Math.min(filmsLogged / 100, 1) * 30
+  const ratings     = Math.min(filmsRated / 30, 1) * 50
+  const fingerprint = Math.min((distinctMoodTags || 0) / 12, 1) * 20
+  return Math.min(100, Math.round(history + ratings + fingerprint))
+}
+
+export function deriveStats({ history, ratings, fingerprint }) {
   const filmsLogged = history.length
   const hoursWatched = Math.round((history.reduce((s, h) => s + (h.movies?.runtime || 0), 0) / 60))
   const now = new Date()
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
   const filmsThisMonth = history.filter(h => h.watched_at && new Date(h.watched_at) >= startOfMonth).length
   const filmsRated = ratings.length
-  // DNA confidence: simple bucket from rated count; saturates at 50 ratings.
-  const conf = Math.min(100, Math.round((filmsRated / 50) * 100))
+  const distinctMoodTags = fingerprint?.topMoodTags?.length || 0
+  const conf = computeDnaConfidence({ filmsLogged, filmsRated, distinctMoodTags })
   return { filmsLogged, hoursWatched, filmsThisMonth, filmsRated, dnaConfidence: conf }
 }
 
@@ -71,18 +86,27 @@ export function deriveMoods(fingerprint) {
   }))
 }
 
-// === DIRECTORS (top 5 by watch count, with avg rating) ===
+// === DIRECTORS (top 5 by watch count, with avg rating + first-watched year) ===
 
 export function deriveDirectors({ history, ratingsByMovieId }) {
   const buckets = new Map()
   for (const h of history) {
     const dir = h.movies?.director_name
     if (!dir) continue
-    if (!buckets.has(dir)) buckets.set(dir, { films: 0, ratingSum: 0, ratingN: 0, signature: '' })
+    if (!buckets.has(dir)) buckets.set(dir, { films: 0, ratingSum: 0, ratingN: 0, firstWatchedT: null, signature: '' })
     const b = buckets.get(dir)
     b.films += 1
     const r = ratingsByMovieId.get(h.movie_id)?.rating
     if (r != null) { b.ratingSum += r; b.ratingN += 1 }
+    // Track the earliest watched_at timestamp per director so we can show
+    // "Since 2023" on the card when the user hasn't rated their films yet —
+    // a "first watched" year beats a bare "unrated" label.
+    if (h.watched_at) {
+      const t = new Date(h.watched_at).getTime()
+      if (Number.isFinite(t) && (b.firstWatchedT == null || t < b.firstWatchedT)) {
+        b.firstWatchedT = t
+      }
+    }
   }
   const list = [...buckets.entries()]
     .map(([name, b]) => ({
@@ -90,6 +114,7 @@ export function deriveDirectors({ history, ratingsByMovieId }) {
       films: b.films,
       // Convert 1-10 → 1-5 for "★ avg" display
       avg: b.ratingN > 0 ? Math.round((b.ratingSum / b.ratingN / 2) * 10) / 10 : null,
+      firstWatchedYear: b.firstWatchedT ? new Date(b.firstWatchedT).getFullYear() : null,
       signature: '',  // editorial — populated by overlay/LLM in a later PR
     }))
     .filter(d => d.films >= 2)  // need at least 2 films to call it "signature"
@@ -99,17 +124,29 @@ export function deriveDirectors({ history, ratingsByMovieId }) {
   return list.map((d, i) => ({ ...d, accent: MOOD_PALETTE[i % MOOD_PALETTE.length] }))
 }
 
-// === MOTIFS (chip cloud) — derived from mood_tags frequency ===
+// === MOTIFS (chip cloud) ===
+// We pull from movies.tone_tags first — they describe HOW films feel
+// stylistically (earnest, ornate, restrained, kinetic, brooding…), which
+// is a different signal than mood_tags (how films feel emotionally).
+// MoodRadar already covers mood; motifs cover tone so the two sections
+// say different things instead of restating the same fingerprint twice.
+// Falls back to mood_tags when a user has no tone coverage yet so the
+// cloud isn't empty in cold-start.
 
 export function deriveMotifs({ history }) {
-  const counts = new Map()
+  const tone = new Map()
+  const mood = new Map()
   for (const h of history) {
+    for (const tag of h.movies?.tone_tags || []) {
+      tone.set(tag, (tone.get(tag) || 0) + 1)
+    }
     for (const tag of h.movies?.mood_tags || []) {
-      counts.set(tag, (counts.get(tag) || 0) + 1)
+      mood.set(tag, (mood.get(tag) || 0) + 1)
     }
   }
-  if (counts.size === 0) return []
-  const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12)
+  const source = tone.size > 0 ? tone : mood
+  if (source.size === 0) return []
+  const sorted = [...source.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12)
   const max = sorted[0][1]
   return sorted.map(([tag, count]) => ({
     tag: capitalize(tag),
@@ -254,7 +291,25 @@ export function deriveRuntime({ history }) {
 
 // === DAYPART (% of watches by time-of-day bin) ===
 
+const ONE_DAY_MS = 24 * 60 * 60 * 1000
+
+// Returns true if 10+ history rows have watched_at timestamps that all sit
+// within a 24h window — the signature of a bulk import or onboarding seed.
+// In that case the "time of day" bin is meaningless (every row shares the
+// import timestamp) and we'd surface a misleading "you're a morning person"
+// claim. Better to hide the section than lie.
+function looksLikeBulkImport(history) {
+  const ts = history
+    .map(h => h.watched_at ? new Date(h.watched_at).getTime() : null)
+    .filter(Number.isFinite)
+  if (ts.length < 10) return false
+  let min = ts[0], max = ts[0]
+  for (const t of ts) { if (t < min) min = t; if (t > max) max = t }
+  return (max - min) < ONE_DAY_MS
+}
+
 export function deriveDaypart({ history }) {
+  if (looksLikeBulkImport(history)) return []
   const buckets = { Morning: 0, Afternoon: 0, Evening: 0, Late: 0 }
   let total = 0
   for (const h of history) {
@@ -367,6 +422,25 @@ function buildSkewRow(label, you, them, band, unit) {
     youRaw: round1(you),
     themRaw: round1(them),
     unit,
+  }
+}
+
+// === COMMUNITY MOOD (from feelflick_stats.top_mood, refreshed nightly) ===
+// Exposes the mood the rest of FeelFlick has been leaning into this week.
+// Tiny editorial caption above /profile's Skew section so the section
+// contextualises the user's skew against a live community signal instead
+// of a frozen "FF median" abstraction.
+export function deriveCommunityMood(feelflickStats) {
+  if (!Array.isArray(feelflickStats)) return null
+  const row = feelflickStats.find(r => r.stat_key === 'top_mood')
+  if (!row) return null
+  const v = row.stat_value
+  if (!v || typeof v !== 'object') return null
+  const tag = v.tag || v.key || null
+  if (!tag) return null
+  return {
+    tag: capitalize(tag),
+    share: typeof v.share === 'number' ? v.share : null,
   }
 }
 

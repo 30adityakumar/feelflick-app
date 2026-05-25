@@ -42,6 +42,11 @@ function SignatureDirectors() {
                     <span style={{ fontFamily:'Outfit', fontSize:30, fontWeight:200, color:d.accent, letterSpacing:'-0.04em', lineHeight:1 }}>{d.avg}</span>
                     <span style={{ fontSize:11, color:HP.textMuted, fontFamily:'Outfit' }}>★ avg</span>
                   </>
+                ) : d.firstWatchedYear ? (
+                  <>
+                    <span style={{ fontFamily:'Outfit', fontSize:30, fontWeight:200, color:d.accent, letterSpacing:'-0.04em', lineHeight:1 }}>{d.firstWatchedYear}</span>
+                    <span style={{ fontSize:11, color:HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.04em' }}>since</span>
+                  </>
                 ) : (
                   <span style={{ fontSize:11, color:HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.06em', textTransform:'uppercase' }}>unrated</span>
                 )}
@@ -68,7 +73,7 @@ function MotifCloud() {
         <div>
           <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:HP.purple, marginBottom:18 }}>Recurring motifs</div>
           <h2 className="ff-profile-section-h2" style={{ fontFamily:'Outfit', fontSize:44, lineHeight:1, fontWeight:500, letterSpacing:'-0.035em', color:HP.text, margin:0 }}>What you <em style={{ fontStyle:'italic', fontWeight:400, color:HP.textSoft }}>keep finding.</em></h2>
-          <p style={{ marginTop:18, fontSize:14, color:HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', lineHeight:1.65, maxWidth:340 }}>Patterns the engine sees across what you&rsquo;ve loved. Bigger means stronger pull.</p>
+          <p style={{ marginTop:18, fontSize:14, color:HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', lineHeight:1.65, maxWidth:340 }}>Tonal qualities that show up across what you&rsquo;ve watched &mdash; not how films feel, but how they&rsquo;re made. Bigger means stronger pull.</p>
         </div>
         <div style={{ display:'flex', flexWrap:'wrap', gap:'14px 18px', alignItems:'baseline' }}>
           {motifs.map(m => {
@@ -297,7 +302,7 @@ function Mixtape() {
 
 // How you skew vs FF median — live from feelflick_stats; static SKEWS stays as cold-start fallback.
 function Skew() {
-  const { skews } = useProfileData();
+  const { skews, communityMood } = useProfileData();
   const rows = (skews && skews.length > 0) ? skews : SKEWS;
   const isLive = skews && skews.length > 0;
   return (
@@ -307,6 +312,12 @@ function Skew() {
           <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:HP.purple, marginBottom:14 }}>Vs everyone else</div>
           <h2 className="ff-profile-section-h2" style={{ fontFamily:'Outfit', fontSize:44, lineHeight:1, fontWeight:500, letterSpacing:'-0.035em', color:HP.text, margin:0, textWrap:'balance' }}>How you <em style={{ fontStyle:'italic', fontWeight:400, color:HP.textSoft }}>skew.</em></h2>
           <p style={{ marginTop:18, fontSize:14, color:HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', lineHeight:1.65, maxWidth:340 }}>{isLive ? 'Versus the median FeelFlick user. Refreshed nightly.' : <>Versus the median FeelFlick user. <em style={{ fontStyle:'italic' }}>Sample values — live comparison ships in a follow-up.</em></>}</p>
+          {communityMood?.tag && (
+            <div style={{ marginTop:24, paddingTop:18, borderTop:`1px solid ${HP.border}`, maxWidth:340 }}>
+              <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color:HP.textMuted, fontFamily:'Outfit', marginBottom:6 }}>This week the room is into</div>
+              <div style={{ fontFamily:'Outfit', fontSize:24, fontWeight:500, color:HP.text, letterSpacing:'-0.02em' }}>{communityMood.tag}<span style={{ fontSize:14, color:HP.textMuted, fontStyle:'italic', marginLeft:8 }}>films.</span></div>
+            </div>
+          )}
         </div>
         <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
           {rows.map(s => (

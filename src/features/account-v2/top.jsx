@@ -141,7 +141,11 @@ function IdentityCard() {
               aria-label="Edit display name"
               style={{ background:'none', border:'none', padding:0, font:'inherit', color:'inherit', cursor:'text', fontFamily:'Outfit', fontSize:32, fontWeight:500, letterSpacing:'-0.02em', display:'inline-block' }}
             >
-              {name || authUser?.email}
+              {/* Headline falls back to the email's local part (before @),
+                  not the full email — full domain in an H1 reads as
+                  unfinished, esp. on a test/dev account. The full email
+                  still renders in the meta line below. */}
+              {name || authUser?.email?.split('@')[0] || 'You'}
             </button>
           )}
           {saving && <span style={{ marginLeft:14, fontSize:11, color:HP.textFaint, fontFamily:'Outfit', letterSpacing:'0.08em', textTransform:'uppercase' }}>Saving…</span>}

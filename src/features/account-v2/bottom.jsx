@@ -178,7 +178,7 @@ function SessionsCard() {
 
   return (
     <section className="ff-acct-section ff-acct-section--body" style={{ padding:'56px 88px', borderTop:`1px solid ${HP.border}`, background:'rgba(255,255,255,0.012)' }}>
-      <SectionHead kicker="Sessions" title="Where you&rsquo;re signed in." sub="Supabase only exposes the current session to the client. Use sign-out-everywhere to invalidate the others." />
+      <SectionHead kicker="Sessions" title="Where you&rsquo;re signed in." sub="We can only see this device. To end any other signed-in sessions, use the button below." />
       <div style={{ borderTop:`1px solid ${HP.border}` }}>
         <div className="ff-acct-session" style={{ display:'grid', gridTemplateColumns:'auto 1fr auto auto', gap:20, alignItems:'center', padding:'18px 0', borderBottom:`1px solid ${HP.border}` }}>
           <div style={{ width:36, height:36, borderRadius:8, background:'rgba(255,255,255,0.05)', border:`1px solid ${HP.border}`, display:'flex', alignItems:'center', justifyContent:'center' }}>

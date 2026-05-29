@@ -107,6 +107,16 @@ const homeCandidateCache = new Map() // userId → { candidates, watchedIds, ski
 // undermines the promise. After 30d the engine gets another chance.
 const SKIP_EXCLUSION_DAYS = 30
 
+// Tonight's Pick hero floor. A film must clear this display matchPct to
+// surface as a hero — below this it's "engine guess, not strong fit," and
+// surfacing it as THE pick of the night breaks the brand promise. The
+// real-world bug: a 55% match horror/trauma film bubbled to the top of a
+// Cozy-mood pool because the per-mood coherence bonus outweighed its weak
+// taste fit. Floor at 65 = "strong fit" tier on the medium-confidence
+// curve (engineScore ≈ 160). Films below the floor stay in the catalog
+// (Browse/Discover still find them) but won't be the curtain-up moment.
+const HERO_MIN_MATCH_PCT = 65
+
 /**
  * Pre-fetch the candidate movie pool for /home. Safe to call from anywhere
  * (e.g. the onboarding completion screen) — failures are swallowed by callers
@@ -432,10 +442,15 @@ export function HomeDataProvider({ children }) {
         // rankingScore in Pass 1; it intentionally doesn't influence the
         // displayed %.
         const moods = moodsScored.map(({ moodId, top }) => {
-          const topWithMatch = top.map(t => ({
-            ...t,
-            matchPct: computeMatchPercent({ engineScore: t.engineScore, profile }),
-          }))
+          // Hero floor — drop films below HERO_MIN_MATCH_PCT so the top of
+          // each mood is always a strong fit (no 55% match Tonight's Pick).
+          // matchPct === null means engineScore < FLOOR; treat as drop.
+          const topWithMatch = top
+            .map(t => ({
+              ...t,
+              matchPct: computeMatchPercent({ engineScore: t.engineScore, profile }),
+            }))
+            .filter(t => t.matchPct != null && t.matchPct >= HERO_MIN_MATCH_PCT)
           const rationale = Object.fromEntries(
             topWithMatch.map(f => [f.key, f.engineReason])  // may be null
           )
@@ -477,10 +492,12 @@ export function HomeDataProvider({ children }) {
         // films we have. Lets the Twins surface earn its space even for
         // users the precompute job hasn't reached yet.
         // Twin signal floor: keep a candidate only if their similarity is
-        // ≥ 10% OR they share ≥ 3 films with the user. Filters the long
-        // tail of "we both watched 2 of the same films" noise that the
-        // co-watch fallback otherwise lets through.
-        const isMeaningfulTwin = f => (f.match ?? 0) >= 0.10 || (f.common ?? 0) >= 3
+        // ≥ 20% — the section is called "Taste twins," not "people who
+        // happen to share a few films." Below 20%, the precompute is
+        // telling us they're NOT actually twins, even when shared-films
+        // count is high. The co-watch fallback below has its own minimum
+        // (the Jaccard-ish ratio it computes there must also clear 20%).
+        const isMeaningfulTwin = f => (f.match ?? 0) >= 0.20
         let baseFriends = [
           ...(simARes.data || []).map(r => ({ userId: r.user_b_id, name: r.users?.name, match: r.overall_similarity, common: r.movies_in_common })),
           ...(simBRes.data || []).map(r => ({ userId: r.user_a_id, name: r.users?.name, match: r.overall_similarity, common: r.movies_in_common })),

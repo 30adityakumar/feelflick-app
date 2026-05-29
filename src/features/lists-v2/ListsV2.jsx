@@ -212,18 +212,15 @@ function Body({ tab, onNewList }) {
   if (tab === 'mine') {
     return (
       <section className="ff-lists-section" style={{ padding: '8px 88px 56px' }}>
-        <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
-          <div>
-            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: HP.purple, marginBottom: 10, display: 'inline-flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ height: 1, width: 22, background: HP.purple, opacity: 0.6 }} />Your shelves
-            </div>
-            <h2 className="ff-lists-h2" style={{ fontFamily: 'Outfit', fontSize: 36, lineHeight: 1, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>Hand-built by <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>you.</em></h2>
+        {/* Section header — no inline "New list" button. Masthead's
+            primary CTA is always in view (and the right entry point
+            regardless of which tab is active). Two adjacent CTAs were
+            redundant clutter. */}
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: HP.purple, marginBottom: 10, display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ height: 1, width: 22, background: HP.purple, opacity: 0.6 }} />Your shelves
           </div>
-          <button
-            type="button"
-            onClick={onNewList}
-            style={{ padding: '10px 18px', borderRadius: 999, background: 'rgba(255,255,255,0.06)', border: `1px solid ${HP.borderStrong}`, color: HP.text, fontFamily: 'Outfit', fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}
-          >+ New list</button>
+          <h2 className="ff-lists-h2" style={{ fontFamily: 'Outfit', fontSize: 36, lineHeight: 1, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>Hand-built by <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>you.</em></h2>
         </div>
         {mine.length === 0 ? (
           <EmptyTab

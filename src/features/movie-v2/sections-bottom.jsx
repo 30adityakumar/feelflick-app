@@ -185,7 +185,13 @@ function ProvidersSection() {
             <span style={{ height:1, width:22, background: HP.purple, opacity:0.6 }} />Where to watch
           </div>
           <h2 className="ff-movie-section-h2" style={{ fontFamily:'Outfit', fontSize:36, lineHeight:1.05, fontWeight:500, letterSpacing:'-0.03em', color: HP.text, margin:0 }}>
-            Streaming <em style={{ fontStyle:'italic', fontWeight:400, color: HP.textSoft }}>now.</em>
+            {/* Adapt to the actual provider mix: only "Streaming now." if
+                we have flatrate subs; otherwise it's a rent/buy listing
+                and the old heading lied. */}
+            {providers.flatrate.length > 0
+              ? <>Streaming <em style={{ fontStyle:'italic', fontWeight:400, color: HP.textSoft }}>now.</em></>
+              : <>Rent or <em style={{ fontStyle:'italic', fontWeight:400, color: HP.textSoft }}>buy.</em></>
+            }
           </h2>
           <a
             href={providers.link || 'https://www.justwatch.com'}
@@ -268,9 +274,12 @@ function PairsWith({ goToMovie }) {
             <div style={{ fontSize:11, color: HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.04em', marginTop:3, marginBottom:10 }}>
               {s.year}{s.dir ? ` · ${s.dir}` : ''}
             </div>
-            {s.why && (
-              <span style={{ display:'block', fontSize:12.5, lineHeight:1.55, color: HP.textSoft, fontFamily:'Outfit, Inter, sans-serif', fontStyle:'italic' }}>{s.why}</span>
-            )}
+            {/* Always render a caption — empty `why` left the 4th card
+                visually unfinished. Generic fallback when the engine had
+                no overlap reason for this specific film. */}
+            <span style={{ display:'block', fontSize:12.5, lineHeight:1.55, color: HP.textSoft, fontFamily:'Outfit, Inter, sans-serif', fontStyle:'italic' }}>
+              {s.why || 'Sits next to it in the catalog.'}
+            </span>
           </button>
         ))}
       </div>

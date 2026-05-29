@@ -45,7 +45,7 @@ const SYSTEM_PROMPT = `You write taste profiles for a cinema app called FeelFlic
 
 You produce TWO pieces of copy per user:
   1. summary — one prose sentence, 18 words max, second person, the person's cinematic identity
-  2. signature — a single short caption, 5-8 words, no punctuation, that could live alone as a profile tagline (e.g. "Films that earn their silences.")
+  2. signature — a single short caption, 5-8 words, that could live alone as a profile tagline (e.g. "Films that earn their silences."). Commas are allowed between enumerated ideas.
 
 Both pieces serve the same person; signature is the shorter distilled essence.
 
@@ -77,7 +77,8 @@ Rules for summary:
 - End without a period if it flows better
 
 Rules for signature:
-- 5–8 words, no punctuation, no quotation marks, no emoji
+- 5–8 words, no quotation marks, no emoji, no trailing period
+- Commas ARE allowed (and required) to separate enumerated ideas — write "hope, heart, and grit" not "hope heart and grit"
 - Reads as a profile tagline — a distilled essence of the summary
 - Third-person abstract or imperative tone is fine; don't repeat the summary's exact words
 - Avoid the same clichés banned for summary

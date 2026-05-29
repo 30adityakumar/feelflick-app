@@ -169,11 +169,15 @@ function TwinsRail() {
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 24, gap: 16, flexWrap: 'wrap' }}>
         <div>
           <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: HP.purple, marginBottom: 12, display: 'inline-flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ height: 1, width: 22, background: HP.purple, opacity: 0.6 }} />{twins.length === 0 && popular.length > 0 ? 'Popular on FeelFlick' : 'Strongest matches'}
+            {/* Cold-start label avoids "Popular" — the page headline is
+                "Compatibility, not popularity," so the fallback shouldn't
+                contradict it. "While twins load" frames the list as a
+                placeholder, not a competing signal. */}
+            <span style={{ height: 1, width: 22, background: HP.purple, opacity: 0.6 }} />{twins.length === 0 && popular.length > 0 ? 'While twins load' : 'Strongest matches'}
           </div>
           <h2 className="ff-people-h2" style={{ fontFamily: 'Outfit', fontSize: 36, lineHeight: 1, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>
             {twins.length === 0 && popular.length > 0
-              ? <>Start with the <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>most-watched.</em></>
+              ? <>Patient <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>watchers.</em></>
               : <>People who <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>get it.</em></>}
           </h2>
         </div>
@@ -197,7 +201,12 @@ function TwinsRail() {
                 <Avatar url={p.avatarUrl} initial={p.initial} bg={p.avatarBg} size={42} onClick={() => navigate(`/profile/${p.id}`)} alt={`View ${p.name}'s profile`} />
                 <div style={{ minWidth: 0 }}>
                   <button type="button" onClick={() => navigate(`/profile/${p.id}`)} style={{ ...RESET_BTN, fontFamily: 'Outfit', fontSize: 15, fontWeight: 500, color: HP.text, display: 'block', width: '100%', textAlign: 'left' }}>{p.name}</button>
-                  <div style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.bio}</div>
+                  {/* Render handle on its own line so name-collisions (two
+                      "Aditya Kumar" users) disambiguate without changing
+                      bio copy. Handle is derived from name+id so it's
+                      always unique. */}
+                  <div style={{ fontSize: 10.5, color: HP.textFaint, fontFamily: 'Outfit', letterSpacing: '0.02em', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.handle}</div>
+                  <div style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit', marginTop: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.bio}</div>
                 </div>
                 <FollowBtn following={false} onToggle={() => toggleFollow(p.id)} />
               </article>
@@ -240,13 +249,15 @@ function TwinsRail() {
   )
 }
 
-// Cold-start guidance that sits above the Popular rail. Tells the user
-// "twins are computed from your ratings — here's a head start while you log."
+// Cold-start guidance that sits above the watchers rail. Tells the user
+// "twins are computed from your ratings — here are people building taste
+// alongside you while you log." Phrased to avoid the "popularity" framing
+// that contradicts the page headline.
 function ColdStartHint() {
   return (
     <div style={{ padding: '14px 18px', borderRadius: 6, background: 'rgba(167,139,250,0.06)', border: `1px solid ${HP.purple}33`, fontSize: 13, color: HP.textSoft, fontFamily: 'Outfit, Inter, sans-serif', lineHeight: 1.55 }}>
       <strong style={{ color: HP.text, fontWeight: 500 }}>Twins unlock as you rate.</strong>{' '}
-      Rate ~12 films and we&rsquo;ll match you with people whose ratings actually predict yours. Until then, here&rsquo;s who&rsquo;s watching the most.
+      Rate ~12 films and we&rsquo;ll match you with people whose ratings actually predict yours. Until then, here are watchers building taste alongside you.
     </div>
   )
 }

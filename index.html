@@ -56,9 +56,14 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <!-- crossorigin="anonymous" is mandatory: woff2 fetches are CORS and must reuse this connection -->
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
-    <!-- Google Fonts — loaded via <link> (faster than CSS @import) -->
+    <!-- Google Fonts — loaded via <link> (faster than CSS @import).
+         Outfit is the brand display + body face (weights 200-700: 200-300
+         hero scale, 400-500 section headers, 600 buttons/eyebrows, 700
+         pull-quote attribution + match badges). Inter is the fallback +
+         legacy body face. Previously only Inter loaded, so every
+         `fontFamily: 'Outfit'` silently fell back to Inter. -->
     <link rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" />
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap" />
 
     <!-- Structured Data (JSON-LD) for SEO -->
     <script type="application/ld+json">

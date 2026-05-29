@@ -15,60 +15,60 @@ import AppShell from '@/app/AppShell'
 
 // Public pages (no app chrome)
 const Landing = lazy(() => import('@/features/landing/Landing'))
-const LandingV2 = lazy(() => import('@/features/landing-v2/Landing'))
+const LandingV2 = lazy(() => import('@/legacy/landing/Landing'))
 
 // App pages (with header/sidebar)
-const HomePage = lazy(() => import('@/app/homepage/HomePage'))
-const HomeV2 = lazy(() => import('@/features/home-v2/HomeV2'))
-const MoviesTab = lazy(() => import('@/app/pages/movies/MoviesTab'))
+const HomePage = lazy(() => import('@/legacy/homepage/HomePage'))
+const HomeV2 = lazy(() => import('@/features/home/Home'))
+const MoviesTab = lazy(() => import('@/legacy/movies/MoviesTab'))
 const Browse = lazy(() => import('@/features/browse/Browse'))
-const MovieDetail = lazy(() => import('@/app/pages/MovieDetail'))
-const MovieDetailV2 = lazy(() => import('@/features/movie-v2/MovieDetailV2'))
+const MovieDetail = lazy(() => import('@/legacy/movie-detail'))
+const MovieDetailV2 = lazy(() => import('@/features/movie/MovieDetail'))
 import ErrorBoundary from './ErrorBoundary'
 const Onboarding = lazy(() => import('@/features/onboarding/Onboarding'))
-const Account = lazy(() => import('@/app/header/components/Account'))
-const AccountV2 = lazy(() => import('@/features/account-v2/AccountV2'))
-const Preferences = lazy(() => import('@/app/header/components/Preferences'))
-const PreferencesV2 = lazy(() => import('@/features/preferences-v2/PreferencesV2'))
-const Watchlist = lazy(() => import('@/app/pages/watchlist/Watchlist'))
-const WatchlistV2 = lazy(() => import('@/features/watchlist-v2/WatchlistV2'))
-const HistoryPage = lazy(() => import('@/app/pages/watched/WatchedHistory'))
-const HistoryV2 = lazy(() => import('@/features/history-v2/HistoryV2'))
-const MobileAccount = lazy(() => import('@/app/header/components/MobileAccount'))
+const Account = lazy(() => import('@/legacy/header/Account'))
+const AccountV2 = lazy(() => import('@/features/account/Account'))
+const Preferences = lazy(() => import('@/legacy/header/Preferences'))
+const PreferencesV2 = lazy(() => import('@/features/preferences/Preferences'))
+const Watchlist = lazy(() => import('@/legacy/watchlist/Watchlist'))
+const WatchlistV2 = lazy(() => import('@/features/watchlist/Watchlist'))
+const HistoryPage = lazy(() => import('@/legacy/watched/WatchedHistory'))
+const HistoryV2 = lazy(() => import('@/features/history/History'))
+const MobileAccount = lazy(() => import('@/legacy/header/MobileAccount'))
 
 // 404
-const NotFound = lazy(() => import('@/app/pages/NotFound'))
+const NotFound = lazy(() => import('@/app/NotFound'))
 
 // Shared top/bottom (legacy v2 landing's nav + footer, used by legal pages)
-import TopNav from '@/features/landing-v2/components/TopNav'
-import Footer from '@/features/landing-v2/components/Footer'
+import TopNav from '@/components/layout/TopNav'
+import Footer from '@/components/layout/Footer'
 
 // Auth/onboarding gate
 import PostAuthGate from '@/features/auth/PostAuthGate'
 const OAuthCallback = lazy(() => import('@/features/auth/OAuthCallback'))
 
 // Import the new pages
-const AboutPage = lazy(() => import('@/app/pages/legal/AboutPage'))
-const PrivacyPage = lazy(() => import('@/app/pages/legal/PrivacyPage'))
-const TermsPage = lazy(() => import('@/app/pages/legal/TermsPage'))
+const AboutPage = lazy(() => import('@/features/legal/AboutPage'))
+const PrivacyPage = lazy(() => import('@/features/legal/PrivacyPage'))
+const TermsPage = lazy(() => import('@/features/legal/TermsPage'))
 
-const DiscoverPage = lazy(() => import('@/app/pages/discover/DiscoverPage'))
-const DiscoverV5 = lazy(() => import('@/features/discover-v5/DiscoverV5'))
-const MoodBrowsePage = lazy(() => import('@/app/pages/browse/MoodBrowsePage'))
-const CollectionPage = lazy(() => import('@/app/pages/browse/CollectionPage'))
-const CuratedListsIndex = lazy(() => import('@/app/pages/browse/CuratedListsIndex'))
-const CuratedListPage = lazy(() => import('@/app/pages/browse/CuratedListPage'))
-const TasteProfile = lazy(() => import('@/app/pages/profile/TasteProfile'))
-const TasteProfileV2 = lazy(() => import('@/features/profile-v2/TasteProfileV2'))
-const PublicProfile = lazy(() => import('@/app/pages/profile/PublicProfile'))
-const UserSearchPage = lazy(() => import('@/app/pages/people/UserSearchPage'))
-const PeopleV2 = lazy(() => import('@/features/people-v2/PeopleV2'))
-const ListsPage = lazy(() => import('@/app/pages/lists/ListsPage'))
-const ListsV2 = lazy(() => import('@/features/lists-v2/ListsV2'))
-const ListDetailV2 = lazy(() => import('@/features/lists-v2/ListDetailV2'))
-const CuratedListV2 = lazy(() => import('@/features/lists-v2/CuratedListV2'))
-const PersonalListPage = lazy(() => import('@/features/lists-v2/PersonalListPage'))
-const ListDetailPage = lazy(() => import('@/app/pages/lists/ListDetailPage'))
+const DiscoverPage = lazy(() => import('@/legacy/discover/DiscoverPage'))
+const DiscoverV5 = lazy(() => import('@/features/discover/Discover'))
+const MoodBrowsePage = lazy(() => import('@/features/browse/MoodBrowsePage'))
+const CollectionPage = lazy(() => import('@/features/browse/CollectionPage'))
+const CuratedListsIndex = lazy(() => import('@/legacy/browse-curated/CuratedListsIndex'))
+const CuratedListPage = lazy(() => import('@/legacy/browse-curated/CuratedListPage'))
+const TasteProfile = lazy(() => import('@/legacy/profile/TasteProfile'))
+const TasteProfileV2 = lazy(() => import('@/features/profile/TasteProfile'))
+const PublicProfile = lazy(() => import('@/legacy/profile/PublicProfile'))
+const UserSearchPage = lazy(() => import('@/legacy/people/UserSearchPage'))
+const PeopleV2 = lazy(() => import('@/features/people/People'))
+const ListsPage = lazy(() => import('@/legacy/lists/ListsPage'))
+const ListsV2 = lazy(() => import('@/features/lists/Lists'))
+const ListDetailV2 = lazy(() => import('@/features/lists/ListDetail'))
+const CuratedListV2 = lazy(() => import('@/features/lists/CuratedList'))
+const PersonalListPage = lazy(() => import('@/features/lists/PersonalListPage'))
+const ListDetailPage = lazy(() => import('@/legacy/lists/ListDetailPage'))
 
 // cache monitoring page
 const CacheMonitoring = lazy(() => import('./admin/CacheMonitoring'))

@@ -6,7 +6,7 @@
  */
 
 import { scoreMovieV3 } from './scoring-v3'
-import { QUESTION_SET } from '@/app/pages/discover/questions'
+import { QUESTION_SET } from '@/shared/lib/discoverQuestions'
 
 // ============================================================================
 // VIBE UNPACKING

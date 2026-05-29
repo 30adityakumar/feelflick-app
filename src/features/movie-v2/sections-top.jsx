@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import Tooltip from '@/shared/ui/Tooltip'
 import { FILM_PALETTE, HP, HP_GRAD } from './data'
 import { useMovieData } from './useMovieData'
 
@@ -191,9 +192,11 @@ function MovieHero({
           <span style={{ fontSize:14, lineHeight:1 }}>‹</span> Back
         </button>
         <div style={{ display:'flex', alignItems:'center', gap:14 }}>
-          <button onClick={onShare} aria-label="Share this film" title="Share" style={iconBtnStyle}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-          </button>
+          <Tooltip content="Share this film" side="bottom">
+            <button onClick={onShare} aria-label="Share this film" style={iconBtnStyle}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+            </button>
+          </Tooltip>
         </div>
       </div>
 

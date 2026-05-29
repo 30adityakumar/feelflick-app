@@ -37,7 +37,7 @@ const HistoryV2 = lazy(() => import('@/features/history-v2/HistoryV2'))
 const MobileAccount = lazy(() => import('@/app/header/components/MobileAccount'))
 
 // 404
-const NotFound = lazy(() => import('@/app/pages/NotFound'))
+const NotFound = lazy(() => import('@/app/NotFound'))
 
 // Shared top/bottom (legacy v2 landing's nav + footer, used by legal pages)
 import TopNav from '@/components/layout/TopNav'
@@ -48,14 +48,14 @@ import PostAuthGate from '@/features/auth/PostAuthGate'
 const OAuthCallback = lazy(() => import('@/features/auth/OAuthCallback'))
 
 // Import the new pages
-const AboutPage = lazy(() => import('@/app/pages/legal/AboutPage'))
-const PrivacyPage = lazy(() => import('@/app/pages/legal/PrivacyPage'))
-const TermsPage = lazy(() => import('@/app/pages/legal/TermsPage'))
+const AboutPage = lazy(() => import('@/features/legal/AboutPage'))
+const PrivacyPage = lazy(() => import('@/features/legal/PrivacyPage'))
+const TermsPage = lazy(() => import('@/features/legal/TermsPage'))
 
 const DiscoverPage = lazy(() => import('@/app/pages/discover/DiscoverPage'))
 const DiscoverV5 = lazy(() => import('@/features/discover-v5/DiscoverV5'))
-const MoodBrowsePage = lazy(() => import('@/app/pages/browse/MoodBrowsePage'))
-const CollectionPage = lazy(() => import('@/app/pages/browse/CollectionPage'))
+const MoodBrowsePage = lazy(() => import('@/features/browse/MoodBrowsePage'))
+const CollectionPage = lazy(() => import('@/features/browse/CollectionPage'))
 const CuratedListsIndex = lazy(() => import('@/app/pages/browse/CuratedListsIndex'))
 const CuratedListPage = lazy(() => import('@/app/pages/browse/CuratedListPage'))
 const TasteProfile = lazy(() => import('@/app/pages/profile/TasteProfile'))

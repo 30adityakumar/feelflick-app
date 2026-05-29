@@ -6,7 +6,7 @@ import { motion } from 'framer-motion'
 import { Loader2 } from 'lucide-react'
 
 import { useGoogleAuth } from '@/shared/hooks/useGoogleAuth'
-import { TONE_COPY } from '@/features/landing-v2/data'
+import { TONE_COPY } from '@/legacy/landing/data'
 import Button from '@/shared/ui/Button'
 
 const TONE = TONE_COPY.confident

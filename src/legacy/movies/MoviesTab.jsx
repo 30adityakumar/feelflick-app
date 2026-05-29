@@ -6,7 +6,7 @@ import { browseMovies, PAGE_SIZE, TMDB_GENRE_IDS } from '@/shared/api/browse'
 import { supabase } from '@/shared/lib/supabase/client'
 import BrowseSearchBar, { DEFAULT_SORT } from './components/BrowseSearchBar'
 import ResultsGrid from './components/ResultsGrid'
-import Pagination from './components/Pagination'
+import Pagination from '@/shared/components/Pagination'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 

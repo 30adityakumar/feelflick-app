@@ -1,5 +1,5 @@
 // src/app/pages/discover/components/PinnedBrief.jsx
-import { QUESTION_SET } from '@/app/pages/discover/questions'
+import { QUESTION_SET } from '@/shared/lib/discoverQuestions'
 
 /**
  * Renders the stacked list of answered brief items.

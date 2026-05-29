@@ -1,7 +1,7 @@
 // src/app/pages/discover/components/BriefSynthesis.jsx
 import { motion } from 'framer-motion'
 
-import { QUESTION_SET } from '@/app/pages/discover/questions'
+import { QUESTION_SET } from '@/shared/lib/discoverQuestions'
 
 const VIBE_LABELS = Object.fromEntries(
   (QUESTION_SET.find(q => q.id === 'vibe')?.options || []).map(o => [o.value, o.label.toLowerCase()])

@@ -14,7 +14,7 @@ import { supabase } from '@/shared/lib/supabase/client'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { recommendationCache } from '@/shared/lib/cache'
-import Pagination from '@/app/pages/movies/components/Pagination'
+import Pagination from '@/shared/components/Pagination'
 
 import { HP, HP_GRAD, MOODS, DECADE_OPTIONS, LANG_OPTIONS, RUNTIME_OPTIONS, DIALOGUE_OPTIONS, ATTENTION_OPTIONS, GAP_OPTIONS, VIBE_OPTIONS } from './data'
 import { MoodRow, Toolbar, RefinePanel, GridCard, ListRow } from './components'

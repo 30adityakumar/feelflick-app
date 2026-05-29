@@ -21,7 +21,7 @@ import { track } from '@/shared/services/analytics'
 import Button from '@/shared/ui/Button'
 
 import { useDiscoverTracking } from './hooks/useDiscoverTracking'
-import { QUESTION_SET } from './questions'
+import { QUESTION_SET } from '@/shared/lib/discoverQuestions'
 import AIBar from './components/AIBar'
 import AnchorSearch from './components/AnchorSearch'
 import BriefSynthesis from './components/BriefSynthesis'

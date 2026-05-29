@@ -12,7 +12,8 @@ dist/
 
 # editor
 .DS_Store
-.vscode/
+.vscode/*
+!.vscode/extensions.json
 .idea/
 
 # Claude Code files. Project-level config (settings.json), guardrail skills, and

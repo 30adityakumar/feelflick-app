@@ -20,7 +20,7 @@ import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { tmdbImg } from '@/shared/api/tmdb'
 import { completeOnboarding, markOnboardingAuthComplete } from '@/shared/services/onboarding'
-import { prefetchHomeData } from '@/features/home-v2/useHomeData'
+import { prefetchHomeData } from '@/features/home/useHomeData'
 import BrandSplash from '@/shared/ui/BrandSplash'
 
 import AmbientGlow from './components/AmbientGlow'

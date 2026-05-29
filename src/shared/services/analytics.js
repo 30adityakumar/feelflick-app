@@ -18,6 +18,17 @@ export function initAnalytics() {
     api_host: import.meta.env.VITE_POSTHOG_HOST ?? 'https://us.i.posthog.com',
     capture_pageview: false,
     autocapture: false,
+    // UX insight: heatmaps (clicks, rage-clicks, scroll depth) without enabling
+    // full autocapture.
+    enable_heatmaps: true,
+    // Session replay. Honors the same consent as events — opt_out_capturing()
+    // below also stops recording. Mask all form inputs so emails/passwords are
+    // never captured; add `data-ph-mask` to any other sensitive element.
+    // NOTE: also enable Session Replay in the PostHog project settings.
+    session_recording: {
+      maskAllInputs: true,
+      maskTextSelector: '[data-ph-mask]',
+    },
     loaded(ph) {
       if (import.meta.env.DEV) ph.debug()
     },

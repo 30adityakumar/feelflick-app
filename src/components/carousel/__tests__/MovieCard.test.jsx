@@ -20,7 +20,7 @@ vi.mock('@/shared/api/tmdb', () => ({
   posterSrcSet: (path, sizes) => sizes.map(s => `https://image.tmdb.org/t/p/${s}${path} ${s.replace('w','')}w`).join(', '),
 }))
 
-vi.mock('@/contexts/WatchlistContext', () => ({
+vi.mock('@/app/providers/WatchlistContext', () => ({
   useWatchlistContext: () => ({
     user: { id: 'user-1' },
     ready: true,

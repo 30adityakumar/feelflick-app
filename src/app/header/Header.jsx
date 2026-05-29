@@ -16,7 +16,7 @@ import {
 
 import { supabase } from '@/shared/lib/supabase/client'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
-import { useGoogleAuth } from '@/features/landing-v2/utils/useGoogleAuth'
+import { useGoogleAuth } from '@/shared/hooks/useGoogleAuth'
 
 // Mood-tinted accent. Wire to a context later (see notes in README).
 const AMBIENT_HEX = '#A78BFA'

@@ -1,0 +1,98 @@
+/* watchlist.css */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+.ff-watchlist-v2 { font-family:'Inter', system-ui, sans-serif; -webkit-font-smoothing:antialiased; }
+.ff-watchlist-v2 em { font-style: italic; }
+.ff-watchlist-v2 button { font-family: inherit; transition: filter 0.18s ease; }
+.ff-watchlist-v2 button:hover:not(:disabled) { filter: brightness(1.12); }
+.ff-watchlist-v2 select { font-family: inherit; }
+.ff-watchlist-v2 ::selection { background: rgba(167,139,250,0.4); color:#fff; }
+
+/* === Responsive overrides ==================================================
+   Every section uses inline `padding: ...88px` and fixed grid templates. The
+   overrides reach in by class hook and collapse layouts at narrow widths.
+   `!important` is required because the source styles are inline. */
+
+/* Tablet (≤ 1100px): trim padding; grid drops from 5 → 4 cols. */
+@media (max-width: 1100px) {
+  .ff-wl-section {
+    padding-left: clamp(28px, 5vw, 60px) !important;
+    padding-right: clamp(28px, 5vw, 60px) !important;
+  }
+  .ff-wl-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+  .ff-wl-tonight-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* Smaller tablet (≤ 880px): 3-col poster grid. */
+@media (max-width: 880px) {
+  .ff-wl-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 16px !important;
+  }
+  .ff-wl-pulse-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 12px !important;
+  }
+  .ff-wl-cleanup-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+    text-align: left;
+  }
+}
+
+/* Phone (≤ 720px). */
+@media (max-width: 720px) {
+  .ff-wl-section {
+    padding-left: clamp(16px, 4vw, 24px) !important;
+    padding-right: clamp(16px, 4vw, 24px) !important;
+  }
+  .ff-wl-section--masthead {
+    padding-top: 56px !important;
+    padding-bottom: 24px !important;
+  }
+  .ff-wl-hero {
+    font-size: clamp(44px, 13vw, 72px) !important;
+    line-height: 1 !important;
+  }
+  /* PulseStrip: 3-card row → vertical stack so 44px numbers + 2-line labels read. */
+  .ff-wl-pulse-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+  /* Grid view: 2-col posters (3 was still too tight at 390px once gap + padding eaten). */
+  .ff-wl-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 14px !important;
+  }
+  /* TonightTier: single column featured cards. */
+  .ff-wl-tonight-grid {
+    grid-template-columns: 1fr !important;
+  }
+  /* FeaturedCard inner: stack poster above the meta + actions. */
+  .ff-wl-featured {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+  /* List view rows: drop the mood pill + match-% columns from the grid,
+     surface them inline under the title to keep rows readable. */
+  .ff-wl-list-row {
+    grid-template-columns: 48px 1fr auto !important;
+    gap: 12px !important;
+  }
+  .ff-wl-list-row > div:nth-child(3),  /* mood pill */
+  .ff-wl-list-row > div:nth-child(4)   /* match % big number */ {
+    display: none !important;
+  }
+  /* Cleanup nudge actions stack on mobile so both buttons stay tappable. */
+  .ff-wl-cleanup-actions {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    width: 100%;
+  }
+  .ff-wl-cleanup-actions button {
+    width: 100% !important;
+  }
+}

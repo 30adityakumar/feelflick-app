@@ -1,4 +1,4 @@
-// src/app/auth/PostAuthGate.jsx
+// src/features/auth/PostAuthGate.jsx
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'

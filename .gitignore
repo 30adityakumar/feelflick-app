@@ -15,11 +15,16 @@ dist/
 .vscode/
 .idea/
 
-# Claude Code local files (screenshots, plans, working notes, secrets)
-# .claude/settings.json is project-level config that SHOULD be tracked.
-.claude/
+# Claude Code files. Project-level config (settings.json), guardrail skills, and
+# hook scripts SHOULD be tracked; screenshots/notes/secrets stay local.
+.claude/*
 !.claude/settings.json
+!.claude/skills/
+!.claude/skills/**
+!.claude/hooks/
+!.claude/hooks/**
 .claude/local-secrets.json
+.claude/settings.local.json
 
 # logs
 npm-debug.log*
@@ -33,3 +38,9 @@ yarn-error.log*
 .tmp-screens/
 audits/
 consistency-audit.md
+
+# Playwright E2E
+/test-results/
+/playwright-report/
+/blob-report/
+/e2e/.auth/

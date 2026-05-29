@@ -109,9 +109,17 @@ Use SIGN_IN when testing authenticated surfaces (/home, /discover, /movie/:id, e
 npm run dev          # Vite dev server (port 5173)
 npm run lint         # ESLint (flat config, eslint.config.js)
 npm run lint:fix     # Auto-fix safe issues
-npm run test         # Vitest
+npm run test         # Vitest (unit/component)
+npm run test:e2e     # Playwright E2E (auto-starts dev server; see note below)
 npm run build        # Production build
 ```
+
+> **E2E (Playwright):** tests live in `e2e/` as `*.e2e.js` (named so Vitest skips
+> them). Auth uses a client-side `window.supabase.signInWithPassword` against the
+> dev test user, so set `E2E_TEST_EMAIL` / `E2E_TEST_PASSWORD` (from
+> `.claude/local-secrets.json` → `feelflickDevUser`) before running:
+> `E2E_TEST_EMAIL=… E2E_TEST_PASSWORD=… npm run test:e2e`. Saved session →
+> `e2e/.auth/` (gitignored). `public/` specs run logged-out; `app/` specs authenticated.
 
 - One component per file *except* in editorial surfaces (e.g. `landing/Landing.jsx`) where sub-components are colocated as a single composition.
 - PascalCase components, camelCase hooks prefixed `use`.
@@ -463,8 +471,34 @@ it silently.
    In-button micro-spinners inside `Button.jsx` are the documented exception.
 10. **No two buttons doing the same thing** on one card.
 
+## Project Guardrails — Claude Code skills & hooks
+
+This repo ships with auto-triggering guardrail skills in `.claude/skills/` and a
+lint hook in `.claude/settings.json`. Lean on them — they encode the rules below
+so they aren't re-derived each session.
+
+**Skills (auto-invoke on matching work):**
+- `design-system-guard` — enforces the editorial language (fonts, palette, brand
+  gradient, hero weights, MovieCard hover law, skeletons, microcopy). Also runs as
+  a check after `frontend-design` (which pushes bold aesthetics that can violate it).
+- `recommendation-engine` — gates engine work (scoring, pgvector similarity,
+  mood→film, decay/anti-recency); mandates DB-first analysis before any tuning.
+- `supabase-change` — gates schema/RLS/edge/cron changes (confirm before DDL) and
+  enforces DB-first analysis.
+- `a11y-audit` — aria/keyboard/contrast checks on UI changes (the runtime layer
+  `eslint-plugin-jsx-a11y` can't cover).
+- `perf-guard` — LCP/CLS, lazy+srcset posters, bundle budget, query hygiene for the
+  media-heavy frontend.
+
+**Hook:** `PostToolUse` runs `.claude/hooks/lint-on-edit.sh` after every Edit/Write
+to a `src/**/*.{js,jsx}` file — advisory ESLint (warnings + errors surfaced, never
+blocks). It enforces the `lint → test → build` discipline automatically.
+
 ## Direction signals (recent shipped roadmap)
 
+- Security hardening pass (2026-05-29): RLS + write lockdown on 18 catalog/engine
+  tables, cron-function + IDOR-function lockdown, pinned function `search_path`
+  (migrations `20260529000000`–`000400`). See memory `project_rls_exposure`.
 - v3 landing replaced v2 landing at `/` (PR #84). landing-v2 preserved at `/v2`.
 - v2 surface family is shipping as the app's canonical direction (#79).
 - Onboarding dropped `V2` suffix (#77). Other `*-v2` folders will follow.

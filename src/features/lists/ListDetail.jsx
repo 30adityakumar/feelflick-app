@@ -1,4 +1,4 @@
-// src/features/lists-v2/ListDetailV2.jsx
+// src/features/lists-v2/ListDetail.jsx
 // FeelFlick — Lists v2 detail. Mirrors the editorial "Featured shelf" layout
 // from ListsV2: sticky-left title/blurb/actions, right column of numbered
 // film rows with mood chips and optional italic notes. Owns its own data
@@ -10,8 +10,8 @@ import { supabase } from '@/shared/lib/supabase/client'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { tmdbImg } from '@/shared/api/tmdb'
-import CreateListModal from '@/features/lists-v2/CreateListModal'
-import './lists-v2.css'
+import CreateListModal from '@/features/lists/CreateListModal'
+import './lists.css'
 
 const HP = {
   bgDeep: '#06060a',
@@ -41,7 +41,7 @@ function timeAgo(iso) {
   return `${months}mo ago`
 }
 
-export default function ListDetailV2() {
+export default function ListDetail() {
   const { listId } = useParams()
   const navigate = useNavigate()
   const { userId: currentUserId, user: authUser } = useAuthSession()
@@ -126,7 +126,7 @@ export default function ListDetailV2() {
           if (!abort) setIsFollowing(!!followRow)
         }
       } catch (e) {
-        console.error('[ListDetailV2]', e)
+        console.error('[ListDetail]', e)
       } finally {
         if (!abort) setLoading(false)
       }
@@ -154,7 +154,7 @@ export default function ListDetailV2() {
         if (error) throw error
       }
     } catch (e) {
-      console.error('[ListDetailV2.toggleFollow]', e)
+      console.error('[ListDetail.toggleFollow]', e)
       setIsFollowing(wasFollowing)  // revert
     } finally {
       setFollowBusy(false)
@@ -201,7 +201,7 @@ export default function ListDetailV2() {
     }
     const { error } = await supabase.from('lists').delete().eq('id', listId)
     if (error) {
-      console.error('[ListDetailV2.delete]', error)
+      console.error('[ListDetail.delete]', error)
       return
     }
     navigate('/lists', { replace: true })
@@ -216,7 +216,7 @@ export default function ListDetailV2() {
       .eq('list_id', listId)
       .eq('movie_id', movieId)
     if (error) {
-      console.error('[ListDetailV2.removeFilm]', error)
+      console.error('[ListDetail.removeFilm]', error)
       setFilms(prev)
     }
   }
@@ -244,7 +244,7 @@ export default function ListDetailV2() {
       const err = updates.find(r => r.error)?.error
       if (err) throw err
     } catch (e) {
-      console.error('[ListDetailV2.move]', e)
+      console.error('[ListDetail.move]', e)
       setFilms(prev)
     }
   }

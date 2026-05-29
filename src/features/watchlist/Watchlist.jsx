@@ -1,4 +1,4 @@
-// src/features/watchlist-v2/WatchlistV2.jsx
+// src/features/watchlist-v2/Watchlist.jsx
 // FeelFlick — Watchlist v2 ("The Queue"). Mount at /watchlist-v2.
 // PR 1: drop the internal nav (AppShell already provides the global TopNav),
 //        wire every card/button to a real action (navigate, remove).
@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router-dom'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { HP, HP_GRAD } from './data'
 import { WatchlistDataProvider, useWatchlistData } from './useWatchlistData'
-import './watchlist-v2.css'
+import './watchlist.css'
 
 // === Reset-button style for elements wrapped as buttons ===
 const RESET_BTN = {
@@ -459,7 +459,7 @@ function PageError({ error }) {
   );
 }
 
-export default function WatchlistV2() {
+export default function Watchlist() {
   usePageMeta({ title: 'Watchlist — FeelFlick' })
   return (
     <WatchlistDataProvider>

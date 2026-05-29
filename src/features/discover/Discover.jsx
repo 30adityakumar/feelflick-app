@@ -11,7 +11,7 @@ import { trackInteraction } from '@/shared/services/interactions'
 import { getMovieWatchProviders } from '@/shared/api/tmdb'
 import { Play, SkipForward, X, Check, Bookmark } from 'lucide-react'
 import { DiscoverDataProvider, useDiscoverData } from './useDiscoverData'
-import './discover-v5.css'
+import './discover.css'
 
 // /discover v5 — Magazine + the immersion senses
 // Adds: Web Audio cue layer (plucks/whooms/chord), breath pause,
@@ -1046,7 +1046,7 @@ function StagePick({ selected, who, energy, intention, results, profile, session
       updateImpression(user.id, filmId, 'saved').catch(() => {})
       trackInteraction('save', interactionContext('save_for_later')).catch(() => {})
     } catch (e) {
-      console.error('[DiscoverV5.saveForLater]', e);
+      console.error('[Discover.saveForLater]', e);
       setSavedState('error');
     }
   };
@@ -1109,7 +1109,7 @@ function StagePick({ selected, who, energy, intention, results, profile, session
         .insert({ user_id: user.id, movie_id: filmId, source: 'discover_marked' });
       if (error && error.code !== '23505') throw error;
     } catch (e) {
-      console.error('[DiscoverV5.markWatched]', e);
+      console.error('[Discover.markWatched]', e);
       // Even on insert failure, hide locally so the user can move on
     }
     updateImpression(user.id, filmId, 'watched').catch(() => {});
@@ -1641,7 +1641,7 @@ async function commitDiscoverPreferences({ userId, intention, time, who, energy 
   } catch (e) {
     // Non-fatal — pre-selection just doesn't improve this session.
     // Don't show user-facing error; the Stage 2 → 3 flow continues.
-    console.error('[DiscoverV5.commitDiscoverPreferences]', e)
+    console.error('[Discover.commitDiscoverPreferences]', e)
   }
 }
 
@@ -1893,7 +1893,7 @@ function DiscoverV5Body() {
   );
 }
 
-export default function DiscoverV5() {
+export default function Discover() {
   usePageMeta({ title: 'Discover — FeelFlick' })
   const location = useLocation()
   const reduced = useReducedMotion()
@@ -1902,7 +1902,7 @@ export default function DiscoverV5() {
   //
   // The overlay below bridges the celebration → /discover seam. Pairing:
   //   • Onboarding fades celebration content over 900ms to a black backdrop
-  //   • Router commits + DiscoverV5 paints under this overlay
+  //   • Router commits + Discover paints under this overlay
   //   • Overlay holds for 350ms (head-start so React commits cleanly)
   //   • Overlay fades opacity 1 → 0 over 2.0s with an ease-in-out curve
   //     that holds the dark in the first half, then reveals through the

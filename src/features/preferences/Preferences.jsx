@@ -1,4 +1,4 @@
-// src/features/preferences-v2/PreferencesV2.jsx
+// src/features/preferences-v2/Preferences.jsx
 // FeelFlick — Preferences v2 ("The dials"). Editorial dial deck backed by
 // user_preferences (genres) + user_settings.settings.prefs (everything else).
 // Drops the internal Nav (AppShell owns nav). All interactions push into a
@@ -7,7 +7,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { PreferencesDataProvider, usePreferencesData, genreLabelOf } from './usePreferencesData'
-import './preferences-v2.css'
+import './preferences.css'
 
 const HP = {
   bgDeep: '#06060a',
@@ -518,7 +518,7 @@ function PreferencesV2Body() {
   )
 }
 
-export default function PreferencesV2() {
+export default function Preferences() {
   usePageMeta({ title: 'Preferences — FeelFlick' })
   return (
     <PreferencesDataProvider>

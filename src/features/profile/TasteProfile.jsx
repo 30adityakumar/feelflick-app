@@ -1,4 +1,4 @@
-// src/features/profile-v2/TasteProfileV2.jsx
+// src/features/profile-v2/TasteProfile.jsx
 // FeelFlick — Cinematic DNA / Taste Profile (v2).
 // Mount at /profile-v2 alongside the existing /profile.
 //
@@ -18,9 +18,9 @@ import {
   Mixtape, Skew, FriendsRanked, ShareCard, YIRBanner, ProfileFooter,
 } from './bottom'
 import { ProfileDataProvider, useProfileDataFetch } from './useProfileData'
-import './profile-v2.css'
+import './profile.css'
 
-export default function TasteProfileV2() {
+export default function TasteProfile() {
   const { user } = useAuthSession()
   const { userId: paramUserId } = useParams()
   usePageMeta({ title: paramUserId && paramUserId !== user?.id ? 'Taste profile — FeelFlick' : 'Your taste profile — FeelFlick' })

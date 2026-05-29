@@ -1,4 +1,4 @@
-// src/features/people-v2/PeopleV2.jsx
+// src/features/people-v2/People.jsx
 // FeelFlick — People v2 ("Taste twins"). Editorial social surface backed by
 // live user_follows × user_similarity × user_ratings × user_history. Drops
 // the internal Nav (AppShell owns nav). All follow/unfollow flows through
@@ -11,7 +11,7 @@ import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { HP, HP_GRAD } from './data'
 import { PeopleDataProvider, usePeopleData } from './usePeopleData'
-import './people-v2.css'
+import './people.css'
 
 const RESET_BTN = { background: 'none', border: 'none', padding: 0, margin: 0, font: 'inherit', color: 'inherit', cursor: 'pointer', textAlign: 'left' }
 
@@ -519,7 +519,7 @@ function PeopleV2Body() {
           })))
         }
       } catch (e) {
-        console.error('[PeopleV2 search]', e)
+        console.error('[People search]', e)
       } finally {
         if (!abort) setSearching(false)
       }
@@ -549,7 +549,7 @@ function PeopleV2Body() {
   )
 }
 
-export default function PeopleV2() {
+export default function People() {
   usePageMeta({ title: 'People — FeelFlick' })
   return (
     <PeopleDataProvider>

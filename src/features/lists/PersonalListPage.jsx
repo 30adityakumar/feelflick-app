@@ -21,7 +21,7 @@ import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { MOVIE_ENGINE_COLS } from '@/shared/services/movieFields'
 import { computeUserProfile, rankSlotCandidates } from '@/shared/services/recommendations'
 import { applyAllExclusions, applyExclusionsNoLanguage } from '@/shared/services/exclusions'
-import './lists-v2.css'
+import './lists.css'
 
 // Mirrors the home-card recency floor — pre-1990 stays hidden unless the
 // user has logged a pre-1990 film (toleratesClassics).

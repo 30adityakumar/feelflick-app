@@ -22,7 +22,7 @@ import {
   TasteMatch, CuratedLists, QuickLog, PageEndCard,
 } from './sections-bottom'
 import { HomeDataProvider, useHomeData } from './useHomeData'
-import './home-v2.css'
+import './home.css'
 
 function HomeV2Body() {
   usePageMeta({ title: 'Home — FeelFlick' })
@@ -205,7 +205,7 @@ function HomeV2Body() {
   )
 }
 
-export default function HomeV2() {
+export default function Home() {
   return (
     <HomeDataProvider>
       <HomeV2Body />

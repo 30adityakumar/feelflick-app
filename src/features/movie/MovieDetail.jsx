@@ -1,4 +1,4 @@
-// src/features/movie-v2/MovieDetailV2.jsx
+// src/features/movie-v2/MovieDetail.jsx
 // FeelFlick — Movie Detail v2 ("Film File" editorial direction).
 // Route: /movie-v2/:id (parallel to existing /movie/:id)
 //
@@ -30,9 +30,9 @@ import {
   YourTake, DetailsSection, MovieFooter,
 } from './sections-bottom'
 import { MovieDataProvider, useMovieDataFetch } from './useMovieData'
-import './movie-v2.css'
+import './movie.css'
 
-export default function MovieDetailV2() {
+export default function MovieDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { user } = useAuthSession()

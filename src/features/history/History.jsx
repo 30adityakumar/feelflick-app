@@ -1,4 +1,4 @@
-// src/features/history-v2/HistoryV2.jsx
+// src/features/history-v2/History.jsx
 // FeelFlick — Diary v2. Mount at /history-v2.
 // All sections (heatmap, timeline, mood share, stats, entries) are derived
 // live from user_history × movies × user_ratings — see ./useHistoryData.jsx.
@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { HP, HP_GRAD } from './data'
 import { HistoryDataProvider, useHistoryData } from './useHistoryData'
-import './history-v2.css'
+import './history.css'
 
 // === Reset-button style for elements wrapped as buttons ===
 const RESET_BTN = {
@@ -347,7 +347,7 @@ function HistoryShell() {
   );
 }
 
-export default function HistoryV2() {
+export default function History() {
   usePageMeta({ title: 'Diary — FeelFlick' })
   return (
     <HistoryDataProvider>

@@ -1,4 +1,4 @@
-// src/features/lists-v2/ListsV2.jsx
+// src/features/lists-v2/Lists.jsx
 // FeelFlick — Lists v2 ("Shelves"). Editorial surface backed by
 // public.lists × public.list_movies and the curated-lists config.
 // Drops the internal Nav (AppShell owns nav). All cards/CTAs route to the
@@ -8,8 +8,8 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
-import CreateListModal from '@/features/lists-v2/CreateListModal'
-import './lists-v2.css'
+import CreateListModal from '@/features/lists/CreateListModal'
+import './lists.css'
 import { ListsDataProvider, useListsData } from './useListsData'
 
 const HP = {
@@ -395,7 +395,7 @@ function ListsV2Body() {
   )
 }
 
-export default function ListsV2() {
+export default function Lists() {
   usePageMeta({ title: 'Lists — FeelFlick' })
   return (
     <ListsDataProvider>

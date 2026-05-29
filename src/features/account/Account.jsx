@@ -1,4 +1,4 @@
-// src/features/account-v2/AccountV2.jsx
+// src/features/account-v2/Account.jsx
 // FeelFlick — Account (v2). Mount at /account-v2 alongside the existing /account.
 // PR 1: real handlers (avatar upload, name save, sign out, sign out everywhere,
 //        reset DNA, delete via mailto) ported from the existing Account.jsx
@@ -16,9 +16,9 @@ import {
   Privacy, Connections, PlanCard, SessionsCard, DangerZone, AccountFooter,
 } from './bottom'
 import { AccountDataProvider, useAccountData } from './useAccountData'
-import './account-v2.css'
+import './account.css'
 
-export default function AccountV2() {
+export default function Account() {
   usePageMeta({ title: 'Account — FeelFlick' })
   return (
     <AccountDataProvider>

@@ -1,4 +1,4 @@
-// src/features/lists-v2/CuratedListV2.jsx
+// src/features/lists-v2/CuratedList.jsx
 // FeelFlick — Lists v2 curated-list detail. Reuses CURATED_LISTS query
 // builders. Editorial dark layout: sticky-left meta, right poster grid.
 
@@ -7,7 +7,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { CURATED_LISTS } from '@/shared/lib/curatedLists'
-import './lists-v2.css'
+import './lists.css'
 
 const HP = {
   bgDeep: '#06060a',
@@ -20,7 +20,7 @@ const RESET_BTN = { background: 'none', border: 'none', padding: 0, margin: 0, f
 
 const TMDB_IMG = (path, size = 'w342') => path ? `https://image.tmdb.org/t/p/${size}${path}` : null
 
-export default function CuratedListV2() {
+export default function CuratedList() {
   const { slug } = useParams()
   const navigate = useNavigate()
   const list = useMemo(() => CURATED_LISTS.find(l => l.slug === slug), [slug])
@@ -35,7 +35,7 @@ export default function CuratedListV2() {
     setLoading(true)
     list.query(supabase).then(({ data, error }) => {
       if (abort) return
-      if (error) console.error('[CuratedListV2]', error)
+      if (error) console.error('[CuratedList]', error)
       setMovies(data || [])
       setLoading(false)
     })

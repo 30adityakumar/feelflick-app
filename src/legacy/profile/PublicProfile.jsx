@@ -12,7 +12,7 @@ import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import FollowButton from '@/shared/components/FollowButton'
 import TasteFingerprint from './TasteFingerprint'
 import { useTasteFingerprint } from '@/shared/hooks/useTasteFingerprint'
-import { aggregateWatchHistorySignals, buildSummaryRequestBody } from '@/features/profile-v2/buildSummaryRequest'
+import { aggregateWatchHistorySignals, buildSummaryRequestBody } from '@/features/profile/buildSummaryRequest'
 
 import {
   RATING_PERSONALITY,

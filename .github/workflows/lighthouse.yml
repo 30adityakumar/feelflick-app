@@ -1,0 +1,63 @@
+name: Lighthouse CI
+
+# Perf / a11y / SEO budgets on the public landing. Builds the app and runs
+# Lighthouse against the static bundle. Gated to no-op (green) until the VITE_*
+# build secrets are configured, so it never blocks PRs before setup.
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "public/**"
+      - "index.html"
+      - "package.json"
+      - "package-lock.json"
+      - "vite.config.*"
+      - "lighthouserc.json"
+      - ".github/workflows/lighthouse.yml"
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Build secrets gate — skip cleanly until configured.
+      - name: Preflight
+        id: pre
+        env:
+          HAVE: ${{ secrets.VITE_SUPABASE_URL != '' }}
+        run: |
+          if [ "$HAVE" = "true" ]; then echo "ready=true" >> "$GITHUB_OUTPUT";
+          else echo "ready=false" >> "$GITHUB_OUTPUT"; echo "::notice::VITE_* build secrets not set — skipping Lighthouse."; fi
+
+      - name: Setup Node
+        if: steps.pre.outputs.ready == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install
+        if: steps.pre.outputs.ready == 'true'
+        run: npm ci
+
+      - name: Build
+        if: steps.pre.outputs.ready == 'true'
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_TMDB_API_KEY: ${{ secrets.VITE_TMDB_API_KEY }}
+        run: npm run build
+
+      - name: Lighthouse CI
+        if: steps.pre.outputs.ready == 'true'
+        uses: treosh/lighthouse-ci-action@v12
+        with:
+          configPath: ./lighthouserc.json
+          uploadArtifacts: true
+          temporaryPublicStorage: true

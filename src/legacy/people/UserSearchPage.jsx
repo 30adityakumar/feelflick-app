@@ -1,4 +1,4 @@
-// src/app/pages/people/UserSearchPage.jsx
+// src/legacy/people/UserSearchPage.jsx
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 

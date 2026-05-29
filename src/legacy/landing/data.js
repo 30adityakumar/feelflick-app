@@ -1,4 +1,4 @@
-// src/features/landing/data.js
+// src/legacy/landing/data.js
 // TMDB poster catalog + mood definitions + tone-copy for the landing surface.
 // Consumed by HeroSection's MoodDemoPanel (MOODS, WANTS_BY_MOOD) and
 // FinalCTASection (TONE_COPY).

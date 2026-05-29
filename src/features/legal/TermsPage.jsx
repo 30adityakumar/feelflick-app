@@ -1,4 +1,4 @@
-// src/app/pages/TermsPage.jsx
+// src/features/legal/TermsPage.jsx
 import { Scale, ShieldCheck, AlertTriangle, FileText, Mail, Gavel } from 'lucide-react'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import TopNav from '@/components/layout/TopNav'

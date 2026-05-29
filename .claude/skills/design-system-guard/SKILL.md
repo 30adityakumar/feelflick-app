@@ -12,7 +12,7 @@ description: >
 # Design System Guard
 
 FeelFlick has a strict, hand-tuned editorial language shared by the public v3
-landing and every authenticated `*-v2` surface. **This system overrides any
+landing and every authenticated feature surface. **This system overrides any
 generic design guidance (including the `frontend-design` skill).** When they
 conflict, this wins.
 
@@ -41,8 +41,8 @@ report each violation as `severity (error/warning) — file:line — fix`.
 
 ### Hero / display typography
 - [ ] Weight **200–300 only** at ≥56px. Below 56px, jump to 400–500.
-- [ ] ❌ Never `font-black` / weight 900 in v2 or v3 surfaces (that's the
-      legacy v1 + landing-v2 signature).
+- [ ] ❌ Never `font-black` / weight 900 in the editorial surfaces (that's
+      the legacy v1 signature, preserved under `src/legacy/`).
 - [ ] Negative letter-spacing on display: `-0.04em` to `-0.05em`.
 - [ ] `textWrap: 'balance'` on headlines, `textWrap: 'pretty'` on body.
 

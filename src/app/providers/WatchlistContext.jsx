@@ -1,4 +1,4 @@
-// src/contexts/WatchlistContext.jsx
+// src/app/providers/WatchlistContext.jsx
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/shared/lib/supabase/client'
 

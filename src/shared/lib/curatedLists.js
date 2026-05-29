@@ -1,4 +1,4 @@
-// src/app/pages/browse/curatedListsConfig.js
+// src/shared/lib/curatedLists.js
 // Each list defines a slug, display info, and a Supabase query builder.
 
 const SELECT = `

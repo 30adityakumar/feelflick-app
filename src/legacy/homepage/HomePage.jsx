@@ -1,4 +1,4 @@
-// src/app/homepage/HomePage.jsx
+// src/legacy/homepage/HomePage.jsx
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useOutletContext } from 'react-router-dom'
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion'

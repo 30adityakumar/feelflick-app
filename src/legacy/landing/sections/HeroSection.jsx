@@ -1,4 +1,4 @@
-// src/features/landing/sections/HeroSection.jsx
+// src/legacy/landing/sections/HeroSection.jsx
 import { useCallback, useState } from 'react'
 import { motion } from 'framer-motion'
 import { LogIn, Loader2 } from 'lucide-react'

@@ -1,4 +1,4 @@
-// src/app/pages/discover/components/PinnedBrief.jsx
+// src/legacy/discover/components/PinnedBrief.jsx
 import { QUESTION_SET } from '@/shared/lib/discoverQuestions'
 
 /**

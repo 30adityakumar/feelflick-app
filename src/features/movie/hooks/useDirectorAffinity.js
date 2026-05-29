@@ -1,4 +1,4 @@
-// src/features/movie-v2/hooks/useDirectorAffinity.js
+// src/features/movie/hooks/useDirectorAffinity.js
 // Count of films by `directorName` in the current user's watch history.
 // RLS-safe: user_history is owner-only — the join just gives us the count
 // of our own rows where the joined movie's director matches.

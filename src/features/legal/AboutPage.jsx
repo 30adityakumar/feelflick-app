@@ -1,4 +1,4 @@
-// src/app/pages/legal/AboutPage.jsx
+// src/features/legal/AboutPage.jsx
 import { motion } from 'framer-motion'
 import { Film, Brain, Users, Shield, Zap, Heart, LogIn, Loader2 } from 'lucide-react'
 

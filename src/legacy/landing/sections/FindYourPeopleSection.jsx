@@ -1,4 +1,4 @@
-// src/features/landing/sections/FindYourPeopleSection.jsx
+// src/legacy/landing/sections/FindYourPeopleSection.jsx
 import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 

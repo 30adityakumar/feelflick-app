@@ -1,4 +1,4 @@
-// src/app/homepage/components/SignatureDirectorRow.jsx
+// src/legacy/homepage/components/SignatureDirectorRow.jsx
 import { Film } from 'lucide-react'
 
 import PersonalizedCarouselRow from './PersonalizedCarouselRow'

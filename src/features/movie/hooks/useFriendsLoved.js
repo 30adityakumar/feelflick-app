@@ -1,4 +1,4 @@
-// src/features/movie-v2/hooks/useFriendsLoved.js
+// src/features/movie/hooks/useFriendsLoved.js
 // People I follow who rated THIS movie ≥ 8/10. Sourced purely from
 // user_ratings (which is intentionally cross-user readable — see RLS comment
 // in supabase/migrations/20260514000000_enable_rls_owner_policies_user_data.sql).

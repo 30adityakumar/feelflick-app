@@ -1,4 +1,4 @@
-// src/features/movie-v2/derive/whyForYou.js
+// src/features/movie/derive/whyForYou.js
 // Pure derivation: build 4 "Why this fits you" reason cards.
 //
 // Card priority (top 4 win):

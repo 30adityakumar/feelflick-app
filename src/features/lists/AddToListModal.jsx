@@ -1,4 +1,4 @@
-// src/app/pages/lists/AddToListModal.jsx
+// src/features/lists/AddToListModal.jsx
 import { useState, useEffect, useCallback } from 'react'
 
 import { X, Plus, Check } from 'lucide-react'

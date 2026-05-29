@@ -1,4 +1,4 @@
-// src/app/header/components/Account.jsx
+// src/legacy/header/Account.jsx
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'

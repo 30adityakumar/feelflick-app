@@ -1,4 +1,4 @@
-// src/features/landing/sections/MoatProofSection.jsx
+// src/legacy/landing/sections/MoatProofSection.jsx
 import { motion } from 'framer-motion'
 
 const vp = { once: true, margin: '-60px' }

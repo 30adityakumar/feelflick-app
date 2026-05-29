@@ -1,4 +1,4 @@
-// src/features/landing/components/TopNav.jsx
+// src/components/layout/TopNav.jsx
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Menu, X, LogIn } from 'lucide-react'

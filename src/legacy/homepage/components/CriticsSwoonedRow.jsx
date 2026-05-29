@@ -1,4 +1,4 @@
-// src/app/homepage/components/CriticsSwoonedRow.jsx
+// src/legacy/homepage/components/CriticsSwoonedRow.jsx
 import { Award } from 'lucide-react'
 
 import PersonalizedCarouselRow from './PersonalizedCarouselRow'

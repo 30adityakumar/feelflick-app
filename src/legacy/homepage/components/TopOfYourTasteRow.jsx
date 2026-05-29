@@ -1,4 +1,4 @@
-// src/app/homepage/components/TopOfYourTasteRow.jsx
+// src/legacy/homepage/components/TopOfYourTasteRow.jsx
 import { Crown } from 'lucide-react'
 
 import PersonalizedCarouselRow from './PersonalizedCarouselRow'

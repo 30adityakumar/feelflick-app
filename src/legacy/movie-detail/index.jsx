@@ -1,4 +1,4 @@
-// src/app/pages/MovieDetail/index.jsx
+// src/legacy/movie-detail/index.jsx
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'

@@ -1,4 +1,4 @@
-// src/features/landing/sections/HowItWorksSection.jsx
+// src/legacy/landing/sections/HowItWorksSection.jsx
 // Three-step explainer that follows the hero. Mood → matching → pick.
 // Cards entrance-animate on scroll, respecting prefers-reduced-motion.
 

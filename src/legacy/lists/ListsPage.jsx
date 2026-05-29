@@ -1,4 +1,4 @@
-// src/app/pages/lists/ListsPage.jsx
+// src/legacy/lists/ListsPage.jsx
 import { useState, useEffect } from 'react'
 
 import { Link, useOutletContext, useSearchParams } from 'react-router-dom'

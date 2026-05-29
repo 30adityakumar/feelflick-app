@@ -1,4 +1,4 @@
-// src/app/header/components/MobileAccount.jsx
+// src/legacy/header/MobileAccount.jsx
 // FeelFlick — Mobile Account v2.
 // Editorial Edition Nº header · gradient halo avatar with DNA peek ·
 // Tonight's pick rail · grouped menu · brand footer.

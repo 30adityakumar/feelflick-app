@@ -1,4 +1,4 @@
-// src/features/home-v2/useHomeData.jsx
+// src/features/home/useHomeData.jsx
 // FeelFlick — Home v2 ("The Briefing") data layer.
 //
 // Replaces the prototype's hardcoded FILMS / MOODS.pool / RECENT / DNA /

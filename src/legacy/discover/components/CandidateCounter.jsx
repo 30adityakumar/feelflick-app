@@ -1,4 +1,4 @@
-// src/app/pages/discover/components/CandidateCounter.jsx
+// src/legacy/discover/components/CandidateCounter.jsx
 import { motion, AnimatePresence } from 'framer-motion'
 
 /**

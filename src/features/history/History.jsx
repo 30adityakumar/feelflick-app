@@ -1,4 +1,4 @@
-// src/features/history-v2/History.jsx
+// src/features/history/History.jsx
 // FeelFlick — Diary v2. Mount at /history-v2.
 // All sections (heatmap, timeline, mood share, stats, entries) are derived
 // live from user_history × movies × user_ratings — see ./useHistoryData.jsx.

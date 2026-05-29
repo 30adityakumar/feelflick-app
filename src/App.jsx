@@ -1,4 +1,4 @@
-// src/app/App.jsx
+// src/App.jsx
 import * as Sentry from '@sentry/react'
 import { RouterProvider } from 'react-router-dom'
 import { QueryClientProvider } from '@tanstack/react-query'

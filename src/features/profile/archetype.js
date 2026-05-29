@@ -1,4 +1,4 @@
-// src/features/profile-v2/archetype.js
+// src/features/profile/archetype.js
 // Deterministic archetype taxonomy. Maps a taste fingerprint
 // (topMoodTags + topFitProfiles + topToneTags) → a [primary, secondary,
 // tertiary] triplet rendered in the profile masthead's Archetype card.

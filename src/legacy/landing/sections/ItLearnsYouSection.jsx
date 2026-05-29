@@ -1,4 +1,4 @@
-// src/features/landing/sections/ItLearnsYouSection.jsx
+// src/legacy/landing/sections/ItLearnsYouSection.jsx
 import { motion } from 'framer-motion'
 
 // === CONSTANTS ===

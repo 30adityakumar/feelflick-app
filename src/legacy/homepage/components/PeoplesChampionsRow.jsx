@@ -1,4 +1,4 @@
-// src/app/homepage/components/PeoplesChampionsRow.jsx
+// src/legacy/homepage/components/PeoplesChampionsRow.jsx
 import { Users } from 'lucide-react'
 
 import PersonalizedCarouselRow from './PersonalizedCarouselRow'

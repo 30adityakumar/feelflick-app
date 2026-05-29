@@ -1,4 +1,4 @@
-// src/features/lists-v2/ListDetail.jsx
+// src/features/lists/ListDetail.jsx
 // FeelFlick — Lists v2 detail. Mirrors the editorial "Featured shelf" layout
 // from ListsV2: sticky-left title/blurb/actions, right column of numbered
 // film rows with mood chips and optional italic notes. Owns its own data

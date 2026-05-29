@@ -1,4 +1,4 @@
-// src/features/landing/sections/FAQSection.jsx
+// src/legacy/landing/sections/FAQSection.jsx
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 

@@ -1,4 +1,4 @@
-// src/app/homepage/components/StillInOrbitRow.jsx
+// src/legacy/homepage/components/StillInOrbitRow.jsx
 import { Orbit } from 'lucide-react'
 
 import PersonalizedCarouselRow from './PersonalizedCarouselRow'

@@ -1,4 +1,4 @@
-// src/app/homepage/components/HeroTopPick.jsx
+// src/legacy/homepage/components/HeroTopPick.jsx
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import {

@@ -1,4 +1,4 @@
-// src/features/watchlist-v2/Watchlist.jsx
+// src/features/watchlist/Watchlist.jsx
 // FeelFlick — Watchlist v2 ("The Queue"). Mount at /watchlist-v2.
 // PR 1: drop the internal nav (AppShell already provides the global TopNav),
 //        wire every card/button to a real action (navigate, remove).

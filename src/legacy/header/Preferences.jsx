@@ -1,4 +1,4 @@
-// src/app/header/components/Preferences.jsx
+// src/legacy/header/Preferences.jsx
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/shared/lib/supabase/client'
 import { Check, Loader2, AlertCircle } from 'lucide-react'

@@ -1,4 +1,4 @@
-// src/app/homepage/components/Under90MinutesRow.jsx
+// src/legacy/homepage/components/Under90MinutesRow.jsx
 import { Timer } from 'lucide-react'
 
 import PersonalizedCarouselRow from './PersonalizedCarouselRow'

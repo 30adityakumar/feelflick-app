@@ -1,4 +1,4 @@
-// src/features/account-v2/useAccountData.jsx
+// src/features/account/useAccountData.jsx
 // FeelFlick — Account v2 data layer. Fetches the signed-in user, their
 // `users` row, derived stats, and their `user_settings` JSONB (notifications
 // + privacy flags). Components consume via `useAccountData()`.

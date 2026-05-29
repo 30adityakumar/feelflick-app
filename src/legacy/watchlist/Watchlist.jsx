@@ -1,4 +1,4 @@
-// src/app/pages/watchlist/Watchlist.jsx
+// src/legacy/watchlist/Watchlist.jsx
 import { useEffect, useState } from 'react'
 import { Bookmark, Loader2, Search, Trash2, X, Check, ChevronDown } from 'lucide-react'
 import { supabase } from '@/shared/lib/supabase/client'

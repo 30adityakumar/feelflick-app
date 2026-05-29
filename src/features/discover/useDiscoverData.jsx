@@ -1,4 +1,4 @@
-// src/features/discover-v5/useDiscoverData.jsx
+// src/features/discover/useDiscoverData.jsx
 // FeelFlick — Discover v5 data layer.
 //
 // Two live sources replace the prototype's hardcoded arrays:

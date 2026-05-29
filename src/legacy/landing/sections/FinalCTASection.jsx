@@ -1,4 +1,4 @@
-// src/features/landing/sections/FinalCTASection.jsx
+// src/legacy/landing/sections/FinalCTASection.jsx
 // Emotional closer for the landing page. Centered, single radial bloom.
 // Copy sourced from landing/data.js TONE_COPY.confident.
 

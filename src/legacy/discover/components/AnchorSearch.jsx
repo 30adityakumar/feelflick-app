@@ -1,4 +1,4 @@
-// src/app/pages/discover/components/AnchorSearch.jsx
+// src/legacy/discover/components/AnchorSearch.jsx
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 

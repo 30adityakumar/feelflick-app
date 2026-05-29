@@ -1,4 +1,4 @@
-// src/features/movie-v2/useMovieData.js
+// src/features/movie/useMovieData.jsx
 // FeelFlick — Movie Detail v2 data layer.
 // Fetches TMDB by id, maps to the shape sections expect, and provides via context.
 // FeelFlick-engine fields (mood fingerprint, why-for-you reasons, editorial take,

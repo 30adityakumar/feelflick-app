@@ -1,4 +1,4 @@
-// src/features/landing/components/Footer.jsx
+// src/components/layout/Footer.jsx
 import { useEffect, useRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 

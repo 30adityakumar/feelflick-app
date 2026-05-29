@@ -1,4 +1,4 @@
-// src/app/homepage/components/StarterRows.jsx
+// src/legacy/homepage/components/StarterRows.jsx
 /**
  * StarterRows — shown to low-confidence profiles (tier='cold').
  *

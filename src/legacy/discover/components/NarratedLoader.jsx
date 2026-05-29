@@ -1,4 +1,4 @@
-// src/app/pages/discover/components/NarratedLoader.jsx
+// src/legacy/discover/components/NarratedLoader.jsx
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 

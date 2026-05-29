@@ -1,4 +1,4 @@
-// src/app/pages/watched/WatchedHistory.jsx
+// src/legacy/watched/WatchedHistory.jsx
 import { useEffect, useState } from 'react'
 import { supabase } from '@/shared/lib/supabase/client'
 import { useNavigate } from 'react-router-dom'

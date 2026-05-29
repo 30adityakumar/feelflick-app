@@ -19,44 +19,66 @@ Mood-first movie/TV discovery. Users express how they feel → get curated recom
 
 ```
 src/
-├── app/
-│   ├── homepage/         # Legacy /home-legacy carousels (queued for deletion)
-│   ├── header/           # Global Header used by AppShell
-│   ├── pages/            # Legacy v1 route components + browse/legal/admin
-│   ├── providers/        # React context providers
-│   ├── admin/            # Email-allowlist-gated admin tools
-│   └── dev/              # Dev-only tooling (not shipped)
-├── components/
-│   ├── carousel/         # Canonical carousel (Card, Row, hover law)
-│   └── ToastNotification.jsx
-├── features/
+├── main.jsx · App.jsx · index.css   # entry → providers → router
+├── app/                  # App shell + routing ONLY (cross-cutting wiring)
+│   ├── AppShell.jsx      # layout frame (header + <Outlet/>)
+│   ├── router.jsx        # all routes, lazy-loaded (highest-traffic file)
+│   ├── ErrorBoundary.jsx
+│   ├── NotFound.jsx      # live 404
+│   ├── header/           # production global Header, BottomNav, SearchBar
+│   ├── providers/        # React context providers (WatchlistContext, …)
+│   └── admin/            # email-allowlist-gated admin tools
+├── features/             # one folder per product surface — NO version suffix
+│   ├── landing/          # the v3 editorial landing at /
+│   ├── onboarding/       # mood-reactive onboarding
 │   ├── auth/             # Google OAuth flow + post-auth gate
-│   ├── landing/          # The v3 editorial landing at /
-│   ├── landing-v2/       # Archived v2 landing at /v2 (rollback-only)
-│   ├── onboarding/       # Mood-reactive onboarding (post-#77 rename)
-│   ├── home-v2/          # /home — masthead + briefing + carousels
-│   ├── movie-v2/         # /movie/:id — editorial Film File
-│   ├── discover-v5/      # /discover — AI discovery
-│   ├── account-v2/       # /account — settings
-│   ├── preferences-v2/   # /preferences — engine dials
-│   ├── watchlist-v2/     # /watchlist — The Queue
-│   ├── history-v2/       # /history — Diary
-│   ├── profile-v2/       # /profile/:userId — Taste profile
-│   ├── people-v2/        # /people — taste twins
-│   └── lists-v2/         # /lists + curated detail
-├── contexts/             # WatchlistContext, etc.
-├── shared/
+│   ├── browse/           # /mood, /collection editorial browse
+│   ├── legal/            # /about, /privacy, /terms
+│   ├── home/             # /home — masthead + briefing + carousels
+│   ├── movie/            # /movie/:id — editorial Film File
+│   ├── discover/         # /discover — AI discovery
+│   ├── account/          # /account — settings
+│   ├── preferences/      # /preferences — engine dials
+│   ├── watchlist/        # /watchlist — The Queue
+│   ├── history/          # /history — Diary
+│   ├── profile/          # /profile/:userId — taste profile
+│   ├── people/           # /people — taste twins
+│   ├── lists/            # /lists + curated detail (+ Create/AddToList modals)
+│   └── feed/, challenges/ # ⚠️ unwired stubs (routes redirect to /home) — delete candidates
+├── components/           # canonical app-wide UI
+│   ├── carousel/         # the MovieCard hover LAW (Card, Row, hooks)
+│   ├── layout/           # TopNav, Footer (shared chrome)
+│   └── ToastNotification.jsx
+├── shared/               # the kernel — cross-cutting logic + primitives
 │   ├── api/tmdb.js       # tmdbImg(), TMDB fetch helpers
-│   ├── hooks/            # useAuthSession, usePageMeta, useUserMovieStatus, etc.
+│   ├── hooks/            # useAuthSession, usePageMeta, useGoogleAuth, …
 │   ├── services/         # recommendations.js, interactions.js, embeddings
-│   ├── lib/              # Pure utilities, supabase client, format/ (date+runtime)
-│   └── ui/               # Low-level UI primitives (Button, Modal, Input, EmptyState…)
+│   ├── lib/              # pure utils, supabase client, curatedLists, format/
+│   ├── components/       # domain widgets (StarRating, FollowButton, Pagination…)
+│   └── ui/               # low-level primitives (Button, Modal, Input, EmptyState…)
+├── legacy/               # ALL v1 — quarantined, frozen, reachable via *-legacy routes
+│   ├── homepage/  movie-detail/  discover/  profile/  lists/
+│   ├── watchlist/  watched/  people/  movies/  browse-curated/
+│   ├── account/  preferences/  header/   # legacy header account/prefs panels
+│   └── landing/          # archived v2 landing at /v2 (rollback-only)
+├── styles/  assets/      # global CSS + static assets
 └── test/                 # Vitest helpers, fixtures, setup
 ```
 
-> The `*-v2` suffix will likely be dropped once v1 legacy is deleted (PR #77
-> already did this for onboarding). Plan for a future bulk rename. Until then,
-> the suffix marks the production direction.
+> **`legacy/` is frozen.** Everything under it is the original v1, kept only so the
+> `*-legacy` routes (and `/v2`) still resolve for rollback/comparison. Never extend it,
+> never import *from* it into a `features/` surface, and never import a `features/` surface
+> *into* it. It's slated for deletion in a follow-up once those routes are confirmed unused.
+>
+> **No version suffixes.** The old `*-v2`/`*-v5` folder names were dropped in the
+> repo-structure refactor (onboarding led the way in #77). A feature folder is a plain
+> lowercase domain noun (`home`, not `home-v2`); the entry component matches it
+> (`features/home/Home.jsx`). `router.jsx` keeps `…V2` *local const* names only to
+> disambiguate a current surface from its still-present legacy twin — that's deliberate.
+>
+> **`components/` vs `shared/components/`:** `components/` is app-wide canonical UI
+> (carousel, layout chrome, toasts); `shared/components/` is reusable *domain* widgets
+> (ratings, follow button, pagination). `shared/ui/` is the lowest-level primitive layer.
 
 ## Auth + Recommendation Engine
 
@@ -123,8 +145,8 @@ npm run build        # Production build
 
 - One component per file *except* in editorial surfaces (e.g. `landing/Landing.jsx`) where sub-components are colocated as a single composition.
 - PascalCase components, camelCase hooks prefixed `use`.
-- Inline styles are allowed in the v2 family + editorial landing (typography rhythm is finer than Tailwind's defaults). Tailwind utilities everywhere else.
-- No hardcoded hex outside the `HP` token object (v2) or v3 landing's `C` palette — use Tailwind tokens or CSS custom properties.
+- Inline styles are allowed in the feature surfaces + editorial landing (typography rhythm is finer than Tailwind's defaults). Tailwind utilities everywhere else.
+- No hardcoded hex outside the `HP` token object (feature surfaces) or the v3 landing's `C` palette — use Tailwind tokens or CSS custom properties.
 - Strict null safety — never assume nullable values are present without a guard.
 - All interactive elements need `aria-label` / keyboard handlers. No a11y regressions.
 - JSDoc types on public-facing functions.
@@ -134,7 +156,7 @@ npm run build        # Production build
 ## Editorial Language
 
 This is the unified design language used by both the public v3 landing and
-every authenticated `*-v2` surface. The two families look related on purpose.
+every authenticated feature surface. The two families look related on purpose.
 
 ### Fonts
 
@@ -171,7 +193,7 @@ CSS vars in `src/index.css :root` are the authoritative source:
 --bg-base (#06060a), --bg-elevated (#0d0b14)
 ```
 
-Inline-style v2 surfaces use the `HP` object (defined per `*-v2/data.js`), and
+Inline-style feature surfaces use the `HP` object (defined per `<feature>/data.js`), and
 the v3 landing uses a local `C` object. Both align with the same hex values —
 just named differently. Eventually these will collapse into one shared
 `shared/lib/tokens.js`.
@@ -350,16 +372,16 @@ Already wired across `/home`, `/movie/:id`, `/discover`, `/account`, `/preferenc
 
 ### What NOT to do
 
-- ❌ Don't use Inter `font-black` for v2 or v3 landing headlines — that's the
-  legacy v1 + landing-v2 signature.
+- ❌ Don't use Inter `font-black` for feature-surface or v3 landing headlines — that's
+  the legacy v1 signature (frozen under `src/legacy/`).
 - ❌ Don't reference `src/features/landing/sections/HeroSection.jsx` — it doesn't exist.
 - ❌ Don't invent per-vibe gradients. Use `var(--brand-gradient)` always.
 - ❌ Don't add new font imports without updating this section.
-- ❌ Don't hardcode hex outside the `HP` (v2) or `C` (v3 landing) palettes.
+- ❌ Don't hardcode hex outside the `HP` (feature surfaces) or `C` (v3 landing) palettes.
 - ❌ Don't use `text-neutral-*` / `text-gray-*` — use `text-white/*`.
 - ❌ Don't use page/section spinners — `animate-pulse` skeletons only.
   (In-button micro-spinners inside Button.jsx are the documented exception.)
-- ❌ Don't navigate to v1 legacy routes from a v2 surface (`/movie-legacy/:id` →
+- ❌ Don't navigate to v1 legacy routes from a current feature surface (`/movie-legacy/:id` →
   use `/movie/:id`; `/profile-legacy/:id` → use `/profile/:id`; etc.).
 - ❌ Don't fabricate content to fill an empty section. `return null`.
 
@@ -499,9 +521,11 @@ blocks). It enforces the `lint → test → build` discipline automatically.
 - Security hardening pass (2026-05-29): RLS + write lockdown on 18 catalog/engine
   tables, cron-function + IDOR-function lockdown, pinned function `search_path`
   (migrations `20260529000000`–`000400`). See memory `project_rls_exposure`.
-- v3 landing replaced v2 landing at `/` (PR #84). landing-v2 preserved at `/v2`.
-- v2 surface family is shipping as the app's canonical direction (#79).
-- Onboarding dropped `V2` suffix (#77). Other `*-v2` folders will follow.
+- v3 landing replaced v2 landing at `/` (PR #84). The archived v2 landing now lives at
+  `src/legacy/landing/` and is still served at `/v2` for rollback.
+- Repo-structure refactor: dropped all `*-v2`/`*-v5` suffixes, quarantined v1 into
+  `src/legacy/`, decoupled the archived landing, and consolidated `contexts/` → `app/providers/`.
+  The feature surfaces are the canonical direction (#79). See the Folder Map above.
 - Spinner → skeleton migration started (#66) — `router.jsx` and auth splashes done.
 - Sentry wired in `main.jsx` + `ErrorBoundary.jsx` (#67).
 - Edge function CORS hardened (#81, #82).

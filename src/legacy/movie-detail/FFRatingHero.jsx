@@ -1,4 +1,4 @@
-// src/app/pages/MovieDetail/FFRatingHero.jsx
+// src/legacy/movie-detail/FFRatingHero.jsx
 
 import { Sparkles } from 'lucide-react'
 

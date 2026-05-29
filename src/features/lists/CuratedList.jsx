@@ -1,4 +1,4 @@
-// src/features/lists-v2/CuratedList.jsx
+// src/features/lists/CuratedList.jsx
 // FeelFlick — Lists v2 curated-list detail. Reuses CURATED_LISTS query
 // builders. Editorial dark layout: sticky-left meta, right poster grid.
 

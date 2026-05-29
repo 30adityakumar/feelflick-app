@@ -1,4 +1,4 @@
-// src/features/preferences-v2/usePreferencesData.jsx
+// src/features/preferences/usePreferencesData.jsx
 // FeelFlick — Preferences v2 ("The dials") data layer.
 //
 // Persistence model:

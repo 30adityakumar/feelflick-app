@@ -1,4 +1,4 @@
-// src/app/pages/PrivacyPage.jsx
+// src/features/legal/PrivacyPage.jsx
 import { Link } from 'react-router-dom'
 import { Shield, Lock, EyeOff, FileText, Mail, AlertTriangle, Globe } from 'lucide-react'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'

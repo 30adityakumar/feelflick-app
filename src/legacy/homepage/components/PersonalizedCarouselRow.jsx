@@ -1,4 +1,4 @@
-// src/app/homepage/components/PersonalizedCarouselRow.jsx
+// src/legacy/homepage/components/PersonalizedCarouselRow.jsx
 /**
  * PersonalizedCarouselRow
  *

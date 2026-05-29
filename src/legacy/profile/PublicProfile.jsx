@@ -1,4 +1,4 @@
-// src/app/pages/profile/PublicProfile.jsx
+// src/legacy/profile/PublicProfile.jsx
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { useParams, useNavigate, Link } from 'react-router-dom'

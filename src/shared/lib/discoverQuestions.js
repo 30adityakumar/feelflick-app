@@ -1,4 +1,4 @@
-// src/app/pages/discover/questions.js
+// src/shared/lib/discoverQuestions.js
 /**
  * Mood Brief question definitions — 4-question streamlined flow.
  * Each question collects one dimension of the user's viewing intent.

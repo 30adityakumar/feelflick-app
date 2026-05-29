@@ -1,4 +1,4 @@
-// src/features/landing/components/MoodDemoPanel.jsx
+// src/legacy/landing/components/MoodDemoPanel.jsx
 // Interactive glass panel that demos the mood→film loop on the landing hero.
 // Auto-cycles through moods (typing → searching → 3 picks). Mood chips below
 // let visitors take over; autoplay resumes 8s after the last interaction.

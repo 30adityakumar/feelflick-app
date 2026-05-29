@@ -1,4 +1,4 @@
-// src/features/profile-v2/useProfileData.jsx
+// src/features/profile/useProfileData.jsx
 // FeelFlick — Profile v2 data layer. Single hook that fetches everything
 // (user_history with joined movies + user_ratings + taste_fingerprint + users
 // row + editorial cache) in parallel and returns derived shapes that the

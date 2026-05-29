@@ -1,4 +1,4 @@
-// src/features/landing/sections/CinematicDNASection.jsx
+// src/legacy/landing/sections/CinematicDNASection.jsx
 import { motion } from 'framer-motion'
 
 // === CONSTANTS ===

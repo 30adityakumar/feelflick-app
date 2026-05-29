@@ -1,4 +1,4 @@
-// src/app/pages/movies/components/ResultsGrid.jsx
+// src/legacy/movies/components/ResultsGrid.jsx
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'

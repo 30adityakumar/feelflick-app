@@ -1,4 +1,4 @@
-// src/features/profile-v2/TasteProfile.jsx
+// src/features/profile/TasteProfile.jsx
 // FeelFlick — Cinematic DNA / Taste Profile (v2).
 // Mount at /profile-v2 alongside the existing /profile.
 //

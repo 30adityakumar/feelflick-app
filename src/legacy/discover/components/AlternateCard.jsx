@@ -1,4 +1,4 @@
-// src/app/pages/discover/components/AlternateCard.jsx
+// src/legacy/discover/components/AlternateCard.jsx
 import { motion } from 'framer-motion'
 import { Bookmark, BookmarkCheck, Check, Eye, X } from 'lucide-react'
 

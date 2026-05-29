@@ -1,4 +1,4 @@
-// src/app/pages/discover/components/PinnedBriefCollapsible.jsx
+// src/legacy/discover/components/PinnedBriefCollapsible.jsx
 import { AnimatePresence, motion } from 'framer-motion'
 
 import Button from '@/shared/ui/Button'

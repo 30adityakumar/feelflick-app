@@ -1,4 +1,4 @@
-// src/app/homepage/components/WatchlistRow.jsx
+// src/legacy/homepage/components/WatchlistRow.jsx
 import { Bookmark } from 'lucide-react'
 
 import PersonalizedCarouselRow from './PersonalizedCarouselRow'

@@ -1,4 +1,4 @@
-// src/features/history-v2/useHistoryData.jsx
+// src/features/history/useHistoryData.jsx
 // FeelFlick — History v2 ("Diary") data layer. Fetches the signed-in user's
 // user_history (joined with movies) + user_ratings, then derives:
 //   - entries[]: diary rows grouped by month → day in the UI

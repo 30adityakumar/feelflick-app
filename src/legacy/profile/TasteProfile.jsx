@@ -1,4 +1,4 @@
-// src/app/pages/profile/TasteProfile.jsx
+// src/legacy/profile/TasteProfile.jsx
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { useOutletContext, Link } from 'react-router-dom'

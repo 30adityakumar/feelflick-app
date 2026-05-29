@@ -1,4 +1,4 @@
-// src/app/pages/movies/components/BrowseSearchBar.jsx
+// src/legacy/movies/components/BrowseSearchBar.jsx
 import { useState, useEffect, useRef } from 'react'
 import { Search, X, ChevronDown, SlidersHorizontal, ChevronUp, Award } from 'lucide-react'
 import { getDbGenres } from '@/shared/api/browse'

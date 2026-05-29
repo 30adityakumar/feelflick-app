@@ -1,4 +1,4 @@
-// src/features/preferences-v2/Preferences.jsx
+// src/features/preferences/Preferences.jsx
 // FeelFlick — Preferences v2 ("The dials"). Editorial dial deck backed by
 // user_preferences (genres) + user_settings.settings.prefs (everything else).
 // Drops the internal Nav (AppShell owns nav). All interactions push into a

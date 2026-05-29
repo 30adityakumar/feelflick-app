@@ -1,4 +1,4 @@
-// src/app/pages/discover/components/QuestionSlot.jsx
+// src/legacy/discover/components/QuestionSlot.jsx
 import { AnimatePresence, motion } from 'framer-motion'
 
 // === ANIMATION VARIANTS ===

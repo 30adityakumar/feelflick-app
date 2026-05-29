@@ -1,4 +1,4 @@
-// src/features/lists-v2/Lists.jsx
+// src/features/lists/Lists.jsx
 // FeelFlick — Lists v2 ("Shelves"). Editorial surface backed by
 // public.lists × public.list_movies and the curated-lists config.
 // Drops the internal Nav (AppShell owns nav). All cards/CTAs route to the

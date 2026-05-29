@@ -1,4 +1,4 @@
-// src/app/pages/discover/components/TopPickCard.jsx
+// src/legacy/discover/components/TopPickCard.jsx
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Bookmark, BookmarkCheck, Check, Eye, Play } from 'lucide-react'

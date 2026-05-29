@@ -1,4 +1,4 @@
-// src/features/people-v2/usePeopleData.jsx
+// src/features/people/usePeopleData.jsx
 // FeelFlick — People v2 ("Taste twins") data layer. Fetches the signed-in
 // user's social graph (user_follows, user_similarity), then derives every
 // panel: USER counts · TWINS (top 4 by similarity) · RISING (next 3) ·

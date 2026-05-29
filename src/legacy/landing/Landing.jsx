@@ -1,4 +1,4 @@
-// src/features/landing/Landing.jsx
+// src/legacy/landing/Landing.jsx
 import TopNav from '@/components/layout/TopNav'
 import Footer from '@/components/layout/Footer'
 import HeroSection from '@/legacy/landing/sections/HeroSection'

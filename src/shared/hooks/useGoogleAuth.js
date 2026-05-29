@@ -1,4 +1,4 @@
-// src/features/landing/utils/useGoogleAuth.js
+// src/shared/hooks/useGoogleAuth.js
 import { useState } from 'react'
 import { supabase } from '@/shared/lib/supabase/client'
 import {

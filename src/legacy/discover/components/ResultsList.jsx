@@ -1,4 +1,4 @@
-// src/app/pages/discover/components/ResultsList.jsx
+// src/legacy/discover/components/ResultsList.jsx
 import { useCallback, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronDown } from 'lucide-react'

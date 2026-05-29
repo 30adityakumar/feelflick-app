@@ -1,4 +1,4 @@
-// src/features/movie-v2/hooks/useTasteTwin.js
+// src/features/movie/hooks/useTasteTwin.js
 // Top taste-twin who has rated THIS movie. Returns the highest-similarity user
 // (from user_similarity) who left a user_ratings row for the film. user_history
 // is owner-only RLS so we can't filter on "watched"; a rating implies a watch.

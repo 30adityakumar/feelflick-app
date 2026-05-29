@@ -1,4 +1,4 @@
-// src/app/pages/movies/MoviesTab.jsx
+// src/legacy/movies/MoviesTab.jsx
 import { useEffect, useState } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { discoverMovies } from '@/shared/api/tmdb'

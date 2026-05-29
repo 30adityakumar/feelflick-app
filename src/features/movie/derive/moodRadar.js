@@ -1,4 +1,4 @@
-// src/features/movie-v2/derive/moodRadar.js
+// src/features/movie/derive/moodRadar.js
 // Pure derivation: a per-film mood radar from the LLM enrichment columns
 // already populated on the movies table. No user input, no network call.
 //

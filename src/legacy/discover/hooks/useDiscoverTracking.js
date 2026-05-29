@@ -1,4 +1,4 @@
-// src/app/pages/discover/hooks/useDiscoverTracking.js
+// src/legacy/discover/hooks/useDiscoverTracking.js
 import { useCallback, useRef } from 'react'
 
 import { supabase } from '@/shared/lib/supabase/client'

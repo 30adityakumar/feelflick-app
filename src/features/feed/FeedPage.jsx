@@ -1,4 +1,4 @@
-// src/app/pages/feed/FeedPage.jsx
+// src/features/feed/FeedPage.jsx
 import { useState, useEffect, useMemo } from 'react'
 
 import { Link, useNavigate } from 'react-router-dom'

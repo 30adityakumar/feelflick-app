@@ -1,4 +1,4 @@
-// src/app/homepage/components/MoodRow.jsx
+// src/legacy/homepage/components/MoodRow.jsx
 import { Palette } from 'lucide-react'
 
 import PersonalizedCarouselRow from './PersonalizedCarouselRow'

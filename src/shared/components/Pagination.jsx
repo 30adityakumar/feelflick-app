@@ -1,4 +1,4 @@
-// src/app/pages/browse/Pagination.jsx
+// src/shared/components/Pagination.jsx
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 function pageRange(current, total) {

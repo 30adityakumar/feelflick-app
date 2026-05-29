@@ -1,4 +1,4 @@
-// src/app/pages/discover/components/BriefSynthesis.jsx
+// src/legacy/discover/components/BriefSynthesis.jsx
 import { motion } from 'framer-motion'
 
 import { QUESTION_SET } from '@/shared/lib/discoverQuestions'

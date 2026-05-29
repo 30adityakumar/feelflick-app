@@ -1,4 +1,4 @@
-// src/features/watchlist-v2/useWatchlistData.jsx
+// src/features/watchlist/useWatchlistData.jsx
 // FeelFlick — Watchlist v2 data layer. Fetches the signed-in user's
 // user_watchlist (joined with movies) + their taste_fingerprint, then
 // derives the shape the page expects: items[] with match/mood/perfect/

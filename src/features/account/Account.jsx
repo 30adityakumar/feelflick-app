@@ -1,4 +1,4 @@
-// src/features/account-v2/Account.jsx
+// src/features/account/Account.jsx
 // FeelFlick — Account (v2). Mount at /account-v2 alongside the existing /account.
 // PR 1: real handlers (avatar upload, name save, sign out, sign out everywhere,
 //        reset DNA, delete via mailto) ported from the existing Account.jsx

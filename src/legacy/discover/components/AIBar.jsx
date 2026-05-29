@@ -1,4 +1,4 @@
-// src/app/pages/discover/components/AIBar.jsx
+// src/legacy/discover/components/AIBar.jsx
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 

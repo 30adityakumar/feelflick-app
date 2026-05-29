@@ -1,4 +1,4 @@
-// src/features/profile-v2/buildSummaryRequest.js
+// src/features/profile/buildSummaryRequest.js
 // Shared helpers for calling the generate-taste-summary edge function.
 //
 // Two responsibilities, kept as separate pure functions so each caller can

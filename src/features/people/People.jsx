@@ -1,4 +1,4 @@
-// src/features/people-v2/People.jsx
+// src/features/people/People.jsx
 // FeelFlick — People v2 ("Taste twins"). Editorial social surface backed by
 // live user_follows × user_similarity × user_ratings × user_history. Drops
 // the internal Nav (AppShell owns nav). All follow/unfollow flows through

@@ -1,4 +1,4 @@
-// src/features/profile-v2/derive.js
+// src/features/profile/derive.js
 // Pure deriver functions that turn the raw Supabase fetch result
 // (user_history + joined movies + user_ratings + taste_fingerprint) into
 // the shapes that top.jsx / bottom.jsx components expect.

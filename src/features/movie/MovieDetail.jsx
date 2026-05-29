@@ -1,4 +1,4 @@
-// src/features/movie-v2/MovieDetail.jsx
+// src/features/movie/MovieDetail.jsx
 // FeelFlick — Movie Detail v2 ("Film File" editorial direction).
 // Route: /movie-v2/:id (parallel to existing /movie/:id)
 //

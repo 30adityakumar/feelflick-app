@@ -1,4 +1,4 @@
-// src/features/movie-v2/hooks/useTasteFingerprint.js
+// src/features/movie/hooks/useTasteFingerprint.js
 // Thin React wrapper around the shared getTasteFingerprint() cache.
 // Returns null while loading or when the user has fewer than 5 watched films.
 

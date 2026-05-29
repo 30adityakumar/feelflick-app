@@ -1,4 +1,4 @@
-// src/app/pages/profile/profileUtils.js
+// src/legacy/profile/profileUtils.jsx
 // Shared constants, helpers, and components for TasteProfile & PublicProfile.
 
 import { Link } from 'react-router-dom'

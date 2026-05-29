@@ -1,4 +1,4 @@
-// src/features/movie-v2/hooks/useUserRating.js
+// src/features/movie/hooks/useUserRating.js
 //
 // Loads + persists the current user's rating + review + reaction for THIS film.
 // Returns a hook value that mirrors a controlled form:

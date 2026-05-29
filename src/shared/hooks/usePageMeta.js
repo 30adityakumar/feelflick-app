@@ -32,6 +32,23 @@ function setCanonical(url) {
   el.setAttribute('href', url)
 }
 
+// Inject/replace a single page-level JSON-LD <script>. Pass null to remove it.
+function setJsonLd(json) {
+  const id = 'page-ld-json'
+  let el = document.getElementById(id)
+  if (!json) {
+    if (el) el.remove()
+    return
+  }
+  if (!el) {
+    el = document.createElement('script')
+    el.type = 'application/ld+json'
+    el.id = id
+    document.head.appendChild(el)
+  }
+  el.textContent = json
+}
+
 /**
  * Sets page-level SEO tags from runtime route data and restores FeelFlick defaults on cleanup.
  *
@@ -40,9 +57,12 @@ function setCanonical(url) {
  * @param {string|null} params.description - Meta description.
  * @param {string|null} params.image - OG/Twitter image URL.
  * @param {string|null} params.url - Canonical/OG/Twitter URL.
+ * @param {Object|null} [params.jsonLd] - schema.org structured data injected as JSON-LD; removed on cleanup.
  * @returns {void}
  */
-export function usePageMeta({ title, description, image, url }) {
+export function usePageMeta({ title, description, image, url, jsonLd }) {
+  // Serialize so the effect re-runs only when the structured data actually changes.
+  const ldString = jsonLd ? JSON.stringify(jsonLd) : null
   useEffect(() => {
     const prevTitle = document.title
 
@@ -57,6 +77,7 @@ export function usePageMeta({ title, description, image, url }) {
     setMeta('twitter:image', image || DEFAULT_IMAGE, true)
     setMeta('twitter:url', url || BASE_URL, true)
     setCanonical(url || BASE_URL)
+    setJsonLd(ldString)
 
     return () => {
       document.title = prevTitle
@@ -70,6 +91,7 @@ export function usePageMeta({ title, description, image, url }) {
       setMeta('twitter:image', DEFAULT_IMAGE, true)
       setMeta('twitter:url', BASE_URL, true)
       setCanonical(BASE_URL)
+      setJsonLd(null)
     }
-  }, [title, description, image, url])
+  }, [title, description, image, url, ldString])
 }

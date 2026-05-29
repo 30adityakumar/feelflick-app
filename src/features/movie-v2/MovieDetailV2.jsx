@@ -42,10 +42,30 @@ export default function MovieDetailV2() {
 
   const movieTitle = mv?.title
   const movieYear = mv?.year ? ` (${mv.year})` : ''
+  const movieUrl = `https://app.feelflick.com/movie/${id}`
+  // schema.org/Movie structured data → rich Google results for film pages.
+  const movieJsonLd = mv
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'Movie',
+        name: mv.title,
+        url: movieUrl,
+        ...(mv.overview ? { description: mv.overview } : {}),
+        ...(mv.poster || mv.backdrop ? { image: mv.poster || mv.backdrop } : {}),
+        ...(mv.genres?.length ? { genre: mv.genres } : {}),
+        ...(mv.director && mv.director !== '—'
+          ? { director: { '@type': 'Person', name: mv.director } }
+          : {}),
+        ...(mv.runtime ? { duration: `PT${mv.runtime}M` } : {}),
+        ...(mv.year ? { datePublished: String(mv.year) } : {}),
+      }
+    : null
   usePageMeta({
     title: movieTitle ? `${movieTitle}${movieYear} — FeelFlick` : 'Movie — FeelFlick',
     description: mv?.tagline || mv?.overview || undefined,
     image: mv?.backdrop || undefined,
+    url: movieUrl,
+    jsonLd: movieJsonLd,
   })
 
   const {

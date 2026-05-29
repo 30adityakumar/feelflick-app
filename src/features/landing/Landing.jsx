@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { useGoogleAuth } from '@/features/landing-v2/utils/useGoogleAuth'
+import { useGoogleAuth } from '@/shared/hooks/useGoogleAuth'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import './landing.css'
 

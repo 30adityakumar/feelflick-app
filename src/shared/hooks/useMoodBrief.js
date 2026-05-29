@@ -1,7 +1,7 @@
 // src/shared/hooks/useMoodBrief.js
 import { useCallback, useMemo, useState } from 'react'
 
-import { QUESTION_SET } from '@/app/pages/discover/questions'
+import { QUESTION_SET } from '@/shared/lib/discoverQuestions'
 
 /**
  * State management for the 4-question Mood Brief flow (vibe, attention, time, company).

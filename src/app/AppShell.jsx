@@ -7,7 +7,7 @@ import SearchBar from '@/app/header/components/SearchBar'
 import BottomNav from '@/app/header/components/BottomNav'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { usePendingDeletion } from '@/shared/hooks/usePendingDeletion'
-import { useGoogleAuth } from '@/features/landing-v2/utils/useGoogleAuth'
+import { useGoogleAuth } from '@/shared/hooks/useGoogleAuth'
 import { identify, resetAnalytics, track } from '@/shared/services/analytics'
 
 export default function AppShell() {

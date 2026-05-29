@@ -6,13 +6,13 @@ const baseURL = 'http://localhost:5173'
 
 export default defineConfig({
   testDir: './e2e',
-  testMatch: /.*\.(e2e|setup)\.js$/,
+  testMatch: /.*\.(e2e|setup|visual)\.js$/,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : 'list',
   timeout: 30_000,
-  expect: { timeout: 10_000 },
+  expect: { timeout: 10_000, toHaveScreenshot: { maxDiffPixelRatio: 0.02, animations: 'disabled' } },
   use: {
     baseURL,
     trace: 'on-first-retry',
@@ -35,6 +35,15 @@ export default defineConfig({
       testMatch: 'app/**/*.e2e.js',
       dependencies: ['setup'],
       use: { ...devices['Desktop Chrome'], storageState: 'e2e/.auth/user.json' },
+    },
+
+    // Visual regression on deterministic public pages. NOT part of the default
+    // `test:e2e` run / CI e2e job (baselines are platform-specific — generate
+    // Linux baselines before enabling in CI). Run locally via `npm run test:visual`.
+    {
+      name: 'visual',
+      testMatch: 'visual/**/*.visual.js',
+      use: { ...devices['Desktop Chrome'] },
     },
   ],
 

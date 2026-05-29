@@ -44,7 +44,7 @@ src/
 │   ├── profile/          # /profile/:userId — taste profile
 │   ├── people/           # /people — taste twins
 │   ├── lists/            # /lists + curated detail (+ Create/AddToList modals)
-│   └── feed/, challenges/ # ⚠️ unwired stubs (routes redirect to /home) — delete candidates
+│   └── feed/, challenges/ # parked features — built but unrouted (redirect to /home until shipped)
 ├── components/           # canonical app-wide UI
 │   ├── carousel/         # the MovieCard hover LAW (Card, Row, hooks)
 │   ├── layout/           # TopNav, Footer (shared chrome)

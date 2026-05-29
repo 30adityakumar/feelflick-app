@@ -1,0 +1,11 @@
+{
+  "recommendations": [
+    "supabase.supabase",
+    "GitHub.copilot",
+    "bradlc.vscode-tailwindcss",
+    "dbaeumer.vscode-eslint",
+    "usernamehw.errorlens",
+    "deque-systems.vscode-axe-linter"
+  ],
+  "unwantedRecommendations": []
+}

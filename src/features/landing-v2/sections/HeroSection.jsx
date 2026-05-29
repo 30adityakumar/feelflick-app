@@ -3,7 +3,7 @@ import { useCallback, useState } from 'react'
 import { motion } from 'framer-motion'
 import { LogIn, Loader2 } from 'lucide-react'
 
-import { useGoogleAuth } from '@/features/landing-v2/utils/useGoogleAuth'
+import { useGoogleAuth } from '@/shared/hooks/useGoogleAuth'
 import MoodDemoPanel from '@/features/landing-v2/components/MoodDemoPanel'
 import Button from '@/shared/ui/Button'
 

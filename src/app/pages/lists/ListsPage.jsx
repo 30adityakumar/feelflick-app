@@ -9,7 +9,7 @@ import { Plus, Pencil, Trash2, Film } from 'lucide-react'
 import { supabase } from '@/shared/lib/supabase/client'
 import Button from '@/shared/ui/Button'
 import { tmdbImg } from '@/shared/api/tmdb'
-import CreateListModal from './CreateListModal'
+import CreateListModal from '@/features/lists-v2/CreateListModal'
 
 // ============================================================================
 // SKELETON

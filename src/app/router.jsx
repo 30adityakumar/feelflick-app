@@ -40,8 +40,8 @@ const MobileAccount = lazy(() => import('@/app/header/components/MobileAccount')
 const NotFound = lazy(() => import('@/app/pages/NotFound'))
 
 // Shared top/bottom (legacy v2 landing's nav + footer, used by legal pages)
-import TopNav from '@/features/landing-v2/components/TopNav'
-import Footer from '@/features/landing-v2/components/Footer'
+import TopNav from '@/components/layout/TopNav'
+import Footer from '@/components/layout/Footer'
 
 // Auth/onboarding gate
 import PostAuthGate from '@/features/auth/PostAuthGate'

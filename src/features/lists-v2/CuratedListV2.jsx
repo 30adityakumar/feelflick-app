@@ -6,7 +6,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
-import { CURATED_LISTS } from '@/app/pages/browse/curatedListsConfig'
+import { CURATED_LISTS } from '@/shared/lib/curatedLists'
 import './lists-v2.css'
 
 const HP = {

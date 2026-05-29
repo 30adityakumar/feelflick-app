@@ -10,7 +10,7 @@ import { supabase } from '@/shared/lib/supabase/client'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { tmdbImg } from '@/shared/api/tmdb'
-import CreateListModal from '@/app/pages/lists/CreateListModal'
+import CreateListModal from '@/features/lists-v2/CreateListModal'
 import './lists-v2.css'
 
 const HP = {

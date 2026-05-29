@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Menu, X, LogIn } from 'lucide-react'
-import { useGoogleAuth } from '@/features/landing-v2/utils/useGoogleAuth'
+import { useGoogleAuth } from '@/shared/hooks/useGoogleAuth'
 
 // === CONSTANTS ===
 

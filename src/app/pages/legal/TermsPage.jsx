@@ -1,8 +1,8 @@
 // src/app/pages/TermsPage.jsx
 import { Scale, ShieldCheck, AlertTriangle, FileText, Mail, Gavel } from 'lucide-react'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
-import TopNav from '@/features/landing-v2/components/TopNav'
-import Footer from '@/features/landing-v2/components/Footer'
+import TopNav from '@/components/layout/TopNav'
+import Footer from '@/components/layout/Footer'
 
 export default function TermsPage() {
   usePageMeta({

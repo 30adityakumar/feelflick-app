@@ -5,7 +5,7 @@ import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import MovieCardRating from '@/shared/components/MovieCardRating'
 import { ChevronLeft } from 'lucide-react'
 
-import { CURATED_LISTS } from './curatedListsConfig'
+import { CURATED_LISTS } from '@/shared/lib/curatedLists'
 
 // === MOVIE TILE ===
 

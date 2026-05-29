@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
-import { CURATED_LISTS } from './curatedListsConfig'
+import { CURATED_LISTS } from '@/shared/lib/curatedLists'
 
 export default function CuratedListsIndex() {
   const navigate = useNavigate()

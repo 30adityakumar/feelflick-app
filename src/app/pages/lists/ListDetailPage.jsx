@@ -11,7 +11,7 @@ import Button from '@/shared/ui/Button'
 import { tmdbImg } from '@/shared/api/tmdb'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
-import CreateListModal from './CreateListModal'
+import CreateListModal from '@/features/lists-v2/CreateListModal'
 
 // ============================================================================
 // HELPERS

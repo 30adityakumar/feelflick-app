@@ -30,7 +30,7 @@ import StarRating from '@/shared/components/StarRating'
 import FFRatingHero from './FFRatingHero'
 import RatingBreakdown from './RatingBreakdown'
 import MoodChips from './MoodChips'
-import AddToListModal from '@/app/pages/lists/AddToListModal'
+import AddToListModal from '@/features/lists-v2/AddToListModal'
 import ToastNotification from '@/components/ToastNotification'
 
 // === QUICK-RATE PROMPT ===

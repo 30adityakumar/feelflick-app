@@ -24,7 +24,7 @@ import { useAuthSession } from '@/shared/hooks/useAuthSession'
 // Used here to translate the user's user_preferences.genre_id rows into the
 // dbName values our `movies.primary_genre` column stores.
 import { GENRES } from '@/features/onboarding/data'
-import { CURATED_LISTS } from '@/app/pages/browse/curatedListsConfig'
+import { CURATED_LISTS } from '@/shared/lib/curatedLists'
 import { computeUserProfile, scoreMovieForUser } from '@/shared/services/recommendations'
 import { computeMatchPercent } from '@/shared/services/matchScore'
 import { MOVIE_ENGINE_COLS } from '@/shared/services/movieFields'

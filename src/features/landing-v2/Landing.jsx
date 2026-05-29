@@ -1,6 +1,6 @@
 // src/features/landing/Landing.jsx
-import TopNav from '@/features/landing-v2/components/TopNav'
-import Footer from '@/features/landing-v2/components/Footer'
+import TopNav from '@/components/layout/TopNav'
+import Footer from '@/components/layout/Footer'
 import HeroSection from '@/features/landing-v2/sections/HeroSection'
 import HowItWorksSection from '@/features/landing-v2/sections/HowItWorksSection'
 import CinematicDNASection from '@/features/landing-v2/sections/CinematicDNASection'

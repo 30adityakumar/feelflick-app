@@ -2,8 +2,8 @@
 import { Link } from 'react-router-dom'
 import { Shield, Lock, EyeOff, FileText, Mail, AlertTriangle, Globe } from 'lucide-react'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
-import TopNav from '@/features/landing-v2/components/TopNav'
-import Footer from '@/features/landing-v2/components/Footer'
+import TopNav from '@/components/layout/TopNav'
+import Footer from '@/components/layout/Footer'
 
 export default function PrivacyPage() {
   usePageMeta({

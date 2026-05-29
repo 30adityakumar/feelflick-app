@@ -8,7 +8,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
-import CreateListModal from '@/app/pages/lists/CreateListModal'
+import CreateListModal from '@/features/lists-v2/CreateListModal'
 import './lists-v2.css'
 import { ListsDataProvider, useListsData } from './useListsData'
 

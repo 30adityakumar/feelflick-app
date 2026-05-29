@@ -14,7 +14,7 @@ import { createContext, useContext, useEffect, useMemo, useState, useCallback } 
 import { supabase } from '@/shared/lib/supabase/client'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { tmdbImg } from '@/shared/api/tmdb'
-import { CURATED_LISTS } from '@/app/pages/browse/curatedListsConfig'
+import { CURATED_LISTS } from '@/shared/lib/curatedLists'
 
 const ListsDataContext = createContext(null)
 

@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Static routes + curated lists. Movie pages (/movie/:id) are the SEO long-tail
+     and need a *generated* sitemap (sitemap-movies.xml from the catalog) — tracked
+     as a follow-up; they're crawlable today via robots.txt + the edge middleware. -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://app.feelflick.com/</loc>
@@ -8,7 +11,67 @@
   <url>
     <loc>https://app.feelflick.com/discover</loc>
     <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://app.feelflick.com/browse</loc>
+    <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://app.feelflick.com/people</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://app.feelflick.com/lists/curated/critics-picks</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://app.feelflick.com/lists/curated/crowd-pleasers</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://app.feelflick.com/lists/curated/comfort-watches</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://app.feelflick.com/lists/curated/cult-classics</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://app.feelflick.com/lists/curated/world-cinema</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://app.feelflick.com/lists/curated/prestige-drama-2020s</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://app.feelflick.com/lists/curated/tense-and-haunting</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://app.feelflick.com/lists/curated/challenging-art</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://app.feelflick.com/lists/curated/festival-discoveries</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://app.feelflick.com/lists/curated/exceptional-for-genre</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://app.feelflick.com/about</loc>

@@ -1,7 +1,7 @@
 {
   "name": "FeelFlick",
   "short_name": "FeelFlick",
-  "description": "Mood-based movie and TV show discovery",
+  "description": "Mood-first movie discovery — one film for how you feel tonight.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#06060a",

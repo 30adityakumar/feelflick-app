@@ -68,7 +68,7 @@ src/
 │   ├── providers/        # React context providers (WatchlistContext, …)
 │   └── admin/            # email-allowlist-gated admin tools
 ├── features/             # one folder per product surface — NO version suffix
-│   ├── landing/          # the v3 editorial landing at /
+│   ├── landing/          # v3 editorial landing at / (Landing.jsx shell + sections/ + data.js + primitives.jsx)
 │   ├── onboarding/       # mood-reactive onboarding
 │   ├── auth/             # Google OAuth flow + post-auth gate
 │   ├── browse/           # /mood, /collection editorial browse
@@ -200,7 +200,7 @@ npm run build        # Production build
 > `E2E_TEST_EMAIL=… E2E_TEST_PASSWORD=… npm run test:e2e`. Saved session →
 > `e2e/.auth/` (gitignored). `public/` specs run logged-out; `app/` specs authenticated.
 
-- One component per file *except* in editorial surfaces (e.g. `landing/Landing.jsx`) where sub-components are colocated as a single composition.
+- One component per file. **Editorial / many-section surfaces decompose into a `sections/` subfolder** (one file per section), with the shared dataset in `data.js`, shared helpers in `primitives.jsx`, and a slim entry that composes them — see `landing/`. A section file may still colocate its own tiny sub-components (e.g. `Ritual.jsx`'s step visuals). Data-driven app surfaces instead use the `sections-top.jsx` / `sections-bottom.jsx` split (home/movie/account/profile). Both follow one rule: **the entry composes; section bodies live in their own files.**
 - PascalCase components, camelCase hooks prefixed `use`.
 - Inline styles are allowed in the feature surfaces + editorial landing (typography rhythm is finer than Tailwind's defaults). Tailwind utilities everywhere else.
 - No hardcoded hex outside the `HP` token object (feature surfaces) or the v3 landing's `C` palette — use Tailwind tokens or CSS custom properties.
@@ -396,7 +396,7 @@ visible as a static div — never hidden or animated.
 The v3 landing at `/` is canonical for public surfaces (PR #84 promoted it
 from `/v3`). It uses the editorial language above, with these specifics:
 
-- File: `src/features/landing/Landing.jsx` (688 LOC, single editorial composition — sub-components colocated by design).
+- Structure: `Landing.jsx` is a slim composition shell (~53 LOC); each section lives in `landing/sections/*.jsx` (Header, Hero, TheProblem, Ritual, FilmFile, Briefing, DNA, Community, MLetter, Pricing, FinalCTA, Footer), the shared `PICKS` dataset in `landing/data.js`, and the `Reveal` / `Poster` / `Stars` helpers in `landing/primitives.jsx`. `/` is visual-regression tested (`e2e/visual/landing.visual.js`) — keep any section change render-faithful or re-baseline deliberately.
 - Type primitives via `landing.css` CSS classes:
   - `.ff-d1` — Outfit 200, ls -0.055em, lh 0.92 (hero scale).
   - `.ff-d2` — Outfit 200, ls -0.045em, lh 0.96 (section scale).
@@ -510,9 +510,10 @@ No blank lines within a group. One blank line between groups.
 
 ### Naming
 
-- Components: PascalCase, file name matches export — *except* in editorial
-  compositions (e.g. `src/features/landing/Landing.jsx`) where many small
-  sub-components colocate in one file. Treat those files as art, not library code.
+- Components: PascalCase, file name matches export. Editorial surfaces decompose
+  into a `sections/` subfolder (one default-exported PascalCase file per section);
+  a section may colocate its own small sub-components (Header's `NavLink`, Footer's
+  `FooterLink`, Ritual's visuals) — locality, not a shared concern.
 - **Route-entry components = the domain noun, no `Page` suffix** (`Browse.jsx`,
   `Collection.jsx`, `About.jsx` — not `BrowsePage`). A long page split into
   halves uses `sections-top.jsx` / `sections-bottom.jsx` (see home/movie/account/profile).

@@ -1,5 +1,7 @@
 import * as Sentry from '@sentry/react'
-import { onCLS, onFCP, onFID, onINP, onLCP, onTTFB } from 'web-vitals'
+// web-vitals v5 removed onFID — FID was retired as a Core Web Vital in favor of
+// INP (already reported below via onINP). See https://web.dev/articles/inp.
+import { onCLS, onFCP, onINP, onLCP, onTTFB } from 'web-vitals'
 
 function sendToSentry({ name, value, rating, id }) {
   Sentry.metrics.distribution(`web_vitals.${name.toLowerCase()}`, value, {
@@ -14,7 +16,6 @@ function sendToSentry({ name, value, rating, id }) {
 export function reportWebVitals() {
   onCLS(sendToSentry)
   onFCP(sendToSentry)
-  onFID(sendToSentry)
   onINP(sendToSentry)
   onLCP(sendToSentry)
   onTTFB(sendToSentry)

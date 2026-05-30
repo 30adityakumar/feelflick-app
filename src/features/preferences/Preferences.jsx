@@ -6,6 +6,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
+import { ActionButton, SecondaryActionButton } from '@/shared/components/ActionButton'
 import { PreferencesDataProvider, usePreferencesData, genreLabelOf } from './usePreferencesData'
 import './preferences.css'
 
@@ -460,18 +461,17 @@ function PreviewPanel() {
           </h2>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
-          <button
-            type="button"
+          <SecondaryActionButton
+            label="Discard"
             onClick={discard}
             disabled={!dirty || saving}
-            style={{ padding: '12px 22px', borderRadius: 8, background: 'rgba(255,255,255,0.06)', border: `1px solid ${HP.borderStrong}`, color: dirty ? HP.textSoft : HP.textFaint, fontFamily: 'Outfit', fontSize: 13, fontWeight: 600, cursor: dirty ? 'pointer' : 'not-allowed', opacity: dirty ? 1 : 0.6 }}
-          >Discard</button>
-          <button
-            type="button"
+            style={{ border: `1px solid ${HP.borderStrong}`, color: dirty ? HP.textSoft : HP.textFaint, opacity: dirty ? 1 : 0.6, cursor: dirty ? 'pointer' : 'not-allowed' }}
+          />
+          <ActionButton
             onClick={save}
             disabled={!dirty || saving}
-            style={{ padding: '12px 22px', borderRadius: 8, background: dirty && !saving ? HP_GRAD : 'rgba(255,255,255,0.06)', border: 'none', color: dirty && !saving ? '#fff' : HP.textFaint, fontFamily: 'Outfit', fontSize: 13, fontWeight: 600, letterSpacing: '0.02em', cursor: dirty && !saving ? 'pointer' : 'not-allowed', boxShadow: dirty && !saving ? '0 12px 28px -8px rgba(236,72,153,0.5)' : 'none' }}
-          >{saving ? 'Saving…' : 'Save and retune'}</button>
+            style={dirty && !saving ? undefined : { background: 'rgba(255,255,255,0.06)', color: HP.textFaint, boxShadow: 'none', cursor: 'not-allowed' }}
+          >{saving ? 'Saving…' : 'Save and retune'}</ActionButton>
         </div>
       </div>
     </section>

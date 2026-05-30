@@ -2,15 +2,23 @@
 
 ## What is FeelFlick
 
-Mood-first movie discovery. Users say how they feel. We return films —
-not what's trending, what's right for them right now.
+FeelFlick turns *how you feel* into one considered film for tonight — tuned to
+your mood and everything you've ever loved on screen, and it tells you why it's
+the one. A pick you can trust, not a feed to scroll.
 
-Every surface, every doc, every feature serves this one sentence. If a
-change doesn't make mood-to-film clearer, faster, or more personal —
-it's not the priority.
+Mood is the front door; your taste (your "Cinematic DNA") is the house; the
+editorial case for each pick is the moat. One film a night — made for the
+patient, not the scrollers.
+
+Every surface, every doc, every feature serves this. If a change doesn't make
+tonight's one pick **land faster, fit better, or earn more trust** — it's not
+the priority. (Note the third clause: the Film File / Briefing "makes its case"
+layer is core, not garnish — don't let a narrow "mood→film, faster" reading
+de-prioritize it.)
 
 ## Project
-Mood-first movie/TV discovery. Users express how they feel → get curated recommendations.
+Mood-first, taste-deep movie/TV discovery: users express how they feel → get **one**
+trustworthy, case-made pick tuned to their full taste history (not an endless feed).
 **Quality bar:** Netflix / Apple TV+ polish. Every surface is production-facing.
 **Stack:** React 19 · React Router 7 · Framer Motion · Tailwind 4 · Vite 8 · Supabase (PostgreSQL + pgvector) · TMDB API · OpenAI (text-embedding-3-small) · Resend · Google OAuth · PostHog · Sentry · Vitest · Playwright
 **Language:** JavaScript (JSX). No TypeScript yet — avoid patterns that block future migration.

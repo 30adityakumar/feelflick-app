@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react'
+import MoodPill from '@/shared/components/MoodPill'
 import { HP, HP_GRAD, MOODS, LANG_OPTIONS } from './data'
 import { getMoodTag } from './components'
 
@@ -63,7 +64,7 @@ function QuickLook({ film, mood, watched, inWatchlist, onTW, onTWL, onClose }) {
           <div style={{ position:'absolute', bottom:0, left:24, right:24, display:'flex', gap:18, alignItems:'flex-end', paddingBottom:24 }}>
             <img src={film.poster} alt="" style={{ width:110, aspectRatio:'2/3', objectFit:'cover', borderRadius:5, boxShadow:'0 22px 44px -12px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.06)' }} />
             <div style={{ flex:1, minWidth:0 }}>
-              {moodTag && <div style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'3px 9px', borderRadius:999, background:`${moodTag.color}1a`, border:`1px solid ${moodTag.color}44`, color:moodTag.color, fontFamily:'Inter', fontSize:11, fontWeight:600, marginBottom:8 }}>{moodTag.label}</div>}
+              {moodTag && <MoodPill label={moodTag.label} color={moodTag.color} style={{ marginBottom:8 }} />}
               <h2 style={{ fontFamily:'Outfit', fontSize:28, fontWeight:500, color:'#fff', margin:0, letterSpacing:'-0.022em', lineHeight:1.1 }}>{film.title}</h2>
               <div style={{ marginTop:6, fontFamily:'Inter', fontSize:13, color:'rgba(255,255,255,0.72)' }}>{film.year} · {film.dir} · {film.runtime}m</div>
             </div>

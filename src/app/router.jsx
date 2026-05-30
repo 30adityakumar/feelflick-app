@@ -15,23 +15,22 @@ import AppShell from '@/app/AppShell'
 
 // Public pages (no app chrome)
 const Landing = lazy(() => import('@/features/landing/Landing'))
-const LandingV2 = lazy(() => import('@/legacy/landing/Landing'))
 
 // App pages (with header/sidebar)
-const HomeV2 = lazy(() => import('@/features/home/Home'))
+const Home = lazy(() => import('@/features/home/Home'))
 const Browse = lazy(() => import('@/features/browse/Browse'))
-const MovieDetailV2 = lazy(() => import('@/features/movie/MovieDetail'))
+const MovieDetail = lazy(() => import('@/features/movie/MovieDetail'))
 import ErrorBoundary from './ErrorBoundary'
 const Onboarding = lazy(() => import('@/features/onboarding/Onboarding'))
-const AccountV2 = lazy(() => import('@/features/account/Account'))
-const PreferencesV2 = lazy(() => import('@/features/preferences/Preferences'))
-const WatchlistV2 = lazy(() => import('@/features/watchlist/Watchlist'))
-const HistoryV2 = lazy(() => import('@/features/history/History'))
+const Account = lazy(() => import('@/features/account/Account'))
+const Preferences = lazy(() => import('@/features/preferences/Preferences'))
+const Watchlist = lazy(() => import('@/features/watchlist/Watchlist'))
+const History = lazy(() => import('@/features/history/History'))
 
 // 404
 const NotFound = lazy(() => import('@/app/NotFound'))
 
-// Shared top/bottom (legacy v2 landing's nav + footer, used by legal pages)
+// Shared top/bottom nav + footer (used by legal pages)
 import TopNav from '@/components/layout/TopNav'
 import Footer from '@/components/layout/Footer'
 
@@ -44,14 +43,14 @@ const AboutPage = lazy(() => import('@/features/legal/AboutPage'))
 const PrivacyPage = lazy(() => import('@/features/legal/PrivacyPage'))
 const TermsPage = lazy(() => import('@/features/legal/TermsPage'))
 
-const DiscoverV5 = lazy(() => import('@/features/discover/Discover'))
+const Discover = lazy(() => import('@/features/discover/Discover'))
 const MoodBrowsePage = lazy(() => import('@/features/browse/MoodBrowsePage'))
 const CollectionPage = lazy(() => import('@/features/browse/CollectionPage'))
-const TasteProfileV2 = lazy(() => import('@/features/profile/TasteProfile'))
-const PeopleV2 = lazy(() => import('@/features/people/People'))
-const ListsV2 = lazy(() => import('@/features/lists/Lists'))
-const ListDetailV2 = lazy(() => import('@/features/lists/ListDetail'))
-const CuratedListV2 = lazy(() => import('@/features/lists/CuratedList'))
+const TasteProfile = lazy(() => import('@/features/profile/TasteProfile'))
+const People = lazy(() => import('@/features/people/People'))
+const Lists = lazy(() => import('@/features/lists/Lists'))
+const ListDetail = lazy(() => import('@/features/lists/ListDetail'))
+const CuratedList = lazy(() => import('@/features/lists/CuratedList'))
 const PersonalListPage = lazy(() => import('@/features/lists/PersonalListPage'))
 
 // cache monitoring page
@@ -214,9 +213,6 @@ export const router = sentryCreateBrowserRouter([
       // Root decides: Landing (anon) or /home (authed)
       { index: true, element: <RootEntry /> },
 
-      // Landing v2 — legacy editorial landing, preserved for rollback / A/B.
-      // The current canonical landing at / is the v3 editorial spread.
-      { path: 'v2', element: <LazyRoute Component={LandingV2} /> },
 
       // OAuth callback route - MUST come before legacy auth redirects
       { path: 'auth/callback', element: <LazyRoute Component={OAuthCallback} /> },
@@ -266,17 +262,17 @@ export const router = sentryCreateBrowserRouter([
     children: [
       // Publicly viewable
       { path: 'movies', element: <Navigate to="/browse" replace /> },
-      { path: 'movie/:id', element: <LazyRoute Component={MovieDetailV2} />, errorElement: <ErrorBoundary /> },
+      { path: 'movie/:id', element: <LazyRoute Component={MovieDetail} />, errorElement: <ErrorBoundary /> },
       { path: 'browse', element: <LazyRoute Component={Browse} />, errorElement: <ErrorBoundary /> },
       { path: 'trending', element: <Navigate to="/browse" replace /> },
-      { path: 'discover', element: <LazyRoute Component={DiscoverV5} />, errorElement: <ErrorBoundary /> },
+      { path: 'discover', element: <LazyRoute Component={Discover} />, errorElement: <ErrorBoundary /> },
       { path: 'mood/:tag', element: <LazyRoute Component={MoodBrowsePage} />, errorElement: <ErrorBoundary /> },
       { path: 'tone/:tag', element: <LazyRoute Component={MoodBrowsePage} />, errorElement: <ErrorBoundary /> },
       { path: 'browse/fit/:profile', element: <LazyRoute Component={MoodBrowsePage} />, errorElement: <ErrorBoundary /> },
       { path: 'collection/:id', element: <LazyRoute Component={CollectionPage} />, errorElement: <ErrorBoundary /> },
-      { path: 'lists/curated/:slug', element: <LazyRoute Component={CuratedListV2} />, errorElement: <ErrorBoundary /> },
+      { path: 'lists/curated/:slug', element: <LazyRoute Component={CuratedList} />, errorElement: <ErrorBoundary /> },
       { path: 'lists/personal/:type', element: <LazyRoute Component={PersonalListPage} />, errorElement: <ErrorBoundary /> },
-      { path: 'lists/:listId', element: <LazyRoute Component={ListDetailV2} />, errorElement: <ErrorBoundary /> },
+      { path: 'lists/:listId', element: <LazyRoute Component={ListDetail} />, errorElement: <ErrorBoundary /> },
 
       // Admin-only routes (auth + email allowlist)
       {
@@ -296,16 +292,16 @@ export const router = sentryCreateBrowserRouter([
             element: <PostAuthGate />,
             errorElement: <ErrorBoundary />,
             children: [
-              { path: 'home', element: <LazyRoute Component={HomeV2} />, errorElement: <ErrorBoundary /> },
-              { path: 'account', element: <LazyRoute Component={AccountV2} />, errorElement: <ErrorBoundary /> },
-              { path: 'preferences', element: <LazyRoute Component={PreferencesV2} />, errorElement: <ErrorBoundary /> },
-              { path: 'watchlist', element: <LazyRoute Component={WatchlistV2} />, errorElement: <ErrorBoundary /> },
-              { path: 'history', element: <LazyRoute Component={HistoryV2} />, errorElement: <ErrorBoundary /> },
-              { path: 'watched', element: <LazyRoute Component={HistoryV2} />, errorElement: <ErrorBoundary /> },
-              { path: 'profile', element: <LazyRoute Component={TasteProfileV2} />, errorElement: <ErrorBoundary /> },
-              { path: 'profile/:userId', element: <LazyRoute Component={TasteProfileV2} />, errorElement: <ErrorBoundary /> },
-              { path: 'people', element: <LazyRoute Component={PeopleV2} />, errorElement: <ErrorBoundary /> },
-              { path: 'lists', element: <LazyRoute Component={ListsV2} />, errorElement: <ErrorBoundary /> },
+              { path: 'home', element: <LazyRoute Component={Home} />, errorElement: <ErrorBoundary /> },
+              { path: 'account', element: <LazyRoute Component={Account} />, errorElement: <ErrorBoundary /> },
+              { path: 'preferences', element: <LazyRoute Component={Preferences} />, errorElement: <ErrorBoundary /> },
+              { path: 'watchlist', element: <LazyRoute Component={Watchlist} />, errorElement: <ErrorBoundary /> },
+              { path: 'history', element: <LazyRoute Component={History} />, errorElement: <ErrorBoundary /> },
+              { path: 'watched', element: <LazyRoute Component={History} />, errorElement: <ErrorBoundary /> },
+              { path: 'profile', element: <LazyRoute Component={TasteProfile} />, errorElement: <ErrorBoundary /> },
+              { path: 'profile/:userId', element: <LazyRoute Component={TasteProfile} />, errorElement: <ErrorBoundary /> },
+              { path: 'people', element: <LazyRoute Component={People} />, errorElement: <ErrorBoundary /> },
+              { path: 'lists', element: <LazyRoute Component={Lists} />, errorElement: <ErrorBoundary /> },
               // Confirmed unfinished — redirect until shipped
               { path: 'feed', element: <Navigate to="/home" replace /> },
               { path: 'challenges', element: <Navigate to="/home" replace /> },

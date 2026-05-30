@@ -1,6 +1,11 @@
 // src/shared/services/recommendations.js
 /**
- * FeelFlick Recommendation Engine v2.7
+ * FeelFlick Recommendation Engine
+ *
+ * Current version: the `ENGINE_VERSION` const below is the source of truth. The
+ * dated changelog in this header stops at v2.7 — the engine has shipped many
+ * versions since without new header entries; use `git log -S ENGINE_VERSION`
+ * (or git blame on the const) for the changes since.
  *
  * NEW in v2.7:
  * ✅ ff_final_rating >= 7.2 absolute floor added to hero candidate pool alongside genre-norm

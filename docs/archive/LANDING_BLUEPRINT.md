@@ -1,3 +1,5 @@
+
+> 📦 **Archived — historical snapshot, not current.** Kept for reference; see `docs/archive/README.md`.
 # FeelFlick Landing Page Blueprint
 *Last updated: April 2026 — approved architecture before implementation*
 

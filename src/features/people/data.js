@@ -1,12 +1,6 @@
 // /people v2 — data.
 
-export const HP = {
-  bgDeep:'#06060a',
-  border:'rgba(255,255,255,0.08)', borderStrong:'rgba(255,255,255,0.14)',
-  text:'#FAFAFA', textSoft:'rgba(250,250,250,0.72)', textMuted:'rgba(250,250,250,0.45)', textFaint:'rgba(250,250,250,0.28)',
-  purple:'#A78BFA', purpleDeep:'#7C3AED', pink:'#EC4899', amber:'#F59E0B', red:'#EF4444', green:'#34D399',
-};
-export const HP_GRAD = 'linear-gradient(135deg, #9333ea 0%, #ec4899 100%)';
+export { HP, HP_GRAD } from '@/shared/lib/tokens'
 
 export const USER = { name:'Aditya', following:24, followers:31, taste:'Patient class-coded thrillers' };
 

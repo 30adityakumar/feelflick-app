@@ -9,6 +9,7 @@ import { scoreMovieForUser, logSurfaceImpressions, updateImpression } from '@/sh
 import { computeMatchPercent } from '@/shared/services/matchScore'
 import { trackInteraction } from '@/shared/services/interactions'
 import { getMovieWatchProviders } from '@/shared/api/tmdb'
+import { HP as baseHP, HP_GRAD } from '@/shared/lib/tokens'
 import { Play, SkipForward, X, Check, Bookmark } from 'lucide-react'
 import { DiscoverDataProvider, useDiscoverData } from './useDiscoverData'
 import './discover.css'
@@ -85,13 +86,9 @@ function AudioToggle() {
 
 // ── Original v4 imports below ──
 
-const HP = {
-  bgDeep:'#06060a', surface:'#120d1c', paper:'#0d0b13',
-  border:'rgba(255,255,255,0.08)', borderStrong:'rgba(255,255,255,0.14)',
-  text:'#FAFAFA', textSoft:'rgba(250,250,250,0.72)', textMuted:'rgba(250,250,250,0.45)', textFaint:'rgba(250,250,250,0.28)',
-  purple:'#A78BFA', purpleDeep:'#9333ea', pink:'#EC4899', amber:'#F59E0B', red:'#EF4444', green:'#34D399',
-};
-const HP_GRAD = 'linear-gradient(135deg, #9333ea 0%, #ec4899 100%)';
+// Discover keeps a deeper accent purple + two surface tints; spread the shared
+// core and override only those (explicit divergence, not copy-paste drift).
+const HP = { ...baseHP, purpleDeep: '#9333ea', surface: '#120d1c', paper: '#0d0b13' }
 const TMDB = (p) => `https://image.tmdb.org/t/p/w500${p}`;
 
 // Hints harmonized to noun-phrase voice — the other 6 already use this

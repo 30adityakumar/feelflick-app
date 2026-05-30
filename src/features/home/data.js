@@ -7,15 +7,7 @@ const TMDB_BASE = 'https://image.tmdb.org/t/p'
 export const TMDB = (path, size = 'w500') => path ? `${TMDB_BASE}/${size}${path}` : null
 export const POSTER = (path) => TMDB(path)
 
-export const HP = {
-  bg: '#000000', bgDeep: '#06060a',
-  panel: 'rgba(255,255,255,0.04)',
-  border: 'rgba(255,255,255,0.08)', borderStrong: 'rgba(255,255,255,0.14)',
-  text: '#FAFAFA', textSoft: 'rgba(250,250,250,0.72)', textMuted: 'rgba(250,250,250,0.45)', textFaint: 'rgba(250,250,250,0.28)',
-  purple: '#A78BFA', purpleDeep: '#7C3AED', pink: '#EC4899', amber: '#F59E0B',
-}
-export const HP_GRAD = 'linear-gradient(135deg, #9333ea 0%, #ec4899 100%)'
-
+export { HP, HP_GRAD } from '@/shared/lib/tokens'
 // Mood UI metadata only. Pool + rationale come from useHomeData.
 export const MOOD_META = [
   { id: 'tender',     label: 'Tender',     hex: '#F59FA8', tint: 'pink' },

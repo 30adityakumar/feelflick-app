@@ -18,23 +18,15 @@ const Landing = lazy(() => import('@/features/landing/Landing'))
 const LandingV2 = lazy(() => import('@/legacy/landing/Landing'))
 
 // App pages (with header/sidebar)
-const HomePage = lazy(() => import('@/legacy/homepage/HomePage'))
 const HomeV2 = lazy(() => import('@/features/home/Home'))
-const MoviesTab = lazy(() => import('@/legacy/movies/MoviesTab'))
 const Browse = lazy(() => import('@/features/browse/Browse'))
-const MovieDetail = lazy(() => import('@/legacy/movie-detail'))
 const MovieDetailV2 = lazy(() => import('@/features/movie/MovieDetail'))
 import ErrorBoundary from './ErrorBoundary'
 const Onboarding = lazy(() => import('@/features/onboarding/Onboarding'))
-const Account = lazy(() => import('@/legacy/header/Account'))
 const AccountV2 = lazy(() => import('@/features/account/Account'))
-const Preferences = lazy(() => import('@/legacy/header/Preferences'))
 const PreferencesV2 = lazy(() => import('@/features/preferences/Preferences'))
-const Watchlist = lazy(() => import('@/legacy/watchlist/Watchlist'))
 const WatchlistV2 = lazy(() => import('@/features/watchlist/Watchlist'))
-const HistoryPage = lazy(() => import('@/legacy/watched/WatchedHistory'))
 const HistoryV2 = lazy(() => import('@/features/history/History'))
-const MobileAccount = lazy(() => import('@/legacy/header/MobileAccount'))
 
 // 404
 const NotFound = lazy(() => import('@/app/NotFound'))
@@ -52,23 +44,15 @@ const AboutPage = lazy(() => import('@/features/legal/AboutPage'))
 const PrivacyPage = lazy(() => import('@/features/legal/PrivacyPage'))
 const TermsPage = lazy(() => import('@/features/legal/TermsPage'))
 
-const DiscoverPage = lazy(() => import('@/legacy/discover/DiscoverPage'))
 const DiscoverV5 = lazy(() => import('@/features/discover/Discover'))
 const MoodBrowsePage = lazy(() => import('@/features/browse/MoodBrowsePage'))
 const CollectionPage = lazy(() => import('@/features/browse/CollectionPage'))
-const CuratedListsIndex = lazy(() => import('@/legacy/browse-curated/CuratedListsIndex'))
-const CuratedListPage = lazy(() => import('@/legacy/browse-curated/CuratedListPage'))
-const TasteProfile = lazy(() => import('@/legacy/profile/TasteProfile'))
 const TasteProfileV2 = lazy(() => import('@/features/profile/TasteProfile'))
-const PublicProfile = lazy(() => import('@/legacy/profile/PublicProfile'))
-const UserSearchPage = lazy(() => import('@/legacy/people/UserSearchPage'))
 const PeopleV2 = lazy(() => import('@/features/people/People'))
-const ListsPage = lazy(() => import('@/legacy/lists/ListsPage'))
 const ListsV2 = lazy(() => import('@/features/lists/Lists'))
 const ListDetailV2 = lazy(() => import('@/features/lists/ListDetail'))
 const CuratedListV2 = lazy(() => import('@/features/lists/CuratedList'))
 const PersonalListPage = lazy(() => import('@/features/lists/PersonalListPage'))
-const ListDetailPage = lazy(() => import('@/legacy/lists/ListDetailPage'))
 
 // cache monitoring page
 const CacheMonitoring = lazy(() => import('./admin/CacheMonitoring'))
@@ -90,7 +74,7 @@ function PublicShell() {
 /* ------------------------------ Small UI bits ---------------------------- */
 // Generic dark skeleton for Suspense / auth-gate fallbacks. Matches the
 // CLAUDE.md "Never spinners" rule — a content-shaped pulse, not an indicator.
-// Per-route surfaces should provide their own skeleton (e.g. HomeSkeleton).
+// Per-route surfaces should provide their own skeleton.
 function RouteSkeleton() {
   return (
     <div className="min-h-[60vh] px-4 sm:px-6 lg:px-10 py-10" aria-hidden="true">
@@ -113,66 +97,6 @@ function RouteSkeleton() {
   )
 }
 
-// Hero-shaped skeleton for /home — matches HeroTopPick + first two carousel rows so the
-// Suspense swap produces zero layout shift on any viewport height. Uses animate-pulse, no spinner.
-// WHY outer wrapper: must match HomePage's root div exactly (className + style).
-//   overflow-x-hidden creates a block formatting context; a different root at Suspense swap
-//   time changes the BFC boundary and shifts every child element = CLS.
-// WHY rows: on large displays (hero capped at 800px, viewport ≥900px) the first carousel
-//   row is partially visible. Without placeholders, Suspense swap pops them in as CLS.
-function HomeSkeleton() {
-  return (
-    <div className="overflow-x-hidden" style={{ background: 'var(--color-bg)' }}>
-      <div aria-hidden="true">
-        {/* Hero section — identical constraints to HeroTopPick's <section> */}
-        <div
-          className="relative w-full bg-black overflow-hidden"
-          style={{ height: '75vh', minHeight: 500, maxHeight: 800 }}
-        >
-          {/* Backdrop placeholder */}
-          <div className="absolute inset-0 animate-pulse bg-purple-500/4" />
-          {/* Gradient overlays matching the real hero */}
-          <div className="absolute bottom-0 inset-x-0 h-[65%] bg-linear-to-t from-black via-black/75 to-transparent" />
-          {/* Content area skeleton — bottom-anchored like the real hero */}
-          <div className="absolute bottom-6 left-4 sm:left-6 lg:left-10 right-4 sm:right-6 lg:right-10 flex flex-col gap-3">
-            <div className="h-3 w-28 rounded-full animate-pulse bg-purple-500/8" />
-            <div className="h-8 w-2/3 sm:w-1/2 rounded-lg animate-pulse bg-white/6" />
-            <div className="h-4 w-1/3 rounded-full animate-pulse bg-white/4" />
-            <div className="flex gap-2 mt-1">
-              <div className="h-9 w-28 rounded-full animate-pulse bg-purple-500/12" />
-              <div className="h-9 w-9 rounded-full animate-pulse bg-white/6" />
-              <div className="h-9 w-9 rounded-full animate-pulse bg-white/6" />
-            </div>
-          </div>
-        </div>
-
-        {/* Carousel row skeletons — occupy the space that TopOfYourTasteRow etc. will fill.
-            Prevents any below-fold visible carousels from popping in as CLS. */}
-        <div className="mx-auto max-w-[1600px] pb-24 sm:pb-32">
-          {[0, 1].map(i => (
-            <div key={i} className="px-4 sm:px-6 pt-10 pb-4">
-              {/* Section header — matches the global section header pattern */}
-              <div className="flex items-center gap-2.5 mb-5">
-                <div className="w-[3px] h-5 rounded-full animate-pulse bg-purple-500/12" />
-                <div className="h-4 w-44 rounded-full animate-pulse bg-white/6" />
-              </div>
-              {/* Card row — 5 poster-aspect placeholders at standard carousel card width */}
-              <div className="flex gap-3 overflow-hidden">
-                {[0, 1, 2, 3, 4].map(j => (
-                  <div
-                    key={j}
-                    className="flex-none rounded-lg animate-pulse bg-white/4"
-                    style={{ width: 148, height: 222 }}
-                  />
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
 
 function LazyRoute({ Component }) {
   return (
@@ -182,13 +106,6 @@ function LazyRoute({ Component }) {
   )
 }
 
-function HomeRoute() {
-  return (
-    <Suspense fallback={<HomeSkeleton />}>
-      <HomePage />
-    </Suspense>
-  )
-}
 
 /** Root entry: if authed → /home, otherwise show Landing */
 function RootEntry() {
@@ -348,24 +265,18 @@ export const router = sentryCreateBrowserRouter([
     errorElement: <ErrorBoundary />,
     children: [
       // Publicly viewable
-      { path: 'movies', element: <LazyRoute Component={MoviesTab} />, errorElement: <ErrorBoundary /> },
+      { path: 'movies', element: <Navigate to="/browse" replace /> },
       { path: 'movie/:id', element: <LazyRoute Component={MovieDetailV2} />, errorElement: <ErrorBoundary /> },
-      { path: 'movie-legacy/:id', element: <LazyRoute Component={MovieDetail} />, errorElement: <ErrorBoundary /> },
       { path: 'browse', element: <LazyRoute Component={Browse} />, errorElement: <ErrorBoundary /> },
-      { path: 'browse-legacy', element: <LazyRoute Component={MoviesTab} />, errorElement: <ErrorBoundary /> },
-      { path: 'trending', element: <LazyRoute Component={MoviesTab} />, errorElement: <ErrorBoundary /> },
+      { path: 'trending', element: <Navigate to="/browse" replace /> },
       { path: 'discover', element: <LazyRoute Component={DiscoverV5} />, errorElement: <ErrorBoundary /> },
-      { path: 'discover-legacy', element: <LazyRoute Component={DiscoverPage} />, errorElement: <ErrorBoundary /> },
       { path: 'mood/:tag', element: <LazyRoute Component={MoodBrowsePage} />, errorElement: <ErrorBoundary /> },
       { path: 'tone/:tag', element: <LazyRoute Component={MoodBrowsePage} />, errorElement: <ErrorBoundary /> },
       { path: 'browse/fit/:profile', element: <LazyRoute Component={MoodBrowsePage} />, errorElement: <ErrorBoundary /> },
       { path: 'collection/:id', element: <LazyRoute Component={CollectionPage} />, errorElement: <ErrorBoundary /> },
-      { path: 'lists-legacy/curated', element: <LazyRoute Component={CuratedListsIndex} />, errorElement: <ErrorBoundary /> },
-      { path: 'lists-legacy/curated/:slug', element: <LazyRoute Component={CuratedListPage} />, errorElement: <ErrorBoundary /> },
       { path: 'lists/curated/:slug', element: <LazyRoute Component={CuratedListV2} />, errorElement: <ErrorBoundary /> },
       { path: 'lists/personal/:type', element: <LazyRoute Component={PersonalListPage} />, errorElement: <ErrorBoundary /> },
       { path: 'lists/:listId', element: <LazyRoute Component={ListDetailV2} />, errorElement: <ErrorBoundary /> },
-      { path: 'lists-legacy/:listId', element: <LazyRoute Component={ListDetailPage} />, errorElement: <ErrorBoundary /> },
 
       // Admin-only routes (auth + email allowlist)
       {
@@ -386,25 +297,15 @@ export const router = sentryCreateBrowserRouter([
             errorElement: <ErrorBoundary />,
             children: [
               { path: 'home', element: <LazyRoute Component={HomeV2} />, errorElement: <ErrorBoundary /> },
-              { path: 'home-legacy', element: <HomeRoute />, errorElement: <ErrorBoundary /> },
               { path: 'account', element: <LazyRoute Component={AccountV2} />, errorElement: <ErrorBoundary /> },
-              { path: 'account-legacy', element: <LazyRoute Component={Account} />, errorElement: <ErrorBoundary /> },
               { path: 'preferences', element: <LazyRoute Component={PreferencesV2} />, errorElement: <ErrorBoundary /> },
-              { path: 'preferences-legacy', element: <LazyRoute Component={Preferences} />, errorElement: <ErrorBoundary /> },
               { path: 'watchlist', element: <LazyRoute Component={WatchlistV2} />, errorElement: <ErrorBoundary /> },
-              { path: 'watchlist-legacy', element: <LazyRoute Component={Watchlist} />, errorElement: <ErrorBoundary /> },
               { path: 'history', element: <LazyRoute Component={HistoryV2} />, errorElement: <ErrorBoundary /> },
               { path: 'watched', element: <LazyRoute Component={HistoryV2} />, errorElement: <ErrorBoundary /> },
-              { path: 'history-legacy', element: <LazyRoute Component={HistoryPage} />, errorElement: <ErrorBoundary /> },
-              { path: 'mobile-account', element: <LazyRoute Component={MobileAccount} />, errorElement: <ErrorBoundary /> },
               { path: 'profile', element: <LazyRoute Component={TasteProfileV2} />, errorElement: <ErrorBoundary /> },
               { path: 'profile/:userId', element: <LazyRoute Component={TasteProfileV2} />, errorElement: <ErrorBoundary /> },
-              { path: 'profile-legacy', element: <LazyRoute Component={TasteProfile} />, errorElement: <ErrorBoundary /> },
-              { path: 'profile-legacy/:userId', element: <LazyRoute Component={PublicProfile} />, errorElement: <ErrorBoundary /> },
               { path: 'people', element: <LazyRoute Component={PeopleV2} />, errorElement: <ErrorBoundary /> },
-              { path: 'people-legacy', element: <LazyRoute Component={UserSearchPage} />, errorElement: <ErrorBoundary /> },
               { path: 'lists', element: <LazyRoute Component={ListsV2} />, errorElement: <ErrorBoundary /> },
-              { path: 'lists-legacy', element: <LazyRoute Component={ListsPage} />, errorElement: <ErrorBoundary /> },
               // Confirmed unfinished — redirect until shipped
               { path: 'feed', element: <Navigate to="/home" replace /> },
               { path: 'challenges', element: <Navigate to="/home" replace /> },

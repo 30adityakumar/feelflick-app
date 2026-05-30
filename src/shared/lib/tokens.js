@@ -21,7 +21,9 @@ export const HP = {
   text: '#FAFAFA',
   textSoft: 'rgba(250,250,250,0.72)',
   textMuted: 'rgba(250,250,250,0.45)',
-  textFaint: 'rgba(250,250,250,0.28)',
+  // AA-large floor (~3.3:1). Was 0.28 ≈ 2.4:1, which failed AA outright across
+  // every feature surface's faint labels. Matches the landing's C.textFaint.
+  textFaint: 'rgba(250,250,250,0.40)',
   purple: '#A78BFA',
   purpleDeep: '#7C3AED',
   pink: '#EC4899',

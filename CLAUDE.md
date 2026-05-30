@@ -12,7 +12,7 @@ it's not the priority.
 ## Project
 Mood-first movie/TV discovery. Users express how they feel → get curated recommendations.
 **Quality bar:** Netflix / Apple TV+ polish. Every surface is production-facing.
-**Stack:** React 18 · React Router v7 · Framer Motion · Tailwind CSS · Vite · Supabase (PostgreSQL + pgvector) · TMDB API · OpenAI (text-embedding-3-small) · Resend · Google OAuth · Vitest · Sentry
+**Stack:** React 19 · React Router 7 · Framer Motion · Tailwind 4 · Vite 8 · Supabase (PostgreSQL + pgvector) · TMDB API · OpenAI (text-embedding-3-small) · Resend · Google OAuth · PostHog · Sentry · Vitest · Playwright
 **Language:** JavaScript (JSX). No TypeScript yet — avoid patterns that block future migration.
 
 ## Folder Map
@@ -89,6 +89,8 @@ VITE_SUPABASE_ANON_KEY # Supabase anon key (RLS enforces access)
 VITE_TMDB_API_KEY      # TMDB read-only key (rate-limited 40 req/10s)
 VITE_ADMIN_EMAILS      # Comma-separated admin emails for AdminOnly guard
 VITE_SENTRY_DSN        # Sentry DSN (optional; defaults to prod DSN)
+VITE_POSTHOG_KEY       # PostHog project API key (product analytics; optional)
+VITE_POSTHOG_HOST      # PostHog ingest host (optional; defaults to PostHog cloud)
 ```
 
 `import.meta.env.DEV` / `.PROD` and `process.env.NODE_ENV` are automatic.
@@ -157,9 +159,15 @@ every authenticated feature surface. The two families look related on purpose.
 
 - **Outfit** — display headlines, kickers, numbers, buttons, eyebrows. Weights
   200–300 for hero scale (≥56px), 400–500 for section headers, 600 for buttons.
-- **Inter** — body prose, italic blurbs, micro labels. Weights 400–600.
-- **JetBrains Mono** — meta labels (rarely used today).
+- **Inter** — body prose, italic blurbs, micro labels. Weights 300–900.
 - **Forbidden**: Playfair Display, Satoshi, Fraunces — not installed; do not reference.
+
+Both faces load from a **single Google Fonts `<link>` in `index.html`** — Inter
+300–900 + Outfit 200–700. (Until #138 Outfit was referenced everywhere but never
+actually loaded — `git log -S "Outfit" -- index.html` was empty — so it silently
+fell back to Inter; it now renders for real.) For rare monospace bits (e.g. a
+keyboard key-cap) use a system stack `ui-monospace, SFMono-Regular, Menlo,
+monospace` — **JetBrains Mono is not loaded**.
 
 Inline `fontFamily:` should reference the CSS variables:
 
@@ -169,7 +177,9 @@ Inline `fontFamily:` should reference the CSS variables:
 ```
 
 Italic Outfit is the brand's accent face — apply it to *single fragments*
-inside a headline, never to whole sentences:
+inside a headline, never to whole sentences. **Outfit has no italic axis on
+Google Fonts**, so `fontStyle:'italic'` renders as synthesized oblique — fine for
+the short accent fragments it's used on, but never set whole lines italic:
 
 ```jsx
 <h1>Your <em style={{ fontStyle:'italic', color: HP.textSoft }}>taste twins.</em></h1>
@@ -188,10 +198,12 @@ CSS vars in `src/index.css :root` are the authoritative source:
 --bg-base (#06060a), --bg-elevated (#0d0b14)
 ```
 
-Inline-style feature surfaces use the `HP` object (defined per `<feature>/data.js`), and
-the v3 landing uses a local `C` object. Both align with the same hex values —
-just named differently. Eventually these will collapse into one shared
-`shared/lib/tokens.js`.
+The canonical palette now lives in **`src/shared/lib/tokens.js`** — it exports
+`HP` (feature-surface palette), `HP_GRAD` (the one brand gradient), and `C` (the
+v3 landing's same hexes under landing-specific key names). Inline-style surfaces
+import `HP`/`HP_GRAD` from there; the landing imports `C`. (One holdout:
+`features/browse/data.js` still declares a local `HP` — fold it into the shared
+token module when you next touch browse.)
 
 ### Brand gradient — single source of truth
 
@@ -391,6 +403,7 @@ and motion language.
 - `<Checkbox id checked onChange label />` — toggle switch.
 - `<EmptyState icon title description action />` — canonical empty state.
 - `<SectionHeader title subtitle? seeAllTo? eyebrow? />` — carousel row header (matches the section header pattern above).
+- `<Tooltip label>{children}</Tooltip>` — hover/focus tooltip primitive.
 - `<BrandSplash label? error? />` — full-screen brand splash (200ms delayed visibility; errors immediate).
 
 ## Planning Behaviour (never skip)
@@ -511,6 +524,10 @@ so they aren't re-derived each session.
   `eslint-plugin-jsx-a11y` can't cover).
 - `perf-guard` — LCP/CLS, lazy+srcset posters, bundle budget, query hygiene for the
   media-heavy frontend.
+- `code-review` — structured review checklist (severity · file:line · concrete fix).
+  Triggers on "review", "audit", "check this code", "look for issues", "is this safe".
+- `refactor` — guided clean-up process (simplify, extract, de-duplicate) that stays
+  scoped to what's asked. Triggers on "refactor", "clean up", "simplify", "tidy up".
 
 **Hook:** `PostToolUse` runs `.claude/hooks/lint-on-edit.sh` after every Edit/Write
 to a `src/**/*.{js,jsx}` file — advisory ESLint (warnings + errors surfaced, never
@@ -534,5 +551,15 @@ blocks). It enforces the `lint → test → build` discipline automatically.
 - Sentry wired in `main.jsx` + `ErrorBoundary.jsx` (#67).
 - Edge function CORS hardened (#81, #82).
 - Nightly `refresh_feelflick_stats()` via pg_cron (#80).
+- Major-version migrations landed (2026-05-30): React 19, Vite 8, Tailwind 4,
+  web-vitals 5, `@vitejs/plugin-react` 6. ESLint 10 stays deferred (plugins lack
+  peer support). See memory `project_deferred_major_upgrades`.
+- Design tokens consolidated into `shared/lib/tokens.js` (`HP`/`HP_GRAD`/`C`);
+  feature surfaces import from it (one `browse/data.js` holdout remains).
+- Brand display font fixed (#138): Outfit had never been loaded and was silently
+  falling back to Inter everywhere — now loaded for real via `index.html`.
+- CI gates added: Playwright visual-regression (`e2e/visual/`, per-platform
+  baselines) + runtime a11y (`@axe-core/playwright`, serious/critical WCAG ex.
+  color-contrast) — `.github/workflows/visual-regression.yml`.
 
 > For tuneable constants, dev environment setup, and known codebase issues — see `CLAUDE-REFERENCE.md`.

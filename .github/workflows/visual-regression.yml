@@ -1,4 +1,4 @@
-name: Visual Regression
+name: Visual & A11y Regression
 
 on:
   pull_request:
@@ -59,6 +59,18 @@ jobs:
           else
             npm run test:visual
           fi
+
+      # Runtime a11y on the logged-out surfaces (same dummy env). Fails on
+      # serious/critical WCAG violations excluding color-contrast, which is a
+      # deliberate editorial-design choice tracked separately. Authenticated
+      # a11y (/home, /movie) runs via the secret-gated E2E job + locally.
+      - name: Accessibility (logged-out surfaces)
+        if: ${{ !startsWith(github.ref, 'refs/heads/visual-baselines/') }}
+        env:
+          VITE_SUPABASE_URL: https://dummy.supabase.co
+          VITE_SUPABASE_ANON_KEY: dummy-anon-key
+          VITE_TMDB_API_KEY: dummy
+        run: npx playwright test --project=public e2e/public/a11y.e2e.js
 
       - name: Commit regenerated baselines
         if: ${{ startsWith(github.ref, 'refs/heads/visual-baselines/') }}

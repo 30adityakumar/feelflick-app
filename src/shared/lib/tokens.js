@@ -32,3 +32,26 @@ export const HP = {
 
 /** The one brand gradient — purple-600 → pink-500. Never invent per-vibe variants. */
 export const HP_GRAD = 'linear-gradient(135deg, #9333ea 0%, #ec4899 100%)'
+
+/**
+ * v3 landing palette. Same hexes as `HP`, different key names (hairline≈border,
+ * textMid≈textSoft, bgPure≈bg) plus a few landing-only surface tints. Aliased to
+ * `HP` where they align so the shared colors live in exactly one place.
+ */
+export const C = {
+  bg: HP.bgDeep,
+  bgPure: HP.bg,
+  bgLight: '#0d0b14',
+  bgPaper: '#0f0c18',
+  text: HP.text,
+  textHi: 'rgba(250,250,250,0.92)',
+  textMid: HP.textSoft,
+  textLow: 'rgba(250,250,250,0.55)',
+  textFaint: HP.textFaint,
+  hairline: HP.border,
+  hairlineStrong: HP.borderStrong,
+  purple: HP.purple,
+  pink: HP.pink,
+  amber: HP.amber,
+  green: HP.green,
+}

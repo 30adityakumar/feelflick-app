@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { HP, HP_GRAD, MOODS, SORT_OPTIONS, DECADE_OPTIONS, LANG_OPTIONS, GENRE_OPTIONS, RUNTIME_OPTIONS, PACING_OPTIONS, INTENSITY_OPTIONS, DEPTH_OPTIONS, DIALOGUE_OPTIONS, ATTENTION_OPTIONS, GAP_OPTIONS, VIBE_OPTIONS, PRESETS } from './data'
 
 // FeelFlick — Browse v3 components.
@@ -30,7 +30,6 @@ const IcZap    = (p) => <Ic {...p} d={<polygon points="13 2 3 14 12 14 11 22 21 
 const IcGlobe  = (p) => <Ic {...p} d={<><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14.7 14.7 0 0 1 0 18 14.7 14.7 0 0 1 0-18z"/></>} />;
 const IcFlame  = (p) => <Ic {...p} d={<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>} />;
 const IcSmile  = (p) => <Ic {...p} d={<><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></>} />;
-const IcInfo   = (p) => <Ic {...p} d={<><circle cx="12" cy="12" r="9"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></>} />;
 const PRESET_ICONS = { gem:IcGem, moon:IcMoon, brain:IcBrain, zap:IcZap, globe:IcGlobe, flame:IcFlame, smile:IcSmile, clock:IcClock, spark:IcSpark };
 
 // ── Mood tag helper ──
@@ -67,7 +66,7 @@ function Nav() {
 // ╭───────────────────────────────────────╮
 // │ Editorial header + mood reactor       │
 // ╰───────────────────────────────────────╯
-function EditorialHeader({ mood, setMood, total }) {
+function EditorialHeader({ mood }) {
   const m = MOODS.find(x => x.id === mood) || MOODS[0];
   const tint = m.hex;
   return (
@@ -119,26 +118,6 @@ function MoodRow({ mood, setMood, sortBy, setSortBy, view, setView }) {
             );
           })}
         </div>
-      </div>
-    </section>
-  );
-}
-
-// ╭───────────────────────────────────────╮
-// │ Tonight CTA                           │
-// ╰───────────────────────────────────────╯
-function TonightRow({ on, set }) {
-  return (
-    <section style={{ padding:'4px 56px 18px' }}>
-      <div style={{ display:'grid', gridTemplateColumns:'auto 1fr auto', gap:18, alignItems:'center', padding:'14px 18px', borderRadius:10, background: on ? 'rgba(167,139,250,0.10)' : 'rgba(255,255,255,0.025)', border:`1px solid ${on ? HP.purple+'55' : HP.border}`, transition:'all 0.2s ease' }}>
-        <div style={{ width:34, height:34, borderRadius:999, background: on ? HP_GRAD : 'rgba(167,139,250,0.13)', color: on ? '#fff' : HP.purple, display:'flex', alignItems:'center', justifyContent:'center' }}>
-          <IcClock s={16} />
-        </div>
-        <div>
-          <div style={{ fontFamily:'Outfit', fontSize:15, fontWeight:500, color:HP.text, letterSpacing:'-0.005em' }}>{on ? 'Tonight mode on' : 'Pick for tonight'}</div>
-          <div style={{ fontFamily:'Inter', fontSize:12.5, color:HP.textMid, marginTop:2, lineHeight:1.5 }}>{on ? 'Slow-burn, under 2h 15m, available on your streamers.' : 'One tap: tune the catalogue to your evening.'}</div>
-        </div>
-        <button onClick={()=>set(!on)} style={{ padding:'10px 18px', borderRadius:999, background: on ? 'rgba(255,255,255,0.06)' : HP_GRAD, border: on ? `1px solid ${HP.borderStrong}` : 'none', color: on ? HP.textMid : '#fff', fontFamily:'Inter', fontSize:12.5, fontWeight:600, cursor:'pointer' }}>{on ? 'Clear' : 'Tonight →'}</button>
       </div>
     </section>
   );
@@ -288,14 +267,6 @@ function ToggleSwitch({ on, onClick, label, disabled = false, title }) {
   );
 }
 
-function ToggleDot({ on }) {
-  return (
-    <span aria-hidden style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', width:14, height:14, borderRadius:999, background: on ? HP.purple : 'transparent', border:`1.5px solid ${on ? HP.purple : 'rgba(255,255,255,0.25)'}`, transition:'all 0.18s ease', flex:'none' }}>
-      {on && <span style={{ width:5, height:5, borderRadius:999, background:'#fff' }}/>}
-    </span>
-  );
-}
-
 function SegGroup({ label, value, options, onChange }) {
   return (
     <div>
@@ -333,7 +304,7 @@ function RatingSlider({ label, value, onChange }) {
 // │ Toolbar — search, sort, view, filters │
 // ╰───────────────────────────────────────╯
 function Toolbar(props) {
-  const { query, setQuery, draftQuery, setDraftQuery, hideWatched, setHide, panelOpen, setPanel, advancedCount, availableTonight, setAvailableTonight, availableTonightDisabled, availableTonightTitle, twinsLoved, setTwinsLoved, twinsLovedDisabled, twinsLovedTitle, onSurprise } = props;
+  const { setQuery, draftQuery, setDraftQuery, hideWatched, setHide, panelOpen, setPanel, advancedCount, availableTonight, setAvailableTonight, availableTonightDisabled, availableTonightTitle, twinsLoved, setTwinsLoved, twinsLovedDisabled, twinsLovedTitle, onSurprise } = props;
   const searchRef = useRef(null);
   useEffect(() => {
     const onKey = (e) => {
@@ -425,6 +396,9 @@ function RefinePanel(props) {
     document.addEventListener('keydown', esc);
     document.body.style.overflow = 'hidden';
     return () => { document.removeEventListener('keydown', esc); document.body.style.overflow = ''; };
+    // Intentionally [open]-only: bind the Escape handler + scroll-lock when the
+    // panel opens; props.onClose is stable for the panel's lifetime.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
   if (!open) return null;
   return (

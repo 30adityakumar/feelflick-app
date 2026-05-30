@@ -25,7 +25,10 @@ deleted**, because they're ambiguous and harmless in place:
 | `spot-check.js`, `test-status-flow.js` | Dev/debug helpers (import `./utils/supabase`). Left in place to avoid breaking their relative paths; move into `maintenance/` only with the import fixed. |
 | `test-recommendation-cache-final.js` | Debug script (the `-final` name is a smell). **Review / archive.** |
 | `fix-complete-movies-missing-embeddings.js`, `fix-limits.js` | **Spent** one-time data fixes — already run. **Review / archive.** |
-| `run-fix-keywords.sh`, `run-health-check.sh` | ⚠️ **Dead** — they invoke `scripts/monitoring/*.js`, a directory that does not exist. Either restore the monitoring scripts or delete these. |
+
+> `run-fix-keywords.sh` + `run-health-check.sh` were **deleted** — they invoked a
+> non-existent `scripts/monitoring/`. Restore from git history if those monitoring
+> scripts ever return.
 
 > Run logs were previously committed under `../logs/`; those are now gitignored
 > (regenerated each cron run, uploaded as CI artifacts). The dir is kept via

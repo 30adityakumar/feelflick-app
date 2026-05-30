@@ -233,7 +233,7 @@ function resolveList({ type, params, excludeIds, profile }) {
   return null
 }
 
-export default function PersonalListPage() {
+export default function PersonalList() {
   const { type } = useParams()
   const [params] = useSearchParams()
   const navigate = useNavigate()
@@ -310,7 +310,7 @@ export default function PersonalListPage() {
       setLoading(false)
     })().catch(err => {
       if (abort) return
-      console.error('[PersonalListPage] load error:', err)
+      console.error('[PersonalList] load error:', err)
       setLoading(false)
     })
     return () => { abort = true }
@@ -359,7 +359,7 @@ export default function PersonalListPage() {
       setSaveState('saved')
       navigate(`/lists/${list.id}`)
     } catch (err) {
-      console.error('[PersonalListPage] save error:', err)
+      console.error('[PersonalList] save error:', err)
       setSaveState('error')
       setTimeout(() => setSaveState('idle'), 2200)
     }

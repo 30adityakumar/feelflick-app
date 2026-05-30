@@ -5,7 +5,7 @@ import {
   FIT_PROFILES,
   scoreFitAgainstProfiles,
   promoteRatedFitProfiles,
-} from '../fit-adjacency'
+} from '../fitAdjacency'
 
 // ============================================================================
 // scoreFitAgainstProfiles

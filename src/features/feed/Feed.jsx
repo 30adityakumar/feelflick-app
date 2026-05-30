@@ -1,4 +1,4 @@
-// src/features/feed/FeedPage.jsx
+// src/features/feed/Feed.jsx
 import { useState, useEffect, useMemo } from 'react'
 
 import { Link, useNavigate } from 'react-router-dom'
@@ -478,7 +478,7 @@ function TrendingSidebar({ trendingItems, navigate }) {
 // MAIN COMPONENT
 // ============================================================================
 
-export default function FeedPage() {
+export default function Feed() {
   const { userId: currentUserId } = useAuthSession()
   const { markRead } = useUnreadFeed(currentUserId)
   const navigate = useNavigate()
@@ -585,7 +585,7 @@ export default function FeedPage() {
           )
         }
       } catch (err) {
-        console.error('[FeedPage] fetch error:', err)
+        console.error('[Feed] fetch error:', err)
       } finally {
         if (mounted) setIsLoading(false)
       }

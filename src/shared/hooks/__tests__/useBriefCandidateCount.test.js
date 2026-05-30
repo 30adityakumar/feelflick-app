@@ -11,7 +11,7 @@ vi.mock('@/shared/lib/supabase/client', () => ({
 }))
 
 // Mock unpackVibe — returns tone from the vibe's QUESTION_SET option
-vi.mock('@/shared/services/brief-scoring', () => ({
+vi.mock('@/shared/services/briefScoring', () => ({
   unpackVibe: (answers) => {
     const VIBE_MAP = {
       curious_sharp: { feeling: 'curious', tone: 'sharp' },

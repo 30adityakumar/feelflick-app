@@ -39,19 +39,19 @@ import PostAuthGate from '@/features/auth/PostAuthGate'
 const OAuthCallback = lazy(() => import('@/features/auth/OAuthCallback'))
 
 // Import the new pages
-const AboutPage = lazy(() => import('@/features/legal/AboutPage'))
-const PrivacyPage = lazy(() => import('@/features/legal/PrivacyPage'))
-const TermsPage = lazy(() => import('@/features/legal/TermsPage'))
+const About = lazy(() => import('@/features/legal/About'))
+const Privacy = lazy(() => import('@/features/legal/Privacy'))
+const Terms = lazy(() => import('@/features/legal/Terms'))
 
 const Discover = lazy(() => import('@/features/discover/Discover'))
-const MoodBrowsePage = lazy(() => import('@/features/browse/MoodBrowsePage'))
-const CollectionPage = lazy(() => import('@/features/browse/CollectionPage'))
+const MoodBrowse = lazy(() => import('@/features/browse/MoodBrowse'))
+const Collection = lazy(() => import('@/features/browse/Collection'))
 const TasteProfile = lazy(() => import('@/features/profile/TasteProfile'))
 const People = lazy(() => import('@/features/people/People'))
 const Lists = lazy(() => import('@/features/lists/Lists'))
 const ListDetail = lazy(() => import('@/features/lists/ListDetail'))
 const CuratedList = lazy(() => import('@/features/lists/CuratedList'))
-const PersonalListPage = lazy(() => import('@/features/lists/PersonalListPage'))
+const PersonalList = lazy(() => import('@/features/lists/PersonalList'))
 
 // cache monitoring page
 const CacheMonitoring = lazy(() => import('./admin/CacheMonitoring'))
@@ -218,9 +218,9 @@ export const router = sentryCreateBrowserRouter([
       { path: 'auth/callback', element: <LazyRoute Component={OAuthCallback} /> },
 
       // Legal pages (publicly accessible)
-      { path: 'about', element: <LazyRoute Component={AboutPage} /> },
-      { path: 'privacy', element: <LazyRoute Component={PrivacyPage} /> },
-      { path: 'terms', element: <LazyRoute Component={TermsPage} /> },
+      { path: 'about', element: <LazyRoute Component={About} /> },
+      { path: 'privacy', element: <LazyRoute Component={Privacy} /> },
+      { path: 'terms', element: <LazyRoute Component={Terms} /> },
 
       // Legacy auth aliases → just go to root
       { path: 'auth', element: <Navigate to="/" replace /> },
@@ -266,12 +266,12 @@ export const router = sentryCreateBrowserRouter([
       { path: 'browse', element: <LazyRoute Component={Browse} />, errorElement: <ErrorBoundary /> },
       { path: 'trending', element: <Navigate to="/browse" replace /> },
       { path: 'discover', element: <LazyRoute Component={Discover} />, errorElement: <ErrorBoundary /> },
-      { path: 'mood/:tag', element: <LazyRoute Component={MoodBrowsePage} />, errorElement: <ErrorBoundary /> },
-      { path: 'tone/:tag', element: <LazyRoute Component={MoodBrowsePage} />, errorElement: <ErrorBoundary /> },
-      { path: 'browse/fit/:profile', element: <LazyRoute Component={MoodBrowsePage} />, errorElement: <ErrorBoundary /> },
-      { path: 'collection/:id', element: <LazyRoute Component={CollectionPage} />, errorElement: <ErrorBoundary /> },
+      { path: 'mood/:tag', element: <LazyRoute Component={MoodBrowse} />, errorElement: <ErrorBoundary /> },
+      { path: 'tone/:tag', element: <LazyRoute Component={MoodBrowse} />, errorElement: <ErrorBoundary /> },
+      { path: 'browse/fit/:profile', element: <LazyRoute Component={MoodBrowse} />, errorElement: <ErrorBoundary /> },
+      { path: 'collection/:id', element: <LazyRoute Component={Collection} />, errorElement: <ErrorBoundary /> },
       { path: 'lists/curated/:slug', element: <LazyRoute Component={CuratedList} />, errorElement: <ErrorBoundary /> },
-      { path: 'lists/personal/:type', element: <LazyRoute Component={PersonalListPage} />, errorElement: <ErrorBoundary /> },
+      { path: 'lists/personal/:type', element: <LazyRoute Component={PersonalList} />, errorElement: <ErrorBoundary /> },
       { path: 'lists/:listId', element: <LazyRoute Component={ListDetail} />, errorElement: <ErrorBoundary /> },
 
       // Admin-only routes (auth + email allowlist)

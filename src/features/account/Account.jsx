@@ -11,10 +11,10 @@ import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { HP } from './data'
 import {
   Masthead, IdentityCard, Notifications,
-} from './top'
+} from './sections-top'
 import {
   Privacy, Connections, PlanCard, SessionsCard, DangerZone, AccountFooter,
-} from './bottom'
+} from './sections-bottom'
 import { AccountDataProvider, useAccountData } from './useAccountData'
 import './account.css'
 

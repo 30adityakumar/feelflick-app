@@ -70,7 +70,7 @@ function MovieTile({ movie, onClick }) {
 
 // === PAGE ===
 
-export default function MoodBrowsePage() {
+export default function MoodBrowse() {
   const navigate = useNavigate()
   const spec = useBrowseSpec()
   const [sort, setSort] = useState('audience')

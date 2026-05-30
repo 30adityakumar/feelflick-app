@@ -1,4 +1,4 @@
-// src/shared/services/fit-adjacency.js
+// src/shared/services/fitAdjacency.js
 /**
  * Single source of truth for fit profile adjacency.
  *

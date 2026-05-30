@@ -1,4 +1,4 @@
-// src/shared/services/skip-signals.js
+// src/shared/services/skipSignals.js
 /**
  * Skip recency decay, surface severity weighting, and cooldown logic.
  * Pure functions — no DB calls.

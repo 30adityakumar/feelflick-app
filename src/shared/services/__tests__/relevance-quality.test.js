@@ -27,7 +27,7 @@ vi.mock('@/shared/lib/cache', () => ({
   },
 }))
 
-// Mock exclusions module (homepage-rows imports applyAllExclusions from ./exclusions)
+// Mock exclusions module (homepageRows imports applyAllExclusions from ./exclusions)
 vi.mock('@/shared/services/exclusions', () => ({
   applyAllExclusions: vi.fn().mockImplementation((query) => query),
 }))
@@ -53,9 +53,9 @@ vi.mock('@/shared/services/recommendations', () => ({
   scoreMovieForUser: vi.fn().mockReturnValue({ score: 75, positiveScore: 75 }),
 }))
 
-// Mock scoring-v3 — default returns 75
+// Mock scoringV3 — default returns 75
 const mockScoreMovieV3 = vi.fn().mockReturnValue({ final: 75, breakdown: { quality: 75 }, weights_used: {} })
-vi.mock('@/shared/services/scoring-v3', () => ({
+vi.mock('@/shared/services/scoringV3', () => ({
   scoreMovieV3: (...args) => mockScoreMovieV3(...args),
   precomputeScoringContext: vi.fn().mockResolvedValue({
     seedNeighborMap: new Map(),
@@ -68,7 +68,7 @@ import { scoreMovieForUser } from '../recommendations'
 import {
   getStillInOrbitRow,
   getTopOfYourTasteRow,
-} from '../homepage-rows'
+} from '../homepageRows'
 
 // ---------------------------------------------------------------------------
 // Supabase chain mock helper

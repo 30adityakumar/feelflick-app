@@ -7,7 +7,7 @@ import {
   aggregateSeedMatches,
   antiSeedPenalty,
   selectSeeds,
-} from '../embedding-scoring'
+} from '../embeddingScoring'
 
 // ============================================================================
 // curveSimilarity

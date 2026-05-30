@@ -1,8 +1,8 @@
-// src/shared/services/quality-tiers.js
+// src/shared/services/qualityTiers.js
 /**
  * Unified quality floor constants per surface tier.
  *
- * Replaces inconsistent ad-hoc floors scattered across homepage-rows.js
+ * Replaces inconsistent ad-hoc floors scattered across homepageRows.js
  * and recommendations.js. Every candidate query should use applyQualityFloor()
  * instead of inline .gte() chains for quality columns.
  *

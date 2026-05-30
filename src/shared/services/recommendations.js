@@ -69,13 +69,13 @@ import { supabase } from '@/shared/lib/supabase/client'
 import * as tmdb from '@/shared/api/tmdb' // kept for compatibility; not required in this file
 import { recommendationCache } from '@/shared/lib/cache'
 import { applyAllExclusions, applyExclusionsNoLanguage, filterExclusionsClientSide } from './exclusions'
-import { applyQualityFloor, QUALITY_TIERS } from './quality-tiers'
-import { scoreMovieV3, precomputeScoringContext } from './scoring-v3'
-import { FIT_ADJACENCY, promoteRatedFitProfiles } from './fit-adjacency'
-import { buildSkipWeightMap, buildCooldownSet } from './skip-signals'
+import { applyQualityFloor, QUALITY_TIERS } from './qualityTiers'
+import { scoreMovieV3, precomputeScoringContext } from './scoringV3'
+import { FIT_ADJACENCY, promoteRatedFitProfiles } from './fitAdjacency'
+import { buildSkipWeightMap, buildCooldownSet } from './skipSignals'
 import { selectHeroCandidates, dayHashIndex } from './diversity'
-import { heroEraFloor, generateHeroReason, tieBreakSort } from './hero-reason'
-import { briefHardFilters, scoreMovieForBrief, buildBriefSeeds, generateBriefReason } from './brief-scoring'
+import { heroEraFloor, generateHeroReason, tieBreakSort } from './heroReason'
+import { briefHardFilters, scoreMovieForBrief, buildBriefSeeds, generateBriefReason } from './briefScoring'
 import { shouldFilterByBoundaries } from './boundaries'
 
 // ============================================================================
@@ -1409,7 +1409,7 @@ function computeNegativeSignals(skipFeedback, watchHistory) {
 // FIT PROFILE ADJACENCY — v2.11
 // ============================================================================
 
-// FIT_ADJACENCY now imported from ./fit-adjacency.js (single source of truth)
+// FIT_ADJACENCY now imported from ./fitAdjacency.js (single source of truth)
 
 // ============================================================================
 // EXCLUSION GATES — v2.11
@@ -2824,7 +2824,7 @@ export async function getTopPickForUser(userId, options = {}) {
 // ============================================================================
 
 /**
- * @deprecated Use scoreMovieV3 (from scoring-v3.js) or scoreMovieForBrief (from brief-scoring.js).
+ * @deprecated Use scoreMovieV3 (from scoringV3.js) or scoreMovieForBrief (from briefScoring.js).
  * Retained for legacy code paths that have not yet migrated to the 7-dimension v3 engine.
  */
 export function scoreMovieForUser(movie, profile, rowType = 'default', seedFilms = [], opts = {}) {

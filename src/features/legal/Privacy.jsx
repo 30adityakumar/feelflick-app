@@ -1,11 +1,11 @@
-// src/features/legal/PrivacyPage.jsx
+// src/features/legal/Privacy.jsx
 import { Link } from 'react-router-dom'
 import { Shield, Lock, EyeOff, FileText, Mail, AlertTriangle, Globe } from 'lucide-react'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import TopNav from '@/components/layout/TopNav'
 import Footer from '@/components/layout/Footer'
 
-export default function PrivacyPage() {
+export default function Privacy() {
   usePageMeta({
     title: 'Privacy — FeelFlick',
     description: "FeelFlick's privacy policy: what we collect, what we don't, and how your taste data is used to improve your recommendations only.",

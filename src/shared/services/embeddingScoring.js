@@ -1,4 +1,4 @@
-// src/shared/services/embedding-scoring.js
+// src/shared/services/embeddingScoring.js
 /**
  * Embedding similarity scoring primitives.
  *

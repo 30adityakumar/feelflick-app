@@ -1,10 +1,10 @@
-// src/features/legal/TermsPage.jsx
+// src/features/legal/Terms.jsx
 import { Scale, ShieldCheck, AlertTriangle, FileText, Mail, Gavel } from 'lucide-react'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import TopNav from '@/components/layout/TopNav'
 import Footer from '@/components/layout/Footer'
 
-export default function TermsPage() {
+export default function Terms() {
   usePageMeta({
     title: 'Terms — FeelFlick',
     description: 'FeelFlick terms of service: your responsibilities, our rules of engagement, intellectual property, and TMDB attribution.',

@@ -1,11 +1,11 @@
-// src/shared/services/brief-scoring.js
+// src/shared/services/briefScoring.js
 /**
  * Brief-driven scoring for Discover.
  * Maps mood-brief answers to hard filters, weight overrides, and ephemeral seeds.
  * Pure functions — no DB calls.
  */
 
-import { scoreMovieV3 } from './scoring-v3'
+import { scoreMovieV3 } from './scoringV3'
 import { QUESTION_SET } from '@/shared/lib/discoverQuestions'
 
 // ============================================================================

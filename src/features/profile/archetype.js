@@ -43,7 +43,7 @@ const PRIMARY_BY_MOOD = {
 }
 
 // Top fit_profile → secondary archetype.
-// Canonical vocabulary from src/shared/services/fit-adjacency.js.
+// Canonical vocabulary from src/shared/services/fitAdjacency.js.
 const SECONDARY_BY_FIT = {
   prestige_drama:      'The Class-Conscious',
   arthouse:            'The Auteurist',

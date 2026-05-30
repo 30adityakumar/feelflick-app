@@ -5,7 +5,7 @@ import {
   generateHeroReason,
   FIT_HUMAN_LABELS,
   tieBreakSort,
-} from '../hero-reason'
+} from '../heroReason'
 
 // === HELPERS ===
 

@@ -4,7 +4,7 @@ import { supabase } from '@/shared/lib/supabase/client'
 import { formatMonthYear } from '@/shared/lib/format/date'
 import { setAnalyticsOptOut } from '@/shared/services/analytics'
 import { HP, HP_GRAD, CONNECTIONS, FOUNDING_CUTOFF } from './data'
-import { SectionHead, Toggle } from './top'
+import { SectionHead, Toggle } from './sections-top'
 import { useAccountData } from './useAccountData'
 
 // FeelFlick — /account-v2 bottom: Privacy, Connections, Plan, Sessions, Danger zone, Footer.

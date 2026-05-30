@@ -4,8 +4,8 @@
 // Bell removed 2026-05-24: linked to /feed which router.jsx redirects to /home
 // ("Confirmed unfinished — redirect until shipped"). The bell promised an
 // activity feed that doesn't exist; tapping it dead-ended. Restore alongside
-// the FeedPage route when /feed is ready — keep `useUnreadFeed` (still
-// consumed by src/app/pages/feed/FeedPage.jsx for markRead).
+// the Feed route when /feed is ready — keep `useUnreadFeed` (still
+// consumed by src/app/pages/feed/Feed.jsx for markRead).
 
 import { useEffect, useRef, useState, useLayoutEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
@@ -338,7 +338,7 @@ export default function Header({ onOpenSearch }) {
             </button>
 
             {/* Bell removed — see file-header comment. Restore alongside the
-                FeedPage route when /feed ships. */}
+                Feed route when /feed ships. */}
 
             {!user && (
               <button

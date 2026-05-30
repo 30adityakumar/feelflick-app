@@ -440,7 +440,12 @@ No blank lines within a group. One blank line between groups.
 - Components: PascalCase, file name matches export — *except* in editorial
   compositions (e.g. `src/features/landing/Landing.jsx`) where many small
   sub-components colocate in one file. Treat those files as art, not library code.
+- **Route-entry components = the domain noun, no `Page` suffix** (`Browse.jsx`,
+  `Collection.jsx`, `About.jsx` — not `BrowsePage`). A long page split into
+  halves uses `sections-top.jsx` / `sections-bottom.jsx` (see home/movie/account/profile).
 - Hooks: camelCase with `use` prefix.
+- **Non-component modules (services, lib, utils): camelCase** (`briefScoring.js`,
+  `heroReason.js`) — never kebab-case. Co-located tests in `__tests__/` mirror the name.
 - Booleans: prefer `is/has/should` prefix. `loading=` is accepted for
   compatibility with React Query convention.
 - Constants: SCREAMING_SNAKE_CASE for module-level — *except* inside editorial

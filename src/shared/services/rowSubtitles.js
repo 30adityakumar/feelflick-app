@@ -1,10 +1,10 @@
-// src/shared/services/row-subtitles.js
+// src/shared/services/rowSubtitles.js
 /**
  * Row subtitle generators.
  * Pure functions — no DB calls.
  */
 
-import { FIT_HUMAN_LABELS } from './hero-reason'
+import { FIT_HUMAN_LABELS } from './heroReason'
 
 // === SHORT FIT LABELS (for subtitle copy) ===
 

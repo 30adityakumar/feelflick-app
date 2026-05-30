@@ -10,7 +10,7 @@ import {
   scoreNegativeSignals,
   scoreMovieV3,
   ROW_WEIGHTS,
-} from '../scoring-v3'
+} from '../scoringV3'
 
 // === HELPERS ===
 

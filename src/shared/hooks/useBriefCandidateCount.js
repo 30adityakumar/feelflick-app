@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react'
 
 import { supabase } from '@/shared/lib/supabase/client'
-import { unpackVibe } from '@/shared/services/brief-scoring'
+import { unpackVibe } from '@/shared/services/briefScoring'
 
 /** Module-level cache for the baseline total (no filters). Fetched once. */
 let cachedBaseline = null

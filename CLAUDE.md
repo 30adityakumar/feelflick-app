@@ -16,6 +16,36 @@ the priority. (Note the third clause: the Film File / Briefing "makes its case"
 layer is core, not garnish — don't let a narrow "mood→film, faster" reading
 de-prioritize it.)
 
+## The wedge — why FeelFlick wins
+
+The whole product defends one sentence:
+
+> **Mood-first, taste-deep — a single justified nightly pick that makes its case. Anti-scroll.**
+
+Nobody else does this one thing, and that gap *is* the strategy:
+
+- **TMDB** has the data but doesn't recommend.
+- **Netflix** recommends but buries you in an endless grid.
+- **Letterboxd** logs the past beautifully — but it doesn't pick *tonight* for you.
+- **Apple / Stripe** are craft + trust benchmarks, not movie pickers.
+
+So we don't match them feature-for-feature — we become **undeniably the best in the
+world at the one thing none of them do**, and borrow their disciplines to support
+it: craft from Apple, measurement from Netflix, trust from Stripe, and let
+Letterboxd-style community compound once there are users.
+
+**Anti-drift test** — reject anything that turns us into a *worse* version of one
+of them:
+
+- An infinite / endless feed → betrays *anti-scroll*. ❌
+- A wall of carousels as the primary surface → betrays *the single pick*. ❌
+- Making the user do the curation work → betrays *it picks for you*. ❌
+- A pick shown without its case → betrays *makes its case*. ❌
+- Recs that ignore mood, or ignore taste → betrays *mood-first* / *taste-deep*. ❌
+
+When a feature request arrives, the first question isn't "can we build it?" — it's
+"does this **sharpen the wedge**, or blunt it toward someone else's product?"
+
 ## Project
 Mood-first, taste-deep movie discovery: users express how they feel → get **one**
 trustworthy, case-made pick tuned to their full taste history (not an endless feed).

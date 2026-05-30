@@ -2,10 +2,8 @@ import { useState, useEffect, useRef, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useGoogleAuth } from '@/shared/hooks/useGoogleAuth'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
+import { C, HP_GRAD as GRAD } from '@/shared/lib/tokens'
 import './landing.css'
-
-const C={bg:'#06060a',bgPure:'#000',bgLight:'#0d0b14',bgPaper:'#0f0c18',text:'#FAFAFA',textHi:'rgba(250,250,250,0.92)',textMid:'rgba(250,250,250,0.72)',textLow:'rgba(250,250,250,0.55)',textFaint:'rgba(250,250,250,0.28)',hairline:'rgba(255,255,255,0.08)',hairlineStrong:'rgba(255,255,255,0.14)',purple:'#A78BFA',pink:'#EC4899',amber:'#F59E0B',green:'#34D399'};
-const GRAD='linear-gradient(135deg,#9333ea 0%,#ec4899 100%)';
 // Posters render at <=240px wide on the landing — w342 is the right TMDB size.
 const TMDB=(p)=>`https://image.tmdb.org/t/p/w342${p}`;
 

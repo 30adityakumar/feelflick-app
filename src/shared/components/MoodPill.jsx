@@ -15,10 +15,12 @@ import { HP } from '@/shared/lib/tokens'
  * @param {'solid'|'overlay'} [props.variant='solid']
  *   • solid   — tinted pill (`${color}1a` bg / `${color}44` border / color text).
  *   • overlay — same pill on a dark blurred bg, for legibility over a poster.
+ * @param {boolean} [props.dot=false]       Prefix a small colour dot inside the pill
+ *   (the lists / history / watchlist "diary" marker style).
  * @param {object} [props.style]            Merged onto the root (positioning / margins).
  * @returns {JSX.Element|null}
  */
-export default function MoodPill({ label, color = HP.purple, variant = 'solid', style, ...props }) {
+export default function MoodPill({ label, color = HP.purple, variant = 'solid', dot = false, style, ...props }) {
   if (!label) return null
 
   const overlay = variant === 'overlay'
@@ -35,6 +37,7 @@ export default function MoodPill({ label, color = HP.purple, variant = 'solid', 
       }}
       {...props}
     >
+      {dot && <span style={{ width: 6, height: 6, borderRadius: 999, background: color, flex: 'none' }} />}
       {label}
     </span>
   )

@@ -8,6 +8,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
+import MoodPill from '@/shared/components/MoodPill'
 import { HP, HP_GRAD } from './data'
 import { WatchlistDataProvider, useWatchlistData } from './useWatchlistData'
 import './watchlist.css'
@@ -299,9 +300,7 @@ function List({ items }) {
                 {f.year || '—'}{f.runtime ? ` · ${f.runtime}m` : ''}{f.dir && f.dir !== '—' ? ` · ${f.dir}` : ''} · added {f.addedDaysAgo}d ago
               </div>
             </div>
-            <div style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'4px 10px', borderRadius:999, background:`${f.hex}1a`, border:`1px solid ${f.hex}44`, fontFamily:'Outfit', fontSize:11, fontWeight:500, color:f.hex }}>
-              <span style={{ width:6, height:6, borderRadius:999, background:f.hex }} />{f.mood}
-            </div>
+            <MoodPill label={f.mood} color={f.hex} dot />
             <div style={{ fontFamily:'Outfit', fontSize:18, fontWeight:300, color:HP.text, letterSpacing:'-0.03em' }}>{f.match}<span style={{ fontSize:10, color:HP.textMuted, marginLeft:1 }}>%</span></div>
             <button
               type="button"

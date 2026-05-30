@@ -10,6 +10,21 @@ updates:
       # Collapse routine minor/patch bumps into one PR to cut noise.
       minor-and-patch:
         update-types: ["minor", "patch"]
+    # Defer breaking majors that need deliberate, tested migrations rather than
+    # an auto-merge: React 19 (#104/#106) and Tailwind 4 (#105), all closed
+    # 2026-05-29. Patch/minor updates for these still flow. Delete an entry when
+    # you're ready to take that migration on.
+    ignore:
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/react-dom"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "tailwindcss"
+        update-types: ["version-update:semver-major"]
     labels: ["dependencies"]
 
   # Pipeline scripts have their own lockfile.

@@ -136,13 +136,13 @@ export default function Footer() {
             <p className="text-lg font-black tracking-tight bg-linear-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent select-none">
               FEELFLICK
             </p>
-            <p className="text-xs text-white/20">Films That Know You</p>
+            <p className="text-xs text-white/50">Films That Know You</p>
           </div>
 
           {/* Right — human signal + copyright */}
           <div className="text-center sm:text-right">
-            <p className="text-xs text-white/20">Built by Aditya Kumar in Toronto. One developer, 6,700 films, and a belief that recommendations should feel personal.</p>
-            <p className="text-xs text-white/20">&copy; 2026 FeelFlick</p>
+            <p className="text-xs text-white/50">Built by Aditya Kumar in Toronto. One developer, 6,700 films, and a belief that recommendations should feel personal.</p>
+            <p className="text-xs text-white/50">&copy; 2026 FeelFlick</p>
           </div>
 
         </div>

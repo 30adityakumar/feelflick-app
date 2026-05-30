@@ -11,12 +11,20 @@ updates:
       minor-and-patch:
         update-types: ["minor", "patch"]
     # Defer breaking majors that need a deliberate, tested migration rather than
-    # an auto-merge. Tailwind 4 (#105, closed 2026-05-29) is a CSS-first rewrite
-    # that requires rewriting tailwind.config.js. Patch/minor still flow; delete
-    # the entry when ready to take that migration on.
-    # (React 19 was completed 2026-05-29, so its major ignore was removed here.)
+    # an auto-merge. Each fails CI as a bare bump and/or rewrites a Hard-Stop
+    # config. Patch/minor still flow; delete an entry when ready to migrate.
+    #   - tailwindcss 4: CSS-first rewrite, rewrites tailwind.config.js (#105)
+    #   - vite 8 + @vitejs/plugin-react 6: coupled build-tool majors, vite.config.js (#116/#118)
+    #   - eslint 10: flat-config/rule breaks, rewrites eslint.config.js (#119)
+    # (React 19 + web-vitals 5 were completed 2026-05-29/30, so they're not here.)
     ignore:
       - dependency-name: "tailwindcss"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "vite"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@vitejs/plugin-react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "eslint"
         update-types: ["version-update:semver-major"]
     labels: ["dependencies"]
 

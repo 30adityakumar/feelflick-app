@@ -10,19 +10,12 @@ updates:
       # Collapse routine minor/patch bumps into one PR to cut noise.
       minor-and-patch:
         update-types: ["minor", "patch"]
-    # Defer breaking majors that need deliberate, tested migrations rather than
-    # an auto-merge: React 19 (#104/#106) and Tailwind 4 (#105), all closed
-    # 2026-05-29. Patch/minor updates for these still flow. Delete an entry when
-    # you're ready to take that migration on.
+    # Defer breaking majors that need a deliberate, tested migration rather than
+    # an auto-merge. Tailwind 4 (#105, closed 2026-05-29) is a CSS-first rewrite
+    # that requires rewriting tailwind.config.js. Patch/minor still flow; delete
+    # the entry when ready to take that migration on.
+    # (React 19 was completed 2026-05-29, so its major ignore was removed here.)
     ignore:
-      - dependency-name: "react"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "react-dom"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "@types/react"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "@types/react-dom"
-        update-types: ["version-update:semver-major"]
       - dependency-name: "tailwindcss"
         update-types: ["version-update:semver-major"]
     labels: ["dependencies"]

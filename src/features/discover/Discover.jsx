@@ -22,7 +22,15 @@ import './discover.css'
 const FFAudio = (() => {
   let ctx = null;
   let masterGain = null;
-  let muted = false;
+  // Audio defaults to MUTED. Auto-playing sound on a web app is jarring (quiet or
+  // public settings) and off-brand for a calm, considered pick — users opt in via
+  // the AudioToggle, and the choice persists across visits.
+  const MUTED_KEY = 'ff_discover_muted';
+  const readMutedPref = () => {
+    try { const v = localStorage.getItem(MUTED_KEY); return v === null ? true : v === '1'; }
+    catch { return true; }
+  };
+  let muted = readMutedPref();
   function ensure() {
     if (ctx) return ctx;
     try {
@@ -65,7 +73,11 @@ const FFAudio = (() => {
       osc.connect(g); g.connect(masterGain); osc.start(t + i*0.06); osc.stop(t + 2.7);
     });
   }
-  function setMuted(v) { muted = v; if (masterGain) masterGain.gain.value = v ? 0 : 0.45; }
+  function setMuted(v) {
+    muted = v;
+    if (masterGain) masterGain.gain.value = v ? 0 : 0.45;
+    try { localStorage.setItem(MUTED_KEY, v ? '1' : '0'); } catch { /* private mode — non-fatal */ }
+  }
   function isMuted() { return muted; }
   return { pluck, whoom, chord, setMuted, isMuted };
 })();

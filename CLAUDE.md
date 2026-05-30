@@ -87,7 +87,33 @@ src/
 
 Auth initialises in `main.jsx` before React mounts: parses OAuth hash → sets Supabase session → `/auth/callback`. `RootEntry` routes authenticated → `/home`, unauthenticated → Landing. `RequireAuth` guards protected routes. `PostAuthGate` redirects new users to `/onboarding`.
 
-Recommendation pipeline: content-based filtering + pgvector cosine similarity + behavioral signals (skips, re-watches, ratings). Anti-recency bias, signal decay. Tracked via `recommendation_impressions` + `mood_sessions`. User profiles cached in `user_profiles_computed` with TTL.
+Recommendation pipeline (`shared/services/recommendations.js`; an `ENGINE_VERSION`
+bump invalidates cached profiles — see `CLAUDE-REFERENCE.md`). Mood-first at the
+door, taste-deep underneath — a blend, not one signal:
+
+- **Taste** — content-based affinity (genre/director/actor) + pgvector cosine
+  similarity over OpenAI embeddings (seeded from your recent + top-rated watches).
+- **Quality gating** — `ff_final_rating` (critic rating blended with community
+  votes) floors + TMDB `vote_count` thresholds + quality tiers; nothing mediocre
+  surfaces regardless of fit.
+- **Behavioral** — a layered skip system (48h hard-exclude → 7-day de-rate →
+  permanent learning for repeat skippers), ratings, re-watches, and a thumbs
+  feedback loop (`user_movie_feedback` → amplifies/dampens affinity).
+- **Mood** — a per-session mood signature (`computeMoodSignature` over
+  `mood_tags`/`tone_tags`/`fit_profile`) + `moodWeights`; this powers the
+  "Mood match" Briefing slot.
+- **Anti-bias** — anti-recency (older masterpieces aren't penalised), signal
+  decay, diversity de-clustering, and a language anti-bubble (STRICT/STRONG modes
+  inject a discovery slot so you're never trapped in one language).
+
+Centrepiece: **the Briefing / hero** — a weighted-random single "tonight's pick"
+(#1 wins ~65%), tuned by a **DNA-confidence** score and shipped with a
+`heroReason`-generated "why this is the one." The engine literally makes its case.
+
+Tracked via `recommendation_impressions` + `mood_sessions`; the computed profile
+is cached in `user_profiles_computed` (plus a `taste_fingerprint` cache, 24h TTL).
+The `recommendation-engine` skill gates any tuning — DB-first analysis is mandatory
+before touching scoring, limits, or filters.
 
 ## Environment Variables
 

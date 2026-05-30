@@ -2,36 +2,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
-
-function AuthGatePlaceholder() {
-  return <div className="fixed inset-0 z-9999 bg-black" />
-}
-
-function isTruthyFlag(v) {
-  return v === true || v === 'true' || v === 1 || v === '1'
-}
-
-function deriveOnboardingFromMetadata(user) {
-  const meta = { ...(user?.app_metadata ?? {}), ...(user?.user_metadata ?? {}) }
-
-  // If any of these keys exist, we treat metadata as “present”
-  const hasAny =
-    meta.onboarding_complete !== undefined ||
-    meta.onboardingComplete !== undefined ||
-    meta.has_onboarded !== undefined ||
-    meta.hasOnboarded !== undefined ||
-    meta.onboarded !== undefined ||
-    meta.onboarding_completed_at !== undefined
-
-  const isComplete =
-    isTruthyFlag(meta.onboarding_complete) ||
-    isTruthyFlag(meta.onboardingComplete) ||
-    isTruthyFlag(meta.has_onboarded) ||
-    isTruthyFlag(meta.hasOnboarded) ||
-    isTruthyFlag(meta.onboarded)
-
-  return { hasAny, isComplete }
-}
+import BrandSplash from '@/shared/ui/BrandSplash'
+import { deriveOnboardingStatus, isTruthyFlag } from '@/shared/lib/auth/onboardingStatus'
 
 /**
  * Post-Auth Gate
@@ -89,7 +61,7 @@ export default function PostAuthGate() {
     }
 
     // Fast path: trust onboarding flags in auth metadata (very fast, no DB round trip)
-    const meta = deriveOnboardingFromMetadata(user)
+    const meta = deriveOnboardingStatus(user)
     if (!forceDbCheck && meta.hasAny) {
       setIsOnboarded(meta.isComplete)
       setPhase('ready')
@@ -165,7 +137,7 @@ export default function PostAuthGate() {
 
   // While determining session/onboarding (rarely more than 1–2 round-trips), block route render
   if (phase !== 'ready' || hasUser === null || isOnboarded === null) {
-    return <AuthGatePlaceholder />
+    return <BrandSplash />
   }
 
   // Not authenticated → redirect to landing

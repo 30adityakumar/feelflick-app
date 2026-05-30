@@ -62,11 +62,13 @@ async function handleOAuthHash() {
           access_token: accessToken,
           refresh_token: refreshToken,
         })
-        
-        // Clean up the URL and redirect to callback route
+
+        // Strip the tokens out of the URL, then mount the app directly — no full
+        // document reload. OAuthCallback reads the now-set session and routes from
+        // there. (Previously this did window.location.replace('/auth/callback'),
+        // forcing a full reload + re-boot at the highest-stakes moment in the funnel.)
         window.history.replaceState(null, '', '/auth/callback')
-        window.location.replace('/auth/callback')
-        return true // Prevent normal app mount
+        return false // fall through to mount; OAuthCallback handles routing
       }
     } catch {
       clearOAuthCallbackNonce()

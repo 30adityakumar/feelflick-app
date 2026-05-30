@@ -8,6 +8,7 @@ import {
   consumeOAuthCallbackNonce,
   readOAuthNonceFromUrl,
 } from '@/shared/lib/auth/oauthNonce'
+import { deriveOnboardingStatus } from '@/shared/lib/auth/onboardingStatus'
 
 /**
  * OAuth Callback Handler
@@ -114,12 +115,8 @@ export default function OAuthCallback() {
           return
         }
 
-        // Check onboarding status from user metadata
-        const meta = session.user.user_metadata || {}
-        const isOnboarded =
-          meta.onboarding_complete === true ||
-          meta.has_onboarded === true ||
-          meta.onboarded === true
+        // Check onboarding status from user metadata (same derivation as PostAuthGate)
+        const { isComplete: isOnboarded } = deriveOnboardingStatus(session.user)
 
         // Route to appropriate page
         const destination = isOnboarded ? '/home' : '/onboarding'

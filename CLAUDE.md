@@ -56,25 +56,20 @@ src/
 │   ├── lib/              # pure utils, supabase client, curatedLists, format/
 │   ├── components/       # domain widgets (StarRating, FollowButton, Pagination…)
 │   └── ui/               # low-level primitives (Button, Modal, Input, EmptyState…)
-├── legacy/               # archived v2 landing ONLY — served at /v2 for rollback
-│   └── landing/          # the rest of v1 was removed once its *-legacy routes proved unused
 ├── styles/  assets/      # global CSS + static assets
 └── test/                 # Vitest helpers, fixtures, setup
 ```
 
-> **`legacy/` is now just the archived v2 landing** (served at `/v2` for a final
-> rollback window). All the other v1 surfaces + their `*-legacy` route twins were
-> removed once analytics + a no-internal-links check confirmed they were unused
-> (tag `legacy-removal-base` marks the last commit that had them). Don't extend
-> `legacy/`; don't import from it into a `features/` surface. `/v2` is the next
-> deletion candidate.
+> **No `legacy/` anymore.** The entire v1 tree (and the v2 landing at `/v2`) was
+> removed once analytics + a no-internal-links check confirmed it was unused.
+> Rollback lives in git: tag `legacy-removal-base` (full twin tree) and the commit
+> before the `/v2` removal — not in shipped code.
 >
-> **No version suffixes.** The old `*-v2`/`*-v5` folder names were dropped in the
-> repo-structure refactor (onboarding led the way in #77). A feature folder is a plain
-> lowercase domain noun (`home`, not `home-v2`); the entry component matches it
-> (`features/home/Home.jsx`). `router.jsx` still has `…V2` *local const* names (HomeV2,
-> AccountV2, …) — a harmless leftover from when legacy twins existed; they can be
-> de-suffixed now that the twins are gone.
+> **No version suffixes — anywhere.** The old `*-v2`/`*-v5` folder names were dropped
+> in the repo-structure refactor (onboarding led the way in #77), and the matching
+> `…V2`/`…V5` local consts in `router.jsx` were de-suffixed once the legacy twins were
+> gone. A feature folder is a plain lowercase domain noun (`home`, not `home-v2`); the
+> entry component matches it (`features/home/Home.jsx`).
 >
 > **`components/` vs `shared/components/`:** `components/` is app-wide canonical UI
 > (carousel, layout chrome, toasts); `shared/components/` is reusable *domain* widgets
@@ -373,7 +368,7 @@ Already wired across `/home`, `/movie/:id`, `/discover`, `/account`, `/preferenc
 ### What NOT to do
 
 - ❌ Don't use Inter `font-black` for feature-surface or v3 landing headlines — that's
-  the legacy v1 signature (frozen under `src/legacy/`).
+  the legacy v1 signature (since removed from the codebase).
 - ❌ Don't reference `src/features/landing/sections/HeroSection.jsx` — it doesn't exist.
 - ❌ Don't invent per-vibe gradients. Use `var(--brand-gradient)` always.
 - ❌ Don't add new font imports without updating this section.
@@ -521,14 +516,15 @@ blocks). It enforces the `lint → test → build` discipline automatically.
 - Security hardening pass (2026-05-29): RLS + write lockdown on 18 catalog/engine
   tables, cron-function + IDOR-function lockdown, pinned function `search_path`
   (migrations `20260529000000`–`000400`). See memory `project_rls_exposure`.
-- v3 landing replaced v2 landing at `/` (PR #84). The archived v2 landing now lives at
-  `src/legacy/landing/` and is still served at `/v2` for rollback.
+- v3 landing replaced v2 landing at `/` (PR #84); the archived v2 landing + its `/v2`
+  route were later removed entirely once v3 proved stable.
 - Repo-structure refactor: dropped all `*-v2`/`*-v5` suffixes, quarantined v1 into
   `src/legacy/`, decoupled the archived landing, and consolidated `contexts/` → `app/providers/`.
   The feature surfaces are the canonical direction (#79). See the Folder Map above.
-- Legacy v1 removal: deleted the 11 quarantined v1 surfaces + their `*-legacy` route
-  twins (`/movies` + `/trending` now redirect to `/browse`; mobile BottomNav Account →
-  `/account`). Only the archived v2 landing (`/v2`) remains. Rollback: tag `legacy-removal-base`.
+- Legacy v1 fully removed: deleted all quarantined v1 surfaces + their `*-legacy` route
+  twins AND the `/v2` archived landing — `src/legacy/` no longer exists (`/movies` +
+  `/trending` redirect to `/browse`; mobile BottomNav Account → `/account`; the `…V2`/`…V5`
+  router consts were de-suffixed). Rollback: tag `legacy-removal-base`.
 - Spinner → skeleton migration started (#66) — `router.jsx` and auth splashes done.
 - Sentry wired in `main.jsx` + `ErrorBoundary.jsx` (#67).
 - Edge function CORS hardened (#81, #82).

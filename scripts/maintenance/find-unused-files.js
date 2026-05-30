@@ -6,7 +6,8 @@ import { fileURLToPath } from 'url'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-const projectRoot = path.resolve(__dirname, 'src')
+// Repo-root src/, resolved from scripts/maintenance/ (this file's location).
+const projectRoot = path.resolve(__dirname, '../../src')
 const sourceExtensions = ['.js', '.jsx', '.ts', '.tsx', '.css', '.json']
 const assetExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.mp4', '.webm', '.ico']
 

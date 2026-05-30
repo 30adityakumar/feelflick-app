@@ -3,8 +3,9 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ChevronLeft, ChevronRight, SkipForward, Loader2, RefreshCw } from 'lucide-react'
+import { ChevronLeft, ChevronRight, SkipForward, RefreshCw } from 'lucide-react'
 import MatchBadge from '@/shared/components/MatchBadge'
+import { ActionButton, SecondaryActionButton } from '@/shared/components/ActionButton'
 import { useUserMovieStatus } from '@/shared/hooks/useUserMovieStatus'
 import { getMovieWatchProviders } from '@/shared/api/tmdb'
 import { logSurfaceImpressions } from '@/shared/services/recommendations'
@@ -91,118 +92,47 @@ export function MoodReactor({ currentMood, setMood, onReshuffle }) {
   )
 }
 
-// Action buttons sized + styled to match movie detail page actions:
-// 14/22 padding, rounded-8, 14px Outfit semibold, gradient bg for primary,
-// outline + active-state tint for Watched/Save, smaller quiet pill for Skip.
-// Same shapes the user sees on /movie/:id so the briefing card actions
-// don't feel like a different system.
-function PrimaryActionButton({ onClick, children }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="inline-flex h-11 flex-1 items-center justify-center gap-2.5 whitespace-nowrap rounded-lg px-4 transition-transform duration-200 active:scale-[0.98] lg:h-auto lg:flex-none lg:px-[22px] lg:py-[14px]"
-      style={{
-        background: HP_GRAD, border: 'none', color: '#fff',
-        fontFamily: 'Outfit', fontSize: 13, fontWeight: 600, letterSpacing: '0.02em',
-        cursor: 'pointer',
-        boxShadow: '0 12px 28px -8px rgba(236,72,153,0.5)',
-      }}
-    >
-      {children}
-    </button>
-  )
-}
-
-// Labeled secondary actions — mirrors movie-detail page (sections-top.jsx).
-// 14/22 padding, rounded-8, Outfit 14 semibold/medium. Active state tints
-// to lavender background + lavender border. Keeps the briefing's CTA row
-// in the same visual language as /movie/:id so users learn the system
-// once.
-// Common className for the three secondary action pills.
-//   • mobile: compact 44×44 round icon-only button (label hidden via
-//     <span className="hidden lg:inline">). Sits next to the primary
-//     gradient CTA in a single row.
-//   • lg+: full labeled pill (movie-detail-page style — 14/22 padding,
-//     rounded-8, icon + text).
-const SECONDARY_BTN_CLS = 'inline-flex h-11 w-11 flex-none items-center justify-center rounded-full transition-all duration-200 active:scale-[0.98] lg:h-auto lg:w-auto lg:flex-initial lg:gap-2.5 lg:whitespace-nowrap lg:rounded-lg lg:px-[22px] lg:py-[14px]'
-
+// In-card action buttons are the canonical family in shared/components/ActionButton
+// (rounded-8, Outfit — shared with /movie so the briefing actions don't feel like a
+// different system). The three below are thin wrappers that add the icon, label, and
+// active state on top of <SecondaryActionButton>; the gradient "See More" primary
+// uses <ActionButton> directly.
 function WatchedButton({ isWatched, loading, onClick }) {
   return (
-    <button
-      type="button"
+    <SecondaryActionButton
+      active={isWatched}
+      loading={loading}
       onClick={onClick}
-      disabled={loading}
-      aria-pressed={Boolean(isWatched)}
       title={isWatched ? 'Watched' : 'Mark as watched'}
-      className={SECONDARY_BTN_CLS}
-      style={{
-        background: isWatched ? 'rgba(167,139,250,0.18)' : 'rgba(255,255,255,0.06)',
-        border: `1px solid ${isWatched ? HP.purple + '66' : HP.border}`,
-        // Equal weight + softer color across all three secondaries
-        // (Mark Watched / Save / Skip tonight). They're peers — one
-        // primary CTA (See more) leads, the rest are equal taste-signal
-        // taps so the user picks the right action without an implicit
-        // hierarchy.
-        color: HP.textSoft, fontFamily: 'Outfit', fontSize: 13, fontWeight: 500,
-        cursor: loading ? 'default' : 'pointer', opacity: loading ? 0.65 : 1,
-      }}
-    >
-      {loading
-        ? <Loader2 className="h-4 w-4 animate-spin lg:h-3.5 lg:w-3.5" />
-        : <svg className="h-4 w-4 lg:h-[13px] lg:w-[13px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>}
-      <span className="hidden lg:inline">{isWatched ? 'Watched' : 'Mark Watched'}</span>
-    </button>
+      label={isWatched ? 'Watched' : 'Mark Watched'}
+      icon={<svg className="h-4 w-4 lg:h-[13px] lg:w-[13px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>}
+    />
   )
 }
 
 function SaveButton({ isInWatchlist, loading, onClick }) {
   return (
-    <button
-      type="button"
+    <SecondaryActionButton
+      active={isInWatchlist}
+      loading={loading}
       onClick={onClick}
-      disabled={loading}
-      aria-pressed={Boolean(isInWatchlist)}
       title={isInWatchlist ? 'Saved to watchlist' : 'Save to watchlist'}
-      className={SECONDARY_BTN_CLS}
-      style={{
-        background: isInWatchlist ? 'rgba(167,139,250,0.12)' : 'rgba(255,255,255,0.06)',
-        border: `1px solid ${isInWatchlist ? HP.purple + '66' : HP.border}`,
-        color: HP.textSoft, fontFamily: 'Outfit', fontSize: 13, fontWeight: 500,
-        cursor: loading ? 'default' : 'pointer', opacity: loading ? 0.65 : 1,
-      }}
-    >
-      {loading ? (
-        <Loader2 className="h-4 w-4 animate-spin lg:h-3.5 lg:w-3.5" />
-      ) : isInWatchlist ? (
-        <svg className="h-4 w-4 lg:h-[13px] lg:w-[13px]" viewBox="0 0 24 24" fill="currentColor"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" /></svg>
-      ) : (
-        <svg className="h-4 w-4 lg:h-[13px] lg:w-[13px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" /></svg>
-      )}
-      <span className="hidden lg:inline">{isInWatchlist ? 'Saved' : 'Save'}</span>
-    </button>
+      label={isInWatchlist ? 'Saved' : 'Save'}
+      icon={isInWatchlist
+        ? <svg className="h-4 w-4 lg:h-[13px] lg:w-[13px]" viewBox="0 0 24 24" fill="currentColor"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" /></svg>
+        : <svg className="h-4 w-4 lg:h-[13px] lg:w-[13px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" /></svg>}
+    />
   )
 }
 
 function SkipButton({ onClick }) {
   return (
-    <button
-      type="button"
+    <SecondaryActionButton
       onClick={onClick}
       title="Skip — not tonight"
-      className={SECONDARY_BTN_CLS}
-      style={{
-        background: 'rgba(255,255,255,0.04)',
-        border: `1px solid ${HP.border}`,
-        // Matches Mark Watched + Save — three secondaries at equal
-        // visual weight beneath the See more primary.
-        color: HP.textSoft, fontFamily: 'Outfit', fontSize: 13, fontWeight: 500,
-        cursor: 'pointer',
-      }}
-    >
-      <SkipForward className="h-4 w-4 lg:h-3.5 lg:w-3.5" />
-      <span className="hidden lg:inline">Skip Tonight</span>
-    </button>
+      label="Skip Tonight"
+      icon={<SkipForward className="h-4 w-4 lg:h-3.5 lg:w-3.5" />}
+    />
   )
 }
 
@@ -379,10 +309,10 @@ function BriefingSlide({ film, idx, matchPct, user, onWatch, onSkip, onMarkedWat
               hidden, icon only).
             • lg+: wrap row of four labeled pills (movie-detail style). */}
         <div className="flex flex-wrap items-center justify-center gap-2.5 pt-4 lg:justify-start" style={{ borderTop: `1px solid ${HP.border}` }}>
-          <PrimaryActionButton onClick={() => onWatch?.(film)}>
+          <ActionButton onClick={() => onWatch?.(film)}>
             <span>See More</span>
             <ChevronRight className="h-3.5 w-3.5" />
-          </PrimaryActionButton>
+          </ActionButton>
           <WatchedButton isWatched={isWatched} loading={statusLoading.watched} onClick={handleMarkWatched} />
           <SaveButton isInWatchlist={isInWatchlist} loading={statusLoading.watchlist} onClick={toggleWatchlist} />
           <SkipButton onClick={() => onSkip?.(film)} />

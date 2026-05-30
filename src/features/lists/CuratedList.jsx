@@ -7,9 +7,10 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { CURATED_LISTS } from '@/shared/lib/curatedLists'
+import { ChipButton } from '@/shared/components/ActionButton'
 import './lists.css'
 
-import { HP, HP_GRAD } from '@/shared/lib/tokens'
+import { HP } from '@/shared/lib/tokens'
 const RESET_BTN = { background: 'none', border: 'none', padding: 0, margin: 0, font: 'inherit', color: 'inherit', cursor: 'pointer', textAlign: 'left' }
 
 const TMDB_IMG = (path, size = 'w342') => path ? `https://image.tmdb.org/t/p/${size}${path}` : null
@@ -131,13 +132,9 @@ function NotFound({ onBack }) {
       <div style={{ textAlign: 'center', maxWidth: 520 }}>
         <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: HP.purple, marginBottom: 18 }}>Curated · 404</div>
         <h1 style={{ fontFamily: 'Outfit', fontSize: 40, fontWeight: 500, color: HP.text, margin: '0 0 18px 0', letterSpacing: '-0.025em' }}>That shelf doesn&rsquo;t exist.</h1>
-        <button
-          type="button"
-          onClick={onBack}
-          style={{ padding: '10px 18px', borderRadius: 6, background: HP_GRAD, border: 'none', color: '#fff', fontFamily: 'Outfit', fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}
-        >
+        <ChipButton onClick={onBack}>
           Back to shelves →
-        </button>
+        </ChipButton>
       </div>
     </div>
   )

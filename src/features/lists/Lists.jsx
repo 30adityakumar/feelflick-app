@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import CreateListModal from '@/features/lists/CreateListModal'
-import { ActionButton } from '@/shared/components/ActionButton'
+import { ActionButton, ChipButton } from '@/shared/components/ActionButton'
 import MoodPill from '@/shared/components/MoodPill'
 import './lists.css'
 import { ListsDataProvider, useListsData } from './useListsData'
@@ -306,11 +306,7 @@ function FeaturedOpen() {
             <span>{featured.films.length} film{featured.films.length === 1 ? '' : 's'} · {user.name} · updated {featured.updated}</span>
           </div>
           <div style={{ marginTop: 20, display: 'flex', gap: 8 }}>
-            <button
-              type="button"
-              onClick={() => navigate(`/lists/${featured.id}`)}
-              style={{ padding: '10px 16px', borderRadius: 6, background: HP_GRAD, border: 'none', color: '#fff', fontFamily: 'Outfit', fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}
-            >Open shelf →</button>
+            <ChipButton onClick={() => navigate(`/lists/${featured.id}`)}>Open shelf →</ChipButton>
           </div>
         </div>
         <div style={{ borderTop: `1px solid ${HP.border}` }}>

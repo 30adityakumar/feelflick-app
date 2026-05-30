@@ -12,6 +12,7 @@ import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { tmdbImg } from '@/shared/api/tmdb'
 import CreateListModal from '@/features/lists/CreateListModal'
 import MoodPill from '@/shared/components/MoodPill'
+import { ChipButton } from '@/shared/components/ActionButton'
 import './lists.css'
 
 import { HP, HP_GRAD } from '@/shared/lib/tokens'
@@ -499,13 +500,9 @@ function NotFound({ onBack }) {
         <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: HP.purple, marginBottom: 18 }}>List · 404</div>
         <h1 style={{ fontFamily: 'Outfit', fontSize: 40, fontWeight: 500, color: HP.text, margin: '0 0 18px 0', letterSpacing: '-0.025em' }}>This shelf isn&rsquo;t here.</h1>
         <p style={{ margin: '0 0 24px 0', color: 'rgba(250,250,250,0.6)', fontSize: 14, lineHeight: 1.6 }}>It may have been deleted, made private, or it never existed.</p>
-        <button
-          type="button"
-          onClick={onBack}
-          style={{ padding: '10px 18px', borderRadius: 6, background: HP_GRAD, border: 'none', color: '#fff', fontFamily: 'Outfit', fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}
-        >
+        <ChipButton onClick={onBack}>
           Back to shelves →
-        </button>
+        </ChipButton>
       </div>
     </div>
   )

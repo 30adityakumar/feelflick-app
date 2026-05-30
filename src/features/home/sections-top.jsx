@@ -100,6 +100,7 @@ export function MoodReactor({ currentMood, setMood, onReshuffle }) {
 function WatchedButton({ isWatched, loading, onClick }) {
   return (
     <SecondaryActionButton
+      collapse
       active={isWatched}
       loading={loading}
       onClick={onClick}
@@ -113,6 +114,7 @@ function WatchedButton({ isWatched, loading, onClick }) {
 function SaveButton({ isInWatchlist, loading, onClick }) {
   return (
     <SecondaryActionButton
+      collapse
       active={isInWatchlist}
       loading={loading}
       onClick={onClick}
@@ -128,6 +130,7 @@ function SaveButton({ isInWatchlist, loading, onClick }) {
 function SkipButton({ onClick }) {
   return (
     <SecondaryActionButton
+      collapse
       onClick={onClick}
       title="Skip — not tonight"
       label="Skip Tonight"
@@ -309,7 +312,7 @@ function BriefingSlide({ film, idx, matchPct, user, onWatch, onSkip, onMarkedWat
               hidden, icon only).
             • lg+: wrap row of four labeled pills (movie-detail style). */}
         <div className="flex flex-wrap items-center justify-center gap-2.5 pt-4 lg:justify-start" style={{ borderTop: `1px solid ${HP.border}` }}>
-          <ActionButton onClick={() => onWatch?.(film)}>
+          <ActionButton className="h-11 flex-1 lg:h-auto lg:flex-none" onClick={() => onWatch?.(film)}>
             <span>See More</span>
             <ChevronRight className="h-3.5 w-3.5" />
           </ActionButton>

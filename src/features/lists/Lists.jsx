@@ -138,7 +138,7 @@ function ListCard({ list, kind, onOpen }) {
               </div>
             )}
             {kind === 'followed' && list.by && (
-              <div style={{ width: 30, height: 30, borderRadius: 999, background: list.byBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Outfit', fontWeight: 700, color: '#0a0510', fontSize: 13, border: '2px solid #06060a' }}>
+              <div style={{ width: 30, height: 30, borderRadius: 999, background: list.byBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Outfit', fontWeight: 700, color: '#0a0510', fontSize: 13, border: `2px solid ${HP.bgDeep}` }}>
                 {list.by.charAt(0).toUpperCase()}
               </div>
             )}

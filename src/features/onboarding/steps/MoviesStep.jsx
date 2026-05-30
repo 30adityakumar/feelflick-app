@@ -414,7 +414,7 @@ export default function MoviesStep({
           Films · 3 of 4
         </p>
         <h2
-          className="ob-display text-[32px] sm:text-4xl md:text-5xl font-extrabold leading-[1.05] text-white"
+          className="ob-display text-[32px] sm:text-4xl md:text-5xl font-normal leading-[1.05] text-white"
           style={{ textWrap: 'balance' }}
         >
           What have you{' '}

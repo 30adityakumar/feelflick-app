@@ -1,14 +1,17 @@
 /* Discover — scoped animations + base. Outfit + Inter load globally via index.html
-   (no per-page @import — it's render-blocking + slower than the global <link>). */
+   (no per-page @import — it's render-blocking + slower than the global <link>).
+ *
+ * Base/button/selection rules are SCOPED to .ff-discover (the DiscoverBody root)
+ * so this lazy chunk no longer leaks globals app-wide once /discover is visited.
+ * The page base (dark bg, Inter, box-sizing) already comes from index.css +
+ * Tailwind preflight + the DiscoverBody root's own inline styles — no global
+ * resets needed here. */
 
-* { box-sizing: border-box; }
-html, body, #root { margin:0; padding:0; min-height:100%; background:#06060a; }
-body { font-family:'Inter', sans-serif; color:#fafafa; -webkit-font-smoothing:antialiased; }
-em { font-style: italic; }
-button { font-family: inherit; transition: filter 0.18s ease; }
-button:hover:not(:disabled) { filter: brightness(1.12); }
-blockquote { quotes: "\201C" "\201D"; }
-::selection { background: rgba(167,139,250,0.4); }
+.ff-discover em { font-style: italic; }
+.ff-discover button { font-family: inherit; transition: filter 0.18s ease; }
+.ff-discover button:hover:not(:disabled) { filter: brightness(1.12); }
+.ff-discover blockquote { quotes: "\201C" "\201D"; }
+.ff-discover ::selection { background: rgba(167,139,250,0.4); }
 
 @keyframes ff-fade { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
 @keyframes ff-fade-late { 0%, 30% { opacity:0; } 100% { opacity:0.9; } }

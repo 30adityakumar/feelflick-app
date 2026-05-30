@@ -55,7 +55,7 @@ export default function GenresStep({ selectedGenres, toggleGenre, onBack, onNext
           Genres · 2 of 4
         </p>
         <h2
-          className="ob-display text-[32px] sm:text-4xl md:text-5xl font-extrabold text-white leading-[1.05]"
+          className="ob-display text-[32px] sm:text-4xl md:text-5xl font-normal text-white leading-[1.05]"
           style={{ textWrap: 'balance' }}
         >
           Which{' '}

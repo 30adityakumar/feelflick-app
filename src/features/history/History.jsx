@@ -6,6 +6,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
+import MoodPill from '@/shared/components/MoodPill'
 import { HP, HP_GRAD } from './data'
 import { HistoryDataProvider, useHistoryData } from './useHistoryData'
 import './history.css'
@@ -207,11 +208,7 @@ function DiaryGroup({ month, entries }) {
                     </div>
                     <div style={{ marginTop:8, display:'flex', alignItems:'center', gap:12, flexWrap:'wrap' }}>
                       <Stars n={e.rating} />
-                      {e.mood && e.mood !== 'Mixed' && (
-                        <span style={{ display:'inline-flex', alignItems:'center', gap:6, padding:'3px 9px', borderRadius:999, background:`${e.moodHex}1a`, border:`1px solid ${e.moodHex}44`, fontFamily:'Outfit', fontSize:11, color:e.moodHex }}>
-                          <span style={{ width:6, height:6, borderRadius:999, background:e.moodHex }} />{e.mood}
-                        </span>
-                      )}
+                      {e.mood && e.mood !== 'Mixed' && <MoodPill label={e.mood} color={e.moodHex} dot />}
                     </div>
                     {e.note && (
                       <p style={{ margin:'14px 0 0 0', fontSize:14, lineHeight:1.55, color:HP.textSoft, fontFamily:'Outfit, Inter, sans-serif', fontStyle:'italic', borderLeft:`2px solid ${e.moodHex}55`, paddingLeft:14, textWrap:'pretty' }}>

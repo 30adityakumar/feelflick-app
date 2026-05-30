@@ -10,6 +10,7 @@ import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import CreateListModal from '@/features/lists/CreateListModal'
 import { ActionButton } from '@/shared/components/ActionButton'
+import MoodPill from '@/shared/components/MoodPill'
 import './lists.css'
 import { ListsDataProvider, useListsData } from './useListsData'
 
@@ -330,11 +331,7 @@ function FeaturedOpen() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                   <span style={{ fontFamily: 'Outfit', fontSize: 18, fontWeight: 500, color: HP.text, letterSpacing: '-0.015em' }}>{f.title}</span>
                   <span style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit' }}>{f.year}{f.year && ' · '}{f.dir}</span>
-                  {f.mood && f.mood !== 'Mixed' && (
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '2px 8px', borderRadius: 999, background: 'rgba(167,139,250,0.10)', border: '1px solid rgba(167,139,250,0.30)', fontSize: 10, color: HP.purple, fontFamily: 'Outfit' }}>
-                      <span style={{ width: 5, height: 5, borderRadius: 999, background: HP.purple }} />{f.mood}
-                    </span>
-                  )}
+                  {f.mood && f.mood !== 'Mixed' && <MoodPill label={f.mood} dot />}
                 </div>
                 {f.note && (
                   <p style={{ margin: '6px 0 0 0', fontSize: 13, lineHeight: 1.55, color: HP.textSoft, fontFamily: 'Outfit, Inter, sans-serif', fontStyle: 'italic', textWrap: 'pretty' }}>&ldquo;{f.note}&rdquo;</p>

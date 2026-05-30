@@ -613,7 +613,7 @@ function CelebrationReveal({ moods, selectedGenres, favoriteMovies, ratings, fad
           className="mt-12"
         >
           <h1
-            className="ob-display text-4xl font-extrabold leading-[1.05] text-white sm:text-5xl md:text-6xl"
+            className="ob-display text-4xl font-normal leading-[1.05] text-white sm:text-5xl md:text-6xl"
             style={{ textWrap: 'balance', letterSpacing: '-0.02em' }}
           >
             Tonight is{' '}

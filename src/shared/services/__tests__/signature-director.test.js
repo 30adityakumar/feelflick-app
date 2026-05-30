@@ -23,7 +23,7 @@ vi.mock('@/shared/services/exclusions', () => ({
   applyAllExclusions: vi.fn().mockImplementation((query) => query),
 }))
 
-vi.mock('@/shared/services/quality-tiers', () => ({
+vi.mock('@/shared/services/qualityTiers', () => ({
   applyQualityFloor: vi.fn().mockImplementation((query) => query),
   QUALITY_TIERS: { HERO: { ff_audience_rating: 78 }, SIGNATURE: { ff_audience_rating: 75 }, CONTEXT: { ff_audience_rating: 68 } },
 }))
@@ -33,7 +33,7 @@ vi.mock('@/shared/services/recommendations', () => ({
 }))
 
 const mockScoreMovieV3 = vi.fn()
-vi.mock('@/shared/services/scoring-v3', () => ({
+vi.mock('@/shared/services/scoringV3', () => ({
   scoreMovieV3: (...args) => mockScoreMovieV3(...args),
   precomputeScoringContext: vi.fn().mockResolvedValue({
     seedNeighborMap: new Map(),
@@ -42,7 +42,7 @@ vi.mock('@/shared/services/scoring-v3', () => ({
   }),
 }))
 
-import { getSignatureDirectorRow } from '../homepage-rows'
+import { getSignatureDirectorRow } from '../homepageRows'
 
 // ---------------------------------------------------------------------------
 // Helpers

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { applyQualityFloor, QUALITY_TIERS } from '../quality-tiers'
+import { applyQualityFloor, QUALITY_TIERS } from '../qualityTiers'
 
 // === HELPERS ===
 

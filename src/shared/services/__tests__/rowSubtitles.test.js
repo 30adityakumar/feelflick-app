@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { topOfTasteSubtitle, moodRowTitle, moodRowSubtitle } from '../row-subtitles'
+import { topOfTasteSubtitle, moodRowTitle, moodRowSubtitle } from '../rowSubtitles'
 
 describe('topOfTasteSubtitle', () => {
   it('returns null for null/empty profile', () => {

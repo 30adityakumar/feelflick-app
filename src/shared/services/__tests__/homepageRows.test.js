@@ -19,7 +19,7 @@ vi.mock('@/shared/lib/cache', () => ({
   },
 }))
 
-// Mock exclusions module (homepage-rows imports applyAllExclusions from ./exclusions)
+// Mock exclusions module (homepageRows imports applyAllExclusions from ./exclusions)
 vi.mock('@/shared/services/exclusions', () => ({
   applyAllExclusions: vi.fn().mockImplementation((query) => query),
 }))
@@ -47,8 +47,8 @@ vi.mock('@/shared/services/recommendations', () => ({
   }),
 }))
 
-// Mock scoring-v3
-vi.mock('@/shared/services/scoring-v3', () => ({
+// Mock scoringV3
+vi.mock('@/shared/services/scoringV3', () => ({
   scoreMovieV3: vi.fn().mockReturnValue({ final: 75, breakdown: { quality: 75 }, weights_used: {} }),
   precomputeScoringContext: vi.fn().mockResolvedValue({
     seedNeighborMap: new Map(),
@@ -62,7 +62,7 @@ import {
   getMoodRow,
   getWatchlistRow,
   getCriticsSwoonedRow,
-} from '../homepage-rows'
+} from '../homepageRows'
 
 // Helper: mock supabase chained query builder
 function mockChainedQuery(result) {
@@ -80,7 +80,7 @@ function mockChainedQuery(result) {
   return chain
 }
 
-describe('homepage-rows service', () => {
+describe('homepageRows service', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })

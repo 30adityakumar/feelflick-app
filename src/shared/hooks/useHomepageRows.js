@@ -10,7 +10,7 @@ import { useEffect, useMemo, useState } from 'react'
 
 import { useUserTier } from '@/shared/hooks/useRecommendations'
 import { computeUserProfileV3 } from '@/shared/services/recommendations'
-import { precomputeScoringContext } from '@/shared/services/scoring-v3'
+import { precomputeScoringContext } from '@/shared/services/scoringV3'
 import { softDedupe } from '@/shared/services/diversity'
 import {
   getTopOfYourTasteRow,
@@ -21,7 +21,7 @@ import {
   getMoodRow,
   getWatchlistRow,
   getSignatureDirectorRow,
-} from '@/shared/services/homepage-rows'
+} from '@/shared/services/homepageRows'
 
 // ── Rotation helpers ─────────────────────────────────────────────────────────
 

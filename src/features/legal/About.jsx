@@ -1,4 +1,4 @@
-// src/features/legal/AboutPage.jsx
+// src/features/legal/About.jsx
 import { motion } from 'framer-motion'
 import { Film, Brain, Users, Shield, Zap, Heart, LogIn, Loader2 } from 'lucide-react'
 
@@ -65,7 +65,7 @@ const vp = { once: true, margin: '-60px' }
 
 // === MAIN COMPONENT ===
 
-export default function AboutPage() {
+export default function About() {
   usePageMeta({
     title: 'About — FeelFlick',
     description: 'FeelFlick is a free mood-first movie discovery platform. Read about the engine, the principles, and the team.',

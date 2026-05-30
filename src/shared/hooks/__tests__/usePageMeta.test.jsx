@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { render } from '@testing-library/react'
 
-import { usePageMeta } from './usePageMeta'
+import { usePageMeta } from '../usePageMeta'
 
 const DEFAULT_TITLE = 'FeelFlick — Movies that match your mood'
 const DEFAULT_DESC = 'Discover movies based on how you feel. Fast, private, and always free.'

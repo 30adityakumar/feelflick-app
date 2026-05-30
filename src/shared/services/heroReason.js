@@ -1,4 +1,4 @@
-// src/shared/services/hero-reason.js
+// src/shared/services/heroReason.js
 /**
  * Hero pick reasoning, era floor, and tie-break sort.
  * Pure functions — no DB calls.

@@ -6,7 +6,7 @@ import {
   skipSeverity,
   buildSkipWeightMap,
   buildCooldownSet,
-} from '../skip-signals'
+} from '../skipSignals'
 
 // ============================================================================
 // skipRecencyWeight

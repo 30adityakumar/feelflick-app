@@ -12,11 +12,11 @@ import { useParams } from 'react-router-dom'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { HP } from './data'
-import { Masthead, QuickStats, MoodRadar } from './top'
+import { Masthead, QuickStats, MoodRadar } from './sections-top'
 import {
   SignatureDirectors, MotifCloud, Trajectory, PatternPanel,
   Mixtape, Skew, FriendsRanked, ShareCard, YIRBanner, ProfileFooter,
-} from './bottom'
+} from './sections-bottom'
 import { ProfileDataProvider, useProfileDataFetch } from './useProfileData'
 import './profile.css'
 

@@ -11,10 +11,10 @@ import {
   computeToneClash,
   generateBriefReason,
   scoreMovieForBrief,
-} from '../brief-scoring'
+} from '../briefScoring'
 
 // Mock scoreMovieV3 so we can verify it's called with correct args
-vi.mock('../scoring-v3', () => ({
+vi.mock('../scoringV3', () => ({
   scoreMovieV3: vi.fn((_movie, _profile, _context, rowType, opts) => ({
     final: 72,
     breakdown: { embedding: 40, fit: 60, mood: 80, director_genre: 50, content: 55, quality: 70, negative: 0 },
@@ -397,7 +397,7 @@ describe('scoreMovieForBrief', () => {
   })
 
   it('passes weightsOverride when brief has signal', async () => {
-    const { scoreMovieV3 } = await import('../scoring-v3')
+    const { scoreMovieV3 } = await import('../scoringV3')
     scoreMovieV3.mockClear()
 
     scoreMovieForBrief(movie, profile, context, { vibe: 'cozy_warm' })
@@ -409,7 +409,7 @@ describe('scoreMovieForBrief', () => {
   })
 
   it('passes null weightsOverride when brief has no signal', async () => {
-    const { scoreMovieV3 } = await import('../scoring-v3')
+    const { scoreMovieV3 } = await import('../scoringV3')
     scoreMovieV3.mockClear()
 
     scoreMovieForBrief(movie, profile, context, {})

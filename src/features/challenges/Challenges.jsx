@@ -79,7 +79,7 @@ function ChallengeBlock({ challenge, userId, onOpen }) {
 
 // === PAGE ===
 
-export default function ChallengesPage() {
+export default function Challenges() {
   const { user } = useAuthSession()
   const navigate = useNavigate()
   const [challenges, setChallenges] = useState([])

@@ -34,7 +34,7 @@ vi.mock('@/shared/services/recommendations', () => ({
   }),
 }))
 
-// Mock all homepage-rows service functions
+// Mock all homepageRows service functions
 const mockGetTopOfYourTasteRow = vi.fn().mockResolvedValue({ films: [], subtitle: null })
 const mockGetCriticsSwoonedRow = vi.fn().mockResolvedValue([])
 const mockGetPeoplesChampionsRow = vi.fn().mockResolvedValue([])
@@ -44,7 +44,7 @@ const mockGetMoodRow = vi.fn().mockResolvedValue({ films: [], title: 'Films for 
 const mockGetWatchlistRow = vi.fn().mockResolvedValue({ films: [] })
 const mockGetSignatureDirectorRow = vi.fn().mockResolvedValue({ films: [], director: null, subtitle: null })
 
-vi.mock('@/shared/services/homepage-rows', () => ({
+vi.mock('@/shared/services/homepageRows', () => ({
   getTopOfYourTasteRow: (...args) => mockGetTopOfYourTasteRow(...args),
   getCriticsSwoonedRow: (...args) => mockGetCriticsSwoonedRow(...args),
   getPeoplesChampionsRow: (...args) => mockGetPeoplesChampionsRow(...args),

@@ -1,4 +1,4 @@
-// src/shared/services/scoring-v3.js
+// src/shared/services/scoringV3.js
 /**
  * 7-dimension normalized scoring engine (v3).
  *
@@ -11,9 +11,9 @@
  */
 
 import { supabase } from '@/shared/lib/supabase/client'
-import { aggregateSeedMatches, antiSeedPenalty, selectSeeds } from './embedding-scoring'
-import { scoreFitAgainstProfiles } from './fit-adjacency'
-import { QUALITY_TIERS } from './quality-tiers'
+import { aggregateSeedMatches, antiSeedPenalty, selectSeeds } from './embeddingScoring'
+import { scoreFitAgainstProfiles } from './fitAdjacency'
+import { QUALITY_TIERS } from './qualityTiers'
 
 // ============================================================================
 // CONSTANTS
@@ -49,7 +49,7 @@ const WEIGHTS_COLD = ROW_WEIGHTS.COLD
 
 /**
  * Score based on cosine similarity to user's positively-rated seed films.
- * Uses non-linear curve + multi-seed aggregation from embedding-scoring.js.
+ * Uses non-linear curve + multi-seed aggregation from embeddingScoring.js.
  *
  * @param {Object} movie
  * @param {Object} _profile - v3 profile (unused, kept for call-site compat)
@@ -69,7 +69,7 @@ export function scoreEmbeddingSeeds(movie, _profile, seedNeighborMap) {
 
 /**
  * Score based on how well the movie's fit_profile aligns with the user's
- * preferred fit profiles. Delegates to fit-adjacency.js for directional
+ * preferred fit profiles. Delegates to fitAdjacency.js for directional
  * 3-tier adjacency scoring.
  *
  * @param {Object} movie
@@ -440,7 +440,7 @@ async function fetchSeedNeighbors(seedIds, excludeIds = [], topN = 500) {
   })
 
   if (error || !data) {
-    if (error) console.warn('[scoring-v3:fetchSeedNeighbors] RPC error:', error.message)
+    if (error) console.warn('[scoringV3:fetchSeedNeighbors] RPC error:', error.message)
     return []
   }
 

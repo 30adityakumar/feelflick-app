@@ -1,4 +1,4 @@
-// src/shared/services/homepage-rows.js
+// src/shared/services/homepageRows.js
 /**
  * Homepage row service functions.
  * Each function returns scored, deduped film arrays for a specific homepage row.
@@ -9,13 +9,13 @@
 import { supabase } from '@/shared/lib/supabase/client'
 import { recommendationCache } from '@/shared/lib/cache'
 import { computeUserProfileV3, getNeighborLanguages } from './recommendations'
-import { FIT_ADJACENCY } from './fit-adjacency'
+import { FIT_ADJACENCY } from './fitAdjacency'
 import { applyAllExclusions, applyExclusionsNoLanguage } from './exclusions'
-import { applyQualityFloor, QUALITY_TIERS } from './quality-tiers'
-import { scoreMovieV3, precomputeScoringContext } from './scoring-v3'
+import { applyQualityFloor, QUALITY_TIERS } from './qualityTiers'
+import { scoreMovieV3, precomputeScoringContext } from './scoringV3'
 import { diversifyRow, dayHashIndex } from './diversity'
-import { generateHeroReason } from './hero-reason'
-import { topOfTasteSubtitle, moodRowTitle, moodRowSubtitle } from './row-subtitles'
+import { generateHeroReason } from './heroReason'
+import { topOfTasteSubtitle, moodRowTitle, moodRowSubtitle } from './rowSubtitles'
 
 // === Shared field selection (mirrors TIERED_SELECT_FIELDS in recommendations.js) ===
 

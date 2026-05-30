@@ -34,7 +34,7 @@ function MovieTile({ movie, onClick }) {
 
 // === PAGE ===
 
-export default function CollectionPage() {
+export default function Collection() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [movies, setMovies] = useState([])

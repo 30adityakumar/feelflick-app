@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import Tooltip from '@/shared/ui/Tooltip'
+import MatchBadge from '@/shared/components/MatchBadge'
 import { FILM_PALETTE, HP, HP_GRAD } from './data'
 import { useMovieData } from './useMovieData'
 
@@ -214,7 +215,15 @@ function MovieHero({
               ? <img src={mv.poster} alt={mv.title} style={{ width:'100%', display:'block', borderRadius:8, boxShadow:`0 36px 100px -20px rgba(0,0,0,0.95), 0 0 0 1px rgba(255,255,255,0.06), 0 0 60px ${FILM_PALETTE.primary}44` }} />
               : <div style={{ width:'100%', aspectRatio:'2/3', borderRadius:8, background:`linear-gradient(155deg, ${FILM_PALETTE.primary}55, ${FILM_PALETTE.glow}33)`, display:'flex', alignItems:'center', justifyContent:'center', color:HP.text, fontFamily:'Outfit', fontSize:24, padding:24, textAlign:'center', boxShadow:`0 36px 100px -20px rgba(0,0,0,0.95), 0 0 0 1px rgba(255,255,255,0.06)` }}>{mv.title}</div>
             }
-            {Number.isFinite(mv.ffMatch) && <MatchRing pct={mv.ffMatch} />}
+            {Number.isFinite(mv.ffMatch) && (
+              <MatchBadge
+                variant="ring"
+                pct={mv.ffMatch}
+                size={96}
+                style={{ bottom: -22, right: -22, boxShadow: '0 16px 40px -8px rgba(0,0,0,0.7)' }}
+                classes={{ root: 'ff-movie-match-ring', num: 'ff-movie-match-ring-num', pct: 'ff-movie-match-ring-pct', label: 'ff-movie-match-ring-label' }}
+              />
+            )}
           </div>
         </div>
 
@@ -335,27 +344,6 @@ function MovieHero({
   );
 }
 
-function MatchRing({ pct }) {
-  const [v, setV] = useState(0);
-  useEffect(() => {
-    const t = setTimeout(() => setV(pct), 250);
-    return () => clearTimeout(t);
-  }, [pct]);
-  const dash = v * 0.943;
-  return (
-    <div className="ff-movie-match-ring" style={{ position:'absolute', bottom:-22, right:-22, width:96, height:96, borderRadius:999, background:'rgba(0,0,0,0.85)', backdropFilter:'blur(12px)', boxShadow:'0 16px 40px -8px rgba(0,0,0,0.7)' }}>
-      <svg viewBox="0 0 36 36" style={{ width:'100%', height:'100%', transform:'rotate(-90deg)' }}>
-        <circle cx="18" cy="18" r="15" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="2.5" />
-        <circle cx="18" cy="18" r="15" fill="none" stroke="url(#ring)" strokeWidth="2.5" strokeDasharray={`${dash} 100`} strokeLinecap="round" style={{ transition:'stroke-dasharray 1.4s cubic-bezier(0.2,0.8,0.2,1)' }} />
-        <defs><linearGradient id="ring" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor={HP.purple}/><stop offset="100%" stopColor={HP.pink}/></linearGradient></defs>
-      </svg>
-      <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}>
-        <span className="ff-movie-match-ring-num" style={{ fontFamily:'Outfit', fontSize:30, fontWeight:300, color: HP.text, letterSpacing:'-0.04em', lineHeight:1 }}>{v}<span className="ff-movie-match-ring-pct" style={{ fontSize:13, color: HP.textMuted, marginLeft:1 }}>%</span></span>
-        <span className="ff-movie-match-ring-label" style={{ fontSize:8, fontWeight:700, color: HP.purple, letterSpacing:'0.18em', textTransform:'uppercase', marginTop:2 }}>Match</span>
-      </div>
-    </div>
-  );
-}
 
 function MarkWatchedButton({ isWatched, onToggleWatched, loading, canAct }) {
   const wasWatchedRef = useRef(isWatched);

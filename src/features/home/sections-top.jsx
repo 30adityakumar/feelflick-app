@@ -1,15 +1,16 @@
 // Home — top sections (Masthead, Mood Reactor, The Briefing 3-up).
 // All film data comes from useHomeData (no more imports from data.js for FILMS).
 
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronLeft, ChevronRight, SkipForward, Loader2, RefreshCw } from 'lucide-react'
-import { HP, HP_GRAD, MOOD_META } from './data'
-import { SmartImg } from './atoms'
-import { useHomeData } from './useHomeData'
+import MatchBadge from '@/shared/components/MatchBadge'
 import { useUserMovieStatus } from '@/shared/hooks/useUserMovieStatus'
 import { getMovieWatchProviders } from '@/shared/api/tmdb'
 import { logSurfaceImpressions } from '@/shared/services/recommendations'
+import { HP, HP_GRAD, MOOD_META } from './data'
+import { SmartImg } from './atoms'
+import { useHomeData } from './useHomeData'
 
 // Static slot labels — one per position in the 3-card briefing row.
 // Same across moods (functional, not flavor): position 0 is the engine's
@@ -87,49 +88,6 @@ export function MoodReactor({ currentMood, setMood, onReshuffle }) {
         </div>
       </div>
     </section>
-  )
-}
-
-// Animated match ring — mirrors MatchRing from movie/sections-top.jsx.
-// SVG with a gradient circle stroke that fills from 0 → pct over 1.4s
-// (stroke-dasharray transition), and the percentage number tweens from 0
-// → pct via setTimeout(setV). Unique gradient id per instance via useId
-// so multiple rings on the same page don't share `id="ring"`.
-function MatchRing({ pct, size = 72 }) {
-  const id = useId()
-  const gradId = `match-ring-${id.replace(/:/g, '')}`
-  const [v, setV] = useState(0)
-  useEffect(() => {
-    const t = setTimeout(() => setV(pct || 0), 250)
-    return () => clearTimeout(t)
-  }, [pct])
-  const dash = v * 0.943  // 0..100 → 0..94.3, matching SVG circle r=15 circumference
-  return (
-    <div
-      style={{
-        position: 'absolute', bottom: 14, right: 14,
-        width: size, height: size, borderRadius: 999,
-        background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)',
-        boxShadow: '0 12px 28px -6px rgba(0,0,0,0.6)',
-      }}
-    >
-      <svg viewBox="0 0 36 36" style={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}>
-        <circle cx="18" cy="18" r="15" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="2.5" />
-        <circle cx="18" cy="18" r="15" fill="none" stroke={`url(#${gradId})`} strokeWidth="2.5" strokeDasharray={`${dash} 100`} strokeLinecap="round" style={{ transition: 'stroke-dasharray 1.4s cubic-bezier(0.2,0.8,0.2,1)' }} />
-        <defs>
-          <linearGradient id={gradId} x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor={HP.purple} />
-            <stop offset="100%" stopColor={HP.pink} />
-          </linearGradient>
-        </defs>
-      </svg>
-      <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <span style={{ fontFamily: 'Outfit', fontSize: Math.round(size * 0.31), fontWeight: 300, color: HP.text, letterSpacing: '-0.04em', lineHeight: 1 }}>
-          {v}<span style={{ fontSize: Math.round(size * 0.16), color: HP.textMuted, marginLeft: 1 }}>%</span>
-        </span>
-        <span style={{ fontSize: Math.round(size * 0.095), fontWeight: 700, color: HP.purple, letterSpacing: '0.18em', textTransform: 'uppercase', marginTop: 2 }}>Match</span>
-      </div>
-    </div>
   )
 }
 
@@ -343,10 +301,10 @@ function BriefingSlide({ film, idx, matchPct, user, onWatch, onSkip, onMarkedWat
         <div style={{ position: 'absolute', top: 14, right: 14, padding: '4px 9px', borderRadius: 4, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(10px)', fontSize: 10, fontWeight: 600, color: HP.textSoft, letterSpacing: '0.16em', textTransform: 'uppercase', fontFamily: 'Outfit' }}>
           0{idx + 1}
         </div>
-        {/* Animated MatchRing — sized to feel proportionate against the
+        {/* Animated match ring — sized to feel proportionate against the
             smallest poster width (200px mobile); still reads at lg (340px). */}
         {Number.isFinite(matchPct) && matchPct > 0 && (
-          <MatchRing pct={matchPct} size={60} />
+          <MatchBadge variant="ring" pct={matchPct} size={60} style={{ bottom: 14, right: 14 }} />
         )}
       </button>
 

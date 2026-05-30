@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { tmdbImg } from '@/shared/api/tmdb'
+import MatchBadge from '@/shared/components/MatchBadge'
 import { FILM_PALETTE, TIMELINE, DNA_DELTA, HP, HP_GRAD } from './data'
 import { useMovieData } from './useMovieData'
 import { useUserRating } from './hooks/useUserRating'
@@ -259,9 +260,7 @@ function PairsWith({ goToMovie }) {
                   is in our catalog AND the engine produced a score. Films
                   off-catalog show no badge (instead of a fabricated number). */}
               {Number.isFinite(s.match) && (
-                <div style={{ position:'absolute', top:10, left:10, padding:'4px 8px', borderRadius:3, background:'rgba(0,0,0,0.85)', backdropFilter:'blur(8px)', border:'1px solid rgba(167,139,250,0.35)', fontSize:9, fontWeight:700, color: HP.purple, fontFamily:'Outfit', letterSpacing:'0.08em' }}>
-                  {s.match}% MATCH
-                </div>
+                <MatchBadge variant="pill" pct={s.match} />
               )}
             </div>
             <div style={{ fontFamily:'Outfit', fontSize:17, fontWeight:500, color: HP.text, letterSpacing:'-0.015em' }}>{s.title}</div>

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Tooltip from '@/shared/ui/Tooltip'
 import MatchBadge from '@/shared/components/MatchBadge'
+import { ActionButton, SecondaryActionButton } from '@/shared/components/ActionButton'
 import { FILM_PALETTE, HP, HP_GRAD } from './data'
 import { useMovieData } from './useMovieData'
 
@@ -286,22 +287,16 @@ function MovieHero({
           )}
 
           <div className="ff-movie-hero-actions" style={{ display:'flex', alignItems:'center', gap:12, marginTop:32, flexWrap:'wrap' }}>
-            <button
+            <ActionButton
               className="ff-movie-hero-action-btn ff-movie-hero-action-btn--primary"
               onClick={onPlayTrailer}
               disabled={!hasTrailer}
               title={hasTrailer ? undefined : 'No trailer available'}
-              style={{
-                display:'inline-flex', alignItems:'center', justifyContent:'center', gap:10,
-                padding:'14px 22px', borderRadius:8,
-                background: HP_GRAD, border:'none', color:'#fff',
-                fontFamily:'Outfit', fontSize:14, fontWeight:600, letterSpacing:'0.02em',
-                cursor: hasTrailer ? 'pointer' : 'not-allowed', opacity: hasTrailer ? 1 : 0.5,
-                boxShadow:'0 12px 32px -8px rgba(236,72,153,0.55)',
-              }}>
+              style={{ cursor: hasTrailer ? 'pointer' : 'not-allowed', opacity: hasTrailer ? 1 : 0.5 }}
+            >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3v18l16-9z"/></svg>
               Play Trailer
-            </button>
+            </ActionButton>
             <MarkWatchedButton
               isWatched={isWatched}
               onToggleWatched={onToggleWatched}
@@ -359,29 +354,21 @@ function MarkWatchedButton({ isWatched, onToggleWatched, loading, canAct }) {
   }, [isWatched]);
 
   const disabled = !canAct || loading;
-  const title = !canAct ? 'Sign in to track what you watch' : undefined;
 
   return (
     <>
-      <button
-        className="ff-movie-hero-action-btn"
-        onClick={onToggleWatched}
+      <SecondaryActionButton
+        accent={FILM_PALETTE.primary}
+        active={isWatched}
+        loading={loading}
         disabled={disabled}
-        aria-pressed={Boolean(isWatched)}
-        title={title}
-        style={{
-          position:'relative',
-          display:'inline-flex', alignItems:'center', justifyContent:'center', gap:10,
-          padding:'14px 22px', borderRadius:8,
-          background: isWatched ? `${FILM_PALETTE.primary}22` : 'rgba(255,255,255,0.06)',
-          border:`1px solid ${isWatched ? FILM_PALETTE.primary + '66' : HP.borderStrong}`,
-          color: HP.text, fontFamily:'Outfit', fontSize:14, fontWeight:600,
-          cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled && !isWatched ? 0.6 : 1,
-          transition:'all 0.3s ease',
-        }}>
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-        {isWatched ? 'Watched' : 'Mark Watched'}
-      </button>
+        onClick={onToggleWatched}
+        title={!canAct ? 'Sign in to track what you watch' : undefined}
+        label={isWatched ? 'Watched' : 'Mark Watched'}
+        className="ff-movie-hero-action-btn"
+        style={{ position: 'relative', opacity: disabled && !isWatched ? 0.6 : 1 }}
+        icon={<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+      />
       {confetti && <Confetti />}
     </>
   );
@@ -389,30 +376,20 @@ function MarkWatchedButton({ isWatched, onToggleWatched, loading, canAct }) {
 
 function SaveButton({ isInWatchlist, onToggleWatchlist, loading, canAct }) {
   const disabled = !canAct || loading;
-  const title = !canAct ? 'Sign in to save films' : undefined;
   return (
-    <button
-      className="ff-movie-hero-action-btn"
-      onClick={onToggleWatchlist}
+    <SecondaryActionButton
+      active={isInWatchlist}
+      loading={loading}
       disabled={disabled}
-      aria-pressed={Boolean(isInWatchlist)}
-      title={title}
-      style={{
-        display:'inline-flex', alignItems:'center', justifyContent:'center', gap:10,
-        padding:'14px 22px', borderRadius:8,
-        background: isInWatchlist ? 'rgba(167,139,250,0.12)' : 'rgba(255,255,255,0.06)',
-        border:`1px solid ${isInWatchlist ? HP.purple + '66' : HP.border}`,
-        color: HP.textSoft, fontFamily:'Outfit', fontSize:14, fontWeight:500,
-        cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled && !isInWatchlist ? 0.6 : 1,
-        transition:'all 0.25s ease',
-      }}>
-      {isInWatchlist ? (
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-      ) : (
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-      )}
-      {isInWatchlist ? 'Saved' : 'Save'}
-    </button>
+      onClick={onToggleWatchlist}
+      title={!canAct ? 'Sign in to save films' : undefined}
+      label={isInWatchlist ? 'Saved' : 'Save'}
+      className="ff-movie-hero-action-btn"
+      style={{ opacity: disabled && !isInWatchlist ? 0.6 : 1 }}
+      icon={isInWatchlist
+        ? <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        : <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>}
+    />
   );
 }
 

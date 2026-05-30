@@ -20,7 +20,7 @@ export default function SectionHeader({ title, subtitle, seeAllTo, eyebrow, clas
           </p>
         )}
         <div className="flex items-center gap-2.5">
-          <div className="w-[3px] h-5 rounded-full bg-gradient-to-b from-purple-400 to-pink-500 flex-shrink-0" />
+          <div className="w-[3px] h-5 rounded-full bg-linear-to-b from-purple-400 to-pink-500 shrink-0" />
           <h2 className="text-[1.05rem] sm:text-[1.15rem] font-bold text-white tracking-tight truncate">{title}</h2>
         </div>
         {subtitle && (
@@ -30,7 +30,7 @@ export default function SectionHeader({ title, subtitle, seeAllTo, eyebrow, clas
       {seeAllTo && (
         <Link
           to={seeAllTo}
-          className="inline-flex items-center gap-0.5 text-xs font-semibold text-white/60 hover:text-white transition-colors flex-shrink-0"
+          className="inline-flex items-center gap-0.5 text-xs font-semibold text-white/60 hover:text-white transition-colors shrink-0"
         >
           See all <ChevronRight className="h-3 w-3" />
         </Link>

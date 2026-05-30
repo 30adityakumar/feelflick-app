@@ -19,7 +19,7 @@ export default function BrandSplash({ label, error = null }) {
   if (!visible && !error) return null
 
   return (
-    <div className="fixed inset-0 z-[9999] grid place-items-center bg-black">
+    <div className="fixed inset-0 z-9999 grid place-items-center bg-black">
       {/* Ambient glows */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
         <div
@@ -34,7 +34,7 @@ export default function BrandSplash({ label, error = null }) {
 
       <div className="relative flex flex-col items-center gap-8 px-4 text-center">
         {/* Wordmark */}
-        <span className="text-3xl font-black tracking-tight bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent">
+        <span className="text-3xl font-black tracking-tight bg-linear-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent">
           FEELFLICK
         </span>
 
@@ -54,7 +54,7 @@ export default function BrandSplash({ label, error = null }) {
           <>
             {/* 1px shimmer line — animation defined in animations.css */}
             <div className="w-20 h-px overflow-hidden bg-white/5 rounded-full">
-              <div className="h-full w-full bg-gradient-to-r from-transparent via-purple-400 to-transparent brand-shimmer" />
+              <div className="h-full w-full bg-linear-to-r from-transparent via-purple-400 to-transparent brand-shimmer" />
             </div>
             {label && (
               <p className="text-sm text-white/35">{label}</p>

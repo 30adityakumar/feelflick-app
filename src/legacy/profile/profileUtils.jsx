@@ -113,11 +113,11 @@ export function formatMemberSince(dateStr) {
 export function SectionHeader({ title }) {
   return (
     <div className="flex items-center gap-3 mb-4">
-      <div className="w-[3px] h-5 rounded-full bg-gradient-to-b from-purple-400 to-pink-500" />
+      <div className="w-[3px] h-5 rounded-full bg-linear-to-b from-purple-400 to-pink-500" />
       <h2 className="text-[1.05rem] sm:text-[1.15rem] font-bold text-white tracking-tight whitespace-nowrap">
         {title}
       </h2>
-      <div className="h-px flex-1 bg-gradient-to-r from-purple-400/20 via-white/5 to-transparent" />
+      <div className="h-px flex-1 bg-linear-to-r from-purple-400/20 via-white/5 to-transparent" />
     </div>
   )
 }
@@ -130,7 +130,7 @@ export function StatCard({ children, index = 0, className = '' }) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-40px' }}
       transition={{ duration: 0.35, delay: index * 0.08 }}
-      className={`rounded-2xl border border-white/8 bg-white/[0.03] p-4 ${className}`}
+      className={`rounded-2xl border border-white/8 bg-white/3 p-4 ${className}`}
     >
       {children}
     </motion.div>
@@ -166,7 +166,7 @@ export function ProfileAvatar({ name, avatarUrl, size = 64 }) {
 
   return (
     <div
-      className="rounded-full flex-shrink-0 flex items-center justify-center font-black text-white shadow-lg"
+      className="rounded-full shrink-0 flex items-center justify-center font-black text-white shadow-lg"
       style={{
         width: size,
         height: size,
@@ -223,17 +223,17 @@ export function SidebarListCard({ list, posters }) {
   return (
     <Link
       to={`/lists/${list.id}`}
-      className="flex items-center gap-3 rounded-xl border border-white/8 bg-white/[0.03] p-3 hover:bg-white/[0.06] transition-colors"
+      className="flex items-center gap-3 rounded-xl border border-white/8 bg-white/3 p-3 hover:bg-white/6 transition-colors"
     >
       {/* Stacked posters */}
-      <div className="relative w-12 h-16 flex-shrink-0">
+      <div className="relative w-12 h-16 shrink-0">
         {posters.length > 0 ? (
           posters.slice(0, 3).map((posterPath, idx) => (
             <img
               key={idx}
               src={tmdbImg(posterPath, 'w92')}
               alt=""
-              className="absolute rounded-md object-cover w-9 h-[3.25rem] ring-1 ring-black/50"
+              className="absolute rounded-md object-cover w-9 h-13 ring-1 ring-black/50"
               style={{
                 top: idx * 3,
                 left: idx * 4,
@@ -246,7 +246,7 @@ export function SidebarListCard({ list, posters }) {
           [0, 1, 2].map((idx) => (
             <div
               key={idx}
-              className="absolute rounded-md w-9 h-[3.25rem] bg-white/5 ring-1 ring-white/8"
+              className="absolute rounded-md w-9 h-13 bg-white/5 ring-1 ring-white/8"
               style={{
                 top: idx * 3,
                 left: idx * 4,

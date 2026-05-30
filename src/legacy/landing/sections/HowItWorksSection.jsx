@@ -28,7 +28,7 @@ export default function HowItWorksSection() {
   return (
     <section
       id="how"
-      className="relative border-t border-white/[0.08] bg-black px-6 py-20 md:px-20 md:py-32"
+      className="relative border-t border-white/8 bg-black px-6 py-20 md:px-20 md:py-32"
       aria-labelledby="how-heading"
     >
       <div className="mx-auto max-w-[1180px]">
@@ -60,7 +60,7 @@ export default function HowItWorksSection() {
           {STEPS.map((s, i) => (
             <motion.div
               key={s.n}
-              className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.045] to-white/[0.01] p-6 sm:p-8"
+              className="relative overflow-hidden rounded-3xl border border-white/10 bg-linear-to-b from-white/4.5 to-white/1 p-6 sm:p-8"
               initial={{ opacity: 0, y: 18 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={VIEWPORT}
@@ -68,13 +68,13 @@ export default function HowItWorksSection() {
             >
               {/* Watermark step number */}
               <span
-                className="pointer-events-none absolute -right-2 -top-3 select-none text-[110px] font-black italic leading-none tracking-tighter text-white/[0.04]"
+                className="pointer-events-none absolute -right-2 -top-3 select-none text-[110px] font-black italic leading-none tracking-tighter text-white/4"
                 aria-hidden="true"
               >
                 {s.n}
               </span>
               <div className="relative">
-                <p className="m-0 mb-3.5 text-[11px] tracking-[0.16em] text-purple-400/70 [font-family:'JetBrains_Mono',monospace]">
+                <p className="m-0 mb-3.5 text-[11px] tracking-[0.16em] text-purple-400/70 font-['JetBrains_Mono',monospace]">
                   STEP {s.n}
                 </p>
                 <h3 className="mb-2.5 text-[21px] font-extrabold tracking-tight text-white sm:text-[23px]">

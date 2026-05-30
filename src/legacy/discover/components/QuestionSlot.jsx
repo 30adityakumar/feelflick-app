@@ -37,7 +37,7 @@ function VibeCard({ opt, isSelected, onSelect }) {
       className={`
         relative overflow-hidden rounded-2xl p-5 text-left transition-all duration-200 border
         ${isSelected
-          ? 'bg-gradient-to-r from-purple-500 to-pink-500 border-transparent shadow-lg shadow-purple-500/20 scale-[1.02]'
+          ? 'bg-linear-to-r from-purple-500 to-pink-500 border-transparent shadow-lg shadow-purple-500/20 scale-[1.02]'
           : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20'
         }
       `}
@@ -120,7 +120,7 @@ export default function QuestionSlot({ question, currentValue, onAnswer }) {
                   className={`
                     rounded-full px-6 py-3 text-sm font-semibold transition-all duration-200 border
                     ${isSelected
-                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 border-transparent text-white shadow-lg shadow-purple-500/20'
+                      ? 'bg-linear-to-r from-purple-500 to-pink-500 border-transparent text-white shadow-lg shadow-purple-500/20'
                       : 'bg-white/5 border-white/10 text-white/80 hover:bg-white/10 hover:border-white/20 hover:text-white'
                     }
                   `}

@@ -161,7 +161,7 @@ export default class ErrorBoundary extends Component {
           <div className="relative max-w-2xl w-full mx-auto text-center">
             {/* Brand logo */}
             <div className="mb-8 animate-fade-in-down">
-              <span className="inline-block text-4xl font-black bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent">
+              <span className="inline-block text-4xl font-black bg-linear-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent">
                 FEELFLICK
               </span>
             </div>
@@ -170,7 +170,7 @@ export default class ErrorBoundary extends Component {
             <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 md:p-12 shadow-2xl animate-scale-in">
               {/* Icon */}
               <div className="mb-6 flex justify-center">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-rose-500/20 to-orange-500/20 border border-rose-500/20 flex items-center justify-center">
+                <div className="w-16 h-16 rounded-full bg-linear-to-br from-rose-500/20 to-orange-500/20 border border-rose-500/20 flex items-center justify-center">
                   <Icon className="w-8 h-8 text-rose-400" />
                 </div>
               </div>
@@ -230,7 +230,7 @@ export default class ErrorBoundary extends Component {
                         {this.state.errorType}
                       </span>
                     </div>
-                    <pre className="text-xs text-white/70 overflow-auto max-h-48 whitespace-pre-wrap break-words">
+                    <pre className="text-xs text-white/70 overflow-auto max-h-48 whitespace-pre-wrap wrap-break-word">
                       {String(this.state.error)}
                       {this.state.errorInfo?.componentStack}
                     </pre>

@@ -230,7 +230,7 @@ export default function MoviesTab() {
     <div className="min-h-screen text-white" style={{ background: 'var(--color-bg)' }}>
       {/* Sticky filter bar */}
       <div
-        className="sticky z-40 border-b border-white/[0.06] backdrop-blur-xl"
+        className="sticky z-40 border-b border-white/6 backdrop-blur-xl"
         style={{ background: 'rgba(8, 6, 13, 0.92)', top: 'var(--hdr-h, 64px)' }}
       >
         <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-12">
@@ -274,7 +274,7 @@ export default function MoviesTab() {
               <button
                 onClick={handleSurpriseMe}
                 disabled={surpriseLoading || totalResults === 0}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border border-white/[0.08] bg-white/[0.04] text-white/60 hover:text-white/80 hover:border-white/20 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border border-white/8 bg-white/4 text-white/60 hover:text-white/80 hover:border-white/20 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150"
               >
                 {surpriseLoading ? <span className="animate-spin inline-block">⟳</span> : '🎲'}
                 Surprise me
@@ -288,7 +288,7 @@ export default function MoviesTab() {
             {[...Array(skeletonCount)].map((_, i) => (
               <div
                 key={i}
-                className="aspect-[2/3] animate-pulse rounded-xl"
+                className="aspect-2/3 animate-pulse rounded-xl"
                 style={{
                   background: 'rgba(88,28,135,0.08)',
                   animationDelay: `${i * 30}ms`,

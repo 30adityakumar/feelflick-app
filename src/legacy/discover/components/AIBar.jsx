@@ -98,7 +98,7 @@ export default function AIBar({ addNote, onSubmitDirect, inline = false }) {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2, duration: 0.5 }}
-        className="rounded-2xl bg-white/[0.03] border border-white/[0.08] p-5 mb-6"
+        className="rounded-2xl bg-white/3 border border-white/8 p-5 mb-6"
       >
         <p className="text-xs font-semibold uppercase tracking-widest text-purple-400/60 mb-3">
           Or describe it in your own words

@@ -96,11 +96,11 @@ export default function ResultsList({ films, onOpenDetail, onTrackWatchlist, onT
       {/* Alternates section header */}
       {alternates.length > 0 && (
         <div className="flex items-center gap-3 mb-4 mt-2">
-          <div className="w-[3px] h-5 rounded-full bg-gradient-to-b from-purple-400 to-pink-500" />
+          <div className="w-[3px] h-5 rounded-full bg-linear-to-b from-purple-400 to-pink-500" />
           <h2 className="text-[1.05rem] sm:text-[1.15rem] font-bold text-white tracking-tight whitespace-nowrap">
             Also great for this brief
           </h2>
-          <div className="h-px flex-1 bg-gradient-to-r from-purple-400/20 via-white/5 to-transparent" />
+          <div className="h-px flex-1 bg-linear-to-r from-purple-400/20 via-white/5 to-transparent" />
         </div>
       )}
 

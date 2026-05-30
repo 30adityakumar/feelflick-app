@@ -22,7 +22,7 @@ export default function FinalCTASection() {
 
   return (
     <section
-      className="relative overflow-hidden border-t border-white/[0.08] bg-black px-6 py-20 text-center sm:px-20 sm:py-40"
+      className="relative overflow-hidden border-t border-white/8 bg-black px-6 py-20 text-center sm:px-20 sm:py-40"
       aria-labelledby="final-cta-heading"
     >
       {/* Centered radial bloom — purple → pink fade */}
@@ -78,7 +78,7 @@ export default function FinalCTASection() {
             aria-label={isAuthenticating ? 'Signing in' : 'Get started free with FeelFlick'}
           >
             {isAuthenticating ? (
-              <><Loader2 className="h-4 w-4 flex-shrink-0 animate-spin" aria-hidden="true" /> Signing in…</>
+              <><Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden="true" /> Signing in…</>
             ) : (
               <>
                 Get Started Free

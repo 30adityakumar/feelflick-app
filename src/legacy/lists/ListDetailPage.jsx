@@ -34,13 +34,13 @@ function DetailSkeleton() {
   return (
     <div className="space-y-8 animate-pulse">
       <div className="space-y-3">
-        <div className="h-7 w-48 rounded-lg bg-purple-500/[0.04]" />
-        <div className="h-4 w-64 rounded bg-purple-500/[0.04]" />
-        <div className="h-3 w-32 rounded bg-purple-500/[0.04]" />
+        <div className="h-7 w-48 rounded-lg bg-purple-500/4" />
+        <div className="h-4 w-64 rounded bg-purple-500/4" />
+        <div className="h-3 w-32 rounded bg-purple-500/4" />
       </div>
       <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
         {[0, 1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="aspect-[2/3] rounded-xl bg-purple-500/[0.04]" />
+          <div key={i} className="aspect-2/3 rounded-xl bg-purple-500/4" />
         ))}
       </div>
     </div>
@@ -296,10 +296,10 @@ export default function ListDetailPage() {
                 )}
                 <div className="flex items-center gap-2 mt-2 text-xs text-white/40">
                   {owner?.avatar_url ? (
-                    <img src={owner.avatar_url} alt={ownerName} className="w-4 h-4 rounded-full object-cover flex-shrink-0" />
+                    <img src={owner.avatar_url} alt={ownerName} className="w-4 h-4 rounded-full object-cover shrink-0" />
                   ) : (
                     <div
-                      className="w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold text-white flex-shrink-0"
+                      className="w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold text-white shrink-0"
                       style={{ background: 'linear-gradient(135deg, rgb(168,85,247), rgb(236,72,153))' }}
                     >
                       {ownerInitial}
@@ -422,7 +422,7 @@ export default function ListDetailPage() {
                   >
                     {movie.tmdbId ? (
                       <Link to={`/movie/${movie.tmdbId}`}>
-                        <div className="aspect-[2/3] rounded-xl overflow-hidden bg-white/5 ring-1 ring-white/8">
+                        <div className="aspect-2/3 rounded-xl overflow-hidden bg-white/5 ring-1 ring-white/8">
                           {movie.posterPath ? (
                             <img
                               src={tmdbImg(movie.posterPath, 'w185')}
@@ -438,7 +438,7 @@ export default function ListDetailPage() {
                         </div>
                       </Link>
                     ) : (
-                      <div className="aspect-[2/3] rounded-xl overflow-hidden bg-white/5 ring-1 ring-white/8">
+                      <div className="aspect-2/3 rounded-xl overflow-hidden bg-white/5 ring-1 ring-white/8">
                         {movie.posterPath ? (
                           <img
                             src={tmdbImg(movie.posterPath, 'w185')}
@@ -483,7 +483,7 @@ export default function ListDetailPage() {
                 </p>
                 <Link
                   to="/"
-                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                  className="inline-flex items-center gap-2 rounded-xl bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all"
                 >
                   Get Started Free →
                 </Link>

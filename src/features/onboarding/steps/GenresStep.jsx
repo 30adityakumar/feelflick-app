@@ -26,8 +26,8 @@ function GenreTile({ genre, isSelected, onClick }) {
       aria-pressed={isSelected}
       className={`text-left rounded-2xl px-4 py-3.5 border transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
         isSelected
-          ? 'bg-gradient-to-br from-purple-500/[0.18] to-pink-500/[0.12] border-purple-400/50 shadow-[0_4px_16px_rgba(168,85,247,0.16)]'
-          : 'bg-white/[0.03] border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.16]'
+          ? 'bg-linear-to-br from-purple-500/18 to-pink-500/12 border-purple-400/50 shadow-[0_4px_16px_rgba(168,85,247,0.16)]'
+          : 'bg-white/3 border-white/8 hover:bg-white/6 hover:border-white/16'
       }`}
     >
       <div className="ob-display text-[15px] font-bold text-white mb-0.5">{genre.name}</div>
@@ -59,7 +59,7 @@ export default function GenresStep({ selectedGenres, toggleGenre, onBack, onNext
           style={{ textWrap: 'balance' }}
         >
           Which{' '}
-          <em className="not-italic bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent italic">
+          <em className="not-italic bg-linear-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent italic">
             territories
           </em>
           {' '}do you live in?
@@ -87,7 +87,7 @@ export default function GenresStep({ selectedGenres, toggleGenre, onBack, onNext
         </motion.div>
       </div>
 
-      <div className="flex-none px-5 pb-6 pt-3 sm:px-6 sm:pb-8 sm:pt-4 border-t border-white/[0.06]">
+      <div className="flex-none px-5 pb-6 pt-3 sm:px-6 sm:pb-8 sm:pt-4 border-t border-white/6">
         <div className="max-w-sm mx-auto flex flex-col items-center gap-3">
           <p className={`text-xs font-medium transition-colors ${canContinue ? 'text-purple-400' : 'text-white/30'}`}>
             {count === 0

@@ -392,7 +392,7 @@ function CelebrationReveal({ moods, selectedGenres, favoriteMovies, ratings, fad
   const posterFilms = (favoriteMovies || []).slice(0, 5)
 
   return (
-    <div className="onboarding fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black overflow-hidden">
+    <div className="onboarding fixed inset-0 z-9999 flex flex-col items-center justify-center bg-black overflow-hidden">
       {/* Slow, deep ambient glow — mood-tinted */}
       <AmbientGlow moods={moods} />
 
@@ -576,7 +576,7 @@ function CelebrationReveal({ moods, selectedGenres, favoriteMovies, ratings, fad
                           className="h-full w-full object-cover"
                         />
                       ) : (
-                        <div className="grid h-full w-full place-items-center bg-white/[0.04] text-[10px] text-white/40">
+                        <div className="grid h-full w-full place-items-center bg-white/4 text-[10px] text-white/40">
                           {film.title?.slice(0, 12) ?? ''}
                         </div>
                       )}
@@ -616,7 +616,7 @@ function CelebrationReveal({ moods, selectedGenres, favoriteMovies, ratings, fad
             style={{ textWrap: 'balance', letterSpacing: '-0.02em' }}
           >
             Tonight is{' '}
-            <em className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text not-italic italic text-transparent">
+            <em className="bg-linear-to-r from-purple-400 to-pink-400 bg-clip-text not-italic italic text-transparent">
               yours.
             </em>
           </h1>

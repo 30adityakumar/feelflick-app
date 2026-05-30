@@ -34,7 +34,7 @@ export default function MovieVideos({ videos, internalMovieId }) {
                 <Play className="h-5 w-5 fill-current text-black ml-0.5" />
               </div>
             </div>
-            <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black to-transparent">
+            <div className="absolute bottom-0 left-0 right-0 p-2 bg-linear-to-t from-black to-transparent">
               <p className="text-[10px] font-bold text-white line-clamp-2 leading-tight">
                 {v.name}
               </p>

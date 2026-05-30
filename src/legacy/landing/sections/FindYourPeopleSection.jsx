@@ -45,7 +45,7 @@ function MiniProfile({ profile }) {
   return (
     <div className="flex flex-col items-center gap-2.5 text-center">
       <div
-        className="w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold text-white select-none flex-shrink-0"
+        className="w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold text-white select-none shrink-0"
         style={{ background: profile.avatarGradient }}
         aria-hidden="true"
       >
@@ -105,7 +105,7 @@ function TasteMatchScore() {
   return (
     <div ref={ref} className="flex flex-col items-center gap-1" aria-label={`${MATCH_SCORE}% Taste Match`}>
       <span
-        className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent tabular-nums"
+        className="text-3xl sm:text-4xl font-black bg-linear-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent tabular-nums"
         aria-hidden="true"
       >
         {count}%
@@ -168,7 +168,7 @@ export default function FindYourPeopleSection() {
         <div className="flex flex-col lg:flex-row-reverse lg:items-center gap-10 lg:gap-20">
 
           {/* ── RIGHT (desktop) / TOP (mobile): COPY BLOCK ───────────────── */}
-          <div className="lg:w-[45%] flex-shrink-0">
+          <div className="lg:w-[45%] shrink-0">
 
             <motion.p
               className="text-xs font-semibold uppercase tracking-widest text-purple-400/60 mb-2"

@@ -143,7 +143,7 @@ export default function AddToListModal({ movieId, movieTitle, userId, onClose })
           <h2 className="text-base font-bold text-white truncate">Add to list</h2>
           <p className="text-xs text-white/40 truncate mt-0.5">{movieTitle}</p>
         </div>
-        <Button variant="icon" size="sm" onClick={onClose} aria-label="Close" className="flex-shrink-0 text-white/40">
+        <Button variant="icon" size="sm" onClick={onClose} aria-label="Close" className="shrink-0 text-white/40">
           <X className="h-4 w-4" />
         </Button>
       </div>
@@ -154,8 +154,8 @@ export default function AddToListModal({ movieId, movieTitle, userId, onClose })
           <div className="space-y-2 p-5">
             {[0, 1, 2].map((i) => (
               <div key={i} className="flex items-center gap-3 animate-pulse">
-                <div className="h-5 w-5 rounded bg-purple-500/[0.04]" />
-                <div className="h-3.5 w-32 rounded bg-purple-500/[0.04]" />
+                <div className="h-5 w-5 rounded bg-purple-500/4" />
+                <div className="h-3.5 w-32 rounded bg-purple-500/4" />
               </div>
             ))}
           </div>
@@ -177,7 +177,7 @@ export default function AddToListModal({ movieId, movieTitle, userId, onClose })
                   className="w-full flex items-center gap-3 px-5 py-3 text-left hover:bg-white/5 transition-colors disabled:opacity-50"
                 >
                   <div
-                    className={`h-5 w-5 rounded flex-shrink-0 flex items-center justify-center border transition-colors ${
+                    className={`h-5 w-5 rounded shrink-0 flex items-center justify-center border transition-colors ${
                       isIn
                         ? 'bg-purple-500 border-purple-500'
                         : 'border-white/20 bg-white/5'

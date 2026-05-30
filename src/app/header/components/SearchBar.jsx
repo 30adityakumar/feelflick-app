@@ -189,7 +189,7 @@ export default function SearchBar({ open, onClose }) {
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-[61] flex items-start justify-center px-4 pt-4 pb-20 md:pt-20 overflow-y-auto overscroll-contain">
+    <div className="fixed inset-0 z-61 flex items-start justify-center px-4 pt-4 pb-20 md:pt-20 overflow-y-auto overscroll-contain">
       <button
         type="button"
         className="fixed inset-0 z-0 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
@@ -204,8 +204,8 @@ export default function SearchBar({ open, onClose }) {
         aria-labelledby={dialogTitleId}
         aria-describedby={resultsSummaryId}
       >
-        <div className="flex items-center gap-3 border-b border-white/10 bg-gradient-to-r from-white/5 to-transparent px-4 py-4 md:px-6 md:py-5">
-          <SearchIcon className="h-5 w-5 flex-shrink-0 text-white/60 md:h-6 md:w-6" aria-hidden="true" />
+        <div className="flex items-center gap-3 border-b border-white/10 bg-linear-to-r from-white/5 to-transparent px-4 py-4 md:px-6 md:py-5">
+          <SearchIcon className="h-5 w-5 shrink-0 text-white/60 md:h-6 md:w-6" aria-hidden="true" />
 
           <div className="min-w-0 flex-1">
             <h2 id={dialogTitleId} className="sr-only">
@@ -304,10 +304,10 @@ export default function SearchBar({ open, onClose }) {
             <div className="px-6 py-4 space-y-1" aria-live="polite">
               {[...Array(4)].map((_, i) => (
                 <div key={i} className="flex items-center gap-3 px-2 py-2">
-                  <div className="h-20 w-14 shrink-0 rounded-lg animate-pulse bg-purple-500/[0.04]" />
+                  <div className="h-20 w-14 shrink-0 rounded-lg animate-pulse bg-purple-500/4" />
                   <div className="flex-1 space-y-2">
-                    <div className="h-3 rounded-full animate-pulse bg-purple-500/[0.04]" />
-                    <div className="h-3 w-2/3 rounded-full animate-pulse bg-purple-500/[0.04]" />
+                    <div className="h-3 rounded-full animate-pulse bg-purple-500/4" />
+                    <div className="h-3 w-2/3 rounded-full animate-pulse bg-purple-500/4" />
                   </div>
                 </div>
               ))}
@@ -369,7 +369,7 @@ function MovieResultCard({ id, movie, onClick, onMouseEnter, isSelected }) {
           : 'hover:bg-white/10 active:bg-white/20'
       }`}
     >
-      <div className="relative flex-shrink-0 overflow-hidden rounded-lg shadow-md">
+      <div className="relative shrink-0 overflow-hidden rounded-lg shadow-md">
         {movie.poster_path ? (
           <img
             src={`https://image.tmdb.org/t/p/w92${movie.poster_path}`}
@@ -384,7 +384,7 @@ function MovieResultCard({ id, movie, onClick, onMouseEnter, isSelected }) {
             <span aria-hidden="true">🎬</span>
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
       </div>
 
       <div className="min-w-0 flex-1">
@@ -407,7 +407,7 @@ function MovieResultCard({ id, movie, onClick, onMouseEnter, isSelected }) {
         )}
       </div>
 
-      <div className="flex-shrink-0 text-white/40 transition-transform transition-colors group-hover:translate-x-1 group-hover:text-white/80">
+      <div className="shrink-0 text-white/40 transition-transform transition-colors group-hover:translate-x-1 group-hover:text-white/80">
         <svg
           className="h-5 w-5"
           fill="none"

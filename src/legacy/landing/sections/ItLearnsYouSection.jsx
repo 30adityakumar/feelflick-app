@@ -74,7 +74,7 @@ export default function ItLearnsYouSection() {
         <div className="flex flex-col lg:flex-row lg:items-center gap-8 lg:gap-14">
 
           {/* ── LEFT: COPY BLOCK ──────────────────────────────────────────── */}
-          <div className="lg:w-1/2 flex-shrink-0">
+          <div className="lg:w-1/2 shrink-0">
 
             <motion.p
               className="text-xs font-semibold uppercase tracking-widest text-purple-400/60 mb-2"
@@ -145,7 +145,7 @@ export default function ItLearnsYouSection() {
               {/* Source row: tiny Parasite thumbnail + "Because you loved" label */}
               <div className="flex items-center gap-2.5 mb-3">
                 <div
-                  className="flex-shrink-0 w-8 rounded-md overflow-hidden ring-1 ring-white/[0.06]"
+                  className="shrink-0 w-8 rounded-md overflow-hidden ring-1 ring-white/6"
                   style={{ aspectRatio: '2/3', background: 'rgba(255,255,255,0.04)' }}
                 >
                   <img
@@ -172,7 +172,7 @@ export default function ItLearnsYouSection() {
               {/* Recommended film: poster left, info right */}
               <div className="flex gap-4">
                 <div
-                  className="flex-shrink-0 w-16 rounded-xl overflow-hidden ring-1 ring-white/[0.06]"
+                  className="shrink-0 w-16 rounded-xl overflow-hidden ring-1 ring-white/6"
                   style={{ aspectRatio: '2/3', background: 'rgba(255,255,255,0.04)' }}
                 >
                   <img
@@ -189,7 +189,7 @@ export default function ItLearnsYouSection() {
                     <p className="text-base font-semibold text-white">{RECOMMENDED_FILM.title}</p>
                     {/* Match badge — style matches MoodShowcaseSection match badges */}
                     <span
-                      className="flex-shrink-0 text-[11px] font-bold px-2.5 py-0.5 rounded-full"
+                      className="shrink-0 text-[11px] font-bold px-2.5 py-0.5 rounded-full"
                       style={{ background: 'rgba(168,85,247,0.15)', color: 'rgba(192,132,252,1)' }}
                       aria-label={`${RECOMMENDED_FILM.match}% match`}
                     >

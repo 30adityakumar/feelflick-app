@@ -16,7 +16,7 @@ export default function PrivacyPage() {
       <div className="relative min-h-screen bg-black text-white">
       {/* Hero */}
       <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-600/20 via-black to-pink-600/20" />
+        <div className="absolute inset-0 bg-linear-to-br from-purple-600/20 via-black to-pink-600/20" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(168,85,247,0.25),transparent_55%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_90%,rgba(236,72,153,0.18),transparent_55%)]" />
 
@@ -26,7 +26,7 @@ export default function PrivacyPage() {
             <span className="text-sm font-semibold text-white/80">Privacy Policy</span>
           </div>
 
-          <h1 className="text-4xl sm:text-5xl font-black tracking-tight mb-4 bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
+          <h1 className="text-4xl sm:text-5xl font-black tracking-tight mb-4 bg-linear-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
             Your privacy comes first
           </h1>
 
@@ -39,7 +39,7 @@ export default function PrivacyPage() {
       {/* Main Content */}
       <div className="relative mx-auto max-w-5xl px-4 md:px-8 pb-20 space-y-12 md:space-y-16">
         {/* Intro */}
-        <section className="rounded-2xl bg-white/5 ring-1 ring-white/[0.06] shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6 md:p-8">
+        <section className="rounded-2xl bg-white/5 ring-1 ring-white/6 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6 md:p-8">
           <h2 className="text-2xl md:text-3xl font-black mb-4 flex items-center gap-2">
             <Lock className="h-6 w-6 text-purple-300" />
             Overview
@@ -63,7 +63,7 @@ export default function PrivacyPage() {
 
           <div className="grid md:grid-cols-2 gap-6">
             {/* Account Info */}
-            <div className="rounded-2xl bg-white/5 ring-1 ring-white/[0.06] shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6">
+            <div className="rounded-2xl bg-white/5 ring-1 ring-white/6 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6">
               <h3 className="text-lg font-bold mb-2">Account information</h3>
               <p className="text-white/70 text-sm leading-relaxed mb-3">
                 When you sign up with Google OAuth, we receive:
@@ -78,7 +78,7 @@ export default function PrivacyPage() {
             </div>
 
             {/* Usage Data */}
-            <div className="rounded-2xl bg-white/5 ring-1 ring-white/[0.06] shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6">
+            <div className="rounded-2xl bg-white/5 ring-1 ring-white/6 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6">
               <h3 className="text-lg font-bold mb-2">Usage & viewing data</h3>
               <p className="text-white/70 text-sm leading-relaxed mb-3">
                 To power personalized recommendations and your account features, we store:
@@ -92,7 +92,7 @@ export default function PrivacyPage() {
             </div>
 
             {/* Technical Info */}
-            <div className="rounded-2xl bg-white/5 ring-1 ring-white/[0.06] shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6">
+            <div className="rounded-2xl bg-white/5 ring-1 ring-white/6 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6">
               <h3 className="text-lg font-bold mb-2">Technical information</h3>
               <p className="text-white/70 text-sm leading-relaxed mb-3">
                 To keep FeelFlick secure and functioning properly, we may collect:
@@ -106,7 +106,7 @@ export default function PrivacyPage() {
             </div>
 
             {/* No sensitive categories */}
-            <div className="rounded-2xl bg-white/5 ring-1 ring-white/[0.06] shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6">
+            <div className="rounded-2xl bg-white/5 ring-1 ring-white/6 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6">
               <h3 className="text-lg font-bold mb-2">What we do NOT intentionally collect</h3>
               <p className="text-white/70 text-sm leading-relaxed mb-3">
                 We do not intentionally collect sensitive categories of personal data such as health information, political opinions, or religious beliefs.
@@ -119,7 +119,7 @@ export default function PrivacyPage() {
         </section>
 
         {/* How we use data */}
-        <section className="rounded-2xl bg-white/5 ring-1 ring-white/[0.06] shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6 md:p-8">
+        <section className="rounded-2xl bg-white/5 ring-1 ring-white/6 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6 md:p-8">
           <h2 className="text-2xl md:text-3xl font-black mb-4 flex items-center gap-2">
             <FileText className="h-6 w-6 text-purple-300" />
             How we use your information
@@ -141,7 +141,7 @@ export default function PrivacyPage() {
         </section>
 
         {/* What we never do */}
-        <section className="rounded-2xl bg-white/5 border border-purple-500/40 bg-gradient-to-br from-purple-500/10 to-pink-500/10 backdrop-blur-sm p-6 md:p-8">
+        <section className="rounded-2xl bg-white/5 border border-purple-500/40 bg-linear-to-br from-purple-500/10 to-pink-500/10 backdrop-blur-sm p-6 md:p-8">
           <h2 className="text-2xl md:text-3xl font-black mb-4 flex items-center gap-2">
             <EyeOff className="h-6 w-6 text-pink-300" />
             What we never do
@@ -161,7 +161,7 @@ export default function PrivacyPage() {
         </section>
 
         {/* Third parties & security */}
-        <section className="rounded-2xl bg-white/5 ring-1 ring-white/[0.06] shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6 md:p-8 space-y-6">
+        <section className="rounded-2xl bg-white/5 ring-1 ring-white/6 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6 md:p-8 space-y-6">
           <h2 className="text-2xl md:text-3xl font-black mb-2">Third‑party services & security</h2>
 
           <div className="space-y-3 text-sm text-white/70 leading-relaxed">
@@ -176,7 +176,7 @@ export default function PrivacyPage() {
             </p>
           </div>
 
-          <div className="rounded-xl bg-black/40 ring-1 ring-white/[0.06] shadow-[0_8px_32px_rgba(0,0,0,0.5)] p-4 flex items-start gap-3">
+          <div className="rounded-xl bg-black/40 ring-1 ring-white/6 shadow-[0_8px_32px_rgba(0,0,0,0.5)] p-4 flex items-start gap-3">
             <AlertTriangle className="h-5 w-5 text-yellow-300 mt-0.5" />
             <p className="text-xs text-white/70 leading-relaxed">
               No online service can guarantee absolute security. We work continuously to protect your data but cannot promise that unauthorized access, hacking, or other breaches will never occur.
@@ -185,7 +185,7 @@ export default function PrivacyPage() {
         </section>
 
         {/* Data retention & location */}
-        <section className="rounded-2xl bg-white/5 ring-1 ring-white/[0.06] shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6 md:p-8 space-y-5">
+        <section className="rounded-2xl bg-white/5 ring-1 ring-white/6 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6 md:p-8 space-y-5">
           <h2 className="text-2xl md:text-3xl font-black mb-2">Data retention & location</h2>
           <p className="text-white/70 text-sm leading-relaxed">
             We keep your data for as long as your account is active or as needed to provide FeelFlick. If you delete your account, we delete or anonymize your personal data within a reasonable period, except where we are legally required to keep certain records.
@@ -197,7 +197,7 @@ export default function PrivacyPage() {
         </section>
 
         {/* Your rights */}
-        <section className="rounded-2xl bg-white/5 ring-1 ring-white/[0.06] shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6 md:p-8 space-y-4">
+        <section className="rounded-2xl bg-white/5 ring-1 ring-white/6 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6 md:p-8 space-y-4">
           <h2 className="text-2xl md:text-3xl font-black mb-2">Your rights & choices</h2>
           <p className="text-white/70 text-sm leading-relaxed">
             Depending on your location and applicable law, you may have some or all of the rights below. We apply these principles broadly as a matter of good practice, even where not legally required.
@@ -215,7 +215,7 @@ export default function PrivacyPage() {
         </section>
 
         {/* Children */}
-        <section className="rounded-2xl bg-white/5 ring-1 ring-white/[0.06] shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6 md:p-8 space-y-3">
+        <section className="rounded-2xl bg-white/5 ring-1 ring-white/6 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6 md:p-8 space-y-3">
           <h2 className="text-2xl md:text-3xl font-black mb-2">Children&apos;s privacy</h2>
           <p className="text-white/70 text-sm leading-relaxed">
             FeelFlick is not intended for children under 13, and we do not knowingly collect personal information from children under 13.
@@ -226,7 +226,7 @@ export default function PrivacyPage() {
         </section>
 
         {/* Changes & legal protections */}
-        <section className="rounded-2xl bg-white/5 ring-1 ring-white/[0.06] shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6 md:p-8 space-y-4">
+        <section className="rounded-2xl bg-white/5 ring-1 ring-white/6 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6 md:p-8 space-y-4">
           <h2 className="text-2xl md:text-3xl font-black mb-2">Changes, disclaimers & legal terms</h2>
           <p className="text-white/70 text-sm leading-relaxed">
             We may update this Privacy Policy from time to time as we add features, change providers, or as laws evolve. When we make material changes, we will notify you by email or through a prominent in‑app notice.
@@ -240,7 +240,7 @@ export default function PrivacyPage() {
         </section>
 
         {/* Contact */}
-        <section className="rounded-2xl bg-gradient-to-br from-purple-600/30 to-pink-600/30 ring-1 ring-white/[0.06] shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6 md:p-8 text-center">
+        <section className="rounded-2xl bg-linear-to-br from-purple-600/30 to-pink-600/30 ring-1 ring-white/6 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6 md:p-8 text-center">
           <h2 className="text-2xl md:text-3xl font-black mb-3 flex items-center justify-center gap-2">
             <Mail className="h-6 w-6 text-white" />
             Questions about privacy?

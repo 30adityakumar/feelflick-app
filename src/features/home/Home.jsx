@@ -194,7 +194,7 @@ function HomeV2Body() {
       {handoffOverlayVisible && (
         <motion.div
           aria-hidden="true"
-          className="pointer-events-none fixed inset-0 z-[9998] bg-black"
+          className="pointer-events-none fixed inset-0 z-9998 bg-black"
           initial={{ opacity: 1 }}
           animate={{ opacity: 0 }}
           transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}

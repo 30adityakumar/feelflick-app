@@ -19,7 +19,7 @@ function ListsSkeleton() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-pulse">
       {[0, 1, 2, 3].map((i) => (
-        <div key={i} className="rounded-2xl border border-white/8 bg-white/[0.03] h-32" />
+        <div key={i} className="rounded-2xl border border-white/8 bg-white/3 h-32" />
       ))}
     </div>
   )
@@ -32,11 +32,11 @@ function ListsSkeleton() {
 function SectionHeader({ title, action }) {
   return (
     <div className="flex items-center gap-3 mb-4">
-      <div className="w-[3px] h-5 rounded-full bg-gradient-to-b from-purple-400 to-pink-500" />
+      <div className="w-[3px] h-5 rounded-full bg-linear-to-b from-purple-400 to-pink-500" />
       <h2 className="text-[1.05rem] sm:text-[1.15rem] font-bold text-white tracking-tight whitespace-nowrap">
         {title}
       </h2>
-      <div className="h-px flex-1 bg-gradient-to-r from-purple-400/20 via-white/5 to-transparent" />
+      <div className="h-px flex-1 bg-linear-to-r from-purple-400/20 via-white/5 to-transparent" />
       {action}
     </div>
   )
@@ -69,10 +69,10 @@ function ListCard({ list, posters, onEdit, onDelete }) {
   return (
     <Link
       to={`/lists/${list.id}`}
-      className="group flex h-32 rounded-2xl bg-white/[0.04] border border-white/[0.07] overflow-hidden hover:bg-white/[0.07] hover:border-white/[0.12] hover:shadow-lg hover:shadow-black/30 transition-all duration-200"
+      className="group flex h-32 rounded-2xl bg-white/4 border border-white/[0.07] overflow-hidden hover:bg-white/[0.07] hover:border-white/12 hover:shadow-lg hover:shadow-black/30 transition-all duration-200"
     >
       {/* Poster strip — horizontal, up to 4 posters */}
-      <div className="flex overflow-hidden rounded-l-2xl flex-shrink-0 w-28">
+      <div className="flex overflow-hidden rounded-l-2xl shrink-0 w-28">
         {posters.slice(0, 4).map((poster, i) => (
           <div key={i} className="flex-1 min-w-0 h-full">
             <img
@@ -84,7 +84,7 @@ function ListCard({ list, posters, onEdit, onDelete }) {
           </div>
         ))}
         {Array.from({ length: Math.max(0, 4 - posters.length) }).map((_, i) => (
-          <div key={`empty-${i}`} className="flex-1 bg-white/[0.04]" />
+          <div key={`empty-${i}`} className="flex-1 bg-white/4" />
         ))}
       </div>
 
@@ -106,7 +106,7 @@ function ListCard({ list, posters, onEdit, onDelete }) {
               type="button"
               onClick={handleEdit}
               aria-label="Edit list"
-              className="p-1.5 rounded-lg text-white/20 hover:text-white/70 hover:bg-white/[0.06] transition-colors duration-150"
+              className="p-1.5 rounded-lg text-white/20 hover:text-white/70 hover:bg-white/6 transition-colors duration-150"
             >
               <Pencil className="w-3.5 h-3.5" />
             </button>
@@ -114,7 +114,7 @@ function ListCard({ list, posters, onEdit, onDelete }) {
               type="button"
               onClick={handleDelete}
               aria-label={confirmDelete ? 'Confirm delete' : 'Delete list'}
-              className="p-1.5 rounded-lg text-white/20 hover:text-red-400/70 hover:bg-red-500/[0.08] transition-colors duration-150"
+              className="p-1.5 rounded-lg text-white/20 hover:text-red-400/70 hover:bg-red-500/8 transition-colors duration-150"
             >
               {confirmDelete ? (
                 <span className="text-[11px] font-semibold text-red-400">Delete?</span>

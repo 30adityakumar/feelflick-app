@@ -80,7 +80,7 @@ export default function AnchorSearch({ onSelect, onSkip }) {
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search for a film..."
           aria-label="Search for an anchor film"
-          className="w-full bg-white/[0.03] border border-white/20 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-purple-500/40 focus:ring-2 focus:ring-purple-500/10 transition-all"
+          className="w-full bg-white/3 border border-white/20 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-purple-500/40 focus:ring-2 focus:ring-purple-500/10 transition-all"
         />
 
         {searching && (
@@ -97,16 +97,16 @@ export default function AnchorSearch({ onSelect, onSkip }) {
                 key={movie.id}
                 type="button"
                 onClick={() => handleSelect(movie)}
-                className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/[0.04] transition-colors border-b border-white/[0.05] last:border-b-0"
+                className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/4 transition-colors border-b border-white/5 last:border-b-0"
               >
                 {movie.poster_path ? (
                   <img
                     src={`https://image.tmdb.org/t/p/w92${movie.poster_path}`}
                     alt=""
-                    className="h-12 w-8 rounded object-cover flex-shrink-0"
+                    className="h-12 w-8 rounded object-cover shrink-0"
                   />
                 ) : (
-                  <div className="h-12 w-8 rounded bg-white/[0.05] flex items-center justify-center flex-shrink-0">
+                  <div className="h-12 w-8 rounded bg-white/5 flex items-center justify-center shrink-0">
                     <span className="text-xs text-white/30">?</span>
                   </div>
                 )}

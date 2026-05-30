@@ -11,7 +11,7 @@ export const Card = memo(function Card({
 }) {
   return (
     <div
-      className={`relative flex-none snap-start overflow-hidden rounded-[var(--radius-xl)] border ${className}`}
+      className={`relative flex-none snap-start overflow-hidden rounded-(--radius-xl) border ${className}`}
       style={{
         width,
         height,

@@ -16,7 +16,7 @@ const USER_RESUME_MS = 8000
 function FFMark({ size = 32 }) {
   return (
     <span
-      className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-purple-500 to-pink-500 font-black tracking-tight text-white shadow-lg shadow-purple-500/40"
+      className="inline-flex items-center justify-center rounded-full bg-linear-to-r from-purple-500 to-pink-500 font-black tracking-tight text-white shadow-lg shadow-purple-500/40"
       style={{ width: size, height: size, fontSize: size * 0.42 }}
       aria-hidden="true"
     >
@@ -46,7 +46,7 @@ function PosterPick({ film, match, isTop, accentColor }) {
           aria-hidden="true"
         />
         <div
-          className="absolute right-1.5 top-1.5 z-[1] inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] font-bold backdrop-blur-md"
+          className="absolute right-1.5 top-1.5 z-1 inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] font-bold backdrop-blur-md"
           style={{
             // WHY: badge accent is per-mood, runtime-computed.
             background: isTop
@@ -145,17 +145,17 @@ export default function MoodDemoPanel({ onMoodChange }) {
         >
           {/* Sentence row */}
           <div className="flex items-start gap-3">
-            <div className="mt-0.5 flex-shrink-0">
+            <div className="mt-0.5 shrink-0">
               <FFMark size={30} />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-white/40">
+              <p className="mb-1 text-[11px] font-semibold uppercase tracking-widest text-white/40">
                 {userTaken ? 'You, right now' : 'You, tonight'}
               </p>
               <p className="m-0 text-[16px] font-semibold leading-snug tracking-tight text-white sm:text-[20px]">
                 I feel{' '}
                 <span
-                  className="inline-block pb-[1px] font-extrabold"
+                  className="inline-block pb-px font-extrabold"
                   // WHY: mood accent is data-driven per active mood.
                   style={{
                     color: accentColor,
@@ -180,7 +180,7 @@ export default function MoodDemoPanel({ onMoodChange }) {
           </div>
 
           {/* Divider */}
-          <div className="my-4 h-px bg-white/[0.06]" />
+          <div className="my-4 h-px bg-white/6" />
 
           {/* Searching or films — height locked so the panel doesn't jump.
               Phases cross-fade for smoothness. */}
@@ -261,7 +261,7 @@ export default function MoodDemoPanel({ onMoodChange }) {
                 className={`rounded-full border px-3.5 py-1.5 text-[12.5px] font-medium transition-colors duration-200 ${
                   active
                     ? 'border-white/20 text-white'
-                    : 'border-white/10 bg-white/[0.03] text-white/65 hover:bg-white/5'
+                    : 'border-white/10 bg-white/3 text-white/65 hover:bg-white/5'
                 }`}
                 // WHY: active chip tint comes from the mood's accent color.
                 style={active ? { background: `${m.color}22` } : undefined}

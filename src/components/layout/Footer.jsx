@@ -126,14 +126,14 @@ export default function Footer() {
         </nav>
 
         {/* Divider */}
-        <div className="h-px bg-white/[0.06] mt-8 mb-6" aria-hidden="true" />
+        <div className="h-px bg-white/6 mt-8 mb-6" aria-hidden="true" />
 
         {/* Bottom bar */}
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 text-center sm:text-left pb-8">
 
           {/* Brand — display only, not a link in footer context */}
           <div>
-            <p className="text-lg font-black tracking-tight bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent select-none">
+            <p className="text-lg font-black tracking-tight bg-linear-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent select-none">
               FEELFLICK
             </p>
             <p className="text-xs text-white/20">Films That Know You</p>

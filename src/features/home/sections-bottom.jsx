@@ -362,7 +362,7 @@ export function TasteTwinPulse({ onWatch }) {
       />
       {/* Horizontal scroll — same pattern as the Feed-the-Engine row. */}
       <div
-        className="-mx-5 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:-mx-8 lg:-mx-[88px]"
+        className="-mx-5 overflow-x-auto pb-2 scrollbar-none [&::-webkit-scrollbar]:hidden sm:-mx-8 lg:mx-[-88px]"
         style={{ WebkitOverflowScrolling: 'touch' }}
       >
         <div className="flex gap-4 px-5 sm:gap-5 sm:px-8 lg:gap-6 lg:px-[88px]">
@@ -462,7 +462,7 @@ export function CuratedLists({ onOpenList }) {
         <button
           type="button"
           onClick={() => onOpenList?.()}
-          className="group inline-flex items-center gap-1.5 self-start rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-xs font-medium text-white/80 transition-all duration-200 hover:border-white/25 hover:bg-white/[0.08] hover:text-white active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 lg:self-end"
+          className="group inline-flex items-center gap-1.5 self-start rounded-full border border-white/10 bg-white/4 px-4 py-2 text-xs font-medium text-white/80 transition-all duration-200 hover:border-white/25 hover:bg-white/8 hover:text-white active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 lg:self-end"
           style={{ fontFamily: 'Outfit', letterSpacing: '0.04em' }}
         >
           View all
@@ -478,7 +478,7 @@ export function CuratedLists({ onOpenList }) {
       <div
         ref={scrollerRef}
         onScroll={handleScroll}
-        className="-mx-5 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-6 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4"
+        className="-mx-5 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-2 scrollbar-none [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-6 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4"
       >
         {lists.map(L => (
           <div key={L.id} className="w-[78%] flex-none snap-start sm:w-auto">
@@ -665,7 +665,7 @@ export function QuickLog({ onLog }) {
         // the section's content rhythm. Free-scrolling (no snap) — snap
         // was clipping the first tile past the padding edge.
         <div
-          className="-mx-5 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:-mx-8 lg:-mx-[88px]"
+          className="-mx-5 overflow-x-auto pb-2 scrollbar-none [&::-webkit-scrollbar]:hidden sm:-mx-8 lg:mx-[-88px]"
           style={{ WebkitOverflowScrolling: 'touch' }}
         >
           <div className="flex gap-4 px-5 sm:gap-5 sm:px-8 lg:gap-6 lg:px-[88px]">
@@ -693,7 +693,7 @@ export function QuickLog({ onLog }) {
         <button
           type="button"
           onClick={() => onLog?.()}
-          className="group inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-5 py-2.5 transition-all duration-200 hover:border-white/25 hover:bg-white/[0.08] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+          className="group inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/4 px-5 py-2.5 transition-all duration-200 hover:border-white/25 hover:bg-white/8 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
           style={{ fontFamily: 'Outfit', fontSize: 13, fontWeight: 500, color: HP.textSoft, letterSpacing: '0.02em' }}
         >
           Open Browse

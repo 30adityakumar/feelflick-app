@@ -37,28 +37,28 @@ function ProfileSkeleton() {
     <div className="space-y-8 animate-pulse">
       {/* Header skeleton */}
       <div className="flex items-center gap-5">
-        <div className="h-16 w-16 rounded-full bg-purple-500/[0.04] flex-shrink-0" />
+        <div className="h-16 w-16 rounded-full bg-purple-500/4 shrink-0" />
         <div className="space-y-2.5 flex-1">
-          <div className="h-5 w-40 rounded-lg bg-purple-500/[0.04]" />
-          <div className="h-3 w-28 rounded bg-purple-500/[0.04]" />
+          <div className="h-5 w-40 rounded-lg bg-purple-500/4" />
+          <div className="h-3 w-28 rounded bg-purple-500/4" />
         </div>
       </div>
       {/* Stat pills skeleton */}
       <div className="flex gap-3">
         {[0, 1, 2].map((i) => (
-          <div key={i} className="h-8 w-28 rounded-full bg-purple-500/[0.04]" />
+          <div key={i} className="h-8 w-28 rounded-full bg-purple-500/4" />
         ))}
       </div>
       {/* DNA cards skeleton */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="h-40 rounded-2xl bg-purple-500/[0.04]" />
+          <div key={i} className="h-40 rounded-2xl bg-purple-500/4" />
         ))}
       </div>
       {/* Poster grid skeleton */}
       <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
         {[0, 1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="aspect-[2/3] rounded-xl bg-purple-500/[0.04]" />
+          <div key={i} className="aspect-2/3 rounded-xl bg-purple-500/4" />
         ))}
       </div>
     </div>
@@ -86,7 +86,7 @@ function EmptyProfile() {
       </p>
       <Link
         to="/discover"
-        className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-purple-500/20 transition-transform duration-200 hover:scale-[1.03] active:scale-[0.97]"
+        className="inline-flex items-center gap-2 rounded-xl bg-linear-to-r from-purple-500 to-pink-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-purple-500/20 transition-transform duration-200 hover:scale-[1.03] active:scale-[0.97]"
       >
         <Compass className="h-4 w-4" />
         Discover films
@@ -460,15 +460,15 @@ export default function TasteProfile() {
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true, margin: '-40px' }}
                 transition={{ duration: 0.5, delay: 0.1 }}
-                className="relative rounded-2xl overflow-hidden border border-purple-500/25 bg-gradient-to-br from-purple-500/[0.08] via-transparent to-pink-500/[0.04] p-5 mb-10"
+                className="relative rounded-2xl overflow-hidden border border-purple-500/25 bg-linear-to-br from-purple-500/8 via-transparent to-pink-500/4 p-5 mb-10"
               >
                 <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full blur-3xl pointer-events-none" style={{ background: 'rgba(168,85,247,0.12)' }} aria-hidden />
                 <div className="relative flex items-start gap-3">
                   <span className="text-purple-400/70 mt-0.5 shrink-0" aria-hidden>&#10022;</span>
                   {summaryLoading ? (
                     <div className="flex-1 space-y-2 animate-pulse">
-                      <div className="h-4 w-3/4 rounded bg-purple-500/[0.08]" />
-                      <div className="h-4 w-1/2 rounded bg-purple-500/[0.08]" />
+                      <div className="h-4 w-3/4 rounded bg-purple-500/8" />
+                      <div className="h-4 w-1/2 rounded bg-purple-500/8" />
                     </div>
                   ) : (
                     <p className="text-sm sm:text-base text-white/70 leading-relaxed italic">
@@ -507,7 +507,7 @@ export default function TasteProfile() {
                               </div>
                               <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
                                 <motion.div
-                                  className="h-full rounded-full bg-gradient-to-r from-purple-500 to-pink-500"
+                                  className="h-full rounded-full bg-linear-to-r from-purple-500 to-pink-500"
                                   initial={{ width: 0 }}
                                   whileInView={{ width: `${g.pct}%` }}
                                   viewport={{ once: true }}
@@ -592,7 +592,7 @@ export default function TasteProfile() {
                           transition={{ duration: 0.3, delay: Math.min(idx * 0.05, 0.3) }}
                         >
                           <Link to={movie.tmdbId ? `/movie/${movie.tmdbId}` : '#'} className="block group">
-                            <div className="aspect-[2/3] rounded-xl overflow-hidden bg-white/5 ring-1 ring-white/8 transition-transform duration-200 group-hover:scale-[1.03]">
+                            <div className="aspect-2/3 rounded-xl overflow-hidden bg-white/5 ring-1 ring-white/8 transition-transform duration-200 group-hover:scale-[1.03]">
                               <img
                                 src={tmdbImg(movie.posterPath, 'w185')}
                                 alt={movie.title}
@@ -616,7 +616,7 @@ export default function TasteProfile() {
               <aside className="hidden lg:block sticky top-[calc(var(--hdr-h,64px)+24px)] space-y-4">
 
                 {/* Rating Style card */}
-                <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-5">
+                <div className="rounded-2xl border border-white/8 bg-white/3 p-5">
                   <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-3">Your Rating Style</h3>
                   {stats.avgRating != null ? (
                     <div>
@@ -636,9 +636,9 @@ export default function TasteProfile() {
 
                 {/* Lists widget */}
                 {userLists.length > 0 && (
-                  <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
+                  <div className="rounded-2xl border border-white/8 bg-white/3 p-4">
                     <div className="flex items-center gap-2 mb-3">
-                      <div className="w-[3px] h-5 rounded-full bg-gradient-to-b from-purple-400 to-pink-500 shrink-0" />
+                      <div className="w-[3px] h-5 rounded-full bg-linear-to-b from-purple-400 to-pink-500 shrink-0" />
                       <span className="text-xs font-bold text-white/70 uppercase tracking-wider">Lists</span>
                     </div>
                     <div className="space-y-2">
@@ -773,8 +773,8 @@ function FollowListModal({ type, userId, onClose }) {
             <div className="space-y-3 p-5">
               {[0, 1, 2].map((i) => (
                 <div key={i} className="flex items-center gap-3 animate-pulse">
-                  <div className="h-8 w-8 rounded-full bg-purple-500/[0.04]" />
-                  <div className="h-3.5 w-28 rounded bg-purple-500/[0.04]" />
+                  <div className="h-8 w-8 rounded-full bg-purple-500/4" />
+                  <div className="h-3.5 w-28 rounded bg-purple-500/4" />
                 </div>
               ))}
             </div>
@@ -792,11 +792,11 @@ function FollowListModal({ type, userId, onClose }) {
                     <img
                       src={user.avatarUrl}
                       alt={user.name || 'User'}
-                      className="h-8 w-8 rounded-full object-cover flex-shrink-0"
+                      className="h-8 w-8 rounded-full object-cover shrink-0"
                     />
                   ) : (
                     <div
-                      className="h-8 w-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold text-white"
+                      className="h-8 w-8 rounded-full shrink-0 flex items-center justify-center text-xs font-bold text-white"
                       style={{ background: 'linear-gradient(135deg, rgb(168,85,247), rgb(236,72,153))' }}
                     >
                       {(user.name || '?')[0].toUpperCase()}

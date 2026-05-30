@@ -92,7 +92,7 @@ export default function NarratedLoader({ resultsReady, errorReady, exhausted, on
           initial={{ x: '-100%' }}
           animate={{ x: '0%' }}
           transition={{ duration: progressDuration, ease: 'linear' }}
-          className="h-full w-full bg-gradient-to-r from-purple-500 to-pink-500"
+          className="h-full w-full bg-linear-to-r from-purple-500 to-pink-500"
         />
       </div>
     </div>

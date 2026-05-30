@@ -71,11 +71,11 @@ export default function RatingBreakdown({ movie }) {
     : null
 
   return (
-    <div className="rounded-2xl border border-white/8 bg-white/[0.02] overflow-hidden">
+    <div className="rounded-2xl border border-white/8 bg-white/2 overflow-hidden">
       <button
         onClick={() => setExpanded(!expanded)}
         aria-expanded={expanded}
-        className="w-full flex items-center justify-between px-5 py-4 hover:bg-white/[0.03] transition-colors"
+        className="w-full flex items-center justify-between px-5 py-4 hover:bg-white/3 transition-colors"
       >
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold text-white">The Numbers</span>
@@ -92,7 +92,7 @@ export default function RatingBreakdown({ movie }) {
         <div className="px-5 pb-5 space-y-3">
           {rows.map(r => (
             <div key={r.key} className="flex items-center gap-3">
-              <span className="w-32 text-xs text-white/60 flex-shrink-0">{r.label}</span>
+              <span className="w-32 text-xs text-white/60 shrink-0">{r.label}</span>
               <div className="flex-1 flex items-center gap-2">
                 {r.value != null ? (
                   <>
@@ -111,7 +111,7 @@ export default function RatingBreakdown({ movie }) {
                   <span className="text-xs text-white/40 italic">&mdash;</span>
                 )}
               </div>
-              <span className="text-[11px] text-white/40 w-28 text-right flex-shrink-0">{r.note}</span>
+              <span className="text-[11px] text-white/40 w-28 text-right shrink-0">{r.note}</span>
             </div>
           ))}
         </div>

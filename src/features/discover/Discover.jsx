@@ -1925,7 +1925,7 @@ export default function Discover() {
       {handoffOverlayVisible && (
         <motion.div
           aria-hidden="true"
-          className="pointer-events-none fixed inset-0 z-[9998]"
+          className="pointer-events-none fixed inset-0 z-9998"
           style={{
             background: `
               radial-gradient(ellipse 70% 50% at 50% 45%, rgba(167,139,250,0.08) 0%, transparent 65%),

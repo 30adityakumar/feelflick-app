@@ -11,9 +11,9 @@ function MovieTile({ movie, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="group text-left rounded-xl overflow-hidden bg-white/[0.02] border border-white/8 hover:border-white/20 transition-all"
+      className="group text-left rounded-xl overflow-hidden bg-white/2 border border-white/8 hover:border-white/20 transition-all"
     >
-      <div className="relative aspect-[2/3]">
+      <div className="relative aspect-2/3">
         <img
           src={`https://image.tmdb.org/t/p/w342${movie.poster_path}`}
           alt={movie.title}
@@ -96,7 +96,7 @@ export default function CollectionPage() {
         {loading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="aspect-[2/3] rounded-xl bg-white/[0.04] animate-pulse" />
+              <div key={i} className="aspect-2/3 rounded-xl bg-white/4 animate-pulse" />
             ))}
           </div>
         ) : movies.length === 0 ? (

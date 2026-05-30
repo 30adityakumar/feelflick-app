@@ -15,7 +15,7 @@ export default function TermsPage() {
       <div className="relative min-h-screen bg-black text-white">
       {/* Hero */}
       <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-600/20 via-black to-pink-600/20" />
+        <div className="absolute inset-0 bg-linear-to-br from-purple-600/20 via-black to-pink-600/20" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(168,85,247,0.2),transparent_50%)]" />
         
         <div className="relative mx-auto max-w-4xl px-4 md:px-8 pt-32 md:pt-40 pb-20 md:pb-28 text-center">
@@ -24,7 +24,7 @@ export default function TermsPage() {
             <span className="text-sm font-semibold text-white/80">Terms of Service</span>
           </div>
           
-          <h1 className="text-4xl sm:text-5xl font-black tracking-tight mb-4 bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
+          <h1 className="text-4xl sm:text-5xl font-black tracking-tight mb-4 bg-linear-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
             Our rules of engagement
           </h1>
           
@@ -38,7 +38,7 @@ export default function TermsPage() {
       <div className="relative mx-auto max-w-5xl px-4 md:px-8 pb-20 space-y-12 md:space-y-16">
         
         {/* Introduction */}
-        <section className="rounded-2xl bg-white/5 ring-1 ring-white/[0.06] shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6 md:p-8">
+        <section className="rounded-2xl bg-white/5 ring-1 ring-white/6 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6 md:p-8">
           <h2 className="text-2xl md:text-3xl font-black mb-4 flex items-center gap-2">
             <FileText className="h-6 w-6 text-purple-300" />
             Agreement to Terms
@@ -63,7 +63,7 @@ export default function TermsPage() {
           </div>
 
           <div className="grid md:grid-cols-2 gap-6">
-            <div className="rounded-2xl bg-white/5 ring-1 ring-white/[0.06] shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6">
+            <div className="rounded-2xl bg-white/5 ring-1 ring-white/6 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6">
               <h3 className="text-lg font-bold mb-3 flex items-center gap-2">
                 <ShieldCheck className="h-5 w-5 text-emerald-400" />
                 Account Security
@@ -84,7 +84,7 @@ export default function TermsPage() {
               </ul>
             </div>
 
-            <div className="rounded-2xl bg-white/5 ring-1 ring-white/[0.06] shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6">
+            <div className="rounded-2xl bg-white/5 ring-1 ring-white/6 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6">
               <h3 className="text-lg font-bold mb-3 flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5 text-red-400" />
                 Prohibited Conduct
@@ -108,7 +108,7 @@ export default function TermsPage() {
         </section>
 
         {/* Intellectual Property */}
-        <section className="rounded-2xl bg-white/5 ring-1 ring-white/[0.06] shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6 md:p-8">
+        <section className="rounded-2xl bg-white/5 ring-1 ring-white/6 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6 md:p-8">
           <h2 className="text-2xl md:text-3xl font-black mb-4">Intellectual Property</h2>
           <div className="space-y-4 text-sm text-white/70 leading-relaxed">
             <p>
@@ -124,7 +124,7 @@ export default function TermsPage() {
         </section>
 
         {/* Disclaimers & Liability */}
-        <section className="rounded-2xl bg-white/5 ring-1 ring-white/[0.06] shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6 md:p-8">
+        <section className="rounded-2xl bg-white/5 ring-1 ring-white/6 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6 md:p-8">
           <h2 className="text-2xl md:text-3xl font-black mb-4 flex items-center gap-2">
             <Gavel className="h-6 w-6 text-purple-300" />
             Disclaimers & Limitation of Liability
@@ -148,14 +148,14 @@ export default function TermsPage() {
 
         {/* Termination & Changes */}
         <section className="grid md:grid-cols-2 gap-6">
-          <div className="rounded-2xl bg-white/5 ring-1 ring-white/[0.06] shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6">
+          <div className="rounded-2xl bg-white/5 ring-1 ring-white/6 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6">
             <h3 className="text-lg font-bold mb-2">Termination</h3>
             <p className="text-white/70 text-sm leading-relaxed">
               We reserve the right to suspend or terminate your account at our sole discretion, without notice, if you violate these Terms. You may also delete your account at any time via your settings.
             </p>
           </div>
 
-          <div className="rounded-2xl bg-white/5 ring-1 ring-white/[0.06] shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6">
+          <div className="rounded-2xl bg-white/5 ring-1 ring-white/6 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6">
             <h3 className="text-lg font-bold mb-2">Changes to Terms</h3>
             <p className="text-white/70 text-sm leading-relaxed">
               We may update these terms occasionally. Continued use of FeelFlick after changes constitutes your acceptance of the new terms. We will notify you of significant changes.
@@ -164,7 +164,7 @@ export default function TermsPage() {
         </section>
 
         {/* Contact */}
-        <section className="rounded-2xl bg-gradient-to-br from-purple-600/30 to-pink-600/30 ring-1 ring-white/[0.06] shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6 md:p-8 text-center">
+        <section className="rounded-2xl bg-linear-to-br from-purple-600/30 to-pink-600/30 ring-1 ring-white/6 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6 md:p-8 text-center">
           <h2 className="text-2xl md:text-3xl font-black mb-3">Legal Questions?</h2>
           <p className="text-white/80 text-sm md:text-base mb-6">
             If you have any questions about these Terms of Service, please contact us.

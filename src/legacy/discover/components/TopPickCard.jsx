@@ -29,7 +29,7 @@ function MatchRing({ percent, size = 72 }) {
   const offset = circumference - (percent / 100) * circumference
 
   return (
-    <div className="relative flex-shrink-0" style={{ width: size, height: size }}>
+    <div className="relative shrink-0" style={{ width: size, height: size }}>
       <svg width={size} height={size} className="-rotate-90">
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={3} />
         <motion.circle
@@ -111,8 +111,8 @@ export default function TopPickCard({ film, isWatchlisted, isSeen, onOpenDetail,
         ) : (
           <div className="w-full h-full bg-white/5" />
         )}
-        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/85 to-black/40" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/50" />
+        <div className="absolute inset-0 bg-linear-to-r from-black via-black/85 to-black/40" />
+        <div className="absolute inset-0 bg-linear-to-t from-black via-transparent to-black/50" />
       </div>
 
       {/* Content */}
@@ -121,18 +121,18 @@ export default function TopPickCard({ film, isWatchlisted, isSeen, onOpenDetail,
         <button
           type="button"
           onClick={handleClick}
-          className="block w-32 sm:w-40 flex-shrink-0"
+          className="block w-32 sm:w-40 shrink-0"
           aria-label={`View details for ${film.title}`}
         >
           {film.poster_path ? (
             <img
               src={tmdbImg(film.poster_path, 'w342')}
               alt={film.title}
-              className={`w-full aspect-[2/3] rounded-xl object-cover shadow-2xl shadow-black/60 ring-1 ring-white/10 transition-all duration-700 ${revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+              className={`w-full aspect-2/3 rounded-xl object-cover shadow-2xl shadow-black/60 ring-1 ring-white/10 transition-all duration-700 ${revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
               onLoad={() => setPosterLoaded(true)}
             />
           ) : (
-            <div className="w-full aspect-[2/3] rounded-xl bg-neutral-800 ring-1 ring-white/10 flex items-center justify-center">
+            <div className="w-full aspect-2/3 rounded-xl bg-neutral-800 ring-1 ring-white/10 flex items-center justify-center">
               <Play className="h-8 w-8 text-white/30" />
             </div>
           )}
@@ -174,7 +174,7 @@ export default function TopPickCard({ film, isWatchlisted, isSeen, onOpenDetail,
 
           {/* Reason text */}
           {film._briefReason && (
-            <p className="text-sm italic leading-relaxed mb-4 bg-gradient-to-r from-purple-300/80 to-pink-300/60 bg-clip-text text-transparent">
+            <p className="text-sm italic leading-relaxed mb-4 bg-linear-to-r from-purple-300/80 to-pink-300/60 bg-clip-text text-transparent">
               {film._briefReason}
             </p>
           )}

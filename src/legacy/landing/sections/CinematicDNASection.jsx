@@ -71,7 +71,7 @@ function GenreBar({ genre, delay }) {
         aria-label={`${genre.label} preference`}
       >
         <motion.div
-          className={`absolute inset-y-0 left-0 rounded-full bg-gradient-to-r ${genre.colorFrom} ${genre.colorTo}`}
+          className={`absolute inset-y-0 left-0 rounded-full bg-linear-to-r ${genre.colorFrom} ${genre.colorTo}`}
           style={prefersReducedMotion ? { width: `${genre.pct}%` } : undefined}
           {...(!prefersReducedMotion && {
             initial: { width: '0%' },
@@ -140,7 +140,7 @@ export default function CinematicDNASection() {
         <div className="flex flex-col lg:flex-row lg:items-center gap-8 lg:gap-14">
 
           {/* ── LEFT: COPY BLOCK ──────────────────────────────────────────────── */}
-          <div className="lg:w-[45%] flex-shrink-0">
+          <div className="lg:w-[45%] shrink-0">
 
             <motion.p
               className="text-xs font-semibold uppercase tracking-widest text-purple-400/60 mb-3"
@@ -221,7 +221,7 @@ export default function CinematicDNASection() {
               {/* === A: PROFILE HEADER === */}
               <div className="flex items-center gap-3 mb-4 sm:mb-6">
                 <div
-                  className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-sm font-bold text-white select-none"
+                  className="w-10 h-10 rounded-full shrink-0 flex items-center justify-center text-sm font-bold text-white select-none"
                   style={{ background: 'linear-gradient(135deg, rgba(168,85,247,0.85), rgba(236,72,153,0.85))' }}
                   aria-hidden="true"
                 >
@@ -255,7 +255,7 @@ export default function CinematicDNASection() {
                     <span
                       key={name}
                       role="listitem"
-                      className="text-[11px] font-medium text-white/60 bg-white/[0.06] rounded-full px-3 py-1"
+                      className="text-[11px] font-medium text-white/60 bg-white/6 rounded-full px-3 py-1"
                     >
                       {name}
                     </span>
@@ -280,7 +280,7 @@ export default function CinematicDNASection() {
                     <div
                       key={film.title}
                       role="listitem"
-                      className="w-full rounded-xl overflow-hidden ring-1 ring-white/[0.08] transition-all duration-200 hover:scale-105 hover:ring-white/20 hover:shadow-[0_8px_24px_rgba(0,0,0,0.5)]"
+                      className="w-full rounded-xl overflow-hidden ring-1 ring-white/8 transition-all duration-200 hover:scale-105 hover:ring-white/20 hover:shadow-[0_8px_24px_rgba(0,0,0,0.5)]"
                       style={{ aspectRatio: '2/3', background: 'rgba(255,255,255,0.04)' }}
                     >
                       <img

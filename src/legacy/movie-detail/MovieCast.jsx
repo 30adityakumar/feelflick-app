@@ -8,8 +8,8 @@ export default function MovieCast({ cast }) {
       <div className="relative">
         <div className="flex gap-3 overflow-x-auto pb-3 scrollbar-hide px-0.5">
           {cast.map((p) => (
-            <div key={p.id} className="flex-shrink-0 w-[88px] group">
-              <div className="aspect-[2/3] overflow-hidden rounded-xl bg-white/5 border border-white/8 mb-2 shadow-md">
+            <div key={p.id} className="shrink-0 w-[88px] group">
+              <div className="aspect-2/3 overflow-hidden rounded-xl bg-white/5 border border-white/8 mb-2 shadow-md">
                 {p.profile_path ? (
                   <img
                     src={IMG.profile(p.profile_path)}
@@ -27,7 +27,7 @@ export default function MovieCast({ cast }) {
           ))}
         </div>
         {/* Scroll affordance — right fade */}
-        <div className="absolute top-0 right-0 bottom-3 w-12 bg-gradient-to-l from-black to-transparent pointer-events-none" />
+        <div className="absolute top-0 right-0 bottom-3 w-12 bg-linear-to-l from-black to-transparent pointer-events-none" />
       </div>
     </div>
   )

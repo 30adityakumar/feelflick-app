@@ -1,8 +1,13 @@
 /** @type {import('tailwindcss').Config} */
 
-import defaultTheme from 'tailwindcss/defaultTheme'
 import plugin from 'tailwindcss/plugin'
-import containerQueries from '@tailwindcss/container-queries'
+
+// Tailwind's default sans stack, inlined (v4 dropped the `tailwindcss/defaultTheme`
+// JS import; container queries are now built in, so that plugin is gone too).
+const defaultSans = [
+  'ui-sans-serif', 'system-ui', 'sans-serif',
+  '"Apple Color Emoji"', '"Segoe UI Emoji"', '"Segoe UI Symbol"', '"Noto Color Emoji"',
+]
 
 export default {
   content: [
@@ -73,8 +78,8 @@ export default {
       },
       
       fontFamily: {
-        sans: ['Inter', ...defaultTheme.fontFamily.sans],
-        display: ['Inter', ...defaultTheme.fontFamily.sans],
+        sans: ['Inter', ...defaultSans],
+        display: ['Inter', ...defaultSans],
       },
       
       fontSize: {
@@ -208,9 +213,8 @@ export default {
   },
   
   plugins: [
-    // Container queries
-    containerQueries,
-    
+    // Container queries are built into Tailwind v4 — no plugin needed.
+
     // Custom plugin for additional utilities
     plugin(function({ addUtilities }) {
       // Glassmorphism utilities

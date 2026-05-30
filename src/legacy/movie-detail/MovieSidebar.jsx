@@ -6,7 +6,7 @@ export function WhereToWatch({ providers }) {
   if (!providers?.flatrate?.length) return null
 
   return (
-    <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-5">
+    <div className="rounded-2xl border border-white/8 bg-white/3 p-5">
       <p className="text-[11px] font-semibold text-white/40 uppercase tracking-widest mb-3">Where to Watch</p>
       <div className="flex flex-wrap gap-2">
         {providers.flatrate.map((p) => (
@@ -56,7 +56,7 @@ export function MovieDetails({ movie }) {
   if (!details.length) return null
 
   return (
-    <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-5">
+    <div className="rounded-2xl border border-white/8 bg-white/3 p-5">
       <p className="text-[11px] font-semibold text-white/40 uppercase tracking-widest mb-3">Details</p>
       <div className="space-y-2">
         {details.map((d, i) => (
@@ -74,7 +74,7 @@ export function ProductionCompanies({ companies }) {
   const top = (companies || []).slice(0, 3)
   if (!top.length) return null
   return (
-    <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-5">
+    <div className="rounded-2xl border border-white/8 bg-white/3 p-5">
       <p className="text-[11px] font-semibold text-white/40 uppercase tracking-widest mb-3">Production</p>
       <div className="flex flex-wrap gap-3">
         {top.map((c) => (
@@ -103,9 +103,9 @@ export function ProductionCompanies({ companies }) {
 export function CollectionCard({ collection }) {
   const navigate = useNavigate()
   return (
-    <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-5 overflow-hidden">
+    <div className="rounded-2xl border border-white/8 bg-white/3 p-5 overflow-hidden">
       <p className="text-[11px] font-semibold text-white/40 uppercase tracking-widest mb-3">Part of a Collection</p>
-      <div className="relative aspect-16/9 rounded overflow-hidden mb-2">
+      <div className="relative aspect-video rounded overflow-hidden mb-2">
         {collection.backdrop_path ? (
           <img
             src={IMG.backdrop(collection.backdrop_path)}
@@ -115,7 +115,7 @@ export function CollectionCard({ collection }) {
         ) : (
           <div className="w-full h-full bg-white/10" />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/80 to-transparent" />
         <div className="absolute bottom-2 left-2 right-2">
           <p className="text-xs font-bold text-white line-clamp-2">{collection.name}</p>
         </div>

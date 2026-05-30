@@ -69,7 +69,9 @@ jobs:
           if git diff --cached --quiet; then
             echo "No baseline changes."
           else
-            git commit -m "test(visual): regenerate Linux baselines [skip ci]"
+            # No [skip ci] needed: pushes authored by GITHUB_TOKEN don't trigger
+            # further workflow runs, and we WANT the eventual PR to run the gate.
+            git commit -m "test(visual): regenerate Linux baselines"
             git push
           fi
 

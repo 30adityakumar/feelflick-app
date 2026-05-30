@@ -418,7 +418,7 @@ export default function MoviesStep({
           style={{ textWrap: 'balance' }}
         >
           What have you{' '}
-          <em className="bg-linear-to-r from-purple-500 to-pink-500 bg-clip-text not-italic italic text-transparent">
+          <em className="bg-linear-to-r from-purple-500 to-pink-500 bg-clip-text italic text-transparent">
             loved?
           </em>
         </h2>

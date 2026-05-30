@@ -1,6 +1,8 @@
 # FeelFlick Supabase Schema Reference
 
 > Auto-generated from live DB introspection on 2026-04-19.
+
+> ⚠️ **Stale:** generated before the 2026-05-29 RLS-hardening + perf-index migrations. The live Supabase DB is the source of truth — regenerate from introspection when you need current detail.
 > 36 tables, 1 view in `public` schema. PostgreSQL 15.8 + pgvector.
 
 ---

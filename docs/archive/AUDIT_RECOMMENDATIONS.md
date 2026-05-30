@@ -1,3 +1,5 @@
+
+> 📦 **Archived — historical snapshot, not current.** Kept for reference; see `docs/archive/README.md`.
 # FeelFlick Recommendation Engine Audit
 
 **Date:** 2026-04-19

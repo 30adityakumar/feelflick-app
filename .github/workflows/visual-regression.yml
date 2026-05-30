@@ -1,0 +1,82 @@
+name: Visual Regression
+
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'index.html'
+      - 'e2e/visual/**'
+      - 'playwright.config.*'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/visual-regression.yml'
+  # Push to a `visual-baselines/<name>` branch to (re)generate the Linux
+  # baselines. Snapshots are platform-specific and Docker isn't available
+  # locally, so the only way to produce Linux baselines is in this CI env.
+  # The job regenerates them and commits them back to that branch; open a PR
+  # from it to land the refreshed baselines.
+  push:
+    branches:
+      - 'visual-baselines/**'
+
+permissions:
+  contents: write
+
+jobs:
+  visual:
+    name: Visual Regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run visual regression
+        env:
+          # The visual surfaces (/, /about) are logged-out and static — the app
+          # only needs the Supabase client to instantiate, so dummy values are
+          # enough. No real secrets required, so this gate always runs (unlike
+          # the auth E2E job, which skips until secrets are configured).
+          VITE_SUPABASE_URL: https://dummy.supabase.co
+          VITE_SUPABASE_ANON_KEY: dummy-anon-key
+          VITE_TMDB_API_KEY: dummy
+        run: |
+          if [[ "${GITHUB_REF}" == refs/heads/visual-baselines/* ]]; then
+            echo "Regenerating Linux baselines…"
+            npm run test:visual:update
+          else
+            npm run test:visual
+          fi
+
+      - name: Commit regenerated baselines
+        if: ${{ startsWith(github.ref, 'refs/heads/visual-baselines/') }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add e2e/visual
+          if git diff --cached --quiet; then
+            echo "No baseline changes."
+          else
+            git commit -m "test(visual): regenerate Linux baselines [skip ci]"
+            git push
+          fi
+
+      - name: Upload diff on failure (PR gate)
+        if: ${{ failure() && !startsWith(github.ref, 'refs/heads/visual-baselines/') }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: visual-diff
+          path: test-results/
+          retention-days: 7

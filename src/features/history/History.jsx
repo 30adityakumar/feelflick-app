@@ -60,7 +60,7 @@ function PulseStrip() {
 // page stays a chronological record. The DNA page (/profile) is the home
 // for taste patterns; deriveTrajectory + the mood radar there already cover
 // monthly volume + mood share. The streak heatmap is a follow-up port to
-// /profile-v2 (TODO).
+// /profile (TODO).
 
 function FilterBar({ filter, setFilter, sort, setSort, query, setQuery }) {
   // "Favorites" was redundant with "Loved (5★)" — both filtered on the same

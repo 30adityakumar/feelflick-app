@@ -458,7 +458,7 @@ export default function About() {
                   </>
                 )}
               </Button>
-              <p className="text-xs text-white/20">
+              <p className="text-xs text-white/50">
                 Free forever · No credit card · No ads
               </p>
             </motion.div>

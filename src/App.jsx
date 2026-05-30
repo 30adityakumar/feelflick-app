@@ -11,15 +11,25 @@ export default function App() {
   useSessionTracking()
   return (
     <Sentry.ErrorBoundary
-      fallback={({ error }) => (
-        <div className="min-h-screen bg-black flex items-center justify-center text-white text-center p-8">
-          <div>
-            <h1 className="text-2xl font-bold mb-2">
+      fallback={() => (
+        // Last-resort outer boundary (the route-level ErrorBoundary handles most
+        // crashes with richer UI). Generic copy — never surface raw error.message
+        // to users — plus a branded reload affordance.
+        <div className="min-h-screen bg-[#06060a] flex items-center justify-center text-white text-center p-8">
+          <div className="max-w-sm">
+            <h1 className="text-2xl font-semibold mb-2" style={{ fontFamily: 'Outfit, Inter, sans-serif' }}>
               Something went wrong
             </h1>
-            <p className="text-white/60 text-sm">
-              {error?.message || 'An unexpected error occurred'}
+            <p className="text-white/60 text-sm mb-6">
+              An unexpected error occurred. Reloading usually fixes it.
             </p>
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="rounded-md bg-linear-to-r from-purple-600 to-pink-500 px-4 py-2 text-sm font-medium hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-purple-400/50"
+            >
+              Reload
+            </button>
           </div>
         </div>
       )}

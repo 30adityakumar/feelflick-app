@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import CreateListModal from '@/features/lists/CreateListModal'
+import { ActionButton } from '@/shared/components/ActionButton'
 import './lists.css'
 import { ListsDataProvider, useListsData } from './useListsData'
 
@@ -35,11 +36,7 @@ function Masthead({ onNewList }) {
           Curated collections. Hand-built, not algorithmic. Yours, your taste twins&rsquo;, and the FeelFlick editors&rsquo;.
         </p>
         <div style={{ marginTop: 24, display: 'flex', gap: 10 }}>
-          <button
-            type="button"
-            onClick={onNewList}
-            style={{ padding: '12px 22px', borderRadius: 8, background: HP_GRAD, border: 'none', color: '#fff', fontFamily: 'Outfit', fontSize: 13, fontWeight: 600, letterSpacing: '0.02em', cursor: 'pointer', boxShadow: '0 12px 28px -8px rgba(236,72,153,0.5)' }}
-          >+ New list</button>
+          <ActionButton onClick={onNewList}>+ New list</ActionButton>
         </div>
       </div>
     </section>

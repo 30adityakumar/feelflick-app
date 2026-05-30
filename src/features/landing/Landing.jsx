@@ -40,7 +40,10 @@ function Poster({src,title,accent='#A78BFA',style}){
       </div>
     );
   }
-  return <img src={src} alt={title} style={style} onError={()=>setFailed(true)}/>;
+  // Below-fold posters (Problem/Ritual/FilmFile/Briefing/Community) — lazy + async
+  // decode so they don't compete with the hero LCP. The hero poster is a separate
+  // eager <img> by design.
+  return <img src={src} alt={title} loading="lazy" decoding="async" style={style} onError={()=>setFailed(true)}/>;
 }
 
 function Stars({tint,count=50}){
@@ -144,7 +147,7 @@ function Header(){
   return(
     <header style={{position:'fixed',top:0,left:0,right:0,zIndex:50,transition:'all 0.4s ease',background:s||open?'rgba(6,6,10,0.92)':'transparent',backdropFilter:s||open?'saturate(140%) blur(20px)':'none',borderBottom:s||open?`1px solid ${C.hairline}`:'1px solid transparent'}}>
       <div style={{maxWidth:1280,margin:'0 auto',padding:'0 20px',display:'flex',alignItems:'center',justifyContent:'space-between',height:64,gap:12}}>
-        <a href="/" className="ff-link" style={{fontFamily:'Inter',fontSize:21,fontWeight:900,letterSpacing:'-0.012em',background:GRAD,WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',flexShrink:0}}>FEELFLICK</a>
+        <a href="/" className="ff-link" style={{fontFamily:'Inter',fontSize:21,fontWeight:700,letterSpacing:'-0.012em',background:GRAD,WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',flexShrink:0}}>FEELFLICK</a>
         {/* Desktop nav — hidden on mobile */}
         <nav className="ff-hide-on-mobile" style={{display:'flex',alignItems:'center',gap:24}}>
           {NAV_ITEMS.map(n=>
@@ -628,7 +631,7 @@ function Community(){
           </div>
         </Reveal>
         <Reveal>
-          <div className="ff-eyebrow" style={{textAlign:'center',marginBottom:32,color:C.textFaint}}>Example taste twins · What yours might look like</div>
+          <div className="ff-eyebrow" style={{textAlign:'center',marginBottom:32,color:C.textLow}}>Example taste twins · What yours might look like</div>
         </Reveal>
         <div className="ff-grid-3">
           {twins.map((t,i)=>
@@ -761,7 +764,7 @@ function FinalCTA(){
           </button>
         </Reveal>
         <Reveal delay={550}>
-          <div className="ff-eyebrow" style={{marginTop:24,color:C.textFaint}}>Free · No credit card · No ads</div>
+          <div className="ff-eyebrow" style={{marginTop:24,color:C.textLow}}>Free · No credit card · No ads</div>
         </Reveal>
       </div>
     </section>
@@ -799,7 +802,7 @@ function Footer(){
     <footer style={{padding:'72px 32px 84px',borderTop:`1px solid ${C.hairline}`}}>
       <div className="ff-grid-footer" style={{maxWidth:1280,margin:'0 auto',gridTemplateColumns:'2fr 1fr 1fr'}}>
         <div>
-          <div style={{fontFamily:'Inter',fontSize:20,fontWeight:900,letterSpacing:'-0.012em',background:GRAD,WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>FEELFLICK</div>
+          <div style={{fontFamily:'Inter',fontSize:20,fontWeight:700,letterSpacing:'-0.012em',background:GRAD,WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>FEELFLICK</div>
           <p className="ff-italic" style={{marginTop:14,fontFamily:'Inter',fontSize:13,color:C.textLow,lineHeight:1.6,maxWidth:340,fontStyle:'italic'}}>The right film. Right now.</p>
         </div>
         {columns.map(c=>
@@ -813,7 +816,7 @@ function Footer(){
           </div>
         )}
       </div>
-      <div style={{maxWidth:1280,margin:'56px auto 0',paddingTop:28,borderTop:`1px solid ${C.hairline}`,display:'flex',justifyContent:'space-between',flexWrap:'wrap',gap:12,fontFamily:'Inter',fontSize:11.5,color:C.textFaint}}>
+      <div style={{maxWidth:1280,margin:'56px auto 0',paddingTop:28,borderTop:`1px solid ${C.hairline}`,display:'flex',justifyContent:'space-between',flexWrap:'wrap',gap:12,fontFamily:'Inter',fontSize:11.5,color:C.textLow}}>
         <span>© FeelFlick · {new Date().getFullYear()}</span>
         <span className="ff-italic" style={{fontStyle:'italic'}}>Made for the patient.</span>
       </div>

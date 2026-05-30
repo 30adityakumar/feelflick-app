@@ -47,7 +47,9 @@ export const C = {
   textHi: 'rgba(250,250,250,0.92)',
   textMid: HP.textSoft,
   textLow: 'rgba(250,250,250,0.55)',
-  textFaint: HP.textFaint,
+  // Landing-scoped faint tier raised to an AA-large floor (~3.3:1). HP.textFaint
+  // (0.28 ≈ 2.4:1) fails AA outright; small *informational* text uses textLow.
+  textFaint: 'rgba(250,250,250,0.40)',
   hairline: HP.border,
   hairlineStrong: HP.borderStrong,
   purple: HP.purple,

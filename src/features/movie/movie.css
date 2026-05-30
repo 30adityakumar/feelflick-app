@@ -1,20 +1,19 @@
-/* src/features/movie-v2/movie.css
- * Scoped keyframes for the v2 Movie Detail page.
+/* src/features/movie/movie.css
+ * Scoped keyframes for the Movie Detail page.
  * Outfit display font, Inter for body.
  * All animations are prefixed `mv-` to avoid colliding with your existing styles.
  */
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700&family=Inter:wght@400;500;600&display=swap');
 
-.ff-movie-v2 {
+.ff-movie {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-.ff-movie-v2 ::selection { background: rgba(167,139,250,0.4); color: #fff; }
-.ff-movie-v2 em { font-style: italic; }
-.ff-movie-v2 button { font-family: inherit; transition: filter 0.18s ease; }
-.ff-movie-v2 button:hover:not(:disabled) { filter: brightness(1.12); }
-.ff-movie-v2 textarea { font-family: inherit; }
+.ff-movie ::selection { background: rgba(167,139,250,0.4); color: #fff; }
+.ff-movie em { font-style: italic; }
+.ff-movie button { font-family: inherit; transition: filter 0.18s ease; }
+.ff-movie button:hover:not(:disabled) { filter: brightness(1.12); }
+.ff-movie textarea { font-family: inherit; }
 
 @keyframes mv-fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes mv-zoom-in { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: scale(1); } }

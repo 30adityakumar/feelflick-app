@@ -1,10 +1,9 @@
 // src/features/movie/MovieDetail.jsx
-// FeelFlick — Movie Detail v2 ("Film File" editorial direction).
-// Route: /movie-v2/:id (parallel to existing /movie/:id)
+// FeelFlick — Movie Detail (the "Film File" editorial direction). Route: /movie/:id.
 //
-// Per-id TMDB + Supabase fetch lives in ./useMovieData. PR 1 makes Mood Radar,
-// Why-for-you, Friends Loved, Taste Twin dynamic for every film from existing
-// data. TheTake + CriticQuotes remain Parasite-only until PR 4 (LLM endpoint).
+// Per-id TMDB + Supabase fetch lives in ./useMovieData. Mood Radar, Why-for-you,
+// Friends Loved, and Taste Twin derive dynamically for every film; TheTake +
+// CriticQuotes render from a curated `overlay` when present, else stay hidden.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -75,8 +74,7 @@ export default function MovieDetail() {
     user,
     movie: mv ? { id: mv.id, title: mv.title, poster_path: null, overview: mv.overview } : null,
     // 'movie_detail' is the canonical source string the user_watchlist.source
-    // check constraint allows. The folder is named -v2 internally but the DB
-    // doesn't care which version of the UI surface logged the action.
+    // check constraint allows.
     source: 'movie_detail',
   })
 
@@ -176,7 +174,7 @@ export default function MovieDetail() {
 
   return (
     <MovieDataProvider value={data}>
-      <div className="ff-movie-v2" style={{
+      <div className="ff-movie" style={{
         minHeight: '100vh', background: '#06060a', color: '#FAFAFA',
         fontFamily: 'Inter, sans-serif', overflow: 'hidden', position: 'relative',
       }}>
@@ -261,7 +259,7 @@ export default function MovieDetail() {
 function PageSkeleton() {
   const pulse = { background: 'rgba(255,255,255,0.04)' };
   return (
-    <div className="ff-movie-v2" style={{
+    <div className="ff-movie" style={{
       minHeight: '100vh', background: '#06060a', color: '#FAFAFA',
       fontFamily: 'Inter, sans-serif', overflow: 'hidden',
     }}>
@@ -287,7 +285,7 @@ function PageSkeleton() {
 
 function PageError({ error, onBack }) {
   return (
-    <div className="ff-movie-v2" style={{
+    <div className="ff-movie" style={{
       minHeight: '100vh', background: '#06060a', color: '#FAFAFA',
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
       fontFamily: 'Inter, sans-serif',

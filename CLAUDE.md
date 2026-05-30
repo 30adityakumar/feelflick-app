@@ -69,16 +69,11 @@ src/
 └── test/                 # Vitest helpers, fixtures, setup
 ```
 
-> **No `legacy/` anymore.** The entire v1 tree (and the v2 landing at `/v2`) was
-> removed once analytics + a no-internal-links check confirmed it was unused.
-> Rollback lives in git: tag `legacy-removal-base` (full twin tree) and the commit
-> before the `/v2` removal — not in shipped code.
->
-> **No version suffixes — anywhere.** The old `*-v2`/`*-v5` folder names were dropped
-> in the repo-structure refactor (onboarding led the way in #77), and the matching
-> `…V2`/`…V5` local consts in `router.jsx` were de-suffixed once the legacy twins were
-> gone. A feature folder is a plain lowercase domain noun (`home`, not `home-v2`); the
-> entry component matches it (`features/home/Home.jsx`).
+> **No `legacy/` folder, no version suffixes.** A feature folder is a plain
+> lowercase domain noun (`home`, not `home-v2`/`home-v5`); the entry component
+> matches it (`features/home/Home.jsx`). The removed v1 tree, the old `/v2`
+> landing, and the `legacy-removal-base` rollback tag are recorded once in
+> **Direction signals** (below) — history lives there, not here.
 >
 > **`components/` vs `shared/components/`:** `components/` is app-wide canonical UI
 > (carousel, layout chrome, toasts); `shared/components/` is reusable *domain* widgets

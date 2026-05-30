@@ -1,5 +1,5 @@
 // src/features/home/useHomeData.jsx
-// FeelFlick — Home v2 ("The Briefing") data layer.
+// FeelFlick — Home ("The Briefing") data layer.
 //
 // Replaces the prototype's hardcoded FILMS / MOODS.pool / RECENT / DNA /
 // FRIENDS / LISTS arrays with live Supabase reads:
@@ -364,7 +364,7 @@ export function HomeDataProvider({ children }) {
           const bridgeTags = new Set(MOOD_BRIDGE[moodId])
           const otherTags = allOtherMoodTagsByMood[moodId]
           // Only score candidates that match the mood's bridge tags. Keeps
-          // per-mood pools coherent; the engine doesn't know about home-v2's
+          // per-mood pools coherent; the engine doesn't know about home's
           // editorial mood vocabulary.
           const moodPool = rawCandidates.filter(m =>
             Array.isArray(m.mood_tags) && m.mood_tags.some(t => bridgeTags.has(t))

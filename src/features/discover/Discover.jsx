@@ -84,7 +84,7 @@ function AudioToggle() {
   );
 }
 
-// ── Original v4 imports below ──
+// ── imports below ──
 
 // Discover keeps a deeper accent purple + two surface tints; spread the shared
 // core and override only those (explicit divergence, not copy-paste drift).
@@ -109,7 +109,7 @@ const MOODS = [
 // (cozy/wired/tender/fun/tense/mythic — see src/features/onboarding/data.js).
 // /discover uses an 8-axis vocabulary above (the constellation map). This
 // bridge translates baseline-mood keys → Discover mood ids for the
-// first-visit pre-selection in DiscoverV5Body. Four are direct (cozy,
+// first-visit pre-selection in DiscoverBody. Four are direct (cozy,
 // tender, tense, mythic); 'wired' ("cerebral, plot-y, reward focus") maps
 // to the closest Discover hint ("big idea, quiet pace") = cerebral;
 // 'fun' ("light, plot-driven, escapist") maps to restless (the energetic /
@@ -348,7 +348,7 @@ function StageMood({ selected, setSelected, onNext, onBack, blendHex, bursts, fi
 // (from predictDiscoverDefaults) are pre-highlighted so users who agree
 // with the prediction just tap once per step.
 //
-// stepIndex is lifted to DiscoverV5Body so that "Tweak inputs" from
+// stepIndex is lifted to DiscoverBody so that "Tweak inputs" from
 // Stage 3 returns straight to the summary view (all 4 chips visible)
 // rather than re-asking from step 0.
 function StageNightStacked({ stepIndex, setStepIndex, time, setTime, who, setWho, energy, setEnergy, intention, setIntention, onNext, onBack, blendHex }) {
@@ -1642,7 +1642,7 @@ async function commitDiscoverPreferences({ userId, intention, time, who, energy 
   }
 }
 
-function DiscoverV5Body() {
+function DiscoverBody() {
   const [stage, setStage]       = useState(0);
   const [selected, setSelected] = useState([]);
   const [time, setTime]         = useState('std');
@@ -1918,7 +1918,7 @@ export default function Discover() {
   )
   return (
     <DiscoverDataProvider>
-      <DiscoverV5Body />
+      <DiscoverBody />
       {handoffOverlayVisible && (
         <motion.div
           aria-hidden="true"

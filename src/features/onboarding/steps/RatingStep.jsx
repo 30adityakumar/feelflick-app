@@ -118,14 +118,14 @@ export default function RatingStep({ favoriteMovies, ratings, onRate, onBack, on
           {allRated ? (
             <>
               Nice — all{' '}
-              <em className="bg-linear-to-r from-purple-500 to-pink-500 bg-clip-text not-italic italic text-transparent">
+              <em className="bg-linear-to-r from-purple-500 to-pink-500 bg-clip-text italic text-transparent">
                 rated.
               </em>
             </>
           ) : (
             <>
               How did this one{' '}
-              <em className="bg-linear-to-r from-purple-500 to-pink-500 bg-clip-text not-italic italic text-transparent">
+              <em className="bg-linear-to-r from-purple-500 to-pink-500 bg-clip-text italic text-transparent">
                 land?
               </em>
             </>

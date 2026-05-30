@@ -1,5 +1,5 @@
 // src/features/discover/useDiscoverData.jsx
-// FeelFlick — Discover v5 data layer.
+// FeelFlick — Discover data layer.
 //
 // Two live sources replace the prototype's hardcoded arrays:
 //   • FILMS         → top-quality candidates from `movies` (capped at 60),
@@ -191,7 +191,7 @@ function shapeFilm(m) {
     arcPoints: arcPointsFrom(fit),
     twin: null, // populated below if we find a follow who rated this film
     criticLine: null, // no real critic source yet — page hides this section when null
-    // Raw Supabase row preserved for scoreMovieForUser — DiscoverV5 does the
+    // Raw Supabase row preserved for scoreMovieForUser — Discover does the
     // engine call inline because the magazine flow applies UI-driven
     // intention/energy modifiers on top of the engine score.
     _raw: m,
@@ -203,7 +203,7 @@ function shapeFilm(m) {
 const INITIAL = {
   films: [],
   diaryQuotes: {},
-  profile: null, // computeUserProfile(userId) result — DiscoverV5 calls scoreMovieForUser inline
+  profile: null, // computeUserProfile(userId) result — Discover calls scoreMovieForUser inline
   baselineMoods: [], // users.taste_baseline_moods (onboarding mood keys)
   // Learned Stage 2 filter counts (intention/time/who/energy) from
   // user_discover_preferences. Used by predictDiscoverDefaults to blend
@@ -211,7 +211,7 @@ const INITIAL = {
   // the row doesn't exist yet (cold-start user).
   learnedPrefs: null,
   // Recent user_watchlist saves (last 90d) with director + genre metadata.
-  // Used by DiscoverV5 allResults to add a saveBoost — films sharing a
+  // Used by Discover allResults to add a saveBoost — films sharing a
   // director or genre with the user's saved films get a small score
   // bonus, so the engine actually rewards positive signals not just
   // demotes negative ones. {director, genre, moodTags}[].
@@ -400,11 +400,11 @@ export function DiscoverDataProvider({ children }) {
                 .maybeSingle()
             : Promise.resolve({ data: null }),
           // Recent watchlist saves (last 90d) — used as a POSITIVE signal
-          // by DiscoverV5 allResults. Films matching the director or
+          // by Discover allResults. Films matching the director or
           // primary_genre of these saves get a saveBoost in scoring.
           // Joined to movies for the metadata we need without extra
           // round-trips. Limited to 50 most recent saves so the .map()
-          // / Set construction in DiscoverV5 stays O(50) per render.
+          // / Set construction in Discover stays O(50) per render.
           userId
             ? supabase
                 .from('user_watchlist')
@@ -582,7 +582,7 @@ export function DiscoverDataProvider({ children }) {
         const diaryQuotes = { ...FALLBACK_DIARY, ...diaryByAxis }
 
         // baselineMoods: array of onboarding mood keys (cozy/wired/tender/
-        // fun/tense/mythic). DiscoverV5Body maps these into Discover's
+        // fun/tense/mythic). DiscoverBody maps these into Discover's
         // 8-axis vocabulary for first-visit pre-selection. Null when the
         // user hasn't completed Onboarding Step 1 (legacy account).
         const baselineMoods = Array.isArray(userRowRes?.data?.taste_baseline_moods)

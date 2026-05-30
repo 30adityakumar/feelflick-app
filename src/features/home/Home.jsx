@@ -1,10 +1,9 @@
-// FeelFlick — Home v2 (Briefing edition).
-// Mounted at /home-v2 in parallel with /home.
+// FeelFlick — Home (the Briefing edition). Mounted at /home.
 //
-// Drops the internal HPNav (AppShell owns TopNav). All data flows through
-// the HomeDataProvider (live Supabase reads for user/films/recent/DNA/
-// friends/lists). Action handlers write to real tables and navigate to v2
-// surfaces (/movie/:tmdbId, /profile/:userId, /lists/curated/:slug).
+// AppShell owns the global TopNav. All data flows through the HomeDataProvider
+// (live Supabase reads for user/films/recent/DNA/friends/lists). Action handlers
+// write to real tables and navigate to /movie/:tmdbId, /profile/:userId,
+// /lists/curated/:slug.
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
@@ -24,7 +23,7 @@ import {
 import { HomeDataProvider, useHomeData } from './useHomeData'
 import './home.css'
 
-function HomeV2Body() {
+function HomeBody() {
   usePageMeta({ title: 'Home — FeelFlick' })
   const navigate = useNavigate()
   const location = useLocation()
@@ -150,7 +149,7 @@ function HomeV2Body() {
   }, [navigate])
 
   return (
-    <div className="ff-home-v2" style={{ minHeight: '100vh', background: HP.bg, color: HP.text, position: 'relative', overflowX: 'hidden' }}>
+    <div className="ff-home" style={{ minHeight: '100vh', background: HP.bg, color: HP.text, position: 'relative', overflowX: 'hidden' }}>
       {/* Mood-tuned ambient gradient — reactive */}
       <div aria-hidden style={{
         position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0,
@@ -208,7 +207,7 @@ function HomeV2Body() {
 export default function Home() {
   return (
     <HomeDataProvider>
-      <HomeV2Body />
+      <HomeBody />
     </HomeDataProvider>
   )
 }

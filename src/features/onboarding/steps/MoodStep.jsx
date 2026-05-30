@@ -31,7 +31,7 @@ export default function MoodStep({ moods, setMoods, onNext, firstName }) {
           style={{ textWrap: 'balance' }}
         >
           The vibe you{' '}
-          <em className="not-italic bg-linear-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent italic">
+          <em className="bg-linear-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent italic">
             live in.
           </em>
         </h2>

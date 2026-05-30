@@ -1,4 +1,4 @@
-// FeelFlick — Home v2 static design tokens.
+// FeelFlick — Home static design tokens.
 // All runtime data (films, moods.pool, recent, DNA, friends, lists, user counts)
 // now lives in useHomeData.jsx. This file only owns visual tokens + the static
 // MOOD metadata (id/label/hex/tint).

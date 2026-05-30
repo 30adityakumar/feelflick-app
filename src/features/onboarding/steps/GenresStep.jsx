@@ -59,7 +59,7 @@ export default function GenresStep({ selectedGenres, toggleGenre, onBack, onNext
           style={{ textWrap: 'balance' }}
         >
           Which{' '}
-          <em className="not-italic bg-linear-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent italic">
+          <em className="bg-linear-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent italic">
             territories
           </em>
           {' '}do you live in?

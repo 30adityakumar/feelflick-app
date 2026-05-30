@@ -1,4 +1,4 @@
-// FeelFlick — Home v2 atoms / primitives.
+// FeelFlick — Home atoms / primitives.
 // SmartImg now takes a film object (not a key) since runtime films come
 // from useHomeData. HPNav is removed — AppShell owns the global TopNav.
 

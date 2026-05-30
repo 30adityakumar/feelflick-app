@@ -1,11 +1,12 @@
 // src/features/onboarding/Onboarding.jsx
 // FeelFlick — Onboarding V2 (mood-reactive). Mounted at /onboarding.
 //
-// Flow (4 steps, NO step 5 — lands on /home directly):
-//   1. Mood baseline   (NEW)
-//   2. Genres          (restyled)
-//   3. Films           (legacy step, reused)
-//   4. Quick rate      (restyled) → completeOnboarding → /home
+// Flow (4 steps): on completion the FIRST landing is /discover — cold-start, since
+// /home needs watch history to feel personal; returning users route to /home.
+//   1. Mood baseline
+//   2. Genres
+//   3. Films
+//   4. Quick rate → completeOnboarding → /discover
 //
 // Auth + completion logic mirrors the legacy Onboarding.jsx exactly so existing Supabase
 // metadata + PostAuthGate continue to work.
@@ -17,6 +18,7 @@ import { Sparkles } from 'lucide-react'
 
 import { supabase } from '@/shared/lib/supabase/client'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
+import { deriveOnboardingStatus } from '@/shared/lib/auth/onboardingStatus'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { tmdbImg } from '@/shared/api/tmdb'
 import { completeOnboarding, markOnboardingAuthComplete } from '@/shared/services/onboarding'
@@ -57,7 +59,7 @@ export default function Onboarding() {
 
   const [checking, setChecking] = useState(true)
   const [celebrate, setCelebrate] = useState(false)
-  // Drives the celebration → /home exit animation. When flipped to true, the
+  // Drives the celebration → /discover exit animation. When flipped to true, the
   // celebration content fades to opacity 0; the black backdrop remains until
   // navigate fires. Smooths what was previously a hard cut.
   const [fadingOut, setFadingOut] = useState(false)
@@ -94,8 +96,7 @@ export default function Onboarding() {
 
     ;(async () => {
       try {
-        const meta = session.user.user_metadata || {}
-        if (meta.onboarding_complete || meta.has_onboarded || meta.onboarded) {
+        if (deriveOnboardingStatus(session.user).isComplete) {
           navigate('/home', { replace: true })
           return
         }
@@ -251,7 +252,7 @@ export default function Onboarding() {
     return <BrandSplash />
   }
 
-  // Celebration → /home. Staggered reveals double as cover for the Supabase
+  // Celebration → /discover. Staggered reveals double as cover for the Supabase
   // writes happening underneath (~1-3s) so the wait feels intentional.
   if (celebrate) {
     return (
@@ -616,7 +617,7 @@ function CelebrationReveal({ moods, selectedGenres, favoriteMovies, ratings, fad
             style={{ textWrap: 'balance', letterSpacing: '-0.02em' }}
           >
             Tonight is{' '}
-            <em className="bg-linear-to-r from-purple-400 to-pink-400 bg-clip-text not-italic italic text-transparent">
+            <em className="bg-linear-to-r from-purple-400 to-pink-400 bg-clip-text italic text-transparent">
               yours.
             </em>
           </h1>

@@ -1,4 +1,4 @@
-// Home v2 — bottom sections, wired to useHomeData.
+// Home — bottom sections, wired to useHomeData.
 // All hardcoded RECENT / CONTINUE / DNA / FRIENDS / LISTS imports gone.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'

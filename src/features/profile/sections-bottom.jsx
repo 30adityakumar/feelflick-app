@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toPng } from 'html-to-image'
 import { HP, HP_GRAD, USER as USER_DEFAULT, SKEWS, YIR } from './data'
+import { ActionButton, SecondaryActionButton } from '@/shared/components/ActionButton'
 import { useProfileData } from './useProfileData'
 
 // FeelFlick — /profile · Directors, Motifs, Trajectory, Decades+Runtime, Mixtape, Skews, Friends, Share card, Footer.
@@ -455,19 +456,17 @@ function ShareCard() {
             A 1080×1920 image you can drop straight into Instagram, X, or wherever. Updates every time your DNA shifts.
           </p>
           <div style={{ marginTop:24, display:'flex', gap:10 }}>
-            <button
-              type="button"
+            <ActionButton
               onClick={handleDownload}
               disabled={exporting}
               aria-live="polite"
-              style={{ padding:'12px 22px', borderRadius:6, background:HP_GRAD, border:'none', color:'#fff', fontFamily:'Outfit', fontSize:13, fontWeight:600, letterSpacing:'0.02em', cursor: exporting ? 'wait' : 'pointer', opacity: exporting ? 0.7 : 1, boxShadow:'0 12px 28px -8px rgba(236,72,153,0.45)' }}
-            >{exporting ? 'Exporting…' : 'Download PNG'}</button>
-            <button
-              type="button"
+              style={exporting ? { cursor:'wait', opacity:0.7 } : undefined}
+            >{exporting ? 'Exporting…' : 'Download PNG'}</ActionButton>
+            <SecondaryActionButton
               onClick={handleCopy}
               aria-live="polite"
-              style={{ padding:'12px 22px', borderRadius:6, background:'rgba(255,255,255,0.06)', border:`1px solid ${HP.borderStrong}`, color:HP.textSoft, fontFamily:'Outfit', fontSize:13, fontWeight:600, cursor:'pointer' }}
-            >{copied ? 'Copied ✓' : 'Copy link'}</button>
+              label={copied ? 'Copied ✓' : 'Copy link'}
+            />
           </div>
         </div>
         {/* Story-shape preview — this is the exact node toPng captures

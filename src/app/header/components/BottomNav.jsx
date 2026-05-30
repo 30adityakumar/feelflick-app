@@ -11,15 +11,12 @@ const AMBIENT_HEX = '#A78BFA'
 const PINK = '#EC4899'
 const GRAD = 'linear-gradient(135deg, #9333ea 0%, #ec4899 100%)'
 
-// Account points to /mobile-account (mobile-optimised). The active-state
-// match also accepts /account so the tab lights up when a user lands on
-// the desktop variant via a link / direct nav.
 const TABS = [
-  { id: 'home',     label: 'Home',     path: '/home',           match: ['/home'],                       Icon: Home         },
-  { id: 'browse',   label: 'Browse',   path: '/browse',         match: ['/browse'],                     Icon: LayoutGrid   },
-  { id: 'discover', label: 'Discover', path: '/discover',       match: ['/discover'],                   Icon: Sparkles, hero: true },
-  { id: 'dna',      label: 'DNA',      path: '/profile',        match: ['/profile'],                    Icon: Fingerprint  },
-  { id: 'account',  label: 'Account',  path: '/mobile-account', match: ['/mobile-account', '/account'], Icon: User         },
+  { id: 'home',     label: 'Home',     path: '/home',     match: ['/home'],     Icon: Home         },
+  { id: 'browse',   label: 'Browse',   path: '/browse',   match: ['/browse'],   Icon: LayoutGrid   },
+  { id: 'discover', label: 'Discover', path: '/discover', match: ['/discover'], Icon: Sparkles, hero: true },
+  { id: 'dna',      label: 'DNA',      path: '/profile',  match: ['/profile'],  Icon: Fingerprint  },
+  { id: 'account',  label: 'Account',  path: '/account',  match: ['/account'],  Icon: User         },
 ]
 
 /**

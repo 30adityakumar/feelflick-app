@@ -1,10 +1,8 @@
 // FeelFlick — Browse page entry. Mount at /browse.
 //
-// Wires the /browse v5 visual surface to real Supabase data, mirroring the
-// legacy MoviesTab (/browse-legacy) data path: URL-driven state, browseMovies
-// fetch with pagination, user_history + user_watchlist for the watched /
-// saved badges, and live toggles that persist to Supabase. The legacy file
-// stays mounted at /browse-legacy for rollback safety.
+// Wires the /browse visual surface to real Supabase data: URL-driven state,
+// browseMovies fetch with pagination, user_history + user_watchlist for the
+// watched / saved badges, and live toggles that persist to Supabase.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'

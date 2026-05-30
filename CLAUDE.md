@@ -56,25 +56,25 @@ src/
 │   ├── lib/              # pure utils, supabase client, curatedLists, format/
 │   ├── components/       # domain widgets (StarRating, FollowButton, Pagination…)
 │   └── ui/               # low-level primitives (Button, Modal, Input, EmptyState…)
-├── legacy/               # ALL v1 — quarantined, frozen, reachable via *-legacy routes
-│   ├── homepage/  movie-detail/  discover/  profile/  lists/
-│   ├── watchlist/  watched/  people/  movies/  browse-curated/
-│   ├── account/  preferences/  header/   # legacy header account/prefs panels
-│   └── landing/          # archived v2 landing at /v2 (rollback-only)
+├── legacy/               # archived v2 landing ONLY — served at /v2 for rollback
+│   └── landing/          # the rest of v1 was removed once its *-legacy routes proved unused
 ├── styles/  assets/      # global CSS + static assets
 └── test/                 # Vitest helpers, fixtures, setup
 ```
 
-> **`legacy/` is frozen.** Everything under it is the original v1, kept only so the
-> `*-legacy` routes (and `/v2`) still resolve for rollback/comparison. Never extend it,
-> never import *from* it into a `features/` surface, and never import a `features/` surface
-> *into* it. It's slated for deletion in a follow-up once those routes are confirmed unused.
+> **`legacy/` is now just the archived v2 landing** (served at `/v2` for a final
+> rollback window). All the other v1 surfaces + their `*-legacy` route twins were
+> removed once analytics + a no-internal-links check confirmed they were unused
+> (tag `legacy-removal-base` marks the last commit that had them). Don't extend
+> `legacy/`; don't import from it into a `features/` surface. `/v2` is the next
+> deletion candidate.
 >
 > **No version suffixes.** The old `*-v2`/`*-v5` folder names were dropped in the
 > repo-structure refactor (onboarding led the way in #77). A feature folder is a plain
 > lowercase domain noun (`home`, not `home-v2`); the entry component matches it
-> (`features/home/Home.jsx`). `router.jsx` keeps `…V2` *local const* names only to
-> disambiguate a current surface from its still-present legacy twin — that's deliberate.
+> (`features/home/Home.jsx`). `router.jsx` still has `…V2` *local const* names (HomeV2,
+> AccountV2, …) — a harmless leftover from when legacy twins existed; they can be
+> de-suffixed now that the twins are gone.
 >
 > **`components/` vs `shared/components/`:** `components/` is app-wide canonical UI
 > (carousel, layout chrome, toasts); `shared/components/` is reusable *domain* widgets
@@ -381,8 +381,8 @@ Already wired across `/home`, `/movie/:id`, `/discover`, `/account`, `/preferenc
 - ❌ Don't use `text-neutral-*` / `text-gray-*` — use `text-white/*`.
 - ❌ Don't use page/section spinners — `animate-pulse` skeletons only.
   (In-button micro-spinners inside Button.jsx are the documented exception.)
-- ❌ Don't navigate to v1 legacy routes from a current feature surface (`/movie-legacy/:id` →
-  use `/movie/:id`; `/profile-legacy/:id` → use `/profile/:id`; etc.).
+- ❌ Don't reference the removed `*-legacy` routes (`/movie-legacy`, `/profile-legacy`, …) —
+  they were deleted with the v1 surfaces; use the canonical routes (`/movie/:id`, `/profile`, …).
 - ❌ Don't fabricate content to fill an empty section. `return null`.
 
 ## Shared UI primitives
@@ -526,6 +526,9 @@ blocks). It enforces the `lint → test → build` discipline automatically.
 - Repo-structure refactor: dropped all `*-v2`/`*-v5` suffixes, quarantined v1 into
   `src/legacy/`, decoupled the archived landing, and consolidated `contexts/` → `app/providers/`.
   The feature surfaces are the canonical direction (#79). See the Folder Map above.
+- Legacy v1 removal: deleted the 11 quarantined v1 surfaces + their `*-legacy` route
+  twins (`/movies` + `/trending` now redirect to `/browse`; mobile BottomNav Account →
+  `/account`). Only the archived v2 landing (`/v2`) remains. Rollback: tag `legacy-removal-base`.
 - Spinner → skeleton migration started (#66) — `router.jsx` and auth splashes done.
 - Sentry wired in `main.jsx` + `ErrorBoundary.jsx` (#67).
 - Edge function CORS hardened (#81, #82).

@@ -4,7 +4,6 @@ Allow: /
 # Disallow authenticated/private routes
 Disallow: /admin
 Disallow: /onboarding
-Disallow: /dev
 
 # Allow movie pages explicitly (for clarity)
 Allow: /movie/

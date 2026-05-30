@@ -22,7 +22,10 @@ Sentry.init({
   integrations: [
     Sentry.browserTracingIntegration(),
     Sentry.replayIntegration({
-      maskAllText: false,
+      // Privacy-first: mask all text in session replays so user input (search
+      // queries, names, emails) never leaves the browser. Media (movie posters)
+      // isn't sensitive, so keep it visible for debugging context.
+      maskAllText: true,
       blockAllMedia: false,
     }),
   ],

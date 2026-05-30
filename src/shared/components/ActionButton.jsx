@@ -38,6 +38,32 @@ export function ActionButton({ className = '', style, children, ...props }) {
   )
 }
 
+/**
+ * Canonical gradient micro-CTA chip — the small uppercase "Open shelf →" /
+ * "Back to shelves →" pill used across the lists surfaces. Gradient, Outfit 11,
+ * radius-6, uppercase with wide tracking. The compact sibling of <ActionButton>
+ * (full-size primary) — same brand DNA, chip scale.
+ *
+ * @param {object} props  Standard <button> props; `style` merges over the look.
+ */
+export function ChipButton({ className = '', style, children, ...props }) {
+  return (
+    <button
+      type="button"
+      className={`${BASE} rounded-md ${className}`.trim()}
+      style={{
+        background: HP_GRAD, border: 'none', color: '#fff',
+        fontFamily: 'Outfit', fontSize: 11, fontWeight: 600, letterSpacing: '0.06em',
+        textTransform: 'uppercase', padding: '10px 18px', cursor: 'pointer',
+        ...style,
+      }}
+      {...props}
+    >
+      {children}
+    </button>
+  )
+}
+
 export function SecondaryActionButton({
   active,
   loading = false,

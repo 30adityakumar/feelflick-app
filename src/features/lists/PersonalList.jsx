@@ -21,6 +21,7 @@ import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { MOVIE_ENGINE_COLS } from '@/shared/services/movieFields'
 import { computeUserProfile, rankSlotCandidates } from '@/shared/services/recommendations'
 import { applyAllExclusions, applyExclusionsNoLanguage } from '@/shared/services/exclusions'
+import { ChipButton } from '@/shared/components/ActionButton'
 import './lists.css'
 
 // Mirrors the home-card recency floor — pre-1990 stays hidden unless the
@@ -507,13 +508,9 @@ function NotFound({ onBack }) {
       <div style={{ textAlign: 'center', maxWidth: 520 }}>
         <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: HP.purple, marginBottom: 18 }}>For you · 404</div>
         <h1 style={{ fontFamily: 'Outfit', fontSize: 40, fontWeight: 500, color: HP.text, margin: '0 0 18px 0', letterSpacing: '-0.025em' }}>This list isn&rsquo;t available.</h1>
-        <button
-          type="button"
-          onClick={onBack}
-          style={{ padding: '10px 18px', borderRadius: 6, background: HP_GRAD, border: 'none', color: '#fff', fontFamily: 'Outfit', fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}
-        >
+        <ChipButton onClick={onBack}>
           Back to lists →
-        </button>
+        </ChipButton>
       </div>
     </div>
   )

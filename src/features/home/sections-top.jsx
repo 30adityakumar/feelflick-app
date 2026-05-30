@@ -43,7 +43,7 @@ export function MoodReactor({ currentMood, setMood, onReshuffle }) {
         </div>
         <div
           ref={pillsRef}
-          className="-mx-1 flex w-full min-w-0 gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:w-auto sm:flex-1 sm:flex-wrap sm:justify-end sm:gap-2.5 sm:overflow-visible sm:pb-0"
+          className="-mx-1 flex w-full min-w-0 gap-2 overflow-x-auto pb-1 scrollbar-none [&::-webkit-scrollbar]:hidden sm:mx-0 sm:w-auto sm:flex-1 sm:flex-wrap sm:justify-end sm:gap-2.5 sm:overflow-visible sm:pb-0"
         >
         {MOOD_META.map(m => {
           const active = m.id === currentMood.id
@@ -78,7 +78,7 @@ export function MoodReactor({ currentMood, setMood, onReshuffle }) {
             onClick={onReshuffle}
             aria-label="Reshuffle picks"
             title="Reshuffle"
-            className="flex flex-none items-center justify-center rounded-full border border-white/10 transition-all duration-200 hover:border-white/25 hover:bg-white/[0.06] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+            className="flex flex-none items-center justify-center rounded-full border border-white/10 transition-all duration-200 hover:border-white/25 hover:bg-white/6 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
             style={{ width: 32, height: 32, color: HP.textMuted, marginLeft: 4 }}
           >
             <RefreshCw className="h-3.5 w-3.5" />
@@ -278,7 +278,7 @@ function StreamingChip({ provider }) {
     : 'Buy on'
   return (
     <div
-      className="inline-flex items-center gap-2.5 rounded-lg border border-white/[0.07] bg-white/[0.04] px-2.5 py-1.5"
+      className="inline-flex items-center gap-2.5 rounded-lg border border-white/[0.07] bg-white/4 px-2.5 py-1.5"
       style={{ maxWidth: '100%' }}
     >
       <img
@@ -610,7 +610,7 @@ export function TheBriefing({ currentMood, shuffleSeed = 0, user, onWatch, onSki
           <button
             type="button"
             onClick={clearHidden}
-            className="group inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.06] px-4 py-2.5 text-xs font-semibold text-white backdrop-blur-sm transition-all duration-300 hover:scale-[1.02] hover:border-white/25 hover:bg-white/[0.12] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+            className="group inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/6 px-4 py-2.5 text-xs font-semibold text-white backdrop-blur-sm transition-all duration-300 hover:scale-[1.02] hover:border-white/25 hover:bg-white/12 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
             style={{ fontFamily: 'Outfit', letterSpacing: '0.02em' }}
           >
             Show all again

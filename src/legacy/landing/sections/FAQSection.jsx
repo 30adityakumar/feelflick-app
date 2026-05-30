@@ -73,7 +73,7 @@ function AccordionItem({ item, isOpen, onToggle }) {
 
         {/* + / − toggle */}
         <span
-          className="flex-shrink-0 w-5 h-5 lg:w-6 lg:h-6 flex items-center justify-center rounded-full border transition-all duration-200 text-sm font-light select-none"
+          className="shrink-0 w-5 h-5 lg:w-6 lg:h-6 flex items-center justify-center rounded-full border transition-all duration-200 text-sm font-light select-none"
           style={isOpen ? {
             borderColor: 'rgba(168,85,247,0.50)',
             color: 'rgba(216,180,254,1)',
@@ -107,7 +107,7 @@ function AccordionItem({ item, isOpen, onToggle }) {
               className="flex gap-4 pb-5"
             >
               <div
-                className="flex-shrink-0 w-0.5 rounded-full self-stretch"
+                className="shrink-0 w-0.5 rounded-full self-stretch"
                 style={{ background: 'linear-gradient(180deg, rgba(168,85,247,0.50) 0%, rgba(168,85,247,0.05) 100%)' }}
                 aria-hidden="true"
               />
@@ -175,7 +175,7 @@ export default function FAQSection() {
         <div className="flex flex-col lg:flex-row lg:gap-14">
 
           {/* ── LEFT: HEADING (sticky on desktop) ──────────────────────── */}
-          <div className="lg:w-[38%] flex-shrink-0 mb-10 lg:mb-0">
+          <div className="lg:w-[38%] shrink-0 mb-10 lg:mb-0">
             <div className="lg:sticky lg:top-28">
 
               <motion.p

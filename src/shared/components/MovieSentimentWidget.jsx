@@ -13,7 +13,7 @@ const SENTIMENTS = [
     value: 'loved',
     label: 'Loved it',
     icon: Heart,
-    activeClass: 'bg-gradient-to-br from-purple-500/30 to-pink-500/20 border-purple-400/70',
+    activeClass: 'bg-linear-to-br from-purple-500/30 to-pink-500/20 border-purple-400/70',
     iconClass: 'text-pink-400',
   },
   {
@@ -184,7 +184,7 @@ export default function MovieSentimentWidget({
       <div className="relative z-10 w-full sm:max-w-lg bg-black border border-white/8 sm:rounded-2xl shadow-2xl overflow-hidden">
 
         {/* Header */}
-        <div className="relative h-28 overflow-hidden flex-shrink-0">
+        <div className="relative h-28 overflow-hidden shrink-0">
           {movie?.backdrop_path && (
             <img
               src={`https://image.tmdb.org/t/p/w780${movie.backdrop_path}`}
@@ -192,7 +192,7 @@ export default function MovieSentimentWidget({
               className="w-full h-full object-cover"
             />
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/55 to-black/30" />
+          <div className="absolute inset-0 bg-linear-to-t from-black via-black/55 to-black/30" />
           <button
             onClick={onClose}
             className="absolute top-3 right-3 h-8 w-8 rounded-full bg-black/50 border border-white/10 hover:bg-black/70 backdrop-blur flex items-center justify-center transition-colors"
@@ -212,7 +212,7 @@ export default function MovieSentimentWidget({
         <div className="p-5 space-y-5 overflow-y-auto" style={{ maxHeight: '68vh' }}>
           {submitted ? (
             <div className="py-10 text-center space-y-3">
-              <div className="inline-flex h-14 w-14 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/10 border border-purple-500/20 items-center justify-center">
+              <div className="inline-flex h-14 w-14 rounded-2xl bg-linear-to-br from-purple-500/20 to-pink-500/10 border border-purple-500/20 items-center justify-center">
                 <Check className="h-7 w-7 text-purple-400" />
               </div>
               <h3 className="text-lg font-bold text-white">Saved!</h3>
@@ -247,7 +247,7 @@ export default function MovieSentimentWidget({
                   onChange={e => setReviewText(e.target.value.slice(0, REVIEW_MAX))}
                   placeholder="What did you think? Any thoughts worth remembering…"
                   rows={3}
-                  className="w-full bg-white/[0.03] border border-white/8 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 resize-none focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/10 transition-all"
+                  className="w-full bg-white/3 border border-white/8 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 resize-none focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/10 transition-all"
                 />
               </div>
 
@@ -266,7 +266,7 @@ export default function MovieSentimentWidget({
                   onChange={e => setReflectionText(e.target.value.slice(0, 300))}
                   placeholder="Your thoughts…"
                   rows={2}
-                  className="w-full resize-none rounded-xl border border-white/8 bg-white/[0.03] px-4 py-3 text-sm text-white placeholder-white/20 focus:border-purple-500/40 focus:outline-none focus:ring-2 focus:ring-purple-500/10 transition-all"
+                  className="w-full resize-none rounded-xl border border-white/8 bg-white/3 px-4 py-3 text-sm text-white placeholder-white/20 focus:border-purple-500/40 focus:outline-none focus:ring-2 focus:ring-purple-500/10 transition-all"
                 />
               </div>
 
@@ -286,7 +286,7 @@ export default function MovieSentimentWidget({
                         className={`flex flex-col items-center gap-1.5 py-3 rounded-xl border-2 transition-all active:scale-95 ${
                           isSelected
                             ? `${s.activeClass} scale-[1.04]`
-                            : 'bg-white/[0.03] border-white/8 hover:bg-white/6 hover:border-white/20'
+                            : 'bg-white/3 border-white/8 hover:bg-white/6 hover:border-white/20'
                         }`}
                       >
                         <Icon className={`h-5 w-5 ${isSelected ? s.iconClass : 'text-white/40'}`} />
@@ -314,7 +314,7 @@ export default function MovieSentimentWidget({
                         className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all active:scale-95 ${
                           isSelected
                             ? 'bg-purple-500/20 border-purple-500/50 text-purple-300'
-                            : 'bg-white/[0.03] border-white/8 text-white/40 hover:bg-white/6 hover:border-white/20 hover:text-white/65'
+                            : 'bg-white/3 border-white/8 text-white/40 hover:bg-white/6 hover:border-white/20 hover:text-white/65'
                         }`}
                       >
                         {tag.label}
@@ -339,7 +339,7 @@ export default function MovieSentimentWidget({
                         className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all active:scale-95 ${
                           isSelected
                             ? 'bg-pink-500/20 border-pink-500/40 text-pink-300'
-                            : 'bg-white/[0.03] border-white/8 text-white/40 hover:bg-white/6 hover:border-white/20 hover:text-white/65'
+                            : 'bg-white/3 border-white/8 text-white/40 hover:bg-white/6 hover:border-white/20 hover:text-white/65'
                         }`}
                       >
                         {tag.label}
@@ -352,7 +352,7 @@ export default function MovieSentimentWidget({
               {/* Error */}
               {error && (
                 <div className="flex items-center gap-2 text-xs text-red-400 bg-red-500/8 border border-red-500/15 rounded-xl px-3 py-2.5">
-                  <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                  <AlertCircle className="h-3.5 w-3.5 shrink-0" />
                   {error}
                 </div>
               )}
@@ -361,7 +361,7 @@ export default function MovieSentimentWidget({
               <button
                 onClick={handleSubmit}
                 disabled={!canSubmit}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-bold shadow-lg shadow-purple-500/20 hover:from-purple-400 hover:to-pink-400 disabled:opacity-35 disabled:cursor-not-allowed transition-all active:scale-[0.98]"
+                className="w-full py-3 rounded-xl bg-linear-to-r from-purple-500 to-pink-500 text-white text-sm font-bold shadow-lg shadow-purple-500/20 hover:from-purple-400 hover:to-pink-400 disabled:opacity-35 disabled:cursor-not-allowed transition-all active:scale-[0.98]"
               >
                 {submitting ? 'Saving…' : (initialRating > 0 || initialSentiment) ? 'Update your take' : 'Save your take'}
               </button>

@@ -12,7 +12,7 @@ export default function TasteStrip({ moods, genres, films, ratings }) {
   return (
     <div className="flex-none px-5 pt-2 sm:px-6 flex items-center gap-2 text-[10px] uppercase tracking-[0.08em] text-white/40">
       <span>Profile building</span>
-      <span className="flex-1 h-px bg-gradient-to-r from-purple-500/30 to-transparent" />
+      <span className="flex-1 h-px bg-linear-to-r from-purple-500/30 to-transparent" />
       {m > 0 && <span className="text-purple-300/85">{m} mood{m === 1 ? '' : 's'}</span>}
       {g > 0 && <span className="text-purple-300/85">· {g} genre{g === 1 ? '' : 's'}</span>}
       {f > 0 && <span className="text-pink-300/85">· {f} film{f === 1 ? '' : 's'}</span>}

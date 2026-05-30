@@ -252,14 +252,14 @@ function MovieCard({ movie, isSelected, onClick }) {
       onClick={onClick}
       aria-pressed={isSelected}
       aria-label={`${isSelected ? 'Remove' : 'Select'} ${movie.title}`}
-      className="flex-shrink-0 w-28 sm:w-32 md:w-36 flex flex-col gap-1.5 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-lg group"
+      className="shrink-0 w-28 sm:w-32 md:w-36 flex flex-col gap-1.5 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-lg group"
     >
-      <div className={`relative aspect-[2/3] w-full rounded-lg overflow-hidden transition-shadow duration-200 ${
+      <div className={`relative aspect-2/3 w-full rounded-lg overflow-hidden transition-shadow duration-200 ${
         isSelected
           ? 'ring-2 ring-purple-400 shadow-[0_0_16px_rgba(168,85,247,0.4)]'
-          : 'ring-1 ring-white/[0.06] group-hover:ring-white/20'
+          : 'ring-1 ring-white/6 group-hover:ring-white/20'
       }`}>
-        {!loaded && <div className="absolute inset-0 animate-pulse bg-white/[0.04]" />}
+        {!loaded && <div className="absolute inset-0 animate-pulse bg-white/4" />}
         <img
           src={tmdbImg(movie.poster_path, 'w342')}
           alt={movie.title}
@@ -272,7 +272,7 @@ function MovieCard({ movie, isSelected, onClick }) {
         {isSelected && <div className="absolute inset-0 bg-purple-600/15" />}
         {isSelected && (
           <div className="absolute top-1.5 right-1.5 h-5 w-5 rounded-full bg-purple-500 flex items-center justify-center shadow">
-            <Check className="h-3 w-3 text-white stroke-[3]" />
+            <Check className="h-3 w-3 text-white stroke-3" />
           </div>
         )}
       </div>
@@ -294,12 +294,12 @@ function CardSkeletonRow() {
   return (
     <div className="flex gap-3 sm:gap-4 overflow-x-hidden">
       {Array.from({ length: 5 }).map((_, i) => (
-        <div key={i} className="flex-shrink-0 w-28 sm:w-32 md:w-36 flex flex-col gap-1.5">
+        <div key={i} className="shrink-0 w-28 sm:w-32 md:w-36 flex flex-col gap-1.5">
           <div
-            className="aspect-[2/3] rounded-lg bg-white/[0.04] animate-pulse"
+            className="aspect-2/3 rounded-lg bg-white/4 animate-pulse"
             style={{ animationDelay: `${i * 60}ms` }}
           />
-          <div className="h-2.5 w-3/4 bg-white/[0.04] rounded animate-pulse" />
+          <div className="h-2.5 w-3/4 bg-white/4 rounded animate-pulse" />
         </div>
       ))}
     </div>
@@ -418,7 +418,7 @@ export default function MoviesStep({
           style={{ textWrap: 'balance' }}
         >
           What have you{' '}
-          <em className="bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text not-italic italic text-transparent">
+          <em className="bg-linear-to-r from-purple-500 to-pink-500 bg-clip-text not-italic italic text-transparent">
             loved?
           </em>
         </h2>
@@ -460,7 +460,7 @@ export default function MoviesStep({
             ) : results.length === 0 ? (
               <p className="px-4 py-3 text-sm text-white/30">No results — try a different title</p>
             ) : (
-              <div className="max-h-60 overflow-y-auto divide-y divide-white/[0.05]">
+              <div className="max-h-60 overflow-y-auto divide-y divide-white/5">
                 {results.map(m => {
                   const yr = m.release_date ? new Date(m.release_date).getFullYear() : null
                   const selected = isMovieSelected(m.id)
@@ -469,19 +469,19 @@ export default function MoviesStep({
                       key={m.id}
                       type="button"
                       onClick={() => handleSelectFromSearch(m)}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/[0.06] text-left transition-colors"
+                      className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/6 text-left transition-colors"
                     >
                       <img
                         src={tmdbImg(m.poster_path, 'w92')}
                         alt=""
-                        className="w-8 h-12 rounded object-cover flex-shrink-0 bg-white/[0.04]"
+                        className="w-8 h-12 rounded object-cover shrink-0 bg-white/4"
                       />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-white truncate">{m.title}</p>
                         {yr && <p className="text-xs text-white/40">{yr}</p>}
                       </div>
                       {selected && (
-                        <Check className="flex-shrink-0 h-4 w-4 text-purple-400" />
+                        <Check className="shrink-0 h-4 w-4 text-purple-400" />
                       )}
                     </button>
                   )
@@ -512,7 +512,7 @@ export default function MoviesStep({
               All suggestions added — search for more above
             </p>
           ) : (
-            <div className="flex gap-3 sm:gap-4 overflow-x-auto py-2 px-1 -mx-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory">
+            <div className="flex gap-3 sm:gap-4 overflow-x-auto py-2 px-1 -mx-1 [-ms-overflow-style:none] scrollbar-none [&::-webkit-scrollbar]:hidden snap-x snap-mandatory">
               {suggestions.map(m => (
                 <MovieCard
                   key={m.id}
@@ -531,7 +531,7 @@ export default function MoviesStep({
             <p className="text-xs font-semibold uppercase tracking-widest text-purple-400/60 mb-3">
               Your picks ({count}/{MIN_MOVIES})
             </p>
-            <div className="flex gap-3 sm:gap-4 overflow-x-auto py-2 px-1 -mx-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory">
+            <div className="flex gap-3 sm:gap-4 overflow-x-auto py-2 px-1 -mx-1 [-ms-overflow-style:none] scrollbar-none [&::-webkit-scrollbar]:hidden snap-x snap-mandatory">
               {favoriteMovies.map(m => (
                 <MovieCard
                   key={m.id}
@@ -546,7 +546,7 @@ export default function MoviesStep({
       </div>
 
       {/* Footer */}
-      <div className="flex-none px-5 pb-6 pt-3 sm:px-6 sm:pb-8 sm:pt-4 border-t border-white/[0.06]">
+      <div className="flex-none px-5 pb-6 pt-3 sm:px-6 sm:pb-8 sm:pt-4 border-t border-white/6">
         <div className="max-w-sm mx-auto flex flex-col items-center gap-3">
           <p className={`text-xs font-medium transition-colors duration-200 ${
             canFinish ? 'text-purple-400' : 'text-white/30'

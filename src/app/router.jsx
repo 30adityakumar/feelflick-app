@@ -97,15 +97,15 @@ function RouteSkeleton() {
       <div className="mx-auto max-w-[1280px] flex flex-col gap-6">
         {/* Eyebrow + title */}
         <div className="flex items-center gap-2.5">
-          <div className="w-[3px] h-5 rounded-full animate-pulse bg-purple-500/[0.12]" />
-          <div className="h-4 w-44 rounded-full animate-pulse bg-white/[0.06]" />
+          <div className="w-[3px] h-5 rounded-full animate-pulse bg-purple-500/12" />
+          <div className="h-4 w-44 rounded-full animate-pulse bg-white/6" />
         </div>
-        <div className="h-12 w-2/3 rounded-lg animate-pulse bg-white/[0.06]" />
-        <div className="h-4 w-1/2 rounded-full animate-pulse bg-white/[0.04]" />
+        <div className="h-12 w-2/3 rounded-lg animate-pulse bg-white/6" />
+        <div className="h-4 w-1/2 rounded-full animate-pulse bg-white/4" />
         {/* Card row placeholder */}
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3 mt-6">
           {[0, 1, 2, 3, 4].map(i => (
-            <div key={i} className="aspect-[2/3] rounded-lg animate-pulse bg-purple-500/[0.04]" />
+            <div key={i} className="aspect-2/3 rounded-lg animate-pulse bg-purple-500/4" />
           ))}
         </div>
       </div>
@@ -130,18 +130,18 @@ function HomeSkeleton() {
           style={{ height: '75vh', minHeight: 500, maxHeight: 800 }}
         >
           {/* Backdrop placeholder */}
-          <div className="absolute inset-0 animate-pulse bg-purple-500/[0.04]" />
+          <div className="absolute inset-0 animate-pulse bg-purple-500/4" />
           {/* Gradient overlays matching the real hero */}
-          <div className="absolute bottom-0 inset-x-0 h-[65%] bg-gradient-to-t from-black via-black/75 to-transparent" />
+          <div className="absolute bottom-0 inset-x-0 h-[65%] bg-linear-to-t from-black via-black/75 to-transparent" />
           {/* Content area skeleton — bottom-anchored like the real hero */}
           <div className="absolute bottom-6 left-4 sm:left-6 lg:left-10 right-4 sm:right-6 lg:right-10 flex flex-col gap-3">
-            <div className="h-3 w-28 rounded-full animate-pulse bg-purple-500/[0.08]" />
-            <div className="h-8 w-2/3 sm:w-1/2 rounded-lg animate-pulse bg-white/[0.06]" />
-            <div className="h-4 w-1/3 rounded-full animate-pulse bg-white/[0.04]" />
+            <div className="h-3 w-28 rounded-full animate-pulse bg-purple-500/8" />
+            <div className="h-8 w-2/3 sm:w-1/2 rounded-lg animate-pulse bg-white/6" />
+            <div className="h-4 w-1/3 rounded-full animate-pulse bg-white/4" />
             <div className="flex gap-2 mt-1">
-              <div className="h-9 w-28 rounded-full animate-pulse bg-purple-500/[0.12]" />
-              <div className="h-9 w-9 rounded-full animate-pulse bg-white/[0.06]" />
-              <div className="h-9 w-9 rounded-full animate-pulse bg-white/[0.06]" />
+              <div className="h-9 w-28 rounded-full animate-pulse bg-purple-500/12" />
+              <div className="h-9 w-9 rounded-full animate-pulse bg-white/6" />
+              <div className="h-9 w-9 rounded-full animate-pulse bg-white/6" />
             </div>
           </div>
         </div>
@@ -153,15 +153,15 @@ function HomeSkeleton() {
             <div key={i} className="px-4 sm:px-6 pt-10 pb-4">
               {/* Section header — matches the global section header pattern */}
               <div className="flex items-center gap-2.5 mb-5">
-                <div className="w-[3px] h-5 rounded-full animate-pulse bg-purple-500/[0.12]" />
-                <div className="h-4 w-44 rounded-full animate-pulse bg-white/[0.06]" />
+                <div className="w-[3px] h-5 rounded-full animate-pulse bg-purple-500/12" />
+                <div className="h-4 w-44 rounded-full animate-pulse bg-white/6" />
               </div>
               {/* Card row — 5 poster-aspect placeholders at standard carousel card width */}
               <div className="flex gap-3 overflow-hidden">
                 {[0, 1, 2, 3, 4].map(j => (
                   <div
                     key={j}
-                    className="flex-none rounded-lg animate-pulse bg-white/[0.04]"
+                    className="flex-none rounded-lg animate-pulse bg-white/4"
                     style={{ width: 148, height: 222 }}
                   />
                 ))}

@@ -11,16 +11,12 @@ updates:
       minor-and-patch:
         update-types: ["minor", "patch"]
     # Defer breaking majors that need a deliberate, tested migration rather than
-    # an auto-merge. Each fails CI as a bare bump and/or rewrites a Hard-Stop
-    # config. Patch/minor still flow; delete an entry when ready to migrate.
-    #   - tailwindcss 4: CSS-first rewrite, rewrites tailwind.config.js (#105)
+    # an auto-merge. Patch/minor still flow; delete an entry when ready to migrate.
     #   - eslint 10: blocked upstream — eslint-plugin-react / jsx-a11y don't yet
     #     declare ESLint 10 peer support (would need repo-wide legacy-peer-deps).
-    # (React 19, web-vitals 5, and Vite 8 + plugin-react 6 were completed
-    #  2026-05-29/30, so they're not here.)
+    # (React 19, web-vitals 5, Vite 8 + plugin-react 6, and Tailwind 4 were all
+    #  completed 2026-05-29/30, so they're not here.)
     ignore:
-      - dependency-name: "tailwindcss"
-        update-types: ["version-update:semver-major"]
       - dependency-name: "eslint"
         update-types: ["version-update:semver-major"]
     labels: ["dependencies"]

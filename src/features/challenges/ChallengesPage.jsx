@@ -23,7 +23,7 @@ function ChallengeBlock({ challenge, userId, onOpen }) {
   }, [challenge, userId])
 
   return (
-    <div className="rounded-2xl border border-white/8 bg-white/[0.02] overflow-hidden">
+    <div className="rounded-2xl border border-white/8 bg-white/2 overflow-hidden">
       <div className="px-6 py-5 border-b border-white/5">
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -40,7 +40,7 @@ function ChallengeBlock({ challenge, userId, onOpen }) {
         {films == null ? (
           <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="aspect-[2/3] rounded-lg bg-white/[0.04] animate-pulse" />
+              <div key={i} className="aspect-2/3 rounded-lg bg-white/4 animate-pulse" />
             ))}
           </div>
         ) : films.length === 0 ? (
@@ -51,9 +51,9 @@ function ChallengeBlock({ challenge, userId, onOpen }) {
               <button
                 key={m.id}
                 onClick={() => onOpen(m.tmdb_id)}
-                className="group text-left rounded-lg overflow-hidden bg-white/[0.02] hover:ring-2 hover:ring-purple-500/40 transition-all"
+                className="group text-left rounded-lg overflow-hidden bg-white/2 hover:ring-2 hover:ring-purple-500/40 transition-all"
               >
-                <div className="relative aspect-[2/3]">
+                <div className="relative aspect-2/3">
                   <img
                     src={`https://image.tmdb.org/t/p/w342${m.poster_path}`}
                     alt={m.title}
@@ -123,11 +123,11 @@ export default function ChallengesPage() {
         {loading ? (
           <div className="space-y-6">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="rounded-2xl border border-white/8 bg-white/[0.02] p-6 animate-pulse h-64" />
+              <div key={i} className="rounded-2xl border border-white/8 bg-white/2 p-6 animate-pulse h-64" />
             ))}
           </div>
         ) : challenges.length === 0 ? (
-          <div className="rounded-2xl border border-white/8 bg-white/[0.02] p-10 text-center">
+          <div className="rounded-2xl border border-white/8 bg-white/2 p-10 text-center">
             <Sparkles className="h-8 w-8 text-purple-400 mx-auto mb-3" />
             <p className="text-lg font-semibold text-white mb-2">You&apos;re well-rounded</p>
             <p className="text-sm text-white/60">

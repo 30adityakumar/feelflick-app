@@ -29,11 +29,11 @@ function CTABlock({ signInWithGoogle, isAuthenticating, align = 'start' }) {
           aria-label={isAuthenticating ? 'Signing in' : 'Get started free with FeelFlick'}
         >
           {isAuthenticating ? (
-            <><Loader2 className="h-4 w-4 flex-shrink-0 animate-spin" aria-hidden="true" /> Signing in…</>
+            <><Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden="true" /> Signing in…</>
           ) : (
             <>
               Get Started Free
-              <LogIn className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+              <LogIn className="h-4 w-4 shrink-0" aria-hidden="true" />
             </>
           )}
         </Button>
@@ -94,7 +94,7 @@ export default function HeroSection() {
         {!prefersReducedMotion && (
           <motion.div
             key={activeMood}
-            className="pointer-events-none absolute inset-0 z-[1]"
+            className="pointer-events-none absolute inset-0 z-1"
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.55 }}
             transition={{ duration: 1.2, ease: 'easeInOut' }}
@@ -107,7 +107,7 @@ export default function HeroSection() {
 
         {/* ── LAYER 3: Bottom ambient glow ─────────────────────────────── */}
         <div
-          className="pointer-events-none absolute inset-0 z-[1]"
+          className="pointer-events-none absolute inset-0 z-1"
           style={{
             background:
               'radial-gradient(ellipse 60% 40% at 50% 110%, rgba(168,85,247,0.18), transparent 65%)',
@@ -117,7 +117,7 @@ export default function HeroSection() {
 
         {/* ── LAYER 4: Nav top fade ────────────────────────────────────── */}
         <div
-          className="pointer-events-none absolute inset-x-0 top-0 z-[3] h-20"
+          className="pointer-events-none absolute inset-x-0 top-0 z-3 h-20"
           style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.75), transparent)' }}
           aria-hidden="true"
         />

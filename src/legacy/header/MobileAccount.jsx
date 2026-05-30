@@ -187,7 +187,7 @@ export default function MobileAccount() {
             {/* Avatar with conic ring — pulse skeleton while user resolves */}
             <div className="relative w-[60px] h-[60px] flex-none">
               <div
-                className="absolute -inset-[3px] rounded-full"
+                className="absolute inset-[-3px] rounded-full"
                 style={{
                   background: `conic-gradient(${AMBIENT_HEX}, #ec4899, ${AMBIENT_HEX})`,
                   opacity: 0.8,
@@ -338,8 +338,8 @@ function Group({ title, items, onNav }) {
         {items.map((it, i) => {
           const Icon = it.icon
           const isFirst = i === 0
-          const rowClass = `flex items-center gap-3.5 w-full px-4 py-3.5 text-left transition-colors hover:bg-white/[0.04] active:bg-white/[0.06] ${
-            isFirst ? '' : 'border-t border-white/[0.06]'
+          const rowClass = `flex items-center gap-3.5 w-full px-4 py-3.5 text-left transition-colors hover:bg-white/4 active:bg-white/6 ${
+            isFirst ? '' : 'border-t border-white/6'
           }`
           const bubble = (
             <div

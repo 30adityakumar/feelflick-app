@@ -36,7 +36,7 @@ report each violation as `severity (error/warning) — file:line — fix`.
 - [ ] ❌ No `text-neutral-*` / `text-gray-*` — use `text-white/<opacity>`.
 - [ ] Brand gradient has ONE source of truth:
       `linear-gradient(135deg, #9333ea 0%, #ec4899 100%)` via
-      `var(--brand-gradient)` or `bg-gradient-to-r from-purple-600 to-pink-500`.
+      `var(--brand-gradient)` or `bg-linear-to-r from-purple-600 to-pink-500`.
       ❌ Never invent per-vibe / per-genre gradients.
 
 ### Hero / display typography

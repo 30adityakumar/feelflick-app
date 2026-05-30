@@ -171,7 +171,7 @@ export const CarouselRow = memo(function CarouselRow({
           className="mb-4 flex items-center gap-3"
           style={{ paddingInline: 'clamp(1rem, 4vw, 3rem)' }}
         >
-          <div className="w-[3px] h-5 rounded-full bg-gradient-to-b from-purple-400 to-pink-500" />
+          <div className="w-[3px] h-5 rounded-full bg-linear-to-b from-purple-400 to-pink-500" />
           <div className="skeleton h-4 w-44 rounded-full" />
         </div>
         <div
@@ -206,17 +206,17 @@ export const CarouselRow = memo(function CarouselRow({
         className="mb-4 flex items-center gap-3"
         style={{ paddingInline: 'clamp(1rem, 4vw, 3rem)' }}
       >
-        <div className="w-[3px] h-5 rounded-full bg-gradient-to-b from-purple-400 to-pink-500" />
+        <div className="w-[3px] h-5 rounded-full bg-linear-to-b from-purple-400 to-pink-500" />
         <h2 className="text-[1.05rem] sm:text-[1.15rem] font-bold text-white tracking-tight whitespace-nowrap">
           {title}
         </h2>
-        <div className="h-px flex-1 bg-gradient-to-r from-purple-400/20 via-white/5 to-transparent" />
+        <div className="h-px flex-1 bg-linear-to-r from-purple-400/20 via-white/5 to-transparent" />
         {onShuffle && (
           <button
             type="button"
             onClick={handleShuffle}
             aria-label="Shuffle this row"
-            className="flex-none flex items-center gap-1 px-2.5 py-1 rounded-full border border-white/[0.08] hover:border-white/20 bg-transparent hover:bg-white/[0.06] text-white/35 hover:text-white/60 text-[0.7rem] font-medium transition-all duration-200 focus:outline-none focus-visible:ring-1 focus-visible:ring-white/30"
+            className="flex-none flex items-center gap-1 px-2.5 py-1 rounded-full border border-white/8 hover:border-white/20 bg-transparent hover:bg-white/6 text-white/35 hover:text-white/60 text-[0.7rem] font-medium transition-all duration-200 focus:outline-none focus-visible:ring-1 focus-visible:ring-white/30"
           >
             <RefreshCw className="h-3 w-3" />
             <span className="hidden sm:inline">Shuffle</span>
@@ -252,7 +252,7 @@ export const CarouselRow = memo(function CarouselRow({
         <div
           ref={scrollRef}
           data-testid="carousel-scroll-region"
-          className="flex snap-x snap-mandatory overflow-x-auto overflow-y-visible scroll-smooth select-none [-ms-overflow-style:none] [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="flex snap-x snap-mandatory overflow-x-auto overflow-y-visible scroll-smooth select-none [-ms-overflow-style:none] [-webkit-overflow-scrolling:touch] scrollbar-none [&::-webkit-scrollbar]:hidden"
           style={{
             gap: ITEM_GAP_PX,
             alignItems: 'flex-start',  // cards take their natural height, no stretch

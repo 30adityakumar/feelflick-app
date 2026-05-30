@@ -15,7 +15,7 @@ export default function MovieSimilar({ title, items }) {
             className="group text-left"
             title={m.title}
           >
-            <div className="aspect-[2/3] overflow-hidden rounded-xl bg-white/5 border border-white/8 mb-2 shadow-md group-hover:-translate-y-0.5 group-hover:shadow-xl group-hover:border-purple-500/20 transition-all duration-200">
+            <div className="aspect-2/3 overflow-hidden rounded-xl bg-white/5 border border-white/8 mb-2 shadow-md group-hover:-translate-y-0.5 group-hover:shadow-xl group-hover:border-purple-500/20 transition-all duration-200">
               {m.poster_path ? (
                 <img
                   src={`https://image.tmdb.org/t/p/w342${m.poster_path}`}

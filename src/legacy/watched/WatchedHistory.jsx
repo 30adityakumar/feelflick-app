@@ -159,8 +159,8 @@ export default function WatchedHistory() {
           <div aria-hidden="true" className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 sm:gap-4">
             {Array.from({ length: 12 }).map((_, i) => (
               <div key={i}>
-                <div className="aspect-[2/3] rounded-xl animate-pulse bg-white/[0.04]" />
-                <div className="hidden md:block h-2 w-14 rounded mt-1.5 animate-pulse bg-white/[0.04]" />
+                <div className="aspect-2/3 rounded-xl animate-pulse bg-white/4" />
+                <div className="hidden md:block h-2 w-14 rounded mt-1.5 animate-pulse bg-white/4" />
               </div>
             ))}
           </div>
@@ -234,7 +234,7 @@ function MovieCard({ entry, removing, onRemove, onClick }) {
       {/* Poster */}
       <button
         onClick={onClick}
-        className="block w-full aspect-[2/3] rounded-xl overflow-hidden bg-white/5 ring-1 ring-white/8 hover:ring-purple-500/35 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-purple-500/12 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+        className="block w-full aspect-2/3 rounded-xl overflow-hidden bg-white/5 ring-1 ring-white/8 hover:ring-purple-500/35 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-purple-500/12 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
       >
         {posterUrl ? (
           <img
@@ -250,7 +250,7 @@ function MovieCard({ entry, removing, onRemove, onClick }) {
         )}
 
         {/* Info overlay — always on mobile, hover on desktop */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200">
+        <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/20 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200">
           <div className="absolute inset-x-0 bottom-0 p-2">
             <p className="text-[11px] font-semibold text-white leading-tight line-clamp-2 mb-1">
               {movie?.title}
@@ -302,7 +302,7 @@ function EmptyState() {
       </p>
       <a
         href="/discover"
-        className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-sm font-semibold text-white shadow-md shadow-purple-500/25 hover:scale-[1.02] active:scale-[0.98] transition-all"
+        className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-linear-to-r from-purple-500 to-pink-500 text-sm font-semibold text-white shadow-md shadow-purple-500/25 hover:scale-[1.02] active:scale-[0.98] transition-all"
       >
         Discover films
       </a>

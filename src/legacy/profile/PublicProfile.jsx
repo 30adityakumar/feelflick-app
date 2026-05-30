@@ -107,25 +107,25 @@ function ProfileSkeleton() {
   return (
     <div className="space-y-8 animate-pulse">
       <div className="flex items-center gap-5">
-        <div className="h-16 w-16 rounded-full bg-purple-500/[0.04] flex-shrink-0" />
+        <div className="h-16 w-16 rounded-full bg-purple-500/4 shrink-0" />
         <div className="space-y-2.5 flex-1">
-          <div className="h-5 w-40 rounded-lg bg-purple-500/[0.04]" />
-          <div className="h-3 w-28 rounded bg-purple-500/[0.04]" />
+          <div className="h-5 w-40 rounded-lg bg-purple-500/4" />
+          <div className="h-3 w-28 rounded bg-purple-500/4" />
         </div>
       </div>
       <div className="flex gap-3">
         {[0, 1, 2, 3, 4].map((i) => (
-          <div key={i} className="h-8 w-28 rounded-full bg-purple-500/[0.04]" />
+          <div key={i} className="h-8 w-28 rounded-full bg-purple-500/4" />
         ))}
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="h-40 rounded-2xl bg-purple-500/[0.04]" />
+          <div key={i} className="h-40 rounded-2xl bg-purple-500/4" />
         ))}
       </div>
       <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
         {[0, 1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="aspect-[2/3] rounded-xl bg-purple-500/[0.04]" />
+          <div key={i} className="aspect-2/3 rounded-xl bg-purple-500/4" />
         ))}
       </div>
     </div>
@@ -199,10 +199,10 @@ function TasteMatchCard({ tasteMatch, displayName }) {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35 }}
-        className="rounded-2xl border border-white/8 bg-white/[0.03] p-5"
+        className="rounded-2xl border border-white/8 bg-white/3 p-5"
       >
         <div className="flex items-center gap-2.5 mb-2">
-          <Sparkles className="h-4 w-4 text-purple-400/40 flex-shrink-0" />
+          <Sparkles className="h-4 w-4 text-purple-400/40 shrink-0" />
           <h2 className="text-sm font-semibold text-white/60">Taste Match</h2>
         </div>
         <p className="text-white/40 text-sm">
@@ -222,16 +222,16 @@ function TasteMatchCard({ tasteMatch, displayName }) {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}
-      className="rounded-2xl border border-white/8 bg-white/[0.03] p-5"
+      className="rounded-2xl border border-white/8 bg-white/3 p-5"
     >
       <div className="flex items-center gap-2.5 mb-4">
-        <Sparkles className="h-4 w-4 text-purple-400/60 flex-shrink-0" />
+        <Sparkles className="h-4 w-4 text-purple-400/60 shrink-0" />
         <h2 className="text-sm font-semibold text-white/80">Taste Match</h2>
       </div>
 
       <div className="flex items-center gap-6">
         {/* Overall score */}
-        <div className="text-center flex-shrink-0">
+        <div className="text-center shrink-0">
           <span className={`text-5xl font-black leading-none ${scoreColor}`}>{pct}%</span>
           <p className="text-white/40 text-xs mt-1">match</p>
         </div>
@@ -261,10 +261,10 @@ function TasteMatchCard({ tasteMatch, displayName }) {
       {/* First shared film */}
       {firstSharedFilm && (
         <div className="flex items-center gap-3 mt-4 pt-4 border-t border-white/5">
-          <span className="text-xs text-white/20 flex-shrink-0">Both watched</span>
+          <span className="text-xs text-white/20 shrink-0">Both watched</span>
           {firstSharedFilm.posterPath && (
             firstSharedFilm.tmdbId ? (
-              <Link to={`/movie/${firstSharedFilm.tmdbId}`} className="flex-shrink-0 hover:opacity-80 transition-opacity">
+              <Link to={`/movie/${firstSharedFilm.tmdbId}`} className="shrink-0 hover:opacity-80 transition-opacity">
                 <img
                   src={tmdbImg(firstSharedFilm.posterPath, 'w92')}
                   alt={firstSharedFilm.title}
@@ -275,7 +275,7 @@ function TasteMatchCard({ tasteMatch, displayName }) {
               <img
                 src={tmdbImg(firstSharedFilm.posterPath, 'w92')}
                 alt={firstSharedFilm.title}
-                className="w-8 h-12 rounded object-cover ring-1 ring-white/10 flex-shrink-0"
+                className="w-8 h-12 rounded object-cover ring-1 ring-white/10 shrink-0"
               />
             )
           )}
@@ -749,15 +749,15 @@ export default function PublicProfile() {
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true, margin: '-40px' }}
                 transition={{ duration: 0.5, delay: 0.1 }}
-                className="relative rounded-2xl overflow-hidden border border-purple-500/25 bg-gradient-to-br from-purple-500/[0.08] via-transparent to-pink-500/[0.04] p-5 mb-10"
+                className="relative rounded-2xl overflow-hidden border border-purple-500/25 bg-linear-to-br from-purple-500/8 via-transparent to-pink-500/4 p-5 mb-10"
               >
                 <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full blur-3xl pointer-events-none" style={{ background: 'rgba(168,85,247,0.12)' }} aria-hidden />
                 <div className="relative flex items-start gap-3">
                   <span className="text-purple-400/70 mt-0.5 shrink-0" aria-hidden>&#10022;</span>
                   {summaryLoading ? (
                     <div className="flex-1 space-y-2 animate-pulse">
-                      <div className="h-4 w-3/4 rounded bg-purple-500/[0.08]" />
-                      <div className="h-4 w-1/2 rounded bg-purple-500/[0.08]" />
+                      <div className="h-4 w-3/4 rounded bg-purple-500/8" />
+                      <div className="h-4 w-1/2 rounded bg-purple-500/8" />
                     </div>
                   ) : (
                     <p className="text-sm sm:text-base text-white/70 leading-relaxed italic">
@@ -796,7 +796,7 @@ export default function PublicProfile() {
                               </div>
                               <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
                                 <motion.div
-                                  className="h-full rounded-full bg-gradient-to-r from-purple-500 to-pink-500"
+                                  className="h-full rounded-full bg-linear-to-r from-purple-500 to-pink-500"
                                   initial={{ width: 0 }}
                                   whileInView={{ width: `${g.pct}%` }}
                                   viewport={{ once: true }}
@@ -872,7 +872,7 @@ export default function PublicProfile() {
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.3, delay: Math.min(idx * 0.05, 0.3) }}
                         >
-                          <div className="aspect-[2/3] rounded-xl overflow-hidden bg-white/5 ring-1 ring-white/8">
+                          <div className="aspect-2/3 rounded-xl overflow-hidden bg-white/5 ring-1 ring-white/8">
                             <img
                               src={tmdbImg(movie.posterPath, 'w185')}
                               alt={movie.title}
@@ -895,7 +895,7 @@ export default function PublicProfile() {
               <aside className="hidden lg:block sticky top-[calc(var(--hdr-h,64px)+24px)] space-y-4">
 
                 {/* Rating Style card */}
-                <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-5">
+                <div className="rounded-2xl border border-white/8 bg-white/3 p-5">
                   <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-3">Rating Style</h3>
                   {stats.avgRating != null ? (
                     <div>
@@ -915,9 +915,9 @@ export default function PublicProfile() {
 
                 {/* Lists widget */}
                 {userLists.length > 0 && (
-                  <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
+                  <div className="rounded-2xl border border-white/8 bg-white/3 p-4">
                     <div className="flex items-center gap-2 mb-3">
-                      <div className="w-[3px] h-5 rounded-full bg-gradient-to-b from-purple-400 to-pink-500 shrink-0" />
+                      <div className="w-[3px] h-5 rounded-full bg-linear-to-b from-purple-400 to-pink-500 shrink-0" />
                       <span className="text-xs font-bold text-white/70 uppercase tracking-wider">
                         {displayName}&rsquo;s Lists
                       </span>

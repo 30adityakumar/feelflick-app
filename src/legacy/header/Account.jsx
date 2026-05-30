@@ -162,7 +162,7 @@ export default function Account() {
         <Card>
           <div className="flex items-center gap-5 mb-6">
             {/* Avatar */}
-            <div className="relative flex-shrink-0">
+            <div className="relative shrink-0">
               <div className="relative w-16 h-16 rounded-full overflow-hidden shrink-0 bg-white/10">
                 {avatarUrl ? (
                   <img src={avatarUrl} alt={name} className="w-full h-full object-cover block" />
@@ -226,7 +226,7 @@ export default function Account() {
               <button
                 type="submit"
                 disabled={saving}
-                className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-purple-500 to-pink-500 shadow-md shadow-purple-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-60"
+                className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-linear-to-r from-purple-500 to-pink-500 shadow-md shadow-purple-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-60"
               >
                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save'}
               </button>
@@ -260,7 +260,7 @@ export default function Account() {
           </div>
 
           {/* Reset preferences */}
-          <div className="mt-4 flex items-center justify-between rounded-xl border border-white/6 bg-white/[0.025] px-4 py-3.5">
+          <div className="mt-4 flex items-center justify-between rounded-xl border border-white/6 bg-white/2.5 px-4 py-3.5">
             <div>
               <div className="text-sm font-medium text-white">Reset taste profile</div>
               <div className="text-xs text-white/40 mt-0.5">Re-run genre and film setup</div>
@@ -281,7 +281,7 @@ export default function Account() {
         </Card>
 
         {/* ── Danger zone ───────────────────────────────────── */}
-        <div className="rounded-2xl border border-red-500/15 bg-red-500/[0.04] p-5">
+        <div className="rounded-2xl border border-red-500/15 bg-red-500/4 p-5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h3 className="text-sm font-semibold text-red-400">Delete account</h3>
@@ -303,7 +303,7 @@ export default function Account() {
 
 function Card({ title, children }) {
   return (
-    <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-5 sm:p-6">
+    <div className="rounded-2xl border border-white/8 bg-white/3 p-5 sm:p-6">
       {title && <h2 className="text-xs font-semibold text-white/40 uppercase tracking-widest mb-4">{title}</h2>}
       {children}
     </div>
@@ -327,16 +327,16 @@ function ActionRow({ icon: Icon, label, sublabel, onClick, disabled, danger }) {
       disabled={disabled}
       className={`flex w-full items-center gap-4 rounded-xl border px-4 py-3.5 text-left transition-all group active:scale-[0.99] disabled:opacity-40 ${
         danger
-          ? 'border-white/6 bg-white/[0.02] hover:bg-red-500/6 hover:border-red-500/15'
-          : 'border-white/6 bg-white/[0.02] hover:bg-white/[0.05]'
+          ? 'border-white/6 bg-white/2 hover:bg-red-500/6 hover:border-red-500/15'
+          : 'border-white/6 bg-white/2 hover:bg-white/5'
       }`}
     >
-      <Icon className={`h-4 w-4 flex-shrink-0 transition-colors ${danger ? 'text-white/40 group-hover:text-red-400' : 'text-white/40 group-hover:text-white/60'}`} />
+      <Icon className={`h-4 w-4 shrink-0 transition-colors ${danger ? 'text-white/40 group-hover:text-red-400' : 'text-white/40 group-hover:text-white/60'}`} />
       <div className="flex-1 min-w-0">
         <div className={`text-sm font-medium transition-colors ${danger ? 'text-white/70 group-hover:text-red-400' : 'text-white/80 group-hover:text-white'}`}>{label}</div>
         {sublabel && <div className="text-xs text-white/40 mt-0.5">{sublabel}</div>}
       </div>
-      <svg className="h-4 w-4 text-white/20 group-hover:text-white/40 transition-colors flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <svg className="h-4 w-4 text-white/20 group-hover:text-white/40 transition-colors shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
       </svg>
     </button>

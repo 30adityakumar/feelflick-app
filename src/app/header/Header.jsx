@@ -62,12 +62,12 @@ function MorphNav({ items }) {
   return (
     <nav
       aria-label="Main navigation"
-      className="relative hidden md:flex items-center p-1 rounded-full border border-white/[0.08] bg-white/[0.025]"
+      className="relative hidden md:flex items-center p-1 rounded-full border border-white/8 bg-white/2.5"
     >
       {activeItem && (
         <span
           aria-hidden="true"
-          className="absolute top-1 bottom-1 rounded-full border transition-all duration-[350ms]"
+          className="absolute top-1 bottom-1 rounded-full border transition-all duration-350"
           style={{
             left: rect.left,
             width: rect.width,
@@ -119,8 +119,8 @@ function CenterSearch({ onOpen }) {
         Search films, directors, moods, or ask M…
       </span>
       <span className="inline-flex items-center gap-1 text-[10px] text-white/30 shrink-0" style={{ fontFamily: '"Outfit", sans-serif' }}>
-        <kbd className="px-1.5 py-0.5 rounded border border-white/10 bg-white/[0.06] leading-none">⌘</kbd>
-        <kbd className="px-1.5 py-0.5 rounded border border-white/10 bg-white/[0.06] leading-none">K</kbd>
+        <kbd className="px-1.5 py-0.5 rounded border border-white/10 bg-white/6 leading-none">⌘</kbd>
+        <kbd className="px-1.5 py-0.5 rounded border border-white/10 bg-white/6 leading-none">K</kbd>
       </span>
     </button>
   )
@@ -153,7 +153,7 @@ function AvatarMenu({ userName, userInitial, userEmail, userAvatar, onSignOut })
           {/* Conic ring */}
           <span
             aria-hidden="true"
-            className="absolute -inset-[3px] rounded-full opacity-75"
+            className="absolute inset-[-3px] rounded-full opacity-75"
             style={{ background: `conic-gradient(${AMBIENT_HEX}, #EC4899, ${AMBIENT_HEX})` }}
           />
           <span className="relative block w-full h-full rounded-full p-[2px]" style={{ background: '#06060a' }}>
@@ -178,14 +178,14 @@ function AvatarMenu({ userName, userInitial, userEmail, userAvatar, onSignOut })
         // eslint-disable-next-line jsx-a11y/no-static-element-interactions, jsx-a11y/click-events-have-key-events
         <div
           onClick={e => e.stopPropagation()}
-          className="absolute right-0 top-[calc(100%+10px)] w-[248px] rounded-2xl bg-black/95 border border-white/[0.08] shadow-2xl shadow-black/60 backdrop-blur-xl overflow-hidden z-50"
+          className="absolute right-0 top-[calc(100%+10px)] w-[248px] rounded-2xl bg-black/95 border border-white/8 shadow-2xl shadow-black/60 backdrop-blur-xl overflow-hidden z-50"
           style={{ animation: 'ffDropIn 0.18s cubic-bezier(.2,.7,.2,1)' }}
         >
           <div className="h-px" style={{ background: `linear-gradient(90deg, transparent, ${AMBIENT_HEX}66, transparent)` }} />
 
           <div className="px-4 py-3.5 border-b border-white/5 flex items-center gap-3">
             <div className="relative w-9 h-9 shrink-0">
-              <div className="absolute -inset-[2px] rounded-full opacity-40 blur-md" style={{ background: 'linear-gradient(135deg,#9333ea,#ec4899)' }} />
+              <div className="absolute inset-[-2px] rounded-full opacity-40 blur-md" style={{ background: 'linear-gradient(135deg,#9333ea,#ec4899)' }} />
               {userAvatar ? (
                 <img src={userAvatar} alt={userName} className="relative h-9 w-9 rounded-full object-cover" />
               ) : (
@@ -298,8 +298,8 @@ export default function Header({ onOpenSearch }) {
       style={{ paddingTop: 'env(safe-area-inset-top)' }}
       className={`w-full relative transition-all duration-500 ease-in-out ${
         scrolled
-          ? 'bg-black/75 backdrop-blur-xl border-b border-white/[0.08] shadow-lg shadow-black/20'
-          : 'bg-black/30 backdrop-blur-md border-b border-white/[0.06]'
+          ? 'bg-black/75 backdrop-blur-xl border-b border-white/8 shadow-lg shadow-black/20'
+          : 'bg-black/30 backdrop-blur-md border-b border-white/6'
       }`}
     >
       <div className="max-w-[1400px] mx-auto px-4 sm:px-7 lg:px-7">
@@ -309,7 +309,7 @@ export default function Header({ onOpenSearch }) {
           <div className="flex items-center gap-6 lg:gap-8 min-w-0">
             <Link
               to={isAuthenticated ? '/home' : '/'}
-              className="shrink-0 text-xl sm:text-2xl font-black bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent hover:opacity-85 transition-opacity duration-200"
+              className="shrink-0 text-xl sm:text-2xl font-black bg-linear-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent hover:opacity-85 transition-opacity duration-200"
             >
               FEELFLICK
             </Link>
@@ -371,7 +371,7 @@ export default function Header({ onOpenSearch }) {
       {/* Mood-tinted ambient hairline beneath */}
       <div
         aria-hidden="true"
-        className="absolute bottom-[-1px] left-0 right-0 h-px opacity-50 pointer-events-none"
+        className="absolute -bottom-px left-0 right-0 h-px opacity-50 pointer-events-none"
         style={{ background: `linear-gradient(90deg, transparent 15%, ${AMBIENT_HEX}55 50%, transparent 85%)` }}
       />
 

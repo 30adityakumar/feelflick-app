@@ -52,7 +52,7 @@ function WelcomeBanner({ movieCount, onDismiss }) {
     >
       {/* Pulsing glow ring */}
       <motion.div
-        className="absolute -inset-[1px] rounded-2xl"
+        className="absolute -inset-px rounded-2xl"
         style={{ background: 'linear-gradient(90deg, rgba(168,85,247,0.5), rgba(236,72,153,0.4), rgba(168,85,247,0.5))' }}
         animate={{ opacity: [0.4, 0.8, 0.4] }}
         transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
@@ -231,7 +231,7 @@ export default function HomePage() {
       <div className="relative pb-24 sm:pb-32">
         <div
           aria-hidden
-          className="pointer-events-none absolute -top-8 left-0 right-0 h-12 bg-gradient-to-b from-purple-500/10 via-black/0 to-black/0"
+          className="pointer-events-none absolute -top-8 left-0 right-0 h-12 bg-linear-to-b from-purple-500/10 via-black/0 to-black/0"
         />
         <div
           aria-hidden

@@ -129,7 +129,7 @@ export default function Preferences() {
                   }}
                   className={`rounded-xl px-4 py-3 text-left text-sm font-semibold transition-all duration-200 active:scale-95 border ${
                     isActive
-                      ? 'bg-gradient-to-br from-purple-500/20 to-pink-500/10 border-purple-500/40 text-white'
+                      ? 'bg-linear-to-br from-purple-500/20 to-pink-500/10 border-purple-500/40 text-white'
                       : 'border-white/8 bg-white/4 text-white/60 hover:bg-white/8 hover:border-white/20 hover:text-white/80'
                   }`}
                 >
@@ -172,7 +172,7 @@ export default function Preferences() {
                   aria-pressed={isSelected}
                   className={`inline-flex items-center justify-center min-w-[110px] px-5 py-[11px] rounded-full text-sm font-semibold select-none transition-all duration-200 ${
                     isSelected
-                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/25 scale-[1.05]'
+                      ? 'bg-linear-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/25 scale-[1.05]'
                       : 'bg-white/5 border border-white/10 text-white/60 hover:bg-white/9 hover:border-white/20 hover:text-white/80'
                   }`}
                 >
@@ -217,8 +217,8 @@ export default function Preferences() {
                   }`}
                 >
                   {msg.ok
-                    ? <Check className="h-3.5 w-3.5 flex-shrink-0" />
-                    : <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />}
+                    ? <Check className="h-3.5 w-3.5 shrink-0" />
+                    : <AlertCircle className="h-3.5 w-3.5 shrink-0" />}
                   {msg.text}
                 </motion.div>
               ) : (
@@ -240,7 +240,7 @@ export default function Preferences() {
               disabled={saving || !dirty}
               className={`flex items-center gap-2 px-7 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 ${
                 dirty && !saving
-                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md shadow-purple-500/25 hover:scale-[1.02] active:scale-[0.98]'
+                  ? 'bg-linear-to-r from-purple-500 to-pink-500 text-white shadow-md shadow-purple-500/25 hover:scale-[1.02] active:scale-[0.98]'
                   : 'bg-white/6 text-white/20 cursor-not-allowed'
               }`}
             >

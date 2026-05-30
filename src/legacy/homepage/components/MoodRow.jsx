@@ -21,7 +21,7 @@ export default function MoodRow({ data, loading, onShuffle }) {
       <span className="inline-flex items-center gap-1.5">
         <Palette
           aria-hidden="true"
-          className="h-[0.95rem] w-[0.95rem] flex-shrink-0"
+          className="h-[0.95rem] w-[0.95rem] shrink-0"
           style={{ color: 'rgba(192, 132, 252, 0.82)' }}
         />
         <span>{rowTitle}</span>

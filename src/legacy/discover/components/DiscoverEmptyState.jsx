@@ -20,7 +20,7 @@ export default function DiscoverEmptyState({ onTryAnotherMood, onBrowseAll }) {
           <button
             type="button"
             onClick={onTryAnotherMood}
-            className="rounded-full px-6 py-3 font-semibold text-white bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg shadow-purple-500/20 hover:brightness-110 hover:scale-[1.02] active:scale-[0.97] transition-all duration-200"
+            className="rounded-full px-6 py-3 font-semibold text-white bg-linear-to-r from-purple-500 to-pink-500 shadow-lg shadow-purple-500/20 hover:brightness-110 hover:scale-[1.02] active:scale-[0.97] transition-all duration-200"
           >
             Try another mood
           </button>

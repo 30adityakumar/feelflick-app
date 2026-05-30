@@ -361,7 +361,7 @@ export default function MovieDetail() {
 
   // ── Sentiment map (reused in Your Take card) ─────────────────
   const SENTIMENT_MAP = {
-    loved:    { label: 'Loved it',    cls: 'bg-gradient-to-r from-purple-500/15 to-pink-500/10 border-purple-500/30 text-purple-300' },
+    loved:    { label: 'Loved it',    cls: 'bg-linear-to-r from-purple-500/15 to-pink-500/10 border-purple-500/30 text-purple-300' },
     liked:    { label: 'Liked it',    cls: 'bg-purple-500/10 border-purple-500/20 text-purple-300' },
     meh:      { label: 'It was ok',   cls: 'bg-white/5 border-white/10 text-white/60' },
     disliked: { label: "Didn't like", cls: 'bg-white/5 border-white/8 text-white/40' },
@@ -389,11 +389,11 @@ export default function MovieDetail() {
               : <div className="w-full h-full bg-white/5" />
             }
             {/* Top vignette: subtle, header area only */}
-            <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-black/55 to-transparent" />
+            <div className="absolute top-0 inset-x-0 h-32 bg-linear-to-b from-black/55 to-transparent" />
             {/* Bottom fade: 70% height, text lives here */}
-            <div className="absolute bottom-0 inset-x-0 h-[70%] bg-gradient-to-t from-black via-black/78 to-transparent" />
+            <div className="absolute bottom-0 inset-x-0 h-[70%] bg-linear-to-t from-black via-black/78 to-transparent" />
             {/* Left fade: readability */}
-            <div className="absolute inset-0 bg-gradient-to-r from-black/65 via-black/15 to-transparent" />
+            <div className="absolute inset-0 bg-linear-to-r from-black/65 via-black/15 to-transparent" />
           </div>
 
           {/* FeelFlick purple glow at bottom-left */}
@@ -422,7 +422,7 @@ export default function MovieDetail() {
               <div className="flex gap-3 sm:gap-5 md:gap-6 items-end max-w-5xl">
 
                 {/* Poster — all screen sizes */}
-                <div className="flex-shrink-0">
+                <div className="shrink-0">
                   <div className="overflow-hidden rounded-xl ring-1 ring-white/12 shadow-2xl">
                     {movie?.poster_path ? (
                       <img
@@ -519,7 +519,7 @@ export default function MovieDetail() {
                             rel="noreferrer"
                             aria-label={`Watch ${movie?.title} trailer on YouTube`}
                             onClick={handleTrailerClick}
-                            className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-purple-500/20 transition-all active:scale-95"
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-linear-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-purple-500/20 transition-all active:scale-95"
                           >
                             <Play className="h-4 w-4 fill-current" />
                             <span className="hidden sm:inline">Trailer</span>
@@ -603,18 +603,18 @@ export default function MovieDetail() {
       {/* ── Content ──────────────────────────────────────────── */}
       <div className="relative mt-4 md:-mt-6 z-30">
         <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-12">
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr,300px] xl:grid-cols-[1fr,340px] gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] xl:grid-cols-[1fr_340px] gap-6">
 
             {/* ── Main column ───────────────────────────────── */}
             <div className="space-y-5 min-w-0">
 
               {/* Mobile: overview + credits */}
               {!loading && (movie?.overview || director || writer) && (
-                <div className="md:hidden rounded-2xl border border-white/8 bg-white/[0.03] p-5 space-y-3">
+                <div className="md:hidden rounded-2xl border border-white/8 bg-white/3 p-5 space-y-3">
                   {movie?.genres?.length > 0 && (
                     <div className="flex flex-wrap gap-1.5">
                       {movie.genres.slice(0, 4).map(g => (
-                        <span key={g.id} className="px-2 py-0.5 rounded-full bg-white/[0.06] border border-white/8 text-white/60 text-[11px]">
+                        <span key={g.id} className="px-2 py-0.5 rounded-full bg-white/6 border border-white/8 text-white/60 text-[11px]">
                           {g.name}
                         </span>
                       ))}
@@ -648,7 +648,7 @@ export default function MovieDetail() {
               {/* ── Your Take (gated on watched) ─────────────── */}
               {user && (
                 isWatched ? (
-                  <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-5">
+                  <div className="rounded-2xl border border-white/8 bg-white/3 p-5">
                     <div className="flex items-center justify-between mb-4">
                       <p className="text-[11px] font-semibold text-white/40 uppercase tracking-widest">Your Take</p>
                       <button
@@ -690,7 +690,7 @@ export default function MovieDetail() {
                         {(userFeedback?.what_stood_out?.length > 0 || userFeedback?.viewing_context_tags?.length > 0) && (
                           <div className="flex flex-wrap gap-1.5 pt-0.5">
                             {[...(userFeedback.viewing_context_tags || []), ...(userFeedback.what_stood_out || [])].map(tag => (
-                              <span key={tag} className="px-2 py-0.5 rounded-full bg-white/[0.04] border border-white/8 text-[11px] text-white/40">
+                              <span key={tag} className="px-2 py-0.5 rounded-full bg-white/4 border border-white/8 text-[11px] text-white/40">
                                 {tag.replace(/_/g, ' ')}
                               </span>
                             ))}

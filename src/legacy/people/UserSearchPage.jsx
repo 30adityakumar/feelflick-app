@@ -50,14 +50,14 @@ const cardVariants = {
 function SectionHeader({ title, count }) {
   return (
     <div className="flex items-center gap-3 mb-4">
-      <div className="w-[3px] h-5 rounded-full bg-gradient-to-b from-purple-400 to-pink-500" />
+      <div className="w-[3px] h-5 rounded-full bg-linear-to-b from-purple-400 to-pink-500" />
       <h2 className="text-[1.05rem] sm:text-[1.15rem] font-bold text-white tracking-tight whitespace-nowrap">
         {title}
       </h2>
       {count > 0 && (
         <span className="text-xs text-white/40 font-normal">{count} people</span>
       )}
-      <div className="h-px flex-1 bg-gradient-to-r from-purple-400/20 via-white/5 to-transparent" />
+      <div className="h-px flex-1 bg-linear-to-r from-purple-400/20 via-white/5 to-transparent" />
     </div>
   )
 }
@@ -86,7 +86,7 @@ function UserAvatar({ name, avatarUrl, size = 40 }) {
 
   return (
     <div
-      className="rounded-full overflow-hidden shrink-0 bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center font-bold text-white ring-2 ring-transparent group-hover:ring-purple-500/20 transition-all duration-200"
+      className="rounded-full overflow-hidden shrink-0 bg-linear-to-br from-purple-500 to-pink-500 flex items-center justify-center font-bold text-white ring-2 ring-transparent group-hover:ring-purple-500/20 transition-all duration-200"
       style={{ width: size, height: size, fontSize: size * 0.4 }}
     >
       {initial}
@@ -121,7 +121,7 @@ function PersonCard({ user, matchPct, commonCount, showFollow = true, isFollowed
       tabIndex={0}
       onClick={() => onNavigate(user.id)}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onNavigate(user.id) }}
-      className={`group rounded-2xl border border-white/[0.07] bg-white/[0.05] backdrop-blur-sm p-3.5 cursor-pointer hover:bg-white/[0.08] hover:border-white/[0.13] hover:shadow-[0_0_20px_rgba(168,85,247,0.08)] transition-all duration-200${isFollowed ? ' border-l-2 border-l-purple-500/30' : ''}`}
+      className={`group rounded-2xl border border-white/[0.07] bg-white/5 backdrop-blur-sm p-3.5 cursor-pointer hover:bg-white/8 hover:border-white/13 hover:shadow-[0_0_20px_rgba(168,85,247,0.08)] transition-all duration-200${isFollowed ? ' border-l-2 border-l-purple-500/30' : ''}`}
     >
       <div className="flex items-center gap-3">
         <UserAvatar name={user.name} avatarUrl={user.avatar_url} size={44} />
@@ -150,12 +150,12 @@ function PersonCard({ user, matchPct, commonCount, showFollow = true, isFollowed
 
 function SkeletonCard() {
   return (
-    <div className="rounded-2xl border border-white/[0.07] bg-white/[0.05] backdrop-blur-sm p-3.5 animate-pulse">
+    <div className="rounded-2xl border border-white/[0.07] bg-white/5 backdrop-blur-sm p-3.5 animate-pulse">
       <div className="flex items-center gap-3">
-        <div className="w-11 h-11 rounded-full bg-purple-500/[0.04] shrink-0" />
+        <div className="w-11 h-11 rounded-full bg-purple-500/4 shrink-0" />
         <div className="flex-1 space-y-1.5">
-          <div className="h-3.5 w-24 rounded bg-purple-500/[0.04]" />
-          <div className="h-2.5 w-16 rounded bg-purple-500/[0.04]" />
+          <div className="h-3.5 w-24 rounded bg-purple-500/4" />
+          <div className="h-2.5 w-16 rounded bg-purple-500/4" />
         </div>
       </div>
     </div>
@@ -372,7 +372,7 @@ export default function UserSearchPage() {
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Find people by name..."
             aria-label="Search for users by name"
-            className="w-full rounded-full bg-white/[0.05] border border-white/10 text-white text-sm pl-11 pr-4 py-3 placeholder-white/20 focus:outline-none focus:border-purple-500/40 focus:ring-2 focus:ring-purple-500/10 focus:shadow-[0_0_12px_rgba(168,85,247,0.1)] transition-all duration-200"
+            className="w-full rounded-full bg-white/5 border border-white/10 text-white text-sm pl-11 pr-4 py-3 placeholder-white/20 focus:outline-none focus:border-purple-500/40 focus:ring-2 focus:ring-purple-500/10 focus:shadow-[0_0_12px_rgba(168,85,247,0.1)] transition-all duration-200"
           />
         </div>
 

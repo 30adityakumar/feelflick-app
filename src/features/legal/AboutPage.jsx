@@ -242,7 +242,7 @@ export default function AboutPage() {
                   transition={{ duration: 0.45, delay: i * 0.1 }}
                 >
                   <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center mb-4 bg-gradient-to-br ${feature.gradient}`}
+                    className={`w-10 h-10 rounded-full flex items-center justify-center mb-4 bg-linear-to-br ${feature.gradient}`}
                     style={{ opacity: 0.85 }}
                   >
                     <feature.icon className="w-5 h-5 text-white" />
@@ -309,7 +309,7 @@ export default function AboutPage() {
                   viewport={vp}
                   transition={{ duration: 0.4, delay: i * 0.08 }}
                 >
-                  <p className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
+                  <p className="text-3xl sm:text-4xl font-black bg-linear-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
                     {item.stat}
                   </p>
                   <p className="text-xs sm:text-sm text-white/40 leading-relaxed">{item.label}</p>
@@ -374,7 +374,7 @@ export default function AboutPage() {
                   transition={{ duration: 0.4, delay: i * 0.08 }}
                 >
                   <div
-                    className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center"
+                    className="w-10 h-10 rounded-full shrink-0 flex items-center justify-center"
                     style={{ background: 'rgba(168,85,247,0.12)', border: '1px solid rgba(168,85,247,0.25)' }}
                   >
                     <principle.icon className="w-4.5 h-4.5 text-purple-400" />
@@ -450,11 +450,11 @@ export default function AboutPage() {
                 aria-label={isAuthenticating ? 'Signing in' : 'Get started with FeelFlick'}
               >
                 {isAuthenticating ? (
-                  <><Loader2 className="h-4 w-4 animate-spin flex-shrink-0" aria-hidden="true" /> Signing in…</>
+                  <><Loader2 className="h-4 w-4 animate-spin shrink-0" aria-hidden="true" /> Signing in…</>
                 ) : (
                   <>
                     Get Started
-                    <LogIn className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+                    <LogIn className="w-4 h-4 shrink-0" aria-hidden="true" />
                   </>
                 )}
               </Button>

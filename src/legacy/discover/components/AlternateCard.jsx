@@ -28,7 +28,7 @@ function MiniMatchRing({ percent }) {
   const offset = circumference - (percent / 100) * circumference
 
   return (
-    <div className="relative flex-shrink-0" style={{ width: size, height: size }}>
+    <div className="relative shrink-0" style={{ width: size, height: size }}>
       <svg width={size} height={size} className="-rotate-90">
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={2} />
         <motion.circle
@@ -77,25 +77,25 @@ export default function AlternateCard({ film, index, isWatchlisted, isSeen, onOp
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, delay: 0.1 + index * 0.07, ease: [0.16, 1, 0.3, 1] }}
       whileHover={{ y: -2, transition: { duration: 0.2 } }}
-      className="group rounded-xl backdrop-blur-xl bg-white/[0.04] border border-white/[0.08] hover:border-purple-400/25 hover:bg-white/[0.06] hover:shadow-lg hover:shadow-purple-500/5 transition-all duration-200 overflow-hidden"
+      className="group rounded-xl backdrop-blur-xl bg-white/4 border border-white/8 hover:border-purple-400/25 hover:bg-white/6 hover:shadow-lg hover:shadow-purple-500/5 transition-all duration-200 overflow-hidden"
     >
       <div className="flex gap-3.5 p-3.5">
         {/* Poster */}
         <button
           type="button"
           onClick={() => onOpenDetail(film)}
-          className="block w-[4.5rem] sm:w-20 flex-shrink-0"
+          className="block w-[4.5rem] sm:w-20 shrink-0"
           aria-label={`View details for ${film.title}`}
         >
           {film.poster_path ? (
             <img
               src={tmdbImg(film.poster_path, 'w185')}
               alt={film.title}
-              className="w-full aspect-[2/3] rounded-lg object-cover ring-1 ring-white/10 shadow-md"
+              className="w-full aspect-2/3 rounded-lg object-cover ring-1 ring-white/10 shadow-md"
               loading="lazy"
             />
           ) : (
-            <div className="w-full aspect-[2/3] rounded-lg bg-neutral-800 ring-1 ring-white/10" />
+            <div className="w-full aspect-2/3 rounded-lg bg-neutral-800 ring-1 ring-white/10" />
           )}
         </button>
 
@@ -171,7 +171,7 @@ export default function AlternateCard({ film, index, isWatchlisted, isSeen, onOp
             </button>
             <button
               onClick={() => onDismiss(film)}
-              className="flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold text-white/25 border border-white/[0.05] hover:border-white/15 hover:text-white/50 transition-colors ml-auto"
+              className="flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold text-white/25 border border-white/5 hover:border-white/15 hover:text-white/50 transition-colors ml-auto"
               aria-label={`Dismiss ${film.title}`}
             >
               <X className="h-3 w-3" />

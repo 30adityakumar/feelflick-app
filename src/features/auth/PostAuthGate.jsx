@@ -4,7 +4,7 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
 
 function AuthGatePlaceholder() {
-  return <div className="fixed inset-0 z-[9999] bg-black" />
+  return <div className="fixed inset-0 z-9999 bg-black" />
 }
 
 function isTruthyFlag(v) {

@@ -302,7 +302,7 @@ function RouteLoadingIndicator() {
       role="progressbar"
       aria-label="Loading page"
     >
-      <div className="feelflick-route-progress h-full bg-gradient-to-r from-purple-600 to-pink-500" />
+      <div className="feelflick-route-progress h-full bg-linear-to-r from-purple-600 to-pink-500" />
     </div>
   )
 }

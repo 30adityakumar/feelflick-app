@@ -163,7 +163,7 @@ export default function TopNav({ hideAuthCta = false }) {
               aria-label="FeelFlick home"
             >
               {/* TODO: move gradient to design tokens — from-purple-500 to-pink-500 */}
-              <span className="text-2xl sm:text-3xl font-black tracking-tight bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
+              <span className="text-2xl sm:text-3xl font-black tracking-tight bg-linear-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
                 FEELFLICK
               </span>
             </Link>
@@ -180,7 +180,7 @@ export default function TopNav({ hideAuthCta = false }) {
               >
                 {NAV_ANCHOR.label}
                 <span
-                  className="absolute -bottom-1 left-0 right-0 h-[2px] rounded-full bg-gradient-to-r from-purple-500 to-pink-500 transition-transform duration-200 origin-left scale-x-0 group-hover:scale-x-100"
+                  className="absolute -bottom-1 left-0 right-0 h-[2px] rounded-full bg-linear-to-r from-purple-500 to-pink-500 transition-transform duration-200 origin-left scale-x-0 group-hover:scale-x-100"
                   aria-hidden="true"
                 />
               </a>
@@ -190,7 +190,7 @@ export default function TopNav({ hideAuthCta = false }) {
               >
                 Privacy
                 <span
-                  className="absolute -bottom-1 left-0 right-0 h-[2px] rounded-full bg-gradient-to-r from-purple-500 to-pink-500 transition-transform duration-200 origin-left scale-x-0 group-hover:scale-x-100"
+                  className="absolute -bottom-1 left-0 right-0 h-[2px] rounded-full bg-linear-to-r from-purple-500 to-pink-500 transition-transform duration-200 origin-left scale-x-0 group-hover:scale-x-100"
                   aria-hidden="true"
                 />
               </Link>
@@ -211,7 +211,7 @@ export default function TopNav({ hideAuthCta = false }) {
                     'Signing in…'
                   ) : (
                     <>
-                      <LogIn className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+                      <LogIn className="w-4 h-4 shrink-0" aria-hidden="true" />
                       Sign In
                     </>
                   )}
@@ -304,7 +304,7 @@ export default function TopNav({ hideAuthCta = false }) {
               <button
                 onClick={handleSignIn}
                 disabled={isAuthenticating}
-                className="w-full inline-flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold shadow-lg shadow-purple-500/30 transition-all duration-300 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed touch-target focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                className="w-full inline-flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-linear-to-r from-purple-500 to-pink-500 text-white font-bold shadow-lg shadow-purple-500/30 transition-all duration-300 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed touch-target focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
                 aria-label={isAuthenticating ? 'Signing in' : 'Get started free with FeelFlick'}
               >
                 {isAuthenticating ? (

@@ -28,7 +28,7 @@ export default function PinnedBrief({ answers, notes, anchor, onEdit, onRemoveNo
           key={question.id}
           type="button"
           onClick={() => onEdit(question.id)}
-          className="group w-full grid grid-cols-[2rem_8rem_1fr_auto] items-center gap-4 py-3 border-b border-white/10 text-left hover:bg-white/[0.02] transition-colors"
+          className="group w-full grid grid-cols-[2rem_8rem_1fr_auto] items-center gap-4 py-3 border-b border-white/10 text-left hover:bg-white/2 transition-colors"
           aria-label={`Edit ${question.label}: ${getDisplayLabel(question, answers[question.id])}`}
         >
           <span className="text-xs font-light italic text-purple-400/60" style={{ fontFamily: 'var(--font-display, serif)' }}>
@@ -85,7 +85,7 @@ export default function PinnedBrief({ answers, notes, anchor, onEdit, onRemoveNo
           {notes.map((note, i) => (
             <div
               key={i}
-              className="grid grid-cols-[2rem_8rem_1fr_auto] items-center gap-4 py-2 border-b border-white/[0.05]"
+              className="grid grid-cols-[2rem_8rem_1fr_auto] items-center gap-4 py-2 border-b border-white/5"
             >
               <span />
               <span />

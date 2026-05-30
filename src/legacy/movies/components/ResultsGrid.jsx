@@ -151,7 +151,7 @@ export default function ResultsGrid({ movies, user, isSearchMode = false }) {
               }}
             >
               {/* Poster */}
-              <div className="relative aspect-[2/3] overflow-hidden bg-white/5">
+              <div className="relative aspect-2/3 overflow-hidden bg-white/5">
                 {movie.poster_path ? (
                   <img
                     src={tmdbImg(movie.poster_path, 'w342')}

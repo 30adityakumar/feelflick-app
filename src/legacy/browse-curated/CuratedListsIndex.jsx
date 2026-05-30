@@ -18,7 +18,7 @@ export default function CuratedListsIndex() {
             <button
               key={list.slug}
               onClick={() => navigate(`/lists/curated/${list.slug}`)}
-              className="text-left rounded-2xl border border-white/8 bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/20 p-6 transition-all"
+              className="text-left rounded-2xl border border-white/8 bg-white/2 hover:bg-white/4 hover:border-white/20 p-6 transition-all"
             >
               <h3 className="text-lg font-bold text-white mb-2">{list.title}</h3>
               <p className="text-sm text-white/60 line-clamp-2">{list.description}</p>

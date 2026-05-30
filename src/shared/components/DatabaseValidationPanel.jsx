@@ -127,7 +127,7 @@ export default function DatabaseValidationPanel({ movieId, internalMovieId }) {
           <button
             onClick={runTests}
             disabled={isRunning || !user}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-bold hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-linear-to-r from-purple-500 to-pink-500 text-white text-sm font-bold hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isRunning ? (
               <>

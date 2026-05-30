@@ -118,14 +118,14 @@ export default function RatingStep({ favoriteMovies, ratings, onRate, onBack, on
           {allRated ? (
             <>
               Nice — all{' '}
-              <em className="bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text not-italic italic text-transparent">
+              <em className="bg-linear-to-r from-purple-500 to-pink-500 bg-clip-text not-italic italic text-transparent">
                 rated.
               </em>
             </>
           ) : (
             <>
               How did this one{' '}
-              <em className="bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text not-italic italic text-transparent">
+              <em className="bg-linear-to-r from-purple-500 to-pink-500 bg-clip-text not-italic italic text-transparent">
                 land?
               </em>
             </>
@@ -151,7 +151,7 @@ export default function RatingStep({ favoriteMovies, ratings, onRate, onBack, on
         )}
 
         <div className="mx-auto flex h-full w-full max-w-md items-center justify-center">
-          <div className="relative h-full max-h-full aspect-[2/3]">
+          <div className="relative h-full max-h-full aspect-2/3">
             {/* Background card peek — next film sits behind the current one
                for stack depth (Tinder convention). Static / non-interactive.
                Skipped when on the last card or when all rated. */}
@@ -204,7 +204,7 @@ export default function RatingStep({ favoriteMovies, ratings, onRate, onBack, on
       {/* Footer — sentiment row + skip when rating. Hidden when all rated;
          the Onboarding container's celebration screen takes over. */}
       {!allRated && (
-        <div className="flex-none border-t border-white/[0.06] px-5 pb-6 pt-4 sm:px-6 sm:pb-8 sm:pt-5">
+        <div className="flex-none border-t border-white/6 px-5 pb-6 pt-4 sm:px-6 sm:pb-8 sm:pt-5">
           <div className="mx-auto flex max-w-sm flex-col items-center gap-3">
             <SentimentRow
               active={ratingToSentiment(ratings[current?.id])}
@@ -343,7 +343,7 @@ function FilmCard({ movie }) {
 
   return (
     <div className="relative h-full w-full overflow-hidden rounded-2xl shadow-[0_20px_40px_rgba(0,0,0,0.5)]">
-      {!loaded && <div className="absolute inset-0 animate-pulse bg-white/[0.04]" />}
+      {!loaded && <div className="absolute inset-0 animate-pulse bg-white/4" />}
       <img
         src={tmdbImg(movie.poster_path || movie.backdrop_path, 'w780')}
         alt=""
@@ -354,7 +354,7 @@ function FilmCard({ movie }) {
           loaded ? 'opacity-100' : 'opacity-0'
         }`}
       />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-linear-to-t from-black/90 via-black/50 to-transparent" />
       <div className="pointer-events-none absolute inset-x-5 bottom-4">
         <div className="ob-display text-xl font-extrabold tracking-tight text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] sm:text-2xl">
           {movie.title}

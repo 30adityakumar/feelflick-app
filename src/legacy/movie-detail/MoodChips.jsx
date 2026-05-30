@@ -33,7 +33,7 @@ export default function MoodChips({ movie }) {
         <Link
           to={`/browse/fit/${fitProfile}`}
           onClick={() => trackInteraction('mood_chip_click', { metadata: { tag: fitProfile, type: 'fit' } })}
-          className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-white/[0.06] border border-white/20 text-white/80 hover:bg-white/[0.1] hover:border-white/20 transition-colors"
+          className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-white/6 border border-white/20 text-white/80 hover:bg-white/10 hover:border-white/20 transition-colors"
         >
           {FIT_PROFILE_LABELS[fitProfile] || fitProfile.replace(/_/g, ' ')}
         </Link>

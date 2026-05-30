@@ -84,7 +84,7 @@ function PickReasonBadge({ reason }) {
   if (isSeedReason || isDirector || isActor) {
     return (
       <div className="flex items-center gap-1.5 mb-3">
-        <Sparkles className="h-3 w-3 text-purple-400 flex-shrink-0" />
+        <Sparkles className="h-3 w-3 text-purple-400 shrink-0" />
         <span className="text-xs font-medium text-purple-300">{reason.label}</span>
       </div>
     )
@@ -92,7 +92,7 @@ function PickReasonBadge({ reason }) {
 
   return (
     <div className="flex items-center gap-1.5 mb-3">
-      <div className="h-1 w-1 rounded-full bg-purple-400 flex-shrink-0" />
+      <div className="h-1 w-1 rounded-full bg-purple-400 shrink-0" />
       <span className="text-xs font-medium text-white/60">{reason.label}</span>
     </div>
   )
@@ -136,7 +136,7 @@ function StreamingBadge({ providers, revealed }) {
 
   return (
     <div
-      className={`flex items-center gap-2 w-full px-2.5 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.07] transition-all duration-500 delay-100 ${
+      className={`flex items-center gap-2 w-full px-2.5 py-1.5 rounded-lg bg-white/4 border border-white/[0.07] transition-all duration-500 delay-100 ${
         revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
       }`}
     >
@@ -601,18 +601,18 @@ export default function HeroTopPick({
         /* ── Inline loading skeleton ───────────────────────────────────────────
            Rendered inside the same <section> so the DOM node stays alive.      */
         <>
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-950/30 via-black to-black" />
+          <div className="absolute inset-0 bg-linear-to-br from-purple-950/30 via-black to-black" />
           <div className="absolute bottom-0 left-0 right-0 h-2/3 pointer-events-none" style={{ background: 'radial-gradient(ellipse 65% 55% at 15% 100%, rgba(88,28,135,0.18) 0%, transparent 70%)' }} />
           <div className="relative z-10 h-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 flex items-end pb-12 lg:pb-16">
             <div className="flex flex-col lg:flex-row gap-6 lg:gap-10 w-full">
-              <div className="hidden sm:block w-[200px] lg:w-[260px] flex-shrink-0">
-                <div className="aspect-[2/3] rounded-xl bg-white/[0.04] animate-pulse" />
+              <div className="hidden sm:block w-[200px] lg:w-[260px] shrink-0">
+                <div className="aspect-2/3 rounded-xl bg-white/4 animate-pulse" />
               </div>
               <div className="flex-1 space-y-4 pb-2">
-                <div className="h-3 w-24 bg-white/[0.04] rounded animate-pulse" />
-                <div className="h-10 lg:h-14 w-2/3 bg-white/[0.04] rounded-xl animate-pulse" />
-                <div className="h-4 w-1/3 bg-white/[0.04] rounded-lg animate-pulse" />
-                <div className="h-16 w-full max-w-xl bg-white/[0.04] rounded-xl animate-pulse" />
+                <div className="h-3 w-24 bg-white/4 rounded animate-pulse" />
+                <div className="h-10 lg:h-14 w-2/3 bg-white/4 rounded-xl animate-pulse" />
+                <div className="h-4 w-1/3 bg-white/4 rounded-lg animate-pulse" />
+                <div className="h-16 w-full max-w-xl bg-white/4 rounded-xl animate-pulse" />
               </div>
             </div>
           </div>
@@ -623,7 +623,7 @@ export default function HeroTopPick({
 
       {/* Refreshing overlay */}
       {isRefreshing && (
-        <div className="absolute inset-0 z-50 animate-pulse bg-purple-500/[0.04]" />
+        <div className="absolute inset-0 z-50 animate-pulse bg-purple-500/4" />
       )}
 
       {/* ── Backdrop ── */}
@@ -659,7 +659,7 @@ export default function HeroTopPick({
               decoding="sync"
             />
           )}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-black/30 to-black/40" />
+          <div className="absolute inset-0 bg-linear-to-b from-black/5 via-black/30 to-black/40" />
           <div
             className="pointer-events-none absolute inset-y-0 left-0 w-[22%] hidden sm:block"
             style={{ background: 'linear-gradient(90deg, rgba(0,0,0,0.98) 0%, rgba(0,0,0,0.88) 28%, rgba(0,0,0,0.58) 56%, rgba(0,0,0,0.18) 82%, rgba(0,0,0,0) 100%)' }}
@@ -670,8 +670,8 @@ export default function HeroTopPick({
           />
         </div>
 
-        <div className="absolute bottom-0 inset-x-0 h-[65%] bg-gradient-to-t from-black via-black/75 to-transparent" />
-        <div className="absolute inset-0 hidden sm:block bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
+        <div className="absolute bottom-0 inset-x-0 h-[65%] bg-linear-to-t from-black via-black/75 to-transparent" />
+        <div className="absolute inset-0 hidden sm:block bg-linear-to-r from-black/80 via-black/40 to-transparent" />
         <div
           className="pointer-events-none absolute inset-y-0 left-0 hidden md:block"
           style={{ width: '36%', background: 'linear-gradient(90deg, rgba(0,0,0,1) 0%, rgba(0,0,0,0.98) 42%, rgba(0,0,0,0.82) 64%, rgba(0,0,0,0.38) 84%, rgba(0,0,0,0) 100%)' }}
@@ -704,7 +704,7 @@ export default function HeroTopPick({
 
           {/* ── Poster (desktop only) ── */}
           <div
-            className={`hidden sm:block flex-shrink-0 self-end transition-all duration-500 ease-out ${
+            className={`hidden sm:block shrink-0 self-end transition-all duration-500 ease-out ${
               revealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
             }`}
           >
@@ -713,7 +713,7 @@ export default function HeroTopPick({
               className="group relative w-[180px] lg:w-[240px] xl:w-[260px] rounded-xl overflow-hidden shadow-2xl shadow-black/50 ring-1 ring-white/12 hover:ring-purple-500/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400/50 focus-visible:ring-offset-4 focus-visible:ring-offset-black transition-all duration-500 hover:scale-[1.02]"
               aria-label={`View ${activeMovie.title}`}
             >
-              <div className="aspect-[2/3] bg-white/5">
+              <div className="aspect-2/3 bg-white/5">
                 {!posterLoaded && (
                   <div
                     className="absolute inset-0 scale-105"
@@ -896,7 +896,7 @@ export default function HeroTopPick({
                 onClick={handleShowAnother}
                 disabled={isRefreshing || (loading && !movie)}
                 aria-label="Skip — not today"
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-white/[0.08] hover:border-white/20 bg-white/[0.03] hover:bg-white/[0.08] text-white/40 hover:text-white/70 text-xs font-medium transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-white/8 hover:border-white/20 bg-white/3 hover:bg-white/8 text-white/40 hover:text-white/70 text-xs font-medium transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
               >
                 {isRefreshing
                   ? <Loader2 className="h-3.5 w-3.5 animate-spin" />

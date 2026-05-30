@@ -205,7 +205,7 @@ linear-gradient(135deg, #9333ea 0%, #ec4899 100%)
 ```
 
 That's purple-600 → pink-500 in the Tailwind scale. Use it via `var(--brand-gradient)`
-in inline styles or `bg-gradient-to-r from-purple-600 to-pink-500` in Tailwind.
+in inline styles or `bg-linear-to-r from-purple-600 to-pink-500` in Tailwind.
 
 Never invent per-vibe / per-genre gradients. One brand gradient, always.
 
@@ -252,9 +252,9 @@ A 22px purple horizontal rule + ALL-CAPS Outfit 700 at 10–11px with
 ### Section Header Pattern (carousel rows)
 
 ```jsx
-<div className="w-[3px] h-5 rounded-full bg-gradient-to-b from-purple-400 to-pink-500" />
+<div className="w-[3px] h-5 rounded-full bg-linear-to-b from-purple-400 to-pink-500" />
 <h2 className="text-[1.05rem] sm:text-[1.15rem] font-bold text-white tracking-tight whitespace-nowrap">{title}</h2>
-<div className="h-px flex-1 bg-gradient-to-r from-purple-400/20 via-white/5 to-transparent" />
+<div className="h-px flex-1 bg-linear-to-r from-purple-400/20 via-white/5 to-transparent" />
 ```
 
 The canonical [src/shared/ui/SectionHeader.jsx](src/shared/ui/SectionHeader.jsx)

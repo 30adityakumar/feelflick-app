@@ -26,7 +26,7 @@ describe('NarratedLoader', () => {
     )
 
     // Progress bar should be present (gradient bar inside overflow container)
-    const progressBar = container.querySelector('.bg-gradient-to-r')
+    const progressBar = container.querySelector('.bg-linear-to-r')
     expect(progressBar).toBeTruthy()
   })
 

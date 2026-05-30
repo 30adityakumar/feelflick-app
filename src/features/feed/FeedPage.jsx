@@ -98,7 +98,7 @@ function UserAvatar({ name, avatarUrl, size = 20 }) {
       <img
         src={avatarUrl}
         alt={name || 'User'}
-        className="rounded-full object-cover flex-shrink-0 inline-block align-middle"
+        className="rounded-full object-cover shrink-0 inline-block align-middle"
         style={{ width: size, height: size }}
       />
     )
@@ -106,7 +106,7 @@ function UserAvatar({ name, avatarUrl, size = 20 }) {
 
   return (
     <div
-      className="rounded-full flex-shrink-0 inline-flex items-center justify-center font-bold text-white align-middle"
+      className="rounded-full shrink-0 inline-flex items-center justify-center font-bold text-white align-middle"
       style={{
         width: size,
         height: size,
@@ -142,7 +142,7 @@ function FilterPills({ followedUsers, activeFilter, onFilter }) {
           className={`px-3.5 py-1 rounded-full text-xs font-medium shrink-0 cursor-pointer border transition-all duration-150 ${
             isAllActive
               ? 'bg-purple-500/20 border-purple-500/40 text-white'
-              : 'bg-white/[0.04] border-white/[0.08] text-white/60 hover:bg-white/[0.07] hover:text-white/70'
+              : 'bg-white/4 border-white/8 text-white/60 hover:bg-white/[0.07] hover:text-white/70'
           }`}
         >
           All
@@ -160,7 +160,7 @@ function FilterPills({ followedUsers, activeFilter, onFilter }) {
               className={`flex items-center gap-1.5 px-2.5 pr-3.5 py-1 rounded-full text-xs font-medium shrink-0 cursor-pointer border transition-all duration-150 ${
                 isActive
                   ? 'bg-purple-500/20 border-purple-500/40 text-white'
-                  : 'bg-white/[0.04] border-white/[0.08] text-white/60 hover:bg-white/[0.07] hover:text-white/70'
+                  : 'bg-white/4 border-white/8 text-white/60 hover:bg-white/[0.07] hover:text-white/70'
               }`}
             >
               <UserAvatar name={u.name} avatarUrl={u.avatar_url} size={18} />
@@ -183,7 +183,7 @@ function DateGroupHeader({ label }) {
       <span className="text-[11px] font-semibold uppercase tracking-wider text-white/20 shrink-0">
         {label}
       </span>
-      <div className="h-px flex-1 bg-white/[0.06]" />
+      <div className="h-px flex-1 bg-white/6" />
     </div>
   )
 }
@@ -223,23 +223,23 @@ function FeedCard({ event, user, isLatest, currentUserId, onNavigate }) {
       tabIndex={0}
       onClick={() => { if (movieLink) onNavigate(movieLink) }}
       onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && movieLink) onNavigate(movieLink) }}
-      className={`group/card rounded-xl border border-white/[0.07] bg-white/[0.03] overflow-hidden cursor-pointer hover:bg-white/[0.06] hover:border-white/[0.12] hover:shadow-[0_0_20px_rgba(168,85,247,0.06)] transition-all duration-200${isLatest ? ' border-l-2 border-l-purple-500/40' : ''}`}
+      className={`group/card rounded-xl border border-white/[0.07] bg-white/3 overflow-hidden cursor-pointer hover:bg-white/6 hover:border-white/12 hover:shadow-[0_0_20px_rgba(168,85,247,0.06)] transition-all duration-200${isLatest ? ' border-l-2 border-l-purple-500/40' : ''}`}
     >
       <div className="flex">
         {/* Poster */}
-        <div className="relative w-[72px] sm:w-[88px] flex-shrink-0">
+        <div className="relative w-[72px] sm:w-[88px] shrink-0">
           {event.movie?.poster_path ? (
             <img
               src={tmdbImg(event.movie.poster_path, 'w154')}
               alt={event.movie.title || 'Movie poster'}
-              className="w-full aspect-[2/3] object-cover"
+              className="w-full aspect-2/3 object-cover"
               loading="lazy"
             />
           ) : (
-            <div className="w-full aspect-[2/3] bg-white/5 animate-pulse" />
+            <div className="w-full aspect-2/3 bg-white/5 animate-pulse" />
           )}
           {/* Poster gradient fade into content */}
-          <div className="absolute inset-y-0 right-0 w-4 bg-gradient-to-r from-transparent to-black/40 pointer-events-none" />
+          <div className="absolute inset-y-0 right-0 w-4 bg-linear-to-r from-transparent to-black/40 pointer-events-none" />
         </div>
 
         {/* Content */}
@@ -266,7 +266,7 @@ function FeedCard({ event, user, isLatest, currentUserId, onNavigate }) {
               className={`shrink-0 mt-0.5 p-1 rounded-md transition-all duration-150 ${
                 bookmarked
                   ? 'text-purple-400'
-                  : 'text-white/20 opacity-0 group-hover/card:opacity-100 hover:text-purple-400 hover:bg-white/[0.06]'
+                  : 'text-white/20 opacity-0 group-hover/card:opacity-100 hover:text-purple-400 hover:bg-white/6'
               }`}
             >
               <Bookmark className={`w-3.5 h-3.5${bookmarked ? ' fill-current' : ''}`} />
@@ -315,16 +315,16 @@ function FeedSkeleton() {
   return (
     <div className="space-y-2.5">
       {[0, 1, 2, 3, 4].map((i) => (
-        <div key={i} className="rounded-xl border border-white/[0.07] bg-white/[0.03] overflow-hidden animate-pulse">
+        <div key={i} className="rounded-xl border border-white/[0.07] bg-white/3 overflow-hidden animate-pulse">
           <div className="flex">
-            <div className="w-[72px] sm:w-[88px] aspect-[2/3] bg-purple-500/[0.04] flex-shrink-0" />
+            <div className="w-[72px] sm:w-[88px] aspect-2/3 bg-purple-500/4 shrink-0" />
             <div className="flex-1 px-3.5 py-3 sm:px-4 sm:py-3.5 space-y-2">
               <div className="flex items-center gap-2">
-                <div className="h-[18px] w-[18px] rounded-full bg-purple-500/[0.04]" />
-                <div className="h-3 w-36 rounded bg-purple-500/[0.04]" />
+                <div className="h-[18px] w-[18px] rounded-full bg-purple-500/4" />
+                <div className="h-3 w-36 rounded bg-purple-500/4" />
               </div>
-              <div className="h-2.5 w-28 rounded bg-purple-500/[0.04]" />
-              <div className="h-2 w-14 rounded bg-purple-500/[0.04]" />
+              <div className="h-2.5 w-28 rounded bg-purple-500/4" />
+              <div className="h-2 w-14 rounded bg-purple-500/4" />
             </div>
           </div>
         </div>
@@ -371,9 +371,9 @@ function FollowingSidebar({ followedUsers, activeFilter, navigate }) {
   const visible = followedUsers.slice(0, 6)
 
   return (
-    <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-4">
+    <div className="bg-white/4 border border-white/8 rounded-2xl p-4">
       <div className="flex items-center gap-2 mb-3">
-        <div className="w-[3px] h-4 rounded-full bg-gradient-to-b from-purple-400 to-pink-500 shrink-0" />
+        <div className="w-[3px] h-4 rounded-full bg-linear-to-b from-purple-400 to-pink-500 shrink-0" />
         <span className="text-xs font-bold text-white/70 uppercase tracking-wider">
           Following
         </span>
@@ -399,7 +399,7 @@ function FollowingSidebar({ followedUsers, activeFilter, navigate }) {
               key={u.id}
               type="button"
               onClick={() => navigate(`/profile/${u.id}`)}
-              className="flex items-center gap-2.5 py-1.5 w-full rounded-lg px-1 -mx-1 hover:bg-white/[0.04] transition-colors cursor-pointer"
+              className="flex items-center gap-2.5 py-1.5 w-full rounded-lg px-1 -mx-1 hover:bg-white/4 transition-colors cursor-pointer"
             >
               <UserAvatar name={u.name} avatarUrl={u.avatar_url} size={28} />
               <span className="text-sm text-white/70 truncate flex-1 text-left">
@@ -433,9 +433,9 @@ function TrendingSidebar({ trendingItems, navigate }) {
   if (trendingItems.length === 0) return null
 
   return (
-    <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-4">
+    <div className="bg-white/4 border border-white/8 rounded-2xl p-4">
       <div className="flex items-center gap-2 mb-3">
-        <div className="w-[3px] h-4 rounded-full bg-gradient-to-b from-purple-400 to-pink-500 shrink-0" />
+        <div className="w-[3px] h-4 rounded-full bg-linear-to-b from-purple-400 to-pink-500 shrink-0" />
         <span className="text-xs font-bold text-white/70 uppercase tracking-wider">
           Trending Among Them
         </span>
@@ -446,7 +446,7 @@ function TrendingSidebar({ trendingItems, navigate }) {
           key={item.movie.tmdb_id || item.movie.id}
           type="button"
           onClick={() => navigate(`/movie/${item.movie.tmdb_id}`)}
-          className="flex items-center gap-2.5 py-1.5 w-full rounded-lg px-1 -mx-1 hover:bg-white/[0.04] transition-colors cursor-pointer"
+          className="flex items-center gap-2.5 py-1.5 w-full rounded-lg px-1 -mx-1 hover:bg-white/4 transition-colors cursor-pointer"
         >
           <div className="w-8 h-12 rounded-md overflow-hidden shrink-0">
             {item.movie.poster_path ? (

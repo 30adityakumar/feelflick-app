@@ -31,7 +31,7 @@ export default function MoodStep({ moods, setMoods, onNext, firstName }) {
           style={{ textWrap: 'balance' }}
         >
           The vibe you{' '}
-          <em className="not-italic bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent italic">
+          <em className="not-italic bg-linear-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent italic">
             live in.
           </em>
         </h2>
@@ -95,7 +95,7 @@ export default function MoodStep({ moods, setMoods, onNext, firstName }) {
       </div>
 
       {/* Footer */}
-      <div className="flex-none px-5 pb-6 pt-3 sm:px-6 sm:pb-8 sm:pt-4 border-t border-white/[0.06]">
+      <div className="flex-none px-5 pb-6 pt-3 sm:px-6 sm:pb-8 sm:pt-4 border-t border-white/6">
         <div className="max-w-sm mx-auto flex flex-col items-center gap-3">
           <p
             className={`text-xs font-medium transition-colors ${

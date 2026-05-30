@@ -18,7 +18,7 @@ Always use skeletons. Never spinners.
 Skeleton implementation:
 ```jsx
 // Tailwind class for all skeletons
-animate-pulse bg-purple-500/[0.04]
+animate-pulse bg-purple-500/4
 ```
 
 Every skeleton must match the shape of the real content it replaces:

@@ -46,7 +46,7 @@ export default function TasteFingerprint({ fingerprint, history }) {
 
   if (total < 5) {
     return (
-      <div className="rounded-2xl border border-white/8 bg-white/[0.02] p-6">
+      <div className="rounded-2xl border border-white/8 bg-white/2 p-6">
         <p className="text-sm text-white/40">
           Watch 5 films to reveal your taste fingerprint.{total > 0 ? ` ${5 - total} more to go.` : ''}
         </p>
@@ -55,7 +55,7 @@ export default function TasteFingerprint({ fingerprint, history }) {
   }
 
   return (
-    <div className="rounded-2xl border border-white/8 bg-white/[0.02] overflow-hidden">
+    <div className="rounded-2xl border border-white/8 bg-white/2 overflow-hidden">
       <div className="px-6 py-5 border-b border-white/5">
         <p className="text-[11px] font-semibold uppercase tracking-widest text-white/40 mb-1">Taste Fingerprint</p>
         <p className="text-xs text-white/60">Based on {total} watched films</p>
@@ -93,7 +93,7 @@ export default function TasteFingerprint({ fingerprint, history }) {
                 <Link
                   key={key}
                   to={`/tone/${encodeURIComponent(key)}`}
-                  className="px-3 py-1 rounded-full text-xs font-medium bg-white/[0.04] border border-white/10 text-white/70 hover:text-white hover:border-white/20 transition-colors"
+                  className="px-3 py-1 rounded-full text-xs font-medium bg-white/4 border border-white/10 text-white/70 hover:text-white hover:border-white/20 transition-colors"
                 >
                   {key} <span className="text-white/40">{Math.round(share * 100)}%</span>
                 </Link>
@@ -114,12 +114,12 @@ export default function TasteFingerprint({ fingerprint, history }) {
                   className="block group"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="text-sm text-white/70 group-hover:text-white w-40 flex-shrink-0 capitalize">
+                    <span className="text-sm text-white/70 group-hover:text-white w-40 shrink-0 capitalize">
                       {key.replace(/_/g, ' ')}
                     </span>
                     <div className="flex-1 h-2 bg-white/5 rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-gradient-to-r from-purple-500/60 to-pink-500/60"
+                        className="h-full bg-linear-to-r from-purple-500/60 to-pink-500/60"
                         style={{ width: `${Math.round(share * 100)}%` }}
                       />
                     </div>

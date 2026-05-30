@@ -184,7 +184,7 @@ export default function Watchlist() {
         {loading ? (
           <div aria-hidden="true" className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
             {Array.from({ length: 10 }).map((_, i) => (
-              <div key={i} className="aspect-[2/3] rounded-xl animate-pulse bg-white/[0.04]" />
+              <div key={i} className="aspect-2/3 rounded-xl animate-pulse bg-white/4" />
             ))}
           </div>
 
@@ -294,7 +294,7 @@ function MovieCard({ movie, removing, marking, onRemove, onMarkWatched, onClick 
         onClick={onClick}
         animate={{ x: swipe === 'left' ? -48 : swipe === 'right' ? 48 : 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        className="relative block w-full aspect-[2/3] rounded-xl overflow-hidden bg-white/5 ring-1 ring-white/8 hover:ring-purple-500/35 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-purple-500/12 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 z-10"
+        className="relative block w-full aspect-2/3 rounded-xl overflow-hidden bg-white/5 ring-1 ring-white/8 hover:ring-purple-500/35 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-purple-500/12 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 z-10"
       >
         {poster ? (
           <img src={poster} alt={movie.title} className="w-full h-full object-cover" loading="lazy" />
@@ -305,7 +305,7 @@ function MovieCard({ movie, removing, marking, onRemove, onMarkWatched, onClick 
         )}
 
         {/* Info overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200">
+        <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/20 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200">
           <div className="absolute inset-x-0 bottom-0 p-2">
             <p className="text-[11px] font-semibold text-white leading-tight line-clamp-2 mb-1">
               {movie.title}
@@ -360,7 +360,7 @@ function EmptyState() {
       </p>
       <a
         href="/discover"
-        className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-sm font-semibold text-white shadow-md shadow-purple-500/25 hover:scale-[1.02] active:scale-[0.98] transition-all"
+        className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-linear-to-r from-purple-500 to-pink-500 text-sm font-semibold text-white shadow-md shadow-purple-500/25 hover:scale-[1.02] active:scale-[0.98] transition-all"
       >
         Discover films
       </a>

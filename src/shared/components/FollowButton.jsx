@@ -155,7 +155,7 @@ export default function FollowButton({ userId, size = 'md' }) {
       onClick={handleToggle}
       disabled={isToggling}
       aria-label="Follow user"
-      className={`${sizeClasses} inline-flex items-center gap-1.5 font-medium transition-all duration-200 bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-400 hover:to-pink-400 disabled:opacity-50`}
+      className={`${sizeClasses} inline-flex items-center gap-1.5 font-medium transition-all duration-200 bg-linear-to-r from-purple-500 to-pink-500 text-white hover:from-purple-400 hover:to-pink-400 disabled:opacity-50`}
     >
       <UserPlus className="h-3.5 w-3.5" />
       Follow

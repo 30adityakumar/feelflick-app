@@ -1,15 +1,19 @@
 // FeelFlick — Browse v3 data layer.
 // /browse v5 — data layer.
 
+import { HP as baseHP, HP_GRAD } from '@/shared/lib/tokens'
+
+// Browse keeps a deeper page bg, extra text tiers, and a couple of accents;
+// spread the shared core and override only those (explicit, not drift).
 export const HP = {
-  bg:'#06060a', surface:'#0e0b18',
-  border:'rgba(255,255,255,0.07)', borderStrong:'rgba(255,255,255,0.14)',
-  text:'#FAFAFA', textHi:'rgba(250,250,250,0.92)', textMid:'rgba(250,250,250,0.72)',
-  textLow:'rgba(250,250,250,0.5)', textFaint:'rgba(250,250,250,0.32)',
-  purple:'#A78BFA', purpleDeep:'#9333ea', pink:'#EC4899',
-  amber:'#F59E0B', green:'#34D399', red:'#EF4444', blue:'#7DD3FC',
-};
-export const HP_GRAD = 'linear-gradient(135deg, #9333ea 0%, #ec4899 100%)';
+  ...baseHP,
+  bg: '#06060a', surface: '#0e0b18',
+  border: 'rgba(255,255,255,0.07)', textFaint: 'rgba(250,250,250,0.32)',
+  purpleDeep: '#9333ea',
+  textHi: 'rgba(250,250,250,0.92)', textMid: 'rgba(250,250,250,0.72)', textLow: 'rgba(250,250,250,0.5)',
+  blue: '#7DD3FC',
+}
+export { HP_GRAD }
 export const TMDB = (p) => `https://image.tmdb.org/t/p/w500${p}`;
 
 export const MOODS = [

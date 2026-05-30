@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useGoogleAuth } from '@/shared/hooks/useGoogleAuth'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
+import MatchBadge from '@/shared/components/MatchBadge'
 import { C, HP_GRAD as GRAD } from '@/shared/lib/tokens'
 import './landing.css'
 // Posters render at <=240px wide on the landing — w342 is the right TMDB size.
@@ -524,7 +525,7 @@ function Briefing(){
                     <div style={{width:'100%',aspectRatio:'2/3',borderRadius:5,boxShadow:'0 20px 40px -16px rgba(0,0,0,0.7)',overflow:'hidden'}}>
                       <Poster src={p.poster} title={p.title} accent={p.moodHex} style={{width:'100%',height:'100%',objectFit:'cover',display:'block'}}/>
                     </div>
-                    <div style={{position:'absolute',top:10,left:10,padding:'4px 8px',borderRadius:3,background:'rgba(0,0,0,0.78)',backdropFilter:'blur(8px)',border:`1px solid ${p.moodHex}44`,fontFamily:'Outfit',fontSize:9.5,fontWeight:700,color:p.moodHex,letterSpacing:'0.06em'}}>{[94,88,82][i]}% MATCH</div>
+                    <MatchBadge variant="pill" pct={[94,88,82][i]} accent={p.moodHex} />
                   </div>
                   <div className="ff-eyebrow" style={{color:p.moodHex,marginBottom:9}}>0{i+1} · {['Tonight\'s pick','Mood match','From your DNA'][i]}</div>
                   <h3 style={{fontFamily:'Outfit',fontSize:22,fontWeight:400,color:C.text,margin:'0 0 6px 0',letterSpacing:'-0.02em'}}>{p.title}</h3>

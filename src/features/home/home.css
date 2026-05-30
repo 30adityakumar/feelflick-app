@@ -1,10 +1,11 @@
-/* FeelFlick — Home v2 scoped styles.
-   Outfit display font, Inter for body. Scoped to .ff-home-v2 to avoid touching the rest of the app. */
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+/* FeelFlick — Home scoped styles.
+   Inter for body; Outfit display + Inter both load globally via index.html, so
+   no per-page font @import here (an @import is render-blocking + slower than the
+   global <link>). Scoped to .ff-home so it doesn't touch the rest of the app. */
 
-.ff-home-v2 {
+.ff-home {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-.ff-home-v2 ::selection { background: rgba(167,139,250,0.35); color: #fff; }
+.ff-home ::selection { background: rgba(167,139,250,0.35); color: #fff; }

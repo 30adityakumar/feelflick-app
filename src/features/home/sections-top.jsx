@@ -1,4 +1,4 @@
-// Home v2 — top sections (Masthead, Mood Reactor, The Briefing 3-up).
+// Home — top sections (Masthead, Mood Reactor, The Briefing 3-up).
 // All film data comes from useHomeData (no more imports from data.js for FILMS).
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
@@ -90,7 +90,7 @@ export function MoodReactor({ currentMood, setMood, onReshuffle }) {
   )
 }
 
-// Animated match ring — mirrors MatchRing from movie-v2/sections-top.jsx.
+// Animated match ring — mirrors MatchRing from movie/sections-top.jsx.
 // SVG with a gradient circle stroke that fills from 0 → pct over 1.4s
 // (stroke-dasharray transition), and the percentage number tweens from 0
 // → pct via setTimeout(setV). Unique gradient id per instance via useId
@@ -133,7 +133,7 @@ function MatchRing({ pct, size = 72 }) {
   )
 }
 
-// Action buttons sized + styled to match movie-v2 detail page actions:
+// Action buttons sized + styled to match movie detail page actions:
 // 14/22 padding, rounded-8, 14px Outfit semibold, gradient bg for primary,
 // outline + active-state tint for Watched/Save, smaller quiet pill for Skip.
 // Same shapes the user sees on /movie/:id so the briefing card actions

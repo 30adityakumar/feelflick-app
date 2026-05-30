@@ -17,10 +17,11 @@ layer is core, not garnish — don't let a narrow "mood→film, faster" reading
 de-prioritize it.)
 
 ## Project
-Mood-first, taste-deep movie/TV discovery: users express how they feel → get **one**
+Mood-first, taste-deep movie discovery: users express how they feel → get **one**
 trustworthy, case-made pick tuned to their full taste history (not an endless feed).
+(Movies only today — no TV/series surfaces yet.)
 **Quality bar:** Netflix / Apple TV+ polish. Every surface is production-facing.
-**Stack:** React 19 · React Router 7 · Framer Motion · Tailwind 4 · Vite 8 · Supabase (PostgreSQL + pgvector) · TMDB API · OpenAI (text-embedding-3-small) · Resend · Google OAuth · PostHog · Sentry · Vitest · Playwright
+**Stack:** React 19 · React Router 7 · TanStack Query · Framer Motion · Tailwind 4 · Vite 8 · lucide-react · Supabase (PostgreSQL + pgvector) · TMDB API · OpenAI (text-embedding-3-large, 3072-dim) · Resend (Daily Briefing email) · Google OAuth · PostHog · Sentry · Vitest · Playwright
 **Language:** JavaScript (JSX). No TypeScript yet — avoid patterns that block future migration.
 
 ## Folder Map

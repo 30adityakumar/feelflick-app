@@ -7,6 +7,7 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import MoodPill from '@/shared/components/MoodPill'
+import Eyebrow from '@/shared/ui/Eyebrow'
 import { HP, HP_GRAD } from './data'
 import { HistoryDataProvider, useHistoryData } from './useHistoryData'
 import './history.css'
@@ -23,11 +24,11 @@ function Masthead() {
   return (
     <section className="ff-hist-section ff-hist-section--masthead" style={{ padding:'40px 88px 12px' }}>
       <div style={{ display:'flex', alignItems:'center', gap:14, flexWrap:'wrap' }}>
-        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.32em', textTransform:'uppercase', color:HP.purple }}>Diary</div>
+        <Eyebrow spacing="0.32em" size={10}>Diary</Eyebrow>
         <div style={{ height:1, width:38, background:HP.purple, opacity:0.5 }} />
-        <div style={{ fontSize:10, fontWeight:500, letterSpacing:'0.18em', textTransform:'uppercase', color:HP.textMuted, fontFamily:'Outfit' }}>
+        <Eyebrow tone="meta" weight={500} size={10}>
           {stats.totalLogged} film{stats.totalLogged === 1 ? '' : 's'} · {stats.totalHours} hours · {stats.streakDays}-day streak
-        </div>
+        </Eyebrow>
       </div>
     </section>
   );
@@ -46,7 +47,7 @@ function PulseStrip() {
       <div className="ff-hist-pulse-grid" style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:20 }}>
         {items.map(s => (
           <div key={s.label} style={{ padding:'20px 22px', borderRadius:6, background:'rgba(255,255,255,0.025)', border:`1px solid ${HP.border}` }}>
-            <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color:HP.textMuted, fontFamily:'Outfit', marginBottom:8 }}>{s.label}</div>
+            <Eyebrow tone="meta" size={10} style={{ marginBottom:8 }}>{s.label}</Eyebrow>
             <div style={{ fontFamily:'Outfit', fontSize:44, fontWeight:200, color:HP.text, letterSpacing:'-0.045em', lineHeight:1 }}>{s.value}</div>
             <div style={{ marginTop:6, fontSize:11, color:HP.textSoft, fontFamily:'Outfit', fontStyle:'italic' }}>{s.hint}</div>
           </div>
@@ -240,7 +241,7 @@ function EmptyState() {
   const navigate = useNavigate();
   return (
     <section className="ff-hist-section" style={{ padding:'72px 88px 96px', textAlign:'center', borderTop:`1px solid ${HP.border}` }}>
-      <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:HP.purple, marginBottom:18 }}>The diary is blank</div>
+      <Eyebrow size={10} style={{ marginBottom:18 }}>The diary is blank</Eyebrow>
       <h2 style={{ fontFamily:'Outfit', fontSize:36, lineHeight:1, fontWeight:500, letterSpacing:'-0.03em', color:HP.text, margin:'0 0 14px 0' }}>Mark something watched.</h2>
       <p style={{ margin:'0 auto 28px', maxWidth:480, fontSize:14, color:HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', lineHeight:1.6 }}>
         Hit Mark Watched on any film detail page and it lands here, grouped by month with your rating and a note line.
@@ -271,7 +272,7 @@ function PageError({ error }) {
   return (
     <div style={{ minHeight:'60vh', display:'flex', alignItems:'center', justifyContent:'center', padding:24 }}>
       <div style={{ textAlign:'center', maxWidth:520 }}>
-        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: HP.purple, marginBottom:18 }}>Diary · error</div>
+        <Eyebrow size={10} style={{ marginBottom:18 }}>Diary · error</Eyebrow>
         <h1 style={{ fontFamily:'Outfit, Inter, sans-serif', fontSize:36, fontWeight:500, color:HP.text, margin:'0 0 18px 0', letterSpacing:'-0.025em' }}>Couldn&rsquo;t load your diary.</h1>
         <p style={{ margin:0, color:'rgba(250,250,250,0.6)', fontSize:14, lineHeight:1.6 }}>{error}</p>
       </div>

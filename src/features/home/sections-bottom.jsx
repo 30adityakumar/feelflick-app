@@ -3,6 +3,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Check, ChevronRight } from 'lucide-react'
+import Eyebrow from '@/shared/ui/Eyebrow'
 import { HP, HP_GRAD } from './data'
 import { SmartImg } from './atoms'
 import { useHomeData } from './useHomeData'
@@ -13,9 +14,7 @@ import { logSurfaceImpressions } from '@/shared/services/recommendations'
 
 const Heading = ({ kicker, title, sub }) => (
   <header style={{ marginBottom: 36 }}>
-    <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.24em', textTransform: 'uppercase', color: HP.purple, marginBottom: 14, display: 'inline-flex', alignItems: 'center', gap: 10 }}>
-      <span style={{ height: 1, width: 22, background: HP.purple, opacity: 0.6 }} />{kicker}
-    </div>
+    <Eyebrow rule size={10} spacing="0.24em" style={{ marginBottom: 14 }}>{kicker}</Eyebrow>
     <h2 style={{ fontFamily: 'Outfit, Inter, sans-serif', fontSize: 'clamp(28px, 4.5vw, 44px)', lineHeight: 1.0, fontWeight: 500, letterSpacing: '-0.035em', color: HP.text, margin: 0, textWrap: 'balance' }}>{title}</h2>
     {sub && <p style={{ marginTop: 14, fontSize: 14, color: HP.textMuted, maxWidth: 540, fontFamily: 'Outfit, Inter, sans-serif', textWrap: 'pretty' }}>{sub}</p>}
   </header>
@@ -447,9 +446,7 @@ export function CuratedLists({ onOpenList }) {
         className="mb-9 flex flex-col gap-3 sm:mb-10 lg:mb-12 lg:flex-row lg:items-end lg:justify-between lg:gap-8"
       >
         <div>
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.24em', textTransform: 'uppercase', color: HP.purple, marginBottom: 14, display: 'inline-flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ height: 1, width: 22, background: HP.purple, opacity: 0.6 }} />{isCurated ? 'Lists' : 'For you'}
-          </div>
+          <Eyebrow rule size={10} spacing="0.24em" style={{ marginBottom: 14 }}>{isCurated ? 'Lists' : 'For you'}</Eyebrow>
           <h2 style={{ fontFamily: 'Outfit, Inter, sans-serif', fontSize: 'clamp(28px, 4.5vw, 44px)', lineHeight: 1.0, fontWeight: 500, letterSpacing: '-0.035em', color: HP.text, margin: 0, textWrap: 'balance' }}>
             {isCurated ? 'Curated edits.' : 'Lists, hand-cut for you.'}
           </h2>

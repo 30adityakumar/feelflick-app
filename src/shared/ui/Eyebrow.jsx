@@ -48,7 +48,7 @@ export default function Eyebrow({ children, tone = 'section', color, rule = fals
       }}
       {...props}
     >
-      {rule && <span style={{ height: 1, width: 22, background: accent, opacity: 0.6, flex: 'none' }} />}
+      {rule && <span aria-hidden style={{ height: 1, width: 22, background: accent, opacity: 0.6, flex: 'none' }} />}
       {children}
     </div>
   )

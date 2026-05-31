@@ -214,11 +214,11 @@ function GenresPrefs() {
       <H kicker="Genres" title="What you live in." sub="Drawn-to genres get prioritized; avoided genres are excluded as hard rules." />
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48 }}>
         <div>
-          <Eyebrow color={HP.textMuted} spacing="0.18em" size={10} style={{ marginBottom: 14 }}>Drawn to</Eyebrow>
+          <Eyebrow tone="meta" size={10} style={{ marginBottom: 14 }}>Drawn to</Eyebrow>
           <ChipPicker items={drawnItems} hex={HP.purple} onRemove={removeDrawnGenre} onAdd={addDrawnGenre} options={allOptions} addLabel="+ Genre" />
         </div>
         <div>
-          <Eyebrow color={HP.textMuted} spacing="0.18em" size={10} style={{ marginBottom: 14 }}>Avoid (hard rule)</Eyebrow>
+          <Eyebrow tone="meta" size={10} style={{ marginBottom: 14 }}>Avoid (hard rule)</Eyebrow>
           <ChipPicker items={avoidItems} hex={HP.red} onRemove={removeAvoidGenre} onAdd={addAvoidGenre} options={allOptions} addLabel="+ Genre" />
         </div>
       </div>
@@ -233,7 +233,7 @@ function DirectorPrefs() {
       <H kicker="Directors" title="Voices you trust." sub="Trusted directors boost match scores; muted directors get filtered out entirely." />
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48 }}>
         <div>
-          <Eyebrow color={HP.textMuted} spacing="0.18em" size={10} style={{ marginBottom: 14 }}>Trusted</Eyebrow>
+          <Eyebrow tone="meta" size={10} style={{ marginBottom: 14 }}>Trusted</Eyebrow>
           <FreeTextChips
             items={draft.trustedDirectors}
             hex={HP.green}
@@ -244,7 +244,7 @@ function DirectorPrefs() {
           />
         </div>
         <div>
-          <Eyebrow color={HP.textMuted} spacing="0.18em" size={10} style={{ marginBottom: 14 }}>Muted</Eyebrow>
+          <Eyebrow tone="meta" size={10} style={{ marginBottom: 14 }}>Muted</Eyebrow>
           <FreeTextChips
             items={draft.mutedDirectors}
             hex={HP.red}
@@ -278,7 +278,7 @@ function Runtime() {
           </div>
         </div>
         <div>
-          <Eyebrow color={HP.textMuted} spacing="0.18em" size={10} style={{ marginBottom: 14 }}>Runtime band</Eyebrow>
+          <Eyebrow tone="meta" size={10} style={{ marginBottom: 14 }}>Runtime band</Eyebrow>
           <div style={{ fontFamily: 'Outfit, Inter, sans-serif', fontSize: 13, color: HP.textSoft, fontStyle: 'italic', lineHeight: 1.65 }}>
             Films shorter than <span style={{ color: HP.text, fontWeight: 600 }}>{draft.runtimeFloor} min</span> or longer than <span style={{ color: HP.text, fontWeight: 600 }}>{draft.runtimeCap} min</span> still appear in your briefings &mdash; they just rank lower.<br />
             Films inside the band get a quiet boost so you actually press play.
@@ -402,18 +402,18 @@ function Display() {
       <H kicker="Display" title="How films arrive." sub="Doesn't change what we pick &mdash; just how each film shows up when you open it." />
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48 }}>
         <div>
-          <Eyebrow color={HP.textMuted} spacing="0.18em" size={10} style={{ marginBottom: 6 }}>Subtitles</Eyebrow>
+          <Eyebrow tone="meta" size={10} style={{ marginBottom: 6 }}>Subtitles</Eyebrow>
           <div style={{ fontSize: 12, color: HP.textFaint, fontFamily: 'Outfit, Inter, sans-serif', fontStyle: 'italic', marginBottom: 14 }}>How you feel about reading them.</div>
           <Segmented value={draft.subtitles} onChange={setSubtitles} options={catalogs.SUBTITLE_MODES} />
         </div>
         <div>
-          <Eyebrow color={HP.textMuted} spacing="0.18em" size={10} style={{ marginBottom: 6 }}>Spoiler tier</Eyebrow>
+          <Eyebrow tone="meta" size={10} style={{ marginBottom: 6 }}>Spoiler tier</Eyebrow>
           <div style={{ fontSize: 12, color: HP.textFaint, fontFamily: 'Outfit, Inter, sans-serif', fontStyle: 'italic', marginBottom: 14 }}>How much synopsis we show by default.</div>
           <Segmented value={draft.spoilerTier} onChange={setSpoilerTier} options={catalogs.SPOILER_TIERS} />
         </div>
       </div>
       <div style={{ marginTop: 36 }}>
-        <Eyebrow color={HP.textMuted} spacing="0.18em" size={10} style={{ marginBottom: 6 }}>Languages you watch</Eyebrow>
+        <Eyebrow tone="meta" size={10} style={{ marginBottom: 6 }}>Languages you watch</Eyebrow>
         <div style={{ fontSize: 12, color: HP.textFaint, fontFamily: 'Outfit, Inter, sans-serif', fontStyle: 'italic', marginBottom: 14 }}>Films in these languages get a quiet boost.</div>
         <ChipPicker items={languageItems} hex={HP.purple} onRemove={removeLanguage} onAdd={addLanguage} options={languageOptions} addLabel="+ Language" />
       </div>

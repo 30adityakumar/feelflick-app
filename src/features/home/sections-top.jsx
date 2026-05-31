@@ -9,6 +9,7 @@ import { ActionButton, SecondaryActionButton } from '@/shared/components/ActionB
 import { useUserMovieStatus } from '@/shared/hooks/useUserMovieStatus'
 import { getMovieWatchProviders } from '@/shared/api/tmdb'
 import { logSurfaceImpressions } from '@/shared/services/recommendations'
+import Eyebrow from '@/shared/ui/Eyebrow'
 import { HP, HP_GRAD, MOOD_META } from './data'
 import { SmartImg } from './atoms'
 import { useHomeData } from './useHomeData'
@@ -41,7 +42,7 @@ export function MoodReactor({ currentMood, setMood, onReshuffle }) {
       <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-5">
         <div className="flex flex-none items-baseline gap-2.5">
           <span aria-hidden style={{ height: 1, width: 18, background: HP.purple, opacity: 0.6, alignSelf: 'center' }} />
-          <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: HP.textMuted, fontFamily: 'Outfit', whiteSpace: 'nowrap' }}>Tonight I feel</span>
+          <Eyebrow color={HP.textMuted} size={10} style={{ whiteSpace: 'nowrap' }}>Tonight I feel</Eyebrow>
         </div>
         <div
           ref={pillsRef}
@@ -246,10 +247,7 @@ function BriefingSlide({ film, idx, matchPct, user, onWatch, onSkip, onMarkedWat
         {/* Slot label kicker — bigger on desktop where it's the marquee header.
             self-center on mobile so it centers like the title/meta/synopsis
             below it; self-start on desktop matches the left-aligned column. */}
-        <div className="self-center lg:self-start" style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: HP.purple, marginBottom: 12, display: 'inline-flex', alignItems: 'center', gap: 10 }}>
-          <span aria-hidden style={{ height: 1, width: 22, background: HP.purple, opacity: 0.6 }} />
-          {slotLabel}
-        </div>
+        <Eyebrow rule className="self-center lg:self-start" style={{ marginBottom: 12 }}>{slotLabel}</Eyebrow>
         {/* Title — matches the /movie/:id hero typography: Outfit 600 with a
             tight negative letter-spacing and lineHeight 0.94. Sized down
             from 92px to fit this two-column row, then scaled responsively

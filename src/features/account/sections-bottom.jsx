@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
 import { formatMonthYear } from '@/shared/lib/format/date'
 import { setAnalyticsOptOut } from '@/shared/services/analytics'
+import Eyebrow from '@/shared/ui/Eyebrow'
 import { HP, HP_GRAD, CONNECTIONS, FOUNDING_CUTOFF } from './data'
 import { SectionHead, Toggle } from './sections-top'
 import { useAccountData } from './useAccountData'
@@ -117,7 +118,7 @@ function PlanCard() {
       <div className="ff-acct-plan-card" style={{ padding:'32px 36px', borderRadius:8, background:`linear-gradient(135deg, ${HP.purple}11, ${HP.pink}08)`, border:`1px solid ${HP.purple}33`, position:'relative', overflow:'hidden' }}>
         <div style={{ position:'absolute', top:'-30%', right:'-10%', width:'40%', aspectRatio:1, borderRadius:999, background:`radial-gradient(circle, ${HP.purple}33, transparent 70%)`, filter:'blur(40px)' }} />
         <div style={{ position:'relative' }}>
-          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color:HP.purple, marginBottom:10 }}>Current plan</div>
+          <Eyebrow spacing="0.22em" size={10} style={{ marginBottom:10 }}>Current plan</Eyebrow>
           <div className="ff-acct-plan-headline" style={{ fontFamily:'Outfit', fontSize:32, fontWeight:300, color:HP.text, letterSpacing:'-0.03em', marginBottom:14 }}>
             {tier}
             {isFounding && (

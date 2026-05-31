@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
+import Eyebrow from '@/shared/ui/Eyebrow'
 import { HP, HP_GRAD } from './data'
 import { PeopleDataProvider, usePeopleData } from './usePeopleData'
 import './people.css'
@@ -84,9 +85,9 @@ function Masthead({ onSearch, query, setQuery }) {
       <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(ellipse 50% 30% at 10% 0%, rgba(236,72,153,0.10), transparent 60%)' }} />
       <div style={{ position: 'relative' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 22, flexWrap: 'wrap' }}>
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.32em', textTransform: 'uppercase', color: HP.purple }}>People</div>
+          <Eyebrow spacing="0.32em" size={10}>People</Eyebrow>
           <div style={{ height: 1, width: 38, background: HP.purple, opacity: 0.5 }} />
-          <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: HP.textMuted, fontFamily: 'Outfit' }}>{user.following} following · {user.followers} followers</div>
+          <Eyebrow tone="meta" weight={500} size={10}>{user.following} following · {user.followers} followers</Eyebrow>
         </div>
         <h1 className="ff-people-hero" style={{ fontFamily: 'Outfit', fontSize: 88, lineHeight: 0.92, fontWeight: 300, letterSpacing: '-0.05em', color: HP.text, margin: 0, textWrap: 'balance' }}>
           Your <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>taste twins.</em>
@@ -168,9 +169,7 @@ function TwinsRail() {
     <section className="ff-people-section ff-people-twins" style={{ padding: '24px 88px 56px' }}>
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 24, gap: 16, flexWrap: 'wrap' }}>
         <div>
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: HP.purple, marginBottom: 12, display: 'inline-flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ height: 1, width: 22, background: HP.purple, opacity: 0.6 }} />{twins.length === 0 && popular.length > 0 ? 'Popular on FeelFlick' : 'Strongest matches'}
-          </div>
+          <Eyebrow rule size={10} style={{ marginBottom: 12 }}>{twins.length === 0 && popular.length > 0 ? 'Popular on FeelFlick' : 'Strongest matches'}</Eyebrow>
           <h2 className="ff-people-h2" style={{ fontFamily: 'Outfit', fontSize: 36, lineHeight: 1, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>
             {twins.length === 0 && popular.length > 0
               ? <>Start with the <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>most-watched.</em></>
@@ -271,9 +270,7 @@ function Rising() {
     <section className="ff-people-section ff-people-rising" style={{ padding: '48px 88px', borderTop: `1px solid ${HP.border}`, background: 'rgba(255,255,255,0.012)' }}>
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
         <div>
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: HP.purple, marginBottom: 12, display: 'inline-flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ height: 1, width: 22, background: HP.purple, opacity: 0.6 }} />On the rise
-          </div>
+          <Eyebrow rule size={10} style={{ marginBottom: 12 }}>On the rise</Eyebrow>
           <h2 className="ff-people-h2-sm" style={{ fontFamily: 'Outfit', fontSize: 30, lineHeight: 1, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>Building taste in <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>your direction.</em></h2>
         </div>
       </div>
@@ -315,9 +312,7 @@ function Activity() {
   return (
     <section className="ff-people-section ff-people-activity" style={{ padding: '56px 88px', borderTop: `1px solid ${HP.border}` }}>
       <div style={{ marginBottom: 24 }}>
-        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: HP.purple, marginBottom: 12, display: 'inline-flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ height: 1, width: 22, background: HP.purple, opacity: 0.6 }} />Activity
-        </div>
+        <Eyebrow rule size={10} style={{ marginBottom: 12 }}>Activity</Eyebrow>
         <h2 className="ff-people-h2" style={{ fontFamily: 'Outfit', fontSize: 36, lineHeight: 1, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>{heading}</h2>
         {followingIds.size === 0 && (
           <p style={{ marginTop: 10, fontSize: 12, color: HP.textMuted, fontFamily: 'Outfit, Inter, sans-serif', fontStyle: 'italic' }}>
@@ -359,7 +354,7 @@ function CrewOverlap() {
     <section className="ff-people-section ff-people-crew" style={{ padding: '56px 88px', borderTop: `1px solid ${HP.border}`, background: 'rgba(255,255,255,0.012)' }}>
       <div className="ff-people-crew-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1.6fr', gap: 64, alignItems: 'flex-start' }}>
         <div>
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: HP.purple, marginBottom: 12 }}>Shared lineage</div>
+          <Eyebrow size={10} style={{ marginBottom: 12 }}>Shared lineage</Eyebrow>
           <h2 className="ff-people-h2" style={{ fontFamily: 'Outfit', fontSize: 32, lineHeight: 1.05, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>Directors your <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>circle loves.</em></h2>
           <p style={{ marginTop: 14, fontSize: 13, color: HP.textMuted, fontFamily: 'Outfit, Inter, sans-serif', lineHeight: 1.55, maxWidth: 320 }}>{sub}</p>
         </div>
@@ -384,7 +379,7 @@ function Suggested() {
   return (
     <section className="ff-people-section ff-people-suggested" style={{ padding: '56px 88px', borderTop: `1px solid ${HP.border}` }}>
       <div style={{ marginBottom: 24 }}>
-        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: HP.purple, marginBottom: 12 }}>Suggested</div>
+        <Eyebrow size={10} style={{ marginBottom: 12 }}>Suggested</Eyebrow>
         <h2 className="ff-people-h2-sm" style={{ fontFamily: 'Outfit', fontSize: 30, lineHeight: 1, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>People you <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>might know.</em></h2>
       </div>
       <div className="ff-people-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16 }}>
@@ -420,7 +415,7 @@ function SearchResults({ results, loading, onClear }) {
     <section className="ff-people-section ff-people-search-results" style={{ padding: '24px 88px 56px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
         <div>
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: HP.purple, marginBottom: 12 }}>Search results</div>
+          <Eyebrow size={10} style={{ marginBottom: 12 }}>Search results</Eyebrow>
           <h2 className="ff-people-h2-sm" style={{ fontFamily: 'Outfit', fontSize: 30, lineHeight: 1, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>{results.length} match{results.length === 1 ? '' : 'es'}</h2>
         </div>
         <button type="button" onClick={onClear} style={{ ...RESET_BTN, fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Clear ×</button>

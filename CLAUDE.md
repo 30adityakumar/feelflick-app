@@ -462,6 +462,7 @@ and motion language.
 - `<Input>` / `<Textarea>` / `<Select>` — pure styling primitives (no built-in label).
 - `<Checkbox id checked onChange label />` — toggle switch.
 - `<EmptyState icon title description action />` — canonical empty state.
+- `<Eyebrow tone="section|meta" rule? color? size? spacing? />` — the canonical uppercase kicker / eyebrow (`rule` adds the 22px brand rule). Use it instead of hand-rolling `textTransform:'uppercase'` labels.
 - `<SectionHeader title subtitle? seeAllTo? eyebrow? />` — carousel row header (matches the section header pattern above).
 - `<Tooltip label>{children}</Tooltip>` — hover/focus tooltip primitive.
 - `<BrandSplash label? error? />` — full-screen brand splash (200ms delayed visibility; errors immediate).

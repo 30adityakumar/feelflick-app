@@ -10,18 +10,26 @@
 > This file tracks only the *active* slice — don't duplicate the roadmap here.
 
 ## Currently In Progress
-- [ ] (between phases) — F3 just landed; F4 is queued.
+- [ ] (between phases) — F4 just landed; F5 is queued.
 
 ## Up Next (prioritized)
-- [ ] **F4 — Landing + Onboarding vNext** — also the natural home for the parked
-      landing-reusability WIP in `stash@{0}` (Eyebrow rollout + `AuthCTA`/`Wordmark`
-      primitives + `Reveal`→`useInView`), applied with deliberate visual re-baselining.
-- [ ] (later) F5–F10 per the F0 roadmap.
+- [ ] **F5 — Home / Briefing vNext** — make the Briefing feel like a nightly ritual
+      with one trusted pick; sharpen the "why this is the one"; decide the carousel-tail
+      ordering/trim. Engine untouched (scoring is F8).
+- [ ] (later) F6–F10 per the F0 roadmap.
 
 ## Blocked / Waiting
-- [ ] <!-- e.g. Feature X — waiting on design decision -->
+- [ ] **Linux visual baseline regeneration** for the F4 landing changes — push a
+      `visual-baselines/f4-landing` branch so `visual-regression.yml` regenerates +
+      commits the Linux snapshot (darwin baseline updated locally in F4).
 
 ## Done This Week
+- [x] **F4 — Landing + Onboarding vNext** (`docs/landing-onboarding-vnext-f4.md`):
+      applied the parked landing-reusability stash (Eyebrow/AuthCTA/Wordmark +
+      `useInView`; movie/profile excluded); tightened Community honesty framing
+      ("Illustrative · taste twins grow as FeelFlick does"); added onboarding
+      "why we ask" microcopy (Genres/Films/Rate). Engine/IA/auth untouched. Darwin
+      visual baseline re-generated; Linux pending (see Blocked).
 - [x] **F3 — Design System Hardening** (`docs/design-system-hardening-f3.md`): retired
       genuine brand-ambient/accent drift (router `LandingBg`, SearchBar hover,
       ErrorBoundary → sanctioned `red`); documented brand-vs-semantic tokens (amber/

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useGoogleAuth } from '@/shared/hooks/useGoogleAuth'
-import { C, HP_GRAD as GRAD } from '@/shared/lib/tokens'
+import { C } from '@/shared/lib/tokens'
+import { AuthCTA, Wordmark } from '../primitives'
 
 // ── Header ─────────────────────────────────────────────────
 // Below 768px the desktop nav collapses to a hamburger that opens a full-screen
@@ -89,11 +90,18 @@ export default function Header(){
     };
   },[open]);
   const navLinkStyle={fontFamily:'Inter',fontSize:13,fontWeight:500,color:C.textMid,display:'inline-flex',alignItems:'center',height:44,padding:'0 4px',textDecoration:'none'};
-  const ctaPillStyle={display:'inline-flex',alignItems:'center',gap:6,fontFamily:'Inter',fontSize:13,fontWeight:600,color:'#fff',padding:'0 18px',height:44,borderRadius:999,background:GRAD,border:'none',cursor:isAuthenticating?'progress':'pointer',opacity:isAuthenticating?0.7:1,whiteSpace:'nowrap'};
+  // Per-instance layout for the shared AuthCTA pill; the gradient/radius/weight
+  // invariants + loading treatment live in AuthCTA. Desktop and mobile differ
+  // only in horizontal padding.
+  const ctaPillStyle={display:'inline-flex',alignItems:'center',gap:6,fontSize:13,padding:'0 20px',height:44,whiteSpace:'nowrap',boxShadow:'0 8px 20px -10px rgba(236,72,153,0.5)'};
+  // Ghost/outline pill — secondary CTA paired with the filled AuthCTA. Same
+  // height/radius as the primary so they read as a set; hover (bg + border +
+  // text) lives in `.ff-ghost`. Distinguishes auth from the nav anchors.
+  const ghostPillStyle={display:'inline-flex',alignItems:'center',fontFamily:'Inter',fontSize:13,fontWeight:600,padding:'0 18px',height:44,borderRadius:999,border:`1px solid ${C.hairline}`,background:'transparent',cursor:isAuthenticating?'progress':'pointer',opacity:isAuthenticating?0.7:1,whiteSpace:'nowrap'};
   return(
-    <header style={{position:'fixed',top:0,left:0,right:0,zIndex:50,transition:'all 0.4s ease',background:s||open?'rgba(6,6,10,0.92)':'transparent',backdropFilter:s||open?'saturate(140%) blur(20px)':'none',borderBottom:s||open?`1px solid ${C.hairline}`:'1px solid transparent'}}>
+    <header style={{position:'fixed',top:0,left:0,right:0,zIndex:50,transition:'background-color 0.4s ease, backdrop-filter 0.4s ease, border-color 0.4s ease',background:open?'rgba(6,6,10,0.92)':s?'rgba(6,6,10,0.8)':'transparent',backdropFilter:s||open?'saturate(140%) blur(20px)':'none',borderBottom:s||open?`1px solid ${C.hairline}`:'1px solid transparent'}}>
       <div style={{maxWidth:1280,margin:'0 auto',padding:'0 20px',display:'flex',alignItems:'center',justifyContent:'space-between',height:64,gap:12}}>
-        <a href="/" className="ff-link" style={{fontFamily:'Inter',fontSize:21,fontWeight:700,letterSpacing:'-0.012em',background:GRAD,WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',flexShrink:0}}>FEELFLICK</a>
+        <a href="/" aria-label="FeelFlick home" className="ff-link ff-logo" style={{display:'inline-flex',flexShrink:0}}><Wordmark/></a>
         {/* Desktop nav — hidden on mobile */}
         <nav className="ff-hide-on-mobile" style={{display:'flex',alignItems:'center',gap:24}}>
           {NAV_ITEMS.map(n=>
@@ -102,12 +110,12 @@ export default function Header(){
         </nav>
         {/* Desktop CTA cluster — hidden on mobile */}
         <div className="ff-hide-on-mobile" style={{display:'flex',alignItems:'center',gap:14}}>
-          <button type="button" onClick={signInWithGoogle} disabled={isAuthenticating} className="ff-link" style={navLinkStyle} aria-label="Sign in with Google">Sign in</button>
-          <button type="button" onClick={signInWithGoogle} disabled={isAuthenticating} className="ff-link" style={ctaPillStyle} aria-label="Start free with Google">{isAuthenticating?'Opening Google…':'Start free →'}</button>
+          <button type="button" onClick={signInWithGoogle} disabled={isAuthenticating} className="ff-link ff-ghost" style={ghostPillStyle} aria-label="Sign in with Google">Sign in</button>
+          <AuthCTA onClick={signInWithGoogle} loading={isAuthenticating} ariaLabel="Start free with Google" style={ctaPillStyle}>{l=>l?'Opening Google…':<>Start free <span className="ff-cta-arrow">→</span></>}</AuthCTA>
         </div>
         {/* Mobile: hamburger + start-free pill */}
         <div className="ff-show-on-mobile" style={{alignItems:'center',gap:10}}>
-          <button type="button" onClick={signInWithGoogle} disabled={isAuthenticating} className="ff-link" style={{...ctaPillStyle,fontSize:13,padding:'0 16px',height:44}} aria-label="Start free with Google">{isAuthenticating?'…':'Start free'}</button>
+          <AuthCTA onClick={signInWithGoogle} loading={isAuthenticating} ariaLabel="Start free with Google" style={{...ctaPillStyle,padding:'0 16px'}}>{l=>l?'…':'Start free'}</AuthCTA>
           <button ref={hamburgerRef} type="button" onClick={()=>setOpen(v=>!v)} aria-label={open?'Close menu':'Open menu'} aria-expanded={open} aria-controls="ff-mobile-drawer" style={{width:44,height:44,display:'inline-flex',alignItems:'center',justifyContent:'center',background:'transparent',border:`1px solid ${C.hairline}`,borderRadius:999,color:C.text,cursor:'pointer',padding:0}}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               {open

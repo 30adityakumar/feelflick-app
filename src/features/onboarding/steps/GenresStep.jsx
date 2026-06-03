@@ -65,7 +65,8 @@ export default function GenresStep({ selectedGenres, toggleGenre, onBack, onNext
           {' '}do you live in?
         </h2>
         <p className="text-[13px] sm:text-sm md:text-[15px] text-white/55 mt-2 sm:mt-3 leading-relaxed max-w-xl">
-          Pick at least {MIN_GENRES}. You can always add more later.
+          Pick at least {MIN_GENRES} — this steers what we reach for first. Nothing&apos;s
+          locked in; you can always add more later.
         </p>
       </div>
 

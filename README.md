@@ -218,8 +218,11 @@ and ending green on `lint → test → build`. See the roadmap in the
 [F0 audit §8](docs/feelflick-foundation-readiness-audit.md).
 
 - **F0 — Foundation Readiness Audit** ✅ done
-- **F1 — Product Doctrine + README/Docs Alignment** ✅ this document + the doctrine/architecture/research docs
-- **F2 — Information Architecture v2** ⏭️ next
+- **F1 — Product Doctrine + README/Docs Alignment** ✅ done
+- **F2 — Information Architecture v2** ✅ done (nav centers the Briefing / "Tonight")
+- **F3 — Design System Hardening** ✅ done (brand vs semantic tokens)
+- **F4 — Landing + Onboarding vNext** ✅ done (landing primitives + trust copy)
+- **F5 — Home / Briefing vNext** ⏭️ next
 
 ---
 

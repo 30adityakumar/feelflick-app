@@ -1,5 +1,5 @@
 import { C } from '@/shared/lib/tokens'
-import { Reveal, Poster } from '../primitives'
+import { Reveal, Poster, Eyebrow } from '../primitives'
 import { PICKS } from '../data'
 
 // ── The Problem (Apple "vs" split) ─────────────────────────
@@ -10,7 +10,7 @@ export default function TheProblem(){
       <div style={{maxWidth:1280,margin:'0 auto'}}>
         <Reveal>
           <div style={{textAlign:'center',marginBottom:80}}>
-            <div className="ff-eyebrow" style={{marginBottom:28,color:C.purple}}>The problem</div>
+            <Eyebrow color={C.purple} style={{marginBottom:28}}>The problem</Eyebrow>
             <h2 className="ff-d2" style={{fontSize:'clamp(44px,5.6vw,80px)',color:C.text,margin:'0 auto',textWrap:'balance',maxWidth:880}}>
               You spent <em className="ff-italic" style={{color:'#EF4444'}}>23 minutes</em> picking.{' '}<br/>You watched <em className="ff-italic" style={{color:C.purple}}>thirty.</em>
             </h2>
@@ -24,7 +24,7 @@ export default function TheProblem(){
             {/* Left: chaos */}
             <div style={{position:'relative',borderRadius:14,overflow:'hidden',background:'#0c0a14',border:`1px solid ${C.hairline}`,padding:'24px 24px 0'}}>
               <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:18}}>
-                <div className="ff-eyebrow" style={{color:'#EF4444'}}>Streaming · Tonight</div>
+                <Eyebrow color="#EF4444">Streaming · Tonight</Eyebrow>
                 <div style={{fontFamily:'Inter',fontSize:11,color:C.textFaint}}>scrolling · 23 min</div>
               </div>
               {/* Mocked grid of small posters with shimmer */}
@@ -48,7 +48,7 @@ export default function TheProblem(){
             {/* Right: clarity */}
             <div style={{position:'relative',borderRadius:14,overflow:'hidden',background:`linear-gradient(160deg,${C.purple}10,transparent 80%)`,border:`1px solid ${C.purple}44`,padding:'32px 32px 36px',display:'flex',flexDirection:'column',justifyContent:'space-between'}}>
               <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-                <div className="ff-eyebrow" style={{color:C.purple}}>FeelFlick · Tonight</div>
+                <Eyebrow color={C.purple}>FeelFlick · Tonight</Eyebrow>
                 <div style={{fontFamily:'Inter',fontSize:11,color:C.textFaint}}>deciding · 47 sec</div>
               </div>
               <div style={{margin:'auto',display:'flex',gap:24,alignItems:'flex-end',maxWidth:380}}>
@@ -58,7 +58,7 @@ export default function TheProblem(){
                 <div style={{paddingBottom:6}}>
                   <h3 style={{fontFamily:'Outfit',fontSize:22,fontWeight:400,color:C.text,margin:0,letterSpacing:'-0.02em'}}>{PICKS[3].title}</h3>
                   <div style={{fontFamily:'Inter',fontSize:11,color:C.textLow,marginTop:4}}>{PICKS[3].dir} · {PICKS[3].year}</div>
-                  <div className="ff-eyebrow" style={{color:C.purple,marginTop:14}}>94% match</div>
+                  <Eyebrow color={C.purple} style={{marginTop:14}}>94% match</Eyebrow>
                 </div>
               </div>
               <div className="ff-italic" style={{fontFamily:'Outfit',fontSize:13,color:C.textMid,fontStyle:'italic',lineHeight:1.5}}>

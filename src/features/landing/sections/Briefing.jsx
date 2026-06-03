@@ -1,6 +1,6 @@
 import MatchBadge from '@/shared/components/MatchBadge'
 import { C } from '@/shared/lib/tokens'
-import { Reveal, Poster } from '../primitives'
+import { Reveal, Poster, Eyebrow } from '../primitives'
 import { PICKS } from '../data'
 
 // ── The Briefing ──────────────────────────────────────────────
@@ -11,7 +11,7 @@ export default function Briefing(){
         <Reveal>
           <div className="ff-grid-2" style={{marginBottom:72}}>
             <div>
-              <div className="ff-eyebrow" style={{marginBottom:24,color:C.purple}}>The Briefing</div>
+              <Eyebrow color={C.purple} style={{marginBottom:24}}>The Briefing</Eyebrow>
               <h2 className="ff-d2" style={{fontSize:'clamp(44px,5.6vw,80px)',color:C.text,margin:0,textWrap:'balance'}}>
                 Or get it <em className="ff-italic" style={{color:C.textMid}}>served.</em>
               </h2>
@@ -25,9 +25,9 @@ export default function Briefing(){
           <div style={{borderRadius:14,background:'rgba(255,255,255,0.022)',border:`1px solid ${C.hairline}`,padding:'40px 48px',position:'relative',overflow:'hidden'}}>
             <div aria-hidden style={{position:'absolute',inset:0,background:`radial-gradient(ellipse 50% 30% at 20% 0%,${C.purple}14,transparent 60%)`,pointerEvents:'none'}}/>
             <div style={{position:'relative',display:'flex',alignItems:'center',gap:14,paddingBottom:24,borderBottom:`1px solid ${C.hairline}`}}>
-              <div className="ff-eyebrow" style={{color:C.purple}}>FeelFlick · The Briefing</div>
+              <Eyebrow color={C.purple}>FeelFlick · The Briefing</Eyebrow>
               <div style={{height:1,width:28,background:C.purple,opacity:0.5}}/>
-              <div className="ff-eyebrow" style={{color:C.textLow}}>An example issue</div>
+              <Eyebrow color={C.textLow}>An example issue</Eyebrow>
               <div style={{flex:1}}/>
               <div className="ff-italic" style={{fontSize:13,color:C.textLow,fontStyle:'italic'}}>What yours might look like</div>
             </div>
@@ -40,7 +40,7 @@ export default function Briefing(){
                     </div>
                     <MatchBadge variant="pill" pct={[94,88,82][i]} accent={p.moodHex} />
                   </div>
-                  <div className="ff-eyebrow" style={{color:p.moodHex,marginBottom:9}}>0{i+1} · {['Tonight\'s pick','Mood match','From your DNA'][i]}</div>
+                  <Eyebrow color={p.moodHex} style={{marginBottom:9}}>0{i+1} · {['Tonight\'s pick','Mood match','From your DNA'][i]}</Eyebrow>
                   <h3 style={{fontFamily:'Outfit',fontSize:22,fontWeight:400,color:C.text,margin:'0 0 6px 0',letterSpacing:'-0.02em'}}>{p.title}</h3>
                   <div style={{fontFamily:'Inter',fontSize:11.5,color:C.textLow,marginBottom:14}}>{p.year} · {p.dir}</div>
                   <p className="ff-body" style={{margin:0,fontSize:13,fontWeight:400,color:C.textMid,lineHeight:1.6}}>{p.why.split('. ')[0]}.</p>

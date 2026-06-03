@@ -1,5 +1,5 @@
 import { C } from '@/shared/lib/tokens'
-import { Reveal } from '../primitives'
+import { Reveal, Eyebrow } from '../primitives'
 
 // ── Community / Taste twins ────────────────────────────────────
 export default function Community(){
@@ -22,7 +22,9 @@ export default function Community(){
           </div>
         </Reveal>
         <Reveal>
-          <div className="ff-eyebrow" style={{textAlign:'center',marginBottom:32,color:C.textLow}}>Example taste twins · What yours might look like</div>
+          {/* display:block so the self-centered label spans full width (the canonical
+              Eyebrow is inline-flex; there is no centered parent here to align it). */}
+          <Eyebrow color={C.textLow} style={{display:'block',textAlign:'center',marginBottom:32}}>Illustrative · Taste twins grow richer as FeelFlick does</Eyebrow>
         </Reveal>
         <div className="ff-grid-3">
           {twins.map((t,i)=>
@@ -37,7 +39,7 @@ export default function Community(){
                   </div>
                   <div style={{textAlign:'right'}}>
                     <div style={{fontFamily:'Outfit',fontSize:32,fontWeight:200,color:C.text,letterSpacing:'-0.045em',lineHeight:1}}>{t.match}<span style={{fontSize:13,color:C.textLow}}>%</span></div>
-                    <div className="ff-eyebrow" style={{color:C.textFaint,marginTop:3}}>Match</div>
+                    <Eyebrow color={C.textFaint} style={{marginTop:3}}>Match</Eyebrow>
                   </div>
                 </div>
                 <div style={{fontFamily:'Outfit',fontSize:17,fontWeight:500,color:C.text}}>{t.n}</div>

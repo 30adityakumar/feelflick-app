@@ -1,13 +1,61 @@
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useMemo } from 'react'
+import CanonicalEyebrow from '@/shared/ui/Eyebrow'
+import { HP_GRAD as GRAD } from '@/shared/lib/tokens'
+import { useInView } from '@/shared/hooks/useInView'
+
+// Landing-flavored eyebrow — the canonical `shared/ui/Eyebrow` primitive at the
+// landing's deliberately lighter Outfit 600 (every other surface uses the
+// primitive's default 700). Baking the 600 here keeps that one intentional
+// deviation in a single place instead of scattered across ~35 call-sites, while
+// still delegating all styling (size, spacing, uppercase, optional rule) to the
+// shared source of truth. Callers pass `color`/`style` per instance.
+export function Eyebrow(props){
+  return <CanonicalEyebrow weight={600} {...props}/>;
+}
+
+// Brand-gradient sign-in pill — the landing's single CTA shape, shared by Header,
+// Hero, Pricing, and FinalCTA. ONE source for the invariant bits (radius-999
+// gradient, white Inter 600, borderless, and the disabled/loading treatment) +
+// the button wiring. Deliberately PRESENTATIONAL: callers pass the shared
+// `loading` (isAuthenticating) and `onClick` (signInWithGoogle) from a single
+// useGoogleAuth() per section, so a section with several auth buttons (Header)
+// keeps ONE shared loading state rather than fragmenting it per pill.
+// Not promoted to shared/ui by design: that tier's <Button> (Tailwind) is the
+// canonical app CTA; the landing is inline-style + uses the .ff-link class.
+// `style` merges the per-instance layout (padding/size/shadow/width); `children`
+// is a node or a (loading)=>node render-fn so each call-site keeps its exact
+// label and loading swap.
+const CTA_PILL = { borderRadius:999, background:GRAD, color:'#fff', fontFamily:'Inter', fontWeight:600, border:'none' }
+export function AuthCTA({ onClick, loading=false, style, ariaLabel, children }){
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={loading}
+      className="ff-link ff-cta"
+      style={{ ...CTA_PILL, cursor:loading?'progress':'pointer', opacity:loading?0.7:1, ...style }}
+      aria-label={ariaLabel}
+    >{typeof children==='function' ? children(loading) : children}</button>
+  );
+}
+
+// Brand wordmark — the gradient FEELFLICK lockup shared by Header + Footer (and a
+// candidate to promote to shared/ui if the authed TopNav adopts it). One source
+// for the brand lettering: Outfit 600 (the brand DISPLAY face — a logo is
+// display-tier, per CLAUDE.md) with POSITIVE 0.04em tracking — all-caps lockups
+// need air between glyphs (Stripe/Vercel/editorial standard); the hero's
+// negative tracking is for big mixed-case display, not a small caps logo. Brand-
+// gradient text clip. `size` sets the cap height (Header 21 / Footer 20); `style`
+// merges for layout (e.g. flexShrink). Renders a <span> so callers wrap it in
+// their own <a>/<div> for linking + positioning.
+export function Wordmark({ size=21, style }){
+  return (
+    <span style={{ fontFamily:'Outfit', fontSize:size, fontWeight:600, letterSpacing:'0.04em', background:GRAD, WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', ...style }}>FEELFLICK</span>
+  );
+}
 
 export function Reveal({children,delay=0}){
-  const ref=useRef(null);
-  const [iv,setIv]=useState(false);
-  useEffect(()=>{
-    const obs=new IntersectionObserver(([e])=>{if(e.isIntersecting){setTimeout(()=>setIv(true),delay);obs.disconnect();}},{threshold:0.15});
-    if(ref.current)obs.observe(ref.current);
-    return()=>obs.disconnect();
-  },[delay]);
+  const [ref,iv]=useInView({threshold:0.15,delay});
   return<div ref={ref} className={`ff-reveal${iv?' in':''}`}>{children}</div>;
 }
 

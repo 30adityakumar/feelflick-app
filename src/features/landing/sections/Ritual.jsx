@@ -1,5 +1,5 @@
 import { C } from '@/shared/lib/tokens'
-import { Reveal, Poster } from '../primitives'
+import { Reveal, Poster, Eyebrow } from '../primitives'
 import { PICKS } from '../data'
 
 // ── The Ritual (single combined section) ─────────────────────
@@ -14,7 +14,7 @@ export default function Ritual(){
       <div style={{maxWidth:1280,margin:'0 auto'}}>
         <Reveal>
           <div style={{textAlign:'center',marginBottom:84}}>
-            <div className="ff-eyebrow" style={{marginBottom:26,color:C.purple}}>The Ritual · Three steps</div>
+            <Eyebrow color={C.purple} style={{marginBottom:26}}>The Ritual · Three steps</Eyebrow>
             <h2 className="ff-d2" style={{fontSize:'clamp(44px,5.6vw,80px)',color:C.text,margin:0,textWrap:'balance',maxWidth:880,marginLeft:'auto',marginRight:'auto'}}>
               Three short questions. <em className="ff-italic" style={{color:C.textMid}}>One film.</em>
             </h2>
@@ -27,7 +27,7 @@ export default function Ritual(){
           {steps.map((s,i)=>(
             <Reveal key={s.n} delay={i*150}>
               <div style={{position:'relative',padding:'32px 28px',borderRadius:14,background:'rgba(255,255,255,0.022)',border:`1px solid ${C.hairline}`,height:'100%',display:'flex',flexDirection:'column'}}>
-                <div className="ff-eyebrow" style={{marginBottom:18,color:C.purple}}>{s.k} · {s.n}</div>
+                <Eyebrow color={C.purple} style={{marginBottom:18}}>{s.k} · {s.n}</Eyebrow>
                 <div style={{flex:'none',marginBottom:24}}>
                   {s.visual==='mood'&&<MoodVisual/>}
                   {s.visual==='night'&&<NightVisual/>}
@@ -47,7 +47,7 @@ function MoodVisual(){
   const moods=[{n:'Tender',h:'#F472B6'},{n:'Tense',h:'#EF4444'},{n:'Slow-burn',h:'#A78BFA',on:true},{n:'Cerebral',h:'#7DD3FC'},{n:'Cozy',h:'#FBBF24'},{n:'Bittersweet',h:'#FB7185',on:true},{n:'Mythic',h:'#0EA5E9'},{n:'Restless',h:'#34D399'}];
   return(
     <div style={{position:'relative',aspectRatio:'4/3',borderRadius:10,background:C.bg,border:`1px solid ${C.hairline}`,padding:'22px 18px',display:'flex',flexDirection:'column',justifyContent:'center',alignItems:'center',gap:14}}>
-      <div className="ff-eyebrow" style={{color:C.textLow}}>Your constellation</div>
+      <Eyebrow color={C.textLow}>Your constellation</Eyebrow>
       <div style={{display:'flex',flexWrap:'wrap',gap:6,justifyContent:'center',maxWidth:260}}>
         {moods.map(m=><div key={m.n} style={{display:'inline-flex',alignItems:'center',gap:5,padding:'5px 9px',borderRadius:999,background:m.on?`${m.h}1f`:'rgba(255,255,255,0.03)',border:`1px solid ${m.on?m.h+'55':C.hairline}`,color:m.on?C.text:C.textLow,fontFamily:'Inter',fontSize:10,fontWeight:m.on?600:500}}><span style={{width:4,height:4,borderRadius:999,background:m.h}}/>{m.n}</div>)}
       </div>
@@ -59,7 +59,7 @@ function NightVisual(){
   const rows=[{l:'Time',v:'~2 hrs'},{l:'With',v:'Just me'},{l:'Energy',v:'Settled'},{l:'Wanting',v:'To be moved'}];
   return(
     <div style={{aspectRatio:'4/3',borderRadius:10,background:C.bg,border:`1px solid ${C.hairline}`,padding:'22px 22px',display:'flex',flexDirection:'column',justifyContent:'center',gap:11}}>
-      <div className="ff-eyebrow" style={{color:C.textLow,marginBottom:4}}>The night</div>
+      <Eyebrow color={C.textLow} style={{marginBottom:4}}>The night</Eyebrow>
       {rows.map(r=><div key={r.l} style={{display:'flex',justifyContent:'space-between',paddingBottom:8,borderBottom:`1px solid ${C.hairline}`,fontFamily:'Inter',fontSize:12}}><span style={{color:C.textLow}}>{r.l}</span><span style={{color:C.textHi,fontWeight:500}}>{r.v}</span></div>)}
     </div>
   );
@@ -72,7 +72,7 @@ function PickMiniVisual(){
         <Poster src={p.poster} title={p.title} accent={p.moodHex} style={{width:'100%',height:'100%',objectFit:'cover',display:'block'}}/>
       </div>
       <div style={{minWidth:0}}>
-        <div className="ff-eyebrow" style={{color:C.textLow,marginBottom:6}}>Edition Nº 142</div>
+        <Eyebrow color={C.textLow} style={{marginBottom:6}}>Edition Nº 142</Eyebrow>
         <h4 style={{fontFamily:'Outfit',fontSize:17,fontWeight:300,color:C.text,margin:0,letterSpacing:'-0.022em',lineHeight:1.1}}>{p.title}</h4>
         <div style={{fontFamily:'Inter',fontSize:10,color:C.textLow,marginTop:3}}>{p.dir} · {p.year}</div>
         <p className="ff-italic" style={{fontSize:11,color:C.textMid,marginTop:10,fontStyle:'italic',lineHeight:1.4,paddingLeft:8,borderLeft:`1.5px solid ${p.moodHex}55`}}>A slow ache that lives in glances.</p>

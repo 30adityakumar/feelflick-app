@@ -1,5 +1,5 @@
 import { C, HP_GRAD as GRAD } from '@/shared/lib/tokens'
-import { Reveal } from '../primitives'
+import { Reveal, Eyebrow } from '../primitives'
 
 // ── M.'s letter ────────────────────────────────────────────────
 export default function MLetter(){
@@ -8,7 +8,7 @@ export default function MLetter(){
       <div style={{maxWidth:880,margin:'0 auto'}}>
         <Reveal>
           <div style={{textAlign:'center',marginBottom:48}}>
-            <div className="ff-eyebrow" style={{marginBottom:14,color:C.purple}}>Meet M., your curator</div>
+            <Eyebrow color={C.purple} style={{marginBottom:14}}>Meet M., your curator</Eyebrow>
             <p className="ff-body" style={{fontSize:18,color:C.textMid,maxWidth:520,marginLeft:'auto',marginRight:'auto',lineHeight:1.6}}>
               The engine has a voice. <em style={{color:C.textHi}}>M.</em> reads your taste, the time of day, and what you logged last week — then writes a short note with the pick.
             </p>

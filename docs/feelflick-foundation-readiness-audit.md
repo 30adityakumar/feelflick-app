@@ -8,6 +8,15 @@
 > **Scope of inspection:** the repository as it stands on branch
 > `docs/f0-foundation-readiness-audit` (cut from `refactor/eyebrow-account-profile`,
 > which carries an in-progress Eyebrow rollout in its working tree — see §10).
+>
+> **F1 follow-up (2026-06-03):** F1 (Product Doctrine + README/Docs Alignment) was
+> started *only after* this F0 audit was cleanly committed as the baseline. F1
+> added `product-doctrine.md` + `product-research-patterns.md`, rewrote the README
+> and `architecture.md`, and reconciled the overview/planning/docs-index. F1
+> verification corrected two F0 assumptions: `gpt-5.4-mini` is the *actual* model
+> string in `scripts/pipeline/` (faithful to code, not doc-drift), and the mood
+> taxonomy is 12 named moods (with a separate 6-mood Home session set). This audit
+> itself was **not** rewritten.
 
 This is the baseline document for a disciplined, phase-by-phase rebuild of
 FeelFlick into a world-class, production-grade product — mirroring the

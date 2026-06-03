@@ -5,15 +5,17 @@ guardrails, workflows), the source of truth is **`CLAUDE.md`** at the root, plus
 `CLAUDE-REFERENCE.md`. This folder holds the deeper references.
 
 ## Current references
-| File | What it is |
+| File | Read it for |
 |---|---|
-| [`feelflick-foundation-readiness-audit.md`](feelflick-foundation-readiness-audit.md) | **F0 foundation audit** — ground-truth baseline + F1–F10 rebuild roadmap. Start here for the rebuild. Flags which other docs are stale. |
-| [`architecture.md`](architecture.md) | System architecture overview — ⚠️ partly stale (pre-refactor folders, RLS-open); see the F0 audit §2.10 |
-| [`FeelFlick_Overview.md`](FeelFlick_Overview.md) | Product overview — what FeelFlick is + the engine |
-| [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md) | The editorial design language |
-| [`user-journey.md`](user-journey.md) | End-to-end user journey |
-| [`SUPABASE_SCHEMA.md`](SUPABASE_SCHEMA.md) | DB schema reference — ⚠️ auto-generated; see its staleness note, the live DB is source of truth |
-| [`PLANNING.md`](PLANNING.md) | Active planning notes |
+| [`product-doctrine.md`](product-doctrine.md) | **The wedge, anti-drift rules, surface hierarchy, and the feature decision test.** Read before any product/design/IA/engine work. |
+| [`feelflick-foundation-readiness-audit.md`](feelflick-foundation-readiness-audit.md) | **F0 foundation audit** — ground-truth baseline + the F1–F10 rebuild roadmap. Start here for the rebuild. |
+| [`architecture.md`](architecture.md) | Current system architecture — verified against code in F1 (routes, folders, engine, auth, services, external touchpoints, risks). |
+| [`FeelFlick_Overview.md`](FeelFlick_Overview.md) | Product overview in prose — features + the engine (reconciled in F1; framed as features in service of the single pick). |
+| [`product-research-patterns.md`](product-research-patterns.md) | Competitive patterns to **borrow / refuse**, mapped to the wedge (research-framing memo). |
+| [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md) | World-class product-design patterns reference (aspirational; the *enforced* design rules live in `CLAUDE.md`). |
+| [`PLANNING.md`](PLANNING.md) | The active-sprint slice of the phased rebuild. |
+| [`user-journey.md`](user-journey.md) | End-to-end user journey — ⚠️ **stale** (references removed `/x-legacy` routes + a `HeroSection` that no longer exists); pending a later refresh. |
+| [`SUPABASE_SCHEMA.md`](SUPABASE_SCHEMA.md) | DB schema reference — ⚠️ auto-generated snapshot (pre-2026-05-29); the live DB is the source of truth. |
 
 ## Structured
 - [`decisions/`](decisions/) — Architecture Decision Records (ADRs) + `DECISIONS.md` index.

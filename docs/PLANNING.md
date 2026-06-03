@@ -10,17 +10,17 @@
 > This file tracks only the *active* slice — don't duplicate the roadmap here.
 
 ## Currently In Progress
-- [ ] (between phases) — F6B just landed; F7 is queued.
+- [ ] (between phases) — F7 just landed; F8 is queued.
 
 ## Up Next (prioritized)
-- [ ] **F7 — Cinematic DNA / Taste Profile vNext** — make taste *visibly compound*
-      (the trust-building "house"): profile presentation, DNA-confidence framing,
-      cold→warm progression, taste-summary quality. Do NOT change the shared
-      `dnaConfidence` formula without cross-surface review (it's a shared contract).
+- [ ] **F8 — Recommendation Trust + Evaluation** — build an offline eval harness
+      (precision/diversity/repeat-rate/language-mix/cold-vs-warm) + a reason-quality
+      rubric BEFORE any gated tuning. DB-first analysis mandatory (recommendation-engine
+      skill). This is the first phase allowed to touch scoring — highest blast radius.
 - [ ] **F6C (later, gated)** — extend `generate-movie-overlay` to produce a
       `why_for_you` for non-curated films (Edge Function + prompt + honesty guards) —
-      via the `supabase-change` skill, after F8.
-- [ ] (later) F8–F10 per the F0 roadmap.
+      via the `supabase-change` skill.
+- [ ] (later) F9–F10 per the F0 roadmap (F9 also owns the deferred Linux visual baseline).
 
 ## Blocked / Waiting
 - [ ] **Linux visual baseline regeneration** (F4 landing) — REQUIRED before the F4
@@ -45,6 +45,14 @@
       ```
 
 ## Done This Week
+- [x] **F7 — Cinematic DNA / Profile vNext** (`docs/cinematic-dna-profile-vnext-f7.md`):
+      removed three cold-state fabrications (masthead fake taste summary/signature →
+      honest "still forming"; Skew + YIR now self-hide instead of inventing "you vs
+      everyone" / "18 films in December" samples); new self-only `DnaConfidence` section
+      frames the number as taste *evidence* (not accuracy/score-of-you) with cold/warm
+      guidance + a Tonight connection (moved out of the bare QuickStats stat). Shared
+      `dnaConfidence` formula UNCHANGED (consistent with `/account`). Added a
+      `DnaConfidence` test + a `/profile` a11y e2e.
 - [x] **F6B — Film File case-making UI** (`docs/film-file-case-making-f6b.md`): new
       `PrimaryCaseCard` leads `/movie/:id` with the consolidated tier-aware case
       (ff_take → adaptive header → honest standalone; folds in the previously-buried

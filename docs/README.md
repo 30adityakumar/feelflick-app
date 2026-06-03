@@ -15,6 +15,7 @@ guardrails, workflows), the source of truth is **`CLAUDE.md`** at the root, plus
 | [`home-briefing-vnext-f5.md`](home-briefing-vnext-f5.md) | **F5 home / Briefing vNext** — surfacing the "why this pick" case (`WhyThisPick`), Briefing loading skeleton, supporting-tail hierarchy decision; engine untouched. |
 | [`film-file-case-making-f6a.md`](film-file-case-making-f6a.md) | **F6A Film File case-making design** — current-state map, tiered case hierarchy, UI/data-contract plan, F6B options. Corrects the F0 "one seeded film" framing. Read before F6B. |
 | [`film-file-case-making-f6b.md`](film-file-case-making-f6b.md) | **F6B Film File case-making UI** — what shipped: `PrimaryCaseCard` (consolidated tier-aware case), `ViewerNotes` honest reframe, Parasite-placeholder cleanup. UI-only. |
+| [`cinematic-dna-profile-vnext-f7.md`](cinematic-dna-profile-vnext-f7.md) | **F7 Cinematic DNA / Profile vNext** — removed cold-state fabrications (fake taste/skew/YIR), honest `DnaConfidence` framing (evidence, not accuracy). `dnaConfidence` formula untouched. |
 | [`architecture.md`](architecture.md) | Current system architecture — verified against code in F1 (routes, folders, engine, auth, services, external touchpoints, risks). |
 | [`FeelFlick_Overview.md`](FeelFlick_Overview.md) | Product overview in prose — features + the engine (reconciled in F1; framed as features in service of the single pick). |
 | [`product-research-patterns.md`](product-research-patterns.md) | Competitive patterns to **borrow / refuse**, mapped to the wedge (research-framing memo). |

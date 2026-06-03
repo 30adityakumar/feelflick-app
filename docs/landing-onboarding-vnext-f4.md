@@ -121,10 +121,16 @@ contracts are untouched.
   visual baseline was regenerated deliberately (`npm run test:visual:update`) after
   verifying the rendered page (the only changes are the documented wordmark /
   ghost-pill / Community-label deltas — no layout breakage).
-- **Linux baseline (CI gate) still needs regeneration.** Baselines are
-  platform-specific; the repo regenerates Linux baselines by pushing to a
-  `visual-baselines/<name>` branch (the `visual-regression.yml` workflow regenerates
-  + commits them). **Before this lands, push the branch through that flow** so the
-  PR's visual gate goes green on `ubuntu-latest`. (F9 owns the full visual/a11y gate.)
 - **Public landing e2e** (`e2e/public/landing.e2e.js`) was run locally and passes.
-</content>
+
+### Linux baseline — status (updated in F4.1, "Visual Baseline Parity")
+
+The **Linux** landing baseline
+(`e2e/visual/landing.visual.js-snapshots/landing-fullpage-visual-linux.png`) is
+still pre-F4 and **must be regenerated before the F4 PR's visual gate passes on
+`ubuntu-latest`**. F4.1 confirmed it **cannot be produced in this local dev env**
+(Docker is not installed, and baselines are platform-specific), so it goes through
+the repo's CI flow — see the **exact 3-step `git push … visual-baselines/f4-landing`
++ fetch + commit recipe in `PLANNING.md` → Blocked**. The darwin baseline is correct
+and the local `npm run test:visual` gate is green; the Linux PNG is the only gap.
+(F9 owns the full visual/a11y gate.)

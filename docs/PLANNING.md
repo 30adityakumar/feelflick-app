@@ -19,9 +19,26 @@
 - [ ] (later) F6–F10 per the F0 roadmap.
 
 ## Blocked / Waiting
-- [ ] **Linux visual baseline regeneration** for the F4 landing changes — push a
-      `visual-baselines/f4-landing` branch so `visual-regression.yml` regenerates +
-      commits the Linux snapshot (darwin baseline updated locally in F4).
+- [ ] **Linux visual baseline regeneration** (F4 landing) — REQUIRED before the F4
+      PR's "Visual & A11y Regression" gate can pass on `ubuntu-latest`. The darwin
+      baseline was regenerated locally in F4; the **Linux** one
+      (`e2e/visual/landing.visual.js-snapshots/landing-fullpage-visual-linux.png`)
+      is still pre-F4. It can ONLY be produced on Linux — Docker is not available in
+      the local dev env (F4.1 confirmed), so it goes through the repo's CI flow.
+      **Exact steps (needs a remote push — do when ready to PR F4):**
+      ```bash
+      # 1. Push F4's landing to a visual-baselines/* branch → triggers
+      #    visual-regression.yml, which runs test:visual:update and commits the
+      #    regenerated Linux baseline back to that branch (precedent:
+      #    origin/visual-baselines/outfit-font).
+      git push origin phase-f4-landing-onboarding-vnext:visual-baselines/f4-landing
+      # 2. After the workflow commits the baseline, pull just that PNG into F4:
+      git fetch origin visual-baselines/f4-landing
+      git checkout origin/visual-baselines/f4-landing -- \
+        e2e/visual/landing.visual.js-snapshots/landing-fullpage-visual-linux.png
+      git commit -m "test(visual): regenerate Linux landing baseline (F4)" \
+        e2e/visual/landing.visual.js-snapshots/landing-fullpage-visual-linux.png
+      ```
 
 ## Done This Week
 - [x] **F4 — Landing + Onboarding vNext** (`docs/landing-onboarding-vnext-f4.md`):

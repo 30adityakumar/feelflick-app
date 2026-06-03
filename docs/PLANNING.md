@@ -10,13 +10,17 @@
 > This file tracks only the *active* slice — don't duplicate the roadmap here.
 
 ## Currently In Progress
-- [ ] (between phases) — F7 just landed; F8 is queued.
+- [ ] (between phases) — F8A just landed; F8B is queued.
 
 ## Up Next (prioritized)
-- [ ] **F8 — Recommendation Trust + Evaluation** — build an offline eval harness
-      (precision/diversity/repeat-rate/language-mix/cold-vs-warm) + a reason-quality
-      rubric BEFORE any gated tuning. DB-first analysis mandatory (recommendation-engine
-      skill). This is the first phase allowed to touch scoring — highest blast radius.
+- [ ] **F8B — Gated engine tuning** — the first phase allowed to touch scoring
+      (highest blast radius). **Entry gate (from F8A):** FIX OUTCOME CAPTURE FIRST —
+      today ≈0.5% of impressions record a watch and the `recommendation_events`
+      funnel logs 0 watches/skips/saves, so fit quality is unmeasurable. Audit the
+      `updateImpression` / `recommendation_events` write paths, then run the F8A
+      harness against a real read-only snapshot, THEN tune DB-first
+      (recommendation-engine skill). Use `docs/sql/recommendation-evaluation-queries.sql`
+      + `node scripts/eval/run-recommendation-eval.mjs`.
 - [ ] **F6C (later, gated)** — extend `generate-movie-overlay` to produce a
       `why_for_you` for non-curated films (Edge Function + prompt + honesty guards) —
       via the `supabase-change` skill.
@@ -45,6 +49,19 @@
       ```
 
 ## Done This Week
+- [x] **F8A — Recommendation Trust + Evaluation foundation**
+      (`docs/recommendation-trust-evaluation-f8a.md`): evaluation-FIRST, engine
+      untouched. Added a current-state map + a 6-family metrics framework (fit/
+      outcome, repeated-pick fatigue, diversity/anti-bubble, reason coverage,
+      explanation-quality rubric, cold/warm); a SAFE offline fixture harness
+      (`src/shared/services/eval/recommendationEval.js` + `fixtures.js` +
+      `scripts/eval/run-recommendation-eval.mjs` → `docs/eval/` baseline); read-only
+      SQL templates (`docs/sql/recommendation-evaluation-queries.sql`, verified
+      against live schema); 18 new Vitest contracts. Read-only DB baseline found the
+      headline gap: **outcome capture is effectively broken** (≈0.5% watch capture;
+      events funnel 0 watched/0 skipped) — so F8B must fix capture before tuning.
+      Reason coverage is strong (1/3,288 generic); hero déjà-vu near zero. No
+      scoring/schema/UI/`ENGINE_VERSION` change.
 - [x] **F7 — Cinematic DNA / Profile vNext** (`docs/cinematic-dna-profile-vnext-f7.md`):
       removed three cold-state fabrications (masthead fake taste summary/signature →
       honest "still forming"; Skew + YIR now self-hide instead of inventing "you vs

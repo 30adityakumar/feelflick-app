@@ -195,6 +195,14 @@ bump to `ENGINE_VERSION` invalidates cached profiles. Tuneable constants:
 Tracked via `recommendation_impressions` (row/homepage-scoped, drives skip-signal
 feedback) + `recommendation_events` (mood-session-scoped) + `mood_sessions`.
 
+**Evaluation foundation (F8A):** a read-only measurement layer sits beside the
+engine — pure metric functions ([shared/services/eval/recommendationEval.js](../src/shared/services/eval/recommendationEval.js):
+fit/outcome rates, repeated-pick fatigue, diversity/anti-bubble, reason coverage,
+an explanation-quality rubric, cold/warm slicing), an offline fixture runner
+([scripts/eval/run-recommendation-eval.mjs](../scripts/eval/run-recommendation-eval.mjs)),
+and read-only SQL templates ([docs/sql/recommendation-evaluation-queries.sql](sql/recommendation-evaluation-queries.sql)).
+It only measures — tuning stays gated. See [recommendation-trust-evaluation-f8a.md](recommendation-trust-evaluation-f8a.md).
+
 Catalog enrichment (mood/tone/fit tags via `gpt-5.4-mini` batch) and embeddings
 (`text-embedding-3-large`) are produced **offline** by `scripts/pipeline/`, not at
 request time.
@@ -259,7 +267,10 @@ See the [F0 audit](feelflick-foundation-readiness-audit.md) §2.10 + §4.10 for 
 detail. Headline items:
 
 - **Engine monolith** — `recommendations.js` is ~6,700 LOC in one file; high
-  blast-radius for tuning (F8 may modularize). No offline evaluation harness yet.
+  blast-radius for tuning (F8B may modularize). An offline evaluation harness now
+  exists (F8A) — but the binding gap is **outcome capture** (≈0.5% of impressions
+  record a watch; the `recommendation_events` funnel logs 0 watches), so fit
+  quality is not yet measurable. F8B must fix capture before any tuning.
 - **Case-making layer is thin** — the rich `movies_editorial_overlay` is seeded for
   a single film (Parasite); most picks fall back to short generated reasons. The
   moat is the least-built part (F6).

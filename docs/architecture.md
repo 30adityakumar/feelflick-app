@@ -103,7 +103,10 @@ Two decomposition patterns, both canonical:
   `layout/` (`TopNav`, `Footer`), `ToastNotification`.
 
 Design tokens are centralized in [src/shared/lib/tokens.js](../src/shared/lib/tokens.js)
-(`HP` feature palette, `HP_GRAD` brand gradient, `C` landing palette).
+(`HP` feature palette, `HP_GRAD` brand gradient, `C` landing palette). Tokens split
+into **brand** (purple + pink + `HP_GRAD`) and **semantic accents** (amber =
+rating/caution, red = destructive, green = success) — see
+[design-system-hardening-f3.md](design-system-hardening-f3.md).
 
 ---
 

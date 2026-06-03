@@ -1,6 +1,7 @@
 export { default as Button } from './Button'
 export { default as Checkbox } from './Checkbox'
 export { default as EmptyState } from './EmptyState'
+export { default as Eyebrow } from './Eyebrow'
 export { default as Input } from './Input'
 export { default as Modal } from './Modal'
 export { default as SectionHeader } from './SectionHeader'

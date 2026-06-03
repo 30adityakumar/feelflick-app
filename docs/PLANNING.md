@@ -10,19 +10,24 @@
 > This file tracks only the *active* slice — don't duplicate the roadmap here.
 
 ## Currently In Progress
-- [ ] (between phases) — F2 just landed; F3 is queued.
+- [ ] (between phases) — F3 just landed; F4 is queued.
 
 ## Up Next (prioritized)
-- [ ] **F3 — Design System Hardening** — retire amber/orange gradient drift; fold
-      the inline `HP` holdouts into `tokens.js`; finish the Eyebrow rollout parked
-      in `stash@{0}`; harden the IA-v2 nav affordances (bottom-nav hero, pills,
-      account menu) without changing the hierarchy.
-- [ ] (later) F4–F10 per the F0 roadmap.
+- [ ] **F4 — Landing + Onboarding vNext** — also the natural home for the parked
+      landing-reusability WIP in `stash@{0}` (Eyebrow rollout + `AuthCTA`/`Wordmark`
+      primitives + `Reveal`→`useInView`), applied with deliberate visual re-baselining.
+- [ ] (later) F5–F10 per the F0 roadmap.
 
 ## Blocked / Waiting
 - [ ] <!-- e.g. Feature X — waiting on design decision -->
 
 ## Done This Week
+- [x] **F3 — Design System Hardening** (`docs/design-system-hardening-f3.md`): retired
+      genuine brand-ambient/accent drift (router `LandingBg`, SearchBar hover,
+      ErrorBoundary → sanctioned `red`); documented brand-vs-semantic tokens (amber/
+      red/green kept as load-bearing semantics); exported `Eyebrow` from `@/shared/ui`;
+      added a tokens contract test. Inline `HP` holdouts were already resolved
+      (Discover + browse spread `baseHP`). `stash@{0}` reviewed, left intact, not applied.
 - [x] **F2 — Information Architecture v2** (`docs/ia-v2-decision-record.md`): nav now
       encodes the surface hierarchy — mobile bottom-nav hero moved Discover →
       **Tonight** (`/home`); desktop pills reduced to Tonight · Discover · DNA

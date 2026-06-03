@@ -10,6 +10,7 @@ guardrails, workflows), the source of truth is **`CLAUDE.md`** at the root, plus
 | [`product-doctrine.md`](product-doctrine.md) | **The wedge, anti-drift rules, surface hierarchy, and the feature decision test.** Read before any product/design/IA/engine work. |
 | [`feelflick-foundation-readiness-audit.md`](feelflick-foundation-readiness-audit.md) | **F0 foundation audit** — ground-truth baseline + the F1–F10 rebuild roadmap. Start here for the rebuild. |
 | [`ia-v2-decision-record.md`](ia-v2-decision-record.md) | **F2 IA v2 decision record** — how the nav encodes the surface hierarchy (the Briefing is primary; browse/lists/discover are supporting). The source of truth for nav structure. |
+| [`design-system-hardening-f3.md`](design-system-hardening-f3.md) | **F3 design-system hardening** — brand vs semantic tokens, what drift was retired vs retained (and why), Eyebrow/stash decisions. |
 | [`architecture.md`](architecture.md) | Current system architecture — verified against code in F1 (routes, folders, engine, auth, services, external touchpoints, risks). |
 | [`FeelFlick_Overview.md`](FeelFlick_Overview.md) | Product overview in prose — features + the engine (reconciled in F1; framed as features in service of the single pick). |
 | [`product-research-patterns.md`](product-research-patterns.md) | Competitive patterns to **borrow / refuse**, mapped to the wedge (research-framing memo). |

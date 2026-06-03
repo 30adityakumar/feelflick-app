@@ -13,6 +13,7 @@ guardrails, workflows), the source of truth is **`CLAUDE.md`** at the root, plus
 | [`design-system-hardening-f3.md`](design-system-hardening-f3.md) | **F3 design-system hardening** — brand vs semantic tokens, what drift was retired vs retained (and why), Eyebrow/stash decisions. |
 | [`landing-onboarding-vnext-f4.md`](landing-onboarding-vnext-f4.md) | **F4 landing + onboarding vNext** — landing-primitive adoption (Eyebrow/AuthCTA/Wordmark), Community honesty framing, onboarding "why we ask" copy, visual re-baseline status. |
 | [`home-briefing-vnext-f5.md`](home-briefing-vnext-f5.md) | **F5 home / Briefing vNext** — surfacing the "why this pick" case (`WhyThisPick`), Briefing loading skeleton, supporting-tail hierarchy decision; engine untouched. |
+| [`film-file-case-making-f6a.md`](film-file-case-making-f6a.md) | **F6A Film File case-making design** — current-state map, tiered case hierarchy, UI/data-contract plan, F6B options. Corrects the F0 "one seeded film" framing. Read before F6B. |
 | [`architecture.md`](architecture.md) | Current system architecture — verified against code in F1 (routes, folders, engine, auth, services, external touchpoints, risks). |
 | [`FeelFlick_Overview.md`](FeelFlick_Overview.md) | Product overview in prose — features + the engine (reconciled in F1; framed as features in service of the single pick). |
 | [`product-research-patterns.md`](product-research-patterns.md) | Competitive patterns to **borrow / refuse**, mapped to the wedge (research-framing memo). |

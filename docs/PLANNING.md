@@ -10,13 +10,18 @@
 > This file tracks only the *active* slice — don't duplicate the roadmap here.
 
 ## Currently In Progress
-- [ ] (between phases) — F5 just landed; F6 is queued.
+- [ ] (between phases) — F6A (design) just landed; F6B (implementation) is queued.
 
 ## Up Next (prioritized)
-- [ ] **F6 — Film File vNext** — make "makes its case" real for *every* pick, not the
-      one seeded film (Parasite). Design the case-making layer to degrade richly
-      (editorial overlay → generated → minimal) + plan overlay-coverage generation.
-      The Briefing's F5 `WhyThisPick` deepens automatically as overlay coverage grows.
+- [ ] **F6B — Film File case-making (Option A, UI-only)** per
+      `docs/film-file-case-making-f6a.md` §8–9: add a consolidated, tier-aware
+      **Primary Case card** that leads `/movie/:id`; honestly reframe (or drop) the
+      `critic_quotes` "CriticQuotes" section; clean up the `data.js` Parasite
+      placeholders; tighten anon/cold-start copy. Existing fields only — NO schema /
+      Edge Function / generation / engine changes.
+- [ ] **F6C (later, gated)** — Option C: extend `generate-movie-overlay` to produce a
+      `why_for_you` for non-curated films (Edge Function + prompt + honesty guards) —
+      via the `supabase-change` skill.
 - [ ] (later) F7–F10 per the F0 roadmap.
 
 ## Blocked / Waiting
@@ -42,6 +47,16 @@
       ```
 
 ## Done This Week
+- [x] **F6A — Film File case-making design** (`docs/film-file-case-making-f6a.md`):
+      current-state map + tiered hierarchy + UI/data-contract plan + F6B options.
+      Corrected the F0 "one seeded film" shorthand: the Film File already has a
+      rich, tiered, never-fabricating case layer (`deriveWhyReasons`/`MoodRadar`/
+      `boundaryWarnings`) + a lazy `generate-movie-overlay` edge pipeline (ff_take/
+      critic_quotes/daypart, OpenAI server-side). Real gaps: `why_for_you` is
+      curated-only, the case is distributed (no leading primary card), and
+      `critic_quotes` (invented personas) need honest reframing. Recommended
+      F6B = Option A (UI-only). Added `deriveWhyReasons`/`deriveWhyHeader` contract
+      tests. Docs-only; no behavior change.
 - [x] **F5 — Home / Briefing vNext** (`docs/home-briefing-vnext-f5.md`): surfaced the
       hidden `engineReason` as the Briefing's "Why this pick" case (new null-safe
       `WhyThisPick` — no fabrication on cold-start); replaced the loading text with a

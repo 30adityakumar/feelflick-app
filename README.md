@@ -223,7 +223,8 @@ and ending green on `lint → test → build`. See the roadmap in the
 - **F3 — Design System Hardening** ✅ done (brand vs semantic tokens)
 - **F4 — Landing + Onboarding vNext** ✅ done (landing primitives + trust copy)
 - **F5 — Home / Briefing vNext** ✅ done (the pick makes its case — "why this pick")
-- **F6 — Film File vNext** ⏭️ next
+- **F6A — Film File case-making design** ✅ done (current-state map + tiered plan)
+- **F6B — Film File case-making (UI-only)** ⏭️ next
 
 ---
 

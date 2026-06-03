@@ -10,13 +10,14 @@
 > This file tracks only the *active* slice — don't duplicate the roadmap here.
 
 ## Currently In Progress
-- [ ] (between phases) — F4 just landed; F5 is queued.
+- [ ] (between phases) — F5 just landed; F6 is queued.
 
 ## Up Next (prioritized)
-- [ ] **F5 — Home / Briefing vNext** — make the Briefing feel like a nightly ritual
-      with one trusted pick; sharpen the "why this is the one"; decide the carousel-tail
-      ordering/trim. Engine untouched (scoring is F8).
-- [ ] (later) F6–F10 per the F0 roadmap.
+- [ ] **F6 — Film File vNext** — make "makes its case" real for *every* pick, not the
+      one seeded film (Parasite). Design the case-making layer to degrade richly
+      (editorial overlay → generated → minimal) + plan overlay-coverage generation.
+      The Briefing's F5 `WhyThisPick` deepens automatically as overlay coverage grows.
+- [ ] (later) F7–F10 per the F0 roadmap.
 
 ## Blocked / Waiting
 - [ ] **Linux visual baseline regeneration** (F4 landing) — REQUIRED before the F4
@@ -41,6 +42,12 @@
       ```
 
 ## Done This Week
+- [x] **F5 — Home / Briefing vNext** (`docs/home-briefing-vnext-f5.md`): surfaced the
+      hidden `engineReason` as the Briefing's "Why this pick" case (new null-safe
+      `WhyThisPick` — no fabrication on cold-start); replaced the loading text with a
+      content-shaped `BriefingSkeleton`; kept the self-hiding supporting tail
+      (Option A). Engine/schema/auth/routes untouched; skip/save/watch contracts +
+      impression writes preserved.
 - [x] **F4 — Landing + Onboarding vNext** (`docs/landing-onboarding-vnext-f4.md`):
       applied the parked landing-reusability stash (Eyebrow/AuthCTA/Wordmark +
       `useInView`; movie/profile excluded); tightened Community honesty framing

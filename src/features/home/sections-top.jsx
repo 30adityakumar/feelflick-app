@@ -12,6 +12,7 @@ import { logSurfaceImpressions } from '@/shared/services/recommendations'
 import Eyebrow from '@/shared/ui/Eyebrow'
 import { HP, HP_GRAD, MOOD_META } from './data'
 import { SmartImg } from './atoms'
+import WhyThisPick from './WhyThisPick'
 import { useHomeData } from './useHomeData'
 
 // Static slot labels — one per position in the 3-card briefing row.
@@ -280,6 +281,10 @@ function BriefingSlide({ film, idx, matchPct, user, onWatch, onSkip, onMarkedWat
             </>
           )}
         </div>
+        {/* Why this pick — the engine's grounded reason ("Because you loved …").
+            The case-making layer (F5). Null-safe: renders nothing on cold-start
+            (no reason) rather than fabricating one. */}
+        <WhyThisPick reason={film.engineReason} className="self-stretch lg:max-w-[580px]" />
         {/* Synopsis — TMDB overview, clamped to 2 lines on mobile, 3 on
             desktop. Hidden when null (some films lack overview). */}
         {film.synopsis && (
@@ -329,6 +334,37 @@ const SLIDE_VARIANTS = {
   enter: (dir) => ({ x: dir > 0 ? 56 : -56, opacity: 0 }),
   center: { x: 0, opacity: 1 },
   exit: (dir) => ({ x: dir > 0 ? -56 : 56, opacity: 0 }),
+}
+
+// Briefing loading state — a content-shaped skeleton that mirrors BriefingSlide
+// (poster + title/meta/why/synopsis/actions) so the wait reads as "a briefing is
+// being prepared," per the no-spinner rule. role=status announces it politely;
+// the visual blocks are aria-hidden.
+function BriefingSkeleton() {
+  return (
+    <div role="status" aria-label="Preparing tonight's briefing">
+      <div aria-hidden="true" className="flex flex-col items-center gap-5 lg:flex-row lg:items-end lg:gap-14">
+        {/* Poster */}
+        <div className="w-full max-w-[210px] flex-none sm:max-w-[260px] lg:w-[340px] lg:max-w-none">
+          <div className="aspect-2/3 w-full animate-pulse rounded-[10px] bg-white/[0.05]" />
+        </div>
+        {/* Content column */}
+        <div className="flex w-full flex-col items-center gap-4 lg:flex-1 lg:items-start lg:max-w-[680px]">
+          <div className="h-3.5 w-32 animate-pulse rounded-full bg-purple-500/15" />
+          <div className="h-12 w-3/4 animate-pulse rounded-lg bg-white/[0.06] lg:h-16" />
+          <div className="h-3 w-44 animate-pulse rounded-full bg-white/[0.04]" />
+          <div className="mt-1 h-14 w-full max-w-[520px] animate-pulse rounded-lg bg-purple-500/[0.06]" />
+          <div className="h-3 w-full max-w-[480px] animate-pulse rounded-full bg-white/[0.04]" />
+          <div className="h-3 w-2/3 max-w-[360px] animate-pulse rounded-full bg-white/[0.04]" />
+          <div className="mt-3 flex w-full flex-wrap items-center justify-center gap-2.5 lg:justify-start">
+            {[0, 1, 2, 3].map(i => (
+              <div key={i} className="h-10 w-24 animate-pulse rounded-lg bg-white/[0.05]" />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 
@@ -510,9 +546,7 @@ export function TheBriefing({ currentMood, shuffleSeed = 0, user, onWatch, onSki
           No <span style={{ color: currentMood.hex, fontStyle: 'italic' }}>{currentMood.label.toLowerCase()}</span> picks just yet — try a different mood above.
         </div>
       ) : picks.length === 0 ? (
-        <div style={{ padding: '60px 0', textAlign: 'center', fontFamily: 'Outfit, Inter, sans-serif', color: HP.textMuted, fontSize: 14, fontStyle: 'italic' }}>
-          Finding films for this mood&hellip;
-        </div>
+        <BriefingSkeleton />
       ) : (
         <div className="relative">
           {/* Slider viewport — overflow-hidden contains the swipe gesture

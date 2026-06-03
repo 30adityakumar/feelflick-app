@@ -222,7 +222,8 @@ and ending green on `lint → test → build`. See the roadmap in the
 - **F2 — Information Architecture v2** ✅ done (nav centers the Briefing / "Tonight")
 - **F3 — Design System Hardening** ✅ done (brand vs semantic tokens)
 - **F4 — Landing + Onboarding vNext** ✅ done (landing primitives + trust copy)
-- **F5 — Home / Briefing vNext** ⏭️ next
+- **F5 — Home / Briefing vNext** ✅ done (the pick makes its case — "why this pick")
+- **F6 — Film File vNext** ⏭️ next
 
 ---
 

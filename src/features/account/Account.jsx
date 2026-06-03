@@ -8,6 +8,7 @@
 // the prototype's internal nav has been dropped.
 
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
+import Eyebrow from '@/shared/ui/Eyebrow'
 import { HP } from './data'
 import {
   Masthead, IdentityCard, Notifications,
@@ -73,7 +74,7 @@ function SignedOut() {
   return (
     <div className="ff-account-v2" style={{ minHeight:'100vh', background:HP.bgDeep, color:HP.text, display:'flex', alignItems:'center', justifyContent:'center', padding:24, fontFamily:'Inter, sans-serif' }}>
       <div style={{ textAlign:'center', maxWidth:480 }}>
-        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: HP.purple, marginBottom:18 }}>Account</div>
+        <Eyebrow size={10} style={{ marginBottom:18 }}>Account</Eyebrow>
         <h1 style={{ fontFamily:'Outfit, Inter, sans-serif', fontSize:42, fontWeight:500, color: HP.text, margin:'0 0 18px 0', letterSpacing:'-0.025em' }}>Sign in to manage your settings.</h1>
         <p style={{ margin:0, color:'rgba(250,250,250,0.6)', fontSize:14, lineHeight:1.6 }}>The settings drawer needs an account to attach to.</p>
       </div>
@@ -85,7 +86,7 @@ function PageError({ error }) {
   return (
     <div className="ff-account-v2" style={{ minHeight:'100vh', background:HP.bgDeep, color:HP.text, display:'flex', alignItems:'center', justifyContent:'center', padding:24, fontFamily:'Inter, sans-serif' }}>
       <div style={{ textAlign:'center', maxWidth:520 }}>
-        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: HP.purple, marginBottom:18 }}>Account · error</div>
+        <Eyebrow size={10} style={{ marginBottom:18 }}>Account · error</Eyebrow>
         <h1 style={{ fontFamily:'Outfit, Inter, sans-serif', fontSize:36, fontWeight:500, color:HP.text, margin:'0 0 18px 0', letterSpacing:'-0.025em' }}>Couldn&rsquo;t load your settings.</h1>
         <p style={{ margin:0, color:'rgba(250,250,250,0.6)', fontSize:14, lineHeight:1.6 }}>{error}</p>
       </div>

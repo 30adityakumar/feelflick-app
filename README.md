@@ -72,7 +72,7 @@ Defined in [src/app/router.jsx](src/app/router.jsx). Grouped by role in the wedg
 
 **Core** (the wedge itself)
 - `/` — Landing (anonymous) / redirect to `/home` (authenticated)
-- `/home` — **The Briefing**: tonight's single justified pick + watch/save/skip
+- `/home` — **The Briefing**: tonight's single justified pick + watch/save/skip (labeled **Tonight** in nav)
 - `/movie/:id` — **Film File**: the editorial case for a film
 - `/onboarding` — cold-start taste seeding
 

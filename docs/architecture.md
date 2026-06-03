@@ -127,6 +127,15 @@ every page `lazy()`-loaded behind a `RouteSkeleton` Suspense fallback. Three she
 `/movies`, `/trending` → `/browse`; `/feed`, `/challenges` → `/home`; `/app`,
 `/app/*` → de-prefixed alias; `*` → live 404.
 
+**Navigation hierarchy (IA v2 / F2).** The nav encodes the doctrine's surface
+hierarchy rather than treating routes as co-equal: the desktop header pills are
+**Tonight** (`/home`, the Briefing) · **Discover** · **DNA** (`/profile`), with
+Utility surfaces (Browse, Watchlist, History, Lists) + parked People in the
+account menu; the authed mobile bottom nav makes **Tonight** the centered hero
+(prime action) with Browse · Discover · DNA · Account around it. `/home` is
+labeled "Tonight" in nav only — the route is unchanged. Source of truth:
+[ia-v2-decision-record.md](ia-v2-decision-record.md).
+
 ---
 
 ## Authentication

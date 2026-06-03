@@ -99,7 +99,7 @@ ranking legible** — the Briefing is visibly primary; everything else is visibl
 service of it. (This is the central question F2 resolves.)
 
 ### Core — *the wedge itself*
-- **Home / The Briefing** (`/home`) — tonight's single justified pick.
+- **Home / The Briefing** (`/home`, surfaced as **"Tonight"** in nav) — tonight's single justified pick.
 - **Film File** (`/movie/:id`) — the case-making layer; the moat.
 - **Onboarding** (`/onboarding`) — seeds the first night's pick.
 

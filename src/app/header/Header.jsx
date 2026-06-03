@@ -11,7 +11,7 @@ import { useEffect, useRef, useState, useLayoutEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import {
   Search as SearchIcon, LogOut, User as UserIcon, Settings,
-  Bookmark, Clock, Users, ListVideo, LogIn, Mail,
+  Bookmark, Clock, Users, ListVideo, LogIn, Mail, LayoutGrid,
 } from 'lucide-react'
 
 import { supabase } from '@/shared/lib/supabase/client'
@@ -21,17 +21,20 @@ import { useGoogleAuth } from '@/shared/hooks/useGoogleAuth'
 // Mood-tinted accent. Wire to a context later (see notes in README).
 const AMBIENT_HEX = '#A78BFA'
 
-// DNA promoted to top-level desktop nav (2026-05-24): the Taste Profile
-// is FeelFlick's signature "we know you" artifact — burying it in the
-// avatar dropdown hid the brand's core differentiator. Lives at /profile
-// (the user's own taste DNA page; /profile/:userId is another user's).
-// Mobile keeps Taste Profile in MobileAccount — bottom-nav stays at 4.
-const NAV_AUTHED = [
-  { to: '/home',      label: 'Home'      },
-  { to: '/browse',    label: 'Browse'    },
-  { to: '/discover',  label: 'Discover'  },
-  { to: '/watchlist', label: 'Watchlist' },
-  { to: '/profile',   label: 'DNA'       },
+// IA v2 (F2): the primary pills encode the doctrine's surface hierarchy —
+// Core + Supporting only. "Tonight" (/home, the Briefing) is the primary
+// destination; Discover (exploration) and DNA (/profile, taste identity) are the
+// two Supporting surfaces that stay visible. Utility surfaces (Browse, Watchlist,
+// History, Lists) and parked People live in the avatar menu so they stay
+// reachable without competing with the nightly pick. The wordmark also links to
+// /home. DNA stays top-level (2026-05-24): the Taste Profile is FeelFlick's
+// signature "we know you" artifact (/profile is your own DNA; /profile/:userId is
+// another user's). Exported as the desktop IA contract.
+// See docs/ia-v2-decision-record.md.
+export const NAV_AUTHED = [
+  { to: '/home',     label: 'Tonight'  },
+  { to: '/discover', label: 'Discover' },
+  { to: '/profile',  label: 'DNA'      },
 ]
 const NAV_ANON = [
   { to: '/discover', label: 'Discover' },
@@ -203,6 +206,7 @@ function AvatarMenu({ userName, userInitial, userEmail, userAvatar, onSignOut })
 
           <div className="py-1.5">
             <DropdownLink to="/account"     icon={UserIcon}    onClick={() => setOpen(false)}>Account</DropdownLink>
+            <DropdownLink to="/browse"      icon={LayoutGrid}  onClick={() => setOpen(false)}>Browse</DropdownLink>
             <DropdownLink to="/watchlist"   icon={Bookmark}    onClick={() => setOpen(false)}>Watchlist</DropdownLink>
             <DropdownLink to="/history"     icon={Clock}       onClick={() => setOpen(false)}>Watch history</DropdownLink>
             <DropdownLink to="/people"      icon={Users}       onClick={() => setOpen(false)}>People</DropdownLink>

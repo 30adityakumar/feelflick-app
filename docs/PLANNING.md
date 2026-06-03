@@ -10,21 +10,26 @@
 > This file tracks only the *active* slice — don't duplicate the roadmap here.
 
 ## Currently In Progress
-- [ ] **F1 — Product Doctrine + README/Docs Alignment** (docs-only): README,
-      `product-doctrine.md`, `architecture.md`, `FeelFlick_Overview.md`,
-      `product-research-patterns.md`, docs index.
+- [ ] (between phases) — F2 just landed; F3 is queued.
 
 ## Up Next (prioritized)
-- [ ] **F2 — Information Architecture v2** — make the IA subordinate browse/lists/
-      discover to the Briefing (the single pick). Next phase after F1.
-- [ ] F3 — Design System Hardening (retire amber/orange drift; fold inline `HP`
-      holdouts; finish the Eyebrow rollout currently parked in `stash@{0}`).
+- [ ] **F3 — Design System Hardening** — retire amber/orange gradient drift; fold
+      the inline `HP` holdouts into `tokens.js`; finish the Eyebrow rollout parked
+      in `stash@{0}`; harden the IA-v2 nav affordances (bottom-nav hero, pills,
+      account menu) without changing the hierarchy.
 - [ ] (later) F4–F10 per the F0 roadmap.
 
 ## Blocked / Waiting
 - [ ] <!-- e.g. Feature X — waiting on design decision -->
 
 ## Done This Week
+- [x] **F2 — Information Architecture v2** (`docs/ia-v2-decision-record.md`): nav now
+      encodes the surface hierarchy — mobile bottom-nav hero moved Discover →
+      **Tonight** (`/home`); desktop pills reduced to Tonight · Discover · DNA
+      (Browse/Watchlist demoted to the account menu); "Home" → "Tonight" label.
+      Routes/guards unchanged. Added a `BottomNav` IA-contract test.
+- [x] **F1 — Product Doctrine + README/Docs Alignment** (`docs/product-doctrine.md`,
+      `docs/product-research-patterns.md`; README/architecture/overview reconciled).
 - [x] F0 — Foundation Readiness Audit (`docs/feelflick-foundation-readiness-audit.md`).
 - [x] chore: npm audit clean — `npm audit` reports **0 vulnerabilities** (resolved).
 - [x] fix: ESLint clean — `npm run lint` passes with 0 warnings (the prior

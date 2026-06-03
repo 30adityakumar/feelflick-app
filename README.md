@@ -1,3 +1,10 @@
+<!-- ⚠️ STALE: the content below is the default "Supabase Vite User Management"
+     starter template and does NOT describe FeelFlick. A proper rewrite is the
+     work of phase F1. Until then, the accurate entry points are:
+       • CLAUDE.md (root) — what FeelFlick is + working conventions
+       • docs/feelflick-foundation-readiness-audit.md — the F0 foundation audit
+       • docs/architecture.md (note: itself partly stale; see the audit) -->
+
 # Supabase Vite User Management
 
 This example will set you up for a very common situation: users can sign up with a magic link and then update their account with public profile information, including a profile image.

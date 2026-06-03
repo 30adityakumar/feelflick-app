@@ -671,61 +671,8 @@ function MoodRadar({ axes, highlightMood, onHoverAxis }) {
   );
 }
 
-// ── FF Take (curated overlay only — PR 4 adds LLM fallback) ──────
-function TheTake({ take }) {
-  if (!take?.body) return null;
-  // Compute the read-time from actual body length. LLM-supplied meta was a
-  // hardcoded fiction ("20 sec" regardless of body length) — derive it
-  // honestly instead. ~3 words/sec for a comfortable read; clamp to ≥5 sec
-  // so the 2-sentence default doesn't render "0 sec".
-  const wordCount = (take.body || '').trim().split(/\s+/).filter(Boolean).length;
-  const readSec = Math.max(5, Math.round(wordCount / 3));
-  const meta = `est. read · ${readSec} sec`;
-  return (
-    <section className="ff-movie-section" style={{ padding:'64px 88px', borderTop:`1px solid ${HP.border}` }}>
-      <div style={{ maxWidth:780, position:'relative' }}>
-        <div className="ff-movie-take-quote" style={{ position:'absolute', top:-16, left:-8, fontFamily:'Outfit', fontSize:112, lineHeight:0.8, fontWeight:200, color: HP.purple, opacity:0.18 }}>“</div>
-        <div style={{ position:'relative' }}>
-          {take.byline && (
-            <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: HP.purple, marginBottom:18, display:'inline-flex', alignItems:'center', gap:10 }}>
-              <span style={{ height:1, width:22, background: HP.purple, opacity:0.6 }} />{take.byline}
-            </div>
-          )}
-          <p className="ff-movie-take-text" style={{ margin:0, fontFamily:'Outfit, Inter, sans-serif', fontSize:26, lineHeight:1.4, fontWeight:400, color: HP.text, letterSpacing:'-0.015em', fontStyle:'italic', textWrap:'balance' }}>
-            {take.body}
-          </p>
-          <div style={{ marginTop:28, display:'flex', alignItems:'center', gap:14, fontSize:11, color: HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.06em' }}>
-            <span style={{ width:24, height:1, background: HP.textMuted }} />
-            <span style={{ textTransform:'uppercase' }}>{meta}</span>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
+// (FF Take + Critic Quotes were removed in F6B: `ff_take` now leads the
+// consolidated PrimaryCaseCard, and the generated quotes moved to the honestly-
+// reframed ViewerNotes component — see PrimaryCaseCard.jsx / ViewerNotes.jsx.)
 
-// ── Critic Quotes (curated overlay only — PR 4 adds TMDB reviews fallback) ──
-function CriticQuotes({ quotes }) {
-  if (!quotes || quotes.length === 0) return null;
-  return (
-    <section className="ff-movie-section" style={{ padding:'48px 88px', borderTop:`1px solid ${HP.border}`, background:'rgba(255,255,255,0.012)' }}>
-      <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: HP.purple, marginBottom:24, display:'inline-flex', alignItems:'center', gap:10 }}>
-        <span style={{ height:1, width:22, background: HP.purple, opacity:0.6 }} />Voices
-      </div>
-      <div className="ff-movie-critic-grid" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:56 }}>
-        {quotes.map((q, i) => (
-          <blockquote key={i} style={{ margin:0, paddingLeft:22, borderLeft:`2px solid ${i===0 ? FILM_PALETTE.primary : HP.purple}` }}>
-            <p style={{ margin:0, fontFamily:'Outfit, Inter, sans-serif', fontSize:18, lineHeight:1.5, color: HP.text, fontStyle:'italic', letterSpacing:'-0.012em', textWrap:'pretty' }}>
-              “{q.quote}”
-            </p>
-            <footer style={{ marginTop:14, fontSize:11, color: HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.08em', textTransform:'uppercase' }}>
-              <span style={{ color: HP.textSoft, fontWeight:600 }}>{q.author}</span> · {q.outlet}
-            </footer>
-          </blockquote>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-export { ScrollProgress, FilmGrain, TrailerModal, MovieHero, StickyActionBar, WhyForYou, Synopsis, MoodRadar, TheTake, CriticQuotes }
+export { ScrollProgress, FilmGrain, TrailerModal, MovieHero, StickyActionBar, WhyForYou, Synopsis, MoodRadar }

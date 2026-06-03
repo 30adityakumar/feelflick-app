@@ -224,7 +224,8 @@ and ending green on `lint → test → build`. See the roadmap in the
 - **F4 — Landing + Onboarding vNext** ✅ done (landing primitives + trust copy)
 - **F5 — Home / Briefing vNext** ✅ done (the pick makes its case — "why this pick")
 - **F6A — Film File case-making design** ✅ done (current-state map + tiered plan)
-- **F6B — Film File case-making (UI-only)** ⏭️ next
+- **F6B — Film File case-making (UI-only)** ✅ done (`PrimaryCaseCard` leads the case)
+- **F7 — Cinematic DNA / Taste Profile vNext** ⏭️ next
 
 ---
 

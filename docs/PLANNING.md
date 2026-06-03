@@ -10,19 +10,17 @@
 > This file tracks only the *active* slice — don't duplicate the roadmap here.
 
 ## Currently In Progress
-- [ ] (between phases) — F6A (design) just landed; F6B (implementation) is queued.
+- [ ] (between phases) — F6B just landed; F7 is queued.
 
 ## Up Next (prioritized)
-- [ ] **F6B — Film File case-making (Option A, UI-only)** per
-      `docs/film-file-case-making-f6a.md` §8–9: add a consolidated, tier-aware
-      **Primary Case card** that leads `/movie/:id`; honestly reframe (or drop) the
-      `critic_quotes` "CriticQuotes" section; clean up the `data.js` Parasite
-      placeholders; tighten anon/cold-start copy. Existing fields only — NO schema /
-      Edge Function / generation / engine changes.
-- [ ] **F6C (later, gated)** — Option C: extend `generate-movie-overlay` to produce a
+- [ ] **F7 — Cinematic DNA / Taste Profile vNext** — make taste *visibly compound*
+      (the trust-building "house"): profile presentation, DNA-confidence framing,
+      cold→warm progression, taste-summary quality. Do NOT change the shared
+      `dnaConfidence` formula without cross-surface review (it's a shared contract).
+- [ ] **F6C (later, gated)** — extend `generate-movie-overlay` to produce a
       `why_for_you` for non-curated films (Edge Function + prompt + honesty guards) —
-      via the `supabase-change` skill.
-- [ ] (later) F7–F10 per the F0 roadmap.
+      via the `supabase-change` skill, after F8.
+- [ ] (later) F8–F10 per the F0 roadmap.
 
 ## Blocked / Waiting
 - [ ] **Linux visual baseline regeneration** (F4 landing) — REQUIRED before the F4
@@ -47,6 +45,14 @@
       ```
 
 ## Done This Week
+- [x] **F6B — Film File case-making UI** (`docs/film-file-case-making-f6b.md`): new
+      `PrimaryCaseCard` leads `/movie/:id` with the consolidated tier-aware case
+      (ff_take → adaptive header → honest standalone; folds in the previously-buried
+      FF Take); reframed `critic_quotes` → honest **`ViewerNotes`** ("not real
+      reviews" disclaimer); made `data.js` Parasite placeholders explicit
+      (`PARASITE_*_SAMPLE`, gated). Existing data only; engine/schema/edge untouched.
+      Verified: lint + 447 tests + build + authenticated `/movie` e2e (poster→detail,
+      watchlist Save, a11y) all green.
 - [x] **F6A — Film File case-making design** (`docs/film-file-case-making-f6a.md`):
       current-state map + tiered hierarchy + UI/data-contract plan + F6B options.
       Corrected the F0 "one seeded film" shorthand: the Film File already has a

@@ -70,6 +70,17 @@
       outcome-capture baseline (`docs/sql/recommendation-evaluation-queries.sql` §7).
 
 ## Done This Week
+- [x] **F11B.2 — Page rhythm: Home/Movie/Profile** (rhythm/consistency foundation; engine frozen `2.17`;
+      **zero rendered-pixel change**): added a `SPACE` page-rhythm token (gutter + section vertical scale +
+      stack gaps) to `tokens.js`; re-exported `RADIUS`+`SPACE` from the 3 routes' `data.js`; adopted them in
+      the **trust callouts** — `WhyThisPick` (radius), `PrimaryCaseCard` (radius + section padding tokens),
+      `DnaConfidence` (radii + section padding) — all **exact-value swaps** (`RADIUS.md`=8, `SPACE.gutter`=88,
+      …) so render is byte-identical. +2 SPACE token tests (512 total). **No section pixel values changed**
+      (the 40–88px vertical variation is likely intentional hierarchy → normalize in F11B.3 with a live
+      authenticated visual pass). No `<Button>`/baseline change. **Methodology: live authenticated browser
+      walkthrough NOT run (kept dev creds out of the transcript) → audited code-grounded; E2E 14/14 is the
+      functional safety net.** Docs: `docs/ui/page-rhythm-walkthrough-f11b2.md` + `page-rhythm-home-movie-profile-f11b2.md`.
+      Next: F11B.3 (verified rhythm normalization + broad token migration). F8C still blocked.
 - [x] **F11B.1 — Design tokens + primitive cleanup** (the safe UI foundation; engine frozen `2.17`):
       **purely additive — zero rendered change to any route/primitive → no visual baseline touched.**
       Added `RADIUS` (xs4/sm6/md8/lg12/xl16/pill9999), `SHADOW` (card/hover/focus — borders-over-shadows,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { HP, HP_GRAD, C, RADIUS, SHADOW, SURFACE } from '../tokens'
+import { HP, HP_GRAD, C, RADIUS, SHADOW, SURFACE, SPACE } from '../tokens'
 
 // Brand-vs-semantic token contract (F3 hardening) — see
 // docs/design-system-hardening-f3.md. Guards two invariants: the single brand
@@ -64,5 +64,29 @@ describe('design tokens — SURFACE (F11B.1)', () => {
     expect(SURFACE.panel).toBe(HP.panel)
     expect(SURFACE.card).toBe(HP.panel)
     expect(SURFACE.elevated).toBe(C.bgLight)
+  })
+})
+
+describe('design tokens — SPACE rhythm scale (F11B.2)', () => {
+  it('pins the gutter + section vertical scale + stack gaps', () => {
+    expect(SPACE).toEqual({
+      gutter: 88,
+      gutterSm: 32,
+      sectionLg: 80,
+      section: 72,
+      sectionMd: 56,
+      sectionSm: 48,
+      sectionXs: 40,
+      stack: 24,
+      stackSm: 16,
+      stackXs: 12,
+    })
+  })
+
+  it('section scale descends from lg→xs (named hierarchy, not flat)', () => {
+    const ramp = ['sectionLg', 'section', 'sectionMd', 'sectionSm', 'sectionXs']
+    for (let i = 1; i < ramp.length; i++) {
+      expect(SPACE[ramp[i]]).toBeLessThan(SPACE[ramp[i - 1]])
+    }
   })
 })

@@ -247,6 +247,7 @@ and ending green on `lint → test → build`. See the roadmap in the
 - **F9H.1 — Enable real CI gates** ✅ done (uploaded the 5 repo secrets from approved local sources — no values exposed — + restricted the Lighthouse collect to `index.html`; **E2E + Lighthouse now run for real** — `docs/ci-real-gates-verification-f9h1.md`)
 - **F10A — Private preview + outcome baseline** ✅ done (preview plan + decision criteria, tester guide, launch runbook, feedback template, outcome-baseline collection plan; pre-preview dev baseline; engine frozen — `docs/private-preview-*-f10a.md`, `docs/outcome-baseline-collection-f10a.md`)
 - **F10B — Run private preview, Wave 1** 🟡 in progress (prepared the Wave-1 operating sheet + tester invite copy + a PII-free tracker template; ran + recorded the pre-invite readiness gate — prod/headers/CSP/Sentry/CI/Cloudflare/Supabase all healthy; **invites not yet sent** — `docs/private-preview-wave-1-f10b.md`)
+- **F10C — Synthetic persona usability lab** ✅ done (a parallel UX-inspection track while awaiting real testers: persona schema + 16 archetypes + task script + rubric + Claude prompt pack + tooling proposal + a 2-persona pilot — **synthetic ≠ real-user validation; does not unblock F8C** — `docs/personas/`)
 - **F8C — Gated engine tuning** ⏭️ next — **still blocked** until the **F10B private preview** (Wave 1 → 2) collects a non-trivial, stable real-user outcome baseline (capture mechanism is proven; real-user volume is not there yet)
 
 ---

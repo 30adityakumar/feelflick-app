@@ -182,6 +182,37 @@ import { Card } from '@/shared/ui'
 > call sites migrate in later F11B waves (where any visual-baseline route change is
 > re-baselined deliberately). See [`docs/ui/design-tokens-primitives-f11b1.md`](ui/design-tokens-primitives-f11b1.md).
 
+### 6b. AccentPanel — the expressive trust surface (F11B.4)
+
+**`<AccentPanel>` primitive** ([`src/shared/ui/AccentPanel.jsx`](../src/shared/ui/AccentPanel.jsx))
+— the **accent-tinted sibling of the flat `<Card>`**. Where `Card` is a white-tinted
+`SURFACE.card`, AccentPanel is a faint **tone** tint (`${tone}0d`) + a matching tone border
+(`${tone}26`) + a token radius. It is the design-system home for the honesty callouts that read as
+brand/semantic-tinted, not flat (WhyThisPick, and — once a `gradient` variant exists —
+PrimaryCaseCard / DnaConfidence).
+
+```jsx
+import { AccentPanel } from '@/shared/ui'
+
+// brand-purple trust callout (WhyThisPick) — padding/margins stay with the consumer
+<AccentPanel tone="purple" radius="md" style={{ padding: '10px 14px' }}>…</AccentPanel>
+
+// semantic tones, opt-in reduced-motion-gated hover
+<AccentPanel tone="green" interactive>…</AccentPanel>
+```
+
+- **`tone`**: `purple | pink` (brand) · `amber | green | red` (semantic) · `neutral`. **No arbitrary
+  color props** — one of these, or nothing.
+- **`radius`**: a `RADIUS` token key (default `md`). **`interactive`**: default `false`; `true` adds a
+  reduced-motion-gated border-brighten hover. **`as`**: element type. Owns the *surface* only.
+- **Must NOT** support arbitrary colors, per-vibe gradients, or heavy shadows. PrimaryCaseCard's
+  directional gradient is **out of scope** (needs a future `gradient`/`glow` variant).
+
+> **Proof migration (F11B.4):** only **WhyThisPick** migrated — its always-`HP.purple` surface maps
+> to `tone="purple" radius="md"` **byte-identically** (verified on live authenticated `/home`:
+> `rgba(167,139,250,0.05)` tint, `…0.15` border, `8px`). PrimaryCaseCard + DnaConfidence stay
+> deferred. See [`docs/ui/accent-panel-trust-surfaces-f11b4.md`](ui/accent-panel-trust-surfaces-f11b4.md).
+
 ---
 
 ## 7. Turning personal data into shareable social currency

@@ -228,7 +228,8 @@ and ending green on `lint → test → build`. See the roadmap in the
 - **F7 — Cinematic DNA / Taste Profile vNext** ✅ done (honest DNA confidence; no fake cold-state)
 - **F8A — Recommendation Trust + Evaluation foundation** ✅ done (metrics framework + offline harness + read-only SQL + explanation rubric; engine untouched)
 - **F8B — Recommendation Outcome Capture Repair** ✅ done (wired save/watch/click outcomes back to impressions; engine untouched)
-- **F8C — Gated engine tuning** ⏭️ next (blocked until a post-deploy capture baseline confirms outcomes are measurable, then DB-first tuning)
+- **F9A — Release / CI / Production Hardening Prep** ✅ done (validation matrix + release-readiness doc; one tracked CI blocker: regenerate the Linux landing visual baseline before merge)
+- **F8C — Gated engine tuning** ⏭️ next (blocked until a *post-deploy* capture baseline confirms outcomes are measurable, then DB-first tuning)
 
 ---
 

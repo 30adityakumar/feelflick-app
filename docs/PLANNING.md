@@ -10,9 +10,14 @@
 > This file tracks only the *active* slice — don't duplicate the roadmap here.
 
 ## Currently In Progress
-- [ ] (between phases) — F8B just landed; F8C is queued.
+- [ ] (between phases) — F9A just landed (release/CI hardening prep). The rebuild
+      branch is **PR-ready except one tracked CI blocker**: regenerate the **Linux
+      landing visual baseline** (see Blocked, + `docs/release-readiness-f9a.md` §3).
 
 ## Up Next (prioritized)
+- [ ] **Open the rebuild PR** once the Linux landing baseline is regenerated
+      (needs a `visual-baselines/*` push — see Blocked). Then deploy a Vercel
+      preview + run `docs/release-readiness-f9a.md` §7–§8.
 - [ ] **F8C — Gated engine tuning** — the first phase allowed to touch scoring
       (highest blast radius). **Entry gate:** a POST-DEPLOY real-data baseline
       (via `docs/sql/recommendation-evaluation-queries.sql` §7) must confirm
@@ -26,28 +31,36 @@
 - [ ] (later) F9–F10 per the F0 roadmap (F9 also owns the deferred Linux visual baseline).
 
 ## Blocked / Waiting
-- [ ] **Linux visual baseline regeneration** (F4 landing) — REQUIRED before the F4
-      PR's "Visual & A11y Regression" gate can pass on `ubuntu-latest`. The darwin
-      baseline was regenerated locally in F4; the **Linux** one
+- [ ] **Linux landing visual baseline regeneration** (F4 landing) — the **one CI
+      blocker** before a green rebuild PR. Verified in F9A: the Linux baseline
       (`e2e/visual/landing.visual.js-snapshots/landing-fullpage-visual-linux.png`)
-      is still pre-F4. It can ONLY be produced on Linux — Docker is not available in
-      the local dev env (F4.1 confirmed), so it goes through the repo's CI flow.
-      **Exact steps (needs a remote push — do when ready to PR F4):**
+      is from `0005e4aa` (#138, **pre-F4**), so the "Visual & A11y Regression" gate
+      fails on `ubuntu-latest`. Darwin baseline is current (local `test:visual`
+      passes); `/about` is unaffected. It can ONLY be produced on Linux/CI — **do
+      not fake a Linux PNG locally.** Needs a remote push (NOT done in F9A — no push
+      approval). Full context + commands: `docs/release-readiness-f9a.md` §3.
+      **Recommended (regenerate against the exact merge state — landing + about):**
       ```bash
-      # 1. Push F4's landing to a visual-baselines/* branch → triggers
-      #    visual-regression.yml, which runs test:visual:update and commits the
-      #    regenerated Linux baseline back to that branch (precedent:
-      #    origin/visual-baselines/outfit-font).
-      git push origin phase-f4-landing-onboarding-vnext:visual-baselines/f4-landing
-      # 2. After the workflow commits the baseline, pull just that PNG into F4:
-      git fetch origin visual-baselines/f4-landing
-      git checkout origin/visual-baselines/f4-landing -- \
-        e2e/visual/landing.visual.js-snapshots/landing-fullpage-visual-linux.png
-      git commit -m "test(visual): regenerate Linux landing baseline (F4)" \
-        e2e/visual/landing.visual.js-snapshots/landing-fullpage-visual-linux.png
+      git push origin phase-f9a-release-ci-hardening:visual-baselines/rebuild
+      # wait for "Visual & A11y Regression" to commit the regenerated baselines back, then:
+      git fetch origin visual-baselines/rebuild
+      git checkout origin/visual-baselines/rebuild -- e2e/visual/
+      git commit -m "test(visual): regenerate Linux visual baselines (rebuild)" e2e/visual/
       ```
 
 ## Done This Week
+- [x] **F9A — Release / CI / Production Hardening Prep**
+      (`docs/release-readiness-f9a.md`): docs/validation-only — no code change.
+      Audited the rebuild branch for PR/CI readiness: it's a clean fast-forward of
+      `main` (12 commits ahead, 0 divergence; 81 files, +6,475/−673; no engine/
+      schema/edge files). Ran the full local matrix green — lint, **487 tests**,
+      build, `npm audit` (0 vulns), eval, **e2e 14/14** (public+app), **visual 2/2
+      (Darwin)**. Mapped CI gates: quality-gate green; e2e/Lighthouse skip-green
+      until secrets; CodeQL informational. **One real blocker:** the Linux landing
+      visual baseline is pre-F4 (CI-only; needs the `visual-baselines/*` push flow
+      — documented, not pushed, no approval). Wrote release-readiness doc with the
+      validation matrix, deploy/rollback/smoke + post-deploy outcome-capture
+      checklists, and the restated F8C gate. No scoring/schema/UI/route change.
 - [x] **F8B — Recommendation Outcome Capture Repair**
       (`docs/recommendation-outcome-capture-f8b.md`): instrumentation-only, engine
       untouched. Fixed the F8A capture gap — `useUserMovieStatus` (the one hook

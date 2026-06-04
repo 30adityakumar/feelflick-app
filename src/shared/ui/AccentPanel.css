@@ -8,6 +8,14 @@
   box-sizing: border-box;
 }
 
+/* Variant markers — the surface itself (tint vs directional brand gradient) is set
+   inline + tone-driven in AccentPanel.jsx; these classes are hooks, not the source
+   of truth. `--tint` = flat (WhyThisPick); `--gradient` = PrimaryCaseCard glow. */
+.ff-accent-panel--tint,
+.ff-accent-panel--gradient {
+  /* intentionally empty: surface is inline (tone-driven) */
+}
+
 /* Default: no transition (reduced-motion-safe baseline). */
 .ff-accent-panel--interactive {
   transition: none;

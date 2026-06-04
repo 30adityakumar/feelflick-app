@@ -13,6 +13,7 @@
 // plain-language gloss. Caveats (daypart / content boundaries) live in the hero —
 // not repeated here. Self-hides only if there is genuinely no useful case.
 
+import AccentPanel from '@/shared/ui/AccentPanel'
 import Eyebrow from '@/shared/ui/Eyebrow'
 import { HP, RADIUS, SPACE } from './data'
 
@@ -57,14 +58,11 @@ export default function PrimaryCaseCard({
       className="ff-movie-section ff-movie-primary-case"
       style={{ padding: `${SPACE.sectionSm}px ${SPACE.gutter}px 8px`, borderTop: `1px solid ${HP.border}` }}
     >
-      <div
-        style={{
-          maxWidth: 880,
-          padding: '26px 30px',
-          borderRadius: RADIUS.lg, // = 12 (zero-pixel)
-          background: `linear-gradient(160deg, ${HP.purple}0f, transparent 72%)`,
-          border: `1px solid ${HP.purple}33`,
-        }}
+      <AccentPanel
+        variant="gradient"
+        tone="purple"
+        radius="lg"
+        style={{ maxWidth: 880, padding: '26px 30px' }}
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', marginBottom: lead ? 12 : 0 }}>
           <Eyebrow color={HP.purple}>{label}</Eyebrow>
@@ -108,7 +106,7 @@ export default function PrimaryCaseCard({
             Sign in and rate a few films to make this fit personal.
           </p>
         )}
-      </div>
+      </AccentPanel>
     </section>
   )
 }

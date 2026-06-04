@@ -182,20 +182,23 @@ import { Card } from '@/shared/ui'
 > call sites migrate in later F11B waves (where any visual-baseline route change is
 > re-baselined deliberately). See [`docs/ui/design-tokens-primitives-f11b1.md`](ui/design-tokens-primitives-f11b1.md).
 
-### 6b. AccentPanel — the expressive trust surface (F11B.4)
+### 6b. AccentPanel — the expressive trust surface (F11B.4 + F11B.5)
 
 **`<AccentPanel>` primitive** ([`src/shared/ui/AccentPanel.jsx`](../src/shared/ui/AccentPanel.jsx))
 — the **accent-tinted sibling of the flat `<Card>`**. Where `Card` is a white-tinted
-`SURFACE.card`, AccentPanel is a faint **tone** tint (`${tone}0d`) + a matching tone border
-(`${tone}26`) + a token radius. It is the design-system home for the honesty callouts that read as
-brand/semantic-tinted, not flat (WhyThisPick, and — once a `gradient` variant exists —
-PrimaryCaseCard / DnaConfidence).
+`SURFACE.card`, AccentPanel is a tone-driven trust surface in one of two **fixed, tone-driven
+recipes** (no arbitrary gradient/angle/stop/color props): a flat **tint** or a directional **gradient**
+glow. It is the design-system home for the honesty callouts that read as brand/semantic-tinted, not
+flat (WhyThisPick · PrimaryCaseCard; DnaConfidence stays a structural section).
 
 ```jsx
 import { AccentPanel } from '@/shared/ui'
 
-// brand-purple trust callout (WhyThisPick) — padding/margins stay with the consumer
+// variant="tint" (default) — brand-purple flat callout (WhyThisPick); padding stays with the consumer
 <AccentPanel tone="purple" radius="md" style={{ padding: '10px 14px' }}>…</AccentPanel>
+
+// variant="gradient" — the directional brand glow (PrimaryCasePanel "makes its case")
+<AccentPanel variant="gradient" tone="purple" radius="lg" style={{ maxWidth: 880, padding: '26px 30px' }}>…</AccentPanel>
 
 // semantic tones, opt-in reduced-motion-gated hover
 <AccentPanel tone="green" interactive>…</AccentPanel>
@@ -203,15 +206,20 @@ import { AccentPanel } from '@/shared/ui'
 
 - **`tone`**: `purple | pink` (brand) · `amber | green | red` (semantic) · `neutral`. **No arbitrary
   color props** — one of these, or nothing.
+- **`variant`**: `tint` (default → `${tone}0d` + `${tone}26`) · `gradient`
+  (`linear-gradient(160deg, ${tone}0f, transparent 72%)` + `${tone}33`). Both are **fixed recipes**;
+  an unknown variant falls back to `tint`. No angle/stop/gradient-string props.
 - **`radius`**: a `RADIUS` token key (default `md`). **`interactive`**: default `false`; `true` adds a
   reduced-motion-gated border-brighten hover. **`as`**: element type. Owns the *surface* only.
-- **Must NOT** support arbitrary colors, per-vibe gradients, or heavy shadows. PrimaryCaseCard's
-  directional gradient is **out of scope** (needs a future `gradient`/`glow` variant).
+- **Must NOT** support arbitrary colors, arbitrary gradients, per-vibe gradients, or heavy shadows.
 
-> **Proof migration (F11B.4):** only **WhyThisPick** migrated — its always-`HP.purple` surface maps
-> to `tone="purple" radius="md"` **byte-identically** (verified on live authenticated `/home`:
-> `rgba(167,139,250,0.05)` tint, `…0.15` border, `8px`). PrimaryCaseCard + DnaConfidence stay
-> deferred. See [`docs/ui/accent-panel-trust-surfaces-f11b4.md`](ui/accent-panel-trust-surfaces-f11b4.md).
+> **Proof migrations:** **F11B.4** migrated **WhyThisPick** (`variant="tint"`, byte-identical on live
+> `/home`: `rgba(167,139,250,0.05)` tint, `…0.15` border, `8px`). **F11B.5** migrated **PrimaryCaseCard**
+> (`variant="gradient"`, byte-identical on live `/movie`: `linear-gradient(160deg, rgba(167,139,250,0.06),
+> transparent 72%)`, `…0.2` border, `12px`; match % + chips preserved). **DnaConfidence stays deferred**
+> (a structural section, not a single panel). See
+> [`accent-panel-trust-surfaces-f11b4.md`](ui/accent-panel-trust-surfaces-f11b4.md) +
+> [`accent-panel-gradient-primarycase-f11b5.md`](ui/accent-panel-gradient-primarycase-f11b5.md).
 
 ---
 

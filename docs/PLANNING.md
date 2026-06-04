@@ -70,6 +70,19 @@
       outcome-capture baseline (`docs/sql/recommendation-evaluation-queries.sql` §7).
 
 ## Done This Week
+- [x] **F11B.5 — AccentPanel `gradient` variant + PrimaryCaseCard proof** (design-system consolidation,
+      engine frozen `2.17`; **zero rendered-pixel change**): extended `<AccentPanel>` with a constrained
+      **`variant="tint"|"gradient"`** prop (default `tint` = F11B.4, unchanged → WhyThisPick byte-identical;
+      `gradient` = the *encoded existing* PrimaryCaseCard surface `linear-gradient(160deg, ${tone}0f,
+      transparent 72%)` + `${tone}33` border — a **fixed tone-driven recipe, NO angle/stop/gradient-string
+      props**; unknown variant → tint fallback). **Proof migration: PrimaryCaseCard inner panel** →
+      `<AccentPanel variant="gradient" tone="purple" radius="lg">` (maxWidth/padding stay consumer-owned;
+      eyebrow/match %/chips/lead/nudge all preserved). **Byte-identical, verified on LIVE authenticated
+      `/movie/:id` desktop+mobile** (`linear-gradient(160deg, rgba(167,139,250,0.06), transparent 72%)`,
+      `…0.2` border, `12px`, padding `26px 30px`; match % + 5 chips intact). +3 tests (gradient parity guard,
+      default-tint, unknown-variant fallback) = 522. **net zero new gradients** (moved into the primitive).
+      **DnaConfidence NOT touched.** No Button/`/about` impact. Docs:
+      `docs/ui/accent-panel-gradient-primarycase-f11b5.md` + DESIGN_SYSTEM §6b. lint/test/build/audit green. F8C blocked.
 - [x] **F11B.4 — AccentPanel primitive + trust-surface consolidation** (design-system phase, engine
       frozen `2.17`; **zero rendered-pixel change**): added a new shared **`<AccentPanel>`** primitive —
       the accent-tinted sibling of the flat `<Card>` (tone tint `${tone}0d` + tone border `${tone}26` +

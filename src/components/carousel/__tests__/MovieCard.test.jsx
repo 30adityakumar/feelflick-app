@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
 
 import { MovieCard } from '../CardContent/MovieCard'
+import { updateImpression } from '@/shared/services/recommendations'
 
 const mockNavigate = vi.fn()
 const mockCardEnter = vi.fn()
@@ -38,7 +39,7 @@ vi.mock('@/shared/hooks/useUserMovieStatus', () => ({
 }))
 
 vi.mock('@/shared/services/recommendations', () => ({
-  updateImpression: vi.fn(),
+  updateImpression: vi.fn(() => Promise.resolve()),
 }))
 
 const movie = {
@@ -65,6 +66,7 @@ describe('Homepage carousel cards', () => {
     mockCardBlur.mockReset()
     mockToggleWatchlist.mockReset()
     mockToggleWatched.mockReset()
+    vi.mocked(updateImpression).mockClear()
   })
 
   it('navigates on click', () => {
@@ -73,6 +75,25 @@ describe('Homepage carousel cards', () => {
     fireEvent.click(screen.getByRole('button', { name: /open furiosa/i }))
 
     expect(mockNavigate).toHaveBeenCalledWith('/movie/999')
+  })
+
+  // F8B: a click on a recommendation-row card records the 'clicked' OUTCOME.
+  // Regression guard for the bug where `placement` was passed as the action arg
+  // (matching no branch in updateImpression), so clicks were never captured.
+  it('records the clicked outcome with action "clicked" when placement is set', () => {
+    render(<MovieCard item={movie} placement="because_you_loved" width={220} height={330} />)
+
+    fireEvent.click(screen.getByRole('button', { name: /open furiosa/i }))
+
+    expect(updateImpression).toHaveBeenCalledWith('user-1', 101, 'clicked')
+  })
+
+  it('does NOT record an impression outcome for a non-recommendation card (no placement)', () => {
+    render(<MovieCard item={movie} width={220} height={330} />)
+
+    fireEvent.click(screen.getByRole('button', { name: /open furiosa/i }))
+
+    expect(updateImpression).not.toHaveBeenCalled()
   })
 
   it('forwards hover and focus state through the row hover controller API', () => {

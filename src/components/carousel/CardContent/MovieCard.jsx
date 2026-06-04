@@ -54,11 +54,13 @@ export const MovieCard = memo(function MovieCard({
   }, [movie])
 
   const handleNavigate = useCallback(() => {
+    // F8B fix: record the click as the 'clicked' OUTCOME. This previously passed
+    // `placement` as the action arg, which matched no branch in updateImpression
+    // (it expects 'clicked'|'skipped'|'watched'|'saved') → the write silently
+    // no-op'd, so carousel clicks were never captured. Gated on `placement`, so
+    // only recommendation-row cards attribute (non-rec cards pass no placement).
     if (placement && user?.id && movie?.id) {
-      updateImpression(user.id, movie.id, placement, {
-        clicked: true,
-        clicked_at: new Date().toISOString(),
-      })
+      updateImpression(user.id, movie.id, 'clicked').catch(() => {})
     }
     track('card_clicked', {
       movie_id: tmdbId,

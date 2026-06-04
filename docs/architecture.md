@@ -267,10 +267,12 @@ See the [F0 audit](feelflick-foundation-readiness-audit.md) §2.10 + §4.10 for 
 detail. Headline items:
 
 - **Engine monolith** — `recommendations.js` is ~6,700 LOC in one file; high
-  blast-radius for tuning (F8B may modularize). An offline evaluation harness now
-  exists (F8A) — but the binding gap is **outcome capture** (≈0.5% of impressions
-  record a watch; the `recommendation_events` funnel logs 0 watches), so fit
-  quality is not yet measurable. F8B must fix capture before any tuning.
+  blast-radius for tuning (F8C may modularize). An offline evaluation harness
+  exists (F8A); F8B then **repaired outcome capture** — save/watch/click now
+  attribute back to `recommendation_impressions` via the recency-gated
+  `recordRecommendationOutcome` (see `recommendation-outcome-capture-f8b.md`).
+  The real-data *lift* still needs a post-deploy baseline before F8C tuning is
+  unblocked (the F8A baseline showed ≈0.5% watch capture on pre-launch dev data).
 - **Case-making layer is thin** — the rich `movies_editorial_overlay` is seeded for
   a single film (Parasite); most picks fall back to short generated reasons. The
   moat is the least-built part (F6).

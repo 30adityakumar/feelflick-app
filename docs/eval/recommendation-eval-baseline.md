@@ -6,7 +6,7 @@
 > example of the metrics; the framework + real-data baseline live in
 > [`recommendation-trust-evaluation-f8a.md`](../recommendation-trust-evaluation-f8a.md).
 
-_Generated: 2026-06-03T21:42:36.091Z_
+_Generated: 2026-06-04T00:00:12.663Z_
 
 ## Fit quality (outcome rates)
 
@@ -18,6 +18,16 @@ _Generated: 2026-06-03T21:42:36.091Z_
 | watch rate | 0.125 |
 | save rate | 0.125 |
 | **outcome-capture rate** | **0.625** |
+
+## Conversion funnel (F8B)
+
+| metric | value |
+|---|---|
+| shown | 8 |
+| clicked | 2 |
+| shown→outcome rate | 0.625 |
+| clicked→saved rate | 0 |
+| clicked→watched rate | 0.5 |
 
 ## Repeated-pick fatigue (hero)
 

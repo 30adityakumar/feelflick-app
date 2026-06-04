@@ -1,6 +1,6 @@
 {
   "report": {
-    "generatedAt": "2026-06-03T21:42:36.091Z",
+    "generatedAt": "2026-06-04T00:00:12.663Z",
     "note": "Fixture-based offline baseline (F8A). Numbers are synthetic unless sourced from a read-only DB export.",
     "fitQuality": {
       "total": 8,
@@ -10,6 +10,35 @@
       "saveRate": 0.125,
       "outcomeCaptureRate": 0.625
     },
+    "conversionFunnel": {
+      "shown": 8,
+      "clicked": 2,
+      "clickedToSaved": 0,
+      "clickedToWatched": 1,
+      "shownToOutcomeRate": 0.625,
+      "clickedToSavedRate": 0,
+      "clickedToWatchedRate": 0.5
+    },
+    "captureByPlacement": [
+      {
+        "placement": "hero",
+        "impressions": 6,
+        "anyOutcomeRate": 0.833,
+        "watchRate": 0.167,
+        "saveRate": 0.167,
+        "clickRate": 0.333,
+        "skipRate": 0.333
+      },
+      {
+        "placement": "because_you_loved",
+        "impressions": 2,
+        "anyOutcomeRate": 0,
+        "watchRate": 0,
+        "saveRate": 0,
+        "clickRate": 0,
+        "skipRate": 0
+      }
+    ],
     "repeatedPickFatigue": {
       "surface": "hero",
       "totalShown": 6,

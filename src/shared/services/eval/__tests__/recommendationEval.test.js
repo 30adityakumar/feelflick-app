@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest'
 
 import {
   outcomeRates,
+  conversionFunnel,
+  captureByPlacement,
   repeatedPickFatigue,
   intraListDiversity,
   languageMix,
@@ -39,6 +41,37 @@ describe('outcomeRates', () => {
     expect(outcomeRates([]).total).toBe(0)
     expect(outcomeRates(null).outcomeCaptureRate).toBe(0)
     expect(outcomeRates([{}]).skipRate).toBe(0)
+  })
+})
+
+// F8B: the conversion funnel + per-placement capture make the repaired outcome
+// fields legible (the F8A baseline showed near-zero everywhere).
+describe('conversionFunnel (F8B)', () => {
+  it('computes shown→outcome and clicked→saved/watched conversions', () => {
+    const f = conversionFunnel(SAMPLE_IMPRESSIONS)
+    expect(f.shown).toBe(SAMPLE_IMPRESSIONS.length)
+    expect(f.clicked).toBe(2)              // films 101 + 202
+    expect(f.clickedToWatched).toBe(1)     // 101 was clicked AND watched
+    expect(f.clickedToWatchedRate).toBe(0.5)
+    expect(f.shownToOutcomeRate).toBeGreaterThan(0)
+    expect(f.shownToOutcomeRate).toBeLessThanOrEqual(1)
+  })
+
+  it('is null-safe', () => {
+    expect(conversionFunnel([]).shown).toBe(0)
+    expect(conversionFunnel(null).clickedToSavedRate).toBe(0)
+  })
+})
+
+describe('captureByPlacement (F8B)', () => {
+  it('reports capture per placement, busiest first', () => {
+    const rows = captureByPlacement(SAMPLE_IMPRESSIONS)
+    const hero = rows.find(r => r.placement === 'hero')
+    const byl = rows.find(r => r.placement === 'because_you_loved')
+    expect(hero.impressions).toBe(6)
+    expect(hero.anyOutcomeRate).toBeGreaterThan(0)
+    expect(byl.anyOutcomeRate).toBe(0) // fixture: no outcomes on that row
+    expect(rows[0].impressions).toBeGreaterThanOrEqual(rows[rows.length - 1].impressions)
   })
 })
 

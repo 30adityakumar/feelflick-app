@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/shared/lib/supabase/client'
 import { ensureMovieInDb } from '@/shared/lib/movies/ensureMovieInDb'
 import { recommendationCache } from '@/shared/lib/cache'
+import { recordRecommendationOutcome } from '@/shared/services/recommendationOutcomes'
 
 /**
  * Handles user_movie status: watchlist + watched (history)
@@ -149,6 +150,16 @@ export function useUserMovieStatus(params = {}) {
           .delete()
           .eq('user_id', user.id)
           .eq('movie_id', resolvedInternalId)
+
+        // F8B: attribute the save back to the recommendation that surfaced this
+        // film, if one did recently. No-ops for generic/direct saves (no recent
+        // impression) — see recordRecommendationOutcome. Only on ADD, never on
+        // remove. Fire-and-forget; the watchlist write above is the source of truth.
+        recordRecommendationOutcome({
+          userId: user.id,
+          movieId: resolvedInternalId,
+          action: 'saved',
+        }).catch(() => { /* best-effort instrumentation */ })
       }
 
       // Invalidate cache after successful action
@@ -202,6 +213,15 @@ export function useUserMovieStatus(params = {}) {
           .delete()
           .eq('user_id', user.id)
           .eq('movie_id', resolvedInternalId)
+
+        // F8B: attribute the watch back to the recommendation that surfaced this
+        // film, if one did recently. No-ops for generic/direct watches. Only on
+        // MARK, never on unmark. Fire-and-forget; user_history is source of truth.
+        recordRecommendationOutcome({
+          userId: user.id,
+          movieId: resolvedInternalId,
+          action: 'watched',
+        }).catch(() => { /* best-effort instrumentation */ })
 
         // Emit feedback prompt event
         setTimeout(() => {

@@ -10,17 +10,16 @@
 > This file tracks only the *active* slice — don't duplicate the roadmap here.
 
 ## Currently In Progress
-- [ ] (between phases) — F8A just landed; F8B is queued.
+- [ ] (between phases) — F8B just landed; F8C is queued.
 
 ## Up Next (prioritized)
-- [ ] **F8B — Gated engine tuning** — the first phase allowed to touch scoring
-      (highest blast radius). **Entry gate (from F8A):** FIX OUTCOME CAPTURE FIRST —
-      today ≈0.5% of impressions record a watch and the `recommendation_events`
-      funnel logs 0 watches/skips/saves, so fit quality is unmeasurable. Audit the
-      `updateImpression` / `recommendation_events` write paths, then run the F8A
-      harness against a real read-only snapshot, THEN tune DB-first
-      (recommendation-engine skill). Use `docs/sql/recommendation-evaluation-queries.sql`
-      + `node scripts/eval/run-recommendation-eval.mjs`.
+- [ ] **F8C — Gated engine tuning** — the first phase allowed to touch scoring
+      (highest blast radius). **Entry gate:** a POST-DEPLOY real-data baseline
+      (via `docs/sql/recommendation-evaluation-queries.sql` §7) must confirm
+      `outcomeCaptureRate` is non-trivial + stable, sliced by `algorithm_version`
+      and cold/warm tier — F8B wired the capture paths but the lift can only be
+      proven with real post-deploy traffic. THEN tune DB-first (recommendation-engine
+      skill), leading with pool/coverage numbers + expected skip/watch effect.
 - [ ] **F6C (later, gated)** — extend `generate-movie-overlay` to produce a
       `why_for_you` for non-curated films (Edge Function + prompt + honesty guards) —
       via the `supabase-change` skill.
@@ -49,6 +48,21 @@
       ```
 
 ## Done This Week
+- [x] **F8B — Recommendation Outcome Capture Repair**
+      (`docs/recommendation-outcome-capture-f8b.md`): instrumentation-only, engine
+      untouched. Fixed the F8A capture gap — `useUserMovieStatus` (the one hook
+      behind save/watch on the Briefing, every carousel, and the Movie page) wrote
+      to `user_watchlist`/`user_history` but never flagged the impression; the
+      carousel click passed `placement` as the action arg (silent no-op); the
+      Briefing open recorded no click. New `recordRecommendationOutcome` helper
+      attributes save/watch/click to the most-recent impression ONLY when it's
+      recent (72h window) — so generic/direct actions never falsely attach, and
+      the Briefing "See More"→Movie-page→Save conversion auto-captures with no
+      nav-state or schema change. Reused existing impression columns (no migration/
+      RLS/edge change). Added 17 tracking tests (helper 8, hook 4, MovieCard +2,
+      eval +3) + §7 read-only verification SQL + `conversionFunnel`/
+      `captureByPlacement` harness metrics. Real post-deploy baseline still to be
+      collected before F8C tuning.
 - [x] **F8A — Recommendation Trust + Evaluation foundation**
       (`docs/recommendation-trust-evaluation-f8a.md`): evaluation-FIRST, engine
       untouched. Added a current-state map + a 6-family metrics framework (fit/

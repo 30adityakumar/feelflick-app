@@ -227,7 +227,8 @@ and ending green on `lint → test → build`. See the roadmap in the
 - **F6B — Film File case-making (UI-only)** ✅ done (`PrimaryCaseCard` leads the case)
 - **F7 — Cinematic DNA / Taste Profile vNext** ✅ done (honest DNA confidence; no fake cold-state)
 - **F8A — Recommendation Trust + Evaluation foundation** ✅ done (metrics framework + offline harness + read-only SQL + explanation rubric; engine untouched)
-- **F8B — Gated engine tuning** ⏭️ next (fix outcome capture first, then DB-first tuning)
+- **F8B — Recommendation Outcome Capture Repair** ✅ done (wired save/watch/click outcomes back to impressions; engine untouched)
+- **F8C — Gated engine tuning** ⏭️ next (blocked until a post-deploy capture baseline confirms outcomes are measurable, then DB-first tuning)
 
 ---
 

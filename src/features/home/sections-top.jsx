@@ -9,6 +9,7 @@ import { ActionButton, SecondaryActionButton } from '@/shared/components/ActionB
 import { useUserMovieStatus } from '@/shared/hooks/useUserMovieStatus'
 import { getMovieWatchProviders } from '@/shared/api/tmdb'
 import { logSurfaceImpressions } from '@/shared/services/recommendations'
+import { recordRecommendationOutcome } from '@/shared/services/recommendationOutcomes'
 import Eyebrow from '@/shared/ui/Eyebrow'
 import { HP, HP_GRAD, MOOD_META } from './data'
 import { SmartImg } from './atoms'
@@ -213,6 +214,19 @@ function BriefingSlide({ film, idx, matchPct, user, onWatch, onSkip, onMarkedWat
     if (!wasWatched && film?.id) onMarkedWatched?.(film.id)
   }, [isWatched, toggleWatched, onMarkedWatched, film?.id])
 
+  // Opening the pick (poster or "See More") is the Briefing's 'clicked' outcome.
+  // F8B: record it against the fresh hero impression (logged when this slide
+  // became active) so shown→clicked is captured, then hand off to onWatch
+  // (navigation). Fire-and-forget; recordRecommendationOutcome no-ops if no
+  // recent impression exists, so this never blocks the open.
+  const handleOpen = useCallback(() => {
+    if (user?.id && film?.id) {
+      recordRecommendationOutcome({ userId: user.id, movieId: film.id, action: 'clicked' })
+        .catch(() => { /* best-effort instrumentation */ })
+    }
+    onWatch?.(film)
+  }, [user?.id, film, onWatch])
+
   if (!film) return null
 
   const slotLabel = SLOT_LABELS[idx] || SLOT_LABELS[SLOT_LABELS.length - 1]
@@ -222,7 +236,7 @@ function BriefingSlide({ film, idx, matchPct, user, onWatch, onSkip, onMarkedWat
       {/* Poster column — clickable */}
       <button
         type="button"
-        onClick={() => onWatch?.(film)}
+        onClick={handleOpen}
         aria-label={`See more about ${film.title}`}
         className="relative block w-full max-w-[210px] flex-none sm:max-w-[260px] lg:w-[340px] lg:max-w-none"
         style={{
@@ -315,7 +329,7 @@ function BriefingSlide({ film, idx, matchPct, user, onWatch, onSkip, onMarkedWat
               hidden, icon only).
             • lg+: wrap row of four labeled pills (movie-detail style). */}
         <div className="flex flex-wrap items-center justify-center gap-2.5 pt-4 lg:justify-start" style={{ borderTop: `1px solid ${HP.border}` }}>
-          <ActionButton className="h-11 flex-1 lg:h-auto lg:flex-none" onClick={() => onWatch?.(film)}>
+          <ActionButton className="h-11 flex-1 lg:h-auto lg:flex-none" onClick={handleOpen}>
             <span>See More</span>
             <ChevronRight className="h-3.5 w-3.5" />
           </ActionButton>

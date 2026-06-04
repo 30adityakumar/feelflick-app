@@ -154,6 +154,73 @@ export function outcomeRates(impressions) {
   }
 }
 
+/**
+ * Conversion funnel over impressions (F8B). Of the impressions that were
+ * clicked, how many converted to a save or a watch? These are the
+ * trust-relevant conversions the F8B repair makes measurable.
+ *
+ * Healthy direction: clickedToSavedRate / clickedToWatchedRate UP. Limitation:
+ * only meaningful once click + outcome capture are non-trivial (post-repair).
+ *
+ * @param {ImpressionRecord[]} impressions
+ * @returns {{ shown:number, clicked:number, clickedToSaved:number,
+ *   clickedToWatched:number, shownToOutcomeRate:number,
+ *   clickedToSavedRate:number, clickedToWatchedRate:number }}
+ */
+export function conversionFunnel(impressions) {
+  const rows = compact(impressions)
+  const shown = rows.length
+  let clicked = 0, clickedSaved = 0, clickedWatched = 0, anyOutcome = 0
+  for (const r of rows) {
+    const c = !!r.clicked
+    if (c) clicked++
+    if (c && r.addedToWatchlist) clickedSaved++
+    if (c && r.markedWatched) clickedWatched++
+    if (c || r.skipped || r.markedWatched || r.addedToWatchlist) anyOutcome++
+  }
+  return {
+    shown,
+    clicked,
+    clickedToSaved: clickedSaved,
+    clickedToWatched: clickedWatched,
+    shownToOutcomeRate: round3(ratio(anyOutcome, shown)),
+    clickedToSavedRate: round3(ratio(clickedSaved, clicked)),
+    clickedToWatchedRate: round3(ratio(clickedWatched, clicked)),
+  }
+}
+
+/**
+ * Outcome capture broken down by placement (F8B). Surfaces which surfaces are
+ * (not) capturing engagement — the F8A baseline showed near-zero everywhere.
+ *
+ * @param {ImpressionRecord[]} impressions
+ * @returns {Array<{ placement:string, impressions:number, anyOutcomeRate:number,
+ *   watchRate:number, saveRate:number, clickRate:number, skipRate:number }>}
+ */
+export function captureByPlacement(impressions) {
+  const rows = compact(impressions)
+  const groups = new Map()
+  for (const r of rows) {
+    const key = r.placement ?? '(none)'
+    if (!groups.has(key)) groups.set(key, [])
+    groups.get(key).push(r)
+  }
+  return [...groups.entries()]
+    .map(([placement, list]) => {
+      const o = outcomeRates(list)
+      return {
+        placement,
+        impressions: o.total,
+        anyOutcomeRate: o.outcomeCaptureRate,
+        watchRate: o.watchRate,
+        saveRate: o.saveRate,
+        clickRate: o.clickRate,
+        skipRate: o.skipRate,
+      }
+    })
+    .sort((a, b) => b.impressions - a.impressions)
+}
+
 // ============================================================================
 // 2. REPEATED-PICK FATIGUE (déjà vu) — product trust
 // ============================================================================
@@ -473,6 +540,8 @@ export function summarizeEvaluation(dataset = {}) {
     generatedAt: new Date().toISOString(),
     note: 'Fixture-based offline baseline (F8A). Numbers are synthetic unless sourced from a read-only DB export.',
     fitQuality: impressions ? outcomeRates(impressions) : null,
+    conversionFunnel: impressions ? conversionFunnel(impressions) : null,
+    captureByPlacement: impressions ? captureByPlacement(impressions) : null,
     repeatedPickFatigue: impressions
       ? repeatedPickFatigue(impressions, { placement: dataset.heroPlacement ?? 'hero' })
       : null,

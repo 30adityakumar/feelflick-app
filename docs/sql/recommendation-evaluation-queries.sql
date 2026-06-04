@@ -239,3 +239,75 @@ SELECT CASE
   FROM depth
  GROUP BY tier
  ORDER BY avg_films;
+
+
+-- ============================================================================
+-- 7. OUTCOME-CAPTURE REPAIR VERIFICATION (F8B)
+-- ============================================================================
+-- Run these AFTER the F8B repair has shipped and real users have acted, to
+-- confirm capture is no longer broken. Compare against the F8A baseline
+-- (≈0.5% watched, ≈2% skipped, 0.1% clicked). These read the SAME columns the
+-- repair now writes — no schema change. Filter to post-deploy data with the
+-- [WINDOW] clause so the pre-repair backlog doesn't dilute the numbers.
+
+-- 7a. Capture rate by placement (was the headline gap).
+SELECT placement,
+       COUNT(*)                                                   AS impressions,
+       ROUND(100.0 * AVG((clicked)::int), 2)                      AS pct_clicked,
+       ROUND(100.0 * AVG((added_to_watchlist)::int), 2)           AS pct_saved,
+       ROUND(100.0 * AVG((marked_watched)::int), 2)               AS pct_watched,
+       ROUND(100.0 * AVG((skipped)::int), 2)                      AS pct_skipped,
+       ROUND(100.0 * AVG((clicked OR added_to_watchlist
+                          OR marked_watched OR skipped)::int), 2)  AS pct_any_outcome
+  FROM recommendation_impressions
+ -- WHERE shown_at >= DATE '2026-06-04'   -- [WINDOW] post-F8B-deploy
+ GROUP BY placement
+ ORDER BY impressions DESC;
+
+-- 7b. Conversion funnel — of clicked impressions, how many converted?
+--     clicked→saved and clicked→watched are the trust-relevant conversions.
+SELECT
+  SUM((clicked)::int)                                              AS clicked,
+  SUM((clicked AND added_to_watchlist)::int)                       AS clicked_then_saved,
+  SUM((clicked AND marked_watched)::int)                           AS clicked_then_watched,
+  ROUND(100.0 * SUM((clicked AND added_to_watchlist)::int)
+        / NULLIF(SUM((clicked)::int), 0), 2)                       AS pct_clicked_to_saved,
+  ROUND(100.0 * SUM((clicked AND marked_watched)::int)
+        / NULLIF(SUM((clicked)::int), 0), 2)                       AS pct_clicked_to_watched
+  FROM recommendation_impressions
+ -- WHERE shown_at >= DATE '2026-06-04'   -- [WINDOW]
+;
+
+-- 7c. Recommendation-attributed vs generic actions — did a save/watch get tied
+--     back to an impression, or only land in the generic table? An action with
+--     a user_watchlist/user_history row but NO flagged impression in-window is
+--     a "generic" (un-attributed) action. High orphan share AFTER the repair
+--     would mean attribution is still leaking.
+--     saved:
+SELECT 'saved' AS action,
+       COUNT(*)                                              AS watchlist_rows,
+       SUM((i.added_to_watchlist)::int)                      AS attributed_to_impression,
+       COUNT(*) - SUM((i.added_to_watchlist IS TRUE)::int)   AS generic_or_unattributed
+  FROM user_watchlist w
+  LEFT JOIN LATERAL (
+    SELECT added_to_watchlist
+      FROM recommendation_impressions r
+     WHERE r.user_id = w.user_id AND r.movie_id = w.movie_id
+     ORDER BY r.shown_at DESC LIMIT 1
+  ) i ON TRUE
+ -- WHERE w.added_at >= DATE '2026-06-04'   -- [WINDOW]
+UNION ALL
+--     watched:
+SELECT 'watched',
+       COUNT(*),
+       SUM((i.marked_watched)::int),
+       COUNT(*) - SUM((i.marked_watched IS TRUE)::int)
+  FROM user_history h
+  LEFT JOIN LATERAL (
+    SELECT marked_watched
+      FROM recommendation_impressions r
+     WHERE r.user_id = h.user_id AND r.movie_id = h.movie_id
+     ORDER BY r.shown_at DESC LIMIT 1
+  ) i ON TRUE
+ -- WHERE h.watched_at >= DATE '2026-06-04'   -- [WINDOW]
+;

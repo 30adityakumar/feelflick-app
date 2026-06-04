@@ -240,7 +240,8 @@ and ending green on `lint → test → build`. See the roadmap in the
 - **F9F — Sentry ingest verification** ✅ done (after the Allowed-Domains fix, **production error monitoring is live** — 403 gone, a test error landed in Sentry Issues from `app.feelflick.com`)
 - **F9G — CSP report-only** ✅ done (shipped `Content-Security-Policy-Report-Only` via `public/_headers` — never blocks; reports to Sentry)
 - **F9G.1 — CSP report-only verified in prod** ✅ done (live + non-breaking; reporting pipeline confirmed; one inline-script violation found)
-- **F9G.2 — Cloudflare inline-script diagnosis** ✅ done (the violation is **Cloudflare JavaScript Detections**, not the RUM beacon; per-request → no hash; fix is disable-JSD or a nonce-via-Pages-Function before enforcing — documented; CSP stays report-only)
+- **F9G.2 — Cloudflare inline-script diagnosis** ✅ done (the violation is **Cloudflare JavaScript Detections**, not the RUM beacon; per-request → no hash)
+- **F9G.3 — JSD CSP resolution (Pages Function nonce)** ✅ done (new `functions/_middleware.js` emits a per-request CSP nonce so Cloudflare auto-nonces its JSD script — no `'unsafe-inline'`; verified on preview; JSD-nonce confirms on prod after merge; still report-only)
 - **F8C — Gated engine tuning** ⏭️ next — **still blocked** until a *post-deploy* baseline shows non-trivial, stable outcome capture from real user traffic (capture mechanism is proven; volume is not there yet)
 
 ---

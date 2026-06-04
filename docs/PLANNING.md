@@ -10,26 +10,24 @@
 > This file tracks only the *active* slice — don't duplicate the roadmap here.
 
 ## Currently In Progress
-- [ ] (between phases) — F9G.2 landed: **diagnosed** the one report-only CSP violation
-      — it's **Cloudflare JavaScript Detections** (Bot Management `__CF$cv$params`),
-      NOT the RUM beacon (which is external + already allowed). Per-request + intermittent
-      → hash-pinning won't work. No Cloudflare zone access from the repo, so the fix is a
-      manual/architectural decision (disable JSD if the plan allows, OR Cloudflare's
-      recommended per-request **nonce via a Pages Function**; never `'unsafe-inline'`).
-      CSP stays report-only; enforcement deferred (`docs/cloudflare-rum-csp-cleanup-f9g2.md`).
-      F8C still blocked (needs real-user outcome volume).
+- [ ] (between phases) — F9G.3 implemented **Option B** (user-chosen): a new
+      **`functions/_middleware.js`** Cloudflare Pages Function emits a per-request CSP
+      **nonce** so Cloudflare auto-nonces its JS-Detections inline script — no
+      `'unsafe-inline'`, `script-src` stays strict, **still report-only**. CSP moved out
+      of `public/_headers` (F9D headers stay). **PR #177 OPEN, verified on CF Pages
+      preview** (per-request nonce, 5/5 F9D headers, single CSP, SPA renders, zero
+      violations). **Next: merge → verify the JSD-nonce on PRODUCTION** (the preview
+      bypasses JSD) — `docs/cloudflare-csp-nonce-f9g3.md` §4. F8C still blocked.
 
 ## Up Next (prioritized)
 - [x] ~~Apply the Sentry Allowed-Domains dashboard fix~~ — ✅ done (user) + **verified
       in F9F** (prod ingest working; test error landed in Issues). Housekeeping: resolve
       the labeled `F9F-SENTRY-VERIFY` test Issue in Sentry.
-- [ ] **CSP enforcement** (after F9G/F9G.1/F9G.2): one violation remains — **Cloudflare
-      JavaScript Detections** inline script (NOT RUM; per-request → no hash). Clear it via
-      **Option A** (disable JSD in Security → Settings — only if the plan is Super Bot
-      Fight Mode/Enterprise; Bot Fight Mode free can't) or **Option B** (Cloudflare-
-      recommended per-request **nonce via a Cloudflare Pages Function** — keeps script-src
-      strict). Then add `report-to`, drop deprecated `child-src`, flip to enforcing —
-      `docs/cloudflare-rum-csp-cleanup-f9g2.md` §3, §7.
+- [ ] **CSP enforcement** (after F9G.3 ships the nonce Function): **merge PR #177 →
+      verify on PROD** that the JSD inline-script violation is gone (preview can't show
+      it — `docs/cloudflare-csp-nonce-f9g3.md` §4). Then add `report-to`/`Reporting-Endpoints`,
+      drop deprecated `child-src`, monitor Sentry → Security a few more days, and flip
+      `Content-Security-Policy-Report-Only` → `Content-Security-Policy` in the Function.
 - [ ] **Other hardening**: set CI repo secrets to make **E2E + Lighthouse** non-skip
       (names in F9D §4); upgrade HSTS (`includeSubDomains`/preload) once subdomains are
       HTTPS-confirmed; color-contrast a11y pass.
@@ -56,6 +54,18 @@
       outcome-capture baseline (`docs/sql/recommendation-evaluation-queries.sql` §7).
 
 ## Done This Week
+- [x] **F9G.3 — Cloudflare JSD CSP resolution via a Pages Function nonce** (Option B,
+      user-chosen; `docs/cloudflare-csp-nonce-f9g3.md`): new **`functions/_middleware.js`**
+      (the repo's first Cloudflare Pages Function) emits a **per-request CSP nonce** on
+      HTML responses so Cloudflare auto-nonces its JS-Detections inline script — clears
+      the last report-only violation **without `script-src 'unsafe-inline'`** (script-src
+      stays strict). Moved the CSP out of `public/_headers` (F9D headers stay; exactly one
+      CSP source now). Fail-open; static assets pass through (caching unaffected).
+      **Verified on the CF Pages preview**: per-request nonce (two requests → two nonces),
+      5/5 F9D headers present, single CSP-RO, no enforcing CSP, SPA renders + scripts
+      execute + fonts/TMDB load, zero CSP violations. JSD-nonce effect is **prod-only**
+      (preview bypasses JSD) → verify after merge. node --check + lint + 487 tests + build
+      + audit green. **PR #177.**
 - [x] **F9G.2 — Cloudflare inline-script CSP blocker diagnosis**
       (`docs/cloudflare-rum-csp-cleanup-f9g2.md`): diagnosis/docs only, no code change.
       **Corrected the root cause** — the one report-only CSP violation is **Cloudflare

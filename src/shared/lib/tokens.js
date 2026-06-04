@@ -5,14 +5,26 @@
 // (14 copies that had quietly drifted); they now import from here.
 //
 // `HP` is the shared core. A surface that genuinely needs an extra/overridden
-// value spreads this and adds it locally (see features/browse, features/discover)
-// so any divergence is explicit rather than a silent copy-paste drift.
+// value spreads this and adds it locally (see features/browse, features/discover —
+// both already import `HP as baseHP` and spread it; the old "inline HP holdout"
+// is resolved) so any divergence is explicit rather than a silent copy-paste drift.
 //
-// WHY: one place to tune the palette; no more hunting 14 files. The v3 landing's
-// `C` palette aligns with these same hexes and is a candidate to fold in next.
+// BRAND vs SEMANTIC (F3 hardening): the palette is two groups —
+//   • BRAND — purple + pink (+ the single `HP_GRAD`). These, and ONLY these, are
+//     the gradient/identity hues. Never invent per-vibe variants; never use
+//     amber/orange/rose for brand ambient or accents.
+//   • SEMANTIC accents — amber / red / green. NOT brand colors, but load-bearing:
+//     amber = gold rating-stars + "stale"/caution, red = destructive/error,
+//     green = success/public/watched. Keep them — removing breaks ratings,
+//     destructive states, and status badges across the app.
+//
+// WHY: one place to tune the palette. The v3 landing's `C` palette aligns with
+// these same hexes and is a candidate to fold in next (deferred — `C` is used
+// across the visual-regression-tested landing).
 
 /** Core editorial palette for inline-style feature surfaces. */
 export const HP = {
+  // — Surfaces & text —
   bg: '#000000',
   bgDeep: '#06060a',
   panel: 'rgba(255,255,255,0.04)',
@@ -24,12 +36,14 @@ export const HP = {
   // AA-large floor (~3.3:1). Was 0.28 ≈ 2.4:1, which failed AA outright across
   // every feature surface's faint labels. Matches the landing's C.textFaint.
   textFaint: 'rgba(250,250,250,0.40)',
+  // — Brand (the ONLY identity / gradient hues) —
   purple: '#A78BFA',
   purpleDeep: '#7C3AED',
   pink: '#EC4899',
-  amber: '#F59E0B',
-  red: '#EF4444',
-  green: '#34D399',
+  // — Semantic accents (NOT brand; never use in brand gradients/ambient) —
+  amber: '#F59E0B', // gold rating-stars · "stale" / caution
+  red: '#EF4444',   // destructive / error
+  green: '#34D399', // success / public / watched
 }
 
 /** The one brand gradient — purple-600 → pink-500. Never invent per-vibe variants. */

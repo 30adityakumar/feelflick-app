@@ -6,6 +6,8 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
+import { ActionButton, SecondaryActionButton } from '@/shared/components/ActionButton'
+import Eyebrow from '@/shared/ui/Eyebrow'
 import { PreferencesDataProvider, usePreferencesData, genreLabelOf } from './usePreferencesData'
 import './preferences.css'
 
@@ -17,9 +19,7 @@ const RESET_BTN = { background: 'none', border: 'none', padding: 0, margin: 0, f
 function H({ kicker, title, sub }) {
   return (
     <header style={{ marginBottom: 24 }}>
-      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: HP.purple, marginBottom: 12, display: 'inline-flex', alignItems: 'center', gap: 10 }}>
-        <span style={{ height: 1, width: 22, background: HP.purple, opacity: 0.6 }} />{kicker}
-      </div>
+      <Eyebrow rule size={10} style={{ marginBottom: 12 }}>{kicker}</Eyebrow>
       <h2 style={{ fontFamily: 'Outfit', fontSize: 36, lineHeight: 1, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0, textWrap: 'balance' }}>{title}</h2>
       {sub && <p style={{ marginTop: 12, fontSize: 14, color: HP.textMuted, fontFamily: 'Outfit, Inter, sans-serif', lineHeight: 1.6, maxWidth: 560, textWrap: 'pretty' }}>{sub}</p>}
     </header>
@@ -34,7 +34,7 @@ function Masthead() {
       <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(ellipse 50% 30% at 10% 0%, rgba(167,139,250,0.12), transparent 60%)' }} />
       <div style={{ position: 'relative' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 22 }}>
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.32em', textTransform: 'uppercase', color: HP.purple }}>Preferences</div>
+          <Eyebrow size={10} spacing="0.32em">Preferences</Eyebrow>
           <div style={{ height: 1, width: 38, background: HP.purple, opacity: 0.5 }} />
           <div style={{ fontSize: 10, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: HP.textMuted, fontFamily: 'Outfit' }}>Tune the engine · DNA recomputes nightly</div>
         </div>
@@ -214,11 +214,11 @@ function GenresPrefs() {
       <H kicker="Genres" title="What you live in." sub="Drawn-to genres get prioritized; avoided genres are excluded as hard rules." />
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48 }}>
         <div>
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: HP.textMuted, fontFamily: 'Outfit', marginBottom: 14 }}>Drawn to</div>
+          <Eyebrow tone="meta" size={10} style={{ marginBottom: 14 }}>Drawn to</Eyebrow>
           <ChipPicker items={drawnItems} hex={HP.purple} onRemove={removeDrawnGenre} onAdd={addDrawnGenre} options={allOptions} addLabel="+ Genre" />
         </div>
         <div>
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: HP.textMuted, fontFamily: 'Outfit', marginBottom: 14 }}>Avoid (hard rule)</div>
+          <Eyebrow tone="meta" size={10} style={{ marginBottom: 14 }}>Avoid (hard rule)</Eyebrow>
           <ChipPicker items={avoidItems} hex={HP.red} onRemove={removeAvoidGenre} onAdd={addAvoidGenre} options={allOptions} addLabel="+ Genre" />
         </div>
       </div>
@@ -233,7 +233,7 @@ function DirectorPrefs() {
       <H kicker="Directors" title="Voices you trust." sub="Trusted directors boost match scores; muted directors get filtered out entirely." />
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48 }}>
         <div>
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: HP.textMuted, fontFamily: 'Outfit', marginBottom: 14 }}>Trusted</div>
+          <Eyebrow tone="meta" size={10} style={{ marginBottom: 14 }}>Trusted</Eyebrow>
           <FreeTextChips
             items={draft.trustedDirectors}
             hex={HP.green}
@@ -244,7 +244,7 @@ function DirectorPrefs() {
           />
         </div>
         <div>
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: HP.textMuted, fontFamily: 'Outfit', marginBottom: 14 }}>Muted</div>
+          <Eyebrow tone="meta" size={10} style={{ marginBottom: 14 }}>Muted</Eyebrow>
           <FreeTextChips
             items={draft.mutedDirectors}
             hex={HP.red}
@@ -278,7 +278,7 @@ function Runtime() {
           </div>
         </div>
         <div>
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: HP.textMuted, fontFamily: 'Outfit', marginBottom: 14 }}>Runtime band</div>
+          <Eyebrow tone="meta" size={10} style={{ marginBottom: 14 }}>Runtime band</Eyebrow>
           <div style={{ fontFamily: 'Outfit, Inter, sans-serif', fontSize: 13, color: HP.textSoft, fontStyle: 'italic', lineHeight: 1.65 }}>
             Films shorter than <span style={{ color: HP.text, fontWeight: 600 }}>{draft.runtimeFloor} min</span> or longer than <span style={{ color: HP.text, fontWeight: 600 }}>{draft.runtimeCap} min</span> still appear in your briefings &mdash; they just rank lower.<br />
             Films inside the band get a quiet boost so you actually press play.
@@ -330,9 +330,7 @@ function Subscriptions() {
   return (
     <section style={{ padding: '56px 88px', borderTop: `1px solid ${HP.border}`, background: 'rgba(255,255,255,0.012)' }}>
       <header style={{ marginBottom: 24 }}>
-        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: HP.purple, marginBottom: 12, display: 'inline-flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ height: 1, width: 22, background: HP.purple, opacity: 0.6 }} />Subscriptions
-        </div>
+        <Eyebrow rule size={10} style={{ marginBottom: 12 }}>Subscriptions</Eyebrow>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 14, flexWrap: 'wrap' }}>
           <h2 style={{ fontFamily: 'Outfit', fontSize: 36, lineHeight: 1, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>What you have access to.</h2>
           <span style={{ padding: '4px 10px', borderRadius: 999, border: `1px solid ${HP.borderStrong}`, background: 'rgba(255,255,255,0.04)', fontFamily: 'Outfit', fontSize: 10, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: HP.textMuted }}>Coming soon</span>
@@ -404,18 +402,18 @@ function Display() {
       <H kicker="Display" title="How films arrive." sub="Doesn't change what we pick &mdash; just how each film shows up when you open it." />
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48 }}>
         <div>
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: HP.textMuted, fontFamily: 'Outfit', marginBottom: 6 }}>Subtitles</div>
+          <Eyebrow tone="meta" size={10} style={{ marginBottom: 6 }}>Subtitles</Eyebrow>
           <div style={{ fontSize: 12, color: HP.textFaint, fontFamily: 'Outfit, Inter, sans-serif', fontStyle: 'italic', marginBottom: 14 }}>How you feel about reading them.</div>
           <Segmented value={draft.subtitles} onChange={setSubtitles} options={catalogs.SUBTITLE_MODES} />
         </div>
         <div>
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: HP.textMuted, fontFamily: 'Outfit', marginBottom: 6 }}>Spoiler tier</div>
+          <Eyebrow tone="meta" size={10} style={{ marginBottom: 6 }}>Spoiler tier</Eyebrow>
           <div style={{ fontSize: 12, color: HP.textFaint, fontFamily: 'Outfit, Inter, sans-serif', fontStyle: 'italic', marginBottom: 14 }}>How much synopsis we show by default.</div>
           <Segmented value={draft.spoilerTier} onChange={setSpoilerTier} options={catalogs.SPOILER_TIERS} />
         </div>
       </div>
       <div style={{ marginTop: 36 }}>
-        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: HP.textMuted, fontFamily: 'Outfit', marginBottom: 6 }}>Languages you watch</div>
+        <Eyebrow tone="meta" size={10} style={{ marginBottom: 6 }}>Languages you watch</Eyebrow>
         <div style={{ fontSize: 12, color: HP.textFaint, fontFamily: 'Outfit, Inter, sans-serif', fontStyle: 'italic', marginBottom: 14 }}>Films in these languages get a quiet boost.</div>
         <ChipPicker items={languageItems} hex={HP.purple} onRemove={removeLanguage} onAdd={addLanguage} options={languageOptions} addLabel="+ Language" />
       </div>
@@ -450,7 +448,7 @@ function PreviewPanel() {
     <section style={{ padding: '56px 88px 88px', borderTop: `1px solid ${HP.border}`, background: 'rgba(167,139,250,0.04)' }}>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 48, alignItems: 'center' }}>
         <div>
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: HP.purple, marginBottom: 12 }}>Effect on your engine</div>
+          <Eyebrow size={10} style={{ marginBottom: 12 }}>Effect on your engine</Eyebrow>
           <h2 style={{ fontFamily: 'Outfit', fontSize: 36, lineHeight: 1.05, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0, textWrap: 'balance' }}>
             {justSaved
               ? <>Saved. <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>Next briefing will retune.</em></>
@@ -460,18 +458,17 @@ function PreviewPanel() {
           </h2>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
-          <button
-            type="button"
+          <SecondaryActionButton
+            label="Discard"
             onClick={discard}
             disabled={!dirty || saving}
-            style={{ padding: '12px 22px', borderRadius: 8, background: 'rgba(255,255,255,0.06)', border: `1px solid ${HP.borderStrong}`, color: dirty ? HP.textSoft : HP.textFaint, fontFamily: 'Outfit', fontSize: 13, fontWeight: 600, cursor: dirty ? 'pointer' : 'not-allowed', opacity: dirty ? 1 : 0.6 }}
-          >Discard</button>
-          <button
-            type="button"
+            style={{ border: `1px solid ${HP.borderStrong}`, color: dirty ? HP.textSoft : HP.textFaint, opacity: dirty ? 1 : 0.6, cursor: dirty ? 'pointer' : 'not-allowed' }}
+          />
+          <ActionButton
             onClick={save}
             disabled={!dirty || saving}
-            style={{ padding: '12px 22px', borderRadius: 8, background: dirty && !saving ? HP_GRAD : 'rgba(255,255,255,0.06)', border: 'none', color: dirty && !saving ? '#fff' : HP.textFaint, fontFamily: 'Outfit', fontSize: 13, fontWeight: 600, letterSpacing: '0.02em', cursor: dirty && !saving ? 'pointer' : 'not-allowed', boxShadow: dirty && !saving ? '0 12px 28px -8px rgba(236,72,153,0.5)' : 'none' }}
-          >{saving ? 'Saving…' : 'Save and retune'}</button>
+            style={dirty && !saving ? undefined : { background: 'rgba(255,255,255,0.06)', color: HP.textFaint, boxShadow: 'none', cursor: 'not-allowed' }}
+          >{saving ? 'Saving…' : 'Save and retune'}</ActionButton>
         </div>
       </div>
     </section>

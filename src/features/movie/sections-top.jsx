@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Tooltip from '@/shared/ui/Tooltip'
+import MatchBadge from '@/shared/components/MatchBadge'
+import { ActionButton, SecondaryActionButton } from '@/shared/components/ActionButton'
 import { FILM_PALETTE, HP, HP_GRAD } from './data'
 import { useMovieData } from './useMovieData'
 
@@ -214,7 +216,15 @@ function MovieHero({
               ? <img src={mv.poster} alt={mv.title} style={{ width:'100%', display:'block', borderRadius:8, boxShadow:`0 36px 100px -20px rgba(0,0,0,0.95), 0 0 0 1px rgba(255,255,255,0.06), 0 0 60px ${FILM_PALETTE.primary}44` }} />
               : <div style={{ width:'100%', aspectRatio:'2/3', borderRadius:8, background:`linear-gradient(155deg, ${FILM_PALETTE.primary}55, ${FILM_PALETTE.glow}33)`, display:'flex', alignItems:'center', justifyContent:'center', color:HP.text, fontFamily:'Outfit', fontSize:24, padding:24, textAlign:'center', boxShadow:`0 36px 100px -20px rgba(0,0,0,0.95), 0 0 0 1px rgba(255,255,255,0.06)` }}>{mv.title}</div>
             }
-            {Number.isFinite(mv.ffMatch) && <MatchRing pct={mv.ffMatch} />}
+            {Number.isFinite(mv.ffMatch) && (
+              <MatchBadge
+                variant="ring"
+                pct={mv.ffMatch}
+                size={96}
+                style={{ bottom: -22, right: -22, boxShadow: '0 16px 40px -8px rgba(0,0,0,0.7)' }}
+                classes={{ root: 'ff-movie-match-ring', num: 'ff-movie-match-ring-num', pct: 'ff-movie-match-ring-pct', label: 'ff-movie-match-ring-label' }}
+              />
+            )}
           </div>
         </div>
 
@@ -277,22 +287,16 @@ function MovieHero({
           )}
 
           <div className="ff-movie-hero-actions" style={{ display:'flex', alignItems:'center', gap:12, marginTop:32, flexWrap:'wrap' }}>
-            <button
+            <ActionButton
               className="ff-movie-hero-action-btn ff-movie-hero-action-btn--primary"
               onClick={onPlayTrailer}
               disabled={!hasTrailer}
               title={hasTrailer ? undefined : 'No trailer available'}
-              style={{
-                display:'inline-flex', alignItems:'center', justifyContent:'center', gap:10,
-                padding:'14px 22px', borderRadius:8,
-                background: HP_GRAD, border:'none', color:'#fff',
-                fontFamily:'Outfit', fontSize:14, fontWeight:600, letterSpacing:'0.02em',
-                cursor: hasTrailer ? 'pointer' : 'not-allowed', opacity: hasTrailer ? 1 : 0.5,
-                boxShadow:'0 12px 32px -8px rgba(236,72,153,0.55)',
-              }}>
+              style={{ cursor: hasTrailer ? 'pointer' : 'not-allowed', opacity: hasTrailer ? 1 : 0.5 }}
+            >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3v18l16-9z"/></svg>
               Play Trailer
-            </button>
+            </ActionButton>
             <MarkWatchedButton
               isWatched={isWatched}
               onToggleWatched={onToggleWatched}
@@ -335,27 +339,6 @@ function MovieHero({
   );
 }
 
-function MatchRing({ pct }) {
-  const [v, setV] = useState(0);
-  useEffect(() => {
-    const t = setTimeout(() => setV(pct), 250);
-    return () => clearTimeout(t);
-  }, [pct]);
-  const dash = v * 0.943;
-  return (
-    <div className="ff-movie-match-ring" style={{ position:'absolute', bottom:-22, right:-22, width:96, height:96, borderRadius:999, background:'rgba(0,0,0,0.85)', backdropFilter:'blur(12px)', boxShadow:'0 16px 40px -8px rgba(0,0,0,0.7)' }}>
-      <svg viewBox="0 0 36 36" style={{ width:'100%', height:'100%', transform:'rotate(-90deg)' }}>
-        <circle cx="18" cy="18" r="15" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="2.5" />
-        <circle cx="18" cy="18" r="15" fill="none" stroke="url(#ring)" strokeWidth="2.5" strokeDasharray={`${dash} 100`} strokeLinecap="round" style={{ transition:'stroke-dasharray 1.4s cubic-bezier(0.2,0.8,0.2,1)' }} />
-        <defs><linearGradient id="ring" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor={HP.purple}/><stop offset="100%" stopColor={HP.pink}/></linearGradient></defs>
-      </svg>
-      <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}>
-        <span className="ff-movie-match-ring-num" style={{ fontFamily:'Outfit', fontSize:30, fontWeight:300, color: HP.text, letterSpacing:'-0.04em', lineHeight:1 }}>{v}<span className="ff-movie-match-ring-pct" style={{ fontSize:13, color: HP.textMuted, marginLeft:1 }}>%</span></span>
-        <span className="ff-movie-match-ring-label" style={{ fontSize:8, fontWeight:700, color: HP.purple, letterSpacing:'0.18em', textTransform:'uppercase', marginTop:2 }}>Match</span>
-      </div>
-    </div>
-  );
-}
 
 function MarkWatchedButton({ isWatched, onToggleWatched, loading, canAct }) {
   const wasWatchedRef = useRef(isWatched);
@@ -371,29 +354,21 @@ function MarkWatchedButton({ isWatched, onToggleWatched, loading, canAct }) {
   }, [isWatched]);
 
   const disabled = !canAct || loading;
-  const title = !canAct ? 'Sign in to track what you watch' : undefined;
 
   return (
     <>
-      <button
-        className="ff-movie-hero-action-btn"
-        onClick={onToggleWatched}
+      <SecondaryActionButton
+        accent={FILM_PALETTE.primary}
+        active={isWatched}
+        loading={loading}
         disabled={disabled}
-        aria-pressed={Boolean(isWatched)}
-        title={title}
-        style={{
-          position:'relative',
-          display:'inline-flex', alignItems:'center', justifyContent:'center', gap:10,
-          padding:'14px 22px', borderRadius:8,
-          background: isWatched ? `${FILM_PALETTE.primary}22` : 'rgba(255,255,255,0.06)',
-          border:`1px solid ${isWatched ? FILM_PALETTE.primary + '66' : HP.borderStrong}`,
-          color: HP.text, fontFamily:'Outfit', fontSize:14, fontWeight:600,
-          cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled && !isWatched ? 0.6 : 1,
-          transition:'all 0.3s ease',
-        }}>
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-        {isWatched ? 'Watched' : 'Mark Watched'}
-      </button>
+        onClick={onToggleWatched}
+        title={!canAct ? 'Sign in to track what you watch' : undefined}
+        label={isWatched ? 'Watched' : 'Mark Watched'}
+        className="ff-movie-hero-action-btn"
+        style={{ position: 'relative', opacity: disabled && !isWatched ? 0.6 : 1 }}
+        icon={<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+      />
       {confetti && <Confetti />}
     </>
   );
@@ -401,30 +376,20 @@ function MarkWatchedButton({ isWatched, onToggleWatched, loading, canAct }) {
 
 function SaveButton({ isInWatchlist, onToggleWatchlist, loading, canAct }) {
   const disabled = !canAct || loading;
-  const title = !canAct ? 'Sign in to save films' : undefined;
   return (
-    <button
-      className="ff-movie-hero-action-btn"
-      onClick={onToggleWatchlist}
+    <SecondaryActionButton
+      active={isInWatchlist}
+      loading={loading}
       disabled={disabled}
-      aria-pressed={Boolean(isInWatchlist)}
-      title={title}
-      style={{
-        display:'inline-flex', alignItems:'center', justifyContent:'center', gap:10,
-        padding:'14px 22px', borderRadius:8,
-        background: isInWatchlist ? 'rgba(167,139,250,0.12)' : 'rgba(255,255,255,0.06)',
-        border:`1px solid ${isInWatchlist ? HP.purple + '66' : HP.border}`,
-        color: HP.textSoft, fontFamily:'Outfit', fontSize:14, fontWeight:500,
-        cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled && !isInWatchlist ? 0.6 : 1,
-        transition:'all 0.25s ease',
-      }}>
-      {isInWatchlist ? (
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-      ) : (
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-      )}
-      {isInWatchlist ? 'Saved' : 'Save'}
-    </button>
+      onClick={onToggleWatchlist}
+      title={!canAct ? 'Sign in to save films' : undefined}
+      label={isInWatchlist ? 'Saved' : 'Save'}
+      className="ff-movie-hero-action-btn"
+      style={{ opacity: disabled && !isInWatchlist ? 0.6 : 1 }}
+      icon={isInWatchlist
+        ? <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        : <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>}
+    />
   );
 }
 
@@ -706,61 +671,8 @@ function MoodRadar({ axes, highlightMood, onHoverAxis }) {
   );
 }
 
-// ── FF Take (curated overlay only — PR 4 adds LLM fallback) ──────
-function TheTake({ take }) {
-  if (!take?.body) return null;
-  // Compute the read-time from actual body length. LLM-supplied meta was a
-  // hardcoded fiction ("20 sec" regardless of body length) — derive it
-  // honestly instead. ~3 words/sec for a comfortable read; clamp to ≥5 sec
-  // so the 2-sentence default doesn't render "0 sec".
-  const wordCount = (take.body || '').trim().split(/\s+/).filter(Boolean).length;
-  const readSec = Math.max(5, Math.round(wordCount / 3));
-  const meta = `est. read · ${readSec} sec`;
-  return (
-    <section className="ff-movie-section" style={{ padding:'64px 88px', borderTop:`1px solid ${HP.border}` }}>
-      <div style={{ maxWidth:780, position:'relative' }}>
-        <div className="ff-movie-take-quote" style={{ position:'absolute', top:-16, left:-8, fontFamily:'Outfit', fontSize:112, lineHeight:0.8, fontWeight:200, color: HP.purple, opacity:0.18 }}>“</div>
-        <div style={{ position:'relative' }}>
-          {take.byline && (
-            <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: HP.purple, marginBottom:18, display:'inline-flex', alignItems:'center', gap:10 }}>
-              <span style={{ height:1, width:22, background: HP.purple, opacity:0.6 }} />{take.byline}
-            </div>
-          )}
-          <p className="ff-movie-take-text" style={{ margin:0, fontFamily:'Outfit, Inter, sans-serif', fontSize:26, lineHeight:1.4, fontWeight:400, color: HP.text, letterSpacing:'-0.015em', fontStyle:'italic', textWrap:'balance' }}>
-            {take.body}
-          </p>
-          <div style={{ marginTop:28, display:'flex', alignItems:'center', gap:14, fontSize:11, color: HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.06em' }}>
-            <span style={{ width:24, height:1, background: HP.textMuted }} />
-            <span style={{ textTransform:'uppercase' }}>{meta}</span>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
+// (FF Take + Critic Quotes were removed in F6B: `ff_take` now leads the
+// consolidated PrimaryCaseCard, and the generated quotes moved to the honestly-
+// reframed ViewerNotes component — see PrimaryCaseCard.jsx / ViewerNotes.jsx.)
 
-// ── Critic Quotes (curated overlay only — PR 4 adds TMDB reviews fallback) ──
-function CriticQuotes({ quotes }) {
-  if (!quotes || quotes.length === 0) return null;
-  return (
-    <section className="ff-movie-section" style={{ padding:'48px 88px', borderTop:`1px solid ${HP.border}`, background:'rgba(255,255,255,0.012)' }}>
-      <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: HP.purple, marginBottom:24, display:'inline-flex', alignItems:'center', gap:10 }}>
-        <span style={{ height:1, width:22, background: HP.purple, opacity:0.6 }} />Voices
-      </div>
-      <div className="ff-movie-critic-grid" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:56 }}>
-        {quotes.map((q, i) => (
-          <blockquote key={i} style={{ margin:0, paddingLeft:22, borderLeft:`2px solid ${i===0 ? FILM_PALETTE.primary : HP.purple}` }}>
-            <p style={{ margin:0, fontFamily:'Outfit, Inter, sans-serif', fontSize:18, lineHeight:1.5, color: HP.text, fontStyle:'italic', letterSpacing:'-0.012em', textWrap:'pretty' }}>
-              “{q.quote}”
-            </p>
-            <footer style={{ marginTop:14, fontSize:11, color: HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.08em', textTransform:'uppercase' }}>
-              <span style={{ color: HP.textSoft, fontWeight:600 }}>{q.author}</span> · {q.outlet}
-            </footer>
-          </blockquote>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-export { ScrollProgress, FilmGrain, TrailerModal, MovieHero, StickyActionBar, WhyForYou, Synopsis, MoodRadar, TheTake, CriticQuotes }
+export { ScrollProgress, FilmGrain, TrailerModal, MovieHero, StickyActionBar, WhyForYou, Synopsis, MoodRadar }

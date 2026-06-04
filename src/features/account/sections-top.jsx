@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
 import { formatMonthYear } from '@/shared/lib/format/date'
+import Eyebrow from '@/shared/ui/Eyebrow'
 import { HP, HP_GRAD } from './data'
 import { useAccountData } from './useAccountData'
 
@@ -14,9 +15,9 @@ function Masthead() {
   return (
     <section className="ff-acct-section ff-acct-section--masthead" style={{ padding:'40px 88px 12px' }}>
       <div style={{ display:'flex', alignItems:'center', gap:14, flexWrap:'wrap' }}>
-        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.32em', textTransform:'uppercase', color:HP.purple }}>Account</div>
+        <Eyebrow spacing="0.32em" size={10}>Account</Eyebrow>
         <div style={{ height:1, width:38, background:HP.purple, opacity:0.5 }} />
-        <div style={{ fontSize:10, fontWeight:500, letterSpacing:'0.18em', textTransform:'uppercase', color:HP.textMuted, fontFamily:'Outfit' }}>Identity, privacy, plan</div>
+        <Eyebrow tone="meta" weight={500} size={10}>Identity, privacy, plan</Eyebrow>
       </div>
     </section>
   );
@@ -172,7 +173,7 @@ function Stat({ n, label }) {
   return (
     <div>
       <div style={{ fontFamily:'Outfit', fontSize:28, fontWeight:200, color:HP.text, letterSpacing:'-0.035em', lineHeight:1 }}>{n}</div>
-      <div style={{ marginTop:4, fontSize:9, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color:HP.textMuted, fontFamily:'Outfit' }}>{label}</div>
+      <Eyebrow tone="meta" size={9} style={{ marginTop:4 }}>{label}</Eyebrow>
     </div>
   );
 }
@@ -181,9 +182,7 @@ function Stat({ n, label }) {
 function SectionHead({ kicker, title, sub }) {
   return (
     <div style={{ marginBottom:24 }}>
-      <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:HP.purple, marginBottom:12, display:'inline-flex', alignItems:'center', gap:10 }}>
-        <span style={{ height:1, width:22, background:HP.purple, opacity:0.6 }} />{kicker}
-      </div>
+      <Eyebrow rule size={10} style={{ marginBottom:12 }}>{kicker}</Eyebrow>
       <h2 style={{ fontFamily:'Outfit', fontSize:36, lineHeight:1, fontWeight:500, letterSpacing:'-0.03em', color:HP.text, margin:0, textWrap:'balance' }}>{title}</h2>
       {sub && <p style={{ marginTop:12, fontSize:13.5, color:HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', lineHeight:1.55, maxWidth:540 }}>{sub}</p>}
     </div>

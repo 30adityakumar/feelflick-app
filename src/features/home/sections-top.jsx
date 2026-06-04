@@ -1,15 +1,20 @@
 // Home — top sections (Masthead, Mood Reactor, The Briefing 3-up).
 // All film data comes from useHomeData (no more imports from data.js for FILMS).
 
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ChevronLeft, ChevronRight, SkipForward, Loader2, RefreshCw } from 'lucide-react'
-import { HP, HP_GRAD, MOOD_META } from './data'
-import { SmartImg } from './atoms'
-import { useHomeData } from './useHomeData'
+import { ChevronLeft, ChevronRight, SkipForward, RefreshCw } from 'lucide-react'
+import MatchBadge from '@/shared/components/MatchBadge'
+import { ActionButton, SecondaryActionButton } from '@/shared/components/ActionButton'
 import { useUserMovieStatus } from '@/shared/hooks/useUserMovieStatus'
 import { getMovieWatchProviders } from '@/shared/api/tmdb'
 import { logSurfaceImpressions } from '@/shared/services/recommendations'
+import { recordRecommendationOutcome } from '@/shared/services/recommendationOutcomes'
+import Eyebrow from '@/shared/ui/Eyebrow'
+import { HP, HP_GRAD, MOOD_META } from './data'
+import { SmartImg } from './atoms'
+import WhyThisPick from './WhyThisPick'
+import { useHomeData } from './useHomeData'
 
 // Static slot labels — one per position in the 3-card briefing row.
 // Same across moods (functional, not flavor): position 0 is the engine's
@@ -39,7 +44,7 @@ export function MoodReactor({ currentMood, setMood, onReshuffle }) {
       <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-5">
         <div className="flex flex-none items-baseline gap-2.5">
           <span aria-hidden style={{ height: 1, width: 18, background: HP.purple, opacity: 0.6, alignSelf: 'center' }} />
-          <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: HP.textMuted, fontFamily: 'Outfit', whiteSpace: 'nowrap' }}>Tonight I feel</span>
+          <Eyebrow color={HP.textMuted} size={10} style={{ whiteSpace: 'nowrap' }}>Tonight I feel</Eyebrow>
         </div>
         <div
           ref={pillsRef}
@@ -90,161 +95,50 @@ export function MoodReactor({ currentMood, setMood, onReshuffle }) {
   )
 }
 
-// Animated match ring — mirrors MatchRing from movie/sections-top.jsx.
-// SVG with a gradient circle stroke that fills from 0 → pct over 1.4s
-// (stroke-dasharray transition), and the percentage number tweens from 0
-// → pct via setTimeout(setV). Unique gradient id per instance via useId
-// so multiple rings on the same page don't share `id="ring"`.
-function MatchRing({ pct, size = 72 }) {
-  const id = useId()
-  const gradId = `match-ring-${id.replace(/:/g, '')}`
-  const [v, setV] = useState(0)
-  useEffect(() => {
-    const t = setTimeout(() => setV(pct || 0), 250)
-    return () => clearTimeout(t)
-  }, [pct])
-  const dash = v * 0.943  // 0..100 → 0..94.3, matching SVG circle r=15 circumference
-  return (
-    <div
-      style={{
-        position: 'absolute', bottom: 14, right: 14,
-        width: size, height: size, borderRadius: 999,
-        background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)',
-        boxShadow: '0 12px 28px -6px rgba(0,0,0,0.6)',
-      }}
-    >
-      <svg viewBox="0 0 36 36" style={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}>
-        <circle cx="18" cy="18" r="15" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="2.5" />
-        <circle cx="18" cy="18" r="15" fill="none" stroke={`url(#${gradId})`} strokeWidth="2.5" strokeDasharray={`${dash} 100`} strokeLinecap="round" style={{ transition: 'stroke-dasharray 1.4s cubic-bezier(0.2,0.8,0.2,1)' }} />
-        <defs>
-          <linearGradient id={gradId} x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor={HP.purple} />
-            <stop offset="100%" stopColor={HP.pink} />
-          </linearGradient>
-        </defs>
-      </svg>
-      <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <span style={{ fontFamily: 'Outfit', fontSize: Math.round(size * 0.31), fontWeight: 300, color: HP.text, letterSpacing: '-0.04em', lineHeight: 1 }}>
-          {v}<span style={{ fontSize: Math.round(size * 0.16), color: HP.textMuted, marginLeft: 1 }}>%</span>
-        </span>
-        <span style={{ fontSize: Math.round(size * 0.095), fontWeight: 700, color: HP.purple, letterSpacing: '0.18em', textTransform: 'uppercase', marginTop: 2 }}>Match</span>
-      </div>
-    </div>
-  )
-}
-
-// Action buttons sized + styled to match movie detail page actions:
-// 14/22 padding, rounded-8, 14px Outfit semibold, gradient bg for primary,
-// outline + active-state tint for Watched/Save, smaller quiet pill for Skip.
-// Same shapes the user sees on /movie/:id so the briefing card actions
-// don't feel like a different system.
-function PrimaryActionButton({ onClick, children }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="inline-flex h-11 flex-1 items-center justify-center gap-2.5 whitespace-nowrap rounded-lg px-4 transition-transform duration-200 active:scale-[0.98] lg:h-auto lg:flex-none lg:px-[22px] lg:py-[14px]"
-      style={{
-        background: HP_GRAD, border: 'none', color: '#fff',
-        fontFamily: 'Outfit', fontSize: 13, fontWeight: 600, letterSpacing: '0.02em',
-        cursor: 'pointer',
-        boxShadow: '0 12px 28px -8px rgba(236,72,153,0.5)',
-      }}
-    >
-      {children}
-    </button>
-  )
-}
-
-// Labeled secondary actions — mirrors movie-detail page (sections-top.jsx).
-// 14/22 padding, rounded-8, Outfit 14 semibold/medium. Active state tints
-// to lavender background + lavender border. Keeps the briefing's CTA row
-// in the same visual language as /movie/:id so users learn the system
-// once.
-// Common className for the three secondary action pills.
-//   • mobile: compact 44×44 round icon-only button (label hidden via
-//     <span className="hidden lg:inline">). Sits next to the primary
-//     gradient CTA in a single row.
-//   • lg+: full labeled pill (movie-detail-page style — 14/22 padding,
-//     rounded-8, icon + text).
-const SECONDARY_BTN_CLS = 'inline-flex h-11 w-11 flex-none items-center justify-center rounded-full transition-all duration-200 active:scale-[0.98] lg:h-auto lg:w-auto lg:flex-initial lg:gap-2.5 lg:whitespace-nowrap lg:rounded-lg lg:px-[22px] lg:py-[14px]'
-
+// In-card action buttons are the canonical family in shared/components/ActionButton
+// (rounded-8, Outfit — shared with /movie so the briefing actions don't feel like a
+// different system). The three below are thin wrappers that add the icon, label, and
+// active state on top of <SecondaryActionButton>; the gradient "See More" primary
+// uses <ActionButton> directly.
 function WatchedButton({ isWatched, loading, onClick }) {
   return (
-    <button
-      type="button"
+    <SecondaryActionButton
+      collapse
+      active={isWatched}
+      loading={loading}
       onClick={onClick}
-      disabled={loading}
-      aria-pressed={Boolean(isWatched)}
       title={isWatched ? 'Watched' : 'Mark as watched'}
-      className={SECONDARY_BTN_CLS}
-      style={{
-        background: isWatched ? 'rgba(167,139,250,0.18)' : 'rgba(255,255,255,0.06)',
-        border: `1px solid ${isWatched ? HP.purple + '66' : HP.border}`,
-        // Equal weight + softer color across all three secondaries
-        // (Mark Watched / Save / Skip tonight). They're peers — one
-        // primary CTA (See more) leads, the rest are equal taste-signal
-        // taps so the user picks the right action without an implicit
-        // hierarchy.
-        color: HP.textSoft, fontFamily: 'Outfit', fontSize: 13, fontWeight: 500,
-        cursor: loading ? 'default' : 'pointer', opacity: loading ? 0.65 : 1,
-      }}
-    >
-      {loading
-        ? <Loader2 className="h-4 w-4 animate-spin lg:h-3.5 lg:w-3.5" />
-        : <svg className="h-4 w-4 lg:h-[13px] lg:w-[13px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>}
-      <span className="hidden lg:inline">{isWatched ? 'Watched' : 'Mark Watched'}</span>
-    </button>
+      label={isWatched ? 'Watched' : 'Mark Watched'}
+      icon={<svg className="h-4 w-4 lg:h-[13px] lg:w-[13px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>}
+    />
   )
 }
 
 function SaveButton({ isInWatchlist, loading, onClick }) {
   return (
-    <button
-      type="button"
+    <SecondaryActionButton
+      collapse
+      active={isInWatchlist}
+      loading={loading}
       onClick={onClick}
-      disabled={loading}
-      aria-pressed={Boolean(isInWatchlist)}
       title={isInWatchlist ? 'Saved to watchlist' : 'Save to watchlist'}
-      className={SECONDARY_BTN_CLS}
-      style={{
-        background: isInWatchlist ? 'rgba(167,139,250,0.12)' : 'rgba(255,255,255,0.06)',
-        border: `1px solid ${isInWatchlist ? HP.purple + '66' : HP.border}`,
-        color: HP.textSoft, fontFamily: 'Outfit', fontSize: 13, fontWeight: 500,
-        cursor: loading ? 'default' : 'pointer', opacity: loading ? 0.65 : 1,
-      }}
-    >
-      {loading ? (
-        <Loader2 className="h-4 w-4 animate-spin lg:h-3.5 lg:w-3.5" />
-      ) : isInWatchlist ? (
-        <svg className="h-4 w-4 lg:h-[13px] lg:w-[13px]" viewBox="0 0 24 24" fill="currentColor"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" /></svg>
-      ) : (
-        <svg className="h-4 w-4 lg:h-[13px] lg:w-[13px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" /></svg>
-      )}
-      <span className="hidden lg:inline">{isInWatchlist ? 'Saved' : 'Save'}</span>
-    </button>
+      label={isInWatchlist ? 'Saved' : 'Save'}
+      icon={isInWatchlist
+        ? <svg className="h-4 w-4 lg:h-[13px] lg:w-[13px]" viewBox="0 0 24 24" fill="currentColor"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" /></svg>
+        : <svg className="h-4 w-4 lg:h-[13px] lg:w-[13px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" /></svg>}
+    />
   )
 }
 
 function SkipButton({ onClick }) {
   return (
-    <button
-      type="button"
+    <SecondaryActionButton
+      collapse
       onClick={onClick}
       title="Skip — not tonight"
-      className={SECONDARY_BTN_CLS}
-      style={{
-        background: 'rgba(255,255,255,0.04)',
-        border: `1px solid ${HP.border}`,
-        // Matches Mark Watched + Save — three secondaries at equal
-        // visual weight beneath the See more primary.
-        color: HP.textSoft, fontFamily: 'Outfit', fontSize: 13, fontWeight: 500,
-        cursor: 'pointer',
-      }}
-    >
-      <SkipForward className="h-4 w-4 lg:h-3.5 lg:w-3.5" />
-      <span className="hidden lg:inline">Skip Tonight</span>
-    </button>
+      label="Skip Tonight"
+      icon={<SkipForward className="h-4 w-4 lg:h-3.5 lg:w-3.5" />}
+    />
   )
 }
 
@@ -320,6 +214,19 @@ function BriefingSlide({ film, idx, matchPct, user, onWatch, onSkip, onMarkedWat
     if (!wasWatched && film?.id) onMarkedWatched?.(film.id)
   }, [isWatched, toggleWatched, onMarkedWatched, film?.id])
 
+  // Opening the pick (poster or "See More") is the Briefing's 'clicked' outcome.
+  // F8B: record it against the fresh hero impression (logged when this slide
+  // became active) so shown→clicked is captured, then hand off to onWatch
+  // (navigation). Fire-and-forget; recordRecommendationOutcome no-ops if no
+  // recent impression exists, so this never blocks the open.
+  const handleOpen = useCallback(() => {
+    if (user?.id && film?.id) {
+      recordRecommendationOutcome({ userId: user.id, movieId: film.id, action: 'clicked' })
+        .catch(() => { /* best-effort instrumentation */ })
+    }
+    onWatch?.(film)
+  }, [user?.id, film, onWatch])
+
   if (!film) return null
 
   const slotLabel = SLOT_LABELS[idx] || SLOT_LABELS[SLOT_LABELS.length - 1]
@@ -329,7 +236,7 @@ function BriefingSlide({ film, idx, matchPct, user, onWatch, onSkip, onMarkedWat
       {/* Poster column — clickable */}
       <button
         type="button"
-        onClick={() => onWatch?.(film)}
+        onClick={handleOpen}
         aria-label={`See more about ${film.title}`}
         className="relative block w-full max-w-[210px] flex-none sm:max-w-[260px] lg:w-[340px] lg:max-w-none"
         style={{
@@ -343,10 +250,10 @@ function BriefingSlide({ film, idx, matchPct, user, onWatch, onSkip, onMarkedWat
         <div style={{ position: 'absolute', top: 14, right: 14, padding: '4px 9px', borderRadius: 4, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(10px)', fontSize: 10, fontWeight: 600, color: HP.textSoft, letterSpacing: '0.16em', textTransform: 'uppercase', fontFamily: 'Outfit' }}>
           0{idx + 1}
         </div>
-        {/* Animated MatchRing — sized to feel proportionate against the
+        {/* Animated match ring — sized to feel proportionate against the
             smallest poster width (200px mobile); still reads at lg (340px). */}
         {Number.isFinite(matchPct) && matchPct > 0 && (
-          <MatchRing pct={matchPct} size={60} />
+          <MatchBadge variant="ring" pct={matchPct} size={60} style={{ bottom: 14, right: 14 }} />
         )}
       </button>
 
@@ -355,10 +262,7 @@ function BriefingSlide({ film, idx, matchPct, user, onWatch, onSkip, onMarkedWat
         {/* Slot label kicker — bigger on desktop where it's the marquee header.
             self-center on mobile so it centers like the title/meta/synopsis
             below it; self-start on desktop matches the left-aligned column. */}
-        <div className="self-center lg:self-start" style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: HP.purple, marginBottom: 12, display: 'inline-flex', alignItems: 'center', gap: 10 }}>
-          <span aria-hidden style={{ height: 1, width: 22, background: HP.purple, opacity: 0.6 }} />
-          {slotLabel}
-        </div>
+        <Eyebrow rule className="self-center lg:self-start" style={{ marginBottom: 12 }}>{slotLabel}</Eyebrow>
         {/* Title — matches the /movie/:id hero typography: Outfit 600 with a
             tight negative letter-spacing and lineHeight 0.94. Sized down
             from 92px to fit this two-column row, then scaled responsively
@@ -391,6 +295,10 @@ function BriefingSlide({ film, idx, matchPct, user, onWatch, onSkip, onMarkedWat
             </>
           )}
         </div>
+        {/* Why this pick — the engine's grounded reason ("Because you loved …").
+            The case-making layer (F5). Null-safe: renders nothing on cold-start
+            (no reason) rather than fabricating one. */}
+        <WhyThisPick reason={film.engineReason} className="self-stretch lg:max-w-[580px]" />
         {/* Synopsis — TMDB overview, clamped to 2 lines on mobile, 3 on
             desktop. Hidden when null (some films lack overview). */}
         {film.synopsis && (
@@ -421,10 +329,10 @@ function BriefingSlide({ film, idx, matchPct, user, onWatch, onSkip, onMarkedWat
               hidden, icon only).
             • lg+: wrap row of four labeled pills (movie-detail style). */}
         <div className="flex flex-wrap items-center justify-center gap-2.5 pt-4 lg:justify-start" style={{ borderTop: `1px solid ${HP.border}` }}>
-          <PrimaryActionButton onClick={() => onWatch?.(film)}>
+          <ActionButton className="h-11 flex-1 lg:h-auto lg:flex-none" onClick={handleOpen}>
             <span>See More</span>
             <ChevronRight className="h-3.5 w-3.5" />
-          </PrimaryActionButton>
+          </ActionButton>
           <WatchedButton isWatched={isWatched} loading={statusLoading.watched} onClick={handleMarkWatched} />
           <SaveButton isInWatchlist={isInWatchlist} loading={statusLoading.watchlist} onClick={toggleWatchlist} />
           <SkipButton onClick={() => onSkip?.(film)} />
@@ -440,6 +348,37 @@ const SLIDE_VARIANTS = {
   enter: (dir) => ({ x: dir > 0 ? 56 : -56, opacity: 0 }),
   center: { x: 0, opacity: 1 },
   exit: (dir) => ({ x: dir > 0 ? -56 : 56, opacity: 0 }),
+}
+
+// Briefing loading state — a content-shaped skeleton that mirrors BriefingSlide
+// (poster + title/meta/why/synopsis/actions) so the wait reads as "a briefing is
+// being prepared," per the no-spinner rule. role=status announces it politely;
+// the visual blocks are aria-hidden.
+function BriefingSkeleton() {
+  return (
+    <div role="status" aria-label="Preparing tonight's briefing">
+      <div aria-hidden="true" className="flex flex-col items-center gap-5 lg:flex-row lg:items-end lg:gap-14">
+        {/* Poster */}
+        <div className="w-full max-w-[210px] flex-none sm:max-w-[260px] lg:w-[340px] lg:max-w-none">
+          <div className="aspect-2/3 w-full animate-pulse rounded-[10px] bg-white/[0.05]" />
+        </div>
+        {/* Content column */}
+        <div className="flex w-full flex-col items-center gap-4 lg:flex-1 lg:items-start lg:max-w-[680px]">
+          <div className="h-3.5 w-32 animate-pulse rounded-full bg-purple-500/15" />
+          <div className="h-12 w-3/4 animate-pulse rounded-lg bg-white/[0.06] lg:h-16" />
+          <div className="h-3 w-44 animate-pulse rounded-full bg-white/[0.04]" />
+          <div className="mt-1 h-14 w-full max-w-[520px] animate-pulse rounded-lg bg-purple-500/[0.06]" />
+          <div className="h-3 w-full max-w-[480px] animate-pulse rounded-full bg-white/[0.04]" />
+          <div className="h-3 w-2/3 max-w-[360px] animate-pulse rounded-full bg-white/[0.04]" />
+          <div className="mt-3 flex w-full flex-wrap items-center justify-center gap-2.5 lg:justify-start">
+            {[0, 1, 2, 3].map(i => (
+              <div key={i} className="h-10 w-24 animate-pulse rounded-lg bg-white/[0.05]" />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 
@@ -621,9 +560,7 @@ export function TheBriefing({ currentMood, shuffleSeed = 0, user, onWatch, onSki
           No <span style={{ color: currentMood.hex, fontStyle: 'italic' }}>{currentMood.label.toLowerCase()}</span> picks just yet — try a different mood above.
         </div>
       ) : picks.length === 0 ? (
-        <div style={{ padding: '60px 0', textAlign: 'center', fontFamily: 'Outfit, Inter, sans-serif', color: HP.textMuted, fontSize: 14, fontStyle: 'italic' }}>
-          Finding films for this mood&hellip;
-        </div>
+        <BriefingSkeleton />
       ) : (
         <div className="relative">
           {/* Slider viewport — overflow-hidden contains the swipe gesture

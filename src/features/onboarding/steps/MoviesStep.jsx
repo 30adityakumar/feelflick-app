@@ -414,7 +414,7 @@ export default function MoviesStep({
           Films · 3 of 4
         </p>
         <h2
-          className="ob-display text-[32px] sm:text-4xl md:text-5xl font-extrabold leading-[1.05] text-white"
+          className="ob-display text-[32px] sm:text-4xl md:text-5xl font-normal leading-[1.05] text-white"
           style={{ textWrap: 'balance' }}
         >
           What have you{' '}
@@ -423,7 +423,8 @@ export default function MoviesStep({
           </em>
         </h2>
         <p className="text-[13px] sm:text-sm md:text-[15px] text-white/60 mt-2 leading-relaxed">
-          Pick 5 films that shaped your taste.
+          Pick 5 films that shaped your taste. These anchor your first picks — so go
+          honest, not impressive.
         </p>
       </div>
 

@@ -1,12 +1,14 @@
 import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toPng } from 'html-to-image'
-import { HP, HP_GRAD, USER as USER_DEFAULT, SKEWS, YIR } from './data'
+import { HP, HP_GRAD, USER as USER_DEFAULT } from './data'
+import { ActionButton, SecondaryActionButton } from '@/shared/components/ActionButton'
 import { useProfileData } from './useProfileData'
 
-// FeelFlick — /profile · Directors, Motifs, Trajectory, Decades+Runtime, Mixtape, Skews, Friends, Share card, Footer.
-// PR 2 reads directors/motifs/trajectory/decades/runtime/daypart/mixtape from
-// the live context. FRIENDS/SKEWS/YIR stay static until PR 3.
+// FeelFlick — /profile · Directors, Motifs, Trajectory, Decades+Runtime, Mixtape, Skew, Friends, Share card, Footer.
+// All sections read the live context and self-hide when their data source is
+// empty. F7: the Skew + YIR sections no longer fall back to fabricated sample
+// values — they self-hide when there's no real comparison / watch signal.
 
 // Reset-button style for elements that need to be focusable buttons without
 // inheriting browser default button chrome.
@@ -300,18 +302,23 @@ function Mixtape() {
   );
 }
 
-// How you skew vs FF median — live from feelflick_stats; static SKEWS stays as cold-start fallback.
+// How you skew vs the FF median — live from feelflick_stats. F7: the old static
+// SKEWS sample fallback ("Darker — you 73 vs them 50") is gone; we self-hide when
+// there's neither a real per-user comparison nor a real community-mood signal,
+// rather than fabricate "you vs everyone" bars for a user with no data.
 function Skew() {
   const { skews, communityMood } = useProfileData();
-  const rows = (skews && skews.length > 0) ? skews : SKEWS;
-  const isLive = skews && skews.length > 0;
+  const rows = Array.isArray(skews) ? skews : [];
+  const hasSkew = rows.length > 0;
+  const hasCommunity = Boolean(communityMood?.tag);
+  if (!hasSkew && !hasCommunity) return null;
   return (
     <section className="ff-profile-section" style={{ padding:'80px 88px', borderTop:`1px solid ${HP.border}`, background:'rgba(255,255,255,0.012)' }}>
       <div className="ff-profile-skew-grid" style={{ display:'grid', gridTemplateColumns:'1fr 1.4fr', gap:80, alignItems:'flex-start' }}>
         <div>
           <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:HP.purple, marginBottom:14 }}>Vs everyone else</div>
           <h2 className="ff-profile-section-h2" style={{ fontFamily:'Outfit', fontSize:44, lineHeight:1, fontWeight:500, letterSpacing:'-0.035em', color:HP.text, margin:0, textWrap:'balance' }}>How you <em style={{ fontStyle:'italic', fontWeight:400, color:HP.textSoft }}>skew.</em></h2>
-          <p style={{ marginTop:18, fontSize:14, color:HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', lineHeight:1.65, maxWidth:340 }}>{isLive ? 'Versus the median FeelFlick user. Refreshed nightly.' : <>Versus the median FeelFlick user. <em style={{ fontStyle:'italic' }}>Sample values — live comparison ships in a follow-up.</em></>}</p>
+          <p style={{ marginTop:18, fontSize:14, color:HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', lineHeight:1.65, maxWidth:340 }}>Versus the median FeelFlick user. Refreshed nightly.</p>
           {communityMood?.tag && (
             <div style={{ marginTop:24, paddingTop:18, borderTop:`1px solid ${HP.border}`, maxWidth:340 }}>
               <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color:HP.textMuted, fontFamily:'Outfit', marginBottom:6 }}>This week the room is into</div>
@@ -320,22 +327,30 @@ function Skew() {
           )}
         </div>
         <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-          {rows.map(s => (
-            <div key={s.label} style={{ display:'grid', gridTemplateColumns:'150px 1fr auto', gap:20, alignItems:'center' }}>
-              <div style={{ fontFamily:'Outfit', fontSize:16, fontWeight:500, color:HP.text, letterSpacing:'-0.015em' }}>{s.label}</div>
-              <div style={{ position:'relative', height:6, background:'rgba(255,255,255,0.06)', borderRadius:999 }}>
-                <div style={{ position:'absolute', left:0, top:0, bottom:0, width:`${s.you}%`, background:HP_GRAD, borderRadius:999 }} />
-                <div style={{ position:'absolute', left:`${s.them}%`, top:-4, bottom:-4, width:2, background:HP.textFaint }} title="FF median" />
+          {hasSkew ? (
+            <>
+              {rows.map(s => (
+                <div key={s.label} style={{ display:'grid', gridTemplateColumns:'150px 1fr auto', gap:20, alignItems:'center' }}>
+                  <div style={{ fontFamily:'Outfit', fontSize:16, fontWeight:500, color:HP.text, letterSpacing:'-0.015em' }}>{s.label}</div>
+                  <div style={{ position:'relative', height:6, background:'rgba(255,255,255,0.06)', borderRadius:999 }}>
+                    <div style={{ position:'absolute', left:0, top:0, bottom:0, width:`${s.you}%`, background:HP_GRAD, borderRadius:999 }} />
+                    <div style={{ position:'absolute', left:`${s.them}%`, top:-4, bottom:-4, width:2, background:HP.textFaint }} title="FF median" />
+                  </div>
+                  <div style={{ fontFamily:'Outfit', fontSize:14, fontWeight:600, color: s.delta >= 0 ? HP.pink : HP.textMuted, letterSpacing:'0.04em' }}>{s.delta >= 0 ? `+${s.delta}` : s.delta}</div>
+                </div>
+              ))}
+              <div style={{ marginTop:14, paddingTop:18, borderTop:`1px solid ${HP.border}`, display:'inline-flex', alignItems:'center', gap:10, fontSize:11, color:HP.textFaint, fontFamily:'Outfit', letterSpacing:'0.08em' }}>
+                <span style={{ width:14, height:2, background:HP.textFaint }} />
+                <span style={{ textTransform:'uppercase' }}>FF median</span>
+                <span style={{ marginLeft:14, width:14, height:2, background:HP_GRAD, borderRadius:999 }} />
+                <span style={{ textTransform:'uppercase' }}>You</span>
               </div>
-              <div style={{ fontFamily:'Outfit', fontSize:14, fontWeight:600, color: s.delta >= 0 ? HP.pink : HP.textMuted, letterSpacing:'0.04em' }}>{s.delta >= 0 ? `+${s.delta}` : s.delta}</div>
-            </div>
-          ))}
-          <div style={{ marginTop:14, paddingTop:18, borderTop:`1px solid ${HP.border}`, display:'inline-flex', alignItems:'center', gap:10, fontSize:11, color:HP.textFaint, fontFamily:'Outfit', letterSpacing:'0.08em' }}>
-            <span style={{ width:14, height:2, background:HP.textFaint }} />
-            <span style={{ textTransform:'uppercase' }}>FF median</span>
-            <span style={{ marginLeft:14, width:14, height:2, background:HP_GRAD, borderRadius:999 }} />
-            <span style={{ textTransform:'uppercase' }}>You</span>
-          </div>
+            </>
+          ) : (
+            <p style={{ fontFamily:'Outfit, Inter, sans-serif', fontSize:14, fontStyle:'italic', color:HP.textMuted, lineHeight:1.6, maxWidth:420 }}>
+              Watch and rate a few more films, and your comparison to the room lands here.
+            </p>
+          )}
         </div>
       </div>
     </section>
@@ -455,19 +470,17 @@ function ShareCard() {
             A 1080×1920 image you can drop straight into Instagram, X, or wherever. Updates every time your DNA shifts.
           </p>
           <div style={{ marginTop:24, display:'flex', gap:10 }}>
-            <button
-              type="button"
+            <ActionButton
               onClick={handleDownload}
               disabled={exporting}
               aria-live="polite"
-              style={{ padding:'12px 22px', borderRadius:6, background:HP_GRAD, border:'none', color:'#fff', fontFamily:'Outfit', fontSize:13, fontWeight:600, letterSpacing:'0.02em', cursor: exporting ? 'wait' : 'pointer', opacity: exporting ? 0.7 : 1, boxShadow:'0 12px 28px -8px rgba(236,72,153,0.45)' }}
-            >{exporting ? 'Exporting…' : 'Download PNG'}</button>
-            <button
-              type="button"
+              style={exporting ? { cursor:'wait', opacity:0.7 } : undefined}
+            >{exporting ? 'Exporting…' : 'Download PNG'}</ActionButton>
+            <SecondaryActionButton
               onClick={handleCopy}
               aria-live="polite"
-              style={{ padding:'12px 22px', borderRadius:6, background:'rgba(255,255,255,0.06)', border:`1px solid ${HP.borderStrong}`, color:HP.textSoft, fontFamily:'Outfit', fontSize:13, fontWeight:600, cursor:'pointer' }}
-            >{copied ? 'Copied ✓' : 'Copy link'}</button>
+              label={copied ? 'Copied ✓' : 'Copy link'}
+            />
           </div>
         </div>
         {/* Story-shape preview — this is the exact node toPng captures
@@ -502,8 +515,9 @@ function ShareCard() {
 
 function YIRBanner() {
   const { stats, yir } = useProfileData();
-  // Prefer the live year-in-review derivation; fall back to the static
-  // last-month summary, then to the curated YIR cold-start sample.
+  // Prefer the live year-in-review derivation, then the real this-month summary.
+  // F7: the old fabricated "You binged 18 films in December" sample fallback is
+  // gone — self-hide when there's no real watch signal rather than invent one.
   let banner;
   if (yir && yir.bingedMonth?.count > 0) {
     banner = {
@@ -515,7 +529,7 @@ function YIRBanner() {
   } else if (stats && stats.filmsThisMonth > 0) {
     banner = { headline: `You watched ${stats.filmsThisMonth} film${stats.filmsThisMonth === 1 ? '' : 's'} this month.`, sub: `${stats.filmsLogged} total · ${stats.hoursWatched}h logged.` };
   } else {
-    banner = { headline: `You binged ${YIR.bingedMonth.count} films in ${YIR.bingedMonth.month}.`, sub: `${YIR.topMoodGrowth.mood} climbed ${YIR.topMoodGrowth.delta} — ${YIR.topMoodGrowth.note}` };
+    return null;
   }
   return (
     <section className="ff-profile-section" style={{ padding:'56px 88px', borderTop:`1px solid ${HP.border}`, background:`linear-gradient(135deg, ${HP.purple}11, ${HP.pink}08)` }}>

@@ -27,7 +27,7 @@ export default function MoodStep({ moods, setMoods, onNext, firstName }) {
           {firstName ? `Hey ${firstName} —` : 'Mood baseline · 1 of 4'}
         </p>
         <h2
-          className="ob-display text-[32px] sm:text-4xl md:text-5xl font-extrabold text-white leading-[1.05]"
+          className="ob-display text-[32px] sm:text-4xl md:text-5xl font-normal text-white leading-[1.05]"
           style={{ textWrap: 'balance' }}
         >
           The vibe you{' '}

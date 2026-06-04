@@ -2,6 +2,14 @@
 
 **A mood-first movie discovery platform demands design patterns borrowed from the best in streaming, wellness, and social identity products.** This audit distills concrete, implementation-ready patterns from 20+ world-class products across landing pages, onboarding, rating systems, emotional interfaces, content discovery, design tokens, viral sharing, and applied UX psychology. Every recommendation below targets a single goal: making FeelFlick feel like a cinematic companion that understands how you feel — not another content database.
 
+> **This doc is aspirational patterns.** The *enforced* design rules live in
+> [`CLAUDE.md`](../CLAUDE.md) (the editorial language) and the token source of
+> truth is [`src/shared/lib/tokens.js`](../src/shared/lib/tokens.js). Tokens split
+> into **brand** (purple + pink + the single `HP_GRAD`) and **semantic accents**
+> (amber = rating/caution, red = destructive, green = success) — the latter are
+> load-bearing, not drift. See [design-system-hardening-f3.md](design-system-hardening-f3.md)
+> for the F3 hardening decisions.
+
 ---
 
 ## 1. Landing pages that convert in five seconds

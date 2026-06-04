@@ -1,20 +1,26 @@
 // src/app/header/components/BottomNav.jsx
 // FeelFlick — Mobile bottom navigation.
-// Five tabs: Home · Browse · Discover (hero) · DNA · Account.
-// Discover is the prime action — gradient core, conic ring, ambient bloom.
-// Active tab gets a 4px purple dot under the icon (no competing pill background).
+// Five tabs: Browse · Discover · Tonight (hero) · DNA · Account.
+// IA v2 (F2): the nightly pick / Briefing is the prime action — gradient core,
+// conic ring, ambient bloom — centered so it's one thumb-tap. It carries the
+// `hero` flag (moved off Discover, which is a *supporting* surface, not the
+// product). `/home` is labeled "Tonight" to encode the nightly-ritual framing.
+// Active non-hero tab gets a 4px purple dot under the icon.
+// See docs/ia-v2-decision-record.md.
 
 import { Link, useLocation } from 'react-router-dom'
-import { Home, LayoutGrid, Sparkles, Fingerprint, User } from 'lucide-react'
+import { Clapperboard, LayoutGrid, Sparkles, Fingerprint, User } from 'lucide-react'
 
 const AMBIENT_HEX = '#A78BFA'
 const PINK = '#EC4899'
 const GRAD = 'linear-gradient(135deg, #9333ea 0%, #ec4899 100%)'
 
-const TABS = [
-  { id: 'home',     label: 'Home',     path: '/home',     match: ['/home'],     Icon: Home         },
+// Exported as the mobile IA contract (asserted in __tests__/BottomNav.test.jsx):
+// the `hero` tab must be the Briefing (/home, "Tonight"); Discover is a normal tab.
+export const TABS = [
   { id: 'browse',   label: 'Browse',   path: '/browse',   match: ['/browse'],   Icon: LayoutGrid   },
-  { id: 'discover', label: 'Discover', path: '/discover', match: ['/discover'], Icon: Sparkles, hero: true },
+  { id: 'discover', label: 'Discover', path: '/discover', match: ['/discover'], Icon: Sparkles      },
+  { id: 'tonight',  label: 'Tonight',  path: '/home',     match: ['/home'],     Icon: Clapperboard, hero: true },
   { id: 'dna',      label: 'DNA',      path: '/profile',  match: ['/profile'],  Icon: Fingerprint  },
   { id: 'account',  label: 'Account',  path: '/account',  match: ['/account'],  Icon: User         },
 ]
@@ -23,7 +29,7 @@ const TABS = [
  * @param {{ active?: string }} props — optional override; otherwise derives from location.
  *   When the current route isn't owned by any tab (e.g. /watchlist, /history,
  *   /people, /lists, /preferences, /movie/:id) activeId stays null — no tab
- *   lights up, which is more honest than misleadingly highlighting Home.
+ *   lights up, which is more honest than misleadingly highlighting Tonight.
  */
 export default function BottomNav({ active }) {
   const location = useLocation()

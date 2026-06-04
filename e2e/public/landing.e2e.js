@@ -13,3 +13,14 @@ test('landing exposes a primary call-to-action', async ({ page }) => {
   // assert the primary one renders).
   await expect(page.getByRole('button', { name: /start free/i }).first()).toBeVisible()
 })
+
+test('taste-twins are framed as illustrative (no fake social proof)', async ({ page }) => {
+  // reduced-motion → the reveal-on-scroll sections render in their final, visible
+  // state, so the below-fold Community label is assertable without scripting scroll.
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.goto('/')
+  // The example "taste twins" cards (named people + activity) MUST carry an
+  // illustrative label so they can't read as real members — guards the
+  // doctrine's "no fake social proof" rule for the parked People feature.
+  await expect(page.getByText(/Illustrative/i)).toBeVisible()
+})

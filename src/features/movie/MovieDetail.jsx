@@ -2,8 +2,9 @@
 // FeelFlick — Movie Detail (the "Film File" editorial direction). Route: /movie/:id.
 //
 // Per-id TMDB + Supabase fetch lives in ./useMovieData. Mood Radar, Why-for-you,
-// Friends Loved, and Taste Twin derive dynamically for every film; TheTake +
-// CriticQuotes render from a curated `overlay` when present, else stay hidden.
+// Friends Loved, and Taste Twin derive dynamically for every film. The case leads
+// via PrimaryCaseCard (ff_take → adaptive "why this fits you" → honest standalone);
+// generated quotes render as ViewerNotes (honestly framed, not real reviews).
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -21,8 +22,10 @@ import { useTasteTwin } from './hooks/useTasteTwin'
 
 import {
   ScrollProgress, FilmGrain, TrailerModal, MovieHero, StickyActionBar,
-  WhyForYou, Synopsis, MoodRadar, TheTake, CriticQuotes,
+  WhyForYou, Synopsis, MoodRadar,
 } from './sections-top'
+import PrimaryCaseCard from './PrimaryCaseCard'
+import ViewerNotes from './ViewerNotes'
 import {
   CastSection, VideosSection, ProvidersSection, PairsWith,
   FriendsLoved, TasteTwinReview, TimelineSection, DirectorShelf,
@@ -101,7 +104,9 @@ export default function MovieDetail() {
   }
   const radarAxes = overlay?.mood_fingerprint ?? moodAxes
   const ffTake = overlay?.ff_take ?? null
-  const criticQuotes = overlay?.critic_quotes ?? null
+  // `critic_quotes` is the (legacy) overlay column name; rendered honestly as
+  // generated "Viewer notes", NOT real critic reviews (see ViewerNotes.jsx).
+  const viewerNotes = overlay?.critic_quotes ?? null
 
   // `selectedVideo` is null when the modal should play the canonical main
   // trailer (hero CTA, sticky bar). Featurette tiles pass their own clip in
@@ -200,6 +205,18 @@ export default function MovieDetail() {
             canAct={Boolean(user)}
           />
 
+          {/* The case leads: one consolidated, tier-aware statement of why this
+              film was surfaced (ff_take → adaptive "why this fits you" → honest
+              standalone), before the Why-for-you signal cards expand it. */}
+          <PrimaryCaseCard
+            ffTake={ffTake}
+            whyHeader={whyHeader}
+            matchPct={mv.ffMatch}
+            moodTags={filmDbRow?.mood_tags}
+            fitProfile={filmDbRow?.fit_profile}
+            signedIn={Boolean(user)}
+          />
+
           <WhyForYou
             eyebrow={whyHeader.eyebrow}
             headline={whyHeader.headline}
@@ -217,8 +234,7 @@ export default function MovieDetail() {
             <YourTake isWatched={isWatched} userId={user?.id} internalId={internalId} />
           </div>
 
-          <TheTake take={ffTake} />
-          <CriticQuotes quotes={criticQuotes} />
+          <ViewerNotes notes={viewerNotes} />
 
           <MoodRadar
             axes={radarAxes}

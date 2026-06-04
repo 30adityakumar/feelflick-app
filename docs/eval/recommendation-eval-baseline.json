@@ -1,0 +1,188 @@
+{
+  "report": {
+    "generatedAt": "2026-06-04T00:00:12.663Z",
+    "note": "Fixture-based offline baseline (F8A). Numbers are synthetic unless sourced from a read-only DB export.",
+    "fitQuality": {
+      "total": 8,
+      "skipRate": 0.25,
+      "clickRate": 0.25,
+      "watchRate": 0.125,
+      "saveRate": 0.125,
+      "outcomeCaptureRate": 0.625
+    },
+    "conversionFunnel": {
+      "shown": 8,
+      "clicked": 2,
+      "clickedToSaved": 0,
+      "clickedToWatched": 1,
+      "shownToOutcomeRate": 0.625,
+      "clickedToSavedRate": 0,
+      "clickedToWatchedRate": 0.5
+    },
+    "captureByPlacement": [
+      {
+        "placement": "hero",
+        "impressions": 6,
+        "anyOutcomeRate": 0.833,
+        "watchRate": 0.167,
+        "saveRate": 0.167,
+        "clickRate": 0.333,
+        "skipRate": 0.333
+      },
+      {
+        "placement": "because_you_loved",
+        "impressions": 2,
+        "anyOutcomeRate": 0,
+        "watchRate": 0,
+        "saveRate": 0,
+        "clickRate": 0,
+        "skipRate": 0
+      }
+    ],
+    "repeatedPickFatigue": {
+      "surface": "hero",
+      "totalShown": 6,
+      "distinctMovies": 5,
+      "distinctRatio": 0.833,
+      "consecutiveRepeatRate": 0.25,
+      "maxStreak": 2
+    },
+    "diversity": {
+      "n": 6,
+      "directorDiversity": 0.667,
+      "genreDiversity": 0.5,
+      "decadeDiversity": 0.333,
+      "composite": 0.5
+    },
+    "languageMix": {
+      "n": 6,
+      "distinctLanguages": 2,
+      "dominantLanguage": "en",
+      "dominantShare": 0.833,
+      "nonEnglishShare": 0.167
+    },
+    "reasonCoverage": {
+      "total": 8,
+      "groundedShare": 0.875,
+      "genericShare": 0.125,
+      "seedShare": 0.375,
+      "distinctReasonTypes": 5,
+      "byType": {
+        "seed_similar": 3,
+        "fit": 2,
+        "mood": 1,
+        "generic": 1,
+        "quality": 1
+      }
+    },
+    "explanationQuality": {
+      "total": 8,
+      "meanScore": 0.531,
+      "unsafeCount": 2,
+      "unsafeShare": 0.25,
+      "goodShare": 0.375,
+      "byVerdict": {
+        "good": 3,
+        "weak": 1,
+        "generic": 2,
+        "unsafe": 2
+      }
+    },
+    "coldWarm": {
+      "cold": 2,
+      "warming": 1,
+      "warm": 1,
+      "total": 4
+    }
+  },
+  "reasonBreakdown": [
+    {
+      "text": "Because you loved Parasite",
+      "verdict": "good",
+      "score": 1,
+      "safe": true,
+      "grounded": true,
+      "specific": true,
+      "brief": true,
+      "notGeneric": true,
+      "words": 4
+    },
+    {
+      "text": "More from Denis Villeneuve",
+      "verdict": "good",
+      "score": 1,
+      "safe": true,
+      "grounded": true,
+      "specific": true,
+      "brief": true,
+      "notGeneric": true,
+      "words": 4
+    },
+    {
+      "text": "A prestige drama for you",
+      "verdict": "good",
+      "score": 1,
+      "safe": true,
+      "grounded": true,
+      "specific": true,
+      "brief": true,
+      "notGeneric": true,
+      "words": 5
+    },
+    {
+      "text": "Close to your taste profile",
+      "verdict": "weak",
+      "score": 0.75,
+      "safe": true,
+      "grounded": true,
+      "specific": false,
+      "brief": true,
+      "notGeneric": true,
+      "words": 5
+    },
+    {
+      "text": "Picked for you",
+      "verdict": "generic",
+      "score": 0.25,
+      "safe": true,
+      "grounded": false,
+      "specific": false,
+      "brief": true,
+      "notGeneric": false,
+      "words": 3
+    },
+    {
+      "text": "Recommended for you",
+      "verdict": "generic",
+      "score": 0.25,
+      "safe": true,
+      "grounded": false,
+      "specific": false,
+      "brief": true,
+      "notGeneric": false,
+      "words": 3
+    },
+    {
+      "text": "Critics agree this is the best film of the year",
+      "verdict": "unsafe",
+      "score": 0,
+      "safe": false,
+      "grounded": true,
+      "specific": false,
+      "brief": true,
+      "notGeneric": true,
+      "words": 10
+    },
+    {
+      "text": "Award-winning and now streaming on Netflix",
+      "verdict": "unsafe",
+      "score": 0,
+      "safe": false,
+      "grounded": true,
+      "specific": true,
+      "brief": true,
+      "notGeneric": true,
+      "words": 6
+    }
+  ]
+}

@@ -71,6 +71,7 @@
   .ff-profile-mood-grid,
   .ff-profile-motifs-grid,
   .ff-profile-skew-grid,
+  .ff-profile-dnaconf-grid,
   .ff-profile-share-grid {
     grid-template-columns: 1fr !important;
     gap: 32px !important;

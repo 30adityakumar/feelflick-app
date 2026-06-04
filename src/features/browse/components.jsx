@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import MoodPill from '@/shared/components/MoodPill'
 import { HP, HP_GRAD, MOODS, SORT_OPTIONS, DECADE_OPTIONS, LANG_OPTIONS, GENRE_OPTIONS, RUNTIME_OPTIONS, PACING_OPTIONS, INTENSITY_OPTIONS, DEPTH_OPTIONS, DIALOGUE_OPTIONS, ATTENTION_OPTIONS, GAP_OPTIONS, VIBE_OPTIONS, PRESETS } from './data'
 
 // FeelFlick — Browse v3 components.
@@ -563,7 +564,7 @@ function GridCard({ f, mood, watched, inWatchlist, onTW, onTWL }) {
 
           {/* Mood tag — top left (when not hovering) */}
           {moodTag && !h && (
-            <div style={{ position:'absolute', top:8, left:8, padding:'3px 9px', borderRadius:999, background:'rgba(0,0,0,0.72)', backdropFilter:'blur(6px)', border:`1px solid ${moodTag.color}44`, color:moodTag.color, fontFamily:'Inter', fontSize:10, fontWeight:600 }}>{moodTag.label}</div>
+            <MoodPill variant="overlay" label={moodTag.label} color={moodTag.color} style={{ position:'absolute', top:8, left:8 }} />
           )}
 
           {/* Hover overlay */}
@@ -608,7 +609,7 @@ function ListRow({ f, mood, watched, inWatchlist, onTW, onTWL }) {
         <div style={{ display:'flex', alignItems:'baseline', gap:10, flexWrap:'wrap' }}>
           <span style={{ fontFamily:'Outfit', fontSize:18, fontWeight:500, color:HP.text, letterSpacing:'-0.01em', overflow:'hidden', textOverflow:'ellipsis' }}>{f.title}</span>
           <span style={{ fontFamily:'Inter', fontSize:12.5, color:HP.textLow }}>{f.year}</span>
-          {moodTag && <span style={{ padding:'2px 8px', borderRadius:999, background:`${moodTag.color}1a`, border:`1px solid ${moodTag.color}44`, color:moodTag.color, fontFamily:'Inter', fontSize:11, fontWeight:500 }}>{moodTag.label}</span>}
+          {moodTag && <MoodPill label={moodTag.label} color={moodTag.color} />}
         </div>
         <div style={{ marginTop:4, fontFamily:'Inter', fontSize:13, color:HP.textMid, lineHeight:1.5, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
           {[f.dir, f.genre, f.runtime ? `${f.runtime}m` : null].filter(Boolean).join(' · ')}

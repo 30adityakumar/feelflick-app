@@ -112,7 +112,7 @@ export default function RatingStep({ favoriteMovies, ratings, onRate, onBack, on
           Rate · 4 of 4 · {allRated ? 'all done' : `${remaining} to go`}
         </p>
         <h2
-          className="ob-display text-[30px] font-extrabold leading-[1.05] text-white sm:text-4xl md:text-5xl"
+          className="ob-display text-[30px] font-normal leading-[1.05] text-white sm:text-4xl md:text-5xl"
           style={{ textWrap: 'balance' }}
         >
           {allRated ? (
@@ -133,7 +133,7 @@ export default function RatingStep({ favoriteMovies, ratings, onRate, onBack, on
         </h2>
         <p className="mt-2 max-w-xl text-[13px] leading-relaxed text-white/55 sm:mt-3 sm:text-sm md:text-[15px]">
           {allRated
-            ? 'Tap the button below to lock it in and head home.'
+            ? 'That’s all of them. Building your first picks…'
             : reduced
               ? "Tap one. We'll move on automatically."
               : 'Swipe right to love, left to pass, up to like. Or tap.'}
@@ -356,7 +356,7 @@ function FilmCard({ movie }) {
       />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-linear-to-t from-black/90 via-black/50 to-transparent" />
       <div className="pointer-events-none absolute inset-x-5 bottom-4">
-        <div className="ob-display text-xl font-extrabold tracking-tight text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] sm:text-2xl">
+        <div className="ob-display text-xl font-semibold tracking-tight text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] sm:text-2xl">
           {movie.title}
         </div>
         {year && <div className="text-xs text-white/75 drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]">{year}</div>}

@@ -1,9 +1,9 @@
 /* src/features/onboarding/onboarding.css
- * Scoped to .onboarding — Outfit display font + a tidy custom scrollbar.
- * Tailwind utilities still apply; this file only adds what Tailwind can't express tersely.
+ * Scoped to .onboarding — the Outfit display family + a tidy custom scrollbar.
+ * Outfit + Inter load globally via index.html (no per-page @import — it's
+ * render-blocking + slower than the global <link>). Tailwind utilities still
+ * apply; this file only adds what Tailwind can't express tersely.
  */
-
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
 
 .onboarding .ob-display {
   font-family: 'Outfit', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;

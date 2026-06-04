@@ -1,16 +1,18 @@
 // FeelFlick — /profile · data layer.
 //
 // What's left here:
-//   - USER editorial fallbacks (summary, archetype, signature). The real
-//     values come from user_profiles_computed.editorial_* via
-//     useProfileData; USER_DEFAULT.* only renders pre-load or when the
-//     LLM regen hasn't run yet.
+//   - USER editorial fallbacks (summary, archetype, signature). The real values
+//     come from user_profiles_computed.editorial_* via useProfileData;
+//     USER_DEFAULT.* only renders pre-load or for a brand-new user with no
+//     history. These are HONEST "still forming" fallbacks (F7) — they must NEVER
+//     fabricate a specific taste for a user who hasn't earned one.
 //   - Brand tokens (HP, HP_GRAD).
-//   - SKEWS / YIR cold-start fallbacks — kept because they let the Skew /
-//     YIR sections always render something sensible while data thickens.
 //
-// FRIENDS is gone: the Taste Twins section now renders a real empty state
-// when user_similarity has no rows (no more Marco/Priya/Theo/Jules).
+// FRIENDS is gone: the Taste Twins section renders a real empty state when
+// user_similarity has no rows. The old SKEWS / YIR fabricated cold-start samples
+// ("Darker — you 73 vs them 50", "You binged 18 films in December") were removed
+// in F7 — the Skew + YIR sections now self-hide when there's no real data instead
+// of rendering invented "you vs everyone" / year-in-review numbers.
 
 export const USER = {
   name: 'You',
@@ -21,27 +23,13 @@ export const USER = {
   hoursWatched: 0,
   filmsThisMonth: 0,
   initial: 'Y',
-  summary: 'Patient, class-coded thrillers with a soft spot for slow burns and one-night two-handers.',
-  archetype: ['The Slow-Burner', 'The Class-Conscious', 'The Two-Handed'],
-  signature: 'Films that earn their silences.',
+  // Honest cold-start fallbacks — shown only before a real editorial summary
+  // exists. MUST NOT fabricate a specific taste; a brand-new user has no
+  // "class-coded thrillers" identity yet.
+  summary: 'Your Cinematic DNA is still forming. Log and rate a few films, and FeelFlick starts reading your taste.',
+  archetype: ['The Explorer', 'The Open', 'The Curious'],
+  signature: 'Your taste, taking shape.',
 };
 
 // Brand tokens
 export { HP, HP_GRAD } from '@/shared/lib/tokens'
-
-// Cold-start fallbacks for sections that always render — Skew + YIR show
-// these neutral values when the user has too little data for a live
-// derivation.
-export const SKEWS = [
-  { label:'Darker',         you:73, them:50, delta:+23 },
-  { label:'Slower-paced',   you:68, them:50, delta:+18 },
-  { label:'More subtitled', you:64, them:50, delta:+14 },
-  { label:'Less spectacle', you:62, them:50, delta:+12 },
-];
-
-export const YIR = {
-  topMoodGrowth: { mood:'Bittersweet', delta:'+18%', note:'You leaned in after Past Lives.' },
-  newDirectors: 4,
-  rewatched:    7,
-  bingedMonth:  { month:'December', count:18 },
-};

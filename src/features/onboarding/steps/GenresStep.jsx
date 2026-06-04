@@ -55,7 +55,7 @@ export default function GenresStep({ selectedGenres, toggleGenre, onBack, onNext
           Genres · 2 of 4
         </p>
         <h2
-          className="ob-display text-[32px] sm:text-4xl md:text-5xl font-extrabold text-white leading-[1.05]"
+          className="ob-display text-[32px] sm:text-4xl md:text-5xl font-normal text-white leading-[1.05]"
           style={{ textWrap: 'balance' }}
         >
           Which{' '}
@@ -65,7 +65,8 @@ export default function GenresStep({ selectedGenres, toggleGenre, onBack, onNext
           {' '}do you live in?
         </h2>
         <p className="text-[13px] sm:text-sm md:text-[15px] text-white/55 mt-2 sm:mt-3 leading-relaxed max-w-xl">
-          Pick at least {MIN_GENRES}. You can always add more later.
+          Pick at least {MIN_GENRES} — this steers what we reach for first. Nothing&apos;s
+          locked in; you can always add more later.
         </p>
       </div>
 

@@ -158,16 +158,17 @@ function Masthead() {
 function QuickStats() {
   const { stats } = useProfileData();
   if (!stats) return null;
-  const confLabel = stats.dnaConfidence >= 80 ? 'high' : stats.dnaConfidence >= 40 ? 'medium' : 'low';
+  // DNA confidence moved to its own framed section (DnaConfidence.jsx, F7) — a
+  // bare "78% · high" stat read like an accuracy grade / a score of the user.
+  // These three remain plain counts.
   const items = [
     { label:'Films logged',    value: stats.filmsLogged,        sub:'all time' },
     { label:'Hours watched',   value: `${stats.hoursWatched}h`, sub:'all time' },
     { label:'This month',      value: stats.filmsThisMonth,     sub:'films' },
-    { label:'DNA confidence',  value: `${stats.dnaConfidence}%`, sub: confLabel },
   ];
   return (
     <section className="ff-profile-section" style={{ padding:'40px 88px', borderTop:`1px solid ${HP.border}` }}>
-      <div className="ff-profile-stats-grid" style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:48 }}>
+      <div className="ff-profile-stats-grid" style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:48 }}>
         {items.map((s, i) => (
           <div key={s.label} className="ff-profile-stat-cell" style={{ borderLeft:i===0?'none':`1px solid ${HP.border}`, paddingLeft:i===0?0:32 }}>
             <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color:HP.textMuted, fontFamily:'Outfit', marginBottom:10 }}>{s.label}</div>

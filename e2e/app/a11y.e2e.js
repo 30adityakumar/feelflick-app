@@ -45,3 +45,10 @@ test('a11y — film detail (/movie/:id)', async ({ page }) => {
   await page.waitForLoadState('networkidle')
   await audit(page, '/movie/:id')
 })
+
+test('a11y — taste profile (/profile)', async ({ page }) => {
+  await page.goto('/profile')
+  await expect(page).toHaveURL(/\/profile(?:[/?#]|$)/)
+  await page.waitForLoadState('networkidle')
+  await audit(page, '/profile')
+})

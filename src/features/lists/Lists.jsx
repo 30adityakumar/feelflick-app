@@ -9,6 +9,8 @@ import { useNavigate } from 'react-router-dom'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import CreateListModal from '@/features/lists/CreateListModal'
+import { ActionButton, ChipButton } from '@/shared/components/ActionButton'
+import MoodPill from '@/shared/components/MoodPill'
 import './lists.css'
 import { ListsDataProvider, useListsData } from './useListsData'
 
@@ -35,11 +37,7 @@ function Masthead({ onNewList }) {
           Curated collections. Hand-built, not algorithmic. Yours, your taste twins&rsquo;, and the FeelFlick editors&rsquo;.
         </p>
         <div style={{ marginTop: 24, display: 'flex', gap: 10 }}>
-          <button
-            type="button"
-            onClick={onNewList}
-            style={{ padding: '12px 22px', borderRadius: 8, background: HP_GRAD, border: 'none', color: '#fff', fontFamily: 'Outfit', fontSize: 13, fontWeight: 600, letterSpacing: '0.02em', cursor: 'pointer', boxShadow: '0 12px 28px -8px rgba(236,72,153,0.5)' }}
-          >+ New list</button>
+          <ActionButton onClick={onNewList}>+ New list</ActionButton>
         </div>
       </div>
     </section>
@@ -138,7 +136,7 @@ function ListCard({ list, kind, onOpen }) {
               </div>
             )}
             {kind === 'followed' && list.by && (
-              <div style={{ width: 30, height: 30, borderRadius: 999, background: list.byBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Outfit', fontWeight: 700, color: '#0a0510', fontSize: 13, border: '2px solid #06060a' }}>
+              <div style={{ width: 30, height: 30, borderRadius: 999, background: list.byBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Outfit', fontWeight: 700, color: '#0a0510', fontSize: 13, border: `2px solid ${HP.bgDeep}` }}>
                 {list.by.charAt(0).toUpperCase()}
               </div>
             )}
@@ -308,11 +306,7 @@ function FeaturedOpen() {
             <span>{featured.films.length} film{featured.films.length === 1 ? '' : 's'} · {user.name} · updated {featured.updated}</span>
           </div>
           <div style={{ marginTop: 20, display: 'flex', gap: 8 }}>
-            <button
-              type="button"
-              onClick={() => navigate(`/lists/${featured.id}`)}
-              style={{ padding: '10px 16px', borderRadius: 6, background: HP_GRAD, border: 'none', color: '#fff', fontFamily: 'Outfit', fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}
-            >Open shelf →</button>
+            <ChipButton onClick={() => navigate(`/lists/${featured.id}`)}>Open shelf →</ChipButton>
           </div>
         </div>
         <div style={{ borderTop: `1px solid ${HP.border}` }}>
@@ -333,11 +327,7 @@ function FeaturedOpen() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                   <span style={{ fontFamily: 'Outfit', fontSize: 18, fontWeight: 500, color: HP.text, letterSpacing: '-0.015em' }}>{f.title}</span>
                   <span style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit' }}>{f.year}{f.year && ' · '}{f.dir}</span>
-                  {f.mood && f.mood !== 'Mixed' && (
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '2px 8px', borderRadius: 999, background: 'rgba(167,139,250,0.10)', border: '1px solid rgba(167,139,250,0.30)', fontSize: 10, color: HP.purple, fontFamily: 'Outfit' }}>
-                      <span style={{ width: 5, height: 5, borderRadius: 999, background: HP.purple }} />{f.mood}
-                    </span>
-                  )}
+                  {f.mood && f.mood !== 'Mixed' && <MoodPill label={f.mood} dot />}
                 </div>
                 {f.note && (
                   <p style={{ margin: '6px 0 0 0', fontSize: 13, lineHeight: 1.55, color: HP.textSoft, fontFamily: 'Outfit, Inter, sans-serif', fontStyle: 'italic', textWrap: 'pretty' }}>&ldquo;{f.note}&rdquo;</p>

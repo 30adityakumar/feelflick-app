@@ -51,7 +51,7 @@ guardrails, workflows), the source of truth is **`CLAUDE.md`** at the root, plus
 - [`runbooks/`](runbooks/) — operational runbooks (dev setup, debugging).
 - [`sql/`](sql/) — **read-only** analysis query templates (e.g. `recommendation-evaluation-queries.sql`).
 - [`eval/`](eval/) — generated evaluation baselines (fixture-based; regenerate via `scripts/eval/`).
-- [`personas/`](personas/) — **F10C Synthetic Persona Usability Lab** (UX inspection, **synthetic ≠ real users**, does **not** unblock F8C): `persona-schema-f10c.md`, `synthetic-personas-f10c.md` (16 archetypes), `persona-usability-tasks-f10c.md`, `persona-usability-rubric-f10c.md`, `claude-persona-test-prompts-f10c.md`, `persona-testing-tooling-proposal-f10c.md` (docs-only), and `persona-pilot-findings-f10c.md` (2-persona pilot). Start with the schema; run via the prompt pack.
+- [`personas/`](personas/) — **F10C Synthetic Persona Usability Lab** (UX inspection, **synthetic ≠ real users**, does **not** unblock F8C): `persona-schema-f10c.md`, `synthetic-personas-f10c.md` (16 archetypes), `persona-usability-tasks-f10c.md`, `persona-usability-rubric-f10c.md`, `claude-persona-test-prompts-f10c.md`, `persona-testing-tooling-proposal-f10c.md` (docs-only), `persona-pilot-findings-f10c.md` (2-persona pilot), and **`persona-usability-backlog-f10c1.md`** (F10C.1 — pilot findings classified into validate-with-real-users / safe-UX-candidate / protect-do-not-regress / defer; nothing acted on). Start with the schema; run via the prompt pack; triage via the backlog.
 
 ## archive/
 Historical / superseded docs — see [`archive/README.md`](archive/README.md). Not current.

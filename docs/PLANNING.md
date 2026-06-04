@@ -70,6 +70,17 @@
       outcome-capture baseline (`docs/sql/recommendation-evaluation-queries.sql` §7).
 
 ## Done This Week
+- [x] **F11B.1 — Design tokens + primitive cleanup** (the safe UI foundation; engine frozen `2.17`):
+      **purely additive — zero rendered change to any route/primitive → no visual baseline touched.**
+      Added `RADIUS` (xs4/sm6/md8/lg12/xl16/pill9999), `SHADOW` (card/hover/focus — borders-over-shadows,
+      brand-purple focus ring), `SURFACE` (base/panel/card/elevated aliases) to `src/shared/lib/tokens.js`;
+      new **`<Card>`** primitive (`src/shared/ui/Card.jsx` + `Card.css`, reduced-motion-gated opt-in hover)
+      exported from the barrel. Pinned contracts with tests (tokens scale, Card, Eyebrow tones + the
+      reconciled landing-quiet variant via props, Button 5-variant pill/focus/size). Documented in
+      `DESIGN_SYSTEM.md` §6a + `docs/ui/design-tokens-primitives-f11b1.md`. **Deferred (needs a deliberate
+      re-baseline since `/about` uses the shared Button):** the button-font→Outfit alignment + inline-button/
+      Eyebrow render convergence → F11B.2/B.3. No call-site mass-migration; gated by design-system-guard.
+      Next: F11B.2 (page rhythm). F8C still blocked.
 - [x] **F11A — UI consistency + visual design audit** (docs/audit only; engine frozen `2.17`; no UI
       implementation): created `docs/ui/` — `ui-inspiration-translation-f11a.md` (borrow disciplines,
       not visuals), `ui-inventory-f11a.md` (code-grounded tokens/primitives/patterns + live computed

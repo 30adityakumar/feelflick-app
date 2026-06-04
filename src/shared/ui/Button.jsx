@@ -16,6 +16,26 @@ const SIZES = {
 
 const BASE = 'inline-flex items-center justify-center gap-2 font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400/50'
 
+/**
+ * Canonical button primitive — the one button system (F11B.1 pins this contract).
+ *
+ * Variants: `primary` (the one brand-gradient pill), `secondary`, `ghost`, `icon`,
+ * `destructive` (alias of "danger"). Sizes: `sm` | `md` | `lg`. All variants are
+ * fully-rounded (`rounded-full` ≈ RADIUS.pill), share the focus-visible purple ring,
+ * the disabled (opacity) state, and the in-button micro-spinner (`loading`) — the one
+ * sanctioned spinner per CLAUDE.md.
+ *
+ * KNOWN follow-up (deferred — would change the `/about` visual baseline): the base
+ * font is currently inherited (Inter); the editorial language calls for Outfit on
+ * buttons. Align it in a later F11B wave WITH a deliberate visual re-baseline.
+ *
+ * @param {object} props
+ * @param {'primary'|'secondary'|'ghost'|'icon'|'destructive'} [props.variant='secondary']
+ * @param {'sm'|'md'|'lg'} [props.size='md']
+ * @param {boolean} [props.fullWidth=false]
+ * @param {boolean} [props.loading=false]  Shows the in-button spinner + disables.
+ * @param {boolean} [props.disabled=false]
+ */
 const Button = forwardRef(function Button({
   variant = 'secondary',
   size = 'md',

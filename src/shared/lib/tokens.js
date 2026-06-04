@@ -73,3 +73,51 @@ export const C = {
   amber: HP.amber,
   green: HP.green,
 }
+
+// === Shape / elevation / surface scales (F11B.1) ===========================
+//
+// The non-color side of the system. F11A found radii were ad-hoc inline values
+// (3/4/5/6/8/10/14/999 across 300+ call sites) with no scale, and shadows were
+// one-off inline strings. These give the inline-style surfaces a shared target.
+//
+// ADDITIVE + non-breaking: nothing consumes these yet beyond the `Card` primitive
+// and docs examples — existing call sites are migrated deliberately in later F11B
+// waves (where any visual-baseline route change is re-baselined on purpose).
+
+/**
+ * Radius scale (px). Covers the ad-hoc inline values F11A catalogued; `pill` is
+ * the fully-rounded value (Tailwind `rounded-full` ≈ 9999px).
+ * @type {{ xs: number, sm: number, md: number, lg: number, xl: number, pill: number }}
+ */
+export const RADIUS = {
+  xs: 4, // chips / tiny controls (was 3–5)
+  sm: 6, // small buttons / inputs (the most common inline value)
+  md: 8, // cards / callouts (the next most common)
+  lg: 12, // larger panels (was 10)
+  xl: 16, // hero panels / sheets (was 14; matches EmptyState's rounded-2xl)
+  pill: 9999, // fully rounded — buttons, mood/genre chips
+}
+
+/**
+ * Elevation. FeelFlick prefers BORDERS over shadows (doctrine); these are the few
+ * sanctioned uses. `focus` is the brand purple ring (#A78BFA = HP.purple).
+ * @type {{ card: string, hover: string, focus: string }}
+ */
+export const SHADOW = {
+  card: '0 1px 2px rgba(0,0,0,0.30)', // barely-there base (optional; borders do most of the work)
+  hover: '0 10px 30px -12px rgba(0,0,0,0.55)', // subtle lift for an interactive card
+  focus: '0 0 0 3px rgba(167,139,250,0.45)', // brand focus ring (HP.purple @ 0.45)
+}
+
+/**
+ * Surface tints — semantic aliases over the existing surface hexes so callouts
+ * name their tint instead of repeating raw values. Same values as HP/C today;
+ * named separately so a future divergence is explicit, not a copy-paste.
+ * @type {{ base: string, panel: string, card: string, elevated: string }}
+ */
+export const SURFACE = {
+  base: HP.bgDeep, // #06060a — page base
+  panel: HP.panel, // rgba(255,255,255,0.04) — faint panel tint
+  card: HP.panel, // callout / card tint (= panel today)
+  elevated: C.bgLight, // #0d0b14 — modals / menus (matches --bg-elevated)
+}

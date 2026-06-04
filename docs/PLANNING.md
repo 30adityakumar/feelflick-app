@@ -10,18 +10,16 @@
 > This file tracks only the *active* slice — don't duplicate the roadmap here.
 
 ## Currently In Progress
-- [ ] (between phases) — F9E landed: merged F9D (**PR #171, squash `0b9a1b5c`**) and
-      **verified the security headers LIVE on `app.feelflick.com`** (all five present;
-      app renders; fonts/TMDB load; no header/CSP breakage). **Sentry still 403** — the
-      Sentry MCP is read-only (can't write the Allowed-Domains filter), so the one
-      manual dashboard toggle remains (`docs/post-f9d-verification-f9e.md` §4). F8C
-      still blocked (needs real-user outcome volume).
+- [ ] (between phases) — F9F landed: after the user applied the Sentry Allowed-Domains
+      fix, **production Sentry ingest is VERIFIED WORKING** — 403 gone (server-side +
+      browser), prod console clean, and a labeled runtime test error landed in Sentry
+      Issues (env `production`, url `app.feelflick.com`). Production error monitoring is
+      now live. F8C still blocked (needs real-user outcome volume).
 
 ## Up Next (prioritized)
-- [ ] **Apply the Sentry Allowed-Domains dashboard fix** (the one manual step from
-      F9D §1 that actually re-enables prod error ingestion — Sentry → project →
-      Inbound Filters → Allowed Domains → add `app.feelflick.com`/`*.feelflick.com`
-      or clear it; then confirm no 403 + a test error lands in Issues).
+- [x] ~~Apply the Sentry Allowed-Domains dashboard fix~~ — ✅ done (user) + **verified
+      in F9F** (prod ingest working; test error landed in Issues). Housekeeping: resolve
+      the labeled `F9F-SENTRY-VERIFY` test Issue in Sentry.
 - [ ] **Production hardening follow-ups** (`docs/production-observability-security-f9d.md`
       §6): ship **CSP report-only** (draft policy in the doc) → tune → enforce; set
       CI repo secrets to make **E2E + Lighthouse** non-skip (names in F9D §4); upgrade
@@ -50,6 +48,14 @@
       outcome-capture baseline (`docs/sql/recommendation-evaluation-queries.sql` §7).
 
 ## Done This Week
+- [x] **F9F — Sentry ingest verification** (`docs/sentry-ingest-verification-f9f.md`):
+      after the user added `app.feelflick.com`/`*.feelflick.com`/`localhost` to Sentry
+      Allowed Domains, verified prod ingest works — 403→200 server-side (control
+      `example.com` still 403, so the filter still enforces), browser envelope 200,
+      **prod console fully clean**, and a labeled runtime test error (not committed)
+      **landed in Sentry Issues** (env `production`, url `app.feelflick.com`, project
+      `feelflick-app`) confirmed via read-only MCP. Replay masks text (no PII). lint +
+      487 tests + build + audit green. No code change.
 - [x] **F9E — Post-F9D production verification** (`docs/post-f9d-verification-f9e.md`):
       merged PR #171 (squash `0b9a1b5c`) → `main`; post-merge CI + Cloudflare Pages
       prod deploy green. **Security headers VERIFIED LIVE on `app.feelflick.com`**

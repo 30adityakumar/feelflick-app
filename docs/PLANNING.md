@@ -70,6 +70,18 @@
       outcome-capture baseline (`docs/sql/recommendation-evaluation-queries.sql` §7).
 
 ## Done This Week
+- [x] **F11A — UI consistency + visual design audit** (docs/audit only; engine frozen `2.17`; no UI
+      implementation): created `docs/ui/` — `ui-inspiration-translation-f11a.md` (borrow disciplines,
+      not visuals), `ui-inventory-f11a.md` (code-grounded tokens/primitives/patterns + live computed
+      styles), `ui-consistency-audit-f11a.md` (drift classified P0–P3; no P0 code-level), `route-visual-audit-f11a.md`
+      (12 routes), `feelflick-visual-direction-f11a.md` (cinematic/calm/honest + do-not-become),
+      `claude-ui-skills-recommendation-f11a.md` (use existing design-system-guard/a11y/perf + frontend-design
+      gated; install nothing 3rd-party), and `ui-polish-implementation-plan-f11b.md` (6 safe waves).
+      Biggest drift: **no radius scale** (3/4/5/6/8/10/14/999 ad-hoc), two button languages
+      (pill primitive vs inline rounded-rect 6–8 + Inter/Outfit), Eyebrow 700/purple vs landing
+      `.ff-eyebrow` 600/white, Discover `purpleDeep` override, reduced-motion gaps (movie/profile/
+      watchlist/history/account). Strongest to PRESERVE: the honesty layer + MovieCard hover LAW +
+      single-pick primacy. **Nothing implemented; no engine/UI change; F8C stays blocked.** Next: F11B.1.
 - [x] **F10D — Full synthetic 16-persona customer-journey simulation** (docs/UX-inspection only;
       engine frozen `2.17`): ran the full journey for all 16 personas (browser-observed landing +
       code-grounded auth surfaces; the served pick honestly NOT OBSERVED). New docs under

@@ -13,6 +13,7 @@ import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import { HP } from './data'
 import { Masthead, QuickStats, MoodRadar } from './sections-top'
+import DnaConfidence from './DnaConfidence'
 import {
   SignatureDirectors, MotifCloud, Trajectory, PatternPanel,
   Mixtape, Skew, FriendsRanked, ShareCard, YIRBanner, ProfileFooter,
@@ -39,6 +40,17 @@ export default function TasteProfile() {
         <div style={{ maxWidth:1440, margin:'0 auto' }}>
           <Masthead />
           <QuickStats />
+          {/* DNA confidence, honestly framed (self-only — a viewer can't improve
+              someone else's profile). Explains the number as taste *evidence*,
+              guides cold-start users, and connects the profile to Tonight. */}
+          {isSelf && (
+            <DnaConfidence
+              confidence={data.stats?.dnaConfidence}
+              filmsLogged={data.stats?.filmsLogged}
+              filmsRated={data.stats?.filmsRated}
+              moodSignals={data.moods?.length}
+            />
+          )}
           <MoodRadar />
           <SignatureDirectors />
           <MotifCloud />

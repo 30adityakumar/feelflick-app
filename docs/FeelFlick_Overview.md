@@ -4,6 +4,13 @@ FeelFlick is a discovery-first movie platform that learns your cinematic identit
 
 The live site is **app.feelflick.com**.
 
+> **Read this as features in service of one job.** Everything below — the moods,
+> the lists, the ratings, the taste identity — exists to deliver FeelFlick's
+> wedge: *mood-first, taste-deep — one justified nightly pick that makes its case.
+> Anti-scroll.* The single pick (the Home **Briefing**) is the product; the rest
+> is supporting depth. See [product-doctrine.md](product-doctrine.md) for the
+> surface hierarchy and the do-not-become list.
+
 ---
 
 # **How Discovery Works**
@@ -12,7 +19,7 @@ FeelFlick answers a different question than most platforms. Instead of "what's p
 
 ## **Mood-Based Sessions**
 
-Choose from 12 moods — Melancholic, Cozy, Anxious, Overwhelmed, Nostalgic, Silly, Curious, Romantic, Tense, Inspired, Dark, and Adventurous — and FeelFlick builds a personalised film selection in real time.
+FeelFlick's discovery is organised around a **12-mood taxonomy** — Cozy, Adventurous, Futuristic, Thoughtful, Whimsical, Enlightened, Musical, Romantic, Suspenseful, Silly, Dark & Intense, and Nostalgic — each mapped to controlled-vocabulary mood/tone tags so matching is semantic, not just genre. The Home **Briefing** surfaces a focused set of *session moods* you tap to retune tonight's pick, and onboarding seeds your taste from a parallel starter set. FeelFlick builds a personalised film selection in real time.
 
 | **AI Narration**             | GPT-4.1-mini generates a contextual intro for your mood session, setting the tone before films appear |
 | **Natural Language Input**   | Describe how you feel in your own words — 'tired after a long week but want something hopeful' — and FeelFlick parses it into mood, pacing, intensity, and context signals |
@@ -30,7 +37,7 @@ Ten editorial lists generated from the data layer: Prestige Drama of the 2020s, 
 
 ## **Taste Challenges**
 
-Personalized challenges identify gaps in your watch profile — fit profiles you've never explored, moods absent from your history — and suggest 6 high-quality entry points for each. Surfaced at **/challenges** when you have 10+ watched films.
+Personalized challenges identify gaps in your watch profile — fit profiles you've never explored, moods absent from your history — and suggest 6 high-quality entry points for each. *(Status: built but **parked** — `/challenges` currently redirects to `/home` and the surface is not yet shipped.)*
 
 ## **Collections**
 
@@ -105,12 +112,12 @@ FeelFlick is designed as a compounding system. Every interaction adds signal:
 
 For those who care about how things work:
 
-| **Film Catalog**          | 6,482 films with full TMDB metadata, LLM mood enrichment (mood_tags, tone_tags, fit_profile via GPT-5.4-mini Batch API), external ratings from IMDb/RT/Metacritic/Trakt, and pre-computed semantic embeddings |
+| **Film Catalog**          | ~6,700 curated films with full TMDB metadata, LLM mood enrichment (mood_tags, tone_tags, fit_profile via `gpt-5.4-mini` Batch API — the model string configured in `scripts/pipeline/`), external ratings from IMDb/RT/Metacritic/Trakt, and pre-computed semantic embeddings. *(Exact catalog size lives in the live DB.)* |
 | **Recommendation Engine** | 18-dimensional scoring combining base quality (5-score architecture), genre matching, mood tag intersection, tone matching, fit profile affinity, language preferences, content style (pacing/intensity/emotional depth/dialogue density/attention demand), people affinities (director/writer/cinematographer/lead actor), theme keywords, era and runtime match, feedback loop, and user satisfaction aggregates |
 | **Semantic Search**       | OpenAI text-embedding-3-large (3072 dimensions) via pgvector in PostgreSQL. Embeddings include mood_tags and tone_tags, so "Because you loved X" surfaces films with shared emotional DNA, not just shared plot points |
 | **Mood Taxonomy**         | 30 mood tags, 20 tone tags, 10 fit profiles — controlled vocabulary, semantically consistent across the catalog. No other platform has this |
 | **AI Features**           | GPT-4.1-mini powers mood session narration, natural language mood parsing, post-watch reflection prompts, and taste summary generation. GPT-5.4-mini enriches the catalog with mood/tone/fit tags |
-| **Infrastructure**        | React 18 + Vite frontend, Supabase (PostgreSQL + pgvector + Edge Functions), Vercel deployment, Cloudflare DNS |
+| **Infrastructure**        | React 19 + Vite 8 frontend, Supabase (PostgreSQL 15 + pgvector + Edge Functions + pg_cron), Vercel deployment, Cloudflare DNS |
 | **Privacy**               | No advertising. No data selling. No third-party tracking. Your taste data is used only to improve your own recommendations |
 
 ---

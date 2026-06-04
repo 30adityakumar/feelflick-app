@@ -1,6 +1,6 @@
 import { useGoogleAuth } from '@/shared/hooks/useGoogleAuth'
-import { C, HP_GRAD as GRAD } from '@/shared/lib/tokens'
-import { Reveal, Stars } from '../primitives'
+import { C } from '@/shared/lib/tokens'
+import { Reveal, Stars, Eyebrow, AuthCTA } from '../primitives'
 
 // ── Final CTA ──────────────────────────────────────────────────
 export default function FinalCTA(){
@@ -10,7 +10,7 @@ export default function FinalCTA(){
       <Stars tint={C.purple} count={80}/>
       <div style={{position:'relative',maxWidth:880,margin:'0 auto',textAlign:'center'}}>
         <Reveal>
-          <div className="ff-eyebrow" style={{color:C.purple,marginBottom:32}}>Stop scrolling. Start watching.</div>
+          <Eyebrow color={C.purple} style={{marginBottom:32}}>Stop scrolling. Start watching.</Eyebrow>
         </Reveal>
         <Reveal delay={150}>
           <h2 className="ff-d1" style={{fontSize:'clamp(72px,11vw,160px)',color:C.text,margin:0}}>
@@ -24,12 +24,12 @@ export default function FinalCTA(){
           </p>
         </Reveal>
         <Reveal delay={450}>
-          <button type="button" onClick={signInWithGoogle} disabled={isAuthenticating} className="ff-link" style={{display:'inline-flex',alignItems:'center',gap:10,marginTop:52,padding:'16px 32px',borderRadius:999,background:GRAD,color:'#fff',fontFamily:'Inter',fontSize:14.5,fontWeight:600,boxShadow:'0 18px 40px -10px rgba(236,72,153,0.5)',border:'none',cursor:isAuthenticating?'progress':'pointer',opacity:isAuthenticating?0.7:1}} aria-label="Begin with Google">
-            {isAuthenticating?'Opening Google…':'Begin'} <span>→</span>
-          </button>
+          <AuthCTA onClick={signInWithGoogle} loading={isAuthenticating} ariaLabel="Begin with Google" style={{display:'inline-flex',alignItems:'center',gap:10,marginTop:52,padding:'16px 32px',fontSize:14.5,boxShadow:'0 18px 40px -10px rgba(236,72,153,0.5)'}}>
+            {l=><>{l?'Opening Google…':'Begin'} <span>→</span></>}
+          </AuthCTA>
         </Reveal>
         <Reveal delay={550}>
-          <div className="ff-eyebrow" style={{marginTop:24,color:C.textLow}}>Free · No credit card · No ads</div>
+          <Eyebrow color={C.textLow} style={{marginTop:24}}>Free · No credit card · No ads</Eyebrow>
         </Reveal>
       </div>
     </section>

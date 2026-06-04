@@ -170,8 +170,8 @@ export default class ErrorBoundary extends Component {
             <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 md:p-12 shadow-2xl animate-scale-in">
               {/* Icon */}
               <div className="mb-6 flex justify-center">
-                <div className="w-16 h-16 rounded-full bg-linear-to-br from-rose-500/20 to-orange-500/20 border border-rose-500/20 flex items-center justify-center">
-                  <Icon className="w-8 h-8 text-rose-400" />
+                <div className="w-16 h-16 rounded-full bg-linear-to-br from-red-500/20 to-red-500/10 border border-red-500/20 flex items-center justify-center">
+                  <Icon className="w-8 h-8 text-red-400" />
                 </div>
               </div>
               
@@ -223,7 +223,7 @@ export default class ErrorBoundary extends Component {
                   </summary>
                   <div className="rounded-xl bg-black/40 p-4 border border-white/10">
                     <div className="mb-3">
-                      <span className="text-xs font-bold text-rose-400 uppercase tracking-wider">
+                      <span className="text-xs font-bold text-red-400 uppercase tracking-wider">
                         Error Type:
                       </span>
                       <span className="ml-2 text-xs text-white/70">

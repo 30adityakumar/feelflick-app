@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
-import { C, HP_GRAD as GRAD } from '@/shared/lib/tokens'
+import { C } from '@/shared/lib/tokens'
+import { Eyebrow, Wordmark } from '../primitives'
 
 // ── Footer ─────────────────────────────────────────────────────
 // Each link maps to a real route. Pages that don't exist yet are intentionally
@@ -32,12 +33,12 @@ export default function Footer(){
     <footer style={{padding:'72px 32px 84px',borderTop:`1px solid ${C.hairline}`}}>
       <div className="ff-grid-footer" style={{maxWidth:1280,margin:'0 auto',gridTemplateColumns:'2fr 1fr 1fr'}}>
         <div>
-          <div style={{fontFamily:'Inter',fontSize:20,fontWeight:700,letterSpacing:'-0.012em',background:GRAD,WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>FEELFLICK</div>
+          <Wordmark size={20}/>
           <p className="ff-italic" style={{marginTop:14,fontFamily:'Inter',fontSize:13,color:C.textLow,lineHeight:1.6,maxWidth:340,fontStyle:'italic'}}>The right film. Right now.</p>
         </div>
         {columns.map(c=>
           <div key={c.t}>
-            <div className="ff-eyebrow" style={{color:C.textLow,marginBottom:18}}>{c.t}</div>
+            <Eyebrow color={C.textLow} style={{marginBottom:18}}>{c.t}</Eyebrow>
             <ul style={{margin:0,padding:0,listStyle:'none',display:'flex',flexDirection:'column',gap:11}}>
               {c.items.map(item =>
                 <li key={item.label}><FooterLink to={item.to} href={item.href}>{item.label}</FooterLink></li>

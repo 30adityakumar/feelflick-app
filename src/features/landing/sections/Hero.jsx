@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useGoogleAuth } from '@/shared/hooks/useGoogleAuth'
-import { C, HP_GRAD as GRAD } from '@/shared/lib/tokens'
-import { Stars } from '../primitives'
+import { C } from '@/shared/lib/tokens'
+import { Stars, Eyebrow, AuthCTA } from '../primitives'
 import { PICKS } from '../data'
 
 // ── Hero ───────────────────────────────────────────────────
@@ -35,9 +35,7 @@ export default function Hero(){
       <Stars tint={p.moodHex} count={70}/>
       <div style={{position:'relative',zIndex:1,maxWidth:1280,margin:'0 auto',width:'100%'}} className="ff-grid-hero">
         <div>
-          <div className="ff-eyebrow" style={{marginBottom:32}}>
-            <span style={{color:C.textLow}}>FeelFlick · {greeting}</span>
-          </div>
+          <Eyebrow color={C.textLow} style={{marginBottom:32}}>FeelFlick · {greeting}</Eyebrow>
           <h1 className="ff-d1" style={{fontSize:'clamp(56px,7vw,118px)',color:C.text,margin:0}}>
             Films that{' '}<br/>know <em className="ff-italic" style={{color:C.textMid}}>you.</em>
           </h1>
@@ -45,12 +43,12 @@ export default function Hero(){
             The right film. Right now. Tuned to your mood, your taste, and everything you’ve ever loved on screen.
           </p>
           <div style={{marginTop:48,display:'flex',alignItems:'center',gap:18}}>
-            <button type="button" onClick={signInWithGoogle} disabled={isAuthenticating} className="ff-link" style={{display:'inline-flex',alignItems:'center',gap:8,padding:'15px 28px',borderRadius:999,background:GRAD,color:'#fff',fontFamily:'Inter',fontSize:14,fontWeight:600,boxShadow:'0 14px 32px -10px rgba(236,72,153,0.45)',border:'none',cursor:isAuthenticating?'progress':'pointer',opacity:isAuthenticating?0.7:1}} aria-label="Start free with Google">{isAuthenticating?'Opening Google…':'Start free →'}</button>
+            <AuthCTA onClick={signInWithGoogle} loading={isAuthenticating} ariaLabel="Start free with Google" style={{display:'inline-flex',alignItems:'center',gap:8,padding:'15px 28px',fontSize:14,boxShadow:'0 14px 32px -10px rgba(236,72,153,0.45)'}}>{l=>l?'Opening Google…':'Start free →'}</AuthCTA>
             <a href="#ritual" className="ff-link" style={{fontFamily:'Inter',fontSize:14,fontWeight:500,color:C.textMid,letterSpacing:'0.01em',display:'inline-flex',alignItems:'center',minHeight:44,padding:'0 4px'}}>See how it works</a>
           </div>
         </div>
         <div key={p.title} className="ff-fade-swap" style={{position:'relative',padding:'12px 0'}}>
-          <div className="ff-eyebrow" style={{color:p.moodHex,marginBottom:18,transition:'color 0.6s'}}>Tonight’s selection · {p.mood}</div>
+          <Eyebrow color={p.moodHex} style={{marginBottom:18,transition:'color 0.6s'}}>Tonight’s selection · {p.mood}</Eyebrow>
           <div style={{display:'grid',gridTemplateColumns:'auto 1fr',gap:32,alignItems:'flex-start'}}>
             <div style={{position:'relative'}}>
               <div aria-hidden style={{position:'absolute',inset:-18,borderRadius:14,background:`radial-gradient(ellipse at center,${p.moodHex}55,transparent 70%)`,filter:'blur(40px)',transition:'background 0.8s'}}/>

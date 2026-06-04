@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { tmdbImg } from '@/shared/api/tmdb'
 import MatchBadge from '@/shared/components/MatchBadge'
-import { FILM_PALETTE, TIMELINE, DNA_DELTA, HP, HP_GRAD } from './data'
+import { FILM_PALETTE, PARASITE_TIMELINE_SAMPLE, PARASITE_DNA_DELTA_SAMPLE, HP, HP_GRAD } from './data'
 import { useMovieData } from './useMovieData'
 import { useUserRating } from './hooks/useUserRating'
 
@@ -397,7 +397,7 @@ function TimelineSection() {
   // film, so every other movie falls back to its single TMDB release date.
   // Auto-generated overlays MUST NOT trigger the Parasite-specific list.
   const timeline = mv.id === PARASITE_TMDB_ID
-    ? TIMELINE
+    ? PARASITE_TIMELINE_SAMPLE
     : (mv.releaseDate ? [{ date: mv.releaseDate, label: 'Released', note: null }] : []);
   if (timeline.length === 0 && mv.languages.length === 0) return null;
   // The headline + kicker overpromise when we only have a single release
@@ -637,7 +637,7 @@ function DNADelta() {
       <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color: HP.purple, marginBottom:6 }}>Your engine projects this shift</div>
       <div style={{ fontSize:12, color: HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', fontStyle:'italic', marginBottom:18 }}>Real before/after deltas land in a follow-up — for now, projected from your taste profile.</div>
       <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
-        {DNA_DELTA.map(d => {
+        {PARASITE_DNA_DELTA_SAMPLE.map(d => {
           const w = animated ? d.after : d.before;
           const delta = (d.after - d.before).toFixed(2);
           return (

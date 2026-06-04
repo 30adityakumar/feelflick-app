@@ -133,7 +133,7 @@ export default function RatingStep({ favoriteMovies, ratings, onRate, onBack, on
         </h2>
         <p className="mt-2 max-w-xl text-[13px] leading-relaxed text-white/55 sm:mt-3 sm:text-sm md:text-[15px]">
           {allRated
-            ? 'Tap the button below to lock it in and head home.'
+            ? 'That’s all of them. Building your first picks…'
             : reduced
               ? "Tap one. We'll move on automatically."
               : 'Swipe right to love, left to pass, up to like. Or tap.'}

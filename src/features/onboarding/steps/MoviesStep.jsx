@@ -423,7 +423,8 @@ export default function MoviesStep({
           </em>
         </h2>
         <p className="text-[13px] sm:text-sm md:text-[15px] text-white/60 mt-2 leading-relaxed">
-          Pick 5 films that shaped your taste.
+          Pick 5 films that shaped your taste. These anchor your first picks — so go
+          honest, not impressive.
         </p>
       </div>
 

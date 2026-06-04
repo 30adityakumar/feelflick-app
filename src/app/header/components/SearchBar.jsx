@@ -388,7 +388,7 @@ function MovieResultCard({ id, movie, onClick, onMouseEnter, isSelected }) {
       </div>
 
       <div className="min-w-0 flex-1">
-        <h4 className="truncate text-sm font-semibold text-white transition-colors group-hover:text-orange-400 md:text-base">
+        <h4 className="truncate text-sm font-semibold text-white transition-colors group-hover:text-purple-400 md:text-base">
           {movie.title}
         </h4>
         <div className="mt-1 flex items-center gap-2 text-xs text-white/60 md:text-sm">

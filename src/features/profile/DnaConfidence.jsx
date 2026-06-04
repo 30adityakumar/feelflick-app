@@ -11,7 +11,7 @@
 
 import { Link } from 'react-router-dom'
 import Eyebrow from '@/shared/ui/Eyebrow'
-import { HP, HP_GRAD } from './data'
+import { HP, HP_GRAD, RADIUS, SPACE } from './data'
 
 // Tier label from the confidence value — LABELING ONLY (mirrors QuickStats'
 // low/medium/high thresholds). Never recomputes or reinterprets the number.
@@ -36,7 +36,7 @@ export default function DnaConfidence({ confidence, filmsLogged = 0, filmsRated 
   const cold = tier.key === 'low'
 
   return (
-    <section className="ff-profile-section" style={{ padding: '56px 88px', borderTop: `1px solid ${HP.border}` }}>
+    <section className="ff-profile-section" style={{ padding: `${SPACE.sectionMd}px ${SPACE.gutter}px`, borderTop: `1px solid ${HP.border}` }}>
       <div className="ff-profile-dnaconf-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1.3fr', gap: 64, alignItems: 'flex-start' }}>
         {/* Left — the number, tier, bar, and the evidence it's built from */}
         <div>
@@ -45,8 +45,8 @@ export default function DnaConfidence({ confidence, filmsLogged = 0, filmsRated 
             <span style={{ fontFamily: 'Outfit', fontSize: 72, fontWeight: 200, color: HP.text, letterSpacing: '-0.05em', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{pct}%</span>
             <span style={{ fontFamily: 'Outfit', fontSize: 14, fontWeight: 500, color: cold ? HP.textMuted : HP.purple, fontStyle: 'italic' }}>{tier.label}</span>
           </div>
-          <div role="presentation" style={{ marginTop: 18, height: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 999, overflow: 'hidden', maxWidth: 320 }}>
-            <div style={{ height: '100%', width: `${pct}%`, background: HP_GRAD, borderRadius: 999, transition: 'width 0.9s cubic-bezier(0.2,0.8,0.2,1)' }} />
+          <div role="presentation" style={{ marginTop: 18, height: 6, background: 'rgba(255,255,255,0.06)', borderRadius: RADIUS.pill, overflow: 'hidden', maxWidth: 320 }}>
+            <div style={{ height: '100%', width: `${pct}%`, background: HP_GRAD, borderRadius: RADIUS.pill, transition: 'width 0.9s cubic-bezier(0.2,0.8,0.2,1)' }} />
           </div>
           <div style={{ marginTop: 18, fontSize: 12, color: HP.textMuted, fontFamily: 'Outfit', letterSpacing: '0.02em' }}>
             Built from <span style={{ color: HP.textSoft, fontWeight: 600 }}>{filmsLogged}</span> logged ·{' '}
@@ -73,7 +73,7 @@ export default function DnaConfidence({ confidence, filmsLogged = 0, filmsRated 
           {cold && (
             <Link
               to="/home"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 24, padding: '11px 20px', borderRadius: 6, background: HP_GRAD, color: '#fff', fontFamily: 'Outfit', fontSize: 13, fontWeight: 600, letterSpacing: '0.02em', textDecoration: 'none', boxShadow: '0 10px 26px -10px rgba(167,139,250,0.5)' }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 24, padding: '11px 20px', borderRadius: RADIUS.sm, background: HP_GRAD, color: '#fff', fontFamily: 'Outfit', fontSize: 13, fontWeight: 600, letterSpacing: '0.02em', textDecoration: 'none', boxShadow: '0 10px 26px -10px rgba(167,139,250,0.5)' }}
             >
               See tonight’s pick →
             </Link>

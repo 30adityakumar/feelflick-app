@@ -14,7 +14,7 @@
 // not repeated here. Self-hides only if there is genuinely no useful case.
 
 import Eyebrow from '@/shared/ui/Eyebrow'
-import { HP } from './data'
+import { HP, RADIUS, SPACE } from './data'
 
 const capitalize = (s) =>
   s ? s.charAt(0).toUpperCase() + s.slice(1).replace(/_/g, ' ') : ''
@@ -55,13 +55,13 @@ export default function PrimaryCaseCard({
     <section
       aria-label="The case for this film"
       className="ff-movie-section ff-movie-primary-case"
-      style={{ padding: '48px 88px 8px', borderTop: `1px solid ${HP.border}` }}
+      style={{ padding: `${SPACE.sectionSm}px ${SPACE.gutter}px 8px`, borderTop: `1px solid ${HP.border}` }}
     >
       <div
         style={{
           maxWidth: 880,
           padding: '26px 30px',
-          borderRadius: 12,
+          borderRadius: RADIUS.lg, // = 12 (zero-pixel)
           background: `linear-gradient(160deg, ${HP.purple}0f, transparent 72%)`,
           border: `1px solid ${HP.purple}33`,
         }}
@@ -98,7 +98,7 @@ export default function PrimaryCaseCard({
         {chips.length > 0 && (
           <div style={{ display: 'flex', gap: 8, marginTop: 18, flexWrap: 'wrap' }}>
             {chips.map(c => (
-              <span key={c} style={{ padding: '4px 10px', borderRadius: 999, background: 'rgba(255,255,255,0.05)', border: `1px solid ${HP.border}`, fontFamily: 'Outfit', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', color: HP.textSoft }}>{c}</span>
+              <span key={c} style={{ padding: '4px 10px', borderRadius: RADIUS.pill, background: 'rgba(255,255,255,0.05)', border: `1px solid ${HP.border}`, fontFamily: 'Outfit', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', color: HP.textSoft }}>{c}</span>
             ))}
           </div>
         )}

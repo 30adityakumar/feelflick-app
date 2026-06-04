@@ -8,7 +8,7 @@
 // its slot label + synopsis instead.
 
 import Eyebrow from '@/shared/ui/Eyebrow'
-import { HP } from './data'
+import { HP, RADIUS } from './data'
 
 /**
  * @param {object} props
@@ -27,7 +27,7 @@ export default function WhyThisPick({ reason, accent = HP.purple, className = ''
       style={{
         marginBottom: 14,
         padding: '10px 14px',
-        borderRadius: 8,
+        borderRadius: RADIUS.md, // = 8 (zero-pixel token adoption, F11B.2)
         background: `${accent}0d`,
         border: `1px solid ${accent}26`,
         ...style,

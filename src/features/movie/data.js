@@ -53,5 +53,5 @@ const PARASITE_DNA_DELTA_SAMPLE = [
 ]
 
 // === Brand tokens ===
-export { HP, HP_GRAD } from '@/shared/lib/tokens'
+export { HP, HP_GRAD, RADIUS, SPACE } from '@/shared/lib/tokens'
 export { FILM_PALETTE, PARASITE_TIMELINE_SAMPLE, PARASITE_DNA_DELTA_SAMPLE }

@@ -32,4 +32,4 @@ export const USER = {
 };
 
 // Brand tokens
-export { HP, HP_GRAD } from '@/shared/lib/tokens'
+export { HP, HP_GRAD, RADIUS, SPACE } from '@/shared/lib/tokens'

@@ -121,3 +121,24 @@ export const SURFACE = {
   card: HP.panel, // callout / card tint (= panel today)
   elevated: C.bgLight, // #0d0b14 — modals / menus (matches --bg-elevated)
 }
+
+/**
+ * Page-rhythm scale (px) — F11B.2. Names the section gutters + vertical rhythm the
+ * authenticated surfaces use today (F11A found inline section padding spanned
+ * 40/48/56/64/72/80/88 with a constant 88 gutter). Adopting these at *current
+ * values* is zero-pixel; the named members let a later wave (F11B.3) normalize the
+ * vertical rhythm with a single token change instead of hunting inline literals.
+ * @type {{ gutter:number, gutterSm:number, sectionLg:number, section:number, sectionMd:number, sectionSm:number, sectionXs:number, stack:number, stackSm:number, stackXs:number }}
+ */
+export const SPACE = {
+  gutter: 88, // desktop horizontal section gutter (constant across surfaces)
+  gutterSm: 32, // narrow / landing gutter
+  sectionLg: 80, // hero / lead section vertical padding
+  section: 72, // standard section
+  sectionMd: 56, // medium section
+  sectionSm: 48, // dense / secondary section
+  sectionXs: 40, // compact section
+  stack: 24, // standard vertical stack gap
+  stackSm: 16,
+  stackXs: 12,
+}

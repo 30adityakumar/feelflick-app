@@ -22,11 +22,14 @@
       capture. **F8C still BLOCKED.**
 - [ ] **F10C — Synthetic Persona Usability Lab** (parallel UX track while we wait for real
       testers): built a reusable persona lab under `docs/personas/` (schema, 16 personas,
-      task script, rubric, Claude prompt pack, tooling proposal) + ran a 2-persona pilot.
-      **Synthetic ≠ real users — does NOT unblock F8C.** Top pilot signal: cold-start
-      re-seeding is the shared pinch point (no diary/Trakt import; "three questions" thin for
-      cinephiles, value gated for scrollers); the honesty layer (no fabricated why/reviews/score)
-      is a real strength. All findings are hypotheses to validate in Wave 1.
+      task script, rubric, Claude prompt pack, tooling proposal) + ran a 2-persona pilot;
+      **F10C.1 merged it (PR #183, squash `00b8b4e4`) + classified the findings into a
+      controlled backlog** (`docs/personas/persona-usability-backlog-f10c1.md`).
+      **Synthetic ≠ real users — does NOT unblock F8C; nothing acted on.** Buckets 1–2
+      (cold-start re-seeding, cold no-why, home-tail re-scroll) wait on **Wave-1 real-user
+      validation**; Bucket 3 (honesty invariants) is a protect-list; Bucket 4 (imports/library/
+      availability/social) is deferred. Next persona runs queued (cold-start, anti-slop, couple,
+      JustWatch, Plex) — not run yet.
 
 ## Up Next (prioritized)
 - [x] ~~Apply the Sentry Allowed-Domains dashboard fix~~ — ✅ done (user) + **verified
@@ -67,6 +70,15 @@
       outcome-capture baseline (`docs/sql/recommendation-evaluation-queries.sql` §7).
 
 ## Done This Week
+- [x] **F10C.1 — Merge persona lab + classify findings** (docs only): merged PR #183 (squash
+      `00b8b4e4`); created `docs/personas/persona-usability-backlog-f10c1.md` — pilot findings
+      classified into 4 buckets: **(1) validate-with-real-users** (cold-start re-seeding, cold
+      no-why, home-tail re-scroll), **(2) safe-UX-candidate-after-validation** (thin-why microcopy,
+      re-seed prompt, "teach FeelFlick" guidance — queued, not built), **(3) protect/do-not-regress**
+      (null-safe non-fabrication, ViewerNotes/DnaConfidence honesty, no fake social proof, honest
+      match gloss), **(4) defer** (diary/Trakt/Plex/JustWatch/social integrations). Each item:
+      source persona · evidence · severity · validation-required · next action. Next persona-run
+      queue added. **Nothing implemented; synthetic ≠ validation; F8C stays blocked.**
 - [x] **F10C — Synthetic Persona Usability Lab** (docs/UX-inspection only; engine frozen `2.17`):
       created `docs/personas/` — `persona-schema-f10c.md`, `synthetic-personas-f10c.md` (10 platform
       archetypes + 6 FeelFlick targets, all clearly labeled synthetic/no-proprietary-data),

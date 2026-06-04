@@ -10,12 +10,12 @@
 > This file tracks only the *active* slice — don't duplicate the roadmap here.
 
 ## Currently In Progress
-- [ ] (between phases) — F9D landed (production observability + security headers,
-      config/docs-only): **Sentry 403 root-caused** to a Sentry *Allowed-Domains*
-      inbound filter (one-time dashboard fix — `docs/production-observability-security-f9d.md`
-      §1; no code/env change); shipped safe security headers via **`public/_headers`**
-      (prod = **Cloudflare Pages**, not Vercel) + mirrored `vercel.json`; CSP deferred
-      (draft report-only). F8C still blocked (needs real-user outcome volume).
+- [ ] (between phases) — F9E landed: merged F9D (**PR #171, squash `0b9a1b5c`**) and
+      **verified the security headers LIVE on `app.feelflick.com`** (all five present;
+      app renders; fonts/TMDB load; no header/CSP breakage). **Sentry still 403** — the
+      Sentry MCP is read-only (can't write the Allowed-Domains filter), so the one
+      manual dashboard toggle remains (`docs/post-f9d-verification-f9e.md` §4). F8C
+      still blocked (needs real-user outcome volume).
 
 ## Up Next (prioritized)
 - [ ] **Apply the Sentry Allowed-Domains dashboard fix** (the one manual step from
@@ -50,6 +50,16 @@
       outcome-capture baseline (`docs/sql/recommendation-evaluation-queries.sql` §7).
 
 ## Done This Week
+- [x] **F9E — Post-F9D production verification** (`docs/post-f9d-verification-f9e.md`):
+      merged PR #171 (squash `0b9a1b5c`) → `main`; post-merge CI + Cloudflare Pages
+      prod deploy green. **Security headers VERIFIED LIVE on `app.feelflick.com`**
+      (`x-frame-options: SAMEORIGIN`, `x-content-type-options: nosniff`,
+      `referrer-policy`, `permissions-policy: camera/mic/geo/browsing-topics=()`,
+      `strict-transport-security: max-age=31536000`); browser smoke confirms the app
+      renders + fonts/TMDB load + no header/CSP breakage (only the Sentry 403 remains).
+      **Sentry ingest still 403** — Sentry MCP is read-only (no inbound-filter write),
+      so the Allowed-Domains dashboard toggle is still the one manual step. lint + 487
+      tests + build + audit green. No code change.
 - [x] **F9D — Production Observability + Security-Header Hardening**
       (`docs/production-observability-security-f9d.md`): config + docs only, no
       product/engine change. **Root-caused the Sentry 403** — it's an Origin/

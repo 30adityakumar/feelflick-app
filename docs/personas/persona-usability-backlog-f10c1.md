@@ -9,6 +9,16 @@
 
 **Status:** ✅ backlog classified. **Date:** 2026-06-04. **Engine:** frozen `2.17`.
 
+> **Update (F10D — full 16-persona simulation):** the full cohort run
+> ([synthetic-ux-backlog-f10d.md](synthetic-ux-backlog-f10d.md)) **strengthened** this pilot's
+> three Bucket-1 findings (more personas hit each — B1 cold-start re-seeding across P1/P5/P11/P12/
+> P14/P15/P16; B2 cold no-"why" across P3/P11/P15; B3 `/home`-tail re-scroll across P3/P7/P11) and
+> **weakened none**. It **added** items: the sign-in/onboarding **value-gate** (D-4), a landing
+> "three short questions" vs. real 4-step onboarding **copy mismatch** (D-7), and **graceful "not
+> yet" copy** for scope gaps (D-10). The Bucket-3 honesty invariants here were **confirmed as the
+> cohort's top strength**. Net: pilot findings hold; F10D is the superset. Still synthetic; still
+> does not unblock F8C.
+
 ## How to read this
 
 - **Severity:** `P0` (blocking/trust-breaking) · `P1` (significant friction) · `P2` (polish) ·

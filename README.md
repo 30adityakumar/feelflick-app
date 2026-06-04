@@ -248,6 +248,7 @@ and ending green on `lint → test → build`. See the roadmap in the
 - **F10A — Private preview + outcome baseline** ✅ done (preview plan + decision criteria, tester guide, launch runbook, feedback template, outcome-baseline collection plan; pre-preview dev baseline; engine frozen — `docs/private-preview-*-f10a.md`, `docs/outcome-baseline-collection-f10a.md`)
 - **F10B — Run private preview, Wave 1** 🟡 in progress (prepared the Wave-1 operating sheet + tester invite copy + a PII-free tracker template; ran + recorded the pre-invite readiness gate — prod/headers/CSP/Sentry/CI/Cloudflare/Supabase all healthy; **invites not yet sent** — `docs/private-preview-wave-1-f10b.md`)
 - **F10C — Synthetic persona usability lab** ✅ done (a parallel UX-inspection track while awaiting real testers: persona schema + 16 archetypes + task script + rubric + Claude prompt pack + tooling proposal + a 2-persona pilot — **synthetic ≠ real-user validation; does not unblock F8C** — `docs/personas/`)
+- **F10D — Full synthetic 16-persona journey simulation** ✅ done (ran all 16 personas + produced cohort findings, a simulated outcome matrix, a 5-bucket UX backlog, and **real-preview watch-items** with confirm/disprove criteria — **synthetic ≠ validation; does not unblock F8C; nothing implemented** — `docs/personas/*-f10d.md`)
 - **F8C — Gated engine tuning** ⏭️ next — **still blocked** until the **F10B private preview** (Wave 1 → 2) collects a non-trivial, stable real-user outcome baseline (capture mechanism is proven; real-user volume is not there yet)
 
 ---

@@ -9,6 +9,7 @@
 
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import Eyebrow from '@/shared/ui/Eyebrow'
+import PageContainer from '@/shared/ui/PageContainer'
 import { HP } from './data'
 import {
   Masthead, IdentityCard, Notifications,
@@ -36,7 +37,9 @@ function AccountV2Shell() {
 
   return (
     <div className="ff-account-v2" style={{ minHeight:'100vh', background: HP.bgDeep, color: HP.text, fontFamily:'Inter, sans-serif' }}>
-      <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+      {/* F12B: shared PageContainer (size="app" = 1280, byte-identical to the old inline cap) + a11y landmark. */}
+      <PageContainer size="app" padding="none">
+        <h1 className="sr-only">Account settings</h1>
         <Masthead />
         <IdentityCard />
         <Notifications />
@@ -46,7 +49,7 @@ function AccountV2Shell() {
         <SessionsCard />
         <DangerZone />
         <AccountFooter />
-      </div>
+      </PageContainer>
     </div>
   )
 }

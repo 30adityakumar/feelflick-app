@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import MoodPill from '@/shared/components/MoodPill'
 import Eyebrow from '@/shared/ui/Eyebrow'
+import PageContainer from '@/shared/ui/PageContainer'
 import { HP, HP_GRAD } from './data'
 import { HistoryDataProvider, useHistoryData } from './useHistoryData'
 import './history.css'
@@ -350,9 +351,11 @@ export default function History() {
   return (
     <HistoryDataProvider>
       <div className="ff-history-v2" style={{ minHeight:'100vh', background:HP.bgDeep, color:HP.text, fontFamily:'Inter, sans-serif' }}>
-        <div style={{ maxWidth:1440, margin:'0 auto' }}>
+        {/* F12B: shared PageContainer (size="wide" = 1440, byte-identical to the old inline cap) + a11y landmark. */}
+        <PageContainer size="wide" padding="none">
+          <h1 className="sr-only">Your diary</h1>
           <HistoryShell />
-        </div>
+        </PageContainer>
       </div>
     </HistoryDataProvider>
   )

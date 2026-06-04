@@ -157,6 +157,8 @@ function HomeBody() {
         transition: 'background 0.6s ease',
       }} />
       <div style={{ position: 'relative', zIndex: 1 }}>
+        {/* a11y landmark (F12B): the visual masthead is the Briefing hero; an sr-only h1 gives the page its heading without competing with the pick. */}
+        <h1 className="sr-only">Tonight — your nightly pick</h1>
         <MoodReactor currentMood={currentMood} setMood={handleSetMood} onReshuffle={onReshuffle} />
         <TheBriefing
           currentMood={currentMood}

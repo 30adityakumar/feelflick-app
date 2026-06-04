@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { HP, HP_GRAD, C, RADIUS, SHADOW, SURFACE, SPACE } from '../tokens'
+import { HP, HP_GRAD, C, RADIUS, SHADOW, SURFACE, SPACE, LAYOUT, GUTTER, TYPE } from '../tokens'
 
 // Brand-vs-semantic token contract (F3 hardening) — see
 // docs/design-system-hardening-f3.md. Guards two invariants: the single brand
@@ -87,6 +87,39 @@ describe('design tokens — SPACE rhythm scale (F11B.2)', () => {
     const ramp = ['sectionLg', 'section', 'sectionMd', 'sectionSm', 'sectionXs']
     for (let i = 1; i < ramp.length; i++) {
       expect(SPACE[ramp[i]]).toBeLessThan(SPACE[ramp[i - 1]])
+    }
+  })
+})
+
+describe('layout tokens — LAYOUT / GUTTER (F12B)', () => {
+  it('pins the page-width scale (narrow < app < wide)', () => {
+    expect(LAYOUT).toEqual({ pageMax: 1280, pageWide: 1440, pageNarrow: 1080 })
+    expect(LAYOUT.pageNarrow).toBeLessThan(LAYOUT.pageMax)
+    expect(LAYOUT.pageMax).toBeLessThan(LAYOUT.pageWide)
+  })
+
+  it('pins the responsive gutter scale, aligned to SPACE', () => {
+    expect(GUTTER).toEqual({ mobile: 20, tablet: 32, desktop: 88 })
+    expect(GUTTER.tablet).toBe(SPACE.gutterSm) // 32
+    expect(GUTTER.desktop).toBe(SPACE.gutter) // 88
+  })
+})
+
+describe('type-scale tokens — TYPE (F12B)', () => {
+  it('exposes pageTitle/sectionTitle/cardTitle/body, each fully specified', () => {
+    for (const key of ['pageTitle', 'sectionTitle', 'cardTitle', 'body']) {
+      const t = TYPE[key]
+      expect(t).toBeTruthy()
+      expect(t).toHaveProperty('size')
+      expect(t).toHaveProperty('weight')
+      expect(t).toHaveProperty('spacing')
+      expect(t).toHaveProperty('lineHeight')
+    }
+  })
+
+  it('uses non-hero weights (no font-black / weight 900)', () => {
+    for (const key of ['pageTitle', 'sectionTitle', 'cardTitle', 'body']) {
+      expect(TYPE[key].weight).toBeLessThan(900)
     }
   })
 })

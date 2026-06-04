@@ -70,6 +70,19 @@
       outcome-capture baseline (`docs/sql/recommendation-evaluation-queries.sql` §7).
 
 ## Done This Week
+- [x] **F12B — PageContainer + type scale + missing h1s** (first premium-polish wave; engine frozen `2.17`;
+      **zero rendered-pixel change**): added shared **`<PageContainer>`** primitive (size app1280/wide1440/
+      narrow1080 + responsive padding none/sm/default/lg; layout-only) + additive **LAYOUT/GUTTER/TYPE**
+      tokens; +13 tests (PageContainer 7 + token pins) = 533. **Added the 4 missing `<h1>` landmarks**
+      (Home/Browse/History/Account) as **`sr-only`** (documented: each masthead is intentional — Briefing
+      hero / filter toolbar / Diary eyebrow / editable identity — so a visible page-title would compete;
+      sr-only fixes the a11y landmark + heading order at zero visual risk). **Byte-identical PageContainer
+      adoption** on Account (size="app"=1280) + History (size="wide"=1440). **VERIFIED on LIVE authenticated
+      Home/Browse/History/Account at 390/768/1280/1440** (Playwright harness): zero h-overflow all bp, h1count
+      1 + srOnly true each, container maxW correct, **history-1280 byte-identical + account identical
+      dimensions** (36-byte dynamic-content PNG noise). `TYPE` shipped as tokens (broad visible heading
+      normalization deferred). No `<Button>`/`/about` impact. Docs: `docs/ui/page-container-type-h1-f12b.md`
+      + DESIGN_SYSTEM §6c. lint/533/build/audit green. Next F12C = 44px mobile touch-target sweep. F8C blocked.
 - [x] **F12A — Premium UI visual QA + responsive composition audit** (AUDIT ONLY, docs-only; engine frozen
       `2.17`): ran a REAL authenticated visual pass of **13 routes × 6 breakpoints** (390/430/768/1024/1280/
       1440) via the Playwright harness — captured **computed metrics + 26 screenshots** (7 directly reviewed;

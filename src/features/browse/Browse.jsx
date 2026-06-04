@@ -605,6 +605,8 @@ export default function Browse() {
     <div style={{ minHeight:'100vh', background:HP.bg, color:HP.text, fontFamily:'Inter, sans-serif', position:'relative' }}>
       <MoodBackdrop tint={MOODS.find(m=>m.id===mood)?.hex || HP.purple} />
       <div style={{ position:'relative', zIndex:1, maxWidth:1440, margin:'0 auto' }}>
+        {/* a11y landmark (F12B): Browse leads with the filter toolbar; sr-only h1 supplies the page heading. */}
+        <h1 className="sr-only">Browse films</h1>
         <Toolbar
           query={draftQuery} setQuery={setQuery} draftQuery={draftQuery} setDraftQuery={setDraftQ}
           hideWatched={hideWatched} setHide={setHide}

@@ -1,0 +1,56 @@
+/* src/shared/ui/PageContainer.css — F12B shared page container.
+   Layout only. `padding` variants are responsive horizontal gutters matching the
+   existing px-5 → sm:px-8 → lg:px-[88px] rhythm (GUTTER token: 20 → 32 → 88).
+   `none` keeps gutters with the consumer (used by byte-identical proof adoptions). */
+
+.ff-page {
+  box-sizing: border-box;
+}
+
+.ff-page--pad-none {
+  /* no horizontal padding — section-level gutters stay with the consumer */
+}
+
+/* default: 20 → 32 (≥768) → 88 (≥1024) */
+.ff-page--pad-default {
+  padding-left: 20px;
+  padding-right: 20px;
+}
+.ff-page--pad-sm {
+  padding-left: 16px;
+  padding-right: 16px;
+}
+.ff-page--pad-lg {
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+@media (min-width: 768px) {
+  .ff-page--pad-default {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+  .ff-page--pad-sm {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+  .ff-page--pad-lg {
+    padding-left: 48px;
+    padding-right: 48px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .ff-page--pad-default {
+    padding-left: 88px;
+    padding-right: 88px;
+  }
+  .ff-page--pad-sm {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+  .ff-page--pad-lg {
+    padding-left: 96px;
+    padding-right: 96px;
+  }
+}

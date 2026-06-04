@@ -10,21 +10,25 @@
 > This file tracks only the *active* slice — don't duplicate the roadmap here.
 
 ## Currently In Progress
-- [ ] (between phases) — F9G landed: shipped a **`Content-Security-Policy-Report-Only`**
-      header via `public/_headers` (+ `vercel.json`) — never blocks; reports go to the
-      Sentry security endpoint (verified 200). `style-src 'unsafe-inline'` (inline
-      styles); `script-src` kept strict. Monitor Sentry → Security before enforcing
-      (`docs/csp-report-only-f9g.md`). F8C still blocked (needs real-user outcome volume).
+- [ ] (between phases) — F9G.1 landed: merged F9G (**PR #174, squash `86a0ebab`**); the
+      **report-only CSP is LIVE + non-breaking on `app.feelflick.com`** (no enforcing CSP;
+      other headers intact). Reporting pipeline verified end-to-end. **One** violation
+      found: the Cloudflare-injected inline RUM beacon (`script-src-elem`; Sentry issue
+      `FEELFLICK-APP-5`) — resolve before enforcing (`docs/csp-report-only-verification-f9g1.md`
+      §5). F8C still blocked (needs real-user outcome volume).
 
 ## Up Next (prioritized)
 - [x] ~~Apply the Sentry Allowed-Domains dashboard fix~~ — ✅ done (user) + **verified
       in F9F** (prod ingest working; test error landed in Issues). Housekeeping: resolve
       the labeled `F9F-SENTRY-VERIFY` test Issue in Sentry.
-- [ ] **Production hardening follow-ups**: **CSP report-only shipped (F9G)** → monitor
-      Sentry → Security for a few days, then **enforce** per `docs/csp-report-only-f9g.md`
-      §6; set CI repo secrets to make **E2E + Lighthouse** non-skip (names in F9D §4);
-      upgrade HSTS (`includeSubDomains`/preload) once subdomains are HTTPS-confirmed;
-      color-contrast a11y pass.
+- [ ] **CSP enforcement** (after F9G/F9G.1): the report-only CSP is live with exactly
+      ONE violation — the **Cloudflare-injected inline RUM beacon** (`script-src-elem`).
+      Resolve it (preferred: disable Cloudflare RUM auto-injection/Rocket Loader + load
+      the beacon externally; or hash; or `'unsafe-inline'`), add `report-to`, drop the
+      deprecated `child-src`, then flip to enforcing — `docs/csp-report-only-verification-f9g1.md` §5–§6.
+- [ ] **Other hardening**: set CI repo secrets to make **E2E + Lighthouse** non-skip
+      (names in F9D §4); upgrade HSTS (`includeSubDomains`/preload) once subdomains are
+      HTTPS-confirmed; color-contrast a11y pass.
 - [ ] **F8C — Gated engine tuning** — the first phase allowed to touch scoring
       (highest blast radius). **Capture is now PROVEN in prod (F9C)**; the gate that
       remains is **VOLUME**: a POST-DEPLOY baseline (via
@@ -48,6 +52,16 @@
       outcome-capture baseline (`docs/sql/recommendation-evaluation-queries.sql` §7).
 
 ## Done This Week
+- [x] **F9G.1 — CSP report-only production verification**
+      (`docs/csp-report-only-verification-f9g1.md`): merged PR #174 (squash `86a0ebab`);
+      `content-security-policy-report-only` **live on `app.feelflick.com`** (no enforcing
+      CSP; all F9D headers intact); app renders + fonts/TMDB/Supabase/Sentry all work
+      (report-only never blocks). Reporting pipeline verified end-to-end (browser POST to
+      Sentry security endpoint → 200; report landed as Sentry issue `FEELFLICK-APP-5`).
+      **Exactly one violation:** the Cloudflare-injected inline RUM beacon
+      (`script-src-elem`) — prod-only (the `*.pages.dev` preview bypasses CF zone
+      features) → handle before enforcing. lint + 487 tests + build + audit green. No
+      code change.
 - [x] **F9G — CSP report-only** (`docs/csp-report-only-f9g.md`): shipped
       `Content-Security-Policy-Report-Only` via `public/_headers` (Cloudflare Pages —
       prod) + mirrored `vercel.json`. Built the full source inventory from the F9C/F9F

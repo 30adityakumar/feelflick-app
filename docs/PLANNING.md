@@ -10,20 +10,20 @@
 > This file tracks only the *active* slice — don't duplicate the roadmap here.
 
 ## Currently In Progress
-- [ ] (between phases) — F9F landed: after the user applied the Sentry Allowed-Domains
-      fix, **production Sentry ingest is VERIFIED WORKING** — 403 gone (server-side +
-      browser), prod console clean, and a labeled runtime test error landed in Sentry
-      Issues (env `production`, url `app.feelflick.com`). Production error monitoring is
-      now live. F8C still blocked (needs real-user outcome volume).
+- [ ] (between phases) — F9G landed: shipped a **`Content-Security-Policy-Report-Only`**
+      header via `public/_headers` (+ `vercel.json`) — never blocks; reports go to the
+      Sentry security endpoint (verified 200). `style-src 'unsafe-inline'` (inline
+      styles); `script-src` kept strict. Monitor Sentry → Security before enforcing
+      (`docs/csp-report-only-f9g.md`). F8C still blocked (needs real-user outcome volume).
 
 ## Up Next (prioritized)
 - [x] ~~Apply the Sentry Allowed-Domains dashboard fix~~ — ✅ done (user) + **verified
       in F9F** (prod ingest working; test error landed in Issues). Housekeeping: resolve
       the labeled `F9F-SENTRY-VERIFY` test Issue in Sentry.
-- [ ] **Production hardening follow-ups** (`docs/production-observability-security-f9d.md`
-      §6): ship **CSP report-only** (draft policy in the doc) → tune → enforce; set
-      CI repo secrets to make **E2E + Lighthouse** non-skip (names in F9D §4); upgrade
-      HSTS (`includeSubDomains`/preload) once subdomains are HTTPS-confirmed;
+- [ ] **Production hardening follow-ups**: **CSP report-only shipped (F9G)** → monitor
+      Sentry → Security for a few days, then **enforce** per `docs/csp-report-only-f9g.md`
+      §6; set CI repo secrets to make **E2E + Lighthouse** non-skip (names in F9D §4);
+      upgrade HSTS (`includeSubDomains`/preload) once subdomains are HTTPS-confirmed;
       color-contrast a11y pass.
 - [ ] **F8C — Gated engine tuning** — the first phase allowed to touch scoring
       (highest blast radius). **Capture is now PROVEN in prod (F9C)**; the gate that
@@ -48,6 +48,15 @@
       outcome-capture baseline (`docs/sql/recommendation-evaluation-queries.sql` §7).
 
 ## Done This Week
+- [x] **F9G — CSP report-only** (`docs/csp-report-only-f9g.md`): shipped
+      `Content-Security-Policy-Report-Only` via `public/_headers` (Cloudflare Pages —
+      prod) + mirrored `vercel.json`. Built the full source inventory from the F9C/F9F
+      prod network captures; `style-src 'unsafe-inline'` (pervasive inline styles),
+      `script-src` kept STRICT (built bundle has no inline-executable script). Reports
+      to the Sentry CSP security endpoint (verified accepts reports → 200). **Never
+      blocks** — collects violations to confirm what would break before enforcing. No
+      enforcing CSP. lint + 487 tests + build (emits `dist/_headers` w/ CSP) + audit
+      green. No product/engine change.
 - [x] **F9F — Sentry ingest verification** (`docs/sentry-ingest-verification-f9f.md`):
       after the user added `app.feelflick.com`/`*.feelflick.com`/`localhost` to Sentry
       Allowed Domains, verified prod ingest works — 403→200 server-side (control

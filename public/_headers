@@ -1,13 +1,15 @@
-# Cloudflare Pages response headers (F9D production hardening).
+# Cloudflare Pages response headers (F9D enforced + F9G report-only CSP).
 # app.feelflick.com is served by Cloudflare Pages (see public/_redirects), so this
 # file — NOT vercel.json — is what reaches production. vercel.json mirrors these
 # for the Vercel preview/deploy path.
 #
-# Only SAFE, non-breaking headers are enforced here. A Content-Security-Policy is
-# intentionally deferred: the app uses inline `style=` pervasively (and an inline
-# <style> in index.html), so any CSP must allow style-src 'unsafe-inline', and
-# script-src needs care for the Cloudflare Insights beacon + Vite — see
-# docs/production-observability-security-f9d.md for the draft report-only CSP.
+# The first five headers are ENFORCED (F9D). The Content-Security-Policy is shipped
+# REPORT-ONLY (F9G): it never blocks anything — it only sends violation reports to
+# Sentry (report-uri) so we can confirm what would break before enforcing. style-src
+# allows 'unsafe-inline' because the app uses inline `style=` pervasively (+ an inline
+# <style> in index.html); script-src is kept strict (no 'unsafe-inline') — the built
+# bundle has no inline-executable script, so report-only will reveal anything that
+# does. Source inventory + enforcement plan: docs/csp-report-only-f9g.md.
 
 /*
   X-Frame-Options: SAMEORIGIN
@@ -15,3 +17,4 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=(), browsing-topics=()
   Strict-Transport-Security: max-age=31536000
+  Content-Security-Policy-Report-Only: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; script-src 'self' https://static.cloudflareinsights.com https://us-assets.i.posthog.com https://us.i.posthog.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://image.tmdb.org https://*.tmdb.org https://i.ytimg.com https://lh3.googleusercontent.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co https://api.themoviedb.org https://*.ingest.us.sentry.io https://*.ingest.sentry.io https://us.i.posthog.com https://us-assets.i.posthog.com https://*.posthog.com https://cloudflareinsights.com https://static.cloudflareinsights.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://accounts.google.com https://challenges.cloudflare.com; worker-src 'self' blob:; child-src 'self' blob:; media-src 'self' https://image.tmdb.org; manifest-src 'self'; form-action 'self' https://*.supabase.co https://accounts.google.com; report-uri https://o4511197071736832.ingest.us.sentry.io/api/4511197073768448/security/?sentry_key=769b544f824e0c2cf23509c830c8b9b5&sentry_environment=production

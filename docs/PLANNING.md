@@ -70,6 +70,17 @@
       outcome-capture baseline (`docs/sql/recommendation-evaluation-queries.sql` §7).
 
 ## Done This Week
+- [x] **F10D — Full synthetic 16-persona customer-journey simulation** (docs/UX-inspection only;
+      engine frozen `2.17`): ran the full journey for all 16 personas (browser-observed landing +
+      code-grounded auth surfaces; the served pick honestly NOT OBSERVED). New docs under
+      `docs/personas/`: `full-synthetic-simulation-protocol-f10d.md`,
+      `full-synthetic-persona-findings-f10d.md` (16 personas), `synthetic-cohort-findings-f10d.md`
+      (cross-persona top-10 + risk matrix), `synthetic-outcome-matrix-f10d.md` (simulated behavioral
+      predictions — clearly NOT data), `synthetic-ux-backlog-f10d.md` (5 buckets, nothing built),
+      and **`real-preview-watch-items-from-simulation-f10d.md`** (the key output — what to observe/
+      ask/measure in Wave 1, with confirm/disprove criteria). Top signals: cold-start is the
+      make-or-break; the honesty layer is the top trust-builder (protect); `/home` tail = anti-drift
+      watch. **SYNTHETIC ≠ real-user validation → does NOT unblock F8C; nothing implemented.**
 - [x] **F10C.1 — Merge persona lab + classify findings** (docs only): merged PR #183 (squash
       `00b8b4e4`); created `docs/personas/persona-usability-backlog-f10c1.md` — pilot findings
       classified into 4 buckets: **(1) validate-with-real-users** (cold-start re-seeding, cold

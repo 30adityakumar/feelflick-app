@@ -10,13 +10,12 @@
 > This file tracks only the *active* slice — don't duplicate the roadmap here.
 
 ## Currently In Progress
-- [ ] (between phases) — F9H landed (docs-only): documented why **E2E + Lighthouse CI
-      are skip-green** (missing repo secrets) + the exact secrets + `gh secret set` steps
-      + gate strategy (`docs/ci-nonskip-gates-f9h.md`). Both workflows are structurally
-      sound → they auto-flip to real gates once secrets exist (no code change). Verified
-      locally: **E2E 14/14**, and the landing **Lighthouse a11y = 0.96** (the `error ≥0.9`
-      assertion passes). **Maintainer action: add the 5 repo secrets** to enable the
-      gates. F8C still blocked (needs real-user outcome volume).
+- [ ] (between phases) — F9H.1 landed: **the E2E + Lighthouse CI gates are now real**
+      (no longer skip-green). Uploaded the 5 repo secrets from approved local sources
+      (no values printed/committed; presence verified via `gh secret list`) and fixed
+      `lighthouserc.json` to audit `index.html` only (excludes the Google-verification
+      stub) — `docs/ci-real-gates-verification-f9h1.md`. CI confirms both jobs run their
+      real steps (no `::notice:: skipping`). F8C still blocked (needs real-user outcome volume).
 
 ## Up Next (prioritized)
 - [x] ~~Apply the Sentry Allowed-Domains dashboard fix~~ — ✅ done (user) + **verified
@@ -28,10 +27,9 @@
       `child-src` (keep `worker-src`+`frame-src`), then change
       `Content-Security-Policy-Report-Only` → `Content-Security-Policy` in
       `functions/_middleware.js` and re-smoke. (Housekeeping: resolve Sentry `FEELFLICK-APP-5`.)
-- [ ] **Enable CI E2E + Lighthouse** (F9H documented it): maintainer adds the 5 repo
-      secrets (`docs/ci-nonskip-gates-f9h.md` §2 — `gh secret set …`); then refine the
-      Lighthouse collect to `index.html` (§5.1). The gates auto-flip to real on the next
-      PR (no code change).
+- [x] ~~**Enable CI E2E + Lighthouse**~~ — ✅ **DONE in F9H.1**: 5 repo secrets uploaded
+      (no values exposed) + Lighthouse collect restricted to `index.html`; both gates now
+      run for real (`docs/ci-real-gates-verification-f9h1.md`).
 - [ ] **Other hardening**: upgrade HSTS (`includeSubDomains`/preload) once subdomains are
       HTTPS-confirmed; color-contrast a11y pass.
 - [ ] **F8C — Gated engine tuning** — the first phase allowed to touch scoring
@@ -57,6 +55,16 @@
       outcome-capture baseline (`docs/sql/recommendation-evaluation-queries.sql` §7).
 
 ## Done This Week
+- [x] **F9H.1 — Enable real CI gates (E2E + Lighthouse)** (`docs/ci-real-gates-verification-f9h1.md`):
+      flipped both gates from skip-green to real. Uploaded the 5 GitHub Actions repo secrets
+      (`E2E_TEST_EMAIL/PASSWORD`, `VITE_SUPABASE_URL/ANON_KEY`, `VITE_TMDB_API_KEY`) from approved
+      local sources by piping each value over stdin to `gh secret set` — **no value printed,
+      written, or committed**; presence verified via `gh secret list` (fresh timestamps).
+      Fixed `lighthouserc.json`: added `collect.url: ["http://localhost/index.html"]` so lhci
+      audits the SPA shell only (was also auto-auditing the `google…html` verification stub).
+      Local green: lint · 487 tests · build · audit · valid JSON (E2E 14/14 unchanged on this
+      tree). CI on the PR confirms E2E + Lighthouse now run their real steps. One-line config
+      change only; workflows untouched. F8C still blocked.
 - [x] **F9H — Non-skip CI gates (E2E + Lighthouse)** (`docs/ci-nonskip-gates-f9h.md`):
       docs-only, no workflow change. Documented why the **E2E** (`app-quality.yml`) and
       **Lighthouse** (`lighthouse.yml`) jobs are skip-green (preflight checks for missing

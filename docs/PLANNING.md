@@ -10,17 +10,16 @@
 > This file tracks only the *active* slice — don't duplicate the roadmap here.
 
 ## Currently In Progress
-- [ ] **F10A — Private Preview Launch + Outcome Baseline Collection** (docs/measurement
-      only): created the private-preview **plan**, **tester guide**, **launch runbook**,
-      **feedback template**, and **outcome-baseline collection plan**
-      (`docs/private-preview-*-f10a.md` + `docs/outcome-baseline-collection-f10a.md`).
-      Recorded a read-only **pre-preview dev baseline** (8 users / 3,376 impressions —
-      F8B capture works on hero+discover, ~0 on carousels by design; dev-only, NOT
-      real-user stable). Next: invite **5–10 trusted testers** (cold+warm mix), collect
-      the real-user outcome baseline, then run the F8C go/no-go. **F8C still BLOCKED**
-      until the volume gate (≥5 real users, ~300–500+ hero/discover impressions on a
-      stable `algorithm_version 2.17`, stable ≥3 days) is met.
-      *(F9H.1 — real CI gates — merged via PR #180; see Done This Week.)*
+- [ ] **F10B — Run Private Preview, Wave 1** (operations/monitoring only; engine FROZEN
+      at `2.17`): prepared the Wave-1 operating sheet + invite copy + a (PII-free) tracker
+      template (`docs/private-preview-wave-1-f10b.md`, `docs/private-preview-wave-1-tracker-template-f10b.md`).
+      **Ran + recorded the pre-invite readiness checks** — prod 200, all 5 security headers,
+      CSP-RO rotating nonce, Sentry clean (3 issues are all my own test artifacts), CI green
+      on the last code commit, Cloudflare Pages healthy, Supabase auth grant OK, read-only
+      pre-wave baseline = **3,376 impr / 8 dev users** (unchanged → no real traffic yet).
+      **Invites NOT yet sent (your action).** Next: send the 2–3 Wave-1 invites, run the
+      per-tester onboarding smoke, monitor daily, collect the first windowed real-user
+      capture. **F8C still BLOCKED.**
 
 ## Up Next (prioritized)
 - [x] ~~Apply the Sentry Allowed-Domains dashboard fix~~ — ✅ done (user) + **verified
@@ -39,13 +38,13 @@
       HTTPS-confirmed; color-contrast a11y pass.
 - [ ] **F8C — Gated engine tuning** — the first phase allowed to touch scoring
       (highest blast radius). **Capture is now PROVEN in prod (F9C)**; the gate that
-      remains is **VOLUME**, now owned by the **F10A private preview**: collect the
-      real-user baseline per `docs/outcome-baseline-collection-f10a.md` (§7 SQL, windowed,
-      sliced by placement · `algorithm_version 2.17` · cold/warm) until the
-      [F10A volume gate](private-preview-plan-f10a.md#6-data-volume--duration-before-f8c)
-      is green. Today only dev/smoke volume (8 users) → **still blocked**. THEN tune
-      DB-first (recommendation-engine skill), leading with pool/coverage numbers +
-      expected skip/watch effect.
+      remains is **VOLUME**, now being collected via the **F10B private preview** (Wave 1 →
+      Wave 2): gather the windowed real-user baseline per
+      `docs/private-preview-wave-1-f10b.md` §9 + `docs/outcome-baseline-collection-f10a.md`
+      (§7 SQL, sliced by placement · `algorithm_version 2.17` · cold/warm) until the
+      [volume gate](private-preview-plan-f10a.md#6-data-volume--duration-before-f8c)
+      is green. Today only dev volume (8 users) → **still blocked**. THEN tune DB-first
+      (recommendation-engine skill), leading with pool/coverage numbers + expected skip/watch effect.
 - [ ] **F6C (later, gated)** — extend `generate-movie-overlay` to produce a
       `why_for_you` for non-curated films (Edge Function + prompt + honesty guards) —
       via the `supabase-change` skill.
@@ -61,6 +60,19 @@
       outcome-capture baseline (`docs/sql/recommendation-evaluation-queries.sql` §7).
 
 ## Done This Week
+- [x] **F10B — Run Private Preview, Wave 1 (prep)** (operations/docs only; engine frozen `2.17`):
+      created the Wave-1 operating sheet (`private-preview-wave-1-f10b.md`) — cohort (2–3),
+      invite sequence, tester invite copy (DM/email/reminder/feedback), daily monitoring
+      checklist, data-freeze + triage + pause rules, Wave-2 success criteria, baseline/measurement
+      plan with warning signs — and a **PII-free tracker template**
+      (`private-preview-wave-1-tracker-template-f10b.md`). **Ran + recorded the full pre-invite
+      readiness gate**: prod 200, 5 security headers, CSP-RO rotating nonce, Sentry clean (3
+      issues = my own test artifacts), CI green on last code commit `ec2cdb6a`, Cloudflare Pages
+      healthy, Supabase auth grant OK, read-only pre-wave baseline 3,376 impr / 8 dev users
+      (hero any-outcome 3.84% / discover 23.88%). Invites not yet sent. F8C stays blocked.
+- [x] **F10A.1 — Merge CI gates + private-preview docs**: merged **#180** (F9H.1 real CI gates,
+      squash `ec2cdb6a`) then **#181** (F10A docs, squash `830ae679`); resolved the trivial
+      PLANNING/README docs conflict preserving both phases; main green (lint/487/build/audit).
 - [x] **F10A — Private Preview + Outcome Baseline (docs/measurement only)**: five new docs —
       plan + decision criteria (`private-preview-plan-f10a.md`), tester guide
       (`private-preview-tester-guide-f10a.md`), launch runbook

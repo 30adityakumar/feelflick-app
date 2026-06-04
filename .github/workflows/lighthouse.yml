@@ -4,6 +4,7 @@ name: Lighthouse CI
 # Lighthouse against the static bundle. Gated to no-op (green) until the VITE_*
 # build secrets are configured, so it never blocks PRs before setup.
 on:
+  workflow_dispatch: # allow on-demand Lighthouse runs (verification / debugging)
   pull_request:
     branches: [main]
   push:

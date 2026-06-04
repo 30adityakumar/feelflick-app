@@ -1,6 +1,7 @@
 name: App Quality Gate
 
 on:
+  workflow_dispatch: # allow on-demand runs (e.g. to verify the secret-gated E2E gate)
   pull_request:
     branches: [main]
   push:

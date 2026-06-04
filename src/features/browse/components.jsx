@@ -142,7 +142,7 @@ function FilterPill({ label, value, options, defaultValue='', onChange }) {
   const activeLabel = active ? (options.find(o => o.value === value)?.label ?? label) : label;
   return (
     <div ref={ref} className="ff-browse-filter-pill" style={{ position:'relative' }}>
-      <button onClick={()=>setOpen(v=>!v)} aria-haspopup="listbox" aria-expanded={open} style={{ display:'inline-flex', alignItems:'center', gap:7, height:34, padding:'0 14px', borderRadius:999, border:`1px solid ${active ? HP.purple+'66' : HP.border}`, background: active ? `${HP.purple}1a` : 'rgba(255,255,255,0.04)', color: active ? HP.text : HP.textMid, fontFamily:'Inter', fontSize:12.5, fontWeight:500, cursor:'pointer', transition:'all 0.15s ease' }}>
+      <button className="ff-tap" onClick={()=>setOpen(v=>!v)} aria-haspopup="listbox" aria-expanded={open} style={{ display:'inline-flex', alignItems:'center', gap:7, height:34, padding:'0 14px', borderRadius:999, border:`1px solid ${active ? HP.purple+'66' : HP.border}`, background: active ? `${HP.purple}1a` : 'rgba(255,255,255,0.04)', color: active ? HP.text : HP.textMid, fontFamily:'Inter', fontSize:12.5, fontWeight:500, cursor:'pointer', transition:'all 0.15s ease' }}>
         <span>{activeLabel}</span>
         <IcChevD s={12} style={{ color: active ? HP.purple : HP.textLow, opacity:0.85, transform: open ? 'rotate(180deg)' : 'none', transition:'transform 0.18s ease' }} />
       </button>
@@ -320,11 +320,11 @@ function Toolbar(props) {
       <form className="ff-browse-toolbar-form" onSubmit={e=>{e.preventDefault(); setQuery(draftQuery);}} style={{ display:'flex', gap:10, alignItems:'center' }}>
         <div style={{ position:'relative', flex:1 }}>
           <div style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', color:HP.textLow }}><IcSearch s={15} /></div>
-          <input ref={searchRef} value={draftQuery} onChange={e=>setDraftQuery(e.target.value)} placeholder="Search by title or director…" style={{ width:'100%', height:42, padding:'0 38px 0 42px', borderRadius:999, border:`1px solid ${HP.border}`, background:'rgba(255,255,255,0.04)', color:HP.text, fontFamily:'Inter', fontSize:14, outline:'none', transition:'border-color 0.18s ease' }} onFocus={e=>e.target.style.borderColor=HP.purple+'66'} onBlur={e=>e.target.style.borderColor=HP.border} />
+          <input ref={searchRef} className="ff-tap" value={draftQuery} onChange={e=>setDraftQuery(e.target.value)} placeholder="Search by title or director…" style={{ width:'100%', height:42, padding:'0 38px 0 42px', borderRadius:999, border:`1px solid ${HP.border}`, background:'rgba(255,255,255,0.04)', color:HP.text, fontFamily:'Inter', fontSize:14, outline:'none', transition:'border-color 0.18s ease' }} onFocus={e=>e.target.style.borderColor=HP.purple+'66'} onBlur={e=>e.target.style.borderColor=HP.border} />
           {draftQuery && <button type="button" onClick={()=>{setDraftQuery(''); setQuery('');}} style={{ position:'absolute', right:42, top:'50%', transform:'translateY(-50%)', background:'transparent', border:'none', color:HP.textLow, cursor:'pointer', padding:4 }}><IcX s={14}/></button>}
           <span style={{ position:'absolute', right:12, top:'50%', transform:'translateY(-50%)', padding:'3px 7px', borderRadius:4, background:'rgba(255,255,255,0.05)', border:`1px solid ${HP.border}`, color:HP.textLow, fontFamily:'Inter', fontSize:11, letterSpacing:'0.04em' }}>/</span>
         </div>
-        <button type="submit" aria-label="Search" className="ff-browse-search-btn" style={{ height:42, padding:'0 22px', borderRadius:999, background:HP_GRAD, border:'none', color:'#fff', fontFamily:'Inter', fontSize:13, fontWeight:600, cursor:'pointer', whiteSpace:'nowrap', boxShadow:'0 8px 18px -6px rgba(236,72,153,0.4)', display:'inline-flex', alignItems:'center', gap:7 }}>
+        <button type="submit" aria-label="Search" className="ff-browse-search-btn ff-tap" style={{ height:42, padding:'0 22px', borderRadius:999, background:HP_GRAD, border:'none', color:'#fff', fontFamily:'Inter', fontSize:13, fontWeight:600, cursor:'pointer', whiteSpace:'nowrap', boxShadow:'0 8px 18px -6px rgba(236,72,153,0.4)', display:'inline-flex', alignItems:'center', gap:7 }}>
           <span className="ff-browse-search-btn-icon" aria-hidden style={{ display:'none' }}><IcSearch s={16}/></span>
           <span className="ff-browse-search-btn-label">Search</span>
         </button>
@@ -346,7 +346,7 @@ function Toolbar(props) {
           <div style={{ width:1, height:20, background:HP.border, margin:'0 3px' }} />
         </div>
 
-        <button className="ff-browse-refine-btn" onClick={()=>setPanel(true)} style={{ display:'inline-flex', alignItems:'center', gap:7, height:34, padding:'0 14px', borderRadius:999, border:`1px solid ${panelOpen||advancedCount>0 ? HP.purple+'66' : HP.border}`, background: panelOpen||advancedCount>0 ? `${HP.purple}1a` : 'rgba(255,255,255,0.04)', color: panelOpen||advancedCount>0 ? HP.text : HP.textMid, fontFamily:'Inter', fontSize:12.5, fontWeight:500, cursor:'pointer', transition:'all 0.15s ease' }}>
+        <button className="ff-browse-refine-btn ff-tap" onClick={()=>setPanel(true)} style={{ display:'inline-flex', alignItems:'center', gap:7, height:34, padding:'0 14px', borderRadius:999, border:`1px solid ${panelOpen||advancedCount>0 ? HP.purple+'66' : HP.border}`, background: panelOpen||advancedCount>0 ? `${HP.purple}1a` : 'rgba(255,255,255,0.04)', color: panelOpen||advancedCount>0 ? HP.text : HP.textMid, fontFamily:'Inter', fontSize:12.5, fontWeight:500, cursor:'pointer', transition:'all 0.15s ease' }}>
           {panelOpen ? <IcChevU s={13}/> : <IcSlide s={13}/>}<span>Filters</span>
           {advancedCount > 0 && <span style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', width:18, height:18, borderRadius:999, background:HP_GRAD, fontSize:10, fontWeight:700, color:'#fff' }}>{advancedCount}</span>}
         </button>

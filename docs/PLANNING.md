@@ -10,12 +10,17 @@
 > This file tracks only the *active* slice — don't duplicate the roadmap here.
 
 ## Currently In Progress
-- [ ] (between phases) — F9H.1 landed: **the E2E + Lighthouse CI gates are now real**
-      (no longer skip-green). Uploaded the 5 repo secrets from approved local sources
-      (no values printed/committed; presence verified via `gh secret list`) and fixed
-      `lighthouserc.json` to audit `index.html` only (excludes the Google-verification
-      stub) — `docs/ci-real-gates-verification-f9h1.md`. CI confirms both jobs run their
-      real steps (no `::notice:: skipping`). F8C still blocked (needs real-user outcome volume).
+- [ ] **F10A — Private Preview Launch + Outcome Baseline Collection** (docs/measurement
+      only): created the private-preview **plan**, **tester guide**, **launch runbook**,
+      **feedback template**, and **outcome-baseline collection plan**
+      (`docs/private-preview-*-f10a.md` + `docs/outcome-baseline-collection-f10a.md`).
+      Recorded a read-only **pre-preview dev baseline** (8 users / 3,376 impressions —
+      F8B capture works on hero+discover, ~0 on carousels by design; dev-only, NOT
+      real-user stable). Next: invite **5–10 trusted testers** (cold+warm mix), collect
+      the real-user outcome baseline, then run the F8C go/no-go. **F8C still BLOCKED**
+      until the volume gate (≥5 real users, ~300–500+ hero/discover impressions on a
+      stable `algorithm_version 2.17`, stable ≥3 days) is met.
+      *(F9H.1 — real CI gates — merged via PR #180; see Done This Week.)*
 
 ## Up Next (prioritized)
 - [x] ~~Apply the Sentry Allowed-Domains dashboard fix~~ — ✅ done (user) + **verified
@@ -27,19 +32,20 @@
       `child-src` (keep `worker-src`+`frame-src`), then change
       `Content-Security-Policy-Report-Only` → `Content-Security-Policy` in
       `functions/_middleware.js` and re-smoke. (Housekeeping: resolve Sentry `FEELFLICK-APP-5`.)
-- [x] ~~**Enable CI E2E + Lighthouse**~~ — ✅ **DONE in F9H.1**: 5 repo secrets uploaded
-      (no values exposed) + Lighthouse collect restricted to `index.html`; both gates now
-      run for real (`docs/ci-real-gates-verification-f9h1.md`).
+- [x] ~~**Enable CI E2E + Lighthouse**~~ — ✅ **DONE in F9H.1** (PR #180, merged): 5 repo
+      secrets uploaded (no values exposed) + Lighthouse collect restricted to `index.html`;
+      both gates now run for real (`docs/ci-real-gates-verification-f9h1.md`).
 - [ ] **Other hardening**: upgrade HSTS (`includeSubDomains`/preload) once subdomains are
       HTTPS-confirmed; color-contrast a11y pass.
 - [ ] **F8C — Gated engine tuning** — the first phase allowed to touch scoring
       (highest blast radius). **Capture is now PROVEN in prod (F9C)**; the gate that
-      remains is **VOLUME**: a POST-DEPLOY baseline (via
-      `docs/sql/recommendation-evaluation-queries.sql` §7) must show `outcomeCaptureRate`
-      non-trivial + **stable across many real users**, sliced by `algorithm_version`
-      and cold/warm tier. Today there's only dev/smoke volume → **still blocked**.
-      THEN tune DB-first (recommendation-engine skill), leading with pool/coverage
-      numbers + expected skip/watch effect.
+      remains is **VOLUME**, now owned by the **F10A private preview**: collect the
+      real-user baseline per `docs/outcome-baseline-collection-f10a.md` (§7 SQL, windowed,
+      sliced by placement · `algorithm_version 2.17` · cold/warm) until the
+      [F10A volume gate](private-preview-plan-f10a.md#6-data-volume--duration-before-f8c)
+      is green. Today only dev/smoke volume (8 users) → **still blocked**. THEN tune
+      DB-first (recommendation-engine skill), leading with pool/coverage numbers +
+      expected skip/watch effect.
 - [ ] **F6C (later, gated)** — extend `generate-movie-overlay` to produce a
       `why_for_you` for non-curated films (Edge Function + prompt + honesty guards) —
       via the `supabase-change` skill.
@@ -55,6 +61,17 @@
       outcome-capture baseline (`docs/sql/recommendation-evaluation-queries.sql` §7).
 
 ## Done This Week
+- [x] **F10A — Private Preview + Outcome Baseline (docs/measurement only)**: five new docs —
+      plan + decision criteria (`private-preview-plan-f10a.md`), tester guide
+      (`private-preview-tester-guide-f10a.md`), launch runbook
+      (`private-preview-launch-runbook-f10a.md`), feedback template
+      (`private-preview-feedback-template-f10a.md`), outcome-baseline collection plan
+      (`outcome-baseline-collection-f10a.md`). Defined cohort (5–10 trusted, cold+warm
+      film-watchers), success/blocker criteria, the F8C volume gate, and the daily
+      monitoring/triage runbook. Ran the **read-only pre-preview dev baseline** (SQL §0/§7
+      + offline harness): 8 users / 3,376 impressions, capture confirmed on hero+discover,
+      0 on carousels (expected), 9 mixed `algorithm_version`s (current `2.17`). No runtime
+      change; engine frozen. F8C stays blocked. *(Merged via PR #181 after F9H.1/#180.)*
 - [x] **F9H.1 — Enable real CI gates (E2E + Lighthouse)** (`docs/ci-real-gates-verification-f9h1.md`):
       flipped both gates from skip-green to real. Uploaded the 5 GitHub Actions repo secrets
       (`E2E_TEST_EMAIL/PASSWORD`, `VITE_SUPABASE_URL/ANON_KEY`, `VITE_TMDB_API_KEY`) from approved
@@ -62,9 +79,8 @@
       written, or committed**; presence verified via `gh secret list` (fresh timestamps).
       Fixed `lighthouserc.json`: added `collect.url: ["http://localhost/index.html"]` so lhci
       audits the SPA shell only (was also auto-auditing the `google…html` verification stub).
-      Local green: lint · 487 tests · build · audit · valid JSON (E2E 14/14 unchanged on this
-      tree). CI on the PR confirms E2E + Lighthouse now run their real steps. One-line config
-      change only; workflows untouched. F8C still blocked.
+      Added `workflow_dispatch` to both gate workflows. CI on PR #180 confirmed E2E (14 passed)
+      + Lighthouse run their real steps. Merged (squash `ec2cdb6a`). F8C still blocked.
 - [x] **F9H — Non-skip CI gates (E2E + Lighthouse)** (`docs/ci-nonskip-gates-f9h.md`):
       docs-only, no workflow change. Documented why the **E2E** (`app-quality.yml`) and
       **Lighthouse** (`lighthouse.yml`) jobs are skip-green (preflight checks for missing

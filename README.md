@@ -245,7 +245,8 @@ and ending green on `lint → test → build`. See the roadmap in the
 - **F9G.4 — CSP nonce prod verification** ✅ done (merged; on prod the report-only CSP carries a **rotating nonce** and **Cloudflare's JSD script is now nonced** → the violation is **gone**; CSP now reports **zero** violations → enforcement eligible after a short monitoring window)
 - **F9H — Non-skip CI gates** ✅ done (documented the secrets that make E2E + Lighthouse real gates; workflows already auto-flip once secrets are added — `docs/ci-nonskip-gates-f9h.md`)
 - **F9H.1 — Enable real CI gates** ✅ done (uploaded the 5 repo secrets from approved local sources — no values exposed — + restricted the Lighthouse collect to `index.html`; **E2E + Lighthouse now run for real** — `docs/ci-real-gates-verification-f9h1.md`)
-- **F8C — Gated engine tuning** ⏭️ next — **still blocked** until a *post-deploy* baseline shows non-trivial, stable outcome capture from real user traffic (capture mechanism is proven; volume is not there yet)
+- **F10A — Private preview + outcome baseline** 🟡 in progress (created the preview plan + decision criteria, tester guide, launch runbook, feedback template, and outcome-baseline collection plan; recorded a read-only **pre-preview dev baseline**; engine frozen — `docs/private-preview-*-f10a.md`, `docs/outcome-baseline-collection-f10a.md`)
+- **F8C — Gated engine tuning** ⏭️ next — **still blocked** until the **F10A private preview** collects a non-trivial, stable real-user outcome baseline (capture mechanism is proven; real-user volume is not there yet)
 
 ---
 

@@ -221,6 +221,37 @@ import { AccentPanel } from '@/shared/ui'
 > [`accent-panel-trust-surfaces-f11b4.md`](ui/accent-panel-trust-surfaces-f11b4.md) +
 > [`accent-panel-gradient-primarycase-f11b5.md`](ui/accent-panel-gradient-primarycase-f11b5.md).
 
+### 6c. PageContainer + layout / type scale (F12B)
+
+The composition foundation from the F12A audit (which found no shared container, inconsistent route
+max-widths, and unnormalized headings).
+
+**`<PageContainer>`** ([`src/shared/ui/PageContainer.jsx`](../src/shared/ui/PageContainer.jsx)) — the
+shared page-content shell. Layout **only** (no background/decoration/animation).
+
+```jsx
+import { PageContainer } from '@/shared/ui'
+<PageContainer size="app" padding="default">…</PageContainer>     // 1280, responsive gutters
+<PageContainer size="wide" padding="none">…</PageContainer>      // 1440, gutters stay with sections
+```
+- **`size` → `LAYOUT` max-width:** `app` 1280 · `wide` 1440 · `narrow` 1080 (centered). Unknown → app.
+- **`padding` → responsive gutters (CSS):** `none` · `sm` · `default` (20→32→88, matches
+  `px-5→sm:px-8→lg:px-[88px]`) · `lg`.
+
+**`LAYOUT` / `GUTTER` / `TYPE` tokens** ([`tokens.js`](../src/shared/lib/tokens.js)) — additive:
+`LAYOUT` (page widths), `GUTTER` (`mobile 20 / tablet 32 / desktop 88`, aligned to `SPACE`), `TYPE`
+(`pageTitle / sectionTitle / cardTitle / body` — **non-hero** scale; the landing/discover/movie heroes
+and `.ff-d1/.ff-d2` are intentionally excluded).
+
+**Route landmarks:** every authenticated route now has exactly one `<h1>`. Where the visual masthead is
+intentional (Briefing hero, filter toolbar, "Diary" eyebrow, editable identity), the h1 is **`sr-only`**
+— it supplies the a11y landmark + heading order without competing with the composition.
+
+> **F12B adoption (proof, byte-identical):** Account → `<PageContainer size="app">`, History →
+> `<PageContainer size="wide">`; sr-only h1s on Home/Browse/History/Account. `TYPE` shipped as tokens
+> (broad visible normalization deferred). See
+> [`page-container-type-h1-f12b.md`](ui/page-container-type-h1-f12b.md).
+
 ---
 
 ## 7. Turning personal data into shareable social currency

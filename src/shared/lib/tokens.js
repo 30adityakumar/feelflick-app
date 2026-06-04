@@ -142,3 +142,32 @@ export const SPACE = {
   stackSm: 16,
   stackXs: 12,
 }
+
+// === LAYOUT / GUTTER / TYPE (F12B) — the page-container + type-scale foundation ===
+// Additive only. Drives <PageContainer> + (incrementally) heading normalization.
+// NOTE: F12B ships the scale; broad visible application is deferred (no redesign).
+
+/** Page content max-widths (px). The shell/container caps — not arbitrary per-route. */
+export const LAYOUT = {
+  pageMax: 1280, // standard app content width (account, settings-like)
+  pageWide: 1440, // wide surfaces (catalog grid, diary)
+  pageNarrow: 1080, // reading width (prose / editorial)
+}
+
+/** Responsive horizontal gutters (px) — matches the existing px-5 → sm:px-8 → lg:px-[88px]. */
+export const GUTTER = {
+  mobile: 20, // < 768
+  tablet: 32, // ≥ 768 (= SPACE.gutterSm)
+  desktop: 88, // ≥ 1024 (= SPACE.gutter)
+}
+
+/**
+ * Type scale for non-hero headings + body. Each step = { size, weight, spacing, lineHeight }.
+ * Heroes (landing/discover/movie titles, .ff-d1/.ff-d2) are intentionally OUT of this scale.
+ */
+export const TYPE = {
+  pageTitle: { size: 'clamp(28px, 4vw, 44px)', weight: 300, spacing: '-0.03em', lineHeight: 1.05 },
+  sectionTitle: { size: 'clamp(20px, 2.4vw, 28px)', weight: 500, spacing: '-0.02em', lineHeight: 1.1 },
+  cardTitle: { size: 16, weight: 600, spacing: '-0.01em', lineHeight: 1.25 },
+  body: { size: 'clamp(14px, 1vw, 15px)', weight: 400, spacing: '0em', lineHeight: 1.6 },
+}

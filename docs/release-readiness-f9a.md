@@ -7,14 +7,20 @@
 > UI/package change. The one outstanding blocker (Linux landing visual baseline)
 > requires CI regeneration and is documented, not faked.
 
-**Status:** 🟡 **PR-ready with one tracked CI blocker** (Linux landing visual baseline).
-**Date:** 2026-06-03. **Branch:** `phase-f9a-release-ci-hardening`. **Head:** F8B `bbeeaf60` (+ this doc commit).
+**Status:** 🟢 **PR-ready** — the Linux landing visual baseline was regenerated in
+**F9B** (commit `ed13b470`, via the approved `visual-baselines/*` CI flow). The
+branch merges into `main` conflict-free (see §1).
+**Date:** 2026-06-03. **Branch:** `phase-f9a-release-ci-hardening`. **Head:** F8B `bbeeaf60` (+ F9A/F9B commits).
 
 ---
 
 ## 1. Branch lineage
 
-Linear, no divergence — `main` is a clean ancestor of HEAD (fast-forward PR possible).
+Linear rebuild chain. As of F9B, `origin/main` advanced by **one** unrelated
+commit — `76039034 refactor(ui): roll Eyebrow out to account (Axis 2 batch 4) (#168)`,
+touching only `src/features/account/`. The rebuild touches **no** account files, so
+HEAD is **14 ahead / 1 behind**, **conflict-free** (`git merge-tree` clean) — a PR
+merges via a merge commit, not a fast-forward.
 
 ```
 main
@@ -63,18 +69,25 @@ committed in F4 independently of the stash.
 |---|---|---|---|
 | **App Quality Gate** / `quality-gate` | ubuntu-latest | ✅ expected green | lint + test + build + `npm audit` — all green locally; platform-agnostic |
 | **App Quality Gate** / `e2e` | ubuntu-latest | ⏭️ skips green | gated on repo secrets `E2E_TEST_EMAIL/PASSWORD` + `VITE_*`; non-blocking until configured |
-| **Visual & A11y Regression** / `visual` | ubuntu-latest | ❌ **WILL FAIL** | `test:visual` compares against the **stale Linux landing baseline** — see §3 |
+| **Visual & A11y Regression** / `visual` | ubuntu-latest | ✅ **resolved (F9B)** | Linux landing baseline regenerated via CI (`ed13b470`) — see §3 |
 | **Visual & A11y Regression** / a11y (public) | ubuntu-latest | ✅ expected green | `e2e/public/a11y.e2e.js`, excl. color-contrast (deliberate) |
 | **Lighthouse CI** | ubuntu-latest | ⏭️ no-op green | gated to no-op until `VITE_*` build secrets configured |
 | **CodeQL** | ubuntu-latest | ✅ expected green | static analysis; informational (Security tab) |
 
-**Net:** every required gate is green or intentionally-skipped-green **except the
-Linux landing visual baseline** (§3). That is the single blocker between this
-branch and a green PR.
+**Net:** as of **F9B**, every required gate is green or intentionally-skipped-green.
+The Linux landing visual baseline (§3) — the one blocker F9A found — was regenerated
+via CI (`ed13b470`).
 
 ---
 
-## 3. Visual baseline status (the one real blocker)
+## 3. Visual baseline status (✅ resolved in F9B)
+
+> **Resolved:** the Linux landing baseline was regenerated via the
+> `visual-baselines/rebuild` CI run (which committed `5b9d0bad`) and pulled into the
+> rebuild branch as `ed13b470`. CI confirmed exactly one file changed
+> (`landing-fullpage-visual-linux.png`, 2.85MB→2.17MB); `/about` was untouched. The
+> historical analysis below is retained for context.
+
 
 Snapshots are **platform-specific** (committed per-OS; Playwright
 `maxDiffPixelRatio: 0.02`). The visual project covers two static public surfaces:
@@ -137,7 +150,7 @@ git commit -m "test(visual): regenerate Linux visual baselines (rebuild)" e2e/vi
 
 | # | Item | Class | Owner / action |
 |---|---|---|---|
-| 1 | Linux landing visual baseline stale (pre-F4) | **CI-only blocker** (rebuild-introduced) | regenerate via §3 before merge (needs push approval) |
+| 1 | ~~Linux landing visual baseline stale (pre-F4)~~ | ✅ **resolved (F9B)** | regenerated via CI `visual-baselines/rebuild` → `ed13b470` |
 | 2 | CI E2E job skips (no secrets) | Intentional / config | add repo secrets before preview (§6) — non-blocking now |
 | 3 | Lighthouse no-op (no secrets) | Intentional / config | add `VITE_*` build secrets to enable perf budget |
 | 4 | Color-contrast a11y violations | Pre-existing / tracked | deliberate editorial exception; separate follow-up |

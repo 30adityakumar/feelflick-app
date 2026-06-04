@@ -10,9 +10,11 @@
 > This file tracks only the *active* slice — don't duplicate the roadmap here.
 
 ## Currently In Progress
-- [ ] (between phases) — F9A just landed (release/CI hardening prep). The rebuild
-      branch is **PR-ready except one tracked CI blocker**: regenerate the **Linux
-      landing visual baseline** (see Blocked, + `docs/release-readiness-f9a.md` §3).
+- [ ] (between phases) — F9B just landed: the **Linux landing visual baseline was
+      regenerated** via the approved `visual-baselines/*` CI flow (`ed13b470`), so
+      the last CI blocker is cleared. The rebuild branch is **PR-ready** (14 ahead /
+      1 behind `main`, conflict-free). PR being opened → then Vercel preview + the
+      `docs/release-readiness-f9a.md` §7–§8 checklists.
 
 ## Up Next (prioritized)
 - [ ] **Open the rebuild PR** once the Linux landing baseline is regenerated
@@ -31,22 +33,13 @@
 - [ ] (later) F9–F10 per the F0 roadmap (F9 also owns the deferred Linux visual baseline).
 
 ## Blocked / Waiting
-- [ ] **Linux landing visual baseline regeneration** (F4 landing) — the **one CI
-      blocker** before a green rebuild PR. Verified in F9A: the Linux baseline
-      (`e2e/visual/landing.visual.js-snapshots/landing-fullpage-visual-linux.png`)
-      is from `0005e4aa` (#138, **pre-F4**), so the "Visual & A11y Regression" gate
-      fails on `ubuntu-latest`. Darwin baseline is current (local `test:visual`
-      passes); `/about` is unaffected. It can ONLY be produced on Linux/CI — **do
-      not fake a Linux PNG locally.** Needs a remote push (NOT done in F9A — no push
-      approval). Full context + commands: `docs/release-readiness-f9a.md` §3.
-      **Recommended (regenerate against the exact merge state — landing + about):**
-      ```bash
-      git push origin phase-f9a-release-ci-hardening:visual-baselines/rebuild
-      # wait for "Visual & A11y Regression" to commit the regenerated baselines back, then:
-      git fetch origin visual-baselines/rebuild
-      git checkout origin/visual-baselines/rebuild -- e2e/visual/
-      git commit -m "test(visual): regenerate Linux visual baselines (rebuild)" e2e/visual/
-      ```
+- [x] ~~**Linux landing visual baseline regeneration** (F4 landing)~~ — ✅ **RESOLVED
+      in F9B.** Pushed `phase-f9a-release-ci-hardening:visual-baselines/rebuild` →
+      the "Visual & A11y Regression" CI run regenerated + committed the Linux
+      baseline (`5b9d0bad`); pulled the landing PNG back as `ed13b470`. CI changed
+      exactly one file (`landing-fullpage-visual-linux.png`); `/about` untouched.
+- [ ] (now-active, not a blocker) **F8C remains gated** — needs the post-deploy
+      outcome-capture baseline (`docs/sql/recommendation-evaluation-queries.sql` §7).
 
 ## Done This Week
 - [x] **F9A — Release / CI / Production Hardening Prep**

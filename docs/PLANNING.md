@@ -10,23 +10,24 @@
 > This file tracks only the *active* slice — don't duplicate the roadmap here.
 
 ## Currently In Progress
-- [ ] (between phases) — F9B just landed: the **Linux landing visual baseline was
-      regenerated** via the approved `visual-baselines/*` CI flow (`ed13b470`), so
-      the last CI blocker is cleared. The rebuild branch is **PR-ready** (14 ahead /
-      1 behind `main`, conflict-free). PR being opened → then Vercel preview + the
-      `docs/release-readiness-f9a.md` §7–§8 checklists.
+- [ ] (between phases) — F9C landed: the rebuild is **merged to `main` (#169, squash
+      `c38cb473`) and deployed to production** (app.feelflick.com). Live smoke green;
+      **F8B outcome capture verified working in prod**. Next real work needs **real
+      post-deploy user traffic** before F8C — see `docs/post-merge-smoke-f9c.md`.
 
 ## Up Next (prioritized)
-- [ ] **Open the rebuild PR** once the Linux landing baseline is regenerated
-      (needs a `visual-baselines/*` push — see Blocked). Then deploy a Vercel
-      preview + run `docs/release-readiness-f9a.md` §7–§8.
+- [ ] **Production hardening follow-ups** (non-blocking, from F9C smoke —
+      `docs/post-merge-smoke-f9c.md` §7): fix the **Sentry ingest 403** (prod error
+      monitoring isn't ingesting); add CSP/security headers to `vercel.json`; enable
+      CI E2E + Lighthouse via repo secrets; color-contrast a11y pass.
 - [ ] **F8C — Gated engine tuning** — the first phase allowed to touch scoring
-      (highest blast radius). **Entry gate:** a POST-DEPLOY real-data baseline
-      (via `docs/sql/recommendation-evaluation-queries.sql` §7) must confirm
-      `outcomeCaptureRate` is non-trivial + stable, sliced by `algorithm_version`
-      and cold/warm tier — F8B wired the capture paths but the lift can only be
-      proven with real post-deploy traffic. THEN tune DB-first (recommendation-engine
-      skill), leading with pool/coverage numbers + expected skip/watch effect.
+      (highest blast radius). **Capture is now PROVEN in prod (F9C)**; the gate that
+      remains is **VOLUME**: a POST-DEPLOY baseline (via
+      `docs/sql/recommendation-evaluation-queries.sql` §7) must show `outcomeCaptureRate`
+      non-trivial + **stable across many real users**, sliced by `algorithm_version`
+      and cold/warm tier. Today there's only dev/smoke volume → **still blocked**.
+      THEN tune DB-first (recommendation-engine skill), leading with pool/coverage
+      numbers + expected skip/watch effect.
 - [ ] **F6C (later, gated)** — extend `generate-movie-overlay` to produce a
       `why_for_you` for non-curated films (Edge Function + prompt + honesty guards) —
       via the `supabase-change` skill.
@@ -42,6 +43,16 @@
       outcome-capture baseline (`docs/sql/recommendation-evaluation-queries.sql` §7).
 
 ## Done This Week
+- [x] **F9C — Merge / Deploy / Smoke / Outcome baseline**
+      (`docs/post-merge-smoke-f9c.md`): merged rebuild PR **#169 (squash `c38cb473`)**
+      → `main` + **Vercel Production deploy** (app.feelflick.com); post-merge CI +
+      local gates green; live smoke (public + authenticated) all render; **F8B
+      outcome capture VERIFIED in prod** (recency-gated save flipped a real
+      impression's `added_to_watchlist`; >72h impression correctly not attributed).
+      Only console error = pre-existing **Sentry-ingest 403** (flagged). **F8C still
+      blocked** — capture proven, no real-user volume yet. No scoring/schema/UI change.
+- [x] **F9B — Linux visual baseline** — regenerated via the `visual-baselines/*`
+      CI flow (`ed13b470`); PR #169 "Visual Regression" green on ubuntu-latest.
 - [x] **F9A — Release / CI / Production Hardening Prep**
       (`docs/release-readiness-f9a.md`): docs/validation-only — no code change.
       Audited the rebuild branch for PR/CI readiness: it's a clean fast-forward of

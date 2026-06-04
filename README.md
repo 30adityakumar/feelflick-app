@@ -228,8 +228,10 @@ and ending green on `lint → test → build`. See the roadmap in the
 - **F7 — Cinematic DNA / Taste Profile vNext** ✅ done (honest DNA confidence; no fake cold-state)
 - **F8A — Recommendation Trust + Evaluation foundation** ✅ done (metrics framework + offline harness + read-only SQL + explanation rubric; engine untouched)
 - **F8B — Recommendation Outcome Capture Repair** ✅ done (wired save/watch/click outcomes back to impressions; engine untouched)
-- **F9A — Release / CI / Production Hardening Prep** ✅ done (validation matrix + release-readiness doc; one tracked CI blocker: regenerate the Linux landing visual baseline before merge)
-- **F8C — Gated engine tuning** ⏭️ next (blocked until a *post-deploy* capture baseline confirms outcomes are measurable, then DB-first tuning)
+- **F9A — Release / CI / Production Hardening Prep** ✅ done (validation matrix + release-readiness doc)
+- **F9B — Linux visual baseline** ✅ done (regenerated via the `visual-baselines/*` CI flow)
+- **F9C — Merge / deploy / smoke / outcome baseline** ✅ done (rebuild **merged → `main` (#169)** + **deployed to production**; smoke-green; F8B outcome capture **verified working in prod**)
+- **F8C — Gated engine tuning** ⏭️ next — **still blocked** until a *post-deploy* baseline shows non-trivial, stable outcome capture from real user traffic (capture mechanism is proven; volume is not there yet)
 
 ---
 

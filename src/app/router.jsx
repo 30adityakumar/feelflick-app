@@ -44,6 +44,7 @@ const Privacy = lazy(() => import('@/features/legal/Privacy'))
 const Terms = lazy(() => import('@/features/legal/Terms'))
 
 const Discover = lazy(() => import('@/features/discover/Discover'))
+const ShareStudio = lazy(() => import('@/features/share/ShareCard'))
 const MoodBrowse = lazy(() => import('@/features/browse/MoodBrowse'))
 const Collection = lazy(() => import('@/features/browse/Collection'))
 const TasteProfile = lazy(() => import('@/features/profile/TasteProfile'))
@@ -223,6 +224,9 @@ export const router = sentryCreateBrowserRouter([
       { path: 'about', element: <LazyRoute Component={About} /> },
       { path: 'privacy', element: <LazyRoute Component={Privacy} /> },
       { path: 'terms', element: <LazyRoute Component={Terms} /> },
+
+      // Share Studio — downloadable "Tonight's Pick" card (demo data for now)
+      { path: 'share', element: <LazyRoute Component={ShareStudio} /> },
 
       // Legacy auth aliases → just go to root
       { path: 'auth', element: <Navigate to="/" replace /> },

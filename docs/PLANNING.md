@@ -20,11 +20,7 @@
       the real-user outcome baseline, then run the F8C go/no-go. **F8C still BLOCKED**
       until the volume gate (≥5 real users, ~300–500+ hero/discover impressions on a
       stable `algorithm_version 2.17`, stable ≥3 days) is met.
-- [ ] (pending merge) **F9H.1** enabled the real E2E + Lighthouse CI gates (PR #180):
-      5 repo secrets uploaded (no values exposed) + Lighthouse scoped to `index.html` +
-      `workflow_dispatch` added; CI proved both gates run for real (**E2E 14 passed**).
-      Held for merge authorization — note it edits the same tracker/README sections F10A
-      does, so expect a trivial merge-order conflict.
+      *(F9H.1 — real CI gates — merged via PR #180; see Done This Week.)*
 
 ## Up Next (prioritized)
 - [x] ~~Apply the Sentry Allowed-Domains dashboard fix~~ — ✅ done (user) + **verified
@@ -36,9 +32,9 @@
       `child-src` (keep `worker-src`+`frame-src`), then change
       `Content-Security-Policy-Report-Only` → `Content-Security-Policy` in
       `functions/_middleware.js` and re-smoke. (Housekeeping: resolve Sentry `FEELFLICK-APP-5`.)
-- [x] ~~**Enable CI E2E + Lighthouse**~~ — ✅ done in **F9H.1** (PR #180, pending merge):
-      secrets uploaded + Lighthouse scoped to `index.html`; both gates verified real on CI
-      (`docs/ci-real-gates-verification-f9h1.md`).
+- [x] ~~**Enable CI E2E + Lighthouse**~~ — ✅ **DONE in F9H.1** (PR #180, merged): 5 repo
+      secrets uploaded (no values exposed) + Lighthouse collect restricted to `index.html`;
+      both gates now run for real (`docs/ci-real-gates-verification-f9h1.md`).
 - [ ] **Other hardening**: upgrade HSTS (`includeSubDomains`/preload) once subdomains are
       HTTPS-confirmed; color-contrast a11y pass.
 - [ ] **F8C — Gated engine tuning** — the first phase allowed to touch scoring
@@ -75,7 +71,16 @@
       monitoring/triage runbook. Ran the **read-only pre-preview dev baseline** (SQL §0/§7
       + offline harness): 8 users / 3,376 impressions, capture confirmed on hero+discover,
       0 on carousels (expected), 9 mixed `algorithm_version`s (current `2.17`). No runtime
-      change; engine frozen. F8C stays blocked.
+      change; engine frozen. F8C stays blocked. *(Merged via PR #181 after F9H.1/#180.)*
+- [x] **F9H.1 — Enable real CI gates (E2E + Lighthouse)** (`docs/ci-real-gates-verification-f9h1.md`):
+      flipped both gates from skip-green to real. Uploaded the 5 GitHub Actions repo secrets
+      (`E2E_TEST_EMAIL/PASSWORD`, `VITE_SUPABASE_URL/ANON_KEY`, `VITE_TMDB_API_KEY`) from approved
+      local sources by piping each value over stdin to `gh secret set` — **no value printed,
+      written, or committed**; presence verified via `gh secret list` (fresh timestamps).
+      Fixed `lighthouserc.json`: added `collect.url: ["http://localhost/index.html"]` so lhci
+      audits the SPA shell only (was also auto-auditing the `google…html` verification stub).
+      Added `workflow_dispatch` to both gate workflows. CI on PR #180 confirmed E2E (14 passed)
+      + Lighthouse run their real steps. Merged (squash `ec2cdb6a`). F8C still blocked.
 - [x] **F9H — Non-skip CI gates (E2E + Lighthouse)** (`docs/ci-nonskip-gates-f9h.md`):
       docs-only, no workflow change. Documented why the **E2E** (`app-quality.yml`) and
       **Lighthouse** (`lighthouse.yml`) jobs are skip-green (preflight checks for missing

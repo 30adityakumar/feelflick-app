@@ -1,3 +1,4 @@
+export { default as AccentPanel } from './AccentPanel'
 export { default as Button } from './Button'
 export { default as Card } from './Card'
 export { default as Checkbox } from './Checkbox'

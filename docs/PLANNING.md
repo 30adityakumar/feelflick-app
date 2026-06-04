@@ -70,6 +70,18 @@
       outcome-capture baseline (`docs/sql/recommendation-evaluation-queries.sql` §7).
 
 ## Done This Week
+- [x] **F11B.4 — AccentPanel primitive + trust-surface consolidation** (design-system phase, engine
+      frozen `2.17`; **zero rendered-pixel change**): added a new shared **`<AccentPanel>`** primitive —
+      the accent-tinted sibling of the flat `<Card>` (tone tint `${tone}0d` + tone border `${tone}26` +
+      token radius; tones = brand purple/pink + semantic amber/green/red + neutral; **NO arbitrary hex**;
+      non-interactive default + reduced-motion-gated opt-in hover). +7 tests incl. a **parity guard**
+      (tone=purple == the legacy WhyThisPick surface). **Proof migration: WhyThisPick only** → its
+      always-`HP.purple` inline surface became `<AccentPanel tone="purple" radius="md">`, **byte-identical**
+      (verified on LIVE authenticated `/home` via the Playwright harness: `rgba(167,139,250,0.05)` tint /
+      `…0.15` border / `8px` radius; null-safety + copy preserved). **PrimaryCaseCard** (directional
+      gradient → needs a future `gradient` variant) **+ DnaConfidence** (structural section) **deferred.**
+      No route redesign, no behavior change, no `<Button>`/`/about` impact. Docs:
+      `docs/ui/accent-panel-trust-surfaces-f11b4.md` + DESIGN_SYSTEM §6b. lint/test/build/audit green. F8C blocked.
 - [x] **F11B.3 — Authenticated visual walkthrough + rhythm/token work** (engine frozen `2.17`; **zero
       rendered-pixel change**): ran a REAL live **authenticated** visual pass of Home/Movie/Profile
       (desktop+mobile) — signed in the dev user via the **Playwright e2e harness** (creds in env, never

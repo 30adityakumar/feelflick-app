@@ -6,14 +6,19 @@
 // NULL-SAFE BY DESIGN: when no reason exists (cold-start / no profile) it renders
 // NOTHING — we never fabricate a "why". A pick without a real case simply shows
 // its slot label + synopsis instead.
+//
+// SURFACE (F11B.4): the brand-purple accent surface now comes from the shared
+// <AccentPanel tone="purple"> primitive (was an inline `${accent}0d` tint) —
+// byte-identical render; the `accent` prop now only colors the eyebrow.
 
+import AccentPanel from '@/shared/ui/AccentPanel'
 import Eyebrow from '@/shared/ui/Eyebrow'
-import { HP, RADIUS } from './data'
+import { HP } from './data'
 
 /**
  * @param {object} props
  * @param {string|null} props.reason  The engine's pick reason (may be null/empty).
- * @param {string} [props.accent]     Accent hue (defaults to brand purple).
+ * @param {string} [props.accent]     Eyebrow accent hue (defaults to brand purple).
  * @param {string} [props.className]
  * @param {object} [props.style]      Merged onto the root (margins/positioning).
  * @returns {JSX.Element|null}
@@ -22,16 +27,11 @@ export default function WhyThisPick({ reason, accent = HP.purple, className = ''
   const text = typeof reason === 'string' ? reason.trim() : ''
   if (!text) return null
   return (
-    <div
+    <AccentPanel
+      tone="purple"
+      radius="md"
       className={className}
-      style={{
-        marginBottom: 14,
-        padding: '10px 14px',
-        borderRadius: RADIUS.md, // = 8 (zero-pixel token adoption, F11B.2)
-        background: `${accent}0d`,
-        border: `1px solid ${accent}26`,
-        ...style,
-      }}
+      style={{ marginBottom: 14, padding: '10px 14px', ...style }}
     >
       <Eyebrow color={accent} size={10} style={{ marginBottom: 5 }}>Why this pick</Eyebrow>
       <p
@@ -46,6 +46,6 @@ export default function WhyThisPick({ reason, accent = HP.purple, className = ''
       >
         {text}
       </p>
-    </div>
+    </AccentPanel>
   )
 }

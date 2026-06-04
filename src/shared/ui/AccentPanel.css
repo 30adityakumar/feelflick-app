@@ -1,0 +1,25 @@
+/* src/shared/ui/AccentPanel.css — F11B.4 accent-tinted trust surface.
+   Non-interactive by default. The opt-in hover (`ff-accent-panel--interactive`)
+   is reduced-motion-gated: reduced-motion users get the hover STATE with no
+   transition. The hover only brightens the border (subtle), never animates color
+   on its own. */
+
+.ff-accent-panel {
+  box-sizing: border-box;
+}
+
+/* Default: no transition (reduced-motion-safe baseline). */
+.ff-accent-panel--interactive {
+  transition: none;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ff-accent-panel--interactive {
+    transition: border-color 200ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+}
+
+.ff-accent-panel--interactive:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+}

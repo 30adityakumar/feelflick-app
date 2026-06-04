@@ -10,16 +10,23 @@
 > This file tracks only the *active* slice — don't duplicate the roadmap here.
 
 ## Currently In Progress
-- [ ] (between phases) — F9C landed: the rebuild is **merged to `main` (#169, squash
-      `c38cb473`) and deployed to production** (app.feelflick.com). Live smoke green;
-      **F8B outcome capture verified working in prod**. Next real work needs **real
-      post-deploy user traffic** before F8C — see `docs/post-merge-smoke-f9c.md`.
+- [ ] (between phases) — F9D landed (production observability + security headers,
+      config/docs-only): **Sentry 403 root-caused** to a Sentry *Allowed-Domains*
+      inbound filter (one-time dashboard fix — `docs/production-observability-security-f9d.md`
+      §1; no code/env change); shipped safe security headers via **`public/_headers`**
+      (prod = **Cloudflare Pages**, not Vercel) + mirrored `vercel.json`; CSP deferred
+      (draft report-only). F8C still blocked (needs real-user outcome volume).
 
 ## Up Next (prioritized)
-- [ ] **Production hardening follow-ups** (non-blocking, from F9C smoke —
-      `docs/post-merge-smoke-f9c.md` §7): fix the **Sentry ingest 403** (prod error
-      monitoring isn't ingesting); add CSP/security headers to `vercel.json`; enable
-      CI E2E + Lighthouse via repo secrets; color-contrast a11y pass.
+- [ ] **Apply the Sentry Allowed-Domains dashboard fix** (the one manual step from
+      F9D §1 that actually re-enables prod error ingestion — Sentry → project →
+      Inbound Filters → Allowed Domains → add `app.feelflick.com`/`*.feelflick.com`
+      or clear it; then confirm no 403 + a test error lands in Issues).
+- [ ] **Production hardening follow-ups** (`docs/production-observability-security-f9d.md`
+      §6): ship **CSP report-only** (draft policy in the doc) → tune → enforce; set
+      CI repo secrets to make **E2E + Lighthouse** non-skip (names in F9D §4); upgrade
+      HSTS (`includeSubDomains`/preload) once subdomains are HTTPS-confirmed;
+      color-contrast a11y pass.
 - [ ] **F8C — Gated engine tuning** — the first phase allowed to touch scoring
       (highest blast radius). **Capture is now PROVEN in prod (F9C)**; the gate that
       remains is **VOLUME**: a POST-DEPLOY baseline (via
@@ -43,6 +50,17 @@
       outcome-capture baseline (`docs/sql/recommendation-evaluation-queries.sql` §7).
 
 ## Done This Week
+- [x] **F9D — Production Observability + Security-Header Hardening**
+      (`docs/production-observability-security-f9d.md`): config + docs only, no
+      product/engine change. **Root-caused the Sentry 403** — it's an Origin/
+      Allowed-Domains inbound filter (200 server-to-server, 403 with any browser
+      Origin incl. app.feelflick.com), NOT a bad DSN/env → one-time Sentry dashboard
+      fix documented (no code change). Shipped safe security headers (X-Frame-Options,
+      Permissions-Policy, HSTS, + explicit nosniff/Referrer-Policy) via **`public/_headers`**
+      (discovered prod is **Cloudflare Pages**, not Vercel — so `_headers`, not
+      `vercel.json`, is what reaches prod) + mirrored `vercel.json`. CSP deferred with
+      a draft report-only policy. Documented CI secret names for E2E/Lighthouse.
+      Validated: lint + 487 tests + build (emits `dist/_headers`) + audit 0 vulns.
 - [x] **F9C — Merge / Deploy / Smoke / Outcome baseline**
       (`docs/post-merge-smoke-f9c.md`): merged rebuild PR **#169 (squash `c38cb473`)**
       → `main` + **Vercel Production deploy** (app.feelflick.com); post-merge CI +

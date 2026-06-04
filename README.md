@@ -57,7 +57,7 @@ JavaScript (JSX) throughout — **no TypeScript** (deliberate; see
 | Backend | Supabase (PostgreSQL 15 + pgvector + Auth + Storage + Edge Functions + pg_cron) |
 | External | TMDB API (catalog), OpenAI (embeddings + LLM enrichment, **server-side only**) |
 | Observability | Sentry (errors/replay), PostHog (product analytics), web-vitals |
-| Hosting | Vercel (SPA + edge middleware for bot OG-meta) |
+| Hosting | Cloudflare Pages (live domain) + Vercel (PR previews / edge middleware for bot OG-meta) |
 
 There is **no dedicated app server** — the React SPA talks directly to Supabase,
 calls TMDB with a read-only key, and reaches OpenAI only through Supabase Edge
@@ -185,10 +185,14 @@ npm run test:visual      # Playwright visual regression
 
 ## Deployment
 
-Client-rendered Vite build deployed on **Vercel** (`vercel.json` = SPA rewrite;
-`middleware.js` = Vercel Edge bot-only OG-meta injection for link unfurls). Set
-the `VITE_*` vars above in the Vercel project. Build locally (`npm run build`),
-deploy a preview, confirm Supabase auth + TMDB-powered pages, then promote.
+Client-rendered Vite build. The **live domain `app.feelflick.com` is served by
+Cloudflare Pages** (`public/_redirects` = SPA fallback, `public/_headers` =
+security headers); a **Vercel** deploy runs in parallel for PR previews
+(`vercel.json` mirrors the SPA rewrite + headers; `middleware.js` = Vercel Edge
+bot-only OG-meta injection). Set the `VITE_*` vars in the serving platform.
+Build locally (`npm run build`), deploy a preview, confirm Supabase auth +
+TMDB-powered pages, then promote. Security headers + the Sentry observability fix
+are covered in [docs/production-observability-security-f9d.md](docs/production-observability-security-f9d.md).
 
 ---
 
@@ -231,6 +235,7 @@ and ending green on `lint → test → build`. See the roadmap in the
 - **F9A — Release / CI / Production Hardening Prep** ✅ done (validation matrix + release-readiness doc)
 - **F9B — Linux visual baseline** ✅ done (regenerated via the `visual-baselines/*` CI flow)
 - **F9C — Merge / deploy / smoke / outcome baseline** ✅ done (rebuild **merged → `main` (#169)** + **deployed to production**; smoke-green; F8B outcome capture **verified working in prod**)
+- **F9D — Production observability + security headers** ✅ done (Sentry 403 root-caused to an Allowed-Domains filter → one-time dashboard fix; safe security headers shipped via `public/_headers` + `vercel.json`; CSP drafted/deferred)
 - **F8C — Gated engine tuning** ⏭️ next — **still blocked** until a *post-deploy* baseline shows non-trivial, stable outcome capture from real user traffic (capture mechanism is proven; volume is not there yet)
 
 ---

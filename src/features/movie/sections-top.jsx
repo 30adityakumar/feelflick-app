@@ -2,12 +2,12 @@ import { useEffect, useRef, useState } from 'react'
 import Tooltip from '@/shared/ui/Tooltip'
 import MatchBadge from '@/shared/components/MatchBadge'
 import { ActionButton, SecondaryActionButton } from '@/shared/components/ActionButton'
-import { FILM_PALETTE, HP, HP_GRAD } from './data'
+import { FILM_PALETTE, HP, HP_GRAD, RADIUS } from './data'
 import { useMovieData } from './useMovieData'
 
 // FeelFlick — Movie page · Hero, scroll progress, trailer modal, why-for-you, synopsis, mood radar, take, critic quotes.
 
-const iconBtnStyle = { width:36, height:36, borderRadius:999, background:'rgba(0,0,0,0.45)', backdropFilter:'blur(12px)', border:`1px solid rgba(255,255,255,0.08)`, color:'rgba(250,250,250,0.72)', cursor:'pointer', display:'inline-flex', alignItems:'center', justifyContent:'center' };
+const iconBtnStyle = { width:36, height:36, borderRadius:RADIUS.pill, background:'rgba(0,0,0,0.45)', backdropFilter:'blur(12px)', border:`1px solid rgba(255,255,255,0.08)`, color:'rgba(250,250,250,0.72)', cursor:'pointer', display:'inline-flex', alignItems:'center', justifyContent:'center' };
 
 // Reset-button style for wrapping elements that need to be focusable buttons
 // without inheriting the browser's default button chrome.
@@ -111,7 +111,7 @@ function TrailerModal({ open, onClose, videoKey: explicitKey, videoTitle: explic
           aria-label="Close trailer"
           style={{
             position:'absolute', top:24, right:24,
-            width:40, height:40, borderRadius:999,
+            width:40, height:40, borderRadius:RADIUS.pill,
             background:'rgba(255,255,255,0.08)', border:`1px solid ${HP.border}`, color: HP.text,
             cursor:'pointer', display:'inline-flex', alignItems:'center', justifyContent:'center',
             fontSize:18, lineHeight:1, zIndex:5, pointerEvents:'auto',
@@ -120,7 +120,7 @@ function TrailerModal({ open, onClose, videoKey: explicitKey, videoTitle: explic
 
         <div style={{
           position:'relative', width:'min(1120px, 90vw)', aspectRatio:'16/9',
-          borderRadius:8, overflow:'hidden', pointerEvents:'auto',
+          borderRadius:RADIUS.md, overflow:'hidden', pointerEvents:'auto',
           boxShadow:`0 40px 120px -20px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.08), 0 0 80px ${FILM_PALETTE.primary}33`,
           animation:'mv-zoom-in 0.5s cubic-bezier(0.2,0.8,0.2,1) both',
         }}>
@@ -190,7 +190,7 @@ function MovieHero({
 
       {/* Top nav */}
       <div className="ff-movie-top-nav" style={{ position:'absolute', top:0, left:0, right:0, padding:'24px 56px', display:'flex', alignItems:'center', justifyContent:'space-between', zIndex:5 }}>
-        <button onClick={onBack} aria-label="Go back" style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'8px 16px', borderRadius:999, background:'rgba(0,0,0,0.45)', backdropFilter:'blur(12px)', border:`1px solid ${HP.border}`, color: HP.textSoft, fontFamily:'Outfit', fontSize:12, fontWeight:600, letterSpacing:'0.04em', cursor:'pointer' }}>
+        <button onClick={onBack} aria-label="Go back" style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'8px 16px', borderRadius:RADIUS.pill, background:'rgba(0,0,0,0.45)', backdropFilter:'blur(12px)', border:`1px solid ${HP.border}`, color: HP.textSoft, fontFamily:'Outfit', fontSize:12, fontWeight:600, letterSpacing:'0.04em', cursor:'pointer' }}>
           <span style={{ fontSize:14, lineHeight:1 }}>‹</span> Back
         </button>
         <div style={{ display:'flex', alignItems:'center', gap:14 }}>
@@ -207,14 +207,14 @@ function MovieHero({
         <div className="ff-movie-poster" style={{ position:'relative', width:300, flex:'none', perspective:1200 }}
              onMouseMove={onPosterMove} onMouseLeave={()=>setTilt({x:0,y:0})}>
           <div style={{
-            position:'relative', borderRadius:8, overflow:'visible',
+            position:'relative', borderRadius:RADIUS.md, overflow:'visible',
             transform:`rotateX(${tilt.y}deg) rotateY(${tilt.x}deg)`,
             transition:'transform 0.2s ease',
             willChange:'transform',
           }}>
             {mv.poster
-              ? <img src={mv.poster} alt={mv.title} style={{ width:'100%', display:'block', borderRadius:8, boxShadow:`0 36px 100px -20px rgba(0,0,0,0.95), 0 0 0 1px rgba(255,255,255,0.06), 0 0 60px ${FILM_PALETTE.primary}44` }} />
-              : <div style={{ width:'100%', aspectRatio:'2/3', borderRadius:8, background:`linear-gradient(155deg, ${FILM_PALETTE.primary}55, ${FILM_PALETTE.glow}33)`, display:'flex', alignItems:'center', justifyContent:'center', color:HP.text, fontFamily:'Outfit', fontSize:24, padding:24, textAlign:'center', boxShadow:`0 36px 100px -20px rgba(0,0,0,0.95), 0 0 0 1px rgba(255,255,255,0.06)` }}>{mv.title}</div>
+              ? <img src={mv.poster} alt={mv.title} style={{ width:'100%', display:'block', borderRadius:RADIUS.md, boxShadow:`0 36px 100px -20px rgba(0,0,0,0.95), 0 0 0 1px rgba(255,255,255,0.06), 0 0 60px ${FILM_PALETTE.primary}44` }} />
+              : <div style={{ width:'100%', aspectRatio:'2/3', borderRadius:RADIUS.md, background:`linear-gradient(155deg, ${FILM_PALETTE.primary}55, ${FILM_PALETTE.glow}33)`, display:'flex', alignItems:'center', justifyContent:'center', color:HP.text, fontFamily:'Outfit', fontSize:24, padding:24, textAlign:'center', boxShadow:`0 36px 100px -20px rgba(0,0,0,0.95), 0 0 0 1px rgba(255,255,255,0.06)` }}>{mv.title}</div>
             }
             {Number.isFinite(mv.ffMatch) && (
               <MatchBadge
@@ -257,28 +257,28 @@ function MovieHero({
             <span style={{ padding:'3px 8px', border:`1px solid ${HP.borderStrong}`, borderRadius:3, fontWeight:600, color: HP.textSoft }}>{mv.certification}</span>
             {mv.year && <span>{mv.year}</span>}
             {hasRuntime && <>
-              <span style={{ width:3, height:3, borderRadius:999, background: HP.textFaint }} />
+              <span style={{ width:3, height:3, borderRadius:RADIUS.pill, background: HP.textFaint }} />
               <span>{Math.floor(mv.runtime/60)}h {mv.runtime%60}m</span>
             </>}
             {mv.director && mv.director !== '—' && <>
-              <span style={{ width:3, height:3, borderRadius:999, background: HP.textFaint }} />
+              <span style={{ width:3, height:3, borderRadius:RADIUS.pill, background: HP.textFaint }} />
               <span>Directed by <span style={{ color: HP.text, fontWeight:600 }}>{mv.director}</span></span>
             </>}
             {mv.genres.length > 0 && <>
-              <span style={{ width:3, height:3, borderRadius:999, background: HP.textFaint }} />
+              <span style={{ width:3, height:3, borderRadius:RADIUS.pill, background: HP.textFaint }} />
               <span>{mv.genres.join(' / ')}</span>
             </>}
           </div>
 
           {mv.daypartFit && (
-            <div style={{ display:'inline-flex', alignItems:'center', gap:10, marginTop:22, padding:'8px 14px', borderRadius:999, background:'rgba(167,139,250,0.08)', border:`1px solid ${HP.purple}33`, color: HP.purple }}>
+            <div style={{ display:'inline-flex', alignItems:'center', gap:10, marginTop:22, padding:'8px 14px', borderRadius:RADIUS.pill, background:'rgba(167,139,250,0.08)', border:`1px solid ${HP.purple}33`, color: HP.purple }}>
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
               <span style={{ fontFamily:'Outfit', fontSize:11, fontWeight:600, letterSpacing:'0.06em', textTransform:'uppercase' }}>Best watched · {mv.daypartFit}</span>
             </div>
           )}
 
           {boundaryWarnings?.length > 0 && (
-            <div style={{ display:'inline-flex', alignItems:'center', gap:10, marginTop:14, padding:'8px 14px', borderRadius:999, background:'rgba(245,158,11,0.10)', border:`1px solid ${HP.amber || '#F59E0B'}33`, color:'#F59E0B' }} role="note">
+            <div style={{ display:'inline-flex', alignItems:'center', gap:10, marginTop:14, padding:'8px 14px', borderRadius:RADIUS.pill, background:'rgba(245,158,11,0.10)', border:`1px solid ${HP.amber || '#F59E0B'}33`, color:'#F59E0B' }} role="note">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
               <span style={{ fontFamily:'Outfit', fontSize:11, fontWeight:600, letterSpacing:'0.06em', textTransform:'uppercase' }}>
                 Heads up · {boundaryWarnings.map(w => w.label).join(' · ')}
@@ -311,7 +311,7 @@ function MovieHero({
             />
             <div className="ff-movie-hero-actions-spacer" style={{ flex:1 }} />
             {hasRatings && (
-              <div className="ff-movie-hero-ratings" style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 14px', borderRadius:999, background:'rgba(0,0,0,0.5)', border:`1px solid ${HP.border}` }}>
+              <div className="ff-movie-hero-ratings" style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 14px', borderRadius:RADIUS.pill, background:'rgba(0,0,0,0.5)', border:`1px solid ${HP.border}` }}>
                 {mv.tmdbRating != null && (
                   <span style={{ display:'flex', alignItems:'center', gap:4 }}>
                     <svg width="11" height="11" viewBox="0 0 24 24" fill={HP.amber}><path d="M12 2l3 7 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/></svg>
@@ -439,7 +439,7 @@ function StickyActionBar({ onPlayTrailer, onBack, onToggleWatchlist, isInWatchli
       transition:'transform 0.35s cubic-bezier(0.2,0.8,0.2,1)',
       display:'flex', alignItems:'center', gap:20,
     }}>
-      <button onClick={onBack} aria-label="Go back" style={{ width:32, height:32, borderRadius:999, background:'rgba(255,255,255,0.06)', border:`1px solid ${HP.border}`, color: HP.textSoft, cursor:'pointer', display:'inline-flex', alignItems:'center', justifyContent:'center' }}>
+      <button onClick={onBack} aria-label="Go back" style={{ width:32, height:32, borderRadius:RADIUS.pill, background:'rgba(255,255,255,0.06)', border:`1px solid ${HP.border}`, color: HP.textSoft, cursor:'pointer', display:'inline-flex', alignItems:'center', justifyContent:'center' }}>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
       </button>
       <div style={{ display:'flex', alignItems:'center', gap:14, flex:1 }}>
@@ -458,7 +458,7 @@ function StickyActionBar({ onPlayTrailer, onBack, onToggleWatchlist, isInWatchli
         disabled={!hasTrailer}
         title={hasTrailer ? undefined : 'No trailer available'}
         style={{
-          padding:'8px 14px', borderRadius:6, background: HP_GRAD, border:'none', color:'#fff',
+          padding:'8px 14px', borderRadius:RADIUS.sm, background: HP_GRAD, border:'none', color:'#fff',
           fontFamily:'Outfit', fontSize:12, fontWeight:600,
           cursor: hasTrailer ? 'pointer' : 'not-allowed', opacity: hasTrailer ? 1 : 0.5,
         }}
@@ -472,7 +472,7 @@ function StickyActionBar({ onPlayTrailer, onBack, onToggleWatchlist, isInWatchli
         aria-pressed={Boolean(isInWatchlist)}
         title={wlTitle}
         style={{
-          padding:'8px 14px', borderRadius:6,
+          padding:'8px 14px', borderRadius:RADIUS.sm,
           background: isInWatchlist ? 'rgba(167,139,250,0.14)' : 'rgba(255,255,255,0.06)',
           border:`1px solid ${isInWatchlist ? HP.purple + '66' : HP.borderStrong}`,
           color: HP.text, fontFamily:'Outfit', fontSize:12, fontWeight:600,
@@ -524,7 +524,7 @@ function WhyForYou({ eyebrow, headline, rationale, reasons, onHoverReason, highl
                 onMouseEnter={() => onHoverReason?.(r.id)}
                 onMouseLeave={() => onHoverReason?.(null)}
                 style={{
-                  padding:'28px 24px', borderRadius:6,
+                  padding:'28px 24px', borderRadius:RADIUS.sm,
                   border:`1px solid ${active ? HP.purple+'66' : HP.border}`,
                   background: active ? 'rgba(167,139,250,0.06)' : 'rgba(255,255,255,0.025)',
                   transition:'all 0.25s ease',
@@ -532,7 +532,7 @@ function WhyForYou({ eyebrow, headline, rationale, reasons, onHoverReason, highl
                   cursor:'default',
                 }}>
                 <div className="ff-movie-why-card-header">
-                  <div className="ff-movie-why-card-icon" style={{ width:36, height:36, borderRadius:8, background:'rgba(167,139,250,0.12)', border:`1px solid ${HP.purple}33`, display:'flex', alignItems:'center', justifyContent:'center', color: HP.purple, marginBottom:18 }}>
+                  <div className="ff-movie-why-card-icon" style={{ width:36, height:36, borderRadius:RADIUS.md, background:'rgba(167,139,250,0.12)', border:`1px solid ${HP.purple}33`, display:'flex', alignItems:'center', justifyContent:'center', color: HP.purple, marginBottom:18 }}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{iconMap[r.icon] || iconMap.dna}</svg>
                   </div>
                   <div className="ff-movie-why-card-title" style={{ fontFamily:'Outfit', fontSize:16, fontWeight:500, color: HP.text, letterSpacing:'-0.015em', marginBottom:8 }}>{r.title}</div>
@@ -619,9 +619,9 @@ function MoodRadar({ axes, highlightMood, onHoverAxis }) {
                 <div key={m.name}
                   onMouseEnter={() => enter(m.name)}
                   onMouseLeave={leave}
-                  style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'8px 12px', borderRadius:6, background: lit ? `${m.hex}1a` : 'transparent', border:`1px solid ${lit ? m.hex+'55' : 'transparent'}`, transition:'all 0.25s ease', cursor:'default' }}>
+                  style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'8px 12px', borderRadius:RADIUS.sm, background: lit ? `${m.hex}1a` : 'transparent', border:`1px solid ${lit ? m.hex+'55' : 'transparent'}`, transition:'all 0.25s ease', cursor:'default' }}>
                   <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                    <span style={{ width:8, height:8, borderRadius:999, background: m.hex, boxShadow:`0 0 ${lit?12:0}px ${m.hex}` }} />
+                    <span style={{ width:8, height:8, borderRadius:RADIUS.pill, background: m.hex, boxShadow:`0 0 ${lit?12:0}px ${m.hex}` }} />
                     <span style={{ fontFamily:'Outfit', fontSize:14, fontWeight:500, color: HP.text }}>{m.name}</span>
                   </div>
                   <span style={{ fontFamily:'Outfit', fontSize:12, color: HP.textMuted }}>{Math.round(m.weight*100)}</span>

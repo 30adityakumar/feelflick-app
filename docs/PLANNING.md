@@ -70,6 +70,19 @@
       outcome-capture baseline (`docs/sql/recommendation-evaluation-queries.sql` §7).
 
 ## Done This Week
+- [x] **F12A — Premium UI visual QA + responsive composition audit** (AUDIT ONLY, docs-only; engine frozen
+      `2.17`): ran a REAL authenticated visual pass of **13 routes × 6 breakpoints** (390/430/768/1024/1280/
+      1440) via the Playwright harness — captured **computed metrics + 26 screenshots** (7 directly reviewed;
+      creds in env never printed; temp specs deleted; screenshots in `/tmp/ff-f12a/`, not committed). 7 docs
+      in `docs/ui/`: QA protocol + route audit + component audit + responsive matrix + prioritized backlog
+      (F12B–F12F) + skills/tooling eval + F12B plan. **Global positives:** zero horizontal overflow every
+      route×bp, console clean, 100% alt coverage, trust panels (AccentPanel) + `/discover` hero = premium
+      exemplars. **Top gaps:** (1) no shell container/max-width system (per-section gutters → wide-screen
+      drift), (2) **missing `<h1>` on home/browse/history/account** (a11y), (3) **sub-44px mobile tap targets**
+      (browse 74 / history 76 / account 20 @390), (4) type scale 36→102px not normalized, (5) button
+      min-height 17px (the "buttons not polished" feel). **F12B proposed = PageContainer primitive + type-scale
+      tokens + add the 4 `<h1>`s** (all additive/low-risk, no `<Button>`/`/about` impact). Onboarding flow NOT
+      observed (dev user already onboarded → /home). No implementation. F8C still blocked.
 - [x] **F11B.5 — AccentPanel `gradient` variant + PrimaryCaseCard proof** (design-system consolidation,
       engine frozen `2.17`; **zero rendered-pixel change**): extended `<AccentPanel>` with a constrained
       **`variant="tint"|"gradient"`** prop (default `tint` = F11B.4, unchanged → WhyThisPick byte-identical;

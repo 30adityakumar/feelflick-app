@@ -20,6 +20,13 @@
       **Invites NOT yet sent (your action).** Next: send the 2–3 Wave-1 invites, run the
       per-tester onboarding smoke, monitor daily, collect the first windowed real-user
       capture. **F8C still BLOCKED.**
+- [ ] **F10C — Synthetic Persona Usability Lab** (parallel UX track while we wait for real
+      testers): built a reusable persona lab under `docs/personas/` (schema, 16 personas,
+      task script, rubric, Claude prompt pack, tooling proposal) + ran a 2-persona pilot.
+      **Synthetic ≠ real users — does NOT unblock F8C.** Top pilot signal: cold-start
+      re-seeding is the shared pinch point (no diary/Trakt import; "three questions" thin for
+      cinephiles, value gated for scrollers); the honesty layer (no fabricated why/reviews/score)
+      is a real strength. All findings are hypotheses to validate in Wave 1.
 
 ## Up Next (prioritized)
 - [x] ~~Apply the Sentry Allowed-Domains dashboard fix~~ — ✅ done (user) + **verified
@@ -60,6 +67,16 @@
       outcome-capture baseline (`docs/sql/recommendation-evaluation-queries.sql` §7).
 
 ## Done This Week
+- [x] **F10C — Synthetic Persona Usability Lab** (docs/UX-inspection only; engine frozen `2.17`):
+      created `docs/personas/` — `persona-schema-f10c.md`, `synthetic-personas-f10c.md` (10 platform
+      archetypes + 6 FeelFlick targets, all clearly labeled synthetic/no-proprietary-data),
+      `persona-usability-tasks-f10c.md` (10 core tasks + persona probes), `persona-usability-rubric-f10c.md`
+      (13 evidence-required dims), `claude-persona-test-prompts-f10c.md` (reusable run prompts +
+      guardrails), `persona-testing-tooling-proposal-f10c.md` (docs-only `/persona-test` + subagent +
+      Playwright proposal — nothing installed), and `persona-pilot-findings-f10c.md` (2-persona pilot:
+      P3 Netflix scroller + P1 Letterboxd power user, live-landing + code-grounded). **Does NOT unblock
+      F8C** (synthetic). Pilot Insights: cold-start re-seeding gap; cold Briefing shows no "why" (honest);
+      honesty layer is a strength; `/home` tail anti-drift watch. No app/engine change.
 - [x] **F10B — Run Private Preview, Wave 1 (prep)** (operations/docs only; engine frozen `2.17`):
       created the Wave-1 operating sheet (`private-preview-wave-1-f10b.md`) — cohort (2–3),
       invite sequence, tester invite copy (DM/email/reminder/feedback), daily monitoring

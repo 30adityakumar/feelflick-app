@@ -10,24 +10,25 @@
 > This file tracks only the *active* slice — don't duplicate the roadmap here.
 
 ## Currently In Progress
-- [ ] (between phases) — F9G.3 implemented **Option B** (user-chosen): a new
-      **`functions/_middleware.js`** Cloudflare Pages Function emits a per-request CSP
-      **nonce** so Cloudflare auto-nonces its JS-Detections inline script — no
-      `'unsafe-inline'`, `script-src` stays strict, **still report-only**. CSP moved out
-      of `public/_headers` (F9D headers stay). **PR #177 OPEN, verified on CF Pages
-      preview** (per-request nonce, 5/5 F9D headers, single CSP, SPA renders, zero
-      violations). **Next: merge → verify the JSD-nonce on PRODUCTION** (the preview
-      bypasses JSD) — `docs/cloudflare-csp-nonce-f9g3.md` §4. F8C still blocked.
+- [ ] (between phases) — F9G.4 landed: merged the CSP-nonce Function (**PR #177, squash
+      `8f68a235`**) and **verified on production** — the report-only CSP carries a
+      **rotating per-request nonce** (single header, no enforcing, F9D intact), and
+      **Cloudflare's JSD inline script is now nonced** → the `script-src-elem` violation
+      is **GONE** (console clean, no CSP report POST, Sentry `FEELFLICK-APP-5` stopped).
+      **The report-only CSP now reports ZERO violations** → CSP enforcement is eligible
+      after a short monitoring window (`docs/csp-nonce-production-verification-f9g4.md`).
+      F8C still blocked (needs real-user outcome volume).
 
 ## Up Next (prioritized)
 - [x] ~~Apply the Sentry Allowed-Domains dashboard fix~~ — ✅ done (user) + **verified
       in F9F** (prod ingest working; test error landed in Issues). Housekeeping: resolve
       the labeled `F9F-SENTRY-VERIFY` test Issue in Sentry.
-- [ ] **CSP enforcement** (after F9G.3 ships the nonce Function): **merge PR #177 →
-      verify on PROD** that the JSD inline-script violation is gone (preview can't show
-      it — `docs/cloudflare-csp-nonce-f9g3.md` §4). Then add `report-to`/`Reporting-Endpoints`,
-      drop deprecated `child-src`, monitor Sentry → Security a few more days, and flip
-      `Content-Security-Policy-Report-Only` → `Content-Security-Policy` in the Function.
+- [ ] **CSP enforcement** — the report-only CSP now reports **ZERO violations** in prod
+      (F9G.4: JSD violation resolved). Before flipping to enforcing: monitor Sentry →
+      Security a few more days, add `report-to`/`Reporting-Endpoints`, drop deprecated
+      `child-src` (keep `worker-src`+`frame-src`), then change
+      `Content-Security-Policy-Report-Only` → `Content-Security-Policy` in
+      `functions/_middleware.js` and re-smoke. (Housekeeping: resolve Sentry `FEELFLICK-APP-5`.)
 - [ ] **Other hardening**: set CI repo secrets to make **E2E + Lighthouse** non-skip
       (names in F9D §4); upgrade HSTS (`includeSubDomains`/preload) once subdomains are
       HTTPS-confirmed; color-contrast a11y pass.
@@ -54,6 +55,17 @@
       outcome-capture baseline (`docs/sql/recommendation-evaluation-queries.sql` §7).
 
 ## Done This Week
+- [x] **F9G.4 — CSP nonce production verification**
+      (`docs/csp-nonce-production-verification-f9g4.md`): merged PR #177 (squash
+      `8f68a235`) → Cloudflare Pages prod deploy. Verified on `app.feelflick.com`: the
+      report-only CSP carries a **rotating per-request nonce** (two requests → two
+      nonces), exactly one CSP-RO header, no enforcing CSP, all 5 F9D headers intact.
+      In a fresh isolated browser session, **Cloudflare's injected JSD inline script now
+      carries a nonce** → the `script-src-elem` violation is **GONE** (console clean, no
+      `…/security/…` POST). Sentry `FEELFLICK-APP-5` stopped getting events (last seen =
+      pre-deploy). App/JSD/Sentry/RUM all work. **Report-only CSP now reports zero
+      violations** → enforcement eligible after monitoring. lint + 487 tests + build +
+      audit green. No code change.
 - [x] **F9G.3 — Cloudflare JSD CSP resolution via a Pages Function nonce** (Option B,
       user-chosen; `docs/cloudflare-csp-nonce-f9g3.md`): new **`functions/_middleware.js`**
       (the repo's first Cloudflare Pages Function) emits a **per-request CSP nonce** on

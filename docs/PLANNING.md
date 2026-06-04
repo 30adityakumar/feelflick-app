@@ -10,22 +10,26 @@
 > This file tracks only the *active* slice — don't duplicate the roadmap here.
 
 ## Currently In Progress
-- [ ] (between phases) — F9G.1 landed: merged F9G (**PR #174, squash `86a0ebab`**); the
-      **report-only CSP is LIVE + non-breaking on `app.feelflick.com`** (no enforcing CSP;
-      other headers intact). Reporting pipeline verified end-to-end. **One** violation
-      found: the Cloudflare-injected inline RUM beacon (`script-src-elem`; Sentry issue
-      `FEELFLICK-APP-5`) — resolve before enforcing (`docs/csp-report-only-verification-f9g1.md`
-      §5). F8C still blocked (needs real-user outcome volume).
+- [ ] (between phases) — F9G.2 landed: **diagnosed** the one report-only CSP violation
+      — it's **Cloudflare JavaScript Detections** (Bot Management `__CF$cv$params`),
+      NOT the RUM beacon (which is external + already allowed). Per-request + intermittent
+      → hash-pinning won't work. No Cloudflare zone access from the repo, so the fix is a
+      manual/architectural decision (disable JSD if the plan allows, OR Cloudflare's
+      recommended per-request **nonce via a Pages Function**; never `'unsafe-inline'`).
+      CSP stays report-only; enforcement deferred (`docs/cloudflare-rum-csp-cleanup-f9g2.md`).
+      F8C still blocked (needs real-user outcome volume).
 
 ## Up Next (prioritized)
 - [x] ~~Apply the Sentry Allowed-Domains dashboard fix~~ — ✅ done (user) + **verified
       in F9F** (prod ingest working; test error landed in Issues). Housekeeping: resolve
       the labeled `F9F-SENTRY-VERIFY` test Issue in Sentry.
-- [ ] **CSP enforcement** (after F9G/F9G.1): the report-only CSP is live with exactly
-      ONE violation — the **Cloudflare-injected inline RUM beacon** (`script-src-elem`).
-      Resolve it (preferred: disable Cloudflare RUM auto-injection/Rocket Loader + load
-      the beacon externally; or hash; or `'unsafe-inline'`), add `report-to`, drop the
-      deprecated `child-src`, then flip to enforcing — `docs/csp-report-only-verification-f9g1.md` §5–§6.
+- [ ] **CSP enforcement** (after F9G/F9G.1/F9G.2): one violation remains — **Cloudflare
+      JavaScript Detections** inline script (NOT RUM; per-request → no hash). Clear it via
+      **Option A** (disable JSD in Security → Settings — only if the plan is Super Bot
+      Fight Mode/Enterprise; Bot Fight Mode free can't) or **Option B** (Cloudflare-
+      recommended per-request **nonce via a Cloudflare Pages Function** — keeps script-src
+      strict). Then add `report-to`, drop deprecated `child-src`, flip to enforcing —
+      `docs/cloudflare-rum-csp-cleanup-f9g2.md` §3, §7.
 - [ ] **Other hardening**: set CI repo secrets to make **E2E + Lighthouse** non-skip
       (names in F9D §4); upgrade HSTS (`includeSubDomains`/preload) once subdomains are
       HTTPS-confirmed; color-contrast a11y pass.
@@ -52,6 +56,18 @@
       outcome-capture baseline (`docs/sql/recommendation-evaluation-queries.sql` §7).
 
 ## Done This Week
+- [x] **F9G.2 — Cloudflare inline-script CSP blocker diagnosis**
+      (`docs/cloudflare-rum-csp-cleanup-f9g2.md`): diagnosis/docs only, no code change.
+      **Corrected the root cause** — the one report-only CSP violation is **Cloudflare
+      JavaScript Detections** (Bot Management; `__CF$cv$params` →
+      `/cdn-cgi/challenge-platform/scripts/jsd/main.js`), NOT the RUM/Web Analytics beacon
+      (that's external + already allowed by `script-src 'self'`). It's per-request (ray +
+      token) + intermittent + self-removing → **hash-pinning non-viable**. No Cloudflare
+      zone-settings access from the repo (Dev-Platform MCP only), so the fix is a manual/
+      architectural decision: disable JSD (only on Super Bot Fight Mode/Enterprise — Bot
+      Fight Mode free can't) OR Cloudflare's recommended per-request **nonce via a Pages
+      Function**; `'unsafe-inline'` is last-resort/avoided. CSP stays report-only;
+      enforcement deferred. lint + 487 tests + build + audit green.
 - [x] **F9G.1 — CSP report-only production verification**
       (`docs/csp-report-only-verification-f9g1.md`): merged PR #174 (squash `86a0ebab`);
       `content-security-policy-report-only` **live on `app.feelflick.com`** (no enforcing

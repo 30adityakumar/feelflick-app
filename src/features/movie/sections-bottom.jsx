@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { tmdbImg } from '@/shared/api/tmdb'
 import MatchBadge from '@/shared/components/MatchBadge'
-import { FILM_PALETTE, PARASITE_TIMELINE_SAMPLE, PARASITE_DNA_DELTA_SAMPLE, HP, HP_GRAD } from './data'
+import { FILM_PALETTE, PARASITE_TIMELINE_SAMPLE, PARASITE_DNA_DELTA_SAMPLE, HP, HP_GRAD, RADIUS } from './data'
 import { useMovieData } from './useMovieData'
 import { useUserRating } from './hooks/useUserRating'
 
@@ -62,9 +62,9 @@ function CastCard({ p }) {
       aria-label={`${p.name} as ${p.role}`}
       style={{ ...RESET_BTN, perspective:1000 }}
     >
-      <div style={{ aspectRatio:'2/3', borderRadius:6, marginBottom:14, position:'relative', transformStyle:'preserve-3d', transition:'transform 0.6s cubic-bezier(0.2,0.8,0.2,1)', transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)' }}>
+      <div style={{ aspectRatio:'2/3', borderRadius:RADIUS.sm, marginBottom:14, position:'relative', transformStyle:'preserve-3d', transition:'transform 0.6s cubic-bezier(0.2,0.8,0.2,1)', transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)' }}>
         {/* Front */}
-        <div style={{ position:'absolute', inset:0, borderRadius:6, overflow:'hidden', background:`linear-gradient(155deg, ${p.tint}33, ${p.tint}08)`, border:`1px solid ${HP.border}`, backfaceVisibility:'hidden' }}>
+        <div style={{ position:'absolute', inset:0, borderRadius:RADIUS.sm, overflow:'hidden', background:`linear-gradient(155deg, ${p.tint}33, ${p.tint}08)`, border:`1px solid ${HP.border}`, backfaceVisibility:'hidden' }}>
           {hasProfile ? (
             <img src={tmdbImg(p.profilePath, 'w342')} alt={p.name} style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover' }} />
           ) : (
@@ -74,7 +74,7 @@ function CastCard({ p }) {
         </div>
         {/* Back (only when filmography data has resolved) */}
         {hasFlip && (
-          <div style={{ position:'absolute', inset:0, borderRadius:6, padding:16, background:`linear-gradient(155deg, ${p.tint}55, ${p.tint}15)`, border:`1px solid ${p.tint}55`, backfaceVisibility:'hidden', transform:'rotateY(180deg)', display:'flex', flexDirection:'column', justifyContent:'space-between' }}>
+          <div style={{ position:'absolute', inset:0, borderRadius:RADIUS.sm, padding:16, background:`linear-gradient(155deg, ${p.tint}55, ${p.tint}15)`, border:`1px solid ${p.tint}55`, backfaceVisibility:'hidden', transform:'rotateY(180deg)', display:'flex', flexDirection:'column', justifyContent:'space-between' }}>
             <div>
               <div style={{ fontSize:9, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color: HP.text, opacity:0.85, marginBottom:10 }}>Also in</div>
               <ul style={{ margin:0, padding:0, listStyle:'none', display:'flex', flexDirection:'column', gap:6 }}>
@@ -139,14 +139,14 @@ function VideoThumb({ v, onPlay }) {
       aria-label={`Play ${v.title}`}
       style={{ ...RESET_BTN, cursor:'pointer' }}
     >
-      <div style={{ position:'relative', aspectRatio:'16/9', borderRadius:4, overflow:'hidden', marginBottom:12, transform: hover?'translateY(-2px)':'none', transition:'transform 0.25s ease', boxShadow: hover ? `0 16px 40px -10px rgba(0,0,0,0.6)` : 'none' }}>
+      <div style={{ position:'relative', aspectRatio:'16/9', borderRadius:RADIUS.xs, overflow:'hidden', marginBottom:12, transform: hover?'translateY(-2px)':'none', transition:'transform 0.25s ease', boxShadow: hover ? `0 16px 40px -10px rgba(0,0,0,0.6)` : 'none' }}>
         <img src={v.thumb} alt="" style={{ width:'100%', height:'100%', objectFit:'cover', filter: hover?'brightness(0.55) saturate(1.2)':'none', transition:'filter 0.3s ease' }} />
         <div style={{ position:'absolute', inset:0, background:'linear-gradient(180deg, transparent 60%, rgba(0,0,0,0.7))' }} />
         <div style={{ position:'absolute', top:10, left:10, padding:'3px 8px', borderRadius:3, background:'rgba(0,0,0,0.7)', fontSize:9, fontWeight:600, color: HP.textSoft, fontFamily:'Outfit', letterSpacing:'0.14em', textTransform:'uppercase' }}>{v.kind}</div>
         {v.duration && v.duration !== '—' && (
           <div style={{ position:'absolute', bottom:10, right:10, fontSize:11, color: HP.text, fontFamily:'Outfit', fontWeight:500 }}>{v.duration}</div>
         )}
-        <div style={{ position:'absolute', top:'50%', left:'50%', transform:`translate(-50%,-50%) scale(${hover?1.15:1})`, width:48, height:48, borderRadius:999, background:'rgba(255,255,255,0.95)', display:'flex', alignItems:'center', justifyContent:'center', transition:'transform 0.3s ease' }}>
+        <div style={{ position:'absolute', top:'50%', left:'50%', transform:`translate(-50%,-50%) scale(${hover?1.15:1})`, width:48, height:48, borderRadius:RADIUS.pill, background:'rgba(255,255,255,0.95)', display:'flex', alignItems:'center', justifyContent:'center', transition:'transform 0.3s ease' }}>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="#0a0510"><path d="M5 3v18l16-9z"/></svg>
         </div>
       </div>
@@ -168,10 +168,10 @@ function ProvidersSection() {
       rel="noopener noreferrer"
       aria-label={`Watch on ${p.name} (opens JustWatch in a new tab)`}
       title={p.name}
-      style={{ width:56, height:56, borderRadius:8, background:'rgba(255,255,255,0.06)', border:`1px solid ${HP.border}`, display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden', textDecoration:'none', cursor:'pointer', transition:'all 0.2s' }}
+      style={{ width:56, height:56, borderRadius:RADIUS.md, background:'rgba(255,255,255,0.06)', border:`1px solid ${HP.border}`, display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden', textDecoration:'none', cursor:'pointer', transition:'all 0.2s' }}
     >
       {p.logoPath ? (
-        <img src={tmdbImg(p.logoPath, 'w92')} alt="" style={{ width:40, height:40, objectFit:'contain', borderRadius:4 }} />
+        <img src={tmdbImg(p.logoPath, 'w92')} alt="" style={{ width:40, height:40, objectFit:'contain', borderRadius:RADIUS.xs }} />
       ) : (
         <span style={{ fontFamily:'Outfit', fontWeight:700, fontSize:20, color:p.tint }}>{p.logo}</span>
       )}
@@ -239,7 +239,7 @@ function PairsWith({ goToMovie }) {
           </h2>
         </div>
         {canReshuffle && (
-          <button onClick={()=>setSeed(s=>s+1)} style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'10px 16px', borderRadius:999, background:'rgba(255,255,255,0.06)', border:`1px solid ${HP.borderStrong}`, color: HP.textSoft, fontFamily:'Outfit', fontSize:12, fontWeight:600, letterSpacing:'0.06em', textTransform:'uppercase', cursor:'pointer' }}>
+          <button onClick={()=>setSeed(s=>s+1)} style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'10px 16px', borderRadius:RADIUS.pill, background:'rgba(255,255,255,0.06)', border:`1px solid ${HP.borderStrong}`, color: HP.textSoft, fontFamily:'Outfit', fontSize:12, fontWeight:600, letterSpacing:'0.06em', textTransform:'uppercase', cursor:'pointer' }}>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M3 12a9 9 0 1 0 18 0M3 12l3-3M3 12l3 3"/></svg>
             Show me more
           </button>
@@ -254,7 +254,7 @@ function PairsWith({ goToMovie }) {
             aria-label={`Open ${s.title}${s.year ? ` (${s.year})` : ''}`}
             style={{ ...RESET_BTN, animation:`mv-pair-in 0.6s ${i*0.08}s cubic-bezier(0.2,0.8,0.2,1) both` }}
           >
-            <div style={{ position:'relative', borderRadius:6, overflow:'hidden', marginBottom:14, boxShadow:'0 12px 28px -10px rgba(0,0,0,0.5)' }}>
+            <div style={{ position:'relative', borderRadius:RADIUS.sm, overflow:'hidden', marginBottom:14, boxShadow:'0 12px 28px -10px rgba(0,0,0,0.5)' }}>
               <img src={s.poster} alt={s.title} style={{ width:'100%', aspectRatio:'2/3', objectFit:'cover', display:'block' }} />
               {/* Real per-user match % — only renders when the similar film
                   is in our catalog AND the engine produced a score. Films
@@ -292,7 +292,7 @@ function FriendsLoved({ friends }) {
         <div style={{ display:'flex', alignItems:'center', gap:24 }}>
           <div style={{ display:'flex' }}>
             {friends.slice(0, 5).map((f, i) => (
-              <div key={f.id} style={{ width:36, height:36, borderRadius:999, background: f.avatarBg, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Outfit', fontWeight:700, color:'#0A0510', fontSize:14, border:'2px solid #06060a', marginLeft: i>0 ? -10 : 0, overflow:'hidden' }}>
+              <div key={f.id} style={{ width:36, height:36, borderRadius:RADIUS.pill, background: f.avatarBg, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Outfit', fontWeight:700, color:'#0A0510', fontSize:14, border:'2px solid #06060a', marginLeft: i>0 ? -10 : 0, overflow:'hidden' }}>
                 {f.avatarUrl ? (
                   <img src={f.avatarUrl} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
                 ) : (
@@ -314,7 +314,7 @@ function FriendsLoved({ friends }) {
           <button
             onClick={() => setOpen(o => !o)}
             aria-expanded={open}
-            style={{ padding:'10px 18px', borderRadius:6, background:'transparent', border:`1px solid ${HP.borderStrong}`, color: HP.textSoft, fontFamily:'Outfit', fontSize:12, fontWeight:600, letterSpacing:'0.04em', cursor:'pointer' }}
+            style={{ padding:'10px 18px', borderRadius:RADIUS.sm, background:'transparent', border:`1px solid ${HP.borderStrong}`, color: HP.textSoft, fontFamily:'Outfit', fontSize:12, fontWeight:600, letterSpacing:'0.04em', cursor:'pointer' }}
           >
             {open ? 'Hide notes' : 'See their notes →'}
           </button>
@@ -323,9 +323,9 @@ function FriendsLoved({ friends }) {
       {open && (
         <div style={{ marginTop:20, display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(220px, 1fr))', gap:14, animation:'mv-fade-in 0.3s ease both' }}>
           {friends.filter(f => f.reviewText).map(f => (
-            <div key={f.id} style={{ padding:'14px 16px', borderRadius:6, background:'rgba(255,255,255,0.03)', border:`1px solid ${HP.border}` }}>
+            <div key={f.id} style={{ padding:'14px 16px', borderRadius:RADIUS.sm, background:'rgba(255,255,255,0.03)', border:`1px solid ${HP.border}` }}>
               <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:8 }}>
-                <div style={{ width:28, height:28, borderRadius:999, background: f.avatarBg, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Outfit', fontWeight:700, color:'#0A0510', fontSize:12, overflow:'hidden' }}>
+                <div style={{ width:28, height:28, borderRadius:RADIUS.pill, background: f.avatarBg, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Outfit', fontWeight:700, color:'#0A0510', fontSize:12, overflow:'hidden' }}>
                   {f.avatarUrl ? <img src={f.avatarUrl} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} /> : (f.name || '?').charAt(0).toUpperCase()}
                 </div>
                 <div style={{ fontFamily:'Outfit', fontSize:13, fontWeight:600, color: HP.text }}>{f.name}</div>
@@ -351,13 +351,13 @@ function TasteTwinReview({ twin }) {
     <section className="ff-movie-section" style={{ padding:'72px 88px', borderTop:`1px solid ${HP.border}` }}>
       <div className="ff-movie-twin-grid" style={{ display:'grid', gridTemplateColumns:'auto 1fr', gap:48, alignItems:'flex-start' }}>
         <div style={{ textAlign:'center' }}>
-          <div style={{ position:'relative', width:96, height:96, borderRadius:999, background: twin.avatarBg, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Outfit', fontWeight:700, color:'#0A0510', fontSize:36, margin:'0 auto', boxShadow:`0 0 32px ${twin.avatarBg}55`, overflow:'hidden' }}>
+          <div style={{ position:'relative', width:96, height:96, borderRadius:RADIUS.pill, background: twin.avatarBg, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Outfit', fontWeight:700, color:'#0A0510', fontSize:36, margin:'0 auto', boxShadow:`0 0 32px ${twin.avatarBg}55`, overflow:'hidden' }}>
             {twin.avatarUrl ? (
               <img src={twin.avatarUrl} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
             ) : (
               (twin.name || '?').charAt(0).toUpperCase()
             )}
-            <div style={{ position:'absolute', bottom:-6, right:-6, padding:'3px 9px', borderRadius:999, background: HP.bgDeep, border:`1px solid ${HP.purple}`, fontSize:10, fontWeight:700, color: HP.purple, fontFamily:'Outfit' }}>{twin.matchPct}%</div>
+            <div style={{ position:'absolute', bottom:-6, right:-6, padding:'3px 9px', borderRadius:RADIUS.pill, background: HP.bgDeep, border:`1px solid ${HP.purple}`, fontSize:10, fontWeight:700, color: HP.purple, fontFamily:'Outfit' }}>{twin.matchPct}%</div>
           </div>
           <div style={{ marginTop:14, fontFamily:'Outfit', fontSize:14, fontWeight:600, color: HP.text }}>{twin.name}</div>
           <div style={{ fontSize:11, color: HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.06em', textTransform:'uppercase', marginTop:3 }}>Your taste twin</div>
@@ -425,7 +425,7 @@ function TimelineSection() {
           <div style={{ position:'absolute', left:5, top:6, bottom:6, width:1, background: HP.border }} />
           {timeline.map((t, i) => (
             <div key={i} style={{ position:'relative', paddingBottom:24, paddingLeft:24 }}>
-              <div style={{ position:'absolute', left:-3.5, top:4, width:11, height:11, borderRadius:999, background: i===0 ? FILM_PALETTE.primary : HP.purple, boxShadow:`0 0 12px ${i===0 ? FILM_PALETTE.primary : HP.purple}66` }} />
+              <div style={{ position:'absolute', left:-3.5, top:4, width:11, height:11, borderRadius:RADIUS.pill, background: i===0 ? FILM_PALETTE.primary : HP.purple, boxShadow:`0 0 12px ${i===0 ? FILM_PALETTE.primary : HP.purple}66` }} />
               <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color: HP.textMuted, fontFamily:'Outfit' }}>{t.date}</div>
               <div style={{ fontFamily:'Outfit', fontSize:18, fontWeight:500, color: HP.text, letterSpacing:'-0.015em', marginTop:4 }}>{t.label}</div>
               {t.note && <div style={{ fontSize:12, color: HP.textSoft, marginTop:3, fontFamily:'Outfit, Inter, sans-serif', fontStyle:'italic' }}>{t.note}</div>}
@@ -458,7 +458,7 @@ function DirectorShelf({ goToMovie }) {
             href={`https://www.themoviedb.org/person/${mv.directorId}`}
             target="_blank"
             rel="noopener noreferrer"
-            style={{ padding:'9px 16px', borderRadius:999, background:'transparent', border:`1px solid ${HP.border}`, color: HP.textSoft, fontFamily:'Outfit', fontSize:11, fontWeight:600, letterSpacing:'0.08em', textTransform:'uppercase', cursor:'pointer', textDecoration:'none' }}
+            style={{ padding:'9px 16px', borderRadius:RADIUS.pill, background:'transparent', border:`1px solid ${HP.border}`, color: HP.textSoft, fontFamily:'Outfit', fontSize:11, fontWeight:600, letterSpacing:'0.08em', textTransform:'uppercase', cursor:'pointer', textDecoration:'none' }}
           >Full filmography →</a>
         )}
       </div>
@@ -471,7 +471,7 @@ function DirectorShelf({ goToMovie }) {
             aria-label={`Open ${f.title}${f.year ? ` (${f.year})` : ''}`}
             style={{ ...RESET_BTN }}
           >
-            <div style={{ position:'relative', borderRadius:4, overflow:'hidden', marginBottom:10, boxShadow:'0 8px 24px -8px rgba(0,0,0,0.5)' }}>
+            <div style={{ position:'relative', borderRadius:RADIUS.xs, overflow:'hidden', marginBottom:10, boxShadow:'0 8px 24px -8px rgba(0,0,0,0.5)' }}>
               <img src={f.poster} alt={f.title} style={{ width:'100%', aspectRatio:'2/3', objectFit:'cover', display:'block' }} onError={(e)=>{ e.currentTarget.style.display='none'; }} />
               <div style={{ position:'absolute', inset:0, background:`linear-gradient(155deg, ${FILM_PALETTE.primary}11, transparent)` }} />
               {f.yourRating ? (
@@ -495,8 +495,8 @@ function YourTake({ isWatched, userId, internalId }) {
 
   return (
     <section className="ff-movie-section" style={{ padding:'56px 88px', borderTop:`1px solid ${HP.border}` }}>
-      <div className="ff-movie-your-take-card" style={{ padding:'24px 28px', borderRadius:6, background:'linear-gradient(135deg, rgba(167,139,250,0.04), rgba(236,72,153,0.02))', border:`1px solid ${HP.border}`, display:'grid', gridTemplateColumns:'auto 1fr auto', gap:24, alignItems:'center' }}>
-        <div style={{ width:44, height:44, borderRadius:999, background:'rgba(167,139,250,0.12)', border:`1px solid ${HP.purple}33`, display:'flex', alignItems:'center', justifyContent:'center' }}>
+      <div className="ff-movie-your-take-card" style={{ padding:'24px 28px', borderRadius:RADIUS.sm, background:'linear-gradient(135deg, rgba(167,139,250,0.04), rgba(236,72,153,0.02))', border:`1px solid ${HP.border}`, display:'grid', gridTemplateColumns:'auto 1fr auto', gap:24, alignItems:'center' }}>
+        <div style={{ width:44, height:44, borderRadius:RADIUS.pill, background:'rgba(167,139,250,0.12)', border:`1px solid ${HP.purple}33`, display:'flex', alignItems:'center', justifyContent:'center' }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={HP.purple} strokeWidth="1.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         </div>
         <div>
@@ -530,10 +530,10 @@ function YourTakeUnlocked({ userId, internalId }) {
   const showIdleSavedHint = saveStatus === 'idle' && hasPersistedData;
   return (
     <section className="ff-movie-section" style={{ padding:'56px 88px', borderTop:`1px solid ${HP.border}`, animation:'mv-fade-in 0.6s ease both' }}>
-      <div className="ff-movie-your-take-card" style={{ padding:'32px 28px', borderRadius:6, background:`linear-gradient(135deg, ${FILM_PALETTE.primary}11, rgba(167,139,250,0.04))`, border:`1px solid ${FILM_PALETTE.primary}33` }}>
+      <div className="ff-movie-your-take-card" style={{ padding:'32px 28px', borderRadius:RADIUS.sm, background:`linear-gradient(135deg, ${FILM_PALETTE.primary}11, rgba(167,139,250,0.04))`, border:`1px solid ${FILM_PALETTE.primary}33` }}>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:14, flexWrap:'wrap', marginBottom:14 }}>
           <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: FILM_PALETTE.primary, display:'inline-flex', alignItems:'center', gap:10 }}>
-            <span style={{ width:8, height:8, borderRadius:999, background: FILM_PALETTE.primary, boxShadow:`0 0 12px ${FILM_PALETTE.primary}` }} />
+            <span style={{ width:8, height:8, borderRadius:RADIUS.pill, background: FILM_PALETTE.primary, boxShadow:`0 0 12px ${FILM_PALETTE.primary}` }} />
             Unlocked · How did it land?
           </div>
           <SaveIndicator status={saveStatus} showIdleSavedHint={showIdleSavedHint} />
@@ -572,7 +572,7 @@ function YourTakeUnlocked({ userId, internalId }) {
                     aria-checked={active}
                     onClick={() => setReaction(active ? '' : t)}
                     style={{
-                      padding:'7px 12px', borderRadius:999,
+                      padding:'7px 12px', borderRadius:RADIUS.pill,
                       background: active ? 'rgba(167,139,250,0.14)' : 'rgba(255,255,255,0.04)',
                       border:`1px solid ${active ? HP.purple + '88' : HP.border}`,
                       color: active ? HP.text : HP.textSoft,
@@ -593,7 +593,7 @@ function YourTakeUnlocked({ userId, internalId }) {
                 placeholder={canPersist
                   ? 'Optional: one sentence on what stuck with you…'
                   : 'Sign in to save your note.'}
-                style={{ width:'100%', minHeight:80, padding:'12px 14px', borderRadius:6, background:'rgba(0,0,0,0.4)', border:`1px solid ${HP.border}`, color: HP.text, fontFamily:'Outfit, Inter, sans-serif', fontSize:13.5, lineHeight:1.5, resize:'vertical', outline:'none', opacity: canPersist ? 1 : 0.55 }}
+                style={{ width:'100%', minHeight:80, padding:'12px 14px', borderRadius:RADIUS.sm, background:'rgba(0,0,0,0.4)', border:`1px solid ${HP.border}`, color: HP.text, fontFamily:'Outfit, Inter, sans-serif', fontSize:13.5, lineHeight:1.5, resize:'vertical', outline:'none', opacity: canPersist ? 1 : 0.55 }}
               />
             </label>
           </div>
@@ -633,7 +633,7 @@ function DNADelta() {
     return () => clearTimeout(t);
   }, []);
   return (
-    <div style={{ padding:'22px 24px', borderRadius:6, background:'rgba(0,0,0,0.35)', border:`1px solid ${HP.border}` }}>
+    <div style={{ padding:'22px 24px', borderRadius:RADIUS.sm, background:'rgba(0,0,0,0.35)', border:`1px solid ${HP.border}` }}>
       <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color: HP.purple, marginBottom:6 }}>Your engine projects this shift</div>
       <div style={{ fontSize:12, color: HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', fontStyle:'italic', marginBottom:18 }}>Real before/after deltas land in a follow-up — for now, projected from your taste profile.</div>
       <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
@@ -646,7 +646,7 @@ function DNADelta() {
                 <span style={{ fontFamily:'Outfit', fontSize:13, fontWeight:500, color: HP.text }}>{d.motif}</span>
                 <span style={{ fontFamily:'Outfit', fontSize:11, color: FILM_PALETTE.primary, fontWeight:700 }}>+{delta}</span>
               </div>
-              <div style={{ height:3, background:'rgba(255,255,255,0.06)', borderRadius:999, overflow:'hidden' }}>
+              <div style={{ height:3, background:'rgba(255,255,255,0.06)', borderRadius:RADIUS.pill, overflow:'hidden' }}>
                 <div style={{ height:'100%', width:`${w*100}%`, background:`linear-gradient(90deg, ${HP.purple}, ${FILM_PALETTE.primary})`, transition:'width 1.4s cubic-bezier(0.2,0.8,0.2,1)' }} />
               </div>
             </div>
@@ -698,7 +698,7 @@ function MovieFooter({ onBackToBriefing }) {
   return (
     <footer className="ff-movie-section ff-movie-footer" style={{ padding:'48px 88px 64px', borderTop:`1px solid ${HP.border}`, display:'flex', alignItems:'center', justifyContent:'space-between', fontFamily:'Outfit, Inter, sans-serif', flexWrap:'wrap', gap:20 }}>
       <div style={{ display:'flex', alignItems:'center', gap:14 }}>
-        <div style={{ width:28, height:28, borderRadius:6, background: HP_GRAD, display:'inline-flex', alignItems:'center', justifyContent:'center', fontFamily:'Outfit', fontWeight:700, fontSize:13, color:'#fff' }}>FF</div>
+        <div style={{ width:28, height:28, borderRadius:RADIUS.sm, background: HP_GRAD, display:'inline-flex', alignItems:'center', justifyContent:'center', fontFamily:'Outfit', fontWeight:700, fontSize:13, color:'#fff' }}>FF</div>
         <span style={{ fontSize:13, color: HP.textMuted, letterSpacing:'0.04em' }}>FeelFlick · Film File Nº {String(mv.id).padStart(4, '0')}</span>
       </div>
       <div style={{ display:'flex', gap:28, fontFamily:'Outfit, Inter, sans-serif' }}>

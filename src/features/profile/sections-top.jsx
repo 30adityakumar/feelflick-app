@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import FollowButton from '@/shared/components/FollowButton'
-import { USER as USER_DEFAULT, HP, HP_GRAD } from './data'
+import { USER as USER_DEFAULT, HP, HP_GRAD, RADIUS } from './data'
 import { useProfileData } from './useProfileData'
 
 // FeelFlick — /profile · Top sections: masthead, archetype card, mood radar.
@@ -83,18 +83,18 @@ function Masthead() {
             <>
               <button
                 onClick={() => navigate('/account')}
-                style={{ padding:'8px 14px', borderRadius:6, background:'rgba(255,255,255,0.05)', border:`1px solid ${HP.border}`, color:HP.textSoft, fontFamily:'Outfit', fontSize:12, fontWeight:600, letterSpacing:'0.04em', cursor:'pointer' }}
+                style={{ padding:'8px 14px', borderRadius:RADIUS.sm, background:'rgba(255,255,255,0.05)', border:`1px solid ${HP.border}`, color:HP.textSoft, fontFamily:'Outfit', fontSize:12, fontWeight:600, letterSpacing:'0.04em', cursor:'pointer' }}
               >Edit profile</button>
               <button
                 onClick={handleShareDNA}
-                style={{ padding:'8px 14px', borderRadius:6, background:HP_GRAD, border:'none', color:'#fff', fontFamily:'Outfit', fontSize:12, fontWeight:600, letterSpacing:'0.04em', cursor:'pointer', boxShadow:'0 8px 22px -8px rgba(167,139,250,0.5)' }}
+                style={{ padding:'8px 14px', borderRadius:RADIUS.sm, background:HP_GRAD, border:'none', color:'#fff', fontFamily:'Outfit', fontSize:12, fontWeight:600, letterSpacing:'0.04em', cursor:'pointer', boxShadow:'0 8px 22px -8px rgba(167,139,250,0.5)' }}
               >Share my DNA →</button>
             </>
           ) : (
             <>
               <button
                 onClick={() => navigate(-1)}
-                style={{ padding:'8px 14px', borderRadius:6, background:'rgba(255,255,255,0.05)', border:`1px solid ${HP.border}`, color:HP.textSoft, fontFamily:'Outfit', fontSize:12, fontWeight:600, letterSpacing:'0.04em', cursor:'pointer' }}
+                style={{ padding:'8px 14px', borderRadius:RADIUS.sm, background:'rgba(255,255,255,0.05)', border:`1px solid ${HP.border}`, color:HP.textSoft, fontFamily:'Outfit', fontSize:12, fontWeight:600, letterSpacing:'0.04em', cursor:'pointer' }}
               >← Back</button>
               {viewingUserId && <FollowButton userId={viewingUserId} size="sm" />}
             </>
@@ -105,8 +105,8 @@ function Masthead() {
       <div className="ff-profile-masthead-grid" style={{ display:'grid', gridTemplateColumns:'auto 1fr auto', gap:48, alignItems:'flex-end' }}>
         {/* Avatar — gradient ring with photo or initial fallback */}
         <div style={{ position:'relative', width:120, height:120 }}>
-          <div style={{ position:'absolute', inset:-6, borderRadius:999, background:HP_GRAD, opacity:0.5, filter:'blur(18px)' }} />
-          <div style={{ position:'relative', width:'100%', height:'100%', borderRadius:999, background:HP_GRAD, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Outfit', fontWeight:300, fontSize:64, color:'#0a0510', letterSpacing:'-0.04em', boxShadow:'0 24px 60px -12px rgba(0,0,0,0.7)', overflow:'hidden' }}>
+          <div style={{ position:'absolute', inset:-6, borderRadius:RADIUS.pill, background:HP_GRAD, opacity:0.5, filter:'blur(18px)' }} />
+          <div style={{ position:'relative', width:'100%', height:'100%', borderRadius:RADIUS.pill, background:HP_GRAD, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Outfit', fontWeight:300, fontSize:64, color:'#0a0510', letterSpacing:'-0.04em', boxShadow:'0 24px 60px -12px rgba(0,0,0,0.7)', overflow:'hidden' }}>
             {user?.avatarUrl ? (
               <img src={user.avatarUrl} alt="" referrerPolicy="no-referrer" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
             ) : (
@@ -124,17 +124,17 @@ function Masthead() {
           </p>
           <div style={{ marginTop:20, display:'flex', alignItems:'center', gap:14, fontSize:11, color:HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.08em', textTransform:'uppercase', flexWrap:'wrap' }}>
             <span>{user?.handle || USER_DEFAULT.handle}</span>
-            <span style={{ width:3, height:3, borderRadius:999, background:HP.textFaint }} />
+            <span style={{ width:3, height:3, borderRadius:RADIUS.pill, background:HP.textFaint }} />
             <span>Joined {user?.joined || USER_DEFAULT.joined}</span>
-            <span style={{ width:3, height:3, borderRadius:999, background:HP.textFaint }} />
+            <span style={{ width:3, height:3, borderRadius:RADIUS.pill, background:HP.textFaint }} />
             <span><span style={{ color:HP.text, fontWeight:600 }}>{user?.filmsLogged ?? 0}</span> films logged</span>
-            <span style={{ width:3, height:3, borderRadius:999, background:HP.textFaint }} />
+            <span style={{ width:3, height:3, borderRadius:RADIUS.pill, background:HP.textFaint }} />
             <span><span style={{ color:HP.text, fontWeight:600 }}>{user?.hoursWatched ?? 0}h</span> watched</span>
           </div>
         </div>
 
         {/* Archetype card — deterministic taxonomy from taste fingerprint */}
-        <div style={{ padding:'22px 26px', borderRadius:6, background:'rgba(255,255,255,0.025)', border:`1px solid ${HP.border}`, minWidth:240 }}>
+        <div style={{ padding:'22px 26px', borderRadius:RADIUS.sm, background:'rgba(255,255,255,0.025)', border:`1px solid ${HP.border}`, minWidth:240 }}>
           <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color:HP.purple, marginBottom:14 }}>Archetype</div>
           <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
             {archetype.map((a, i) => (
@@ -217,9 +217,9 @@ function MoodRadar() {
           </p>
           <div style={{ marginTop:24, display:'flex', flexDirection:'column', gap:8 }}>
             {moods.map(m => (
-              <div key={m.name} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'8px 12px', borderRadius:6 }}>
+              <div key={m.name} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'8px 12px', borderRadius:RADIUS.sm }}>
                 <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                  <span style={{ width:8, height:8, borderRadius:999, background:m.hex }} />
+                  <span style={{ width:8, height:8, borderRadius:RADIUS.pill, background:m.hex }} />
                   <span style={{ fontFamily:'Outfit', fontSize:14, fontWeight:500, color:HP.text }}>{m.name}</span>
                   <span style={{ fontSize:11, color:HP.textFaint, fontFamily:'Outfit' }}>· {m.count} films</span>
                 </div>

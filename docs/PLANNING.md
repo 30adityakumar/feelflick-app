@@ -70,6 +70,20 @@
       outcome-capture baseline (`docs/sql/recommendation-evaluation-queries.sql` §7).
 
 ## Done This Week
+- [x] **F11B.3 — Authenticated visual walkthrough + rhythm/token work** (engine frozen `2.17`; **zero
+      rendered-pixel change**): ran a REAL live **authenticated** visual pass of Home/Movie/Profile
+      (desktop+mobile) — signed in the dev user via the **Playwright e2e harness** (creds in env, never
+      printed; chrome-devtools couldn't be used — Google OAuth + the credential guard) — captured
+      screenshots + computed section rhythm. **Finding: the 3 routes are already visually coherent**
+      (Briefing primary/tail subordinate; PrimaryCaseCard tight to hero; honest DnaConfidence) → evidence
+      called for restraint, NOT pixel normalization (would be a redesign). Change set: migrated the
+      remaining ad-hoc `borderRadius` literals in `movie/sections-{top,bottom}.jsx` +
+      `profile/sections-{top,bottom}.jsx` to `RADIUS` tokens (999→pill/8→md/6→sm/4→xs; 3/14 left;
+      80 ins/80 del, all 1:1). **No padding normalization, no `<Card>` forced** (surfaces are
+      accent-tinted/poster, not flat) **— deferred to F11B.4 with the same walkthrough verification loop.**
+      Zero-visual-change confirmed 3 ways (999↔9999 pill identical; computed rhythm byte-identical pre/post;
+      screenshots identical). Docs: `docs/ui/authenticated-visual-walkthrough-f11b3.md` + `authenticated-card-rhythm-f11b3.md`.
+      lint/test/build/audit green. F8C still blocked.
 - [x] **F11B.2 — Page rhythm: Home/Movie/Profile** (rhythm/consistency foundation; engine frozen `2.17`;
       **zero rendered-pixel change**): added a `SPACE` page-rhythm token (gutter + section vertical scale +
       stack gaps) to `tokens.js`; re-exported `RADIUS`+`SPACE` from the 3 routes' `data.js`; adopted them in

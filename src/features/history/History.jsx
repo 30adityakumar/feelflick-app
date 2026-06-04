@@ -86,6 +86,7 @@ function FilterBar({ filter, setFilter, sort, setSort, query, setQuery }) {
               role="radio"
               aria-checked={on}
               onClick={() => setFilter(f.v)}
+              className="ff-tap"
               style={{
                 padding:'8px 14px', borderRadius:999,
                 background: on ? `${HP.purple}22` : 'rgba(255,255,255,0.04)',
@@ -103,10 +104,10 @@ function FilterBar({ filter, setFilter, sort, setSort, query, setQuery }) {
           onChange={e => setQuery(e.target.value)}
           placeholder="Search the diary…"
           aria-label="Search the diary"
-          className="ff-hist-search"
+          className="ff-hist-search ff-tap"
           style={{ padding:'9px 14px', borderRadius:999, background:'rgba(255,255,255,0.04)', border:`1px solid ${HP.border}`, color:HP.text, fontFamily:'Outfit, Inter, sans-serif', fontSize:12, outline:'none', minWidth:240 }}
         />
-        <label style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'7px 12px', borderRadius:999, background:'rgba(255,255,255,0.04)', border:`1px solid ${HP.border}` }}>
+        <label className="ff-tap" style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'7px 12px', borderRadius:999, background:'rgba(255,255,255,0.04)', border:`1px solid ${HP.border}` }}>
           <span style={{ fontSize:10, color:HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.12em', textTransform:'uppercase' }}>Sort</span>
           <select
             value={sort}

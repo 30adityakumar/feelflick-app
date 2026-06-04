@@ -252,6 +252,13 @@ intentional (Briefing hero, filter toolbar, "Diary" eyebrow, editable identity),
 > (broad visible normalization deferred). See
 > [`page-container-type-h1-f12b.md`](ui/page-container-type-h1-f12b.md).
 
+**Mobile touch floor (F12C):** two **mobile-only (≤767px)** utilities in `index.css` bring route-local
+controls to a 44px touch target — **`.ff-tap`** grows a text control (chip/pill/filter/search) to
+`min-height:44px`; **`.ff-tap-hit`** keeps a switch/icon's visual size but expands its **hit area** to
+≥44px via a transparent `::after` (no layout/density change). Desktop (≥768px) is untouched. Use these on
+route-local controls; do **not** alter the shared `<Button>` or the MovieCard hover LAW. See
+[`mobile-touch-density-f12c.md`](ui/mobile-touch-density-f12c.md).
+
 ---
 
 ## 7. Turning personal data into shareable social currency

@@ -58,6 +58,7 @@ export function MoodReactor({ currentMood, setMood, onReshuffle }) {
               type="button"
               data-mood-id={m.id}
               onClick={() => setMood(m)}
+              className="ff-tap"
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: 8,
                 padding: '8px 14px', borderRadius: 999,
@@ -83,7 +84,7 @@ export function MoodReactor({ currentMood, setMood, onReshuffle }) {
             onClick={onReshuffle}
             aria-label="Reshuffle picks"
             title="Reshuffle"
-            className="flex flex-none items-center justify-center rounded-full border border-white/10 transition-all duration-200 hover:border-white/25 hover:bg-white/6 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+            className="ff-tap-hit flex flex-none items-center justify-center rounded-full border border-white/10 transition-all duration-200 hover:border-white/25 hover:bg-white/6 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
             style={{ width: 32, height: 32, color: HP.textMuted, marginLeft: 4 }}
           >
             <RefreshCw className="h-3.5 w-3.5" />

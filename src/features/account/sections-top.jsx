@@ -152,7 +152,7 @@ function IdentityCard() {
             <span>Member since {joinedDate}</span>
           </div>
           <div style={{ marginTop:14, display:'flex', gap:14, alignItems:'center' }}>
-            <Link to="/profile" style={{ fontSize:11, color:HP.purple, fontFamily:'Outfit', letterSpacing:'0.06em', textTransform:'uppercase', fontWeight:600, textDecoration:'none' }}>View my profile →</Link>
+            <Link to="/profile" className="ff-tap-hit" style={{ fontSize:11, color:HP.purple, fontFamily:'Outfit', letterSpacing:'0.06em', textTransform:'uppercase', fontWeight:600, textDecoration:'none' }}>View my profile →</Link>
             {toast && (
               <span style={{ fontSize:11, color: toast.ok ? HP.green : HP.red, fontFamily:'Outfit', letterSpacing:'0.06em', textTransform:'uppercase', fontWeight:600 }}>
                 {toast.ok ? '✓ ' : '⚠ '}{toast.text}
@@ -226,6 +226,7 @@ function Toggle({ on, onChange, ariaLabel }) {
       onClick={onChange}
       aria-pressed={Boolean(on)}
       aria-label={ariaLabel}
+      className="ff-tap-hit"
       style={{ width:44, height:24, borderRadius:999, background: on ? HP_GRAD : 'rgba(255,255,255,0.08)', border:'none', position:'relative', cursor:'pointer', transition:'background 0.25s ease', padding:0 }}
     >
       <span style={{ position:'absolute', top:3, left: on ? 22 : 3, width:18, height:18, borderRadius:999, background:'#fff', transition:'left 0.25s ease', boxShadow:'0 2px 8px rgba(0,0,0,0.4)' }} />

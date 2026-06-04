@@ -70,6 +70,20 @@
       outcome-capture baseline (`docs/sql/recommendation-evaluation-queries.sql` §7).
 
 ## Done This Week
+- [x] **F12C — Mobile touch-target + density pass** (engine frozen `2.17`; **desktop unchanged**): brought
+      the route-local control bars to a practical **44px mobile touch floor** without a Button/MovieCard/card
+      redesign. Added two **mobile-only (≤767px) utilities** to `index.css` — **`.ff-tap`** (grows a text
+      control to 44px) + **`.ff-tap-hit`** (expands a switch/icon HIT AREA to ≥44px via a transparent
+      `::after`, **visual size + density unchanged**). Applied: Browse FilterPill chips + search/refine/input
+      (`ff-tap`); History FilterBar filter buttons + search + sort (`ff-tap`); Account Toggle switches +
+      profile link (`ff-tap-hit`); Home mood pills (`ff-tap`) + reshuffle (`ff-tap-hit`). **VERIFIED on LIVE
+      authenticated Browse/History/Account/Home @390/768** (Playwright): every fixed control reaches ≥44px tap
+      (`.ff-tap` rect grows; `.ff-tap-hit` ::after gives 44px hit area) and **@768 nothing is forced = desktop
+      unchanged**; no visual breakage. **Deferred (documented):** History's ~67 per-item diary icon buttons
+      (expanding them in a dense row risks overlapping tap zones → list-row pass, F12E); Home skeleton left
+      as-is (content-shaped, shrinking would cause CLS); shared Header (not route-local); `<Button>` (F12D).
+      No new unit tests (CSS-only; Playwright tap-area measurement is the proof). No behavior/data change, no
+      `<Button>`/`/about` impact. Docs: `docs/ui/mobile-touch-density-f12c.md`. lint/533/build/audit green. F8C blocked.
 - [x] **F12B — PageContainer + type scale + missing h1s** (first premium-polish wave; engine frozen `2.17`;
       **zero rendered-pixel change**): added shared **`<PageContainer>`** primitive (size app1280/wide1440/
       narrow1080 + responsive padding none/sm/default/lg; layout-only) + additive **LAYOUT/GUTTER/TYPE**

@@ -54,3 +54,27 @@
   --bg-base: #06060a;
   --bg-elevated: #0d0b14;
 }
+
+/* === F12C mobile touch-target utilities (≤767px only — desktop unchanged) ===
+   `.ff-tap`     grows a text control (chip/pill/filter/search) to the 44px touch floor.
+   `.ff-tap-hit` keeps a switch/icon's visual size but expands its HIT AREA to ≥44px via a
+                 transparent overlay — no layout/density change. */
+@media (max-width: 767px) {
+  .ff-tap {
+    min-height: 44px;
+  }
+  .ff-tap-hit {
+    position: relative;
+  }
+  .ff-tap-hit::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    min-width: 44px;
+    min-height: 44px;
+    width: 100%;
+    height: 100%;
+  }
+}

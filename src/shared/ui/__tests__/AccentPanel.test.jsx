@@ -15,6 +15,21 @@ function legacySurfaceStyle(hex, radiusPx) {
   return styleOf(container.firstChild)
 }
 
+// The legacy PrimaryCaseCard inner surface (directional brand glow) — for the
+// F11B.5 gradient-variant parity guard.
+function legacyGradientStyle(hex, radiusPx) {
+  const { container } = render(
+    <div
+      style={{
+        background: `linear-gradient(160deg, ${hex}0f, transparent 72%)`,
+        border: `1px solid ${hex}33`,
+        borderRadius: radiusPx,
+      }}
+    />,
+  )
+  return styleOf(container.firstChild)
+}
+
 describe('AccentPanel', () => {
   it('renders children', () => {
     const { getByText } = render(<AccentPanel>Inside</AccentPanel>)
@@ -66,5 +81,31 @@ describe('AccentPanel', () => {
     // Parity guard: AccentPanel tone=purple must equal the legacy WhyThisPick surface.
     const { container } = render(<AccentPanel tone="purple" radius="md">x</AccentPanel>)
     expect(styleOf(container.firstChild)).toBe(legacySurfaceStyle(HP.purple, RADIUS.md))
+  })
+
+  // --- F11B.5: gradient variant ---
+
+  it('default variant is tint (class + surface) — WhyThisPick stays byte-identical', () => {
+    const { container } = render(<AccentPanel>x</AccentPanel>)
+    const el = container.firstChild
+    expect(el.className).toContain('ff-accent-panel--tint')
+    expect(el.className).not.toContain('ff-accent-panel--gradient')
+    expect(styleOf(el)).toBe(legacySurfaceStyle(HP.purple, RADIUS.md))
+  })
+
+  it('variant="gradient" renders the directional brand glow (parity with legacy PrimaryCaseCard)', () => {
+    const { container } = render(
+      <AccentPanel variant="gradient" tone="purple" radius="lg">x</AccentPanel>,
+    )
+    const el = container.firstChild
+    expect(el.className).toContain('ff-accent-panel--gradient')
+    expect(styleOf(el)).toBe(legacyGradientStyle(HP.purple, RADIUS.lg))
+  })
+
+  it('an unknown variant falls back to the tint surface (constrained, safe)', () => {
+    const { container } = render(<AccentPanel variant="nope">x</AccentPanel>)
+    const el = container.firstChild
+    expect(el.className).toContain('ff-accent-panel--tint')
+    expect(styleOf(el)).toBe(legacySurfaceStyle(HP.purple, RADIUS.md))
   })
 })

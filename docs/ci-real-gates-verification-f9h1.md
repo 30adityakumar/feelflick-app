@@ -19,10 +19,24 @@ real (CI-confirmed on the F9H.1 PR). **Date:** 2026-06-04.
 |---|---|
 | **Uploaded 5 GitHub Actions repo secrets** | `E2E_TEST_EMAIL`, `E2E_TEST_PASSWORD`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_TMDB_API_KEY` — the exact names the two preflights check. Values came from approved local sources (`.claude/local-secrets.json` → `feelflickDevUser` for the E2E creds; the gitignored local `.env`/`.env.local` for the `VITE_*` client keys). |
 | **Fixed Lighthouse collect scope** (`lighthouserc.json`) | Added `collect.url: ["http://localhost/index.html"]` alongside `staticDistDir`. lhci now serves `./dist` and audits **only `index.html`** instead of auto-discovering every `*.html` (which also picked up `dist/google246413e30c9bee30.html`, a one-line Google site-verification stub that has no `<title>`/meta and would score poorly on SEO). |
+| **Added `workflow_dispatch:`** to both gate workflows | `app-quality.yml` + `lighthouse.yml` now allow on-demand manual runs — useful for verifying/debugging the secret-gated gates without waiting for a qualifying code PR. **Side benefit:** because `.github/workflows/app-quality.yml` is in the `quality-gate` *and* `e2e` paths filters, editing it makes both jobs run **for real on this PR** (full lint/test/build + a real Playwright E2E against the new secrets) — i.e. the E2E gate is demonstrated live here, not just enabled. |
 
-The two **workflows are unchanged** — they were already structurally correct and
-self-flip to real gates the moment the secrets exist (F9H). The only repo change
-this phase is the one-line `lighthouserc.json` scope fix.
+The gate **logic** is unchanged — both workflows already self-flip to real the
+moment the secrets exist (F9H). The repo changes this phase are minimal: the
+one-line `lighthouserc.json` scope fix + a one-line `workflow_dispatch:` trigger
+on each workflow.
+
+### Why E2E needed the workflow touch to prove out
+
+The `e2e` job is intentionally **path-filtered** (`dorny/paths-filter`) to code
+changes — `src/**`, `public/**`, `index.html`, `e2e/**`, `playwright.config.*`,
+`package.json`, `package-lock.json`, `.github/workflows/app-quality.yml`. A
+secrets-only / docs-only change correctly **does not** run E2E (no code to test) —
+so on the first F9H.1 commit (lighthouserc + docs) E2E finished green in ~5s via
+the path filter, **not** the secret gate. Adding the `workflow_dispatch:` line to
+`app-quality.yml` is a legitimate, lasting improvement that also satisfies the e2e
+paths filter, so the gate executes its real steps here and we can confirm it
+passes in the CI runner (not just locally).
 
 ## 2. Secret handling (how no value was exposed)
 

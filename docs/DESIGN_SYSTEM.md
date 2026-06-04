@@ -146,6 +146,42 @@ EASING
 
 **What makes typography "cinematic" versus "corporate":** tighter letter-spacing on large headings (-0.02em), generous body line-height (1.5–1.6), high contrast between display and body sizes (ratio >4:1), editorial serif for reviews/long-form content, and weight range spanning 300–700 (not just 400/700). On dark backgrounds, reduce font-weight by one step for body text because light-on-dark text appears optically bolder (an effect called "Überstrahlung"). Slightly increase letter-spacing (+0.01–0.02em) for white-on-black text.
 
+### 6a. Implemented shape / elevation / surface tokens (F11B.1)
+
+> The block above is **aspirational reference**. The values FeelFlick actually ships
+> live in [`src/shared/lib/tokens.js`](../src/shared/lib/tokens.js) (the source of
+> truth) — Outfit/Inter, deep black `#06060a`, the single purple→pink brand gradient,
+> brand vs. semantic colors. F11B.1 added the non-color scales below so the inline-style
+> surfaces have a shared target (F11A found radii were ad-hoc: 3/4/5/6/8/10/14/999).
+
+```js
+// src/shared/lib/tokens.js — borders over shadows; one brand gradient.
+RADIUS  = { xs: 4, sm: 6, md: 8, lg: 12, xl: 16, pill: 9999 }
+SHADOW  = { card, hover, focus }        // focus = brand purple ring (#A78BFA)
+SURFACE = { base, panel, card, elevated } // aliases over HP/C surface hexes
+```
+
+**`<Card>` primitive** ([`src/shared/ui/Card.jsx`](../src/shared/ui/Card.jsx)) — the
+canonical surface: faint tint + hairline border + token radius, optional
+reduced-motion-gated hover. Prefer it over hand-rolled inline panels:
+
+```jsx
+import { Card } from '@/shared/ui'
+
+// a calm callout surface
+<Card tint="card" radius="lg">…</Card>
+
+// an interactive card with a reduced-motion-safe hover lift
+<Card hover radius="md">…</Card>
+
+// a borderless elevated sheet
+<Card tint="elevated" border={false} radius="xl">…</Card>
+```
+
+> **Adoption is incremental.** F11B.1 ships the tokens + `Card` + tests only; existing
+> call sites migrate in later F11B waves (where any visual-baseline route change is
+> re-baselined deliberately). See [`docs/ui/design-tokens-primitives-f11b1.md`](ui/design-tokens-primitives-f11b1.md).
+
 ---
 
 ## 7. Turning personal data into shareable social currency

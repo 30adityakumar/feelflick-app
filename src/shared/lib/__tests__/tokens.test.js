@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { HP, HP_GRAD, C } from '../tokens'
+import { HP, HP_GRAD, C, RADIUS, SHADOW, SURFACE } from '../tokens'
 
 // Brand-vs-semantic token contract (F3 hardening) — see
 // docs/design-system-hardening-f3.md. Guards two invariants: the single brand
@@ -28,5 +28,41 @@ describe('design tokens — brand vs semantic contract', () => {
   it('derives the landing palette C from HP (no divergent brand hexes)', () => {
     expect(C.purple).toBe(HP.purple)
     expect(C.pink).toBe(HP.pink)
+  })
+})
+
+// F11B.1 — the new shape/elevation/surface scales. Pin them so later waves can
+// migrate ad-hoc inline radii/shadows onto a stable target, and so an accidental
+// removal/rename is caught.
+describe('design tokens — RADIUS scale (F11B.1)', () => {
+  it('is the pinned scale', () => {
+    expect(RADIUS).toEqual({ xs: 4, sm: 6, md: 8, lg: 12, xl: 16, pill: 9999 })
+  })
+
+  it('ascends and ends in a pill', () => {
+    const ramp = ['xs', 'sm', 'md', 'lg', 'xl']
+    for (let i = 1; i < ramp.length; i++) {
+      expect(RADIUS[ramp[i]]).toBeGreaterThan(RADIUS[ramp[i - 1]])
+    }
+    expect(RADIUS.pill).toBeGreaterThan(RADIUS.xl)
+  })
+})
+
+describe('design tokens — SHADOW (F11B.1)', () => {
+  it('exposes exactly card/hover/focus', () => {
+    expect(Object.keys(SHADOW).sort()).toEqual(['card', 'focus', 'hover'])
+  })
+
+  it('focus ring uses the brand purple (#A78BFA = rgb 167,139,250)', () => {
+    expect(SHADOW.focus).toContain('167,139,250')
+  })
+})
+
+describe('design tokens — SURFACE (F11B.1)', () => {
+  it('aliases existing surface values (introduces no new palette)', () => {
+    expect(SURFACE.base).toBe(HP.bgDeep)
+    expect(SURFACE.panel).toBe(HP.panel)
+    expect(SURFACE.card).toBe(HP.panel)
+    expect(SURFACE.elevated).toBe(C.bgLight)
   })
 })

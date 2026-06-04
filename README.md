@@ -236,7 +236,8 @@ and ending green on `lint → test → build`. See the roadmap in the
 - **F9B — Linux visual baseline** ✅ done (regenerated via the `visual-baselines/*` CI flow)
 - **F9C — Merge / deploy / smoke / outcome baseline** ✅ done (rebuild **merged → `main` (#169)** + **deployed to production**; smoke-green; F8B outcome capture **verified working in prod**)
 - **F9D — Production observability + security headers** ✅ done (Sentry 403 root-caused to an Allowed-Domains filter → one-time dashboard fix; safe security headers shipped via `public/_headers` + `vercel.json`; CSP drafted/deferred)
-- **F9E — Merge + verify** ✅ done (PR #171 merged; **security headers verified LIVE on `app.feelflick.com`**; Sentry ingest still needs the one Allowed-Domains dashboard toggle)
+- **F9E — Merge + verify** ✅ done (PR #171 merged; **security headers verified LIVE on `app.feelflick.com`**)
+- **F9F — Sentry ingest verification** ✅ done (after the Allowed-Domains fix, **production error monitoring is live** — 403 gone, a test error landed in Sentry Issues from `app.feelflick.com`)
 - **F8C — Gated engine tuning** ⏭️ next — **still blocked** until a *post-deploy* baseline shows non-trivial, stable outcome capture from real user traffic (capture mechanism is proven; volume is not there yet)
 
 ---

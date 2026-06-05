@@ -70,6 +70,18 @@
       outcome-capture baseline (`docs/sql/recommendation-evaluation-queries.sql` §7).
 
 ## Done This Week
+- [x] **F12E — Card / poster / History-row rhythm pass** (engine frozen `2.17`; no MovieCard/poster/Button/
+      `/about` change): **solved the F12C-deferred History per-item control** via the row's existing grid
+      rhythm. Re-examination: the diary **remove** button sits in its OWN grid column (`ff-hist-row` =
+      `64px 1fr auto auto` desktop / `64px 1fr auto` mobile) separated by a **24px/12px gap**, so a **real
+      44×44 button cannot overlap** (F12C's overlap fear was specific to the `::after` overlay on packed
+      *inline* controls). Fix = the remove button → **min 44×44, icon-centered** (behavior/label unchanged).
+      The **title** button is left as an **accepted exception** (redundant open-affordance — the 64×96 poster
+      opens the same film at ≥44px). **VERIFIED on LIVE authed `/history` @390/430/768/1280** (Playwright):
+      **all 38 remove buttons ≥44×44, 0 overlaps, 0 horizontal overflow**, console clean; browse/watchlist
+      unaffected. Card/poster **audit → restraint**: MovieCard hover LAW + poster ratios + browse/watchlist
+      cards are coherent → **no change** (no churn). No new unit tests (touch-target sizing; Playwright is the
+      proof). Docs: `docs/ui/card-poster-history-row-f12e.md`. lint/536/build/audit green. F8C blocked.
 - [x] **F12D — Button / CTA system pass** (engine frozen `2.17`): gave the shared **`<Button>`** an even,
       touch-comfortable **min-height floor — sm 40 / md 44 / lg 48** (4px steps; was uneven ~28/40/48) +
       icon sizes to the same floor (40/44/48). **`/about` baseline UNCHANGED → no rebaseline:** `/about`

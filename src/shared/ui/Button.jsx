@@ -8,10 +8,13 @@ const VARIANTS = {
   destructive: 'rounded-full bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 hover:border-red-500/40',
 }
 
+// F12D: even, touch-comfortable height floor via min-height — sm 40 / md 44 / lg 48
+// (4px steps). `lg` was already 48px, so min-h-12 is a no-op floor → the /about lg
+// CTA stays render-identical (no visual-baseline change). Icon sizes match the floor.
 const SIZES = {
-  sm: { base: 'px-4 py-1.5 text-xs font-semibold', icon: 'h-8 w-8' },
-  md: { base: 'px-6 py-2.5 text-sm font-semibold', icon: 'h-10 w-10' },
-  lg: { base: 'px-8 py-3 text-base font-bold', icon: 'h-12 w-12' },
+  sm: { base: 'min-h-10 px-4 py-1.5 text-xs font-semibold', icon: 'h-10 w-10' },
+  md: { base: 'min-h-11 px-6 py-2.5 text-sm font-semibold', icon: 'h-11 w-11' },
+  lg: { base: 'min-h-12 px-8 py-3 text-base font-bold', icon: 'h-12 w-12' },
 }
 
 const BASE = 'inline-flex items-center justify-center gap-2 font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400/50'

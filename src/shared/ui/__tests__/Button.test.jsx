@@ -96,4 +96,21 @@ describe('Button', () => {
     expect(btn.className).toContain('disabled:opacity-50')
     expect(btn.className).toContain('disabled:cursor-not-allowed')
   })
+
+  // F12F — the hover/active SCALE (movement) is reduced-motion-gated via motion-safe:.
+  it('gates the primary hover/active scale behind motion-safe (reduced-motion respect)', () => {
+    render(<Button variant="primary">p</Button>)
+    const c = screen.getByRole('button').className
+    expect(c).toContain('motion-safe:hover:scale-[1.02]')
+    expect(c).toContain('motion-safe:active:scale-[0.97]')
+    // brightness (color, not movement) stays ungated
+    expect(c).toContain('hover:brightness-110')
+  })
+
+  it('gates the icon hover/active scale behind motion-safe', () => {
+    render(<Button variant="icon">i</Button>)
+    const c = screen.getByRole('button').className
+    expect(c).toContain('motion-safe:hover:scale-105')
+    expect(c).toContain('motion-safe:active:scale-95')
+  })
 })

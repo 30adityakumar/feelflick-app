@@ -1,10 +1,10 @@
 import { forwardRef } from 'react'
 
 const VARIANTS = {
-  primary: 'rounded-full bg-linear-to-r from-purple-600 to-pink-500 text-white shadow-lg shadow-purple-500/20 hover:brightness-110 hover:scale-[1.02] active:scale-[0.97]',
+  primary: 'rounded-full bg-linear-to-r from-purple-600 to-pink-500 text-white shadow-lg shadow-purple-500/20 hover:brightness-110 motion-safe:hover:scale-[1.02] motion-safe:active:scale-[0.97]',
   secondary: 'rounded-full bg-white/5 border border-white/10 text-white/80 hover:bg-white/10 hover:text-white hover:border-white/20',
   ghost: 'rounded-full border border-purple-500/30 text-purple-400 hover:border-purple-400/50 hover:text-purple-300',
-  icon: 'rounded-full border border-white/10 bg-white/5 backdrop-blur-sm text-white/80 hover:bg-white/10 hover:text-white hover:scale-105 active:scale-95 flex items-center justify-center',
+  icon: 'rounded-full border border-white/10 bg-white/5 backdrop-blur-sm text-white/80 hover:bg-white/10 hover:text-white motion-safe:hover:scale-105 motion-safe:active:scale-95 flex items-center justify-center',
   destructive: 'rounded-full bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 hover:border-red-500/40',
 }
 

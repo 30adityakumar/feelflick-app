@@ -70,6 +70,20 @@
       outcome-capture baseline (`docs/sql/recommendation-evaluation-queries.sql` §7).
 
 ## Done This Week
+- [x] **F12F — Motion / micro-interactions pass** (RESTRAINT; engine frozen `2.17`; **no `/about` rebaseline**):
+      the real F12A gap was **reduced-motion coverage**, not "more animation." Added additive **`MOTION`**
+      tokens (fast 120 / base 180 / slow 240 / ease / press; mirrored as `--motion-*` CSS vars) +2 pin tests.
+      **Reduced-motion fixes:** (1) global `@media (prefers-reduced-motion: reduce)` guard in `index.css`
+      collapses all animation/transition to ~0; (2) shared `<Button>` hover/active **scale → `motion-safe:`**
+      (movement only when allowed; `hover:brightness` kept) +2 Button tests; (3) `.ff-tap`/`.ff-tap-hit`
+      controls get a `no-preference`-gated `:active translateY(1px)` tactile **press** (zero new className
+      churn — classes already applied in F12C). Card/AccentPanel/landing were **already** gated. **VERIFIED:**
+      `test:visual` PASS (`/` + `/about` unchanged → **no rebaseline**; movement is interaction-gated, absent
+      from static shots); live authed Playwright `emulateMedia` — transitions **collapse** under `reduce`
+      (home 0.25s→~0, browse 0.18s→~0), **overflow 0** in both modes. **Residual (deferred):** MovieCard poster
+      scale becomes *instant* under reduce (hover-LAW off-limits, not fully gated). No behavior change. Docs:
+      `docs/ui/motion-microinteractions-f12f.md` + DESIGN_SYSTEM §6e. lint/540/build/audit green. **F12 visual
+      track complete.** F8C blocked.
 - [x] **F12E — Card / poster / History-row rhythm pass** (engine frozen `2.17`; no MovieCard/poster/Button/
       `/about` change): **solved the F12C-deferred History per-item control** via the row's existing grid
       rhythm. Re-examination: the diary **remove** button sits in its OWN grid column (`ff-hist-row` =

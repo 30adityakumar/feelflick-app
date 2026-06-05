@@ -225,7 +225,8 @@ function DiaryGroup({ month, entries }) {
                     onClick={() => handleRemove(e)}
                     aria-label={`Remove ${e.title} from diary`}
                     title="Remove from diary"
-                    style={{ padding:'7px 10px', borderRadius:6, background:'transparent', border:'none', color:HP.textFaint, cursor:'pointer' }}
+                    className="ff-hist-row__remove"
+                    style={{ minWidth:44, minHeight:44, display:'inline-flex', alignItems:'center', justifyContent:'center', borderRadius:6, background:'transparent', border:'none', color:HP.textFaint, cursor:'pointer' }}
                   >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
                   </button>

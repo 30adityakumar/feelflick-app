@@ -53,6 +53,12 @@
   /* Surface backgrounds — match HP.bgDeep / v3 landing C.bg. */
   --bg-base: #06060a;
   --bg-elevated: #0d0b14;
+
+  /* Motion vocabulary (F12F) — mirrors MOTION in tokens.js. Movement is reduced-motion-gated. */
+  --motion-fast: 120ms;
+  --motion-base: 180ms;
+  --motion-slow: 240ms;
+  --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* === F12C mobile touch-target utilities (≤767px only — desktop unchanged) ===
@@ -76,5 +82,34 @@
     min-height: 44px;
     width: 100%;
     height: 100%;
+  }
+}
+
+/* === F12F motion / micro-interactions (RESTRAINT) ===
+   A subtle tactile press on the F12C control classes (already applied), reduced-motion-GATED:
+   default users feel a 1px press; reduced-motion users get nothing. */
+@media (prefers-reduced-motion: no-preference) {
+  .ff-tap,
+  .ff-tap-hit {
+    transition: transform var(--motion-fast) var(--motion-ease);
+  }
+  .ff-tap:active,
+  .ff-tap-hit:active {
+    transform: translateY(1px);
+  }
+}
+
+/* Global reduced-motion guard — the standard a11y reset. Under `reduce`, the app becomes
+   instant (animations/transitions collapse) so no essential affordance depends on motion.
+   Only affects users who opted into reduced motion; the static visual baselines are unaffected
+   (the visual-regression project disables animations and runs without this preference). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

@@ -283,6 +283,33 @@ subordinate (calm); `ghost` is quietest. `discover`'s `Begin →` (primary) + `o
 > **not** change (no rebaseline). A Button **font → Outfit** alignment stays deferred (it *would* need a
 > deliberate `/about` re-baseline). See [`button-cta-system-f12d.md`](ui/button-cta-system-f12d.md).
 
+### 6e. Motion / micro-interactions (F12F)
+
+**Restraint** — motion clarifies affordance, it never decorates. No page transitions, no theatrical
+animation. The vocabulary is the additive **`MOTION`** token ([`tokens.js`](../src/shared/lib/tokens.js),
+mirrored as `--motion-*` CSS vars in `index.css`):
+
+| token | value | use |
+|---|---|---|
+| `fast` | `120ms` | micro-feedback (press, focus) |
+| `base` | `180ms` | standard hover/state |
+| `slow` | `240ms` | larger panels |
+| `ease` | `cubic-bezier(0.22, 1, 0.36, 1)` | the FeelFlick ease (matches the MovieCard hover-LAW) |
+| `press` | `translateY(1px)` | tactile press (CSS-class only, reduced-motion-gated) |
+
+**Reduced motion is mandatory.** All **movement** (hover/press transforms) is gated:
+- Shared `Card` / `AccentPanel` gate their hover behind `prefers-reduced-motion: no-preference`; the
+  landing CTA/logo gate their transforms under `reduce`.
+- The shared `<Button>` hover/active **scale** is `motion-safe:`-prefixed (movement only when allowed;
+  `hover:brightness` stays — it's color, not movement).
+- The `.ff-tap` / `.ff-tap-hit` controls get a `no-preference`-gated `:active { translateY(1px) }` press.
+- A **global guard** (`@media (prefers-reduced-motion: reduce)`) collapses all animation/transition to
+  ~0 — the app becomes instant; no affordance depends on motion.
+
+> Movement is interaction-gated, so it's **absent from static screenshots → no `/about` rebaseline**.
+> Residual: the MovieCard poster scale becomes *instant* under `reduce` (the hover-LAW is off-limits;
+> fully gating its transform is deferred). See [`motion-microinteractions-f12f.md`](ui/motion-microinteractions-f12f.md).
+
 ---
 
 ## 7. Turning personal data into shareable social currency

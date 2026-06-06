@@ -10,7 +10,7 @@
     "full": "node run-pipeline.js full"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.106.2",
+    "@supabase/supabase-js": "^2.107.0",
     "axios": "^1.16.1",
     "dotenv": "^17.4.2",
     "openai": "^6.39.1"

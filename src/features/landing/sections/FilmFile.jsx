@@ -40,6 +40,13 @@ export default function FilmFile(){
                 <span style={{color:C.textFaint}}>·</span><span>{PICKS[2].year}</span>
                 <span style={{color:C.textFaint}}>·</span><span>{PICKS[2].runtime}</span>
               </div>
+              {/* The verdict — the "why this is the one" thesis, scannable at a glance before the full case. */}
+              <div style={{marginTop:22}}>
+                <Eyebrow color={C.purple} style={{marginBottom:9}}>Why this is the one</Eyebrow>
+                <p className="ff-italic" style={{fontFamily:'Outfit',fontSize:'clamp(17px,1.7vw,21px)',fontWeight:300,fontStyle:'italic',color:C.textHi,lineHeight:1.4,letterSpacing:'-0.01em',margin:0,maxWidth:520}}>
+                  You’ve leaned slow-burn and a little lonely all week. <em style={{fontStyle:'italic',color:C.text}}>Her</em> meets you exactly there.
+                </p>
+              </div>
               <p className="ff-body" style={{marginTop:24,fontSize:16,color:C.textHi,lineHeight:1.65,maxWidth:520}}>
                 <span className="ff-italic" style={{float:'left',fontSize:64,lineHeight:0.85,color:C.purple,marginRight:10,marginTop:6,marginBottom:-4,letterSpacing:'-0.06em',fontWeight:300}}>{PICKS[2].why.charAt(0)}</span>
                 {PICKS[2].why.slice(1)}

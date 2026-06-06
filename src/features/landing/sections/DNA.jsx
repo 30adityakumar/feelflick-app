@@ -61,6 +61,12 @@ export default function DNA(){
             </div>
           </div>
         </Reveal>
+        {/* Bridge to the moat spine — DNA isn't a standalone profile; it's what every pick is drawn from. */}
+        <Reveal delay={250}>
+          <p className="ff-body" style={{textAlign:'center',maxWidth:640,margin:'44px auto 0',fontSize:16,color:C.textMid,lineHeight:1.6}}>
+            This is the shape every pick is measured against — so when a film fits, the <em className="ff-italic" style={{color:C.textHi}}>why</em> is already written.
+          </p>
+        </Reveal>
     </SectionShell>
   );
 }

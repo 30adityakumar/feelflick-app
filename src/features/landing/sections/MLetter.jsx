@@ -4,7 +4,7 @@ import { Reveal, Eyebrow } from '../primitives'
 // ── M.'s letter ────────────────────────────────────────────────
 export default function MLetter(){
   return(
-    <section style={{padding:'160px 32px',borderTop:`1px solid ${C.hairline}`,background:C.bgPaper}}>
+    <section style={{padding:'132px 32px',borderTop:`1px solid ${C.hairline}`,background:C.bgPure}}>
       <div style={{maxWidth:880,margin:'0 auto'}}>
         <Reveal>
           <div style={{textAlign:'center',marginBottom:48}}>

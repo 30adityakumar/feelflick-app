@@ -70,6 +70,44 @@
       outcome-capture baseline (`docs/sql/recommendation-evaluation-queries.sql` §7).
 
 ## Done This Week
+- [x] **F12F — Motion / micro-interactions pass** (RESTRAINT; engine frozen `2.17`; **no `/about` rebaseline**):
+      the real F12A gap was **reduced-motion coverage**, not "more animation." Added additive **`MOTION`**
+      tokens (fast 120 / base 180 / slow 240 / ease / press; mirrored as `--motion-*` CSS vars) +2 pin tests.
+      **Reduced-motion fixes:** (1) global `@media (prefers-reduced-motion: reduce)` guard in `index.css`
+      collapses all animation/transition to ~0; (2) shared `<Button>` hover/active **scale → `motion-safe:`**
+      (movement only when allowed; `hover:brightness` kept) +2 Button tests; (3) `.ff-tap`/`.ff-tap-hit`
+      controls get a `no-preference`-gated `:active translateY(1px)` tactile **press** (zero new className
+      churn — classes already applied in F12C). Card/AccentPanel/landing were **already** gated. **VERIFIED:**
+      `test:visual` PASS (`/` + `/about` unchanged → **no rebaseline**; movement is interaction-gated, absent
+      from static shots); live authed Playwright `emulateMedia` — transitions **collapse** under `reduce`
+      (home 0.25s→~0, browse 0.18s→~0), **overflow 0** in both modes. **Residual (deferred):** MovieCard poster
+      scale becomes *instant* under reduce (hover-LAW off-limits, not fully gated). No behavior change. Docs:
+      `docs/ui/motion-microinteractions-f12f.md` + DESIGN_SYSTEM §6e. lint/540/build/audit green. **F12 visual
+      track complete.** F8C blocked.
+- [x] **F12E — Card / poster / History-row rhythm pass** (engine frozen `2.17`; no MovieCard/poster/Button/
+      `/about` change): **solved the F12C-deferred History per-item control** via the row's existing grid
+      rhythm. Re-examination: the diary **remove** button sits in its OWN grid column (`ff-hist-row` =
+      `64px 1fr auto auto` desktop / `64px 1fr auto` mobile) separated by a **24px/12px gap**, so a **real
+      44×44 button cannot overlap** (F12C's overlap fear was specific to the `::after` overlay on packed
+      *inline* controls). Fix = the remove button → **min 44×44, icon-centered** (behavior/label unchanged).
+      The **title** button is left as an **accepted exception** (redundant open-affordance — the 64×96 poster
+      opens the same film at ≥44px). **VERIFIED on LIVE authed `/history` @390/430/768/1280** (Playwright):
+      **all 38 remove buttons ≥44×44, 0 overlaps, 0 horizontal overflow**, console clean; browse/watchlist
+      unaffected. Card/poster **audit → restraint**: MovieCard hover LAW + poster ratios + browse/watchlist
+      cards are coherent → **no change** (no churn). No new unit tests (touch-target sizing; Playwright is the
+      proof). Docs: `docs/ui/card-poster-history-row-f12e.md`. lint/536/build/audit green. F8C blocked.
+- [x] **F12D — Button / CTA system pass** (engine frozen `2.17`): gave the shared **`<Button>`** an even,
+      touch-comfortable **min-height floor — sm 40 / md 44 / lg 48** (4px steps; was uneven ~28/40/48) +
+      icon sizes to the same floor (40/44/48). **`/about` baseline UNCHANGED → no rebaseline:** `/about`
+      uses `size="lg"` which was already exactly 48px, so `min-h-12` is a no-op floor → the lg primary CTA
+      renders byte-identically (**local `npm run test:visual` passed: `/` + `/about` match**; landing uses
+      its own buttons). Kept all variants/colors/focus/disabled/spinner + `lg`'s `font-bold` (intentional
+      hero weight). Documented the **CTA hierarchy discipline** (one primary per view; secondary calm; ghost
+      quietest) in DESIGN_SYSTEM §6d. Button **font→Outfit** alignment stays deferred (that WOULD need a
+      deliberate `/about` re-baseline). +3 Button tests (min-height/icon/disabled) = 536. Verified live
+      authed /movie/account/home: no overflow/cramping. No behavior change. Docs:
+      `docs/ui/button-cta-system-f12d.md` + DESIGN_SYSTEM §6d. lint/536/build/audit green. **No rebaseline
+      needed.** F8C blocked.
 - [x] **F12C — Mobile touch-target + density pass** (engine frozen `2.17`; **desktop unchanged**): brought
       the route-local control bars to a practical **44px mobile touch floor** without a Button/MovieCard/card
       redesign. Added two **mobile-only (≤767px) utilities** to `index.css` — **`.ff-tap`** (grows a text

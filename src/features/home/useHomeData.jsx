@@ -55,17 +55,19 @@ const MOOD_BRIDGE = {
 }
 
 // === Hero "Why this pick" reason resolution ==============================
-// The Briefing hero displays film.engineReason. That string comes from
-// scoreMovieForUser → determinePickReason, whose tier types we map to an
-// honest, human caption here:
-//   • a real seed match (engine verified embedding similarity to a film the
-//     user loved) → "Because you loved X", matching the because_you_loved list.
-//   • an honest personalized tier (director / genre / actor / perfect_match …)
+// LABEL-ONLY. The Briefing hero displays film.engineReason. That string comes
+// from scoreMovieForUser → determinePickReason; we map its tier types to an
+// honest, human caption here WITHOUT changing the score — the Briefing stays
+// mood-first and we pass no seedFilms to the scorer, so the pick/ranking matches
+// production:
+//   • an honest personalized tier (director / genre / perfect_match / hidden_gem)
 //     → passed through verbatim.
 //   • a GENERIC quality/recency/default label → replaced with the session-mood
-//     reason ("For your tender night"), since the film was surfaced for mood fit.
-// WHY: without seedFilms the seed tiers stay starved and every hero pick fell to
-// the generic "Critically acclaimed" quality label — true but hollow.
+//     reason ("For your tender night"), since the film was surfaced for mood fit
+//     — so the hollow "Critically acclaimed" never shows.
+// The seed branch below ("Because you loved X") is retained for contract clarity
+// but does NOT fire on the Briefing — seed-similar reasons live in the
+// because_you_loved list, which fetches its own seed neighbors.
 const MOOD_REASON_LABEL = { tender: 'tender', thrilled: 'tense', curious: 'cerebral', cozy: 'cozy', melancholy: 'melancholic', witty: 'playful' }
 const SEED_REASON_TYPES = new Set(['seed_embedding', 'seed_similarity', 'seed_similar'])
 const GENERIC_REASON_TYPES = new Set(['quality', 'recency', 'default', 'content_match'])
@@ -366,49 +368,6 @@ export function HomeDataProvider({ children }) {
         })
         if (abort) return
 
-        // === Seed context for honest hero reasons ======================
-        // The same get_seed_neighbors signal the "Because you loved X" list
-        // (personalLists.buildSimilarSlot) uses — fetched here so the Briefing
-        // hero can reach it too. scoreMovieForUser only emits its seed tiers
-        // when it receives seedFilms + the embedding-best map; without them
-        // every hero pick collapses to the generic quality label. Best-effort:
-        // on any failure we degrade to no seed context (seedFilms = []), which
-        // simply falls back to the session-mood reason.
-        let seedFilms = []
-        const seedEmbeddingBestByMovieId = new Map()
-        try {
-          const { data: lovedRatings } = await supabase
-            .from('user_ratings')
-            .select('movies!inner(id, title, genres, director_name, original_language, release_year)')
-            .eq('user_id', userId)
-            .gte('rating', 8)
-            .order('rated_at', { ascending: false })
-            .limit(12)
-          seedFilms = (lovedRatings || []).map(r => r.movies).filter(Boolean)
-          const seedIds = seedFilms.map(s => s.id).filter(Boolean)
-          if (seedIds.length > 0) {
-            const { data: neighbors } = await supabase.rpc('get_seed_neighbors', {
-              seed_ids: seedIds,
-              exclude_ids: seedIds,
-              top_n: seedIds.length * 60,
-              min_ff_rating: 70,
-            })
-            for (const nb of (neighbors || [])) {
-              const rid = Number(nb.id)
-              if (!Number.isFinite(rid)) continue
-              const sim = Number(nb.similarity || 0)
-              const cur = seedEmbeddingBestByMovieId.get(rid)
-              if (!cur || sim > cur.similarity) {
-                seedEmbeddingBestByMovieId.set(rid, { similarity: sim, seedMovieId: Number(nb.matched_seed_id) })
-              }
-            }
-          }
-        } catch (e) {
-          console.warn('[useHomeData] seed context fetch failed:', e?.message)
-          seedFilms = []
-        }
-        if (abort) return
-
         // Re-order MOOD_BRIDGE so the user's baseline moods (from Onboarding
          //  Step 1) appear first. Falls back to the original order if the user
          //  hasn't picked moods (legacy onboarding, or column null).
@@ -471,7 +430,7 @@ export function HomeDataProvider({ children }) {
           //     WITHOUT inflating the displayed match %.
           const scored = profile
             ? moodPool.map(m => {
-                const result = scoreMovieForUser(m, profile, 'default', seedFilms, { seedEmbeddingBestByMovieId })
+                const result = scoreMovieForUser(m, profile, 'default')
                 if (!result) return null  // boundary filter dropped this film
                 const { score, pickReason } = result
                 return {

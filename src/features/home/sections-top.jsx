@@ -234,12 +234,14 @@ function BriefingSlide({ film, idx, matchPct, user, onWatch, onSkip, onMarkedWat
 
   return (
     <div className="flex flex-col items-center gap-5 lg:flex-row lg:items-end lg:gap-14">
-      {/* Poster column — clickable */}
+      {/* Poster column — clickable. Mobile max-width is the tightest of the
+          three (180px, was 210px) so the single pick + its primary CTA clear
+          the ~844px mobile fold without scrolling; sm/lg posters unchanged. */}
       <button
         type="button"
         onClick={handleOpen}
         aria-label={`See more about ${film.title}`}
-        className="relative block w-full max-w-[210px] flex-none sm:max-w-[260px] lg:w-[340px] lg:max-w-none"
+        className="relative block w-full max-w-[180px] flex-none sm:max-w-[260px] lg:w-[340px] lg:max-w-none"
         style={{
           borderRadius: 10, overflow: 'hidden',
           background: 'transparent', border: 'none', padding: 0, cursor: 'pointer',
@@ -300,11 +302,13 @@ function BriefingSlide({ film, idx, matchPct, user, onWatch, onSkip, onMarkedWat
             The case-making layer (F5). Null-safe: renders nothing on cold-start
             (no reason) rather than fabricating one. */}
         <WhyThisPick reason={film.engineReason} className="self-stretch lg:max-w-[580px]" />
-        {/* Synopsis — TMDB overview, clamped to 2 lines on mobile, 3 on
-            desktop. Hidden when null (some films lack overview). */}
+        {/* Synopsis — TMDB overview. HIDDEN on mobile (a truncated fragment
+            adds little and pushes the primary CTA below the fold); shown at
+            sm+ clamped to 2 lines, 3 on desktop. The full overview is one tap
+            away on /movie/:id. Hidden when null (some films lack overview). */}
         {film.synopsis && (
           <p
-            className="line-clamp-2 lg:line-clamp-3"
+            className="hidden sm:line-clamp-2 lg:line-clamp-3"
             style={{
               fontFamily: 'Inter, sans-serif',
               fontSize: 'clamp(13px, 1vw, 15px)',

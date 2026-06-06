@@ -72,13 +72,13 @@ export default function MoviesStep({
         <StepHeader
           className="flex-none px-5 pt-5 pb-4 sm:px-6 sm:pt-6"
           onBack={onBack}
-          kicker="Films · 3 of 4"
+          kicker="The anchors · 3 of 4"
           subcopy={<>Pick 5 films that shaped your taste. These anchor your first picks — so go
           honest, not impressive.</>}
           subcopyClassName="text-[13px] sm:text-sm md:text-[15px] text-white/60 mt-2 leading-relaxed"
         >
           What have you{' '}
-          <em className="bg-linear-to-r from-purple-500 to-pink-500 bg-clip-text italic text-transparent">
+          <em className="italic font-light text-purple-300">
             loved?
           </em>
         </StepHeader>

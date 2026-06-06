@@ -103,29 +103,29 @@ export default function RatingStep({ favoriteMovies, ratings, onRate, onBack, on
         <button
           type="button"
           onClick={onBack}
-          className="mb-3 flex items-center gap-1.5 text-sm text-white/40 transition-colors hover:text-white/70 sm:mb-4"
+          className="mb-3 flex items-center gap-1.5 text-sm text-white/40 transition-colors hover:text-white/70 sm:mb-4 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
         >
           <ChevronLeft className="h-4 w-4" />
           Back
         </button>
-        <p className="mb-2.5 text-[11px] font-bold uppercase tracking-[0.22em] text-purple-400/85 sm:mb-3">
-          Rate · 4 of 4 · {allRated ? 'all done' : `${remaining} to go`}
+        <p className="ob-eyebrow text-white/55 mb-2.5 sm:mb-3">
+          The verdict · 4 of 4 · {allRated ? 'all done' : `${remaining} to go`}
         </p>
         <h2
-          className="ob-display text-[30px] font-normal leading-[1.05] text-white sm:text-4xl md:text-5xl"
+          className="ob-headline text-white"
           style={{ textWrap: 'balance' }}
         >
           {allRated ? (
             <>
               Nice — all{' '}
-              <em className="bg-linear-to-r from-purple-500 to-pink-500 bg-clip-text italic text-transparent">
+              <em className="italic font-light text-purple-300">
                 rated.
               </em>
             </>
           ) : (
             <>
               How did this one{' '}
-              <em className="bg-linear-to-r from-purple-500 to-pink-500 bg-clip-text italic text-transparent">
+              <em className="italic font-light text-purple-300">
                 land?
               </em>
             </>

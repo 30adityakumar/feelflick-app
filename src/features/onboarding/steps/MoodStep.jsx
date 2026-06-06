@@ -2,10 +2,11 @@
 // NEW step 1 (mood baseline). Tile picker, 2-3 selections, with a pulsing orb in each tile.
 
 import { motion } from 'framer-motion'
-import { ChevronRight } from 'lucide-react'
 
-import Button from '@/shared/ui/Button'
 import { MOODS, MIN_MOODS, MAX_MOODS } from '../data'
+import StepShell from '../components/StepShell'
+import StepHeader from '../components/StepHeader'
+import StepFooter from '../components/StepFooter'
 
 export default function MoodStep({ moods, setMoods, onNext, firstName }) {
   const count = moods.length
@@ -20,27 +21,36 @@ export default function MoodStep({ moods, setMoods, onNext, firstName }) {
   }
 
   return (
-    <div className="h-full flex flex-col">
-      {/* Header */}
-      <div className="flex-none px-5 pt-5 pb-4 sm:px-6 sm:pt-8 sm:pb-5">
-        <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-purple-400/85 mb-2.5 sm:mb-3">
-          {firstName ? `Hey ${firstName} —` : 'Mood baseline · 1 of 4'}
-        </p>
-        <h2
-          className="ob-display text-[32px] sm:text-4xl md:text-5xl font-normal text-white leading-[1.05]"
-          style={{ textWrap: 'balance' }}
+    <StepShell
+      header={
+        <StepHeader
+          className="flex-none px-5 pt-5 pb-4 sm:px-6 sm:pt-8 sm:pb-5"
+          kicker={firstName ? `Hey ${firstName} —` : 'Mood baseline · 1 of 4'}
+          subcopy={<>Pick {MIN_MOODS}–{MAX_MOODS} moods you actually find yourself in. We&apos;ll calibrate from
+          here — and the screen will respond as you choose.</>}
+          subcopyClassName="text-[13px] sm:text-sm md:text-[15px] text-white/55 mt-2 sm:mt-3 leading-relaxed max-w-xl"
         >
           The vibe you{' '}
           <em className="bg-linear-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent italic">
             live in.
           </em>
-        </h2>
-        <p className="text-[13px] sm:text-sm md:text-[15px] text-white/55 mt-2 sm:mt-3 leading-relaxed max-w-xl">
-          Pick {MIN_MOODS}–{MAX_MOODS} moods you actually find yourself in. We&apos;ll calibrate from
-          here — and the screen will respond as you choose.
-        </p>
-      </div>
-
+        </StepHeader>
+      }
+      footer={
+        <StepFooter
+          statusClassName={`text-xs font-medium transition-colors ${canContinue ? 'text-purple-400' : 'text-white/30'}`}
+          status={
+            count === 0
+              ? `Pick at least ${MIN_MOODS} mood${MIN_MOODS === 1 ? '' : 's'} to continue`
+              : count < MIN_MOODS
+              ? `${count} selected — pick ${MIN_MOODS - count} more`
+              : `${count} selected ✓`
+          }
+          onContinue={onNext}
+          disabled={!canContinue}
+        />
+      }
+    >
       {/* Mood tiles. WHY: inner py-2 + px-1 creates the buffer needed for the
          selected-tile glow/border to render fully — without it, the parent's
          overflow-y-auto implicitly clips the box-shadow on the top/left edges. */}
@@ -93,27 +103,6 @@ export default function MoodStep({ moods, setMoods, onNext, firstName }) {
           })}
         </div>
       </div>
-
-      {/* Footer */}
-      <div className="flex-none px-5 pb-6 pt-3 sm:px-6 sm:pb-8 sm:pt-4 border-t border-white/6">
-        <div className="max-w-sm mx-auto flex flex-col items-center gap-3">
-          <p
-            className={`text-xs font-medium transition-colors ${
-              canContinue ? 'text-purple-400' : 'text-white/30'
-            }`}
-          >
-            {count === 0
-              ? `Pick at least ${MIN_MOODS} mood${MIN_MOODS === 1 ? '' : 's'} to continue`
-              : count < MIN_MOODS
-              ? `${count} selected — pick ${MIN_MOODS - count} more`
-              : `${count} selected ✓`}
-          </p>
-          <Button variant="primary" size="lg" onClick={onNext} disabled={!canContinue} fullWidth>
-            Continue
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-    </div>
+    </StepShell>
   )
 }

@@ -47,28 +47,43 @@ export default function Hero(){
             <a href="#ritual" className="ff-link" style={{fontFamily:'Inter',fontSize:14,fontWeight:500,color:C.textMid,letterSpacing:'0.01em',display:'inline-flex',alignItems:'center',minHeight:44,padding:'0 4px'}}>See how it works</a>
           </div>
         </div>
-        <div key={p.title} className="ff-fade-swap" style={{position:'relative',padding:'12px 0'}}>
-          <Eyebrow color={p.moodHex} style={{marginBottom:18,transition:'color 0.6s'}}>Tonight’s selection · {p.mood}</Eyebrow>
-          <div style={{display:'grid',gridTemplateColumns:'auto 1fr',gap:32,alignItems:'flex-start'}}>
-            <div style={{position:'relative'}}>
-              <div aria-hidden style={{position:'absolute',inset:-18,borderRadius:14,background:`radial-gradient(ellipse at center,${p.moodHex}55,transparent 70%)`,filter:'blur(40px)',transition:'background 0.8s'}}/>
-              <img key={p.poster} src={p.poster} alt={p.title} onError={(e)=>{e.currentTarget.style.display='none';e.currentTarget.parentNode.style.background=`linear-gradient(160deg, ${p.moodHex}cc 0%, ${p.moodHex}55 50%, ${p.moodHex}1a 100%)`;e.currentTarget.parentNode.dataset.fallback=p.title;}} style={{position:'relative',width:240,aspectRatio:'2/3',objectFit:'cover',borderRadius:5,boxShadow:`0 28px 56px -18px rgba(0,0,0,0.85),0 0 0 1px ${p.moodHex}33`,transition:'all 0.8s cubic-bezier(.2,.7,.2,1)'}}/>
+        <div key={p.title} className="ff-fade-swap ff-hero-pickwrap" style={{position:'relative'}}>
+          {/* Mood cue — restrained accent: a muted "Tonight's selection" label + a chip
+              in the pick's mood hex. Accent ONLY; the brand identity stays dark base +
+              the purple/pink gradient. inline-flex so it follows text-align (centers on mobile). */}
+          <div style={{marginBottom:24}}>
+            <span style={{display:'inline-flex',alignItems:'center',gap:10}}>
+              <Eyebrow color={C.textLow}>Tonight’s selection</Eyebrow>
+              <span aria-hidden style={{width:3,height:3,borderRadius:999,background:C.textFaint}}/>
+              <span style={{display:'inline-flex',alignItems:'center',gap:7,padding:'5px 11px',borderRadius:999,background:`${p.moodHex}1a`,border:`1px solid ${p.moodHex}40`,transition:'background 0.6s,border-color 0.6s'}}>
+                <span aria-hidden style={{width:6,height:6,borderRadius:999,background:p.moodHex,transition:'background 0.6s'}}/>
+                <span style={{fontFamily:'Outfit',fontSize:11,fontWeight:600,letterSpacing:'0.16em',textTransform:'uppercase',color:C.textHi}}>{p.mood}</span>
+              </span>
+            </span>
+          </div>
+          <div className="ff-hero-pick">
+            {/* The pick — the cinematic object of the hero: larger poster, deeper mood
+                glow, hairline frame, room to breathe. */}
+            <div style={{position:'relative',width:'min(280px,68vw)'}}>
+              <div aria-hidden style={{position:'absolute',inset:-30,borderRadius:18,background:`radial-gradient(ellipse at center,${p.moodHex}5c,transparent 70%)`,filter:'blur(52px)',transition:'background 0.8s'}}/>
+              <img key={p.poster} src={p.poster} alt={p.title} onError={(e)=>{e.currentTarget.style.display='none';e.currentTarget.parentNode.style.background=`linear-gradient(160deg, ${p.moodHex}cc 0%, ${p.moodHex}55 50%, ${p.moodHex}1a 100%)`;e.currentTarget.parentNode.dataset.fallback=p.title;}} style={{position:'relative',width:'100%',aspectRatio:'2/3',objectFit:'cover',borderRadius:6,boxShadow:`0 40px 80px -24px rgba(0,0,0,0.9),0 0 0 1px ${p.moodHex}33`,transition:'all 0.8s cubic-bezier(.2,.7,.2,1)'}}/>
             </div>
-            <div style={{paddingTop:8}}>
-              {/* Hero film title rotates — kept as <div> (not <h2>) to preserve page heading hierarchy. */}
-              <div key={p.title+'-t'} className="ff-d2" style={{fontSize:'clamp(32px,3.4vw,46px)',color:C.text,margin:0,animation:'ff-tw 0s'}}>{p.title}</div>
-              <div style={{marginTop:10,display:'flex',alignItems:'center',gap:11,fontFamily:'Inter',fontSize:12,color:C.textLow}}>
+            {/* Caption — title stays a <div> (NOT a heading) to keep one <h1> on the page. */}
+            <div>
+              <div key={p.title+'-t'} className="ff-d2" style={{fontSize:'clamp(30px,3.1vw,42px)',color:C.text,margin:0}}>{p.title}</div>
+              {/* Inline meta so it follows the caption's text-align (left desktop / center mobile). */}
+              <div style={{marginTop:10,fontFamily:'Inter',fontSize:12,color:C.textLow}}>
                 <span style={{fontStyle:'italic'}}>{p.dir}</span>
-                <span style={{color:C.textFaint}}>·</span>
-                <span>{p.year}</span>
-                <span style={{color:C.textFaint}}>·</span>
-                <span>{p.runtime}</span>
+                <span style={{color:C.textFaint}}> · </span>{p.year}
+                <span style={{color:C.textFaint}}> · </span>{p.runtime}
               </div>
-              {/* Hero card blurb — regular weight 400, mood-hex left rule gives it editorial flair without italic body. */}
-              <p className="ff-body" style={{marginTop:24,fontSize:16,fontWeight:400,color:C.textMid,lineHeight:1.65,maxWidth:340,paddingLeft:14,borderLeft:`2px solid ${p.moodHex}55`}}>{p.why}</p>
-              {/* Dots */}
-              <div style={{marginTop:32,display:'flex',gap:8}}>
-                {PICKS.map((_,i)=><button key={i} onClick={()=>setIdx(i)} aria-label={`pick ${i+1}`} style={{width:i===idx?22:6,height:6,borderRadius:999,background:i===idx?p.moodHex:C.textFaint,border:'none',padding:0,cursor:'pointer',transition:'all 0.4s cubic-bezier(.2,.7,.2,1)'}}/>)}
+              {/* Hero blurb — the pick's "why", regular weight 400. */}
+              <p className="ff-body" style={{marginTop:20,fontSize:15,fontWeight:400,color:C.textMid,lineHeight:1.65,maxWidth:360}}>{p.why}</p>
+              {/* Dots — inline-flex inside a block so they follow text-align; behavior unchanged. */}
+              <div style={{marginTop:26}}>
+                <span style={{display:'inline-flex',gap:8}}>
+                  {PICKS.map((_,i)=><button key={i} onClick={()=>setIdx(i)} aria-label={`pick ${i+1}`} style={{width:i===idx?22:6,height:6,borderRadius:999,background:i===idx?p.moodHex:C.textFaint,border:'none',padding:0,cursor:'pointer',transition:'all 0.4s cubic-bezier(.2,.7,.2,1)'}}/>)}
+                </span>
               </div>
             </div>
           </div>

@@ -1,12 +1,20 @@
 // src/features/onboarding/__tests__/OnboardingSteps.test.jsx
-// Tests for the rebuilt onboarding steps: enforced minimums, rating anchor,
-// and completeOnboarding service writes.
+//
+// Real-component coverage of the SHIPPED onboarding gates + the completeOnboarding
+// service. This replaces the earlier isolated footer STUBS, which had drifted from
+// the shipped components and were giving false confidence:
+//   - the Genres stub gated at >= 3 genres; the real GenresStep ships MIN_GENRES = 1.
+//   - the Rating stub asserted a "See my recommendations" confirm button; the real
+//     RatingStep has no such button — it auto-finishes after the last card is rated.
+//   - a separate OnboardingSkip.test.jsx asserted "no minimum / CTA always enabled",
+//     directly contradicting the shipped MIN_MOVIES = 5 (deleted alongside this file).
+// These tests render the actual step components so a real-markup regression is caught.
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 
 // ---------------------------------------------------------------------------
-// Mocks
+// Module mocks (no live Supabase / TMDB / dev-user reset)
 // ---------------------------------------------------------------------------
 
 vi.mock('@/shared/lib/supabase/client', () => ({
@@ -20,6 +28,9 @@ vi.mock('@/shared/lib/supabase/client', () => ({
       eq: vi.fn().mockReturnThis(),
       in: vi.fn().mockReturnThis(),
       not: vi.fn().mockReturnThis(),
+      or: vi.fn().mockReturnThis(),
+      gte: vi.fn().mockReturnThis(),
+      lte: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
       limit: vi.fn().mockResolvedValue({ data: [] }),
       maybeSingle: vi.fn().mockResolvedValue({ data: null }),
@@ -34,6 +45,7 @@ vi.mock('@/shared/lib/supabase/client', () => ({
 vi.mock('@/shared/api/tmdb', () => ({
   tmdbImg: (path, _size) => `https://image.tmdb.org/t/p/w342${path}`,
   fetchJson: vi.fn().mockResolvedValue({ id: 1, title: 'Test Movie', poster_path: '/test.jpg' }),
+  searchMovies: vi.fn().mockResolvedValue({ results: [] }),
 }))
 
 vi.mock('@/shared/services/recommendations', () => ({
@@ -44,117 +56,119 @@ vi.mock('@/shared/services/analytics', () => ({
   track: vi.fn(),
 }))
 
-// ---------------------------------------------------------------------------
-// GenresStep — minimum 3 genres before Continue is enabled
-// ---------------------------------------------------------------------------
-
-// Isolated footer stub mirroring GenresStep's actual gate
-function GenresFooter({ count, onNext }) {
-  const canContinue = count >= 3
-  return (
-    <div>
-      <p>{count === 0 ? 'Select at least 3 to continue' : count < 3 ? `${count} selected — pick ${3 - count} more` : `${count} selected ✓`}</p>
-      <button onClick={onNext} disabled={!canContinue} aria-label="Continue">
-        Continue
-      </button>
-    </div>
-  )
+// framer-motion's useReducedMotion reads window.matchMedia, which jsdom doesn't
+// provide. Stub it (test-local, guarded) so the real step components render.
+if (!window.matchMedia) {
+  window.matchMedia = vi.fn().mockImplementation((query) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  }))
 }
 
-describe('GenresStep — 3-genre minimum', () => {
-  it('Continue is disabled with 0 genres selected', () => {
-    render(<GenresFooter count={0} onNext={vi.fn()} />)
-    expect(screen.getByRole('button', { name: /continue/i })).toBeDisabled()
+import GenresStep from '../steps/GenresStep'
+import MoviesStep from '../steps/MoviesStep'
+import RatingStep from '../steps/RatingStep'
+import { GENRES, SENTIMENT_RATINGS } from '../data'
+
+// ---------------------------------------------------------------------------
+// GenresStep — shipped minimum is 1 genre (MIN_GENRES = 1)
+// ---------------------------------------------------------------------------
+
+describe('GenresStep — real 1-genre minimum', () => {
+  const props = (over = {}) => ({
+    selectedGenres: [],
+    toggleGenre: vi.fn(),
+    onBack: vi.fn(),
+    onNext: vi.fn(),
+    ...over,
   })
 
-  it('Continue is disabled with 1 genre selected', () => {
-    render(<GenresFooter count={1} onNext={vi.fn()} />)
+  it('Continue is disabled and prompts for at least 1 when nothing is selected', () => {
+    render(<GenresStep {...props({ selectedGenres: [] })} />)
     expect(screen.getByRole('button', { name: /continue/i })).toBeDisabled()
+    expect(screen.getByText(/select at least 1 to continue/i)).toBeInTheDocument()
   })
 
-  it('Continue is disabled with 2 genres selected', () => {
-    render(<GenresFooter count={2} onNext={vi.fn()} />)
-    expect(screen.getByRole('button', { name: /continue/i })).toBeDisabled()
-  })
-
-  it('Continue is enabled with exactly 3 genres selected', () => {
-    render(<GenresFooter count={3} onNext={vi.fn()} />)
+  it('Continue is ENABLED at exactly 1 genre (the shipped minimum, NOT 3)', () => {
+    render(<GenresStep {...props({ selectedGenres: [GENRES[0].id] })} />)
     expect(screen.getByRole('button', { name: /continue/i })).not.toBeDisabled()
+    expect(screen.getByText(/1 selected/i)).toBeInTheDocument()
   })
 
-  it('Continue is enabled with more than 3 genres selected', () => {
-    render(<GenresFooter count={7} onNext={vi.fn()} />)
-    expect(screen.getByRole('button', { name: /continue/i })).not.toBeDisabled()
+  it('the instructional copy states the real minimum of 1', () => {
+    render(<GenresStep {...props()} />)
+    expect(screen.getByText(/pick at least 1/i)).toBeInTheDocument()
   })
 
-  it('calls onNext when Continue is clicked with enough genres', () => {
+  it('clicking a genre tile calls toggleGenre with that genre id', () => {
+    const toggleGenre = vi.fn()
+    render(<GenresStep {...props({ toggleGenre })} />)
+    fireEvent.click(screen.getByRole('button', { name: GENRES[0].name }))
+    expect(toggleGenre).toHaveBeenCalledWith(GENRES[0].id)
+  })
+
+  it('clicking Continue (when valid) calls onNext', () => {
     const onNext = vi.fn()
-    render(<GenresFooter count={4} onNext={onNext} />)
+    render(<GenresStep {...props({ selectedGenres: [GENRES[0].id], onNext })} />)
     fireEvent.click(screen.getByRole('button', { name: /continue/i }))
     expect(onNext).toHaveBeenCalled()
-  })
-
-  it('shows progress text updating correctly', () => {
-    render(<GenresFooter count={2} onNext={vi.fn()} />)
-    expect(screen.getByText(/2 selected — pick 1 more/i)).toBeInTheDocument()
-  })
-
-  it('shows ✓ checkmark text when minimum met', () => {
-    render(<GenresFooter count={5} onNext={vi.fn()} />)
-    expect(screen.getByText(/5 selected ✓/i)).toBeInTheDocument()
   })
 })
 
 // ---------------------------------------------------------------------------
-// MoviesStep — minimum 5 films before Continue is enabled
+// MoviesStep — shipped minimum is 5 films (MIN_MOVIES = 5)
 // ---------------------------------------------------------------------------
 
-function MoviesFooter({ count, onFinish }) {
-  const canFinish = count >= 5
-  return (
-    <div>
-      <p>{count === 0 ? 'Select at least 5 films to continue' : count < 5 ? `${count} selected — pick ${5 - count} more` : `${count} selected ✓`}</p>
-      <button onClick={onFinish} disabled={!canFinish} aria-label="Continue">
-        Continue
-      </button>
-    </div>
-  )
-}
-
-describe('MoviesStep — 5-film minimum', () => {
-  it('CTA is disabled with 0 films selected', () => {
-    render(<MoviesFooter count={0} onFinish={vi.fn()} />)
-    expect(screen.getByRole('button', { name: /continue/i })).toBeDisabled()
+describe('MoviesStep — real 5-film minimum', () => {
+  const film = (id) => ({ id, title: `Film ${id}`, poster_path: `/${id}.jpg` })
+  const props = (over = {}) => ({
+    selectedGenreIds: [],
+    moods: [],
+    favoriteMovies: [],
+    addMovie: vi.fn(),
+    removeMovie: vi.fn(),
+    isMovieSelected: () => false,
+    onBack: vi.fn(),
+    onFinish: vi.fn(),
+    loading: false,
+    error: '',
+    ...over,
   })
 
-  it('CTA is disabled with 4 films selected', () => {
-    render(<MoviesFooter count={4} onFinish={vi.fn()} />)
-    expect(screen.getByRole('button', { name: /continue/i })).toBeDisabled()
+  it('Continue is disabled below 5 films and prompts for the remainder', async () => {
+    render(<MoviesStep {...props({ favoriteMovies: [film(1), film(2), film(3), film(4)] })} />)
+    expect(await screen.findByRole('button', { name: /^continue$/i })).toBeDisabled()
+    expect(screen.getByText(/4 selected.*pick 1 more/i)).toBeInTheDocument()
   })
 
-  it('CTA is enabled with exactly 5 films selected', () => {
-    render(<MoviesFooter count={5} onFinish={vi.fn()} />)
-    expect(screen.getByRole('button', { name: /continue/i })).not.toBeDisabled()
+  it('Continue is ENABLED at exactly 5 films (the shipped minimum)', async () => {
+    render(<MoviesStep {...props({ favoriteMovies: [film(1), film(2), film(3), film(4), film(5)] })} />)
+    expect(await screen.findByRole('button', { name: /^continue$/i })).not.toBeDisabled()
+    expect(screen.getByText(/5 selected/i)).toBeInTheDocument()
   })
 
-  it('CTA is enabled with more than 5 films selected', () => {
-    render(<MoviesFooter count={8} onFinish={vi.fn()} />)
-    expect(screen.getByRole('button', { name: /continue/i })).not.toBeDisabled()
+  it('with 0 films, the footer prompts for at least 5', async () => {
+    render(<MoviesStep {...props({ favoriteMovies: [] })} />)
+    expect(await screen.findByText(/select at least 5 films to continue/i)).toBeInTheDocument()
   })
 
-  it('calls onFinish when CTA clicked with enough films', () => {
+  it('clicking Continue (when valid) calls onFinish', async () => {
     const onFinish = vi.fn()
-    render(<MoviesFooter count={5} onFinish={onFinish} />)
-    fireEvent.click(screen.getByRole('button', { name: /continue/i }))
+    render(<MoviesStep {...props({ favoriteMovies: [film(1), film(2), film(3), film(4), film(5)], onFinish })} />)
+    fireEvent.click(await screen.findByRole('button', { name: /^continue$/i }))
     expect(onFinish).toHaveBeenCalled()
   })
 })
 
 // ---------------------------------------------------------------------------
-// RatingStep — sentiment → rating mapping + gate logic
+// RatingStep — SENTIMENT_RATINGS mapping + the real sentiment-button affordance
 // ---------------------------------------------------------------------------
-
-import { SENTIMENT_RATINGS } from '../data'
 
 describe('RatingStep — SENTIMENT_RATINGS mapping', () => {
   it('loved maps to 9', () => {
@@ -170,48 +184,40 @@ describe('RatingStep — SENTIMENT_RATINGS mapping', () => {
   })
 })
 
-function RatingFooter({ ratings, onFinish, loading = false }) {
-  const canFinish = Object.keys(ratings).length >= 1
-  return (
-    <div>
-      <button onClick={onFinish} disabled={!canFinish || loading} aria-label="See my recommendations">
-        {loading ? 'Building your profile…' : 'See my recommendations'}
-      </button>
-    </div>
-  )
-}
-
-describe('RatingStep — finish gate', () => {
-  it('CTA is disabled when no films are rated', () => {
-    render(<RatingFooter ratings={{}} onFinish={vi.fn()} />)
-    expect(screen.getByRole('button', { name: /see my recommendations/i })).toBeDisabled()
+describe('RatingStep — real sentiment buttons (auto-finishes; no confirm button)', () => {
+  const film = { id: 42, title: 'Film 42', poster_path: '/42.jpg' }
+  const props = (over = {}) => ({
+    favoriteMovies: [film],
+    ratings: {},
+    onRate: vi.fn(),
+    onBack: vi.fn(),
+    onFinish: vi.fn(),
+    error: '',
+    ...over,
   })
 
-  it('CTA is enabled once one film is rated', () => {
-    render(<RatingFooter ratings={{ 123: 9 }} onFinish={vi.fn()} />)
-    expect(screen.getByRole('button', { name: /see my recommendations/i })).not.toBeDisabled()
+  it('renders the three sentiment buttons (Meh / Liked / Loved) as the rating affordance', () => {
+    render(<RatingStep {...props()} />)
+    expect(screen.getByRole('button', { name: 'Loved' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Liked' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Meh' })).toBeInTheDocument()
   })
 
-  it('CTA is enabled with multiple films rated', () => {
-    render(<RatingFooter ratings={{ 123: 9, 456: 7, 789: 5 }} onFinish={vi.fn()} />)
-    expect(screen.getByRole('button', { name: /see my recommendations/i })).not.toBeDisabled()
+  it('does NOT render a "See my recommendations" confirm button (the step auto-finishes)', () => {
+    render(<RatingStep {...props()} />)
+    expect(screen.queryByRole('button', { name: /see my recommendations/i })).not.toBeInTheDocument()
   })
 
-  it('CTA is disabled while loading even if films are rated', () => {
-    render(<RatingFooter ratings={{ 123: 7 }} onFinish={vi.fn()} loading={true} />)
-    expect(screen.getByRole('button', { name: /see my recommendations/i })).toBeDisabled()
-  })
-
-  it('calls onFinish when CTA clicked with a rating', () => {
-    const onFinish = vi.fn()
-    render(<RatingFooter ratings={{ 456: 5 }} onFinish={onFinish} />)
-    fireEvent.click(screen.getByRole('button', { name: /see my recommendations/i }))
-    expect(onFinish).toHaveBeenCalled()
+  it('clicking a sentiment button rates the current film with that sentiment', () => {
+    const onRate = vi.fn()
+    render(<RatingStep {...props({ onRate })} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Loved' }))
+    expect(onRate).toHaveBeenCalledWith(film, 'loved')
   })
 })
 
 // ---------------------------------------------------------------------------
-// completeOnboarding — DB write expectations
+// completeOnboarding — DB write expectations (real service)
 // ---------------------------------------------------------------------------
 
 import { completeOnboarding } from '@/shared/services/onboarding'

@@ -10,7 +10,7 @@ export default function FilmFile(){
       id="file"
       padding="200px 32px"
       position="relative"
-      background={C.bgPure}
+      tone="panel"
       innerStyle={{position:'relative'}}
       before={<div aria-hidden style={{position:'absolute',inset:0,background:`radial-gradient(ellipse 80% 50% at 70% 30%,${C.purple}12,transparent 60%)`,pointerEvents:'none'}}/>}
     >

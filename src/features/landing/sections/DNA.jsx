@@ -7,7 +7,7 @@ export default function DNA(){
   const [ref,iv]=useInView({threshold:0.3});
   const weights=[{n:'Tense',v:0.84,h:'#EF4444'},{n:'Slow-burn',v:0.78,h:'#A78BFA'},{n:'Bittersweet',v:0.71,h:'#FB7185'},{n:'Cerebral',v:0.68,h:'#7DD3FC'},{n:'Tender',v:0.62,h:'#F472B6'}];
   return(
-    <SectionShell id="dna" ref={ref}>
+    <SectionShell id="dna" ref={ref} tone="panel">
       <Reveal>
         <SectionHeading
           eyebrow="Your Cinematic DNA"

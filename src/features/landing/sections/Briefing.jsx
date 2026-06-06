@@ -6,7 +6,7 @@ import { PICKS } from '../data'
 // ── The Briefing ──────────────────────────────────────────────
 export default function Briefing(){
   return(
-    <SectionShell id="briefing" background={C.bgLight}>
+    <SectionShell id="briefing" tone="void">
         <Reveal>
           <div className="ff-grid-2" style={{marginBottom:72}}>
             <div>

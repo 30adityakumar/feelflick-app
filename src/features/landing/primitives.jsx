@@ -99,8 +99,12 @@ export function Stars({tint,count=50}){
 //
 // Props (all optional except `children`):
 //   • id           — forwarded to <section> (anchor target + the #file/#start CSS hooks)
-//   • background   — section background (e.g. C.bgPure / C.bgLight); omitted when absent
-//   • padding      — section padding (default '160px 32px'; FilmFile/FinalCTA pass '200px 32px')
+//   • tone         — cinematic chapter surface (F1.2): 'void' (#000, dramatic/served beats) /
+//                    'panel' (#0d0b14 lifted editorial surface, gets the .ff-sec-panel top-seam) /
+//                    'base' (#06060a). Sets the background; an explicit `background` prop still wins.
+//   • background   — explicit section background (back-compat / overrides `tone`); omitted when absent
+//   • padding      — section padding (default '140px 32px' = the standard rhythm step; leads pass
+//                    '160px 32px', crescendos FilmFile/FinalCTA pass '200px 32px')
 //   • borderTop    — render the `1px solid C.hairline` top rule (default true — every section has it)
 //   • position     — emitted only when passed (TheProblem/FilmFile/FinalCTA need 'relative')
 //   • overflow     — emitted only when passed (TheProblem/FinalCTA need 'hidden')
@@ -108,19 +112,24 @@ export function Stars({tint,count=50}){
 //                    for the absolute decorative layers (FilmFile's radial glow, FinalCTA's <Stars>)
 //   • innerStyle   — merged onto the content column (override maxWidth→880, add position/textAlign)
 //   • style        — merged onto the <section>
+//   • className    — extra class(es) merged onto the <section>
 // forwardRef so DNA keeps its useInView ref on the <section> element itself.
+const TONE_BG = { void: C.bgPure, panel: C.bgLight, base: C.bg };
 export const SectionShell = forwardRef(function SectionShell(
-  { id, background, padding='160px 32px', borderTop=true, position, overflow, before, innerStyle, style, children },
+  { id, tone, background, padding='140px 32px', borderTop=true, position, overflow, before, innerStyle, style, className, children },
   ref,
 ){
+  const bg = background ?? (tone ? TONE_BG[tone] : undefined);
+  const cls = [tone === 'panel' ? 'ff-sec-panel' : '', className].filter(Boolean).join(' ');
   return (
     <section
       id={id}
       ref={ref}
+      className={cls || undefined}
       style={{
         padding,
         ...(borderTop ? { borderTop:`1px solid ${C.hairline}` } : null),
-        ...(background ? { background } : null),
+        ...(bg ? { background: bg } : null),
         ...(position ? { position } : null),
         ...(overflow ? { overflow } : null),
         ...style,

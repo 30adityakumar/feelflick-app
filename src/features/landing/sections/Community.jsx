@@ -9,7 +9,7 @@ export default function Community(){
     {n:'Theo',match:64,h:'#7DD3FC',mood:'Crime + thriller',recent:'Started a list · "Refn-coded"'},
   ];
   return(
-    <SectionShell background={C.bgPure}>
+    <SectionShell tone="panel">
         <Reveal>
           <div className="ff-grid-2" style={{marginBottom:72}}>
             <h2 className="ff-d2" style={{fontSize:'clamp(44px,5.6vw,80px)',color:C.text,margin:0,textWrap:'balance'}}>

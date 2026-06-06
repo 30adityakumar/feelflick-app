@@ -10,7 +10,7 @@ export default function Ritual(){
     {n:'03',k:'Receive the edition',t:'One film.',b:'Not three options. One pick, with the article that makes its case.',visual:'pick'},
   ];
   return(
-    <SectionShell id="ritual" background={C.bgLight}>
+    <SectionShell id="ritual" tone="panel">
       <Reveal>
         <SectionHeading
           eyebrow="The Ritual · Three steps"

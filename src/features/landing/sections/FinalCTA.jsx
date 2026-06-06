@@ -11,7 +11,7 @@ export default function FinalCTA(){
       padding="200px 32px"
       position="relative"
       overflow="hidden"
-      background={C.bgPure}
+      tone="void"
       innerStyle={{position:'relative',maxWidth:880,textAlign:'center'}}
       before={<Stars tint={C.purple} count={80}/>}
     >

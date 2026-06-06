@@ -6,7 +6,7 @@ import { PICKS } from '../data'
 export default function TheProblem(){
   // Build a fake Netflix-style chaotic wall
   return(
-    <SectionShell position="relative" overflow="hidden" background={C.bgPure}>
+    <SectionShell tone="void" position="relative" overflow="hidden" padding="160px 32px">
       <Reveal>
         <SectionHeading
           eyebrow="The problem"

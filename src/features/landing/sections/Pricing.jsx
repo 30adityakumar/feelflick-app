@@ -6,7 +6,7 @@ import { Reveal, Eyebrow, AuthCTA, SectionShell } from '../primitives'
 export default function Pricing(){
   const { signInWithGoogle, isAuthenticating } = useGoogleAuth();
   return(
-    <SectionShell id="pricing" innerStyle={{maxWidth:880,textAlign:'center'}}>
+    <SectionShell id="pricing" tone="panel" padding="160px 32px" innerStyle={{maxWidth:880,textAlign:'center'}}>
         <Reveal>
           <Eyebrow color={C.purple} style={{marginBottom:24}}>Pricing</Eyebrow>
           <h2 className="ff-d2" style={{fontSize:'clamp(44px,5.6vw,80px)',color:C.text,margin:0}}>

@@ -25,13 +25,13 @@ export default function MoodStep({ moods, setMoods, onNext, firstName }) {
       header={
         <StepHeader
           className="flex-none px-5 pt-5 pb-4 sm:px-6 sm:pt-8 sm:pb-5"
-          kicker={firstName ? `Hey ${firstName} —` : 'Mood baseline · 1 of 4'}
+          kicker={firstName ? `Hey ${firstName} —` : 'The vibe · 1 of 4'}
           subcopy={<>Pick {MIN_MOODS}–{MAX_MOODS} moods you actually find yourself in. We&apos;ll calibrate from
           here — and the screen will respond as you choose.</>}
           subcopyClassName="text-[13px] sm:text-sm md:text-[15px] text-white/55 mt-2 sm:mt-3 leading-relaxed max-w-xl"
         >
           The vibe you{' '}
-          <em className="bg-linear-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent italic">
+          <em className="italic font-light text-purple-300">
             live in.
           </em>
         </StepHeader>

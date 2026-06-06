@@ -18,11 +18,11 @@ export default function StepHeader({ className, onBack, kicker, children, subcop
   return (
     <div className={className}>
       {onBack && <BackButton onClick={onBack} />}
-      <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-purple-400/85 mb-2.5 sm:mb-3">
+      <p className="ob-eyebrow text-white/55 mb-2.5 sm:mb-3">
         {kicker}
       </p>
       <h2
-        className="ob-display text-[32px] sm:text-4xl md:text-5xl font-normal text-white leading-[1.05]"
+        className="ob-headline text-white"
         style={{ textWrap: 'balance' }}
       >
         {children}

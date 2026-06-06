@@ -47,13 +47,13 @@ export default function GenresStep({ selectedGenres, toggleGenre, onBack, onNext
         <StepHeader
           className="flex-none px-5 pt-5 pb-4 sm:px-6 sm:pt-6 sm:pb-5"
           onBack={onBack}
-          kicker="Genres · 2 of 4"
+          kicker="The territories · 2 of 4"
           subcopy={<>Pick at least {MIN_GENRES} — this steers what we reach for first. Nothing&apos;s
           locked in; you can always add more later.</>}
           subcopyClassName="text-[13px] sm:text-sm md:text-[15px] text-white/55 mt-2 sm:mt-3 leading-relaxed max-w-xl"
         >
           Which{' '}
-          <em className="bg-linear-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent italic">
+          <em className="italic font-light text-purple-300">
             territories
           </em>
           {' '}do you live in?

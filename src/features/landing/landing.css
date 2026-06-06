@@ -89,6 +89,14 @@ html.with-motion .ff-reveal.in{opacity:1;transform:translateY(0);}
 .ff-grid-feature{display:grid;grid-template-columns:420px 1fr;gap:64px;}
 .ff-grid-card{display:grid;grid-template-columns:auto 1fr;gap:32px;align-items:flex-start;}
 .ff-grid-footer{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:64px;}
+/* Hero pick — the cinematic film object (F1.1). Poster + caption sit side-by-side
+   on desktop; they stack and center at <=767 so the poster/title/meta/blurb/dots
+   never cramp on mobile. */
+.ff-hero-pick{display:grid;grid-template-columns:auto 1fr;gap:36px;align-items:center;}
+@media (max-width:767px){
+  .ff-hero-pickwrap{text-align:center;}
+  .ff-hero-pick{grid-template-columns:1fr;justify-items:center;gap:24px;}
+}
 /* Mobile/desktop visibility helpers used by the Header (hamburger swap). */
 .ff-show-on-mobile{display:none;}
 .ff-hide-on-mobile{display:flex;}

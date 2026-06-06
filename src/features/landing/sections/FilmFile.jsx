@@ -1,25 +1,30 @@
 import { C } from '@/shared/lib/tokens'
-import { Reveal, Poster, Eyebrow } from '../primitives'
+import { Reveal, Poster, Eyebrow, SectionShell, SectionHeading } from '../primitives'
 import { PICKS } from '../data'
 
 // ── The Film File (what every pick comes with) ────────────────
 export default function FilmFile(){
   const motifs=['Class tension','Quiet endings','Slow burn','Two-handers'];
   return(
-    <section id="file" style={{padding:'200px 32px',borderTop:`1px solid ${C.hairline}`,background:C.bgPure,position:'relative'}}>
-      <div aria-hidden style={{position:'absolute',inset:0,background:`radial-gradient(ellipse 80% 50% at 70% 30%,${C.purple}12,transparent 60%)`,pointerEvents:'none'}}/>
-      <div style={{position:'relative',maxWidth:1280,margin:'0 auto'}}>
-        <Reveal>
-          <div style={{textAlign:'center',marginBottom:84}}>
-            <Eyebrow color={C.purple} style={{marginBottom:26}}>The Film File</Eyebrow>
-            <h2 className="ff-d2" style={{fontSize:'clamp(44px,5.6vw,80px)',color:C.text,margin:'0 auto',textWrap:'balance',maxWidth:780}}>
-              Every pick comes with <em className="ff-italic" style={{color:C.textMid}}>its case.</em>
-            </h2>
-            <p className="ff-body" style={{fontSize:18,color:C.textMid,maxWidth:560,margin:'24px auto 0',lineHeight:1.65}}>
-              Not just a poster. A short essay, a critic’s line, the mood arc, what to drink, and one film we’d skip tonight — and why.
-            </p>
-          </div>
-        </Reveal>
+    <SectionShell
+      id="file"
+      padding="200px 32px"
+      position="relative"
+      background={C.bgPure}
+      innerStyle={{position:'relative'}}
+      before={<div aria-hidden style={{position:'absolute',inset:0,background:`radial-gradient(ellipse 80% 50% at 70% 30%,${C.purple}12,transparent 60%)`,pointerEvents:'none'}}/>}
+    >
+      <Reveal>
+        <SectionHeading
+          eyebrow="The Film File"
+          marginBottom={84}
+          headingMaxWidth={780}
+          ledeMaxWidth={560}
+          lede="Not just a poster. A short essay, a critic’s line, the mood arc, what to drink, and one film we’d skip tonight — and why."
+        >
+          Every pick comes with <em className="ff-italic" style={{color:C.textMid}}>its case.</em>
+        </SectionHeading>
+      </Reveal>
         <Reveal delay={150}>
           <div className="ff-grid-feature" style={{padding:'48px 48px',borderRadius:18,background:'rgba(255,255,255,0.02)',border:`1px solid ${C.hairline}`}}>
             <div>
@@ -76,7 +81,6 @@ export default function FilmFile(){
             </div>
           </div>
         </Reveal>
-      </div>
-    </section>
+    </SectionShell>
   );
 }

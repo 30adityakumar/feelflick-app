@@ -1,13 +1,12 @@
 import { useGoogleAuth } from '@/shared/hooks/useGoogleAuth'
 import { C } from '@/shared/lib/tokens'
-import { Reveal, Eyebrow, AuthCTA } from '../primitives'
+import { Reveal, Eyebrow, AuthCTA, SectionShell } from '../primitives'
 
 // ── Pricing ────────────────────────────────────────────────────
 export default function Pricing(){
   const { signInWithGoogle, isAuthenticating } = useGoogleAuth();
   return(
-    <section id="pricing" style={{padding:'160px 32px',borderTop:`1px solid ${C.hairline}`}}>
-      <div style={{maxWidth:880,margin:'0 auto',textAlign:'center'}}>
+    <SectionShell id="pricing" innerStyle={{maxWidth:880,textAlign:'center'}}>
         <Reveal>
           <Eyebrow color={C.purple} style={{marginBottom:24}}>Pricing</Eyebrow>
           <h2 className="ff-d2" style={{fontSize:'clamp(44px,5.6vw,80px)',color:C.text,margin:0}}>
@@ -38,7 +37,6 @@ export default function Pricing(){
             </div>
           </div>
         </Reveal>
-      </div>
-    </section>
+    </SectionShell>
   );
 }

@@ -1,5 +1,5 @@
 import { C } from '@/shared/lib/tokens'
-import { Reveal, Eyebrow } from '../primitives'
+import { Reveal, Eyebrow, SectionShell, SectionHeading } from '../primitives'
 import { useInView } from '@/shared/hooks/useInView'
 
 // ── DNA — your portrait ────────────────────────────────────────
@@ -7,19 +7,15 @@ export default function DNA(){
   const [ref,iv]=useInView({threshold:0.3});
   const weights=[{n:'Tense',v:0.84,h:'#EF4444'},{n:'Slow-burn',v:0.78,h:'#A78BFA'},{n:'Bittersweet',v:0.71,h:'#FB7185'},{n:'Cerebral',v:0.68,h:'#7DD3FC'},{n:'Tender',v:0.62,h:'#F472B6'}];
   return(
-    <section id="dna" ref={ref} style={{padding:'160px 32px',borderTop:`1px solid ${C.hairline}`}}>
-      <div style={{maxWidth:1280,margin:'0 auto'}}>
-        <Reveal>
-          <div style={{textAlign:'center',marginBottom:80}}>
-            <Eyebrow color={C.purple} style={{marginBottom:26}}>Your Cinematic DNA</Eyebrow>
-            <h2 className="ff-d2" style={{fontSize:'clamp(44px,5.6vw,80px)',color:C.text,margin:'0 auto',textWrap:'balance',maxWidth:880}}>
-              A portrait you can only get <em className="ff-italic" style={{color:C.textMid}}>by watching.</em>
-            </h2>
-            <p className="ff-body" style={{fontSize:18,color:C.textMid,maxWidth:580,margin:'24px auto 0',lineHeight:1.65}}>
-              Letterboxd has your ratings. Netflix has your watch time. FeelFlick has the shape of you — moods, directors, recurring motifs, the runtime you actually have patience for. Visible only to you.
-            </p>
-          </div>
-        </Reveal>
+    <SectionShell id="dna" ref={ref}>
+      <Reveal>
+        <SectionHeading
+          eyebrow="Your Cinematic DNA"
+          lede="Letterboxd has your ratings. Netflix has your watch time. FeelFlick has the shape of you — moods, directors, recurring motifs, the runtime you actually have patience for. Visible only to you."
+        >
+          A portrait you can only get <em className="ff-italic" style={{color:C.textMid}}>by watching.</em>
+        </SectionHeading>
+      </Reveal>
         <Reveal delay={150}>
           <div className="ff-grid-2" style={{padding:'48px 48px',borderRadius:16,background:'rgba(255,255,255,0.018)',border:`1px solid ${C.hairline}`}}>
             <div>
@@ -65,7 +61,6 @@ export default function DNA(){
             </div>
           </div>
         </Reveal>
-      </div>
-    </section>
+    </SectionShell>
   );
 }

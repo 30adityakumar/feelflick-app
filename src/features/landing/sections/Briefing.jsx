@@ -1,13 +1,12 @@
 import MatchBadge from '@/shared/components/MatchBadge'
 import { C } from '@/shared/lib/tokens'
-import { Reveal, Poster, Eyebrow } from '../primitives'
+import { Reveal, Poster, Eyebrow, SectionShell } from '../primitives'
 import { PICKS } from '../data'
 
 // ── The Briefing ──────────────────────────────────────────────
 export default function Briefing(){
   return(
-    <section id="briefing" style={{padding:'160px 32px',borderTop:`1px solid ${C.hairline}`,background:C.bgLight}}>
-      <div style={{maxWidth:1280,margin:'0 auto'}}>
+    <SectionShell id="briefing" background={C.bgLight}>
         <Reveal>
           <div className="ff-grid-2" style={{marginBottom:72}}>
             <div>
@@ -49,7 +48,6 @@ export default function Briefing(){
             </div>
           </div>
         </Reveal>
-      </div>
-    </section>
+    </SectionShell>
   );
 }

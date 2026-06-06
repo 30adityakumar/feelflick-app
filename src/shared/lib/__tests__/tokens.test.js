@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { HP, HP_GRAD, C, RADIUS, SHADOW, SURFACE, SPACE, LAYOUT, GUTTER, TYPE } from '../tokens'
+import { HP, HP_GRAD, C, RADIUS, SHADOW, SURFACE, SPACE, LAYOUT, GUTTER, TYPE, MOTION } from '../tokens'
 
 // Brand-vs-semantic token contract (F3 hardening) — see
 // docs/design-system-hardening-f3.md. Guards two invariants: the single brand
@@ -121,5 +121,23 @@ describe('type-scale tokens — TYPE (F12B)', () => {
     for (const key of ['pageTitle', 'sectionTitle', 'cardTitle', 'body']) {
       expect(TYPE[key].weight).toBeLessThan(900)
     }
+  })
+})
+
+describe('motion tokens — MOTION (F12F)', () => {
+  it('pins the duration + ease + press vocabulary', () => {
+    expect(MOTION).toEqual({
+      fast: '120ms',
+      base: '180ms',
+      slow: '240ms',
+      ease: 'cubic-bezier(0.22, 1, 0.36, 1)',
+      press: 'translateY(1px)',
+    })
+  })
+
+  it('durations ascend fast < base < slow', () => {
+    const ms = (s) => parseFloat(s)
+    expect(ms(MOTION.fast)).toBeLessThan(ms(MOTION.base))
+    expect(ms(MOTION.base)).toBeLessThan(ms(MOTION.slow))
   })
 })

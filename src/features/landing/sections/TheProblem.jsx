@@ -1,24 +1,23 @@
 import { C } from '@/shared/lib/tokens'
-import { Reveal, Poster, Eyebrow } from '../primitives'
+import { Reveal, Poster, Eyebrow, SectionShell, SectionHeading } from '../primitives'
 import { PICKS } from '../data'
 
 // ── The Problem (Apple "vs" split) ─────────────────────────
 export default function TheProblem(){
   // Build a fake Netflix-style chaotic wall
   return(
-    <section style={{position:'relative',padding:'160px 32px',borderTop:`1px solid ${C.hairline}`,background:C.bgPure,overflow:'hidden'}}>
-      <div style={{maxWidth:1280,margin:'0 auto'}}>
-        <Reveal>
-          <div style={{textAlign:'center',marginBottom:80}}>
-            <Eyebrow color={C.purple} style={{marginBottom:28}}>The problem</Eyebrow>
-            <h2 className="ff-d2" style={{fontSize:'clamp(44px,5.6vw,80px)',color:C.text,margin:'0 auto',textWrap:'balance',maxWidth:880}}>
-              You spent <em className="ff-italic" style={{color:'#EF4444'}}>23 minutes</em> picking.{' '}<br/>You watched <em className="ff-italic" style={{color:C.purple}}>thirty.</em>
-            </h2>
-            <p className="ff-body" style={{fontSize:18,color:C.textMid,maxWidth:580,margin:'30px auto 0',lineHeight:1.6}}>
-              Streaming taught us to scroll. Three rivals, twelve rows, four trailers, no decision. Most evenings end without a film — and the few that do, end with a film no-one quite wanted.
-            </p>
-          </div>
-        </Reveal>
+    <SectionShell tone="void" position="relative" overflow="hidden" padding="160px 32px">
+      <Reveal>
+        <SectionHeading
+          eyebrow="The problem"
+          eyebrowMarginBottom={28}
+          ledeMarginTop={30}
+          ledeLineHeight={1.6}
+          lede="Streaming taught us to scroll. Three rivals, twelve rows, four trailers, no decision. Most evenings end without a film — and the few that do, end with a film no-one quite wanted."
+        >
+          You spent <em className="ff-italic" style={{color:'#EF4444'}}>23 minutes</em> picking.{' '}<br/>You watched <em className="ff-italic" style={{color:C.purple}}>thirty.</em>
+        </SectionHeading>
+      </Reveal>
         <Reveal delay={150}>
           <div style={{maxWidth:1280,margin:'0 auto'}} className="ff-grid-2">
             {/* Left: chaos */}
@@ -67,7 +66,6 @@ export default function TheProblem(){
             </div>
           </div>
         </Reveal>
-      </div>
-    </section>
+    </SectionShell>
   );
 }

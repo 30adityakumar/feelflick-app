@@ -3,7 +3,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ChevronLeft, ChevronRight, SkipForward, RefreshCw } from 'lucide-react'
+import { ChevronRight, SkipForward, RefreshCw } from 'lucide-react'
 import MatchBadge from '@/shared/components/MatchBadge'
 import { ActionButton, SecondaryActionButton } from '@/shared/components/ActionButton'
 import { useUserMovieStatus } from '@/shared/hooks/useUserMovieStatus'
@@ -11,16 +11,17 @@ import { getMovieWatchProviders } from '@/shared/api/tmdb'
 import { logSurfaceImpressions } from '@/shared/services/recommendations'
 import { recordRecommendationOutcome } from '@/shared/services/recommendationOutcomes'
 import Eyebrow from '@/shared/ui/Eyebrow'
-import { HP, HP_GRAD, MOOD_META } from './data'
+import { HP, MOOD_META } from './data'
 import { SmartImg } from './atoms'
 import WhyThisPick from './WhyThisPick'
 import { useHomeData } from './useHomeData'
 
-// Static slot labels — one per position in the 3-card briefing row.
-// Same across moods (functional, not flavor): position 0 is the engine's
-// top pick, position 1 is the next-best mood match, position 2 is the
-// taste-profile pull. Stays small + editorial above each card title.
-const SLOT_LABELS = ["Tonight's pick", 'Mood match', 'From your DNA']
+// The Briefing presents ONE confident pick. Its eyebrow is a constant —
+// "Tonight's pick" — never a positional label. (The old 3-slot slider used
+// "Mood match" / "From your DNA" for ranks 2/3; those positional labels
+// implied a curated ranking that wasn't real, so we collapsed to the single
+// head pick with a skip-to-next queue underneath.)
+const TONIGHT_LABEL = "Tonight's pick"
 
 // MoodReactor — pill picker with a "TONIGHT I FEEL" kicker on the left.
 // The active pill already carries the mood color + glow, so the kicker
@@ -196,7 +197,7 @@ function StreamingChip({ provider }) {
 //   • mobile: vertical — poster centered, copy stacked below
 //   • desktop: horizontal — poster left (360×540), copy right column.
 // No background backdrop image — keeps the page surface clean.
-function BriefingSlide({ film, idx, matchPct, user, onWatch, onSkip, onMarkedWatched }) {
+function BriefingSlide({ film, matchPct, user, onWatch, onSkip, onMarkedWatched }) {
   // source must match the user_watchlist_source_check CHECK constraint —
   // 'mood_recommendation' is the closest of the allowed values.
   const { isInWatchlist, isWatched, loading: statusLoading, toggleWatchlist, toggleWatched } =
@@ -230,16 +231,16 @@ function BriefingSlide({ film, idx, matchPct, user, onWatch, onSkip, onMarkedWat
 
   if (!film) return null
 
-  const slotLabel = SLOT_LABELS[idx] || SLOT_LABELS[SLOT_LABELS.length - 1]
-
   return (
     <div className="flex flex-col items-center gap-5 lg:flex-row lg:items-end lg:gap-14">
-      {/* Poster column — clickable */}
+      {/* Poster column — clickable. Mobile max-width is the tightest of the
+          three (180px, was 210px) so the single pick + its primary CTA clear
+          the ~844px mobile fold without scrolling; sm/lg posters unchanged. */}
       <button
         type="button"
         onClick={handleOpen}
         aria-label={`See more about ${film.title}`}
-        className="relative block w-full max-w-[210px] flex-none sm:max-w-[260px] lg:w-[340px] lg:max-w-none"
+        className="relative block w-full max-w-[180px] flex-none sm:max-w-[260px] lg:w-[340px] lg:max-w-none"
         style={{
           borderRadius: 10, overflow: 'hidden',
           background: 'transparent', border: 'none', padding: 0, cursor: 'pointer',
@@ -247,10 +248,6 @@ function BriefingSlide({ film, idx, matchPct, user, onWatch, onSkip, onMarkedWat
         }}
       >
         <SmartImg film={film} big style={{ width: '100%', aspectRatio: '2/3', objectFit: 'cover', display: 'block' }} />
-        {/* Position badge top-right */}
-        <div style={{ position: 'absolute', top: 14, right: 14, padding: '4px 9px', borderRadius: 4, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(10px)', fontSize: 10, fontWeight: 600, color: HP.textSoft, letterSpacing: '0.16em', textTransform: 'uppercase', fontFamily: 'Outfit' }}>
-          0{idx + 1}
-        </div>
         {/* Animated match ring — sized to feel proportionate against the
             smallest poster width (200px mobile); still reads at lg (340px). */}
         {Number.isFinite(matchPct) && matchPct > 0 && (
@@ -260,10 +257,10 @@ function BriefingSlide({ film, idx, matchPct, user, onWatch, onSkip, onMarkedWat
 
       {/* Content column */}
       <div className="flex w-full flex-col text-center lg:flex-1 lg:text-left lg:max-w-[680px]">
-        {/* Slot label kicker — bigger on desktop where it's the marquee header.
-            self-center on mobile so it centers like the title/meta/synopsis
-            below it; self-start on desktop matches the left-aligned column. */}
-        <Eyebrow rule className="self-center lg:self-start" style={{ marginBottom: 12 }}>{slotLabel}</Eyebrow>
+        {/* Eyebrow — constant "Tonight's pick" (single confident pick, never a
+            positional label). self-center on mobile so it centers like the
+            title/meta below it; self-start on desktop matches the left column. */}
+        <Eyebrow rule className="self-center lg:self-start" style={{ marginBottom: 12 }}>{TONIGHT_LABEL}</Eyebrow>
         {/* Title — matches the /movie/:id hero typography: Outfit 600 with a
             tight negative letter-spacing and lineHeight 0.94. Sized down
             from 92px to fit this two-column row, then scaled responsively
@@ -300,11 +297,13 @@ function BriefingSlide({ film, idx, matchPct, user, onWatch, onSkip, onMarkedWat
             The case-making layer (F5). Null-safe: renders nothing on cold-start
             (no reason) rather than fabricating one. */}
         <WhyThisPick reason={film.engineReason} className="self-stretch lg:max-w-[580px]" />
-        {/* Synopsis — TMDB overview, clamped to 2 lines on mobile, 3 on
-            desktop. Hidden when null (some films lack overview). */}
+        {/* Synopsis — TMDB overview. HIDDEN on mobile (a truncated fragment
+            adds little and pushes the primary CTA below the fold); shown at
+            sm+ clamped to 2 lines, 3 on desktop. The full overview is one tap
+            away on /movie/:id. Hidden when null (some films lack overview). */}
         {film.synopsis && (
           <p
-            className="line-clamp-2 lg:line-clamp-3"
+            className="hidden sm:line-clamp-2 lg:line-clamp-3"
             style={{
               fontFamily: 'Inter, sans-serif',
               fontSize: 'clamp(13px, 1vw, 15px)',
@@ -343,12 +342,13 @@ function BriefingSlide({ film, idx, matchPct, user, onWatch, onSkip, onMarkedWat
   )
 }
 
-// Slide enter/exit animation. Direction-aware — when advancing the new
-// slide enters from the right and the old exits left; reverse for prev.
+// Slide-in reveal for the single pick: when the head advances (skip / mark
+// watched / reshuffle / mood change) the new pick enters from the right and
+// the old exits left. Forward-only now — there is no backward browse.
 const SLIDE_VARIANTS = {
-  enter: (dir) => ({ x: dir > 0 ? 56 : -56, opacity: 0 }),
+  enter: { x: 56, opacity: 0 },
   center: { x: 0, opacity: 1 },
-  exit: (dir) => ({ x: dir > 0 ? -56 : 56, opacity: 0 }),
+  exit: { x: -56, opacity: 0 },
 }
 
 // Briefing loading state — a content-shaped skeleton that mirrors BriefingSlide
@@ -439,29 +439,21 @@ export function TheBriefing({ currentMood, shuffleSeed = 0, user, onWatch, onSki
   // Reshuffle now re-orders the *remaining* pool; switching moods is the
   // way to start with a clean slate.
   const [hiddenIds, setHiddenIds] = useState(() => new Set())
-  const [activeIdx, setActiveIdx] = useState(0)
-  const [direction, setDirection] = useState(1)
+  // Resets ONLY on mood change. Reshuffle re-orders the *remaining* pool;
+  // switching moods is the way to start with a clean slate.
   useEffect(() => {
     setHiddenIds(new Set())
-    setActiveIdx(0)
-    setDirection(1)
   }, [currentMood.id])
-  useEffect(() => {
-    setActiveIdx(0)
-    setDirection(1)
-  }, [shuffleSeed])
 
-  const picks = useMemo(() => {
+  // The remaining queue for this mood — daily-seeded + reshuffle-seeded, with
+  // skipped/watched films removed. We render only the HEAD; the rest is the
+  // depth that skip-to-next draws from (the single-pick equivalent of the old
+  // "next slides into the freed slot").
+  const queue = useMemo(() => {
     if (!moodEntry) return []
     const shuffled = shuffleBySeed(moodEntry.films || [], effectiveSeed)
-    return shuffled.filter(f => !hiddenIds.has(f.id)).slice(0, 3)
+    return shuffled.filter(f => !hiddenIds.has(f.id))
   }, [moodEntry, effectiveSeed, hiddenIds])
-
-  // Clamp activeIdx if picks just shrunk (skip/watched on the last slide).
-  const safeIdx = picks.length === 0 ? 0 : Math.min(activeIdx, picks.length - 1)
-  useEffect(() => {
-    if (activeIdx !== safeIdx) setActiveIdx(safeIdx)
-  }, [activeIdx, safeIdx])
 
   const hide = useCallback((id) => {
     setHiddenIds(prev => {
@@ -482,61 +474,34 @@ export function TheBriefing({ currentMood, shuffleSeed = 0, user, onWatch, onSki
 
   const clearHidden = useCallback(() => setHiddenIds(new Set()), [])
 
-  const goPrev = useCallback(() => {
-    setDirection(-1)
-    setActiveIdx(i => Math.max(0, i - 1))
-  }, [])
-  const goNext = useCallback(() => {
-    setDirection(1)
-    setActiveIdx(i => Math.min(picks.length - 1, i + 1))
-  }, [picks.length])
-  const goTo = useCallback((i) => {
-    setDirection(i > safeIdx ? 1 : -1)
-    setActiveIdx(i)
-  }, [safeIdx])
-
-  // Keyboard nav (← / →) when the briefing has focus or anywhere on /home.
-  // Scoped to the document so arrow keys work without explicit focus.
-  useEffect(() => {
-    const onKey = (e) => {
-      if (e.target?.tagName === 'INPUT' || e.target?.tagName === 'TEXTAREA') return
-      if (e.key === 'ArrowLeft') goPrev()
-      else if (e.key === 'ArrowRight') goNext()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [goPrev, goNext])
-
-  // Three distinct "no cards visible" states:
+  // Three distinct "no pick visible" states:
   //   loading — initial fetch in flight
   //   noFilms — engine returned 0 for this mood (cold start / niche genre)
   //   exhausted — engine returned films but the user has skipped/watched
-  //     enough that the visible pool is now empty
+  //     through the whole queue
   const filmsCount = moodEntry?.films?.length ?? 0
-  const isExhausted = !loading && filmsCount > 0 && picks.length === 0
+  const isExhausted = !loading && filmsCount > 0 && queue.length === 0
   const isNoFilms = !loading && filmsCount === 0
 
-  const activeFilm = picks[safeIdx]
-  const canGoPrev = safeIdx > 0
-  const canGoNext = safeIdx < picks.length - 1
+  // The single confident pick = head of the queue.
+  const pick = queue[0]
 
-  // Briefing impression — log the visible film each time the active slide
-  // changes (per-day-deduped by recommendation_impressions' unique key, so
-  // bouncing between slides only writes one row per film per day). Logs
-  // only the visible slide, not all 3 picks, so per-film impression counts
-  // reflect actual viewing rather than what was rendered offscreen.
-  const activeFilmId = activeFilm?.id
-  const activeFilmReason = activeFilm?.engineReason
+  // Briefing impression — log the one visible pick. Per-day-deduped by
+  // recommendation_impressions' unique key, so re-renders write one row per
+  // film per day. Fires whenever the head advances (skip / watched / reshuffle
+  // / mood change).
+  const pickId = pick?.id
+  const pickReason = pick?.engineReason
   useEffect(() => {
-    if (!user?.id || activeFilmId == null) return
+    if (!user?.id || pickId == null) return
     logSurfaceImpressions({
       userId: user.id,
-      films: [{ id: activeFilmId }],
+      films: [{ id: pickId }],
       placement: 'hero',
       pickReasonType: 'briefing_active',
-      pickReasonLabel: activeFilmReason || `${currentMood.id} · slide ${safeIdx + 1}`,
+      pickReasonLabel: pickReason || currentMood.id,
     })
-  }, [user?.id, activeFilmId, activeFilmReason, currentMood.id, safeIdx])
+  }, [user?.id, pickId, pickReason, currentMood.id])
 
   return (
     <section className="relative px-5 pt-4 pb-10 sm:px-8 sm:pt-6 sm:pb-12 lg:px-[88px] lg:pt-6 lg:pb-6">
@@ -560,92 +525,31 @@ export function TheBriefing({ currentMood, shuffleSeed = 0, user, onWatch, onSki
         <div style={{ padding: '60px 0', textAlign: 'center', fontFamily: 'Outfit, Inter, sans-serif', color: HP.textMuted, fontSize: 14, fontStyle: 'italic' }}>
           No <span style={{ color: currentMood.hex, fontStyle: 'italic' }}>{currentMood.label.toLowerCase()}</span> picks just yet — try a different mood above.
         </div>
-      ) : picks.length === 0 ? (
+      ) : !pick ? (
         <BriefingSkeleton />
       ) : (
-        <div className="relative">
-          {/* Slider viewport — overflow-hidden contains the swipe gesture
-              animation; drag on the inner motion.div handles touch swipes. */}
-          <div className="relative overflow-hidden">
-            <AnimatePresence initial={false} mode="wait" custom={direction}>
-              <motion.div
-                key={`${currentMood.id}-${activeFilm?.id ?? safeIdx}-${shuffleSeed}`}
-                custom={direction}
-                variants={SLIDE_VARIANTS}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ duration: 0.42, ease: [0.32, 0.72, 0, 1] }}
-                drag="x"
-                dragConstraints={{ left: 0, right: 0 }}
-                dragElastic={0.18}
-                onDragEnd={(_, info) => {
-                  const threshold = 60
-                  if (info.offset.x > threshold && canGoPrev) goPrev()
-                  else if (info.offset.x < -threshold && canGoNext) goNext()
-                }}
-                style={{ cursor: 'grab' }}
-              >
-                <BriefingSlide
-                  film={activeFilm}
-                  idx={safeIdx}
-                  matchPct={activeFilm?.matchPct}
-                  user={user}
-                  onWatch={onWatch}
-                  onSkip={handleSkip}
-                  onMarkedWatched={handleMarkedWatched}
-                />
-              </motion.div>
-            </AnimatePresence>
-          </div>
-
-          {/* Desktop arrows — hidden below lg. Disabled state dims to 30%. */}
-          <button
-            type="button" onClick={goPrev} disabled={!canGoPrev}
-            aria-label="Previous pick"
-            className="absolute -left-2 top-[28%] hidden h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/45 text-white/85 backdrop-blur-md transition-all duration-200 hover:border-white/30 hover:bg-black/70 hover:text-white disabled:cursor-default disabled:opacity-25 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 lg:flex"
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </button>
-          <button
-            type="button" onClick={goNext} disabled={!canGoNext}
-            aria-label="Next pick"
-            className="absolute -right-2 top-[28%] hidden h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/45 text-white/85 backdrop-blur-md transition-all duration-200 hover:border-white/30 hover:bg-black/70 hover:text-white disabled:cursor-default disabled:opacity-25 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 lg:flex"
-          >
-            <ChevronRight className="h-5 w-5" />
-          </button>
-
-          {/* Dot indicator — active dot stretches to a gradient capsule.
-              On desktop the dots double as labeled "Tonight's pick / Mood
-              match / From your DNA" buttons; on mobile they're compact. */}
-          <div className="mt-5 flex items-center justify-center gap-3 lg:mt-7">
-            {picks.map((_, i) => {
-              const active = i === safeIdx
-              return (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => goTo(i)}
-                  aria-label={`Slide ${i + 1}: ${SLOT_LABELS[i] || ''}`}
-                  aria-current={active}
-                  className="group inline-flex items-center gap-2 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-                >
-                  <span
-                    aria-hidden
-                    style={{
-                      display: 'inline-block',
-                      width: active ? 30 : 8,
-                      height: 8,
-                      borderRadius: 999,
-                      background: active ? HP_GRAD : 'rgba(255,255,255,0.18)',
-                      boxShadow: active ? '0 0 12px rgba(236,72,153,0.4)' : 'none',
-                      transition: 'all 0.4s cubic-bezier(0.32, 0.72, 0, 1)',
-                    }}
-                  />
-                </button>
-              )
-            })}
-          </div>
+        // Single confident pick. overflow-hidden contains the slide-in reveal
+        // (x-translate) when the head advances on skip / watched / reshuffle.
+        <div className="relative overflow-hidden">
+          <AnimatePresence initial={false} mode="wait">
+            <motion.div
+              key={`${currentMood.id}-${pick.id}-${shuffleSeed}`}
+              variants={SLIDE_VARIANTS}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.42, ease: [0.32, 0.72, 0, 1] }}
+            >
+              <BriefingSlide
+                film={pick}
+                matchPct={pick.matchPct}
+                user={user}
+                onWatch={onWatch}
+                onSkip={handleSkip}
+                onMarkedWatched={handleMarkedWatched}
+              />
+            </motion.div>
+          </AnimatePresence>
         </div>
       )}
     </section>

@@ -68,4 +68,49 @@ describe('Button', () => {
     rerender(<Button size="lg">l</Button>)
     expect(screen.getByRole('button').className).toContain('text-base')
   })
+
+  // F12D — even, touch-comfortable height floor: sm 40 / md 44 / lg 48 (4px steps).
+  it('applies the min-height touch floor per size (sm→min-h-10, md→min-h-11, lg→min-h-12)', () => {
+    const { rerender } = render(<Button size="sm">s</Button>)
+    expect(screen.getByRole('button').className).toContain('min-h-10')
+    rerender(<Button size="md">m</Button>)
+    expect(screen.getByRole('button').className).toContain('min-h-11')
+    rerender(<Button size="lg">l</Button>)
+    expect(screen.getByRole('button').className).toContain('min-h-12')
+  })
+
+  it('icon variant is square at the same 40/44/48 floor', () => {
+    const { rerender } = render(<Button variant="icon" size="sm">i</Button>)
+    expect(screen.getByRole('button').className).toMatch(/\bh-10\b/)
+    expect(screen.getByRole('button').className).toMatch(/\bw-10\b/)
+    rerender(<Button variant="icon" size="md">i</Button>)
+    expect(screen.getByRole('button').className).toMatch(/\bh-11\b/)
+    rerender(<Button variant="icon" size="lg">i</Button>)
+    expect(screen.getByRole('button').className).toMatch(/\bh-12\b/)
+  })
+
+  it('disabled is visibly disabled (opacity + not-allowed cursor) and non-interactive', () => {
+    render(<Button disabled>x</Button>)
+    const btn = screen.getByRole('button')
+    expect(btn).toBeDisabled()
+    expect(btn.className).toContain('disabled:opacity-50')
+    expect(btn.className).toContain('disabled:cursor-not-allowed')
+  })
+
+  // F12F — the hover/active SCALE (movement) is reduced-motion-gated via motion-safe:.
+  it('gates the primary hover/active scale behind motion-safe (reduced-motion respect)', () => {
+    render(<Button variant="primary">p</Button>)
+    const c = screen.getByRole('button').className
+    expect(c).toContain('motion-safe:hover:scale-[1.02]')
+    expect(c).toContain('motion-safe:active:scale-[0.97]')
+    // brightness (color, not movement) stays ungated
+    expect(c).toContain('hover:brightness-110')
+  })
+
+  it('gates the icon hover/active scale behind motion-safe', () => {
+    render(<Button variant="icon">i</Button>)
+    const c = screen.getByRole('button').className
+    expect(c).toContain('motion-safe:hover:scale-105')
+    expect(c).toContain('motion-safe:active:scale-95')
+  })
 })

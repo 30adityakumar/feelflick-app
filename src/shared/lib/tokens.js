@@ -171,3 +171,17 @@ export const TYPE = {
   cardTitle: { size: 16, weight: 600, spacing: '-0.01em', lineHeight: 1.25 },
   body: { size: 'clamp(14px, 1vw, 15px)', weight: 400, spacing: '0em', lineHeight: 1.6 },
 }
+
+/**
+ * Motion vocabulary (F12F) — RESTRAINT: clarify affordance, never decorate. Additive.
+ * Mirrored as `--motion-*` CSS custom properties in `index.css` for CSS use. All movement
+ * (hover/press transforms) is reduced-motion-gated at the consumer; under
+ * `prefers-reduced-motion: reduce` the global guard collapses transitions to ~0.
+ */
+export const MOTION = {
+  fast: '120ms', // micro-feedback (press, focus)
+  base: '180ms', // standard hover/state transitions
+  slow: '240ms', // larger surfaces / panels
+  ease: 'cubic-bezier(0.22, 1, 0.36, 1)', // the FeelFlick ease (matches MovieCard hover-LAW)
+  press: 'translateY(1px)', // tactile press offset (CSS-class only, reduced-motion-gated)
+}

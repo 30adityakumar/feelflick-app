@@ -259,6 +259,57 @@ controls to a 44px touch target — **`.ff-tap`** grows a text control (chip/pil
 route-local controls; do **not** alter the shared `<Button>` or the MovieCard hover LAW. See
 [`mobile-touch-density-f12c.md`](ui/mobile-touch-density-f12c.md).
 
+### 6d. Button / CTA system (F12D)
+
+The shared **`<Button>`** ([`src/shared/ui/Button.jsx`](../src/shared/ui/Button.jsx)) is the one button
+system. Variants: `primary` (the one brand-gradient pill) · `secondary` (calm white/5) · `ghost`
+(quiet outline) · `icon` · `destructive`. Sizes carry an **even, touch-comfortable min-height floor**:
+
+| size | min-height | use |
+|---|---|---|
+| `sm` | **40** (`min-h-10`) | clearly secondary / compact |
+| `md` (default) | **44** (`min-h-11`) | standard actions |
+| `lg` | **48** (`min-h-12`) | hero CTA (e.g. `/about` sign-in; `font-bold` is the intentional hero weight) |
+
+`icon` is square at the same floor (40/44/48). All `rounded-full`, share the
+`focus-visible:ring-purple-400/50` ring + the `disabled:opacity-50 cursor-not-allowed` state + the one
+in-button spinner (`loading`).
+
+**CTA hierarchy discipline:** **one `primary` per view** = the obvious action; `secondary` stays
+subordinate (calm); `ghost` is quietest. `discover`'s `Begin →` (primary) + `or, surprise me`
+(secondary) is the model. **Don't turn every button into a big purple pill.**
+
+> F12D added the min-height floor only — **render-identical for `lg`**, so the `/about` baseline did
+> **not** change (no rebaseline). A Button **font → Outfit** alignment stays deferred (it *would* need a
+> deliberate `/about` re-baseline). See [`button-cta-system-f12d.md`](ui/button-cta-system-f12d.md).
+
+### 6e. Motion / micro-interactions (F12F)
+
+**Restraint** — motion clarifies affordance, it never decorates. No page transitions, no theatrical
+animation. The vocabulary is the additive **`MOTION`** token ([`tokens.js`](../src/shared/lib/tokens.js),
+mirrored as `--motion-*` CSS vars in `index.css`):
+
+| token | value | use |
+|---|---|---|
+| `fast` | `120ms` | micro-feedback (press, focus) |
+| `base` | `180ms` | standard hover/state |
+| `slow` | `240ms` | larger panels |
+| `ease` | `cubic-bezier(0.22, 1, 0.36, 1)` | the FeelFlick ease (matches the MovieCard hover-LAW) |
+| `press` | `translateY(1px)` | tactile press (CSS-class only, reduced-motion-gated) |
+
+**Reduced motion is mandatory.** All **movement** (hover/press transforms) is gated:
+- Shared `Card` / `AccentPanel` gate their hover behind `prefers-reduced-motion: no-preference`; the
+  landing CTA/logo gate their transforms under `reduce`.
+- The shared `<Button>` hover/active **scale** is `motion-safe:`-prefixed (movement only when allowed;
+  `hover:brightness` stays — it's color, not movement).
+- The `.ff-tap` / `.ff-tap-hit` controls get a `no-preference`-gated `:active { translateY(1px) }` press.
+- A **global guard** (`@media (prefers-reduced-motion: reduce)`) collapses all animation/transition to
+  ~0 — the app becomes instant; no affordance depends on motion.
+
+> Movement is interaction-gated, so it's **absent from static screenshots → no `/about` rebaseline**.
+> Residual: the MovieCard poster scale becomes *instant* under `reduce` (the hover-LAW is off-limits;
+> fully gating its transform is deferred). See [`motion-microinteractions-f12f.md`](ui/motion-microinteractions-f12f.md).
+
 ---
 
 ## 7. Turning personal data into shareable social currency

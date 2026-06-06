@@ -1,5 +1,5 @@
 import { C } from '@/shared/lib/tokens'
-import { Reveal, Poster, Eyebrow } from '../primitives'
+import { Reveal, Poster, Eyebrow, SectionShell, SectionHeading } from '../primitives'
 import { PICKS } from '../data'
 
 // ── The Ritual (single combined section) ─────────────────────
@@ -10,19 +10,17 @@ export default function Ritual(){
     {n:'03',k:'Receive the edition',t:'One film.',b:'Not three options. One pick, with the article that makes its case.',visual:'pick'},
   ];
   return(
-    <section id="ritual" style={{padding:'160px 32px',borderTop:`1px solid ${C.hairline}`,background:C.bgLight}}>
-      <div style={{maxWidth:1280,margin:'0 auto'}}>
-        <Reveal>
-          <div style={{textAlign:'center',marginBottom:84}}>
-            <Eyebrow color={C.purple} style={{marginBottom:26}}>The Ritual · Three steps</Eyebrow>
-            <h2 className="ff-d2" style={{fontSize:'clamp(44px,5.6vw,80px)',color:C.text,margin:0,textWrap:'balance',maxWidth:880,marginLeft:'auto',marginRight:'auto'}}>
-              Three short questions. <em className="ff-italic" style={{color:C.textMid}}>One film.</em>
-            </h2>
-            <p className="ff-body" style={{marginTop:24,fontSize:18,color:C.textMid,maxWidth:560,marginLeft:'auto',marginRight:'auto',lineHeight:1.65}}>
-              The whole flow takes a minute. The night gets back the rest.
-            </p>
-          </div>
-        </Reveal>
+    <SectionShell id="ritual" tone="panel">
+      <Reveal>
+        <SectionHeading
+          eyebrow="The Ritual · Three steps"
+          marginBottom={84}
+          ledeMaxWidth={560}
+          lede="The whole flow takes a minute. The night gets back the rest."
+        >
+          Three short questions. <em className="ff-italic" style={{color:C.textMid}}>One film.</em>
+        </SectionHeading>
+      </Reveal>
         <div className="ff-grid-3">
           {steps.map((s,i)=>(
             <Reveal key={s.n} delay={i*150}>
@@ -39,8 +37,7 @@ export default function Ritual(){
             </Reveal>
           ))}
         </div>
-      </div>
-    </section>
+    </SectionShell>
   );
 }
 function MoodVisual(){

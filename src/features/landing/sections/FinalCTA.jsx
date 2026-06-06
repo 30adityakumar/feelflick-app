@@ -1,14 +1,20 @@
 import { useGoogleAuth } from '@/shared/hooks/useGoogleAuth'
 import { C } from '@/shared/lib/tokens'
-import { Reveal, Stars, Eyebrow, AuthCTA } from '../primitives'
+import { Reveal, Stars, Eyebrow, AuthCTA, SectionShell } from '../primitives'
 
 // ── Final CTA ──────────────────────────────────────────────────
 export default function FinalCTA(){
   const { signInWithGoogle, isAuthenticating } = useGoogleAuth();
   return(
-    <section id="start" style={{position:'relative',padding:'200px 32px',borderTop:`1px solid ${C.hairline}`,background:C.bgPure,overflow:'hidden'}}>
-      <Stars tint={C.purple} count={80}/>
-      <div style={{position:'relative',maxWidth:880,margin:'0 auto',textAlign:'center'}}>
+    <SectionShell
+      id="start"
+      padding="200px 32px"
+      position="relative"
+      overflow="hidden"
+      tone="void"
+      innerStyle={{position:'relative',maxWidth:880,textAlign:'center'}}
+      before={<Stars tint={C.purple} count={80}/>}
+    >
         <Reveal>
           <Eyebrow color={C.purple} style={{marginBottom:32}}>Stop scrolling. Start watching.</Eyebrow>
         </Reveal>
@@ -31,7 +37,6 @@ export default function FinalCTA(){
         <Reveal delay={550}>
           <Eyebrow color={C.textLow} style={{marginTop:24}}>Free · No credit card · No ads</Eyebrow>
         </Reveal>
-      </div>
-    </section>
+    </SectionShell>
   );
 }

@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react'
+import { forwardRef, useState, useMemo } from 'react'
 import CanonicalEyebrow from '@/shared/ui/Eyebrow'
-import { HP_GRAD as GRAD } from '@/shared/lib/tokens'
+import { HP_GRAD as GRAD, C } from '@/shared/lib/tokens'
 import { useInView } from '@/shared/hooks/useInView'
 
 // Landing-flavored eyebrow — the canonical `shared/ui/Eyebrow` primitive at the
@@ -84,6 +84,94 @@ export function Stars({tint,count=50}){
     <div aria-hidden style={{position:'absolute',inset:0,overflow:'hidden',pointerEvents:'none'}}>
       <div style={{position:'absolute',inset:0,background:`radial-gradient(ellipse 80% 50% at 50% 0%,${tint}1c,transparent 60%),radial-gradient(ellipse 60% 40% at 50% 100%,${tint}10,transparent 60%)`}}/>
       {stars.map((s,i)=><div key={i} style={{position:'absolute',left:`${s.x}%`,top:`${s.y}%`,width:s.s,height:s.s,borderRadius:999,background:'#fff',opacity:s.op,animation:`ff-tw ${s.dur}s ease-in-out ${s.dly}s infinite`}}/>)}
+    </div>
+  );
+}
+
+// Landing section scaffold — the outer <section> + centered content column that
+// every editorial section below the hero repeats (8 near-identical hand-rolled
+// copies before this extraction). PRESENTATIONAL ONLY: it emits the exact same
+// DOM the sections used to inline — a real <section> (so landing.css's
+// `section{…}`, `section#file,section#start`, and `section:first-of-type`
+// responsive rules still match by element + id) wrapping the default
+// `maxWidth:1280; margin:0 auto` column. It holds no visual opinion beyond those
+// repeated invariants, so adopting it is render-faithful.
+//
+// Props (all optional except `children`):
+//   • id           — forwarded to <section> (anchor target + the #file/#start CSS hooks)
+//   • tone         — cinematic chapter surface (F1.2): 'void' (#000, dramatic/served beats) /
+//                    'panel' (#0d0b14 lifted editorial surface, gets the .ff-sec-panel top-seam) /
+//                    'base' (#06060a). Sets the background; an explicit `background` prop still wins.
+//   • background   — explicit section background (back-compat / overrides `tone`); omitted when absent
+//   • padding      — section padding (default '140px 32px' = the standard rhythm step; leads pass
+//                    '160px 32px', crescendos FilmFile/FinalCTA pass '200px 32px')
+//   • borderTop    — render the `1px solid C.hairline` top rule (default true — every section has it)
+//   • position     — emitted only when passed (TheProblem/FilmFile/FinalCTA need 'relative')
+//   • overflow     — emitted only when passed (TheProblem/FinalCTA need 'hidden')
+//   • before       — node rendered INSIDE the <section> but BEFORE the content column,
+//                    for the absolute decorative layers (FilmFile's radial glow, FinalCTA's <Stars>)
+//   • innerStyle   — merged onto the content column (override maxWidth→880, add position/textAlign)
+//   • style        — merged onto the <section>
+//   • className    — extra class(es) merged onto the <section>
+// forwardRef so DNA keeps its useInView ref on the <section> element itself.
+const TONE_BG = { void: C.bgPure, panel: C.bgLight, base: C.bg };
+export const SectionShell = forwardRef(function SectionShell(
+  { id, tone, background, padding='140px 32px', borderTop=true, position, overflow, before, innerStyle, style, className, children },
+  ref,
+){
+  const bg = background ?? (tone ? TONE_BG[tone] : undefined);
+  const cls = [tone === 'panel' ? 'ff-sec-panel' : '', className].filter(Boolean).join(' ');
+  return (
+    <section
+      id={id}
+      ref={ref}
+      className={cls || undefined}
+      style={{
+        padding,
+        ...(borderTop ? { borderTop:`1px solid ${C.hairline}` } : null),
+        ...(bg ? { background: bg } : null),
+        ...(position ? { position } : null),
+        ...(overflow ? { overflow } : null),
+        ...style,
+      }}
+    >
+      {before}
+      <div style={{ maxWidth:1280, margin:'0 auto', ...innerStyle }}>{children}</div>
+    </section>
+  );
+});
+
+// Centered editorial section header — the `<div textAlign:center marginBottom>` +
+// optional <Eyebrow> + ff-d2 <h2> (the clamp(44px,5.6vw,80px) display headline) +
+// optional lede <p>, repeated verbatim by the centered-header sections
+// (TheProblem, Ritual, FilmFile, DNA). The grid-split headers (Briefing, Community)
+// and the per-Reveal-split headers (Pricing, FinalCTA) deliberately do NOT use this
+// — their markup isn't this shape, so forcing it would change the DOM.
+//
+// `children` is the <h2> content, so each section keeps its exact copy + <em>
+// accents. The few values the four sites vary are props with the common defaults.
+export function SectionHeading({
+  eyebrow,
+  eyebrowColor=C.purple,
+  eyebrowMarginBottom=26,
+  marginBottom=80,
+  headingMaxWidth=880,
+  headingStyle,
+  lede,
+  ledeMaxWidth=580,
+  ledeMarginTop=24,
+  ledeLineHeight=1.65,
+  align='center',
+  style,
+  children,
+}){
+  return (
+    <div style={{ textAlign:align, marginBottom, ...style }}>
+      {eyebrow && <Eyebrow color={eyebrowColor} style={{ marginBottom:eyebrowMarginBottom }}>{eyebrow}</Eyebrow>}
+      <h2 className="ff-d2" style={{ fontSize:'clamp(44px,5.6vw,80px)', color:C.text, margin:'0 auto', textWrap:'balance', maxWidth:headingMaxWidth, ...headingStyle }}>
+        {children}
+      </h2>
+      {lede && <p className="ff-body" style={{ fontSize:18, color:C.textMid, maxWidth:ledeMaxWidth, margin:`${ledeMarginTop}px auto 0`, lineHeight:ledeLineHeight }}>{lede}</p>}
     </div>
   );
 }

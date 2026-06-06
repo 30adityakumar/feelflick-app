@@ -1,17 +1,19 @@
 // src/features/onboarding/steps/MoviesStep.jsx
 // Step 3 — Films picker. COMPOSITION LAYER: the suggestion-pool engine lives in
 // suggestionPool.js, the pool fetch + live TMDB search in the useSuggestionPool /
-// useMovieSearch hooks, and the card / skeleton / dropdown in ./movies/*. This
-// file just wires them into the header / search / suggestions / picks / footer
-// layout. Logic extracted in F2.3 — UI, copy, layout, styling, and behavior are
-// unchanged.
+// useMovieSearch hooks, the card / skeleton / dropdown in ./movies/*, and the
+// shared step chrome in ../components/{StepShell,StepHeader,StepFooter}. This file
+// just wires the search + suggestions + picks body between the header and footer.
+// UI, copy, layout, styling, and behavior are unchanged.
 import { useEffect, useRef } from 'react'
-import { Search, X, ChevronLeft } from 'lucide-react'
+import { Search, X } from 'lucide-react'
 
-import Button from '@/shared/ui/Button'
 import { MIN_MOVIES } from '../suggestionPool'
 import { useSuggestionPool } from '../hooks/useSuggestionPool'
 import { useMovieSearch } from '../hooks/useMovieSearch'
+import StepShell from '../components/StepShell'
+import StepHeader from '../components/StepHeader'
+import StepFooter from '../components/StepFooter'
 import MovieCard from './movies/MovieCard'
 import CardSkeletonRow from './movies/CardSkeletonRow'
 import SearchDropdown from './movies/SearchDropdown'
@@ -65,35 +67,39 @@ export default function MoviesStep({
   const suggestions = pool.filter(m => !isMovieSelected(m.id))
 
   return (
-    <div className="h-full flex flex-col">
-      {/* Header */}
-      <div className="flex-none px-5 pt-5 pb-4 sm:px-6 sm:pt-6">
-        <button
-          type="button"
-          onClick={onBack}
-          className="flex items-center gap-1.5 text-sm text-white/40 hover:text-white/70 transition-colors mb-3 sm:mb-4"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          Back
-        </button>
-        <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-purple-400/85 mb-2.5 sm:mb-3">
-          Films · 3 of 4
-        </p>
-        <h2
-          className="ob-display text-[32px] sm:text-4xl md:text-5xl font-normal leading-[1.05] text-white"
-          style={{ textWrap: 'balance' }}
+    <StepShell
+      header={
+        <StepHeader
+          className="flex-none px-5 pt-5 pb-4 sm:px-6 sm:pt-6"
+          onBack={onBack}
+          kicker="Films · 3 of 4"
+          subcopy={<>Pick 5 films that shaped your taste. These anchor your first picks — so go
+          honest, not impressive.</>}
+          subcopyClassName="text-[13px] sm:text-sm md:text-[15px] text-white/60 mt-2 leading-relaxed"
         >
           What have you{' '}
           <em className="bg-linear-to-r from-purple-500 to-pink-500 bg-clip-text italic text-transparent">
             loved?
           </em>
-        </h2>
-        <p className="text-[13px] sm:text-sm md:text-[15px] text-white/60 mt-2 leading-relaxed">
-          Pick 5 films that shaped your taste. These anchor your first picks — so go
-          honest, not impressive.
-        </p>
-      </div>
-
+        </StepHeader>
+      }
+      footer={
+        <StepFooter
+          statusClassName={`text-xs font-medium transition-colors duration-200 ${canFinish ? 'text-purple-400' : 'text-white/30'}`}
+          status={
+            count === 0
+              ? `Select at least ${MIN_MOVIES} films to continue`
+              : count < MIN_MOVIES
+              ? `${count} selected — pick ${MIN_MOVIES - count} more`
+              : `${count} selected ✓`
+          }
+          onContinue={onFinish}
+          disabled={!canFinish || loading}
+          label={loading ? 'Saving…' : 'Continue'}
+          showChevron={false}
+        />
+      }
+    >
       {/* Search bar + dropdown */}
       <div className="flex-none px-5 pb-4 sm:px-6 sm:pb-5 relative">
         <div className="relative">
@@ -182,24 +188,6 @@ export default function MoviesStep({
           </div>
         )}
       </div>
-
-      {/* Footer */}
-      <div className="flex-none px-5 pb-6 pt-3 sm:px-6 sm:pb-8 sm:pt-4 border-t border-white/6">
-        <div className="max-w-sm mx-auto flex flex-col items-center gap-3">
-          <p className={`text-xs font-medium transition-colors duration-200 ${
-            canFinish ? 'text-purple-400' : 'text-white/30'
-          }`}>
-            {count === 0
-              ? `Select at least ${MIN_MOVIES} films to continue`
-              : count < MIN_MOVIES
-              ? `${count} selected — pick ${MIN_MOVIES - count} more`
-              : `${count} selected ✓`}
-          </p>
-          <Button variant="primary" size="lg" onClick={onFinish} disabled={!canFinish || loading} fullWidth>
-            {loading ? 'Saving…' : 'Continue'}
-          </Button>
-        </div>
-      </div>
-    </div>
+    </StepShell>
   )
 }

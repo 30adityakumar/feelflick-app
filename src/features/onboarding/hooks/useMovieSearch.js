@@ -4,14 +4,16 @@ import { searchMovies } from '@/shared/api/tmdb'
 /**
  * Debounced TMDB live-search controller for the onboarding film picker.
  *
- * Behavior preserved verbatim from MoviesStep (F2.3): 300ms debounce, popularity
- * sort, poster filter, top-8 slice, and the clear/close transitions. (The audit's
- * Escape / outside-click / listbox a11y improvements are deliberately NOT added
- * in this structure pass.)
+ * Behavior preserved verbatim: 300ms debounce, popularity sort, poster filter,
+ * top-8 slice, and the clear/close transitions. A search failure now flips
+ * `searchError` (cleared at each new search start) so the dropdown can show a
+ * real error instead of masquerading as "No results"; `retrySearch` re-runs the
+ * SAME query through the SAME debounced path (no query/ranking change).
  *
  * @returns {{
  *   query: string, setQuery: function, results: object[], searching: boolean,
  *   showDropdown: boolean, setShowDropdown: function, clearSearch: function,
+ *   searchError: boolean, retrySearch: function,
  * }}
  */
 export function useMovieSearch() {
@@ -19,11 +21,14 @@ export function useMovieSearch() {
   const [results, setResults] = useState([])
   const [searching, setSearching] = useState(false)
   const [showDropdown, setShowDropdown] = useState(false)
+  const [searchError, setSearchError] = useState(false)
+  const [retryTick, setRetryTick] = useState(0)
   const searchTimeoutRef = useRef(null)
 
   // Live search with debounce
   useEffect(() => {
     clearTimeout(searchTimeoutRef.current)
+    setSearchError(false)
     if (!query.trim()) {
       setResults([])
       setSearching(false)
@@ -43,12 +48,13 @@ export function useMovieSearch() {
         )
       } catch {
         setResults([])
+        setSearchError(true)
       } finally {
         setSearching(false)
       }
     }, 300)
     return () => clearTimeout(searchTimeoutRef.current)
-  }, [query])
+  }, [query, retryTick])
 
   // Reset query + close the dropdown (used by the clear button and after a pick).
   const clearSearch = () => {
@@ -56,5 +62,8 @@ export function useMovieSearch() {
     setShowDropdown(false)
   }
 
-  return { query, setQuery, results, searching, showDropdown, setShowDropdown, clearSearch }
+  // Re-run the same query through the same debounced path.
+  const retrySearch = () => setRetryTick(t => t + 1)
+
+  return { query, setQuery, results, searching, showDropdown, setShowDropdown, clearSearch, searchError, retrySearch }
 }

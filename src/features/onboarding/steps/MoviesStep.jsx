@@ -48,10 +48,13 @@ export default function MoviesStep({
   error,
 }) {
   const searchInputRef = useRef(null)
-  const { pool, poolLoading } = useSuggestionPool(selectedGenreIds, moods)
-  const { query, setQuery, results, searching, showDropdown, setShowDropdown, clearSearch } = useMovieSearch()
+  const { pool, poolLoading, poolError, retry } = useSuggestionPool(selectedGenreIds, moods)
+  const { query, setQuery, results, searching, showDropdown, setShowDropdown, clearSearch, searchError, retrySearch } = useMovieSearch()
 
+  // Desktop convenience only — gate the autofocus behind a fine pointer so a
+  // mobile soft keyboard doesn't pop over the curation on step entry.
   useEffect(() => {
+    if (!window.matchMedia?.('(pointer: fine)')?.matches) return
     const timer = setTimeout(() => searchInputRef.current?.focus(), 100)
     return () => clearTimeout(timer)
   }, [])
@@ -111,6 +114,7 @@ export default function MoviesStep({
             onChange={e => setQuery(e.target.value)}
             onFocus={() => { if (query.trim()) setShowDropdown(true) }}
             placeholder="Search any film…"
+            aria-label="Search for a film to add"
             className="w-full pl-10 pr-9 py-2.5 rounded-xl bg-white/[0.07] border border-white/10 text-sm text-white placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-purple-400/50 focus:border-purple-400/30 transition-all"
           />
           {query && (
@@ -132,6 +136,8 @@ export default function MoviesStep({
             results={results}
             isMovieSelected={isMovieSelected}
             onSelect={handleSelectFromSearch}
+            searchError={searchError}
+            onRetry={retrySearch}
           />
         )}
       </div>
@@ -151,6 +157,18 @@ export default function MoviesStep({
           </p>
           {poolLoading ? (
             <CardSkeletonRow />
+          ) : poolError ? (
+            <div role="alert" className="flex items-center justify-between gap-3 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-sm">
+              <span>Couldn&apos;t load your suggestions.</span>
+              <button
+                type="button"
+                onClick={retry}
+                aria-label="Retry loading suggestions"
+                className="shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium bg-white/10 hover:bg-white/15 text-white transition-colors"
+              >
+                Retry
+              </button>
+            </div>
           ) : suggestions.length === 0 ? (
             <p className="text-sm text-white/30 py-2">
               All suggestions added — search for more above

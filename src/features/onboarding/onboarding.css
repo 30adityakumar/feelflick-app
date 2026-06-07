@@ -40,3 +40,22 @@
   scrollbar-width: thin;
   scrollbar-color: rgba(168,85,247,0.25) transparent;
 }
+
+/* Mood-signature atmosphere. --ob-accent-rgb (a single deterministic mood
+ * signature, brand-purple fallback) is set on the .onboarding root in
+ * Onboarding.jsx; the soft/border tints derive from it. Used ONLY for ambient
+ * tinting (faint edge vignette + a 1px top hairline) — never foreground chrome,
+ * CTAs, or headlines. The recolor tween collapses under the global
+ * prefers-reduced-motion reset (index.css), so no JS motion is needed. */
+.onboarding {
+  --ob-accent-soft: rgba(var(--ob-accent-rgb, 168, 85, 247), 0.10);
+  --ob-accent-border: rgba(var(--ob-accent-rgb, 168, 85, 247), 0.22);
+}
+
+.onboarding .ob-atmosphere {
+  background: radial-gradient(ellipse 130% 115% at 50% 50%, transparent 60%, var(--ob-accent-soft) 100%);
+  box-shadow: inset 0 1px 0 var(--ob-accent-border);
+  transition:
+    background 1.4s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 1.4s cubic-bezier(0.22, 1, 0.36, 1);
+}

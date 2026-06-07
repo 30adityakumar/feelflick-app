@@ -23,7 +23,7 @@ import { completeOnboarding, markOnboardingAuthComplete } from '@/shared/service
 import { prefetchHomeData } from '@/features/home/useHomeData'
 import BrandSplash from '@/shared/ui/BrandSplash'
 
-import AmbientGlow from './components/AmbientGlow'
+import AmbientGlow, { deriveMoodSignature } from './components/AmbientGlow'
 import Progress from './components/Progress'
 import TasteStrip from './components/TasteStrip'
 import CelebrationReveal from './components/CelebrationReveal'
@@ -268,8 +268,16 @@ export default function Onboarding() {
 
   // Main layout
   return (
-    <div className="onboarding fixed inset-0 flex flex-col bg-black text-white overflow-hidden">
+    <div
+      className="onboarding fixed inset-0 flex flex-col bg-black text-white overflow-hidden"
+      style={{ '--ob-accent-rgb': deriveMoodSignature(moods) }}
+    >
       <AmbientGlow moods={moods} />
+      {/* Mood-signature atmosphere — a faint accent vignette + 1px top hairline
+         that tint the room to the user's selected mood. CSS-only (no JS motion);
+         the recolor tween collapses under the global reduced-motion reset. Mood
+         is an ambient accent only — the brand gradient stays on the foreground. */}
+      <div aria-hidden="true" className="ob-atmosphere pointer-events-none absolute inset-0" />
       {/* subtle grain */}
       <div
         aria-hidden="true"

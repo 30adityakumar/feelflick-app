@@ -97,8 +97,53 @@ export default function RatingStep({ favoriteMovies, ratings, onRate, onBack, on
     setIdx((i) => Math.min(i + 1, films.length))
   }
 
+  // Keyboard parity for the swipe directions. Fires ONLY when the rating-stage
+  // region itself owns focus (never from a button/link/interactive descendant),
+  // and routes through the SAME commitRate + guard as tap/swipe — the frozen
+  // right→loved / up→liked / left→okay mapping, no duplication.
+  const handleStageKeyDown = (e) => {
+    if (e.target !== e.currentTarget) return
+    if (allRated || !current || isAdvancingRef.current) return
+    let sentiment = null
+    let direction = null
+    if (e.key === 'ArrowRight') { sentiment = 'loved'; direction = 'right' }
+    else if (e.key === 'ArrowUp') { sentiment = 'liked'; direction = 'up' }
+    else if (e.key === 'ArrowLeft') { sentiment = 'okay'; direction = 'left' }
+    else return
+    e.preventDefault()
+    commitRate(sentiment, direction)
+  }
+
+  // The sole detailed film-progress announcement (DnaRail suppresses its tally
+  // on Step 4). Derived only from existing current/remaining/allRated — no new
+  // progression state, no second visible counter.
+  const liveMessage = allRated
+    ? 'All rated — building your picks'
+    : current
+      ? `Now rating ${current.title} — ${remaining} to go`
+      : ''
+
+  // Focus/keyboard wiring for the active card; absent once allRated so the stage
+  // stops being a tab stop during the celebration handoff.
+  const stageProps = !allRated && current
+    ? {
+        tabIndex: 0,
+        role: 'group',
+        'aria-label': `Rate ${current.title}`,
+        'aria-describedby': 'rating-kbd-help',
+        onKeyDown: handleStageKeyDown,
+      }
+    : {}
+
   return (
     <div className="flex h-full flex-col">
+      {/* Sole detailed film-progress announcement (sr-only). */}
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        {liveMessage}
+      </div>
+      <span id="rating-kbd-help" className="sr-only">
+        Use the verdict buttons below, or press Left for Meh, Up for Liked, and Right for Loved.
+      </span>
       <div className="flex-none px-5 pb-3 pt-5 sm:px-6 sm:pb-4 sm:pt-6">
         <button
           type="button"
@@ -145,13 +190,16 @@ export default function RatingStep({ favoriteMovies, ratings, onRate, onBack, on
          the sentiment buttons on phones + tablets). */}
       <div className="min-h-0 flex-1 px-5 pb-2 sm:px-6">
         {error && (
-          <div className="mb-4 rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-center text-sm text-red-300">
+          <div role="alert" className="mb-4 rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-center text-sm text-red-300">
             {error}
           </div>
         )}
 
         <div className="mx-auto flex h-full w-full max-w-md items-center justify-center">
-          <div className="relative h-full max-h-full aspect-2/3">
+          <div
+            {...stageProps}
+            className="relative h-full max-h-full aspect-2/3 rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+          >
             {/* Background card peek — next film sits behind the current one
                for stack depth (Tinder convention). Static / non-interactive.
                Skipped when on the last card or when all rated. */}
@@ -184,7 +232,7 @@ export default function RatingStep({ favoriteMovies, ratings, onRate, onBack, on
                   transition={{ duration: 0.3 }}
                   className="grid h-full place-items-center"
                 >
-                  <Sparkles className="h-10 w-10 text-purple-400/70 animate-pulse" aria-hidden="true" />
+                  <Sparkles className="h-10 w-10 text-purple-400/70 animate-pulse motion-reduce:animate-none" aria-hidden="true" />
                 </motion.div>
               ) : (
                 <SwipeableFilmCard
@@ -215,7 +263,7 @@ export default function RatingStep({ favoriteMovies, ratings, onRate, onBack, on
             <button
               type="button"
               onClick={handleSkip}
-              className="rounded-full px-5 py-2 text-sm font-medium text-white/55 transition-colors hover:text-white/85"
+              className="rounded-full px-5 py-2 text-sm font-medium text-white/55 transition-colors hover:text-white/85 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
             >
               Skip this one →
             </button>
@@ -343,7 +391,7 @@ function FilmCard({ movie }) {
 
   return (
     <div className="relative h-full w-full overflow-hidden rounded-2xl shadow-[0_20px_40px_rgba(0,0,0,0.5)]">
-      {!loaded && <div className="absolute inset-0 animate-pulse bg-white/4" />}
+      {!loaded && <div className="absolute inset-0 animate-pulse bg-white/4 motion-reduce:animate-none" />}
       <img
         src={tmdbImg(movie.poster_path || movie.backdrop_path, 'w780')}
         alt=""
@@ -385,7 +433,7 @@ function SentimentRow({ active, dragHint, onRate, reduced }) {
               whileTap={reduced ? undefined : { scale: 0.92 }}
               animate={dragHint === s.key ? { scale: 1.08 } : { scale: 1 }}
               transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
-              className="grid h-16 w-16 place-items-center rounded-full text-2xl text-white transition-shadow"
+              className="grid h-16 w-16 place-items-center rounded-full text-2xl text-white transition-shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
               style={{
                 background: on ? `rgba(${s.tint}, 0.32)` : `rgba(${s.tint}, 0.12)`,
                 border: `1.5px solid rgba(${s.tint}, ${on ? 0.85 : 0.5})`,

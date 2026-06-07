@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 
 import { supabase } from '@/shared/lib/supabase/client'
+import { clearDraft } from '@/features/onboarding/draft'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { useGoogleAuth } from '@/shared/hooks/useGoogleAuth'
 
@@ -285,6 +286,9 @@ export default function Header({ onOpenSearch }) {
   }, [])
 
   const handleSignOut = async () => {
+    // Drop this user's onboarding draft (+ the legacy global key) before the
+    // session is gone, so it can't rehydrate into the next user on a shared browser.
+    clearDraft(user?.id)
     await supabase.auth.signOut()
     navigate('/')
   }

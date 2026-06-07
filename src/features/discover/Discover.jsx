@@ -9,10 +9,17 @@ import { scoreMovieForUser, logSurfaceImpressions, updateImpression } from '@/sh
 import { computeMatchPercent } from '@/shared/services/matchScore'
 import { trackInteraction } from '@/shared/services/interactions'
 import { getMovieWatchProviders } from '@/shared/api/tmdb'
-import { HP as baseHP, HP_GRAD } from '@/shared/lib/tokens'
+import { HP_GRAD } from '@/shared/lib/tokens'
 import { Play, SkipForward, X, Check, Bookmark } from 'lucide-react'
 import { DiscoverDataProvider, useDiscoverData } from './useDiscoverData'
 import { MOODS, ONBOARDING_TO_DISCOVER, constellationName, buildBecauseLine, diversifyTop3, predictDiscoverDefaults } from './derive'
+import { HP, TIME_OPTIONS } from './constants'
+import StageHero from './sections/StageHero'
+import StageMood from './sections/StageMood'
+import StageNightStacked from './sections/StageNightStacked'
+import StageBreath from './sections/StageBreath'
+import StageReveal from './sections/StageReveal'
+import StageTitleCard from './sections/StageTitleCard'
 import './discover.css'
 
 // /discover v5 — Magazine + the immersion senses
@@ -101,33 +108,7 @@ function AudioToggle() {
 
 // Discover keeps a deeper accent purple + two surface tints; spread the shared
 // core and override only those (explicit divergence, not copy-paste drift).
-const HP = { ...baseHP, purpleDeep: '#9333ea', surface: '#120d1c', paper: '#0d0b13' }
 const TMDB = (p) => `https://image.tmdb.org/t/p/w500${p}`;
-
-const TIME_OPTIONS = [
-  { id:'short', label:'~ 90 min', sub:'A quick one',  v:[60,99] },
-  { id:'std',   label:'~ 2 hrs',  sub:'Just right',   v:[100,130] },
-  { id:'long',  label:'~ 2.5 hrs',sub:'Settle in',    v:[131,160] },
-  { id:'epic',  label:'3 hrs+',   sub:'Cinematic',    v:[161,300] },
-];
-const WHO_OPTIONS = [
-  { id:'alone',   label:'Alone',     sub:'My night',     icon:'○' },
-  { id:'partner', label:'Partner',   sub:'Just us two',  icon:'○○' },
-  { id:'friends', label:'Friends',   sub:'A few',        icon:'○○○' },
-];
-const ENERGY_OPTIONS = [
-  { id:'wiped',  label:'Wiped',  sub:'Comfort, please' },
-  { id:'steady', label:'Steady', sub:'Open to anything' },
-  { id:'wired',  label:'Wired',  sub:'Give me edges' },
-];
-const INTENTIONS = [
-  { id:'distract', label:'Distract me',    sub:'Take me out of my head' },
-  { id:'move',     label:'Move me',        sub:'I want to feel something' },
-  { id:'think',    label:'Make me think',  sub:'I want to chew on it' },
-  { id:'laugh',    label:'Make me laugh',  sub:'Lift me up' },
-  { id:'surprise', label:'Surprise me',    sub:'Show me something new' },
-  { id:'comfort',  label:'Comfort me',     sub:'No surprises, please' },
-];
 
 // M.'s diary lookbacks are sourced live from user_ratings via useDiscoverData
 // (which falls back to a curated default per mood). The hardcoded set below
@@ -182,315 +163,6 @@ function Starfield({ tint }) {
 }
 
 // Internal Nav removed — AppShell provides the global TopNav.
-
-// ── Stage 0 — Hero with rotating epigraph ──
-function StageHero({ onBegin, onSurprise }) {
-  // Greeting is the only non-actionable piece kept above the headline —
-  // a small time-aware grounding cue ("It's Saturday evening.") that
-  // sets the right "tonight" framing for the question that follows. The
-  // older masthead (Edition Nº NNN + random literary epigraph) was
-  // magazine-flourish without payload — the edition number was the same
-  // for every user on every page-load (it's days-since-launch), and the
-  // epigraph was a random pull disconnected from the user.
-  const greeting = useMemo(() => {
-    const d = new Date();
-    const h = d.getHours();
-    const day = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][d.getDay()];
-    const part = h < 6 ? 'late' : h < 12 ? 'morning' : h < 17 ? 'afternoon' : h < 22 ? 'evening' : 'night';
-    return { day, part };
-  }, []);
-  return (
-    <section style={{ position:'relative', minHeight:'82vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'40px 24px', textAlign:'center', animation:'ff-fade 0.6s ease' }}>
-      <div style={{ fontFamily:'Outfit', fontSize:16, color:HP.textMuted, marginBottom:18 }}>It’s <span style={{ color:HP.textSoft }}>{greeting.day} {greeting.part}.</span></div>
-      <h1 style={{ fontFamily:'Outfit', fontSize:'clamp(54px, 8vw, 104px)', lineHeight:0.94, fontWeight:200, letterSpacing:'-0.05em', color:HP.text, margin:0, maxWidth:1000, textWrap:'balance' }}>How do <em style={{ fontStyle:'italic', fontWeight:300, color:HP.textSoft }}>you</em> feel?</h1>
-      <p style={{ marginTop:24, fontFamily:'Outfit, Inter, sans-serif', fontSize:16, color:HP.textMuted, fontStyle:'italic', maxWidth:520, lineHeight:1.55 }}>A few quick questions. One film for your night.</p>
-      <div style={{ marginTop:40, display:'flex', gap:14 }}>
-        <button onClick={onBegin} style={{ padding:'15px 32px', borderRadius:999, background:HP_GRAD, border:'none', color:'#fff', fontFamily:'Outfit', fontSize:14, fontWeight:600, letterSpacing:'0.04em', cursor:'pointer', boxShadow:'0 16px 36px -10px rgba(236,72,153,0.45)' }}>Begin →</button>
-        <button onClick={onSurprise} style={{ padding:'15px 28px', borderRadius:999, background:'rgba(255,255,255,0.05)', border:`1px solid ${HP.border}`, color:HP.textSoft, fontFamily:'Outfit', fontSize:13, fontWeight:600, cursor:'pointer' }}>or, surprise me</button>
-      </div>
-    </section>
-  );
-}
-
-function ParticleBurst({ hex }) {
-  const dots = useMemo(() => Array.from({length:12}, (_,i) => ({ a: (i/12)*Math.PI*2, r: 60 + Math.random()*40, s: 2 + Math.random()*3, dly: Math.random()*60 })), []);
-  return (
-    <div aria-hidden style={{ position:'absolute', inset:0, pointerEvents:'none' }}>
-      {dots.map((d, i) => (
-        <span key={i} style={{ position:'absolute', top:'50%', left:'50%', width:d.s, height:d.s, borderRadius:999, background:hex, boxShadow:`0 0 ${d.s*2}px ${hex}`, animation:`ff-burst 0.8s cubic-bezier(.2,.7,.2,1) ${d.dly}ms forwards`, '--tx': `${Math.cos(d.a)*d.r}px`, '--ty': `${Math.sin(d.a)*d.r}px` }} />
-      ))}
-    </div>
-  );
-}
-
-function StageMood({ selected, setSelected, onNext, onBack, blendHex, bursts, fireBurst }) {
-  const toggle = (id, hex) => {
-    if (selected.includes(id)) setSelected(selected.filter(x => x !== id));
-    else if (selected.length < 3) { setSelected([...selected, id]); fireBurst(id, hex); FFAudio.pluck(id); }
-  };
-  const lines = [];
-  for (let i = 0; i < selected.length; i++) {
-    for (let j = i+1; j < selected.length; j++) {
-      const a = MOODS.find(m => m.id === selected[i]);
-      const b = MOODS.find(m => m.id === selected[j]);
-      if (a && b) lines.push({ a, b, key:`${a.id}-${b.id}` });
-    }
-  }
-  const cName = constellationName(selected);
-  return (
-    <section className="ff-discover-section" style={{ position:'relative', minHeight:'80vh', animation:'ff-fade 0.5s ease' }}>
-      <AudioToggle />
-      <div style={{ textAlign:'center', marginBottom:8 }}>
-        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.32em', textTransform:'uppercase', color:HP.purple, marginBottom:14 }}>Step 1 of 2</div>
-        <h2 style={{ fontFamily:'Outfit', fontSize:'clamp(28px, 5vw, 56px)', lineHeight:1.05, fontWeight:300, letterSpacing:'-0.04em', color:HP.text, margin:0 }}>What’s the <em style={{ fontStyle:'italic', fontWeight:400, color:blendHex, transition:'color 0.5s ease' }}>shape</em> of your mood?</h2>
-        <p style={{ marginTop:14, fontFamily:'Outfit, Inter, sans-serif', fontSize:14, color:HP.textMuted, fontStyle:'italic' }}>Pick 1–3 moods. Form your constellation.</p>
-      </div>
-      <div className="ff-mood-canvas" style={{ position:'relative', width:'100%', maxWidth:1080, borderRadius:18, background:'rgba(255,255,255,0.012)', border:`1px solid ${HP.border}`, overflow:'hidden' }}>
-        <svg style={{ position:'absolute', inset:0, width:'100%', height:'100%', pointerEvents:'none' }}>
-          <defs><linearGradient id="ff-grad" x1="0" x2="1" y1="0" y2="0"><stop offset="0%" stopColor="#A78BFA" stopOpacity="0.9" /><stop offset="100%" stopColor="#EC4899" stopOpacity="0.9" /></linearGradient></defs>
-          {lines.map(({ a, b, key }) => (
-            <line key={key} x1={`${a.x}%`} y1={`${a.y}%`} x2={`${b.x}%`} y2={`${b.y}%`} stroke="url(#ff-grad)" strokeWidth="1.4" strokeDasharray="400" strokeDashoffset="400" style={{ animation:'ff-draw 0.7s cubic-bezier(.2,.7,.2,1) forwards' }} />
-          ))}
-        </svg>
-        {MOODS.map(m => {
-          const on = selected.includes(m.id);
-          const order = selected.indexOf(m.id) + 1;
-          const burst = bursts.find(b => b.id === m.id);
-          return (
-            <div key={m.id} style={{ position:'absolute', left:`${m.x}%`, top:`${m.y}%`, transform:'translate(-50%, -50%)' }}>
-              {burst && <ParticleBurst hex={m.hex} key={burst.t} />}
-              <button onClick={()=>toggle(m.id, m.hex)} title={m.hint} className={`ff-mood-button ${on ? 'is-on' : ''}`} style={{ position:'relative', border:'none', background:'transparent', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:8, padding:0 }}>
-                <div className="ff-mood-orb" data-on={on ? 'true' : 'false'} style={{ position:'relative', borderRadius:999, background:`radial-gradient(circle at 35% 30%, ${m.hex}, ${m.hex}66 60%, ${m.hex}11)`, boxShadow: on?`0 0 32px ${m.hex}aa, 0 0 64px ${m.hex}44`:`0 0 12px ${m.hex}33`, transition:'all 0.4s ease', animation: on?'none':'ff-pulse 4s ease-in-out infinite', border: on?`2px solid ${m.hex}`:'none' }}>
-                  {on && <span className="ff-mood-badge" style={{ position:'absolute', top:-6, right:-6, borderRadius:999, background:'#06060a', border:`1px solid ${m.hex}`, color:m.hex, fontFamily:'Outfit', fontWeight:700, display:'flex', alignItems:'center', justifyContent:'center' }}>{order}</span>}
-                </div>
-                <div className="ff-mood-label" style={{ fontFamily:'Outfit', fontWeight: on?600:500, color: on?HP.text:HP.textSoft, transition:'all 0.3s ease' }}>{m.label}</div>
-                {/* Hint only on desktop — on mobile multiple selected hints
-                   collide with neighbour orbs in the tight canvas; touch
-                   users can't read it via `title` tooltip anyway, so dropping
-                   it on small viewports trades nothing for a clean layout. */}
-                {on && <div className="ff-mood-hint" style={{ color:m.hex, fontFamily:'Outfit', fontStyle:'italic', textAlign:'center' }}>{m.hint}</div>}
-              </button>
-            </div>
-          );
-        })}
-      </div>
-      {selected.length > 0 && (
-        <div style={{ marginTop:18, textAlign:'center', animation:'ff-fade 0.5s ease' }}>
-          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color:HP.textMuted, fontFamily:'Outfit', marginBottom:4 }}>Your constellation</div>
-          <div style={{ fontFamily:'Outfit', fontSize:24, fontStyle:'italic', fontWeight:400, color:blendHex, transition:'color 0.5s ease' }}>&ldquo;{cName}&rdquo;</div>
-        </div>
-      )}
-      <div className="ff-stage-action-bar">
-        <button onClick={onBack} style={{ padding:'10px 20px', borderRadius:999, background:'transparent', border:`1px solid ${HP.border}`, color:HP.textMuted, fontFamily:'Outfit', fontSize:12, fontWeight:500, cursor:'pointer' }}>← Back</button>
-        {/* Selection counter — warmer than the old "X of 3 selected" utility
-           string. Reads as a soft nudge when empty, a confirmation while
-           building, and a quiet sign-off when full. */}
-        <div className="ff-stage-action-bar__meta" style={{ fontSize:11, color:HP.textFaint, fontFamily:'Outfit', letterSpacing:'0.06em' }}>
-          {selected.length === 0 ? 'Pick at least one'
-            : selected.length === 3 ? 'Locked in'
-            : `${selected.length} chosen`}
-        </div>
-        <button onClick={()=>{ FFAudio.whoom(); onNext(); }} disabled={selected.length===0} style={{ padding:'14px 26px', borderRadius:999, background: selected.length>0?HP_GRAD:'rgba(255,255,255,0.04)', border: selected.length>0?'none':`1px solid ${HP.border}`, color: selected.length>0?'#fff':HP.textFaint, fontFamily:'Outfit', fontSize:13, fontWeight:600, letterSpacing:'0.04em', cursor: selected.length>0?'pointer':'not-allowed' }}>Continue →</button>
-      </div>
-    </section>
-  );
-}
-
-// Stage 2 — sequential wizard. Replaces the old 4-row form (which felt
-// like a wall of inputs) with one focused question at a time. Confirmed
-// answers stack as compact chips above the current question, building
-// the briefing as the user works through it. Picks auto-advance — taps
-// confirm + advance, no separate Next button. Pre-selected defaults
-// (from predictDiscoverDefaults) are pre-highlighted so users who agree
-// with the prediction just tap once per step.
-//
-// stepIndex is lifted to DiscoverBody so that "Tweak inputs" from
-// Stage 3 returns straight to the summary view (all 4 chips visible)
-// rather than re-asking from step 0.
-function StageNightStacked({ stepIndex, setStepIndex, time, setTime, who, setWho, energy, setEnergy, intention, setIntention, onNext, onBack, blendHex }) {
-  const STEPS = useMemo(() => [
-    { id: 'intention', kicker: 'Tonight’s intention',  question: 'What pulls you in?',  options: INTENTIONS,     gridClass: '',                       value: intention, setValue: setIntention },
-    { id: 'time',      kicker: 'How much time',         question: 'How long tonight?',   options: TIME_OPTIONS,   gridClass: 'ff-night-grid--time',    value: time,      setValue: setTime },
-    { id: 'who',       kicker: 'Who’s here',            question: 'Who’s watching?',     options: WHO_OPTIONS,    gridClass: 'ff-night-grid--who',     value: who,       setValue: setWho },
-    { id: 'energy',    kicker: 'Your energy',           question: 'How do you feel?',    options: ENERGY_OPTIONS, gridClass: 'ff-night-grid--energy',  value: energy,    setValue: setEnergy },
-  ], [intention, time, who, energy, setIntention, setTime, setWho, setEnergy]);
-
-  // editingFromSummaryRef — true while the user is re-picking a step
-  // from the summary view (clicked a chip). After they pick, jump back
-  // to summary instead of cascading through the next steps.
-  const editingFromSummaryRef = useRef(false);
-  const allAnswered = stepIndex >= STEPS.length;
-  const completed = STEPS.slice(0, Math.min(stepIndex, STEPS.length));
-  const current = STEPS[stepIndex];
-
-  const handlePick = (val) => {
-    if (!current) return;
-    current.setValue(val);
-    FFAudio.pluck('cozy');
-    if (editingFromSummaryRef.current) {
-      editingFromSummaryRef.current = false;
-      setStepIndex(STEPS.length);
-    } else {
-      setStepIndex(stepIndex + 1);
-    }
-  };
-
-  const handleEditChip = (idx) => {
-    editingFromSummaryRef.current = true;
-    setStepIndex(idx);
-  };
-
-  const handleBack = () => {
-    if (allAnswered) {
-      // From summary: drop back into the last step rather than leaving
-      // Stage 2 entirely (less jarring; user can re-pick or re-Back).
-      setStepIndex(STEPS.length - 1);
-    } else if (stepIndex > 0) {
-      setStepIndex(stepIndex - 1);
-    } else {
-      onBack();
-    }
-  };
-
-  return (
-    <section className="ff-discover-section" style={{ position:'relative', minHeight:'82vh', animation:'ff-fade 0.5s ease' }}>
-      <div style={{ textAlign:'center', marginBottom:28 }}>
-        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.32em', textTransform:'uppercase', color:HP.purple, marginBottom:14 }}>Step 2 of 2</div>
-        <h2 style={{ fontFamily:'Outfit', fontSize:'clamp(28px, 5vw, 56px)', lineHeight:1.05, fontWeight:300, letterSpacing:'-0.04em', color:HP.text, margin:0 }}>
-          What do you <em style={{ fontStyle:'italic', fontWeight:400, color:blendHex }}>need</em> tonight?
-        </h2>
-      </div>
-
-      <div style={{ maxWidth:760, margin:'0 auto', display:'flex', flexDirection:'column', gap:14 }}>
-        {/* Stacked confirmed chips — one per answered step. Click to re-pick. */}
-        {completed.map((step, i) => {
-          const opt = step.options.find(o => o.id === step.value);
-          return (
-            <button
-              key={step.id}
-              type="button"
-              onClick={() => handleEditChip(i)}
-              className="ff-night-chip"
-              style={{ display:'flex', alignItems:'center', justifyContent:'space-between', width:'100%', padding:'14px 18px', borderRadius:10, background:HP.surface, border:`1px solid ${HP.border}`, color:HP.text, fontFamily:'Outfit', cursor:'pointer', transition:'background 0.2s ease, border-color 0.2s ease' }}
-            >
-              <span style={{ display:'inline-flex', alignItems:'baseline', gap:12, minWidth:0 }}>
-                <span style={{ fontSize:9, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color:HP.textMuted, flex:'none' }}>{step.kicker}</span>
-                <span style={{ fontSize:14, fontWeight:500, color:HP.text, letterSpacing:'-0.01em' }}>{opt?.label || '—'}</span>
-              </span>
-              <span style={{ fontSize:11, color:HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.04em' }}>Edit</span>
-            </button>
-          );
-        })}
-
-        {/* Current question — focused step. Tiles use the same grid CSS as
-           the legacy 4-row layout so the option ergonomics carry over. */}
-        {!allAnswered && current && (
-          <div style={{ marginTop:18, animation:'ff-fade 0.35s ease' }}>
-            <div style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between', marginBottom:12 }}>
-              <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color:HP.purple, fontFamily:'Outfit' }}>
-                {stepIndex + 1} of {STEPS.length} &middot; {current.kicker}
-              </div>
-            </div>
-            <h3 style={{ fontFamily:'Outfit', fontSize:'clamp(22px, 3.4vw, 32px)', lineHeight:1.1, fontWeight:300, letterSpacing:'-0.03em', color:HP.text, margin:'0 0 16px 0' }}>
-              {current.question}
-            </h3>
-            <div className={`ff-night-grid ${current.gridClass || ''}`.trim()}>
-              {current.options.map(o => {
-                const on = current.value === o.id;
-                return (
-                  <button
-                    key={o.id}
-                    type="button"
-                    onClick={() => handlePick(o.id)}
-                    style={{ flex:1, padding:'14px 14px', borderRadius:10, textAlign:'left', background: on ? `${blendHex}1f` : 'rgba(255,255,255,0.025)', border:`1px solid ${on ? blendHex + '88' : HP.border}`, color: on ? HP.text : HP.textSoft, cursor:'pointer', transition:'all 0.25s ease', boxShadow: on ? `0 0 24px ${blendHex}33` : 'none' }}
-                  >
-                    {o.icon && <div style={{ fontSize:20, marginBottom:8, color: on?blendHex:HP.textMuted, letterSpacing:'0.1em' }}>{o.icon}</div>}
-                    <div style={{ fontFamily:'Outfit', fontSize:14, fontWeight:500, letterSpacing:'-0.015em' }}>{o.label}</div>
-                    <div style={{ marginTop:3, fontSize:11, color: on?blendHex:HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', fontStyle:'italic' }}>{o.sub}</div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="ff-stage-action-bar">
-        <button onClick={handleBack} style={{ padding:'10px 20px', borderRadius:999, background:'transparent', border:`1px solid ${HP.border}`, color:HP.textMuted, fontFamily:'Outfit', fontSize:12, fontWeight:500, cursor:'pointer' }}>← Back</button>
-        <div className="ff-stage-action-bar__meta" style={{ fontSize:11, color:HP.textFaint, fontFamily:'Outfit' }}>
-          {allAnswered ? 'All set.' : 'Tap any option to confirm.'}
-        </div>
-        {allAnswered ? (
-          <button onClick={()=>{ FFAudio.whoom(); onNext(); }} style={{ padding:'14px 28px', borderRadius:999, background:HP_GRAD, border:'none', color:'#fff', fontFamily:'Outfit', fontSize:13, fontWeight:600, letterSpacing:'0.04em', cursor:'pointer', boxShadow:'0 12px 30px -10px rgba(236,72,153,0.5)' }}>Show me my edition →</button>
-        ) : (
-          // Reserve the slot so the action bar layout doesn't jump as
-          // the CTA appears at the end. Invisible placeholder.
-          <span style={{ visibility:'hidden', padding:'14px 28px' }}>placeholder</span>
-        )}
-      </div>
-    </section>
-  );
-}
-
-// ── Stage 2.4 — Breath pause ──
-function StageBreath({ onDone }) {
-  useEffect(() => { const t = setTimeout(onDone, 2200); return () => clearTimeout(t); }, [onDone]);
-  return (
-    <section style={{ position:'relative', minHeight:'82vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'40px 24px', textAlign:'center' }}>
-      <div style={{ position:'relative', width:140, height:140, marginBottom:32 }}>
-        <div style={{ position:'absolute', inset:0, borderRadius:'50%', border:'1px solid rgba(167,139,250,0.35)', animation:'ff-breath 2.2s ease-in-out forwards' }} />
-        <div style={{ position:'absolute', inset:0, borderRadius:'50%', background:'radial-gradient(circle at center, rgba(167,139,250,0.18), transparent 65%)', animation:'ff-breath-bloom 2.2s ease-in-out forwards' }} />
-      </div>
-      <div style={{ fontSize:11, fontWeight:600, letterSpacing:'0.32em', textTransform:'uppercase', color:'rgba(167,139,250,0.85)', fontFamily:'Outfit', marginBottom:10 }}>Take a breath</div>
-      <div style={{ fontFamily:'Outfit', fontSize:22, fontWeight:300, color:'rgba(250,250,250,0.65)', fontStyle:'italic', letterSpacing:'-0.015em' }}>The room is yours.</div>
-    </section>
-  );
-}
-
-// ── Black title-card cut ──
-function StageTitleCard({ title, onDone }) {
-  useEffect(() => { FFAudio.chord(); const t = setTimeout(onDone, 1400); return () => clearTimeout(t); }, [onDone]);
-  return (
-    <div style={{ position:'fixed', inset:0, background:'#000', zIndex:90, display:'flex', alignItems:'center', justifyContent:'center', animation:'ff-titlecard 1.4s ease forwards' }}>
-      <div style={{ fontFamily:'Outfit', fontSize:'clamp(40px, 6vw, 72px)', fontWeight:200, color:'#fafafa', letterSpacing:'-0.045em', textAlign:'center', textWrap:'balance', animation:'ff-titleword 1.4s ease forwards' }}>{title}</div>
-    </div>
-  );
-}
-
-function StageReveal({ selected, onDone }) {
-  useEffect(() => { const t = setTimeout(onDone, 2600); return () => clearTimeout(t); }, [onDone]);
-  const blendHex = MOODS.find(m=>m.id===selected[0])?.hex || HP.purple;
-  const lines = [];
-  for (let i = 0; i < selected.length; i++) {
-    for (let j = i+1; j < selected.length; j++) {
-      const a = MOODS.find(m => m.id === selected[i]);
-      const b = MOODS.find(m => m.id === selected[j]);
-      if (a && b) lines.push({ a, b, key:`${a.id}-${b.id}` });
-    }
-  }
-  const burstDots = useMemo(() => Array.from({length:24}, (_,i) => ({ a: (i/24)*Math.PI*2, r: 180 + Math.random()*120, s: 2 + Math.random()*3, dly: 1100 + Math.random()*200 })), []);
-  return (
-    <section style={{ position:'relative', minHeight:'82vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'40px 24px', textAlign:'center' }}>
-      <div style={{ position:'relative', width:'min(560px, 80vw)', aspectRatio:'1' }}>
-        <div style={{ position:'absolute', inset:0, animation:'ff-collapse-long 2.6s cubic-bezier(.5,0,.4,1) forwards' }}>
-          <div style={{ position:'absolute', inset:0, borderRadius:'50%', background:`radial-gradient(circle at center, ${blendHex}99, ${blendHex}22 40%, transparent 70%)`, filter:'blur(20px)', animation:'ff-bloom-long 2.6s cubic-bezier(.5,0,.4,1) forwards' }} />
-          <svg style={{ position:'absolute', inset:0, width:'100%', height:'100%' }}>
-            {lines.map(({ a, b, key }) => <line key={key} x1={`${a.x}%`} y1={`${a.y}%`} x2={`${b.x}%`} y2={`${b.y}%`} stroke={blendHex} strokeWidth="1.6" style={{ opacity:0.8 }} />)}
-          </svg>
-          {selected.map(id => {
-            const m = MOODS.find(x => x.id === id);
-            if (!m) return null;
-            return <div key={m.id} style={{ position:'absolute', left:`${m.x}%`, top:`${m.y}%`, transform:'translate(-50%,-50%)', width:48, height:48, borderRadius:999, background:`radial-gradient(circle at 35% 30%, ${m.hex}, ${m.hex}66 60%, ${m.hex}11)`, boxShadow:`0 0 32px ${m.hex}aa` }} />;
-          })}
-        </div>
-        {burstDots.map((d, i) => (
-          <span key={i} style={{ position:'absolute', top:'50%', left:'50%', width:d.s, height:d.s, borderRadius:999, background:blendHex, boxShadow:`0 0 ${d.s*3}px ${blendHex}`, opacity:0, animation:`ff-burst-late 1.4s cubic-bezier(.2,.7,.2,1) ${d.dly}ms forwards`, '--tx': `${Math.cos(d.a)*d.r}px`, '--ty': `${Math.sin(d.a)*d.r}px` }} />
-        ))}
-      </div>
-      <div style={{ marginTop:32, fontSize:11, fontWeight:600, letterSpacing:'0.28em', textTransform:'uppercase', color:blendHex, fontFamily:'Outfit', opacity:0, animation:'ff-fade-late 2.6s ease forwards' }}>Reading the room…</div>
-    </section>
-  );
-}
 
 function useCountUp(target, duration=1400, delay=200) {
   const [v, setV] = useState(0);
@@ -1614,11 +1286,11 @@ function DiscoverBody() {
       <Starfield tint={blendHex} />
       <div style={{ position:'relative', zIndex:1, maxWidth:1440, margin:'0 auto' }}>
         {stage === 0   && <StageHero onBegin={()=>setStage(1)} onSurprise={()=>{ setSelected(['slow','tender']); FFAudio.whoom(); setStage(2.3); }} />}
-        {stage === 1   && <StageMood selected={selected} setSelected={setSelected} onNext={()=>setStage(2)} onBack={()=>setStage(0)} blendHex={blendHex} bursts={bursts} fireBurst={fireBurst} />}
-        {stage === 2   && <StageNightStacked stepIndex={stage2StepIndex} setStepIndex={setStage2StepIndex} time={time} setTime={setTime} who={who} setWho={setWho} energy={energy} setEnergy={setEnergy} intention={intention} setIntention={setIntention} onNext={()=>{ handleCommitStage2(); setStage(2.3); }} onBack={()=>setStage(1)} blendHex={blendHex} />}
+        {stage === 1   && <StageMood selected={selected} setSelected={setSelected} onNext={()=>setStage(2)} onBack={()=>setStage(0)} blendHex={blendHex} bursts={bursts} fireBurst={fireBurst} audioToggle={<AudioToggle />} playMoodCue={(id)=>FFAudio.pluck(id)} playContinueCue={()=>FFAudio.whoom()} />}
+        {stage === 2   && <StageNightStacked stepIndex={stage2StepIndex} setStepIndex={setStage2StepIndex} time={time} setTime={setTime} who={who} setWho={setWho} energy={energy} setEnergy={setEnergy} intention={intention} setIntention={setIntention} onNext={()=>{ handleCommitStage2(); setStage(2.3); }} onBack={()=>setStage(1)} blendHex={blendHex} playOptionCue={()=>FFAudio.pluck('cozy')} playContinueCue={()=>FFAudio.whoom()} />}
         {stage === 2.3 && <StageBreath onDone={()=>setStage(2.5)} />}
         {stage === 2.5 && <StageReveal selected={selected.length>0?selected:['slow','tender']} onDone={()=>setStage(2.7)} />}
-        {stage === 2.7 && <StageTitleCard title={(allResults[0]||{}).title || ''} onDone={()=>setStage(3)} />}
+        {stage === 2.7 && <StageTitleCard title={(allResults[0]||{}).title || ''} onDone={()=>setStage(3)} playTitleCue={()=>FFAudio.chord()} />}
         {stage === 3   && <StagePick selected={selected.length>0?selected:['slow','tender']} who={who} energy={energy} intention={intention} results={allResults} profile={profile} sessionShownIds={sessionShownIds} onRestart={()=>{ setStage(0); setSelected([]); }} onBack={()=>setStage(2)} blendHex={blendHex} />}
       </div>
     </div>

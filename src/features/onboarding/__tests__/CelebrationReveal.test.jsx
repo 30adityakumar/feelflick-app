@@ -1,15 +1,20 @@
 // src/features/onboarding/__tests__/CelebrationReveal.test.jsx
-// F2.20 — CelebrationReveal a11y/semantic foundation. ONE concise sr-only
-// completion status (not a multi-stage live region), a single visible h1, no
-// focus movement, and render-safety across data variants. Reduced-motion VISUAL
-// timing (delays→0) is verified in Playwright; jsdom checks structure only.
+// F2.20 a11y foundation (one sr-only atomic status, single visible h1, no focus
+// movement) + F2.21 visual polish (de-gamified editorial spine, no infinite
+// motion). Reduced-motion VISUAL timing (delays→0) is verified in Playwright;
+// jsdom checks structure + the source-level motion/artifact contracts only.
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 
 vi.mock('@/shared/api/tmdb', () => ({ tmdbImg: (p) => `https://img/${p}` }))
 
 import CelebrationReveal from '../components/CelebrationReveal'
+import { MOODS } from '../data'
+
+const SRC = readFileSync(resolve(import.meta.dirname, '../components/CelebrationReveal.jsx'), 'utf8')
 
 const film = (id, title, poster = `/${id}.jpg`) => ({ id, title, poster_path: poster, release_date: '2014-01-01' })
 const props = (over = {}) => ({
@@ -91,8 +96,12 @@ describe('CelebrationReveal — content + data variants', () => {
   it('renders the apex + coaching copy', () => {
     render(<CelebrationReveal {...props()} />)
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/tonight is\s*yours\./i)
-    expect(screen.getByText(/see films you already know/i)).toBeInTheDocument()
-    expect(screen.getByText(/mark watched/i)).toBeInTheDocument()
+    expect(screen.getByText(/your taste, tuned/i)).toBeInTheDocument()
+    expect(screen.getByText(/your first signals are in/i)).toBeInTheDocument()
+    expect(screen.getByText(/from your picks/i)).toBeInTheDocument()
+    expect(screen.getByText(/next up/i)).toBeInTheDocument()
+    expect(screen.getByText(/tell us how tonight feels/i)).toBeInTheDocument()
+    expect(screen.getByText(/one film for your night/i)).toBeInTheDocument()
   })
 
   it.each([
@@ -123,7 +132,69 @@ describe('CelebrationReveal — reduced motion (structure; visual timing is Play
     render(<CelebrationReveal {...props()} />)
     expect(document.querySelectorAll('[role="status"]')).toHaveLength(1)
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1)
-    expect(screen.getByText(/see films you already know/i)).toBeInTheDocument()
+    expect(screen.getByText(/tell us how tonight feels/i)).toBeInTheDocument()
     expect(document.querySelectorAll('img')).toHaveLength(5)
+  })
+})
+
+describe('CelebrationReveal — F2.21 removed artifacts', () => {
+  it('renders no Sparkles/icon svg, no Edition text, no heart, no Mark Watched', () => {
+    const { container } = render(<CelebrationReveal {...props()} />)
+    expect(container.querySelectorAll('svg')).toHaveLength(0)
+    expect(screen.queryByText(/edition/i)).toBeNull()
+    expect(container.textContent).not.toMatch(/♥/)
+    expect(screen.queryByText(/mark watched/i)).toBeNull()
+    expect(screen.queryByText(/sharpens by tomorrow/i)).toBeNull()
+  })
+
+  it('shows no count-receipt stats (no "N films · N genres · N loved")', () => {
+    const { container } = render(<CelebrationReveal {...props()} />)
+    expect(container.textContent).not.toMatch(/\d+\s*(films?|genres?)\b/i)
+    expect(container.textContent).not.toMatch(/\d+\s*(loved|liked)\b/i)
+  })
+
+  it('source contains no Sparkles import, no CelebrationParticles, no Edition №001', () => {
+    expect(SRC).not.toMatch(/lucide-react/)
+    expect(SRC).not.toMatch(/Sparkles/)
+    expect(SRC).not.toMatch(/CelebrationParticles/)
+    expect(SRC).not.toMatch(/Edition №001/)
+    expect(SRC).not.toMatch(/Mark Watched/)
+    expect(SRC).not.toMatch(/sharpens by tomorrow/)
+  })
+})
+
+describe('CelebrationReveal — retained editorial spine', () => {
+  it('renders the kicker, taste line, poster caption, apex, and Next-up coaching', () => {
+    render(<CelebrationReveal {...props()} />)
+    expect(screen.getByText(/your taste, tuned/i)).toBeInTheDocument()
+    expect(screen.getByText(/your first signals are in/i)).toBeInTheDocument()
+    expect(screen.getByText(/from your picks/i)).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/tonight is\s*yours\./i)
+    expect(screen.getByText('Next up')).toBeInTheDocument()
+    expect(screen.getByText(/with the case for why it fits/i)).toBeInTheDocument()
+  })
+
+  it('shows the selected mood pills (by their real labels)', () => {
+    render(<CelebrationReveal {...props({ moods: ['cozy', 'mythic'] })} />)
+    expect(screen.getByText(MOODS.find(m => m.key === 'cozy').label)).toBeInTheDocument()
+    expect(screen.getByText(MOODS.find(m => m.key === 'mythic').label)).toBeInTheDocument()
+  })
+
+  it('taste line degrades cleanly without ratings (uses "the films you chose")', () => {
+    render(<CelebrationReveal {...props({ ratings: {} })} />)
+    expect(screen.getByText(/the films you chose/i)).toBeInTheDocument()
+    expect(screen.queryByText(/how those films landed/i)).toBeNull()
+  })
+})
+
+describe('CelebrationReveal — motion contracts (source-level)', () => {
+  it('contains NO CelebrationReveal-owned infinite loop', () => {
+    expect(SRC).not.toMatch(/repeat:\s*Infinity/)
+  })
+
+  it('preserves the 900ms fade-out and the F2.20 reduced-motion delay guards', () => {
+    expect(SRC).toMatch(/fadingOut \? 0\.9/)          // 900ms fade preserved
+    expect(SRC).toMatch(/reduced \? 0 :/)              // reduced-motion delays → 0
+    expect(SRC).not.toMatch(/scale:\s*\[1, 1\.012, 1\]/) // no whole-stage breathing
   })
 })

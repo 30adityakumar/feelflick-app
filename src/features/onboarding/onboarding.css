@@ -71,3 +71,21 @@
 .onboarding .ob-orb-breathe {
   animation: ob-orb-breathe 6s ease-in-out infinite;
 }
+
+/* === CelebrationReveal — short/narrow-viewport hardening ==================
+ * The final reveal lives in a fixed, scroll-safe root (overflow-y-auto, no
+ * horizontal scroll). The content column centres on tall viewports and tightens
+ * its vertical padding on short ones so the h1 + coaching never clip. Tailwind
+ * has no max-height variant, so the height query lives here (CelebrationReveal-
+ * local, not a global selector). */
+.onboarding .ff-cel-content {
+  padding-top: 2.75rem;
+  padding-bottom: 2.75rem;
+}
+@media (max-height: 760px) {
+  .onboarding .ff-cel-content {
+    padding-top: 1.25rem;
+    padding-bottom: 1.25rem;
+    gap: 0;
+  }
+}

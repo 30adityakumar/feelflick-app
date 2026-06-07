@@ -156,29 +156,50 @@ export async function completeOnboarding({ session, selectedGenres, favoriteMovi
 
     const historyRows = movieIdResults.filter(Boolean)
     if (historyRows.length > 0) {
+      // Idempotent re-run: REPLACE this user's onboarding-sourced history (delete
+      // by source + insert) so a re-run can't duplicate rows — the
+      // (user_id, movie_id, watched_at) uniqueness lets a fresh watched_at evade
+      // dedupe. Only source='onboarding' rows are touched; any non-onboarding
+      // history (e.g. later logs) is preserved. No verified onConflict target is
+      // captured in the repo migrations, so we use this conservative replace-by-
+      // source strategy rather than an unverified upsert (F2.24).
+      await supabase.from('user_history').delete().eq('user_id', user_id).eq('source', 'onboarding')
       const { error: historyError } = await supabase.from('user_history').insert(historyRows)
       if (historyError) throw new Error('Could not save your favorite movies')
     }
   }
 
-  // 4. Ratings — one row per rated film (all films the user assigned a sentiment to)
+  // 4. Ratings — one row per rated film. Build the rows (resolving internal IDs),
+  //    then REPLACE this user's onboarding-sourced ratings (delete by source +
+  //    batch insert) so a re-run can't hit the (user_id, movie_id) uniqueness
+  //    conflict (a re-run previously raised 23505). Only source='onboarding' rows
+  //    are touched; non-onboarding ratings are preserved. Persistence stays
+  //    NON-FATAL — the profile computes fine without these rows. Same conservative
+  //    replace-by-source rationale as history (no verified onConflict target in
+  //    the repo migrations) (F2.24).
   const ratingEntries = Object.entries(ratings || {})
   if (ratingEntries.length > 0) {
+    const ratingRows = []
     for (const [tmdbIdStr, rating] of ratingEntries) {
       const tmdbId = Number(tmdbIdStr)
       const movie = favoriteMovies.find(m => m.id === tmdbId)
       if (!movie) continue
       try {
         const internalId = internalIdMap[tmdbId] ?? (movie.internalId || await ensureMovieExists(movie))
-        await supabase.from('user_ratings').insert({
-          user_id,
-          movie_id: internalId,
-          rating,
-          source: 'onboarding',
-        })
+        ratingRows.push({ user_id, movie_id: internalId, rating, source: 'onboarding' })
       } catch (err) {
-        // Non-fatal — profile computes fine without individual rating rows
-        console.warn(`Could not save rating for tmdbId ${tmdbId}:`, err)
+        // Non-fatal — skip a film whose internal id can't be resolved.
+        console.warn(`Could not resolve movie for rating (tmdbId ${tmdbId}):`, err)
+      }
+    }
+    if (ratingRows.length > 0) {
+      try {
+        await supabase.from('user_ratings').delete().eq('user_id', user_id).eq('source', 'onboarding')
+        const { error: ratingError } = await supabase.from('user_ratings').insert(ratingRows)
+        if (ratingError) console.warn('Could not save onboarding ratings:', ratingError)
+      } catch (err) {
+        // Non-fatal — profile computes fine without individual rating rows.
+        console.warn('Could not save onboarding ratings:', err)
       }
     }
   }

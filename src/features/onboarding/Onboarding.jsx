@@ -24,8 +24,7 @@ import { prefetchHomeData } from '@/features/home/useHomeData'
 import BrandSplash from '@/shared/ui/BrandSplash'
 
 import AmbientGlow, { deriveMoodSignature } from './components/AmbientGlow'
-import Progress from './components/Progress'
-import TasteStrip from './components/TasteStrip'
+import DnaRail from './components/DnaRail'
 import CelebrationReveal from './components/CelebrationReveal'
 import MoodStep from './steps/MoodStep'
 import GenresStep from './steps/GenresStep'
@@ -289,13 +288,15 @@ export default function Onboarding() {
       />
 
       <div className="relative z-10 flex flex-col h-full max-w-6xl mx-auto w-full">
-        <Progress step={step} />
-        {/* Hide the running profile-building counters on Step 4 — the rating
-           card has its own progress eyebrow ("X TO GO") and the strip is
-           noise above the card on mobile. */}
-        {step !== 3 && (
-          <TasteStrip moods={moods} genres={selectedGenres} films={favoriteMovies} ratings={ratings} />
-        )}
+        {/* One fused chrome row: identity + progressbar + signal tally. The
+           tally self-suppresses on the rating step (handled inside DnaRail). */}
+        <DnaRail
+          step={step}
+          moods={moods}
+          genres={selectedGenres}
+          films={favoriteMovies}
+          ratings={ratings}
+        />
 
         <div className="flex-1 min-h-0 overflow-hidden">
           <AnimatePresence mode="wait" initial={false}>

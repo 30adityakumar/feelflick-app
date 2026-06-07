@@ -18,6 +18,8 @@ import MovieCard from './movies/MovieCard'
 import CardSkeletonRow from './movies/CardSkeletonRow'
 import SearchDropdown from './movies/SearchDropdown'
 
+const SEARCH_LISTBOX_ID = 'ob-search-listbox'
+
 /**
  * Onboarding step 3: movie selection.
  * Layout: search bar with dropdown → Suggestions row → Your picks row.
@@ -48,8 +50,12 @@ export default function MoviesStep({
   error,
 }) {
   const searchInputRef = useRef(null)
+  const searchAreaRef = useRef(null)
   const { pool, poolLoading, poolError, retry } = useSuggestionPool(selectedGenreIds, moods)
-  const { query, setQuery, results, searching, showDropdown, setShowDropdown, clearSearch, searchError, retrySearch } = useMovieSearch()
+  const {
+    query, setQuery, results, searching, showDropdown, setShowDropdown,
+    clearSearch, searchError, retrySearch, activeIndex, setActiveIndex,
+  } = useMovieSearch()
 
   // Desktop convenience only — gate the autofocus behind a fine pointer so a
   // mobile soft keyboard doesn't pop over the curation on step entry.
@@ -59,10 +65,73 @@ export default function MoviesStep({
     return () => clearTimeout(timer)
   }, [])
 
+  // Close the dropdown on an outside pointerdown. Clicks on the input/options are
+  // inside searchAreaRef, so selecting an option still works (pointerdown there
+  // doesn't close before the option's click fires).
+  useEffect(() => {
+    if (!showDropdown) return
+    function handlePointerDown(e) {
+      if (searchAreaRef.current && !searchAreaRef.current.contains(e.target)) {
+        setShowDropdown(false)
+        setActiveIndex(-1)
+      }
+    }
+    document.addEventListener('pointerdown', handlePointerDown)
+    return () => document.removeEventListener('pointerdown', handlePointerDown)
+  }, [showDropdown, setShowDropdown, setActiveIndex])
+
   function handleSelectFromSearch(movie) {
     addMovie(movie)
     clearSearch()
+    // Keep focus in the search field so the user can keep adding anchors.
+    searchInputRef.current?.focus()
   }
+
+  // Combobox keyboard model — focus stays on the input; aria-activedescendant
+  // points at the active option. Search execution (debounce/sort/filter/slice)
+  // is untouched; this only moves the active option + selects/closes.
+  function handleSearchKeyDown(e) {
+    if (!showDropdown) return
+    if (e.key === 'Escape') {
+      e.preventDefault()
+      setShowDropdown(false)
+      setActiveIndex(-1)
+      return
+    }
+    const n = results.length
+    if (n === 0) return
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault()
+        setActiveIndex(i => (i + 1) % n)
+        break
+      case 'ArrowUp':
+        e.preventDefault()
+        setActiveIndex(i => (i <= 0 ? n - 1 : i - 1))
+        break
+      case 'Home':
+        e.preventDefault()
+        setActiveIndex(0)
+        break
+      case 'End':
+        e.preventDefault()
+        setActiveIndex(n - 1)
+        break
+      case 'Enter':
+        if (activeIndex >= 0 && activeIndex < n) {
+          e.preventDefault()
+          handleSelectFromSearch(results[activeIndex])
+        }
+        break
+      default:
+        break
+    }
+  }
+
+  const activeDescId =
+    showDropdown && activeIndex >= 0 && results[activeIndex]
+      ? `${SEARCH_LISTBOX_ID}-opt-${results[activeIndex].id}`
+      : undefined
 
   const count = favoriteMovies.length
   const canFinish = count >= MIN_MOVIES
@@ -104,15 +173,21 @@ export default function MoviesStep({
       }
     >
       {/* Search bar + dropdown */}
-      <div className="flex-none px-5 pb-4 sm:px-6 sm:pb-5 relative">
+      <div ref={searchAreaRef} className="flex-none px-5 pb-4 sm:px-6 sm:pb-5 relative">
         <div className="relative">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30 pointer-events-none" />
           <input
             ref={searchInputRef}
             type="text"
+            role="combobox"
+            aria-expanded={Boolean(showDropdown && results.length > 0)}
+            aria-controls={showDropdown && results.length > 0 ? SEARCH_LISTBOX_ID : undefined}
+            aria-autocomplete="list"
+            aria-activedescendant={activeDescId}
             value={query}
             onChange={e => setQuery(e.target.value)}
             onFocus={() => { if (query.trim()) setShowDropdown(true) }}
+            onKeyDown={handleSearchKeyDown}
             placeholder="Search any film…"
             aria-label="Search for a film to add"
             className="w-full pl-10 pr-9 py-2.5 rounded-xl bg-white/[0.07] border border-white/10 text-sm text-white placeholder-white/30 focus:outline-none focus:ring-1 focus:ring-purple-400/50 focus:border-purple-400/30 transition-all"
@@ -138,6 +213,8 @@ export default function MoviesStep({
             onSelect={handleSelectFromSearch}
             searchError={searchError}
             onRetry={retrySearch}
+            activeIndex={activeIndex}
+            listboxId={SEARCH_LISTBOX_ID}
           />
         )}
       </div>

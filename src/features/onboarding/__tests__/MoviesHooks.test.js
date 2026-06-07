@@ -85,4 +85,16 @@ describe('useMovieSearch — search error (debounce/ranking untouched)', () => {
     expect(result.current.searchError).toBe(false)
     expect(result.current.results.length).toBe(1)
   })
+
+  it('resets activeIndex on a new search and on clear', () => {
+    searchMovies.mockResolvedValue({ results: [] })
+    const { result } = renderHook(() => useMovieSearch())
+    act(() => { result.current.setActiveIndex(2) })
+    expect(result.current.activeIndex).toBe(2)
+    act(() => { result.current.setQuery('inception') }) // new search → reset
+    expect(result.current.activeIndex).toBe(-1)
+    act(() => { result.current.setActiveIndex(1) })
+    act(() => { result.current.clearSearch() })          // clear → reset
+    expect(result.current.activeIndex).toBe(-1)
+  })
 })

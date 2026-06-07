@@ -19,7 +19,8 @@ import CardSkeletonRow from '../steps/movies/CardSkeletonRow'
 const poolState = (over = {}) => ({ pool: [], poolLoading: false, poolError: false, retry: vi.fn(), ...over })
 const searchState = (over = {}) => ({
   query: '', setQuery: vi.fn(), results: [], searching: false, showDropdown: false,
-  setShowDropdown: vi.fn(), clearSearch: vi.fn(), searchError: false, retrySearch: vi.fn(), ...over,
+  setShowDropdown: vi.fn(), clearSearch: vi.fn(), searchError: false, retrySearch: vi.fn(),
+  activeIndex: -1, setActiveIndex: vi.fn(), ...over,
 })
 const props = (over = {}) => ({
   selectedGenreIds: [], moods: [], favoriteMovies: [], addMovie: vi.fn(), removeMovie: vi.fn(),
@@ -115,7 +116,7 @@ describe('MoviesStep — editorial grid layout', () => {
 describe('MoviesStep — search input + autofocus', () => {
   it('gives the search input an accessible name', () => {
     render(<MoviesStep {...props()} />)
-    expect(screen.getByRole('textbox', { name: /search for a film to add/i })).toBeInTheDocument()
+    expect(screen.getByRole('combobox', { name: /search for a film to add/i })).toBeInTheDocument()
   })
 
   it('does NOT autofocus the input under a coarse pointer', () => {
@@ -123,7 +124,7 @@ describe('MoviesStep — search input + autofocus', () => {
     try {
       render(<MoviesStep {...props()} />)
       act(() => { vi.advanceTimersByTime(300) })
-      expect(screen.getByRole('textbox', { name: /search for a film to add/i })).not.toHaveFocus()
+      expect(screen.getByRole('combobox', { name: /search for a film to add/i })).not.toHaveFocus()
     } finally {
       vi.useRealTimers()
     }
@@ -139,10 +140,104 @@ describe('MoviesStep — search input + autofocus', () => {
       }))
       render(<MoviesStep {...props()} />)
       act(() => { vi.advanceTimersByTime(150) })
-      expect(screen.getByRole('textbox', { name: /search for a film to add/i })).toHaveFocus()
+      expect(screen.getByRole('combobox', { name: /search for a film to add/i })).toHaveFocus()
     } finally {
       vi.useRealTimers()
     }
+  })
+})
+
+describe('MoviesStep — combobox semantics + keyboard', () => {
+  const film = (id, title) => ({ id, title, poster_path: `/${id}.jpg`, release_date: '2010-01-01', popularity: id })
+  const open = (over = {}) =>
+    searchState({ query: 'inc', results: [film(11, 'A'), film(12, 'B'), film(13, 'C')], showDropdown: true, ...over })
+
+  it('marks the input as a combobox controlling the listbox', () => {
+    useMovieSearch.mockReturnValue(open({ activeIndex: -1 }))
+    render(<MoviesStep {...props()} />)
+    const input = screen.getByRole('combobox', { name: /search for a film to add/i })
+    expect(input).toHaveAttribute('aria-autocomplete', 'list')
+    expect(input).toHaveAttribute('aria-expanded', 'true')
+    expect(input).toHaveAttribute('aria-controls', 'ob-search-listbox')
+  })
+
+  it('reflects the active option via aria-activedescendant', () => {
+    useMovieSearch.mockReturnValue(open({ activeIndex: 1 }))
+    render(<MoviesStep {...props()} />)
+    expect(screen.getByRole('combobox')).toHaveAttribute('aria-activedescendant', 'ob-search-listbox-opt-12')
+  })
+
+  it('renders the results as a listbox of options with the active one selected', () => {
+    useMovieSearch.mockReturnValue(open({ activeIndex: 0 }))
+    render(<MoviesStep {...props()} />)
+    const listbox = screen.getByRole('listbox', { name: /search results/i })
+    const options = within(listbox).getAllByRole('option')
+    expect(options).toHaveLength(3)
+    expect(options[0]).toHaveAttribute('aria-selected', 'true')
+    expect(options[1]).toHaveAttribute('aria-selected', 'false')
+    expect(options[0].id).toBe('ob-search-listbox-opt-11')
+  })
+
+  it('ArrowDown / ArrowUp move the active option (wrapping)', () => {
+    const setActiveIndex = vi.fn()
+    useMovieSearch.mockReturnValue(open({ activeIndex: -1, setActiveIndex }))
+    render(<MoviesStep {...props()} />)
+    const input = screen.getByRole('combobox')
+    fireEvent.keyDown(input, { key: 'ArrowDown' })
+    let updater = setActiveIndex.mock.calls.at(-1)[0]
+    expect(updater(-1)).toBe(0) // none → first
+    expect(updater(2)).toBe(0)  // last → wraps to first (n=3)
+    fireEvent.keyDown(input, { key: 'ArrowUp' })
+    updater = setActiveIndex.mock.calls.at(-1)[0]
+    expect(updater(-1)).toBe(2) // none → last
+    expect(updater(0)).toBe(2)  // first → wraps to last
+  })
+
+  it('Home / End jump to first / last option', () => {
+    const setActiveIndex = vi.fn()
+    useMovieSearch.mockReturnValue(open({ activeIndex: 1, setActiveIndex }))
+    render(<MoviesStep {...props()} />)
+    const input = screen.getByRole('combobox')
+    fireEvent.keyDown(input, { key: 'Home' })
+    expect(setActiveIndex).toHaveBeenLastCalledWith(0)
+    fireEvent.keyDown(input, { key: 'End' })
+    expect(setActiveIndex).toHaveBeenLastCalledWith(2)
+  })
+
+  it('Enter selects the active option', () => {
+    const addMovie = vi.fn()
+    useMovieSearch.mockReturnValue(open({ activeIndex: 1 }))
+    render(<MoviesStep {...props({ addMovie })} />)
+    fireEvent.keyDown(screen.getByRole('combobox'), { key: 'Enter' })
+    expect(addMovie).toHaveBeenCalledWith(expect.objectContaining({ id: 12 }))
+  })
+
+  it('Escape closes the dropdown', () => {
+    const setShowDropdown = vi.fn()
+    useMovieSearch.mockReturnValue(open({ activeIndex: 0, setShowDropdown }))
+    render(<MoviesStep {...props()} />)
+    fireEvent.keyDown(screen.getByRole('combobox'), { key: 'Escape' })
+    expect(setShowDropdown).toHaveBeenCalledWith(false)
+  })
+
+  it('arrow / enter with no options neither selects nor throws', () => {
+    const addMovie = vi.fn()
+    useMovieSearch.mockReturnValue(searchState({ query: 'zzz', results: [], showDropdown: true }))
+    render(<MoviesStep {...props({ addMovie })} />)
+    const input = screen.getByRole('combobox')
+    expect(() => {
+      fireEvent.keyDown(input, { key: 'ArrowDown' })
+      fireEvent.keyDown(input, { key: 'Enter' })
+    }).not.toThrow()
+    expect(addMovie).not.toHaveBeenCalled()
+  })
+
+  it('an outside pointerdown closes the dropdown', () => {
+    const setShowDropdown = vi.fn()
+    useMovieSearch.mockReturnValue(open({ activeIndex: 0, setShowDropdown }))
+    render(<MoviesStep {...props()} />)
+    fireEvent.pointerDown(document.body)
+    expect(setShowDropdown).toHaveBeenCalledWith(false)
   })
 })
 
@@ -173,8 +268,25 @@ describe('SearchDropdown — error / status / selected states', () => {
   })
 
   it('marks an already-selected result with sr-only text', () => {
-    render(<SearchDropdown searching={false} results={[film(1, 'Inception')]} isMovieSelected={() => true} onSelect={vi.fn()} searchError={false} />)
+    render(<SearchDropdown searching={false} results={[film(1, 'Inception')]} isMovieSelected={() => true} onSelect={vi.fn()} searchError={false} activeIndex={-1} listboxId="ob-search-listbox" />)
     expect(screen.getByText('(already in your picks)')).toBeInTheDocument()
+  })
+
+  it('selecting a result by mouse click still calls onSelect', () => {
+    const onSelect = vi.fn()
+    render(<SearchDropdown searching={false} results={[film(1, 'A')]} isMovieSelected={() => false} onSelect={onSelect} searchError={false} activeIndex={-1} listboxId="ob-search-listbox" />)
+    fireEvent.click(within(screen.getByRole('listbox')).getByRole('option'))
+    expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ id: 1 }))
+  })
+
+  it('renders results as a listbox of options with stable ids + the active one selected', () => {
+    render(<SearchDropdown searching={false} results={[film(1, 'A'), film(2, 'B')]} isMovieSelected={() => false} onSelect={vi.fn()} searchError={false} activeIndex={1} listboxId="ob-search-listbox" />)
+    const listbox = screen.getByRole('listbox', { name: /search results/i })
+    const options = within(listbox).getAllByRole('option')
+    expect(options).toHaveLength(2)
+    expect(options[0].id).toBe('ob-search-listbox-opt-1')
+    expect(options[0]).toHaveAttribute('aria-selected', 'false')
+    expect(options[1]).toHaveAttribute('aria-selected', 'true')
   })
 })
 

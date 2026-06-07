@@ -1,7 +1,7 @@
 // src/features/onboarding/steps/RatingStep.jsx
-// Tinder-style swipeable card: drag right = Loved, left = Meh, up = Liked.
-// Buttons remain as accessible fallback. Counter syncs immediately on commit;
-// the next card peeks behind the current one for stack depth.
+// Step 4 — the verdict. A calm single-poster card with editorial verdict controls
+// (Okay / Liked / Loved) as the primary, tap-first interaction; swipe is a quiet
+// optional shortcut (right→Loved, up→Liked, left→Okay). Counter syncs on commit.
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
@@ -17,12 +17,13 @@ import { ChevronLeft, Sparkles } from 'lucide-react'
 import { tmdbImg } from '@/shared/api/tmdb'
 import { SENTIMENT_RATINGS } from '@/features/onboarding/data'
 
-// Order matches the prototype: Meh → Liked → Loved (left to right, ramping up).
-// Keys must match SENTIMENT_RATINGS in the legacy module.
+// Ascending editorial verdicts — Okay → Liked → Loved (left to right). Keys must
+// match SENTIMENT_RATINGS; `rgb` drives each tier's tint/border/elevation, with
+// Loved as the gentle brand apex.
 const SENTIMENTS = [
-  { key: 'okay',  label: 'Meh',   symbol: '✕', tint: '120, 120, 130' },
-  { key: 'liked', label: 'Liked', symbol: '✓', tint: '168, 85, 247' },
-  { key: 'loved', label: 'Loved', symbol: '♥', tint: '236, 72, 153' },
+  { key: 'okay',  label: 'Okay',  rgb: '150, 150, 162' },
+  { key: 'liked', label: 'Liked', rgb: '168, 85, 247' },
+  { key: 'loved', label: 'Loved', rgb: '236, 72, 153' },
 ]
 
 const ratingToSentiment = (rating) => {
@@ -142,7 +143,7 @@ export default function RatingStep({ favoriteMovies, ratings, onRate, onBack, on
         {liveMessage}
       </div>
       <span id="rating-kbd-help" className="sr-only">
-        Use the verdict buttons below, or press Left for Meh, Up for Liked, and Right for Loved.
+        Use the verdict buttons below, or press Left for Okay, Up for Liked, and Right for Loved.
       </span>
       <div className="flex-none px-5 pb-3 pt-5 sm:px-6 sm:pb-4 sm:pt-6">
         <button
@@ -180,8 +181,8 @@ export default function RatingStep({ favoriteMovies, ratings, onRate, onBack, on
           {allRated
             ? 'That’s all of them. Building your first picks…'
             : reduced
-              ? "Tap one. We'll move on automatically."
-              : 'Swipe right to love, left to pass, up to like. Or tap.'}
+              ? "Choose one. We'll move on automatically."
+              : 'Choose your verdict below. Swipe is optional.'}
         </p>
       </div>
 
@@ -200,24 +201,6 @@ export default function RatingStep({ favoriteMovies, ratings, onRate, onBack, on
             {...stageProps}
             className="relative h-full max-h-full aspect-2/3 rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
           >
-            {/* Background card peek — next film sits behind the current one
-               for stack depth (Tinder convention). Static / non-interactive.
-               Skipped when on the last card or when all rated. */}
-            {!allRated && films[idx + 1] && (
-              <div
-                key={`bg-${films[idx + 1].id}`}
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-0"
-                style={{
-                  transform: 'translateY(10px) scale(0.94)',
-                  opacity: 0.45,
-                  transformOrigin: 'center top',
-                }}
-              >
-                <FilmCard movie={films[idx + 1]} />
-              </div>
-            )}
-
             <AnimatePresence mode="wait" initial={false}>
               {allRated ? (
                 // Brief placeholder while the Onboarding container's full
@@ -263,9 +246,9 @@ export default function RatingStep({ favoriteMovies, ratings, onRate, onBack, on
             <button
               type="button"
               onClick={handleSkip}
-              className="rounded-full px-5 py-2 text-sm font-medium text-white/55 transition-colors hover:text-white/85 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+              className="inline-flex min-h-[44px] items-center justify-center rounded-full px-4 text-sm font-medium text-white/50 transition-colors hover:text-white/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
             >
-              Skip this one →
+              Skip for now
             </button>
           </div>
         </div>
@@ -275,29 +258,22 @@ export default function RatingStep({ favoriteMovies, ratings, onRate, onBack, on
 }
 
 // === Swipeable film card ==================================================
-// Wraps FilmCard in a draggable motion.div. Tracks x/y motion values to
-// animate rotation, fade in directional "stamps" (MEH/LIKED/LOVED), and
-// commit a rating when the drag passes SWIPE_THRESHOLD in any direction.
+// Wraps FilmCard in a draggable motion.div — the optional swipe shortcut behind
+// the editorial verdict controls. Tracks x/y motion values for a restrained
+// cinematic tilt and commits a rating when the drag passes SWIPE_THRESHOLD.
 //
-// Mapping (Step 3 already framed these films as "loved"):
+// Mapping (Step 3 framed these films as loved anchors):
 //   swipe right → 'loved'
 //   swipe up    → 'liked'
 //   swipe left  → 'okay'
 //
-// Calls `onDragHintChange` whenever the drag direction crosses a threshold
-// (in/out of right / left / up zones) so the parent can highlight the
-// matching sentiment button.
+// Calls `onDragHintChange` whenever the drag direction crosses a threshold so
+// the parent can highlight the matching verdict control.
 function SwipeableFilmCard({ movie, reduced, exitDirection, onSwipe, onDragHintChange }) {
   const x = useMotionValue(0)
   const y = useMotionValue(0)
-  // Mild rotation in the swipe direction — Tinder signature feel.
-  const rotate = useTransform(x, [-260, 260], [-14, 14])
-
-  // Directional stamp opacities — fade in as the drag passes ~40px in that
-  // direction, fully visible by SWIPE_THRESHOLD-ish.
-  const mehOpacity = useTransform(x, [-130, -40], [1, 0])
-  const lovedOpacity = useTransform(x, [40, 130], [0, 1])  // right
-  const likedOpacity = useTransform(y, [-130, -40], [1, 0]) // up
+  // Restrained cinematic tilt in the drag direction (subtle, not a card-fling).
+  const rotate = useTransform(x, [-260, 260], [-6, 6])
 
   const exitVariant =
     exitDirection === 'right' ? { x: 600, opacity: 0, rotate: 24 } :
@@ -355,27 +331,6 @@ function SwipeableFilmCard({ movie, reduced, exitDirection, onSwipe, onDragHintC
       className="relative h-full w-full touch-none select-none"
     >
       <FilmCard movie={movie} />
-
-      {/* Directional stamps — appear over the poster as the user drags. */}
-      <Stamp opacity={mehOpacity}   position="top-left"      rotate="-rotate-12" borderClass="border-white/60"    textClass="text-white/85"    label="Meh" />
-      <Stamp opacity={lovedOpacity} position="top-right"     rotate="rotate-12"  borderClass="border-pink-400"    textClass="text-pink-300"    label="Loved" />
-      <Stamp opacity={likedOpacity} position="bottom-center" rotate=""           borderClass="border-purple-400"  textClass="text-purple-300"  label="Liked" />
-    </motion.div>
-  )
-}
-
-function Stamp({ opacity, position, rotate, borderClass, textClass, label }) {
-  const positionClass =
-    position === 'top-left' ? 'top-5 left-5' :
-    position === 'top-right' ? 'top-5 right-5' :
-    'bottom-5 left-1/2 -translate-x-1/2'
-  return (
-    <motion.div
-      style={{ opacity }}
-      aria-hidden="true"
-      className={`pointer-events-none absolute ${positionClass} px-3 py-1.5 rounded-md border-[3px] ${borderClass} ${textClass} font-extrabold text-sm uppercase tracking-[0.18em] ${rotate} bg-black/40 backdrop-blur-sm`}
-    >
-      {label}
     </motion.div>
   )
 }
@@ -404,7 +359,7 @@ function FilmCard({ movie }) {
       />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-linear-to-t from-black/90 via-black/50 to-transparent" />
       <div className="pointer-events-none absolute inset-x-5 bottom-4">
-        <div className="ob-display text-xl font-semibold tracking-tight text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] sm:text-2xl">
+        <div className="ob-display text-xl font-medium tracking-tight text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] sm:text-2xl">
           {movie.title}
         </div>
         {year && <div className="text-xs text-white/75 drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]">{year}</div>}
@@ -413,52 +368,43 @@ function FilmCard({ movie }) {
   )
 }
 
-// === Sentiment buttons ====================================================
-// Buttons mirror the swipe gestures and stay accessible as a tap fallback.
-// `dragHint` lets the matching button glow while the user is mid-drag so the
-// visual response is unified across both input modes.
+// === Verdict controls =====================================================
+// Three word-led editorial controls (Okay / Liked / Loved) — the primary,
+// tap-first interaction. Equal footprint for mobile stability; Loved is the
+// gentle apex via tone / weight / elevation, not size. `dragHint` highlights the
+// matching control while the optional swipe is mid-gesture; aria-pressed marks
+// the committed verdict.
 function SentimentRow({ active, dragHint, onRate, reduced }) {
   return (
-    <div className="flex flex-col items-center">
-      <div className="flex items-center justify-center gap-4">
-        {SENTIMENTS.map((s) => {
-          const on = active === s.key || dragHint === s.key
-          return (
-            <motion.button
-              key={s.key}
-              type="button"
-              onClick={() => onRate(s.key)}
-              aria-pressed={active === s.key}
-              aria-label={s.label}
-              whileTap={reduced ? undefined : { scale: 0.92 }}
-              animate={dragHint === s.key ? { scale: 1.08 } : { scale: 1 }}
-              transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
-              className="grid h-16 w-16 place-items-center rounded-full text-2xl text-white transition-shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-              style={{
-                background: on ? `rgba(${s.tint}, 0.32)` : `rgba(${s.tint}, 0.12)`,
-                border: `1.5px solid rgba(${s.tint}, ${on ? 0.85 : 0.5})`,
-                boxShadow: on
-                  ? `0 12px 28px rgba(${s.tint}, 0.35)`
-                  : `0 8px 20px rgba(${s.tint}, 0.18)`,
-              }}
-            >
-              <span aria-hidden="true">{s.symbol}</span>
-            </motion.button>
-          )
-        })}
-      </div>
-      <div className="mt-2 flex items-center justify-center gap-4">
-        {SENTIMENTS.map((s) => (
-          <span
+    <div className="grid w-full grid-cols-3 gap-2 sm:gap-3">
+      {SENTIMENTS.map((s) => {
+        const on = active === s.key || dragHint === s.key
+        const apex = s.key === 'loved'
+        return (
+          <motion.button
             key={s.key}
-            className={`w-16 text-center text-[11px] font-semibold transition-colors ${
-              dragHint === s.key ? 'text-white' : 'text-white/55'
+            type="button"
+            onClick={() => onRate(s.key)}
+            aria-pressed={active === s.key}
+            aria-label={s.label}
+            whileTap={reduced ? undefined : { scale: 0.97 }}
+            animate={dragHint === s.key ? { scale: 1.03 } : { scale: 1 }}
+            transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
+            className={`min-h-[48px] rounded-xl px-2 text-center text-sm tracking-tight transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
+              apex ? 'font-semibold text-white' : `font-medium ${on ? 'text-white' : 'text-white/75'}`
             }`}
+            style={{
+              background: on ? `rgba(${s.rgb}, ${apex ? 0.22 : 0.16})` : `rgba(${s.rgb}, ${apex ? 0.1 : 0.05})`,
+              border: `1px solid rgba(${s.rgb}, ${on ? (apex ? 0.75 : 0.55) : (apex ? 0.4 : 0.2)})`,
+              boxShadow: apex
+                ? (on ? `0 10px 26px rgba(${s.rgb}, 0.3)` : `0 6px 16px rgba(${s.rgb}, 0.18)`)
+                : 'none',
+            }}
           >
             {s.label}
-          </span>
-        ))}
-      </div>
+          </motion.button>
+        )
+      })}
     </div>
   )
 }

@@ -37,10 +37,10 @@ const live = (container) => container.querySelector('[aria-live="polite"]')
 beforeEach(() => setMatchMedia(false))
 
 describe('RatingStep — frozen affordance (unchanged in F2.17)', () => {
-  it('keeps the Meh/Liked/Loved buttons and onRate(film, key) mapping', () => {
+  it('keeps the Okay/Liked/Loved buttons and onRate(film, key) mapping', () => {
     const onRate = vi.fn()
     render(<RatingStep {...props({ onRate })} />)
-    expect(screen.getByRole('button', { name: 'Meh' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Okay' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Liked' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Loved' })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Loved' }))
@@ -76,7 +76,7 @@ describe('RatingStep — live announcements + error semantics', () => {
   it('announces the next film after Skip, without calling onRate', () => {
     const onRate = vi.fn()
     const { container } = render(<RatingStep {...props({ onRate })} />)
-    fireEvent.click(screen.getByRole('button', { name: /skip this one/i }))
+    fireEvent.click(screen.getByRole('button', { name: /skip for now/i }))
     expect(live(container)).toHaveTextContent('Now rating Beta — 2 to go')
     expect(onRate).not.toHaveBeenCalled()
   })
@@ -121,7 +121,7 @@ describe('RatingStep — keyboard parity (scoped to the rating stage)', () => {
     const onRate = vi.fn()
     render(<RatingStep {...props({ onRate })} />)
     fireEvent.keyDown(screen.getByRole('button', { name: 'Loved' }), { key: 'ArrowRight' })
-    fireEvent.keyDown(screen.getByRole('button', { name: /skip this one/i }), { key: 'ArrowLeft' })
+    fireEvent.keyDown(screen.getByRole('button', { name: /skip for now/i }), { key: 'ArrowLeft' })
     expect(onRate).not.toHaveBeenCalled()
   })
 })
@@ -157,7 +157,7 @@ describe('RatingStep — guard, auto-finish, focus, reduced motion', () => {
   it('gives the sentiment buttons and Skip a focus-visible affordance', () => {
     render(<RatingStep {...props()} />)
     expect(screen.getByRole('button', { name: 'Loved' }).className).toMatch(/focus-visible:ring-2/)
-    expect(screen.getByRole('button', { name: /skip this one/i }).className).toMatch(/focus-visible:ring-2/)
+    expect(screen.getByRole('button', { name: /skip for now/i }).className).toMatch(/focus-visible:ring-2/)
   })
 
   it('makes the rating stage keyboard-focusable with a descriptive label', () => {

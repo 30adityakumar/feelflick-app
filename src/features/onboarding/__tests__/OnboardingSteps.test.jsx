@@ -196,11 +196,12 @@ describe('RatingStep — real sentiment buttons (auto-finishes; no confirm butto
     ...over,
   })
 
-  it('renders the three sentiment buttons (Meh / Liked / Loved) as the rating affordance', () => {
+  it('renders the three verdict buttons (Okay / Liked / Loved) as the rating affordance', () => {
     render(<RatingStep {...props()} />)
     expect(screen.getByRole('button', { name: 'Loved' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Liked' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Meh' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Okay' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Meh' })).not.toBeInTheDocument()
   })
 
   it('does NOT render a "See my recommendations" confirm button (the step auto-finishes)', () => {

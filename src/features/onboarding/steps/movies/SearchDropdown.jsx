@@ -1,13 +1,22 @@
+import { useEffect, useRef } from 'react'
 import { Check } from 'lucide-react'
 
 import { tmdbImg } from '@/shared/api/tmdb'
 
-// Live-search results dropdown. Rendered by MoviesStep inside `{showDropdown && …}`,
-// so it assumes it is mounted only when open. A search FAILURE shows a distinct
-// role="alert" retry row (never the benign "No results"); the searching / true
-// no-results states are announced via role="status". (Full combobox/listbox
-// keyboard semantics are a later pass.)
-export default function SearchDropdown({ searching, results, isMovieSelected, onSelect, searchError, onRetry }) {
+// Live-search results dropdown (the combobox popup). When results exist it is a
+// role="listbox" of role="option" buttons; the active option (driven by the
+// input's keyboard handler via `activeIndex`) is highlighted + announced through
+// aria-activedescendant on the input. A search FAILURE shows a role="alert" retry
+// row (never the benign "No results"); searching / true no-results are role="status".
+export default function SearchDropdown({
+  searching, results, isMovieSelected, onSelect, searchError, onRetry, activeIndex, listboxId,
+}) {
+  const activeRef = useRef(null)
+  // Keep the keyboard-active option scrolled into view.
+  useEffect(() => {
+    activeRef.current?.scrollIntoView?.({ block: 'nearest' })
+  }, [activeIndex])
+
   return (
     <div className="absolute left-5 right-5 sm:left-6 sm:right-6 top-full mt-1 z-50 bg-black/95 border border-white/10 rounded-xl overflow-hidden shadow-2xl backdrop-blur-xl">
       {searchError ? (
@@ -29,16 +38,22 @@ export default function SearchDropdown({ searching, results, isMovieSelected, on
       ) : results.length === 0 ? (
         <p role="status" aria-live="polite" className="px-4 py-3 text-sm text-white/30">No results — try a different title</p>
       ) : (
-        <div className="max-h-60 overflow-y-auto divide-y divide-white/5">
-          {results.map(m => {
+        <div role="listbox" id={listboxId} aria-label="Search results" className="max-h-60 overflow-y-auto divide-y divide-white/5">
+          {results.map((m, i) => {
             const yr = m.release_date ? new Date(m.release_date).getFullYear() : null
             const selected = isMovieSelected(m.id)
+            const active = i === activeIndex
             return (
               <button
                 key={m.id}
+                id={`${listboxId}-opt-${m.id}`}
+                role="option"
+                aria-selected={active}
+                ref={active ? activeRef : null}
                 type="button"
+                tabIndex={-1}
                 onClick={() => onSelect(m)}
-                className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/6 text-left transition-colors"
+                className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${active ? 'bg-white/10' : 'hover:bg-white/6'}`}
               >
                 <img
                   src={tmdbImg(m.poster_path, 'w92')}

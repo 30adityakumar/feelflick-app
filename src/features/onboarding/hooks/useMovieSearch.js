@@ -10,10 +10,15 @@ import { searchMovies } from '@/shared/api/tmdb'
  * real error instead of masquerading as "No results"; `retrySearch` re-runs the
  * SAME query through the SAME debounced path (no query/ranking change).
  *
+ * `activeIndex` is the combobox active-option index (-1 = none); it resets on
+ * each new search and on clear. The search EXECUTION (debounce/sort/filter/slice
+ * + error handling) is unchanged — only open/active-option state is added here.
+ *
  * @returns {{
  *   query: string, setQuery: function, results: object[], searching: boolean,
  *   showDropdown: boolean, setShowDropdown: function, clearSearch: function,
  *   searchError: boolean, retrySearch: function,
+ *   activeIndex: number, setActiveIndex: function,
  * }}
  */
 export function useMovieSearch() {
@@ -22,6 +27,7 @@ export function useMovieSearch() {
   const [searching, setSearching] = useState(false)
   const [showDropdown, setShowDropdown] = useState(false)
   const [searchError, setSearchError] = useState(false)
+  const [activeIndex, setActiveIndex] = useState(-1)
   const [retryTick, setRetryTick] = useState(0)
   const searchTimeoutRef = useRef(null)
 
@@ -29,6 +35,7 @@ export function useMovieSearch() {
   useEffect(() => {
     clearTimeout(searchTimeoutRef.current)
     setSearchError(false)
+    setActiveIndex(-1) // new search → no active option
     if (!query.trim()) {
       setResults([])
       setSearching(false)
@@ -60,10 +67,11 @@ export function useMovieSearch() {
   const clearSearch = () => {
     setQuery('')
     setShowDropdown(false)
+    setActiveIndex(-1)
   }
 
   // Re-run the same query through the same debounced path.
   const retrySearch = () => setRetryTick(t => t + 1)
 
-  return { query, setQuery, results, searching, showDropdown, setShowDropdown, clearSearch, searchError, retrySearch }
+  return { query, setQuery, results, searching, showDropdown, setShowDropdown, clearSearch, searchError, retrySearch, activeIndex, setActiveIndex }
 }

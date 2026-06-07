@@ -3,15 +3,31 @@ import { Check } from 'lucide-react'
 import { tmdbImg } from '@/shared/api/tmdb'
 
 // Live-search results dropdown. Rendered by MoviesStep inside `{showDropdown && …}`,
-// so it assumes it is mounted only when open. Markup moved verbatim from MoviesStep
-// (F2.3) — no Escape / outside-click / listbox semantics added in this pass.
-export default function SearchDropdown({ searching, results, isMovieSelected, onSelect }) {
+// so it assumes it is mounted only when open. A search FAILURE shows a distinct
+// role="alert" retry row (never the benign "No results"); the searching / true
+// no-results states are announced via role="status". (Full combobox/listbox
+// keyboard semantics are a later pass.)
+export default function SearchDropdown({ searching, results, isMovieSelected, onSelect, searchError, onRetry }) {
   return (
     <div className="absolute left-5 right-5 sm:left-6 sm:right-6 top-full mt-1 z-50 bg-black/95 border border-white/10 rounded-xl overflow-hidden shadow-2xl backdrop-blur-xl">
-      {searching ? (
-        <p className="px-4 py-3 text-sm text-white/40">Searching…</p>
+      {searchError ? (
+        <div role="alert" className="flex items-center justify-between gap-3 px-4 py-3 text-sm text-red-300">
+          <span>Couldn&apos;t reach search.</span>
+          {onRetry && (
+            <button
+              type="button"
+              onClick={onRetry}
+              aria-label="Retry search"
+              className="shrink-0 rounded-lg px-3 py-1 text-xs font-medium bg-white/10 hover:bg-white/15 text-white transition-colors"
+            >
+              Retry
+            </button>
+          )}
+        </div>
+      ) : searching ? (
+        <p role="status" aria-live="polite" className="px-4 py-3 text-sm text-white/40">Searching…</p>
       ) : results.length === 0 ? (
-        <p className="px-4 py-3 text-sm text-white/30">No results — try a different title</p>
+        <p role="status" aria-live="polite" className="px-4 py-3 text-sm text-white/30">No results — try a different title</p>
       ) : (
         <div className="max-h-60 overflow-y-auto divide-y divide-white/5">
           {results.map(m => {
@@ -34,7 +50,10 @@ export default function SearchDropdown({ searching, results, isMovieSelected, on
                   {yr && <p className="text-xs text-white/40">{yr}</p>}
                 </div>
                 {selected && (
-                  <Check className="shrink-0 h-4 w-4 text-purple-400" />
+                  <>
+                    <Check className="shrink-0 h-4 w-4 text-purple-400" aria-hidden="true" />
+                    <span className="sr-only">(already in your picks)</span>
+                  </>
                 )}
               </button>
             )

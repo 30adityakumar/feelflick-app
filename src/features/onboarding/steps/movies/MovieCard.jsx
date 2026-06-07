@@ -24,7 +24,7 @@ export default function MovieCard({ movie, isSelected, onClick }) {
         {!loaded && <div className="absolute inset-0 animate-pulse bg-white/4" />}
         <img
           src={tmdbImg(movie.poster_path, 'w342')}
-          alt={movie.title}
+          alt=""
           loading="lazy"
           className={`w-full h-full object-cover transition-all duration-300 ${
             loaded ? 'opacity-100' : 'opacity-0'

@@ -59,3 +59,15 @@
     background 1.4s cubic-bezier(0.22, 1, 0.36, 1),
     box-shadow 1.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
+
+/* Mood orb "breathe" — a slow, low-amplitude scale so a SELECTED mood tile feels
+ * alive (the copy promises the screen responds). Calm 6s loop; MoodStep only
+ * applies the class when motion is allowed, and the global
+ * prefers-reduced-motion reset (index.css) collapses the animation regardless. */
+@keyframes ob-orb-breathe {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.08); }
+}
+.onboarding .ob-orb-breathe {
+  animation: ob-orb-breathe 6s ease-in-out infinite;
+}

@@ -1,5 +1,6 @@
 // src/features/onboarding/steps/GenresStep.jsx
-// Restyled genre picker — gradient outline tiles.
+// Genre picker — territories of taste. Lifted tile surfaces (not a tag cloud)
+// with a settled selected state.
 
 import { motion, useReducedMotion } from 'framer-motion'
 
@@ -23,15 +24,15 @@ function GenreTile({ genre, isSelected, onClick }) {
       type="button"
       onClick={onClick}
       variants={reduced ? undefined : tileVariants}
-      whileTap={{ scale: 0.96 }}
+      whileTap={reduced ? undefined : { scale: 0.96 }}
       aria-pressed={isSelected}
-      className={`text-left rounded-2xl px-4 py-3.5 border transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
+      className={`text-left rounded-2xl px-4 py-3.5 min-h-[44px] border transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
         isSelected
-          ? 'bg-linear-to-br from-purple-500/18 to-pink-500/12 border-purple-400/50 shadow-[0_4px_16px_rgba(168,85,247,0.16)]'
-          : 'bg-white/3 border-white/8 hover:bg-white/6 hover:border-white/16'
+          ? 'bg-linear-to-br from-purple-500/18 to-pink-500/12 border-purple-400/55 shadow-[0_4px_16px_rgba(168,85,247,0.16),inset_0_0_0_1px_rgba(168,85,247,0.35)]'
+          : 'bg-white/[0.05] border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] hover:bg-white/[0.08] hover:border-white/20'
       }`}
     >
-      <div className="ob-display text-[15px] font-bold text-white mb-0.5">{genre.name}</div>
+      <div className="ob-display text-[15px] font-medium text-white mb-0.5">{genre.name}</div>
     </motion.button>
   )
 }
@@ -80,6 +81,8 @@ export default function GenresStep({ selectedGenres, toggleGenre, onBack, onNext
           variants={reduced ? undefined : containerVariants}
           initial={reduced ? false : 'hidden'}
           animate="visible"
+          role="group"
+          aria-label="Genres"
         >
           {GENRES.map(g => (
             <GenreTile

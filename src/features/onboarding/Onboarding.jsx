@@ -32,22 +32,13 @@ import MoviesStep from './steps/MoviesStep'
 import RatingStep from './steps/RatingStep'
 
 import { MOODS_LS_KEY, SENTIMENT_RATINGS } from './data'
+import { loadDraft, saveDraft, clearDraft } from './draft'
 import './onboarding.css'
 
-// Drafts the in-flight onboarding so a refresh doesn't wipe selections.
-// Cleared by completeOnboarding once data is persisted to Supabase.
-const ONBOARDING_DRAFT_KEY = 'ff_onboarding_draft_v1'
-
-function loadDraft() {
-  try {
-    const raw = localStorage.getItem(ONBOARDING_DRAFT_KEY)
-    if (!raw) return null
-    const draft = JSON.parse(raw)
-    return draft && typeof draft === 'object' ? draft : null
-  } catch {
-    return null
-  }
-}
+// Drafts the in-flight onboarding (per signed-in user) so a refresh doesn't wipe
+// selections. Keyed/loaded/cleared via ./draft — user-scoped so one account's
+// draft can't leak into another on a shared browser (F2.23). Cleared on
+// completion, sign-out, and the already-onboarded redirect.
 
 export default function Onboarding() {
   const navigate = useNavigate()
@@ -67,26 +58,39 @@ export default function Onboarding() {
   const [, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  // Step state — hydrate from localStorage draft so a mid-flow refresh doesn't
-  // wipe selections. The draft is cleared in handleFinish on success.
-  const draft = loadDraft()
-  const [step, setStep] = useState(draft?.step ?? 0)
-  const [moods, setMoods] = useState(draft?.moods ?? [])
-  const [selectedGenres, setSelectedGenres] = useState(draft?.selectedGenres ?? [])
-  const [favoriteMovies, setFavoriteMovies] = useState(draft?.favoriteMovies ?? [])
-  const [ratings, setRatings] = useState(draft?.ratings ?? {})
+  // Step state — starts empty and hydrates from the SIGNED-IN USER's scoped draft
+  // once their id is known (deferred so we never read another user's draft, and
+  // never a global default). Cleared on completion / sign-out / redirect.
+  const userId = session?.user?.id ?? null
+  const [hydrated, setHydrated] = useState(false)
+  const [step, setStep] = useState(0)
+  const [moods, setMoods] = useState([])
+  const [selectedGenres, setSelectedGenres] = useState([])
+  const [favoriteMovies, setFavoriteMovies] = useState([])
+  const [ratings, setRatings] = useState({})
 
-  // Persist draft on every change. Best-effort — quota/private-mode failures are non-fatal.
+  // Hydrate the user's scoped draft once their id is available (runs once).
   useEffect(() => {
-    try {
-      localStorage.setItem(
-        ONBOARDING_DRAFT_KEY,
-        JSON.stringify({ step, moods, selectedGenres, favoriteMovies, ratings }),
-      )
-    } catch {
-      // localStorage unavailable — flow still works, just no refresh persistence.
+    if (!userId || hydrated) return
+    const draft = loadDraft(userId)
+    if (draft) {
+      if (typeof draft.step === 'number') setStep(draft.step)
+      if (Array.isArray(draft.moods)) setMoods(draft.moods)
+      if (Array.isArray(draft.selectedGenres)) setSelectedGenres(draft.selectedGenres)
+      if (Array.isArray(draft.favoriteMovies)) setFavoriteMovies(draft.favoriteMovies)
+      if (draft.ratings && typeof draft.ratings === 'object') setRatings(draft.ratings)
     }
-  }, [step, moods, selectedGenres, favoriteMovies, ratings])
+    setHydrated(true)
+  }, [userId, hydrated])
+
+  // Persist the user's scoped draft on every change — only AFTER hydration (so the
+  // empty initial state can't clobber a just-loaded draft) and only once the gate
+  // has settled to render the steps (`!checking`), so a completed user being
+  // redirected can't re-write the draft the gate just cleared. Best-effort.
+  useEffect(() => {
+    if (!userId || !hydrated || checking) return
+    saveDraft(userId, { step, moods, selectedGenres, favoriteMovies, ratings })
+  }, [userId, hydrated, checking, step, moods, selectedGenres, favoriteMovies, ratings])
 
   // Auth gate (same logic as legacy)
   useEffect(() => {
@@ -96,6 +100,7 @@ export default function Onboarding() {
     ;(async () => {
       try {
         if (deriveOnboardingStatus(session.user).isComplete) {
+          clearDraft(session.user.id) // already onboarded → drop any stale draft
           navigate('/home', { replace: true })
           return
         }
@@ -110,8 +115,10 @@ export default function Onboarding() {
         // path or a partial wipe), the OR caused a redirect-loop with
         // PostAuthGate: this gate said complete, PostAuthGate said not. The
         // rerunOnboarding flow now nulls both, so the OR is unnecessary.
-        if (data?.onboarding_complete) navigate('/home', { replace: true })
-        else setChecking(false)
+        if (data?.onboarding_complete) {
+          clearDraft(session.user.id) // already onboarded → drop any stale draft
+          navigate('/home', { replace: true })
+        } else setChecking(false)
       } catch {
         setChecking(false)
       }
@@ -184,7 +191,7 @@ export default function Onboarding() {
         }) : Promise.resolve(),
       ])
 
-      try { localStorage.removeItem(ONBOARDING_DRAFT_KEY) } catch { /* noop */ }
+      clearDraft(userId) // completion → drop this user's scoped draft + legacy key
 
       // Hold for the remainder of the celebration min duration so the reveal
       // animation always has room to land.
@@ -247,7 +254,9 @@ export default function Onboarding() {
   }
 
   // Loading — uses the shared BrandSplash (delayed 200ms so fast checks never flash).
-  if (checking) {
+  // Also hold the splash until the user's scoped draft has hydrated, so the steps
+  // never flash at an empty step 0 before a same-user draft restores.
+  if (checking || (userId && !hydrated)) {
     return <BrandSplash />
   }
 

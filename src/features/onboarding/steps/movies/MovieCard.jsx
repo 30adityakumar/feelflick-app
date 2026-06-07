@@ -3,7 +3,7 @@ import { Check } from 'lucide-react'
 
 import { tmdbImg } from '@/shared/api/tmdb'
 
-// Fixed-width card: poster + title + year below (not overlaid).
+// Grid card: poster + title + year below (not overlaid). Fills its grid track.
 export default function MovieCard({ movie, isSelected, onClick }) {
   const [loaded, setLoaded] = useState(false)
   const year = movie.release_date ? new Date(movie.release_date).getFullYear() : null
@@ -14,7 +14,7 @@ export default function MovieCard({ movie, isSelected, onClick }) {
       onClick={onClick}
       aria-pressed={isSelected}
       aria-label={`${isSelected ? 'Remove' : 'Select'} ${movie.title}`}
-      className="shrink-0 w-28 sm:w-32 md:w-36 flex flex-col gap-1.5 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-lg group"
+      className="w-full flex flex-col gap-1.5 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-lg group"
     >
       <div className={`relative aspect-2/3 w-full rounded-lg overflow-hidden transition-shadow duration-200 ${
         isSelected

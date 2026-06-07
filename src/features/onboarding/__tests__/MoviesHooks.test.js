@@ -39,8 +39,10 @@ describe('useSuggestionPool — error + retry (mount-once preserved)', () => {
 
     fetchSuggestionPool.mockResolvedValueOnce([{ id: 7 }])
     act(() => { result.current.retry() })
-    await waitFor(() => expect(result.current.poolError).toBe(false))
-    expect(result.current.pool).toEqual([{ id: 7 }])
+    // Wait for the re-fetch OUTCOME (pool), not the intermediate poolError flag —
+    // poolError clears synchronously at retry start, before setPool resolves.
+    await waitFor(() => expect(result.current.pool).toEqual([{ id: 7 }]))
+    expect(result.current.poolError).toBe(false)
     expect(fetchSuggestionPool).toHaveBeenLastCalledWith([28], ['cozy'])
   })
 

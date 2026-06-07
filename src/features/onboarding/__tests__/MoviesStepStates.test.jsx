@@ -4,7 +4,7 @@
 // The hooks are mocked so each state is controlled directly.
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, act } from '@testing-library/react'
+import { render, screen, fireEvent, act, within } from '@testing-library/react'
 
 vi.mock('@/shared/api/tmdb', () => ({ tmdbImg: p => `x${p}`, searchMovies: vi.fn() }))
 vi.mock('../hooks/useSuggestionPool', () => ({ useSuggestionPool: vi.fn() }))
@@ -60,6 +60,55 @@ describe('MoviesStep — pool states', () => {
     useSuggestionPool.mockReturnValue(poolState({ poolLoading: true }))
     render(<MoviesStep {...props()} />)
     expect(screen.getByRole('status')).toHaveAttribute('aria-busy', 'true')
+  })
+})
+
+describe('MoviesStep — editorial grid layout', () => {
+  const film = (id, title) => ({ id, title, poster_path: `/${id}.jpg`, release_date: '2010-01-01' })
+
+  it('renders suggestions as a wrapped grid, not a horizontal snap shelf', () => {
+    useSuggestionPool.mockReturnValue(poolState({ pool: [film(1, 'Alpha'), film(2, 'Beta')] }))
+    const { container } = render(<MoviesStep {...props()} />)
+    expect(container.querySelector('.snap-x')).toBeNull()
+    expect(container.querySelector('[class*="overflow-x-auto"]')).toBeNull()
+    const grid = screen.getByRole('button', { name: /select alpha/i }).closest('div[class*="grid-cols-3"]')
+    expect(grid).toBeTruthy()
+  })
+
+  it('labels the Suggestions zone with a real heading', () => {
+    useSuggestionPool.mockReturnValue(poolState({ pool: [] }))
+    render(<MoviesStep {...props()} />)
+    expect(screen.getByRole('heading', { name: /suggestions/i })).toBeInTheDocument()
+  })
+
+  it('promotes selected films into a labelled "Your anchors" region', () => {
+    render(<MoviesStep {...props({ favoriteMovies: [film(1, 'Alpha'), film(2, 'Beta')], isMovieSelected: id => [1, 2].includes(id) })} />)
+    const region = screen.getByRole('region', { name: /your anchors/i })
+    expect(region).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /your anchors/i })).toBeInTheDocument()
+    expect(within(region).getByRole('button', { name: /remove alpha/i })).toBeInTheDocument()
+    expect(within(region).getByRole('button', { name: /remove beta/i })).toBeInTheDocument()
+  })
+
+  it('hides the anchors zone when no films are selected', () => {
+    render(<MoviesStep {...props({ favoriteMovies: [] })} />)
+    expect(screen.queryByRole('region', { name: /your anchors/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: /your anchors/i })).not.toBeInTheDocument()
+  })
+
+  it('renders 5 progress pips with Math.min(count, 5) filled', () => {
+    render(<MoviesStep {...props({ favoriteMovies: [film(1, 'A'), film(2, 'B'), film(3, 'C')], isMovieSelected: () => true })} />)
+    const pips = screen.getByTestId('anchor-pips')
+    expect(pips.children).toHaveLength(5)
+    expect([...pips.children].filter(s => s.className.includes('bg-purple-400'))).toHaveLength(3)
+  })
+
+  it('caps filled pips at 5 when more than 5 anchors exist', () => {
+    const films = Array.from({ length: 7 }, (_, i) => film(i + 1, `F${i + 1}`))
+    render(<MoviesStep {...props({ favoriteMovies: films, isMovieSelected: () => true })} />)
+    const pips = screen.getByTestId('anchor-pips')
+    expect(pips.children).toHaveLength(5)
+    expect([...pips.children].filter(s => s.className.includes('bg-purple-400'))).toHaveLength(5)
   })
 })
 

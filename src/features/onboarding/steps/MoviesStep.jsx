@@ -142,19 +142,20 @@ export default function MoviesStep({
         )}
       </div>
 
-      {/* Carousel rows */}
-      <div className="flex-1 min-h-0 overflow-y-auto px-6 space-y-6 pb-4">
+      {/* Body — one vertical scroll (no horizontal shelves): the curated
+         Suggestions grid + the editorial "Your anchors" zone. */}
+      <div className="ob-scroll flex-1 min-h-0 overflow-y-auto px-6 space-y-6 pb-4">
         {error && (
           <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-sm text-center">
             {error}
           </div>
         )}
 
-        {/* Suggestions row */}
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-purple-400/60 mb-3">
+        {/* Suggestions — system curation */}
+        <section aria-labelledby="ob-suggestions-h">
+          <h3 id="ob-suggestions-h" className="text-xs font-semibold uppercase tracking-widest text-purple-400/60 mb-3">
             Suggestions
-          </p>
+          </h3>
           {poolLoading ? (
             <CardSkeletonRow />
           ) : poolError ? (
@@ -174,7 +175,7 @@ export default function MoviesStep({
               All suggestions added — search for more above
             </p>
           ) : (
-            <div className="flex gap-3 sm:gap-4 overflow-x-auto py-2 px-1 -mx-1 [-ms-overflow-style:none] scrollbar-none [&::-webkit-scrollbar]:hidden snap-x snap-mandatory">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 sm:gap-4">
               {suggestions.map(m => (
                 <MovieCard
                   key={m.id}
@@ -185,15 +186,31 @@ export default function MoviesStep({
               ))}
             </div>
           )}
-        </div>
+        </section>
 
-        {/* Your picks row */}
+        {/* Your anchors — the user's earned collection, a distinct editorial zone */}
         {favoriteMovies.length > 0 && (
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-purple-400/60 mb-3">
-              Your picks ({count}/{MIN_MOVIES})
-            </p>
-            <div className="flex gap-3 sm:gap-4 overflow-x-auto py-2 px-1 -mx-1 [-ms-overflow-style:none] scrollbar-none [&::-webkit-scrollbar]:hidden snap-x snap-mandatory">
+          <section
+            aria-labelledby="ob-anchors-h"
+            className="rounded-2xl border border-purple-400/20 bg-purple-500/[0.05] p-4"
+          >
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <h3 id="ob-anchors-h" className="text-xs font-semibold uppercase tracking-widest text-purple-200/80">
+                Your anchors
+              </h3>
+              {/* Visual progress toward the 5-film minimum (footer carries the exact count). */}
+              <div className="flex items-center gap-1.5" aria-hidden="true" data-testid="anchor-pips">
+                {Array.from({ length: MIN_MOVIES }).map((_, i) => (
+                  <span
+                    key={i}
+                    className={`h-1.5 w-1.5 rounded-full transition-colors ${
+                      i < Math.min(count, MIN_MOVIES) ? 'bg-purple-400' : 'bg-white/15'
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 sm:gap-4">
               {favoriteMovies.map(m => (
                 <MovieCard
                   key={m.id}
@@ -203,7 +220,7 @@ export default function MoviesStep({
                 />
               ))}
             </div>
-          </div>
+          </section>
         )}
       </div>
     </StepShell>

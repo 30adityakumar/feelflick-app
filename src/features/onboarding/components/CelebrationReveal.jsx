@@ -1,8 +1,19 @@
+import { useEffect, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { Sparkles } from 'lucide-react'
 import { tmdbImg } from '@/shared/api/tmdb'
 import { MOODS, GENRES, SENTIMENT_RATINGS } from '../data'
 import AmbientGlow from './AmbientGlow'
+
+// One concise completion sentence for the dedicated sr-only live region — folds
+// in an aggregate film reference when titles exist, never a long poster list or
+// a count tally. (Visible stages are NOT a live region; this is the only one.)
+function buildAnnouncement(titles) {
+  if (titles.length === 0) return 'Your taste is tuned. Opening your first picks.'
+  if (titles.length === 1) return `Your taste is tuned with ${titles[0]}. Opening your first picks.`
+  if (titles.length === 2) return `Your taste is tuned with ${titles[0]} and ${titles[1]}. Opening your first picks.`
+  return `Your taste is tuned with ${titles[0]}, ${titles[1]}, and more. Opening your first picks.`
+}
 
 // === Celebration reveal ====================================================
 // Multi-stage immersive reveal that plays after the last rating commits.
@@ -22,8 +33,9 @@ import AmbientGlow from './AmbientGlow'
 //        (Stage 5; held until fade-out at ~12s so it has reading time before
 //         /discover takes over — also smooths the transition seam.)
 //
-// `prefers-reduced-motion` users get a static-but-staggered version:
-// elements still fade in (no movement) and particles are suppressed.
+// `prefers-reduced-motion` users get the complete composition immediately: every
+// stage delay collapses to 0 (no staggered wait), movement is removed, and
+// particles are suppressed. The parent's frozen 12s hold is preserved upstream.
 const EASE = [0.16, 1, 0.3, 1]                          // quartOut — long settle, no overshoot
 const SPRING = { type: 'spring', stiffness: 70, damping: 18, mass: 0.9 }
 
@@ -49,8 +61,24 @@ export default function CelebrationReveal({ moods, selectedGenres, favoriteMovie
   // Posters from their picks (truncate to 5 even if more exist).
   const posterFilms = (favoriteMovies || []).slice(0, 5)
 
+  // Single, concise completion announcement. Empty on first render, then set
+  // ONCE after mount so assistive tech hears a real content change ("" → text)
+  // rather than reading the visible multi-stage choreography piece by piece.
+  const announcementText = buildAnnouncement(
+    posterFilms.map(f => f.title).filter(Boolean)
+  )
+  const [announcement, setAnnouncement] = useState('')
+  useEffect(() => {
+    setAnnouncement(announcementText)
+  }, [announcementText])
+
   return (
     <div className="onboarding fixed inset-0 z-9999 flex flex-col items-center justify-center bg-black overflow-hidden">
+      {/* The ONLY live region — one concise polite+atomic completion status. */}
+      <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+        {announcement}
+      </p>
+
       {/* Slow, deep ambient glow — mood-tinted */}
       <AmbientGlow moods={moods} />
 
@@ -86,8 +114,6 @@ export default function CelebrationReveal({ moods, selectedGenres, favoriteMovie
          reveal the page). Read together, ~2.3s of cinematic darkness. */}
       <motion.div
         className="relative z-10 flex w-full max-w-2xl flex-col items-center px-6 text-center"
-        role="status"
-        aria-live="polite"
         initial={false}
         animate={
           fadingOut
@@ -126,7 +152,7 @@ export default function CelebrationReveal({ moods, selectedGenres, favoriteMovie
           <motion.p
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 0.85, y: 0 }}
-            transition={{ duration: reduced ? 0.4 : 0.9, delay: 0.4, ease: EASE }}
+            transition={{ duration: reduced ? 0.4 : 0.9, delay: reduced ? 0 : 0.4, ease: EASE }}
             className="ob-display mt-6 text-[11px] font-semibold uppercase tracking-[0.32em] text-purple-200/85"
           >
             Profile tuned · Edition №001
@@ -138,7 +164,7 @@ export default function CelebrationReveal({ moods, selectedGenres, favoriteMovie
           <motion.div
             initial="hidden"
             animate="visible"
-            variants={{ visible: { transition: { delayChildren: 1.2, staggerChildren: 0.22 } } }}
+            variants={{ visible: { transition: { delayChildren: reduced ? 0 : 1.2, staggerChildren: reduced ? 0 : 0.22 } } }}
             className="mt-9 flex flex-wrap items-center justify-center gap-3"
           >
             {selectedMoods.map((m) => (
@@ -173,7 +199,7 @@ export default function CelebrationReveal({ moods, selectedGenres, favoriteMovie
         <motion.p
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 0.72, y: 0 }}
-          transition={{ duration: reduced ? 0.4 : 0.9, delay: 2.4, ease: EASE }}
+          transition={{ duration: reduced ? 0.4 : 0.9, delay: reduced ? 0 : 2.4, ease: EASE }}
           className="mt-6 text-[13px] tracking-[0.02em] text-white/65"
         >
           {filmCount} film{filmCount === 1 ? '' : 's'}
@@ -188,7 +214,7 @@ export default function CelebrationReveal({ moods, selectedGenres, favoriteMovie
             <motion.p
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 0.55, y: 0 }}
-              transition={{ duration: reduced ? 0.4 : 0.9, delay: 3.0, ease: EASE }}
+              transition={{ duration: reduced ? 0.4 : 0.9, delay: reduced ? 0 : 3.0, ease: EASE }}
               className="mb-5 text-[12px] tracking-[0.02em] text-white/55"
             >
               From the films you’ve loved
@@ -196,7 +222,7 @@ export default function CelebrationReveal({ moods, selectedGenres, favoriteMovie
             <motion.div
               initial="hidden"
               animate="visible"
-              variants={{ visible: { transition: { delayChildren: 3.4, staggerChildren: 0.18 } } }}
+              variants={{ visible: { transition: { delayChildren: reduced ? 0 : 3.4, staggerChildren: reduced ? 0 : 0.18 } } }}
               className="flex items-end justify-center gap-2.5 sm:gap-3.5"
             >
               {posterFilms.map((film, i) => {
@@ -245,7 +271,7 @@ export default function CelebrationReveal({ moods, selectedGenres, favoriteMovie
                         initial={{ opacity: 0, scale: 0.6 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{
-                          delay: 3.4 + i * 0.18 + 0.55,
+                          delay: reduced ? 0 : 3.4 + i * 0.18 + 0.55,
                           duration: reduced ? 0.3 : 0.6,
                           ease: EASE,
                         }}
@@ -266,7 +292,7 @@ export default function CelebrationReveal({ moods, selectedGenres, favoriteMovie
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: reduced ? 0.5 : 1.2, delay: 5.5, ease: EASE }}
+          transition={{ duration: reduced ? 0.5 : 1.2, delay: reduced ? 0 : 5.5, ease: EASE }}
           className="mt-12"
         >
           <h1
@@ -291,7 +317,7 @@ export default function CelebrationReveal({ moods, selectedGenres, favoriteMovie
         <motion.div
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: reduced ? 0.5 : 1.4, delay: 7.6, ease: EASE }}
+          transition={{ duration: reduced ? 0.5 : 1.4, delay: reduced ? 0 : 7.6, ease: EASE }}
           className="mt-10 max-w-[460px]"
         >
           <p className="ob-display text-[10px] font-semibold uppercase tracking-[0.32em] text-purple-200/65">

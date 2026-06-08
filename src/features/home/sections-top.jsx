@@ -103,28 +103,28 @@ export function MoodReactor({ currentMood, setMood, onReshuffle }) {
 // different system). The three below are thin wrappers that add the icon, label, and
 // active state on top of <SecondaryActionButton>; the gradient "See More" primary
 // uses <ActionButton> directly.
-function WatchedButton({ isWatched, loading, onClick }) {
+function WatchedButton({ isWatched, loading, error, onClick }) {
   return (
     <SecondaryActionButton
       collapse
       active={isWatched}
       loading={loading}
       onClick={onClick}
-      title={isWatched ? 'Watched' : 'Mark as watched'}
+      title={error ? 'Couldn’t mark watched — tap to retry' : isWatched ? 'Watched' : 'Mark as watched'}
       label={isWatched ? 'Watched' : 'Mark Watched'}
       icon={<svg className="h-4 w-4 lg:h-[13px] lg:w-[13px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>}
     />
   )
 }
 
-function SaveButton({ isInWatchlist, loading, onClick }) {
+function SaveButton({ isInWatchlist, loading, error, onClick }) {
   return (
     <SecondaryActionButton
       collapse
       active={isInWatchlist}
       loading={loading}
       onClick={onClick}
-      title={isInWatchlist ? 'Saved to watchlist' : 'Save to watchlist'}
+      title={error ? 'Couldn’t save — tap to retry' : isInWatchlist ? 'Saved to watchlist' : 'Save to watchlist'}
       label={isInWatchlist ? 'Saved' : 'Save'}
       icon={isInWatchlist
         ? <svg className="h-4 w-4 lg:h-[13px] lg:w-[13px]" viewBox="0 0 24 24" fill="currentColor"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" /></svg>
@@ -198,24 +198,79 @@ function StreamingChip({ provider }) {
 //   • mobile: vertical — poster centered, copy stacked below
 //   • desktop: horizontal — poster left (360×540), copy right column.
 // No background backdrop image — keeps the page surface clean.
-function BriefingSlide({ film, matchPct, user, onWatch, onSkip, onMarkedWatched }) {
+function BriefingSlide({ film, matchPct, user, onWatch, onSkip, onMarkedWatched, announce }) {
   // source must match the user_watchlist_source_check CHECK constraint —
   // 'mood_recommendation' is the closest of the allowed values.
-  const { isInWatchlist, isWatched, loading: statusLoading, toggleWatchlist, toggleWatched } =
+  const { isInWatchlist, isWatched, loading: statusLoading, toggleWatchlist, toggleWatched, internalId } =
     useUserMovieStatus({ user, movie: film, internalMovieId: film?.id, source: 'mood_recommendation' })
 
   // Fetch streaming providers for this slide (TMDB, region CA→US).
   // Hook handles abort/cancel so switching slides cancels stale fetches.
   const provider = useStreamingProvider(film?.tmdbId)
 
-  // Fire onMarkedWatched optimistically on the user's click (before the
-  // async DB write resolves) so TheBriefing hides this slide immediately
-  // and the next pick slides in.
+  // F4.3 — Mark Watched / Save reliability. useUserMovieStatus owns the writes
+  // (unchanged payloads) and optimistically flips isWatched / isInWatchlist, then
+  // REVERTS on failure while loading.{watched,watchlist} runs true → false. We
+  // observe that settle to gate the advance (watched) and surface honest success /
+  // failure feedback — instead of advancing optimistically before the write lands.
+  const [watchedState, setWatchedState] = useState('idle') // idle | saving | watched | error
+  const [saveState, setSaveState] = useState('idle')       // idle | saving | error
+  const watchPendingRef = useRef(false)
+  const savePendingRef = useRef(null)                      // null | 'add' | 'remove'
+  const advanceTimerRef = useRef(null)
+  useEffect(() => () => { if (advanceTimerRef.current) clearTimeout(advanceTimerRef.current) }, [])
+
+  // Mark Watched — do NOT hide/advance until the user_history write succeeds
+  // (mirrors Discover F3.9). internalId must be resolved for the write to run.
   const handleMarkWatched = useCallback(() => {
-    const wasWatched = isWatched
+    if (!film?.id || !internalId || statusLoading.watched || watchedState === 'saving' || isWatched) return
+    watchPendingRef.current = true
+    setWatchedState('saving')
     toggleWatched()
-    if (!wasWatched && film?.id) onMarkedWatched?.(film.id)
-  }, [isWatched, toggleWatched, onMarkedWatched, film?.id])
+  }, [film?.id, internalId, statusLoading.watched, watchedState, isWatched, toggleWatched])
+
+  // Resolve the pending mark-watched once the hook write settles: isWatched stays
+  // true on success → advance after a confirmation hold; reverts to false on
+  // failure → keep the pick, show a retryable error and announce it.
+  useEffect(() => {
+    if (!watchPendingRef.current || statusLoading.watched) return
+    watchPendingRef.current = false
+    const filmId = film?.id
+    if (isWatched) {
+      setWatchedState('watched')
+      advanceTimerRef.current = setTimeout(() => {
+        onMarkedWatched?.(filmId)
+        advanceTimerRef.current = null
+      }, 600)
+    } else {
+      setWatchedState('error')
+      announce?.('Could not mark watched. Try again.')
+    }
+  }, [statusLoading.watched, isWatched, film?.id, onMarkedWatched, announce])
+
+  // Save — keep the optimistic toggle (reversible) but surface success / failure
+  // once the write settles. Saving shows a spinner; a real save announces
+  // confirmation; a failed save reverts and announces a retry.
+  const handleSave = useCallback(() => {
+    if (!film?.id || !internalId || statusLoading.watchlist || saveState === 'saving') return
+    savePendingRef.current = isInWatchlist ? 'remove' : 'add'
+    setSaveState('saving')
+    toggleWatchlist()
+  }, [film?.id, internalId, statusLoading.watchlist, saveState, isInWatchlist, toggleWatchlist])
+
+  useEffect(() => {
+    if (savePendingRef.current == null || statusLoading.watchlist) return
+    const intent = savePendingRef.current
+    savePendingRef.current = null
+    if (intent === 'add') {
+      if (isInWatchlist) { setSaveState('idle'); announce?.('Saved for later.') }
+      else { setSaveState('error'); announce?.('Could not save. Try again.') }
+    } else if (isInWatchlist) {
+      setSaveState('error'); announce?.('Could not save. Try again.')
+    } else {
+      setSaveState('idle')
+    }
+  }, [statusLoading.watchlist, isInWatchlist, announce])
 
   // Opening the pick (poster or "See More") is the Briefing's 'clicked' outcome.
   // F8B: record it against the fresh hero impression (logged when this slide
@@ -334,8 +389,8 @@ function BriefingSlide({ film, matchPct, user, onWatch, onSkip, onMarkedWatched 
             <span>See More</span>
             <ChevronRight className="h-3.5 w-3.5" />
           </ActionButton>
-          <WatchedButton isWatched={isWatched} loading={statusLoading.watched} onClick={handleMarkWatched} />
-          <SaveButton isInWatchlist={isInWatchlist} loading={statusLoading.watchlist} onClick={toggleWatchlist} />
+          <WatchedButton isWatched={isWatched} loading={watchedState === 'saving'} error={watchedState === 'error'} onClick={handleMarkWatched} />
+          <SaveButton isInWatchlist={isInWatchlist} loading={saveState === 'saving'} error={saveState === 'error'} onClick={handleSave} />
           <SkipButton onClick={() => onSkip?.(film)} />
         </div>
       </div>
@@ -403,6 +458,15 @@ export function TheBriefing({ currentMood, shuffleSeed = 0, user, onWatch, onSki
   const { moods, loading } = useHomeData()
   const moodEntry = moods.find(m => m.id === currentMood.id)
 
+  // F4.3 — one polite, atomic, screen-reader-only live region owned by the
+  // Briefing. It narrates pick progression + action outcomes (never the queue
+  // length or match %). pickActionRef records WHY the head last advanced so the
+  // pick-change effect can word the announcement (initial/mood/reshuffle vs skip
+  // vs mark-watched).
+  const [statusMsg, setStatusMsg] = useState('')
+  const announce = useCallback((msg) => setStatusMsg(msg), [])
+  const pickActionRef = useRef('initial') // 'initial' | 'skip' | 'watched'
+
   // Effective seed for picking which 3 of the top 30 are visible today.
   // Recomputes when the day changes (midnight UTC) or when the user clicks
   // Reshuffle. Mood id folded in so moods don't share the same rotation.
@@ -427,6 +491,8 @@ export function TheBriefing({ currentMood, shuffleSeed = 0, user, onWatch, onSki
   // switching moods is the way to start with a clean slate.
   useEffect(() => {
     setHiddenIds(new Set())
+    // A fresh mood starts a fresh "Tonight's briefing pick" (not skip/watched).
+    pickActionRef.current = 'initial'
   }, [currentMood.id])
 
   // The remaining queue for this mood — daily-seeded + reshuffle-seeded, with
@@ -447,12 +513,15 @@ export function TheBriefing({ currentMood, shuffleSeed = 0, user, onWatch, onSki
   }, [])
 
   const handleSkip = useCallback((film) => {
+    pickActionRef.current = 'skip'
     onSkip?.(film)
     if (film?.id) hide(film.id)
   }, [onSkip, hide])
 
   const handleMarkedWatched = useCallback((id) => {
-    if (id != null) hide(id)
+    if (id == null) return
+    pickActionRef.current = 'watched'
+    hide(id)
   }, [hide])
 
   const clearHidden = useCallback(() => setHiddenIds(new Set()), [])
@@ -477,17 +546,44 @@ export function TheBriefing({ currentMood, shuffleSeed = 0, user, onWatch, onSki
   const pickReason = pick?.engineReason
   useEffect(() => {
     if (!user?.id || pickId == null) return
+    // Exposure log of the visible head pick. Timing/placement/payload unchanged
+    // (F4.3 only adds failure containment so a rejected write isn't unhandled).
     logSurfaceImpressions({
       userId: user.id,
       films: [{ id: pickId }],
       placement: 'hero',
       pickReasonType: 'briefing_active',
       pickReasonLabel: pickReason || currentMood.id,
-    })
+    }).catch(() => { /* non-fatal — exposure logging is best-effort */ })
   }, [user?.id, pickId, pickReason, currentMood.id])
+
+  // Announce the visible pick whenever the head advances. The reason recorded by
+  // the last action shapes the wording. Fires only when the head id changes, so
+  // routine re-renders don't re-announce.
+  const pickTitle = pick?.title
+  useEffect(() => {
+    if (pickId == null || !pickTitle) {
+      // No visible pick (loading / no films / exhausted) — clear the action so a
+      // later fresh pick announces as "Tonight's", not a stale skip/watched.
+      pickActionRef.current = 'initial'
+      return
+    }
+    const reason = pickActionRef.current
+    pickActionRef.current = 'initial'
+    if (reason === 'skip') announce(`New briefing pick: ${pickTitle}.`)
+    else if (reason === 'watched') announce(`Marked watched. New briefing pick: ${pickTitle}.`)
+    else announce(`Tonight’s briefing pick: ${pickTitle}.`)
+  }, [pickId, pickTitle, announce])
+
+  // Exhausted — the user has worked through the whole mood queue.
+  useEffect(() => {
+    if (isExhausted) announce('No more picks for this mood.')
+  }, [isExhausted, announce])
 
   return (
     <section className="relative px-5 pt-4 pb-10 sm:px-8 sm:pt-6 sm:pb-12 lg:px-[88px] lg:pt-6 lg:pb-6">
+      {/* Single polite live region for Briefing pick progression + action feedback. */}
+      <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">{statusMsg}</div>
       {isExhausted ? (
         <div className="flex flex-col items-center gap-5 py-12 text-center">
           <p style={{ fontSize: 15, lineHeight: 1.6, color: HP.textSoft, fontFamily: 'Outfit, Inter, sans-serif', margin: 0, maxWidth: 480 }}>
@@ -530,6 +626,7 @@ export function TheBriefing({ currentMood, shuffleSeed = 0, user, onWatch, onSki
                 onWatch={onWatch}
                 onSkip={handleSkip}
                 onMarkedWatched={handleMarkedWatched}
+                announce={announce}
               />
             </motion.div>
           </AnimatePresence>

@@ -48,3 +48,7 @@ consistency-audit.md
 # pipeline run logs (regenerated each cron run; keep the dir, ignore the output)
 logs/*
 !logs/.gitkeep
+
+# Track shared Claude rules
+!.claude/rules/
+!.claude/rules/**

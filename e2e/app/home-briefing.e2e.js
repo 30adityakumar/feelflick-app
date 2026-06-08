@@ -26,7 +26,10 @@ const BRIEFING = ['Lantern Hill', 'Paper Boats', 'The Long Quiet']
 const TENDER = ['Lantern Hill', 'Paper Boats']
 
 const h1 = (page) => page.getByRole('heading', { level: 1 })
-const pick = (page) => page.getByRole('heading', { level: 2 }).first()
+// The pick title is the h2 INSIDE the labelled Briefing region — scoped so it never
+// resolves to the QuickLog / PageEndCard h2 (e.g. while the Briefing is still loading
+// its skeleton in a slower CI runner).
+const pick = (page) => page.getByRole('region', { name: "Tonight's briefing" }).getByRole('heading', { level: 2 })
 const btn = (page, name) => page.getByRole('button', { name, exact: true })
 const moodPill = (page, label) => page.getByRole('button', { name: label, exact: true })
 const moodGroup = (page) => page.getByRole('group', { name: "Adjust tonight's mood" })

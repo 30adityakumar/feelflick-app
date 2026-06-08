@@ -15,7 +15,8 @@ const FREEZE = '*,*::before,*::after{animation:none!important;transition:none!im
 // Home composition itself is fully visible.
 const HIDE_CHROME = '.fixed.bottom-0.left-0.right-0.z-30{display:none!important}'
 
-const pick = (page) => page.getByRole('heading', { level: 2 }).first()
+// h2 inside the labelled Briefing region — never the QuickLog / PageEndCard h2.
+const pick = (page) => page.getByRole('region', { name: "Tonight's briefing" }).getByRole('heading', { level: 2 })
 const quickLogSection = (page) => page.locator('section').filter({ hasText: 'Feed the engine' })
 const discoverSection = (page) => page.locator('section').filter({ hasText: 'Or shape your own' })
 

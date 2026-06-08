@@ -1,7 +1,7 @@
 # `/discover` — Private-Beta Readiness (F3.12)
 
 **Status:** READY FOR PRIVATE/BETA TESTING — no P0, no functional P1 blocker.
-**Not yet:** public-production readiness (pending a real intercepted-backend e2e — see Deferred).
+**Not yet:** unrestricted public-production readiness — the browser-evidence gate (a real intercepted-backend e2e + authenticated visuals) is now **met** (F3.13, see below); the remaining public-production work is operational (beta feedback + monitoring), not test coverage.
 **Date:** 2026-06 · supersedes nothing; closes the F3.2–F3.12 `/discover` redesign arc.
 
 This note records the final state of the redesigned `/discover` journey after F3.2–F3.12, the F3.11 production-readiness verdict, and the trust + accessibility posture for inviting private-beta testers.
@@ -45,7 +45,7 @@ Every user-facing claim is real-source-backed or derived-but-honest:
 
 ## Deferred (not blocking private beta)
 
-- **F3.13 — real e2e + visual coverage for `/discover`** (intercepted backend, **no live writes**): happy path + reduced-motion + a fallback state, plus a visual-regression baseline for the four stages (mobile + desktop). **Required before public-production sign-off.**
+- **F3.13 — real e2e + visual coverage for `/discover`** — ✅ **done** (intercepted backend, no live writes; see "F3.13 — e2e + visual coverage landed" below). This was the public-production *browser-evidence* gate; it is now satisfied, and remaining public-production work is operational (beta feedback + monitoring), not test coverage.
 - **Reducer / state-machine extraction** of `Discover.jsx` — deferred; the numeric-stage + refs are readable and well-tested. Revisit only when a new stage or branch appears.
 - **`FILMS_FALLBACK` cleanup** — the static fallback films carry latent `criticLine` / `twin` / `arc` fields that are **never rendered** by the current StagePick; harmless, but worth removing/commenting.
 - Minor polish: mood-button `aria-label` combining label + hint; `overflow-wrap` hardening for long labels at 360px; lock-tests for `MOOD_BRIDGE` + `FILMS_FALLBACK`.

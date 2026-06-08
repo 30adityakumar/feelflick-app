@@ -8,6 +8,7 @@ on:
       - 'e2e/visual/**'
       - 'e2e/visual-auth/**'
       - 'e2e/fixtures/discover.js'
+      - 'e2e/fixtures/home.js'
       - 'playwright.config.*'
       - 'package.json'
       - 'package-lock.json'
@@ -97,15 +98,15 @@ jobs:
           path: test-results/
           retention-days: 7
 
-  # Authenticated Discover visual regression. Separate from the public `visual`
-  # job: it signs in the dev test user (real /auth/v1) and renders /discover with
-  # the deterministic interception fixture — every Discover read/write is mocked,
-  # so no Discover row is touched. Needs the same secrets as the E2E gate; if they
-  # are absent it skips with a notice rather than falsely reporting a pass. Runs
-  # after the public `visual` job so the two never race when committing baselines
-  # on a visual-baselines/** push (they touch different snapshot directories).
+  # Authenticated app visual regression (Discover + Home). Separate from the public
+  # `visual` job: it signs in the dev test user (real /auth/v1) and renders the
+  # authenticated routes with their deterministic interception fixtures — every
+  # Discover/Home read/write is mocked, so no row is touched. Needs the same secrets
+  # as the E2E gate; if they are absent it skips with a notice rather than falsely
+  # reporting a pass. Runs after the public `visual` job so the two never race when
+  # committing baselines on a visual-baselines/** push (different snapshot dirs).
   visual-app:
-    name: Visual Regression — Authenticated Discover
+    name: Visual Regression — Authenticated App
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: visual
@@ -137,13 +138,13 @@ jobs:
           if [ -z "$E2E_TEST_EMAIL" ] || [ -z "$E2E_TEST_PASSWORD" ] || \
              [ -z "$VITE_SUPABASE_URL" ] || [ -z "$VITE_SUPABASE_ANON_KEY" ] || \
              [ -z "$VITE_TMDB_API_KEY" ]; then
-            echo "::warning title=Authenticated Discover visuals skipped::Required secrets (E2E_TEST_EMAIL/PASSWORD, VITE_SUPABASE_URL/ANON_KEY, VITE_TMDB_API_KEY) are not configured. The authenticated Discover visual job did NOT run."
+            echo "::warning title=Authenticated app visuals skipped::Required secrets (E2E_TEST_EMAIL/PASSWORD, VITE_SUPABASE_URL/ANON_KEY, VITE_TMDB_API_KEY) are not configured. The authenticated app visual job did NOT run."
             echo "has_secrets=false" >> "$GITHUB_OUTPUT"
           else
             echo "has_secrets=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Run authenticated Discover visuals
+      - name: Run authenticated app visuals
         if: ${{ steps.preflight.outputs.has_secrets == 'true' }}
         env:
           E2E_TEST_EMAIL: ${{ secrets.E2E_TEST_EMAIL }}
@@ -152,8 +153,14 @@ jobs:
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
           VITE_TMDB_API_KEY: ${{ secrets.VITE_TMDB_API_KEY }}
         run: |
-          if [[ "${GITHUB_REF}" == refs/heads/visual-baselines/* ]]; then
-            echo "Regenerating Linux authenticated Discover baselines…"
+          # A per-route baseline helper branch regenerates ONLY its own snapshots so
+          # the other route's baselines are never touched; any other baseline branch
+          # keeps the existing full authenticated-app regeneration; PRs compare both.
+          if [[ "${GITHUB_REF}" == "refs/heads/visual-baselines/home-f47" ]]; then
+            echo "Regenerating Linux authenticated Home baselines…"
+            npm run test:visual:home:update
+          elif [[ "${GITHUB_REF}" == refs/heads/visual-baselines/* ]]; then
+            echo "Regenerating Linux authenticated app baselines (Discover + Home)…"
             npm run test:visual:app:update
           else
             npm run test:visual:app
@@ -164,14 +171,19 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          # Only the authenticated Discover snapshots — never public baselines.
-          git add 'e2e/visual-auth/discover.visual.js-snapshots'
+          # Stage only the snapshot dir(s) this branch is responsible for, never the
+          # public baselines and never the other route's authenticated snapshots.
+          if [[ "${GITHUB_REF}" == "refs/heads/visual-baselines/home-f47" ]]; then
+            git add 'e2e/visual-auth/home.visual.js-snapshots'
+          else
+            git add 'e2e/visual-auth'
+          fi
           if git diff --cached --quiet; then
             echo "No authenticated baseline changes."
           else
             # Rebase in any commit the public `visual` job pushed first (different dir).
             git pull --rebase origin "${GITHUB_REF#refs/heads/}" || true
-            git commit -m "test(visual): regenerate Linux authenticated Discover baselines"
+            git commit -m "test(visual): regenerate Linux authenticated baselines"
             git push
           fi
 

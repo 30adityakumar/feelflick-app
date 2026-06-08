@@ -22,7 +22,9 @@
     "test:visual": "playwright test --project=visual",
     "test:visual:update": "playwright test --project=visual --update-snapshots",
     "test:visual:app": "playwright test --project=visual-app",
-    "test:visual:app:update": "playwright test --project=visual-app --update-snapshots"
+    "test:visual:app:update": "playwright test --project=visual-app --update-snapshots",
+    "test:visual:home": "playwright test --project=visual-app e2e/visual-auth/home.visual.js",
+    "test:visual:home:update": "playwright test --project=visual-app e2e/visual-auth/home.visual.js --update-snapshots"
   },
   "dependencies": {
     "@radix-ui/react-tooltip": "^1.2.8",

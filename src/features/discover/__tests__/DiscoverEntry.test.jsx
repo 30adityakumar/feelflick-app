@@ -13,14 +13,14 @@ import { MemoryRouter } from 'react-router-dom'
 
 const h = vi.hoisted(() => ({
   baselineMoods: [], profile: { affinities: { directors: [] } }, learnedPrefs: null,
-  upserts: [], inserts: [], reduced: false,
+  upserts: [], inserts: [], reduced: false, dataSource: { movies: 'live', reason: 'live_ok' },
 }))
 
 // Keep real motion/AnimatePresence; control useReducedMotion via h.reduced.
 vi.mock('framer-motion', async (orig) => ({ ...(await orig()), useReducedMotion: () => h.reduced }))
 vi.mock('../useDiscoverData', () => ({
   DiscoverDataProvider: ({ children }) => children,
-  useDiscoverData: () => ({ films: [], profile: h.profile, baselineMoods: h.baselineMoods, learnedPrefs: h.learnedPrefs, recentSaves: [] }),
+  useDiscoverData: () => ({ films: [], profile: h.profile, baselineMoods: h.baselineMoods, learnedPrefs: h.learnedPrefs, recentSaves: [], dataSource: h.dataSource }),
 }))
 vi.mock('@/shared/hooks/useAuthSession', () => ({ useAuthSession: () => ({ user: { id: 'u1' } }) }))
 vi.mock('@/shared/hooks/usePageMeta', () => ({ usePageMeta: () => {} }))
@@ -59,7 +59,7 @@ const gotoNight = (mood = 'Cozy') => { fireEvent.click(moodBtn(mood)); fireEvent
 
 beforeEach(() => {
   h.baselineMoods = []; h.profile = { affinities: { directors: [] } }; h.learnedPrefs = null
-  h.upserts = []; h.inserts = []; h.reduced = false
+  h.upserts = []; h.inserts = []; h.reduced = false; h.dataSource = { movies: 'live', reason: 'live_ok' }
   vi.clearAllMocks()
   window.matchMedia = vi.fn().mockImplementation((q) => ({
     matches: false, media: q, onchange: null,
@@ -238,6 +238,65 @@ describe('Discover night context — Tweak Inputs + Start Over (F3.6/F3.7)', () 
       fireEvent.click(screen.getByRole('button', { name: /start over/i }))
       expect(screen.getByRole('heading', { name: /shape.*of your mood/i })).toBeInTheDocument()
       expect(pressedCount()).toBe(0) // moods cleared, seed NOT reapplied
+    } finally { vi.useRealTimers() }
+  })
+})
+
+// ── F3.10: fallback data-source threading (shell → StagePick) ─────────────────
+describe('Discover shell — fallback data-source threading (F3.10)', () => {
+  const gotoResult = async (mood = 'Cozy') => {
+    gotoNight(mood)
+    fireEvent.click(findFilmBtn())
+    await act(async () => { await vi.advanceTimersByTimeAsync(RESOLVE_DURATION_MS) }) // StageResolve → StagePick
+  }
+  it('live_ok → no fallback note (NOT inferred from the empty films array)', async () => {
+    vi.useFakeTimers()
+    try {
+      h.dataSource = { movies: 'live', reason: 'live_ok' }
+      renderDiscover()
+      await gotoResult()
+      expect(screen.queryByText(/Example pick/)).not.toBeInTheDocument()
+    } finally { vi.useRealTimers() }
+  })
+  it('live_error → "live recommendations are unavailable right now."', async () => {
+    vi.useFakeTimers()
+    try {
+      h.dataSource = { movies: 'fallback', reason: 'live_error', errorMessage: 'x' }
+      renderDiscover()
+      await gotoResult()
+      expect(screen.getByText('Example pick — live recommendations are unavailable right now.')).toBeInTheDocument()
+    } finally { vi.useRealTimers() }
+  })
+  it('live_empty → "live recommendations are not ready yet."', async () => {
+    vi.useFakeTimers()
+    try {
+      h.dataSource = { movies: 'fallback', reason: 'live_empty' }
+      renderDiscover()
+      await gotoResult()
+      expect(screen.getByText('Example pick — live recommendations are not ready yet.')).toBeInTheDocument()
+    } finally { vi.useRealTimers() }
+  })
+  it('filtered_empty → "no strong live fit for these details."', async () => {
+    vi.useFakeTimers()
+    try {
+      h.dataSource = { movies: 'fallback', reason: 'filtered_empty' }
+      renderDiscover()
+      await gotoResult()
+      expect(screen.getByText('Example pick — no strong live fit for these details.')).toBeInTheDocument()
+    } finally { vi.useRealTimers() }
+  })
+  it('reaching a fallback result triggers no impression/watchlist/history/interaction writes', async () => {
+    vi.useFakeTimers()
+    try {
+      h.dataSource = { movies: 'fallback', reason: 'live_error' }
+      renderDiscover()
+      await gotoResult()
+      expect(screen.getByText(/Example pick/)).toBeInTheDocument()
+      // The single preference upsert is the normal explicit "Find my film" accept;
+      // fallback mode adds no watchlist/history/interaction writes.
+      expect(h.inserts).toHaveLength(0)
+      expect(updateImpression).not.toHaveBeenCalled()
+      expect(trackInteraction).not.toHaveBeenCalled()
     } finally { vi.useRealTimers() }
   })
 })

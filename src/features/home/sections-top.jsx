@@ -14,6 +14,7 @@ import Eyebrow from '@/shared/ui/Eyebrow'
 import { HP, MOOD_META } from './data'
 import { SmartImg } from './atoms'
 import WhyThisPick from './WhyThisPick'
+import { todaySeed, buildBriefingQueue } from './homeDerive'
 import { useHomeData } from './useHomeData'
 
 // The Briefing presents ONE confident pick. Its eyebrow is a constant —
@@ -383,28 +384,11 @@ function BriefingSkeleton() {
 }
 
 
-// Tiny seeded shuffle so each Reshuffle click reorders deterministically.
-function shuffleBySeed(arr, seed) {
-  if (!seed) return arr
-  const out = arr.slice()
-  let s = seed * 9301 + 49297
-  for (let i = out.length - 1; i > 0; i--) {
-    s = (s * 9301 + 49297) % 233280
-    const j = Math.floor((s / 233280) * (i + 1))
-    ;[out[i], out[j]] = [out[j], out[i]]
-  }
-  return out
-}
+// shuffleBySeed (deterministic reshuffle) + todaySeed (UTC daily rotation) moved
+// to homeDerive.js in F4.2 (behavior-preserved); imported above. todaySeed still
+// combines with the user's shuffleSeed (Reshuffle) + the mood id (strHash) below
+// to rotate the top-30 pool — same user, same mood, different picks each day.
 
-// Daily seed: current UTC date as YYYYMMDD integer. Stays stable for a
-// whole UTC day, changes at midnight UTC. Combined with the user's
-// shuffleSeed (Reshuffle clicks) and the mood id, this gives the briefing
-// a natural rotation through the top-30 pool — same user, same mood,
-// different picks each day — so /home doesn't feel "static" day-over-day.
-function todaySeed() {
-  const d = new Date()
-  return d.getUTCFullYear() * 10000 + (d.getUTCMonth() + 1) * 100 + d.getUTCDate()
-}
 // Tiny non-cryptographic string-to-int hash. Used to fold the active mood
 // id into the rotation seed so different moods on the same day produce
 // different picks (otherwise switching mood would just refilter the same
@@ -451,8 +435,7 @@ export function TheBriefing({ currentMood, shuffleSeed = 0, user, onWatch, onSki
   // "next slides into the freed slot").
   const queue = useMemo(() => {
     if (!moodEntry) return []
-    const shuffled = shuffleBySeed(moodEntry.films || [], effectiveSeed)
-    return shuffled.filter(f => !hiddenIds.has(f.id))
+    return buildBriefingQueue(moodEntry.films, effectiveSeed, hiddenIds)
   }, [moodEntry, effectiveSeed, hiddenIds])
 
   const hide = useCallback((id) => {

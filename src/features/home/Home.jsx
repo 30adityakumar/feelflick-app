@@ -5,9 +5,8 @@
 // write to real tables and navigate to /movie/:tmdbId, /profile/:userId,
 // /lists/curated/:slug.
 
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
-import { motion, useReducedMotion } from 'framer-motion'
+import { useCallback, useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
@@ -26,23 +25,11 @@ import './home.css'
 function HomeBody() {
   usePageMeta({ title: 'Home — FeelFlick' })
   const navigate = useNavigate()
-  const location = useLocation()
-  const reduced = useReducedMotion()
   const { user: authUser } = useAuthSession()
   const { loading, moods: liveMoods } = useHomeData()
   const [currentMood, setMood] = useState(MOOD_META[0])
   const [userPickedMood, setUserPickedMood] = useState(false)
   const [shuffleSeed, setShuffleSeed] = useState(0)
-  // Snapshot the fromOnboarding flag once on mount — we don't want the
-  // black-handoff overlay to replay if the user later navigates back to /home
-  // from somewhere else. Pairs with Onboarding's fade-out so the seam between
-  // celebration and home reads as a single smooth crossfade.
-  const fromOnboardingRef = useRef(location.state?.fromOnboarding === true)
-  // After the overlay finishes its fade-out we unmount it so it isn't a stale
-  // pointer-events-none div lingering at opacity 0 in the DOM tree.
-  const [handoffOverlayVisible, setHandoffOverlayVisible] = useState(
-    () => fromOnboardingRef.current && !reduced,
-  )
 
   // When the data hook finishes, snap the initial mood tab to the user's first
   // baseline pick from Onboarding Step 1 (useHomeData reorders `moods` so the
@@ -184,24 +171,6 @@ function HomeBody() {
           onDiscover={() => navigate('/discover')}
         />
       </div>
-
-      {/* Black handoff overlay — only on the first arrival from onboarding.
-         Pairs with Onboarding's celebration fade-out (the celebration content
-         dims to 0 over 500ms while the black bg stays); this overlay then
-         covers /home at mount and fades up over 900ms, revealing the page
-         smoothly. delay:0.15s gives React time to commit the first paint
-         before the fade starts, so the user never sees a flash of empty page.
-         Skipped for prefers-reduced-motion. */}
-      {handoffOverlayVisible && (
-        <motion.div
-          aria-hidden="true"
-          className="pointer-events-none fixed inset-0 z-9998 bg-black"
-          initial={{ opacity: 1 }}
-          animate={{ opacity: 0 }}
-          transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
-          onAnimationComplete={() => setHandoffOverlayVisible(false)}
-        />
-      )}
     </div>
   )
 }

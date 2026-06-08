@@ -30,6 +30,7 @@ import { computeMatchPercent } from '@/shared/services/matchScore'
 import { MOVIE_ENGINE_COLS } from '@/shared/services/movieFields'
 import { getTasteFingerprint } from '@/shared/services/tasteCache'
 import { buildPersonalLists, MIN_PERSONAL_LISTS, getSeenCandidates, getTasteTwinPulse } from './personalLists'
+import { orderBriefingMoodKeys } from './homeDerive'
 
 const HomeDataContext = createContext(null)
 
@@ -93,19 +94,9 @@ export function resolveEngineReason({ reason, reasonType, seedTitle }, moodId) {
 // === Onboarding mood key → Briefing mood key bridge ======================
 // The onboarding MoodStep uses a 6-key vocabulary (cozy/wired/tender/fun/
 // tense/mythic) — see src/features/onboarding/data.js. The Briefing uses a
-// different 6-key vocabulary above. This map translates the user's baseline
-// picks so we can prioritise the matching Briefing rows on cold-start.
-//
-// 'mythic' has no clean Briefing counterpart yet; we fall back to 'curious'
-// (the closest contemplative/epic register) until a dedicated row exists.
-const ONBOARDING_MOOD_TO_BRIEFING = {
-  cozy:   'cozy',
-  wired:  'curious',
-  tender: 'tender',
-  fun:    'witty',
-  tense:  'thrilled',
-  mythic: 'curious',
-}
+// different 6-key vocabulary above. The translation map + the baseline
+// re-ordering now live (behavior-preserved) in homeDerive.js as
+// ONBOARDING_MOOD_TO_BRIEFING + orderBriefingMoodKeys (F4.2).
 
 // === Engine consistency with onboarding (2026-05-21 audit) ===============
 // Mirrors src/features/onboarding/steps/MoviesStep.jsx — /home applies the
@@ -371,16 +362,10 @@ export function HomeDataProvider({ children }) {
         // Re-order MOOD_BRIDGE so the user's baseline moods (from Onboarding
          //  Step 1) appear first. Falls back to the original order if the user
          //  hasn't picked moods (legacy onboarding, or column null).
-        const baselineKeys = Array.isArray(userRowRes.data?.taste_baseline_moods)
-          ? userRowRes.data.taste_baseline_moods
-          : []
-        const baselineBriefingKeys = baselineKeys
-          .map(k => ONBOARDING_MOOD_TO_BRIEFING[k])
-          .filter(Boolean)
-        const orderedMoodKeys = [
-          ...baselineBriefingKeys.filter(k => k in MOOD_BRIDGE),
-          ...Object.keys(MOOD_BRIDGE).filter(k => !baselineBriefingKeys.includes(k)),
-        ]
+        const orderedMoodKeys = orderBriefingMoodKeys(
+          userRowRes.data?.taste_baseline_moods,
+          Object.keys(MOOD_BRIDGE),
+        )
 
         // Pre-compute the union of tags belonging to OTHER moods — used by
         // the mood-coherence bonus to favor films that fit THIS mood and

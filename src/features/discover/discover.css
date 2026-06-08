@@ -23,14 +23,13 @@
   100% { transform: translate(-50%, -50%) translate(var(--tx), var(--ty)) scale(0.2); opacity: 0; }
 }
 @keyframes ff-bloom-pulse { 0%, 100% { opacity:0.7; transform: scale(1); } 50% { opacity:1; transform: scale(1.06); } }
-@keyframes ff-bloom-pulse-strong { 0%, 100% { opacity:0.6; transform: scale(1); filter: blur(30px); } 50% { opacity:1; transform: scale(1.12); filter: blur(36px); } }
 @keyframes ff-poster-in { from { opacity:0; transform: scale(0.94) translateY(8px); } to { opacity:1; transform: scale(1) translateY(0); } }
 @keyframes ff-word-in { from { opacity:0; transform: translateY(14px); filter: blur(4px); } to { opacity:1; transform: translateY(0); filter: blur(0); } }
-@keyframes ff-kenburns { 0% { transform: scale(1) translate(0,0); } 100% { transform: scale(1.05) translate(-1%, -1%); } }
 /* ff-titlecard kept — used by TrailerModal's Esc-hint fade (the ceremony breath/
-   collapse/title-card keyframes were removed in F3.7). */
+   collapse/title-card keyframes were removed in F3.7). ff-kenburns / ff-grain /
+   ff-bloom-pulse-strong were removed in F3.8 — the one-pick poster no longer
+   animates infinitely. ff-bloom-pulse stays (BottomNav uses it via animations.css). */
 @keyframes ff-titlecard { 0% { opacity:0; } 12% { opacity:1; } 78% { opacity:1; } 100% { opacity:0; } }
-@keyframes ff-grain { 0% { transform: translate(0,0); } 20% { transform: translate(-2%,1%); } 40% { transform: translate(1%,-2%); } 60% { transform: translate(-1%,2%); } 80% { transform: translate(2%,1%); } 100% { transform: translate(0,0); } }
 @keyframes ff-credits {
   0%   { transform: translateY(80vh); opacity:0; }
   10%  { opacity:1; }
@@ -305,39 +304,45 @@
   }
 }
 
-/* Stage 3 action buttons — let them wrap on narrow screens so the primary
- * CTA doesn't get pushed off-screen. */
-.ff-stage3-actions {
+/* Stage 3 (F3.8) — one confident pick. Eyebrow, the honest "Why this one" case,
+ * and the action hierarchy (one primary, two secondary, two quiet tertiary). The
+ * old alternate-grid + .ff-stage3-actions CSS was removed with the visible deck. */
+.ff-pick-eyebrow,
+.ff-pick-case__label {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.ff-pick-eyebrow { font-size: 10px; letter-spacing: 0.32em; }
+.ff-pick-case__label { font-size: 10px; letter-spacing: 0.22em; }
+.ff-pick-actions {
   display: flex;
-  gap: 10px;
   flex-wrap: wrap;
-  margin-top: 18px;
+  align-items: center;
+  gap: 10px;
 }
-.ff-stage3-actions > button { flex: 1 1 auto; min-width: 140px; }
-@media (min-width: 640px) {
-  .ff-stage3-actions > button { flex: 0 0 auto; min-width: 0; }
-}
-
-/* Stage 3 alternates row — 2 cards side-by-side on desktop, stacked on
- * mobile. The cards themselves are buttons (full-card click target). */
-.ff-stage3-alternates {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-}
-@media (max-width: 760px) {
-  .ff-stage3-alternates {
-    grid-template-columns: 1fr;
-  }
-}
-.ff-alt-card:hover {
-  background: rgba(255, 255, 255, 0.045);
-  border-color: rgba(255, 255, 255, 0.18);
-  transform: translateY(-1px);
-}
-.ff-alt-card:focus-visible {
-  outline: 2px solid rgba(167, 139, 250, 0.6);
+.ff-pick-actions__primary,
+.ff-pick-actions__secondary,
+.ff-pick-actions__tertiary { min-height: 44px; }
+.ff-pick-actions button:focus-visible {
+  outline: 2px solid var(--purple-400, #A78BFA);
   outline-offset: 2px;
+  border-radius: 6px;
+}
+.ff-pick-actions__tertiary:hover:not(:disabled) { color: var(--text-primary, #f4f0ea); }
+.ff-pick-footer {
+  margin: 56px auto 0;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  max-width: 1080px;
+}
+@media (max-width: 639px) {
+  .ff-pick-actions__primary,
+  .ff-pick-actions__secondary { flex: 1 1 auto; }
 }
 
 /* Stage 3 — "Almost got" + anti-rec block becomes a single column on

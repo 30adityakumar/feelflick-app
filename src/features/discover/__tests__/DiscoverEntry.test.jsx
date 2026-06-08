@@ -141,9 +141,9 @@ describe('Discover night context — summary-first (F3.6)', () => {
       fireEvent.click(findFilmBtn())
       await act(async () => { await vi.advanceTimersByTimeAsync(899) })
       expect(screen.getByText('Bringing tonight into focus.')).toBeInTheDocument() // still resolving
-      expect(screen.queryByRole('button', { name: /tweak inputs/i })).not.toBeInTheDocument()
+      expect(screen.queryByText(/Tonight.s pick/)).not.toBeInTheDocument()
       await act(async () => { await vi.advanceTimersByTimeAsync(1) })
-      expect(screen.getByRole('button', { name: /tweak inputs/i })).toBeInTheDocument() // StagePick reached
+      expect(screen.getByText(/Tonight.s pick/)).toBeInTheDocument() // StagePick reached
     } finally { vi.useRealTimers() }
   })
 
@@ -155,7 +155,7 @@ describe('Discover night context — summary-first (F3.6)', () => {
       gotoNight('Cozy')
       fireEvent.click(findFilmBtn())
       await act(async () => { await vi.advanceTimersByTimeAsync(0) }) // 0ms resolve under reduced motion
-      expect(screen.getByRole('button', { name: /tweak inputs/i })).toBeInTheDocument()
+      expect(screen.getByText(/Tonight.s pick/)).toBeInTheDocument()
     } finally { vi.useRealTimers() }
   })
 
@@ -213,14 +213,14 @@ describe('Discover night context — Tweak Inputs + Start Over (F3.6/F3.7)', () 
   const advanceResolve = async () => {
     await act(async () => { await vi.advanceTimersByTimeAsync(RESOLVE_DURATION_MS) }) // StageResolve → StagePick
   }
-  it('Tweak Inputs returns to the summary with context preserved', async () => {
+  it('Adjust tonight (result footer) returns to the summary with context preserved', async () => {
     vi.useFakeTimers()
     try {
       renderDiscover()
       gotoNight('Cozy')
       fireEvent.click(findFilmBtn())
       await advanceResolve()
-      fireEvent.click(screen.getByRole('button', { name: /tweak inputs/i }))
+      fireEvent.click(screen.getByRole('button', { name: /adjust tonight/i })) // StagePick footer (was "Tweak inputs")
       expect(nightHeading()).toBeInTheDocument()
       expect(screen.getByText('Comfort me')).toBeInTheDocument() // cozy→comfort survives Tweak
     } finally { vi.useRealTimers() }

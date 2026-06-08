@@ -15,10 +15,7 @@ import { updateImpression } from '@/shared/services/recommendations'
 
 import { HP, MOOD_META } from './data'
 import { MoodReactor, TheBriefing } from './sections-top'
-import {
-  ContinueWatching, CinematicDNA, TasteTwinPulse,
-  TasteMatch, CuratedLists, QuickLog, PageEndCard,
-} from './sections-bottom'
+import { QuickLog, PageEndCard } from './sections-bottom'
 import { HomeDataProvider, useHomeData } from './useHomeData'
 import './home.css'
 
@@ -113,38 +110,11 @@ function HomeBody() {
     navigate('/browse')
   }, [navigate])
 
-  // Routes both curated and personal lists. The personal lists carry a
-  // `kind` + `meta` payload that becomes URL params on the destination
-  // route; curated lists keep using the existing slug-based path.
-  const onOpenList = useCallback((slug, list) => {
-    if (list?.kind && list.kind !== 'curated') {
-      const params = new URLSearchParams()
-      const m = list.meta || {}
-      if (list.kind === 'director' && m.directorName) params.set('director', m.directorName)
-      if (list.kind === 'similar' && m.seedId != null) {
-        params.set('seed', String(m.seedId))
-        if (m.seedTitle) params.set('title', m.seedTitle)
-      }
-      if (list.kind === 'genre' && m.dbName) {
-        params.set('genre', m.dbName)
-        if (m.displayName) params.set('display', m.displayName)
-      }
-      if (list.kind === 'fit' && m.fitKey) {
-        params.set('fit', m.fitKey)
-        if (m.label) params.set('label', m.label)
-        if (m.title) params.set('title', m.title)
-      }
-      if (list.kind === 'actor' && m.actorName) params.set('actor', m.actorName)
-      const qs = params.toString()
-      navigate(`/lists/personal/${list.kind}${qs ? `?${qs}` : ''}`)
-      return
-    }
-    navigate(slug ? `/lists/curated/${slug}` : '/lists')
-  }, [navigate])
-
-  const onOpenFriend = useCallback((userId) => {
-    navigate(userId ? `/profile/${userId}` : '/people')
-  }, [navigate])
+  // NOTE: onOpenList (curated/personal lists → /lists) and onOpenFriend
+  // (taste twins → /profile|/people) were removed in F4.5 along with the
+  // CuratedLists / TasteMatch sections they wired. Those components + their
+  // useHomeData logic remain intact; re-add the handlers when the sections
+  // are surfaced on their proper routes (/browse, /lists, /people).
 
   return (
     <div className="ff-home" style={{ minHeight: '100vh', background: HP.bg, color: HP.text, position: 'relative', overflowX: 'hidden' }}>
@@ -176,18 +146,22 @@ function HomeBody() {
               onSkip={onSkip}
             />
             <MoodReactor currentMood={currentMood} setMood={handleSetMood} />
-            <ContinueWatching onResume={onWatch} />
-            {/* Section order — descending actionability:
-                 1. Briefing (tonight's pick — primary recommendation)
-                 2. Adjust-mood strip (secondary control for the pick above)
-                 3. CuratedLists (more picks — alternatives, still actionable)
-                 4. TasteMatch → TasteTwinPulse (social cluster — people then their picks)
-                 5. CinematicDNA (reflective portrait — confidence reveal)
-                 6. QuickLog (utility, lowest priority) */}
-            <CuratedLists onOpenList={onOpenList} />
-            <TasteMatch onOpenFriend={onOpenFriend} />
-            <TasteTwinPulse onWatch={onWatch} />
-            <CinematicDNA />
+            {/* F4.5 — restrained, pick-supporting tail. The one nightly pick leads;
+                the tail stays a quiet trail back into the user's film life, not a
+                dashboard / browse wall / social feed:
+                  • QuickLog — the one concrete repeat-value utility (log films you've
+                    already seen → sharpen tomorrow's pick).
+                  • PageEndCard — a quiet, role-clear close to Discover.
+                Intentionally NOT rendered on Home (components + their useHomeData
+                data logic are preserved for their proper homes / a future return):
+                  • ContinueWatching — has NO real resume-progress data source yet
+                    (continueItem is always null); it should return only once real
+                    watch-progress exists, not as an empty placeholder.
+                  • CuratedLists — a catalog browse wall; belongs to /browse + /lists.
+                  • TasteMatch + TasteTwinPulse — early social; belong to /people once
+                    the similarity data is mature, not a social feed under the pick.
+                  • CinematicDNA — a reflective taste portrait that lives on /profile;
+                    it should not dominate or duplicate Profile on every Home visit. */}
             <QuickLog onLog={onLog} />
             <PageEndCard
               currentMood={currentMood}

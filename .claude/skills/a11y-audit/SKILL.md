@@ -1,53 +1,76 @@
 ---
 name: a11y-audit
 description: >
-  Enforce accessibility on any UI work for FeelFlick. Trigger on: "build a
-  component", "modal", "button", "form", "interactive", "is this accessible",
-  "a11y", "keyboard", "screen reader", or after creating/editing any JSX with
-  interactive elements. CLAUDE.md mandates "no a11y regressions" — this is the
-  runtime/semantic check that eslint-plugin-jsx-a11y can't fully cover.
+  Audit FeelFlick UI accessibility. Trigger on interactive UI, forms, dialogs,
+  navigation, keyboard behavior, screen readers, motion, contrast, or explicit a11y review.
 ---
 
 # Accessibility Audit
 
-FeelFlick's bar: Netflix/Apple TV+ polish — which includes accessibility.
-`eslint-plugin-jsx-a11y` catches static issues (run `lint` first); this skill
-covers the semantic + interaction checks it can't.
+Read `.claude/rules/ui-implementation.md` first. Use actual runtime behavior as evidence; do not assume a shared primitive is accessible without verifying it.
 
-When invoked, audit changed UI against this checklist. Report each as
-`severity (error/warning) — file:line — fix`.
+## Review areas
 
-## Checklist
-### Interactive elements
-- [ ] Every clickable is a real `<button>`/`<a>` — OR has `role`, `tabIndex={0}`,
-      AND key handlers (Enter + Space). ❌ No bare `<div onClick>`.
-- [ ] Icon-only controls have `aria-label` (the play/add/info buttons on cards).
-- [ ] Event-handler naming: `handleX`, never an internal `onClick`.
+### Semantics and names
 
-### Focus
-- [ ] Visible focus ring on every focusable (`focus-visible:` — match the shared
-      primitives' ring). Never `outline: none` without a replacement.
-- [ ] `<Modal>` traps focus, restores it on close, closes on Escape (the shared
-      Modal already does this — use it, don't hand-roll).
-- [ ] Logical tab order; no positive `tabindex`.
+- Use native interactive elements when practical.
+- Every control needs an accessible name.
+- Decorative images use empty alt text; meaningful images use concise meaningful alternatives.
+- Form controls need associated labels, instructions, and errors.
+- Heading structure should reflect the page hierarchy.
 
-### Content & media
-- [ ] Posters/images have meaningful `alt` (e.g. `alt={movie.title}`), or `alt=""`
-      if purely decorative.
-- [ ] Headings nest correctly (one h1 per view; no skipped levels).
-- [ ] Form inputs have associated labels (the `<Input>` primitive has no built-in
-      label — add one or `aria-label`).
+### Keyboard and focus
 
-### Color & motion
-- [ ] Text contrast ≥ WCAG AA (4.5:1). ⚠️ Watch low-opacity text on dark
-      (`text-white/40` on `#06060a` can fail) for body text.
-- [ ] Respect reduced motion — use `motion-safe:`/`motion-reduce:`; Framer Motion
-      should honor `prefers-reduced-motion` for non-essential animation.
+- All functionality must be keyboard operable.
+- Focus must remain visible.
+- Dialogs and overlays need verified initial focus, containment where appropriate, Escape behavior, and focus restoration.
+- Avoid positive `tabIndex`.
+- Verify skip links and landmark targets.
 
-### Structure
-- [ ] Skip-to-content target `#main` stays intact (it's in the route shells).
-- [ ] Live regions (`aria-live`) for toasts / async status (e.g. ToastNotification).
+### Dynamic behavior
 
-## Output
-End with: ✅ no a11y issues, or ⚠️ N issues (listed). Run `lint` to confirm the
-static jsx-a11y rules also pass.
+- Announce important async status and errors when needed.
+- Avoid focus loss during loading, navigation, or conditional rendering.
+- Controls must expose disabled, expanded, selected, pressed, and busy state correctly.
+
+### Visual and motion
+
+- Check contrast in rendered states, not from class names alone.
+- Do not rely on color alone to convey meaning.
+- Respect reduced-motion preferences.
+- Ensure zoom, text scaling, and responsive layouts do not hide content or controls.
+
+### Pointer and touch
+
+- Provide adequate target size and spacing.
+- Do not require hover for essential information or actions.
+- Ensure gestures have accessible alternatives where relevant.
+
+## Validation
+
+Use the checks appropriate to the change:
+
+- lint and static accessibility rules
+- keyboard walkthrough
+- browser accessibility tree
+- axe or equivalent automated scan
+- screen-reader spot check for complex widgets
+- contrast measurement
+- mobile viewport and zoom review
+
+Automated tools do not replace manual keyboard and focus testing.
+
+## Findings
+
+Report each material issue as:
+
+```text
+[severity] file:line — issue
+Observed behavior: what happens
+Expected behavior: accessible outcome
+Suggested fix: concrete correction
+```
+
+Do not include unrelated naming or code-style preferences.
+
+End with the checks performed and either `✅ no material accessibility issues found` or `⚠️ N material issues found`.

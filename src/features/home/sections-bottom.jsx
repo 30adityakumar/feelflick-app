@@ -701,62 +701,62 @@ export function QuickLog({ onLog }) {
   )
 }
 
-// PageEndCard — closing moment for /home. One focused CTA into Discover
-// (FeelFlick's mood-engine surface). The catalog/Browse remains available
-// from the top nav; here we make the strongest single offer instead of
-// asking the user to choose. Mood-tinted gradient adapts to the active
-// mood so the closer carries the user's current glow.
+// PageEndCard — quiet, role-clear close for /home (F4.5). Home has ALREADY given
+// tonight's pick above; this is just the optional door to Discover for when the
+// user would rather shape a pick deliberately by mood + context. Deliberately
+// calmer than a second hero — and it never implies Discover picks "better" than
+// Home or that tonight's pick is disposable. Mood-tinted so the closer carries the
+// user's current glow.
 export function PageEndCard({ currentMood, onDiscover }) {
   const tint = currentMood?.hex || HP.purple
   return (
-    <section className="border-t px-5 py-16 pb-24 sm:px-8 sm:py-20 sm:pb-28 lg:px-[88px] lg:py-[96px] lg:pb-[112px]" style={{ borderColor: HP.border }}>
+    <section className="border-t px-5 py-12 pb-16 sm:px-8 sm:py-14 sm:pb-20 lg:px-[88px] lg:py-[64px] lg:pb-[80px]" style={{ borderColor: HP.border }}>
       <div
         style={{
           position: 'relative',
           borderRadius: 14,
           overflow: 'hidden',
-          padding: '60px 32px',
+          padding: '40px 28px',
           background: `
-            radial-gradient(ellipse 60% 80% at 20% 100%, ${tint}26, transparent 60%),
-            radial-gradient(ellipse 50% 70% at 100% 0%, rgba(167,139,250,0.14), transparent 55%),
-            linear-gradient(135deg, rgba(8,6,14,0.92) 0%, rgba(8,6,14,0.78) 100%)
+            radial-gradient(ellipse 60% 80% at 20% 100%, ${tint}1a, transparent 62%),
+            linear-gradient(135deg, rgba(8,6,14,0.9) 0%, rgba(8,6,14,0.74) 100%)
           `,
           border: `1px solid ${HP.border}`,
           textAlign: 'center',
         }}
-        className="sm:px-12 lg:py-[88px]"
+        className="sm:px-10"
       >
         <div style={{
-          fontSize: 11, fontWeight: 700, letterSpacing: '0.32em', textTransform: 'uppercase',
-          color: HP.purple, marginBottom: 16, display: 'inline-flex', alignItems: 'center', gap: 12,
+          fontSize: 10, fontWeight: 700, letterSpacing: '0.3em', textTransform: 'uppercase',
+          color: HP.textMuted, marginBottom: 14, display: 'inline-flex', alignItems: 'center', gap: 12,
         }}>
-          <span aria-hidden style={{ height: 1, width: 28, background: HP.purple, opacity: 0.6 }} />
-          Keep exploring
-          <span aria-hidden style={{ height: 1, width: 28, background: HP.purple, opacity: 0.6 }} />
+          <span aria-hidden style={{ height: 1, width: 24, background: HP.textMuted, opacity: 0.5 }} />
+          Or shape your own
+          <span aria-hidden style={{ height: 1, width: 24, background: HP.textMuted, opacity: 0.5 }} />
         </div>
         <h2 style={{
           fontFamily: 'Outfit, Inter, sans-serif',
-          fontSize: 'clamp(32px, 4.4vw, 56px)',
-          lineHeight: 1.02,
+          fontSize: 'clamp(24px, 3vw, 38px)',
+          lineHeight: 1.05,
           fontWeight: 300,
-          letterSpacing: '-0.04em',
+          letterSpacing: '-0.035em',
           color: HP.text,
-          margin: '0 auto 14px auto',
-          maxWidth: 720,
+          margin: '0 auto 12px auto',
+          maxWidth: 620,
           textWrap: 'balance',
         }}>
-          Tonight has more than one <em style={{ fontStyle: 'italic', color: tint, fontWeight: 400 }}>glow.</em>
+          Want to pick by <em style={{ fontStyle: 'italic', color: tint, fontWeight: 400 }}>mood and moment?</em>
         </h2>
         <p style={{
           fontFamily: 'Outfit, Inter, sans-serif',
-          fontSize: 'clamp(14px, 1.1vw, 16px)',
+          fontSize: 'clamp(13px, 1vw, 15px)',
           lineHeight: 1.55,
           color: HP.textMuted,
-          margin: '0 auto 32px auto',
-          maxWidth: 560,
+          margin: '0 auto 26px auto',
+          maxWidth: 520,
           textWrap: 'pretty',
         }}>
-          Let Discover translate your mood into a movie that actually fits tonight.
+          Tonight’s pick is already set above. Discover is the deliberate path — shape a different one around your mood, time, and who you’re with.
         </p>
         <div className="flex items-center justify-center">
           <button
@@ -764,15 +764,15 @@ export function PageEndCard({ currentMood, onDiscover }) {
             onClick={() => onDiscover?.()}
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 10,
-              padding: '14px 24px', borderRadius: 8,
+              padding: '12px 22px', borderRadius: 8,
               background: HP_GRAD, border: 'none', color: '#fff',
               fontFamily: 'Outfit', fontSize: 14, fontWeight: 600, letterSpacing: '0.02em',
               cursor: 'pointer',
-              boxShadow: '0 14px 32px -10px rgba(236,72,153,0.5)',
+              boxShadow: '0 10px 24px -12px rgba(236,72,153,0.42)',
             }}
             className="transition-transform duration-200 active:scale-[0.98]"
           >
-            Discover by mood
+            Open Discover
             <ChevronRight className="h-4 w-4" aria-hidden />
           </button>
         </div>

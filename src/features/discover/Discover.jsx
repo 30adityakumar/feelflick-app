@@ -295,7 +295,11 @@ function DiscoverBody() {
 
   // Use live candidates from `movies`; fall back to the editorial seed set
   // only when the query hasn't returned anything (offline / empty DB).
-  const films = (liveFilms && liveFilms.length > 0) ? liveFilms : FILMS_FALLBACK;
+  const usingLiveFilms = !!(liveFilms && liveFilms.length > 0);
+  const films = usingLiveFilms ? liveFilms : FILMS_FALLBACK;
+  // When the live fetch returned nothing (empty/error), the result is drawn from
+  // the static FILMS_FALLBACK set — labelled honestly to the user via StagePick.
+  const usingFallback = !usingLiveFilms;
 
   const fireBurst = (id, hex) => {
     const t = Date.now();
@@ -435,7 +439,7 @@ function DiscoverBody() {
         {stage === 1   && <StageMood selected={selected} setSelected={setSelected} onNext={()=>setStage(2)} blendHex={blendHex} bursts={bursts} fireBurst={fireBurst} audioToggle={<AudioToggle />} playMoodCue={(id)=>FFAudio.pluck(id)} playContinueCue={()=>FFAudio.whoom()} />}
         {stage === 2   && <StageNightContext time={time} setTime={setTime} who={who} setWho={setWho} energy={energy} setEnergy={setEnergy} intention={intention} setIntention={setIntention} onUserEdit={()=>{ contextTouchedRef.current = true }} onNext={()=>{ handleCommitStage2(); setStage(2.3); }} onBack={()=>setStage(1)} blendHex={blendHex} playOptionCue={()=>FFAudio.pluck('cozy')} playContinueCue={()=>FFAudio.whoom()} />}
         {stage === 2.3 && <StageResolve blendHex={blendHex} onDone={()=>setStage(3)} />}
-        {stage === 3   && <StagePick selected={selected.length>0?selected:['slow','tender']} who={who} energy={energy} intention={intention} time={time} results={allResults} profile={profile} sessionShownIds={sessionShownIds} onRestart={()=>{ setStage(1); setSelected([]); contextTouchedRef.current = false; didPredictDefaultsRef.current = false; setIntention('move'); setTime('std'); setWho('alone'); setEnergy('steady'); }} onBack={()=>setStage(2)} blendHex={blendHex} audioToggle={<AudioToggle />} />}
+        {stage === 3   && <StagePick selected={selected.length>0?selected:['slow','tender']} who={who} energy={energy} intention={intention} time={time} results={allResults} profile={profile} sessionShownIds={sessionShownIds} isFallback={usingFallback} onRestart={()=>{ setStage(1); setSelected([]); contextTouchedRef.current = false; didPredictDefaultsRef.current = false; setIntention('move'); setTime('std'); setWho('alone'); setEnergy('steady'); }} onBack={()=>setStage(2)} blendHex={blendHex} audioToggle={<AudioToggle />} />}
       </div>
     </div>
   );

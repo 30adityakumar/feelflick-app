@@ -12,7 +12,7 @@ import { trackInteraction } from '@/shared/services/interactions'
 
 export function useDiscoverResultActions({ top, user, selected, intention, energy, who, setHiddenTopIds, setSelectedTopId, navigate }) {
   const [savedState, setSavedState] = useState('idle'); // idle | saving | saved | error
-  const [watchedState, setWatchedState] = useState('idle'); // idle | watched
+  const [watchedState, setWatchedState] = useState('idle'); // idle | saving | watched | error
   // Per-film Saved + Watched state — when the user clicks Save or Mark
   // Watched, the button confirms success ("Saved", "Watched"). On
   // auto-advance to a new film, both reset to idle so the new top can be
@@ -104,9 +104,11 @@ export function useDiscoverResultActions({ top, user, selected, intention, energ
     if (markWatchedTimeoutRef.current) clearTimeout(markWatchedTimeoutRef.current);
   }, []);
   const handleMarkWatched = async () => {
-    if (!top?.id || !user?.id || watchedState !== 'idle') return;
+    // Re-entrant only from 'idle' or 'error' (retry); blocked while saving or
+    // already confirmed. Payload + impression/interaction shapes are unchanged.
+    if (!top?.id || !user?.id || watchedState === 'saving' || watchedState === 'watched') return;
     const filmId = top.id;
-    setWatchedState('watched');
+    setWatchedState('saving');
     try {
       // 23505 (unique violation) = already in history; treat as success
       const { error } = await supabase
@@ -115,13 +117,19 @@ export function useDiscoverResultActions({ top, user, selected, intention, energ
       if (error && error.code !== '23505') throw error;
     } catch (e) {
       console.error('[Discover.markWatched]', e);
-      // Even on insert failure, hide locally so the user can move on
+      // A real write failure must NOT falsely confirm "Watched" or advance —
+      // surface a retryable error instead (F3.9 honesty).
+      setWatchedState('error');
+      return;
     }
+    setWatchedState('watched');
+    // Engine learning fires only after the history write succeeds, so a failed
+    // mark-watched isn't credited.
     updateImpression(user.id, filmId, 'watched').catch(() => {});
     trackInteraction('watch', interactionContext('mark_watched')).catch(() => {});
     // 600ms holds "Watched ✓" long enough to register as confirmation
     // before the crossfade swap (180ms) carries the next pick in. Cleared
-    // on unmount so a quick Tweak inputs / Start over click during the
+    // on unmount so a quick Adjust tonight / Start over click during the
     // hold doesn't fire a setState on an unmounted component.
     markWatchedTimeoutRef.current = setTimeout(() => {
       setHiddenTopIds(prev => new Set([...prev, filmId]));

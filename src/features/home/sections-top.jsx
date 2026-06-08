@@ -3,8 +3,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ChevronRight, SkipForward, RefreshCw } from 'lucide-react'
-import MatchBadge from '@/shared/components/MatchBadge'
+import { ChevronRight, SkipForward } from 'lucide-react'
 import { ActionButton, SecondaryActionButton } from '@/shared/components/ActionButton'
 import { useUserMovieStatus } from '@/shared/hooks/useUserMovieStatus'
 import { getMovieWatchProviders } from '@/shared/api/tmdb'
@@ -24,13 +23,15 @@ import { useHomeData } from './useHomeData'
 // head pick with a skip-to-next queue underneath.)
 const TONIGHT_LABEL = "Tonight's pick"
 
-// MoodReactor — pill picker with a "TONIGHT I FEEL" kicker on the left.
-// The active pill already carries the mood color + glow, so the kicker
-// doesn't echo the selected label (would be redundant + cause width jitter
-// on selection). Auto-scrolls the active pill into view on mobile so the
-// user can always see their current pick even when their baseline mood
-// sits at the end of MOOD_META and the row overflows the viewport.
-export function MoodReactor({ currentMood, setMood, onReshuffle }) {
+// MoodReactor — secondary "Adjust mood" control strip (F4.4: demoted BELOW the
+// pick — Home leads with tonight's pick, mood is an optional adjustment, not the
+// front door). Pill picker with an "ADJUST MOOD" kicker on the left. The active
+// pill already carries the mood color + glow, so the kicker doesn't echo the
+// selected label (would be redundant + cause width jitter on selection).
+// Auto-scrolls the active pill into view on mobile so the user can always see
+// their current pick even when their baseline mood sits at the end of MOOD_META
+// and the row overflows the viewport.
+export function MoodReactor({ currentMood, setMood }) {
   const pillsRef = useRef(null)
   useEffect(() => {
     const el = pillsRef.current
@@ -46,7 +47,7 @@ export function MoodReactor({ currentMood, setMood, onReshuffle }) {
       <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-5">
         <div className="flex flex-none items-baseline gap-2.5">
           <span aria-hidden style={{ height: 1, width: 18, background: HP.purple, opacity: 0.6, alignSelf: 'center' }} />
-          <Eyebrow color={HP.textMuted} size={10} style={{ whiteSpace: 'nowrap' }}>Tonight I feel</Eyebrow>
+          <Eyebrow color={HP.textMuted} size={10} style={{ whiteSpace: 'nowrap' }}>Adjust mood</Eyebrow>
         </div>
         <div
           ref={pillsRef}
@@ -77,21 +78,6 @@ export function MoodReactor({ currentMood, setMood, onReshuffle }) {
             </button>
           )
         })}
-        {/* Reshuffle — small icon-only pill at the right end of the row.
-            Took the place of the deleted bottom strip in audit pass-15.
-            On mobile it sits inline with the pills (still tap-accessible). */}
-        {onReshuffle && (
-          <button
-            type="button"
-            onClick={onReshuffle}
-            aria-label="Reshuffle picks"
-            title="Reshuffle"
-            className="ff-tap-hit flex flex-none items-center justify-center rounded-full border border-white/10 transition-all duration-200 hover:border-white/25 hover:bg-white/6 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-            style={{ width: 32, height: 32, color: HP.textMuted, marginLeft: 4 }}
-          >
-            <RefreshCw className="h-3.5 w-3.5" />
-          </button>
-        )}
         </div>
       </div>
     </section>
@@ -101,8 +87,8 @@ export function MoodReactor({ currentMood, setMood, onReshuffle }) {
 // In-card action buttons are the canonical family in shared/components/ActionButton
 // (rounded-8, Outfit — shared with /movie so the briefing actions don't feel like a
 // different system). The three below are thin wrappers that add the icon, label, and
-// active state on top of <SecondaryActionButton>; the gradient "See More" primary
-// uses <ActionButton> directly.
+// active state on top of <SecondaryActionButton>; the gradient "Open Film File"
+// primary uses <ActionButton> directly.
 function WatchedButton({ isWatched, loading, error, onClick }) {
   return (
     <SecondaryActionButton
@@ -138,8 +124,8 @@ function SkipButton({ onClick }) {
     <SecondaryActionButton
       collapse
       onClick={onClick}
-      title="Skip — not tonight"
-      label="Skip Tonight"
+      title="Not tonight"
+      label="Not tonight"
       icon={<SkipForward className="h-4 w-4 lg:h-3.5 lg:w-3.5" />}
     />
   )
@@ -192,13 +178,13 @@ function StreamingChip({ provider }) {
   )
 }
 
-// BriefingSlide — single-pick hero used inside a Netflix-style slider
-// (audit pass-16). One pick visible at a time; nav lives in TheBriefing
-// (arrows on desktop, swipe + dots on mobile). Layout:
+// BriefingSlide — the one visible nightly pick (F4.4: no slider, no dots, no
+// match ring — a single, stable, pick-first hero; Not-tonight / Mark-Watched draw
+// the next result from the INVISIBLE internal queue). Layout:
 //   • mobile: vertical — poster centered, copy stacked below
 //   • desktop: horizontal — poster left (360×540), copy right column.
 // No background backdrop image — keeps the page surface clean.
-function BriefingSlide({ film, matchPct, user, onWatch, onSkip, onMarkedWatched, announce }) {
+function BriefingSlide({ film, user, onWatch, onSkip, onMarkedWatched, announce }) {
   // source must match the user_watchlist_source_check CHECK constraint —
   // 'mood_recommendation' is the closest of the allowed values.
   const { isInWatchlist, isWatched, loading: statusLoading, toggleWatchlist, toggleWatched, internalId } =
@@ -272,7 +258,7 @@ function BriefingSlide({ film, matchPct, user, onWatch, onSkip, onMarkedWatched,
     }
   }, [statusLoading.watchlist, isInWatchlist, announce])
 
-  // Opening the pick (poster or "See More") is the Briefing's 'clicked' outcome.
+  // Opening the pick (poster or "Open Film File") is the Briefing's 'clicked' outcome.
   // F8B: record it against the fresh hero impression (logged when this slide
   // became active) so shown→clicked is captured, then hand off to onWatch
   // (navigation). Fire-and-forget; recordRecommendationOutcome no-ops if no
@@ -295,7 +281,7 @@ function BriefingSlide({ film, matchPct, user, onWatch, onSkip, onMarkedWatched,
       <button
         type="button"
         onClick={handleOpen}
-        aria-label={`See more about ${film.title}`}
+        aria-label={`Open Film File for ${film.title}`}
         className="relative block w-full max-w-[180px] flex-none sm:max-w-[260px] lg:w-[340px] lg:max-w-none"
         style={{
           borderRadius: 10, overflow: 'hidden',
@@ -304,11 +290,6 @@ function BriefingSlide({ film, matchPct, user, onWatch, onSkip, onMarkedWatched,
         }}
       >
         <SmartImg film={film} big style={{ width: '100%', aspectRatio: '2/3', objectFit: 'cover', display: 'block' }} />
-        {/* Animated match ring — sized to feel proportionate against the
-            smallest poster width (200px mobile); still reads at lg (340px). */}
-        {Number.isFinite(matchPct) && matchPct > 0 && (
-          <MatchBadge variant="ring" pct={matchPct} size={60} style={{ bottom: 14, right: 14 }} />
-        )}
       </button>
 
       {/* Content column */}
@@ -380,13 +361,13 @@ function BriefingSlide({ film, matchPct, user, onWatch, onSkip, onMarkedWatched,
           </div>
         )}
         {/* Actions — gradient primary + secondary buttons.
-            • mobile: single row — gradient "See more" grows (flex-1)
+            • mobile: single row — gradient "Open Film File" grows (flex-1)
               next to three compact 44×44 round icon buttons (label
               hidden, icon only).
             • lg+: wrap row of four labeled pills (movie-detail style). */}
         <div className="flex flex-wrap items-center justify-center gap-2.5 pt-4 lg:justify-start" style={{ borderTop: `1px solid ${HP.border}` }}>
           <ActionButton className="h-11 flex-1 lg:h-auto lg:flex-none" onClick={handleOpen}>
-            <span>See More</span>
+            <span>Open Film File</span>
             <ChevronRight className="h-3.5 w-3.5" />
           </ActionButton>
           <WatchedButton isWatched={isWatched} loading={watchedState === 'saving'} error={watchedState === 'error'} onClick={handleMarkWatched} />
@@ -398,9 +379,9 @@ function BriefingSlide({ film, matchPct, user, onWatch, onSkip, onMarkedWatched,
   )
 }
 
-// Slide-in reveal for the single pick: when the head advances (skip / mark
-// watched / reshuffle / mood change) the new pick enters from the right and
-// the old exits left. Forward-only now — there is no backward browse.
+// Slide-in reveal for the single pick: when the head advances (Not tonight /
+// Mark Watched / mood change) the new pick enters from the right and the old
+// exits left. Forward-only — there is no backward browse.
 const SLIDE_VARIANTS = {
   enter: { x: 56, opacity: 0 },
   center: { x: 0, opacity: 1 },
@@ -439,10 +420,10 @@ function BriefingSkeleton() {
 }
 
 
-// shuffleBySeed (deterministic reshuffle) + todaySeed (UTC daily rotation) moved
-// to homeDerive.js in F4.2 (behavior-preserved); imported above. todaySeed still
-// combines with the user's shuffleSeed (Reshuffle) + the mood id (strHash) below
-// to rotate the top-30 pool — same user, same mood, different picks each day.
+// shuffleBySeed (deterministic shuffle) + todaySeed (UTC daily rotation) moved
+// to homeDerive.js in F4.2 (behavior-preserved); imported above. todaySeed
+// combines with the mood id (strHash) below to rotate the per-mood pool —
+// same user, same mood, a stable pick that changes once per day.
 
 // Tiny non-cryptographic string-to-int hash. Used to fold the active mood
 // id into the rotation seed so different moods on the same day produce
@@ -454,51 +435,44 @@ function strHash(s) {
   return Math.abs(h)
 }
 
-export function TheBriefing({ currentMood, shuffleSeed = 0, user, onWatch, onSkip }) {
+export function TheBriefing({ currentMood, user, onWatch, onSkip }) {
   const { moods, loading } = useHomeData()
   const moodEntry = moods.find(m => m.id === currentMood.id)
 
   // F4.3 — one polite, atomic, screen-reader-only live region owned by the
   // Briefing. It narrates pick progression + action outcomes (never the queue
   // length or match %). pickActionRef records WHY the head last advanced so the
-  // pick-change effect can word the announcement (initial/mood/reshuffle vs skip
-  // vs mark-watched).
+  // pick-change effect can word the announcement (initial/mood vs skip vs
+  // mark-watched).
   const [statusMsg, setStatusMsg] = useState('')
   const announce = useCallback((msg) => setStatusMsg(msg), [])
   const pickActionRef = useRef('initial') // 'initial' | 'skip' | 'watched'
 
-  // Effective seed for picking which 3 of the top 30 are visible today.
-  // Recomputes when the day changes (midnight UTC) or when the user clicks
-  // Reshuffle. Mood id folded in so moods don't share the same rotation.
+  // Effective seed for the daily rotation through the per-mood pool. Recomputes
+  // when the UTC day changes (todaySeed) or the mood changes (strHash folds the
+  // mood id in so different moods don't share a rotation). Value is unchanged
+  // from before — F4.4 just dropped the now-removed Reshuffle term (always 0).
   const effectiveSeed = useMemo(
-    () => todaySeed() + shuffleSeed * 7919 + strHash(currentMood.id || ''),
-    [shuffleSeed, currentMood.id],
+    () => todaySeed() + strHash(currentMood.id || ''),
+    [currentMood.id],
   )
 
-  // Session-only hide list: when a slide is marked watched OR skipped, its
-  // film.id lands here and the picks filter drops it. The engine returns
-  // a deeper pool (15 per mood in useHomeData), so the next-best film
-  // slides into the freed slot — user sees "slide replaced by next
-  // suggestion" instead of an empty hole.
-  //
-  // Resets ONLY on mood change. Previously also reset on shuffleSeed,
-  // which made reshuffle bring back films the user had just skipped —
-  // counter-intuitive ("I skipped this, give me different films").
-  // Reshuffle now re-orders the *remaining* pool; switching moods is the
-  // way to start with a clean slate.
+  // Session-only hide list: when the pick is marked watched OR skipped, its
+  // film.id lands here and the queue filter drops it. The engine returns a
+  // deeper pool (15 per mood in useHomeData), so the next-best film takes the
+  // head slot — user sees the pick replaced by the next suggestion rather than
+  // an empty hole. Resets ONLY on mood change (switching moods is the clean
+  // slate); the internal queue stays invisible.
   const [hiddenIds, setHiddenIds] = useState(() => new Set())
-  // Resets ONLY on mood change. Reshuffle re-orders the *remaining* pool;
-  // switching moods is the way to start with a clean slate.
   useEffect(() => {
     setHiddenIds(new Set())
     // A fresh mood starts a fresh "Tonight's briefing pick" (not skip/watched).
     pickActionRef.current = 'initial'
   }, [currentMood.id])
 
-  // The remaining queue for this mood — daily-seeded + reshuffle-seeded, with
-  // skipped/watched films removed. We render only the HEAD; the rest is the
-  // depth that skip-to-next draws from (the single-pick equivalent of the old
-  // "next slides into the freed slot").
+  // The remaining queue for this mood — daily-seeded, with skipped/watched films
+  // removed. We render only the HEAD; the rest is the invisible depth that
+  // Not-tonight / Mark-Watched draw the next pick from.
   const queue = useMemo(() => {
     if (!moodEntry) return []
     return buildBriefingQueue(moodEntry.films, effectiveSeed, hiddenIds)
@@ -540,7 +514,7 @@ export function TheBriefing({ currentMood, shuffleSeed = 0, user, onWatch, onSki
 
   // Briefing impression — log the one visible pick. Per-day-deduped by
   // recommendation_impressions' unique key, so re-renders write one row per
-  // film per day. Fires whenever the head advances (skip / watched / reshuffle
+  // film per day. Fires whenever the head advances (Not tonight / Mark Watched
   // / mood change).
   const pickId = pick?.id
   const pickReason = pick?.engineReason
@@ -589,7 +563,7 @@ export function TheBriefing({ currentMood, shuffleSeed = 0, user, onWatch, onSki
           <p style={{ fontSize: 15, lineHeight: 1.6, color: HP.textSoft, fontFamily: 'Outfit, Inter, sans-serif', margin: 0, maxWidth: 480 }}>
             You&rsquo;ve reviewed all of tonight&rsquo;s{' '}
             <em style={{ fontStyle: 'italic', color: currentMood.hex, fontWeight: 500 }}>{currentMood.label.toLowerCase()}</em>{' '}
-            picks. Switch moods above, or
+            picks. Switch moods below, or
           </p>
           <button
             type="button"
@@ -602,17 +576,17 @@ export function TheBriefing({ currentMood, shuffleSeed = 0, user, onWatch, onSki
         </div>
       ) : isNoFilms ? (
         <div style={{ padding: '60px 0', textAlign: 'center', fontFamily: 'Outfit, Inter, sans-serif', color: HP.textMuted, fontSize: 14, fontStyle: 'italic' }}>
-          No <span style={{ color: currentMood.hex, fontStyle: 'italic' }}>{currentMood.label.toLowerCase()}</span> picks just yet — try a different mood above.
+          No <span style={{ color: currentMood.hex, fontStyle: 'italic' }}>{currentMood.label.toLowerCase()}</span> picks just yet — try a different mood below.
         </div>
       ) : !pick ? (
         <BriefingSkeleton />
       ) : (
         // Single confident pick. overflow-hidden contains the slide-in reveal
-        // (x-translate) when the head advances on skip / watched / reshuffle.
+        // (x-translate) when the head advances on Not-tonight / Mark-Watched.
         <div className="relative overflow-hidden">
           <AnimatePresence initial={false} mode="wait">
             <motion.div
-              key={`${currentMood.id}-${pick.id}-${shuffleSeed}`}
+              key={`${currentMood.id}-${pick.id}`}
               variants={SLIDE_VARIANTS}
               initial="enter"
               animate="center"
@@ -621,7 +595,6 @@ export function TheBriefing({ currentMood, shuffleSeed = 0, user, onWatch, onSki
             >
               <BriefingSlide
                 film={pick}
-                matchPct={pick.matchPct}
                 user={user}
                 onWatch={onWatch}
                 onSkip={handleSkip}

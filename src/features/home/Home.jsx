@@ -45,7 +45,6 @@ function HomeBody() {
   const { loading, error, moods: liveMoods } = useHomeData()
   const [currentMood, setMood] = useState(MOOD_META[0])
   const [userPickedMood, setUserPickedMood] = useState(false)
-  const [shuffleSeed, setShuffleSeed] = useState(0)
 
   // When the data hook finishes, snap the initial mood tab to the user's first
   // baseline pick from Onboarding Step 1 (useHomeData reorders `moods` so the
@@ -105,10 +104,6 @@ function HomeBody() {
       metadata: { action: 'skip', mood: currentMood?.id ?? null },
     }).catch(() => { /* non-fatal */ })
   }, [currentMood, authUser?.id])
-
-  const onReshuffle = useCallback(() => {
-    setShuffleSeed(s => s + 1)
-  }, [])
 
   // QuickLog's "Open Browse" pill routes to /browse (the catalog).
   // Distinct from the page-end card's "Discover by mood" CTA — that
@@ -171,21 +166,24 @@ function HomeBody() {
           <HomeLoadError />
         ) : (
           <>
-            <MoodReactor currentMood={currentMood} setMood={handleSetMood} onReshuffle={onReshuffle} />
+            {/* F4.4 — pick-first. Home leads with tonight's one pick; the mood
+                control strip sits BELOW it as an optional "adjust mood", not the
+                route's front door (that's Discover's deliberate session). */}
             <TheBriefing
               currentMood={currentMood}
-              shuffleSeed={shuffleSeed}
               user={authUser}
               onWatch={onWatch}
               onSkip={onSkip}
             />
+            <MoodReactor currentMood={currentMood} setMood={handleSetMood} />
             <ContinueWatching onResume={onWatch} />
             {/* Section order — descending actionability:
                  1. Briefing (tonight's pick — primary recommendation)
-                 2. CuratedLists (more picks — alternatives, still actionable)
-                 3. TasteMatch → TasteTwinPulse (social cluster — people then their picks)
-                 4. CinematicDNA (reflective portrait — confidence reveal)
-                 5. QuickLog (utility, lowest priority) */}
+                 2. Adjust-mood strip (secondary control for the pick above)
+                 3. CuratedLists (more picks — alternatives, still actionable)
+                 4. TasteMatch → TasteTwinPulse (social cluster — people then their picks)
+                 5. CinematicDNA (reflective portrait — confidence reveal)
+                 6. QuickLog (utility, lowest priority) */}
             <CuratedLists onOpenList={onOpenList} />
             <TasteMatch onOpenFriend={onOpenFriend} />
             <TasteTwinPulse onWatch={onWatch} />

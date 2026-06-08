@@ -168,7 +168,7 @@ describe('Home Briefing — Skip / Not Tonight', () => {
   it('writes skipped-impression BEFORE the dismiss interaction', async () => {
     renderHome()
     await waitFor(() => expect(screen.getByRole('heading', { level: 2 })).toBeTruthy())
-    fireEvent.click(btn('Skip Tonight'))
+    fireEvent.click(btn('Not tonight'))
     await waitFor(() => expect(updateImpression).toHaveBeenCalled())
     expect(trackInteraction).toHaveBeenCalled()
     expect(updateImpression.mock.invocationCallOrder[0]).toBeLessThan(trackInteraction.mock.invocationCallOrder[0])
@@ -181,7 +181,7 @@ describe('Home Briefing — Skip / Not Tonight', () => {
     h.skipReject = true; h.dismissReject = true
     renderHome()
     const t1 = pickTitle()
-    fireEvent.click(btn('Skip Tonight'))
+    fireEvent.click(btn('Not tonight'))
     // No crash; the pick still advances despite both tracking writes rejecting.
     await waitFor(() => expect(pickTitle()).not.toBe(t1))
   })
@@ -189,7 +189,7 @@ describe('Home Briefing — Skip / Not Tonight', () => {
   it('advances the visible pick and announces the new one', async () => {
     renderHome()
     const t1 = pickTitle()
-    fireEvent.click(btn('Skip Tonight'))
+    fireEvent.click(btn('Not tonight'))
     await waitFor(() => expect(pickTitle()).not.toBe(t1))
     expect(liveRegion()?.textContent).toMatch(/^New briefing pick: Movie \d+\.$/)
   })
@@ -219,7 +219,7 @@ describe('Home Briefing — exhausted', () => {
     h.moods = [{ id: MOOD_ID, films: [film(1)] }]
     renderHome()
     await waitFor(() => expect(screen.getByRole('heading', { level: 2 })).toBeTruthy())
-    fireEvent.click(btn('Skip Tonight'))
+    fireEvent.click(btn('Not tonight'))
     await waitFor(() => expect(liveRegion()?.textContent).toBe('No more picks for this mood.'))
   })
 })

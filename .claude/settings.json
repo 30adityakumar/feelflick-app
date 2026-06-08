@@ -1,8 +1,4 @@
-python3 - <<'PY'
-import json
-from pathlib import Path
-
-settings = {
+{
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "permissions": {
     "defaultMode": "acceptEdits",
@@ -14,7 +10,6 @@ settings = {
       "Edit",
       "Write",
       "Agent",
-
       "Bash(npm run dev)",
       "Bash(npm run build)",
       "Bash(npm run preview)",
@@ -28,7 +23,6 @@ settings = {
       "Bash(npm run test:e2e:report)",
       "Bash(npm run test:visual)",
       "Bash(npm run supabase:start)",
-
       "Bash(git status)",
       "Bash(git status *)",
       "Bash(git diff)",
@@ -41,44 +35,41 @@ settings = {
       "Bash(git rev-parse *)"
     ],
     "ask": [
+      "Bash(npm ci)",
       "Bash(npm install)",
       "Bash(npm install *)",
       "Bash(npm uninstall *)",
       "Bash(npm update)",
       "Bash(npm update *)",
       "Bash(npm run test:visual:update)",
-
       "Bash(npm run supabase:init)",
       "Bash(npm run supabase:login)",
       "Bash(npm run supabase:link)",
+      "Bash(supabase init *)",
+      "Bash(supabase login *)",
       "Bash(supabase link *)",
       "Bash(supabase db push *)",
       "Bash(supabase db reset *)",
       "Bash(supabase migration up *)",
       "Bash(supabase functions deploy *)",
       "Bash(supabase secrets set *)",
-
+      "Bash(git commit)",
       "Bash(git commit *)",
       "Bash(git push)",
       "Bash(git push *)",
       "Bash(git reset --hard *)",
       "Bash(git clean *)",
-
       "Bash(rm -rf *)",
       "Bash(rm -fr *)",
       "Bash(rm -r -f *)",
       "Bash(rm -f -r *)",
       "Bash(rm --recursive --force *)",
       "Bash(rm --force --recursive *)",
-
       "Bash(vercel deploy *)",
       "Bash(vercel --prod *)",
       "Bash(wrangler deploy *)",
-
       "Bash(gh pr create *)",
       "Bash(gh pr merge *)",
-      "Bash(gh issue create *)",
-
       "Bash(* drop table *)",
       "Bash(* DROP TABLE *)",
       "Bash(* truncate table *)",
@@ -93,7 +84,6 @@ settings = {
       "Read(**/.env.*.local)",
       "Read(.claude/local-secrets.json)",
       "Read(**/.claude/local-secrets.json)",
-
       "Edit(.env)",
       "Edit(.env.local)",
       "Edit(.env.*.local)",
@@ -102,7 +92,14 @@ settings = {
       "Edit(**/.env.*.local)",
       "Edit(.claude/local-secrets.json)",
       "Edit(**/.claude/local-secrets.json)",
-
+      "Write(.env)",
+      "Write(.env.local)",
+      "Write(.env.*.local)",
+      "Write(**/.env)",
+      "Write(**/.env.local)",
+      "Write(**/.env.*.local)",
+      "Write(.claude/local-secrets.json)",
+      "Write(**/.claude/local-secrets.json)",
       "Bash(git push --force *)",
       "Bash(git push -f *)",
       "Bash(git push --force-with-lease *)",
@@ -126,9 +123,3 @@ settings = {
     ]
   }
 }
-
-Path(".claude/settings.json").write_text(
-    json.dumps(settings, indent=2, ensure_ascii=False) + "\n",
-    encoding="utf-8",
-)
-PY

@@ -1,46 +1,70 @@
 ---
 name: perf-guard
 description: >
-  Protect runtime performance for FeelFlick's media-heavy frontend. Trigger on:
-  "performance", "slow", "LCP", "CLS", "bundle size", "image/poster loading",
-  "lazy load", "Lighthouse", "web-vitals", "optimize", or when adding images,
-  carousels, heavy deps, or large queries.
+  Review FeelFlick runtime performance. Trigger on slow pages, LCP, CLS, INP,
+  bundle size, images, carousels, heavy dependencies, large queries, or optimization work.
 ---
 
-# Performance Guard
+# Performance Review
 
-FeelFlick is poster-heavy, personalization-heavy, and dual-deployed to Cloudflare
-Pages + Vercel for edge speed. Protect the metrics users feel. **Measure, don't
-guess** — use chrome-devtools (`performance_start_trace`, `lighthouse_audit`) and
-the existing `web-vitals` wiring (`src/shared/lib/vitals.js`).
+Read `.claude/rules/testing.md` and any path-specific implementation rules first.
 
-## Checklist
-### Images / posters (the biggest lever)
-- [ ] Use `tmdbImg()` with a **sized** variant (e.g. w342/w500), never `original`
-      for grid/card posters.
-- [ ] Below-the-fold posters: `loading="lazy"`. Hero/LCP image: eager +
-      `fetchpriority="high"`.
-- [ ] Always set width/height (or aspect-ratio) on posters → prevents CLS.
+Measure before claiming a performance problem or improvement. Use browser traces, Web Vitals, build output, query timing, and rendered behavior as appropriate.
 
-### Layout stability (CLS)
-- [ ] Skeletons must match final content shape — `HomeSkeleton`/`RouteSkeleton`
-      exist specifically to prevent carousel/hero pop-in. Don't regress them.
-- [ ] Reserve space for async content; never shift on data arrival.
+## Review areas
 
-### JS / bundle
-- [ ] Keep routes code-split (`lazy()` in `router.jsx`) — don't pull heavy modules
-      into the entry chunk.
-- [ ] Framer Motion is heavy — prefer CSS transitions for simple cases; animate
-      transform/opacity only (no layout-triggering properties).
-- [ ] Watch vendor chunk growth on `npm run build` (report sizes if they jump).
+### Images and media
 
-### Data / queries (Supabase)
-- [ ] `select()` only needed columns — never `select('*')` on `movies`/`people`.
-- [ ] Avoid N+1; batch with `.in()`. Lean on `user_profiles_computed` (cached)
-      instead of recomputing per request.
-- [ ] RLS perf: `auth.uid()` in policies should be `(select auth.uid())` so it's
-      evaluated once, not per row.
+- request an appropriately sized TMDB image for the rendered use
+- reserve dimensions or aspect ratio to avoid layout shift
+- prioritize likely LCP imagery
+- lazy-load content that is genuinely below the fold
+- avoid decoding or downloading media that is not likely to be shown
 
-## Output
-State the metric at risk (LCP/CLS/TBT/bundle/query), the fix, and — when feasible —
-a before/after from Lighthouse or a build-size diff. Don't claim a win without a number.
+Do not require every image to lazy-load. Hero or immediately visible images may need eager loading and fetch priority.
+
+### Layout and interaction
+
+- reserve space for async content
+- avoid unnecessary layout-triggering animation
+- prefer transform and opacity for simple motion
+- check long tasks and interaction responsiveness
+- respect reduced motion
+
+Skeletons are one option, not a universal requirement. Use the loading treatment that best preserves layout and communicates progress.
+
+### JavaScript and bundles
+
+- keep route-level code splitting where it provides value
+- inspect new dependency cost and duplication
+- avoid moving heavy modules into the entry path
+- measure chunk changes after meaningful dependency or import changes
+- use the existing animation library when appropriate; do not reject it solely for being large
+
+### Data and queries
+
+- select only fields needed by the surface
+- avoid N+1 request patterns
+- batch and cache where ownership and freshness allow
+- inspect query plans or timing for database work
+- do not preserve a cache merely because it exists when it serves stale or incorrect data
+
+### Rendering
+
+- avoid repeated expensive computation in render paths
+- verify memoization actually reduces work before adding complexity
+- inspect list virtualization only when list size and rendering cost justify it
+- avoid performance changes that reduce accessibility or correctness
+
+## Validation
+
+State:
+
+- metric or resource at risk
+- measurement method
+- baseline
+- implemented or proposed change
+- after measurement when available
+- trade-offs and remaining uncertainty
+
+Do not claim a win without evidence. For a preventive review where no baseline exists, describe the plausible risk without inventing numbers.

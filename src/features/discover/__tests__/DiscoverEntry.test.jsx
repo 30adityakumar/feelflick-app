@@ -133,6 +133,27 @@ describe('Discover night context — summary-first (F3.6)', () => {
     } finally { vi.useRealTimers() }
   })
 
+  it('Find my film writes exactly one preference upsert with the full count payload (onConflict user_id)', async () => {
+    vi.useFakeTimers()
+    try {
+      renderDiscover()
+      gotoNight('Cozy') // predicted: intention=comfort, time=std, who=alone, energy=hour-based
+      fireEvent.click(findFilmBtn())
+      await act(async () => { await vi.advanceTimersByTimeAsync(0) }) // flush the fire-and-forget commit
+      const ups = prefUpserts()
+      expect(ups).toHaveLength(1)
+      expect(ups[0].opts).toEqual({ onConflict: 'user_id' })
+      const row = ups[0].row
+      expect(row.user_id).toBe('u1')
+      expect(row.total_commits).toBe(1)
+      // existing row is null → each count map starts at the accepted value with count 1
+      expect(row.intention_counts).toEqual({ comfort: 1 }) // cozy → comfort
+      expect(row.time_counts).toEqual({ std: 1 })
+      expect(row.who_counts).toEqual({ alone: 1 })
+      expect(Object.values(row.energy_counts)).toEqual([1]) // hour-dependent key, count 1
+    } finally { vi.useRealTimers() }
+  })
+
   it('the result appears after exactly 900ms — not before', async () => {
     vi.useFakeTimers()
     try {

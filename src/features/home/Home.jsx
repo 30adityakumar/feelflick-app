@@ -22,11 +22,27 @@ import {
 import { HomeDataProvider, useHomeData } from './useHomeData'
 import './home.css'
 
+// Calm, honest top-level error when the home briefing data fails to load. No raw
+// Supabase error, no stack trace, no auto-reload — just a clear message and a
+// gentle suggestion to refresh.
+function HomeLoadError() {
+  return (
+    <div role="alert" className="flex flex-col items-center gap-2 px-6 py-24 text-center">
+      <p style={{ fontSize: 16, fontWeight: 600, color: HP.text, fontFamily: 'Outfit, Inter, sans-serif', margin: 0 }}>
+        We couldn&rsquo;t load your home briefing.
+      </p>
+      <p style={{ fontSize: 14, color: HP.textMuted, fontFamily: 'Outfit, Inter, sans-serif', margin: 0 }}>
+        Try refreshing in a moment.
+      </p>
+    </div>
+  )
+}
+
 function HomeBody() {
   usePageMeta({ title: 'Home — FeelFlick' })
   const navigate = useNavigate()
   const { user: authUser } = useAuthSession()
-  const { loading, moods: liveMoods } = useHomeData()
+  const { loading, error, moods: liveMoods } = useHomeData()
   const [currentMood, setMood] = useState(MOOD_META[0])
   const [userPickedMood, setUserPickedMood] = useState(false)
   const [shuffleSeed, setShuffleSeed] = useState(0)
@@ -60,34 +76,34 @@ function HomeBody() {
   // for tomorrow") overstated what the engine actually does with skips.
   const onSkip = useCallback((film) => {
     if (!film?.id) return
-    // Two writes, two purposes:
+    // Skip is a LEARNING SIGNAL, not just analytics — so both writes matter, but
+    // neither blocks the user moving on (the visible pick advances in
+    // TheBriefing.handleSkip right after this returns). Explicit F4.3 sequence,
+    // each write failure-contained (consistent with Discover's non-blocking skip):
     //
-    // 1. user_interactions ('dismiss') — product-analytics log of "user said no
-    //    to this film." The interaction_type CHECK constraint allows
-    //    {view,hover,click,search,filter,scroll,play_trailer,share,dismiss};
-    //    'skip' isn't in the set, so we use 'dismiss' (closest semantic) and
-    //    carry the concrete action in metadata.action.
+    //   1. recommendation_impressions.skipped = true — flips the most-recent
+    //      impression row for (user, movie) so the engine's negative-signal model
+    //      picks it up (computeNegativeSignals → skippedDirectors / skippedGenres /
+    //      skippedFitProfiles / skippedMoodTags → scoreMovieForUser next visit).
+    //      The briefing's per-active-slide impression effect already logged the
+    //      `placement: 'hero'` row for this film, so updateImpression finds + flips
+    //      THAT row. Without this write, skips only hide-in-session.
+    //   2. user_interactions ('dismiss') — product-analytics log. The
+    //      interaction_type CHECK allows {view,hover,click,search,filter,scroll,
+    //      play_trailer,share,dismiss}; 'skip' isn't in the set, so 'dismiss' is
+    //      the closest semantic, with the concrete action in metadata.action.
+    //   3. advance — handled by the caller (hide the slide → next pick).
     //
-    // 2. recommendation_impressions.skipped = true — flips the most-recent
-    //    impression row for (user, movie) so the engine's negative-signal
-    //    model picks it up. computeNegativeSignals reads this column to
-    //    populate skippedDirectors / skippedGenres / skippedFitProfiles /
-    //    skippedMoodTags — which feed back into scoreMovieForUser the next
-    //    time the user lands on /home. Without this write, briefing skips
-    //    only hide-in-session and never teach the engine.
-    //
-    //    Order matters: the briefing's per-active-slide impression effect
-    //    (sections-top.jsx) has already created a `placement: 'hero'` row
-    //    for this film when the slide became active. updateImpression finds
-    //    THAT row and flips the flag.
+    // Payloads/tables/events are unchanged; both are best-effort (.catch) so a
+    // failed tracking write never leaves an unhandled promise or blocks the user.
+    if (authUser?.id) {
+      updateImpression(authUser.id, film.id, 'skipped').catch(() => { /* non-fatal */ })
+    }
     trackInteraction('dismiss', {
       movieId: film.id,
       source: 'briefing',
       metadata: { action: 'skip', mood: currentMood?.id ?? null },
     }).catch(() => { /* non-fatal */ })
-    if (authUser?.id) {
-      updateImpression(authUser.id, film.id, 'skipped').catch(() => {})
-    }
   }, [currentMood, authUser?.id])
 
   const onReshuffle = useCallback(() => {
@@ -146,30 +162,41 @@ function HomeBody() {
       <div style={{ position: 'relative', zIndex: 1 }}>
         {/* a11y landmark (F12B): the visual masthead is the Briefing hero; an sr-only h1 gives the page its heading without competing with the pick. */}
         <h1 className="sr-only">Tonight — your nightly pick</h1>
-        <MoodReactor currentMood={currentMood} setMood={handleSetMood} onReshuffle={onReshuffle} />
-        <TheBriefing
-          currentMood={currentMood}
-          shuffleSeed={shuffleSeed}
-          user={authUser}
-          onWatch={onWatch}
-          onSkip={onSkip}
-        />
-        <ContinueWatching onResume={onWatch} />
-        {/* Section order — descending actionability:
-             1. Briefing (tonight's pick — primary recommendation)
-             2. CuratedLists (more picks — alternatives, still actionable)
-             3. TasteMatch → TasteTwinPulse (social cluster — people then their picks)
-             4. CinematicDNA (reflective portrait — confidence reveal)
-             5. QuickLog (utility, lowest priority) */}
-        <CuratedLists onOpenList={onOpenList} />
-        <TasteMatch onOpenFriend={onOpenFriend} />
-        <TasteTwinPulse onWatch={onWatch} />
-        <CinematicDNA />
-        <QuickLog onLog={onLog} />
-        <PageEndCard
-          currentMood={currentMood}
-          onDiscover={() => navigate('/discover')}
-        />
+        {error ? (
+          // F4.3 — honest top-level load failure. Without this, a data error left
+          // `loading` false with empty moods, so the Briefing showed a misleading
+          // "no picks for this mood" state forever. Calm message, no raw error, no
+          // auto-reload; rendering this (not the Briefing) also means no impression
+          // is logged on an errored load.
+          <HomeLoadError />
+        ) : (
+          <>
+            <MoodReactor currentMood={currentMood} setMood={handleSetMood} onReshuffle={onReshuffle} />
+            <TheBriefing
+              currentMood={currentMood}
+              shuffleSeed={shuffleSeed}
+              user={authUser}
+              onWatch={onWatch}
+              onSkip={onSkip}
+            />
+            <ContinueWatching onResume={onWatch} />
+            {/* Section order — descending actionability:
+                 1. Briefing (tonight's pick — primary recommendation)
+                 2. CuratedLists (more picks — alternatives, still actionable)
+                 3. TasteMatch → TasteTwinPulse (social cluster — people then their picks)
+                 4. CinematicDNA (reflective portrait — confidence reveal)
+                 5. QuickLog (utility, lowest priority) */}
+            <CuratedLists onOpenList={onOpenList} />
+            <TasteMatch onOpenFriend={onOpenFriend} />
+            <TasteTwinPulse onWatch={onWatch} />
+            <CinematicDNA />
+            <QuickLog onLog={onLog} />
+            <PageEndCard
+              currentMood={currentMood}
+              onDiscover={() => navigate('/discover')}
+            />
+          </>
+        )}
       </div>
     </div>
   )

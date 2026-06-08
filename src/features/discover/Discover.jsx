@@ -9,7 +9,6 @@ import { computeMatchPercent } from '@/shared/services/matchScore'
 import { DiscoverDataProvider, useDiscoverData } from './useDiscoverData'
 import { MOODS, ONBOARDING_TO_DISCOVER, diversifyTop3, predictDiscoverDefaults } from './derive'
 import { HP, TIME_OPTIONS } from './constants'
-import StageHero from './sections/StageHero'
 import StageMood from './sections/StageMood'
 import StageNightStacked from './sections/StageNightStacked'
 import StageBreath from './sections/StageBreath'
@@ -204,7 +203,10 @@ async function commitDiscoverPreferences({ userId, intention, time, who, energy 
 }
 
 function DiscoverBody() {
-  const [stage, setStage]       = useState(0);
+  // /discover opens directly on the mood front door (stage 1) — the separate
+  // hero/"How do you feel?" launch screen was removed in F3.5 (it re-asked mood
+  // a third time after onboarding). There is no stage 0 anymore.
+  const [stage, setStage]       = useState(1);
   const [selected, setSelected] = useState([]);
   const [time, setTime]         = useState('std');
   const [who, setWho]           = useState('alone');
@@ -222,26 +224,27 @@ function DiscoverBody() {
   // the same broad-mood films (e.g., Gladiator) win every constellation.
   // Resets naturally when the user leaves /discover and returns.
   const sessionShownIds = useRef(new Set());
-  useEffect(() => { if (stage === 0) setStage2StepIndex(0); }, [stage]);
+  useEffect(() => { if (stage === 1) setStage2StepIndex(0); }, [stage]);
   const { films: liveFilms, profile, baselineMoods, learnedPrefs, recentSaves } = useDiscoverData();
   const { user } = useAuthSession();
   const location = useLocation();
   const fromOnboardingRef = useRef(location.state?.fromOnboarding === true);
 
-  // First-visit pre-select (audit #7). Onboarding asked the user for their
-  // baseline moods 30 seconds ago; not re-asking on the first /discover
-  // is the smaller of two awkwardnesses. We soft-pre-select the #1
-  // baseline mood mapped through the bridge; user can tap to deselect or
-  // add up to 2 more before continuing.
+  // First-visit handoff from onboarding (F3.5). Onboarding asked the user for
+  // their baseline moods ~30 seconds ago, so on the FIRST /discover visit we
+  // seed the constellation from those moods rather than re-asking cold: map ALL
+  // baseline moods through the bridge, deduplicate while preserving order, and
+  // take at most three (the selection cap). The user can deselect or swap before
+  // continuing.
   //
-  // Subsequent visits start empty — the user's right-now mood is a session
-  // signal, distinct from their stable taste baseline. Gated on
-  // location.state.fromOnboarding so manual /discover navigations don't
-  // get the nudge.
+  // ORDINARY/DIRECT visits start empty — the user's right-now mood is a session
+  // signal distinct from their stable taste baseline, and we don't invent a
+  // "recent mood" that isn't stored. Gated on location.state.fromOnboarding so
+  // manual /discover navigations don't get the seed.
   //
-  // The ref prevents the effect from re-firing if the user navigates
-  // away/back during this session — fromOnboarding stays true on that
-  // location.state until the user manually leaves /discover.
+  // The ref prevents the effect from re-firing if the user navigates away/back
+  // during this session — fromOnboarding stays true on that location.state until
+  // the user manually leaves /discover.
   const didPreSelectRef = useRef(false);
   useEffect(() => {
     if (didPreSelectRef.current) return
@@ -250,7 +253,9 @@ function DiscoverBody() {
     if (!baselineMoods || baselineMoods.length === 0) return
     const mapped = baselineMoods.map(k => ONBOARDING_TO_DISCOVER[k]).filter(Boolean)
     if (mapped.length === 0) return
-    setSelected([mapped[0]])
+    // dedup (preserve order) + cap at the 3-mood maximum
+    const seeded = [...new Set(mapped)].slice(0, 3)
+    setSelected(seeded)
     didPreSelectRef.current = true
   }, [baselineMoods, selected.length])
 
@@ -261,8 +266,9 @@ function DiscoverBody() {
   // prevents the effect from re-applying and clobbering their choices.
   const didPredictDefaultsRef = useRef(false)
   // Reset the prediction gate when the user starts a fresh session
-  // (Stage 0 / Start over) so predictions re-apply for the next round.
-  useEffect(() => { if (stage === 0) didPredictDefaultsRef.current = false }, [stage])
+  // (returns to the Stage 1 mood front door / Start over) so predictions
+  // re-apply for the next round.
+  useEffect(() => { if (stage === 1) didPredictDefaultsRef.current = false }, [stage])
   useEffect(() => {
     if (didPredictDefaultsRef.current) return
     if (!profile) return
@@ -439,13 +445,12 @@ function DiscoverBody() {
     <div className="ff-discover" style={{ minHeight:'100vh', background:HP.bgDeep, color:HP.text, fontFamily:'Inter, sans-serif', position:'relative', overflow:'hidden' }}>
       <Starfield tint={blendHex} />
       <div style={{ position:'relative', zIndex:1, maxWidth:1440, margin:'0 auto' }}>
-        {stage === 0   && <StageHero onBegin={()=>setStage(1)} onSurprise={()=>{ setSelected(['slow','tender']); FFAudio.whoom(); setStage(2.3); }} />}
-        {stage === 1   && <StageMood selected={selected} setSelected={setSelected} onNext={()=>setStage(2)} onBack={()=>setStage(0)} blendHex={blendHex} bursts={bursts} fireBurst={fireBurst} audioToggle={<AudioToggle />} playMoodCue={(id)=>FFAudio.pluck(id)} playContinueCue={()=>FFAudio.whoom()} />}
+        {stage === 1   && <StageMood selected={selected} setSelected={setSelected} onNext={()=>setStage(2)} blendHex={blendHex} bursts={bursts} fireBurst={fireBurst} audioToggle={<AudioToggle />} playMoodCue={(id)=>FFAudio.pluck(id)} playContinueCue={()=>FFAudio.whoom()} />}
         {stage === 2   && <StageNightStacked stepIndex={stage2StepIndex} setStepIndex={setStage2StepIndex} time={time} setTime={setTime} who={who} setWho={setWho} energy={energy} setEnergy={setEnergy} intention={intention} setIntention={setIntention} onNext={()=>{ handleCommitStage2(); setStage(2.3); }} onBack={()=>setStage(1)} blendHex={blendHex} playOptionCue={()=>FFAudio.pluck('cozy')} playContinueCue={()=>FFAudio.whoom()} />}
         {stage === 2.3 && <StageBreath onDone={()=>setStage(2.5)} />}
         {stage === 2.5 && <StageReveal selected={selected.length>0?selected:['slow','tender']} onDone={()=>setStage(2.7)} />}
         {stage === 2.7 && <StageTitleCard title={(allResults[0]||{}).title || ''} onDone={()=>setStage(3)} playTitleCue={()=>FFAudio.chord()} />}
-        {stage === 3   && <StagePick selected={selected.length>0?selected:['slow','tender']} who={who} energy={energy} intention={intention} results={allResults} profile={profile} sessionShownIds={sessionShownIds} onRestart={()=>{ setStage(0); setSelected([]); }} onBack={()=>setStage(2)} blendHex={blendHex} audioToggle={<AudioToggle />} />}
+        {stage === 3   && <StagePick selected={selected.length>0?selected:['slow','tender']} who={who} energy={energy} intention={intention} results={allResults} profile={profile} sessionShownIds={sessionShownIds} onRestart={()=>{ setStage(1); setSelected([]); }} onBack={()=>setStage(2)} blendHex={blendHex} audioToggle={<AudioToggle />} />}
       </div>
     </div>
   );

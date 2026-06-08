@@ -14,7 +14,7 @@ function ParticleBurst({ hex }) {
   );
 }
 
-export default function StageMood({ selected, setSelected, onNext, onBack, blendHex, bursts, fireBurst, audioToggle, playMoodCue, playContinueCue }) {
+export default function StageMood({ selected, setSelected, onNext, blendHex, bursts, fireBurst, audioToggle, playMoodCue, playContinueCue }) {
   const toggle = (id, hex) => {
     if (selected.includes(id)) setSelected(selected.filter(x => x !== id));
     else if (selected.length < 3) { setSelected([...selected, id]); fireBurst(id, hex); playMoodCue(id); }
@@ -36,8 +36,8 @@ export default function StageMood({ selected, setSelected, onNext, onBack, blend
         <h2 style={{ fontFamily:'Outfit', fontSize:'clamp(28px, 5vw, 56px)', lineHeight:1.05, fontWeight:300, letterSpacing:'-0.04em', color:HP.text, margin:0 }}>What’s the <em style={{ fontStyle:'italic', fontWeight:400, color:blendHex, transition:'color 0.5s ease' }}>shape</em> of your mood?</h2>
         <p style={{ marginTop:14, fontFamily:'Outfit, Inter, sans-serif', fontSize:14, color:HP.textMuted, fontStyle:'italic' }}>Pick 1–3 moods. Form your constellation.</p>
       </div>
-      <div className="ff-mood-canvas" style={{ position:'relative', width:'100%', maxWidth:1080, borderRadius:18, background:'rgba(255,255,255,0.012)', border:`1px solid ${HP.border}`, overflow:'hidden' }}>
-        <svg style={{ position:'absolute', inset:0, width:'100%', height:'100%', pointerEvents:'none' }}>
+      <div className="ff-mood-canvas" role="group" aria-label="Choose one to three moods" style={{ position:'relative', width:'100%', maxWidth:1080, borderRadius:18, background:'rgba(255,255,255,0.012)', border:`1px solid ${HP.border}`, overflow:'hidden' }}>
+        <svg aria-hidden="true" style={{ position:'absolute', inset:0, width:'100%', height:'100%', pointerEvents:'none' }}>
           <defs><linearGradient id="ff-grad" x1="0" x2="1" y1="0" y2="0"><stop offset="0%" stopColor="#A78BFA" stopOpacity="0.9" /><stop offset="100%" stopColor="#EC4899" stopOpacity="0.9" /></linearGradient></defs>
           {lines.map(({ a, b, key }) => (
             <line key={key} x1={`${a.x}%`} y1={`${a.y}%`} x2={`${b.x}%`} y2={`${b.y}%`} stroke="url(#ff-grad)" strokeWidth="1.4" strokeDasharray="400" strokeDashoffset="400" style={{ animation:'ff-draw 0.7s cubic-bezier(.2,.7,.2,1) forwards' }} />
@@ -48,9 +48,9 @@ export default function StageMood({ selected, setSelected, onNext, onBack, blend
           const order = selected.indexOf(m.id) + 1;
           const burst = bursts.find(b => b.id === m.id);
           return (
-            <div key={m.id} style={{ position:'absolute', left:`${m.x}%`, top:`${m.y}%`, transform:'translate(-50%, -50%)' }}>
+            <div key={m.id} className="ff-mood-node" style={{ position:'absolute', left:`${m.x}%`, top:`${m.y}%`, transform:'translate(-50%, -50%)' }}>
               {burst && <ParticleBurst hex={m.hex} key={burst.t} />}
-              <button onClick={()=>toggle(m.id, m.hex)} title={m.hint} className={`ff-mood-button ${on ? 'is-on' : ''}`} style={{ position:'relative', border:'none', background:'transparent', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:8, padding:0 }}>
+              <button onClick={()=>toggle(m.id, m.hex)} aria-pressed={on} title={m.hint} className={`ff-mood-button ${on ? 'is-on' : ''}`} style={{ position:'relative', border:'none', background:'transparent', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:8, padding:0 }}>
                 <div className="ff-mood-orb" data-on={on ? 'true' : 'false'} style={{ position:'relative', borderRadius:999, background:`radial-gradient(circle at 35% 30%, ${m.hex}, ${m.hex}66 60%, ${m.hex}11)`, boxShadow: on?`0 0 32px ${m.hex}aa, 0 0 64px ${m.hex}44`:`0 0 12px ${m.hex}33`, transition:'all 0.4s ease', animation: on?'none':'ff-pulse 4s ease-in-out infinite', border: on?`2px solid ${m.hex}`:'none' }}>
                   {on && <span className="ff-mood-badge" style={{ position:'absolute', top:-6, right:-6, borderRadius:999, background:'#06060a', border:`1px solid ${m.hex}`, color:m.hex, fontFamily:'Outfit', fontWeight:700, display:'flex', alignItems:'center', justifyContent:'center' }}>{order}</span>}
                 </div>
@@ -71,8 +71,9 @@ export default function StageMood({ selected, setSelected, onNext, onBack, blend
           <div style={{ fontFamily:'Outfit', fontSize:24, fontStyle:'italic', fontWeight:400, color:blendHex, transition:'color 0.5s ease' }}>&ldquo;{cName}&rdquo;</div>
         </div>
       )}
+      {/* MoodStage is the /discover front door (F3.5) — no Back button, since
+         there is no prior in-flow stage to return to. */}
       <div className="ff-stage-action-bar">
-        <button onClick={onBack} style={{ padding:'10px 20px', borderRadius:999, background:'transparent', border:`1px solid ${HP.border}`, color:HP.textMuted, fontFamily:'Outfit', fontSize:12, fontWeight:500, cursor:'pointer' }}>← Back</button>
         {/* Selection counter — warmer than the old "X of 3 selected" utility
            string. Reads as a soft nudge when empty, a confirmation while
            building, and a quiet sign-off when full. */}

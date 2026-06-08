@@ -10,48 +10,18 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, within } from '@testing-library/react'
 import { useState as reactUseState } from 'react'
 
-import StageHero from '../sections/StageHero'
 import StageMood from '../sections/StageMood'
 import StageNightStacked from '../sections/StageNightStacked'
 import StageBreath from '../sections/StageBreath'
 import StageReveal from '../sections/StageReveal'
 import StageTitleCard from '../sections/StageTitleCard'
 
-// ── StageHero ─────────────────────────────────────────────────────────────────
-describe('StageHero', () => {
-  it('renders the headline "How do you feel?"', () => {
-    render(<StageHero onBegin={() => {}} onSurprise={() => {}} />)
-    expect(screen.getByRole('heading', { name: /how do.*you.*feel\?/i })).toBeInTheDocument()
-  })
-  it('renders the supporting copy', () => {
-    render(<StageHero onBegin={() => {}} onSurprise={() => {}} />)
-    expect(screen.getByText('A few quick questions. One film for your night.')).toBeInTheDocument()
-  })
-  it('renders a time-aware greeting', () => {
-    render(<StageHero onBegin={() => {}} onSurprise={() => {}} />)
-    // greeting = "It's {day} {part}." — assert the part-of-day word renders
-    // (matches both the wrapper div + inner span, hence getAllByText).
-    expect(screen.getAllByText(/morning|afternoon|evening|night|late/).length).toBeGreaterThan(0)
-  })
-  it('Begin calls onBegin', () => {
-    const onBegin = vi.fn()
-    render(<StageHero onBegin={onBegin} onSurprise={() => {}} />)
-    fireEvent.click(screen.getByRole('button', { name: /begin/i }))
-    expect(onBegin).toHaveBeenCalledTimes(1)
-  })
-  it('Surprise calls onSurprise', () => {
-    const onSurprise = vi.fn()
-    render(<StageHero onBegin={() => {}} onSurprise={onSurprise} />)
-    fireEvent.click(screen.getByRole('button', { name: /surprise me/i }))
-    expect(onSurprise).toHaveBeenCalledTimes(1)
-  })
-})
-
 // ── StageMood ─────────────────────────────────────────────────────────────────
+// (StageHero was removed in F3.5 — /discover now opens directly on StageMood.)
 const MOOD_LABELS = ['Tender', 'Tense', 'Slow-burn', 'Cerebral', 'Cozy', 'Bittersweet', 'Mythic', 'Restless']
 const moodBtn = (label) => screen.getByText(label, { selector: '.ff-mood-label' }).closest('button')
 const moodProps = (over = {}) => ({
-  selected: [], setSelected: vi.fn(), onNext: vi.fn(), onBack: vi.fn(),
+  selected: [], setSelected: vi.fn(), onNext: vi.fn(),
   blendHex: '#A78BFA', bursts: [], fireBurst: vi.fn(),
   audioToggle: <div data-testid="audio-toggle" />, playMoodCue: vi.fn(), playContinueCue: vi.fn(),
   ...over,
@@ -101,11 +71,16 @@ describe('StageMood', () => {
     render(<StageMood {...moodProps({ selected: ['tender'] })} />)
     expect(screen.getByText(/Soft Focus/)).toBeInTheDocument()
   })
-  it('Back calls onBack', () => {
-    const p = moodProps()
-    render(<StageMood {...p} />)
-    fireEvent.click(screen.getByRole('button', { name: /back/i }))
-    expect(p.onBack).toHaveBeenCalledTimes(1)
+  it('has no Back button (MoodStage is the front door)', () => {
+    render(<StageMood {...moodProps()} />)
+    expect(screen.queryByRole('button', { name: /back/i })).not.toBeInTheDocument()
+  })
+  it('exposes selection state via aria-pressed (F3.5 a11y)', () => {
+    render(<StageMood {...moodProps({ selected: ['tender', 'cozy'] })} />)
+    expect(moodBtn('Tender')).toHaveAttribute('aria-pressed', 'true')
+    expect(moodBtn('Cozy')).toHaveAttribute('aria-pressed', 'true')
+    expect(moodBtn('Tense')).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByRole('group', { name: /choose one to three moods/i })).toBeInTheDocument()
   })
   it('Continue calls playContinueCue then onNext (in that order)', () => {
     const p = moodProps({ selected: ['tender'] })

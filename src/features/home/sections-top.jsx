@@ -2,7 +2,7 @@
 // All film data comes from useHomeData (no more imports from data.js for FILMS).
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { ChevronRight, SkipForward } from 'lucide-react'
 import { ActionButton, SecondaryActionButton } from '@/shared/components/ActionButton'
 import { useUserMovieStatus } from '@/shared/hooks/useUserMovieStatus'
@@ -33,6 +33,7 @@ const TONIGHT_LABEL = "Tonight's pick"
 // and the row overflows the viewport.
 export function MoodReactor({ currentMood, setMood }) {
   const pillsRef = useRef(null)
+  const reduced = useReducedMotion()
   useEffect(() => {
     const el = pillsRef.current
     if (!el) return
@@ -40,8 +41,10 @@ export function MoodReactor({ currentMood, setMood }) {
     // desktop the row wraps, so this no-ops.
     if (el.scrollWidth <= el.clientWidth) return
     const active = el.querySelector(`[data-mood-id="${currentMood.id}"]`)
-    if (active) active.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' })
-  }, [currentMood.id])
+    // Reduced motion: jump the active pill into view (auto) instead of a smooth
+    // scroll — preserves visibility assistance on narrow screens without animating.
+    if (active) active.scrollIntoView({ inline: 'center', behavior: reduced ? 'auto' : 'smooth', block: 'nearest' })
+  }, [currentMood.id, reduced])
   return (
     <section className="px-5 pt-5 pb-2 sm:px-8 sm:pt-6 sm:pb-4 lg:px-[88px] lg:pt-[12px] lg:pb-5">
       <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-5">
@@ -51,6 +54,8 @@ export function MoodReactor({ currentMood, setMood }) {
         </div>
         <div
           ref={pillsRef}
+          role="group"
+          aria-label="Adjust tonight's mood"
           className="-mx-1 flex w-full min-w-0 gap-2 overflow-x-auto pb-1 scrollbar-none [&::-webkit-scrollbar]:hidden sm:mx-0 sm:w-auto sm:flex-1 sm:flex-wrap sm:justify-end sm:gap-2.5 sm:overflow-visible sm:pb-0"
         >
         {MOOD_META.map(m => {
@@ -60,11 +65,14 @@ export function MoodReactor({ currentMood, setMood }) {
               key={m.id}
               type="button"
               data-mood-id={m.id}
+              aria-pressed={active}
               onClick={() => setMood(m)}
-              className="ff-tap"
+              className="ff-tap focus:outline-none focus-visible:ring-2 focus-visible:ring-white/55"
               style={{
-                display: 'inline-flex', alignItems: 'center', gap: 8,
-                padding: '8px 14px', borderRadius: 999,
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                minHeight: 44, padding: '8px 14px', borderRadius: 999,
+                // Selected state is carried by background tint + border + text colour
+                // (not only the dot), and is exposed non-visually via aria-pressed.
                 background: active ? `${m.hex}22` : 'transparent',
                 border: `1px solid ${active ? m.hex : HP.border}`,
                 color: active ? HP.text : HP.textSoft,
@@ -73,7 +81,7 @@ export function MoodReactor({ currentMood, setMood }) {
                 flex: 'none',
               }}
             >
-              <span style={{ width: 7, height: 7, borderRadius: 999, background: m.hex, boxShadow: active ? `0 0 10px ${m.hex}` : 'none', transition: 'box-shadow 0.25s ease' }} />
+              <span aria-hidden="true" style={{ width: 7, height: 7, borderRadius: 999, background: m.hex, boxShadow: active ? `0 0 10px ${m.hex}` : 'none', transition: 'box-shadow 0.25s ease' }} />
               {m.label}
             </button>
           )
@@ -88,17 +96,22 @@ export function MoodReactor({ currentMood, setMood }) {
 // (rounded-8, Outfit — shared with /movie so the briefing actions don't feel like a
 // different system). The three below are thin wrappers that add the icon, label, and
 // active state on top of <SecondaryActionButton>; the gradient "Open Film File"
-// primary uses <ActionButton> directly.
+// primary uses <ActionButton> directly. F4.6: a Home-local focus-visible ring is
+// passed via className (without touching the shared component), and the decorative
+// icons are aria-hidden (the text label is the accessible name).
+const FOCUS_RING = 'focus:outline-none focus-visible:ring-2 focus-visible:ring-white/55 focus-visible:ring-offset-0'
+
 function WatchedButton({ isWatched, loading, error, onClick }) {
   return (
     <SecondaryActionButton
       collapse
+      className={FOCUS_RING}
       active={isWatched}
       loading={loading}
       onClick={onClick}
       title={error ? 'Couldn’t mark watched — tap to retry' : isWatched ? 'Watched' : 'Mark as watched'}
       label={isWatched ? 'Watched' : 'Mark Watched'}
-      icon={<svg className="h-4 w-4 lg:h-[13px] lg:w-[13px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>}
+      icon={<svg aria-hidden="true" className="h-4 w-4 lg:h-[13px] lg:w-[13px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>}
     />
   )
 }
@@ -107,14 +120,15 @@ function SaveButton({ isInWatchlist, loading, error, onClick }) {
   return (
     <SecondaryActionButton
       collapse
+      className={FOCUS_RING}
       active={isInWatchlist}
       loading={loading}
       onClick={onClick}
       title={error ? 'Couldn’t save — tap to retry' : isInWatchlist ? 'Saved to watchlist' : 'Save to watchlist'}
       label={isInWatchlist ? 'Saved' : 'Save'}
       icon={isInWatchlist
-        ? <svg className="h-4 w-4 lg:h-[13px] lg:w-[13px]" viewBox="0 0 24 24" fill="currentColor"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" /></svg>
-        : <svg className="h-4 w-4 lg:h-[13px] lg:w-[13px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" /></svg>}
+        ? <svg aria-hidden="true" className="h-4 w-4 lg:h-[13px] lg:w-[13px]" viewBox="0 0 24 24" fill="currentColor"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" /></svg>
+        : <svg aria-hidden="true" className="h-4 w-4 lg:h-[13px] lg:w-[13px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" /></svg>}
     />
   )
 }
@@ -123,35 +137,45 @@ function SkipButton({ onClick }) {
   return (
     <SecondaryActionButton
       collapse
+      className={FOCUS_RING}
       onClick={onClick}
       title="Not tonight"
       label="Not tonight"
-      icon={<SkipForward className="h-4 w-4 lg:h-3.5 lg:w-3.5" />}
+      icon={<SkipForward aria-hidden="true" className="h-4 w-4 lg:h-3.5 lg:w-3.5" />}
     />
   )
 }
 
-// Streaming chip — mirrors HeroTopPick's StreamingBadge. Loads providers
-// via the shared getMovieWatchProviders helper (CA → US fallback), shows
-// the top one as a compact pill (logo + 'Streaming on' / 'Rent on' + name).
-// Returns null when TMDB has no provider data for the title.
+// Streaming provider lookup — loads providers via the shared
+// getMovieWatchProviders helper (CA → US fallback, selecting providers[0]) and
+// exposes an honest { provider, status } model so the UI can distinguish found /
+// empty / error / loading without implying the film is unavailable everywhere.
+//   idle    — no tmdbId
+//   loading — request in flight (render nothing → no layout shift)
+//   found   — a provider was returned
+//   empty   — the request succeeded but TMDB has no provider for this title
+//   error   — a real (non-abort) failure
+// Aborted/stale requests never set error.
 function useStreamingProvider(tmdbId) {
-  const [provider, setProvider] = useState(null)
+  const [state, setState] = useState({ provider: null, status: 'idle' })
   useEffect(() => {
-    if (!tmdbId) { setProvider(null); return }
+    if (!tmdbId) { setState({ provider: null, status: 'idle' }); return }
     const controller = new AbortController()
     let cancelled = false
-    setProvider(null)
+    setState({ provider: null, status: 'loading' })
     getMovieWatchProviders(tmdbId, { region: 'CA', fallbackRegion: 'US', signal: controller.signal })
       .then(data => {
         if (cancelled) return
         const p = data?.providers?.[0]
-        if (p) setProvider(p)
+        setState(p ? { provider: p, status: 'found' } : { provider: null, status: 'empty' })
       })
-      .catch(() => { /* non-fatal */ })
+      .catch(err => {
+        if (cancelled || err?.name === 'AbortError') return // aborted/stale → not an error
+        setState({ provider: null, status: 'error' })
+      })
     return () => { cancelled = true; controller.abort() }
   }, [tmdbId])
-  return provider
+  return state
 }
 
 function StreamingChip({ provider }) {
@@ -166,7 +190,7 @@ function StreamingChip({ provider }) {
     >
       <img
         src={`https://image.tmdb.org/t/p/w92${provider.logoPath}`}
-        alt={provider.name}
+        alt={`${provider.name} logo`}
         className="h-7 w-7 flex-none rounded object-cover"
         loading="lazy"
       />
@@ -192,7 +216,7 @@ function BriefingSlide({ film, user, onWatch, onSkip, onMarkedWatched, announce 
 
   // Fetch streaming providers for this slide (TMDB, region CA→US).
   // Hook handles abort/cancel so switching slides cancels stale fetches.
-  const provider = useStreamingProvider(film?.tmdbId)
+  const { provider, status: providerStatus } = useStreamingProvider(film?.tmdbId)
 
   // F4.3 — Mark Watched / Save reliability. useUserMovieStatus owns the writes
   // (unchanged payloads) and optimistically flips isWatched / isInWatchlist, then
@@ -282,7 +306,7 @@ function BriefingSlide({ film, user, onWatch, onSkip, onMarkedWatched, announce 
         type="button"
         onClick={handleOpen}
         aria-label={`Open Film File for ${film.title}`}
-        className="relative block w-full max-w-[180px] flex-none sm:max-w-[260px] lg:w-[340px] lg:max-w-none"
+        className={`relative block w-full max-w-[180px] flex-none sm:max-w-[260px] lg:w-[340px] lg:max-w-none ${FOCUS_RING}`}
         style={{
           borderRadius: 10, overflow: 'hidden',
           background: 'transparent', border: 'none', padding: 0, cursor: 'pointer',
@@ -353,12 +377,24 @@ function BriefingSlide({ film, user, onWatch, onSkip, onMarkedWatched, announce 
             {film.synopsis}
           </p>
         )}
-        {/* Streaming chip — desktop only. Mobile drops it to keep the
-            slide tight (where-to-watch info is one tap away on /movie/:id). */}
-        {provider && (
+        {/* Provider availability — desktop only (mobile drops it to keep the
+            slide tight; where-to-watch is one tap away on /movie/:id). Honest
+            states: a chip when found; quiet, secondary text for not-found /
+            unavailable (SR-reachable, never a large alert, and neither message
+            implies the film is unavailable everywhere); nothing while loading
+            (no layout shift). */}
+        {providerStatus === 'found' && provider && (
           <div className="hidden lg:mb-5 lg:flex lg:justify-start">
             <StreamingChip provider={provider} />
           </div>
+        )}
+        {(providerStatus === 'empty' || providerStatus === 'error') && (
+          <p
+            className="hidden lg:mb-5 lg:block"
+            style={{ fontSize: 12, color: HP.textFaint, fontFamily: 'Outfit', letterSpacing: '0.04em', margin: 0 }}
+          >
+            {providerStatus === 'empty' ? 'Availability not found' : 'Availability unavailable'}
+          </p>
         )}
         {/* Actions — gradient primary + secondary buttons.
             • mobile: single row — gradient "Open Film File" grows (flex-1)
@@ -366,9 +402,9 @@ function BriefingSlide({ film, user, onWatch, onSkip, onMarkedWatched, announce 
               hidden, icon only).
             • lg+: wrap row of four labeled pills (movie-detail style). */}
         <div className="flex flex-wrap items-center justify-center gap-2.5 pt-4 lg:justify-start" style={{ borderTop: `1px solid ${HP.border}` }}>
-          <ActionButton className="h-11 flex-1 lg:h-auto lg:flex-none" onClick={handleOpen}>
+          <ActionButton className={`h-11 flex-1 lg:h-auto lg:flex-none ${FOCUS_RING}`} onClick={handleOpen}>
             <span>Open Film File</span>
-            <ChevronRight className="h-3.5 w-3.5" />
+            <ChevronRight aria-hidden="true" className="h-3.5 w-3.5" />
           </ActionButton>
           <WatchedButton isWatched={isWatched} loading={watchedState === 'saving'} error={watchedState === 'error'} onClick={handleMarkWatched} />
           <SaveButton isInWatchlist={isInWatchlist} loading={saveState === 'saving'} error={saveState === 'error'} onClick={handleSave} />
@@ -447,6 +483,9 @@ export function TheBriefing({ currentMood, user, onWatch, onSkip }) {
   const [statusMsg, setStatusMsg] = useState('')
   const announce = useCallback((msg) => setStatusMsg(msg), [])
   const pickActionRef = useRef('initial') // 'initial' | 'skip' | 'watched'
+  // Framer-motion isn't covered by the global CSS reduced-motion reset (it drives
+  // JS transforms), so the pick-replacement slide is gated to instant here.
+  const reduced = useReducedMotion()
 
   // Effective seed for the daily rotation through the per-mood pool. Recomputes
   // when the UTC day changes (todaySeed) or the mood changes (strHash folds the
@@ -555,7 +594,7 @@ export function TheBriefing({ currentMood, user, onWatch, onSkip }) {
   }, [isExhausted, announce])
 
   return (
-    <section className="relative px-5 pt-4 pb-10 sm:px-8 sm:pt-6 sm:pb-12 lg:px-[88px] lg:pt-6 lg:pb-6">
+    <section aria-label="Tonight's briefing" className="relative px-5 pt-4 pb-10 sm:px-8 sm:pt-6 sm:pb-12 lg:px-[88px] lg:pt-6 lg:pb-6">
       {/* Single polite live region for Briefing pick progression + action feedback. */}
       <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">{statusMsg}</div>
       {isExhausted ? (
@@ -591,7 +630,7 @@ export function TheBriefing({ currentMood, user, onWatch, onSkip }) {
               initial="enter"
               animate="center"
               exit="exit"
-              transition={{ duration: 0.42, ease: [0.32, 0.72, 0, 1] }}
+              transition={reduced ? { duration: 0 } : { duration: 0.42, ease: [0.32, 0.72, 0, 1] }}
             >
               <BriefingSlide
                 film={pick}

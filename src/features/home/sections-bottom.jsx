@@ -509,6 +509,9 @@ export function CuratedLists({ onOpenList }) {
 // the parent removes it from the row.
 function SeenTile({ film, onConfirm }) {
   const [state, setState] = useState('idle') // idle | saving | saved | error
+  const errorTimerRef = useRef(null)
+  // Clear the error-reset timer on unmount so no setState fires after unmount.
+  useEffect(() => () => { if (errorTimerRef.current) clearTimeout(errorTimerRef.current) }, [])
   const handleClick = async () => {
     if (state !== 'idle') return
     setState('saving')
@@ -519,14 +522,18 @@ function SeenTile({ film, onConfirm }) {
     } catch (err) {
       console.error('[SeenTile] confirm error:', err)
       setState('error')
-      setTimeout(() => setState('idle'), 1800)
+      errorTimerRef.current = setTimeout(() => { setState('idle'); errorTimerRef.current = null }, 1800)
     }
   }
   return (
     <button
       type="button"
+      aria-label={`Mark ${film.title} as watched`}
+      aria-busy={state === 'saving'}
+      aria-pressed={state === 'saved'}
       onClick={handleClick}
       disabled={state === 'saving' || state === 'saved'}
+      className="rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
       style={{
         background: 'transparent', border: 'none', padding: 0, cursor: state === 'idle' ? 'pointer' : 'default',
         textAlign: 'left', fontFamily: 'inherit', color: 'inherit', width: '100%',
@@ -542,7 +549,7 @@ function SeenTile({ film, onConfirm }) {
         {film.poster_path ? (
           <img
             src={tmdbImg(film.poster_path, 'w342')}
-            alt={film.title}
+            alt={`${film.title} poster`}
             loading="lazy"
             style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
           />
@@ -563,7 +570,7 @@ function SeenTile({ film, onConfirm }) {
               background: state === 'saved' ? 'rgba(34,197,94,0.92)' : 'rgba(255,255,255,0.18)',
               color: '#fff',
             }}>
-              <Check className="h-5 w-5" />
+              <Check aria-hidden="true" className="h-5 w-5" />
             </div>
           </div>
         )}
@@ -593,6 +600,15 @@ export function QuickLog({ onLog }) {
   // removed immediately. Next /home load picks up the change via the
   // watched_ids query, so this state is just for in-session continuity.
   const [confirmedIds, setConfirmedIds] = useState(() => new Set())
+  // F4.6 — one QuickLog-owned polite live region announces log outcomes.
+  const [statusMsg, setStatusMsg] = useState('')
+  const announce = useCallback((msg) => setStatusMsg(msg), [])
+  // Track the success-hold removal timers so none fire after unmount.
+  const removeTimersRef = useRef(new Set())
+  useEffect(() => {
+    const timers = removeTimersRef.current
+    return () => { timers.forEach(clearTimeout); timers.clear() }
+  }, [])
 
   const handleConfirm = useCallback(async (film) => {
     if (!user?.id) throw new Error('not signed in')
@@ -604,16 +620,22 @@ export function QuickLog({ onLog }) {
       watch_duration_minutes: null,
       mood_session_id: null,
     })
-    if (error) throw error
-    // Remove after a short beat so the user sees the saved checkmark.
-    setTimeout(() => {
+    if (error) {
+      announce(`Could not log ${film.title}. Try again.`)
+      throw error
+    }
+    announce(`Logged ${film.title} as watched.`)
+    // Remove after a 650ms beat so the user sees the saved checkmark.
+    const t = setTimeout(() => {
       setConfirmedIds(prev => {
         const next = new Set(prev)
         next.add(film.id)
         return next
       })
+      removeTimersRef.current.delete(t)
     }, 650)
-  }, [user?.id])
+    removeTimersRef.current.add(t)
+  }, [user?.id, announce])
 
   const visible = useMemo(
     () => (seenCandidates || []).filter(f => !confirmedIds.has(f.id)),
@@ -633,7 +655,7 @@ export function QuickLog({ onLog }) {
       placement: 'quick_picks',
       pickReasonType: 'seen_candidates',
       pickReasonLabel: 'Engine guess: probably seen',
-    })
+    }).catch(() => { /* non-fatal — exposure logging is best-effort */ })
   }, [user?.id, candidateIds, seenCandidates])
 
   // Hidden entirely when there are no candidates AND no user (cold-start
@@ -647,6 +669,8 @@ export function QuickLog({ onLog }) {
 
   return (
     <section className="border-t px-5 py-12 pb-16 sm:px-8 sm:py-14 sm:pb-20 lg:px-[88px] lg:py-[72px] lg:pb-24" style={{ borderColor: HP.border, background: 'rgba(255,255,255,0.008)' }}>
+      {/* QuickLog-owned polite live region — announces log success/failure once. */}
+      <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">{statusMsg}</div>
       <Heading
         kicker="Feed the engine"
         title={allConfirmed ? 'Nice — your taste profile just got sharper.' : 'Have you seen any of these?'}
@@ -690,7 +714,7 @@ export function QuickLog({ onLog }) {
         <button
           type="button"
           onClick={() => onLog?.()}
-          className="group inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/4 px-5 py-2.5 transition-all duration-200 hover:border-white/25 hover:bg-white/8 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+          className="group inline-flex min-h-[44px] items-center gap-2 rounded-full border border-white/10 bg-white/4 px-5 py-2.5 transition-all duration-200 hover:border-white/25 hover:bg-white/8 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
           style={{ fontFamily: 'Outfit', fontSize: 13, fontWeight: 500, color: HP.textSoft, letterSpacing: '0.02em' }}
         >
           Open Browse
@@ -763,14 +787,14 @@ export function PageEndCard({ currentMood, onDiscover }) {
             type="button"
             onClick={() => onDiscover?.()}
             style={{
-              display: 'inline-flex', alignItems: 'center', gap: 10,
-              padding: '12px 22px', borderRadius: 8,
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+              minHeight: 44, padding: '12px 22px', borderRadius: 8,
               background: HP_GRAD, border: 'none', color: '#fff',
               fontFamily: 'Outfit', fontSize: 14, fontWeight: 600, letterSpacing: '0.02em',
               cursor: 'pointer',
               boxShadow: '0 10px 24px -12px rgba(236,72,153,0.42)',
             }}
-            className="transition-transform duration-200 active:scale-[0.98]"
+            className="transition-transform duration-200 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
           >
             Open Discover
             <ChevronRight className="h-4 w-4" aria-hidden />

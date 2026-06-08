@@ -63,32 +63,30 @@ const MOOD_BRIDGE = {
 // production:
 //   • an honest personalized tier (director / genre / perfect_match / hidden_gem)
 //     → passed through verbatim.
-//   • a GENERIC quality/recency/default label → replaced with the session-mood
-//     reason ("For your tender night"), since the film was surfaced for mood fit
-//     — so the hollow "Critically acclaimed" never shows.
+//   • a GENERIC quality/recency/default/content_match label, a missing reason, or
+//     an unknown mood → NO caption (null). Home NEVER fabricates the user's current
+//     emotional state: the auto-selected onboarding-baseline mood is used for
+//     ranking + daily stability internally, but it must not become a visible claim
+//     like "For your tender night" (the user never told us how they feel tonight).
+//     An unsupported explanation is simply omitted — WhyThisPick renders nothing.
 // The seed branch below ("Because you loved X") is retained for contract clarity
 // but does NOT fire on the Briefing — seed-similar reasons live in the
 // because_you_loved list, which fetches its own seed neighbors.
-const MOOD_REASON_LABEL = { tender: 'tender', thrilled: 'tense', curious: 'cerebral', cozy: 'cozy', melancholy: 'melancholic', witty: 'playful' }
 const SEED_REASON_TYPES = new Set(['seed_embedding', 'seed_similarity', 'seed_similar'])
 const GENERIC_REASON_TYPES = new Set(['quality', 'recency', 'default', 'content_match'])
 
 /**
  * Resolve the hero's displayed reason from the engine's pickReason fields.
  * @param {{ reason: string|null, reasonType: string|null, seedTitle: string|null }} pick
- * @param {string} moodId - the Briefing mood key the film was scored under
  * @returns {string|null} the caption to render (null → WhyThisPick renders nothing)
  */
-export function resolveEngineReason({ reason, reasonType, seedTitle }, moodId) {
+export function resolveEngineReason({ reason, reasonType, seedTitle }) {
   if (reasonType && SEED_REASON_TYPES.has(reasonType) && seedTitle) return `Because you loved ${seedTitle}`
   if (reason && reasonType && !GENERIC_REASON_TYPES.has(reasonType)) return reason
-  const mood = MOOD_REASON_LABEL[moodId]
-  // ASSUMPTION: when the reason is generic AND the mood is unknown, render
-  // NOTHING rather than leak the hollow generic label (e.g. "Critically
-  // acclaimed") — the whole point of this fix is to drop it. In practice
-  // moodId is always one of the six MOOD_BRIDGE keys (all mapped above), so
-  // this null branch only ever fires in tests; it never shows in production.
-  return mood ? `For your ${mood} night` : null
+  // Generic / missing / unknown → omit the explanation rather than fabricate a
+  // current-mood claim. The score + film order are unaffected (mood fit still
+  // ranks internally); only the VISIBLE "Why this pick" caption is dropped.
+  return null
 }
 
 // === Onboarding mood key → Briefing mood key bridge ======================
@@ -443,7 +441,7 @@ export function HomeDataProvider({ children }) {
           const top = scored
             .sort((a, b) => b.rankingScore - a.rankingScore)
             .slice(0, 30) // 30-deep pool → ~27 hides of headroom per mood
-            .map(s => ({ ...shapeFilm(s.raw), engineReason: resolveEngineReason(s, moodId), engineScore: s.engineScore }))
+            .map(s => ({ ...shapeFilm(s.raw), engineReason: resolveEngineReason(s), engineScore: s.engineScore }))
           return { moodId, top }
         })
 

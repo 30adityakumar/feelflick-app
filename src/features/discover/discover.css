@@ -14,7 +14,6 @@
 .ff-discover ::selection { background: rgba(167,139,250,0.4); }
 
 @keyframes ff-fade { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
-@keyframes ff-fade-late { 0%, 30% { opacity:0; } 100% { opacity:0.9; } }
 @keyframes ff-twinkle { 0%, 100% { opacity:0.2; transform: scale(1); } 50% { opacity:0.9; transform: scale(1.4); } }
 @keyframes ff-pulse { 0%, 100% { transform: scale(1); filter: brightness(1); } 50% { transform: scale(1.08); filter: brightness(1.15); } }
 @keyframes ff-draw { to { stroke-dashoffset: 0; } }
@@ -23,32 +22,14 @@
   0% { transform: translate(-50%, -50%) translate(0, 0) scale(1); opacity: 1; }
   100% { transform: translate(-50%, -50%) translate(var(--tx), var(--ty)) scale(0.2); opacity: 0; }
 }
-@keyframes ff-burst-late {
-  0%, 30% { transform: translate(-50%, -50%) translate(0, 0) scale(1); opacity:0; }
-  35%     { opacity:1; }
-  100%    { transform: translate(-50%, -50%) translate(var(--tx), var(--ty)) scale(0.1); opacity:0; }
-}
-@keyframes ff-collapse-long {
-  0% { transform: scale(1) rotate(0deg); opacity:1; filter: blur(0px); }
-  40% { transform: scale(0.7) rotate(8deg); opacity:1; }
-  70% { transform: scale(0.18) rotate(36deg); opacity:0.6; filter: blur(2px); }
-  100% { transform: scale(0.02) rotate(60deg); opacity:0; filter: blur(6px); }
-}
-@keyframes ff-bloom-long {
-  0% { opacity:0.3; transform: scale(0.6); }
-  50% { opacity:0.85; transform: scale(1.2); }
-  80% { opacity:1.1; transform: scale(2.2); }
-  100% { opacity:1.4; transform: scale(3.4); }
-}
 @keyframes ff-bloom-pulse { 0%, 100% { opacity:0.7; transform: scale(1); } 50% { opacity:1; transform: scale(1.06); } }
 @keyframes ff-bloom-pulse-strong { 0%, 100% { opacity:0.6; transform: scale(1); filter: blur(30px); } 50% { opacity:1; transform: scale(1.12); filter: blur(36px); } }
 @keyframes ff-poster-in { from { opacity:0; transform: scale(0.94) translateY(8px); } to { opacity:1; transform: scale(1) translateY(0); } }
 @keyframes ff-word-in { from { opacity:0; transform: translateY(14px); filter: blur(4px); } to { opacity:1; transform: translateY(0); filter: blur(0); } }
 @keyframes ff-kenburns { 0% { transform: scale(1) translate(0,0); } 100% { transform: scale(1.05) translate(-1%, -1%); } }
-@keyframes ff-breath { 0% { transform: scale(0.7); opacity:0.4; } 50% { transform: scale(1.0); opacity:1; } 100% { transform: scale(0.85); opacity:0.65; } }
-@keyframes ff-breath-bloom { 0% { transform: scale(0.5); opacity:0.2; } 50% { transform: scale(1.1); opacity:0.9; } 100% { transform: scale(0.8); opacity:0.4; } }
+/* ff-titlecard kept — used by TrailerModal's Esc-hint fade (the ceremony breath/
+   collapse/title-card keyframes were removed in F3.7). */
 @keyframes ff-titlecard { 0% { opacity:0; } 12% { opacity:1; } 78% { opacity:1; } 100% { opacity:0; } }
-@keyframes ff-titleword { 0% { opacity:0; transform: translateY(8px) scale(0.98); filter: blur(6px); } 22% { opacity:1; transform: translateY(0) scale(1); filter: blur(0); } 78% { opacity:1; transform: translateY(0) scale(1); filter: blur(0); } 100% { opacity:0; transform: translateY(-6px); filter: blur(4px); } }
 @keyframes ff-grain { 0% { transform: translate(0,0); } 20% { transform: translate(-2%,1%); } 40% { transform: translate(1%,-2%); } 60% { transform: translate(-1%,2%); } 80% { transform: translate(2%,1%); } 100% { transform: translate(0,0); } }
 @keyframes ff-credits {
   0%   { transform: translateY(80vh); opacity:0; }
@@ -238,6 +219,21 @@
 .ff-night-details-toggle:focus-visible {
   outline: 2px solid var(--purple-400, #A78BFA);
   outline-offset: 2px;
+}
+
+/* Stage 2.3 (F3.7) — StageResolve, the single short resolve transition. One
+ * mood-coloured halo gathers + the copy settles, then everything stops — all
+ * inside the 900ms hold. No infinite loops. Under reduced motion the halo/copy
+ * are static + visible and the stage's timer is 0ms (immediate result). */
+@keyframes ff-resolve-halo { from { opacity: 0; transform: scale(0.82); } to { opacity: 1; transform: scale(1); } }
+@keyframes ff-resolve-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+.ff-resolve__halo { animation: ff-resolve-halo 700ms cubic-bezier(.2, .7, .2, 1) forwards; }
+.ff-resolve__eyebrow { opacity: 0; animation: ff-resolve-in 460ms ease 120ms forwards; }
+.ff-resolve__message { opacity: 0; animation: ff-resolve-in 560ms ease 220ms forwards; }
+@media (prefers-reduced-motion: reduce) {
+  .ff-resolve__halo,
+  .ff-resolve__eyebrow,
+  .ff-resolve__message { animation: none; opacity: 1; transform: none; }
 }
 
 /* Stage 2 + Stage 1 action bars — stack on mobile so the primary CTA gets

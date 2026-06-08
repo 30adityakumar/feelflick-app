@@ -11,15 +11,14 @@ import { MOODS, ONBOARDING_TO_DISCOVER, diversifyTop3, predictDiscoverDefaults }
 import { HP, TIME_OPTIONS } from './constants'
 import StageMood from './sections/StageMood'
 import StageNightContext from './sections/StageNightContext'
-import StageBreath from './sections/StageBreath'
-import StageReveal from './sections/StageReveal'
-import StageTitleCard from './sections/StageTitleCard'
+import StageResolve from './sections/StageResolve'
 import StagePick from './sections/StagePick'
 import './discover.css'
 
-// /discover v5 — Magazine + the immersion senses
-// Adds: Web Audio cue layer (plucks/whooms/chord), breath pause,
-// black title-card cut, mouse parallax + film grain + vignette on the spread.
+// /discover — Web Audio cue layer (mood plucks + the Continue whoom), mouse
+// parallax + film grain + vignette on the result spread. (The old breath /
+// constellation-collapse / title-card ceremony + its chord cue were removed in
+// F3.7 in favour of one short StageResolve transition.)
 
 // ── Web Audio cue layer ───────────────────────────────────────────────────────
 const FFAudio = (() => {
@@ -66,23 +65,13 @@ const FFAudio = (() => {
     const g = c.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.18, t + 0.05); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.7);
     osc.connect(g); g.connect(masterGain); osc.start(t); osc.stop(t + 0.75);
   }
-  function chord() {
-    const c = ensure(); if (!c || muted) return;
-    const t = c.currentTime;
-    const tones = [261.63, 392.00, 523.25, 659.25]; // C major-ish
-    tones.forEach((f, i) => {
-      const osc = c.createOscillator(); osc.type = i===0?'sine':'triangle'; osc.frequency.setValueAtTime(f, t);
-      const g = c.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.08, t + 0.25); g.gain.exponentialRampToValueAtTime(0.0001, t + 2.6);
-      osc.connect(g); g.connect(masterGain); osc.start(t + i*0.06); osc.stop(t + 2.7);
-    });
-  }
   function setMuted(v) {
     muted = v;
     if (masterGain) masterGain.gain.value = v ? 0 : 0.45;
     try { localStorage.setItem(MUTED_KEY, v ? '1' : '0'); } catch { /* private mode — non-fatal */ }
   }
   function isMuted() { return muted; }
-  return { pluck, whoom, chord, setMuted, isMuted };
+  return { pluck, whoom, setMuted, isMuted };
 })();
 
 // Mute toggle component
@@ -445,9 +434,7 @@ function DiscoverBody() {
       <div style={{ position:'relative', zIndex:1, maxWidth:1440, margin:'0 auto' }}>
         {stage === 1   && <StageMood selected={selected} setSelected={setSelected} onNext={()=>setStage(2)} blendHex={blendHex} bursts={bursts} fireBurst={fireBurst} audioToggle={<AudioToggle />} playMoodCue={(id)=>FFAudio.pluck(id)} playContinueCue={()=>FFAudio.whoom()} />}
         {stage === 2   && <StageNightContext time={time} setTime={setTime} who={who} setWho={setWho} energy={energy} setEnergy={setEnergy} intention={intention} setIntention={setIntention} onUserEdit={()=>{ contextTouchedRef.current = true }} onNext={()=>{ handleCommitStage2(); setStage(2.3); }} onBack={()=>setStage(1)} blendHex={blendHex} playOptionCue={()=>FFAudio.pluck('cozy')} playContinueCue={()=>FFAudio.whoom()} />}
-        {stage === 2.3 && <StageBreath onDone={()=>setStage(2.5)} />}
-        {stage === 2.5 && <StageReveal selected={selected.length>0?selected:['slow','tender']} onDone={()=>setStage(2.7)} />}
-        {stage === 2.7 && <StageTitleCard title={(allResults[0]||{}).title || ''} onDone={()=>setStage(3)} playTitleCue={()=>FFAudio.chord()} />}
+        {stage === 2.3 && <StageResolve blendHex={blendHex} onDone={()=>setStage(3)} />}
         {stage === 3   && <StagePick selected={selected.length>0?selected:['slow','tender']} who={who} energy={energy} intention={intention} results={allResults} profile={profile} sessionShownIds={sessionShownIds} onRestart={()=>{ setStage(1); setSelected([]); contextTouchedRef.current = false; didPredictDefaultsRef.current = false; setIntention('move'); setTime('std'); setWho('alone'); setEnergy('steady'); }} onBack={()=>setStage(2)} blendHex={blendHex} audioToggle={<AudioToggle />} />}
       </div>
     </div>

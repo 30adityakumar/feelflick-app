@@ -13,9 +13,11 @@ import { MemoryRouter } from 'react-router-dom'
 
 const h = vi.hoisted(() => ({
   baselineMoods: [], profile: { affinities: { directors: [] } }, learnedPrefs: null,
-  upserts: [], inserts: [],
+  upserts: [], inserts: [], reduced: false,
 }))
 
+// Keep real motion/AnimatePresence; control useReducedMotion via h.reduced.
+vi.mock('framer-motion', async (orig) => ({ ...(await orig()), useReducedMotion: () => h.reduced }))
 vi.mock('../useDiscoverData', () => ({
   DiscoverDataProvider: ({ children }) => children,
   useDiscoverData: () => ({ films: [], profile: h.profile, baselineMoods: h.baselineMoods, learnedPrefs: h.learnedPrefs, recentSaves: [] }),
@@ -41,6 +43,7 @@ vi.mock('@/shared/api/tmdb', () => ({ getMovieWatchProviders: vi.fn(() => Promis
 import Discover from '../Discover'
 import { updateImpression, logSurfaceImpressions } from '@/shared/services/recommendations'
 import { trackInteraction } from '@/shared/services/interactions'
+import { RESOLVE_DURATION_MS } from '../sections/StageResolve'
 
 const renderDiscover = ({ fromOnboarding = false } = {}) => {
   const entries = fromOnboarding ? [{ pathname: '/discover', state: { fromOnboarding: true } }] : ['/discover']
@@ -56,7 +59,7 @@ const gotoNight = (mood = 'Cozy') => { fireEvent.click(moodBtn(mood)); fireEvent
 
 beforeEach(() => {
   h.baselineMoods = []; h.profile = { affinities: { directors: [] } }; h.learnedPrefs = null
-  h.upserts = []; h.inserts = []
+  h.upserts = []; h.inserts = []; h.reduced = false
   vi.clearAllMocks()
   window.matchMedia = vi.fn().mockImplementation((q) => ({
     matches: false, media: q, onchange: null,
@@ -116,13 +119,44 @@ describe('Discover night context — summary-first (F3.6)', () => {
     expect(prefUpserts()).toHaveLength(0)        // after changing an option
   })
 
-  it('Find my film commits the preference upsert ONCE and advances to StageBreath', async () => {
-    renderDiscover()
-    gotoNight('Cozy')
-    fireEvent.click(findFilmBtn())
-    expect(screen.getByText('Take a breath')).toBeInTheDocument() // StageBreath
-    await waitFor(() => expect(prefUpserts()).toHaveLength(1))
-    expect(prefUpserts()[0].row).toMatchObject({ user_id: 'u1' })
+  it('Find my film commits the preference upsert ONCE and enters StageResolve (not the old ceremony)', async () => {
+    vi.useFakeTimers()
+    try {
+      renderDiscover()
+      gotoNight('Cozy')
+      fireEvent.click(findFilmBtn())
+      expect(screen.getByText('Bringing tonight into focus.')).toBeInTheDocument() // StageResolve
+      expect(screen.queryByText(/Take a breath|The room is yours|Reading the room/)).not.toBeInTheDocument() // old ceremony gone
+      await act(async () => { await vi.advanceTimersByTimeAsync(0) }) // flush the fire-and-forget commit (resolve timer not yet)
+      expect(prefUpserts()).toHaveLength(1)
+      expect(prefUpserts()[0].row).toMatchObject({ user_id: 'u1' })
+    } finally { vi.useRealTimers() }
+  })
+
+  it('the result appears after exactly 900ms — not before', async () => {
+    vi.useFakeTimers()
+    try {
+      renderDiscover()
+      gotoNight('Cozy')
+      fireEvent.click(findFilmBtn())
+      await act(async () => { await vi.advanceTimersByTimeAsync(899) })
+      expect(screen.getByText('Bringing tonight into focus.')).toBeInTheDocument() // still resolving
+      expect(screen.queryByRole('button', { name: /tweak inputs/i })).not.toBeInTheDocument()
+      await act(async () => { await vi.advanceTimersByTimeAsync(1) })
+      expect(screen.getByRole('button', { name: /tweak inputs/i })).toBeInTheDocument() // StagePick reached
+    } finally { vi.useRealTimers() }
+  })
+
+  it('under reduced motion the result appears without the long ceremony wait', async () => {
+    h.reduced = true
+    vi.useFakeTimers()
+    try {
+      renderDiscover()
+      gotoNight('Cozy')
+      fireEvent.click(findFilmBtn())
+      await act(async () => { await vi.advanceTimersByTimeAsync(0) }) // 0ms resolve under reduced motion
+      expect(screen.getByRole('button', { name: /tweak inputs/i })).toBeInTheDocument()
+    } finally { vi.useRealTimers() }
   })
 
   it('Back from the night context returns to MoodStage', () => {
@@ -174,12 +208,10 @@ describe('Discover night context — prediction + edit protection (F3.6)', () =>
   })
 })
 
-// ── F3.6: Tweak Inputs + Start Over (reach the exhausted result via the ceremony)
-describe('Discover night context — Tweak Inputs + Start Over (F3.6)', () => {
-  const advanceCeremony = async () => {
-    await act(async () => { await vi.advanceTimersByTimeAsync(2200) }) // breath → reveal
-    await act(async () => { await vi.advanceTimersByTimeAsync(2600) }) // reveal → title card
-    await act(async () => { await vi.advanceTimersByTimeAsync(1400) }) // title card → pick
+// ── F3.6/F3.7: Tweak Inputs + Start Over (reach the result via the 900ms resolve)
+describe('Discover night context — Tweak Inputs + Start Over (F3.6/F3.7)', () => {
+  const advanceResolve = async () => {
+    await act(async () => { await vi.advanceTimersByTimeAsync(RESOLVE_DURATION_MS) }) // StageResolve → StagePick
   }
   it('Tweak Inputs returns to the summary with context preserved', async () => {
     vi.useFakeTimers()
@@ -187,7 +219,7 @@ describe('Discover night context — Tweak Inputs + Start Over (F3.6)', () => {
       renderDiscover()
       gotoNight('Cozy')
       fireEvent.click(findFilmBtn())
-      await advanceCeremony()
+      await advanceResolve()
       fireEvent.click(screen.getByRole('button', { name: /tweak inputs/i }))
       expect(nightHeading()).toBeInTheDocument()
       expect(screen.getByText('Comfort me')).toBeInTheDocument() // cozy→comfort survives Tweak
@@ -202,7 +234,7 @@ describe('Discover night context — Tweak Inputs + Start Over (F3.6)', () => {
       await vi.advanceTimersByTimeAsync(0) // let the seed effect run
       fireEvent.click(continueBtn())       // seeded cozy → night
       fireEvent.click(findFilmBtn())
-      await advanceCeremony()
+      await advanceResolve()
       fireEvent.click(screen.getByRole('button', { name: /start over/i }))
       expect(screen.getByRole('heading', { name: /shape.*of your mood/i })).toBeInTheDocument()
       expect(pressedCount()).toBe(0) // moods cleared, seed NOT reapplied

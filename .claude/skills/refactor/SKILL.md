@@ -1,74 +1,77 @@
 ---
 name: refactor
 description: >
-  Refactor and clean up code in the FeelFlick codebase. Trigger on: "refactor",
-  "clean up", "simplify", "extract this", "reduce duplication", "tidy up".
+  Refactor and clean up FeelFlick code. Trigger on refactor, clean up,
+  simplify, extract, reduce duplication, tidy up, move files, or improve structure.
 ---
 
 # Refactor Skill
 
-When invoked, follow this structured process. Do not make changes beyond what is asked — keep solutions simple and focused.
+Read `.claude/rules/repo-structure.md` before broad structural changes. Read `.claude/rules/testing.md` when behavior preservation depends on tests.
+
+Maintained rules take precedence over this skill.
+
+## Goal
+
+Improve ownership, clarity, testability, or dependency direction without hiding behavior changes.
+
+A refactor should have a defined purpose. Do not refactor solely because a file is long or visually untidy.
 
 ## Process
 
-### Step 1 — Read Before Touching
-Read every file involved before proposing or making any change. Understand the full context: what it does, who calls it, what it imports/exports.
+1. Read the relevant files and identify callers, imports, exports, tests, and runtime ownership.
+2. State what behavior must remain unchanged.
+3. Choose the smallest coherent change that improves the structure.
+4. Prefer feature-local ownership unless code has a clear cross-feature role.
+5. Preserve public APIs unless changing them is part of the task.
+6. Add or update tests when risk justifies it.
+7. Validate with checks proportionate to the change.
+8. Report any intentional behavior change separately from the refactor.
 
-### Step 2 — Identify Duplication
-- Look for repeated logic across components, hooks, or services
-- Look for copy-pasted JSX blocks that differ only in data
-- Look for inline logic that appears in more than one place
-- Look for multiple `useEffect` blocks that could be a single custom hook
+## Extraction guidance
 
-### Step 3 — Extract Reusable Hooks
-If stateful logic is duplicated across components, extract it to `src/shared/hooks/`:
-- Name it `use[Noun].js` (e.g., `useRecommendations.js`, `useMoodState.js`)
-- The hook must encapsulate all related state and side-effects
-- Ensure the hook is self-contained and has no hidden dependencies on component structure
+Extract when it improves clarity or reuse:
 
-### Step 4 — Extract Utility Functions
-If pure functions are duplicated or inlined where they shouldn't be:
-- Move them to `src/shared/lib/`
-- Functions must be pure (no side effects, no React imports)
-- Add JSDoc types for parameters and return values
+- duplicated stateful behavior may become a hook, but not automatically `src/shared/hooks/`
+- pure duplicated logic may become a utility, but only when the concept has a coherent name
+- large components may stay together when responsibilities are cohesive
+- small local duplication may be better than a premature abstraction
 
-### Step 5 — Simplify Components
-- Break components over ~150 lines into smaller focused components
-- Move non-presentational logic out of JSX (into hooks or services)
-- Remove props that are derived from other props (compute them inside)
-- Replace nested ternaries with early returns or helper functions
+Do not use a line-count threshold as a rule. Line count is only a signal to inspect responsibilities.
 
-### Step 6 — Preserve Tests
-- Run `npm test` before and after any refactor
-- **Do not change test behavior** — tests are the contract
-- If a refactor requires a test update, explain why the old test was testing an implementation detail rather than behavior
-- If tests don't exist for the code being refactored, note it but do not add tests unless the user asks
+## File moves and exports
 
-### Step 7 — Validate
-After changes:
+File moves, renames, and export changes are allowed when they materially improve ownership or are required by the task.
+
+Before moving files:
+
+- identify consumers
+- update imports intentionally
+- avoid circular dependencies
+- preserve route and test behavior
+- keep the diff reviewable
+
+Do not wait for extra confirmation when the current task explicitly asks for refactoring or autonomous delivery and the move is reversible.
+
+## Validation
+
+For behavior-preserving refactors, prefer:
+
 ```bash
-npm run test    # must pass
-npm run build   # must succeed
+npm run test
+npm run build
 ```
 
-## Rules
-- **Never change external behavior** to make code "cleaner". Behavior first, structure second.
-- **No premature abstraction.** Three similar lines of code is better than a new utility that's used once.
-- **No new dependencies** without asking. If lodash would "simplify" something, write it plainly instead.
-- **One concern per extraction.** Don't combine a hook extraction with a component rename with a file move in one step — do them separately and verify each.
-- **Preserve git history legibility.** Prefer one focused commit per logical change over one giant refactor commit.
+Add `npm run lint`, Playwright, visual checks, or targeted tests when the changed surface warrants them.
 
-## Output Format
+Do not update tests only to preserve obsolete implementation details.
 
-Before making changes, present a brief plan:
-```
-Refactor Plan:
-1. Extract X → src/shared/hooks/useX.js (used in A.jsx and B.jsx)
-2. Inline helper Y into Z.jsx (only used once, no value in extracting)
-3. Split LargeComponent.jsx into SmallA.jsx + SmallB.jsx
+## Output
 
-Tests affected: none / [list]
-Files changed: [list]
-```
+Report:
 
-Wait for confirmation if the plan involves moving files or changing exports.
+- purpose of the refactor
+- files changed
+- behavior preserved
+- validation run
+- risks or follow-up work

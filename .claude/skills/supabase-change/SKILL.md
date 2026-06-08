@@ -1,57 +1,61 @@
 ---
 name: supabase-change
 description: >
-  Gate and guide any Supabase backend change for FeelFlick. Trigger on:
-  "migration", "schema", "RLS", "policy", "edge function", "alter table",
-  "add column", "pg_cron", "database change", or any task touching
-  supabase/ — including recommendation-engine filter/scoring/limit tweaks
-  that depend on table data.
+  Guide FeelFlick Supabase, schema, RLS, migration, Edge Function, Auth,
+  pgvector, and scheduled backend work.
 ---
 
-# Supabase Change Protocol
+# Supabase Workflow
 
-FeelFlick's backend is Supabase (PostgreSQL + pgvector + RLS + 4 edge
-functions). Backend changes are a **Hard Stop** in CLAUDE.md. This skill
-enforces the process so nothing irreversible happens on a guess.
+Read `.claude/rules/security-and-data.md` first. For recommendation-related work, also read `.claude/rules/recommendation-engine.md`.
 
-## Step 1 — STOP and confirm (mandatory)
-Any of these require **explicit user confirmation before acting**:
-- Schema changes, migrations, `ALTER`/`CREATE`/`DROP`
-- RLS policies
-- Edge Function code (`ai-mood-context`, `generate-movie-overlay`,
-  `generate-reflection-prompt`, `generate-taste-summary`)
-- `pg_cron` jobs (e.g. nightly `refresh_feelflick_stats()`)
+The maintained rules take precedence over this workflow.
 
-State exactly what will change and wait for go-ahead. Do **not** proceed on
-assumption. (The one exception: client-side auth sign-in/out against the dev
-test user for MCP testing — that's allowed without asking.)
+## Classify the work
 
-## Step 2 — DB-first analysis (before any engine change)
-For recommendation/filter/scoring/limit changes, **query the actual data
-first** — never reason from assumptions about what the tables contain:
-- Catalog distribution (genres, decades, runtime, language spread)
-- Tag / mood coverage and sparsity
-- Candidate **pool composition** at each pipeline stage
-- Embedding coverage in `user_profiles_computed` / movie vectors
+- **Inspection:** source, policy, schema, logs, or approved read-only queries. Proceed.
+- **Local implementation:** migration drafts, Edge Function source, tests, and documentation. Proceed.
+- **Remote change:** hosted schema, policy, Auth, function deployment, secrets, schedules, or remote data updates. Use the authorization in the current request; otherwise request confirmation with target and recovery plan.
+- **High-risk remote change:** work that could remove access, alter important user data, or be difficult to reverse. Require a clear recovery plan and explicit authorization.
 
-Only after seeing real numbers, propose the filter/scoring/limit change.
-Show the query results that justify it.
+Do not stop merely because a file is under `supabase/`. The boundary is remote impact, sensitive data, credentials, and reversibility.
 
-## Step 3 — Migration safety
-- [ ] ❌ Never delete or edit an existing migration — create a **new** one.
-- [ ] Forward-only. Include a clear, dated migration name.
-- [ ] Confirm RLS still enforces per-user access after the change.
-- [ ] Note any TTL / cache implications (`user_profiles_computed` is cached).
+## Analysis
 
-## Step 4 — Verify
-- [ ] If schema changed, confirm the client (`@supabase/supabase-js`) calls
-      still match (null-safety on new/changed columns).
-- [ ] Edge function changes: keep CORS aligned across all functions
-      (hardened in #81/#82 — don't regress it).
-- [ ] State what the user should check in the Supabase dashboard.
+Identify:
+
+- target environment
+- affected database objects or functions
+- caller roles and ownership model
+- migration order and compatibility
+- cache or engine-version implications
+- validation for anonymous, owner, non-owner, and privileged paths when relevant
+
+For recommendation behavior, inspect real catalog and candidate-pool evidence before changing filters, thresholds, or scoring policy.
+
+## Migration guidance
+
+- Preserve shared migration history; create a new migration for later changes.
+- Prefer forward-compatible sequencing.
+- Prepare existing rows before adding stricter constraints.
+- Keep remote backfills bounded, restartable, and observable where practical.
+- Validate RLS with ordinary roles; an administrative query is not sufficient evidence.
+
+## Edge Functions
+
+Classify the function as authenticated-user, internal service, public, or signed webhook.
+
+Verify authentication, authorization, secret placement, input and output validation, CORS, cost control, provider failures, and deployment target.
+
+A public project key is not proof of user identity.
 
 ## Output
-Lead with the gate result:
-- 🛑 **Needs confirmation** — here's exactly what would change.
-- 📊 **Analysis first** — here's the data, here's what it implies.
-- ✅ **Safe to proceed** — proceeding, here's the new migration / change.
+
+Lead with one status:
+
+- `✅ proceeding locally`
+- `📊 evidence needed first`
+- `⚠️ remote authorization needed`
+- `❌ blocked by safety or environment uncertainty`
+
+Then state the next action, validation plan, and remaining risk.

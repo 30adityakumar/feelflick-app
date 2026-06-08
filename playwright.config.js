@@ -45,6 +45,17 @@ export default defineConfig({
       testMatch: 'visual/**/*.visual.js',
       use: { ...devices['Desktop Chrome'] },
     },
+
+    // Authenticated visual regression (deterministic Discover via intercepted
+    // fixtures). Separate from the public `visual` project so `npm run test:visual`
+    // stays credential-free. Baselines are platform-specific (Darwin local + Linux
+    // via the visual-baselines/** CI flow). Run via `npm run test:visual:app`.
+    {
+      name: 'visual-app',
+      testMatch: 'visual-auth/**/*.visual.js',
+      dependencies: ['setup'],
+      use: { ...devices['Desktop Chrome'], storageState: 'e2e/.auth/user.json' },
+    },
   ],
 
   // Auto-start the Vite dev server (reuse one if already running locally).

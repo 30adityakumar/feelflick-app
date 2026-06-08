@@ -1,53 +1,51 @@
 ---
 name: recommendation-engine
 description: >
-  Guide and gate any work on FeelFlick's recommendation engine. Trigger on:
-  "recommendations", "scoring", "ranking", "mood to film", "pgvector",
-  "similarity", "embeddings", "engine tuning", "why this movie", "skip signal",
-  "anti-recency", "decay", "discover", or any change to mood_sessions,
-  recommendation_events/impressions, movie_similarity, movie_mood_scores,
-  user_profiles_computed, or scripts/pipeline/.
+  Evaluate or change FeelFlick recommendation behavior. Trigger on candidates,
+  filters, scoring, ranking, mood fit, embeddings, similarity, explanations,
+  skips, diversity, fallbacks, caches, or recommendation analytics.
 ---
 
-# Recommendation Engine
+# Recommendation Engine Workflow
 
-FeelFlick's core: turn a stated mood into the right film. The engine is
-content-based filtering + pgvector cosine similarity + behavioral signals.
-This is the most valuable AND most fragile subsystem — treat changes with care.
+Read `.claude/rules/recommendation-engine.md` and `CLAUDE-REFERENCE.md` first. Those maintained documents take precedence over this skill.
 
-## Architecture (what's actually there)
-- **Catalog:** `movies` (~12k), `movie_genres`, `movie_keywords`, `people`,
-  `movie_mood_scores` (~96k pre-computed movie×mood compatibility 0–100).
-- **Vectors:** 3072-dim OpenAI embeddings; `movie_similarity` (~926k pre-computed
-  top-N cosine neighbors, built by `scripts/pipeline/11-build-similarity.js`).
-- **Intent:** `mood_sessions` (mood + context + experience + energy/intensity).
-- **Signals:** `recommendation_events` (mood-session-scoped: click/watch/skip/rate),
-  `recommendation_impressions` (homepage-row-scoped — feeds skip signals into
-  `scoreMovieForUser`), `user_interactions`, `user_ratings`.
-- **Cache:** `user_profiles_computed` (taste profile, TTL — invalidated by
-  `invalidate_user_profile_cache`; cleaned by `cleanup_expired_profile_caches`).
-- **Pipeline:** `scripts/pipeline/` ingest TMDB → embed → score → build similarity.
-- **Service code:** `src/shared/services/recommendations.js`, `interactions.js`.
-- **RPCs:** `get_mood_recommendations(_v2)`, `match_movies`, `get_seed_neighbors`,
-  `match_movies_by_seeds`, `find_top_neighbors`.
+## Classify the task
 
-## Hard rules
-1. **DB-FIRST — always.** Before changing any filter / score / limit, query the
-   ACTUAL data: catalog distribution (genre/decade/runtime/language), tag & mood
-   coverage, and **candidate pool composition at each pipeline stage**. Never tune
-   from assumptions. (See [[feedback_db_first_analysis]].) Show the numbers that
-   justify the change.
-2. **Anti-recency + decay are intentional.** Don't "fix" the engine by surfacing
-   newest/most-popular — that's the trending behaviour FeelFlick rejects. Preserve
-   signal decay and the anti-recency bias.
-3. **Skips are signal, not noise.** Skip rate (`recommendation_impressions`) feeds
-   scoring. Don't drop or flatten it.
-4. **Validate against real outcomes.** Justify scoring changes against
-   `recommendation_events`/`impressions`, not vibes. State expected effect on
-   skip-rate / watch-rate.
-5. **Cache + DDL safety** → defer to [[supabase-change]]. Re-scoring or schema
-   changes have TTL and pipeline implications; service_role runs the pipeline.
+- **Behavior-preserving refactor:** characterize current outputs and verify equivalence.
+- **Behavior change:** define the intended user-visible improvement and evaluate before and after.
+- **Data or pipeline change:** inspect coverage, freshness, cost, and cache implications.
+- **Investigation:** map the active path and gather evidence before proposing a policy change.
 
-## Output
-Lead with the data (the pool/coverage numbers), then the proposed change, then the
-expected measurable effect. If you're reasoning without having queried the data, stop.
+Do not assume that an existing threshold, anti-recency rule, skip treatment, or hard filter is permanently correct. Treat inferred-preference policies as hypotheses unless they protect an explicit boundary, safety, privacy, or data integrity.
+
+## Required workflow
+
+1. Identify the target surface and active call path.
+2. Locate candidate retrieval, hard filters, scoring, diversity, thresholding, fallback, explanation, logging, and cache behavior.
+3. Separate explicit user constraints from inferred preferences and ranking heuristics.
+4. Measure or inspect candidate loss at affected stages when behavior changes.
+5. Compare representative profiles and session contexts.
+6. Inspect correlated penalties and duplicate signals.
+7. Evaluate catalog-health effects such as language, decade, genre, popularity, and repetition.
+8. Define validation, rollout, cache invalidation, and rollback.
+
+Use real data when the decision depends on catalog or user distributions. A pure refactor does not require a remote query when tests and equivalence checks are sufficient.
+
+## Evaluation output
+
+For behavior changes, report:
+
+- hypothesis
+- active pipeline
+- current failure or limitation
+- affected candidate stages
+- representative before-and-after results
+- user-outcome metrics
+- catalog-health guardrails
+- cache or version implications
+- rollout and rollback plan
+
+Recommendation explanations must remain grounded in actual signals. Do not invent a plausible reason merely because it sounds personalized.
+
+If evidence is incomplete, state what is known, what remains uncertain, and the safest next experiment rather than preserving current behavior by default.

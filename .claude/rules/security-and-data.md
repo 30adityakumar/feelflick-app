@@ -1,3 +1,16 @@
+---
+paths:
+  - "supabase/**"
+  - "src/shared/lib/supabase/**"
+  - "src/shared/hooks/useAuthSession*"
+  - "src/features/auth/**"
+  - "src/app/admin/**"
+  - "src/shared/services/analytics.js"
+  - "src/main.jsx"
+  - "middleware.js"
+  - ".env.example"
+---
+
 # FeelFlick security and data guidance
 
 ## Purpose

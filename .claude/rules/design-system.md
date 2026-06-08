@@ -1,3 +1,14 @@
+---
+paths:
+  - "src/**/*.jsx"
+  - "src/**/*.css"
+  - "src/styles/**"
+  - "src/shared/lib/tokens.js"
+  - "tailwind.config.*"
+  - "index.html"
+  - "public/**/*.{svg,png,jpg,jpeg,webp,avif}"
+---
+
 # FeelFlick design-system direction
 
 ## Purpose

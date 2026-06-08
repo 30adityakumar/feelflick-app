@@ -1,3 +1,12 @@
+---
+paths:
+  - "src/features/**"
+  - "src/app/router.jsx"
+  - "src/app/AppShell.jsx"
+  - "docs/product/**"
+  - "docs/decisions/**"
+---
+
 # FeelFlick product principles
 
 ## Purpose

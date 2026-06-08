@@ -1,35 +1,114 @@
 {
-  "allowedTools": [
-    "Read",
-    "Write",
-    "Edit",
-    "Bash",
-    "Grep",
-    "Glob",
-    "TodoWrite",
-    "Agent"
-  ],
-  "blockedCommands": [
-    "rm -rf",
-    "git push --force",
-    "git push -f",
-    "git push --force-with-lease",
-    "git reset --hard",
-    "drop table",
-    "truncate table"
-  ],
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "echo '[FeelFlick guardrail] Running bash command. Confirm no .env access, no force-push, no rm -rf on src.'"
-          }
-        ]
-      }
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "disableBypassPermissionsMode": "disable",
+    "allow": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Edit",
+      "Write",
+      "Agent",
+      "Bash(npm run dev)",
+      "Bash(npm run build)",
+      "Bash(npm run preview)",
+      "Bash(npm run lint)",
+      "Bash(npm run lint:fix)",
+      "Bash(npm run test)",
+      "Bash(npm run test:watch)",
+      "Bash(npm run test:coverage)",
+      "Bash(npm run test:e2e)",
+      "Bash(npm run test:e2e:ui)",
+      "Bash(npm run test:e2e:report)",
+      "Bash(npm run test:visual)",
+      "Bash(npm run supabase:start)",
+      "Bash(git status)",
+      "Bash(git status *)",
+      "Bash(git diff)",
+      "Bash(git diff *)",
+      "Bash(git log)",
+      "Bash(git log *)",
+      "Bash(git show)",
+      "Bash(git show *)",
+      "Bash(git branch --show-current)",
+      "Bash(git rev-parse *)"
     ],
+    "ask": [
+      "Bash(npm ci)",
+      "Bash(npm install)",
+      "Bash(npm install *)",
+      "Bash(npm uninstall *)",
+      "Bash(npm update)",
+      "Bash(npm update *)",
+      "Bash(npm run test:visual:update)",
+      "Bash(npm run supabase:init)",
+      "Bash(npm run supabase:login)",
+      "Bash(npm run supabase:link)",
+      "Bash(supabase init *)",
+      "Bash(supabase login *)",
+      "Bash(supabase link *)",
+      "Bash(supabase db push *)",
+      "Bash(supabase db reset *)",
+      "Bash(supabase migration up *)",
+      "Bash(supabase functions deploy *)",
+      "Bash(supabase secrets set *)",
+      "Bash(git commit)",
+      "Bash(git commit *)",
+      "Bash(git push)",
+      "Bash(git push *)",
+      "Bash(git reset --hard *)",
+      "Bash(git clean *)",
+      "Bash(rm -rf *)",
+      "Bash(rm -fr *)",
+      "Bash(rm -r -f *)",
+      "Bash(rm -f -r *)",
+      "Bash(rm --recursive --force *)",
+      "Bash(rm --force --recursive *)",
+      "Bash(vercel deploy *)",
+      "Bash(vercel --prod *)",
+      "Bash(wrangler deploy *)",
+      "Bash(gh pr create *)",
+      "Bash(gh pr merge *)",
+      "Bash(* drop table *)",
+      "Bash(* DROP TABLE *)",
+      "Bash(* truncate table *)",
+      "Bash(* TRUNCATE TABLE *)"
+    ],
+    "deny": [
+      "Read(.env)",
+      "Read(.env.local)",
+      "Read(.env.*.local)",
+      "Read(**/.env)",
+      "Read(**/.env.local)",
+      "Read(**/.env.*.local)",
+      "Read(.claude/local-secrets.json)",
+      "Read(**/.claude/local-secrets.json)",
+      "Edit(.env)",
+      "Edit(.env.local)",
+      "Edit(.env.*.local)",
+      "Edit(**/.env)",
+      "Edit(**/.env.local)",
+      "Edit(**/.env.*.local)",
+      "Edit(.claude/local-secrets.json)",
+      "Edit(**/.claude/local-secrets.json)",
+      "Write(.env)",
+      "Write(.env.local)",
+      "Write(.env.*.local)",
+      "Write(**/.env)",
+      "Write(**/.env.local)",
+      "Write(**/.env.*.local)",
+      "Write(.claude/local-secrets.json)",
+      "Write(**/.claude/local-secrets.json)",
+      "Bash(git push --force *)",
+      "Bash(git push -f *)",
+      "Bash(git push --force-with-lease *)",
+      "Bash(git push * --force *)",
+      "Bash(git push * -f *)",
+      "Bash(git push * --force-with-lease *)"
+    ]
+  },
+  "hooks": {
     "PostToolUse": [
       {
         "matcher": "Edit|Write",
@@ -40,15 +119,6 @@
             "statusMessage": "Linting edited file…"
           }
         ]
-      }
-    ],
-    "PreCompact": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreCompact\",\"additionalContext\":\"FEELFLICK PRODUCT DIRECTION (restore after compact):\\n- FeelFlick is an emotionally intelligent movie recommendation system. Mood is the entry point. Personalization is the engine.\\n- Tone: premium, cinematic, modern, human, concise. No AI jargon. No fluffy marketing. No fake stats or social proof.\\n- Key messages: stop endless scrolling; movies that match your mood; personalized picks for the moment; less scrolling, better choices; built around mood, context, and taste.\\n- Stack: React 18, Vite, Tailwind, Framer Motion, Supabase (PostgreSQL + pgvector), TMDB, OpenAI embeddings, Vitest.\\n- Auth: Google OAuth via Supabase. Initialized in main.jsx before React mounts.\\n- Hard rules: never edit .env, never force-push to main, never delete migrations, never add fake social proof.\\n- Workflow: lint -> test -> build before every PR.\"}}'"}
-          ]
       }
     ]
   }

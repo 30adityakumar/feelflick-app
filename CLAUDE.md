@@ -1,627 +1,239 @@
 # FeelFlick — Claude Code Guide
 
-## What is FeelFlick
+## Purpose
 
-FeelFlick turns *how you feel* into one considered film for tonight — tuned to
-your mood and everything you've ever loved on screen, and it tells you why it's
-the one. A pick you can trust, not a feed to scroll.
+This file contains the small set of project instructions useful in most Claude Code sessions.
 
-Mood is the front door; your taste (your "Cinematic DNA") is the house; the
-editorial case for each pick is the moat. One film a night — made for the
-patient, not the scrollers.
+It is an operating guide and routing layer—not a complete product specification, design constitution, historical record, or substitute for reading the code.
 
-Every surface, every doc, every feature serves this. If a change doesn't make
-tonight's one pick **land faster, fit better, or earn more trust** — it's not
-the priority. (Note the third clause: the Film File / Briefing "makes its case"
-layer is core, not garnish — don't let a narrow "mood→film, faster" reading
-de-prioritize it.)
+Keep this file concise. Detailed guidance belongs in:
 
-## The wedge — why FeelFlick wins
+* `.claude/rules/` for topic-specific standards
+* `.claude/skills/` for repeatable workflows and audits
+* `CLAUDE-REFERENCE.md` for volatile technical facts and tuneable constants
+* `docs/` for research, decisions, audits, experiments, runbooks, and history
 
-The whole product defends one sentence:
-
-> **Mood-first, taste-deep — a single justified nightly pick that makes its case. Anti-scroll.**
-
-Nobody else does this one thing, and that gap *is* the strategy:
-
-- **TMDB** has the data but doesn't recommend.
-- **Netflix** recommends but buries you in an endless grid.
-- **Letterboxd** logs the past beautifully — but it doesn't pick *tonight* for you.
-- **Apple / Stripe** are craft + trust benchmarks, not movie pickers.
-
-So we don't match them feature-for-feature — we become **undeniably the best in the
-world at the one thing none of them do**, and borrow their disciplines to support
-it: craft from Apple, measurement from Netflix, trust from Stripe, and let
-Letterboxd-style community compound once there are users.
-
-**Anti-drift test** — reject anything that turns us into a *worse* version of one
-of them:
-
-- An infinite / endless feed → betrays *anti-scroll*. ❌
-- A wall of carousels as the primary surface → betrays *the single pick*. ❌
-- Making the user do the curation work → betrays *it picks for you*. ❌
-- A pick shown without its case → betrays *makes its case*. ❌
-- Recs that ignore mood, or ignore taste → betrays *mood-first* / *taste-deep*. ❌
-
-When a feature request arrives, the first question isn't "can we build it?" — it's
-"does this **sharpen the wedge**, or blunt it toward someone else's product?"
+Load deeper guidance only when it is relevant to the current task.
 
 ## Project
-Mood-first, taste-deep movie discovery: users express how they feel → get **one**
-trustworthy, case-made pick tuned to their full taste history (not an endless feed).
-(Movies only today — no TV/series surfaces yet.)
-**Quality bar:** Netflix / Apple TV+ polish. Every surface is production-facing.
-**Stack:** React 19 · React Router 7 · TanStack Query · Framer Motion · Tailwind 4 · Vite 8 · lucide-react · Supabase (PostgreSQL + pgvector) · TMDB API · OpenAI (text-embedding-3-large, 3072-dim) · Resend (Daily Briefing email) · Google OAuth · PostHog · Sentry · Vitest · Playwright
-**Language:** JavaScript (JSX). No TypeScript yet — avoid patterns that block future migration.
 
-## Folder Map
+FeelFlick helps someone choose a film that fits who they are and how they feel right now.
 
-```
-src/
-├── main.jsx · App.jsx · index.css   # entry → providers → router
-├── app/                  # App shell + routing ONLY (cross-cutting wiring)
-│   ├── AppShell.jsx      # layout frame (header + <Outlet/>)
-│   ├── router.jsx        # all routes, lazy-loaded (highest-traffic file)
-│   ├── ErrorBoundary.jsx
-│   ├── NotFound.jsx      # live 404
-│   ├── header/           # production global Header, BottomNav, SearchBar
-│   ├── providers/        # React context providers (WatchlistContext, …)
-│   └── admin/            # email-allowlist-gated admin tools
-├── features/             # one folder per product surface — NO version suffix
-│   ├── landing/          # v3 editorial landing at / (Landing.jsx shell + sections/ + data.js + primitives.jsx)
-│   ├── onboarding/       # mood-reactive onboarding
-│   ├── auth/             # Google OAuth flow + post-auth gate
-│   ├── browse/           # /mood, /collection editorial browse
-│   ├── legal/            # /about, /privacy, /terms
-│   ├── home/             # /home — masthead + briefing + carousels
-│   ├── movie/            # /movie/:id — editorial Film File
-│   ├── discover/         # /discover — AI discovery
-│   ├── account/          # /account — settings
-│   ├── preferences/      # /preferences — engine dials
-│   ├── watchlist/        # /watchlist — The Queue
-│   ├── history/          # /history — Diary
-│   ├── profile/          # /profile/:userId — taste profile
-│   ├── people/           # /people — taste twins
-│   ├── lists/            # /lists + curated detail (+ Create/AddToList modals)
-│   └── feed/, challenges/ # parked features — built but unrouted (redirect to /home until shipped)
-├── components/           # canonical app-wide UI
-│   ├── carousel/         # the MovieCard hover LAW (Card, Row, hooks)
-│   ├── layout/           # TopNav, Footer (shared chrome)
-│   └── ToastNotification.jsx
-├── shared/               # the kernel — cross-cutting logic + primitives
-│   ├── api/tmdb.js       # tmdbImg(), TMDB fetch helpers
-│   ├── hooks/            # useAuthSession, usePageMeta, useGoogleAuth, …
-│   ├── services/         # recommendations.js, interactions.js, embeddings
-│   ├── lib/              # pure utils, supabase client, curatedLists, format/
-│   ├── components/       # domain widgets (StarRating, FollowButton, Pagination…)
-│   └── ui/               # low-level primitives (Button, Modal, Input, EmptyState…)
-├── styles/  assets/      # global CSS + static assets
-└── test/                 # Vitest helpers, fixtures, setup
-```
+Its core promise is:
 
-> **No `legacy/` folder, no version suffixes.** A feature folder is a plain
-> lowercase domain noun (`home`, not `home-v2`/`home-v5`); the entry component
-> matches it (`features/home/Home.jsx`). The removed v1 tree, the old `/v2`
-> landing, and the `legacy-removal-base` rollback tag are recorded once in
-> **Direction signals** (below) — history lives there, not here.
->
-> **`components/` vs `shared/components/`:** `components/` is app-wide canonical UI
-> (carousel, layout chrome, toasts); `shared/components/` is reusable *domain* widgets
-> (ratings, follow button, pagination). `shared/ui/` is the lowest-level primitive layer.
+> A trusted film recommendation for the moment—personalized by mood, context, and taste, with a clear reason it fits.
 
-## Auth + Recommendation Engine
+Mood makes the experience approachable. Taste makes it personal. Context makes it useful. Explanation makes it trustworthy.
 
-Auth initialises in `main.jsx` before React mounts: parses OAuth hash → sets Supabase session → `/auth/callback`. `RootEntry` routes authenticated → `/home`, unauthenticated → Landing. `RequireAuth` guards protected routes. `PostAuthGate` redirects new users to `/onboarding`.
+The product currently focuses on films.
 
-Recommendation pipeline (`shared/services/recommendations.js`; an `ENGINE_VERSION`
-bump invalidates cached profiles — see `CLAUDE-REFERENCE.md`). Mood-first at the
-door, taste-deep underneath — a blend, not one signal:
+The application uses React, React Router, TanStack Query, JavaScript and JSX, Tailwind CSS, Framer Motion, Vite, Supabase, Vitest, and Playwright.
 
-- **Taste** — content-based affinity (genre/director/actor) + pgvector cosine
-  similarity over OpenAI embeddings (seeded from your recent + top-rated watches).
-- **Quality gating** — `ff_final_rating` (critic rating blended with community
-  votes) floors + TMDB `vote_count` thresholds + quality tiers; nothing mediocre
-  surfaces regardless of fit.
-- **Behavioral** — a layered skip system (48h hard-exclude → 7-day de-rate →
-  permanent learning for repeat skippers), ratings, re-watches, and a thumbs
-  feedback loop (`user_movie_feedback` → amplifies/dampens affinity).
-- **Mood** — a per-session mood signature (`computeMoodSignature` over
-  `mood_tags`/`tone_tags`/`fit_profile`) + `moodWeights`; this powers the
-  "Mood match" Briefing slot.
-- **Anti-bias** — anti-recency (older masterpieces aren't penalised), signal
-  decay, diversity de-clustering, and a language anti-bubble (STRICT/STRONG modes
-  inject a discovery slot so you're never trapped in one language).
+Confirm dependency versions, scripts, routes, and implementation details from current source and configuration rather than duplicating them here.
 
-Centrepiece: **the Briefing / hero** — a weighted-random single "tonight's pick"
-(#1 wins ~65%), tuned by a **DNA-confidence** score and shipped with a
-`heroReason`-generated "why this is the one." The engine literally makes its case.
+## Product north star
 
-Tracked via `recommendation_impressions` + `mood_sessions`; the computed profile
-is cached in `user_profiles_computed` (plus a `taste_fingerprint` cache, 24h TTL).
-The `recommendation-engine` skill gates any tuning — DB-first analysis is mandatory
-before touching scoring, limits, or filters.
+FeelFlick should reduce decision fatigue without removing meaningful agency.
 
-## Environment Variables
+A focused recommendation is the clearest expression of the product, but “one pick” is a powerful default—not a requirement that every screen or experiment display exactly one film.
 
-```
-VITE_SUPABASE_URL      # Supabase project URL (non-secret)
-VITE_SUPABASE_ANON_KEY # Supabase anon key (RLS enforces access)
-VITE_TMDB_API_KEY      # TMDB read-only key (rate-limited 40 req/10s)
-VITE_ADMIN_EMAILS      # Comma-separated admin emails for AdminOnly guard
-VITE_SENTRY_DSN        # Sentry DSN (optional; defaults to prod DSN)
-VITE_POSTHOG_KEY       # PostHog project API key (product analytics; optional)
-VITE_POSTHOG_HOST      # PostHog ingest host (optional; defaults to PostHog cloud)
-```
+Search, browse, watchlists, history, lists, profiles, social discovery, editorial content, and alternatives are allowed when they improve:
 
-`import.meta.env.DEV` / `.PROD` and `process.env.NODE_ENV` are automatic.
-**OpenAI key is server-side only. Never add `VITE_OPENAI_*`.**
+* recommendation relevance
+* trust
+* user control
+* learning
+* discovery
+* retention
+* decision quality
 
-## Dev Environment
+A grid, carousel, feed, list, or longer session is not automatically wrong. Judge it by its purpose, stopping conditions, information density, and effect on the user’s decision.
 
-MCP-driven dev test credentials live in `.claude/local-secrets.json` (gitignored). Read this on session start before running SIGN_IN.
+For product strategy and experiments, read `.claude/rules/product.md`.
 
-## MCP-Driven Auth Workflows
+## Baselines can evolve
 
-When testing with chrome-devtools MCP, you may sign in and out autonomously as needed — no need to ask. This is the only exception to the "ask before any Supabase change" Hard Stop, because it's a client-side auth call against an existing dev test user, not a schema or config change.
+Existing code, design, copy, interaction patterns, and architecture are the current baseline—not permanent law.
 
-Credentials: read `.claude/local-secrets.json` → `feelflickDevUser.{email, password}`.
+For maintenance work, preserve established behavior unless the task requires changing it.
 
-SIGN_IN:
-1. Ensure the dev server is running on http://localhost:5173. If not, start `npm run dev` in the background and wait for it to respond.
-2. Open chrome-devtools to http://localhost:5173 if not already.
-3. evaluate_script: `await window.supabase.auth.signInWithPassword({ email, password })` with the creds above.
-4. Verify session via `await window.supabase.auth.getSession()`.
-5. Confirm URL settles on /home (not /onboarding — the test user is already onboarded).
+For work explicitly involving redesign, UX improvement, brand evolution, architecture improvement, or product experimentation:
 
-SIGN_OUT:
-1. evaluate_script: `await window.supabase.auth.signOut()`.
-2. Fallback: clear localStorage keys matching /^sb-.*-auth-token$/.
-3. Navigate to /, hard-reload, confirm Landing renders ("Films that know you.").
+* evaluate the current approach
+* identify constraints that limit improvement
+* propose deliberate changes with rationale
+* consider accessibility, performance, consistency, migration cost, and rollback
+* update affected tokens, primitives, tests, and documentation when a new direction is accepted
 
-Use SIGN_IN when testing authenticated surfaces (/home, /discover, /movie/:id, etc.). Use SIGN_OUT when testing the v3 landing or any unauthenticated route. Switch freely.
+Do not reject an improvement solely because it differs from an older project decision.
 
-## Code Standards
+Intentional evolution is encouraged. Accidental drift is not.
 
-**Workflow (never skip):** `lint → test → build`
+## Instruction priority
+
+When project guidance conflicts, use this order:
+
+1. Safety, privacy, security, and data integrity
+2. The explicit goal and scope of the current task
+3. Verified runtime behavior, current source code, tests, database state, and configuration
+4. Relevant path- or topic-specific rules
+5. This root guide
+6. Reference documents and current baselines
+7. Historical audits, changelogs, roadmaps, and superseded decisions
+
+Historical documentation explains how the project arrived here. It does not automatically constrain future improvement.
+
+When guidance and implementation disagree, investigate rather than automatically enforcing either side.
+
+## Safety
+
+Never:
+
+* expose, print, commit, or paste secrets, credentials, access tokens, private keys, or service-role keys
+* place server-side secrets in client-exposed `VITE_*` variables
+* disable authentication, authorization, RLS, or ownership checks merely to make a feature work
+* fabricate activity, testimonials, ratings, usage counts, recommendation reasons, or social proof
+* force-push shared branches
+* delete or rewrite migration history that may have been applied
+* run broad destructive commands without explicit approval
+* represent production data changes as local-only work
+
+If a secret is discovered, stop exposing it, report its location without repeating the value, and recommend rotation.
+
+## Explicit confirmation
+
+Require confirmation before actions that are difficult to reverse, affect shared infrastructure, or create external impact, including:
+
+* applying remote migrations
+* changing production RLS, grants, Auth, OAuth, or infrastructure
+* deploying Edge Functions
+* deleting meaningful data, schema, files, or branches
+* running remote backfills or bulk mutations
+* sending real external communications
+* changing billing or paid-service configuration
+* committing or pushing code
+* rotating or revoking active credentials
+* forcefully overwriting uncommitted user work
+
+Before requesting confirmation, explain the exact action, environment, affected resources, risks, rollback, and validation plan.
+
+Harmless inspection, local source edits, tests, builds, screenshots, proposed migrations, and reversible refactoring do not require confirmation.
+
+For security, Supabase, data, analytics, OAuth, or infrastructure work, read `.claude/rules/security-and-data.md`.
+
+## Working protocol
+
+For non-trivial tasks:
+
+1. read the relevant source, tests, configuration, and nearby documentation
+2. identify current behavior and ownership
+3. define the smallest coherent implementation scope
+4. note meaningful risks and assumptions
+5. implement without unnecessary approval loops
+6. validate according to the change’s actual risk
+7. report what changed, what was validated, and what remains uncertain
+
+Prefer evidence in this order:
+
+1. runtime behavior
+2. source code and configuration
+3. automated tests and rendered screenshots
+4. current database or API data
+5. maintained project guidance
+6. historical notes
+
+Do not rely on stale comments or audits when the implementation now behaves differently.
+
+Use external research when current libraries, APIs, standards, security practices, or third-party services matter. Prefer official documentation, specifications, source repositories, and release notes.
+
+## Engineering
+
+The codebase is currently JavaScript and JSX.
+
+Do not introduce TypeScript incidentally during unrelated work. A migration requires an explicit repository-wide decision and plan.
+
+Organize primarily by product capability. Keep behavior close to the feature that owns it. Promote code into shared layers only when it has a clear cross-feature role.
+
+Existing primitives and abstractions are the first place to look, but they may be improved or replaced when they limit accessibility, quality, clarity, or the accepted design direction.
+
+Creating, splitting, moving, or renaming files is allowed when it materially improves ownership or is required by the task. Avoid structural churn without a clear benefit.
+
+For architecture, file placement, naming, imports, dependencies, and refactoring, read `.claude/rules/repo-structure.md`.
+
+## UI and design
+
+The current design system is a baseline, not a permanent constraint.
+
+The preferred direction under validation is:
+
+* warm cinematic neutrals
+* a controlled rose signature
+* muted plum support
+* contextual mood- or poster-derived color
+* Inter for the functional interface
+* Newsreader for the editorial and curator voice
+* poster-first composition
+* deliberate motion
+* reduced decorative chrome
+
+Do not treat this direction as fully adopted until rendered comparisons demonstrate that it improves the product.
+
+For brand, typography, color, layout, motion, composition, and design migration, read `.claude/rules/design-system.md`.
+
+For components, forms, overlays, accessibility, loading states, responsive behavior, and interaction implementation, read `.claude/rules/ui-implementation.md`.
+
+## Recommendation engine
+
+Recommendation changes can alter what users see without causing an obvious technical failure.
+
+Before changing candidate generation, filters, scoring, ranking, mood interpretation, embeddings, explanations, skips, diversity, fallbacks, or caches:
+
+* identify the active pipeline and call path
+* inspect relevant data
+* measure candidate loss
+* define the intended user-visible improvement
+* compare representative before-and-after outputs
+* preserve rollback
+* evaluate both user outcomes and catalog health
+
+Treat existing thresholds and inferred filters as tuneable product hypotheses unless they protect an explicit user boundary, privacy, safety, or data integrity.
+
+Read `.claude/rules/recommendation-engine.md` and `CLAUDE-REFERENCE.md` for recommendation work.
+
+## Validation
+
+Run checks appropriate to the scope and risk.
+
+A typical broad sequence is:
 
 ```bash
-npm run dev          # Vite dev server (port 5173)
-npm run lint         # ESLint (flat config, eslint.config.js)
-npm run lint:fix     # Auto-fix safe issues
-npm run test         # Vitest (unit/component)
-npm run test:e2e     # Playwright E2E (auto-starts dev server; see note below)
-npm run build        # Production build
+npm run lint
+npm run test
+npm run build
 ```
 
-> **E2E (Playwright):** tests live in `e2e/` as `*.e2e.js` (named so Vitest skips
-> them). Auth uses a client-side `window.supabase.signInWithPassword` against the
-> dev test user, so set `E2E_TEST_EMAIL` / `E2E_TEST_PASSWORD` (from
-> `.claude/local-secrets.json` → `feelflickDevUser`) before running:
-> `E2E_TEST_EMAIL=… E2E_TEST_PASSWORD=… npm run test:e2e`. Saved session →
-> `e2e/.auth/` (gitignored). `public/` specs run logged-out; `app/` specs authenticated.
+Use Playwright, visual regression, accessibility review, integration checks, database validation, or performance measurement when those are the real risks.
 
-- One component per file. **Editorial / many-section surfaces decompose into a `sections/` subfolder** (one file per section), with the shared dataset in `data.js`, shared helpers in `primitives.jsx`, and a slim entry that composes them — see `landing/`. A section file may still colocate its own tiny sub-components (e.g. `Ritual.jsx`'s step visuals). Data-driven app surfaces instead use the `sections-top.jsx` / `sections-bottom.jsx` split (home/movie/account/profile). Both follow one rule: **the entry composes; section bodies live in their own files.**
-- PascalCase components, camelCase hooks prefixed `use`.
-- Inline styles are allowed in the feature surfaces + editorial landing (typography rhythm is finer than Tailwind's defaults). Tailwind utilities everywhere else.
-- No hardcoded hex outside the `HP` token object (feature surfaces) or the v3 landing's `C` palette — use Tailwind tokens or CSS custom properties.
-- Strict null safety — never assume nullable values are present without a guard.
-- All interactive elements need `aria-label` / keyboard handlers. No a11y regressions.
-- JSDoc types on public-facing functions.
-- Tests in `__tests__/` adjacent to the feature, or `src/test/` for helpers.
-- Run `lint → test → build` before declaring any task done. Never mark done if build fails.
+Do not update snapshots merely to silence failures.
 
-## Editorial Language
+Do not claim validation that was not run.
 
-This is the unified design language used by both the public v3 landing and
-every authenticated feature surface. The two families look related on purpose.
+For detailed validation guidance, read `.claude/rules/testing.md`.
 
-### Fonts
+## Guidance map
 
-- **Outfit** — display headlines, kickers, numbers, buttons, eyebrows. Weights
-  200–300 for hero scale (≥56px), 400–500 for section headers, 600 for buttons.
-- **Inter** — body prose, italic blurbs, micro labels. Weights 300–900.
-- **Forbidden**: Playfair Display, Satoshi, Fraunces — not installed; do not reference.
+Load only what the task needs:
 
-Both faces load from a **single Google Fonts `<link>` in `index.html`** — Inter
-300–900 + Outfit 200–700. (Until #138 Outfit was referenced everywhere but never
-actually loaded — `git log -S "Outfit" -- index.html` was empty — so it silently
-fell back to Inter; it now renders for real.) For rare monospace bits (e.g. a
-keyboard key-cap) use a system stack `ui-monospace, SFMono-Regular, Menlo,
-monospace` — **JetBrains Mono is not loaded**.
+* product strategy or experiments → `.claude/rules/product.md`
+* visual design or brand work → `.claude/rules/design-system.md`
+* UI implementation or accessibility → `.claude/rules/ui-implementation.md`
+* recommendation behavior → `.claude/rules/recommendation-engine.md`
+* Supabase, Auth, security, analytics, or data → `.claude/rules/security-and-data.md`
+* testing, QA, visual regression, or performance validation → `.claude/rules/testing.md`
+* architecture, files, imports, dependencies, or refactoring → `.claude/rules/repo-structure.md`
 
-Inline `fontFamily:` should reference the CSS variables:
+Use skills for repeatable procedures. Use rules for durable standards.
 
-```css
---font-display: 'Outfit', 'Inter', sans-serif;
---font-body: 'Inter', sans-serif;
-```
+Do not duplicate volatile facts across several documents.
 
-Italic Outfit is the brand's accent face — apply it to *single fragments*
-inside a headline, never to whole sentences. **Outfit has no italic axis on
-Google Fonts**, so `fontStyle:'italic'` renders as synthesized oblique — fine for
-the short accent fragments it's used on, but never set whole lines italic:
-
-```jsx
-<h1>Your <em style={{ fontStyle:'italic', color: HP.textSoft }}>taste twins.</em></h1>
-```
-
-### Color tokens
-
-Brand palette: purple + pink only. No amber/rose/orange in gradients.
-
-CSS vars in `src/index.css :root` are the authoritative source:
-
-```
---purple-50…900, --pink-50…900   (the full Tailwind scales)
---brand-gradient                  (purple-600 → pink-500, 135deg)
---font-display, --font-body
---bg-base (#06060a), --bg-elevated (#0d0b14)
-```
-
-The canonical palette now lives in **`src/shared/lib/tokens.js`** — it exports
-`HP` (feature-surface palette), `HP_GRAD` (the one brand gradient), and `C` (the
-v3 landing's same hexes under landing-specific key names). Inline-style surfaces
-import `HP`/`HP_GRAD` from there; the landing imports `C`. (One holdout:
-`features/browse/data.js` still declares a local `HP` — fold it into the shared
-token module when you next touch browse.)
-
-### Brand gradient — single source of truth
-
-```
-linear-gradient(135deg, #9333ea 0%, #ec4899 100%)
-```
-
-That's purple-600 → pink-500 in the Tailwind scale. Use it via `var(--brand-gradient)`
-in inline styles or `bg-linear-to-r from-purple-600 to-pink-500` in Tailwind.
-
-Never invent per-vibe / per-genre gradients. One brand gradient, always.
-
-### Hero typography (the v2/v3 fingerprint)
-
-```jsx
-<h1 style={{
-  fontFamily: 'var(--font-display)',
-  fontSize: 88,              // hero scale; 56–104px range
-  lineHeight: 0.92,
-  fontWeight: 300,           // 200–300 only at this size
-  letterSpacing: '-0.05em',  // -0.04 to -0.05em
-  textWrap: 'balance',
-  margin: 0,
-}}>
-  The <em style={{ fontStyle:'italic', fontWeight: 400, color: HP.textSoft }}>diary.</em>
-</h1>
-```
-
-Rules:
-- Weight 200–300 only for ≥56px display sizes. Below that, jump to 400–500.
-- Negative letter-spacing on display (`-0.04em` to `-0.05em`).
-- Italic accent words on a *single* emphasised fragment.
-- `textWrap: 'balance'` on every headline, `textWrap: 'pretty'` on body paragraphs.
-- Never use `font-black` / weight 900 in v2 or v3 landing surfaces.
-
-### Kicker pattern (above every section header)
-
-```jsx
-<div style={{
-  fontSize: 10, fontWeight: 700,
-  letterSpacing: '0.28em', textTransform: 'uppercase',
-  color: HP.purple, marginBottom: 12,
-  display: 'inline-flex', alignItems: 'center', gap: 10,
-}}>
-  <span style={{ height: 1, width: 22, background: HP.purple, opacity: 0.6 }} />
-  Mood weights
-</div>
-```
-
-A 22px purple horizontal rule + ALL-CAPS Outfit 700 at 10–11px with
-`0.22–0.32em` letter-spacing.
-
-### Section Header Pattern (carousel rows)
-
-```jsx
-<div className="w-[3px] h-5 rounded-full bg-linear-to-b from-purple-400 to-pink-500" />
-<h2 className="text-[1.05rem] sm:text-[1.15rem] font-bold text-white tracking-tight whitespace-nowrap">{title}</h2>
-<div className="h-px flex-1 bg-linear-to-r from-purple-400/20 via-white/5 to-transparent" />
-```
-
-The canonical [src/shared/ui/SectionHeader.jsx](src/shared/ui/SectionHeader.jsx)
-follows this spec exactly. Use the primitive; don't hand-roll the bar.
-
-### Action button
-
-v2 inline-style version:
-
-```jsx
-<button style={{
-  padding: '12px 22px', borderRadius: 8,
-  background: 'var(--brand-gradient)', border: 'none', color: '#fff',
-  fontFamily: 'var(--font-display)', fontSize: 13, fontWeight: 600,
-  letterSpacing: '0.02em', cursor: 'pointer',
-  boxShadow: '0 12px 28px -8px rgba(236,72,153,0.5)',
-}}>Save and retune</button>
-```
-
-Tailwind / shared primitive version:
-
-```jsx
-<Button variant="primary">Save and retune</Button>
-```
-
-`Button.jsx` primary variant uses `from-purple-600 to-pink-500` +
-`hover:brightness-110 hover:scale-[1.02] active:scale-[0.97]`.
-
-### Layout grid
-
-- Page shell max-width: **1440px** (v2) or **1280px** (v3 landing).
-- Editorial content max-width: **1080px** where prose readability matters.
-- Horizontal padding: **88px** on desktop for v2. 32px for v3 landing
-  (more breathing room befits a marketing page).
-- Vertical section rhythm: `padding: 56–72px 88px`, separated by
-  `borderTop: 1px solid HP.border`.
-
-### Section-hide rule
-
-Sections must self-hide when their data source is empty (`return null`)
-rather than render a placeholder. ContinueWatching, Friends, Lists, Recent
-all do this. Never fabricate content to fill a slot.
-
-### Skeletons, not spinners
-
-Per CLAUDE.md "Never Do" item 9: always `animate-pulse` skeletons matching
-content shape. **Exception**: in-button micro-spinners (e.g. `<Loader2 className="h-4 w-4 animate-spin" />`
-inside a `<Button>` when `loading=true`) for action-in-progress states —
-see `src/shared/ui/Button.jsx:41`.
-
-Page/route Suspense fallback: `RouteSkeleton` in `src/app/router.jsx`.
-Full-screen auth/onboarding splashes: `<BrandSplash />`.
-
-### MovieCard hover — THE LAW
-
-Three files own card hover. Read all three before touching any:
-
-- `src/components/carousel/hooks/useMovieCardHover.js` — owns `hoveredId` state + timers
-  (`CARD_EXPAND_DELAY_MS = 0`, `CLOSE_DELAY_MS = 90ms`).
-  Full audit history in `docs/audits/2026-04-27-carousel-hover.md`.
-- `src/components/carousel/Row/index.jsx` — derives `hovered = hover.hoveredId === item.id` per card.
-- `src/components/carousel/Card/index.jsx` — fixed-size slot. `MovieCard.jsx` owns poster scale-up.
-
-**No portal. No floating overlay. No expanding panel. Pure poster scale-up (Apple TV+ style).**
-
-On hover: poster `scale(1.04)` (220ms cubic-bezier(0.22,1,0.36,1)), border/shadow ramp,
-bottom glow intensifies. No sibling dim or shift. Below-card title is always
-visible as a static div — never hidden or animated.
-
-### Landing — v3-specific deltas
-
-The v3 landing at `/` is canonical for public surfaces (PR #84 promoted it
-from `/v3`). It uses the editorial language above, with these specifics:
-
-- Structure: `Landing.jsx` is a slim composition shell (~53 LOC); each section lives in `landing/sections/*.jsx` (Header, Hero, TheProblem, Ritual, FilmFile, Briefing, DNA, Community, MLetter, Pricing, FinalCTA, Footer), the shared `PICKS` dataset in `landing/data.js`, and the `Reveal` / `Poster` / `Stars` helpers in `landing/primitives.jsx`. `/` is visual-regression tested (`e2e/visual/landing.visual.js`) — keep any section change render-faithful or re-baseline deliberately.
-- Type primitives via `landing.css` CSS classes:
-  - `.ff-d1` — Outfit 200, ls -0.055em, lh 0.92 (hero scale).
-  - `.ff-d2` — Outfit 200, ls -0.045em, lh 0.96 (section scale).
-  - `.ff-eyebrow` — Outfit 600, 11px, ls 0.28em, uppercase.
-  - `.ff-italic` — Outfit 300 italic — accent fragments.
-- Hero size: `clamp(56px, 7vw, 118px)`.
-- Section size: `clamp(44px, 5.6vw, 80px)`.
-- Reveal-on-scroll via `<Reveal>` IntersectionObserver wrapper (threshold 0.15).
-- Mood-tinted starfield via `<Stars>`.
-
-### Approved copy (v3 landing)
-
-- Hero eyebrow: `FeelFlick · {day} {part-of-day}` (greeting-aware, render-computed).
-- Hero headline: "Films that know **you.**" (italic accent on "you.")
-- Hero sub: "The right film. Right now. Tuned to your mood, your taste, and everything you've ever loved on screen."
-- Hero CTA: `Start free →`
-- Final CTA eyebrow: "Stop scrolling. Start watching."
-- Final CTA headline: "Tonight is **yours.**"
-- Final CTA sub: "One film, for the way you feel. Open it anytime."
-- Final CTA button: `Begin →`
-- Footer micro: "Free · No credit card · Cancel anytime"
-- Footer tagline: "The right film. Right now."
-- Footer signature: "Made for the patient."
-
-### CTA / loading microcopy (everywhere)
-
-- Sign-in label: sentence-case "Sign in" (not "Sign In").
-- Pending state: "Signing in…" with Unicode ellipsis `…` (not three dots).
-- OAuth in flight: "Opening Google…"
-- General save/load: "Saving…", "Loading…", "Adding…" — all Unicode ellipsis.
-
-### Page titles & meta
-
-Every Tier 1 surface should call `usePageMeta({ title, description?, image?, url? })`
-near the top of its main component. Title format: `'<X> — FeelFlick'` (em-dash).
-
-Already wired across `/home`, `/movie/:id`, `/discover`, `/account`, `/preferences`,
-`/watchlist`, `/history`, `/profile`, `/people`, `/lists`, `/lists/:listId`,
-`/lists/curated/:slug`, `/about`, `/privacy`, `/terms`.
-
-### What NOT to do
-
-- ❌ Don't use Inter `font-black` for feature-surface or v3 landing headlines — that's
-  the legacy v1 signature (since removed from the codebase).
-- ❌ Don't reference `src/features/landing/sections/HeroSection.jsx` — it doesn't exist.
-- ❌ Don't invent per-vibe gradients. Use `var(--brand-gradient)` always.
-- ❌ Don't add new font imports without updating this section.
-- ❌ Don't hardcode hex outside the `HP` (feature surfaces) or `C` (v3 landing) palettes.
-- ❌ Don't use `text-neutral-*` / `text-gray-*` — use `text-white/*`.
-- ❌ Don't use page/section spinners — `animate-pulse` skeletons only.
-  (In-button micro-spinners inside Button.jsx are the documented exception.)
-- ❌ Don't reference the removed `*-legacy` routes (`/movie-legacy`, `/profile-legacy`, …) —
-  they were deleted with the v1 surfaces; use the canonical routes (`/movie/:id`, `/profile`, …).
-- ❌ Don't fabricate content to fill an empty section. `return null`.
-
-## Shared UI primitives
-
-Use these from `@/shared/ui`. They share the same focus ring, opacity ladder,
-and motion language.
-
-- `<Button variant="primary|secondary|ghost|icon|destructive" size="sm|md|lg" loading? />`
-- `<Modal open onClose label size="sm|md|lg" dismissible?>{children}</Modal>` — backdrop + Escape + click-outside + focus management.
-- `<Input>` / `<Textarea>` / `<Select>` — pure styling primitives (no built-in label).
-- `<Checkbox id checked onChange label />` — toggle switch.
-- `<EmptyState icon title description action />` — canonical empty state.
-- `<Eyebrow tone="section|meta" rule? color? size? spacing? />` — the canonical uppercase kicker / eyebrow (`rule` adds the 22px brand rule). Use it instead of hand-rolling `textTransform:'uppercase'` labels.
-- `<SectionHeader title subtitle? seeAllTo? eyebrow? />` — carousel row header (matches the section header pattern above).
-- `<Tooltip label>{children}</Tooltip>` — hover/focus tooltip primitive.
-- `<BrandSplash label? error? />` — full-screen brand splash (200ms delayed visibility; errors immediate).
-
-## Planning Behaviour (never skip)
-
-Before writing any code for a task touching 3+ files:
-
-1. List every file you plan to read, edit, or create — and why
-2. Flag any irreversible or destructive steps
-3. Wait for explicit go-ahead before proceeding
-
-For single-file or clearly scoped tasks: state your approach in one sentence, then proceed.
-
-## Ambiguity Protocol
-
-- For low-risk unknowns: make the most reasonable assumption, add a `// ASSUMPTION:` comment inline, and surface it in your closing summary.
-- For irreversible/destructive unknowns (schema changes, file deletes, config edits): stop and ask. Do not proceed on a guess.
-
-## Blocker Communication
-
-End every task with a one-line status:
-
-- ✅ Done — what changed, what to verify
-- ⚠️ Blocked — what you hit, what you need from me
-- 🔺 Assumption made — what you assumed and where it's documented
-
-## Coding Conventions
-
-### Import Order
-
-```js
-// 1. React core
-import { useState, useEffect } from 'react'
-// 2. Third-party (router, motion, libraries)
-import { useNavigate } from 'react-router-dom'
-// 3. Icons (lucide-react)
-import { Play, Check } from 'lucide-react'
-// 4. Internal aliases (@/shared → @/app → @/features)
-import { supabase } from '@/shared/lib/supabase/client'
-// 5. Relative imports
-import MovieCast from './MovieCast'
-```
-
-No blank lines within a group. One blank line between groups.
-
-### Naming
-
-- Components: PascalCase, file name matches export. Editorial surfaces decompose
-  into a `sections/` subfolder (one default-exported PascalCase file per section);
-  a section may colocate its own small sub-components (Header's `NavLink`, Footer's
-  `FooterLink`, Ritual's visuals) — locality, not a shared concern.
-- **Route-entry components = the domain noun, no `Page` suffix** (`Browse.jsx`,
-  `Collection.jsx`, `About.jsx` — not `BrowsePage`). A long page split into
-  halves uses `sections-top.jsx` / `sections-bottom.jsx` (see home/movie/account/profile).
-- Hooks: camelCase with `use` prefix.
-- **Non-component modules (services, lib, utils): camelCase** (`briefScoring.js`,
-  `heroReason.js`) — never kebab-case. Co-located tests in `__tests__/` mirror the name.
-- Booleans: prefer `is/has/should` prefix. `loading=` is accepted for
-  compatibility with React Query convention.
-- Constants: SCREAMING_SNAKE_CASE for module-level — *except* inside editorial
-  surfaces where palettes/data tables may use short uppercase names (`C`,
-  `GRAD`, `PICKS`).
-- Event handlers: `handle` prefix — `handleClick`, `handleSubmit`. Never name
-  an internal function `onClick`.
-- Vague names hard no: `data`, `item`, `temp`, `thing` — always domain-specific.
-
-### Comments
-
-- Section dividers for long files: `// === SECTION NAME ===`.
-- JSDoc on every exported hook and service function — `@param`, `@returns` minimum.
-- Inline `// WHY:` comments for non-obvious decisions — not for obvious code.
-- No commented-out dead code — delete it.
-
-## Hard Stops — Ask Before Doing
-
-These require explicit confirmation before any action:
-
-- Installing or removing npm packages
-- Any Supabase change: schema, migrations, RLS policies, Edge Functions
-- Renaming or moving existing files
-- Modifying `vite.config.js`, `eslint.config.js`, `tailwind.config.js`
-- Any `git commit` or `git push`
-- Deleting any file
-
-## File Scope
-
-Only touch files directly required by the task. If you spot an unrelated issue
-in a file you're already in, call it out in your closing summary — do not fix
-it silently.
-
-## Never Do
-
-1. **No `.env` edits.** Environment variables are managed outside this repo.
-2. **No force pushes to `main`.** Open a PR.
-3. **No deleting migrations.** Create new ones instead.
-4. **No fake social proof.** No fabricated counts, testimonials, or activity copy.
-5. **No `rm -rf` on `src/`.** Destructive commands require explicit confirmation.
-6. **No committing secrets.** Flag immediately if a key/token is detected in source.
-7. **No TypeScript.** This codebase is JSX. Never convert `.jsx` to `.tsx`.
-8. **No new files when an existing file should be edited.** Check the folder map first.
-9. **No page/section spinners.** Always `animate-pulse` skeletons matching content shape.
-   In-button micro-spinners inside `Button.jsx` are the documented exception.
-10. **No two buttons doing the same thing** on one card.
-
-## Project Guardrails — Claude Code skills & hooks
-
-This repo ships with auto-triggering guardrail skills in `.claude/skills/` and a
-lint hook in `.claude/settings.json`. Lean on them — they encode the rules below
-so they aren't re-derived each session.
-
-**Skills (auto-invoke on matching work):**
-- `design-system-guard` — enforces the editorial language (fonts, palette, brand
-  gradient, hero weights, MovieCard hover law, skeletons, microcopy). Also runs as
-  a check after `frontend-design` (which pushes bold aesthetics that can violate it).
-- `recommendation-engine` — gates engine work (scoring, pgvector similarity,
-  mood→film, decay/anti-recency); mandates DB-first analysis before any tuning.
-- `supabase-change` — gates schema/RLS/edge/cron changes (confirm before DDL) and
-  enforces DB-first analysis.
-- `a11y-audit` — aria/keyboard/contrast checks on UI changes (the runtime layer
-  `eslint-plugin-jsx-a11y` can't cover).
-- `perf-guard` — LCP/CLS, lazy+srcset posters, bundle budget, query hygiene for the
-  media-heavy frontend.
-- `code-review` — structured review checklist (severity · file:line · concrete fix).
-  Triggers on "review", "audit", "check this code", "look for issues", "is this safe".
-- `refactor` — guided clean-up process (simplify, extract, de-duplicate) that stays
-  scoped to what's asked. Triggers on "refactor", "clean up", "simplify", "tidy up".
-
-**Hook:** `PostToolUse` runs `.claude/hooks/lint-on-edit.sh` after every Edit/Write
-to a `src/**/*.{js,jsx}` file — advisory ESLint (warnings + errors surfaced, never
-blocks). It enforces the `lint → test → build` discipline automatically.
-
-## Direction signals (recent shipped roadmap)
-
-- Security hardening pass (2026-05-29): RLS + write lockdown on 18 catalog/engine
-  tables, cron-function + IDOR-function lockdown, pinned function `search_path`
-  (migrations `20260529000000`–`000400`). See memory `project_rls_exposure`.
-- v3 landing replaced v2 landing at `/` (PR #84); the archived v2 landing + its `/v2`
-  route were later removed entirely once v3 proved stable.
-- Repo-structure refactor: dropped all `*-v2`/`*-v5` suffixes, quarantined v1 into
-  `src/legacy/`, decoupled the archived landing, and consolidated `contexts/` → `app/providers/`.
-  The feature surfaces are the canonical direction (#79). See the Folder Map above.
-- Legacy v1 fully removed: deleted all quarantined v1 surfaces + their `*-legacy` route
-  twins AND the `/v2` archived landing — `src/legacy/` no longer exists (`/movies` +
-  `/trending` redirect to `/browse`; mobile BottomNav Account → `/account`; the `…V2`/`…V5`
-  router consts were de-suffixed). Rollback: tag `legacy-removal-base`.
-- Spinner → skeleton migration started (#66) — `router.jsx` and auth splashes done.
-- Sentry wired in `main.jsx` + `ErrorBoundary.jsx` (#67).
-- Edge function CORS hardened (#81, #82).
-- Nightly `refresh_feelflick_stats()` via pg_cron (#80).
-- Major-version migrations landed (2026-05-30): React 19, Vite 8, Tailwind 4,
-  web-vitals 5, `@vitejs/plugin-react` 6. ESLint 10 stays deferred (plugins lack
-  peer support). See memory `project_deferred_major_upgrades`.
-- Design tokens consolidated into `shared/lib/tokens.js` (`HP`/`HP_GRAD`/`C`);
-  feature surfaces import from it (one `browse/data.js` holdout remains).
-- Brand display font fixed (#138): Outfit had never been loaded and was silently
-  falling back to Inter everywhere — now loaded for real via `index.html`.
-- CI gates added: Playwright visual-regression (`e2e/visual/`, per-platform
-  baselines) + runtime a11y (`@axe-core/playwright`, serious/critical WCAG ex.
-  color-contrast) — `.github/workflows/visual-regression.yml`.
-
-> For tuneable constants, dev environment setup, and known codebase issues — see `CLAUDE-REFERENCE.md`.
+When an accepted direction changes, update the most specific maintained rule and remove superseded guidance rather than leaving both active.

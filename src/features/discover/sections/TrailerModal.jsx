@@ -39,24 +39,52 @@ export default function TrailerModal({ open, youtubeKey, title, onClose }) {
   const closeBtnRef = useRef(null);
   const playerRef = useRef(null);
   const playerSlotRef = useRef(null);
+  const dialogRef = useRef(null);
+  // Element focused before the dialog opened, so we can restore focus on close.
+  const openerRef = useRef(null);
   // Latest onClose held in a ref so the player effect's deps stay stable —
   // otherwise the parent's inline `() => setTrailerOpen(false)` would
   // re-create the player on every parent re-render.
   const onCloseRef = useRef(onClose);
   useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
 
-  // Body scroll lock + Escape + initial focus
+  // Body scroll lock + Escape + Tab containment + initial/return focus
   useEffect(() => {
     if (!open) return;
+    // Remember the opener so focus can return to it on close (e.g. the Trailer
+    // button). Guarded on restore in case it was unmounted while the modal was open.
+    openerRef.current = document.activeElement;
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    const onKey = (e) => { if (e.key === 'Escape') onCloseRef.current?.(); };
+    const onKey = (e) => {
+      if (e.key === 'Escape') { onCloseRef.current?.(); return; }
+      if (e.key !== 'Tab') return;
+      // Focus trap — keep Tab / Shift+Tab inside the dialog.
+      const root = dialogRef.current;
+      if (!root) return;
+      const focusables = root.querySelectorAll(
+        'a[href], button:not([disabled]), iframe, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusables.length === 0) { e.preventDefault(); return; }
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const active = document.activeElement;
+      if (e.shiftKey) {
+        if (active === first || !root.contains(active)) { e.preventDefault(); last.focus(); }
+      } else if (active === last || !root.contains(active)) {
+        e.preventDefault(); first.focus();
+      }
+    };
     window.addEventListener('keydown', onKey);
     const t = setTimeout(() => closeBtnRef.current?.focus(), 0);
     return () => {
       window.removeEventListener('keydown', onKey);
       document.body.style.overflow = prevOverflow;
       clearTimeout(t);
+      const opener = openerRef.current;
+      if (opener && typeof opener.focus === 'function' && document.contains(opener)) {
+        opener.focus();
+      }
     };
   }, [open]);
 
@@ -115,6 +143,7 @@ export default function TrailerModal({ open, youtubeKey, title, onClose }) {
     // accessibility intent.
     // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/click-events-have-key-events
     <div
+      ref={dialogRef}
       role="dialog" aria-modal="true" aria-label={`${title} trailer`}
       onClick={onOverlayClick}
       style={{ position:'fixed', inset:0, zIndex:300, background:'rgba(0,0,0,0.92)', backdropFilter:'blur(20px)', display:'flex', alignItems:'center', justifyContent:'center', padding:'24px', cursor:'pointer' }}

@@ -345,6 +345,20 @@
   .ff-pick-actions__secondary { flex: 1 1 auto; }
 }
 
+/* F3.9 — quiet, honest trust notes (provider absence, missing film file,
+ * fallback/static result). Secondary by design: small, muted, never an alert. */
+.ff-provider-note,
+.ff-pick-unavailable,
+.ff-pick-fallback-note {
+  font-family: 'Outfit', 'Inter', sans-serif;
+  font-size: 12px;
+  color: var(--text-muted, #8f8883);
+  letter-spacing: 0.01em;
+}
+.ff-provider-note { display: inline-block; }
+.ff-pick-unavailable { align-self: center; }
+.ff-pick-fallback-note { margin: 8px 0 0; font-style: italic; }
+
 /* Stage 3 — "Almost got" + anti-rec block becomes a single column on
  * mobile so each card has reading room. */
 .ff-stage3-aftercards {

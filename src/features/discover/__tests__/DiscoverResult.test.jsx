@@ -6,9 +6,10 @@
 // sections are unchanged. Everything mocked — no live mount/Supabase/TMDB/YouTube.
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, act, renderHook } from '@testing-library/react'
+import { useState } from 'react'
 
-const h = vi.hoisted(() => ({ user: { id: 'u1' }, navigate: () => {}, inserts: [], insertError: null, providers: [] }))
+const h = vi.hoisted(() => ({ user: { id: 'u1' }, navigate: () => {}, inserts: [], insertError: null, providers: [], providerError: false }))
 
 vi.mock('@/shared/hooks/useAuthSession', () => ({ useAuthSession: () => ({ user: h.user }) }))
 vi.mock('react-router-dom', async (orig) => ({ ...(await orig()), useNavigate: () => h.navigate }))
@@ -17,11 +18,12 @@ vi.mock('@/shared/lib/supabase/client', () => ({
 }))
 vi.mock('@/shared/services/recommendations', () => ({ updateImpression: vi.fn().mockResolvedValue(), logSurfaceImpressions: vi.fn().mockResolvedValue() }))
 vi.mock('@/shared/services/interactions', () => ({ trackInteraction: vi.fn().mockResolvedValue() }))
-vi.mock('@/shared/api/tmdb', () => ({ getMovieWatchProviders: vi.fn(() => Promise.resolve({ providers: h.providers })) }))
+vi.mock('@/shared/api/tmdb', () => ({ getMovieWatchProviders: vi.fn(() => h.providerError ? Promise.reject(new Error('tmdb down')) : Promise.resolve({ providers: h.providers })) }))
 
 import StagePick from '../sections/StagePick'
 import StreamingChip from '../sections/StreamingChip'
 import TrailerModal from '../sections/TrailerModal'
+import { useStreamingProvider } from '../hooks/useStreamingProvider'
 import { buildRuntimeFitLine } from '../resultPresentation'
 import { updateImpression, logSurfaceImpressions } from '@/shared/services/recommendations'
 import { trackInteraction } from '@/shared/services/interactions'
@@ -42,7 +44,7 @@ const baseProps = (over = {}) => ({
 const titleHeading = (name) => screen.getByRole('heading', { level: 1, name })
 
 beforeEach(() => {
-  h.user = { id: 'u1' }; h.navigate = vi.fn(); h.inserts = []; h.insertError = null; h.providers = []
+  h.user = { id: 'u1' }; h.navigate = vi.fn(); h.inserts = []; h.insertError = null; h.providers = []; h.providerError = false
   vi.clearAllMocks()
   window.matchMedia = window.matchMedia || (() => ({ matches: false, addEventListener() {}, removeEventListener() {} }))
 })
@@ -92,7 +94,7 @@ describe('StagePick — one-pick render', () => {
   })
   it('renders the "Tonight’s pick" eyebrow + the "Why this one" case with the because + runtime lines', () => {
     render(<StagePick {...baseProps()} />)
-    expect(screen.getByText(/Tonight.s pick/)).toBeInTheDocument()
+    expect(screen.getByText(/^Tonight.s pick$/)).toBeInTheDocument()
     expect(screen.getByText('Why this one')).toBeInTheDocument()
     expect(screen.getByText('For your soft focus night.')).toBeInTheDocument() // becauseLine
     expect(screen.getByText('Within your ~ 2 hrs window.')).toBeInTheDocument() // runtime fit (101 ∈ std)
@@ -244,28 +246,212 @@ describe('StagePick — actions', () => {
   })
 })
 
-// ── unchanged sections (StreamingChip + TrailerModal) ─────────────────────────
-describe('StreamingChip (unchanged)', () => {
-  it('renders nothing without a provider', () => {
-    const { container } = render(<StreamingChip provider={null} />)
-    expect(container).toBeEmptyDOMElement()
+// ── F3.9: single live-status region ───────────────────────────────────────────
+const liveRegion = () => screen.getByRole('status')
+describe('StagePick — live status (F3.9)', () => {
+  it('exposes exactly one polite, atomic status region', () => {
+    render(<StagePick {...baseProps()} />)
+    const regions = screen.getAllByRole('status')
+    expect(regions).toHaveLength(1)
+    expect(regions[0]).toHaveAttribute('aria-live', 'polite')
+    expect(regions[0]).toHaveAttribute('aria-atomic', 'true')
   })
-  it('maps provider type to the priority label', () => {
-    const { rerender } = render(<StreamingChip provider={{ type: 'flatrate', name: 'Netflix', logoPath: '/n.png' }} />)
-    expect(screen.getByText('Streaming on')).toBeInTheDocument()
-    rerender(<StreamingChip provider={{ type: 'rent', name: 'Apple TV', logoPath: '/a.png' }} />)
-    expect(screen.getByText('Rent on')).toBeInTheDocument()
-    rerender(<StreamingChip provider={{ type: 'buy', name: 'Amazon', logoPath: '/z.png' }} />)
-    expect(screen.getByText('Buy on')).toBeInTheDocument()
+  it('announces the first pick with its title', () => {
+    render(<StagePick {...baseProps()} />)
+    expect(liveRegion()).toHaveTextContent("Tonight's pick: Film1.")
+  })
+  it('announces save success', async () => {
+    render(<StagePick {...baseProps()} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Save for later' }))
+    await waitFor(() => expect(liveRegion()).toHaveTextContent('Saved for later.'))
+  })
+  it('announces save failure as a retry', async () => {
+    h.insertError = { code: '500' }
+    render(<StagePick {...baseProps()} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Save for later' }))
+    await waitFor(() => expect(liveRegion()).toHaveTextContent('Could not save. Try again.'))
+  })
+  it('announces the promoted pick after Not tonight', async () => {
+    render(<StagePick {...baseProps()} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Not tonight' }))
+    await waitFor(() => expect(liveRegion()).toHaveTextContent('New pick: Film2.'))
+  })
+  it('announces marked-watched then the promoted pick', async () => {
+    render(<StagePick {...baseProps()} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Already watched' }))
+    await waitFor(() => expect(liveRegion()).toHaveTextContent('Marked watched. New pick: Film2.'), { timeout: 2000 })
+  })
+  it('announces the exhausted state', () => {
+    render(<StagePick {...baseProps({ results: [] })} />)
+    expect(liveRegion()).toHaveTextContent('No more strong fits for this set of details.')
+  })
+  it('never announces a queue count', () => {
+    render(<StagePick {...baseProps({ results: [film(1), film(2), film(3), film(4), film(5)] })} />)
+    expect(liveRegion().textContent).not.toMatch(/\d+\s*(more|queued|left|remaining)/i)
   })
 })
 
-describe('TrailerModal (unchanged)', () => {
+// ── F3.9: action-state semantics ──────────────────────────────────────────────
+describe('StagePick — action-state semantics (F3.9)', () => {
+  it('Save exposes pressed + disabled once saved', async () => {
+    render(<StagePick {...baseProps()} />)
+    const save = screen.getByRole('button', { name: 'Save for later' })
+    expect(save).toHaveAttribute('aria-pressed', 'false')
+    fireEvent.click(save)
+    const saved = await screen.findByRole('button', { name: 'Saved' })
+    expect(saved).toHaveAttribute('aria-pressed', 'true')
+    expect(saved).toBeDisabled()
+  })
+  it('Already watched exposes pressed + disabled on success', async () => {
+    render(<StagePick {...baseProps()} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Already watched' }))
+    const done = await screen.findByRole('button', { name: 'Watched' })
+    expect(done).toHaveAttribute('aria-pressed', 'true')
+    expect(done).toBeDisabled()
+  })
+  it('Not tonight stays available', () => {
+    render(<StagePick {...baseProps()} />)
+    expect(screen.getByRole('button', { name: 'Not tonight' })).toBeEnabled()
+  })
+  it('shows a film-file-unavailable note instead of a dead button when tmdbId is missing', () => {
+    render(<StagePick {...baseProps({ results: [film(1, { tmdbId: null })] })} />)
+    expect(screen.queryByRole('button', { name: /open film file/i })).not.toBeInTheDocument()
+    expect(screen.getByText('Film file unavailable for this title.')).toBeInTheDocument()
+  })
+  it('all action controls keep accessible names', () => {
+    render(<StagePick {...baseProps()} />)
+    expect(screen.getByRole('button', { name: /open film file/i })).toBeInTheDocument()
+    for (const name of ['Trailer', 'Save for later', 'Already watched', 'Not tonight']) {
+      expect(screen.getByRole('button', { name })).toBeInTheDocument()
+    }
+  })
+})
+
+// ── F3.9: write-error behavior ────────────────────────────────────────────────
+describe('StagePick — write-error behavior (F3.9)', () => {
+  it('Save treats 23505 (already saved) as success', async () => {
+    h.insertError = { code: '23505' }
+    render(<StagePick {...baseProps()} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Save for later' }))
+    expect(await screen.findByText('Saved')).toBeInTheDocument()
+  })
+  it('Save surfaces a non-23505 failure as Try again', async () => {
+    h.insertError = { code: '500' }
+    render(<StagePick {...baseProps()} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Save for later' }))
+    expect(await screen.findByText('Try again')).toBeInTheDocument()
+  })
+  it('Mark Watched does NOT falsely confirm Watched when the write fails', async () => {
+    h.insertError = { code: '500' }
+    render(<StagePick {...baseProps()} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Already watched' }))
+    expect(await screen.findByRole('button', { name: 'Try again' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Watched' })).not.toBeInTheDocument()
+    expect(updateImpression).not.toHaveBeenCalledWith('u1', 1, 'watched') // failed write is not credited
+    await waitFor(() => expect(liveRegion()).toHaveTextContent('Could not mark watched. Try again.'))
+  })
+  it('a non-critical impression failure does not block a successful save', async () => {
+    updateImpression.mockRejectedValueOnce(new Error('analytics down'))
+    render(<StagePick {...baseProps()} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Save for later' }))
+    expect(await screen.findByText('Saved')).toBeInTheDocument() // save still confirms
+  })
+})
+
+// ── F3.9: streaming-provider honesty ──────────────────────────────────────────
+describe('Streaming provider honesty (F3.9)', () => {
+  it('StreamingChip renders nothing without a provider (idle/loading)', () => {
+    const { container } = render(<StreamingChip provider={null} status="loading" />)
+    expect(container).toBeEmptyDOMElement()
+  })
+  it('StreamingChip maps provider type to the label + a logo alt', () => {
+    const { rerender } = render(<StreamingChip provider={{ type: 'flatrate', name: 'Netflix', logoPath: '/n.png' }} status="found" />)
+    expect(screen.getByText('Streaming on')).toBeInTheDocument()
+    expect(screen.getByAltText('Netflix logo')).toBeInTheDocument()
+    rerender(<StreamingChip provider={{ type: 'rent', name: 'Apple TV', logoPath: '/a.png' }} status="found" />)
+    expect(screen.getByText('Rent on')).toBeInTheDocument()
+    rerender(<StreamingChip provider={{ type: 'buy', name: 'Amazon', logoPath: '/z.png' }} status="found" />)
+    expect(screen.getByText('Buy on')).toBeInTheDocument()
+  })
+  it('StreamingChip renders an honest empty state', () => {
+    render(<StreamingChip provider={null} status="empty" />)
+    expect(screen.getByText('Availability not found')).toBeInTheDocument()
+  })
+  it('StreamingChip renders an honest error state', () => {
+    render(<StreamingChip provider={null} status="error" />)
+    expect(screen.getByText('Availability unavailable')).toBeInTheDocument()
+  })
+  it('useStreamingProvider keeps flatrate → rent → buy priority (providers[0])', async () => {
+    h.providers = [{ type: 'flatrate', name: 'Netflix', logoPath: '/n.png' }, { type: 'rent', name: 'Apple', logoPath: '/a.png' }]
+    const { result } = renderHook(() => useStreamingProvider(101))
+    await waitFor(() => expect(result.current.status).toBe('found'))
+    expect(result.current.provider.type).toBe('flatrate')
+  })
+  it('useStreamingProvider reports empty when TMDB has no provider', async () => {
+    h.providers = []
+    const { result } = renderHook(() => useStreamingProvider(101))
+    await waitFor(() => expect(result.current.status).toBe('empty'))
+  })
+  it('useStreamingProvider reports error when the fetch fails', async () => {
+    h.providerError = true
+    const { result } = renderHook(() => useStreamingProvider(101))
+    await waitFor(() => expect(result.current.status).toBe('error'))
+  })
+  it('StagePick shows the honest no-availability note after an empty fetch', async () => {
+    h.providers = []
+    render(<StagePick {...baseProps()} />)
+    expect(await screen.findByText('Availability not found')).toBeInTheDocument()
+  })
+})
+
+// ── F3.9: image + decorative semantics ────────────────────────────────────────
+describe('StagePick — image + decorative semantics (F3.9)', () => {
+  it('the main poster has a meaningful alt', () => {
+    render(<StagePick {...baseProps()} />)
+    expect(screen.getByAltText('Film1 poster')).toBeInTheDocument()
+  })
+  it('decorative overlays are aria-hidden', () => {
+    const { container } = render(<StagePick {...baseProps()} />)
+    expect(container.querySelectorAll('[aria-hidden="true"]').length).toBeGreaterThan(0)
+  })
+  it('button icons are aria-hidden (the text already names the action)', () => {
+    render(<StagePick {...baseProps()} />)
+    const trailerBtn = screen.getByRole('button', { name: /trailer/i })
+    expect(trailerBtn.querySelector('svg')).toHaveAttribute('aria-hidden', 'true')
+  })
+})
+
+// ── F3.9: trailer dialog accessibility ────────────────────────────────────────
+function TrailerHarness({ title = 'Parasite' }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <>
+      <button data-testid="opener" onClick={() => setOpen(true)}>Open trailer</button>
+      <TrailerModal open={open} youtubeKey="abc" title={title} onClose={() => setOpen(false)} />
+    </>
+  )
+}
+const closeBtn = () => screen.getByRole('button', { name: 'Close trailer' })
+describe('TrailerModal — accessibility (F3.9)', () => {
   it('renders nothing when closed', () => {
     render(<TrailerModal open={false} youtubeKey="abc" title="X" onClose={() => {}} />)
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
-  it('Escape closes the trailer', () => {
+  it('is a modal dialog whose name includes the film title', () => {
+    render(<TrailerModal open youtubeKey="abc" title="Parasite" onClose={() => {}} />)
+    const dialog = screen.getByRole('dialog')
+    expect(dialog).toHaveAttribute('aria-modal', 'true')
+    expect(dialog).toHaveAccessibleName('Parasite trailer')
+  })
+  it('moves initial focus into the dialog (close button)', () => {
+    vi.useFakeTimers()
+    try {
+      render(<TrailerModal open youtubeKey="abc" title="X" onClose={() => {}} />)
+      act(() => { vi.advanceTimersByTime(0) })
+      expect(closeBtn()).toHaveFocus()
+    } finally { vi.useRealTimers() }
+  })
+  it('Escape closes', () => {
     const onClose = vi.fn()
     render(<TrailerModal open youtubeKey="abc" title="X" onClose={onClose} />)
     fireEvent.keyDown(window, { key: 'Escape' })
@@ -281,9 +467,41 @@ describe('TrailerModal (unchanged)', () => {
     fireEvent.click(dialog.lastElementChild)
     expect(onClose).not.toHaveBeenCalled()
   })
+  it('returns focus to the opener on close', () => {
+    vi.useFakeTimers()
+    try {
+      render(<TrailerHarness />)
+      const opener = screen.getByTestId('opener')
+      opener.focus()
+      fireEvent.click(opener)
+      act(() => { vi.advanceTimersByTime(0) })
+      expect(closeBtn()).toHaveFocus()
+      fireEvent.keyDown(window, { key: 'Escape' })
+      expect(opener).toHaveFocus()
+    } finally { vi.useRealTimers() }
+  })
+  it('keeps Tab and Shift+Tab inside the dialog', () => {
+    vi.useFakeTimers()
+    try {
+      render(<TrailerModal open youtubeKey="abc" title="X" onClose={() => {}} />)
+      act(() => { vi.advanceTimersByTime(0) })
+      const btn = closeBtn()
+      expect(btn).toHaveFocus()
+      fireEvent.keyDown(window, { key: 'Tab' })
+      expect(document.activeElement).toBe(btn) // stayed inside
+      fireEvent.keyDown(window, { key: 'Tab', shiftKey: true })
+      expect(document.activeElement).toBe(btn)
+    } finally { vi.useRealTimers() }
+  })
+  it('locks body scroll while open and restores on unmount', () => {
+    const { unmount } = render(<TrailerModal open youtubeKey="abc" title="X" onClose={() => {}} />)
+    expect(document.body.style.overflow).toBe('hidden')
+    unmount()
+    expect(document.body.style.overflow).toBe('')
+  })
 })
 
-// no write occurs when there is no user
+// ── existing contracts kept green ─────────────────────────────────────────────
 describe('StagePick — write guards', () => {
   it('does not write to the watchlist when there is no user', async () => {
     h.user = null

@@ -141,9 +141,9 @@ describe('Discover night context — summary-first (F3.6)', () => {
       fireEvent.click(findFilmBtn())
       await act(async () => { await vi.advanceTimersByTimeAsync(899) })
       expect(screen.getByText('Bringing tonight into focus.')).toBeInTheDocument() // still resolving
-      expect(screen.queryByText(/Tonight.s pick/)).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Not tonight' })).not.toBeInTheDocument()
       await act(async () => { await vi.advanceTimersByTimeAsync(1) })
-      expect(screen.getByText(/Tonight.s pick/)).toBeInTheDocument() // StagePick reached
+      expect(screen.getByRole('button', { name: 'Not tonight' })).toBeInTheDocument() // StagePick reached
     } finally { vi.useRealTimers() }
   })
 
@@ -155,7 +155,7 @@ describe('Discover night context — summary-first (F3.6)', () => {
       gotoNight('Cozy')
       fireEvent.click(findFilmBtn())
       await act(async () => { await vi.advanceTimersByTimeAsync(0) }) // 0ms resolve under reduced motion
-      expect(screen.getByText(/Tonight.s pick/)).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Not tonight' })).toBeInTheDocument()
     } finally { vi.useRealTimers() }
   })
 

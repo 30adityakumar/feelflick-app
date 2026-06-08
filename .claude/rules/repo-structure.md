@@ -1,3 +1,14 @@
+---
+paths:
+  - "src/**"
+  - "supabase/**"
+  - "scripts/**"
+  - "package.json"
+  - "vite.config.*"
+  - "eslint.config.*"
+  - "playwright.config.*"
+---
+
 # FeelFlick repository structure
 
 ## Purpose

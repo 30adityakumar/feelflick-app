@@ -1,3 +1,11 @@
+---
+paths:
+  - "src/**/*.jsx"
+  - "src/**/*.css"
+  - "e2e/**/*.js"
+  - "playwright.config.*"
+---
+
 # FeelFlick UI implementation
 
 ## Purpose

@@ -1,3 +1,26 @@
+---
+paths:
+  - "src/shared/services/recommendations.js"
+  - "src/shared/services/scoringV3.js"
+  - "src/shared/services/exclusions.js"
+  - "src/shared/services/qualityTiers.js"
+  - "src/shared/services/briefScoring.js"
+  - "src/shared/services/boundaries.js"
+  - "src/shared/services/skipSignals.js"
+  - "src/shared/services/diversity.js"
+  - "src/shared/services/heroReason.js"
+  - "src/shared/services/tasteCache.js"
+  - "src/shared/lib/cache.js"
+  - "src/features/discover/**"
+  - "src/features/preferences/**"
+  - "src/features/onboarding/**"
+  - "supabase/functions/ai-mood-context/**"
+  - "supabase/functions/generate-taste-summary/**"
+  - "supabase/functions/generate-movie-overlay/**"
+  - "supabase/functions/generate-reflection-prompt/**"
+  - "scripts/**/*recommend*"
+---
+
 # FeelFlick recommendation-engine guidance
 
 ## Purpose

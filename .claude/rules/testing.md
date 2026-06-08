@@ -1,3 +1,12 @@
+---
+paths:
+  - "**/*.{test,spec}.{js,jsx}"
+  - "e2e/**"
+  - "src/test/**"
+  - "playwright.config.*"
+  - "vitest.config.*"
+---
+
 # Testing and quality assurance
 
 Use testing to verify behavior and reduce risk, not as a ritual or a way to preserve obsolete implementation details.

@@ -131,7 +131,7 @@ export default function StagePick({ selected, who, energy, intention, results, p
       placement: 'discover',
       pickReasonType: 'discover_reveal',
       pickReasonLabel: `Discover · ${cName}`,
-    })
+    }).catch(() => {}) // fire-and-forget — an impression-log failure must never surface to the user
     // top.id pins the impression — when Not tonight / Already watched advance the
     // pick we log the new top as its own row.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -175,9 +175,9 @@ export default function StagePick({ selected, who, energy, intention, results, p
             <span aria-hidden="true" style={{ height:1, width:22, background:blendHex, opacity:0.6 }} />
             No more strong fits
           </div>
-          <h2 style={{ fontFamily:'Outfit', fontSize:'clamp(32px, 4.6vw, 56px)', lineHeight:1.04, fontWeight:200, letterSpacing:'-0.04em', color:HP.text, margin:0, maxWidth:760, textWrap:'balance' }}>
+          <h1 style={{ fontFamily:'Outfit', fontSize:'clamp(32px, 4.6vw, 56px)', lineHeight:1.04, fontWeight:200, letterSpacing:'-0.04em', color:HP.text, margin:0, maxWidth:760, textWrap:'balance' }}>
             That&rsquo;s the honest edge of tonight&rsquo;s list.
-          </h2>
+          </h1>
           <p style={{ marginTop:18, fontFamily:'Outfit, Inter, sans-serif', fontSize:14, color:HP.textMuted, fontStyle:'italic', maxWidth:480, lineHeight:1.6 }}>
             Adjust tonight&rsquo;s details, or start again with a different mood.
           </p>
@@ -225,7 +225,7 @@ export default function StagePick({ selected, who, energy, intention, results, p
               <div className="ff-stage3-spread__right">
                 <div className="ff-pick-eyebrow" style={{ color:blendHex }}>Tonight&rsquo;s pick</div>
                 {fallbackNote && (
-                  <p className="ff-pick-fallback-note">{fallbackNote}</p>
+                  <p className="ff-pick-fallback-note" role="note" aria-label="Recommendation source note">{fallbackNote}</p>
                 )}
                 <h1 style={{ fontFamily:'Outfit', fontSize:'clamp(44px, 5.6vw, 76px)', lineHeight:0.96, fontWeight:300, letterSpacing:'-0.045em', color:HP.text, margin:'12px 0 0', textWrap:'balance' }}>
                   {titleWords.map((w, i) => <span key={i} className="ff-pick-word" style={{ display:'inline-block', opacity:0, animation:`ff-word-in 0.55s cubic-bezier(.2,.7,.2,1) ${0.1 + i*0.06}s forwards`, marginRight:'0.2em' }}>{w}</span>)}

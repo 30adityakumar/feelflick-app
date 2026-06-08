@@ -1,27 +1,46 @@
 // src/features/discover/__tests__/DiscoverEntry.test.jsx
-// F3.5 — the Discover entry: /discover opens directly on the mood front door
-// (StageHero removed), an onboarding arrival seeds the constellation from ALL
-// baseline moods (deduped, order-preserved, capped at three), and an ordinary
-// visit starts empty (no invented "recent mood"). Mounts the real Discover with
-// mocked data — no live fetch, no writes.
+// F3.5 + F3.6 — the Discover shell. F3.5: opens on the mood front door; onboarding
+// seeds all mapped moods (deduped, ≤3); direct visits start empty. F3.6: Mood
+// Continue lands on the summary-first night-context checkpoint; the primary CTA is
+// available immediately; preferences are written ONLY when the user explicitly
+// continues; predictions recompute on mood change but never overwrite a manual
+// edit; Tweak Inputs / Start Over behave correctly. Real Discover, mocked data +
+// writes — no live fetch, no impression/watchlist/history writes.
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, within, act } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 
-const h = vi.hoisted(() => ({ baselineMoods: [] }))
+const h = vi.hoisted(() => ({
+  baselineMoods: [], profile: { affinities: { directors: [] } }, learnedPrefs: null,
+  upserts: [], inserts: [],
+}))
 
 vi.mock('../useDiscoverData', () => ({
   DiscoverDataProvider: ({ children }) => children,
-  useDiscoverData: () => ({ films: [], profile: { affinities: { directors: [] } }, baselineMoods: h.baselineMoods, learnedPrefs: null, recentSaves: [] }),
+  useDiscoverData: () => ({ films: [], profile: h.profile, baselineMoods: h.baselineMoods, learnedPrefs: h.learnedPrefs, recentSaves: [] }),
 }))
 vi.mock('@/shared/hooks/useAuthSession', () => ({ useAuthSession: () => ({ user: { id: 'u1' } }) }))
 vi.mock('@/shared/hooks/usePageMeta', () => ({ usePageMeta: () => {} }))
 vi.mock('@/shared/lib/supabase/client', () => ({
-  supabase: { from: () => ({ select: () => ({ eq: () => ({ maybeSingle: () => Promise.resolve({ data: null }) }) }), upsert: () => Promise.resolve({ error: null }) }) },
+  supabase: {
+    from: (table) => ({
+      select: () => ({ eq: () => ({ maybeSingle: () => Promise.resolve({ data: null }) }) }),
+      upsert: (row, opts) => { h.upserts.push({ table, row, opts }); return Promise.resolve({ error: null }) },
+      insert: (row) => { h.inserts.push({ table, row }); return Promise.resolve({ error: null }) },
+      delete: () => ({ eq: () => ({ eq: () => Promise.resolve({ error: null }) }) }),
+    }),
+  },
 }))
+// Stage-3 services — kept inert so the exhausted result page mounts without writes.
+vi.mock('@/shared/services/recommendations', () => ({ scoreMovieForUser: vi.fn(), updateImpression: vi.fn().mockResolvedValue(), logSurfaceImpressions: vi.fn().mockResolvedValue() }))
+vi.mock('@/shared/services/matchScore', () => ({ computeMatchPercent: vi.fn() }))
+vi.mock('@/shared/services/interactions', () => ({ trackInteraction: vi.fn().mockResolvedValue() }))
+vi.mock('@/shared/api/tmdb', () => ({ getMovieWatchProviders: vi.fn(() => Promise.resolve({ providers: [] })) }))
 
 import Discover from '../Discover'
+import { updateImpression, logSurfaceImpressions } from '@/shared/services/recommendations'
+import { trackInteraction } from '@/shared/services/interactions'
 
 const renderDiscover = ({ fromOnboarding = false } = {}) => {
   const entries = fromOnboarding ? [{ pathname: '/discover', state: { fromOnboarding: true } }] : ['/discover']
@@ -29,63 +48,164 @@ const renderDiscover = ({ fromOnboarding = false } = {}) => {
 }
 const moodBtn = (label) => screen.getByText(label, { selector: '.ff-mood-label' }).closest('button')
 const pressedCount = () => screen.getAllByRole('button').filter(b => b.getAttribute('aria-pressed') === 'true').length
+const continueBtn = () => screen.getByRole('button', { name: /continue/i })
+const findFilmBtn = () => screen.getByRole('button', { name: /find my film/i })
+const prefUpserts = () => h.upserts.filter(u => u.table === 'user_discover_preferences')
+const nightHeading = () => screen.queryByRole('heading', { level: 1, name: 'A few details, already filled in.' })
+const gotoNight = (mood = 'Cozy') => { fireEvent.click(moodBtn(mood)); fireEvent.click(continueBtn()) }
 
 beforeEach(() => {
-  h.baselineMoods = []
+  h.baselineMoods = []; h.profile = { affinities: { directors: [] } }; h.learnedPrefs = null
+  h.upserts = []; h.inserts = []
+  vi.clearAllMocks()
   window.matchMedia = vi.fn().mockImplementation((q) => ({
     matches: false, media: q, onchange: null,
     addEventListener: vi.fn(), removeEventListener: vi.fn(), addListener: vi.fn(), removeListener: vi.fn(), dispatchEvent: vi.fn(),
   }))
 })
 
-describe('Discover entry — mood front door', () => {
-  it('opens directly on StageMood (no StageHero "How do you feel?" launch screen)', () => {
+// ── F3.5: mood front door + handoff ───────────────────────────────────────────
+describe('Discover entry — mood front door (F3.5)', () => {
+  it('opens directly on StageMood (no StageHero launch screen)', () => {
     renderDiscover()
     expect(screen.getByRole('heading', { name: /shape.*of your mood/i })).toBeInTheDocument()
     expect(screen.queryByText(/How do you feel\?/i)).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /surprise me/i })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /begin/i })).not.toBeInTheDocument()
   })
-
-  it('an ordinary/direct visit starts with NO mood selected', () => {
+  it('an ordinary visit starts with NO mood selected', () => {
     renderDiscover()
     expect(pressedCount()).toBe(0)
-    expect(screen.getByRole('button', { name: /continue/i })).toBeDisabled()
+    expect(continueBtn()).toBeDisabled()
+  })
+  it('seeds all mapped baseline moods (deduped, ≤3, order-preserved)', async () => {
+    h.baselineMoods = ['tender', 'cozy', 'cozy', 'wired', 'fun'] // → tender, cozy, cerebral (cap 3)
+    renderDiscover({ fromOnboarding: true })
+    await waitFor(() => expect(pressedCount()).toBe(3))
+    expect(within(moodBtn('Tender')).getByText('1')).toBeInTheDocument()
+    expect(within(moodBtn('Cozy')).getByText('2')).toBeInTheDocument()
+    expect(moodBtn('Cerebral')).toHaveAttribute('aria-pressed', 'true')
   })
 })
 
-describe('Discover entry — onboarding handoff', () => {
-  it('seeds the constellation from the mapped baseline moods', async () => {
-    h.baselineMoods = ['cozy', 'wired', 'tender'] // → cozy, cerebral, tender
-    renderDiscover({ fromOnboarding: true })
-    await waitFor(() => expect(moodBtn('Cozy')).toHaveAttribute('aria-pressed', 'true'))
-    expect(moodBtn('Cerebral')).toHaveAttribute('aria-pressed', 'true')
-    expect(moodBtn('Tender')).toHaveAttribute('aria-pressed', 'true')
-    expect(pressedCount()).toBe(3)
+// ── F3.6: the night-context checkpoint ────────────────────────────────────────
+describe('Discover night context — summary-first (F3.6)', () => {
+  it('Mood Continue opens the night-context summary with the CTA immediately + no four taps', () => {
+    renderDiscover()
+    gotoNight('Cozy')
+    expect(nightHeading()).toBeInTheDocument()
+    expect(findFilmBtn()).toBeInTheDocument()           // primary CTA available immediately
+    expect(screen.queryByRole('group')).not.toBeInTheDocument() // no required editor
+    expect(screen.queryByText(/1 of 4|Tap any option to confirm|Show me my edition/)).not.toBeInTheDocument()
+  })
+  it('the summary shows the predicted default values', () => {
+    renderDiscover()
+    gotoNight('Cozy') // cozy → intention "comfort"; no avgRuntime → time "std"; who "alone"
+    expect(screen.getByText('Comfort me')).toBeInTheDocument()
+    expect(screen.getByText('~ 2 hrs')).toBeInTheDocument()
+    expect(screen.getByText('Alone')).toBeInTheDocument()
   })
 
-  it('deduplicates and caps the seed at three moods', async () => {
-    h.baselineMoods = ['cozy', 'cozy', 'wired', 'tender', 'fun', 'tense'] // → cozy, cerebral, tender, restless, tense → cap 3
-    renderDiscover({ fromOnboarding: true })
-    await waitFor(() => expect(pressedCount()).toBe(3))
-    expect(moodBtn('Cozy')).toHaveAttribute('aria-pressed', 'true')
-    expect(moodBtn('Cerebral')).toHaveAttribute('aria-pressed', 'true')
-    expect(moodBtn('Tender')).toHaveAttribute('aria-pressed', 'true')
-    expect(moodBtn('Restless')).toHaveAttribute('aria-pressed', 'false') // dropped by the 3-cap
+  it('writes NO preference on mount, Mood-Continue, opening details, or changing an option', () => {
+    renderDiscover()
+    expect(prefUpserts()).toHaveLength(0)        // mount
+    gotoNight('Cozy')
+    expect(prefUpserts()).toHaveLength(0)        // after Mood Continue
+    fireEvent.click(screen.getByRole('button', { name: /adjust details/i }))
+    expect(prefUpserts()).toHaveLength(0)        // after opening details
+    fireEvent.click(screen.getByRole('button', { name: /Make me think/ }))
+    expect(prefUpserts()).toHaveLength(0)        // after changing an option
   })
 
-  it('preserves the baseline order in the selection badges', async () => {
-    h.baselineMoods = ['tender', 'cozy'] // → tender (1), cozy (2)
-    renderDiscover({ fromOnboarding: true })
-    await waitFor(() => expect(moodBtn('Tender')).toHaveAttribute('aria-pressed', 'true'))
-    expect(within(moodBtn('Tender')).getByText('1')).toBeInTheDocument()
-    expect(within(moodBtn('Cozy')).getByText('2')).toBeInTheDocument()
+  it('Find my film commits the preference upsert ONCE and advances to StageBreath', async () => {
+    renderDiscover()
+    gotoNight('Cozy')
+    fireEvent.click(findFilmBtn())
+    expect(screen.getByText('Take a breath')).toBeInTheDocument() // StageBreath
+    await waitFor(() => expect(prefUpserts()).toHaveLength(1))
+    expect(prefUpserts()[0].row).toMatchObject({ user_id: 'u1' })
   })
 
-  it('does NOT seed when there are no baseline moods', async () => {
-    h.baselineMoods = []
-    renderDiscover({ fromOnboarding: true })
-    await Promise.resolve()
-    expect(pressedCount()).toBe(0)
+  it('Back from the night context returns to MoodStage', () => {
+    renderDiscover()
+    gotoNight('Cozy')
+    fireEvent.click(screen.getByRole('button', { name: /back/i }))
+    expect(screen.getByRole('heading', { name: /shape.*of your mood/i })).toBeInTheDocument()
+  })
+
+  it('no impression / watchlist / history / interaction write occurs in the flow', () => {
+    renderDiscover()
+    gotoNight('Cozy')
+    fireEvent.click(screen.getByRole('button', { name: /adjust details/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Make me laugh/ }))
+    expect(updateImpression).not.toHaveBeenCalled()
+    expect(logSurfaceImpressions).not.toHaveBeenCalled()
+    expect(trackInteraction).not.toHaveBeenCalled()
+    expect(h.inserts).toHaveLength(0)
+  })
+})
+
+// ── F3.6: prediction vs manual edit ───────────────────────────────────────────
+describe('Discover night context — prediction + edit protection (F3.6)', () => {
+  it('a mood change recomputes the defaults BEFORE any manual edit', () => {
+    renderDiscover()
+    gotoNight('Cozy')
+    expect(screen.getByText('Comfort me')).toBeInTheDocument() // cozy → comfort
+    fireEvent.click(screen.getByRole('button', { name: /back/i }))
+    fireEvent.click(moodBtn('Cozy'))     // deselect cozy
+    fireEvent.click(moodBtn('Cerebral')) // select cerebral → predicts "think"
+    fireEvent.click(continueBtn())
+    expect(screen.getByText('Make me think')).toBeInTheDocument() // recomputed
+  })
+
+  it('a manual edit is NOT overwritten by a later mood/default update', () => {
+    renderDiscover()
+    gotoNight('Cozy')
+    fireEvent.click(screen.getByRole('button', { name: /adjust details/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Make me laugh/ })) // manual edit → intention 'laugh'
+    fireEvent.click(screen.getByRole('button', { name: /done adjusting/i }))
+    expect(screen.getByText('Make me laugh')).toBeInTheDocument()
+    // change moods — prediction must NOT overwrite the manual edit
+    fireEvent.click(screen.getByRole('button', { name: /back/i }))
+    fireEvent.click(moodBtn('Cozy'))
+    fireEvent.click(moodBtn('Cerebral'))
+    fireEvent.click(continueBtn())
+    expect(screen.getByText('Make me laugh')).toBeInTheDocument() // frozen
+    expect(screen.queryByText('Make me think')).not.toBeInTheDocument()
+  })
+})
+
+// ── F3.6: Tweak Inputs + Start Over (reach the exhausted result via the ceremony)
+describe('Discover night context — Tweak Inputs + Start Over (F3.6)', () => {
+  const advanceCeremony = async () => {
+    await act(async () => { await vi.advanceTimersByTimeAsync(2200) }) // breath → reveal
+    await act(async () => { await vi.advanceTimersByTimeAsync(2600) }) // reveal → title card
+    await act(async () => { await vi.advanceTimersByTimeAsync(1400) }) // title card → pick
+  }
+  it('Tweak Inputs returns to the summary with context preserved', async () => {
+    vi.useFakeTimers()
+    try {
+      renderDiscover()
+      gotoNight('Cozy')
+      fireEvent.click(findFilmBtn())
+      await advanceCeremony()
+      fireEvent.click(screen.getByRole('button', { name: /tweak inputs/i }))
+      expect(nightHeading()).toBeInTheDocument()
+      expect(screen.getByText('Comfort me')).toBeInTheDocument() // cozy→comfort survives Tweak
+    } finally { vi.useRealTimers() }
+  })
+
+  it('Start Over returns to MoodStage, clears moods, and does not reapply the onboarding seed', async () => {
+    vi.useFakeTimers()
+    try {
+      h.baselineMoods = ['cozy']
+      renderDiscover({ fromOnboarding: true })
+      await vi.advanceTimersByTimeAsync(0) // let the seed effect run
+      fireEvent.click(continueBtn())       // seeded cozy → night
+      fireEvent.click(findFilmBtn())
+      await advanceCeremony()
+      fireEvent.click(screen.getByRole('button', { name: /start over/i }))
+      expect(screen.getByRole('heading', { name: /shape.*of your mood/i })).toBeInTheDocument()
+      expect(pressedCount()).toBe(0) // moods cleared, seed NOT reapplied
+    } finally { vi.useRealTimers() }
   })
 })

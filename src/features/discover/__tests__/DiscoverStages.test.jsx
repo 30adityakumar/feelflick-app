@@ -8,10 +8,9 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, within } from '@testing-library/react'
-import { useState as reactUseState } from 'react'
 
 import StageMood from '../sections/StageMood'
-import StageNightStacked from '../sections/StageNightStacked'
+import StageNightContext from '../sections/StageNightContext'
 import StageBreath from '../sections/StageBreath'
 import StageReveal from '../sections/StageReveal'
 import StageTitleCard from '../sections/StageTitleCard'
@@ -92,96 +91,19 @@ describe('StageMood', () => {
   })
 })
 
-// ── StageNightStacked (controlled harness so stepIndex advances) ───────────────
-function NightHarness({ onNext = () => {}, onBack = () => {}, playOptionCue = () => {}, playContinueCue = () => {} }) {
-  const [stepIndex, setStepIndex] = reactUseState(0)
-  const [intention, setIntention] = reactUseState(null)
-  const [time, setTime] = reactUseState(null)
-  const [who, setWho] = reactUseState(null)
-  const [energy, setEnergy] = reactUseState(null)
-  return (
-    <StageNightStacked
-      stepIndex={stepIndex} setStepIndex={setStepIndex}
-      intention={intention} setIntention={setIntention}
-      time={time} setTime={setTime} who={who} setWho={setWho} energy={energy} setEnergy={setEnergy}
-      onNext={onNext} onBack={onBack} blendHex="#A78BFA"
-      playOptionCue={playOptionCue} playContinueCue={playContinueCue}
-    />
-  )
-}
-
-describe('StageNightStacked', () => {
-  it('starts on the intention question', () => {
-    render(<NightHarness />)
-    expect(screen.getByRole('heading', { name: 'What pulls you in?' })).toBeInTheDocument()
-    expect(screen.getByText('Distract me')).toBeInTheDocument()
-  })
-  it('picking an option calls playOptionCue and advances through all four questions', () => {
-    const playOptionCue = vi.fn()
-    render(<NightHarness playOptionCue={playOptionCue} />)
-    fireEvent.click(screen.getByText('Move me'))            // intention → time
-    expect(playOptionCue).toHaveBeenCalledTimes(1)
-    expect(screen.getByRole('heading', { name: 'How long tonight?' })).toBeInTheDocument()
-    fireEvent.click(screen.getByText('~ 2 hrs'))            // time → who
-    expect(screen.getByRole('heading', { name: "Who’s watching?" })).toBeInTheDocument()
-    fireEvent.click(screen.getByText('Alone'))              // who → energy
-    expect(screen.getByRole('heading', { name: 'How do you feel?' })).toBeInTheDocument()
-    fireEvent.click(screen.getByText('Steady'))             // energy → summary
-    expect(screen.getByRole('button', { name: /show me my edition/i })).toBeInTheDocument()
-  })
-  it('completed answers render as edit chips, and editing a chip returns to that question', () => {
-    render(<NightHarness />)
-    fireEvent.click(screen.getByText('Move me'))   // answer intention
-    // the completed chip now shows the kicker + label + Edit
-    expect(screen.getByText('Move me')).toBeInTheDocument()
-    expect(screen.getByText('Edit')).toBeInTheDocument()
-    // jump to summary
-    fireEvent.click(screen.getByText('~ 2 hrs'))
-    fireEvent.click(screen.getByText('Alone'))
-    fireEvent.click(screen.getByText('Steady'))
-    expect(screen.getByRole('button', { name: /show me my edition/i })).toBeInTheDocument()
-    // edit the intention chip → returns to the intention question
-    fireEvent.click(screen.getAllByText('Edit')[0])
-    expect(screen.getByRole('heading', { name: 'What pulls you in?' })).toBeInTheDocument()
-  })
-  it('selecting while editing returns to the summary', () => {
-    render(<NightHarness />)
-    fireEvent.click(screen.getByText('Move me'))
-    fireEvent.click(screen.getByText('~ 2 hrs'))
-    fireEvent.click(screen.getByText('Alone'))
-    fireEvent.click(screen.getByText('Steady'))           // at summary
-    fireEvent.click(screen.getAllByText('Edit')[0])       // edit intention
-    fireEvent.click(screen.getByText('Distract me'))      // re-pick → back to summary
-    expect(screen.getByRole('button', { name: /show me my edition/i })).toBeInTheDocument()
-  })
-  it('Back: first question calls onBack; intermediate goes to the previous question; summary returns to the final question', () => {
-    const onBack = vi.fn()
-    render(<NightHarness onBack={onBack} />)
-    fireEvent.click(screen.getByRole('button', { name: /back/i }))    // first → onBack
-    expect(onBack).toHaveBeenCalledTimes(1)
-    fireEvent.click(screen.getByText('Move me'))                     // → time
-    fireEvent.click(screen.getByRole('button', { name: /back/i }))    // time → intention
-    expect(screen.getByRole('heading', { name: 'What pulls you in?' })).toBeInTheDocument()
-    // advance to summary, then Back returns to the final (energy) question
-    fireEvent.click(screen.getByText('Move me'))
-    fireEvent.click(screen.getByText('~ 2 hrs'))
-    fireEvent.click(screen.getByText('Alone'))
-    fireEvent.click(screen.getByText('Steady'))
-    fireEvent.click(screen.getByRole('button', { name: /back/i }))
-    expect(screen.getByRole('heading', { name: 'How do you feel?' })).toBeInTheDocument()
-  })
-  it('the final CTA appears only at the summary and calls playContinueCue then onNext', () => {
-    const onNext = vi.fn(); const playContinueCue = vi.fn()
-    render(<NightHarness onNext={onNext} playContinueCue={playContinueCue} />)
-    expect(screen.queryByRole('button', { name: /show me my edition/i })).not.toBeInTheDocument()
-    fireEvent.click(screen.getByText('Move me'))
-    fireEvent.click(screen.getByText('~ 2 hrs'))
-    fireEvent.click(screen.getByText('Alone'))
-    fireEvent.click(screen.getByText('Steady'))
-    fireEvent.click(screen.getByRole('button', { name: /show me my edition/i }))
-    expect(playContinueCue).toHaveBeenCalledTimes(1)
-    expect(onNext).toHaveBeenCalledTimes(1)
-    expect(playContinueCue.mock.invocationCallOrder[0]).toBeLessThan(onNext.mock.invocationCallOrder[0])
+// ── StageNightContext (smoke — detailed coverage in DiscoverNightContext.test.jsx) ─
+describe('StageNightContext (smoke)', () => {
+  const nightProps = {
+    intention: 'move', setIntention: () => {}, time: 'std', setTime: () => {},
+    who: 'alone', setWho: () => {}, energy: 'steady', setEnergy: () => {},
+    onUserEdit: () => {}, onNext: () => {}, onBack: () => {}, blendHex: '#A78BFA',
+    playOptionCue: () => {}, playContinueCue: () => {},
+  }
+  it('renders the summary-first checkpoint with the CTA available immediately + editor collapsed', () => {
+    render(<StageNightContext {...nightProps} />)
+    expect(screen.getByRole('heading', { level: 1, name: 'A few details, already filled in.' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /find my film/i })).toBeInTheDocument()
+    expect(screen.queryByRole('group')).not.toBeInTheDocument() // editor collapsed by default
   })
 })
 

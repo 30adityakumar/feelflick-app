@@ -511,3 +511,50 @@ describe('StagePick — write guards', () => {
     expect(h.inserts).toHaveLength(0)
   })
 })
+
+// ── F3.10: fallback data-truth labelling ──────────────────────────────────────
+describe('StagePick — fallback data-truth labelling (F3.10)', () => {
+  const fb = (reason) => baseProps({ isFallback: true, fallbackReason: reason })
+  it('live_error → unavailable-right-now copy', () => {
+    render(<StagePick {...fb('live_error')} />)
+    expect(screen.getByText('Example pick — live recommendations are unavailable right now.')).toBeInTheDocument()
+  })
+  it('live_empty → not-ready-yet copy', () => {
+    render(<StagePick {...fb('live_empty')} />)
+    expect(screen.getByText('Example pick — live recommendations are not ready yet.')).toBeInTheDocument()
+  })
+  it('filtered_empty → no-strong-fit copy', () => {
+    render(<StagePick {...fb('filtered_empty')} />)
+    expect(screen.getByText('Example pick — no strong live fit for these details.')).toBeInTheDocument()
+  })
+  it('unknown reason → generic safe-fallback copy', () => {
+    render(<StagePick {...fb('mystery')} />)
+    expect(screen.getByText('Example pick — using a safe fallback.')).toBeInTheDocument()
+  })
+  it('no fallback note when isFallback is false (even with a reason present)', () => {
+    render(<StagePick {...baseProps({ isFallback: false, fallbackReason: 'live_error' })} />)
+    expect(screen.queryByText(/Example pick/)).not.toBeInTheDocument()
+  })
+  it('the fallback note is visible + screen-reader reachable (not aria-hidden, no technical wording)', () => {
+    render(<StagePick {...fb('live_error')} />)
+    const note = screen.getByText('Example pick — live recommendations are unavailable right now.')
+    expect(note).toBeVisible()
+    expect(note.closest('[aria-hidden="true"]')).toBeNull()
+    expect(note.textContent).not.toMatch(/supabase|database|query|api|error code|fetch/i)
+  })
+  it('fallback mode renders no fabricated authority (no critic/diary/social proof)', () => {
+    render(<StagePick {...fb('live_error')} />)
+    expect(screen.queryByText(/critics?|reviewers|stars\b|everyone|people are watching|users? love/i)).not.toBeInTheDocument()
+  })
+  it('actions are unchanged under fallback mode', () => {
+    render(<StagePick {...fb('live_error')} />)
+    expect(screen.getByRole('button', { name: /open film file/i })).toBeInTheDocument()
+    for (const name of ['Trailer', 'Save for later', 'Already watched', 'Not tonight']) {
+      expect(screen.getByRole('button', { name })).toBeInTheDocument()
+    }
+  })
+  it('live status remains the normal pick announcement under fallback mode', () => {
+    render(<StagePick {...fb('live_error')} />)
+    expect(screen.getByRole('status')).toHaveTextContent("Tonight's pick: Film1.")
+  })
+})

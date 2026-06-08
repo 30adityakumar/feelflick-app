@@ -200,8 +200,27 @@ function shapeFilm(m) {
 
 // === Provider ============================================================
 
+// Pure classifier (F3.10) — maps a fetch outcome to an HONEST data-source
+// descriptor that distinguishes live success from the fallback reasons. The UI
+// copy is driven by `reason`; `errorMessage` is a safe, generic category and never
+// carries raw Supabase errors, query details, secrets, or stack traces.
+//   live_ok        — the live `movies` query returned usable candidates
+//   live_empty     — the live query succeeded but found NO candidates
+//   filtered_empty — candidates existed but exclusions/filters left zero viable
+//   live_error     — the fetch failed
+export function classifyDiscoverDataSource({ errored = false, filmCount = 0, candidateCount = 0 } = {}) {
+  if (errored) return { movies: 'fallback', reason: 'live_error', errorMessage: 'Live recommendations could not be reached.' }
+  if (filmCount > 0) return { movies: 'live', reason: 'live_ok' }
+  if (candidateCount > 0) return { movies: 'fallback', reason: 'filtered_empty' }
+  return { movies: 'fallback', reason: 'live_empty' }
+}
+
 const INITIAL = {
   films: [],
+  // Loading default — the result surface is never shown until the fetch resolves
+  // (the user passes through MoodStage → NightContext → Resolve first), so this
+  // optimistic value is overwritten with the real classification before stage 3.
+  dataSource: { movies: 'live', reason: 'live_ok' },
   diaryQuotes: {},
   profile: null, // computeUserProfile(userId) result — Discover calls scoreMovieForUser inline
   baselineMoods: [], // users.taste_baseline_moods (onboarding mood keys)
@@ -601,11 +620,18 @@ export function DiscoverDataProvider({ children }) {
           } : null)
           .filter(Boolean)
 
-        setState({ films, diaryQuotes, profile, baselineMoods, learnedPrefs, recentSaves, loading: false, error: null })
+        // Honest data-source classification: live_ok when we have films, else
+        // filtered_empty (candidates existed but exclusions removed them all) vs
+        // live_empty (the query itself found nothing). rawMovieRows is the live
+        // candidate set before filterExclusionsClientSide.
+        const dataSource = classifyDiscoverDataSource({ filmCount: films.length, candidateCount: rawMovieRows.length })
+        setState({ films, dataSource, diaryQuotes, profile, baselineMoods, learnedPrefs, recentSaves, loading: false, error: null })
       } catch (e) {
         if (abort) return
+        // Raw error stays in the console + the internal `error` field (never
+        // rendered); the UI sees only the safe classified dataSource.
         console.error('[useDiscoverData]', e)
-        setState(s => ({ ...s, loading: false, error: e?.message || 'Failed to load' }))
+        setState(s => ({ ...s, loading: false, error: e?.message || 'Failed to load', dataSource: classifyDiscoverDataSource({ errored: true }) }))
       }
     })()
     return () => { abort = true }

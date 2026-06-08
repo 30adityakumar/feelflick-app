@@ -208,7 +208,7 @@ function DiscoverBody() {
   // the same broad-mood films (e.g., Gladiator) win every constellation.
   // Resets naturally when the user leaves /discover and returns.
   const sessionShownIds = useRef(new Set());
-  const { films: liveFilms, profile, baselineMoods, learnedPrefs, recentSaves } = useDiscoverData();
+  const { films: liveFilms, profile, baselineMoods, learnedPrefs, recentSaves, dataSource } = useDiscoverData();
   const { user } = useAuthSession();
   const location = useLocation();
   const fromOnboardingRef = useRef(location.state?.fromOnboarding === true);
@@ -297,9 +297,12 @@ function DiscoverBody() {
   // only when the query hasn't returned anything (offline / empty DB).
   const usingLiveFilms = !!(liveFilms && liveFilms.length > 0);
   const films = usingLiveFilms ? liveFilms : FILMS_FALLBACK;
-  // When the live fetch returned nothing (empty/error), the result is drawn from
-  // the static FILMS_FALLBACK set — labelled honestly to the user via StagePick.
-  const usingFallback = !usingLiveFilms;
+  // Honest fallback state comes from useDiscoverData's explicit dataSource (live
+  // vs fallback + the reason), NOT merely from an empty array — so live_error,
+  // live_empty, and filtered_empty are distinguishable on the result surface.
+  // (Fall back to the length check only before the fetch has resolved.)
+  const isFallback = dataSource ? dataSource.movies === 'fallback' : !usingLiveFilms;
+  const fallbackReason = dataSource?.reason;
 
   const fireBurst = (id, hex) => {
     const t = Date.now();
@@ -439,7 +442,7 @@ function DiscoverBody() {
         {stage === 1   && <StageMood selected={selected} setSelected={setSelected} onNext={()=>setStage(2)} blendHex={blendHex} bursts={bursts} fireBurst={fireBurst} audioToggle={<AudioToggle />} playMoodCue={(id)=>FFAudio.pluck(id)} playContinueCue={()=>FFAudio.whoom()} />}
         {stage === 2   && <StageNightContext time={time} setTime={setTime} who={who} setWho={setWho} energy={energy} setEnergy={setEnergy} intention={intention} setIntention={setIntention} onUserEdit={()=>{ contextTouchedRef.current = true }} onNext={()=>{ handleCommitStage2(); setStage(2.3); }} onBack={()=>setStage(1)} blendHex={blendHex} playOptionCue={()=>FFAudio.pluck('cozy')} playContinueCue={()=>FFAudio.whoom()} />}
         {stage === 2.3 && <StageResolve blendHex={blendHex} onDone={()=>setStage(3)} />}
-        {stage === 3   && <StagePick selected={selected.length>0?selected:['slow','tender']} who={who} energy={energy} intention={intention} time={time} results={allResults} profile={profile} sessionShownIds={sessionShownIds} isFallback={usingFallback} onRestart={()=>{ setStage(1); setSelected([]); contextTouchedRef.current = false; didPredictDefaultsRef.current = false; setIntention('move'); setTime('std'); setWho('alone'); setEnergy('steady'); }} onBack={()=>setStage(2)} blendHex={blendHex} audioToggle={<AudioToggle />} />}
+        {stage === 3   && <StagePick selected={selected.length>0?selected:['slow','tender']} who={who} energy={energy} intention={intention} time={time} results={allResults} profile={profile} sessionShownIds={sessionShownIds} isFallback={isFallback} fallbackReason={fallbackReason} onRestart={()=>{ setStage(1); setSelected([]); contextTouchedRef.current = false; didPredictDefaultsRef.current = false; setIntention('move'); setTime('std'); setWho('alone'); setEnergy('steady'); }} onBack={()=>setStage(2)} blendHex={blendHex} audioToggle={<AudioToggle />} />}
       </div>
     </div>
   );

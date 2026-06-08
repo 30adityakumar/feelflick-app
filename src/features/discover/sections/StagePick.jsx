@@ -20,7 +20,7 @@ import StreamingChip from './StreamingChip'
 // promotes the next-best result), never a visible deck, count, or feed. A single
 // polite live region narrates what appeared / succeeded / failed; the queue depth
 // is never announced.
-export default function StagePick({ selected, who, energy, intention, results, profile, sessionShownIds, onRestart, onBack, blendHex, audioToggle, time, isFallback }) {
+export default function StagePick({ selected, who, energy, intention, results, profile, sessionShownIds, onRestart, onBack, blendHex, audioToggle, time, isFallback, fallbackReason }) {
   // Session-only "hidden" set — Not tonight / Already watched add the current
   // top's id here and the next-best result promotes into view. Resets only when
   // `results` changes (the user adjusted inputs or started over).
@@ -146,6 +146,16 @@ export default function StagePick({ selected, who, energy, intention, results, p
   const SAVE_LABEL = { idle: 'Save for later', saving: 'Saving…', saved: 'Saved', error: 'Try again' };
   const watchedLabel = watchedState === 'watched' ? 'Watched' : watchedState === 'error' ? 'Try again' : 'Already watched';
 
+  // Reason-aware fallback copy (F3.10) — quiet + honest, never implying the
+  // fallback was personalized from fresh live data or that a live query
+  // succeeded. No technical wording (no Supabase / database / query / API).
+  const FALLBACK_COPY = {
+    live_error: 'Example pick — live recommendations are unavailable right now.',
+    live_empty: 'Example pick — live recommendations are not ready yet.',
+    filtered_empty: 'Example pick — no strong live fit for these details.',
+  };
+  const fallbackNote = isFallback ? (FALLBACK_COPY[fallbackReason] || 'Example pick — using a safe fallback.') : null;
+
   // One persistent, polite, sr-only status region wraps both states so the
   // exhausted announcement lands on the same live element (no fresh region).
   const liveRegion = (
@@ -214,8 +224,8 @@ export default function StagePick({ selected, who, energy, intention, results, p
               {/* RIGHT — eyebrow, title, meta, chips, the case, synopsis, provider, actions. */}
               <div className="ff-stage3-spread__right">
                 <div className="ff-pick-eyebrow" style={{ color:blendHex }}>Tonight&rsquo;s pick</div>
-                {isFallback && (
-                  <p className="ff-pick-fallback-note">Example pick &mdash; we couldn&rsquo;t reach your live recommendations.</p>
+                {fallbackNote && (
+                  <p className="ff-pick-fallback-note">{fallbackNote}</p>
                 )}
                 <h1 style={{ fontFamily:'Outfit', fontSize:'clamp(44px, 5.6vw, 76px)', lineHeight:0.96, fontWeight:300, letterSpacing:'-0.045em', color:HP.text, margin:'12px 0 0', textWrap:'balance' }}>
                   {titleWords.map((w, i) => <span key={i} className="ff-pick-word" style={{ display:'inline-block', opacity:0, animation:`ff-word-in 0.55s cubic-bezier(.2,.7,.2,1) ${0.1 + i*0.06}s forwards`, marginRight:'0.2em' }}>{w}</span>)}

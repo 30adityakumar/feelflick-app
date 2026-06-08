@@ -148,6 +148,38 @@
   .ff-mood-hint { display: block; font-size: 10px; max-width: 140px; }
 }
 
+/* Keyboard focus on the mood orbs (F3.5). The orb buttons are border-less +
+ * transparent, so without this a keyboard user gets no visible focus ring. */
+.ff-mood-button:focus-visible {
+  outline: 2px solid var(--purple-400, #A78BFA);
+  outline-offset: 4px;
+  border-radius: 14px;
+}
+
+/* MoodStage mobile layout (F3.5). The desktop constellation keeps its
+ * absolute-positioned orbs + connecting lines (the FeelFlick identity); on
+ * phones the 8 percent-positioned orbs collide, so below 640px we drop the
+ * absolute layout for a calm centered grid and hide the (now meaningless)
+ * constellation lines. The .ff-mood-node !important overrides the inline
+ * absolute positioning the orbs carry for desktop. */
+@media (max-width: 639px) {
+  .ff-mood-canvas {
+    aspect-ratio: auto;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 20px 6px;
+    padding: 22px 10px;
+    place-items: center;
+  }
+  .ff-mood-canvas > svg { display: none; }
+  .ff-mood-node {
+    position: static !important;
+    transform: none !important;
+    display: flex;
+    justify-content: center;
+  }
+}
+
 /* Stage 2 — option grids. Mobile gets 2-col so each option has enough room
  * for its label + italic sub-line. Desktop expands. */
 .ff-night-grid {

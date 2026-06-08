@@ -1,65 +1,94 @@
 ---
 name: code-review
 description: >
-  Perform a structured code review for FeelFlick. Trigger on: "review", "audit",
-  "check this code", "review this file", "look for issues", "is this safe".
+  Perform a structured FeelFlick code review. Trigger on review, audit, check this
+  code, look for issues, safety review, or pre-merge assessment.
 ---
 
 # Code Review Skill
 
-When invoked, perform a thorough review against the following checklist. Report each finding with: severity (error / warning / info), file:line, and a concrete suggestion.
+Read the maintained rule files relevant to the changed paths before reviewing. Those rules take precedence over this checklist.
 
-## Checklist
+Review the actual diff and surrounding call paths. Prioritize correctness, user impact, security, data integrity, accessibility, and regressions over stylistic preference.
 
-### 1. TypeScript / JavaScript Correctness
-- [ ] No implicit `any` or untyped dynamic access patterns that would block a future TS migration
-- [ ] Nullable values are guarded before use (`?.`, `??`, explicit null checks)
-- [ ] No `console.log` / `console.error` left in production code paths (dev tooling excluded)
-- [ ] No `TODO` or `FIXME` comments merged without a tracking issue
+## Review method
 
-### 2. Error Handling
-- [ ] All `async/await` blocks have try/catch or `.catch()` — no silent failures
-- [ ] Supabase query results: always check `error` before using `data`
-- [ ] Fetch/axios calls handle network errors and non-2xx responses
-- [ ] User-visible error states are handled gracefully (not just `console.error`)
+1. Identify the intended behavior and changed surface.
+2. Read the affected implementation, callers, tests, and configuration.
+3. Look for concrete failure modes, not hypothetical perfection.
+4. Distinguish bugs from optional improvements.
+5. Verify claims against runtime behavior or tests when practical.
+6. Report only findings the author can act on.
 
-### 3. Unused / Dead Code
-- [ ] No unused imports (`import X from ...` with X never referenced)
-- [ ] No unused variables, props, or function parameters
-- [ ] No dead branches (`if (false)`, conditions that can never be true)
-- [ ] No commented-out code blocks (use git history instead)
+## Review areas
 
-### 4. Accessibility (UI Components)
-- [ ] Interactive elements (`button`, `a`, custom click handlers) have accessible labels (`aria-label` or visible text)
-- [ ] Images have meaningful `alt` text (or `alt=""` for decorative images)
-- [ ] Focus management is correct for modals/drawers (trap focus, restore on close)
-- [ ] Color contrast meets WCAG AA minimum (4.5:1 for normal text)
-- [ ] Keyboard navigation works for all interactive components
+### Correctness and state
 
-### 5. Security
-- [ ] No hardcoded secrets, API keys, tokens, or passwords in source
-- [ ] No user-supplied strings interpolated directly into SQL or shell commands
-- [ ] No sensitive data (emails, tokens) logged to the console
-- [ ] No `dangerouslySetInnerHTML` with unescaped user content
-- [ ] Supabase RLS: any new tables have RLS policies defined
+- null, loading, empty, error, and stale states
+- race conditions, cleanup, and asynchronous ownership
+- identifier and data-shape mismatches
+- unexpected behavior across routes or profile states
+- compatibility with current callers and exports
 
-### 6. FeelFlick-Specific Rules
-- [ ] No fake/fabricated metrics, user counts, or testimonial copy
-- [ ] No `.env` files read or modified
-- [ ] No migration files deleted or altered — only new migrations added
-- [ ] TMDB API key is read-only client usage; OpenAI key stays server-side
+Async work does not require local `try/catch` when errors are correctly handled by a caller, query library, returned result, or error boundary.
 
-### 7. Performance
-- [ ] Images are lazy-loaded (`loading="lazy"` or Intersection Observer)
-- [ ] No unnecessary re-renders (check for missing dependency arrays in `useEffect`/`useMemo`/`useCallback`)
-- [ ] No blocking operations on the main thread in render paths
+### Security and data
 
-## Output Format
+- secret exposure and unsafe logging
+- client-side authorization mistaken for server enforcement
+- RLS, ownership, and role behavior for data changes
+- unsafe SQL, shell, HTML, URL, or model-generated output handling
+- privacy implications of analytics, replay, free text, or external processors
 
-For each issue found:
+A policy or RLS flag being present is not enough; review whether the permitted operations and row conditions are correct.
+
+### UI and accessibility
+
+- semantic controls and accessible names
+- keyboard, focus, dialog, and responsive behavior
+- visible error and recovery states
+- contrast, reduced motion, and touch behavior
+- actual rendered hierarchy and interaction
+
+### Performance
+
+- request waterfalls, N+1 queries, oversized payloads, and repeated computation
+- image sizing, LCP priority, layout stability, and unnecessary work
+- bundle or dependency impact
+
+Do not require every image to lazy-load. Hero and likely-LCP images may need eager loading and priority.
+
+### Maintainability
+
+- ownership and dependency direction
+- duplicated policy that can drift
+- dead compatibility paths
+- misleading comments or docs
+- tests that cover the important behavior
+
+Do not report arbitrary line limits, future-TypeScript preferences, handler naming, or personal formatting choices as defects.
+
+## Severity
+
+- **error:** likely bug, security/data issue, broken interaction, or release blocker
+- **warning:** meaningful regression risk or maintainability problem
+- **info:** optional improvement with clear value
+
+## Output
+
+For each finding:
+
+```text
+[severity] file:line — concise title
+Evidence: what in the code or runtime supports the finding
+Impact: what can fail or degrade
+Fix: concrete correction
 ```
-[SEVERITY] file/path.jsx:42 — Description of the issue
-  → Suggestion: what to change and why
-```
 
-Finish with a summary: total errors, warnings, and infos, and a one-line overall assessment.
+Finish with:
+
+- errors, warnings, and infos count
+- validation reviewed or run
+- overall merge assessment
+
+If no material findings exist, say so plainly.

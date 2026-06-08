@@ -6,14 +6,12 @@
 // mocked. NOTE (deferred per F3.3): we do NOT assert aria-pressed / single-h1 /
 // announcements here — those are F3.1 findings fixed in later phases.
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent, within } from '@testing-library/react'
 
 import StageMood from '../sections/StageMood'
 import StageNightContext from '../sections/StageNightContext'
-import StageBreath from '../sections/StageBreath'
-import StageReveal from '../sections/StageReveal'
-import StageTitleCard from '../sections/StageTitleCard'
+import StageResolve from '../sections/StageResolve'
 
 // ── StageMood ─────────────────────────────────────────────────────────────────
 // (StageHero was removed in F3.5 — /discover now opens directly on StageMood.)
@@ -107,77 +105,14 @@ describe('StageNightContext (smoke)', () => {
   })
 })
 
-// ── Timed ceremony stages ─────────────────────────────────────────────────────
-describe('StageBreath (2200ms)', () => {
-  beforeEach(() => vi.useFakeTimers())
-  afterEach(() => vi.useRealTimers())
-  it('calls onDone exactly once at 2200ms, not before', () => {
-    const onDone = vi.fn()
-    render(<StageBreath onDone={onDone} />)
-    vi.advanceTimersByTime(2199)
-    expect(onDone).not.toHaveBeenCalled()
-    vi.advanceTimersByTime(1)
-    expect(onDone).toHaveBeenCalledTimes(1)
-  })
-  it('clears the timer on unmount', () => {
-    const onDone = vi.fn()
-    const { unmount } = render(<StageBreath onDone={onDone} />)
-    unmount()
-    vi.advanceTimersByTime(5000)
-    expect(onDone).not.toHaveBeenCalled()
-  })
-})
-
-describe('StageReveal (2600ms)', () => {
-  beforeEach(() => { vi.useFakeTimers(); vi.spyOn(Math, 'random').mockReturnValue(0.5) })
-  afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks() })
-  it('calls onDone exactly once at 2600ms, not before', () => {
-    const onDone = vi.fn()
-    render(<StageReveal selected={['tender']} onDone={onDone} />)
-    vi.advanceTimersByTime(2599)
-    expect(onDone).not.toHaveBeenCalled()
-    vi.advanceTimersByTime(1)
-    expect(onDone).toHaveBeenCalledTimes(1)
-  })
-  it('clears the timer on unmount', () => {
-    const onDone = vi.fn()
-    const { unmount } = render(<StageReveal selected={['tender']} onDone={onDone} />)
-    unmount()
-    vi.advanceTimersByTime(5000)
-    expect(onDone).not.toHaveBeenCalled()
-  })
-  it('renders 24 decorative burst points', () => {
-    const { container } = render(<StageReveal selected={['tender']} onDone={() => {}} />)
-    expect(container.querySelectorAll('span')).toHaveLength(24)
-  })
-  it('renders for one and three moods without failing', () => {
-    expect(() => render(<StageReveal selected={['tender']} onDone={() => {}} />)).not.toThrow()
-    expect(() => render(<StageReveal selected={['tender', 'tense', 'slow']} onDone={() => {}} />)).not.toThrow()
-  })
-})
-
-describe('StageTitleCard (1400ms)', () => {
-  beforeEach(() => vi.useFakeTimers())
-  afterEach(() => vi.useRealTimers())
-  it('plays the title cue once and renders the title', () => {
-    const playTitleCue = vi.fn()
-    render(<StageTitleCard title="Parasite" onDone={() => {}} playTitleCue={playTitleCue} />)
-    expect(playTitleCue).toHaveBeenCalledTimes(1)
-    expect(screen.getByText('Parasite')).toBeInTheDocument()
-  })
-  it('calls onDone exactly once at 1400ms, not before', () => {
-    const onDone = vi.fn()
-    render(<StageTitleCard title="X" onDone={onDone} playTitleCue={() => {}} />)
-    vi.advanceTimersByTime(1399)
-    expect(onDone).not.toHaveBeenCalled()
-    vi.advanceTimersByTime(1)
-    expect(onDone).toHaveBeenCalledTimes(1)
-  })
-  it('clears the timer on unmount', () => {
-    const onDone = vi.fn()
-    const { unmount } = render(<StageTitleCard title="X" onDone={onDone} playTitleCue={() => {}} />)
-    unmount()
-    vi.advanceTimersByTime(5000)
-    expect(onDone).not.toHaveBeenCalled()
+// ── StageResolve (smoke — detailed coverage in DiscoverResolve.test.jsx) ───────
+// (The old Breath/Reveal/TitleCard ceremony stages were removed in F3.7.)
+describe('StageResolve (smoke)', () => {
+  it('renders the single resolve status without an h1 or interactive controls', () => {
+    render(<StageResolve blendHex="#A78BFA" onDone={() => {}} />)
+    expect(screen.getByRole('status')).toBeInTheDocument()
+    expect(screen.getByText('Bringing tonight into focus.')).toBeInTheDocument()
+    expect(screen.queryByRole('heading')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
 })

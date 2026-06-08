@@ -10,7 +10,7 @@ import { DiscoverDataProvider, useDiscoverData } from './useDiscoverData'
 import { MOODS, ONBOARDING_TO_DISCOVER, diversifyTop3, predictDiscoverDefaults } from './derive'
 import { HP, TIME_OPTIONS } from './constants'
 import StageMood from './sections/StageMood'
-import StageNightStacked from './sections/StageNightStacked'
+import StageNightContext from './sections/StageNightContext'
 import StageBreath from './sections/StageBreath'
 import StageReveal from './sections/StageReveal'
 import StageTitleCard from './sections/StageTitleCard'
@@ -213,18 +213,12 @@ function DiscoverBody() {
   const [energy, setEnergy]     = useState('steady');
   const [intention, setIntention] = useState('move');
   const [bursts, setBursts]     = useState([]);
-  // Stage 2 wizard step — lifted to parent so "Tweak inputs" from Stage 3
-  // returns to the summary view (stepIndex === 4) instead of restarting
-  // the wizard from question 1. Reset to 0 when the user restarts the
-  // whole flow from Stage 0 (Start over).
-  const [stage2StepIndex, setStage2StepIndex] = useState(0);
   // Films that have appeared as top OR alternate in THIS /discover session
   // (one mount lifetime). diversifyTop3 demotes these so users who tweak
   // moods get genuinely fresh picks across scenarios instead of seeing
   // the same broad-mood films (e.g., Gladiator) win every constellation.
   // Resets naturally when the user leaves /discover and returns.
   const sessionShownIds = useRef(new Set());
-  useEffect(() => { if (stage === 1) setStage2StepIndex(0); }, [stage]);
   const { films: liveFilms, profile, baselineMoods, learnedPrefs, recentSaves } = useDiscoverData();
   const { user } = useAuthSession();
   const location = useLocation();
@@ -259,23 +253,27 @@ function DiscoverBody() {
     didPreSelectRef.current = true
   }, [baselineMoods, selected.length])
 
-  // Stage 2 pre-selection — fires once per /discover mount, after profile
-  // loads AND user has at least one mood picked (Stage 1 done). Replaces
-  // the hardcoded `move / std / steady` defaults with predictions from
-  // signals we already have. User can override any field; the ref
-  // prevents the effect from re-applying and clobbering their choices.
+  // Predicted defaults (F3.6). Discover pre-fills intention / time / who / energy
+  // from signals it already has (selected moods, profile runtime, current hour,
+  // learned prefs) so the night-context surface lands on a ready starting point —
+  // no forced confirmation taps. Two refs protect intent:
+  //   • contextTouchedRef — set once the user MANUALLY edits any detail. After that
+  //     a late profile / learned-pref / mood update must never overwrite their pick.
+  //   • didPredictDefaultsRef — the per-round prediction gate: reset on Start over /
+  //     return to the mood front door, and re-opened by a fresh mood mix while the
+  //     user hasn't edited context yet.
   const didPredictDefaultsRef = useRef(false)
-  // Reset the prediction gate when the user starts a fresh session
-  // (returns to the Stage 1 mood front door / Start over) so predictions
-  // re-apply for the next round.
+  const contextTouchedRef = useRef(false)
+  // Reset the prediction gate when the user returns to the mood front door.
   useEffect(() => { if (stage === 1) didPredictDefaultsRef.current = false }, [stage])
+  // A new mood mix re-opens prediction — but only BEFORE the user has manually
+  // edited a context detail (after that, their picks are frozen for the session).
+  useEffect(() => { if (!contextTouchedRef.current) didPredictDefaultsRef.current = false }, [selected])
   useEffect(() => {
+    if (contextTouchedRef.current) return   // user edited a detail → never overwrite
     if (didPredictDefaultsRef.current) return
     if (!profile) return
     if (selected.length === 0) return
-    // Don't overwrite picks the user has already started making in the
-    // stacked wizard (rare race: profile loads while user is mid-flow).
-    if (stage2StepIndex > 0) return
     const predicted = predictDiscoverDefaults({
       selected,
       profile,
@@ -287,7 +285,7 @@ function DiscoverBody() {
     setEnergy(predicted.energy)
     setWho(predicted.who)
     didPredictDefaultsRef.current = true
-  }, [profile, selected, learnedPrefs, stage2StepIndex])
+  }, [profile, selected, learnedPrefs])
 
   // Commit the user's Stage 2 picks to user_discover_preferences when
   // they advance to Stage 3 (treat reaching Stage 3 as "they committed
@@ -446,11 +444,11 @@ function DiscoverBody() {
       <Starfield tint={blendHex} />
       <div style={{ position:'relative', zIndex:1, maxWidth:1440, margin:'0 auto' }}>
         {stage === 1   && <StageMood selected={selected} setSelected={setSelected} onNext={()=>setStage(2)} blendHex={blendHex} bursts={bursts} fireBurst={fireBurst} audioToggle={<AudioToggle />} playMoodCue={(id)=>FFAudio.pluck(id)} playContinueCue={()=>FFAudio.whoom()} />}
-        {stage === 2   && <StageNightStacked stepIndex={stage2StepIndex} setStepIndex={setStage2StepIndex} time={time} setTime={setTime} who={who} setWho={setWho} energy={energy} setEnergy={setEnergy} intention={intention} setIntention={setIntention} onNext={()=>{ handleCommitStage2(); setStage(2.3); }} onBack={()=>setStage(1)} blendHex={blendHex} playOptionCue={()=>FFAudio.pluck('cozy')} playContinueCue={()=>FFAudio.whoom()} />}
+        {stage === 2   && <StageNightContext time={time} setTime={setTime} who={who} setWho={setWho} energy={energy} setEnergy={setEnergy} intention={intention} setIntention={setIntention} onUserEdit={()=>{ contextTouchedRef.current = true }} onNext={()=>{ handleCommitStage2(); setStage(2.3); }} onBack={()=>setStage(1)} blendHex={blendHex} playOptionCue={()=>FFAudio.pluck('cozy')} playContinueCue={()=>FFAudio.whoom()} />}
         {stage === 2.3 && <StageBreath onDone={()=>setStage(2.5)} />}
         {stage === 2.5 && <StageReveal selected={selected.length>0?selected:['slow','tender']} onDone={()=>setStage(2.7)} />}
         {stage === 2.7 && <StageTitleCard title={(allResults[0]||{}).title || ''} onDone={()=>setStage(3)} playTitleCue={()=>FFAudio.chord()} />}
-        {stage === 3   && <StagePick selected={selected.length>0?selected:['slow','tender']} who={who} energy={energy} intention={intention} results={allResults} profile={profile} sessionShownIds={sessionShownIds} onRestart={()=>{ setStage(1); setSelected([]); }} onBack={()=>setStage(2)} blendHex={blendHex} audioToggle={<AudioToggle />} />}
+        {stage === 3   && <StagePick selected={selected.length>0?selected:['slow','tender']} who={who} energy={energy} intention={intention} results={allResults} profile={profile} sessionShownIds={sessionShownIds} onRestart={()=>{ setStage(1); setSelected([]); contextTouchedRef.current = false; didPredictDefaultsRef.current = false; setIntention('move'); setTime('std'); setWho('alone'); setEnergy('steady'); }} onBack={()=>setStage(2)} blendHex={blendHex} audioToggle={<AudioToggle />} />}
       </div>
     </div>
   );

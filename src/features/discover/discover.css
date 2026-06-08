@@ -196,6 +196,50 @@
   .ff-night-grid--energy { grid-template-columns: repeat(3, 1fr); }
 }
 
+/* Stage 2 (F3.6) — night-context CHECKPOINT. Summary-first: a quiet 2×2 grid of
+ * the pre-filled values, an optional "Adjust details" disclosure, and the four
+ * accessible editor groups. Two columns even on narrow phones (the values are
+ * short labels), so the primary CTA stays reachable without any interaction. */
+.ff-night-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 0;
+}
+.ff-night-summary__item {
+  padding: 13px 16px;
+  border-radius: 10px;
+  min-width: 0;
+}
+.ff-night-summary__label {
+  margin: 0;
+  font-family: 'Outfit', sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.ff-night-summary__value {
+  margin: 5px 0 0;
+  font-family: 'Outfit', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+
+/* Editor option + disclosure — clear keyboard focus + the 44px touch floor (the
+ * option's selected state already carries the mood-colour tint, not colour-only:
+ * aria-pressed + the focus ring + the value text make state non-colour-reliant). */
+.ff-night-option {
+  min-height: 44px;
+}
+.ff-night-option:focus-visible,
+.ff-night-details-toggle:focus-visible {
+  outline: 2px solid var(--purple-400, #A78BFA);
+  outline-offset: 2px;
+}
+
 /* Stage 2 + Stage 1 action bars — stack on mobile so the primary CTA gets
  * full-width touch target and never overlaps the back/meta. Desktop keeps
  * the spread-out row layout. */

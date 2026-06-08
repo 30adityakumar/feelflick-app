@@ -56,3 +56,13 @@ Every user-facing claim is real-source-backed or derived-but-honest:
 - **No destructive resets** — do not reset the dev/test user, do not use `/account` reset, do not run service-role mutations.
 - Save / Mark-watched / Not-tonight / Open-Film-File log impressions and write to user tables — **only** trigger them against intercepted/mocked backends in tests, never against a live account during verification.
 - No secrets in logs, screenshots, or commits.
+
+## F3.13 — e2e + visual coverage landed (deferral resolved)
+
+The deferred **F3.13** item above is now done (merged `c74c856e`):
+
+- **Authenticated, intercepted Playwright E2E** (`e2e/app/discover.e2e.js`, `app` project, in `npm run test:e2e`): the dev user signs in for real while `e2e/fixtures/discover.js` intercepts 100% of `/rest/v1/**` (auth passes through) — happy path with no live writes, Not-tonight progression, Save / Mark-Watched payloads, fallback truth (`live_error`/`live_empty`/`filtered_empty`), reduced-motion + axe, and keyboard + trailer-dialog focus. Deterministic across 3 runs; a write-escape ledger fails the suite if any Discover write tries to reach the backend.
+- **Authenticated visual baselines** (`visual-app` project, `npm run test:visual:app`): 8 states (mood front door, night-context summary, night-context details, one-pick result × desktop 1280×720 + mobile 390×844). Darwin generated locally + Linux via the `visual-baselines/**` CI flow; both committed. A new **"Visual Regression — Authenticated Discover"** CI job gates them on PRs (secret-preflighted, skips with a warning rather than falsely passing); the public `visual` job and `npm run test:visual` stay credential-free.
+- **No live Discover write occurred** — verified by construction (full interception) and empirically (the dev user's `user_discover_preferences.updated_at` was untouched).
+
+`/discover` now has real-browser regression evidence in addition to the 204 unit/component tests. **Public-production readiness** is no longer blocked on missing browser coverage; remaining production sign-off is operational (a real preview deploy + monitoring), not test coverage.

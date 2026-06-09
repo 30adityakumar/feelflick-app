@@ -1,17 +1,17 @@
 // src/features/watchlist/Watchlist.jsx
-// FeelFlick — Watchlist v2 ("The Queue"). Mount at /watchlist-v2.
-// PR 1: drop the internal nav (AppShell already provides the global TopNav),
-//        wire every card/button to a real action (navigate, remove).
-// PR 2: ITEMS + USER now derived live from user_watchlist × movies + the
-//        user's taste_fingerprint — see ./useWatchlistData.jsx.
+// FeelFlick — Watchlist v2 ("The Queue").
+// F6.3: removals are settled + announced + focus-recovered; load errors are sanitized.
+// (No product/visual redesign — match %, stale, featured, grid/list, bulk all unchanged.)
 
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import MoodPill from '@/shared/components/MoodPill'
 import Eyebrow from '@/shared/ui/Eyebrow'
 import { HP, HP_GRAD } from './data'
 import { WatchlistDataProvider, useWatchlistData } from './useWatchlistData'
+import { useLibraryAnnouncement } from '@/features/library/useLibraryAnnouncement'
+import { scheduleFocus, findRemoveControl, findFallback, nextFocusId } from '@/features/library/focusAfterRemoval'
 import './watchlist.css'
 
 // === Reset-button style for elements wrapped as buttons ===
@@ -46,8 +46,6 @@ function Masthead() {
 }
 
 // ── Pulse strip (3 stats) ──────────────────────────────────────
-// Cold-start (no fingerprint) → swap "Perfect for tonight" for "Top match %"
-// so the first stat is always meaningful. The other two are universal.
 function PulseStrip() {
   const { stats, hasFingerprint } = useWatchlistData();
   const tonightStat = hasFingerprint
@@ -76,10 +74,6 @@ function PulseStrip() {
 }
 
 // ── Filter / sort bar ──────────────────────────────────────────
-// Filter pills are dynamic: "All" + ("Perfect tonight" when fingerprint
-// exists) + top-5 actual moods from the user's queue + ("Getting stale"
-// when there is at least one stale item). Each pill always points to ≥1
-// item so we never render dead controls.
 function FilterBar({ filter, setFilter, sort, setSort, view, setView }) {
   const { availableMoods, hasFingerprint, stats } = useWatchlistData();
   const filters = [{ v:'all', l:'All' }];
@@ -150,8 +144,30 @@ function FilterBar({ filter, setFilter, sort, setSort, view, setView }) {
   );
 }
 
+// ── Remove control (shared pending/a11y wiring; visuals per view) ──
+function RemoveControl({ f, view, onRemove, style, children, removingLabel = 'Removing…' }) {
+  const { isRemoving } = useWatchlistData();
+  const busy = isRemoving(f.id);
+  return (
+    <button
+      type="button"
+      data-library-action="remove"
+      data-library-item-id={f.id}
+      data-library-view={view}
+      disabled={busy}
+      aria-busy={busy || undefined}
+      aria-label={busy ? `Removing ${f.title}` : `Remove ${f.title} from watchlist`}
+      title="Remove"
+      onClick={(e) => onRemove(f, view, e.currentTarget)}
+      style={{ ...style, cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.6 : (style?.opacity ?? 1) }}
+    >
+      {busy ? removingLabel : children}
+    </button>
+  );
+}
+
 // ── Tonight tier — featured cards ──────────────────────────────
-function TonightTier({ picks }) {
+function TonightTier({ picks, onRemove }) {
   const { hasFingerprint } = useWatchlistData();
   if (!picks.length) return null;
   const kicker = hasFingerprint ? 'Perfect for tonight' : 'Top of your queue';
@@ -165,14 +181,13 @@ function TonightTier({ picks }) {
         <span style={{ fontSize:12, color:HP.textMuted, fontFamily:'Outfit', fontStyle:'italic' }}>{sub}</span>
       </div>
       <div className="ff-wl-tonight-grid" style={{ display:'grid', gridTemplateColumns:`repeat(${Math.min(picks.length, 3)},1fr)`, gap:24 }}>
-        {picks.slice(0, 3).map((f, i) => <FeaturedCard key={f.id} f={f} idx={i} />)}
+        {picks.slice(0, 3).map((f, i) => <FeaturedCard key={f.id} f={f} idx={i} onRemove={onRemove} />)}
       </div>
     </section>
   );
 }
-function FeaturedCard({ f, idx }) {
+function FeaturedCard({ f, idx, onRemove }) {
   const navigate = useNavigate();
-  const { removeFromWatchlist } = useWatchlistData();
   const goToFilm = () => f.tmdbId && navigate(`/movie/${f.tmdbId}`);
   return (
     <article className="ff-wl-featured" style={{ display:'grid', gridTemplateColumns:'auto 1fr', gap:20 }}>
@@ -213,11 +228,12 @@ function FeaturedCard({ f, idx }) {
             onClick={goToFilm}
             style={{ padding:'8px 14px', borderRadius:6, background:HP_GRAD, border:'none', color:'#fff', fontFamily:'Outfit', fontSize:11, fontWeight:600, letterSpacing:'0.04em', cursor:'pointer' }}
           >Open →</button>
-          <button
-            type="button"
-            onClick={() => removeFromWatchlist(f.id)}
-            style={{ padding:'8px 14px', borderRadius:6, background:'rgba(255,255,255,0.05)', border:`1px solid ${HP.border}`, color:HP.textMuted, fontFamily:'Outfit', fontSize:11, fontWeight:600, letterSpacing:'0.04em', cursor:'pointer' }}
-          >Remove</button>
+          <RemoveControl
+            f={f}
+            view="featured"
+            onRemove={onRemove}
+            style={{ padding:'8px 14px', borderRadius:6, background:'rgba(255,255,255,0.05)', border:`1px solid ${HP.border}`, color:HP.textMuted, fontFamily:'Outfit', fontSize:11, fontWeight:600, letterSpacing:'0.04em', minHeight:44 }}
+          >Remove</RemoveControl>
         </div>
       </div>
     </article>
@@ -260,9 +276,8 @@ function Grid({ items }) {
 }
 
 // ── List view ──────────────────────────────────────────────────
-function List({ items }) {
+function List({ items, onRemove }) {
   const navigate = useNavigate();
-  const { removeFromWatchlist } = useWatchlistData();
   if (items.length === 0) return <EmptyState />;
   return (
     <section className="ff-wl-section ff-wl-list-section" style={{ padding:'0 88px 56px' }}>
@@ -302,15 +317,15 @@ function List({ items }) {
               onClick={() => f.tmdbId && navigate(`/movie/${f.tmdbId}`)}
               style={{ padding:'7px 12px', borderRadius:6, background:'rgba(255,255,255,0.06)', border:`1px solid ${HP.border}`, color:HP.textSoft, fontFamily:'Outfit', fontSize:10, fontWeight:600, letterSpacing:'0.08em', textTransform:'uppercase', cursor:'pointer' }}
             >Open</button>
-            <button
-              type="button"
-              onClick={() => removeFromWatchlist(f.id)}
-              aria-label={`Remove ${f.title} from watchlist`}
-              title="Remove"
-              style={{ padding:'7px 10px', borderRadius:6, background:'transparent', border:'none', color:HP.textFaint, cursor:'pointer' }}
+            <RemoveControl
+              f={f}
+              view="list"
+              onRemove={onRemove}
+              removingLabel={<span style={{ fontSize:10, fontFamily:'Outfit' }}>…</span>}
+              style={{ padding:'7px 10px', borderRadius:6, background:'transparent', border:'none', color:HP.textFaint, display:'inline-flex', alignItems:'center', justifyContent:'center', minWidth:44, minHeight:44 }}
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
-            </button>
+              <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+            </RemoveControl>
           </div>
         ))}
       </div>
@@ -338,24 +353,14 @@ function EmptyState() {
 }
 
 // ── Cleanup nudge ──────────────────────────────────────────────
-// Action lives here (not in the footer): the user is being asked to act on
-// stale items in the same breath that we surface the count.
-function CleanupNudge({ count, onReview }) {
-  const { removeStale } = useWatchlistData();
-  const [busy, setBusy] = useState(false);
+function CleanupNudge({ count, onReview, onBulkRemove }) {
+  const { removingStale } = useWatchlistData();
   if (count === 0) return null;
-  async function clearStale() {
-    if (busy) return;
-    if (typeof window !== 'undefined' && !window.confirm(`Remove ${count} stale film${count === 1 ? '' : 's'} from your watchlist?`)) return;
-    setBusy(true);
-    try { await removeStale(); }
-    finally { setBusy(false); }
-  }
   return (
     <section className="ff-wl-section ff-wl-cleanup" style={{ padding:'48px 88px', borderTop:`1px solid ${HP.border}`, background:`linear-gradient(135deg, ${HP.amber}0a, transparent)` }}>
       <div className="ff-wl-cleanup-grid" style={{ display:'grid', gridTemplateColumns:'auto 1fr auto', gap:32, alignItems:'center' }}>
         <div style={{ width:48, height:48, borderRadius:999, background:`${HP.amber}1a`, border:`1px solid ${HP.amber}44`, display:'flex', alignItems:'center', justifyContent:'center' }}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={HP.amber} strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={HP.amber} strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
         </div>
         <div>
           <Eyebrow color={HP.amber} spacing="0.22em" size={10} style={{ marginBottom:6 }}>Queue hygiene</Eyebrow>
@@ -366,15 +371,16 @@ function CleanupNudge({ count, onReview }) {
           <button
             type="button"
             onClick={onReview}
-            style={{ padding:'12px 22px', borderRadius:6, background:'rgba(255,255,255,0.06)', border:`1px solid ${HP.borderStrong}`, color:HP.text, fontFamily:'Outfit', fontSize:13, fontWeight:600, cursor:'pointer' }}
+            style={{ padding:'12px 22px', borderRadius:6, background:'rgba(255,255,255,0.06)', border:`1px solid ${HP.borderStrong}`, color:HP.text, fontFamily:'Outfit', fontSize:13, fontWeight:600, cursor:'pointer', minHeight:44 }}
           >Review stale picks →</button>
           <button
             type="button"
-            onClick={clearStale}
-            disabled={busy}
+            onClick={() => onBulkRemove(count)}
+            disabled={removingStale}
+            aria-busy={removingStale || undefined}
             title={`Remove ${count} stale film${count === 1 ? '' : 's'} from your watchlist`}
-            style={{ padding:'12px 22px', borderRadius:6, background:'transparent', border:`1px solid ${HP.amber}66`, color:HP.amber, fontFamily:'Outfit', fontSize:13, fontWeight:600, cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.6 : 1 }}
-          >{busy ? 'Clearing…' : 'Clear all'}</button>
+            style={{ padding:'12px 22px', borderRadius:6, background:'transparent', border:`1px solid ${HP.amber}66`, color:HP.amber, fontFamily:'Outfit', fontSize:13, fontWeight:600, cursor: removingStale ? 'wait' : 'pointer', opacity: removingStale ? 0.6 : 1, minHeight:44 }}
+          >{removingStale ? 'Removing…' : 'Clear all'}</button>
         </div>
       </div>
     </section>
@@ -383,7 +389,13 @@ function CleanupNudge({ count, onReview }) {
 
 // ── Page (loading/error/empty shell) ───────────────────────────
 function WatchlistShell() {
-  const { items, stats, loading, error } = useWatchlistData();
+  const { items, stats, loading, error, removeFromWatchlist, removeStale, isRemoving, refresh } = useWatchlistData();
+  const navigate = useNavigate();
+  const { announcement, announce } = useLibraryAnnouncement();
+  const containerRef = useRef(null);
+  const focusCancelRef = useRef(null);
+  useEffect(() => () => focusCancelRef.current?.(), []);
+
   const [filter, setFilter] = useState('all');
   const [sort, setSort]     = useState('match');
   const [view, setView]     = useState('grid');
@@ -405,26 +417,57 @@ function WatchlistShell() {
     return arr;
   }, [items, filter, sort]);
 
-  // TonightTier picks: with fingerprint use real "perfect" matches; cold-start
-  // falls back to top 3 by match% so the tier always says something honest.
   const { hasFingerprint } = useWatchlistData();
   const tonightPicks = useMemo(() => {
     if (hasFingerprint) return items.filter(f => f.perfect);
     return [...items].sort((a, b) => b.match - a.match).slice(0, 3);
   }, [items, hasFingerprint]);
 
+  // Settled removal + announcement + focus recovery for every individual control.
+  const onRemove = useCallback(async (f, viewName, triggerEl) => {
+    if (isRemoving(f.id)) return;
+    const orderedIds = (viewName === 'featured' ? tonightPicks : filtered).map(it => it.id);
+    const targetId = nextFocusId(orderedIds, f.id);
+    const res = await removeFromWatchlist(f.id);
+    focusCancelRef.current?.();
+    if (res.ok) {
+      announce(`Removed ${f.title} from your Watchlist.`);
+      focusCancelRef.current = scheduleFocus(() =>
+        findRemoveControl(containerRef.current, targetId, viewName) || findFallback(containerRef.current));
+    } else if (!res.duplicate) {
+      announce(`Could not remove ${f.title}. Try again.`);
+      focusCancelRef.current = scheduleFocus(() =>
+        (triggerEl && triggerEl.isConnected ? triggerEl : findRemoveControl(containerRef.current, f.id, viewName)) || findFallback(containerRef.current));
+    }
+  }, [isRemoving, tonightPicks, filtered, removeFromWatchlist, announce]);
+
+  const onBulkRemove = useCallback(async (count) => {
+    if (typeof window !== 'undefined' && !window.confirm(`Remove ${count} stale film${count === 1 ? '' : 's'} from your watchlist?`)) return;
+    const res = await removeStale();
+    focusCancelRef.current?.();
+    if (res.ok) {
+      announce(res.removedCount === 1 ? 'Removed 1 film from your Watchlist.' : `Removed ${res.removedCount} films from your Watchlist.`);
+      focusCancelRef.current = scheduleFocus(() => findFallback(containerRef.current));
+    } else if (!res.duplicate) {
+      announce('Could not remove those films. Try again.');
+    }
+  }, [removeStale, announce]);
+
   if (loading) return <PageSkeleton />;
-  if (error) return <PageError error={error} />;
+  if (error) return <PageError onRetry={refresh} onHome={() => navigate('/home')} />;
 
   return (
-    <>
+    <div ref={containerRef}>
+      <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">{announcement}</div>
       <Masthead />
       <PulseStrip />
       <FilterBar filter={filter} setFilter={setFilter} sort={sort} setSort={setSort} view={view} setView={setView} />
-      {filter === 'all' && <TonightTier picks={tonightPicks} />}
-      {view === 'grid' ? <Grid items={filtered} /> : <List items={filtered} />}
-      <CleanupNudge count={stats.gettingStaleCount} onReview={() => setFilter('stale')} />
-    </>
+      {filter === 'all' && <TonightTier picks={tonightPicks} onRemove={onRemove} />}
+      <div data-library-fallback tabIndex={-1} aria-label="Your watchlist films" style={{ outline:'none' }}>
+        {view === 'grid' ? <Grid items={filtered} /> : <List items={filtered} onRemove={onRemove} />}
+      </div>
+      <CleanupNudge count={stats.gettingStaleCount} onReview={() => setFilter('stale')} onBulkRemove={onBulkRemove} />
+    </div>
   );
 }
 
@@ -441,13 +484,19 @@ function PageSkeleton() {
   );
 }
 
-function PageError({ error }) {
+// F6.3: sanitized error — fixed, safe copy only (never a raw backend message), with
+// Try-again (refresh) + Go-to-Home recovery. role="alert", one h1, ≥44px buttons.
+function PageError({ onRetry, onHome }) {
   return (
     <div style={{ minHeight:'60vh', display:'flex', alignItems:'center', justifyContent:'center', padding:24 }}>
-      <div style={{ textAlign:'center', maxWidth:520 }}>
-        <Eyebrow size={10} style={{ marginBottom:18 }}>Queue · error</Eyebrow>
-        <h1 style={{ fontFamily:'Outfit, Inter, sans-serif', fontSize:36, fontWeight:500, color:HP.text, margin:'0 0 18px 0', letterSpacing:'-0.025em' }}>Couldn&rsquo;t load your queue.</h1>
-        <p style={{ margin:0, color:'rgba(250,250,250,0.6)', fontSize:14, lineHeight:1.6 }}>{error}</p>
+      <div role="alert" style={{ textAlign:'center', maxWidth:520 }}>
+        <Eyebrow size={10} style={{ marginBottom:18 }}>Watchlist</Eyebrow>
+        <h1 style={{ fontFamily:'Outfit, Inter, sans-serif', fontSize:36, fontWeight:500, color:HP.text, margin:'0 0 14px 0', letterSpacing:'-0.025em' }}>We couldn&rsquo;t load your Watchlist.</h1>
+        <p style={{ margin:'0 0 28px 0', color:'rgba(250,250,250,0.6)', fontSize:14, lineHeight:1.6 }}>Your saved films are still safe. Try again in a moment.</p>
+        <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
+          <button type="button" onClick={onRetry} className="ff-wl-error-btn" style={{ minHeight:44, padding:'12px 22px', borderRadius:999, background:HP_GRAD, color:'#fff', border:'none', cursor:'pointer', fontFamily:'Outfit', fontSize:14, fontWeight:600 }}>Try again</button>
+          <button type="button" onClick={onHome} className="ff-wl-error-btn" style={{ minHeight:44, padding:'12px 22px', borderRadius:999, background:'transparent', color:'rgba(250,250,250,0.85)', border:`1px solid ${HP.border}`, cursor:'pointer', fontFamily:'Outfit', fontSize:14, fontWeight:600 }}>Go to Home</button>
+        </div>
       </div>
     </div>
   );

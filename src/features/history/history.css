@@ -106,3 +106,22 @@
 @media (max-width: 720px) {
   .ff-hist-hero { font-size: clamp(40px, 12vw, 72px) !important; line-height: 1 !important; }
 }
+
+/* F6.7 — accessibility + responsive hardening for diary rows. */
+.ff-hist-row__title { overflow-wrap: anywhere; min-width: 0; }
+.ff-hist-row__poster:focus-visible,
+.ff-hist-filter-pill:focus-visible {
+  outline: 2px solid #a78bfa;
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+/* Mobile: collapse the 4-col row grid (poster | content | runtime | remove) so the runtime
+   chip drops under the content and the poster/title/remove stay stable without overflow. */
+@media (max-width: 560px) {
+  .ff-hist-row { grid-template-columns: 64px 1fr auto !important; gap: 16px !important; }
+  .ff-hist-row__runtime { display: none !important; }
+}
+/* Keep the last diary entry clear of the fixed mobile bottom nav (md:hidden, ~54px). */
+@media (max-width: 767px) {
+  .ff-hist-collection { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+}

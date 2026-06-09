@@ -6,7 +6,7 @@
 // rating/review retention are unchanged.)
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import MoodPill from '@/shared/components/MoodPill'
 import Eyebrow from '@/shared/ui/Eyebrow'
@@ -19,12 +19,6 @@ import LibrarySectionNav from '@/features/library/LibrarySectionNav'
 import { useLibraryAnnouncement } from '@/features/library/useLibraryAnnouncement'
 import { scheduleFocus, findRemoveControl, findFallback, nextFocusId } from '@/features/library/focusAfterRemoval'
 import './history.css'
-
-// === Reset-button style for elements wrapped as buttons ===
-const RESET_BTN = {
-  background:'none', border:'none', padding:0, margin:0, font:'inherit',
-  color:'inherit', textAlign:'left', cursor:'pointer', display:'block',
-};
 
 // ── Masthead — shared "Your library" identity + the Diary headline ──
 function Masthead() {
@@ -82,19 +76,20 @@ function FilterBar({ filter, setFilter, sort, setSort, query, setQuery }) {
   ];
   return (
     <section className="ff-hist-section ff-hist-filterbar" style={{ padding:'40px 88px 20px', borderTop:`1px solid ${HP.border}`, display:'flex', alignItems:'center', justifyContent:'space-between', gap:24, flexWrap:'wrap' }}>
-      <div role="radiogroup" aria-label="Filter" style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
+      {/* F6.7: a toggle-button group (aria-pressed), NOT a partial radiogroup — these are
+          independent on/off filters without arrow-key navigation. */}
+      <div role="group" aria-label="Filter diary" style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
         {filters.map(f => {
           const on = filter === f.v;
           return (
             <button
               key={f.v}
               type="button"
-              role="radio"
-              aria-checked={on}
+              aria-pressed={on}
               onClick={() => setFilter(f.v)}
-              className="ff-tap"
+              className="ff-tap ff-hist-filter-pill"
               style={{
-                padding:'8px 14px', borderRadius:999,
+                minHeight:44, padding:'8px 16px', borderRadius:999,
                 background: on ? `${HP.purple}22` : 'rgba(255,255,255,0.04)',
                 border:`1px solid ${on ? HP.purple+'66' : HP.border}`,
                 color: on ? HP.text : HP.textSoft,
@@ -143,9 +138,7 @@ function Stars({ n }) {
 }
 
 function DiaryGroup({ month, entries, onRemove }) {
-  const navigate = useNavigate();
   const { isRemoving } = useHistoryData();
-  const open = (e) => e.tmdbId && navigate(`/movie/${e.tmdbId}`);
 
   const byDay = useMemo(() => {
     const map = new Map();
@@ -184,28 +177,24 @@ function DiaryGroup({ month, entries, onRemove }) {
                   · {dayEntries.length} film{dayEntries.length === 1 ? '' : 's'}{dayHours > 0 ? ` · ${dayHours}h` : ''}
                 </span>
               </div>
+              <div role="list" aria-label={`${dayDate} films`}>
               {dayEntries.map(e => {
                 const busy = isRemoving(e.id);
+                // F6.7: exactly ONE Film File link (the poster) + ONE Remove action per row;
+                // the title is a plain heading (no duplicate open affordance).
+                const poster = e.poster
+                  ? <img src={e.poster} alt="" style={{ width:'100%', height:'100%', objectFit:'cover', borderRadius:4 }} />
+                  : <span style={{ display:'block', width:'100%', height:'100%', borderRadius:4, background:`linear-gradient(155deg, ${e.moodHex}55, ${e.moodHex}11)` }} />;
                 return (
-                  <div key={e.id} className="ff-hist-row" style={{ display:'grid', gridTemplateColumns:'64px 1fr auto auto', gap:24, alignItems:'flex-start', padding:'20px 0', borderBottom:`1px solid ${HP.border}` }}>
-                    <button
-                      type="button"
-                      onClick={() => open(e)}
-                      aria-label={`Open ${e.title}`}
-                      style={{ ...RESET_BTN, width:64, height:96 }}
-                    >
-                      {e.poster
-                        ? <img src={e.poster} alt="" style={{ width:'100%', height:'100%', objectFit:'cover', borderRadius:4 }} />
-                        : <div style={{ width:'100%', height:'100%', borderRadius:4, background:`linear-gradient(155deg, ${e.moodHex}55, ${e.moodHex}11)` }} />
-                      }
-                    </button>
+                  <div key={e.id} role="listitem" className="ff-hist-row" style={{ display:'grid', gridTemplateColumns:'64px 1fr auto auto', gap:24, alignItems:'flex-start', padding:'20px 0', borderBottom:`1px solid ${HP.border}` }}>
+                    {e.tmdbId ? (
+                      <Link to={`/movie/${e.tmdbId}`} aria-label={`Open ${e.title}`} className="ff-hist-row__poster" style={{ display:'block', width:64, height:96, borderRadius:4, overflow:'hidden' }}>{poster}</Link>
+                    ) : (
+                      <span className="ff-hist-row__poster" style={{ display:'block', width:64, height:96, borderRadius:4, overflow:'hidden' }}>{poster}</span>
+                    )}
                     <div style={{ minWidth:0 }}>
                       <div style={{ display:'flex', alignItems:'center', gap:10, flexWrap:'wrap' }}>
-                        <button
-                          type="button"
-                          onClick={() => open(e)}
-                          style={{ ...RESET_BTN, fontFamily:'Outfit', fontSize:20, fontWeight:500, color:HP.text, letterSpacing:'-0.02em', cursor:'pointer' }}
-                        >{e.title}</button>
+                        <h3 className="ff-hist-row__title" style={{ fontFamily:'Outfit', fontSize:20, fontWeight:500, color:HP.text, letterSpacing:'-0.02em', margin:0, overflowWrap:'anywhere' }}>{e.title}</h3>
                         {e.year && <span style={{ fontSize:11, color:HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.04em' }}>{e.year}{e.dir && e.dir !== '—' ? ` · ${e.dir}` : ''}</span>}
                       </div>
                       <div style={{ marginTop:8, display:'flex', alignItems:'center', gap:12, flexWrap:'wrap' }}>
@@ -245,6 +234,7 @@ function DiaryGroup({ month, entries, onRemove }) {
                   </div>
                 );
               })}
+              </div>
             </div>
           );
         })}
@@ -271,13 +261,16 @@ function EmptyState() {
   );
 }
 
+// F6.7: honest loading semantics — busy status region + visually-hidden message;
+// decorative placeholders hidden from screen readers.
 function PageSkeleton() {
   const pulse = { background:'rgba(255,255,255,0.04)' };
   return (
-    <div style={{ padding:'80px 88px' }}>
-      <div className="animate-pulse" style={{ ...pulse, height:14, width:280, borderRadius:999, marginBottom:30 }} />
-      <div className="animate-pulse" style={{ background:'rgba(167,139,250,0.10)', height:80, width:'40%', borderRadius:8, marginBottom:48 }} />
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:20 }}>
+    <div role="status" aria-busy="true" style={{ padding:'80px 88px' }}>
+      <span className="sr-only">Loading your diary…</span>
+      <div aria-hidden="true" className="animate-pulse" style={{ ...pulse, height:14, width:280, borderRadius:999, marginBottom:30 }} />
+      <div aria-hidden="true" className="animate-pulse" style={{ background:'rgba(167,139,250,0.10)', height:80, width:'40%', borderRadius:8, marginBottom:48 }} />
+      <div aria-hidden="true" style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:20 }}>
         {[0,1,2,3].map(i => <div key={i} className="animate-pulse" style={{ ...pulse, height:120, borderRadius:6 }} />)}
       </div>
     </div>
@@ -406,9 +399,11 @@ function HistoryShell() {
       </section>
       <PulseStrip />
       <FilterBar filter={filter} setFilter={setFilter} sort={sort} setSort={setSort} query={query} setQuery={setQuery} />
-      <div data-library-fallback tabIndex={-1} aria-label="Your diary entries" style={{ outline:'none' }}>
+      <div data-library-fallback tabIndex={-1} aria-label="Your diary entries" className="ff-hist-collection" style={{ outline:'none' }}>
         {grouped.length === 0 && (
-          <section className="ff-hist-section" style={{ padding:'72px 88px', textAlign:'center', borderTop:`1px solid ${HP.border}` }}>
+          // F6.7: announce the filtered/searched-empty result so a keyboard/SR user learns
+          // the list is empty without losing their place on the search/filter control.
+          <section className="ff-hist-section" style={{ padding:'72px 88px', textAlign:'center', borderTop:`1px solid ${HP.border}` }} role="status">
             <div style={{ fontFamily:'Outfit', fontSize:24, color:HP.textMuted, fontStyle:'italic' }}>
               {query.trim()
                 ? <>0 of {entries.length} match &ldquo;{query.trim()}&rdquo;</>

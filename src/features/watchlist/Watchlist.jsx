@@ -7,7 +7,7 @@
 // reliability (settled delete, live announcements, focus recovery, pending) is preserved.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import MoodPill from '@/shared/components/MoodPill'
 import Eyebrow from '@/shared/ui/Eyebrow'
@@ -18,11 +18,6 @@ import { useLibraryAnnouncement } from '@/features/library/useLibraryAnnouncemen
 import { scheduleFocus, findRemoveControl, findFallback, nextFocusId } from '@/features/library/focusAfterRemoval'
 import LibrarySectionNav from '@/features/library/LibrarySectionNav'
 import './watchlist.css'
-
-const RESET_BTN = {
-  background:'none', border:'none', padding:0, margin:0, font:'inherit',
-  color:'inherit', textAlign:'left', cursor:'pointer', display:'block', width:'100%',
-};
 
 // ── Masthead ───────────────────────────────────────────────────
 function Masthead() {
@@ -92,30 +87,36 @@ function Controls({ filter, setFilter, sort, setSort }) {
 }
 
 // ── Saved-film card ────────────────────────────────────────────
+// F6.7: exactly ONE Film File link (poster + title) + ONE Remove action per item — the
+// duplicate "Open" affordances are gone. Each card is a list item in a labelled list.
 function SavedCard({ f, onRemove }) {
-  const navigate = useNavigate();
   const { isRemoving } = useWatchlistData();
-  const open = () => f.tmdbId && navigate(`/movie/${f.tmdbId}`);
   const busy = isRemoving(f.id);
+  const poster = f.poster
+    ? <img src={f.poster} alt="" style={{ width:'100%', aspectRatio:'2/3', objectFit:'cover', display:'block' }} />
+    : <span style={{ width:'100%', aspectRatio:'2/3', background:`linear-gradient(155deg, ${f.hex}55, ${f.hex}11)`, display:'flex', alignItems:'center', justifyContent:'center', color:HP.text, fontFamily:'Outfit', fontSize:14, padding:12, textAlign:'center' }}>{f.title}</span>;
+  const title = <h3 className="ff-wl-card__title" style={{ fontFamily:'Outfit', fontSize:15, fontWeight:500, color:HP.text, letterSpacing:'-0.01em', margin:'12px 0 0 0', lineHeight:1.25 }}>{f.title}</h3>;
   return (
-    <article className="ff-wl-card">
-      <button type="button" onClick={open} aria-label={`Open ${f.title}`} className="ff-wl-card__poster" style={{ ...RESET_BTN, position:'relative', borderRadius:6, overflow:'hidden' }}>
-        {f.poster
-          ? <img src={f.poster} alt="" style={{ width:'100%', aspectRatio:'2/3', objectFit:'cover', display:'block' }} />
-          : <div style={{ width:'100%', aspectRatio:'2/3', background:`linear-gradient(155deg, ${f.hex}55, ${f.hex}11)`, display:'flex', alignItems:'center', justifyContent:'center', color:HP.text, fontFamily:'Outfit', fontSize:14, padding:12, textAlign:'center' }}>{f.title}</div>}
-      </button>
-      <button type="button" onClick={open} style={{ ...RESET_BTN, width:'auto', marginTop:12 }}>
-        <h3 style={{ fontFamily:'Outfit', fontSize:15, fontWeight:500, color:HP.text, letterSpacing:'-0.01em', margin:0, lineHeight:1.25 }}>{f.title}</h3>
-      </button>
+    <article className="ff-wl-card" role="listitem">
+      {f.tmdbId ? (
+        <Link to={`/movie/${f.tmdbId}`} className="ff-wl-card__link" style={{ color:'inherit', textDecoration:'none', display:'block' }}>
+          <span className="ff-wl-card__poster" aria-hidden="true" style={{ display:'block', position:'relative', borderRadius:6, overflow:'hidden' }}>{poster}</span>
+          {title}
+        </Link>
+      ) : (
+        <div className="ff-wl-card__link" style={{ display:'block' }}>
+          <span className="ff-wl-card__poster" aria-hidden="true" style={{ display:'block', position:'relative', borderRadius:6, overflow:'hidden' }}>{poster}</span>
+          {title}
+        </div>
+      )}
       <div style={{ marginTop:4, fontSize:11, color:HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.03em' }}>
         {f.year || '—'}{f.runtime ? ` · ${f.runtime}m` : ''}{f.dir && f.dir !== '—' ? ` · ${f.dir}` : ''}
       </div>
       <div style={{ marginTop:10, display:'flex', alignItems:'center', gap:10, flexWrap:'wrap' }}>
-        {f.mood && f.mood !== 'Mixed' && <MoodPill label={f.mood} color={f.hex} dot />}
+        {f.mood && f.mood !== 'Mixed' && <MoodPill label={f.mood} color={f.hex} dot role="img" aria-label={`Film mood: ${f.mood}`} />}
         <span style={{ fontSize:11, color:HP.textFaint, fontFamily:'Outfit', letterSpacing:'0.02em' }}>{f.savedLabel}</span>
       </div>
-      <div style={{ marginTop:14, display:'flex', gap:8 }}>
-        <button type="button" onClick={open} style={{ flex:1, minHeight:44, padding:'8px 14px', borderRadius:6, background:'rgba(255,255,255,0.06)', border:`1px solid ${HP.border}`, color:HP.textSoft, fontFamily:'Outfit', fontSize:11, fontWeight:600, letterSpacing:'0.04em', cursor:'pointer' }}>Open</button>
+      <div style={{ marginTop:14 }}>
         <button
           type="button"
           data-library-action="remove"
@@ -126,7 +127,8 @@ function SavedCard({ f, onRemove }) {
           aria-label={busy ? `Removing ${f.title}` : `Remove ${f.title} from Watchlist`}
           title="Remove from Watchlist"
           onClick={(e) => onRemove(f, e.currentTarget)}
-          style={{ minHeight:44, padding:'8px 14px', borderRadius:6, background:'transparent', border:`1px solid ${HP.border}`, color:HP.textMuted, fontFamily:'Outfit', fontSize:11, fontWeight:600, letterSpacing:'0.04em', cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.6 : 1 }}
+          className="ff-wl-card__remove"
+          style={{ width:'100%', minHeight:44, padding:'8px 14px', borderRadius:6, background:'transparent', border:`1px solid ${HP.border}`, color:HP.textMuted, fontFamily:'Outfit', fontSize:11, fontWeight:600, letterSpacing:'0.04em', cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.6 : 1 }}
         >{busy ? 'Removing…' : 'Remove'}</button>
       </div>
     </article>
@@ -152,8 +154,10 @@ function EmptyState() {
 }
 
 function FilteredEmpty({ onShowAll }) {
+  // F6.7: announce the filtered-empty result (role="status") so a keyboard/SR user who just
+  // changed the filter learns the list is empty without losing their place on the filter.
   return (
-    <section className="ff-wl-section" style={{ padding:'56px 88px 96px', textAlign:'center' }}>
+    <section className="ff-wl-section ff-wl-collection" style={{ padding:'56px 88px 96px', textAlign:'center' }} role="status">
       <h2 style={{ fontFamily:'Outfit', fontSize:26, lineHeight:1.1, fontWeight:500, letterSpacing:'-0.02em', color:HP.text, margin:'0 0 12px 0' }}>No saved films match this mood.</h2>
       <p style={{ margin:'0 auto 24px', maxWidth:440, fontSize:14, color:HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', lineHeight:1.6 }}>Choose another film mood or show everything.</p>
       <button type="button" onClick={onShowAll} className="ff-wl-cta" style={{ minHeight:44, padding:'12px 22px', borderRadius:999, background:'rgba(255,255,255,0.06)', border:`1px solid ${HP.borderStrong}`, color:HP.text, fontFamily:'Outfit', fontSize:13, fontWeight:600, cursor:'pointer' }}>Show all</button>
@@ -227,8 +231,8 @@ function WatchlistShell() {
             {visible.length === 0 ? (
               <FilteredEmpty onShowAll={() => setFilter('all')} />
             ) : (
-              <section className="ff-wl-section" style={{ padding:'0 88px 72px' }}>
-                <div className="ff-wl-grid">
+              <section className="ff-wl-section ff-wl-collection" style={{ padding:'0 88px 72px' }} aria-label="Saved films">
+                <div className="ff-wl-grid" role="list">
                   {visible.map(f => <SavedCard key={f.id} f={f} onRemove={onRemove} />)}
                 </div>
               </section>
@@ -240,13 +244,16 @@ function WatchlistShell() {
   );
 }
 
+// F6.7: honest loading semantics — the skeleton region is a busy status with a
+// visually-hidden message, and its decorative placeholders are hidden from SR.
 function PageSkeleton() {
   const pulse = { background:'rgba(255,255,255,0.04)' };
   return (
-    <div style={{ padding:'80px 88px' }}>
-      <div className="animate-pulse" style={{ ...pulse, height:14, width:240, borderRadius:999, marginBottom:28 }} />
-      <div className="animate-pulse" style={{ background:'rgba(167,139,250,0.10)', height:72, width:'40%', borderRadius:8, marginBottom:48 }} />
-      <div className="ff-wl-grid">
+    <div role="status" aria-busy="true" style={{ padding:'80px 88px' }}>
+      <span className="sr-only">Loading your watchlist…</span>
+      <div aria-hidden="true" className="animate-pulse" style={{ ...pulse, height:14, width:240, borderRadius:999, marginBottom:28 }} />
+      <div aria-hidden="true" className="animate-pulse" style={{ background:'rgba(167,139,250,0.10)', height:72, width:'40%', borderRadius:8, marginBottom:48 }} />
+      <div aria-hidden="true" className="ff-wl-grid">
         {[0,1,2,3,4].map(i => <div key={i} className="animate-pulse" style={{ ...pulse, aspectRatio:'2/3', borderRadius:6 }} />)}
       </div>
     </div>

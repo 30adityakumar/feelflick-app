@@ -301,3 +301,71 @@
   }
 }
 
+
+/* ── F5.5 progressive-disclosure (FilmFileDisclosure) ──────────────
+   Native <details>/<summary>: keyboard + expanded semantics come free.
+   The summary is the heading-equivalent label (≥44px, visible focus ring);
+   the chevron is decorative (aria-hidden). The small rotation is neutralised
+   under prefers-reduced-motion by the global reset in index.css. */
+.ff-disclosure {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.ff-disclosure__summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  min-height: 44px;
+  padding: 26px 88px;
+  cursor: pointer;
+  outline: none;
+}
+.ff-disclosure__summary::-webkit-details-marker { display: none; }
+.ff-disclosure__summary:focus-visible {
+  outline: 2px solid #a78bfa;
+  outline-offset: -3px;
+  border-radius: 6px;
+}
+.ff-disclosure__label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+.ff-disclosure__eyebrow {
+  font-family: Outfit, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #a78bfa;
+}
+.ff-disclosure__heading {
+  font-family: Outfit, Inter, sans-serif;
+  font-size: 22px;
+  line-height: 1.1;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: #fafafa;
+  text-wrap: balance;
+}
+.ff-disclosure__copy {
+  font-family: Outfit, Inter, sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(250, 250, 250, 0.55);
+}
+.ff-disclosure__chevron {
+  flex-shrink: 0;
+  display: inline-flex;
+  color: rgba(250, 250, 250, 0.6);
+  transition: transform 0.2s ease;
+}
+.ff-disclosure__details[open] .ff-disclosure__chevron {
+  transform: rotate(90deg);
+}
+@media (max-width: 720px) {
+  .ff-disclosure__summary { padding: 22px 24px; }
+  .ff-disclosure__heading { font-size: 20px; }
+}

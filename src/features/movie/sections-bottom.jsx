@@ -498,18 +498,16 @@ function DirectorShelf({ goToMovie }) {
 function YourTake({ isWatched, userId, internalId, onSaved, onError }) {
   if (isWatched) return <YourTakeUnlocked userId={userId} internalId={internalId} onSaved={onSaved} onError={onError} />;
 
+  // F5.5: compact-until-watched. A small, discoverable prompt that does NOT
+  // interrupt the decision path or imply a rating already exists — the rating
+  // controls (and the Mark Watched action) live in the Hero / sticky bar.
   return (
-    <section className="ff-movie-section" style={{ padding:'56px 88px', borderTop:`1px solid ${HP.border}` }}>
-      <div className="ff-movie-your-take-card" style={{ padding:'24px 28px', borderRadius:RADIUS.sm, background:'linear-gradient(135deg, rgba(167,139,250,0.04), rgba(236,72,153,0.02))', border:`1px solid ${HP.border}`, display:'grid', gridTemplateColumns:'auto 1fr auto', gap:24, alignItems:'center' }}>
-        <div style={{ width:44, height:44, borderRadius:RADIUS.pill, background:'rgba(167,139,250,0.12)', border:`1px solid ${HP.purple}33`, display:'flex', alignItems:'center', justifyContent:'center' }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={HP.purple} strokeWidth="1.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        </div>
-        <div>
-          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color: HP.purple, marginBottom:6 }}>Your take · locked</div>
-          <div style={{ fontFamily:'Outfit', fontSize:17, fontWeight:500, color: HP.text, letterSpacing:'-0.015em' }}>Mark watched to rate this film.</div>
-          <div style={{ fontSize:12, color: HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', fontStyle:'italic', marginTop:4 }}>Your ratings sharpen your engine.</div>
-        </div>
-      </div>
+    <section className="ff-movie-section ff-movie-your-take-compact" style={{ padding:'28px 88px', borderTop:`1px solid ${HP.border}` }}>
+      <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color: HP.purple, marginBottom:8 }}>After watching</div>
+      <h2 className="ff-movie-section-h2" style={{ fontFamily:'Outfit', fontSize:22, lineHeight:1.1, fontWeight:500, color: HP.text, margin:0, letterSpacing:'-0.02em' }}>Your take</h2>
+      <p style={{ margin:'8px 0 0 0', fontSize:13.5, lineHeight:1.5, color: HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', maxWidth:560 }}>
+        Mark this film watched above to rate it — your ratings sharpen your engine.
+      </p>
     </section>
   );
 }

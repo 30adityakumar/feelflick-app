@@ -9,6 +9,7 @@ on:
       - 'e2e/visual-auth/**'
       - 'e2e/fixtures/discover.js'
       - 'e2e/fixtures/home.js'
+      - 'e2e/fixtures/movie.js'
       - 'playwright.config.*'
       - 'package.json'
       - 'package-lock.json'
@@ -159,8 +160,11 @@ jobs:
           if [[ "${GITHUB_REF}" == "refs/heads/visual-baselines/home-f47" ]]; then
             echo "Regenerating Linux authenticated Home baselines…"
             npm run test:visual:home:update
+          elif [[ "${GITHUB_REF}" == refs/heads/visual-baselines/movie-* ]]; then
+            echo "Regenerating Linux authenticated Movie baselines only…"
+            npm run test:visual:movie:update
           elif [[ "${GITHUB_REF}" == refs/heads/visual-baselines/* ]]; then
-            echo "Regenerating Linux authenticated app baselines (Discover + Home)…"
+            echo "Regenerating Linux authenticated app baselines (Discover + Home + Movie)…"
             npm run test:visual:app:update
           else
             npm run test:visual:app
@@ -175,6 +179,8 @@ jobs:
           # public baselines and never the other route's authenticated snapshots.
           if [[ "${GITHUB_REF}" == "refs/heads/visual-baselines/home-f47" ]]; then
             git add 'e2e/visual-auth/home.visual.js-snapshots'
+          elif [[ "${GITHUB_REF}" == refs/heads/visual-baselines/movie-* ]]; then
+            git add 'e2e/visual-auth/movie.visual.js-snapshots'
           else
             git add 'e2e/visual-auth'
           fi

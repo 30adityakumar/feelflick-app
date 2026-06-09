@@ -40,6 +40,17 @@ export const HISTORY = [
   { movie_id: 9203, watched_at: '2026-01-20T19:00:00Z', movies: diMovie({ id: 9203, tmdb_id: 920003, title: 'Winter Tenants', director_name: 'Cole Park', release_date: '2017-09-01', runtime: 96, mood_tags: ['melancholy'], poster_path: null }) },
   { movie_id: 9204, watched_at: '2026-01-19T18:00:00Z', movies: diMovie({ id: 9204, tmdb_id: 920004, title: 'The Long Field', director_name: 'Lena Cho', release_date: '2019-06-01', runtime: 133, mood_tags: ['tense'], poster_path: '/di-field.jpg' }) },
 ]
+// F6.10 duplicate-history scenario (opt-in via { duplicateHistory: true } — NOT the default,
+// so the visual baselines stay stable). The DB allows multiple user_history rows per
+// (user, movie); here Lantern Hill (9201) has THREE rows from different watch paths with
+// distinct watched_at + ids. The canonical (one-per-film) derivation must collapse them to
+// the LATEST watch (Feb 13), so the Diary shows 4 entries (not 6) and stats count once.
+export const DUPLICATE_HISTORY = [
+  { movie_id: 9201, watched_at: '2026-02-10T18:00:00Z', id: 'h-9201-onb', source: 'onboarding',      movies: diMovie({ id: 9201, tmdb_id: 920001, title: 'Lantern Hill', director_name: 'Mara Vance', release_date: '2021-04-01', runtime: 114, mood_tags: ['tender'], poster_path: '/di-lantern.jpg' }) },
+  { movie_id: 9201, watched_at: '2026-02-12T21:00:00Z', id: 'h-9201-ff',  source: 'film_file',       movies: diMovie({ id: 9201, tmdb_id: 920001, title: 'Lantern Hill', director_name: 'Mara Vance', release_date: '2021-04-01', runtime: 114, mood_tags: ['tender'], poster_path: '/di-lantern.jpg' }) },
+  { movie_id: 9201, watched_at: '2026-02-13T08:00:00Z', id: 'h-9201-dsc', source: 'discover_marked', movies: diMovie({ id: 9201, tmdb_id: 920001, title: 'Lantern Hill', director_name: 'Mara Vance', release_date: '2021-04-01', runtime: 114, mood_tags: ['tender'], poster_path: '/di-lantern.jpg' }) },
+  ...HISTORY.slice(1), // 9202, 9203, 9204 (one row each)
+]
 export const RATINGS = [
   { movie_id: 9201, rating: 9, review_text: 'A patient film about repair — it earns its silences, and the long northern evening it unfolds across feels like a held breath that never quite lets go.', rated_at: '2026-02-12T21:30:00Z' },
   { movie_id: 9202, rating: 7, review_text: null, rated_at: '2026-02-11T20:30:00Z' },
@@ -73,12 +84,12 @@ const REDACT = (s) => String(s).replace(/(apikey|access_token|authorization|emai
 
 // ── installer ──────────────────────────────────────────────────────────────────────
 export async function installLibraryFixture(page, options = {}) {
-  const opts = { mode: 'loaded', removeMode: 'success', reducedMotion: false, ...options }
+  const opts = { mode: 'loaded', removeMode: 'success', reducedMotion: false, duplicateHistory: false, ...options }
 
   // Mutable in-memory state so removals are reflected by subsequent reads (and cross-nav).
   const state = {
     watchlist: WATCHLIST.map(r => ({ ...r })),
-    history: HISTORY.map(r => ({ ...r })),
+    history: (opts.duplicateHistory ? DUPLICATE_HISTORY : HISTORY).map(r => ({ ...r })),
     ratings: RATINGS.map(r => ({ ...r })),
     removedWatchlistIds: [],
     removedHistoryIds: [],

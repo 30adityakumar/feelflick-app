@@ -182,16 +182,19 @@ export function useUserRating({ userId, internalId }) {
   const writeReaction = useCallback(async (nextReaction) => {
     if (!userId || !internalId) return
     const sentiment = nextReaction ? REACTION_TO_SENTIMENT[nextReaction] : 'neutral'
-    // Append-only — each chip click logs a new feedback row. Hydration reads the
-    // latest, so the most-recent value wins.
-    const { error } = await supabase.from('user_movie_feedback').insert({
+    // F6.10: UPSERT, not insert. user_movie_feedback has a UNIQUE (user_id, movie_id), so
+    // a plain insert threw 23505 on a later reaction change (false "Could not save"). The
+    // reaction is a single film-level reflection — upsert on the same conflict target the
+    // rating write uses, so it creates the row when none exists and updates it otherwise,
+    // latest-value-wins. Payload fields are unchanged. (No preliminary SELECT.)
+    const { error } = await supabase.from('user_movie_feedback').upsert({
       user_id: userId,
       movie_id: internalId,
       sentiment,
       feedback_type: 'sentiment',
       placement: 'movie_detail_v2_your_take',
       watched_confirmed: true,
-    })
+    }, { onConflict: 'user_id,movie_id' })
     if (error) throw error
   }, [userId, internalId])
 

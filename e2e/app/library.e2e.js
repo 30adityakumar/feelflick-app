@@ -213,6 +213,33 @@ test.describe('User Library — Diary, authenticated, intercepted', () => {
     expect(ledger.unexpectedRequests).toEqual([])
   })
 
+  test('G2 — F6.10: duplicate user_history rows for one film collapse to ONE Diary entry + uninflated stats', async ({ page }) => {
+    // 6 raw rows (3 for Lantern Hill across watch paths + 9202/9203/9204) → 4 canonical films.
+    const ledger = await installLibraryFixture(page, { duplicateHistory: true })
+    await openDiary(page)
+
+    const rows = page.getByRole('listitem')
+    await expect(rows).toHaveCount(4)                                           // not 6
+    await expect(page.getByRole('heading', { name: 'Lantern Hill', exact: true })).toHaveCount(1) // film shown once
+    await expect(rows.first().getByRole('heading', { level: 3 })).toHaveText('Lantern Hill')       // its LATEST watch (Feb 13) → newest-first
+
+    // stats count each film once (not inflated by dupes): masthead "4 films · 7 hours"
+    // (Logged + Hours) + the per-card values located by exact label.
+    await expect(page.getByText('4 films · 7 hours')).toBeVisible()
+    const card = (label) => page.locator('.ff-hist-pulse-grid > div').filter({ has: page.getByText(label, { exact: true }) })
+    await expect(card('Logged')).toContainText('4')
+    await expect(card('Hours watched')).toContainText('7h')
+    await expect(card('This month')).toContainText('2')
+
+    // rating + review remain attached to the canonical Lantern Hill entry
+    const lantern = rows.filter({ has: page.getByRole('heading', { name: 'Lantern Hill', exact: true }) })
+    await expect(lantern.getByRole('img', { name: '5 of 5 stars' })).toBeVisible()
+    await expect(lantern.getByText('Your review')).toBeVisible()
+    await expect(lantern.getByText(/A patient film about repair/)).toBeVisible()
+
+    expect(ledger.unexpectedRequests).toEqual([])
+  })
+
   test('H — Diary filter (aria-pressed), search and reset', async ({ page }) => {
     const ledger = await installLibraryFixture(page)
     await openDiary(page)

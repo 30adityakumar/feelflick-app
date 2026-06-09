@@ -36,10 +36,32 @@ export function moodHexFor(name) {
 
 // === Derivers ============================================================
 
+// F6.10: collapse user_history to ONE canonical row per film. The DB allows multiple
+// rows per (user, movie) (its only uniqueness is (user_id, movie_id, watched_at)), and
+// different watch paths stamp fresh watched_at values, so the same film can have 2–3 rows.
+// The CURRENT Diary contract is one entry per film — multiple rows are collapsed to the
+// LATEST watch (this is NOT a rewatch; first-class rewatches + any DB cleanup are future
+// architecture). Pure: the input is never mutated, no DB row is touched, and the selected
+// canonical row's fields are preserved verbatim (older rows are never merged/synthesized).
+export function dedupeHistoryByMovie(history = []) {
+  const byMovie = new Map()
+  for (let i = 0; i < history.length; i++) {
+    const row = history[i]
+    if (!row || row.movie_id == null) continue                 // rule 1: need a movie_id
+    const t = row.watched_at ? new Date(row.watched_at).getTime() : NaN
+    if (!Number.isFinite(t)) continue                          // rule 2: need a valid watched_at (Diary rule)
+    const existing = byMovie.get(row.movie_id)
+    // rule 4/5: keep the most-recent watched_at; on a tie keep the EARLIER original-array
+    // row (replace only when STRICTLY newer → stable, deterministic).
+    if (!existing || t > existing.t) byMovie.set(row.movie_id, { row, t })
+  }
+  return [...byMovie.values()].map(v => v.row)                 // rules 6/7: new array, original row refs
+}
+
 export function deriveEntries(history, ratings) {
   const ratingByMovieId = new Map(ratings.map(r => [r.movie_id, r]))
-  return history
-    .filter(h => h.watched_at)
+  // One visible entry per film, from the canonical (deduplicated) history set.
+  return dedupeHistoryByMovie(history)
     .sort((a, b) => new Date(b.watched_at) - new Date(a.watched_at))
     .map(h => {
       const m = h.movies || {}
@@ -81,15 +103,18 @@ export function deriveEntries(history, ratings) {
 }
 
 export function deriveStats({ history, ratings }) {
-  const totalLogged = history.length
-  const totalHours = Math.round(history.reduce((s, h) => s + (h.movies?.runtime || 0), 0) / 60)
+  // F6.10: every Diary fact is computed from the SAME canonical (one-per-film) history
+  // set, so duplicate rows never inflate Logged / Hours / This-month.
+  const canonical = dedupeHistoryByMovie(history)
+  const totalLogged = canonical.length                                   // unique films
+  const totalHours = Math.round(canonical.reduce((s, h) => s + (h.movies?.runtime || 0), 0) / 60) // runtime once/film
 
-  // F6.5: DIARY-SCOPED average — average only ratings whose movie is in the current
+  // F6.5: DIARY-SCOPED average — average only ratings whose movie is in the canonical
   // watched Diary. Rated-but-unwatched films and removed Diary films do not count;
   // unrated Diary films are excluded from the denominator. No rating scale changes.
-  const historyMovieIds = new Set(
-    history.filter(h => h.watched_at).map(h => h.movie_id)
-  )
+  // (Ratings are keyed per movie, so a duplicate history row affects neither numerator
+  // nor denominator — the canonical set makes this explicit.)
+  const historyMovieIds = new Set(canonical.map(h => h.movie_id))
   const diaryRatings = ratings.filter(
     r => r.rating != null && historyMovieIds.has(r.movie_id)
   )
@@ -99,7 +124,8 @@ export function deriveStats({ history, ratings }) {
 
   const now = new Date()
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-  const thisMonthCount = history.filter(h => h.watched_at && new Date(h.watched_at) >= startOfMonth).length
+  // Count each film once, by its selected latest watched_at.
+  const thisMonthCount = canonical.filter(h => new Date(h.watched_at) >= startOfMonth).length
 
   return { totalLogged, totalHours, avgRating, thisMonthCount }
 }

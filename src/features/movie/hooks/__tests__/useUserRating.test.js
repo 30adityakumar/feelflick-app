@@ -18,11 +18,11 @@ function makeBuilder() {
   for (const m of ['select', 'eq', 'not', 'order', 'limit']) b[m] = vi.fn(() => b)
   b.maybeSingle = vi.fn(() => Promise.resolve({ data: null, error: null }))
   for (const op of ['upsert', 'insert', 'delete']) {
-    b[op] = vi.fn((payload) => {
+    b[op] = vi.fn((payload, opts) => {
       // delete().eq().eq() is awaited on the chain tail; upsert/insert are awaited
       // directly. Record + return a thenable tied to the next deferred.
       const d = nextDeferred()
-      const rec = { op, payload }
+      const rec = { op, payload, opts }
       writeCalls.push(rec)
       const thenable = {
         eq: vi.fn(() => thenable),
@@ -116,17 +116,62 @@ describe('useUserRating — F5.4 serialization', () => {
     expect(result.current.saveStatus).toBe('saved')
   })
 
-  it('35. reaction uses the user_movie_feedback table with the unchanged payload', async () => {
+  // F6.10: reaction persistence is now an idempotent UPSERT (was a plain insert that threw
+  // 23505 on a later change against UNIQUE(user_id, movie_id)). Payload + behavior unchanged.
+  it('F6.10-1/2/3/6. first reaction UPSERTs (not insert) on user_id,movie_id with the unchanged payload', async () => {
     const { result } = renderHook(() => useUserRating({ userId: 'u1', internalId: 7 }))
     await act(async () => {})
     writeCalls.length = 0
     act(() => { result.current.setReaction('Loved it') })
     await act(async () => { vi.advanceTimersByTime(600) })
-    const insert = writeCalls.find(w => w.op === 'insert')
-    expect(insert.payload).toMatchObject({
+    const reactionWrites = writeCalls.filter(w => w.payload?.feedback_type === 'sentiment')
+    expect(reactionWrites).toHaveLength(1)
+    expect(reactionWrites[0].op).toBe('upsert')                       // not a plain insert
+    expect(writeCalls.some(w => w.op === 'insert')).toBe(false)       // no insert anywhere for the reaction
+    expect(reactionWrites[0].opts).toEqual({ onConflict: 'user_id,movie_id' })
+    expect(reactionWrites[0].payload).toMatchObject({
       user_id: 'u1', movie_id: 7, sentiment: 'loved',
       feedback_type: 'sentiment', placement: 'movie_detail_v2_your_take', watched_confirmed: true,
     })
+  })
+
+  it('F6.10-4/5/8. changing the reaction later UPSERTs again with the latest value → saved', async () => {
+    const { result } = renderHook(() => useUserRating({ userId: 'u1', internalId: 7 }))
+    await act(async () => {})
+    writeCalls.length = 0
+    act(() => { result.current.setReaction('Loved it') })
+    await act(async () => { vi.advanceTimersByTime(600) })
+    await act(async () => { await settleAll() })
+    act(() => { result.current.setReaction('Liked it') })            // change in a later "session"
+    await act(async () => { vi.advanceTimersByTime(600) })
+    await act(async () => { await settleAll() })
+    const reactionWrites = writeCalls.filter(w => w.payload?.feedback_type === 'sentiment')
+    expect(reactionWrites).toHaveLength(2)                            // a second upsert, not a 23505
+    expect(reactionWrites.every(w => w.op === 'upsert')).toBe(true)
+    expect(reactionWrites[1].payload.sentiment).toBe('liked')        // latest value persisted (Liked it → liked)
+    expect(result.current.saveStatus).toBe('saved')
+  })
+
+  it('F6.10-9/10. a genuine reaction upsert error reaches error state (no false success)', async () => {
+    const { result } = renderHook(() => useUserRating({ userId: 'u1', internalId: 7 }))
+    await act(async () => {})
+    writeCalls.length = 0
+    act(() => { result.current.setReaction('Loved it') })
+    await act(async () => { vi.advanceTimersByTime(600) })
+    await act(async () => { for (const d of deferreds) d.reject(); await Promise.resolve(); await Promise.resolve(); await Promise.resolve() })
+    expect(result.current.saveStatus).toBe('error')
+    expect(result.current.saveStatus).not.toBe('saved')
+  })
+
+  it('F6.10-11. rapid different reactions coalesce to ONE upsert with the latest value (latest-wins)', async () => {
+    const { result } = renderHook(() => useUserRating({ userId: 'u1', internalId: 7 }))
+    await act(async () => {})
+    writeCalls.length = 0
+    act(() => { result.current.setReaction('Loved it'); result.current.setReaction('Mixed'); result.current.setReaction('Liked it') })
+    await act(async () => { vi.advanceTimersByTime(600) })
+    const reactionWrites = writeCalls.filter(w => w.payload?.feedback_type === 'sentiment')
+    expect(reactionWrites).toHaveLength(1)
+    expect(reactionWrites[0].payload.sentiment).toBe('liked')        // latest of the three
   })
 
   it('33. unmount clears pending timers without throwing (no state update after unmount)', async () => {

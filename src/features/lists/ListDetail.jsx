@@ -293,7 +293,7 @@ export default function ListDetail() {
               <div style={{ marginTop: 24, display: 'flex', alignItems: 'center', gap: 12 }}>
                 <button
                   type="button"
-                  onClick={() => navigate(isOwner ? '/profile' : `/profile/${list.user_id}`)}
+                  onClick={() => navigate(isOwner ? '/profile' : '/people')}
                   aria-label={`View ${owner?.name || 'owner'} profile`}
                   style={{ ...RESET_BTN, display: 'flex', alignItems: 'center', gap: 12 }}
                 >

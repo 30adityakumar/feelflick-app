@@ -380,7 +380,7 @@ function FriendsRanked() {
             <button
               key={f.userId || f.name}
               type="button"
-              onClick={() => f.userId && navigate(`/profile/${f.userId}`)}
+              onClick={() => navigate('/people')}
               style={{ ...RESET_BTN, padding:'24px 22px', borderRadius:RADIUS.sm, background:'rgba(255,255,255,0.025)', border:`1px solid ${HP.border}`, transition:'border-color 0.18s ease, background 0.18s ease' }}
               onMouseEnter={(e) => { e.currentTarget.style.borderColor = HP.borderStrong; e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
               onMouseLeave={(e) => { e.currentTarget.style.borderColor = HP.border; e.currentTarget.style.background = 'rgba(255,255,255,0.025)' }}

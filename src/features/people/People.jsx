@@ -193,9 +193,9 @@ function TwinsRail() {
           <div className="ff-people-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16, marginTop: 20 }}>
             {popular.map(p => (
               <article key={p.id} style={{ padding: '18px 20px', borderRadius: 6, background: 'rgba(255,255,255,0.025)', border: `1px solid ${HP.border}`, display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: 14, alignItems: 'center' }}>
-                <Avatar url={p.avatarUrl} initial={p.initial} bg={p.avatarBg} size={42} onClick={() => navigate(`/profile/${p.id}`)} alt={`View ${p.name}'s profile`} />
+                <Avatar url={p.avatarUrl} initial={p.initial} bg={p.avatarBg} size={42} onClick={() => navigate('/people')} alt={`View ${p.name}'s profile`} />
                 <div style={{ minWidth: 0 }}>
-                  <button type="button" onClick={() => navigate(`/profile/${p.id}`)} style={{ ...RESET_BTN, fontFamily: 'Outfit', fontSize: 15, fontWeight: 500, color: HP.text, display: 'block', width: '100%', textAlign: 'left' }}>{p.name}</button>
+                  <button type="button" onClick={() => navigate('/people')} style={{ ...RESET_BTN, fontFamily: 'Outfit', fontSize: 15, fontWeight: 500, color: HP.text, display: 'block', width: '100%', textAlign: 'left' }}>{p.name}</button>
                   <div style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.bio}</div>
                 </div>
                 <FollowBtn following={false} onToggle={() => toggleFollow(p.id)} />
@@ -210,7 +210,7 @@ function TwinsRail() {
               <div style={{ position: 'absolute', top: -30, right: -30, width: 120, height: 120, borderRadius: 999, background: `radial-gradient(circle, ${p.avatarBg}33, transparent 70%)`, filter: 'blur(8px)' }} />
               <div style={{ position: 'relative' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
-                  <Avatar url={p.avatarUrl} initial={p.initial} bg={p.avatarBg} size={48} onClick={() => navigate(`/profile/${p.id}`)} alt={`View ${p.name}'s profile`} />
+                  <Avatar url={p.avatarUrl} initial={p.initial} bg={p.avatarBg} size={48} onClick={() => navigate('/people')} alt={`View ${p.name}'s profile`} />
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ fontFamily: 'Outfit', fontSize: 34, fontWeight: 200, color: HP.text, letterSpacing: '-0.045em', lineHeight: 1 }}>{p.match}<span style={{ fontSize: 12, color: HP.textMuted, marginLeft: 1 }}>%</span></div>
                     <div style={{ fontSize: 9, color: HP.textFaint, fontFamily: 'Outfit', letterSpacing: '0.14em', textTransform: 'uppercase', marginTop: 2 }}>Match</div>
@@ -219,7 +219,7 @@ function TwinsRail() {
                 <MatchBar pct={p.match} hex={p.avatarBg} />
                 <button
                   type="button"
-                  onClick={() => navigate(`/profile/${p.id}`)}
+                  onClick={() => navigate('/people')}
                   style={{ ...RESET_BTN, marginTop: 16, fontFamily: 'Outfit', fontSize: 18, fontWeight: 500, color: HP.text, letterSpacing: '-0.015em', display: 'block', width: '100%' }}
                 >
                   {p.name}
@@ -277,11 +277,11 @@ function Rising() {
       <div className="ff-people-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16 }}>
         {rising.map(p => (
           <div key={p.id} style={{ padding: '18px 20px', borderRadius: 6, background: 'rgba(255,255,255,0.025)', border: `1px solid ${HP.border}`, display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: 16, alignItems: 'center' }}>
-            <Avatar url={p.avatarUrl} initial={p.initial} bg={p.avatarBg} size={42} onClick={() => navigate(`/profile/${p.id}`)} alt={`View ${p.name}'s profile`} />
+            <Avatar url={p.avatarUrl} initial={p.initial} bg={p.avatarBg} size={42} onClick={() => navigate('/people')} alt={`View ${p.name}'s profile`} />
             <div style={{ minWidth: 0 }}>
               <button
                 type="button"
-                onClick={() => navigate(`/profile/${p.id}`)}
+                onClick={() => navigate('/people')}
                 style={{ ...RESET_BTN, fontFamily: 'Outfit', fontSize: 14, fontWeight: 500, color: HP.text, display: 'block', width: '100%' }}
               >
                 {p.name}
@@ -323,7 +323,7 @@ function Activity() {
       <div style={{ borderTop: `1px solid ${HP.border}` }}>
         {activity.map((a, i) => (
           <div key={i} className="ff-people-activity-row" style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: 18, alignItems: 'flex-start', padding: '20px 0', borderBottom: `1px solid ${HP.border}` }}>
-            <Avatar url={a.whoAvatarUrl} initial={a.who.charAt(0).toUpperCase()} bg={a.whoBg} size={36} onClick={a.whoId ? () => navigate(`/profile/${a.whoId}`) : undefined} alt={`View ${a.who}'s profile`} />
+            <Avatar url={a.whoAvatarUrl} initial={a.who.charAt(0).toUpperCase()} bg={a.whoBg} size={36} onClick={a.whoId ? () => navigate('/people') : undefined} alt={`View ${a.who}'s profile`} />
             <div>
               <div style={{ fontFamily: 'Outfit, Inter, sans-serif', fontSize: 14, color: HP.textSoft }}>
                 <span style={{ color: HP.text, fontWeight: 600, fontFamily: 'Outfit' }}>{a.who}</span> {a.action} <span style={{ color: HP.text, fontWeight: 600, fontStyle: 'italic' }}>{a.film}</span>
@@ -385,11 +385,11 @@ function Suggested() {
       <div className="ff-people-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16 }}>
         {suggested.map(p => (
           <div key={p.id} style={{ padding: '18px 20px', borderRadius: 6, background: 'rgba(255,255,255,0.025)', border: `1px solid ${HP.border}`, display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: 16, alignItems: 'center' }}>
-            <Avatar url={p.avatarUrl} initial={p.initial} bg={p.avatarBg} size={42} onClick={() => navigate(`/profile/${p.id}`)} alt={`View ${p.name}'s profile`} />
+            <Avatar url={p.avatarUrl} initial={p.initial} bg={p.avatarBg} size={42} onClick={() => navigate('/people')} alt={`View ${p.name}'s profile`} />
             <div style={{ minWidth: 0 }}>
               <button
                 type="button"
-                onClick={() => navigate(`/profile/${p.id}`)}
+                onClick={() => navigate('/people')}
                 style={{ ...RESET_BTN, fontFamily: 'Outfit', fontSize: 15, fontWeight: 500, color: HP.text, display: 'block', width: '100%' }}
               >
                 {p.name}
@@ -428,11 +428,11 @@ function SearchResults({ results, loading, onClear }) {
         <div className="ff-people-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16 }}>
           {results.map(u => (
             <div key={u.id} style={{ padding: '18px 20px', borderRadius: 6, background: 'rgba(255,255,255,0.025)', border: `1px solid ${HP.border}`, display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: 14, alignItems: 'center' }}>
-              <Avatar url={u.avatarUrl} initial={u.initial} bg={u.avatarBg} size={42} onClick={() => navigate(`/profile/${u.id}`)} alt={`View ${u.name}'s profile`} />
+              <Avatar url={u.avatarUrl} initial={u.initial} bg={u.avatarBg} size={42} onClick={() => navigate('/people')} alt={`View ${u.name}'s profile`} />
               <div style={{ minWidth: 0 }}>
                 <button
                   type="button"
-                  onClick={() => navigate(`/profile/${u.id}`)}
+                  onClick={() => navigate('/people')}
                   style={{ ...RESET_BTN, fontFamily: 'Outfit', fontSize: 15, fontWeight: 500, color: HP.text, display: 'block', width: '100%', textAlign: 'left' }}
                 >
                   {u.name}

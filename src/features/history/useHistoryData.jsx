@@ -3,11 +3,13 @@
 // user_history (joined with movies) + user_ratings, then derives:
 //   - entries[]: diary rows grouped by month → day in the UI
 //   - stats: totalLogged, totalHours, avgRating, thisMonthCount, streakDays
-// Trend/signature visuals (heatmap, monthly timeline, mood share) live on
-// /profile (DNA) — they're patterns, not diary content.
 //
-// F6.2: the pure derivations now live in ./derive/historyDerive (behavior
-// unchanged); this provider is a thin caller over them.
+// F6.2: the pure derivations live in ./derive/historyDerive (behavior unchanged).
+// F6.3: removeEntry is now SETTLED (the row leaves the list only after the DB delete
+// succeeds — a resolved Supabase { error } is recognised, never silently treated as
+// success), with explicit result objects, per-entry pending state, a duplicate guard,
+// and a sanitized 'load_error' state. The (user_id, movie_id) delete filter and the
+// rating/review-retention behavior are FROZEN here — F6.5 owns those semantics.
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '@/shared/lib/supabase/client'
@@ -20,58 +22,75 @@ const INITIAL = {
   entries: [],
   stats: { totalLogged: 0, totalHours: 0, avgRating: 0, thisMonthCount: 0, streakDays: 0 },
   loading: true,
-  error: null,
-  removeEntry: async () => {},
+  error: null,                  // F6.3: 'load_error' | null — never a raw backend message
+  removingEntryIds: new Set(),  // F6.3: entry ids with a removal in flight
+  isRemoving: () => false,
+  removeEntry: async () => ({ ok: false, action: 'remove_failed' }),
   refresh: () => {},
 }
-
-// === Provider ============================================================
 
 export function HistoryDataProvider({ children }) {
   const { user } = useAuthSession()
   const [state, setState] = useState(INITIAL)
   const [nonce, setNonce] = useState(0)
-  // Mirror of state.entries kept current so side-effecting callbacks (delete)
-  // can read the canonical list without piggybacking on setState callbacks —
-  // those get double-invoked in Strict Mode and the 2nd run sees already-
-  // filtered state, zeroing out the work. Same pattern as /watchlist.
+  const [removingEntryIds, setRemovingEntryIds] = useState(() => new Set())
+
+  // Mirror of state.entries kept current so the delete callback can read the
+  // canonical list without piggybacking on setState callbacks (Strict-Mode safe).
   const entriesRef = useRef(state.entries)
   useEffect(() => { entriesRef.current = state.entries }, [state.entries])
 
+  const inFlightRef = useRef(new Set())
+  const mountedRef = useRef(true)
+  const userIdRef = useRef(user?.id)
+  useEffect(() => { mountedRef.current = true; return () => { mountedRef.current = false } }, [])
+  useEffect(() => { userIdRef.current = user?.id }, [user?.id])
+  useEffect(() => { inFlightRef.current = new Set(); setRemovingEntryIds(new Set()) }, [user?.id])
+
   const refresh = useCallback(() => setNonce(n => n + 1), [])
+  const isRemoving = useCallback((entryId) => removingEntryIds.has(entryId), [removingEntryIds])
+  const alive = useCallback((uid) => mountedRef.current && userIdRef.current === uid, [])
 
   const removeEntry = useCallback(async (entryId) => {
-    if (!user?.id || !entryId) return
-    const current = entriesRef.current || []
-    const target = current.find(e => e.id === entryId)
-    if (!target) return
-    // Optimistic: drop from the visible entries list immediately so the row
-    // disappears under the user's cursor. The aggregates (heatmap / timeline
-    // / mood share / stats) will catch up after the post-delete refresh —
-    // re-deriving them from already-derived entries is lossy (we'd lose the
-    // raw watched_at timestamp, mood_tags etc.), so it's cleaner to just
-    // re-fetch the canonical rows.
-    setState(prev => ({
-      ...prev,
-      entries: prev.entries.filter(e => e.id !== entryId),
-    }))
+    if (!user?.id || !entryId) return { ok: false, action: 'remove_failed', entryId, movieId: null }
+    const uid = user.id
+    const target = (entriesRef.current || []).find(e => e.id === entryId)
+    if (!target) return { ok: false, action: 'remove_failed', entryId, movieId: null }
+    const movieId = target.movieId
+    const fail = { ok: false, action: 'remove_failed', entryId, movieId }
+    if (inFlightRef.current.has(entryId)) return { ...fail, duplicate: true }
+    inFlightRef.current.add(entryId)
+    if (alive(uid)) setRemovingEntryIds(prev => { const n = new Set(prev); n.add(entryId); return n })
+    let result = fail
     try {
-      // The row's surfaced id is either user_history.id (uuid) or our fallback
-      // composite `${movie_id}-${watched_at}`. The delete keys off
-      // (user_id, movie_id): the app dedupes by (user, movie) so there's
-      // only ever one row to remove.
-      await supabase
+      // FROZEN (F6.5 owns the semantics): delete keys off (user_id, movie_id); the app
+      // dedupes by (user, movie) so there is only ever one row. Ratings/feedback are
+      // intentionally NOT touched here. SETTLED: recognise a resolved { error }.
+      const { error } = await supabase
         .from('user_history')
         .delete()
-        .eq('user_id', user.id)
-        .eq('movie_id', target.movieId)
+        .eq('user_id', uid)
+        .eq('movie_id', movieId)
+      if (error) {
+        console.warn('[removeEntry]', error)
+        refresh() // re-sync canonical; the entry was never removed locally
+      } else {
+        if (alive(uid)) {
+          setState(prev => ({ ...prev, entries: prev.entries.filter(e => e.id !== entryId) }))
+        }
+        // Re-fetch to keep the aggregate stats in sync with the now-shorter list.
+        refresh()
+        result = { ok: true, action: 'removed', entryId, movieId }
+      }
     } catch (e) {
       console.warn('[removeEntry]', e)
+      refresh()
+    } finally {
+      inFlightRef.current.delete(entryId)
+      if (alive(uid)) setRemovingEntryIds(prev => { const n = new Set(prev); n.delete(entryId); return n })
     }
-    // Refresh re-fetches and re-derives all aggregates — cheap on the small
-    // user_history table and avoids drift between visible entries and stats.
-    refresh()
-  }, [user, refresh])
+    return result
+  }, [user, refresh, alive])
 
   useEffect(() => {
     if (!user?.id) {
@@ -107,18 +126,25 @@ export function HistoryDataProvider({ children }) {
         const entries = deriveEntries(history, ratings)
         const stats = deriveStats({ history, ratings })
 
-        setState({ entries, stats, loading: false, error: null, removeEntry, refresh })
+        setState(s => ({ ...s, entries, stats, loading: false, error: null }))
       } catch (e) {
         if (abort) return
         console.error('[useHistoryData]', e)
-        setState(s => ({ ...s, loading: false, error: e?.message || 'Failed to load' }))
+        setState(s => ({ ...s, loading: false, error: 'load_error' }))
       }
     })()
 
     return () => { abort = true }
-  }, [user, nonce, removeEntry, refresh])
+  }, [user, nonce])
 
-  const value = useMemo(() => state, [state])
+  const value = useMemo(() => ({
+    ...state,
+    removingEntryIds,
+    isRemoving,
+    removeEntry,
+    refresh,
+  }), [state, removingEntryIds, isRemoving, removeEntry, refresh])
+
   return <HistoryDataContext.Provider value={value}>{children}</HistoryDataContext.Provider>
 }
 

@@ -80,3 +80,12 @@
     font-size: 36px !important;
   }
 }
+
+/* F6.3 — sanitized error recovery buttons + the data-library-fallback focus target. */
+.ff-hist-error-btn:focus-visible {
+  outline: 2px solid #a78bfa;
+  outline-offset: 3px;
+}
+[data-library-fallback]:focus {
+  outline: none;
+}

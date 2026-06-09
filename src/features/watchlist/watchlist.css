@@ -52,3 +52,17 @@
 [data-library-fallback]:focus {
   outline: none;
 }
+
+/* F6.7 — accessibility + responsive hardening for saved-film cards. */
+.ff-wl-card { min-width: 0; }
+.ff-wl-card__title { overflow-wrap: anywhere; }            /* long titles wrap, never clip */
+.ff-wl-card__link:focus-visible,
+.ff-wl-card__remove:focus-visible {
+  outline: 2px solid #a78bfa;
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+/* Keep the last saved-film row clear of the fixed mobile bottom nav (md:hidden, ~54px). */
+@media (max-width: 767px) {
+  .ff-wl-collection { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)) !important; }
+}

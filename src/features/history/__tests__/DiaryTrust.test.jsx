@@ -44,10 +44,11 @@ describe('Diary — data-truth + reflection labelling (F6.5)', () => {
     expect(screen.getByText(/rated diary films/i)).toBeInTheDocument()
   })
 
-  it('19. the Loved filter is labelled by its rating basis (9–10), not a separate flag', () => {
+  it('19. the Loved filter is a labelled toggle button (aria-pressed), basis 9–10, not a separate flag', () => {
     mockCtx = ctx()
     render(<History />)
-    expect(screen.getByRole('radio', { name: 'Loved · 9–10' })).toBeInTheDocument()
+    const loved = screen.getByRole('button', { name: 'Loved · 9–10' })
+    expect(loved).toHaveAttribute('aria-pressed')   // F6.7: toggle button, not a partial radio
     expect(screen.queryByText(/Loved \(5/)).toBeNull()
   })
 
@@ -123,7 +124,7 @@ describe('Diary — shared Library identity + cross-navigation (F6.6)', () => {
     render(<History />)
     expect(screen.getByText('4.5')).toBeInTheDocument()                       // average stat
     expect(screen.getByLabelText('Search the diary')).toBeInTheDocument()      // search
-    expect(screen.getByRole('radio', { name: 'Loved · 9–10' })).toBeInTheDocument() // filter
+    expect(screen.getByRole('button', { name: 'Loved · 9–10' })).toBeInTheDocument() // filter
     expect(screen.getByRole('combobox', { name: 'Sort diary' })).toBeInTheDocument() // sort
   })
 

@@ -88,11 +88,12 @@ describe('Watchlist — calm saved-intent role (F6.4)', () => {
     expect(screen.getByText('Saved yesterday')).toBeInTheDocument()
   })
 
-  it('35. Open routes to /movie/:tmdbId (unchanged)', () => {
+  it('35. one Film File link per item routes to /movie/:tmdbId (unchanged)', () => {
     mockCtx = withItems(1)
     render(<Watchlist />)
-    fireEvent.click(screen.getByRole('button', { name: 'Open' }))
-    expect(navigate).toHaveBeenCalledWith('/movie/100')
+    // F6.7: a single Film File link (named by the title) — no duplicate "Open" button.
+    expect(screen.getByRole('link', { name: 'Film 1' })).toHaveAttribute('href', '/movie/100')
+    expect(screen.queryByRole('button', { name: 'Open' })).toBeNull()
   })
 })
 

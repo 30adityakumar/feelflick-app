@@ -1,17 +1,15 @@
 // src/features/movie/PrimaryCaseCard.jsx
-// The Film File's leading "case" card (F6B). Consolidates the strongest available
-// reason a film was surfaced into ONE statement at the top of the page, so the
-// case is clear before the user scrolls — instead of being assembled from the
-// hero pills + Why-for-you cards + the (previously buried) FF Take.
+// The Film File's single leading "case" section.
 //
-// EXISTING DATA ONLY · NEVER FABRICATES. Tier-aware, graceful degradation:
-//   Tier 1 — curated/auto `ff_take` present → lead with that editorial hook.
-//   Tier 2 — warm taste signals → lead with the adaptive "why this fits you" line.
-//   Tier 3 — anon / cold-start → lead with the honest standalone-profile line
-//            (deriveWhyHeader already produces "sign in" / "rate 5+" copy).
-// The match % is shown ONLY when the engine actually produced one, always with a
-// plain-language gloss. Caveats (daypart / content boundaries) live in the hero —
-// not repeated here. Self-hides only if there is genuinely no useful case.
+// F5.3 trust hierarchy (see derive/primaryCase.js):
+//   • The REAL/STATIC personalized rationale leads (warm "Why this fits you" or the
+//     honest cold/standalone line). It is never replaced by the generated ff_take.
+//   • The generated ff_take, when present, renders BELOW as a visually-secondary,
+//     explicitly FeelFlick-generated impression — plain prose, no quote grammar, no
+//     invented byline/outlet, and it never overpowers the real case.
+//   • At most ONE qualitative fit band (Good / Strong / Exceptional). No %, no ring,
+//     no confidence meter — the precise integer was removed in F5.3.
+// EXISTING DATA ONLY · NEVER FABRICATES. Self-hides when nothing useful exists.
 
 import AccentPanel from '@/shared/ui/AccentPanel'
 import Eyebrow from '@/shared/ui/Eyebrow'
@@ -20,9 +18,9 @@ import { derivePrimaryCase } from './derive/primaryCase'
 
 /**
  * @param {object}  props
- * @param {object|null} props.ffTake     overlay.ff_take ({ body, byline, meta }) or null
- * @param {object}  props.whyHeader      { eyebrow, headline, rationale } (always tier-adaptive)
- * @param {number|null} props.matchPct   engine match % (0–100) or null when unavailable
+ * @param {object|null} props.ffTake     overlay.ff_take ({ body, byline, meta }) or null (GENERATED)
+ * @param {object}  props.whyHeader      { eyebrow, headline, rationale } (tier-adaptive)
+ * @param {number|null} props.matchPct   engine match % (0–99) or null — mapped to a band, never shown
  * @param {string[]} [props.moodTags]    film mood_tags (descriptive chips)
  * @param {string|null} [props.fitProfile] film fit_profile (descriptive chip)
  * @param {boolean} [props.signedIn]
@@ -31,16 +29,23 @@ import { derivePrimaryCase } from './derive/primaryCase'
 export default function PrimaryCaseCard({
   ffTake, whyHeader, matchPct, moodTags = [], fitProfile, signedIn = false,
 }) {
-  // Pure tier-selection decision (extracted F5.2 — same values as before).
-  const { label, lead, hasMatch, chips, showNudge, shouldRender, isTake } =
-    derivePrimaryCase({ ffTake, whyHeader, matchPct, moodTags, fitProfile, signedIn })
+  const {
+    tier, primaryLabel, primaryLead, editorialImpression, editorialLabel,
+    fitBand, chips, showNudge, shouldRender,
+  } = derivePrimaryCase({ ffTake, whyHeader, matchPct, moodTags, fitProfile, signedIn })
 
-  // Self-hide only when there is truly no useful case to make.
   if (!shouldRender) return null
+
+  // A real/static case is "the case for this film"; a generated-only card is framed
+  // honestly as an impression (not a personalized case).
+  const sectionLabel = primaryLead ? 'The case for this film' : primaryLabel
+  // Show the primary eyebrow for a real/static lead or a signals-only band — but NOT
+  // for the generated-only card (its own "FeelFlick impression" label serves there).
+  const showPrimaryHeader = Boolean(primaryLead) || tier === 'signals_only'
 
   return (
     <section
-      aria-label="The case for this film"
+      aria-label={sectionLabel}
       className="ff-movie-section ff-movie-primary-case"
       style={{ padding: `${SPACE.sectionSm}px ${SPACE.gutter}px 8px`, borderTop: `1px solid ${HP.border}` }}
     >
@@ -50,19 +55,21 @@ export default function PrimaryCaseCard({
         radius="lg"
         style={{ maxWidth: 880, padding: '26px 30px' }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', marginBottom: lead ? 12 : 0 }}>
-          <Eyebrow color={HP.purple}>{label}</Eyebrow>
-          {hasMatch && (
-            <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 7 }}>
-              <span style={{ fontFamily: 'Outfit', fontSize: 17, fontWeight: 700, color: HP.text, fontVariantNumeric: 'tabular-nums' }}>{matchPct}%</span>
-              <span style={{ fontFamily: 'Outfit', fontSize: 10.5, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: HP.textMuted }}>
-                match · how it fits your taste so far
+        {(showPrimaryHeader || fitBand) && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', marginBottom: primaryLead ? 12 : 0 }}>
+            {showPrimaryHeader ? <Eyebrow color={HP.purple}>{primaryLabel}</Eyebrow> : <span />}
+            {fitBand && (
+              <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 7 }}>
+                <span style={{ fontFamily: 'Outfit', fontSize: 14, fontWeight: 700, color: HP.text, letterSpacing: '0.01em' }}>{fitBand}</span>
+                <span style={{ fontFamily: 'Outfit', fontSize: 10.5, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: HP.textMuted }}>
+                  based on your taste signals so far
+                </span>
               </span>
-            </span>
-          )}
-        </div>
+            )}
+          </div>
+        )}
 
-        {lead && (
+        {primaryLead && (
           <p
             style={{
               margin: 0,
@@ -71,12 +78,29 @@ export default function PrimaryCaseCard({
               lineHeight: 1.5,
               color: HP.text,
               letterSpacing: '-0.01em',
-              fontStyle: isTake ? 'italic' : 'normal',
               textWrap: 'pretty',
             }}
           >
-            {lead}
+            {primaryLead}
           </p>
+        )}
+
+        {editorialImpression && (
+          <div
+            style={{
+              marginTop: primaryLead ? 20 : 0,
+              paddingTop: primaryLead ? 18 : 0,
+              borderTop: primaryLead ? `1px solid ${HP.border}` : 'none',
+            }}
+          >
+            <Eyebrow color={HP.textMuted} style={{ marginBottom: 8 }}>{editorialLabel}</Eyebrow>
+            <p style={{ margin: 0, fontFamily: 'Outfit, Inter, sans-serif', fontSize: 'clamp(15px, 1.3vw, 18px)', lineHeight: 1.5, color: HP.textSoft, letterSpacing: '-0.005em', textWrap: 'pretty' }}>
+              {editorialImpression}
+            </p>
+            <p style={{ margin: '10px 0 0 0', fontSize: 11.5, lineHeight: 1.5, color: HP.textMuted, fontFamily: 'Outfit, Inter, sans-serif' }}>
+              Generated by FeelFlick from the film’s available tone and editorial data.
+            </p>
+          </div>
         )}
 
         {chips.length > 0 && (

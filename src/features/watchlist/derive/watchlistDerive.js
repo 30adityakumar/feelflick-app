@@ -1,17 +1,18 @@
 // src/features/watchlist/derive/watchlistDerive.js
-// F6.2 — pure Watchlist derivations, extracted verbatim from useWatchlistData.jsx
-// (the provider is now a thin caller). NO behavior change: every function body is
-// byte-for-byte identical to the inlined originals, so the rendered Watchlist output
-// is unchanged. These are the surfaces the F6.3–F6.5 trust/reliability work will edit
-// deliberately (e.g. the match-% presentation); pinning them here makes those edits
-// reviewable test diffs.
+// F6.4 — pure Watchlist derivations for the CALM SAVED-INTENT role. The Watchlist is
+// "films I chose to remember for another moment" — not a ranked recommendation feed.
+// So this layer no longer computes (or exposes) any match percentage, approximate
+// score, "perfect for tonight", or "stale" classification, and it needs NO recommendation
+// profile or taste fingerprint. It derives only honest saved-film attributes (mood,
+// runtime, year, director, saved date/age) + deterministic saved-date ordering.
+//
+// Frozen elsewhere: the recommendation engine, computeUserProfile, scoreMovieForUser,
+// computeMatchPercent and the fingerprint services are UNCHANGED — F6.4 simply stops
+// being a consumer of them. The user_watchlist delete filters + reliability live in the
+// provider (F6.3) and are untouched.
 
 import { HP, MOOD_HEX, tmdbImg } from '../data'
-import { scoreMovieForUser } from '@/shared/services/recommendations'
-import { computeMatchPercent } from '@/shared/services/matchScore'
-
-// Stale threshold matches the README: items added >60 days ago.
-export const STALE_DAYS = 60
+import { formatShortDate } from '@/shared/lib/format/date'
 
 export function capitalize(s) {
   return s ? s.charAt(0).toUpperCase() + s.slice(1).replace(/_/g, ' ') : ''
@@ -19,8 +20,6 @@ export function capitalize(s) {
 
 export function pickPrimaryMood(moodTags) {
   if (!Array.isArray(moodTags) || moodTags.length === 0) return null
-  // Pick the first non-empty tag; tags are populated in order of strength
-  // by the LLM enrichment pipeline.
   return capitalize(moodTags[0])
 }
 
@@ -35,75 +34,23 @@ export function daysAgo(iso) {
   return Math.max(0, Math.floor(ms / (1000 * 60 * 60 * 24)))
 }
 
-// Per-(user, film) match score. We don't run the full 7-dimension
-// scoring engine here — that's expensive and tied to the recommendation
-// pipeline. Instead we approximate from the signals we already have:
-//   - 50 base
-//   - +25 if the film's primary mood is one of the user's top 3
-//   - +10 if it's also one of the user's top 5 fits
-//   - +up to 15 from objective quality (ff_final_rating)
-// Capped at 96, floored at 50. Deterministic given same inputs.
-export function approxMatch({ movie, fingerprint }) {
-  const moodTags = movie.mood_tags || []
-  const fitProfile = movie.fit_profile
-  const userTopMoods = (fingerprint?.topMoodTags || []).slice(0, 3).map(t => t.key)
-  const userTopFits = (fingerprint?.topFitProfiles || []).slice(0, 5).map(t => t.key)
-  let score = 50
-  if (moodTags.some(t => userTopMoods.includes(t))) score += 25
-  if (fitProfile && userTopFits.includes(fitProfile)) score += 10
-  const quality = Number(movie.ff_final_rating) || Number(movie.ff_rating) || 0
-  if (quality > 0) {
-    // ff_final_rating is 0–10; map 7.0–9.0 → 0–15 bonus
-    const q = Math.max(0, Math.min(15, ((quality - 7) / 2) * 15))
-    score += q
-  }
-  return Math.max(50, Math.min(96, Math.round(score)))
+// Neutral, non-guilt saved-age phrasing. Recent → relative; older → an explicit date.
+// "saved" is a calm fact, never "stale / waiting / overdue".
+export function savedAgeLabel(iso) {
+  if (!iso) return 'Saved'
+  const d = daysAgo(iso)
+  if (d === 0) return 'Saved today'
+  if (d === 1) return 'Saved yesterday'
+  if (d < 30) return `Saved ${d} days ago`
+  return `Saved on ${formatShortDate(new Date(iso))}`
 }
 
-// Build a contextual "why" line for FeaturedCard from real per-item signals.
-// FeaturedCard only renders for perfect/top items, so this always has
-// something concrete to say (mood + match + age). Deterministic given inputs.
-export function deriveWhy({ mood, match, addedDaysAgo, matchesTopMood }) {
-  const parts = []
-  if (matchesTopMood) parts.push(`Your ${mood.toLowerCase()} pick`)
-  else parts.push(`${mood} pick`)
-  parts.push(`${match}% match`)
-  if (addedDaysAgo === 0) parts.push('saved today')
-  else if (addedDaysAgo === 1) parts.push('saved yesterday')
-  else parts.push(`waiting ${addedDaysAgo}d`)
-  return parts.join(' · ')
-}
-
-// A film is "perfect for tonight" when its primary mood matches the
-// user's #1 mood AND it scored ≥ 80. Cold-start (no fingerprint) → no
-// perfect items; the page falls back to "top of your queue" in that case.
-export function deriveItems({ rows, fingerprint, profile }) {
-  const userTopMood = fingerprint?.topMoodTags?.[0]?.key || null
-  const items = rows.map(r => {
+// Map a user_watchlist × movies row to the saved-film presentation shape. No score,
+// percentage, rank, "perfect" or "stale" — and no fingerprint/profile input.
+export function deriveItems({ rows }) {
+  return (rows || []).map(r => {
     const m = r.movies || {}
     const mood = pickPrimaryMood(m.mood_tags)
-    // Engine when we have a profile; cold-start fallback otherwise.
-    // computeMatchPercent is the system-wide match%: confidence-tiered
-    // mapping of engineScore → 0-99. Same definition + curve as /home,
-    // /movie/:id, /history. Returns null when the engine has no signal;
-    // we coerce to approxMatch fallback in that case.
-    // scoreMovieForUser returns null when a content-boundary hard filter
-    // hits (graphic/sexual + matching keywords/cert). Coerce to null so
-    // we fall back to approxMatch below — the film still shows on the
-    // watchlist; we just can't compute a real match %.
-    const engineScore = profile
-      ? (scoreMovieForUser(m, profile, 'default')?.score ?? null)
-      : null
-    const engineMatch = computeMatchPercent({ engineScore, profile })
-    const match = engineMatch != null
-      ? engineMatch
-      : approxMatch({ movie: m, fingerprint })
-    const addedDaysAgo = daysAgo(r.added_at)
-    const stale = addedDaysAgo > STALE_DAYS
-    const moodKey = (m.mood_tags || [])[0] || null
-    const matchesTopMood = Boolean(userTopMood && moodKey && moodKey === userTopMood)
-    const perfect = Boolean(matchesTopMood && match >= 80 && !stale)
-    const why = deriveWhy({ mood: mood || 'Mixed', match, addedDaysAgo, matchesTopMood })
     return {
       id: r.movie_id,
       internalId: m.id,
@@ -114,20 +61,17 @@ export function deriveItems({ rows, fingerprint, profile }) {
       dir: m.director_name || '—',
       mood: mood || 'Mixed',
       hex: hexFor(mood),
-      match,
-      perfect,
-      stale,
-      addedDaysAgo,
+      addedAt: r.added_at || null,
+      addedDaysAgo: daysAgo(r.added_at),
+      savedDate: r.added_at ? formatShortDate(new Date(r.added_at)) : '',
+      savedLabel: savedAgeLabel(r.added_at),
       poster: m.poster_path ? tmdbImg(m.poster_path, 'w500') : null,
-      why,
     }
   })
-  return items
 }
 
-// Distinct moods present in the queue, ranked by count (descending). Used to
-// generate dynamic filter pills so a user only ever sees moods that match
-// something in their actual list.
+// Distinct film moods present in the saved collection, ranked by count (descending).
+// These drive the "filter by film mood" pills — only moods that match ≥1 saved film.
 export function deriveAvailableMoods(items) {
   const counts = new Map()
   for (const it of items) {
@@ -139,15 +83,16 @@ export function deriveAvailableMoods(items) {
     .map(([mood, count]) => ({ mood, count, hex: hexFor(mood) }))
 }
 
-export function recomputeStats(items) {
-  const matches = items.map(it => it.match).filter(Number.isFinite)
-  const topMatchPct = matches.length ? Math.max(...matches) : 0
-  const avgMatchPct = matches.length ? Math.round(matches.reduce((s, n) => s + n, 0) / matches.length) : 0
-  return {
-    watchlistTotal: items.length,
-    perfectForTonightCount: items.filter(it => it.perfect).length,
-    gettingStaleCount: items.filter(it => it.stale).length,
-    topMatchPct,
-    avgMatchPct,
-  }
+// Deterministic saved-intent ordering. Default 'recent' (added_at descending — the
+// order the backend already returns). No recommendation ranking.
+export const SORTS = ['recent', 'oldest', 'runtime', 'title']
+
+export function sortItems(items, sort) {
+  const arr = (items || []).slice()
+  const t = (iso) => (iso ? new Date(iso).getTime() : 0)
+  if (sort === 'oldest') arr.sort((a, b) => t(a.addedAt) - t(b.addedAt))
+  else if (sort === 'runtime') arr.sort((a, b) => (a.runtime || 0) - (b.runtime || 0))
+  else if (sort === 'title') arr.sort((a, b) => String(a.title).localeCompare(String(b.title)))
+  else arr.sort((a, b) => t(b.addedAt) - t(a.addedAt)) // 'recent' (default)
+  return arr
 }

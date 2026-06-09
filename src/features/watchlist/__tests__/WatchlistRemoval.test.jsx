@@ -98,33 +98,21 @@ describe('Watchlist individual removal — settled (F6.3)', () => {
   })
 })
 
-describe('Watchlist bulk stale removal — settled (F6.3)', () => {
-  it('12/17. success returns the actual count + keeps the .in("movie_id", staleIds) filter', async () => {
+describe('Watchlist load no longer triggers recommendation work (F6.4)', () => {
+  it('13/14/15/16. loads only the saved-film query — no fingerprint fetch, no profile compute, no bulk API', async () => {
+    const { getTasteFingerprint } = await import('@/shared/services/tasteCache')
+    const { computeUserProfile } = await import('@/shared/services/recommendations')
     await mountProvider()
-    const stale = ctx.items.filter(i => i.stale)
-    expect(stale.length).toBeGreaterThan(0)
-    let res
-    await act(async () => { res = await ctx.removeStale() })
-    expect(res).toEqual({ ok: true, removedCount: stale.length })
-    const del = deleteCalls.find(d => d.kind === 'delete')
-    expect(del.eqs).toContainEqual(['user_id', 'u1'])
-    expect(del.ins[0][0]).toBe('movie_id')
+    expect(getTasteFingerprint).not.toHaveBeenCalled()  // no fingerprint → no taste-cache work
+    expect(computeUserProfile).not.toHaveBeenCalled()    // no profile compute → no profile-cache WRITE on view
+    // the bulk API is gone from the public context
+    expect(ctx.removeStale).toBeUndefined()
+    expect(ctx.removingStale).toBeUndefined()
+    expect(ctx.total).toBe(ctx.items.length)
   })
 
-  it('13/14. a failed bulk delete reports removedCount 0 (never the attempted count) and restores rows', async () => {
-    cfg.deleteError = { message: 'boom' }
+  it('19. the saved-film read is user-scoped', async () => {
     await mountProvider()
-    const before = ctx.items.length
-    let res
-    await act(async () => { res = await ctx.removeStale() })
-    expect(res).toEqual({ ok: false, removedCount: 0 })
-    expect(ctx.items.length).toBe(before) // stale rows retained (no false success)
-  })
-
-  it('15/16. duplicate bulk click fires ONE delete; pending clears', async () => {
-    await mountProvider()
-    await act(async () => { const a = ctx.removeStale(); const b = ctx.removeStale(); await Promise.all([a, b]) })
-    expect(deleteCalls.filter(d => d.kind === 'delete')).toHaveLength(1)
-    expect(ctx.removingStale).toBe(false)
+    expect(ctx.items.length).toBeGreaterThan(0) // proves the user-scoped select resolved
   })
 })

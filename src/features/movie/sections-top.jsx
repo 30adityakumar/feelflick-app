@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
 import Tooltip from '@/shared/ui/Tooltip'
-import MatchBadge from '@/shared/components/MatchBadge'
 import { ActionButton, SecondaryActionButton } from '@/shared/components/ActionButton'
 import { FILM_PALETTE, HP, HP_GRAD, RADIUS } from './data'
 import { useMovieData } from './useMovieData'
@@ -216,15 +215,8 @@ function MovieHero({
               ? <img src={mv.poster} alt={mv.title} style={{ width:'100%', display:'block', borderRadius:RADIUS.md, boxShadow:`0 36px 100px -20px rgba(0,0,0,0.95), 0 0 0 1px rgba(255,255,255,0.06), 0 0 60px ${FILM_PALETTE.primary}44` }} />
               : <div style={{ width:'100%', aspectRatio:'2/3', borderRadius:RADIUS.md, background:`linear-gradient(155deg, ${FILM_PALETTE.primary}55, ${FILM_PALETTE.glow}33)`, display:'flex', alignItems:'center', justifyContent:'center', color:HP.text, fontFamily:'Outfit', fontSize:24, padding:24, textAlign:'center', boxShadow:`0 36px 100px -20px rgba(0,0,0,0.95), 0 0 0 1px rgba(255,255,255,0.06)` }}>{mv.title}</div>
             }
-            {Number.isFinite(mv.ffMatch) && (
-              <MatchBadge
-                variant="ring"
-                pct={mv.ffMatch}
-                size={96}
-                style={{ bottom: -22, right: -22, boxShadow: '0 16px 40px -8px rgba(0,0,0,0.7)' }}
-                classes={{ root: 'ff-movie-match-ring', num: 'ff-movie-match-ring-num', pct: 'ff-movie-match-ring-pct', label: 'ff-movie-match-ring-label' }}
-              />
-            )}
+            {/* F5.3: the user-match ring is removed from the hero — the qualitative
+                fit band lives only in the PrimaryCase (mv.ffMatch is unchanged). */}
           </div>
         </div>
 
@@ -271,9 +263,10 @@ function MovieHero({
           </div>
 
           {mv.daypartFit && (
-            <div style={{ display:'inline-flex', alignItems:'center', gap:10, marginTop:22, padding:'8px 14px', borderRadius:RADIUS.pill, background:'rgba(167,139,250,0.08)', border:`1px solid ${HP.purple}33`, color: HP.purple }}>
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-              <span style={{ fontFamily:'Outfit', fontSize:11, fontWeight:600, letterSpacing:'0.06em', textTransform:'uppercase' }}>Best watched · {mv.daypartFit}</span>
+            // F5.3: generated suggestion — FeelFlick-owned, not an objective "best time".
+            <div aria-label={`FeelFlick-generated viewing suggestion: ${mv.daypartFit}`} style={{ display:'inline-flex', alignItems:'center', gap:10, marginTop:22, padding:'8px 14px', borderRadius:RADIUS.pill, background:'rgba(167,139,250,0.08)', border:`1px solid ${HP.purple}33`, color: HP.purple }}>
+              <svg aria-hidden width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+              <span style={{ fontFamily:'Outfit', fontSize:11, fontWeight:600, letterSpacing:'0.06em', textTransform:'uppercase' }}>FeelFlick suggests · {mv.daypartFit}</span>
             </div>
           )}
 
@@ -449,7 +442,7 @@ function StickyActionBar({ onPlayTrailer, onBack, onToggleWatchlist, isInWatchli
           <div style={{ fontSize:11, color: HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.04em' }}>
             {mv.year || '—'}
             {mv.director && mv.director !== '—' && <> · {mv.director}</>}
-            {Number.isFinite(mv.ffMatch) && <> · <span style={{ color: HP.purple, fontWeight:600 }}>{mv.ffMatch}% match</span></>}
+            {/* F5.3: user-match % removed from the sticky bar (no fit number outside the PrimaryCase band). */}
           </div>
         </div>
       </div>
@@ -604,13 +597,16 @@ function MoodRadar({ axes, highlightMood, onHoverAxis }) {
       <div className="ff-movie-radar-grid" style={{ display:'grid', gridTemplateColumns:'1fr 1.2fr', gap:56, alignItems:'center' }}>
         <div>
           <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: HP.purple, marginBottom:18, display:'inline-flex', alignItems:'center', gap:10 }}>
-            <span style={{ height:1, width:22, background: HP.purple, opacity:0.6 }} />Mood Fingerprint
+            <span style={{ height:1, width:22, background: HP.purple, opacity:0.6 }} />FeelFlick mood profile
           </div>
           <h2 className="ff-movie-section-h2" style={{ fontFamily:'Outfit', fontSize:40, lineHeight:1.02, fontWeight:500, letterSpacing:'-0.03em', color: HP.text, margin:0, textWrap:'balance' }}>
             How it <em style={{ fontStyle:'italic', fontWeight:400, color: HP.textSoft }}>feels.</em>
           </h2>
+          {/* F5.3: generated origin made explicit; raw 0–100 numbers removed (the
+              radar geometry still uses the unchanged weights internally). */}
           <p style={{ marginTop:20, fontSize:14, lineHeight:1.7, color: HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', maxWidth:380 }}>
-            Six axes — pace, depth, dialogue, focus, range, intensity — scored 0-100 from the script, mood tags, and runtime.
+            A generated reading of the film’s tone — not a measured fact. Six axes:
+            pace, depth, dialogue, focus, range, intensity.
           </p>
           <div className="ff-movie-radar-list" style={{ marginTop:24, display:'flex', flexDirection:'column', gap:8 }}>
             {moods.map(m => {
@@ -624,7 +620,7 @@ function MoodRadar({ axes, highlightMood, onHoverAxis }) {
                     <span style={{ width:8, height:8, borderRadius:RADIUS.pill, background: m.hex, boxShadow:`0 0 ${lit?12:0}px ${m.hex}` }} />
                     <span style={{ fontFamily:'Outfit', fontSize:14, fontWeight:500, color: HP.text }}>{m.name}</span>
                   </div>
-                  <span style={{ fontFamily:'Outfit', fontSize:12, color: HP.textMuted }}>{Math.round(m.weight*100)}</span>
+                  {/* F5.3: raw 0–100 value removed; axis label only (geometry uses m.weight). */}
                 </div>
               );
             })}

@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { tmdbImg } from '@/shared/api/tmdb'
-import MatchBadge from '@/shared/components/MatchBadge'
 import { FILM_PALETTE, PARASITE_TIMELINE_SAMPLE, PARASITE_DNA_DELTA_SAMPLE, HP, HP_GRAD, RADIUS } from './data'
 import { useMovieData } from './useMovieData'
 import { useUserRating } from './hooks/useUserRating'
@@ -256,12 +255,8 @@ function PairsWith({ goToMovie }) {
           >
             <div style={{ position:'relative', borderRadius:RADIUS.sm, overflow:'hidden', marginBottom:14, boxShadow:'0 12px 28px -10px rgba(0,0,0,0.5)' }}>
               <img src={s.poster} alt={s.title} style={{ width:'100%', aspectRatio:'2/3', objectFit:'cover', display:'block' }} />
-              {/* Real per-user match % — only renders when the similar film
-                  is in our catalog AND the engine produced a score. Films
-                  off-catalog show no badge (instead of a fabricated number). */}
-              {Number.isFinite(s.match) && (
-                <MatchBadge variant="pill" pct={s.match} />
-              )}
+              {/* F5.3: user-match % removed from Pairs-With cards (no fit number
+                  outside the PrimaryCase band; s.match is unchanged in the data). */}
             </div>
             <div style={{ fontFamily:'Outfit', fontSize:17, fontWeight:500, color: HP.text, letterSpacing:'-0.015em' }}>{s.title}</div>
             <div style={{ fontSize:11, color: HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.04em', marginTop:3, marginBottom:10 }}>
@@ -343,6 +338,11 @@ function FriendsLoved({ friends }) {
 }
 
 // ── Taste-twin spotlight review (real twin who rated this film) ──
+// twin.note / twin.name / twin.rating are REAL user-authored data (user_ratings.
+// review_text + the user's own rating) and must remain. twin.matchPct is the two
+// users' OVERALL profile-level taste similarity (user_similarity) — NOT agreement on
+// this specific film — so it is labelled "overall taste similarity" (F5.3). The
+// similarity value/calc is unchanged. (Consent/privacy is a product-policy follow-up.)
 function TasteTwinReview({ twin }) {
   if (!twin) return null;
   // user_ratings.rating is 1-10; star display is 1-5.
@@ -357,10 +357,11 @@ function TasteTwinReview({ twin }) {
             ) : (
               (twin.name || '?').charAt(0).toUpperCase()
             )}
-            <div style={{ position:'absolute', bottom:-6, right:-6, padding:'3px 9px', borderRadius:RADIUS.pill, background: HP.bgDeep, border:`1px solid ${HP.purple}`, fontSize:10, fontWeight:700, color: HP.purple, fontFamily:'Outfit' }}>{twin.matchPct}%</div>
+            <div aria-label={`${twin.matchPct}% overall taste similarity`} style={{ position:'absolute', bottom:-6, right:-6, padding:'3px 9px', borderRadius:RADIUS.pill, background: HP.bgDeep, border:`1px solid ${HP.purple}`, fontSize:10, fontWeight:700, color: HP.purple, fontFamily:'Outfit' }}>{twin.matchPct}%</div>
           </div>
           <div style={{ marginTop:14, fontFamily:'Outfit', fontSize:14, fontWeight:600, color: HP.text }}>{twin.name}</div>
           <div style={{ fontSize:11, color: HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.06em', textTransform:'uppercase', marginTop:3 }}>Your taste twin</div>
+          <div style={{ fontSize:10.5, color: HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.04em', marginTop:4 }}>{twin.matchPct}% overall taste similarity</div>
         </div>
         <div>
           <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: HP.purple, marginBottom:14, display:'inline-flex', alignItems:'center', gap:10 }}>

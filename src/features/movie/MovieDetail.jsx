@@ -22,12 +22,12 @@ import { useFriendsLoved } from './hooks/useFriendsLoved'
 import { useTasteTwin } from './hooks/useTasteTwin'
 
 import {
-  ScrollProgress, FilmGrain, MovieHero, StickyActionBar,
-  WhyForYou, Synopsis, MoodRadar,
+  ScrollProgress, FilmGrain, MovieHero, StickyActionBar, Synopsis,
 } from './sections-top'
 import AccessibleMediaDialog from './components/AccessibleMediaDialog'
+import DecisionEvidence from './components/DecisionEvidence'
+import FilmFileDisclosure from './components/FilmFileDisclosure'
 import PrimaryCaseCard from './PrimaryCaseCard'
-import ViewerNotes from './ViewerNotes'
 import {
   CastSection, VideosSection, ProvidersSection, PairsWith,
   FriendsLoved, TasteTwinReview, TimelineSection, DirectorShelf,
@@ -243,6 +243,18 @@ export default function MovieDetail() {
   if (loading) return <PageSkeleton />
   if (error || !mv) return <PageError error={error} onBack={handleBack} />
 
+  // F5.5 — gate the collapsed Film Details disclosure. TimelineSection self-hides
+  // when there's no release date / languages; DetailsSection always renders, so it
+  // is gated here. The disclosure shows only when at least one has content.
+  const hasTimeline = Boolean(mv.releaseDate) || (Array.isArray(mv.languages) && mv.languages.length > 0)
+  const hasDetails = Boolean(
+    mv.runtime || mv.releaseDate || mv.certification ||
+    (mv.budget && mv.budget !== '—') || (mv.revenue && mv.revenue !== '—') ||
+    (mv.language && mv.language !== '—') ||
+    (mv.director && mv.director !== '—') || (mv.writer && mv.writer !== '—'),
+  )
+  const hasFilmDetails = hasTimeline || hasDetails
+
   return (
     <MovieDataProvider value={data}>
       <div className="ff-movie" style={{
@@ -291,34 +303,34 @@ export default function MovieDetail() {
             signedIn={Boolean(user)}
           />
 
-          <WhyForYou
-            eyebrow={whyHeader.eyebrow}
-            headline={whyHeader.headline}
-            rationale={whyHeader.rationale}
-            reasons={whyReasons}
-            onHoverReason={setHoveredReason}
-            highlightReasonId={highlightReasonId}
-          />
+          {/* F5.5 decision zone: what is it about (synopsis) + where can I watch
+              (providers) come right after the case — before any analysis or
+              reflection. The watched-success scroll target (yourTakeRef) is kept
+              stable on the YourTake wrapper. */}
+          <Synopsis />
 
-          {/* Decide → confirm → act → reflect.
-              YourTake sits high so a watched user can rate the moment they
-              land. When unwatched, the locked card stays small and nudges
-              them to mark watched — a quiet inline prompt, not a billboard. */}
+          <ProvidersSection />
+
+          {/* Decide → act → reflect. Compact until watched (no rating controls
+              interrupting the decision); full reflection form once watched. */}
           <div ref={yourTakeRef}>
             <YourTake isWatched={isWatched} userId={user?.id} internalId={internalId} onSaved={onRatingSaved} onError={onRatingError} />
           </div>
 
-          <ViewerNotes notes={viewerNotes} />
-
-          <MoodRadar
-            axes={radarAxes}
+          {/* Go deeper: the supporting recommendation evidence (Why For You + the
+              generated mood profile + the generated impressions), collapsed by
+              default so the decision path stays short. Self-hides when empty. */}
+          <DecisionEvidence
+            whyHeader={whyHeader}
+            whyReasons={whyReasons}
+            onHoverReason={setHoveredReason}
+            highlightReasonId={highlightReasonId}
+            radarAxes={radarAxes}
             highlightMood={highlightMood}
             onHoverAxis={setHoveredAxis}
+            viewerNotes={viewerNotes}
           />
 
-          <Synopsis />
-
-          <ProvidersSection />
           <VideosSection onPlayVideo={handlePlayVideo} />
 
           <FriendsLoved friends={friends} />
@@ -328,8 +340,19 @@ export default function MovieDetail() {
           <CastSection />
           <DirectorShelf goToMovie={goToMovie} />
 
-          <TimelineSection />
-          <DetailsSection />
+          {/* Collapsed reference: release history + production facts, behind one
+              disclosure. Renders only when there is something to show. */}
+          {hasFilmDetails && (
+            <FilmFileDisclosure
+              className="ff-movie-film-details"
+              heading="Film details"
+              copy="Release history, production facts, and additional information."
+              defaultOpen={false}
+            >
+              <TimelineSection />
+              {hasDetails && <DetailsSection />}
+            </FilmFileDisclosure>
+          )}
           <MovieFooter onBackToBriefing={() => navigate('/home')} />
         </div>
 

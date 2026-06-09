@@ -15,6 +15,7 @@ import { HP, HP_GRAD } from './data'
 import { HistoryDataProvider, useHistoryData } from './useHistoryData'
 import { matchesQuery } from './derive/historyDerive'
 import RemoveDiaryEntryDialog from './components/RemoveDiaryEntryDialog'
+import LibrarySectionNav from '@/features/library/LibrarySectionNav'
 import { useLibraryAnnouncement } from '@/features/library/useLibraryAnnouncement'
 import { scheduleFocus, findRemoveControl, findFallback, nextFocusId } from '@/features/library/focusAfterRemoval'
 import './history.css'
@@ -25,18 +26,24 @@ const RESET_BTN = {
   color:'inherit', textAlign:'left', cursor:'pointer', display:'block',
 };
 
-// ── Masthead — kicker bar only; the URL/nav already say "Diary" ──
+// ── Masthead — shared "Your library" identity + the Diary headline ──
 function Masthead() {
   const { stats } = useHistoryData();
   return (
     <section className="ff-hist-section ff-hist-section--masthead" style={{ padding:'40px 88px 12px' }}>
-      <div style={{ display:'flex', alignItems:'center', gap:14, flexWrap:'wrap' }}>
-        <Eyebrow spacing="0.32em" size={10}>Diary</Eyebrow>
+      <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:18, flexWrap:'wrap' }}>
+        <Eyebrow spacing="0.32em" size={10}>Your library</Eyebrow>
         <div style={{ height:1, width:38, background:HP.purple, opacity:0.5 }} />
         <Eyebrow tone="meta" weight={500} size={10}>
           {stats.totalLogged} film{stats.totalLogged === 1 ? '' : 's'} · {stats.totalHours} hours
         </Eyebrow>
       </div>
+      <h1 className="ff-hist-hero" style={{ fontFamily:'Outfit', fontSize:72, lineHeight:0.96, fontWeight:300, letterSpacing:'-0.045em', color:HP.text, margin:0, textWrap:'balance' }}>
+        Your <em style={{ fontStyle:'italic', fontWeight:400, color:HP.textSoft }}>diary.</em>
+      </h1>
+      <p style={{ marginTop:16, fontFamily:'Outfit, Inter, sans-serif', fontSize:16, color:HP.textSoft, maxWidth:620, lineHeight:1.55 }}>
+        A chronological record of what you watched and what you thought.
+      </p>
     </section>
   );
 }
@@ -366,13 +373,24 @@ function HistoryShell() {
   }, [pendingRemoval, filtered, removeEntry, announce]);
 
   if (loading) return <PageSkeleton />;
-  if (error) return <PageError onRetry={refresh} onHome={() => navigate('/home')} />;
+  // Error state keeps the section nav (no data dependency) so the user can still reach the
+  // Watchlist; PageError keeps the only h1 + role="alert".
+  if (error) return (
+    <>
+      <section className="ff-hist-section" style={{ padding:'40px 88px 0' }}>
+        <LibrarySectionNav current="diary" />
+      </section>
+      <PageError onRetry={refresh} onHome={() => navigate('/home')} />
+    </>
+  );
 
   if (stats.totalLogged === 0) {
     return (
       <>
-        <h1 className="sr-only">Your diary</h1>
         <Masthead />
+        <section className="ff-hist-section" style={{ padding:'0 88px 8px' }}>
+          <LibrarySectionNav current="diary" />
+        </section>
         <PulseStrip />
         <EmptyState />
       </>
@@ -381,9 +399,11 @@ function HistoryShell() {
 
   return (
     <div ref={containerRef}>
-      <h1 className="sr-only">Your diary</h1>
       <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">{announcement}</div>
       <Masthead />
+      <section className="ff-hist-section" style={{ padding:'0 88px 8px' }}>
+        <LibrarySectionNav current="diary" />
+      </section>
       <PulseStrip />
       <FilterBar filter={filter} setFilter={setFilter} sort={sort} setSort={setSort} query={query} setQuery={setQuery} />
       <div data-library-fallback tabIndex={-1} aria-label="Your diary entries" style={{ outline:'none' }}>

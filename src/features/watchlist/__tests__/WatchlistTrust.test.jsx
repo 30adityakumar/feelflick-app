@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, fireEvent, cleanup, within } from '@testing-library/react'
 
 const navigate = vi.fn()
-vi.mock('react-router-dom', () => ({ useNavigate: () => navigate }))
+vi.mock('react-router-dom', () => ({ useNavigate: () => navigate, Link: ({ to, children, ...props }) => <a href={to} {...props}>{children}</a> }))
 vi.mock('@/shared/hooks/usePageMeta', () => ({ usePageMeta: () => {} }))
 
 let mockCtx
@@ -115,5 +115,41 @@ describe('Watchlist empty + filtered-empty states (F6.4)', () => {
     expect(screen.getByText('No saved films match this mood.')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Show all' }))
     expect(screen.getByRole('heading', { name: 'A' })).toBeInTheDocument() // collection restored
+  })
+})
+
+describe('Watchlist — shared Library identity + cross-navigation (F6.6)', () => {
+  it('13/14/17. eyebrow is "Your library", h1 stays "Saved for later.", exactly one h1', () => {
+    mockCtx = withItems(1)
+    const { container } = render(<Watchlist />)
+    expect(screen.getByText('Your library')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: /Saved for later\./i })).toBeInTheDocument()
+    expect(container.querySelectorAll('h1')).toHaveLength(1)
+  })
+
+  it('15/16. the Library nav marks Watchlist active and links Diary → /history', () => {
+    mockCtx = withItems(1)
+    render(<Watchlist />)
+    const nav = screen.getByRole('navigation', { name: 'Library sections' })
+    expect(within(nav).getByRole('link', { name: 'Watchlist' })).toHaveAttribute('aria-current', 'page')
+    expect(within(nav).getByRole('link', { name: 'Diary' })).toHaveAttribute('href', '/history')
+  })
+
+  it('18/19. the saved count and the sort control remain', () => {
+    mockCtx = withItems(2)
+    render(<Watchlist />)
+    expect(screen.getByText(/2 films saved/i)).toBeInTheDocument()
+    expect(screen.getByRole('combobox', { name: 'Sort saved films' })).toBeInTheDocument()
+  })
+
+  it('20/21. the section nav is present in the empty AND the load-error states (one h1 each)', () => {
+    mockCtx = ctx({ items: [], total: 0 })
+    const { rerender } = render(<Watchlist />)
+    expect(screen.getByRole('navigation', { name: 'Library sections' })).toBeInTheDocument()
+    mockCtx = ctx({ error: 'load_error' })
+    rerender(<Watchlist />)
+    expect(screen.getByRole('navigation', { name: 'Library sections' })).toBeInTheDocument()
+    expect(screen.getByRole('alert')).toBeInTheDocument()
+    expect(document.querySelectorAll('h1')).toHaveLength(1) // PageError's, not a competing masthead h1
   })
 })

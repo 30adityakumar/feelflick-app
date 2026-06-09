@@ -16,6 +16,7 @@ import { WatchlistDataProvider, useWatchlistData } from './useWatchlistData'
 import { sortItems } from './derive/watchlistDerive'
 import { useLibraryAnnouncement } from '@/features/library/useLibraryAnnouncement'
 import { scheduleFocus, findRemoveControl, findFallback, nextFocusId } from '@/features/library/focusAfterRemoval'
+import LibrarySectionNav from '@/features/library/LibrarySectionNav'
 import './watchlist.css'
 
 const RESET_BTN = {
@@ -31,7 +32,7 @@ function Masthead() {
       <div style={{ position:'absolute', inset:0, pointerEvents:'none', background:'radial-gradient(ellipse 60% 35% at 10% 0%, rgba(167,139,250,0.12), transparent 60%)' }} />
       <div style={{ position:'relative' }}>
         <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:24, flexWrap:'wrap' }}>
-          <Eyebrow spacing="0.32em" size={10}>Watchlist</Eyebrow>
+          <Eyebrow spacing="0.32em" size={10}>Your library</Eyebrow>
           <div style={{ height:1, width:38, background:HP.purple, opacity:0.5 }} />
           <Eyebrow tone="meta" weight={500} size={10}>{total} film{total === 1 ? '' : 's'} saved</Eyebrow>
         </div>
@@ -199,12 +200,24 @@ function WatchlistShell() {
   }, [isRemoving, visible, removeFromWatchlist, announce]);
 
   if (loading) return <PageSkeleton />;
-  if (error) return <PageError onRetry={refresh} onHome={() => navigate('/home')} />;
+  // Error state keeps the section nav (it has no data dependency) so the user can still
+  // reach the Diary; PageError keeps the only h1 + role="alert".
+  if (error) return (
+    <>
+      <section className="ff-wl-section" style={{ padding:'40px 88px 0' }}>
+        <LibrarySectionNav current="watchlist" />
+      </section>
+      <PageError onRetry={refresh} onHome={() => navigate('/home')} />
+    </>
+  );
 
   return (
     <div ref={containerRef}>
       <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">{announcement}</div>
       <Masthead />
+      <section className="ff-wl-section" style={{ padding:'0 88px 28px' }}>
+        <LibrarySectionNav current="watchlist" />
+      </section>
       {total === 0 ? (
         <EmptyState />
       ) : (

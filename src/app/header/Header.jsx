@@ -209,7 +209,7 @@ function AvatarMenu({ userName, userInitial, userEmail, userAvatar, onSignOut })
             <DropdownLink to="/account"     icon={UserIcon}    onClick={() => setOpen(false)}>Account</DropdownLink>
             <DropdownLink to="/browse"      icon={LayoutGrid}  onClick={() => setOpen(false)}>Browse</DropdownLink>
             <DropdownLink to="/watchlist"   icon={Bookmark}    onClick={() => setOpen(false)}>Watchlist</DropdownLink>
-            <DropdownLink to="/history"     icon={Clock}       onClick={() => setOpen(false)}>Watch history</DropdownLink>
+            <DropdownLink to="/history"     icon={Clock}       onClick={() => setOpen(false)}>Diary</DropdownLink>
             <DropdownLink to="/people"      icon={Users}       onClick={() => setOpen(false)}>People</DropdownLink>
             <DropdownLink to="/lists"       icon={ListVideo}   onClick={() => setOpen(false)}>Lists</DropdownLink>
             <DropdownLink to="/preferences" icon={Settings}    onClick={() => setOpen(false)}>Settings</DropdownLink>

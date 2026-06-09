@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { render, screen, fireEvent, cleanup } from '@testing-library/react'
+import { render, screen, fireEvent, cleanup, within } from '@testing-library/react'
 
 const navigate = vi.fn()
-vi.mock('react-router-dom', () => ({ useNavigate: () => navigate }))
+vi.mock('react-router-dom', () => ({ useNavigate: () => navigate, Link: ({ to, children, ...props }) => <a href={to} {...props}>{children}</a> }))
 vi.mock('@/shared/hooks/usePageMeta', () => ({ usePageMeta: () => {} }))
 
 let mockCtx
@@ -97,5 +97,44 @@ describe('Diary — data-truth + reflection labelling (F6.5)', () => {
     const btn = screen.getByRole('button', { name: 'Removing Past Lives' })
     expect(btn).toBeDisabled()
     expect(btn).toHaveAttribute('aria-busy', 'true')
+  })
+})
+
+describe('Diary — shared Library identity + cross-navigation (F6.6)', () => {
+  it('23/24/25/28. eyebrow "Your library", h1 "Your diary.", chronological supporting copy, one h1', () => {
+    mockCtx = ctx()
+    const { container } = render(<History />)
+    expect(screen.getByText('Your library')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: /Your diary\./i })).toBeInTheDocument()
+    expect(screen.getByText(/A chronological record of what you watched and what you thought/i)).toBeInTheDocument()
+    expect(container.querySelectorAll('h1')).toHaveLength(1)
+  })
+
+  it('26/27. the Library nav marks Diary active and links Watchlist → /watchlist', () => {
+    mockCtx = ctx()
+    render(<History />)
+    const nav = screen.getByRole('navigation', { name: 'Library sections' })
+    expect(within(nav).getByRole('link', { name: 'Diary' })).toHaveAttribute('aria-current', 'page')
+    expect(within(nav).getByRole('link', { name: 'Watchlist' })).toHaveAttribute('href', '/watchlist')
+  })
+
+  it('29/30. statistics + search/filter/sort controls remain', () => {
+    mockCtx = ctx({ stats: stats({ avgRating: 4.5, totalLogged: 2, totalHours: 4 }) })
+    render(<History />)
+    expect(screen.getByText('4.5')).toBeInTheDocument()                       // average stat
+    expect(screen.getByLabelText('Search the diary')).toBeInTheDocument()      // search
+    expect(screen.getByRole('radio', { name: 'Loved · 9–10' })).toBeInTheDocument() // filter
+    expect(screen.getByRole('combobox', { name: 'Sort diary' })).toBeInTheDocument() // sort
+  })
+
+  it('31/32. the section nav is present in the empty AND the load-error states (one h1 each)', () => {
+    mockCtx = ctx({ entries: [], stats: stats({ totalLogged: 0 }) })
+    const { rerender } = render(<History />)
+    expect(screen.getByRole('navigation', { name: 'Library sections' })).toBeInTheDocument()
+    mockCtx = ctx({ error: 'load_error' })
+    rerender(<History />)
+    expect(screen.getByRole('navigation', { name: 'Library sections' })).toBeInTheDocument()
+    expect(screen.getByRole('alert')).toBeInTheDocument()
+    expect(document.querySelectorAll('h1')).toHaveLength(1)
   })
 })

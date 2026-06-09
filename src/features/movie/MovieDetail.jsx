@@ -27,11 +27,12 @@ import {
 import AccessibleMediaDialog from './components/AccessibleMediaDialog'
 import DecisionEvidence from './components/DecisionEvidence'
 import FilmFileDisclosure from './components/FilmFileDisclosure'
+import SocialContext from './components/SocialContext'
+import ExplorationTail from './components/ExplorationTail'
 import PrimaryCaseCard from './PrimaryCaseCard'
 import {
-  CastSection, VideosSection, ProvidersSection, PairsWith,
-  FriendsLoved, TasteTwinReview, TimelineSection, DirectorShelf,
-  YourTake, DetailsSection, MovieFooter,
+  CastSection, VideosSection, ProvidersSection,
+  TimelineSection, YourTake, DetailsSection, MovieFooter,
 } from './sections-bottom'
 import { MovieDataProvider, useMovieDataFetch } from './useMovieData'
 import './movie.css'
@@ -333,12 +334,21 @@ export default function MovieDetail() {
 
           <VideosSection onPlayVideo={handlePlayVideo} />
 
-          <FriendsLoved friends={friends} />
-          <TasteTwinReview twin={twin} />
-
-          <PairsWith goToMovie={goToMovie} />
+          {/* Cast is factual film information — it leads the lower tail, before the
+              optional social + exploration disclosures. */}
           <CastSection />
-          <DirectorShelf goToMovie={goToMovie} />
+
+          {/* F5.6: one restrained social-proof disclosure (Friends + anonymised
+              Taste Twin) + one restrained exploration disclosure (similar + director),
+              replacing the four old full-page tail sections. Both self-hide empty. */}
+          <SocialContext friends={friends} twin={twin} />
+          <ExplorationTail
+            similar={data.similar}
+            directorFilms={data.dirShelf}
+            directorName={mv.director}
+            directorId={mv.directorId}
+            onOpenMovie={goToMovie}
+          />
 
           {/* Collapsed reference: release history + production facts, behind one
               disclosure. Renders only when there is something to show. */}

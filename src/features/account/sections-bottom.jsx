@@ -21,15 +21,18 @@ function Privacy() {
     // the other toggles take effect on next page load (they gate fetches).
     if (k === 'analytics') setAnalyticsOptOut(!next);
   };
+  // F7.2 privacy containment: the "Public profile" / "Public diary" toggles were never
+  // enforced by any read path or RLS policy — your DNA and diary are owner-private regardless.
+  // Rather than render a control that falsely implies publication, they're removed until a real
+  // consent-based public-profile model exists. (showOnLeaderboards IS enforced — it gates
+  // taste-twin surfacing in People — and analytics is enforced immediately; both stay.)
   const rows = [
-    { k:'profilePublic',      label:'Public profile',       desc:'Anyone with the link can view your DNA' },
-    { k:'diaryPublic',        label:'Public diary',         desc:'Your ratings show on your public profile' },
     { k:'showOnLeaderboards', label:'Show on taste-match',  desc:"Surface in other users' taste-twin lists" },
     { k:'analytics',          label:'Product analytics',    desc:'Help us improve. Aggregated, no PII.' },
   ];
   return (
     <section className="ff-acct-section ff-acct-section--body" style={{ padding:'56px 88px', borderTop:`1px solid ${HP.border}` }}>
-      <SectionHead kicker="Privacy" title="Who else gets to look." sub="Everything&rsquo;s off-by-default for new accounts. You opt-in for each surface." />
+      <SectionHead kicker="Privacy" title="Who else gets to look." sub="Your Cinematic DNA, watch history and ratings are private — visible only to you. Public taste profiles aren&rsquo;t available yet." />
       <div style={{ borderTop:`1px solid ${HP.border}` }}>
         {rows.map(r => (
           <div key={r.k} style={{ display:'grid', gridTemplateColumns:'1fr auto', gap:24, alignItems:'center', padding:'18px 0', borderBottom:`1px solid ${HP.border}` }}>

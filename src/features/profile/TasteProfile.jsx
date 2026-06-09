@@ -24,33 +24,38 @@ import './profile.css'
 export default function TasteProfile() {
   const { user } = useAuthSession()
   const { userId: paramUserId } = useParams()
-  usePageMeta({ title: paramUserId && paramUserId !== user?.id ? 'Taste profile — FeelFlick' : 'Your taste profile — FeelFlick' })
-  // When viewing via /profile-v2/:userId we render someone else's DNA;
-  // otherwise fall back to the signed-in user.
-  const targetUserId = paramUserId || user?.id
   const isSelf = !paramUserId || paramUserId === user?.id
-  const data = useProfileDataFetch({ userId: targetUserId, authUser: user, isSelf })
+  usePageMeta({ title: isSelf ? 'Your taste profile — FeelFlick' : 'Cinematic DNA — FeelFlick' })
+
+  // F7.2 privacy containment: a Cinematic DNA profile is OWNER-PRIVATE. Another user's
+  // behavioral portrait must never render — and we must not even fetch their
+  // history/ratings/similarity/editorial. (This is defense-in-depth; the authoritative
+  // boundary is the owner-only RLS restored in supabase/migrations/20260609000000.)
+  // Keeping the data hook out of the non-self branch guarantees no cross-user query runs.
+  if (!isSelf) return <PrivateProfile />
+  return <SelfProfile authUser={user} />
+}
+
+function SelfProfile({ authUser }) {
+  const data = useProfileDataFetch({ userId: authUser?.id, authUser, isSelf: true })
 
   if (data.loading) return <PageSkeleton />
   if (data.error) return <PageError error={data.error} />
 
   return (
-    <ProfileDataProvider value={{ ...data, isSelf, viewingUserId: targetUserId }}>
+    <ProfileDataProvider value={{ ...data, isSelf: true, viewingUserId: authUser?.id }}>
       <div className="ff-profile-v2" style={{ minHeight:'100vh', background: HP.bgDeep, color: HP.text, fontFamily:'Inter, sans-serif', position:'relative' }}>
         <div style={{ maxWidth:1440, margin:'0 auto' }}>
           <Masthead />
           <QuickStats />
-          {/* DNA confidence, honestly framed (self-only — a viewer can't improve
-              someone else's profile). Explains the number as taste *evidence*,
+          {/* DNA confidence, honestly framed. Explains the number as taste *evidence*,
               guides cold-start users, and connects the profile to Tonight. */}
-          {isSelf && (
-            <DnaConfidence
-              confidence={data.stats?.dnaConfidence}
-              filmsLogged={data.stats?.filmsLogged}
-              filmsRated={data.stats?.filmsRated}
-              moodSignals={data.moods?.length}
-            />
-          )}
+          <DnaConfidence
+            confidence={data.stats?.dnaConfidence}
+            filmsLogged={data.stats?.filmsLogged}
+            filmsRated={data.stats?.filmsRated}
+            moodSignals={data.moods?.length}
+          />
           <MoodRadar />
           <SignatureDirectors />
           <MotifCloud />
@@ -59,12 +64,33 @@ export default function TasteProfile() {
           <Mixtape />
           <Skew />
           <FriendsRanked />
-          {isSelf && <YIRBanner />}
-          {isSelf && <ShareCard />}
+          <YIRBanner />
+          <ShareCard />
           <ProfileFooter />
         </div>
       </div>
     </ProfileDataProvider>
+  )
+}
+
+// F7.2 — shown for /profile/:userId of anyone other than the signed-in user. No data is
+// fetched for the target. Honest, minimal, keyboard-accessible; explains the current rule
+// rather than implying the person has no taste data.
+function PrivateProfile() {
+  return (
+    <div className="ff-profile-v2" style={{ minHeight:'100vh', background: HP.bgDeep, color: HP.text, display:'flex', alignItems:'center', justifyContent:'center', padding:24, fontFamily:'Inter, sans-serif' }}>
+      <div style={{ textAlign:'center', maxWidth:520 }}>
+        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: HP.purple, marginBottom:18 }}>Cinematic DNA</div>
+        <h1 style={{ fontFamily:'Outfit, Inter, sans-serif', fontSize:36, fontWeight:500, color: HP.text, margin:'0 0 14px 0', letterSpacing:'-0.025em' }}>This profile is private.</h1>
+        <p style={{ margin:'0 0 28px 0', color:'rgba(250,250,250,0.6)', fontSize:14, lineHeight:1.6 }}>
+          Cinematic DNA — your watch history, ratings, and taste portrait — is visible only to you. Public taste profiles aren&rsquo;t available yet.
+        </p>
+        <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
+          <a href="/profile" style={{ fontFamily:'Outfit, Inter, sans-serif', fontSize:14, fontWeight:600, color:'#0A0510', background:HP.text, padding:'11px 20px', borderRadius:8, textDecoration:'none' }}>Your Cinematic DNA</a>
+          <a href="/people" style={{ fontFamily:'Outfit, Inter, sans-serif', fontSize:14, fontWeight:600, color:HP.text, background:'transparent', border:`1px solid ${HP.border}`, padding:'11px 20px', borderRadius:8, textDecoration:'none' }}>People</a>
+        </div>
+      </div>
+    </div>
   )
 }
 

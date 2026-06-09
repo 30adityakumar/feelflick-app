@@ -249,7 +249,7 @@ function FeedCard({ event, user, isLatest, currentUserId, onNavigate }) {
             <p className="text-[13px] leading-snug flex-1 min-w-0">
               {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
               <span onClick={(e) => e.stopPropagation()} className="inline">
-                <Link to={`/profile/${event.userId}`} className="inline-flex items-center gap-1.5 hover:opacity-75 transition-opacity align-middle">
+                <Link to={"/people"} className="inline-flex items-center gap-1.5 hover:opacity-75 transition-opacity align-middle">
                   <UserAvatar name={user?.name} avatarUrl={user?.avatar_url} size={18} />
                   <span className="font-semibold text-white">{userName}</span>
                 </Link>
@@ -398,7 +398,7 @@ function FollowingSidebar({ followedUsers, activeFilter, navigate }) {
             <button
               key={u.id}
               type="button"
-              onClick={() => navigate(`/profile/${u.id}`)}
+              onClick={() => navigate('/people')}
               className="flex items-center gap-2.5 py-1.5 w-full rounded-lg px-1 -mx-1 hover:bg-white/4 transition-colors cursor-pointer"
             >
               <UserAvatar name={u.name} avatarUrl={u.avatar_url} size={28} />

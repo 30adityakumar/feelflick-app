@@ -89,3 +89,14 @@
 [data-library-fallback]:focus {
   outline: none;
 }
+
+/* F6.5 — Remove-from-Diary confirmation dialog: visible focus rings on its actions
+   and a comfortable narrow-screen fit. */
+.ff-hist-dialog-btn:focus-visible {
+  outline: 2px solid #a78bfa;
+  outline-offset: 3px;
+}
+@media (max-width: 480px) {
+  .ff-hist-dialog { padding: 22px 18px; }
+  .ff-hist-dialog-btn { flex: 1; }
+}

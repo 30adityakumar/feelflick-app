@@ -1,10 +1,17 @@
 // src/features/history/derive/historyDerive.js
-// F6.2 — pure History/Diary derivations, extracted verbatim from useHistoryData.jsx
-// (the provider is now a thin caller). NO behavior change: every function body is
-// byte-for-byte identical to the inlined originals, so the rendered Diary output is
-// unchanged. The current `avgRating` scope (averaged over ALL user_ratings, not just
-// diary films) is preserved AS-IS and pinned by tests on purpose — the F6.5 scope fix
-// will then show up as a deliberate, reviewable test change.
+// FeelFlick — pure History/Diary derivations. The Diary is a chronological record of
+// what the user WATCHED and what they thought — not a streak tracker or a rating
+// database detached from watched history.
+//
+// F6.5 data-truth corrections:
+//   • avgRating is now DIARY-SCOPED — averaged only over ratings whose film is actually
+//     in the watched Diary (rated-but-unwatched and removed films no longer count).
+//   • streak derivation is removed entirely (no gamification).
+//   • mood is explicitly the FILM's mood (from movie mood_tags), not the user's viewing
+//     mood; review_text is film-level review, not a watch-event note. (Labelling lives in
+//     the page; the data is named honestly here.)
+// Frozen: the 1-10 → 1-5 display mapping, watched_at filtering, chronological ordering,
+// loved/fav (raw ≥9), total-hours, and thisMonthCount are unchanged.
 
 import { formatShortDate, formatShortMonthYear } from '@/shared/lib/format/date'
 import { HP, MOOD_HEX, tmdbImg } from '../data'
@@ -13,14 +20,6 @@ export const WEEKDAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thurs
 
 export function capitalize(s) {
   return s ? s.charAt(0).toUpperCase() + s.slice(1).replace(/_/g, ' ') : ''
-}
-
-export function dayKey(date) {
-  // YYYY-MM-DD in local time — matches how a user thinks about "a day".
-  const y = date.getFullYear()
-  const m = String(date.getMonth() + 1).padStart(2, '0')
-  const d = String(date.getDate()).padStart(2, '0')
-  return `${y}-${m}-${d}`
 }
 
 export function dayPart(hour) {
@@ -47,7 +46,9 @@ export function deriveEntries(history, ratings) {
       const r = ratingByMovieId.get(h.movie_id) || {}
       const d = new Date(h.watched_at)
       const moodTag = (m.mood_tags || [])[0]
-      const mood = capitalize(moodTag) || 'Mixed'
+      // `filmMood` makes provenance explicit: this is the FILM's tone, NOT the user's
+      // mood while watching. `mood` is retained as an alias for existing consumers.
+      const filmMood = capitalize(moodTag) || 'Mixed'
       return {
         id: h.id || `${h.movie_id}-${h.watched_at}`,
         movieId: h.movie_id,
@@ -61,17 +62,18 @@ export function deriveEntries(history, ratings) {
         day: d.getDate(),
         // user_ratings.rating is on the 1-10 scale; map to 1-5 for star display.
         rating: r.rating ? Math.round(r.rating / 2) : 0,
-        mood,
-        moodHex: moodHexFor(mood),
+        filmMood,
+        mood: filmMood,
+        moodHex: moodHexFor(filmMood),
         context: `${dayPart(d.getHours())} · ${WEEKDAY_NAMES[d.getDay()]}`,
+        // review_text is the user's film-level review (not a per-watch note).
+        review: r.review_text || null,
         note: r.review_text || null,
         poster: m.poster_path ? tmdbImg(m.poster_path, 'w342') : null,
-        // Rewatches aren't currently tracked in user_history (the app
-        // dedupes by (user, movie)). Leaving rewatch=false until that
-        // changes. ♥ fav fires for any 5★-display rating (raw 9 or 10 on
-        // the 1-10 scale) — matches what the star row shows. Previously
-        // gated on rating===10, which left favorites permanently dead for
-        // users who rate at 9.
+        // Rewatches aren't tracked in user_history yet (the app dedupes by
+        // (user, movie)). Rewatch support is future work (it also needs the
+        // removal to key off the history row id — see provider note). ♥ fav
+        // fires for raw 9 or 10 (5★ display).
         rewatch: false,
         fav: typeof r.rating === 'number' && r.rating >= 9,
       }
@@ -81,40 +83,36 @@ export function deriveEntries(history, ratings) {
 export function deriveStats({ history, ratings }) {
   const totalLogged = history.length
   const totalHours = Math.round(history.reduce((s, h) => s + (h.movies?.runtime || 0), 0) / 60)
-  const rated = ratings.filter(r => r.rating != null)
-  const avgRating = rated.length > 0
-    ? Math.round((rated.reduce((s, r) => s + r.rating, 0) / rated.length / 2) * 10) / 10
+
+  // F6.5: DIARY-SCOPED average — average only ratings whose movie is in the current
+  // watched Diary. Rated-but-unwatched films and removed Diary films do not count;
+  // unrated Diary films are excluded from the denominator. No rating scale changes.
+  const historyMovieIds = new Set(
+    history.filter(h => h.watched_at).map(h => h.movie_id)
+  )
+  const diaryRatings = ratings.filter(
+    r => r.rating != null && historyMovieIds.has(r.movie_id)
+  )
+  const avgRating = diaryRatings.length > 0
+    ? Math.round((diaryRatings.reduce((s, r) => s + r.rating, 0) / diaryRatings.length / 2) * 10) / 10
     : 0
+
   const now = new Date()
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
   const thisMonthCount = history.filter(h => h.watched_at && new Date(h.watched_at) >= startOfMonth).length
 
-  // Streak: consecutive days back from today (or yesterday if today has no
-  // entries yet) with at least one watched entry.
-  const days = new Set()
-  for (const h of history) {
-    if (!h.watched_at) continue
-    days.add(dayKey(new Date(h.watched_at)))
-  }
-  let streakDays = 0
-  if (days.size > 0) {
-    const today = new Date()
-    const todayK = dayKey(today)
-    const yesterdayK = (() => { const d = new Date(); d.setDate(d.getDate() - 1); return dayKey(d) })()
-    const alive = days.has(todayK) || days.has(yesterdayK)
-    if (alive) {
-      const cursor = new Date(today)
-      // If today is empty but yesterday has a watch, start counting from yesterday.
-      if (!days.has(todayK)) cursor.setDate(cursor.getDate() - 1)
-      for (let i = 0; i < 365; i++) {
-        if (days.has(dayKey(cursor))) {
-          streakDays += 1
-          cursor.setDate(cursor.getDate() - 1)
-        } else {
-          break
-        }
-      }
-    }
-  }
-  return { totalLogged, totalHours, avgRating, thisMonthCount, streakDays }
+  return { totalLogged, totalHours, avgRating, thisMonthCount }
+}
+
+// Pure Diary search: matches a derived entry against a free-text query over the
+// user's own content — title, director, and review. The FILM's generated mood is
+// intentionally NOT searched (it isn't a user note).
+export function matchesQuery(entry, query) {
+  const q = (query || '').trim().toLowerCase()
+  if (!q) return true
+  return (
+    String(entry.title || '').toLowerCase().includes(q) ||
+    String(entry.dir || '').toLowerCase().includes(q) ||
+    String(entry.review || '').toLowerCase().includes(q)
+  )
 }

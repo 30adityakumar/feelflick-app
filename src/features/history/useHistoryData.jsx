@@ -20,7 +20,7 @@ const HistoryDataContext = createContext(null)
 
 const INITIAL = {
   entries: [],
-  stats: { totalLogged: 0, totalHours: 0, avgRating: 0, thisMonthCount: 0, streakDays: 0 },
+  stats: { totalLogged: 0, totalHours: 0, avgRating: 0, thisMonthCount: 0 },
   loading: true,
   error: null,                  // F6.3: 'load_error' | null — never a raw backend message
   removingEntryIds: new Set(),  // F6.3: entry ids with a removal in flight

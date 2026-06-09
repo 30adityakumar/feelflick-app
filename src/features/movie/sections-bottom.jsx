@@ -554,12 +554,19 @@ function DirectorShelf({ goToMovie }) {
 }
 
 // ── Your Take (locked → unlocked after watched) ──────────────────
+// F6.5: render the reflection surface in BOTH states. YourTakeUnlocked decides whether
+// to show the editable form or the compact locked prompt — it unlocks when the film is
+// watched OR when the user already has a reflection, so a rating/review survives Diary
+// removal and stays visible + editable even when isWatched is false. This never enables
+// a brand-new unwatched rating (no existing reflection + unwatched stays locked).
 function YourTake({ isWatched, userId, internalId, onSaved, onError }) {
-  if (isWatched) return <YourTakeUnlocked userId={userId} internalId={internalId} onSaved={onSaved} onError={onError} />;
+  return <YourTakeUnlocked isWatched={isWatched} userId={userId} internalId={internalId} onSaved={onSaved} onError={onError} />;
+}
 
-  // F5.5: compact-until-watched. A small, discoverable prompt that does NOT
-  // interrupt the decision path or imply a rating already exists — the rating
-  // controls (and the Mark Watched action) live in the Hero / sticky bar.
+// Compact-until-watched prompt (F5.5): a small, discoverable cue that does NOT interrupt
+// the decision path or imply a rating already exists — the rating controls (and the Mark
+// Watched action) live in the Hero / sticky bar.
+function YourTakeLockedPrompt() {
   return (
     <section className="ff-movie-section ff-movie-your-take-compact" style={{ padding:'28px 88px', borderTop:`1px solid ${HP.border}` }}>
       <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color: HP.purple, marginBottom:8 }}>After watching</div>
@@ -573,7 +580,7 @@ function YourTake({ isWatched, userId, internalId, onSaved, onError }) {
 
 const REACTION_TAGS = ['Loved it', 'Liked it', 'Mixed', "Didn't connect"];
 
-function YourTakeUnlocked({ userId, internalId, onSaved, onError }) {
+function YourTakeUnlocked({ isWatched, userId, internalId, onSaved, onError }) {
   const { mv } = useMovieData();
   // DNADelta's projected motifs are still Parasite-specific until real
   // before/after deltas land. Gate to Parasite only so auto-generated
@@ -590,6 +597,10 @@ function YourTakeUnlocked({ userId, internalId, onSaved, onError }) {
   // status that flashes after a write.
   const hasPersistedData = hydrated && (stars > 0 || reviewText || reaction);
   const showIdleSavedHint = saveStatus === 'idle' && hasPersistedData;
+  // F6.5: editable when the film is watched OR an existing reflection is present.
+  // Hydration-pending + unwatched stays locked until we know whether data exists, so
+  // we never flash an empty editable form for an unwatched film with no reflection.
+  const unlocked = isWatched || hasPersistedData;
 
   // F5.4: surface the LATEST settled rating outcome through the page live region
   // once — onSaved/onError fire on each saveStatus transition (not on every render).
@@ -601,6 +612,9 @@ function YourTakeUnlocked({ userId, internalId, onSaved, onError }) {
     if (saveStatus === 'saved') onSaved?.();
     else if (saveStatus === 'error') onError?.();
   }, [saveStatus, onSaved, onError]);
+
+  // Unwatched + no existing reflection → compact locked prompt (no new unwatched rating).
+  if (!unlocked) return <YourTakeLockedPrompt />;
 
   return (
     <section className="ff-movie-section" style={{ padding:'56px 88px', borderTop:`1px solid ${HP.border}`, animation:'mv-fade-in 0.6s ease both' }}>

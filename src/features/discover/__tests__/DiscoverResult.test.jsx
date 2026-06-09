@@ -212,11 +212,18 @@ describe('StagePick — actions', () => {
     expect(h.inserts).toContainEqual({ table: 'user_watchlist', row: { user_id: 'u1', movie_id: 1 } })
     expect(updateImpression).toHaveBeenCalledWith('u1', 1, 'saved')
   })
-  it('Already watched writes user_history (source discover_marked) + the watched impression', async () => {
+  it('48-52. Already watched writes user_history with explicit watched_at (ISO) + unchanged ids/source/impression', async () => {
     render(<StagePick {...baseProps()} />)
     fireEvent.click(screen.getByRole('button', { name: 'Already watched' }))
     await screen.findByText('Watched')
-    expect(h.inserts).toContainEqual({ table: 'user_history', row: { user_id: 'u1', movie_id: 1, source: 'discover_marked' } })
+    const histInsert = h.inserts.find(i => i.table === 'user_history')
+    expect(histInsert).toBeTruthy()
+    // 50/51: ids + source unchanged
+    expect(histInsert.row).toMatchObject({ user_id: 'u1', movie_id: 1, source: 'discover_marked' })
+    // 48/49: watched_at is now written explicitly and is a valid ISO timestamp
+    expect(typeof histInsert.row.watched_at).toBe('string')
+    expect(new Date(histInsert.row.watched_at).toISOString()).toBe(histInsert.row.watched_at)
+    // 52: impression payload unchanged
     expect(updateImpression).toHaveBeenCalledWith('u1', 1, 'watched')
   })
   it('Not tonight flags the skipped impression + logs a dismiss interaction with Stage-2 metadata', () => {

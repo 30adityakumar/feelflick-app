@@ -7,7 +7,8 @@ import { useMovieData } from './useMovieData'
 
 // FeelFlick — Movie page · Hero, scroll progress, trailer modal, why-for-you, synopsis, mood radar, take, critic quotes.
 
-const iconBtnStyle = { width:36, height:36, borderRadius:RADIUS.pill, background:'rgba(0,0,0,0.45)', backdropFilter:'blur(12px)', border:`1px solid rgba(255,255,255,0.08)`, color:'rgba(250,250,250,0.72)', cursor:'pointer', display:'inline-flex', alignItems:'center', justifyContent:'center' };
+// F5.7: ≥44×44 touch target (the visible icon stays small).
+const iconBtnStyle = { width:44, height:44, borderRadius:RADIUS.pill, background:'rgba(0,0,0,0.45)', backdropFilter:'blur(12px)', border:`1px solid rgba(255,255,255,0.08)`, color:'rgba(250,250,250,0.72)', cursor:'pointer', display:'inline-flex', alignItems:'center', justifyContent:'center' };
 
 // Reset-button style for wrapping elements that need to be focusable buttons
 // without inheriting the browser's default button chrome.
@@ -101,13 +102,13 @@ function MovieHero({
 
       {/* Top nav */}
       <div className="ff-movie-top-nav" style={{ position:'absolute', top:0, left:0, right:0, padding:'24px 56px', display:'flex', alignItems:'center', justifyContent:'space-between', zIndex:5 }}>
-        <button onClick={onBack} aria-label="Go back" style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'8px 16px', borderRadius:RADIUS.pill, background:'rgba(0,0,0,0.45)', backdropFilter:'blur(12px)', border:`1px solid ${HP.border}`, color: HP.textSoft, fontFamily:'Outfit', fontSize:12, fontWeight:600, letterSpacing:'0.04em', cursor:'pointer' }}>
-          <span style={{ fontSize:14, lineHeight:1 }}>‹</span> Back
+        <button type="button" onClick={onBack} aria-label="Go back" className="ff-movie-icon-btn" style={{ display:'inline-flex', alignItems:'center', gap:8, minHeight:44, padding:'8px 16px', borderRadius:RADIUS.pill, background:'rgba(0,0,0,0.45)', backdropFilter:'blur(12px)', border:`1px solid ${HP.border}`, color: HP.textSoft, fontFamily:'Outfit', fontSize:12, fontWeight:600, letterSpacing:'0.04em', cursor:'pointer' }}>
+          <span aria-hidden="true" style={{ fontSize:14, lineHeight:1 }}>‹</span> Back
         </button>
         <div style={{ display:'flex', alignItems:'center', gap:14 }}>
           <Tooltip content="Share this film" side="bottom">
-            <button onClick={onShare} aria-label="Share this film" style={iconBtnStyle}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+            <button type="button" onClick={onShare} aria-label="Share this film" className="ff-movie-icon-btn" style={iconBtnStyle}>
+              <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
             </button>
           </Tooltip>
         </div>
@@ -359,8 +360,8 @@ function StickyActionBar({ onPlayTrailer, onBack, onToggleWatchlist, isInWatchli
         display:'flex', alignItems:'center', gap:20,
       }}
     >
-      <button onClick={onBack} aria-label="Go back" style={{ width:32, height:32, borderRadius:RADIUS.pill, background:'rgba(255,255,255,0.06)', border:`1px solid ${HP.border}`, color: HP.textSoft, cursor:'pointer', display:'inline-flex', alignItems:'center', justifyContent:'center' }}>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
+      <button type="button" onClick={onBack} aria-label="Go back" className="ff-movie-icon-btn" style={{ width:44, height:44, borderRadius:RADIUS.pill, background:'rgba(255,255,255,0.06)', border:`1px solid ${HP.border}`, color: HP.textSoft, cursor:'pointer', display:'inline-flex', alignItems:'center', justifyContent:'center' }}>
+        <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
       </button>
       <div style={{ display:'flex', alignItems:'center', gap:14, flex:1 }}>
         {mv.poster && <img src={mv.poster} alt="" style={{ width:30, height:45, objectFit:'cover', borderRadius:3 }} />}

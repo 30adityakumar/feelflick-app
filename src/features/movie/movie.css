@@ -413,3 +413,46 @@
     flex-wrap: wrap;
   }
 }
+
+/* ── F5.7 skip link + focus + error/provider hardening ──────────────
+   The skip link is the first focusable element: off-screen until focused, then
+   visible at the top-left above the scroll-progress bar. No transition (no motion
+   dependency). */
+.ff-movie-skip-link {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 12px 20px;
+  background: #a78bfa;
+  color: #0a0510;
+  font-family: Outfit, Inter, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  border-radius: 0 0 8px 0;
+  transform: translateY(-120%);
+}
+.ff-movie-skip-link:focus,
+.ff-movie-skip-link:focus-visible {
+  transform: translateY(0);
+  outline: 3px solid #fff;
+  outline-offset: -3px;
+}
+/* Movie-local icon/error control focus rings. */
+.ff-movie-icon-btn:focus-visible {
+  outline: 2px solid #a78bfa;
+  outline-offset: 2px;
+}
+.ff-movie-error-btn:focus-visible {
+  outline: 2px solid #a78bfa;
+  outline-offset: 3px;
+}
+/* main landmark target must not steal an outline when focused programmatically by
+   the skip link (focus is moved, not visually highlighted). */
+#film-file-content:focus {
+  outline: none;
+}

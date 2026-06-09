@@ -29,6 +29,7 @@ import DecisionEvidence from './components/DecisionEvidence'
 import FilmFileDisclosure from './components/FilmFileDisclosure'
 import SocialContext from './components/SocialContext'
 import ExplorationTail from './components/ExplorationTail'
+import { classifyMovieRouteState } from './derive/movieRouteState'
 import PrimaryCaseCard from './PrimaryCaseCard'
 import {
   CastSection, VideosSection, ProvidersSection,
@@ -242,7 +243,11 @@ export default function MovieDetail() {
   }, [internalId, mv, movieUrl, movieTitle, announce])
 
   if (loading) return <PageSkeleton />
-  if (error || !mv) return <PageError error={error} onBack={handleBack} />
+  if (error || !mv) {
+    // F5.7: classify into safe, user-facing copy — never the raw error.
+    const routeState = classifyMovieRouteState({ routeId: id, hasMovie: Boolean(mv), error })
+    return <PageError routeState={routeState} onBack={handleBack} onHome={() => navigate('/home')} />
+  }
 
   // F5.5 — gate the collapsed Film Details disclosure. TimelineSection self-hides
   // when there's no release date / languages; DetailsSection always renders, so it
@@ -262,6 +267,9 @@ export default function MovieDetail() {
         minHeight: '100vh', background: '#06060a', color: '#FAFAFA',
         fontFamily: 'Inter, sans-serif', overflow: 'hidden', position: 'relative',
       }}>
+        {/* F5.7: first focusable element — lets keyboard users skip the cinematic
+            Hero controls and jump straight into the decision dossier. */}
+        <a href="#film-file-content" className="ff-movie-skip-link">Skip to Film File content</a>
         <ScrollProgress />
         <FilmGrain />
         <AccessibleMediaDialog
@@ -292,6 +300,10 @@ export default function MovieDetail() {
             celebrate={celebrate}
           />
 
+          {/* F5.7: the decision dossier (case → footer) is the route's <main>, and
+              the skip-link target. The Hero stays above it as the introductory
+              header. tabIndex=-1 lets the skip link move focus here. */}
+          <main id="film-file-content" tabIndex={-1}>
           {/* The case leads: one consolidated, tier-aware statement of why this
               film was surfaced (ff_take → adaptive "why this fits you" → honest
               standalone), before the Why-for-you signal cards expand it. */}
@@ -364,6 +376,7 @@ export default function MovieDetail() {
             </FilmFileDisclosure>
           )}
           <MovieFooter onBackToBriefing={() => navigate('/home')} />
+          </main>
         </div>
 
         <StickyActionBar
@@ -382,11 +395,15 @@ export default function MovieDetail() {
 function PageSkeleton() {
   const pulse = { background: 'rgba(255,255,255,0.04)' };
   return (
-    <div className="ff-movie" style={{
-      minHeight: '100vh', background: '#06060a', color: '#FAFAFA',
-      fontFamily: 'Inter, sans-serif', overflow: 'hidden',
-    }}>
-      <div style={{ maxWidth: 1440, margin: '0 auto' }}>
+    <div
+      className="ff-movie"
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+      style={{ minHeight: '100vh', background: '#06060a', color: '#FAFAFA', fontFamily: 'Inter, sans-serif', overflow: 'hidden' }}
+    >
+      <span className="sr-only">Loading Film File…</span>
+      <div aria-hidden="true" style={{ maxWidth: 1440, margin: '0 auto' }}>
         <div style={{ position:'relative', minHeight: 760, padding:'140px 88px 64px', display:'grid', gridTemplateColumns:'auto 1fr', gap:64, alignItems:'flex-end' }}>
           <div className="animate-pulse" style={{ ...pulse, width:300, aspectRatio:'2/3', borderRadius:8 }} />
           <div style={{ display:'flex', flexDirection:'column', gap:18 }}>
@@ -406,34 +423,44 @@ function PageSkeleton() {
   );
 }
 
-function PageError({ error, onBack }) {
+function PageError({ routeState, onBack, onHome }) {
+  // F5.7: copy comes ONLY from the safe route classifier — no raw error text,
+  // endpoints, or status messages reach the user.
+  const { eyebrow, title, message } = routeState;
   return (
     <div className="ff-movie" style={{
       minHeight: '100vh', background: '#06060a', color: '#FAFAFA',
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
       fontFamily: 'Inter, sans-serif',
     }}>
-      <div style={{ textAlign: 'center', maxWidth: 520 }}>
+      <div role="alert" style={{ textAlign: 'center', maxWidth: 520 }}>
         <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.28em', textTransform: 'uppercase', color: '#A78BFA', marginBottom: 18 }}>
-          404 · Film File Not Found
+          {eyebrow}
         </div>
-        <h1 style={{ fontFamily: 'Outfit, Inter, sans-serif', fontSize: 48, fontWeight: 500, color: '#FAFAFA', margin: '0 0 18px 0', letterSpacing: '-0.025em' }}>
-          Couldn’t find that movie.
+        <h1 style={{ fontFamily: 'Outfit, Inter, sans-serif', fontSize: 'clamp(30px, 6vw, 48px)', fontWeight: 500, color: '#FAFAFA', margin: '0 0 18px 0', letterSpacing: '-0.025em', textWrap: 'balance' }}>
+          {title}
         </h1>
         <p style={{ margin: '0 0 28px 0', color: 'rgba(250,250,250,0.6)', fontSize: 15, lineHeight: 1.6 }}>
-          {error || 'It may not exist or TMDB couldn’t reach it.'}
+          {message}
         </p>
-        <button
-          onClick={onBack}
-          style={{
-            padding: '12px 22px', borderRadius: 999,
-            background: 'linear-gradient(135deg, #9333ea 0%, #ec4899 100%)',
-            color: '#fff', border: 'none', cursor: 'pointer',
-            fontFamily: 'Outfit', fontSize: 14, fontWeight: 600,
-          }}
-        >
-          Go back
-        </button>
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            onClick={onBack}
+            className="ff-movie-error-btn"
+            style={{ minHeight: 44, padding: '12px 22px', borderRadius: 999, background: 'linear-gradient(135deg, #9333ea 0%, #ec4899 100%)', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: 'Outfit', fontSize: 14, fontWeight: 600 }}
+          >
+            Go back
+          </button>
+          <button
+            type="button"
+            onClick={onHome}
+            className="ff-movie-error-btn"
+            style={{ minHeight: 44, padding: '12px 22px', borderRadius: 999, background: 'transparent', color: 'rgba(250,250,250,0.85)', border: '1px solid rgba(250,250,250,0.2)', cursor: 'pointer', fontFamily: 'Outfit', fontSize: 14, fontWeight: 600 }}
+          >
+            Go to Home
+          </button>
+        </div>
       </div>
     </div>
   );

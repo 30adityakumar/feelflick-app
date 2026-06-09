@@ -100,3 +100,9 @@
   .ff-hist-dialog { padding: 22px 18px; }
   .ff-hist-dialog-btn { flex: 1; }
 }
+
+/* F6.6 — the Diary masthead now has a visible headline; clamp it on phones like the
+   Watchlist hero so the two Library mastheads behave consistently. */
+@media (max-width: 720px) {
+  .ff-hist-hero { font-size: clamp(40px, 12vw, 72px) !important; line-height: 1 !important; }
+}

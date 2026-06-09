@@ -1,0 +1,42 @@
+/* src/features/library/library.css — shared Library section navigation (F6.6).
+   Two underlined links; the active one is distinguished by WEIGHT + an underline border
+   (not colour alone). Inline-flex so the two labels wrap naturally and never force a
+   horizontal scroll at any width; each link is ≥44px tall for touch. */
+
+.ff-library-nav {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.ff-library-nav__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 14px;
+  border-bottom: 2px solid transparent;   /* non-colour active indicator reserves space */
+  color: rgba(250, 250, 250, 0.55);
+  font-family: 'Outfit', 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  text-decoration: none;
+  transition: color 0.18s ease, border-color 0.18s ease;
+}
+
+.ff-library-nav__link:hover {
+  color: rgba(250, 250, 250, 0.85);
+}
+
+.ff-library-nav__link--active {
+  color: #faf5ff;
+  font-weight: 700;                         /* weight = non-colour indicator */
+  border-bottom-color: #a78bfa;             /* underline = second non-colour indicator */
+}
+
+.ff-library-nav__link:focus-visible {
+  outline: 2px solid #a78bfa;
+  outline-offset: 3px;
+  border-radius: 4px;
+}

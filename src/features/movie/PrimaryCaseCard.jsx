@@ -16,9 +16,7 @@
 import AccentPanel from '@/shared/ui/AccentPanel'
 import Eyebrow from '@/shared/ui/Eyebrow'
 import { HP, RADIUS, SPACE } from './data'
-
-const capitalize = (s) =>
-  s ? s.charAt(0).toUpperCase() + s.slice(1).replace(/_/g, ' ') : ''
+import { derivePrimaryCase } from './derive/primaryCase'
 
 /**
  * @param {object}  props
@@ -33,24 +31,12 @@ const capitalize = (s) =>
 export default function PrimaryCaseCard({
   ffTake, whyHeader, matchPct, moodTags = [], fitProfile, signedIn = false,
 }) {
-  const take = (ffTake?.body || '').trim()
-  const label = take
-    ? (ffTake.byline?.trim() || 'FeelFlick’s read')
-    : (whyHeader?.eyebrow || 'How this reads')
-  const lead = take || (whyHeader?.rationale || '').trim()
-
-  const hasMatch = Number.isFinite(matchPct) && matchPct > 0
-
-  const chips = []
-  if (Array.isArray(moodTags) && moodTags[0]) chips.push(capitalize(moodTags[0]))
-  if (fitProfile) chips.push(capitalize(fitProfile))
-
-  // Nudge anon users toward the personal fit — but only when the lead itself
-  // doesn't already say "sign in" (the anon header rationale does).
-  const showNudge = !signedIn && Boolean(take)
+  // Pure tier-selection decision (extracted F5.2 — same values as before).
+  const { label, lead, hasMatch, chips, showNudge, shouldRender, isTake } =
+    derivePrimaryCase({ ffTake, whyHeader, matchPct, moodTags, fitProfile, signedIn })
 
   // Self-hide only when there is truly no useful case to make.
-  if (!lead && !hasMatch && chips.length === 0) return null
+  if (!shouldRender) return null
 
   return (
     <section
@@ -85,7 +71,7 @@ export default function PrimaryCaseCard({
               lineHeight: 1.5,
               color: HP.text,
               letterSpacing: '-0.01em',
-              fontStyle: take ? 'italic' : 'normal',
+              fontStyle: isTake ? 'italic' : 'normal',
               textWrap: 'pretty',
             }}
           >

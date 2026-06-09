@@ -51,3 +51,55 @@ describe('PrimaryCaseCard — tier-aware lead case (F6B)', () => {
     expect(container).toBeEmptyDOMElement()
   })
 })
+
+// F5.2 render-contract pins (current behavior — F5.4 will change match presentation).
+describe('PrimaryCaseCard — current render contract (pre-F5.4)', () => {
+  it('uses the default byline when ff_take has none', () => {
+    render(<PrimaryCaseCard ffTake={{ body: 'A quiet stunner.' }} whyHeader={HEADER} signedIn />)
+    expect(screen.getByText('FeelFlick’s read')).toBeInTheDocument()
+  })
+
+  it('generated ff_take wins over the adaptive rationale (rationale not shown)', () => {
+    render(<PrimaryCaseCard ffTake={{ body: 'A class war.' }} whyHeader={HEADER} matchPct={90} signedIn />)
+    expect(screen.getByText('A class war.')).toBeInTheDocument()
+    expect(screen.queryByText(HEADER.rationale)).not.toBeInTheDocument()
+  })
+
+  it('renders the exact integer match string — no band/label transformation yet', () => {
+    render(<PrimaryCaseCard ffTake={{ body: 'x' }} whyHeader={HEADER} matchPct={84} signedIn />)
+    expect(screen.getByText('84%')).toBeInTheDocument()
+    // F5.4 will convert this to a band; today it must stay a raw integer %.
+    expect(screen.queryByText(/strong match|good match/i)).not.toBeInTheDocument()
+  })
+
+  it('does not render the match gloss for zero / null / non-finite percentages', () => {
+    for (const matchPct of [0, null, undefined, NaN]) {
+      const { container } = render(
+        <PrimaryCaseCard ffTake={{ body: 'x' }} whyHeader={HEADER} matchPct={matchPct} signedIn />,
+      )
+      expect(container.textContent).not.toMatch(/how it fits your taste so far/i)
+    }
+  })
+
+  it('renders a match-only state (no lead text)', () => {
+    render(<PrimaryCaseCard ffTake={null} whyHeader={{ rationale: '' }} matchPct={77} signedIn />)
+    expect(screen.getByText('77%')).toBeInTheDocument()
+  })
+
+  it('renders a chips-only state (no lead, no match)', () => {
+    render(<PrimaryCaseCard ffTake={null} whyHeader={{ rationale: '' }} matchPct={null} moodTags={['tense']} signedIn />)
+    expect(screen.getByText('Tense')).toBeInTheDocument()
+  })
+
+  it('does not add the sign-in nudge when the signed-out rationale already invites sign-in', () => {
+    render(
+      <PrimaryCaseCard
+        ffTake={null}
+        whyHeader={{ eyebrow: 'Editorial fingerprint', rationale: 'Sign in to see how it lines up with your library.' }}
+        matchPct={null}
+        signedIn={false}
+      />,
+    )
+    expect(screen.queryByText(/sign in and rate a few films/i)).not.toBeInTheDocument()
+  })
+})

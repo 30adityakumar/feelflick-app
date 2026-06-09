@@ -15,6 +15,7 @@ import { MOVIE_ENGINE_COLS } from '@/shared/services/movieFields'
 import { activeMovieBoundaries, BOUNDARY_LABEL } from '@/shared/services/boundaries'
 import { formatFullDate } from '@/shared/lib/format/date'
 import { deriveMoodAxes } from './derive/moodRadar'
+import { classifyFilmFileContent } from './derive/sourceClassification'
 
 // Pull the full engine column set so the match % on this page matches
 // what /home shows for the same film. Single source of truth in
@@ -499,6 +500,7 @@ const INITIAL_STATE = {
   overlay: null,       // curated editorial overlay (movies_editorial_overlay) when present
   hasOverlay: false,
   boundaryWarnings: [], // [{ id, label }] for /preferences boundaries the user has on AND this film matches
+  contentSources: null, // F5.2 provenance metadata (origin/presentation per content surface); NOT rendered
   loading: true,
   error: null,
 }
@@ -629,6 +631,16 @@ export function useMovieDataFetch(id) {
           overlay,
           hasOverlay: Boolean(overlay),
           boundaryWarnings,
+          // F5.2 provenance metadata — records WHERE each Film File surface comes
+          // from (origin/presentation). Unrendered: no consumer reads it yet. The
+          // social/rating surfaces resolve in their own hooks, so they are classified
+          // from the data this layer has (overlay/filmRow/match/providers).
+          contentSources: classifyFilmFileContent({
+            overlay,
+            filmRow: filmDbRow,
+            matchPct: mv.ffMatch,
+            providers: prov,
+          }),
           loading: false,
           error: null,
         })

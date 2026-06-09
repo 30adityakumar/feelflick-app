@@ -110,10 +110,14 @@ export function useDiscoverResultActions({ top, user, selected, intention, energ
     const filmId = top.id;
     setWatchedState('saving');
     try {
-      // 23505 (unique violation) = already in history; treat as success
+      // 23505 (unique violation) = already in history; treat as success.
+      // F6.5: write watched_at explicitly (the base table has no proven default and
+      // the Diary filters out rows without it) so Discover-marked films appear in the
+      // Diary like every other watched-entry path. Payload-completeness only — every
+      // other field, source, and the success/failure behavior are unchanged.
       const { error } = await supabase
         .from('user_history')
-        .insert({ user_id: user.id, movie_id: filmId, source: 'discover_marked' });
+        .insert({ user_id: user.id, movie_id: filmId, source: 'discover_marked', watched_at: new Date().toISOString() });
       if (error && error.code !== '23505') throw error;
     } catch (e) {
       console.error('[Discover.markWatched]', e);

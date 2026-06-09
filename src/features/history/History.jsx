@@ -13,6 +13,8 @@ import Eyebrow from '@/shared/ui/Eyebrow'
 import PageContainer from '@/shared/ui/PageContainer'
 import { HP, HP_GRAD } from './data'
 import { HistoryDataProvider, useHistoryData } from './useHistoryData'
+import { matchesQuery } from './derive/historyDerive'
+import RemoveDiaryEntryDialog from './components/RemoveDiaryEntryDialog'
 import { useLibraryAnnouncement } from '@/features/library/useLibraryAnnouncement'
 import { scheduleFocus, findRemoveControl, findFallback, nextFocusId } from '@/features/library/focusAfterRemoval'
 import './history.css'
@@ -32,7 +34,7 @@ function Masthead() {
         <Eyebrow spacing="0.32em" size={10}>Diary</Eyebrow>
         <div style={{ height:1, width:38, background:HP.purple, opacity:0.5 }} />
         <Eyebrow tone="meta" weight={500} size={10}>
-          {stats.totalLogged} film{stats.totalLogged === 1 ? '' : 's'} · {stats.totalHours} hours · {stats.streakDays}-day streak
+          {stats.totalLogged} film{stats.totalLogged === 1 ? '' : 's'} · {stats.totalHours} hours
         </Eyebrow>
       </div>
     </section>
@@ -41,11 +43,13 @@ function Masthead() {
 
 function PulseStrip() {
   const { stats } = useHistoryData();
+  // F6.5: restrained, Diary-scoped facts only — no streak / gamification. The average
+  // is now computed over rated films that are actually in the Diary.
   const items = [
     { label:'Logged',        value: stats.totalLogged,         hint:'films across your diary' },
     { label:'Hours watched', value: `${stats.totalHours}h`,     hint:'total runtime logged' },
-    { label:'Avg rating',    value: stats.avgRating ? stats.avgRating.toFixed(1) : '—', hint:'on a 5-star scale' },
-    { label:'Streak',        value: `${stats.streakDays}d`,     hint:'consecutive days with a log' },
+    { label:'Avg rating',    value: stats.avgRating ? stats.avgRating.toFixed(1) : '—', hint:'your rated diary films, on a 5-star scale' },
+    { label:'This month',    value: stats.thisMonthCount,       hint:'films logged this month' },
   ];
   return (
     <section className="ff-hist-section ff-hist-pulse" style={{ padding:'24px 88px 40px' }}>
@@ -63,9 +67,11 @@ function PulseStrip() {
 }
 
 function FilterBar({ filter, setFilter, sort, setSort, query, setQuery }) {
+  // "Loved" is derived from the rating (raw 9–10), not an independent favourite flag —
+  // the label says so honestly.
   const filters = [
-    { v:'all', l:'All' },
-    { v:'5',   l:'Loved (5★)' },
+    { v:'all',   l:'All' },
+    { v:'loved', l:'Loved · 9–10' },
   ];
   return (
     <section className="ff-hist-section ff-hist-filterbar" style={{ padding:'40px 88px 20px', borderTop:`1px solid ${HP.border}`, display:'flex', alignItems:'center', justifyContent:'space-between', gap:24, flexWrap:'wrap' }}>
@@ -197,12 +203,20 @@ function DiaryGroup({ month, entries, onRemove }) {
                       </div>
                       <div style={{ marginTop:8, display:'flex', alignItems:'center', gap:12, flexWrap:'wrap' }}>
                         <Stars n={e.rating} />
-                        {e.mood && e.mood !== 'Mixed' && <MoodPill label={e.mood} color={e.moodHex} dot />}
+                        {/* F6.5: the pill shows the FILM's mood/tone — its accessible name says
+                            so explicitly, so it is never mistaken for the user's viewing mood. */}
+                        {e.filmMood && e.filmMood !== 'Mixed' && (
+                          <MoodPill label={e.filmMood} color={e.moodHex} dot role="img" aria-label={`Film mood: ${e.filmMood}`} />
+                        )}
                       </div>
-                      {e.note && (
-                        <p style={{ margin:'14px 0 0 0', fontSize:14, lineHeight:1.55, color:HP.textSoft, fontFamily:'Outfit, Inter, sans-serif', fontStyle:'italic', borderLeft:`2px solid ${e.moodHex}55`, paddingLeft:14, textWrap:'pretty' }}>
-                          &ldquo;{e.note}&rdquo;
-                        </p>
+                      {e.review && (
+                        <div style={{ marginTop:14 }}>
+                          {/* review_text is a film-level review, not a note written on this watch date. */}
+                          <div style={{ fontSize:9, fontWeight:700, letterSpacing:'0.14em', textTransform:'uppercase', color:HP.textFaint, fontFamily:'Outfit', marginBottom:6 }}>Your review</div>
+                          <p style={{ margin:0, fontSize:14, lineHeight:1.55, color:HP.textSoft, fontFamily:'Outfit, Inter, sans-serif', fontStyle:'italic', borderLeft:`2px solid ${e.moodHex}55`, paddingLeft:14, textWrap:'pretty' }}>
+                            &ldquo;{e.review}&rdquo;
+                          </p>
+                        </div>
                       )}
                     </div>
                     <span className="ff-hist-row__runtime" style={{ fontSize:11, color:HP.textFaint, fontFamily:'Outfit', letterSpacing:'0.06em', textTransform:'uppercase', paddingTop:8 }}>{e.runtime ? `${e.runtime}m` : ''}</span>
@@ -292,19 +306,15 @@ function HistoryShell() {
   const [filter, setFilter] = useState('all');
   const [sort, setSort] = useState('recent');
   const [query, setQuery] = useState('');
+  // Pending removal awaiting confirmation: { entry, triggerEl }.
+  const [pendingRemoval, setPendingRemoval] = useState(null);
 
   const filtered = useMemo(() => {
     let arr = entries.slice();
-    if (filter === '5')   arr = arr.filter(e => e.rating === 5);
-    if (filter === 'fav') arr = arr.filter(e => e.fav);
-    if (query.trim()) {
-      const q = query.toLowerCase();
-      arr = arr.filter(e =>
-        e.title.toLowerCase().includes(q)
-        || (e.note && e.note.toLowerCase().includes(q))
-        || (e.dir && e.dir.toLowerCase().includes(q))
-      );
-    }
+    // "Loved" = raw rating 9–10 (e.fav), derived from the rating — not a separate flag.
+    if (filter === 'loved') arr = arr.filter(e => e.fav);
+    // Search matches the user's own content (title / director / review) — NOT film mood.
+    arr = arr.filter(e => matchesQuery(e, query));
     if (sort === 'rating')  arr.sort((a,b) => b.rating - a.rating);
     if (sort === 'runtime') arr.sort((a,b) => a.runtime - b.runtime);
     return arr;
@@ -319,14 +329,30 @@ function HistoryShell() {
     return [...g.entries()];
   }, [filtered]);
 
-  // Settled removal + announcement + focus recovery. Confirm copy + rating/review
-  // retention are unchanged (F6.5 owns those semantics).
-  const onRemove = useCallback(async (e, triggerEl) => {
+  // F6.5: removal goes through an honest, accessible confirmation dialog. The Remove
+  // control opens it; "Remove from Diary" performs the settled delete; "Keep entry" /
+  // Escape cancels and returns focus to the trigger. The settled-removal reliability,
+  // live announcements, and focus-next behavior (F6.3) are preserved.
+  const requestRemove = useCallback((e, triggerEl) => {
     if (isRemoving(e.id)) return;
-    if (typeof window !== 'undefined' && !window.confirm(`Remove "${e.title}" from your diary?`)) return;
+    setPendingRemoval({ entry: e, triggerEl });
+  }, [isRemoving]);
+
+  const cancelRemove = useCallback(() => {
+    const trigger = pendingRemoval?.triggerEl;
+    setPendingRemoval(null);
+    focusCancelRef.current?.();
+    focusCancelRef.current = scheduleFocus(() => (trigger && trigger.isConnected ? trigger : null));
+  }, [pendingRemoval]);
+
+  const confirmRemove = useCallback(async () => {
+    const p = pendingRemoval;
+    if (!p) return;
+    setPendingRemoval(null); // close immediately → a second confirm can't fire
+    const e = p.entry;
     const orderedIds = filtered.map(x => x.id);
     const targetId = nextFocusId(orderedIds, e.id);
-    const res = await removeEntry(e.id);
+    const res = await removeEntry(e.id); // deletes only user_history (settled); ratings/feedback untouched
     focusCancelRef.current?.();
     if (res.ok) {
       announce(`Removed ${e.title} from your Diary.`);
@@ -335,9 +361,9 @@ function HistoryShell() {
     } else if (!res.duplicate) {
       announce(`Could not remove ${e.title} from your Diary. Try again.`);
       focusCancelRef.current = scheduleFocus(() =>
-        (triggerEl && triggerEl.isConnected ? triggerEl : findRemoveControl(containerRef.current, e.id, 'diary')) || findFallback(containerRef.current));
+        (p.triggerEl && p.triggerEl.isConnected ? p.triggerEl : findRemoveControl(containerRef.current, e.id, 'diary')) || findFallback(containerRef.current));
     }
-  }, [isRemoving, filtered, removeEntry, announce]);
+  }, [pendingRemoval, filtered, removeEntry, announce]);
 
   if (loading) return <PageSkeleton />;
   if (error) return <PageError onRetry={refresh} onHome={() => navigate('/home')} />;
@@ -370,8 +396,15 @@ function HistoryShell() {
             </div>
           </section>
         )}
-        {grouped.map(([month, ents]) => <DiaryGroup key={month} month={month} entries={ents} onRemove={onRemove} />)}
+        {grouped.map(([month, ents]) => <DiaryGroup key={month} month={month} entries={ents} onRemove={requestRemove} />)}
       </div>
+      {pendingRemoval && (
+        <RemoveDiaryEntryDialog
+          title={pendingRemoval.entry.title}
+          onConfirm={confirmRemove}
+          onCancel={cancelRemove}
+        />
+      )}
     </div>
   );
 }

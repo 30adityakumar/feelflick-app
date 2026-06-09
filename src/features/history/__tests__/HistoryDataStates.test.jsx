@@ -13,8 +13,8 @@ vi.mock('../useHistoryData', () => ({
 
 import History from '../History'
 
-const baseStats = { totalLogged: 0, totalHours: 0, avgRating: 0, thisMonthCount: 0, streakDays: 0 }
-const entry = (over = {}) => ({ id: 'e1', movieId: 1, tmdbId: 101, title: 'A', year: 2020, runtime: 100, dir: 'D', date: 'Mar 9', month: 'Mar 2026', day: 9, rating: 5, mood: 'Tender', moodHex: '#A78BFA', context: 'Evening · Monday', note: null, poster: null, fav: true, ...over })
+const baseStats = { totalLogged: 0, totalHours: 0, avgRating: 0, thisMonthCount: 0 }
+const entry = (over = {}) => ({ id: 'e1', movieId: 1, tmdbId: 101, title: 'A', year: 2020, runtime: 100, dir: 'D', date: 'Mar 9', month: 'Mar 2026', day: 9, rating: 5, filmMood: 'Tender', mood: 'Tender', moodHex: '#A78BFA', context: 'Evening · Monday', review: null, note: null, poster: null, fav: true, ...over })
 
 function ctx(over = {}) {
   return {
@@ -58,32 +58,33 @@ describe('Diary live region + announcements (F6.3)', () => {
     expect(container.querySelectorAll('[role="status"][aria-live="polite"][aria-atomic="true"]')).toHaveLength(1)
   })
 
-  it('43. success announces after settlement', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(true)
+  it('43/36. success announces after settlement (via the confirmation dialog)', async () => {
     mockCtx = ctx({ entries: [entry({ title: 'A' })], stats: { ...baseStats, totalLogged: 1 } })
     render(<History />)
-    fireEvent.click(screen.getByRole('button', { name: 'Remove A from diary' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Remove A from diary' }))           // opens dialog
+    fireEvent.click(screen.getByRole('button', { name: 'Remove from Diary' }))              // confirms
     await waitFor(() => expect(screen.getByText('Removed A from your Diary.')).toBeInTheDocument())
   })
 
-  it('44. failure announces failure (entry retained)', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(true)
+  it('44/37. failure announces failure (entry retained)', async () => {
     mockCtx = ctx({
       entries: [entry({ title: 'A' })], stats: { ...baseStats, totalLogged: 1 },
       removeEntry: vi.fn(async () => ({ ok: false, action: 'remove_failed', entryId: 'e1', movieId: 1 })),
     })
     render(<History />)
     fireEvent.click(screen.getByRole('button', { name: 'Remove A from diary' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Remove from Diary' }))
     await waitFor(() => expect(screen.getByText('Could not remove A from your Diary. Try again.')).toBeInTheDocument())
   })
 
-  it('confirm cancel does not call removeEntry', () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(false)
+  it('32. cancelling the dialog ("Keep entry") performs no delete', () => {
     const removeEntry = vi.fn(async () => ({ ok: true }))
     mockCtx = ctx({ entries: [entry({ title: 'A' })], stats: { ...baseStats, totalLogged: 1 }, removeEntry })
     render(<History />)
     fireEvent.click(screen.getByRole('button', { name: 'Remove A from diary' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Keep entry' }))
     expect(removeEntry).not.toHaveBeenCalled()
+    expect(screen.queryByRole('dialog')).toBeNull() // dialog closed
   })
 })
 

@@ -47,6 +47,52 @@ export function useUserRating({ userId, internalId }) {
   const reactionDebounceRef  = useRef(null)
   const latestRef = useRef({ stars: 0, reviewText: '', reaction: '' })
 
+  // F5.4 write serialization. Each stream (rating, reaction) keeps ONE write in
+  // flight at a time; rapid changes coalesce to the latest pending job (latest-
+  // value-wins); a monotonic version guards against a stale completion overwriting
+  // the status of a newer write. mountedRef makes every setState unmount-safe.
+  const ratingWriteRef   = useRef({ inFlight: false, pending: null, version: 0 })
+  const reactionWriteRef = useRef({ inFlight: false, pending: null, version: 0 })
+  const savedClearTimerRef = useRef(null)
+  const mountedRef = useRef(true)
+  useEffect(() => () => { mountedRef.current = false }, [])
+
+  const safeSetStatus = useCallback((next) => {
+    if (mountedRef.current) setSaveStatus(next)
+  }, [])
+  const scheduleSavedClear = useCallback(() => {
+    if (savedClearTimerRef.current) clearTimeout(savedClearTimerRef.current)
+    savedClearTimerRef.current = setTimeout(
+      () => safeSetStatus((s) => (s === 'saved' ? 'idle' : s)),
+      1600,
+    )
+  }, [safeSetStatus])
+
+  // Serialized runner: one in-flight write per stream, latest pending wins, stale
+  // completions ignored. Only the latest settled write (no newer pending) drives the
+  // saved/error status.
+  const runSerial = useCallback(async (streamRef, job) => {
+    const st = streamRef.current
+    st.pending = job                 // latest-value-wins
+    if (st.inFlight) return           // the active drain loop will pick it up
+    while (st.pending) {
+      const next = st.pending
+      st.pending = null
+      st.inFlight = true
+      const myVersion = ++st.version
+      safeSetStatus('saving')
+      try {
+        await next()
+        if (st.version === myVersion && !st.pending) { safeSetStatus('saved'); scheduleSavedClear() }
+      } catch (err) {
+        console.warn('[useUserRating]', err)
+        if (st.version === myVersion && !st.pending) safeSetStatus('error')
+      } finally {
+        st.inFlight = false
+      }
+    }
+  }, [safeSetStatus, scheduleSavedClear])
+
   // Hydrate from DB on mount / when the (user, movie) pair changes.
   useEffect(() => {
     if (!userId || !internalId) {
@@ -102,112 +148,102 @@ export function useUserRating({ userId, internalId }) {
     return () => { abort = true }
   }, [userId, internalId])
 
-  const persistRating = useCallback(async (nextStars, nextReview) => {
+  // Pure DB writers — byte-identical payloads to before. They now THROW on a
+  // Supabase error so the serial runner can surface a real 'error' status (the prior
+  // code awaited without checking `error`, so write failures were never detected).
+  const writeRating = useCallback(async (nextStars, nextReview) => {
     if (!userId || !internalId) return
-    setSaveStatus('saving')
-    try {
-      // user_ratings.rating is the 1-10 canonical scale. Sending null when
-      // stars==0 lets users remove a rating by clicking the same star twice
-      // without losing the review text.
-      const rating = nextStars > 0 ? nextStars * 2 : null
-      const trimmed = (nextReview || '').trim() || null
-      if (rating == null && !trimmed) {
-        // Nothing to persist — delete the row so we don't leave a ghost
-        // record in user_ratings with both fields null.
-        await supabase
-          .from('user_ratings')
-          .delete()
-          .eq('user_id', userId)
-          .eq('movie_id', internalId)
-      } else {
-        await supabase
-          .from('user_ratings')
-          .upsert({
-            user_id: userId,
-            movie_id: internalId,
-            rating,
-            review_text: trimmed,
-            rated_at: new Date().toISOString(),
-          }, { onConflict: 'user_id,movie_id' })
-      }
-      setSaveStatus('saved')
-      // Auto-clear the "Saved ✓" pip after a short beat.
-      setTimeout(() => setSaveStatus((s) => (s === 'saved' ? 'idle' : s)), 1600)
-    } catch (err) {
-      console.warn('[useUserRating.persistRating]', err)
-      setSaveStatus('error')
+    // user_ratings.rating is the 1-10 canonical scale. Sending null when stars==0
+    // lets users remove a rating by clicking the same star twice without losing text.
+    const rating = nextStars > 0 ? nextStars * 2 : null
+    const trimmed = (nextReview || '').trim() || null
+    if (rating == null && !trimmed) {
+      // Nothing to persist — delete the row so we don't leave a ghost record.
+      const { error } = await supabase
+        .from('user_ratings')
+        .delete()
+        .eq('user_id', userId)
+        .eq('movie_id', internalId)
+      if (error) throw error
+    } else {
+      const { error } = await supabase
+        .from('user_ratings')
+        .upsert({
+          user_id: userId,
+          movie_id: internalId,
+          rating,
+          review_text: trimmed,
+          rated_at: new Date().toISOString(),
+        }, { onConflict: 'user_id,movie_id' })
+      if (error) throw error
     }
   }, [userId, internalId])
 
-  const persistReaction = useCallback(async (nextReaction) => {
+  const writeReaction = useCallback(async (nextReaction) => {
     if (!userId || !internalId) return
-    setSaveStatus('saving')
-    try {
-      const sentiment = nextReaction ? REACTION_TO_SENTIMENT[nextReaction] : 'neutral'
-      // Append-only — each chip click logs a new feedback row. Hydration
-      // reads the latest, so the most-recent value wins.
-      await supabase.from('user_movie_feedback').insert({
-        user_id: userId,
-        movie_id: internalId,
-        sentiment,
-        feedback_type: 'sentiment',
-        placement: 'movie_detail_v2_your_take',
-        watched_confirmed: true,
-      })
-      setSaveStatus('saved')
-      setTimeout(() => setSaveStatus((s) => (s === 'saved' ? 'idle' : s)), 1600)
-    } catch (err) {
-      console.warn('[useUserRating.persistReaction]', err)
-      setSaveStatus('error')
-    }
+    const sentiment = nextReaction ? REACTION_TO_SENTIMENT[nextReaction] : 'neutral'
+    // Append-only — each chip click logs a new feedback row. Hydration reads the
+    // latest, so the most-recent value wins.
+    const { error } = await supabase.from('user_movie_feedback').insert({
+      user_id: userId,
+      movie_id: internalId,
+      sentiment,
+      feedback_type: 'sentiment',
+      placement: 'movie_detail_v2_your_take',
+      watched_confirmed: true,
+    })
+    if (error) throw error
   }, [userId, internalId])
 
-  const scheduleRatingSave = useCallback((nextStars, nextReview) => {
+  const scheduleRatingSave = useCallback(() => {
     if (ratingDebounceRef.current) clearTimeout(ratingDebounceRef.current)
     ratingDebounceRef.current = setTimeout(() => {
-      persistRating(nextStars, nextReview)
+      // Read the LATEST values at fire time (latest-value-wins).
+      runSerial(ratingWriteRef, () => writeRating(latestRef.current.stars, latestRef.current.reviewText))
     }, DEBOUNCE_MS)
-  }, [persistRating])
+  }, [runSerial, writeRating])
 
-  const scheduleReactionSave = useCallback((nextReaction) => {
+  const scheduleReactionSave = useCallback(() => {
     if (reactionDebounceRef.current) clearTimeout(reactionDebounceRef.current)
     reactionDebounceRef.current = setTimeout(() => {
-      persistReaction(nextReaction)
+      runSerial(reactionWriteRef, () => writeReaction(latestRef.current.reaction))
     }, DEBOUNCE_MS)
-  }, [persistReaction])
+  }, [runSerial, writeReaction])
 
   const setStars = useCallback((next) => {
     setStarsState(next)
     latestRef.current.stars = next
-    scheduleRatingSave(next, latestRef.current.reviewText)
+    scheduleRatingSave()
   }, [scheduleRatingSave])
 
   const setReviewText = useCallback((next) => {
     setReviewTextState(next)
     latestRef.current.reviewText = next
-    scheduleRatingSave(latestRef.current.stars, next)
+    scheduleRatingSave()
   }, [scheduleRatingSave])
 
   const setReaction = useCallback((next) => {
     setReactionState(next)
     latestRef.current.reaction = next
-    scheduleReactionSave(next)
+    scheduleReactionSave()
   }, [scheduleReactionSave])
 
-  // Flush pending debounce on unmount so a quick rate-and-navigate doesn't
-  // lose the user's input.
+  // Flush a pending debounce on unmount (fire-and-forget) so a quick
+  // rate-and-navigate doesn't lose input — and clear every timer so no state update
+  // is scheduled after unmount. mountedRef already guards any in-flight status set.
   useEffect(() => {
     return () => {
+      if (savedClearTimerRef.current) clearTimeout(savedClearTimerRef.current)
       if (ratingDebounceRef.current) {
         clearTimeout(ratingDebounceRef.current)
-        persistRating(latestRef.current.stars, latestRef.current.reviewText)
+        writeRating(latestRef.current.stars, latestRef.current.reviewText).catch(() => {})
       }
       if (reactionDebounceRef.current) {
         clearTimeout(reactionDebounceRef.current)
-        persistReaction(latestRef.current.reaction)
+        writeReaction(latestRef.current.reaction).catch(() => {})
       }
     }
-  }, [persistRating, persistReaction])
+  }, [writeRating, writeReaction])
 
   return {
     stars, reviewText, reaction,

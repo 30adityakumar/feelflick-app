@@ -8,6 +8,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useReducedMotion } from 'framer-motion'
 
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { useUserMovieStatus } from '@/shared/hooks/useUserMovieStatus'
@@ -21,9 +22,10 @@ import { useFriendsLoved } from './hooks/useFriendsLoved'
 import { useTasteTwin } from './hooks/useTasteTwin'
 
 import {
-  ScrollProgress, FilmGrain, TrailerModal, MovieHero, StickyActionBar,
+  ScrollProgress, FilmGrain, MovieHero, StickyActionBar,
   WhyForYou, Synopsis, MoodRadar,
 } from './sections-top'
+import AccessibleMediaDialog from './components/AccessibleMediaDialog'
 import PrimaryCaseCard from './PrimaryCaseCard'
 import ViewerNotes from './ViewerNotes'
 import {
@@ -116,19 +118,71 @@ export default function MovieDetail() {
   const [hoveredReason, setHoveredReason] = useState(null)
   const [hoveredAxis, setHoveredAxis] = useState(null)
 
-  // When Mark Watched flips from false → true, gently scroll the YourTake
-  // card into view so the rating UI is the obvious next thing. We skip the
-  // scroll on initial mount (e.g. opening an already-watched film) so we
-  // only react to in-session transitions.
+  // F5.4 — one Film File-owned polite live region for concise action outcomes.
+  const reduced = useReducedMotion()
+  const [announcement, setAnnouncement] = useState('')
+  const announce = useCallback((msg) => setAnnouncement(msg), [])
+
+  // F5.4 settlement model (mirrors Home F4.3). The shared status hook flips state
+  // optimistically and reverts on failure WITHOUT returning a result, so we observe
+  // each `loading.{watched,watchlist}` true→false transition and compare the settled
+  // state against the intent the user clicked. An intent ref (set only on a real
+  // click) guards against the first-render DB sync being mistaken for a user op.
   const yourTakeRef = useRef(null)
-  const prevWatchedRef = useRef(isWatched)
+  const watchedIntentRef = useRef(null)
+  const watchlistIntentRef = useRef(null)
+  const prevWatchedLoadingRef = useRef(false)
+  const prevWatchlistLoadingRef = useRef(false)
+  const confettiTimerRef = useRef(null)
+  const [celebrate, setCelebrate] = useState(false)
+  useEffect(() => () => { if (confettiTimerRef.current) clearTimeout(confettiTimerRef.current) }, [])
+
+  const handleMarkWatched = useCallback(() => {
+    if (actionLoading.watched) return
+    watchedIntentRef.current = !isWatched   // the value the user intends to settle to
+    toggleWatched()
+  }, [actionLoading.watched, isWatched, toggleWatched])
+
+  const handleToggleWatchlist = useCallback(() => {
+    if (actionLoading.watchlist) return
+    watchlistIntentRef.current = !isInWatchlist
+    toggleWatchlist()
+  }, [actionLoading.watchlist, isInWatchlist, toggleWatchlist])
+
+  // Mark Watched: announce / unlock / scroll / celebrate ONLY on settled success.
   useEffect(() => {
-    const wasWatched = prevWatchedRef.current
-    if (!wasWatched && isWatched && yourTakeRef.current) {
-      yourTakeRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    const settled = prevWatchedLoadingRef.current && !actionLoading.watched
+    prevWatchedLoadingRef.current = actionLoading.watched
+    if (!settled || watchedIntentRef.current === null) return
+    const intent = watchedIntentRef.current
+    watchedIntentRef.current = null
+    if (isWatched !== intent) { announce('Could not update watched status. Try again.'); return }
+    if (intent) {
+      announce(`Marked ${movieTitle} as watched. Your Take is now available.`)
+      if (!reduced) {
+        setCelebrate(true)
+        if (confettiTimerRef.current) clearTimeout(confettiTimerRef.current)
+        confettiTimerRef.current = setTimeout(() => setCelebrate(false), 1800)
+      }
+      yourTakeRef.current?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' })
+    } else {
+      announce(`Removed watched status for ${movieTitle}.`)
     }
-    prevWatchedRef.current = isWatched
-  }, [isWatched])
+  }, [actionLoading.watched, isWatched, reduced, movieTitle, announce])
+
+  // Save: announce success / removal / failure ONLY on settlement.
+  useEffect(() => {
+    const settled = prevWatchlistLoadingRef.current && !actionLoading.watchlist
+    prevWatchlistLoadingRef.current = actionLoading.watchlist
+    if (!settled || watchlistIntentRef.current === null) return
+    const intent = watchlistIntentRef.current
+    watchlistIntentRef.current = null
+    if (isInWatchlist !== intent) { announce('Could not update saved films. Try again.'); return }
+    announce(intent ? `Saved ${movieTitle} for later.` : `Removed ${movieTitle} from saved films.`)
+  }, [actionLoading.watchlist, isInWatchlist, movieTitle, announce])
+
+  const onRatingSaved = useCallback(() => announce(`Your take on ${movieTitle} was saved.`), [announce, movieTitle])
+  const onRatingError = useCallback(() => announce('Could not save your take. Try again.'), [announce])
 
   // Two-way mood ↔ Why card highlight, now keyed off dynamic whyReasons.
   const reasonMood = whyReasons.find(r => r.id === hoveredReason)?.moodKey ?? null
@@ -160,19 +214,31 @@ export default function MovieDetail() {
   const handleBack = useCallback(() => navigate(-1), [navigate])
 
   const handleShare = useCallback(async () => {
+    // Analytics first + non-blocking (unchanged event/metadata). The canonical clean
+    // Film File URL is shared/copied — never the raw location (no query/auth material).
     if (internalId) trackShare(internalId, 'movie_detail_v2')
     if (navigator.share && mv) {
       try {
-        await navigator.share({
-          title: mv.title,
-          text: mv.tagline || mv.overview,
-          url: window.location.href,
-        })
-      } catch {
-        // user cancelled — silent
+        await navigator.share({ title: mv.title, text: mv.tagline || mv.overview, url: movieUrl })
+        announce(`Shared ${movieTitle}.`)
+      } catch (err) {
+        // user cancelled (AbortError) → silent; never claim success on real failure.
+        if (err?.name !== 'AbortError') announce('Could not share this film.')
       }
+      return
     }
-  }, [internalId, mv])
+    // No native share → clipboard fallback.
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(movieUrl)
+        announce(`Link copied for ${movieTitle}.`)
+      } else {
+        announce('Could not share this film.')
+      }
+    } catch {
+      announce('Could not share this film.')
+    }
+  }, [internalId, mv, movieUrl, movieTitle, announce])
 
   if (loading) return <PageSkeleton />
   if (error || !mv) return <PageError error={error} onBack={handleBack} />
@@ -185,12 +251,19 @@ export default function MovieDetail() {
       }}>
         <ScrollProgress />
         <FilmGrain />
-        <TrailerModal
+        <AccessibleMediaDialog
           open={trailerOpen}
           onClose={() => setTrailerOpen(false)}
-          videoKey={selectedVideo?.key}
-          videoTitle={selectedVideo?.title}
+          youtubeKey={selectedVideo?.key || mv.trailerYouTubeId}
+          title={selectedVideo?.title
+            ? `${mv.title} · ${selectedVideo.title}`
+            : `${mv.title} · Official Trailer`}
         />
+
+        {/* One Film File-owned polite live region for action outcomes. */}
+        <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+          {announcement}
+        </div>
 
         <div style={{ maxWidth: 1440, margin: '0 auto' }}>
           <MovieHero
@@ -199,10 +272,11 @@ export default function MovieDetail() {
             onShare={handleShare}
             isInWatchlist={isInWatchlist}
             isWatched={isWatched}
-            onToggleWatchlist={toggleWatchlist}
-            onToggleWatched={toggleWatched}
+            onToggleWatchlist={handleToggleWatchlist}
+            onToggleWatched={handleMarkWatched}
             loading={actionLoading}
             canAct={Boolean(user)}
+            celebrate={celebrate}
           />
 
           {/* The case leads: one consolidated, tier-aware statement of why this
@@ -231,7 +305,7 @@ export default function MovieDetail() {
               land. When unwatched, the locked card stays small and nudges
               them to mark watched — a quiet inline prompt, not a billboard. */}
           <div ref={yourTakeRef}>
-            <YourTake isWatched={isWatched} userId={user?.id} internalId={internalId} />
+            <YourTake isWatched={isWatched} userId={user?.id} internalId={internalId} onSaved={onRatingSaved} onError={onRatingError} />
           </div>
 
           <ViewerNotes notes={viewerNotes} />
@@ -262,7 +336,7 @@ export default function MovieDetail() {
         <StickyActionBar
           onPlayTrailer={handlePlayTrailer}
           onBack={handleBack}
-          onToggleWatchlist={toggleWatchlist}
+          onToggleWatchlist={handleToggleWatchlist}
           isInWatchlist={isInWatchlist}
           loading={actionLoading}
           canAct={Boolean(user)}

@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useReducedMotion } from 'framer-motion'
 import { tmdbImg } from '@/shared/api/tmdb'
 import { FILM_PALETTE, PARASITE_TIMELINE_SAMPLE, PARASITE_DNA_DELTA_SAMPLE, HP, HP_GRAD, RADIUS } from './data'
 import { useMovieData } from './useMovieData'
@@ -47,6 +48,7 @@ function CastSection() {
 }
 
 function CastCard({ p }) {
+  const reduced = useReducedMotion();
   const [hover, setHover] = useState(false);
   const hasFlip = p.also && p.also.length > 0;
   const hasProfile = Boolean(p.profilePath);
@@ -61,7 +63,9 @@ function CastCard({ p }) {
       aria-label={`${p.name} as ${p.role}`}
       style={{ ...RESET_BTN, perspective:1000 }}
     >
-      <div style={{ aspectRatio:'2/3', borderRadius:RADIUS.sm, marginBottom:14, position:'relative', transformStyle:'preserve-3d', transition:'transform 0.6s cubic-bezier(0.2,0.8,0.2,1)', transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)' }}>
+      {/* F5.4: the 3D flip transition is instant under reduced motion (the back face
+          still appears on hover/focus — just without the spin). */}
+      <div style={{ aspectRatio:'2/3', borderRadius:RADIUS.sm, marginBottom:14, position:'relative', transformStyle:'preserve-3d', transition: reduced ? 'none' : 'transform 0.6s cubic-bezier(0.2,0.8,0.2,1)', transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)' }}>
         {/* Front */}
         <div style={{ position:'absolute', inset:0, borderRadius:RADIUS.sm, overflow:'hidden', background:`linear-gradient(155deg, ${p.tint}33, ${p.tint}08)`, border:`1px solid ${HP.border}`, backfaceVisibility:'hidden' }}>
           {hasProfile ? (
@@ -491,8 +495,8 @@ function DirectorShelf({ goToMovie }) {
 }
 
 // ── Your Take (locked → unlocked after watched) ──────────────────
-function YourTake({ isWatched, userId, internalId }) {
-  if (isWatched) return <YourTakeUnlocked userId={userId} internalId={internalId} />;
+function YourTake({ isWatched, userId, internalId, onSaved, onError }) {
+  if (isWatched) return <YourTakeUnlocked userId={userId} internalId={internalId} onSaved={onSaved} onError={onError} />;
 
   return (
     <section className="ff-movie-section" style={{ padding:'56px 88px', borderTop:`1px solid ${HP.border}` }}>
@@ -512,7 +516,7 @@ function YourTake({ isWatched, userId, internalId }) {
 
 const REACTION_TAGS = ['Loved it', 'Liked it', 'Mixed', "Didn't connect"];
 
-function YourTakeUnlocked({ userId, internalId }) {
+function YourTakeUnlocked({ userId, internalId, onSaved, onError }) {
   const { mv } = useMovieData();
   // DNADelta's projected motifs are still Parasite-specific until real
   // before/after deltas land. Gate to Parasite only so auto-generated
@@ -529,9 +533,21 @@ function YourTakeUnlocked({ userId, internalId }) {
   // status that flashes after a write.
   const hasPersistedData = hydrated && (stars > 0 || reviewText || reaction);
   const showIdleSavedHint = saveStatus === 'idle' && hasPersistedData;
+
+  // F5.4: surface the LATEST settled rating outcome through the page live region
+  // once — onSaved/onError fire on each saveStatus transition (not on every render).
+  const prevStatusRef = useRef(saveStatus);
+  useEffect(() => {
+    const prev = prevStatusRef.current;
+    prevStatusRef.current = saveStatus;
+    if (prev === saveStatus) return;
+    if (saveStatus === 'saved') onSaved?.();
+    else if (saveStatus === 'error') onError?.();
+  }, [saveStatus, onSaved, onError]);
+
   return (
     <section className="ff-movie-section" style={{ padding:'56px 88px', borderTop:`1px solid ${HP.border}`, animation:'mv-fade-in 0.6s ease both' }}>
-      <div className="ff-movie-your-take-card" style={{ padding:'32px 28px', borderRadius:RADIUS.sm, background:`linear-gradient(135deg, ${FILM_PALETTE.primary}11, rgba(167,139,250,0.04))`, border:`1px solid ${FILM_PALETTE.primary}33` }}>
+      <div className="ff-movie-your-take-card" aria-busy={saveStatus === 'saving' || undefined} style={{ padding:'32px 28px', borderRadius:RADIUS.sm, background:`linear-gradient(135deg, ${FILM_PALETTE.primary}11, rgba(167,139,250,0.04))`, border:`1px solid ${FILM_PALETTE.primary}33` }}>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:14, flexWrap:'wrap', marginBottom:14 }}>
           <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: FILM_PALETTE.primary, display:'inline-flex', alignItems:'center', gap:10 }}>
             <span style={{ width:8, height:8, borderRadius:RADIUS.pill, background: FILM_PALETTE.primary, boxShadow:`0 0 12px ${FILM_PALETTE.primary}` }} />
@@ -615,7 +631,7 @@ function SaveIndicator({ status, showIdleSavedHint }) {
   const map = {
     saving:    { label: 'Saving…',                color: HP.textMuted },
     saved:     { label: 'Saved ✓',                color: HP.purple    },
-    error:     { label: 'Save failed — retry',    color: '#f87171'    },
+    error:     { label: 'Could not save. Try again.', color: '#f87171' },
     idleSaved: { label: 'Saved',                  color: HP.textMuted },
   };
   const key = status === 'idle' ? 'idleSaved' : status;

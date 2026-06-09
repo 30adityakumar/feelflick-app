@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useReducedMotion } from 'framer-motion'
 import Tooltip from '@/shared/ui/Tooltip'
 import { ActionButton, SecondaryActionButton } from '@/shared/components/ActionButton'
 import { FILM_PALETTE, HP, HP_GRAD, RADIUS } from './data'
@@ -10,10 +11,6 @@ const iconBtnStyle = { width:36, height:36, borderRadius:RADIUS.pill, background
 
 // Reset-button style for wrapping elements that need to be focusable buttons
 // without inheriting the browser's default button chrome.
-const RESET_BTN = {
-  background:'none', border:'none', padding:0, margin:0, font:'inherit',
-  color:'inherit', textAlign:'left', cursor:'pointer', display:'block', width:'100%',
-};
 
 // ── Scroll-progress hairline ──────────────────────────────────────
 function ScrollProgress() {
@@ -48,117 +45,32 @@ function FilmGrain() {
   );
 }
 
-// ── Trailer modal (with theatrical curtains) ─────────────────────
-// Plays whichever YouTube video the caller passed in `videoKey`. When the
-// hero CTA fires it omits `videoKey` and we fall back to mv.trailerYouTubeId
-// (the canonical main trailer). When a featurette tile fires it passes the
-// thumb's specific key + title so the modal honestly plays that clip.
-function TrailerModal({ open, onClose, videoKey: explicitKey, videoTitle: explicitTitle }) {
-  const { mv } = useMovieData();
-  const closeBtnRef = useRef(null);
-  const previouslyFocusedRef = useRef(null);
-
-  useEffect(() => {
-    if (!open) return;
-
-    previouslyFocusedRef.current = document.activeElement;
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-
-    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', onKey);
-    const focusTimer = setTimeout(() => closeBtnRef.current?.focus(), 0);
-
-    return () => {
-      window.removeEventListener('keydown', onKey);
-      document.body.style.overflow = prevOverflow;
-      clearTimeout(focusTimer);
-      const prev = previouslyFocusedRef.current;
-      if (prev && typeof prev.focus === 'function') prev.focus();
-    };
-  }, [open, onClose]);
-
-  const youtubeKey = explicitKey || mv?.trailerYouTubeId;
-  if (!open || !youtubeKey) return null;
-  const captionTitle = explicitTitle
-    ? `${mv?.title || 'Film'} · ${explicitTitle}`
-    : `${mv?.title || 'Film'} · Official Trailer`;
-
-  return (
-    <div role="dialog" aria-modal="true" aria-labelledby="mv-trailer-caption" style={{
-      position:'fixed', inset:0, zIndex:300,
-      animation:'mv-fade-in 0.4s ease both',
-    }}>
-      <button
-        type="button"
-        onClick={onClose}
-        aria-label="Close trailer"
-        style={{
-          ...RESET_BTN,
-          position:'absolute', inset:0, width:'100%', height:'100%',
-          background:'rgba(0,0,0,0.92)', backdropFilter:'blur(20px)', cursor:'pointer',
-        }}
-      />
-
-      <div aria-hidden style={{ position:'absolute', top:0, bottom:0, left:0, width:'50%', background:`linear-gradient(90deg, ${FILM_PALETTE.glow} 0%, transparent 100%)`, opacity:0.6, animation:'mv-curtain-l 0.6s cubic-bezier(0.2,0.8,0.2,1) both', pointerEvents:'none' }} />
-      <div aria-hidden style={{ position:'absolute', top:0, bottom:0, right:0, width:'50%', background:`linear-gradient(-90deg, ${FILM_PALETTE.glow} 0%, transparent 100%)`, opacity:0.6, animation:'mv-curtain-r 0.6s cubic-bezier(0.2,0.8,0.2,1) both', pointerEvents:'none' }} />
-
-      <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', pointerEvents:'none' }}>
-        <button
-          ref={closeBtnRef}
-          onClick={onClose}
-          aria-label="Close trailer"
-          style={{
-            position:'absolute', top:24, right:24,
-            width:40, height:40, borderRadius:RADIUS.pill,
-            background:'rgba(255,255,255,0.08)', border:`1px solid ${HP.border}`, color: HP.text,
-            cursor:'pointer', display:'inline-flex', alignItems:'center', justifyContent:'center',
-            fontSize:18, lineHeight:1, zIndex:5, pointerEvents:'auto',
-          }}
-        >×</button>
-
-        <div style={{
-          position:'relative', width:'min(1120px, 90vw)', aspectRatio:'16/9',
-          borderRadius:RADIUS.md, overflow:'hidden', pointerEvents:'auto',
-          boxShadow:`0 40px 120px -20px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.08), 0 0 80px ${FILM_PALETTE.primary}33`,
-          animation:'mv-zoom-in 0.5s cubic-bezier(0.2,0.8,0.2,1) both',
-        }}>
-          <iframe
-            key={youtubeKey}
-            src={`https://www.youtube.com/embed/${youtubeKey}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
-            title={captionTitle}
-            frameBorder="0"
-            allow="autoplay; encrypted-media; picture-in-picture"
-            allowFullScreen
-            style={{ position:'absolute', inset:0, width:'100%', height:'100%' }}
-          />
-        </div>
-
-        <div id="mv-trailer-caption" style={{ position:'absolute', bottom:32, left:'50%', transform:'translateX(-50%)', textAlign:'center', animation:'mv-fade-in 0.6s 0.2s ease both', pointerEvents:'none' }}>
-          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: HP.purple, marginBottom:6 }}>Now Playing</div>
-          <div style={{ fontFamily:'Outfit', fontSize:18, fontWeight:500, color: HP.text, letterSpacing:'-0.015em' }}>{captionTitle}</div>
-        </div>
-      </div>
-    </div>
-  );
-}
+// The trailer/featurette dialog now lives in ./components/AccessibleMediaDialog
+// (F5.4) — the inline TrailerModal was removed from here.
 
 // ── Hero ──────────────────────────────────────────────────────────
 function MovieHero({
   onPlayTrailer, onBack, onShare,
-  isInWatchlist, isWatched, onToggleWatchlist, onToggleWatched, loading, canAct,
+  isInWatchlist, isWatched, onToggleWatchlist, onToggleWatched, loading, canAct, celebrate,
 }) {
   const { mv, boundaryWarnings } = useMovieData();
+  const reduced = useReducedMotion();
   const [scrollY, setScrollY] = useState(0);
   const [tilt, setTilt] = useState({ x:0, y:0 });
 
+  // F5.4: backdrop parallax is JS-driven (inline transform) — the global CSS
+  // reduced-motion reset can't neutralize it, so skip the scroll tracking entirely
+  // under reduced motion.
   useEffect(() => {
+    if (reduced) return;
     const on = () => setScrollY(window.scrollY);
     window.addEventListener('scroll', on, { passive: true });
     return () => window.removeEventListener('scroll', on);
-  }, []);
+  }, [reduced]);
 
+  // F5.4: poster pointer-tilt is JS-driven — disabled under reduced motion.
   const onPosterMove = (e) => {
+    if (reduced) return;
     const r = e.currentTarget.getBoundingClientRect();
     const cx = (e.clientX - r.left) / r.width - 0.5;
     const cy = (e.clientY - r.top) / r.height - 0.5;
@@ -295,6 +207,7 @@ function MovieHero({
               onToggleWatched={onToggleWatched}
               loading={loading?.watched}
               canAct={canAct}
+              celebrate={celebrate}
             />
             <SaveButton
               isInWatchlist={isInWatchlist}
@@ -333,19 +246,10 @@ function MovieHero({
 }
 
 
-function MarkWatchedButton({ isWatched, onToggleWatched, loading, canAct }) {
-  const wasWatchedRef = useRef(isWatched);
-  const [confetti, setConfetti] = useState(false);
-
-  useEffect(() => {
-    if (isWatched && !wasWatchedRef.current) {
-      setConfetti(true);
-      const t = setTimeout(() => setConfetti(false), 1800);
-      return () => clearTimeout(t);
-    }
-    wasWatchedRef.current = isWatched;
-  }, [isWatched]);
-
+function MarkWatchedButton({ isWatched, onToggleWatched, loading, canAct, celebrate }) {
+  // F5.4: confetti is driven by `celebrate` from MovieDetail — fired ONLY on settled
+  // watched success AND only when motion is allowed (reduced-motion users never get
+  // it). The old optimistic isWatched-flip trigger is removed.
   const disabled = !canAct || loading;
 
   return (
@@ -355,14 +259,15 @@ function MarkWatchedButton({ isWatched, onToggleWatched, loading, canAct }) {
         active={isWatched}
         loading={loading}
         disabled={disabled}
+        aria-busy={Boolean(loading)}
         onClick={onToggleWatched}
         title={!canAct ? 'Sign in to track what you watch' : undefined}
         label={isWatched ? 'Watched' : 'Mark Watched'}
         className="ff-movie-hero-action-btn"
         style={{ position: 'relative', opacity: disabled && !isWatched ? 0.6 : 1 }}
-        icon={<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+        icon={<svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
       />
-      {confetti && <Confetti />}
+      {celebrate && <Confetti />}
     </>
   );
 }
@@ -374,6 +279,7 @@ function SaveButton({ isInWatchlist, onToggleWatchlist, loading, canAct }) {
       active={isInWatchlist}
       loading={loading}
       disabled={disabled}
+      aria-busy={Boolean(loading)}
       onClick={onToggleWatchlist}
       title={!canAct ? 'Sign in to save films' : undefined}
       label={isInWatchlist ? 'Saved' : 'Save'}
@@ -410,6 +316,7 @@ function Confetti() {
 
 function StickyActionBar({ onPlayTrailer, onBack, onToggleWatchlist, isInWatchlist, loading, canAct }) {
   const { mv } = useMovieData();
+  const barRef = useRef(null);
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
     const on = () => setScrolled(window.scrollY > 80);
@@ -418,20 +325,40 @@ function StickyActionBar({ onPlayTrailer, onBack, onToggleWatchlist, isInWatchli
     return () => window.removeEventListener('scroll', on);
   }, []);
 
+  // F5.4: when the bar is visually hidden it must not be tabbable. If focus is inside
+  // it as it hides, move focus out (least-disruptive safe fallback) so focus never
+  // remains in an inert subtree.
+  useEffect(() => {
+    if (scrolled) return;
+    const bar = barRef.current;
+    if (bar && bar.contains(document.activeElement)) {
+      document.activeElement.blur?.();
+    }
+  }, [scrolled]);
+
   const wlDisabled = !canAct || loading?.watchlist;
   const wlTitle = !canAct ? 'Sign in to save films' : undefined;
   const hasTrailer = Boolean(mv.trailerYouTubeId);
 
   return (
-    <div className="ff-movie-sticky-bar" style={{
-      position:'fixed', top:0, left:0, right:0, zIndex:100,
-      padding:'12px 56px',
-      background:'rgba(6,6,10,0.94)', backdropFilter:'blur(20px)',
-      borderBottom:`1px solid ${HP.border}`,
-      transform: scrolled ? 'translateY(0)' : 'translateY(-100%)',
-      transition:'transform 0.35s cubic-bezier(0.2,0.8,0.2,1)',
-      display:'flex', alignItems:'center', gap:20,
-    }}>
+    <div
+      ref={barRef}
+      className="ff-movie-sticky-bar"
+      // Hidden (un-scrolled) → aria-hidden + inert so its controls leave the
+      // accessibility tree and the tab order. Shown → fully interactive.
+      aria-hidden={!scrolled || undefined}
+      inert={!scrolled ? true : undefined}
+      style={{
+        position:'fixed', top:0, left:0, right:0, zIndex:100,
+        padding:'12px 56px',
+        background:'rgba(6,6,10,0.94)', backdropFilter:'blur(20px)',
+        borderBottom:`1px solid ${HP.border}`,
+        transform: scrolled ? 'translateY(0)' : 'translateY(-100%)',
+        transition:'transform 0.35s cubic-bezier(0.2,0.8,0.2,1)',
+        pointerEvents: scrolled ? 'auto' : 'none',
+        display:'flex', alignItems:'center', gap:20,
+      }}
+    >
       <button onClick={onBack} aria-label="Go back" style={{ width:32, height:32, borderRadius:RADIUS.pill, background:'rgba(255,255,255,0.06)', border:`1px solid ${HP.border}`, color: HP.textSoft, cursor:'pointer', display:'inline-flex', alignItems:'center', justifyContent:'center' }}>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
       </button>
@@ -671,4 +598,4 @@ function MoodRadar({ axes, highlightMood, onHoverAxis }) {
 // consolidated PrimaryCaseCard, and the generated quotes moved to the honestly-
 // reframed ViewerNotes component — see PrimaryCaseCard.jsx / ViewerNotes.jsx.)
 
-export { ScrollProgress, FilmGrain, TrailerModal, MovieHero, StickyActionBar, WhyForYou, Synopsis, MoodRadar }
+export { ScrollProgress, FilmGrain, MovieHero, StickyActionBar, WhyForYou, Synopsis, MoodRadar }

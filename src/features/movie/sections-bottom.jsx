@@ -159,11 +159,69 @@ function VideoThumb({ v, onPlay }) {
 }
 
 // ── Providers ────────────────────────────────────────────────────
-function ProvidersSection() {
-  const { providers } = useMovieData();
-  const hasAny = providers.flatrate.length + providers.rent.length + providers.buy.length > 0;
-  if (!hasAny) return null;
+const PROVIDER_ATTRIBUTION = 'Availability for the United States via TMDB and JustWatch. Listings can change or lag behind provider updates.';
 
+// F5.7: an EYEBROW + a labelled <section> shared by every provider state.
+function ProviderSectionShell({ children }) {
+  return (
+    <section className="ff-movie-section ff-movie-providers" aria-label="Where to watch" style={{ padding:'64px 88px', borderTop:`1px solid ${HP.border}` }}>
+      <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: HP.purple, marginBottom:14, display:'inline-flex', alignItems:'center', gap:10 }}>
+        <span style={{ height:1, width:22, background: HP.purple, opacity:0.6 }} />Where to watch
+      </div>
+      {children}
+    </section>
+  );
+}
+const sectionH2 = { fontFamily:'Outfit', fontSize:36, lineHeight:1.05, fontWeight:500, letterSpacing:'-0.03em', color: 'var(--ff-text, #FAFAFA)', margin:0 };
+const stateBody = { margin:'14px 0 0 0', fontSize:14, lineHeight:1.6, color:'rgba(250,250,250,0.7)', fontFamily:'Outfit, Inter, sans-serif', maxWidth:520, overflowWrap:'anywhere' };
+const attributionStyle = { margin:'18px 0 0 0', fontSize:11.5, lineHeight:1.5, color:'rgba(250,250,250,0.45)', fontFamily:'Outfit, Inter, sans-serif', maxWidth:560, overflowWrap:'anywhere' };
+
+function ProvidersSection() {
+  const { providers, providerStatus } = useMovieData();
+  const status = providerStatus
+    || (providers.flatrate.length + providers.rent.length + providers.buy.length > 0 ? 'found' : 'empty');
+
+  if (status === 'idle') return null;
+
+  if (status === 'loading') {
+    return (
+      <ProviderSectionShell>
+        <div role="status" aria-live="polite" style={{ marginTop:6, fontSize:14, color:'rgba(250,250,250,0.7)', fontFamily:'Outfit, Inter, sans-serif' }}>
+          Checking availability…
+        </div>
+      </ProviderSectionShell>
+    );
+  }
+
+  if (status === 'empty') {
+    return (
+      <ProviderSectionShell>
+        <h2 className="ff-movie-section-h2" style={{ ...sectionH2, color:'#FAFAFA' }}>Availability not found</h2>
+        <p style={stateBody}>We couldn’t find streaming, rental, or purchase options for the United States.</p>
+        <p style={attributionStyle}>{PROVIDER_ATTRIBUTION}</p>
+      </ProviderSectionShell>
+    );
+  }
+
+  if (status === 'error') {
+    return (
+      <ProviderSectionShell>
+        <h2 className="ff-movie-section-h2" style={{ ...sectionH2, color:'#FAFAFA' }}>Availability unavailable</h2>
+        <p style={stateBody}>Provider information couldn’t be reached right now.</p>
+        <p style={stateBody}>You can check again later or search directly on JustWatch.</p>
+        <a
+          href="https://www.justwatch.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ marginTop:18, display:'inline-flex', alignItems:'center', gap:6, fontSize:11, color: HP.textSoft, fontFamily:'Outfit', letterSpacing:'0.06em', textTransform:'uppercase', textDecoration:'none' }}
+        >
+          Search on JustWatch <span aria-hidden="true">↗</span><span className="sr-only"> (opens in a new tab)</span>
+        </a>
+      </ProviderSectionShell>
+    );
+  }
+
+  // found
   const ProviderChip = ({ p }) => (
     <a
       href={providers.link || 'https://www.justwatch.com'}
@@ -182,7 +240,7 @@ function ProvidersSection() {
   );
 
   return (
-    <section className="ff-movie-section" style={{ padding:'64px 88px', borderTop:`1px solid ${HP.border}` }}>
+    <section className="ff-movie-section ff-movie-providers" aria-label="Where to watch" style={{ padding:'64px 88px', borderTop:`1px solid ${HP.border}` }}>
       <div className="ff-movie-providers-grid" style={{ display:'grid', gridTemplateColumns:'1fr 2fr', gap:64, alignItems:'flex-start' }}>
         <div>
           <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: HP.purple, marginBottom:14, display:'inline-flex', alignItems:'center', gap:10 }}>
@@ -197,7 +255,7 @@ function ProvidersSection() {
             rel="noopener noreferrer"
             style={{ marginTop:18, display:'inline-flex', alignItems:'center', gap:6, fontSize:11, color: HP.textSoft, fontFamily:'Outfit', letterSpacing:'0.06em', textTransform:'uppercase', textDecoration:'none' }}
           >
-            More options on JustWatch <span style={{ fontSize:14, lineHeight:1 }}>›</span>
+            More options on JustWatch <span aria-hidden="true">›</span><span className="sr-only"> (opens in a new tab)</span>
           </a>
         </div>
         <div>
@@ -212,6 +270,7 @@ function ProvidersSection() {
               {providers.buy.map((p,i) => <ProviderChip key={`b${i}`} p={p} />)}
             </div>
           </>}
+          <p style={attributionStyle}>{PROVIDER_ATTRIBUTION}</p>
         </div>
       </div>
     </section>

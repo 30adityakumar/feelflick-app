@@ -16,6 +16,7 @@ import { activeMovieBoundaries, BOUNDARY_LABEL } from '@/shared/services/boundar
 import { formatFullDate } from '@/shared/lib/format/date'
 import { deriveMoodAxes } from './derive/moodRadar'
 import { classifyFilmFileContent } from './derive/sourceClassification'
+import { classifyMovieProviderState } from './derive/providerState'
 
 // Pull the full engine column set so the match % on this page matches
 // what /home shows for the same film. Single source of truth in
@@ -493,6 +494,8 @@ const INITIAL_STATE = {
   cast: [],
   videos: [],
   providers: EMPTY_PROVIDERS,
+  providerStatus: 'loading', // F5.7: 'idle'|'loading'|'found'|'empty'|'error'
+  providerRegion: 'US',
   similar: [],
   dirShelf: [],
   filmDbRow: null,     // internal movies row — mood_tags + llm_* used by Mood Radar / Why-for-you
@@ -519,7 +522,10 @@ export function useMovieDataFetch(id) {
         const [details, releaseDates, providers, filmDbResult, userSettingsResult] = await Promise.all([
           getMovieDetails(id),
           fetchJson(`/movie/${id}/release_dates`).catch(() => null),
-          fetchJson(`/movie/${id}/watch/providers`).catch(() => null),
+          // F5.7: keep the provider request in the same parallel batch, but settle it
+          // explicitly so an EMPTY result and a FAILED request can be told apart. No
+          // second request, no retry.
+          fetchJson(`/movie/${id}/watch/providers`).then(data => ({ ok: true, data })).catch(() => ({ ok: false, data: null })),
           supabase.from('movies').select(MOVIE_DB_COLS).eq('tmdb_id', id).maybeSingle(),
           // user's content-boundary toggles (anonymous viewers get [])
           user?.id
@@ -528,7 +534,8 @@ export function useMovieDataFetch(id) {
         ])
         if (abort) return
         if (!details || details?.success === false || details?.status_code) {
-          throw new Error(details?.status_message || 'Movie not found')
+          // Normalized internal signal — never store the raw TMDB status_message.
+          throw Object.assign(new Error('movie_not_found'), { kind: 'not_found' })
         }
 
         const usCert = releaseDates?.results?.find(r => r.iso_3166_1 === 'US')
@@ -538,7 +545,12 @@ export function useMovieDataFetch(id) {
         const cast = mapTmdbToCast(details)
         const videos = mapTmdbToVideos(details)
         const similar = mapTmdbToSimilar(details)
-        const prov = mapTmdbProviders(providers)
+        // F5.7: `providers` is now { ok, data }. On failure → EMPTY_PROVIDERS + an
+        // explicit 'error' status (never an 'empty'). The mapped array shape/order
+        // are unchanged. classifyMovieProviderState resolves found/empty/error.
+        const providerOk = providers?.ok !== false
+        const prov = mapTmdbProviders(providerOk ? providers?.data : null)
+        const providerStatus = classifyMovieProviderState({ loading: false, failed: !providerOk, providers: prov }).status
         const filmDbRow = filmDbResult?.data || null
         const moodAxes = deriveMoodAxes(filmDbRow)
 
@@ -625,6 +637,8 @@ export function useMovieDataFetch(id) {
           videos,
           similar: enrichedSimilar,
           providers: prov,
+          providerStatus,
+          providerRegion: 'US',
           dirShelf: [],
           filmDbRow,
           moodAxes,
@@ -675,7 +689,11 @@ export function useMovieDataFetch(id) {
         }
       } catch (e) {
         if (abort) return
-        setState(s => ({ ...s, loading: false, error: e?.message || 'Failed to load' }))
+        // F5.7: store ONLY a normalized internal kind — never a raw error string for
+        // rendering. Diagnostic detail stays in the console (no secrets).
+        console.warn('[useMovieData] load failed:', e?.kind || e?.message || e)
+        const kind = e?.kind === 'not_found' ? 'not_found' : 'load_error'
+        setState(s => ({ ...s, loading: false, error: { kind } }))
       }
     })()
 

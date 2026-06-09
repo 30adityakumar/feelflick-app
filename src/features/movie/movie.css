@@ -369,3 +369,47 @@
   .ff-disclosure__summary { padding: 22px 24px; }
   .ff-disclosure__heading { font-size: 20px; }
 }
+
+/* ── F5.6 social + exploration tail ────────────────────────────────
+   SocialContext + ExplorationTail render inside FilmFileDisclosure, so their
+   bodies need the page gutter + a bottom rhythm. */
+.ff-movie-social-context .ff-disclosure__content,
+.ff-movie-exploration-tail .ff-disclosure__content {
+  padding: 4px 88px 36px;
+}
+.ff-movie-explore-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+/* Movie-local button reset for exploration poster cards + a visible focus ring. */
+.ff-movie-explore-card {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  display: block;
+  width: 100%;
+  border-radius: 8px;
+}
+.ff-movie-explore-card:focus-visible {
+  outline: 2px solid #a78bfa;
+  outline-offset: 4px;
+}
+@media (max-width: 720px) {
+  .ff-movie-social-context .ff-disclosure__content,
+  .ff-movie-exploration-tail .ff-disclosure__content {
+    padding: 4px 24px 28px;
+  }
+  .ff-movie-explore-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+  .ff-movie-twin-anon {
+    flex-wrap: wrap;
+  }
+}

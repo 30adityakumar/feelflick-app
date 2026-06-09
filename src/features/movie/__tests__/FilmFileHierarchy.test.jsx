@@ -12,14 +12,15 @@ vi.mock('../sections-top', () => ({
 }))
 vi.mock('../sections-bottom', () => ({
   CastSection: () => <div data-sec="cast" />, VideosSection: () => <div data-sec="videos" />,
-  ProvidersSection: () => <div data-sec="providers" />, PairsWith: () => <div data-sec="pairs" />,
-  FriendsLoved: () => <div data-sec="friends" />, TasteTwinReview: () => <div data-sec="twin" />,
-  TimelineSection: () => <div data-sec="timeline" />, DirectorShelf: () => <div data-sec="director" />,
+  ProvidersSection: () => <div data-sec="providers" />,
+  TimelineSection: () => <div data-sec="timeline" />,
   YourTake: () => <div data-sec="yourtake" />, DetailsSection: () => <div data-sec="details" />,
   MovieFooter: () => <div data-sec="footer" />,
 }))
 vi.mock('../PrimaryCaseCard', () => ({ default: () => <div data-sec="case" /> }))
 vi.mock('../components/DecisionEvidence', () => ({ default: () => <div data-sec="evidence" /> }))
+vi.mock('../components/SocialContext', () => ({ default: () => <div data-sec="social" /> }))
+vi.mock('../components/ExplorationTail', () => ({ default: () => <div data-sec="explore" /> }))
 vi.mock('../components/AccessibleMediaDialog', () => ({ default: () => null }))
 vi.mock('@/shared/hooks/useAuthSession', () => ({ useAuthSession: () => ({ user: { id: 'u1' } }) }))
 vi.mock('@/shared/hooks/usePageMeta', () => ({ usePageMeta: () => {} }))
@@ -48,21 +49,32 @@ afterEach(() => vi.clearAllMocks())
 const order = () => Array.from(document.querySelectorAll('[data-sec]')).map((n) => n.dataset.sec)
 
 describe('Film File hierarchy — decision dossier (F5.5)', () => {
-  it('1-8/13. composes the sections in the decision-first order', () => {
+  it('1-8/13. composes the sections in the decision-first order (F5.6 tail)', () => {
     render(<MovieDetail />)
     const o = order().filter((s) => s !== 'sticky')
     expect(o).toEqual([
       'hero', 'case', 'synopsis', 'providers', 'yourtake', 'evidence',
-      'videos', 'friends', 'twin', 'pairs', 'cast', 'director', 'timeline', 'details', 'footer',
+      'videos', 'cast', 'social', 'explore', 'timeline', 'details', 'footer',
     ])
-    // key adjacencies
+    // decision-zone adjacencies (unchanged)
     expect(o.indexOf('case')).toBeLessThan(o.indexOf('synopsis'))
     expect(o.indexOf('synopsis')).toBeLessThan(o.indexOf('providers'))
     expect(o.indexOf('providers')).toBeLessThan(o.indexOf('yourtake'))
     expect(o.indexOf('yourtake')).toBeLessThan(o.indexOf('evidence'))
-    expect(o.indexOf('evidence')).toBeLessThan(o.indexOf('videos'))
-    expect(o.indexOf('director')).toBeLessThan(o.indexOf('timeline'))
     expect(o.at(-1)).toBe('footer')
+  })
+
+  it('41-49. F5.6 tail: Videos → Cast → Social → Exploration → Film Details; old sections gone', () => {
+    render(<MovieDetail />)
+    const o = order()
+    expect(o.indexOf('videos')).toBeLessThan(o.indexOf('cast'))      // Cast moved before social
+    expect(o.indexOf('cast')).toBeLessThan(o.indexOf('social'))
+    expect(o.indexOf('social')).toBeLessThan(o.indexOf('explore'))
+    expect(o.indexOf('explore')).toBeLessThan(o.indexOf('timeline')) // Film Details after exploration
+    // the four old full-page tail sections are no longer independently rendered
+    for (const dead of ['friends', 'twin', 'pairs', 'director']) {
+      expect(document.querySelector(`[data-sec="${dead}"]`)).toBeNull()
+    }
   })
 
   it('9/10/11/12. exactly one Synopsis, Providers, Your Take, and one page h1', () => {

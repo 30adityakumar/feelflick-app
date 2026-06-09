@@ -129,7 +129,7 @@ function FilterBar({ filter, setFilter, sort, setSort, query, setQuery }) {
 function Stars({ n }) {
   if (!n) return null;
   return (
-    <span style={{ display:'inline-flex', gap:2 }} aria-label={`${n} of 5 stars`}>
+    <span role="img" style={{ display:'inline-flex', gap:2 }} aria-label={`${n} of 5 stars`}>
       {[1,2,3,4,5].map(i => (
         <svg key={i} aria-hidden="true" width="11" height="11" viewBox="0 0 24 24" fill={i<=n?HP.amber:'transparent'} stroke={i<=n?HP.amber:HP.textFaint} strokeWidth="1.6"><path d="M12 2l3 7 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/></svg>
       ))}

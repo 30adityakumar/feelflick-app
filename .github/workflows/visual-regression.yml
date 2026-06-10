@@ -11,6 +11,7 @@ on:
       - 'e2e/fixtures/home.js'
       - 'e2e/fixtures/movie.js'
       - 'e2e/fixtures/library.js'
+      - 'e2e/fixtures/profile.js'
       - 'playwright.config.*'
       - 'package.json'
       - 'package-lock.json'
@@ -167,6 +168,9 @@ jobs:
           elif [[ "${GITHUB_REF}" == refs/heads/visual-baselines/library-* ]]; then
             echo "Regenerating Linux authenticated Library baselines only…"
             npm run test:visual:library:update
+          elif [[ "${GITHUB_REF}" == refs/heads/visual-baselines/profile-* ]]; then
+            echo "Regenerating Linux authenticated Profile baselines only…"
+            npm run test:visual:profile:update
           elif [[ "${GITHUB_REF}" == refs/heads/visual-baselines/* ]]; then
             echo "Regenerating Linux authenticated app baselines (Discover + Home + Movie + Library)…"
             npm run test:visual:app:update
@@ -187,6 +191,8 @@ jobs:
             git add 'e2e/visual-auth/movie.visual.js-snapshots'
           elif [[ "${GITHUB_REF}" == refs/heads/visual-baselines/library-* ]]; then
             git add 'e2e/visual-auth/library.visual.js-snapshots'
+          elif [[ "${GITHUB_REF}" == refs/heads/visual-baselines/profile-* ]]; then
+            git add 'e2e/visual-auth/profile.visual.js-snapshots'
           else
             git add 'e2e/visual-auth'
           fi

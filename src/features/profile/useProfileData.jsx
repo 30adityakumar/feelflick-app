@@ -77,7 +77,10 @@ export function useProfileDataFetch({ userId, authUser, isSelf = false }) {
   const regenInputsRef = useRef(null)
   const inFlightRef = useRef(false)
   const mountedRef = useRef(true)
-  useEffect(() => () => { mountedRef.current = false }, [])
+  // Set true on (re)mount, false on unmount — the body MUST set true so StrictMode's dev
+  // mount→unmount→remount double-invoke doesn't leave it permanently false (which would silently
+  // swallow the refresh settlement). (F7.7: exposed by the intercepted browser refresh test.)
+  useEffect(() => { mountedRef.current = true; return () => { mountedRef.current = false } }, [])
 
   const refreshEditorial = useCallback(async () => {
     const inputs = regenInputsRef.current

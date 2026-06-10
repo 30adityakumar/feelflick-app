@@ -121,7 +121,7 @@ function Masthead() {
           {updatedLabel && (
             <>
               <div style={{ height:1, width:38, background:HP.purple, opacity:0.5 }} />
-              <div style={{ fontSize:10, fontWeight:500, letterSpacing:'0.18em', textTransform:'uppercase', color:HP.textMuted, fontFamily:'Outfit' }}>{updatedLabel}</div>
+              <div style={{ fontSize:10, fontWeight:500, letterSpacing:'0.18em', textTransform:'uppercase', color:INK_LABEL, fontFamily:'Outfit' }}>{updatedLabel}</div>
             </>
           )}
         </div>
@@ -176,7 +176,7 @@ function Masthead() {
               </p>
             </>
           ) : status === 'forming' ? (
-            <p className="ff-profile-masthead-summary" style={{ marginTop:18, fontFamily:'Outfit, Inter, sans-serif', fontSize:20, color:HP.textMuted, letterSpacing:'-0.012em', maxWidth:720, textWrap:'pretty', lineHeight:1.5 }}>
+            <p className="ff-profile-masthead-summary" style={{ marginTop:18, fontFamily:'Outfit, Inter, sans-serif', fontSize:20, color:INK_LABEL, letterSpacing:'-0.012em', maxWidth:720, textWrap:'pretty', lineHeight:1.5 }}>
               {FORMING_SUMMARY}
             </p>
           ) : (
@@ -191,7 +191,7 @@ function Masthead() {
           {evidenceLine && (
             <p style={{ marginTop:14, fontSize:12, color:INK_LABEL, fontFamily:'Outfit', letterSpacing:'0.03em' }}>{evidenceLine}</p>
           )}
-          <div style={{ marginTop:20, display:'flex', alignItems:'center', gap:14, fontSize:11, color:HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.08em', textTransform:'uppercase', flexWrap:'wrap' }}>
+          <div style={{ marginTop:20, display:'flex', alignItems:'center', gap:14, fontSize:11, color:INK_LABEL, fontFamily:'Outfit', letterSpacing:'0.08em', textTransform:'uppercase', flexWrap:'wrap' }}>
             <span>{user?.handle || USER_DEFAULT.handle}</span>
             <span style={{ width:3, height:3, borderRadius:RADIUS.pill, background:HP.textFaint }} />
             <span>Joined {user?.joined || USER_DEFAULT.joined}</span>
@@ -248,7 +248,7 @@ function QuickStats() {
       <div className="ff-profile-stats-grid" style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:48 }}>
         {items.map((s, i) => (
           <div key={s.label} className="ff-profile-stat-cell" style={{ borderLeft:i===0?'none':`1px solid ${HP.border}`, paddingLeft:i===0?0:32 }}>
-            <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color:HP.textMuted, fontFamily:'Outfit', marginBottom:10 }}>{s.label}</div>
+            <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color:INK_LABEL, fontFamily:'Outfit', marginBottom:10 }}>{s.label}</div>
             <div className="ff-profile-stat-value" style={{ fontFamily:'Outfit', fontSize:56, fontWeight:200, color:HP.text, letterSpacing:'-0.045em', lineHeight:1 }}>{s.value}</div>
             <div style={{ marginTop:6, fontSize:11, color:HP.textSoft, fontFamily:'Outfit', fontStyle:'italic', letterSpacing:'0.02em' }}>{s.sub}</div>
           </div>

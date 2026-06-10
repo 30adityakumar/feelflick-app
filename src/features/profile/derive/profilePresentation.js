@@ -44,6 +44,42 @@ export function formatEvidenceSummary({ watchedCount = 0, ratedCount = 0 } = {})
   return `Based on ${parts.join(' and ')}`
 }
 
+// F7.5: a Profile-local AA-contrast colour for LOAD-BEARING muted labels (denominator/sample
+// context, provenance, evidence, chart labels, confidence copy). The design-system HP.textMuted
+// (rgba .45 ≈ 4.36:1) and HP.textFaint (rgba .40 ≈ 3.71:1) on #06060a fall below WCAG AA for
+// normal text; this raises informational labels to ~7:1 (rgba .62 over #06060a) without globally
+// altering the system or losing the editorial hierarchy (still below HP.textSoft ≈ 10.5:1).
+export const INK_LABEL = 'rgba(250,250,250,0.62)'
+
+// F7.5: one reusable count/denominator formatter for every Profile distribution, so each section
+// states its denominator the same way. Reuses the F7.4 small-sample rule and adds an accessible
+// sentence. Pure: never recomputes a metric, never mutates source data, safe on bad input.
+export function formatDistributionContext({ count = null, total = 0, percentage = null, maturity } = {}) {
+  const t = Number.isFinite(total) && total > 0 ? total : 0
+  const c = Number.isFinite(count) ? count : null
+  const p = Number.isFinite(percentage) ? Math.round(percentage) : null
+  const filmsWord = (n) => `${n} film${n === 1 ? '' : 's'}`
+
+  // Under 5 applicable films (or an explicitly forming profile) → no exact %, count-led.
+  if (t < 5 || maturity === MATURITY.FORMING) {
+    const hasCount = c != null && c > 0
+    const primary = hasCount ? filmsWord(c) : 'Early signal'
+    return { showPercent: false, primary, context: '', accessibleText: hasCount ? `${filmsWord(c)} so far` : 'Early signal — not enough films yet' }
+  }
+  // 5–9 → provisional, explicit count, no bare exact %.
+  if (t < 10) {
+    const context = c != null ? `${c} of ${t} films` : ''
+    return { showPercent: false, primary: 'A growing signal', context, accessibleText: c != null ? `a growing signal, ${c} of ${t} films` : `a growing signal across ${filmsWord(t)}` }
+  }
+  // 10+ → percentage with denominator context.
+  const primary = p != null ? `${p}%` : ''
+  const context = c != null ? `${c} of ${t} films` : `of ${t} films`
+  const accessibleText = p != null && c != null
+    ? `${p} percent, representing ${c} of ${t} films`
+    : (p != null ? `${p} percent of ${t} films` : `${t} films`)
+  return { showPercent: true, primary, context, accessibleText }
+}
+
 // Small-sample presentation for a per-user proportional claim. `total` is the applicable film
 // count (the real denominator). Under 5 → no exact %, count-led; 5–9 → provisional; 10+ → % with
 // sample context. The underlying pct is never recomputed — this only decides how it's shown.

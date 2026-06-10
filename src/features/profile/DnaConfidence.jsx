@@ -12,7 +12,7 @@
 import { Link } from 'react-router-dom'
 import Eyebrow from '@/shared/ui/Eyebrow'
 import { HP, HP_GRAD, RADIUS, SPACE } from './data'
-import { deriveConfidenceBand } from './derive/profilePresentation'
+import { deriveConfidenceBand, INK_LABEL } from './derive/profilePresentation'
 
 // F7.4: the confidence value is the SHARED computeDnaConfidence number (unchanged), but it is
 // now presented as a qualitative evidence-maturity BAND — never an exact percentage and never a
@@ -38,7 +38,7 @@ export default function DnaConfidence({ confidence, filmsLogged = 0, filmsRated 
         <div>
           <Eyebrow rule color={HP.purple} style={{ marginBottom: 16 }}>DNA confidence</Eyebrow>
           <div style={{ fontFamily: 'Outfit', fontSize: 48, fontWeight: 300, color: HP.text, letterSpacing: '-0.04em', lineHeight: 1.05 }}>{band.label}</div>
-          <div style={{ marginTop: 22, fontSize: 12, color: HP.textMuted, fontFamily: 'Outfit', letterSpacing: '0.02em' }}>
+          <div style={{ marginTop: 22, fontSize: 12, color: INK_LABEL, fontFamily: 'Outfit', letterSpacing: '0.02em' }}>
             Built from <span style={{ color: HP.textSoft, fontWeight: 600 }}>{filmsLogged}</span> logged ·{' '}
             <span style={{ color: HP.textSoft, fontWeight: 600 }}>{filmsRated}</span> rated ·{' '}
             <span style={{ color: HP.textSoft, fontWeight: 600 }}>{moodSignals}</span> mood signal{moodSignals === 1 ? '' : 's'}
@@ -52,12 +52,12 @@ export default function DnaConfidence({ confidence, filmsLogged = 0, filmsRated 
             work with — not a score of you, and not a measure of accuracy. It climbs as you log films, rate them, set
             preferences, and react to your nightly picks.
           </p>
-          <p style={{ margin: '16px 0 0 0', fontSize: 14, lineHeight: 1.6, color: HP.textMuted, fontFamily: 'Outfit, Inter, sans-serif' }}>
+          <p style={{ margin: '16px 0 0 0', fontSize: 14, lineHeight: 1.6, color: INK_LABEL, fontFamily: 'Outfit, Inter, sans-serif' }}>
             {cold
               ? 'A low number is completely normal when you’re new — the more you watch and react, the more personal your nightly pick gets.'
               : 'FeelFlick is reading you well — keep logging and rating, and it keeps sharpening.'}
           </p>
-          <p style={{ margin: '20px 0 0 0', fontSize: 13, lineHeight: 1.5, color: HP.textFaint, fontFamily: 'Outfit', fontStyle: 'italic' }}>
+          <p style={{ margin: '20px 0 0 0', fontSize: 13, lineHeight: 1.5, color: INK_LABEL, fontFamily: 'Outfit', fontStyle: 'italic' }}>
             This profile is what FeelFlick weighs when it chooses your one film each night.
           </p>
           {cold && (

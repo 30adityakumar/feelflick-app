@@ -4,7 +4,7 @@ import { toPng } from 'html-to-image'
 import { HP, HP_GRAD, RADIUS, USER as USER_DEFAULT } from './data'
 import { ActionButton, SecondaryActionButton } from '@/shared/components/ActionButton'
 import { useProfileData } from './useProfileData'
-import { classifyProfileMaturity, MATURITY } from './derive/profilePresentation'
+import { classifyProfileMaturity, MATURITY, INK_LABEL } from './derive/profilePresentation'
 
 // FeelFlick — /profile · Directors, Motifs, Trajectory, Decades+Runtime, Mixtape, Skew, Friends, Share card, Footer.
 // All sections read the live context and self-hide when their data source is
@@ -23,13 +23,13 @@ function SignatureDirectors() {
   const { directors } = useProfileData();
   if (!directors || directors.length === 0) return null;
   return (
-    <section className="ff-profile-section" style={{ padding:'80px 88px', borderTop:`1px solid ${HP.border}` }}>
+    <section aria-labelledby="ff-dir-title" className="ff-profile-section" style={{ padding:'80px 88px', borderTop:`1px solid ${HP.border}` }}>
       <div style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between', marginBottom:40 }}>
         <div>
           <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:HP.purple, marginBottom:14, display:'inline-flex', alignItems:'center', gap:10 }}>
-            <span style={{ height:1, width:22, background:HP.purple, opacity:0.6 }} />Signature directors
+            <span aria-hidden="true" style={{ height:1, width:22, background:HP.purple, opacity:0.6 }} />Signature directors
           </div>
-          <h2 className="ff-profile-section-h2" style={{ fontFamily:'Outfit', fontSize:44, lineHeight:1, fontWeight:500, letterSpacing:'-0.035em', color:HP.text, margin:0 }}>
+          <h2 id="ff-dir-title" className="ff-profile-section-h2" style={{ fontFamily:'Outfit', fontSize:44, lineHeight:1, fontWeight:500, letterSpacing:'-0.035em', color:HP.text, margin:0 }}>
             The voices you <em style={{ fontStyle:'italic', fontWeight:400, color:HP.textSoft }}>trust.</em>
           </h2>
         </div>
@@ -37,7 +37,7 @@ function SignatureDirectors() {
       <div className="ff-profile-directors-grid" style={{ display:'grid', gridTemplateColumns:`repeat(${Math.min(directors.length, 5)},1fr)`, gap:20 }}>
         {directors.map(d => (
           <div key={d.name} style={{ padding:'24px 22px', borderRadius:RADIUS.sm, background:'rgba(255,255,255,0.025)', border:`1px solid ${HP.border}`, position:'relative', overflow:'hidden' }}>
-            <div style={{ position:'absolute', top:-30, right:-30, width:100, height:100, borderRadius:RADIUS.pill, background:`radial-gradient(circle, ${d.accent}33, transparent 70%)` }} />
+            <div aria-hidden="true" style={{ position:'absolute', top:-30, right:-30, width:100, height:100, borderRadius:RADIUS.pill, background:`radial-gradient(circle, ${d.accent}33, transparent 70%)` }} />
             <div style={{ position:'relative' }}>
               <div style={{ display:'flex', alignItems:'baseline', gap:6, marginBottom:14 }}>
                 {d.avg != null ? (
@@ -55,7 +55,7 @@ function SignatureDirectors() {
                 )}
               </div>
               <div style={{ fontFamily:'Outfit', fontSize:17, fontWeight:500, color:HP.text, letterSpacing:'-0.015em', marginBottom:4 }}>{d.name}</div>
-              <div style={{ fontSize:11, color:HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.06em', textTransform:'uppercase' }}>
+              <div style={{ fontSize:11, color:INK_LABEL, fontFamily:'Outfit', letterSpacing:'0.06em', textTransform:'uppercase' }}>
                 {d.films} film{d.films === 1 ? '' : 's'} watched
               </div>
             </div>
@@ -71,12 +71,12 @@ function MotifCloud() {
   const { motifs } = useProfileData();
   if (!motifs || motifs.length === 0) return null;
   return (
-    <section className="ff-profile-section" style={{ padding:'80px 88px', borderTop:`1px solid ${HP.border}`, background:'rgba(255,255,255,0.012)' }}>
+    <section aria-labelledby="ff-motif-title" className="ff-profile-section" style={{ padding:'80px 88px', borderTop:`1px solid ${HP.border}`, background:'rgba(255,255,255,0.012)' }}>
       <div className="ff-profile-motifs-grid" style={{ display:'grid', gridTemplateColumns:'1fr 2fr', gap:80, alignItems:'flex-start' }}>
         <div>
           <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:HP.purple, marginBottom:18 }}>Recurring motifs</div>
-          <h2 className="ff-profile-section-h2" style={{ fontFamily:'Outfit', fontSize:44, lineHeight:1, fontWeight:500, letterSpacing:'-0.035em', color:HP.text, margin:0 }}>What you <em style={{ fontStyle:'italic', fontWeight:400, color:HP.textSoft }}>keep finding.</em></h2>
-          <p style={{ marginTop:18, fontSize:14, color:HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', lineHeight:1.65, maxWidth:340 }}>Tonal qualities that show up across what you&rsquo;ve watched &mdash; not how films feel, but how they&rsquo;re made. Bigger means stronger pull.</p>
+          <h2 id="ff-motif-title" className="ff-profile-section-h2" style={{ fontFamily:'Outfit', fontSize:44, lineHeight:1, fontWeight:500, letterSpacing:'-0.035em', color:HP.text, margin:0 }}>What you <em style={{ fontStyle:'italic', fontWeight:400, color:HP.textSoft }}>keep finding.</em></h2>
+          <p style={{ marginTop:18, fontSize:14, color:INK_LABEL, fontFamily:'Outfit, Inter, sans-serif', lineHeight:1.65, maxWidth:340 }}>Tonal qualities that show up across what you&rsquo;ve watched &mdash; not how films feel, but how they&rsquo;re made, in order of how strongly they recur.</p>
         </div>
         <div style={{ display:'flex', flexWrap:'wrap', gap:'14px 18px', alignItems:'baseline' }}>
           {motifs.map(m => {
@@ -111,29 +111,31 @@ function Trajectory() {
     ? <>Every <em style={{ fontStyle:'italic', fontWeight:400, color:HP.textSoft }}>year so far.</em></>
     : <>The <em style={{ fontStyle:'italic', fontWeight:400, color:HP.textSoft }}>last twelve.</em></>;
   return (
-    <section className="ff-profile-section" style={{ padding:'80px 88px', borderTop:`1px solid ${HP.border}` }}>
+    <section aria-labelledby="ff-traj-title" className="ff-profile-section" style={{ padding:'80px 88px', borderTop:`1px solid ${HP.border}` }}>
       <div style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between', marginBottom:44 }}>
         <div>
           <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:HP.purple, marginBottom:14, display:'inline-flex', alignItems:'center', gap:10 }}>
-            <span style={{ height:1, width:22, background:HP.purple, opacity:0.6 }} />Taste trajectory
+            <span aria-hidden="true" style={{ height:1, width:22, background:HP.purple, opacity:0.6 }} />Taste trajectory
           </div>
-          <h2 className="ff-profile-section-h2" style={{ fontFamily:'Outfit', fontSize:44, lineHeight:1, fontWeight:500, letterSpacing:'-0.035em', color:HP.text, margin:0 }}>{heading}</h2>
+          <h2 id="ff-traj-title" className="ff-profile-section-h2" style={{ fontFamily:'Outfit', fontSize:44, lineHeight:1, fontWeight:500, letterSpacing:'-0.035em', color:HP.text, margin:0 }}>{heading}</h2>
         </div>
         {/* Only render the toggle when "All time" is actually informative
             (≥2 distinct years). Otherwise hide it so users don't tap into
             an identical chart. */}
         {allTimeAvailable && (
-          <div role="radiogroup" aria-label="Time range" style={{ display:'inline-flex', borderRadius:RADIUS.pill, background:'rgba(255,255,255,0.04)', border:`1px solid ${HP.border}`, padding:3 }}>
+          // F7.5: a two-option visual toggle is a button GROUP with aria-pressed (the simpler
+          // semantically-accurate model), not a partial radiogroup with no keyboard model.
+          <div role="group" aria-label="Time range" style={{ display:'inline-flex', borderRadius:RADIUS.pill, background:'rgba(255,255,255,0.04)', border:`1px solid ${HP.border}`, padding:3 }}>
             {['Year','All time'].map(p => {
               const active = range === p;
               return (
                 <button
                   key={p}
                   type="button"
-                  role="radio"
-                  aria-checked={active}
+                  className="ff-tap"
+                  aria-pressed={active}
                   onClick={() => setRange(p)}
-                  style={{ padding:'7px 14px', borderRadius:RADIUS.pill, background:active?HP_GRAD:'transparent', color:active?'#fff':HP.textMuted, border:'none', cursor:'pointer', fontFamily:'Outfit', fontSize:11, fontWeight:600, letterSpacing:'0.04em' }}
+                  style={{ padding:'7px 14px', borderRadius:RADIUS.pill, background:active?HP_GRAD:'transparent', color:active?'#fff':INK_LABEL, border:'none', cursor:'pointer', fontFamily:'Outfit', fontSize:11, fontWeight:600, letterSpacing:'0.04em' }}
                 >{p}</button>
               );
             })}
@@ -145,10 +147,11 @@ function Trajectory() {
           const h = (t.count / max) * 100;
           return (
             <div key={`${t.label}-${i}`} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:10 }}>
-              <div style={{ width:'100%', display:'flex', alignItems:'flex-end', justifyContent:'center', height:200 }}>
+              {/* decorative bar — the label + count below are the accessible equivalent */}
+              <div aria-hidden="true" style={{ width:'100%', display:'flex', alignItems:'flex-end', justifyContent:'center', height:200 }}>
                 <div style={{ width:'100%', maxWidth:48, height:`${h}%`, background:`linear-gradient(180deg, ${t.hex}, ${t.hex}77)`, borderRadius:'4px 4px 0 0', boxShadow:`0 0 16px ${t.hex}33`, transition:'height 1s cubic-bezier(0.2,0.8,0.2,1)' }} />
               </div>
-              <div className="ff-profile-trajectory-label" style={{ fontFamily:'Outfit', fontSize:11, color:HP.textMuted, letterSpacing:'0.08em', textTransform:'uppercase' }}>{t.label}</div>
+              <div className="ff-profile-trajectory-label" style={{ fontFamily:'Outfit', fontSize:11, color:INK_LABEL, letterSpacing:'0.08em', textTransform:'uppercase' }}>{t.label}</div>
               <div className="ff-profile-trajectory-count" style={{ fontFamily:'Outfit', fontSize:11, color:HP.text, fontWeight:600 }}>{t.count}</div>
             </div>
           );
@@ -177,7 +180,7 @@ function PatternPanel() {
     return 'Morning person, cinematically.';
   })();
   return (
-    <section className="ff-profile-section" style={{ padding:'80px 88px', borderTop:`1px solid ${HP.border}`, background:'rgba(255,255,255,0.012)' }}>
+    <section aria-label="Viewing patterns" className="ff-profile-section" style={{ padding:'80px 88px', borderTop:`1px solid ${HP.border}`, background:'rgba(255,255,255,0.012)' }}>
       <div className="ff-profile-pattern-grid" style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:48 }}>
         {/* Decades */}
         {decades && decades.length > 0 && (
@@ -188,9 +191,9 @@ function PatternPanel() {
                 <div key={d.d}>
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:6 }}>
                     <span style={{ fontFamily:'Outfit', fontSize:14, color:HP.text, fontWeight:500 }}>{d.d}</span>
-                    {showShares && <span style={{ fontFamily:'Outfit', fontSize:12, color:HP.textMuted }}>{d.pct}%</span>}
+                    {showShares && <span style={{ fontFamily:'Outfit', fontSize:12, color:INK_LABEL }}>{d.pct}%</span>}
                   </div>
-                  <div style={{ height:2, background:'rgba(255,255,255,0.06)', borderRadius:RADIUS.pill, overflow:'hidden' }}>
+                  <div aria-hidden="true" style={{ height:2, background:'rgba(255,255,255,0.06)', borderRadius:RADIUS.pill, overflow:'hidden' }}>
                     <div style={{ width:`${d.pct}%`, height:'100%', background:HP.purple, opacity:0.7 }} />
                   </div>
                 </div>
@@ -221,9 +224,9 @@ function PatternPanel() {
                 <div key={d.label}>
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:6 }}>
                     <span style={{ fontFamily:'Outfit', fontSize:14, color:HP.text }}>{d.label}</span>
-                    {showShares && <span style={{ fontFamily:'Outfit', fontSize:12, color:HP.textMuted }}>{d.pct}%</span>}
+                    {showShares && <span style={{ fontFamily:'Outfit', fontSize:12, color:INK_LABEL }}>{d.pct}%</span>}
                   </div>
-                  <div style={{ height:2, background:'rgba(255,255,255,0.06)', borderRadius:RADIUS.pill, overflow:'hidden' }}>
+                  <div aria-hidden="true" style={{ height:2, background:'rgba(255,255,255,0.06)', borderRadius:RADIUS.pill, overflow:'hidden' }}>
                     <div style={{ width:`${d.pct}%`, height:'100%', background:HP.pink, opacity:0.7 }} />
                   </div>
                 </div>

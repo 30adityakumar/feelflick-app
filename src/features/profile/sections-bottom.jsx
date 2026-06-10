@@ -4,6 +4,7 @@ import { toPng } from 'html-to-image'
 import { HP, HP_GRAD, RADIUS, USER as USER_DEFAULT } from './data'
 import { ActionButton, SecondaryActionButton } from '@/shared/components/ActionButton'
 import { useProfileData } from './useProfileData'
+import { classifyProfileMaturity, MATURITY } from './derive/profilePresentation'
 
 // FeelFlick — /profile · Directors, Motifs, Trajectory, Decades+Runtime, Mixtape, Skew, Friends, Share card, Footer.
 // All sections read the live context and self-hide when their data source is
@@ -159,8 +160,13 @@ function Trajectory() {
 
 // Decades + Runtime + Daypart — derived from live history
 function PatternPanel() {
-  const { decades, runtime, daypart } = useProfileData();
+  const { decades, runtime, daypart, stats } = useProfileData();
   if ((!decades || decades.length === 0) && !runtime && (!daypart || daypart.length === 0)) return null;
+  // F7.4 small-sample guard: an exact share from a handful of films reads as misleading
+  // precision. Below 5 canonical watched films we keep the labels + relative bars (qualitative)
+  // but suppress the exact percentage. (Per-distribution denominators + "% · X of Y" context are
+  // an F7.5 refinement.)
+  const showShares = (stats?.filmsLogged ?? 0) >= 5;
   const dayTone = (() => {
     if (!daypart?.length) return null;
     const top = [...daypart].sort((a, b) => b.pct - a.pct)[0];
@@ -182,7 +188,7 @@ function PatternPanel() {
                 <div key={d.d}>
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:6 }}>
                     <span style={{ fontFamily:'Outfit', fontSize:14, color:HP.text, fontWeight:500 }}>{d.d}</span>
-                    <span style={{ fontFamily:'Outfit', fontSize:12, color:HP.textMuted }}>{d.pct}%</span>
+                    {showShares && <span style={{ fontFamily:'Outfit', fontSize:12, color:HP.textMuted }}>{d.pct}%</span>}
                   </div>
                   <div style={{ height:2, background:'rgba(255,255,255,0.06)', borderRadius:RADIUS.pill, overflow:'hidden' }}>
                     <div style={{ width:`${d.pct}%`, height:'100%', background:HP.purple, opacity:0.7 }} />
@@ -198,7 +204,7 @@ function PatternPanel() {
           <div>
             <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color:HP.purple, marginBottom:14 }}>Runtime sweet spot</div>
             <div style={{ fontFamily:'Outfit', fontSize:72, fontWeight:200, color:HP.text, letterSpacing:'-0.045em', lineHeight:1 }}>{runtime.median}<span style={{ fontSize:18, color:HP.textMuted, marginLeft:4 }}>min</span></div>
-            <div style={{ marginTop:8, fontSize:12, color:HP.textSoft, fontFamily:'Outfit', fontStyle:'italic' }}>median · {runtime.band} band · {Math.round(runtime.share*100)}% of films</div>
+            <div style={{ marginTop:8, fontSize:12, color:HP.textSoft, fontFamily:'Outfit', fontStyle:'italic' }}>median · {runtime.band} band{showShares ? ` · ${Math.round(runtime.share*100)}% of films` : ''}</div>
             <div style={{ marginTop:20, paddingTop:18, borderTop:`1px solid ${HP.border}`, fontSize:12, color:HP.textMuted, fontFamily:'Outfit', display:'flex', flexDirection:'column', gap:6 }}>
               <div>Shortest: <span style={{ color:HP.textSoft }}>{runtime.shortest.title} · {runtime.shortest.value}m</span></div>
               <div>Longest: <span style={{ color:HP.textSoft }}>{runtime.longest.title} · {runtime.longest.value}m</span></div>
@@ -215,7 +221,7 @@ function PatternPanel() {
                 <div key={d.label}>
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:6 }}>
                     <span style={{ fontFamily:'Outfit', fontSize:14, color:HP.text }}>{d.label}</span>
-                    <span style={{ fontFamily:'Outfit', fontSize:12, color:HP.textMuted }}>{d.pct}%</span>
+                    {showShares && <span style={{ fontFamily:'Outfit', fontSize:12, color:HP.textMuted }}>{d.pct}%</span>}
                   </div>
                   <div style={{ height:2, background:'rgba(255,255,255,0.06)', borderRadius:RADIUS.pill, overflow:'hidden' }}>
                     <div style={{ width:`${d.pct}%`, height:'100%', background:HP.pink, opacity:0.7 }} />
@@ -415,7 +421,7 @@ function FriendsRanked() {
 
 // Shareable card preview — Instagram-story shape
 function ShareCard() {
-  const { user, editorial } = useProfileData();
+  const { user, editorial, stats } = useProfileData();
   const [copied, setCopied] = useState(false);
   const [exporting, setExporting] = useState(false);
   const previewRef = useRef(null);
@@ -423,7 +429,11 @@ function ShareCard() {
   const lastName = (user?.name || USER_DEFAULT.name).split(' ').slice(1).join(' ');
   const filmsLogged = user?.filmsLogged ?? USER_DEFAULT.filmsLogged;
   const hoursWatched = user?.hoursWatched ?? USER_DEFAULT.hoursWatched;
-  const signature = editorial?.signature || USER_DEFAULT.signature;
+  // F7.4: a forming profile must NOT export a generated identity. Above the floor the exported
+  // signature is the generated reflection (labelled); below it, a neutral honest line.
+  const maturity = classifyProfileMaturity({ watchedCount: stats?.filmsLogged ?? filmsLogged, ratedCount: stats?.filmsRated ?? 0 });
+  const hasGenerated = maturity !== MATURITY.FORMING && Boolean(editorial?.signature);
+  const signature = hasGenerated ? editorial.signature : 'Cinematic DNA — still forming.';
   const archetype = Array.isArray(editorial?.archetype) && editorial.archetype.length === 3
     ? editorial.archetype
     : USER_DEFAULT.archetype;
@@ -494,9 +504,12 @@ function ShareCard() {
             <div style={{ fontFamily:'Outfit', fontWeight:300, fontSize:28, color:HP.text, letterSpacing:'-0.04em', lineHeight:1 }}>{firstName}{lastName && <><br/><em style={{ fontStyle:'italic', fontWeight:400, color:HP.textSoft }}>{lastName}.</em></>}</div>
           </div>
           <div style={{ position:'relative' }}>
-            <div style={{ fontFamily:'Outfit', fontSize:14, fontWeight:400, color:HP.text, fontStyle:'italic', letterSpacing:'-0.01em', lineHeight:1.35, marginBottom:14 }}>
+            <div style={{ fontFamily:'Outfit', fontSize:14, fontWeight:400, color:HP.text, fontStyle:'italic', letterSpacing:'-0.01em', lineHeight:1.35, marginBottom: hasGenerated ? 6 : 14 }}>
               &ldquo;{signature}&rdquo;
             </div>
+            {hasGenerated && (
+              <div style={{ fontSize:6, fontWeight:700, letterSpacing:'0.14em', textTransform:'uppercase', color:HP.purple, marginBottom:14 }}>FeelFlick reflection</div>
+            )}
             <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
               {archetype.map(a => (
                 <span key={a} style={{ padding:'3px 7px', borderRadius:3, background:'rgba(167,139,250,0.18)', border:`1px solid ${HP.purple}55`, fontSize:8, color:HP.text, fontFamily:'Outfit', letterSpacing:'0.06em', textTransform:'uppercase' }}>{a}</span>

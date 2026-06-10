@@ -3,6 +3,11 @@ import { useNavigate } from 'react-router-dom'
 import FollowButton from '@/shared/components/FollowButton'
 import { USER as USER_DEFAULT, HP, HP_GRAD, RADIUS } from './data'
 import { useProfileData } from './useProfileData'
+import { classifyProfileMaturity, MATURITY, formatEvidenceSummary } from './derive/profilePresentation'
+
+// F7.4 — honest "still forming" copy when there isn't enough canonical evidence for a generated
+// identity. NOT styled or framed as a generated reflection.
+const FORMING_SUMMARY = 'Your Cinematic DNA is still forming. Watch and rate a few more films to reveal stronger patterns.'
 
 // FeelFlick — /profile · Top sections: masthead, archetype card, mood radar.
 // Edit profile + Share my DNA actions live in the masthead corner — the page
@@ -31,12 +36,21 @@ function formatUpdated(isoString) {
 
 function Masthead() {
   const navigate = useNavigate();
-  const { user, isSelf, viewingUserId, editorial } = useProfileData();
+  const { user, isSelf, viewingUserId, editorial, stats } = useProfileData();
   const name = user?.name || USER_DEFAULT.name;
   const firstName = (name.split(' ')[0] || '').trim();
   const lastName = name.split(' ').slice(1).join(' ').trim();
-  const summary    = editorial?.summary   || USER_DEFAULT.summary;
-  const signature  = editorial?.signature || USER_DEFAULT.signature;
+  // F7.4: maturity gates whether GENERATED identity prose renders. Below the floor (forming) we
+  // never show the LLM summary/signature — even a cached one — only honest "still forming" copy.
+  const watchedCount = stats?.filmsLogged ?? user?.filmsLogged ?? 0;
+  const ratedCount   = stats?.filmsRated ?? 0;
+  const maturity = classifyProfileMaturity({ watchedCount, ratedCount });
+  const hasGenerated = maturity !== MATURITY.FORMING && Boolean(editorial?.summary);
+  const summary    = hasGenerated ? editorial.summary : FORMING_SUMMARY;
+  const signature  = hasGenerated ? (editorial?.signature || null) : null;
+  const evidenceLine = formatEvidenceSummary({ watchedCount, ratedCount });
+  // The deterministic archetype is always real (computed locally from taste signals); show it
+  // once there's any signal, distinct from the generated prose.
   const archetype  = Array.isArray(editorial?.archetype) && editorial.archetype.length === 3
     ? editorial.archetype
     : USER_DEFAULT.archetype;
@@ -119,9 +133,23 @@ function Masthead() {
           <h1 className="ff-profile-masthead-h1" style={{ fontFamily:'Outfit', fontSize:96, lineHeight:0.92, fontWeight:300, letterSpacing:'-0.055em', color:HP.text, margin:0, textWrap:'balance' }}>
             {firstName}{lastName && <> <em style={{ fontStyle:'italic', fontWeight:400, color:HP.textSoft }}>{lastName}</em></>}.
           </h1>
-          <p className="ff-profile-masthead-summary" style={{ marginTop:18, fontFamily:'Outfit, Inter, sans-serif', fontSize:21, fontStyle:'italic', color:HP.textSoft, letterSpacing:'-0.012em', maxWidth:720, textWrap:'pretty' }}>
-            “{summary}”
-          </p>
+          {hasGenerated ? (
+            <>
+              <p id="ff-dna-summary" className="ff-profile-masthead-summary" aria-describedby="ff-dna-provenance" style={{ marginTop:18, fontFamily:'Outfit, Inter, sans-serif', fontSize:21, fontStyle:'italic', color:HP.textSoft, letterSpacing:'-0.012em', maxWidth:720, textWrap:'pretty' }}>
+                “{summary}”
+              </p>
+              <p id="ff-dna-provenance" style={{ marginTop:10, fontSize:11.5, color:HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', letterSpacing:'0.01em', maxWidth:720 }}>
+                <span style={{ color:HP.purple, fontWeight:600 }}>FeelFlick reflection</span> — a generated interpretation of your film activity, not a measured fact.
+              </p>
+            </>
+          ) : (
+            <p className="ff-profile-masthead-summary" style={{ marginTop:18, fontFamily:'Outfit, Inter, sans-serif', fontSize:20, color:HP.textMuted, letterSpacing:'-0.012em', maxWidth:720, textWrap:'pretty', lineHeight:1.5 }}>
+              {summary}
+            </p>
+          )}
+          {evidenceLine && (
+            <p style={{ marginTop:14, fontSize:12, color:HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.03em' }}>{evidenceLine}</p>
+          )}
           <div style={{ marginTop:20, display:'flex', alignItems:'center', gap:14, fontSize:11, color:HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.08em', textTransform:'uppercase', flexWrap:'wrap' }}>
             <span>{user?.handle || USER_DEFAULT.handle}</span>
             <span style={{ width:3, height:3, borderRadius:RADIUS.pill, background:HP.textFaint }} />
@@ -135,21 +163,29 @@ function Masthead() {
 
         {/* Archetype card — deterministic taxonomy from taste fingerprint */}
         <div style={{ padding:'22px 26px', borderRadius:RADIUS.sm, background:'rgba(255,255,255,0.025)', border:`1px solid ${HP.border}`, minWidth:240 }}>
-          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color:HP.purple, marginBottom:14 }}>Archetype</div>
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color:HP.purple, marginBottom:14 }}>Taste pattern</div>
           <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
             {archetype.map((a, i) => (
               <div key={a} style={{ fontFamily:'Outfit', fontSize:i===0?20:16, fontWeight:i===0?500:400, color:i===0?HP.text:HP.textSoft, fontStyle:i===0?'normal':'italic', letterSpacing:'-0.015em' }}>{a}</div>
             ))}
           </div>
+          {/* F7.4: clarify this is computed locally from real signals — derived, not generated. */}
+          <div style={{ marginTop:14, fontSize:10.5, color:HP.textFaint, fontFamily:'Outfit, Inter, sans-serif', fontStyle:'italic', letterSpacing:'0.01em' }}>Derived from your film signals</div>
         </div>
       </div>
 
-      {/* Signature — LLM-generated short caption, falls back to USER_DEFAULT */}
-      <div style={{ marginTop:64, paddingTop:48, borderTop:`1px solid ${HP.border}` }}>
-        <p className="ff-profile-signature" style={{ fontFamily:'Outfit', fontSize:64, lineHeight:1.05, fontWeight:300, letterSpacing:'-0.04em', color:HP.text, margin:0, textWrap:'balance', textAlign:'center' }}>
-          <em style={{ fontStyle:'italic', fontWeight:400, background:HP_GRAD, WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>{signature}</em>
-        </p>
-      </div>
+      {/* Signature — LLM-generated short caption. F7.4: rendered ONLY above the maturity floor
+          (signature is null when forming) and labelled as a FeelFlick reflection. */}
+      {signature && (
+        <div style={{ marginTop:64, paddingTop:48, borderTop:`1px solid ${HP.border}` }}>
+          <p className="ff-profile-signature" style={{ fontFamily:'Outfit', fontSize:64, lineHeight:1.05, fontWeight:300, letterSpacing:'-0.04em', color:HP.text, margin:0, textWrap:'balance', textAlign:'center' }}>
+            <em style={{ fontStyle:'italic', fontWeight:400, background:HP_GRAD, WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>{signature}</em>
+          </p>
+          <p style={{ marginTop:18, textAlign:'center', fontSize:11, color:HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', letterSpacing:'0.03em' }}>
+            <span style={{ color:HP.purple, fontWeight:600 }}>FeelFlick reflection</span> — generated from your film signals, not a measured fact.
+          </p>
+        </div>
+      )}
     </section>
   );
 }

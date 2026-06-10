@@ -4,6 +4,12 @@ import peopleSource from '../usePeopleData.jsx?raw'
 import peopleJsxSource from '../People.jsx?raw'
 import * as peopleData from '../data.js'
 import peopleDataSource from '../data.js?raw'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+
+// people.css read from disk — vitest returns '' for `*.css?raw`, so read the file directly (the same
+// pattern DiscoverResolve.test.jsx uses for discover.css).
+const peopleCssSource = readFileSync(resolve(import.meta.dirname, '../people.css'), 'utf8')
 
 // F7.9 — People taste-match must read the cross-user fingerprint through the narrow authenticated
 // RPC (get_discoverable_taste_profiles), never the now browser-inaccessible projection views. The
@@ -211,5 +217,61 @@ describe('F8.5 — dead social surfaces removed', () => {
     for (const fake of ['Marco Reyes', 'Priya Shah', 'Park Chan-wook', 'airport scene', 'Refn-coded']) {
       expect(peopleDataSource).not.toContain(fake)
     }
+  })
+})
+
+describe('F8.7 — accessibility, contrast, touch targets, responsive', () => {
+  it('exactly one h1, and each rail section is a heading-labelled region', () => {
+    const h1s = peopleJsxSource.match(/<h1\b/g) || []
+    expect(h1s).toHaveLength(1)
+    for (const id of ['ff-people-twins-h', 'ff-people-rising-h', 'ff-people-suggested-h', 'ff-people-search-h']) {
+      expect(peopleJsxSource).toContain(`aria-labelledby="${id}"`)
+      expect(peopleJsxSource).toContain(`id="${id}"`)
+    }
+  })
+
+  it('load-bearing muted card labels use the hardened INK token, not the failing HP.textMuted', () => {
+    // INK ≈ 7.3:1 on #06060a; HP.textMuted (0.45) ≈ 4.1:1 fails AA for small text.
+    expect(peopleJsxSource).toMatch(/const INK = 'rgba\(250,250,250,0\.62\)'/)
+    expect(peopleJsxSource).not.toMatch(/color: HP\.textMuted/) // no weak muted token applied to labels
+    expect(peopleJsxSource).toMatch(/color: INK/)              // INK actually applied
+  })
+
+  it('every actionable People control meets the 44px touch-target floor', () => {
+    // FollowBtn + HideBtn (F8.4) already asserted elsewhere; here: search input, invite, clear.
+    expect(peopleJsxSource).toMatch(/className="ff-people-search-input"[\s\S]{0,200}minHeight: 44/)
+    expect(peopleJsxSource).toMatch(/className="ff-people-invite-btn"[\s\S]{0,160}minHeight: 44/)
+    expect(peopleJsxSource).toMatch(/className="ff-people-clear-btn"[\s\S]{0,200}minHeight: 44/)
+  })
+
+  it('search + clear controls have accessible names and visible focus rings', () => {
+    expect(peopleJsxSource).toMatch(/aria-label="Search for users by name"/)
+    expect(peopleJsxSource).toMatch(/aria-label="Clear search results"/)
+    // the input no longer hard-disables its outline inline; CSS supplies a branded focus-visible ring
+    expect(peopleJsxSource).not.toMatch(/className="ff-people-search-input"[\s\S]{0,200}outline: 'none'/)
+    expect(peopleCssSource).toMatch(/\.ff-people-search-input:focus-visible/)
+    expect(peopleCssSource).toMatch(/\.ff-people-invite-btn:focus-visible/)
+    expect(peopleCssSource).toMatch(/\.ff-people-clear-btn:focus-visible/)
+  })
+
+  it('loading state is announced via aria-busy (without adding a second live region)', () => {
+    expect(peopleJsxSource).toMatch(/aria-busy="true" aria-label="Loading people"/)
+    expect((peopleJsxSource.match(/role="status"/g) || []).length).toBe(1) // still exactly one
+  })
+
+  it('responsive CSS stacks the rails at phone widths and the dead-section rules are gone', () => {
+    expect(peopleCssSource).toMatch(/@media \(max-width: 720px\)/)
+    expect(peopleCssSource).toMatch(/\.ff-people-grid-4 \{[\s\S]{0,80}grid-template-columns: 1fr/)
+    expect(peopleCssSource).toMatch(/\.ff-people-search-form \{[\s\S]{0,80}flex-direction: column/)
+    // F8.5 removed Activity + CrewOverlap → their responsive rules must not linger
+    expect(peopleCssSource).not.toContain('ff-people-activity-row')
+    expect(peopleCssSource).not.toContain('ff-people-crew-grid')
+  })
+
+  it('reduced motion: People introduces no keyframes/JS animation (relies on the global reset)', () => {
+    expect(peopleCssSource).not.toMatch(/@keyframes/)
+    expect(peopleJsxSource).not.toMatch(/framer-motion|requestAnimationFrame\(/)
+    // the only motion is the global-reset-covered button hover transition + Tailwind animate-pulse
+    expect(peopleCssSource).toMatch(/prefers-reduced-motion/)
   })
 })

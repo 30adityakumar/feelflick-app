@@ -24,8 +24,7 @@
   }
 }
 
-/* Smaller tablet (≤ 880px): twin grid 3 → 2 cols, "3-col rails" → 2 cols,
-   crew overlap stacks. */
+/* Smaller tablet (≤ 880px): twin grid 3 → 2 cols, "3-col rails" → 2 cols. */
 @media (max-width: 880px) {
   .ff-people-grid-4 {
     grid-template-columns: repeat(2, 1fr) !important;
@@ -33,10 +32,6 @@
   .ff-people-grid-3 {
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 14px !important;
-  }
-  .ff-people-crew-grid {
-    grid-template-columns: 1fr !important;
-    gap: 24px !important;
   }
 }
 
@@ -50,7 +45,7 @@
     padding-top: 48px !important;
     padding-bottom: 24px !important;
   }
-  /* Hero clamps so "Your taste twins." fits on two lines max instead of three. */
+  /* Hero clamps so "Your taste matches." fits on two lines max instead of three. */
   .ff-people-hero {
     font-size: clamp(44px, 13vw, 72px) !important;
     line-height: 1 !important;
@@ -81,24 +76,27 @@
   .ff-people-search-form > button {
     width: 100% !important;
   }
-  /* Activity row: drop the trailing "X mins ago" column → put it inline
-     under the meta line. */
-  .ff-people-activity-row {
-    grid-template-columns: auto 1fr !important;
-    gap: 12px !important;
-  }
-  .ff-people-activity-row > div:last-child {
-    grid-column: 2 / -1 !important;
-    margin-top: 4px !important;
-    text-align: left !important;
-  }
 }
 
-/* F8.4 — visible focus ring for the follow / hide controls (keyboard + AT) */
+/* F8.4 / F8.7 — visible focus ring for every People interactive control (keyboard + AT). */
 .ff-people-followbtn:focus-visible,
-.ff-people-hidebtn:focus-visible {
+.ff-people-hidebtn:focus-visible,
+.ff-people-invite-btn:focus-visible,
+.ff-people-clear-btn:focus-visible {
   outline: 2px solid #A78BFA;
   outline-offset: 2px;
   border-radius: 999px;
 }
 .ff-people-hidebtn:hover { color: rgba(250, 250, 250, 0.85); }
+
+/* F8.7 — the search input had outline:none inline; give it an explicit, branded focus ring + border. */
+.ff-people-search-input:focus-visible {
+  outline: 2px solid #A78BFA;
+  outline-offset: 1px;
+  border-color: rgba(167, 139, 250, 0.6);
+}
+
+/* F8.7 — reduced motion: People adds NO JS animation. The only motion is the button hover-brightness
+   transition above + the loading skeleton's Tailwind .animate-pulse; both are neutralised by the
+   global @media (prefers-reduced-motion: reduce) reset in src/index.css (transition-duration +
+   animation-duration → ~0). No People-specific guard is required; documented here for auditability. */

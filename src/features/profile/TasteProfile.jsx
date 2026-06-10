@@ -44,7 +44,9 @@ function SelfProfile({ authUser }) {
 
   return (
     <ProfileDataProvider value={{ ...data, isSelf: true, viewingUserId: authUser?.id }}>
-      <div className="ff-profile-v2" style={{ minHeight:'100vh', background: HP.bgDeep, color: HP.text, fontFamily:'Inter, sans-serif', position:'relative' }}>
+      {/* F7.5: a labelled, focusable region inside AppShell's main — the Cinematic DNA skip
+          target. (AppShell owns the page-level <main>; we do not nest a second one.) */}
+      <div className="ff-profile-v2" id="cinematic-dna-content" tabIndex={-1} role="region" aria-label="Cinematic DNA" style={{ minHeight:'100vh', background: HP.bgDeep, color: HP.text, fontFamily:'Inter, sans-serif', position:'relative', outline:'none' }}>
         <div style={{ maxWidth:1440, margin:'0 auto' }}>
           <Masthead />
           <QuickStats />
@@ -94,11 +96,14 @@ function PrivateProfile() {
   )
 }
 
+// F7.5: honest loading status — one polite live region, aria-busy, screen-reader text, and the
+// decorative skeleton geometry hidden from assistive tech. No fake progress percentage.
 function PageSkeleton() {
   const pulse = { background: 'rgba(255,255,255,0.04)' }
   return (
-    <div className="ff-profile-v2" style={{ minHeight:'100vh', background: HP.bgDeep, color: HP.text, fontFamily:'Inter, sans-serif' }}>
-      <div style={{ maxWidth:1440, margin:'0 auto', padding:'80px 88px' }}>
+    <div className="ff-profile-v2" role="status" aria-live="polite" aria-busy="true" style={{ minHeight:'100vh', background: HP.bgDeep, color: HP.text, fontFamily:'Inter, sans-serif' }}>
+      <span className="sr-only">Loading your Cinematic DNA…</span>
+      <div aria-hidden="true" style={{ maxWidth:1440, margin:'0 auto', padding:'80px 88px' }}>
         <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:30 }}>
           <div className="animate-pulse" style={{ ...pulse, height:12, width:280, borderRadius:999 }} />
         </div>

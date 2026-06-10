@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import FollowButton from '@/shared/components/FollowButton'
 import { USER as USER_DEFAULT, HP, HP_GRAD, RADIUS } from './data'
 import { useProfileData } from './useProfileData'
-import { classifyProfileMaturity, MATURITY, formatEvidenceSummary } from './derive/profilePresentation'
+import { classifyProfileMaturity, MATURITY, formatEvidenceSummary, INK_LABEL } from './derive/profilePresentation'
 
 // F7.4 — honest "still forming" copy when there isn't enough canonical evidence for a generated
 // identity. NOT styled or framed as a generated reflection.
@@ -138,7 +138,7 @@ function Masthead() {
               <p id="ff-dna-summary" className="ff-profile-masthead-summary" aria-describedby="ff-dna-provenance" style={{ marginTop:18, fontFamily:'Outfit, Inter, sans-serif', fontSize:21, fontStyle:'italic', color:HP.textSoft, letterSpacing:'-0.012em', maxWidth:720, textWrap:'pretty' }}>
                 “{summary}”
               </p>
-              <p id="ff-dna-provenance" style={{ marginTop:10, fontSize:11.5, color:HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', letterSpacing:'0.01em', maxWidth:720 }}>
+              <p id="ff-dna-provenance" style={{ marginTop:10, fontSize:11.5, color:INK_LABEL, fontFamily:'Outfit, Inter, sans-serif', letterSpacing:'0.01em', maxWidth:720 }}>
                 <span style={{ color:HP.purple, fontWeight:600 }}>FeelFlick reflection</span> — a generated interpretation of your film activity, not a measured fact.
               </p>
             </>
@@ -148,7 +148,7 @@ function Masthead() {
             </p>
           )}
           {evidenceLine && (
-            <p style={{ marginTop:14, fontSize:12, color:HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.03em' }}>{evidenceLine}</p>
+            <p style={{ marginTop:14, fontSize:12, color:INK_LABEL, fontFamily:'Outfit', letterSpacing:'0.03em' }}>{evidenceLine}</p>
           )}
           <div style={{ marginTop:20, display:'flex', alignItems:'center', gap:14, fontSize:11, color:HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.08em', textTransform:'uppercase', flexWrap:'wrap' }}>
             <span>{user?.handle || USER_DEFAULT.handle}</span>
@@ -170,7 +170,7 @@ function Masthead() {
             ))}
           </div>
           {/* F7.4: clarify this is computed locally from real signals — derived, not generated. */}
-          <div style={{ marginTop:14, fontSize:10.5, color:HP.textFaint, fontFamily:'Outfit, Inter, sans-serif', fontStyle:'italic', letterSpacing:'0.01em' }}>Derived from your film signals</div>
+          <div style={{ marginTop:14, fontSize:10.5, color:INK_LABEL, fontFamily:'Outfit, Inter, sans-serif', fontStyle:'italic', letterSpacing:'0.01em' }}>Derived from your film signals</div>
         </div>
       </div>
 
@@ -179,9 +179,9 @@ function Masthead() {
       {signature && (
         <div style={{ marginTop:64, paddingTop:48, borderTop:`1px solid ${HP.border}` }}>
           <p className="ff-profile-signature" style={{ fontFamily:'Outfit', fontSize:64, lineHeight:1.05, fontWeight:300, letterSpacing:'-0.04em', color:HP.text, margin:0, textWrap:'balance', textAlign:'center' }}>
-            <em style={{ fontStyle:'italic', fontWeight:400, background:HP_GRAD, WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>{signature}</em>
+            <em style={{ fontStyle:'italic', fontWeight:400, color:HP.text, background:HP_GRAD, WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>{signature}</em>
           </p>
-          <p style={{ marginTop:18, textAlign:'center', fontSize:11, color:HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', letterSpacing:'0.03em' }}>
+          <p style={{ marginTop:18, textAlign:'center', fontSize:11, color:INK_LABEL, fontFamily:'Outfit, Inter, sans-serif', letterSpacing:'0.03em' }}>
             <span style={{ color:HP.purple, fontWeight:600 }}>FeelFlick reflection</span> — generated from your film signals, not a measured fact.
           </p>
         </div>
@@ -218,8 +218,11 @@ function QuickStats() {
 }
 
 // Mood Radar — derived from taste_fingerprint via useProfileData
+// F7.5: rank descriptor instead of an unexplained raw weight (e.g. "74").
+const moodRank = (i) => (i === 0 ? 'strongest signal' : i < 3 ? 'strong signal' : 'developing signal');
+
 function MoodRadar() {
-  const { moods } = useProfileData();
+  const { moods, stats } = useProfileData();
   const [in_, setIn] = useState(false);
   const ref = useRef(null);
   useEffect(() => {
@@ -239,34 +242,37 @@ function MoodRadar() {
   const anim = in_ ? target : moods.map(()=>0);
 
   return (
-    <section ref={ref} className="ff-profile-section" style={{ padding:'88px', borderTop:`1px solid ${HP.border}`, background:'rgba(255,255,255,0.012)' }}>
+    <section ref={ref} aria-labelledby="ff-mood-title" className="ff-profile-section" style={{ padding:'88px', borderTop:`1px solid ${HP.border}`, background:'rgba(255,255,255,0.012)' }}>
       <div className="ff-profile-mood-grid" style={{ display:'grid', gridTemplateColumns:'1fr 1.2fr', gap:80, alignItems:'center' }}>
         <div>
           <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:HP.purple, marginBottom:18, display:'inline-flex', alignItems:'center', gap:10 }}>
-            <span style={{ height:1, width:22, background:HP.purple, opacity:0.6 }} />Mood signature
+            <span aria-hidden="true" style={{ height:1, width:22, background:HP.purple, opacity:0.6 }} />Mood signature
           </div>
-          <h2 className="ff-profile-section-h2" style={{ fontFamily:'Outfit', fontSize:52, lineHeight:1, fontWeight:500, letterSpacing:'-0.04em', color:HP.text, margin:0, textWrap:'balance' }}>
+          <h2 id="ff-mood-title" className="ff-profile-section-h2" style={{ fontFamily:'Outfit', fontSize:52, lineHeight:1, fontWeight:500, letterSpacing:'-0.04em', color:HP.text, margin:0, textWrap:'balance' }}>
             How you <em style={{ fontStyle:'italic', fontWeight:400, color:HP.textSoft }}>feel cinema.</em>
           </h2>
-          <p style={{ marginTop:18, fontSize:15, lineHeight:1.7, color:HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', maxWidth:380 }}>
-            Top {moods.length} weighted moods, distilled from every film you&rsquo;ve logged.
+          {/* F7.5: the ordered mood list IS the chart's text equivalent — strongest-first, with
+              each film count as the denominator and a rank word instead of a raw weight number. */}
+          <p id="ff-mood-summary" style={{ marginTop:18, fontSize:15, lineHeight:1.7, color:INK_LABEL, fontFamily:'Outfit, Inter, sans-serif', maxWidth:380 }}>
+            Your strongest film-tone signals are {moods.slice(0,3).map(m => m.name).join(', ')}{stats?.filmsLogged ? ` — derived from ${stats.filmsLogged} watched film${stats.filmsLogged === 1 ? '' : 's'}, patterns rather than measured facts` : ''}.
           </p>
-          <div style={{ marginTop:24, display:'flex', flexDirection:'column', gap:8 }}>
-            {moods.map(m => (
-              <div key={m.name} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'8px 12px', borderRadius:RADIUS.sm }}>
+          <ol style={{ marginTop:24, display:'flex', flexDirection:'column', gap:8, listStyle:'none', padding:0 }}>
+            {moods.map((m, i) => (
+              <li key={m.name} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'8px 12px', borderRadius:RADIUS.sm }}>
                 <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                  <span style={{ width:8, height:8, borderRadius:RADIUS.pill, background:m.hex }} />
+                  <span aria-hidden="true" style={{ width:8, height:8, borderRadius:RADIUS.pill, background:m.hex }} />
                   <span style={{ fontFamily:'Outfit', fontSize:14, fontWeight:500, color:HP.text }}>{m.name}</span>
-                  <span style={{ fontSize:11, color:HP.textFaint, fontFamily:'Outfit' }}>· {m.count} films</span>
+                  <span style={{ fontSize:11, color:INK_LABEL, fontFamily:'Outfit' }}>· {m.count} film{m.count === 1 ? '' : 's'}</span>
                 </div>
-                <span style={{ fontFamily:'Outfit', fontSize:13, color:HP.textMuted }}>{Math.round(m.weight*100)}</span>
-              </div>
+                <span style={{ fontFamily:'Outfit', fontSize:12, color:INK_LABEL, letterSpacing:'0.02em' }}>{moodRank(i)}</span>
+              </li>
             ))}
-          </div>
+          </ol>
         </div>
 
-        <div className="ff-profile-mood-radar" style={{ position:'relative', width:420, height:420, margin:'0 auto' }}>
-          <svg viewBox="0 0 400 400" style={{ width:'100%', height:'100%' }}>
+        {/* Decorative geometry — the ordered list above is the accessible equivalent. */}
+        <figure aria-labelledby="ff-mood-title" aria-describedby="ff-mood-summary" className="ff-profile-mood-radar" style={{ position:'relative', width:420, height:420, margin:'0 auto' }}>
+          <svg aria-hidden="true" viewBox="0 0 400 400" style={{ width:'100%', height:'100%' }}>
             {[0.25,0.5,0.75,1].map((r,i) => {
               const p = moods.map((_,j) => {
                 const a = -Math.PI/2 + (j/n)*Math.PI*2;
@@ -291,7 +297,7 @@ function MoodRadar() {
               return <text key={i} x={cx+Math.cos(a)*(R+28)} y={cy+Math.sin(a)*(R+28)} textAnchor="middle" dominantBaseline="middle" style={{ fontFamily:'Outfit', fontSize:13, fontWeight:500, fill:HP.textSoft, letterSpacing:'0.02em' }}>{m.name}</text>;
             })}
           </svg>
-        </div>
+        </figure>
       </div>
     </section>
   );

@@ -5,7 +5,6 @@
 // the provider's optimistic toggleFollow.
 
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 import { usePageMeta } from '@/shared/hooks/usePageMeta'
@@ -210,8 +209,7 @@ function useRailHide(visibleCards) {
 }
 
 function TwinsRail() {
-  const { twins, popular, follow, unfollow, isPending, isErrored, isHidden, loading } = usePeopleData()
-  const navigate = useNavigate()
+  const { twins, follow, unfollow, isPending, isErrored, isHidden, loading } = usePeopleData()
   const visibleTwins = twins.filter(p => !isHidden(p.id))
   const { containerRef, onHide } = useRailHide(visibleTwins)
 
@@ -219,11 +217,9 @@ function TwinsRail() {
     <section className="ff-people-section ff-people-twins" style={{ padding: '24px 88px 56px' }}>
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 24, gap: 16, flexWrap: 'wrap' }}>
         <div>
-          <Eyebrow rule size={10} style={{ marginBottom: 12 }}>{twins.length === 0 && popular.length > 0 ? 'Popular on FeelFlick' : 'Strongest matches'}</Eyebrow>
+          <Eyebrow rule size={10} style={{ marginBottom: 12 }}>Strongest matches</Eyebrow>
           <h2 className="ff-people-h2" style={{ fontFamily: 'Outfit', fontSize: 36, lineHeight: 1, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>
-            {twins.length === 0 && popular.length > 0
-              ? <>Start with the <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>most-watched.</em></>
-              : <>People who <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>get it.</em></>}
+            People who <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>get it.</em>
           </h2>
         </div>
       </div>
@@ -233,26 +229,10 @@ function TwinsRail() {
             <div key={i} style={{ height: 220, borderRadius: 8, background: 'rgba(255,255,255,0.025)', border: `1px solid ${HP.border}` }} className="animate-pulse" />
           ))}
         </div>
-      ) : twins.length === 0 && popular.length === 0 ? (
+      ) : visibleTwins.length === 0 ? (
+        // F8.5: no fabricated Popular fallback — when nobody is discoverable (or all are hidden), show
+        // the honest empty state rather than a dead popularity rail.
         <ColdStartHero />
-      ) : twins.length === 0 ? (
-        // Cold-start: substitute Popular cards. Different shape from twins
-        // (no match%) so the user knows these aren't compatibility-matched.
-        <>
-          <ColdStartHint />
-          <div className="ff-people-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16, marginTop: 20 }}>
-            {popular.map(p => (
-              <article key={p.id} style={{ padding: '18px 20px', borderRadius: 6, background: 'rgba(255,255,255,0.025)', border: `1px solid ${HP.border}`, display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: 14, alignItems: 'center' }}>
-                <Avatar url={p.avatarUrl} initial={p.initial} bg={p.avatarBg} size={42} onClick={() => navigate('/people')} alt={`View ${p.name}'s profile`} />
-                <div style={{ minWidth: 0 }}>
-                  <button type="button" onClick={() => navigate('/people')} style={{ ...RESET_BTN, fontFamily: 'Outfit', fontSize: 15, fontWeight: 500, color: HP.text, display: 'block', width: '100%', textAlign: 'left' }}>{p.name}</button>
-                  <div style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.bio}</div>
-                </div>
-                <FollowBtn id={p.id} following={false} pending={isPending(p.id)} errored={isErrored(p.id)} name={p.name} onFollow={() => follow(p.id, p.name)} onUnfollow={() => unfollow(p.id, p.name)} />
-              </article>
-            ))}
-          </div>
-        </>
       ) : (
         <div ref={containerRef} tabIndex={-1} className="ff-people-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 18, outline: 'none' }}>
           {visibleTwins.map(p => (
@@ -260,20 +240,14 @@ function TwinsRail() {
               <div style={{ position: 'absolute', top: -30, right: -30, width: 120, height: 120, borderRadius: 999, background: `radial-gradient(circle, ${p.avatarBg}33, transparent 70%)`, filter: 'blur(8px)' }} />
               <div style={{ position: 'relative' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 18, gap: 12 }}>
-                  <Avatar url={p.avatarUrl} initial={p.initial} bg={p.avatarBg} size={48} onClick={() => navigate('/people')} alt={`View ${p.name}'s profile`} />
+                  <Avatar url={p.avatarUrl} initial={p.initial} bg={p.avatarBg} size={48} alt="" />
                   <div style={{ textAlign: 'right', maxWidth: 150 }}>
                     <div style={{ fontFamily: 'Outfit', fontSize: 14, fontWeight: 500, color: p.matchPresentation.qualified ? HP.text : HP.textMuted, letterSpacing: '-0.01em', lineHeight: 1.25 }}>{p.matchPresentation.band || p.matchPresentation.caption}</div>
                     {p.matchPresentation.evidence && <div style={{ fontSize: 10, color: HP.textMuted, fontFamily: 'Outfit', marginTop: 3 }}>{p.matchPresentation.evidence}</div>}
                   </div>
                 </div>
                 {p.matchPresentation.qualified && <div aria-hidden="true"><MatchBar pct={p.match} hex={p.avatarBg} /></div>}
-                <button
-                  type="button"
-                  onClick={() => navigate('/people')}
-                  style={{ ...RESET_BTN, marginTop: 16, fontFamily: 'Outfit', fontSize: 18, fontWeight: 500, color: HP.text, letterSpacing: '-0.015em', display: 'block', width: '100%' }}
-                >
-                  {p.name}
-                </button>
+                <div style={{ marginTop: 16, fontFamily: 'Outfit', fontSize: 18, fontWeight: 500, color: HP.text, letterSpacing: '-0.015em' }}>{p.name}</div>
                 <div style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit', marginTop: 2 }}>{p.handle}</div>
                 {p.bio && <p style={{ margin: '12px 0 0 0', fontSize: 12, color: HP.textSoft, fontFamily: 'Outfit, Inter, sans-serif', lineHeight: 1.5 }}>{p.bio}</p>}
                 <div style={{ marginTop: 14, paddingTop: 14, borderTop: `1px solid ${HP.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
@@ -291,17 +265,8 @@ function TwinsRail() {
 
 // Cold-start guidance that sits above the Popular rail. Tells the user
 // "twins are computed from your ratings — here's a head start while you log."
-function ColdStartHint() {
-  return (
-    <div style={{ padding: '14px 18px', borderRadius: 6, background: 'rgba(167,139,250,0.06)', border: `1px solid ${HP.purple}33`, fontSize: 13, color: HP.textSoft, fontFamily: 'Outfit, Inter, sans-serif', lineHeight: 1.55 }}>
-      <strong style={{ color: HP.text, fontWeight: 500 }}>Matches unlock as you rate.</strong>{' '}
-      Rate ~12 films and we&rsquo;ll surface people whose film taste overlaps with yours. Until then, here&rsquo;s who&rsquo;s active.
-    </div>
-  )
-}
-
-// Wholly empty state — no twins AND no Popular fallback (means no other
-// active users on the platform at all). Rare, but render gracefully.
+// F8.5: honest empty state — no one discoverable yet (or all suggestions hidden this session). No
+// fabricated Popular/Activity fallback is shown to avoid an empty page.
 function ColdStartHero() {
   return (
     <EmptyState
@@ -313,7 +278,6 @@ function ColdStartHero() {
 
 function Rising() {
   const { rising, follow, unfollow, isPending, isErrored, isHidden, loading } = usePeopleData()
-  const navigate = useNavigate()
   const visibleRising = rising.filter(p => !isHidden(p.id))
   if (!loading && visibleRising.length === 0) return null
 
@@ -328,15 +292,9 @@ function Rising() {
       <div className="ff-people-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16 }}>
         {visibleRising.map(p => (
           <div key={p.id} style={{ padding: '18px 20px', borderRadius: 6, background: 'rgba(255,255,255,0.025)', border: `1px solid ${HP.border}`, display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: 16, alignItems: 'center' }}>
-            <Avatar url={p.avatarUrl} initial={p.initial} bg={p.avatarBg} size={42} onClick={() => navigate('/people')} alt={`View ${p.name}'s profile`} />
+            <Avatar url={p.avatarUrl} initial={p.initial} bg={p.avatarBg} size={42} alt="" />
             <div style={{ minWidth: 0 }}>
-              <button
-                type="button"
-                onClick={() => navigate('/people')}
-                style={{ ...RESET_BTN, fontFamily: 'Outfit', fontSize: 14, fontWeight: 500, color: HP.text, display: 'block', width: '100%' }}
-              >
-                {p.name}
-              </button>
+              <div style={{ fontFamily: 'Outfit', fontSize: 14, fontWeight: 500, color: HP.text }}>{p.name}</div>
               <div style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.bio}</div>
               {p.matchPresentation.qualified && <div style={{ marginTop: 8 }} aria-hidden="true"><MatchBar pct={p.match} hex={p.avatarBg} /></div>}
               <div style={{ marginTop: 6, fontSize: 10, color: HP.textMuted, fontFamily: 'Outfit', letterSpacing: '0.04em' }}>{p.matchPresentation.evidence || p.matchPresentation.band || p.matchPresentation.caption}</div>
@@ -349,82 +307,8 @@ function Rising() {
   )
 }
 
-function Activity() {
-  const { activity, loading, user, followingIds } = usePeopleData()
-  const navigate = useNavigate()
-  if (!loading && activity.length === 0) return null
-  // Section title reflects the data source: when the user has 0 follows we
-  // fall back to twin-derived activity, so call it "in your network" — true
-  // for both modes. (When they DO follow people, those events still appear
-  // because followingIds takes precedence in the data layer.)
-  const heading = user.following > 0
-    ? <>Recent from <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>people you follow.</em></>
-    : <>Recent from <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>your taste matches.</em></>
-  return (
-    <section className="ff-people-section ff-people-activity" style={{ padding: '56px 88px', borderTop: `1px solid ${HP.border}` }}>
-      <div style={{ marginBottom: 24 }}>
-        <Eyebrow rule size={10} style={{ marginBottom: 12 }}>Activity</Eyebrow>
-        <h2 className="ff-people-h2" style={{ fontFamily: 'Outfit', fontSize: 36, lineHeight: 1, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>{heading}</h2>
-        {followingIds.size === 0 && (
-          <p style={{ marginTop: 10, fontSize: 12, color: HP.textMuted, fontFamily: 'Outfit, Inter, sans-serif', fontStyle: 'italic' }}>
-            Follow your twins to surface their activity here.
-          </p>
-        )}
-      </div>
-      <div style={{ borderTop: `1px solid ${HP.border}` }}>
-        {activity.map((a, i) => (
-          <div key={i} className="ff-people-activity-row" style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: 18, alignItems: 'flex-start', padding: '20px 0', borderBottom: `1px solid ${HP.border}` }}>
-            <Avatar url={a.whoAvatarUrl} initial={a.who.charAt(0).toUpperCase()} bg={a.whoBg} size={36} onClick={a.whoId ? () => navigate('/people') : undefined} alt={`View ${a.who}'s profile`} />
-            <div>
-              <div style={{ fontFamily: 'Outfit, Inter, sans-serif', fontSize: 14, color: HP.textSoft }}>
-                <span style={{ color: HP.text, fontWeight: 600, fontFamily: 'Outfit' }}>{a.who}</span> {a.action} <span style={{ color: HP.text, fontWeight: 600, fontStyle: 'italic' }}>{a.film}</span>
-                {a.rating && (
-                  <span style={{ marginLeft: 10, display: 'inline-flex', gap: 2, verticalAlign: 'middle' }}>
-                    {[1, 2, 3, 4, 5].map(i => <svg key={i} width="11" height="11" viewBox="0 0 24 24" fill={i <= a.rating ? HP.amber : 'transparent'} stroke={i <= a.rating ? HP.amber : HP.textFaint} strokeWidth="1.5"><path d="M12 2l3 7 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z" /></svg>)}
-                  </span>
-                )}
-              </div>
-              {a.sub && <div style={{ marginTop: 4, fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit', fontStyle: 'italic' }}>{a.sub}</div>}
-              {a.note && <p style={{ margin: '10px 0 0 0', fontSize: 13, lineHeight: 1.55, color: HP.textSoft, fontFamily: 'Outfit, Inter, sans-serif', fontStyle: 'italic', borderLeft: `2px solid ${a.whoBg}55`, paddingLeft: 12 }}>&ldquo;{a.note}&rdquo;</p>}
-            </div>
-            <div style={{ fontSize: 10, color: HP.textFaint, fontFamily: 'Outfit', letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{a.when}</div>
-          </div>
-        ))}
-      </div>
-    </section>
-  )
-}
-
-function CrewOverlap() {
-  const { crewOverlap, loading, followingIds } = usePeopleData()
-  if (!loading && crewOverlap.length === 0) return null
-  const sub = followingIds.size > 0
-    ? 'Where your taste graph overlaps with the people you follow.'
-    : 'Where your taste graph overlaps with the people whose film taste matches yours.'
-  return (
-    <section className="ff-people-section ff-people-crew" style={{ padding: '56px 88px', borderTop: `1px solid ${HP.border}`, background: 'rgba(255,255,255,0.012)' }}>
-      <div className="ff-people-crew-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1.6fr', gap: 64, alignItems: 'flex-start' }}>
-        <div>
-          <Eyebrow size={10} style={{ marginBottom: 12 }}>Shared lineage</Eyebrow>
-          <h2 className="ff-people-h2" style={{ fontFamily: 'Outfit', fontSize: 32, lineHeight: 1.05, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>Directors you <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>share.</em></h2>
-          <p style={{ marginTop: 14, fontSize: 13, color: HP.textMuted, fontFamily: 'Outfit, Inter, sans-serif', lineHeight: 1.55, maxWidth: 320 }}>{sub}</p>
-        </div>
-        <div style={{ borderTop: `1px solid ${HP.border}` }}>
-          {crewOverlap.map(c => (
-            <div key={c.name} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 24, alignItems: 'center', padding: '16px 0', borderBottom: `1px solid ${HP.border}` }}>
-              <div style={{ fontFamily: 'Outfit', fontSize: 18, fontWeight: 500, color: HP.text, letterSpacing: '-0.015em' }}>{c.name}</div>
-              <div style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit', letterSpacing: '0.04em', textAlign: 'right' }}>{c.friends} shared · {c.you}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
 function Suggested() {
   const { suggested, follow, unfollow, isPending, isErrored, isHidden, loading } = usePeopleData()
-  const navigate = useNavigate()
   const visibleSuggested = suggested.filter(p => !isHidden(p.id))
   const { containerRef, onHide } = useRailHide(visibleSuggested)
   if (!loading && visibleSuggested.length === 0) return null
@@ -438,15 +322,9 @@ function Suggested() {
       <div ref={containerRef} tabIndex={-1} className="ff-people-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16, outline: 'none' }}>
         {visibleSuggested.map(p => (
           <div key={p.id} style={{ padding: '18px 20px', borderRadius: 6, background: 'rgba(255,255,255,0.025)', border: `1px solid ${HP.border}`, display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: 16, alignItems: 'center' }}>
-            <Avatar url={p.avatarUrl} initial={p.initial} bg={p.avatarBg} size={42} onClick={() => navigate('/people')} alt={`View ${p.name}'s profile`} />
+            <Avatar url={p.avatarUrl} initial={p.initial} bg={p.avatarBg} size={42} alt="" />
             <div style={{ minWidth: 0 }}>
-              <button
-                type="button"
-                onClick={() => navigate('/people')}
-                style={{ ...RESET_BTN, fontFamily: 'Outfit', fontSize: 15, fontWeight: 500, color: HP.text, display: 'block', width: '100%' }}
-              >
-                {p.name}
-              </button>
+              <div style={{ fontFamily: 'Outfit', fontSize: 15, fontWeight: 500, color: HP.text }}>{p.name}</div>
               <div style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit', marginTop: 2 }}>
                 {p.viaFriend
                   ? <>via <span style={{ color: HP.text }}>{p.viaFriend}</span>{p.matchPresentation?.band ? <> · {p.matchPresentation.band}</> : null}</>
@@ -465,7 +343,6 @@ function Suggested() {
 }
 
 function SearchResults({ results, loading, onClear }) {
-  const navigate = useNavigate()
   const { followingIds, follow, unfollow, isPending, isErrored } = usePeopleData()
   return (
     <section className="ff-people-section ff-people-search-results" style={{ padding: '24px 88px 56px' }}>
@@ -484,15 +361,9 @@ function SearchResults({ results, loading, onClear }) {
         <div className="ff-people-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16 }}>
           {results.map(u => (
             <div key={u.id} style={{ padding: '18px 20px', borderRadius: 6, background: 'rgba(255,255,255,0.025)', border: `1px solid ${HP.border}`, display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: 14, alignItems: 'center' }}>
-              <Avatar url={u.avatarUrl} initial={u.initial} bg={u.avatarBg} size={42} onClick={() => navigate('/people')} alt={`View ${u.name}'s profile`} />
+              <Avatar url={u.avatarUrl} initial={u.initial} bg={u.avatarBg} size={42} alt="" />
               <div style={{ minWidth: 0 }}>
-                <button
-                  type="button"
-                  onClick={() => navigate('/people')}
-                  style={{ ...RESET_BTN, fontFamily: 'Outfit', fontSize: 15, fontWeight: 500, color: HP.text, display: 'block', width: '100%', textAlign: 'left' }}
-                >
-                  {u.name}
-                </button>
+                <div style={{ fontFamily: 'Outfit', fontSize: 15, fontWeight: 500, color: HP.text }}>{u.name}</div>
                 <div style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit', marginTop: 2 }}>{u.handle}</div>
               </div>
               <FollowBtn id={u.id} following={followingIds.has(u.id)} pending={isPending(u.id)} errored={isErrored(u.id)} name={u.name} onFollow={() => follow(u.id, u.name)} onUnfollow={() => unfollow(u.id, u.name)} />
@@ -591,8 +462,6 @@ function PeopleV2Body() {
           <>
             <TwinsRail />
             <Rising />
-            <Activity />
-            <CrewOverlap />
             <Suggested />
           </>
         )}

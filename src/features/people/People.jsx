@@ -90,10 +90,10 @@ function Masthead({ onSearch, query, setQuery }) {
           <Eyebrow tone="meta" weight={500} size={10}>{user.following} following · {user.followers} followers</Eyebrow>
         </div>
         <h1 className="ff-people-hero" style={{ fontFamily: 'Outfit', fontSize: 88, lineHeight: 0.92, fontWeight: 300, letterSpacing: '-0.05em', color: HP.text, margin: 0, textWrap: 'balance' }}>
-          Your <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>taste twins.</em>
+          Your <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>taste matches.</em>
         </h1>
         <p style={{ marginTop: 18, fontFamily: 'Outfit, Inter, sans-serif', fontSize: 17, color: HP.textSoft, fontStyle: 'italic', maxWidth: 680, lineHeight: 1.55 }}>
-          Compatibility, not popularity. Friends whose ratings actually predict yours.
+          People whose film taste overlaps with yours — an estimate from your film activity, not a relationship.
         </p>
         <form
           onSubmit={(e) => { e.preventDefault(); onSearch(query) }}
@@ -209,14 +209,14 @@ function TwinsRail() {
             <article key={p.id} className="ff-people-twin-card" style={{ padding: '26px 24px', borderRadius: 8, background: 'rgba(255,255,255,0.025)', border: `1px solid ${HP.border}`, position: 'relative', overflow: 'hidden' }}>
               <div style={{ position: 'absolute', top: -30, right: -30, width: 120, height: 120, borderRadius: 999, background: `radial-gradient(circle, ${p.avatarBg}33, transparent 70%)`, filter: 'blur(8px)' }} />
               <div style={{ position: 'relative' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 18, gap: 12 }}>
                   <Avatar url={p.avatarUrl} initial={p.initial} bg={p.avatarBg} size={48} onClick={() => navigate('/people')} alt={`View ${p.name}'s profile`} />
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontFamily: 'Outfit', fontSize: 34, fontWeight: 200, color: HP.text, letterSpacing: '-0.045em', lineHeight: 1 }}>{p.match}<span style={{ fontSize: 12, color: HP.textMuted, marginLeft: 1 }}>%</span></div>
-                    <div style={{ fontSize: 9, color: HP.textFaint, fontFamily: 'Outfit', letterSpacing: '0.14em', textTransform: 'uppercase', marginTop: 2 }}>Match</div>
+                  <div style={{ textAlign: 'right', maxWidth: 150 }}>
+                    <div style={{ fontFamily: 'Outfit', fontSize: 14, fontWeight: 500, color: p.matchPresentation.qualified ? HP.text : HP.textMuted, letterSpacing: '-0.01em', lineHeight: 1.25 }}>{p.matchPresentation.band || p.matchPresentation.caption}</div>
+                    {p.matchPresentation.evidence && <div style={{ fontSize: 10, color: HP.textMuted, fontFamily: 'Outfit', marginTop: 3 }}>{p.matchPresentation.evidence}</div>}
                   </div>
                 </div>
-                <MatchBar pct={p.match} hex={p.avatarBg} />
+                {p.matchPresentation.qualified && <div aria-hidden="true"><MatchBar pct={p.match} hex={p.avatarBg} /></div>}
                 <button
                   type="button"
                   onClick={() => navigate('/people')}
@@ -224,7 +224,7 @@ function TwinsRail() {
                 >
                   {p.name}
                 </button>
-                <div style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit', marginTop: 2 }}>{p.handle} · {p.films} film{p.films === 1 ? '' : 's'}</div>
+                <div style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit', marginTop: 2 }}>{p.handle}</div>
                 {p.bio && <p style={{ margin: '12px 0 0 0', fontSize: 12, color: HP.textSoft, fontFamily: 'Outfit, Inter, sans-serif', lineHeight: 1.5 }}>{p.bio}</p>}
                 <div style={{ marginTop: 14, paddingTop: 14, borderTop: `1px solid ${HP.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
                   <div style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit', fontStyle: 'italic' }}>{p.recent}</div>
@@ -244,8 +244,8 @@ function TwinsRail() {
 function ColdStartHint() {
   return (
     <div style={{ padding: '14px 18px', borderRadius: 6, background: 'rgba(167,139,250,0.06)', border: `1px solid ${HP.purple}33`, fontSize: 13, color: HP.textSoft, fontFamily: 'Outfit, Inter, sans-serif', lineHeight: 1.55 }}>
-      <strong style={{ color: HP.text, fontWeight: 500 }}>Twins unlock as you rate.</strong>{' '}
-      Rate ~12 films and we&rsquo;ll match you with people whose ratings actually predict yours. Until then, here&rsquo;s who&rsquo;s watching the most.
+      <strong style={{ color: HP.text, fontWeight: 500 }}>Matches unlock as you rate.</strong>{' '}
+      Rate ~12 films and we&rsquo;ll surface people whose film taste overlaps with yours. Until then, here&rsquo;s who&rsquo;s active.
     </div>
   )
 }
@@ -255,8 +255,8 @@ function ColdStartHint() {
 function ColdStartHero() {
   return (
     <EmptyState
-      label="No taste twins yet"
-      body="Rate a dozen films and we'll match you with people whose taste actually predicts yours."
+      label="No taste matches yet"
+      body="Rate a dozen films and we'll surface people whose film taste overlaps with yours."
     />
   )
 }
@@ -270,8 +270,8 @@ function Rising() {
     <section className="ff-people-section ff-people-rising" style={{ padding: '48px 88px', borderTop: `1px solid ${HP.border}`, background: 'rgba(255,255,255,0.012)' }}>
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
         <div>
-          <Eyebrow rule size={10} style={{ marginBottom: 12 }}>On the rise</Eyebrow>
-          <h2 className="ff-people-h2-sm" style={{ fontFamily: 'Outfit', fontSize: 30, lineHeight: 1, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>Building taste in <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>your direction.</em></h2>
+          <Eyebrow rule size={10} style={{ marginBottom: 12 }}>More matches</Eyebrow>
+          <h2 className="ff-people-h2-sm" style={{ fontFamily: 'Outfit', fontSize: 30, lineHeight: 1, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>More people to <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>discover.</em></h2>
         </div>
       </div>
       <div className="ff-people-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16 }}>
@@ -287,8 +287,8 @@ function Rising() {
                 {p.name}
               </button>
               <div style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.bio}</div>
-              <div style={{ marginTop: 8 }}><MatchBar pct={p.match} hex={p.avatarBg} /></div>
-              <div style={{ marginTop: 6, fontSize: 10, color: HP.textFaint, fontFamily: 'Outfit', letterSpacing: '0.06em' }}>{p.match}% match · {p.recent}</div>
+              {p.matchPresentation.qualified && <div style={{ marginTop: 8 }} aria-hidden="true"><MatchBar pct={p.match} hex={p.avatarBg} /></div>}
+              <div style={{ marginTop: 6, fontSize: 10, color: HP.textMuted, fontFamily: 'Outfit', letterSpacing: '0.04em' }}>{p.matchPresentation.evidence || p.matchPresentation.band || p.matchPresentation.caption}</div>
             </div>
             <FollowBtn following={p.following} onToggle={() => toggleFollow(p.id)} />
           </div>
@@ -307,8 +307,8 @@ function Activity() {
   // for both modes. (When they DO follow people, those events still appear
   // because followingIds takes precedence in the data layer.)
   const heading = user.following > 0
-    ? <>What your <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>circle watched.</em></>
-    : <>What your <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>twins watched.</em></>
+    ? <>Recent from <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>people you follow.</em></>
+    : <>Recent from <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>your taste matches.</em></>
   return (
     <section className="ff-people-section ff-people-activity" style={{ padding: '56px 88px', borderTop: `1px solid ${HP.border}` }}>
       <div style={{ marginBottom: 24 }}>
@@ -349,20 +349,20 @@ function CrewOverlap() {
   if (!loading && crewOverlap.length === 0) return null
   const sub = followingIds.size > 0
     ? 'Where your taste graph overlaps with the people you follow.'
-    : 'Where your taste graph overlaps with your taste twins. Follow them to lock these in.'
+    : 'Where your taste graph overlaps with the people whose film taste matches yours.'
   return (
     <section className="ff-people-section ff-people-crew" style={{ padding: '56px 88px', borderTop: `1px solid ${HP.border}`, background: 'rgba(255,255,255,0.012)' }}>
       <div className="ff-people-crew-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1.6fr', gap: 64, alignItems: 'flex-start' }}>
         <div>
           <Eyebrow size={10} style={{ marginBottom: 12 }}>Shared lineage</Eyebrow>
-          <h2 className="ff-people-h2" style={{ fontFamily: 'Outfit', fontSize: 32, lineHeight: 1.05, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>Directors your <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>circle loves.</em></h2>
+          <h2 className="ff-people-h2" style={{ fontFamily: 'Outfit', fontSize: 32, lineHeight: 1.05, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>Directors you <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>share.</em></h2>
           <p style={{ marginTop: 14, fontSize: 13, color: HP.textMuted, fontFamily: 'Outfit, Inter, sans-serif', lineHeight: 1.55, maxWidth: 320 }}>{sub}</p>
         </div>
         <div style={{ borderTop: `1px solid ${HP.border}` }}>
           {crewOverlap.map(c => (
             <div key={c.name} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 24, alignItems: 'center', padding: '16px 0', borderBottom: `1px solid ${HP.border}` }}>
               <div style={{ fontFamily: 'Outfit', fontSize: 18, fontWeight: 500, color: HP.text, letterSpacing: '-0.015em' }}>{c.name}</div>
-              <div style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit', letterSpacing: '0.04em', textAlign: 'right' }}>{c.friends} {followingIds.size > 0 ? 'friend' : 'twin'}{c.friends === 1 ? '' : 's'} · {c.you}</div>
+              <div style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit', letterSpacing: '0.04em', textAlign: 'right' }}>{c.friends} shared · {c.you}</div>
             </div>
           ))}
         </div>
@@ -396,8 +396,8 @@ function Suggested() {
               </button>
               <div style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit', marginTop: 2 }}>
                 {p.viaFriend
-                  ? <>via <span style={{ color: HP.text }}>{p.viaFriend}</span> · {p.mood}</>
-                  : <>{p.mutuals} films in common · {p.mood}</>}
+                  ? <>via <span style={{ color: HP.text }}>{p.viaFriend}</span>{p.matchPresentation?.band ? <> · {p.matchPresentation.band}</> : null}</>
+                  : <>{p.matchPresentation?.evidence || p.matchPresentation?.band || p.matchPresentation?.caption || 'Suggested for you'}</>}
               </div>
             </div>
             <FollowBtn following={false} onToggle={() => toggleFollow(p.id)} />

@@ -120,10 +120,47 @@ describe('F8.3 — taste-match trust + de-precision (no friendship, no exact %)'
   })
 
   it('the only relationship label is the one-way follow (Follow / Following), never friend', () => {
-    expect(peopleJsxSource).toMatch(/aria-label=\{following \? 'Unfollow' : 'Follow'\}/)
+    // F8.4: the follow control's accessible name is "Follow|Unfollow {name}" — never "friend"
+    expect(peopleJsxSource).toMatch(/following \? 'Unfollow' : 'Follow'/)
+    expect(peopleJsxSource).toMatch(/following \? 'Following' : 'Follow'/) // visible label
   })
 
   it('MatchBar is decorative (aria-hidden) and only shown when the match is evidence-qualified', () => {
     expect(peopleJsxSource).toMatch(/qualified &&[\s\S]{0,80}aria-hidden="true"[\s\S]{0,40}MatchBar/)
+  })
+})
+
+describe('F8.4 — settled follow, button semantics, live region, Hide suggestion', () => {
+  it('no optimistic relationship swap: the provider has no toggleFollow / pre-write state flip', () => {
+    expect(peopleSource).not.toContain('toggleFollow')
+    expect(peopleSource).not.toMatch(/Optimistic UI swap/)
+    expect(peopleSource).toContain('applyFollowState')          // state flips only after settled success
+    expect(peopleSource).toContain('usePeopleFollowActions')
+  })
+
+  it('the follow control exposes aria-pressed, aria-busy, disabled-while-pending, a named label and a 44px target', () => {
+    expect(peopleJsxSource).toMatch(/aria-pressed=\{following\}/)
+    expect(peopleJsxSource).toMatch(/aria-busy=\{pending\}/)
+    expect(peopleJsxSource).toMatch(/disabled=\{pending\}/)
+    expect(peopleJsxSource).toMatch(/aria-label=\{`\$\{following \? 'Unfollow' : 'Follow'\} \$\{name/)
+    expect(peopleJsxSource).toMatch(/minHeight: 44/)
+    // settled, text-based feedback (no spinner-only): Following… / Unfollowing… / Try again
+    expect(peopleJsxSource).toMatch(/Following…|Unfollowing…/)
+    expect(peopleJsxSource).toContain("'Try again'")
+  })
+
+  it('exactly one persistent People status live region (role=status, polite, atomic) bound to relStatus', () => {
+    const regions = peopleJsxSource.match(/role="status"/g) || []
+    expect(regions).toHaveLength(1)
+    expect(peopleJsxSource).toMatch(/role="status"[\s\S]{0,80}aria-live="polite"[\s\S]{0,40}aria-atomic="true"/)
+    expect(peopleJsxSource).toMatch(/>\{relStatus\}</)
+  })
+
+  it('Hide suggestion is a named, 44px control shown only on non-followed discovery cards, with focus recovery', () => {
+    expect(peopleJsxSource).toMatch(/aria-label=\{`Hide \$\{name/)
+    expect(peopleJsxSource).toMatch(/!p\.following && <HideBtn/)        // gated on NOT following
+    expect(peopleJsxSource).toContain('nextFocusId')                   // focus-after-removal
+    expect(peopleJsxSource).toContain('scheduleFocus')
+    expect(peopleJsxSource).toMatch(/className="ff-people-hidebtn"[\s\S]{0,120}minHeight: 44/)
   })
 })

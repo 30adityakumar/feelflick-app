@@ -4,7 +4,7 @@
 // the internal Nav (AppShell owns nav). All follow/unfollow flows through
 // the provider's optimistic toggleFollow.
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/shared/lib/supabase/client'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
@@ -12,6 +12,7 @@ import { usePageMeta } from '@/shared/hooks/usePageMeta'
 import Eyebrow from '@/shared/ui/Eyebrow'
 import { HP, HP_GRAD } from './data'
 import { PeopleDataProvider, usePeopleData } from './usePeopleData'
+import { nextFocusId, scheduleFocus } from './hooks/usePeopleFollowActions'
 import './people.css'
 
 const RESET_BTN = { background: 'none', border: 'none', padding: 0, margin: 0, font: 'inherit', color: 'inherit', cursor: 'pointer', textAlign: 'left' }
@@ -135,14 +136,23 @@ function MatchBar({ pct, hex = '#A78BFA' }) {
   )
 }
 
-function FollowBtn({ following, onToggle, style }) {
+function FollowBtn({ id, following, pending, errored, name, onFollow, onUnfollow, style }) {
+  // Text reflects the SETTLED state: it never reads "Following" until the DB write succeeds.
+  const label = pending ? (following ? 'Unfollowing…' : 'Following…') : errored ? 'Try again' : following ? 'Following' : 'Follow'
   return (
     <button
       type="button"
-      onClick={onToggle}
-      aria-label={following ? 'Unfollow' : 'Follow'}
+      onClick={() => (following ? onUnfollow() : onFollow())}
+      disabled={pending}
+      aria-pressed={following}
+      aria-busy={pending}
+      aria-label={`${following ? 'Unfollow' : 'Follow'} ${name || 'this person'}`}
+      data-follow-target={id}
+      className="ff-people-followbtn"
       style={{
-        padding: '7px 14px',
+        minHeight: 44,
+        minWidth: 44,
+        padding: '0 16px',
         borderRadius: 999,
         background: following ? 'transparent' : HP_GRAD,
         border: following ? `1px solid ${HP.border}` : 'none',
@@ -152,18 +162,58 @@ function FollowBtn({ following, onToggle, style }) {
         fontWeight: 600,
         letterSpacing: '0.08em',
         textTransform: 'uppercase',
-        cursor: 'pointer',
+        cursor: pending ? 'wait' : 'pointer',
+        opacity: pending ? 0.7 : 1,
         ...style,
       }}
     >
-      {following ? 'Following' : 'Follow'}
+      {label}
     </button>
   )
 }
 
+// Quiet tertiary "Hide" on discovery cards. NOT a block: it only removes the suggestion from the
+// caller's current People session (no account change, no notification, no relationship/similarity change).
+function HideBtn({ onHide, name }) {
+  return (
+    <button
+      type="button"
+      onClick={onHide}
+      aria-label={`Hide ${name || 'this person'} from your suggestions`}
+      className="ff-people-hidebtn"
+      style={{ minHeight: 44, minWidth: 44, padding: '0 10px', background: 'transparent', border: 'none', color: HP.textMuted, fontFamily: 'Outfit', fontSize: 10, letterSpacing: '0.04em', cursor: 'pointer' }}
+    >
+      Hide
+    </button>
+  )
+}
+
+// Coordinates session-local hide + deterministic focus recovery for one rail of visible cards.
+// Returns a container ref (stamped on the rail's grid) + an onHide(id) handler.
+function useRailHide(visibleCards) {
+  const { hideSuggestion } = usePeopleData()
+  const containerRef = useRef(null)
+  const cancelFocus = useRef(null)
+  useEffect(() => () => { if (cancelFocus.current) cancelFocus.current() }, [])
+  const onHide = useCallback((id) => {
+    const nextId = nextFocusId(visibleCards.map(c => c.id), id)
+    hideSuggestion(id)
+    if (cancelFocus.current) cancelFocus.current()
+    cancelFocus.current = scheduleFocus(() => {
+      const c = containerRef.current
+      if (!c) return null
+      // focus the next card's Follow control (stable id, never name); else the rail container.
+      return (nextId && c.querySelector(`[data-follow-target="${nextId}"]`)) || c
+    })
+  }, [visibleCards, hideSuggestion])
+  return { containerRef, onHide }
+}
+
 function TwinsRail() {
-  const { twins, popular, toggleFollow, loading } = usePeopleData()
+  const { twins, popular, follow, unfollow, isPending, isErrored, isHidden, loading } = usePeopleData()
   const navigate = useNavigate()
+  const visibleTwins = twins.filter(p => !isHidden(p.id))
+  const { containerRef, onHide } = useRailHide(visibleTwins)
 
   return (
     <section className="ff-people-section ff-people-twins" style={{ padding: '24px 88px 56px' }}>
@@ -198,14 +248,14 @@ function TwinsRail() {
                   <button type="button" onClick={() => navigate('/people')} style={{ ...RESET_BTN, fontFamily: 'Outfit', fontSize: 15, fontWeight: 500, color: HP.text, display: 'block', width: '100%', textAlign: 'left' }}>{p.name}</button>
                   <div style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.bio}</div>
                 </div>
-                <FollowBtn following={false} onToggle={() => toggleFollow(p.id)} />
+                <FollowBtn id={p.id} following={false} pending={isPending(p.id)} errored={isErrored(p.id)} name={p.name} onFollow={() => follow(p.id, p.name)} onUnfollow={() => unfollow(p.id, p.name)} />
               </article>
             ))}
           </div>
         </>
       ) : (
-        <div className="ff-people-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 18 }}>
-          {twins.map(p => (
+        <div ref={containerRef} tabIndex={-1} className="ff-people-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 18, outline: 'none' }}>
+          {visibleTwins.map(p => (
             <article key={p.id} className="ff-people-twin-card" style={{ padding: '26px 24px', borderRadius: 8, background: 'rgba(255,255,255,0.025)', border: `1px solid ${HP.border}`, position: 'relative', overflow: 'hidden' }}>
               <div style={{ position: 'absolute', top: -30, right: -30, width: 120, height: 120, borderRadius: 999, background: `radial-gradient(circle, ${p.avatarBg}33, transparent 70%)`, filter: 'blur(8px)' }} />
               <div style={{ position: 'relative' }}>
@@ -226,9 +276,9 @@ function TwinsRail() {
                 </button>
                 <div style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit', marginTop: 2 }}>{p.handle}</div>
                 {p.bio && <p style={{ margin: '12px 0 0 0', fontSize: 12, color: HP.textSoft, fontFamily: 'Outfit, Inter, sans-serif', lineHeight: 1.5 }}>{p.bio}</p>}
-                <div style={{ marginTop: 14, paddingTop: 14, borderTop: `1px solid ${HP.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-                  <div style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit', fontStyle: 'italic' }}>{p.recent}</div>
-                  <FollowBtn following={p.following} onToggle={() => toggleFollow(p.id)} />
+                <div style={{ marginTop: 14, paddingTop: 14, borderTop: `1px solid ${HP.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+                  {!p.following && <HideBtn onHide={() => onHide(p.id)} name={p.name} />}
+                  <FollowBtn id={p.id} following={p.following} pending={isPending(p.id)} errored={isErrored(p.id)} name={p.name} onFollow={() => follow(p.id, p.name)} onUnfollow={() => unfollow(p.id, p.name)} style={{ marginLeft: 'auto' }} />
                 </div>
               </div>
             </article>
@@ -262,9 +312,10 @@ function ColdStartHero() {
 }
 
 function Rising() {
-  const { rising, toggleFollow, loading } = usePeopleData()
+  const { rising, follow, unfollow, isPending, isErrored, isHidden, loading } = usePeopleData()
   const navigate = useNavigate()
-  if (!loading && rising.length === 0) return null
+  const visibleRising = rising.filter(p => !isHidden(p.id))
+  if (!loading && visibleRising.length === 0) return null
 
   return (
     <section className="ff-people-section ff-people-rising" style={{ padding: '48px 88px', borderTop: `1px solid ${HP.border}`, background: 'rgba(255,255,255,0.012)' }}>
@@ -275,7 +326,7 @@ function Rising() {
         </div>
       </div>
       <div className="ff-people-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16 }}>
-        {rising.map(p => (
+        {visibleRising.map(p => (
           <div key={p.id} style={{ padding: '18px 20px', borderRadius: 6, background: 'rgba(255,255,255,0.025)', border: `1px solid ${HP.border}`, display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: 16, alignItems: 'center' }}>
             <Avatar url={p.avatarUrl} initial={p.initial} bg={p.avatarBg} size={42} onClick={() => navigate('/people')} alt={`View ${p.name}'s profile`} />
             <div style={{ minWidth: 0 }}>
@@ -290,7 +341,7 @@ function Rising() {
               {p.matchPresentation.qualified && <div style={{ marginTop: 8 }} aria-hidden="true"><MatchBar pct={p.match} hex={p.avatarBg} /></div>}
               <div style={{ marginTop: 6, fontSize: 10, color: HP.textMuted, fontFamily: 'Outfit', letterSpacing: '0.04em' }}>{p.matchPresentation.evidence || p.matchPresentation.band || p.matchPresentation.caption}</div>
             </div>
-            <FollowBtn following={p.following} onToggle={() => toggleFollow(p.id)} />
+            <FollowBtn id={p.id} following={p.following} pending={isPending(p.id)} errored={isErrored(p.id)} name={p.name} onFollow={() => follow(p.id, p.name)} onUnfollow={() => unfollow(p.id, p.name)} />
           </div>
         ))}
       </div>
@@ -372,9 +423,11 @@ function CrewOverlap() {
 }
 
 function Suggested() {
-  const { suggested, toggleFollow, loading } = usePeopleData()
+  const { suggested, follow, unfollow, isPending, isErrored, isHidden, loading } = usePeopleData()
   const navigate = useNavigate()
-  if (!loading && suggested.length === 0) return null
+  const visibleSuggested = suggested.filter(p => !isHidden(p.id))
+  const { containerRef, onHide } = useRailHide(visibleSuggested)
+  if (!loading && visibleSuggested.length === 0) return null
 
   return (
     <section className="ff-people-section ff-people-suggested" style={{ padding: '56px 88px', borderTop: `1px solid ${HP.border}` }}>
@@ -382,8 +435,8 @@ function Suggested() {
         <Eyebrow size={10} style={{ marginBottom: 12 }}>Suggested</Eyebrow>
         <h2 className="ff-people-h2-sm" style={{ fontFamily: 'Outfit', fontSize: 30, lineHeight: 1, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>People you <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>might know.</em></h2>
       </div>
-      <div className="ff-people-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16 }}>
-        {suggested.map(p => (
+      <div ref={containerRef} tabIndex={-1} className="ff-people-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16, outline: 'none' }}>
+        {visibleSuggested.map(p => (
           <div key={p.id} style={{ padding: '18px 20px', borderRadius: 6, background: 'rgba(255,255,255,0.025)', border: `1px solid ${HP.border}`, display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: 16, alignItems: 'center' }}>
             <Avatar url={p.avatarUrl} initial={p.initial} bg={p.avatarBg} size={42} onClick={() => navigate('/people')} alt={`View ${p.name}'s profile`} />
             <div style={{ minWidth: 0 }}>
@@ -400,7 +453,10 @@ function Suggested() {
                   : <>{p.matchPresentation?.evidence || p.matchPresentation?.band || p.matchPresentation?.caption || 'Suggested for you'}</>}
               </div>
             </div>
-            <FollowBtn following={false} onToggle={() => toggleFollow(p.id)} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-end' }}>
+              <FollowBtn id={p.id} following={false} pending={isPending(p.id)} errored={isErrored(p.id)} name={p.name} onFollow={() => follow(p.id, p.name)} onUnfollow={() => unfollow(p.id, p.name)} />
+              <HideBtn onHide={() => onHide(p.id)} name={p.name} />
+            </div>
           </div>
         ))}
       </div>
@@ -410,7 +466,7 @@ function Suggested() {
 
 function SearchResults({ results, loading, onClear }) {
   const navigate = useNavigate()
-  const { followingIds, toggleFollow } = usePeopleData()
+  const { followingIds, follow, unfollow, isPending, isErrored } = usePeopleData()
   return (
     <section className="ff-people-section ff-people-search-results" style={{ padding: '24px 88px 56px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
@@ -439,7 +495,7 @@ function SearchResults({ results, loading, onClear }) {
                 </button>
                 <div style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit', marginTop: 2 }}>{u.handle}</div>
               </div>
-              <FollowBtn following={followingIds.has(u.id)} onToggle={() => toggleFollow(u.id)} />
+              <FollowBtn id={u.id} following={followingIds.has(u.id)} pending={isPending(u.id)} errored={isErrored(u.id)} name={u.name} onFollow={() => follow(u.id, u.name)} onUnfollow={() => unfollow(u.id, u.name)} />
             </div>
           ))}
         </div>
@@ -471,6 +527,7 @@ function PeopleV2Body() {
   const [results, setResults] = useState([])
   const [searching, setSearching] = useState(false)
   const { user: authUser } = useAuthSession()
+  const { relStatus } = usePeopleData()
 
   // Debounce 300ms
   useEffect(() => {
@@ -523,6 +580,9 @@ function PeopleV2Body() {
 
   return (
     <div className="ff-people-v2" style={{ minHeight: '100vh', background: HP.bgDeep, color: HP.text, fontFamily: 'Inter, sans-serif' }}>
+      {/* F8.4: single persistent People relationship-status live region — settlement-driven; never
+          announces raw backend text, percentages, or relationship state on unrelated rerenders. */}
+      <div role="status" aria-live="polite" aria-atomic="true" style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap', border: 0 }}>{relStatus}</div>
       <div style={{ maxWidth: 1440, margin: '0 auto' }}>
         <Masthead query={query} setQuery={setQuery} onSearch={setQuery} />
         {hasQuery ? (

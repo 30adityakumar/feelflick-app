@@ -9,6 +9,7 @@
 
 import { supabase } from '@/shared/lib/supabase/client'
 import { dedupeHistoryByMovie } from '@/shared/lib/canonicalHistory'
+import { PROFILE_EVIDENCE_VERSION, isFingerprintVersionCurrent } from '@/shared/lib/profileEvidenceVersion'
 
 // === CONFIG ===
 
@@ -37,13 +38,22 @@ export async function getTasteFingerprint(userId) {
   const isFresh = cached?.taste_fingerprint_computed_at &&
     (now - new Date(cached.taste_fingerprint_computed_at).getTime()) < CACHE_TTL_MS
 
-  if (isFresh && cached.taste_fingerprint) {
+  // F7.6: a cache hit is valid only when it is BOTH within TTL AND carries the current evidence
+  // version. A pre-F7.3 (unversioned) or mismatched-version fingerprint — derived from raw
+  // duplicate history — is stale and is recomputed from canonical history below.
+  if (isFresh && isFingerprintVersionCurrent(cached.taste_fingerprint)) {
     return cached.taste_fingerprint
   }
 
-  // Compute fresh from watch history
-  const result = await computeFingerprint(userId)
-  if (!result) return null
+  // Compute fresh from canonical watch history; stamp the current evidence version.
+  const computed = await computeFingerprint(userId)
+  if (!computed) return null
+  // Preserve a previously-stored editorial version on the same row (the editorial is versioned
+  // independently by the explicit refresh action — recomputing the fingerprint must not drop it).
+  const result = { ...computed, evidenceVersion: PROFILE_EVIDENCE_VERSION }
+  if (cached?.taste_fingerprint?.editorialVersion != null) {
+    result.editorialVersion = cached.taste_fingerprint.editorialVersion
+  }
 
   // Only persist when computing the signed-in user's own fingerprint —
   // RLS on user_profiles_computed (correctly) rejects writes for other

@@ -5,11 +5,12 @@
 // section components consume. Each section hides when its data source is
 // empty.
 
-import { createContext, useContext, useEffect, useState, useCallback } from 'react'
+import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
 import { supabase } from '@/shared/lib/supabase/client'
 import { getTasteFingerprint } from '@/shared/services/tasteCache'
 import { dedupeHistoryByMovie } from '@/shared/lib/canonicalHistory'
 import { classifyProfileMaturity, MATURITY } from './derive/profilePresentation'
+import { PROFILE_EVIDENCE_VERSION, isEditorialVersionCurrent } from '@/shared/lib/profileEvidenceVersion'
 
 import {
   deriveUser, deriveStats, deriveMoods, deriveDirectors, deriveMotifs,
@@ -68,6 +69,39 @@ export function useProfileDataFetch({ userId, authUser, isSelf = false }) {
   // (the existing refetch path), so the safe error UI can offer a real "Try again".
   const [reloadKey, setReloadKey] = useState(0)
   const retry = useCallback(() => setReloadKey(k => k + 1), [])
+
+  // F7.6: explicit editorial refresh. idle | generating | success | error. The inputs the
+  // refresh needs are stashed by the fetch effect (no fetch is repeated); inFlightRef guards
+  // duplicate concurrent calls; mountedRef prevents late-completion state updates after unmount.
+  const [refreshStatus, setRefreshStatus] = useState('idle')
+  const regenInputsRef = useRef(null)
+  const inFlightRef = useRef(false)
+  const mountedRef = useRef(true)
+  useEffect(() => () => { mountedRef.current = false }, [])
+
+  const refreshEditorial = useCallback(async () => {
+    const inputs = regenInputsRef.current
+    // Eligible only for the signed-in user with a non-forming profile — never from forming,
+    // never from a non-self/private view. Duplicate rapid clicks collapse to one call.
+    if (!inputs || !inputs.isSelf || inputs.maturity === MATURITY.FORMING) return
+    if (inFlightRef.current) return
+    inFlightRef.current = true
+    setRefreshStatus('generating')
+    try {
+      const updated = await regenerateEditorial(inputs)
+      if (!updated) throw new Error('refresh_failed')
+      // Success — replace the reflection and mark it current. Prior editorial is only ever
+      // overwritten on success (a failed refresh leaves the last valid reflection intact).
+      if (mountedRef.current) {
+        setState(s => ({ ...s, editorial: { ...s.editorial, ...updated }, editorialStatus: 'current' }))
+        setRefreshStatus('success')
+      }
+    } catch {
+      if (mountedRef.current) setRefreshStatus('error')   // raw backend text never surfaced
+    } finally {
+      inFlightRef.current = false
+    }
+  }, [])
 
   useEffect(() => {
     if (!userId) return
@@ -139,6 +173,20 @@ export function useProfileDataFetch({ userId, authUser, isSelf = false }) {
           generatedAt: storedEditorial?.editorial_generated_at || null,
         }
 
+        // F7.6: classify the cached editorial. It is "current" ONLY when maturity is not forming,
+        // it is within TTL, AND its evidence version matches (stored on taste_fingerprint by the
+        // explicit refresh). A pre-F7.6 editorial has no version → "stale" (kept in memory as a
+        // rollback value, but never presented as the current reflection). No generation happens
+        // here — generation is an explicit user action only.
+        const profileMaturity = classifyProfileMaturity({ watchedCount: canonicalHistory.length, ratedCount: ratings.length })
+        const editorialTtlFresh = editorial.generatedAt && (Date.now() - new Date(editorial.generatedAt).getTime()) < EDITORIAL_TTL_MS
+        const editorialStatus = profileMaturity === MATURITY.FORMING ? 'forming'
+          : (editorial.summary && editorialTtlFresh && isEditorialVersionCurrent(fingerprint)) ? 'current'
+          : editorial.summary ? 'stale'
+          : 'none'
+        // Stash exactly what an explicit refresh needs — no fetch is repeated on refresh.
+        regenInputsRef.current = { userId, history: canonicalHistory, archetypeFromFp, maturity: profileMaturity, isSelf }
+
         // === Friend films count =================================
         // Need per-friend totals for the "X films logged" caption — one
         // grouped query after the similarity results resolve.
@@ -173,6 +221,7 @@ export function useProfileDataFetch({ userId, authUser, isSelf = false }) {
           runtime: deriveRuntime({ history: canonicalHistory }),
           daypart: deriveDaypart({ history: canonicalHistory }),
           editorial,
+          editorialStatus,
           friends: deriveFriends({
             simARows: simARes?.data || [],
             simBRows: simBRes?.data || [],
@@ -185,24 +234,9 @@ export function useProfileDataFetch({ userId, authUser, isSelf = false }) {
           error: null,
         })
 
-        // Self-view: regenerate editorial summary + signature when missing or stale (>24 h).
-        // F7.4: the maturity floor gates GENERATION, not just rendering — a "forming" profile
-        // (too little canonical evidence) never calls the editorial Edge Function or writes the
-        // cache, so the cost + the "identity from one film" trust problem are both avoided.
-        // Archetype is deterministic so it's always live.
-        const profileMaturity = classifyProfileMaturity({ watchedCount: canonicalHistory.length, ratedCount: ratings.length })
-        if (isSelf && shouldRegenerateEditorial(editorial) && profileMaturity !== MATURITY.FORMING) {
-          regenerateEditorial({ userId, history: canonicalHistory, archetypeFromFp })
-            .then((updated) => {
-              if (abort || !updated) return
-              setState((s) => ({ ...s, editorial: { ...s.editorial, ...updated } }))
-            })
-            .catch((err) => {
-              // Never break the page on a regen failure — the stored/fallback
-              // copy keeps rendering.
-              console.warn('[useProfileData] editorial regen failed:', err)
-            })
-        }
+        // F7.6: NO editorial generation on render. Mounting/rerendering the Profile makes ZERO
+        // Edge Function calls and ZERO cache writes — the editorial is (re)generated ONLY by the
+        // explicit refreshEditorial() action below. Structured metrics render independently.
       } catch (e) {
         if (abort) return
         // F7.3: never surface raw backend text to the UI. Diagnostics stay in the console;
@@ -215,7 +249,7 @@ export function useProfileDataFetch({ userId, authUser, isSelf = false }) {
     return () => { abort = true }
   }, [userId, authUser, isSelf, reloadKey])
 
-  return { ...state, retry }
+  return { ...state, retry, refreshStatus, refreshEditorial }
 }
 
 export function ProfileDataProvider({ value, children }) {
@@ -229,13 +263,6 @@ export function useProfileData() {
 }
 
 // === INTERNAL ===
-
-function shouldRegenerateEditorial(editorial) {
-  if (!editorial?.summary || !editorial?.signature) return true
-  if (!editorial.generatedAt) return true
-  const age = Date.now() - new Date(editorial.generatedAt).getTime()
-  return age > EDITORIAL_TTL_MS
-}
 
 async function regenerateEditorial({ userId, history, archetypeFromFp }) {
   const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
@@ -266,21 +293,25 @@ async function regenerateEditorial({ userId, history, archetypeFromFp }) {
   if (!summary && !signature) return null
 
   const generatedAt = new Date().toISOString()
+
+  // Preserve any existing user_profiles_computed.profile row (NOT NULL with no default — bare
+  // upsert 400s when no recommendation profile has been built yet). Also read the existing
+  // taste_fingerprint so we can stamp editorialVersion onto it WITHOUT dropping the fingerprint
+  // data (F7.6: the editorial's evidence version lives on the same row, set only here).
+  const { data: existing } = await supabase
+    .from('user_profiles_computed')
+    .select('user_id, taste_fingerprint')
+    .eq('user_id', userId)
+    .maybeSingle()
+
+  const nextFingerprint = { ...(existing?.taste_fingerprint || {}), editorialVersion: PROFILE_EVIDENCE_VERSION }
   const fields = {
     editorial_summary: summary,
     editorial_signature: signature,
     editorial_archetype: archetypeFromFp,
     editorial_generated_at: generatedAt,
+    taste_fingerprint: nextFingerprint,
   }
-
-  // Preserve any existing user_profiles_computed.profile row (NOT NULL with
-  // no default — bare upsert 400s when no recommendation profile has been
-  // built yet). Same guard pattern as tasteCache.js.
-  const { data: existing } = await supabase
-    .from('user_profiles_computed')
-    .select('user_id')
-    .eq('user_id', userId)
-    .maybeSingle()
 
   if (existing) {
     await supabase.from('user_profiles_computed').update(fields).eq('user_id', userId)

@@ -23,6 +23,7 @@ describe('Masthead — F7.4 provenance + maturity gating', () => {
     renderWith(Masthead, {
       user: { name: 'Ada Lovelace', handle: '@ada', joined: 'May 2026', filmsLogged: 3, hoursWatched: 5 },
       stats: { filmsLogged: 3, filmsRated: 0 },
+      editorialStatus: 'forming',
       editorial: { summary: GEN, signature: SIG, archetype: ['X', 'Y', 'Z'] },
     })
     expect(screen.queryByText(new RegExp(GEN))).not.toBeInTheDocument()       // generated prose suppressed
@@ -36,6 +37,7 @@ describe('Masthead — F7.4 provenance + maturity gating', () => {
     renderWith(Masthead, {
       user: { name: 'Ada Lovelace', handle: '@ada', joined: 'May 2026', filmsLogged: 30, hoursWatched: 60 },
       stats: { filmsLogged: 30, filmsRated: 12 },
+      editorialStatus: 'current',
       editorial: { summary: GEN, signature: SIG, archetype: ['The Watcher', 'The Quiet', 'The Patient'] },
     })
     expect(screen.getByText(new RegExp(GEN))).toBeInTheDocument()
@@ -71,17 +73,19 @@ describe('ShareCard — F7.4 trust alignment', () => {
     renderWith(ShareCard, {
       user: { name: 'Ada Lovelace', filmsLogged: 3, hoursWatched: 5 },
       stats: { filmsLogged: 3, filmsRated: 0 },
+      editorialStatus: 'forming',
       editorial: { signature: SIG, archetype: ['X', 'Y', 'Z'] },
     })
     expect(screen.queryByText(new RegExp(SIG))).not.toBeInTheDocument()
     expect(screen.queryByText(/FeelFlick reflection/i)).not.toBeInTheDocument()
-    expect(screen.getByText(/still forming/i)).toBeInTheDocument()
+    expect(screen.getByText(/A portrait of your film taste/i)).toBeInTheDocument() // neutral structured fallback
     expect(screen.queryByText(/\d+%/)).not.toBeInTheDocument()
   })
   it('ESTABLISHED: exports the generated signature WITH a reflection label, no confidence %', () => {
     renderWith(ShareCard, {
       user: { name: 'Ada Lovelace', filmsLogged: 30, hoursWatched: 60 },
       stats: { filmsLogged: 30, filmsRated: 12 },
+      editorialStatus: 'current',
       editorial: { signature: SIG, archetype: ['The Watcher', 'The Quiet', 'The Patient'] },
     })
     expect(screen.getByText(new RegExp(SIG))).toBeInTheDocument()

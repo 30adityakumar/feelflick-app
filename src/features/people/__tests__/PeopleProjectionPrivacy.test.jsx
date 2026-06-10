@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, waitFor } from '@testing-library/react'
 import peopleSource from '../usePeopleData.jsx?raw'
+import peopleJsxSource from '../People.jsx?raw'
 
 // F7.9 — People taste-match must read the cross-user fingerprint through the narrow authenticated
 // RPC (get_discoverable_taste_profiles), never the now browser-inaccessible projection views. The
@@ -65,5 +66,30 @@ describe('F7.9 — People reads the safe RPC, never the projection views', () =>
     expect(rpcSpy).toHaveBeenCalledWith('get_discoverable_taste_profiles')
     expect(Array.isArray(last.twins)).toBe(true)
     expect(Array.isArray(last.suggested)).toBe(true)
+  })
+})
+
+describe('F8.2 — People resolves cross-user identity via narrow RPCs, never a direct users read', () => {
+  it('uses the identity, search and follow-suggestion RPCs', () => {
+    expect(peopleSource).toContain("rpc('get_people_public_identities'")
+    expect(peopleSource).toContain("rpc('get_follow_suggestions')")
+    expect(peopleJsxSource).toContain("rpc('search_people_by_name'")
+  })
+
+  it('makes ZERO direct public.users reads (no cross-user identity table access)', () => {
+    expect(peopleSource).not.toMatch(/\.from\(\s*['"]users['"]\s*\)/)
+    expect(peopleJsxSource).not.toMatch(/\.from\(\s*['"]users['"]\s*\)/)
+  })
+
+  it('never SELECTs email or last_active_at from any table (identity comes from the id/name/avatar RPC)', () => {
+    for (const src of [peopleSource, peopleJsxSource]) {
+      expect(src).not.toMatch(/\.select\([^)]*email/i)
+      expect(src).not.toMatch(/\.select\([^)]*last_active/i)
+    }
+  })
+
+  it('reads its own follows/followers but NOT the global follow graph (FOF goes through the RPC)', () => {
+    // own-edge reads stay; the only cross-user .in('follower_id', …) graph read is gone (→ RPC)
+    expect(peopleSource).not.toMatch(/from\(\s*['"]user_follows['"]\s*\)[\s\S]{0,120}\.in\(\s*['"]follower_id['"]/)
   })
 })

@@ -213,10 +213,7 @@ export function ListsDataProvider({ children }) {
               .limit(20)
           : Promise.resolve({ data: [] }),
         followingIds.length
-          ? supabase
-              .from('users')
-              .select('id, name')
-              .in('id', followingIds)
+          ? supabase.rpc('get_people_public_identities', { requested_user_ids: followingIds })
           : Promise.resolve({ data: [] }),
         // Public lists from anyone (not my own, not someone I follow).
         // Sort by `updated_at` desc as a proxy for "active"; the deriver
@@ -244,10 +241,7 @@ export function ListsDataProvider({ children }) {
       let authors = new Map((followedAuthorsRes.data || []).map(u => [u.id, u]))
       const missingAuthorIds = allFollowAuthorIds.filter(id => !authors.has(id))
       if (missingAuthorIds.length) {
-        const { data: extra } = await supabase
-          .from('users')
-          .select('id, name')
-          .in('id', missingAuthorIds)
+        const { data: extra } = await supabase.rpc('get_people_public_identities', { requested_user_ids: missingAuthorIds })
         for (const u of (extra || [])) authors.set(u.id, u)
       }
       // Filter popular pool: exclude lists by people I already follow
@@ -280,10 +274,7 @@ export function ListsDataProvider({ children }) {
       let popularPublic = []
       if (popularPublicRaw.length) {
         const popularAuthorIds = Array.from(new Set(popularPublicRaw.map(l => l.user_id)))
-        const { data: popularAuthors } = await supabase
-          .from('users')
-          .select('id, name')
-          .in('id', popularAuthorIds)
+        const { data: popularAuthors } = await supabase.rpc('get_people_public_identities', { requested_user_ids: popularAuthorIds })
         const popularAuthorMap = new Map((popularAuthors || []).map(u => [u.id, u]))
         popularPublic = popularPublicRaw
           .map(l => shapePopular(l, posters, counts, popularAuthorMap.get(l.user_id)))

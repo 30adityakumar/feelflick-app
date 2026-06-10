@@ -542,11 +542,11 @@ export function PeopleDataProvider({ children }) {
               .order('watched_at', { ascending: false })
               .limit(60)
           : Promise.resolve({ data: [] }),
+        // F8.2: cross-user name/avatar comes through the narrow authenticated identity RPC, never a
+        // direct users read (users is now owner-only). The RPC returns id/name/avatar — no email,
+        // last_active, settings or taste fields — so the usersById map below is unchanged.
         allLookupIds.length
-          ? supabase
-              .from('users')
-              .select('id, name, avatar_url')
-              .in('id', allLookupIds)
+          ? supabase.rpc('get_people_public_identities', { requested_user_ids: allLookupIds })
           : Promise.resolve({ data: [] }),
         // F7.9: cross-user fingerprints come through the narrow authenticated RPC, never the
         // (now browser-inaccessible) user_fingerprint_public view. The RPC returns the least-data
@@ -554,16 +554,12 @@ export function PeopleDataProvider({ children }) {
         // is opted in (privacy.showOnLeaderboards), bounded — so one call covers the twin, FOF
         // and popular rails and no per-set follow-up fetch is needed.
         supabase.rpc('get_discoverable_taste_profiles'),
-        // Cold-start "Popular on FeelFlick" — pull users with their real
-        // user_history(count) via the PostgREST relationship aggregate.
-        // We avoid users.total_movies_watched because it's been observed
-        // stale at 0 even for users with many watches. Sort happens
-        // client-side after the count resolves.
-        supabase
-          .from('users')
-          .select('id, name, avatar_url, user_history(count)')
-          .neq('id', userId)
-          .limit(40),
+        // F8.2: the cold-start "popular by film count" rail read other users' rows + their
+        // user_history(count) directly. Both are now closed (users is owner-only; cross-user
+        // user_history is owner-only RLS, so the embedded count was already 0 → the rail already
+        // rendered empty after the films_count > 0 filter). Preserve that empty result here;
+        // repointing the popular rail to the discoverable-taste set is deferred to F8.5.
+        Promise.resolve({ data: [] }),
       ])
 
       const usersById = new Map((peopleUsersRes.data || []).map(u => [u.id, u]))
@@ -604,21 +600,18 @@ export function PeopleDataProvider({ children }) {
       let suggested = similaritySuggested
       if (suggested.length < 6 && followingArr.length > 0) {
         // Fetch follows-of-my-follows (skip my own follower row).
-        const { data: fofRows } = await supabase
-          .from('user_follows')
-          .select('follower_id, following_id')
-          .in('follower_id', followingArr)
-          .neq('following_id', userId)
-          .limit(120)
+        // F8.2: friend-of-follows discovery reads OTHER users' follow edges, which are no longer
+        // directly readable (user_follows is participant-only). The narrow RPC returns ONLY the
+        // caller's own FOF subgraph (suggested + via), never the global graph. Adapt to the existing
+        // { follower_id (via), following_id (suggested) } shape so deriveSuggestedFOF is unchanged.
+        const { data: fofRaw } = await supabase.rpc('get_follow_suggestions')
+        const fofRows = (fofRaw || []).map(r => ({ follower_id: r.via_user_id, following_id: r.suggested_user_id }))
         // Look up names of my follows so we can show "via {friend}".
         const followingNames = new Map()
         const followingUserIds = followingArr
         const namesNeeded = followingUserIds.filter(id => !usersById.has(id))
         if (namesNeeded.length) {
-          const { data: namesRes } = await supabase
-            .from('users')
-            .select('id, name')
-            .in('id', namesNeeded)
+          const { data: namesRes } = await supabase.rpc('get_people_public_identities', { requested_user_ids: namesNeeded })
           for (const u of namesRes || []) followingNames.set(u.id, u.name)
         }
         for (const id of followingUserIds) {
@@ -631,10 +624,8 @@ export function PeopleDataProvider({ children }) {
           .map(r => r.following_id)
           .filter(id => id && id !== userId && !followingIds.has(id) && !usersById.has(id))))
         if (candidateIds.length) {
-          const { data: candUsers } = await supabase
-            .from('users')
-            .select('id, name, avatar_url, user_history(count)')
-            .in('id', candidateIds)
+          // F8.2: resolve FOF candidate identities via the narrow RPC (id/name/avatar only).
+          const { data: candUsers } = await supabase.rpc('get_people_public_identities', { requested_user_ids: candidateIds })
           for (const u of candUsers || []) usersById.set(u.id, u)
           // F7.9: FOF candidates' fingerprints are already in the map — the RPC returned every
           // opted-in user up front, so no follow-up fetch is needed. Opted-out candidates fall

@@ -30,7 +30,9 @@ export const SETTINGS = {
   privacy: {
     profilePublic:      true,
     diaryPublic:        false,
-    showOnLeaderboards: true,
+    // F8.2: taste-match discovery is now EXPLICIT OPT-IN — a user with no stored preference
+    // defaults to NOT discoverable (matches get_discoverable_taste_profiles' opt-in fallback).
+    showOnLeaderboards: false,
     analytics:          true,
     // `shareableCards` removed: no export feature exists for it to gate.
   },

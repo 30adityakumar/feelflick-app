@@ -140,6 +140,26 @@ export default function Privacy() {
           </p>
         </section>
 
+        {/* Taste-match discovery (F8.2) */}
+        <section className="rounded-2xl bg-white/5 ring-1 ring-white/6 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-sm p-6 md:p-8">
+          <h2 className="text-2xl md:text-3xl font-black mb-4 flex items-center gap-2">
+            <FileText className="h-6 w-6 text-purple-300" />
+            Taste-match discovery
+          </h2>
+          <p className="text-white/70 text-sm leading-relaxed mb-4">
+            FeelFlick can suggest other members with compatible film taste. This is for signed-in
+            members only, and you take part only if you turn on <span className="text-white/90">Appear in
+            taste-match discovery</span> in your Account settings.
+          </p>
+          <ul className="list-disc list-inside text-white/70 text-sm space-y-1 mb-4">
+            <li>When you opt in, other signed-in members may see your name, avatar, your top
+              film-taste tags, and your film count as a suggested match.</li>
+            <li>Your watched film titles and dates, your Diary, your ratings, your reviews, and your
+              generated Cinematic DNA reflection are <span className="text-white/90">not</span> included.</li>
+            <li>You can withdraw from discovery at any time by turning the setting off.</li>
+          </ul>
+        </section>
+
         {/* What we never do */}
         <section className="rounded-2xl bg-white/5 border border-purple-500/40 bg-linear-to-br from-purple-500/10 to-pink-500/10 backdrop-blur-sm p-6 md:p-8">
           <h2 className="text-2xl md:text-3xl font-black mb-4 flex items-center gap-2">

@@ -25,9 +25,11 @@ function Privacy() {
   // enforced by any read path or RLS policy — your DNA and diary are owner-private regardless.
   // Rather than render a control that falsely implies publication, they're removed until a real
   // consent-based public-profile model exists. (showOnLeaderboards IS enforced — it gates
-  // taste-twin surfacing in People — and analytics is enforced immediately; both stay.)
+  // taste-match discovery in People — and analytics is enforced immediately; both stay.)
+  // F8.2: discovery is now EXPLICIT OPT-IN (default off) and the copy enumerates exactly what
+  // becomes visible to other signed-in members.
   const rows = [
-    { k:'showOnLeaderboards', label:'Show on taste-match',  desc:"Surface in other users' taste-twin lists" },
+    { k:'showOnLeaderboards', label:'Appear in taste-match discovery',  desc:'When on, other signed-in members may see your name, avatar, your top film-taste tags and film count when FeelFlick suggests compatible people. Your watched films, Diary, ratings, reviews and Cinematic DNA reflection stay private.' },
     { k:'analytics',          label:'Product analytics',    desc:'Help us improve. Aggregated, no PII.' },
   ];
   return (

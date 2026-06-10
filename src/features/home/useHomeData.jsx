@@ -528,10 +528,8 @@ export function HomeDataProvider({ children }) {
             .slice(0, 3)
             .map(([id, c]) => ({ id, common: c }))
           if (fallbackIds.length > 0) {
-            const { data: fallbackUsers } = await supabase
-              .from('users')
-              .select('id, name')
-              .in('id', fallbackIds.map(f => f.id))
+            // F8.2: cross-user names via the narrow authenticated identity RPC (users is owner-only).
+            const { data: fallbackUsers } = await supabase.rpc('get_people_public_identities', { requested_user_ids: fallbackIds.map(f => f.id) })
             const nameById = Object.fromEntries((fallbackUsers || []).map(u => [u.id, u.name]))
             // Estimated match % via Jaccard-ish: overlap / max(watchedIds.length, twin_count)
             // Twin's full count would need another query; we approximate with

@@ -548,16 +548,12 @@ export function PeopleDataProvider({ children }) {
               .select('id, name, avatar_url')
               .in('id', allLookupIds)
           : Promise.resolve({ data: [] }),
-        // Read from the public fingerprint view, not user_profiles_computed
-        // directly — the latter is RLS-locked to the owning user. The view
-        // exposes only top mood/tone/fit aggregates + total count, gated by
-        // privacy.showOnLeaderboards. See 20260524_user_fingerprint_public.sql.
-        allLookupIds.length
-          ? supabase
-              .from('user_fingerprint_public')
-              .select('user_id, top_mood_tags, top_tone_tags, top_fit_profiles, total')
-              .in('user_id', allLookupIds)
-          : Promise.resolve({ data: [] }),
+        // F7.9: cross-user fingerprints come through the narrow authenticated RPC, never the
+        // (now browser-inaccessible) user_fingerprint_public view. The RPC returns the least-data
+        // top mood/tone/fit aggregates + total for the caller's own row plus every OTHER user who
+        // is opted in (privacy.showOnLeaderboards), bounded — so one call covers the twin, FOF
+        // and popular rails and no per-set follow-up fetch is needed.
+        supabase.rpc('get_discoverable_taste_profiles'),
         // Cold-start "Popular on FeelFlick" — pull users with their real
         // user_history(count) via the PostgREST relationship aggregate.
         // We avoid users.total_movies_watched because it's been observed
@@ -585,16 +581,9 @@ export function PeopleDataProvider({ children }) {
       )
       const meta = buildTwinMeta(twinRatingsRes.data || [], twinHistoryRes.data || [])
 
-      // Viewer's own taste fingerprint — used to mood-weight the Activity
-      // rail when we're in twin-fallback mode. Drawn from the same public
-      // view so RLS isn't a concern. (The viewer's own row is always
-      // included in the view.)
-      const { data: myFpRes } = await supabase
-        .from('user_fingerprint_public')
-        .select('top_mood_tags')
-        .eq('user_id', userId)
-        .maybeSingle()
-      const viewerTopMoods = (myFpRes?.top_mood_tags || []).slice(0, 3).map(t => t.key)
+      // Viewer's own taste fingerprint — used to mood-weight the Activity rail in twin-fallback
+      // mode. The RPC always returns the caller's own row, so read it straight from the map.
+      const viewerTopMoods = (fingerprintByUser.get(userId)?.topMoodTags || []).slice(0, 3).map(t => t.key)
 
       const twins = deriveTwins(similarityRows, followingIds, meta, fingerprintByUser)
       const rising = deriveRising(similarityRows, followingIds, meta, fingerprintByUser)
@@ -647,19 +636,9 @@ export function PeopleDataProvider({ children }) {
             .select('id, name, avatar_url, user_history(count)')
             .in('id', candidateIds)
           for (const u of candUsers || []) usersById.set(u.id, u)
-          // Also fetch their fingerprints
-          const { data: candFp } = await supabase
-            .from('user_fingerprint_public')
-            .select('user_id, top_mood_tags, top_tone_tags, top_fit_profiles, total')
-            .in('user_id', candidateIds)
-          for (const r of candFp || []) {
-            fingerprintByUser.set(r.user_id, {
-              topMoodTags: r.top_mood_tags || [],
-              topToneTags: r.top_tone_tags || [],
-              topFitProfiles: r.top_fit_profiles || [],
-              total: r.total || 0,
-            })
-          }
+          // F7.9: FOF candidates' fingerprints are already in the map — the RPC returned every
+          // opted-in user up front, so no follow-up fetch is needed. Opted-out candidates fall
+          // back to the "Building taste" bio, exactly as before.
         }
         // Exclude users already surfaced on this page: similarity-derived
         // Suggested + the four Twin cards + the three Rising cards.
@@ -695,27 +674,8 @@ export function PeopleDataProvider({ children }) {
         }))
         .filter(u => u.films_count > 0)
         .sort((a, b) => b.films_count - a.films_count)
-      // Fetch fingerprints for popular users we didn't already pull for
-      // similarity. Small follow-up round-trip, only when we'll use it.
-      if (twins.length === 0 && popularRows.length > 0) {
-        const popularIdsMissing = popularRows
-          .map(u => u.id)
-          .filter(id => !fingerprintByUser.has(id))
-        if (popularIdsMissing.length) {
-          const { data: extraFp } = await supabase
-            .from('user_fingerprint_public')
-            .select('user_id, top_mood_tags, top_tone_tags, top_fit_profiles, total')
-            .in('user_id', popularIdsMissing)
-          for (const r of extraFp || []) {
-            fingerprintByUser.set(r.user_id, {
-              topMoodTags: r.top_mood_tags || [],
-              topToneTags: r.top_tone_tags || [],
-              topFitProfiles: r.top_fit_profiles || [],
-              total: r.total || 0,
-            })
-          }
-        }
-      }
+      // F7.9: popular users' fingerprints are already in the map (the RPC returned every opted-in
+      // user up front) — no follow-up fetch. Missing/opted-out users use the bio fallback as before.
       const popular = twins.length === 0
         ? derivePopular(popularRows, followingIds, userId, fingerprintByUser)
         : []

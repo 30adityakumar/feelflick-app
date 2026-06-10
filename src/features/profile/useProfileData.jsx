@@ -316,10 +316,17 @@ async function regenerateEditorial({ userId, history, archetypeFromFp }) {
     taste_fingerprint: nextFingerprint,
   }
 
+  // F7.9: the editorial result is only durable if the cache write SUCCEEDS. The Supabase client
+  // RESOLVES (does not reject) on a DB-level error, so we MUST inspect { error } and throw —
+  // otherwise refreshEditorial would announce "updated" + mark the reflection current on a write
+  // that silently failed (it would then revert on reload). Throwing here settles the refresh to
+  // 'error', leaving the prior valid reflection intact and the action retryable.
   if (existing) {
-    await supabase.from('user_profiles_computed').update(fields).eq('user_id', userId)
+    const { error } = await supabase.from('user_profiles_computed').update(fields).eq('user_id', userId)
+    if (error) throw error
   } else {
-    await supabase.from('user_profiles_computed').insert({ user_id: userId, profile: {}, ...fields })
+    const { error } = await supabase.from('user_profiles_computed').insert({ user_id: userId, profile: {}, ...fields })
+    if (error) throw error
   }
 
   return { summary, signature, archetype: archetypeFromFp, generatedAt }

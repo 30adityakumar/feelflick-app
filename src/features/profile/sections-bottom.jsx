@@ -43,15 +43,15 @@ function SignatureDirectors() {
                 {d.avg != null ? (
                   <>
                     <span style={{ fontFamily:'Outfit', fontSize:30, fontWeight:200, color:d.accent, letterSpacing:'-0.04em', lineHeight:1 }}>{d.avg}</span>
-                    <span style={{ fontSize:11, color:HP.textMuted, fontFamily:'Outfit' }}>★ avg</span>
+                    <span style={{ fontSize:11, color:INK_LABEL, fontFamily:'Outfit' }}>★ avg</span>
                   </>
                 ) : d.firstWatchedYear ? (
                   <>
                     <span style={{ fontFamily:'Outfit', fontSize:30, fontWeight:200, color:d.accent, letterSpacing:'-0.04em', lineHeight:1 }}>{d.firstWatchedYear}</span>
-                    <span style={{ fontSize:11, color:HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.04em' }}>since</span>
+                    <span style={{ fontSize:11, color:INK_LABEL, fontFamily:'Outfit', letterSpacing:'0.04em' }}>since</span>
                   </>
                 ) : (
-                  <span style={{ fontSize:11, color:HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.06em', textTransform:'uppercase' }}>unrated</span>
+                  <span style={{ fontSize:11, color:INK_LABEL, fontFamily:'Outfit', letterSpacing:'0.06em', textTransform:'uppercase' }}>unrated</span>
                 )}
               </div>
               <div style={{ fontFamily:'Outfit', fontSize:17, fontWeight:500, color:HP.text, letterSpacing:'-0.015em', marginBottom:4 }}>{d.name}</div>
@@ -206,9 +206,9 @@ function PatternPanel() {
         {runtime && (
           <div>
             <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.22em', textTransform:'uppercase', color:HP.purple, marginBottom:14 }}>Runtime sweet spot</div>
-            <div style={{ fontFamily:'Outfit', fontSize:72, fontWeight:200, color:HP.text, letterSpacing:'-0.045em', lineHeight:1 }}>{runtime.median}<span style={{ fontSize:18, color:HP.textMuted, marginLeft:4 }}>min</span></div>
+            <div style={{ fontFamily:'Outfit', fontSize:72, fontWeight:200, color:HP.text, letterSpacing:'-0.045em', lineHeight:1 }}>{runtime.median}<span style={{ fontSize:18, color:INK_LABEL, marginLeft:4 }}>min</span></div>
             <div style={{ marginTop:8, fontSize:12, color:HP.textSoft, fontFamily:'Outfit', fontStyle:'italic' }}>median · {runtime.band} band{showShares ? ` · ${Math.round(runtime.share*100)}% of films` : ''}</div>
-            <div style={{ marginTop:20, paddingTop:18, borderTop:`1px solid ${HP.border}`, fontSize:12, color:HP.textMuted, fontFamily:'Outfit', display:'flex', flexDirection:'column', gap:6 }}>
+            <div style={{ marginTop:20, paddingTop:18, borderTop:`1px solid ${HP.border}`, fontSize:12, color:INK_LABEL, fontFamily:'Outfit', display:'flex', flexDirection:'column', gap:6 }}>
               <div>Shortest: <span style={{ color:HP.textSoft }}>{runtime.shortest.title} · {runtime.shortest.value}m</span></div>
               <div>Longest: <span style={{ color:HP.textSoft }}>{runtime.longest.title} · {runtime.longest.value}m</span></div>
             </div>
@@ -233,7 +233,7 @@ function PatternPanel() {
               ))}
             </div>
             {dayTone && (
-              <div style={{ marginTop:16, fontSize:11, color:HP.textFaint, fontFamily:'Outfit', fontStyle:'italic' }}>
+              <div style={{ marginTop:16, fontSize:11, color:INK_LABEL, fontFamily:'Outfit', fontStyle:'italic' }}>
                 {dayTone}
               </div>
             )}
@@ -263,7 +263,7 @@ function Mixtape() {
           )}
         </h2>
         {mixtape.length < 5 && (
-          <p style={{ marginTop:14, fontSize:13, color:HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', fontStyle:'italic' }}>
+          <p style={{ marginTop:14, fontSize:13, color:INK_LABEL, fontFamily:'Outfit, Inter, sans-serif', fontStyle:'italic' }}>
             Rate {5 - mixtape.length} more film{(5 - mixtape.length) === 1 ? '' : 's'} 4.5★+ to fill your mixtape.
           </p>
         )}
@@ -282,13 +282,13 @@ function Mixtape() {
               {f.poster ? (
                 <img src={f.poster} alt={f.title} style={{ width:'100%', aspectRatio:'2/3', objectFit:'cover', display:'block' }} />
               ) : (
-                <div style={{ width:'100%', aspectRatio:'2/3', background:'rgba(255,255,255,0.04)', display:'flex', alignItems:'center', justifyContent:'center', color:HP.textFaint, fontFamily:'Outfit', fontSize:18, padding:14, textAlign:'center' }}>{f.title}</div>
+                <div style={{ width:'100%', aspectRatio:'2/3', background:'rgba(255,255,255,0.04)', display:'flex', alignItems:'center', justifyContent:'center', color:INK_LABEL, fontFamily:'Outfit', fontSize:18, padding:14, textAlign:'center' }}>{f.title}</div>
               )}
               <div style={{ position:'absolute', top:10, left:10, padding:'4px 8px', borderRadius:3, background:'rgba(0,0,0,0.85)', backdropFilter:'blur(8px)', border:`1px solid ${HP.amber}55`, fontSize:9, fontWeight:700, color:HP.amber, fontFamily:'Outfit', letterSpacing:'0.06em' }}>{f.rating}★</div>
               <div style={{ position:'absolute', top:10, right:10, fontFamily:'Outfit', fontSize:24, fontWeight:300, color:'#fff', letterSpacing:'-0.04em', textShadow:'0 2px 12px rgba(0,0,0,0.5)' }}>0{i+1}</div>
             </div>
             <div style={{ fontFamily:'Outfit', fontSize:16, fontWeight:500, color:HP.text, letterSpacing:'-0.015em' }}>{f.title}</div>
-            <div style={{ fontSize:11, color:HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.04em', marginTop:3, marginBottom:10 }}>
+            <div style={{ fontSize:11, color:INK_LABEL, fontFamily:'Outfit', letterSpacing:'0.04em', marginTop:3, marginBottom:10 }}>
               {f.year}{f.dir && f.dir !== '—' ? ` · ${f.dir}` : ''}
             </div>
             {f.why && (
@@ -301,7 +301,7 @@ function Mixtape() {
           <div
             key={`empty-${idx}`}
             aria-hidden
-            style={{ borderRadius:RADIUS.sm, border:`1px dashed ${HP.border}`, aspectRatio:'2/3', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Outfit', fontSize:11, color:HP.textFaint, letterSpacing:'0.12em', textTransform:'uppercase', textAlign:'center', padding:14 }}
+            style={{ borderRadius:RADIUS.sm, border:`1px dashed ${HP.border}`, aspectRatio:'2/3', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Outfit', fontSize:11, color:INK_LABEL, letterSpacing:'0.12em', textTransform:'uppercase', textAlign:'center', padding:14 }}
           >
             Rate 4.5★+<br/>to fill
           </div>
@@ -327,11 +327,11 @@ function Skew() {
         <div>
           <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color:HP.purple, marginBottom:14 }}>Vs everyone else</div>
           <h2 className="ff-profile-section-h2" style={{ fontFamily:'Outfit', fontSize:44, lineHeight:1, fontWeight:500, letterSpacing:'-0.035em', color:HP.text, margin:0, textWrap:'balance' }}>How you <em style={{ fontStyle:'italic', fontWeight:400, color:HP.textSoft }}>skew.</em></h2>
-          <p style={{ marginTop:18, fontSize:14, color:HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', lineHeight:1.65, maxWidth:340 }}>Versus the median FeelFlick user. Refreshed nightly.</p>
+          <p style={{ marginTop:18, fontSize:14, color:INK_LABEL, fontFamily:'Outfit, Inter, sans-serif', lineHeight:1.65, maxWidth:340 }}>Versus the median FeelFlick user. Refreshed nightly.</p>
           {communityMood?.tag && (
             <div style={{ marginTop:24, paddingTop:18, borderTop:`1px solid ${HP.border}`, maxWidth:340 }}>
-              <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color:HP.textMuted, fontFamily:'Outfit', marginBottom:6 }}>This week the room is into</div>
-              <div style={{ fontFamily:'Outfit', fontSize:24, fontWeight:500, color:HP.text, letterSpacing:'-0.02em' }}>{communityMood.tag}<span style={{ fontSize:14, color:HP.textMuted, fontStyle:'italic', marginLeft:8 }}>films.</span></div>
+              <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color:INK_LABEL, fontFamily:'Outfit', marginBottom:6 }}>This week the room is into</div>
+              <div style={{ fontFamily:'Outfit', fontSize:24, fontWeight:500, color:HP.text, letterSpacing:'-0.02em' }}>{communityMood.tag}<span style={{ fontSize:14, color:INK_LABEL, fontStyle:'italic', marginLeft:8 }}>films.</span></div>
             </div>
           )}
         </div>
@@ -348,7 +348,7 @@ function Skew() {
                   <div style={{ fontFamily:'Outfit', fontSize:14, fontWeight:600, color: s.delta >= 0 ? HP.pink : HP.textMuted, letterSpacing:'0.04em' }}>{s.delta >= 0 ? `+${s.delta}` : s.delta}</div>
                 </div>
               ))}
-              <div style={{ marginTop:14, paddingTop:18, borderTop:`1px solid ${HP.border}`, display:'inline-flex', alignItems:'center', gap:10, fontSize:11, color:HP.textFaint, fontFamily:'Outfit', letterSpacing:'0.08em' }}>
+              <div style={{ marginTop:14, paddingTop:18, borderTop:`1px solid ${HP.border}`, display:'inline-flex', alignItems:'center', gap:10, fontSize:11, color:INK_LABEL, fontFamily:'Outfit', letterSpacing:'0.08em' }}>
                 <span style={{ width:14, height:2, background:HP.textFaint }} />
                 <span style={{ textTransform:'uppercase' }}>FF median</span>
                 <span style={{ marginLeft:14, width:14, height:2, background:HP_GRAD, borderRadius:RADIUS.pill }} />
@@ -356,7 +356,7 @@ function Skew() {
               </div>
             </>
           ) : (
-            <p style={{ fontFamily:'Outfit, Inter, sans-serif', fontSize:14, fontStyle:'italic', color:HP.textMuted, lineHeight:1.6, maxWidth:420 }}>
+            <p style={{ fontFamily:'Outfit, Inter, sans-serif', fontSize:14, fontStyle:'italic', color:INK_LABEL, lineHeight:1.6, maxWidth:420 }}>
               Watch and rate a few more films, and your comparison to the room lands here.
             </p>
           )}
@@ -397,12 +397,12 @@ function FriendsRanked() {
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:18 }}>
                 <div style={{ width:44, height:44, borderRadius:RADIUS.pill, background:f.avatarBg, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Outfit', fontWeight:700, color:'#0a0510', fontSize:18 }}>{f.initial}</div>
                 <div style={{ textAlign:'right' }}>
-                  <div style={{ fontFamily:'Outfit', fontSize:30, fontWeight:200, color:HP.text, letterSpacing:'-0.04em', lineHeight:1 }}>{f.match}<span style={{ fontSize:13, color:HP.textMuted, marginLeft:1 }}>%</span></div>
-                  <div style={{ fontSize:9, color:HP.textFaint, fontFamily:'Outfit', letterSpacing:'0.14em', textTransform:'uppercase' }}>match</div>
+                  <div style={{ fontFamily:'Outfit', fontSize:30, fontWeight:200, color:HP.text, letterSpacing:'-0.04em', lineHeight:1 }}>{f.match}<span style={{ fontSize:13, color:INK_LABEL, marginLeft:1 }}>%</span></div>
+                  <div style={{ fontSize:9, color:INK_LABEL, fontFamily:'Outfit', letterSpacing:'0.14em', textTransform:'uppercase' }}>match</div>
                 </div>
               </div>
               <div style={{ fontFamily:'Outfit', fontSize:16, fontWeight:500, color:HP.text, letterSpacing:'-0.01em' }}>{f.name}</div>
-              <div style={{ fontSize:11, color:HP.textMuted, fontFamily:'Outfit', marginTop:3 }}>{f.films} film{f.films === 1 ? '' : 's'} logged</div>
+              <div style={{ fontSize:11, color:INK_LABEL, fontFamily:'Outfit', marginTop:3 }}>{f.films} film{f.films === 1 ? '' : 's'} logged</div>
             </button>
           ))}
         </div>
@@ -479,7 +479,7 @@ function ShareCard() {
           <h2 className="ff-profile-section-h2" style={{ fontFamily:'Outfit', fontSize:44, lineHeight:1, fontWeight:500, letterSpacing:'-0.035em', color:HP.text, margin:0, textWrap:'balance' }}>
             Card for <em style={{ fontStyle:'italic', fontWeight:400, color:HP.textSoft }}>the feed.</em>
           </h2>
-          <p style={{ marginTop:18, fontSize:14, color:HP.textMuted, fontFamily:'Outfit, Inter, sans-serif', lineHeight:1.65, maxWidth:380 }}>
+          <p style={{ marginTop:18, fontSize:14, color:INK_LABEL, fontFamily:'Outfit, Inter, sans-serif', lineHeight:1.65, maxWidth:380 }}>
             A 1080×1920 image you can drop straight into Instagram, X, or wherever. Updates every time your DNA shifts.
           </p>
           <div style={{ marginTop:24, display:'flex', gap:10 }}>
@@ -520,7 +520,7 @@ function ShareCard() {
             </div>
             <div style={{ marginTop:14, display:'flex', alignItems:'baseline', gap:6 }}>
               <span style={{ fontFamily:'Outfit', fontSize:28, fontWeight:200, color:HP.text, letterSpacing:'-0.04em' }}>{filmsLogged}</span>
-              <span style={{ fontSize:8, color:HP.textMuted, fontFamily:'Outfit', letterSpacing:'0.14em', textTransform:'uppercase' }}>films logged · {hoursWatched}h</span>
+              <span style={{ fontSize:8, color:INK_LABEL, fontFamily:'Outfit', letterSpacing:'0.14em', textTransform:'uppercase' }}>films logged · {hoursWatched}h</span>
             </div>
           </div>
         </div>
@@ -562,12 +562,12 @@ function YIRBanner() {
 }
 
 function ProfileFooter() {
-  const linkStyle = { fontSize:12, color:HP.textMuted, letterSpacing:'0.04em', textDecoration:'none', cursor:'pointer' };
+  const linkStyle = { fontSize:12, color:INK_LABEL, letterSpacing:'0.04em', textDecoration:'none', cursor:'pointer' };
   return (
     <footer className="ff-profile-section" style={{ padding:'40px 88px 64px', borderTop:`1px solid ${HP.border}`, display:'flex', alignItems:'center', justifyContent:'space-between', fontFamily:'Outfit', flexWrap:'wrap', gap:20 }}>
       <div style={{ display:'flex', alignItems:'center', gap:14 }}>
         <div style={{ width:28, height:28, borderRadius:RADIUS.sm, background:HP_GRAD, display:'inline-flex', alignItems:'center', justifyContent:'center', fontWeight:700, fontSize:13, color:'#fff' }}>FF</div>
-        <span style={{ fontSize:13, color:HP.textMuted, letterSpacing:'0.04em' }}>FeelFlick · Cinematic DNA</span>
+        <span style={{ fontSize:13, color:INK_LABEL, letterSpacing:'0.04em' }}>FeelFlick · Cinematic DNA</span>
       </div>
       <div style={{ display:'flex', gap:24 }}>
         <a href="/privacy" style={linkStyle}>Privacy</a>

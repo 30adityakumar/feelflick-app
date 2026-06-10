@@ -55,11 +55,16 @@ describe('useProfileDataFetch — editorial generation maturity gate (F7.4)', ()
     expect(fetchSpy).not.toHaveBeenCalled()
   })
 
-  it('ESTABLISHED profile (15 watched / 5 rated) with missing editorial calls it once', async () => {
+  it('F7.6: ESTABLISHED profile with MISSING editorial still makes ZERO calls on render', async () => {
+    // F7.6 supersedes F7.4 generation-on-render entirely: even an eligible profile with no
+    // editorial never auto-generates. Generation is the explicit refresh action only.
     historyRows = films(15); ratingRows = Array.from({ length: 5 }, (_, i) => ({ movie_id: i + 1, rating: 8 }))
     const { result } = renderHook(() => useProfileDataFetch({ userId: 'u1', authUser: { id: 'u1' }, isSelf: true }))
     await waitFor(() => expect(result.current.loading).toBe(false))
-    await waitFor(() => expect(fetchSpy).toHaveBeenCalled())
-    expect(String(fetchSpy.mock.calls[0][0])).toMatch(/generate-taste-summary/)
+    await new Promise(r => setTimeout(r, 0))
+    expect(fetchSpy).not.toHaveBeenCalled()
+    // the editorial is classified 'none' (missing) → the explicit refresh action is available
+    expect(result.current.editorialStatus).toBe('none')
+    expect(typeof result.current.refreshEditorial).toBe('function')
   })
 })

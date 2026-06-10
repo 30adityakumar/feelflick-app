@@ -4,7 +4,7 @@ import { toPng } from 'html-to-image'
 import { HP, HP_GRAD, RADIUS, USER as USER_DEFAULT } from './data'
 import { ActionButton, SecondaryActionButton } from '@/shared/components/ActionButton'
 import { useProfileData } from './useProfileData'
-import { classifyProfileMaturity, MATURITY, INK_LABEL } from './derive/profilePresentation'
+import { INK_LABEL } from './derive/profilePresentation'
 
 // FeelFlick — /profile · Directors, Motifs, Trajectory, Decades+Runtime, Mixtape, Skew, Friends, Share card, Footer.
 // All sections read the live context and self-hide when their data source is
@@ -424,7 +424,7 @@ function FriendsRanked() {
 
 // Shareable card preview — Instagram-story shape
 function ShareCard() {
-  const { user, editorial, stats } = useProfileData();
+  const { user, editorial, editorialStatus } = useProfileData();
   const [copied, setCopied] = useState(false);
   const [exporting, setExporting] = useState(false);
   const previewRef = useRef(null);
@@ -432,11 +432,11 @@ function ShareCard() {
   const lastName = (user?.name || USER_DEFAULT.name).split(' ').slice(1).join(' ');
   const filmsLogged = user?.filmsLogged ?? USER_DEFAULT.filmsLogged;
   const hoursWatched = user?.hoursWatched ?? USER_DEFAULT.hoursWatched;
-  // F7.4: a forming profile must NOT export a generated identity. Above the floor the exported
-  // signature is the generated reflection (labelled); below it, a neutral honest line.
-  const maturity = classifyProfileMaturity({ watchedCount: stats?.filmsLogged ?? filmsLogged, ratedCount: stats?.filmsRated ?? 0 });
-  const hasGenerated = maturity !== MATURITY.FORMING && Boolean(editorial?.signature);
-  const signature = hasGenerated ? editorial.signature : 'Cinematic DNA — still forming.';
+  // F7.4/F7.6: the share card exports the generated reflection ONLY when it is the CURRENT
+  // (version-matched, fresh, non-forming) editorial. A forming, stale or missing reflection
+  // exports a neutral structured line instead — never stale generated prose as if current.
+  const hasGenerated = editorialStatus === 'current' && Boolean(editorial?.signature);
+  const signature = hasGenerated ? editorial.signature : 'A portrait of your film taste.';
   const archetype = Array.isArray(editorial?.archetype) && editorial.archetype.length === 3
     ? editorial.archetype
     : USER_DEFAULT.archetype;

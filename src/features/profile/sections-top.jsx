@@ -34,20 +34,53 @@ function formatUpdated(isoString) {
   return `Updated ${new Date(isoString).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`
 }
 
+// F7.6: the explicit, settled editorial refresh prompt — shown only for an eligible self profile
+// whose reflection is missing ('none') or stale/version-mismatched ('stale'). Generation happens
+// ONLY on click, never on render. Honest copy; no raw errors; no fabricated progress.
+function EditorialRefresh({ status, refreshStatus, onRefresh }) {
+  const generating = refreshStatus === 'generating';
+  const failed = refreshStatus === 'error';
+  const label = status === 'none' ? 'Generate reflection' : 'Refresh reflection';
+  const prompt = status === 'none'
+    ? 'Generate a reflection from your current film activity.'
+    : 'Your taste evidence has changed. Refresh the reflection when you’re ready.';
+  const body = generating ? 'Refreshing reflection…' : failed ? 'We couldn’t refresh your reflection. Try again.' : prompt;
+  return (
+    <div style={{ marginTop:18, maxWidth:720 }}>
+      <p style={{ marginBottom:8, fontSize:11.5, color:INK_LABEL, fontFamily:'Outfit, Inter, sans-serif', letterSpacing:'0.01em' }}>
+        <span style={{ color:HP.purple, fontWeight:600 }}>FeelFlick reflection</span>
+      </p>
+      <p style={{ marginBottom:16, fontFamily:'Outfit, Inter, sans-serif', fontSize:18, color:HP.textSoft, letterSpacing:'-0.01em', lineHeight:1.5 }}>{body}</p>
+      {typeof onRefresh === 'function' && (
+        <button
+          type="button"
+          onClick={onRefresh}
+          disabled={generating}
+          aria-busy={generating}
+          className="ff-tap"
+          style={{ minHeight:44, padding:'11px 20px', borderRadius:RADIUS.sm, background:generating?'rgba(255,255,255,0.06)':HP_GRAD, color:generating?INK_LABEL:'#fff', border:'none', cursor:generating?'wait':'pointer', fontFamily:'Outfit', fontSize:13, fontWeight:600, letterSpacing:'0.02em', opacity:generating?0.85:1 }}
+        >{generating ? 'Refreshing…' : label}</button>
+      )}
+    </div>
+  );
+}
+
 function Masthead() {
   const navigate = useNavigate();
-  const { user, isSelf, viewingUserId, editorial, stats } = useProfileData();
+  const { user, isSelf, viewingUserId, editorial, stats, editorialStatus, refreshStatus, refreshEditorial } = useProfileData();
   const name = user?.name || USER_DEFAULT.name;
   const firstName = (name.split(' ')[0] || '').trim();
   const lastName = name.split(' ').slice(1).join(' ').trim();
-  // F7.4: maturity gates whether GENERATED identity prose renders. Below the floor (forming) we
-  // never show the LLM summary/signature — even a cached one — only honest "still forming" copy.
+  // F7.6: editorialStatus (current | stale | none | forming) — computed in the provider from
+  // maturity + TTL + evidence VERSION — decides what the masthead editorial area shows. Only a
+  // 'current' (version-matched, fresh, non-forming) reflection renders as the reflection; 'stale'
+  // and 'none' show an explicit refresh prompt; 'forming' shows the honest still-forming copy.
   const watchedCount = stats?.filmsLogged ?? user?.filmsLogged ?? 0;
   const ratedCount   = stats?.filmsRated ?? 0;
-  const maturity = classifyProfileMaturity({ watchedCount, ratedCount });
-  const hasGenerated = maturity !== MATURITY.FORMING && Boolean(editorial?.summary);
-  const summary    = hasGenerated ? editorial.summary : FORMING_SUMMARY;
-  const signature  = hasGenerated ? (editorial?.signature || null) : null;
+  const status = editorialStatus || (classifyProfileMaturity({ watchedCount, ratedCount }) === MATURITY.FORMING ? 'forming' : 'none');
+  const showCurrent = status === 'current';
+  const summary    = showCurrent ? editorial?.summary : null;
+  const signature  = showCurrent ? (editorial?.signature || null) : null;
   const evidenceLine = formatEvidenceSummary({ watchedCount, ratedCount });
   // The deterministic archetype is always real (computed locally from taste signals); show it
   // once there's any signal, distinct from the generated prose.
@@ -133,7 +166,7 @@ function Masthead() {
           <h1 className="ff-profile-masthead-h1" style={{ fontFamily:'Outfit', fontSize:96, lineHeight:0.92, fontWeight:300, letterSpacing:'-0.055em', color:HP.text, margin:0, textWrap:'balance' }}>
             {firstName}{lastName && <> <em style={{ fontStyle:'italic', fontWeight:400, color:HP.textSoft }}>{lastName}</em></>}.
           </h1>
-          {hasGenerated ? (
+          {status === 'current' ? (
             <>
               <p id="ff-dna-summary" className="ff-profile-masthead-summary" aria-describedby="ff-dna-provenance" style={{ marginTop:18, fontFamily:'Outfit, Inter, sans-serif', fontSize:21, fontStyle:'italic', color:HP.textSoft, letterSpacing:'-0.012em', maxWidth:720, textWrap:'pretty' }}>
                 “{summary}”
@@ -142,11 +175,19 @@ function Masthead() {
                 <span style={{ color:HP.purple, fontWeight:600 }}>FeelFlick reflection</span> — a generated interpretation of your film activity, not a measured fact.
               </p>
             </>
-          ) : (
+          ) : status === 'forming' ? (
             <p className="ff-profile-masthead-summary" style={{ marginTop:18, fontFamily:'Outfit, Inter, sans-serif', fontSize:20, color:HP.textMuted, letterSpacing:'-0.012em', maxWidth:720, textWrap:'pretty', lineHeight:1.5 }}>
-              {summary}
+              {FORMING_SUMMARY}
             </p>
+          ) : (
+            <EditorialRefresh status={status} refreshStatus={refreshStatus} onRefresh={isSelf ? refreshEditorial : undefined} />
           )}
+          {/* F7.6: one persistent polite/atomic live region — announces a settled refresh once. */}
+          <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+            {refreshStatus === 'success' ? 'Your FeelFlick reflection is updated.'
+              : refreshStatus === 'error' ? 'We couldn’t refresh your reflection. Try again.'
+              : ''}
+          </div>
           {evidenceLine && (
             <p style={{ marginTop:14, fontSize:12, color:INK_LABEL, fontFamily:'Outfit', letterSpacing:'0.03em' }}>{evidenceLine}</p>
           )}

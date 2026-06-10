@@ -27,10 +27,20 @@ describe('Account Privacy — F7.2 honest controls', () => {
     expect(screen.queryByText(/anyone with the link can view your dna/i)).not.toBeInTheDocument()
   })
 
-  it('keeps the enforced controls (taste-match surfacing + analytics)', () => {
+  it('keeps the enforced controls (taste-match discovery + analytics)', () => {
     render(<Privacy />)
-    expect(screen.getByText('Show on taste-match')).toBeInTheDocument()
+    expect(screen.getByText('Appear in taste-match discovery')).toBeInTheDocument()
     expect(screen.getByText('Product analytics')).toBeInTheDocument()
+  })
+
+  it('F8.2: discovery copy enumerates the exposed fields AND what stays private', () => {
+    render(<Privacy />)
+    // exposed fields named
+    expect(screen.getByText(/name, avatar, your top film-taste tags and film count/i)).toBeInTheDocument()
+    // explicitly states the private data is NOT included
+    expect(screen.getByText(/watched films, Diary, ratings, reviews and Cinematic DNA reflection stay private/i)).toBeInTheDocument()
+    // not called a leaderboard
+    expect(screen.queryByText(/leaderboard/i)).not.toBeInTheDocument()
   })
 
   it('states honestly that Cinematic DNA / history / ratings are private', () => {

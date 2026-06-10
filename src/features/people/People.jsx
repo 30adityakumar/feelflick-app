@@ -493,12 +493,9 @@ function PeopleV2Body() {
     setSearching(true)
     ;(async () => {
       try {
-        const { data, error } = await supabase
-          .from('users')
-          .select('id, name, avatar_url')
-          .ilike('name', `%${debouncedQuery}%`)
-          .neq('id', authUser.id)
-          .limit(20)
+        // F8.2: name search goes through the narrow authenticated RPC (id/name/avatar only) — the
+        // users table is now owner-only, so a direct cross-user name query is no longer possible.
+        const { data, error } = await supabase.rpc('search_people_by_name', { search_query: debouncedQuery })
         if (error) throw error
         if (!abort) {
           setResults((data || []).map(u => ({

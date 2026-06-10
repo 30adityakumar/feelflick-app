@@ -87,11 +87,9 @@ export default function ListDetail() {
         }
         setList(listRes.data)
 
-        const { data: ownerData } = await supabase
-          .from('users')
-          .select('id, name, avatar_url')
-          .eq('id', listRes.data.user_id)
-          .maybeSingle()
+        // F8.2: list-owner identity via the narrow authenticated RPC (users is owner-only).
+        const { data: ownerRows } = await supabase.rpc('get_people_public_identities', { requested_user_ids: [listRes.data.user_id] })
+        const ownerData = (ownerRows || [])[0] || null
         if (abort) return
         setOwner(ownerData)
 

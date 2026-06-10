@@ -8,6 +8,7 @@
  */
 
 import { supabase } from '@/shared/lib/supabase/client'
+import { dedupeHistoryByMovie } from '@/shared/lib/canonicalHistory'
 
 // === CONFIG ===
 
@@ -109,17 +110,23 @@ async function computeFingerprint(userId) {
   // call to 400 with `column user_history.status does not exist`.
   const { data: history, error } = await supabase
     .from('user_history')
-    .select('movies(mood_tags, tone_tags, fit_profile)')
+    .select('movie_id, watched_at, movies(mood_tags, tone_tags, fit_profile)')
     .eq('user_id', userId)
 
   if (error || !history) return null
+
+  // F7.3: collapse duplicate watch events to ONE row per film (latest valid watched_at)
+  // before aggregating, so a film watched via several paths doesn't multiply-weight its
+  // mood/tone/fit tags or inflate `total`. movie_id + watched_at are selected only to make
+  // this canonicalisation possible; the aggregation + weights are otherwise unchanged.
+  const canonical = dedupeHistoryByMovie(history)
 
   const moods = {}
   const tones = {}
   const fits = {}
   let total = 0
 
-  for (const h of history) {
+  for (const h of canonical) {
     const m = h.movies
     if (!m) continue
     total++

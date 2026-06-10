@@ -5,9 +5,10 @@
 // section components consume. Each section hides when its data source is
 // empty.
 
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { supabase } from '@/shared/lib/supabase/client'
 import { getTasteFingerprint } from '@/shared/services/tasteCache'
+import { dedupeHistoryByMovie } from '@/shared/lib/canonicalHistory'
 
 import {
   deriveUser, deriveStats, deriveMoods, deriveDirectors, deriveMotifs,
@@ -62,6 +63,10 @@ const INITIAL_STATE = {
 
 export function useProfileDataFetch({ userId, authUser, isSelf = false }) {
   const [state, setState] = useState(INITIAL_STATE)
+  // F7.3: in-SPA retry for the error state — bumping reloadKey re-runs the fetch effect
+  // (the existing refetch path), so the safe error UI can offer a real "Try again".
+  const [reloadKey, setReloadKey] = useState(0)
+  const retry = useCallback(() => setReloadKey(k => k + 1), [])
 
   useEffect(() => {
     if (!userId) return
@@ -111,6 +116,12 @@ export function useProfileDataFetch({ userId, authUser, isSelf = false }) {
         if (historyRes.error) throw historyRes.error
 
         const history = historyRes.data || []
+        // F7.3: canonicalise the owner's history ONCE at the Profile boundary — one row per
+        // film (latest valid watched_at) — and feed it to EVERY Profile-owned derivation,
+        // the fingerprint inputs (via getTasteFingerprint, canonicalised there), and the
+        // generated-summary evidence, so duplicate watch events can't inflate any visible
+        // identity number. Raw `history` is not read by any downstream derivation below.
+        const canonicalHistory = dedupeHistoryByMovie(history)
         const ratings = ratingsRes.data || []
         const ratingsByMovieId = new Map(ratings.map(r => [r.movie_id, r]))
         const dbUser = userRes.data || null
@@ -147,28 +158,28 @@ export function useProfileDataFetch({ userId, authUser, isSelf = false }) {
           }
         }
 
-        const statsDerived = deriveStats({ history, ratings, fingerprint })
+        const statsDerived = deriveStats({ history: canonicalHistory, ratings, fingerprint })
         setState({
-          user: deriveUser({ authUser, dbUser, history }),
+          user: deriveUser({ authUser, dbUser, history: canonicalHistory }),
           stats: statsDerived,
           moods: deriveMoods(fingerprint),
-          directors: deriveDirectors({ history, ratingsByMovieId }),
-          motifs: deriveMotifs({ history }),
-          mixtape: deriveMixtape({ history, ratingsByMovieId }),
-          trajectory: deriveTrajectory({ history }),
-          trajectoryAllTime: deriveTrajectoryAllTime({ history }),
-          decades: deriveDecades({ history }),
-          runtime: deriveRuntime({ history }),
-          daypart: deriveDaypart({ history }),
+          directors: deriveDirectors({ history: canonicalHistory, ratingsByMovieId }),
+          motifs: deriveMotifs({ history: canonicalHistory }),
+          mixtape: deriveMixtape({ history: canonicalHistory, ratingsByMovieId }),
+          trajectory: deriveTrajectory({ history: canonicalHistory }),
+          trajectoryAllTime: deriveTrajectoryAllTime({ history: canonicalHistory }),
+          decades: deriveDecades({ history: canonicalHistory }),
+          runtime: deriveRuntime({ history: canonicalHistory }),
+          daypart: deriveDaypart({ history: canonicalHistory }),
           editorial,
           friends: deriveFriends({
             simARows: simARes?.data || [],
             simBRows: simBRes?.data || [],
             filmsByFriendId,
           }),
-          skews: deriveSkews({ stats: statsDerived, history, ratings, feelflickStats }),
+          skews: deriveSkews({ stats: statsDerived, history: canonicalHistory, ratings, feelflickStats }),
           communityMood: deriveCommunityMood(feelflickStats),
-          yir: deriveYIR({ history }),
+          yir: deriveYIR({ history: canonicalHistory }),
           loading: false,
           error: null,
         })
@@ -176,8 +187,8 @@ export function useProfileDataFetch({ userId, authUser, isSelf = false }) {
         // Self-view: regenerate editorial summary + signature when missing or
         // stale (>24 h). Archetype is deterministic so it's always live; we
         // persist it alongside for resilience when viewing other users.
-        if (isSelf && shouldRegenerateEditorial(editorial) && history.length > 0) {
-          regenerateEditorial({ userId, history, archetypeFromFp })
+        if (isSelf && shouldRegenerateEditorial(editorial) && canonicalHistory.length > 0) {
+          regenerateEditorial({ userId, history: canonicalHistory, archetypeFromFp })
             .then((updated) => {
               if (abort || !updated) return
               setState((s) => ({ ...s, editorial: { ...s.editorial, ...updated } }))
@@ -190,15 +201,17 @@ export function useProfileDataFetch({ userId, authUser, isSelf = false }) {
         }
       } catch (e) {
         if (abort) return
+        // F7.3: never surface raw backend text to the UI. Diagnostics stay in the console;
+        // the page renders fixed, safe copy off this stable classification.
         console.error('[useProfileDataFetch]', e)
-        setState(s => ({ ...s, loading: false, error: e?.message || 'Failed to load' }))
+        setState(s => ({ ...s, loading: false, error: 'load_error' }))
       }
     })()
 
     return () => { abort = true }
-  }, [userId, authUser, isSelf])
+  }, [userId, authUser, isSelf, reloadKey])
 
-  return state
+  return { ...state, retry }
 }
 
 export function ProfileDataProvider({ value, children }) {

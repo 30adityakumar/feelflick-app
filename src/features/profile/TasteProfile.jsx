@@ -40,7 +40,7 @@ function SelfProfile({ authUser }) {
   const data = useProfileDataFetch({ userId: authUser?.id, authUser, isSelf: true })
 
   if (data.loading) return <PageSkeleton />
-  if (data.error) return <PageError error={data.error} />
+  if (data.error) return <PageError onRetry={data.retry} />
 
   return (
     <ProfileDataProvider value={{ ...data, isSelf: true, viewingUserId: authUser?.id }}>
@@ -115,13 +115,22 @@ function PageSkeleton() {
   )
 }
 
-function PageError({ error }) {
+// F7.3: fixed, safe error copy off the stable `load_error` classification — the raw backend
+// message is never rendered. One h1, role="alert", a real in-SPA retry, and a safe exit.
+function PageError({ onRetry }) {
+  const btn = { fontFamily:'Outfit, Inter, sans-serif', fontSize:14, fontWeight:600, minHeight:44, padding:'11px 20px', borderRadius:8, cursor:'pointer' }
   return (
     <div className="ff-profile-v2" style={{ minHeight:'100vh', background: HP.bgDeep, color: HP.text, display:'flex', alignItems:'center', justifyContent:'center', padding:24, fontFamily:'Inter, sans-serif' }}>
-      <div style={{ textAlign:'center', maxWidth:520 }}>
-        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: HP.purple, marginBottom:18 }}>Profile · error</div>
-        <h1 style={{ fontFamily:'Outfit, Inter, sans-serif', fontSize:36, fontWeight:500, color: HP.text, margin:'0 0 18px 0', letterSpacing:'-0.025em' }}>Couldn&rsquo;t load your DNA.</h1>
-        <p style={{ margin:0, color:'rgba(250,250,250,0.6)', fontSize:14, lineHeight:1.6 }}>{error}</p>
+      <div role="alert" style={{ textAlign:'center', maxWidth:520 }}>
+        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.28em', textTransform:'uppercase', color: HP.purple, marginBottom:18 }}>Cinematic DNA</div>
+        <h1 style={{ fontFamily:'Outfit, Inter, sans-serif', fontSize:36, fontWeight:500, color: HP.text, margin:'0 0 14px 0', letterSpacing:'-0.025em' }}>We couldn&rsquo;t load your Cinematic DNA.</h1>
+        <p style={{ margin:'0 0 28px 0', color:'rgba(250,250,250,0.6)', fontSize:14, lineHeight:1.6 }}>Try refreshing in a moment.</p>
+        <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
+          {typeof onRetry === 'function' && (
+            <button type="button" onClick={onRetry} style={{ ...btn, color:'#0A0510', background:HP.text, border:'none' }}>Try again</button>
+          )}
+          <a href="/home" style={{ ...btn, color:HP.text, background:'transparent', border:`1px solid ${HP.border}`, textDecoration:'none', display:'inline-flex', alignItems:'center' }}>Go to Home</a>
+        </div>
       </div>
     </div>
   )

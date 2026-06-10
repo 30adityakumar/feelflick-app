@@ -15,6 +15,7 @@
 
 import { formatShortDate, formatShortMonthYear } from '@/shared/lib/format/date'
 import { HP, MOOD_HEX, tmdbImg } from '../data'
+import { dedupeHistoryByMovie } from '@/shared/lib/canonicalHistory'
 
 export const WEEKDAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
@@ -36,27 +37,11 @@ export function moodHexFor(name) {
 
 // === Derivers ============================================================
 
-// F6.10: collapse user_history to ONE canonical row per film. The DB allows multiple
-// rows per (user, movie) (its only uniqueness is (user_id, movie_id, watched_at)), and
-// different watch paths stamp fresh watched_at values, so the same film can have 2–3 rows.
-// The CURRENT Diary contract is one entry per film — multiple rows are collapsed to the
-// LATEST watch (this is NOT a rewatch; first-class rewatches + any DB cleanup are future
-// architecture). Pure: the input is never mutated, no DB row is touched, and the selected
-// canonical row's fields are preserved verbatim (older rows are never merged/synthesized).
-export function dedupeHistoryByMovie(history = []) {
-  const byMovie = new Map()
-  for (let i = 0; i < history.length; i++) {
-    const row = history[i]
-    if (!row || row.movie_id == null) continue                 // rule 1: need a movie_id
-    const t = row.watched_at ? new Date(row.watched_at).getTime() : NaN
-    if (!Number.isFinite(t)) continue                          // rule 2: need a valid watched_at (Diary rule)
-    const existing = byMovie.get(row.movie_id)
-    // rule 4/5: keep the most-recent watched_at; on a tie keep the EARLIER original-array
-    // row (replace only when STRICTLY newer → stable, deterministic).
-    if (!existing || t > existing.t) byMovie.set(row.movie_id, { row, t })
-  }
-  return [...byMovie.values()].map(v => v.row)                 // rules 6/7: new array, original row refs
-}
+// F6.10's canonical one-row-per-film rule now lives in the neutral shared module
+// (src/shared/lib/canonicalHistory.js, imported above) so Profile + fingerprinting don't
+// depend on this Diary feature module (F7.3). Re-exported to preserve the F6 public/test
+// contract (consumers importing dedupeHistoryByMovie from here keep working).
+export { dedupeHistoryByMovie }
 
 export function deriveEntries(history, ratings) {
   const ratingByMovieId = new Map(ratings.map(r => [r.movie_id, r]))

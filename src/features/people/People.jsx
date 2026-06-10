@@ -1,8 +1,8 @@
 // src/features/people/People.jsx
-// FeelFlick — People v2 ("Taste twins"). Editorial social surface backed by
-// live user_follows × user_similarity × user_ratings × user_history. Drops
-// the internal Nav (AppShell owns nav). All follow/unfollow flows through
-// the provider's optimistic toggleFollow.
+// FeelFlick — People: consent-led taste-match discovery (F8.2–F8.7). Reads only the caller's own
+// follows + own similarity pairs + the narrow authenticated identity/search/FOF RPCs (no cross-user
+// behavioral reads). Follow/Unfollow settle only after persistence (F8.4); Hide is session-local.
+// AppShell owns the page <main> + nav.
 
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react'
 import { supabase } from '@/shared/lib/supabase/client'
@@ -16,8 +16,14 @@ import './people.css'
 
 const RESET_BTN = { background: 'none', border: 'none', padding: 0, margin: 0, font: 'inherit', color: 'inherit', cursor: 'pointer', textAlign: 'left' }
 
-// Avatar — renders the user's uploaded image when available, falls back to
-// a colored initial circle. Used by every twin/rising/suggested/activity card.
+// F8.7: hardened muted label colour for small (10–12px) load-bearing People text. The HP.textMuted
+// token (rgba(250,250,250,0.45)) is ~4.1:1 on the #06060a canvas → fails WCAG AA for small text; INK
+// at 0.62 is ~7.3:1 (AA + AAA), matching Profile's proven INK_LABEL value without coupling to it.
+const INK = 'rgba(250,250,250,0.62)'
+
+// Avatar — renders the user's uploaded image when available, falls back to a colored initial circle.
+// Used by every twin/rising/suggested/search card; decorative within cards (alt="" — the name is
+// adjacent text), so it renders as a plain image, not an interactive control.
 function Avatar({ url, initial, bg, size = 48, onClick, alt }) {
   const dim = { width: size, height: size }
   const ring = { ...dim, borderRadius: 999, overflow: 'hidden', flex: 'none' }
@@ -106,13 +112,14 @@ function Masthead({ onSearch, query, setQuery }) {
             placeholder="Search by name…"
             aria-label="Search for users by name"
             className="ff-people-search-input"
-            style={{ flex: 1, minWidth: 200, maxWidth: 480, padding: '12px 18px', borderRadius: 8, background: 'rgba(255,255,255,0.04)', border: `1px solid ${HP.border}`, color: HP.text, fontFamily: 'Outfit, Inter, sans-serif', fontSize: 14, outline: 'none' }}
+            style={{ flex: 1, minWidth: 200, maxWidth: 480, minHeight: 44, padding: '12px 18px', borderRadius: 8, background: 'rgba(255,255,255,0.04)', border: `1px solid ${HP.border}`, color: HP.text, fontFamily: 'Outfit, Inter, sans-serif', fontSize: 14 }}
           />
           <button
             type="button"
             onClick={handleInvite}
             aria-label="Invite a friend to FeelFlick"
-            style={{ padding: '12px 20px', borderRadius: 8, background: HP_GRAD, border: 'none', color: '#fff', fontFamily: 'Outfit', fontSize: 12, fontWeight: 600, letterSpacing: '0.04em', cursor: 'pointer' }}
+            className="ff-people-invite-btn"
+            style={{ minHeight: 44, padding: '0 20px', borderRadius: 8, background: HP_GRAD, border: 'none', color: '#fff', fontFamily: 'Outfit', fontSize: 12, fontWeight: 600, letterSpacing: '0.04em', cursor: 'pointer' }}
           >
             Invite a friend
           </button>
@@ -180,7 +187,7 @@ function HideBtn({ onHide, name }) {
       onClick={onHide}
       aria-label={`Hide ${name || 'this person'} from your suggestions`}
       className="ff-people-hidebtn"
-      style={{ minHeight: 44, minWidth: 44, padding: '0 10px', background: 'transparent', border: 'none', color: HP.textMuted, fontFamily: 'Outfit', fontSize: 10, letterSpacing: '0.04em', cursor: 'pointer' }}
+      style={{ minHeight: 44, minWidth: 44, padding: '0 10px', background: 'transparent', border: 'none', color: INK, fontFamily: 'Outfit', fontSize: 10, letterSpacing: '0.04em', cursor: 'pointer' }}
     >
       Hide
     </button>
@@ -214,19 +221,19 @@ function TwinsRail() {
   const { containerRef, onHide } = useRailHide(visibleTwins)
 
   return (
-    <section className="ff-people-section ff-people-twins" style={{ padding: '24px 88px 56px' }}>
+    <section className="ff-people-section ff-people-twins" aria-labelledby="ff-people-twins-h" style={{ padding: '24px 88px 56px' }}>
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 24, gap: 16, flexWrap: 'wrap' }}>
         <div>
           <Eyebrow rule size={10} style={{ marginBottom: 12 }}>Strongest matches</Eyebrow>
-          <h2 className="ff-people-h2" style={{ fontFamily: 'Outfit', fontSize: 36, lineHeight: 1, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>
+          <h2 id="ff-people-twins-h" className="ff-people-h2" style={{ fontFamily: 'Outfit', fontSize: 36, lineHeight: 1, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>
             People who <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>get it.</em>
           </h2>
         </div>
       </div>
       {loading ? (
-        <div className="ff-people-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 18 }}>
+        <div className="ff-people-grid-4" aria-busy="true" aria-label="Loading people" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 18 }}>
           {[0, 1, 2, 3].map(i => (
-            <div key={i} style={{ height: 220, borderRadius: 8, background: 'rgba(255,255,255,0.025)', border: `1px solid ${HP.border}` }} className="animate-pulse" />
+            <div key={i} aria-hidden="true" style={{ height: 220, borderRadius: 8, background: 'rgba(255,255,255,0.025)', border: `1px solid ${HP.border}` }} className="animate-pulse" />
           ))}
         </div>
       ) : visibleTwins.length === 0 ? (
@@ -242,13 +249,13 @@ function TwinsRail() {
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 18, gap: 12 }}>
                   <Avatar url={p.avatarUrl} initial={p.initial} bg={p.avatarBg} size={48} alt="" />
                   <div style={{ textAlign: 'right', maxWidth: 150 }}>
-                    <div style={{ fontFamily: 'Outfit', fontSize: 14, fontWeight: 500, color: p.matchPresentation.qualified ? HP.text : HP.textMuted, letterSpacing: '-0.01em', lineHeight: 1.25 }}>{p.matchPresentation.band || p.matchPresentation.caption}</div>
-                    {p.matchPresentation.evidence && <div style={{ fontSize: 10, color: HP.textMuted, fontFamily: 'Outfit', marginTop: 3 }}>{p.matchPresentation.evidence}</div>}
+                    <div style={{ fontFamily: 'Outfit', fontSize: 14, fontWeight: 500, color: p.matchPresentation.qualified ? HP.text : INK, letterSpacing: '-0.01em', lineHeight: 1.25 }}>{p.matchPresentation.band || p.matchPresentation.caption}</div>
+                    {p.matchPresentation.evidence && <div style={{ fontSize: 10, color: INK, fontFamily: 'Outfit', marginTop: 3 }}>{p.matchPresentation.evidence}</div>}
                   </div>
                 </div>
                 {p.matchPresentation.qualified && <div aria-hidden="true"><MatchBar pct={p.match} hex={p.avatarBg} /></div>}
                 <div style={{ marginTop: 16, fontFamily: 'Outfit', fontSize: 18, fontWeight: 500, color: HP.text, letterSpacing: '-0.015em' }}>{p.name}</div>
-                <div style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit', marginTop: 2 }}>{p.handle}</div>
+                <div style={{ fontSize: 11, color: INK, fontFamily: 'Outfit', marginTop: 2 }}>{p.handle}</div>
                 {p.bio && <p style={{ margin: '12px 0 0 0', fontSize: 12, color: HP.textSoft, fontFamily: 'Outfit, Inter, sans-serif', lineHeight: 1.5 }}>{p.bio}</p>}
                 <div style={{ marginTop: 14, paddingTop: 14, borderTop: `1px solid ${HP.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
                   {!p.following && <HideBtn onHide={() => onHide(p.id)} name={p.name} />}
@@ -263,8 +270,6 @@ function TwinsRail() {
   )
 }
 
-// Cold-start guidance that sits above the Popular rail. Tells the user
-// "twins are computed from your ratings — here's a head start while you log."
 // F8.5: honest empty state — no one discoverable yet (or all suggestions hidden this session). No
 // fabricated Popular/Activity fallback is shown to avoid an empty page.
 function ColdStartHero() {
@@ -282,11 +287,11 @@ function Rising() {
   if (!loading && visibleRising.length === 0) return null
 
   return (
-    <section className="ff-people-section ff-people-rising" style={{ padding: '48px 88px', borderTop: `1px solid ${HP.border}`, background: 'rgba(255,255,255,0.012)' }}>
+    <section className="ff-people-section ff-people-rising" aria-labelledby="ff-people-rising-h" style={{ padding: '48px 88px', borderTop: `1px solid ${HP.border}`, background: 'rgba(255,255,255,0.012)' }}>
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
         <div>
           <Eyebrow rule size={10} style={{ marginBottom: 12 }}>More matches</Eyebrow>
-          <h2 className="ff-people-h2-sm" style={{ fontFamily: 'Outfit', fontSize: 30, lineHeight: 1, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>More people to <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>discover.</em></h2>
+          <h2 id="ff-people-rising-h" className="ff-people-h2-sm" style={{ fontFamily: 'Outfit', fontSize: 30, lineHeight: 1, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>More people to <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>discover.</em></h2>
         </div>
       </div>
       <div className="ff-people-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16 }}>
@@ -295,9 +300,9 @@ function Rising() {
             <Avatar url={p.avatarUrl} initial={p.initial} bg={p.avatarBg} size={42} alt="" />
             <div style={{ minWidth: 0 }}>
               <div style={{ fontFamily: 'Outfit', fontSize: 14, fontWeight: 500, color: HP.text }}>{p.name}</div>
-              <div style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.bio}</div>
+              <div style={{ fontSize: 11, color: INK, fontFamily: 'Outfit', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.bio}</div>
               {p.matchPresentation.qualified && <div style={{ marginTop: 8 }} aria-hidden="true"><MatchBar pct={p.match} hex={p.avatarBg} /></div>}
-              <div style={{ marginTop: 6, fontSize: 10, color: HP.textMuted, fontFamily: 'Outfit', letterSpacing: '0.04em' }}>{p.matchPresentation.evidence || p.matchPresentation.band || p.matchPresentation.caption}</div>
+              <div style={{ marginTop: 6, fontSize: 10, color: INK, fontFamily: 'Outfit', letterSpacing: '0.04em' }}>{p.matchPresentation.evidence || p.matchPresentation.band || p.matchPresentation.caption}</div>
             </div>
             <FollowBtn id={p.id} following={p.following} pending={isPending(p.id)} errored={isErrored(p.id)} name={p.name} onFollow={() => follow(p.id, p.name)} onUnfollow={() => unfollow(p.id, p.name)} />
           </div>
@@ -314,10 +319,10 @@ function Suggested() {
   if (!loading && visibleSuggested.length === 0) return null
 
   return (
-    <section className="ff-people-section ff-people-suggested" style={{ padding: '56px 88px', borderTop: `1px solid ${HP.border}` }}>
+    <section className="ff-people-section ff-people-suggested" aria-labelledby="ff-people-suggested-h" style={{ padding: '56px 88px', borderTop: `1px solid ${HP.border}` }}>
       <div style={{ marginBottom: 24 }}>
         <Eyebrow size={10} style={{ marginBottom: 12 }}>Suggested</Eyebrow>
-        <h2 className="ff-people-h2-sm" style={{ fontFamily: 'Outfit', fontSize: 30, lineHeight: 1, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>People you <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>might know.</em></h2>
+        <h2 id="ff-people-suggested-h" className="ff-people-h2-sm" style={{ fontFamily: 'Outfit', fontSize: 30, lineHeight: 1, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>People you <em style={{ fontStyle: 'italic', fontWeight: 400, color: HP.textSoft }}>might know.</em></h2>
       </div>
       <div ref={containerRef} tabIndex={-1} className="ff-people-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16, outline: 'none' }}>
         {visibleSuggested.map(p => (
@@ -325,7 +330,7 @@ function Suggested() {
             <Avatar url={p.avatarUrl} initial={p.initial} bg={p.avatarBg} size={42} alt="" />
             <div style={{ minWidth: 0 }}>
               <div style={{ fontFamily: 'Outfit', fontSize: 15, fontWeight: 500, color: HP.text }}>{p.name}</div>
-              <div style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit', marginTop: 2 }}>
+              <div style={{ fontSize: 11, color: INK, fontFamily: 'Outfit', marginTop: 2 }}>
                 {p.viaFriend
                   ? <>via <span style={{ color: HP.text }}>{p.viaFriend}</span>{p.matchPresentation?.band ? <> · {p.matchPresentation.band}</> : null}</>
                   : <>{p.matchPresentation?.evidence || p.matchPresentation?.band || p.matchPresentation?.caption || 'Suggested for you'}</>}
@@ -345,18 +350,18 @@ function Suggested() {
 function SearchResults({ results, loading, onClear }) {
   const { followingIds, follow, unfollow, isPending, isErrored } = usePeopleData()
   return (
-    <section className="ff-people-section ff-people-search-results" style={{ padding: '24px 88px 56px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+    <section className="ff-people-section ff-people-search-results" aria-labelledby="ff-people-search-h" style={{ padding: '24px 88px 56px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, gap: 12 }}>
         <div>
           <Eyebrow size={10} style={{ marginBottom: 12 }}>Search results</Eyebrow>
-          <h2 className="ff-people-h2-sm" style={{ fontFamily: 'Outfit', fontSize: 30, lineHeight: 1, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>{results.length} match{results.length === 1 ? '' : 'es'}</h2>
+          <h2 id="ff-people-search-h" className="ff-people-h2-sm" style={{ fontFamily: 'Outfit', fontSize: 30, lineHeight: 1, fontWeight: 500, letterSpacing: '-0.03em', color: HP.text, margin: 0 }}>{results.length} match{results.length === 1 ? '' : 'es'}</h2>
         </div>
-        <button type="button" onClick={onClear} style={{ ...RESET_BTN, fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Clear ×</button>
+        <button type="button" onClick={onClear} aria-label="Clear search results" className="ff-people-clear-btn" style={{ ...RESET_BTN, minHeight: 44, minWidth: 44, padding: '0 12px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: INK, fontFamily: 'Outfit', letterSpacing: '0.08em', textTransform: 'uppercase', flex: 'none' }}>Clear ×</button>
       </div>
       {loading ? (
-        <div style={{ fontSize: 13, color: HP.textMuted, fontFamily: 'Outfit, Inter, sans-serif' }}>Searching…</div>
+        <div style={{ fontSize: 13, color: INK, fontFamily: 'Outfit, Inter, sans-serif' }}>Searching…</div>
       ) : results.length === 0 ? (
-        <div style={{ fontSize: 14, color: HP.textMuted, fontFamily: 'Outfit, Inter, sans-serif', fontStyle: 'italic' }}>No people found. Try a different name.</div>
+        <div style={{ fontSize: 14, color: INK, fontFamily: 'Outfit, Inter, sans-serif', fontStyle: 'italic' }}>No people found. Try a different name.</div>
       ) : (
         <div className="ff-people-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16 }}>
           {results.map(u => (
@@ -364,7 +369,7 @@ function SearchResults({ results, loading, onClear }) {
               <Avatar url={u.avatarUrl} initial={u.initial} bg={u.avatarBg} size={42} alt="" />
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontFamily: 'Outfit', fontSize: 15, fontWeight: 500, color: HP.text }}>{u.name}</div>
-                <div style={{ fontSize: 11, color: HP.textMuted, fontFamily: 'Outfit', marginTop: 2 }}>{u.handle}</div>
+                <div style={{ fontSize: 11, color: INK, fontFamily: 'Outfit', marginTop: 2 }}>{u.handle}</div>
               </div>
               <FollowBtn id={u.id} following={followingIds.has(u.id)} pending={isPending(u.id)} errored={isErrored(u.id)} name={u.name} onFollow={() => follow(u.id, u.name)} onUnfollow={() => unfollow(u.id, u.name)} />
             </div>
@@ -379,7 +384,7 @@ function EmptyState({ label, body }) {
   return (
     <div style={{ border: `1px dashed ${HP.border}`, borderRadius: 12, padding: '32px 24px', textAlign: 'center', background: 'rgba(255,255,255,0.02)' }}>
       <div style={{ fontFamily: 'Outfit', fontSize: 14, fontWeight: 500, color: HP.text, marginBottom: 6 }}>{label}</div>
-      <div style={{ fontFamily: 'Outfit, Inter, sans-serif', fontSize: 13, color: HP.textMuted, maxWidth: 420, margin: '0 auto', lineHeight: 1.55 }}>{body}</div>
+      <div style={{ fontFamily: 'Outfit, Inter, sans-serif', fontSize: 13, color: INK, maxWidth: 420, margin: '0 auto', lineHeight: 1.55 }}>{body}</div>
     </div>
   )
 }

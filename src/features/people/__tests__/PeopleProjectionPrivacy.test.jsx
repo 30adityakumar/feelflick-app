@@ -93,3 +93,37 @@ describe('F8.2 — People resolves cross-user identity via narrow RPCs, never a 
     expect(peopleSource).not.toMatch(/from\(\s*['"]user_follows['"]\s*\)[\s\S]{0,120}\.in\(\s*['"]follower_id['"]/)
   })
 })
+
+describe('F8.3 — taste-match trust + de-precision (no friendship, no exact %)', () => {
+  it('renders no exact taste-match percentage (qualitative bands only)', () => {
+    // the prominent "{p.match}%" / "% match" presentation is gone from the rendered UI
+    expect(peopleJsxSource).not.toMatch(/\{p\.match\}\s*<span[^>]*>%/)   // big "82%" number block
+    expect(peopleJsxSource).not.toMatch(/\{p\.match\}%\s*match/)         // "82% match" caption
+    expect(peopleJsxSource).not.toMatch(/\}% match</)
+  })
+
+  it('uses the pure presentation module for the match band/evidence', () => {
+    expect(peopleSource).toContain('deriveTasteMatchPresentation')
+    expect(peopleSource).toContain('matchPresentation')
+    expect(peopleJsxSource).toContain('matchPresentation')
+  })
+
+  it('no production copy calls algorithmic matches or one-way follows "friends" or claims they "predict you"', () => {
+    // strip the legitimate real-world invite copy ("Invite a friend" / "A friend thinks you'd like…")
+    const copy = peopleJsxSource
+      .replace(/Invite a friend to FeelFlick/g, '')
+      .replace(/'A friend'/g, '')
+    expect(copy).not.toMatch(/[Ff]riends? whose/)         // "Friends whose ratings predict yours"
+    expect(copy).not.toMatch(/predict[s]? you/i)          // "predicts you"
+    expect(copy).not.toMatch(/your\s+circle/i)            // "your circle watched/loves"
+    expect(copy).not.toMatch(/your\s+taste twins?\b/i)    // hero "Your taste twins"
+  })
+
+  it('the only relationship label is the one-way follow (Follow / Following), never friend', () => {
+    expect(peopleJsxSource).toMatch(/aria-label=\{following \? 'Unfollow' : 'Follow'\}/)
+  })
+
+  it('MatchBar is decorative (aria-hidden) and only shown when the match is evidence-qualified', () => {
+    expect(peopleJsxSource).toMatch(/qualified &&[\s\S]{0,80}aria-hidden="true"[\s\S]{0,40}MatchBar/)
+  })
+})

@@ -7,6 +7,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react'
 import { supabase } from '@/shared/lib/supabase/client'
+import { deriveTasteMatchPresentation } from './derive/peoplePresentation'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 
 const PeopleDataContext = createContext(null)
@@ -175,6 +176,16 @@ function deriveTwins(similarityRows, followingIds, meta, fingerprintByUser) {
       avatarBg: avatarBg(u.id),
       match: Math.max(0, Math.min(100, Math.round((row.overall_similarity ?? 0) * 100))),
       films: watchCount,
+      // F8.3 evidence: films-in-common (the honest shared-evidence basis) + the discoverable
+      // fingerprint total (counterpart maturity), turned into the de-precisioned, evidence-qualified
+      // taste-match presentation by the pure module (no exact % surfaced; no relationship implied).
+      inCommon: Number.isFinite(row.movies_in_common) ? row.movies_in_common : null,
+      total: fingerprintByUser.get(u.id)?.total ?? null,
+      matchPresentation: deriveTasteMatchPresentation({
+        matchPct: Math.max(0, Math.min(100, Math.round((row.overall_similarity ?? 0) * 100))),
+        moviesInCommon: Number.isFinite(row.movies_in_common) ? row.movies_in_common : null,
+        total: fingerprintByUser.get(u.id)?.total ?? null,
+      }),
       mood: meta.topMood.get(u.id) || 'Building taste',
       bio: deriveBio({ fingerprint: fingerprintByUser.get(u.id), watchCount }),
       recent: r
@@ -202,6 +213,16 @@ function deriveRising(similarityRows, followingIds, meta, fingerprintByUser) {
       avatarBg: avatarBg(u.id),
       match: Math.max(0, Math.min(100, Math.round((row.overall_similarity ?? 0) * 100))),
       films: watchCount,
+      // F8.3 evidence: films-in-common (the honest shared-evidence basis) + the discoverable
+      // fingerprint total (counterpart maturity), turned into the de-precisioned, evidence-qualified
+      // taste-match presentation by the pure module (no exact % surfaced; no relationship implied).
+      inCommon: Number.isFinite(row.movies_in_common) ? row.movies_in_common : null,
+      total: fingerprintByUser.get(u.id)?.total ?? null,
+      matchPresentation: deriveTasteMatchPresentation({
+        matchPct: Math.max(0, Math.min(100, Math.round((row.overall_similarity ?? 0) * 100))),
+        moviesInCommon: Number.isFinite(row.movies_in_common) ? row.movies_in_common : null,
+        total: fingerprintByUser.get(u.id)?.total ?? null,
+      }),
       mood: meta.topMood.get(u.id) || 'Building taste',
       bio: deriveBio({ fingerprint: fingerprintByUser.get(u.id), watchCount }),
       recent: r
@@ -328,7 +349,16 @@ function deriveSuggested(similarityRows, followingIds, currentUserId, fingerprin
         initial: initialOf(u.name),
         avatarBg: avatarBg(u.id),
         mutuals: row.movies_in_common ?? 0,
-        mood: `${Math.round((row.overall_similarity ?? 0) * 100)}% match`,
+        // F8.3: keep the raw match + evidence; the qualitative band/evidence is derived in the
+        // pure presentation module at render (no exact % surfaced).
+        match: Math.max(0, Math.min(100, Math.round((row.overall_similarity ?? 0) * 100))),
+        inCommon: Number.isFinite(row.movies_in_common) ? row.movies_in_common : null,
+        total: fingerprintByUser.get(u.id)?.total ?? null,
+        matchPresentation: deriveTasteMatchPresentation({
+          matchPct: Math.max(0, Math.min(100, Math.round((row.overall_similarity ?? 0) * 100))),
+          moviesInCommon: Number.isFinite(row.movies_in_common) ? row.movies_in_common : null,
+          total: fingerprintByUser.get(u.id)?.total ?? null,
+        }),
         bio: deriveBio({ fingerprint: fingerprintByUser.get(u.id), watchCount }),
         viaFriend: null,
       }

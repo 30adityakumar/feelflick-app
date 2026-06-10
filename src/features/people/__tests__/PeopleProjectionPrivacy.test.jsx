@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, waitFor } from '@testing-library/react'
 import peopleSource from '../usePeopleData.jsx?raw'
 import peopleJsxSource from '../People.jsx?raw'
+import * as peopleData from '../data.js'
+import peopleDataSource from '../data.js?raw'
 
 // F7.9 — People taste-match must read the cross-user fingerprint through the narrow authenticated
 // RPC (get_discoverable_taste_profiles), never the now browser-inaccessible projection views. The
@@ -162,5 +164,52 @@ describe('F8.4 — settled follow, button semantics, live region, Hide suggestio
     expect(peopleJsxSource).toContain('nextFocusId')                   // focus-after-removal
     expect(peopleJsxSource).toContain('scheduleFocus')
     expect(peopleJsxSource).toMatch(/className="ff-people-hidebtn"[\s\S]{0,120}minHeight: 44/)
+  })
+})
+
+describe('F8.5 — dead social surfaces removed', () => {
+  it('the provider makes NO cross-user behavioral reads (no user_history / user_ratings / reviews)', () => {
+    expect(peopleSource).not.toMatch(/\.from\(\s*['"]user_history['"]\s*\)/)
+    expect(peopleSource).not.toMatch(/\.from\(\s*['"]user_ratings['"]\s*\)/)
+    expect(peopleSource).not.toMatch(/\.from\(\s*['"]reviews['"]\s*\)/)
+    expect(peopleSource).not.toMatch(/user_history\(\s*count\s*\)/)   // no embedded cross-user count
+  })
+
+  it('the dead RLS-dead derivations are gone (Activity / CrewOverlap / Popular / twin-meta)', () => {
+    for (const dead of ['deriveActivity', 'deriveCrewOverlap', 'derivePopular', 'buildTwinMeta']) {
+      expect(peopleSource).not.toContain(dead)
+    }
+    expect(peopleJsxSource).not.toMatch(/<Activity\b/)
+    expect(peopleJsxSource).not.toMatch(/<CrewOverlap\b/)
+  })
+
+  it('no rendered copy promises recent cross-user watched activity or claims unmeasured popularity', () => {
+    expect(peopleJsxSource).not.toMatch(/Popular on FeelFlick/)
+    expect(peopleJsxSource).not.toMatch(/most-watched/)
+    expect(peopleJsxSource).not.toMatch(/circle (watched|loves)/i)
+    expect(peopleJsxSource).not.toMatch(/just (rated|watched|added)/i)
+  })
+
+  it('no People card links to a private cross-user profile (/profile/:id) or self-references /people', () => {
+    expect(peopleJsxSource).not.toMatch(/navigate\(\s*['"]\/profile/)
+    expect(peopleJsxSource).not.toMatch(/navigate\(\s*['"]\/people['"]\s*\)/)
+    expect(peopleJsxSource).not.toMatch(/View \$\{[^}]*\}'s profile/)   // dead "View {name}'s profile"
+  })
+
+  it('the retained similarity rails still rank by the SAME slices (order unchanged)', () => {
+    expect(peopleSource).toMatch(/deriveSimilarityCards\([^)]*0, 4\)/)   // twins = ranks 1-4
+    expect(peopleSource).toMatch(/deriveSimilarityCards\([^)]*4, 7\)/)   // rising = ranks 5-7
+    expect(peopleSource).toContain('deriveSuggested')
+  })
+
+  it('data.js no longer exports fabricated people/activity mocks (only real design tokens remain)', () => {
+    for (const dead of ['USER', 'TWINS', 'RISING', 'ACTIVITY', 'CREW_OVERLAP', 'SUGGESTED']) {
+      expect(peopleData[dead]).toBeUndefined()
+    }
+    expect(Object.keys(peopleData).sort()).toEqual(['HP', 'HP_GRAD'])
+    // no fabricated names / reviews left behind as accidental future source material
+    for (const fake of ['Marco Reyes', 'Priya Shah', 'Park Chan-wook', 'airport scene', 'Refn-coded']) {
+      expect(peopleDataSource).not.toContain(fake)
+    }
   })
 })

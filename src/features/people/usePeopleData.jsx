@@ -8,6 +8,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react'
 import { supabase } from '@/shared/lib/supabase/client'
 import { deriveTasteMatchPresentation } from './derive/peoplePresentation'
+import { usePeopleFollowActions } from './hooks/usePeopleFollowActions'
 import { useAuthSession } from '@/shared/hooks/useAuthSession'
 
 const PeopleDataContext = createContext(null)
@@ -725,57 +726,29 @@ export function PeopleDataProvider({ children }) {
   }, [load])
 
   // === Follow / unfollow with optimistic update ===
-  const toggleFollow = useCallback(async (targetId) => {
-    if (!userId || !targetId || targetId === userId) return
-    const wasFollowing = state.followingIds.has(targetId)
-
-    // Optimistic UI swap
+  // F8.4: settled follow state — applied ONLY after a write succeeds (never optimistic). The action
+  // layer (usePeopleFollowActions) owns the user_follows writes (EXACT existing payloads/filters) +
+  // per-target pending/error + announcements + the session-local Hide suggestion; the provider just
+  // flips the server-backed state on settled success. No optimistic swap, no silent revert.
+  const applyFollowState = useCallback((targetId, isFollowing) => {
     setState(s => {
+      const had = s.followingIds.has(targetId)
+      if (had === isFollowing) return s
       const next = new Set(s.followingIds)
-      if (wasFollowing) next.delete(targetId)
-      else next.add(targetId)
+      if (isFollowing) next.add(targetId); else next.delete(targetId)
       return {
         ...s,
         followingIds: next,
-        twins: s.twins.map(p => p.id === targetId ? { ...p, following: !wasFollowing } : p),
-        rising: s.rising.map(p => p.id === targetId ? { ...p, following: !wasFollowing } : p),
-        user: { ...s.user, following: s.user.following + (wasFollowing ? -1 : 1) },
+        twins: s.twins.map(p => p.id === targetId ? { ...p, following: isFollowing } : p),
+        rising: s.rising.map(p => p.id === targetId ? { ...p, following: isFollowing } : p),
+        user: { ...s.user, following: Math.max(0, s.user.following + (isFollowing ? 1 : -1)) },
       }
     })
+  }, [])
 
-    try {
-      if (wasFollowing) {
-        const { error } = await supabase
-          .from('user_follows')
-          .delete()
-          .eq('follower_id', userId)
-          .eq('following_id', targetId)
-        if (error) throw error
-      } else {
-        const { error } = await supabase
-          .from('user_follows')
-          .insert({ follower_id: userId, following_id: targetId })
-        if (error) throw error
-      }
-    } catch (e) {
-      console.error('[usePeopleData.toggleFollow]', e)
-      // Revert
-      setState(s => {
-        const next = new Set(s.followingIds)
-        if (wasFollowing) next.add(targetId)
-        else next.delete(targetId)
-        return {
-          ...s,
-          followingIds: next,
-          twins: s.twins.map(p => p.id === targetId ? { ...p, following: wasFollowing } : p),
-          rising: s.rising.map(p => p.id === targetId ? { ...p, following: wasFollowing } : p),
-          user: { ...s.user, following: s.user.following + (wasFollowing ? 1 : -1) },
-        }
-      })
-    }
-  }, [userId, state.followingIds])
+  const followActions = usePeopleFollowActions({ userId, followingIds: state.followingIds, applyFollowState })
 
-  const value = useMemo(() => ({ ...state, toggleFollow }), [state, toggleFollow])
+  const value = useMemo(() => ({ ...state, ...followActions }), [state, followActions])
   return <PeopleDataContext.Provider value={value}>{children}</PeopleDataContext.Provider>
 }
 

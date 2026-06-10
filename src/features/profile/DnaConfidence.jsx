@@ -12,14 +12,11 @@
 import { Link } from 'react-router-dom'
 import Eyebrow from '@/shared/ui/Eyebrow'
 import { HP, HP_GRAD, RADIUS, SPACE } from './data'
+import { deriveConfidenceBand } from './derive/profilePresentation'
 
-// Tier label from the confidence value — LABELING ONLY (mirrors QuickStats'
-// low/medium/high thresholds). Never recomputes or reinterprets the number.
-function tierFor(confidence) {
-  if (confidence >= 80) return { key: 'high', label: 'Reading you well' }
-  if (confidence >= 40) return { key: 'medium', label: 'Getting sharper' }
-  return { key: 'low', label: 'Still learning' }
-}
+// F7.4: the confidence value is the SHARED computeDnaConfidence number (unchanged), but it is
+// now presented as a qualitative evidence-maturity BAND — never an exact percentage and never a
+// completion meter. deriveConfidenceBand owns the label; this component only frames it.
 
 /**
  * @param {object} props
@@ -31,24 +28,17 @@ function tierFor(confidence) {
  */
 export default function DnaConfidence({ confidence, filmsLogged = 0, filmsRated = 0, moodSignals = 0 }) {
   if (!Number.isFinite(confidence)) return null
-  const pct = Math.max(0, Math.min(100, Math.round(confidence)))
-  const tier = tierFor(pct)
-  const cold = tier.key === 'low'
+  const band = deriveConfidenceBand(confidence)
+  const cold = band.key === 'forming'
 
   return (
     <section className="ff-profile-section" style={{ padding: `${SPACE.sectionMd}px ${SPACE.gutter}px`, borderTop: `1px solid ${HP.border}` }}>
       <div className="ff-profile-dnaconf-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1.3fr', gap: 64, alignItems: 'flex-start' }}>
-        {/* Left — the number, tier, bar, and the evidence it's built from */}
+        {/* Left — the maturity band (no % / no completion meter) + the evidence it's built from */}
         <div>
           <Eyebrow rule color={HP.purple} style={{ marginBottom: 16 }}>DNA confidence</Eyebrow>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 14, flexWrap: 'wrap' }}>
-            <span style={{ fontFamily: 'Outfit', fontSize: 72, fontWeight: 200, color: HP.text, letterSpacing: '-0.05em', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{pct}%</span>
-            <span style={{ fontFamily: 'Outfit', fontSize: 14, fontWeight: 500, color: cold ? HP.textMuted : HP.purple, fontStyle: 'italic' }}>{tier.label}</span>
-          </div>
-          <div role="presentation" style={{ marginTop: 18, height: 6, background: 'rgba(255,255,255,0.06)', borderRadius: RADIUS.pill, overflow: 'hidden', maxWidth: 320 }}>
-            <div style={{ height: '100%', width: `${pct}%`, background: HP_GRAD, borderRadius: RADIUS.pill, transition: 'width 0.9s cubic-bezier(0.2,0.8,0.2,1)' }} />
-          </div>
-          <div style={{ marginTop: 18, fontSize: 12, color: HP.textMuted, fontFamily: 'Outfit', letterSpacing: '0.02em' }}>
+          <div style={{ fontFamily: 'Outfit', fontSize: 48, fontWeight: 300, color: HP.text, letterSpacing: '-0.04em', lineHeight: 1.05 }}>{band.label}</div>
+          <div style={{ marginTop: 22, fontSize: 12, color: HP.textMuted, fontFamily: 'Outfit', letterSpacing: '0.02em' }}>
             Built from <span style={{ color: HP.textSoft, fontWeight: 600 }}>{filmsLogged}</span> logged ·{' '}
             <span style={{ color: HP.textSoft, fontWeight: 600 }}>{filmsRated}</span> rated ·{' '}
             <span style={{ color: HP.textSoft, fontWeight: 600 }}>{moodSignals}</span> mood signal{moodSignals === 1 ? '' : 's'}

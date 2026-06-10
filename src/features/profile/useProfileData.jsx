@@ -9,6 +9,7 @@ import { createContext, useContext, useEffect, useState, useCallback } from 'rea
 import { supabase } from '@/shared/lib/supabase/client'
 import { getTasteFingerprint } from '@/shared/services/tasteCache'
 import { dedupeHistoryByMovie } from '@/shared/lib/canonicalHistory'
+import { classifyProfileMaturity, MATURITY } from './derive/profilePresentation'
 
 import {
   deriveUser, deriveStats, deriveMoods, deriveDirectors, deriveMotifs,
@@ -184,10 +185,13 @@ export function useProfileDataFetch({ userId, authUser, isSelf = false }) {
           error: null,
         })
 
-        // Self-view: regenerate editorial summary + signature when missing or
-        // stale (>24 h). Archetype is deterministic so it's always live; we
-        // persist it alongside for resilience when viewing other users.
-        if (isSelf && shouldRegenerateEditorial(editorial) && canonicalHistory.length > 0) {
+        // Self-view: regenerate editorial summary + signature when missing or stale (>24 h).
+        // F7.4: the maturity floor gates GENERATION, not just rendering — a "forming" profile
+        // (too little canonical evidence) never calls the editorial Edge Function or writes the
+        // cache, so the cost + the "identity from one film" trust problem are both avoided.
+        // Archetype is deterministic so it's always live.
+        const profileMaturity = classifyProfileMaturity({ watchedCount: canonicalHistory.length, ratedCount: ratings.length })
+        if (isSelf && shouldRegenerateEditorial(editorial) && profileMaturity !== MATURITY.FORMING) {
           regenerateEditorial({ userId, history: canonicalHistory, archetypeFromFp })
             .then((updated) => {
               if (abort || !updated) return
